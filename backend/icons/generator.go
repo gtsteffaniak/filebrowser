@@ -111,7 +111,7 @@ func loadFaviconSource() ([]byte, error) {
 		return handleSVGFavicon(settings.Env.FaviconPath)
 
 	case sourceCustomRaster:
-		logger.Debugf("Processing custom raster favicon: %s", settings.Env.FaviconPath)
+		logger.Debugf("Processing custom favicon: %s", settings.Env.FaviconPath)
 		return handleRasterFavicon(settings.Env.FaviconPath)
 
 	case sourceDefault:

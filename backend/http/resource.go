@@ -203,6 +203,10 @@ type MoveCopyResponse struct {
 // @Failure 500 {object} map[string]string "Internal server error - all deletions failed"
 // @Router /api/resources/bulk/delete [post]
 func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	filePermUser := d.user
+	if d.share != nil {
+		filePermUser = d.shareUser
+	}
 	// Check permissions - either user delete permission or share delete permission
 	if d.share == nil {
 		if !d.user.Permissions.Delete {
@@ -248,18 +252,29 @@ func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *reques
 		}
 
 		if d.share != nil {
-			indexPath := utils.JoinPathAsUnix(d.share.Path, item.Path)
 			source, err := d.share.GetSourceName()
 			if err != nil {
 				return http.StatusNotFound, fmt.Errorf("source not available")
 			}
+			// get user scope path from share
+			userScope, err := d.shareUser.GetScopeForSourceName(source)
+			if err != nil {
+				response.Failed = append(response.Failed, BulkDeleteItem{
+					Source:  item.Source,
+					Path:    item.Path,
+					Message: "user does not have access",
+				})
+				continue
+			}
+			withoutUserScope := strings.TrimPrefix(d.share.Path, userScope)
+			indexPath := utils.JoinPathAsUnix(withoutUserScope, item.Path)
 
 			fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 				FollowSymlinks: true,
 				Path:           indexPath,
 				Source:         source,
 				ShowHidden:     true,
-			}, store.Access, d.user)
+			}, store.Access, filePermUser)
 			if err != nil {
 				return http.StatusNotFound, fmt.Errorf("resource not available")
 			}
@@ -289,7 +304,7 @@ func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *reques
 			}
 
 			// Check user scope for this source
-			_, err := d.user.GetScopeForSourceName(item.Source)
+			_, err := filePermUser.GetScopeForSourceName(item.Source)
 			if err != nil {
 				response.Failed = append(response.Failed, BulkDeleteItem{
 					Source:  item.Source,
@@ -315,7 +330,7 @@ func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *reques
 				Path:           idx.MakeIndexPath(item.Path, false),
 				Source:         item.Source,
 				ShowHidden:     true,
-			}, store.Access, d.user)
+			}, store.Access, filePermUser)
 			if err != nil {
 				response.Failed = append(response.Failed, BulkDeleteItem{
 					Source:  item.Source,
@@ -354,7 +369,7 @@ func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *reques
 // @Tags Resources
 // @Accept json
 // @Produce json
-// @Param path query string true "url encoded destination path where to place the files inside the destination source, a directory must end in / to create a directory"
+// @Param path query string true "url encoded destination path where to place the files inside the destination source"
 // @Param source query string true "Name for the desired filebrowser destination source name, default is used if not provided"
 // @Param override query bool false "Override existing file if true"
 // @Param isDir query bool false "Explicitly specify if the resource is a directory"
@@ -367,22 +382,14 @@ func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *reques
 func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
-	var err error
-	accessStore := store.Access
-	// if share is not nil, then set accessStore to nil
-	if d.share != nil {
-		accessStore = nil
-	} else {
-		// Go automatically decodes query params - no need for QueryUnescape
-		if !d.user.Permissions.Create {
-			return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
-		}
-		// Path is now handled by FileInfoFaster which will apply user scope
+	if d.share == nil && !d.user.Permissions.Create {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
 	}
-
-	// Determine if this is a directory based on isDir query param or trailing slash (for backwards compatibility)
-	isDirParam := r.URL.Query().Get("isDir")
-	isDir := isDirParam == "true" || strings.HasSuffix(path, "/")
+	filePermUser := d.user
+	if d.share != nil {
+		filePermUser = d.shareUser
+	}
+	isDir := r.URL.Query().Get("isDir") == "true"
 	fileOpts := utils.FileOptions{
 		Path:           path,
 		Source:         source,
@@ -394,10 +401,21 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		logger.Debugf("source %s not found", source)
 		return http.StatusNotFound, fmt.Errorf("source %s not found", source)
 	}
-	realPath, _, _ := idx.GetRealPath(path)
+
+	userscope, err := filePermUser.GetScopeForSourceName(source)
+	if err != nil {
+		logger.Debugf("error getting scope from source name: %v", err)
+		return http.StatusForbidden, err
+	}
+	userscope = strings.TrimRight(userscope, "/")
+
+	fullIndexPath := utils.JoinPathAsUnix(userscope, path)
+
+	// get scoped path
+	realPath, _, _ := idx.GetRealPath(fullIndexPath)
 
 	// Check access control for the target path
-	if accessStore != nil && !accessStore.Permitted(idx.Path, path, d.user.Username) {
+	if !store.Access.Permitted(idx.Path, path, filePermUser.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to path %s", path)
 	}
 
@@ -416,14 +434,6 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 
 	// Directories creation on POST.
 	if isDir {
-		// Get user scope to resolve full index path for directory creation
-		var userScope string
-		userScope, err = d.user.GetScopeForSourceName(source)
-		if err != nil {
-			return http.StatusForbidden, err
-		}
-		fullIndexPath := utils.JoinPathAsUnix(userScope, path)
-
 		// Create a new FileOptions with the full index path
 		dirOpts := fileOpts
 		dirOpts.Path = fullIndexPath
@@ -469,7 +479,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			}
 
 			var fileInfo *iteminfo.ExtendedFileInfo
-			fileInfo, err = files.FileInfoFaster(fileOpts, accessStore, d.user)
+			fileInfo, err = files.FileInfoFaster(fileOpts, store.Access, filePermUser)
 			if err == nil { // File exists
 				if r.URL.Query().Get("override") != "true" {
 					logger.Debugf("resource already exists: %v", fileInfo.RealPath)
@@ -519,23 +529,16 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			// close file before moving
 			outFile.Close()
 			// Move the completed file from the temp location to the final destination
-			err = fileutils.MoveFile(tempFilePath, realPath)
+			err = files.MoveResource(false, source, source, tempFilePath, realPath, store.Share, store.Access)
 			if err != nil {
 				logger.Debugf("could not move file from %v to %v: %v", tempFilePath, realPath, err)
 				return http.StatusInternalServerError, fmt.Errorf("could not move file from chunked folder to destination: %v", err)
 			}
-			// Refresh index with user scope
-			userScope, scopeErr := d.user.GetScopeForSourceName(source)
-			if scopeErr == nil {
-				fullIndexPath := utils.JoinPathAsUnix(userScope, fileOpts.Path)
-				go files.RefreshIndex(source, fullIndexPath, false, false) //nolint:errcheck
-			}
 		}
-
 		return http.StatusOK, nil
 	}
 
-	fileInfo, err := files.FileInfoFaster(fileOpts, accessStore, d.user)
+	fileInfo, err := files.FileInfoFaster(fileOpts, store.Access, filePermUser)
 	if err == nil { // File exists
 		if r.URL.Query().Get("override") != "true" {
 			logger.Debugf("resource already exists: %v", fileInfo.RealPath)
@@ -544,13 +547,6 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		// If overriding, delete existing thumbnails
 		preview.DelThumbs(r.Context(), *fileInfo)
 	}
-
-	// Get user scope to resolve full index path for write operation
-	userScope, err := d.user.GetScopeForSourceName(source)
-	if err != nil {
-		return http.StatusForbidden, err
-	}
-	fullIndexPath := utils.JoinPathAsUnix(userScope, path)
 
 	err = files.WriteFile(fileOpts.Source, fullIndexPath, r.Body)
 	if err != nil {

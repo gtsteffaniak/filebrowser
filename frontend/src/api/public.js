@@ -115,7 +115,7 @@ export function post(
   }
   try {
     const apiPath = getPublicApiPath("resources", {
-      targetPath: encodeURIComponent(path),
+      path: path,
       hash: hash,
       override: overwrite,
       ...(isDir && { isDir: 'true' })

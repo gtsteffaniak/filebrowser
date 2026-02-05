@@ -265,12 +265,8 @@ func (s *Storage) UpdateShares(oldSource, oldPath, newSource, newPath string) (i
 		}
 		s.mu.Unlock()
 
-		logger.Info("share updated", "hash", l.Hash, "fromPath", oldFullPath, "toPath", l.Path)
+		logger.Debugf("share updated", "hash", l.Hash, "fromPath", oldFullPath, "toPath", l.Path)
 		updated++
-	}
-
-	if updated == 0 {
-		logger.Warning("no matching shares to update for provided source/path")
 	}
 	return updated, nil
 }
