@@ -40,7 +40,7 @@ type MediaMetadata struct {
 	Genre    string `json:"genre,omitempty"`    // music/video genre
 	Track    int    `json:"track,omitempty"`    // track number
 	Duration int    `json:"duration,omitempty"` // duration in seconds
-	AlbumArt string `json:"albumArt,omitempty"` // base64 encoded album art / video thumbnail
+	AlbumArt []byte `json:"albumArt,omitempty"` // album art image data (automatically base64-encoded in JSON)
 }
 
 // for efficiency, a response will be a pointer to the data

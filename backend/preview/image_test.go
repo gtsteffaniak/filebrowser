@@ -489,12 +489,17 @@ func TestCreatePreviewFromReader_UsesConcurrencyLimit(t *testing.T) {
 	data, err := io.ReadAll(source)
 	require.NoError(t, err)
 
-	out, err := svc.CreatePreviewFromReader(bytes.NewReader(data), "small")
+	// Get options for small preview
+	options, err := getPreviewOptions("small")
+	require.NoError(t, err)
+
+	// Create preview from reader
+	out, err := svc.CreatePreview(bytes.NewReader(data), int64(len(data)), options)
 	require.NoError(t, err)
 	require.NotEmpty(t, out)
 
-	// Same via CreatePreview (bytes) for parity
-	out2, err := svc.CreatePreview(data, "small")
+	// Same via another call for parity
+	out2, err := svc.CreatePreview(bytes.NewReader(data), int64(len(data)), options)
 	require.NoError(t, err)
 	require.Equal(t, out, out2)
 }
