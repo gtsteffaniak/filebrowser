@@ -125,17 +125,17 @@ func loadFaviconSource() ([]byte, error) {
 
 // handleSVGFavicon processes an SVG favicon by finding its raster companion
 func handleSVGFavicon(svgPath string) ([]byte, error) {
-	logger.Debug("Looking for raster companion for SVG favicon")
+	logger.Debug("Looking for companion for SVG favicon")
 
 	companionData, companionPath, err := findRasterCompanion(svgPath)
 	if err != nil {
-		logger.Warningf("SVG favicon has no raster companion: %v", err)
+		logger.Warningf("SVG favicon has no companion: %v", err)
 		logger.Warning("Falling back to default embedded favicon")
 		logger.Warning("For best Apple/iOS compatibility, provide a PNG/JPG companion alongside your SVG")
 		return loadDefaultFavicon()
 	}
 
-	logger.Debugf("Found raster companion: %s", companionPath)
+	logger.Debugf("Found companion: %s", companionPath)
 	return convertRasterToPNG(companionData, filepath.Ext(companionPath))
 }
 
