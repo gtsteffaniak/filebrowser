@@ -22,7 +22,7 @@
             :modified="item.modified"
             :index="index"
             :path="item.path"
-            :hasPreview="item.previewUrl !== null"
+            :hasPreview="item.hasPreview"
             :displayFullPath="true"
             :updateGlobalState="false"
             :isSelectedProp="false"
@@ -107,6 +107,7 @@ export default {
           size: item.size,
           modified: item.modified,
           previewUrl: previewUrl,
+          hasPreview: item.hasPreview,
         });
       } else if (!this.isListing) {
         const item = state.req.items[state.selected[0]];
@@ -118,6 +119,7 @@ export default {
           size: item.size,
           modified: item.modified,
           previewUrl: previewUrl,
+          hasPreview: item.hasPreview,
         });
       } else {
         for (let index of state.selected) {
@@ -130,6 +132,7 @@ export default {
             size: item.size,
             modified: item.modified,
             previewUrl: previewUrl,
+            hasPreview: item.hasPreview,
           });
         }
       }
