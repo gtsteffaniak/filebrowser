@@ -12,7 +12,7 @@ All notable changes to this project will be documented in this file. For commit 
  - fix stuck motion preview popup window issue
  - Chunked uploads ignore User Scope and are saved to Source Root (#1894)
  - share delete with user scope issue
- - fix favicon pwa icon -- Having the PWA respect the favicon/loginIcon (#1899)
+ - fix favicon pwa icon, having the PWA respect the favicon/loginIcon (#1899)
 
 ## v1.2.2-beta
 
