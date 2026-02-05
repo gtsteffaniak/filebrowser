@@ -247,7 +247,6 @@ func (s *Storage) UpdateShares(oldSource, oldPath, newSource, newPath string) (i
 			continue
 		}
 
-		oldFullPath := l.Path
 		l.Source = newSource
 		l.Path = newPath
 
@@ -264,8 +263,6 @@ func (s *Storage) UpdateShares(oldSource, oldPath, newSource, newPath string) (i
 			s.shareCache[l.Hash] = l
 		}
 		s.mu.Unlock()
-
-		logger.Debugf("share updated", "hash", l.Hash, "fromPath", oldFullPath, "toPath", l.Path)
 		updated++
 	}
 	return updated, nil
