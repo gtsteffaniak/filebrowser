@@ -5,14 +5,15 @@ All notable changes to this project will be documented in this file. For commit 
 ## v1.2.3-beta
 
  **Notes**:
- - Removed deprecated behavior for file uploads that checked for path ending in "/" to determine if is directory
+ - Removed upload api behavior to assume paths ending in "/" are folders, strictly uses isDir query param
  - renamed public upload api query param from `targetPath` to `path`. see swagger docs.
 
  **BugFixes**:
  - fix stuck motion preview popup window issue
  - Chunked uploads ignore User Scope and are saved to Source Root (#1894)
  - share delete with user scope issue
- - fix favicon pwa icon -- Having the PWA respect the favicon/loginIcon (#1899)
+ - fix favicon pwa icon, having the PWA respect the favicon/loginIcon (#1899)
+ - delete prompt icons show image previews
 
 ## v1.2.2-beta
 
