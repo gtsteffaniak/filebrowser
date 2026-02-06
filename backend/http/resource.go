@@ -251,7 +251,8 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 
 		// Sanitize path to prevent path traversal attacks
 		// Rule 1: Do Not Use User Input in File Paths (without validation)
-		safePath, err := utils.SanitizeUserPath(unescapedPath)
+		var safePath string
+		safePath, err = utils.SanitizeUserPath(unescapedPath)
 		if err != nil {
 			return http.StatusForbidden, fmt.Errorf("invalid path: %v", err)
 		}
