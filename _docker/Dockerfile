@@ -44,7 +44,6 @@ RUN [ "filebrowser", "version" ]
 RUN [ "ffmpeg", "-version" ]
 RUN [ "ffprobe", "-version" ]
 RUN [ "exiftool", "-ver" ]
-USER root
 # exposing default port for auto discovery.
 EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
