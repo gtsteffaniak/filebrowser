@@ -159,10 +159,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	api.HandleFunc("GET /settings/config", withAdmin(settingsConfigHandler))
 
 	// Events routes
-	api.HandleFunc("GET /events", withUser(func(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-		d.ctx = ctx // Pass the parent context to ensure proper shutdown
-		return sseHandler(w, r, d)
-	}))
+	api.HandleFunc("GET /events", withUser(sseHandler))
 	// Job routes
 	api.HandleFunc("GET /jobs/{action}/{target}", withUser(getJobsHandler))
 
@@ -183,13 +180,10 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	webDavPath := config.Server.BaseURL + "dav"
 	router.Handle(apiPath+"/", http.StripPrefix(apiPath, api))
 	router.Handle(publicPath+"/", http.StripPrefix(publicPath, publicRoutes))
-	// WebDav resources (catch-all)
-	// similar to NextCloud and others
-	// (reddec) do not trim /dav prefix here - webdav library for some reason does not like it.
-	router.Handle(webDavPath+"/{scope}/{path...}", wrapHandlerOpts(withUserHelper(createWebDAVHandler(webDavPath)), wrapperOpts{
-		requestBasicAuth: true,
-	}))
 
+	// WebDAV handler -- uses Basic Auth where password is JWT token
+	// (reddec) do not trim /dav prefix here - webdav library for some reason does not like it.
+	router.Handle(webDavPath+"/{source}/{path...}", withBasicAuth(webDAVHandler))
 	// Frontend share route redirect (DEPRECATED - maintain for backwards compatibility)
 	// Playwright tests need updating to remove this redirect.
 	router.HandleFunc(fmt.Sprintf("GET %vshare/", config.Server.BaseURL), withOrWithoutUser(redirectToShare))

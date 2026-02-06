@@ -17,6 +17,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-cache/cache"
 	"github.com/gtsteffaniak/go-logger/logger"
+	"golang.org/x/net/webdav"
 )
 
 var (
@@ -113,6 +114,8 @@ type Index struct {
 	// Scan session tracking: timestamp when scan session started (for timestamp-based conflict detection)
 	scanSessionStartTime int64           // Unix timestamp when current scan session started (0 if no active scan)
 	scanUpdatedPaths     map[string]bool // Tracks directories updated by the scan (to distinguish from API updates)
+	// WebDAV lock system for this source (isolated per source)
+	WebdavLock webdav.LockSystem
 }
 
 var (
@@ -386,6 +389,7 @@ func Initialize(source *settings.Source, mock bool, isNewDb bool) {
 		scanUpdatedPaths:    make(map[string]bool),
 		folderSizes:         make(map[string]uint64),   // In-memory folder size tracking
 		folderSizesUnsynced: make(map[string]struct{}), // Track changed folders
+		WebdavLock:          webdav.NewMemLS(),         // Initialize WebDAV lock system for this source
 	}
 	newIndex.ReducedIndex = ReducedIndex{
 		Status:  "indexing",

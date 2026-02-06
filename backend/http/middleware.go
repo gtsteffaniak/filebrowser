@@ -362,13 +362,16 @@ func withUserHelper(fn handleFunc) handleFunc {
 		keyFunc := func(token *jwt.Token) (interface{}, error) {
 			return []byte(config.Auth.Key), nil
 		}
-		tokenString, err := extractToken(r)
-		if err != nil && !isProxyUser {
-			return http.StatusUnauthorized, err
+		if data.token == "" {
+			var err error
+			data.token, err = extractToken(r)
+			if err != nil && !isProxyUser {
+				return http.StatusUnauthorized, err
+			}
 		}
-		data.token = tokenString
+
 		var tk users.AuthToken
-		token, err := jwt.ParseWithClaims(tokenString, &tk, keyFunc)
+		token, err := jwt.ParseWithClaims(data.token, &tk, keyFunc)
 		if err != nil {
 			if isProxyUser {
 				return getProxyUser(w, r, data, fn, proxyUser)
@@ -408,7 +411,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 		}
 		// Set cookie. Some clients like gvfs relies on it for concurrent uploads
 		if expire := tk.ExpiresAt; expire != nil {
-			setSessionCookie(w, r, tokenString, expire.Time)
+			setSessionCookie(w, r, data.token, expire.Time)
 		}
 		setUserInResponseWriter(w, data.user)
 		if data.user.Username == "" {
@@ -463,16 +466,10 @@ func withSelfOrAdminHelper(fn handleFunc) handleFunc {
 }
 
 func wrapHandler(fn handleFunc) http.HandlerFunc {
-	return wrapHandlerOpts(fn, wrapperOpts{})
-}
-
-type wrapperOpts struct {
-	requestBasicAuth bool
-}
-
-func wrapHandlerOpts(fn handleFunc, opts wrapperOpts) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		data := &requestContext{}
+		data := &requestContext{
+			ctx: r.Context(),
+		}
 
 		// Call the actual handler function and get status code and error
 		status, err := fn(w, r, data)
@@ -482,10 +479,6 @@ func wrapHandlerOpts(fn handleFunc, opts wrapperOpts) http.HandlerFunc {
 			response := &HttpResponse{
 				Status:  status, // Use the status code from the middleware
 				Message: err.Error(),
-			}
-
-			if status == http.StatusUnauthorized && opts.requestBasicAuth {
-				w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
 			}
 
 			// Set the content type to JSON and status code
@@ -514,6 +507,21 @@ func wrapHandlerOpts(fn handleFunc, opts wrapperOpts) http.HandlerFunc {
 	}
 }
 
+// wrapHandlerBasicAuth wraps a handler and automatically sets WWW-Authenticate header
+// for 401 Unauthorized responses, triggering Basic Auth challenge
+func wrapHandlerBasicAuth(fn handleFunc) http.HandlerFunc {
+	// Wrap the handler to set WWW-Authenticate header for 401 responses
+	wrappedFn := func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
+		status, err := fn(w, r, data)
+		// Set WWW-Authenticate header before returning 401
+		if status == http.StatusUnauthorized {
+			w.Header().Set("WWW-Authenticate", `Basic realm="WebDAV"`)
+		}
+		return status, err
+	}
+	return wrapHandler(wrappedFn)
+}
+
 func withPermShareHelper(fn handleFunc) handleFunc {
 	return withUserHelper(func(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 		if !d.user.Permissions.Share {
@@ -523,11 +531,30 @@ func withPermShareHelper(fn handleFunc) handleFunc {
 	})
 }
 
+// withBasicAuthHelper extracts Basic Auth credentials and uses the password as a JWT token
+// to authenticate the user. The username is ignored, and the password should be a JWT token.
+func withBasicAuthHelper(fn handleFunc) handleFunc {
+	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
+		_, password, ok := r.BasicAuth()
+		if !ok || password == "" {
+			// Return 401 - wrapHandlerBasicAuth will set WWW-Authenticate header
+			return http.StatusUnauthorized, fmt.Errorf("basic authentication required")
+		}
+		data.token = password
+		return withUserHelper(fn)(w, r, data)
+	}
+}
+
+// withBasicAuth returns an http.HandlerFunc for use with router.Handle.
+// It extracts Basic Auth credentials and uses the password as a JWT token to authenticate the user.
+func withBasicAuth(fn handleFunc) http.HandlerFunc {
+	return wrapHandlerBasicAuth(withBasicAuthHelper(fn))
+}
+
 func withPermShare(fn handleFunc) http.HandlerFunc {
 	return wrapHandler(withPermShareHelper(fn))
 }
 
-// Example of wrapping specific middleware functions for use with http.HandleFunc
 func withHashFile(fn handleFunc) http.HandlerFunc {
 	return wrapHandler(withHashFileHelper(fn))
 }
