@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.3.0-beta
+
+ **Notes**:
+ - Docker images default to `filebrowser` user instead of root
+
 ## v1.2.3-beta
 
  **Notes**:
