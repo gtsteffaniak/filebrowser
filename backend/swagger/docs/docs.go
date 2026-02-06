@@ -1564,7 +1564,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "url encoded destination path where to place the files inside the destination source, a directory must end in / to create a directory",
+                        "description": "url encoded destination path where to place the files inside the destination source",
                         "name": "path",
                         "in": "query",
                         "required": true
@@ -3063,8 +3063,8 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Target path within the share to upload to. Must be relative to share root.",
-                        "name": "targetPath",
+                        "description": "path within the share to upload to. Must be relative to share root.",
+                        "name": "path",
                         "in": "query",
                         "required": true
                     },
@@ -4075,8 +4075,11 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "albumArt": {
-                    "description": "base64 encoded album art / video thumbnail",
-                    "type": "string"
+                    "description": "album art image data (automatically base64-encoded in JSON)",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 },
                 "artist": {
                     "description": "track artist",

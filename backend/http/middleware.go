@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
 	"runtime"
 	"slices"
 	"strings"
@@ -26,6 +25,7 @@ import (
 
 type requestContext struct {
 	user         *users.User
+	shareUser    *users.User
 	fileInfo     iteminfo.ExtendedFileInfo
 	token        string
 	share        *share.Link
@@ -51,12 +51,7 @@ type handleFunc func(w http.ResponseWriter, r *http.Request, data *requestContex
 func withHashFileHelper(fn handleFunc) handleFunc {
 	return withOrWithoutUserHelper(func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
 		hash := r.URL.Query().Get("hash")
-		encodedPath := r.URL.Query().Get("path")
-		// Decode the URL-encoded path - use PathUnescape to preserve + as literal character
-		path, err := url.PathUnescape(encodedPath)
-		if err != nil {
-			return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
-		}
+		path := r.URL.Query().Get("path")
 
 		// Get the file link by hash
 		link, err := store.Share.GetByHash(hash)
@@ -103,23 +98,27 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		if link.DisableFileViewer || reachedDownloadsLimit {
 			getContent = false
 		}
-		shareCreatedByUser, err := store.Users.Get(link.UserID)
+		data.shareUser, err = store.Users.Get(link.UserID)
 		if err != nil {
 			return http.StatusNotFound, fmt.Errorf("user for share no longer exists")
 		}
 		// get user scope path from share
-		userScope, err := shareCreatedByUser.GetScopeForSourceName(source.Name)
+		userScope, err := data.shareUser.GetScopeForSourceName(source.Name)
 		if err != nil {
 			return http.StatusForbidden, err
 		}
 		// so trim user scope from link.Path
-		userScopedPath := utils.JoinPathAsUnix("/", strings.TrimPrefix(link.Path, userScope), path)
-		if !strings.HasSuffix(userScopedPath, "/") {
-			userScopedPath = userScopedPath + "/"
+		pathWithoutUserScope := utils.JoinPathAsUnix("/", strings.TrimPrefix(link.Path, userScope), path)
+		if !strings.HasSuffix(pathWithoutUserScope, "/") {
+			pathWithoutUserScope = pathWithoutUserScope + "/"
 		}
-		data.IndexPath = userScopedPath
+		data.IndexPath = pathWithoutUserScope
+		if r.Method == "POST" && strings.Contains(r.URL.Path, "/resources") {
+			// no need to fetch file info for uploads
+			return fn(w, r, data)
+		}
 		file, err := FileInfoFasterFunc(utils.FileOptions{
-			Path:                     userScopedPath,
+			Path:                     pathWithoutUserScope,
 			Source:                   source.Name,
 			Expand:                   true,
 			Content:                  getContent,
@@ -128,7 +127,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles && link.ExtractEmbeddedSubtitles,
 			ShowHidden:               link.ShowHidden,
 			FollowSymlinks:           true,
-		}, store.Access, shareCreatedByUser)
+		}, store.Access, data.shareUser)
 		if err != nil {
 			logger.Errorf("error fetching file info for share. hash=%v path=%v error=%v", hash, path, err)
 			return errToStatus(err), fmt.Errorf("error fetching share from server")

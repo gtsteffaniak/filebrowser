@@ -447,8 +447,10 @@ definitions:
         description: album name
         type: string
       albumArt:
-        description: base64 encoded album art / video thumbnail
-        type: string
+        description: album art image data (automatically base64-encoded in JSON)
+        items:
+          type: integer
+        type: array
       artist:
         description: track artist
         type: string
@@ -2855,7 +2857,7 @@ paths:
         Supports file uploads and directory creation.
       parameters:
       - description: url encoded destination path where to place the files inside
-          the destination source, a directory must end in / to create a directory
+          the destination source
         in: query
         name: path
         required: true
@@ -3839,10 +3841,10 @@ paths:
         name: hash
         required: true
         type: string
-      - description: Target path within the share to upload to. Must be relative to
-          share root.
+      - description: path within the share to upload to. Must be relative to share
+          root.
         in: query
-        name: targetPath
+        name: path
         required: true
         type: string
       - description: If true, overwrite existing files/folders. Defaults to false.

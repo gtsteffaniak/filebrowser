@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"path/filepath"
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
@@ -143,7 +142,7 @@ func publicGetResourceHandler(w http.ResponseWriter, r *http.Request, d *request
 // @Accept multipart/form-data
 // @Produce json
 // @Param hash query string true "Share hash for authentication"
-// @Param targetPath query string true "Target path within the share to upload to. Must be relative to share root."
+// @Param path query string true "path within the share to upload to. Must be relative to share root."
 // @Param override query bool false "If true, overwrite existing files/folders. Defaults to false."
 // @Param action query string false "Upload action: 'override' to replace files, 'rename' to auto-rename"
 // @Param file formData file true "File to upload"
@@ -159,18 +158,15 @@ func publicUploadHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	if d.share.ShareType != "upload" && !d.share.AllowCreate {
 		return http.StatusForbidden, fmt.Errorf("uploading is disabled for this share")
 	}
-
 	if !d.share.AllowReplacements && r.URL.Query().Get("action") == "override" {
 		return http.StatusForbidden, fmt.Errorf("cannot overwrite files for this share")
 	}
 	// Go automatically decodes query params
-	path := r.URL.Query().Get("targetPath")
-	fullPath := filepath.Join(d.share.Path, path)
 	source := config.Server.SourceMap[d.share.Source].Name
 	// adjust query params to match resourcePostHandler
 	q := r.URL.Query()
 	q.Set("source", source)
-	q.Set("path", fullPath)
+	q.Set("path", d.IndexPath)
 	r.URL.RawQuery = q.Encode()
 	status, err := resourcePostHandler(w, r, d)
 	if err != nil {
@@ -269,36 +265,26 @@ func publicPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	return http.StatusOK, nil
 }
 
+// deprecated -- see publicBulkDeleteHandler
 func publicDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if !d.share.AllowDelete {
 		return http.StatusForbidden, fmt.Errorf("delete is not allowed for this share")
 	}
-	path := r.URL.Query().Get("path")
-	indexPath := utils.JoinPathAsUnix(d.share.Path, path)
-	source, err := d.share.GetSourceName()
-	if err != nil {
-		return http.StatusNotFound, fmt.Errorf("source not available")
-	}
-
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 		FollowSymlinks: true,
-		Path:           indexPath,
-		Source:         source,
-		Expand:         false,
-		ShowHidden:     d.share.ShowHidden,
-	}, store.Access, d.user)
+		Path:           d.IndexPath,
+		Source:         d.share.Source,
+	}, store.Access, d.shareUser)
 	if err != nil {
 		return http.StatusNotFound, fmt.Errorf("resource not available")
 	}
-
-	// delete thumbnails
-	preview.DelThumbs(r.Context(), *fileInfo)
-
-	err = files.DeleteFiles(source, fileInfo.RealPath, fileInfo.Type == "directory")
+	err = files.DeleteFiles(d.share.Source, fileInfo.RealPath, fileInfo.Type == "directory")
 	if err != nil {
 		logger.Errorf("public delete handler: error deleting resource with error %v", err)
 		return http.StatusInternalServerError, fmt.Errorf("an error occured while deleting the resource")
 	}
+	// delete thumbnails
+	preview.DelThumbs(r.Context(), *fileInfo)
 	return http.StatusOK, nil
 }
 
@@ -320,10 +306,10 @@ func publicBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestC
 	if !d.share.AllowDelete {
 		return http.StatusForbidden, fmt.Errorf("delete is not allowed for this share")
 	}
-
 	// hide the error
 	status, err := resourceBulkDeleteHandler(w, r, d)
 	if err != nil {
+		logger.Errorf("public bulk delete handler: error deleting resources with error %v", err)
 		return http.StatusInternalServerError, fmt.Errorf("an error occurred while processing the request")
 	}
 	return status, nil

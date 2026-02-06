@@ -17,7 +17,7 @@
   <link rel="preload" href="{{ .htmlVars.staticURL }}/fonts/material-symbols-outlined.woff2" as="font" type="font/woff2" crossorigin>
 
   <!-- Add to home screen for Android and modern mobile browsers -->
-  <link rel="manifest" id="manifestPlaceholder" crossorigin="use-credentials">
+  <link rel="manifest" href="{{ .htmlVars.manifestURL }}" crossorigin="use-credentials">
   <meta name="theme-color" content="{{ .htmlVars.color }}">
 
   <!-- Add to home screen for Safari on iOS/iPadOS -->
@@ -52,40 +52,6 @@
   <!-- Injected variables come from backend server -->
   <script>
     window.globalVars = {{ .globalVars }};
-    var dynamicManifest = {
-      "name": window.globalVars.name || 'FileBrowser Quantum',
-      "short_name": window.globalVars.name || 'FileBrowser',
-      "icons": [
-        {
-          "src": "{{ .htmlVars.pwaIcon192 }}",
-          "sizes": "192x192",
-          "type": "image/png",
-          "purpose": "any"
-        },
-        {
-          "src": "{{ .htmlVars.pwaIcon256 }}",
-          "sizes": "256x256",
-          "type": "image/png",
-          "purpose": "any maskable"
-        },
-        {
-          "src": "{{ .htmlVars.pwaIcon512 }}",
-          "sizes": "512x512",
-          "type": "image/png",
-          "purpose": "any"
-        }
-      ],
-      "start_url": window.location.origin + "{{ .htmlVars.baseURL }}",
-      "display": "standalone",
-      "background_color": "#ffffff",
-      "theme_color": "{{ .htmlVars.color }}",
-      "description": "{{ .htmlVars.description }}"
-    }
-
-    const stringManifest = JSON.stringify(dynamicManifest);
-    const blob = new Blob([stringManifest], { type: 'application/json' });
-    const manifestURL = URL.createObjectURL(blob);
-    document.querySelector('#manifestPlaceholder').setAttribute('href', manifestURL);
   </script>
 
   <style>

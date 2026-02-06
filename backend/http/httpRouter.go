@@ -74,6 +74,9 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 		devMode:   settings.Env.IsDevMode,
 	}
 
+	// Initialize cached PWA manifest
+	InitializePWAManifest()
+
 	router := http.NewServeMux()
 	// API group routing
 	api := http.NewServeMux()

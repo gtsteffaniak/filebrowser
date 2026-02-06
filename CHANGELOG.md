@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.2.3-beta
+
+ **Notes**:
+ - Removed upload api behavior to assume paths ending in "/" are folders, strictly uses isDir query param
+ - renamed public upload api query param from `targetPath` to `path`. see swagger docs.
+
+ **BugFixes**:
+ - fix stuck motion preview popup window issue
+ - Chunked uploads ignore User Scope and are saved to Source Root (#1894)
+ - share delete with user scope issue
+ - fix favicon pwa icon, having the PWA respect the favicon/loginIcon (#1899)
+ - delete prompt icons show image previews
+
+## v1.2.2-beta
+
  **New Features**:
  - Resizable sidebar (#1896)
  - OIDC Authentication: Change Button Text via `frontend.oidcLoginButtonText` (#1708)

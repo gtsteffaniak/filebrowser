@@ -17,9 +17,9 @@
             :name="getItemName(item.path)"
             :isDir="item.type === 'directory'"
             :source="item.source"
-            :type="item.type || 'file'"
-            :size="item.size || 0"
-            :modified="item.modified || ''"
+            :type="item.type"
+            :size="item.size"
+            :modified="item.modified"
             :index="index"
             :path="item.path"
             :hasPreview="item.hasPreview"
@@ -107,6 +107,7 @@ export default {
           size: item.size,
           modified: item.modified,
           previewUrl: previewUrl,
+          hasPreview: item.hasPreview,
         });
       } else if (!this.isListing) {
         const item = state.req.items[state.selected[0]];
@@ -118,6 +119,7 @@ export default {
           size: item.size,
           modified: item.modified,
           previewUrl: previewUrl,
+          hasPreview: item.hasPreview,
         });
       } else {
         for (let index of state.selected) {
@@ -130,6 +132,7 @@ export default {
             size: item.size,
             modified: item.modified,
             previewUrl: previewUrl,
+            hasPreview: item.hasPreview,
           });
         }
       }
