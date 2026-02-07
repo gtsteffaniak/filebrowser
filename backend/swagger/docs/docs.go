@@ -4627,6 +4627,10 @@ const docTemplate = `{
                     "description": "disables backend update check service",
                     "type": "boolean"
                 },
+                "disableWebDAV": {
+                    "description": "disable webdav support (default: false)",
+                    "type": "boolean"
+                },
                 "externalUrl": {
                     "description": "used by share links if set (eg. http://mydomain.com)",
                     "type": "string"

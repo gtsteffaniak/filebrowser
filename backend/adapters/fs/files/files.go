@@ -107,35 +107,35 @@ func finalizeResponse(response *iteminfo.ExtendedFileInfo, info *iteminfo.FileIn
 	}
 }
 
-func FileInfoFaster(opts utils.FileOptions, access *access.Storage, user *users.User) (*iteminfo.ExtendedFileInfo, error) {
-	response := &iteminfo.ExtendedFileInfo{}
+func CheckPermissions(opts utils.FileOptions, access *access.Storage, user *users.User) (string, string, error) {
 	if access == nil {
-		return response, fmt.Errorf("access not provided")
+		return "", "", fmt.Errorf("access not provided")
 	}
 	if user == nil {
-		return response, fmt.Errorf("user not provided")
+		return "", "", fmt.Errorf("user not provided")
 	}
 	if opts.Path == "" {
-		return response, fmt.Errorf("path not provided")
+		return "", "", fmt.Errorf("path not provided")
 	}
 	if opts.Source == "" {
-		return response, fmt.Errorf("source not provided")
+		return "", "", fmt.Errorf("source not provided")
 	}
+
 	// Get index
 	idx := indexing.GetIndex(opts.Source)
 	if idx == nil {
-		return response, fmt.Errorf("could not get index: %v ", opts.Source)
+		return "", "", fmt.Errorf("could not get index: %v ", opts.Source)
 	}
 
 	// Resolve user scope
 	userScope, scopeErr := user.GetScopeForSourcePath(idx.Path)
 	if scopeErr != nil || userScope == "" {
-		return response, fmt.Errorf("user has no access to source: %v", opts.Source)
+		return "", "", fmt.Errorf("user has no access to source: %v", opts.Source)
 	}
 
 	safePath, err := utils.SanitizeUserPath(opts.Path)
 	if err != nil {
-		return response, errors.ErrAccessDenied
+		return "", "", errors.ErrAccessDenied
 	}
 
 	// Combine scope + sanitized path
@@ -143,7 +143,21 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage, user *users.
 	// Layer 1: USER ACCESS CONTROL
 	// Quick check: Does THIS user have permission?
 	if !access.Permitted(idx.Path, indexPath, user.Username) {
-		return response, errors.ErrAccessDenied
+		return "", "", errors.ErrAccessDenied
+	}
+	return indexPath, userScope, nil
+}
+
+func FileInfoFaster(opts utils.FileOptions, access *access.Storage, user *users.User) (*iteminfo.ExtendedFileInfo, error) {
+	response := &iteminfo.ExtendedFileInfo{}
+	indexPath, userScope, err := CheckPermissions(opts, access, user)
+	if err != nil {
+		return response, err
+	}
+	// Get index
+	idx := indexing.GetIndex(opts.Source)
+	if idx == nil {
+		return response, fmt.Errorf("could not get index: %v ", opts.Source)
 	}
 
 	// Layer 2: INDEX RULES (global)

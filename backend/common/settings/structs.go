@@ -65,7 +65,7 @@ type Server struct {
 	MaxArchiveSizeGB             int64          `json:"maxArchiveSize"`  // max pre-archive combined size of files/folder that are allowed to be archived (in GB)
 	Filesystem                   Filesystem     `json:"filesystem"`      // filesystem settings
 	IndexSqlConfig               IndexSqlConfig `json:"indexSqlConfig"`  // Index database SQL configuration
-
+	DisableWebDAV                bool           `json:"disableWebDAV"`   // disable webdav support (default: false)
 	// not exposed to config
 	SourceMap    map[string]*Source `json:"-" validate:"omitempty"` // uses realpath as key
 	NameToSource map[string]*Source `json:"-" validate:"omitempty"` // uses name as key

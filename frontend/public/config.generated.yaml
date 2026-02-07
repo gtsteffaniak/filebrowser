@@ -58,6 +58,7 @@ server:
     cacheSizeMB: 32                       # size of the SQLite cache in MB
     walMode: false                        # enable the more complex WAL journaling mode. Slower, more memory usage, but better for deployments with constant user activity.
     disableReuse: false                   # enable to always create a new indexing database on startup.
+  disableWebDAV: false                    # disable webdav support (default: false)
 auth:
   tokenExpirationHours: 2                 # time in hours each web UI session token is valid for. Default is 2 hours.
   methods:
