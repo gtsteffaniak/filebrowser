@@ -28,7 +28,7 @@ func (f *fileInfoWrapper) Name() string       { return f.ItemInfo.Name }
 func (f *fileInfoWrapper) Size() int64        { return f.ItemInfo.Size }
 func (f *fileInfoWrapper) Mode() os.FileMode  { return f.mode() }
 func (f *fileInfoWrapper) ModTime() time.Time { return f.ItemInfo.ModTime }
-func (f *fileInfoWrapper) IsDir() bool        { return f.ItemInfo.Type == "directory" }
+func (f *fileInfoWrapper) IsDir() bool        { return f.Type == "directory" }
 func (f *fileInfoWrapper) Sys() interface{}   { return nil }
 
 func (f *fileInfoWrapper) mode() os.FileMode {
