@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.3.0-beta
 
+ **New Features**:
+ - add webdav support (#209) -- thanks to @reddac for #1764
+   - see docs on how to use
+   - requires "minimal" api token as password
+   - respects access rules
+   - requires download permission to view and modify/create/delete permission to modify.
+
  **Notes**:
  - Docker images default to `filebrowser` user instead of root
 
