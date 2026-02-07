@@ -1,4 +1,6 @@
 backend/**.db
+**.crt
+**.key
 backend/tmp
 backend/dist
 backend/backend*
