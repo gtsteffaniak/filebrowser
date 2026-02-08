@@ -1,5 +1,5 @@
 <template>
-  <div class="toggle-container">
+  <div class="toggle-container" :class="{ 'disabled': disabled }">
     <div class="toggle-name-container">
       <span class="toggle-name">{{ name }}</span>
       <i
@@ -12,7 +12,7 @@
       </i>
     </div>
     <label class="switch">
-      <input type="checkbox" :checked="modelValue" @change="updateValue" :aria-label="ariaLabel" />
+      <input type="checkbox" :checked="modelValue" @change="updateValue" :aria-label="ariaLabel" :disabled="disabled" />
       <span class="slider round"></span>
     </label>
   </div>
@@ -41,6 +41,11 @@ export default {
       type: String,
       required: false,
       default: "",
+    },
+    disabled: {
+      type: Boolean,
+      required: false,
+      default: false,
     },
   },
   methods: {
@@ -134,5 +139,27 @@ input:checked + .slider:before {
 
 .slider.round:before {
   border-radius: 50%;
+}
+
+.toggle-container.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toggle-container.disabled .toggle-name {
+  color: #999;
+}
+
+.toggle-container.disabled .slider {
+  cursor: not-allowed;
+}
+
+input:disabled + .slider {
+  cursor: not-allowed;
+  background-color: #ccc;
+}
+
+input:disabled:checked + .slider {
+  background-color: #999;
 }
 </style>

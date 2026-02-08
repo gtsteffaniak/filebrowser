@@ -35,7 +35,7 @@
       <p>{{ $t('api.permissionNote') }}</p>
       <div class="settings-items">
         <ToggleSwitch v-for="(isEnabled, permission) in permissions" :key="permission" class="item"
-          v-model="permissions[permission]" :name="permission" />
+          v-model="permissions[permission]" :name="permission" :disabled="!userPermissions[permission]" />
       </div>
     </div>
   </div>
@@ -73,6 +73,10 @@ export default {
   },
   props: {
     permissions: {
+      type: Object,
+      required: true,
+    },
+    userPermissions: {
       type: Object,
       required: true,
     },

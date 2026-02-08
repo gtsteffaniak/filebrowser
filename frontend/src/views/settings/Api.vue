@@ -147,7 +147,7 @@ export default {
     createPrompt() {
       mutations.showHover({
         name: "CreateApi",
-        props: { permissions: this.user.permissions },
+        props: { permissions: this.user.permissions, userPermissions: this.user.permissions },
       });
     },
     infoPrompt(name, info) {
