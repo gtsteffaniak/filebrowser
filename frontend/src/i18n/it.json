@@ -482,10 +482,10 @@
     "description": "I token API si basano sull'utente che li crea.",
     "clickToCopyKey": "Fare clic per copiare il token (nascosto)",
     "customizeToken": "Personalizzare il gettone",
-    "customizeTokenInfo": "Personalizzare le autorizzazioni e gli attributi del token.",
     "minimalInfo": "Esclude le personalizzazioni dei token, le autorizzazioni corrisponderanno all'utente associato e non avranno altri attributi.",
     "createTitle": "Creare il token API",
-    "keyNamePlaceholder": "Inserire un nome univoco per il token API"
+    "keyNamePlaceholder": "Inserire un nome univoco per il token API",
+    "customizeTokenInfo": "Personalizzare le autorizzazioni e gli attributi del token. Questo creerà un token più lungo che potrebbe non funzionare con alcuni client WebDAV."
   },
   "index": {
     "assessment": "Valutazione",

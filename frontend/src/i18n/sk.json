@@ -482,10 +482,10 @@
     "description": "Tokeny API sú založené na používateľovi, ktorý ich vytvoril.",
     "clickToCopyKey": "Kliknutím skopírujete token (skrytý)",
     "customizeToken": "Prispôsobenie žetónu",
-    "customizeTokenInfo": "Prispôsobenie oprávnení a atribútov tokenu.",
     "minimalInfo": "Vylúči prispôsobenie tokenu, oprávnenia budú zodpovedať priradenému používateľovi a nebudú mať žiadne iné atribúty.",
     "createTitle": "Vytvorenie tokenu API",
-    "keyNamePlaceholder": "Zadajte jedinečný názov tokenu API"
+    "keyNamePlaceholder": "Zadajte jedinečný názov tokenu API",
+    "customizeTokenInfo": "Prispôsobenie oprávnení a atribútov tokenu. Tým sa vytvorí dlhší token, ktorý nemusí fungovať v niektorých klientoch WebDAV."
   },
   "index": {
     "assessment": "Hodnotenie",

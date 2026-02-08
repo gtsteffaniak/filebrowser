@@ -482,10 +482,10 @@
     "description": "Les jetons d'API sont basés sur l'utilisateur qui les crée.",
     "clickToCopyKey": "Cliquez pour copier le jeton (caché)",
     "customizeToken": "Personnaliser le jeton",
-    "customizeTokenInfo": "Personnaliser les autorisations et les attributs du jeton.",
     "minimalInfo": "A l'exclusion des personnalisations de jetons, les autorisations correspondront à l'utilisateur associé et n'auront pas d'autres attributs.",
     "createTitle": "Créer un jeton API",
-    "keyNamePlaceholder": "Entrez un nom unique pour le jeton API"
+    "keyNamePlaceholder": "Entrez un nom unique pour le jeton API",
+    "customizeTokenInfo": "Personnalisez les permissions et les attributs du jeton. Cela créera un jeton plus long qui pourrait ne pas fonctionner avec certains clients WebDAV."
   },
   "index": {
     "assessment": "Évaluation",

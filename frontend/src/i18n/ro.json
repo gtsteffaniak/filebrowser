@@ -482,10 +482,10 @@
     "description": "Jetoanele API sunt bazate pe utilizatorul care le creează.",
     "clickToCopyKey": "Faceți clic pentru a copia simbolul (ascuns)",
     "customizeToken": "Personalizați tokenul",
-    "customizeTokenInfo": "Personalizați permisiunile și atributele token-ului.",
     "minimalInfo": "Exclude personalizările token, permisiunile vor corespunde utilizatorului asociat și nu vor avea alte atribute.",
     "createTitle": "Crearea Token-ului API",
-    "keyNamePlaceholder": "Introduceți un nume unic pentru jetonul API"
+    "keyNamePlaceholder": "Introduceți un nume unic pentru jetonul API",
+    "customizeTokenInfo": "Personalizați permisiunile și atributele token-ului. Acest lucru va crea un jeton mai lung, care poate să nu funcționeze la unii clienți WebDAV."
   },
   "index": {
     "assessment": "Evaluare",

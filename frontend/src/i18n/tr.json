@@ -482,10 +482,10 @@
     "description": "API belirteçleri, onları oluşturan kullanıcıyı temel alır.",
     "clickToCopyKey": "Belirteci kopyalamak için tıklayın (gizli)",
     "customizeToken": "Simgeyi Özelleştir",
-    "customizeTokenInfo": "Belirteç izinlerini ve özniteliklerini özelleştirin.",
     "minimalInfo": "Belirteç özelleştirmelerini hariç tutar, izinler ilişkili kullanıcıyla eşleşir ve başka hiçbir özniteliğe sahip olmaz.",
     "createTitle": "API Belirteci Oluşturma",
-    "keyNamePlaceholder": "API belirteci için benzersiz bir ad girin"
+    "keyNamePlaceholder": "API belirteci için benzersiz bir ad girin",
+    "customizeTokenInfo": "Belirteç izinlerini ve özniteliklerini özelleştirin. Bu, bazı WebDAV istemcilerinde çalışmayabilecek daha uzun bir belirteç oluşturacaktır."
   },
   "index": {
     "assessment": "Değerlendirme",

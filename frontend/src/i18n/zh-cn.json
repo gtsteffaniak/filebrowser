@@ -482,10 +482,10 @@
     "description": "API 令牌基于创建令牌的用户。",
     "clickToCopyKey": "点击复制令牌（隐藏）",
     "customizeToken": "自定义令牌",
-    "customizeTokenInfo": "自定义令牌权限和属性。",
     "minimalInfo": "不包括令牌定制，权限将与相关用户匹配，且无其他属性。",
     "createTitle": "创建应用程序接口令牌",
-    "keyNamePlaceholder": "输入 API 令牌的唯一名称"
+    "keyNamePlaceholder": "输入 API 令牌的唯一名称",
+    "customizeTokenInfo": "自定义令牌权限和属性。这将创建一个较长的令牌，某些 WebDAV 客户端可能无法使用。"
   },
   "index": {
     "assessment": "评估",

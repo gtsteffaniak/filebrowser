@@ -482,10 +482,10 @@
     "description": "API-tokens är baserade på den användare som skapar dem.",
     "clickToCopyKey": "Klicka för att kopiera token (dold)",
     "customizeToken": "Anpassa Token",
-    "customizeTokenInfo": "Anpassa behörigheter och attribut för token.",
     "minimalInfo": "Utesluter anpassningar av token, behörigheter kommer att matcha den associerade användaren och har inga andra attribut.",
     "createTitle": "Skapa API-token",
-    "keyNamePlaceholder": "Ange ett unikt namn för API-token"
+    "keyNamePlaceholder": "Ange ett unikt namn för API-token",
+    "customizeTokenInfo": "Anpassa tokenens behörigheter och attribut. Detta kommer att skapa en längre token som kanske inte fungerar i vissa WebDAV-klienter."
   },
   "index": {
     "assessment": "Bedömning",

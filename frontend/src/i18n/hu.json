@@ -482,10 +482,10 @@
     "description": "Az API-tokenek az őket létrehozó felhasználó alapján készülnek.",
     "clickToCopyKey": "Kattintson a token másolásához (rejtett)",
     "customizeToken": "Token testreszabása",
-    "customizeTokenInfo": "A token engedélyek és attribútumok testreszabása.",
     "minimalInfo": "Kizárja a token testreszabásokat, a jogosultságok megfelelnek a kapcsolódó felhasználónak, és nem rendelkeznek más attribútumokkal.",
     "createTitle": "API token létrehozása",
-    "keyNamePlaceholder": "Adjon meg egy egyedi nevet az API tokenhez"
+    "keyNamePlaceholder": "Adjon meg egy egyedi nevet az API tokenhez",
+    "customizeTokenInfo": "A token engedélyek és attribútumok testreszabása. Ez egy hosszabb tokent hoz létre, amely néhány WebDAV-ügyfél esetében nem fog működni."
   },
   "index": {
     "assessment": "Értékelés",

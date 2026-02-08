@@ -482,10 +482,10 @@
     "description": "API 令牌以建立令牌的使用者為基礎。",
     "clickToCopyKey": "按一下以複製標記 (隱藏)",
     "customizeToken": "自訂代幣",
-    "customizeTokenInfo": "自訂權限和屬性。",
     "minimalInfo": "排除令牌自訂，權限將符合關聯使用者，且沒有其他屬性。",
     "createTitle": "建立 API 令牌",
-    "keyNamePlaceholder": "輸入 API 令牌的唯一名稱"
+    "keyNamePlaceholder": "輸入 API 令牌的唯一名稱",
+    "customizeTokenInfo": "自訂權限和屬性。這將創建一個較長的令牌，某些 WebDAV 客戶端可能無法使用。"
   },
   "index": {
     "assessment": "評估",

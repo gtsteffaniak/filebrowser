@@ -482,10 +482,10 @@
     "description": "API-Tokens basieren auf dem Benutzer, der sie erstellt.",
     "clickToCopyKey": "Zum Kopieren des Tokens anklicken (versteckt)",
     "customizeToken": "Token anpassen",
-    "customizeTokenInfo": "Passen Sie die Berechtigungen und Attribute des Tokens an.",
     "minimalInfo": "Schließt Token-Anpassungen aus; die Berechtigungen entsprechen dem zugehörigen Benutzer und haben keine weiteren Attribute.",
     "createTitle": "API-Token erstellen",
-    "keyNamePlaceholder": "Geben Sie einen eindeutigen Namen für das API-Token ein"
+    "keyNamePlaceholder": "Geben Sie einen eindeutigen Namen für das API-Token ein",
+    "customizeTokenInfo": "Passen Sie die Berechtigungen und Attribute des Tokens an. Dadurch wird ein längeres Token erstellt, das bei einigen WebDAV-Clients möglicherweise nicht funktioniert."
   },
   "index": {
     "assessment": "Bewertung",

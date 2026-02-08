@@ -482,10 +482,10 @@
     "description": "APIトークンは、それを作成したユーザーに基づいている。",
     "clickToCopyKey": "トークンをコピーするにはクリックしてください。",
     "customizeToken": "トークンのカスタマイズ",
-    "customizeTokenInfo": "トークンの権限と属性をカスタマイズします。",
     "minimalInfo": "トークンのカスタマイズは除外され、パーミッションは関連付けられたユーザーと一致し、他の属性を持ちません。",
     "createTitle": "APIトークンの作成",
-    "keyNamePlaceholder": "APIトークンの一意な名前を入力します。"
+    "keyNamePlaceholder": "APIトークンの一意な名前を入力します。",
+    "customizeTokenInfo": "トークンのパーミッションと属性をカスタマイズします。トークンが長くなり、WebDAVクライアントによっては動作しない場合があります。"
   },
   "index": {
     "assessment": "評価",

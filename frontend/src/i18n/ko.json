@@ -482,10 +482,10 @@
     "description": "API 토큰은 토큰을 생성하는 사용자를 기반으로 합니다.",
     "clickToCopyKey": "토큰을 복사하려면 클릭 (숨김)",
     "customizeToken": "토큰 사용자 지정",
-    "customizeTokenInfo": "토큰 권한 및 속성을 사용자 지정합니다.",
     "minimalInfo": "토큰 사용자 지정을 제외하면 권한은 연결된 사용자와 일치하며 다른 속성은 없습니다.",
     "createTitle": "API 토큰 생성",
-    "keyNamePlaceholder": "API 토큰의 고유 이름을 입력합니다."
+    "keyNamePlaceholder": "API 토큰의 고유 이름을 입력합니다.",
+    "customizeTokenInfo": "토큰 권한 및 속성을 사용자 지정합니다. 이렇게 하면 토큰이 더 길어져 일부 WebDAV 클라이언트에서 작동하지 않을 수 있습니다."
   },
   "index": {
     "assessment": "평가",

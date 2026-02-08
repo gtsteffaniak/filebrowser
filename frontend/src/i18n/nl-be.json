@@ -482,10 +482,10 @@
     "description": "API-tokens zijn gebaseerd op de gebruiker die ze aanmaakt.",
     "clickToCopyKey": "Klik om token te kopiëren (verborgen)",
     "customizeToken": "Token aanpassen",
-    "customizeTokenInfo": "Pas de tokenpermissies en -attributen aan.",
     "minimalInfo": "Sluit tokenaanpassingen uit, permissies zullen overeenkomen met de geassocieerde gebruiker en hebben geen andere attributen.",
     "createTitle": "API-token aanmaken",
-    "keyNamePlaceholder": "Voer een unieke naam in voor het API token"
+    "keyNamePlaceholder": "Voer een unieke naam in voor het API token",
+    "customizeTokenInfo": "Pas de tokenpermissies en -attributen aan. Dit zal een langer token aanmaken dat mogelijk niet werkt bij sommige WebDAV-clients."
   },
   "index": {
     "assessment": "Beoordeling",
