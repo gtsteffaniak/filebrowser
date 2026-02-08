@@ -277,11 +277,11 @@
       "modify": "Editar arquivos",
       "share": "Compartilhar arquivos",
       "admin": "Administrador",
-      "api": "Criar e gerenciar chaves de API de longa duração",
       "realtime": "Permitir conexões e atualizações em tempo real",
       "create": "Criar arquivos",
       "delete": "Excluir arquivos",
-      "download": "Baixar arquivos"
+      "download": "Baixar arquivos",
+      "api": "Criar e gerenciar tokens de API de longa duração"
     },
     "permissions-name": "Permissões",
     "profileSettings": "Configurações do usuário",
@@ -309,7 +309,6 @@
     "tusUploadsHelp": "O File Browser oferece suporte a uploads de arquivos em pedaços, permitindo a criação de uploads de arquivos eficientes, confiáveis, reestruturáveis e em pedaços, mesmo em redes não confiáveis.",
     "tusUploadsChunkSize": "Indica o tamanho máximo de uma solicitação (uploads diretos serão usados para uploads menores). Você pode inserir um número inteiro simples que denota uma entrada de bytes ou uma cadeia de caracteres como 10 MB, 1 GB etc.",
     "tusUploadsRetryCount": "Número de novas tentativas a serem executadas se houver falha no upload de um bloco.",
-    "api": "Chaves de API",
     "loginMethodDescription": "método de login permitido para o usuário.",
     "userNotAdmin": "O usuário não é um administrador",
     "enterPassword": "Digite a senha",
@@ -332,7 +331,8 @@
       "proxy": "Proxy"
     },
     "newUserHintSubFolder": "Por exemplo, '/subfolder' - em branco para o padrão",
-    "permissionsHelp": "As permissões de usuário controlam o acesso aos tipos de ações que o usuário pode executar. O acesso de administrador dá controle total para atualizar e alterar as configurações de qualquer usuário, bem como muitas configurações do sistema."
+    "permissionsHelp": "As permissões de usuário controlam o acesso aos tipos de ações que o usuário pode executar. O acesso de administrador dá controle total para atualizar e alterar as configurações de qualquer usuário, bem como muitas configurações do sistema.",
+    "api": "Tokens de API"
   },
   "sidebar": {
     "siteSettings": "Configurações do site",
@@ -460,31 +460,32 @@
     "selectImage": "Selecionar imagem"
   },
   "api": {
-    "title": "Chaves de API",
     "createdAt": "Criado em:",
     "expiresAt": "Expira em:",
     "permissions": "Permissões:",
-    "createTitle": "Criar chave de API",
-    "keyNamePlaceholder": "Digite um nome de chave de API exclusivo:",
     "tokenDuration": "Duração do token:",
     "durationNumberPlaceholder": "Número",
     "days": "Dias",
     "months": "Meses",
     "permissionNote": "Escolha pelo menos uma permissão para a chave. Seu usuário também deve ter a permissão.",
-    "createKeyFailed": "Falha ao criar a chave de API.",
-    "createKeySuccess": "Chave de API criada com sucesso.",
-    "description": "As chaves de API são baseadas no usuário que as cria. Veja",
     "swaggerLinkText": "página do swagger",
     "created": "Criado",
     "expires": "Expirações",
     "actions": "Ações",
     "enabled": "Ativado",
     "disabled": "Desativado",
-    "apiKeyDeleted": "Chave de API excluída!",
     "tokenType": "Tipo de token:",
-    "clickToCopyKey": "Clique para copiar a chave (oculto)",
-    "minimalDescription": "Token mínimo",
-    "minimalInfo": "Exclui personalizações de token para criar um comprimento de token menor. As permissões exatas correspondem ao usuário associado."
+    "title": "Tokens de API",
+    "createKeyFailed": "Falha ao criar o token da API.",
+    "createKeySuccess": "Token de API criado com sucesso.",
+    "apiKeyDeleted": "Token de API excluído!",
+    "description": "Os tokens de API são baseados no usuário que os cria.",
+    "clickToCopyKey": "Clique para copiar o token (oculto)",
+    "customizeToken": "Personalizar o token",
+    "minimalInfo": "Exclui personalizações de token, as permissões corresponderão ao usuário associado e não terão outros atributos.",
+    "createTitle": "Criar token de API",
+    "keyNamePlaceholder": "Digite um nome exclusivo para o token de API",
+    "customizeTokenInfo": "Personalize as permissões e os atributos do token. Isso criará um token mais longo que pode não funcionar em alguns clientes WebDAV."
   },
   "index": {
     "assessment": "Avaliação",

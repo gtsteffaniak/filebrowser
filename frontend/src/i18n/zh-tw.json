@@ -274,11 +274,11 @@
       "modify": "編輯檔案",
       "share": "分享檔案",
       "admin": "管理員",
-      "api": "建立與管理長效 API 金鑰",
       "realtime": "啟用即時連線與更新",
       "create": "建立檔案",
       "delete": "刪除檔案",
-      "download": "下載檔案"
+      "download": "下載檔案",
+      "api": "建立和管理長效 API 代號"
     },
     "permissions-name": "權限",
     "profileSettings": "個人設定",
@@ -316,7 +316,6 @@
     "userScopeGenerationPlaceholder": "範圍會自動產生",
     "createUserHomeDirectory": "建立使用者主目錄",
     "shareSettings": "分享設定",
-    "api": "API 金鑰",
     "shareDeleted": "分享已刪除！",
     "adminOptions": "管理員使用者選項",
     "systemAdmin": "系統與管理",
@@ -332,7 +331,8 @@
       "proxy": "代理"
     },
     "newUserHintSubFolder": "例如 '/subfolder' - 預設為空白",
-    "permissionsHelp": "使用者權限可控制使用者可執行的動作類型。管理員存取權可完全控制更新和變更任何使用者的設定以及許多系統設定。"
+    "permissionsHelp": "使用者權限可控制使用者可執行的動作類型。管理員存取權可完全控制更新和變更任何使用者的設定以及許多系統設定。",
+    "api": "API 代號"
   },
   "sidebar": {
     "siteSettings": "網站設定",
@@ -460,31 +460,32 @@
     "selectImage": "選擇影像"
   },
   "api": {
-    "title": "API 金鑰",
     "createdAt": "創建於",
     "expiresAt": "到期日：：",
     "permissions": "權限：",
-    "createTitle": "建立 API 金鑰",
-    "keyNamePlaceholder": "輸入唯一的 API 金鑰名稱：",
     "tokenDuration": "代幣持續時間：",
     "durationNumberPlaceholder": "數量",
     "days": "天數",
     "months": "月數",
     "permissionNote": "為金鑰選擇至少一個權限。您的使用者也必須擁有該權限。",
-    "createKeyFailed": "建立 API 金鑰失敗。",
-    "createKeySuccess": "API 金鑰已成功建立。",
-    "description": "API 金鑰以建立金鑰的使用者為基礎。請參閱",
     "swaggerLinkText": "跩頁",
     "created": "創建",
     "expires": "到期",
     "actions": "行動",
     "enabled": "已啟用",
     "disabled": "殘障",
-    "apiKeyDeleted": "API 金鑰已刪除！",
     "tokenType": "代幣類型：",
-    "clickToCopyKey": "按一下以複製鑰匙 (隱藏)",
-    "minimalDescription": "最小代幣",
-    "minimalInfo": "排除令牌自訂，以建立較小的令牌長度。與關聯使用者完全相容的權限。"
+    "title": "API 代號",
+    "createKeyFailed": "建立 API 令牌失敗。",
+    "createKeySuccess": "API 令牌已成功建立。",
+    "apiKeyDeleted": "API 令牌已刪除！",
+    "description": "API 令牌以建立令牌的使用者為基礎。",
+    "clickToCopyKey": "按一下以複製標記 (隱藏)",
+    "customizeToken": "自訂代幣",
+    "minimalInfo": "排除令牌自訂，權限將符合關聯使用者，且沒有其他屬性。",
+    "createTitle": "建立 API 令牌",
+    "keyNamePlaceholder": "輸入 API 令牌的唯一名稱",
+    "customizeTokenInfo": "自訂權限和屬性。這將創建一個較長的令牌，某些 WebDAV 客戶端可能無法使用。"
   },
   "index": {
     "assessment": "評估",

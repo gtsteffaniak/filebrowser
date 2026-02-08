@@ -4,7 +4,7 @@
   </div>
 
   <div class="card-content api-content">
-    <!-- API Key Section -->
+    <!-- API Token Section -->
     <div class="api-section">
       <button
         class="action copy-clipboard api-key-button"
@@ -42,10 +42,6 @@
 
     <!-- Token Type or Permissions Section -->
     <div class="api-section" v-if="info.minimal">
-      <h3 class="section-title">{{ $t('api.tokenType') }}</h3>
-      <div class="info-item">
-        <span class="info-label">{{ $t('api.minimalDescription') }}</span>
-      </div>
       <p class="minimal-info">{{ $t('api.minimalInfo') }}</p>
     </div>
 
@@ -118,7 +114,7 @@ export default {
       // Dummy delete function, to be filled in later
       try {
         usersApi.deleteApiKey({ name: this.name });
-        // Emit event to refresh API keys list
+        // Emit event to refresh API tokens list
         setTimeout(() => {
           eventBus.emit('apiKeysChanged');
         }, 10);

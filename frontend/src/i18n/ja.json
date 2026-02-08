@@ -274,11 +274,11 @@
       "modify": "ファイルを編集",
       "share": "ファイルを共有",
       "admin": "管理者",
-      "api": "長期間有効なAPIキーの作成と管理",
       "realtime": "リアルタイム接続と更新を有効にする",
       "create": "ファイル作成",
       "delete": "ファイルの削除",
-      "download": "ファイルのダウンロード"
+      "download": "ファイルのダウンロード",
+      "api": "長寿命APIトークンの作成と管理"
     },
     "permissions-name": "権限",
     "profileSettings": "プロファイル設定",
@@ -308,7 +308,6 @@
     "userHomeBasePath": "ユーザーホームディレクトリのベースパス",
     "userScopeGenerationPlaceholder": "スコープは自動生成されます。",
     "createUserHomeDirectory": "ユーザーホームディレクトリの作成",
-    "api": "APIキー",
     "shareDeleted": "共有が削除されました",
     "loginMethodDescription": "ユーザーに許可されるログイン方法",
     "userNotAdmin": "ユーザーは管理者ではありません",
@@ -332,7 +331,8 @@
       "proxy": "プロキシ"
     },
     "newUserHintSubFolder": "例 '/subfolder' - デフォルトは空白",
-    "permissionsHelp": "ユーザー権限は、ユーザーが実行できるアクションの種類へのアクセスを制御します。管理者アクセスは、多くのシステム設定だけでなく、任意のユーザーの設定を更新および変更するための完全なコントロールを提供します。"
+    "permissionsHelp": "ユーザー権限は、ユーザーが実行できるアクションの種類へのアクセスを制御します。管理者アクセスは、多くのシステム設定だけでなく、任意のユーザーの設定を更新および変更するための完全なコントロールを提供します。",
+    "api": "APIトークン"
   },
   "sidebar": {
     "siteSettings": "サイト設定",
@@ -460,31 +460,32 @@
     "selectImage": "画像を選択"
   },
   "api": {
-    "title": "APIキー：",
     "createdAt": "で作成された：",
     "expiresAt": "有効期限",
     "permissions": "許可：",
-    "createTitle": "APIキーの作成",
-    "keyNamePlaceholder": "一意のAPIキー名を入力します：",
     "tokenDuration": "トークンの有効期間：",
     "durationNumberPlaceholder": "番号",
     "days": "日数",
     "months": "ヶ月",
     "permissionNote": "キーに対して少なくとも1つの権限を選択してください。ユーザーもその権限を持っている必要があります。",
-    "createKeyFailed": "APIキーの作成に失敗しました。",
-    "createKeySuccess": "APIキーが正常に作成されました。",
-    "description": "APIキーは、それを作成したユーザーに基づいています。参照：",
     "swaggerLinkText": "Swaggerページ",
     "created": "作成日時",
     "expires": "有効期限",
     "actions": "操作",
     "enabled": "有効",
     "disabled": "無効",
-    "apiKeyDeleted": "APIキーが削除されました！",
     "tokenType": "トークン・タイプ",
-    "clickToCopyKey": "クリックしてキーをコピー (非表示)",
-    "minimalDescription": "ミニマル・トークン",
-    "minimalInfo": "トークン長を小さくするためのトークンのカスタマイズを除く。関連するユーザーとパーミッションが完全に一致します。"
+    "title": "APIトークン",
+    "createKeyFailed": "APIトークンの作成に失敗しました。",
+    "createKeySuccess": "APIトークンが正常に作成されました。",
+    "apiKeyDeleted": "APIトークンが削除されました！",
+    "description": "APIトークンは、それを作成したユーザーに基づいている。",
+    "clickToCopyKey": "トークンをコピーするにはクリックしてください。",
+    "customizeToken": "トークンのカスタマイズ",
+    "minimalInfo": "トークンのカスタマイズは除外され、パーミッションは関連付けられたユーザーと一致し、他の属性を持ちません。",
+    "createTitle": "APIトークンの作成",
+    "keyNamePlaceholder": "APIトークンの一意な名前を入力します。",
+    "customizeTokenInfo": "トークンのパーミッションと属性をカスタマイズします。トークンが長くなり、WebDAVクライアントによっては動作しない場合があります。"
   },
   "index": {
     "assessment": "評価",

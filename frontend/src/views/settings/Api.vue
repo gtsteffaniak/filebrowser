@@ -16,7 +16,7 @@
         <a class="link" href="swagger/index.html">{{ $t("api.swaggerLinkText") }}</a>
       </p>
 
-      <table aria-label="API Keys">
+      <table aria-label="API Tokens">
         <thead>
           <tr>
             <th>{{ $t("general.name") }}</th>
@@ -147,7 +147,7 @@ export default {
     createPrompt() {
       mutations.showHover({
         name: "CreateApi",
-        props: { permissions: this.user.permissions },
+        props: { permissions: this.user.permissions, userPermissions: this.user.permissions },
       });
     },
     infoPrompt(name, info) {

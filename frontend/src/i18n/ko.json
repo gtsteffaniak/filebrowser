@@ -274,11 +274,11 @@
       "modify": "파일 편집",
       "share": "파일 공유하기",
       "admin": "관리자",
-      "api": "긴 수명의 API 키 생성 및 관리",
       "realtime": "실시간 연결 및 업데이트 사용",
       "create": "파일 만들기",
       "delete": "파일 삭제",
-      "download": "파일 다운로드"
+      "download": "파일 다운로드",
+      "api": "수명이 긴 API 토큰 생성 및 관리"
     },
     "permissions-name": "권한",
     "profileSettings": "프로필 설정",
@@ -308,7 +308,6 @@
     "userHomeBasePath": "사용자 홈 디렉터리의 기본 경로",
     "userScopeGenerationPlaceholder": "범위가 자동으로 생성됩니다.",
     "createUserHomeDirectory": "사용자 홈 디렉터리 만들기",
-    "api": "API 키",
     "shareDeleted": "공유 삭제됨!",
     "loginMethodDescription": "사용자에게 허용된 로그인 방법을 설정합니다.",
     "userNotAdmin": "사용자가 관리자가 아닙니다.",
@@ -332,7 +331,8 @@
       "proxy": "프록시"
     },
     "newUserHintSubFolder": "예: '/subfolder' - 기본값은 비어 있습니다.",
-    "permissionsHelp": "사용자 권한은 사용자가 수행할 수 있는 작업 유형에 대한 액세스를 제어합니다. 관리자 권한은 모든 사용자 설정은 물론 여러 시스템 설정을 업데이트하고 변경할 수 있는 모든 권한을 부여합니다."
+    "permissionsHelp": "사용자 권한은 사용자가 수행할 수 있는 작업 유형에 대한 액세스를 제어합니다. 관리자 권한은 모든 사용자 설정은 물론 여러 시스템 설정을 업데이트하고 변경할 수 있는 모든 권한을 부여합니다.",
+    "api": "API 토큰"
   },
   "sidebar": {
     "siteSettings": "사이트 설정",
@@ -460,31 +460,32 @@
     "selectImage": "이미지 선택"
   },
   "api": {
-    "title": "API 키",
     "createdAt": "만든 곳:",
     "expiresAt": "만료일:",
     "permissions": "권한:",
-    "createTitle": "API 키 생성",
-    "keyNamePlaceholder": "고유한 API 키 이름을 입력합니다:",
     "tokenDuration": "토큰 기간:",
     "durationNumberPlaceholder": "번호",
     "days": "일수",
     "months": "개월",
     "permissionNote": "키에 대한 권한을 하나 이상 선택합니다. 사용자에게도 해당 권한이 있어야 합니다.",
-    "createKeyFailed": "API 키를 생성하지 못했습니다.",
-    "createKeySuccess": "API 키가 성공적으로 생성되었습니다.",
-    "description": "API 키는 키를 생성한 사용자를 기준으로 합니다. 참조",
     "swaggerLinkText": "스웨거 페이지",
     "created": "생성됨",
     "expires": "만료",
     "actions": "작업",
     "enabled": "활성화됨",
     "disabled": "장애인",
-    "apiKeyDeleted": "API 키가 삭제되었습니다!",
     "tokenType": "토큰 유형:",
-    "clickToCopyKey": "키를 복사하려면 클릭(숨김)",
-    "minimalDescription": "최소 토큰",
-    "minimalInfo": "더 작은 토큰 길이를 만들기 위해 토큰 사용자 지정을 제외합니다. 연결된 사용자와 정확한 권한이 일치합니다."
+    "title": "API 토큰",
+    "createKeyFailed": "API 토큰을 만들지 못했습니다.",
+    "createKeySuccess": "API 토큰이 성공적으로 생성되었습니다.",
+    "apiKeyDeleted": "API 토큰이 삭제되었습니다!",
+    "description": "API 토큰은 토큰을 생성하는 사용자를 기반으로 합니다.",
+    "clickToCopyKey": "토큰을 복사하려면 클릭 (숨김)",
+    "customizeToken": "토큰 사용자 지정",
+    "minimalInfo": "토큰 사용자 지정을 제외하면 권한은 연결된 사용자와 일치하며 다른 속성은 없습니다.",
+    "createTitle": "API 토큰 생성",
+    "keyNamePlaceholder": "API 토큰의 고유 이름을 입력합니다.",
+    "customizeTokenInfo": "토큰 권한 및 속성을 사용자 지정합니다. 이렇게 하면 토큰이 더 길어져 일부 WebDAV 클라이언트에서 작동하지 않을 수 있습니다."
   },
   "index": {
     "assessment": "평가",

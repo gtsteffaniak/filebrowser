@@ -274,11 +274,11 @@
       "modify": "Bestanden aanpassen",
       "share": "Bestanden delen",
       "admin": "Beheerder",
-      "api": "Langlevende API-sleutels maken en beheren",
       "realtime": "Real-time verbindingen en updates mogelijk maken",
       "create": "Bestanden maken",
       "delete": "Bestanden verwijderen",
-      "download": "Bestanden downloaden"
+      "download": "Bestanden downloaden",
+      "api": "Langlevende API-tokens maken en beheren"
     },
     "permissions-name": "Permissies",
     "profileSettings": "Profielinstellingen",
@@ -315,7 +315,6 @@
     "userScopeGenerationPlaceholder": "De scope wordt automatisch gegenereerd",
     "createUserHomeDirectory": "Thuismap gebruiker aanmaken",
     "shareSettings": "Instellingen delen",
-    "api": "API-sleutels",
     "shareDeleted": "Deel verwijderd!",
     "adminOptions": "Opties voor beheerders",
     "searchOptions": "Zoekopties",
@@ -332,7 +331,8 @@
       "proxy": "Proxy"
     },
     "newUserHintSubFolder": "bijv. '/submap' - leeg voor standaard",
-    "permissionsHelp": "Gebruikersrechten bepalen welke acties de gebruiker kan uitvoeren. Administrar toegang geeft volledige controle om de instellingen van elke gebruiker bij te werken en te wijzigen, evenals vele systeeminstellingen."
+    "permissionsHelp": "Gebruikersrechten bepalen welke acties de gebruiker kan uitvoeren. Administrar toegang geeft volledige controle om de instellingen van elke gebruiker bij te werken en te wijzigen, evenals vele systeeminstellingen.",
+    "api": "API-tokens"
   },
   "sidebar": {
     "siteSettings": "Site-instellingen",
@@ -460,31 +460,32 @@
     "selectImage": "Afbeelding selecteren"
   },
   "api": {
-    "title": "API-sleutels",
     "createdAt": "Gemaakt op:",
     "expiresAt": "Verloopt op:",
     "permissions": "Toestemmingen:",
-    "createTitle": "API-sleutel aanmaken",
-    "keyNamePlaceholder": "Voer een unieke naam voor de API-sleutel in:",
     "tokenDuration": "Duur token:",
     "durationNumberPlaceholder": "Aantal",
     "days": "Dagen",
     "months": "Maanden",
     "permissionNote": "Kies minstens één permissie voor de sleutel. Je gebruiker moet deze rechten ook hebben.",
-    "createKeyFailed": "API-sleutel is niet aangemaakt.",
-    "createKeySuccess": "API-sleutel succesvol aangemaakt.",
-    "description": "API-sleutels zijn gebaseerd op de gebruiker die ze aanmaakt. Zie",
     "swaggerLinkText": "swagger pagina",
     "created": "Gemaakt",
     "expires": "Verloopt op",
     "actions": "Acties",
     "enabled": "Ingeschakeld",
     "disabled": "Uitgeschakeld",
-    "apiKeyDeleted": "API-sleutel verwijderd!",
     "tokenType": "Type penning:",
-    "clickToCopyKey": "Klik om sleutel te kopiëren (verborgen)",
-    "minimalDescription": "Minimaal token",
-    "minimalInfo": "Sluit tokenaanpassingen uit om een kleinere tokenlengte te creëren. Exacte overeenkomst met de rechten van de bijbehorende gebruiker."
+    "title": "API-tokens",
+    "createKeyFailed": "API-token is niet aangemaakt.",
+    "createKeySuccess": "API-token succesvol aangemaakt.",
+    "apiKeyDeleted": "API token verwijderd!",
+    "description": "API-tokens zijn gebaseerd op de gebruiker die ze aanmaakt.",
+    "clickToCopyKey": "Klik om token te kopiëren (verborgen)",
+    "customizeToken": "Token aanpassen",
+    "minimalInfo": "Sluit tokenaanpassingen uit, permissies zullen overeenkomen met de geassocieerde gebruiker en hebben geen andere attributen.",
+    "createTitle": "API-token aanmaken",
+    "keyNamePlaceholder": "Voer een unieke naam in voor het API token",
+    "customizeTokenInfo": "Pas de tokenpermissies en -attributen aan. Dit zal een langer token aanmaken dat mogelijk niet werkt bij sommige WebDAV-clients."
   },
   "index": {
     "assessment": "Beoordeling",

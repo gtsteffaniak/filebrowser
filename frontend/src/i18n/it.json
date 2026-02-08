@@ -274,11 +274,11 @@
       "modify": "Modificare file",
       "share": "Condividere file",
       "admin": "Amministratore",
-      "api": "Creare e gestire chiavi API a lunga durata",
       "realtime": "Consentire connessioni e aggiornamenti in tempo reale",
       "create": "Creare file",
       "delete": "Eliminare i file",
-      "download": "Scarica i file"
+      "download": "Scarica i file",
+      "api": "Creare e gestire token API di lunga durata"
     },
     "permissions-name": "Permessi",
     "profileSettings": "Impostazioni del profilo",
@@ -308,7 +308,6 @@
     "userHomeBasePath": "Percorso di base per le directory home degli utenti",
     "userScopeGenerationPlaceholder": "L'ambito sarà generato automaticamente",
     "createUserHomeDirectory": "Creare la directory home dell'utente",
-    "api": "Chiavi API",
     "shareDeleted": "Condividi cancellato!",
     "loginMethodDescription": "metodo di accesso consentito per l'utente.",
     "userNotAdmin": "L'utente non è un amministratore",
@@ -332,7 +331,8 @@
       "proxy": "Proxy"
     },
     "newUserHintSubFolder": "es. '/sottocartella' - vuoto per l'impostazione predefinita",
-    "permissionsHelp": "I permessi utente controllano l'accesso al tipo di azioni che l'utente può eseguire. L'accesso dell'amministratore consente di aggiornare e modificare le impostazioni di qualsiasi utente e molte impostazioni del sistema."
+    "permissionsHelp": "I permessi utente controllano l'accesso al tipo di azioni che l'utente può eseguire. L'accesso dell'amministratore consente di aggiornare e modificare le impostazioni di qualsiasi utente e molte impostazioni del sistema.",
+    "api": "Gettoni API"
   },
   "sidebar": {
     "siteSettings": "Impostazioni del sito",
@@ -460,31 +460,32 @@
     "selectImage": "Selezionare l'immagine"
   },
   "api": {
-    "title": "Chiavi API",
     "createdAt": "Creato a:",
     "expiresAt": "Scade a:",
     "permissions": "Permessi:",
-    "createTitle": "Creare la chiave API",
-    "keyNamePlaceholder": "Inserire un nome univoco per la chiave API:",
     "tokenDuration": "Durata del gettone:",
     "durationNumberPlaceholder": "Numero",
     "days": "Giorni",
     "months": "Mesi",
     "permissionNote": "Scegliere almeno un'autorizzazione per la chiave. Anche l'utente deve avere l'autorizzazione.",
-    "createKeyFailed": "Impossibile creare la chiave API.",
-    "createKeySuccess": "Chiave API creata con successo.",
-    "description": "Le chiavi API si basano sull'utente che le crea. Vedere",
     "swaggerLinkText": "pagina swagger",
     "created": "Creato",
     "expires": "Scadenza",
     "actions": "Azioni",
     "enabled": "Abilitato",
     "disabled": "Disabili",
-    "apiKeyDeleted": "Chiave API cancellata!",
     "tokenType": "Tipo di gettone:",
-    "clickToCopyKey": "Fare clic per copiare la chiave (nascosta)",
-    "minimalDescription": "Gettone minimo",
-    "minimalInfo": "Esclude le personalizzazioni del token per creare un token di lunghezza inferiore. Le autorizzazioni corrispondono esattamente all'utente associato."
+    "title": "Gettoni API",
+    "createKeyFailed": "Impossibile creare un token API.",
+    "createKeySuccess": "Il token API è stato creato con successo.",
+    "apiKeyDeleted": "Token API cancellato!",
+    "description": "I token API si basano sull'utente che li crea.",
+    "clickToCopyKey": "Fare clic per copiare il token (nascosto)",
+    "customizeToken": "Personalizzare il gettone",
+    "minimalInfo": "Esclude le personalizzazioni dei token, le autorizzazioni corrisponderanno all'utente associato e non avranno altri attributi.",
+    "createTitle": "Creare il token API",
+    "keyNamePlaceholder": "Inserire un nome univoco per il token API",
+    "customizeTokenInfo": "Personalizzare le autorizzazioni e gli attributi del token. Questo creerà un token più lungo che potrebbe non funzionare con alcuni client WebDAV."
   },
   "index": {
     "assessment": "Valutazione",
