@@ -81,12 +81,16 @@ export default {
     },
     actionMultiIcon() {
       if (this.show) {
+        console.log("[Action] actionMultiIcon: closing ContextMenus before showing", this.show);
+        mutations.closeContextMenus();
         mutations.showHover(this.show);
       }
       this.$emit("action");
     },
     action() {
       if (this.show) {
+        console.log("[Action] action: closing ContextMenus before showing", this.show);
+        mutations.closeContextMenus();
         mutations.showHover(this.show);
       }
       this.$emit("action");

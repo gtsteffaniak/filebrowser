@@ -1,8 +1,4 @@
 <template>
-  <div class="card-title">
-    <h2>{{ $t("prompts.fileInfo") }}</h2>
-  </div>
-
   <div class="card-content info-content">
     <div class="info-grid">
       <!-- Basic Information Section -->
@@ -86,12 +82,6 @@
     </div>
   </div>
 
-  <div class="card-action">
-    <button type="submit" @click="closeHovers" class="button button--flat" :aria-label="$t('general.close')"
-      :title="$t('general.close')">
-      {{ $t("general.close") }}
-    </button>
-  </div>
 </template>
 <script>
 import { getHumanReadableFilesize } from "@/utils/filesizes";

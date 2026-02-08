@@ -1,8 +1,4 @@
 <template>
-  <div class="card-title">
-    <h2>{{ $t("prompts.newDir") }}</h2>
-  </div>
-
   <div class="card-content">
     <p>{{ $t("prompts.newDirMessage") }}</p>
     <input aria-label="New Folder Name" class="input" type="text" @keyup.enter="submit" v-model.trim="name"

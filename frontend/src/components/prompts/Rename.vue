@@ -1,8 +1,4 @@
 <template>
-  <div class="card-title">
-    <h2>{{ $t("prompts.rename") }}</h2>
-  </div>
-
   <div class="card-content">
     <p>{{ $t("prompts.renameMessage") }}</p>
 

@@ -1,8 +1,4 @@
 <template>
-  <div class="card-title">
-    <h2>{{ $t('api.title') }}</h2> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-  </div>
-
   <div class="card-content api-content">
     <!-- API Token Section -->
     <div class="api-section">
@@ -63,14 +59,6 @@
   </div>
 
   <div class="card-action">
-    <button
-      class="button button--flat button--grey"
-      @click="closeHovers"
-      :aria-label="$t('general.close')"
-      :title="$t('general.close')"
-    >
-      {{ $t('general.close') }}
-    </button>
     <button
       class="button button--flat button--red"
       @click="deleteApi"

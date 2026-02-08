@@ -1,11 +1,4 @@
 <template>
-  <div class="card-title">
-    <h2>
-      {{ $t('player.QueuePlayback') }}
-      <span class="queue-count-badge">{{ queueCount }}</span>
-    </h2>
-  </div>
-
   <div class="card-content">
     <!-- Playback mode display -->
     <div class="playback-mode">
@@ -53,10 +46,6 @@
   <div class="card-action">
     <button class="button button--flat" @click.stop="cyclePlaybackModes" :title="$t('player.changePlaybackMode')">
       <i class="material-icons">swap_vert</i> {{ $t('player.changePlaybackMode') }}
-    </button>
-
-    <button @click="closeModal" class="button button--flat" :aria-label="$t('general.close')"
-      :title="$t('general.close')"> {{ $t('general.close') }}
     </button>
   </div>
 </template>
@@ -218,9 +207,6 @@ export default {
           });
         }
       });
-    },
-    closeModal() {
-      mutations.closeHovers();
     },
     getFileIcon(item) {
       if (item.type?.startsWith('audio/')) return 'audiotrack';

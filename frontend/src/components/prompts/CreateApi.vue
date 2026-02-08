@@ -1,8 +1,4 @@
 <template>
-  <div class="card-title">
-    <h2>{{ $t('api.createTitle') }}</h2>
-  </div>
-
   <div class="card-content">
     <!-- API Key Name Input -->
     <p>{{ $t('general.name') }}</p>

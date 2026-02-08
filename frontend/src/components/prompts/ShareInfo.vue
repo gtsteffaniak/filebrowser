@@ -1,8 +1,4 @@
 <template>
-  <div class="card-title">
-    <h2>{{ $t("share.shareInfo") }}</h2>
-  </div>
-
   <div class="card-content">
     <div class="share-info-content">
       <div v-if="shareInfo.banner" class="banner">
@@ -35,16 +31,6 @@
     </div>
   </div>
 
-  <div class="card-action">
-    <button
-      class="button button--flat button--grey"
-      @click="close"
-      :aria-label="$t('general.close')"
-      :title="$t('general.close')"
-    >
-      {{ $t("general.close") }}
-    </button>
-  </div>
 </template>
 
 <script>

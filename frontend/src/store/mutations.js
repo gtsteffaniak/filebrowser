@@ -255,6 +255,7 @@ export const mutations = {
     emitStateChanged();
   },
   closeHovers: () => {
+    console.log("[prompts] closeHovers called", { currentLength: state.prompts.length });
     // Check if uploads are active and we're not already showing the warning
     const hasActiveUploads = state.upload.isUploading;
     const hasUploadPrompt = state.prompts.some(p => p.name === "upload");
@@ -262,10 +263,12 @@ export const mutations = {
 
     if (hasActiveUploads && hasUploadPrompt && !hasWarningPrompt) {
       // Show warning prompt instead of closing
+      console.log("[prompts] closeHovers: showing upload warning instead");
       mutations.showHover({
         name: "CloseWithActiveUploads",
         confirm: () => {
           // User confirmed to close anyway - force close all hovers
+          console.log("[prompts] closeHovers: user confirmed, closing all");
           state.prompts = [];
           if (!state.stickySidebar) {
             state.showSidebar = false;
@@ -274,12 +277,14 @@ export const mutations = {
         },
         cancel: () => {
           // User cancelled - just close the warning prompt
+          console.log("[prompts] closeHovers: user cancelled");
           mutations.closeTopHover();
         },
       });
       return;
     }
-    // Normal close behavior
+    // Normal close behavior - close ALL prompts including ContextMenu
+    console.log("[prompts] closeHovers: closing all prompts", { prompts: state.prompts.map(p => ({ id: p.id, name: p.name })) });
     state.prompts = [];
     if (!state.stickySidebar) {
       state.showSidebar = false;
@@ -287,35 +292,71 @@ export const mutations = {
     mutations.hideTooltip(true)
   },
   closeTopHover: () => {
-    state.prompts.pop();
+    console.log("[prompts] closeTopHover called", { currentLength: state.prompts.length });
+    if (state.prompts.length === 0) {
+      console.log("[prompts] closeTopHover: already empty");
+      return;
+    }
+    const removed = state.prompts.pop();
+    console.log("[prompts] closeTopHover: removed", { id: removed.id, name: removed.name, newLength: state.prompts.length, remaining: state.prompts.map(p => ({ id: p.id, name: p.name })) });
     if (state.prompts.length === 0) {
       if (!state.stickySidebar) {
         state.showSidebar = false;
       }
     }
-    mutations.hideTooltip(true)
+    mutations.hideTooltip(true);
   },
   showHover: (value) => {
-    if (typeof value === "object") {
-      state.prompts.push({
-        name: value?.name,
-        confirm: value?.confirm,
-        action: value?.action,
-        props: value?.props,
-        discard: value?.discard,
-        cancel: value?.cancel,
-      });
-    } else {
-      state.prompts.push({
-        name: value,
-        confirm: value?.confirm,
-        action: value?.action,
-        props: value?.props,
-        discard: value?.discard,
-        cancel: value?.cancel,
-      });
+    state.promptIdCounter += 1;
+    const id = state.promptIdCounter;
+    const name = typeof value === "object" ? value?.name : value;
+    console.log("[prompts] showHover called", { id, name, currentLength: state.prompts.length });
+    const entry = typeof value === "object" ? {
+      id,
+      name: value?.name,
+      confirm: value?.confirm,
+      action: value?.action,
+      props: value?.props,
+      discard: value?.discard,
+      cancel: value?.cancel,
+    } : {
+      id,
+      name: value,
+      confirm: value?.confirm,
+      action: value?.action,
+      props: value?.props,
+      discard: value?.discard,
+      cancel: value?.cancel,
+    };
+    state.prompts.push(entry);
+    console.log("[prompts] after push", { id, name, newLength: state.prompts.length, allPrompts: state.prompts.map(p => ({ id: p.id, name: p.name })) });
+    mutations.hideTooltip(true);
+  },
+  closePromptById: (id) => {
+    console.log("[prompts] closePromptById called", { id, currentLength: state.prompts.length });
+    const idx = state.prompts.findIndex((p) => p.id === id);
+    if (idx === -1) {
+      console.log("[prompts] closePromptById: id not found", { id });
+      return;
     }
-    mutations.hideTooltip(true)
+    const removedPrompt = state.prompts[idx];
+    state.prompts.splice(idx, 1);
+    console.log("[prompts] closePromptById: removed", { id, name: removedPrompt.name, newLength: state.prompts.length, remaining: state.prompts.map(p => ({ id: p.id, name: p.name })) });
+    if (state.prompts.length === 0 && !state.stickySidebar) {
+      state.showSidebar = false;
+    }
+    mutations.hideTooltip(true);
+  },
+  closeContextMenus: () => {
+    console.log("[prompts] closeContextMenus called", { currentLength: state.prompts.length });
+    const initialLength = state.prompts.length;
+    state.prompts = state.prompts.filter((p) => p.name !== "ContextMenu");
+    const removed = initialLength - state.prompts.length;
+    console.log("[prompts] closeContextMenus: removed", { count: removed, newLength: state.prompts.length, remaining: state.prompts.map(p => ({ id: p.id, name: p.name })) });
+    if (state.prompts.length === 0 && !state.stickySidebar) {
+      state.showSidebar = false;
+    }
+    mutations.hideTooltip(true);
   },
   setLoading: (loadType, status) => {
     if (status === false) {

@@ -1,7 +1,4 @@
 <template>
-  <div class="card-title">
-    <h2>{{ $t("access.accessManagement") }}</h2>
-  </div>
   <div class="card-content">
     <div v-if="loading" class="loading-spinner-wrapper">
       <LoadingSpinner size="medium" />
@@ -97,11 +94,6 @@
         {{ $t("general.ok") }}
       </button>
     </template>
-    <template v-else>
-      <button @click="closeHovers" class="button button--flat button--grey" :aria-label="$t('general.close')" :title="$t('general.close')">
-        {{ $t("general.close") }}
-      </button>
-    </template>
   </div>
 </template>
 
@@ -109,7 +101,7 @@
 import { notify } from "@/notify";
 import { accessApi } from "@/api";
 import { mutations } from "@/store";
-import FileList from "./FileList.vue";
+import FileList from "../files/FileList.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { eventBus } from "@/store/eventBus";

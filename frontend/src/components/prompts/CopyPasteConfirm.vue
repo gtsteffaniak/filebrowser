@@ -1,8 +1,4 @@
 <template>
-  <div class="card-title">
-    <h2>{{ $t("prompts.copyPasteConfirm") }}</h2>
-  </div>
-
   <div class="card-content">
     <p>{{ operation === 'copy' ? $t("prompts.copyItemQuestion") : $t("prompts.moveItemQuestion") }}</p>
 

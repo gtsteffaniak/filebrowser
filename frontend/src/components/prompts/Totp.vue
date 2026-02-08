@@ -1,7 +1,4 @@
 <template>
-  <div class="card-title">
-    <h2>{{ $t("otp.name") }}</h2>
-  </div>
   <div v-if="error !== ''" class="wrong-login card">{{ error }}</div>
   <div class="card-content">
     <p v-if="generate">{{ $t("otp.generate") }}</p>
@@ -15,11 +12,6 @@
   </div>
 
   <div class="card-action">
-    <button @click="closeHovers" class="button button--flat button--grey"
-      :aria-label="succeeded ? $t('general.close') : $t('general.cancel')"
-      :title="succeeded ? $t('general.close') : $t('general.cancel')">
-      {{ succeeded ? $t('general.close') : $t('general.cancel') }}
-    </button>
     <button v-if="!succeeded && code != ''" class="button button--flat button--blue" @click="verifyCode"
       :title="$t('general.verify')">
       {{ $t("general.verify") }}

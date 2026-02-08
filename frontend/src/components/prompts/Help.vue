@@ -1,8 +1,4 @@
 <template>
-  <div class="card-title">
-    <h2>{{ $t("general.help") }}</h2>
-  </div>
-
   <div class="card-content help-content">
     <p class="help-description">
       {{ $t("help.description") }}

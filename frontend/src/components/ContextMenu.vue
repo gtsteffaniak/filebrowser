@@ -371,6 +371,8 @@ export default {
   },
   methods: {
     showInfoHover() {
+      console.log("[ContextMenu] showInfoHover: closing all ContextMenus");
+      mutations.closeContextMenus();
       mutations.showHover({
         name: "info",
         props: {
@@ -403,6 +405,8 @@ export default {
       return this.isPreview && state.req.path != "/";
     },
     showAccessHover() {
+      console.log("[ContextMenu] showAccessHover: closing all ContextMenus");
+      mutations.closeContextMenus();
       mutations.showHover({
         name: "access",
         props: {
@@ -486,6 +490,8 @@ export default {
       return mutations.showHover(value);
     },
     showShareHover() {
+      console.log("[ContextMenu] showShareHover: closing all ContextMenus");
+      mutations.closeContextMenus();
       mutations.showHover({name: "share",
         props: {
           item: getters.selectedCount() == 1 ? getters.getFirstSelected() : state.req
@@ -493,6 +499,8 @@ export default {
       });
     },
     showRenameHover() {
+      console.log("[ContextMenu] showRenameHover: closing all ContextMenus");
+      mutations.closeContextMenus();
       mutations.showHover({
         name: "rename",
         props: {
@@ -502,6 +510,8 @@ export default {
       });
     },
     showRenameHoverForPreview() {
+      console.log("[ContextMenu] showRenameHoverForPreview: closing ContextMenu first");
+      mutations.closeTopHover(); // Close the ContextMenu (if it was open from preview)
       // Get parent items from the listing
       const parentItems = state.navigation.listing || [];
       mutations.showHover({
@@ -547,10 +557,10 @@ export default {
         false
       );
       window.open(downloadUrl, "_blank");
-      mutations.closeHovers();
+      mutations.closeContextMenus();
     },
     watchFile() {
-      mutations.closeHovers();
+      mutations.closeContextMenus();
       const source = state.req?.source || state.sources.current || "";
       const path = state.req?.path || "/";
       this.$router.push({
@@ -580,7 +590,7 @@ export default {
         // Don't show error notification here - API layer already showed it
         buttons.done(button);
       }
-      mutations.closeHovers();
+      mutations.closeContextMenus();
     },
     showUpload() {
       mutations.showHover({
@@ -604,7 +614,7 @@ export default {
           mutations.addSelected(index);
         });
         // Close the context menu
-        mutations.closeHovers();
+        mutations.closeContextMenus();
       }
     },
   },

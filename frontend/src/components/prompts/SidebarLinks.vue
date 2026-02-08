@@ -1,8 +1,4 @@
 <template>
-  <div class="card-title">
-    <h2>{{ currentTitle }}</h2>
-  </div>
-
   <div class="card-content sidebar-links-content">
     <p v-if="!showAddForm">{{ contextDescription }}</p>
 
@@ -220,7 +216,7 @@ import { notify } from "@/notify";
 import { usersApi, shareApi } from "@/api";
 import { tools } from "@/utils/constants";
 import { getIconClass } from "@/utils/material-icons";
-import FileList from "./FileList.vue";
+import FileList from "../files/FileList.vue";
 import { eventBus } from "@/store/eventBus";
 
 export default {
