@@ -16,7 +16,7 @@
         <a class="link" href="swagger/index.html">{{ $t("api.swaggerLinkText") }}</a>
       </p>
 
-      <table aria-label="API Keys">
+      <table aria-label="API Tokens">
         <thead>
           <tr>
             <th>{{ $t("general.name") }}</th>

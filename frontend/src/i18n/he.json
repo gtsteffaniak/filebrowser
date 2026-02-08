@@ -276,11 +276,11 @@
       "modify": "עריכת קבצים קבצים",
       "share": "שיתוף קבצים",
       "admin": "מנהל",
-      "api": "יצירת מפתחות API ארוכי טווח וניהולם",
       "realtime": "אפשר חיבורים ועדכונים בזמן אמת",
       "create": "יצירת קבצים",
       "delete": "מחק קבצים",
-      "download": "הורדת קבצים"
+      "download": "הורדת קבצים",
+      "api": "יצירת וניהול אסימוני API ארוכי טווח"
     },
     "permissions-name": "הרשאות",
     "profileSettings": "הגדרות פרופיל",
@@ -316,7 +316,6 @@
     "tusUploadsRetryCount": "מספר הניסיונות שיש לבצע אם העלאת קטע נכשלה.",
     "disableUsedDiskPercentage": "השבת גרף אחוזי השימוש בדיסק",
     "shareSettings": "הגדרות שיתוף",
-    "api": "מפתחות API",
     "adminOptions": "אפשרויות משתמש מנהל",
     "searchOptions": "אפשרויות חיפוש",
     "systemAdmin": "מערכת וניהול",
@@ -332,7 +331,8 @@
       "proxy": "פרוקסי"
     },
     "newUserHintSubFolder": "לדוגמה, '/subfolder' - ריק עבור ברירת המחדל",
-    "permissionsHelp": "הרשאות המשתמש שולטות בגישה לסוגי הפעולות שהמשתמש יכול לבצע. גישה לניהול מעניקה שליטה מלאה לעדכון ולשינוי הגדרות המשתמש, כמו גם הגדרות רבות של המערכת."
+    "permissionsHelp": "הרשאות המשתמש שולטות בגישה לסוגי הפעולות שהמשתמש יכול לבצע. גישה לניהול מעניקה שליטה מלאה לעדכון ולשינוי הגדרות המשתמש, כמו גם הגדרות רבות של המערכת.",
+    "api": "אסימוני API"
   },
   "sidebar": {
     "siteSettings": "הגדרות",
@@ -460,31 +460,32 @@
     "selectImage": "בחר תמונה"
   },
   "api": {
-    "title": "מפתחות API",
     "createdAt": "נוצר ב:",
     "expiresAt": "תוקף ב:",
     "permissions": "הרשאות:",
-    "createTitle": "צור מפתח API",
-    "keyNamePlaceholder": "הזן שם מפתח API ייחודי:",
     "tokenDuration": "משך תוקף האסימון:",
     "durationNumberPlaceholder": "מספר",
     "days": "ימים",
     "months": "חודשים",
     "permissionNote": "בחר לפחות הרשאה אחת עבור המפתח. גם למשתמש שלך חייבת להיות הרשאה זו.",
-    "createKeyFailed": "לא ניתן ליצור מפתח API.",
-    "createKeySuccess": "מפתח API נוצר בהצלחה.",
-    "description": "מפתחות API מבוססים על המשתמש שיצר אותם. ראה",
     "swaggerLinkText": "דף סוואגר",
     "created": "נוצר",
     "expires": "תוקף",
     "actions": "פעולות",
     "enabled": "מופעל",
     "disabled": "נכה",
-    "apiKeyDeleted": "מפתח API נמחק!",
     "tokenType": "סוג האסימון:",
-    "clickToCopyKey": "לחץ כדי להעתיק את המפתח (מוסתר)",
-    "minimalDescription": "אסימון מינימלי",
-    "minimalInfo": "לא כולל התאמות אישיות של אסימונים ליצירת אורך אסימון קטן יותר. ההרשאות תואמות במדויק למשתמש המשויך."
+    "title": "אסימוני API",
+    "createKeyFailed": "לא ניתן ליצור אסימון API.",
+    "createKeySuccess": "אסימון API נוצר בהצלחה.",
+    "apiKeyDeleted": "אסימון API נמחק!",
+    "description": "אסימוני API מבוססים על המשתמש שיוצר אותם.",
+    "clickToCopyKey": "לחץ כדי להעתיק אסימון (מוסתר)",
+    "customizeToken": "התאמה אישית של אסימון",
+    "customizeTokenInfo": "התאם אישית את ההרשאות והתכונות של האסימון.",
+    "minimalInfo": "לא כולל התאמות אישיות של אסימונים, ההרשאות יתאימו למשתמש המשויך ולא יהיו להן תכונות אחרות.",
+    "createTitle": "צור אסימון API",
+    "keyNamePlaceholder": "הזן שם ייחודי עבור אסימון ה-API"
   },
   "index": {
     "assessment": "הערכה",

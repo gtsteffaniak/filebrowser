@@ -274,11 +274,11 @@
       "modify": "Upravovať súbory",
       "share": "Zdieľať súbory",
       "admin": "Správca",
-      "api": "Vytváranie a správa kľúčov API s dlhou životnosťou",
       "realtime": "Povolenie pripojení a aktualizácií v reálnom čase",
       "create": "Vytvorenie súborov",
       "delete": "Odstránenie súborov",
-      "download": "Stiahnite si súbory"
+      "download": "Stiahnite si súbory",
+      "api": "Vytváranie a správa dlhodobých tokenov API"
     },
     "permissions-name": "Práva",
     "profileSettings": "Nastavenia profilu",
@@ -309,7 +309,6 @@
     "userHomeBasePath": "Základná cesta pre domovské adresáre používateľov",
     "userScopeGenerationPlaceholder": "Rozsah sa vygeneruje automaticky",
     "createUserHomeDirectory": "Vytvorenie domovského adresára používateľa",
-    "api": "Kľúče API",
     "loginMethodDescription": "povolená metóda prihlásenia pre používateľa.",
     "userNotAdmin": "Používateľ nie je správca",
     "enterPassword": "Zadajte heslo",
@@ -332,7 +331,8 @@
       "proxy": "Proxy"
     },
     "newUserHintSubFolder": "napr. '/subfolder' - prázdne pre predvolené nastavenie",
-    "permissionsHelp": "Oprávnenia používateľa riadia prístup k typom akcií, ktoré môže používateľ vykonávať. Prístup administrátora poskytuje úplnú kontrolu nad aktualizáciou a zmenou nastavení ktoréhokoľvek používateľa, ako aj nad mnohými systémovými nastaveniami."
+    "permissionsHelp": "Oprávnenia používateľa riadia prístup k typom akcií, ktoré môže používateľ vykonávať. Prístup administrátora poskytuje úplnú kontrolu nad aktualizáciou a zmenou nastavení ktoréhokoľvek používateľa, ako aj nad mnohými systémovými nastaveniami.",
+    "api": "Tokeny API"
   },
   "sidebar": {
     "siteSettings": "Nastavenia stránky",
@@ -460,31 +460,32 @@
     "selectImage": "Vybrať obrázok"
   },
   "api": {
-    "title": "Kľúče API",
     "createdAt": "Vytvorené v:",
     "expiresAt": "Platnosť končí na:",
     "permissions": "Oprávnenia:",
-    "createTitle": "Vytvorenie kľúča API",
-    "keyNamePlaceholder": "Zadajte jedinečný názov kľúča API:",
     "tokenDuration": "Trvanie žetónu:",
     "durationNumberPlaceholder": "Číslo",
     "days": "Dni",
     "months": "Mesiace",
     "permissionNote": "Vyberte aspoň jedno povolenie pre kľúč. Oprávnenie musí mať aj váš používateľ.",
-    "createKeyFailed": "Nepodarilo sa vytvoriť kľúč API.",
-    "createKeySuccess": "Kľúč API bol úspešne vytvorený.",
-    "description": "Kľúče API sú založené na používateľovi, ktorý ich vytvoril. Pozri .",
     "swaggerLinkText": "swagger stránka",
     "created": "Vytvorené",
     "expires": "Platnosť končí na",
     "actions": "Činnosti",
     "enabled": "Povolené",
     "disabled": "Bezbariérový",
-    "apiKeyDeleted": "Kľúč API odstránený!",
     "tokenType": "Typ žetónu:",
-    "clickToCopyKey": "Kliknutím skopírujete kľúč (skrytý)",
-    "minimalDescription": "Minimálny žetón",
-    "minimalInfo": "Vylúči prispôsobenie tokenu na vytvorenie menšej dĺžky tokenu. Presná zhoda oprávnení s priradeným používateľom."
+    "title": "Tokeny API",
+    "createKeyFailed": "Nepodarilo sa vytvoriť token API.",
+    "createKeySuccess": "Token API bol úspešne vytvorený.",
+    "apiKeyDeleted": "Token API odstránený!",
+    "description": "Tokeny API sú založené na používateľovi, ktorý ich vytvoril.",
+    "clickToCopyKey": "Kliknutím skopírujete token (skrytý)",
+    "customizeToken": "Prispôsobenie žetónu",
+    "customizeTokenInfo": "Prispôsobenie oprávnení a atribútov tokenu.",
+    "minimalInfo": "Vylúči prispôsobenie tokenu, oprávnenia budú zodpovedať priradenému používateľovi a nebudú mať žiadne iné atribúty.",
+    "createTitle": "Vytvorenie tokenu API",
+    "keyNamePlaceholder": "Zadajte jedinečný názov tokenu API"
   },
   "index": {
     "assessment": "Hodnotenie",

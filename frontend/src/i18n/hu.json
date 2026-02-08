@@ -276,11 +276,11 @@
       "modify": "Fájlok szerkesztése",
       "share": "Fájlok megosztása",
       "admin": "Adminisztrátor",
-      "api": "Hosszú élettartamú API-kulcsok létrehozása és kezelése",
       "realtime": "Valós idejű kapcsolatok és frissítések engedélyezése",
       "create": "Fájlok létrehozása",
       "delete": "Fájlok törlése",
-      "download": "Fájlok letöltése"
+      "download": "Fájlok letöltése",
+      "api": "Hosszú élettartamú API tokenek létrehozása és kezelése"
     },
     "permissions-name": "Jogosultságok",
     "profileSettings": "Profilbeállítások",
@@ -309,7 +309,6 @@
     "tusUploadsChunkSize": "A kérés maximális méretét jelzi (a kisebb feltöltéseknél a közvetlen feltöltést használják). Beadhat egy egyszerű egész számot, amely a bájtos bemenetet jelöli, vagy egy karakterláncot, például 10MB, 1GB stb.",
     "tusUploadsRetryCount": "Az újbóli próbálkozások száma, ha egy darabkát nem sikerül feltölteni.",
     "disableUsedDiskPercentage": "A használt lemez százalékos grafikonjának kikapcsolása",
-    "api": "API kulcsok",
     "loginMethodDescription": "engedélyezett bejelentkezési módszer a felhasználó számára.",
     "userNotAdmin": "A felhasználó nem rendszergazda",
     "enterPassword": "Jelszó megadása",
@@ -332,7 +331,8 @@
       "proxy": "Proxy"
     },
     "newUserHintSubFolder": "pl. '/subfolder' - üres az alapértelmezéshez",
-    "permissionsHelp": "A felhasználói engedélyek szabályozzák, hogy a felhasználó milyen típusú műveleteket hajthat végre. A rendszergazdai hozzáférés teljes körű ellenőrzést biztosít bármely felhasználó beállításainak, valamint számos rendszerbeállításnak a frissítéséhez és módosításához."
+    "permissionsHelp": "A felhasználói engedélyek szabályozzák, hogy a felhasználó milyen típusú műveleteket hajthat végre. A rendszergazdai hozzáférés teljes körű ellenőrzést biztosít bármely felhasználó beállításainak, valamint számos rendszerbeállításnak a frissítéséhez és módosításához.",
+    "api": "API tokenek"
   },
   "sidebar": {
     "siteSettings": "Oldalbeállítások",
@@ -460,31 +460,32 @@
     "selectImage": "Kép kiválasztása"
   },
   "api": {
-    "title": "API-kulcsok",
     "createdAt": "Létrehozva:",
     "expiresAt": "Lejár:",
     "permissions": "Engedélyek:",
-    "createTitle": "API kulcs létrehozása",
-    "keyNamePlaceholder": "Adjon meg egy egyedi API-kulcs nevet:",
     "tokenDuration": "Token időtartama:",
     "durationNumberPlaceholder": "Szám",
     "days": "Napok",
     "months": "Hónapok",
     "permissionNote": "Válasszon legalább egy engedélyt a kulcshoz. A felhasználónak is rendelkeznie kell az adott jogosultsággal.",
-    "createKeyFailed": "Sikertelen API-kulcs létrehozása.",
-    "createKeySuccess": "Sikeresen létrehozott API-kulcs.",
-    "description": "Az API-kulcsok a létrehozó felhasználó alapján készülnek. Lásd",
     "swaggerLinkText": "swagger oldal",
     "created": "Létrehozva",
     "expires": "Lejárat:",
     "actions": "Tevékenységek",
     "enabled": "Engedélyezve",
     "disabled": "Mozgáskorlátozottak",
-    "apiKeyDeleted": "API kulcs törölve!",
     "tokenType": "Token típus:",
-    "clickToCopyKey": "Kattintson a kulcs másolásához (rejtett)",
-    "minimalDescription": "Minimal Token",
-    "minimalInfo": "Kizárja a token testreszabásokat, hogy kisebb tokenhosszúságot hozzon létre. A jogosultságok pontosan megegyeznek a hozzárendelt felhasználóval."
+    "title": "API tokenek",
+    "createKeyFailed": "Sikertelen API token létrehozása.",
+    "createKeySuccess": "Sikeresen létrehozott API token.",
+    "apiKeyDeleted": "API token törölve!",
+    "description": "Az API-tokenek az őket létrehozó felhasználó alapján készülnek.",
+    "clickToCopyKey": "Kattintson a token másolásához (rejtett)",
+    "customizeToken": "Token testreszabása",
+    "customizeTokenInfo": "A token engedélyek és attribútumok testreszabása.",
+    "minimalInfo": "Kizárja a token testreszabásokat, a jogosultságok megfelelnek a kapcsolódó felhasználónak, és nem rendelkeznek más attribútumokkal.",
+    "createTitle": "API token létrehozása",
+    "keyNamePlaceholder": "Adjon meg egy egyedi nevet az API tokenhez"
   },
   "index": {
     "assessment": "Értékelés",

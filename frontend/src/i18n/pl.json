@@ -274,11 +274,11 @@
       "modify": "Edycja plików",
       "share": "Udostępnianie plików",
       "admin": "Administrator",
-      "api": "Tworzenie i zarządzanie kluczami API o długiej żywotności",
       "realtime": "Połączenia i aktualizacje w czasie rzeczywistym",
       "create": "Tworzenie plików",
       "delete": "Usuwanie plików",
-      "download": "Pobieranie plików"
+      "download": "Pobieranie plików",
+      "api": "Tworzenie tokenów API o długiej żywotności i zarządzanie nimi"
     },
     "permissions-name": "Uprawnienia",
     "profileSettings": "Twój profil",
@@ -308,7 +308,6 @@
     "userHomeBasePath": "Ścieżka podstawowa dla katalogów domowych użytkownika",
     "userScopeGenerationPlaceholder": "Zakres zostanie wygenerowany automatycznie",
     "createUserHomeDirectory": "Tworzenie katalogu domowego użytkownika",
-    "api": "Klucze API",
     "shareDeleted": "Usunięto udostępnianie!",
     "loginMethodDescription": "dozwolona metoda logowania dla użytkownika.",
     "userNotAdmin": "Użytkownik nie jest administratorem",
@@ -332,7 +331,8 @@
       "proxy": "Pełnomocnik"
     },
     "newUserHintSubFolder": "np. '/subfolder' - domyślnie puste",
-    "permissionsHelp": "Uprawnienia użytkownika kontrolują dostęp do rodzaju działań, które użytkownik może wykonywać. Dostęp administratora daje pełną kontrolę nad aktualizacją i zmianą ustawień dowolnego użytkownika, a także wielu ustawień systemowych."
+    "permissionsHelp": "Uprawnienia użytkownika kontrolują dostęp do rodzaju działań, które użytkownik może wykonywać. Dostęp administratora daje pełną kontrolę nad aktualizacją i zmianą ustawień dowolnego użytkownika, a także wielu ustawień systemowych.",
+    "api": "Tokeny API"
   },
   "sidebar": {
     "siteSettings": "Ustawienia Strony",
@@ -460,31 +460,32 @@
     "selectImage": "Wybierz obraz"
   },
   "api": {
-    "title": "Klucze API",
     "createdAt": "Utworzono w:",
     "expiresAt": "Wygasa w:",
     "permissions": "Uprawnienia:",
-    "createTitle": "Tworzenie klucza API",
-    "keyNamePlaceholder": "Wprowadź unikalną nazwę klucza API:",
     "tokenDuration": "Czas trwania tokena:",
     "durationNumberPlaceholder": "Liczba",
     "days": "Dni",
     "months": "Miesiące",
     "permissionNote": "Wybierz co najmniej jedno uprawnienie dla klucza. Użytkownik również musi mieć to uprawnienie.",
-    "createKeyFailed": "Nie udało się utworzyć klucza API.",
-    "createKeySuccess": "Klucz API został pomyślnie utworzony.",
-    "description": "Klucze API są oparte na użytkowniku, który je utworzył. Zobacz",
     "swaggerLinkText": "strona swagger",
     "created": "Utworzony",
     "expires": "Wygasa",
     "actions": "Działania",
     "enabled": "Włączone",
     "disabled": "Wyłączony",
-    "apiKeyDeleted": "Klucz API został usunięty!",
     "tokenType": "Typ tokena:",
-    "clickToCopyKey": "Kliknij, aby skopiować klucz (ukryty)",
-    "minimalDescription": "Minimalny token",
-    "minimalInfo": "Wyklucza dostosowania tokenu w celu utworzenia tokenu o mniejszej długości. Dokładne dopasowanie uprawnień do powiązanego użytkownika."
+    "title": "Tokeny API",
+    "createKeyFailed": "Nie udało się utworzyć tokenu API.",
+    "createKeySuccess": "Token API został utworzony pomyślnie.",
+    "apiKeyDeleted": "Token API został usunięty!",
+    "description": "Tokeny API są oparte na użytkowniku, który je tworzy.",
+    "clickToCopyKey": "Kliknij, aby skopiować token (ukryty)",
+    "customizeToken": "Dostosuj token",
+    "customizeTokenInfo": "Dostosuj uprawnienia i atrybuty tokenu.",
+    "minimalInfo": "Wyklucza dostosowania tokenów, uprawnienia będą zgodne z powiązanym użytkownikiem i nie będą miały innych atrybutów.",
+    "createTitle": "Utwórz token API",
+    "keyNamePlaceholder": "Wprowadź unikalną nazwę tokena API"
   },
   "index": {
     "assessment": "Ocena",

@@ -99,7 +99,7 @@ export async function getApiKeys () {
     const apiPath = getApiPath('api/auth/tokens')
     return await fetchJSON(apiPath)
   } catch (err) {
-    notify.showError(err.message || `Failed to get api keys`)
+    notify.showError(err.message || `Failed to get api tokens`)
     throw err
   }
 }
@@ -136,7 +136,7 @@ export async function createApiKey (params) {
       method: 'PUT'
     })
   } catch (err) {
-    notify.showError(err.message || `Failed to create API key`)
+    notify.showError(err.message || `Failed to create API tokens`)
     throw err
   }
 }
@@ -148,7 +148,7 @@ export function deleteApiKey (params) {
       method: 'DELETE'
     })
   } catch (err) {
-    notify.showError(err.message || `Failed to delete API key`)
+    notify.showError(err.message || `Failed to delete API tokens`)
     throw err
   }
 }

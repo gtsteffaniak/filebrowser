@@ -275,11 +275,11 @@
       "modify": "Modifier des fichiers",
       "share": "Partager des fichiers",
       "admin": "Administrateur",
-      "api": "Créer et gérer des clés API à longue durée de vie",
       "realtime": "Permettre des connexions et des mises à jour en temps réel",
       "create": "Créer des fichiers",
       "delete": "Supprimer des fichiers",
-      "download": "Télécharger les fichiers"
+      "download": "Télécharger les fichiers",
+      "api": "Créer et gérer des jetons API à longue durée de vie"
     },
     "permissions-name": "Permissions",
     "profileSettings": "Paramètres du profil",
@@ -309,7 +309,6 @@
     "userHomeBasePath": "Chemin de base pour les répertoires personnels des utilisateurs",
     "userScopeGenerationPlaceholder": "Le champ d'application sera généré automatiquement",
     "createUserHomeDirectory": "Créer le répertoire personnel de l'utilisateur",
-    "api": "Clés API",
     "loginMethodDescription": "méthode de connexion autorisée pour l'utilisateur.",
     "userNotAdmin": "L'utilisateur n'est pas un administrateur",
     "enterPassword": "Saisir le mot de passe",
@@ -332,7 +331,8 @@
       "proxy": "Proxy"
     },
     "newUserHintSubFolder": "par exemple \"/sous-dossier\" - vide par défaut",
-    "permissionsHelp": "Les autorisations de l'utilisateur contrôlent l'accès au type d'actions que l'utilisateur peut effectuer. L'accès administrateur permet de mettre à jour et de modifier les paramètres de tout utilisateur ainsi que de nombreux paramètres du système."
+    "permissionsHelp": "Les autorisations de l'utilisateur contrôlent l'accès au type d'actions que l'utilisateur peut effectuer. L'accès administrateur permet de mettre à jour et de modifier les paramètres de tout utilisateur ainsi que de nombreux paramètres du système.",
+    "api": "Jetons API"
   },
   "sidebar": {
     "siteSettings": "Paramètres du site",
@@ -460,31 +460,32 @@
     "selectImage": "Sélectionner l'image"
   },
   "api": {
-    "title": "Clés API",
     "createdAt": "Créée le :",
     "expiresAt": "Expire le :",
     "permissions": "Permissions :",
-    "createTitle": "Créer une clé API",
-    "keyNamePlaceholder": "Saisissez un nom de clé API unique :",
     "tokenDuration": "Durée du jeton :",
     "durationNumberPlaceholder": "Nombre",
     "days": "Jours",
     "months": "Mois",
     "permissionNote": "Choisissez au moins une autorisation pour la clé. Votre utilisateur doit également disposer de cette autorisation.",
-    "createKeyFailed": "Échec de la création de la clé API.",
-    "createKeySuccess": "Clé API créée avec succès.",
-    "description": "Les clés API sont basées sur l'utilisateur qui les a créées. Voir les",
     "swaggerLinkText": "page swagger",
     "created": "Créée",
     "expires": "Expiration",
     "actions": "Actions",
     "enabled": "Activée",
     "disabled": "Désactivée",
-    "apiKeyDeleted": "Clé API supprimée !",
     "tokenType": "Type de jeton :",
-    "clickToCopyKey": "Cliquez pour copier la clé (cachée)",
-    "minimalDescription": "Jeton minimal",
-    "minimalInfo": "Exclut les personnalisations du jeton afin de réduire la longueur du jeton. Les autorisations correspondent exactement à celles de l'utilisateur associé."
+    "title": "Jetons API",
+    "createKeyFailed": "Échec de la création d'un jeton API.",
+    "createKeySuccess": "Le jeton API a été créé avec succès.",
+    "apiKeyDeleted": "Jeton API supprimé !",
+    "description": "Les jetons d'API sont basés sur l'utilisateur qui les crée.",
+    "clickToCopyKey": "Cliquez pour copier le jeton (caché)",
+    "customizeToken": "Personnaliser le jeton",
+    "customizeTokenInfo": "Personnaliser les autorisations et les attributs du jeton.",
+    "minimalInfo": "A l'exclusion des personnalisations de jetons, les autorisations correspondront à l'utilisateur associé et n'auront pas d'autres attributs.",
+    "createTitle": "Créer un jeton API",
+    "keyNamePlaceholder": "Entrez un nom unique pour le jeton API"
   },
   "index": {
     "assessment": "Évaluation",

@@ -274,11 +274,11 @@
       "modify": "Dosyaları değiştir",
       "share": "Dosyaları paylaş",
       "admin": "Yönetici",
-      "api": "Uzun ömürlü API anahtarları oluşturma ve yönetme",
       "realtime": "Gerçek zamanlı bağlantıları ve güncellemeleri etkinleştirin",
       "create": "Dosya oluşturma",
       "delete": "Dosyaları sil",
-      "download": "Dosyaları indirin"
+      "download": "Dosyaları indirin",
+      "api": "Uzun ömürlü API Belirteçleri oluşturma ve yönetme"
     },
     "permissions-name": "İzinler",
     "profileSettings": "Profil ayarları",
@@ -309,7 +309,6 @@
     "userHomeBasePath": "Kullanıcı ev dizinleri için temel yol",
     "userScopeGenerationPlaceholder": "Kapsam otomatik olarak oluşturulacaktır",
     "createUserHomeDirectory": "Kullanıcı ev dizini oluşturma",
-    "api": "API Anahtarları",
     "loginMethodDescription": "kullanıcı için izin verilen oturum açma yöntemi.",
     "userNotAdmin": "Kullanıcı yönetici değil",
     "enterPassword": "Şifre girin",
@@ -332,7 +331,8 @@
       "proxy": "Proxy"
     },
     "newUserHintSubFolder": "örneğin '/subfolder' - varsayılan için boş",
-    "permissionsHelp": "Kullanıcı izinleri, kullanıcının ne tür eylemler gerçekleştirebileceğine erişimi kontrol eder. Yönetici erişimi, herhangi bir kullanıcının ayarlarının yanı sıra birçok sistem ayarını güncellemek ve değiştirmek için tam kontrol sağlar."
+    "permissionsHelp": "Kullanıcı izinleri, kullanıcının ne tür eylemler gerçekleştirebileceğine erişimi kontrol eder. Yönetici erişimi, herhangi bir kullanıcının ayarlarının yanı sıra birçok sistem ayarını güncellemek ve değiştirmek için tam kontrol sağlar.",
+    "api": "API Belirteçleri"
   },
   "sidebar": {
     "siteSettings": "Site ayarları!",
@@ -460,31 +460,32 @@
     "selectImage": "Resim seçiniz"
   },
   "api": {
-    "title": "API Anahtarları",
     "createdAt": "Oluşturuldu:",
     "expiresAt": "Son kullanma tarihi:",
     "permissions": "İzinler:",
-    "createTitle": "API Anahtarı Oluşturma",
-    "keyNamePlaceholder": "Benzersiz bir API anahtar adı girin:",
     "tokenDuration": "Token Süresi:",
     "durationNumberPlaceholder": "Sayı",
     "days": "Günler",
     "months": "Aylar",
     "permissionNote": "Anahtar için en az bir izin seçin. Kullanıcınız da bu izne sahip olmalıdır.",
-    "createKeyFailed": "API anahtarı oluşturulamadı.",
-    "createKeySuccess": "API anahtarı başarıyla oluşturuldu.",
-    "description": "API anahtarları, onları oluşturan kullanıcıyı temel alır. Bkz.",
     "swaggerLinkText": "swagger sayfası",
     "created": "Oluşturuldu",
     "expires": "Sona erdi",
     "actions": "Eylemler",
     "enabled": "Etkin",
     "disabled": "Engelli",
-    "apiKeyDeleted": "API anahtarı silindi!",
     "tokenType": "Jeton Tipi:",
-    "clickToCopyKey": "Anahtarı kopyalamak için tıklayın (gizli)",
-    "minimalDescription": "Minimal Belirteç",
-    "minimalInfo": "Daha küçük bir belirteç uzunluğu oluşturmak için belirteç özelleştirmelerini hariç tutar. İlişkili kullanıcı ile tam izin eşleşmesi."
+    "title": "API Belirteçleri",
+    "createKeyFailed": "API belirteci oluşturulamadı.",
+    "createKeySuccess": "API belirteci başarıyla oluşturuldu.",
+    "apiKeyDeleted": "API belirteci silindi!",
+    "description": "API belirteçleri, onları oluşturan kullanıcıyı temel alır.",
+    "clickToCopyKey": "Belirteci kopyalamak için tıklayın (gizli)",
+    "customizeToken": "Simgeyi Özelleştir",
+    "customizeTokenInfo": "Belirteç izinlerini ve özniteliklerini özelleştirin.",
+    "minimalInfo": "Belirteç özelleştirmelerini hariç tutar, izinler ilişkili kullanıcıyla eşleşir ve başka hiçbir özniteliğe sahip olmaz.",
+    "createTitle": "API Belirteci Oluşturma",
+    "keyNamePlaceholder": "API belirteci için benzersiz bir ad girin"
   },
   "index": {
     "assessment": "Değerlendirme",

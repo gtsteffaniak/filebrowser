@@ -37,7 +37,7 @@ test('create, check settings, and delete testuser2', async ({
         "Prevent the user from changing the password",
         "Edit files",
         "Share files",
-        "Create and manage long-live API keys",
+        "Create and manage long-live API tokens",
         "Enable real-time connections and updates",
     ];
 
@@ -166,8 +166,8 @@ test.describe("User Settings Persistence", () => {
         await checkTogglePersistence(page, "Share files");
     });
 
-    test('should persist "Create and manage long-live API keys" setting', async ({ page }) => {
-        await checkTogglePersistence(page, "Create and manage long-live API keys");
+    test('should persist "Create and manage long-live API tokens" setting', async ({ page }) => {
+        await checkTogglePersistence(page, "Create and manage long-live API tokens");
     });
 
     test('should persist "Enable real-time connections and updates" setting', async ({ page }) => {

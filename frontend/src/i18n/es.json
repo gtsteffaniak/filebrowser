@@ -279,11 +279,11 @@
       "modify": "Editar archivos",
       "share": "Compartir archivos",
       "admin": "Administrador",
-      "api": "Claves API",
       "realtime": "Actualizaciones en tiempo real",
       "create": "Crear archivos",
       "delete": "Eliminar archivos",
-      "download": "Descargar archivos"
+      "download": "Descargar archivos",
+      "api": "Crear y gestionar tokens de API de larga duración"
     },
     "permissions-name": "Permisos",
     "profileSettings": "Ajustes del perfil",
@@ -310,7 +310,6 @@
     "tusUploadsHelp": "FileBrowser Quantum permite subir archivos en fragmentos, lo que permite que sean subidos de manera eficiente, fiable, y que sea reanudable incluso si tu internet es inestable",
     "tusUploadsChunkSize": "Tamaño máximo del fragmento del archivo a subir. Puedes escribir un número en bytes o una cadena como 10 MB, 1 GB, etc",
     "tusUploadsRetryCount": "Número de reintentos. Por si falla la subida de algún archivo",
-    "api": "Claves API",
     "loginMethodDescription": "Método de inicio de sesión",
     "userNotAdmin": "El usuario no es administrador",
     "enterPassword": "Ingrese una contraseña",
@@ -332,7 +331,8 @@
     "configViewerLoadConfig": "Cargar configuración",
     "brandingHelp": "Puedes personalizar la apariencia de FileBrowser Quantum cambiando el nombre, el logo, puedes añadir tus propios estilos personalizados, desactivar los enlaces externos a GitHub, etc. \nSi quieres saber más, visita {0}.",
     "commandRunnerHelp": "Aquí puede establecer los comandos que se ejecutan en los eventos nombrados. Debe escribir uno por línea. Las variables de entorno {0} y {1} estarán disponibles, siendo {0} relativa a {1}. Para más información sobre esta característica y las variables de entorno disponibles, por favor lea el {2}.",
-    "permissionsHelp": "Los permisos de usuario controlan el acceso al tipo de acciones que el usuario puede realizar. El acceso de administrador proporciona un control total para actualizar y cambiar la configuración de cualquier usuario, así como muchos ajustes del sistema."
+    "permissionsHelp": "Los permisos de usuario controlan el acceso al tipo de acciones que el usuario puede realizar. El acceso de administrador proporciona un control total para actualizar y cambiar la configuración de cualquier usuario, así como muchos ajustes del sistema.",
+    "api": "Tokens API"
   },
   "sidebar": {
     "siteSettings": "Ajustes del sitio",
@@ -460,12 +460,9 @@
     "selectImage": "Seleccionar imagen"
   },
   "api": {
-    "title": "Gestión de claves API",
     "createdAt": "Creado en:",
     "expiresAt": "Expira el:",
     "permissions": "Permisos:",
-    "createTitle": "Crear clave API",
-    "keyNamePlaceholder": "Ingrese un nombre único",
     "tokenDuration": "Tiempo de expiración:",
     "durationNumberPlaceholder": "Número:",
     "days": "Días",
@@ -477,14 +474,18 @@
     "enabled": "Habilitado",
     "disabled": "Desactivado",
     "permissionNote": "Debes de elegir al menos un permiso - Tu usuario también debe tenerlo.",
-    "createKeyFailed": "Hubo un error al crear la API",
-    "createKeySuccess": "¡Clave API creada con exito!",
-    "description": "Las claves API solo podrán tener los permisos que tu usuario tenga. Para más info mira la",
-    "apiKeyDeleted": "Clave API borrada",
     "tokenType": "Tipo de ficha:",
-    "clickToCopyKey": "Haga clic para copiar la clave (oculta)",
-    "minimalDescription": "Ficha mínima",
-    "minimalInfo": "Excluye las personalizaciones de token para crear una longitud de token menor. Los permisos exactos coinciden con los del usuario asociado."
+    "title": "Tokens API",
+    "createKeyFailed": "Error al crear el token de API.",
+    "createKeySuccess": "Token de API creado con éxito.",
+    "apiKeyDeleted": "¡Token API borrado!",
+    "description": "Los tokens de la API se basan en el usuario que los crea.",
+    "clickToCopyKey": "Haga clic para copiar el token (oculto)",
+    "customizeToken": "Personalizar ficha",
+    "customizeTokenInfo": "Personalice los permisos y atributos de los tokens.",
+    "minimalInfo": "Excluye las personalizaciones de token, los permisos coincidirán con el usuario asociado y no tendrán otros atributos.",
+    "createTitle": "Crear token de API",
+    "keyNamePlaceholder": "Introduzca un nombre único para el token de API"
   },
   "index": {
     "assessment": "Tipo",

@@ -274,11 +274,11 @@
       "modify": "Ändra fil",
       "share": "Dela filer",
       "admin": "Administratör",
-      "api": "Skapa och hantera API-nycklar med lång livslängd",
       "realtime": "Möjliggör anslutningar och uppdateringar i realtid",
       "create": "Skapa filer",
       "delete": "Radera filer",
-      "download": "Ladda ner filer"
+      "download": "Ladda ner filer",
+      "api": "Skapa och hantera API-tokens med lång livslängd"
     },
     "permissions-name": "Rättigheter",
     "profileSettings": "Profil inställningar",
@@ -315,7 +315,6 @@
     "userScopeGenerationPlaceholder": "Omfattningen kommer att genereras automatiskt",
     "createUserHomeDirectory": "Skapa användarens hemkatalog",
     "shareSettings": "Dela inställningar",
-    "api": "API-nycklar",
     "shareDeleted": "Dela borttaget!",
     "adminOptions": "Alternativ för administratörsanvändare",
     "searchOptions": "Sökalternativ",
@@ -332,7 +331,8 @@
       "proxy": "Proxy"
     },
     "newUserHintSubFolder": "t.ex. \"/undermapp\" - tom för standard",
-    "permissionsHelp": "Användarbehörigheter styr vilka typer av åtgärder som användaren kan utföra. Administratörsbehörighet ger full kontroll över uppdatering och ändring av alla användarinställningar samt många systeminställningar."
+    "permissionsHelp": "Användarbehörigheter styr vilka typer av åtgärder som användaren kan utföra. Administratörsbehörighet ger full kontroll över uppdatering och ändring av alla användarinställningar samt många systeminställningar.",
+    "api": "API-token"
   },
   "sidebar": {
     "siteSettings": "System inställningar",
@@ -460,31 +460,32 @@
     "selectImage": "Välj bild"
   },
   "api": {
-    "title": "API-nycklar",
     "createdAt": "Skapad på:",
     "expiresAt": "Upphör att gälla kl:",
     "permissions": "Behörighet:",
-    "createTitle": "Skapa API-nyckel",
-    "keyNamePlaceholder": "Ange ett unikt namn på API-nyckeln:",
     "tokenDuration": "Token Varaktighet:",
     "durationNumberPlaceholder": "Antal",
     "days": "Dagar",
     "months": "Månader",
     "permissionNote": "Välj minst en behörighet för nyckeln. Din användare måste också ha behörigheten.",
-    "createKeyFailed": "Misslyckades med att skapa API-nyckel.",
-    "createKeySuccess": "API-nyckel skapad framgångsrikt.",
-    "description": "API-nycklar baseras på den användare som skapar dem. Se även",
     "swaggerLinkText": "swagger-sida",
     "created": "Skapad",
     "expires": "Upphör att gälla",
     "actions": "Åtgärder",
     "enabled": "Aktiverad",
     "disabled": "Inaktiverad",
-    "apiKeyDeleted": "API-nyckel raderad!",
     "tokenType": "Token typ:",
-    "clickToCopyKey": "Klicka för att kopiera nyckel (dold)",
-    "minimalDescription": "Minimal symbol",
-    "minimalInfo": "Utesluter anpassningar av token för att skapa en kortare tokenlängd. Exakta behörigheter som matchar den associerade användaren."
+    "title": "API-token",
+    "createKeyFailed": "Misslyckades med att skapa API-token.",
+    "createKeySuccess": "API-token skapades framgångsrikt.",
+    "apiKeyDeleted": "API-token raderad!",
+    "description": "API-tokens är baserade på den användare som skapar dem.",
+    "clickToCopyKey": "Klicka för att kopiera token (dold)",
+    "customizeToken": "Anpassa Token",
+    "customizeTokenInfo": "Anpassa behörigheter och attribut för token.",
+    "minimalInfo": "Utesluter anpassningar av token, behörigheter kommer att matcha den associerade användaren och har inga andra attribut.",
+    "createTitle": "Skapa API-token",
+    "keyNamePlaceholder": "Ange ett unikt namn för API-token"
   },
   "index": {
     "assessment": "Bedömning",

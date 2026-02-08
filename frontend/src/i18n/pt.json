@@ -274,11 +274,11 @@
       "modify": "Editar ficheiros",
       "share": "Partilhar ficheiros",
       "admin": "Administrador",
-      "api": "Criar e gerir chaves de API de longa duração",
       "realtime": "Permitir ligações e actualizações em tempo real",
       "create": "Criar ficheiros",
       "delete": "Eliminar ficheiros",
-      "download": "Descarregar ficheiros"
+      "download": "Descarregar ficheiros",
+      "api": "Criar e gerir Tokens API de longa duração"
     },
     "permissions-name": "Permissões",
     "profileSettings": "Configurações do utilizador",
@@ -315,7 +315,6 @@
     "userScopeGenerationPlaceholder": "O âmbito será gerado automaticamente",
     "createUserHomeDirectory": "Criar o diretório pessoal do utilizador",
     "shareSettings": "Partilhar definições",
-    "api": "Chaves da API",
     "shareDeleted": "Partilhar eliminado!",
     "adminOptions": "Opções do utilizador administrador",
     "searchOptions": "Opções de pesquisa",
@@ -332,7 +331,8 @@
       "proxy": "Proxy"
     },
     "newUserHintSubFolder": "por exemplo, '/subpasta' - em branco por defeito",
-    "permissionsHelp": "As permissões de utilizador controlam o acesso ao tipo de acções que o utilizador pode executar. O acesso de administrador dá controlo total para atualizar e alterar as definições de qualquer utilizador, bem como muitas definições do sistema."
+    "permissionsHelp": "As permissões de utilizador controlam o acesso ao tipo de acções que o utilizador pode executar. O acesso de administrador dá controlo total para atualizar e alterar as definições de qualquer utilizador, bem como muitas definições do sistema.",
+    "api": "Tokens API"
   },
   "sidebar": {
     "siteSettings": "Configurações do site",
@@ -460,31 +460,32 @@
     "selectImage": "Selecionar imagem"
   },
   "api": {
-    "title": "Chaves da API",
     "createdAt": "Criado em:",
     "expiresAt": "Expira em:",
     "permissions": "Permissões:",
-    "createTitle": "Criar chave API",
-    "keyNamePlaceholder": "Introduza um nome de chave API único:",
     "tokenDuration": "Duração da ficha:",
     "durationNumberPlaceholder": "Número",
     "days": "Dias",
     "months": "Meses",
     "permissionNote": "Escolha pelo menos uma permissão para a chave. O utilizador também tem de ter a permissão.",
-    "createKeyFailed": "Falha ao criar a chave da API.",
-    "createKeySuccess": "Chave API criada com sucesso.",
-    "description": "As chaves da API são baseadas no utilizador que as cria. Veja",
     "swaggerLinkText": "página do swagger",
     "created": "Criado",
     "expires": "Expirações",
     "actions": "Acções",
     "enabled": "Ativado",
     "disabled": "Desativado",
-    "apiKeyDeleted": "Chave API eliminada!",
     "tokenType": "Tipo de ficha:",
-    "clickToCopyKey": "Clique para copiar a chave (oculto)",
-    "minimalDescription": "Token mínimo",
-    "minimalInfo": "Exclui personalizações de token para criar um comprimento de token menor. As permissões exactas correspondem ao utilizador associado."
+    "title": "Tokens API",
+    "createKeyFailed": "Falha ao criar o token da API.",
+    "createKeySuccess": "Token da API criado com sucesso.",
+    "apiKeyDeleted": "Token da API eliminado!",
+    "description": "Os tokens da API são baseados no utilizador que os cria.",
+    "clickToCopyKey": "Clique para copiar o token (oculto)",
+    "customizeToken": "Personalizar Token",
+    "customizeTokenInfo": "Personalizar as permissões e atributos do token.",
+    "minimalInfo": "Exclui personalizações de token, as permissões corresponderão ao utilizador associado e não terão outros atributos.",
+    "createTitle": "Criar Token API",
+    "keyNamePlaceholder": "Introduza um nome único para o token da API"
   },
   "index": {
     "assessment": "Avaliação",

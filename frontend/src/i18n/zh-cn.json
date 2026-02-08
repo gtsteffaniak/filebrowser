@@ -275,11 +275,11 @@
       "modify": "编辑",
       "share": "分享文件",
       "admin": "管理员",
-      "api": "创建和管理长效 API 密钥",
       "realtime": "实现实时连接和更新",
       "create": "创建文件",
       "delete": "删除文件",
-      "download": "下载文件"
+      "download": "下载文件",
+      "api": "创建和管理长效 API 标记"
     },
     "permissions-name": "权限",
     "profileSettings": "个人设置",
@@ -316,7 +316,6 @@
     "userScopeGenerationPlaceholder": "范围将自动生成",
     "createUserHomeDirectory": "创建用户主目录",
     "shareSettings": "共享设置",
-    "api": "API 密钥",
     "adminOptions": "管理员用户选项",
     "searchOptions": "搜索选项",
     "systemAdmin": "系统与管理",
@@ -332,7 +331,8 @@
       "proxy": "代理"
     },
     "newUserHintSubFolder": "例如\"/子文件夹\"--默认为空",
-    "permissionsHelp": "用户权限控制用户可以执行哪些类型的操作。管理员权限可完全控制更新和更改任何用户的设置以及许多系统设置。"
+    "permissionsHelp": "用户权限控制用户可以执行哪些类型的操作。管理员权限可完全控制更新和更改任何用户的设置以及许多系统设置。",
+    "api": "API 标记"
   },
   "sidebar": {
     "siteSettings": "网站设置",
@@ -460,31 +460,32 @@
     "selectImage": "选择图像"
   },
   "api": {
-    "title": "应用程序接口密钥",
     "createdAt": "创建于",
     "expiresAt": "有效期至",
     "permissions": "权限",
-    "createTitle": "创建 API 密钥",
-    "keyNamePlaceholder": "输入唯一的 API 密钥名称：",
     "tokenDuration": "令牌持续时间：",
     "durationNumberPlaceholder": "数量",
     "days": "天数",
     "months": "月数",
     "permissionNote": "为密钥选择至少一个权限。您的用户也必须拥有该权限。",
-    "createKeyFailed": "创建 API 密钥失败。",
-    "createKeySuccess": "API 密钥创建成功。",
-    "description": "API 密钥基于创建密钥的用户。请参见",
     "swaggerLinkText": "跩頁",
     "created": "创建",
     "expires": "到期",
     "actions": "行动",
     "enabled": "已启用",
     "disabled": "残疾",
-    "apiKeyDeleted": "API 密钥已删除！",
     "tokenType": "令牌类型：",
-    "clickToCopyKey": "点击复制密钥（隐藏）",
-    "minimalDescription": "最小令牌",
-    "minimalInfo": "不包括令牌定制，以创建较小的令牌长度。权限与相关用户完全匹配。"
+    "title": "API 标记",
+    "createKeyFailed": "创建 API 令牌失败。",
+    "createKeySuccess": "API 令牌创建成功。",
+    "apiKeyDeleted": "API 标记已删除！",
+    "description": "API 令牌基于创建令牌的用户。",
+    "clickToCopyKey": "点击复制令牌（隐藏）",
+    "customizeToken": "自定义令牌",
+    "customizeTokenInfo": "自定义令牌权限和属性。",
+    "minimalInfo": "不包括令牌定制，权限将与相关用户匹配，且无其他属性。",
+    "createTitle": "创建应用程序接口令牌",
+    "keyNamePlaceholder": "输入 API 令牌的唯一名称"
   },
   "index": {
     "assessment": "评估",
