@@ -1,8 +1,4 @@
 <template>
-  <div class="card-title">
-    <h2>{{ currentTitle }}</h2>
-  </div>
-
   <div class="card-content sidebar-links-content">
     <p v-if="!showAddForm">{{ contextDescription }}</p>
 
@@ -27,10 +23,10 @@
             <span class="link-name">{{ getLinkDisplayName(link) }}</span>
             <span class="link-category">{{ getCategoryLabel(link.category) }}</span>
           </div>
-          <button class="action input" @click="editLink(index)" :aria-label="$t('general.edit')">
+          <button class="action" @click="editLink(index)" :aria-label="$t('general.edit')">
             <i class="material-icons">edit</i>
           </button>
-          <button class="action input" @click="removeLink(index)" :aria-label="$t('general.delete')">
+          <button class="action" @click="removeLink(index)" :aria-label="$t('general.delete')">
             <i class="material-icons">delete</i>
           </button>
         </div>
@@ -175,7 +171,7 @@
     </div>
   </div>
 
-  <div class="card-action">
+  <div class="card-actions">
     <!-- When selecting a path -->
     <template v-if="isSelectingPath">
       <button @click="cancelPathSelection" class="button button--flat button--grey" :aria-label="$t('general.cancel')"
@@ -202,10 +198,6 @@
 
     <!-- When viewing the list -->
     <template v-else>
-      <button @click="closePrompt" class="button button--flat button--grey" :aria-label="$t('general.cancel')"
-        :title="$t('general.cancel')">
-        {{ $t("general.cancel") }}
-      </button>
       <button aria-label="Save Links" class="button button--flat button--blue" @click="saveLinks"
         :title="$t('general.save')">
         {{ $t("general.save") }}
@@ -220,7 +212,7 @@ import { notify } from "@/notify";
 import { usersApi, shareApi } from "@/api";
 import { tools } from "@/utils/constants";
 import { getIconClass } from "@/utils/material-icons";
-import FileList from "./FileList.vue";
+import FileList from "../files/FileList.vue";
 import { eventBus } from "@/store/eventBus";
 
 export default {
@@ -267,15 +259,6 @@ export default {
   computed: {
     availableSources() {
       return state.sources?.info || {};
-    },
-    currentTitle() {
-      // Always show the context title, path selection is shown inline
-      return this.contextTitle;
-    },
-    contextTitle() {
-      return this.context === 'share'
-        ? this.$t('sidebar.customizeShareLinks')
-        : this.$t('sidebar.customizeLinks');
     },
     contextDescription() {
       return this.context === 'share'
@@ -853,4 +836,5 @@ export default {
   color: var(--textSecondary);
   opacity: 0.6;
 }
+
 </style>

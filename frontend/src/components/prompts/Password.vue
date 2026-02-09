@@ -1,8 +1,4 @@
 <template>
-  <div class="card-title">
-    <h2>{{ $t("general.password") }}</h2>
-  </div>
-
   <div class="card-content">
     <div v-if="showWrongCredentials" class="form-invalid">
       {{ $t("login.wrongCredentials") }}
@@ -19,7 +15,7 @@
     </div>
   </div>
 
-  <div class="card-action">
+  <div class="card-actions">
     <button
       class="button button--flat"
       @click="submit"

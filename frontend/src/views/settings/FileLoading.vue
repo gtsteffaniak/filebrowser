@@ -48,7 +48,7 @@
         :name="$t('fileLoading.clearAll')"
         :description="$t('fileLoading.clearAllDescription')" />
     </div>
-    <div class="card-action">
+    <div class="card-actions">
       <button class="button button--flat" @click="updateSettings">{{ $t("general.save") }}</button>
     </div>
   </div>

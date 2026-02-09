@@ -358,7 +358,6 @@
     "linksUpdateFailed": "Nem sikerült frissíteni az oldalsáv linkjeit",
     "sourceNotAccessible": "Ez a forrás már nem elérhető az Ön számára",
     "noLinksYet": "Még nincsenek linkek konfigurálva. Adja hozzá az első linket alább.",
-    "customizeShareLinks": "Megosztás oldalsáv linkek testreszabása",
     "customizeShareLinksDescription": "Az oldalsávban megjelenő linkek testreszabása ehhez a megosztáshoz. Húzza és ejtse át a sorrend átrendezéséhez.",
     "editLink": "Link szerkesztése",
     "selectShare": "Megosztás kiválasztása",

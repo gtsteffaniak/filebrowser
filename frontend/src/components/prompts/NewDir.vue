@@ -1,15 +1,11 @@
 <template>
-  <div class="card-title">
-    <h2>{{ $t("prompts.newDir") }}</h2>
-  </div>
-
   <div class="card-content">
     <p>{{ $t("prompts.newDirMessage") }}</p>
     <input aria-label="New Folder Name" class="input" type="text" @keyup.enter="submit" v-model.trim="name"
       v-focus />
   </div>
 
-  <div class="card-action">
+  <div class="card-actions">
     <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('general.cancel')"
       :title="$t('general.cancel')">
       {{ $t("general.cancel") }}

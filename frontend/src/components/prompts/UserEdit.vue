@@ -1,12 +1,4 @@
 <template>
-  <div class="card-title">
-    <h2 v-if="isNew">{{ $t("settings.newUser") }}</h2>
-    <h2 v-else-if="actor.id == user.id">
-      {{ $t("settings.modifyCurrentUser") }} {{ user.username }}
-    </h2>
-    <h2 v-else>{{ $t("settings.modifyOtherUser") }} {{ user.username }}</h2>
-  </div>
-
   <div class="card-content">
     <errors v-if="error" :errorCode="error.status" />
     <h2
@@ -189,7 +181,7 @@
     </div>
   </div>
 
-  <div class="card-action">
+  <div class="card-actions">
     <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('general.cancel')"
       :title="$t('general.cancel')">
       {{ $t("general.cancel") }}

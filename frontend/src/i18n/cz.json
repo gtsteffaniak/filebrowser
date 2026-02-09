@@ -495,7 +495,6 @@
     "linksUpdateFailed": "Nepodařilo se aktualizovat odkazy na postranním panelu",
     "sourceNotAccessible": "Tento zdroj již není přístupný",
     "noLinksYet": "Zatím nejsou nakonfigurovány žádné odkazy. Přidejte svůj první odkaz níže.",
-    "customizeShareLinks": "Přizpůsobení sdílených odkazů na postranním panelu",
     "customizeShareLinksDescription": "Přizpůsobte si odkazy zobrazené v postranním panelu pro toto sdílení. Přetažením změníte pořadí.",
     "editLink": "Upravit odkaz",
     "selectShare": "Zvolte možnost Sdílet",

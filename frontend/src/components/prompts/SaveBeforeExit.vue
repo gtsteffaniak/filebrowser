@@ -1,13 +1,9 @@
 <template>
-  <div class="card-title">
-    <h2>{{ $t("prompts.saveBeforeExit") }}</h2>
-  </div>
-
   <div class="card-content">
     <p>{{ $t("prompts.saveBeforeExitMessage") }}</p>
   </div>
 
-  <div class="card-action">
+  <div class="card-actions">
     <button
       class="button button--flat button--grey"
       @click="keepEditing"

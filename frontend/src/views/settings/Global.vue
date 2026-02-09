@@ -6,7 +6,7 @@
 
   <div class="card-content"> {{ $t('settings.emptyGlobal') }} </div>
 
-  <div class="card-action">
+  <div class="card-actions">
     <input class="button button--flat" type="submit" :value="$t('general.update')" />
   </div>
 </template>

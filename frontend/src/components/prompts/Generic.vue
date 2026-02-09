@@ -1,11 +1,7 @@
 <template>
-  <div class="card-title">
-    <h2>{{ title }}</h2>
-  </div>
-
   <div class="card-content" v-html="body"></div>
 
-  <div class="card-action">
+  <div class="card-actions">
     <button
       v-for="(button, index) in displayButtons"
       :key="index"

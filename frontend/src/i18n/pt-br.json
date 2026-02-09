@@ -358,7 +358,6 @@
     "linksUpdateFailed": "Falha ao atualizar os links da barra lateral",
     "sourceNotAccessible": "Essa fonte não está mais acessível para você",
     "noLinksYet": "Ainda não há links configurados. Adicione seu primeiro link abaixo.",
-    "customizeShareLinks": "Personalizar os links da barra lateral de compartilhamento",
     "customizeShareLinksDescription": "Personalize os links mostrados na barra lateral para esse compartilhamento. Arraste e solte para reordenar.",
     "editLink": "Editar link",
     "selectShare": "Selecionar compartilhamento",

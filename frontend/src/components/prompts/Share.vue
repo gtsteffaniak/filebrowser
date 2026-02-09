@@ -1,7 +1,4 @@
 <template>
-  <div class="card-title">
-    <h2>{{ $t("general.share") }}</h2>
-  </div>
   <div class="card-content">
     <!-- Warning banner for missing path when editing a share -->
     <div v-if="!pathExists && isEditMode && !isEditingPath" class="warning-banner">
@@ -14,7 +11,7 @@
 
     <div v-if="isEditingPath">
       <file-list @update:selected="updateTempPath" :browse-source="displaySource"></file-list>
-      <div class="card-action">
+      <div class="card-actions">
         <button class="button button--flat" @click="cancelPathChange" :aria-label="$t('general.cancel')"
           :title="$t('general.cancel')">
           {{ $t("general.cancel") }}
@@ -37,7 +34,7 @@
         :require-file-selection="true"
         :title="filePickerTitle">
       </file-list>
-      <div class="card-action">
+      <div class="card-actions">
         <button class="button button--flat" @click="cancelFilePicker" :aria-label="$t('general.cancel')"
           :title="$t('general.cancel')">
           {{ $t("general.cancel") }}
@@ -323,19 +320,10 @@
     </div>
   </div>
 
-  <div v-if="!isEditingPath && !isPickingFile" class="card-action">
-    <button v-if="listing" class="button button--flat button--grey" @click="closeHovers"
-      :aria-label="$t('general.close')" :title="$t('general.close')">
-      {{ $t("general.close") }}
-    </button>
+  <div v-if="!isEditingPath && !isPickingFile" class="card-actions">
     <button v-if="listing" class="button button--flat button--blue" @click="() => switchListing()"
       :aria-label="$t('general.new')" :title="$t('general.new')">
       {{ $t("general.new") }}
-    </button>
-
-    <button v-if="!listing" class="button button--flat button--grey" @click="() => switchListing()"
-      :aria-label="$t('general.cancel')" :title="$t('general.cancel')">
-      {{ $t("general.cancel") }}
     </button>
     <button v-if="!listing" class="button button--flat button--blue" @click="submit" aria-label="Share-Confirm"
       :title="$t('general.share')">
@@ -352,7 +340,7 @@ import { fromNow } from "@/utils/moment";
 import { buildItemUrl } from "@/utils/url";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
-import FileList from "./FileList.vue";
+import FileList from "../files/FileList.vue";
 import { globalVars } from "@/utils/constants";
 import { eventBus } from "@/store/eventBus";
 //import ViewMode from "@/components/settings/ViewMode.vue";

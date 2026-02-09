@@ -358,7 +358,6 @@
     "linksUpdateFailed": "Échec de la mise à jour des liens de la barre latérale",
     "sourceNotAccessible": "Cette source ne vous est plus accessible",
     "noLinksYet": "Aucun lien n'a encore été configuré. Ajoutez votre premier lien ci-dessous.",
-    "customizeShareLinks": "Personnaliser les liens de la barre latérale de partage",
     "customizeShareLinksDescription": "Personnalisez les liens affichés dans la barre latérale pour ce partage. Glissez-déposez pour réorganiser les liens.",
     "editLink": "Modifier le lien",
     "selectShare": "Sélectionner le partage",

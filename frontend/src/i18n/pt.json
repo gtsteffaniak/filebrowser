@@ -358,7 +358,6 @@
     "linksUpdateFailed": "Falha ao atualizar as ligações da barra lateral",
     "sourceNotAccessible": "Esta fonte já não está acessível para si",
     "noLinksYet": "Ainda não existem ligações configuradas. Adicione a sua primeira ligação abaixo.",
-    "customizeShareLinks": "Personalizar as ligações da barra lateral de partilha",
     "customizeShareLinksDescription": "Personalize as ligações apresentadas na barra lateral para esta partilha. Arraste e largue para reordenar.",
     "editLink": "Editar ligação",
     "selectShare": "Selecionar Partilha",

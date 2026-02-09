@@ -1,8 +1,4 @@
 <template>
-  <div class="card-title">
-    <h2>{{ $t('api.createTitle') }}</h2>
-  </div>
-
   <div class="card-content">
     <!-- API Key Name Input -->
     <p>{{ $t('general.name') }}</p>
@@ -40,7 +36,7 @@
     </div>
   </div>
 
-  <div class="card-action">
+  <div class="card-actions">
     <button @click="closeHovers" class="button button--flat button--grey" :aria-label="$t('general.cancel')"
       :title="$t('general.cancel')">
       {{ $t("general.cancel") }}

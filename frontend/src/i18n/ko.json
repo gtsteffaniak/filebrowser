@@ -358,7 +358,6 @@
     "linksUpdateFailed": "사이드바 링크를 업데이트하지 못했습니다.",
     "sourceNotAccessible": "이 소스에 더 이상 액세스할 수 없습니다.",
     "noLinksYet": "아직 구성된 링크가 없습니다. 아래에 첫 번째 링크를 추가하세요.",
-    "customizeShareLinks": "공유 사이드바 링크 사용자 지정",
     "customizeShareLinksDescription": "이 공유의 사이드바에 표시되는 링크를 사용자 지정합니다. 드래그 앤 드롭하여 순서를 변경합니다.",
     "editLink": "링크 편집",
     "selectShare": "공유를 선택합니다.",

@@ -2,7 +2,7 @@
   <div
     ref="tooltipRef"
     v-show="tooltip.show"
-    class="floating-tooltip fb-shadow"
+    class="floating-tooltip floating-window"
     :class="{ 'dark-mode': isDarkMode, 'pointer-enabled': tooltip.pointerEvents }"
     :style="tooltipStyle"
     v-html="tooltip.content"

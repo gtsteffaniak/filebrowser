@@ -209,32 +209,18 @@ body.rtl .card-title>*:first-child {
   text-align: right;
 }
 
-.card>div,
-.card>form>div {
-  padding: 1em 1em;
-}
-
-.card>div:first-child,
-.card>form>div:first-child {
-  padding-top: 1.5em;
-}
-
-.card>div:last-child,
-.card>form>div:last-child {
-  padding-bottom: 1.5em;
-}
-
-/* Apply flex behavior only to direct children of floating cards */
-.card.floating > .card-action {
-  text-align: right;
-  flex-shrink: 0;
-  padding-top: 0.4em;
-  padding-bottom: 0.75em;
+.card-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.5em;
+  height: 3em;
+  gap: 0.25em;
 }
 
 .card.floating > .card-content {
   flex-grow: 1;
   overflow: auto;
+  padding: 0.5em;
   min-height: 0; /* Allows flex child to shrink below content size */
 }
 

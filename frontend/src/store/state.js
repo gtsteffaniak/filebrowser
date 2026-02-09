@@ -106,6 +106,7 @@ export const state = reactive({
     isUploading: false,
   },
   prompts: [],
+  promptIdCounter: 0,
   show: null,
   showConfirm: null,
   route: {},

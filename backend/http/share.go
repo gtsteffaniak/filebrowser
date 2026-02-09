@@ -48,9 +48,6 @@ func convertToFrontendShareResponse(r *http.Request, shares []*share.Link) ([]*S
 			// Source not found - likely corrupted data. Try to find by name as fallback
 			sourceInfo, ok = config.Server.NameToSource[s.Source]
 			if !ok {
-				// Still not found - this share is invalid, skip it and delete it
-				logger.Error("Invalid share - deleting", "hash", s.Hash, "source", s.Source)
-				_ = store.Share.Delete(s.Hash) // Best effort delete
 				continue
 			}
 			// Found by name - this is corrupted data, fix it

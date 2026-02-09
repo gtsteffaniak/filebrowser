@@ -279,7 +279,7 @@ export const mutations = {
       });
       return;
     }
-    // Normal close behavior
+    // Normal close behavior - close ALL prompts including ContextMenu
     state.prompts = [];
     if (!state.stickySidebar) {
       state.showSidebar = false;
@@ -287,35 +287,56 @@ export const mutations = {
     mutations.hideTooltip(true)
   },
   closeTopHover: () => {
-    state.prompts.pop();
+    if (state.prompts.length === 0) {
+      return;
+    }
     if (state.prompts.length === 0) {
       if (!state.stickySidebar) {
         state.showSidebar = false;
       }
     }
-    mutations.hideTooltip(true)
+    mutations.hideTooltip(true);
   },
   showHover: (value) => {
-    if (typeof value === "object") {
-      state.prompts.push({
-        name: value?.name,
-        confirm: value?.confirm,
-        action: value?.action,
-        props: value?.props,
-        discard: value?.discard,
-        cancel: value?.cancel,
-      });
-    } else {
-      state.prompts.push({
-        name: value,
-        confirm: value?.confirm,
-        action: value?.action,
-        props: value?.props,
-        discard: value?.discard,
-        cancel: value?.cancel,
-      });
+    state.promptIdCounter += 1;
+    const id = state.promptIdCounter;
+    const entry = typeof value === "object" ? {
+      id,
+      name: value?.name,
+      confirm: value?.confirm,
+      action: value?.action,
+      props: value?.props,
+      discard: value?.discard,
+      cancel: value?.cancel,
+    } : {
+      id,
+      name: value,
+      confirm: value?.confirm,
+      action: value?.action,
+      props: value?.props,
+      discard: value?.discard,
+      cancel: value?.cancel,
+    };
+    state.prompts.push(entry);
+    mutations.hideTooltip(true);
+  },
+  closePromptById: (id) => {
+    const idx = state.prompts.findIndex((p) => p.id === id);
+    if (idx === -1) {
+      return;
     }
-    mutations.hideTooltip(true)
+    state.prompts.splice(idx, 1);
+    if (state.prompts.length === 0 && !state.stickySidebar) {
+      state.showSidebar = false;
+    }
+    mutations.hideTooltip(true);
+  },
+  closeContextMenus: () => {
+    state.prompts = state.prompts.filter((p) => p.name !== "ContextMenu");
+    if (state.prompts.length === 0 && !state.stickySidebar) {
+      state.showSidebar = false;
+    }
+    mutations.hideTooltip(true);
   },
   setLoading: (loadType, status) => {
     if (status === false) {

@@ -1,19 +1,45 @@
 <template>
-  <!-- Render all prompts in the hover stack, but only show the active one -->
-  <div
-    v-for="(prompt, index) in prompts"
-    :key="'prompt-' + index + '-' + prompt.name"
-    class="card floating fb-shadow"
-    :class="{ 'dark-mode': isDarkMode }"
-    v-show="index === prompts.length - 1"
-    :aria-label="prompt.name + '-prompt'"
-  >
-    <component
-      :ref="prompt.name"
-      :is="prompt.name"
-      v-bind="getPropsForPrompt(prompt)"
-    />
-  </div>
+  <Teleport to="body" v-for="prompt in prompts" :key="'prompt-' + prompt.id">
+    <div
+      ref="promptWindow"
+      class="card floating floating-window"
+      :class="{
+        'dark-mode': isDarkMode,
+        'is-dragging': isDragging(prompt.id),
+      }"
+      :style="{
+        transform: `translate(calc(-50% + ${(dragOffsets[prompt.id]?.x || 0)}px), calc(-50% + ${(dragOffsets[prompt.id]?.y || 0)}px))`
+      }"
+      :aria-label="prompt.name + '-prompt'"
+      v-show="isTopmost(prompt.id)"
+    >
+      <header
+        class="prompt-taskbar"
+        :class="{ 'is-dragging': isDragging(prompt.id) }"
+        @mousedown="onPointerDown($event, prompt.id, 'mouse')"
+        @touchstart.passive="onPointerDown($event, prompt.id, 'touch')"
+      >
+        <button
+          type="button"
+          class="prompt-close"
+          :aria-label="$t('general.close')"
+          :title="$t('general.close')"
+          @click.stop="closePrompt(prompt.id)"
+          @mousedown.stop
+          @touchstart.stop
+        >
+          <i class="material-icons">close</i>
+        </button>
+        <div class="prompt-taskbar-drag">
+          <span class="prompt-title">{{ getDisplayTitle(prompt?.name) }}</span>
+        </div>
+      </header>
+      <component
+        :is="prompt.name"
+        v-bind="getPromptProps(prompt)"
+      />
+    </div>
+  </Teleport>
 </template>
 
 <script>
@@ -37,22 +63,20 @@ import SidebarLinks from "./SidebarLinks.vue";
 import IconPicker from "./IconPicker.vue";
 import Sidebar from "../sidebar/Sidebar.vue";
 import UserEdit from "./UserEdit.vue";
-import buttons from "@/utils/buttons";
 import Totp from "./Totp.vue";
 import Access from "./Access.vue";
 import Password from "./Password.vue";
 import PlaybackQueue from "./PlaybackQueue.vue";
-import FileList from "./FileList.vue";
 import PathPicker from "./PathPicker.vue";
 import SaveBeforeExit from "./SaveBeforeExit.vue";
 import CopyPasteConfirm from "./CopyPasteConfirm.vue";
 import CloseWithActiveUploads from "./CloseWithActiveUploads.vue";
 import Generic from "./Generic.vue";
 import ShareInfo from "./ShareInfo.vue";
-import { state, getters, mutations } from "@/store"; // Import your custom store
+import { state, getters, mutations } from "@/store";
 
 export default {
-  name: "prompts",
+  name: "Prompts",
   components: {
     UserEdit,
     Info,
@@ -79,78 +103,40 @@ export default {
     Access,
     Password,
     PlaybackQueue,
-    "file-list": FileList,
     PathPicker,
     SaveBeforeExit,
     CopyPasteConfirm,
     CloseWithActiveUploads,
-    generic: Generic,
+    Generic,
     ShareInfo,
   },
   data() {
     return {
-      pluginData: {
-        buttons,
-        store: state, // Directly use state
-        router: this.$router,
-      },
+      dragOffsets: {},
+      dragStarts: {},
+      draggingIds: new Set(),
+      touchIds: {},
     };
-  },
-  created() {
-    window.addEventListener("keydown", (event) => {
-      let currentPrompt = getters.currentPrompt();
-      if (!currentPrompt) return;
-
-      let prompt = this.$refs[currentPrompt.name];
-      // Handle array refs (Vue 3 style)
-      if (Array.isArray(prompt)) {
-        prompt = prompt[0];
-      }
-
-      // Esc!
-      if (event.keyCode === 27) {
-        event.stopImmediatePropagation();
-        mutations.closeHovers();
-      } else if (event.KeyCode === 8) {
-        event.preventDefault();
-      }
-      // Enter
-      if (event.keyCode === 13 && prompt) {
-        switch (currentPrompt.name) {
-          case "delete":
-            prompt.submit();
-            break;
-          case "copy":
-          case "move":
-            prompt.performOperation(event);
-            break;
-          case "replace":
-            prompt.showConfirm(event);
-            break;
-          case "generic":
-            prompt.submit();
-            break;
-          case "CopyPasteConfirm":
-            prompt.confirm();
-            break;
-        }
-      }
-    });
   },
   computed: {
     prompts() {
-      return state.prompts || [];
-    },
-    plugins() {
-      return state.plugins;
+      // Filter out ContextMenu - it's rendered separately in Layout.vue
+      const p = (state.prompts || []).filter(prompt => prompt.name !== "ContextMenu" && prompt.name !== "OverflowMenu");
+      return p;
     },
     isDarkMode() {
       return getters.isDarkMode();
     },
   },
   methods: {
-    getPropsForPrompt(prompt) {
-      // For move and copy prompts, add the operation prop
+    isTopmost(id) {
+      const allPrompts = this.prompts;
+      return allPrompts[allPrompts.length - 1]?.id === id;
+    },
+    isDragging(id) {
+      return this.draggingIds.has(id);
+    },
+    getPromptProps(prompt) {
       if (prompt.name === "move" || prompt.name === "copy") {
         return {
           ...prompt.props,
@@ -159,6 +145,254 @@ export default {
       }
       return prompt.props || {};
     },
+    getDisplayTitle(promptName) {
+      // convert to lowercase
+      // Explicit switch statement for compile-time safety with ESLint i18n validation
+      switch (promptName.toLowerCase()) {
+        case "download":
+          return this.$t("prompts.download");
+        case "move":
+          return this.$t("prompts.move");
+        case "copy":
+          return this.$t("prompts.copy");
+        case "rename":
+          return this.$t("prompts.rename");
+        case "share":
+          return this.$t("general.share");
+        case "replace":
+          return this.$t("prompts.replace");
+        case "info":
+          return this.$t("prompts.fileInfo");
+        case "help":
+          return this.$t("general.help");
+        case "upload":
+          return this.$t("prompts.upload");
+        case "createapi":
+          return this.$t("api.createTitle");
+        case "actionapi":
+          return this.$t("api.title");
+        case "sidebarlinks":
+          return this.$t("sidebar.customizeLinks");
+        case "password":
+          return this.$t("general.password");
+        case "playbackqueue":
+          return this.$t("player.QueuePlayback");
+        case "pathpicker":
+          return this.$t("prompts.selectPath");
+        case "savebeforeexit":
+          return this.$t("prompts.saveBeforeExit");
+        case "copypasteconfirm":
+          return this.$t("prompts.copyPasteConfirm");
+        case "closewithactiveuploads":
+          return this.$t("prompts.closeWithActiveUploads");
+        case "shareinfo":
+          return this.$t("share.shareInfo");
+        case "totp":
+          return this.$t("otp.name");
+        case "useredit":
+          return this.$t("settings.modifyOtherUser");
+        case "deleteuser":
+          return this.$t("prompts.deleteUserMessage");
+        case "iconpicker":
+          return this.$t("sidebar.pickIcon");
+        case "newfile":
+          return this.$t("prompts.newFile");
+        case "newdir":
+          return this.$t("prompts.newDir");
+        case "replacerename":
+          return this.$t("prompts.replace");
+        case "generic":
+          // Generic prompts should always provide a custom title in props
+          return promptName;
+        default:
+          console.warn("[Prompts.vue] unknown prompt name", promptName);
+          // Fallback for unknown prompt types
+          return promptName;
+      }
+    },
+    closePrompt(id) {
+      mutations.closePromptById(id);
+      // Clean up state for this prompt
+      delete this.dragOffsets[id];
+      delete this.dragStarts[id];
+      delete this.touchIds[id];
+      this.draggingIds.delete(id);
+    },
+    getPointerPos(e, type) {
+      if (type === "touch") {
+        const t = e.touches && e.touches[0];
+        return t ? { x: t.clientX, y: t.clientY } : null;
+      }
+      return { x: e.clientX, y: e.clientY };
+    },
+    clampDragOffset(id, el) {
+      if (!el || typeof el.getBoundingClientRect !== "function") return;
+
+      const viewportW = window.innerWidth;
+      const viewportH = window.innerHeight;
+      const headerEl = el.querySelector && el.querySelector(".prompt-taskbar");
+      const headerHeight = headerEl ? headerEl.getBoundingClientRect().height : 40;
+      const offset = this.dragOffsets[id] || { x: 0, y: 0 };
+      const centerX = viewportW / 2 + offset.x;
+      const centerY = viewportH / 2 + offset.y;
+
+      const minCenterX = 0;
+      const maxCenterX = viewportW;
+      const minCenterY = headerHeight / 2;
+      const maxCenterY = viewportH - headerHeight / 2;
+      const clampedX = Math.max(minCenterX, Math.min(maxCenterX, centerX));
+      const clampedY = Math.max(minCenterY, Math.min(maxCenterY, centerY));
+
+      this.dragOffsets[id] = {
+        x: clampedX - viewportW / 2,
+        y: clampedY - viewportH / 2,
+      };
+    },
+    onPointerDown(e, id, type) {
+      if (!this.isTopmost(id)) return;
+      if (type === "mouse" && e.button !== 0) return;
+      if (type === "touch") {
+        this.touchIds[id] = e.changedTouches && e.changedTouches[0] && e.changedTouches[0].identifier;
+      }
+
+      const pos = this.getPointerPos(e, type);
+      if (!pos) return;
+
+      if (!this.dragOffsets[id]) this.dragOffsets[id] = { x: 0, y: 0 };
+      this.dragStarts[id] = { x: pos.x - this.dragOffsets[id].x, y: pos.y - this.dragOffsets[id].y };
+      this.draggingIds.add(id);
+
+      const move = (e) => this.onPointerMove(e, id, type);
+      const end = (e) => this.onPointerEnd(e, id, type, move, end);
+
+      if (type === "mouse") {
+        window.addEventListener("mousemove", move);
+        window.addEventListener("mouseup", end);
+      } else {
+        window.addEventListener("touchmove", move, { passive: false });
+        window.addEventListener("touchend", end, { passive: true });
+        window.addEventListener("touchcancel", end, { passive: true });
+      }
+    },
+    onPointerMove(e, id, type) {
+      if (!this.dragStarts[id]) return;
+      let pos;
+      if (type === "touch") {
+        if (!e.touches) return;
+        const t = Array.from(e.touches).find((touch) => touch.identifier === this.touchIds[id]);
+        if (!t) return;
+        e.preventDefault();
+        pos = { x: t.clientX, y: t.clientY };
+      } else {
+        pos = { x: e.clientX, y: e.clientY };
+      }
+
+      this.dragOffsets[id] = {
+        x: pos.x - this.dragStarts[id].x,
+        y: pos.y - this.dragStarts[id].y,
+      };
+
+      // Find the element for this prompt
+      const windows = this.$refs.promptWindow;
+      const el = Array.isArray(windows) ? windows.find(w => w?.getAttribute('aria-label') === `${this.prompts.find(p => p.id === id)?.name}-prompt`) : windows;
+      if (el) this.clampDragOffset(id, el);
+    },
+    onPointerEnd(e, id, type, moveHandler, endHandler) {
+      if (type === "touch") {
+        delete this.touchIds[id];
+        window.removeEventListener("touchmove", moveHandler);
+        window.removeEventListener("touchend", endHandler);
+        window.removeEventListener("touchcancel", endHandler);
+      } else {
+        window.removeEventListener("mousemove", moveHandler);
+        window.removeEventListener("mouseup", endHandler);
+      }
+      delete this.dragStarts[id];
+      this.draggingIds.delete(id);
+    },
   },
 };
 </script>
+
+<style scoped>
+
+.floating-window.is-dragging {
+  border-color: var(--primaryColor);
+}
+
+.prompt-taskbar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  transition: background 0.15s;
+  background: var(--surfaceSecondary);
+  height: 3em;
+}
+
+.prompt-taskbar:hover {
+  background: color-mix(in srgb, var(--primaryColor) 12%, var(--surfaceSecondary, #f5f5f5));
+}
+
+.prompt-taskbar.is-dragging {
+  cursor: grabbing;
+  background: color-mix(in srgb, var(--primaryColor) 18%, var(--surfaceSecondary, #f5f5f5));
+}
+
+.dark-mode .prompt-taskbar:hover {
+  background: color-mix(in srgb, var(--primaryColor) 18%, var(--surfaceSecondary));
+}
+
+.dark-mode .prompt-taskbar.is-dragging {
+  background: color-mix(in srgb, var(--primaryColor) 22%, var(--surfaceSecondary));
+}
+
+.prompt-close {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2em;
+  height: 2em;
+  padding: 0;
+  border: none;
+  border-radius: 1em;
+  background: #c62828;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s, filter 0.15s;
+}
+
+.prompt-close:hover {
+  background: #b71c1c;
+  filter: brightness(1.1);
+}
+
+.prompt-close .material-icons {
+  font-size: 1em;
+}
+
+.prompt-taskbar-drag {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.prompt-title {
+  font-weight: 500;
+  font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80%;
+}
+</style>

@@ -59,9 +59,9 @@
       </div>
     </transition>
     <!-- Hidden marker for tests to detect when file actions should be available -->
-    <div v-if="isDataLoaded && isListingView && shareInfo.shareType !== 'upload'" 
-         data-testid="file-actions-ready" 
-         style="display: none;" 
+    <div v-if="isDataLoaded && isListingView && shareInfo.shareType !== 'upload'"
+         data-testid="file-actions-ready"
+         style="display: none;"
          :data-hidden="hideSidebarFileActions">
     </div>
   </div>
@@ -146,13 +146,14 @@ export default {
     },
   },
   methods: {
-
     openContextMenu() {
+      console.log("openContextMenu")
       mutations.resetSelected();
       mutations.showHover({
         name: "ContextMenu",
         props: {
           showCentered: true,
+          createOnly: true,
         },
       });
     },
@@ -240,7 +241,7 @@ export default {
         el.offsetHeight;
         el.style.maxHeight = '0';
         el.style.opacity = '0';
-        
+
         const onTransitionEnd = () => {
           done();
           el.removeEventListener('transitionend', onTransitionEnd);

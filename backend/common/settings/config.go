@@ -794,9 +794,9 @@ func generatePWAIcons() {
 	Env.PWAIconsDir = filepath.Join(Config.Server.CacheDir, "icons")
 
 	// Initialize with default paths (all icons will be generated)
-	Env.PWAIcon192 = "icons/pwa-icon-192.png"
-	Env.PWAIcon256 = "icons/pwa-icon-256.png"
-	Env.PWAIcon512 = "icons/pwa-icon-512.png"
+	Env.PWAIcon192 = "pwa-icon-192.png"
+	Env.PWAIcon256 = "pwa-icon-256.png"
+	Env.PWAIcon512 = "pwa-icon-512.png"
 
 	// Create icons directory with configured permissions
 	// Note: Parent cache directory should already exist from testCacheDirSpeed()

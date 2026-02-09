@@ -1,8 +1,4 @@
 <template>
-  <div class="card-title">
-    <h2>{{ $t("prompts.rename") }}</h2>
-  </div>
-
   <div class="card-content">
     <p>{{ $t("prompts.renameMessage") }}</p>
 
@@ -23,7 +19,7 @@
     </p>
   </div>
 
-  <div class="card-action">
+  <div class="card-actions">
     <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('general.cancel')"
       :title="$t('general.cancel')">
       {{ $t("general.cancel") }}

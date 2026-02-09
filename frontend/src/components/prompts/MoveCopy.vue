@@ -1,8 +1,4 @@
 <template>
-  <div class="card-title">
-    <h2>{{ operation === 'move' ? $t('prompts.move') : $t('prompts.copy') }}</h2>
-  </div>
-
   <div class="card-content">
     <!-- Loading spinner overlay -->
     <!-- changed to v-show (for keep the loading spinner), otherwise the path showed in the prompt will be always "/" -->
@@ -13,9 +9,7 @@
     <file-list v-show="!isLoading" ref="fileList" @update:selected="updateDestination">
     </file-list>
   </div>
-  <div>
-  </div>
-  <div v-if="!isLoading" class="card-action" style="display: flex; align-items: center; justify-content: space-between">
+  <div v-if="!isLoading" class="card-actions" style="display: flex; align-items: center; justify-content: space-between">
     <template v-if="!showNewDirInput">
       <button v-if="canCreateFolder" class="button button--flat" @click="createNewDir"
         :aria-label="$t('files.newFolder')" :title="$t('files.newFolder')" style="justify-self: left">
@@ -33,7 +27,6 @@
         </button>
       </div>
     </template>
-
     <template v-else>
       <div style="width: 100%;">
         <div style="display: flex; gap: 0.3rem;">
@@ -53,7 +46,7 @@
 
 <script>
 import { mutations, state, getters } from "@/store";
-import FileList from "./FileList.vue";
+import FileList from "../files/FileList.vue";
 import { filesApi, publicApi } from "@/api";
 import buttons from "@/utils/buttons";
 import * as upload from "@/utils/upload";
@@ -301,11 +294,11 @@ export default {
           // Await the action call for non-conflicting cases
           result = await action(overwrite, rename);
         }
-        
+
         // Check if there were any failures in the result
         const hasFailures = result && result.failed && result.failed.length > 0;
         const hasSuccesses = result && result.succeeded && result.succeeded.length > 0;
-        
+
         if (hasFailures && !hasSuccesses) {
           // All operations failed - show error but DON'T close prompt
           const errorMessage = result.failed[0]?.message || this.$t("prompts.operationFailed");
@@ -319,7 +312,7 @@ export default {
             this.$t("prompts.partialSuccess", { succeeded: succeededCount, failed: failedCount })
           );
         }
-        
+
         // Only close prompts and reload on success (or partial success)
         mutations.setReload(true);
         mutations.closeHovers();
@@ -359,10 +352,10 @@ export default {
       } catch (error) {
         // Handle errors thrown by the API (e.g., 500 errors)
         // DON'T close the prompt on error - let user try again or cancel manually
-        
+
         // Try to extract error message from the error response
         let errorMessage = null;
-        
+
         // Check if error has a response body with failed items
         if (error && error.failed && error.failed.length > 0 && error.failed[0]?.message) {
           errorMessage = error.failed[0].message;
@@ -371,12 +364,12 @@ export default {
         } else if (typeof error === 'string') {
           errorMessage = error;
         }
-        
+
         // Only use fallback if we couldn't extract a message
         if (!errorMessage) {
           errorMessage = this.$t("prompts.operationFailed");
         }
-        
+
         notify.showError(errorMessage);
       } finally {
         this.isLoading = false; // Hide loading spinner

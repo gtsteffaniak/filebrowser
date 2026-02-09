@@ -10,7 +10,7 @@
       ref="contextMenu"
       v-if="showContext"
       :style="centered ? {} : { top: posY + 'px', left: posX + 'px' }"
-      class="button no-select fb-shadow"
+      class="button no-select floating-window"
       :class="{ 'dark-mode': isDarkMode, 'centered': centered }"
       :key="showCreate ? 'create-mode' : 'normal-mode'"
     >
@@ -21,7 +21,7 @@
           @click="toggleShowCreate"
         >
           <i v-if="!showCreate" class="material-icons">add</i>
-          <i v-if="showCreate" class="material-icons">arrow_back</i>
+          <i v-else class="material-icons">arrow_back</i>
         </div>
         <div
           v-if="selectedCount > 0"
@@ -32,7 +32,7 @@
           <span>{{ selectedCount }}</span>
         </div>
       </div>
-      <hr v-if="!isDuplicateFinder" class="divider">
+      <hr v-if="showDivider" class="divider">
       <action
         v-if="showCreateActions"
         icon="create_new_folder"
@@ -63,7 +63,6 @@
         icon="file_download"
         :label="$t('general.download')"
         @action="startDownload"
-        :counter="selectedCount"
       />
       <action
         v-if="showShareAction"
@@ -141,7 +140,7 @@
         top: '3em',
         right: '1em',
       }"
-      class="button no-select fb-shadow"
+      class="button no-select floating-window"
       :class="{ 'dark-mode': isDarkMode }"
     >
       <action icon="info" :label="$t('general.info')" @action="showInfoHover"/>
@@ -181,6 +180,10 @@ export default {
     };
   },
   props: {
+    createOnly: {
+      type: Boolean,
+      default: false,
+    },
     showCentered: {
       type: Boolean,
       default: false,
@@ -238,8 +241,12 @@ export default {
       return !this.showCreate && !this.isSearchActive && this.req?.items?.length > 0;
     },
     showCreateButton() {
-      if (this.isDuplicateFinder) return false;
+      if (this.isDuplicateFinder || this.createOnly) return false;
       return !this.isSearchActive && this.permissions.create && !this.isShare;
+    },
+    showDivider() {
+      if (this.isDuplicateFinder || this.createOnly) return false;
+      return true;
     },
     showSelectMultiple() {
       if (this.isDuplicateFinder) return false;
@@ -371,6 +378,7 @@ export default {
   },
   methods: {
     showInfoHover() {
+      mutations.closeContextMenus();
       mutations.showHover({
         name: "info",
         props: {
@@ -403,6 +411,7 @@ export default {
       return this.isPreview && state.req.path != "/";
     },
     showAccessHover() {
+      mutations.closeContextMenus();
       mutations.showHover({
         name: "access",
         props: {
@@ -486,6 +495,7 @@ export default {
       return mutations.showHover(value);
     },
     showShareHover() {
+      mutations.closeContextMenus();
       mutations.showHover({name: "share",
         props: {
           item: getters.selectedCount() == 1 ? getters.getFirstSelected() : state.req
@@ -493,6 +503,7 @@ export default {
       });
     },
     showRenameHover() {
+      mutations.closeContextMenus();
       mutations.showHover({
         name: "rename",
         props: {
@@ -502,6 +513,7 @@ export default {
       });
     },
     showRenameHoverForPreview() {
+      mutations.closeTopHover(); // Close the ContextMenu (if it was open from preview)
       // Get parent items from the listing
       const parentItems = state.navigation.listing || [];
       mutations.showHover({
@@ -518,6 +530,11 @@ export default {
       this.posY = contextProps.posY;
     },
     initializeCreateState() {
+      // If createOnly is set, always show create actions
+      if (this.createOnly) {
+        this.showCreate = true;
+        return;
+      }
       // Only set initial showCreate state, don't override user choices
       if (state.selected.length > 0 || !this.permissions.create) {
         this.showCreate = false;
@@ -547,10 +564,10 @@ export default {
         false
       );
       window.open(downloadUrl, "_blank");
-      mutations.closeHovers();
+      mutations.closeContextMenus();
     },
     watchFile() {
-      mutations.closeHovers();
+      mutations.closeContextMenus();
       const source = state.req?.source || state.sources.current || "";
       const path = state.req?.path || "/";
       this.$router.push({
@@ -580,7 +597,7 @@ export default {
         // Don't show error notification here - API layer already showed it
         buttons.done(button);
       }
-      mutations.closeHovers();
+      mutations.closeContextMenus();
     },
     showUpload() {
       mutations.showHover({
@@ -604,7 +621,7 @@ export default {
           mutations.addSelected(index);
         });
         // Close the context menu
-        mutations.closeHovers();
+        mutations.closeContextMenus();
       }
     },
   },
@@ -633,15 +650,23 @@ export default {
 }
 
 .selected-count-header {
-  border-radius: 0.5em;
+  border-radius: 1em;
   cursor: unset;
-  margin-bottom: 0.5em;
+}
+
+.context-menu-header > .action i {
+  padding: 0.25em;
 }
 
 #context-menu .action {
-  width: auto;
   display: flex;
   align-items: center;
+  justify-content: flex-start;
+}
+
+#context-menu > div,
+#context-menu > button {
+  width: 100%;
 }
 
 #context-menu > span {

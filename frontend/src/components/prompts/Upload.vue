@@ -1,8 +1,4 @@
 <template>
-  <div class="card-title">
-    <h2>{{ $t("prompts.upload") }}</h2>
-    <p>{{ uploadSettingsDescription }}</p>
-  </div>
   <SettingsItem :title="$t('fileLoading.uploadSettings')" :collapsable="true" :start-collapsed="true">
     <div class="settings-items upload-settings">
       <div class="settings-number-input item">
@@ -675,12 +671,6 @@ export default {
 
 .file-actions .action i {
   font-size: 1.2em;
-}
-
-.card-actions {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.5em;
 }
 
 .spacer {

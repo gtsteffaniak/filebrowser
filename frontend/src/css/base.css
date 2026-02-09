@@ -117,22 +117,6 @@ over
   transition: 0.2s ease width;
 }
 
-button {
-  flex: 1;
-  height: 3em;
-  padding: 8px 16px;
-  border: none;
-  background-color: var(--surfaceSecondary);
-  transition: background-color 0.3s;
-  /* Add borders */
-  border-right: 1px solid #ccc;
-}
-
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 #popup-notification {
   border-radius: 1em;
   color: #fff;
@@ -217,4 +201,12 @@ input.sizeInput:disabled {
   border: 0.25em;
   border-style: solid;
   border-color: white;
+}
+
+.floating-window {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+  border: 2px solid var(--surfaceSecondary);
 }

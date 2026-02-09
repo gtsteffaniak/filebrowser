@@ -1,8 +1,4 @@
 <template>
-  <div class="card-title">
-    <h2>{{ $t("general.help") }}</h2>
-  </div>
-
   <div class="card-content help-content">
     <p class="help-description">
       {{ $t("help.description") }}
@@ -90,7 +86,7 @@
     </div>
   </div>
 
-  <div class="card-action">
+  <div class="card-actions">
     <button type="submit" @click="closeHovers" class="button button--flat" :aria-label="$t('general.ok')"
       :title="$t('general.ok')">
       {{ $t("general.ok") }}

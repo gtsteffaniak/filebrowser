@@ -358,7 +358,6 @@
     "linksUpdateFailed": "サイドバーリンクの更新に失敗しました",
     "sourceNotAccessible": "このソースにはもうアクセスできません",
     "noLinksYet": "まだリンクは設定されていません。以下に最初のリンクを追加してください。",
-    "customizeShareLinks": "共有サイドバーリンクのカスタマイズ",
     "customizeShareLinksDescription": "この共有のサイドバーに表示されるリンクをカスタマイズします。ドラッグ＆ドロップで並び替えができます。",
     "editLink": "リンクの編集",
     "selectShare": "シェアを選択",

@@ -1,7 +1,4 @@
 <template>
-  <div class="card-title">
-    <h2>{{ $t("prompts.download") }}</h2>
-  </div>
   <div v-if="!hasDownloads && currentPrompt && currentPrompt.confirm" class="card-content">
     <p>{{ $t("prompts.downloadMessage") }}</p>
 
@@ -54,10 +51,6 @@
     </div>
   </div>
   <div class="card-actions">
-    <button @click="close" class="button button--flat button--grey" :aria-label="$t('general.close')"
-      :title="$t('general.close')">
-      {{ $t("general.close") }}
-    </button>
     <div v-if="hasDownloads" class="spacer"></div>
     <button v-if="hasDownloads && hasClearable" @click="clearCompleted" class="button button--flat" :disabled="!hasClearable"
       :aria-label="$t('buttons.clearCompleted')" :title="$t('buttons.clearCompleted')">
@@ -187,12 +180,6 @@ export default {
 
 .file-actions .action i {
   font-size: 1.2em;
-}
-
-.card-actions {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.5em;
 }
 
 .spacer {

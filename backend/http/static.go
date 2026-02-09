@@ -323,9 +323,9 @@ func staticAssetHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		// Fall back to embedded default favicon.png
 		assetPath = "img/icons/favicon.png"
-	case "favicon-32x32.png",
-		"pwa-icon-192.png", "pwa-icon-256.png", "pwa-icon-512.png",
-		"apple-touch-icon.png":
+	case "icons/favicon-32x32.png",
+		"icons/pwa-icon-192.png", "icons/pwa-icon-256.png", "icons/pwa-icon-512.png",
+		"icons/apple-touch-icon.png":
 		// Serve generated icons from cache directory
 		iconPath := filepath.Join(settings.Env.PWAIconsDir, path)
 		if _, err := os.Stat(iconPath); err == nil {
@@ -334,7 +334,7 @@ func staticAssetHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		// Fall back to embedded favicon.png if generation failed
 		assetPath = "img/icons/favicon.png"
-	case "mstile-256x256.png":
+	case "icons/mstile-256x256.png":
 		// Windows tile - redirect to pwa-icon-256.png (they're identical)
 		iconPath := filepath.Join(settings.Env.PWAIconsDir, "pwa-icon-256.png")
 		if _, err := os.Stat(iconPath); err == nil {

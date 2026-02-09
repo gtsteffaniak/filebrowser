@@ -538,6 +538,7 @@ a.sidebar-link-button {
 
 .source-button {
   margin-top: 0.5em !important;
+  display: block !important;
 }
 
 .source-button.active {

@@ -1053,6 +1053,12 @@ export default {
     openContext(event) {
       event.preventDefault();
       event.stopPropagation();
+      
+      // Prevent opening if already open
+      if (getters.currentPromptName() === "ContextMenu") {
+        return;
+      }
+      
       mutations.showHover({
         name: "ContextMenu",
         props: {

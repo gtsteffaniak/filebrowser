@@ -52,7 +52,7 @@
   </div>
 
   <!-- Cancel button for display mode -->
-  <div v-if="isDisplayMode" class="card-action">
+  <div v-if="isDisplayMode" class="card-actions">
     <button @click="closePrompt" class="button button--flat" :aria-label="$t('general.cancel')"
       :title="$t('general.cancel')">
       {{ $t('general.cancel') }}

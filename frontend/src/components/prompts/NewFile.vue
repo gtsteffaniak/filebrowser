@@ -1,15 +1,11 @@
 <template>
-  <div class="card-title">
-    <h2>{{ $t("prompts.newFile") }}</h2>
-  </div>
-
   <div class="card-content">
     <p>{{ $t("prompts.newFileMessage") }}</p>
     <input class="input" aria-label="FileName Field" v-focus type="text" @keyup.enter="submit"
       v-model.trim="name" />
   </div>
 
-  <div class="card-action">
+  <div class="card-actions">
     <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('general.cancel')"
       :title="$t('general.cancel')">
       {{ $t("general.cancel") }}
