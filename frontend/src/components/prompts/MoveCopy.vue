@@ -6,8 +6,10 @@
       <LoadingSpinner size="small" mode="placeholder" />
       <p class="loading-text">{{ $t("prompts.operationInProgress") }}</p>
     </div>
-    <file-list v-show="!isLoading" ref="fileList" @update:selected="updateDestination">
-    </file-list>
+    <div v-show="!isLoading">
+      <file-list ref="fileList" @update:selected="updateDestination">
+      </file-list>
+    </div>
   </div>
   <div class="card-actions split-buttons" >
     <button
@@ -374,6 +376,7 @@ export default {
   flex-direction: column;
   align-items: center;
   gap: 16px;
+  padding-top: 2em;
 }
 
 .loading-text {

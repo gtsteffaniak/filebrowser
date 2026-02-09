@@ -169,11 +169,11 @@ export default {
     async fetchData() {
       const hash = getters.shareHash();
       let isShare = hash !== "";
-      
+
       // Fetch and store share info if this is a share
       if (isShare) {
         let shareInfo = await publicApi.getShareInfo(hash);
-        
+
         // Check if the response is an error (has status field indicating error)
         if (!shareInfo || shareInfo.status >= 400) {
           // show message that share is invalid and don't do anything else
@@ -184,18 +184,18 @@ export default {
           this.loadingProgress = 0;
           return;
         }
-        
+
         // Valid share - add the hash and other required fields, then store in state
         shareInfo.hash = hash;
-        
+
         // Parse share route to get subPath
         let urlPath = getters.routePath('public/share')
         let parts = urlPath.split("/");
         shareInfo.subPath = "/" + parts.slice(2).join("/");
-        
+
         // Set shareInfo in state
         mutations.setShareInfo(shareInfo);
-        
+
         // Check for password requirement (applies to both regular and upload shares)
         if (shareInfo.hasPassword) {
           if (this.sharePassword === "") {
@@ -208,7 +208,7 @@ export default {
           // Store password in localStorage
           localStorage.setItem("sharepass:" + shareInfo.hash, this.sharePassword);
         }
-        
+
         if (shareInfo.themeColor) {
           document.documentElement.style.setProperty("--primaryColor", shareInfo.themeColor);
         }
@@ -218,7 +218,7 @@ export default {
           this.sharePassword = "";
         }
       }
-      
+
       if (state.deletedItem) {
         return;
       }
@@ -306,19 +306,19 @@ export default {
           if (state.shareInfo?.singleFileShare) {
             mutations.setSidebarVisible(true);
           }
-          
+
           this.loadingProgress = 10;
-          
+
           // Fetch share data
           let file = await publicApi.fetchPub(state.shareInfo.subPath, state.shareInfo.hash, this.sharePassword, false, false);
           file.hash = state.shareInfo.hash;
-          
+
           // Store token in shareInfo
           mutations.setShareData({
             token: file.token,
             passwordValid: true,
           });
-          
+
           // If not a directory, fetch content AND parent directory in parallel
           if (file.type != "directory") {
             const content = !getters.fileViewingDisabled(file.name);
@@ -363,16 +363,16 @@ export default {
             publicApi.fetchPub(state.shareInfo.subPath, state.shareInfo.hash, this.sharePassword, false, true).then(fileWithMetadata => {
               fileWithMetadata.hash = state.shareInfo.hash;
               fileWithMetadata.token = state.shareInfo.token;
-              
+
               // Capture scroll position before update
               const scrollY = window.scrollY;
-              
+
               // Update the request with metadata
               mutations.replaceRequest(fileWithMetadata);
-              
+
               // Complete progress
               this.loadingProgress = 100;
-              
+
               // Restore scroll position
               requestAnimationFrame(() => {
                 window.scrollTo(0, scrollY);
@@ -426,15 +426,15 @@ export default {
           this.lastHash = "";
           // Reset view information using mutations
           mutations.resetSelected();
-          
+
           this.loadingProgress = 10;
-          
+
           const fetchSource = decodeURIComponent(result.source);
           const fetchPath = decodeURIComponent(result.path);
-          
+
           // First pass: Fetch initial data WITHOUT metadata
           let res = await filesApi.fetchFiles(fetchSource, fetchPath, false, false);
-          
+
           this.loadingProgress = 10;
 
           // If not a directory, fetch content AND parent directory in parallel
@@ -475,11 +475,11 @@ export default {
             mutations.setCurrentSource(data.source);
           }
           document.title = `${document.title} - ${res.name}`;
-          
+
           // Display initial data immediately and clear loading spinner
           mutations.replaceRequest(data);
           mutations.setLoading("files", false);
-          
+
           // Second pass: If directory has metadata available, fetch again with metadata IN THE BACKGROUND
           if (res.type === "directory" && res.hasMetadata) {
             this.loadingProgress = 90;
@@ -487,13 +487,13 @@ export default {
             filesApi.fetchFiles(fetchSource, fetchPath, false, true).then(resWithMetadata => {
               // Capture scroll position before update
               const scrollY = window.scrollY;
-              
+
               // Update the data with metadata
               mutations.replaceRequest(resWithMetadata);
-              
+
               // Complete progress
               this.loadingProgress = 100;
-              
+
               // Restore scroll position
               requestAnimationFrame(() => {
                 window.scrollTo(0, scrollY);
@@ -513,7 +513,7 @@ export default {
         this.error = e;
         mutations.replaceRequest({});
         this.loadingProgress = 0;
-        
+
         if (e.status === 404) {
           router.push({ name: "notFound" });
         } else if (e.status === 403) {

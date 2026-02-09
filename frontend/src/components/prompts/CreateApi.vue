@@ -1,7 +1,13 @@
 <template>
   <div class="card-content">
-    <!-- API Key Name Input -->
-    <p>{{ $t('general.name') }}</p>
+    <!-- Loading spinner overlay -->
+    <div v-show="creating" class="loading-content">
+      <LoadingSpinner size="small" />
+      <p class="loading-text">{{ $t("prompts.operationInProgress") }}</p>
+    </div>
+    <div v-show="!creating">
+      <!-- API Key Name Input -->
+      <p>{{ $t('general.name') }}</p>
     <input v-focus class="input" type="text" v-model.trim="apiName"
       :placeholder="$t('api.keyNamePlaceholder')" />
 
@@ -34,6 +40,7 @@
           v-model="localPerms[permission]" :name="permission" :disabled="!userPermissions[permission]" />
       </div>
     </div>
+    </div>
   </div>
 
   <div class="card-actions">
@@ -53,6 +60,7 @@ import { notify } from "@/notify";
 import { usersApi } from "@/api";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import { eventBus } from "@/store/eventBus";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
 export default {
   name: "CreateAPI",
@@ -63,10 +71,12 @@ export default {
       unit: "days",
       customizeToken: false, // false = minimal token (default), true = customizable/full token
       localPerms: {},
+      creating: false,
     };
   },
   components: {
     ToggleSwitch,
+    LoadingSpinner,
   },
   props: {
     permissions: {
@@ -98,6 +108,7 @@ export default {
       mutations.closeHovers();
     },
     async createAPIKey() {
+      this.creating = true;
       try {
         const params = {
           name: this.apiName,
@@ -121,6 +132,8 @@ export default {
         mutations.closeHovers();
       } catch (error) {
         notify.showError(this.$t("api.createKeyFailed"));
+      } finally {
+        this.creating = false;
       }
     },
   },
@@ -139,5 +152,25 @@ export default {
   font-style: italic;
   color: #666;
   margin-top: 0.5em;
+}
+
+.loading-content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding-top: 2em;
+}
+
+.loading-text {
+  padding: 1em;
+  margin: 0;
+  font-size: 1em;
+  font-weight: 500;
+}
+
+.card-content {
+  position: relative;
 }
 </style>
