@@ -371,7 +371,6 @@ export default {
   },
   methods: {
     showInfoHover() {
-      console.log("[ContextMenu] showInfoHover: closing all ContextMenus");
       mutations.closeContextMenus();
       mutations.showHover({
         name: "info",
@@ -405,7 +404,6 @@ export default {
       return this.isPreview && state.req.path != "/";
     },
     showAccessHover() {
-      console.log("[ContextMenu] showAccessHover: closing all ContextMenus");
       mutations.closeContextMenus();
       mutations.showHover({
         name: "access",
@@ -490,7 +488,6 @@ export default {
       return mutations.showHover(value);
     },
     showShareHover() {
-      console.log("[ContextMenu] showShareHover: closing all ContextMenus");
       mutations.closeContextMenus();
       mutations.showHover({name: "share",
         props: {
@@ -499,7 +496,6 @@ export default {
       });
     },
     showRenameHover() {
-      console.log("[ContextMenu] showRenameHover: closing all ContextMenus");
       mutations.closeContextMenus();
       mutations.showHover({
         name: "rename",
@@ -510,7 +506,6 @@ export default {
       });
     },
     showRenameHoverForPreview() {
-      console.log("[ContextMenu] showRenameHoverForPreview: closing ContextMenu first");
       mutations.closeTopHover(); // Close the ContextMenu (if it was open from preview)
       // Get parent items from the listing
       const parentItems = state.navigation.listing || [];

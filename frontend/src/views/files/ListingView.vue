@@ -1056,11 +1056,9 @@ export default {
       
       // Prevent opening if already open
       if (getters.currentPromptName() === "ContextMenu") {
-        console.log("[ListingView] openContext: ContextMenu already open, skipping");
         return;
       }
       
-      console.log("[ListingView] openContext: opening ContextMenu");
       mutations.showHover({
         name: "ContextMenu",
         props: {

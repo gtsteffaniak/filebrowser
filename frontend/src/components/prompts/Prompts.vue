@@ -122,11 +122,6 @@ export default {
     prompts() {
       // Filter out ContextMenu - it's rendered separately in Layout.vue
       const p = (state.prompts || []).filter(prompt => prompt.name !== "ContextMenu");
-      console.log("[Prompts.vue] computed prompts", { 
-        length: p.length, 
-        prompts: p.map(x => ({ id: x.id, name: x.name })) 
-      });
-      
       return p;
     },
     isDarkMode() {
