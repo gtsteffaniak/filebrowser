@@ -34,8 +34,8 @@
     <div v-if="customizeToken">
       <p>{{ $t('api.permissionNote') }}</p>
       <div class="settings-items">
-        <ToggleSwitch v-for="(isEnabled, permission) in permissions" :key="permission" class="item"
-          v-model="permissions[permission]" :name="permission" :disabled="!userPermissions[permission]" />
+        <ToggleSwitch v-for="permission in Object.keys(localPerms)" :key="permission" class="item"
+          v-model="localPerms[permission]" :name="permission" :disabled="!userPermissions[permission]" />
       </div>
     </div>
   </div>
@@ -66,6 +66,7 @@ export default {
       duration: 1,
       unit: "days",
       customizeToken: false, // false = minimal token (default), true = customizable/full token
+      localPerms: {},
     };
   },
   components: {
@@ -80,6 +81,15 @@ export default {
       type: Object,
       required: true,
     },
+  },
+  watch: {
+    // Watch prop and update localPerms when changes
+    permissions: {
+      immediate: true,
+      handler(newVal) {
+        this.localPerms = { ...newVal };
+      }
+    }
   },
   computed: {
     durationInDays() {
@@ -102,8 +112,8 @@ export default {
         // Only include permissions when customizing token
         if (this.customizeToken) {
           // Filter to get keys of permissions set to true and join them as a comma-separated string
-          const permissionsString = Object.keys(this.permissions)
-            .filter((key) => this.permissions[key])
+          const permissionsString = Object.keys(this.localPerms)
+            .filter((key) => this.localPerms[key])
             .join(",");
           params.permissions = permissionsString;
         }
@@ -114,7 +124,7 @@ export default {
         notify.showSuccessToast(this.$t("api.createKeySuccess"));
         mutations.closeHovers();
       } catch (error) {
-        notify.showError($t("api.createKeyFailed"));
+        notify.showError(this.$t("api.createKeyFailed"));
       }
     },
   },
