@@ -23,10 +23,10 @@
             <span class="link-name">{{ getLinkDisplayName(link) }}</span>
             <span class="link-category">{{ getCategoryLabel(link.category) }}</span>
           </div>
-          <button class="action input" @click="editLink(index)" :aria-label="$t('general.edit')">
+          <button class="action" @click="editLink(index)" :aria-label="$t('general.edit')">
             <i class="material-icons">edit</i>
           </button>
-          <button class="action input" @click="removeLink(index)" :aria-label="$t('general.delete')">
+          <button class="action" @click="removeLink(index)" :aria-label="$t('general.delete')">
             <i class="material-icons">delete</i>
           </button>
         </div>
@@ -836,4 +836,5 @@ export default {
   color: var(--textSecondary);
   opacity: 0.6;
 }
+
 </style>

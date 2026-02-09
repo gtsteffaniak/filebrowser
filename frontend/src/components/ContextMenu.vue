@@ -21,7 +21,7 @@
           @click="toggleShowCreate"
         >
           <i v-if="!showCreate" class="material-icons">add</i>
-          <i v-if="showCreate" class="material-icons">arrow_back</i>
+          <i v-else class="material-icons">arrow_back</i>
         </div>
         <div
           v-if="selectedCount > 0"
@@ -32,7 +32,7 @@
           <span>{{ selectedCount }}</span>
         </div>
       </div>
-      <hr v-if="!isDuplicateFinder" class="divider">
+      <hr v-if="showDivider" class="divider">
       <action
         v-if="showCreateActions"
         icon="create_new_folder"
@@ -180,6 +180,10 @@ export default {
     };
   },
   props: {
+    createOnly: {
+      type: Boolean,
+      default: false,
+    },
     showCentered: {
       type: Boolean,
       default: false,
@@ -237,8 +241,12 @@ export default {
       return !this.showCreate && !this.isSearchActive && this.req?.items?.length > 0;
     },
     showCreateButton() {
-      if (this.isDuplicateFinder) return false;
+      if (this.isDuplicateFinder || this.createOnly) return false;
       return !this.isSearchActive && this.permissions.create && !this.isShare;
+    },
+    showDivider() {
+      if (this.isDuplicateFinder || this.createOnly) return false;
+      return true;
     },
     showSelectMultiple() {
       if (this.isDuplicateFinder) return false;
@@ -522,6 +530,11 @@ export default {
       this.posY = contextProps.posY;
     },
     initializeCreateState() {
+      // If createOnly is set, always show create actions
+      if (this.createOnly) {
+        this.showCreate = true;
+        return;
+      }
       // Only set initial showCreate state, don't override user choices
       if (state.selected.length > 0 || !this.permissions.create) {
         this.showCreate = false;
