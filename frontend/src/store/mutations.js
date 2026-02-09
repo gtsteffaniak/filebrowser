@@ -290,7 +290,6 @@ export const mutations = {
     if (state.prompts.length === 0) {
       return;
     }
-    const removed = state.prompts.pop();
     if (state.prompts.length === 0) {
       if (!state.stickySidebar) {
         state.showSidebar = false;
@@ -301,7 +300,6 @@ export const mutations = {
   showHover: (value) => {
     state.promptIdCounter += 1;
     const id = state.promptIdCounter;
-    const name = typeof value === "object" ? value?.name : value;
     const entry = typeof value === "object" ? {
       id,
       name: value?.name,
@@ -327,7 +325,6 @@ export const mutations = {
     if (idx === -1) {
       return;
     }
-    const removedPrompt = state.prompts[idx];
     state.prompts.splice(idx, 1);
     if (state.prompts.length === 0 && !state.stickySidebar) {
       state.showSidebar = false;
@@ -335,9 +332,7 @@ export const mutations = {
     mutations.hideTooltip(true);
   },
   closeContextMenus: () => {
-    const initialLength = state.prompts.length;
     state.prompts = state.prompts.filter((p) => p.name !== "ContextMenu");
-    const removed = initialLength - state.prompts.length;
     if (state.prompts.length === 0 && !state.stickySidebar) {
       state.showSidebar = false;
     }
