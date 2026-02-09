@@ -85,7 +85,7 @@
       </div>
     </template>
   </div>
-  <div class="card-action">
+  <div class="card-actions">
     <template v-if="isEditingPath">
       <button class="button button--flat" @click="cancelPathChange" :aria-label="$t('general.cancel')" :title="$t('general.cancel')">
         {{ $t("general.cancel") }}

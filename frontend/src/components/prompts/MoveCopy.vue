@@ -9,7 +9,7 @@
     <file-list v-show="!isLoading" ref="fileList" @update:selected="updateDestination">
     </file-list>
   </div>
-  <div v-if="!isLoading" class="card-action" style="display: flex; align-items: center; justify-content: space-between">
+  <div v-if="!isLoading" class="card-actions" style="display: flex; align-items: center; justify-content: space-between">
     <template v-if="!showNewDirInput">
       <button v-if="canCreateFolder" class="button button--flat" @click="createNewDir"
         :aria-label="$t('files.newFolder')" :title="$t('files.newFolder')" style="justify-self: left">

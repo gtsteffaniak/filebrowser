@@ -7,7 +7,9 @@
         'dark-mode': isDarkMode,
         'is-dragging': isDragging(prompt.id),
       }"
-      :style="[getTransformStyle(prompt.id), getBorderStyle(prompt.id)]"
+      :style="{
+        transform: `translate(calc(-50% + ${(dragOffsets[prompt.id]?.x || 0)}px), calc(-50% + ${(dragOffsets[prompt.id]?.y || 0)}px))`
+      }"
       :aria-label="prompt.name + '-prompt'"
       v-show="isTopmost(prompt.id)"
     >
@@ -41,7 +43,6 @@
 </template>
 
 <script>
-import { nextTick } from 'vue';
 import Help from "./Help.vue";
 import Info from "./Info.vue";
 import Delete from "./Delete.vue";
@@ -115,7 +116,6 @@ export default {
       dragStarts: {},
       draggingIds: new Set(),
       touchIds: {},
-      borderColors: {},
     };
   },
   computed: {
@@ -125,22 +125,6 @@ export default {
       console.log("[Prompts.vue] computed prompts", { 
         length: p.length, 
         prompts: p.map(x => ({ id: x.id, name: x.name })) 
-      });
-      
-      // Initialize glow for new prompts
-      p.forEach(prompt => {
-        if (!this.borderColors[prompt.id]) {
-          this.borderColors[prompt.id] = null;
-          nextTick(() => {
-            const primaryColor = getComputedStyle(document.documentElement)
-              .getPropertyValue('--primaryColor')
-              .trim() || '#2196F3';
-            this.borderColors[prompt.id] = primaryColor;
-            setTimeout(() => {
-              this.borderColors[prompt.id] = null;
-            }, 500);
-          });
-        }
       });
       
       return p;
@@ -166,25 +150,9 @@ export default {
       }
       return prompt.props || {};
     },
-    getTransformStyle(id) {
-      const offset = this.dragOffsets[id] || { x: 0, y: 0 };
-      return {
-        transform: `translate(calc(-50% + ${offset.x}px), calc(-50% + ${offset.y}px))`,
-      };
-    },
-    getBorderStyle(id) {
-      if (this.borderColors[id]) {
-        return {
-          borderColor: this.borderColors[id],
-        };
-      }
-      return {};
-    },
     getDisplayTitle(promptName) {
       // Explicit switch statement for compile-time safety with ESLint i18n validation
       switch (promptName) {
-        case "delete":
-          return this.$t("buttons.delete");
         case "download":
           return this.$t("prompts.download");
         case "move":
@@ -206,11 +174,9 @@ export default {
         case "createapi":
           return this.$t("api.createTitle");
         case "actionapi":
-          return this.$t("settings.api");
+          return this.$t("api.title");
         case "sidebarlinks":
           return this.$t("sidebar.customizeLinks");
-        case "access":
-          return this.$t("settings.access");
         case "password":
           return this.$t("general.password");
         case "playbackqueue":
@@ -254,7 +220,6 @@ export default {
       delete this.dragOffsets[id];
       delete this.dragStarts[id];
       delete this.touchIds[id];
-      delete this.borderColors[id];
       this.draggingIds.delete(id);
     },
     getPointerPos(e, type) {
@@ -356,33 +321,27 @@ export default {
 
 <style scoped>
 .prompt-window {
-  box-shadow: none;
-  border: 2px solid var(--border-color, #888);
-  transition: border-color 500ms ease-out;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   min-height: 0;
+  border: 2px solid var(--border-color, #888);
 }
 
 .prompt-window.is-dragging {
   border-color: var(--primaryColor);
-  transition: border-color 0.15s ease;
 }
 
 .prompt-taskbar {
   position: relative;
-  flex-shrink: 0;
   display: flex;
   align-items: center;
-  height: 2.25rem;
-  padding: 0 0.25rem;
-  background: var(--surfacePrimary);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   cursor: grab;
   user-select: none;
   touch-action: none;
   transition: background 0.15s;
+  background: var(--surfaceSecondary);
+  height: 3em;
 }
 
 .prompt-taskbar:hover {
@@ -392,11 +351,6 @@ export default {
 .prompt-taskbar.is-dragging {
   cursor: grabbing;
   background: color-mix(in srgb, var(--primaryColor) 18%, var(--surfaceSecondary, #f5f5f5));
-}
-
-.dark-mode .prompt-taskbar {
-  background: var(--surfaceSecondary);
-  border-bottom-color: var(--border-color);
 }
 
 .dark-mode .prompt-taskbar:hover {
@@ -410,18 +364,14 @@ export default {
 .prompt-close {
   position: relative;
   z-index: 1;
-  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  min-width: 2rem;
-  min-height: 2rem;
-  margin: 0 0.2rem;
+  width: 2em;
+  height: 2em;
   padding: 0;
   border: none;
-  border-radius: 4px;
+  border-radius: 1em;
   background: #c62828;
   color: #fff;
   cursor: pointer;

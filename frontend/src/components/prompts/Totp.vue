@@ -11,7 +11,7 @@
       :placeholder="$t('otp.codeInputPlaceholder')" />
   </div>
 
-  <div class="card-action">
+  <div class="card-actions">
     <button v-if="!succeeded && code != ''" class="button button--flat button--blue" @click="verifyCode"
       :title="$t('general.verify')">
       {{ $t("general.verify") }}

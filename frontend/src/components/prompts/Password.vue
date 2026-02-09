@@ -15,7 +15,7 @@
     </div>
   </div>
 
-  <div class="card-action">
+  <div class="card-actions">
     <button
       class="button button--flat"
       @click="submit"

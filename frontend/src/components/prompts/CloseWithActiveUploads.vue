@@ -3,7 +3,7 @@
     <p>{{ $t("prompts.closeWithActiveUploadsMessage") }}</p>
   </div>
 
-  <div class="card-action">
+  <div class="card-actions">
     <button
       class="button button--flat button--grey"
       @click="stayOnPrompt"

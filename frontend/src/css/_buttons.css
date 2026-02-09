@@ -1,11 +1,12 @@
 .button {
+  display:flex;
+  align-items: center;
   outline: 0;
-  padding: .5em 1em;
+  padding: .5em;
   border-radius: 1em;
   cursor: pointer;
   background: var(--primaryColor);
   color: white;
-  border: 1px solid rgba(0, 0, 0, 0.05);
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.05);
   transition: .1s ease all;
 }
@@ -26,9 +27,8 @@
 
 .button--flat {
   color: var(--primaryColor);
-  background: transparent;
+  background: var(--surfaceSecondary);
   box-shadow: 0 0 0;
-  border: 0;
   text-transform: uppercase;
 }
 

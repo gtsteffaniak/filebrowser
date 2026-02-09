@@ -2,7 +2,7 @@
   <div class="card-content">
     <p>{{ $t('prompts.deleteUserMessage') }}</p>
   </div>
-  <div class="card-action">
+  <div class="card-actions">
     <button class="button button--flat button--grey" @click="closeHovers" v-focus aria-label="Cancel"
       :title="$t('general.cancel')">
       {{ $t("general.cancel") }}

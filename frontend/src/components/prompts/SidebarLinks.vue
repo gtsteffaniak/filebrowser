@@ -171,7 +171,7 @@
     </div>
   </div>
 
-  <div class="card-action">
+  <div class="card-actions">
     <!-- When selecting a path -->
     <template v-if="isSelectingPath">
       <button @click="cancelPathSelection" class="button button--flat button--grey" :aria-label="$t('general.cancel')"
@@ -198,10 +198,6 @@
 
     <!-- When viewing the list -->
     <template v-else>
-      <button @click="closePrompt" class="button button--flat button--grey" :aria-label="$t('general.cancel')"
-        :title="$t('general.cancel')">
-        {{ $t("general.cancel") }}
-      </button>
       <button aria-label="Save Links" class="button button--flat button--blue" @click="saveLinks"
         :title="$t('general.save')">
         {{ $t("general.save") }}

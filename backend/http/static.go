@@ -301,7 +301,6 @@ func staticAssetHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Handle special routes that need path mapping
 	var assetPath string
-	fmt.Println("asset path", path)
 	switch path {
 	case "site.webmanifest":
 		manifestHandler(w, r)
@@ -330,7 +329,6 @@ func staticAssetHandler(w http.ResponseWriter, r *http.Request) {
 		// Serve generated icons from cache directory
 		iconPath := filepath.Join(settings.Env.PWAIconsDir, path)
 		if _, err := os.Stat(iconPath); err == nil {
-			fmt.Println(iconPath)
 			http.ServeFile(w, r, iconPath)
 			return
 		}

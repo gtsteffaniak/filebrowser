@@ -2,7 +2,7 @@
   <div class="card-content">
     <p>{{ $t("prompts.deleteMessageShare", { path }) }}</p>
   </div>
-  <div class="card-action">
+  <div class="card-actions">
     <button @click="closeHovers" class="button button--flat button--grey" :aria-label="$t('general.cancel')"
       :title="$t('general.cancel')">
       {{ $t("general.cancel") }}

@@ -43,7 +43,7 @@
     </div>
   </div>
 
-  <div class="card-action">
+  <div class="card-actions">
     <button class="button button--flat" @click.stop="cyclePlaybackModes" :title="$t('player.changePlaybackMode')">
       <i class="material-icons">swap_vert</i> {{ $t('player.changePlaybackMode') }}
     </button>

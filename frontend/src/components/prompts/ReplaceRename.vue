@@ -2,7 +2,7 @@
   <div class="card-content">
     <p>{{ $t("prompts.replaceMessage") }}</p>
   </div>
-  <div class="card-action">
+  <div class="card-actions">
     <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('general.cancel')"
       :title="$t('general.cancel')" tabindex="3">
       {{ $t("general.cancel") }}

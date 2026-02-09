@@ -3,7 +3,7 @@
     <p>{{ $t("prompts.replaceMessage") }}</p>
   </div>
 
-  <div class="card-action">
+  <div class="card-actions">
     <button class="button button--flat button--grey" @click="closeTopHover" :aria-label="$t('general.cancel')"
       :title="$t('general.cancel')">
       {{ $t("general.cancel") }}

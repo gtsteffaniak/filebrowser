@@ -58,7 +58,7 @@
     </div>
   </div>
 
-  <div class="card-action">
+  <div class="card-actions">
     <button
       class="button button--flat button--red"
       @click="deleteApi"

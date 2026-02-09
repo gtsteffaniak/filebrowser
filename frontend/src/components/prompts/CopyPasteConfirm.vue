@@ -23,7 +23,7 @@
     </div>
   </div>
 
-  <div class="card-action">
+  <div class="card-actions">
     <button
       @click="closeHovers"
       class="button button--flat button--grey"

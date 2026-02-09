@@ -75,7 +75,7 @@
     </div>
   </div>
 
-  <div class="card-action">
+  <div class="card-actions">
     <button
       @click="closeTopHover"
       class="button button--flat button--grey"

@@ -118,9 +118,7 @@ over
 }
 
 button {
-  flex: 1;
-  height: 3em;
-  padding: 8px 16px;
+  padding: 0.5em;
   border: none;
   background-color: var(--surfaceSecondary);
   transition: background-color 0.3s;

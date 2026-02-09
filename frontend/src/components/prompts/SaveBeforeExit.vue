@@ -3,7 +3,7 @@
     <p>{{ $t("prompts.saveBeforeExitMessage") }}</p>
   </div>
 
-  <div class="card-action">
+  <div class="card-actions">
     <button
       class="button button--flat button--grey"
       @click="keepEditing"

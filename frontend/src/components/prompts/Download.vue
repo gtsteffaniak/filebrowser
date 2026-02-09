@@ -182,12 +182,6 @@ export default {
   font-size: 1.2em;
 }
 
-.card-actions {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.5em;
-}
-
 .spacer {
   flex-grow: 1;
 }

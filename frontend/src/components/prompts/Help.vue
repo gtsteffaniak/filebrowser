@@ -86,7 +86,7 @@
     </div>
   </div>
 
-  <div class="card-action">
+  <div class="card-actions">
     <button type="submit" @click="closeHovers" class="button button--flat" :aria-label="$t('general.ok')"
       :title="$t('general.ok')">
       {{ $t("general.ok") }}
