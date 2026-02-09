@@ -22,7 +22,7 @@
         @keyup.exact="keyup" @input="submit" ref="input" :autofocus="active" v-model.trim="value"
         aria-label="search input" :placeholder="$t('general.search', { suffix: '...' })" />
     </div>
-    <div v-show="active" id="results" class="fb-shadow" ref="result">
+    <div v-show="active" id="results" ref="result">
       <div class="inputWrapper">
         <select v-if="multipleSources" class="searchContext button input" aria-label="search sources dropdown"
           v-model="selectedSource" :value="selectedSource" @change="updateSource">

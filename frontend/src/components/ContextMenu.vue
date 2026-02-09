@@ -10,7 +10,7 @@
       ref="contextMenu"
       v-if="showContext"
       :style="centered ? {} : { top: posY + 'px', left: posX + 'px' }"
-      class="button no-select fb-shadow"
+      class="button no-select floating-window"
       :class="{ 'dark-mode': isDarkMode, 'centered': centered }"
       :key="showCreate ? 'create-mode' : 'normal-mode'"
     >
@@ -63,7 +63,6 @@
         icon="file_download"
         :label="$t('general.download')"
         @action="startDownload"
-        :counter="selectedCount"
       />
       <action
         v-if="showShareAction"
@@ -141,7 +140,7 @@
         top: '3em',
         right: '1em',
       }"
-      class="button no-select fb-shadow"
+      class="button no-select floating-window"
       :class="{ 'dark-mode': isDarkMode }"
     >
       <action icon="info" :label="$t('general.info')" @action="showInfoHover"/>
@@ -638,15 +637,23 @@ export default {
 }
 
 .selected-count-header {
-  border-radius: 0.5em;
+  border-radius: 1em;
   cursor: unset;
-  margin-bottom: 0.5em;
+}
+
+.context-menu-header > .action i {
+  padding: 0.25em;
 }
 
 #context-menu .action {
-  width: auto;
   display: flex;
   align-items: center;
+  justify-content: flex-start;
+}
+
+#context-menu > div,
+#context-menu > button {
+  width: 100%;
 }
 
 #context-menu > span {

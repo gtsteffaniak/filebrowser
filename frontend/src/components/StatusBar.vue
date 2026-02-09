@@ -1,14 +1,12 @@
 <template>
   <div id="status-bar" :style="moveWithSidebar" :class="{ 'dark-mode-header': isDarkMode, 'active': showStatusBar }" @contextmenu.prevent.stop @touchstart.stop @touchend.stop>
     <div class="status-content" @contextmenu.prevent.stop @touchstart.stop @touchend.stop>
-      <div class="status-info">
-        <span v-if="selectedCount > 0">
-          <span class="button">{{ selectedCount }}</span>
-          {{ selectedItemsText }}
-        </span>
-        <span v-else class="directory-info">
-          {{ directoryInfoText }}
-        </span>
+      <div v-if="selectedCount > 0" class="status-info">
+        <span class="button">{{ selectedCount }}</span>
+        <span>{{ selectedItemsText }}</span>
+      </div>
+      <div v-else class="status-info">
+        <span class="directory-info">{{ directoryInfoText }}</span>
       </div>
       <div class="status-controls">
         <div v-if="showGallerySize" class="gallery-size-control">
@@ -202,6 +200,7 @@ export default {
   align-items: center;
   color: var(--textSecondary);
   font-weight: 500;
+  gap: 0.25em;
 }
 
 .button {

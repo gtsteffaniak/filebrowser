@@ -2,7 +2,7 @@
   <Teleport to="body" v-for="prompt in prompts" :key="'prompt-' + prompt.id">
     <div
       ref="promptWindow"
-      class="card floating prompt-window"
+      class="card floating floating-window"
       :class="{
         'dark-mode': isDarkMode,
         'is-dragging': isDragging(prompt.id),
@@ -121,7 +121,7 @@ export default {
   computed: {
     prompts() {
       // Filter out ContextMenu - it's rendered separately in Layout.vue
-      const p = (state.prompts || []).filter(prompt => prompt.name !== "ContextMenu");
+      const p = (state.prompts || []).filter(prompt => prompt.name !== "ContextMenu" && prompt.name !== "OverflowMenu");
       return p;
     },
     isDarkMode() {
@@ -315,15 +315,8 @@ export default {
 </script>
 
 <style scoped>
-.prompt-window {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  min-height: 0;
-  border: 2px solid var(--border-color, #888);
-}
 
-.prompt-window.is-dragging {
+.floating-window.is-dragging {
   border-color: var(--primaryColor);
 }
 
@@ -379,7 +372,7 @@ export default {
 }
 
 .prompt-close .material-icons {
-  font-size: 1.1rem;
+  font-size: 1em;
 }
 
 .prompt-taskbar-drag {

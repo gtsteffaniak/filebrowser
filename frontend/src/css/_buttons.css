@@ -1,6 +1,7 @@
 .button {
   display:flex;
   align-items: center;
+  justify-content: center;
   outline: 0;
   padding: .5em;
   border-radius: 1em;
@@ -9,6 +10,25 @@
   color: white;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.05);
   transition: .1s ease all;
+  min-width: 2em;
+  min-height: 2em;
+}
+
+button {
+  padding: 0.5em;
+  border: none;
+  background-color: var(--surfaceSecondary);
+  transition: background-color 0.3s;
+  min-width: 2em;
+  min-height: 2em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .button--block {

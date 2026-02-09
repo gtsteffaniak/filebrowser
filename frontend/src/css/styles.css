@@ -341,12 +341,6 @@ body.rtl .card-content .small+input {
     text-align: left;
 }
 
-
-.fb-shadow {
-    box-shadow: 0px 0px 15px 0px rgb(100 100 100 / 75%);
-    -webkit-box-shadow: 0px 0px 15px 0px rgb(100 100 100 / 75%);
-}
-
 .clickable {
     cursor: pointer;
 }
