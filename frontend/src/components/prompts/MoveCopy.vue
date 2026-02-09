@@ -9,38 +9,26 @@
     <file-list v-show="!isLoading" ref="fileList" @update:selected="updateDestination">
     </file-list>
   </div>
-  <div v-if="!isLoading" class="card-actions" style="display: flex; align-items: center; justify-content: space-between">
-    <template v-if="!showNewDirInput">
-      <button v-if="canCreateFolder" class="button button--flat" @click="createNewDir"
-        :aria-label="$t('files.newFolder')" :title="$t('files.newFolder')" style="justify-self: left">
-        <span>{{ $t("files.newFolder") }}</span>
-      </button>
-      <div>
-        <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('general.cancel')"
-          :title="$t('general.cancel')">
-          {{ $t("general.cancel") }}
-        </button>
-        <button :disabled="destContainsSrc" class="button button--flat" @click="performOperation"
-          :aria-label="operation === 'move' ? $t('general.move') : $t('general.copy')"
-          :title="operation === 'move' ? $t('general.move') : $t('general.copy')">
-          {{ operation === 'move' ? $t('general.move') : $t('general.copy') }}
-        </button>
-      </div>
-    </template>
-    <template v-else>
-      <div style="width: 100%;">
-        <div style="display: flex; gap: 0.3rem;">
-          <input ref="newDirInput" class="input new-dir-input" :class="{ 'form-invalid': !isDirNameValid }"
-            v-model.trim="newDirName" :placeholder="$t('prompts.newDirMessage')" @keydown.enter="handleEnter" />
-          <button class="button button--flat button--grey" @click="cancelNewDir">
-            {{ $t("general.cancel") }}
-          </button>
-          <button class="button button--flat" @click="createDirectory" :disabled="!newDirName || !isDirNameValid">
-            {{ $t("general.create") }}
-          </button>
-        </div>
-      </div>
-    </template>
+  <div class="card-actions split-buttons" >
+    <button
+      v-if="canCreateFolder && !showNewDirInput"
+      class="button button--flat"
+      @click="createNewDir"
+      :aria-label="$t('files.newFolder')"
+      :title="$t('files.newFolder')"
+    >
+      <span>{{ $t("files.newFolder") }}</span>
+    </button>
+    <input v-if="showNewDirInput" ref="newDirInput" class="input new-dir-input" :class="{ 'form-invalid': !isDirNameValid }"
+    v-model.trim="newDirName" :placeholder="$t('prompts.newDirMessage')" @keydown.enter="handleEnter" />
+    <button v-else :disabled="destContainsSrc" class="button button--flat" @click="performOperation"
+      :aria-label="operation === 'move' ? $t('general.move') : $t('general.copy')"
+      :title="operation === 'move' ? $t('general.move') : $t('general.copy')">
+      {{ operation === 'move' ? $t('general.move') : $t('general.copy') }}
+    </button>
+    <button v-if="showNewDirInput" class="button button--flat" @click="createDirectory" :disabled="!newDirName || !isDirNameValid">
+      {{ $t("general.create") }}
+    </button>
   </div>
 </template>
 
@@ -402,5 +390,9 @@ export default {
 
 .new-dir-input {
   justify-self: left
+}
+
+.split-buttons {
+  justify-content: space-between;
 }
 </style>

@@ -31,7 +31,7 @@
           <i class="material-icons">close</i>
         </button>
         <div class="prompt-taskbar-drag">
-          <span class="prompt-title">{{ getDisplayTitle(prompt?.name) }}</span>
+          <span class="prompt-title">{{ prompt?.displayName || getDisplayTitle(prompt?.name) }}</span>
         </div>
       </header>
       <component
@@ -137,13 +137,17 @@ export default {
       return this.draggingIds.has(id);
     },
     getPromptProps(prompt) {
+      const baseProps = {
+        ...prompt.props,
+        promptId: prompt.id,
+      };
       if (prompt.name === "move" || prompt.name === "copy") {
         return {
-          ...prompt.props,
+          ...baseProps,
           operation: prompt.name,
         };
       }
-      return prompt.props || {};
+      return baseProps;
     },
     getDisplayTitle(promptName) {
       // convert to lowercase

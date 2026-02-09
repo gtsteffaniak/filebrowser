@@ -246,7 +246,10 @@ export default {
     },
     showDivider() {
       if (this.isDuplicateFinder || this.createOnly) return false;
-      return true;
+      if (getters.isShare()) {
+        return state.shareInfo?.allowCreate
+      }
+      return state.user?.permissions?.create || state.user?.permissions?.share || state.user?.permissions?.admin;
     },
     showSelectMultiple() {
       if (this.isDuplicateFinder) return false;

@@ -331,6 +331,14 @@ export const mutations = {
     }
     mutations.hideTooltip(true);
   },
+  updatePromptName: (id, name) => {
+    const prompt = state.prompts.find((p) => p.id === id);
+    if (!prompt) {
+      return;
+    }
+    prompt.displayName = name;
+    emitStateChanged();
+  },
   closeContextMenus: () => {
     state.prompts = state.prompts.filter((p) => p.name !== "ContextMenu");
     if (state.prompts.length === 0 && !state.stickySidebar) {
