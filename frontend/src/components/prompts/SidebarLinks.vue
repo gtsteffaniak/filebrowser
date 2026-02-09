@@ -260,15 +260,6 @@ export default {
     availableSources() {
       return state.sources?.info || {};
     },
-    currentTitle() {
-      // Always show the context title, path selection is shown inline
-      return this.contextTitle;
-    },
-    contextTitle() {
-      return this.context === 'share'
-        ? this.$t('sidebar.customizeShareLinks')
-        : this.$t('sidebar.customizeLinks');
-    },
     contextDescription() {
       return this.context === 'share'
         ? this.$t('sidebar.customizeShareLinksDescription')

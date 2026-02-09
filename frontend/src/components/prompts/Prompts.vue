@@ -146,8 +146,9 @@ export default {
       return prompt.props || {};
     },
     getDisplayTitle(promptName) {
+      // convert to lowercase
       // Explicit switch statement for compile-time safety with ESLint i18n validation
-      switch (promptName) {
+      switch (promptName.toLowerCase()) {
         case "download":
           return this.$t("prompts.download");
         case "move":
@@ -234,14 +235,14 @@ export default {
       const offset = this.dragOffsets[id] || { x: 0, y: 0 };
       const centerX = viewportW / 2 + offset.x;
       const centerY = viewportH / 2 + offset.y;
-      
+
       const minCenterX = 0;
       const maxCenterX = viewportW;
       const minCenterY = headerHeight / 2;
       const maxCenterY = viewportH - headerHeight / 2;
       const clampedX = Math.max(minCenterX, Math.min(maxCenterX, centerX));
       const clampedY = Math.max(minCenterY, Math.min(maxCenterY, centerY));
-      
+
       this.dragOffsets[id] = {
         x: clampedX - viewportW / 2,
         y: clampedY - viewportH / 2,
@@ -275,7 +276,6 @@ export default {
     },
     onPointerMove(e, id, type) {
       if (!this.dragStarts[id]) return;
-      
       let pos;
       if (type === "touch") {
         if (!e.touches) return;
@@ -291,7 +291,7 @@ export default {
         x: pos.x - this.dragStarts[id].x,
         y: pos.y - this.dragStarts[id].y,
       };
-      
+
       // Find the element for this prompt
       const windows = this.$refs.promptWindow;
       const el = Array.isArray(windows) ? windows.find(w => w?.getAttribute('aria-label') === `${this.prompts.find(p => p.id === id)?.name}-prompt`) : windows;
