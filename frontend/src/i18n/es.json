@@ -358,7 +358,6 @@
     "linksUpdateFailed": "Hubo un error al actualizar los accesos directos",
     "sourceNotAccessible": "No se pudo acceder a la fuente",
     "noLinksYet": "Aún no configuraste ningún acceso directo, ¡Añade uno!",
-    "customizeShareLinks": "Accesos directos",
     "customizeShareLinksDescription": "Aquí puedes personalizar los accesos directos del panel lateral para este recurso compartido.",
     "editLink": "Editar acceso directo",
     "selectShare": "Seleccionar recurso compartido",

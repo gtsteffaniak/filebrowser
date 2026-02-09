@@ -358,7 +358,6 @@
     "linksUpdateFailed": "Misslyckades med att uppdatera sidofältets länkar",
     "sourceNotAccessible": "Denna källa är inte längre tillgänglig för dig",
     "noLinksYet": "Inga länkar konfigurerade ännu. Lägg till din första länk nedan.",
-    "customizeShareLinks": "Anpassa sidofältets länkar för delning",
     "customizeShareLinksDescription": "Anpassa länkarna som visas i sidofältet för den här aktien. Dra och släpp för att ändra ordning.",
     "editLink": "Redigera länk",
     "selectShare": "Välj Dela",

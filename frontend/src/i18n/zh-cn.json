@@ -358,7 +358,6 @@
     "linksUpdateFailed": "更新侧边栏链接失败",
     "sourceNotAccessible": "您已无法访问此信息源",
     "noLinksYet": "尚未配置链接。请在下面添加您的第一个链接。",
-    "customizeShareLinks": "自定义共享侧边栏链接",
     "customizeShareLinksDescription": "自定义此分享侧边栏中显示的链接。拖放即可重新排序。",
     "editLink": "编辑链接",
     "selectShare": "选择共享",
