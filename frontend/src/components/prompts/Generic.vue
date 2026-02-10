@@ -58,18 +58,12 @@ export default {
         return this.buttons;
       }
       return [];
-      return [];
     },
   },
   methods: {
     handleButtonClick(button) {
       // Execute the button's action
       if (typeof button.action === 'function') {
-        try {
-          button.action();
-        } catch (error) {
-          console.error('Error executing button action:', error);
-        }
         try {
           button.action();
         } catch (error) {

@@ -13,7 +13,7 @@
     </div>
 
     <!-- Current Path Display -->
-    <div v-if="!browseSource && !browseShare && !fileList" aria-label="filelist-path" class="searchContext button clickable">
+    <div v-if="!fileList" aria-label="filelist-path" class="searchContext button clickable">
       {{ $t('general.path', { suffix: ':' }) }} {{ sourcePath.path }}
     </div>
 
@@ -137,7 +137,7 @@ export default {
       return state.sources && state.sources.info ? Object.keys(state.sources.info) : [state.req.source];
     },
     showSourceSelector() {
-      return this.availableSources.length > 1 && !getters.isShare() && !this.browseShare && !this.fileList;
+      return this.availableSources.length > 1 && !this.fileList && !getters.isShare() && !this.browseShare;
     },
     isValidSelection() {
       // If file selection is required, check if a file (not folder) is selected
