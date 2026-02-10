@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import { getters, mutations } from "@/store"; // Import your custom store
+import { getters } from "@/store"; // Import your custom store
 
 export default {
   name: "replace-rename",

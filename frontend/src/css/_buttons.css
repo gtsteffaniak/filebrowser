@@ -37,6 +37,7 @@ button:disabled {
   margin: 0 0 0.5em;
   display: block;
   width: 100%;
+  border-style: unset;
 }
 
 .button--red {

@@ -119,30 +119,16 @@ test-playwright: build-frontend
 run-proxy: build-frontend
 	cd _docker && docker compose up -d --build
 
-screenshots: build-frontend build-backend
-	# copy the playwright-files directory so you don't edit the original
-	cd frontend && rm -rf playwright-files || true && cp -r tests/playwright-files .
-	# Kill any existing backend processes
-	@echo "Killing any existing backend processes..."
-	@pkill -f "go run ." || true
-	@pkill -f "filebrowser" || true
-	@pkill -f "backend" || true
-	@lsof -ti:8080 | xargs kill -9 2>/dev/null || true
-	@echo "Starting backend server..."
-	@trap 'echo "Stopping backend server..."; pkill -f "go run ." || true; pkill -f "filebrowser" || true; pkill -f "backend" || true; lsof -ti:8080 | xargs kill -9 2>/dev/null || true; exit 0' INT TERM
-	rm -rf backend/playwright-files.db || true
-	cd backend && go run . -c playwright-config.yaml &
-	BACKEND_PID=$$!; \
-	sleep 2; \
-	echo "Running dark screenshots..."; \
-	cd frontend && npx playwright test --project dark-screenshots; \
-	echo "Running light screenshots..."; \
-	npx playwright test --project light-screenshots; \
-	echo "Cleaning up..."; \
-	kill $$BACKEND_PID 2>/dev/null || true; \
-	pkill -f "go run ." || true; \
-	pkill -f "filebrowser" || true; \
-	lsof -ti:8080 | xargs kill -9 2>/dev/null || true
+screenshots: build-frontend
+	cd backend && GOOS=linux go build -o filebrowser .
+	@echo "Running screenshots..."
+	cd _docker && docker compose down && docker compose up -d --build local-playwright
+	@echo "Installing playwright dependencies..."
+	cd frontend && npx playwright install --with-deps firefox
+	echo "Generating dark screenshots...";
+	cd frontend && npx playwright test --project dark-screenshots
+	echo "Running light screenshots...";
+	cd frontend && npx playwright test --project light-screenshots
 
 profile:
 	@echo "Note: start the backend server with 'make dev' first"

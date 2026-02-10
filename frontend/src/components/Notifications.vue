@@ -100,12 +100,9 @@ export default {
     closePopUp() {
       return notify.closePopUp();
     },
-    handleButtonClick(button, notificationId) {
+    handleButtonClick(button) {
       if (typeof button.action === "function") {
         button.action();
-      }
-      if (button.keepOpen !== true) {
-        this.closeNotification(notificationId);
       }
     },
     startDrag(event, notificationId) {

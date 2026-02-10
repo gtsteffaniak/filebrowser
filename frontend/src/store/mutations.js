@@ -290,10 +290,9 @@ export const mutations = {
     if (state.prompts.length === 0) {
       return;
     }
-    if (state.prompts.length === 0) {
-      if (!state.stickySidebar) {
-        state.showSidebar = false;
-      }
+    state.prompts.pop();
+    if (state.prompts.length === 0 && !state.stickySidebar) {
+      state.showSidebar = false;
     }
     mutations.hideTooltip(true);
   },
@@ -305,7 +304,7 @@ export const mutations = {
       name: value?.name,
       confirm: value?.confirm,
       action: value?.action,
-      props: value?.props,
+      props: value?.props || {},
       discard: value?.discard,
       cancel: value?.cancel,
     } : {
@@ -313,7 +312,7 @@ export const mutations = {
       name: value,
       confirm: value?.confirm,
       action: value?.action,
-      props: value?.props,
+      props: value?.props || {},
       discard: value?.discard,
       cancel: value?.cancel,
     };
@@ -331,12 +330,12 @@ export const mutations = {
     }
     mutations.hideTooltip(true);
   },
-  updatePromptName: (id, name) => {
+  updatePromptTitle: (id, title) => {
     const prompt = state.prompts.find((p) => p.id === id);
     if (!prompt) {
       return;
     }
-    prompt.displayName = name;
+    prompt.props.title = title;
     emitStateChanged();
   },
   closeContextMenus: () => {
