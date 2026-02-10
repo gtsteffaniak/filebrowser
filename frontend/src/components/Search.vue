@@ -672,7 +672,6 @@ export default {
   display: flex;
   height: 100%;
   padding: 0em 0.75em;
-  border-style: solid;
   border-radius: 1em;
   border-style: unset;
   border-width: 1px;

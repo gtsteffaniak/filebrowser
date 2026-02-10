@@ -625,7 +625,8 @@
     "lines": "קווים{suffix}",
     "lastUpdate": "עדכון אחרון{suffix}",
     "latency": "חביון{suffix}",
-    "all": "כל{suffix}"
+    "all": "כל{suffix}",
+    "acknowledge": "אשר{suffix}"
   },
   "access": {
     "rules": "כללי גישה",

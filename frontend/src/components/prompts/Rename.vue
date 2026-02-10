@@ -1,8 +1,14 @@
 <template>
   <div class="card-content">
-    <p>{{ $t("prompts.renameMessage") }}</p>
+    <!-- Loading spinner overlay -->
+    <div v-show="renaming" class="loading-content">
+      <LoadingSpinner size="small" />
+      <p class="loading-text">{{ $t("prompts.operationInProgress") }}</p>
+    </div>
+    <div v-show="!renaming">
+      <p>{{ $t("prompts.renameMessage") }}</p>
 
-    <div v-if="item.type !== 'directory'" class="filename-inputs">
+      <div v-if="item.type !== 'directory'" class="filename-inputs">
       <input ref="filenameInput" aria-label="New Name" class="input" :class="{ 'form-invalid': !validation.valid }" v-focus type="text" @keydown="onKeydown" @keyup="onKeyup" v-model.trim="fileName" @input="updateFullName" />
       <span class="extension-separator">.</span> <!--eslint-disable-line @intlify/vue-i18n/no-raw-text-->
       <input class="input extension-input" type="text" @keydown="onKeydown" @keyup="onKeyup" v-model.trim="fileExtension" @input="updateFullName" />
@@ -17,6 +23,7 @@
         {{ $t("prompts.renameMessageInvalid") }}
       </span>
     </p>
+    </div>
   </div>
 
   <div class="card-actions">
@@ -36,8 +43,12 @@ import { mutations, state, getters } from "@/store";
 import { notify } from "@/notify";
 import { getFileExtension, removePrefix } from '@/utils/files.js';
 import { url } from "@/utils";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 export default {
   name: "rename",
+  components: {
+    LoadingSpinner,
+  },
   props: {
     item: {
       type: Object,
@@ -58,12 +69,14 @@ export default {
         fileName: filenamePrefix,
         fileExtension: removePrefix(ext, "."),
         name: itemName, // Initialize name for non-directory items
+        renaming: false,
       };
     }
     return {
       fileName: "",
       fileExtension: "",
       name: itemName,
+      renaming: false,
     };
   },
   computed: {
@@ -183,6 +196,7 @@ export default {
 
       let newPath = sourcePath.substring(0, sourcePath.lastIndexOf("/"));
       newPath = `${newPath}/${this.name}`;
+      this.renaming = true;
       try {
         const items = [{
           from: this.item.path,
@@ -217,6 +231,8 @@ export default {
         }
         
         notify.showError(errorMessage);
+      } finally {
+        this.renaming = false;
       }
     },
   },
@@ -252,5 +268,25 @@ export default {
 
 .extension-separator {
   font-weight: bold;
+}
+
+.loading-content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding-top: 2em;
+}
+
+.loading-text {
+  padding: 1em;
+  margin: 0;
+  font-size: 1em;
+  font-weight: 500;
+}
+
+.card-content {
+  position: relative;
 }
 </style>

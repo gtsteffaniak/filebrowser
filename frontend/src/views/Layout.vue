@@ -187,7 +187,7 @@ export default {
         if (maxUploads > 10 || maxUploads < 1) {
           mutations.setMaxConcurrentUpload(1);
         }
-        if ( state.user.showFirstLogin) {
+        if (state.user.showFirstLogin) {
           mutations.showHover({
             name: "generic",
             props: {
@@ -195,11 +195,12 @@ export default {
               body: this.$t("prompts.firstLoadBody"),
               buttons: [
                 {
-                  label: this.$t("general.close"),
+                  label: this.$t("general.acknowledge"),
                   action: () => {
                     mutations.updateCurrentUser({
                       showFirstLogin: false,
                     });
+                    mutations.closeTopHover();
                   },
                 },
               ],

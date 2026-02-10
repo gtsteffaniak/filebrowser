@@ -473,6 +473,7 @@ export default {
   margin-top: 0.25em;
   padding: 0;
   border-radius: 0.5em;
+  justify-content: flex-start;
 }
 
 .sidebar-link-button:first-child {

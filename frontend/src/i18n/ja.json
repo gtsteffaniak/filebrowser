@@ -625,7 +625,8 @@
     "lines": "ライン{suffix}",
     "lastUpdate": "最終更新{suffix}",
     "latency": "レイテンシー{suffix}",
-    "all": "すべて{suffix}"
+    "all": "すべて{suffix}",
+    "acknowledge": "認める{suffix}"
   },
   "access": {
     "rules": "アクセスルール",

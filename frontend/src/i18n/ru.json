@@ -625,7 +625,8 @@
     "lines": "Линии{suffix}",
     "lastUpdate": "Последнее обновление{suffix}",
     "latency": "Латентность{suffix}",
-    "all": "Все{suffix}"
+    "all": "Все{suffix}",
+    "acknowledge": "Подтвердите{suffix}"
   },
   "access": {
     "rules": "Правила доступа",

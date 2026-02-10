@@ -705,7 +705,8 @@
     "lines": "Linjer{suffix}",
     "lastUpdate": "Senaste uppdatering{suffix}",
     "latency": "Fördröjning{suffix}",
-    "all": "Alla{suffix}"
+    "all": "Alla{suffix}",
+    "acknowledge": "Bekräfta{suffix}"
   },
   "access": {
     "rules": "Regler för åtkomst",

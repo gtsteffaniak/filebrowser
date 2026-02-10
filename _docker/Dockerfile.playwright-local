@@ -1,0 +1,14 @@
+FROM ghcr.io/gtsteffaniak/playwright-base:latest
+WORKDIR /app
+
+WORKDIR /app/frontend
+COPY [ "./frontend/", "./" ]
+
+WORKDIR /app/backend/
+COPY [ "./backend/filebrowser*", "./"]
+COPY [ "./_docker/src/local/backend/*", "./"]
+
+RUN mkdir -p ./http/dist
+COPY [ "./backend/http/embed/", "./http/dist/"]
+
+ENTRYPOINT [ "./filebrowser" ]

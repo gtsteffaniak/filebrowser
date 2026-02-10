@@ -31,7 +31,7 @@
           <i class="material-icons">close</i>
         </button>
         <div class="prompt-taskbar-drag">
-          <span class="prompt-title">{{ getDisplayTitle(prompt?.name) }}</span>
+          <span class="prompt-title">{{ prompt?.props?.title || getDisplayTitle(prompt?.name) }}</span>
         </div>
       </header>
       <component
@@ -137,13 +137,17 @@ export default {
       return this.draggingIds.has(id);
     },
     getPromptProps(prompt) {
+      const baseProps = {
+        ...prompt.props,
+        promptId: prompt.id,
+      };
       if (prompt.name === "move" || prompt.name === "copy") {
         return {
-          ...prompt.props,
+          ...baseProps,
           operation: prompt.name,
         };
       }
-      return prompt.props || {};
+      return baseProps;
     },
     getDisplayTitle(promptName) {
       // convert to lowercase
@@ -199,11 +203,8 @@ export default {
           return this.$t("prompts.newFile");
         case "newdir":
           return this.$t("prompts.newDir");
-        case "replacerename":
+        case "replace-rename":
           return this.$t("prompts.replace");
-        case "generic":
-          // Generic prompts should always provide a custom title in props
-          return promptName;
         default:
           console.warn("[Prompts.vue] unknown prompt name", promptName);
           // Fallback for unknown prompt types
@@ -316,12 +317,37 @@ export default {
 
 <style scoped>
 
+.floating-window > :deep(.card-content) {
+  padding-top: 3.5em !important;
+  padding-bottom: 3.5em !important;
+  margin-top: 1px; /* 1px to avoid edge flickering */
+  margin-bottom: 1px;  /* 1px to avoid edge flickering */
+}
+
+.floating-window > :deep(.card-actions) {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+/* Backdrop-filter support */
+@supports (backdrop-filter: none) {
+  .floating-window :deep(.prompt-taskbar) {
+    backdrop-filter: blur(12px) invert(0.2);
+    background-color: color-mix(in srgb, var(--background) 50%, transparent);
+  }
+  .floating-window :deep(.card-actions) {
+    backdrop-filter: blur(12px);
+    background-color: transparent;
+  }
+}
+
 .floating-window.is-dragging {
   border-color: var(--primaryColor);
 }
 
 .prompt-taskbar {
-  position: relative;
   display: flex;
   align-items: center;
   cursor: grab;

@@ -705,7 +705,8 @@
     "lines": "线路{suffix}",
     "lastUpdate": "最新更新{suffix}",
     "latency": "延迟{suffix}",
-    "all": "全部{suffix}"
+    "all": "全部{suffix}",
+    "acknowledge": "确认{suffix}"
   },
   "access": {
     "rules": "访问规则",

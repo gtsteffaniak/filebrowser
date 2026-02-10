@@ -1,4 +1,11 @@
 services:
+  local-playwright:
+    container_name: local-playwright
+    ports:
+      - "8080:80"
+    build:
+      dockerfile: ./_docker/Dockerfile.playwright-local
+      context: ../
   nginx-proxy-auth:
     image: nginx
     container_name: nginx-proxy-auth

@@ -625,7 +625,8 @@
     "lines": "الخطوط{suffix}",
     "lastUpdate": "آخر تحديث{suffix}",
     "latency": "الكمون{suffix}",
-    "all": "الكل{suffix}"
+    "all": "الكل{suffix}",
+    "acknowledge": "الإقرار{suffix}"
   },
   "access": {
     "rules": "قواعد الوصول",

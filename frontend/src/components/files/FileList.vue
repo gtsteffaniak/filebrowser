@@ -222,7 +222,6 @@ export default {
         // Handle fetch errors gracefully
         // Note: API methods already show error notifications, so we don't need to show another one
         console.error('FileList fetch error:', error);
-        
         // Always provide at least the parent directory option if not at root
         // This allows users to navigate back even if the current directory has issues
         this.items = [];
@@ -234,7 +233,6 @@ export default {
             type: "directory",
           });
         }
-        
         // Emit the current (failed) path so parent knows about the state
         this.$emit("update:selected", {
           path: this.path,
@@ -255,12 +253,10 @@ export default {
       if (!this.allowedFileTypes || this.allowedFileTypes.length === 0) {
         return true; // No filter, allow all
       }
-      
       // If itemType is not provided or is 'directory', allow it
       if (!itemType || itemType === 'directory') {
         return true;
       }
-      
       // Check if the itemType matches any of the allowed types
       // Supports both prefixes (e.g., 'image/') and full types (e.g., 'image/jpeg')
       return this.allowedFileTypes.some(allowedType => {
@@ -348,7 +344,7 @@ export default {
       let path = event.currentTarget.dataset.path;
       let clickedItem = this.items.find(item => item.path === path);
       let sourceToUse = clickedItem ? clickedItem.source : this.source;
-      
+
       // If showFiles and showFolders is true, and clicked item is a file (not a directory), select it directly
       if (this.showFiles && clickedItem && clickedItem.type !== "directory") {
         this.selected = path;
@@ -362,13 +358,13 @@ export default {
         });
         return;
       }
-      
+
       this.path = path;
       // Reset selected when navigating to a directory
       this.selected = null;
       this.selectedSource = null;
       this.selectedType = null;
-      
+
       // Priority: browseSource > browseShare > isShare
       if (this.browseSource) {
         // Explicitly browsing a source - use files API
@@ -412,7 +408,7 @@ export default {
     handleItemClick(item, _index, event) {
       event.preventDefault();
       event.stopPropagation();
-      
+
       if (this.isDisplayMode) {
         this.navigateToItem(item);
         return;

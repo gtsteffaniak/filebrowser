@@ -1,8 +1,15 @@
 <template>
   <div class="card-content">
-    <p>{{ $t("prompts.newFileMessage") }}</p>
-    <input class="input" aria-label="FileName Field" v-focus type="text" @keyup.enter="submit"
-      v-model.trim="name" />
+    <!-- Loading spinner overlay -->
+    <div v-show="creating" class="loading-content">
+      <LoadingSpinner size="small" />
+      <p class="loading-text">{{ $t("prompts.operationInProgress") }}</p>
+    </div>
+    <div v-show="!creating">
+      <p>{{ $t("prompts.newFileMessage") }}</p>
+      <input class="input" aria-label="FileName Field" v-focus type="text" @keyup.enter="submit"
+        v-model.trim="name" />
+    </div>
   </div>
 
   <div class="card-actions">
@@ -22,11 +29,16 @@ import { filesApi, publicApi } from "@/api";
 import { getters, mutations } from "@/store"; // Import your custom store
 import { notify } from "@/notify";
 import { url } from "@/utils";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 export default {
   name: "new-file",
+  components: {
+    LoadingSpinner,
+  },
   data() {
     return {
       name: "",
+      creating: false,
     };
   },
   computed: {
@@ -52,6 +64,7 @@ export default {
     },
 
     async createFile(overwrite = false) {
+      this.creating = true;
       try {
         const newPath = url.joinPath(state.req.path, this.name);
         const source = state.req.source;
@@ -60,6 +73,7 @@ export default {
           await publicApi.post(state.shareInfo?.hash, newPath, "", overwrite);
           mutations.setReload(true);
           mutations.closeHovers();
+          this.creating = false;
           return;
         }
         await filesApi.post(source, newPath, "", overwrite);
@@ -79,6 +93,7 @@ export default {
           }]
         };
         notify.showSuccess(this.$t("prompts.newFileSuccess"), buttonProps);
+        this.creating = false;
       } catch (error) {
         if (error.message === "conflict") {
           // Show replace-rename prompt for file/folder conflicts
@@ -140,10 +155,13 @@ export default {
                 }
               } catch (retryError) {
                 notify.showError(retryError);
+              } finally {
+                this.creating = false;
               }
             },
           });
         } else {
+          this.creating = false;
           throw error;
         }
       }
@@ -151,3 +169,25 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.loading-content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding-top: 2em;
+}
+
+.loading-text {
+  padding: 1em;
+  margin: 0;
+  font-size: 1em;
+  font-weight: 500;
+}
+
+.card-content {
+  position: relative;
+}
+</style>

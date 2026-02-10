@@ -1,14 +1,20 @@
 <template>
     <div class="card-content">
-      <p v-if="itemsToDelete.length === 1">
-        {{ $t("prompts.deleteMessageSingle") }}
-      </p>
-      <p v-else>
-        {{ $t("prompts.deleteMessageMultiple", { count: itemsToDelete.length }) }}
-      </p>
-      <div class="delete-items-list">
+      <!-- Loading spinner overlay -->
+      <div v-show="deleting" class="loading-content">
+        <LoadingSpinner size="small" />
+        <p class="loading-text">{{ $t("prompts.operationInProgress") }}</p>
+      </div>
+      <div v-show="!deleting">
+        <p v-if="itemsToDelete.length === 1">
+          {{ $t("prompts.deleteMessageSingle") }}
+        </p>
+        <p v-else>
+          {{ $t("prompts.deleteMessageMultiple", { count: itemsToDelete.length }) }}
+        </p>
+        <div class="delete-items-list">
         <div
-          v-for="(item, index) in itemsToDelete" 
+          v-for="(item, index) in itemsToDelete"
           :key="index"
           class="delete-item-wrapper"
           :class="{ 'has-error': getItemError(item) }"
@@ -36,6 +42,7 @@
           </div>
         </div>
       </div>
+      </div>
     </div>
     <div class="card-actions">
       <button @click="closeHovers" class="button button--flat button--grey" :aria-label="$t('general.cancel')"
@@ -57,11 +64,13 @@ import { notify } from "@/notify";
 import { getTypeInfo } from "@/utils/mimetype";
 import ListingItem from "@/components/files/ListingItem.vue";
 import { eventBus } from "@/store/eventBus";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
 export default {
   name: "delete",
   components: {
     ListingItem,
+    LoadingSpinner,
   },
   props: {
     items: {
@@ -92,10 +101,10 @@ export default {
       if (this.items && Array.isArray(this.items) && this.items.length > 0) {
         return this.items;
       }
-      
+
       // Otherwise, compute from state (backward compatibility)
       let items = [];
-      
+
       if (state.isSearchActive || getters.currentView() == "preview") {
         const selected = state.selected[0];
         const item = state.req.items?.[selected] || selected;
@@ -136,7 +145,7 @@ export default {
           });
         }
       }
-      
+
       return items;
     },
   },
@@ -171,21 +180,21 @@ export default {
     },
     getPreviewUrl(source, path, modified, type) {
       if (!source || !path) return null;
-      
+
       // Check if file type supports previews
       const typeInfo = getTypeInfo(type || '');
       const simpleType = typeInfo.simpleType;
-      
+
       if (simpleType === 'directory') return null;
       if (simpleType !== 'image' && simpleType !== 'video' && simpleType !== 'document' && simpleType !== 'text') {
         return null;
       }
-      
+
       // Check preview permissions
       if (simpleType === 'video' && !getters.previewPerms().video) return null;
       if (simpleType === 'image' && !getters.previewPerms().image) return null;
       if ((simpleType === 'document' || simpleType === 'text') && !getters.previewPerms().office) return null;
-      
+
       try {
         return filesApi.getPreviewURL(source, path, modified);
       } catch (e) {
@@ -215,10 +224,10 @@ export default {
         }
 
         // Use bulk delete API for both regular files and shares
-        const response = getters.isShare() 
+        const response = getters.isShare()
           ? await publicApi.bulkDelete(itemsForDelete)
           : await filesApi.bulkDelete(itemsForDelete);
-        
+
         // Store failed items directly from response
         if (response.failed && response.failed.length > 0) {
           this.failedItems = response.failed;
@@ -228,19 +237,19 @@ export default {
 
         const succeededCount = response.succeeded ? response.succeeded.length : 0;
         const failedCount = response.failed ? response.failed.length : 0;
-        
+
         if (failedCount === 0) {
           // All succeeded - close prompt and reload
           buttons.success("delete");
           notify.showSuccessToast(this.$t('prompts.deleted'));
-          
+
           if (this.items && this.items.length > 0) {
             eventBus.emit("itemsDeleted", {
               succeeded: response.succeeded || [],
               failed: []
             });
           }
-          
+
           mutations.closeHovers();
           if (!this.items) {
             mutations.resetSelected();
@@ -249,7 +258,7 @@ export default {
         } else if (succeededCount > 0) {
           // Partial success - keep prompt open to show errors
           buttons.done("delete");
-          
+
           // Emit event with partial results if items were passed as props
           if (this.items && this.items.length > 0) {
             eventBus.emit("itemsDeleted", {
@@ -261,7 +270,7 @@ export default {
           // All failed
           buttons.done("delete");
         }
-        
+
         this.deleting = false;
       } catch (e) {
         buttons.done("delete");
@@ -317,5 +326,25 @@ export default {
   color: var(--errorColor, #f44336);
   border-radius: 4px;
   font-size: 0.875rem;
+}
+
+.loading-content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding-top: 2em;
+}
+
+.loading-text {
+  padding: 1em;
+  margin: 0;
+  font-size: 1em;
+  font-weight: 500;
+}
+
+.card-content {
+  position: relative;
 }
 </style>

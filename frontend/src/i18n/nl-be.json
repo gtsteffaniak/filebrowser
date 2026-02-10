@@ -705,7 +705,8 @@
     "lines": "Lijnen{suffix}",
     "lastUpdate": "Laatste update{suffix}",
     "latency": "Latency{suffix}",
-    "all": "Alle{suffix}"
+    "all": "Alle{suffix}",
+    "acknowledge": "erkennen{suffix}"
   },
   "access": {
     "rules": "Toegangsregels",

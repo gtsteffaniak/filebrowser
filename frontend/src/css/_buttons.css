@@ -12,6 +12,8 @@
   transition: .1s ease all;
   min-width: 2em;
   min-height: 2em;
+  padding-left: 1em;
+  padding-right: 1em;
 }
 
 button {
@@ -35,6 +37,7 @@ button:disabled {
   margin: 0 0 0.5em;
   display: block;
   width: 100%;
+  border-style: unset;
 }
 
 .button--red {
@@ -50,6 +53,8 @@ button:disabled {
   background: var(--surfaceSecondary);
   box-shadow: 0 0 0;
   text-transform: uppercase;
+  padding-left: 1em;
+  padding-right: 1em;
 }
 
 .button--flat.button--red {

@@ -1,0 +1,10 @@
+server:
+  port: 80
+  baseURL:  "/files/"
+  logging:
+    - levels: "info|error|debug"
+  sources:
+    - path: "../frontend/tests/playwright-files"
+      name: "playwright"
+      config:
+        defaultEnabled: true

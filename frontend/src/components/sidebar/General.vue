@@ -31,7 +31,7 @@
     </div>
 
     <div v-if="!disableQuickToggles" class="card-wrapper" @mouseleave="hideTooltip">
-      <div class="quick-toggles" :class="{ 'extra-padding': !hasCreateOptions }">
+      <div class="quick-toggles" :class="{ 'extra-padding': hasCreateOptions }">
         <div class="clickable" :class="{ active: user?.singleClick }" @click="toggleClick"
           @mouseenter="showTooltip($event, $t('index.toggleClick'))" @mouseleave="hideTooltip" v-if="!isInvalidShare">
           <i class="material-icons">ads_click</i>

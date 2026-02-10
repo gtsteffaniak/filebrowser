@@ -1,8 +1,15 @@
 <template>
   <div class="card-content">
-    <p>{{ $t("prompts.newDirMessage") }}</p>
-    <input aria-label="New Folder Name" class="input" type="text" @keyup.enter="submit" v-model.trim="name"
-      v-focus />
+    <!-- Loading spinner overlay -->
+    <div v-show="creating" class="loading-content">
+      <LoadingSpinner size="small" />
+      <p class="loading-text">{{ $t("prompts.operationInProgress") }}</p>
+    </div>
+    <div v-show="!creating">
+      <p>{{ $t("prompts.newDirMessage") }}</p>
+      <input aria-label="New Folder Name" class="input" type="text" @keyup.enter="submit" v-model.trim="name"
+        v-focus />
+    </div>
   </div>
 
   <div class="card-actions">
@@ -21,8 +28,12 @@ import { filesApi, publicApi } from "@/api";
 import { getters, mutations, state } from "@/store"; // Import your custom store
 import { url } from "@/utils";
 import { notify } from "@/notify";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 export default {
   name: "new-dir",
+  components: {
+    LoadingSpinner,
+  },
   props: {
     redirect: {
       type: Boolean,
@@ -36,6 +47,7 @@ export default {
   data() {
     return {
       name: "",
+      creating: false,
     };
   },
   computed: {
@@ -61,6 +73,7 @@ export default {
     },
 
     async createDirectory(overwrite = false) {
+      this.creating = true;
       try {
         const newPath = url.joinPath(state.req.path, this.name) + "/";
         const source = state.req.source;
@@ -69,6 +82,7 @@ export default {
           await publicApi.post(state.shareInfo?.hash, newPath, "", overwrite, undefined, {}, true);
           mutations.setReload(true);
           mutations.closeHovers();
+          this.creating = false;
           return;
         }
         await filesApi.post(source, newPath, "", overwrite, undefined, {}, true);
@@ -88,6 +102,7 @@ export default {
           }]
         };
         notify.showSuccess(this.$t("prompts.newDirSuccess"), buttonProps);
+        this.creating = false;
       } catch (error) {
         if (error.message === "conflict") {
           // Show replace-rename prompt for file/folder conflicts
@@ -149,10 +164,13 @@ export default {
                 }
               } catch (retryError) {
                 console.error(retryError);
+              } finally {
+                this.creating = false;
               }
             },
           });
         } else {
+          this.creating = false;
           throw error;
         }
       }
@@ -160,3 +178,25 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.loading-content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding-top: 2em;
+}
+
+.loading-text {
+  padding: 1em;
+  margin: 0;
+  font-size: 1em;
+  font-weight: 500;
+}
+
+.card-content {
+  position: relative;
+}
+</style>

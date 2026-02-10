@@ -625,7 +625,8 @@
     "lines": "Vonalak{suffix}",
     "lastUpdate": "Utolsó frissítés{suffix}",
     "latency": "Késleltetés{suffix}",
-    "all": "Minden{suffix}"
+    "all": "Minden{suffix}",
+    "acknowledge": "Visszaigazolás{suffix}"
   },
   "access": {
     "rules": "Hozzáférési szabályok",
