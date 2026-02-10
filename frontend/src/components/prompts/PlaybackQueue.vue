@@ -180,8 +180,6 @@ export default {
           currentIndex: index,
           mode: this.playbackMode
         });
-        // Close the prompt
-        this.closeModal();
         // Trigger actual navigation
         this.triggerNavigation(item);
       }
