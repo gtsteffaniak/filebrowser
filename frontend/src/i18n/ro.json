@@ -625,7 +625,8 @@
     "lines": "Linii{suffix}",
     "lastUpdate": "Ultima actualizare{suffix}",
     "latency": "Latență{suffix}",
-    "all": "Toate{suffix}"
+    "all": "Toate{suffix}",
+    "acknowledge": "Recunoașteți{suffix}"
   },
   "access": {
     "rules": "Reguli de acces",

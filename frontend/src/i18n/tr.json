@@ -625,7 +625,8 @@
     "lines": "Çizgiler{suffix}",
     "lastUpdate": "Son Güncelleme{suffix}",
     "latency": "Gecikme{suffix}",
-    "all": "Tümü{suffix}"
+    "all": "Tümü{suffix}",
+    "acknowledge": "Onaylamak{suffix}"
   },
   "access": {
     "rules": "Erişim kuralları",

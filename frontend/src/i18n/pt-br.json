@@ -625,7 +625,8 @@
     "lines": "Linhas{suffix}",
     "lastUpdate": "Última atualização{suffix}",
     "latency": "Latência{suffix}",
-    "all": "Todos{suffix}"
+    "all": "Todos{suffix}",
+    "acknowledge": "Reconhecer{suffix}"
   },
   "access": {
     "rules": "Regras de acesso",

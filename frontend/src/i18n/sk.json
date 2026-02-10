@@ -625,7 +625,8 @@
     "lines": "Riadky{suffix}",
     "lastUpdate": "Posledná aktualizácia{suffix}",
     "latency": "Latencia{suffix}",
-    "all": "Všetky{suffix}"
+    "all": "Všetky{suffix}",
+    "acknowledge": "Potvrdiť{suffix}"
   },
   "access": {
     "rules": "Pravidlá prístupu",

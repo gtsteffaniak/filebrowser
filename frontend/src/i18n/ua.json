@@ -705,7 +705,8 @@
     "lines": "Лінії{suffix}",
     "lastUpdate": "Останнє оновлення{suffix}",
     "latency": "Затримка{suffix}",
-    "all": "Усе.{suffix}"
+    "all": "Усе.{suffix}",
+    "acknowledge": "Підтвердити{suffix}"
   },
   "access": {
     "rules": "Правила доступу",

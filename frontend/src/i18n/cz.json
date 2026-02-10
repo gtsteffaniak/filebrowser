@@ -705,7 +705,8 @@
     "lines": "Řádky{suffix}",
     "lastUpdate": "Poslední aktualizace{suffix}",
     "latency": "Zpoždění{suffix}",
-    "all": "Všechny{suffix}"
+    "all": "Všechny{suffix}",
+    "acknowledge": "Potvrzení{suffix}"
   },
   "access": {
     "rules": "Pravidla přístupu",

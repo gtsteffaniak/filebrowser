@@ -625,7 +625,8 @@
     "lines": "Γραμμές{suffix}",
     "lastUpdate": "Τελευταία ενημέρωση{suffix}",
     "latency": "Καθυστέρηση{suffix}",
-    "all": "Όλα{suffix}"
+    "all": "Όλα{suffix}",
+    "acknowledge": "Αναγνώριση{suffix}"
   },
   "access": {
     "rules": "Κανόνες πρόσβασης",
