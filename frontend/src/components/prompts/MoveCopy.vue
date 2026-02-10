@@ -12,6 +12,9 @@
     </div>
   </div>
   <div class="card-actions split-buttons" >
+    <button v-if="canCreateFolder && showNewDirInput" class="button button--flat" @click="cancelNewDir" :aria-label="$t('general.cancel')" :title="$t('general.cancel')">
+      {{ $t("general.cancel") }}
+    </button>
     <button
       v-if="canCreateFolder && !showNewDirInput"
       class="button button--flat"

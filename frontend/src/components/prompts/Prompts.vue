@@ -320,12 +320,33 @@ export default {
 
 <style scoped>
 
+.floating-window :deep(.card-content) {
+  padding-top: 3em;
+  margin-top: 1px; /* 1px to avoid edge flickering */
+  margin-bottom: 1px;  /* 1px to avoid edge flickering */
+}
+
+.floating-window :deep(.card-actions) {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+/* Backdrop-filter support */
+@supports (backdrop-filter: none) {
+  .floating-window :deep(.card-actions),
+  .floating-window :deep(.prompt-taskbar) {
+    backdrop-filter: blur(12px) invert(0.01);
+    background-color: color-mix(in srgb, var(--background) 50%, transparent);
+  }
+}
+
 .floating-window.is-dragging {
   border-color: var(--primaryColor);
 }
 
 .prompt-taskbar {
-  position: relative;
   display: flex;
   align-items: center;
   cursor: grab;

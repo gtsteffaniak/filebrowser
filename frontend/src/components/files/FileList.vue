@@ -253,12 +253,10 @@ export default {
       if (!this.allowedFileTypes || this.allowedFileTypes.length === 0) {
         return true; // No filter, allow all
       }
-
       // If itemType is not provided or is 'directory', allow it
       if (!itemType || itemType === 'directory') {
         return true;
       }
-
       // Check if the itemType matches any of the allowed types
       // Supports both prefixes (e.g., 'image/') and full types (e.g., 'image/jpeg')
       return this.allowedFileTypes.some(allowedType => {

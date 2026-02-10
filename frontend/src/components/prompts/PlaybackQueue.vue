@@ -21,7 +21,6 @@
           <div class="item-icon">
             <i class="material-icons">{{ getFileIcon(item) }}</i>
           </div>
-      
           <div class="item-name">
             <span class="name">{{ item.name }}</span>
           </div>
