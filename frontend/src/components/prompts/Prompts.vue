@@ -203,7 +203,7 @@ export default {
           return this.$t("prompts.newFile");
         case "newdir":
           return this.$t("prompts.newDir");
-        case "replacerename":
+        case "replace-rename":
           return this.$t("prompts.replace");
         case "generic":
           // Generic prompts should always provide a custom title in props
@@ -320,13 +320,14 @@ export default {
 
 <style scoped>
 
-.floating-window :deep(.card-content) {
-  padding-top: 3em;
+.floating-window > :deep(.card-content) {
+  padding-top: 3.5em !important;
+  padding-bottom: 3.5em !important;
   margin-top: 1px; /* 1px to avoid edge flickering */
   margin-bottom: 1px;  /* 1px to avoid edge flickering */
 }
 
-.floating-window :deep(.card-actions) {
+.floating-window > :deep(.card-actions) {
   position: absolute;
   bottom: 0;
   left: 0;
@@ -335,10 +336,13 @@ export default {
 
 /* Backdrop-filter support */
 @supports (backdrop-filter: none) {
-  .floating-window :deep(.card-actions),
   .floating-window :deep(.prompt-taskbar) {
-    backdrop-filter: blur(12px) invert(0.01);
+    backdrop-filter: blur(12px) invert(0.2);
     background-color: color-mix(in srgb, var(--background) 50%, transparent);
+  }
+  .floating-window :deep(.card-actions) {
+    backdrop-filter: blur(12px);
+    background-color: transparent;
   }
 }
 
