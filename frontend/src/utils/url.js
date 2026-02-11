@@ -131,8 +131,8 @@ export function getApiPath(path, params = {}, encode = false) {
 
 // get path with parameters
 // relative path so it can be used behind proxy
-export function getPublicApiPath(path, params = {}) {
-  return getApiPath(`/public/api/${path}`, params);
+export function getPublicApiPath(path, params = {}, encode = false) {
+  return getApiPath(`/public/api/${path}`, params, encode);
 }
 
 export function removeTrailingSlash(str) {

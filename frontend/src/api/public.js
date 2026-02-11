@@ -17,7 +17,6 @@ import { state } from "@/store";
  * @returns {Promise<any>}
  */
 export async function fetchPub(path, hash, password = "", content = false, metadata = false) {
-  path = encodedPath(path);
   const params = {
     path: path,
     hash,
@@ -25,7 +24,7 @@ export async function fetchPub(path, hash, password = "", content = false, metad
     ...(metadata && { metadata: 'true' }),
     ...(state.shareInfo.token && { token: state.shareInfo.token })
   }
-  const apiPath = getPublicApiPath("resources", params);
+  const apiPath = getPublicApiPath("resources", params, true);
   const response = await fetch(apiPath, {
     headers: {
       "X-SHARE-PASSWORD": password ? encodeURIComponent(password) : "",
@@ -61,15 +60,13 @@ export async function fetchPub(path, hash, password = "", content = false, metad
 export function getDownloadURL(share, files, inline=false) {
   // Handle array of files for repeated 'file' parameters
   const fileArray = Array.isArray(files) ? files : [files]
-  const filePaths = fileArray.map(file => encodeURIComponent(file))
-  
   const params = {
-    file: filePaths, // Array of file paths - getPublicApiPath will create repeated parameters
+    file: fileArray, // Array of file paths - getPublicApiPath will create repeated parameters
     hash: share.hash,
     token: share.token,
     ...(inline && { inline: 'true' })
   }
-  const apiPath = getPublicApiPath("raw", params)
+  const apiPath = getPublicApiPath("raw", params, true)
   return window.origin + apiPath
 }
 
@@ -82,14 +79,14 @@ export function getDownloadURL(share, files, inline=false) {
 export function getPreviewURL(path, size) {
   try {
     const params = {
-      path: encodeURIComponent(path),
+      path: path,
       hash: state.shareInfo.hash,
       inline: 'true',
       // Only add size parameter if specified and not the default
       ...(size && size !== 'small' && { size: size }),
       ...(state.shareInfo.token && { token: state.shareInfo.token })
     }
-    const apiPath = getPublicApiPath('preview', params)
+    const apiPath = getPublicApiPath('preview', params, true)
     return window.origin + apiPath
   } catch (/** @type {any} */ err) {
     notify.showError(err.message || 'Error getting preview URL')
@@ -119,7 +116,7 @@ export function post(
       hash: hash,
       override: overwrite,
       ...(isDir && { isDir: 'true' })
-    });
+    }, true);
 
     const request = new XMLHttpRequest();
     request.open("POST", apiPath, true);
@@ -156,13 +153,13 @@ export function post(
             // If parsing fails, use responseText or default message
             errorMessage = request.responseText || errorMessage;
           }
-          
+
           const error = new Error(errorMessage);
           error.status = request.status;
-          
+
           // Show notification for upload errors
           notify.showError(errorMessage);
-          
+
           reject(error);
         }
       };
@@ -172,7 +169,7 @@ export function post(
         notify.showError("Network error during upload");
         reject(error);
       };
-      
+
       request.onabort = () => {
         const error = new Error("Upload aborted");
         notify.showError("Upload was aborted");
@@ -207,8 +204,7 @@ async function resourceAction(hash, path, method, content, token = "") {
     if (sharePassword) {
       headers["X-SHARE-PASSWORD"] = sharePassword;
     }
-    path = encodeURIComponent(path)
-    const apiPath = getPublicApiPath('resources', { path, hash: hash, token: token })
+    const apiPath = getPublicApiPath('resources', { path, hash: hash, token: token }, true)
     const response = await fetch(apiPath, {
       method,
       body: content,
@@ -240,12 +236,12 @@ export async function bulkDelete(items) {
   if (!items || !Array.isArray(items) || items.length === 0) {
     throw new Error('items array is required and must not be empty')
   }
-  
+
   const hash = state.shareInfo?.hash;
   if (!hash) {
     throw new Error('share hash is required')
   }
-  
+
   const params = {
     hash: hash,
     ...(state.shareInfo.token && { token: state.shareInfo.token }),

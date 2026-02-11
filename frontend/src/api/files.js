@@ -12,11 +12,11 @@ export async function fetchFiles(source, path, content = false, metadata = false
   }
   try {
     const apiPath = getApiPath('api/resources', {
-      path: encodeURIComponent(path),
-      source: encodeURIComponent(source),
+      path: path,
+      source: source,
       ...(content && { content: 'true' }),
       ...(metadata && { metadata: 'true' })
-    })
+    }, true) // Enable encoding
     const res = await fetchURL(apiPath)
     const data = await res.json()
     const adjusted = adjustedData(data)
@@ -32,9 +32,7 @@ async function resourceAction(source, path, method, content) {
     throw new Error('no source provided')
   }
   try {
-    source = encodeURIComponent(source)
-    path = encodeURIComponent(path)
-    const apiPath = getApiPath('api/resources', { path, source })
+    const apiPath = getApiPath('api/resources', { path, source }, true)
     let opts = { method }
     if (content) {
       opts.body = content
@@ -76,15 +74,12 @@ export async function bulkDelete(items) {
       },
       body: JSON.stringify(items),
     })
-    
     const data = await response.json()
-    
     // 200 = all succeeded, 207 = partial success (some succeeded, some failed)
     // Both are valid responses that should be returned, not thrown as errors
     if (response.status === 200 || response.status === 207) {
       return data
     }
-    
     // For other error status codes, throw an error
     const error = new Error(data.message || response.statusText)
     error.status = response.status
@@ -110,12 +105,12 @@ export async function download(format, files, shareHash = "") {
   // Check if chunked download should be used (single file only)
   const downloadChunkSizeMb = state.user?.fileLoading?.downloadChunkSizeMb || 0
   const sizeThreshold = downloadChunkSizeMb * 1024 * 1024;
-  
-  const useChunkedDownload = 
-    downloadChunkSizeMb > 0 && 
-    files.length === 1 && 
-    !files[0].isDir && 
-    files[0].size && 
+
+  const useChunkedDownload =
+    downloadChunkSizeMb > 0 &&
+    files.length === 1 &&
+    !files[0].isDir &&
+    files[0].size &&
     files[0].size >= sizeThreshold
 
   if (useChunkedDownload) {
@@ -127,14 +122,14 @@ export async function download(format, files, shareHash = "") {
   if (format !== 'zip') {
     format = 'tar.gz'
   }
-  
+
   // For non-share downloads, validate single source and build file list
   let source = null
   let filePaths = []
-  
+
   if (shareHash) {
     // For shares, no source parameter needed, just paths
-    filePaths = files.map(file => encodeURIComponent(file.path))
+    filePaths = files.map(file => file.path)
   } else {
     // Validate all files are from the same source
     for (let file of files) {
@@ -146,20 +141,20 @@ export async function download(format, files, shareHash = "") {
       } else if (source !== file.source) {
         throw new Error('All files must be from the same source for downloads')
       }
-      filePaths.push(encodeURIComponent(file.path))
+      filePaths.push(file.path)
     }
   }
-  
+
   const params = {
     file: filePaths, // Array of file paths - getApiPath will create repeated parameters
     algo: format,
     ...(shareHash && { hash: shareHash }),
-    ...(!shareHash && source && { source: encodeURIComponent(source) }),
+    ...(!shareHash && source && { source: source }),
     ...(state.shareInfo.token && { token: state.shareInfo.token }),
     sessionId: state.sessionId
   }
-  
-  const apiPath = getApiPath(shareHash == "" ? 'api/raw' : 'public/api/raw', params)
+
+  const apiPath = getApiPath(shareHash == "" ? 'api/raw' : 'public/api/raw', params, true)
   const url = window.origin + apiPath
 
   // Create a direct link and trigger the download
@@ -172,7 +167,7 @@ export async function download(format, files, shareHash = "") {
   link.style.display = 'none'
   document.body.appendChild(link)
   link.click()
-  
+
   // Clean up after a short delay
   setTimeout(() => {
     document.body.removeChild(link)
@@ -181,37 +176,37 @@ export async function download(format, files, shareHash = "") {
 
 async function downloadChunked(file, shareHash = "") {
   const chunkSizeMb = state.user?.fileLoading?.downloadChunkSizeMb || 0
-  
+
   if (chunkSizeMb === 0) {
     throw new Error("Chunked download is disabled (chunk size is 0)")
   }
   const chunkSize = chunkSizeMb * 1024 * 1024 // Convert MB to bytes
   const fileSize = file.size
-  
+
   // Extract filename from path if name is not available
   const fileName = file.name || (file.path ? file.path.split('/').pop() : 'download')
 
   // Add to download manager
   const downloadId = downloadManager.add(file, shareHash)
-  
+
   downloadManager.setStatus(downloadId, "downloading")
-  
+
   // Show download prompt if not already shown (it should already be shown by downloadFiles, but check to be safe)
   const hasDownloadPrompt = state.hovers && state.hovers.some(h => h.name === 'download');
-  
+
   if (!hasDownloadPrompt) {
     mutations.showHover({ name: 'download' })
   }
 
   const params = {
-    file: encodeURIComponent(file.path),
+    file: file.path,
     ...(shareHash && { hash: shareHash }),
-    ...(!shareHash && file.source && { source: encodeURIComponent(file.source) }),
+    ...(!shareHash && file.source && { source: file.source }),
     ...(state.shareInfo.token && { token: state.shareInfo.token }),
     sessionId: state.sessionId
   }
-  
-  const apiPath = getApiPath(shareHash == "" ? 'api/raw' : 'public/api/raw', params)
+
+  const apiPath = getApiPath(shareHash == "" ? 'api/raw' : 'public/api/raw', params, true)
   const baseUrl = window.origin + apiPath
 
   const download = downloadManager.findById(downloadId)
@@ -225,7 +220,7 @@ async function downloadChunked(file, shareHash = "") {
     let loaded = 0
 
     while (offset < fileSize) {
-      
+
       const download = downloadManager.findById(downloadId);
       if (download && download.status === "cancelled") {
         // Silently handle cancellation - don't throw error
@@ -249,7 +244,7 @@ async function downloadChunked(file, shareHash = "") {
 
       // Track progress within the chunk using ReadableStream
       const expectedChunkSize = end - offset + 1;
-      
+
       const reader = response.body.getReader();
       const chunkParts = [];
       let chunkLoaded = 0;
@@ -264,14 +259,14 @@ async function downloadChunked(file, shareHash = "") {
             reading = false;
             break;
           }
-          
+
           chunkParts.push(value);
           chunkLoaded += value.length;
-          
+
           // Calculate progress: only count up to expected chunk size to avoid over-counting
           const chunkProgress = Math.min(chunkLoaded, expectedChunkSize);
           const totalLoaded = offset + chunkProgress;
-          
+
           // Update progress in real-time, but throttle updates for performance
           if (chunkLoaded - lastProgressUpdate >= progressUpdateInterval || chunkLoaded >= expectedChunkSize) {
             downloadManager.updateProgress(downloadId, totalLoaded, fileSize);
@@ -295,19 +290,19 @@ async function downloadChunked(file, shareHash = "") {
         chunk.set(part, position);
         position += part.length;
       }
-      
+
       // Only use the expected chunk size portion if server returned more (handles Range header issues)
-      const chunkToUse = chunk.byteLength > expectedChunkSize 
-        ? chunk.slice(0, expectedChunkSize).buffer 
+      const chunkToUse = chunk.byteLength > expectedChunkSize
+        ? chunk.slice(0, expectedChunkSize).buffer
         : chunk.buffer;
-      
+
       chunks.push(chunkToUse)
       // Always use expected chunk size for progress to avoid double-counting
       loaded += expectedChunkSize
-      
+
       // Final progress update for this chunk
       downloadManager.updateProgress(downloadId, loaded, fileSize)
-      
+
       offset = end + 1
     }
 
@@ -360,11 +355,11 @@ export function post(
   }
   try {
     const apiPath = getApiPath("api/resources", {
-      path: encodeURIComponent(path),
-      source: encodeURIComponent(source),
+      path: path,
+      source: source,
       override: overwrite,
       ...(isDir && { isDir: 'true' })
-    });
+    }, true);
 
     const request = new XMLHttpRequest();
     request.open("POST", apiPath, true);
@@ -453,7 +448,7 @@ export async function moveCopy(
       'Content-Type': 'application/json',
       'sessionId': state.sessionId
     }
-    
+
     const response = await fetch(apiPath, {
       method: 'PATCH',
       headers: headers,
@@ -496,11 +491,11 @@ export async function checksum(source, path, algo) {
   }
   try {
     const params = {
-      path: encodeURIComponent(path),
-      source: encodeURIComponent(source),
+      path: path,
+      source: source,
       checksum: algo
     }
-    const apiPath = getApiPath('api/resources', params)
+    const apiPath = getApiPath('api/resources', params, true)
     const res = await fetchURL(apiPath)
     const data = await res.json()
     return data.checksums[algo]
@@ -516,11 +511,11 @@ export function getDownloadURL(source, path, inline, useExternal) {
   }
   try {
     const params = {
-      source: encodeURIComponent(source),
-      file: encodeURIComponent(path),
+      source: source,
+      file: path,
       ...(inline && { inline: 'true' })
     }
-    const apiPath = getApiPath('api/raw', params)
+    const apiPath = getApiPath('api/raw', params, true)
     if (globalVars.externalUrl && useExternal) {
       return globalVars.externalUrl + apiPath
     }
@@ -537,12 +532,12 @@ export function getPreviewURL(source, path, modified) {
   }
   try {
     const params = {
-      path: encodeURIComponent(path),
+      path: path,
       key: Date.parse(modified), // Use modified date as cache key
-      source: encodeURIComponent(source),
+      source: source,
       inline: 'true'
     }
-    const apiPath = getApiPath('api/preview', params)
+    const apiPath = getApiPath('api/preview', params, true)
     return window.origin + apiPath
   } catch (err) {
     notify.showError(err.message || 'Error getting preview URL')
@@ -568,11 +563,11 @@ export async function sources() {
 
 export async function GetOfficeConfig(req) {
   const params = {
-    path: encodeURIComponent(req.path),
-    ...(req.hash && { hash: encodeURIComponent(req.hash) }),
-    ...(req.source && { source: encodeURIComponent(req.source) })
+    path: req.path,
+    ...(req.hash && { hash: req.hash }),
+    ...(req.source && { source: req.source })
   }
-  let apiPath = getApiPath('api/onlyoffice/config', params)
+  let apiPath = getApiPath('api/onlyoffice/config', params, true)
   if (req.hash) {
     apiPath = getPublicApiPath('onlyoffice/config', params)
   }

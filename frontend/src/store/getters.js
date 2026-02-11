@@ -270,8 +270,9 @@ export const getters = {
     if (urlPath == "/" || urlPath == "") {
       return "";
     }
-    // remove hash from path
-    urlPath = urlPath.split('/').slice(2).join('/')
+    // remove hash from path and decode each part
+    let parts = urlPath.split('/').slice(2);
+    urlPath = parts.map(part => decodeURIComponent(part)).join('/')
     if (subPath != "") {
       urlPath = url.joinPath(urlPath, removeLeadingSlash(subPath))
     }
