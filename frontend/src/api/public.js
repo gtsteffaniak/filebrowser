@@ -1,6 +1,6 @@
 import { adjustedData } from "./utils";
 import { notify } from "@/notify";
-import { getPublicApiPath, encodedPath } from "@/utils/url.js";
+import { getPublicApiPath } from "@/utils/url.js";
 import { state } from "@/store";
 
 // ============================================================================
@@ -24,10 +24,10 @@ export async function fetchPub(path, hash, password = "", content = false, metad
     ...(metadata && { metadata: 'true' }),
     ...(state.shareInfo.token && { token: state.shareInfo.token })
   }
-  const apiPath = getPublicApiPath("resources", params, true);
+  const apiPath = getPublicApiPath("resources", params);
   const response = await fetch(apiPath, {
     headers: {
-      "X-SHARE-PASSWORD": password ? encodeURIComponent(password) : "",
+      "X-SHARE-PASSWORD": password || "",
     },
   });
 
@@ -66,7 +66,7 @@ export function getDownloadURL(share, files, inline=false) {
     token: share.token,
     ...(inline && { inline: 'true' })
   }
-  const apiPath = getPublicApiPath("raw", params, true)
+  const apiPath = getPublicApiPath("raw", params)
   return window.origin + apiPath
 }
 
@@ -86,7 +86,7 @@ export function getPreviewURL(path, size) {
       ...(size && size !== 'small' && { size: size }),
       ...(state.shareInfo.token && { token: state.shareInfo.token })
     }
-    const apiPath = getPublicApiPath('preview', params, true)
+    const apiPath = getPublicApiPath('preview', params)
     return window.origin + apiPath
   } catch (/** @type {any} */ err) {
     notify.showError(err.message || 'Error getting preview URL')
@@ -116,7 +116,7 @@ export function post(
       hash: hash,
       override: overwrite,
       ...(isDir && { isDir: 'true' })
-    }, true);
+    });
 
     const request = new XMLHttpRequest();
     request.open("POST", apiPath, true);
@@ -204,7 +204,7 @@ async function resourceAction(hash, path, method, content, token = "") {
     if (sharePassword) {
       headers["X-SHARE-PASSWORD"] = sharePassword;
     }
-    const apiPath = getPublicApiPath('resources', { path, hash: hash, token: token }, true)
+    const apiPath = getPublicApiPath('resources', { path, hash: hash, token: token })
     const response = await fetch(apiPath, {
       method,
       body: content,

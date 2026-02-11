@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -572,12 +571,8 @@ func prepDuplicatesOptions(r *http.Request, d *requestContext) (*duplicatesOptio
 	// Convert MB to bytes
 	minSize := minSizeMb * 1024 * 1024
 
-	unencodedScope, err := url.PathUnescape(scope)
-	if err != nil {
-		return nil, fmt.Errorf("invalid path encoding: %v", err)
-	}
-
-	searchScope := strings.TrimPrefix(unencodedScope, ".")
+	// r.URL.Query().Get() already decodes the parameter
+	searchScope := strings.TrimPrefix(scope, ".")
 
 	index := indexing.GetIndex(source)
 	if index == nil {

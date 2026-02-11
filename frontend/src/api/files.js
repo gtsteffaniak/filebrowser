@@ -16,7 +16,7 @@ export async function fetchFiles(source, path, content = false, metadata = false
       source: source,
       ...(content && { content: 'true' }),
       ...(metadata && { metadata: 'true' })
-    }, true) // Enable encoding
+    })
     const res = await fetchURL(apiPath)
     const data = await res.json()
     const adjusted = adjustedData(data)
@@ -32,7 +32,7 @@ async function resourceAction(source, path, method, content) {
     throw new Error('no source provided')
   }
   try {
-    const apiPath = getApiPath('api/resources', { path, source }, true)
+    const apiPath = getApiPath('api/resources', { path, source })
     let opts = { method }
     if (content) {
       opts.body = content
@@ -154,7 +154,7 @@ export async function download(format, files, shareHash = "") {
     sessionId: state.sessionId
   }
 
-  const apiPath = getApiPath(shareHash == "" ? 'api/raw' : 'public/api/raw', params, true)
+  const apiPath = getApiPath(shareHash == "" ? 'api/raw' : 'public/api/raw', params)
   const url = window.origin + apiPath
 
   // Create a direct link and trigger the download
@@ -206,7 +206,7 @@ async function downloadChunked(file, shareHash = "") {
     sessionId: state.sessionId
   }
 
-  const apiPath = getApiPath(shareHash == "" ? 'api/raw' : 'public/api/raw', params, true)
+  const apiPath = getApiPath(shareHash == "" ? 'api/raw' : 'public/api/raw', params)
   const baseUrl = window.origin + apiPath
 
   const download = downloadManager.findById(downloadId)
@@ -359,7 +359,7 @@ export function post(
       source: source,
       override: overwrite,
       ...(isDir && { isDir: 'true' })
-    }, true);
+    });
 
     const request = new XMLHttpRequest();
     request.open("POST", apiPath, true);
@@ -495,7 +495,7 @@ export async function checksum(source, path, algo) {
       source: source,
       checksum: algo
     }
-    const apiPath = getApiPath('api/resources', params, true)
+    const apiPath = getApiPath('api/resources', params)
     const res = await fetchURL(apiPath)
     const data = await res.json()
     return data.checksums[algo]
@@ -515,7 +515,7 @@ export function getDownloadURL(source, path, inline, useExternal) {
       file: path,
       ...(inline && { inline: 'true' })
     }
-    const apiPath = getApiPath('api/raw', params, true)
+    const apiPath = getApiPath('api/raw', params)
     if (globalVars.externalUrl && useExternal) {
       return globalVars.externalUrl + apiPath
     }
@@ -537,7 +537,7 @@ export function getPreviewURL(source, path, modified) {
       source: source,
       inline: 'true'
     }
-    const apiPath = getApiPath('api/preview', params, true)
+    const apiPath = getApiPath('api/preview', params)
     return window.origin + apiPath
   } catch (err) {
     notify.showError(err.message || 'Error getting preview URL')
@@ -567,7 +567,7 @@ export async function GetOfficeConfig(req) {
     ...(req.hash && { hash: req.hash }),
     ...(req.source && { source: req.source })
   }
-  let apiPath = getApiPath('api/onlyoffice/config', params, true)
+  let apiPath = getApiPath('api/onlyoffice/config', params)
   if (req.hash) {
     apiPath = getPublicApiPath('onlyoffice/config', params)
   }
