@@ -178,8 +178,8 @@ export default {
       mutations.showHover({
         name: "generic",
         props: {
-          title: this.$t("prompts.deleteShare"),
-          message: this.$t("prompts.deleteShareMessage", { path: item.path }),
+          title: this.$t("general.delete"),
+          message: this.$t("prompts.deleteMessageShare", { path: item.path }),
           buttons: [
             {
               label: this.$t("general.delete"),
