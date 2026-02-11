@@ -4,8 +4,12 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.2.4-beta
 
+ **Notes**:
+ - Changed `/api/media/subtitles` api endpoint to better support subtitles.
+
  **BugFixes**:
  - Can't access directories with space (and possibly other special characters) when browsing a public link share (#1956)
+ - External ASS subtitles are not usable in web preview (#1933)
 
 ## v1.2.3-beta
 

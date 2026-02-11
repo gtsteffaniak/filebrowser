@@ -8,18 +8,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gtsteffaniak/filebrowser/backend/ffmpeg"
-	"github.com/gtsteffaniak/go-logger/logger"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 )
-
-type SubtitleTrack struct {
-	Name     string `json:"name"`               // filename for external, or descriptive name for embedded
-	Language string `json:"language,omitempty"` // language code
-	Title    string `json:"title,omitempty"`    // title/description
-	Index    *int   `json:"index,omitempty"`    // stream index for embedded subtitles (nil for external)
-	Codec    string `json:"codec,omitempty"`    // codec name for embedded subtitles
-	IsFile   bool   `json:"isFile"`             // true for external files, false for embedded
-}
 
 type FFProbeOutput struct {
 	Streams []struct {
@@ -31,19 +21,17 @@ type FFProbeOutput struct {
 	} `json:"streams"`
 }
 
-// detects subtitles for video files.
-func (i *ExtendedFileInfo) GetSubtitles(parentInfo *FileInfo, extractEmbeddedSubtitles bool) {
+// GetSubtitles detects external subtitle files for video files.
+// Embedded subtitles should be detected by ffmpeg and passed as embeddedSubs parameter.
+func (i *ExtendedFileInfo) GetSubtitles(parentInfo *FileInfo) {
 	if !strings.HasPrefix(i.Type, "video") {
 		return
 	}
-	// First, detect embedded subtitles using ffmpeg (if enabled)
-	if extractEmbeddedSubtitles {
-		embeddedSubs := ffmpeg.DetectEmbeddedSubtitles(i.RealPath, i.ModTime)
-		i.Subtitles = append(i.Subtitles, embeddedSubs...)
-	}
-
 	ext := filepath.Ext(i.Name)
 	baseWithoutExt := strings.TrimSuffix(i.Name, ext)
+
+	// Collect external subtitle files
+	var externalSubs []utils.SubtitleTrack
 	if parentInfo != nil && parentInfo.Files != nil {
 		for _, f := range parentInfo.Files {
 			fileExt := filepath.Ext(f.Name)
@@ -51,7 +39,7 @@ func (i *ExtendedFileInfo) GetSubtitles(parentInfo *FileInfo, extractEmbeddedSub
 
 			// Check if this file has the same base name and a subtitle extension
 			if fileBase == baseWithoutExt && SubtitleExts[strings.ToLower(fileExt)] {
-				track := ffmpeg.SubtitleTrack{
+				track := utils.SubtitleTrack{
 					Name:   f.Name,
 					IsFile: true,
 				}
@@ -65,23 +53,23 @@ func (i *ExtendedFileInfo) GetSubtitles(parentInfo *FileInfo, extractEmbeddedSub
 					}
 				}
 
-				i.Subtitles = append(i.Subtitles, track)
+				externalSubs = append(externalSubs, track)
 			}
 		}
 	}
 
-	// Load content for ALL detected subtitles (both embedded and external)
-	if len(i.Subtitles) > 0 {
-		err := i.LoadSubtitleContent()
-		if err != nil {
-			logger.Debug("failed to load subtitle content: " + err.Error())
-		}
-	}
-}
+	// Sort external subtitles alphabetically for consistent ordering
+	sort.Slice(externalSubs, func(i, j int) bool {
+		return externalSubs[i].Name < externalSubs[j].Name
+	})
 
-// LoadSubtitleContent loads the actual content for all detected subtitle tracks
-func (i *ExtendedFileInfo) LoadSubtitleContent() error {
-	return ffmpeg.LoadAllSubtitleContent(i.RealPath, i.Subtitles, i.ModTime)
+	i.Subtitles = append(i.Subtitles, externalSubs...)
+
+	// Sort all subtitles for consistent ordering
+	sort.Slice(i.Subtitles, func(a, b int) bool {
+		return strings.ToLower(i.Subtitles[a].Name) < strings.ToLower(i.Subtitles[b].Name)
+	})
+	// Note: Content is NOT loaded here. Frontend will call /api/media/subtitles for each track
 }
 
 func (info *FileInfo) SortItems() {

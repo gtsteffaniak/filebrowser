@@ -4,24 +4,25 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"os"
 	"path/filepath"
-	"strconv"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 )
 
-// subtitlesHandler handles subtitle extraction requests
-// @Summary Extract embedded subtitles
-// @Description Extracts embedded subtitle content from video files by stream index and returns raw WebVTT content
+// subtitlesHandler handles subtitle requests for both external files and embedded streams
+// @Summary Get subtitle content
+// @Description Returns raw subtitle content from external files or embedded streams
 // @Tags Subtitles
 // @Accept json
-// @Produce text/vtt
+// @Produce text/plain
 // @Param path query string true "Index path to the video file"
 // @Param source query string true "Source name for the desired source"
-// @Param index query int false "Stream index for embedded subtitle extraction, defaults to 0"
-// @Success 200 {string} string "Raw WebVTT subtitle content"
+// @Param name query string true "Subtitle track name (filename for external, descriptive name for embedded)"
+// @Param isFile query bool false "Whether this is an external file (true) or embedded stream (false), defaults to true"
+// @Success 200 {string} string "Raw subtitle content in original format"
 // @Failure 400 {object} map[string]string "Bad request"
 // @Failure 403 {object} map[string]string "Forbidden"
 // @Failure 404 {object} map[string]string "Resource not found"
@@ -30,10 +31,17 @@ import (
 func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
-	indexParam := r.URL.Query().Get("index")
+	name := r.URL.Query().Get("name")
+	isFileParam := r.URL.Query().Get("isFile")
 
-	if indexParam == "" {
-		indexParam = "0" // default to first subtitle stream
+	if name == "" {
+		return http.StatusBadRequest, fmt.Errorf("name parameter is required")
+	}
+
+	// Default to true (external file) if not specified
+	isFile := true
+	if isFileParam == "false" {
+		isFile = false
 	}
 
 	userscope, err := d.user.GetScopeForSourceName(source)
@@ -45,28 +53,56 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if idx == nil {
 		return http.StatusNotFound, fmt.Errorf("source %s not found", source)
 	}
+
 	realPath, _, err := idx.GetRealPath(userscope, path)
 	if err != nil {
 		return http.StatusNotFound, fmt.Errorf("file not found: %v", err)
 	}
-	metadata, exists := idx.GetMetadataInfo(userscope, true, false)
-	if !exists {
-		return http.StatusNotFound, fmt.Errorf("file not found: %v", err)
+
+	parentDir := filepath.Dir(realPath)
+	var content string
+
+	if isFile {
+		// Load external subtitle file
+		subtitlePath := filepath.Join(parentDir, name)
+		content, err = ffmpeg.LoadSubtitleFile(subtitlePath)
+		if err != nil {
+			return http.StatusInternalServerError, fmt.Errorf("failed to load subtitle file: %v", err)
+		}
+	} else {
+		// For embedded subtitles, we need to find the stream index by name
+		// Get file modification time for caching
+		fileInfo, err := os.Stat(realPath)
+		if err != nil {
+			return http.StatusInternalServerError, fmt.Errorf("failed to stat file: %v", err)
+		}
+
+		// Detect embedded subtitles
+		embeddedSubs := ffmpeg.DetectEmbeddedSubtitles(realPath, fileInfo.ModTime())
+
+		// Find the subtitle track by name
+		var streamIndex *int
+		for _, sub := range embeddedSubs {
+			if sub.Name == name {
+				streamIndex = sub.Index
+				break
+			}
+		}
+
+		if streamIndex == nil {
+			return http.StatusNotFound, fmt.Errorf("embedded subtitle track '%s' not found", name)
+		}
+
+		content, err = ffmpeg.ExtractSubtitleContent(realPath, *streamIndex)
+		if err != nil {
+			return http.StatusInternalServerError, fmt.Errorf("failed to extract embedded subtitle: %v", err)
+		}
 	}
 
-	index, err := strconv.Atoi(indexParam)
-	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid index parameter: %v", err)
-	}
-	parentDir := filepath.Dir(realPath)
-	subtitle, err := ffmpeg.ExtractSingleSubtitle(realPath, parentDir, index, metadata.ModTime)
-	if err != nil {
-		return http.StatusInternalServerError, fmt.Errorf("failed to extract subtitle: %v", err)
-	}
-	w.Header().Set("Content-Type", "text/vtt; charset=utf-8")
+	// Return raw content with appropriate content type
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.Header().Set("Content-Disposition", "inline")
 	w.Header().Set("Cache-Control", "private")
-	http.ServeContent(w, r, fmt.Sprintf("%s-%d.vtt", subtitle.Name, index),
-		time.Now(), bytes.NewReader([]byte(subtitle.Content)))
+	http.ServeContent(w, r, name, time.Now(), bytes.NewReader([]byte(content)))
 	return http.StatusOK, nil
 }

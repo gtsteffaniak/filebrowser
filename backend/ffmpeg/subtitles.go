@@ -10,19 +10,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
-
-// SubtitleTrack represents a subtitle track (embedded or external file)
-type SubtitleTrack struct {
-	Name     string `json:"name"`               // filename for external, or descriptive name for embedded
-	Language string `json:"language,omitempty"` // language code
-	Title    string `json:"title,omitempty"`    // title/description
-	Index    *int   `json:"index,omitempty"`    // stream index for embedded subtitles (nil for external)
-	Codec    string `json:"codec,omitempty"`    // codec name for embedded subtitles
-	Content  string `json:"content,omitempty"`  // subtitle content
-	IsFile   bool   `json:"isFile"`             // true for external files, false for embedded streams
-}
 
 // FFProbeOutput represents the JSON output from ffprobe
 type FFProbeOutput struct {
@@ -36,7 +26,7 @@ type FFProbeOutput struct {
 }
 
 // DetectAllSubtitles finds both embedded and external subtitle tracks
-func DetectAllSubtitles(videoPath string, parentDir string, modtime time.Time) []SubtitleTrack {
+func DetectAllSubtitles(videoPath string, parentDir string, modtime time.Time) []utils.SubtitleTrack {
 	key := "all_subtitles:" + videoPath + ":" + modtime.Format(time.RFC3339)
 
 	// Check cache first
@@ -44,7 +34,7 @@ func DetectAllSubtitles(videoPath string, parentDir string, modtime time.Time) [
 		return cached
 	}
 
-	var allSubtitles []SubtitleTrack
+	var allSubtitles []utils.SubtitleTrack
 
 	// First, get embedded subtitles
 	embeddedSubs := detectEmbeddedSubtitles(videoPath)
@@ -63,7 +53,7 @@ func DetectAllSubtitles(videoPath string, parentDir string, modtime time.Time) [
 // DetectEmbeddedSubtitles detects embedded subtitle streams using ffprobe.
 // This is the public API that can be called from other packages.
 // Returns empty array if ffprobe is not available or fails.
-func DetectEmbeddedSubtitles(videoPath string, modtime time.Time) []SubtitleTrack {
+func DetectEmbeddedSubtitles(videoPath string, modtime time.Time) []utils.SubtitleTrack {
 	// Check cache first
 	key := "embedded_subtitles:" + videoPath + ":" + modtime.Format(time.RFC3339)
 	if cached, ok := MediaCache.Get(key); ok {
@@ -78,7 +68,7 @@ func DetectEmbeddedSubtitles(videoPath string, modtime time.Time) []SubtitleTrac
 
 // detectEmbeddedSubtitles uses ffprobe to find embedded subtitle tracks
 // Always runs ffprobe - results are cached for performance
-func detectEmbeddedSubtitles(realPath string) []SubtitleTrack {
+func detectEmbeddedSubtitles(realPath string) []utils.SubtitleTrack {
 	cmd := exec.Command("ffprobe",
 		"-v", "quiet",
 		"-print_format", "json",
@@ -98,10 +88,10 @@ func detectEmbeddedSubtitles(realPath string) []SubtitleTrack {
 		return nil
 	}
 
-	var subtitles []SubtitleTrack
+	var subtitles []utils.SubtitleTrack
 	for _, stream := range probeOutput.Streams {
 		if stream.CodecType == "subtitle" {
-			track := SubtitleTrack{
+			track := utils.SubtitleTrack{
 				Index:  &stream.Index,
 				Codec:  stream.CodecName,
 				IsFile: false, // This is an embedded subtitle
@@ -133,8 +123,8 @@ func detectEmbeddedSubtitles(realPath string) []SubtitleTrack {
 }
 
 // detectExternalSubtitles finds external subtitle files in the same directory
-func detectExternalSubtitles(videoPath string, parentDir string) []SubtitleTrack {
-	var subtitles []SubtitleTrack
+func detectExternalSubtitles(videoPath string, parentDir string) []utils.SubtitleTrack {
+	var subtitles []utils.SubtitleTrack
 
 	// Get the base name of the video (without extension)
 	videoBaseName := strings.TrimSuffix(filepath.Base(videoPath), filepath.Ext(videoPath))
@@ -147,7 +137,7 @@ func detectExternalSubtitles(videoPath string, parentDir string) []SubtitleTrack
 		subtitlePath := filepath.Join(parentDir, videoBaseName+ext)
 		if _, err := os.Stat(subtitlePath); err == nil {
 			// File exists
-			track := SubtitleTrack{
+			track := utils.SubtitleTrack{
 				Name:   filepath.Base(subtitlePath),
 				IsFile: true, // This is an external file
 			}
@@ -193,82 +183,4 @@ func LoadSubtitleFile(subtitlePath string) (string, error) {
 		return "", err
 	}
 	return string(content), nil
-}
-
-// ExtractSingleSubtitle extracts content for a specific subtitle track by array index
-func ExtractSingleSubtitle(videoPath string, parentDir string, trackIndex int, modtime time.Time) (SubtitleTrack, error) {
-	// Get all subtitle tracks
-	allTracks := DetectAllSubtitles(videoPath, parentDir, modtime)
-
-	if trackIndex >= len(allTracks) {
-		return SubtitleTrack{}, fmt.Errorf("subtitle track %d not found (only %d tracks available)", trackIndex, len(allTracks))
-	}
-
-	track := allTracks[trackIndex]
-
-	// Load content based on type
-	if track.IsFile {
-		// Load external subtitle file
-		subtitlePath := filepath.Join(parentDir, track.Name)
-		content, err := LoadSubtitleFile(subtitlePath)
-		if err != nil {
-			return SubtitleTrack{}, fmt.Errorf("failed to load external subtitle: %v", err)
-		}
-		track.Content = content
-	} else {
-		// Extract embedded subtitle content
-		if track.Index == nil {
-			return SubtitleTrack{}, fmt.Errorf("embedded subtitle track has no stream index")
-		}
-		content, err := ExtractSubtitleContent(videoPath, *track.Index)
-		if err != nil {
-			return SubtitleTrack{}, fmt.Errorf("failed to extract embedded subtitle: %v", err)
-		}
-		track.Content = content
-	}
-
-	return track, nil
-}
-
-// LoadAllSubtitleContent loads the actual content for all detected subtitle tracks
-func LoadAllSubtitleContent(videoPath string, subtitles []SubtitleTrack, modtime time.Time) error {
-	for idx := range subtitles {
-		subtitle := &subtitles[idx]
-
-		// Check if content is already cached
-		contentKey := fmt.Sprintf("subtitle_content:%s:%d:%s", videoPath, idx, modtime.Format(time.RFC3339))
-		if cached, ok := SubtitleContentCache.Get(contentKey); ok {
-			subtitle.Content = cached
-			continue
-		}
-
-		var content string
-		var err error
-
-		if subtitle.IsFile {
-			// Load external subtitle file content and convert to WebVTT
-			subtitlePath := filepath.Join(filepath.Dir(videoPath), subtitle.Name)
-			content, err = LoadSubtitleFile(subtitlePath)
-			if err != nil {
-				logger.Debug("failed to read/convert subtitle file " + subtitlePath + ": " + err.Error())
-				continue
-			}
-		} else {
-			// Load embedded subtitle content
-			if subtitle.Index == nil {
-				logger.Debug("embedded subtitle has no stream index")
-				continue
-			}
-			content, err = ExtractSubtitleContent(videoPath, *subtitle.Index)
-			if err != nil {
-				logger.Debug("failed to extract embedded subtitle: " + err.Error())
-				continue
-			}
-		}
-
-		subtitle.Content = content
-		// Cache the content for future requests
-		SubtitleContentCache.Set(contentKey, content)
-	}
-	return nil
 }

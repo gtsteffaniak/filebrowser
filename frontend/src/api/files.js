@@ -574,3 +574,20 @@ export async function GetOfficeConfig(req) {
   const res = await fetchURL(apiPath)
   return await res.json()
 }
+
+export async function getSubtitleContent(source, path, subtitleName, isFile = true) {
+  try {
+    const apiPath = getApiPath('api/media/subtitles', {
+      source: source,
+      path: path,
+      name: subtitleName,
+      isFile: isFile.toString()
+    })
+    const res = await fetchURL(apiPath)
+    const content = await res.text()
+    return content
+  } catch (err) {
+    notify.showError(err.message || `Error fetching subtitle ${subtitleName}`)
+    throw err
+  }
+}

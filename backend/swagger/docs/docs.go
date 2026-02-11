@@ -1105,17 +1105,17 @@ const docTemplate = `{
         },
         "/api/media/subtitles": {
             "get": {
-                "description": "Extracts embedded subtitle content from video files by stream index and returns raw WebVTT content",
+                "description": "Returns raw subtitle content from external files or embedded streams",
                 "consumes": [
                     "application/json"
                 ],
                 "produces": [
-                    "text/vtt"
+                    "text/plain"
                 ],
                 "tags": [
                     "Subtitles"
                 ],
-                "summary": "Extract embedded subtitles",
+                "summary": "Get subtitle content",
                 "parameters": [
                     {
                         "type": "string",
@@ -1132,15 +1132,22 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "integer",
-                        "description": "Stream index for embedded subtitle extraction, defaults to 0",
-                        "name": "index",
+                        "type": "string",
+                        "description": "Subtitle track name (filename for external, descriptive name for embedded)",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Whether this is an external file (true) or embedded stream (false), defaults to true",
+                        "name": "isFile",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Raw WebVTT subtitle content",
+                        "description": "Raw subtitle content in original format",
                         "schema": {
                             "type": "string"
                         }
