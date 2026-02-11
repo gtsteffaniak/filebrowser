@@ -51,6 +51,8 @@ import Download from "./Download.vue";
 import MoveCopy from "./MoveCopy.vue";
 import NewFile from "./NewFile.vue";
 import NewDir from "./NewDir.vue";
+import Replace from "./Replace.vue";
+import ReplaceRename from "./ReplaceRename.vue";
 import Share from "./Share.vue";
 import Upload from "./Upload.vue";
 import CreateApi from "./CreateApi.vue";
@@ -61,14 +63,14 @@ import Sidebar from "../sidebar/Sidebar.vue";
 import UserEdit from "./UserEdit.vue";
 import Totp from "./Totp.vue";
 import Access from "./Access.vue";
+import Password from "./Password.vue";
 import PlaybackQueue from "./PlaybackQueue.vue";
 import PathPicker from "./PathPicker.vue";
 import SaveBeforeExit from "./SaveBeforeExit.vue";
+import CopyPasteConfirm from "./CopyPasteConfirm.vue";
 import CloseWithActiveUploads from "./CloseWithActiveUploads.vue";
 import Generic from "./Generic.vue";
 import ShareInfo from "./ShareInfo.vue";
-import Password from "./Password.vue";
-import CopyPasteConfirm from "./CopyPasteConfirm.vue";
 import { state, getters, mutations } from "@/store";
 
 export default {
@@ -85,10 +87,9 @@ export default {
     NewFile,
     NewDir,
     Help,
+    Replace,
+    ReplaceRename,
     Totp,
-    Password,
-    PathPicker,
-    CopyPasteConfirm,
     Upload,
     Sidebar,
     CreateApi,
@@ -96,8 +97,11 @@ export default {
     SidebarLinks,
     IconPicker,
     Access,
+    Password,
     PlaybackQueue,
+    PathPicker,
     SaveBeforeExit,
+    CopyPasteConfirm,
     CloseWithActiveUploads,
     Generic,
     ShareInfo,
