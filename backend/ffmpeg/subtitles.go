@@ -92,9 +92,9 @@ func detectEmbeddedSubtitles(realPath string) []utils.SubtitleTrack {
 	for _, stream := range probeOutput.Streams {
 		if stream.CodecType == "subtitle" {
 			track := utils.SubtitleTrack{
-				Index:  &stream.Index,
-				Codec:  stream.CodecName,
-				IsFile: false, // This is an embedded subtitle
+				Index:    &stream.Index,
+				Codec:    stream.CodecName,
+				Embedded: true, // This is an embedded subtitle
 			}
 
 			// Extract language and title from tags
@@ -138,8 +138,8 @@ func detectExternalSubtitles(videoPath string, parentDir string) []utils.Subtitl
 		if _, err := os.Stat(subtitlePath); err == nil {
 			// File exists
 			track := utils.SubtitleTrack{
-				Name:   filepath.Base(subtitlePath),
-				IsFile: true, // This is an external file
+				Name:     filepath.Base(subtitlePath),
+				Embedded: false, // This is an external file
 			}
 
 			// Try to infer language from filename patterns like "video.en.srt"

@@ -575,13 +575,13 @@ export async function GetOfficeConfig(req) {
   return await res.json()
 }
 
-export async function getSubtitleContent(source, path, subtitleName, isFile = true) {
+export async function getSubtitleContent(source, path, subtitleName, embedded = false) {
   try {
     const apiPath = getApiPath('api/media/subtitles', {
       source: source,
       path: path,
       name: subtitleName,
-      isFile: isFile.toString()
+      embedded: embedded.toString()
     })
     const res = await fetchURL(apiPath)
     const content = await res.text()

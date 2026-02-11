@@ -1140,8 +1140,8 @@ const docTemplate = `{
                     },
                     {
                         "type": "boolean",
-                        "description": "Whether this is an external file (true) or embedded stream (false), defaults to true",
-                        "name": "isFile",
+                        "description": "Whether this is an embedded stream (true) or external file (false), defaults to false",
+                        "name": "embedded",
                         "in": "query"
                     }
                 ],

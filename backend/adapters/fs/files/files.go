@@ -217,7 +217,6 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index, opts u
 		}
 		if opts.ExtractEmbeddedSubtitles {
 			subtitles := ffmpeg.DetectEmbeddedSubtitles(info.RealPath, info.ModTime)
-			logger.Debugf("detected embedded subtitles for file: "+info.RealPath, info.Name, subtitles)
 			info.Subtitles = append(info.Subtitles, subtitles...)
 		}
 

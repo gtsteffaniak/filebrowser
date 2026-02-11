@@ -40,8 +40,8 @@ func (i *ExtendedFileInfo) GetSubtitles(parentInfo *FileInfo) {
 			// Check if this file has the same base name and a subtitle extension
 			if fileBase == baseWithoutExt && SubtitleExts[strings.ToLower(fileExt)] {
 				track := utils.SubtitleTrack{
-					Name:   f.Name,
-					IsFile: true,
+					Name:     f.Name,
+					Embedded: false,
 				}
 
 				// Try to infer language from filename patterns like "video.en.srt"

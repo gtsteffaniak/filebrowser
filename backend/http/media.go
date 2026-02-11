@@ -21,7 +21,7 @@ import (
 // @Param path query string true "Index path to the video file"
 // @Param source query string true "Source name for the desired source"
 // @Param name query string true "Subtitle track name (filename for external, descriptive name for embedded)"
-// @Param isFile query bool false "Whether this is an external file (true) or embedded stream (false), defaults to true"
+// @Param embedded query bool false "Whether this is an embedded stream (true) or external file (false), defaults to false"
 // @Success 200 {string} string "Raw subtitle content in original format"
 // @Failure 400 {object} map[string]string "Bad request"
 // @Failure 403 {object} map[string]string "Forbidden"
@@ -32,16 +32,10 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
 	name := r.URL.Query().Get("name")
-	isFileParam := r.URL.Query().Get("isFile")
+	embedded := r.URL.Query().Get("embedded") == "true"
 
 	if name == "" {
 		return http.StatusBadRequest, fmt.Errorf("name parameter is required")
-	}
-
-	// Default to true (external file) if not specified
-	isFile := true
-	if isFileParam == "false" {
-		isFile = false
 	}
 
 	userscope, err := d.user.GetScopeForSourceName(source)
@@ -62,7 +56,7 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	parentDir := filepath.Dir(realPath)
 	var content string
 
-	if isFile {
+	if !embedded {
 		// Load external subtitle file
 		subtitlePath := filepath.Join(parentDir, name)
 		content, err = ffmpeg.LoadSubtitleFile(subtitlePath)

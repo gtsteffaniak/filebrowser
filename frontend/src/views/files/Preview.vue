@@ -285,12 +285,12 @@ export default {
       for (let index = 0; index < state.req.subtitles.length; index++) {
         const subtitleTrack = state.req.subtitles[index];
         try {
-          // Fetch subtitle content from API using name and isFile
+          // Fetch subtitle content from API using name and embedded
           const content = await filesApi.getSubtitleContent(
             state.req.source,
             state.req.path,
             subtitleTrack.name,
-            subtitleTrack.isFile
+            subtitleTrack.embedded
           );
           if (!content || content.length === 0) {
             console.warn("Subtitle track has no content:", subtitleTrack.name);

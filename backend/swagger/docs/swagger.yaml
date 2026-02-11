@@ -2517,10 +2517,10 @@ paths:
         name: name
         required: true
         type: string
-      - description: Whether this is an external file (true) or embedded stream (false),
-          defaults to true
+      - description: Whether this is an embedded stream (true) or external file (false),
+          defaults to false
         in: query
-        name: isFile
+        name: embedded
         type: boolean
       produces:
       - text/plain

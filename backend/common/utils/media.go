@@ -6,5 +6,5 @@ type SubtitleTrack struct {
 	Title    string `json:"title,omitempty"` // title/description
 	Index    *int   `json:"index,omitempty"` // stream index for embedded subtitles (nil for external)
 	Codec    string `json:"codec,omitempty"` // codec name for embedded subtitles
-	IsFile   bool   `json:"isFile"`          // true for external files, false for embedded
+	Embedded bool   `json:"embedded"`        // true for embedded subtitles, false for external files
 }
