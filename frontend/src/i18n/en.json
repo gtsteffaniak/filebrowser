@@ -322,7 +322,8 @@
     "allowReplacementsDescription": "Anyone can replace existing files when uploading files with the same name.",
     "shareInfo": "Share QR Code and Info",
     "shareInfoDescription": "This link displays the share's information, including title, description, banner, and QR code in a popup.",
-    "downloadDescription": "This link allows downloading the entire share content as a compressed file."
+    "downloadDescription": "This link allows downloading the entire share content as a compressed file.",
+    "deleteFailed": "Failed to delete share"
   },
   "prompts": {
     "operationInProgress": "Operation in progress, please wait...",

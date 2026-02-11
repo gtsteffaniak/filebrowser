@@ -456,7 +456,8 @@
     "browseFiles": "Sfogliare i file",
     "selectBannerImage": "Selezionare l'immagine del banner",
     "selectFaviconImage": "Selezionare l'immagine della favicon",
-    "selectImage": "Selezionare l'immagine"
+    "selectImage": "Selezionare l'immagine",
+    "deleteFailed": "Non è stato possibile eliminare la condivisione"
   },
   "api": {
     "createdAt": "Creato a:",

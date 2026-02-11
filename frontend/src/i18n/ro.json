@@ -456,7 +456,8 @@
     "browseFiles": "Răsfoiți fișierele",
     "selectBannerImage": "Selectați imaginea bannerului",
     "selectFaviconImage": "Selectați imaginea favicon",
-    "selectImage": "Selectați imaginea"
+    "selectImage": "Selectați imaginea",
+    "deleteFailed": "Eșec la ștergerea partajului"
   },
   "api": {
     "createdAt": "Creat la:",

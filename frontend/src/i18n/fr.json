@@ -456,7 +456,8 @@
     "browseFiles": "Parcourir les fichiers",
     "selectBannerImage": "Sélectionner l'image de la bannière",
     "selectFaviconImage": "Sélectionner l'image du favicon",
-    "selectImage": "Sélectionner l'image"
+    "selectImage": "Sélectionner l'image",
+    "deleteFailed": "Échec de la suppression du partage"
   },
   "api": {
     "createdAt": "Créée le :",

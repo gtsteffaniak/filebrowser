@@ -456,7 +456,8 @@
     "browseFiles": "파일 찾아보기",
     "selectBannerImage": "배너 이미지 선택",
     "selectFaviconImage": "파비콘 이미지 선택",
-    "selectImage": "이미지 선택"
+    "selectImage": "이미지 선택",
+    "deleteFailed": "공유를 삭제하지 못했습니다."
   },
   "api": {
     "createdAt": "만든 곳:",

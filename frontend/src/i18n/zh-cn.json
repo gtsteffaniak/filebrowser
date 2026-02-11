@@ -456,7 +456,8 @@
     "browseFiles": "浏览文件",
     "selectBannerImage": "选择横幅图片",
     "selectFaviconImage": "选择图标图像",
-    "selectImage": "选择图像"
+    "selectImage": "选择图像",
+    "deleteFailed": "删除共享失败"
   },
   "api": {
     "createdAt": "创建于",

@@ -456,7 +456,8 @@
     "browseFiles": "Fájlok böngészése",
     "selectBannerImage": "Banner kép kiválasztása",
     "selectFaviconImage": "Favicon kép kiválasztása",
-    "selectImage": "Kép kiválasztása"
+    "selectImage": "Kép kiválasztása",
+    "deleteFailed": "Nem sikerült törölni a megosztást"
   },
   "api": {
     "createdAt": "Létrehozva:",

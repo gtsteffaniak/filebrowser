@@ -456,7 +456,8 @@
     "browseFiles": "Przeglądanie plików",
     "selectBannerImage": "Wybierz obraz banera",
     "selectFaviconImage": "Wybierz obraz favicon",
-    "selectImage": "Wybierz obraz"
+    "selectImage": "Wybierz obraz",
+    "deleteFailed": "Nie udało się usunąć udziału"
   },
   "api": {
     "createdAt": "Utworzono w:",

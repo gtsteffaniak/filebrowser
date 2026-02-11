@@ -184,13 +184,14 @@ export default {
             {
               label: this.$t("general.delete"),
               action: () => {
-                mutations.closeHovers();
                 try {
                   shareApi.remove(item.hash);
                   this.links = this.links.filter((link) => link.hash !== item.hash);
                   notify.showSuccessToast(this.$t("settings.shareDeleted"));
+                  mutations.closeHovers();
                 } catch (e) {
                   console.error(e);
+                  notify.showErrorToast(this.$t("share.deleteFailed"));
                 }
               },
             },

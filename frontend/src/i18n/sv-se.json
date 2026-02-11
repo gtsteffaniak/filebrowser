@@ -456,7 +456,8 @@
     "browseFiles": "Bläddra bland filer",
     "selectBannerImage": "Välj bannerbild",
     "selectFaviconImage": "Välj favicon-bild",
-    "selectImage": "Välj bild"
+    "selectImage": "Välj bild",
+    "deleteFailed": "Misslyckades med att ta bort delning"
   },
   "api": {
     "createdAt": "Skapad på:",

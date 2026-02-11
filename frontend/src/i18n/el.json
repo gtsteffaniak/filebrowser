@@ -456,7 +456,8 @@
     "browseFiles": "Αναζήτηση αρχείων",
     "selectBannerImage": "Επιλέξτε εικόνα banner",
     "selectFaviconImage": "Επιλέξτε εικόνα favicon",
-    "selectImage": "Επιλέξτε εικόνα"
+    "selectImage": "Επιλέξτε εικόνα",
+    "deleteFailed": "Απέτυχε η διαγραφή κοινής χρήσης"
   },
   "api": {
     "createdAt": "Δημιουργήθηκε στο:",
