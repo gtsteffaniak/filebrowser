@@ -79,12 +79,12 @@ export function removePrefix(path, prefix = "") {
 
 // get path with parameters
 // Supports array values for repeated parameters (e.g., file=a&file=b&file=c)
-export function getApiPath(path, params = {}, encode = false) {
+export function getApiPath(path, params = {}, encode = true) {
   if (path.startsWith("/")) {
     path = path.slice(1);
   }
   path = `${globalVars.baseURL}${path}`;
-  
+
   const paramKeys = Object.keys(params);
   if (paramKeys.length > 0) {
     if (encode) {
@@ -92,7 +92,7 @@ export function getApiPath(path, params = {}, encode = false) {
       for (const key of paramKeys) {
         const value = params[key];
         if (value === undefined) continue;
-        
+
         // Handle array values for repeated parameters
         if (Array.isArray(value)) {
           value.forEach(v => {
@@ -110,7 +110,7 @@ export function getApiPath(path, params = {}, encode = false) {
       for (const key in params) {
         const value = params[key];
         if (value === undefined) continue;
-        
+
         // Handle array values for repeated parameters
         if (Array.isArray(value)) {
           value.forEach(v => {
@@ -125,14 +125,13 @@ export function getApiPath(path, params = {}, encode = false) {
       }
     }
   }
-  
   return path;
 }
 
 // get path with parameters
 // relative path so it can be used behind proxy
-export function getPublicApiPath(path, params = {}) {
-  return getApiPath(`/public/api/${path}`, params);
+export function getPublicApiPath(path, params = {}, encode = true) {
+  return getApiPath(`/public/api/${path}`, params, encode);
 }
 
 export function removeTrailingSlash(str) {
@@ -229,7 +228,7 @@ export function goToItem(source, path, previousHistoryItem, newTab = false) {
     router.push({ path: fullPath });
     return;
   }
-  
+
   if (previousHistoryItem === undefined) {
     // When undefined will not create browser history
     router.replace({ path: fullPath });

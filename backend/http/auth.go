@@ -8,7 +8,6 @@ import (
 	libError "errors"
 	"fmt"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 
@@ -398,10 +397,6 @@ func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {
 	}
 
 	password := r.Header.Get("X-SHARE-PASSWORD")
-	password, err := url.QueryUnescape(password)
-	if err != nil {
-		return http.StatusUnauthorized, err
-	}
 	if err := bcrypt.CompareHashAndPassword([]byte(l.PasswordHash), []byte(password)); err != nil {
 		if libError.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 			return http.StatusUnauthorized, nil
