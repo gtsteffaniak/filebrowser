@@ -210,17 +210,12 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index, opts u
 		}
 
 		// Handle subtitles if requested
-		if opts.ExtractEmbeddedSubtitles {
-			parentPath := filepath.Dir(info.Path)
-			parentInfo, exists := idx.GetReducedMetadata(parentPath, true)
-			if exists {
-				info.DetectSubtitles(parentInfo)
-				err := info.LoadSubtitleContent()
-				if err != nil {
-					logger.Debug("failed to load subtitle content: " + err.Error())
-				}
-			}
+		parentPath := filepath.Dir(info.Path)
+		parentInfo, exists := idx.GetMetadataInfo(parentPath, true, false)
+		if exists {
+			info.GetSubtitles(parentInfo, opts.ExtractEmbeddedSubtitles)
 		}
+
 		return
 	}
 

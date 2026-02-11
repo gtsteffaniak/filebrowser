@@ -60,6 +60,22 @@ func DetectAllSubtitles(videoPath string, parentDir string, modtime time.Time) [
 	return allSubtitles
 }
 
+// DetectEmbeddedSubtitles detects embedded subtitle streams using ffprobe.
+// This is the public API that can be called from other packages.
+// Returns empty array if ffprobe is not available or fails.
+func DetectEmbeddedSubtitles(videoPath string, modtime time.Time) []SubtitleTrack {
+	// Check cache first
+	key := "embedded_subtitles:" + videoPath + ":" + modtime.Format(time.RFC3339)
+	if cached, ok := MediaCache.Get(key); ok {
+		return cached
+	}
+	// Detect embedded subtitles
+	subtitles := detectEmbeddedSubtitles(videoPath)
+	// Cache the results
+	MediaCache.Set(key, subtitles)
+	return subtitles
+}
+
 // detectEmbeddedSubtitles uses ffprobe to find embedded subtitle tracks
 // Always runs ffprobe - results are cached for performance
 func detectEmbeddedSubtitles(realPath string) []SubtitleTrack {
@@ -170,44 +186,13 @@ func ExtractSubtitleContent(videoPath string, streamIndex int) (string, error) {
 	return string(output), nil
 }
 
-// LoadAndConvertSubtitleFile loads a subtitle file and converts it to WebVTT format
-func LoadAndConvertSubtitleFile(subtitlePath string) (string, error) {
-	ext := strings.ToLower(filepath.Ext(subtitlePath))
-
-	if ext == ".vtt" {
-		// Already WebVTT, just read it
-		content, err := os.ReadFile(subtitlePath)
-		if err != nil {
-			return "", err
-		}
-		return string(content), nil
-	}
-
-	if ext == ".srt" {
-		// Convert SRT to WebVTT using ffmpeg
-		cmd := exec.Command("ffmpeg",
-			"-i", subtitlePath,
-			"-c:s", "webvtt",
-			"-f", "webvtt",
-			"-") // output to stdout
-
-		output, err := cmd.Output()
-		if err != nil {
-			return "", fmt.Errorf("failed to convert SRT to WebVTT: %v", err)
-		}
-		return string(output), nil
-	}
-
-	// For other formats, try to read as plain text and hope for the best
-	// This is a fallback - ideally you'd want format-specific converters
+// LoadSubtitleFile loads a subtitle file and returns its raw content
+func LoadSubtitleFile(subtitlePath string) (string, error) {
 	content, err := os.ReadFile(subtitlePath)
 	if err != nil {
 		return "", err
 	}
-
-	// Basic conversion wrapper for non-VTT formats
-	vttHeader := "WEBVTT\n\n"
-	return vttHeader + string(content), nil
+	return string(content), nil
 }
 
 // ExtractSingleSubtitle extracts content for a specific subtitle track by array index
@@ -225,7 +210,7 @@ func ExtractSingleSubtitle(videoPath string, parentDir string, trackIndex int, m
 	if track.IsFile {
 		// Load external subtitle file
 		subtitlePath := filepath.Join(parentDir, track.Name)
-		content, err := LoadAndConvertSubtitleFile(subtitlePath)
+		content, err := LoadSubtitleFile(subtitlePath)
 		if err != nil {
 			return SubtitleTrack{}, fmt.Errorf("failed to load external subtitle: %v", err)
 		}
@@ -263,7 +248,7 @@ func LoadAllSubtitleContent(videoPath string, subtitles []SubtitleTrack, modtime
 		if subtitle.IsFile {
 			// Load external subtitle file content and convert to WebVTT
 			subtitlePath := filepath.Join(filepath.Dir(videoPath), subtitle.Name)
-			content, err = LoadAndConvertSubtitleFile(subtitlePath)
+			content, err = LoadSubtitleFile(subtitlePath)
 			if err != nil {
 				logger.Debug("failed to read/convert subtitle file " + subtitlePath + ": " + err.Error())
 				continue

@@ -32,14 +32,51 @@ type FFProbeOutput struct {
 }
 
 // detects subtitles for video files.
-func (i *ExtendedFileInfo) DetectSubtitles(parentInfo *FileInfo) {
+func (i *ExtendedFileInfo) GetSubtitles(parentInfo *FileInfo, extractEmbeddedSubtitles bool) {
 	if !strings.HasPrefix(i.Type, "video") {
-		logger.Debug("subtitles are not supported for this file : " + i.Name)
 		return
 	}
-	// Use unified subtitle detection that finds both embedded and external
-	parentDir := filepath.Dir(i.RealPath)
-	i.Subtitles = ffmpeg.DetectAllSubtitles(i.RealPath, parentDir, i.ModTime)
+	// First, detect embedded subtitles using ffmpeg (if enabled)
+	if extractEmbeddedSubtitles {
+		embeddedSubs := ffmpeg.DetectEmbeddedSubtitles(i.RealPath, i.ModTime)
+		i.Subtitles = append(i.Subtitles, embeddedSubs...)
+	}
+
+	ext := filepath.Ext(i.Name)
+	baseWithoutExt := strings.TrimSuffix(i.Name, ext)
+	if parentInfo != nil && parentInfo.Files != nil {
+		for _, f := range parentInfo.Files {
+			fileExt := filepath.Ext(f.Name)
+			fileBase := strings.TrimSuffix(f.Name, fileExt)
+
+			// Check if this file has the same base name and a subtitle extension
+			if fileBase == baseWithoutExt && SubtitleExts[strings.ToLower(fileExt)] {
+				track := ffmpeg.SubtitleTrack{
+					Name:   f.Name,
+					IsFile: true,
+				}
+
+				// Try to infer language from filename patterns like "video.en.srt"
+				parts := strings.Split(fileBase, ".")
+				if len(parts) > 1 {
+					lastPart := parts[len(parts)-1]
+					if len(lastPart) == 2 || len(lastPart) == 3 {
+						track.Language = lastPart
+					}
+				}
+
+				i.Subtitles = append(i.Subtitles, track)
+			}
+		}
+	}
+
+	// Load content for ALL detected subtitles (both embedded and external)
+	if len(i.Subtitles) > 0 {
+		err := i.LoadSubtitleContent()
+		if err != nil {
+			logger.Debug("failed to load subtitle content: " + err.Error())
+		}
+	}
 }
 
 // LoadSubtitleContent loads the actual content for all detected subtitle tracks
