@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.2.4-beta
+
+ **BugFixes**:
+ - Can't access directories with space (and possibly other special characters) when browsing a public link share (#1956)
+
 ## v1.2.3-beta
 
  **Notes**:
