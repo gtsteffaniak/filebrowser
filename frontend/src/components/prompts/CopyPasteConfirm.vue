@@ -1,4 +1,8 @@
 <template>
+  <div class="card-title">
+    <h2>{{ $t("prompts.copyPasteConfirm") }}</h2>
+  </div>
+
   <div class="card-content">
     <p>{{ operation === 'copy' ? $t("prompts.copyItemQuestion") : $t("prompts.moveItemQuestion") }}</p>
 
@@ -23,7 +27,7 @@
     </div>
   </div>
 
-  <div class="card-actions">
+  <div class="card-action">
     <button
       @click="closeHovers"
       class="button button--flat button--grey"

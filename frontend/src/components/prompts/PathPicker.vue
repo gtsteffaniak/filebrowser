@@ -1,10 +1,14 @@
 <template>
+  <div class="card-title">
+    <h2>{{ $t("prompts.selectPath") }}</h2>
+  </div>
+
   <div class="card-content">
     <file-list ref="fileList" @update:selected="updateSelection" :browseSource="currentSource" :showFiles="showFiles" :showFolders="showFolders">
     </file-list>
   </div>
 
-  <div class="card-actions">
+  <div class="card-action">
     <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('general.cancel')"
       :title="$t('general.cancel')">
       {{ $t("general.cancel") }}
@@ -18,7 +22,7 @@
 
 <script>
 import { mutations } from "@/store";
-import FileList from "../files/FileList.vue";
+import FileList from "./FileList.vue";
 import { eventBus } from "@/store/eventBus";
 
 export default {

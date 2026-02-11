@@ -324,7 +324,37 @@ export default {
       }
     },
     deletePrompt() {
-      mutations.showHover({ name: "deleteUser", props: { user: this.user } });
+      mutations.showHover({
+        name: "generic",
+        props: {
+          title: this.$t('general.delete', { suffix: " " + this.user.username }),
+          body: this.$t('prompts.deleteUserMessage'),
+          buttons: [
+            {
+              label: this.$t('general.cancel'),
+              action: () => {
+                mutations.closeTopHover();
+              },
+            },
+            {
+              label: this.$t('general.delete'),
+              action: async () => {
+                try {
+                  await usersApi.remove(this.user.id);
+                  // Emit event to refresh user list
+                  eventBus.emit('usersChanged');
+                  notify.showSuccessToast(this.$t("settings.userDeleted"));
+                  mutations.closeHovers();
+                } catch (e) {
+                  e.message === "403"
+                    ? notify.showError(this.$t("errors.forbidden"), false)
+                    : notify.showError(e);
+                }
+              }
+            }
+          ]
+        }
+      });
     },
     async save(event) {
       event.preventDefault();
@@ -462,7 +492,7 @@ export default {
       const displayName = this.isNew
         ? this.$t("settings.modifyOtherUser")
         : `${this.$t("settings.modifyOtherUser")} ${this.user.username}`;
-      mutations.updatePromptName(this.promptId, displayName);
+      mutations.updatePromptTitle(this.promptId, displayName);
     },
   },
 };
