@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 )
@@ -57,11 +58,9 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	var content string
 
 	if !embedded {
-		// Load external subtitle file
-		subtitlePath := filepath.Join(parentDir, name)
-		content, err = ffmpeg.LoadSubtitleFile(subtitlePath)
+		content, err = utils.GetSubtitleSidecarContent(filepath.Join(parentDir, name))
 		if err != nil {
-			return http.StatusInternalServerError, fmt.Errorf("failed to load subtitle file: %v", err)
+			return http.StatusInternalServerError, fmt.Errorf("failed to get subtitle sidecar content: %v", err)
 		}
 	} else {
 		// For embedded subtitles, we need to find the stream index by name
