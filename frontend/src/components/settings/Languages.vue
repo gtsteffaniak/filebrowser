@@ -8,6 +8,7 @@
 
 <script>
 import { defineComponent } from "vue";
+import { availableLocales } from "@/i18n/index.ts";
 
 export default defineComponent({
   name: "Languages",
@@ -19,32 +20,7 @@ export default defineComponent({
   },
   data() {
     return {
-      locales: {
-        he: "he",
-        hu: "hu",
-        ar: "ar",
-        de: "de",
-        en: "en",
-        es: "es",
-        fr: "fr",
-        is: "is",
-        it: "it",
-        ja: "ja",
-        ko: "ko",
-        nlBE: "nl-be",
-        pl: "pl",
-        ptBR: "pt-br",
-        pt: "pt",
-        ro: "ro",
-        ru: "ru",
-        sk: "sk",
-        svSE: "sv-se",
-        tr: "tr",
-        ua: "ua",
-        zhCN: "zh-cn",
-        zhTW: "zh-tw",
-        cz: "cz",
-      },
+      locales: availableLocales,
     };
   },
   methods: {

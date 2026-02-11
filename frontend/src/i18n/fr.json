@@ -114,7 +114,8 @@
     "ua": "Українська",
     "zhCN": "中文 (简体)",
     "zhTW": "中文 (繁體)",
-    "cz": "Čeština"
+    "cz": "Čeština",
+    "nl": "Dutch"
   },
   "login": {
     "createAnAccount": "Créer un compte",
@@ -320,7 +321,6 @@
     "adminOptions": "Options de l'utilisateur administrateur",
     "searchOptions": "Options de recherche",
     "systemAdmin": "Système et administration",
-    "configViewer": "Config Viewer",
     "configViewerShowFull": "Afficher la configuration complète",
     "configViewerShowComments": "Afficher les commentaires",
     "configViewerLoadConfig": "Configuration de la charge",
@@ -332,7 +332,8 @@
       "proxy": "Proxy"
     },
     "newUserHintSubFolder": "par exemple \"/sous-dossier\" - vide par défaut",
-    "permissionsHelp": "Les autorisations de l'utilisateur contrôlent l'accès au type d'actions que l'utilisateur peut effectuer. L'accès administrateur permet de mettre à jour et de modifier les paramètres de tout utilisateur ainsi que de nombreux paramètres du système."
+    "permissionsHelp": "Les autorisations de l'utilisateur contrôlent l'accès au type d'actions que l'utilisateur peut effectuer. L'accès administrateur permet de mettre à jour et de modifier les paramètres de tout utilisateur ainsi que de nombreux paramètres du système.",
+    "configViewer": "Config Viewer"
   },
   "sidebar": {
     "siteSettings": "Paramètres du site",
@@ -476,7 +477,6 @@
     "description": "Les clés API sont basées sur l'utilisateur qui les a créées. Voir les",
     "swaggerLinkText": "page swagger",
     "created": "Créée",
-    "expires": "Expiration",
     "actions": "Actions",
     "enabled": "Activée",
     "disabled": "Désactivée",
@@ -484,7 +484,8 @@
     "tokenType": "Type de jeton :",
     "clickToCopyKey": "Cliquez pour copier la clé (cachée)",
     "minimalDescription": "Jeton minimal",
-    "minimalInfo": "Exclut les personnalisations du jeton afin de réduire la longueur du jeton. Les autorisations correspondent exactement à celles de l'utilisateur associé."
+    "minimalInfo": "Exclut les personnalisations du jeton afin de réduire la longueur du jeton. Les autorisations correspondent exactement à celles de l'utilisateur associé.",
+    "expires": "Expiration"
   },
   "index": {
     "assessment": "Évaluation",
@@ -494,7 +495,7 @@
     "settingsHover": "Paramètres pour l'utilisateur",
     "toggleClick": "Activation du mode simple clic",
     "toggleDark": "Mode sombre/clair",
-    "toggleSticky": "Activer/Désactiver le mode persistent",
+    "toggleSticky": "Activer/Désactiver le mode persistant",
     "noSources": "Aucune source n'est disponible pour cet utilisateur. Ajoutez une source pour cet utilisateur ou configurez une source avec defaultEnabled : true",
     "unknown": "Inconnu",
     "simple": "Simple",
@@ -525,11 +526,11 @@
     "signup": "S'inscrire",
     "password": "Mot de passe",
     "username": "Nom d'utilisateur",
-    "files": "Dossiers",
+    "files": "Fichiers",
     "folders": "Dossiers",
     "exit": "Sortie",
     "permanent": "Permanent",
-    "hash": "Hachures",
+    "hash": "Hash",
     "of": "de",
     "source": "Source{suffix}",
     "percentage": "{percentage}%",
@@ -604,7 +605,7 @@
     "select": "Sélectionner{suffix}",
     "share": "Partager{suffix}",
     "update": "Mise à jour{suffix}",
-    "upload": "Télécharger{suffix}",
+    "upload": "Importer{suffix}",
     "openFile": "Ouvrir un fichier{suffix}",
     "continue": "Continuer{suffix}",
     "edit": "Editer{suffix}",
@@ -625,7 +626,8 @@
     "lines": "Lignes{suffix}",
     "lastUpdate": "Dernière mise à jour{suffix}",
     "latency": "Temps de latence{suffix}",
-    "all": "Tous{suffix}"
+    "all": "Tous{suffix}",
+    "expiration": "Expiration{suffix}"
   },
   "access": {
     "rules": "Règles d'accès",

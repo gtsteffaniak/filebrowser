@@ -114,7 +114,8 @@
     "ua": "Українська",
     "zhCN": "中文 (简体)",
     "zhTW": "中文 (繁體)",
-    "cz": "Čeština"
+    "cz": "Čeština",
+    "nl": "Dutch"
   },
   "login": {
     "createAnAccount": "アカウントを作成",
@@ -320,7 +321,6 @@
     "adminOptions": "管理者ユーザーオプション",
     "searchOptions": "検索オプション",
     "systemAdmin": "システム＆管理",
-    "configViewer": "設定ビューア",
     "configViewerShowFull": "全設定を表示",
     "configViewerShowComments": "コメントを表示",
     "configViewerLoadConfig": "設定を読み込み",
@@ -332,7 +332,8 @@
       "proxy": "プロキシ"
     },
     "newUserHintSubFolder": "例 '/subfolder' - デフォルトは空白",
-    "permissionsHelp": "ユーザー権限は、ユーザーが実行できるアクションの種類へのアクセスを制御します。管理者アクセスは、多くのシステム設定だけでなく、任意のユーザーの設定を更新および変更するための完全なコントロールを提供します。"
+    "permissionsHelp": "ユーザー権限は、ユーザーが実行できるアクションの種類へのアクセスを制御します。管理者アクセスは、多くのシステム設定だけでなく、任意のユーザーの設定を更新および変更するための完全なコントロールを提供します。",
+    "configViewer": "コンフィグビューア"
   },
   "sidebar": {
     "siteSettings": "サイト設定",
@@ -625,7 +626,8 @@
     "lines": "ライン{suffix}",
     "lastUpdate": "最終更新{suffix}",
     "latency": "レイテンシー{suffix}",
-    "all": "すべて{suffix}"
+    "all": "すべて{suffix}",
+    "expiration": "有効期限{suffix}"
   },
   "access": {
     "rules": "アクセスルール",

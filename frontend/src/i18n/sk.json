@@ -114,7 +114,8 @@
     "ua": "Українська",
     "zhCN": "中文 (简体)",
     "zhTW": "中文 (繁體)",
-    "cz": "Čeština"
+    "cz": "Čeština",
+    "nl": "Dutch"
   },
   "login": {
     "createAnAccount": "Vytvoriť účet",
@@ -320,7 +321,6 @@
     "adminOptions": "Možnosti používateľa správcu",
     "searchOptions": "Možnosti vyhľadávania",
     "systemAdmin": "Systém a administrátor",
-    "configViewer": "Prehliadač konfigurácie",
     "configViewerShowFull": "Zobraziť úplnú konfiguráciu",
     "configViewerShowComments": "Zobraziť komentáre",
     "configViewerLoadConfig": "Konfigurácia načítania",
@@ -332,7 +332,8 @@
       "proxy": "Proxy"
     },
     "newUserHintSubFolder": "napr. '/subfolder' - prázdne pre predvolené nastavenie",
-    "permissionsHelp": "Oprávnenia používateľa riadia prístup k typom akcií, ktoré môže používateľ vykonávať. Prístup administrátora poskytuje úplnú kontrolu nad aktualizáciou a zmenou nastavení ktoréhokoľvek používateľa, ako aj nad mnohými systémovými nastaveniami."
+    "permissionsHelp": "Oprávnenia používateľa riadia prístup k typom akcií, ktoré môže používateľ vykonávať. Prístup administrátora poskytuje úplnú kontrolu nad aktualizáciou a zmenou nastavení ktoréhokoľvek používateľa, ako aj nad mnohými systémovými nastaveniami.",
+    "configViewer": "Prehliadač konfigurácie"
   },
   "sidebar": {
     "siteSettings": "Nastavenia stránky",
@@ -625,7 +626,8 @@
     "lines": "Riadky{suffix}",
     "lastUpdate": "Posledná aktualizácia{suffix}",
     "latency": "Latencia{suffix}",
-    "all": "Všetky{suffix}"
+    "all": "Všetky{suffix}",
+    "expiration": "Uplynutie platnosti{suffix}"
   },
   "access": {
     "rules": "Pravidlá prístupu",

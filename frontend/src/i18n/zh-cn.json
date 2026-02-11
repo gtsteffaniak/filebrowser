@@ -114,7 +114,8 @@
     "ua": "Українська",
     "zhCN": "中文 (简体)",
     "zhTW": "中文 (繁體)",
-    "cz": "Čeština"
+    "cz": "Čeština",
+    "nl": "Dutch"
   },
   "login": {
     "createAnAccount": "创建用户",
@@ -320,7 +321,6 @@
     "adminOptions": "管理员用户选项",
     "searchOptions": "搜索选项",
     "systemAdmin": "系统与管理",
-    "configViewer": "配置查看器",
     "configViewerShowFull": "显示完整配置",
     "configViewerShowComments": "显示评论",
     "configViewerLoadConfig": "加载配置",
@@ -332,7 +332,8 @@
       "proxy": "代理"
     },
     "newUserHintSubFolder": "例如\"/子文件夹\"--默认为空",
-    "permissionsHelp": "用户权限控制用户可以执行哪些类型的操作。管理员权限可完全控制更新和更改任何用户的设置以及许多系统设置。"
+    "permissionsHelp": "用户权限控制用户可以执行哪些类型的操作。管理员权限可完全控制更新和更改任何用户的设置以及许多系统设置。",
+    "configViewer": "配置查看器"
   },
   "sidebar": {
     "siteSettings": "网站设置",
@@ -705,7 +706,8 @@
     "lines": "线路{suffix}",
     "lastUpdate": "最新更新{suffix}",
     "latency": "延迟{suffix}",
-    "all": "全部{suffix}"
+    "all": "全部{suffix}",
+    "expiration": "到期{suffix}"
   },
   "access": {
     "rules": "访问规则",

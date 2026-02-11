@@ -114,7 +114,8 @@
     "ua": "Українська",
     "zhCN": "中文 (简体)",
     "zhTW": "中文 (繁體)",
-    "cz": "Čeština"
+    "cz": "Čeština",
+    "nl": "Dutch"
   },
   "login": {
     "createAnAccount": "Crează cont",
@@ -320,7 +321,6 @@
     "adminOptions": "Opțiuni utilizator administrator",
     "searchOptions": "Opțiuni de căutare",
     "systemAdmin": "Sistem și administrare",
-    "configViewer": "Vizualizator de configurare",
     "configViewerShowFull": "Afișați configurația completă",
     "configViewerShowComments": "Afișați comentariile",
     "configViewerLoadConfig": "Configurare încărcare",
@@ -332,7 +332,8 @@
       "proxy": "Proxy"
     },
     "newUserHintSubFolder": "de exemplu \"/subfolder\" - gol pentru implicit",
-    "permissionsHelp": "Permisiunile utilizatorului controlează accesul la ce tip de acțiuni poate efectua utilizatorul. Accesul de administrator oferă control deplin pentru actualizarea și modificarea setărilor oricărui utilizator, precum și a multor setări de sistem."
+    "permissionsHelp": "Permisiunile utilizatorului controlează accesul la ce tip de acțiuni poate efectua utilizatorul. Accesul de administrator oferă control deplin pentru actualizarea și modificarea setărilor oricărui utilizator, precum și a multor setări de sistem.",
+    "configViewer": "Vizualizator de configurare"
   },
   "sidebar": {
     "siteSettings": "Setări site",
@@ -625,7 +626,8 @@
     "lines": "Linii{suffix}",
     "lastUpdate": "Ultima actualizare{suffix}",
     "latency": "Latență{suffix}",
-    "all": "Toate{suffix}"
+    "all": "Toate{suffix}",
+    "expiration": "Expirare{suffix}"
   },
   "access": {
     "rules": "Reguli de acces",

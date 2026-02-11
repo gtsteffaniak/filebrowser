@@ -114,7 +114,8 @@
     "ua": "Українська",
     "zhCN": "中文 (简体)",
     "zhTW": "中文 (繁體)",
-    "cz": "Čeština"
+    "cz": "Čeština",
+    "nl": "Dutch"
   },
   "login": {
     "createAnAccount": "Skapa ett konto",
@@ -320,7 +321,6 @@
     "adminOptions": "Alternativ för administratörsanvändare",
     "searchOptions": "Sökalternativ",
     "systemAdmin": "System & Administration",
-    "configViewer": "Konfig-visare",
     "configViewerShowFull": "Visa fullständig konfiguration",
     "configViewerShowComments": "Visa kommentarer",
     "configViewerLoadConfig": "Ladda konfig",
@@ -332,7 +332,8 @@
       "proxy": "Proxy"
     },
     "newUserHintSubFolder": "t.ex. \"/undermapp\" - tom för standard",
-    "permissionsHelp": "Användarbehörigheter styr vilka typer av åtgärder som användaren kan utföra. Administratörsbehörighet ger full kontroll över uppdatering och ändring av alla användarinställningar samt många systeminställningar."
+    "permissionsHelp": "Användarbehörigheter styr vilka typer av åtgärder som användaren kan utföra. Administratörsbehörighet ger full kontroll över uppdatering och ändring av alla användarinställningar samt många systeminställningar.",
+    "configViewer": "Konfig-visare"
   },
   "sidebar": {
     "siteSettings": "System inställningar",
@@ -705,7 +706,8 @@
     "lines": "Linjer{suffix}",
     "lastUpdate": "Senaste uppdatering{suffix}",
     "latency": "Fördröjning{suffix}",
-    "all": "Alla{suffix}"
+    "all": "Alla{suffix}",
+    "expiration": "Förfallodag{suffix}"
   },
   "access": {
     "rules": "Regler för åtkomst",
