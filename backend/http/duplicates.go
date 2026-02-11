@@ -571,7 +571,6 @@ func prepDuplicatesOptions(r *http.Request, d *requestContext) (*duplicatesOptio
 	// Convert MB to bytes
 	minSize := minSizeMb * 1024 * 1024
 
-	// r.URL.Query().Get() already decodes the parameter
 	searchScope := strings.TrimPrefix(scope, ".")
 
 	index := indexing.GetIndex(source)

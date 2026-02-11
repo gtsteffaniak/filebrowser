@@ -76,7 +76,6 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 
 	// Get all "file" parameter values (supports repeated params)
-	// Note: r.URL.Query() already decodes the parameters automatically
 	files := r.URL.Query()["file"]
 	if len(files) == 0 {
 		return http.StatusBadRequest, fmt.Errorf("no files specified")
@@ -89,7 +88,7 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 	actualSourceName := sourceInfo.Name
 
-	// Process each file path (already decoded by Go)
+	// Process each file path
 	fileList := []string{}
 	for _, file := range files {
 		// Join the share path with the requested path
