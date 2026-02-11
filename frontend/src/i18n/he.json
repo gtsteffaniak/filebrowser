@@ -456,7 +456,8 @@
     "browseFiles": "עיון בקבצים",
     "selectBannerImage": "בחר תמונת באנר",
     "selectFaviconImage": "בחר תמונת סמל מועדף",
-    "selectImage": "בחר תמונה"
+    "selectImage": "בחר תמונה",
+    "deleteFailed": "לא ניתן למחוק את השיתוף"
   },
   "api": {
     "createdAt": "נוצר ב:",

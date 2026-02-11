@@ -456,7 +456,8 @@
     "browseFiles": "Dosyalara göz atın",
     "selectBannerImage": "Afiş resmini seçin",
     "selectFaviconImage": "Favicon resmini seçin",
-    "selectImage": "Resim seçiniz"
+    "selectImage": "Resim seçiniz",
+    "deleteFailed": "Paylaşım silinemedi"
   },
   "api": {
     "createdAt": "Oluşturuldu:",

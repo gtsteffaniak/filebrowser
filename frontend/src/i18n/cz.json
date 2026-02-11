@@ -203,7 +203,8 @@
     "browseFiles": "Procházení souborů",
     "selectBannerImage": "Výběr obrázku banneru",
     "selectFaviconImage": "Výběr obrázku favicon",
-    "selectImage": "Vybrat obrázek"
+    "selectImage": "Vybrat obrázek",
+    "deleteFailed": "Nepodařilo se odstranit sdílenou složku"
   },
   "prompts": {
     "copy": "Kopírovat",

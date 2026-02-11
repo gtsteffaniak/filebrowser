@@ -456,7 +456,8 @@
     "browseFiles": "ファイルをブラウズする",
     "selectBannerImage": "バナー画像を選択",
     "selectFaviconImage": "ファビコン画像を選択",
-    "selectImage": "画像を選択"
+    "selectImage": "画像を選択",
+    "deleteFailed": "共有の削除に失敗しました"
   },
   "api": {
     "createdAt": "で作成された：",

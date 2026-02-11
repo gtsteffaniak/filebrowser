@@ -456,7 +456,8 @@
     "browseFiles": "Просмотр файлов",
     "selectBannerImage": "Выберите изображение баннера",
     "selectFaviconImage": "Выберите изображение фавикона",
-    "selectImage": "Выберите изображение"
+    "selectImage": "Выберите изображение",
+    "deleteFailed": "Не удалось удалить общий ресурс"
   },
   "api": {
     "createdAt": "Создан:",

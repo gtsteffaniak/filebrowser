@@ -456,7 +456,8 @@
     "browseFiles": "Bladeren door bestanden",
     "selectBannerImage": "Selecteer bannerafbeelding",
     "selectFaviconImage": "Selecteer favicon afbeelding",
-    "selectImage": "Afbeelding selecteren"
+    "selectImage": "Afbeelding selecteren",
+    "deleteFailed": "Share niet verwijderd"
   },
   "api": {
     "createdAt": "Gemaakt op:",
