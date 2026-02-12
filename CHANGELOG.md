@@ -9,10 +9,10 @@ All notable changes to this project will be documented in this file. For commit 
  - Correcting some errors in French language (#1947)
  - add Dutch `nl.json` for frontend i18n -- thanks @Stephan-P (#1957)
 
-
  **BugFixes**:
  - Can't access directories with space (and possibly other special characters) when browsing a public link share (#1956)
  - External ASS subtitles are not usable in web preview (#1933)
+ - Filename blocking rename/move (#1950)
 
 ## v1.2.3-beta
 

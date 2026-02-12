@@ -382,6 +382,14 @@ func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *reques
 func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
+
+	// Rule 1: Validate user-provided path to prevent path traversal
+	cleanPath, err := utils.SanitizeUserPath(path)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid path: %v", err)
+	}
+	path = cleanPath
+
 	if d.share == nil && !d.user.Permissions.Create {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
 	}
@@ -574,6 +582,13 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	source := r.URL.Query().Get("source")
 	path := r.URL.Query().Get("path")
 
+	// Rule 1: Validate user-provided path to prevent path traversal
+	cleanPath, err := utils.SanitizeUserPath(path)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid path: %v", err)
+	}
+	path = cleanPath
+
 	// Only allow PUT for files.
 	if strings.HasSuffix(path, "/") {
 		return http.StatusMethodNotAllowed, nil
@@ -641,6 +656,7 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 
 	// Process each item
 	for _, item := range req.Items {
+
 		// Validate all fields are provided
 		if item.FromSource == "" || item.FromPath == "" || item.ToSource == "" || item.ToPath == "" {
 			item.Message = "fromSource, fromPath, toSource, and toPath are required"
@@ -653,26 +669,26 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 			response.Failed = append(response.Failed, item)
 			continue
 		}
-
-		// Check for root path modifications
-		if item.ToPath == "/" || item.FromPath == "/" {
-			item.Message = "cannot modify root directory"
-			if d.share != nil {
-				response.Failed = append(response.Failed, MoveCopyItem{
-					Message: item.Message,
-				})
-				continue
-			}
+		cleanFromPath, err := utils.SanitizeUserPath(item.FromPath)
+		if err != nil {
+			item.Message = fmt.Sprintf("invalid fromPath: %v", err)
 			response.Failed = append(response.Failed, item)
 			continue
 		}
+		cleanToPath, err := utils.SanitizeUserPath(item.ToPath)
+		if err != nil {
+			item.Message = fmt.Sprintf("invalid toPath: %v", err)
+			response.Failed = append(response.Failed, item)
+			continue
+		}
+		item.FromPath = cleanFromPath
+		item.ToPath = cleanToPath
 
 		// Get user scopes for both sources
 		// For shares, paths are already absolute, so use empty scope
 		userscopeSrc := ""
 		userscopeDst := ""
 		if d.share == nil {
-			var err error
 			userscopeSrc, err = d.user.GetScopeForSourceName(item.FromSource)
 			if err != nil {
 				item.Message = "source not available"
@@ -718,6 +734,11 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		// Build full index paths for access control
 		fullSrcIndexPath := utils.JoinPathAsUnix(userscopeSrc, item.FromPath)
 		fullDstIndexPath := utils.JoinPathAsUnix(userscopeDst, item.ToPath)
+		if fullDstIndexPath == "/" || fullSrcIndexPath == "/" {
+			item.Message = "source or destination is the root or unautharized directory"
+			response.Failed = append(response.Failed, item)
+			continue
+		}
 
 		// Check access control for both source and destination paths
 		if !store.Access.Permitted(srcIdx.Path, fullSrcIndexPath, d.user.Username) {

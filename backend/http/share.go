@@ -358,7 +358,14 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusForbidden, err
 	}
 	providedPath := body.Path
-	body.Path = utils.JoinPathAsUnix(userscope, providedPath)
+
+	// Rule 1: Validate user-provided path to prevent path traversal
+	cleanPath, err := utils.SanitizeUserPath(providedPath)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid path: %v", err)
+	}
+
+	body.Path = utils.JoinPathAsUnix(userscope, cleanPath)
 	body.Path = utils.AddTrailingSlashIfNotExists(body.Path)
 	// validate path exists as file or folder
 	_, _, err = idx.GetRealPath(body.Path)
