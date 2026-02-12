@@ -11,7 +11,6 @@
         <span class="api-key-name">{{ name }}</span>
         <i class="material-icons">content_paste</i>
       </button>
-      
       <button
         class="action copy-clipboard api-key-value-button"
         :data-clipboard-text="info.key"

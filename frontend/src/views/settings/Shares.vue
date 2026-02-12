@@ -176,17 +176,26 @@ export default {
      */
     deleteLink: async function (event, item) {
       mutations.showHover({
-        name: "share-delete",
-        props: { path: item.path },
-        confirm: () => {
-          mutations.closeHovers();
-          try {
-            shareApi.remove(item.hash);
-            this.links = this.links.filter((link) => link.hash !== item.hash);
-            notify.showSuccessToast(this.$t("settings.shareDeleted"));
-          } catch (e) {
-            console.error(e);
-          }
+        name: "generic",
+        props: {
+          title: this.$t("general.delete"),
+          message: this.$t("prompts.deleteMessageShare", { path: item.path }),
+          buttons: [
+            {
+              label: this.$t("general.delete"),
+              action: () => {
+                try {
+                  shareApi.remove(item.hash);
+                  this.links = this.links.filter((link) => link.hash !== item.hash);
+                  notify.showSuccessToast(this.$t("settings.shareDeleted"));
+                  mutations.closeHovers();
+                } catch (e) {
+                  console.error(e);
+                  notify.showErrorToast(this.$t("share.deleteFailed"));
+                }
+              },
+            },
+          ],
         },
       });
     },

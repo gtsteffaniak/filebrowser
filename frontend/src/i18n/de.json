@@ -456,7 +456,8 @@
     "browseFiles": "Dateien durchsuchen",
     "selectBannerImage": "Bannerbild auswählen",
     "selectFaviconImage": "Favicon-Bild auswählen",
-    "selectImage": "Bild auswählen"
+    "selectImage": "Bild auswählen",
+    "deleteFailed": "Freigabe konnte nicht gelöscht werden"
   },
   "api": {
     "createdAt": "Erstellt am:",

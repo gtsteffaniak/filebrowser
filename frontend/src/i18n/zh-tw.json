@@ -456,7 +456,8 @@
     "browseFiles": "瀏覽檔案",
     "selectBannerImage": "選擇橫幅圖片",
     "selectFaviconImage": "選擇 Favoricon 圖片",
-    "selectImage": "選擇影像"
+    "selectImage": "選擇影像",
+    "deleteFailed": "刪除共用失敗"
   },
   "api": {
     "createdAt": "創建於",

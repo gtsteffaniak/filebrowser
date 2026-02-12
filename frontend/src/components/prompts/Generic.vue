@@ -16,10 +16,11 @@
     </div>
   </div>
 </template>
-
 <script>
 import FileList from "@/components/files/FileList.vue";
 
+// use this component for any prompt to display text message and custom buttons
+// simple html body is supported, but anything complex should get its own component.
 export default {
   name: "generic-prompt",
   components: {

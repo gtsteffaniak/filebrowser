@@ -55,8 +55,6 @@ import Replace from "./Replace.vue";
 import ReplaceRename from "./ReplaceRename.vue";
 import Share from "./Share.vue";
 import Upload from "./Upload.vue";
-import ShareDelete from "./ShareDelete.vue";
-import DeleteUser from "./DeleteUser.vue";
 import CreateApi from "./CreateApi.vue";
 import ActionApi from "./ActionApi.vue";
 import SidebarLinks from "./SidebarLinks.vue";
@@ -93,9 +91,7 @@ export default {
     ReplaceRename,
     Totp,
     Upload,
-    ShareDelete,
     Sidebar,
-    DeleteUser,
     CreateApi,
     ActionApi,
     SidebarLinks,

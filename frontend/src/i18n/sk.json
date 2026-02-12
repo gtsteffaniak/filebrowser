@@ -456,7 +456,8 @@
     "browseFiles": "Prehľadávanie súborov",
     "selectBannerImage": "Vyberte obrázok bannera",
     "selectFaviconImage": "Vyberte obrázok favicon",
-    "selectImage": "Vybrať obrázok"
+    "selectImage": "Vybrať obrázok",
+    "deleteFailed": "Nepodarilo sa odstrániť podiel"
   },
   "api": {
     "createdAt": "Vytvorené v:",

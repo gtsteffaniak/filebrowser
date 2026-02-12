@@ -456,7 +456,8 @@
     "browseFiles": "Examinar archivos",
     "selectBannerImage": "Seleccionar imagen de banner",
     "selectFaviconImage": "Seleccionar imagen de favicon",
-    "selectImage": "Seleccionar imagen"
+    "selectImage": "Seleccionar imagen",
+    "deleteFailed": "Error al borrar recurso compartido"
   },
   "api": {
     "createdAt": "Creado en:",

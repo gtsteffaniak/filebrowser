@@ -456,7 +456,8 @@
     "browseFiles": "تصفح الملفات",
     "selectBannerImage": "تحديد صورة الشعار",
     "selectFaviconImage": "تحديد الصورة المفضلة",
-    "selectImage": "حدد الصورة"
+    "selectImage": "حدد الصورة",
+    "deleteFailed": "فشل في حذف المشاركة"
   },
   "api": {
     "createdAt": "تم الإنشاء في:",
