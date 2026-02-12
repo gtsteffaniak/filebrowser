@@ -1,10 +1,7 @@
 <template>
-  <div v-if="isDisplayMode" class="card-title">
-    <h2>{{ effectiveTitle }}</h2>
-  </div>
   <div class="card-content">
     <!-- Source Selection Dropdown -->
-    <div v-if="showSourceSelector && !isDisplayMode" class="source-selector" style="margin-bottom: 1rem;">
+    <div v-if="showSourceSelector" class="source-selector" style="margin-bottom: 1rem;">
       <label for="destinationSource" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">
         {{ $t("prompts.destinationSource") }}
       </label>
@@ -16,7 +13,7 @@
     </div>
 
     <!-- Current Path Display -->
-    <div v-if="!isDisplayMode" aria-label="filelist-path" class="searchContext button clickable">
+    <div v-if="!fileList" aria-label="filelist-path" class="searchContext button clickable">
       {{ $t('general.path', { suffix: ':' }) }} {{ sourcePath.path }}
     </div>
 
@@ -49,14 +46,6 @@
         @dblclick.prevent="(event) => handleItemDblClick(item, index, event)"
       />
     </div>
-  </div>
-
-  <!-- Cancel button for display mode -->
-  <div v-if="isDisplayMode" class="card-actions">
-    <button @click="closePrompt" class="button button--flat" :aria-label="$t('general.cancel')"
-      :title="$t('general.cancel')">
-      {{ $t('general.cancel') }}
-    </button>
   </div>
 </template>
 
@@ -140,9 +129,6 @@ export default {
     };
   },
   computed: {
-    effectiveTitle() {
-      return this.title || this.$t("general.files");
-    },
     sourcePath() {
       return { source: this.source, path: this.path };
     },
@@ -150,12 +136,8 @@ export default {
       // Get all available sources from state.sources.info
       return state.sources && state.sources.info ? Object.keys(state.sources.info) : [state.req.source];
     },
-    isDisplayMode() {
-      // Will be in display mode if the fileList prop is provided
-      return this.fileList !== null;
-    },
     showSourceSelector() {
-      return this.availableSources.length > 1 && !this.isDisplayMode && !getters.isShare() && !this.browseShare;
+      return this.availableSources.length > 1 && !this.fileList && !getters.isShare() && !this.browseShare;
     },
     isValidSelection() {
       // If file selection is required, check if a file (not folder) is selected
@@ -185,7 +167,8 @@ export default {
     },
   },
   mounted() {
-    if (this.isDisplayMode) {
+    if (this.fileList) {
+      // When fileList is provided, just display the items
       this.withLoading(async () => {
         await new Promise(resolve => setTimeout(resolve, 0));
         this.fillFromList();
@@ -294,8 +277,7 @@ export default {
       this.withLoading(() => publicApi.fetchPub("/", newHash).then(this.fillOptions));
     },
     fillOptions(req) {
-      // Sets the current path and resets
-      // the current items.
+      // Sets the current path and resets the current items.
       // Use this.path (the path we're browsing) instead of req.path (which may be relative)
       this.current = this.path;
       this.source = req.source || this.source; // Preserve the source we're browsing
@@ -409,7 +391,7 @@ export default {
       event.preventDefault();
       event.stopPropagation();
 
-      if (this.isDisplayMode) {
+      if (this.fileList) {
         this.navigateToItem(item);
         return;
       }
@@ -459,7 +441,6 @@ export default {
         });
         return;
       }
-
       // Otherwise select the element.
       this.selected = path;
       let clickedItem = this.items.find(item => item.path === path);
@@ -492,9 +473,6 @@ export default {
       mutations.closeHovers();
       mutations.setNavigationTransitioning(true);
       url.goToItem(item.source || state.req.source, item.path, undefined);
-    },
-    closePrompt() {
-      mutations.closeHovers();
     },
   },
 };
