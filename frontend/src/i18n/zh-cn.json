@@ -332,7 +332,8 @@
     },
     "newUserHintSubFolder": "例如\"/子文件夹\"--默认为空",
     "permissionsHelp": "用户权限控制用户可以执行哪些类型的操作。管理员权限可完全控制更新和更改任何用户的设置以及许多系统设置。",
-    "api": "API 标记"
+    "api": "API 标记",
+    "userDeleteFailed": "用户删除失败"
   },
   "sidebar": {
     "siteSettings": "网站设置",

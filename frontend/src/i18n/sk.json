@@ -332,7 +332,8 @@
     },
     "newUserHintSubFolder": "napr. '/subfolder' - prázdne pre predvolené nastavenie",
     "permissionsHelp": "Oprávnenia používateľa riadia prístup k typom akcií, ktoré môže používateľ vykonávať. Prístup administrátora poskytuje úplnú kontrolu nad aktualizáciou a zmenou nastavení ktoréhokoľvek používateľa, ako aj nad mnohými systémovými nastaveniami.",
-    "api": "Tokeny API"
+    "api": "Tokeny API",
+    "userDeleteFailed": "Odstránenie používateľa zlyhalo"
   },
   "sidebar": {
     "siteSettings": "Nastavenia stránky",

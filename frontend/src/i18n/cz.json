@@ -470,7 +470,8 @@
     },
     "newUserHintSubFolder": "např. '/subfolder' - prázdný pro výchozí nastavení",
     "permissionsHelp": "Oprávnění uživatele řídí přístup k typům akcí, které může uživatel provádět. Přístup administrátora poskytuje plnou kontrolu nad aktualizací a změnou nastavení libovolného uživatele i nad mnoha nastaveními systému.",
-    "api": "Tokeny API"
+    "api": "Tokeny API",
+    "userDeleteFailed": "Smazání uživatele se nezdařilo"
   },
   "sidebar": {
     "siteSettings": "Nastavení webu",

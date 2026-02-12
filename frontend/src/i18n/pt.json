@@ -332,7 +332,8 @@
     },
     "newUserHintSubFolder": "por exemplo, '/subpasta' - em branco por defeito",
     "permissionsHelp": "As permissões de utilizador controlam o acesso ao tipo de acções que o utilizador pode executar. O acesso de administrador dá controlo total para atualizar e alterar as definições de qualquer utilizador, bem como muitas definições do sistema.",
-    "api": "Tokens API"
+    "api": "Tokens API",
+    "userDeleteFailed": "Falha ao eliminar o utilizador"
   },
   "sidebar": {
     "siteSettings": "Configurações do site",

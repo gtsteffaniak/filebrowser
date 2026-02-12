@@ -332,7 +332,8 @@
     },
     "newUserHintSubFolder": "par exemple \"/sous-dossier\" - vide par défaut",
     "permissionsHelp": "Les autorisations de l'utilisateur contrôlent l'accès au type d'actions que l'utilisateur peut effectuer. L'accès administrateur permet de mettre à jour et de modifier les paramètres de tout utilisateur ainsi que de nombreux paramètres du système.",
-    "api": "Jetons API"
+    "api": "Jetons API",
+    "userDeleteFailed": "Échec de la suppression de l'utilisateur"
   },
   "sidebar": {
     "siteSettings": "Paramètres du site",

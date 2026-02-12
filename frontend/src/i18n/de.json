@@ -332,7 +332,8 @@
     },
     "newUserHintSubFolder": "z.B. '/subfolder' - leer für Standard",
     "permissionsHelp": "Die Benutzerrechte steuern den Zugriff auf die Art der Aktionen, die der Benutzer durchführen kann. Der Administrator-Zugang gibt Ihnen die volle Kontrolle über die Aktualisierung und Änderung der Benutzereinstellungen sowie vieler Systemeinstellungen.",
-    "api": "API-Tokens"
+    "api": "API-Tokens",
+    "userDeleteFailed": "Benutzer löschen fehlgeschlagen"
   },
   "sidebar": {
     "siteSettings": "Seiteneinstellungen",

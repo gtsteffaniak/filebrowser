@@ -332,7 +332,8 @@
     },
     "newUserHintSubFolder": "es. '/sottocartella' - vuoto per l'impostazione predefinita",
     "permissionsHelp": "I permessi utente controllano l'accesso al tipo di azioni che l'utente può eseguire. L'accesso dell'amministratore consente di aggiornare e modificare le impostazioni di qualsiasi utente e molte impostazioni del sistema.",
-    "api": "Gettoni API"
+    "api": "Gettoni API",
+    "userDeleteFailed": "Eliminazione utente non riuscita"
   },
   "sidebar": {
     "siteSettings": "Impostazioni del sito",

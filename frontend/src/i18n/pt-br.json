@@ -332,7 +332,8 @@
     },
     "newUserHintSubFolder": "Por exemplo, '/subfolder' - em branco para o padrão",
     "permissionsHelp": "As permissões de usuário controlam o acesso aos tipos de ações que o usuário pode executar. O acesso de administrador dá controle total para atualizar e alterar as configurações de qualquer usuário, bem como muitas configurações do sistema.",
-    "api": "Tokens de API"
+    "api": "Tokens de API",
+    "userDeleteFailed": "Falha ao excluir o usuário"
   },
   "sidebar": {
     "siteSettings": "Configurações do site",

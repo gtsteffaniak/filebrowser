@@ -587,6 +587,7 @@
     "userCreated": "User created!",
     "userDefaults": "User default settings",
     "userDeleted": "User deleted!",
+    "userDeleteFailed": "User delete failed",
     "userManagement": "User Management",
     "userUpdated": "User updated!",
     "adminOptions": "Admin user options"

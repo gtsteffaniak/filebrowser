@@ -332,7 +332,8 @@
     },
     "newUserHintSubFolder": "例 '/subfolder' - デフォルトは空白",
     "permissionsHelp": "ユーザー権限は、ユーザーが実行できるアクションの種類へのアクセスを制御します。管理者アクセスは、多くのシステム設定だけでなく、任意のユーザーの設定を更新および変更するための完全なコントロールを提供します。",
-    "api": "APIトークン"
+    "api": "APIトークン",
+    "userDeleteFailed": "ユーザーの削除に失敗しました"
   },
   "sidebar": {
     "siteSettings": "サイト設定",
