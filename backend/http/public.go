@@ -91,8 +91,14 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	// Process each file path
 	fileList := []string{}
 	for _, file := range files {
+		// Rule 1: Validate each file path to prevent path traversal
+		cleanFile, err := utils.SanitizeUserPath(file)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid file path: %v", err)
+		}
+
 		// Join the share path with the requested path
-		filePath := utils.JoinPathAsUnix(d.share.Path, file)
+		filePath := utils.JoinPathAsUnix(d.share.Path, cleanFile)
 		fileList = append(fileList, filePath)
 	}
 
@@ -250,7 +256,14 @@ func publicPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 	// Go automatically decodes query params
 	path := r.URL.Query().Get("path")
-	resolvedPath := utils.JoinPathAsUnix(d.share.Path, path)
+
+	// Rule 1: Validate user-provided path to prevent path traversal
+	cleanPath, err := utils.SanitizeUserPath(path)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid path: %v", err)
+	}
+
+	resolvedPath := utils.JoinPathAsUnix(d.share.Path, cleanPath)
 	err = files.WriteFile(source, resolvedPath, r.Body)
 	// hide the error
 	if err != nil {

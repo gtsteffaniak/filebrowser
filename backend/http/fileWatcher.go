@@ -137,8 +137,12 @@ func fileWatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if path == "" || source == "" {
 		return http.StatusBadRequest, fmt.Errorf("path and source are required")
 	}
-
 	var err error
+	path, err = utils.SanitizeUserPath(path)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid path: %v", err)
+	}
+
 	// Parse lines parameter
 	lines := 10 // default
 	if linesStr != "" {
@@ -281,6 +285,13 @@ func fileWatchSSEHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	if path == "" || source == "" {
 		return http.StatusBadRequest, fmt.Errorf("path and source are required")
 	}
+
+	// Rule 1: Validate user-provided path to prevent path traversal
+	cleanPath, err := utils.SanitizeUserPath(path)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid path: %v", err)
+	}
+	path = cleanPath
 
 	// Parse lines parameter
 	lines := 10 // default

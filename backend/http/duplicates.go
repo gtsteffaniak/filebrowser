@@ -555,7 +555,10 @@ func mergeGroupsByChecksum(groups []duplicateGroupWithChecksums) []duplicateGrou
 
 func prepDuplicatesOptions(r *http.Request, d *requestContext) (*duplicatesOptions, error) {
 	source := r.URL.Query().Get("source")
-	scope := r.URL.Query().Get("scope")
+	scope, err := utils.SanitizeUserPath(r.URL.Query().Get("scope"))
+	if err != nil {
+		return nil, fmt.Errorf("invalid scope: %v", err)
+	}
 
 	minSizeMbStr := r.URL.Query().Get("minSizeMb")
 	// First pass uses filename matching for speed, then checksums verify final groups
@@ -564,7 +567,7 @@ func prepDuplicatesOptions(r *http.Request, d *requestContext) (*duplicatesOptio
 	// Default minimum size: 1MB
 	minSizeMb := int64(1)
 	if minSizeMbStr != "" {
-		if _, err := fmt.Sscanf(minSizeMbStr, "%d", &minSizeMb); err != nil {
+		if _, err = fmt.Sscanf(minSizeMbStr, "%d", &minSizeMb); err != nil {
 			return nil, fmt.Errorf("invalid minSizeMb parameter: %w", err)
 		}
 	}
