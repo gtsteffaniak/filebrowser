@@ -114,7 +114,8 @@
     "ua": "Українська",
     "zhCN": "中文 (简体)",
     "zhTW": "中文 (繁體)",
-    "cz": "Čeština"
+    "cz": "Čeština",
+    "nl": "Dutch"
   },
   "login": {
     "createAnAccount": "צור חשבון",
@@ -320,7 +321,6 @@
     "adminOptions": "אפשרויות משתמש מנהל",
     "searchOptions": "אפשרויות חיפוש",
     "systemAdmin": "מערכת וניהול",
-    "configViewer": "מציג תצורה",
     "configViewerShowFull": "הצג את התצורה המלאה",
     "configViewerShowComments": "הצג תגובות",
     "configViewerLoadConfig": "טען תצורה",
@@ -332,7 +332,8 @@
       "proxy": "פרוקסי"
     },
     "newUserHintSubFolder": "לדוגמה, '/subfolder' - ריק עבור ברירת המחדל",
-    "permissionsHelp": "הרשאות המשתמש שולטות בגישה לסוגי הפעולות שהמשתמש יכול לבצע. גישה לניהול מעניקה שליטה מלאה לעדכון ולשינוי הגדרות המשתמש, כמו גם הגדרות רבות של המערכת."
+    "permissionsHelp": "הרשאות המשתמש שולטות בגישה לסוגי הפעולות שהמשתמש יכול לבצע. גישה לניהול מעניקה שליטה מלאה לעדכון ולשינוי הגדרות המשתמש, כמו גם הגדרות רבות של המערכת.",
+    "configViewer": "מציג תצורה"
   },
   "sidebar": {
     "siteSettings": "הגדרות",
@@ -625,7 +626,8 @@
     "lines": "קווים{suffix}",
     "lastUpdate": "עדכון אחרון{suffix}",
     "latency": "חביון{suffix}",
-    "all": "כל{suffix}"
+    "all": "כל{suffix}",
+    "expiration": "תוקף{suffix}"
   },
   "access": {
     "rules": "כללי גישה",

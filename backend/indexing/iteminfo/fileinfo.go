@@ -3,7 +3,7 @@ package iteminfo
 import (
 	"time"
 
-	"github.com/gtsteffaniak/filebrowser/backend/ffmpeg"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 )
 
 type ItemInfo struct {
@@ -47,14 +47,14 @@ type MediaMetadata struct {
 // extra calculated fields can be added here
 type ExtendedFileInfo struct {
 	FileInfo
-	Content      string                 `json:"content,omitempty"`      // text content of a file, if requested
-	Subtitles    []ffmpeg.SubtitleTrack `json:"subtitles,omitempty"`    // subtitles for video files
-	Metadata     *MediaMetadata         `json:"metadata,omitempty"`     // media metadata for audio/video files (includes duration)
-	Checksums    map[string]string      `json:"checksums,omitempty"`    // checksums for the file
-	Token        string                 `json:"token,omitempty"`        // token for the file -- used for sharing
-	OnlyOfficeId string                 `json:"onlyOfficeId,omitempty"` // id for onlyoffice files
-	Source       string                 `json:"source,omitempty"`       // associated index source for the file
-	Hash         string                 `json:"hash,omitempty"`         // hash for the file -- used for sharing
-	HasMetadata  bool                   `json:"hasMetadata"`            // whether the file or folder has metadata
-	RealPath     string                 `json:"-"`
+	Content      string                `json:"content,omitempty"`      // text content of a file, if requested
+	Subtitles    []utils.SubtitleTrack `json:"subtitles,omitempty"`    // subtitles for video files
+	Metadata     *MediaMetadata        `json:"metadata,omitempty"`     // media metadata for audio/video files (includes duration)
+	Checksums    map[string]string     `json:"checksums,omitempty"`    // checksums for the file
+	Token        string                `json:"token,omitempty"`        // token for the file -- used for sharing
+	OnlyOfficeId string                `json:"onlyOfficeId,omitempty"` // id for onlyoffice files
+	Source       string                `json:"source,omitempty"`       // associated index source for the file
+	Hash         string                `json:"hash,omitempty"`         // hash for the file -- used for sharing
+	HasMetadata  bool                  `json:"hasMetadata"`            // whether the file or folder has metadata
+	RealPath     string                `json:"-"`
 }

@@ -10,7 +10,7 @@
         <tr>
           <th>{{ $t("general.hash") }}</th>
           <th>{{ $t("general.path") }}</th>
-          <th>{{ $t("time.unit") }}</th>
+          <th>{{ $t("general.expiration") }}</th>
           <th>{{ $t("general.downloads") }}</th>
           <th>{{ $t("general.username") }}</th>
           <th></th>

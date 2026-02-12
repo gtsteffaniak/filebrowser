@@ -76,8 +76,8 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 
 	// Get all "file" parameter values (supports repeated params)
-	encodedFiles := r.URL.Query()["file"]
-	if len(encodedFiles) == 0 {
+	files := r.URL.Query()["file"]
+	if len(files) == 0 {
 		return http.StatusBadRequest, fmt.Errorf("no files specified")
 	}
 
@@ -88,14 +88,9 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 	actualSourceName := sourceInfo.Name
 
-	// Decode and process each file path
+	// Process each file path
 	fileList := []string{}
-	for _, encodedFile := range encodedFiles {
-		// Decode the URL-encoded path - use PathUnescape to preserve + as literal character
-		file, decodeErr := url.PathUnescape(encodedFile)
-		if decodeErr != nil {
-			return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", decodeErr)
-		}
+	for _, file := range files {
 		// Join the share path with the requested path
 		filePath := utils.JoinPathAsUnix(d.share.Path, file)
 		fileList = append(fileList, filePath)
@@ -106,8 +101,8 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		if err == errors.ErrDownloadNotAllowed {
 			return http.StatusForbidden, errors.ErrDownloadNotAllowed
 		}
-		logger.Errorf("public share handler: error processing filelist: %v with error %v", encodedFiles, err)
-		return status, fmt.Errorf("error processing filelist: %v", encodedFiles)
+		logger.Errorf("public share handler: error processing filelist: %v with error %v", files, err)
+		return status, fmt.Errorf("error processing filelist: %v", files)
 	}
 	return status, nil
 }
