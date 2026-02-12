@@ -58,9 +58,9 @@
     "itemSelected": "élément sélectionné",
     "itemsSelected": "éléments sélectionnés",
     "myFiles": "Mes dossiers{suffix}",
-    "newFile": "Nouveau Fichier{suffix}",
+    "newFile": "Nouveau fichier{suffix}",
     "newFolder": "Nouveau dossier{suffix}",
-    "duration": "Durée de l'accord{suffix}",
+    "duration": "Durée{suffix}",
     "sortByDuration": "Trier par durée",
     "sameFolder": "Impossible de déplacer vers le même dossier",
     "cannotAccesDir": "Impossible d'accéder au répertoire",
@@ -310,7 +310,7 @@
     "userHomeBasePath": "Chemin de base pour les répertoires personnels des utilisateurs",
     "userScopeGenerationPlaceholder": "Le champ d'application sera généré automatiquement",
     "createUserHomeDirectory": "Créer le répertoire personnel de l'utilisateur",
-    "api": "Clés API",
+    "api": "API",
     "loginMethodDescription": "méthode de connexion autorisée pour l'utilisateur.",
     "userNotAdmin": "L'utilisateur n'est pas un administrateur",
     "enterPassword": "Saisir le mot de passe",
@@ -321,6 +321,7 @@
     "adminOptions": "Options de l'utilisateur administrateur",
     "searchOptions": "Options de recherche",
     "systemAdmin": "Système et administration",
+    "configViewer": "Visualiseur de configuration",
     "configViewerShowFull": "Afficher la configuration complète",
     "configViewerShowComments": "Afficher les commentaires",
     "configViewerLoadConfig": "Configuration de la charge",
@@ -332,8 +333,7 @@
       "proxy": "Proxy"
     },
     "newUserHintSubFolder": "par exemple \"/sous-dossier\" - vide par défaut",
-    "permissionsHelp": "Les autorisations de l'utilisateur contrôlent l'accès au type d'actions que l'utilisateur peut effectuer. L'accès administrateur permet de mettre à jour et de modifier les paramètres de tout utilisateur ainsi que de nombreux paramètres du système.",
-    "configViewer": "Config Viewer"
+    "permissionsHelp": "Les autorisations de l'utilisateur contrôlent l'accès au type d'actions que l'utilisateur peut effectuer. L'accès administrateur permet de mettre à jour et de modifier les paramètres de tout utilisateur ainsi que de nombreux paramètres du système."
   },
   "sidebar": {
     "siteSettings": "Paramètres du site",
