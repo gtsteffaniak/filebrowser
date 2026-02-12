@@ -332,7 +332,8 @@
     },
     "newUserHintSubFolder": "np. '/subfolder' - domyślnie puste",
     "permissionsHelp": "Uprawnienia użytkownika kontrolują dostęp do rodzaju działań, które użytkownik może wykonywać. Dostęp administratora daje pełną kontrolę nad aktualizacją i zmianą ustawień dowolnego użytkownika, a także wielu ustawień systemowych.",
-    "api": "Tokeny API"
+    "api": "Tokeny API",
+    "userDeleteFailed": "Usunięcie użytkownika nie powiodło się"
   },
   "sidebar": {
     "siteSettings": "Ustawienia Strony",

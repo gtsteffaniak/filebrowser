@@ -332,7 +332,8 @@
     },
     "newUserHintSubFolder": "t.ex. \"/undermapp\" - tom för standard",
     "permissionsHelp": "Användarbehörigheter styr vilka typer av åtgärder som användaren kan utföra. Administratörsbehörighet ger full kontroll över uppdatering och ändring av alla användarinställningar samt många systeminställningar.",
-    "api": "API-token"
+    "api": "API-token",
+    "userDeleteFailed": "Användarborttagning misslyckades"
   },
   "sidebar": {
     "siteSettings": "System inställningar",

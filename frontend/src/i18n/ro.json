@@ -332,7 +332,8 @@
     },
     "newUserHintSubFolder": "de exemplu \"/subfolder\" - gol pentru implicit",
     "permissionsHelp": "Permisiunile utilizatorului controlează accesul la ce tip de acțiuni poate efectua utilizatorul. Accesul de administrator oferă control deplin pentru actualizarea și modificarea setărilor oricărui utilizator, precum și a multor setări de sistem.",
-    "api": "Token-uri API"
+    "api": "Token-uri API",
+    "userDeleteFailed": "Ștergerea utilizatorului a eșuat"
   },
   "sidebar": {
     "siteSettings": "Setări site",

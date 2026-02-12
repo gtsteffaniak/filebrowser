@@ -328,7 +328,8 @@
     "loginMethods": {
       "password": "Senha",
       "oidc": "OIDC",
-      "proxy": "Proxy"
+      "proxy": "Proxy",
+      "userDeleteFailed": "Falha ao excluir o usuário"
     },
     "newUserHintSubFolder": "Por exemplo, '/subfolder' - em branco para o padrão",
     "permissionsHelp": "As permissões de usuário controlam o acesso aos tipos de ações que o usuário pode executar. O acesso de administrador dá controle total para atualizar e alterar as configurações de qualquer usuário, bem como muitas configurações do sistema.",

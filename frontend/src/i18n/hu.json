@@ -332,7 +332,8 @@
     },
     "newUserHintSubFolder": "pl. '/subfolder' - üres az alapértelmezéshez",
     "permissionsHelp": "A felhasználói engedélyek szabályozzák, hogy a felhasználó milyen típusú műveleteket hajthat végre. A rendszergazdai hozzáférés teljes körű ellenőrzést biztosít bármely felhasználó beállításainak, valamint számos rendszerbeállításnak a frissítéséhez és módosításához.",
-    "api": "API tokenek"
+    "api": "API tokenek",
+    "userDeleteFailed": "Felhasználó törlése sikertelen"
   },
   "sidebar": {
     "siteSettings": "Oldalbeállítások",

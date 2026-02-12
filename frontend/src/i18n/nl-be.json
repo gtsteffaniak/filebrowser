@@ -332,7 +332,8 @@
     },
     "newUserHintSubFolder": "bijv. '/submap' - leeg voor standaard",
     "permissionsHelp": "Gebruikersrechten bepalen welke acties de gebruiker kan uitvoeren. Administrar toegang geeft volledige controle om de instellingen van elke gebruiker bij te werken en te wijzigen, evenals vele systeeminstellingen.",
-    "api": "API-tokens"
+    "api": "API-tokens",
+    "userDeleteFailed": "Gebruiker verwijderen mislukt"
   },
   "sidebar": {
     "siteSettings": "Site-instellingen",

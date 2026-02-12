@@ -332,7 +332,8 @@
     },
     "newUserHintSubFolder": "örneğin '/subfolder' - varsayılan için boş",
     "permissionsHelp": "Kullanıcı izinleri, kullanıcının ne tür eylemler gerçekleştirebileceğine erişimi kontrol eder. Yönetici erişimi, herhangi bir kullanıcının ayarlarının yanı sıra birçok sistem ayarını güncellemek ve değiştirmek için tam kontrol sağlar.",
-    "api": "API Belirteçleri"
+    "api": "API Belirteçleri",
+    "userDeleteFailed": "Kullanıcı silme başarısız"
   },
   "sidebar": {
     "siteSettings": "Site ayarları!",
