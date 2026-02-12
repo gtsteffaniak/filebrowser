@@ -13,7 +13,8 @@ All notable changes to this project will be documented in this file. For commit 
  - Can't access directories with space (and possibly other special characters) when browsing a public link share (#1956)
  - External ASS subtitles are not usable in web preview (#1933)
  - Filename blocking rename/move (#1950)
- - enforcedOtp: true blocks all user settings updates with HTTP 400 #1962
+ - enforcedOtp: true blocks all user settings updates with HTTP 400 (#1962)
+ - Share favicon URL not showing up and Share description causing endless loading (#1911)
 
 ## v1.2.3-beta
 
