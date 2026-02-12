@@ -324,7 +324,29 @@ export default {
       }
     },
     deletePrompt() {
-      mutations.showHover({ name: "deleteUser", props: { user: this.user } });
+      mutations.showHover({
+        name: "generic",
+        props: {
+          title: this.$t("general.delete"),
+          body: this.$t("prompts.deleteUserMessage", { username: this.user.username }),
+          buttons: [
+            {
+              label: this.$t("general.delete"),
+              action: async () => {
+                try {
+                  await usersApi.remove(this.user.id);
+                  notify.showSuccessToast(this.$t("settings.userDeleted"));
+                  eventBus.emit('usersChanged');
+                  mutations.closeHovers();
+                } catch (e) {
+                  console.error(e);
+                  notify.showErrorToast(this.$t("settings.userDeleteFailed"));
+                }
+              },
+            },
+          ],
+        },
+      });
     },
     async save(event) {
       event.preventDefault();

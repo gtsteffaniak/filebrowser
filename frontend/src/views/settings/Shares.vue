@@ -179,7 +179,7 @@ export default {
         name: "generic",
         props: {
           title: this.$t("general.delete"),
-          message: this.$t("prompts.deleteMessageShare", { path: item.path }),
+          body: this.$t("prompts.deleteMessageShare", { path: item.path }),
           buttons: [
             {
               label: this.$t("general.delete"),
