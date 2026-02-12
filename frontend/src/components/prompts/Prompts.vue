@@ -71,6 +71,7 @@ import CopyPasteConfirm from "./CopyPasteConfirm.vue";
 import CloseWithActiveUploads from "./CloseWithActiveUploads.vue";
 import Generic from "./Generic.vue";
 import ShareInfo from "./ShareInfo.vue";
+import FileList from "./FileListing.vue";
 import { state, getters, mutations } from "@/store";
 
 export default {
@@ -105,6 +106,7 @@ export default {
     CloseWithActiveUploads,
     Generic,
     ShareInfo,
+    FileList,
   },
   data() {
     return {

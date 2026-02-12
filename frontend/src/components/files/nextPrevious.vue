@@ -964,13 +964,10 @@ export default {
     showCurrentListing() {
       const currentItems = this.getCurrentListingItems();
       mutations.showHover({
-        name: "generic",
+        name: "file-list",
         props: {
-          title: this.$t("prompts.quickJump"),
-          componentName: "FileList",
-          componentProps: {
-            fileList: currentItems,
-          },
+          fileList: currentItems,
+          title: this.$t("prompts.quickJump")
         }
       });
     },
