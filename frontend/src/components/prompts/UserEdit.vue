@@ -149,10 +149,6 @@ export default {
       type: [String, Number],
       required: false,
     },
-    isNew: {
-      type: Boolean,
-      required: false,
-    },
   },
   data() {
     return {
@@ -186,6 +182,9 @@ export default {
     },
     settings() {
       return state.settings;
+    },
+    isNew() {
+      return !this.userId;
     },
     stateUser() {
       return state.user;

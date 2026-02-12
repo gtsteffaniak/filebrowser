@@ -103,7 +103,7 @@ export default {
       if (userId) {
         mutations.showHover({ name: "user-edit", props: { userId } });
       } else {
-        mutations.showHover({ name: "user-edit", props: { isNew: true } });
+        mutations.showHover({ name: "user-edit" });
       }
     },
   },
