@@ -1,31 +1,24 @@
 <template>
-  <div class="card-content">
-    <component v-if="componentName" :is="componentName" v-bind="componentProps"/>
-    <div v-else-if="body" v-html="body"></div>
-    <div class="card-actions" v-if="displayButtons.length > 0">
-      <button
-        v-for="(button, index) in displayButtons"
-        :key="index"
-        :class="getButtonClass(button)"
-        @click="handleButtonClick(button)"
-        :aria-label="button.label"
-        :title="button.label"
-      >
-        {{ button.label }}
-      </button>
-    </div>
+  <div class="card-content" v-html="body"></div>
+  <div class="card-actions">
+    <button
+      v-for="(button, index) in displayButtons"
+      :key="index"
+      :class="getButtonClass(button)"
+      @click="handleButtonClick(button)"
+      :aria-label="button.label"
+      :title="button.label"
+    >
+      {{ button.label }}
+    </button>
   </div>
 </template>
 <script>
-import FileList from "@/components/files/FileList.vue";
 
 // use this component for any prompt to display text message and custom buttons
 // simple html body is supported, but anything complex should get its own component.
 export default {
   name: "generic-prompt",
-  components: {
-    FileList,
-  },
   props: {
     title: {
       type: String,
@@ -33,18 +26,7 @@ export default {
     },
     body: {
       type: String,
-      required: false,
-      default: "",
-    },
-    componentName: {
-      type: String,
-      required: false,
-      default: "",
-    },
-    componentProps: {
-      type: Object,
-      required: false,
-      default: () => ({}),
+      required: true,
     },
     buttons: {
       type: Array,
@@ -55,7 +37,7 @@ export default {
   computed: {
     displayButtons() {
       // If buttons are provided, use them
-      if (Array.isArray(this.buttons)) {
+      if (this.buttons && this.buttons.length > 0) {
         return this.buttons;
       }
       return [];
@@ -84,10 +66,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-.card-content {
-  position: relative;
-}
-
-</style>
