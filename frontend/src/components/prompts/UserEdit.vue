@@ -484,7 +484,7 @@ export default {
       const displayName = this.isNew
         ? this.$t("settings.modifyOtherUser")
         : `${this.$t("settings.modifyOtherUser")} ${this.user.username}`;
-      mutations.updatePromptName(this.promptId, displayName);
+      mutations.updatePromptTitle(this.promptId, displayName);
     },
   },
 };
