@@ -114,7 +114,8 @@
     "ua": "Українська",
     "zhCN": "中文 (简体)",
     "zhTW": "中文 (繁體)",
-    "cz": "Čeština"
+    "cz": "Čeština",
+    "nl": "Dutch"
   },
   "login": {
     "createAnAccount": "Crea un account",
@@ -320,7 +321,6 @@
     "adminOptions": "Opzioni dell'utente amministratore",
     "searchOptions": "Opzioni di ricerca",
     "systemAdmin": "Sistema e amministrazione",
-    "configViewer": "Visualizzatore di configurazione",
     "configViewerShowFull": "Mostra la configurazione completa",
     "configViewerShowComments": "Mostra i commenti",
     "configViewerLoadConfig": "Configurazione del carico",
@@ -332,7 +332,8 @@
       "proxy": "Proxy"
     },
     "newUserHintSubFolder": "es. '/sottocartella' - vuoto per l'impostazione predefinita",
-    "permissionsHelp": "I permessi utente controllano l'accesso al tipo di azioni che l'utente può eseguire. L'accesso dell'amministratore consente di aggiornare e modificare le impostazioni di qualsiasi utente e molte impostazioni del sistema."
+    "permissionsHelp": "I permessi utente controllano l'accesso al tipo di azioni che l'utente può eseguire. L'accesso dell'amministratore consente di aggiornare e modificare le impostazioni di qualsiasi utente e molte impostazioni del sistema.",
+    "configViewer": "Visualizzatore di configurazione"
   },
   "sidebar": {
     "siteSettings": "Impostazioni del sito",
@@ -625,7 +626,8 @@
     "lines": "Linee{suffix}",
     "lastUpdate": "Ultimo aggiornamento{suffix}",
     "latency": "Latenza{suffix}",
-    "all": "Tutti{suffix}"
+    "all": "Tutti{suffix}",
+    "expiration": "Scadenza{suffix}"
   },
   "access": {
     "rules": "Regole di accesso",

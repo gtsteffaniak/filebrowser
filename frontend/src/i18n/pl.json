@@ -114,7 +114,8 @@
     "ua": "Українська",
     "zhCN": "中文 (简体)",
     "zhTW": "中文 (繁體)",
-    "cz": "Čeština"
+    "cz": "Čeština",
+    "nl": "Dutch"
   },
   "login": {
     "createAnAccount": "Utwórz konto",
@@ -320,7 +321,6 @@
     "adminOptions": "Opcje użytkownika administratora",
     "searchOptions": "Opcje wyszukiwania",
     "systemAdmin": "System i administrator",
-    "configViewer": "Przeglądarka konfiguracji",
     "configViewerShowFull": "Pokaż pełną konfigurację",
     "configViewerShowComments": "Pokaż komentarze",
     "configViewerLoadConfig": "Konfiguracja ładowania",
@@ -332,7 +332,8 @@
       "proxy": "Pełnomocnik"
     },
     "newUserHintSubFolder": "np. '/subfolder' - domyślnie puste",
-    "permissionsHelp": "Uprawnienia użytkownika kontrolują dostęp do rodzaju działań, które użytkownik może wykonywać. Dostęp administratora daje pełną kontrolę nad aktualizacją i zmianą ustawień dowolnego użytkownika, a także wielu ustawień systemowych."
+    "permissionsHelp": "Uprawnienia użytkownika kontrolują dostęp do rodzaju działań, które użytkownik może wykonywać. Dostęp administratora daje pełną kontrolę nad aktualizacją i zmianą ustawień dowolnego użytkownika, a także wielu ustawień systemowych.",
+    "configViewer": "Przeglądarka konfiguracji"
   },
   "sidebar": {
     "siteSettings": "Ustawienia Strony",
@@ -625,7 +626,8 @@
     "lines": "Linie{suffix}",
     "lastUpdate": "Ostatnia aktualizacja{suffix}",
     "latency": "Opóźnienie{suffix}",
-    "all": "Wszystkie{suffix}"
+    "all": "Wszystkie{suffix}",
+    "expiration": "Wygaśnięcie{suffix}"
   },
   "access": {
     "rules": "Zasady dostępu",
