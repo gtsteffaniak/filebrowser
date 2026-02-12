@@ -231,12 +231,14 @@ export default {
       }
       mutations.setDeletedItem(false);
     },
-    req() {
+    async req() {
       if (!getters.isLoggedIn()) {
         return;
       }
 
       this.isDeleted = false;
+      // Reload subtitles when navigating to a new video
+      this.subtitlesList = await this.subtitles();
       this.updatePreview();
       mutations.resetSelected();
       mutations.addSelected({
@@ -279,38 +281,45 @@ export default {
         return [];
       }
       let subs = [];
-      for (const subtitleTrack of state.req.subtitles) {
-        // All subtitle content is now pre-loaded when content=true
-        // Simply use the content that's already available
-        if (
-          !subtitleTrack.content ||
-          subtitleTrack.content.length === 0
-        ) {
-          console.warn(
-            "Subtitle track has no content:",
+      // Fetch subtitle content for each track using the media API
+      for (let index = 0; index < state.req.subtitles.length; index++) {
+        const subtitleTrack = state.req.subtitles[index];
+        try {
+          // Fetch subtitle content from API using name and embedded
+          const content = await filesApi.getSubtitleContent(
+            state.req.source,
+            state.req.path,
             subtitleTrack.name,
+            subtitleTrack.embedded
           );
-          continue;
-        }
-        let vttContent = subtitleTrack.content;
-        if (!subtitleTrack.content.startsWith("WEBVTT")) {
-          const ext = getFileExtension(subtitleTrack.name);
-          vttContent = convertToVTT(ext, subtitleTrack.content);
-        }
-        if (vttContent.startsWith("WEBVTT")) {
-          // Create a virtual file (Blob) and get a URL for it
-          const blob = new Blob([vttContent], { type: "text/vtt" });
-          const vttURL = URL.createObjectURL(blob);
-          subs.push({
-            name: subtitleTrack.name,
-            src: vttURL,
-            language: subtitleTrack.language || ''
-          });
-        } else {
-          console.warn(
-            "Skipping subtitle track because it has no WEBVTT header:",
-            subtitleTrack.name,
-          );
+          if (!content || content.length === 0) {
+            console.warn("Subtitle track has no content:", subtitleTrack.name);
+            continue;
+          }
+          // Convert to VTT if needed
+          let vttContent = content;
+          if (!content.startsWith("WEBVTT")) {
+            const ext = getFileExtension(subtitleTrack.name);
+            vttContent = convertToVTT(ext, content);
+          }
+          if (vttContent.startsWith("WEBVTT")) {
+            // Create a virtual file (Blob) and get a URL for it
+            const blob = new Blob([vttContent], { type: "text/vtt" });
+            const vttURL = URL.createObjectURL(blob);
+
+            subs.push({
+              name: subtitleTrack.name,
+              src: vttURL,
+              language: subtitleTrack.language
+            });
+          } else {
+            console.warn(
+              "Skipping subtitle track - no WEBVTT header after conversion:",
+              subtitleTrack.name
+            );
+          }
+        } catch (err) {
+          console.error("Failed to load subtitle:", subtitleTrack.name, err);
         }
       }
       return subs;
@@ -413,7 +422,7 @@ export default {
     },
     showDeletePrompt() {
       const item = state.req;
-      const previewUrl = item.hasPreview 
+      const previewUrl = item.hasPreview
         ? filesApi.getPreviewURL(item.source, item.path, item.modified)
         : null;
       mutations.showHover({

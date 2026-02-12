@@ -50,7 +50,7 @@
       <div class="plyr-video-container" ref="plyrVideoContainer">
         <video :src="raw" :type="req.type" :autoplay="shouldAutoplay" @play="handlePlay" playsinline ref="videoElement">
           <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
-            :label="'Subtitle ' + sub.name" :default="false" />
+            :label="sub.name" :srclang="sub.language" :default="index === 0" />
         </video>
       </div>
     </div>
@@ -67,7 +67,7 @@
       <video ref="defaultVideoPlayer" :src="raw"
         controls :autoplay="shouldAutoplay" @play="handlePlay" playsinline >
         <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
-          :label="'Subtitle ' + sub.name" :default="index === 0" />
+          :label="sub.name" :srclang="sub.language" :default="index === 0" />
       </video>
     </div>
 
@@ -188,7 +188,7 @@ export default {
           "settings",
           "fullscreen",
         ],
-        settings: ["quality", "speed", "playback"],
+        settings: ["captions", "quality", "speed", "playback"],
         speed: {
           selected: 1,
           options: [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2],
@@ -231,6 +231,16 @@ export default {
       // update queue if the listing changes
       if (newListing && newListing.length > 0) {
         this.setupPlaybackQueue(true);
+      }
+    },
+    subtitlesList(newSubs, oldSubs) {
+      // Initialize Plyr when subtitles are loaded (if we were waiting for them)
+      if (newSubs && newSubs.length > 0 && (!oldSubs || oldSubs.length === 0)) {
+        if (!this.useDefaultMediaPlayer && !this.player && this.previewType === 'video') {
+          this.$nextTick(() => {
+            this.initializePlyr();
+          });
+        }
       }
     },
   },
@@ -592,6 +602,17 @@ export default {
         this.setupDefaultPlayerEvents(this.mediaElement);
         return;
       }
+      
+      // For videos with subtitle metadata, wait for subtitles to load before initializing Plyr
+      // This prevents Plyr from trying to access tracks before they have valid blob URLs
+      const hasSubtitleMetadata = this.req?.subtitles && this.req.subtitles.length > 0;
+      const subtitlesNotLoaded = !this.subtitlesList || this.subtitlesList.length === 0;
+      
+      if (this.previewType === 'video' && hasSubtitleMetadata && subtitlesNotLoaded) {
+        // Wait for subtitles to be loaded (watcher will call initializePlyr)
+        return;
+      }
+      
       this.initializePlyr();
     },
     initializePlyr() {

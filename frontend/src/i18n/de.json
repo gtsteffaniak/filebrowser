@@ -114,7 +114,8 @@
     "ua": "Українська",
     "zhCN": "中文 (简体)",
     "zhTW": "中文 (繁體)",
-    "cz": "Čeština"
+    "cz": "Čeština",
+    "nl": "Dutch"
   },
   "login": {
     "createAnAccount": "Konto erstellen",
@@ -320,7 +321,6 @@
     "adminOptions": "Optionen für Verwaltungsbenutzer",
     "searchOptions": "Suchoptionen",
     "systemAdmin": "System & Verwaltung",
-    "configViewer": "Config Viewer",
     "configViewerShowFull": "Vollständige Konfiguration anzeigen",
     "configViewerShowComments": "Kommentare anzeigen",
     "configViewerLoadConfig": "Konfiguration laden",
@@ -332,7 +332,8 @@
       "proxy": "Proxy"
     },
     "newUserHintSubFolder": "z.B. '/subfolder' - leer für Standard",
-    "permissionsHelp": "Die Benutzerrechte steuern den Zugriff auf die Art der Aktionen, die der Benutzer durchführen kann. Der Administrator-Zugang gibt Ihnen die volle Kontrolle über die Aktualisierung und Änderung der Benutzereinstellungen sowie vieler Systemeinstellungen."
+    "permissionsHelp": "Die Benutzerrechte steuern den Zugriff auf die Art der Aktionen, die der Benutzer durchführen kann. Der Administrator-Zugang gibt Ihnen die volle Kontrolle über die Aktualisierung und Änderung der Benutzereinstellungen sowie vieler Systemeinstellungen.",
+    "configViewer": "Config Viewer"
   },
   "sidebar": {
     "siteSettings": "Seiteneinstellungen",
@@ -625,7 +626,8 @@
     "lines": "Zeilen{suffix}",
     "lastUpdate": "Letzte Aktualisierung{suffix}",
     "latency": "Latenzzeit{suffix}",
-    "all": "Alle{suffix}"
+    "all": "Alle{suffix}",
+    "expiration": "Verfallsdatum{suffix}"
   },
   "access": {
     "rules": "Zugangsregeln",
