@@ -189,7 +189,7 @@ func VerifyTotpCode(user *users.User, code string, userStore *users.Storage) err
 		logger.Warningf("Invalid TOTP code for user %s", user.Username)
 		return fmt.Errorf("invalid OTP token")
 	}
-	if totpSecret != "" {
+	if totpSecret != "" || !user.OtpEnabled {
 		user.TOTPSecret = totpSecret // The encrypted or plaintext secret
 		user.TOTPNonce = totpNonce   // The nonce if encrypted, or empty if plaintext
 		user.OtpEnabled = true       // Enable OTP for the user
