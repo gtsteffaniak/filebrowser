@@ -28,19 +28,6 @@
         :show-files="true" :show-folders="true" :allowed-file-types="filePickerAllowedTypes"
         :require-file-selection="true" :title="filePickerTitle">
       </file-list>
-<<<<<<< HEAD
-      <div class="card-actions">
-        <button class="button button--flat" @click="cancelFilePicker" :aria-label="$t('general.cancel')"
-          :title="$t('general.cancel')">
-          {{ $t("general.cancel") }}
-        </button>
-        <button class="button button--flat button--blue" @click="confirmFilePicker" :disabled="!filePickerSelectionValid" :aria-label="$t('general.ok')"
-          :title="$t('general.ok')">
-          {{ $t("general.ok") }}
-        </button>
-      </div>
-=======
->>>>>>> v1.2.4-beta
     </div>
 
     <div v-else-if="!isPickingFile">

@@ -708,7 +708,8 @@
     "lastUpdate": "最新更新{suffix}",
     "latency": "延迟{suffix}",
     "all": "全部{suffix}",
-    "acknowledge": "确认{suffix}"
+    "acknowledge": "确认{suffix}",
+    "expiration": "到期{suffix}"
   },
   "access": {
     "rules": "访问规则",

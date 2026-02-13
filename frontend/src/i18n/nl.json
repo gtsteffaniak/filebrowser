@@ -116,6 +116,7 @@
     "lines": "Regels{suffix}",
     "lastUpdate": "Laatste update{suffix}",
     "latency": "Vertraging{suffix}",
+    "acknowledge": "erkennen{suffix}",
     "expiration": "Vervaldatum{suffix}"
   },
   "buttons": {
@@ -236,8 +237,7 @@
     "ua": "Українська",
     "zhCN": "中文 (简体)",
     "zhTW": "中文 (繁體)",
-    "cz": "Čeština",
-    "nl": "Dutch"
+    "cz": "Čeština"
   },
   "login": {
     "createAnAccount": "Account aanmaken",
@@ -323,7 +323,8 @@
     "allowReplacementsDescription": "Iedereen kan bestaande bestanden vervangen door bestanden met dezelfde naam te uploaden.",
     "shareInfo": "QR-code en info delen",
     "shareInfoDescription": "Deze koppeling toont de informatie van de gedeelde map, inclusief titel, beschrijving, banner en QR-code in een popup.",
-    "downloadDescription": "Met deze koppeling kunt u de volledige inhoud van de gedeelde map downloaden als een gecomprimeerd bestand."
+    "downloadDescription": "Met deze koppeling kunt u de volledige inhoud van de gedeelde map downloaden als een gecomprimeerd bestand.",
+    "deleteFailed": "Share niet verwijderd"
   },
   "prompts": {
     "operationInProgress": "Werk in uitvoering, even geduld...",
@@ -589,7 +590,8 @@
     "userDeleted": "Gebruiker verwijderd!",
     "userManagement": "Gebruikersbeheer",
     "userUpdated": "Gebruiker bijgewerkt!",
-    "adminOptions": "Opties voor beheerders"
+    "adminOptions": "Opties voor beheerders",
+    "userDeleteFailed": "Verwijderen gebruiker mislukt"
   },
   "sidebar": {
     "siteSettings": "Site-instellingen",
@@ -597,7 +599,6 @@
     "fileActions": "Bestandsacties",
     "customizeLinks": "Zijbalk koppelingen aanpassen",
     "customizeLinksDescription": "Pas de koppelingen in de zijbalk aan. Gebruik slepen en neerzetten om te ordenen.",
-    "customizeShareLinks": "Koppelingen in Zijbalk Delen aanpassen",
     "customizeShareLinksDescription": "Pas de koppelingen aan die worden weergegeven in de zijbalk voor deze gedeelde map. Slepen en neerzetten om te herschikken.",
     "currentLinks": "Huidige koppelingen",
     "addNewLink": "Nieuwe koppeling toevoegen",
@@ -662,9 +663,10 @@
     "enabled": "Ingeschakeld",
     "disabled": "Uitgeschakeld",
     "tokenType": "Type token:",
-    "minimalDescription": "Minimaal token",
     "minimalInfo": "Sluit tokenaanpassingen uit om een kleinere tokenlengte te creëren. Exacte overeenkomst met de rechten van de bijbehorende gebruiker.",
-    "clickToCopyKey": "Klik om sleutel te kopiëren (verborgen)"
+    "clickToCopyKey": "Klik om sleutel te kopiëren (verborgen)",
+    "customizeToken": "Token aanpassen",
+    "customizeTokenInfo": "Pas de tokenpermissies en -attributen aan. Dit zal een langer token aanmaken dat mogelijk niet werkt bij sommige WebDAV-clients."
   },
   "index": {
     "unknown": "Onbekend",

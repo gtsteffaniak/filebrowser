@@ -708,7 +708,8 @@
     "lastUpdate": "Senaste uppdatering{suffix}",
     "latency": "Fördröjning{suffix}",
     "all": "Alla{suffix}",
-    "acknowledge": "Bekräfta{suffix}"
+    "acknowledge": "Bekräfta{suffix}",
+    "expiration": "Förfallodag{suffix}"
   },
   "access": {
     "rules": "Regler för åtkomst",

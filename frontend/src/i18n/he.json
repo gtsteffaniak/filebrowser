@@ -628,7 +628,8 @@
     "lastUpdate": "עדכון אחרון{suffix}",
     "latency": "חביון{suffix}",
     "all": "כל{suffix}",
-    "acknowledge": "אשר{suffix}"
+    "acknowledge": "אשר{suffix}",
+    "expiration": "תוקף{suffix}"
   },
   "access": {
     "rules": "כללי גישה",

@@ -628,7 +628,8 @@
     "lastUpdate": "Utolsó frissítés{suffix}",
     "latency": "Késleltetés{suffix}",
     "all": "Minden{suffix}",
-    "acknowledge": "Visszaigazolás{suffix}"
+    "acknowledge": "Visszaigazolás{suffix}",
+    "expiration": "Lejárat{suffix}"
   },
   "access": {
     "rules": "Hozzáférési szabályok",

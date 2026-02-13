@@ -628,7 +628,8 @@
     "lastUpdate": "Последнее обновление{suffix}",
     "latency": "Латентность{suffix}",
     "all": "Все{suffix}",
-    "acknowledge": "Подтвердите{suffix}"
+    "acknowledge": "Подтвердите{suffix}",
+    "expiration": "Срок действия{suffix}"
   },
   "access": {
     "rules": "Правила доступа",

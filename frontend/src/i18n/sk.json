@@ -628,7 +628,8 @@
     "lastUpdate": "Posledná aktualizácia{suffix}",
     "latency": "Latencia{suffix}",
     "all": "Všetky{suffix}",
-    "acknowledge": "Potvrdiť{suffix}"
+    "acknowledge": "Potvrdiť{suffix}",
+    "expiration": "Uplynutie platnosti{suffix}"
   },
   "access": {
     "rules": "Pravidlá prístupu",

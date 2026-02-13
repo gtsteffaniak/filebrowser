@@ -37,6 +37,22 @@ All notable changes to this project will be documented in this file. For commit 
  - folder sizes not updated for changes to filesystem outside of filebrowser (#1974)
 >>>>>>> v1.2.4-beta
 
+## v1.2.4-beta
+
+ **Notes**:
+ - Changed `/api/media/subtitles` api endpoint to better support subtitles.
+ - Correcting some errors in French language (#1947)
+ - add Dutch `nl.json` for frontend i18n -- thanks @Stephan-P (#1957)
+ - share banner and icon images automatically serve a scaled down 1024x1024
+
+ **BugFixes**:
+ - Can't access directories with space (and possibly other special characters) when browsing a public link share (#1956)
+ - External ASS subtitles are not usable in web preview (#1933)
+ - Filename blocking rename/move (#1950)
+ - enforcedOtp: true blocks all user settings updates with HTTP 400 (#1962)
+ - Share favicon URL not showing up and Share description causing endless loading (#1911)
+ - folder sizes not updated for changes to filesystem outside of filebrowser (#1974)
+
 ## v1.2.3-beta
 
  **Notes**:
