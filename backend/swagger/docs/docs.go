@@ -3319,14 +3319,14 @@ const docTemplate = `{
         },
         "/public/api/share/image": {
             "get": {
-                "description": "Serves the banner or favicon file for a share",
+                "description": "Returns a resizable preview (large size) for the banner or favicon file of a share",
                 "produces": [
-                    "application/octet-stream"
+                    "image/jpeg"
                 ],
                 "tags": [
                     "Public Shares"
                 ],
-                "summary": "Get share image (banner or favicon)",
+                "summary": "Get share image (banner or favicon) as preview",
                 "parameters": [
                     {
                         "type": "string",
@@ -3350,7 +3350,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Image file content",
+                        "description": "Preview image content (JPEG)",
                         "schema": {
                             "type": "file"
                         }

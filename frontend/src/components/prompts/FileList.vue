@@ -38,7 +38,7 @@
         :modified="item.originalItem?.modified || new Date().toISOString()"
         :index="index"
         :path="item.path"
-        :hasPreview="item.originalItem?.hasPreview || false"
+        :hasPreview="item.originalItem?.hasPreview && item.type !== 'directory' || false"
         :metadata="item.originalItem?.metadata"
         :hasDuration="item.originalItem?.hasDuration || false"
         :updateGlobalState="false"
