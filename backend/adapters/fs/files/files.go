@@ -409,7 +409,6 @@ func DeleteFiles(source, absPath string, isDir bool) error {
 }
 
 func RefreshIndex(source string, path string, isDir bool, recursive bool) error {
-	logger.Debugf("RefreshIndex: source: %s, path: %s, isDir: %t, recursive: %t", source, path, isDir, recursive)
 	idx := indexing.GetIndex(source)
 	if idx == nil {
 		return fmt.Errorf("could not get index: %v ", source)
