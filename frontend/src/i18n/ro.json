@@ -628,7 +628,8 @@
     "lastUpdate": "Ultima actualizare{suffix}",
     "latency": "Latență{suffix}",
     "all": "Toate{suffix}",
-    "acknowledge": "Recunoașteți{suffix}"
+    "acknowledge": "Recunoașteți{suffix}",
+    "expiration": "Expirare{suffix}"
   },
   "access": {
     "rules": "Reguli de acces",

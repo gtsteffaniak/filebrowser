@@ -628,7 +628,8 @@
     "lastUpdate": "آخر تحديث{suffix}",
     "latency": "الكمون{suffix}",
     "all": "الكل{suffix}",
-    "acknowledge": "الإقرار{suffix}"
+    "acknowledge": "الإقرار{suffix}",
+    "expiration": "انتهاء الصلاحية{suffix}"
   },
   "access": {
     "rules": "قواعد الوصول",

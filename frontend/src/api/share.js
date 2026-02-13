@@ -26,7 +26,7 @@ export async function list() {
  */
 export async function get(path, source) {
   try {
-    const params = { path: encodeURIComponent(path), source: encodeURIComponent(source) };
+    const params = { path, source };
     const apiPath = getApiPath("api/share", params);
     let data = await fetchJSON(apiPath);
     return adjustedData(data);

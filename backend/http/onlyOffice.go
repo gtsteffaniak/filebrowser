@@ -80,6 +80,14 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 		logger.Errorf("OnlyOffice callback missing required parameters: source=%s, path=%s", source, providedPath)
 		return http.StatusBadRequest, errors.New("missing required parameters: path + source/hash are required")
 	}
+
+	// Rule 1: Validate user-provided path to prevent path traversal
+	cleanPath, err := utils.SanitizeUserPath(providedPath)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid path: %v", err)
+	}
+	providedPath = cleanPath
+
 	themeMode := utils.Ternary(d.user.DarkMode, "dark", "light")
 	var sourceInfo *settings.Source
 	var ok bool
@@ -102,7 +110,8 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 		// Build file info based on whether this is a share or regular request
 		// Regular user request
 		logger.Debugf("OnlyOffice user request: request path=%s", path)
-		fileInfo, err := files.FileInfoFaster(utils.FileOptions{
+		var fileInfo *iteminfo.ExtendedFileInfo
+		fileInfo, err = files.FileInfoFaster(utils.FileOptions{
 			Path:           path,
 			Source:         source,
 			Expand:         false,
@@ -336,6 +345,15 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 		logger.Errorf("OnlyOffice callback missing required parameters: source=%s, path=%s", source, path)
 		return returnOnlyOfficeError(w, r, 400, "missing required parameters: path + source/hash are required")
 	}
+
+	// Rule 1: Validate user-provided path to prevent path traversal
+	cleanPath, err := utils.SanitizeUserPath(path)
+	if err != nil {
+		logger.Errorf("OnlyOffice callback: invalid path: %v", err)
+		return returnOnlyOfficeError(w, r, 400, "invalid path")
+	}
+	path = cleanPath
+
 	var sourceInfo *settings.Source
 	var ok bool
 	if d.fileInfo.Hash != "" {

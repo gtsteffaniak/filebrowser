@@ -63,12 +63,18 @@ type FileOptions struct {
 // SanitizeUserPath prevents path traversal attacks by cleaning and validating user input.
 // Rule 1: Do Not Use User Input in File Paths (without validation)
 func SanitizeUserPath(userPath string) (string, error) {
-	// Clean resolves . and .. segments
 	clean := filepath.Clean(userPath)
 
-	// Reject absolute paths or attempts to escape scope
-	if strings.HasPrefix(clean, "..") {
-		return "", fmt.Errorf("invalid path")
+	// Split the path into segments to check for path traversal attempts
+	// We check if ".." appears as a complete path segment (not just in a filename)
+	segments := strings.Split(clean, string(filepath.Separator))
+
+	for _, segment := range segments {
+		// Check if any segment is exactly ".." (path traversal attempt)
+		// This catches any ".." that filepath.Clean couldn't resolve (i.e., escape attempts)
+		if segment == ".." {
+			return "", fmt.Errorf("invalid path: path traversal detected")
+		}
 	}
 
 	return clean, nil

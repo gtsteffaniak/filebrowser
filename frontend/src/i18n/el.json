@@ -628,7 +628,8 @@
     "lastUpdate": "Τελευταία ενημέρωση{suffix}",
     "latency": "Καθυστέρηση{suffix}",
     "all": "Όλα{suffix}",
-    "acknowledge": "Αναγνώριση{suffix}"
+    "acknowledge": "Αναγνώριση{suffix}",
+    "expiration": "Λήξη{suffix}"
   },
   "access": {
     "rules": "Κανόνες πρόσβασης",

@@ -520,6 +520,14 @@ func GeneratePreview(ctx context.Context, file iteminfo.ExtendedFileInfo, previe
 // getPreviewOptions returns resize options for the given preview size
 func getPreviewOptions(previewSize string) (ResizeOptions, error) {
 	switch previewSize {
+	case "xlarge":
+		return ResizeOptions{
+			Width:      1024,
+			Height:     1024,
+			ResizeMode: ResizeModeFit,
+			Quality:    QualityHigh,
+			Format:     FormatJpeg,
+		}, nil
 	case "large":
 		return ResizeOptions{
 			Width:      640,

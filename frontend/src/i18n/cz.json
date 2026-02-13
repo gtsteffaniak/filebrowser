@@ -708,7 +708,8 @@
     "lastUpdate": "Poslední aktualizace{suffix}",
     "latency": "Zpoždění{suffix}",
     "all": "Všechny{suffix}",
-    "acknowledge": "Potvrzení{suffix}"
+    "acknowledge": "Potvrzení{suffix}",
+    "expiration": "Expirace{suffix}"
   },
   "access": {
     "rules": "Pravidla přístupu",

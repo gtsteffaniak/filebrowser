@@ -113,6 +113,16 @@ func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName stri
 func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	source := r.URL.Query().Get("source")
 	fileList := r.URL.Query()["file"]
+
+	// Rule 1: Validate all user-provided file paths to prevent path traversal
+	for i, filePath := range fileList {
+		cleanPath, err := utils.SanitizeUserPath(filePath)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid file path: %v", err)
+		}
+		fileList[i] = cleanPath
+	}
+
 	return rawFilesHandler(w, r, d, source, fileList)
 }
 

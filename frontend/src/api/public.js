@@ -1,6 +1,6 @@
 import { adjustedData } from "./utils";
 import { notify } from "@/notify";
-import { getPublicApiPath, encodedPath } from "@/utils/url.js";
+import { getPublicApiPath } from "@/utils/url.js";
 import { state } from "@/store";
 
 // ============================================================================
@@ -17,7 +17,6 @@ import { state } from "@/store";
  * @returns {Promise<any>}
  */
 export async function fetchPub(path, hash, password = "", content = false, metadata = false) {
-  path = encodedPath(path);
   const params = {
     path: path,
     hash,
@@ -28,7 +27,7 @@ export async function fetchPub(path, hash, password = "", content = false, metad
   const apiPath = getPublicApiPath("resources", params);
   const response = await fetch(apiPath, {
     headers: {
-      "X-SHARE-PASSWORD": password ? encodeURIComponent(password) : "",
+      "X-SHARE-PASSWORD": password || "",
     },
   });
 
@@ -61,10 +60,8 @@ export async function fetchPub(path, hash, password = "", content = false, metad
 export function getDownloadURL(share, files, inline=false) {
   // Handle array of files for repeated 'file' parameters
   const fileArray = Array.isArray(files) ? files : [files]
-  const filePaths = fileArray.map(file => encodeURIComponent(file))
-  
   const params = {
-    file: filePaths, // Array of file paths - getPublicApiPath will create repeated parameters
+    file: fileArray, // Array of file paths - getPublicApiPath will create repeated parameters
     hash: share.hash,
     token: share.token,
     ...(inline && { inline: 'true' })
@@ -82,7 +79,7 @@ export function getDownloadURL(share, files, inline=false) {
 export function getPreviewURL(path, size) {
   try {
     const params = {
-      path: encodeURIComponent(path),
+      path: path,
       hash: state.shareInfo.hash,
       inline: 'true',
       // Only add size parameter if specified and not the default
@@ -156,13 +153,13 @@ export function post(
             // If parsing fails, use responseText or default message
             errorMessage = request.responseText || errorMessage;
           }
-          
+
           const error = new Error(errorMessage);
           error.status = request.status;
-          
+
           // Show notification for upload errors
           notify.showError(errorMessage);
-          
+
           reject(error);
         }
       };
@@ -172,7 +169,7 @@ export function post(
         notify.showError("Network error during upload");
         reject(error);
       };
-      
+
       request.onabort = () => {
         const error = new Error("Upload aborted");
         notify.showError("Upload was aborted");
@@ -207,7 +204,6 @@ async function resourceAction(hash, path, method, content, token = "") {
     if (sharePassword) {
       headers["X-SHARE-PASSWORD"] = sharePassword;
     }
-    path = encodeURIComponent(path)
     const apiPath = getPublicApiPath('resources', { path, hash: hash, token: token })
     const response = await fetch(apiPath, {
       method,
@@ -240,12 +236,12 @@ export async function bulkDelete(items) {
   if (!items || !Array.isArray(items) || items.length === 0) {
     throw new Error('items array is required and must not be empty')
   }
-  
+
   const hash = state.shareInfo?.hash;
   if (!hash) {
     throw new Error('share hash is required')
   }
-  
+
   const params = {
     hash: hash,
     ...(state.shareInfo.token && { token: state.shareInfo.token }),

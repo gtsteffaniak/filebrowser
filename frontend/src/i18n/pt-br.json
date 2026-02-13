@@ -628,7 +628,8 @@
     "lastUpdate": "Última atualização{suffix}",
     "latency": "Latência{suffix}",
     "all": "Todos{suffix}",
-    "acknowledge": "Reconhecer{suffix}"
+    "acknowledge": "Reconhecer{suffix}",
+    "expiration": "Vencimento{suffix}"
   },
   "access": {
     "rules": "Regras de acesso",
