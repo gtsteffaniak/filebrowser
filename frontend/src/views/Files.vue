@@ -191,15 +191,10 @@ export default {
         // Parse share route to get subPath
         let urlPath = getters.routePath('public/share')
         let parts = urlPath.split("/");
-<<<<<<< HEAD
-        shareInfo.subPath = "/" + parts.slice(2).join("/");
-
-=======
         // Decode each part since URL paths are encoded
         let decodedParts = parts.slice(2).map(part => decodeURIComponent(part));
         shareInfo.subPath = "/" + decodedParts.join("/");
         
->>>>>>> v1.2.4-beta
         // Set shareInfo in state
         mutations.setShareInfo(shareInfo);
 
