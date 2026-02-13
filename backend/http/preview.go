@@ -16,7 +16,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
-	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/preview"
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -87,10 +86,6 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 }
 
 func rawFileHandler(w http.ResponseWriter, r *http.Request, file iteminfo.ExtendedFileInfo) (int, error) {
-	idx := indexing.GetIndex(file.Source)
-	if idx == nil {
-		return http.StatusNotFound, fmt.Errorf("source not found: %s", file.Source)
-	}
 	fd, err := os.Open(file.RealPath)
 	if err != nil {
 		return http.StatusInternalServerError, err
