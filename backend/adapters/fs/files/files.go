@@ -41,16 +41,13 @@ func processDirectoryMetadata(response *iteminfo.ExtendedFileInfo, idx *indexing
 	var mu sync.Mutex // Protects processedCount
 
 	// Refresh directory to update folder sizes
-	go func() {
-		wg.Add(1)
-		defer wg.Done()
+	wg.Go(func() {
 		indexPath := idx.MakeIndexPath(response.Path, true)
 		err := idx.RefreshDirectory(indexPath, false)
-		if err != nil && err.Error() != "not indexed" {
+		if err != nil {
 			logger.Debugf("Failed to refresh directory for folder size update: %v", err)
-			return
 		}
-	}()
+	})
 
 	// Set hasMetadata flag if there are files with potential metadata
 	if metadataCount > 0 {
