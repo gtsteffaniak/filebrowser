@@ -162,7 +162,7 @@ func getDirectoryPreview(r *http.Request, d *requestContext) (*iteminfo.Extended
 
 func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	previewSize := r.URL.Query().Get("size")
-	if !(previewSize == "large" || previewSize == "original") {
+	if !(previewSize == "large" || previewSize == "original" || previewSize == "xlarge") {
 		previewSize = "small"
 	}
 	if !d.fileInfo.HasPreview {
@@ -183,9 +183,13 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 	isImage := strings.HasPrefix(d.fileInfo.Type, "image")
 	ext := strings.ToLower(filepath.Ext(d.fileInfo.Name))
 	resizable := iteminfo.ResizableImageTypes[ext]
-	if (!resizable || config.Server.DisableResize) && isImage {
+
+	// If image is under 500KB, serve the original instead of generating a preview
+	const maxSizeForOriginal = 500 * 1024 // 500KB
+	if (!resizable || config.Server.DisableResize || d.fileInfo.Size < maxSizeForOriginal) && isImage {
 		return rawFileHandler(w, r, d.fileInfo)
 	}
+
 	seekPercentage := 0
 	percentage := r.URL.Query().Get("atPercentage")
 	if percentage != "" {

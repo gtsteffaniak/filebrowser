@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Changed `/api/media/subtitles` api endpoint to better support subtitles.
  - Correcting some errors in French language (#1947)
  - add Dutch `nl.json` for frontend i18n -- thanks @Stephan-P (#1957)
+ - share banner and icon images automatically serve a scaled down 1024x1024
 
  **BugFixes**:
  - Can't access directories with space (and possibly other special characters) when browsing a public link share (#1956)
