@@ -40,7 +40,10 @@ func runCLI() bool {
 		if configPath != "" {
 			_, err := os.Stat(configPath)
 			if err != nil {
-				logger.Fatalf("config file %v does not exist, please create it or set the FILEBROWSER_CONFIG environment variable to a valid config file path", configPath)
+				if configPath != "/home/filebrowser/data/config.yaml" {
+					logger.Fatalf("config file %v does not exist, please create it or set the FILEBROWSER_CONFIG environment variable to a valid config file path", configPath)
+				}
+				configPath = "config.yaml"
 			}
 		} else {
 			configPath = "config.yaml"

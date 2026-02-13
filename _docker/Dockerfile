@@ -35,7 +35,6 @@ USER filebrowser
 WORKDIR /home/filebrowser
 # copy config to two locations for compatibility
 COPY --from=base --chown=filebrowser:1000 [ "/app/filebrowser", "./" ]
-COPY --from=base --chown=filebrowser:1000 [ "/app/config.yaml", "./data/config.yaml" ]
 COPY --from=base --chown=filebrowser:1000 [ "/app/config.yaml", "./" ]
 COPY --from=base --chown=filebrowser:1000 [ "/app/reduce-rounded-corners.css", "./" ]
 COPY --from=nbuild --chown=filebrowser:1000 [ "/app/dist/", "./http/dist/" ]
