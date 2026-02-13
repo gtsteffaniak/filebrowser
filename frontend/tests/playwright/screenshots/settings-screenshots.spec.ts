@@ -17,7 +17,7 @@ test("setup theme", async ({ page, checkForErrors, context, theme }) => {
 
 // run npx playwright test --ui to run these tests locally in ui mode
 test("profile settings", async ({ page, checkForErrors, context, theme }) => {
-  await page.goto("/settings/");
+  await page.goto("/files/settings/");
   await page.waitForTimeout(100);
   await page.screenshot({ path: `./screenshots/settings/profile-listing-options-${theme}.jpg`, quality: jpgQuality });
   if (theme === 'light') {

@@ -11,4 +11,5 @@ COPY [ "./_docker/src/screenshots/backend/*", "./"]
 RUN mkdir -p ./http/dist
 COPY [ "./backend/http/embed/", "./http/dist/"]
 
-ENTRYPOINT [ "./filebrowser" ]
+ENV FILEBROWSER_PLAYWRIGHT_TEST=true
+RUN ./filebrowser & sleep 2 && cd ../frontend && npx playwright test --project dark-screenshots

@@ -2,7 +2,7 @@ services:
   local-playwright:
     container_name: local-playwright
     ports:
-      - "8080:80"
+      - "8080:8080"
     build:
       dockerfile: ./_docker/Dockerfile.playwright-local
       context: ../
@@ -18,7 +18,7 @@ services:
     hostname: filebrowser
     volumes:
       - '../frontend:/home/frontend'
-      - "./src/proxy/backend/config.yaml:/home/filebrowser/config.yaml"
+      - "./src/proxy/backend/config.yaml:/home/filebrowser/data/config.yaml"
     build:
       context: ../
       dockerfile: ./_docker/Dockerfile.slim

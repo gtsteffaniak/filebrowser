@@ -6,10 +6,10 @@
         <p class="loading-text">{{ $t("prompts.operationInProgress") }}</p>
       </div>
       <div v-show="!deleting">
-        <p v-if="itemsToDelete.length === 1">
+        <p class="card-message" v-if="itemsToDelete.length === 1">
           {{ $t("prompts.deleteMessageSingle") }}
         </p>
-        <p v-else>
+        <p class="card-message" v-else>
           {{ $t("prompts.deleteMessageMultiple", { count: itemsToDelete.length }) }}
         </p>
         <div class="delete-items-list">
