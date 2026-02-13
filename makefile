@@ -115,10 +115,13 @@ test-playwright: build-frontend
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-noauth .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-no-config .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-proxy .
+	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-screenshots .
 
 run-proxy: build-frontend
 	cd _docker && docker compose up -d --build
 
+# once local playwright server is running, you can also watch the tests interactively with:
+# cd frontend && npx playwright test --project dark-screenshots --ui
 screenshots: build-frontend
 	cd backend && GOOS=linux go build -o filebrowser .
 	@echo "Running screenshots..."

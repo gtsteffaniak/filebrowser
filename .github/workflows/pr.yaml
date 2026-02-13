@@ -80,6 +80,8 @@ jobs:
             dockerfile: ./_docker/Dockerfile.playwright-no-config
           - name: settings
             dockerfile: ./_docker/Dockerfile.playwright-settings
+          - name: screenshots
+            dockerfile: ./_docker/Dockerfile.playwright-screenshots
     steps:
       - name: Checkout
         uses: actions/checkout@v4

@@ -64,7 +64,7 @@ test("info from search", async ({ page, checkForErrors, context, theme }) => {
   await expect(page.locator('.selected-count-header')).toHaveText('1');
   await page.screenshot({ path: `./screenshots/search/right-click-${theme}.jpg`, quality: jpgQuality });
   await page.locator('button[aria-label="Info"]').click();
-  await expect(page.locator('span[aria-label="info display name"]')).toHaveText('Display Name: file.tar.gz');
+  await expect(page.locator('span[aria-label="info display name"]')).toHaveText('file.tar.gz');
   await page.waitForTimeout(500);
   await page.screenshot({ path: `./screenshots/file-no-preview/file.tar.gz-${theme}.jpg`, quality: jpgQuality });
 })
@@ -81,21 +81,21 @@ test("copy from listing to new folder", async ({ page, checkForErrors, context, 
   await page.locator('button[aria-label="Copy file"]').click();
   await expect(page.locator('div[aria-label="filelist-path"]')).toHaveText('Path: /');
   await expect(page.locator('li[aria-selected="true"]')).toHaveCount(0);
-  await page.locator('li[aria-label="myfolder"]').click();
-  await expect(page.locator('li[aria-selected="true"]')).toHaveCount(1);
+  await page.locator('.card-content > .listing-items > div[aria-label="myfolder"]').click();
+  await expect(page.locator('.card-content > .listing-items > div[aria-selected="true"]')).toHaveCount(1);
   await page.waitForTimeout(500);
   await page.screenshot({ path: `./screenshots/prompt-copy/to-new-folder-${theme}.jpg`, quality: jpgQuality });
 })
 
 test("breadcrumbs navigation checks", async ({ page, checkForErrors, context, theme }) => {
-  await page.goto("/files/myfolder");
+  await page.goto("/files/playwright/myfolder");
   await page.waitForSelector('#breadcrumbs');
   let spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();
   spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();
   expect(spanChildrenCount).toBe(1);
   let breadCrumbLink = page.locator('a[aria-label="breadcrumb-link-myfolder"]')
   await expect(breadCrumbLink).toHaveText("myfolder");
-  await page.goto("/files/myfolder/testdata");
+  await page.goto("/files/playwright/myfolder/testdata");
   await page.waitForSelector('#breadcrumbs');
   spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();
   expect(spanChildrenCount).toBe(2);
@@ -116,7 +116,8 @@ test("delete file", async ({ page, checkForErrors, context, theme }) => {
   await page.locator('.selected-count-header').waitFor({ state: 'visible' });
   await expect(page.locator('.selected-count-header')).toHaveText('1');
   await page.locator('button[aria-label="Delete"]').click();
-  await expect(page.locator('.card-content')).toHaveText('Are you sure you want to delete this file/folder?/deleteme.txt');
+  await expect(page.locator('.card-message')).toHaveText('Are you sure you want to delete this file/folder?');
+  await expect(page.locator('.delete-item-wrapper > .listing-item > .text > .name')).toContainText('/deleteme.txt');
   await page.waitForTimeout(500);
   await page.screenshot({ path: `./screenshots/prompts-delete/deleteme.txt-${theme}.jpg`, quality: jpgQuality });
 })
@@ -125,7 +126,7 @@ test("text file editor -- text", async ({ page, checkForErrors, context, theme }
   if (theme === 'light') {
     return;
   }
-  await page.goto("/files/copyme.txt");
+  await page.goto("/files/playwright/copyme.txt");
   await page.locator(".ace_content").click();
   await page.keyboard.type("\nYou can edit this file, it shows styles based on formatting.\n\n Works on all text-based files under 25MB limit.");
   await page.waitForTimeout(500);
@@ -134,13 +135,13 @@ test("text file editor -- text", async ({ page, checkForErrors, context, theme }
 
 
 test("text file editor -- javascript", async ({ page, checkForErrors, context, theme }) => {
-  await page.goto("/files/text-files/javascript.js");
+  await page.goto("/files/playwright/text-files/javascript.js");
   await page.waitForTimeout(500);
   await page.screenshot({ path: `./screenshots/editor/javascript.js-${theme}.jpg`, quality: jpgQuality });
 });
 
 test("text file editor -- bash", async ({ page, checkForErrors, context, theme }) => {
-  await page.goto("/files/text-files/bash.sh");
+  await page.goto("/files/playwright/text-files/bash.sh");
   await page.waitForTimeout(500);
   await page.screenshot({ path: `./screenshots/editor/bash.sh-${theme}.jpg`, quality: jpgQuality });
 });

@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file. For commit 
 ## v1.3.0-beta
 
  **New Features**:
+ - Enhanced prompts
+   - All prompts have a taskbar with a close button
+   - Prompts can be freely moved by dragging taskbar
+   - Prompt styling has been updated
+   - Clicking outside of prompts no longer automatically closes them.
  - add webdav support (#209) -- thanks to @reddac for #1764
    - see docs on how to use
    - requires "minimal" api token as password
