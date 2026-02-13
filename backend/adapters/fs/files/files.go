@@ -36,6 +36,18 @@ func processDirectoryMetadata(response *iteminfo.ExtendedFileInfo, idx *indexing
 			metadataCount++
 		}
 	}
+	// Process files concurrently using goroutines
+	var wg sync.WaitGroup
+	var mu sync.Mutex // Protects processedCount
+
+	// Refresh directory to update folder sizes
+	wg.Go(func() {
+		indexPath := idx.MakeIndexPath(response.Path, true)
+		err := idx.RefreshDirectory(indexPath, false)
+		if err != nil {
+			logger.Debugf("Failed to refresh directory for folder size update: %v", err)
+		}
+	})
 
 	// Set hasMetadata flag if there are files with potential metadata
 	if metadataCount > 0 {
@@ -49,9 +61,6 @@ func processDirectoryMetadata(response *iteminfo.ExtendedFileInfo, idx *indexing
 		// Create a single shared FFmpegService instance for all files to coordinate concurrency
 		sharedFFmpegService := ffmpeg.NewFFmpegService(10, false, "")
 		if sharedFFmpegService != nil {
-			// Process files concurrently using goroutines
-			var wg sync.WaitGroup
-			var mu sync.Mutex // Protects processedCount
 
 			for i := range response.Files {
 				fileItem := &response.Files[i]
@@ -85,10 +94,10 @@ func processDirectoryMetadata(response *iteminfo.ExtendedFileInfo, idx *indexing
 				}
 			}
 
-			// Wait for all goroutines to complete
-			wg.Wait()
 		}
 	}
+	// Wait for all goroutines to complete
+	wg.Wait()
 }
 
 // finalizeResponse handles final response adjustments (OnlyOffice ID, scope stripping)
