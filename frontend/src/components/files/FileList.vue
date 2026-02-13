@@ -435,9 +435,12 @@ export default {
       if (this.selected === path) {
         this.selected = null;
         this.selectedSource = null;
+        this.selectedType = null;
         this.$emit("update:selected", {
           path: this.current,
-          source: this.source
+          source: this.source,
+          type: 'directory',
+          isValid: !this.requireFileSelection,
         });
         return;
       }
@@ -445,9 +448,13 @@ export default {
       this.selected = path;
       let clickedItem = this.items.find(item => item.path === path);
       this.selectedSource = clickedItem ? clickedItem.source : this.source;
+      this.selectedType = clickedItem ? clickedItem.type : 'directory';
+      const isFile = this.selectedType !== 'directory';
       this.$emit("update:selected", {
         path: this.selected,
-        source: this.selectedSource
+        source: this.selectedSource,
+        type: this.selectedType,
+        isValid: !this.requireFileSelection || isFile,
       });
     },
     createDir: async function () {
