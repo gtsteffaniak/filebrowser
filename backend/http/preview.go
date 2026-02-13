@@ -16,7 +16,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
-	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/preview"
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -87,10 +86,6 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 }
 
 func rawFileHandler(w http.ResponseWriter, r *http.Request, file iteminfo.ExtendedFileInfo) (int, error) {
-	idx := indexing.GetIndex(file.Source)
-	if idx == nil {
-		return http.StatusNotFound, fmt.Errorf("source not found: %s", file.Source)
-	}
 	fd, err := os.Open(file.RealPath)
 	if err != nil {
 		return http.StatusInternalServerError, err
@@ -162,7 +157,7 @@ func getDirectoryPreview(r *http.Request, d *requestContext) (*iteminfo.Extended
 
 func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	previewSize := r.URL.Query().Get("size")
-	if !(previewSize == "large" || previewSize == "original") {
+	if !(previewSize == "large" || previewSize == "original" || previewSize == "xlarge") {
 		previewSize = "small"
 	}
 	if !d.fileInfo.HasPreview {
@@ -183,9 +178,13 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 	isImage := strings.HasPrefix(d.fileInfo.Type, "image")
 	ext := strings.ToLower(filepath.Ext(d.fileInfo.Name))
 	resizable := iteminfo.ResizableImageTypes[ext]
-	if (!resizable || config.Server.DisableResize) && isImage {
+
+	// If image is under 500KB, serve the original instead of generating a preview
+	const maxSizeForOriginal = 500 * 1024 // 500KB
+	if (!resizable || config.Server.DisableResize || d.fileInfo.Size < maxSizeForOriginal) && isImage {
 		return rawFileHandler(w, r, d.fileInfo)
 	}
+
 	seekPercentage := 0
 	percentage := r.URL.Query().Get("atPercentage")
 	if percentage != "" {

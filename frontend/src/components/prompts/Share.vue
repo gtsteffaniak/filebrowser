@@ -24,16 +24,11 @@
     </div>
 
     <div v-if="isPickingFile">
-      <file-list 
-        @update:selected="updateTempFilePath" 
-        :browse-source="displaySource"
-        :browse-path="displayPath"
-        :show-files="true"
-        :show-folders="true"
-        :allowed-file-types="filePickerAllowedTypes"
-        :require-file-selection="true"
-        :title="filePickerTitle">
+      <file-list @update:selected="updateTempFilePath" :browse-source="displaySource" :browse-path="displayPath"
+        :show-files="true" :show-folders="true" :allowed-file-types="filePickerAllowedTypes"
+        :require-file-selection="true" :title="filePickerTitle">
       </file-list>
+<<<<<<< HEAD
       <div class="card-actions">
         <button class="button button--flat" @click="cancelFilePicker" :aria-label="$t('general.cancel')"
           :title="$t('general.cancel')">
@@ -44,6 +39,8 @@
           {{ $t("general.ok") }}
         </button>
       </div>
+=======
+>>>>>>> v1.2.4-beta
     </div>
 
     <div v-else-if="!isPickingFile">
@@ -107,8 +104,8 @@
             </i>
           </p>
           <div class="form-flex-group">
-            <input class="form-grow input flat-right" v-focus type="number" max="2147483647" min="0" @keyup.enter="submit"
-              v-model.trim="time" />
+            <input class="form-grow input flat-right" v-focus type="number" max="2147483647" min="0"
+              @keyup.enter="submit" v-model.trim="time" />
             <select class="flat-left input form-dropdown" v-model="unit" :aria-label="$t('time.unit')">
               <option value="minutes">{{ $t("time.minutes") }}</option>
               <option value="hours">{{ $t("time.hours") }}</option>
@@ -145,16 +142,19 @@
             {{ $t('share.customizeSidebarLinksButton') }}
           </button>
           <div class="settings-items" style="margin-top: 0.5em;">
-            <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowModify" :name="$t('share.allowModify')"
-              :description="$t('share.allowModifyDescription')" aria-label="allow editing files toggle" />
-            <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowCreate" :name="$t('share.allowCreate')"
-              :description="$t('share.allowCreateDescription')"
+            <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowModify"
+              :name="$t('share.allowModify')" :description="$t('share.allowModifyDescription')"
+              aria-label="allow editing files toggle" />
+            <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowCreate"
+              :name="$t('share.allowCreate')" :description="$t('share.allowCreateDescription')"
               aria-label="allow creating and uploading files and folders toggle" />
-            <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowDelete" :name="$t('share.allowDelete')"
-              :description="$t('share.allowDeleteDescription')" aria-label="allow deleting files toggle" />
+            <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowDelete"
+              :name="$t('share.allowDelete')" :description="$t('share.allowDeleteDescription')"
+              aria-label="allow deleting files toggle" />
           </div>
         </div>
-        <SettingsItem :title="showMoreExpanded ? $t('buttons.showLess') : $t('buttons.showMore')" :collapsable="true" :start-collapsed="!showMoreExpanded" @toggle="showMoreExpanded = $event">
+        <SettingsItem :title="showMoreExpanded ? $t('buttons.showLess') : $t('buttons.showMore')" :collapsable="true"
+          :start-collapsed="!showMoreExpanded" @toggle="showMoreExpanded = $event">
           <div class="settings-items">
             <p>
               {{ $t("prompts.shareTheme") }}
@@ -210,7 +210,8 @@
             <p>
               {{ $t("share.enforceDarkLightMode") }}
               <i class="no-select material-symbols-outlined tooltip-info-icon"
-                @mouseenter="showTooltip($event, $t('share.enforceDarkLightModeDescription'))" @mouseleave="hideTooltip">
+                @mouseenter="showTooltip($event, $t('share.enforceDarkLightModeDescription'))"
+                @mouseleave="hideTooltip">
                 help
               </i>
             </p>
@@ -224,22 +225,22 @@
             <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableThumbnails"
               :name="$t('share.disableThumbnails')" :description="$t('share.disableThumbnailsDescription')" />
             <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="showHidden"
-              :name="$t('profileSettings.showHiddenFiles')" :description="$t('profileSettings.showHiddenFilesDescription')" />
-            <ToggleSwitch v-if="shareType !== 'upload'" class="item" v-model="disableNavButtons" :name="$t('share.hideNavButtons')"
-              :description="$t('share.hideNavButtonsDescription')" />
+              :name="$t('profileSettings.showHiddenFiles')"
+              :description="$t('profileSettings.showHiddenFilesDescription')" />
+            <ToggleSwitch v-if="shareType !== 'upload'" class="item" v-model="disableNavButtons"
+              :name="$t('share.hideNavButtons')" :description="$t('share.hideNavButtonsDescription')" />
             <ToggleSwitch class="item" v-model="disableShareCard" :name="$t('share.disableShareCard')"
               :description="$t('share.disableShareCardDescription')" />
-            <ToggleSwitch class="item" v-model="disableSidebar"
-              :name="$t('share.disableSidebar')" :description="$t('share.disableSidebarDescription')" />
+            <ToggleSwitch class="item" v-model="disableSidebar" :name="$t('share.disableSidebar')"
+              :description="$t('share.disableSidebarDescription')" />
             <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="perUserDownloadLimit"
               :name="$t('share.perUserDownloadLimit')" :description="$t('share.perUserDownloadLimitDescription')" />
-          <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="extractEmbeddedSubtitles"
-            :name="$t('share.extractEmbeddedSubtitles')"
-            :description="$t('share.extractEmbeddedSubtitlesDescription')" />
-          <ToggleSwitch class="item" v-model="disableLoginOption"
-            :name="$t('share.disableLoginOption')"
-            :description="$t('share.disableLoginOptionDescription')" />
-        </div>
+            <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="extractEmbeddedSubtitles"
+              :name="$t('share.extractEmbeddedSubtitles')"
+              :description="$t('share.extractEmbeddedSubtitlesDescription')" />
+            <ToggleSwitch class="item" v-model="disableLoginOption" :name="$t('share.disableLoginOption')"
+              :description="$t('share.disableLoginOptionDescription')" />
+          </div>
 
           <div v-if="shareType === 'normal'">
             <p>
@@ -328,6 +329,16 @@
     <button v-if="!listing" class="button button--flat button--blue" @click="submit" aria-label="Share-Confirm"
       :title="$t('general.share')">
       {{ $t("general.share") }}
+    </button>
+  </div>
+  <div v-if="isPickingFile" class="card-action">
+    <button class="button button--flat" @click="cancelFilePicker" :aria-label="$t('general.cancel')"
+      :title="$t('general.cancel')">
+      {{ $t("general.cancel") }}
+    </button>
+    <button class="button button--flat button--blue" @click="confirmFilePicker" :disabled="!filePickerSelectionValid"
+      :aria-label="$t('general.ok')" :title="$t('general.ok')">
+      {{ $t("general.ok") }}
     </button>
   </div>
 </template>
@@ -852,7 +863,7 @@ export default {
             icon: "qr_code"
           }
         ];
-        
+
         // Only add Download link for normal shares, not upload shares
         if (this.shareType !== 'upload') {
           this.sidebarLinks.push({
@@ -952,7 +963,7 @@ export default {
       if (this.tempFilePath && this.tempFileSource) {
         // Build query params format: source=sourcename&path=indexpath
         const queryParams = `source=${encodeURIComponent(this.tempFileSource)}&path=${encodeURIComponent(this.tempFilePath)}`;
-        
+
         if (this.filePickerField === 'banner') {
           this.banner = queryParams;
         } else if (this.filePickerField === 'favicon') {

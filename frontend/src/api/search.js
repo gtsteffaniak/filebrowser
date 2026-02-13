@@ -4,14 +4,12 @@ import { getApiPath } from "@/utils/url.js";
 
 export default async function search(base, sources, query, largest = false) {
   try {
-    query = encodeURIComponent(query);
-    
     // Ensure sources is an array
     const sourcesArray = Array.isArray(sources) ? sources : [sources];
     
     const params = {
       query: query,
-      sources: encodeURIComponent(sourcesArray.join(","))
+      sources: sourcesArray.join(",")
     };
 
     // Only include scope if searching a single source
@@ -20,7 +18,7 @@ export default async function search(base, sources, query, largest = false) {
       if (!base.endsWith("/")) {
         base += "/";
       }
-      params.scope = encodeURIComponent(base);
+      params.scope = base;
     }
 
     if (largest) {
@@ -44,8 +42,8 @@ export async function findDuplicates(base, source, minSizeMb, useChecksum = fals
       base += "/";
     }
     const params = {
-      scope: encodeURIComponent(base),
-      source: encodeURIComponent(source),
+      scope: base,
+      source: source,
       minSizeMb: minSizeMb.toString()
     };
 
