@@ -76,8 +76,8 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 
 	// Get all "file" parameter values (supports repeated params)
-	encodedFiles := r.URL.Query()["file"]
-	if len(encodedFiles) == 0 {
+	files := r.URL.Query()["file"]
+	if len(files) == 0 {
 		return http.StatusBadRequest, fmt.Errorf("no files specified")
 	}
 
@@ -88,16 +88,17 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 	actualSourceName := sourceInfo.Name
 
-	// Decode and process each file path
+	// Process each file path
 	fileList := []string{}
-	for _, encodedFile := range encodedFiles {
-		// Decode the URL-encoded path - use PathUnescape to preserve + as literal character
-		file, decodeErr := url.PathUnescape(encodedFile)
-		if decodeErr != nil {
-			return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", decodeErr)
+	for _, file := range files {
+		// Rule 1: Validate each file path to prevent path traversal
+		cleanFile, err := utils.SanitizeUserPath(file)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid file path: %v", err)
 		}
+
 		// Join the share path with the requested path
-		filePath := utils.JoinPathAsUnix(d.share.Path, file)
+		filePath := utils.JoinPathAsUnix(d.share.Path, cleanFile)
 		fileList = append(fileList, filePath)
 	}
 
@@ -106,8 +107,8 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		if err == errors.ErrDownloadNotAllowed {
 			return http.StatusForbidden, errors.ErrDownloadNotAllowed
 		}
-		logger.Errorf("public share handler: error processing filelist: %v with error %v", encodedFiles, err)
-		return status, fmt.Errorf("error processing filelist: %v", encodedFiles)
+		logger.Errorf("public share handler: error processing filelist: %v with error %v", files, err)
+		return status, fmt.Errorf("error processing filelist: %v", files)
 	}
 	return status, nil
 }
@@ -255,7 +256,14 @@ func publicPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 	// Go automatically decodes query params
 	path := r.URL.Query().Get("path")
-	resolvedPath := utils.JoinPathAsUnix(d.share.Path, path)
+
+	// Rule 1: Validate user-provided path to prevent path traversal
+	cleanPath, err := utils.SanitizeUserPath(path)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid path: %v", err)
+	}
+
+	resolvedPath := utils.JoinPathAsUnix(d.share.Path, cleanPath)
 	err = files.WriteFile(source, resolvedPath, r.Body)
 	// hide the error
 	if err != nil {
@@ -384,15 +392,15 @@ func publicPatchHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	return status, err
 }
 
-// getShareImage serves banner or favicon files for shares
-// @Summary Get share image (banner or favicon)
-// @Description Serves the banner or favicon file for a share
+// getShareImage serves banner or favicon files for shares as resizable previews
+// @Summary Get share image (banner or favicon) as preview
+// @Description Returns a resizable preview (large size) for the banner or favicon file of a share
 // @Tags Public Shares
-// @Produce octet-stream
+// @Produce image/jpeg
 // @Param hash query string true "Share hash"
 // @Param banner query bool false "Request banner file"
 // @Param favicon query bool false "Request favicon file"
-// @Success 200 {file} binary "Image file content"
+// @Success 200 {file} file "Preview image content (JPEG)"
 // @Failure 400 {object} map[string]string "Invalid request"
 // @Failure 403 {object} map[string]string "Permission denied"
 // @Failure 404 {object} map[string]string "Asset not found"
@@ -437,9 +445,24 @@ func getShareImage(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		return http.StatusBadRequest, fmt.Errorf("invalid file type, must be image")
 	}
 
-	// Serve the file
-	http.ServeFile(w, r, fileInfo.RealPath)
-	return 0, nil
+	// Set file info in request context for preview generation
+	d.fileInfo = *fileInfo
+	q := r.URL.Query()
+	if isBanner {
+		q.Set("size", "xlarge")
+	} else {
+		q.Set("size", "small")
+	}
+	r.URL.RawQuery = q.Encode()
+
+	// Use the preview helper to generate and serve a resized preview
+	status, err := previewHelperFunc(w, r, d)
+	if err != nil {
+		logger.Errorf("error generating preview for share asset: source=%v path=%v error=%v", sourceName, assetPath, err)
+		return http.StatusNotFound, fmt.Errorf("preview not available for this asset")
+	}
+
+	return status, err
 }
 
 func getShareImagePartsHelper(share *share.Link, isBanner bool) (string, string, error) {

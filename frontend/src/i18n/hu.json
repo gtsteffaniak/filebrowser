@@ -114,7 +114,8 @@
     "ua": "Українська",
     "zhCN": "中文 (简体)",
     "zhTW": "中文 (繁體)",
-    "cz": "Čeština"
+    "cz": "Čeština",
+    "nl": "Dutch"
   },
   "login": {
     "createAnAccount": "Fiók létrehozása",
@@ -320,7 +321,6 @@
     "adminOptions": "Admin felhasználói beállítások",
     "searchOptions": "Keresési lehetőségek",
     "systemAdmin": "Rendszer és adminisztráció",
-    "configViewer": "Konfiguráció megtekintő",
     "configViewerShowFull": "Teljes konfiguráció megjelenítése",
     "configViewerShowComments": "Hozzászólások megjelenítése",
     "configViewerLoadConfig": "Konfiguráció betöltése",
@@ -332,7 +332,8 @@
       "proxy": "Proxy"
     },
     "newUserHintSubFolder": "pl. '/subfolder' - üres az alapértelmezéshez",
-    "permissionsHelp": "A felhasználói engedélyek szabályozzák, hogy a felhasználó milyen típusú műveleteket hajthat végre. A rendszergazdai hozzáférés teljes körű ellenőrzést biztosít bármely felhasználó beállításainak, valamint számos rendszerbeállításnak a frissítéséhez és módosításához."
+    "permissionsHelp": "A felhasználói engedélyek szabályozzák, hogy a felhasználó milyen típusú műveleteket hajthat végre. A rendszergazdai hozzáférés teljes körű ellenőrzést biztosít bármely felhasználó beállításainak, valamint számos rendszerbeállításnak a frissítéséhez és módosításához.",
+    "configViewer": "Konfiguráció megtekintő"
   },
   "sidebar": {
     "siteSettings": "Oldalbeállítások",
@@ -625,7 +626,8 @@
     "lines": "Vonalak{suffix}",
     "lastUpdate": "Utolsó frissítés{suffix}",
     "latency": "Késleltetés{suffix}",
-    "all": "Minden{suffix}"
+    "all": "Minden{suffix}",
+    "expiration": "Lejárat{suffix}"
   },
   "access": {
     "rules": "Hozzáférési szabályok",

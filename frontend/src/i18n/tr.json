@@ -114,7 +114,8 @@
     "ua": "Українська",
     "zhCN": "中文 (简体)",
     "zhTW": "中文 (繁體)",
-    "cz": "Čeština"
+    "cz": "Čeština",
+    "nl": "Dutch"
   },
   "login": {
     "createAnAccount": "Bir hesap oluşturun",
@@ -320,7 +321,6 @@
     "adminOptions": "Yönetici kullanıcı seçenekleri",
     "searchOptions": "Arama seçenekleri",
     "systemAdmin": "Sistem ve Yönetici",
-    "configViewer": "Konfigürasyon Görüntüleyici",
     "configViewerShowFull": "Tam yapılandırmayı göster",
     "configViewerShowComments": "Yorumları göster",
     "configViewerLoadConfig": "Yük Konfigürasyonu",
@@ -332,7 +332,8 @@
       "proxy": "Proxy"
     },
     "newUserHintSubFolder": "örneğin '/subfolder' - varsayılan için boş",
-    "permissionsHelp": "Kullanıcı izinleri, kullanıcının ne tür eylemler gerçekleştirebileceğine erişimi kontrol eder. Yönetici erişimi, herhangi bir kullanıcının ayarlarının yanı sıra birçok sistem ayarını güncellemek ve değiştirmek için tam kontrol sağlar."
+    "permissionsHelp": "Kullanıcı izinleri, kullanıcının ne tür eylemler gerçekleştirebileceğine erişimi kontrol eder. Yönetici erişimi, herhangi bir kullanıcının ayarlarının yanı sıra birçok sistem ayarını güncellemek ve değiştirmek için tam kontrol sağlar.",
+    "configViewer": "Yapılandırma Görüntüleyici"
   },
   "sidebar": {
     "siteSettings": "Site ayarları!",
@@ -625,7 +626,8 @@
     "lines": "Çizgiler{suffix}",
     "lastUpdate": "Son Güncelleme{suffix}",
     "latency": "Gecikme{suffix}",
-    "all": "Tümü{suffix}"
+    "all": "Tümü{suffix}",
+    "expiration": "Son kullanma tarihi{suffix}"
   },
   "access": {
     "rules": "Erişim kuralları",

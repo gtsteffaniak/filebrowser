@@ -122,6 +122,11 @@ func prepSearchOptions(r *http.Request, d *requestContext) (*searchOptions, erro
 	sourceParam := r.URL.Query().Get("source") // deprecated, but still supported
 	scope := r.URL.Query().Get("scope")        // Go automatically decodes query params
 	largest := r.URL.Query().Get("largest") == "true"
+	cleanScope, err := utils.SanitizeUserPath(scope)
+	if err != nil {
+		return nil, fmt.Errorf("invalid scope: %v", err)
+	}
+	scope = cleanScope
 
 	var sources []string
 	if sourcesParam != "" {

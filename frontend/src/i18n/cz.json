@@ -117,7 +117,8 @@
     "ua": "Українська",
     "zhCN": "中文 (简体)",
     "zhTW": "中文 (繁體)",
-    "cz": "Čeština"
+    "cz": "Čeština",
+    "nl": "Dutch"
   },
   "login": {
     "createAnAccount": "Vytvořit účet",
@@ -457,7 +458,6 @@
     "userUpdated": "Uživatel aktualizován!",
     "adminOptions": "Možnosti administrátora",
     "systemAdmin": "Systém a správce",
-    "configViewer": "Prohlížeč konfigurace",
     "configViewerShowFull": "Zobrazit úplnou konfiguraci",
     "configViewerShowComments": "Zobrazit komentáře",
     "configViewerLoadConfig": "Konfigurace načítání",
@@ -469,7 +469,8 @@
       "proxy": "Proxy"
     },
     "newUserHintSubFolder": "např. '/subfolder' - prázdný pro výchozí nastavení",
-    "permissionsHelp": "Oprávnění uživatele řídí přístup k typům akcí, které může uživatel provádět. Přístup administrátora poskytuje plnou kontrolu nad aktualizací a změnou nastavení libovolného uživatele i nad mnoha nastaveními systému."
+    "permissionsHelp": "Oprávnění uživatele řídí přístup k typům akcí, které může uživatel provádět. Přístup administrátora poskytuje plnou kontrolu nad aktualizací a změnou nastavení libovolného uživatele i nad mnoha nastaveními systému.",
+    "configViewer": "Prohlížeč konfigurace"
   },
   "sidebar": {
     "siteSettings": "Nastavení webu",
@@ -705,7 +706,8 @@
     "lines": "Řádky{suffix}",
     "lastUpdate": "Poslední aktualizace{suffix}",
     "latency": "Zpoždění{suffix}",
-    "all": "Všechny{suffix}"
+    "all": "Všechny{suffix}",
+    "expiration": "Expirace{suffix}"
   },
   "access": {
     "rules": "Pravidla přístupu",

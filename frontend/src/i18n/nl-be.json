@@ -114,7 +114,8 @@
     "ua": "Українська",
     "zhCN": "中文 (简体)",
     "zhTW": "中文 (繁體)",
-    "cz": "Čeština"
+    "cz": "Čeština",
+    "nl": "Dutch"
   },
   "login": {
     "createAnAccount": "Account aanmaken",
@@ -320,7 +321,6 @@
     "adminOptions": "Opties voor beheerders",
     "searchOptions": "Zoekopties",
     "systemAdmin": "Systeem & Beheer",
-    "configViewer": "Configuratiescherm",
     "configViewerShowFull": "Volledige configuratie weergeven",
     "configViewerShowComments": "Opmerkingen tonen",
     "configViewerLoadConfig": "Configuratie laden",
@@ -332,7 +332,8 @@
       "proxy": "Proxy"
     },
     "newUserHintSubFolder": "bijv. '/submap' - leeg voor standaard",
-    "permissionsHelp": "Gebruikersrechten bepalen welke acties de gebruiker kan uitvoeren. Administrar toegang geeft volledige controle om de instellingen van elke gebruiker bij te werken en te wijzigen, evenals vele systeeminstellingen."
+    "permissionsHelp": "Gebruikersrechten bepalen welke acties de gebruiker kan uitvoeren. Administrar toegang geeft volledige controle om de instellingen van elke gebruiker bij te werken en te wijzigen, evenals vele systeeminstellingen.",
+    "configViewer": "Configuratiescherm"
   },
   "sidebar": {
     "siteSettings": "Site-instellingen",
@@ -705,7 +706,8 @@
     "lines": "Lijnen{suffix}",
     "lastUpdate": "Laatste update{suffix}",
     "latency": "Latency{suffix}",
-    "all": "Alle{suffix}"
+    "all": "Alle{suffix}",
+    "expiration": "Vervaldatum{suffix}"
   },
   "access": {
     "rules": "Toegangsregels",

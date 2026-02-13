@@ -114,7 +114,8 @@
     "ua": "Українська",
     "zhCN": "中文 (简体)",
     "zhTW": "中文 (繁體)",
-    "cz": "Čeština"
+    "cz": "Čeština",
+    "nl": "Dutch"
   },
   "login": {
     "createAnAccount": "Crear cuenta",
@@ -326,13 +327,13 @@
     "adminOptions": "Opciones de administrador",
     "searchOptions": "Opciones de busqueda",
     "systemAdmin": "Sistema y administración",
-    "configViewer": "Visor de configuración",
     "configViewerShowFull": "Mostrar configuración completa",
     "configViewerShowComments": "Mostrar comentarios",
     "configViewerLoadConfig": "Cargar configuración",
     "brandingHelp": "Puedes personalizar la apariencia de FileBrowser Quantum cambiando el nombre, el logo, puedes añadir tus propios estilos personalizados, desactivar los enlaces externos a GitHub, etc. \nSi quieres saber más, visita {0}.",
     "commandRunnerHelp": "Aquí puede establecer los comandos que se ejecutan en los eventos nombrados. Debe escribir uno por línea. Las variables de entorno {0} y {1} estarán disponibles, siendo {0} relativa a {1}. Para más información sobre esta característica y las variables de entorno disponibles, por favor lea el {2}.",
-    "permissionsHelp": "Los permisos de usuario controlan el acceso al tipo de acciones que el usuario puede realizar. El acceso de administrador proporciona un control total para actualizar y cambiar la configuración de cualquier usuario, así como muchos ajustes del sistema."
+    "permissionsHelp": "Los permisos de usuario controlan el acceso al tipo de acciones que el usuario puede realizar. El acceso de administrador proporciona un control total para actualizar y cambiar la configuración de cualquier usuario, así como muchos ajustes del sistema.",
+    "configViewer": "Visor de configuración"
   },
   "sidebar": {
     "siteSettings": "Ajustes del sitio",
@@ -625,7 +626,8 @@
     "lines": "Líneas{suffix}",
     "lastUpdate": "Última actualización{suffix}",
     "latency": "Latencia{suffix}",
-    "all": "Todos{suffix}"
+    "all": "Todos{suffix}",
+    "expiration": "Caducidad{suffix}"
   },
   "access": {
     "rules": "Reglas de acceso",

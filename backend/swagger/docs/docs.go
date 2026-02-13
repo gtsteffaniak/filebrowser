@@ -1105,17 +1105,17 @@ const docTemplate = `{
         },
         "/api/media/subtitles": {
             "get": {
-                "description": "Extracts embedded subtitle content from video files by stream index and returns raw WebVTT content",
+                "description": "Returns raw subtitle content from external files or embedded streams",
                 "consumes": [
                     "application/json"
                 ],
                 "produces": [
-                    "text/vtt"
+                    "text/plain"
                 ],
                 "tags": [
                     "Subtitles"
                 ],
-                "summary": "Extract embedded subtitles",
+                "summary": "Get subtitle content",
                 "parameters": [
                     {
                         "type": "string",
@@ -1132,15 +1132,22 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "integer",
-                        "description": "Stream index for embedded subtitle extraction, defaults to 0",
-                        "name": "index",
+                        "type": "string",
+                        "description": "Subtitle track name (filename for external, descriptive name for embedded)",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Whether this is an embedded stream (true) or external file (false), defaults to false",
+                        "name": "embedded",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Raw WebVTT subtitle content",
+                        "description": "Raw subtitle content in original format",
                         "schema": {
                             "type": "string"
                         }
@@ -3312,14 +3319,14 @@ const docTemplate = `{
         },
         "/public/api/share/image": {
             "get": {
-                "description": "Serves the banner or favicon file for a share",
+                "description": "Returns a resizable preview (large size) for the banner or favicon file of a share",
                 "produces": [
-                    "application/octet-stream"
+                    "image/jpeg"
                 ],
                 "tags": [
                     "Public Shares"
                 ],
-                "summary": "Get share image (banner or favicon)",
+                "summary": "Get share image (banner or favicon) as preview",
                 "parameters": [
                     {
                         "type": "string",
@@ -3343,7 +3350,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Image file content",
+                        "description": "Preview image content (JPEG)",
                         "schema": {
                             "type": "file"
                         }

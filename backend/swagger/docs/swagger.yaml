@@ -2499,8 +2499,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Extracts embedded subtitle content from video files by stream index
-        and returns raw WebVTT content
+      description: Returns raw subtitle content from external files or embedded streams
       parameters:
       - description: Index path to the video file
         in: query
@@ -2512,15 +2511,22 @@ paths:
         name: source
         required: true
         type: string
-      - description: Stream index for embedded subtitle extraction, defaults to 0
+      - description: Subtitle track name (filename for external, descriptive name
+          for embedded)
         in: query
-        name: index
-        type: integer
+        name: name
+        required: true
+        type: string
+      - description: Whether this is an embedded stream (true) or external file (false),
+          defaults to false
+        in: query
+        name: embedded
+        type: boolean
       produces:
-      - text/vtt
+      - text/plain
       responses:
         "200":
-          description: Raw WebVTT subtitle content
+          description: Raw subtitle content in original format
           schema:
             type: string
         "400":
@@ -2547,7 +2553,7 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Extract embedded subtitles
+      summary: Get subtitle content
       tags:
       - Subtitles
   /api/preview:
@@ -4020,7 +4026,8 @@ paths:
       - Public Shares
   /public/api/share/image:
     get:
-      description: Serves the banner or favicon file for a share
+      description: Returns a resizable preview (large size) for the banner or favicon
+        file of a share
       parameters:
       - description: Share hash
         in: query
@@ -4036,10 +4043,10 @@ paths:
         name: favicon
         type: boolean
       produces:
-      - application/octet-stream
+      - image/jpeg
       responses:
         "200":
-          description: Image file content
+          description: Preview image content (JPEG)
           schema:
             type: file
         "400":
@@ -4060,7 +4067,7 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Get share image (banner or favicon)
+      summary: Get share image (banner or favicon) as preview
       tags:
       - Public Shares
   /public/api/shareinfo:
