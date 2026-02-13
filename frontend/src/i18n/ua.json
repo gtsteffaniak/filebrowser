@@ -708,7 +708,8 @@
     "lastUpdate": "Останнє оновлення{suffix}",
     "latency": "Затримка{suffix}",
     "all": "Усе.{suffix}",
-    "acknowledge": "Підтвердити{suffix}"
+    "acknowledge": "Підтвердити{suffix}",
+    "expiration": "Закінчення терміну дії{suffix}"
   },
   "access": {
     "rules": "Правила доступу",

@@ -628,7 +628,8 @@
     "lastUpdate": "最終更新{suffix}",
     "latency": "レイテンシー{suffix}",
     "all": "すべて{suffix}",
-    "acknowledge": "認める{suffix}"
+    "acknowledge": "認める{suffix}",
+    "expiration": "有効期限{suffix}"
   },
   "access": {
     "rules": "アクセスルール",

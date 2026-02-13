@@ -628,7 +628,8 @@
     "lastUpdate": "Son Güncelleme{suffix}",
     "latency": "Gecikme{suffix}",
     "all": "Tümü{suffix}",
-    "acknowledge": "Onaylamak{suffix}"
+    "acknowledge": "Onaylamak{suffix}",
+    "expiration": "Son kullanma tarihi{suffix}"
   },
   "access": {
     "rules": "Erişim kuralları",

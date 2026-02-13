@@ -116,7 +116,8 @@
     "lines": "Regels{suffix}",
     "lastUpdate": "Laatste update{suffix}",
     "latency": "Vertraging{suffix}",
-    "acknowledge": "erkennen{suffix}"
+    "acknowledge": "erkennen{suffix}",
+    "expiration": "Vervaldatum{suffix}"
   },
   "buttons": {
     "generateNewOtp": "Herstellen en nieuwe twee-factorcode genereren",

@@ -628,7 +628,8 @@
     "lastUpdate": "최근 업데이트{suffix}",
     "latency": "지연 시간{suffix}",
     "all": "모두{suffix}",
-    "acknowledge": "인정{suffix}"
+    "acknowledge": "인정{suffix}",
+    "expiration": "만료{suffix}"
   },
   "access": {
     "rules": "액세스 규칙",

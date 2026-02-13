@@ -8,6 +8,7 @@
     "incompleteResultsDetails": "Showing max results ({max}). Try narrowing your search to get more results under {max}."
   },
   "general": {
+    "expiration": "Expiration{suffix}",
     "acknowledge": "Acknowledge{suffix}",
     "all": "All{suffix}",
     "name": "Name{suffix}",
