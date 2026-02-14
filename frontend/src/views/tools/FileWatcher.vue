@@ -165,11 +165,25 @@ export default {
     filePath() {
       if (!this.isInitializing) {
         this.updateUrl();
+        // If watching, restart with new path
+        if (this.watching) {
+          this.stopWatch();
+          this.$nextTick(() => {
+            this.startWatch();
+          });
+        }
       }
     },
     selectedSource() {
       if (!this.isInitializing) {
         this.updateUrl();
+        // If watching, restart with new source
+        if (this.watching) {
+          this.stopWatch();
+          this.$nextTick(() => {
+            this.startWatch();
+          });
+        }
       }
     },
     selectedInterval(newVal) {
@@ -286,6 +300,14 @@ export default {
         this.fileType = data.type;
       }
       mutations.closeHovers();
+      
+      // If currently watching, restart with the new path
+      if (this.watching) {
+        this.stopWatch();
+        this.$nextTick(() => {
+          this.startWatch();
+        });
+      }
     },
     initializeFromQuery() {
       const query = this.$route.query;
@@ -488,37 +510,8 @@ export default {
         const latency = Date.now() - startTime;
         this.currentLatency = latency;
 
-        // Update last update time
-        this.lastUpdateTime = new Date();
-
-        // Update file metadata from response
-        if (data.metadata) {
-          if (data.metadata.name) {
-            this.fileName = data.metadata.name;
-          }
-          if (data.metadata.size !== undefined) {
-            this.fileSize = getHumanReadableFilesize(data.metadata.size);
-          }
-          if (data.metadata.modified) {
-            this.fileModified = formatTimestamp(data.metadata.modified, state.user?.locale || 'en');
-          }
-        }
-
-        // Handle text files or metadata
-        if (data.contents) {
-          // Text file - show content
-          const lines = data.contents.split('\n');
-          this.replaceOutputLines(lines, latency);
-        } else if (data.metadata) {
-          // Non-text file - show metadata
-          const metadataLines = this.formatMetadata(data.metadata);
-          this.replaceOutputLines(metadataLines, latency);
-        }
-
-        // Scroll to bottom
-        this.$nextTick(() => {
-          this.scrollToBottom();
-        });
+        // Process the file watch data
+        this.processFileWatchData(data);
       } catch (err) {
         const errorMsg = err.message || "Failed to fetch file content";
         notify.showError(errorMsg);
@@ -526,6 +519,10 @@ export default {
       }
     },
     handleFileWatchEvent(data) {
+      // Process the file watch data
+      this.processFileWatchData(data);
+    },
+    processFileWatchData(data) {
       // Update last update time
       this.lastUpdateTime = new Date();
 
@@ -534,7 +531,7 @@ export default {
         if (data.metadata.name) {
           this.fileName = data.metadata.name;
         }
-        if (data.metadata.size !== undefined) {
+        if (data.metadata.size > 0) {
           this.fileSize = getHumanReadableFilesize(data.metadata.size);
         }
         if (data.metadata.modified) {
@@ -549,7 +546,7 @@ export default {
         const lines = content.split('\n');
         this.replaceOutputLines(lines);
       } else if (!data.isText && data.metadata) {
-        // Non-text file - show metadata
+        // Non-text file or directory - show metadata
         const metadataLines = this.formatMetadata(data.metadata);
         this.replaceOutputLines(metadataLines);
       }
@@ -565,8 +562,9 @@ export default {
       lines.push(this.$t('general.name', { suffix: ': ' }) + ` ${metadata.name}`);
       lines.push(this.$t('general.path', { suffix: ': ' }) + ` ${this.filePath}`);
       lines.push(this.$t('general.source', { suffix: ': ' }) + ` ${this.selectedSource}`);
-      lines.push(this.$t('general.size', { suffix: ': ' }) + ` ${getHumanReadableFilesize(metadata.size)}`);
-      lines.push(this.$t('general.type', { suffix: ': ' }) + ` ${metadata.type || 'unknown'}`);
+      if (metadata.type) {
+        lines.push(this.$t('general.type', { suffix: ': ' }) + ` ${metadata.type || 'unknown'}`);
+      }
       if (metadata.modified) {
         lines.push(this.$t('files.lastModified', { suffix: ': ' }) + ` ${formatTimestamp(metadata.modified, state.user?.locale || 'en')}`);
       }
