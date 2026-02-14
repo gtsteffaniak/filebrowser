@@ -455,7 +455,8 @@ func sendFileWatchUpdate(username, realPath, path, source string, lines int, mim
 	} else {
 		// Handle regular file
 		// Check if file is a text file
-		isText, err := utils.IsTextFile(realPath)
+		var isText bool
+		isText, err = utils.IsTextFile(realPath)
 		if err != nil {
 			// Error checking file, skip this update
 			return
