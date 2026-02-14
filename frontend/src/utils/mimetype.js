@@ -204,6 +204,25 @@ export function getTypeInfo(mimeType) {
         };
     }
 
+    // 3D model formats
+    if (
+        mimeType.startsWith("model/") ||
+        mimeType === "model/gltf+json" ||
+        mimeType === "model/gltf-binary" ||
+        mimeType === "model/obj" ||
+        mimeType === "model/fbx" ||
+        mimeType === "model/stl" ||
+        mimeType === "model/ply" ||
+        mimeType === "model/vnd.collada+xml" ||
+        mimeType === "model/3mf"
+    ) {
+        return {
+            classes: "purple-icons material-icons",
+            materialIcon: "view_in_ar",
+            simpleType: "3d-model",
+        };
+    }
+
     // Default fallback
     return {
         classes: "lightgray-icons material-icons",

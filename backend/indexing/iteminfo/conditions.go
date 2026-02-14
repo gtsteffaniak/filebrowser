@@ -361,6 +361,31 @@ func (i *ItemInfo) DetectType(realPath string, saveContent bool) {
 	case ".heic", ".heif":
 		i.Type = "image/heic"
 		return
+	// 3D model formats
+	case ".gltf":
+		i.Type = "model/gltf+json"
+		return
+	case ".glb":
+		i.Type = "model/gltf-binary"
+		return
+	case ".obj":
+		i.Type = "model/obj"
+		return
+	case ".fbx":
+		i.Type = "model/fbx"
+		return
+	case ".stl":
+		i.Type = "model/stl"
+		return
+	case ".ply":
+		i.Type = "model/ply"
+		return
+	case ".dae":
+		i.Type = "model/vnd.collada+xml"
+		return
+	case ".3mf":
+		i.Type = "model/3mf"
+		return
 	}
 	i.Type = strings.Split(mime.TypeByExtension(ext), ";")[0]
 

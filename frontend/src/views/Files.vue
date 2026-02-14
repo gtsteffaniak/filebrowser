@@ -22,6 +22,7 @@ import OnlyOfficeEditor from "./files/OnlyOfficeEditor.vue";
 import EpubViewer from "./files/EpubViewer.vue";
 import DocViewer from "./files/DocViewer.vue";
 import MarkdownViewer from "./files/MarkdownViewer.vue";
+import ThreeJsViewer from "./files/ThreeJs.vue";
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
 import router from "@/router";
@@ -39,6 +40,7 @@ export default {
     DocViewer,
     OnlyOfficeEditor,
     MarkdownViewer,
+    ThreeJsViewer,
     LoadingSpinner,
   },
   data() {

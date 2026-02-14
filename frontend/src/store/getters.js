@@ -39,7 +39,7 @@ export const getters = {
   },
   isPreviewView: () => {
     const cv = getters.currentView()
-    return cv == 'preview' || cv == 'onlyOfficeEditor' || cv == 'epubViewer' || cv == 'docViewer' || cv == 'editor' || cv == 'markdownViewer'
+    return cv == 'preview' || cv == 'onlyOfficeEditor' || cv == 'epubViewer' || cv == 'docViewer' || cv == 'editor' || cv == 'markdownViewer' || cv == 'threeJsViewer'
   },
   isScrollable: () => {
     if (getters.currentView() == 'markdownViewer') {
@@ -304,6 +304,8 @@ export const getters = {
           listingView = 'listingView'
         } else if (state.req.onlyOfficeId && !getters.officeViewingDisabled(state.req.name)) {
           listingView = 'onlyOfficeEditor'
+        } else if (getTypeInfo(state.req.type).simpleType === '3d-model') {
+          listingView = 'threeJsViewer'
         } else if (
           'content' in state.req &&
           state.req.type == 'text/markdown' &&

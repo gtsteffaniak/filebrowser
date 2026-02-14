@@ -41,6 +41,7 @@
         :modified="modified"
         :path="path"
         :source="source"
+        :size="size"
       />
     </div>
 
@@ -107,6 +108,7 @@
         :modified="modified"
         :path="path"
         :source="source"
+        :size="size"
       />
     </div>
 
@@ -137,6 +139,7 @@ import * as upload from "@/utils/upload";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 import { url } from "@/utils";
 import { notify } from "@/notify";
+import { getTypeInfo } from "@/utils/mimetype";
 import Icon from "@/components/files/Icon.vue";
 
 export default {
