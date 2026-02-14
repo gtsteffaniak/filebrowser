@@ -32,9 +32,6 @@
 
     <div class="card">
       <div class="card-content file-watcher-output">
-        <div v-if="error" class="error-message">
-          {{ error }}
-        </div>
         <div class="terminal-header boarder-radius" :class="{ 'mobile': isMobile }">
           <div class="header-row header-row-first">
             <div class="header-left"></div>
@@ -90,6 +87,7 @@ import { getApiPath } from "@/utils/url";
 import { fetchURL } from "@/api/utils";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { formatTimestamp, fromNow } from "@/utils/moment";
+import { notify } from "@/notify";
 
 export default {
   name: "FileWatcher",
@@ -101,7 +99,6 @@ export default {
       selectedLines: 10,
       watching: false,
       outputLines: [],
-      error: null,
       pollInterval: null,
       useRealtime: false,
       eventSource: null,
@@ -114,6 +111,7 @@ export default {
       updateTimer: null,
       currentTime: Date.now(),
       latencyPingInterval: null,
+      fileType: null,
     };
   },
   computed: {
@@ -124,7 +122,9 @@ export default {
       return state.isMobile;
     },
     canStart() {
-      return this.selectedSource && this.filePath && !this.watching && !this.isLikelyDirectory;
+      // Can start watching if we have source, path, and not already watching
+      // Allow both files and directories to be watched
+      return this.selectedSource && this.filePath && !this.watching;
     },
     availableIntervals() {
       const realtimePerm = state.user?.permissions?.realtime;
@@ -139,7 +139,7 @@ export default {
       ];
     },
     getFilePathText() {
-      if (this.filePath && this.filePath !== "/") {
+      if (this.filePath) {
         return `${this.$t('general.file', { suffix: ':' })} ${this.filePath}`;
       }
       return this.$t('tools.fileWatcher.chooseFile');
@@ -160,19 +160,30 @@ export default {
       if (this.currentLatency < 1000) return 'latency-ok'; // Yellow
       return 'latency-slow'; // Red
     },
-    isLikelyDirectory() {
-      return this.filePath && this.filePath.endsWith("/");
-    },
   },
   watch: {
     filePath() {
       if (!this.isInitializing) {
         this.updateUrl();
+        // If watching, restart with new path
+        if (this.watching) {
+          this.stopWatch();
+          this.$nextTick(() => {
+            this.startWatch();
+          });
+        }
       }
     },
     selectedSource() {
       if (!this.isInitializing) {
         this.updateUrl();
+        // If watching, restart with new source
+        if (this.watching) {
+          this.stopWatch();
+          this.$nextTick(() => {
+            this.startWatch();
+          });
+        }
       }
     },
     selectedInterval(newVal) {
@@ -285,7 +296,18 @@ export default {
       if (data && data.source !== undefined) {
         this.selectedSource = data.source;
       }
+      if (data && data.type !== undefined) {
+        this.fileType = data.type;
+      }
       mutations.closeHovers();
+      
+      // If currently watching, restart with the new path
+      if (this.watching) {
+        this.stopWatch();
+        this.$nextTick(() => {
+          this.startWatch();
+        });
+      }
     },
     initializeFromQuery() {
       const query = this.$route.query;
@@ -375,7 +397,6 @@ export default {
       this.selectedInterval = this.validateInterval(this.selectedInterval);
 
       this.watching = true;
-      this.error = null;
       this.outputLines = [];
       this.currentLatency = 0;
       this.fileSize = null;
@@ -447,10 +468,12 @@ export default {
           // Handle connection status messages
           if (data.status) {
             if (data.status === 'shutdown') {
+              notify.showError('Server is shutting down');
               this.stopWatch();
             } else if (data.status === 'error') {
-              console.error('[FileWatcher] SSE error:', data.error);
-              this.error = data.error || 'SSE connection error';
+              const errorMsg = data.error || 'SSE connection error';
+              console.error('[FileWatcher] SSE error:', errorMsg);
+              notify.showError(errorMsg);
               this.stopWatch();
             }
             return;
@@ -460,13 +483,14 @@ export default {
           this.handleFileWatchEvent(data);
         } catch (err) {
           console.error('[FileWatcher] Error parsing SSE event:', err, 'Raw data:', event.data);
-          this.error = 'Failed to parse SSE event';
+          notify.showError('Failed to parse server response');
+          this.stopWatch();
         }
       };
 
       this.eventSource.onerror = (error) => {
         console.error('[FileWatcher] SSE connection error:', error);
-        this.error = 'SSE connection error';
+        notify.showError('Lost connection to server');
         this.stopWatch();
       };
     },
@@ -486,43 +510,19 @@ export default {
         const latency = Date.now() - startTime;
         this.currentLatency = latency;
 
-        // Update last update time
-        this.lastUpdateTime = new Date();
-
-        // Update file metadata from response
-        if (data.metadata) {
-          if (data.metadata.name) {
-            this.fileName = data.metadata.name;
-          }
-          if (data.metadata.size !== undefined) {
-            this.fileSize = getHumanReadableFilesize(data.metadata.size);
-          }
-          if (data.metadata.modified) {
-            this.fileModified = formatTimestamp(data.metadata.modified, state.user?.locale || 'en');
-          }
-        }
-
-        // Handle text files or metadata
-        if (data.isText && data.contents) {
-          // Text file - show content
-          const lines = data.contents.split('\n');
-          this.replaceOutputLines(lines, latency);
-        } else if (!data.isText && data.metadata) {
-          // Non-text file - show metadata
-          const metadataLines = this.formatMetadata(data.metadata);
-          this.replaceOutputLines(metadataLines, latency);
-        }
-
-        // Scroll to bottom
-        this.$nextTick(() => {
-          this.scrollToBottom();
-        });
+        // Process the file watch data
+        this.processFileWatchData(data);
       } catch (err) {
-        this.error = err.message || "Failed to fetch file content";
+        const errorMsg = err.message || "Failed to fetch file content";
+        notify.showError(errorMsg);
         this.stopWatch();
       }
     },
     handleFileWatchEvent(data) {
+      // Process the file watch data
+      this.processFileWatchData(data);
+    },
+    processFileWatchData(data) {
       // Update last update time
       this.lastUpdateTime = new Date();
 
@@ -531,7 +531,7 @@ export default {
         if (data.metadata.name) {
           this.fileName = data.metadata.name;
         }
-        if (data.metadata.size !== undefined) {
+        if (data.metadata.size > 0) {
           this.fileSize = getHumanReadableFilesize(data.metadata.size);
         }
         if (data.metadata.modified) {
@@ -546,7 +546,7 @@ export default {
         const lines = content.split('\n');
         this.replaceOutputLines(lines);
       } else if (!data.isText && data.metadata) {
-        // Non-text file - show metadata
+        // Non-text file or directory - show metadata
         const metadataLines = this.formatMetadata(data.metadata);
         this.replaceOutputLines(metadataLines);
       }
@@ -559,12 +559,14 @@ export default {
     formatMetadata(metadata) {
       // Format file metadata into display lines
       const lines = [];
-      lines.push(`File: ${metadata.name}`);
-      lines.push(`Path: ${metadata.path}`);
-      lines.push(`Size: ${getHumanReadableFilesize(metadata.size)}`);
-      lines.push(`Type: ${metadata.type || 'unknown'}`);
+      lines.push(this.$t('general.name', { suffix: ': ' }) + ` ${metadata.name}`);
+      lines.push(this.$t('general.path', { suffix: ': ' }) + ` ${this.filePath}`);
+      lines.push(this.$t('general.source', { suffix: ': ' }) + ` ${this.selectedSource}`);
+      if (metadata.type) {
+        lines.push(this.$t('general.type', { suffix: ': ' }) + ` ${metadata.type || 'unknown'}`);
+      }
       if (metadata.modified) {
-        lines.push(`Modified: ${formatTimestamp(metadata.modified, state.user?.locale || 'en')}`);
+        lines.push(this.$t('files.lastModified', { suffix: ': ' }) + ` ${formatTimestamp(metadata.modified, state.user?.locale || 'en')}`);
       }
       return lines;
     },
@@ -716,15 +718,6 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-}
-
-.error-message {
-  background: #fee;
-  color: #c33;
-  padding: 1rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-  border: 1px solid #fcc;
 }
 
 .status-indicator {

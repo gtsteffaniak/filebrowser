@@ -154,21 +154,21 @@ export default {
         case "download":
           return this.$t("prompts.download");
         case "move":
-          return this.$t("prompts.move");
+          return this.$t("general.move");
         case "copy":
-          return this.$t("prompts.copy");
+          return this.$t("general.copy");
         case "rename":
-          return this.$t("prompts.rename");
+          return this.$t("general.rename");
         case "share":
           return this.$t("general.share");
         case "replace":
-          return this.$t("prompts.replace");
+          return this.$t("general.replace");
         case "info":
           return this.$t("prompts.fileInfo");
         case "help":
           return this.$t("general.help");
         case "upload":
-          return this.$t("prompts.upload");
+          return this.$t("general.upload");
         case "createapi":
           return this.$t("api.createTitle");
         case "actionapi":
@@ -202,7 +202,7 @@ export default {
         case "newdir":
           return this.$t("prompts.newDir");
         case "replace-rename":
-          return this.$t("prompts.replace");
+          return this.$t("general.replace");
         default:
           console.warn("[Prompts.vue] unknown prompt name", promptName);
           // Fallback for unknown prompt types

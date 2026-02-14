@@ -9,15 +9,15 @@
           <span aria-label="info display name">{{ displayName }}</span>
         </div>
         <div class="info-item">
-          <strong>{{ $t("prompts.size") }}</strong>
+          <strong>{{ $t("general.size") }}</strong>
           <span aria-label="info size">{{ humanSize }}</span>
         </div>
         <div class="info-item">
-          <strong>{{ $t("prompts.typeName") }}</strong>
+          <strong>{{ $t("general.type") }}</strong>
           <span aria-label="info type">{{ type }}</span>
         </div>
         <div class="info-item" v-if="humanTime">
-          <strong>{{ $t("prompts.lastModified") }}</strong>
+          <strong>{{ $t("files.lastModified") }}</strong>
           <span aria-label="info last modified" :title="modTime">{{ humanTime }}</span>
         </div>
         <div class="info-item" v-if="source">

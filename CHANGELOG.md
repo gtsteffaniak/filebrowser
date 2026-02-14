@@ -2,10 +2,10 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
-<<<<<<< HEAD
 ## v1.3.0-beta
 
  **New Features**:
+ - FileWatcher also supports watching directories
  - Enhanced prompts
    - All prompts have a taskbar with a close button
    - Prompts can be freely moved by dragging taskbar
@@ -19,7 +19,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - Docker images default to `filebrowser` user instead of root
-=======
+
 ## v1.2.4-beta
 
  **Notes**:
@@ -35,7 +35,6 @@ All notable changes to this project will be documented in this file. For commit 
  - enforcedOtp: true blocks all user settings updates with HTTP 400 (#1962)
  - Share favicon URL not showing up and Share description causing endless loading (#1911)
  - folder sizes not updated for changes to filesystem outside of filebrowser (#1974)
->>>>>>> v1.2.4-beta
 
 ## v1.2.4-beta
 

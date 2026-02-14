@@ -21,7 +21,7 @@
           <tr>
             <th>{{ $t("general.name") }}</th>
             <th>{{ $t("api.created") }}</th>
-            <th>{{ $t("api.expires") }}</th>
+            <th>{{ $t("general.expires") }}</th>
             <th>{{ $t("settings.permissions-name") }}</th>
             <th>{{ $t("api.actions") }}</th>
           </tr>

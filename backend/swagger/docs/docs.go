@@ -3802,12 +3802,8 @@ const docTemplate = `{
                     "description": "File name",
                     "type": "string"
                 },
-                "path": {
-                    "description": "File path",
-                    "type": "string"
-                },
                 "size": {
-                    "description": "File size in bytes",
+                    "description": "File size in bytes (for directories, total size of all files)",
                     "type": "integer"
                 },
                 "type": {
