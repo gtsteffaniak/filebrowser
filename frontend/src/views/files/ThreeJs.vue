@@ -2,7 +2,6 @@
   <div id="threejs-viewer" ref="container">
     <div v-if="loading" class="loading-overlay">
       <LoadingSpinner size="medium" />
-      <p>Loading 3D Model...</p>
     </div>
     <div v-if="error" class="error-overlay">
       <div class="error-content">
@@ -12,8 +11,8 @@
       </div>
     </div>
     
-    <div class="controls-info">
-      <div class="controls-section">
+    <div class="controls-card card floating-window">
+      <div class="card-content">
         <div class="control-row">
           <span class="control-label">⌨️ Keyboard:</span>
           <span class="control-desc">
@@ -74,6 +73,7 @@ export default {
       initialCameraPosition: null,
       initialControlsTarget: null,
       backgroundColor: '#000000', // Default black
+      resizeObserver: null,
     };
   },
   computed: {
@@ -116,6 +116,14 @@ export default {
     this.setupKeyboardShortcuts();
     window.addEventListener('resize', this.onWindowResize);
     
+    // Set up ResizeObserver to detect container size changes (e.g., sidebar toggle)
+    if (this.$refs.container) {
+      this.resizeObserver = new ResizeObserver(() => {
+        this.onWindowResize();
+      });
+      this.resizeObserver.observe(this.$refs.container);
+    }
+    
     mutations.resetSelected();
     mutations.addSelected({
       name: state.req.name,
@@ -130,6 +138,9 @@ export default {
     window.removeEventListener('resize', this.onWindowResize);
     if (this.keyboardHandler) {
       window.removeEventListener('keydown', this.keyboardHandler);
+    }
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
     }
   },
   methods: {
@@ -524,6 +535,13 @@ export default {
   height: 100%;
   position: relative;
   overflow: hidden;
+  cursor: default;
+}
+
+/* Override any loading/wait cursors */
+#threejs-viewer,
+#threejs-viewer * {
+  cursor: default !important;
 }
 
 /* Ensure canvas fills the container */
@@ -543,16 +561,10 @@ export default {
   right: 0;
   bottom: 0;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   background: var(--background);
   z-index: 10;
-}
-
-.loading-overlay p {
-  margin-top: 1rem;
-  color: var(--textPrimary);
 }
 
 .error-overlay {
@@ -589,27 +601,21 @@ export default {
   color: var(--textSecondary);
 }
 
-.controls-info {
+.controls-card {
   position: absolute;
   bottom: 1.5rem;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.85);
-  color: white;
-  padding: 1rem 1.5rem;
-  border-radius: 12px;
-  font-size: 0.9rem;
   z-index: 10; /* Lower than navigation buttons (1001) */
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  width: clamp(30em, 30em, 90vw); /* min, preferred, max */
+  width: clamp(20em, 30em, 90vw);
+  max-width: 90vw;
 }
 
-.controls-section {
+.controls-card .card-content {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  padding: 1rem 1.5rem;
 }
 
 .control-row {
@@ -620,13 +626,13 @@ export default {
 
 .control-label {
   font-weight: 600;
-  color: #4fc3f7;
+  color: var(--primaryColor);
   white-space: nowrap;
   min-width: 100px;
 }
 
 .control-desc {
-  color: #e0e0e0;
+  color: var(--textPrimary);
   line-height: 1.5;
 }
 
@@ -635,17 +641,17 @@ export default {
   padding: 0.2em 0.5em;
   font-size: 0.85em;
   font-family: monospace;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--surfaceSecondary);
+  border: 1px solid var(--divider);
   border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   margin: 0 0.2em;
 }
 
-.control-desc .color-picker-input {
+.color-picker-input {
   width: 50px;
   height: 32px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: 2px solid var(--divider);
   border-radius: 8px;
   cursor: pointer;
   background: transparent;
@@ -653,27 +659,29 @@ export default {
   vertical-align: middle;
 }
 
-.control-desc .color-picker-input::-webkit-color-swatch-wrapper {
+.color-picker-input::-webkit-color-swatch-wrapper {
   padding: 0;
   border-radius: 6px;
 }
 
-.control-desc .color-picker-input::-webkit-color-swatch {
+.color-picker-input::-webkit-color-swatch {
   border: none;
   border-radius: 6px;
 }
 
-.control-desc .color-picker-input::-moz-color-swatch {
+.color-picker-input::-moz-color-swatch {
   border: none;
   border-radius: 6px;
 }
 
 @media (max-width: 768px) {
-  .controls-info {
-    font-size: 0.75rem;
-    padding: 0.75rem 1rem;
+  .controls-card {
     bottom: 1rem;
-    max-width: 95%;
+    width: 95vw;
+  }
+
+  .controls-card .card-content {
+    padding: 0.75rem 1rem;
   }
   
   .control-row {
@@ -690,7 +698,7 @@ export default {
     padding: 0.15em 0.4em;
   }
   
-  .control-desc .color-picker-input {
+  .color-picker-input {
     width: 40px;
     height: 28px;
   }

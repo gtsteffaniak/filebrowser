@@ -210,6 +210,37 @@ export default {
       }
     },
     closePrompt(id) {
+      // Find the prompt we're trying to close
+      const promptToClose = state.prompts.find(p => p.id === id);
+      
+      // Check if it's the upload prompt with active uploads
+      if (promptToClose?.name === "upload") {
+        const hasActiveUploads = state.upload.isUploading;
+        const hasWarningPrompt = state.prompts.some(p => p.name === "CloseWithActiveUploads");
+        
+        if (hasActiveUploads && !hasWarningPrompt) {
+          // Show warning prompt instead of closing
+          mutations.showHover({
+            name: "CloseWithActiveUploads",
+            confirm: () => {
+              // User confirmed to close anyway - close the upload prompt
+              mutations.closePromptById(id);
+              // Clean up state for this prompt
+              delete this.dragOffsets[id];
+              delete this.dragStarts[id];
+              delete this.touchIds[id];
+              this.draggingIds.delete(id);
+            },
+            cancel: () => {
+              // User cancelled - just close the warning prompt
+              mutations.closeTopHover();
+            },
+          });
+          return;
+        }
+      }
+      
+      // Normal close behavior
       mutations.closePromptById(id);
       // Clean up state for this prompt
       delete this.dragOffsets[id];
@@ -346,6 +377,10 @@ export default {
 }
 
 .prompt-taskbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
   display: flex;
   align-items: center;
   cursor: grab;
@@ -354,6 +389,7 @@ export default {
   transition: background 0.15s;
   background: var(--surfaceSecondary);
   height: 3em;
+  z-index: 10;
 }
 
 .prompt-taskbar:hover {

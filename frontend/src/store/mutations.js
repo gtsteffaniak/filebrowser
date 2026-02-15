@@ -255,33 +255,14 @@ export const mutations = {
     emitStateChanged();
   },
   closeHovers: () => {
-    // Check if uploads are active and we're not already showing the warning
-    const hasActiveUploads = state.upload.isUploading;
-    const hasUploadPrompt = state.prompts.some(p => p.name === "upload");
-    const hasWarningPrompt = state.prompts.some(p => p.name === "CloseWithActiveUploads");
-
-    if (hasActiveUploads && hasUploadPrompt && !hasWarningPrompt) {
-      // Show warning prompt instead of closing
-      mutations.showHover({
-        name: "CloseWithActiveUploads",
-        confirm: () => {
-          // User confirmed to close anyway - force close all hovers
-          state.prompts = [];
-          if (!state.stickySidebar) {
-            state.showSidebar = false;
-          }
-          emitStateChanged();
-        },
-        cancel: () => {
-          // User cancelled - just close the warning prompt
-          mutations.closeTopHover();
-        },
-      });
-      return;
-    }
-    // Normal close behavior - close ALL prompts including ContextMenu
-    state.prompts = [];
-    if (!state.stickySidebar) {
+    // Define which hovers should be closed (lightweight/ephemeral hovers)
+    const closeableHovers = ['search', 'ContextMenu', 'OverflowMenu'];
+    
+    // Close only specific lightweight hovers (search, ContextMenu, OverflowMenu)
+    state.prompts = state.prompts.filter(p => !closeableHovers.includes(p.name));
+    
+    // Only hide sidebar if no prompts remain
+    if (state.prompts.length === 0 && !state.stickySidebar) {
       state.showSidebar = false;
     }
     mutations.hideTooltip(true)

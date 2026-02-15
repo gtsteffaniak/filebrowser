@@ -1,7 +1,7 @@
 <template>
   <div class="threejs-icon-container" ref="container">
     <div v-if="loading" class="loading-icon">
-      <i class="material-icons">hourglass_empty</i>
+      <LoadingSpinner size="small" />
     </div>
     <div v-if="error" class="error-icon">
       <i class="material-icons">view_in_ar</i>
@@ -22,9 +22,13 @@ import { ColladaLoader } from 'three/addons/loaders/ColladaLoader.js';
 import { ThreeMFLoader } from 'three/addons/loaders/3MFLoader.js';
 import { state, getters } from "@/store";
 import { filesApi, publicApi } from "@/api";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
 export default {
   name: "threeJsIcon",
+  components: {
+    LoadingSpinner,
+  },
   props: {
     filename: {
       type: String,
@@ -345,19 +349,9 @@ export default {
   height: 100%;
 }
 
-.loading-icon i,
 .error-icon i {
   font-size: 2rem;
-  color: purple;
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
+  color: var(--textSecondary);
+  opacity: 0.5;
 }
 </style>

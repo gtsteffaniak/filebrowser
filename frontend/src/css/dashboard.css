@@ -182,6 +182,21 @@ table tr>*:last-child {
   overflow: hidden;
 }
 
+/* Backdrop-filter support for floating cards */
+@supports (backdrop-filter: none) {
+  .card.floating {
+    backdrop-filter: blur(12px);
+    background-color: color-mix(in srgb, var(--surfacePrimary) 85%, transparent);
+  }
+}
+
+/* Fallback for browsers without backdrop-filter support */
+@supports not (backdrop-filter: none) {
+  .card.floating {
+    background-color: var(--surfacePrimary);
+  }
+}
+
 .card>*>*:first-child {
   margin-top: 0;
 }
