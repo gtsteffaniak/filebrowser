@@ -201,7 +201,7 @@ type MoveCopyResponse struct {
 // @Failure 400 {object} map[string]string "Bad request - invalid JSON or empty items array"
 // @Failure 403 {object} map[string]string "Forbidden"
 // @Failure 500 {object} map[string]string "Internal server error - all deletions failed"
-// @Router /api/resources/bulk/delete [post]
+// @Router /api/resources/bulk [delete]
 func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	filePermUser := d.user
 	if d.share != nil {
