@@ -371,9 +371,6 @@ func (i *ItemInfo) DetectType(realPath string, saveContent bool) {
 	case ".obj":
 		i.Type = "model/obj"
 		return
-	case ".fbx":
-		i.Type = "model/fbx"
-		return
 	case ".stl":
 		i.Type = "model/stl"
 		return
@@ -388,6 +385,33 @@ func (i *ItemInfo) DetectType(realPath string, saveContent bool) {
 		return
 	case ".3ds":
 		i.Type = "model/3ds"
+		return
+	case ".usdz":
+		i.Type = "model/vnd.usdz+zip"
+		return
+	case ".usd", ".usda", ".usdc":
+		i.Type = "model/vnd.usd+zip"
+		return
+	case ".amf":
+		i.Type = "model/x-amf"
+		return
+	case ".vrml", ".wrl":
+		i.Type = "model/vrml"
+		return
+	case ".vtk", ".vtp":
+		i.Type = "model/vtk"
+		return
+	case ".pcd":
+		i.Type = "model/pcd"
+		return
+	case ".xyz":
+		i.Type = "model/xyz"
+		return
+	case ".vox":
+		i.Type = "model/vox"
+		return
+	case ".kmz":
+		i.Type = "application/vnd.google-earth.kmz"
 		return
 	}
 	i.Type = strings.Split(mime.TypeByExtension(ext), ";")[0]

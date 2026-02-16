@@ -210,12 +210,19 @@ export function getTypeInfo(mimeType) {
         mimeType === "model/gltf+json" ||
         mimeType === "model/gltf-binary" ||
         mimeType === "model/obj" ||
-        mimeType === "model/fbx" ||
         mimeType === "model/stl" ||
         mimeType === "model/ply" ||
         mimeType === "model/vnd.collada+xml" ||
         mimeType === "model/3mf" ||
-        mimeType === "model/3ds"
+        mimeType === "model/3ds" ||
+        mimeType === "model/vnd.usdz+zip" ||
+        mimeType === "model/vnd.usd+zip" ||
+        mimeType === "model/x-amf" ||
+        mimeType === "model/vrml" ||
+        mimeType === "model/x-vrml" ||
+        mimeType === "model/vtk" ||
+        mimeType === "model/vox" ||
+        mimeType === "application/vnd.google-earth.kmz"
     ) {
         return {
             classes: "purple-icons material-icons",

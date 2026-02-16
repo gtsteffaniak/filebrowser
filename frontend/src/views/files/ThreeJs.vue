@@ -1,5 +1,5 @@
 <template>
-  <div id="threejs-viewer" ref="container">
+  <div class="threejs-viewer" ref="container">
     <div v-if="loading" class="loading-overlay">
       <LoadingSpinner :size="isThumbnail ? 'small' : 'medium'" />
     </div>
@@ -40,7 +40,7 @@
           <div v-if="!isMobile" class="control-row">
             <span class="control-label">⌨️ {{ $t("threejs.keyboard") }}</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
             <span class="control-desc">
-              <kbd>{{ $t("general.space") }}</kbd> {{ getSpaceText }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+              <kbd>{{ $t("general.space") }}</kbd> {{ getSpaceText() }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
               <kbd>R</kbd> {{ $t("general.reset") }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
               <kbd>Q</kbd>/<kbd>E</kbd> {{ $t("threejs.rotateY") }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
               <kbd>W</kbd>/<kbd>S</kbd> {{ $t("threejs.rotateX") }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
@@ -72,12 +72,20 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
-import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { PLYLoader } from 'three/addons/loaders/PLYLoader.js';
 import { ColladaLoader } from 'three/addons/loaders/ColladaLoader.js';
 import { ThreeMFLoader } from 'three/addons/loaders/3MFLoader.js';
 import { TDSLoader } from 'three/addons/loaders/TDSLoader.js';
+import { USDZLoader } from 'three/addons/loaders/USDZLoader.js';
+import { USDLoader } from 'three/addons/loaders/USDLoader.js';
+import { AMFLoader } from 'three/addons/loaders/AMFLoader.js';
+import { VRMLLoader } from 'three/addons/loaders/VRMLLoader.js';
+import { VTKLoader } from 'three/addons/loaders/VTKLoader.js';
+import { PCDLoader } from 'three/addons/loaders/PCDLoader.js';
+import { XYZLoader } from 'three/addons/loaders/XYZLoader.js';
+import { VOXLoader } from 'three/addons/loaders/VOXLoader.js';
+import { KMZLoader } from 'three/addons/loaders/KMZLoader.js';
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { state, mutations, getters } from "@/store";
 import { filesApi, publicApi } from "@/api";
@@ -86,12 +94,24 @@ const LOADERS = {
   gltf: GLTFLoader,
   glb: GLTFLoader,
   obj: OBJLoader,
-  fbx: FBXLoader,
   stl: STLLoader,
   ply: PLYLoader,
   dae: ColladaLoader,
   '3mf': ThreeMFLoader,
   '3ds': TDSLoader,
+  usdz: USDZLoader,
+  usd: USDLoader,
+  usda: USDLoader,
+  usdc: USDLoader,
+  amf: AMFLoader,
+  vrml: VRMLLoader,
+  wrl: VRMLLoader,
+  vtk: VTKLoader,
+  vtp: VTKLoader,
+  pcd: PCDLoader,
+  xyz: XYZLoader,
+  vox: VOXLoader,
+  kmz: KMZLoader,
 };
 
 export default {
@@ -311,7 +331,7 @@ export default {
 
     updateMaterialColors() {
       if (this.model && this.model.isMesh && this.model.material) {
-        if (['stl', 'ply'].includes(this.fileExtension)) {
+        if (['stl', 'ply', 'amf'].includes(this.fileExtension)) {
           this.model.material.color.setHex(0x4fc3f7);
         }
       }
@@ -399,7 +419,7 @@ export default {
         } else if (extension === 'obj') {
           this.loadOBJ(loader, loadingManager);
         } else {
-          // Standard load
+          // Standard load for all other formats including FBX
           loader.load(
             this.modelUrl,
             (data) => this.onModelLoaded(data, extension),
@@ -488,16 +508,27 @@ export default {
       const ext = extension.toLowerCase();
 
       // Extract object based on format
-      if (['gltf', 'glb', 'dae'].includes(ext)) {
+      if (['gltf', 'glb', 'dae', 'usdz', 'usd', 'usda', 'usdc', 'vrml', 'wrl', 'kmz'].includes(ext)) {
         object = loadedData.scene;
+      } else if (['pcd', 'xyz'].includes(ext)) {
+        // Point cloud formats return Points objects directly
+        object = loadedData;
+      } else if (ext === 'vtk' || ext === 'vtp') {
+        // VTK returns BufferGeometry, needs to be wrapped in Mesh
+        const material = new THREE.MeshStandardMaterial({
+          color: 0x4fc3f7,
+          metalness: 0.3,
+          roughness: 0.6,
+        });
+        object = new THREE.Mesh(loadedData, material);
       } else {
-        object = loadedData; // fbx, 3mf, stl, ply, obj
+        object = loadedData; // 3mf, stl, ply, obj, amf, vox
       }
 
       // Format specifics
       if (ext === '3mf') object.rotation.set(-Math.PI / 2, 0, 0);
       
-      if (['stl', 'ply'].includes(ext)) {
+      if (['stl', 'ply', 'amf'].includes(ext)) {
         const material = new THREE.MeshStandardMaterial({
           color: 0x4fc3f7,
           flatShading: ext === 'stl',
@@ -506,10 +537,28 @@ export default {
         });
         object = new THREE.Mesh(loadedData, material);
       }
+      
+      // Point clouds need Points material
+      if (['pcd', 'xyz'].includes(ext)) {
+        const material = new THREE.PointsMaterial({
+          size: 0.05,
+          color: 0x4fc3f7,
+          vertexColors: loadedData.geometry?.attributes?.color ? true : false,
+        });
+        if (loadedData.material) {
+          // Use existing material if provided
+          object = loadedData;
+        } else {
+          object = new THREE.Points(loadedData.geometry || loadedData, material);
+        }
+      }
 
       // Animation Setup
-      if (loadedData.animations && loadedData.animations.length > 0) {
-        this.setupAnimations(object, loadedData.animations);
+      // For scene-based loaders (gltf, dae, etc.), animations are on loadedData.scene.animations
+      // For direct loaders (fbx, etc.), animations are on loadedData.animations
+      const animations = loadedData.scene?.animations || loadedData.animations || [];
+      if (animations.length > 0) {
+        this.setupAnimations(object, animations);
       }
 
       // Validation & Processing
@@ -723,7 +772,7 @@ export default {
 </script>
 
 <style scoped>
-#threejs-viewer {
+.threejs-viewer {
   width: 100%;
   height: 100%;
   position: relative;
@@ -731,11 +780,11 @@ export default {
   cursor: default;
 }
 
-#threejs-viewer, #threejs-viewer * {
+.threejs-viewer, .threejs-viewer * {
   cursor: default !important;
 }
 
-#threejs-viewer canvas {
+.threejs-viewer canvas {
   display: block;
   width: 100% !important;
   height: 100% !important;
