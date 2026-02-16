@@ -620,7 +620,9 @@
     "latency": "Latencia{suffix}",
     "all": "Všetky{suffix}",
     "acknowledge": "Potvrdiť{suffix}",
-    "expiration": "Uplynutie platnosti{suffix}"
+    "expiration": "Uplynutie platnosti{suffix}",
+    "zoom": "Priblíženie{suffix}",
+    "background": "Pozadie{suffix}"
   },
   "access": {
     "rules": "Pravidlá prístupu",

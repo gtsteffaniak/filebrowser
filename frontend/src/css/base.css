@@ -210,18 +210,3 @@ input.sizeInput:disabled {
   min-height: 0;
   border: 2px solid var(--surfaceSecondary);
 }
-
-/* Backdrop-filter support for all floating windows */
-@supports (backdrop-filter: none) {
-  .floating-window {
-    backdrop-filter: blur(12px);
-    background-color: color-mix(in srgb, var(--surfacePrimary) 85%, transparent);
-  }
-}
-
-/* Fallback for browsers without backdrop-filter support */
-@supports not (backdrop-filter: none) {
-  .floating-window {
-    background-color: var(--surfacePrimary);
-  }
-}

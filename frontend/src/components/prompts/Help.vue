@@ -101,7 +101,7 @@ export default {
   name: "help",
   computed: {
     closeHovers() {
-      return mutations.closeHovers; // Return the closeHovers mutation
+      return mutations.closeTopHover(); // Return the closeHovers mutation
     },
   },
 };

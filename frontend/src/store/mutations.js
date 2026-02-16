@@ -271,6 +271,7 @@ export const mutations = {
     if (state.prompts.length === 0) {
       return;
     }
+    mutations.closeHovers();
     state.prompts.pop();
     if (state.prompts.length === 0 && !state.stickySidebar) {
       state.showSidebar = false;

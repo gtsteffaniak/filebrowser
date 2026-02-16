@@ -237,7 +237,7 @@ export default {
   },
   methods: {
     closeHovers() {
-      mutations.closeHovers();
+      mutations.closeTopHover();
     },
     async fetchData() {
       mutations.setLoading("users", true);
@@ -337,7 +337,7 @@ export default {
                   await usersApi.remove(this.user.id);
                   notify.showSuccessToast(this.$t("settings.userDeleted"));
                   eventBus.emit('usersChanged');
-                  mutations.closeHovers();
+                  mutations.closeTopHover();
                 } catch (e) {
                   console.error(e);
                   notify.showErrorToast(this.$t("settings.userDeleteFailed"));
@@ -368,7 +368,7 @@ export default {
           // Emit event to refresh user list
           eventBus.emit('usersChanged');
           // Close the modal
-          mutations.closeHovers();
+          mutations.closeTopHover();
         } else {
           await usersApi.update({ ...this.user, scopes: scopesToSend }, fields);
           // Only emit usersChanged for admin user management, not profile updates
@@ -376,7 +376,7 @@ export default {
             eventBus.emit('usersChanged');
           }
           notify.showSuccessToast(this.$t("settings.userUpdated"));
-          mutations.closeHovers();
+          mutations.closeTopHover();
         }
       } catch (e) {
         console.error(e);

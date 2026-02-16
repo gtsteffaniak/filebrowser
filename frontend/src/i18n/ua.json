@@ -700,7 +700,13 @@
     "latency": "Затримка{suffix}",
     "all": "Усе.{suffix}",
     "acknowledge": "Підтвердити{suffix}",
-    "expiration": "Закінчення терміну дії{suffix}"
+    "expiration": "Закінчення терміну дії{suffix}",
+    "zoom": "Збільшити{suffix}",
+    "background": "Передумови{suffix}",
+    "play": "Грай.{suffix}",
+    "stop": "Стоп!{suffix}",
+    "reset": "Перезавантаження{suffix}",
+    "space": "Простір{suffix}"
   },
   "access": {
     "rules": "Правила доступу",
@@ -842,5 +848,12 @@
     "authenticationFailed": "Не вдалося пройти аутентифікацію. Будь ласка, оновіть сторінку, щоб увійти знову.",
     "reconnected": "Перепідключився до сервера.",
     "connectionLost": "З'єднання з сервером було втрачено. Спроба відновити з'єднання..."
+  },
+  "threejs": {
+    "failedToLoad": "Не вдалося завантажити 3D модель",
+    "keyboard": "Клавіатура:",
+    "autoRotate": "Автоповорот",
+    "rotateY": "Поворот Y",
+    "rotateX": "Повернути X"
   }
 }

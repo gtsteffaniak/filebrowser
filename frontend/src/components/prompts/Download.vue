@@ -131,7 +131,7 @@ export default {
       if (!downloadManager || !downloadManager.hasActive()) {
         const prompt = getters.currentPrompt();
         if (prompt && prompt.name === 'download') {
-          mutations.closeHovers();
+          mutations.closeTopHover();
         } else {
           prompt?.cancel?.();
         }

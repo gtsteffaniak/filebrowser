@@ -117,7 +117,13 @@
     "lastUpdate": "Laatste update{suffix}",
     "latency": "Vertraging{suffix}",
     "acknowledge": "erkennen{suffix}",
-    "expiration": "Vervaldatum{suffix}"
+    "expiration": "Vervaldatum{suffix}",
+    "zoom": "Zoom{suffix}",
+    "background": "Achtergrond{suffix}",
+    "play": "Speel{suffix}",
+    "stop": "Stop{suffix}",
+    "reset": "Reset{suffix}",
+    "space": "Ruimte{suffix}"
   },
   "buttons": {
     "generateNewOtp": "Herstellen en nieuwe twee-factorcode genereren",
@@ -842,5 +848,12 @@
     "authenticationFailed": "Authenticatie is mislukt. Ververs de pagina om opnieuw in te loggen.",
     "reconnected": "Opnieuw verbinding gemaakt met server.",
     "connectionLost": "De verbinding met de server is verbroken. Probeer opnieuw verbinding te maken..."
+  },
+  "threejs": {
+    "failedToLoad": "Laden 3D-model mislukt",
+    "keyboard": "Toetsenbord:",
+    "autoRotate": "Automatisch draaien",
+    "rotateY": "Y draaien",
+    "rotateX": "X draaien"
   }
 }

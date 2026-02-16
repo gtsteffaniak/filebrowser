@@ -620,7 +620,13 @@
     "latency": "Latencia{suffix}",
     "all": "Todos{suffix}",
     "acknowledge": "Acuse recibo{suffix}",
-    "expiration": "Caducidad{suffix}"
+    "expiration": "Caducidad{suffix}",
+    "zoom": "Zoom{suffix}",
+    "background": "Fondo{suffix}",
+    "play": "Jugar{suffix}",
+    "stop": "Stop{suffix}",
+    "reset": "Restablecer{suffix}",
+    "space": "Espacio{suffix}"
   },
   "access": {
     "rules": "Reglas de acceso",
@@ -842,5 +848,12 @@
     "authenticationFailed": "Hubo un error de autenticación - Actualiza la página y vuelve a iniciar sesión",
     "reconnected": "!Se reconecto con el servidor!",
     "connectionLost": "Se perdió la conexión con el servidor. Intentando reconectar..."
+  },
+  "threejs": {
+    "failedToLoad": "Error al cargar el modelo 3D",
+    "keyboard": "Teclado:",
+    "autoRotate": "Rotación automática",
+    "rotateY": "Girar Y",
+    "rotateX": "Girar X"
   }
 }

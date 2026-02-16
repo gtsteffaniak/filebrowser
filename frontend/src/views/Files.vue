@@ -2,7 +2,7 @@
   <div>
     <div v-if="loadingProgress < 100" class="progress-line" :style="{ width: loadingProgress + '%', ...moveWithSidebar }"></div>
     <errors v-if="error" :errorCode="error.status" />
-    <component v-else-if="currentViewLoaded" :is="currentView"></component>
+    <component v-else-if="currentViewLoaded" :is="currentView" :fbdata="req"></component>
     <div v-else>
       <h2 class="message delayed">
         <LoadingSpinner size="medium" />
@@ -67,6 +67,9 @@ export default {
     },
     currentViewLoaded() {
       return getters.currentView() != "";
+    },
+    req() {
+      return state.req;
     },
     reload() {
       return state.reload;

@@ -60,7 +60,7 @@ export default {
   },
   methods: {
     closeHovers() {
-      return mutations.closeHovers();
+      return mutations.closeTopHover();
     },
     async submit(event) {
       try {
@@ -81,13 +81,13 @@ export default {
         if (getters.isShare()) {
           await publicApi.post(state.shareInfo?.hash, newPath, "", overwrite, undefined, {}, true);
           mutations.setReload(true);
-          mutations.closeHovers();
+          mutations.closeTopHover();
           this.creating = false;
           return;
         }
         await filesApi.post(source, newPath, "", overwrite, undefined, {}, true);
         mutations.setReload(true);
-        mutations.closeHovers();
+        mutations.closeTopHover();
 
         // Show success notification with "go to item" button
         const buttonAction = () => {
@@ -127,13 +127,13 @@ export default {
                       if (getters.isShare()) {
                         await publicApi.post(state.shareInfo?.hash, newPath, "", false, undefined, {}, true);
                         mutations.setReload(true);
-                        mutations.closeHovers();
+                        mutations.closeTopHover();
                         success = true;
                         return;
                       }
                       await filesApi.post(source, newPath, "", false, undefined, {}, true);
                       mutations.setReload(true);
-                      mutations.closeHovers();
+                      mutations.closeTopHover();
                       success = true;
 
                       // Show success notification with "go to item" button

@@ -214,7 +214,8 @@ export function getTypeInfo(mimeType) {
         mimeType === "model/stl" ||
         mimeType === "model/ply" ||
         mimeType === "model/vnd.collada+xml" ||
-        mimeType === "model/3mf"
+        mimeType === "model/3mf" ||
+        mimeType === "model/3ds"
     ) {
         return {
             classes: "purple-icons material-icons",

@@ -86,7 +86,7 @@ export default {
       return state.shareInfo.shareURL;
     },
     close() {
-      mutations.closeHovers();
+      mutations.closeTopHover();
     },
   },
 };

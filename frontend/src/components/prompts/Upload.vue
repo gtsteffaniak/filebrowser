@@ -53,9 +53,6 @@
           <p>{{ $t("prompts.conflictsDetected") }}</p>
         </div>
         <div class="card-actions">
-          <button @click="resolveConflict(false)" class="button button--flat button--grey">
-            {{ $t("general.cancel") }}
-          </button>
           <button @click="resolveConflict(true)" class="button button--flat button--red">
             {{ $t("general.replace") }}
           </button>
@@ -110,11 +107,6 @@
   </div>
 
   <div class="card-actions">
-    <button v-if="shareInfo.shareType !== 'upload'"  @click="close" class="button button--flat button--grey" :aria-label="$t('general.cancel')"
-      :title="$t('general.cancel')">
-      {{ $t("general.close") }}
-    </button>
-    <div class="spacer"></div>
     <button v-if="canPauseAll" @click="uploadManager.pauseAll" class="button button--flat"
       :aria-label="$t('buttons.pauseAll')" :title="$t('buttons.pauseAll')">
       {{ $t("buttons.pauseAll") }}
@@ -351,8 +343,7 @@ export default {
     );
 
     const close = () => {
-      // closeHovers will automatically check isUploading and show warning if needed
-      mutations.closeHovers();
+      mutations.closeTopHover();
     };
 
     const clearCompleted = () => {

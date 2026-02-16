@@ -620,7 +620,13 @@
     "latency": "חביון{suffix}",
     "all": "כל{suffix}",
     "acknowledge": "אשר{suffix}",
-    "expiration": "תוקף{suffix}"
+    "expiration": "תוקף{suffix}",
+    "zoom": "זום{suffix}",
+    "background": "רקע{suffix}",
+    "play": "הפעל{suffix}",
+    "stop": "עצור{suffix}",
+    "reset": "איפוס{suffix}",
+    "space": "חלל{suffix}"
   },
   "access": {
     "rules": "כללי גישה",
@@ -842,5 +848,12 @@
     "authenticationFailed": "האימות נכשל. אנא רענן את הדף כדי להתחבר שוב.",
     "reconnected": "התחבר מחדש לשרת.",
     "connectionLost": "החיבור לשרת אבד. מנסה להתחבר מחדש..."
+  },
+  "threejs": {
+    "failedToLoad": "לא ניתן לטעון את המודל התלת-ממדי",
+    "keyboard": "מקלדת:",
+    "autoRotate": "סיבוב אוטומטי",
+    "rotateY": "סובב Y",
+    "rotateX": "סובב X"
   }
 }

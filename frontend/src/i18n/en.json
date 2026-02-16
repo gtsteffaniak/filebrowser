@@ -8,6 +8,12 @@
     "incompleteResultsDetails": "Showing max results ({max}). Try narrowing your search to get more results under {max}."
   },
   "general": {
+    "zoom": "Zoom{suffix}",
+    "background": "Background{suffix}",
+    "play": "Play{suffix}",
+    "stop": "Stop{suffix}",
+    "reset": "Reset{suffix}",
+    "space": "Space{suffix}",
     "expiration": "Expiration{suffix}",
     "acknowledge": "Acknowledge{suffix}",
     "all": "All{suffix}",
@@ -842,5 +848,12 @@
     "authenticationFailed": "Authentication failed. Please refresh the page to log in again.",
     "reconnected": "Reconnected to server.",
     "connectionLost": "The connection to server was lost. Trying to reconnect..."
+  },
+  "threejs": {
+    "failedToLoad": "Failed to Load 3D Model",
+    "keyboard": "Keyboard:",
+    "autoRotate": "Auto-rotate",
+    "rotateY": "Rotate Y",
+    "rotateX": "Rotate X"
   }
 }

@@ -620,7 +620,13 @@
     "latency": "レイテンシー{suffix}",
     "all": "すべて{suffix}",
     "acknowledge": "認める{suffix}",
-    "expiration": "有効期限{suffix}"
+    "expiration": "有効期限{suffix}",
+    "zoom": "ズーム{suffix}",
+    "background": "背景{suffix}",
+    "play": "プレー{suffix}",
+    "stop": "ストップ{suffix}",
+    "reset": "リセット{suffix}",
+    "space": "スペース{suffix}"
   },
   "access": {
     "rules": "アクセスルール",
@@ -842,5 +848,12 @@
     "authenticationFailed": "認証に失敗しました。ページを更新して再度ログインしてください。",
     "reconnected": "サーバーに再接続しました。",
     "connectionLost": "サーバーへの接続が失われました。再接続を試みます..."
+  },
+  "threejs": {
+    "failedToLoad": "3Dモデルの読み込みに失敗しました",
+    "keyboard": "キーボード",
+    "autoRotate": "自動回転",
+    "rotateY": "回転Y",
+    "rotateX": "回転X"
   }
 }

@@ -620,7 +620,13 @@
     "latency": "Latență{suffix}",
     "all": "Toate{suffix}",
     "acknowledge": "Recunoașteți{suffix}",
-    "expiration": "Expirare{suffix}"
+    "expiration": "Expirare{suffix}",
+    "zoom": "Zoom{suffix}",
+    "background": "Context{suffix}",
+    "play": "Joc{suffix}",
+    "stop": "Oprire{suffix}",
+    "reset": "Resetare{suffix}",
+    "space": "Spațiu{suffix}"
   },
   "access": {
     "rules": "Reguli de acces",
@@ -842,5 +848,12 @@
     "authenticationFailed": "Autentificarea a eșuat. Vă rugăm să reîmprospătați pagina pentru a vă conecta din nou.",
     "reconnected": "Reconectat la server.",
     "connectionLost": "Conexiunea la server a fost pierdută. Încercați să vă reconectați..."
+  },
+  "threejs": {
+    "failedToLoad": "Eșec la încărcarea modelului 3D",
+    "keyboard": "Tastatură:",
+    "autoRotate": "Rotire automată",
+    "rotateY": "Rotire Y",
+    "rotateX": "Rotiți X"
   }
 }

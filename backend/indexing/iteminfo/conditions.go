@@ -386,6 +386,9 @@ func (i *ItemInfo) DetectType(realPath string, saveContent bool) {
 	case ".3mf":
 		i.Type = "model/3mf"
 		return
+	case ".3ds":
+		i.Type = "model/3ds"
+		return
 	}
 	i.Type = strings.Split(mime.TypeByExtension(ext), ";")[0]
 

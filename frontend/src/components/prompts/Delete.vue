@@ -163,7 +163,7 @@ export default {
       return false;
     },
     closeHovers() {
-      mutations.closeHovers();
+      mutations.closeTopHover();
     },
     getItemName(path) {
       const parts = path.split("/").filter(p => p);
@@ -250,7 +250,7 @@ export default {
             });
           }
 
-          mutations.closeHovers();
+          mutations.closeTopHover();
           if (!this.items) {
             mutations.resetSelected();
           }

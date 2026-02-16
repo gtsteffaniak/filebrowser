@@ -620,7 +620,13 @@
     "latency": "Latenzzeit{suffix}",
     "all": "Alle{suffix}",
     "acknowledge": "Bestätigen Sie{suffix}",
-    "expiration": "Verfallsdatum{suffix}"
+    "expiration": "Verfallsdatum{suffix}",
+    "zoom": "Vergrößern{suffix}",
+    "background": "Hintergrund{suffix}",
+    "play": "Spielen{suffix}",
+    "stop": "Stopp{suffix}",
+    "reset": "Zurücksetzen{suffix}",
+    "space": "Weltraum{suffix}"
   },
   "access": {
     "rules": "Zugangsregeln",
@@ -842,5 +848,12 @@
     "authenticationFailed": "Authentifizierung fehlgeschlagen. Bitte aktualisieren Sie die Seite, um sich erneut anzumelden.",
     "reconnected": "Die Verbindung zum Server wurde wiederhergestellt.",
     "connectionLost": "Die Verbindung zum Server wurde unterbrochen. Ich versuche, die Verbindung wiederherzustellen..."
+  },
+  "threejs": {
+    "failedToLoad": "3D-Modell konnte nicht geladen werden",
+    "keyboard": "Tastatur:",
+    "autoRotate": "Automatisches Drehen",
+    "rotateY": "Drehen Y",
+    "rotateX": "Drehen X"
   }
 }

@@ -620,7 +620,13 @@
     "latency": "Латентность{suffix}",
     "all": "Все{suffix}",
     "acknowledge": "Подтвердите{suffix}",
-    "expiration": "Срок действия{suffix}"
+    "expiration": "Срок действия{suffix}",
+    "zoom": "Zoom{suffix}",
+    "background": "Фон{suffix}",
+    "play": "Играть{suffix}",
+    "stop": "Остановить{suffix}",
+    "reset": "Сброс{suffix}",
+    "space": "Космос{suffix}"
   },
   "access": {
     "rules": "Правила доступа",
@@ -842,5 +848,12 @@
     "authenticationFailed": "Аутентификация не удалась. Пожалуйста, обновите страницу, чтобы войти снова.",
     "reconnected": "Снова подключился к серверу.",
     "connectionLost": "Соединение с сервером было потеряно. Пытаемся восстановить соединение..."
+  },
+  "threejs": {
+    "failedToLoad": "Не удалось загрузить 3D-модель",
+    "keyboard": "Клавиатура:",
+    "autoRotate": "Автоповорот",
+    "rotateY": "Поворот Y",
+    "rotateX": "Поворот X"
   }
 }

@@ -174,7 +174,7 @@ export default {
   },
   methods: {
     closeHovers() {
-      mutations.closeHovers();
+      mutations.closeTopHover();
     },
     startPathEdit() {
       this.tempPath = this.currentPath;
@@ -297,11 +297,7 @@ export default {
       }
     },
     closePrompt() {
-      if (mutations && mutations.closeHovers) {
-        mutations.closeHovers();
-      } else {
-        this.$emit('close');
-      }
+      mutations.closeTopHover();
     },
     showTooltip(event, text) {
       mutations.showTooltip({

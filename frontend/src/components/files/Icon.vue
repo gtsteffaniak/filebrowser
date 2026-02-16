@@ -7,11 +7,16 @@
     
     <!-- Preview content: image, 3D, or fallback -->
     <img v-if="hasPreviewImage" :key="imageTargetSrc" :src="imageDisplaySrc" ref="thumbnail" />
-    <ThreeJsIcon v-else-if="shouldUse3DPreview && !threeJsError" 
+    <ThreeJs v-else-if="shouldUse3DPreview && !threeJsError" 
       :key="`3d-${path}-${gallerySizeKey}`"
-      :filename="filename" 
-      :path="path" 
-      :source="source"
+      :fbdata="{
+        name: filename,
+        path: path,
+        source: source,
+        size: size,
+        type: mimetype
+      }"
+      :is-thumbnail="true"
       @error="handle3DError" />
   </span>
   
@@ -26,7 +31,7 @@ import { globalVars } from "@/utils/constants";
 import { getTypeInfo } from "@/utils/mimetype";
 import { mutations, state, getters } from "@/store";
 import { setImageLoaded } from "@/utils/imageCache";
-import ThreeJsIcon from "@/components/files/threeJsIcon.vue";
+import ThreeJs from "@/views/files/ThreeJs.vue";
 
 // NEW: Define placeholder and error image URLs for easy configuration
 const PLACEHOLDER_URL = globalVars.baseURL + "public/static/img/placeholder.png"; // A generic loading placeholder
@@ -35,7 +40,7 @@ const ERROR_URL = globalVars.baseURL + "public/static/img/placeholder.png";
 export default {
   name: "Icon",
   components: {
-    ThreeJsIcon,
+    ThreeJs,
   },
   props: {
     filename: {

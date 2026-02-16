@@ -620,7 +620,13 @@
     "latency": "Gecikme{suffix}",
     "all": "Tümü{suffix}",
     "acknowledge": "Onaylamak{suffix}",
-    "expiration": "Son kullanma tarihi{suffix}"
+    "expiration": "Son kullanma tarihi{suffix}",
+    "zoom": "Yakınlaştır{suffix}",
+    "background": "Arka plan{suffix}",
+    "play": "Oyun{suffix}",
+    "stop": "Dur{suffix}",
+    "reset": "Sıfırla{suffix}",
+    "space": "Uzay{suffix}"
   },
   "access": {
     "rules": "Erişim kuralları",
@@ -842,5 +848,12 @@
     "authenticationFailed": "Kimlik doğrulama başarısız oldu. Tekrar giriş yapmak için lütfen sayfayı yenileyin.",
     "reconnected": "Sunucuya yeniden bağlanıldı.",
     "connectionLost": "Sunucu ile bağlantı kesildi. Yeniden bağlanmaya çalışıyorum..."
+  },
+  "threejs": {
+    "failedToLoad": "3B Model Yüklenemedi",
+    "keyboard": "Klavye:",
+    "autoRotate": "Otomatik döndürme",
+    "rotateY": "Y Döndür",
+    "rotateX": "X'i döndür"
   }
 }

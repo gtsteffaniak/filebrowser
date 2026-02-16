@@ -105,7 +105,7 @@ export default {
   },
   methods: {
     closeHovers() {
-      mutations.closeHovers();
+      mutations.closeTopHover();
     },
     async createAPIKey() {
       this.creating = true;
