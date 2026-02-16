@@ -2962,8 +2962,8 @@ paths:
       summary: Update a file resource
       tags:
       - Resources
-  /api/resources/bulk/delete:
-    post:
+  /api/resources/bulk:
+    delete:
       consumes:
       - application/json
       description: Deletes multiple resources specified in the request body. Returns
@@ -3972,8 +3972,8 @@ paths:
       summary: Update a file in a public share
       tags:
       - Public Shares
-  /public/api/resources/bulk/delete:
-    post:
+  /public/api/resources/bulk:
+    delete:
       consumes:
       - application/json
       description: Deletes multiple resources specified in the request body. Returns

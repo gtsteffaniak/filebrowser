@@ -309,7 +309,7 @@ func publicDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 // @Failure 400 {object} map[string]string "Bad request - invalid JSON or empty items array"
 // @Failure 403 {object} map[string]string "Forbidden - delete not allowed for this share"
 // @Failure 500 {object} map[string]string "Internal server error - all deletions failed"
-// @Router /public/api/resources/bulk/delete [post]
+// @Router /public/api/resources/bulk [delete]
 func publicBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if !d.share.AllowDelete {
 		return http.StatusForbidden, fmt.Errorf("delete is not allowed for this share")
