@@ -66,9 +66,9 @@ export async function bulkDelete(items) {
     throw new Error('items array is required and must not be empty')
   }
   try {
-    const apiPath = getApiPath('api/resources/bulk/delete')
+    const apiPath = getApiPath('api/resources/bulk')
     const response = await fetchURL(apiPath, {
-      method: 'POST',
+      method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
       },

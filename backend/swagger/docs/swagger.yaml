@@ -2962,8 +2962,8 @@ paths:
       summary: Update a file resource
       tags:
       - Resources
-  /api/resources/bulk/delete:
-    post:
+  /api/resources/bulk:
+    delete:
       consumes:
       - application/json
       description: Deletes multiple resources specified in the request body. Returns
