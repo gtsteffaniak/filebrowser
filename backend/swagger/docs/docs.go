@@ -3240,8 +3240,8 @@ const docTemplate = `{
                 }
             }
         },
-        "/public/api/resources/bulk/delete": {
-            "post": {
+        "/public/api/resources/bulk": {
+            "delete": {
                 "description": "Deletes multiple resources specified in the request body. Returns a list of succeeded and failed deletions.",
                 "consumes": [
                     "application/json"
