@@ -247,12 +247,12 @@ export async function bulkDelete(items) {
     ...(state.shareInfo.token && { token: state.shareInfo.token }),
     sessionId: state.sessionId
   }
-  const apiPath = getPublicApiPath("resources/bulk/delete", params)
+  const apiPath = getPublicApiPath("resources/bulk", params)
   const baseUrl = window.origin + apiPath
 
   try {
     const response = await fetch(baseUrl, {
-      method: 'POST',
+      method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
       },
