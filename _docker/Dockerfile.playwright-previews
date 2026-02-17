@@ -1,4 +1,4 @@
-FROM ghcr.io/gtsteffaniak/playwright-base:latest
+FROM ghcr.io/gtsteffaniak/playwright-base:chromium
 WORKDIR /app
 
 # Copy setup scripts first to leverage caching

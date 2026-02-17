@@ -1,8 +1,8 @@
-import { Browser, firefox, expect, Page } from "@playwright/test";
+import { Browser, chromium, expect, Page } from "@playwright/test";
 
 // Perform authentication and store auth state
 async function globalSetup() {
-  const browser: Browser = await firefox.launch();
+  const browser: Browser = await chromium.launch();
   const context = await browser.newContext();
   const page: Page = await context.newPage();
 

@@ -14,20 +14,26 @@ export default defineConfig({
   timeout: 10000,
   testDir: "./tests/playwright/previews",
   /* Run tests in files in parallel */
-  fullyParallel: false,
+  fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: false,
   /* Retry on CI only */
   retries: 2,
-  /* Opt out of parallel tests on CI. */
-  workers: 1, // required for now! todo parallel some tests
-  /* Reporter to use. See https://playwright.dev/docs/test-reporters */
+  workers: 10,
   reporter: "line",
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
+    launchOptions: {
+      args: [
+        '--disable-gpu',
+        '--use-gl=swiftshader',  // CPU-based WebGL renderer built into Chromium
+        '--enable-webgl',
+        '--disable-dev-shm-usage',  // Overcome limited resource problems in Docker
+        '--no-sandbox',  // Required for Docker
+      ],
+    },
     storageState: "previews.json",
     actionTimeout: 5000,
-    //storageState: "loginAuth.json",
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: "http://127.0.0.1",
 
@@ -41,8 +47,8 @@ export default defineConfig({
   /* Configure projects for major browsers */
   projects: [
     {
-      name: "firefox",
-      use: { ...devices["Desktop Firefox"] },
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
     },
   ],
 });
