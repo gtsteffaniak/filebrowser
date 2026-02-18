@@ -316,10 +316,6 @@ func userWithoutOTPhelper(fn handleFunc) handleFunc {
 		// Call the actual handler function with the updated context
 		username := r.URL.Query().Get("username")
 		password := r.Header.Get("X-Password")
-		if config.Auth.Methods.NoAuth {
-			logger.Debug("no auth, calling withUserHelper")
-			return withUserHelper(fn)(w, r, d)
-		}
 		// Try LDAP first if enabled; on success set d.user and continue to handler
 		if config.Auth.Methods.LdapAuth.Enabled {
 			logger.Debug("ldap auth, calling AuthenticateLDAPUser")
@@ -349,8 +345,7 @@ func userWithoutOTPhelper(fn handleFunc) handleFunc {
 			d.user = user
 			return fn(w, r, d)
 		}
-		logger.Debug("no auth, calling handler")
-		return 401, errors.ErrUnauthorized
+		return withUserHelper(fn)(w, r, d)
 	}
 }
 

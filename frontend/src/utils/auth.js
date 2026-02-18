@@ -15,7 +15,6 @@ export async function validateLogin() {
   if (res.status !== 200) {
     throw new Error(`{"status":${res.status},"message":"${await res.text()}"}`);
   }
-
   const userInfo = await res.json();
   mutations.setCurrentUser(userInfo);
   getters.isLoggedIn()
