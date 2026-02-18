@@ -195,8 +195,12 @@ func parseLdapServer(server string) (scheme, host string, port int, err error) {
 	}
 	hostParts := strings.Split(parts[1], ":")
 	host = strings.TrimSuffix(hostParts[0], "/")
-	port, err = strconv.Atoi(strings.TrimSuffix(hostParts[1], "/"))
-	if err != nil {
+	if len(hostParts) > 1 && hostParts[1] != "" {
+		port, err = strconv.Atoi(strings.TrimSuffix(hostParts[1], "/"))
+		if err != nil || port == 0 {
+			return "", "", 0, fmt.Errorf("invalid LDAP port: %s", hostParts[1])
+		}
+	} else {
 		if scheme == "ldaps" {
 			port = 636
 		} else {
