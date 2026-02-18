@@ -88,10 +88,10 @@ body.rtl .listing-items {
 }
 
 .listing-items.icons .listing-item > div:first-child {
-  width: var(--icons-view-icon-size, 60px);
-  height: var(--icons-view-icon-size, 60px);
-  min-width: var(--icons-view-icon-size, 60px);
-  max-width: var(--icons-view-icon-size, 60px);
+  width: calc(var(--icons-view-icon-size, 60px) + 10px);
+  height: calc(var(--icons-view-icon-size, 60px) + 10px);
+  min-width: calc(var(--icons-view-icon-size, 60px) + 10px);
+  max-width: calc(var(--icons-view-icon-size, 60px) + 10px);
   flex-shrink: 0;
   transition: width 0.25s ease-out, height 0.25s ease-out;
 }
@@ -127,7 +127,7 @@ body.rtl .listing-items {
 }
 
 .listing-items.icons .listing-item .image-preview i {
-  font-size: 3em;
+  font-size: var(--icons-view-icon-size, 3em);
   padding: 0;
   box-sizing: border-box;
   transform: translateZ(0);
@@ -365,8 +365,8 @@ body.rtl .listing-items {
   width: calc(50% + 1em) !important;
 }
 
-.listing-items.normal .listing-item .text {
-  padding-left: 0.3em;
+.listing-items .listing-item .text {
+  padding-left: 0.5em;
 }
 
 .listing-items.compact .listing-item:first-child {

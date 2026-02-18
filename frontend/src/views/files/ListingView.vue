@@ -364,7 +364,7 @@ export default {
       const styles = {};
 
       if (viewMode === 'icons') {
-        const baseSize = 60 + (state.user.gallerySize * 15); // 60px to 135px - increased scaling
+        const baseSize = 20 + (state.user.gallerySize * 15); // 30px to 135px - increased scaling
         const cellSize = baseSize + 30;
         styles['--icons-view-icon-size'] = `${baseSize}px`;
         styles['--icons-view-cell-size'] = `${cellSize}px`;
@@ -398,8 +398,8 @@ export default {
           ? 40 + (state.user.gallerySize * 2)  // 40px to 56px - compact
           : 50 + (state.user.gallerySize * 3); // 50px to 74px - list
         // Scale preview containers and icons with gallery size
-        const iconFontSize = (1.8 + (state.user.gallerySize * 0.12)).toFixed(2); // 1.8em to 2.9em - for material icons
-        const iconImageSize = (2.2 + (state.user.gallerySize * 0.12)).toFixed(3); // 2.2em to 3.2em - for containers
+        const iconFontSize = (1.5 + (state.user.gallerySize * 0.12)).toFixed(2); // 1.8em to 2.9em - for material icons
+        const iconImageSize = (2 + (state.user.gallerySize * 0.12)).toFixed(3); // 2.2em to 3.2em - for containers
 
         styles['--item-width'] = `calc(${(100 / this.numColumns).toFixed(2)}% - 1em)`;
         styles['--item-height'] = `${baseHeight}px`;

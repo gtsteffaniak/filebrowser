@@ -13,8 +13,11 @@ test("3d file preview thumbnails", async({ page, checkForErrors, context }) => {
     // check previews work
     await page.locator('a[aria-label="Lowpoly_tree_sample.dae"] .threejs-viewer .loading-overlay').waitFor({ state: 'visible' });
     await page.locator('a[aria-label="Lowpoly_tree_sample.dae"] .threejs-viewer canvas').waitFor({ state: 'visible' });
+
+    // wait 2 seconds
+    await page.waitForTimeout(2000);
     // Check for console errors
-    checkForErrors(2,2); // lets fix this later
+    checkForErrors();
 });
   
 // 3d file preview, cycle through all 3d files and confirm no errors
@@ -25,6 +28,11 @@ test("3d file preview next/previous", async({ page, checkForErrors, context }) =
     await page.locator('.threejs-viewer .loading-overlay').waitFor({ state: 'visible' });
     await page.locator('.threejs-viewer canvas').waitFor({ state: 'visible' });
     await page.locator('button[aria-label="Next"]').click();
+    
+    // material file
+    await expect(page).toHaveTitle("Graham's Filebrowser - Files - Lowpoly_tree_sample.mtl");
+    await page.locator('button[aria-label="Next"]').click();
+    
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - Lowpoly_tree_sample.obj");
     await page.locator('.threejs-viewer .loading-overlay').waitFor({ state: 'visible' });
     await page.locator('.threejs-viewer canvas').waitFor({ state: 'visible' });
@@ -36,5 +44,5 @@ test("3d file preview next/previous", async({ page, checkForErrors, context }) =
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - Rigged Hand.3ds");
     await page.locator('.threejs-viewer .loading-overlay').waitFor({ state: 'visible' });
     await page.locator('.threejs-viewer canvas').waitFor({ state: 'visible' });
-    checkForErrors(2,2); // lets fix this later
+    checkForErrors();
 });

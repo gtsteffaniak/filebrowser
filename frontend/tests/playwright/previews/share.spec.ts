@@ -1,45 +1,63 @@
 import { test, expect } from "../test-setup";
 
-test("share file works", async ({ page, checkForErrors, context }) => {
+// 3d file thumbnails work
+test("3d file preview thumbnails in share", async({ page, checkForErrors, context }) => {
+    await page.goto("/files/");
+    await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
+    const shareHash = await page.evaluate(() => localStorage.getItem('shareHash'));
+    if (!shareHash || shareHash == "") {
+        throw new Error("Share hash not found in localStorage");
+    }
+    console.log("shareHash: " + shareHash);
+    await page.goto("/share/" + shareHash);
+    // log current url
+    console.log("current url: " + page.url());
+    await expect(page).toHaveTitle("Graham's Filebrowser - Share - myfolder");
+    await page.locator('a[aria-label="3dmodels"]').waitFor({ state: 'visible' });
+    await page.locator('a[aria-label="3dmodels"]').dblclick();
+    await expect(page).toHaveTitle("Graham's Filebrowser - Share - 3dmodels");
+    // check previews work
+    await page.locator('a[aria-label="Lowpoly_tree_sample.dae"] .threejs-viewer .loading-overlay').waitFor({ state: 'visible' });
+    await page.locator('a[aria-label="Lowpoly_tree_sample.dae"] .threejs-viewer canvas').waitFor({ state: 'visible' });
+
+    // wait 2 seconds
+    await page.waitForTimeout(2000);
+    // Check for console errors
+    checkForErrors(0,1); // redirect errors are expected
+});
+
+
+
+// 3d file preview, cycle through all 3d files and confirm no errors
+test("3d file preview next/previous", async ({ page, checkForErrors, context }) => {
     await page.goto("/files/");
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
     const shareHash = await page.evaluate(() => localStorage.getItem('shareHash'));
     if (shareHash == "") {
         throw new Error("Share hash not found in localStorage");
     }
-
-    await page.goto("/share/" + shareHash);
-    await expect(page).toHaveTitle("Graham's Filebrowser - Share - myfolder");
-    checkForErrors(0,1); // redirect errors are expected
-});
-
-// 3d file preview, cycle through all 3d files and confirm no errors
-test("3d file preview next/previous", async ({ page, checkForErrors, context }) => {
-    const shareHash = await page.evaluate(() => localStorage.getItem('shareHash'));
-    if (shareHash == "") {
-        throw new Error("Share hash not found in localStorage");
-    }
-
-    await page.goto("/share/" + shareHash);
-    await expect(page).toHaveTitle("Graham's Filebrowser - Share - myfolder");
-    // click first item in folder
-    await page.locator('a[aria-label="Lowpoly_tree_sample.dae"]').click();
+    
+    // Go directly to a 3D model file in the share
+    await page.goto("/share/" + shareHash + "/3dmodels/Lowpoly_tree_sample.dae");
     await expect(page).toHaveTitle("Graham's Filebrowser - Share - Lowpoly_tree_sample.dae");
+    await page.locator('.threejs-viewer .loading-overlay').waitFor({ state: 'visible' });
+    await page.locator('.threejs-viewer canvas').waitFor({ state: 'visible' });
+    await page.locator('button[aria-label="Next"]').click();
 
-    // check previews work
+    // material file
+    await expect(page).toHaveTitle("Graham's Filebrowser - Share - Lowpoly_tree_sample.mtl");
+    await page.locator('button[aria-label="Next"]').click();
+
+    await expect(page).toHaveTitle("Graham's Filebrowser - Share - Lowpoly_tree_sample.obj");
     await page.locator('.threejs-viewer .loading-overlay').waitFor({ state: 'visible' });
     await page.locator('.threejs-viewer canvas').waitFor({ state: 'visible' });
     await page.locator('button[aria-label="Next"]').click();
-    await expect(page).toHaveTitle("Graham's Filebrowser - Files - Lowpoly_tree_sample.obj");
+    await expect(page).toHaveTitle("Graham's Filebrowser - Share - mario_cube_WHOLE_top_foxed.stl");
     await page.locator('.threejs-viewer .loading-overlay').waitFor({ state: 'visible' });
     await page.locator('.threejs-viewer canvas').waitFor({ state: 'visible' });
     await page.locator('button[aria-label="Next"]').click();
-    await expect(page).toHaveTitle("Graham's Filebrowser - Files - mario_cube_WHOLE_top_foxed.stl");
+    await expect(page).toHaveTitle("Graham's Filebrowser - Share - Rigged Hand.3ds");
     await page.locator('.threejs-viewer .loading-overlay').waitFor({ state: 'visible' });
     await page.locator('.threejs-viewer canvas').waitFor({ state: 'visible' });
-    await page.locator('button[aria-label="Next"]').click();
-    await expect(page).toHaveTitle("Graham's Filebrowser - Files - Rigged Hand.3ds");
-    await page.locator('.threejs-viewer .loading-overlay').waitFor({ state: 'visible' });
-    await page.locator('.threejs-viewer canvas').waitFor({ state: 'visible' });
-    checkForErrors(2,2); // lets fix this later
+    checkForErrors(0,1); // redirect errors are expected
 });

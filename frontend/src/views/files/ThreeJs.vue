@@ -89,6 +89,7 @@ import { KMZLoader } from 'three/addons/loaders/KMZLoader.js';
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { state, mutations, getters } from "@/store";
 import { filesApi, publicApi } from "@/api";
+import { removeLastDir } from "@/utils/url";
 
 const LOADERS = {
   gltf: GLTFLoader,
@@ -360,42 +361,26 @@ export default {
     },
 
     resolveTextureUrl(url) {
-      if (url.startsWith('data:') || url.startsWith('blob:') || url.includes('/api/raw?')) {
+      if (url.includes('/api/raw?')) {
         return url;
       }
-      
-      let texturePath = url;
-      if (url.startsWith('http://') || url.startsWith('https://')) {
-        const urlObj = new URL(url);
-        texturePath = decodeURIComponent(urlObj.pathname.split('/').pop());
-      } else {
-        texturePath = decodeURIComponent(url);
-        if (texturePath.includes('\\')) texturePath = texturePath.replace(/\\/g, '/');
+      const filename = url.split('/api/')[1];
+      let texturePath = removeLastDir(this.fbdata.path) + "/textures/" + filename
+      if (this.fbdata.parentDirItems) {
+        for (const item of this.fbdata.parentDirItems) {
+          if (item.name === filename) {
+            texturePath = removeLastDir(this.fbdata.path) + "/" + filename;
+          }
+        }
       }
-      
-      const modelDir = this.fbdata.path.substring(0, this.fbdata.path.lastIndexOf('/') + 1);
-      let fullTexturePath;
-      
-      if (!texturePath.includes('/')) {
-         fullTexturePath = modelDir + 'textures/' + texturePath;
-      } else {
-         if (texturePath.startsWith('./')) texturePath = texturePath.substring(2);
-         if (texturePath.includes(':')) { 
-            texturePath = texturePath.split('/').pop();
-            fullTexturePath = modelDir + 'textures/' + texturePath;
-         } else {
-            fullTexturePath = modelDir + texturePath;
-         }
-      }
-      
       if (getters.isShare()) {
         return publicApi.getDownloadURL({
             path: state.shareInfo.subPath,
             hash: state.shareInfo.hash,
             token: state.shareInfo.token,
-          }, [fullTexturePath], true);
+          }, [texturePath], true);
       }
-      return filesApi.getDownloadURL(this.fbdata.source, fullTexturePath, true);
+      return filesApi.getDownloadURL(this.fbdata.source, texturePath, true);
     },
 
     async loadModel() {
@@ -473,7 +458,9 @@ export default {
     },
 
     loadOBJ(loader, manager) {
-      const mtlPath = this.fbdata.path.replace(/\.obj$/i, '.mtl');
+      // Remove trailing slash if present before replacing extension
+      const cleanPath = this.fbdata.path.replace(/\/$/, '');
+      const mtlPath = cleanPath.replace(/\.obj$/i, '.mtl');
       const mtlUrl = getters.isShare() ? 
           publicApi.getDownloadURL({
             path: state.shareInfo.subPath,

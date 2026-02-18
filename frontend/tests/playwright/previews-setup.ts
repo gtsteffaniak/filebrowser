@@ -6,7 +6,7 @@ async function globalSetup() {
   const context = await browser.newContext();
   const page: Page = await context.newPage();
 
-  await page.goto("http://127.0.0.1/files/");
+  await page.goto("http://127.0.0.1/");
   await page.waitForURL("**/files/", { timeout: 1000 });
 
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
@@ -29,7 +29,7 @@ async function globalSetup() {
     localStorage.setItem('shareHash', hash);
   }, shareHash);
 
-  await page.goto("http://127.0.0.1/files/", { timeout: 500 });
+  await page.goto("http://127.0.0.1/", { timeout: 500 });
   // Create a share of file
   await page.locator('a[aria-label="1file1.txt"]').waitFor({ state: 'visible' });
   await page.locator('a[aria-label="1file1.txt"]').click({ button: "right" });
