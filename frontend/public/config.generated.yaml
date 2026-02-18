@@ -89,6 +89,17 @@ auth:
       createUser: false                   # create user if not exists
       adminGroup: ""                      # if set, users in this group will be granted admin privileges.
       groupsClaim: "groups"               # the JSON field name to read groups from. Default is "groups"
+    ldap:                                 #  validate:omitempty
+      enabled: false                      # whether to enable LDAP authentication
+      server: ""                          # scheme://host:port of the LDAP server (e.g. ldap://localhost:389)
+      baseDN: ""                          # LDAP search base DN (e.g. dc=ldap,dc=goauthentik,dc=io)
+      userDN: ""                          # Bind DN for service account (e.g. cn=admin,ou=users,dc=ldap,dc=goauthentik,dc=io)
+      userPassword: ""                    # Bind password for service account
+      userFilter: ""                      # Search filter for finding user by username. Default (&(cn=%s)(objectClass=user)); override e.g. (email=%s) or (sAMAccountName=%s) for other directories.
+      createUser: false                   # create filebrowser user if not exists after successful LDAP auth
+      adminGroup: ""                      # if set, users in this LDAP group get admin privileges
+      logoutRedirectUrl: ""               # if set, logout redirects to this URL for LDAP users
+      disableVerifyTLS: false             # disable TLS verification (insecure, for testing only)
   key: ""                                 # secret: the key used to sign the JWT tokens. If not set, a random key will be generated.
   adminUsername: "admin"                  # secret: the username of the admin user. If not set, the default is "admin".
   adminPassword: "admin"                  # secret: the password of the admin user. If not set, the default is "admin".
@@ -120,6 +131,7 @@ frontend:
   favicon: ""                             # path to a favicon to use for the frontend
   description: "FileBrowser Quantum is a file manager for the web which can be used to manage files on your server" # description that shows up in html head meta description
   loginIcon: ""                           # path to an image file for the login page icon
+  loginButtonText: ""                     # text to display on the login button
   oidcLoginButtonText: ""                 # text to display on the OIDC login button
 userDefaults:
   editorQuickSave: false                  # show quick save button in editor

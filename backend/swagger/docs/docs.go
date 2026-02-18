@@ -4330,6 +4330,10 @@ const docTemplate = `{
                     "description": "path to a favicon to use for the frontend",
                     "type": "string"
                 },
+                "loginButtonText": {
+                    "description": "text to display on the login button",
+                    "type": "string"
+                },
                 "loginIcon": {
                     "description": "path to an image file for the login page icon",
                     "type": "string"
@@ -4379,6 +4383,51 @@ const docTemplate = `{
                 }
             }
         },
+        "settings.LdapConfig": {
+            "type": "object",
+            "properties": {
+                "adminGroup": {
+                    "description": "if set, users in this LDAP group get admin privileges",
+                    "type": "string"
+                },
+                "baseDN": {
+                    "description": "LDAP search base DN (e.g. dc=ldap,dc=goauthentik,dc=io)",
+                    "type": "string"
+                },
+                "createUser": {
+                    "description": "create filebrowser user if not exists after successful LDAP auth",
+                    "type": "boolean"
+                },
+                "disableVerifyTLS": {
+                    "description": "disable TLS verification (insecure, for testing only)",
+                    "type": "boolean"
+                },
+                "enabled": {
+                    "description": "whether to enable LDAP authentication",
+                    "type": "boolean"
+                },
+                "logoutRedirectUrl": {
+                    "description": "if set, logout redirects to this URL for LDAP users",
+                    "type": "string"
+                },
+                "server": {
+                    "description": "scheme://host:port of the LDAP server (e.g. ldap://localhost:389)",
+                    "type": "string"
+                },
+                "userDN": {
+                    "description": "Bind DN for service account (e.g. cn=admin,ou=users,dc=ldap,dc=goauthentik,dc=io)",
+                    "type": "string"
+                },
+                "userFilter": {
+                    "description": "Search filter for finding user by username. Default (\u0026(cn=%s)(objectClass=user)); override e.g. (email=%s) or (sAMAccountName=%s) for other directories.",
+                    "type": "string"
+                },
+                "userPassword": {
+                    "description": "Bind password for service account",
+                    "type": "string"
+                }
+            }
+        },
         "settings.LogConfig": {
             "type": "object",
             "properties": {
@@ -4411,6 +4460,9 @@ const docTemplate = `{
         "settings.LoginMethods": {
             "type": "object",
             "properties": {
+                "ldap": {
+                    "$ref": "#/definitions/settings.LdapConfig"
+                },
                 "noauth": {
                     "description": "if set to true, overrides all other auth methods and disables authentication",
                     "type": "boolean"
@@ -5526,12 +5578,14 @@ const docTemplate = `{
             "enum": [
                 "password",
                 "proxy",
-                "oidc"
+                "oidc",
+                "ldap"
             ],
             "x-enum-varnames": [
                 "LoginMethodPassword",
                 "LoginMethodProxy",
-                "LoginMethodOidc"
+                "LoginMethodOidc",
+                "LoginMethodLdap"
             ]
         },
         "users.Permissions": {

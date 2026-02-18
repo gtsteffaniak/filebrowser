@@ -48,7 +48,7 @@
 
             <div v-if="globalVars.recaptcha" id="globalVars.recaptcha"></div>
             <input class="button button--block" type="submit"
-              :value="createMode ? $t('general.signup') : $t('general.login')" />
+              :value="createMode ? $t('general.signup') : getLoginButtonValue()" />
             <p @click="toggleMode" v-if="signup" aria-label="sign up toggle">
               {{ createMode ? $t("login.loginInstead") : $t("login.createAnAccount") }}
             </p>
@@ -260,6 +260,12 @@ export default {
   methods: {
     getLoginButtonText() {
       return globalVars.oidcLoginButtonText || "OpenID Connect";
+    },
+    getLoginButtonValue() {
+      if (globalVars.loginButtonText) {
+        return globalVars.loginButtonText;
+      }
+      return this.$t("general.login");
     },
     beforeEnter(el) {
       el.style.height = '0';
