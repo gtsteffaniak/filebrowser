@@ -228,10 +228,10 @@ func verifyLdapConnection() error {
 	}
 	defer conn.Close()
 	if Config.Auth.Methods.LdapAuth.UserDN != "" && Config.Auth.Methods.LdapAuth.UserPassword != "" {
-		if err := conn.Bind(Config.Auth.Methods.LdapAuth.UserDN, Config.Auth.Methods.LdapAuth.UserPassword); err != nil {
+		if err = conn.Bind(Config.Auth.Methods.LdapAuth.UserDN, Config.Auth.Methods.LdapAuth.UserPassword); err != nil {
 			return fmt.Errorf("LDAP bind failed (check userDN and userPassword): %w", err)
 		}
-		defer conn.Unbind()
+		defer func() { _ = conn.Unbind() }()
 	}
 	// Dummy search to verify the server responds to LDAP search (same path that fails at login if misconfigured).
 	searchRequest := ldap.NewSearchRequest(

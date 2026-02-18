@@ -47,7 +47,7 @@ func authenticateLDAP(username, password string) ([]string, error) {
 	// Bind with service account
 	if c.UserPassword != "" {
 		logger.Debugf("ldap: binding as service account %s", c.UserDN)
-		if err := conn.Bind(c.UserDN, c.UserPassword); err != nil {
+		if err = conn.Bind(c.UserDN, c.UserPassword); err != nil {
 			return nil, fmt.Errorf("ldap bind (service): %w", err)
 		}
 	} else {
