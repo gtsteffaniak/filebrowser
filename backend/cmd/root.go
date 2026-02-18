@@ -208,6 +208,9 @@ func rootCMD(ctx context.Context, store *bolt.BoltStore, serverConfig *settings.
 		logger.Warningf("Failed to generate PWA icons: %v", err)
 	}
 	
+	// Initialize PWA manifest after icons are generated
+	icons.InitializePWAManifest()
+	
 	fbhttp.StartHttp(ctx, store, shutdownComplete)
 	return nil
 }

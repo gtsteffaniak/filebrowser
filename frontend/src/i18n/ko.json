@@ -620,7 +620,13 @@
     "latency": "지연 시간{suffix}",
     "all": "모두{suffix}",
     "acknowledge": "인정{suffix}",
-    "expiration": "만료{suffix}"
+    "expiration": "만료{suffix}",
+    "zoom": "Zoom{suffix}",
+    "background": "배경{suffix}",
+    "play": "플레이{suffix}",
+    "stop": "중지{suffix}",
+    "reset": "초기화{suffix}",
+    "space": "공간{suffix}"
   },
   "access": {
     "rules": "액세스 규칙",
@@ -842,5 +848,12 @@
     "authenticationFailed": "인증에 실패했습니다. 페이지를 새로고침하여 다시 로그인하세요.",
     "reconnected": "서버에 다시 연결되었습니다.",
     "connectionLost": "서버에 대한 연결이 끊어졌습니다. 다시 연결하려고 합니다..."
+  },
+  "threejs": {
+    "failedToLoad": "3D 모델 로드 실패",
+    "keyboard": "키보드:",
+    "autoRotate": "자동 회전",
+    "rotateY": "Y 회전",
+    "rotateX": "X 회전"
   }
 }

@@ -66,21 +66,102 @@ body.rtl .listing-items {
   font-size: 0.9em;
 }
 
-.listing-item i {
-  font-size: 4em;
-  vertical-align: bottom;
-  /* Performance optimization for icon rendering */
+/* Step 1: Size the CONTAINER (first div in listing-item) per view mode */
+.listing-items.normal .listing-item > div:first-child {
+  width: var(--normal-icon-image-size, 4em);
+  height: var(--normal-icon-image-size, 4em);
+  min-width: var(--normal-icon-image-size, 4em);
+  flex-shrink: 0;
+}
+
+.listing-items.list .listing-item > div:first-child,
+.listing-items.compact .listing-item > div:first-child {
+  width: var(--list-icon-image-size, 2.5em);
+  height: var(--list-icon-image-size, 2.5em);
+  min-width: var(--list-icon-image-size, 2.5em);
+  flex-shrink: 0;
+}
+
+.listing-items.gallery .listing-item > div:first-child {
+  width: 100%;
+  height: 100%;
+}
+
+.listing-items.icons .listing-item > div:first-child {
+  width: calc(var(--icons-view-icon-size, 60px) + 10px);
+  height: calc(var(--icons-view-icon-size, 60px) + 10px);
+  min-width: calc(var(--icons-view-icon-size, 60px) + 10px);
+  max-width: calc(var(--icons-view-icon-size, 60px) + 10px);
+  flex-shrink: 0;
+  transition: width 0.25s ease-out, height 0.25s ease-out;
+}
+
+/* Step 2: Unified .image-preview container - all preview types use this */
+.image-preview {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5em;
+  background: var(--iconBackground);
+  overflow: hidden;
+  position: relative;
+}
+
+/* Step 3: Content inside preview container fills it */
+/* Material icons - scale dynamically with gallery size via CSS variables */
+.listing-items.normal .listing-item .image-preview i {
+  font-size: var(--normal-icon-font-size, 2.5em);
+  padding: 0;
+  box-sizing: border-box;
   transform: translateZ(0);
 }
 
-.listing-item img {
+.listing-items.list .listing-item .image-preview i,
+.listing-items.compact .listing-item .image-preview i {
+  font-size: var(--list-icon-font-size, 2em);
   padding: 0;
-  height: 3.2em;
-  min-width: 3.2em;
-  max-width: 3.2em;
-  border-radius: 0.5em;
+  box-sizing: border-box;
+  transform: translateZ(0);
+}
+
+.listing-items.icons .listing-item .image-preview i {
+  font-size: var(--icons-view-icon-size, 3em);
+  padding: 0;
+  box-sizing: border-box;
+  transform: translateZ(0);
+}
+
+.listing-items.gallery .listing-item .image-preview i {
+  font-size: var(--gallery-icon-font-size, 3em);
+  padding: 0;
+  box-sizing: border-box;
+  transform: translateZ(0);
+}
+
+/* Images */
+.listing-item .image-preview img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  vertical-align: bottom;
+  padding: 0;
+}
+
+/* 3D viewers */
+.listing-item .image-preview .threejs-icon-container {
+  width: 100%;
+  height: 100%;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.listing-item .image-preview .threejs-icon-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
 }
 
 .message {
@@ -244,28 +325,16 @@ body.rtl .listing-items {
   display: none;
 }
 
-.listing-items.compact .listing-item div:first-of-type {
-  width: 3em;
-}
-
-.listing-items.compact .listing-item div:first-of-type i {
-  font-size: var(--list-icon-font-size, 2em);
-  transition: font-size 0.25s ease-out;
-}
-
-.listing-items.compact .listing-item div:first-of-type img {
-  width: var(--list-icon-image-size, 1.5em);
-  height: var(--list-icon-image-size, 1.5em);
-  border-radius: .25em;
-  transition: width 0.25s ease-out, height 0.25s ease-out;
-}
-
-.listing-items.compact .listing-item div:last-of-type {
+/* List/Compact view: div:last-of-type layout */
+.listing-items.compact .listing-item div:last-of-type,
+.listing-items.list .listing-item div:last-of-type {
   display: flex;
   align-items: center;
   flex: 1;
   min-width: 0;
 }
+
+/* These old rules are now redundant - sizing comes from unified container rules above */
 
 /* Item-specific styles (not header) */
 .listing-items .header .size,
@@ -296,8 +365,8 @@ body.rtl .listing-items {
   width: calc(50% + 1em) !important;
 }
 
-.listing-items.normal .listing-item .text {
-  padding-left: 0.3em;
+.listing-items .listing-item .text {
+  padding-left: 0.5em;
 }
 
 .listing-items.compact .listing-item:first-child {
@@ -336,28 +405,7 @@ body.rtl .listing-items {
   display: none !important;
 }
 
-.listing-items.list .listing-item div:first-of-type {
-  width: 3em;
-}
-
-.listing-items.list .listing-item div:first-of-type i {
-  font-size: var(--list-icon-font-size, 2em);
-  transition: font-size 0.25s ease-out;
-}
-
-.listing-items.list .listing-item div:first-of-type img {
-  width: var(--list-icon-image-size, 1.5em);
-  height: var(--list-icon-image-size, 1.5em);
-  border-radius: 0.2em;
-  transition: width 0.25s ease-out, height 0.25s ease-out;
-}
-
-.listing-items.list .listing-item div:last-of-type {
-  display: flex;
-  align-items: center;
-  flex: 1;
-  min-width: 0;
-}
+/* These rules are now redundant - sizing comes from unified container rules above */
 
 .listing-items.list .listing-item:first-child {
   border-top-left-radius: 1em;
@@ -387,6 +435,7 @@ body.rtl .listing-items {
   border-color: var(--primaryColor) !important;
 }
 
+/* Icons view text layout */
 .listing-items.icons .listing-item .text {
   display: block !important;
   width: 100%;
@@ -396,56 +445,44 @@ body.rtl .listing-items {
   text-align: center;
 }
 
-.listing-items.icons .listing-item i {
-  height: var(--icons-view-icon-size, 50px);
-  width: var(--icons-view-icon-size, 80px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: width 0.25s ease-out, height 0.25s ease-out;
-}
-
-.listing-items.icons .listing-item img {
-  width: var(--icons-view-icon-size, 50px);
+/* Search results with large icons - unified preview container */
+.search-entry.large-icons > a > span:first-child {
+  width: var(--icons-view-icon-size, 60px);
   height: var(--icons-view-icon-size, 60px);
-  max-width: var(--icons-view-icon-size, 80px);
-  min-width: var(--icons-view-icon-size, 80px);
-  border-radius: 0.3em;
-  margin: 0;
-  transition: width 0.25s ease-out, height 0.25s ease-out;
-}
-
-/* Large icon styling for search results when preview images are enabled - matches icons view */
-.search-entry.large-icons i.icon,
-.search-entry.large-icons .image-preview,
-.search-entry.large-icons .image-preview img.icon {
+  min-width: var(--icons-view-icon-size, 60px);
+  max-width: var(--icons-view-icon-size, 60px);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: width 0.25s ease-out, height 0.25s ease-out;
-  padding: 0;
-}
-
-.search-entry.large-icons i.icon {
-  font-size: var(--icons-view-icon-size, 50px) !important;
-  line-height: 1 !important;
-  background: var(--iconBackground) !important;
-}
-
-.search-entry.large-icons .image-preview {
   flex-shrink: 0;
 }
 
-.search-entry.large-icons .image-preview img.icon {
-  margin: 0;
-  object-fit: cover;
-  width: 50px;
-  height: 50px;
+.search-entry.large-icons .image-preview {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5em;
+  background: var(--iconBackground);
+  overflow: hidden;
+  position: relative;
 }
 
-.search-entry.large-icons .image-preview {
-  width: unset !important;
-  height: unset !important;
+.search-entry.large-icons .image-preview i {
+  font-size: 3em;
+}
+
+.search-entry.large-icons .image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.search-entry.large-icons .image-preview .threejs-icon-container {
+  width: 100%;
+  height: 100%;
+  background: #000;
 }
 
 .listing-items.gallery .folder-items,

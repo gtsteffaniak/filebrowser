@@ -95,7 +95,6 @@
 
 /* Card */
 .dark-mode .card {
-  background: var(--surfacePrimary);
   color: var(--textPrimary);
 }
 

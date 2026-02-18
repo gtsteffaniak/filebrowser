@@ -41,6 +41,7 @@
         :modified="modified"
         :path="path"
         :source="source"
+        :size="size"
       />
     </div>
 
@@ -107,6 +108,7 @@
         :modified="modified"
         :path="path"
         :source="source"
+        :size="size"
       />
     </div>
 

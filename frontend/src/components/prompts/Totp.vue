@@ -105,7 +105,7 @@ export default {
       if (!this.succeeded) {
         mutations.updateCurrentUser({ otpEnabled: false });
       }
-      mutations.closeHovers();
+      mutations.closeTopHover();
     },
   },
 };

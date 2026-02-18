@@ -700,7 +700,13 @@
     "latency": "延遲{suffix}",
     "all": "全部{suffix}",
     "acknowledge": "確認{suffix}",
-    "expiration": "到期日{suffix}"
+    "expiration": "到期日{suffix}",
+    "zoom": "縮放{suffix}",
+    "background": "背景資料{suffix}",
+    "play": "遊戲{suffix}",
+    "stop": "停止{suffix}",
+    "reset": "重設{suffix}",
+    "space": "空間{suffix}"
   },
   "access": {
     "rules": "存取規則",
@@ -842,5 +848,12 @@
     "authenticationFailed": "驗證失敗。請刷新頁面重新登入。",
     "reconnected": "重新連線至伺服器。",
     "connectionLost": "與伺服器的連線中斷。嘗試重新連線..."
+  },
+  "threejs": {
+    "failedToLoad": "載入 3D 模型失敗",
+    "keyboard": "鍵盤：",
+    "autoRotate": "自動旋轉",
+    "rotateY": "旋轉 Y",
+    "rotateX": "旋轉 X"
   }
 }

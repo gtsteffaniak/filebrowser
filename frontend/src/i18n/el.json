@@ -620,7 +620,13 @@
     "latency": "Καθυστέρηση{suffix}",
     "all": "Όλα{suffix}",
     "acknowledge": "Αναγνώριση{suffix}",
-    "expiration": "Λήξη{suffix}"
+    "expiration": "Λήξη{suffix}",
+    "zoom": "Ζουμ{suffix}",
+    "background": "Ιστορικό{suffix}",
+    "play": "Παίξτε{suffix}",
+    "stop": "Σταματήστε το{suffix}",
+    "reset": "Επαναφορά{suffix}",
+    "space": "Διάστημα{suffix}"
   },
   "access": {
     "rules": "Κανόνες πρόσβασης",
@@ -842,5 +848,12 @@
     "authenticationFailed": "Ο έλεγχος ταυτότητας απέτυχε. Παρακαλούμε ανανεώστε τη σελίδα για να συνδεθείτε ξανά.",
     "reconnected": "Επανασυνδέθηκε με τον διακομιστή.",
     "connectionLost": "Η σύνδεση με τον διακομιστή χάθηκε. Προσπαθούμε να επανασυνδεθούμε..."
+  },
+  "threejs": {
+    "failedToLoad": "Αποτυχία φόρτωσης 3D μοντέλου",
+    "keyboard": "Πληκτρολόγιο:",
+    "autoRotate": "Αυτόματη περιστροφή",
+    "rotateY": "Περιστροφή Y",
+    "rotateX": "Περιστροφή X"
   }
 }

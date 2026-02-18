@@ -65,7 +65,7 @@ export default {
         if (state.req?.type === "directory" || state.shareInfo?.shareType === "upload") {
           return state.shareInfo?.title;
         }
-        return state.shareInfo?.title;
+        return state.req.name;
       }
       const currentTool = getters.currentTool();
       if (currentTool) {

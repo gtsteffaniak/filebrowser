@@ -700,7 +700,13 @@
     "latency": "Latency{suffix}",
     "all": "Alle{suffix}",
     "acknowledge": "erkennen{suffix}",
-    "expiration": "Vervaldatum{suffix}"
+    "expiration": "Vervaldatum{suffix}",
+    "zoom": "Zoom{suffix}",
+    "background": "Achtergrond{suffix}",
+    "play": "Speel{suffix}",
+    "stop": "Stop{suffix}",
+    "reset": "Reset{suffix}",
+    "space": "Ruimte{suffix}"
   },
   "access": {
     "rules": "Toegangsregels",
@@ -842,5 +848,12 @@
     "authenticationFailed": "Authenticatie mislukt. Vernieuw de pagina om opnieuw in te loggen.",
     "reconnected": "Opnieuw verbinding gemaakt met server.",
     "connectionLost": "De verbinding met de server is verbroken. Probeer opnieuw verbinding te maken..."
+  },
+  "threejs": {
+    "failedToLoad": "Laden 3D-model mislukt",
+    "keyboard": "Toetsenbord:",
+    "autoRotate": "Automatisch draaien",
+    "rotateY": "Y draaien",
+    "rotateX": "X draaien"
   }
 }

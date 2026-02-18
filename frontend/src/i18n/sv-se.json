@@ -700,7 +700,13 @@
     "latency": "Fördröjning{suffix}",
     "all": "Alla{suffix}",
     "acknowledge": "Bekräfta{suffix}",
-    "expiration": "Förfallodag{suffix}"
+    "expiration": "Förfallodag{suffix}",
+    "zoom": "Zoom{suffix}",
+    "background": "Bakgrund{suffix}",
+    "play": "Spela{suffix}",
+    "stop": "Stopp{suffix}",
+    "reset": "Återställning{suffix}",
+    "space": "Utrymme{suffix}"
   },
   "access": {
     "rules": "Regler för åtkomst",
@@ -842,5 +848,12 @@
     "authenticationFailed": "Autentiseringen misslyckades. Uppdatera sidan för att logga in igen.",
     "reconnected": "Återansluten till servern.",
     "connectionLost": "Anslutningen till servern förlorades. Försöker återansluta..."
+  },
+  "threejs": {
+    "failedToLoad": "Misslyckades med att ladda 3D-modell",
+    "keyboard": "Tangentbord:",
+    "autoRotate": "Auto-rotera",
+    "rotateY": "Rotera Y",
+    "rotateX": "Rotera X"
   }
 }

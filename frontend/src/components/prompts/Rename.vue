@@ -81,7 +81,7 @@ export default {
   },
   computed: {
     closeHovers() {
-      return mutations.closeHovers;
+      return mutations.closeTopHover();
     },
     validation() {
       return this.validateFileName(this.name);
@@ -211,7 +211,7 @@ export default {
           await filesApi.moveCopy(items, "move");
         }
         notify.showSuccessToast(this.$t("prompts.renameSuccess"));
-        mutations.closeHovers();
+        mutations.closeTopHover();
 
         if (this.isPreviewView) {
           url.goToItem(this.item.source, newPath, undefined); // When undefined will not create browser history

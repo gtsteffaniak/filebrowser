@@ -95,7 +95,7 @@ export default {
       });
     },
     closeHovers() {
-      mutations.closeHovers();
+      mutations.closeTopHover();
     },
     async deleteApi() {
       // Dummy delete function, to be filled in later
@@ -105,7 +105,7 @@ export default {
         setTimeout(() => {
           eventBus.emit('apiKeysChanged');
         }, 10);
-        mutations.closeHovers();
+        mutations.closeTopHover();
         notify.showSuccessToast(this.$t("api.apiKeyDeleted"));
       } catch (error) {
         console.error(error);

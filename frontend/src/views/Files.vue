@@ -2,7 +2,7 @@
   <div>
     <div v-if="loadingProgress < 100" class="progress-line" :style="{ width: loadingProgress + '%', ...moveWithSidebar }"></div>
     <errors v-if="error" :errorCode="error.status" />
-    <component v-else-if="currentViewLoaded" :is="currentView"></component>
+    <component v-else-if="currentViewLoaded" :is="currentView" :fbdata="req"></component>
     <div v-else>
       <h2 class="message delayed">
         <LoadingSpinner size="medium" />
@@ -22,6 +22,7 @@ import OnlyOfficeEditor from "./files/OnlyOfficeEditor.vue";
 import EpubViewer from "./files/EpubViewer.vue";
 import DocViewer from "./files/DocViewer.vue";
 import MarkdownViewer from "./files/MarkdownViewer.vue";
+import ThreeJsViewer from "./files/ThreeJs.vue";
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
 import router from "@/router";
@@ -39,6 +40,7 @@ export default {
     DocViewer,
     OnlyOfficeEditor,
     MarkdownViewer,
+    ThreeJsViewer,
     LoadingSpinner,
   },
   data() {
@@ -65,6 +67,9 @@ export default {
     },
     currentViewLoaded() {
       return getters.currentView() != "";
+    },
+    req() {
+      return state.req;
     },
     reload() {
       return state.reload;

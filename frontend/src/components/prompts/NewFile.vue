@@ -49,7 +49,7 @@ export default {
       return getters.isListing();
     },
     closeHovers() {
-      return mutations.closeHovers;
+      return mutations.closeTopHover();
     },
   },
   methods: {
@@ -72,13 +72,13 @@ export default {
         if (getters.isShare()) {
           await publicApi.post(state.shareInfo?.hash, newPath, "", overwrite);
           mutations.setReload(true);
-          mutations.closeHovers();
+          mutations.closeTopHover();
           this.creating = false;
           return;
         }
         await filesApi.post(source, newPath, "", overwrite);
         mutations.setReload(true);
-        mutations.closeHovers();
+        mutations.closeTopHover();
 
         // Show success notification with "go to item" button
         const buttonAction = () => {
@@ -118,13 +118,13 @@ export default {
                       if (getters.isShare()) {
                         await publicApi.post(state.shareInfo?.hash, newPath, "", false);
                         mutations.setReload(true);
-                        mutations.closeHovers();
+                        mutations.closeTopHover();
                         success = true;
                         return;
                       }
                       await filesApi.post(source, newPath, "", false);
                       mutations.setReload(true);
-                      mutations.closeHovers();
+                      mutations.closeTopHover();
                       success = true;
 
                       // Show success notification with "go to item" button

@@ -364,7 +364,7 @@ export default {
       const styles = {};
 
       if (viewMode === 'icons') {
-        const baseSize = 60 + (state.user.gallerySize * 15); // 60px to 135px - increased scaling
+        const baseSize = 20 + (state.user.gallerySize * 15); // 30px to 135px - increased scaling
         const cellSize = baseSize + 30;
         styles['--icons-view-icon-size'] = `${baseSize}px`;
         styles['--icons-view-cell-size'] = `${cellSize}px`;
@@ -374,6 +374,9 @@ export default {
         const baseCalc = 80 + (state.user.gallerySize * 25);
         const extraScaling = Math.max(0, state.user.gallerySize - 5) * 15; // Additional 15px per level above 5
         const baseSize = baseCalc + extraScaling; // Size 5: 205px, Size 9: 345px
+        // Scale gallery icons with baseSize
+        const galleryIconFontSize = (3 + (state.user.gallerySize * 0.5)).toFixed(2); // 3em to 7.5em
+        styles['--gallery-icon-font-size'] = `${galleryIconFontSize}em`;
         if (state.isMobile) {
           let columns;
           if (state.user.gallerySize <= 7) columns = 2;
@@ -394,18 +397,22 @@ export default {
         const baseHeight = viewMode === 'compact'
           ? 40 + (state.user.gallerySize * 2)  // 40px to 56px - compact
           : 50 + (state.user.gallerySize * 3); // 50px to 74px - list
-        // Scale icons with gallery size - icon fonts: 1.6em to 2.4em, images: 1.2em to 1.8em
-        const iconFontSize = (1.6 + (state.user.gallerySize * 0.1)).toFixed(2); // 1.7em to 2.5em
-        const iconImageSize = (1.2 + (state.user.gallerySize * 0.075)).toFixed(3); // 1.275em to 1.875em
+        // Scale preview containers and icons with gallery size
+        const iconFontSize = (1.5 + (state.user.gallerySize * 0.12)).toFixed(2); // 1.8em to 2.9em - for material icons
+        const iconImageSize = (2 + (state.user.gallerySize * 0.12)).toFixed(3); // 2.2em to 3.2em - for containers
 
         styles['--item-width'] = `calc(${(100 / this.numColumns).toFixed(2)}% - 1em)`;
         styles['--item-height'] = `${baseHeight}px`;
         styles['--list-icon-font-size'] = `${iconFontSize}em`;
         styles['--list-icon-image-size'] = `${iconImageSize}em`;
       } else {
-        // Normal view
+        // Normal view - add scaling for preview containers and icons
+        const iconImageSize = (3.2 + (state.user.gallerySize * 0.15)).toFixed(3); // 3.2em to 4.4em - for containers
+        const iconFontSize = (2.2 + (state.user.gallerySize * 0.12)).toFixed(2); // 2.2em to 3.3em - for material icons
         styles['--item-width'] = `calc(${(100 / this.numColumns)}% - 1em)`;
         styles['--item-height'] = 'auto';
+        styles['--normal-icon-image-size'] = `${iconImageSize}em`;
+        styles['--normal-icon-font-size'] = `${iconFontSize}em`;
       }
 
       return styles;

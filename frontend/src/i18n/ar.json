@@ -620,7 +620,13 @@
     "latency": "الكمون{suffix}",
     "all": "الكل{suffix}",
     "acknowledge": "الإقرار{suffix}",
-    "expiration": "انتهاء الصلاحية{suffix}"
+    "expiration": "انتهاء الصلاحية{suffix}",
+    "zoom": "تكبير/تصغير{suffix}",
+    "background": "الخلفية{suffix}",
+    "play": "اللعب{suffix}",
+    "stop": "توقف{suffix}",
+    "reset": "إعادة تعيين{suffix}",
+    "space": "الفضاء{suffix}"
   },
   "access": {
     "rules": "قواعد الوصول",
@@ -842,5 +848,12 @@
     "authenticationFailed": "فشلت المصادقة. يرجى تحديث الصفحة لتسجيل الدخول مرة أخرى.",
     "reconnected": "تمت إعادة الاتصال بالخادم.",
     "connectionLost": "فُقد الاتصال بالخادم. محاولة إعادة الاتصال..."
+  },
+  "threejs": {
+    "failedToLoad": "فشل تحميل نموذج ثلاثي الأبعاد",
+    "keyboard": "لوحة المفاتيح:",
+    "autoRotate": "تدوير تلقائي",
+    "rotateY": "تدوير Y",
+    "rotateX": "تدوير X"
   }
 }

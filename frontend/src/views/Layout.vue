@@ -213,6 +213,8 @@ export default {
       mutations.setMobile();
     },
     resetItems() {
+      mutations.closeSidebar();
+      mutations.closeHovers();
       mutations.setSearch(false);
     },
   },

@@ -620,7 +620,13 @@
     "latency": "Opóźnienie{suffix}",
     "all": "Wszystkie{suffix}",
     "acknowledge": "Potwierdzenie{suffix}",
-    "expiration": "Wygaśnięcie{suffix}"
+    "expiration": "Wygaśnięcie{suffix}",
+    "zoom": "Zoom{suffix}",
+    "background": "Kontekst{suffix}",
+    "play": "Grać{suffix}",
+    "stop": "Stop{suffix}",
+    "reset": "Reset{suffix}",
+    "space": "Przestrzeń{suffix}"
   },
   "access": {
     "rules": "Zasady dostępu",
@@ -842,5 +848,12 @@
     "authenticationFailed": "Uwierzytelnianie nie powiodło się. Odśwież stronę, aby zalogować się ponownie.",
     "reconnected": "Ponowne połączenie z serwerem.",
     "connectionLost": "Połączenie z serwerem zostało utracone. Próba ponownego połączenia..."
+  },
+  "threejs": {
+    "failedToLoad": "Nie udało się załadować modelu 3D",
+    "keyboard": "Klawiatura:",
+    "autoRotate": "Automatyczny obrót",
+    "rotateY": "Obróć Y",
+    "rotateX": "Obrót X"
   }
 }

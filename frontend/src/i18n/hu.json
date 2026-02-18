@@ -620,7 +620,13 @@
     "latency": "Késleltetés{suffix}",
     "all": "Minden{suffix}",
     "acknowledge": "Visszaigazolás{suffix}",
-    "expiration": "Lejárat{suffix}"
+    "expiration": "Lejárat{suffix}",
+    "zoom": "Nagyítás{suffix}",
+    "background": "Háttér{suffix}",
+    "play": "Játsszon{suffix}",
+    "stop": "Stop{suffix}",
+    "reset": "Reset{suffix}",
+    "space": "Űr{suffix}"
   },
   "access": {
     "rules": "Hozzáférési szabályok",
@@ -842,5 +848,12 @@
     "authenticationFailed": "A hitelesítés sikertelen. Kérjük, frissítse az oldalt az újbóli bejelentkezéshez.",
     "reconnected": "Újra csatlakozott a kiszolgálóhoz.",
     "connectionLost": "Megszakadt a kapcsolat a kiszolgálóval. Próbáljuk újracsatlakoztatni..."
+  },
+  "threejs": {
+    "failedToLoad": "Nem sikerült betölteni a 3D modellt",
+    "keyboard": "Billentyűzet:",
+    "autoRotate": "Automatikus forgatás",
+    "rotateY": "Forgatás Y",
+    "rotateX": "Forgassa X"
   }
 }

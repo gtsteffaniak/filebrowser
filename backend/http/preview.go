@@ -179,8 +179,8 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 	ext := strings.ToLower(filepath.Ext(d.fileInfo.Name))
 	resizable := iteminfo.ResizableImageTypes[ext]
 
-	// If image is under 500KB, serve the original instead of generating a preview
-	const maxSizeForOriginal = 500 * 1024 // 500KB
+	// If image is under 250KB, serve the original instead of generating a preview
+	const maxSizeForOriginal = 250 * 1024 // 250KB
 	if (!resizable || config.Server.DisableResize || d.fileInfo.Size < maxSizeForOriginal) && isImage {
 		return rawFileHandler(w, r, d.fileInfo)
 	}

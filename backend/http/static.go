@@ -13,10 +13,10 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
+	"github.com/gtsteffaniak/filebrowser/backend/icons"
 )
 
 var templateRenderer *TemplateRenderer
-var cachedManifest PWAManifest // generated at startup
 
 type TemplateRenderer struct {
 	templates *template.Template
@@ -282,7 +282,7 @@ func manifestHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/manifest+json")
 	w.Header().Set("Cache-Control", "public, max-age=3600") // Cache for 1 hour
 
-	if err := json.NewEncoder(w).Encode(cachedManifest); err != nil {
+	if err := json.NewEncoder(w).Encode(icons.CachedManifest); err != nil {
 		http.Error(w, "Failed to serve manifest", http.StatusInternalServerError)
 	}
 }
@@ -394,88 +394,4 @@ func indexHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (in
 		return http.StatusNotFound, nil
 	}
 	return handleWithStaticData(w, r, d, "index.html", "text/html")
-}
-
-// PWAManifest represents the web app manifest structure
-type PWAManifest struct {
-	Name            string    `json:"name"`
-	ShortName       string    `json:"short_name"`
-	Icons           []PWAIcon `json:"icons"`
-	StartURL        string    `json:"start_url"`
-	Display         string    `json:"display"`
-	BackgroundColor string    `json:"background_color"`
-	ThemeColor      string    `json:"theme_color"`
-	Description     string    `json:"description"`
-}
-
-// PWAIcon represents an icon in the web app manifest
-type PWAIcon struct {
-	Src     string `json:"src"`
-	Sizes   string `json:"sizes"`
-	Type    string `json:"type"`
-	Purpose string `json:"purpose"`
-}
-
-// generatePWAManifest creates the PWA manifest structure
-func generatePWAManifest(name, description, baseURL, themeColor, pwaIcon192, pwaIcon256, pwaIcon512 string) PWAManifest {
-	shortName := name
-	if len(name) > 12 {
-		shortName = name[:12]
-	}
-
-	return PWAManifest{
-		Name:            name,
-		ShortName:       shortName,
-		StartURL:        baseURL,
-		Display:         "standalone",
-		BackgroundColor: "#ffffff",
-		ThemeColor:      themeColor,
-		Description:     description,
-		Icons: []PWAIcon{
-			{
-				Src:     pwaIcon192,
-				Sizes:   "192x192",
-				Type:    "image/png",
-				Purpose: "any",
-			},
-			{
-				Src:     pwaIcon256,
-				Sizes:   "256x256",
-				Type:    "image/png",
-				Purpose: "any maskable",
-			},
-			{
-				Src:     pwaIcon512,
-				Sizes:   "512x512",
-				Type:    "image/png",
-				Purpose: "any",
-			},
-		},
-	}
-}
-
-// InitializePWAManifest generates and caches the PWA manifest at startup
-func InitializePWAManifest() {
-	staticURL := config.Server.BaseURL + "public/static"
-	title := config.Frontend.Name
-	description := config.Frontend.Description
-	defaultThemeColor := "#455a64"
-
-	// Determine PWA icon URLs based on custom favicon settings
-	pwaIcon192 := staticURL + "/" + settings.Env.PWAIcon192
-	pwaIcon256 := staticURL + "/" + settings.Env.PWAIcon256
-	pwaIcon512 := staticURL + "/" + settings.Env.PWAIcon512
-
-	if settings.Env.FaviconIsCustom && strings.ToLower(filepath.Ext(settings.Env.FaviconPath)) == ".svg" {
-		favicon := staticURL + "/favicon"
-		pwaIcon192 = favicon
-		pwaIcon256 = favicon
-		pwaIcon512 = favicon
-	} else if settings.Env.FaviconIsCustom {
-		pwaIcon192 = staticURL + "/pwa-icon-192.png"
-		pwaIcon256 = staticURL + "/pwa-icon-256.png"
-		pwaIcon512 = staticURL + "/pwa-icon-512.png"
-	}
-
-	cachedManifest = generatePWAManifest(title, description, config.Server.BaseURL, defaultThemeColor, pwaIcon192, pwaIcon256, pwaIcon512)
 }

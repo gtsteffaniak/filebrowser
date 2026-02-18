@@ -700,7 +700,13 @@
     "latency": "延迟{suffix}",
     "all": "全部{suffix}",
     "acknowledge": "确认{suffix}",
-    "expiration": "到期{suffix}"
+    "expiration": "到期{suffix}",
+    "zoom": "放大{suffix}",
+    "background": "背景介绍{suffix}",
+    "play": "播放{suffix}",
+    "stop": "停止{suffix}",
+    "reset": "重置{suffix}",
+    "space": "空间{suffix}"
   },
   "access": {
     "rules": "访问规则",
@@ -842,5 +848,12 @@
     "authenticationFailed": "验证失败。请刷新页面重新登录。",
     "reconnected": "重新连接服务器。",
     "connectionLost": "与服务器的连接丢失。尝试重新连接..."
+  },
+  "threejs": {
+    "failedToLoad": "加载 3D 模型失败",
+    "keyboard": "键盘",
+    "autoRotate": "自动旋转",
+    "rotateY": "旋转 Y",
+    "rotateX": "旋转 X"
   }
 }

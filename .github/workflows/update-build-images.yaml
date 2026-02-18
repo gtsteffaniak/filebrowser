@@ -27,7 +27,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/gtsteffaniak/playwright-base
-          tags: latest
+          tags: chromium
       - name: Build and push playwright-base
         uses: docker/build-push-action@v6
         with:

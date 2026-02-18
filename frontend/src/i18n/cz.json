@@ -700,7 +700,13 @@
     "latency": "Zpoždění{suffix}",
     "all": "Všechny{suffix}",
     "acknowledge": "Potvrzení{suffix}",
-    "expiration": "Expirace{suffix}"
+    "expiration": "Expirace{suffix}",
+    "zoom": "Zoom{suffix}",
+    "background": "Pozadí{suffix}",
+    "play": "Přehrát{suffix}",
+    "stop": "Zastavte{suffix}",
+    "reset": "Obnovení{suffix}",
+    "space": "Prostor{suffix}"
   },
   "access": {
     "rules": "Pravidla přístupu",
@@ -842,5 +848,12 @@
     "authenticationFailed": "Ověření se nezdařilo. Obnovte prosím stránku a přihlaste se znovu.",
     "reconnected": "Znovu se připojil k serveru.",
     "connectionLost": "Spojení se serverem bylo ztraceno. Při pokusu o obnovení připojení..."
+  },
+  "threejs": {
+    "failedToLoad": "Nepodařilo se načíst 3D model",
+    "keyboard": "Klávesnice:",
+    "autoRotate": "Automatické otáčení",
+    "rotateY": "Otáčení Y",
+    "rotateX": "Otáčení X"
   }
 }

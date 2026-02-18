@@ -23,9 +23,6 @@ const plugins = [
     vueTsc: {
       tsconfigPath: "./tsconfig.json",
     },
-    eslint: {
-      lintCommand: 'eslint "./src/**/*.{js,vue,ts}"',
-    },
   }),
 ].filter(Boolean);
 

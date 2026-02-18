@@ -53,7 +53,7 @@ export default {
   },
   methods: {
     submit() {
-      mutations.closeHovers();
+      mutations.closeTopHover();
       this.submitCallback(this.password);
     },
   },

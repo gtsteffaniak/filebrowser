@@ -79,11 +79,11 @@ export default {
   },
   methods: {
     closeHovers() {
-      mutations.closeHovers();
+      mutations.closeTopHover();
     },
     confirm() {
       this.onConfirm();
-      mutations.closeHovers();
+      mutations.closeTopHover();
     },
   },
 };
