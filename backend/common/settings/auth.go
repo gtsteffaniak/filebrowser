@@ -107,9 +107,6 @@ type LdapConfig struct {
 // ValidateLdapAuth checks LDAP config and sets defaults. Call when LDAP is enabled.
 func ValidateLdapAuth() error {
 	ldapCfg := &Config.Auth.Methods.LdapAuth
-	if !ldapCfg.Enabled {
-		return nil
-	}
 	if ldapCfg.Server == "" {
 		return fmt.Errorf("LDAP server is required when LDAP is enabled")
 	}
@@ -130,6 +127,9 @@ func ValidateLdapAuth() error {
 	}
 	if ldapCfg.UserFilter == "" {
 		ldapCfg.UserFilter = "(&(cn=%s)(objectClass=user))"
+	}
+	if err := verifyLdapConnection(); err != nil {
+		logger.Fatalf("LDAP connection check failed: %v", err)
 	}
 	return nil
 }
@@ -207,12 +207,7 @@ func parseLdapServer(server string) (scheme, host string, port int, err error) {
 }
 
 // VerifyLdapConnection tests that the LDAP server is reachable, can bind (if credentials set), and responds to a search.
-// Call during config startup when LDAP is enabled; returns an error if the connection test fails (like OIDC).
-// The dummy search exercises the same code path as login so "connection reset by peer" on search is caught at startup.
-func VerifyLdapConnection() error {
-	if !Config.Auth.Methods.LdapAuth.Enabled {
-		return nil
-	}
+func verifyLdapConnection() error {
 	if Config.Auth.Methods.LdapAuth.Server == "" {
 		return fmt.Errorf("LDAP server is required when LDAP is enabled")
 	}

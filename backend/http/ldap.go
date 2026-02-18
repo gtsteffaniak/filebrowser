@@ -55,8 +55,6 @@ func authenticateLDAP(username, password string) ([]string, error) {
 	}
 
 	filter := fmt.Sprintf(c.UserFilter, ldap.EscapeFilter(username))
-	logger.Debugf("ldap: search baseDN=%s filter=%s", c.BaseDN, filter)
-
 	searchRequest := ldap.NewSearchRequest(
 		c.BaseDN,
 		ldap.ScopeWholeSubtree,
@@ -74,7 +72,6 @@ func authenticateLDAP(username, password string) ([]string, error) {
 		return nil, fmt.Errorf("ldap search (%s): %w", c.Server, err)
 	}
 
-	logger.Debugf("ldap: search returned %d entries for username=%q", len(result.Entries), username)
 	if len(result.Entries) == 0 {
 		return nil, fmt.Errorf("user not found: %s (LDAP search for %s returned no entries)", username, filter)
 	}
@@ -90,7 +87,6 @@ func authenticateLDAP(username, password string) ([]string, error) {
 		}
 	}
 	userDN := entry.DN
-	logger.Debugf("ldap: found user DN=%s", userDN)
 
 	// Verify password by binding as the user
 	if err := conn.Bind(userDN, password); err != nil {
@@ -104,7 +100,6 @@ func authenticateLDAP(username, password string) ([]string, error) {
 	}
 
 	groups := entry.GetAttributeValues("memberOf")
-	logger.Debugf("ldap: user %s authenticated, memberOf=%v", username, groups)
 	return groups, nil
 }
 
