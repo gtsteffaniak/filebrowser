@@ -413,7 +413,13 @@ export default {
       event.preventDefault();
       event.stopPropagation();
 
-      // Single click: select only, emit selected, do not navigate
+      // Display mode: single click navigates directly to the file
+      if (this.isDisplayMode) {
+        this.navigateToItem(item);
+        return;
+      }
+
+      // Browse mode: single click selects only, emit selected, do not navigate
       const syntheticEvent = {
         currentTarget: {
           dataset: {
@@ -429,7 +435,7 @@ export default {
       event.preventDefault();
       event.stopPropagation();
 
-      // Double click: navigate (into folder or open file / display-mode navigation)
+      // Double click: navigate (into folder or open file)
       if (this.isDisplayMode) {
         this.navigateToItem(item);
         return;
