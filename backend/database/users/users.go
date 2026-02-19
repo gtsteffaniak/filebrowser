@@ -15,6 +15,7 @@ const (
 	LoginMethodPassword LoginMethod = "password"
 	LoginMethodProxy    LoginMethod = "proxy"
 	LoginMethodOidc     LoginMethod = "oidc"
+	LoginMethodLdap     LoginMethod = "ldap"
 )
 
 type AuthToken struct {

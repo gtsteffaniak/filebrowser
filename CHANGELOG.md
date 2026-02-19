@@ -5,7 +5,12 @@ All notable changes to this project will be documented in this file. For commit 
 ## v1.3.0-beta
 
  **New Features**:
+ - LDAP login support (#591)
  - FileWatcher also supports watching directories
+ - Support previews for 3D model files (STL, OBJ, 3MF, etc.) (#1273)
+   - supported formats via threejs: GLTF, GLB, OBJ, STL, PLY, DAE (Collada), 3MF, 3DS, USDZ, USD, USDA, USDC, AMF, VRML, WRL, VTK, VTP, PCD, XYZ, VOX, KMZ
+   - supports animations (for formats that contain them)
+   - supports embedded textures, external neighboring file textures, or textures in `/textures` subdirectory
  - Enhanced prompts
    - All prompts have a taskbar with a close button
    - Prompts can be freely moved by dragging taskbar
@@ -19,6 +24,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - Docker images default to `filebrowser` user instead of root
+ - Bulk delete api moved locations and method. Now use DELETE method against `/api/resources/bulk` endpoint. See swagger page for usage. (#1984)
 
 ## v1.2.4-beta
 

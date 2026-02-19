@@ -422,19 +422,25 @@ func setupAuth(generate bool) {
 	if Config.Auth.Methods.ProxyAuth.Enabled {
 		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "proxy")
 	}
-	if Config.Auth.Methods.OidcAuth.Enabled {
-		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "oidc")
-	}
 	if Config.Auth.Methods.NoAuth {
 		logger.Warning("Configured with no authentication, this is not recommended.")
 		Config.Auth.AuthMethods = []string{"disabled"}
 	}
 	if Config.Auth.Methods.OidcAuth.Enabled || generate {
+		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "oidc")
 		err := validateOidcAuth()
 		if err != nil && !generate {
 			logger.Fatalf("Error validating OIDC auth: %v", err)
 		}
 		logger.Info("OIDC Auth configured successfully")
+	}
+	if Config.Auth.Methods.LdapAuth.Enabled || generate {
+		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "ldap")
+		err := ValidateLdapAuth()
+		if err != nil && !generate {
+			logger.Fatalf("Error validating LDAP auth: %v", err)
+		}
+		logger.Info("LDAP Auth configured successfully")
 	}
 
 	// use password auth as default if no auth methods are set
@@ -624,6 +630,11 @@ func loadEnvConfig() {
 		logger.Info("Using ReCaptcha Secret from FILEBROWSER_RECAPTCHA_SECRET environment variable")
 	}
 
+	ldapUserPassword := os.Getenv("FILEBROWSER_LDAP_USER_PASSWORD")
+	if ldapUserPassword != "" {
+		Config.Auth.Methods.LdapAuth.UserPassword = ldapUserPassword
+		logger.Info("Using LDAP bind password from FILEBROWSER_LDAP_USER_PASSWORD environment variable")
+	}
 }
 
 func setDefaults(generate bool) Settings {

@@ -84,6 +84,7 @@ export async function login(username, password, recaptcha, otp) {
     throw new Error(msg);
   }
 }
+
 export async function get(id) {
   try {
     let apiPath = getPublicApiPath('users', { id: id })

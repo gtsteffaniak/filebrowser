@@ -316,12 +316,18 @@ func userWithoutOTPhelper(fn handleFunc) handleFunc {
 		// Call the actual handler function with the updated context
 		username := r.URL.Query().Get("username")
 		password := r.Header.Get("X-Password")
-		if username == "" || password == "" {
-			return withUserHelper(fn)(w, r, d)
-		} else {
-			if !config.Auth.Methods.PasswordAuth.Enabled {
-				return 401, errors.ErrUnauthorized
+		// Try LDAP first if enabled; on success set d.user and continue to handler
+		if config.Auth.Methods.LdapAuth.Enabled {
+			logger.Debug("ldap auth, calling AuthenticateLDAPUser")
+			ldapUser, err := AuthenticateLDAPUser(username, password)
+			if err == nil {
+				logger.Debugf("ldap auth successful, calling handler")
+				d.user = ldapUser
+				return fn(w, r, d)
 			}
+			logger.Debug("ldap auth failed, calling password auth", err)
+		}
+		if config.Auth.Methods.PasswordAuth.Enabled {
 			// Get the authentication method from the settings
 			auther, err := store.Auth.Get("password")
 			if err != nil {
@@ -330,14 +336,16 @@ func userWithoutOTPhelper(fn handleFunc) handleFunc {
 			// Authenticate the user based on the request
 			user, err := auther.Auth(r, store.Users)
 			if err != nil {
+				logger.Debug("password auth failed, calling handler", err)
 				if err == errors.ErrNoTotpProvided {
 					return 403, err
 				}
 				return 401, errors.ErrUnauthorized
 			}
 			d.user = user
+			return fn(w, r, d)
 		}
-		return fn(w, r, d)
+		return withUserHelper(fn)(w, r, d)
 	}
 }
 

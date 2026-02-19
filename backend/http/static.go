@@ -219,6 +219,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"oidcAvailable":        config.Auth.Methods.OidcAuth.Enabled,
 		"proxyAvailable":       config.Auth.Methods.ProxyAuth.Enabled,
 		"passwordAvailable":    config.Auth.Methods.PasswordAuth.Enabled,
+		"ldapAvailable":        config.Auth.Methods.LdapAuth.Enabled,
 		"mediaAvailable":       settings.MediaEnabled(),
 		"muPdfAvailable":       settings.Env.MuPdfAvailable,
 		"updateAvailable":      utils.GetUpdateAvailableUrl(),
@@ -230,6 +231,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"disableSidebar":       disableSidebar,
 		"shareHash":            shareHash,
 		"oidcLoginButtonText":  config.Frontend.OIDCLoginButtonText,
+		"loginButtonText":      config.Frontend.LoginButtonText,
 	}
 
 	// Marshal each variable to JSON strings for direct template usage

@@ -136,16 +136,13 @@ func setupProxyUser(r *http.Request, data *requestContext, proxyUser string) (*u
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/auth/login [post]
 func loginHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	if d.user.LoginMethod == users.LoginMethodProxy {
-		return printToken(w, r, d.user)
-	}
 	passwordUser := d.user.LoginMethod == users.LoginMethodPassword
 	enforcedOtp := config.Auth.Methods.PasswordAuth.EnforcedOtp
 	missingOtp := d.user.TOTPSecret == ""
 	if passwordUser && enforcedOtp && missingOtp {
 		return http.StatusForbidden, errors.ErrNoTotpConfigured
 	}
-	return printToken(w, r, d.user) // Pass the data object
+	return printToken(w, r, d.user)
 }
 
 // logoutHandler handles user logout
@@ -186,6 +183,11 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		oidcRedirectUrl := config.Auth.Methods.OidcAuth.LogoutRedirectUrl
 		if oidcRedirectUrl != "" {
 			logoutUrl = oidcRedirectUrl
+		}
+	} else if d.user != nil && d.user.LoginMethod == users.LoginMethodLdap {
+		ldapRedirectUrl := config.Auth.Methods.LdapAuth.LogoutRedirectUrl
+		if ldapRedirectUrl != "" {
+			logoutUrl = ldapRedirectUrl
 		}
 	}
 	if logoutUrl == "" {
