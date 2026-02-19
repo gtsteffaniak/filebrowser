@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.2.5-beta
 
+ **Notes**:
+ - Dependency Updates for frontend and backend packages
+ - Upgrade to go 1.26
+
  **BugFixes**:
  - .ssa and .ass subtitle files get their styling removed during conversion (#1933)
  - custom icons issue
