@@ -44,6 +44,7 @@ import { filesApi } from "@/api";
 import { state, getters, mutations } from "@/store";
 import { events, notify } from "@/notify";
 import { generateRandomCode } from "@/utils/auth";
+import { globalVars } from "@/utils/constants";
 
 export default {
   name: "layout",
@@ -180,7 +181,7 @@ export default {
         if (maxUploads > 10 || maxUploads < 1) {
           mutations.setMaxConcurrentUpload(1);
         }
-        if ( state.user.showFirstLogin) {
+        if (state.user.showFirstLogin && !globalVars.noAuth) {
           mutations.showHover({
             name: "generic",
             props: {

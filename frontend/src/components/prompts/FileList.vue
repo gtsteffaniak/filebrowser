@@ -412,13 +412,14 @@ export default {
     handleItemClick(item, _index, event) {
       event.preventDefault();
       event.stopPropagation();
-      
+
+      // Display mode: single click navigates directly to the file
       if (this.isDisplayMode) {
         this.navigateToItem(item);
         return;
       }
 
-      // Create a synthetic event-like object for compatibility with existing methods
+      // Browse mode: single click selects only, emit selected, do not navigate
       const syntheticEvent = {
         currentTarget: {
           dataset: {
@@ -428,18 +429,17 @@ export default {
         preventDefault: () => {},
         stopPropagation: () => {},
       };
-
-      if (state.user.singleClick) {
-        this.next(syntheticEvent);
-      } else {
-        this.select(syntheticEvent);
-      }
+      this.select(syntheticEvent);
     },
     handleItemDblClick(item, _index, event) {
       event.preventDefault();
       event.stopPropagation();
 
-      // Create a synthetic event for double-click
+      // Double click: navigate (into folder or open file)
+      if (this.isDisplayMode) {
+        this.navigateToItem(item);
+        return;
+      }
       const syntheticEvent = {
         currentTarget: {
           dataset: {
@@ -457,9 +457,12 @@ export default {
       if (this.selected === path) {
         this.selected = null;
         this.selectedSource = null;
+        this.selectedType = null;
         this.$emit("update:selected", {
           path: this.current,
-          source: this.source
+          source: this.source,
+          type: 'directory',
+          isValid: !this.requireFileSelection,
         });
         return;
       }
@@ -468,9 +471,12 @@ export default {
       this.selected = path;
       let clickedItem = this.items.find(item => item.path === path);
       this.selectedSource = clickedItem ? clickedItem.source : this.source;
+      this.selectedType = clickedItem ? clickedItem.type : null;
       this.$emit("update:selected", {
         path: this.selected,
-        source: this.selectedSource
+        source: this.selectedSource,
+        type: this.selectedType,
+        isValid: this.selectedType === 'directory' ? !this.requireFileSelection : true,
       });
     },
     createDir: async function () {

@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.2.5-beta
+
+ **Notes**:
+ - Dependency Updates for frontend and backend packages
+ - Upgrade to go 1.26
+ - file list prompt interaction behavior, single-click always selects, double-click navigates. (#1911)
+
+ **BugFixes**:
+ - .ssa and .ass subtitle files get their styling removed during conversion (#1933)
+ - custom icons issue
+ - new database message for noauth (#1935)
+
 ## v1.2.4-beta
 
  **Notes**:
