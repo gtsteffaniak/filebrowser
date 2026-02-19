@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.2.5-beta
+
+ **BugFixes**:
+ - .ssa and .ass subtitle files get their styling removed during conversion (#1933)
+ - custom icons issue
+ - new database message for noauth (#1935)
+
 ## v1.2.4-beta
 
  **Notes**:

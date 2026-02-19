@@ -472,9 +472,9 @@ func InitializePWAManifest() {
 		pwaIcon256 = favicon
 		pwaIcon512 = favicon
 	} else if settings.Env.FaviconIsCustom {
-		pwaIcon192 = staticURL + "/pwa-icon-192.png"
-		pwaIcon256 = staticURL + "/pwa-icon-256.png"
-		pwaIcon512 = staticURL + "/pwa-icon-512.png"
+		pwaIcon192 = staticURL + "/icons/pwa-icon-192.png"
+		pwaIcon256 = staticURL + "/icons/pwa-icon-256.png"
+		pwaIcon512 = staticURL + "/icons/pwa-icon-512.png"
 	}
 
 	cachedManifest = generatePWAManifest(title, description, config.Server.BaseURL, defaultThemeColor, pwaIcon192, pwaIcon256, pwaIcon512)
