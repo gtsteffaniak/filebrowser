@@ -42,7 +42,6 @@
     "vue-router": "^4.3.0"
   },
   "overrides": {
-    "ajv": "^8.18.0",
     "minimatch": "^10.2.1"
   },
   "devDependencies": {
