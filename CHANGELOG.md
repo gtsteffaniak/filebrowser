@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. For commit 
  **Notes**:
  - Dependency Updates for frontend and backend packages
  - Upgrade to go 1.26
+ - file list prompt interaction behavior, single-click always selects, double-click navigates.
 
  **BugFixes**:
  - .ssa and .ass subtitle files get their styling removed during conversion (#1933)
