@@ -22,7 +22,7 @@
   "dependencies": {
     "@onlyoffice/document-editor-vue": "^1.4.0",
     "ace-builds": "^1.24.2",
-    "axios": "^1.7.9",
+    "axios": "^1.13.5",
     "clipboard": "^2.0.4",
     "css-vars-ponyfill": "^2.4.3",
     "dompurify": "^3.2.4",
@@ -40,6 +40,10 @@
     "vue-i18n": "^9.10.2",
     "vue-lazyload": "^3.0.0",
     "vue-router": "^4.3.0"
+  },
+  "overrides": {
+    "ajv": "^8.18.0",
+    "minimatch": "^10.2.1"
   },
   "devDependencies": {
     "@intlify/eslint-plugin-vue-i18n": "^3.2.0",
