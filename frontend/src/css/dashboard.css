@@ -391,3 +391,7 @@ body.rtl .credits {
   top: 0;
   animation: .3s show ease-in;
 }
+
+.card.padding-normal {
+  padding: 1em;
+}

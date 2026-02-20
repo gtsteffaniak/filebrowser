@@ -157,7 +157,7 @@ func CheckPermissions(opts utils.FileOptions, access *access.Storage, user *user
 	return indexPath, userScope, nil
 }
 
-func FileInfoFaster(opts utils.FileOptions, access *access.Storage, user *users.User) (*iteminfo.ExtendedFileInfo, error) {
+func FileInfoFaster(opts utils.FileOptions, access *access.Storage, user *users.User, share *share.Storage) (*iteminfo.ExtendedFileInfo, error) {
 	response := &iteminfo.ExtendedFileInfo{}
 	indexPath, userScope, err := CheckPermissions(opts, access, user)
 	if err != nil {
@@ -176,7 +176,6 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage, user *users.
 		FollowSymlinks: opts.FollowSymlinks,
 		ShowHidden:     opts.ShowHidden,
 		Expand:         opts.Expand,
-		IsRoutineScan:  false, // API call
 	})
 	if err != nil {
 		return response, err // Path excluded by index rules OR doesn't exist
@@ -193,6 +192,18 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage, user *users.
 		if err := access.CheckChildItemAccess(response, idx, user.Username); err != nil {
 			return response, err
 		}
+		for i := range response.Files {
+			file := &response.Files[i]
+			file.IsShared = share.IsShared(response.Path+file.Name, idx.Path)
+		}
+		for i := range response.Folders {
+			folder := &response.Folders[i]
+			folder.IsShared = share.IsShared(response.Path+folder.Name, idx.Path)
+		}
+	}
+
+	if share != nil && user.Permissions.Share {
+		response.IsShared = share.IsShared(response.Path, idx.Path)
 	}
 
 	// Process directory metadata if requested

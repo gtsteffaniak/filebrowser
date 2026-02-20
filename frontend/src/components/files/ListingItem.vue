@@ -42,6 +42,7 @@
         :path="path"
         :source="source"
         :size="size"
+        :isShared="isShared"
       />
     </div>
 
@@ -59,19 +60,20 @@
       </p>
       <p v-if="hasDuration" class="duration">{{ formattedDuration }}</p>
     </div>
-    <Icon
-      @click.stop="downloadFile"
-      v-if="quickDownloadEnabled"
-      :filename="name"
-      :hasPreview="hasPreview"
-      mimetype="file_download"
-      style="padding-right: 0.5em"
-      class="download-icon"
-      role="button"
-      aria-label="Download"
-      tabindex="0"
-      :clickable=true
-    />
+      <Icon
+        @click.stop="downloadFile"
+        v-if="quickDownloadEnabled"
+        :filename="name"
+        :hasPreview="hasPreview"
+        mimetype="file_download"
+        style="padding-right: 0.5em"
+        class="download-icon"
+        role="button"
+        aria-label="Download"
+        tabindex="0"
+        :clickable=true
+        :isShared="isShared"
+      />
   </a>
   <div
     v-else
@@ -109,6 +111,7 @@
         :path="path"
         :source="source"
         :size="size"
+        :isShared="isShared"
       />
     </div>
 
@@ -176,6 +179,10 @@ export default {
     hasPreview: Boolean,
     metadata: Object,
     hasDuration: Boolean,
+    isShared: {
+      type: Boolean,
+      default: false,
+    },
     displayFullPath: Boolean,
     updateGlobalState: {
       type: Boolean,

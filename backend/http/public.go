@@ -282,7 +282,7 @@ func publicDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		FollowSymlinks: true,
 		Path:           d.IndexPath,
 		Source:         d.share.Source,
-	}, store.Access, d.shareUser)
+	}, store.Access, d.shareUser, store.Share)
 	if err != nil {
 		return http.StatusNotFound, fmt.Errorf("resource not available")
 	}
@@ -433,7 +433,7 @@ func getShareImage(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		Metadata:       false,
 		ShowHidden:     false,
 		FollowSymlinks: true,
-	}, store.Access, shareCreatedByUser)
+	}, store.Access, shareCreatedByUser, store.Share)
 
 	if err != nil {
 		logger.Errorf("error accessing share asset: source=%v path=%v error=%v", sourceName, assetPath, err)
