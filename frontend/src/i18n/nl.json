@@ -583,8 +583,7 @@
       "realtime": "Real-time verbindingen en updates mogelijk maken",
       "create": "Bestanden aanmaken",
       "delete": "Bestanden verwijderen",
-      "download": "Bestanden downloaden",
-      "archive": "Archiefacties (maken, uitpakken)"
+      "download": "Bestanden downloaden"
     },
     "permissions-name": "Machtigingen",
     "permissionsHelp": "Gebruikersrechten bepalen welke acties de gebruiker kan uitvoeren. Toegang als beheerder geeft volledige controle om de instellingen van elke gebruiker bij te werken en te wijzigen, evenals vele systeeminstellingen.",

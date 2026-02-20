@@ -282,8 +282,7 @@
       "create": "파일 만들기",
       "delete": "파일 삭제",
       "download": "파일 다운로드",
-      "api": "수명이 긴 API 토큰 생성 및 관리",
-      "archive": "아카이브 작업(만들기, 추출)"
+      "api": "수명이 긴 API 토큰 생성 및 관리"
     },
     "permissions-name": "권한",
     "profileSettings": "프로필 설정",

@@ -323,7 +323,6 @@ type UserDefaultsPermissions struct {
 	Delete   bool  `json:"delete"`   // allow deleting files
 	Create   bool  `json:"create"`   // allow creating or uploading files
 	Download *bool `json:"download"` // allow downloading files
-	Archive  bool  `json:"archive"`  // allow creating archives
 }
 
 // UserDefaults is a type that holds the default values

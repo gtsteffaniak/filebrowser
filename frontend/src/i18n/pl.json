@@ -282,8 +282,7 @@
       "create": "Tworzenie plików",
       "delete": "Usuwanie plików",
       "download": "Pobieranie plików",
-      "api": "Tworzenie tokenów API o długiej żywotności i zarządzanie nimi",
-      "archive": "Akcje archiwizacji (tworzenie, wyodrębnianie)"
+      "api": "Tworzenie tokenów API o długiej żywotności i zarządzanie nimi"
     },
     "permissions-name": "Uprawnienia",
     "profileSettings": "Twój profil",

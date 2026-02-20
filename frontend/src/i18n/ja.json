@@ -282,8 +282,7 @@
       "create": "ファイル作成",
       "delete": "ファイルの削除",
       "download": "ファイルのダウンロード",
-      "api": "長寿命APIトークンの作成と管理",
-      "archive": "アーカイブアクション（作成、抽出）"
+      "api": "長寿命APIトークンの作成と管理"
     },
     "permissions-name": "権限",
     "profileSettings": "プロファイル設定",

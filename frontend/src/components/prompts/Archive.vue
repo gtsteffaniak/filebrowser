@@ -177,8 +177,8 @@ export default {
           dest = dest + ext;
         }
         const payload = {
-          source: this.source,
-          items: this.items.map((it) => (typeof it === "string" ? it : it.path)),
+          fromSource: this.source,
+          paths: this.items.map((it) => (typeof it === "string" ? it : it.path)),
           destination: dest,
           format: this.format,
           compression: this.compression,

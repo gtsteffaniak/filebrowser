@@ -283,8 +283,7 @@
       "create": "创建文件",
       "delete": "删除文件",
       "download": "下载文件",
-      "api": "创建和管理长效 API 标记",
-      "archive": "存档操作（创建、提取）"
+      "api": "创建和管理长效 API 标记"
     },
     "permissions-name": "权限",
     "profileSettings": "个人设置",

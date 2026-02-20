@@ -5,24 +5,24 @@ import { notify } from "@/notify";
 /**
  * Create an archive on the server (server-side only).
  * @param {Object} opts
- * @param {string} opts.source - Source name for items (files/dirs to add)
- * @param {string} [opts.toSource] - Source where to write the archive (default: source)
- * @param {string[]} opts.items - Paths to add (files/dirs; folders are walked; access-denied skipped)
+ * @param {string} opts.fromSource - Source name where paths to archive live
+ * @param {string} [opts.toSource] - Source where to write the archive (default: fromSource)
+ * @param {string[]} opts.paths - Paths to add (files/dirs; folders are walked; access-denied skipped)
  * @param {string} opts.destination - Path where to write the archive (e.g. /folder/out.zip)
  * @param {string} [opts.format] - "zip" or "tar.gz"; default from destination extension
  * @param {number} [opts.compression] - 0-9 for tar.gz; 0 = default
  * @param {boolean} [opts.deleteAfter] - Delete source files/folders after successful creation
  */
 export async function createArchive(opts) {
-  const { source, toSource, items, destination, format, compression, deleteAfter } = opts;
-  if (!source || !items?.length || !destination) {
-    throw new Error("source, items, and destination are required");
+  const { fromSource, toSource, paths, destination, format, compression, deleteAfter } = opts;
+  if (!fromSource || !paths?.length || !destination) {
+    throw new Error("fromSource, paths, and destination are required");
   }
   const body = {
-    source,
-    items,
+    fromSource,
+    paths,
     destination,
-    ...(toSource && toSource !== source && { toSource }),
+    ...(toSource && toSource !== fromSource && { toSource }),
     ...(format && { format }),
     ...(compression !== undefined && compression !== null && { compression }),
     ...(deleteAfter && { deleteAfter: true }),

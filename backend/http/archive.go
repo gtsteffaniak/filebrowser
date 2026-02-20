@@ -25,12 +25,12 @@ import (
 // POST /resources/archive — server-side only; does not return archive data.
 //
 // @Summary Create an archive on the server
-// @Description Creates a zip or tar.gz archive on the server from the given items (files and/or directories). Server-side only; no archive bytes are returned. All items must be from the same source. Folders are walked recursively; access-denied paths are silently skipped. Requires create permission.
+// @Description Creates a zip or tar.gz archive on the server from the given paths (files and/or directories). Server-side only; no archive bytes are returned. All items must be from the same source. Folders are walked recursively; access-denied paths are silently skipped. Requires create permission.
 // @Description
 // @Description **Request body parameters:**
-// @Description - **source** (string, required): Source name where the items to archive live. Example: `"default"`
-// @Description - **toSource** (string, optional): Source name where the archive file will be written. Defaults to `source` if omitted. Example: `"backups"`
-// @Description - **items** (array of strings, required): Paths of files or directories to add to the archive (relative to source). Directories are walked; access-denied entries are skipped. Example: `["/docs/file.txt", "/photos"]`
+// @Description - **fromSource** (string, required): Source name where the paths to archive live. Example: `"default"`
+// @Description - **toSource** (string, optional): Source name where the archive file will be written. Defaults to fromSource if omitted. Example: `"backups"`
+// @Description - **paths** (array of strings, required): Paths of files or directories to add to the archive (relative to fromSource). Directories are walked; access-denied entries are skipped. Example: `["/docs/file.txt", "/photos"]`
 // @Description - **destination** (string, required): Full path where the archive file will be created (on toSource). Must end with .zip or .tar.gz (or format is inferred). Example: `"/backups/my-archive.zip"`
 // @Description - **format** (string, optional): Archive format. One of: `"zip"`, `"tar.gz"`. Default inferred from destination extension. Example: `"zip"`
 // @Description - **compression** (integer, optional): Gzip compression level for tar.gz only (0–9). 0 = default. Ignored for zip. Example: `6`
@@ -38,7 +38,7 @@ import (
 // @Tags Resources
 // @Accept json
 // @Produce json
-// @Param body body archiveCreateRequest true "Request body: source, toSource (optional), items, destination, format (optional), compression (optional)"
+// @Param body body archiveCreateRequest true "Request body: fromSource, toSource (optional), paths, destination, format (optional), compression (optional)"
 // @Success 200 {object} map[string]string "Created; returns {\"path\": \"<destination path>\"}"
 // @Failure 400 {object} map[string]string "Invalid request (e.g. missing required field, invalid path)"
 // @Failure 403 {object} map[string]string "Forbidden (create permission or access denied)"
@@ -46,9 +46,6 @@ import (
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/resources/archive [post]
 func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	if !d.user.Permissions.Archive {
-		return http.StatusForbidden, fmt.Errorf("user is not allowed to create archives")
-	}
 	if d.share != nil {
 		return http.StatusForbidden, fmt.Errorf("archive create not allowed for shares")
 	}
@@ -60,8 +57,8 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid JSON body: %v", err)
 	}
-	if req.Source == "" || len(req.Items) == 0 || req.Destination == "" {
-		return http.StatusBadRequest, fmt.Errorf("source, items, and destination are required")
+	if req.FromSource == "" || len(req.Paths) == 0 || req.Destination == "" {
+		return http.StatusBadRequest, fmt.Errorf("fromSource, paths, and destination are required")
 	}
 
 	destClean, err := utils.SanitizeUserPath(req.Destination)
@@ -69,27 +66,27 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		return http.StatusBadRequest, fmt.Errorf("invalid destination path: %v", err)
 	}
 	req.Destination = destClean
-	itemsClean := make([]string, 0, len(req.Items))
-	for _, p := range req.Items {
+	pathsClean := make([]string, 0, len(req.Paths))
+	for _, p := range req.Paths {
 		var clean string
 		clean, err = utils.SanitizeUserPath(p)
 		if err != nil {
-			return http.StatusBadRequest, fmt.Errorf("invalid item path %q: %v", p, err)
+			return http.StatusBadRequest, fmt.Errorf("invalid path %q: %v", p, err)
 		}
-		itemsClean = append(itemsClean, clean)
+		pathsClean = append(pathsClean, clean)
 	}
-	req.Items = itemsClean
+	req.Paths = pathsClean
 
 	destSource := req.ToSource
 	if destSource == "" {
-		destSource = req.Source
+		destSource = req.FromSource
 	}
 
-	idx := indexing.GetIndex(req.Source)
+	idx := indexing.GetIndex(req.FromSource)
 	if idx == nil {
-		return http.StatusNotFound, fmt.Errorf("source %s not found", req.Source)
+		return http.StatusNotFound, fmt.Errorf("source %s not found", req.FromSource)
 	}
-	userScope, err := d.user.GetScopeForSourceName(req.Source)
+	userScope, err := d.user.GetScopeForSourceName(req.FromSource)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
@@ -146,8 +143,8 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	}
 
 	// Build full paths for items (same source)
-	itemPaths := make([]string, 0, len(req.Items))
-	for _, it := range req.Items {
+	itemPaths := make([]string, 0, len(req.Paths))
+	for _, it := range req.Paths {
 		full := utils.JoinPathAsUnix(userScope, it)
 		if store.Access != nil && !store.Access.Permitted(idx.Path, full, d.user.Username) {
 			continue // silently skip
@@ -155,10 +152,10 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		itemPaths = append(itemPaths, full)
 	}
 	if len(itemPaths) == 0 {
-		return http.StatusBadRequest, fmt.Errorf("no items accessible; add at least one path you have access to")
+		return http.StatusBadRequest, fmt.Errorf("no paths accessible; add at least one path you have access to")
 	}
 
-	estimatedSize, err := computeArchiveSize(req.Source, req.Items, d)
+	estimatedSize, err := computeArchiveSize(req.FromSource, req.Paths, d)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -171,9 +168,9 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 
 	var createErr error
 	if format == "zip" {
-		createErr = createZip(d, req.Source, destRealPath, itemPaths...)
+		createErr = createZip(d, req.FromSource, destRealPath, itemPaths...)
 	} else {
-		createErr = createTarGzWithLevel(d, req.Source, destRealPath, compression, itemPaths...)
+		createErr = createTarGzWithLevel(d, req.FromSource, destRealPath, compression, itemPaths...)
 	}
 	if createErr != nil {
 		return http.StatusInternalServerError, createErr
@@ -200,7 +197,7 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 			}
 		}
 		for _, item := range toDelete {
-			if err := files.DeleteFiles(req.Source, item.realPath, item.isDir); err != nil {
+			if err := files.DeleteFiles(req.FromSource, item.realPath, item.isDir); err != nil {
 				logger.Errorf("Failed to delete source after archive: %v", err)
 			}
 		}
@@ -231,9 +228,6 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/resources/unarchive [post]
 func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	if !d.user.Permissions.Archive {
-		return http.StatusForbidden, fmt.Errorf("user is not allowed to extract archives")
-	}
 	if d.share != nil {
 		return http.StatusForbidden, fmt.Errorf("unarchive not allowed for shares")
 	}
@@ -725,12 +719,12 @@ func BuildAndStreamArchive(w http.ResponseWriter, r *http.Request, d *requestCon
 
 // archiveCreateRequest is the body for POST /resources/archive (server-side create).
 type archiveCreateRequest struct {
-	// Source name where the items to archive live (required). Example: "default"
-	Source string `json:"source"`
-	// Source name where the archive file will be written (optional; default: source). Example: "backups"
+	// Source name where the paths to archive live (required). Example: "default"
+	FromSource string `json:"fromSource"`
+	// Source name where the archive file will be written (optional; default: fromSource). Example: "backups"
 	ToSource string `json:"toSource"`
 	// Paths of files or directories to add; directories are walked; access-denied entries skipped (required). Example: ["/docs/file.txt", "/photos"]
-	Items []string `json:"items"`
+	Paths []string `json:"paths"`
 	// Full path where the archive will be created; use .zip or .tar.gz extension (required). Example: "/backups/my-archive.zip"
 	Destination string `json:"destination"`
 	// Archive format: "zip" or "tar.gz" (optional; inferred from destination if omitted). Example: "zip"

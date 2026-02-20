@@ -282,8 +282,7 @@
       "create": "Dosya oluşturma",
       "delete": "Dosyaları sil",
       "download": "Dosyaları indirin",
-      "api": "Uzun ömürlü API Belirteçleri oluşturma ve yönetme",
-      "archive": "Arşiv eylemleri (oluşturma, ayıklama)"
+      "api": "Uzun ömürlü API Belirteçleri oluşturma ve yönetme"
     },
     "permissions-name": "İzinler",
     "profileSettings": "Profil ayarları",

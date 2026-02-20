@@ -282,8 +282,7 @@
       "create": "Skapa filer",
       "delete": "Radera filer",
       "download": "Ladda ner filer",
-      "api": "Skapa och hantera API-tokens med lång livslängd",
-      "archive": "Arkivåtgärder (skapa, extrahera)"
+      "api": "Skapa och hantera API-tokens med lång livslängd"
     },
     "permissions-name": "Rättigheter",
     "profileSettings": "Profil inställningar",

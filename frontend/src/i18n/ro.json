@@ -282,8 +282,7 @@
       "create": "Creați fișiere",
       "delete": "Ștergeți fișierele",
       "download": "Descărcați fișiere",
-      "api": "Crearea și gestionarea jetoanelor API cu durată lungă de viață",
-      "archive": "Acțiuni de arhivare (creare, extragere)"
+      "api": "Crearea și gestionarea jetoanelor API cu durată lungă de viață"
     },
     "permissions-name": "Permisiuni",
     "profileSettings": "Setări profil",

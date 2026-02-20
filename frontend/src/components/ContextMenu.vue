@@ -239,11 +239,13 @@ export default {
     },
     showArchive() {
       if (this.isDuplicateFinder || getters.isShare()) return false;
-      return !this.showCreate && this.permissions.archive && this.selectedCount > 0 && !this.showUnarchive;
+      if (!this.permissions.create) return false;
+      return !this.showCreate && this.selectedCount > 0 && !this.showUnarchive;
     },
     showUnarchive() {
       if (this.isDuplicateFinder || getters.isShare()) return false;
-      if (this.selectedCount !== 1 || !this.permissions.archive) return false;
+      if (!this.permissions.create) return false;
+      if (this.selectedCount !== 1) return false;
       const item = getters.getFirstSelected();
       return item && isArchivePath(item.path || item.from || item.name);
     },

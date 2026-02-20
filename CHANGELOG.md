@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file. For commit 
  **New Features**:
  - Archive/Unarchive actions in UI
    - new api to archive/unarchive files on the server
-   - requires (new) `archive` and `create` user permissions
+   - requires `create` user permissions
    - archiving actions respect `server.maxArchiveSize`
  - Added share icon to items that are shared (requires share permission to see)
  - LDAP login support (#591)

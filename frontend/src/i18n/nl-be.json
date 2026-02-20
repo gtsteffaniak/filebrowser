@@ -282,8 +282,7 @@
       "create": "Bestanden maken",
       "delete": "Bestanden verwijderen",
       "download": "Bestanden downloaden",
-      "api": "Langlevende API-tokens maken en beheren",
-      "archive": "Archiefacties (maken, uitpakken)"
+      "api": "Langlevende API-tokens maken en beheren"
     },
     "permissions-name": "Permissies",
     "profileSettings": "Profielinstellingen",

@@ -284,8 +284,7 @@
       "create": "Fájlok létrehozása",
       "delete": "Fájlok törlése",
       "download": "Fájlok letöltése",
-      "api": "Hosszú élettartamú API tokenek létrehozása és kezelése",
-      "archive": "Archiválási műveletek (létrehozás, kivonatolás)"
+      "api": "Hosszú élettartamú API tokenek létrehozása és kezelése"
     },
     "permissions-name": "Jogosultságok",
     "profileSettings": "Profilbeállítások",

@@ -368,7 +368,7 @@
     "unarchive": "Extract archive",
     "unarchiveMessage": "Choose where to extract the archive.",
     "unarchiveDestination": "Extract to:",
-    "unarchiveDeleteAfter": "Delete archive after extraction",
+    "unarchiveDeleteAfter": "Delete archive after successful decompression",
     "unarchiveSuccess": "Archive extracted successfully!",
     "dragAndDrop": "Drag and drop files here",
     "error": "Something went wrong",
@@ -582,7 +582,6 @@
       "api": "Create and manage long-live API Tokens",
       "realtime": "Enable real-time connections and updates",
       "create": "Create files",
-      "archive": "Archive actions (create, extract)",
       "delete": "Delete files",
       "download": "Download files"
     },

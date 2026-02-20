@@ -282,8 +282,7 @@
       "create": "Vytvorenie súborov",
       "delete": "Odstránenie súborov",
       "download": "Stiahnite si súbory",
-      "api": "Vytváranie a správa dlhodobých tokenov API",
-      "archive": "Archivačné akcie (vytvorenie, extrakcia)"
+      "api": "Vytváranie a správa dlhodobých tokenov API"
     },
     "permissions-name": "Práva",
     "profileSettings": "Nastavenia profilu",

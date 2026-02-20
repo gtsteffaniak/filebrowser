@@ -282,8 +282,7 @@
       "create": "Criar ficheiros",
       "delete": "Eliminar ficheiros",
       "download": "Descarregar ficheiros",
-      "api": "Criar e gerir Tokens API de longa duração",
-      "archive": "Acções de arquivo (criar, extrair)"
+      "api": "Criar e gerir Tokens API de longa duração"
     },
     "permissions-name": "Permissões",
     "profileSettings": "Configurações do utilizador",

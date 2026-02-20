@@ -283,8 +283,7 @@
       "create": "Créer des fichiers",
       "delete": "Supprimer des fichiers",
       "download": "Télécharger les fichiers",
-      "api": "Créer et gérer des jetons API à longue durée de vie",
-      "archive": "Actions d'archivage (création, extraction)"
+      "api": "Créer et gérer des jetons API à longue durée de vie"
     },
     "permissions-name": "Permissions",
     "profileSettings": "Paramètres du profil",
