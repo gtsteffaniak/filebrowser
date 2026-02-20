@@ -215,7 +215,7 @@ export default {
     },
     resetItems() {
       mutations.closeSidebar();
-      mutations.closeTopHover();
+      mutations.closeHovers();
       mutations.setSearch(false);
     },
   },

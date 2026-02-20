@@ -216,7 +216,19 @@
     "moveFailed": "فشلت عملية النقل",
     "operationFailed": "فشلت العملية",
     "partialSuccess": "فشلت بعض العمليات: {succeeded} نجحت ، {failed} فشلت ",
-    "renameFailed": "فشل في إعادة تسمية العنصر"
+    "renameFailed": "فشل في إعادة تسمية العنصر",
+    "archive": "إنشاء أرشيف",
+    "archiveMessage": "إنشاء أرشيف على الخادم من العناصر المحددة.",
+    "archiveDestination": "اختر المجلد الوجهة (ثم أدخل اسم الأرشيف أدناه):",
+    "archiveName": "اسم الأرشيف (archive.zip.zip الافتراضي):",
+    "archiveCompression": "مستوى الضغط (0-9):",
+    "archiveDeleteAfter": "حذف ملفات المصدر بعد إنشائها بنجاح",
+    "archiveSuccess": "تم إنشاء الأرشيف بنجاح!",
+    "unarchive": "أرشيف المقتطفات",
+    "unarchiveMessage": "اختر مكان استخراج الأرشيف.",
+    "unarchiveDestination": "مقتطف إلى:",
+    "unarchiveDeleteAfter": "حذف الأرشيف بعد الاستخراج",
+    "unarchiveSuccess": "تم استخراج الأرشيف بنجاح!"
   },
   "search": {
     "smallerThan": "أصغر من:",
@@ -626,7 +638,8 @@
     "play": "اللعب{suffix}",
     "stop": "توقف{suffix}",
     "reset": "إعادة تعيين{suffix}",
-    "space": "الفضاء{suffix}"
+    "space": "الفضاء{suffix}",
+    "format": "التنسيق{suffix}"
   },
   "access": {
     "rules": "قواعد الوصول",

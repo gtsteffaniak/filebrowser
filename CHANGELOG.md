@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file. For commit 
 ## v1.3.0-beta
 
  **New Features**:
+ - Archive/Unarchive actions in UI
+   - new api to archive/unarchive files on the server
+   - requires `create` user permissions
+   - archiving actions respect `server.maxArchiveSize`
  - Added share icon to items that are shared (requires share permission to see)
  - LDAP login support (#591)
  - FileWatcher also supports watching directories
@@ -26,6 +30,7 @@ All notable changes to this project will be documented in this file. For commit 
  **Notes**:
  - Docker images default to `filebrowser` user instead of root
  - Bulk delete api moved locations and method. Now use DELETE method against `/api/resources/bulk` endpoint. See swagger page for usage. (#1984)
+ #- consolidated swagger categories
 
 ## v1.2.5-beta
 

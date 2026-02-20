@@ -216,7 +216,19 @@
     "moveFailed": "Verplaatsen mislukt",
     "operationFailed": "Operatie mislukt",
     "partialSuccess": "Sommige bewerkingen zijn mislukt: {succeeded} gelukt, {failed} mislukt.",
-    "renameFailed": "Hernoemen van item mislukt"
+    "renameFailed": "Hernoemen van item mislukt",
+    "archive": "Archief maken",
+    "archiveMessage": "Maak een archief op de server van de geselecteerde items.",
+    "archiveDestination": "Kies een bestemmingsmap (voer hieronder de naam van het archief in):",
+    "archiveName": "Archiefnaam (standaard archive.zip):",
+    "archiveCompression": "Compressieniveau (0-9):",
+    "archiveDeleteAfter": "Bronbestanden verwijderen na succesvolle creatie",
+    "archiveSuccess": "Archief succesvol aangemaakt!",
+    "unarchive": "Archief uitpakken",
+    "unarchiveMessage": "Kies waar het archief moet worden uitgepakt.",
+    "unarchiveDestination": "Uittreksel naar:",
+    "unarchiveDeleteAfter": "Archief verwijderen na uitpakken",
+    "unarchiveSuccess": "Archief met succes uitgepakt!"
   },
   "search": {
     "smallerThan": "Kleiner dan:",
@@ -706,7 +718,8 @@
     "play": "Speel{suffix}",
     "stop": "Stop{suffix}",
     "reset": "Reset{suffix}",
-    "space": "Ruimte{suffix}"
+    "space": "Ruimte{suffix}",
+    "format": "Formaat{suffix}"
   },
   "access": {
     "rules": "Toegangsregels",

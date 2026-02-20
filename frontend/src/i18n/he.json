@@ -216,7 +216,19 @@
     "moveFailed": "העברה נכשלה",
     "operationFailed": "הפעולה נכשלה",
     "partialSuccess": "כמה פעולות נכשלו: {succeeded} הצליחו, {failed} נכשלו",
-    "renameFailed": "לא ניתן לשנות את שם הפריט"
+    "renameFailed": "לא ניתן לשנות את שם הפריט",
+    "archive": "צור ארכיון",
+    "archiveMessage": "צור ארכיון בשרת מהפריטים שנבחרו.",
+    "archiveDestination": "בחר תיקיית יעד (ואז הזן את שם הארכיון למטה):",
+    "archiveName": "שם הארכיון (ברירת מחדל: archive.zip):",
+    "archiveCompression": "רמת דחיסה (0–9):",
+    "archiveDeleteAfter": "מחק קבצי מקור לאחר יצירה מוצלחת",
+    "archiveSuccess": "הארכיון נוצר בהצלחה!",
+    "unarchive": "חלץ ארכיון",
+    "unarchiveMessage": "בחר היכן לחלץ את הארכיון.",
+    "unarchiveDestination": "חלץ אל:",
+    "unarchiveDeleteAfter": "מחק את הארכיון לאחר החילוץ",
+    "unarchiveSuccess": "הארכיון חולץ בהצלחה!"
   },
   "search": {
     "smallerThan": "קטן מ:",
@@ -626,7 +638,8 @@
     "play": "הפעל{suffix}",
     "stop": "עצור{suffix}",
     "reset": "איפוס{suffix}",
-    "space": "חלל{suffix}"
+    "space": "חלל{suffix}",
+    "format": "פורמט{suffix}"
   },
   "access": {
     "rules": "כללי גישה",

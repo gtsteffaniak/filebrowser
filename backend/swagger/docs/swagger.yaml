@@ -225,6 +225,39 @@ definitions:
           "gallery"'
         type: string
     type: object
+  http.archiveCreateRequest:
+    properties:
+      compression:
+        description: 'Gzip compression level for tar.gz only, 0-9; 0 = default; ignored
+          for zip (optional). Example: 6'
+        type: integer
+      deleteAfter:
+        description: 'If true, delete the source files/directories after successful
+          archive creation (optional; requires delete permission). Example: true'
+        type: boolean
+      destination:
+        description: 'Full path where the archive will be created; use .zip or .tar.gz
+          extension (required). Example: "/backups/my-archive.zip"'
+        type: string
+      format:
+        description: 'Archive format: "zip" or "tar.gz" (optional; inferred from destination
+          if omitted). Example: "zip"'
+        type: string
+      items:
+        description: 'Paths of files or directories to add; directories are walked;
+          access-denied entries skipped (required). Example: ["/docs/file.txt", "/photos"]'
+        items:
+          type: string
+        type: array
+      source:
+        description: 'Source name where the items to archive live (required). Example:
+          "default"'
+        type: string
+      toSource:
+        description: 'Source name where the archive file will be written (optional;
+          default: source). Example: "backups"'
+        type: string
+    type: object
   http.duplicateGroup:
     properties:
       count:
@@ -274,6 +307,29 @@ definitions:
         allOf:
         - $ref: '#/definitions/http.fileWatchMetadata'
         description: File metadata for non-text files
+    type: object
+  http.unarchiveRequest:
+    properties:
+      deleteAfter:
+        description: 'If true, delete the archive file after successful extraction
+          (optional; default: false). Example: true'
+        type: boolean
+      destination:
+        description: 'Directory path on toSource to extract into (required). Example:
+          "/projects/imported"'
+        type: string
+      fromSource:
+        description: 'Source name where the archive file lives (required). Example:
+          "default"'
+        type: string
+      path:
+        description: 'Path to the archive file on fromSource; .zip, .tar.gz, or .tgz
+          (required). Example: "/downloads/data.zip"'
+        type: string
+      toSource:
+        description: 'Source name where contents will be extracted (optional; default:
+          fromSource). Example: "restored"'
+        type: string
     type: object
   indexing.IndexStatus:
     enum:
@@ -1174,6 +1230,9 @@ definitions:
       api:
         description: allow api access
         type: boolean
+      archive:
+        description: allow creating archives
+        type: boolean
       create:
         description: allow creating or uploading files
         type: boolean
@@ -1589,6 +1648,9 @@ definitions:
         type: boolean
       api:
         description: allow api access
+        type: boolean
+      archive:
+        description: allow creating archives
         type: boolean
       create:
         description: allow creating or uploading files
@@ -3012,6 +3074,65 @@ paths:
       summary: Update a file resource
       tags:
       - Resources
+  /api/resources/archive:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Creates a zip or tar.gz archive on the server from the given items (files and/or directories). Server-side only; no archive bytes are returned. All items must be from the same source. Folders are walked recursively; access-denied paths are silently skipped. Requires create permission.
+
+        **Request body parameters:**
+        - **source** (string, required): Source name where the items to archive live. Example: `"default"`
+        - **toSource** (string, optional): Source name where the archive file will be written. Defaults to `source` if omitted. Example: `"backups"`
+        - **items** (array of strings, required): Paths of files or directories to add to the archive (relative to source). Directories are walked; access-denied entries are skipped. Example: `["/docs/file.txt", "/photos"]`
+        - **destination** (string, required): Full path where the archive file will be created (on toSource). Must end with .zip or .tar.gz (or format is inferred). Example: `"/backups/my-archive.zip"`
+        - **format** (string, optional): Archive format. One of: `"zip"`, `"tar.gz"`. Default inferred from destination extension. Example: `"zip"`
+        - **compression** (integer, optional): Gzip compression level for tar.gz only (0–9). 0 = default. Ignored for zip. Example: `6`
+        - **deleteAfter** (boolean, optional): If true, delete source files/directories after successful creation. Requires delete permission. Example: `true`
+      parameters:
+      - description: 'Request body: source, toSource (optional), items, destination,
+          format (optional), compression (optional)'
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/http.archiveCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'Created; returns {\"path\": \"<destination path>\"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid request (e.g. missing required field, invalid path)
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden (create permission or access denied)
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Source not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create an archive on the server
+      tags:
+      - Resources
   /api/resources/bulk:
     delete:
       consumes:
@@ -3057,6 +3178,64 @@ paths:
               type: string
             type: object
       summary: Bulk delete resources
+      tags:
+      - Resources
+  /api/resources/unarchive:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Extracts a zip or tar.gz archive on the server into the given destination directory. Server-side only; no extracted bytes are returned. Supports extracting to a different source via toSource. Requires create permission.
+
+        **Request body parameters:**
+        - **fromSource** (string, required): Source name where the archive file lives. Example: `"default"`
+        - **toSource** (string, optional): Source name where contents will be extracted. Defaults to fromSource if omitted. Example: `"restored"`
+        - **path** (string, required): Path to the archive file (on fromSource). Must be .zip, .tar.gz, or .tgz. Example: `"/downloads/data.zip"`
+        - **destination** (string, required): Directory path (on toSource) to extract into. Example: `"/projects/imported"`
+        - **deleteAfter** (boolean, optional): If true, delete the archive file after successful extraction. Default: false. Example: `true`
+      parameters:
+      - description: 'Request body: fromSource, toSource (optional), path, destination,
+          deleteAfter (optional)'
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/http.unarchiveRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'Extracted; returns {\"path\": \"<destination path>\", \"source\":
+            \"<toSource>\"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid request (e.g. missing required field, unsupported format)
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden (create permission or access denied)
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Source or archive file not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Extract an archive on the server
       tags:
       - Resources
   /api/search:

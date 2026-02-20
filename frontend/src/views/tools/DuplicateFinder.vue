@@ -22,7 +22,7 @@
       </div>
     </div>
 
-    <div class="card duplicate-finder-results">
+    <div class="card duplicate-finder-results padding-normal">
       <div v-if="error" class="error-message">
         {{ error }}
       </div>

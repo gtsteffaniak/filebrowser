@@ -216,7 +216,19 @@
     "moveFailed": "Verschieben fehlgeschlagen",
     "operationFailed": "Operation fehlgeschlagen",
     "partialSuccess": "Einige Operationen sind fehlgeschlagen: {succeeded} erfolgreich, {failed} fehlgeschlagen",
-    "renameFailed": "Element kann nicht umbenannt werden"
+    "renameFailed": "Element kann nicht umbenannt werden",
+    "archive": "Archiv erstellen",
+    "archiveMessage": "Erstellen Sie aus den ausgewählten Objekten ein Archiv auf dem Server.",
+    "archiveDestination": "Wählen Sie den Zielordner (geben Sie dann unten den Archivnamen ein):",
+    "archiveName": "Name des Archivs (standardmäßig archive.zip):",
+    "archiveCompression": "Komprimierungsstufe (0-9):",
+    "archiveDeleteAfter": "Quelldateien nach erfolgreicher Erstellung löschen",
+    "archiveSuccess": "Archiv erfolgreich erstellt!",
+    "unarchive": "Archiv extrahieren",
+    "unarchiveMessage": "Wählen Sie, wohin das Archiv entpackt werden soll.",
+    "unarchiveDestination": "Auszug zu:",
+    "unarchiveDeleteAfter": "Archiv nach Extraktion löschen",
+    "unarchiveSuccess": "Archiv erfolgreich entpackt!"
   },
   "search": {
     "smallerThan": "Kleiner als:",
@@ -626,7 +638,8 @@
     "play": "Spielen{suffix}",
     "stop": "Stopp{suffix}",
     "reset": "Zurücksetzen{suffix}",
-    "space": "Weltraum{suffix}"
+    "space": "Weltraum{suffix}",
+    "format": "Format{suffix}"
   },
   "access": {
     "rules": "Zugangsregeln",

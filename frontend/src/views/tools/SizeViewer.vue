@@ -27,7 +27,7 @@
       </div>
     </div>
 
-    <div class="card size-viewer-results">
+    <div class="card size-viewer-results padding-normal">
       <div v-if="error" class="error-message">
         {{ error }}
       </div>

@@ -216,7 +216,19 @@
     "moveFailed": "移動に失敗しました",
     "operationFailed": "操作失敗",
     "partialSuccess": "{succeeded} は成功、{failed} は失敗。",
-    "renameFailed": "アイテム名の変更に失敗しました"
+    "renameFailed": "アイテム名の変更に失敗しました",
+    "archive": "アーカイブの作成",
+    "archiveMessage": "選択したアイテムからサーバー上にアーカイブを作成します。",
+    "archiveDestination": "保存先フォルダを選択します：",
+    "archiveName": "アーカイブ名（デフォルトはarchive.zip）：",
+    "archiveCompression": "圧縮レベル（0-9）：",
+    "archiveDeleteAfter": "作成に成功したらソースファイルを削除する",
+    "archiveSuccess": "アーカイブは正常に作成されました！",
+    "unarchive": "アーカイブの展開",
+    "unarchiveMessage": "アーカイブを展開する場所を選択します。",
+    "unarchiveDestination": "に抜粋する：",
+    "unarchiveDeleteAfter": "抽出後にアーカイブを削除する",
+    "unarchiveSuccess": "アーカイブは正常に抽出されました！"
   },
   "search": {
     "smallerThan": "より小さい：",
@@ -626,7 +638,8 @@
     "play": "プレー{suffix}",
     "stop": "ストップ{suffix}",
     "reset": "リセット{suffix}",
-    "space": "スペース{suffix}"
+    "space": "スペース{suffix}",
+    "format": "フォーマット{suffix}"
   },
   "access": {
     "rules": "アクセスルール",
