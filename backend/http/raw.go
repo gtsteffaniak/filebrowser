@@ -1,11 +1,7 @@
 package http
 
 import (
-	"archive/tar"
-	"archive/zip"
-	"compress/gzip"
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -14,8 +10,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
-	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
@@ -126,159 +120,6 @@ func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int,
 	return rawFilesHandler(w, r, d, source, fileList)
 }
 
-func addFile(source string, path string, d *requestContext, tarWriter *tar.Writer, zipWriter *zip.Writer, flatten bool) error {
-	// Path handling is now done inside FileInfoFaster
-	// For shares, path comes from share context
-	// For regular users, FileInfoFaster will apply user scope
-
-	idx := indexing.GetIndex(source)
-	if idx == nil {
-		return fmt.Errorf("source %s is not available", source)
-	}
-
-	// Check access control directly for each file and silently skip if access is denied
-	if d.share == nil && store.Access != nil {
-		if !store.Access.Permitted(idx.Path, path, d.user.Username) {
-			return nil // Silently skip this file/folder
-		}
-	}
-
-	// Verify file exists
-	_, err := files.FileInfoFaster(utils.FileOptions{
-		Path:           path,
-		Source:         source,
-		Expand:         false,
-		FollowSymlinks: true,
-	}, store.Access, d.user, store.Share)
-	if err != nil {
-		return err
-	}
-	realPath, _, _ := idx.GetRealPath(path)
-	info, err := os.Stat(realPath)
-	if err != nil {
-		return err
-	}
-
-	// Get the base name of the top-level folder or file
-	baseName := filepath.Base(realPath)
-
-	if info.IsDir() {
-		// Walk through directory contents
-		return filepath.Walk(realPath, func(filePath string, fileInfo os.FileInfo, err error) error {
-			if err != nil {
-				return err
-			}
-
-			// Calculate the relative path
-			relPath, err := filepath.Rel(realPath, filePath) // Use realPath directly
-			if err != nil {
-				return err
-			}
-
-			// Normalize for tar: convert \ to /
-			relPath = filepath.ToSlash(relPath)
-
-			// Skip adding `.` (current directory)
-			if relPath == "." {
-				return nil
-			}
-
-			// Check access control for each file/folder during walk
-			if d.share == nil {
-				indexRelPath := utils.JoinPathAsUnix(path, relPath)
-				indexRelPath = filepath.ToSlash(indexRelPath) // Normalize separators
-				if !store.Access.Permitted(idx.Path, indexRelPath, d.user.Username) {
-					// Skip this file/folder silently
-					if fileInfo.IsDir() {
-						// Skip the entire directory by returning filepath.SkipDir
-						return filepath.SkipDir
-					}
-					return nil
-				}
-			}
-
-			// Prepend base folder name unless flatten is true
-			if !flatten {
-				relPath = filepath.Join(baseName, relPath)
-				relPath = filepath.ToSlash(relPath) // Ensure normalized separators
-			}
-
-			if fileInfo.IsDir() {
-				if tarWriter != nil {
-					header := &tar.Header{
-						Name:     relPath + "/",
-						Mode:     int64(fileutils.PermDir),
-						Typeflag: tar.TypeDir,
-						ModTime:  fileInfo.ModTime(),
-					}
-					return tarWriter.WriteHeader(header)
-				}
-				if zipWriter != nil {
-					_, err := zipWriter.Create(relPath + "/")
-					return err
-				}
-				return nil
-			}
-			return addSingleFile(filePath, relPath, zipWriter, tarWriter)
-		})
-	} else {
-		// For a single file, use the base name as the archive path
-		return addSingleFile(realPath, baseName, zipWriter, tarWriter)
-	}
-}
-
-func addSingleFile(realPath, archivePath string, zipWriter *zip.Writer, tarWriter *tar.Writer) error {
-	file, err := os.Open(realPath)
-	if err != nil {
-		// If we get "is a directory" error, this is likely a symlink to a directory
-		// that wasn't properly detected. Skip it gracefully.
-		if strings.Contains(err.Error(), "is a directory") {
-			return nil
-		}
-		return err
-	}
-	defer file.Close()
-
-	info, err := file.Stat()
-	if err != nil {
-		return err
-	}
-
-	// Double-check if this is actually a directory (in case of symlinks)
-	if info.IsDir() {
-		return nil
-	}
-
-	if tarWriter != nil {
-		header, err := tar.FileInfoHeader(info, "")
-		if err != nil {
-			return err
-		}
-		header.Name = filepath.ToSlash(archivePath)
-		if err = tarWriter.WriteHeader(header); err != nil {
-			return err
-		}
-		_, err = io.Copy(tarWriter, file)
-		return err
-	}
-
-	if zipWriter != nil {
-		header, err := zip.FileInfoHeader(info)
-		if err != nil {
-			return err
-		}
-		header.Name = archivePath
-		writer, err := zipWriter.CreateHeader(header)
-		if err != nil {
-			return err
-		}
-		_, err = io.Copy(writer, file)
-		return err
-	}
-
-	return nil
-}
-
 func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, source string, fileList []string) (int, error) {
 	if !d.user.Permissions.Download && d.share == nil {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to download")
@@ -344,7 +185,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		}
 		return http.StatusInternalServerError, err
 	}
-	// Compute estimated download size
+	// Compute estimated download size (for single-file branch and archive size check)
 	estimatedSize, err := computeArchiveSize(source, fileList, d)
 	if err != nil {
 		return http.StatusInternalServerError, err
@@ -428,190 +269,8 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		return 200, nil
 	}
 
-	if config.Server.MaxArchiveSizeGB > 0 {
-		maxSize := config.Server.MaxArchiveSizeGB * 1024 * 1024 * 1024
-		if estimatedSize > maxSize {
-			return http.StatusRequestEntityTooLarge, fmt.Errorf("pre-archive combined size of files exceeds maximum limit of %d GB", config.Server.MaxArchiveSizeGB)
-		}
-	}
-	// ** Archive (ZIP/TAR.GZ) handling **
-	algo := r.URL.Query().Get("algo")
-	var extension string
-	switch algo {
-	case "zip", "true", "":
-		extension = ".zip"
-	case "tar.gz":
-		extension = ".tar.gz"
-	default:
-		return http.StatusInternalServerError, errors.New("format not implemented")
-	}
-
-	baseDirName := filepath.Base(filepath.Dir(firstFilePath))
-	if baseDirName == "" || baseDirName == "/" {
-		baseDirName = "download"
-	}
-	if len(fileList) == 1 && isDir {
-		baseDirName = filepath.Base(realPath)
-	}
-	// Store original filename before any encoding
-	originalFileName := baseDirName + extension
-
-	archiveData := filepath.Join(config.Server.CacheDir, utils.InsecureRandomIdentifier(10))
-	if extension == ".zip" {
-		archiveData = archiveData + ".zip"
-		err = createZip(d, source, archiveData, fileList...)
-	} else {
-		archiveData = archiveData + ".tar.gz"
-		err = createTarGz(d, source, archiveData, fileList...)
-	}
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-
-	// stream archive to response
-	fd, err := os.Open(archiveData)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-	defer fd.Close()
-
-	// Get file size
-	fileInfo, err := fd.Stat()
-	if err != nil {
-		os.Remove(archiveData) // Remove the file if stat fails
-		return http.StatusInternalServerError, err
-	}
-
-	sizeInMB := fileInfo.Size() / 1024 / 1024
-	if sizeInMB > 500 {
-		logger.Debugf("User %v is downloading large (%d MB) file: %v", d.user.Username, sizeInMB, originalFileName)
-	}
-
-	// Set headers AFTER computing actual archive size
-	// Use the same setContentDisposition logic for archives
-	setContentDisposition(w, r, originalFileName)
-	w.Header().Set("Content-Length", fmt.Sprintf("%d", fileInfo.Size()))
-	w.Header().Set("Content-Type", "application/octet-stream")
-
-	// Stream the file
-	var reader io.Reader = fd
-	if d.share != nil && d.share.MaxBandwidth > 0 {
-		// convert KB/s to B/s
-		limit := rate.Limit(d.share.MaxBandwidth * 1024)
-		// burst size can be the same as limit
-		burst := d.share.MaxBandwidth * 1024
-		reader = newThrottledReadSeeker(fd, limit, burst, r.Context())
-	}
-	_, err = io.Copy(w, reader)
-	os.Remove(archiveData) // Remove the file after streaming
-	if err != nil {
-		logger.Errorf("Failed to copy archive data to response: %v", err)
-		return http.StatusInternalServerError, err
-	}
-
-	return 0, nil
-}
-
-func computeArchiveSize(source string, fileList []string, d *requestContext) (int64, error) {
-	var estimatedSize int64
-	idx := indexing.GetIndex(source)
-	if idx == nil {
-		return 0, fmt.Errorf("source %s is not available", source)
-	}
-
-	var userScope string
-	var err error
-	if d.share == nil {
-		userScope, err = d.user.GetScopeForSourceName(source)
-		if err != nil {
-			return 0, fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
-		}
-	}
-
-	for _, path := range fileList {
-		var fullPath string
-		if d.share == nil {
-			fullPath = utils.JoinPathAsUnix(userScope, path)
-			// Check access control for each file in the archive
-			// Silently skip if access is denied (as if the file doesn't exist)
-			if store.Access != nil && !store.Access.Permitted(idx.Path, fullPath, d.user.Username) {
-				continue // Skip this file and continue with the next one
-			}
-		} else {
-			fullPath = path
-		}
-
-		// For shares, the path is already correctly resolved by publicRawHandler
-		realPath, isDir, err := idx.GetRealPath(fullPath)
-		if err != nil {
-			return http.StatusInternalServerError, err
-		}
-		indexPath := idx.MakeIndexPath(realPath, isDir)
-		info, ok := idx.GetReducedMetadata(indexPath, isDir)
-		if !ok {
-			info, err = idx.GetFsInfo(indexPath, false, true)
-			if err != nil {
-				return 0, fmt.Errorf("failed to get file info for %s : %v", path, err)
-			}
-		}
-		estimatedSize += info.Size
-	}
-	return estimatedSize, nil
-}
-
-func createZip(d *requestContext, source string, tmpDirPath string, filenames ...string) error {
-	file, err := os.Create(tmpDirPath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	zipWriter := zip.NewWriter(file)
-
-	for _, fname := range filenames {
-		err := addFile(source, fname, d, nil, zipWriter, false)
-		if err != nil {
-			// Access control failures return nil, so any error here is a real error
-			logger.Errorf("Failed to add %s to ZIP: %v", fname, err)
-			return err
-		}
-	}
-
-	// Close the ZIP writer and check for errors
-	if err := zipWriter.Close(); err != nil {
-		return fmt.Errorf("failed to finalize ZIP archive: %w", err)
-	}
-
-	return nil
-}
-
-func createTarGz(d *requestContext, source string, tmpDirPath string, filenames ...string) error {
-	file, err := os.Create(tmpDirPath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	gzWriter := gzip.NewWriter(file)
-	tarWriter := tar.NewWriter(gzWriter)
-
-	for _, fname := range filenames {
-		err := addFile(source, fname, d, tarWriter, nil, false)
-		if err != nil {
-			logger.Errorf("Failed to add %s to TAR.GZ: %v", fname, err)
-			return err
-		}
-	}
-
-	// Close writers in reverse order and check for errors
-	if err := tarWriter.Close(); err != nil {
-		return fmt.Errorf("failed to finalize TAR archive: %w", err)
-	}
-	if err := gzWriter.Close(); err != nil {
-		return fmt.Errorf("failed to finalize GZIP compression: %w", err)
-	}
-
-	return nil
+	// ** Archive (ZIP/TAR.GZ) handling ** — delegate to archive package
+	return BuildAndStreamArchive(w, r, d, source, fileList)
 }
 
 // isOnlyOfficeCompatibleFile checks if a file extension is supported by OnlyOffice

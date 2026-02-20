@@ -172,6 +172,7 @@ userDefaults:
     delete: false                         # allow deleting files
     create: false                         # allow creating or uploading files
     download: true                        # allow downloading files
+    archive: false                        # allow creating archives
   loginMethod: "password"                 # login method to use: eg. password, proxy, oidc
   disableUpdateNotifications: false       # disable update notifications banner for admin users
   deleteWithoutConfirming: false          # delete files without confirmation

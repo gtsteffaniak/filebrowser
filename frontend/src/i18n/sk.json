@@ -216,7 +216,19 @@
     "moveFailed": "Presun zlyhal",
     "operationFailed": "Operácia zlyhala",
     "partialSuccess": "Niektoré operácie zlyhali: {succeeded} sa podarilo, {failed} sa nepodarilo",
-    "renameFailed": "Nepodarilo sa premenovať položku"
+    "renameFailed": "Nepodarilo sa premenovať položku",
+    "archive": "Vytvorenie archívu",
+    "archiveMessage": "Vytvorenie archívu na serveri z vybraných položiek.",
+    "archiveDestination": "Vyberte cieľový priečinok (potom zadajte názov archívu nižšie):",
+    "archiveName": "Názov archívu (štandardne archive.zip):",
+    "archiveCompression": "Úroveň kompresie (0-9):",
+    "archiveDeleteAfter": "Odstránenie zdrojových súborov po úspešnom vytvorení",
+    "archiveSuccess": "Archív bol úspešne vytvorený!",
+    "unarchive": "Výpis archívu",
+    "unarchiveMessage": "Vyberte, kam sa má archív extrahovať.",
+    "unarchiveDestination": "Výpis na:",
+    "unarchiveDeleteAfter": "Odstránenie archívu po extrakcii",
+    "unarchiveSuccess": "Archív úspešne extrahovaný!"
   },
   "search": {
     "smallerThan": "Menšie ako:",
@@ -626,7 +638,8 @@
     "play": "Prehrať{suffix}",
     "stop": "Zastavte{suffix}",
     "reset": "Obnovenie{suffix}",
-    "space": "Priestor{suffix}"
+    "space": "Priestor{suffix}",
+    "format": "Formát{suffix}"
   },
   "access": {
     "rules": "Pravidlá prístupu",

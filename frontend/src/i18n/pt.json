@@ -216,7 +216,19 @@
     "moveFailed": "Falha ao mover",
     "operationFailed": "A operação falhou",
     "partialSuccess": "Algumas operações falharam: {succeeded} foi bem sucedido, {failed} falhou",
-    "renameFailed": "Falha ao renomear o item"
+    "renameFailed": "Falha ao renomear o item",
+    "archive": "Criar arquivo",
+    "archiveMessage": "Criar um arquivo no servidor a partir dos itens selecionados.",
+    "archiveDestination": "Escolha a pasta de destino (depois introduza o nome do arquivo abaixo):",
+    "archiveName": "Nome do ficheiro (por defeito archive.zip):",
+    "archiveCompression": "Nível de compressão (0-9):",
+    "archiveDeleteAfter": "Eliminar ficheiros de origem após a criação bem sucedida",
+    "archiveSuccess": "Arquivo criado com sucesso!",
+    "unarchive": "Extrair arquivo",
+    "unarchiveMessage": "Escolha onde extrair o arquivo.",
+    "unarchiveDestination": "Extrair para:",
+    "unarchiveDeleteAfter": "Eliminar o arquivo após a extração",
+    "unarchiveSuccess": "Arquivo extraído com sucesso!"
   },
   "search": {
     "smallerThan": "Mais pequeno do que:",
@@ -706,7 +718,8 @@
     "play": "Jogar{suffix}",
     "stop": "Parar{suffix}",
     "reset": "Reiniciar{suffix}",
-    "space": "Espaço{suffix}"
+    "space": "Espaço{suffix}",
+    "format": "Formato{suffix}"
   },
   "access": {
     "rules": "Regras de acesso",

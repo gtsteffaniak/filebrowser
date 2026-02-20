@@ -558,6 +558,7 @@ export const getters = {
         admin: false,
         api: false,
         realtime: false,
+        archive: false,
       };
     }
     return {
@@ -568,6 +569,7 @@ export const getters = {
       download: state.user?.permissions?.download,
       admin: state.user?.permissions?.admin,
       api: state.user?.permissions?.api,
+      archive: state.user?.permissions?.archive,
     };
   },
   previewPerms: () => {

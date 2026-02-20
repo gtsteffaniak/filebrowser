@@ -123,7 +123,8 @@
     "play": "Speel{suffix}",
     "stop": "Stop{suffix}",
     "reset": "Reset{suffix}",
-    "space": "Ruimte{suffix}"
+    "space": "Ruimte{suffix}",
+    "format": "Formaat{suffix}"
   },
   "buttons": {
     "generateNewOtp": "Herstellen en nieuwe twee-factorcode genereren",
@@ -420,7 +421,19 @@
     "halloweenBody": "Het Halloween-thema is toegepast. U kunt het uitschakelen als u dit niet prettig vindt, of permanent uitschakelen in de profielinstellingen door een ander thema te selecteren.",
     "moveFailed": "Verplaatsen mislukt",
     "operationFailed": "Bewerking is mislukt",
-    "partialSuccess": "Enkele bewerkingen zijn mislukt: {succeeded} gelukt, {failed} mislukt."
+    "partialSuccess": "Enkele bewerkingen zijn mislukt: {succeeded} gelukt, {failed} mislukt.",
+    "archive": "Archief maken",
+    "archiveMessage": "Maak een archief op de server van de geselecteerde items.",
+    "archiveDestination": "Kies een bestemmingsmap (voer hieronder de naam van het archief in):",
+    "archiveName": "Archiefnaam (standaard archive.zip):",
+    "archiveCompression": "Compressieniveau (0-9):",
+    "archiveDeleteAfter": "Bronbestanden verwijderen na succesvolle creatie",
+    "archiveSuccess": "Archief succesvol aangemaakt!",
+    "unarchive": "Archief uitpakken",
+    "unarchiveMessage": "Kies waar het archief moet worden uitgepakt.",
+    "unarchiveDestination": "Uittreksel naar:",
+    "unarchiveDeleteAfter": "Archief verwijderen na uitpakken",
+    "unarchiveSuccess": "Archief met succes uitgepakt!"
   },
   "search": {
     "searchContext": "Zoekcontext: {context}",

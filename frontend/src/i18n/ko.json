@@ -216,7 +216,19 @@
     "moveFailed": "이동 실패",
     "operationFailed": "작업 실패",
     "partialSuccess": "일부 작업 실패: {succeeded} 성공, {failed} 실패",
-    "renameFailed": "항목 이름 변경에 실패했습니다."
+    "renameFailed": "항목 이름 변경에 실패했습니다.",
+    "archive": "아카이브 만들기",
+    "archiveMessage": "선택한 항목으로 서버에 아카이브를 생성합니다.",
+    "archiveDestination": "대상 폴더를 선택한 다음 아래에 아카이브 이름을 입력합니다:",
+    "archiveName": "아카이브 이름(기본값은 archive.zip):",
+    "archiveCompression": "압축 수준(0-9):",
+    "archiveDeleteAfter": "생성 성공 후 소스 파일 삭제",
+    "archiveSuccess": "아카이브가 성공적으로 생성되었습니다!",
+    "unarchive": "아카이브 추출",
+    "unarchiveMessage": "아카이브를 추출할 위치를 선택합니다.",
+    "unarchiveDestination": "추출 대상:",
+    "unarchiveDeleteAfter": "추출 후 아카이브 삭제",
+    "unarchiveSuccess": "아카이브가 성공적으로 추출되었습니다!"
   },
   "search": {
     "smallerThan": "보다 작습니다:",
@@ -626,7 +638,8 @@
     "play": "플레이{suffix}",
     "stop": "중지{suffix}",
     "reset": "초기화{suffix}",
-    "space": "공간{suffix}"
+    "space": "공간{suffix}",
+    "format": "형식{suffix}"
   },
   "access": {
     "rules": "액세스 규칙",

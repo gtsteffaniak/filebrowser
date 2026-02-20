@@ -72,6 +72,8 @@ import CloseWithActiveUploads from "./CloseWithActiveUploads.vue";
 import Generic from "./Generic.vue";
 import ShareInfo from "./ShareInfo.vue";
 import FileList from "./FileListing.vue";
+import Archive from "./Archive.vue";
+import Unarchive from "./Unarchive.vue";
 import { state, getters, mutations } from "@/store";
 
 export default {
@@ -107,6 +109,8 @@ export default {
     Generic,
     ShareInfo,
     FileList,
+    Archive,
+    Unarchive,
   },
   data() {
     return {
@@ -203,6 +207,10 @@ export default {
           return this.$t("prompts.newDir");
         case "replace-rename":
           return this.$t("general.replace");
+        case "archive":
+          return this.$t("prompts.archive");
+        case "unarchive":
+          return this.$t("prompts.unarchive");
         default:
           console.warn("[Prompts.vue] unknown prompt name", promptName);
           // Fallback for unknown prompt types

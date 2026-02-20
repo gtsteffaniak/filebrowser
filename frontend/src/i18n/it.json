@@ -216,7 +216,19 @@
     "moveFailed": "Spostamento non riuscito",
     "operationFailed": "Operazione fallita",
     "partialSuccess": "Alcune operazioni non sono riuscite: {succeeded} è riuscito, {failed} non è riuscito.",
-    "renameFailed": "Impossibile rinominare l'elemento"
+    "renameFailed": "Impossibile rinominare l'elemento",
+    "archive": "Creare un archivio",
+    "archiveMessage": "Crea un archivio sul server dagli elementi selezionati.",
+    "archiveDestination": "Scegliere la cartella di destinazione (quindi inserire il nome dell'archivio sotto):",
+    "archiveName": "Nome dell'archivio (predefinito archive.zip):",
+    "archiveCompression": "Livello di compressione (0-9):",
+    "archiveDeleteAfter": "Cancellare i file sorgente dopo la creazione",
+    "archiveSuccess": "Archivio creato con successo!",
+    "unarchive": "Estrarre l'archivio",
+    "unarchiveMessage": "Scegliere dove estrarre l'archivio.",
+    "unarchiveDestination": "Estratto a:",
+    "unarchiveDeleteAfter": "Eliminare l'archivio dopo l'estrazione",
+    "unarchiveSuccess": "Archivio estratto con successo!"
   },
   "search": {
     "smallerThan": "Più piccolo di:",
@@ -626,7 +638,8 @@
     "play": "Gioco{suffix}",
     "stop": "Fermarsi{suffix}",
     "reset": "Reset{suffix}",
-    "space": "Spazio{suffix}"
+    "space": "Spazio{suffix}",
+    "format": "Formato{suffix}"
   },
   "access": {
     "rules": "Regole di accesso",

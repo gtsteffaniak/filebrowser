@@ -216,7 +216,19 @@
     "moveFailed": "Flyttning misslyckades",
     "operationFailed": "Operationen misslyckades",
     "partialSuccess": "Vissa operationer misslyckades: {succeeded} lyckades, {failed} misslyckades",
-    "renameFailed": "Misslyckades med att byta namn på objekt"
+    "renameFailed": "Misslyckades med att byta namn på objekt",
+    "archive": "Skapa arkiv",
+    "archiveMessage": "Skapa ett arkiv på servern från de valda objekten.",
+    "archiveDestination": "Välj destinationsmapp (ange sedan arkivnamn nedan):",
+    "archiveName": "Arkivnamn (standard archive.zip):",
+    "archiveCompression": "Kompressionsnivå (0-9):",
+    "archiveDeleteAfter": "Ta bort källfiler efter lyckad skapelse",
+    "archiveSuccess": "Arkiv skapat framgångsrikt!",
+    "unarchive": "Extrahera arkiv",
+    "unarchiveMessage": "Välj var du vill extrahera arkivet.",
+    "unarchiveDestination": "Extrahera till:",
+    "unarchiveDeleteAfter": "Ta bort arkiv efter extraktion",
+    "unarchiveSuccess": "Arkivet har extraherats framgångsrikt!"
   },
   "search": {
     "smallerThan": "Mindre än:",
@@ -706,7 +718,8 @@
     "play": "Spela{suffix}",
     "stop": "Stopp{suffix}",
     "reset": "Återställning{suffix}",
-    "space": "Utrymme{suffix}"
+    "space": "Utrymme{suffix}",
+    "format": "Format{suffix}"
   },
   "access": {
     "rules": "Regler för åtkomst",

@@ -216,7 +216,19 @@
     "moveFailed": "Áthelyezés sikertelen",
     "operationFailed": "A művelet sikertelen",
     "partialSuccess": "Néhány művelet sikertelen: {succeeded} sikeres volt, {failed} sikertelen.",
-    "renameFailed": "Nem sikerült átnevezni az elemet"
+    "renameFailed": "Nem sikerült átnevezni az elemet",
+    "archive": "Archívum létrehozása",
+    "archiveMessage": "A kiválasztott elemekből archívum létrehozása a kiszolgálón.",
+    "archiveDestination": "Válassza ki a célmappát (majd adja meg az archívum nevét):",
+    "archiveName": "Archívum neve (alapértelmezett archive.zip):",
+    "archiveCompression": "Tömörítési szint (0-9):",
+    "archiveDeleteAfter": "Forrásfájlok törlése sikeres létrehozás után",
+    "archiveSuccess": "Az archívum sikeresen létrehozva!",
+    "unarchive": "Kivonat archívum",
+    "unarchiveMessage": "Válassza ki, hová szeretné kinyomtatni az archívumot.",
+    "unarchiveDestination": "Kivonat a következő címre:",
+    "unarchiveDeleteAfter": "Törölje az archívumot az extrakció után",
+    "unarchiveSuccess": "Az archívum sikeresen kinyomtatva!"
   },
   "search": {
     "smallerThan": "Kisebb, mint:",
@@ -626,7 +638,8 @@
     "play": "Játsszon{suffix}",
     "stop": "Stop{suffix}",
     "reset": "Reset{suffix}",
-    "space": "Űr{suffix}"
+    "space": "Űr{suffix}",
+    "format": "Formátum{suffix}"
   },
   "access": {
     "rules": "Hozzáférési szabályok",

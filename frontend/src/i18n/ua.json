@@ -216,7 +216,19 @@
     "moveFailed": "Переміщення не вдалося",
     "operationFailed": "Операція не вдалася",
     "partialSuccess": "Деякі операції не вдалися: {succeeded} вдалося, {failed} не вдалося",
-    "renameFailed": "Не вдалося перейменувати елемент"
+    "renameFailed": "Не вдалося перейменувати елемент",
+    "archive": "Створити архів",
+    "archiveMessage": "Створіть архів на сервері з вибраних елементів.",
+    "archiveDestination": "Виберіть папку призначення (потім введіть ім'я архіву нижче):",
+    "archiveName": "Ім'я архіву (за замовчуванням archive.zip):",
+    "archiveCompression": "Рівень стиснення (0-9):",
+    "archiveDeleteAfter": "Видаліть вихідні файли після успішного створення",
+    "archiveSuccess": "Архів створено успішно!",
+    "unarchive": "Витягнути архів",
+    "unarchiveMessage": "Виберіть, куди розпакувати архів.",
+    "unarchiveDestination": "Витягнути до:",
+    "unarchiveDeleteAfter": "Видалення архіву після розпакування",
+    "unarchiveSuccess": "Архів успішно розпаковано!"
   },
   "search": {
     "smallerThan": "Менше, ніж:",
@@ -706,7 +718,8 @@
     "play": "Грай.{suffix}",
     "stop": "Стоп!{suffix}",
     "reset": "Перезавантаження{suffix}",
-    "space": "Простір{suffix}"
+    "space": "Простір{suffix}",
+    "format": "Формат{suffix}"
   },
   "access": {
     "rules": "Правила доступу",
