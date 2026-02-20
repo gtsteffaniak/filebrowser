@@ -311,7 +311,6 @@
     "adminOptions": "خيارات المستخدم المسؤول",
     "searchOptions": "خيارات البحث",
     "systemAdmin": "النظام والإدارة",
-    "configViewer": "عارض التكوين",
     "configViewerShowFull": "إظهار التكوين الكامل",
     "configViewerShowComments": "إظهار التعليقات",
     "configViewerLoadConfig": "تكوين التحميل",
@@ -325,7 +324,8 @@
     "newUserHintSubFolder": "على سبيل المثال '/مجلد فرعي' - فارغ للافتراضي",
     "permissionsHelp": "تتحكم أذونات المستخدم في الوصول إلى نوع الإجراءات التي يمكن للمستخدم تنفيذها. يمنح الوصول إلى المسؤول التحكم الكامل لتحديث وتغيير إعدادات أي مستخدم بالإضافة إلى العديد من إعدادات النظام.",
     "api": "رموز واجهة برمجة التطبيقات (API)",
-    "userDeleteFailed": "فشل حذف المستخدم"
+    "userDeleteFailed": "فشل حذف المستخدم",
+    "configViewer": "عارض التكوين"
   },
   "sidebar": {
     "siteSettings": "إعدادات الموقع",

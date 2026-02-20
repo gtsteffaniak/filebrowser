@@ -1,5 +1,5 @@
 <template>
-  <div class="card-content">
+  <div class="card-content" aria-label="file-list-prompt">
     <!-- Source Selection Dropdown -->
     <div v-if="showSourceSelector" class="source-selector" style="margin-bottom: 1rem;">
       <label for="destinationSource" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">
@@ -396,7 +396,7 @@ export default {
         return;
       }
 
-      // Create a synthetic event-like object for compatibility with existing methods
+      // Browse mode: single click selects only, emit selected, do not navigate
       const syntheticEvent = {
         currentTarget: {
           dataset: {
@@ -406,18 +406,17 @@ export default {
         preventDefault: () => {},
         stopPropagation: () => {},
       };
-
-      if (state.user.singleClick) {
-        this.next(syntheticEvent);
-      } else {
-        this.select(syntheticEvent);
-      }
+      this.select(syntheticEvent);
     },
     handleItemDblClick(item, _index, event) {
       event.preventDefault();
       event.stopPropagation();
 
-      // Create a synthetic event for double-click
+      // Double click: navigate (into folder or open file)
+      if (this.isDisplayMode) {
+        this.navigateToItem(item);
+        return;
+      }
       const syntheticEvent = {
         currentTarget: {
           dataset: {
@@ -448,8 +447,7 @@ export default {
       this.selected = path;
       let clickedItem = this.items.find(item => item.path === path);
       this.selectedSource = clickedItem ? clickedItem.source : this.source;
-      this.selectedType = clickedItem ? clickedItem.type : 'directory';
-      const isFile = this.selectedType !== 'directory';
+      this.selectedType = clickedItem ? clickedItem.type : null;
       this.$emit("update:selected", {
         path: this.selected,
         source: this.selectedSource,
@@ -477,7 +475,7 @@ export default {
       this.items = allItems.filter(item => !item.isDirectory && item.type !== 'directory');
     },
     navigateToItem(item) {
-      mutations.closeHovers();
+      mutations.closeTopHover();
       mutations.setNavigationTransitioning(true);
       url.goToItem(item.source || state.req.source, item.path, undefined);
     },

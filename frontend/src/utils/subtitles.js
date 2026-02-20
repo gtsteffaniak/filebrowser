@@ -1,3 +1,15 @@
+/**
+ * Strips ASS/SSA override blocks from dialogue text (e.g. {\fad(100,100)\blur3}).
+ * Used only when converting .ass / .ssa to VTT. Other formats keep their styling.
+ */
+export function stripAssOverrideTags (text) {
+  if (typeof text !== 'string') return text
+  return text
+    .replace(/\{[^}]*\}/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 export function convertToVTT (ext, text) {
   if (ext == '.vtt') {
     return text
@@ -73,7 +85,7 @@ export function convertToVTT (ext, text) {
           let parts = line.split(',')
           let startTime = formatAssTime(parts[1].trim())
           let endTime = formatAssTime(parts[2].trim())
-          let dialogue = parts.slice(9).join(',').trim()
+          let dialogue = stripAssOverrideTags(parts.slice(9).join(',').trim())
           return `${startTime} --> ${endTime}\n ${dialogue}` // Add leading space before dialogue
         })
         .join('\n\n')

@@ -107,7 +107,7 @@ export default {
       return !!perms?.create;
     },
     closeHovers() {
-      return mutations.closeHovers();
+      return mutations.closeTopHover();
     },
     isDirNameValid() {
       return this.validateDirName(this.newDirName);
@@ -308,7 +308,7 @@ export default {
 
         // Only close prompts and reload on success (or partial success)
         mutations.setReload(true);
-        mutations.closeHovers();
+        mutations.closeTopHover();
         mutations.setSearch(false);
 
         // Only show success notification if there were no failures (or partial success was already shown)

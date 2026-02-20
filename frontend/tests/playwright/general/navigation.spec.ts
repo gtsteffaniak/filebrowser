@@ -50,3 +50,28 @@ test("navigate from search item", async({ page, checkForErrors, context }) => {
   await expect(page.locator('.topTitle')).toHaveText('for testing.md');
   checkForErrors()
 });
+
+test("use quick jump", async({ page, checkForErrors, context }) => {
+  await page.goto("/files/playwright%20%2B%20files/myfolder/testdata/gray-sample.jpg");
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - gray-sample.jpg");
+
+  // drag next button to the left to open quick jump list
+  const nextButton = page.locator('button[aria-label="Next"]');
+  await nextButton.waitFor({ state: "visible" });
+  const box = await nextButton.boundingBox();
+  expect(box).toBeTruthy();
+  const startX = box!.x + box!.width / 2;
+  const startY = box!.y + box!.height / 2;
+  await page.mouse.move(startX, startY);
+  await page.mouse.down();
+  await page.mouse.move(startX - 200, startY);
+  await page.mouse.up();
+
+  const quickJumpWindow = page.locator('div.floating-window[aria-label="file-list-prompt"]');
+  await expect(quickJumpWindow).toBeVisible();
+  await page.locator('div[aria-label="20130612_142406.jpg"]').click();
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - 20130612_142406.jpg");
+  await expect(page.locator('.topTitle')).toHaveText('20130612_142406.jpg');
+  await expect(quickJumpWindow).toBeHidden();
+  checkForErrors();
+})

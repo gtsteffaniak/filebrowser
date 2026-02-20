@@ -129,7 +129,7 @@ export default {
         // Emit event to refresh API keys list
         eventBus.emit('apiKeysChanged');
         notify.showSuccessToast(this.$t("api.createKeySuccess"));
-        mutations.closeHovers();
+        mutations.closeTopHover();
       } catch (error) {
         notify.showError(this.$t("api.createKeyFailed"));
       } finally {

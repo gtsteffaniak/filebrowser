@@ -449,7 +449,6 @@
     "userUpdated": "Uživatel aktualizován!",
     "adminOptions": "Možnosti administrátora",
     "systemAdmin": "Systém a správce",
-    "configViewer": "Prohlížeč konfigurace",
     "configViewerShowFull": "Zobrazit úplnou konfiguraci",
     "configViewerShowComments": "Zobrazit komentáře",
     "configViewerLoadConfig": "Konfigurace načítání",
@@ -463,7 +462,8 @@
     "newUserHintSubFolder": "např. '/subfolder' - prázdný pro výchozí nastavení",
     "permissionsHelp": "Oprávnění uživatele řídí přístup k typům akcí, které může uživatel provádět. Přístup administrátora poskytuje plnou kontrolu nad aktualizací a změnou nastavení libovolného uživatele i nad mnoha nastaveními systému.",
     "api": "Tokeny API",
-    "userDeleteFailed": "Smazání uživatele se nezdařilo"
+    "userDeleteFailed": "Smazání uživatele se nezdařilo",
+    "configViewer": "Prohlížeč konfigurace"
   },
   "sidebar": {
     "siteSettings": "Nastavení webu",

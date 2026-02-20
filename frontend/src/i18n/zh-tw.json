@@ -311,7 +311,6 @@
     "shareDeleted": "分享已刪除！",
     "adminOptions": "管理員使用者選項",
     "systemAdmin": "系統與管理",
-    "configViewer": "組態檢視器",
     "configViewerShowFull": "顯示完整設定",
     "configViewerShowComments": "顯示評論",
     "configViewerLoadConfig": "載入組態",
@@ -325,7 +324,8 @@
     "newUserHintSubFolder": "例如 '/subfolder' - 預設為空白",
     "permissionsHelp": "使用者權限可控制使用者可執行的動作類型。管理員存取權可完全控制更新和變更任何使用者的設定以及許多系統設定。",
     "api": "API 代號",
-    "userDeleteFailed": "用戶刪除失敗"
+    "userDeleteFailed": "用戶刪除失敗",
+    "configViewer": "組態檢視器"
   },
   "sidebar": {
     "siteSettings": "網站設定",

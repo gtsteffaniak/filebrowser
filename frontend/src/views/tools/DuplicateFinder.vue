@@ -220,7 +220,7 @@ export default {
       if (data && data.source !== undefined) {
         this.selectedSource = data.source;
       }
-      mutations.closeHovers();
+      mutations.closeTopHover();
     },
     handleItemsDeleted(data) {
       // Update local state when items are deleted from the delete prompt

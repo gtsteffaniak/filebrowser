@@ -14,6 +14,7 @@ import (
 	"sort"
 	"strings"
 
+	"golang.org/x/tools/go/packages"
 	"gopkg.in/yaml.v3"
 )
 
@@ -111,80 +112,122 @@ func CollectCommentsAndSecrets(srcPath string) (CommentsMap, SecretFieldsMap, De
 	return comments, secrets, deprecated, nil
 }
 
-// parseDirectoryComments parses a single directory for comments, secrets, and deprecated fields
+// parseDirectoryComments parses a single directory for comments, secrets, and deprecated fields.
 func parseDirectoryComments(dir string) (CommentsMap, SecretFieldsMap, DeprecatedFieldsMap, error) {
-	fset := token.NewFileSet()
-	pkgs, err := parser.ParseDir(fset, dir, nil, parser.ParseComments)
+	absDir, err := filepath.Abs(dir)
 	if err != nil {
 		return nil, nil, nil, err
+	}
+
+	var files []*ast.File
+	cfg := &packages.Config{
+		Mode: packages.NeedSyntax | packages.NeedFiles,
+		Dir:  absDir,
+		ParseFile: func(fset *token.FileSet, filename string, src []byte) (*ast.File, error) {
+			return parser.ParseFile(fset, filename, src, parser.ParseComments)
+		},
+	}
+	pkgs, err := packages.Load(cfg, ".")
+	if err == nil && len(pkgs) > 0 {
+		for _, pkg := range pkgs {
+			files = append(files, pkg.Syntax...)
+		}
+	}
+	if len(files) == 0 {
+		// Fallback for directories outside a module (e.g. test temp dirs): parse .go files directly
+		files, err = parseDirGoFiles(absDir)
+		if err != nil || len(files) == 0 {
+			return nil, nil, nil, err
+		}
 	}
 
 	comments := make(CommentsMap)
 	secrets := make(SecretFieldsMap)
 	deprecated := make(DeprecatedFieldsMap)
 
-	for _, pkg := range pkgs {
-		for _, file := range pkg.Files {
-			for _, decl := range file.Decls {
-				gen, ok := decl.(*ast.GenDecl)
-				if !ok || gen.Tok != token.TYPE {
+	for _, file := range files {
+		for _, decl := range file.Decls {
+			gen, ok := decl.(*ast.GenDecl)
+			if !ok || gen.Tok != token.TYPE {
+				continue
+			}
+			for _, spec := range gen.Specs {
+				ts, ok := spec.(*ast.TypeSpec)
+				if !ok {
 					continue
 				}
-				for _, spec := range gen.Specs {
-					ts, ok := spec.(*ast.TypeSpec)
-					if !ok {
+				st, ok := ts.Type.(*ast.StructType)
+				if !ok {
+					continue
+				}
+				typeName := ts.Name.Name
+				commentMap := make(map[string]string)
+				secretMap := make(map[string]bool)
+				deprecatedMap := make(map[string]bool)
+				comments[typeName] = commentMap
+				secrets[typeName] = secretMap
+				deprecated[typeName] = deprecatedMap
+
+				for _, field := range st.Fields.List {
+					if len(field.Names) == 0 {
 						continue
 					}
-					st, ok := ts.Type.(*ast.StructType)
-					if !ok {
-						continue
+					name := field.Names[0].Name
+					var parts []string
+					var fullComment string
+
+					if field.Doc != nil {
+						docText := strings.TrimSpace(field.Doc.Text())
+						parts = append(parts, docText)
+						fullComment += docText + " "
 					}
-					typeName := ts.Name.Name
-					commentMap := make(map[string]string)
-					secretMap := make(map[string]bool)
-					deprecatedMap := make(map[string]bool)
-					comments[typeName] = commentMap
-					secrets[typeName] = secretMap
-					deprecated[typeName] = deprecatedMap
+					if field.Comment != nil {
+						commentText := strings.TrimSpace(field.Comment.Text())
+						parts = append(parts, commentText)
+						fullComment += commentText
+					}
 
-					for _, field := range st.Fields.List {
-						if len(field.Names) == 0 {
-							continue
-						}
-						name := field.Names[0].Name
-						var parts []string
-						var fullComment string
+					if len(parts) > 0 {
+						commentMap[name] = strings.Join(parts, " : ")
+					}
 
-						if field.Doc != nil {
-							docText := strings.TrimSpace(field.Doc.Text())
-							parts = append(parts, docText)
-							fullComment += docText + " "
-						}
-						if field.Comment != nil {
-							commentText := strings.TrimSpace(field.Comment.Text())
-							parts = append(parts, commentText)
-							fullComment += commentText
-						}
+					// Check if field should be treated as secret
+					if strings.Contains(strings.ToLower(fullComment), "secret:") {
+						secretMap[name] = true
+					}
 
-						if len(parts) > 0 {
-							commentMap[name] = strings.Join(parts, " : ")
-						}
-
-						// Check if field should be treated as secret
-						if strings.Contains(strings.ToLower(fullComment), "secret:") {
-							secretMap[name] = true
-						}
-
-						// Check if field should be treated as deprecated
-						if strings.Contains(strings.ToLower(fullComment), "deprecated:") {
-							deprecatedMap[name] = true
-						}
+					// Check if field should be treated as deprecated
+					if strings.Contains(strings.ToLower(fullComment), "deprecated:") {
+						deprecatedMap[name] = true
 					}
 				}
 			}
 		}
 	}
 	return comments, secrets, deprecated, nil
+}
+
+// parseDirGoFiles parses all .go files in dir and returns their ASTs. Used when the directory
+// is not inside a Go module (e.g. test temp dirs) so packages.Load would fail.
+func parseDirGoFiles(dir string) ([]*ast.File, error) {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, err
+	}
+	fset := token.NewFileSet()
+	var files []*ast.File
+	for _, e := range entries {
+		if e.IsDir() || !strings.HasSuffix(e.Name(), ".go") {
+			continue
+		}
+		path := filepath.Join(dir, e.Name())
+		f, err := parser.ParseFile(fset, path, nil, parser.ParseComments)
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, f)
+	}
+	return files, nil
 }
 
 // PathToTypeField represents a mapping from YAML path to Go type and field info

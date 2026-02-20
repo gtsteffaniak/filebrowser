@@ -44,6 +44,7 @@ import { filesApi } from "@/api";
 import { state, getters, mutations } from "@/store";
 import { events, notify } from "@/notify";
 import { generateRandomCode } from "@/utils/auth";
+import { globalVars } from "@/utils/constants";
 
 export default {
   name: "layout",
@@ -167,7 +168,7 @@ export default {
       mutations.setMultiple(false);
       const currentPrompt = getters.currentPromptName();
       if (currentPrompt !== "success" && currentPrompt !== "generic") {
-        mutations.closeHovers();
+        mutations.closeTopHover();
       }
       if (window.location.hash == "" && currentView == "listingView" || currentView == "share") {
         const element = document.getElementById("main");
@@ -187,7 +188,7 @@ export default {
         if (maxUploads > 10 || maxUploads < 1) {
           mutations.setMaxConcurrentUpload(1);
         }
-        if (state.user.showFirstLogin) {
+        if (state.user.showFirstLogin && !globalVars.noAuth) {
           mutations.showHover({
             name: "generic",
             props: {
@@ -214,7 +215,7 @@ export default {
     },
     resetItems() {
       mutations.closeSidebar();
-      mutations.closeHovers();
+      mutations.closeTopHover();
       mutations.setSearch(false);
     },
   },

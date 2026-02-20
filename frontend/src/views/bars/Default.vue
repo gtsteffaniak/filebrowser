@@ -171,7 +171,7 @@ export default {
     },
     toggleOverflow() {
       if (getters.currentPromptName() === "OverflowMenu") {
-        mutations.closeHovers();
+        mutations.closeTopHover();
       } else {
         mutations.showHover({ name: "OverflowMenu" });
       }

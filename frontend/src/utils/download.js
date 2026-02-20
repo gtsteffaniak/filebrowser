@@ -38,7 +38,7 @@ export default function downloadFiles(items) {
       mutations.showHover({
         name: "download",
         confirm: (format) => {
-          mutations.closeHovers();
+          mutations.closeTopHover();
           startDownload(format, items, state.shareInfo.hash);
         },
       });
@@ -59,7 +59,7 @@ export default function downloadFiles(items) {
     mutations.showHover({
       name: "download",
       confirm: (format) => {
-        mutations.closeHovers();
+        mutations.closeTopHover();
         startDownload(format, items);
       },
     });
