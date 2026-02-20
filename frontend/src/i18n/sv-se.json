@@ -311,7 +311,6 @@
     "adminOptions": "Alternativ för administratörsanvändare",
     "searchOptions": "Sökalternativ",
     "systemAdmin": "System & Administration",
-    "configViewer": "Konfig-visare",
     "configViewerShowFull": "Visa fullständig konfiguration",
     "configViewerShowComments": "Visa kommentarer",
     "configViewerLoadConfig": "Ladda konfig",
@@ -325,7 +324,8 @@
     "newUserHintSubFolder": "t.ex. \"/undermapp\" - tom för standard",
     "permissionsHelp": "Användarbehörigheter styr vilka typer av åtgärder som användaren kan utföra. Administratörsbehörighet ger full kontroll över uppdatering och ändring av alla användarinställningar samt många systeminställningar.",
     "api": "API-token",
-    "userDeleteFailed": "Användarborttagning misslyckades"
+    "userDeleteFailed": "Användarborttagning misslyckades",
+    "configViewer": "Konfig-visare"
   },
   "sidebar": {
     "siteSettings": "System inställningar",

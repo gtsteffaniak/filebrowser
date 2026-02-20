@@ -31,9 +31,10 @@ test("Create first new file with basic auth", async ({  page, checkForErrors, co
 
   // test public share route (no auth required)
   await page.goto("/subpath/public/share/" + shareHash);
+  await expect(page).toHaveTitle("Graham's Filebrowser - Share - demo-127.0.0.1");
   await expect(page.locator('.listing-items .file-items')).toHaveCount(1);
   await page.locator('a[aria-label="test.txt"]').dblclick();
-  checkForErrors(0,1);
+  checkForErrors(0,1); // expect expect redirect error
 });
 
 test("Verify basic auth is required for protected route", async ({ page }) => {

@@ -311,7 +311,6 @@
     "adminOptions": "Opțiuni utilizator administrator",
     "searchOptions": "Opțiuni de căutare",
     "systemAdmin": "Sistem și administrare",
-    "configViewer": "Vizualizator de configurare",
     "configViewerShowFull": "Afișați configurația completă",
     "configViewerShowComments": "Afișați comentariile",
     "configViewerLoadConfig": "Configurare încărcare",
@@ -325,7 +324,8 @@
     "newUserHintSubFolder": "de exemplu \"/subfolder\" - gol pentru implicit",
     "permissionsHelp": "Permisiunile utilizatorului controlează accesul la ce tip de acțiuni poate efectua utilizatorul. Accesul de administrator oferă control deplin pentru actualizarea și modificarea setărilor oricărui utilizator, precum și a multor setări de sistem.",
     "api": "Token-uri API",
-    "userDeleteFailed": "Ștergerea utilizatorului a eșuat"
+    "userDeleteFailed": "Ștergerea utilizatorului a eșuat",
+    "configViewer": "Vizualizator de configurare"
   },
   "sidebar": {
     "siteSettings": "Setări site",

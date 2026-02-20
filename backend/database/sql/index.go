@@ -541,7 +541,7 @@ func (db *IndexDB) ExplainQueryPlan(query string, args ...interface{}) (string, 
 		if err := rows.Scan(&id, &parent, &notused, &detail); err != nil {
 			return "", err
 		}
-		plan.WriteString(fmt.Sprintf("%d|%d|%s\n", id, parent, detail))
+		fmt.Fprintf(&plan, "%d|%d|%s\n", id, parent, detail)
 	}
 	return plan.String(), rows.Err()
 }

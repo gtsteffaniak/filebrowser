@@ -661,9 +661,9 @@
     "disabled": "Uitgeschakeld",
     "tokenType": "Type token:",
     "minimalInfo": "Sluit tokenaanpassingen uit om een kleinere tokenlengte te creëren. Exacte overeenkomst met de rechten van de bijbehorende gebruiker.",
-    "clickToCopyKey": "Klik om sleutel te kopiëren (verborgen)",
     "customizeToken": "Token aanpassen",
-    "customizeTokenInfo": "Pas de tokenpermissies en -attributen aan. Dit zal een langer token aanmaken dat mogelijk niet werkt bij sommige WebDAV-clients."
+    "customizeTokenInfo": "Pas de tokenpermissies en -attributen aan. Dit zal een langer token aanmaken dat mogelijk niet werkt bij sommige WebDAV-clients.",
+    "clickToCopyKey": "Klik om sleutel te kopiëren (verborgen)"
   },
   "index": {
     "unknown": "Onbekend",

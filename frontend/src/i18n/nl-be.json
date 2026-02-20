@@ -311,7 +311,6 @@
     "adminOptions": "Opties voor beheerders",
     "searchOptions": "Zoekopties",
     "systemAdmin": "Systeem & Beheer",
-    "configViewer": "Configuratiescherm",
     "configViewerShowFull": "Volledige configuratie weergeven",
     "configViewerShowComments": "Opmerkingen tonen",
     "configViewerLoadConfig": "Configuratie laden",
@@ -325,7 +324,8 @@
     "newUserHintSubFolder": "bijv. '/submap' - leeg voor standaard",
     "permissionsHelp": "Gebruikersrechten bepalen welke acties de gebruiker kan uitvoeren. Administrar toegang geeft volledige controle om de instellingen van elke gebruiker bij te werken en te wijzigen, evenals vele systeeminstellingen.",
     "api": "API-tokens",
-    "userDeleteFailed": "Gebruiker verwijderen mislukt"
+    "userDeleteFailed": "Gebruiker verwijderen mislukt",
+    "configViewer": "Configuratiescherm"
   },
   "sidebar": {
     "siteSettings": "Site-instellingen",
