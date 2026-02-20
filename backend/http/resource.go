@@ -83,7 +83,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		Metadata:                 getMetadata,
 		ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles,
 		ShowHidden:               d.user.ShowHidden,
-	}, store.Access, d.user)
+	}, store.Access, d.user, store.Share)
 	if err != nil {
 		return errToStatus(err), err
 	}
@@ -137,7 +137,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 		Source:     source,
 		Expand:     false,
 		ShowHidden: d.user.ShowHidden,
-	}, store.Access, d.user)
+	}, store.Access, d.user, store.Share)
 	if err != nil {
 		return errToStatus(err), err
 	}
@@ -274,7 +274,7 @@ func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *reques
 				Path:           indexPath,
 				Source:         source,
 				ShowHidden:     true,
-			}, store.Access, filePermUser)
+			}, store.Access, filePermUser, store.Share)
 			if err != nil {
 				return http.StatusNotFound, fmt.Errorf("resource not available")
 			}
@@ -330,7 +330,7 @@ func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *reques
 				Path:           idx.MakeIndexPath(item.Path, false),
 				Source:         item.Source,
 				ShowHidden:     true,
-			}, store.Access, filePermUser)
+			}, store.Access, filePermUser, store.Share)
 			if err != nil {
 				response.Failed = append(response.Failed, BulkDeleteItem{
 					Source:  item.Source,
@@ -487,7 +487,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			}
 
 			var fileInfo *iteminfo.ExtendedFileInfo
-			fileInfo, err = files.FileInfoFaster(fileOpts, store.Access, filePermUser)
+			fileInfo, err = files.FileInfoFaster(fileOpts, store.Access, filePermUser, store.Share)
 			if err == nil { // File exists
 				if r.URL.Query().Get("override") != "true" {
 					logger.Debugf("resource already exists: %v", fileInfo.RealPath)
@@ -546,7 +546,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		return http.StatusOK, nil
 	}
 
-	fileInfo, err := files.FileInfoFaster(fileOpts, store.Access, filePermUser)
+	fileInfo, err := files.FileInfoFaster(fileOpts, store.Access, filePermUser, store.Share)
 	if err == nil { // File exists
 		if r.URL.Query().Get("override") != "true" {
 			logger.Debugf("resource already exists: %v", fileInfo.RealPath)
@@ -927,7 +927,7 @@ func patchAction(ctx context.Context, params patchActionParams) error {
 			Source:         params.srcIndex,
 			IsDir:          params.isSrcDir,
 			ShowHidden:     params.d.user.ShowHidden,
-		}, store.Access, params.d.user)
+		}, store.Access, params.d.user, store.Share)
 
 		if err != nil {
 			return err

@@ -3968,6 +3968,10 @@ const docTemplate = `{
                     "description": "whether the file is hidden",
                     "type": "boolean"
                 },
+                "isShared": {
+                    "description": "whether the file or folder is shared",
+                    "type": "boolean"
+                },
                 "metadata": {
                     "description": "optional media metadata (audio/video only)",
                     "allOf": [
@@ -4019,6 +4023,10 @@ const docTemplate = `{
                     "description": "whether the file is hidden",
                     "type": "boolean"
                 },
+                "isShared": {
+                    "description": "whether the file or folder is shared",
+                    "type": "boolean"
+                },
                 "modified": {
                     "description": "modification time",
                     "type": "string"
@@ -4050,6 +4058,10 @@ const docTemplate = `{
                 },
                 "hidden": {
                     "description": "whether the file is hidden",
+                    "type": "boolean"
+                },
+                "isShared": {
+                    "description": "whether the file or folder is shared",
                     "type": "boolean"
                 },
                 "modified": {

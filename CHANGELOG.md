@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file. For commit 
 ## v1.3.0-beta
 
  **New Features**:
+ - Added share icon to items that are shared (requires share permission to see)
  - LDAP login support (#591)
  - FileWatcher also supports watching directories
  - Support previews for 3D model files (STL, OBJ, 3MF, etc.) (#1273)

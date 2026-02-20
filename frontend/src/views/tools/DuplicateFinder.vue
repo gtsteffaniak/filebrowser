@@ -1,6 +1,6 @@
 <template>
   <div class="duplicate-finder">
-    <div class="card duplicate-finder-config">
+    <div class="card duplicate-finder-config padding-normal">
       <div class="card-content">
         <h3>{{ $t('general.source') }}</h3>
         <select v-model="selectedSource" class="input">
@@ -526,9 +526,10 @@ export default {
 
 <style scoped>
 .duplicate-finder {
-  padding: 2rem;
-  max-width: 100%;
-  margin: 0 auto;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 1em;
 }
 
 .duplicate-finder-results {

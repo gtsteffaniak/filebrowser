@@ -78,7 +78,7 @@ func (ffs *filteredFileSystem) getCachedFileInfo(permissionPath string, expand b
 		Source:     ffs.source,
 		Expand:     expand,
 		ShowHidden: ffs.user.ShowHidden,
-	}, store.Access, ffs.user)
+	}, store.Access, ffs.user, store.Share)
 	if err != nil {
 		return nil, err
 	}

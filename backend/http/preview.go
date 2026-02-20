@@ -71,7 +71,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		Source:   source,
 		AlbumArt: true, // Extract album art for audio previews
 		Expand:   true,
-	}, store.Access, d.user)
+	}, store.Access, d.user, store.Share)
 	if err != nil {
 		logger.Errorf("error getting file info: %v", err)
 		return errToStatus(err), err
@@ -122,7 +122,7 @@ func getDirectoryPreview(r *http.Request, d *requestContext) (*iteminfo.Extended
 				Source:   source,
 				AlbumArt: true, // Extract album art for audio previews
 				Metadata: true,
-			}, store.Access, d.user)
+			}, store.Access, d.user, store.Share)
 		if err != nil {
 			lastErr = err
 			continue // Try next file if this one fails
