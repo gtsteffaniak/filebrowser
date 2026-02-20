@@ -216,7 +216,19 @@
     "moveFailed": "Mutarea a eșuat",
     "operationFailed": "Operațiunea a eșuat",
     "partialSuccess": "Unele operațiuni au eșuat: {succeeded} a reușit, {failed} a eșuat",
-    "renameFailed": "A eșuat redenumirea elementului"
+    "renameFailed": "A eșuat redenumirea elementului",
+    "archive": "Crearea arhivei",
+    "archiveMessage": "Creați o arhivă pe server din elementele selectate.",
+    "archiveDestination": "Alegeți folderul de destinație (apoi introduceți numele arhivei mai jos):",
+    "archiveName": "Numele arhivei (implicit archive.zip):",
+    "archiveCompression": "Nivelul de compresie (0-9):",
+    "archiveDeleteAfter": "Ștergeți fișierele sursă după crearea cu succes",
+    "archiveSuccess": "Arhiva creată cu succes!",
+    "unarchive": "Extras arhivă",
+    "unarchiveMessage": "Alegeți unde să extrageți arhiva.",
+    "unarchiveDestination": "Extras la:",
+    "unarchiveDeleteAfter": "Ștergeți arhiva după extragere",
+    "unarchiveSuccess": "Arhiva extrasă cu succes!"
   },
   "search": {
     "smallerThan": "Mai mic decât:",
@@ -270,7 +282,8 @@
       "create": "Creați fișiere",
       "delete": "Ștergeți fișierele",
       "download": "Descărcați fișiere",
-      "api": "Crearea și gestionarea jetoanelor API cu durată lungă de viață"
+      "api": "Crearea și gestionarea jetoanelor API cu durată lungă de viață",
+      "archive": "Acțiuni de arhivare (creare, extragere)"
     },
     "permissions-name": "Permisiuni",
     "profileSettings": "Setări profil",
@@ -626,7 +639,8 @@
     "play": "Joc{suffix}",
     "stop": "Oprire{suffix}",
     "reset": "Resetare{suffix}",
-    "space": "Spațiu{suffix}"
+    "space": "Spațiu{suffix}",
+    "format": "Format{suffix}"
   },
   "access": {
     "rules": "Reguli de acces",

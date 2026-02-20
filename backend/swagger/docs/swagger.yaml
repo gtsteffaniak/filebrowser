@@ -231,6 +231,10 @@ definitions:
         description: 'Gzip compression level for tar.gz only, 0-9; 0 = default; ignored
           for zip (optional). Example: 6'
         type: integer
+      deleteAfter:
+        description: 'If true, delete the source files/directories after successful
+          archive creation (optional; requires delete permission). Example: true'
+        type: boolean
       destination:
         description: 'Full path where the archive will be created; use .zip or .tar.gz
           extension (required). Example: "/backups/my-archive.zip"'
@@ -1226,6 +1230,9 @@ definitions:
       api:
         description: allow api access
         type: boolean
+      archive:
+        description: allow creating archives
+        type: boolean
       create:
         description: allow creating or uploading files
         type: boolean
@@ -1641,6 +1648,9 @@ definitions:
         type: boolean
       api:
         description: allow api access
+        type: boolean
+      archive:
+        description: allow creating archives
         type: boolean
       create:
         description: allow creating or uploading files
@@ -3078,6 +3088,7 @@ paths:
         - **destination** (string, required): Full path where the archive file will be created (on toSource). Must end with .zip or .tar.gz (or format is inferred). Example: `"/backups/my-archive.zip"`
         - **format** (string, optional): Archive format. One of: `"zip"`, `"tar.gz"`. Default inferred from destination extension. Example: `"zip"`
         - **compression** (integer, optional): Gzip compression level for tar.gz only (0–9). 0 = default. Ignored for zip. Example: `6`
+        - **deleteAfter** (boolean, optional): If true, delete source files/directories after successful creation. Requires delete permission. Example: `true`
       parameters:
       - description: 'Request body: source, toSource (optional), items, destination,
           format (optional), compression (optional)'

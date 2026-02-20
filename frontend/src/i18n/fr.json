@@ -216,7 +216,19 @@
     "moveFailed": "Échec du déplacement",
     "operationFailed": "Échec de l'opération",
     "partialSuccess": "Certaines opérations ont échoué : {succeeded} a réussi, {failed} a échoué",
-    "renameFailed": "Échec du renommage de l'élément"
+    "renameFailed": "Échec du renommage de l'élément",
+    "archive": "Créer des archives",
+    "archiveMessage": "Créer une archive sur le serveur à partir des éléments sélectionnés.",
+    "archiveDestination": "Choisissez le dossier de destination (puis entrez le nom de l'archive ci-dessous) :",
+    "archiveName": "Nom de l'archive (par défaut archive.zip) :",
+    "archiveCompression": "Niveau de compression (0-9) :",
+    "archiveDeleteAfter": "Supprimer les fichiers sources après une création réussie",
+    "archiveSuccess": "Archive créée avec succès !",
+    "unarchive": "Extraire l'archive",
+    "unarchiveMessage": "Choisissez l'endroit où extraire l'archive.",
+    "unarchiveDestination": "Extrait à :",
+    "unarchiveDeleteAfter": "Supprimer l'archive après l'extraction",
+    "unarchiveSuccess": "L'archive a été extraite avec succès !"
   },
   "search": {
     "smallerThan": "Plus petit que :",
@@ -271,7 +283,8 @@
       "create": "Créer des fichiers",
       "delete": "Supprimer des fichiers",
       "download": "Télécharger les fichiers",
-      "api": "Créer et gérer des jetons API à longue durée de vie"
+      "api": "Créer et gérer des jetons API à longue durée de vie",
+      "archive": "Actions d'archivage (création, extraction)"
     },
     "permissions-name": "Permissions",
     "profileSettings": "Paramètres du profil",
@@ -626,7 +639,8 @@
     "play": "Jouer{suffix}",
     "stop": "Arrêter{suffix}",
     "reset": "Remise à zéro{suffix}",
-    "space": "L'espace{suffix}"
+    "space": "L'espace{suffix}",
+    "format": "Format{suffix}"
   },
   "access": {
     "rules": "Règles d'accès",

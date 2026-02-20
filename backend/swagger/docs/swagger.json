@@ -1762,7 +1762,7 @@
         },
         "/api/resources/archive": {
             "post": {
-                "description": "Creates a zip or tar.gz archive on the server from the given items (files and/or directories). Server-side only; no archive bytes are returned. All items must be from the same source. Folders are walked recursively; access-denied paths are silently skipped. Requires create permission.\n\n**Request body parameters:**\n- **source** (string, required): Source name where the items to archive live. Example: `\"default\"`\n- **toSource** (string, optional): Source name where the archive file will be written. Defaults to `source` if omitted. Example: `\"backups\"`\n- **items** (array of strings, required): Paths of files or directories to add to the archive (relative to source). Directories are walked; access-denied entries are skipped. Example: `[\"/docs/file.txt\", \"/photos\"]`\n- **destination** (string, required): Full path where the archive file will be created (on toSource). Must end with .zip or .tar.gz (or format is inferred). Example: `\"/backups/my-archive.zip\"`\n- **format** (string, optional): Archive format. One of: `\"zip\"`, `\"tar.gz\"`. Default inferred from destination extension. Example: `\"zip\"`\n- **compression** (integer, optional): Gzip compression level for tar.gz only (0–9). 0 = default. Ignored for zip. Example: `6`",
+                "description": "Creates a zip or tar.gz archive on the server from the given items (files and/or directories). Server-side only; no archive bytes are returned. All items must be from the same source. Folders are walked recursively; access-denied paths are silently skipped. Requires create permission.\n\n**Request body parameters:**\n- **source** (string, required): Source name where the items to archive live. Example: `\"default\"`\n- **toSource** (string, optional): Source name where the archive file will be written. Defaults to `source` if omitted. Example: `\"backups\"`\n- **items** (array of strings, required): Paths of files or directories to add to the archive (relative to source). Directories are walked; access-denied entries are skipped. Example: `[\"/docs/file.txt\", \"/photos\"]`\n- **destination** (string, required): Full path where the archive file will be created (on toSource). Must end with .zip or .tar.gz (or format is inferred). Example: `\"/backups/my-archive.zip\"`\n- **format** (string, optional): Archive format. One of: `\"zip\"`, `\"tar.gz\"`. Default inferred from destination extension. Example: `\"zip\"`\n- **compression** (integer, optional): Gzip compression level for tar.gz only (0–9). 0 = default. Ignored for zip. Example: `6`\n- **deleteAfter** (boolean, optional): If true, delete source files/directories after successful creation. Requires delete permission. Example: `true`",
                 "consumes": [
                     "application/json"
                 ],
@@ -3899,6 +3899,10 @@
                     "description": "Gzip compression level for tar.gz only, 0-9; 0 = default; ignored for zip (optional). Example: 6",
                     "type": "integer"
                 },
+                "deleteAfter": {
+                    "description": "If true, delete the source files/directories after successful archive creation (optional; requires delete permission). Example: true",
+                    "type": "boolean"
+                },
                 "destination": {
                     "description": "Full path where the archive will be created; use .zip or .tar.gz extension (required). Example: \"/backups/my-archive.zip\"",
                     "type": "string"
@@ -5217,6 +5221,10 @@
                     "description": "allow api access",
                     "type": "boolean"
                 },
+                "archive": {
+                    "description": "allow creating archives",
+                    "type": "boolean"
+                },
                 "create": {
                     "description": "allow creating or uploading files",
                     "type": "boolean"
@@ -5801,6 +5809,10 @@
                 },
                 "api": {
                     "description": "allow api access",
+                    "type": "boolean"
+                },
+                "archive": {
+                    "description": "allow creating archives",
                     "type": "boolean"
                 },
                 "create": {

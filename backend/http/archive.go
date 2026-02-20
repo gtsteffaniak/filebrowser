@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/fs"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -35,6 +34,7 @@ import (
 // @Description - **destination** (string, required): Full path where the archive file will be created (on toSource). Must end with .zip or .tar.gz (or format is inferred). Example: `"/backups/my-archive.zip"`
 // @Description - **format** (string, optional): Archive format. One of: `"zip"`, `"tar.gz"`. Default inferred from destination extension. Example: `"zip"`
 // @Description - **compression** (integer, optional): Gzip compression level for tar.gz only (0–9). 0 = default. Ignored for zip. Example: `6`
+// @Description - **deleteAfter** (boolean, optional): If true, delete source files/directories after successful creation. Requires delete permission. Example: `true`
 // @Tags Resources
 // @Accept json
 // @Produce json
@@ -71,7 +71,8 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	req.Destination = destClean
 	itemsClean := make([]string, 0, len(req.Items))
 	for _, p := range req.Items {
-		clean, err := utils.SanitizeUserPath(p)
+		var clean string
+		clean, err = utils.SanitizeUserPath(p)
 		if err != nil {
 			return http.StatusBadRequest, fmt.Errorf("invalid item path %q: %v", p, err)
 		}
@@ -120,7 +121,7 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		return http.StatusBadRequest, fmt.Errorf("destination directory invalid: %v", err)
 	}
 	destRealPath := filepath.Join(destParentReal, filepath.Base(req.Destination))
-	if err := os.MkdirAll(destParentReal, 0o755); err != nil {
+	if err = os.MkdirAll(destParentReal, fileutils.PermDir); err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("cannot create destination directory: %v", err)
 	}
 
@@ -176,6 +177,33 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	}
 	if createErr != nil {
 		return http.StatusInternalServerError, createErr
+	}
+
+	if req.DeleteAfter && d.user.Permissions.Delete {
+		type itemToDelete struct {
+			realPath string
+			isDir    bool
+		}
+		var toDelete []itemToDelete
+		for _, full := range itemPaths {
+			realPath, isDir, err := idx.GetRealPath(full)
+			if err != nil {
+				continue
+			}
+			toDelete = append(toDelete, itemToDelete{realPath: realPath, isDir: isDir})
+		}
+		for i := 0; i < len(toDelete); i++ {
+			for j := i + 1; j < len(toDelete); j++ {
+				if len(toDelete[j].realPath) > len(toDelete[i].realPath) {
+					toDelete[i], toDelete[j] = toDelete[j], toDelete[i]
+				}
+			}
+		}
+		for _, item := range toDelete {
+			if err := files.DeleteFiles(req.Source, item.realPath, item.isDir); err != nil {
+				logger.Errorf("Failed to delete source after archive: %v", err)
+			}
+		}
 	}
 
 	return renderJSON(w, r, map[string]string{"path": req.Destination}, http.StatusOK)
@@ -279,7 +307,7 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusBadRequest, fmt.Errorf("destination directory invalid: %v", err)
 	}
 	destReal := filepath.Join(destParentReal, filepath.Base(req.Destination))
-	if err := os.MkdirAll(destReal, 0o755); err != nil {
+	if err = os.MkdirAll(destReal, fileutils.PermDir); err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("cannot create destination directory: %v", err)
 	}
 
@@ -507,7 +535,7 @@ func computeArchiveSize(source string, fileList []string, d *requestContext) (in
 
 // createZip writes a ZIP archive to tmpPath containing the given paths; access rules apply.
 func createZip(d *requestContext, source string, tmpPath string, filenames ...string) error {
-	file, err := os.Create(tmpPath)
+	file, err := os.OpenFile(tmpPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fileutils.PermFile)
 	if err != nil {
 		return err
 	}
@@ -531,7 +559,7 @@ func createZip(d *requestContext, source string, tmpPath string, filenames ...st
 
 // createTarGz writes a tar.gz archive to tmpPath containing the given paths; access rules apply.
 func createTarGz(d *requestContext, source string, tmpPath string, filenames ...string) error {
-	file, err := os.Create(tmpPath)
+	file, err := os.OpenFile(tmpPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fileutils.PermFile)
 	if err != nil {
 		return err
 	}
@@ -559,7 +587,7 @@ func createTarGz(d *requestContext, source string, tmpPath string, filenames ...
 
 // createTarGzWithLevel writes a tar.gz archive with the given gzip compression level (0=default, 1-9).
 func createTarGzWithLevel(d *requestContext, source string, destPath string, level int, filenames ...string) error {
-	file, err := os.Create(destPath)
+	file, err := os.OpenFile(destPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fileutils.PermFile)
 	if err != nil {
 		return err
 	}
@@ -709,6 +737,8 @@ type archiveCreateRequest struct {
 	Format string `json:"format"`
 	// Gzip compression level for tar.gz only, 0-9; 0 = default; ignored for zip (optional). Example: 6
 	Compression int `json:"compression"`
+	// If true, delete the source files/directories after successful archive creation (optional; requires delete permission). Example: true
+	DeleteAfter bool `json:"deleteAfter"`
 }
 
 // unarchiveRequest is the body for POST /resources/unarchive (server-side extract).
@@ -760,15 +790,15 @@ func extractZip(archivePath, destDir string) error {
 		}
 
 		if f.FileInfo().IsDir() {
-			if err := os.MkdirAll(destPath, 0o755); err != nil {
+			if err = os.MkdirAll(destPath, fileutils.PermDir); err != nil {
 				return err
 			}
 			continue
 		}
-		if err := os.MkdirAll(filepath.Dir(destPath), 0o755); err != nil {
+		if err = os.MkdirAll(filepath.Dir(destPath), fileutils.PermDir); err != nil {
 			return err
 		}
-		out, err := os.OpenFile(destPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+		out, err := os.OpenFile(destPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fileutils.PermFile)
 		if err != nil {
 			return err
 		}
@@ -816,14 +846,14 @@ func extractTarGz(archivePath, destDir string) error {
 
 		switch h.Typeflag {
 		case tar.TypeDir:
-			if err := os.MkdirAll(destPath, 0o755); err != nil {
+			if err := os.MkdirAll(destPath, fileutils.PermDir); err != nil {
 				return err
 			}
 		case tar.TypeReg:
-			if err := os.MkdirAll(filepath.Dir(destPath), 0o755); err != nil {
+			if err := os.MkdirAll(filepath.Dir(destPath), fileutils.PermDir); err != nil {
 				return err
 			}
-			out, err := os.OpenFile(destPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fs.FileMode(h.Mode))
+			out, err := os.OpenFile(destPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fileutils.PermFile)
 			if err != nil {
 				return err
 			}

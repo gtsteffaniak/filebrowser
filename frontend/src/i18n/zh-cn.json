@@ -216,7 +216,19 @@
     "moveFailed": "移动失败",
     "operationFailed": "操作失败",
     "partialSuccess": "某些操作失败：{succeeded} 成功，{failed} 失败",
-    "renameFailed": "重命名项目失败"
+    "renameFailed": "重命名项目失败",
+    "archive": "创建档案",
+    "archiveMessage": "在服务器上创建所选项目的存档。",
+    "archiveDestination": "选择目标文件夹（然后在下面输入存档名称）：",
+    "archiveName": "存档名称（默认为 archive.zip）：",
+    "archiveCompression": "压缩级别（0-9）：",
+    "archiveDeleteAfter": "成功创建后删除源文件",
+    "archiveSuccess": "存档创建成功！",
+    "unarchive": "提取档案",
+    "unarchiveMessage": "选择提取存档的位置。",
+    "unarchiveDestination": "摘录至",
+    "unarchiveDeleteAfter": "提取后删除存档",
+    "unarchiveSuccess": "档案提取成功！"
   },
   "search": {
     "smallerThan": "小于",
@@ -271,7 +283,8 @@
       "create": "创建文件",
       "delete": "删除文件",
       "download": "下载文件",
-      "api": "创建和管理长效 API 标记"
+      "api": "创建和管理长效 API 标记",
+      "archive": "存档操作（创建、提取）"
     },
     "permissions-name": "权限",
     "profileSettings": "个人设置",
@@ -706,7 +719,8 @@
     "play": "播放{suffix}",
     "stop": "停止{suffix}",
     "reset": "重置{suffix}",
-    "space": "空间{suffix}"
+    "space": "空间{suffix}",
+    "format": "格式{suffix}"
   },
   "access": {
     "rules": "访问规则",

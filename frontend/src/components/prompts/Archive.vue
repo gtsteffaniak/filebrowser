@@ -31,10 +31,10 @@
           type="text"
           :placeholder="defaultArchiveName"
         />
-        <p class="prompts-label">{{ $t("prompts.archiveFormat") }}</p>
+        <p class="prompts-label">{{ $t("general.format", { suffix: ":" }) }}</p>
         <select v-model="format" class="input">
-          <option value="zip">ZIP</option>
-          <option value="tar.gz">tar.gz</option>
+          <option value="zip">zip</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <option value="tar.gz">tar.gz</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         </select>
         <p v-if="format === 'tar.gz'" class="prompts-label">{{ $t("prompts.archiveCompression") }}</p>
         <input
@@ -45,6 +45,13 @@
           min="0"
           max="9"
         />
+        <div class="archive-options settings-items">
+          <ToggleSwitch
+            class="item"
+            v-model="deleteAfter"
+            :name="$t('prompts.archiveDeleteAfter')"
+          />
+        </div>
       </template>
     </div>
   </div>
@@ -93,14 +100,14 @@
 import { mutations } from "@/store";
 import { notify } from "@/notify";
 import { archiveApi } from "@/api";
-import { url } from "@/utils";
 import { goToItem } from "@/utils/url";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FileList from "@/components/files/FileList.vue";
+import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 
 export default {
   name: "archive",
-  components: { LoadingSpinner, FileList },
+  components: { LoadingSpinner, FileList, ToggleSwitch },
   props: {
     items: {
       type: Array,
@@ -124,6 +131,7 @@ export default {
       compression: 0,
       creating: false,
       showFileList: false,
+      deleteAfter: true,
     };
   },
   mounted() {
@@ -178,6 +186,9 @@ export default {
         if (this.destSource && this.destSource !== this.source) {
           payload.toSource = this.destSource;
         }
+        if (this.deleteAfter) {
+          payload.deleteAfter = true;
+        }
         await archiveApi.createArchive(payload);
         mutations.setReload(true);
         mutations.closeTopHover();
@@ -224,6 +235,9 @@ export default {
   margin-top: 1em;
   margin-bottom: 0.25em;
   font-weight: 500;
+}
+.archive-options {
+  margin-top: 1em;
 }
 .card-content {
   position: relative;

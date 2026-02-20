@@ -216,7 +216,19 @@
     "moveFailed": "Error al mover",
     "operationFailed": "Operación fallida",
     "partialSuccess": "Algunas operaciones fallaron: {succeeded} tuvo éxito, {failed} falló",
-    "renameFailed": "Error al renombrar elemento"
+    "renameFailed": "Error al renombrar elemento",
+    "archive": "Crear archivo",
+    "archiveMessage": "Crea un archivo en el servidor a partir de los elementos seleccionados.",
+    "archiveDestination": "Elija la carpeta de destino (a continuación, introduzca el nombre del archivo):",
+    "archiveName": "Nombre del archivo (por defecto archive.zip):",
+    "archiveCompression": "Nivel de compresión (0-9):",
+    "archiveDeleteAfter": "Eliminar los archivos de origen después de crearlos correctamente",
+    "archiveSuccess": "¡Archivo creado con éxito!",
+    "unarchive": "Extraer archivo",
+    "unarchiveMessage": "Elija dónde extraer el archivo.",
+    "unarchiveDestination": "Extraer a:",
+    "unarchiveDeleteAfter": "Eliminar el archivo tras la extracción",
+    "unarchiveSuccess": "¡Archivo extraído con éxito!"
   },
   "search": {
     "smallerThan": "Menor que:",
@@ -275,7 +287,8 @@
       "create": "Crear archivos",
       "delete": "Eliminar archivos",
       "download": "Descargar archivos",
-      "api": "Crear y gestionar tokens de API de larga duración"
+      "api": "Crear y gestionar tokens de API de larga duración",
+      "archive": "Acciones de archivo (crear, extraer)"
     },
     "permissions-name": "Permisos",
     "profileSettings": "Ajustes del perfil",
@@ -626,7 +639,8 @@
     "play": "Jugar{suffix}",
     "stop": "Stop{suffix}",
     "reset": "Restablecer{suffix}",
-    "space": "Espacio{suffix}"
+    "space": "Espacio{suffix}",
+    "format": "Formato{suffix}"
   },
   "access": {
     "rules": "Reglas de acceso",

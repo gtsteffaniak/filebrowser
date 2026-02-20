@@ -216,7 +216,19 @@
     "moveFailed": "Taşıma başarısız",
     "operationFailed": "İşlem başarısız oldu",
     "partialSuccess": "Bazı işlemler başarısız oldu: {succeeded} başarılı, {failed} başarısız",
-    "renameFailed": "Öğenin adı değiştirilemedi"
+    "renameFailed": "Öğenin adı değiştirilemedi",
+    "archive": "Arşiv oluştur",
+    "archiveMessage": "Seçilen öğelerden sunucu üzerinde bir arşiv oluşturun.",
+    "archiveDestination": "Hedef klasörü seçin (ardından aşağıya arşiv adını girin):",
+    "archiveName": "Arşiv adı (varsayılan archive.zip):",
+    "archiveCompression": "Sıkıştırma seviyesi (0-9):",
+    "archiveDeleteAfter": "Başarılı bir şekilde oluşturulduktan sonra kaynak dosyaları silme",
+    "archiveSuccess": "Arşiv başarıyla oluşturuldu!",
+    "unarchive": "Arşivi ayıkla",
+    "unarchiveMessage": "Arşivin nereye çıkarılacağını seçin.",
+    "unarchiveDestination": "Özetle:",
+    "unarchiveDeleteAfter": "Çıkarma işleminden sonra arşivi silme",
+    "unarchiveSuccess": "Arşiv başarıyla çıkarıldı!"
   },
   "search": {
     "smallerThan": "Daha küçük:",
@@ -270,7 +282,8 @@
       "create": "Dosya oluşturma",
       "delete": "Dosyaları sil",
       "download": "Dosyaları indirin",
-      "api": "Uzun ömürlü API Belirteçleri oluşturma ve yönetme"
+      "api": "Uzun ömürlü API Belirteçleri oluşturma ve yönetme",
+      "archive": "Arşiv eylemleri (oluşturma, ayıklama)"
     },
     "permissions-name": "İzinler",
     "profileSettings": "Profil ayarları",
@@ -626,7 +639,8 @@
     "play": "Oyun{suffix}",
     "stop": "Dur{suffix}",
     "reset": "Sıfırla{suffix}",
-    "space": "Uzay{suffix}"
+    "space": "Uzay{suffix}",
+    "format": "Biçim{suffix}"
   },
   "access": {
     "rules": "Erişim kuralları",

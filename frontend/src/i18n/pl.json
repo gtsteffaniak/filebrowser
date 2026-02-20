@@ -216,7 +216,19 @@
     "moveFailed": "Przenoszenie nie powiodło się",
     "operationFailed": "Operacja nie powiodła się",
     "partialSuccess": "Niektóre operacje nie powiodły się: {succeeded} powiodło się, {failed} nie powiodło się",
-    "renameFailed": "Nie udało się zmienić nazwy elementu"
+    "renameFailed": "Nie udało się zmienić nazwy elementu",
+    "archive": "Utwórz archiwum",
+    "archiveMessage": "Utworzenie archiwum na serwerze z wybranych elementów.",
+    "archiveDestination": "Wybierz folder docelowy (a następnie wprowadź nazwę archiwum poniżej):",
+    "archiveName": "Nazwa archiwum (domyślnie archive.zip):",
+    "archiveCompression": "Poziom kompresji (0-9):",
+    "archiveDeleteAfter": "Usuwanie plików źródłowych po pomyślnym utworzeniu",
+    "archiveSuccess": "Archiwum utworzone pomyślnie!",
+    "unarchive": "Wyodrębnij archiwum",
+    "unarchiveMessage": "Wybierz miejsce rozpakowania archiwum.",
+    "unarchiveDestination": "Wyciąg do:",
+    "unarchiveDeleteAfter": "Usuń archiwum po wyodrębnieniu",
+    "unarchiveSuccess": "Archiwum rozpakowane pomyślnie!"
   },
   "search": {
     "smallerThan": "Mniejszy niż:",
@@ -270,7 +282,8 @@
       "create": "Tworzenie plików",
       "delete": "Usuwanie plików",
       "download": "Pobieranie plików",
-      "api": "Tworzenie tokenów API o długiej żywotności i zarządzanie nimi"
+      "api": "Tworzenie tokenów API o długiej żywotności i zarządzanie nimi",
+      "archive": "Akcje archiwizacji (tworzenie, wyodrębnianie)"
     },
     "permissions-name": "Uprawnienia",
     "profileSettings": "Twój profil",
@@ -626,7 +639,8 @@
     "play": "Grać{suffix}",
     "stop": "Stop{suffix}",
     "reset": "Reset{suffix}",
-    "space": "Przestrzeń{suffix}"
+    "space": "Przestrzeń{suffix}",
+    "format": "Format{suffix}"
   },
   "access": {
     "rules": "Zasady dostępu",

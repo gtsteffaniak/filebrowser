@@ -25,11 +25,12 @@
         >
           {{ $t("general.path", { suffix: ":" }) }} {{ destPath }}{{ destSource ? ` (${destSource})` : "" }}
         </div>
-        <div class="unarchive-options">
-          <label class="checkbox-label">
-            <input type="checkbox" v-model="deleteAfter" />
-            {{ $t("prompts.unarchiveDeleteAfter") }}
-          </label>
+        <div class="unarchive-options settings-items">
+          <ToggleSwitch
+            class="item"
+            v-model="deleteAfter"
+            :name="$t('prompts.unarchiveDeleteAfter')"
+          />
         </div>
       </template>
     </div>
@@ -83,10 +84,11 @@ import { archiveApi } from "@/api";
 import { goToItem } from "@/utils/url";
 import FileList from "@/components/files/FileList.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 
 export default {
   name: "unarchive",
-  components: { FileList, LoadingSpinner },
+  components: { FileList, LoadingSpinner, ToggleSwitch },
   props: {
     item: {
       type: Object,
@@ -98,7 +100,7 @@ export default {
       destPath: "/",
       destSource: null,
       destType: null,
-      deleteAfter: false,
+      deleteAfter: true,
       isLoading: false,
       showFileList: false,
     };

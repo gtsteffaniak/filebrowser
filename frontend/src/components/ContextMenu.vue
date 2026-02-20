@@ -66,13 +66,13 @@
       />
       <action
         v-if="showArchive"
-        icon="folder_zip"
+        icon="archive"
         :label="$t('prompts.archive')"
         @action="showArchiveHover"
       />
       <action
         v-if="showUnarchive"
-        icon="folder_open"
+        icon="unarchive"
         :label="$t('prompts.unarchive')"
         @action="showUnarchiveHover"
       />
@@ -239,7 +239,7 @@ export default {
     },
     showArchive() {
       if (this.isDuplicateFinder || getters.isShare()) return false;
-      return !this.showCreate && this.permissions.archive && this.selectedCount > 0;
+      return !this.showCreate && this.permissions.archive && this.selectedCount > 0 && !this.showUnarchive;
     },
     showUnarchive() {
       if (this.isDuplicateFinder || getters.isShare()) return false;
