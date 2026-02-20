@@ -168,7 +168,7 @@ export default {
       mutations.setMultiple(false);
       const currentPrompt = getters.currentPromptName();
       if (currentPrompt !== "success" && currentPrompt !== "generic") {
-        mutations.closeHovers();
+        mutations.closeTopHover();
       }
       if (window.location.hash == "" && currentView == "listingView" || currentView == "share") {
         const element = document.getElementById("main");
@@ -215,7 +215,7 @@ export default {
     },
     resetItems() {
       mutations.closeSidebar();
-      mutations.closeHovers();
+      mutations.closeTopHover();
       mutations.setSearch(false);
     },
   },

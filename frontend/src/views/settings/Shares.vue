@@ -188,7 +188,7 @@ export default {
                   shareApi.remove(item.hash);
                   this.links = this.links.filter((link) => link.hash !== item.hash);
                   notify.showSuccessToast(this.$t("settings.shareDeleted"));
-                  mutations.closeHovers();
+                  mutations.closeTopHover();
                 } catch (e) {
                   console.error(e);
                   notify.showErrorToast(this.$t("share.deleteFailed"));

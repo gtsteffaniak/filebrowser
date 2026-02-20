@@ -1,5 +1,5 @@
 <template>
-  <div class="card-content">
+  <div class="card-content" aria-label="file-list-prompt">
     <!-- Source Selection Dropdown -->
     <div v-if="showSourceSelector" class="source-selector" style="margin-bottom: 1rem;">
       <label for="destinationSource" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">
@@ -475,7 +475,7 @@ export default {
       this.items = allItems.filter(item => !item.isDirectory && item.type !== 'directory');
     },
     navigateToItem(item) {
-      mutations.closeHovers();
+      mutations.closeTopHover();
       mutations.setNavigationTransitioning(true);
       url.goToItem(item.source || state.req.source, item.path, undefined);
     },

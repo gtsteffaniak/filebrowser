@@ -55,7 +55,7 @@ export default {
   },
   computed: {
     closeHovers() {
-      return mutations.closeHovers();
+      return mutations.closeTopHover();
     },
   },
   methods: {
@@ -75,7 +75,7 @@ export default {
         source: this.selectedSource
       });
       // Close the modal
-      mutations.closeHovers();
+      mutations.closeTopHover();
     },
   },
 };

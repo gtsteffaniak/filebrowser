@@ -550,7 +550,7 @@ export default {
       mutations.closeHovers();
     },
     startDownload() {
-      mutations.closeHovers();
+      mutations.closeTopHover();
       const items = state.selected.length > 0 ? state.selected : [state.req];
       downloadFiles(items);
     },
