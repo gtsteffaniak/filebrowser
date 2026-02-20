@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file. For commit 
 ## v1.3.0-beta
 
  **New Features**:
+ - Archive/Unarchive actions in UI
+   - new api to archive/unarchive files on the server
+   - requires (new) `archive` and `create` user permissions
+   - archiving actions respect `server.maxArchiveSize`
+ # - client-side browse archive feature which doesn't require archive permissions
  - Added share icon to items that are shared (requires share permission to see)
  - LDAP login support (#591)
  - FileWatcher also supports watching directories

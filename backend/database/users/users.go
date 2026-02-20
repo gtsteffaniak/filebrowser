@@ -40,6 +40,7 @@ type Permissions struct {
 	Delete   bool `json:"delete"`   // allow deleting files
 	Create   bool `json:"create"`   // allow creating or uploading files
 	Download bool `json:"download"` // allow downloading files
+	Archive  bool `json:"archive"`  // allow creating archives
 }
 
 // SortingSettings represents the sorting settings.

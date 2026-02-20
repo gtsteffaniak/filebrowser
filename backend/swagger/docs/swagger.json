@@ -1760,6 +1760,79 @@
                 }
             }
         },
+        "/api/resources/archive": {
+            "post": {
+                "description": "Creates a zip or tar.gz archive on the server from the given items (files and/or directories). Server-side only; no archive bytes are returned. All items must be from the same source. Folders are walked recursively; access-denied paths are silently skipped. Requires create permission.\n\n**Request body parameters:**\n- **source** (string, required): Source name where the items to archive live. Example: `\"default\"`\n- **toSource** (string, optional): Source name where the archive file will be written. Defaults to `source` if omitted. Example: `\"backups\"`\n- **items** (array of strings, required): Paths of files or directories to add to the archive (relative to source). Directories are walked; access-denied entries are skipped. Example: `[\"/docs/file.txt\", \"/photos\"]`\n- **destination** (string, required): Full path where the archive file will be created (on toSource). Must end with .zip or .tar.gz (or format is inferred). Example: `\"/backups/my-archive.zip\"`\n- **format** (string, optional): Archive format. One of: `\"zip\"`, `\"tar.gz\"`. Default inferred from destination extension. Example: `\"zip\"`\n- **compression** (integer, optional): Gzip compression level for tar.gz only (0–9). 0 = default. Ignored for zip. Example: `6`",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Create an archive on the server",
+                "parameters": [
+                    {
+                        "description": "Request body: source, toSource (optional), items, destination, format (optional), compression (optional)",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.archiveCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Created; returns {\\\"path\\\": \\\"\u003cdestination path\u003e\\\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request (e.g. missing required field, invalid path)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden (create permission or access denied)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Source not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/resources/bulk": {
             "delete": {
                 "description": "Deletes multiple resources specified in the request body. Returns a list of succeeded and failed deletions.",
@@ -1820,6 +1893,79 @@
                     },
                     "500": {
                         "description": "Internal server error - all deletions failed",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/resources/unarchive": {
+            "post": {
+                "description": "Extracts a zip or tar.gz archive on the server into the given destination directory. Server-side only; no extracted bytes are returned. Supports extracting to a different source via toSource. Requires create permission.\n\n**Request body parameters:**\n- **fromSource** (string, required): Source name where the archive file lives. Example: `\"default\"`\n- **toSource** (string, optional): Source name where contents will be extracted. Defaults to fromSource if omitted. Example: `\"restored\"`\n- **path** (string, required): Path to the archive file (on fromSource). Must be .zip, .tar.gz, or .tgz. Example: `\"/downloads/data.zip\"`\n- **destination** (string, required): Directory path (on toSource) to extract into. Example: `\"/projects/imported\"`\n- **deleteAfter** (boolean, optional): If true, delete the archive file after successful extraction. Default: false. Example: `true`",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Extract an archive on the server",
+                "parameters": [
+                    {
+                        "description": "Request body: fromSource, toSource (optional), path, destination, deleteAfter (optional)",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.unarchiveRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Extracted; returns {\\\"path\\\": \\\"\u003cdestination path\u003e\\\", \\\"source\\\": \\\"\u003ctoSource\u003e\\\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request (e.g. missing required field, unsupported format)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden (create permission or access denied)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Source or archive file not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -3746,6 +3892,38 @@
                 }
             }
         },
+        "http.archiveCreateRequest": {
+            "type": "object",
+            "properties": {
+                "compression": {
+                    "description": "Gzip compression level for tar.gz only, 0-9; 0 = default; ignored for zip (optional). Example: 6",
+                    "type": "integer"
+                },
+                "destination": {
+                    "description": "Full path where the archive will be created; use .zip or .tar.gz extension (required). Example: \"/backups/my-archive.zip\"",
+                    "type": "string"
+                },
+                "format": {
+                    "description": "Archive format: \"zip\" or \"tar.gz\" (optional; inferred from destination if omitted). Example: \"zip\"",
+                    "type": "string"
+                },
+                "items": {
+                    "description": "Paths of files or directories to add; directories are walked; access-denied entries skipped (required). Example: [\"/docs/file.txt\", \"/photos\"]",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "source": {
+                    "description": "Source name where the items to archive live (required). Example: \"default\"",
+                    "type": "string"
+                },
+                "toSource": {
+                    "description": "Source name where the archive file will be written (optional; default: source). Example: \"backups\"",
+                    "type": "string"
+                }
+            }
+        },
         "http.duplicateGroup": {
             "type": "object",
             "properties": {
@@ -3819,6 +3997,31 @@
                             "$ref": "#/definitions/http.fileWatchMetadata"
                         }
                     ]
+                }
+            }
+        },
+        "http.unarchiveRequest": {
+            "type": "object",
+            "properties": {
+                "deleteAfter": {
+                    "description": "If true, delete the archive file after successful extraction (optional; default: false). Example: true",
+                    "type": "boolean"
+                },
+                "destination": {
+                    "description": "Directory path on toSource to extract into (required). Example: \"/projects/imported\"",
+                    "type": "string"
+                },
+                "fromSource": {
+                    "description": "Source name where the archive file lives (required). Example: \"default\"",
+                    "type": "string"
+                },
+                "path": {
+                    "description": "Path to the archive file on fromSource; .zip, .tar.gz, or .tgz (required). Example: \"/downloads/data.zip\"",
+                    "type": "string"
+                },
+                "toSource": {
+                    "description": "Source name where contents will be extracted (optional; default: fromSource). Example: \"restored\"",
+                    "type": "string"
                 }
             }
         },

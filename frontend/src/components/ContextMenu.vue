@@ -65,6 +65,18 @@
         @action="startDownload"
       />
       <action
+        v-if="showArchive"
+        icon="folder_zip"
+        :label="$t('prompts.archive')"
+        @action="showArchiveHover"
+      />
+      <action
+        v-if="showUnarchive"
+        icon="folder_open"
+        :label="$t('prompts.unarchive')"
+        @action="showUnarchiveHover"
+      />
+      <action
         v-if="showShareAction"
         icon="share"
         :label="$t('general.share')"
@@ -149,6 +161,7 @@
       <action v-if="isPreview && permissions.modify" icon="mode_edit" :label="$t('general.rename')" @action="showRenameHoverForPreview" />
       <action v-if="hasDownload && !req.isDir" icon="visibility" :label="$t('buttons.watchFile')" @action="watchFile()" />
       <action v-if="hasDownload" icon="file_download" :label="$t('general.download')" @action="startDownload" />
+      <action v-if="showUnarchiveInOverflow" icon="folder_open" :label="$t('prompts.unarchive')" @action="showUnarchiveHoverFromPreview" />
       <action v-if="showEdit" icon="edit" :label="$t('general.edit')" @action="edit()" />
       <action v-if="showSave" icon="save" :label="$t('general.save')" @action="save()" />
       <action v-if="showDelete" icon="delete" :label="$t('general.delete')" show="delete" />
@@ -165,6 +178,13 @@ import buttons from "@/utils/buttons";
 import { notify } from "@/notify";
 import { filesApi, publicApi } from "@/api";
 import { url } from "@/utils";
+
+function isArchivePath(pathOrName) {
+  if (!pathOrName || typeof pathOrName !== "string") return false;
+  const lower = pathOrName.toLowerCase();
+  return lower.endsWith(".zip") || lower.endsWith(".tar.gz") || lower.endsWith(".tgz");
+}
+
 export default {
   name: "ContextMenu",
   components: {
@@ -217,6 +237,16 @@ export default {
       if (this.isDuplicateFinder) return false;
       return !this.showCreate && this.permissions.download && this.selectedCount > 0;
     },
+    showArchive() {
+      if (this.isDuplicateFinder || getters.isShare()) return false;
+      return !this.showCreate && this.permissions.archive && this.selectedCount > 0;
+    },
+    showUnarchive() {
+      if (this.isDuplicateFinder || getters.isShare()) return false;
+      if (this.selectedCount !== 1 || !this.permissions.archive) return false;
+      const item = getters.getFirstSelected();
+      return item && isArchivePath(item.path || item.from || item.name);
+    },
     showShareAction() {
       if (this.isDuplicateFinder) return false;
       return (this.showCreate || this.selectedCount == 1) && this.showShare;
@@ -265,7 +295,12 @@ export default {
       return false
     },
     hasOverflowItems() {
-      return this.showEdit || this.showDelete || this.showSave || this.showGoToRaw || this.hasDownload;
+      return this.showEdit || this.showDelete || this.showSave || this.showGoToRaw || this.hasDownload || this.showUnarchiveInOverflow;
+    },
+    showUnarchiveInOverflow() {
+      if (!this.permissions.archive || getters.isShare()) return false;
+      const req = state.req;
+      return req && !req.isDir && isArchivePath(req.path || req.name);
     },
     showGoToRaw() {
       if (!this.permissions.download) {
@@ -553,6 +588,49 @@ export default {
       mutations.closeTopHover();
       const items = state.selected.length > 0 ? state.selected : [state.req];
       downloadFiles(items);
+    },
+    showArchiveHover() {
+      mutations.closeTopHover();
+      const items = [];
+      if (state.selected && state.req && state.req.items) {
+        for (const index of state.selected) {
+          const reqItem = state.req.items[index];
+          if (reqItem && reqItem.path) {
+            items.push({ path: reqItem.path, name: reqItem.name, source: state.req.source });
+          }
+        }
+      }
+      if (items.length === 0) return;
+      mutations.showHover({
+        name: "archive",
+        props: {
+          items,
+          source: state.req.source,
+          currentPath: state.req.path || "/",
+        },
+      });
+    },
+    showUnarchiveHover() {
+      mutations.closeTopHover();
+      const item = getters.getFirstSelected();
+      if (!item) return;
+      this.openUnarchivePrompt(item);
+    },
+    showUnarchiveHoverFromPreview() {
+      mutations.closeTopHover();
+      const req = state.req;
+      if (!req) return;
+      this.openUnarchivePrompt({ path: req.path, source: req.source, name: req.name });
+    },
+    openUnarchivePrompt(item) {
+      const path = item.path || item.from;
+      const source = item.source || state.req.source;
+      mutations.showHover({
+        name: "unarchive",
+        props: {
+          item: { path, source, name: item.name },
+        },
+      });
     },
     goToRaw() {
       if (getters.isShare()) {
