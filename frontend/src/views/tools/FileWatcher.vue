@@ -1,6 +1,6 @@
 <template>
   <div class="file-watcher">
-    <div class="card file-watcher-config">
+    <div class="card file-watcher-config padding-normal">
       <div class="card-content config-row" :class="{ 'mobile': isMobile }">
         <div class="config-item file-picker">
           <div aria-label="file-watcher-file" class="searchContext clickable button file-picker-button" @click="openPathPicker">
@@ -636,9 +636,10 @@ export default {
 
 <style scoped>
 .file-watcher {
-  padding: 2rem;
-  width: 100%;
-  margin: 0 auto;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 1em;
 }
 
 .file-watcher-config {

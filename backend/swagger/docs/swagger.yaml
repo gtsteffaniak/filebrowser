@@ -366,6 +366,9 @@ definitions:
       hidden:
         description: whether the file is hidden
         type: boolean
+      isShared:
+        description: whether the file or folder is shared
+        type: boolean
       metadata:
         allOf:
         - $ref: '#/definitions/iteminfo.MediaMetadata'
@@ -401,6 +404,9 @@ definitions:
       hidden:
         description: whether the file is hidden
         type: boolean
+      isShared:
+        description: whether the file or folder is shared
+        type: boolean
       modified:
         description: modification time
         type: string
@@ -424,6 +430,9 @@ definitions:
         type: boolean
       hidden:
         description: whether the file is hidden
+        type: boolean
+      isShared:
+        description: whether the file or folder is shared
         type: boolean
       modified:
         description: modification time

@@ -1,6 +1,6 @@
 <template>
   <div class="size-viewer">
-    <div class="card size-viewer-config">
+    <div class="card size-viewer-config padding-normal">
       <div class="card-content">
         <h3>{{ $t('general.source') }}</h3>
         <select v-model="selectedSource" class="input">
@@ -634,9 +634,10 @@ export default {
 
 <style scoped>
 .size-viewer {
-  padding: 2rem;
+  max-width: 1200px;
   margin-left: auto;
   margin-right: auto;
+  padding: 1em;
 }
 
 .toggle-container {
@@ -644,7 +645,6 @@ export default {
 }
 
 .size-viewer-results {
-  max-width: 1000px;
   margin-bottom: 2em;
 }
 

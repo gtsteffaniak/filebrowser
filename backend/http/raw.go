@@ -149,7 +149,7 @@ func addFile(source string, path string, d *requestContext, tarWriter *tar.Write
 		Source:         source,
 		Expand:         false,
 		FollowSymlinks: true,
-	}, store.Access, d.user)
+	}, store.Access, d.user, store.Share)
 	if err != nil {
 		return err
 	}

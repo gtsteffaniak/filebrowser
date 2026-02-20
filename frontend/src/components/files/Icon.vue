@@ -2,9 +2,9 @@
   <!-- Unified preview container for all types -->
   <span v-if="hasPreviewImage || shouldUse3DPreview" class="image-preview" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
     <!-- Overlay icons (folder/animation) positioned top-left -->
-    <i v-if="hasPreviewImage && hasMotion && isFile" class="material-icons icon-optimized overlay-icon">animation</i>
-    <i v-else-if="hasPreviewImage && !isFile" class="material-icons icon-optimized overlay-icon">folder</i>
-    
+    <i v-if="hasPreviewImage && hasMotion && isFile" class="material-icons overlay-icon muted">animation</i>
+    <i v-else-if="hasPreviewImage && !isFile" class="material-icons overlay-icon muted">folder</i>
+    <i v-if="isShared" class="material-icons overlay-icon">share</i>
     <!-- Preview content: image, 3D, or fallback -->
     <img v-if="hasPreviewImage" :key="imageTargetSrc" :src="imageDisplaySrc" ref="thumbnail" />
     <ThreeJs v-else-if="shouldUse3DPreview && !threeJsError" 
@@ -22,7 +22,8 @@
   
   <!-- Regular material icon (no preview) -->
   <span v-else class="image-preview">
-    <i :class="[classes, { active: active, clickable: clickable }]" class="icon icon-optimized"> {{ materialIcon }} </i>
+    <i :class="[classes, { active: active, clickable: clickable }]"> {{ materialIcon }} </i>
+    <i v-if="isShared" class="material-icons overlay-icon">share</i>
   </span>
 </template>
 
@@ -81,6 +82,14 @@ export default {
     size: {
       type: Number,
       default: null,
+    },
+    isShared: {
+      type: Boolean,
+      default: false,
+    },
+    isDir: {
+      type: Boolean,
+      default: false,
     },
   },
   data() {
@@ -399,23 +408,20 @@ export default {
 </script>
 
 <style>
-/* Performance optimization for icons */
-.icon-optimized {
-  will-change: auto;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-}
 
 /* Overlay icons (folder/animation) positioned top-left */
 .overlay-icon {
   position: absolute;
   top: 0.2em;
   left: 0.2em;
-  opacity: 0.7;
   font-size: 1.2em !important;
-  z-index: 2;
   text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+  z-index: 2;
   color: white;
+}
+
+.overlay-icon.muted {
+  opacity: 0.7;
 }
 
 .file-icons [aria-label^="."] {

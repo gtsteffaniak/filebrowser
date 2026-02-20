@@ -81,6 +81,7 @@
             v-bind:reducedOpacity="item.hidden || isDragging"
             v-bind:hash="shareInfo.hash"
             v-bind:hasPreview="item.hasPreview"
+            v-bind:isShared="item.isShared"
           />
         </div>
         <!-- Files Section -->
@@ -109,6 +110,7 @@
             v-bind:hasPreview="item.hasPreview"
             v-bind:metadata="item.metadata"
             v-bind:hasDuration="hasDuration"
+            v-bind:isShared="item.isShared"
           />
         </div>
 
