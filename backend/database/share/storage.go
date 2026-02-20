@@ -124,7 +124,9 @@ func (s *Storage) setCacheAfterMove(link *Link, oldSource, oldPath string) {
 	if link == nil {
 		return
 	}
-	oldKey := pathKey(oldSource, oldPath)
+	adjustedOldPath := utils.AddTrailingSlashIfNotExists(oldPath)
+	adjustedOldSource := utils.AddTrailingSlashIfNotExists(oldSource)
+	oldKey := pathKey(adjustedOldSource, adjustedOldPath)
 	if inner, ok := s.shareByPath[oldKey]; ok {
 		delete(inner, link.Hash)
 		if len(inner) == 0 {
@@ -261,7 +263,9 @@ func (s *Storage) GetPermanent(path, source string, id uint) (*Link, error) {
 // Gets returns shares for the given path, source, and user from the cache.
 func (s *Storage) Gets(sourcePath, source string, id uint) ([]*Link, error) {
 	s.mu.Lock()
-	key := pathKey(source, sourcePath)
+	adjustedPath := utils.AddTrailingSlashIfNotExists(sourcePath)
+	adjustedSource := utils.AddTrailingSlashIfNotExists(source)
+	key := pathKey(adjustedSource, adjustedPath)
 	hashes := s.shareByPath[key]
 	result := make([]*Link, 0, len(hashes))
 	for h := range hashes {
