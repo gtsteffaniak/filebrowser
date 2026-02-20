@@ -67,10 +67,11 @@ test("use quick jump", async({ page, checkForErrors, context }) => {
   await page.mouse.move(startX - 200, startY);
   await page.mouse.up();
 
-  await expect(page.locator('div[aria-label="file-list-prompt"]')).toBeVisible();
+  const quickJumpWindow = page.locator('div.floating-window[aria-label="file-list-prompt"]');
+  await expect(quickJumpWindow).toBeVisible();
   await page.locator('div[aria-label="20130612_142406.jpg"]').click();
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - 20130612_142406.jpg");
   await expect(page.locator('.topTitle')).toHaveText('20130612_142406.jpg');
-  await expect(page.locator('div[aria-label="file-list-prompt"]')).toBeHidden();
+  await expect(quickJumpWindow).toBeHidden();
   checkForErrors();
 })

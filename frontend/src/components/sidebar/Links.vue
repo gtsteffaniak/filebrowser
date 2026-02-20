@@ -278,7 +278,7 @@ export default {
       // For all other links (tools, custom, share), navigate using target directly
       if (link.target) {
         this.$router.push(link.target);
-        mutations.closeHovers();
+        mutations.closeTopHover();
       }
     },
     goToDownload() {
@@ -289,7 +289,7 @@ export default {
         mutations.showHover({
           name: "download",
           confirm: (format) => {
-            mutations.closeHovers();
+            mutations.closeTopHover();
             const downloadLink = publicApi.getDownloadURL({
               path: "/",
               hash: state.shareInfo.hash,
@@ -317,7 +317,7 @@ export default {
         path: state.req?.path,
       });
       this.$router.push({ path: path, hash: hash });
-      mutations.closeHovers();
+      mutations.closeTopHover();
     },
     openSidebarLinksPrompt() {
       mutations.showHover({

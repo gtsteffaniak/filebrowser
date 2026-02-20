@@ -286,7 +286,7 @@ export default {
         this.selectedSource = data.source;
       }
       // Close the picker
-      mutations.closeHovers();
+      mutations.closeTopHover();
     },
     async fetchData() {
       this.loading = true;
