@@ -154,7 +154,6 @@ userDefaults:
   disableSettings: false                  # disable the user from viewing the settings page
   preview:
     disableHideSidebar: false             # keep sidebar open when previewing files
-    highQuality: true                     # use high quality thumbnails
     image: true                           # show thumbnails for image files
     video: true                           # show thumbnails for video files
     motionVideoPreview: true              # show multiple frames for videos in thumbnail preview when hovering
@@ -172,7 +171,6 @@ userDefaults:
     delete: false                         # allow deleting files
     create: false                         # allow creating or uploading files
     download: true                        # allow downloading files
-    archive: false                        # allow creating archives
   loginMethod: "password"                 # login method to use: eg. password, proxy, oidc
   disableUpdateNotifications: false       # disable update notifications banner for admin users
   deleteWithoutConfirming: false          # delete files without confirmation
@@ -218,3 +216,4 @@ integrations:
         wmv: true
     debug: false                          # output ffmpeg stdout for media integration -- careful can produces lots of output!
     extractEmbeddedSubtitles: false       # extract embedded subtitles from media files
+    exiftoolPath: "/opt/homebrew/bin/exiftool" # path to exiftool executable

@@ -22,9 +22,12 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
+const minPreviewSize = 100
+
 var (
 	ErrUnsupportedFormat = errors.New("preview is not available for provided file format")
 	ErrUnsupportedMedia  = errors.New("unsupported media type")
+	ErrPreviewTooSmall   = errors.New("generated image is too small, likely an error occurred")
 	service              *Service
 )
 
@@ -198,6 +201,9 @@ func GetPreviewForFile(ctx context.Context, file iteminfo.ExtendedFileInfo, prev
 	if data, found, err := service.fileCache.Load(ctx, cacheKey); err != nil {
 		return nil, fmt.Errorf("failed to load from cache: %w", err)
 	} else if found {
+		if len(data) < minPreviewSize {
+			return nil, ErrPreviewTooSmall
+		}
 		return data, nil
 	}
 	return GeneratePreviewWithMD5(ctx, file, previewSize, url, seekPercentage, cacheHash)
@@ -358,11 +364,6 @@ func (s *Service) generateImagePreview(ctx context.Context, file iteminfo.Extend
 		return nil, fmt.Errorf("failed to create image preview: %w", err)
 	}
 
-	if len(imageBytes) < 100 {
-		logger.Errorf("Generated image too small for '%s' (type: %s): %d bytes", file.Name, file.Type, len(imageBytes))
-		return nil, fmt.Errorf("generated image is too small, likely an error occurred: %d bytes", len(imageBytes))
-	}
-
 	return imageBytes, nil
 }
 
@@ -434,26 +435,50 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 	_, _ = hasher.Write([]byte(CacheKey(fileMD5, previewSize, seekPercentage)))
 	hash := hex.EncodeToString(hasher.Sum(nil))
 
-	// Generate raw preview based on file type
-	imageBytes, err := service.generateRawPreview(ctx, file, previewSize, officeUrl, seekPercentage, hash)
-	if err != nil {
-		return nil, err
+	cacheKey := CacheKey(fileMD5, previewSize, seekPercentage)
+
+	// If this file type might have an embedded preview, try exiftool first before any type-specific path.
+	var imageBytes []byte
+	fromExiftool := false
+	if hasEmbeddedPreview(file.Type, file.Name) {
+		if exifBytes, _ := ExtractEmbeddedPreview(ctx, file.RealPath, file.Type); len(exifBytes) >= minPreviewSize {
+			imageBytes = exifBytes
+			fromExiftool = true
+			// Apply EXIF orientation from source file using exiftool + imaging (no FFmpeg).
+			if orient := GetOrientation(ctx, file.RealPath); orient != "" {
+				if corrected := applyOrientationToPreviewBytes(imageBytes, orient); len(corrected) >= minPreviewSize {
+					imageBytes = corrected
+				}
+			}
+		}
 	}
 
-	// For HEIC files, we've already done the resize/conversion, cache and return directly
+	if !fromExiftool {
+		var err error
+		imageBytes, err = service.generateRawPreview(ctx, file, previewSize, officeUrl, seekPercentage, hash)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if len(imageBytes) < minPreviewSize {
+		logger.Errorf("Generated image too small for '%s' (type: %s): %d bytes - likely an error occurred",
+			file.Name, file.Type, len(imageBytes))
+		_ = service.fileCache.Store(ctx, cacheKey, []byte{})
+		return nil, ErrPreviewTooSmall
+	}
+
+	// When we got bytes from exiftool, we still need to resize to small/large/xlarge (original is never converted).
+	// When we got bytes from type-specific path, HEIC/Image are already resized; others need resize below.
 	previewType := determinePreviewType(file)
-	if previewType == previewTypeHEIC {
-		cacheKey := CacheKey(fileMD5, previewSize, seekPercentage)
-		if err = service.fileCache.Store(ctx, cacheKey, imageBytes); err != nil {
+	if !fromExiftool && previewType == previewTypeHEIC {
+		if err := service.fileCache.Store(ctx, cacheKey, imageBytes); err != nil {
 			logger.Errorf("failed to cache HEIC image: %v", err)
 		}
 		return imageBytes, nil
 	}
-
-	// For regular images that were already resized, cache and return
-	if previewType == previewTypeImage {
-		cacheKey := CacheKey(fileMD5, previewSize, seekPercentage)
-		if err = service.fileCache.Store(ctx, cacheKey, imageBytes); err != nil {
+	if !fromExiftool && previewType == previewTypeImage {
+		if err := service.fileCache.Store(ctx, cacheKey, imageBytes); err != nil {
 			logger.Errorf("failed to cache image: %v", err)
 		}
 		return imageBytes, nil
@@ -464,14 +489,7 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 		return nil, ctx.Err()
 	}
 
-	// Validate generated image size
-	if len(imageBytes) < 100 {
-		logger.Errorf("Generated image too small for '%s' (type: %s): %d bytes - likely an error occurred",
-			file.Name, file.Type, len(imageBytes))
-		return nil, fmt.Errorf("generated image is too small, likely an error occurred: %d bytes", len(imageBytes))
-	}
-
-	// Resize if needed (for videos, audio, documents, office files)
+	// Resize if needed (exiftool bytes, or videos, audio, documents). Original is never converted.
 	if previewSize != "original" {
 		options, err := getPreviewOptions(previewSize)
 		if err != nil {
@@ -492,7 +510,6 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 		}
 
 		// Cache and return resized image
-		cacheKey := CacheKey(fileMD5, previewSize, seekPercentage)
 		if err := service.fileCache.Store(ctx, cacheKey, resizedBytes); err != nil {
 			logger.Errorf("failed to cache resized image: %v", err)
 		}
@@ -500,7 +517,6 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 	}
 
 	// Cache and return original size
-	cacheKey := CacheKey(fileMD5, previewSize, seekPercentage)
 	if err := service.fileCache.Store(ctx, cacheKey, imageBytes); err != nil {
 		logger.Errorf("failed to cache original image: %v", err)
 	}

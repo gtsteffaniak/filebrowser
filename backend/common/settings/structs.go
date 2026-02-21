@@ -102,6 +102,7 @@ type Media struct {
 	Convert                  FfmpegConvert `json:"convert"`                  // config for ffmpeg conversion settings
 	Debug                    bool          `json:"debug"`                    // output ffmpeg stdout for media integration -- careful can produces lots of output!
 	ExtractEmbeddedSubtitles bool          `json:"extractEmbeddedSubtitles"` // extract embedded subtitles from media files
+	ExiftoolPath             string        `json:"exiftoolPath"`             // path to exiftool executable
 }
 
 type FfmpegConvert struct {
@@ -302,7 +303,7 @@ type ExternalLink struct {
 // UserDefaultsPreview holds preview settings with pointer types for defaults
 type UserDefaultsPreview struct {
 	DisableHideSidebar bool  `json:"disableHideSidebar"` // keep sidebar open when previewing files
-	HighQuality        *bool `json:"highQuality"`        // use high quality thumbnails
+	HighQuality        *bool `json:"highQuality"`        // deprecated: always true in v1.3.0+
 	Image              *bool `json:"image"`              // show thumbnails for image files
 	Video              *bool `json:"video"`              // show thumbnails for video files
 	MotionVideoPreview *bool `json:"motionVideoPreview"` // show multiple frames for videos in thumbnail preview when hovering

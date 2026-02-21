@@ -221,6 +221,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"passwordAvailable":    config.Auth.Methods.PasswordAuth.Enabled,
 		"ldapAvailable":        config.Auth.Methods.LdapAuth.Enabled,
 		"mediaAvailable":       settings.MediaEnabled(),
+		"exiftoolAvailable":    settings.Config.Integrations.Media.ExiftoolPath != "",
 		"muPdfAvailable":       settings.Env.MuPdfAvailable,
 		"updateAvailable":      utils.GetUpdateAvailableUrl(),
 		"disableNavButtons":    disableNavButtons,

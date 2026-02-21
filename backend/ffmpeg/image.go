@@ -11,12 +11,16 @@ import (
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 )
 
 // GetImageOrientation extracts the EXIF orientation from an image file using exiftool
 func (s *FFmpegService) GetImageOrientation(imagePath string) (string, error) {
-	// Use exiftool to get orientation information
-	cmd := exec.Command("exiftool", "-Orientation", "-s3", imagePath)
+	exiftoolPath := settings.Config.Integrations.Media.ExiftoolPath
+	if exiftoolPath == "" {
+		return "Horizontal (normal)", nil
+	}
+	cmd := exec.Command(exiftoolPath, "-Orientation", "-s3", imagePath)
 	var out bytes.Buffer
 	var errOut bytes.Buffer
 	cmd.Stdout = &out

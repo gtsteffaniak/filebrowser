@@ -19,33 +19,40 @@
             <ToggleSwitch class="item" v-model="localuser.quickDownload" @change="updateSettings"
               :name="$t('profileSettings.showQuickDownload')"
               :description="$t('profileSettings.showQuickDownloadDescription')" />
-            <ToggleSwitch class="item" v-model="localuser.preview.image" @change="updateSettings"
-              :name="$t('profileSettings.previewImages')"
-              :description="$t('profileSettings.previewImagesDescription')" />
-            <ToggleSwitch v-if="mediaEnabled" class="item" v-model="localuser.preview.video" @change="updateSettings"
-              :name="$t('profileSettings.previewVideos')"
-              :description="$t('profileSettings.previewVideosDescription')" />
-            <ToggleSwitch v-if="mediaEnabled" class="item" v-model="localuser.preview.motionVideoPreview"
-              @change="updateSettings" :name="$t('profileSettings.previewMotionVideos')"
-              :description="$t('profileSettings.previewMotionVideosDescription')" />
-            <ToggleSwitch class="item" v-model="localuser.preview.highQuality" @change="updateSettings"
-              :name="$t('profileSettings.highQualityPreview')"
-              :description="$t('profileSettings.highQualityPreviewDescription')" />
-            <ToggleSwitch class="item" v-model="localuser.preview.office" @change="updateSettings"
-              :name="$t('profileSettings.previewOffice')"
-              :description="$t('profileSettings.previewOfficeDescription')" />
-            <ToggleSwitch class="item" v-model="localuser.preview.popup" @change="updateSettings"
-              :name="$t('profileSettings.popupPreview')" :description="$t('profileSettings.popupPreviewDescription')" />
             <ToggleSwitch class="item" v-model="localuser.showSelectMultiple" @change="updateSettings"
               :name="$t('profileSettings.showSelectMultiple')"
               :description="$t('profileSettings.showSelectMultipleDescription')" />
-            <ToggleSwitch class="item" v-model="localuser.preview.folder" @change="updateSettings"
-              :name="$t('profileSettings.previewFolder')"
-              :description="$t('profileSettings.previewFolderDescription')" />
           </div>
         </SettingsItem>
-        <SettingsItem aria-label="sidebarOptions" :title="$t('profileSettings.sidebarOptions')" :collapsable="true" :start-collapsed="true"
-          :force-collapsed="isSectionCollapsed('sidebarOptions')" @toggle="handleSectionToggle('sidebarOptions')">
+        <SettingsItem aria-label="thumbnailOptions" :title="$t('profileSettings.thumbnailOptions')" :collapsable="true"
+          :start-collapsed="true" :force-collapsed="isSectionCollapsed('thumbnailOptions')"
+          @toggle="handleSectionToggle('thumbnailOptions')">
+          <div class="settings-items">
+            <ToggleSwitch class="item" v-model="showThumbnailsForPreviews" @change="updateSettings"
+              :name="$t('profileSettings.showThumbnails')"
+              :description="$t('profileSettings.showThumbnailsDescription')" />
+            <template v-if="showThumbnailsForPreviews">
+              <ToggleSwitch class="item" v-model="localuser.preview.image" @change="updateSettings"
+                :name="$t('general.images')" :description="$t('profileSettings.previewImagesDescription')" />
+              <ToggleSwitch v-if="mediaEnabled" class="item" v-model="localuser.preview.video" @change="updateSettings"
+                :name="$t('general.videos')" :description="$t('profileSettings.previewVideosDescription')" />
+              <ToggleSwitch class="item" v-model="localuser.preview.office" @change="updateSettings"
+                :name="$t('general.office')" :description="$t('profileSettings.previewOfficeDescription')" />
+              <ToggleSwitch class="item" v-model="localuser.preview.folder" @change="updateSettings"
+                :name="$t('general.folders')" :description="$t('profileSettings.previewFolderDescription')" />
+              <ToggleSwitch class="item" v-model="localuser.preview.popup" @change="updateSettings"
+                :name="$t('profileSettings.popupPreview')"
+                :description="$t('profileSettings.popupPreviewDescription')" />
+              <ToggleSwitch v-if="localuser.preview.popup && ((mediaEnabled && localuser.preview.video) || localuser.preview.folder)" class="item"
+                v-model="localuser.preview.motionPreview" @change="updateSettings"
+                :name="$t('profileSettings.previewMotion')"
+                :description="$t('profileSettings.previewMotionVideosDescription')" />
+            </template>
+          </div>
+        </SettingsItem>
+        <SettingsItem aria-label="sidebarOptions" :title="$t('profileSettings.sidebarOptions')" :collapsable="true"
+          :start-collapsed="true" :force-collapsed="isSectionCollapsed('sidebarOptions')"
+          @toggle="handleSectionToggle('sidebarOptions')">
           <div class="settings-items">
             <ToggleSwitch class="item" v-model="localuser.disableQuickToggles" @change="updateSettings"
               :name="$t('profileSettings.disableQuickToggles')"
@@ -57,16 +64,18 @@
               :name="$t('profileSettings.hideSidebarFileActions')" />
           </div>
         </SettingsItem>
-        <SettingsItem aria-label="searchOptions" :title="$t('settings.searchOptions')" :collapsable="true" :start-collapsed="true"
-          :force-collapsed="isSectionCollapsed('searchOptions')" @toggle="handleSectionToggle('searchOptions')">
+        <SettingsItem aria-label="searchOptions" :title="$t('settings.searchOptions')" :collapsable="true"
+          :start-collapsed="true" :force-collapsed="isSectionCollapsed('searchOptions')"
+          @toggle="handleSectionToggle('searchOptions')">
           <div class="settings-items">
             <ToggleSwitch class="item" v-model="localuser.disableSearchOptions" @change="updateSettings"
               :name="$t('profileSettings.disableSearchOptions')"
               :description="$t('profileSettings.disableSearchOptionsDescription')" />
           </div>
         </SettingsItem>
-        <SettingsItem aria-label="fileViewerOptions" :title="$t('profileSettings.fileViewerOptions')" :collapsable="true" :start-collapsed="true"
-          :force-collapsed="isSectionCollapsed('fileViewerOptions')" @toggle="handleSectionToggle('fileViewerOptions')">
+        <SettingsItem aria-label="fileViewerOptions" :title="$t('profileSettings.fileViewerOptions')"
+          :collapsable="true" :start-collapsed="true" :force-collapsed="isSectionCollapsed('fileViewerOptions')"
+          @toggle="handleSectionToggle('fileViewerOptions')">
           <div class="settings-items">
             <ToggleSwitch class="item" v-model="localuser.preview.defaultMediaPlayer" @change="updateSettings"
               :name="$t('profileSettings.defaultMediaPlayer')"
@@ -90,8 +99,7 @@
             <div class="form-flex-group">
               <input class="input form-form flat-right disable-viewing"
                 :class="{ 'form-invalid': !validateExtensions(formDisablePreviews) }" type="text"
-                :placeholder="$t('profileSettings.disableFileExtensions')"
-                v-model="formDisablePreviews" />
+                :placeholder="$t('profileSettings.disableFileExtensions')" v-model="formDisablePreviews" />
               <button type="button" class="button form-button flat-left" @click="submitDisablePreviewsChange">
                 {{ $t("general.save") }}
               </button>
@@ -109,8 +117,7 @@
             <div class="form-flex-group">
               <input class="input form-form flat-right disable-viewing"
                 :class="{ 'form-invalid': !validateExtensions(formDisabledViewing) }" type="text"
-                :placeholder="$t('profileSettings.disableFileExtensions')"
-                v-model="formDisabledViewing" />
+                :placeholder="$t('profileSettings.disableFileExtensions')" v-model="formDisabledViewing" />
               <button type="button" class="button form-button flat-left" @click="submitDisabledViewingChange">
                 {{ $t("general.save") }}
               </button>
@@ -234,6 +241,28 @@ export default {
       set(value) {
         this.localuser.customTheme = value;
       }
+    },
+    /** Pseudo-toggle: on if any thumbnail option is on; turning on enables only images by default, turning off disables all. */
+    showThumbnailsForPreviews: {
+      get() {
+        const p = this.localuser.preview || {};
+        return !!(p.image || p.video || p.motionVideoPreview || p.office || p.popup || p.folder);
+      },
+      set(enabled) {
+        if (!this.localuser.preview) {
+          this.localuser.preview = {};
+        }
+        if (enabled) {
+          this.localuser.preview.image = true;
+        } else {
+          this.localuser.preview.image = false;
+          this.localuser.preview.video = false;
+          this.localuser.preview.motionVideoPreview = false;
+          this.localuser.preview.office = false;
+          this.localuser.preview.popup = false;
+          this.localuser.preview.folder = false;
+        }
+      },
     },
   },
   mounted() {

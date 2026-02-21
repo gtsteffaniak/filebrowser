@@ -40,6 +40,7 @@ import throttle from "@/utils/throttle";
 import { notify } from "@/notify";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { getBestCachedImage } from "@/utils/imageCache";
+import { isRawImageMimeType } from "@/utils/mimetype";
 import { globalVars } from "@/utils/constants";
 
 export default {
@@ -106,9 +107,11 @@ export default {
       if (!this.path || !state.req.hasPreview) {
         return null;
       }
-      // Don't use thumbnail for HEIC files that need conversion
-      const showFullSizeHeic = state.req?.type === "image/heic" && !state.isSafari && globalVars.mediaAvailable && !globalVars.disableHeicConversion;
-      if (showFullSizeHeic) {
+      // Don't use thumbnail when we show original embedded preview (HEIC/HEIF or raw)
+      const isHeicOrHeif = state.req?.type === "image/heic" || state.req?.type === "image/heif";
+      const useOriginalForHeic = isHeicOrHeif && (state.isSafari || (globalVars.mediaAvailable && globalVars.enableHeicConversion) || globalVars.exiftoolAvailable);
+      const useOriginalForRaw = isRawImageMimeType(state.req?.type) && globalVars.exiftoolAvailable;
+      if (useOriginalForHeic || useOriginalForRaw) {
         return null;
       }
       // Get cached thumbnail URL (prefers large, falls back to small)

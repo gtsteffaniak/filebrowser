@@ -99,60 +99,58 @@ func rawFileHandler(w http.ResponseWriter, r *http.Request, file iteminfo.Extend
 	return 0, nil
 }
 
-// getDirectoryPreview finds a valid preview file within a directory.
-func getDirectoryPreview(r *http.Request, d *requestContext) (*iteminfo.ExtendedFileInfo, error) {
-	var lastErr error
+// getDirectoryPreview returns the previewable file at the given frame index (0–3) for motion preview.
+// atPercentage maps to frame: 0→0, 1–25→1, 26–50→2, 51–100→3. The returned file is frameIndex % n where n is the number of previewable items.
+func getDirectoryPreview(r *http.Request, d *requestContext, frameIndex int) (*iteminfo.ExtendedFileInfo, error) {
+	// Build list of previewable item names in stable order (same as d.fileInfo.Files)
+	var previewableNames []string
 	for _, item := range d.fileInfo.Files {
 		if !item.HasPreview || !iteminfo.ShouldBubbleUpToFolderPreview(item.ItemInfo) {
 			continue
 		}
-		source := d.fileInfo.Source
-		path := utils.JoinPathAsUnix(d.fileInfo.Path, item.Name)
-		if d.share != nil {
-			sourceInfo, ok := settings.Config.Server.SourceMap[d.share.Source]
-			if !ok {
-				return nil, fmt.Errorf("source not found for share")
-			}
-			source = sourceInfo.Name
-			path = d.IndexPath + item.Name
-		}
-		fileInfo, err := files.FileInfoFaster(
-			utils.FileOptions{
-				Path:     path,
-				Source:   source,
-				AlbumArt: true, // Extract album art for audio previews
-				Metadata: true,
-			}, store.Access, d.user, store.Share)
-		if err != nil {
-			lastErr = err
-			continue // Try next file if this one fails
-		}
-		// Try to generate preview to verify the file is not corrupted
-		tempCtx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
-		_, previewErr := preview.GetPreviewForFile(tempCtx, *fileInfo, "small", "", 0)
-		cancel()
-		if previewErr != nil {
-			// Skip context errors (timeout or cancellation) - they're not corruption issues
-			if !errors.Is(previewErr, context.Canceled) && !errors.Is(previewErr, context.DeadlineExceeded) {
-				// File might be corrupted, try next one
-				logger.Debugf("Skipping preview file in directory '%s': %s (error: %v)",
-					d.fileInfo.Name, item.Name, previewErr)
-			} else {
-				// if it is a context error, return the error
-				// don't keep trying
-				return nil, previewErr
-			}
-			lastErr = previewErr
-			continue
-		}
-		return fileInfo, nil
+		previewableNames = append(previewableNames, item.Name)
 	}
-	// If we exhausted all files and none worked, return the last error
-	if lastErr != nil {
-		return nil, fmt.Errorf("no valid preview files found in directory: %w", lastErr)
+	if len(previewableNames) == 0 {
+		return nil, fmt.Errorf("no previewable files found in directory")
 	}
+	// Cycle: 1 image → always 0; 2 images → 0,1,0,1; 3 → 0,1,2,0; 4 → 0,1,2,3
+	index := frameIndex % len(previewableNames)
+	name := previewableNames[index]
 
-	return nil, fmt.Errorf("no previewable files found in directory")
+	source := d.fileInfo.Source
+	path := utils.JoinPathAsUnix(d.fileInfo.Path, name)
+	if d.share != nil {
+		sourceInfo, ok := settings.Config.Server.SourceMap[d.share.Source]
+		if !ok {
+			return nil, fmt.Errorf("source not found for share")
+		}
+		source = sourceInfo.Name
+		path = d.IndexPath + name
+	}
+	fileInfo, err := files.FileInfoFaster(
+		utils.FileOptions{
+			Path:     path,
+			Source:   source,
+			AlbumArt: true,
+			Metadata: true,
+		}, store.Access, d.user, store.Share)
+	if err != nil {
+		return nil, err
+	}
+	tempCtx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	_, previewErr := preview.GetPreviewForFile(tempCtx, *fileInfo, "small", "", 0)
+	cancel()
+	if previewErr != nil {
+		if !errors.Is(previewErr, context.Canceled) && !errors.Is(previewErr, context.DeadlineExceeded) {
+			logger.Debugf("Skipping preview file in directory '%s': %s (error: %v)", d.fileInfo.Name, name, previewErr)
+			// Fallback: try first item (frame 0) once so atPercentage=0 still works when another frame fails
+			if index != 0 {
+				return getDirectoryPreview(r, d, 0)
+			}
+		}
+		return nil, previewErr
+	}
+	return fileInfo, nil
 }
 
 func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
@@ -164,14 +162,39 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 		return http.StatusBadRequest, fmt.Errorf("this item does not have a preview")
 	}
 
+	seekPercentage := 0
+	percentage := r.URL.Query().Get("atPercentage")
+	if percentage != "" {
+		var err error
+		seekPercentage, err = strconv.Atoi(percentage)
+		if err != nil {
+			seekPercentage = 0
+		}
+		if seekPercentage < 0 || seekPercentage > 100 {
+			seekPercentage = 0
+		}
+	}
+
+	// For directories: map atPercentage to frame index 0–3 for motion preview (cycle over previewable items)
+	var dirFrameIndex int
 	if d.fileInfo.Type == "directory" {
-		// Get extended file info of first previewable item in directory
-		fileInfo, err := getDirectoryPreview(r, d)
+		switch {
+		case seekPercentage <= 0:
+			dirFrameIndex = 0
+		case seekPercentage <= 25:
+			dirFrameIndex = 1
+		case seekPercentage <= 50:
+			dirFrameIndex = 2
+		default:
+			dirFrameIndex = 3
+		}
+		fileInfo, err := getDirectoryPreview(r, d, dirFrameIndex)
 		if err != nil {
 			logger.Errorf("error getting directory preview: %v", err)
 			return http.StatusInternalServerError, err
 		}
 		d.fileInfo = *fileInfo
+		seekPercentage = 0
 	}
 
 	setContentDisposition(w, r, d.fileInfo.Name)
@@ -179,24 +202,10 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 	ext := strings.ToLower(filepath.Ext(d.fileInfo.Name))
 	resizable := iteminfo.ResizableImageTypes[ext]
 
-	// If image is under 250KB, serve the original instead of generating a preview
-	const maxSizeForOriginal = 250 * 1024 // 250KB
-	if (!resizable || config.Server.DisableResize || d.fileInfo.Size < maxSizeForOriginal) && isImage {
+	// For small, displayable images (jpg, png, etc.) serve the original to avoid processing.
+	const maxSizeForOriginal = 128 * 1024 // 128KB
+	if resizable && (config.Server.DisableResize || d.fileInfo.Size < maxSizeForOriginal) && isImage {
 		return rawFileHandler(w, r, d.fileInfo)
-	}
-
-	seekPercentage := 0
-	percentage := r.URL.Query().Get("atPercentage")
-	if percentage != "" {
-		var err error
-		// convert string to int
-		seekPercentage, err = strconv.Atoi(percentage)
-		if err != nil {
-			seekPercentage = 10
-		}
-		if seekPercentage < 0 || seekPercentage > 100 {
-			seekPercentage = 10
-		}
 	}
 
 	officeUrl := ""

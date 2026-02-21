@@ -17,6 +17,7 @@
         type: mimetype
       }"
       :is-thumbnail="true"
+      :add-load-delay="true"
       @error="handle3DError" />
   </span>
   
@@ -185,7 +186,7 @@ export default {
       return this.imageTargetSrc;
     },
     showLargeIcon() {
-      return getters.viewMode() === "gallery" && getters.previewPerms().highQuality;
+      return getters.viewMode() === "gallery";
     },
     showLarger() {
       return getters.viewMode() === "gallery" || getters.viewMode() === "normal";
@@ -196,6 +197,14 @@ export default {
         getters.previewPerms().video &&
         globalVars.mediaAvailable &&
         getters.previewPerms().motionVideoPreview
+      );
+    },
+    /** True when this is a folder with preview and we can cycle through folder images (motion preview). */
+    hasFolderMotion() {
+      return (
+        this.mimetype === "directory" &&
+        getters.previewPerms().folder &&
+        this.hasPreview
       );
     },
     isMaterialIcon() {
@@ -261,21 +270,39 @@ export default {
       targetImage.src = url;
     },
     handleMouseEnter() {
-      // Always use large thumbnails for hover/popup preview
-      const imageUrl = this.thumbnailUrl + "&size=large";
-      
-      if (this.imageState == "loaded") {
-        mutations.setPreviewSource(imageUrl);
-        // Store source/path/url/modified in state so PopupPreview can track it when image actually loads
-        if (this.path) {
-          // For shares, use shareInfo.hash as the source; otherwise use this.source or state.req.source
-          const source = getters.isShare() ? state.shareInfo?.hash : (this.source || state.req.source);
-          // Use file's modified date if available, otherwise fall back to state.req.modified
-          const modified = this.modified || state.req.modified;
-          state.popupPreviewSourceInfo = { source, path: this.path, size: 'large', url: imageUrl, modified };
-        }
+      if (!getters.previewPerms().popup || !this.path) {
+        return;
       }
-      if (!getters.previewPerms().motionVideoPreview || !this.hasMotion) {
+      const source = getters.isShare() ? state.shareInfo?.hash : (this.source || state.req.source);
+      const modified = this.modified || state.req.modified;
+
+      // 3D model: show ThreeJs in popup
+      if (this.shouldUse3DPreview) {
+        state.popupPreviewSourceInfo = {
+          type: "3d",
+          source,
+          path: this.path,
+          fbdata: {
+            name: this.filename,
+            path: this.path,
+            source,
+            size: this.size,
+            type: this.mimetype,
+          },
+        };
+        return;
+      }
+
+      // Image (and other preview types): use thumbnail URL
+      const imageUrl = this.thumbnailUrl + "&size=large";
+      if (this.imageState === "loaded") {
+        mutations.setPreviewSource(imageUrl);
+        state.popupPreviewSourceInfo = { source, path: this.path, size: "large", url: imageUrl, modified };
+      }
+      // Motion preview: video (atPercentage) or folder (cycle next previewable image)
+      const useVideoMotion = getters.previewPerms().motionVideoPreview && this.hasMotion;
+      const useFolderMotion = getters.previewPerms().popup && this.hasFolderMotion;
+      if (!useVideoMotion && !useFolderMotion) {
         return;
       }
 
