@@ -28,7 +28,6 @@ userDefaults:
   disableSettings: false                  # disable the user from viewing the settings page
   preview:
     disableHideSidebar: true             # disable the hide sidebar preview for previews and editors
-    highQuality: true                    # generate high quality thumbnail preview images
     image: true                          # show thumbnail preview image for image files
     video: true                          # show thumbnail preview image for video files
     motionVideoPreview: true             # show multiple frames for videos in thumbnail preview when hovering

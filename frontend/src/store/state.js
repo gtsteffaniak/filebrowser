@@ -44,7 +44,6 @@ export const state = reactive({
       video: true,
       image: true,
       popup: true,
-      highQuality: true,
     },
     loginType: "",
     username: "",

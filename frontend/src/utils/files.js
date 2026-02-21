@@ -1,4 +1,3 @@
-
 export function getFileExtension(filename) {
   if (typeof filename !== 'string') {
     return ''

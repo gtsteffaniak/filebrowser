@@ -247,6 +247,60 @@ var compressedFile = map[string]bool{
 	".zstd": true,
 }
 
+// Raw camera image: extension -> MIME type (single source for IsRawImage + type detection)
+var rawImageMimeType = map[string]string{
+	".cr2":  "image/x-canon-cr2",
+	".cr3":  "image/x-canon-cr3",
+	".nef":  "image/x-nikon-nef",
+	".nrw":  "image/x-nikon-nef",
+	".arw":  "image/x-sony-arw",
+	".srf":  "image/x-sony-arw",
+	".sr2":  "image/x-sony-arw",
+	".orf":  "image/x-olympus-orf",
+	".rw2":  "image/x-panasonic-rw2",
+	".raw":  "image/x-panasonic-raw",
+	".dng":  "image/x-adobe-dng",
+	".raf":  "image/x-fuji-raf",
+	".pef":  "image/x-pentax-pef",
+	".ptx":  "image/x-pentax-pef",
+	".rwl":  "image/x-leica-rwl",
+	".3fr":  "image/x-hasselblad-3fr",
+	".fff":  "image/x-hasselblad-fff",
+	".erf":  "image/x-epson-erf",
+	".mrw":  "image/x-minolta-mrw",
+	".dcr":  "image/x-kodak-dcr",
+	".kdc":  "image/x-kodak-dcr",
+	".dc2":  "image/x-kodak-dc2",
+	".x3f":  "image/x-sigma-x3f",
+	".iiq":  "image/x-phaseone-iiq",
+	".nkc":  "image/x-kodak-nkc",
+	".r3d":  "image/x-red-r3d",
+}
+
+// 3D model extension -> MIME type (single source for Is3DModel + type detection)
+var model3DMimeType = map[string]string{
+	".gltf":  "model/gltf+json",
+	".glb":   "model/gltf-binary",
+	".obj":   "model/obj",
+	".stl":   "model/stl",
+	".ply":   "model/ply",
+	".dae":   "model/vnd.collada+xml",
+	".3mf":   "model/3mf",
+	".3ds":   "model/3ds",
+	".usdz":  "model/vnd.usdz+zip",
+	".usd":   "model/vnd.usd+zip",
+	".usda":  "model/vnd.usd+zip",
+	".usdc":  "model/vnd.usd+zip",
+	".amf":   "model/x-amf",
+	".vrml":  "model/vrml",
+	".wrl":   "model/vrml",
+	".vtk":   "model/vtk",
+	".vtp":   "model/vtk",
+	".pcd":   "model/pcd",
+	".xyz":   "model/xyz",
+	".vox":   "model/vox",
+}
+
 var audioMetadataTypes = map[string]bool{
 	".mp3":  true,
 	".flac": true,
@@ -296,6 +350,28 @@ func IsDoc(extension string) bool {
 
 func IsArchive(extension string) bool {
 	return compressedFile[extension]
+}
+
+// IsRawImage reports whether the extension is a known raw camera image format.
+func IsRawImage(extension string) bool {
+	_, ok := rawImageMimeType[extension]
+	return ok
+}
+
+// RawImageMimeType returns the MIME type for a raw image extension, or "" if not raw.
+func RawImageMimeType(extension string) string {
+	return rawImageMimeType[extension]
+}
+
+// Is3DModel reports whether the extension is a known 3D model format.
+func Is3DModel(extension string) bool {
+	_, ok := model3DMimeType[extension]
+	return ok
+}
+
+// Model3DMimeType returns the MIME type for a 3D model extension, or "" if not a 3D model.
+func Model3DMimeType(extension string) string {
+	return model3DMimeType[extension]
 }
 
 func IsOnlyOffice(name string) bool {
@@ -353,62 +429,23 @@ func (i *ItemInfo) DetectType(realPath string, saveContent bool) {
 	name := i.Name
 	ext := strings.ToLower(filepath.Ext(name))
 
-	// Attempt MIME detection by file extension
+	// Raw image and 3D model types from single source (no duplicate extension lists)
+	if m := RawImageMimeType(ext); m != "" {
+		i.Type = m
+		return
+	}
+	if m := Model3DMimeType(ext); m != "" {
+		i.Type = m
+		return
+	}
+
+	// Other extension-based MIME detection
 	switch ext {
 	case ".md":
 		i.Type = "text/markdown"
 		return
 	case ".heic", ".heif":
 		i.Type = "image/heic"
-		return
-	// 3D model formats
-	case ".gltf":
-		i.Type = "model/gltf+json"
-		return
-	case ".glb":
-		i.Type = "model/gltf-binary"
-		return
-	case ".obj":
-		i.Type = "model/obj"
-		return
-	case ".stl":
-		i.Type = "model/stl"
-		return
-	case ".ply":
-		i.Type = "model/ply"
-		return
-	case ".dae":
-		i.Type = "model/vnd.collada+xml"
-		return
-	case ".3mf":
-		i.Type = "model/3mf"
-		return
-	case ".3ds":
-		i.Type = "model/3ds"
-		return
-	case ".usdz":
-		i.Type = "model/vnd.usdz+zip"
-		return
-	case ".usd", ".usda", ".usdc":
-		i.Type = "model/vnd.usd+zip"
-		return
-	case ".amf":
-		i.Type = "model/x-amf"
-		return
-	case ".vrml", ".wrl":
-		i.Type = "model/vrml"
-		return
-	case ".vtk", ".vtp":
-		i.Type = "model/vtk"
-		return
-	case ".pcd":
-		i.Type = "model/pcd"
-		return
-	case ".xyz":
-		i.Type = "model/xyz"
-		return
-	case ".vox":
-		i.Type = "model/vox"
 		return
 	case ".kmz":
 		i.Type = "application/vnd.google-earth.kmz"

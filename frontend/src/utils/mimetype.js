@@ -1,3 +1,17 @@
+// Raw camera image MIME types (must match backend iteminfo.rawImageMimeType)
+const RAW_IMAGE_MIME_TYPES = new Set([
+  "image/x-canon-cr2", "image/x-canon-cr3", "image/x-nikon-nef",
+  "image/x-sony-arw", "image/x-olympus-orf", "image/x-panasonic-rw2",
+  "image/x-panasonic-raw", "image/x-adobe-dng", "image/x-fuji-raf",
+  "image/x-pentax-pef", "image/x-leica-rwl", "image/x-hasselblad-3fr",
+  "image/x-hasselblad-fff", "image/x-epson-erf", "image/x-minolta-mrw",
+  "image/x-kodak-dcr", "image/x-kodak-dc2", "image/x-sigma-x3f",
+  "image/x-phaseone-iiq", "image/x-kodak-nkc", "image/x-red-r3d",
+]);
+
+export function isRawImageMimeType(mimeType) {
+  return typeof mimeType === "string" && RAW_IMAGE_MIME_TYPES.has(mimeType);
+}
 
 export function getTypeInfo(mimeType) {
     if (!mimeType) {

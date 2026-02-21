@@ -5,23 +5,18 @@
       <LoadingSpinner size="medium" />
     </div>
     <div class="preview" :class="{
-        'plyr-background-light': !isDarkMode && previewType == 'audio' && !useDefaultMediaPlayer,
-        'plyr-background-dark': isDarkMode && previewType == 'audio' && !useDefaultMediaPlayer,
-        'transitioning': isTransitioning }" v-if="!isDeleted">
-      <ExtendedImage v-if="showImage && !isTransitioning" :src="raw" @navigate-previous="navigatePrevious" @navigate-next="navigateNext"/>
+      'plyr-background-light': !isDarkMode && previewType == 'audio' && !useDefaultMediaPlayer,
+      'plyr-background-dark': isDarkMode && previewType == 'audio' && !useDefaultMediaPlayer,
+      'transitioning': isTransitioning
+    }" v-if="!isDeleted">
+      <ExtendedImage v-if="showImage && !isTransitioning" :src="raw" @navigate-previous="navigatePrevious"
+        @navigate-next="navigateNext" />
 
       <!-- Media Player Component -->
-      <plyrViewer v-else-if="previewType == 'audio' || previewType == 'video'"
-        ref="plyrViewer"
-        :previewType="previewType"
-        :raw="raw"
-        :subtitlesList="subtitlesList"
-        :req="req"
-        :listing="listing"
-        :useDefaultMediaPlayer="useDefaultMediaPlayer"
-        :autoPlayEnabled="autoPlay"
-        @play="autoPlay = true"
-        :class="{'plyr-background': previewType == 'audio' && !useDefaultMediaPlayer}" />
+      <plyrViewer v-else-if="previewType == 'audio' || previewType == 'video'" ref="plyrViewer"
+        :previewType="previewType" :raw="raw" :subtitlesList="subtitlesList" :req="req" :listing="listing"
+        :useDefaultMediaPlayer="useDefaultMediaPlayer" :autoPlayEnabled="autoPlay" @play="autoPlay = true"
+        :class="{ 'plyr-background': previewType == 'audio' && !useDefaultMediaPlayer }" />
 
       <div v-else-if="previewType == 'pdf'" class="pdf-wrapper">
         <iframe class="pdf" :src="raw"></iframe>
@@ -65,6 +60,7 @@ import plyrViewer from "@/views/files/plyrViewer.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { state, getters, mutations } from "@/store";
 import { getFileExtension } from "@/utils/files";
+import { isRawImageMimeType } from "@/utils/mimetype";
 import { convertToVTT } from "@/utils/subtitles";
 import { globalVars } from "@/utils/constants";
 
@@ -91,13 +87,13 @@ export default {
       return getters.permissions();
     },
     showImage() {
-      if (state.req.type == "image/heic" || state.req.type == "image/heif") {
-        if (this.isHeicAndViewable) {
-          return true;
-        }
-        return false;
+      if (state.req.type === "image/heic" || state.req.type === "image/heif") {
+        return this.isHeicAndViewable;
       }
-      return this.previewType == 'image' || this.pdfConvertable;
+      if (isRawImageMimeType(state.req.type)) {
+        return globalVars.exiftoolAvailable === true;
+      }
+      return this.previewType === 'image' || this.pdfConvertable;
     },
     autoPlay() {
       return getters.previewPerms().autoplayMedia;
@@ -112,10 +108,11 @@ export default {
       const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
       return isIOS && isSafari;
     },
+    // Viewable when we can get embedded/original preview: (media + heic conversion) or exiftool, or Safari native
     isHeicAndViewable() {
-      if (globalVars.enableHeicConversion || state.isSafari) {
-        return true;
-      }
+      if (state.isSafari) return true;
+      if (globalVars.exiftoolAvailable) return true;
+      if (globalVars.mediaAvailable && globalVars.enableHeicConversion) return true;
       return false;
     },
     pdfConvertable() {
@@ -150,8 +147,22 @@ export default {
       return getters.previewType();
     },
     raw() {
-      const showFullSizeHeic = state.req.type === "image/heic" && !state.isSafari && globalVars.mediaAvailable && !globalVars.disableHeicConversion;
-      if (this.pdfConvertable || showFullSizeHeic) {
+      const isHeicOrHeif = state.req.type === "image/heic" || state.req.type === "image/heif";
+
+      if (state.isSafari && isHeicOrHeif) {
+        if (getters.isShare()) {
+          return publicApi.getDownloadURL(
+            { path: state.shareInfo.subPath, hash: state.shareInfo.hash, token: state.shareInfo.token },
+            [state.req.path],
+            true,
+          );
+        }
+        return filesApi.getDownloadURL(state.req.source, state.req.path, true);
+      }
+
+      const getRawPreview = isRawImageMimeType(state.req.type) && globalVars.exiftoolAvailable;
+      const getHeicPreview = isHeicOrHeif && ((globalVars.mediaAvailable && globalVars.enableHeicConversion) || globalVars.exiftoolAvailable);
+      if (this.pdfConvertable || getRawPreview || getHeicPreview) {
         if (getters.isShare()) {
           const previewPath = url.removeTrailingSlash(state.req.path);
           return publicApi.getPreviewURL(previewPath, "original");
@@ -487,7 +498,7 @@ export default {
   text-align: center;
 }
 
-.transition-loading .spinner > div {
+.transition-loading .spinner>div {
   width: 18px;
   height: 18px;
   background-color: var(--textPrimary);
@@ -508,6 +519,7 @@ export default {
   0%, 80%, 100% {
     transform: scale(0);
   }
+
   40% {
     transform: scale(1.0);
   }

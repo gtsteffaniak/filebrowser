@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"slices"
@@ -315,6 +316,19 @@ func setupMedia() {
 	// Apply user overrides (only for keys explicitly set in YAML)
 	for k, v := range userVideoConfig {
 		Config.Integrations.Media.Convert.VideoPreview[k] = v
+	}
+
+	// Resolve exiftool path once at startup: validate user path or discover via PATH
+	if Config.Integrations.Media.ExiftoolPath != "" {
+		if err := exec.Command(Config.Integrations.Media.ExiftoolPath, "-ver").Run(); err != nil {
+			logger.Warningf("exiftool path is invalid or not executable: %q (%v); disabling exiftool", Config.Integrations.Media.ExiftoolPath, err)
+			Config.Integrations.Media.ExiftoolPath = ""
+		}
+	}
+	if Config.Integrations.Media.ExiftoolPath == "" {
+		if path, err := exec.LookPath("exiftool"); err == nil && path != "" {
+			Config.Integrations.Media.ExiftoolPath = path
+		}
 	}
 }
 
@@ -710,7 +724,6 @@ func setDefaults(generate bool) Settings {
 				Download: boolPtr(true), // defaults to true
 			},
 			Preview: UserDefaultsPreview{
-				HighQuality:        boolPtr(true),
 				Image:              boolPtr(true),
 				Video:              boolPtr(true),
 				MotionVideoPreview: boolPtr(true),

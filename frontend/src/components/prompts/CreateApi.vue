@@ -44,10 +44,6 @@
   </div>
 
   <div class="card-actions">
-    <button @click="closeHovers" class="button button--flat button--grey" :aria-label="$t('general.cancel')"
-      :title="$t('general.cancel')">
-      {{ $t("general.cancel") }}
-    </button>
     <button class="button button--flat button--blue" @click="createAPIKey" :title="$t('general.create')">
       {{ $t("general.create") }}
     </button>

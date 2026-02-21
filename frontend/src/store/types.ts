@@ -44,7 +44,6 @@ export interface UserObject {
     video: boolean;
     image: boolean;
     popup: boolean;
-    highQuality: boolean;
     autoplayMedia?: boolean;
     defaultMediaPlayer?: boolean;
   };
@@ -128,9 +127,11 @@ export interface StoreState {
   popupPreviewSourceInfo: {
     source: string;
     path: string;
-    size: string;
-    url: string;
-    modified: string;
+    size?: string;
+    url?: string;
+    modified?: string;
+    type?: "3d";
+    fbdata?: { name: string; path: string; source: string; size?: number; type: string };
   } | null;
   shareInfo: ShareInfoObject;
   sources: {

@@ -50,7 +50,6 @@ type Sorting struct {
 
 type Preview struct {
 	DisableHideSidebar bool `json:"disableHideSidebar"` // disable the hide sidebar preview for previews and editors
-	HighQuality        bool `json:"highQuality"`        // generate high quality thumbnail preview images
 	Image              bool `json:"image"`              // show thumbnail preview image for image files
 	Video              bool `json:"video"`              // show thumbnail preview image for video files
 	MotionVideoPreview bool `json:"motionVideoPreview"` // show multiple frames for videos in thumbnail preview when hovering
