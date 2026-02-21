@@ -615,8 +615,7 @@ func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusNotFound, fmt.Errorf("share hash not found")
 	}
 	commonShare := shareLink.CommonShare
-	commonShare.DownloadURL = getShareURL(r, hash, true, shareLink.Token)
-	commonShare.ShareURL = getShareURL(r, hash, false, shareLink.Token)
+	commonShare.ShareURL = getShareURL(r, hash, false, "")
 	return renderJSON(w, r, commonShare)
 }
 
