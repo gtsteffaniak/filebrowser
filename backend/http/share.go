@@ -607,8 +607,7 @@ func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusNotFound, fmt.Errorf("share hash not found")
 	}
 	commonShare := shareLink.CommonShare
-	commonShare.DownloadURL = getShareURL(r, hash, true, shareLink.Token)
-	commonShare.ShareURL = getShareURL(r, hash, false, shareLink.Token)
+	commonShare.ShareURL = getShareURL(r, hash, false, "")
 	_, _, err = getShareImagePartsHelper(shareLink, true)
 	if err == nil {
 		commonShare.BannerUrl = fmt.Sprintf("%spublic/api/share/image?banner=true&hash=%s", config.Server.BaseURL, hash)
