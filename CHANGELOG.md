@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.3.0-beta
 
+Note: a potentially breaking change for docker users: \the default user is now "filebrowser" 1000:1000 instead of root.
+
  **New Features**:
  - Archive/Unarchive actions in UI (#1252) (#335) (#1569) 
    - new api to archive/unarchive files on the server
