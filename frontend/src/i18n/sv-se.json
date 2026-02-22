@@ -378,7 +378,8 @@
     "hideUsage": "Dölj användning",
     "hideUsageDescription": "Visa inte lagringsanvändning på den här källänken (minimal stil).",
     "onlyShowIndexedUsage": "Beräkna användning från indexerade filer",
-    "onlyShowIndexedUsageDescription": "När den är inaktiverad visas den totala användningen av partitionen som rapporteras av operativsystemet i stället för beräknade indexerade filtotaler för källan."
+    "onlyShowIndexedUsageDescription": "När den är inaktiverad visas den totala användningen av partitionen som rapporteras av operativsystemet i stället för beräknade indexerade filtotaler för källan.",
+    "switchMode": "Växla sidofältsläge"
   },
   "success": {
     "linkCopied": "Länk kopierad"

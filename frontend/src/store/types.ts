@@ -207,6 +207,7 @@ export interface StoreState {
   notificationHistory: any[];
   sidebar: {
     width: number;
+    mode: string;
     isResizing: boolean;
     minWidth: number;
     maxWidth: number;

@@ -378,7 +378,8 @@
     "hideUsage": "用途を隠す",
     "hideUsageDescription": "このソースリンクにストレージの使用量を表示しない（最小限のスタイル）。",
     "onlyShowIndexedUsage": "インデックスされたファイルから使用量を計算",
-    "onlyShowIndexedUsageDescription": "無効にすると、計算されたソースのインデックス・ファイルの合計ではなく、OSが報告したパーティションの合計使用量を表示します。"
+    "onlyShowIndexedUsageDescription": "無効にすると、計算されたソースのインデックス・ファイルの合計ではなく、OSが報告したパーティションの合計使用量を表示します。",
+    "switchMode": "サイドバーモードの切り替え"
   },
   "success": {
     "linkCopied": "リンクがコピーされました！"

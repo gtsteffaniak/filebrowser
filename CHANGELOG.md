@@ -7,7 +7,9 @@ All notable changes to this project will be documented in this file. For commit 
 Note: a potentially breaking change for docker users: \the default user is now "filebrowser" 1000:1000 instead of root.
 
  **New Features**:
- - Allow sidebar source usage to be customized to show os reported values rather than calculated. This can be changed per source by editing the source link in the sidebar. (#1266) (#982)
+ - New Sidebar Features
+   - Sidebar tree navigation (#2006) (#350)
+   - Source usage to be customized to show os-reported values rather than calculated. This can be changed per source by editing the source link in the sidebar. (#1266) (#982)
  - Archive/Unarchive actions in UI (#1252) (#335) (#1569) 
    - new api to archive/unarchive files on the server
    - requires `create` user permissions

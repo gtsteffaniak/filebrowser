@@ -378,7 +378,8 @@
     "hideUsage": "Verwendung ausblenden",
     "hideUsageDescription": "Zeigen Sie die Speichernutzung für diesen Quelllink nicht an (minimaler Stil).",
     "onlyShowIndexedUsage": "Berechnung der Nutzung von indizierten Dateien",
-    "onlyShowIndexedUsageDescription": "Wenn diese Option deaktiviert ist, wird die vom Betriebssystem gemeldete Gesamtnutzung der Partition anstelle der für die Quelle berechneten indizierten Dateisummen angezeigt."
+    "onlyShowIndexedUsageDescription": "Wenn diese Option deaktiviert ist, wird die vom Betriebssystem gemeldete Gesamtnutzung der Partition anstelle der für die Quelle berechneten indizierten Dateisummen angezeigt.",
+    "switchMode": "Seitenleistenmodus wechseln"
   },
   "success": {
     "linkCopied": "Link wurde kopiert!"

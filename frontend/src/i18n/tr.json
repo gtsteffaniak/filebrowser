@@ -378,7 +378,8 @@
     "hideUsage": "Kullanımı Gizle",
     "hideUsageDescription": "Bu kaynak bağlantısında depolama alanı kullanımını göstermeyin (minimal stil).",
     "onlyShowIndexedUsage": "Dizinlenmiş dosyalardan kullanımı hesaplama",
-    "onlyShowIndexedUsageDescription": "Devre dışı bırakıldığında, kaynak için hesaplanan dizinlenmiş dosya toplamları yerine işletim sistemi tarafından bildirilen bölümün toplam kullanımını gösterir."
+    "onlyShowIndexedUsageDescription": "Devre dışı bırakıldığında, kaynak için hesaplanan dizinlenmiş dosya toplamları yerine işletim sistemi tarafından bildirilen bölümün toplam kullanımını gösterir.",
+    "switchMode": "Kenar çubuğu modunu değiştir"
   },
   "success": {
     "linkCopied": "Link kopyalandı!"

@@ -378,7 +378,8 @@
     "hideUsage": "Ukryj użycie",
     "hideUsageDescription": "Nie pokazuj wykorzystania przestrzeni dyskowej w tym linku źródłowym (styl minimalny).",
     "onlyShowIndexedUsage": "Obliczanie użycia na podstawie zindeksowanych plików",
-    "onlyShowIndexedUsageDescription": "Gdy wyłączona, pokazuje całkowite użycie partycji zgłoszone przez system operacyjny zamiast obliczonych sum indeksowanych plików dla źródła."
+    "onlyShowIndexedUsageDescription": "Gdy wyłączona, pokazuje całkowite użycie partycji zgłoszone przez system operacyjny zamiast obliczonych sum indeksowanych plików dla źródła.",
+    "switchMode": "Przełącz tryb panelu bocznego"
   },
   "success": {
     "linkCopied": "Link Skopiowany!"

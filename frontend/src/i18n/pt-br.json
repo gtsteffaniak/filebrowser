@@ -378,7 +378,8 @@
     "hideUsage": "Ocultar uso",
     "hideUsageDescription": "Não mostre o uso de armazenamento nesse link de origem (estilo mínimo).",
     "onlyShowIndexedUsage": "Calcular o uso de arquivos indexados",
-    "onlyShowIndexedUsageDescription": "Quando desativado, mostra o uso total da partição conforme relatado pelo sistema operacional, em vez dos totais de arquivos indexados calculados para a origem."
+    "onlyShowIndexedUsageDescription": "Quando desativado, mostra o uso total da partição conforme relatado pelo sistema operacional, em vez dos totais de arquivos indexados calculados para a origem.",
+    "switchMode": "Mudar modo da barra lateral"
   },
   "success": {
     "linkCopied": "Link copiado!"

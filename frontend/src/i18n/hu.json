@@ -378,7 +378,8 @@
     "hideUsage": "Használat elrejtése",
     "hideUsageDescription": "Ne jelenítse meg a tárolóhasználatot ezen a forráshivatkozáson (minimális stílus).",
     "onlyShowIndexedUsage": "Használat kiszámítása indexelt fájlokból",
-    "onlyShowIndexedUsageDescription": "Ha ki van kapcsolva, akkor a forráshoz tartozó indexelt fájlok kiszámított összértéke helyett a partíció teljes használatát mutatja az operációs rendszer által jelentett módon."
+    "onlyShowIndexedUsageDescription": "Ha ki van kapcsolva, akkor a forráshoz tartozó indexelt fájlok kiszámított összértéke helyett a partíció teljes használatát mutatja az operációs rendszer által jelentett módon.",
+    "switchMode": "Oldalsáv mód váltása"
   },
   "success": {
     "linkCopied": "Link másolva!"

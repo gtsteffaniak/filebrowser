@@ -40,7 +40,7 @@ export default {
       default: true,
     },
     base: {
-      type: [String, null],
+      type: [String, Object, null],
       default: null,
     },
   },
@@ -56,6 +56,27 @@ export default {
     },
     isListing() {
       return getters.isListing();
+    },
+    // Determine parent path and source based on prop
+    parentInfo() {
+      if (this.base) {
+        if (typeof this.base === 'string') {
+          return {
+            path: this.base,
+            source: state.req?.source || null,
+          };
+        } else if (typeof this.base === 'object' && this.base.path) {
+          return {
+            path: this.base.path,
+            source: this.base.source || state.req?.source || null,
+          };
+        }
+      }
+      // Fallback to current path
+      return {
+        path: state.req?.path,
+        source: state.req?.source || null,
+      };
     },
   },
   methods: {
@@ -75,8 +96,9 @@ export default {
     async createDirectory(overwrite = false) {
       this.creating = true;
       try {
-        const newPath = url.joinPath(state.req.path, this.name) + "/";
-        const source = state.req.source;
+        const parentPath = this.parentInfo.path;
+        const source = this.parentInfo.source;
+        const newPath = url.joinPath(parentPath, this.name) + "/";
 
         if (getters.isShare()) {
           await publicApi.post(state.shareInfo?.hash, newPath, "", overwrite, undefined, {}, true);
@@ -121,8 +143,9 @@ export default {
                   for (let counter = 1; counter <= maxAttempts && !success; counter++) {
                     try {
                       const newName = counter === 1 ? `${originalName} (1)` : `${originalName} (${counter})`;
-                      const newPath = url.joinPath(state.req.path, newName) + "/";
-                      const source = state.req.source;
+                      const parentPath = this.parentInfo.path;
+                      const source = this.parentInfo.source;
+                      const newPath = url.joinPath(parentPath, newName) + "/";
 
                       if (getters.isShare()) {
                         await publicApi.post(state.shareInfo?.hash, newPath, "", false, undefined, {}, true);
