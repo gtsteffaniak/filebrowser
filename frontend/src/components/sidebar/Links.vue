@@ -235,7 +235,7 @@ export default {
       return this.sourceInfo[this.activeSource] || {};
     },
     mode() {
-      return state.sidebar.mode;
+      return getters.sidebarMode();
     },
   },
   mounted() {
