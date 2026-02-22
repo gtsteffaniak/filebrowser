@@ -466,7 +466,6 @@ func getShareImage(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 }
 
 func getShareImagePartsHelper(share *share.Link, isBanner bool) (string, string, error) {
-
 	// Get the asset query string from share
 	var assetQueryString string
 	if isBanner {
@@ -489,4 +488,25 @@ func getShareImagePartsHelper(share *share.Link, isBanner bool) (string, string,
 	assetPath := assetParams.Get("path")
 
 	return sourceName, assetPath, nil
+}
+
+func publicItemsGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	sourceInfo, ok := config.Server.SourceMap[d.share.Source]
+	if !ok {
+		return http.StatusNotFound, fmt.Errorf("source not found")
+	}
+	items, err := files.GetDirItems(utils.FileOptions{
+		FollowSymlinks: true,
+		Path:           d.IndexPath,
+		Source:         sourceInfo.Name,
+		ShowHidden:     d.shareUser.ShowHidden,
+		Only:           r.URL.Query().Get("only"),
+	}, store.Access, d.shareUser)
+	if err != nil {
+		if err == errors.ErrAccessDenied {
+			return http.StatusForbidden, err
+		}
+		return http.StatusInternalServerError, err
+	}
+	return renderJSON(w, r, items)
 }
