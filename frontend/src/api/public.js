@@ -51,6 +51,26 @@ export async function fetchPub(path, hash, password = "", content = false, metad
   return adjusted
 }
 
+export async function getItems(source, path, only = "") {
+  if (!source || source === undefined || source === null) {
+    throw new Error('no source provided')
+  }
+  try {
+    const apiPath = getPublicApiPath('api/resources/items', {
+      path: path,
+      hash: hash,
+      ...(only && { only: only }),
+      ...(state.shareInfo.token && { token: state.shareInfo.token })
+    })
+    const response = await fetch(apiPath)
+    const data = await response.json()
+    return data
+  } catch (err) {
+    notify.showError(err.message || 'Error fetching items')
+    throw err
+  }
+}
+
 // Generate a download URL
 /**
  * @param {{ path: string; hash: string; token: string; inline?: boolean }} share

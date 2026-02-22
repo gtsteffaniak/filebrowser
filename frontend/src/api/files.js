@@ -27,6 +27,25 @@ export async function fetchFiles(source, path, content = false, metadata = false
   }
 }
 
+export async function getItems(source, path, only = "") {
+  if (!source || source === undefined || source === null) {
+    throw new Error('no source provided')
+  }
+  try {
+    const apiPath = getApiPath('api/resources/items', {
+      path: path,
+      source: source,
+      ...(only && { only: only }),
+    })
+    const res = await fetchURL(apiPath)
+    const data = await res.json()
+    return data
+  } catch (err) {
+    notify.showError(err.message || 'Error fetching items')
+    throw err
+  }
+}
+
 async function resourceAction(source, path, method, content) {
   if (!source || source === undefined || source === null) {
     throw new Error('no source provided')

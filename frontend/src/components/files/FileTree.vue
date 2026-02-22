@@ -190,7 +190,9 @@ export default {
       this.loading = true;
       try {
         const items = await this.fetchItems(this.rootPath);
-        this.rootNodes = items.map(item => this.createNode(item));
+        const folders = (items.folders || []).map(item => this.createNode(item, true, this.rootPath));
+        const files = (items.files || []).map(item => this.createNode(item, false, this.rootPath));
+        this.rootNodes = [...folders, ...files];
       } catch (err) {
         console.error('Failed to load tree root:', err);
         this.error = err.message || 'Failed to load';
@@ -201,28 +203,31 @@ export default {
     },
     async fetchItems(path) {
       if (this.isShare) {
-        const res = await publicApi.fetchPub(path, this.shareHash);
-        return res.items || [];
+        const res = await publicApi.getItems(this.shareHash, path);
+        return res;
       } else {
-        const res = await filesApi.fetchFiles(this.currentSource, path);
-        return res.items || [];
+        const res = await filesApi.getItems(this.currentSource, path);
+        return res;
       }
     },
 
-    createNode(item) {
+    createNode(item, isDir, parentPath) {
+      // Handle when item is just a string (new API format)
+      const name = typeof item === 'string' ? item : item.name;
+      const path = joinPath(parentPath, name);
       return {
-        name: item.name,
-        path: item.path,
+        name: name,
+        path: path,
         source: this.currentSource,
-        type: item.type,
-        isDir: item.type === 'directory',
+        type: typeof item === 'object' ? item.type : null,
+        isDir: isDir ,
         expanded: false,
         loading: false,
         children: null,
         childrenCount: 0,
         childrenError: null,
         dragOver: false, // For drag highlight
-        ...item
+        ...(typeof item === 'object' ? item : {})
       };
     },
 
@@ -234,13 +239,19 @@ export default {
         return;
       }
 
-      // Load children if not loaded when expanding
+      // Immediately expand and show loading state
+      node.expanded = true;
+      
+      // Load children if not loaded
       if (!node.children) {
         node.loading = true;
         node.childrenError = null;
         try {
           const items = await this.fetchItems(node.path);
-          node.children = items.map(item => this.createNode(item));
+          console.log('toggleExpand - items response:', items);
+          const folders = (items.folders || []).map(item => this.createNode(item, true, node.path));
+          const files = (items.files || []).map(item => this.createNode(item, false, node.path));
+          node.children = [...folders, ...files];
           node.childrenCount = node.children.length;
         } catch (error) {
           console.error('Failed to load children for', node.path, error);
@@ -251,7 +262,6 @@ export default {
           node.loading = false;
         }
       }
-      node.expanded = true;
 
       if (!skipNavigate && node.path !== this.currentPath) {
         this.navigateTo(node);
@@ -697,6 +707,7 @@ export default {
   display: inline-flex;
   align-items: center;
   width: 1.5em;
+  height: 1.5em;
   justify-content: center;
 }
 
