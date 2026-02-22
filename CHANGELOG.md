@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file. For commit 
 ## v1.2.6-beta
 
  **Security**:
- - resolves https://github.com/gtsteffaniak/filebrowser/security/advisories/GHSA-8vrh-3pm2-v4v6
+ - resolves CVE https://github.com/gtsteffaniak/filebrowser/security/advisories/GHSA-8vrh-3pm2-v4v6
 
 ## v1.2.5-beta
 
