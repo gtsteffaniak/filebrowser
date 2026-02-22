@@ -190,7 +190,6 @@ export default {
       this.loading = true;
       try {
         const items = await this.fetchItems(this.rootPath);
-        console.log('Root items fetched:', items.length);
         this.rootNodes = items.map(item => this.createNode(item));
       } catch (err) {
         console.error('Failed to load tree root:', err);

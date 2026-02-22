@@ -234,6 +234,9 @@ export default {
     activeSourceInfo() {
       return this.sourceInfo[this.activeSource] || {};
     },
+    mode() {
+      return state.sidebar.mode;
+    },
   },
   mounted() {
     document.addEventListener('click', this.closeDropdown);
@@ -495,6 +498,7 @@ export default {
       }
     },
     cycleMode() {
+        console.log('cycleMode called, current mode:', this.mode);
       const newMode = state.sidebar.mode === 'links' ? 'navigation' : 'links';
       mutations.setSidebarMode(newMode);
     },
