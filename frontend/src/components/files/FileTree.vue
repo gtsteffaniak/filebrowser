@@ -218,14 +218,14 @@ export default {
         path: item.path,
         source: this.currentSource,
         type: item.type,
-        isDir: typeof item === 'object' ? item.type === 'directory' : false,
+        isDir: item.type === 'directory',
         expanded: false,
         loading: false,
         children: null,
         childrenCount: 0,
         childrenError: null,
         dragOver: false, // For drag highlight
-        ...(typeof item === 'object' ? item : {})
+        ...item
       };
     },
 
