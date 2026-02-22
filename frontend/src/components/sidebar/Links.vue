@@ -498,7 +498,6 @@ export default {
       }
     },
     cycleMode() {
-        console.log('cycleMode called, current mode:', this.mode);
       const newMode = state.sidebar.mode === 'links' ? 'navigation' : 'links';
       mutations.setSidebarMode(newMode);
     },
