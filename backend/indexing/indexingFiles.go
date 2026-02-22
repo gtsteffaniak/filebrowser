@@ -86,6 +86,7 @@ type Stats struct {
 	Complexity      uint      `json:"complexity"`
 	LastScanned     time.Time `json:"lastScanned"`
 	DiskUsed        uint64    `json:"used"`
+	UsedAlt         uint64    `json:"usedAlt"`
 }
 
 // reduced index is json exposed to the client

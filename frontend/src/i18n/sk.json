@@ -375,6 +375,10 @@
     "shareLinksUpdatedSuccess": "Zdieľanie bočného panela odkazy úspešne aktualizované!",
     "shareHome": "Zdieľať Domov",
     "linkIconPlaceholder": "Voliteľne zadajte názov ikony materiálu",
+    "hideUsage": "Skryť používanie",
+    "hideUsageDescription": "Nezobrazujte využitie úložiska na tomto zdrojovom prepojení (minimálny štýl).",
+    "onlyShowIndexedUsage": "Výpočet použitia z indexovaných súborov",
+    "onlyShowIndexedUsageDescription": "Ak je vypnutá, zobrazuje celkové využitie oddielu podľa hlásenia operačného systému namiesto vypočítaných indexovaných súčtov súborov pre zdroj.",
     "switchMode": "Prepnúť režim bočného panela"
   },
   "success": {

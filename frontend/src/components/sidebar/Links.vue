@@ -23,9 +23,9 @@
           <ShareInfo :hash="hash" :token="token" :sub-path="subPath" />
         </div>
         <transition-group name="expand" tag="div" class="inner-card">
-          <!-- Source-type links -->
           <template v-for="(link, index) in sidebarLinksToDisplay" :key="`link-${index}-${link.category}`">
-            <a v-if="link.category === 'source'" :href="getLinkHref(link)"
+            <!-- Source-type links (source, source-minimal, source-alt); usage bar hidden for source-minimal -->
+            <a v-if="link.category === 'source' || link.category === 'source-minimal' || link.category === 'source-alt'" :href="getLinkHref(link)"
               class="action button source-button sidebar-link-button" :class="{
                 active: isLinkActive(link),
                 disabled: !isLinkAccessible(link)
@@ -53,20 +53,21 @@
                   info
                 </i>
               </div>
-              <div v-if="hasUsageInfo(link)" class="usage-info">
+              <div v-if="hasUsageInfo(link) && link.category !== 'source-minimal'" class="usage-info">
                 <ProgressBar 
-                  :key="`progress-${link.sourceName}-${sourceInfo[link.sourceName]?.used || 0}-${sourceInfo[link.sourceName]?.total || 0}`"
-                  :val="getProgressBarValue(sourceInfo[link.sourceName] || {})" 
+                  :key="`progress-${link.sourceName}-${sourceInfo[link.sourceName]?.used || 0}-${sourceInfo[link.sourceName]?.usedAlt || 0}-${sourceInfo[link.sourceName]?.total || 0}`"
+                  :val="getProgressBarValue(link, sourceInfo[link.sourceName] || {})" 
                   :max="(sourceInfo[link.sourceName] || {}).total || 1" 
                   :status="getProgressBarStatus(sourceInfo[link.sourceName] || {})"
                   unit="bytes">
                 </ProgressBar>
               </div>
             </a>
+
             <!-- Non-source links: tool and custom links with simple icon style -->
             <a v-else :aria-label="link.name" :href="getLinkHref(link)" class="action button sidebar-link-button"
               :class="{ active: isLinkActive(link) }" @click.prevent="handleLinkClick(link)">
-              <div class="link-container">
+              <div  class="link-container">
                 <i :class="getIconClass(link.icon) + ' link-icon'">{{ link.icon }}</i>
                 <span>{{ link.name }}</span>
               </div>
@@ -247,9 +248,9 @@ export default {
   methods: {
     getIconClass,
     hasUsageInfo(link) {
-      // Check if usage info should be displayed for this link
+      // Check if usage info should be displayed for this link (source only; source-minimal hides usage)
       // Returns true when link is accessible and has usage > 0
-      if (link.category !== 'source' || !link.sourceName) return false;
+      if ((link.category !== 'source' && link.category !== 'source-minimal' && link.category !== 'source-alt') || !link.sourceName) return false;
       if (!this.hasSourceInfo || !this.isLinkAccessible(link)) return false;
       return (this.sourceInfo[link.sourceName]?.used || 0) > 0;
     },
@@ -263,7 +264,7 @@ export default {
       let fullPath = '';
 
       // Construct full path based on link category
-      if (link.category === 'source') {
+      if (link.category === 'source' || link.category === 'source-minimal' || link.category === 'source-alt') {
         // For source links, use sourceName and relative target
         if (!link.sourceName) return '#';
         const sourceInfo = this.sourceInfo[link.sourceName];
@@ -302,7 +303,7 @@ export default {
     },
     isLinkAccessible(link) {
       // Check if link is accessible
-      if (link.category === 'source') {
+      if (link.category === 'source' || link.category === 'source-minimal' || link.category === 'source-alt') {
         // Use sourceName to check if the source is accessible
         if (!link.sourceName) return false;
         for (const [name] of Object.entries(this.sourceInfo || {})) {
@@ -317,7 +318,7 @@ export default {
     },
     isLinkActive(link) {
       // Check if the current route matches this link
-      if (link.category === 'source') {
+      if (link.category === 'source' || link.category === 'source-minimal' || link.category === 'source-alt') {
         // Use sourceName to check if we're currently in this source
         return link.sourceName && state.req.source === link.sourceName;
       }
@@ -327,7 +328,7 @@ export default {
     getSourceInfoForLink(link) {
       // Method that directly accesses reactive sourceInfo
       // Vue will track this dependency when called in template
-      if (link.category !== 'source' || !link.sourceName) return {};
+      if ((link.category !== 'source' && link.category !== 'source-minimal' && link.category !== 'source-alt') || !link.sourceName) return {};
       // Direct access to reactive computed property ensures Vue tracks changes
       return this.sourceInfo && link.sourceName ? this.sourceInfo[link.sourceName] || {} : {};
     },
@@ -337,9 +338,20 @@ export default {
       }
       return 'default';
     },
-    getProgressBarValue(sourceInfo) {
-      // Otherwise return the actual used value
-      return sourceInfo.used || 0;
+    getProgressBarValue(linkOrSourceInfo, sourceInfo) {
+      // Handle both calling patterns: (link, sourceInfo) from links mode and (sourceInfo) from navigation mode
+      if (arguments.length === 2 && linkOrSourceInfo.category) {
+        // Called with (link, sourceInfo) - from links mode
+        const link = linkOrSourceInfo;
+        if (link.category === 'source-alt') {
+          return sourceInfo.usedAlt || 0;
+        }
+        return sourceInfo.used || 0;
+      } else {
+        // Called with (sourceInfo) - from navigation mode
+        const info = linkOrSourceInfo;
+        return info.used || 0;
+      }
     },
     handleLinkClick(link) {
       // Handle special share actions
@@ -357,7 +369,7 @@ export default {
         return;
       }
 
-      if (link.category === 'source') {
+      if (link.category === 'source' || link.category === 'source-minimal' || link.category === 'source-alt') {
         // For source links, use sourceName and target (relative path)
         if (!link.sourceName) return;
         const path = link.target || "/";
@@ -574,6 +586,7 @@ export default {
 
 .sidebar-links-header .mode-toggle:hover {
   background: var(--surfaceSecondary);
+  cursor: pointer;
 }
 
 .sidebar-links-content {

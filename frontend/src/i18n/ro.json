@@ -375,6 +375,10 @@
     "shareLinksUpdatedSuccess": "Link-urile din bara laterală de partajare au fost actualizate cu succes!",
     "shareHome": "Share Home",
     "linkIconPlaceholder": "Opțional, specificați un nume de pictogramă de material",
+    "hideUsage": "Ascundeți utilizarea",
+    "hideUsageDescription": "Nu afișați utilizarea stocării pe acest link sursă (stil minimal).",
+    "onlyShowIndexedUsage": "Calcularea utilizării din fișierele indexate",
+    "onlyShowIndexedUsageDescription": "Atunci când este dezactivată, afișează utilizarea totală a partiției, așa cum este raportată de sistemul de operare, în loc de totalurile calculate ale fișierelor indexate pentru sursă.",
     "switchMode": "Schimbă modul barei laterale"
   },
   "success": {

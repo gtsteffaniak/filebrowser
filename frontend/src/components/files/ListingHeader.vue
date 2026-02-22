@@ -10,7 +10,7 @@
       :aria-label="$t('files.sortByName')"
     >
       <span>{{ $t("general.name") }}</span>
-      <i class="material-icons">{{ nameIcon }}</i>
+      <i v-if="nameSorted" class="material-icons">{{ nameIcon }}</i>
     </p>
 
     <p
@@ -23,7 +23,7 @@
       :aria-label="$t('files.sortBySize')"
     >
       <span>{{ $t("general.size") }}</span>
-      <i class="material-icons">{{ sizeIcon }}</i>
+      <i v-if="sizeSorted" class="material-icons">{{ sizeIcon }}</i>
     </p>
 
     <p
@@ -36,7 +36,7 @@
       :aria-label="$t('files.sortByLastModified')"
     >
       <span>{{ $t("files.lastModified") }}</span>
-      <i class="material-icons">{{ modifiedIcon }}</i>
+      <i v-if="modifiedSorted" class="material-icons">{{ modifiedIcon }}</i>
     </p>
 
     <p
@@ -50,7 +50,7 @@
       :aria-label="$t('files.sortByDuration')"
     >
       <span>{{ $t("files.duration") }}</span>
-      <i class="material-icons">{{ durationIcon }}</i>
+      <i v-if="durationSorted" class="material-icons">{{ durationIcon }}</i>
     </p>
   </div>
 </template>

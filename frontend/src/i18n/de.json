@@ -375,6 +375,10 @@
     "shareLinksUpdatedSuccess": "Links in der Seitenleiste erfolgreich aktualisiert!",
     "shareHome": "Startseite teilen",
     "linkIconPlaceholder": "Optional können Sie einen Materialsymbolnamen angeben",
+    "hideUsage": "Verwendung ausblenden",
+    "hideUsageDescription": "Zeigen Sie die Speichernutzung für diesen Quelllink nicht an (minimaler Stil).",
+    "onlyShowIndexedUsage": "Berechnung der Nutzung von indizierten Dateien",
+    "onlyShowIndexedUsageDescription": "Wenn diese Option deaktiviert ist, wird die vom Betriebssystem gemeldete Gesamtnutzung der Partition anstelle der für die Quelle berechneten indizierten Dateisummen angezeigt.",
     "switchMode": "Seitenleistenmodus wechseln"
   },
   "success": {

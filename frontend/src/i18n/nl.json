@@ -639,6 +639,10 @@
     "sourceNotAccessible": "Deze bron is niet langer toegankelijk voor jou",
     "noLinksYet": "Er zijn nog geen links geconfigureerd. Voeg hieronder uw eerste link toe.",
     "shareHome": "Thuis delen",
+    "hideUsage": "Verberg Gebruik",
+    "hideUsageDescription": "Toon geen opslaggebruik op deze bronlink (minimale stijl).",
+    "onlyShowIndexedUsage": "Gebruik van geïndexeerde bestanden berekenen",
+    "onlyShowIndexedUsageDescription": "Toont, indien uitgeschakeld, het totale gebruik van de partitie zoals gerapporteerd door het OS in plaats van de berekende geïndexeerde bestandstotalen voor de bron.",
     "switchMode": "Zijbalkmodus wijzigen"
   },
   "success": {

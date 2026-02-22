@@ -55,6 +55,9 @@ export default {
       if (!this.sourceInfo || this.sourceInfo.type === "3d") return;
       const { source, path, size, url, modified } = this.sourceInfo;
       setImageLoaded(source, path, size, modified, url);
+      if (!state.isMobile) {
+        this.$nextTick(() => this.positionPopup());
+      }
     },
     updateCursorPosition(event) {
       this.cursorX = event.clientX;
@@ -78,40 +81,46 @@ export default {
 
       if (state.isMobile) {
         this.popupStyle = {
-          top: `${Math.min(this.cursorY + padding, innerHeight - padding - 200)}px`,
+          top: "50%",
           left: "5%",
           right: "5%",
           margin: "0 auto",
           "max-width": "90vw",
           "max-height": "75vh",
-          transform: "translate(0, 4em)",
+          transform: "translate(0, -50%)",
         };
         return;
       }
 
+      // Keep popup in frame: right/bottom bounds (padding from edges)
+      const maxLeft = innerWidth - width - padding;
+      const maxTop = innerHeight - height - padding;
+
       // Position near cursor (prefer center horizontally)
       let left = this.cursorX - width / 2;
-      left = Math.max(minLeft, Math.min(left, innerWidth - width));
+      left = Math.max(minLeft, Math.min(left, maxLeft));
+      // If that would push popup off the right, prefer staying in frame
+      if (left + width > innerWidth - padding) {
+        left = Math.max(padding, innerWidth - width - padding);
+      }
 
       // Prefer below or above cursor based on Y position
       let top;
       const isBottomHalf = this.cursorY > innerHeight / 2;
 
       if (isBottomHalf) {
-        // Place above
         top = this.cursorY - height - padding;
-        top = Math.max(minTop, top);
       } else {
-        // Place below
         top = this.cursorY + padding;
-        if (top + height > innerHeight) {
-          top = innerHeight - height;
-          top = Math.max(minTop, top); // Enforce minTop again
-        }
+      }
+      // Clamp top so popup stays fully in frame (padding on top and bottom)
+      top = Math.max(minTop, Math.min(top, maxTop));
+      if (top + height > innerHeight - padding) {
+        top = Math.max(padding, innerHeight - height - padding);
       }
 
-      const maxW = Math.min(innerWidth - minLeft - padding, innerWidth * 0.5);
-      const maxH = innerHeight - minTop - padding;
+      const maxW = Math.min(innerWidth - padding * 2, innerWidth * 0.5);
+      const maxH = innerHeight - padding * 2;
       this.popupStyle = {
         top: `${top}px`,
         left: `${left}px`,

@@ -304,7 +304,7 @@ func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, erro
 	}
 	_, ok = utils.DiskUsageCache.Get(cacheKey)
 	if !ok {
-		// Only fetch disk total if not cached (this is expensive, so we cache it)
+		// Only fetch disk total and used if not cached (this is expensive, so we cache it)
 		totalBytes, err := fileutils.GetPartitionSize(sourcePath)
 		if err != nil {
 			idx.mu.Lock()
@@ -314,6 +314,17 @@ func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, erro
 		}
 
 		idx.SetUsage(totalBytes)
+		
+		// Also fetch OS-reported partition used space (total - free)
+		usedAlt, err := fileutils.GetPartitionUsed(sourcePath)
+		if err != nil {
+			logger.Errorf("Failed to get partition used space for index %s: %v", sourceName, err)
+			usedAlt = 0
+		}
+		idx.mu.Lock()
+		idx.UsedAlt = usedAlt
+		idx.mu.Unlock()
+		
 		utils.DiskUsageCache.Set(cacheKey, true)
 	}
 
@@ -335,13 +346,14 @@ func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, erro
 		})
 	}
 	reducedIdx := idx.ReducedIndex
-	// Compute DiskUsed from database (total size of all files)
+	// Compute DiskUsed from database (total size of all files indexed)
 	diskUsed, err := idx.db.GetTotalSize(idx.Name)
 	if err != nil {
 		logger.Errorf("Failed to get total size for index %s: %v", sourceName, err)
 		diskUsed = 0
 	}
 	reducedIdx.DiskUsed = diskUsed
+	reducedIdx.UsedAlt = idx.UsedAlt
 	reducedIdx.DiskTotal = idx.DiskTotal
 	reducedIdx.Scanners = scannerInfos
 	reducedIdx.NumDirs = idx.getNumDirsUnlocked()

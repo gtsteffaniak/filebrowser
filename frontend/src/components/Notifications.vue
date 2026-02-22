@@ -205,7 +205,7 @@ export default {
   padding: 0.5em;
   align-items: center;
   transition: right 1s ease;
-  z-index: 5;
+  z-index: 7;
   pointer-events: all;
   user-select: none;
   overflow: hidden;

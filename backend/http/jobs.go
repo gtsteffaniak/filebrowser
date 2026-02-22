@@ -27,6 +27,10 @@ func getJobsHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 			logger.Debugf("error getting index info: %v", err)
 			continue
 		}
+		showScannerInfo := r.URL.Query().Get("scanners") == "true"
+		if !showScannerInfo {
+			reducedIndex.Scanners = nil
+		}
 		reducedIndexes[source] = reducedIndex
 	}
 	return renderJSON(w, r, reducedIndexes)

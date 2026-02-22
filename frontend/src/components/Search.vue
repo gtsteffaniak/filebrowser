@@ -1,15 +1,7 @@
 <template>
-  <div id="search" :class="{ active, ongoing, 'dark-mode': isDarkMode }" @click="clearContext">
+  <div v-if="active" id="search" :class="{ active, ongoing, 'dark-mode': isDarkMode }" @click="clearContext">
     <!-- Search input section -->
-    <div id="search-input" @click="open" :class="{ 'halloween-eyes': eventTheme === 'halloween' }">
-      <div id="halloween-eyes" v-if="eventTheme === 'halloween' && active">
-        <div class="eye left">
-          <div class="pupil"></div>
-        </div>
-        <div class="eye right">
-          <div class="pupil"></div>
-        </div>
-      </div>
+    <div class="search-input-container">
       <!-- Close button visible when search is active -->
       <button v-if="active" class="action" @click="close" :aria-label="$t('general.close')"
         :title="$t('general.close')">
@@ -18,7 +10,7 @@
       <!-- Search icon when search is not active -->
       <i v-else class="material-icons">search</i>
       <!-- Input field for search -->
-      <input id="main-input" class="main-input" :class="{ 'halloween-theme': eventTheme === 'halloween' }" type="text"
+      <input id="search-input" type="text"
         @keyup.exact="keyup" @input="submit" ref="input" :autofocus="active" v-model.trim="value"
         aria-label="search input" :placeholder="$t('general.search', { suffix: '...' })" />
     </div>
@@ -87,9 +79,9 @@
         <!-- List of search results -->
         <ul v-show="results.length > 0">
           <li v-for="(s, k) in results" :key="k" class="search-entry clickable"
-            :class="{ active: activeStates[k], 'large-icons': showPreviewImages }" :aria-label="baseName(s.path)">
-            <a :href="getItemUrl(s)" @contextmenu="addSelected(event, s)">
-              <Icon :mimetype="s.type" :filename="baseName(s.path)"
+            :class="{ active: activeStates[k], 'large-icons': showPreviewImages, 'small-icons': !showPreviewImages }" :aria-label="baseName(s.path)">
+            <a :href="getItemUrl(s)" @contextmenu="addSelected($event, s)">
+              <Icon :mimetype="s.type" :filename="baseName(s.path)" :path="s.path"
                 :hasPreview="showPreviewImages && (s.hasPreview || false)"
                 :thumbnailUrl="showPreviewImages ? getThumbnailUrl(s) : ''" />
               <span class="text-container">
@@ -173,22 +165,6 @@ export default {
     },
     searchTypes() {
       this.submit();
-    },
-    active(active) {
-      // this is hear to allow for animation
-      const resultList = document.getElementById("result-list");
-      if (!active) {
-        resultList.classList.remove("active");
-        this.value = "";
-        event.stopPropagation();
-        mutations.closeHovers();
-        return;
-      }
-      this.selectedSource = state.sources.current;
-      setTimeout(() => {
-        resultList.classList.add("active");
-        document.getElementById("main-input").focus();
-      }, 100);
     },
     value() {
       if (this.results.length) {
@@ -292,7 +268,13 @@ export default {
       }
 
       const selectedPaths = new Set(selectedItems.map((item) => item.path));
-      return this.results.map((result) => selectedPaths.has(result.path));
+      return this.results.map((result) => {
+        // Construct the same full path as addSelected does
+        const context = url.removeTrailingSlash(this.getContext);
+        const pathStr = url.removeLeadingSlash(url.removeTrailingSlash(result.path));
+        const fullPath = context + '/' + pathStr;
+        return selectedPaths.has(fullPath);
+      });
     },
     sourceInfo() {
       return state.sources.info;
@@ -413,7 +395,7 @@ export default {
         mutations.closeHovers();
         mutations.closeSidebar();
         mutations.resetSelected();
-        this.resetSearchFilters();
+        this.resetSearchFilters;
         mutations.setSearch(true);
       }
     },
@@ -530,6 +512,7 @@ export default {
       }
     },
     addSelected(event, s) {
+      event.preventDefault();
       const pathParts = url.removeTrailingSlash(s.path).split("/");
       // Use source from result if available, otherwise fall back to selectedSource
       const source = s.source || this.selectedSource || state.sources.current;
@@ -546,6 +529,7 @@ export default {
       };
       mutations.resetSelected();
       mutations.addSelected(modifiedItem);
+      this.openContext(event);
     },
   },
 };
@@ -554,10 +538,6 @@ export default {
 <style scoped>
 .sizeInputWrapper {
   border: 1px solid #ccc;
-}
-
-.main-input {
-  width: 100%;
 }
 
 .inputWrapper {
@@ -605,15 +585,11 @@ export default {
   -webkit-transition: width 0.3s ease 0s;
   transition: width 0.3s ease 0s;
   background-color: unset;
-  border-radius: 0 0 1em 1em;
 }
 
 #results {
   -webkit-animation: SlideDown 0.5s forwards;
   animation: SlideDown 0.5s forwards;
-  border-radius: 1m;
-  border-width: 1px;
-  border-style: solid;
   border-radius: 1em;
   max-height: 100%;
   border-top: none;
@@ -622,8 +598,7 @@ export default {
   border-top-color: initial;
   border-top-left-radius: 0px;
   border-top-right-radius: 0px;
-  -webkit-transform: translateX(-50%);
-  transform: translateX(-50%);
+  border: 2px solid var(--surfaceSecondary);
   box-shadow: 0px 2em 50px 10px rgba(0, 0, 0, 0.3);
   background-color: lightgray;
   max-height: 80vh;
@@ -639,7 +614,6 @@ export default {
 
 #search #result-list.active {
   width: 1000px;
-  max-width: 95vw;
 }
 
 /* Animations */
@@ -667,22 +641,68 @@ export default {
   transform: translateX(-50%);
 }
 
-#search-input {
+.search-input-container {
   background-color: rgba(100, 100, 100, 0.2);
   display: flex;
   height: 100%;
-  padding: 0em 0.75em;
+  padding: 0.5em 0.75em;
   border-radius: 1em;
   border-style: unset;
-  border-width: 1px;
   align-items: center;
   height: 3em;
+  gap: 0.5em;
+  width: 100%;
+}
+
+.search-input-container .material-icons {
+  font-size: 1.25em;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+#search.active .search-input-container .material-icons {
+  color: inherit;
 }
 
 #search input {
   border: 0;
   background-color: transparent;
   padding: 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.95em;
+}
+
+#search.active input {
+  color: inherit;
+}
+
+#search input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+#search.active input::placeholder {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+#search.dark-mode .search-input-container {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+#search.dark-mode input::placeholder {
+  color: gray !important;
+}
+
+#search.dark-mode.active .search-input-container {
+  background-color: var(--background);
+}
+
+#search.active .search-input-container {
+  background-color: var(--background);
+  border-color: var(--surfaceSecondary);
+  border-style: solid;
+  border-bottom-style: none;
+  border-bottom-right-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+  border-width: 2px;
 }
 
 #result-list p {
@@ -697,9 +717,8 @@ export default {
 /* Hiding scrollbar for IE, Edge and Firefox */
 #result-list {
   scrollbar-width: none;
-  /* Firefox */
   -ms-overflow-style: none;
-  /* IE and Edge */
+  max-width: 95vw;
 }
 
 .search-entry:hover {
@@ -783,32 +802,20 @@ body.rtl #search #result ul>* {
   display: block;
 }
 
-#search.active #search-input {
+#search input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+#search.active input::placeholder {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+#search.dark-mode .search-input-container {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+#search.dark-mode.active .search-input-container {
   background-color: var(--background);
-  border-color: black;
-  border-style: solid;
-  border-bottom-style: none;
-  border-bottom-right-radius: 0 !important;
-  border-bottom-left-radius: 0 !important;
-}
-
-/* Search Input Placeholder */
-#search::-webkit-input-placeholder {
-  color: rgba(255, 255, 255, 0.5);
-}
-
-#search:-moz-placeholder {
-  opacity: 1;
-  color: rgba(255, 255, 255, 0.5);
-}
-
-#search::-moz-placeholder {
-  opacity: 1;
-  color: rgba(255, 255, 255, 0.5);
-}
-
-#search:-ms-input-placeholder {
-  color: rgba(255, 255, 255, 0.5);
 }
 
 /* Search Boxes */
@@ -943,12 +950,11 @@ body.rtl #search .boxes h3 {
     max-width: 100%;
   }
 
-  #search-input {
+  .search-input-container {
     transition: 1s ease all;
   }
 
-  #search.active #search-input {
-    border-bottom: 3px solid rgba(0, 0, 0, 0.075);
+  #search.active .search-input-container {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     backdrop-filter: blur(6px);
     height: 4em;
@@ -976,8 +982,8 @@ body.rtl #search .boxes h3 {
     margin-right: .3em;
   }
 
-  #search-input>.action,
-  #search-input>i {
+  .search-input-container>.action,
+  .search-input-container>i {
     margin-right: 0.3em;
     user-select: none;
   }

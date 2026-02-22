@@ -54,8 +54,8 @@ test("info from search", async ({ page, checkForErrors, context, theme }) => {
     return;
   }
   await page.goto("/files/");
-  await page.locator('#search').click()
-  await page.locator('#main-input').fill('file.tar.gz');
+  await page.locator('#search-bar-input').click()
+  await page.locator('#search-input').fill('file.tar.gz');
   await expect(page.locator('#result-list')).toHaveCount(1);
   await page.waitForTimeout(500);
   await page.screenshot({ path: `./screenshots/search/from-listing-${theme}.jpg`, quality: jpgQuality });

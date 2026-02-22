@@ -382,6 +382,8 @@ definitions:
         type: integer
       used:
         type: integer
+      usedAlt:
+        type: integer
     type: object
   indexing.ScannerInfo:
     properties:
@@ -408,6 +410,8 @@ definitions:
       quickScanDurationSeconds:
         type: integer
       used:
+        type: integer
+      usedAlt:
         type: integer
     type: object
   indexing.SearchResult:
@@ -1712,7 +1716,8 @@ definitions:
   users.SidebarLink:
     properties:
       category:
-        description: 'Category type: "source", "share", "tool", "custom", etc.'
+        description: 'Category type: "source", "source-link", "share", "tool", "custom",
+          etc.'
         type: string
       icon:
         description: Material icon name

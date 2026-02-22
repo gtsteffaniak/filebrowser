@@ -375,6 +375,10 @@
     "shareLinksUpdatedSuccess": "Kenar çubuğu bağlantılarını paylaşma başarıyla güncellendi!",
     "shareHome": "Ev Paylaşımı",
     "linkIconPlaceholder": "İsteğe bağlı olarak bir malzeme simgesi adı belirtin",
+    "hideUsage": "Kullanımı Gizle",
+    "hideUsageDescription": "Bu kaynak bağlantısında depolama alanı kullanımını göstermeyin (minimal stil).",
+    "onlyShowIndexedUsage": "Dizinlenmiş dosyalardan kullanımı hesaplama",
+    "onlyShowIndexedUsageDescription": "Devre dışı bırakıldığında, kaynak için hesaplanan dizinlenmiş dosya toplamları yerine işletim sistemi tarafından bildirilen bölümün toplam kullanımını gösterir.",
     "switchMode": "Kenar çubuğu modunu değiştir"
   },
   "success": {

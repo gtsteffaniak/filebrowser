@@ -364,57 +364,51 @@ export default {
     itemStyles() {
       const viewMode = getters.viewMode();
       const styles = {};
+      const size = state.user.gallerySize;
 
       if (viewMode === 'icons') {
-        const baseSize = 20 + (state.user.gallerySize * 15); // 30px to 135px - increased scaling
+        const baseSize = 20 + (size * 15); // 35px to 155px
         const cellSize = baseSize + 30;
-        styles['--icons-view-icon-size'] = `${baseSize}px`;
+        styles['--icon-size'] = `${baseSize}px`;
+        styles['--icon-font-size'] = `${baseSize}px`;
         styles['--icons-view-cell-size'] = `${cellSize}px`;
       } else if (viewMode === 'gallery') {
-        // Use column width and percentage-based sizing for smooth animations
-        // Keep size 5 at 205px, then scale more aggressively above that
-        const baseCalc = 80 + (state.user.gallerySize * 25);
-        const extraScaling = Math.max(0, state.user.gallerySize - 5) * 15; // Additional 15px per level above 5
+        const baseCalc = 80 + (size * 25);
+        const extraScaling = Math.max(0, size - 5) * 15;
         const baseSize = baseCalc + extraScaling; // Size 5: 205px, Size 9: 345px
-        // Scale gallery icons with baseSize
-        const galleryIconFontSize = (3 + (state.user.gallerySize * 0.5)).toFixed(2); // 3em to 7.5em
-        styles['--gallery-icon-font-size'] = `${galleryIconFontSize}em`;
+        const iconFontSize = (3 + (size * 0.5)).toFixed(2); // 3em to 7.5em
+        styles['--icon-font-size'] = `${iconFontSize}em`;
+        
         if (state.isMobile) {
-          let columns;
-          if (state.user.gallerySize <= 7) columns = 2;
-          else if (state.user.gallerySize <= 9) columns = 1;
-          else columns = 1;
-          styles['--gallery-mobile-columns'] = columns.toString();
-          // On mobile, scale height with gallery size for smooth animations
-          const mobileHeight = 120 + (state.user.gallerySize * 20); // 120px to 300px range
-          styles['--item-width'] = '150px'; // Minimum size for mobile grid
+          const minWidth = size <= 3 ? 120 : size <= 7 ? 160 : 280;
+          const mobileHeight = 120 + (size * 20); // 120px to 300px
+          styles['--gallery-mobile-min-width'] = `${minWidth}px`;
+          styles['--item-width'] = `${minWidth}px`;
           styles['--item-height'] = `${mobileHeight}px`;
         } else {
-          // Use pixel size for grid's minmax - items will stretch and animate smoothly
-          // Make height 20% larger than width for better proportions
           styles['--item-width'] = `${baseSize}px`;
           styles['--item-height'] = `${Math.round(baseSize * 1.2)}px`;
         }
       } else if (viewMode === 'list' || viewMode === 'compact') {
         const baseHeight = viewMode === 'compact'
-          ? 40 + (state.user.gallerySize * 2)  // 40px to 56px - compact
-          : 50 + (state.user.gallerySize * 3); // 50px to 74px - list
-        // Scale preview containers and icons with gallery size
-        const iconFontSize = (1.5 + (state.user.gallerySize * 0.12)).toFixed(2); // 1.8em to 2.9em - for material icons
-        const iconImageSize = (2 + (state.user.gallerySize * 0.12)).toFixed(3); // 2.2em to 3.2em - for containers
+          ? 40 + (size * 2)  // 42px to 58px
+          : 50 + (size * 3); // 53px to 77px
+        const iconSize = (2 + (size * 0.12)).toFixed(2); // 2.12em to 3.08em
+        const iconFontSize = (1.5 + (size * 0.12)).toFixed(2); // 1.62em to 2.58em
 
         styles['--item-width'] = `calc(${(100 / this.numColumns).toFixed(2)}% - 1em)`;
         styles['--item-height'] = `${baseHeight}px`;
-        styles['--list-icon-font-size'] = `${iconFontSize}em`;
-        styles['--list-icon-image-size'] = `${iconImageSize}em`;
+        styles['--icon-size'] = `${iconSize}em`;
+        styles['--icon-font-size'] = `${iconFontSize}em`;
       } else {
-        // Normal view - add scaling for preview containers and icons
-        const iconImageSize = (3.2 + (state.user.gallerySize * 0.15)).toFixed(3); // 3.2em to 4.4em - for containers
-        const iconFontSize = (2.2 + (state.user.gallerySize * 0.12)).toFixed(2); // 2.2em to 3.3em - for material icons
+        // Normal view
+        const iconSize = (3.2 + (size * 0.15)).toFixed(2); // 3.35em to 4.55em
+        const iconFontSize = (2.2 + (size * 0.12)).toFixed(2); // 2.32em to 3.28em
+        
         styles['--item-width'] = `calc(${(100 / this.numColumns)}% - 1em)`;
         styles['--item-height'] = 'auto';
-        styles['--normal-icon-image-size'] = `${iconImageSize}em`;
-        styles['--normal-icon-font-size'] = `${iconFontSize}em`;
+        styles['--icon-size'] = `${iconSize}em`;
+        styles['--icon-font-size'] = `${iconFontSize}em`;
       }
 
       return styles;

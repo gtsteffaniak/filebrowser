@@ -4248,6 +4248,9 @@ const docTemplate = `{
                 },
                 "used": {
                     "type": "integer"
+                },
+                "usedAlt": {
+                    "type": "integer"
                 }
             }
         },
@@ -4288,6 +4291,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "used": {
+                    "type": "integer"
+                },
+                "usedAlt": {
                     "type": "integer"
                 }
             }
@@ -6044,7 +6050,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "category": {
-                    "description": "Category type: \"source\", \"share\", \"tool\", \"custom\", etc.",
+                    "description": "Category type: \"source\", \"source-link\", \"share\", \"tool\", \"custom\", etc.",
                     "type": "string"
                 },
                 "icon": {

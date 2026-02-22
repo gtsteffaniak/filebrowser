@@ -375,6 +375,10 @@
     "shareLinksUpdatedSuccess": "As ligações da barra lateral de partilha foram actualizadas com êxito!",
     "shareHome": "Partilhar casa",
     "linkIconPlaceholder": "Especificar opcionalmente um nome de ícone de material",
+    "hideUsage": "Ocultar utilização",
+    "hideUsageDescription": "Não mostrar a utilização do armazenamento nesta hiperligação de origem (estilo mínimo).",
+    "onlyShowIndexedUsage": "Calcular a utilização de ficheiros indexados",
+    "onlyShowIndexedUsageDescription": "Quando desativado, mostra a utilização total da partição conforme reportado pelo SO em vez dos totais de ficheiros indexados calculados para a origem.",
     "switchMode": "Mudar modo da barra lateral"
   },
   "success": {
