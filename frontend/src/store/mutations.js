@@ -119,6 +119,7 @@ export const mutations = {
             state.sources.hasSourceInfo = true
           }
           state.sources.info[k].used = source.used || 0;
+          state.sources.info[k].usedAlt = source.usedAlt || 0;
           state.sources.info[k].total = source.total || 0;
           state.sources.info[k].usedPercentage = source.total ? Math.round((source.used / source.total) * 100) : 0;
           state.sources.info[k].status = source.status || "unknown";
@@ -155,6 +156,7 @@ export const mutations = {
         pathPrefix: sources.count == 1 ? "" : encodeURIComponent(source.name),
         used: 0,
         total: 0,
+        usedAlt: 0,
         usedPercentage: 0,
         status: "unknown",
         name: source.name,
@@ -164,14 +166,15 @@ export const mutations = {
         quickScanDurationSeconds: 0,
         fullScanDurationSeconds: 0,
         complexity: 0,
-        scanners: [],
       };
     }
     // Check if user has custom sidebar links with sources
     let targetSource = sources.current;
     if (state.user?.sidebarLinks && state.user.sidebarLinks.length > 0) {
       // Find first source link in user's sidebar links
-      const firstSourceLink = state.user.sidebarLinks.find(link => link.category === 'source' && link.sourceName);
+      const firstSourceLink = state.user.sidebarLinks.find(link =>
+        (link.category === 'source' || link.category === 'source-minimal' || link.category === 'source-alt') && link.sourceName
+      );
       if (firstSourceLink) {
         targetSource = firstSourceLink.sourceName;
       }
@@ -248,10 +251,6 @@ export const mutations = {
       return;
     }
     state.upload.isUploading = value;
-    emitStateChanged();
-  },
-  setUsage: (source,value) => {
-    state.usages[source] = value;
     emitStateChanged();
   },
   closeHovers: () => {

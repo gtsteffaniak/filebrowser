@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
@@ -197,7 +198,7 @@ func updateSidebarLinks(user *users.User) bool {
 	validSourceLinksCount := 0
 
 	for _, link := range user.SidebarLinks {
-		if link.Category == "source" {
+		if strings.HasPrefix(link.Category, "source") {
 			sourceLinksCount++
 			// Check if this source still exists
 			if link.SourceName != "" {
@@ -220,7 +221,7 @@ func updateSidebarLinks(user *users.User) bool {
 		// Remove all existing source links
 		newLinks := []users.SidebarLink{}
 		for _, link := range user.SidebarLinks {
-			if link.Category != "source" {
+			if !strings.HasPrefix(link.Category, "source") {
 				newLinks = append(newLinks, link)
 			}
 		}

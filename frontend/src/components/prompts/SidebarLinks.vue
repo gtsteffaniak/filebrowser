@@ -45,7 +45,7 @@
     <div v-else class="add-link-form">
       <!-- Path Browser for Source/Share Links - shown when selecting path -->
       <div v-if="isSelectingPath">
-        <file-list ref="fileList" :browse-source="newLink.category === 'source' ? newLink.sourceName : null"
+        <file-list ref="fileList" :browse-source="isSourceCategory(newLink.category) ? newLink.sourceName : null"
           :browse-share="newLink.category === 'share' ? getShareHash(newLink.target) : null"
           @update:selected="updateSelectedPath"></file-list>
       </div>
@@ -59,6 +59,7 @@
         <select aria-label="Link Type" v-model="newLink.category" @change="handleCategoryChange" class="input">
           <option value="">{{ $t('sidebar.selectLinkType') }}</option>
           <option v-if="context === 'user'" value="source">{{ $t('general.source') }}</option>
+          <option v-if="context === 'user'" value="source-minimal">{{ $t('general.source') }}</option>
           <option value="share">{{ $t('general.share') }}</option>
           <option v-if="context === 'user'" value="tool">{{ $t('general.tool') }}</option>
           <option value="custom">{{ $t('sidebar.customLink') }}</option>
@@ -66,8 +67,8 @@
           <option v-if="context === 'share'" value="download">{{ $t('general.download') }}</option>
         </select>
 
-        <!-- Source Selection -->
-        <div v-if="newLink.category === 'source'" class="form-group">
+        <!-- Source Selection (category is "source" or "source-minimal") -->
+        <div v-if="isSourceCategory(newLink.category)" class="form-group">
           <p>{{ $t('sidebar.selectSource') }}</p>
           <select v-model="newLink.sourceName" @change="handleSourceChange" class="input">
             <option value="">{{ $t('sidebar.chooseSource') }}</option>
@@ -84,10 +85,26 @@
           </div>
 
           <!-- Path Selection for Source - clickable path display -->
-          <div v-if="newLink.sourceName">
+          <div v-if="newLink.sourceName" class="padding-top">
             <div class="searchContext clickable button" @click="openPathBrowser('source')" aria-label="source-path">
               {{ $t('general.path', { suffix: ':' }) }} {{ newLink.sourcePath || '/' }}
             </div>
+          </div>
+
+          <!-- Source link options: Hide Usage and Usage Type -->
+          <div v-if="newLink.sourceName" class="settings-items" style="margin-top: 0.5em;">
+            <!-- Hide Usage: when on, category is source-minimal -->
+            <ToggleSwitch class="item"
+              :modelValue="newLink.category === 'source-minimal'"
+              @update:modelValue="(v) => newLink.category = v ? 'source-minimal' : 'source'"
+              :name="$t('sidebar.hideUsage')"
+              :description="$t('sidebar.hideUsageDescription')" />
+            <!-- Only show usage from indexed files: when off, category is source-alt -->
+            <ToggleSwitch v-if="newLink.category !== 'source-minimal'" class="item"
+              :modelValue="newLink.category !== 'source-alt'"
+              @update:modelValue="(v) => newLink.category = v ? 'source' : 'source-alt'"
+              :name="$t('sidebar.onlyShowIndexedUsage')"
+              :description="$t('sidebar.onlyShowIndexedUsageDescription')" />
           </div>
         </div>
 
@@ -213,12 +230,14 @@ import { usersApi, shareApi } from "@/api";
 import { tools } from "@/utils/constants";
 import { getIconClass } from "@/utils/material-icons";
 import FileList from "../files/FileList.vue";
+import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import { eventBus } from "@/store/eventBus";
 
 export default {
   name: "SidebarLinks",
   components: {
     FileList,
+    ToggleSwitch,
   },
   props: {
     context: {
@@ -240,6 +259,7 @@ export default {
         target: "",
         icon: "",
         sourceName: "",
+        sourcePath: "",
       },
       draggingIndex: null,
       dragOverIndex: null,
@@ -277,7 +297,7 @@ export default {
         return this.newLink.name && this.newLink.target;
       }
 
-      if (this.newLink.category === "source") {
+      if (this.isSourceCategory(this.newLink.category)) {
         return this.newLink.sourceName && this.newLink.name;
       }
 
@@ -367,9 +387,14 @@ export default {
 
       return defaultLinks;
     },
+    isSourceCategory(category) {
+      return category === 'source' || category === 'source-minimal' || category === 'source-alt';
+    },
     getCategoryLabel(category) {
       const labels = {
         source: this.$t('general.source'),
+        'source-minimal': this.$t('general.source'),
+        'source-alt': this.$t('general.source'),
         tool: this.$t('general.tool'),
         custom: this.$t('sidebar.customLink'),
         share: this.$t('general.share'),
@@ -479,7 +504,7 @@ export default {
     },
     confirmPathSelection() {
       // Apply the selected path to the link based on category
-      if (this.newLink.category === 'source') {
+      if (this.isSourceCategory(this.newLink.category)) {
         this.newLink.sourcePath = this.tempSelectedPath;
       } else if (this.newLink.category === 'share') {
         // Update target with new subpath
@@ -500,14 +525,15 @@ export default {
       this.editingIndex = index;
       this.showAddForm = true;
 
-      // Populate form with existing link data
+      // Populate form with existing link data (category stays source or source-minimal)
+      const isSource = this.isSourceCategory(link.category);
       this.newLink = {
         name: link.name,
         category: link.category,
-        target: (link.category === 'source') ? "" : (link.target || ""),
+        target: isSource ? "" : (link.target || ""),
         icon: link.icon || "",
         sourceName: link.sourceName || "",
-        sourcePath: (link.category === 'source') ? (link.target || "/") : "/",
+        sourcePath: isSource ? (link.target || "/") : "/",
       };
     },
     addLink() {
@@ -531,8 +557,9 @@ export default {
         linkData.target = "#";
       } else if (this.newLink.category === "custom") {
         linkData.target = this.processCustomUrl(this.newLink.target);
-      } else if (this.newLink.category === "source") {
-        // For sources: target is relative path, sourceName identifies the source
+      } else if (this.isSourceCategory(this.newLink.category)) {
+        // For sources: target is relative path, sourceName identifies the source; category is "source" or "source-minimal"
+        linkData.category = this.newLink.category;
         linkData.target = this.newLink.sourcePath || '/';
         linkData.sourceName = this.newLink.sourceName;
       } else if (this.newLink.category === "share") {
@@ -700,6 +727,11 @@ export default {
 </script>
 
 <style scoped>
+
+.padding-top {
+  margin-top: 0.5em;
+}
+
 .links-list {
   margin-bottom: 1.5em;
 }

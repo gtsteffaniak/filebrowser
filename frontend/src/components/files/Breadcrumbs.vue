@@ -322,10 +322,18 @@ export default {
 
 <style scoped>
 #breadcrumbs {
-  overflow-y: hidden;
-  overflow-x: hidden;
-  width: 100%;
-  box-sizing: border-box;
+  overflow-x: auto;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+#breadcrumbs::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+#breadcrumbs {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }
 
 #breadcrumbs * {

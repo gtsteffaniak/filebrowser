@@ -380,14 +380,13 @@ export default {
         const galleryIconFontSize = (3 + (state.user.gallerySize * 0.5)).toFixed(2); // 3em to 7.5em
         styles['--gallery-icon-font-size'] = `${galleryIconFontSize}em`;
         if (state.isMobile) {
-          let columns;
-          if (state.user.gallerySize <= 7) columns = 2;
-          else if (state.user.gallerySize <= 9) columns = 1;
-          else columns = 1;
-          styles['--gallery-mobile-columns'] = columns.toString();
+          // Min width drives column count: narrow viewports get fewer columns automatically
+          // Small gallery (1-3) → 120px min → ~3 cols; medium (4-7) → 160px → ~2 cols; large (8-9) → 280px → 1 col
+          const minWidth = state.user.gallerySize <= 3 ? 120 : state.user.gallerySize <= 7 ? 160 : 280;
+          styles['--gallery-mobile-min-width'] = `${minWidth}px`;
           // On mobile, scale height with gallery size for smooth animations
           const mobileHeight = 120 + (state.user.gallerySize * 20); // 120px to 300px range
-          styles['--item-width'] = '150px'; // Minimum size for mobile grid
+          styles['--item-width'] = `${minWidth}px`; // Align with grid min so items don't overflow
           styles['--item-height'] = `${mobileHeight}px`;
         } else {
           // Use pixel size for grid's minmax - items will stretch and animate smoothly

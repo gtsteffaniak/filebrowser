@@ -495,6 +495,14 @@ body.rtl .listing-items {
   transition: grid-template-columns 0.25s ease-out;
 }
 
+@media (max-width: 768px) {
+  .listing-items.gallery .folder-items,
+  .listing-items.gallery .file-items {
+    /* Min width overrides column count: as many columns as fit above the minimum */
+    grid-template-columns: repeat(auto-fill, minmax(var(--gallery-mobile-min-width, 140px), 1fr));
+  }
+}
+
 .listing-items.icons .folder-items,
 .listing-items.icons .file-items {
   display: grid;

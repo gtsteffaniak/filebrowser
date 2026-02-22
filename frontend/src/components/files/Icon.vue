@@ -4,7 +4,7 @@
     <!-- Overlay icons (folder/animation) positioned top-left -->
     <i v-if="hasPreviewImage && hasMotion && isFile" class="material-icons overlay-icon muted">animation</i>
     <i v-else-if="hasPreviewImage && !isFile" class="material-icons overlay-icon muted">folder</i>
-    <i v-if="isShared" class="material-icons overlay-icon">share</i>
+    <i v-if="isShared" class="material-icons overlay-icon">group</i>
     <!-- Preview content: image, 3D, or fallback -->
     <img v-if="hasPreviewImage" :key="imageTargetSrc" :src="imageDisplaySrc" ref="thumbnail" />
     <ThreeJs v-else-if="shouldUse3DPreview && !threeJsError" 
@@ -24,7 +24,7 @@
   <!-- Regular material icon (no preview) -->
   <span v-else class="image-preview">
     <i :class="[classes, { active: active, clickable: clickable }]"> {{ materialIcon }} </i>
-    <i v-if="isShared" class="material-icons overlay-icon">share</i>
+    <i v-if="isShared" class="material-icons overlay-icon">group</i>
   </span>
 </template>
 

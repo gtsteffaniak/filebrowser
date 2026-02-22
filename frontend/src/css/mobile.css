@@ -61,12 +61,6 @@
     width: 100%
   }
 
-  /* Gallery mode on mobile - use simple column-based grid */
-  #listingView.gallery .folder-items,
-  #listingView.gallery .file-items {
-    grid-template-columns: repeat(var(--gallery-mobile-columns, 2), 1fr);
-  }
-
   body.rtl #listingView {
     margin-right: unset;
   }
