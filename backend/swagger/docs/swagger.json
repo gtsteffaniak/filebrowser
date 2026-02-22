@@ -1903,6 +1903,60 @@
                 }
             }
         },
+        "/api/resources/items": {
+            "get": {
+                "description": "Returns lists of file and folder names for the specified path. Use only to filter by files, folders, or both.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Get directory items",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Directory path to list",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source name; default is used if not provided",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter: 'files', 'folders', or omit for both",
+                        "name": "only",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lists of files and folders",
+                        "schema": {
+                            "$ref": "#/definitions/files.Items"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/resources/unarchive": {
             "post": {
                 "description": "Extracts a zip or tar.gz archive on the server into the given destination directory. Server-side only; no extracted bytes are returned. Supports extracting to a different source via toSource. Requires create permission.\n\n**Request body parameters:**\n- **fromSource** (string, required): Source name where the archive file lives. Example: `\"default\"`\n- **toSource** (string, optional): Source name where contents will be extracted. Defaults to fromSource if omitted. Example: `\"restored\"`\n- **path** (string, required): Path to the archive file (on fromSource). Must be .zip, .tar.gz, or .tgz. Example: `\"/downloads/data.zip\"`\n- **destination** (string, required): Directory path (on toSource) to extract into. Example: `\"/projects/imported\"`\n- **deleteAfter** (boolean, optional): If true, delete the archive file after successful extraction. Default: false. Example: `true`",
@@ -3563,6 +3617,23 @@
         }
     },
     "definitions": {
+        "files.Items": {
+            "type": "object",
+            "properties": {
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "folders": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "http.AuthTokenMin": {
             "type": "object",
             "properties": {

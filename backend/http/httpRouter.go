@@ -103,6 +103,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 
 	// Resources routes
 	api.HandleFunc("GET /resources", withUser(resourceGetHandler))
+	api.HandleFunc("GET /resources/items", withUser(itemsGetHandler))
 	api.HandleFunc("DELETE /resources", withUser(resourceDeleteHandler))
 	api.HandleFunc("POST /resources", withUser(resourcePostHandler))
 	api.HandleFunc("PUT /resources", withUser(resourcePutHandler))

@@ -425,11 +425,12 @@ type PathContext struct {
 
 // FileInfoRequest specifies what information to retrieve
 type FileInfoRequest struct {
-	IndexPath      string
-	FollowSymlinks bool
-	ShowHidden     bool
-	Expand         bool // get child items for directories
-	IsRoutineScan  bool // scanner vs API call
+	IndexPath         string
+	FollowSymlinks    bool
+	ShowHidden        bool
+	Expand            bool // get child items for directories
+	IsRoutineScan     bool // scanner vs API call
+	SkipExtendedAttrs bool // whether to skip extended attributes
 }
 
 // resolvePathContext resolves all path characteristics in a SINGLE stat call
@@ -557,7 +558,7 @@ func (idx *Index) getDirInfoFromContext(ctx *PathContext, isViewable, isIndexabl
 		Recursive:         false,
 		CheckViewable:     true,
 		IsRoutineScan:     req.IsRoutineScan,
-		SkipExtendedAttrs: !isIndexable, // Only fetch extended attrs if indexable
+		SkipExtendedAttrs: req.SkipExtendedAttrs || !isIndexable,
 		FollowSymlinks:    req.FollowSymlinks,
 		ShowHidden:        req.ShowHidden,
 	}

@@ -965,3 +965,31 @@ func mockData(w http.ResponseWriter, r *http.Request) {
 	mockDir := indexing.CreateMockData(NumDirs, numFiles)
 	renderJSON(w, r, mockDir) // nolint:errcheck
 }
+
+// itemsGetHandler returns a list of files, folders, or both for a directory.
+// @Summary Get directory items
+// @Description Returns lists of file and folder names for the specified path. Use only to filter by files, folders, or both.
+// @Tags Resources
+// @Accept json
+// @Produce json
+// @Param path query string true "Directory path to list"
+// @Param source query string true "Source name; default is used if not provided"
+// @Param only query string false "Filter: 'files', 'folders', or omit for both"
+// @Success 200 {object} files.Items "Lists of files and folders"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/resources/items [get]
+func itemsGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	items, err := files.GetDirItems(utils.FileOptions{
+		FollowSymlinks: true,
+		Path:           r.URL.Query().Get("path"),
+		Source:         r.URL.Query().Get("source"),
+		ShowHidden:     d.user.ShowHidden,
+		Only:           r.URL.Query().Get("only"),
+	}, store.Access, d.user)
+	if err != nil {
+		logger.Errorf("could not get items: %v", err)
+		return http.StatusInternalServerError, err
+	}
+	logger.Infof("got items: %v", items)
+	return renderJSON(w, r, items)
+}

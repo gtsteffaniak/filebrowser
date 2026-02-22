@@ -157,6 +157,52 @@ func CheckPermissions(opts utils.FileOptions, access *access.Storage, user *user
 	return indexPath, userScope, nil
 }
 
+type Items struct {
+	Files   []string `json:"files,omitempty"`
+	Folders []string `json:"folders,omitempty"`
+}
+
+func GetDirItems(opts utils.FileOptions, access *access.Storage, user *users.User) (Items, error) {
+	items := Items{}
+	indexPath, _, err := CheckPermissions(opts, access, user)
+	if err != nil {
+		return items, err
+	}
+	// Get index
+	idx := indexing.GetIndex(opts.Source)
+	if idx == nil {
+		return items, fmt.Errorf("could not get index: %v ", opts.Source)
+	}
+
+	info, err := idx.GetFileInfo(indexing.FileInfoRequest{
+		IndexPath:         indexPath,
+		FollowSymlinks:    opts.FollowSymlinks,
+		ShowHidden:        opts.ShowHidden,
+		Expand:            true,
+		SkipExtendedAttrs: true,
+	})
+	if err != nil {
+		return items, err // Path excluded by index rules OR doesn't exist
+	}
+	if info.Type != "directory" {
+		return items, fmt.Errorf("path is not a directory: %v ", indexPath)
+	}
+	if err := access.CheckChildItemAccess(info, idx, user.Username); err != nil {
+		return items, err
+	}
+	if opts.Only == "files" || opts.Only == "" {
+		for _, file := range info.Files {
+			items.Files = append(items.Files, file.Name)
+		}
+	}
+	if opts.Only == "folders" || opts.Only == "" {
+		for _, folder := range info.Folders {
+			items.Folders = append(items.Folders, folder.Name)
+		}
+	}
+	return items, nil
+}
+
 func FileInfoFaster(opts utils.FileOptions, access *access.Storage, user *users.User, share *share.Storage) (*iteminfo.ExtendedFileInfo, error) {
 	response := &iteminfo.ExtendedFileInfo{}
 	indexPath, userScope, err := CheckPermissions(opts, access, user)
@@ -168,7 +214,6 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage, user *users.
 	if idx == nil {
 		return response, fmt.Errorf("could not get index: %v ", opts.Source)
 	}
-
 	// Layer 2: INDEX RULES (global)
 	// Get file info using unified entry point (applies IsViewable/ShouldSkip)
 	info, err := idx.GetFileInfo(indexing.FileInfoRequest{
@@ -189,7 +234,7 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage, user *users.
 	// Layer 3: FILTER CHILDREN (user access)
 	// Remove child items THIS user can't access
 	if info.Type == "directory" {
-		if err := access.CheckChildItemAccess(response, idx, user.Username); err != nil {
+		if err := access.CheckChildItemAccess(info, idx, user.Username); err != nil {
 			return response, err
 		}
 		for i := range response.Files {
