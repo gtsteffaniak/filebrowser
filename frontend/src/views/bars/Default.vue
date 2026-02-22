@@ -11,7 +11,7 @@
       <i class="material-icons">search</i>
       <input 
         type="text" 
-        class="search-bar-input" 
+        id="search-bar-input" 
         :placeholder="$t('general.search', { suffix: '...' })" 
         readonly
       />
@@ -167,9 +167,8 @@ export default {
         // this is hear to allow for animation
         setTimeout(() => {
           const resultList = document.getElementById("result-list");
-          console.log(resultList);
           resultList.classList.add("active");
-          document.getElementById("main-input").focus();
+          document.getElementById("search-input").focus();
         }, 100);
       }
     },
@@ -319,11 +318,10 @@ header {
 
 .search-bar-container .material-icons {
   font-size: 1.25em;
-  color: rgba(255, 255, 255, 0.7);
   user-select: none;
 }
 
-.search-bar-input {
+#search-bar-input {
   background: transparent;
   border: none;
   outline: none;
@@ -333,9 +331,10 @@ header {
   user-select: none;
 }
 
-.search-bar-input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
+#search-bar-input::placeholder {
+  color: gray;
 }
+
 
 .dark-mode-header .search-bar-container {
   background-color: rgba(100, 100, 100, 0.2);

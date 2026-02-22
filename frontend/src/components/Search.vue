@@ -1,15 +1,7 @@
 <template>
   <div v-if="active" id="search" :class="{ active, ongoing, 'dark-mode': isDarkMode }" @click="clearContext">
     <!-- Search input section -->
-    <div id="search-input" @click="open" :class="{ 'halloween-eyes': eventTheme === 'halloween' }">
-      <div id="halloween-eyes" v-if="eventTheme === 'halloween' && active">
-        <div class="eye left">
-          <div class="pupil"></div>
-        </div>
-        <div class="eye right">
-          <div class="pupil"></div>
-        </div>
-      </div>
+    <div class="search-input-container">
       <!-- Close button visible when search is active -->
       <button v-if="active" class="action" @click="close" :aria-label="$t('general.close')"
         :title="$t('general.close')">
@@ -18,7 +10,7 @@
       <!-- Search icon when search is not active -->
       <i v-else class="material-icons">search</i>
       <!-- Input field for search -->
-      <input id="main-input" class="main-input" :class="{ 'halloween-theme': eventTheme === 'halloween' }" type="text"
+      <input id="search-input" type="text"
         @keyup.exact="keyup" @input="submit" ref="input" :autofocus="active" v-model.trim="value"
         aria-label="search input" :placeholder="$t('general.search', { suffix: '...' })" />
     </div>
@@ -88,7 +80,7 @@
         <ul v-show="results.length > 0">
           <li v-for="(s, k) in results" :key="k" class="search-entry clickable"
             :class="{ active: activeStates[k], 'large-icons': showPreviewImages, 'small-icons': !showPreviewImages }" :aria-label="baseName(s.path)">
-            <a :href="getItemUrl(s)" @contextmenu="addSelected(event, s)">
+            <a :href="getItemUrl(s)" @contextmenu="addSelected($event, s)">
               <Icon :mimetype="s.type" :filename="baseName(s.path)" :path="s.path"
                 :hasPreview="showPreviewImages && (s.hasPreview || false)"
                 :thumbnailUrl="showPreviewImages ? getThumbnailUrl(s) : ''" />
@@ -276,7 +268,13 @@ export default {
       }
 
       const selectedPaths = new Set(selectedItems.map((item) => item.path));
-      return this.results.map((result) => selectedPaths.has(result.path));
+      return this.results.map((result) => {
+        // Construct the same full path as addSelected does
+        const context = url.removeTrailingSlash(this.getContext);
+        const pathStr = url.removeLeadingSlash(url.removeTrailingSlash(result.path));
+        const fullPath = context + '/' + pathStr;
+        return selectedPaths.has(fullPath);
+      });
     },
     sourceInfo() {
       return state.sources.info;
@@ -514,6 +512,7 @@ export default {
       }
     },
     addSelected(event, s) {
+      event.preventDefault();
       const pathParts = url.removeTrailingSlash(s.path).split("/");
       // Use source from result if available, otherwise fall back to selectedSource
       const source = s.source || this.selectedSource || state.sources.current;
@@ -530,6 +529,7 @@ export default {
       };
       mutations.resetSelected();
       mutations.addSelected(modifiedItem);
+      this.openContext(event);
     },
   },
 };
@@ -538,10 +538,6 @@ export default {
 <style scoped>
 .sizeInputWrapper {
   border: 1px solid #ccc;
-}
-
-.main-input {
-  width: 100%;
 }
 
 .inputWrapper {
@@ -636,7 +632,7 @@ export default {
 /* Search */
 #search {
   background-color: unset !important;
-  z-index: 100;
+  z-index: 5;
   position: fixed;
   top: 0.5em;
   min-width: 35em;
@@ -645,7 +641,7 @@ export default {
   transform: translateX(-50%);
 }
 
-#search-input {
+.search-input-container {
   background-color: rgba(100, 100, 100, 0.2);
   display: flex;
   height: 100%;
@@ -655,14 +651,15 @@ export default {
   align-items: center;
   height: 3em;
   gap: 0.5em;
+  width: 100%;
 }
 
-#search-input .material-icons {
+.search-input-container .material-icons {
   font-size: 1.25em;
   color: rgba(255, 255, 255, 0.7);
 }
 
-#search.active #search-input .material-icons {
+#search.active .search-input-container .material-icons {
   color: inherit;
 }
 
@@ -686,7 +683,7 @@ export default {
   color: rgba(0, 0, 0, 0.5);
 }
 
-#search.dark-mode #search-input {
+#search.dark-mode .search-input-container {
   background-color: rgba(255, 255, 255, 0.1);
 }
 
@@ -694,11 +691,11 @@ export default {
   color: gray !important;
 }
 
-#search.dark-mode.active #search-input {
+#search.dark-mode.active .search-input-container {
   background-color: var(--background);
 }
 
-#search.active #search-input {
+#search.active .search-input-container {
   background-color: var(--background);
   border-color: var(--surfaceSecondary);
   border-style: solid;
@@ -813,11 +810,11 @@ body.rtl #search #result ul>* {
   color: rgba(0, 0, 0, 0.5);
 }
 
-#search.dark-mode #search-input {
+#search.dark-mode .search-input-container {
   background-color: rgba(255, 255, 255, 0.1);
 }
 
-#search.dark-mode.active #search-input {
+#search.dark-mode.active .search-input-container {
   background-color: var(--background);
 }
 
@@ -953,11 +950,11 @@ body.rtl #search .boxes h3 {
     max-width: 100%;
   }
 
-  #search-input {
+  .search-input-container {
     transition: 1s ease all;
   }
 
-  #search.active #search-input {
+  #search.active .search-input-container {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     backdrop-filter: blur(6px);
     height: 4em;
@@ -985,8 +982,8 @@ body.rtl #search .boxes h3 {
     margin-right: .3em;
   }
 
-  #search-input>.action,
-  #search-input>i {
+  .search-input-container>.action,
+  .search-input-container>i {
     margin-right: 0.3em;
     user-select: none;
   }

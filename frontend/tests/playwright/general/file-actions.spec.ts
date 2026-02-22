@@ -15,8 +15,8 @@ test("info from listing", async({ page, checkForErrors, context }) => {
 test("info from search", async({ page, checkForErrors, context }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
-  await page.locator('#search').click()
-  await page.locator('#main-input').fill('file.tar.gz');
+  await page.locator('#search-bar-input').click()
+  await page.locator('#search-input').fill('file.tar.gz');
   await expect(page.locator('#result-list')).toHaveCount(1);
   await page.locator('li[aria-label="file.tar.gz"]').click({ button: "right" });
   await page.locator('.selected-count-header').waitFor({ state: 'visible' });
@@ -29,8 +29,8 @@ test("info from search", async({ page, checkForErrors, context }) => {
 test("open from search", async({ page, checkForErrors, context }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
-  await page.locator('#search').click()
-  await page.locator('#main-input').fill('file.tar.gz');
+  await page.locator('#search-bar-input').click()
+  await page.locator('#search-input').fill('file.tar.gz');
   await expect(page.locator('#result-list')).toHaveCount(1);
   await page.locator('li[aria-label="file.tar.gz"]').click();
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - file.tar.gz");
@@ -41,8 +41,8 @@ test("open from search", async({ page, checkForErrors, context }) => {
 test("open nested file in /files dir from search", async({ page, checkForErrors, context }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
-  await page.locator('#search').click()
-  await page.locator('#main-input').fill('binary');
+  await page.locator('#search-bar-input').click()
+  await page.locator('#search-input').fill('binary');
   await expect(page.locator('#result-list')).toHaveCount(1);
   await page.locator('li[aria-label="binary.dat"]').click();
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - binary.dat");
@@ -53,8 +53,8 @@ test("open nested file in /files dir from search", async({ page, checkForErrors,
 test("open markdown file from search", async({ page, checkForErrors, context }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
-  await page.locator('#search').click()
-  await page.locator('#main-input').fill('for testing');
+  await page.locator('#search-bar-input').click()
+  await page.locator('#search-input').fill('for testing');
   await expect(page.locator('#result-list')).toHaveCount(1);
   await page.locator('li[aria-label="for testing.md"]').click();
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - for testing.md");

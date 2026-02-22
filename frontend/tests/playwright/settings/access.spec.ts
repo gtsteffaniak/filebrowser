@@ -27,9 +27,9 @@ test("access rules - deny folder has access denied message", async ({ page, chec
 test("navigate from search item", async({ page, checkForErrors, context }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
-  await page.locator('#search').click()
+  await page.locator('#search-bar-input').click()
   await page.locator('select[aria-label="search sources dropdown"]').selectOption('access');
-  await page.locator('#main-input').fill('showme.txt');
+  await page.locator('#search-input').fill('showme.txt');
   await expect(page.locator('#result-list')).toHaveCount(0);
   checkForErrors()
 });
