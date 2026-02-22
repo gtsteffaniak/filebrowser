@@ -30,7 +30,7 @@
 
 <script>
 import { globalVars } from "@/utils/constants";
-import { getTypeInfo, getTypeInfoFromName } from "@/utils/mimetype";
+import { getTypeInfo } from "@/utils/mimetype";
 import { mutations, state, getters } from "@/store";
 import { setImageLoaded } from "@/utils/imageCache";
 import ThreeJs from "@/views/files/ThreeJs.vue";
@@ -361,10 +361,6 @@ export default {
       this.updateImageTargetSrc();
     },
     getIconForType() {
-      // If mimetype is not available or null, fall back to extension-based detection
-      if (!this.mimetype || this.mimetype === 'null') {
-        return getTypeInfoFromName(this.filename);
-      }
       return getTypeInfo(this.mimetype);
     },
     updateImageTargetSrc() {

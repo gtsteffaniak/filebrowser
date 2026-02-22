@@ -193,9 +193,7 @@ export default {
       this.loading = true;
       try {
         const items = await this.fetchItems(this.rootPath);
-        const folders = (items.folders || []).map(item => this.createNode(item, true, this.rootPath));
-        const files = (items.files || []).map(item => this.createNode(item, false, this.rootPath));
-        this.rootNodes = [...folders, ...files];
+        this.rootNodes = items.map(item => this.createNode(item));
       } catch (err) {
         console.error('Failed to load tree root:', err);
         this.error = err.message || 'Failed to load';
@@ -206,24 +204,21 @@ export default {
     },
     async fetchItems(path) {
       if (this.isShare) {
-        const res = await publicApi.getItems(this.shareHash, path);
-        return res;
+        const res = await publicApi.fetchPub(path, this.shareHash, state.shareInfo.password, false, false, true);
+        return res.items || [];
       } else {
-        const res = await filesApi.getItems(this.currentSource, path);
-        return res;
+        const res = await filesApi.fetchFiles(this.currentSource, path, false, false, true);
+        return res.items || [];
       }
     },
 
-    createNode(item, isDir, parentPath) {
-      // Handle when item is just a string (new API format)
-      const name = typeof item === 'string' ? item : item.name;
-      const path = joinPath(parentPath, name);
+    createNode(item) {
       return {
-        name: name,
-        path: path,
+        name: item.name,
+        path: item.path,
         source: this.currentSource,
-        type: typeof item === 'object' ? item.type : null,
-        isDir: isDir ,
+        type: item.type,
+        isDir: typeof item === 'object' ? item.type === 'directory' : false,
         expanded: false,
         loading: false,
         children: null,
@@ -251,10 +246,7 @@ export default {
         node.childrenError = null;
         try {
           const items = await this.fetchItems(node.path);
-          console.log('toggleExpand - items response:', items);
-          const folders = (items.folders || []).map(item => this.createNode(item, true, node.path));
-          const files = (items.files || []).map(item => this.createNode(item, false, node.path));
-          node.children = [...folders, ...files];
+          node.children = items.map(item => this.createNode(item));
           node.childrenCount = node.children.length;
         } catch (error) {
           console.error('Failed to load children for', node.path, error);

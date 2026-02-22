@@ -16,10 +16,11 @@ import { state } from "@/store";
  * @param {boolean} metadata
  * @returns {Promise<any>}
  */
-export async function fetchPub(path, hash, password = "", content = false, metadata = false) {
+export async function fetchPub(path, hash, password = "", content = false, metadata = false, skipExtendedAttrs = false) {
   const params = {
     path: path,
     hash,
+    ...(skipExtendedAttrs && { skipExtendedAttrs: 'true' }),
     ...(content && { content: 'true' }),
     ...(metadata && { metadata: 'true' }),
     ...(state.shareInfo.token && { token: state.shareInfo.token })

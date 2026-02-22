@@ -6,7 +6,7 @@ import { globalVars } from '@/utils/constants'
 import { downloadManager } from '@/utils/downloadManager'
 
 // Notify if errors occur
-export async function fetchFiles(source, path, content = false, metadata = false) {
+export async function fetchFiles(source, path, content = false, metadata = false, skipExtendedAttrs = false) {
   if (!source || source === undefined || source === null) {
     throw new Error('no source provided')
   }
@@ -15,7 +15,8 @@ export async function fetchFiles(source, path, content = false, metadata = false
       path: path,
       source: source,
       ...(content && { content: 'true' }),
-      ...(metadata && { metadata: 'true' })
+      ...(metadata && { metadata: 'true' }),
+      ...(skipExtendedAttrs && { skipExtendedAttrs: 'true' })
     })
     const res = await fetchURL(apiPath)
     const data = await res.json()
