@@ -1,36 +1,104 @@
 <template>
-  <transition name="expand" @before-enter="beforeEnter" @enter="enter" @leave="leave">
-    <div v-if="!isShare || hasLinks" class="sidebar-links card">
-      <!-- Share Info section - shown when viewing a share -->
-      <div v-if="isShare && !disableShareCard" class="share-info-section">
-        <ShareInfo :hash="hash" :token="token" :sub-path="subPath" />
-      </div>
-
-      <!-- Links section header -->
-      <div class="sidebar-links-header" :class="{ 'no-edit-options': isShare, 'with-top-spacing': isShare && !disableShareCard }">
-        <i v-if="!isShare" @click="goHome()" class="material-icons action">home</i>
-        <span>{{ $t("general.links") }}</span>
-        <i v-if="!isShare" @mouseenter="showTooltip($event, $t('sidebar.customizeLinks'))" @mouseleave="hideTooltip"
-          @click="openSidebarLinksPrompt" class="material-icons action">edit</i>
-      </div>
-
-      <transition-group name="expand" tag="div" class="inner-card">
-        <template v-for="(link, index) in sidebarLinksToDisplay" :key="`link-${index}-${link.category}`">
-          <!-- Source-type links: styled exactly like original sources -->
-          <a v-if="link.category === 'source'" :href="getLinkHref(link)"
-            class="action button source-button sidebar-link-button" :class="{
-              active: isLinkActive(link),
-              disabled: !isLinkAccessible(link)
-            }" @click.prevent="handleLinkClick(link)" :aria-label="link.name">
-            <div class="source-container" :class="{ 'has-usage-info': hasUsageInfo(link) }">
-              <!-- Show custom icon if user has set one -->
-              <i v-if="link.icon" :class="getIconClass(link.icon) + ' link-icon'">{{ link.icon }}</i>
-              <!-- Otherwise show animated status indicator -->
-              <svg v-else-if="isLinkAccessible(link)" class="realtime-pulse" :class="{
+  <div class="sidebar-links card">
+    <!-- Header - sticks always at the top -->
+    <div class="sidebar-links-header" :class="{ 'no-edit-options': isShare, 'with-top-spacing': isShare && !disableShareCard }">
+      <i v-if="!isShare" @click="goHome()" class="material-icons action" :title="$t('general.home')">home</i>
+      <!-- Mode button (is the title) -->
+      <button @click="cycleMode" class="mode-toggle" :title="$t('sidebar.switchMode')">
+        {{ mode === 'links' ? $t('general.links') : $t('general.navigation') }}
+      </button>
+      <!-- Edit button always visible - hidden in shares -->
+      <i v-if="!isShare"
+         @mouseenter="showTooltip($event, $t('sidebar.customizeLinks'))"
+         @mouseleave="hideTooltip"
+         @click="openSidebarLinksPrompt"
+         class="material-icons action">edit</i>
+    </div>
+    <!-- Scrollable Content Area -->
+    <div class="sidebar-links-content">
+      <!-- Links Mode -->
+      <template v-if="mode === 'links'">
+        <!-- Share Info section - shown when viewing a share -->
+        <div v-if="isShare && !disableShareCard" class="share-info-section">
+          <ShareInfo :hash="hash" :token="token" :sub-path="subPath" />
+        </div>
+        <transition-group name="expand" tag="div" class="inner-card">
+          <!-- Source-type links -->
+          <template v-for="(link, index) in sidebarLinksToDisplay" :key="`link-${index}-${link.category}`">
+            <a v-if="link.category === 'source'" :href="getLinkHref(link)"
+              class="action button source-button sidebar-link-button" :class="{
+                active: isLinkActive(link),
+                disabled: !isLinkAccessible(link)
+              }" @click.prevent="handleLinkClick(link)" :aria-label="link.name">
+              <div class="source-container" :class="{ 'has-usage-info': hasUsageInfo(link) }">
+                <!-- Show custom icon if user has set one -->
+                <i v-if="link.icon" :class="getIconClass(link.icon) + ' link-icon'">{{ link.icon }}</i>
+                <!-- Otherwise show animated status indicator -->
+                <svg v-else-if="isLinkAccessible(link)" class="realtime-pulse" :class="{
+                  active: realtimeActive,
+                  danger: (sourceInfo[link.sourceName] || {}).status != 'indexing' && (sourceInfo[link.sourceName] || {}).status != 'ready',
+                  warning: (sourceInfo[link.sourceName] || {}).status == 'indexing',
+                  ready: (sourceInfo[link.sourceName] || {}).status == 'ready',
+                }">
+                  <circle class="center" cx="50%" cy="50%" r="7px"></circle>
+                  <circle class="pulse" cx="50%" cy="50%" r="10px"></circle>
+                </svg>
+                <i v-else class="material-icons warning-icon"
+                  @mouseenter="showTooltip($event, $t('sidebar.sourceNotAccessible'))" @mouseleave="hideTooltip">
+                  warning
+                </i>
+                <span>{{ link.name }}</span>
+                <i v-if="hasUsageInfo(link)" class="no-select material-symbols-outlined tooltip-info-icon"
+                  @mouseenter="showSourceTooltip($event, sourceInfo[link.sourceName] || {})" @mouseleave="hideTooltip">
+                  info
+                </i>
+              </div>
+              <div v-if="hasUsageInfo(link)" class="usage-info">
+                <ProgressBar 
+                  :key="`progress-${link.sourceName}-${sourceInfo[link.sourceName]?.used || 0}-${sourceInfo[link.sourceName]?.total || 0}`"
+                  :val="getProgressBarValue(sourceInfo[link.sourceName] || {})" 
+                  :max="(sourceInfo[link.sourceName] || {}).total || 1" 
+                  :status="getProgressBarStatus(sourceInfo[link.sourceName] || {})"
+                  unit="bytes">
+                </ProgressBar>
+              </div>
+            </a>
+            <!-- Non-source links: tool and custom links with simple icon style -->
+            <a v-else :aria-label="link.name" :href="getLinkHref(link)" class="action button sidebar-link-button"
+              :class="{ active: isLinkActive(link) }" @click.prevent="handleLinkClick(link)">
+              <div class="link-container">
+                <i :class="getIconClass(link.icon) + ' link-icon'">{{ link.icon }}</i>
+                <span>{{ link.name }}</span>
+              </div>
+            </a>
+          </template>
+          <!-- Edit Share link - only shown when viewing a share and user has share permissions -->
+          <a v-if="isShare && canEditShare" :aria-label="$t('general.edit', { suffix: ' ' + $t('general.share') })" href="#" 
+            class="action button sidebar-link-button"
+            @click.prevent="showEditShareHover">
+            <div class="link-container">
+              <i class="material-icons link-icon">edit</i>
+              <span>{{ $t("general.edit", { suffix: " " + $t("general.share") }) }}</span>
+            </div>
+          </a>
+        </transition-group>
+      </template>
+      <!-- Navigation Mode -->
+      <template v-else>
+        <!-- Source card (hidden in shares) -->
+        <div v-if="!isShare" class="source-card-container" ref="sourceCardContainer">
+          <!-- Current Source Card -->
+          <div class="action button source-button navigation-source-card" 
+               :class="{ 'has-usage': hasUsage(activeSource) }"
+               @click="toggleSourceDropdown" role="button" tabindex="0"
+               @keydown.enter.space="toggleSourceDropdown">
+            <div class="source-container" :class="{ 'has-usage-info': hasUsage(activeSource) }">
+              <!-- Status indicator -->
+              <svg v-if="isSourceAccessible(activeSource)" class="realtime-pulse" :class="{
                 active: realtimeActive,
-                danger: (sourceInfo[link.sourceName] || {}).status != 'indexing' && (sourceInfo[link.sourceName] || {}).status != 'ready',
-                warning: (sourceInfo[link.sourceName] || {}).status == 'indexing',
-                ready: (sourceInfo[link.sourceName] || {}).status == 'ready',
+                danger: sourceStatus(activeSource) != 'indexing' && sourceStatus(activeSource) != 'ready',
+                warning: sourceStatus(activeSource) == 'indexing',
+                ready: sourceStatus(activeSource) == 'ready',
               }">
                 <circle class="center" cx="50%" cy="50%" r="7px"></circle>
                 <circle class="pulse" cx="50%" cy="50%" r="10px"></circle>
@@ -39,45 +107,45 @@
                 @mouseenter="showTooltip($event, $t('sidebar.sourceNotAccessible'))" @mouseleave="hideTooltip">
                 warning
               </i>
-              <span>{{ link.name }}</span>
-              <i v-if="hasUsageInfo(link)" class="no-select material-symbols-outlined tooltip-info-icon"
-                @mouseenter="showSourceTooltip($event, sourceInfo[link.sourceName] || {})" @mouseleave="hideTooltip">
-                info <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+              <!-- Current source name -->
+              <span>{{ activeSource }}</span>
+              <i v-if="hasUsage(activeSource)" class="no-select material-symbols-outlined tooltip-info-icon"
+                @mouseenter="showSourceTooltip($event, activeSourceInfo)" @mouseleave="hideTooltip"
+                @click.stop>
+                info
               </i>
+              <!-- Dropdown arrow -->
+              <button class="source-dropdown-button" @click.stop="toggleSourceDropdown" ref="dropdownTrigger">
+                <i class="material-icons">keyboard_arrow_down</i>
+              </button>
             </div>
-            <div v-if="hasUsageInfo(link)" class="usage-info">
+            <div v-if="hasUsage(activeSource)" class="usage-info">
               <ProgressBar 
-                :key="`progress-${link.sourceName}-${sourceInfo[link.sourceName]?.used || 0}-${sourceInfo[link.sourceName]?.total || 0}`"
-                :val="getProgressBarValue(sourceInfo[link.sourceName] || {})" 
-                :max="(sourceInfo[link.sourceName] || {}).total || 1" 
-                :status="getProgressBarStatus(sourceInfo[link.sourceName] || {})"
+                :val="getProgressBarValue(activeSourceInfo)" 
+                :max="activeSourceInfo.total || 1" 
+                :status="getProgressBarStatus(activeSourceInfo)"
                 unit="bytes">
               </ProgressBar>
             </div>
-          </a>
-
-          <!-- Non-source links: tool and custom links with simple icon style -->
-          <a v-else :aria-label="link.name" :href="getLinkHref(link)" class="action button sidebar-link-button"
-            :class="{ active: isLinkActive(link) }" @click.prevent="handleLinkClick(link)">
-            <div  class="link-container">
-              <i :class="getIconClass(link.icon) + ' link-icon'">{{ link.icon }}</i>
-              <span>{{ link.name }}</span>
-            </div>
-          </a>
-        </template>
-
-        <!-- Edit Share link - only shown when viewing a share and user has share permissions -->
-        <a v-if="isShare && canEditShare" :aria-label="$t('general.edit', { suffix: ' ' + $t('general.share') })" href="#" 
-          class="action button sidebar-link-button"
-          @click.prevent="showEditShareHover">
-          <div class="link-container">
-            <i class="material-icons link-icon">edit</i>
-            <span>{{ $t("general.edit", { suffix: " " + $t("general.share") }) }}</span>
           </div>
-        </a>
-      </transition-group>
+          <!-- Source Dropdown -->
+          <transition name="dropdown">
+            <div v-if="showSourceDropdown" class="source-dropdown" ref="dropdown">
+              <div v-for="sourceName in sourceNames" :key="sourceName" class="dropdown-item"
+                   @click="selectSource(sourceName)">
+                {{ sourceName }}
+              </div>
+            </div>
+          </transition>
+        </div>
+        <FileTree
+          :currentPath="currentPath"
+          :currentSource="currentSource"
+          class="file-tree-container"
+        />
+      </template>
     </div>
-  </transition>
+  </div>
 </template>
 
 <script>
@@ -89,14 +157,27 @@ import { buildIndexInfoTooltipHTML } from "@/components/files/IndexInfo.vue";
 import { globalVars } from "@/utils/constants";
 import { publicApi } from "@/api";
 import ShareInfo from "@/components/files/ShareInfo.vue";
+import FileTree from '@/components/files/FileTree.vue';
 
 export default {
   name: "SidebarLinks",
   components: {
     ProgressBar,
     ShareInfo,
+    FileTree,
+  },
+  data() {
+    return {
+      showSourceDropdown: false,
+    };
   },
   computed: {
+    currentSource() {
+      return state.req?.source || null;
+    },
+    currentPath() {
+      return state.req?.path || '/';
+    },
     isShare: () => getters.isShare(),
     hasLinks() {
       return this.sidebarLinksToDisplay?.length > 0;
@@ -139,15 +220,29 @@ export default {
       if (getters.isShare() && state.shareInfo?.sidebarLinks && state.shareInfo.sidebarLinks.length > 0) {
         return state.shareInfo.sidebarLinks;
       }
-
       // If user has custom links, use those
       if (this.hasCustomLinks) {
         return this.user.sidebarLinks;
       }
-
       // Otherwise, return default links (sources)
       return this.getDefaultLinks();
     },
+    // List all source names for the dropdown menu
+    sourceNames() {
+      return Object.keys(state.sources.info || {});
+    },
+    activeSourceInfo() {
+      return this.sourceInfo[this.activeSource] || {};
+    },
+    mode() {
+      return getters.sidebarMode();
+    },
+  },
+  mounted() {
+    document.addEventListener('click', this.closeDropdown);
+  },
+  beforeUnmount() {
+    document.removeEventListener('click', this.closeDropdown);
   },
   methods: {
     getIconClass,
@@ -402,19 +497,104 @@ export default {
         console.error("Failed to open edit share dialog:", err);
       }
     },
+    cycleMode() {
+      const newMode = state.sidebar.mode === 'links' ? 'navigation' : 'links';
+      mutations.setSidebarMode(newMode);
+    },
+    toggleSourceDropdown() {
+      this.showSourceDropdown = !this.showSourceDropdown;
+    },
+    selectSource(sourceName) {
+      this.showSourceDropdown = false;
+      this.navigateToSource(sourceName);
+    },
+    navigateToSource(sourceName) {
+      goToItem(sourceName, '/', {});
+    },
+    closeDropdown(event) {
+      if (!this.showSourceDropdown) return;
+      const dropdown = this.$refs.dropdown;
+      const container = this.$refs.sourceCardContainer;
+      if (!dropdown || !container) return;
+      if (!container.contains(event.target)) {
+        this.showSourceDropdown = false;
+      }
+    },
+    isSourceAccessible(sourceName) {
+      return this.sourceNames.includes(sourceName);
+    },
+    sourceStatus(sourceName) {
+      return this.sourceInfo[sourceName]?.status;
+    },
+    hasUsage(sourceName) {
+      const info = this.sourceInfo[sourceName];
+      return info && (info.used || 0) > 0;
+    },
   },
 };
 </script>
 
 <style scoped>
+.sidebar-links {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 1em;
+  overflow: hidden;
+}
+
+.sidebar-links-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.sidebar-links-header .material-icons.action {
+  padding: 0.25em 0.25em;
+  border-radius: 0.5em;
+  transition: background 0.2s;
+}
+
+.sidebar-links-header .material-icons.action:hover {
+  background: var(--surfaceSecondary);
+}
+
+.sidebar-links-header .mode-toggle {
+  background: none;
+  border: none;
+  font-weight: 500;
+  color: var(--textPrimary);
+  font-size: 1em;
+  padding: 0.25em 0.5em;
+  border-radius: 0.5em;
+  transition: background 0.2s;
+}
+
+.sidebar-links-header .mode-toggle:hover {
+  background: var(--surfaceSecondary);
+}
+
+.sidebar-links-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  margin-top: 0.5em;
+}
+
+.file-tree-container {
+  margin-top: 0;
+}
 
 .no-edit-options {
   justify-content: center !important;
 }
 
 .share-info-section {
-  margin-bottom: 1em;
-  padding-bottom: 0.5em;
+  margin-bottom: 0.5em;
+  padding-bottom: 0.25em;
   border-bottom: 1px solid var(--borderColor);
 }
 
@@ -428,33 +608,12 @@ export default {
   border-radius: 1em !important;
 }
 
-.sidebar-links {
-  padding: 1em;
-  overflow: auto;
-  min-height: 5em;
-}
-
-.material-icons.action {
-  width: unset !important;
-  padding: 0.25em;
-  border-radius: 0.5em;
-}
-
 .sidebar-links .inner-card {
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
   width: 100%;
-}
-
-.sidebar-links-header {
-  display: flex;
-  justify-content: space-between;
-  padding: .25em;
-  padding-top: 0 !important;
-  align-items: center;
-  gap: 1em;
 }
 
 .sidebar-links-header span {
@@ -536,7 +695,6 @@ a.sidebar-link-button {
   opacity: 0;
 }
 
-
 .source-button {
   margin-top: 0.5em !important;
   display: block !important;
@@ -587,7 +745,6 @@ a.sidebar-link-button {
     stroke-opacity: 1;
     transform: scale(0.3);
   }
-
   to {
     stroke-width: 0;
     stroke-opacity: 0;
@@ -606,6 +763,7 @@ a.sidebar-link-button {
   align-content: center;
   align-items: center;
   min-height: 3em;
+  overflow: hidden;
 }
 
 .source-container.has-usage-info {
@@ -642,4 +800,66 @@ a.sidebar-link-button {
 .edit-share-button .link-icon {
   color: var(--primaryColor);
 }
+
+.source-card-container {
+  position: relative;
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: 1px solid var(--borderColor);
+}
+
+.navigation-source-card {
+  margin-top: 0 !important;
+  cursor: pointer;
+}
+
+.source-dropdown-button {
+  background: none;
+  border: none;
+  color: var(--textSecondary);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  border-radius: 0.5em;
+  size: 1em;
+}
+.source-dropdown-button:hover {
+  color: var(--primaryColor);
+}
+
+.source-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--background);
+  border: 2px solid var(--surfaceSecondary);
+  border-radius: 0.5em;
+  z-index: 10;
+  overflow-y: auto;
+  min-width: 100%;
+  margin-top: 0.2em;
+  transform-origin: top center;
+}
+
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: scaleY(0.8);
+}
+
+.dropdown-item {
+  padding: 0.5em 1em;
+}
+
+.dropdown-item:hover {
+  background: var(--surfaceSecondary);
+}
+
 </style>

@@ -374,7 +374,8 @@
     "pickIconDescription": "Suchen und wählen Sie ein Symbol aus der Bibliothek der Materialsymbole",
     "shareLinksUpdatedSuccess": "Links in der Seitenleiste erfolgreich aktualisiert!",
     "shareHome": "Startseite teilen",
-    "linkIconPlaceholder": "Optional können Sie einen Materialsymbolnamen angeben"
+    "linkIconPlaceholder": "Optional können Sie einen Materialsymbolnamen angeben",
+    "switchMode": "Seitenleistenmodus wechseln"
   },
   "success": {
     "linkCopied": "Link wurde kopiert!"

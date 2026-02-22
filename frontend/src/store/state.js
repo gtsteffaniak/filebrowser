@@ -159,8 +159,9 @@ export const state = reactive({
   notificationHistory: loadNotificationHistory(), // Session-based notification history (persists across refreshes)
   sidebar: {
     width: getSidebarWidth(), // in em
+    mode: getSidebarMode(),
     isResizing: false,
-    minWidth: 17.5, // in em
+    minWidth: 17, // in em
     maxWidth: 37.5, // in em
   },
 });
@@ -186,6 +187,11 @@ function loadNotificationHistory() {
 function getSidebarWidth() {
   const savedWidth = localStorage.getItem("sidebarWidth");
   return savedWidth ? parseFloat(savedWidth) : 20; // 20em
+}
+
+function getSidebarMode() {
+  const savedMode = localStorage.getItem('sidebarMode');
+  return savedMode === 'navigation' ? 'navigation' : 'links'; // default 'links'
 }
 
 function stickyStartup() {

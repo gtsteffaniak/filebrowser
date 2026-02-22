@@ -374,7 +374,8 @@
     "pickIconDescription": "بحث وتحديد أيقونة من مكتبة الأيقونات المادية",
     "shareLinksUpdatedSuccess": "تم تحديث روابط الشريط الجانبي المشاركة بنجاح!",
     "shareHome": "مشاركة الصفحة الرئيسية",
-    "linkIconPlaceholder": "تحديد اسم رمز المادة اختياريًا"
+    "linkIconPlaceholder": "تحديد اسم رمز المادة اختياريًا",
+    "switchMode": "تبديل وضع الشريط الجانبي"
   },
   "success": {
     "linkCopied": "تم نسخ الملف"
