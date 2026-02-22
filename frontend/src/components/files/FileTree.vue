@@ -47,12 +47,15 @@
         </div>
         <!-- Recursive children if expanded -->
         <FileTree
-          v-if="node.expanded && node.children"
+          v-if="node.expanded && node.children && node.children.length > 0"
           :nodes="node.children"
           :currentSource="currentSource"
           :shareHash="shareHash"
           :currentPath="currentPath"
         />
+        <div v-else-if="node.expanded && node.children && node.children.length === 0" class="tree-empty-folder">
+          {{ $t('files.lonely') }}
+        </div>
         <div v-else-if="node.expanded && node.loading" class="tree-loading">
           <LoadingSpinner size="small" mode="placeholder" />
         </div>
@@ -750,5 +753,14 @@ export default {
   text-align: center;
   color: var(--textSecondary);
   font-style: italic;
+}
+
+.tree-empty-folder {
+  padding: 0.5em 1em;
+  margin-left: 1.2em;
+  text-align: center;
+  color: var(--textSecondary);
+  font-style: italic;
+  font-size: 0.85em;
 }
 </style>
