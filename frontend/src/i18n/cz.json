@@ -514,7 +514,8 @@
     "hideUsage": "Skrýt použití",
     "hideUsageDescription": "Nezobrazovat využití úložiště na tomto zdrojovém odkazu (minimální styl).",
     "onlyShowIndexedUsage": "Výpočet využití z indexovaných souborů",
-    "onlyShowIndexedUsageDescription": "Pokud je vypnuta, zobrazuje celkové využití oddílu podle hlášení operačního systému namísto vypočtených indexovaných součtů souborů pro zdroj."
+    "onlyShowIndexedUsageDescription": "Pokud je vypnuta, zobrazuje celkové využití oddílu podle hlášení operačního systému namísto vypočtených indexovaných součtů souborů pro zdroj.",
+    "switchMode": "Přepnout režim postranního panelu"
   },
   "success": {
     "linkCopied": "Odkaz zkopírován!"

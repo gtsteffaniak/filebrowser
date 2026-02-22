@@ -378,7 +378,8 @@
     "hideUsage": "Skryť používanie",
     "hideUsageDescription": "Nezobrazujte využitie úložiska na tomto zdrojovom prepojení (minimálny štýl).",
     "onlyShowIndexedUsage": "Výpočet použitia z indexovaných súborov",
-    "onlyShowIndexedUsageDescription": "Ak je vypnutá, zobrazuje celkové využitie oddielu podľa hlásenia operačného systému namiesto vypočítaných indexovaných súčtov súborov pre zdroj."
+    "onlyShowIndexedUsageDescription": "Ak je vypnutá, zobrazuje celkové využitie oddielu podľa hlásenia operačného systému namiesto vypočítaných indexovaných súčtov súborov pre zdroj.",
+    "switchMode": "Prepnúť režim bočného panela"
   },
   "success": {
     "linkCopied": "Odkaz skopírovaný!"
