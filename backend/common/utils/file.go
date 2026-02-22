@@ -59,6 +59,7 @@ type FileOptions struct {
 	ShowHidden               bool   // whether to show hidden files (true = show, false = hide)
 	FollowSymlinks           bool   // whether to follow symlinks
 	Only                     string // whether to only get files or folders
+	SkipExtendedAttrs        bool   // whether to skip extended attributes
 }
 
 // SanitizeUserPath prevents path traversal attacks by cleaning and validating user input.

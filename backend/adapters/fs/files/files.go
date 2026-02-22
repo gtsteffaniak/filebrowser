@@ -217,10 +217,11 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage, user *users.
 	// Layer 2: INDEX RULES (global)
 	// Get file info using unified entry point (applies IsViewable/ShouldSkip)
 	info, err := idx.GetFileInfo(indexing.FileInfoRequest{
-		IndexPath:      indexPath,
-		FollowSymlinks: opts.FollowSymlinks,
-		ShowHidden:     opts.ShowHidden,
-		Expand:         opts.Expand,
+		IndexPath:         indexPath,
+		FollowSymlinks:    opts.FollowSymlinks,
+		ShowHidden:        opts.ShowHidden,
+		Expand:            opts.Expand,
+		SkipExtendedAttrs: opts.SkipExtendedAttrs,
 	})
 	if err != nil {
 		return response, err // Path excluded by index rules OR doesn't exist
@@ -237,6 +238,13 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage, user *users.
 		if err := access.CheckChildItemAccess(info, idx, user.Username); err != nil {
 			return response, err
 		}
+	}
+
+	defer finalizeResponse(response, info, response.RealPath, user, userScope)
+	if opts.SkipExtendedAttrs {
+		return response, nil
+	}
+	if share != nil && user.Permissions.Share {
 		for i := range response.Files {
 			file := &response.Files[i]
 			file.IsShared = share.IsShared(response.Path+file.Name, idx.Path)
@@ -245,26 +253,17 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage, user *users.
 			folder := &response.Folders[i]
 			folder.IsShared = share.IsShared(response.Path+folder.Name, idx.Path)
 		}
-	}
-
-	if share != nil && user.Permissions.Share {
 		response.IsShared = share.IsShared(response.Path, idx.Path)
 	}
-
 	// Process directory metadata if requested
 	if info.Type == "directory" {
 		processDirectoryMetadata(response, idx, opts)
 	}
-
 	// Process single file content/metadata
 	isAudioVideo := strings.HasPrefix(info.Type, "audio") || strings.HasPrefix(info.Type, "video")
 	if opts.Content || opts.Metadata || isAudioVideo {
 		processContent(response, idx, opts)
 	}
-
-	// Finalize response (OnlyOffice ID, scope stripping)
-	finalizeResponse(response, info, response.RealPath, user, userScope)
-
 	return response, nil
 }
 
