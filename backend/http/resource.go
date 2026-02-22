@@ -61,6 +61,7 @@ func validateMoveOperation(src, dst string, isSrcDir bool) error {
 // @Accept json
 // @Produce json
 // @Param path query string true "Path to the resource"
+// @Param skipExtendedAttrs query string false "Skip extended attributes for faster retrieval, no hasPreview"
 // @Param source query string true "Source name for the desired source, default is used if not provided"
 // @Param content query string false "Include file content if true"
 // @Param metadata query string false "Extract audio/video metadata if true"
@@ -74,6 +75,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	source := r.URL.Query().Get("source")
 	getContent := r.URL.Query().Get("content") == "true"
 	getMetadata := r.URL.Query().Get("metadata") == "true"
+	skipExtendedAttrs := r.URL.Query().Get("skipExtendedAttrs") == "true"
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 		FollowSymlinks:           true,
 		Path:                     path,
@@ -83,6 +85,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		Metadata:                 getMetadata,
 		ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles,
 		ShowHidden:               d.user.ShowHidden,
+		SkipExtendedAttrs:        skipExtendedAttrs,
 	}, store.Access, d.user, store.Share)
 	if err != nil {
 		return errToStatus(err), err

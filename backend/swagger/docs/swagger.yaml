@@ -2891,6 +2891,10 @@ paths:
         name: path
         required: true
         type: string
+      - description: Skip extended attributes for faster retrieval, no hasPreview
+        in: query
+        name: skipExtendedAttrs
+        type: string
       - description: Source name for the desired source, default is used if not provided
         in: query
         name: source

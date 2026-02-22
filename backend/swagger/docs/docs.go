@@ -1435,6 +1435,12 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "description": "Skip extended attributes for faster retrieval, no hasPreview",
+                        "name": "skipExtendedAttrs",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "Source name for the desired source, default is used if not provided",
                         "name": "source",
                         "in": "query",

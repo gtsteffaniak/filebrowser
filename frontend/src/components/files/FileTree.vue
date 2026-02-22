@@ -47,12 +47,15 @@
         </div>
         <!-- Recursive children if expanded -->
         <FileTree
-          v-if="node.expanded && node.children"
+          v-if="node.expanded && node.children && node.children.length > 0"
           :nodes="node.children"
           :currentSource="currentSource"
           :shareHash="shareHash"
           :currentPath="currentPath"
         />
+        <div v-else-if="node.expanded && node.children && node.children.length === 0" class="tree-empty-folder">
+          {{ $t('files.lonely') }}
+        </div>
         <div v-else-if="node.expanded && node.loading" class="tree-loading">
           <LoadingSpinner size="small" mode="placeholder" />
         </div>
@@ -201,10 +204,10 @@ export default {
     },
     async fetchItems(path) {
       if (this.isShare) {
-        const res = await publicApi.fetchPub(path, this.shareHash);
+        const res = await publicApi.fetchPub(path, this.shareHash, state.shareInfo.password, false, false, true);
         return res.items || [];
       } else {
-        const res = await filesApi.fetchFiles(this.currentSource, path);
+        const res = await filesApi.fetchFiles(this.currentSource, path, false, false, true);
         return res.items || [];
       }
     },
@@ -234,7 +237,10 @@ export default {
         return;
       }
 
-      // Load children if not loaded when expanding
+      // Immediately expand and show loading state
+      node.expanded = true;
+      
+      // Load children if not loaded
       if (!node.children) {
         node.loading = true;
         node.childrenError = null;
@@ -251,7 +257,6 @@ export default {
           node.loading = false;
         }
       }
-      node.expanded = true;
 
       if (!skipNavigate && node.path !== this.currentPath) {
         this.navigateTo(node);
@@ -697,6 +702,7 @@ export default {
   display: inline-flex;
   align-items: center;
   width: 1.5em;
+  height: 1.5em;
   justify-content: center;
 }
 
@@ -739,5 +745,14 @@ export default {
   text-align: center;
   color: var(--textSecondary);
   font-style: italic;
+}
+
+.tree-empty-folder {
+  padding: 0.5em 1em;
+  margin-left: 1.2em;
+  text-align: center;
+  color: var(--textSecondary);
+  font-style: italic;
+  font-size: 0.85em;
 }
 </style>

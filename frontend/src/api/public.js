@@ -16,10 +16,11 @@ import { state } from "@/store";
  * @param {boolean} metadata
  * @returns {Promise<any>}
  */
-export async function fetchPub(path, hash, password = "", content = false, metadata = false) {
+export async function fetchPub(path, hash, password = "", content = false, metadata = false, skipExtendedAttrs = false) {
   const params = {
     path: path,
     hash,
+    ...(skipExtendedAttrs && { skipExtendedAttrs: 'true' }),
     ...(content && { content: 'true' }),
     ...(metadata && { metadata: 'true' }),
     ...(state.shareInfo.token && { token: state.shareInfo.token })
@@ -49,6 +50,26 @@ export async function fetchPub(path, hash, password = "", content = false, metad
   let data = await response.json()
   const adjusted = adjustedData(data);
   return adjusted
+}
+
+export async function getItems(hash, path, only = "") {
+  if (!hash || hash === undefined || hash === null) {
+    throw new Error('no hash provided')
+  }
+  try {
+    const apiPath = getPublicApiPath('api/resources/items', {
+      path: path,
+      hash: hash,
+      ...(only && { only: only }),
+      ...(state.shareInfo.token && { token: state.shareInfo.token })
+    })
+    const response = await fetch(apiPath)
+    const data = await response.json()
+    return data
+  } catch (err) {
+    notify.showError(err.message || 'Error fetching items')
+    throw err
+  }
 }
 
 // Generate a download URL
