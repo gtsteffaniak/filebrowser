@@ -270,7 +270,6 @@ export default {
       targetImage.src = url;
     },
     handleMouseEnter() {
-      console.log("handleMouseEnter", this.path);
       if (!getters.previewPerms().popup || !this.path) {
         return;
       }
