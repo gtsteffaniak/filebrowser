@@ -7,8 +7,16 @@
       :disabled="isDisabledMultiAction"
       @action="multiAction"
     />
-    <search v-if="showSearch" />
-    <title v-else class="topTitle">{{ getTopTitle }}</title>
+    <div class="search-bar-container" v-if="showSearch && !isSearchActive" @click="openSearch">
+      <i class="material-icons">search</i>
+      <input 
+        type="text" 
+        class="search-bar-input" 
+        :placeholder="$t('general.search', { suffix: '...' })" 
+        readonly
+      />
+    </div>
+    <title v-if="!showSearch" class="topTitle">{{ getTopTitle }}</title>
     <action
       v-if="isListingView && !disableNavButtons"
       class="menu-button"
@@ -41,7 +49,6 @@ import buttons from "@/utils/buttons";
 import { notify } from "@/notify";
 import { getters, state, mutations } from "@/store";
 import Action from "@/components/Action.vue";
-import Search from "@/components/Search.vue";
 import { globalVars } from "@/utils/constants";
 import { url } from "@/utils";
 
@@ -49,7 +56,6 @@ export default {
   name: "UnifiedHeader",
   components: {
     Action,
-    Search,
   },
   data() {
     return {
@@ -124,6 +130,9 @@ export default {
     showSearch() {
       return getters.isLoggedIn() && getters.currentView() === "listingView" && !getters.isShare();
     },
+    isSearchActive() {
+      return state.isSearchActive;
+    },
     isDisabled() {
       return state.isSearchActive || getters.currentPromptName() != "";
     },
@@ -149,6 +158,21 @@ export default {
     },
   },
   methods: {
+    openSearch() {
+      if (!state.isSearchActive) {
+        mutations.closeHovers();
+        mutations.closeSidebar();
+        mutations.resetSelected();
+        mutations.setSearch(true);
+        // this is hear to allow for animation
+        setTimeout(() => {
+          const resultList = document.getElementById("result-list");
+          console.log(resultList);
+          resultList.classList.add("active");
+          document.getElementById("main-input").focus();
+        }, 100);
+      }
+    },
     async save() {
       const button = "save";
       buttons.loading("save");
@@ -265,5 +289,59 @@ header {
   .dark-mode-header {
     background-color: rgb(37 49 55 / 33%) !important;
   }
+}
+
+.search-bar-container {
+  display: flex;
+  align-items: center;
+  background-color: rgba(100, 100, 100, 0.2);
+  border-radius: 1em;
+  padding: 0.5em 0.75em;
+  transition: background-color 0.2s ease;
+  gap: 0.5em;
+  min-width: 35em;
+  max-width: 300px;
+  flex: 1;
+  height: 3em;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .search-bar-container {
+    min-width: unset;
+    max-width: 60%;
+  }
+}
+
+.search-bar-container:hover {
+  background-color: rgba(100, 100, 100, 0.3);
+}
+
+.search-bar-container .material-icons {
+  font-size: 1.25em;
+  color: rgba(255, 255, 255, 0.7);
+  user-select: none;
+}
+
+.search-bar-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: rgba(255, 255, 255, 0.9);
+  width: 100%;
+  font-size: 0.95em;
+  user-select: none;
+}
+
+.search-bar-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.dark-mode-header .search-bar-container {
+  background-color: rgba(100, 100, 100, 0.2);
+}
+
+.dark-mode-header .search-bar-container:hover {
+  background-color: rgba(255, 255, 255, 0.15);
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <div id="search" :class="{ active, ongoing, 'dark-mode': isDarkMode }" @click="clearContext">
+  <div v-if="active" id="search" :class="{ active, ongoing, 'dark-mode': isDarkMode }" @click="clearContext">
     <!-- Search input section -->
     <div id="search-input" @click="open" :class="{ 'halloween-eyes': eventTheme === 'halloween' }">
       <div id="halloween-eyes" v-if="eventTheme === 'halloween' && active">
@@ -87,9 +87,9 @@
         <!-- List of search results -->
         <ul v-show="results.length > 0">
           <li v-for="(s, k) in results" :key="k" class="search-entry clickable"
-            :class="{ active: activeStates[k], 'large-icons': showPreviewImages }" :aria-label="baseName(s.path)">
+            :class="{ active: activeStates[k], 'large-icons': showPreviewImages, 'small-icons': !showPreviewImages }" :aria-label="baseName(s.path)">
             <a :href="getItemUrl(s)" @contextmenu="addSelected(event, s)">
-              <Icon :mimetype="s.type" :filename="baseName(s.path)"
+              <Icon :mimetype="s.type" :filename="baseName(s.path)" :path="s.path"
                 :hasPreview="showPreviewImages && (s.hasPreview || false)"
                 :thumbnailUrl="showPreviewImages ? getThumbnailUrl(s) : ''" />
               <span class="text-container">
@@ -173,22 +173,6 @@ export default {
     },
     searchTypes() {
       this.submit();
-    },
-    active(active) {
-      // this is hear to allow for animation
-      const resultList = document.getElementById("result-list");
-      if (!active) {
-        resultList.classList.remove("active");
-        this.value = "";
-        event.stopPropagation();
-        mutations.closeHovers();
-        return;
-      }
-      this.selectedSource = state.sources.current;
-      setTimeout(() => {
-        resultList.classList.add("active");
-        document.getElementById("main-input").focus();
-      }, 100);
     },
     value() {
       if (this.results.length) {
@@ -413,7 +397,7 @@ export default {
         mutations.closeHovers();
         mutations.closeSidebar();
         mutations.resetSelected();
-        this.resetSearchFilters();
+        this.resetSearchFilters;
         mutations.setSearch(true);
       }
     },
@@ -605,15 +589,11 @@ export default {
   -webkit-transition: width 0.3s ease 0s;
   transition: width 0.3s ease 0s;
   background-color: unset;
-  border-radius: 0 0 1em 1em;
 }
 
 #results {
   -webkit-animation: SlideDown 0.5s forwards;
   animation: SlideDown 0.5s forwards;
-  border-radius: 1m;
-  border-width: 1px;
-  border-style: solid;
   border-radius: 1em;
   max-height: 100%;
   border-top: none;
@@ -622,8 +602,7 @@ export default {
   border-top-color: initial;
   border-top-left-radius: 0px;
   border-top-right-radius: 0px;
-  -webkit-transform: translateX(-50%);
-  transform: translateX(-50%);
+  border: 2px solid var(--surfaceSecondary);
   box-shadow: 0px 2em 50px 10px rgba(0, 0, 0, 0.3);
   background-color: lightgray;
   max-height: 80vh;
@@ -639,7 +618,6 @@ export default {
 
 #search #result-list.active {
   width: 1000px;
-  max-width: 95vw;
 }
 
 /* Animations */
@@ -658,7 +636,7 @@ export default {
 /* Search */
 #search {
   background-color: unset !important;
-  z-index: 5;
+  z-index: 100;
   position: fixed;
   top: 0.5em;
   min-width: 35em;
@@ -671,18 +649,63 @@ export default {
   background-color: rgba(100, 100, 100, 0.2);
   display: flex;
   height: 100%;
-  padding: 0em 0.75em;
+  padding: 0.5em 0.75em;
   border-radius: 1em;
   border-style: unset;
-  border-width: 1px;
   align-items: center;
   height: 3em;
+  gap: 0.5em;
+}
+
+#search-input .material-icons {
+  font-size: 1.25em;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+#search.active #search-input .material-icons {
+  color: inherit;
 }
 
 #search input {
   border: 0;
   background-color: transparent;
   padding: 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.95em;
+}
+
+#search.active input {
+  color: inherit;
+}
+
+#search input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+#search.active input::placeholder {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+#search.dark-mode #search-input {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+#search.dark-mode input::placeholder {
+  color: gray !important;
+}
+
+#search.dark-mode.active #search-input {
+  background-color: var(--background);
+}
+
+#search.active #search-input {
+  background-color: var(--background);
+  border-color: var(--surfaceSecondary);
+  border-style: solid;
+  border-bottom-style: none;
+  border-bottom-right-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+  border-width: 2px;
 }
 
 #result-list p {
@@ -697,9 +720,8 @@ export default {
 /* Hiding scrollbar for IE, Edge and Firefox */
 #result-list {
   scrollbar-width: none;
-  /* Firefox */
   -ms-overflow-style: none;
-  /* IE and Edge */
+  max-width: 95vw;
 }
 
 .search-entry:hover {
@@ -783,32 +805,20 @@ body.rtl #search #result ul>* {
   display: block;
 }
 
-#search.active #search-input {
+#search input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+#search.active input::placeholder {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+#search.dark-mode #search-input {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+#search.dark-mode.active #search-input {
   background-color: var(--background);
-  border-color: black;
-  border-style: solid;
-  border-bottom-style: none;
-  border-bottom-right-radius: 0 !important;
-  border-bottom-left-radius: 0 !important;
-}
-
-/* Search Input Placeholder */
-#search::-webkit-input-placeholder {
-  color: rgba(255, 255, 255, 0.5);
-}
-
-#search:-moz-placeholder {
-  opacity: 1;
-  color: rgba(255, 255, 255, 0.5);
-}
-
-#search::-moz-placeholder {
-  opacity: 1;
-  color: rgba(255, 255, 255, 0.5);
-}
-
-#search:-ms-input-placeholder {
-  color: rgba(255, 255, 255, 0.5);
 }
 
 /* Search Boxes */
@@ -948,7 +958,6 @@ body.rtl #search .boxes h3 {
   }
 
   #search.active #search-input {
-    border-bottom: 3px solid rgba(0, 0, 0, 0.075);
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     backdrop-filter: blur(6px);
     height: 4em;

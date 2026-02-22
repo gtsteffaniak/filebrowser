@@ -212,7 +212,7 @@ export default defineComponent({
   padding: 1in;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
   box-sizing: border-box;
-  color:black;
+  color: black;
 }
 .status-text {
   text-align: center;

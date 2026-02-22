@@ -17,9 +17,6 @@
   color:white
 }
 
-#search.active.dark-mode #search-input {
-  border-color: white;
-}
 /* Search input */
 .dark-mode #search #search-input {
   background: var(--surfaceSecondary);

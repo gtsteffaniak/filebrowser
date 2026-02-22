@@ -29,15 +29,6 @@ header a:hover {
   color: inherit;
 }
 
-header>div:first-child>.action,
-header img {
-  margin-right: 1em;
-}
-
-header img {
-  height: 2.5em;
-}
-
 header .action span {
   display: none;
 }

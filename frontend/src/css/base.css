@@ -129,7 +129,7 @@ over
   padding: 0.5em;
   align-items: center;
   transition: right 1s ease;
-  z-index: 5;
+  z-index: 7;
   margin: 1em;
   height: auto;
 }

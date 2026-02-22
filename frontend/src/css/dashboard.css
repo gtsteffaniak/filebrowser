@@ -387,7 +387,7 @@ body.rtl .credits {
   position: fixed;
   height: 100%;
   width: 100%;
-  z-index: 4;
+  z-index: 5;
   top: 0;
   animation: .3s show ease-in;
 }

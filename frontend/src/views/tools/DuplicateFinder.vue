@@ -649,7 +649,7 @@ export default {
 
 .group-files .listing-item {
   width: 100%;
-  padding: 0.25em;
+  margin: 0.25em;
   cursor: pointer;
 }
 

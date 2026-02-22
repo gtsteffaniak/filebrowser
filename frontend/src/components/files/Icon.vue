@@ -270,6 +270,7 @@ export default {
       targetImage.src = url;
     },
     handleMouseEnter() {
+      console.log("handleMouseEnter", this.path);
       if (!getters.previewPerms().popup || !this.path) {
         return;
       }
@@ -439,6 +440,8 @@ export default {
 /* Overlay icons (folder/animation) positioned top-left */
 .overlay-icon {
   position: absolute;
+  width: 100% !important;
+  height: 100% !important;
   top: 0.2em;
   left: 0.2em;
   font-size: 1.2em !important;
@@ -561,12 +564,47 @@ export default {
   font-size: 1.5em !important;
 }
 
+/* Unified .image-preview container - works universally, always square */
 .image-preview {
-  height: 100%;
-  width: 100%;
-  position: relative;
+  width: var(--icon-size);
+  height: var(--icon-size);
+  aspect-ratio: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 0.5em;
+  background: var(--iconBackground);
+  overflow: hidden;
+  position: relative;
+}
+
+/* Universal icon styling - uses --icon-font-size variable */
+.image-preview i {
+  padding: 0.1em;
+  box-sizing: border-box;
+  transform: translateZ(0);
+  font-size: var(--icon-font-size, 3em);
+}
+
+/* Images - default */
+.image-preview img {
+  width: 100%;
+  height: 100%;
+}
+
+/* 3D viewers - universal */
+.image-preview .threejs-icon-container {
+  width: 100%;
+  height: 100%;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-preview .threejs-icon-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
 }
 </style>

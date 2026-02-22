@@ -46,10 +46,6 @@
     transform-origin: top left;
   }
 
-  header img {
-    display: none;
-  }
-
   #listingView {
     margin-bottom: 5em;
   }

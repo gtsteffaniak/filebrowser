@@ -24,7 +24,7 @@
           @dragleave="dragLeave($event, link)"
           @dragover="dragOver($event, link)"
           @drop="drop($event, link)">
-          {{ link.name }}
+          <span class="breadcrumb-text">{{ link.name }}</span>
         </router-link>
       </li>
     </ul>
@@ -367,6 +367,15 @@ export default {
   align-items: center;
   transition: all 0.2s ease;
   user-select: none;
+  white-space: nowrap;
+  max-width: 90vw;
+}
+
+#breadcrumbs ul li a .breadcrumb-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 #breadcrumbs ul li a::after {
