@@ -3189,15 +3189,15 @@ paths:
     get:
       consumes:
       - application/json
-      description: Returns lists of file and folder names for the specified path.
-        Use only to filter by files, folders, or both.
+      description: Efficiently returns a basic list of items for the specified path
+        and source. Use 'only' parameter to filter by only files or folders
       parameters:
-      - description: Directory path to list
+      - description: A directory path to list child items
         in: query
         name: path
         required: true
         type: string
-      - description: Source name; default is used if not provided
+      - description: The source name which contains the path
         in: query
         name: source
         required: true
@@ -3210,9 +3210,15 @@ paths:
       - application/json
       responses:
         "200":
-          description: Lists of files and folders
+          description: lists files and folders
           schema:
             $ref: '#/definitions/files.Items'
+        "403":
+          description: Forbidden (access denied)
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "500":
           description: Internal server error
           schema:

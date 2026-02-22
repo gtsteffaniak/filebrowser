@@ -1905,7 +1905,7 @@
         },
         "/api/resources/items": {
             "get": {
-                "description": "Returns lists of file and folder names for the specified path. Use only to filter by files, folders, or both.",
+                "description": "Efficiently returns a basic list of items for the specified path and source. Use 'only' parameter to filter by only files or folders",
                 "consumes": [
                     "application/json"
                 ],
@@ -1919,14 +1919,14 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Directory path to list",
+                        "description": "A directory path to list child items",
                         "name": "path",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Source name; default is used if not provided",
+                        "description": "The source name which contains the path",
                         "name": "source",
                         "in": "query",
                         "required": true
@@ -1940,9 +1940,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Lists of files and folders",
+                        "description": "lists files and folders",
                         "schema": {
                             "$ref": "#/definitions/files.Items"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden (access denied)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     },
                     "500": {

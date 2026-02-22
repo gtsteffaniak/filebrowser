@@ -966,16 +966,17 @@ func mockData(w http.ResponseWriter, r *http.Request) {
 	renderJSON(w, r, mockDir) // nolint:errcheck
 }
 
-// itemsGetHandler returns a list of files, folders, or both for a directory.
+// itemsGetHandler efficiently returns a basic list of items for a directory.
 // @Summary Get directory items
-// @Description Returns lists of file and folder names for the specified path. Use only to filter by files, folders, or both.
+// @Description Efficiently returns a basic list of items for the specified path and source. Use 'only' parameter to filter by only files or folders
 // @Tags Resources
 // @Accept json
 // @Produce json
-// @Param path query string true "Directory path to list"
-// @Param source query string true "Source name; default is used if not provided"
+// @Param path query string true "A directory path to list child items"
+// @Param source query string true "The source name which contains the path"
 // @Param only query string false "Filter: 'files', 'folders', or omit for both"
-// @Success 200 {object} files.Items "Lists of files and folders"
+// @Success 200 {object} files.Items "lists files and folders"
+// @Failure 403 {object} map[string]string "Forbidden (access denied)"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/resources/items [get]
 func itemsGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
@@ -987,9 +988,10 @@ func itemsGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 		Only:           r.URL.Query().Get("only"),
 	}, store.Access, d.user)
 	if err != nil {
-		logger.Errorf("could not get items: %v", err)
+		if err == errors.ErrAccessDenied {
+			return http.StatusForbidden, err
+		}
 		return http.StatusInternalServerError, err
 	}
-	logger.Infof("got items: %v", items)
 	return renderJSON(w, r, items)
 }
