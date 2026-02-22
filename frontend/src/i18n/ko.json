@@ -374,7 +374,8 @@
     "pickIconDescription": "머티리얼 아이콘 라이브러리에서 아이콘을 검색하고 선택합니다.",
     "shareLinksUpdatedSuccess": "공유 사이드바 링크가 성공적으로 업데이트되었습니다!",
     "shareHome": "홈 공유",
-    "linkIconPlaceholder": "선택적으로 머티리얼 아이콘 이름을 지정합니다."
+    "linkIconPlaceholder": "선택적으로 머티리얼 아이콘 이름을 지정합니다.",
+    "switchMode": "사이드바 모드 전환"
   },
   "success": {
     "linkCopied": "링크가 복사되었습니다!"

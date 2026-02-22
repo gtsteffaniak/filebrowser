@@ -481,7 +481,8 @@
     "signup": "Nýskráning",
     "siteSettings": "Síðustillingar",
     "updateIsAvailable": "Uppfærsla er tiltæk!",
-    "fileActions": "Skráaaðgerðir"
+    "fileActions": "Skráaaðgerðir",
+    "switchMode": "Skipta um hliðarstikuham"
   },
   "success": {
     "linkCopied": "Hlekkur afritaður!"

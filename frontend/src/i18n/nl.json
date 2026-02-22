@@ -638,7 +638,8 @@
     "linksUpdateFailed": "Bijwerken van koppelingen in zijbalk is mislukt",
     "sourceNotAccessible": "Deze bron is niet langer toegankelijk voor jou",
     "noLinksYet": "Er zijn nog geen links geconfigureerd. Voeg hieronder uw eerste link toe.",
-    "shareHome": "Thuis delen"
+    "shareHome": "Thuis delen",
+    "switchMode": "Zijbalkmodus wijzigen"
   },
   "success": {
     "linkCopied": "Koppeling gekopieerd!"

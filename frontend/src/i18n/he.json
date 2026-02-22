@@ -374,7 +374,8 @@
     "pickIconDescription": "חפש ובחר סמל מספריית Material Icons.",
     "shareLinksUpdatedSuccess": "קישורי הסרגל הצדדי שותפו בהצלחה!",
     "shareHome": "שתף בית",
-    "linkIconPlaceholder": "אפשר לציין שם סמל חומר"
+    "linkIconPlaceholder": "אפשר לציין שם סמל חומר",
+    "switchMode": "החלף מצב סרגל צד"
   },
   "success": {
     "linkCopied": "הקישור הועתק!"

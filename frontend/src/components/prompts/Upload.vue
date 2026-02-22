@@ -153,6 +153,14 @@ export default {
       type: Array,
       default: () => [],
     },
+    targetPath: {
+      type: String,
+      default: null,
+    },
+    targetSource: {
+      type: String,
+      default: null,
+    },
   },
   computed: {
     shareInfo() {
@@ -366,21 +374,25 @@ export default {
       }
     };
 
+    // Helper to get the destination path (from prop or fallback to current request)
+    const getDestinationPath = () => props.targetPath || state.req.path;
+
     const processItems = async (items) => {
+      const destination = getDestinationPath();
       // When items are passed as a prop from ListingView, they can be either
       // an array of DataTransferItem (from drag and drop) or an array of File (from input).
       if (Array.isArray(items)) {
         if (items.length > 0 && items[0] instanceof File) {
           // This is an array of File objects from the input fallback in ListingView
-          processFileList(items);
+          processFileList(items, destination);
         } else {
           // This is an array of DataTransferItem from drag and drop in ListingView
-          await processDroppedItems(items);
+          await processDroppedItems(items, destination);
         }
       } else if (items) {
         // This case handles a FileList object from the upload prompt's own input fields.
         // It is not an array, so we convert it.
-        await processDroppedItems(Array.from(items));
+        await processDroppedItems(Array.from(items), destination);
       }
     };
 
@@ -411,7 +423,7 @@ export default {
     const onFilePicked = (event) => {
       const pickedFiles = event.target.files;
       if (pickedFiles.length > 0) {
-        processFileList(pickedFiles);
+        processFileList(pickedFiles, getDestinationPath());
       }
       if (event.target) event.target.value = null;
     };
@@ -419,23 +431,24 @@ export default {
     const onFolderPicked = (event) => {
       const pickedFiles = event.target.files;
       if (pickedFiles.length > 0) {
-        processFileList(pickedFiles);
+        processFileList(pickedFiles, getDestinationPath());
       }
       if (event.target) event.target.value = null;
     };
 
     const onDrop = async (event) => {
       isDragging.value = false;
+      const destination = getDestinationPath();
       if (event.dataTransfer.items) {
         const items = Array.from(event.dataTransfer.items);
-        await processDroppedItems(items);
+        await processDroppedItems(items, destination);
       } else {
         const droppedFiles = event.dataTransfer.files;
         console.log(
           "Upload.vue: Processing dropped files (fallback):",
           droppedFiles
         );
-        processFileList(droppedFiles);
+        processFileList(droppedFiles, destination);
       }
     };
 
@@ -475,7 +488,7 @@ export default {
       return [];
     };
 
-    const processDroppedItems = async (items) => {
+    const processDroppedItems = async (items, destination) => {
       const filesToUpload = [];
       const promises = items.map(item => {
         const entry = item.webkitGetAsEntry();
@@ -489,17 +502,17 @@ export default {
       allFiles.forEach(files => filesToUpload.push(...files));
 
       if (filesToUpload.length > 0) {
-        uploadManager.add(state.req.path, filesToUpload);
+        uploadManager.add(destination, filesToUpload);
       }
     };
 
-    const processFileList = (fileList) => {
+    const processFileList = (fileList, destination) => {
       const filesToAdd = Array.from(fileList).map((file) => ({
         file,
         relativePath: file.webkitRelativePath || file.name,
       }));
       if (filesToAdd.length > 0) {
-        uploadManager.add(state.req.path, filesToAdd);
+        uploadManager.add(destination, filesToAdd);
       }
     };
 

@@ -374,7 +374,8 @@
     "pickIconDescription": "Vyhľadajte a vyberte ikonu z knižnice Material Icons",
     "shareLinksUpdatedSuccess": "Zdieľanie bočného panela odkazy úspešne aktualizované!",
     "shareHome": "Zdieľať Domov",
-    "linkIconPlaceholder": "Voliteľne zadajte názov ikony materiálu"
+    "linkIconPlaceholder": "Voliteľne zadajte názov ikony materiálu",
+    "switchMode": "Prepnúť režim bočného panela"
   },
   "success": {
     "linkCopied": "Odkaz skopírovaný!"

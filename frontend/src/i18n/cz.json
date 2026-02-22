@@ -510,7 +510,8 @@
     "pickIconDescription": "Vyhledejte a vyberte ikonu z knihovny Material Icons.",
     "shareLinksUpdatedSuccess": "Odkazy na sdílení postranního panelu byly úspěšně aktualizovány!",
     "shareHome": "Sdílet Domů",
-    "linkIconPlaceholder": "Volitelně zadejte název ikony materiálu"
+    "linkIconPlaceholder": "Volitelně zadejte název ikony materiálu",
+    "switchMode": "Přepnout režim postranního panelu"
   },
   "success": {
     "linkCopied": "Odkaz zkopírován!"

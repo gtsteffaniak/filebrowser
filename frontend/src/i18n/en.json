@@ -638,7 +638,8 @@
     "linksUpdateFailed": "Failed to update sidebar links",
     "sourceNotAccessible": "This source is no longer accessible to you",
     "noLinksYet": "No links configured yet. Add your first link below.",
-    "shareHome": "Share Home"
+    "shareHome": "Share Home",
+    "switchMode": "Switch sidebar mode"
   },
   "success": {
     "linkCopied": "Link copied!"

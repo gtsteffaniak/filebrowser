@@ -62,13 +62,17 @@ export default {
       type: Boolean,
       default: false,
     },
+    items: {
+      type: Array,
+      default: null,
+    },
   },
   data: function () {
     return {
       current: window.location.pathname,
       destPath: "/", // Start at root of selected source
       destSource: null, // Will be set by FileList component
-      items: [],
+      localItems: [], // Will hold the items to operate on
       isLoading: false, // Track loading state for spinner
       showNewDirInput: false, // When true will replace the new folder button with a input field
       newDirName: "",
@@ -80,15 +84,15 @@ export default {
         return false; // If dest is not set, we can't check containment
       }
       // Add null checks to prevent undefined errors
-      if (!this.items || this.items.length === 0) {
+      if (!this.localItems || this.localItems.length === 0) {
         return false;
       }
-      const itemPath = this.items[0]?.from;
+      const itemPath = this.localItems[0]?.from;
       if (!itemPath) {
         return false; // If itemPath is undefined, we can't check containment
       }
       // For different sources, allow move to root path
-      if (this.destSource !== this.items[0]?.fromSource) {
+      if (this.destSource !== this.localItems[0]?.fromSource) {
         return false;
       }
       // For move, prevent moving to the same directory, but for copy allow it.
@@ -114,14 +118,17 @@ export default {
     }
   },
   mounted() {
-    // If operationInProgress is true, show loading immediately (for drag and drop)
-    if (this.operationInProgress) {
-      this.isLoading = true;
-    }
-    if (state.isSearchActive) {
+    // If props.items is provided, use it. Otherwise use state
+    if (this.items && this.items.length > 0) {
+      this.localItems = this.items.map(item => ({
+        from: item.path,
+        fromSource: item.source,
+        name: item.name,
+      }));
+    } else if (state.isSearchActive) {
       // Add null checks to prevent undefined values
       if (state.selected && state.selected[0] && state.selected[0].path) {
-        this.items = [
+        this.localItems = [
           {
             from: state.selected[0].path,
             fromSource: state.selected[0].source,
@@ -134,7 +141,7 @@ export default {
         for (let item of state.selected) {
           const reqItem = state.req.items[item];
           if (reqItem && reqItem.path) {
-            this.items.push({
+            this.localItems.push({
               from: reqItem.path,
               fromSource: state.req.source,
               name: reqItem.name,
@@ -142,6 +149,9 @@ export default {
           }
         }
       }
+    }
+    if (this.operationInProgress) {
+      this.isLoading = true;
     }
   },
   methods: {
@@ -221,21 +231,29 @@ export default {
       event.preventDefault();
       this.isLoading = true; // Show loading spinner
       try {
+        // Ensure destination source is set
+        if (!this.destSource) {
+          // If no destination source yet, use the source from the first item (or current source)
+          this.destSource = this.localItems[0]?.fromSource || state.req.source;
+        }
+        // Build items with destination paths
+        const itemsToProcess = this.localItems.map(item => {
+          // Ensure proper path construction without double slashes
+          const destPath = this.destPath.endsWith('/') ? this.destPath : this.destPath + '/';
+          return {
+            ...item,
+            to: destPath + item.name,
+            toSource: this.destSource,
+          };
+        });
         // Define the action function
         let action = async (overwrite, rename) => {
-          for (let item of this.items) {
-            // Ensure proper path construction without double slashes
-            const destPath = this.destPath.endsWith('/') ? this.destPath : this.destPath + '/';
-            item.to = destPath + item.name;
-            // Always set toSource for cross-source operations
-            item.toSource = this.destSource;
-          }
           buttons.loading(this.operation);
           let result;
           if (getters.isShare()) {
-            result = await publicApi.moveCopy(state.shareInfo.hash, this.items, this.operation, overwrite, rename);
+            result = await publicApi.moveCopy(state.shareInfo.hash, itemsToProcess, this.operation, overwrite, rename);
           } else {
-            result = await filesApi.moveCopy(this.items, this.operation, overwrite, rename);
+            result = await filesApi.moveCopy(itemsToProcess, this.operation, overwrite, rename);
           }
           return result; // Return the result to check for failures
         };
@@ -246,7 +264,7 @@ export default {
         } else {
           dstResp = await filesApi.fetchFiles(this.destSource, this.destPath);
         }
-        conflict = upload.checkConflict(this.items, dstResp.items);
+        conflict = upload.checkConflict(itemsToProcess, dstResp.items);
         let overwrite = false;
         let rename = false;
         let result = null;
@@ -254,7 +272,7 @@ export default {
         if (conflict) {
           this.isLoading = false;
           // Check if any item is being copied/moved to itself
-          const isSameFile = this.items.some(item => {
+          const isSameFile = itemsToProcess.some(item => {
             const destPath = this.destPath.endsWith('/') ? this.destPath : this.destPath + '/';
             const targetPath = destPath + item.name;
             return item.from === targetPath && item.fromSource === this.destSource;

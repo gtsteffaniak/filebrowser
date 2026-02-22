@@ -374,7 +374,8 @@
     "pickIconDescription": "Знайдіть і виберіть піктограму з бібліотеки піктограм матеріалів",
     "shareLinksUpdatedSuccess": "Посилання на бічну панель обміну успішно оновлено!",
     "shareHome": "Поділитися Додому",
-    "linkIconPlaceholder": "За бажанням вкажіть назву іконки матеріалу"
+    "linkIconPlaceholder": "За бажанням вкажіть назву іконки матеріалу",
+    "switchMode": "Kenar çubuğu modunu değiştir"
   },
   "success": {
     "linkCopied": "Посилання скопійоване!"

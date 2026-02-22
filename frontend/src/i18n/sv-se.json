@@ -374,7 +374,8 @@
     "pickIconDescription": "Sök och välj en ikon från Material Icons-biblioteket",
     "shareLinksUpdatedSuccess": "Dela sidofältets länkar uppdaterades framgångsrikt!",
     "shareHome": "Dela hem",
-    "linkIconPlaceholder": "Ange eventuellt ett namn på materialikonen"
+    "linkIconPlaceholder": "Ange eventuellt ett namn på materialikonen",
+    "switchMode": "Växla sidofältsläge"
   },
   "success": {
     "linkCopied": "Länk kopierad"

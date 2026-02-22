@@ -374,7 +374,8 @@
     "pickIconDescription": "Найдите и выберите значок в библиотеке Material Icons.",
     "shareLinksUpdatedSuccess": "Ссылки на боковой панели успешно обновлены!",
     "shareHome": "Поделиться Домой",
-    "linkIconPlaceholder": "Опционально укажите имя значка материала"
+    "linkIconPlaceholder": "Опционально укажите имя значка материала",
+    "switchMode": "Переключить режим боковой панели"
   },
   "success": {
     "linkCopied": "Ссылка скопирована!"

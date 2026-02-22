@@ -374,7 +374,8 @@
     "pickIconDescription": "Keressen és válasszon ki egy ikont az Anyagi ikonok könyvtárból.",
     "shareLinksUpdatedSuccess": "Megosztás oldalsáv linkek sikeresen frissítve!",
     "shareHome": "Megosztás",
-    "linkIconPlaceholder": "Opcionálisan megadhatja az anyag ikon nevét"
+    "linkIconPlaceholder": "Opcionálisan megadhatja az anyag ikon nevét",
+    "switchMode": "Oldalsáv mód váltása"
   },
   "success": {
     "linkCopied": "Link másolva!"

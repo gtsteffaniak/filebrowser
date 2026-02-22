@@ -35,6 +35,12 @@ export default {
   components: {
     LoadingSpinner,
   },
+  props: {
+    base: {
+      type: [String, Object, null],
+      default: null,
+    },
+  },
   data() {
     return {
       name: "",
@@ -51,6 +57,27 @@ export default {
     closeHovers() {
       return mutations.closeTopHover();
     },
+    // Determine parent path and source based on prop
+    parentInfo() {
+      if (this.base) {
+        if (typeof this.base === 'string') {
+          return {
+            path: this.base,
+            source: state.req?.source || null,
+          };
+        } else if (typeof this.base === 'object' && this.base.path) {
+          return {
+            path: this.base.path,
+            source: this.base.source || state.req?.source || null,
+          };
+        }
+      }
+      // Fallback to current path
+      return {
+        path: state.req?.path || '/',
+        source: state.req?.source || null,
+      };
+    },
   },
   methods: {
     async submit(event) {
@@ -66,8 +93,9 @@ export default {
     async createFile(overwrite = false) {
       this.creating = true;
       try {
-        const newPath = url.joinPath(state.req.path, this.name);
-        const source = state.req.source;
+        const parentPath = this.parentInfo.path;
+        const source = this.parentInfo.source;
+        const newPath = url.joinPath(parentPath, this.name);
 
         if (getters.isShare()) {
           await publicApi.post(state.shareInfo?.hash, newPath, "", overwrite);
@@ -112,8 +140,9 @@ export default {
                   for (let counter = 1; counter <= maxAttempts && !success; counter++) {
                     try {
                       const newName = counter === 1 ? `${originalName} (1)` : `${originalName} (${counter})`;
-                      const newPath = url.joinPath(state.req.path, newName);
-                      const source = state.req.source;
+                      const parentPath = this.parentInfo.path;
+                      const source = this.parentInfo.source;
+                      const newPath = url.joinPath(parentPath, newName);
 
                       if (getters.isShare()) {
                         await publicApi.post(state.shareInfo?.hash, newPath, "", false);

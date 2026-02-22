@@ -374,7 +374,8 @@
     "pickIconDescription": "Wyszukaj i wybierz ikonę z biblioteki Material Icons",
     "shareLinksUpdatedSuccess": "Linki do paska bocznego zostały pomyślnie zaktualizowane!",
     "shareHome": "Share Home",
-    "linkIconPlaceholder": "Opcjonalnie można określić nazwę ikony materiału"
+    "linkIconPlaceholder": "Opcjonalnie można określić nazwę ikony materiału",
+    "switchMode": "Przełącz tryb panelu bocznego"
   },
   "success": {
     "linkCopied": "Link Skopiowany!"
