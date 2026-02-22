@@ -168,7 +168,6 @@ export default {
   },
   data() {
     return {
-      mode: localStorage.getItem('sidebarMode') || 'links',
       showSourceDropdown: false,
     };
   },
@@ -496,8 +495,8 @@ export default {
       }
     },
     cycleMode() {
-      this.mode = this.mode === 'links' ? 'navigation' : 'links';
-      localStorage.setItem('sidebarMode', this.mode);
+      const newMode = state.sidebar.mode === 'links' ? 'navigation' : 'links';
+      mutations.setSidebarMode(newMode);
     },
     toggleSourceDropdown() {
       this.showSourceDropdown = !this.showSourceDropdown;
