@@ -51,9 +51,9 @@ export async function fetchPub(path, hash, password = "", content = false, metad
   return adjusted
 }
 
-export async function getItems(source, path, only = "") {
-  if (!source || source === undefined || source === null) {
-    throw new Error('no source provided')
+export async function getItems(hash, path, only = "") {
+  if (!hash || hash === undefined || hash === null) {
+    throw new Error('no hash provided')
   }
   try {
     const apiPath = getPublicApiPath('api/resources/items', {
