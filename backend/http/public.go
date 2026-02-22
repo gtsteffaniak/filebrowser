@@ -12,6 +12,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
+	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/preview"
 	"github.com/gtsteffaniak/go-logger/logger"
 
@@ -489,4 +490,44 @@ func getShareImagePartsHelper(share *share.Link, isBanner bool) (string, string,
 	assetPath := assetParams.Get("path")
 
 	return sourceName, assetPath, nil
+}
+
+// shareInfoHandler retrieves share information by hash.
+// @Summary Get share information by hash
+// @Description Returns information about a share link based on its hash. This endpoint is publicly accessible and can be used with or without authentication.
+// @Tags Shares
+// @Accept json
+// @Produce json
+// @Param hash query string true "Hash of the share link"
+// @Success 200 {object} share.CommonShare "Share information"
+// @Failure 404 {object} map[string]string "Share hash not found"
+// @Router /public/api/shareinfo [get]
+func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	hash := r.URL.Query().Get("hash")
+	// Get the file link by hash (need full Link to get Token)
+	shareLink, err := store.Share.GetByHash(hash)
+	if err != nil {
+		return http.StatusNotFound, fmt.Errorf("share hash not found")
+	}
+	commonShare := shareLink.CommonShare
+	commonShare.ShareURL = getShareURL(r, hash, false, "")
+	_, _, err = getShareImagePartsHelper(shareLink, true)
+	if err == nil {
+		commonShare.BannerUrl = fmt.Sprintf("%spublic/api/share/image?banner=true&hash=%s", config.Server.BaseURL, hash)
+	}
+	_, _, err = getShareImagePartsHelper(shareLink, false)
+	if err == nil {
+		commonShare.FaviconUrl = fmt.Sprintf("%spublic/api/share/image?favicon=true&hash=%s", config.Server.BaseURL, hash)
+	}
+	commonShare.Source = ""
+	commonShare.Path = ""
+	commonShare.SidebarLinks = []users.SidebarLink{}
+	for _, link := range shareLink.SidebarLinks {
+		if link.Category == "download" && shareLink.ShareType == "upload" {
+			continue
+		} else {
+			commonShare.SidebarLinks = append(commonShare.SidebarLinks, link)
+		}
+	}
+	return renderJSON(w, r, commonShare)
 }
