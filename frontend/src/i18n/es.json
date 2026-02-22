@@ -374,7 +374,11 @@
     "pickIconDescription": "Aquí puedes explorar los iconos más populates de la biblioteca \"Material Icons\"",
     "shareLinksUpdatedSuccess": "¡Se actualizaron los accesos directos del recurso compartido!",
     "shareHome": "Recurso compartido",
-    "linkIconPlaceholder": "Opcionalmente, puedes elegir un Material Icon que más te guste"
+    "linkIconPlaceholder": "Opcionalmente, puedes elegir un Material Icon que más te guste",
+    "hideUsage": "Ocultar uso",
+    "hideUsageDescription": "No mostrar el uso de almacenamiento en este enlace fuente (estilo mínimo).",
+    "onlyShowIndexedUsage": "Calcular el uso de los archivos indexados",
+    "onlyShowIndexedUsageDescription": "Cuando está desactivado, muestra el uso total de la partición tal y como lo informa el sistema operativo en lugar de los totales de archivos indexados calculados para la fuente."
   },
   "success": {
     "linkCopied": "¡Enlace copiado!"

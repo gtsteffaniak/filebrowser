@@ -374,7 +374,11 @@
     "pickIconDescription": "从材质图标库中搜索并选择图标",
     "shareLinksUpdatedSuccess": "共享侧边栏链接更新成功！",
     "shareHome": "共享主页",
-    "linkIconPlaceholder": "可选择指定材料图标名称"
+    "linkIconPlaceholder": "可选择指定材料图标名称",
+    "hideUsage": "隐藏使用",
+    "hideUsageDescription": "不要在此源代码链接上显示存储使用情况（最小样式）。",
+    "onlyShowIndexedUsage": "计算索引文件的使用量",
+    "onlyShowIndexedUsageDescription": "禁用时，显示操作系统报告的分区总使用量，而不是计算出的源索引文件总数。"
   },
   "success": {
     "linkCopied": "链接已复制！"

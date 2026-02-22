@@ -374,7 +374,11 @@
     "pickIconDescription": "חפש ובחר סמל מספריית Material Icons.",
     "shareLinksUpdatedSuccess": "קישורי הסרגל הצדדי שותפו בהצלחה!",
     "shareHome": "שתף בית",
-    "linkIconPlaceholder": "אפשר לציין שם סמל חומר"
+    "linkIconPlaceholder": "אפשר לציין שם סמל חומר",
+    "hideUsage": "הסתר שימוש",
+    "hideUsageDescription": "אל תציג את השימוש באחסון בקישור מקור זה (סגנון מינימלי).",
+    "onlyShowIndexedUsage": "חשב את השימוש מקבצים באינדקס",
+    "onlyShowIndexedUsageDescription": "כאשר האפשרות מושבתת, מוצג השימוש הכולל במחיצה כפי שדווח על ידי מערכת ההפעלה, במקום סה\"כ הקבצים הממוקדים המחושבים עבור המקור."
   },
   "success": {
     "linkCopied": "הקישור הועתק!"

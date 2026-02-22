@@ -374,7 +374,11 @@
     "pickIconDescription": "從 Material Icons 圖示庫搜尋並選取圖示",
     "shareLinksUpdatedSuccess": "分享側邊欄連結更新成功！",
     "shareHome": "分享首頁",
-    "linkIconPlaceholder": "可選擇指定材質圖示名稱"
+    "linkIconPlaceholder": "可選擇指定材質圖示名稱",
+    "hideUsage": "隱藏使用",
+    "hideUsageDescription": "請勿在此原始碼連結上顯示儲存使用量 (最小樣式)。",
+    "onlyShowIndexedUsage": "從索引檔案計算使用量",
+    "onlyShowIndexedUsageDescription": "停用時，會顯示作業系統報告的磁碟分割總使用量，而不是計算出的來源索引檔案總量。"
   },
   "success": {
     "linkCopied": "連結已複製！"

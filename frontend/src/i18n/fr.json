@@ -374,7 +374,11 @@
     "pickIconDescription": "Rechercher et sélectionner une icône dans la bibliothèque des icônes matérielles",
     "shareLinksUpdatedSuccess": "Les liens de la barre latérale de partage ont été mis à jour avec succès !",
     "shareHome": "Partager l'accueil",
-    "linkIconPlaceholder": "Spécifier éventuellement un nom d'icône de matériau"
+    "linkIconPlaceholder": "Spécifier éventuellement un nom d'icône de matériau",
+    "hideUsage": "Cacher l'utilisation",
+    "hideUsageDescription": "N'indiquez pas l'utilisation du stockage sur ce lien source (style minimal).",
+    "onlyShowIndexedUsage": "Calculer l'utilisation des fichiers indexés",
+    "onlyShowIndexedUsageDescription": "Lorsqu'elle est désactivée, cette option affiche l'utilisation totale de la partition telle qu'elle est rapportée par le système d'exploitation au lieu des totaux de fichiers indexés calculés pour la source."
   },
   "success": {
     "linkCopied": "Lien copié !"

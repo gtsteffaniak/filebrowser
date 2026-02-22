@@ -374,7 +374,11 @@
     "pickIconDescription": "Pesquise e selecione um ícone na biblioteca de ícones de materiais",
     "shareLinksUpdatedSuccess": "Os links da barra lateral de compartilhamento foram atualizados com sucesso!",
     "shareHome": "Compartilhar casa",
-    "linkIconPlaceholder": "Opcionalmente, especifique um nome de ícone de material"
+    "linkIconPlaceholder": "Opcionalmente, especifique um nome de ícone de material",
+    "hideUsage": "Ocultar uso",
+    "hideUsageDescription": "Não mostre o uso de armazenamento nesse link de origem (estilo mínimo).",
+    "onlyShowIndexedUsage": "Calcular o uso de arquivos indexados",
+    "onlyShowIndexedUsageDescription": "Quando desativado, mostra o uso total da partição conforme relatado pelo sistema operacional, em vez dos totais de arquivos indexados calculados para a origem."
   },
   "success": {
     "linkCopied": "Link copiado!"

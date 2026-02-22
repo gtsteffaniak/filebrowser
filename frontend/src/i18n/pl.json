@@ -374,7 +374,11 @@
     "pickIconDescription": "Wyszukaj i wybierz ikonę z biblioteki Material Icons",
     "shareLinksUpdatedSuccess": "Linki do paska bocznego zostały pomyślnie zaktualizowane!",
     "shareHome": "Share Home",
-    "linkIconPlaceholder": "Opcjonalnie można określić nazwę ikony materiału"
+    "linkIconPlaceholder": "Opcjonalnie można określić nazwę ikony materiału",
+    "hideUsage": "Ukryj użycie",
+    "hideUsageDescription": "Nie pokazuj wykorzystania przestrzeni dyskowej w tym linku źródłowym (styl minimalny).",
+    "onlyShowIndexedUsage": "Obliczanie użycia na podstawie zindeksowanych plików",
+    "onlyShowIndexedUsageDescription": "Gdy wyłączona, pokazuje całkowite użycie partycji zgłoszone przez system operacyjny zamiast obliczonych sum indeksowanych plików dla źródła."
   },
   "success": {
     "linkCopied": "Link Skopiowany!"

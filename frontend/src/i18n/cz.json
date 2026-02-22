@@ -510,7 +510,11 @@
     "pickIconDescription": "Vyhledejte a vyberte ikonu z knihovny Material Icons.",
     "shareLinksUpdatedSuccess": "Odkazy na sdílení postranního panelu byly úspěšně aktualizovány!",
     "shareHome": "Sdílet Domů",
-    "linkIconPlaceholder": "Volitelně zadejte název ikony materiálu"
+    "linkIconPlaceholder": "Volitelně zadejte název ikony materiálu",
+    "hideUsage": "Skrýt použití",
+    "hideUsageDescription": "Nezobrazovat využití úložiště na tomto zdrojovém odkazu (minimální styl).",
+    "onlyShowIndexedUsage": "Výpočet využití z indexovaných souborů",
+    "onlyShowIndexedUsageDescription": "Pokud je vypnuta, zobrazuje celkové využití oddílu podle hlášení operačního systému namísto vypočtených indexovaných součtů souborů pro zdroj."
   },
   "success": {
     "linkCopied": "Odkaz zkopírován!"

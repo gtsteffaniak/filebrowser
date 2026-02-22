@@ -374,7 +374,11 @@
     "pickIconDescription": "Cercare e selezionare un'icona dalla libreria Material Icons.",
     "shareLinksUpdatedSuccess": "I link della barra laterale di condivisione sono stati aggiornati con successo!",
     "shareHome": "Condividi Casa",
-    "linkIconPlaceholder": "Specificare facoltativamente il nome dell'icona del materiale"
+    "linkIconPlaceholder": "Specificare facoltativamente il nome dell'icona del materiale",
+    "hideUsage": "Nascondere l'uso",
+    "hideUsageDescription": "Non mostrare l'utilizzo della memoria su questo link di origine (stile minimale).",
+    "onlyShowIndexedUsage": "Calcolo dell'utilizzo dei file indicizzati",
+    "onlyShowIndexedUsageDescription": "Se disattivato, mostra l'uso totale della partizione come riportato dal sistema operativo invece dei totali dei file indicizzati calcolati per la sorgente."
   },
   "success": {
     "linkCopied": "Link copiato!"
