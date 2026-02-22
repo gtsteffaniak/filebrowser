@@ -56,7 +56,7 @@ func Initialize(configFile string) {
 	InitializeUserResolvers() // Initialize user package resolvers after sources are set up
 	setupUrls()
 	setupFrontend(false)
-	setupMedia()
+	setupMedia(false)
 }
 
 func setupServer() {
@@ -283,7 +283,7 @@ func setupFrontend(generate bool) {
 	generatePWAIcons()
 }
 
-func setupMedia() {
+func setupMedia(generate bool) {
 	// Save user's explicit config before applying defaults
 	userImageConfig := make(map[ImagePreviewType]*bool)
 	for k, v := range Config.Integrations.Media.Convert.ImagePreview {
@@ -319,7 +319,7 @@ func setupMedia() {
 	}
 
 	// Resolve exiftool path once at startup: validate user path or discover via PATH
-	if Config.Integrations.Media.ExiftoolPath != "" {
+	if Config.Integrations.Media.ExiftoolPath != "" && !generate {
 		if err := exec.Command(Config.Integrations.Media.ExiftoolPath, "-ver").Run(); err != nil {
 			logger.Warningf("exiftool path is invalid or not executable: %q (%v); disabling exiftool", Config.Integrations.Media.ExiftoolPath, err)
 			Config.Integrations.Media.ExiftoolPath = ""

@@ -1914,6 +1914,69 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/resources/items": {
+            "get": {
+                "description": "Efficiently returns a basic list of items for the specified path and source. Use 'only' parameter to filter by only files or folders",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Get directory items",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "A directory path to list child items",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "The source name which contains the path",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter: 'files', 'folders', or omit for both",
+                        "name": "only",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "lists files and folders",
+                        "schema": {
+                            "$ref": "#/definitions/files.Items"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden (access denied)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/resources/unarchive": {
             "post": {
                 "description": "Extracts a zip or tar.gz archive on the server into the given destination directory. Server-side only; no extracted bytes are returned. Supports extracting to a different source via toSource. Requires create permission.\n\n**Request body parameters:**\n- **fromSource** (string, required): Source name where the archive file lives. Example: ` + "`" + `\"default\"` + "`" + `\n- **toSource** (string, optional): Source name where contents will be extracted. Defaults to fromSource if omitted. Example: ` + "`" + `\"restored\"` + "`" + `\n- **path** (string, required): Path to the archive file (on fromSource). Must be .zip, .tar.gz, or .tgz. Example: ` + "`" + `\"/downloads/data.zip\"` + "`" + `\n- **destination** (string, required): Directory path (on toSource) to extract into. Example: ` + "`" + `\"/projects/imported\"` + "`" + `\n- **deleteAfter** (boolean, optional): If true, delete the archive file after successful extraction. Default: false. Example: ` + "`" + `true` + "`" + `",
@@ -3463,6 +3526,77 @@ const docTemplate = `{
                 }
             }
         },
+        "/public/api/resources/items": {
+            "get": {
+                "description": "Efficiently returns a basic list of items for the specified path in a public share. Use hash for authentication instead of source. Use 'only' parameter to filter by only files or folders.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Shares"
+                ],
+                "summary": "Get directory items (public share)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Share hash for authentication",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Path within the share to list child items. Defaults to share root.",
+                        "name": "path",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter: 'files', 'folders', or omit for both",
+                        "name": "only",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "lists files and folders",
+                        "schema": {
+                            "$ref": "#/definitions/files.Items"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden (access denied)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Share not found or source not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/public/api/share/image": {
             "get": {
                 "description": "Returns a resizable preview (large size) for the banner or favicon file of a share",
@@ -3574,6 +3708,23 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "files.Items": {
+            "type": "object",
+            "properties": {
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "folders": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "http.AuthTokenMin": {
             "type": "object",
             "properties": {

@@ -1,4 +1,15 @@
 definitions:
+  files.Items:
+    properties:
+      files:
+        items:
+          type: string
+        type: array
+      folders:
+        items:
+          type: string
+        type: array
+    type: object
   http.AuthTokenMin:
     properties:
       Permissions:
@@ -3174,6 +3185,49 @@ paths:
       summary: Bulk delete resources
       tags:
       - Resources
+  /api/resources/items:
+    get:
+      consumes:
+      - application/json
+      description: Efficiently returns a basic list of items for the specified path
+        and source. Use 'only' parameter to filter by only files or folders
+      parameters:
+      - description: A directory path to list child items
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: The source name which contains the path
+        in: query
+        name: source
+        required: true
+        type: string
+      - description: 'Filter: ''files'', ''folders'', or omit for both'
+        in: query
+        name: only
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: lists files and folders
+          schema:
+            $ref: '#/definitions/files.Items'
+        "403":
+          description: Forbidden (access denied)
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get directory items
+      tags:
+      - Resources
   /api/resources/unarchive:
     post:
       consumes:
@@ -4245,6 +4299,56 @@ paths:
               type: string
             type: object
       summary: Bulk delete resources from public share
+      tags:
+      - Public Shares
+  /public/api/resources/items:
+    get:
+      consumes:
+      - application/json
+      description: Efficiently returns a basic list of items for the specified path
+        in a public share. Use hash for authentication instead of source. Use 'only'
+        parameter to filter by only files or folders.
+      parameters:
+      - description: Share hash for authentication
+        in: query
+        name: hash
+        required: true
+        type: string
+      - description: Path within the share to list child items. Defaults to share
+          root.
+        in: query
+        name: path
+        type: string
+      - description: 'Filter: ''files'', ''folders'', or omit for both'
+        in: query
+        name: only
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: lists files and folders
+          schema:
+            $ref: '#/definitions/files.Items'
+        "403":
+          description: Forbidden (access denied)
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Share not found or source not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get directory items (public share)
       tags:
       - Public Shares
   /public/api/share/image:

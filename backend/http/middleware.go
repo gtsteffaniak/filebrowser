@@ -113,8 +113,8 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			pathWithoutUserScope = pathWithoutUserScope + "/"
 		}
 		data.IndexPath = pathWithoutUserScope
-		if r.Method == "POST" && strings.Contains(r.URL.Path, "/resources") {
-			// no need to fetch file info for uploads
+		// skip file fetch for certain apis
+		if r.Method == "POST" && strings.Contains(r.URL.Path, "/resources") || r.Method == "GET" && strings.Contains(r.URL.Path, "/resources/items") {
 			return fn(w, r, data)
 		}
 		file, err := FileInfoFasterFunc(utils.FileOptions{

@@ -965,3 +965,33 @@ func mockData(w http.ResponseWriter, r *http.Request) {
 	mockDir := indexing.CreateMockData(NumDirs, numFiles)
 	renderJSON(w, r, mockDir) // nolint:errcheck
 }
+
+// itemsGetHandler efficiently returns a basic list of items for a directory.
+// @Summary Get directory items
+// @Description Efficiently returns a basic list of items for the specified path and source. Use 'only' parameter to filter by only files or folders
+// @Tags Resources
+// @Accept json
+// @Produce json
+// @Param path query string true "A directory path to list child items"
+// @Param source query string true "The source name which contains the path"
+// @Param only query string false "Filter: 'files', 'folders', or omit for both"
+// @Success 200 {object} files.Items "lists files and folders"
+// @Failure 403 {object} map[string]string "Forbidden (access denied)"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/resources/items [get]
+func itemsGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	items, err := files.GetDirItems(utils.FileOptions{
+		FollowSymlinks: true,
+		Path:           r.URL.Query().Get("path"),
+		Source:         r.URL.Query().Get("source"),
+		ShowHidden:     d.user.ShowHidden,
+		Only:           r.URL.Query().Get("only"),
+	}, store.Access, d.user)
+	if err != nil {
+		if err == errors.ErrAccessDenied {
+			return http.StatusForbidden, err
+		}
+		return http.StatusInternalServerError, err
+	}
+	return renderJSON(w, r, items)
+}
