@@ -374,7 +374,8 @@
     "pickIconDescription": "Materyal Simgeleri kitaplığından bir simge arayın ve seçin",
     "shareLinksUpdatedSuccess": "Kenar çubuğu bağlantılarını paylaşma başarıyla güncellendi!",
     "shareHome": "Ev Paylaşımı",
-    "linkIconPlaceholder": "İsteğe bağlı olarak bir malzeme simgesi adı belirtin"
+    "linkIconPlaceholder": "İsteğe bağlı olarak bir malzeme simgesi adı belirtin",
+    "switchMode": "Kenar çubuğu modunu değiştir"
   },
   "success": {
     "linkCopied": "Link kopyalandı!"

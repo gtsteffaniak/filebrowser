@@ -374,7 +374,8 @@
     "pickIconDescription": "Zoek en selecteer een pictogram uit de bibliotheek met materiaalpictogrammen",
     "shareLinksUpdatedSuccess": "Zijbalk links delen succesvol bijgewerkt!",
     "shareHome": "Thuis delen",
-    "linkIconPlaceholder": "Geef optioneel een materiaalpictogramnaam op"
+    "linkIconPlaceholder": "Geef optioneel een materiaalpictogramnaam op",
+    "switchMode": "Zijbalkmodus wijzigen"
   },
   "success": {
     "linkCopied": "Link gekopieerd!"

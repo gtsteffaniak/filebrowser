@@ -374,7 +374,8 @@
     "pickIconDescription": "Rechercher et sélectionner une icône dans la bibliothèque des icônes matérielles",
     "shareLinksUpdatedSuccess": "Les liens de la barre latérale de partage ont été mis à jour avec succès !",
     "shareHome": "Partager l'accueil",
-    "linkIconPlaceholder": "Spécifier éventuellement un nom d'icône de matériau"
+    "linkIconPlaceholder": "Spécifier éventuellement un nom d'icône de matériau",
+    "switchMode": "Changer le mode de la barre latérale"
   },
   "success": {
     "linkCopied": "Lien copié !"

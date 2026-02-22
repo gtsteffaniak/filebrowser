@@ -374,7 +374,8 @@
     "pickIconDescription": "Cercare e selezionare un'icona dalla libreria Material Icons.",
     "shareLinksUpdatedSuccess": "I link della barra laterale di condivisione sono stati aggiornati con successo!",
     "shareHome": "Condividi Casa",
-    "linkIconPlaceholder": "Specificare facoltativamente il nome dell'icona del materiale"
+    "linkIconPlaceholder": "Specificare facoltativamente il nome dell'icona del materiale",
+    "switchMode": "Cambia modalità barra laterale"
   },
   "success": {
     "linkCopied": "Link copiato!"

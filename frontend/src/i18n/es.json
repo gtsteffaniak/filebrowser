@@ -374,7 +374,8 @@
     "pickIconDescription": "Aquí puedes explorar los iconos más populates de la biblioteca \"Material Icons\"",
     "shareLinksUpdatedSuccess": "¡Se actualizaron los accesos directos del recurso compartido!",
     "shareHome": "Recurso compartido",
-    "linkIconPlaceholder": "Opcionalmente, puedes elegir un Material Icon que más te guste"
+    "linkIconPlaceholder": "Opcionalmente, puedes elegir un Material Icon que más te guste",
+    "switchMode": "Cambiar modo del panel lateral"
   },
   "success": {
     "linkCopied": "¡Enlace copiado!"
