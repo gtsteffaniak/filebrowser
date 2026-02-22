@@ -490,6 +490,20 @@ func getShareImagePartsHelper(share *share.Link, isBanner bool) (string, string,
 	return sourceName, assetPath, nil
 }
 
+// publicItemsGetHandler efficiently returns a basic list of items for a directory in a public share.
+// @Summary Get directory items (public share)
+// @Description Efficiently returns a basic list of items for the specified path in a public share. Use hash for authentication instead of source. Use 'only' parameter to filter by only files or folders.
+// @Tags Public Shares
+// @Accept json
+// @Produce json
+// @Param hash query string true "Share hash for authentication"
+// @Param path query string false "Path within the share to list child items. Defaults to share root."
+// @Param only query string false "Filter: 'files', 'folders', or omit for both"
+// @Success 200 {object} files.Items "lists files and folders"
+// @Failure 403 {object} map[string]string "Forbidden (access denied)"
+// @Failure 404 {object} map[string]string "Share not found or source not found"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /public/api/resources/items [get]
 func publicItemsGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	sourceInfo, ok := config.Server.SourceMap[d.share.Source]
 	if !ok {
