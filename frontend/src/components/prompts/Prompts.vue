@@ -554,8 +554,12 @@ export default {
 
 .floating-window.is-dragging {
   border-color: var(--primaryColor);
-  pointer-events: none;
   user-select: none;
+}
+
+.floating-window.is-dragging > :deep(.card-content),
+.floating-window.is-dragging > :deep(.card-actions) {
+  pointer-events: none;
 }
 
 .floating-window.is-resizing {
