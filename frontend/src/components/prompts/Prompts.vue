@@ -554,6 +554,8 @@ export default {
 
 .floating-window.is-dragging {
   border-color: var(--primaryColor);
+  pointer-events: none;
+  user-select: none;
 }
 
 .floating-window.is-resizing {
