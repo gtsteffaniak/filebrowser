@@ -181,6 +181,7 @@ export default {
       return baseProps;
     },
     makeTopPrompt(id) {
+      if (getters.isMobile()) return; // Don't allow in mobile since we can lose the prompt easily.
       const index = state.prompts.findIndex(p => p.id === id);
       if (index === -1 || index === state.prompts.length - 1) return;
       const [prompt] = state.prompts.splice(index, 1);
