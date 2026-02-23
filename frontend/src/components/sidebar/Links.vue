@@ -89,18 +89,22 @@
         <!-- Source card (hidden in shares) -->
         <div v-if="!isShare" class="source-card-container" ref="sourceCardContainer">
           <!-- Current Source Card -->
-          <div class="action button source-button navigation-source-card" 
-               :class="{ 'has-usage': hasUsage(activeSource) }"
-               @click="toggleSourceDropdown" role="button" tabindex="0"
-               @keydown.enter.space="toggleSourceDropdown">
-            <div class="source-container" :class="{ 'has-usage-info': hasUsage(activeSource) }">
-              <!-- Status indicator -->
-              <svg v-if="isSourceAccessible(activeSource)" class="realtime-pulse" :class="{
-                active: realtimeActive,
-                danger: sourceStatus(activeSource) != 'indexing' && sourceStatus(activeSource) != 'ready',
-                warning: sourceStatus(activeSource) == 'indexing',
-                ready: sourceStatus(activeSource) == 'ready',
-              }">
+          <div class="action button source-button navigation-source-card"
+               :class="{ 'has-usage': hasUsageInfo(activeSourceLink) }"
+               @click="navigateToSource(activeSource)" role="button" tabindex="0">
+            <div class="source-container" :class="{ 'has-usage-info': hasUsageInfo(activeSourceLink) }">
+              <i v-if="activeSourceLink.icon && isLinkAccessible(activeSourceLink)"
+                 :class="getIconClass(activeSourceLink.icon) + ' link-icon'">
+                {{ activeSourceLink.icon }}
+              </i>
+              <svg v-else-if="isLinkAccessible(activeSourceLink)"
+                   class="realtime-pulse"
+                   :class="{
+                     active: realtimeActive,
+                     danger: activeSourceInfo.status != 'indexing' && activeSourceInfo.status != 'ready',
+                     warning: activeSourceInfo.status == 'indexing',
+                     ready: activeSourceInfo.status == 'ready',
+                   }">
                 <circle class="center" cx="50%" cy="50%" r="7px"></circle>
                 <circle class="pulse" cx="50%" cy="50%" r="10px"></circle>
               </svg>
@@ -108,11 +112,13 @@
                 @mouseenter="showTooltip($event, $t('sidebar.sourceNotAccessible'))" @mouseleave="hideTooltip">
                 warning
               </i>
-              <!-- Current source name -->
+              <!-- Source name -->
               <span>{{ activeSource }}</span>
-              <i v-if="hasUsage(activeSource)" class="no-select material-symbols-outlined tooltip-info-icon"
-                @mouseenter="showSourceTooltip($event, activeSourceInfo)" @mouseleave="hideTooltip"
-                @click.stop>
+              <i v-if="hasUsageInfo(activeSourceLink)"
+                 class="no-select material-symbols-outlined tooltip-info-icon"
+                 @mouseenter="showSourceTooltip($event, activeSourceInfo)"
+                 @mouseleave="hideTooltip"
+                 @click.stop>
                 info
               </i>
               <!-- Dropdown arrow -->
@@ -120,9 +126,9 @@
                 <i class="material-icons">keyboard_arrow_down</i>
               </button>
             </div>
-            <div v-if="hasUsage(activeSource)" class="usage-info">
+            <div v-if="hasUsageInfo(activeSourceLink)" class="usage-info">
               <ProgressBar 
-                :val="getProgressBarValue(activeSourceInfo)" 
+                :val="getProgressBarValue(activeSourceLink, activeSourceInfo)" 
                 :max="activeSourceInfo.total || 1" 
                 :status="getProgressBarStatus(activeSourceInfo)"
                 unit="bytes">
@@ -238,6 +244,32 @@ export default {
     mode() {
       return getters.sidebarMode();
     },
+    // Build a map from source name to its custom link (if any)
+    sourceLinkMap() {
+      const map = {};
+      if (this.user?.sidebarLinks) {
+        this.user.sidebarLinks.forEach(link => {
+          if (this.isSourceCategory(link.category) && link.sourceName && !map[link.sourceName]) {
+            map[link.sourceName] = link;
+          }
+        });
+      }
+      return map;
+    },
+    activeSourceLink() {
+      // If user has a custom link for this source, use it
+      const customLink = this.sourceLinkMap[this.activeSource];
+      if (customLink) {
+        return customLink;
+      }
+      return {
+        name: this.activeSource,
+        category: 'source',
+        target: '/',
+        icon: '',
+        sourceName: this.activeSource,
+      };
+    },
   },
   mounted() {
     document.addEventListener('click', this.closeDropdown);
@@ -246,6 +278,9 @@ export default {
     document.removeEventListener('click', this.closeDropdown);
   },
   methods: {
+    isSourceCategory(category) {
+      return category === 'source' || category === 'source-minimal' || category === 'source-alt';
+    },
     getIconClass,
     hasUsageInfo(link) {
       // Check if usage info should be displayed for this link (source only; source-minimal hides usage)
@@ -338,20 +373,12 @@ export default {
       }
       return 'default';
     },
-    getProgressBarValue(linkOrSourceInfo, sourceInfo) {
-      // Handle both calling patterns: (link, sourceInfo) from links mode and (sourceInfo) from navigation mode
-      if (arguments.length === 2 && linkOrSourceInfo.category) {
-        // Called with (link, sourceInfo) - from links mode
-        const link = linkOrSourceInfo;
-        if (link.category === 'source-alt') {
-          return sourceInfo.usedAlt || 0;
-        }
-        return sourceInfo.used || 0;
-      } else {
-        // Called with (sourceInfo) - from navigation mode
-        const info = linkOrSourceInfo;
-        return info.used || 0;
+    getProgressBarValue(link, sourceInfo) {
+      // Called with (link, sourceInfo) from both modes
+      if (link.category === 'source-alt') {
+        return sourceInfo.usedAlt || 0;
       }
+      return sourceInfo.used || 0;
     },
     handleLinkClick(link) {
       // Handle special share actions
@@ -532,16 +559,6 @@ export default {
         this.showSourceDropdown = false;
       }
     },
-    isSourceAccessible(sourceName) {
-      return this.sourceNames.includes(sourceName);
-    },
-    sourceStatus(sourceName) {
-      return this.sourceInfo[sourceName]?.status;
-    },
-    hasUsage(sourceName) {
-      const info = this.sourceInfo[sourceName];
-      return info && (info.used || 0) > 0;
-    },
   },
 };
 </script>
@@ -552,7 +569,7 @@ export default {
   flex-direction: column;
   height: 100%;
   padding: 1em;
-  overflow: hidden;
+  overflow: auto;
 }
 
 .sidebar-links-header {
@@ -591,8 +608,7 @@ export default {
 
 .sidebar-links-content {
   flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: auto;
   min-height: 0;
   margin-top: 0.5em;
 }
@@ -629,16 +645,6 @@ export default {
   width: 100%;
 }
 
-.sidebar-links-header span {
-  font-weight: 500;
-  color: var(--textPrimary);
-}
-
-.sidebar-link-action {
-  cursor: pointer;
-  padding: 0.5em;
-}
-
 /* Non-source link styles (tools, custom) */
 .sidebar-link-button {
   margin: 0;
@@ -646,15 +652,11 @@ export default {
   padding: 0;
   border-radius: 0.5em;
   justify-content: flex-start;
+  max-width: 98%;
 }
 
 .sidebar-link-button:first-child {
   margin-top: 0 !important;
-}
-
-.edit-icon {
-  padding: 0.5em;
-  height: auto;
 }
 
 .sidebar-link-button.active {
@@ -717,15 +719,6 @@ a.sidebar-link-button {
   background: var(--alt-background);
 }
 
-.source-icon {
-  padding: 0.1em !important;
-}
-
-.logout-button,
-.person-button {
-  padding: 0 !important;
-}
-
 .realtime-pulse>.pulse {
   display: none;
   fill-opacity: 0;
@@ -776,7 +769,6 @@ a.sidebar-link-button {
   align-content: center;
   align-items: center;
   min-height: 3em;
-  overflow: hidden;
 }
 
 .source-container.has-usage-info {
@@ -823,7 +815,7 @@ a.sidebar-link-button {
 
 .navigation-source-card {
   margin-top: 0 !important;
-  cursor: pointer;
+  max-width: 98%;
 }
 
 .source-dropdown-button {

@@ -617,7 +617,8 @@ export default {
 .file-tree {
   font-size: 0.9rem;
   user-select: none;
-  width: 100%;
+  min-width: 100%;
+  width: fit-content;
 }
 
 .file-tree-root {
