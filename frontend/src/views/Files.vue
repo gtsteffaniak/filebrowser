@@ -356,8 +356,7 @@ export default {
 
           // Display initial data immediately
           mutations.replaceRequest(file);
-          document.title = `${document.title} - ${file.name}`;
-
+          document.title = globalVars.name + " - " + this.$t("general.share") + " - " + file.name;
           // Second pass: If directory has metadata available, fetch again with metadata IN THE BACKGROUND
           if (file.type === "directory" && file.hasMetadata) {
             this.loadingProgress = 90;
@@ -476,7 +475,7 @@ export default {
           if (state.sources.count > 1) {
             mutations.setCurrentSource(data.source);
           }
-          document.title = `${document.title} - ${res.name}`;
+          document.title = globalVars.name + " - " + this.$t("general.files") + " - " + res.name;
           
           // Display initial data immediately and clear loading spinner
           mutations.replaceRequest(data);

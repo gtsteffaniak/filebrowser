@@ -11,10 +11,10 @@ import { mutations } from "@/store";
 import { validateLogin } from "@/utils/auth";
 import i18n from "@/i18n";
 
+
 const titles = {
   Login: i18n.global.t("general.login"),
   Share: i18n.global.t("general.share"),
-  PublicShare: i18n.global.t("general.share"),
   Files: i18n.global.t("general.files"),
   Tools: i18n.global.t("general.tool"),
   Settings: i18n.global.t("general.settings"),
@@ -180,11 +180,12 @@ router.beforeResolve(async (to, from, next) => {
     to.matched.some((record) => record.meta.requiresAuth) ||
     to.matched.some((record) => record.meta.optionalAuth)
   ) {
+    const isPublicRoute = to.path.startsWith("/public");
     if (state?.user?.username) {
       // do nothing, user is already set
     } else {
       try {
-        await validateLogin();
+        await validateLogin(isPublicRoute);
       } catch (error) {
         mutations.setCurrentUser(getters.anonymous());
       }

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.2.7-beta
+
+ **BugFixes**:
+ - head > title > infinitely duplicating titles (#2016)
+ - Proxy auth not working with Nginx, stuck at logo (#2013)
+
 ## v1.2.6-beta
 
  **Security**:
