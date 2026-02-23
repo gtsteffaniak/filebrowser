@@ -599,7 +599,7 @@ body.halloween-theme,
 }
 
 
-#search-input {
+.search-input-container {
     /* ... existing search-input styles ... */
     background-color: rgba(100, 100, 100, 0.2);
     display: flex;
@@ -626,12 +626,6 @@ body.halloween-theme,
     width: 100%;
   }
 
-  /* Position the input field above the eyes */
-  .main-input.halloween-theme {
-    position: relative;
-    z-index: 3 !important;
-    background-color: transparent !important;
-  }
 
   #halloween-eyes {
     position: fixed;

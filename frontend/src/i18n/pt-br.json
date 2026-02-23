@@ -374,7 +374,12 @@
     "pickIconDescription": "Pesquise e selecione um ícone na biblioteca de ícones de materiais",
     "shareLinksUpdatedSuccess": "Os links da barra lateral de compartilhamento foram atualizados com sucesso!",
     "shareHome": "Compartilhar casa",
-    "linkIconPlaceholder": "Opcionalmente, especifique um nome de ícone de material"
+    "linkIconPlaceholder": "Opcionalmente, especifique um nome de ícone de material",
+    "hideUsage": "Ocultar uso",
+    "hideUsageDescription": "Não mostre o uso de armazenamento nesse link de origem (estilo mínimo).",
+    "onlyShowIndexedUsage": "Calcular o uso de arquivos indexados",
+    "onlyShowIndexedUsageDescription": "Quando desativado, mostra o uso total da partição conforme relatado pelo sistema operacional, em vez dos totais de arquivos indexados calculados para a origem.",
+    "switchMode": "Mudar modo da barra lateral"
   },
   "success": {
     "linkCopied": "Link copiado!"
@@ -639,7 +644,8 @@
     "stop": "Parar{suffix}",
     "reset": "Redefinir{suffix}",
     "space": "Espaço{suffix}",
-    "format": "Formato{suffix}"
+    "format": "Formato{suffix}",
+    "office": "Escritório{suffix}"
   },
   "access": {
     "rules": "Regras de acesso",
@@ -690,18 +696,10 @@
     "showHiddenFilesDescription": "Mostrar arquivos ocultos na listagem (por exemplo, .thumbnails, ProgramData), mas eles ainda poderão ser acessados manualmente se estiverem configurados para serem indexados.",
     "showQuickDownload": "Mostrar o ícone de download para acesso rápido",
     "showQuickDownloadDescription": "Mostrar o ícone de download para acesso rápido em cada item de arquivo que pode ser clicado para fazer o download instantaneamente.",
-    "previewImages": "Mostrar miniaturas de imagens",
     "previewImagesDescription": "Mostrar visualizações em miniatura de imagens; se desativado, mostrará um ícone genérico.",
-    "previewVideos": "Mostrar miniaturas de vídeos",
     "previewVideosDescription": "Mostrar visualizações em miniatura dos vídeos; se estiver desativado, mostrará um ícone genérico.",
-    "previewMotionVideos": "Ativar a visualização de movimento para vídeos",
-    "previewMotionVideosDescription": "A visualização de movimento é a visualização pop-up animada que percorre os quadros do vídeo.",
-    "highQualityPreview": "Miniaturas de alta qualidade",
-    "highQualityPreviewDescription": "Afeta apenas a visualização da galeria. O carregamento pode demorar mais se a conexão for lenta.",
     "editOffice": "Visualize e edite arquivos de escritório com o OnlyOffice",
     "editOfficeDescription": "Quando somente o Office estiver ativado, o visualizador/editor de arquivos será desativado para todas as extensões de arquivos relacionadas a arquivos do Office.",
-    "popupPreview": "Habilite a visualização pop-up ao passar o mouse sobre os arquivos",
-    "popupPreviewDescription": "Uma janela pop-up de sobreposição será exibida sobre a interface do usuário ao passar o mouse sobre arquivos que suportam uma visualização grande.",
     "filePreviewOptions": "Opções de visualização de arquivos",
     "disableUpdateNotifications": "Desativar a exibição da notificação de atualização",
     "disableUpdateNotificationsDescription": "Desative o banner de notificação de atualização que aparece para os usuários administradores na barra lateral.",
@@ -720,7 +718,6 @@
     "editorViewerOptions": "Opções de editor e visualizador",
     "editorQuickSave": "Botão de salvamento rápido no editor",
     "editorQuickSaveDescription": "O editor de texto sempre mostrará o ícone de salvar, ocultando quaisquer outras ações",
-    "previewOffice": "Mostrar miniaturas de arquivos do Office",
     "previewOfficeDescription": "Mostrar miniaturas de tipos de arquivos de escritório na exibição de listagem",
     "disableThumbnailPreviews": "Desativar miniaturas para determinadas extensões de arquivo",
     "disableThumbnailPreviewsDescription": "Uma lista de extensões de arquivo separada por espaços para desativar as visualizações de miniaturas (por exemplo, '.txt .html').",
@@ -739,10 +736,17 @@
     "debugOfficeEditorDescription": "Mostrar um pop-up de depuração com informações adicionais no editor do OnlyOffice.",
     "fileViewerOptions": "Opções do visualizador de arquivos",
     "themeAndLanguage": "Tema e linguagem",
-    "previewFolder": "Mostrar miniaturas das pastas, se disponíveis",
-    "previewFolderDescription": "Mostrar visualizações em miniatura para pastas com o primeiro item filho com miniatura como capa.",
     "disableFileExtensions": "Digite as extensões de arquivo a serem desativadas",
-    "disableOfficeEditorDescription": "Uma lista de extensões de arquivo separada por espaços para desativar o editor e o visualizador do OnlyOffice - ou '*' para desativar todos. (por exemplo, '.txt .html .pdf')."
+    "disableOfficeEditorDescription": "Uma lista de extensões de arquivo separada por espaços para desativar o editor e o visualizador do OnlyOffice - ou '*' para desativar todos. (por exemplo, '.txt .html .pdf').",
+    "previewFolder": "Mostrar miniaturas das pastas, se disponíveis",
+    "previewFolderDescription": "Mostrar visualizações em miniatura para pastas com o primeiro item filho como capa - ou vários itens se a visualização de movimento estiver ativada.",
+    "previewMotion": "Visualizações de movimento",
+    "previewMotionVideosDescription": "A visualização de movimento é a visualização pop-up animada que percorre os quadros do vídeo ou várias imagens de uma pasta",
+    "popupPreview": "Visualizador de pop-up",
+    "popupPreviewDescription": "Uma janela pop-up de sobreposição será exibida sobre a interface do usuário ao passar o mouse sobre itens com miniaturas",
+    "thumbnailOptions": "Opções de miniaturas",
+    "showThumbnails": "Mostrar miniaturas de itens compatíveis",
+    "showThumbnailsDescription": "Quando ativada, as miniaturas são mostradas na listagem de itens que as suportam. Desative para ocultar todas as miniaturas."
   },
   "editor": {
     "uninitialized": "Falha ao inicializar o editor. Favor recarregar.",

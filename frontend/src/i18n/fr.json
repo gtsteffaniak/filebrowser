@@ -374,7 +374,12 @@
     "pickIconDescription": "Rechercher et sélectionner une icône dans la bibliothèque des icônes matérielles",
     "shareLinksUpdatedSuccess": "Les liens de la barre latérale de partage ont été mis à jour avec succès !",
     "shareHome": "Partager l'accueil",
-    "linkIconPlaceholder": "Spécifier éventuellement un nom d'icône de matériau"
+    "linkIconPlaceholder": "Spécifier éventuellement un nom d'icône de matériau",
+    "hideUsage": "Cacher l'utilisation",
+    "hideUsageDescription": "N'indiquez pas l'utilisation du stockage sur ce lien source (style minimal).",
+    "onlyShowIndexedUsage": "Calculer l'utilisation des fichiers indexés",
+    "onlyShowIndexedUsageDescription": "Lorsqu'elle est désactivée, cette option affiche l'utilisation totale de la partition telle qu'elle est rapportée par le système d'exploitation au lieu des totaux de fichiers indexés calculés pour la source.",
+    "switchMode": "Changer le mode de la barre latérale"
   },
   "success": {
     "linkCopied": "Lien copié !"
@@ -639,7 +644,8 @@
     "stop": "Arrêter{suffix}",
     "reset": "Remise à zéro{suffix}",
     "space": "L'espace{suffix}",
-    "format": "Format{suffix}"
+    "format": "Format{suffix}",
+    "office": "Bureau{suffix}"
   },
   "access": {
     "rules": "Règles d'accès",
@@ -690,18 +696,10 @@
     "showHiddenFilesDescription": "Affiche les fichiers cachés dans la liste (par exemple, .thumbnails, ProgramData), mais ils restent accessibles manuellement s'ils sont configurés pour être indexés.",
     "showQuickDownload": "Afficher l'icône de téléchargement pour un accès rapide",
     "showQuickDownloadDescription": "Afficher l'icône de téléchargement pour un accès rapide à chaque élément de fichier sur lequel on peut cliquer pour le télécharger instantanément.",
-    "previewImages": "Afficher les vignettes des images",
     "previewImagesDescription": "Affiche des aperçus de vignettes pour les images, affichera une icône générique si elle est désactivée.",
-    "previewVideos": "Afficher les vignettes des vidéos",
     "previewVideosDescription": "Affiche des aperçus de vignettes pour les vidéos, affichera une icône générique si elle est désactivée.",
-    "previewMotionVideos": "Activer la prévisualisation des mouvements pour les vidéos",
-    "previewMotionVideosDescription": "L'aperçu du mouvement est l'aperçu animé qui fait défiler les images de la vidéo.",
-    "highQualityPreview": "Vignettes de haute qualité",
-    "highQualityPreviewDescription": "N'affecte que l'affichage de la galerie. Le chargement peut prendre plus de temps si vous disposez d'une connexion lente.",
     "editOffice": "Visualiser et éditer des fichiers bureautiques avec OnlyOffice",
     "editOfficeDescription": "Lorsque l'option \"Office\" est activée, le visualiseur/éditeur de fichiers est désactivé pour toutes les extensions de fichiers liées aux fichiers Office.",
-    "popupPreview": "Activer la prévisualisation en survolant les fichiers",
-    "popupPreviewDescription": "Une fenêtre contextuelle s'affiche au-dessus de l'interface utilisateur lorsque l'on survole des fichiers qui prennent en charge une prévisualisation de grande taille.",
     "filePreviewOptions": "Options de prévisualisation des fichiers",
     "disableUpdateNotifications": "Désactiver l'affichage des notifications de mise à jour",
     "disableUpdateNotificationsDescription": "Désactiver la bannière de notification de mise à jour qui s'affiche dans la barre latérale pour les administrateurs.",
@@ -720,7 +718,6 @@
     "editorViewerOptions": "Options d'édition et de visualisation",
     "editorQuickSave": "Bouton d'enregistrement rapide dans l'éditeur",
     "editorQuickSaveDescription": "L'éditeur de texte affichera toujours l'icône de sauvegarde, masquant toute autre action.",
-    "previewOffice": "Afficher les vignettes des fichiers bureautiques",
     "previewOfficeDescription": "Afficher des vignettes pour les types de fichiers bureautiques dans la vue de la liste",
     "disableThumbnailPreviews": "Désactiver les vignettes pour certaines extensions de fichiers",
     "disableThumbnailPreviewsDescription": "Une liste d'extensions de fichiers séparées par des espaces pour lesquelles les aperçus de vignettes doivent être désactivés (par exemple, '.txt .html').",
@@ -739,10 +736,17 @@
     "debugOfficeEditorDescription": "Afficher une fenêtre de débogage avec des informations supplémentaires dans l'éditeur OnlyOffice.",
     "fileViewerOptions": "Options de visualisation des fichiers",
     "themeAndLanguage": "Thème et langue",
-    "previewFolder": "Afficher les vignettes des dossiers si elles sont disponibles",
-    "previewFolderDescription": "Afficher des aperçus de vignettes pour les dossiers dont le premier élément enfant a une vignette comme couverture.",
     "disableFileExtensions": "Saisir les extensions de fichiers à désactiver",
-    "disableOfficeEditorDescription": "Une liste d'extensions de fichiers séparées par des espaces pour lesquelles l'éditeur et la visionneuse OnlyOffice doivent être désactivés - ou '*' pour les désactiver toutes. (par exemple, '.txt .html .pdf')."
+    "disableOfficeEditorDescription": "Une liste d'extensions de fichiers séparées par des espaces pour lesquelles l'éditeur et la visionneuse OnlyOffice doivent être désactivés - ou '*' pour les désactiver toutes. (par exemple, '.txt .html .pdf').",
+    "previewFolder": "Afficher les vignettes des dossiers si elles sont disponibles",
+    "previewFolderDescription": "Affiche des aperçus de vignettes pour les dossiers dont le premier élément enfant est la couverture -- ou plusieurs éléments si l'aperçu de mouvement est activé.",
+    "previewMotion": "Prévisualisation des mouvements",
+    "previewMotionVideosDescription": "L'aperçu du mouvement est un aperçu animé qui fait défiler les images de la vidéo ou les images multiples d'un dossier.",
+    "popupPreview": "Visionneuse de fenêtres contextuelles",
+    "popupPreviewDescription": "Une fenêtre contextuelle s'affiche au-dessus de l'interface utilisateur lorsque l'on survole des éléments avec des vignettes.",
+    "thumbnailOptions": "Options de vignettes",
+    "showThumbnails": "Afficher les vignettes des éléments pris en charge",
+    "showThumbnailsDescription": "Lorsque cette option est activée, les vignettes sont affichées dans la liste pour les articles qui les prennent en charge. Désactivez cette option pour masquer toutes les vignettes."
   },
   "editor": {
     "uninitialized": "Échec de l'initialisation de l'éditeur. Veuillez recharger.",

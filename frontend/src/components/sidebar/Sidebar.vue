@@ -107,7 +107,7 @@ export default {
     isMobile: () => getters.isMobile(),
     active: () => getters.isSidebarVisible(),
     behindOverlay: () => state.isSearchActive || (state.prompts && state.prompts.length > 0),
-    sidebarWidth: () => state.sidebar.width,
+    sidebarWidth: () => getters.sidebarWidth(),
     shouldShow() {
       return (
         globalVars.updateAvailable != "" &&

@@ -374,7 +374,12 @@
     "pickIconDescription": "Aquí puedes explorar los iconos más populates de la biblioteca \"Material Icons\"",
     "shareLinksUpdatedSuccess": "¡Se actualizaron los accesos directos del recurso compartido!",
     "shareHome": "Recurso compartido",
-    "linkIconPlaceholder": "Opcionalmente, puedes elegir un Material Icon que más te guste"
+    "linkIconPlaceholder": "Opcionalmente, puedes elegir un Material Icon que más te guste",
+    "hideUsage": "Ocultar uso",
+    "hideUsageDescription": "No mostrar el uso de almacenamiento en este enlace fuente (estilo mínimo).",
+    "onlyShowIndexedUsage": "Calcular el uso de los archivos indexados",
+    "onlyShowIndexedUsageDescription": "Cuando está desactivado, muestra el uso total de la partición tal y como lo informa el sistema operativo en lugar de los totales de archivos indexados calculados para la fuente.",
+    "switchMode": "Cambiar modo del panel lateral"
   },
   "success": {
     "linkCopied": "¡Enlace copiado!"
@@ -639,7 +644,8 @@
     "stop": "Stop{suffix}",
     "reset": "Restablecer{suffix}",
     "space": "Espacio{suffix}",
-    "format": "Formato{suffix}"
+    "format": "Formato{suffix}",
+    "office": "Oficina{suffix}"
   },
   "access": {
     "rules": "Reglas de acceso",
@@ -691,7 +697,6 @@
     "editorViewerOptions": "Opciones del editor",
     "editorQuickSave": "Botón de guardado rápido en el editor",
     "editorQuickSaveDescription": "El editor de texto mostrará siempre el icono de guardar, ocultando cualquier otra acción",
-    "previewOffice": "Mostrar miniaturas para los archivos de Office",
     "previewOfficeDescription": "Mostrar miniaturas para los archivos de Office",
     "disableThumbnailPreviews": "Desactivar miniaturas para las siguientes extensiones:",
     "disableThumbnailPreviewsDescription": "Una lista (separada por espacios) de extensiones de archivo para desactivar la vista previa en las miniaturas (por ejemplo, '.txt .html').",
@@ -709,18 +714,10 @@
     "showHiddenFilesDescription": "Muestra los archivos ocultos. (por ejemplo, .thumbnails, ProgramData), pero siguen siendo accesibles manualmente si están configurados para ser indexados.",
     "showQuickDownload": "Icono de descarga rápida",
     "showQuickDownloadDescription": "Mostrar icono de descarga rápida en cada archivo",
-    "previewImages": "Mostrar miniatura de imágenes",
     "previewImagesDescription": "Mostrar vistas previas en las miniaturas de las imágenes, mostrará el icono genérico si está desactivado",
-    "previewVideos": "Mostrar miniatura de videos",
     "previewVideosDescription": "Mostrar vistas previas en las miniaturas de los vídeos, mostrará un icono genérico si está desactivado",
-    "previewMotionVideos": "Previsualización de vídeos",
-    "previewMotionVideosDescription": "Recorre los fotogramas del vídeo. \n La previsulización de videos es en la vista previa emergente (tienes que tener activada esa opción también).",
-    "highQualityPreview": "Miniaturas en alta resolución",
-    "highQualityPreviewDescription": "Sólo afecta a la vista de galería. Puede tardar más en cargarse si la conexión es lenta",
     "editOffice": "Ver y editar archivos de ofimática con OnlyOffice",
     "editOfficeDescription": "Cuando está activado, el visor/editor de archivos estará desactivado para todas las extensiones de archivo relacionadas con archivos office, en vez, las abrirá en OnlyOffice.",
-    "popupPreview": "Vista previa emergente",
-    "popupPreviewDescription": "Se mostrará una ventana emergente superpuesta sobre la interfaz de usuario al pasar el mouse por encima de los archivos que tengan una miniatura",
     "filePreviewOptions": "Opciones de previsualización de archivos",
     "disableUpdateNotifications": "Desactivar las notificaciones de actualización",
     "disableUpdateNotificationsDescription": "Desactivar el banner de notificación de actualización que aparece para los usuarios administradores en el panel lateral.",
@@ -740,9 +737,16 @@
     "debugOfficeEditorDescription": "Mostrar una ventana emergente de depuración con información adicional en el editor OnlyOffice.",
     "fileViewerOptions": "Opciones del visor de archivos",
     "themeAndLanguage": "Tema e Idioma",
-    "previewFolder": "Vista previa en miniatura para carpetas",
-    "previewFolderDescription": "Mostrar vistas previas en miniatura para las carpetas - Se usará el primer elemento como portada. (puede ser una imagen, o audio con imagen)",
-    "disableOfficeEditorDescription": "Una lista separada por espacios de extensiones de archivo para las que desactivar el editor y visor de OnlyOffice, o '*' para desactivarlas todas. (por ejemplo, '.txt .html .pdf')."
+    "disableOfficeEditorDescription": "Una lista separada por espacios de extensiones de archivo para las que desactivar el editor y visor de OnlyOffice, o '*' para desactivarlas todas. (por ejemplo, '.txt .html .pdf').",
+    "previewFolder": "Mostrar miniaturas de las carpetas si están disponibles",
+    "previewFolderDescription": "Mostrar vistas previas en miniatura de carpetas con el primer elemento hijo como portada -- o múltiples elementos si la vista previa en movimiento está activada.",
+    "previewMotion": "Avance del movimiento",
+    "previewMotionVideosDescription": "La vista previa en movimiento es la vista previa emergente animada que recorre los fotogramas del vídeo o varias imágenes de una carpeta",
+    "popupPreview": "Visor emergente",
+    "popupPreviewDescription": "Se mostrará una ventana emergente superpuesta a la interfaz de usuario al pasar el ratón por encima de los elementos con miniaturas.",
+    "thumbnailOptions": "Opciones de miniaturas",
+    "showThumbnails": "Mostrar miniaturas de los elementos compatibles",
+    "showThumbnailsDescription": "Cuando está activada, las miniaturas se muestran en el listado de los artículos que las admiten. Desactívelo para ocultar todas las miniaturas."
   },
   "editor": {
     "uninitialized": "Hubo un error al iniciar el editor",

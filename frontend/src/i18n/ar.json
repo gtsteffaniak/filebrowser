@@ -374,7 +374,12 @@
     "pickIconDescription": "بحث وتحديد أيقونة من مكتبة الأيقونات المادية",
     "shareLinksUpdatedSuccess": "تم تحديث روابط الشريط الجانبي المشاركة بنجاح!",
     "shareHome": "مشاركة الصفحة الرئيسية",
-    "linkIconPlaceholder": "تحديد اسم رمز المادة اختياريًا"
+    "linkIconPlaceholder": "تحديد اسم رمز المادة اختياريًا",
+    "hideUsage": "إخفاء الاستخدام",
+    "hideUsageDescription": "لا تعرض استخدام التخزين على رابط المصدر هذا (النمط الأدنى).",
+    "onlyShowIndexedUsage": "حساب الاستخدام من الملفات المفهرسة",
+    "onlyShowIndexedUsageDescription": "عند تعطيله، يعرض إجمالي استخدام القسم كما تم الإبلاغ عنه من قبل نظام التشغيل بدلاً من إجماليات الملفات المفهرسة المحسوبة للمصدر.",
+    "switchMode": "تبديل وضع الشريط الجانبي"
   },
   "success": {
     "linkCopied": "تم نسخ الملف"
@@ -639,7 +644,8 @@
     "stop": "توقف{suffix}",
     "reset": "إعادة تعيين{suffix}",
     "space": "الفضاء{suffix}",
-    "format": "التنسيق{suffix}"
+    "format": "التنسيق{suffix}",
+    "office": "المكتب{suffix}"
   },
   "access": {
     "rules": "قواعد الوصول",
@@ -682,18 +688,10 @@
     "showHiddenFilesDescription": "إظهار الملفات المخفية في القائمة (مثل .thumbnails، ProgramData)، ولكن لا يزال يمكن الوصول إليها يدويًا إذا تم تكوينها للفهرسة.",
     "showQuickDownload": "إظهار أيقونة التنزيل للوصول السريع",
     "showQuickDownloadDescription": "إظهار أيقونة التنزيل للوصول السريع إلى كل عنصر ملف يمكن النقر عليها لتنزيله على الفور.",
-    "previewImages": "إظهار الصور المصغرة للصور",
     "previewImagesDescription": "إظهار معاينات الصور المصغرة للصور، ستظهر أيقونة عامة إذا تم تعطيلها.",
-    "previewVideos": "إظهار الصور المصغرة لمقاطع الفيديو",
     "previewVideosDescription": "إظهار معاينات الصور المصغرة لمقاطع الفيديو، ستظهر أيقونة عامة إذا تم تعطيلها.",
-    "previewMotionVideos": "تمكين معاينة الحركة لمقاطع الفيديو",
-    "previewMotionVideosDescription": "معاينة الحركة هي المعاينة المنبثقة المتحركة التي تتنقل بين إطارات الفيديو.",
-    "highQualityPreview": "صور مصغرة عالية الجودة",
-    "highQualityPreviewDescription": "يؤثر فقط على عرض المعرض. قد يستغرق تحميل هذا وقتاً أطول إذا كان الاتصال بطيئاً.",
     "editOffice": "عرض وتحرير الملفات المكتبية باستخدام OnlyOffice",
     "editOfficeDescription": "عند تمكين Office فقط، سيتم تعطيل عارض/محرر الملفات لجميع امتدادات الملفات المتعلقة بملفات Office.",
-    "popupPreview": "تمكين المعاينة المنبثقة عند التمرير فوق الملفات",
-    "popupPreviewDescription": "ستظهر نافذة منبثقة متراكبة فوق واجهة المستخدم عند التمرير فوق الملفات التي تدعم معاينة كبيرة.",
     "filePreviewOptions": "خيارات معاينة الملف",
     "disableUpdateNotifications": "تعطيل إظهار تحديث الإشعارات",
     "disableUpdateNotificationsDescription": "قم بتعطيل شعار تنبيه التحديث الذي يظهر للمستخدمين الإداريين على الشريط الجانبي.",
@@ -712,7 +710,6 @@
     "editorViewerOptions": "خيارات المحرر والعارض",
     "editorQuickSave": "زر الحفظ السريع في المحرر",
     "editorQuickSaveDescription": "سيعرض محرر النصوص دائمًا أيقونة الحفظ، مع إخفاء أي إجراءات أخرى",
-    "previewOffice": "إظهار الصور المصغرة لملفات المكتب",
     "previewOfficeDescription": "إظهار الصور المصغرة لأنواع الملفات المكتبية في عرض القائمة",
     "disableThumbnailPreviews": "تعطيل الصور المصغرة لملحقات ملفات معينة",
     "disableThumbnailPreviewsDescription": "قائمة مفصولة بمسافات لامتدادات الملفات لتعطيل معاينات الصور المصغرة لها (على سبيل المثال، \".txt .html\").",
@@ -731,10 +728,17 @@
     "debugOfficeEditorDescription": "إظهار نافذة منبثقة للتصحيح مع معلومات إضافية في محرر OnlyOffice.",
     "fileViewerOptions": "خيارات عارض الملفات",
     "themeAndLanguage": "الموضوع واللغة",
-    "previewFolder": "إظهار الصور المصغرة للمجلدات إذا كانت متوفرة",
-    "previewFolderDescription": "إظهار معاينات الصور المصغرة للمجلدات التي تحتوي على العنصر الفرعي الأول مع صورة مصغرة كغلاف.",
     "disableFileExtensions": "أدخل امتدادات الملفات لتعطيلها",
-    "disableOfficeEditorDescription": "قائمة مفصولة بمسافات لامتدادات الملفات لتعطيل محرر وعارض OnlyOffice - أو '*' لتعطيلها كلها. (على سبيل المثال، \".txt .html .pdf\")."
+    "disableOfficeEditorDescription": "قائمة مفصولة بمسافات لامتدادات الملفات لتعطيل محرر وعارض OnlyOffice - أو '*' لتعطيلها كلها. (على سبيل المثال، \".txt .html .pdf\").",
+    "previewFolder": "إظهار الصور المصغرة للمجلدات إذا كانت متوفرة",
+    "previewFolderDescription": "إظهار معاينات الصور المصغرة للمجلدات التي تحتوي على العنصر الفرعي الأول كغلاف - أو عناصر متعددة إذا تم تمكين معاينة الحركة.",
+    "previewMotion": "معاينات الحركة",
+    "previewMotionVideosDescription": "معاينة الحركة هي المعاينة المنبثقة المتحركة التي تتنقل عبر إطارات الفيديو أو الصور المتعددة لمجلد",
+    "popupPreview": "العارض المنبثق",
+    "popupPreviewDescription": "ستظهر نافذة منبثقة متراكبة فوق واجهة المستخدم عند التمرير فوق العناصر ذات الصور المصغرة",
+    "thumbnailOptions": "خيارات الصور المصغرة",
+    "showThumbnails": "إظهار الصور المصغرة للعناصر المدعومة",
+    "showThumbnailsDescription": "عند التمكين، تظهر الصور المصغرة في القائمة للعناصر التي تدعمها. قم بإيقاف التشغيل لإخفاء جميع الصور المصغرة."
   },
   "colors": {
     "red": "أحمر",

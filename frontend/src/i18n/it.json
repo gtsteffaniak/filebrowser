@@ -374,7 +374,12 @@
     "pickIconDescription": "Cercare e selezionare un'icona dalla libreria Material Icons.",
     "shareLinksUpdatedSuccess": "I link della barra laterale di condivisione sono stati aggiornati con successo!",
     "shareHome": "Condividi Casa",
-    "linkIconPlaceholder": "Specificare facoltativamente il nome dell'icona del materiale"
+    "linkIconPlaceholder": "Specificare facoltativamente il nome dell'icona del materiale",
+    "hideUsage": "Nascondere l'uso",
+    "hideUsageDescription": "Non mostrare l'utilizzo della memoria su questo link di origine (stile minimale).",
+    "onlyShowIndexedUsage": "Calcolo dell'utilizzo dei file indicizzati",
+    "onlyShowIndexedUsageDescription": "Se disattivato, mostra l'uso totale della partizione come riportato dal sistema operativo invece dei totali dei file indicizzati calcolati per la sorgente.",
+    "switchMode": "Cambia modalità barra laterale"
   },
   "success": {
     "linkCopied": "Link copiato!"
@@ -639,7 +644,8 @@
     "stop": "Fermarsi{suffix}",
     "reset": "Reset{suffix}",
     "space": "Spazio{suffix}",
-    "format": "Formato{suffix}"
+    "format": "Formato{suffix}",
+    "office": "Ufficio{suffix}"
   },
   "access": {
     "rules": "Regole di accesso",
@@ -690,18 +696,10 @@
     "showHiddenFilesDescription": "Mostra i file nascosti nell'elenco (ad esempio .thumbnails, ProgramData), ma sono ancora accessibili manualmente se configurati per essere indicizzati.",
     "showQuickDownload": "Mostra l'icona di download per un accesso rapido",
     "showQuickDownloadDescription": "Mostra l'icona di download per un accesso rapido a ciascun file che può essere cliccato per scaricarlo immediatamente.",
-    "previewImages": "Mostra le miniature delle immagini",
     "previewImagesDescription": "Mostra le anteprime delle immagini; se è disattivato, mostrerà un'icona generica.",
-    "previewVideos": "Mostra le miniature dei video",
     "previewVideosDescription": "Mostra le anteprime dei video; se è disattivato, mostrerà un'icona generica.",
-    "previewMotionVideos": "Abilita l'anteprima di movimento per i video",
-    "previewMotionVideosDescription": "L'anteprima di movimento è un'anteprima a comparsa animata che scorre i fotogrammi del video.",
-    "highQualityPreview": "Miniature di alta qualità",
-    "highQualityPreviewDescription": "Ha effetto solo sulla visualizzazione della galleria. Il caricamento potrebbe richiedere più tempo se la connessione è lenta.",
     "editOffice": "Visualizzate e modificate i file d'ufficio con OnlyOffice",
     "editOfficeDescription": "Quando è abilitato solo office, il visualizzatore/editor di file sarà disabilitato per tutte le estensioni di file relative a office.",
-    "popupPreview": "Abilita l'anteprima a comparsa quando si passa il mouse sui file",
-    "popupPreviewDescription": "Quando si passa il mouse sui file che supportano un'anteprima di grandi dimensioni, viene visualizzata una finestra pop-up di sovrapposizione sull'interfaccia utente.",
     "filePreviewOptions": "Opzioni di anteprima dei file",
     "disableUpdateNotifications": "Disattivare la visualizzazione delle notifiche di aggiornamento",
     "disableUpdateNotificationsDescription": "Disattivare il banner di notifica degli aggiornamenti che appare per gli utenti amministratori nella barra laterale.",
@@ -720,7 +718,6 @@
     "editorViewerOptions": "Opzioni dell'editor e del visualizzatore",
     "editorQuickSave": "Pulsante di salvataggio rapido nell'editor",
     "editorQuickSaveDescription": "L'editor di testo mostrerà sempre l'icona di salvataggio, nascondendo qualsiasi altra azione.",
-    "previewOffice": "Mostra le miniature dei file di Office",
     "previewOfficeDescription": "Mostra le miniature per i tipi di file dell'ufficio nella vista elenco",
     "disableThumbnailPreviews": "Disabilitare le anteprime per alcune estensioni di file",
     "disableThumbnailPreviewsDescription": "Un elenco separato da spazi di estensioni di file per cui disabilitare le anteprime (ad esempio, '.txt .html').",
@@ -739,10 +736,17 @@
     "debugOfficeEditorDescription": "Mostra un popup di debug con informazioni aggiuntive nell'editor di OnlyOffice.",
     "fileViewerOptions": "Opzioni del visualizzatore di file",
     "themeAndLanguage": "Tema e linguaggio",
-    "previewFolder": "Mostra le miniature delle cartelle, se disponibili.",
-    "previewFolderDescription": "Mostra le anteprime per le cartelle con il primo elemento figlio con miniatura come copertina.",
     "disableFileExtensions": "Immettere le estensioni dei file da disabilitare",
-    "disableOfficeEditorDescription": "Un elenco, separato da spazi, di estensioni di file per cui disabilitare l'editor e il visualizzatore di OnlyOffice, oppure '*' per disabilitarli tutti. (ad esempio, '.txt .html .pdf')."
+    "disableOfficeEditorDescription": "Un elenco, separato da spazi, di estensioni di file per cui disabilitare l'editor e il visualizzatore di OnlyOffice, oppure '*' per disabilitarli tutti. (ad esempio, '.txt .html .pdf').",
+    "previewFolder": "Mostra le miniature delle cartelle, se disponibili.",
+    "previewFolderDescription": "Mostra le anteprime delle cartelle con il primo elemento figlio come copertina o più elementi se l'anteprima di movimento è abilitata.",
+    "previewMotion": "Anteprime del movimento",
+    "previewMotionVideosDescription": "L'anteprima di movimento è un'anteprima a comparsa animata che scorre i fotogrammi del video o di più immagini per una cartella.",
+    "popupPreview": "Visualizzatore pop-up",
+    "popupPreviewDescription": "Una finestra pop-up di sovrapposizione viene visualizzata sopra l'interfaccia utente quando si passa il mouse su elementi con miniature.",
+    "thumbnailOptions": "Opzioni miniature",
+    "showThumbnails": "Mostra le miniature per gli elementi supportati",
+    "showThumbnailsDescription": "Quando è attivata, le miniature vengono mostrate nell'elenco degli articoli che le supportano. Disattivare per nascondere tutte le miniature."
   },
   "editor": {
     "uninitialized": "Impossibile inizializzare l'editor. Ricaricare.",

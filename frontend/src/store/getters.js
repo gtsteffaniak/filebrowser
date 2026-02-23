@@ -221,6 +221,7 @@ export const getters = {
     return visible
   },
   sidebarWidth: () => state.sidebar.width,
+  sidebarMode: () => state.sidebar.mode,
   isStickySidebar: () => {
     let sticky = state.user?.stickySidebar
     const currentView = getters.currentView()
@@ -474,7 +475,6 @@ export const getters = {
         video: true,
         image: true,
         popup: true,
-        highQuality: false
       },
       disableSettings: true,
       disableQuickToggles: false,
@@ -581,7 +581,6 @@ export const getters = {
         office: state.user?.preview?.office ?? true,
         folder: state.user?.preview?.folder ?? true,
         popup: state.user?.preview?.popup ?? true,
-        highQuality: state.user?.preview?.highQuality ?? false,
         motionVideoPreview: state.user?.preview?.motionVideoPreview ?? false,
         disableHideSidebar: state.user?.preview?.disableHideSidebar ?? false,
         autoplayMedia: state.user?.preview?.autoplayMedia ?? false,
@@ -596,7 +595,6 @@ export const getters = {
       office: state.user?.preview?.office ?? true,
       folder: state.user?.preview?.folder ?? true,
       popup: state.user?.preview?.popup ?? true,
-      highQuality: state.user?.preview?.highQuality ?? false,
       motionVideoPreview: state.user?.preview?.motionVideoPreview ?? false,
       disableHideSidebar: state.user?.preview?.disableHideSidebar ?? false,
       autoplayMedia: state.user?.preview?.autoplayMedia ?? false,

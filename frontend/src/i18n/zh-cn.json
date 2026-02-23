@@ -374,7 +374,12 @@
     "pickIconDescription": "从材质图标库中搜索并选择图标",
     "shareLinksUpdatedSuccess": "共享侧边栏链接更新成功！",
     "shareHome": "共享主页",
-    "linkIconPlaceholder": "可选择指定材料图标名称"
+    "linkIconPlaceholder": "可选择指定材料图标名称",
+    "hideUsage": "隐藏使用",
+    "hideUsageDescription": "不要在此源代码链接上显示存储使用情况（最小样式）。",
+    "onlyShowIndexedUsage": "计算索引文件的使用量",
+    "onlyShowIndexedUsageDescription": "禁用时，显示操作系统报告的分区总使用量，而不是计算出的源索引文件总数。",
+    "switchMode": "切换侧边栏模式"
   },
   "success": {
     "linkCopied": "链接已复制！"
@@ -548,18 +553,10 @@
     "showHiddenFilesDescription": "在列表中显示隐藏文件（如 .缩略图、ProgramData），但如果配置为索引，这些文件仍可手动访问。",
     "showQuickDownload": "显示下载图标以便快速访问",
     "showQuickDownloadDescription": "在每个文件项目上显示可快速访问的下载图标，点击后可立即下载。",
-    "previewImages": "显示图像缩略图",
     "previewImagesDescription": "显示图像缩略图预览，如果禁用，将显示通用图标。",
-    "previewVideos": "显示视频缩略图",
     "previewVideosDescription": "显示视频缩略图预览，如果禁用，将显示通用图标。",
-    "previewMotionVideos": "启用视频动态预览",
-    "previewMotionVideosDescription": "动态预览是弹出式动画预览，可循环播放视频帧。",
-    "highQualityPreview": "高质量缩略图",
-    "highQualityPreviewDescription": "仅影响图库视图。如果连接速度较慢，加载时间可能会较长。",
     "editOffice": "使用 OnlyOffice 查看和编辑办公文件",
     "editOfficeDescription": "只启用 Office 时，文件查看器/编辑器将禁用与 Office 文件相关的所有文件扩展名。",
-    "popupPreview": "将鼠标悬停在文件上时启用弹出式预览",
-    "popupPreviewDescription": "当鼠标悬停在支持大图预览的文件上时，用户界面上会显示一个叠加弹出窗口。",
     "filePreviewOptions": "文件预览选项",
     "disableUpdateNotifications": "禁止显示更新通知",
     "disableUpdateNotificationsDescription": "禁用侧边栏为管理员用户显示的更新通知横幅。",
@@ -578,7 +575,6 @@
     "editorViewerOptions": "编辑器和查看器选项",
     "editorQuickSave": "编辑器中的快速保存按钮",
     "editorQuickSaveDescription": "文本编辑器将始终显示保存图标，隐藏任何其他操作",
-    "previewOffice": "显示办公文件的缩略图",
     "previewOfficeDescription": "在列表视图中显示办公文件类型的缩略图",
     "disableThumbnailPreviews": "禁用某些文件扩展名的缩略图",
     "disableThumbnailPreviewsDescription": "以空格分隔的文件扩展名列表，用于禁用缩略图预览（如\".txt .html\"）。",
@@ -597,10 +593,17 @@
     "debugOfficeEditorDescription": "在 OnlyOffice 编辑器中显示包含附加信息的调试弹出窗口。",
     "fileViewerOptions": "文件查看器选项",
     "themeAndLanguage": "主题与语言",
-    "previewFolder": "如果有的话，显示文件夹的缩略图",
-    "previewFolderDescription": "显示文件夹的缩略图预览，第一个子项的缩略图为封面。",
     "disableFileExtensions": "输入要禁用的文件扩展名",
-    "disableOfficeEditorDescription": "用空格分隔的文件扩展名列表，用于禁用 OnlyOffice 编辑器和查看器，或用 \"*\"表示禁用所有文件扩展名。(例如，\".txt .html .pdf\"）。"
+    "disableOfficeEditorDescription": "用空格分隔的文件扩展名列表，用于禁用 OnlyOffice 编辑器和查看器，或用 \"*\"表示禁用所有文件扩展名。(例如，\".txt .html .pdf\"）。",
+    "previewFolder": "如果有的话，显示文件夹的缩略图",
+    "previewFolderDescription": "显示文件夹的缩略图预览，第一个子项作为封面，如果启用了动态预览，则显示多个子项的缩略图预览。",
+    "previewMotion": "动态预览",
+    "previewMotionVideosDescription": "动态预览是一种动画弹出式预览，可循环播放文件夹中的视频帧或多幅图像。",
+    "popupPreview": "弹出式查看器",
+    "popupPreviewDescription": "将鼠标悬停在带缩略图的项目上时，用户界面上会显示一个叠加弹出窗口",
+    "thumbnailOptions": "缩略图选项",
+    "showThumbnails": "显示支持项目的缩略图",
+    "showThumbnailsDescription": "启用后，支持缩略图的项目将在列表中显示缩略图。关闭则隐藏所有缩略图。"
   },
   "general": {
     "name": "名称",
@@ -719,7 +722,8 @@
     "stop": "停止{suffix}",
     "reset": "重置{suffix}",
     "space": "空间{suffix}",
-    "format": "格式{suffix}"
+    "format": "格式{suffix}",
+    "office": "办公室{suffix}"
   },
   "access": {
     "rules": "访问规则",

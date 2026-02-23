@@ -40,6 +40,7 @@ body.rtl .listing-items {
   width: var(--item-width);
   height: var(--item-height);
   border-radius: 1em;
+  padding: 0.5em;
   background: var(--item-secondary);
   color: var(--textPrimary);
   border-color: var(--divider);
@@ -66,102 +67,30 @@ body.rtl .listing-items {
   font-size: 0.9em;
 }
 
-/* Step 1: Size the CONTAINER (first div in listing-item) per view mode */
-.listing-items.normal .listing-item > div:first-child {
-  width: var(--normal-icon-image-size, 4em);
-  height: var(--normal-icon-image-size, 4em);
-  min-width: var(--normal-icon-image-size, 4em);
-  flex-shrink: 0;
+/* View mode defaults - override --icon-size and --icon-font-size for each mode */
+.listing-items.normal {
+  --icon-size: 3.5em;
+  --icon-font-size: 2.5em;
 }
 
-.listing-items.list .listing-item > div:first-child,
-.listing-items.compact .listing-item > div:first-child {
-  width: var(--list-icon-image-size, 2.5em);
-  height: var(--list-icon-image-size, 2.5em);
-  min-width: var(--list-icon-image-size, 2.5em);
-  flex-shrink: 0;
+.listing-items.list,
+.listing-items.compact {
+  --icon-size: 2.5em;
+  --icon-font-size: 1.8em;
 }
 
-.listing-items.gallery .listing-item > div:first-child {
-  width: 100%;
-  height: 100%;
+.listing-items.icons {
+  --icon-size: 60px;
+  --icon-font-size: 3em;
 }
 
-.listing-items.icons .listing-item > div:first-child {
-  width: calc(var(--icons-view-icon-size, 60px) + 10px);
-  height: calc(var(--icons-view-icon-size, 60px) + 10px);
-  min-width: calc(var(--icons-view-icon-size, 60px) + 10px);
-  max-width: calc(var(--icons-view-icon-size, 60px) + 10px);
-  flex-shrink: 0;
-  transition: width 0.25s ease-out, height 0.25s ease-out;
+.listing-items.gallery {
+  --icon-font-size: 4em;
 }
 
-/* Step 2: Unified .image-preview container - all preview types use this */
-.image-preview {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 0.5em;
-  background: var(--iconBackground);
-  overflow: hidden;
-  position: relative;
-}
-
-/* Step 3: Content inside preview container fills it */
-/* Material icons - scale dynamically with gallery size via CSS variables */
-.listing-items.normal .listing-item .image-preview i {
-  font-size: var(--normal-icon-font-size, 2.5em);
-  padding: 0;
-  box-sizing: border-box;
-  transform: translateZ(0);
-}
-
-.listing-items.list .listing-item .image-preview i,
-.listing-items.compact .listing-item .image-preview i {
-  font-size: var(--list-icon-font-size, 2em);
-  padding: 0;
-  box-sizing: border-box;
-  transform: translateZ(0);
-}
-
-.listing-items.icons .listing-item .image-preview i {
-  font-size: var(--icons-view-icon-size, 3em);
-  padding: 0;
-  box-sizing: border-box;
-  transform: translateZ(0);
-}
-
-.listing-items.gallery .listing-item .image-preview i {
-  font-size: var(--gallery-icon-font-size, 3em);
-  padding: 0;
-  box-sizing: border-box;
-  transform: translateZ(0);
-}
-
-/* Images */
-.listing-item .image-preview img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  padding: 0;
-}
-
-/* 3D viewers */
-.listing-item .image-preview .threejs-icon-container {
-  width: 100%;
-  height: 100%;
-  background: #000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.listing-item .image-preview .threejs-icon-container canvas {
-  width: 100% !important;
-  height: 100% !important;
-  display: block;
+/* Apply icon font size from variable */
+.listing-items .image-preview i {
+  font-size: var(--icon-font-size);
 }
 
 .message {
@@ -203,10 +132,6 @@ body.rtl .listing-items {
   border-radius: 0em;
 }
 
-.listing-item div:last-of-type {
-  width: 100%;
-}
-
 .listing-items.gallery .listing-item {
   display: flex;
   flex-direction: column;
@@ -232,7 +157,7 @@ body.rtl .listing-items {
   position: relative;
   width: 100%;
   height: auto;
-  min-height: calc(var(--icons-view-icon-size, 60px) + 2em);
+  min-height: calc(var(--icon-size, 60px) + 2em);
 }
 
 .listing-items.gallery .listing-item .gallery-div {
@@ -365,7 +290,7 @@ body.rtl .listing-items {
   width: calc(50% + 1em) !important;
 }
 
-.listing-items .listing-item .text {
+.listing-item .text {
   padding-left: 0.5em;
 }
 
@@ -445,44 +370,21 @@ body.rtl .listing-items {
   text-align: center;
 }
 
-/* Search results with large icons - unified preview container */
-.search-entry.large-icons > a > span:first-child {
-  width: var(--icons-view-icon-size, 60px);
-  height: var(--icons-view-icon-size, 60px);
-  min-width: var(--icons-view-icon-size, 60px);
-  max-width: var(--icons-view-icon-size, 60px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
+/* Search results with icon size overrides */
 .search-entry.large-icons .image-preview {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 0.5em;
-  background: var(--iconBackground);
-  overflow: hidden;
-  position: relative;
+  --icon-size: 5em;
+  max-height: 4em;
+  max-width: 4em;
 }
 
-.search-entry.large-icons .image-preview i {
-  font-size: 3em;
+.search-entry.small-icons .image-preview {
+  --icon-size: 2em;
+  --icon-font-size: 1.5em;
 }
 
-.search-entry.large-icons .image-preview img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.search-entry.large-icons .image-preview .threejs-icon-container {
-  width: 100%;
-  height: 100%;
-  background: #000;
+.listing-items.gallery .image-preview {
+  width: 100% !important;
+  height: 100% !important;
 }
 
 .listing-items.gallery .folder-items,
@@ -493,6 +395,14 @@ body.rtl .listing-items {
   padding: 0.5em;
   width: 100%;
   transition: grid-template-columns 0.25s ease-out;
+}
+
+@media (max-width: 768px) {
+  .listing-items.gallery .folder-items,
+  .listing-items.gallery .file-items {
+    /* Min width overrides column count: as many columns as fit above the minimum */
+    grid-template-columns: repeat(auto-fill, minmax(var(--gallery-mobile-min-width, 140px), 1fr));
+  }
 }
 
 .listing-items.icons .folder-items,

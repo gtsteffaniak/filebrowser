@@ -121,6 +121,8 @@ export default {
   props: {
     fbdata: { type: Object, required: true },
     isThumbnail: { type: Boolean, default: false },
+    /** When true (e.g. listing icons), add extra delay (1750ms) so total is 2s. Avoids loading when user skips past. */
+    addLoadDelay: { type: Boolean, default: false },
   },
   data() {
     return {
@@ -176,8 +178,8 @@ export default {
     if (this.isThumbnail) {
       this.initIntersectionObserver();
     } else {
-      // Add delay for main viewer too to prevent UI lag on mount
-      // Wait 1 second before loading even for main view
+      // Full viewer: always 250ms base; add 1750ms when addLoadDelay (total 2s) to avoid loading when skipping
+      const delay = 250 + (this.addLoadDelay ? 1750 : 0);
       this.loading = true;
       this.loadTimer = setTimeout(() => {
         this.initScene();
@@ -185,7 +187,7 @@ export default {
         this.setupKeyboardShortcuts();
         this.updateSelectedState();
         this.loadTimer = null;
-      }, 1000);
+      }, delay);
     }
 
     window.addEventListener('resize', this.onWindowResize);
@@ -237,6 +239,8 @@ export default {
         if (entry.isIntersecting) {
           this.isInView = true;
           if (!this.hasInitialized && !this.loadTimer) {
+            // Always 250ms base; add 1750ms when addLoadDelay (e.g. listing icons) for 2s total
+            const delay = 250 + (this.addLoadDelay ? 1750 : 0);
             this.loadTimer = setTimeout(() => {
               if (this.isInView && !this.hasInitialized) {
                 this.hasInitialized = true;
@@ -244,7 +248,7 @@ export default {
                 this.loadModel();
               }
               this.loadTimer = null;
-            }, 2000);
+            }, delay);
           }
         } else {
           this.isInView = false;
@@ -764,12 +768,8 @@ export default {
   height: 100%;
   position: relative;
   overflow: hidden;
-  cursor: default;
 }
 
-.threejs-viewer, .threejs-viewer * {
-  cursor: default !important;
-}
 
 .threejs-viewer canvas {
   display: block;

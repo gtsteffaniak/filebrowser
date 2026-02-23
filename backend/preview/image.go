@@ -1,6 +1,7 @@
 package preview
 
 import (
+	"bytes"
 	"fmt"
 	"image"
 	"image/jpeg"
@@ -232,6 +233,45 @@ func (s *Service) ResizeWithSize(in io.Reader, out io.Writer, fileSize int64, op
 		return jpeg.Encode(out, img, &jpeg.Options{Quality: opts.JpegQuality})
 	}
 	return imaging.Encode(out, img, opts.Format.toImaging())
+}
+
+// applyOrientationToPreviewBytes applies EXIF orientation to image bytes using the imaging library.
+// orientation is the string from exiftool -Orientation -s3 (e.g. "Rotate 90 CW", "Horizontal (normal)").
+// Returns rotated JPEG bytes or the original bytes on error/unknown orientation. No FFmpeg required.
+func applyOrientationToPreviewBytes(imageBytes []byte, orientation string) []byte {
+	if len(imageBytes) < 100 {
+		return imageBytes
+	}
+	img, err := imaging.Decode(bytes.NewReader(imageBytes))
+	if err != nil {
+		return imageBytes
+	}
+	var out image.Image
+	switch orientation {
+	case "Rotate 90 CW", "Right-top", "6":
+		out = imaging.Rotate270(img)
+	case "Rotate 180", "Bottom-right", "3":
+		out = imaging.Rotate180(img)
+	case "Rotate 270 CW", "Left-bottom", "8":
+		out = imaging.Rotate90(img)
+	case "Mirror horizontal", "Top-right", "2":
+		out = imaging.FlipH(img)
+	case "Mirror vertical", "Bottom-left", "4":
+		out = imaging.FlipV(img)
+	case "Mirror horizontal and rotate 270 CW", "Right-bottom", "7":
+		out = imaging.Transverse(img)
+	case "Mirror horizontal and rotate 90 CW", "Left-top", "5":
+		out = imaging.Transpose(img)
+	case "Horizontal (normal)", "Top-left", "1", "":
+		return imageBytes
+	default:
+		return imageBytes
+	}
+	var buf bytes.Buffer
+	if err := jpeg.Encode(&buf, out, &jpeg.Options{Quality: 90}); err != nil {
+		return imageBytes
+	}
+	return buf.Bytes()
 }
 
 func getEmbeddedThumbnail(in io.Reader) ([]byte, io.Reader, error) {

@@ -270,13 +270,15 @@ export default {
       const viewportH = window.innerHeight;
       const headerEl = el.querySelector && el.querySelector(".prompt-taskbar");
       const headerHeight = headerEl ? headerEl.getBoundingClientRect().height : 40;
+      const rect = el.getBoundingClientRect();
+      const windowHeight = rect.height;
       const offset = this.dragOffsets[id] || { x: 0, y: 0 };
       const centerX = viewportW / 2 + offset.x;
       const centerY = viewportH / 2 + offset.y;
 
       const minCenterX = 0;
       const maxCenterX = viewportW;
-      const minCenterY = headerHeight / 2;
+      const minCenterY = windowHeight / 2;
       const maxCenterY = viewportH - headerHeight / 2;
       const clampedX = Math.max(minCenterX, Math.min(maxCenterX, centerX));
       const clampedY = Math.max(minCenterY, Math.min(maxCenterY, centerY));

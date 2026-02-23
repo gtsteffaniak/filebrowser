@@ -88,7 +88,6 @@ func ApplyUserDefaults(u *users.User) {
 
 	// Handle Preview - convert from pointer-based defaults to regular bools
 	u.Preview.DisableHideSidebar = Config.UserDefaults.Preview.DisableHideSidebar
-	u.Preview.HighQuality = boolValueOrDefault(Config.UserDefaults.Preview.HighQuality, true)
 	u.Preview.Image = boolValueOrDefault(Config.UserDefaults.Preview.Image, true)
 	u.Preview.Video = boolValueOrDefault(Config.UserDefaults.Preview.Video, true)
 	u.Preview.MotionVideoPreview = boolValueOrDefault(Config.UserDefaults.Preview.MotionVideoPreview, true)

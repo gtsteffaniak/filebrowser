@@ -1435,6 +1435,12 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "description": "Skip extended attributes for faster retrieval, no hasPreview",
+                        "name": "skipExtendedAttrs",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "Source name for the desired source, default is used if not provided",
                         "name": "source",
                         "in": "query",
@@ -1773,7 +1779,7 @@ const docTemplate = `{
         },
         "/api/resources/archive": {
             "post": {
-                "description": "Creates a zip or tar.gz archive on the server from the given items (files and/or directories). Server-side only; no archive bytes are returned. All items must be from the same source. Folders are walked recursively; access-denied paths are silently skipped. Requires create permission.\n\n**Request body parameters:**\n- **source** (string, required): Source name where the items to archive live. Example: ` + "`" + `\"default\"` + "`" + `\n- **toSource** (string, optional): Source name where the archive file will be written. Defaults to ` + "`" + `source` + "`" + ` if omitted. Example: ` + "`" + `\"backups\"` + "`" + `\n- **items** (array of strings, required): Paths of files or directories to add to the archive (relative to source). Directories are walked; access-denied entries are skipped. Example: ` + "`" + `[\"/docs/file.txt\", \"/photos\"]` + "`" + `\n- **destination** (string, required): Full path where the archive file will be created (on toSource). Must end with .zip or .tar.gz (or format is inferred). Example: ` + "`" + `\"/backups/my-archive.zip\"` + "`" + `\n- **format** (string, optional): Archive format. One of: ` + "`" + `\"zip\"` + "`" + `, ` + "`" + `\"tar.gz\"` + "`" + `. Default inferred from destination extension. Example: ` + "`" + `\"zip\"` + "`" + `\n- **compression** (integer, optional): Gzip compression level for tar.gz only (0–9). 0 = default. Ignored for zip. Example: ` + "`" + `6` + "`" + `\n- **deleteAfter** (boolean, optional): If true, delete source files/directories after successful creation. Requires delete permission. Example: ` + "`" + `true` + "`" + `",
+                "description": "Creates a zip or tar.gz archive on the server from the given paths (files and/or directories). Server-side only; no archive bytes are returned. All items must be from the same source. Folders are walked recursively; access-denied paths are silently skipped. Requires create permission.\n\n**Request body parameters:**\n- **fromSource** (string, required): Source name where the paths to archive live. Example: ` + "`" + `\"default\"` + "`" + `\n- **toSource** (string, optional): Source name where the archive file will be written. Defaults to fromSource if omitted. Example: ` + "`" + `\"backups\"` + "`" + `\n- **paths** (array of strings, required): Paths of files or directories to add to the archive (relative to fromSource). Directories are walked; access-denied entries are skipped. Example: ` + "`" + `[\"/docs/file.txt\", \"/photos\"]` + "`" + `\n- **destination** (string, required): Full path where the archive file will be created (on toSource). Must end with .zip or .tar.gz (or format is inferred). Example: ` + "`" + `\"/backups/my-archive.zip\"` + "`" + `\n- **format** (string, optional): Archive format. One of: ` + "`" + `\"zip\"` + "`" + `, ` + "`" + `\"tar.gz\"` + "`" + `. Default inferred from destination extension. Example: ` + "`" + `\"zip\"` + "`" + `\n- **compression** (integer, optional): Gzip compression level for tar.gz only (0–9). 0 = default. Ignored for zip. Example: ` + "`" + `6` + "`" + `\n- **deleteAfter** (boolean, optional): If true, delete source files/directories after successful creation. Requires delete permission. Example: ` + "`" + `true` + "`" + `",
                 "consumes": [
                     "application/json"
                 ],
@@ -1786,7 +1792,7 @@ const docTemplate = `{
                 "summary": "Create an archive on the server",
                 "parameters": [
                     {
-                        "description": "Request body: source, toSource (optional), items, destination, format (optional), compression (optional)",
+                        "description": "Request body: fromSource, toSource (optional), paths, destination, format (optional), compression (optional)",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -1904,6 +1910,69 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal server error - all deletions failed",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/resources/items": {
+            "get": {
+                "description": "Efficiently returns a basic list of items for the specified path and source. Use 'only' parameter to filter by only files or folders",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Get directory items",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "A directory path to list child items",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "The source name which contains the path",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter: 'files', 'folders', or omit for both",
+                        "name": "only",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "lists files and folders",
+                        "schema": {
+                            "$ref": "#/definitions/files.Items"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden (access denied)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -3463,6 +3532,77 @@ const docTemplate = `{
                 }
             }
         },
+        "/public/api/resources/items": {
+            "get": {
+                "description": "Efficiently returns a basic list of items for the specified path in a public share. Use hash for authentication instead of source. Use 'only' parameter to filter by only files or folders.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Shares"
+                ],
+                "summary": "Get directory items (public share)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Share hash for authentication",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Path within the share to list child items. Defaults to share root.",
+                        "name": "path",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter: 'files', 'folders', or omit for both",
+                        "name": "only",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "lists files and folders",
+                        "schema": {
+                            "$ref": "#/definitions/files.Items"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden (access denied)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Share not found or source not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/public/api/share/image": {
             "get": {
                 "description": "Returns a resizable preview (large size) for the banner or favicon file of a share",
@@ -3574,6 +3714,23 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "files.Items": {
+            "type": "object",
+            "properties": {
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "folders": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "http.AuthTokenMin": {
             "type": "object",
             "properties": {
@@ -3922,19 +4079,19 @@ const docTemplate = `{
                     "description": "Archive format: \"zip\" or \"tar.gz\" (optional; inferred from destination if omitted). Example: \"zip\"",
                     "type": "string"
                 },
-                "items": {
+                "fromSource": {
+                    "description": "Source name where the paths to archive live (required). Example: \"default\"",
+                    "type": "string"
+                },
+                "paths": {
                     "description": "Paths of files or directories to add; directories are walked; access-denied entries skipped (required). Example: [\"/docs/file.txt\", \"/photos\"]",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
-                "source": {
-                    "description": "Source name where the items to archive live (required). Example: \"default\"",
-                    "type": "string"
-                },
                 "toSource": {
-                    "description": "Source name where the archive file will be written (optional; default: source). Example: \"backups\"",
+                    "description": "Source name where the archive file will be written (optional; default: fromSource). Example: \"backups\"",
                     "type": "string"
                 }
             }
@@ -4097,6 +4254,9 @@ const docTemplate = `{
                 },
                 "used": {
                     "type": "integer"
+                },
+                "usedAlt": {
+                    "type": "integer"
                 }
             }
         },
@@ -4137,6 +4297,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "used": {
+                    "type": "integer"
+                },
+                "usedAlt": {
                     "type": "integer"
                 }
             }
@@ -4712,6 +4875,10 @@ const docTemplate = `{
                     "description": "output ffmpeg stdout for media integration -- careful can produces lots of output!",
                     "type": "boolean"
                 },
+                "exiftoolPath": {
+                    "description": "path to exiftool executable",
+                    "type": "string"
+                },
                 "extractEmbeddedSubtitles": {
                     "description": "extract embedded subtitles from media files",
                     "type": "boolean"
@@ -5232,10 +5399,6 @@ const docTemplate = `{
                     "description": "allow api access",
                     "type": "boolean"
                 },
-                "archive": {
-                    "description": "allow creating archives",
-                    "type": "boolean"
-                },
                 "create": {
                     "description": "allow creating or uploading files",
                     "type": "boolean"
@@ -5282,7 +5445,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "highQuality": {
-                    "description": "use high quality thumbnails",
+                    "description": "deprecated: always true in v1.3.0+",
                     "type": "boolean"
                 },
                 "image": {
@@ -5822,10 +5985,6 @@ const docTemplate = `{
                     "description": "allow api access",
                     "type": "boolean"
                 },
-                "archive": {
-                    "description": "allow creating archives",
-                    "type": "boolean"
-                },
                 "create": {
                     "description": "allow creating or uploading files",
                     "type": "boolean"
@@ -5871,10 +6030,6 @@ const docTemplate = `{
                     "description": "show thumbnail preview image for folder files",
                     "type": "boolean"
                 },
-                "highQuality": {
-                    "description": "generate high quality thumbnail preview images",
-                    "type": "boolean"
-                },
                 "image": {
                     "description": "show thumbnail preview image for image files",
                     "type": "boolean"
@@ -5901,7 +6056,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "category": {
-                    "description": "Category type: \"source\", \"share\", \"tool\", \"custom\", etc.",
+                    "description": "Category type: \"source\", \"source-link\", \"share\", \"tool\", \"custom\", etc.",
                     "type": "string"
                 },
                 "icon": {

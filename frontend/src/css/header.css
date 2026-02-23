@@ -12,16 +12,14 @@ header {
   padding: 0.5em;
 }
 
-header>* {
-  flex: 0 0 auto;
-}
-
 header title {
   display: block;
   flex: 1 1 auto;
+  min-width: 0; /* allow flex item to shrink so ellipsis can apply */
   padding: 0 1em;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 1.2em;
   text-align: center;
 }
@@ -29,15 +27,6 @@ header title {
 header a,
 header a:hover {
   color: inherit;
-}
-
-header>div:first-child>.action,
-header img {
-  margin-right: 1em;
-}
-
-header img {
-  height: 2.5em;
 }
 
 header .action span {

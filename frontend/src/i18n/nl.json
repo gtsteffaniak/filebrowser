@@ -124,7 +124,8 @@
     "stop": "Stop{suffix}",
     "reset": "Reset{suffix}",
     "space": "Ruimte{suffix}",
-    "format": "Formaat{suffix}"
+    "format": "Formaat{suffix}",
+    "office": "Kantoor{suffix}"
   },
   "buttons": {
     "generateNewOtp": "Herstellen en nieuwe twee-factorcode genereren",
@@ -451,8 +452,6 @@
     "helpText2": "De index: Zoeken maakt gebruik van de index die automatisch wordt bijgewerkt op het ingestelde interval (standaard: 5 minuten). Zoeken als het programma net is gestart, kan onvolledige resultaten opleveren."
   },
   "profileSettings": {
-    "previewFolder": "Toon miniaturen voor mappen indien beschikbaar",
-    "previewFolderDescription": "Toon miniatuurafbeeldingen voor mappen met het eerste item met miniatuurafbeelding als omslag.",
     "debugOfficeEditor": "OnlyOffice foutopsporingsmodus inschakelen",
     "debugOfficeEditorDescription": "Een foutopsporingspop-up weergeven met aanvullende informatie in de OnlyOffice-editor.",
     "defaultMediaPlayer": "De ingebouwde mediaspeler van uw browser gebruiken",
@@ -466,18 +465,10 @@
     "showHiddenFilesDescription": "Toon verborgen bestanden in de lijst (bijv. .thumbnails, ProgramData), maar ze zijn nog steeds handmatig toegankelijk als ze zijn geconfigureerd om te worden geïndexeerd.",
     "showQuickDownload": "Downloadpictogram weergeven voor snelle toegang",
     "showQuickDownloadDescription": "Toon een downloadpictogram voor snelle toegang tot elk bestandsitem waarop kan worden geklikt om het meteen te downloaden.",
-    "previewImages": "Miniaturen van afbeeldingen weergeven",
     "previewImagesDescription": "Toon miniatuurvoorbeelden voor afbeeldingen, toont generiek pictogram indien uitgeschakeld.",
-    "previewVideos": "Miniaturen van video's weergeven",
     "previewVideosDescription": "Toon miniatuurvoorbeelden voor video's, toont generiek pictogram indien uitgeschakeld.",
-    "previewMotionVideos": "Bewegingsvoorbeeld voor video's inschakelen",
-    "previewMotionVideosDescription": "Bewegingsvoorbeeld is het geanimeerde popup-voorbeeld dat door de frames van de video loopt.",
-    "highQualityPreview": "Miniaturen van hoge kwaliteit",
-    "highQualityPreviewDescription": "Heeft alleen invloed op de galerieweergave. Het laden kan langer duren bij een langzame verbinding.",
     "editOffice": "Office-bestanden bekijken en bewerken met OnlyOffice",
     "editOfficeDescription": "Als alleen office is ingeschakeld, is de bestandsviewer/editor uitgeschakeld voor alle bestandsextensies die gerelateerd zijn aan Office-bestanden.",
-    "popupPreview": "Pop-upvoorbeeld inschakelen wanneer u met de muis over bestanden beweegt",
-    "popupPreviewDescription": "Er verschijnt een overlay pop-upvenster over de UI wanneer u met de muis over bestanden beweegt die een groot voorbeeld ondersteunen.",
     "filePreviewOptions": "Opties voor bestandsvoorbeeld",
     "disableUpdateNotifications": "Het tonen van meldingen update uitschakelen",
     "disableUpdateNotificationsDescription": "Schakel de banner met updatemeldingen uit die wordt weergegeven voor beheerders in de zijbalk.",
@@ -497,7 +488,6 @@
     "editorViewerOptions": "Opties voor editor en viewer",
     "editorQuickSave": "Snel opslaan in editor",
     "editorQuickSaveDescription": "De teksteditor toont altijd het pictogram voor opslaan en verbergt alle andere acties",
-    "previewOffice": "Miniaturen weergeven voor Office-bestanden",
     "previewOfficeDescription": "Toon miniaturen voor kantoorbestandstypen in de listingweergave",
     "disableThumbnailPreviews": "Miniaturen uitschakelen voor bepaalde bestandsextensies",
     "disableThumbnailPreviewsDescription": "Een door spaties gescheiden lijst met bestandsextensies waarvoor miniatuurafbeeldingen uitgeschakeld moeten worden (bijv. '.txt .html').",
@@ -508,7 +498,16 @@
     "disableOfficeEditorDescription": "Een door spaties gescheiden lijst van bestandsextensies waarvoor de OnlyOffice editor en viewer uitgeschakeld moeten worden - of '*' om alle extensies uit te schakelen. (bijv. '.txt .html .pdf').",
     "disableOfficeEditor": "Office Viewer uitschakelen voor bepaalde bestandsextensies",
     "fileViewerOptions": "Opties voor bestandsviewer",
-    "themeAndLanguage": "Thema & Taal"
+    "themeAndLanguage": "Thema & Taal",
+    "previewFolder": "Toon miniaturen voor mappen indien beschikbaar",
+    "previewFolderDescription": "Toon miniatuurafbeeldingen voor mappen met het eerste item als cover -- of meerdere items als bewegingsvoorbeeld is ingeschakeld.",
+    "previewMotion": "Bewegingsvoorbeelden",
+    "previewMotionVideosDescription": "Bewegingsvoorbeeld is het geanimeerde popup-voorbeeld dat door de frames van de video of meerdere afbeeldingen voor een map loopt",
+    "popupPreview": "Pop-up kijker",
+    "popupPreviewDescription": "Er verschijnt een overlay pop-upvenster over de UI wanneer u met de muis over items met miniaturen beweegt",
+    "thumbnailOptions": "Miniatuuropties",
+    "showThumbnails": "Toon miniaturen voor ondersteunde items",
+    "showThumbnailsDescription": "Als deze optie is ingeschakeld, worden miniaturen weergegeven in de lijst met items die deze ondersteunen. Schakel deze optie uit om alle miniaturen te verbergen."
   },
   "settings": {
     "systemAdmin": "Systeem & Beheer",
@@ -639,7 +638,12 @@
     "linksUpdateFailed": "Bijwerken van koppelingen in zijbalk is mislukt",
     "sourceNotAccessible": "Deze bron is niet langer toegankelijk voor jou",
     "noLinksYet": "Er zijn nog geen links geconfigureerd. Voeg hieronder uw eerste link toe.",
-    "shareHome": "Thuis delen"
+    "shareHome": "Thuis delen",
+    "hideUsage": "Verberg Gebruik",
+    "hideUsageDescription": "Toon geen opslaggebruik op deze bronlink (minimale stijl).",
+    "onlyShowIndexedUsage": "Gebruik van geïndexeerde bestanden berekenen",
+    "onlyShowIndexedUsageDescription": "Toont, indien uitgeschakeld, het totale gebruik van de partitie zoals gerapporteerd door het OS in plaats van de berekende geïndexeerde bestandstotalen voor de bron.",
+    "switchMode": "Zijbalkmodus wijzigen"
   },
   "success": {
     "linkCopied": "Koppeling gekopieerd!"

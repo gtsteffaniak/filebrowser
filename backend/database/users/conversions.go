@@ -99,7 +99,7 @@ func (u *User) GetBackendSidebarLinks() ([]SidebarLink, error) {
 	newLinks := []SidebarLink{}
 	for _, link := range u.SidebarLinks {
 		// For source links, validate that the source exists using SourceName
-		if link.Category == "source" {
+		if strings.HasPrefix(link.Category, "source") {
 			if link.SourceName == "" {
 				return nil, fmt.Errorf("source link missing sourceName (link name: %v)", link.Name)
 			}
@@ -126,7 +126,7 @@ func (u *User) GetFrontendSidebarLinks() []SidebarLink {
 	newLinks := []SidebarLink{}
 	for _, link := range u.SidebarLinks {
 		// For source links, validate that the source still exists
-		if link.Category == "source" {
+		if strings.HasPrefix(link.Category, "source") {
 			if link.SourceName == "" {
 				continue
 			}

@@ -74,10 +74,11 @@ func (ffs *filteredFileSystem) getCachedFileInfo(permissionPath string, expand b
 	}
 	// Call FileInfoFaster
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
-		Path:       permissionPath,
-		Source:     ffs.source,
-		Expand:     expand,
-		ShowHidden: ffs.user.ShowHidden,
+		Path:              permissionPath,
+		Source:            ffs.source,
+		Expand:            expand,
+		ShowHidden:        ffs.user.ShowHidden,
+		SkipExtendedAttrs: true,
 	}, store.Access, ffs.user, store.Share)
 	if err != nil {
 		return nil, err
@@ -256,7 +257,7 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		ShowHidden:     d.user.ShowHidden,
 	}, store.Access, d.user)
 	if err != nil {
-		logger.Debugf("error checking file permissions: %v", err)
+		logger.Debugf("error checking file permissions for path %s: %v", path, err)
 		return http.StatusForbidden, err
 	}
 

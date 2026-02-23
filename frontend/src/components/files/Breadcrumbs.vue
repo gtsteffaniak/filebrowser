@@ -24,7 +24,7 @@
           @dragleave="dragLeave($event, link)"
           @dragover="dragOver($event, link)"
           @drop="drop($event, link)">
-          {{ link.name }}
+          <span class="breadcrumb-text">{{ link.name }}</span>
         </router-link>
       </li>
     </ul>
@@ -322,10 +322,18 @@ export default {
 
 <style scoped>
 #breadcrumbs {
-  overflow-y: hidden;
-  overflow-x: hidden;
-  width: 100%;
-  box-sizing: border-box;
+  overflow-x: auto;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+#breadcrumbs::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+#breadcrumbs {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }
 
 #breadcrumbs * {
@@ -359,6 +367,15 @@ export default {
   align-items: center;
   transition: all 0.2s ease;
   user-select: none;
+  white-space: nowrap;
+  max-width: 90vw;
+}
+
+#breadcrumbs ul li a .breadcrumb-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 #breadcrumbs ul li a::after {

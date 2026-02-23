@@ -12,6 +12,12 @@
   --icon-violet: #9b59b6;
   --primaryColor: var(--blue);
   --divider: lightgray;
+  --icon-size: 3em;
+  --layer-show: 1;
+  --layer-above-show: 2;
+  --layer-middle: 3;
+  --layer-below-top: 4;
+  --layer-top: 10;
 }
 
 .boarder-radius {

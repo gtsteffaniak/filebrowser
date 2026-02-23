@@ -4,13 +4,25 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.3.0-beta
 
+Note: a potentially breaking change for docker users: \the default user is now "filebrowser" 1000:1000 instead of root.
+
  **New Features**:
- - Archive/Unarchive actions in UI
+ - New Sidebar Features
+   - Sidebar tree navigation (#2006) (#350)
+   - Source usage to be customized to show os-reported values rather than calculated. This can be changed per source by editing the source link in the sidebar. (#1266) (#982)
+ - Archive/Unarchive actions in UI (#1252) (#335) (#1569) 
    - new api to archive/unarchive files on the server
    - requires `create` user permissions
    - archiving actions respect `server.maxArchiveSize`
- - Added share icon to items that are shared (requires share permission to see)
+ - Added share icon to items that are shared (#1420)
  - LDAP login support (#591)
+ - Enhanced thumbnail and item previews
+   - Added ability to show "motion preview" for folders with multiple child items that have previews. cycles through the first 4 images.
+   - support for reading embedded images from raw image or heic/heif files (#215)
+   - reorganized and simplified thumbnail settings in profile settings (#1968)
+   - removed `highQuality` thumbnail option which only affected gallery view. Now its always enabled.
+   - improved caching for unsupported images, the same file won't be attempted again with the same modtime.
+   - supports 3d model previews.
  - FileWatcher also supports watching directories
  - Support previews for 3D model files (STL, OBJ, 3MF, etc.) (#1273)
    - supported formats via threejs: GLTF, GLB, OBJ, STL, PLY, DAE (Collada), 3MF, 3DS, USDZ, USD, USDA, USDC, AMF, VRML, WRL, VTK, VTP, PCD, XYZ, VOX, KMZ
@@ -23,7 +35,7 @@ All notable changes to this project will be documented in this file. For commit 
    - Clicking outside of prompts no longer automatically closes them.
  - add webdav support (#209) -- thanks to @reddac for #1764
    - see docs on how to use
-   - requires "minimal" api token as password
+   - requires api an un-customized api token as password
    - respects access rules
    - requires download permission to view and modify/create/delete permission to modify.
 
@@ -31,6 +43,9 @@ All notable changes to this project will be documented in this file. For commit 
  - Docker images default to `filebrowser` user instead of root
  - Bulk delete api moved locations and method. Now use DELETE method against `/api/resources/bulk` endpoint. See swagger page for usage. (#1984)
  #- consolidated swagger categories
+
+ **BugFixes**:
+ - Long folder names get cut off at top navigation bar (#1934)
 
 ## v1.2.5-beta
 

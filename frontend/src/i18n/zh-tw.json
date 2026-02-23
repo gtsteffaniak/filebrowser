@@ -374,7 +374,12 @@
     "pickIconDescription": "從 Material Icons 圖示庫搜尋並選取圖示",
     "shareLinksUpdatedSuccess": "分享側邊欄連結更新成功！",
     "shareHome": "分享首頁",
-    "linkIconPlaceholder": "可選擇指定材質圖示名稱"
+    "linkIconPlaceholder": "可選擇指定材質圖示名稱",
+    "hideUsage": "隱藏使用",
+    "hideUsageDescription": "請勿在此原始碼連結上顯示儲存使用量 (最小樣式)。",
+    "onlyShowIndexedUsage": "從索引檔案計算使用量",
+    "onlyShowIndexedUsageDescription": "停用時，會顯示作業系統報告的磁碟分割總使用量，而不是計算出的來源索引檔案總量。",
+    "switchMode": "切換側邊欄模式"
   },
   "success": {
     "linkCopied": "連結已複製！"
@@ -517,18 +522,10 @@
     "showHiddenFilesDescription": "在列出中顯示隱藏的檔案 (例如 .縮圖、ProgramData)，但如果設定為索引，這些檔案仍可手動存取。",
     "showQuickDownload": "顯示下載圖示以便快速存取",
     "showQuickDownloadDescription": "在每個檔案項目上顯示快速存取的下載圖示，按一下即可立即下載。",
-    "previewImages": "顯示影像的縮圖",
     "previewImagesDescription": "顯示影像的縮圖預覽，如果停用，將顯示一般圖示。",
-    "previewVideos": "顯示影片縮圖",
     "previewVideosDescription": "顯示影片的縮圖預覽，如果停用，則會顯示一般圖示。",
-    "previewMotionVideos": "啟用影片動態預覽",
-    "previewMotionVideosDescription": "動態預覽是動畫彈出式預覽，可循環播放視訊的各個畫格。",
-    "highQualityPreview": "高品質縮圖",
-    "highQualityPreviewDescription": "僅影響圖庫檢視。如果連線速度較慢，載入時間可能會較長。",
     "editOffice": "使用 OnlyOffice 檢視和編輯辦公室檔案",
     "editOfficeDescription": "當只啟用 Office 時，檔案檢視器/編輯器將會停用所有與 Office 檔案相關的副檔名。",
-    "popupPreview": "將滑鼠停留在檔案上時，啟用彈出式預覽",
-    "popupPreviewDescription": "將滑鼠停留在支援大型預覽的檔案上時，UI 上會顯示一個覆疊彈出視窗。",
     "filePreviewOptions": "檔案預覽選項",
     "disableUpdateNotifications": "停用顯示更新通知",
     "disableUpdateNotificationsDescription": "停用側邊欄上顯示給管理員使用者的更新通知橫幅。",
@@ -547,7 +544,6 @@
     "editorViewerOptions": "編輯器和檢視器選項",
     "editorQuickSave": "編輯器中的快速儲存按鈕",
     "editorQuickSaveDescription": "文字編輯器會永遠顯示儲存圖示，隱藏任何其他動作",
-    "previewOffice": "顯示辦公室檔案的縮圖",
     "previewOfficeDescription": "在清單檢視中顯示辦公室檔案類型的縮圖",
     "disableThumbnailPreviews": "停用某些檔案副檔名的縮圖",
     "disableThumbnailPreviewsDescription": "以空格分隔的檔案副檔名清單，以停用縮圖預覽（例如：'.txt .html'）。",
@@ -566,10 +562,17 @@
     "debugOfficeEditorDescription": "在 OnlyOffice 編輯器中顯示包含其他資訊的除錯彈出式視窗。",
     "fileViewerOptions": "檔案檢視器選項",
     "themeAndLanguage": "主題與語言",
-    "previewFolder": "顯示資料夾的縮圖（若有",
-    "previewFolderDescription": "顯示資料夾的縮圖預覽，第一個子項目以縮圖為封面。",
     "disableFileExtensions": "輸入要停用的檔案副檔名",
-    "disableOfficeEditorDescription": "以空格分隔的檔案副檔名清單，用來停用 OnlyOffice 編輯器和檢視器 - 或 '*' 來停用所有。(例如，'.txt .html .pdf'）。"
+    "disableOfficeEditorDescription": "以空格分隔的檔案副檔名清單，用來停用 OnlyOffice 編輯器和檢視器 - 或 '*' 來停用所有。(例如，'.txt .html .pdf'）。",
+    "previewFolder": "顯示資料夾的縮圖（若有",
+    "previewFolderDescription": "以第一個子項目為封面的資料夾顯示縮圖預覽 -- 如果啟用動態預覽，則顯示多個項目。",
+    "previewMotion": "動態預覽",
+    "previewMotionVideosDescription": "動態預覽是動畫彈出式預覽，可循環播放視訊的畫格或資料夾的多個影像",
+    "popupPreview": "彈出式檢視器",
+    "popupPreviewDescription": "將滑鼠停在有縮圖的項目上時，UI 上會顯示一個覆蓋彈出視窗。",
+    "thumbnailOptions": "縮圖選項",
+    "showThumbnails": "顯示支援項目的縮圖",
+    "showThumbnailsDescription": "啟用時，縮圖會顯示在支援縮圖的項目清單中。關閉可隱藏所有縮圖。"
   },
   "otp": {
     "name": "雙因素驗證",
@@ -719,7 +722,8 @@
     "stop": "停止{suffix}",
     "reset": "重設{suffix}",
     "space": "空間{suffix}",
-    "format": "格式{suffix}"
+    "format": "格式{suffix}",
+    "office": "辦公室{suffix}"
   },
   "access": {
     "rules": "存取規則",

@@ -4,7 +4,7 @@
     <!-- Overlay icons (folder/animation) positioned top-left -->
     <i v-if="hasPreviewImage && hasMotion && isFile" class="material-icons overlay-icon muted">animation</i>
     <i v-else-if="hasPreviewImage && !isFile" class="material-icons overlay-icon muted">folder</i>
-    <i v-if="isShared" class="material-icons overlay-icon">share</i>
+    <i v-if="isShared" class="material-icons overlay-icon">group</i>
     <!-- Preview content: image, 3D, or fallback -->
     <img v-if="hasPreviewImage" :key="imageTargetSrc" :src="imageDisplaySrc" ref="thumbnail" />
     <ThreeJs v-else-if="shouldUse3DPreview && !threeJsError" 
@@ -17,13 +17,14 @@
         type: mimetype
       }"
       :is-thumbnail="true"
+      :add-load-delay="true"
       @error="handle3DError" />
   </span>
   
   <!-- Regular material icon (no preview) -->
   <span v-else class="image-preview">
     <i :class="[classes, { active: active, clickable: clickable }]"> {{ materialIcon }} </i>
-    <i v-if="isShared" class="material-icons overlay-icon">share</i>
+    <i v-if="isShared" class="material-icons overlay-icon">group</i>
   </span>
 </template>
 
@@ -185,7 +186,7 @@ export default {
       return this.imageTargetSrc;
     },
     showLargeIcon() {
-      return getters.viewMode() === "gallery" && getters.previewPerms().highQuality;
+      return getters.viewMode() === "gallery";
     },
     showLarger() {
       return getters.viewMode() === "gallery" || getters.viewMode() === "normal";
@@ -196,6 +197,14 @@ export default {
         getters.previewPerms().video &&
         globalVars.mediaAvailable &&
         getters.previewPerms().motionVideoPreview
+      );
+    },
+    /** True when this is a folder with preview and we can cycle through folder images (motion preview). */
+    hasFolderMotion() {
+      return (
+        this.mimetype === "directory" &&
+        getters.previewPerms().folder &&
+        this.hasPreview
       );
     },
     isMaterialIcon() {
@@ -261,21 +270,39 @@ export default {
       targetImage.src = url;
     },
     handleMouseEnter() {
-      // Always use large thumbnails for hover/popup preview
-      const imageUrl = this.thumbnailUrl + "&size=large";
-      
-      if (this.imageState == "loaded") {
-        mutations.setPreviewSource(imageUrl);
-        // Store source/path/url/modified in state so PopupPreview can track it when image actually loads
-        if (this.path) {
-          // For shares, use shareInfo.hash as the source; otherwise use this.source or state.req.source
-          const source = getters.isShare() ? state.shareInfo?.hash : (this.source || state.req.source);
-          // Use file's modified date if available, otherwise fall back to state.req.modified
-          const modified = this.modified || state.req.modified;
-          state.popupPreviewSourceInfo = { source, path: this.path, size: 'large', url: imageUrl, modified };
-        }
+      if (!getters.previewPerms().popup || !this.path) {
+        return;
       }
-      if (!getters.previewPerms().motionVideoPreview || !this.hasMotion) {
+      const source = getters.isShare() ? state.shareInfo?.hash : (this.source || state.req.source);
+      const modified = this.modified || state.req.modified;
+
+      // 3D model: show ThreeJs in popup
+      if (this.shouldUse3DPreview) {
+        state.popupPreviewSourceInfo = {
+          type: "3d",
+          source,
+          path: this.path,
+          fbdata: {
+            name: this.filename,
+            path: this.path,
+            source,
+            size: this.size,
+            type: this.mimetype,
+          },
+        };
+        return;
+      }
+
+      // Image (and other preview types): use thumbnail URL
+      const imageUrl = this.thumbnailUrl + "&size=large";
+      if (this.imageState === "loaded") {
+        mutations.setPreviewSource(imageUrl);
+        state.popupPreviewSourceInfo = { source, path: this.path, size: "large", url: imageUrl, modified };
+      }
+      // Motion preview: video (atPercentage) or folder (cycle next previewable image)
+      const useVideoMotion = getters.previewPerms().motionVideoPreview && this.hasMotion;
+      const useFolderMotion = getters.previewPerms().popup && this.hasFolderMotion;
+      if (!useVideoMotion && !useFolderMotion) {
         return;
       }
 
@@ -412,6 +439,8 @@ export default {
 /* Overlay icons (folder/animation) positioned top-left */
 .overlay-icon {
   position: absolute;
+  width: 100% !important;
+  height: 100% !important;
   top: 0.2em;
   left: 0.2em;
   font-size: 1.2em !important;
@@ -534,12 +563,47 @@ export default {
   font-size: 1.5em !important;
 }
 
+/* Unified .image-preview container - works universally, always square */
 .image-preview {
-  height: 100%;
-  width: 100%;
-  position: relative;
+  width: var(--icon-size);
+  height: var(--icon-size);
+  aspect-ratio: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 0.5em;
+  background: var(--iconBackground);
+  overflow: hidden;
+  position: relative;
+}
+
+/* Universal icon styling - uses --icon-font-size variable */
+.image-preview i {
+  padding: 0.1em;
+  box-sizing: border-box;
+  transform: translateZ(0);
+  font-size: var(--icon-font-size, 3em);
+}
+
+/* Images - default */
+.image-preview img {
+  width: 100%;
+  height: 100%;
+}
+
+/* 3D viewers - universal */
+.image-preview .threejs-icon-container {
+  width: 100%;
+  height: 100%;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-preview .threejs-icon-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
 }
 </style>

@@ -50,7 +50,6 @@ type Sorting struct {
 
 type Preview struct {
 	DisableHideSidebar bool `json:"disableHideSidebar"` // disable the hide sidebar preview for previews and editors
-	HighQuality        bool `json:"highQuality"`        // generate high quality thumbnail preview images
 	Image              bool `json:"image"`              // show thumbnail preview image for image files
 	Video              bool `json:"video"`              // show thumbnail preview image for video files
 	MotionVideoPreview bool `json:"motionVideoPreview"` // show multiple frames for videos in thumbnail preview when hovering
@@ -130,7 +129,7 @@ type FileLoading struct {
 // SidebarLink represents a customizable link in the sidebar.
 type SidebarLink struct {
 	Name       string `json:"name"`                 // Display name of the link
-	Category   string `json:"category"`             // Category type: "source", "share", "tool", "custom", etc.
+	Category   string `json:"category"`             // Category type: "source", "source-link", "share", "tool", "custom", etc.
 	Target     string `json:"target"`               // Target path/URL for the link (relative for source/share)
 	Icon       string `json:"icon"`                 // Material icon name
 	SourceName string `json:"sourceName,omitempty"` // Source identifier for source-type links

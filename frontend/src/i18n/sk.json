@@ -374,7 +374,12 @@
     "pickIconDescription": "Vyhľadajte a vyberte ikonu z knižnice Material Icons",
     "shareLinksUpdatedSuccess": "Zdieľanie bočného panela odkazy úspešne aktualizované!",
     "shareHome": "Zdieľať Domov",
-    "linkIconPlaceholder": "Voliteľne zadajte názov ikony materiálu"
+    "linkIconPlaceholder": "Voliteľne zadajte názov ikony materiálu",
+    "hideUsage": "Skryť používanie",
+    "hideUsageDescription": "Nezobrazujte využitie úložiska na tomto zdrojovom prepojení (minimálny štýl).",
+    "onlyShowIndexedUsage": "Výpočet použitia z indexovaných súborov",
+    "onlyShowIndexedUsageDescription": "Ak je vypnutá, zobrazuje celkové využitie oddielu podľa hlásenia operačného systému namiesto vypočítaných indexovaných súčtov súborov pre zdroj.",
+    "switchMode": "Prepnúť režim bočného panela"
   },
   "success": {
     "linkCopied": "Odkaz skopírovaný!"
@@ -639,7 +644,8 @@
     "stop": "Zastavte{suffix}",
     "reset": "Obnovenie{suffix}",
     "space": "Priestor{suffix}",
-    "format": "Formát{suffix}"
+    "format": "Formát{suffix}",
+    "office": "Kancelária{suffix}"
   },
   "access": {
     "rules": "Pravidlá prístupu",
@@ -690,18 +696,10 @@
     "showHiddenFilesDescription": "Zobrazenie skrytých súborov vo výpise (napr. .thumbnails, ProgramData), ale sú stále manuálne prístupné, ak sú nakonfigurované na indexovanie.",
     "showQuickDownload": "Zobrazenie ikony na stiahnutie pre rýchly prístup",
     "showQuickDownloadDescription": "Zobrazenie ikony na stiahnutie pre rýchly prístup ku každej položke súboru, na ktorú možno kliknúť a okamžite ju stiahnuť.",
-    "previewImages": "Zobrazenie miniatúr obrázkov",
     "previewImagesDescription": "Zobrazenie náhľadov miniatúr pre obrázky, ak je vypnuté, zobrazí sa generická ikona.",
-    "previewVideos": "Zobrazenie miniatúr pre videá",
     "previewVideosDescription": "Zobrazenie náhľadov miniatúr pre videá, ak je vypnuté, zobrazí sa generická ikona.",
-    "previewMotionVideos": "Povolenie náhľadu pohybu pre videá",
-    "previewMotionVideosDescription": "Pohybový náhľad je animovaný vyskakovací náhľad, ktorý cyklicky prechádza snímkami videa.",
-    "highQualityPreview": "Vysokokvalitné miniatúry",
-    "highQualityPreviewDescription": "Ovplyvňuje iba zobrazenie galérie. Ak máte pomalé pripojenie, môže načítanie trvať dlhšie.",
     "editOffice": "Zobrazenie a úprava kancelárskych súborov pomocou OnlyOffice",
     "editOfficeDescription": "Ak je povolená iba funkcia office, prehliadač/editor súborov bude zakázaný pre všetky prípony súborov súvisiace s kancelárskymi súbormi.",
-    "popupPreview": "Povolenie pop-up náhľadu pri prejdení nad súbormi",
-    "popupPreviewDescription": "Prekryvné vyskakovacie okno sa zobrazí nad používateľským rozhraním pri prejdení nad súbory, ktoré podporujú veľký náhľad.",
     "filePreviewOptions": "Možnosti náhľadu súborov",
     "disableUpdateNotifications": "Zakázať zobrazovanie aktualizácie oznámení",
     "disableUpdateNotificationsDescription": "Zakázanie bannera s oznámením o aktualizácii, ktorý sa zobrazuje používateľom administrátora na bočnom paneli.",
@@ -720,7 +718,6 @@
     "editorViewerOptions": "Možnosti editora a prehliadača",
     "editorQuickSave": "Tlačidlo rýchleho uloženia v editore",
     "editorQuickSaveDescription": "V textovom editore sa vždy zobrazí ikona uloženia a všetky ostatné akcie sa skryjú.",
-    "previewOffice": "Zobrazenie miniatúr pre kancelárske súbory",
     "previewOfficeDescription": "Zobrazenie miniatúr pre typy kancelárskych súborov v zobrazení zoznamu",
     "disableThumbnailPreviews": "Zakázanie miniatúr pre určité prípony súborov",
     "disableThumbnailPreviewsDescription": "Zoznam prípon súborov oddelených medzerou, pre ktoré sa majú vypnúť náhľady miniatúr (napr. \".txt .html\").",
@@ -739,10 +736,17 @@
     "debugOfficeEditorDescription": "Zobrazenie vyskakovacieho okna ladenia s ďalšími informáciami v editore OnlyOffice.",
     "fileViewerOptions": "Možnosti prehliadača súborov",
     "themeAndLanguage": "Téma a jazyk",
-    "previewFolder": "Zobrazenie miniatúr priečinkov, ak sú k dispozícii",
-    "previewFolderDescription": "Zobrazenie náhľadov miniatúr pre priečinky s prvou podriadenou položkou s miniatúrou ako obálkou.",
     "disableFileExtensions": "Zadajte prípony súborov, ktoré chcete zakázať",
-    "disableOfficeEditorDescription": "Medzerou oddelený zoznam prípon súborov, pre ktoré sa má zakázať editor a prehliadač OnlyOffice - alebo '*' pre zakázanie pre všetky. (napr. \".txt .html .pdf\")."
+    "disableOfficeEditorDescription": "Medzerou oddelený zoznam prípon súborov, pre ktoré sa má zakázať editor a prehliadač OnlyOffice - alebo '*' pre zakázanie pre všetky. (napr. \".txt .html .pdf\").",
+    "previewFolder": "Zobrazenie miniatúr priečinkov, ak sú k dispozícii",
+    "previewFolderDescription": "Zobrazenie náhľadov miniatúr pre priečinky s prvou podriadenou položkou ako obálkou - alebo viac položiek, ak je povolený náhľad pohybu.",
+    "previewMotion": "Pohybové náhľady",
+    "previewMotionVideosDescription": "Pohybový náhľad je animovaný vyskakovací náhľad, ktorý cyklicky prechádza snímkami videa alebo viacerých obrázkov pre priečinok.",
+    "popupPreview": "Pop-up prehliadač",
+    "popupPreviewDescription": "Prekryvné vyskakovacie okno sa zobrazí nad používateľským rozhraním pri prejdení nad položky s miniatúrami",
+    "thumbnailOptions": "Možnosti miniatúr",
+    "showThumbnails": "Zobrazenie miniatúr pre podporované položky",
+    "showThumbnailsDescription": "Ak je táto možnosť povolená, vo výpise sa zobrazujú miniatúry položiek, ktoré ich podporujú. Ak chcete skryť všetky miniatúry, možnosť vypnite."
   },
   "editor": {
     "uninitialized": "Nepodarilo sa inicializovať editor. Prosím, načítajte ho znova.",

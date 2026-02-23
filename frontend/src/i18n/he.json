@@ -374,7 +374,12 @@
     "pickIconDescription": "חפש ובחר סמל מספריית Material Icons.",
     "shareLinksUpdatedSuccess": "קישורי הסרגל הצדדי שותפו בהצלחה!",
     "shareHome": "שתף בית",
-    "linkIconPlaceholder": "אפשר לציין שם סמל חומר"
+    "linkIconPlaceholder": "אפשר לציין שם סמל חומר",
+    "hideUsage": "הסתר שימוש",
+    "hideUsageDescription": "אל תציג את השימוש באחסון בקישור מקור זה (סגנון מינימלי).",
+    "onlyShowIndexedUsage": "חשב את השימוש מקבצים באינדקס",
+    "onlyShowIndexedUsageDescription": "כאשר האפשרות מושבתת, מוצג השימוש הכולל במחיצה כפי שדווח על ידי מערכת ההפעלה, במקום סה\"כ הקבצים הממוקדים המחושבים עבור המקור.",
+    "switchMode": "החלף מצב סרגל צד"
   },
   "success": {
     "linkCopied": "הקישור הועתק!"
@@ -639,7 +644,8 @@
     "stop": "עצור{suffix}",
     "reset": "איפוס{suffix}",
     "space": "חלל{suffix}",
-    "format": "פורמט{suffix}"
+    "format": "פורמט{suffix}",
+    "office": "משרד{suffix}"
   },
   "access": {
     "rules": "כללי גישה",
@@ -690,18 +696,10 @@
     "showHiddenFilesDescription": "הצג קבצים מוסתרים ברשימה (לדוגמה, .thumbnails, ProgramData), אך הם עדיין נגישים באופן ידני אם הוגדרו לאינדקס.",
     "showQuickDownload": "הצג סמל הורדה לגישה מהירה",
     "showQuickDownloadDescription": "הצג סמל הורדה לגישה מהירה על כל פריט קובץ שניתן ללחוץ עליו כדי להוריד באופן מיידי.",
-    "previewImages": "הצג תמונות ממוזערות עבור תמונות",
     "previewImagesDescription": "הצג תצוגה מקדימה של תמונות, יציג סמל כללי אם האפשרות מושבתת.",
-    "previewVideos": "הצג תמונות ממוזערות של סרטונים",
     "previewVideosDescription": "הצג תצוגה מקדימה של תמונות ממוזערות עבור סרטונים, יציג סמל כללי אם האפשרות מושבתת.",
-    "previewMotionVideos": "הפעל תצוגה מקדימה של תנועה עבור סרטונים",
-    "previewMotionVideosDescription": "תצוגה מקדימה של תנועה היא תצוגה מקדימה מונפשת המציגה את הפריימים של הסרטון.",
-    "highQualityPreview": "תמונות ממוזערות באיכות גבוהה",
-    "highQualityPreviewDescription": "משפיע רק על תצוגת הגלריה. ייתכן שהטעינה תארך זמן רב יותר אם החיבור איטי.",
     "editOffice": "הצג וערוך קבצי Office באמצעות OnlyOffice",
     "editOfficeDescription": "כאשר רק Office מופעל, תצוגת/עורך הקבצים יושבת עבור כל סיומות הקבצים הקשורות לקבצי Office.",
-    "popupPreview": "הפעל תצוגה מקדימה מוקפצת בעת ריחוף מעל קבצים",
-    "popupPreviewDescription": "חלון קופץ יופיע על גבי ממשק המשתמש כאשר תעבור עם העכבר על קבצים התומכים בתצוגה מקדימה גדולה.",
     "filePreviewOptions": "אפשרויות תצוגה מקדימה של קבצים",
     "disableUpdateNotifications": "השבת הצגת עדכוני התראות",
     "disableUpdateNotificationsDescription": "השבת את כרזת הודעת העדכון המופיעה למשתמשים מנהלים בסרגל הצד.",
@@ -720,7 +718,6 @@
     "editorViewerOptions": "אפשרויות עורך וצופה",
     "editorQuickSave": "כפתור שמירה מהירה בעורך",
     "editorQuickSaveDescription": "עורך הטקסט יציג תמיד את סמל השמירה, ויסתיר כל פעולה אחרת.",
-    "previewOffice": "הצג תמונות ממוזערות של קבצי Office",
     "previewOfficeDescription": "הצג תמונות ממוזערות עבור סוגי קבצי Office בתצוגת הרשימה",
     "disableThumbnailPreviews": "השבת תמונות ממוזערות עבור סיומות קבצים מסוימות",
     "disableThumbnailPreviewsDescription": "רשימה מופרדת ברווחים של סיומות קבצים עבורן יש להשבית תצוגה מקדימה של תמונות ממוזערות (לדוגמה, '.txt .html').",
@@ -739,10 +736,17 @@
     "debugOfficeEditorDescription": "הצג חלון קופץ לאיתור באגים עם מידע נוסף בעורך OnlyOffice.",
     "fileViewerOptions": "אפשרויות תצוגת קבצים",
     "themeAndLanguage": "נושא ושפה",
-    "previewFolder": "הצג תמונות ממוזערות של תיקיות, אם זמינות",
-    "previewFolderDescription": "הצג תצוגה מקדימה של תמונות ממוזערות עבור תיקיות עם פריט משנה ראשון עם תמונה ממוזערת ככריכה.",
     "disableFileExtensions": "הזן סיומות קבצים שיש להשבית",
-    "disableOfficeEditorDescription": "רשימה מופרדת ברווחים של סיומות קבצים להשבית את עורך ומציג OnlyOffice עבור - או '*' להשבית עבור כולם. (לדוגמה, '.txt .html .pdf')."
+    "disableOfficeEditorDescription": "רשימה מופרדת ברווחים של סיומות קבצים להשבית את עורך ומציג OnlyOffice עבור - או '*' להשבית עבור כולם. (לדוגמה, '.txt .html .pdf').",
+    "previewFolder": "הצג תמונות ממוזערות של תיקיות, אם זמינות",
+    "previewFolderDescription": "הצג תצוגה מקדימה של תמונות ממוזערות עבור תיקיות עם הפריט הראשון כעטיפה - או פריטים מרובים אם תצוגה מקדימה של תנועה מופעלת.",
+    "previewMotion": "תצוגה מקדימה של תנועה",
+    "previewMotionVideosDescription": "תצוגה מקדימה של תנועה היא תצוגה מקדימה מוקפצת המציגה את פריימי הווידאו או מספר תמונות מתוך תיקייה.",
+    "popupPreview": "צופה קופץ",
+    "popupPreviewDescription": "חלון קופץ יופיע מעל ממשק המשתמש כאשר תעבור עם העכבר על פריטים עם תמונות ממוזערות.",
+    "thumbnailOptions": "אפשרויות תמונות ממוזערות",
+    "showThumbnails": "הצג תמונות ממוזערות עבור פריטים נתמכים",
+    "showThumbnailsDescription": "כאשר אפשרות זו מופעלת, תמונות ממוזערות מוצגות ברשימה עבור פריטים התומכים בהן. כבה את האפשרות כדי להסתיר את כל התמונות הממוזערות."
   },
   "editor": {
     "uninitialized": "לא ניתן לאתחל את העורך. אנא טען מחדש.",

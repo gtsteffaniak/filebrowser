@@ -1,4 +1,15 @@
 definitions:
+  files.Items:
+    properties:
+      files:
+        items:
+          type: string
+        type: array
+      folders:
+        items:
+          type: string
+        type: array
+    type: object
   http.AuthTokenMin:
     properties:
       Permissions:
@@ -243,19 +254,19 @@ definitions:
         description: 'Archive format: "zip" or "tar.gz" (optional; inferred from destination
           if omitted). Example: "zip"'
         type: string
-      items:
+      fromSource:
+        description: 'Source name where the paths to archive live (required). Example:
+          "default"'
+        type: string
+      paths:
         description: 'Paths of files or directories to add; directories are walked;
           access-denied entries skipped (required). Example: ["/docs/file.txt", "/photos"]'
         items:
           type: string
         type: array
-      source:
-        description: 'Source name where the items to archive live (required). Example:
-          "default"'
-        type: string
       toSource:
         description: 'Source name where the archive file will be written (optional;
-          default: source). Example: "backups"'
+          default: fromSource). Example: "backups"'
         type: string
     type: object
   http.duplicateGroup:
@@ -371,6 +382,8 @@ definitions:
         type: integer
       used:
         type: integer
+      usedAlt:
+        type: integer
     type: object
   indexing.ScannerInfo:
     properties:
@@ -397,6 +410,8 @@ definitions:
       quickScanDurationSeconds:
         type: integer
       used:
+        type: integer
+      usedAlt:
         type: integer
     type: object
   indexing.SearchResult:
@@ -832,6 +847,9 @@ definitions:
         description: output ffmpeg stdout for media integration -- careful can produces
           lots of output!
         type: boolean
+      exiftoolPath:
+        description: path to exiftool executable
+        type: string
       extractEmbeddedSubtitles:
         description: extract embedded subtitles from media files
         type: boolean
@@ -1230,9 +1248,6 @@ definitions:
       api:
         description: allow api access
         type: boolean
-      archive:
-        description: allow creating archives
-        type: boolean
       create:
         description: allow creating or uploading files
         type: boolean
@@ -1267,7 +1282,7 @@ definitions:
         description: show thumbnails for folders that have previewable contents
         type: boolean
       highQuality:
-        description: use high quality thumbnails
+        description: 'deprecated: always true in v1.3.0+'
         type: boolean
       image:
         description: show thumbnails for image files
@@ -1649,9 +1664,6 @@ definitions:
       api:
         description: allow api access
         type: boolean
-      archive:
-        description: allow creating archives
-        type: boolean
       create:
         description: allow creating or uploading files
         type: boolean
@@ -1685,9 +1697,6 @@ definitions:
       folder:
         description: show thumbnail preview image for folder files
         type: boolean
-      highQuality:
-        description: generate high quality thumbnail preview images
-        type: boolean
       image:
         description: show thumbnail preview image for image files
         type: boolean
@@ -1707,7 +1716,8 @@ definitions:
   users.SidebarLink:
     properties:
       category:
-        description: 'Category type: "source", "share", "tool", "custom", etc.'
+        description: 'Category type: "source", "source-link", "share", "tool", "custom",
+          etc.'
         type: string
       icon:
         description: Material icon name
@@ -2881,6 +2891,10 @@ paths:
         name: path
         required: true
         type: string
+      - description: Skip extended attributes for faster retrieval, no hasPreview
+        in: query
+        name: skipExtendedAttrs
+        type: string
       - description: Source name for the desired source, default is used if not provided
         in: query
         name: source
@@ -3079,18 +3093,18 @@ paths:
       consumes:
       - application/json
       description: |-
-        Creates a zip or tar.gz archive on the server from the given items (files and/or directories). Server-side only; no archive bytes are returned. All items must be from the same source. Folders are walked recursively; access-denied paths are silently skipped. Requires create permission.
+        Creates a zip or tar.gz archive on the server from the given paths (files and/or directories). Server-side only; no archive bytes are returned. All items must be from the same source. Folders are walked recursively; access-denied paths are silently skipped. Requires create permission.
 
         **Request body parameters:**
-        - **source** (string, required): Source name where the items to archive live. Example: `"default"`
-        - **toSource** (string, optional): Source name where the archive file will be written. Defaults to `source` if omitted. Example: `"backups"`
-        - **items** (array of strings, required): Paths of files or directories to add to the archive (relative to source). Directories are walked; access-denied entries are skipped. Example: `["/docs/file.txt", "/photos"]`
+        - **fromSource** (string, required): Source name where the paths to archive live. Example: `"default"`
+        - **toSource** (string, optional): Source name where the archive file will be written. Defaults to fromSource if omitted. Example: `"backups"`
+        - **paths** (array of strings, required): Paths of files or directories to add to the archive (relative to fromSource). Directories are walked; access-denied entries are skipped. Example: `["/docs/file.txt", "/photos"]`
         - **destination** (string, required): Full path where the archive file will be created (on toSource). Must end with .zip or .tar.gz (or format is inferred). Example: `"/backups/my-archive.zip"`
         - **format** (string, optional): Archive format. One of: `"zip"`, `"tar.gz"`. Default inferred from destination extension. Example: `"zip"`
         - **compression** (integer, optional): Gzip compression level for tar.gz only (0–9). 0 = default. Ignored for zip. Example: `6`
         - **deleteAfter** (boolean, optional): If true, delete source files/directories after successful creation. Requires delete permission. Example: `true`
       parameters:
-      - description: 'Request body: source, toSource (optional), items, destination,
+      - description: 'Request body: fromSource, toSource (optional), paths, destination,
           format (optional), compression (optional)'
         in: body
         name: body
@@ -3178,6 +3192,49 @@ paths:
               type: string
             type: object
       summary: Bulk delete resources
+      tags:
+      - Resources
+  /api/resources/items:
+    get:
+      consumes:
+      - application/json
+      description: Efficiently returns a basic list of items for the specified path
+        and source. Use 'only' parameter to filter by only files or folders
+      parameters:
+      - description: A directory path to list child items
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: The source name which contains the path
+        in: query
+        name: source
+        required: true
+        type: string
+      - description: 'Filter: ''files'', ''folders'', or omit for both'
+        in: query
+        name: only
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: lists files and folders
+          schema:
+            $ref: '#/definitions/files.Items'
+        "403":
+          description: Forbidden (access denied)
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get directory items
       tags:
       - Resources
   /api/resources/unarchive:
@@ -4251,6 +4308,56 @@ paths:
               type: string
             type: object
       summary: Bulk delete resources from public share
+      tags:
+      - Public Shares
+  /public/api/resources/items:
+    get:
+      consumes:
+      - application/json
+      description: Efficiently returns a basic list of items for the specified path
+        in a public share. Use hash for authentication instead of source. Use 'only'
+        parameter to filter by only files or folders.
+      parameters:
+      - description: Share hash for authentication
+        in: query
+        name: hash
+        required: true
+        type: string
+      - description: Path within the share to list child items. Defaults to share
+          root.
+        in: query
+        name: path
+        type: string
+      - description: 'Filter: ''files'', ''folders'', or omit for both'
+        in: query
+        name: only
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: lists files and folders
+          schema:
+            $ref: '#/definitions/files.Items'
+        "403":
+          description: Forbidden (access denied)
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Share not found or source not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get directory items (public share)
       tags:
       - Public Shares
   /public/api/share/image:

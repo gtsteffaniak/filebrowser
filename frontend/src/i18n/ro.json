@@ -374,7 +374,12 @@
     "pickIconDescription": "Căutați și selectați o pictogramă din biblioteca Material Icons",
     "shareLinksUpdatedSuccess": "Link-urile din bara laterală de partajare au fost actualizate cu succes!",
     "shareHome": "Share Home",
-    "linkIconPlaceholder": "Opțional, specificați un nume de pictogramă de material"
+    "linkIconPlaceholder": "Opțional, specificați un nume de pictogramă de material",
+    "hideUsage": "Ascundeți utilizarea",
+    "hideUsageDescription": "Nu afișați utilizarea stocării pe acest link sursă (stil minimal).",
+    "onlyShowIndexedUsage": "Calcularea utilizării din fișierele indexate",
+    "onlyShowIndexedUsageDescription": "Atunci când este dezactivată, afișează utilizarea totală a partiției, așa cum este raportată de sistemul de operare, în loc de totalurile calculate ale fișierelor indexate pentru sursă.",
+    "switchMode": "Schimbă modul barei laterale"
   },
   "success": {
     "linkCopied": "Legătură copiată!"
@@ -639,7 +644,8 @@
     "stop": "Oprire{suffix}",
     "reset": "Resetare{suffix}",
     "space": "Spațiu{suffix}",
-    "format": "Format{suffix}"
+    "format": "Format{suffix}",
+    "office": "Birou{suffix}"
   },
   "access": {
     "rules": "Reguli de acces",
@@ -690,18 +696,10 @@
     "showHiddenFilesDescription": "Afișează fișierele ascunse în listă (de exemplu, .thumbnails, ProgramData), dar acestea sunt încă accesibile manual dacă sunt configurate pentru a fi indexate.",
     "showQuickDownload": "Afișați pictograma de descărcare pentru acces rapid",
     "showQuickDownloadDescription": "Afișați pictograma de descărcare pentru acces rapid pe fiecare element de fișier pe care puteți face clic pentru a descărca instantaneu.",
-    "previewImages": "Afișați miniaturi pentru imagini",
     "previewImagesDescription": "Afișează previzualizări în miniatură pentru imagini, va afișa pictograma generică dacă este dezactivată.",
-    "previewVideos": "Afișați miniaturi pentru videoclipuri",
     "previewVideosDescription": "Afișează previzualizări ale miniaturilor pentru videoclipuri, va afișa pictograma generică dacă este dezactivată.",
-    "previewMotionVideos": "Activați previzualizarea mișcării pentru videoclipuri",
-    "previewMotionVideosDescription": "Previzualizarea mișcării este previzualizarea pop-up animată care trece prin cadrele video.",
-    "highQualityPreview": "Miniaturi de înaltă calitate",
-    "highQualityPreviewDescription": "Afectează doar vizualizarea galeriei. Este posibil ca încărcarea să dureze mai mult dacă aveți o conexiune lentă.",
     "editOffice": "Vizualizați și editați fișiere office cu OnlyOffice",
     "editOfficeDescription": "Atunci când este activată doar opțiunea Office, vizualizatorul/editorul de fișiere va fi dezactivat pentru toate extensiile de fișiere legate de fișierele Office.",
-    "popupPreview": "Activați previzualizarea pop-up atunci când treceți peste fișiere",
-    "popupPreviewDescription": "O fereastră pop-up de suprapunere va apărea peste interfața de utilizator atunci când treceți peste fișiere care acceptă o previzualizare mare.",
     "filePreviewOptions": "Opțiuni de previzualizare a fișierelor",
     "disableUpdateNotifications": "Dezactivați afișarea notificării de actualizare",
     "disableUpdateNotificationsDescription": "Dezactivați bannerul de notificare a actualizărilor care apare pentru utilizatorii administratori în bara laterală.",
@@ -720,7 +718,6 @@
     "editorViewerOptions": "Opțiuni pentru editor și vizualizator",
     "editorQuickSave": "Buton de salvare rapidă în editor",
     "editorQuickSaveDescription": "Editorul de text va afișa întotdeauna pictograma de salvare, ascunzând orice alte acțiuni",
-    "previewOffice": "Afișați miniaturi pentru fișierele office",
     "previewOfficeDescription": "Afișarea miniaturilor pentru tipurile de fișiere de birou în vizualizarea listei",
     "disableThumbnailPreviews": "Dezactivați miniaturile pentru anumite extensii de fișiere",
     "disableThumbnailPreviewsDescription": "O listă de extensii de fișiere separate prin spațiu pentru care se dezactivează previzualizarea miniaturilor (de exemplu, '.txt .html').",
@@ -739,10 +736,17 @@
     "debugOfficeEditorDescription": "Afișați o fereastră pop-up de depanare cu informații suplimentare în editorul OnlyOffice.",
     "fileViewerOptions": "Opțiuni vizualizator de fișiere",
     "themeAndLanguage": "Temă și limbaj",
-    "previewFolder": "Afișați miniaturi pentru foldere, dacă sunt disponibile",
-    "previewFolderDescription": "Afișează previzualizări ale miniaturilor pentru folderele cu primul element copil cu miniatură ca copertă.",
     "disableFileExtensions": "Introduceți extensiile de fișier pe care doriți să le dezactivați",
-    "disableOfficeEditorDescription": "O listă de extensii de fișiere separate prin spațiu pentru care se dezactivează editorul și vizualizatorul OnlyOffice - sau \"*\" pentru dezactivarea pentru toate. (de exemplu, \".txt .html .pdf\")."
+    "disableOfficeEditorDescription": "O listă de extensii de fișiere separate prin spațiu pentru care se dezactivează editorul și vizualizatorul OnlyOffice - sau \"*\" pentru dezactivarea pentru toate. (de exemplu, \".txt .html .pdf\").",
+    "previewFolder": "Afișați miniaturi pentru foldere, dacă sunt disponibile",
+    "previewFolderDescription": "Afișează previzualizări ale miniaturilor pentru foldere cu primul element copil ca copertă - sau mai multe elemente dacă este activată previzualizarea mișcării.",
+    "previewMotion": "Previzualizări ale mișcării",
+    "previewMotionVideosDescription": "Previzualizarea mișcării este previzualizarea pop-up animată care trece prin cadrele video sau prin mai multe imagini pentru un dosar",
+    "popupPreview": "Vizualizator pop-up",
+    "popupPreviewDescription": "O fereastră pop-up suprapusă va fi afișată peste interfața de utilizator atunci când treceți peste elemente cu miniaturi",
+    "thumbnailOptions": "Opțiuni pentru miniaturi",
+    "showThumbnails": "Afișați miniaturi pentru elementele acceptate",
+    "showThumbnailsDescription": "Atunci când este activată, miniaturile sunt afișate în listă pentru articolele care le acceptă. Dezactivați pentru a ascunde toate miniaturile."
   },
   "editor": {
     "uninitialized": "Nu s-a reușit inițializarea editorului. Vă rugăm să reîncărcați.",

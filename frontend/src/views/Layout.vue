@@ -18,6 +18,7 @@
     </Scrollbar>
     <prompts :class="{ 'dark-mode': isDarkMode }"></prompts>
   </div>
+  <search v-if="showSearch" />
   <Notifications />
   <Toast :toasts="toasts" />
   <StatusBar :class="{ moveWithSidebar: moveWithSidebar.shouldMove }" />
@@ -45,6 +46,7 @@ import { state, getters, mutations } from "@/store";
 import { events, notify } from "@/notify";
 import { generateRandomCode } from "@/utils/auth";
 import { globalVars } from "@/utils/constants";
+import Search from "@/components/Search.vue";
 
 export default {
   name: "layout",
@@ -61,6 +63,7 @@ export default {
     NextPrevious,
     PopupPreview,
     Shelf,
+    Search,
   },
   data() {
     return {
@@ -89,6 +92,9 @@ export default {
     this.initialize();
   },
   computed: {
+    showSearch() {
+      return getters.isLoggedIn() && getters.currentView() === "listingView" && !getters.isShare();
+    },
     isOnlyOffice() {
       return getters.currentView() === "onlyOfficeEditor";
     },

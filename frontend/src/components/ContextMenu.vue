@@ -37,7 +37,7 @@
         v-if="showCreateActions"
         icon="create_new_folder"
         :label="$t('files.newFolder')"
-        @action="showHover('newDir')"
+        @action="showNewDirHover"
       />
       <action
         v-if="showCreateActions"
@@ -49,7 +49,7 @@
         v-if="showCreateActions"
         icon="file_upload"
         :label="$t('general.upload')"
-        @action="uploadFunc"
+        @action="showUploadHover"
       />
       <action
         v-if="showInfo"
@@ -92,7 +92,7 @@
         v-if="showCopy"
         icon="content_copy"
         :label="$t('buttons.copyFile')"
-        show="copy"
+        @action="showCopyHover"
       />
       <action
         v-if="showOpenParentFolder"
@@ -110,7 +110,7 @@
         v-if="showMove"
         icon="forward"
         :label="$t('buttons.moveFile')"
-        show="move"
+        @action="showMoveHover"
       />
       <action
         v-if="showSelectAll"
@@ -122,7 +122,7 @@
         v-if="showDelete"
         icon="delete"
         :label="$t('general.delete')"
-        show="delete"
+        @action="showDeleteHover"
       />
       <action
         v-if="showAccess"
@@ -208,8 +208,29 @@ export default {
       type: Boolean,
       default: false,
     },
+    items: {
+      type: Array,
+      default: null, // Array of item objects { name, path, source, isDir, type, ... }
+    },
   },
   computed: {
+    // Either from prop or from state
+    providedItems() {
+      if (this.items) return this.items;
+      // Fallback to global selection (indices or objects)
+      if (state.selected.length === 0) return [];
+      // Map to actual items from state.req
+      if (typeof state.selected[0] === 'number') {
+        return state.selected.map(index => state.req.items[index]);
+      }
+      return state.selected;
+    },
+    selectedCount() {
+      return this.providedItems.length;
+    },
+    firstSelected() {
+      return this.providedItems[0] || null;
+    },
     showGoToItem() {
       return this.isDuplicateFinder && this.selectedCount == 1;
     },
@@ -246,7 +267,7 @@ export default {
       if (this.isDuplicateFinder || getters.isShare()) return false;
       if (!this.permissions.create) return false;
       if (this.selectedCount !== 1) return false;
-      const item = getters.getFirstSelected();
+      const item = this.firstSelected;
       return item && isArchivePath(item.path || item.from || item.name);
     },
     showShareAction() {
@@ -382,9 +403,6 @@ export default {
     isDarkMode() {
       return getters.isDarkMode();
     },
-    selectedCount() {
-      return getters.selectedCount();
-    },
     currentPrompt() {
       return getters.currentPrompt();
     },
@@ -422,12 +440,12 @@ export default {
       mutations.showHover({
         name: "info",
         props: {
-          item: getters.getFirstSelected(),
+          item: this.firstSelected,
         },
       });
     },
     goToItem() {
-      const item = getters.getFirstSelected();
+      const item = this.firstSelected;
       url.goToItem(item.source, item.path, {}, true);
     },
     hideTooltip() {
@@ -452,11 +470,16 @@ export default {
     },
     showAccessHover() {
       mutations.closeContextMenus();
+      let sourceName = this.firstSelected?.source || state.req.source;
+      let path = this.firstSelected?.path || state.req.path;
+      if (this.firstSelected && !this.firstSelected.isDir) {
+        path = url.removeLastDir(path) + '/';
+      }
       mutations.showHover({
         name: "access",
         props: {
-          sourceName: state.sources.current,
-          path: state.req?.path || "",
+          sourceName: sourceName,
+          path: path,
         },
       });
     },
@@ -528,17 +551,15 @@ export default {
       }
       this.showCreate = true;
     },
-    uploadFunc() {
-      mutations.showHover("upload");
-    },
     showHover(value) {
       return mutations.showHover(value);
     },
     showShareHover() {
       mutations.closeContextMenus();
-      mutations.showHover({name: "share",
+      mutations.showHover({
+        name: "share",
         props: {
-          item: getters.selectedCount() == 1 ? getters.getFirstSelected() : state.req
+          item: this.selectedCount == 1 ? this.firstSelected : state.req
         },
       });
     },
@@ -547,7 +568,7 @@ export default {
       mutations.showHover({
         name: "rename",
         props: {
-          item: getters.selectedCount() == 1 ? getters.getFirstSelected() : state.req,
+          item: this.selectedCount == 1 ? this.firstSelected : state.req,
           parentItems: []
         },
       });
@@ -576,7 +597,7 @@ export default {
         return;
       }
       // Only set initial showCreate state, don't override user choices
-      if (state.selected.length > 0 || !this.permissions.create) {
+      if (this.selectedCount > 0 || !this.permissions.create) {
         this.showCreate = false;
       } else {
         this.showCreate = true;
@@ -588,20 +609,64 @@ export default {
     },
     startDownload() {
       mutations.closeTopHover();
-      const items = state.selected.length > 0 ? state.selected : [state.req];
+      const items = this.providedItems;
       downloadFiles(items);
+    },
+    showDeleteHover() {
+      mutations.closeContextMenus();
+      mutations.showHover({
+        name: 'delete',
+        props: {
+          items: this.providedItems,
+        },
+      });
+    },
+    showMoveHover() {
+      mutations.closeContextMenus();
+      mutations.showHover({
+        name: 'move',
+        props: {
+          items: this.providedItems,
+          operation: 'move',
+        },
+      });
+    },
+    showCopyHover() {
+      mutations.closeContextMenus();
+      mutations.showHover({
+        name: 'copy',
+        props: {
+          items: this.providedItems,
+          operation: 'copy',
+        },
+      });
+    },
+    showNewDirHover() {
+      mutations.closeContextMenus();
+      // If the context menu was triggered on a directory, pass its path as base
+      const selectedItem = this.firstSelected;
+      let base = null;
+      if (selectedItem && selectedItem.isDir) {
+        // Pass both path and source
+        base = {
+          path: selectedItem.path,
+          source: selectedItem.source,
+        };
+      }
+      mutations.showHover({
+        name: "newDir",
+        props: {
+          base: base,
+        },
+      });
     },
     showArchiveHover() {
       mutations.closeTopHover();
-      const items = [];
-      if (state.selected && state.req && state.req.items) {
-        for (const index of state.selected) {
-          const reqItem = state.req.items[index];
-          if (reqItem && reqItem.path) {
-            items.push({ path: reqItem.path, name: reqItem.name, source: state.req.source });
-          }
-        }
-      }
+      const items = this.providedItems.map(item => ({
+        path: item.path,
+        name: item.name,
+        source: item.source || state.req.source,
+      }));
       if (items.length === 0) return;
       mutations.showHover({
         name: "archive",
@@ -614,7 +679,7 @@ export default {
     },
     showUnarchiveHover() {
       mutations.closeTopHover();
-      const item = getters.getFirstSelected();
+      const item = this.firstSelected;
       if (!item) return;
       this.openUnarchivePrompt(item);
     },
@@ -682,16 +747,25 @@ export default {
       }
       mutations.closeContextMenus();
     },
-    showUpload() {
+    showUploadHover() {
+      mutations.closeContextMenus();
+      let targetPath = state.req.path;
+      let targetSource = state.req.source;
+      const selectedItem = this.firstSelected;
+      if (selectedItem && selectedItem.isDir) {
+        targetPath = selectedItem.path;
+        targetSource = selectedItem.source;
+      }
       mutations.showHover({
         name: "upload",
         props: {
-          filesToReplace: state.selected.map((item) => item.name || ""),
+          targetPath: targetPath,
+          targetSource: targetSource,
         },
       });
     },
     openParentFolder() {
-      const item = getters.getFirstSelected();
+      const item = this.firstSelected;
       const parentPath = url.removeLastDir(item.path) || "/";
       url.goToItem(item.source, parentPath, {}, this.isDuplicateFinder);
     },
