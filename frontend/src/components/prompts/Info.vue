@@ -210,8 +210,14 @@ export default {
 
 <style scoped>
 .info-content {
-  max-height: 70vh;
-  overflow-y: auto;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.floating-window .card-content.info-content {
+  padding-bottom: 0.5em !important;
 }
 
 .info-description {
@@ -224,6 +230,7 @@ export default {
 .info-grid {
   display: grid;
   gap: 1.5em;
+  flex: 1;
 }
 
 .info-section {

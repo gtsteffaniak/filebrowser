@@ -6,12 +6,19 @@
       :class="{
         'dark-mode': isDarkMode,
         'is-dragging': isDragging(prompt.id),
+        'is-resizing': resizingId === prompt.id,
+        'prompt-behind': !isTopmost(prompt.id)
       }"
+      @mousedown="makeTopPrompt(prompt.id)"
       :style="{
-        transform: `translate(calc(-50% + ${(dragOffsets[prompt.id]?.x || 0)}px), calc(-50% + ${(dragOffsets[prompt.id]?.y || 0)}px))`
+        transform: `translate(calc(-50% + ${(dragOffsets[prompt.id]?.x || 0)}px), calc(-50% + ${(dragOffsets[prompt.id]?.y || 0)}px))`,
+        width: sizes[prompt.id]?.width ? sizes[prompt.id].width + 'px' : null,
+        height: sizes[prompt.id]?.height ? sizes[prompt.id].height + 'px' : null,
+        maxWidth: sizes[prompt.id]?.width ? 'none' : null,
+        maxHeight: sizes[prompt.id]?.height ? 'none' : null,
+        zIndex: 1000 + prompts.indexOf(prompt),
       }"
       :aria-label="prompt.name + '-prompt'"
-      v-show="isTopmost(prompt.id)"
     >
       <header
         class="prompt-taskbar"
@@ -34,6 +41,17 @@
           <span class="prompt-title">{{ prompt?.props?.title || getDisplayTitle(prompt?.name) }}</span>
         </div>
       </header>
+      <!-- Resize for the prompt on top -->
+      <div v-if="isTopmost(prompt.id)" class="resize-handles">
+        <div class="resize-handle resize-handle-top" @mousedown.stop="startResize($event, prompt.id, 'top')" @touchstart.stop.passive="startResize($event, prompt.id, 'top')"></div>
+        <div class="resize-handle resize-handle-bottom" @mousedown.stop="startResize($event, prompt.id, 'bottom')" @touchstart.stop.passive="startResize($event, prompt.id, 'bottom')"></div>
+        <div class="resize-handle resize-handle-left" @mousedown.stop="startResize($event, prompt.id, 'left')" @touchstart.stop.passive="startResize($event, prompt.id, 'left')"></div>
+        <div class="resize-handle resize-handle-right" @mousedown.stop="startResize($event, prompt.id, 'right')" @touchstart.stop.passive="startResize($event, prompt.id, 'right')"></div>
+        <div class="resize-handle resize-handle-top-left" @mousedown.stop="startResize($event, prompt.id, 'top-left')" @touchstart.stop.passive="startResize($event, prompt.id, 'top-left')"></div>
+        <div class="resize-handle resize-handle-top-right" @mousedown.stop="startResize($event, prompt.id, 'top-right')" @touchstart.stop.passive="startResize($event, prompt.id, 'top-right')"></div>
+        <div class="resize-handle resize-handle-bottom-left" @mousedown.stop="startResize($event, prompt.id, 'bottom-left')" @touchstart.stop.passive="startResize($event, prompt.id, 'bottom-left')"></div>
+        <div class="resize-handle resize-handle-bottom-right" @mousedown.stop="startResize($event, prompt.id, 'bottom-right')" @touchstart.stop.passive="startResize($event, prompt.id, 'bottom-right')"></div>
+      </div>
       <component
         :is="prompt.name"
         v-bind="getPromptProps(prompt)"
@@ -118,6 +136,17 @@ export default {
       dragStarts: {},
       draggingIds: new Set(),
       touchIds: {},
+      sizes: {},
+      resizingId: null,
+      resizingEdge: null,
+      resizeStart: {
+        width: 0,
+        height: 0,
+        offsetX: 0,
+        offsetY: 0,
+        clientX: 0,
+        clientY: 0,
+      },
     };
   },
   computed: {
@@ -150,6 +179,12 @@ export default {
         };
       }
       return baseProps;
+    },
+    makeTopPrompt(id) {
+      const index = state.prompts.findIndex(p => p.id === id);
+      if (index === -1 || index === state.prompts.length - 1) return;
+      const [prompt] = state.prompts.splice(index, 1);
+      state.prompts.push(prompt);
     },
     getDisplayTitle(promptName) {
       // convert to lowercase
@@ -238,6 +273,7 @@ export default {
               delete this.dragStarts[id];
               delete this.touchIds[id];
               this.draggingIds.delete(id);
+              delete this.sizes[id];
             },
             cancel: () => {
               // User cancelled - just close the warning prompt
@@ -247,7 +283,6 @@ export default {
           return;
         }
       }
-      
       // Normal close behavior
       mutations.closePromptById(id);
       // Clean up state for this prompt
@@ -255,6 +290,7 @@ export default {
       delete this.dragStarts[id];
       delete this.touchIds[id];
       this.draggingIds.delete(id);
+      delete this.sizes[id];
     },
     getPointerPos(e, type) {
       if (type === "touch") {
@@ -289,6 +325,7 @@ export default {
       };
     },
     onPointerDown(e, id, type) {
+      this.makeTopPrompt(id);
       if (!this.isTopmost(id)) return;
       if (type === "mouse" && e.button !== 0) return;
       if (type === "touch") {
@@ -337,7 +374,7 @@ export default {
       const el = Array.isArray(windows) ? windows.find(w => w?.getAttribute('aria-label') === `${this.prompts.find(p => p.id === id)?.name}-prompt`) : windows;
       if (el) this.clampDragOffset(id, el);
     },
-    onPointerEnd(e, id, type, moveHandler, endHandler) {
+    onPointerEnd(_e, id, type, moveHandler, endHandler) {
       if (type === "touch") {
         delete this.touchIds[id];
         window.removeEventListener("touchmove", moveHandler);
@@ -349,6 +386,139 @@ export default {
       }
       delete this.dragStarts[id];
       this.draggingIds.delete(id);
+    },
+    startResize(e, id, edge) {
+      if (!this.isTopmost(id)) return;
+      const type = e.type === 'touchstart' ? 'touch' : 'mouse';
+      const pos = this.getPointerPos(e, type);
+      if (!pos) return;
+      // Find the window
+      const windows = this.$refs.promptWindow;
+      const el = Array.isArray(windows)
+        ? windows.find(w => w?.getAttribute('aria-label') === `${this.prompts.find(p => p.id === id)?.name}-prompt`)
+        : windows;
+      if (!el) return;
+      // Capture current size (if not already fixed, set it)
+      if (!this.sizes[id]) {
+        this.sizes[id] = {
+          width: el.offsetWidth,
+          height: el.offsetHeight,
+        };
+      }
+      // Initial values
+      this.resizingId = id;
+      this.resizingEdge = edge;
+      this.resizeStart = {
+        width: this.sizes[id].width,
+        height: this.sizes[id].height,
+        offsetX: this.dragOffsets[id]?.x || 0,
+        offsetY: this.dragOffsets[id]?.y || 0,
+        clientX: pos.x,
+        clientY: pos.y,
+      };
+
+      const moveHandler = (e) => this.onResizeMove(e, type);
+      const endHandler = (e) => this.onResizeEnd(e, type, moveHandler, endHandler);
+
+      if (type === 'mouse') {
+        window.addEventListener('mousemove', moveHandler);
+        window.addEventListener('mouseup', endHandler);
+      } else {
+        window.addEventListener('touchmove', moveHandler, { passive: false });
+        window.addEventListener('touchend', endHandler, { passive: true });
+        window.addEventListener('touchcancel', endHandler, { passive: true });
+      }
+      e.preventDefault();
+      e.stopPropagation();
+    },
+
+    onResizeMove(e, type) {
+      if (!this.resizingId) return;
+      const pos = this.getPointerPos(e, type);
+      if (!pos) return;
+      if (type === 'touch') {
+        e.preventDefault(); // prevent scrolling while resizing
+      }
+
+      const id = this.resizingId;
+      const edge = this.resizingEdge;
+      const start = this.resizeStart;
+
+      const dx = pos.x - start.clientX;
+      const dy = pos.y - start.clientY;
+
+      let newWidth = start.width;
+      let newHeight = start.height;
+      let deltaOffsetX = 0;
+      let deltaOffsetY = 0;
+
+      const MIN_WIDTH = 200;
+      const MIN_HEIGHT = 150;
+
+      // Calculate new dimensions and the required offset change to keep opposite edges fixed
+      // If not we'll have some weird behaviors when resizing.
+      if (edge.includes('left')) {
+        newWidth = Math.max(MIN_WIDTH, start.width - dx);
+        deltaOffsetX = -(newWidth - start.width) / 2;   // right
+      } else if (edge.includes('right')) {
+        newWidth = Math.max(MIN_WIDTH, start.width + dx);
+        deltaOffsetX = +(newWidth - start.width) / 2;   // left
+      }
+      if (edge.includes('top') && !edge.includes('left') && !edge.includes('right')) {
+        // pure top edge, not part of a corner
+        newHeight = Math.max(MIN_HEIGHT, start.height - dy);
+        deltaOffsetY = -(newHeight - start.height) / 2; // bottom
+      } else if (edge.includes('bottom') && !edge.includes('left') && !edge.includes('right')) {
+        // pure bottom edge
+        newHeight = Math.max(MIN_HEIGHT, start.height + dy);
+        deltaOffsetY = +(newHeight - start.height) / 2; // top
+      } else if (edge.includes('top-left')) {
+        newWidth = Math.max(MIN_WIDTH, start.width - dx);
+        newHeight = Math.max(MIN_HEIGHT, start.height - dy);
+        deltaOffsetX = -(newWidth - start.width) / 2;
+        deltaOffsetY = -(newHeight - start.height) / 2;
+      } else if (edge.includes('top-right')) {
+        newWidth = Math.max(MIN_WIDTH, start.width + dx);
+        newHeight = Math.max(MIN_HEIGHT, start.height - dy);
+        deltaOffsetX = +(newWidth - start.width) / 2;
+        deltaOffsetY = -(newHeight - start.height) / 2;
+      } else if (edge.includes('bottom-left')) {
+        newWidth = Math.max(MIN_WIDTH, start.width - dx);
+        newHeight = Math.max(MIN_HEIGHT, start.height + dy);
+        deltaOffsetX = -(newWidth - start.width) / 2;
+        deltaOffsetY = +(newHeight - start.height) / 2;
+      } else if (edge.includes('bottom-right')) {
+        newWidth = Math.max(MIN_WIDTH, start.width + dx);
+        newHeight = Math.max(MIN_HEIGHT, start.height + dy);
+        deltaOffsetX = +(newWidth - start.width) / 2;
+        deltaOffsetY = +(newHeight - start.height) / 2;
+      }
+      // Update sizes
+      this.sizes[id] = { width: newWidth, height: newHeight };
+      // Update drag
+      this.dragOffsets[id] = {
+        x: start.offsetX + deltaOffsetX,
+        y: start.offsetY + deltaOffsetY,
+      };
+      // Clamp to viewport
+      const windows = this.$refs.promptWindow;
+      const el = Array.isArray(windows)
+        ? windows.find(w => w?.getAttribute('aria-label') === `${this.prompts.find(p => p.id === id)?.name}-prompt`)
+        : windows;
+      if (el) this.clampDragOffset(id, el);
+    },
+    onResizeEnd(_e, type, moveHandler, endHandler) {
+      if (type === 'mouse') {
+        window.removeEventListener('mousemove', moveHandler);
+        window.removeEventListener('mouseup', endHandler);
+      } else {
+        window.removeEventListener('touchmove', moveHandler);
+        window.removeEventListener('touchend', endHandler);
+        window.removeEventListener('touchcancel', endHandler);
+      }
+      this.resizingId = null;
+      this.resizingEdge = null;
+      this.resizeStart = { width:0, height:0, offsetX:0, offsetY:0, clientX:0, clientY:0 };
     },
   },
 };
@@ -383,6 +553,10 @@ export default {
 }
 
 .floating-window.is-dragging {
+  border-color: var(--primaryColor);
+}
+
+.floating-window.is-resizing {
   border-color: var(--primaryColor);
 }
 
@@ -465,4 +639,83 @@ export default {
   text-overflow: ellipsis;
   max-width: 80%;
 }
+
+.resize-handles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+.resize-handle {
+  position: absolute;
+  pointer-events: auto;
+  background: transparent;
+  z-index: 20;
+}
+.resize-handle-top {
+  top: -5px;
+  left: 5px;
+  right: 5px;
+  height: 10px;
+  cursor: n-resize;
+}
+.resize-handle-bottom {
+  bottom: -5px;
+  left: 5px;
+  right: 5px;
+  height: 10px;
+  cursor: s-resize;
+}
+.resize-handle-left {
+  left: -5px;
+  top: 5px;
+  bottom: 5px;
+  width: 10px;
+  cursor: w-resize;
+}
+.resize-handle-right {
+  right: -5px;
+  top: 5px;
+  bottom: 5px;
+  width: 10px;
+  cursor: e-resize;
+}
+.resize-handle-top-left {
+  top: -5px;
+  left: -5px;
+  width: 15px;
+  height: 15px;
+  cursor: nw-resize;
+}
+.resize-handle-top-right {
+  top: -5px;
+  right: -5px;
+  width: 15px;
+  height: 15px;
+  cursor: ne-resize;
+}
+.resize-handle-bottom-left {
+  bottom: -5px;
+  left: -5px;
+  width: 15px;
+  height: 15px;
+  cursor: sw-resize;
+}
+.resize-handle-bottom-right {
+  bottom: -5px;
+  right: -5px;
+  width: 15px;
+  height: 15px;
+  cursor: se-resize;
+}
+
+.prompt-behind {
+  opacity: 0.8;
+  filter: brightness(0.85);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: opacity 0.2s, filter 0.2s;
+}
+
 </style>
