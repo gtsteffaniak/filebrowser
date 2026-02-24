@@ -141,8 +141,18 @@
             </div>
             <div v-if="hasUsageInfo(activeSourceLink)" class="usage-info">
               <ProgressBar 
+                v-if="activeSourceLink.category === 'source-hybrid' || activeSourceLink.category === 'source-hybrid-2'"
+                :val="(activeSourceInfo).used || 0"
+                :val-background="(activeSourceInfo).usedAlt || 0"
+                :val-text="activeSourceLink.category === 'source-hybrid-2' ? ((activeSourceInfo).usedAlt || 0) : null"
+                :max="(activeSourceInfo).total || 1" 
+                :status="getProgressBarStatus(activeSourceInfo)"
+                unit="bytes">
+              </ProgressBar>
+              <ProgressBar 
+                v-else
                 :val="getProgressBarValue(activeSourceLink, activeSourceInfo)" 
-                :max="activeSourceInfo.total || 1" 
+                :max="(activeSourceInfo).total || 1" 
                 :status="getProgressBarStatus(activeSourceInfo)"
                 unit="bytes">
               </ProgressBar>
@@ -292,15 +302,18 @@ export default {
   },
   methods: {
     isSourceCategory(category) {
-      return category === 'source' || category === 'source-minimal' || category === 'source-alt';
+      return category === 'source' || category === 'source-minimal' || category === 'source-alt' ||
+             category === 'source-hybrid' || category === 'source-hybrid-2';
     },
     getIconClass,
     hasUsageInfo(link) {
       // Check if usage info should be displayed for this link (source only; source-minimal hides usage)
       // Returns true when link is accessible and has usage > 0
-      if ((link.category !== 'source' && link.category !== 'source-minimal' && link.category !== 'source-alt' && link.category !== 'source-hybrid' && link.category !== 'source-hybrid-2') || !link.sourceName) return false;
+      if (!this.isSourceCategory(link.category) || !link.sourceName) return false;
       if (!this.hasSourceInfo || !this.isLinkAccessible(link)) return false;
-      return (this.sourceInfo[link.sourceName]?.used || 0) > 0;
+      if (link.category === 'source-minimal') return false;
+      const info = this.sourceInfo[link.sourceName] || {};
+      return (info.used || 0) > 0 || (info.usedAlt || 0) > 0;
     },
     getLinkHref(link) {
       // Add baseURL to target for href display
@@ -312,7 +325,7 @@ export default {
       let fullPath = '';
 
       // Construct full path based on link category
-      if (link.category === 'source' || link.category === 'source-minimal' || link.category === 'source-alt' || link.category === 'source-hybrid' || link.category === 'source-hybrid-2') {
+      if (this.isSourceCategory(link.category)) {
         // For source links, use sourceName and relative target
         if (!link.sourceName) return '#';
         const sourceInfo = this.sourceInfo[link.sourceName];
@@ -351,7 +364,7 @@ export default {
     },
     isLinkAccessible(link) {
       // Check if link is accessible
-      if (link.category === 'source' || link.category === 'source-minimal' || link.category === 'source-alt' || link.category === 'source-hybrid' || link.category === 'source-hybrid-2') {
+      if (this.isSourceCategory(link.category)) {
         // Use sourceName to check if the source is accessible
         if (!link.sourceName) return false;
         for (const [name] of Object.entries(this.sourceInfo || {})) {
@@ -366,7 +379,7 @@ export default {
     },
     isLinkActive(link) {
       // Check if the current route matches this link
-      if (link.category === 'source' || link.category === 'source-minimal' || link.category === 'source-alt' || link.category === 'source-hybrid' || link.category === 'source-hybrid-2') {
+      if (this.isSourceCategory(link.category)) {
         // Use sourceName to check if we're currently in this source
         return link.sourceName && state.req.source === link.sourceName;
       }
@@ -376,7 +389,7 @@ export default {
     getSourceInfoForLink(link) {
       // Method that directly accesses reactive sourceInfo
       // Vue will track this dependency when called in template
-      if ((link.category !== 'source' && link.category !== 'source-minimal' && link.category !== 'source-alt' && link.category !== 'source-hybrid' && link.category !== 'source-hybrid-2') || !link.sourceName) return {};
+      if (!this.isSourceCategory(link.category) || !link.sourceName) return {};
       // Direct access to reactive computed property ensures Vue tracks changes
       return this.sourceInfo && link.sourceName ? this.sourceInfo[link.sourceName] || {} : {};
     },
@@ -409,7 +422,7 @@ export default {
         return;
       }
 
-      if (link.category === 'source' || link.category === 'source-minimal' || link.category === 'source-alt' || link.category === 'source-hybrid' || link.category === 'source-hybrid-2') {
+      if (this.isSourceCategory(link.category)) {
         // For source links, use sourceName and target (relative path)
         if (!link.sourceName) return;
         const path = link.target || "/";
