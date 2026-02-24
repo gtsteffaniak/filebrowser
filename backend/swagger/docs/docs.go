@@ -574,7 +574,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "OIDC"
+                    "Auth"
                 ],
                 "summary": "OIDC callback",
                 "parameters": [
@@ -623,7 +623,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "OIDC"
+                    "Auth"
                 ],
                 "summary": "OIDC login",
                 "responses": {
@@ -646,7 +646,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "OTP"
+                    "Auth"
                 ],
                 "summary": "Generate OTP",
                 "parameters": [
@@ -702,7 +702,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "OTP"
+                    "Auth"
                 ],
                 "summary": "Verify OTP",
                 "parameters": [
@@ -821,7 +821,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "API Keys"
+                    "Auth"
                 ],
                 "summary": "Create API key",
                 "parameters": [
@@ -901,7 +901,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "API Keys"
+                    "Auth"
                 ],
                 "summary": "Delete API key",
                 "parameters": [
@@ -951,7 +951,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "API Keys"
+                    "Auth"
                 ],
                 "summary": "List API keys",
                 "parameters": [
@@ -980,68 +980,6 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal server error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/duplicates": {
-            "get": {
-                "description": "Finds duplicate files using multi-stage filtering: size → type → fuzzy filename → progressive checksums. Files must match on size, MIME type, and have 50%+ filename similarity before checksum verification. Large fuzzy groups (\u003e10 files) are skipped to avoid false positives. Checksums use 2-pass progressive verification (header → middle) for accuracy while minimizing disk I/O (~16KB read per file).",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Duplicates"
-                ],
-                "summary": "Find Duplicate Files",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Source name for the desired source",
-                        "name": "source",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "path within user scope to search",
-                        "name": "scope",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Minimum file size in megabytes (default: 1)",
-                        "name": "minSizeMb",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "List of duplicate file groups with metadata. Response includes 'incomplete' flag if processing stopped early due to resource limits.",
-                        "schema": {
-                            "$ref": "#/definitions/http.duplicateResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "503": {
-                        "description": "Service Unavailable (indexing in progress or another search running)",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1113,7 +1051,7 @@ const docTemplate = `{
                     "text/plain"
                 ],
                 "tags": [
-                    "Subtitles"
+                    "Resources"
                 ],
                 "summary": "Get subtitle content",
                 "parameters": [
@@ -2056,74 +1994,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/search": {
-            "get": {
-                "description": "Searches for files matching the provided query. Returns file paths and metadata based on the user's session and scope. Supports searching across multiple sources when using the 'sources' parameter.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Search"
-                ],
-                "summary": "Search Files",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Search query",
-                        "name": "query",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Source name for the desired source (deprecated, use 'sources' instead)",
-                        "name": "source",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Comma-separated list of source names to search across multiple sources. When multiple sources are specified, scope is always the user's scope for each source.",
-                        "name": "sources",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "path within user scope to search, for example '/first/second' to search within the second directory only. Ignored when multiple sources are specified.",
-                        "name": "scope",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "User session ID, add unique value to prevent collisions",
-                        "name": "SessionId",
-                        "in": "header"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "List of search results with source field populated",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/indexing.SearchResult"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/api/settings": {
             "get": {
                 "description": "Returns the current configuration settings for signup, user directories, rules, frontend.",
@@ -2505,6 +2375,136 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/tools/duplicates": {
+            "get": {
+                "description": "Finds duplicate files using multi-stage filtering: size → type → fuzzy filename → progressive checksums. Files must match on size, MIME type, and have 50%+ filename similarity before checksum verification. Large fuzzy groups (\u003e10 files) are skipped to avoid false positives. Checksums use 2-pass progressive verification (header → middle) for accuracy while minimizing disk I/O (~16KB read per file).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tools"
+                ],
+                "summary": "Find Duplicate Files",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Source name for the desired source",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "path within user scope to search",
+                        "name": "scope",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Minimum file size in megabytes (default: 1)",
+                        "name": "minSizeMb",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of duplicate file groups with metadata. Response includes 'incomplete' flag if processing stopped early due to resource limits.",
+                        "schema": {
+                            "$ref": "#/definitions/http.duplicateResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable (indexing in progress or another search running)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/tools/search": {
+            "get": {
+                "description": "Searches for files matching the provided query. Returns file paths and metadata based on the user's session and scope. Supports searching across multiple sources when using the 'sources' parameter.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tools"
+                ],
+                "summary": "Search Files",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search query",
+                        "name": "query",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source name for the desired source (deprecated, use 'sources' instead)",
+                        "name": "source",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Comma-separated list of source names to search across multiple sources. When multiple sources are specified, scope is always the user's scope for each source.",
+                        "name": "sources",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "path within user scope to search, for example '/first/second' to search within the second directory only. Ignored when multiple sources are specified.",
+                        "name": "scope",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "User session ID, add unique value to prevent collisions",
+                        "name": "SessionId",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of search results with source field populated",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/indexing.SearchResult"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2899,7 +2899,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Health"
+                    "Access"
                 ],
                 "summary": "Health Check",
                 "responses": {
@@ -2922,7 +2922,7 @@ const docTemplate = `{
                     "image/jpeg"
                 ],
                 "tags": [
-                    "Public Shares"
+                    "Shares"
                 ],
                 "summary": "Get image/video preview from a public share",
                 "parameters": [
@@ -3003,7 +3003,7 @@ const docTemplate = `{
                     "application/octet-stream"
                 ],
                 "tags": [
-                    "Public Shares"
+                    "Shares"
                 ],
                 "summary": "Download files from a public share",
                 "parameters": [
@@ -3103,7 +3103,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Public Shares"
+                    "Shares"
                 ],
                 "summary": "Get file/directory information from a public share",
                 "parameters": [
@@ -3187,7 +3187,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Public Shares"
+                    "Shares"
                 ],
                 "summary": "Update a file in a public share",
                 "parameters": [
@@ -3272,7 +3272,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Public Shares"
+                    "Shares"
                 ],
                 "summary": "Upload files to a public upload share",
                 "parameters": [
@@ -3385,7 +3385,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Public Shares"
+                    "Shares"
                 ],
                 "summary": "Move, copy, or rename resources in a public share",
                 "parameters": [
@@ -3465,7 +3465,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Public Shares"
+                    "Shares"
                 ],
                 "summary": "Bulk delete resources from public share",
                 "parameters": [
@@ -3542,7 +3542,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Public Shares"
+                    "Shares"
                 ],
                 "summary": "Get directory items (public share)",
                 "parameters": [
@@ -3610,7 +3610,7 @@ const docTemplate = `{
                     "image/jpeg"
                 ],
                 "tags": [
-                    "Public Shares"
+                    "Shares"
                 ],
                 "summary": "Get share image (banner or favicon) as preview",
                 "parameters": [

@@ -133,7 +133,7 @@ func (s *duplicateProcessingStats) shouldStop() (bool, string) {
 //
 // @Summary Find Duplicate Files
 // @Description Finds duplicate files using multi-stage filtering: size → type → fuzzy filename → progressive checksums. Files must match on size, MIME type, and have 50%+ filename similarity before checksum verification. Large fuzzy groups (>10 files) are skipped to avoid false positives. Checksums use 2-pass progressive verification (header → middle) for accuracy while minimizing disk I/O (~16KB read per file).
-// @Tags Duplicates
+// @Tags Tools
 // @Accept json
 // @Produce json
 // @Param source query string true "Source name for the desired source"
@@ -142,7 +142,7 @@ func (s *duplicateProcessingStats) shouldStop() (bool, string) {
 // @Success 200 {object} duplicateResponse "List of duplicate file groups with metadata. Response includes 'incomplete' flag if processing stopped early due to resource limits."
 // @Failure 400 {object} map[string]string "Bad Request"
 // @Failure 503 {object} map[string]string "Service Unavailable (indexing in progress or another search running)"
-// @Router /api/duplicates [get]
+// @Router /api/tools/duplicates [get]
 func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	opts, err := prepDuplicatesOptions(r, d)
 	if err != nil {

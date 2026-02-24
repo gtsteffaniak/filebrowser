@@ -25,7 +25,7 @@ import (
 // @Description **Multiple Files:**
 // @Description - Use repeated query parameters: `?file=file1.txt&file=file2.txt&file=file3.txt`
 // @Description - This supports filenames containing commas and special characters
-// @Tags Public Shares
+// @Tags Shares
 // @Accept json
 // @Produce octet-stream
 // @Param hash query string true "Share hash for authentication"
@@ -116,7 +116,7 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 // publicShareHandler returns file or directory information from a public share.
 // @Summary Get file/directory information from a public share
 // @Description Returns metadata for files or directories accessible via a public share link. Browsing is disabled for upload-only shares.
-// @Tags Public Shares
+// @Tags Shares
 // @Accept json
 // @Produce json
 // @Param hash query string true "Share hash for authentication"
@@ -139,7 +139,7 @@ func publicGetResourceHandler(w http.ResponseWriter, r *http.Request, d *request
 // publicUploadHandler processes file uploads to a public upload share.
 // @Summary Upload files to a public upload share
 // @Description Handles file and directory uploads to an upload-only public share. Supports chunked uploads, conflict resolution (override), and directory creation.
-// @Tags Public Shares
+// @Tags Shares
 // @Accept multipart/form-data
 // @Produce json
 // @Param hash query string true "Share hash for authentication"
@@ -181,7 +181,6 @@ func publicUploadHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 // @Summary Health Check
 // @Schemes
 // @Description Returns the health status of the API.
-// @Tags Health
 // @Accept json
 // @Produce json
 // @Success 200 {object} HttpResponse "successful health check response"
@@ -198,7 +197,7 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 // publicPreviewHandler handles the preview request for images from public shares.
 // @Summary Get image/video preview from a public share
 // @Description Returns a preview (thumbnail) for images or videos accessible via a public share. Preview generation can be disabled globally or per-share. Not available for upload-only shares.
-// @Tags Public Shares
+// @Tags Shares
 // @Accept json
 // @Produce image/jpeg
 // @Param hash query string true "Share hash for authentication"
@@ -229,7 +228,7 @@ func publicPreviewHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 // publicPutHandler handles the PUT request for a public share.
 // @Summary Update a file in a public share
 // @Description Updates the content of a file in a public share.
-// @Tags Public Shares
+// @Tags Shares
 // @Accept json
 // @Produce json
 // @Param hash query string true "Share hash for authentication"
@@ -299,7 +298,7 @@ func publicDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 // publicBulkDeleteHandler deletes multiple resources from a public share in a single request.
 // @Summary Bulk delete resources from public share
 // @Description Deletes multiple resources specified in the request body. Returns a list of succeeded and failed deletions.
-// @Tags Public Shares
+// @Tags Shares
 // @Accept json
 // @Produce json
 // @Param hash query string true "Share hash for authentication"
@@ -326,7 +325,7 @@ func publicBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestC
 // publicPatchHandler performs a patch operation (e.g., move, copy, rename) on resources in a public share.
 // @Summary Move, copy, or rename resources in a public share
 // @Description Performs move, copy, or rename operations on multiple resources within a public share. All operations are performed atomically.
-// @Tags Public Shares
+// @Tags Shares
 // @Accept json
 // @Produce json
 // @Param hash query string true "Share hash for authentication"
@@ -395,7 +394,7 @@ func publicPatchHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // getShareImage serves banner or favicon files for shares as resizable previews
 // @Summary Get share image (banner or favicon) as preview
 // @Description Returns a resizable preview (large size) for the banner or favicon file of a share
-// @Tags Public Shares
+// @Tags Shares
 // @Produce image/jpeg
 // @Param hash query string true "Share hash"
 // @Param banner query bool false "Request banner file"
@@ -493,7 +492,7 @@ func getShareImagePartsHelper(share *share.Link, isBanner bool) (string, string,
 // publicItemsGetHandler efficiently returns a basic list of items for a directory in a public share.
 // @Summary Get directory items (public share)
 // @Description Efficiently returns a basic list of items for the specified path in a public share. Use hash for authentication instead of source. Use 'only' parameter to filter by only files or folders.
-// @Tags Public Shares
+// @Tags Shares
 // @Accept json
 // @Produce json
 // @Param hash query string true "Share hash for authentication"

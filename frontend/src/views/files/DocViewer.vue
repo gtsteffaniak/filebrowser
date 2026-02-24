@@ -9,7 +9,7 @@
 <script>
 import { defineComponent } from "vue";
 import * as mammoth from "mammoth";
-import { filesApi, publicApi } from "@/api";
+import { resourcesApi, publicApi } from "@/api";
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
 
@@ -118,7 +118,7 @@ export default defineComponent({
           if (getters.isShare()) {
             res = await publicApi.fetchPub(directoryPath, state.shareInfo.hash);
           } else {
-            res = await filesApi.fetchFiles(state.req.source, directoryPath);
+            res = await resourcesApi.fetchFiles(state.req.source, directoryPath);
           }
           listing = res.items;
         } catch (error) {
@@ -159,7 +159,7 @@ export default defineComponent({
               hash: state.shareInfo.hash,
               token: state.shareInfo.token,
             }, [state.req.path])
-          : filesApi.getDownloadURL(
+          : resourcesApi.getDownloadURL(
               state.req.source,
               state.req.path,
               false,

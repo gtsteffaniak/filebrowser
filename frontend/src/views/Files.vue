@@ -13,7 +13,7 @@
 </template>
 
 <script>
-import { filesApi, publicApi } from "@/api";
+import { resourcesApi, publicApi } from "@/api";
 import Errors from "@/views/Errors.vue";
 import Preview from "@/views/files/Preview.vue";
 import ListingView from "@/views/files/ListingView.vue";
@@ -439,7 +439,7 @@ export default {
           const fetchPath = decodeURIComponent(result.path);
 
           // First pass: Fetch initial data WITHOUT metadata
-          let res = await filesApi.fetchFiles(fetchSource, fetchPath, false, false);
+          let res = await resourcesApi.fetchFiles(fetchSource, fetchPath, false, false);
 
           this.loadingProgress = 10;
 
@@ -458,12 +458,12 @@ export default {
 
             // Run both fetches in parallel to minimize total API calls
             const promises = [
-              filesApi.fetchFiles(res.source, res.path, content, false)
+              resourcesApi.fetchFiles(res.source, res.path, content, false)
             ];
 
             if (shouldFetchParent) {
               promises.push(
-                filesApi.fetchFiles(res.source, directoryPath, false, false).catch(() => null)
+                resourcesApi.fetchFiles(res.source, directoryPath, false, false).catch(() => null)
               );
             }
 
@@ -490,7 +490,7 @@ export default {
           if (res.type === "directory" && res.hasMetadata) {
             this.loadingProgress = 90;
             // Fetch with metadata enabled (background operation, don't set loading state)
-            filesApi.fetchFiles(fetchSource, fetchPath, false, true).then(resWithMetadata => {
+            resourcesApi.fetchFiles(fetchSource, fetchPath, false, true).then(resWithMetadata => {
               // Capture scroll position before update
               const scrollY = window.scrollY;
 

@@ -100,7 +100,7 @@
 
 <script>
 import ButtonGroup from "./ButtonGroup.vue";
-import { search, filesApi } from "@/api";
+import { toolsApi, resourcesApi } from "@/api";
 import { getters, mutations, state } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { url } from "@/utils/";
@@ -506,7 +506,7 @@ export default {
         const path = url.removeLeadingSlash(url.removeTrailingSlash(s.path));
         const fullPath = context + '/' + path;
         const modified = s.modified || "";
-        return filesApi.getPreviewURL(source, fullPath, modified);
+        return resourcesApi.getPreviewURL(source, fullPath, modified);
       } catch (err) {
         return "";
       }

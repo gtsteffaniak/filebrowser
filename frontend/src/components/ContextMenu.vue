@@ -176,7 +176,7 @@ import Action from "@/components/Action.vue";
 import { globalVars } from "@/utils/constants.js";
 import buttons from "@/utils/buttons";
 import { notify } from "@/notify";
-import { filesApi, publicApi } from "@/api";
+import { resourcesApi, publicApi } from "@/api";
 import { url } from "@/utils";
 
 function isArchivePath(pathOrName) {
@@ -705,7 +705,7 @@ export default {
         mutations.closeHovers();
         return;
       }
-      const downloadUrl = filesApi.getDownloadURL(
+      const downloadUrl = resourcesApi.getDownloadURL(
         state.req?.source || "",
         state.req?.path || "",
         true,

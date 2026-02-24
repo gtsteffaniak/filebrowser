@@ -53,7 +53,7 @@
 <script>
 import { mutations } from "@/store";
 import { notify } from "@/notify";
-import { usersApi } from "@/api";
+import { authApi } from "@/api";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import { eventBus } from "@/store/eventBus";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
@@ -121,7 +121,7 @@ export default {
           params.permissions = permissionsString;
         }
 
-        await usersApi.createApiKey(params);
+        await authApi.createApiKey(params);
         // Emit event to refresh API keys list
         eventBus.emit('apiKeysChanged');
         notify.showSuccessToast(this.$t("api.createKeySuccess"));

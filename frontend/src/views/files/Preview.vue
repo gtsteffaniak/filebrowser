@@ -53,7 +53,7 @@
   </div>
 </template>
 <script>
-import { filesApi, publicApi } from "@/api";
+import { resourcesApi, publicApi } from "@/api";
 import { url } from "@/utils";
 import ExtendedImage from "@/components/files/ExtendedImage.vue";
 import plyrViewer from "@/views/files/plyrViewer.vue";
@@ -157,7 +157,7 @@ export default {
             true,
           );
         }
-        return filesApi.getDownloadURL(state.req.source, state.req.path, true);
+        return resourcesApi.getDownloadURL(state.req.source, state.req.path, true);
       }
 
       const getRawPreview = isRawImageMimeType(state.req.type) && globalVars.exiftoolAvailable;
@@ -168,7 +168,7 @@ export default {
           return publicApi.getPreviewURL(previewPath, "original");
         }
         return (
-          filesApi.getPreviewURL(
+          resourcesApi.getPreviewURL(
             state.req.source,
             state.req.path,
             state.req.modified,
@@ -186,7 +186,7 @@ export default {
           true,
         );
       }
-      return filesApi.getDownloadURL(
+      return resourcesApi.getDownloadURL(
         state.req.source,
         state.req.path,
         true,
@@ -206,7 +206,7 @@ export default {
           [state.req.path],
         );
       }
-      return filesApi.getDownloadURL(state.req.source, state.req.path);
+      return resourcesApi.getDownloadURL(state.req.source, state.req.path);
     },
     isTransitioning() {
       return state.navigation.isTransitioning;
@@ -297,7 +297,7 @@ export default {
         const subtitleTrack = state.req.subtitles[index];
         try {
           // Fetch subtitle content from API using name and embedded
-          const content = await filesApi.getSubtitleContent(
+          const content = await resourcesApi.getSubtitleContent(
             state.req.source,
             state.req.path,
             subtitleTrack.name,
@@ -376,7 +376,7 @@ export default {
               );
             } else {
               // Use regular files API for authenticated users
-              res = await filesApi.fetchFiles(
+              res = await resourcesApi.fetchFiles(
                 state.req.source,
                 directoryPath,
               );
@@ -421,8 +421,8 @@ export default {
           : publicApi.getPreviewURL(state.shareInfo?.hash, item.path);
       }
       return this.fullSize
-        ? filesApi.getDownloadURL(state.req.source, item.path, true)
-        : filesApi.getPreviewURL(
+        ? resourcesApi.getDownloadURL(state.req.source, item.path, true)
+        : resourcesApi.getPreviewURL(
             state.req.source,
             item.path,
             item.modified,
@@ -434,7 +434,7 @@ export default {
     showDeletePrompt() {
       const item = state.req;
       const previewUrl = item.hasPreview
-        ? filesApi.getPreviewURL(item.source, item.path, item.modified)
+        ? resourcesApi.getPreviewURL(item.source, item.path, item.modified)
         : null;
       mutations.showHover({
         name: "delete",

@@ -34,7 +34,7 @@
 <script>
 import { state, getters, mutations } from "@/store";
 import { url } from "@/utils";
-import { filesApi, publicApi } from "@/api";
+import { resourcesApi, publicApi } from "@/api";
 import { notify } from "@/notify";
 
 export default {
@@ -251,7 +251,7 @@ export default {
           const response = await publicApi.fetchPub(targetPath, state.shareInfo.hash);
           targetDirItems = response?.items;
         } else {
-          const response = await filesApi.fetchFiles(source, targetPath);
+          const response = await resourcesApi.fetchFiles(source, targetPath);
           targetDirItems = response?.items;
         }
       } catch (error) {
@@ -276,7 +276,7 @@ export default {
           if (getters.isShare()) {
             await publicApi.moveCopy(state.shareInfo.hash, itemsToMove, "move", overwrite, rename);
           } else {
-            await filesApi.moveCopy(itemsToMove, "move", overwrite, rename);
+            await resourcesApi.moveCopy(itemsToMove, "move", overwrite, rename);
           }
 
           const buttonAction = () => {

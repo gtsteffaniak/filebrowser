@@ -6,7 +6,7 @@
 
 <script>
 import { state, getters, mutations } from "@/store";
-import { filesApi, publicApi } from "@/api";
+import { resourcesApi, publicApi } from "@/api";
 import { url } from "@/utils";
 import { notify } from "@/notify";
 import ace, { version as ace_version } from "ace-builds";
@@ -269,7 +269,7 @@ export default {
           if (getters.isShare()) {
             res = await publicApi.fetchPub(directoryPath, state.shareInfo.hash);
           } else {
-            res = await filesApi.fetchFiles(this.req.source, directoryPath);
+            res = await resourcesApi.fetchFiles(this.req.source, directoryPath);
           }
           listing = res.items;
         } catch (error) {
@@ -389,7 +389,7 @@ export default {
         await publicApi.put(state.shareInfo.hash, this.originalReq.path, this.editor.getValue());
       } else {
         // Save the file
-        await filesApi.put(this.originalReq.source, this.originalReq.path, this.editor.getValue());
+        await resourcesApi.put(this.originalReq.source, this.originalReq.path, this.editor.getValue());
       }
 
       notify.showSuccessToast(`${this.originalReq.name} saved successfully.`);

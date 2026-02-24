@@ -74,137 +74,193 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 		devMode:   settings.Env.IsDevMode,
 	}
 
+	// Core routing
 	router := http.NewServeMux()
-	// API group routing
 	api := http.NewServeMux()
-	// Public group routing (new structure)
 	publicRoutes := http.NewServeMux()
+	publicApi := http.NewServeMux()
 
-	// User routes
-	api.HandleFunc("GET /users", withUser(userGetHandler))
-	api.HandleFunc("POST /users", withSelfOrAdmin(usersPostHandler))
-	api.HandleFunc("PUT /users", withUser(userPutHandler))
-	api.HandleFunc("DELETE /users", withSelfOrAdmin(userDeleteHandler))
-	api.HandleFunc("GET /health", healthHandler)
+	// Feature-specific muxes
+	userMux := http.NewServeMux()
+	authMux := http.NewServeMux()
+	resourcesMux := http.NewServeMux()
+	accessMux := http.NewServeMux()
+	shareMux := http.NewServeMux()
+	settingsMux := http.NewServeMux()
+	toolsMux := http.NewServeMux()
+	officeMux := http.NewServeMux()
+	sharePublicMux := http.NewServeMux()
 
-	// Auth routes
-	api.HandleFunc("POST /auth/login", userWithoutOTP(loginHandler))
-	api.HandleFunc("POST /auth/logout", withOrWithoutUser(logoutHandler))
-	api.HandleFunc("POST /auth/signup", withoutUser(signupHandler))
-	api.HandleFunc("POST /auth/otp/generate", userWithoutOTP(generateOTPHandler))
-	api.HandleFunc("POST /auth/otp/verify", userWithoutOTP(verifyOTPHandler))
-	api.HandleFunc("POST /auth/renew", withUser(renewHandler))
-	api.HandleFunc("PUT /auth/token", withUser(createApiKeyHandler))
-	api.HandleFunc("GET /auth/token", withUser(createApiKeyHandler))
-	api.HandleFunc("DELETE /auth/token", withUser(deleteApiKeyHandler))
-	api.HandleFunc("GET /auth/tokens", withUser(listApiKeysHandler))
-	api.HandleFunc("GET /auth/oidc/callback", wrapHandler(oidcCallbackHandler))
-	api.HandleFunc("GET /auth/oidc/login", wrapHandler(oidcLoginHandler))
+	// ========================================
+	// User Routes - /api/users/ or /public/api/users/
+	// ========================================
+	userMux.HandleFunc("GET /", withUser(userGetHandler))
+	userMux.HandleFunc("POST /", withSelfOrAdmin(usersPostHandler))
+	userMux.HandleFunc("PUT /", withUser(userPutHandler))
+	userMux.HandleFunc("DELETE /", withSelfOrAdmin(userDeleteHandler))
+	publicApi.HandleFunc("GET /users", withUser(userGetHandler))
 
-	// Resources routes
-	api.HandleFunc("GET /resources", withUser(resourceGetHandler))
-	api.HandleFunc("GET /resources/items", withUser(itemsGetHandler))
-	api.HandleFunc("DELETE /resources", withUser(resourceDeleteHandler))
-	api.HandleFunc("POST /resources", withUser(resourcePostHandler))
-	api.HandleFunc("PUT /resources", withUser(resourcePutHandler))
-	api.HandleFunc("PATCH /resources", withUser(resourcePatchHandler))
-	api.HandleFunc("DELETE /resources/bulk", withUser(resourceBulkDeleteHandler))
-	api.HandleFunc("POST /resources/archive", withUser(archiveCreateHandler))
-	api.HandleFunc("POST /resources/unarchive", withUser(unarchiveHandler))
+	// ========================================
+	// Auth Routes - /api/auth/ or /public/api/auth/
+	// ========================================
+	authMux.HandleFunc("POST /login", userWithoutOTP(loginHandler))
+	authMux.HandleFunc("POST /logout", withOrWithoutUser(logoutHandler))
+	authMux.HandleFunc("POST /signup", withoutUser(signupHandler))
+	authMux.HandleFunc("POST /otp/generate", userWithoutOTP(generateOTPHandler))
+	authMux.HandleFunc("POST /otp/verify", userWithoutOTP(verifyOTPHandler))
+	authMux.HandleFunc("POST /renew", withUser(renewHandler))
+	authMux.HandleFunc("PUT /token", withUser(createApiKeyHandler))
+	authMux.HandleFunc("GET /token", withUser(createApiKeyHandler))
+	authMux.HandleFunc("DELETE /token", withUser(deleteApiKeyHandler))
+	authMux.HandleFunc("GET /tokens", withUser(listApiKeysHandler))
+	authMux.HandleFunc("GET /oidc/callback", wrapHandler(oidcCallbackHandler))
+	authMux.HandleFunc("GET /oidc/login", wrapHandler(oidcLoginHandler))
+
+	// ========================================
+	// Resources Routes - /api/resources/ or /public/api/resources
+	// ========================================
+	resourcesMux.HandleFunc("GET /", withUser(resourceGetHandler))
+	resourcesMux.HandleFunc("GET /items", withUser(itemsGetHandler))
+	resourcesMux.HandleFunc("DELETE /", withUser(resourceDeleteHandler))
+	resourcesMux.HandleFunc("POST /", withUser(resourcePostHandler))
+	resourcesMux.HandleFunc("PUT /", withUser(resourcePutHandler))
+	resourcesMux.HandleFunc("PATCH /", withUser(resourcePatchHandler))
+	resourcesMux.HandleFunc("DELETE /bulk", withUser(resourceBulkDeleteHandler))
+	resourcesMux.HandleFunc("POST /archive", withUser(archiveCreateHandler))
+	resourcesMux.HandleFunc("POST /unarchive", withUser(unarchiveHandler))
+	resourcesMux.HandleFunc("GET /raw", withUser(rawHandler))
+	resourcesMux.HandleFunc("GET /preview", withTimeout(60*time.Second, withUserHelper(previewHandler)))
+	resourcesMux.HandleFunc("GET /media/subtitles", withUser(subtitlesHandler))
+	publicApi.HandleFunc("GET /resources", withHashFile(publicGetResourceHandler))
+	publicApi.HandleFunc("GET /resources/items", withHashFile(publicItemsGetHandler))
+	publicApi.HandleFunc("POST /resources", withHashFile(publicUploadHandler))
+	publicApi.HandleFunc("PUT /resources", withHashFile(publicPutHandler))
+	publicApi.HandleFunc("DELETE /resources", withHashFile(publicDeleteHandler))
+	publicApi.HandleFunc("DELETE /resources/bulk", withHashFile(publicBulkDeleteHandler))
+	publicApi.HandleFunc("PATCH /resources", withHashFile(publicPatchHandler))
+	publicApi.HandleFunc("GET /raw", withHashFile(publicRawHandler))
+	publicApi.HandleFunc("GET /preview", withTimeout(60*time.Second, withHashFileHelper(publicPreviewHandler)))
+
+	// Legacy routes (backwards compatibility for downloads)
 	api.HandleFunc("GET /raw", withUser(rawHandler))
-	api.HandleFunc("GET /preview", withTimeout(60*time.Second, withUserHelper(previewHandler)))
-	api.HandleFunc("GET /media/subtitles", withUser(subtitlesHandler))
+
+	// Public Resources (hash-based auth)
+	// ========================================
+	// Access Routes - /api/access/
+	// ========================================
+	accessMux.HandleFunc("GET /", withAdmin(accessGetHandler))
+	accessMux.HandleFunc("POST /", withAdmin(accessPostHandler))
+	accessMux.HandleFunc("PATCH /", withAdmin(accessPatchHandler))
+	accessMux.HandleFunc("DELETE /", withAdmin(accessDeleteHandler))
+	accessMux.HandleFunc("GET /groups", withAdmin(groupGetHandler))
+	accessMux.HandleFunc("POST /group", withAdmin(groupPostHandler))
+	accessMux.HandleFunc("DELETE /group", withAdmin(groupDeleteHandler))
+
+	// ========================================
+	// Share Routes - /api/share/ (no public routes)
+	// ========================================
+	shareMux.HandleFunc("GET /", withPermShare(shareListHandler))
+	shareMux.HandleFunc("GET /direct", withPermShare(shareDirectDownloadHandler))
+	shareMux.HandleFunc("GET /info", withPermShare(shareGetHandler))
+	shareMux.HandleFunc("POST /", withPermShare(sharePostHandler))
+	shareMux.HandleFunc("PATCH /", withPermShare(sharePatchHandler))
+	shareMux.HandleFunc("DELETE /", withPermShare(shareDeleteHandler))
+
+	// ========================================
+	// Settings Routes - /api/settings/ (no public routes)
+	// ========================================
+	settingsMux.HandleFunc("GET /", withAdmin(settingsGetHandler))
+	settingsMux.HandleFunc("GET /config", withAdmin(settingsConfigHandler))
+	settingsMux.HandleFunc("GET /sources", withAdmin(getSourceInfoHandler))
+
+	// ========================================
+	// Tools Routes - /api/tools/ (no public routes)
+	// ========================================
+	toolsMux.HandleFunc("GET /search", withUser(searchHandler))
+	toolsMux.HandleFunc("GET /duplicates", withUser(duplicatesHandler))
+	toolsMux.HandleFunc("GET /watch", withUser(fileWatchHandler))
+	toolsMux.HandleFunc("GET /watch/sse", withUser(fileWatchSSEHandler))
+
+	// ========================================
+	// OnlyOffice Routes - /api/office/ or /public/api/onlyoffice/
+	// ========================================
+	officeMux.HandleFunc("GET /config", withUser(onlyofficeClientConfigGetHandler))
+	officeMux.HandleFunc("POST /callback", withUser(onlyofficeCallbackHandler))
+	officeMux.HandleFunc("GET /callback", withUser(onlyofficeCallbackHandler))
+	publicApi.HandleFunc("POST /onlyoffice/callback", withHashFile(onlyofficeCallbackHandler))
+	publicApi.HandleFunc("GET /onlyoffice/callback", withHashFile(onlyofficeCallbackHandler))
+	publicApi.HandleFunc("GET /onlyoffice/config", withHashFile(onlyofficeClientConfigGetHandler))
+
+	// ========================================
+	// Share Public Routes - /public/api/share/
+	// ========================================
+	sharePublicMux.HandleFunc("GET /info", withOrWithoutUser(shareInfoHandler))
+	sharePublicMux.HandleFunc("GET /image", withHashFile(getShareImage))
+
+	// ========================================
+	// Misc Routes
+	// ========================================
+	// General health check
+	api.HandleFunc("GET /health", healthHandler)
+	// Event streaming
+	api.HandleFunc("GET /events", withUser(sseHandler))
+	// Dev-only routes
 	if settings.Env.IsDevMode {
 		api.HandleFunc("GET /inspectIndex", inspectIndex)
 		api.HandleFunc("GET /mockData", mockData)
 	}
-	// Access routes
-	api.HandleFunc("GET /access", withAdmin(accessGetHandler))
-	api.HandleFunc("POST /access", withAdmin(accessPostHandler))
-	api.HandleFunc("PATCH /access", withAdmin(accessPatchHandler))
-	api.HandleFunc("DELETE /access", withAdmin(accessDeleteHandler))
-	api.HandleFunc("GET /access/groups", withAdmin(groupGetHandler))
-	api.HandleFunc("POST /access/group", withAdmin(groupPostHandler))
-	api.HandleFunc("DELETE /access/group", withAdmin(groupDeleteHandler))
 
-	// Share management routes (require permission)
-	api.HandleFunc("GET /shares", withPermShare(shareListHandler))
-	api.HandleFunc("GET /share/direct", withPermShare(shareDirectDownloadHandler))
-	api.HandleFunc("GET /share", withPermShare(shareGetHandler))
-	api.HandleFunc("POST /share", withPermShare(sharePostHandler))
-	api.HandleFunc("PATCH /share", withPermShare(sharePatchHandler))
-	api.HandleFunc("DELETE /share", withPermShare(shareDeleteHandler))
+	// ========================================
+	// Mount Sub-Muxes
+	// ========================================
+	api.Handle("/users/", http.StripPrefix("/users", userMux))
+	api.Handle("/auth/", http.StripPrefix("/auth", authMux))
+	api.Handle("/resources/", http.StripPrefix("/resources", resourcesMux))
+	api.Handle("/access/", http.StripPrefix("/access", accessMux))
+	api.Handle("/share/", http.StripPrefix("/share", shareMux))
+	api.Handle("/shares/", http.StripPrefix("/shares", shareMux))
+	api.Handle("/settings/", http.StripPrefix("/settings", settingsMux))
+	api.Handle("/tools/", http.StripPrefix("/tools", toolsMux))
+	api.Handle("/office/", http.StripPrefix("/office", officeMux))
 
-	// Create API sub-router for public API endpoints
-	publicAPI := http.NewServeMux()
-	// NEW PUBLIC ROUTES - All publicly accessible endpoints
-	// Public API routes (hash-based authentication)
-	publicAPI.HandleFunc("GET /raw", withHashFile(publicRawHandler))
-	publicAPI.HandleFunc("GET /preview", withTimeout(60*time.Second, withHashFileHelper(publicPreviewHandler)))
-	publicAPI.HandleFunc("GET /users", withUser(userGetHandler))
-	publicAPI.HandleFunc("POST /onlyoffice/callback", withHashFile(onlyofficeCallbackHandler))
-	publicAPI.HandleFunc("GET /onlyoffice/callback", withHashFile(onlyofficeCallbackHandler))
-	publicAPI.HandleFunc("GET /onlyoffice/config", withHashFile(onlyofficeClientConfigGetHandler))
-	publicAPI.HandleFunc("GET /resources", withHashFile(publicGetResourceHandler))
-	publicAPI.HandleFunc("GET /resources/items", withHashFile(publicItemsGetHandler))
-	publicAPI.HandleFunc("POST /resources", withHashFile(publicUploadHandler))
-	publicAPI.HandleFunc("PUT /resources", withHashFile(publicPutHandler))
-	publicAPI.HandleFunc("DELETE /resources", withHashFile(publicDeleteHandler))
-	publicAPI.HandleFunc("DELETE /resources/bulk", withHashFile(publicBulkDeleteHandler))
-	publicAPI.HandleFunc("PATCH /resources", withHashFile(publicPatchHandler))
-	publicAPI.HandleFunc("GET /shareinfo", withOrWithoutUser(shareInfoHandler))
-	publicAPI.HandleFunc("GET /share/image", withHashFile(getShareImage))
+	// Mount public API
+	publicRoutes.Handle("/api/", http.StripPrefix("/api", publicApi))
 
-	// Settings routes
-	api.HandleFunc("GET /settings", withAdmin(settingsGetHandler))
-	api.HandleFunc("GET /settings/config", withAdmin(settingsConfigHandler))
-
-	// Events routes
-	api.HandleFunc("GET /events", withUser(sseHandler))
-	// Job routes
-	api.HandleFunc("GET /jobs/{action}/{target}", withUser(getJobsHandler))
-
-	api.HandleFunc("GET /onlyoffice/config", withUser(onlyofficeClientConfigGetHandler))
-	api.HandleFunc("POST /onlyoffice/callback", withUser(onlyofficeCallbackHandler))
-	api.HandleFunc("GET /onlyoffice/callback", withUser(onlyofficeCallbackHandler))
-
-	api.HandleFunc("GET /search", withUser(searchHandler))
-	api.HandleFunc("GET /duplicates", withUser(duplicatesHandler))
-	api.HandleFunc("GET /tools/watch", withUser(fileWatchHandler))
-	api.HandleFunc("GET /tools/watch/sse", withUser(fileWatchSSEHandler))
-	// Mount the public API sub-router
-	publicRoutes.Handle("/api/", http.StripPrefix("/api", publicAPI))
-
-	// Mount the route groups
+	// ========================================
+	// Configure Main Router
+	// ========================================
 	apiPath := config.Server.BaseURL + "api"
 	publicPath := config.Server.BaseURL + "public"
 	webDavPath := config.Server.BaseURL + "dav"
+
+	// Mount primary API and public routes
 	router.Handle(apiPath+"/", http.StripPrefix(apiPath, api))
 	router.Handle(publicPath+"/", http.StripPrefix(publicPath, publicRoutes))
 
+	// WebDAV handler
 	if !config.Server.DisableWebDAV {
-		// WebDAV handler -- uses Basic Auth where password is JWT token
-		// (reddec) do not trim /dav prefix here - webdav library for some reason does not like it.
+		// Uses Basic Auth where password is JWT token
+		// Note: do not trim /dav prefix here - webdav library requires it
 		router.Handle(webDavPath+"/{source}/{path...}", withBasicAuth(webDAVHandler))
 	}
+
 	// Frontend share route redirect (DEPRECATED - maintain for backwards compatibility)
-	// Playwright tests need updating to remove this redirect.
+	// TODO: Playwright tests need updating to remove this redirect
 	router.HandleFunc(fmt.Sprintf("GET %vshare/", config.Server.BaseURL), withOrWithoutUser(redirectToShare))
 
-	// New frontend share route handler - handle share page and any subpaths
+	// New frontend share route handler
 	publicRoutes.HandleFunc("GET /share/", withOrWithoutUser(indexHandler))
 
-	// Static and index file handlers
+	// Static assets
 	publicRoutes.Handle("GET /static/", http.HandlerFunc(staticAssetHandler))
-
-	// Standard browser favicon route
 	router.HandleFunc("GET /favicon.svg", http.HandlerFunc(staticAssetHandler))
 
+	// Index and utility routes
 	router.HandleFunc(config.Server.BaseURL, withOrWithoutUser(indexHandler))
 	router.HandleFunc(fmt.Sprintf("GET %vhealth", config.Server.BaseURL), healthHandler)
 	router.Handle(fmt.Sprintf("%vswagger/", config.Server.BaseURL), withUser(swaggerHandler))
 
-	// redirect to baseUrl if not root
+	// Base URL redirect (non-root deployments)
 	if config.Server.BaseURL != "/" {
 		router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, config.Server.BaseURL, http.StatusMovedPermanently)

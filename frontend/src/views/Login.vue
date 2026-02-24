@@ -196,7 +196,7 @@
 import router from "@/router";
 import { mutations, state, getters } from "@/store";
 import Prompts from "@/components/prompts/Prompts.vue";
-import { usersApi } from "@/api";
+import { authApi } from "@/api";
 import { initAuth } from "@/utils/auth";
 import { removeLeadingSlash } from "@/utils/url";
 import { globalVars } from "@/utils/constants";
@@ -336,9 +336,9 @@ export default {
       }
       try {
         if (this.createMode) {
-          await usersApi.signupLogin(this.username, this.password);
+          await authApi.signup(this.username, this.password);
         }
-        await usersApi.login(this.username, this.password, captcha);
+        await authApi.login(this.username, this.password, captcha);
         await initAuth();
         router.push({ path: redirect });
       } catch (e) {

@@ -62,7 +62,7 @@
 <script>
 import { getters, mutations } from "@/store";
 import { downloadManager } from "@/utils/downloadManager";
-import { filesApi } from "@/api";
+import { resourcesApi } from "@/api";
 import ProgressBar from "@/components/ProgressBar.vue";
 
 export default {
@@ -115,7 +115,7 @@ export default {
         // Re-trigger download by calling the download function again
         downloadManager.remove(id);
         try {
-          await filesApi.download(null, [download.file], download.shareHash);
+          await resourcesApi.download(null, [download.file], download.shareHash);
         } catch (err) {
           console.error('Retry download failed:', err);
         }

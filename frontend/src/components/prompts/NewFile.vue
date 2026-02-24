@@ -25,7 +25,7 @@
 </template>
 <script>
 import { state } from "@/store";
-import { filesApi, publicApi } from "@/api";
+import { resourcesApi, publicApi } from "@/api";
 import { getters, mutations } from "@/store"; // Import your custom store
 import { notify } from "@/notify";
 import { url } from "@/utils";
@@ -104,7 +104,7 @@ export default {
           this.creating = false;
           return;
         }
-        await filesApi.post(source, newPath, "", overwrite);
+        await resourcesApi.post(source, newPath, "", overwrite);
         mutations.setReload(true);
         mutations.closeTopHover();
 
@@ -151,7 +151,7 @@ export default {
                         success = true;
                         return;
                       }
-                      await filesApi.post(source, newPath, "", false);
+                      await resourcesApi.post(source, newPath, "", false);
                       mutations.setReload(true);
                       mutations.closeTopHover();
                       success = true;

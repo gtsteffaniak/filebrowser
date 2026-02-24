@@ -52,7 +52,7 @@
 <script>
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
-import { filesApi, publicApi } from "@/api";
+import { resourcesApi, publicApi } from "@/api";
 import ListingItem from "@/components/files/ListingItem.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
@@ -188,7 +188,7 @@ export default {
       // Fetch the initial data for the source
       // Always fetch if browsing a different source or if browsePath was specified
       if (this.currentSource !== state.req.source || this.browsePath) {
-        this.withLoading(() => filesApi.fetchFiles(sourceToUse, pathToUse).then(this.fillOptions));
+        this.withLoading(() => resourcesApi.fetchFiles(sourceToUse, pathToUse).then(this.fillOptions));
       } else {
         this.fillOptions(initialReq);
       }
@@ -263,7 +263,7 @@ export default {
       this.selectedSource = null;
       this.selectedType = null;
       // Fetch files for the new source
-      this.withLoading(() => filesApi.fetchFiles(newSource, newPath).then(this.fillOptions));
+      this.withLoading(() => resourcesApi.fetchFiles(newSource, newPath).then(this.fillOptions));
     },
     resetToShare(newHash) {
       // Reset to the share root
@@ -351,14 +351,14 @@ export default {
       if (this.browseSource) {
         // Explicitly browsing a source - use files API
         this.source = sourceToUse;
-        this.withLoading(() => filesApi.fetchFiles(sourceToUse, path).then(this.fillOptions));
+        this.withLoading(() => resourcesApi.fetchFiles(sourceToUse, path).then(this.fillOptions));
       } else if (this.browseShare || getters.isShare()) {
         // Browsing a share - use public API
         const hashToUse = this.browseShare || state.shareInfo?.hash;
         this.withLoading(() => publicApi.fetchPub(path, hashToUse).then(this.fillOptions));
       } else {
         this.source = sourceToUse;
-        this.withLoading(() => filesApi.fetchFiles(sourceToUse, path).then(this.fillOptions));
+        this.withLoading(() => resourcesApi.fetchFiles(sourceToUse, path).then(this.fillOptions));
       }
 
     },

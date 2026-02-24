@@ -22,7 +22,7 @@
 <script>
 import { mutations } from "@/store";
 import { notify } from "@/notify";
-import { usersApi } from "@/api";
+import { authApi } from "@/api";
 import { initAuth } from "@/utils/auth";
 import QrcodeVue from "qrcode.vue";
 
@@ -70,7 +70,7 @@ export default {
   methods: {
     async generateNewCode() {
       try {
-        const resp = await usersApi.generateOTP(this.username, this.password);
+        const resp = await authApi.generateOTP(this.username, this.password);
         this.url = resp.url;
       } catch (error) {
         this.error = this.$t("otp.generationFailed");
@@ -85,7 +85,7 @@ export default {
         return;
       }
       try {
-        await usersApi.verifyOtp(this.username, this.password, this.code);
+        await authApi.verifyOTP(this.username, this.password, this.code);
         if (this.redirect != "") {
           await usersApi.login(this.username, this.password, this.redirect, this.code);
           await initAuth();

@@ -88,7 +88,7 @@ import { VOXLoader } from 'three/addons/loaders/VOXLoader.js';
 import { KMZLoader } from 'three/addons/loaders/KMZLoader.js';
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { state, mutations, getters } from "@/store";
-import { filesApi, publicApi } from "@/api";
+import { resourcesApi, publicApi } from "@/api";
 import { removeLastDir } from "@/utils/url";
 
 const LOADERS = {
@@ -163,7 +163,7 @@ export default {
           token: state.shareInfo.token,
         }, [this.fbdata.path], useInline);
       }
-      return filesApi.getDownloadURL(this.fbdata.source, this.fbdata.path, useInline);
+      return resourcesApi.getDownloadURL(this.fbdata.source, this.fbdata.path, useInline);
     },
     fileExtension() {
       return this.fbdata.name ? this.fbdata.name.split('.').pop().toLowerCase() : '';
@@ -384,7 +384,7 @@ export default {
             token: state.shareInfo.token,
           }, [texturePath], true);
       }
-      return filesApi.getDownloadURL(this.fbdata.source, texturePath, true);
+      return resourcesApi.getDownloadURL(this.fbdata.source, texturePath, true);
     },
 
     async loadModel() {
@@ -471,7 +471,7 @@ export default {
             hash: state.shareInfo.hash,
             token: state.shareInfo.token,
           }, [mtlPath], true) :
-          filesApi.getDownloadURL(state.req.source, mtlPath, true);
+          resourcesApi.getDownloadURL(state.req.source, mtlPath, true);
 
       const mtlLoader = new MTLLoader(manager);
       mtlLoader.load(mtlUrl, (materials) => {

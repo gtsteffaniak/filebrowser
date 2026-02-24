@@ -57,7 +57,7 @@
 </template>
 
 <script>
-import { filesApi, publicApi } from "@/api";
+import { resourcesApi, publicApi } from "@/api";
 import buttons from "@/utils/buttons";
 import { state, getters, mutations } from "@/store";
 import { notify } from "@/notify";
@@ -196,7 +196,7 @@ export default {
       if ((simpleType === 'document' || simpleType === 'text') && !getters.previewPerms().office) return null;
 
       try {
-        return filesApi.getPreviewURL(source, path, modified);
+        return resourcesApi.getPreviewURL(source, path, modified);
       } catch (e) {
         return null;
       }
@@ -226,7 +226,7 @@ export default {
         // Use bulk delete API for both regular files and shares
         const response = getters.isShare()
           ? await publicApi.bulkDelete(itemsForDelete)
-          : await filesApi.bulkDelete(itemsForDelete);
+          : await resourcesApi.bulkDelete(itemsForDelete);
 
         // Store failed items directly from response
         if (response.failed && response.failed.length > 0) {

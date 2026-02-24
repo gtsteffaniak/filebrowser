@@ -40,7 +40,7 @@
 <script>
 import { mutations, state, getters } from "@/store";
 import FileList from "../files/FileList.vue";
-import { filesApi, publicApi } from "@/api";
+import { resourcesApi, publicApi } from "@/api";
 import buttons from "@/utils/buttons";
 import * as upload from "@/utils/upload";
 import { url } from "@/utils";
@@ -195,14 +195,14 @@ export default {
         if (getters.isShare()) {
           await publicApi.post(state.shareInfo?.hash, fullPath, "", false, undefined, {}, true);
         } else {
-          await filesApi.post(currentSource, fullPath, "", false, undefined, {}, true);
+          await resourcesApi.post(currentSource, fullPath, "", false, undefined, {}, true);
         }
         // Refresh the file list while keeping the current navigation that we did in the prompt
         if (getters.isShare()) {
           publicApi.fetchPub(currentPath, state.shareInfo?.hash)
             .then((req) => this.$refs.fileList.fillOptions(req, true));
         } else {
-          filesApi.fetchFiles(currentSource, currentPath)
+          resourcesApi.fetchFiles(currentSource, currentPath)
             .then((req) => this.$refs.fileList.fillOptions(req, true));
         }
         // Clicking create will also return the buttons to their normal state
@@ -253,7 +253,7 @@ export default {
           if (getters.isShare()) {
             result = await publicApi.moveCopy(state.shareInfo.hash, itemsToProcess, this.operation, overwrite, rename);
           } else {
-            result = await filesApi.moveCopy(itemsToProcess, this.operation, overwrite, rename);
+            result = await resourcesApi.moveCopy(itemsToProcess, this.operation, overwrite, rename);
           }
           return result; // Return the result to check for failures
         };
@@ -262,7 +262,7 @@ export default {
         if (getters.isShare()) {
           dstResp = await publicApi.fetchPub(this.destPath, state.shareInfo?.hash);
         } else {
-          dstResp = await filesApi.fetchFiles(this.destSource, this.destPath);
+          dstResp = await resourcesApi.fetchFiles(this.destSource, this.destPath);
         }
         conflict = upload.checkConflict(itemsToProcess, dstResp.items);
         let overwrite = false;

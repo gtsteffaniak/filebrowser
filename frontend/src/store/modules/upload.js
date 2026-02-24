@@ -1,5 +1,5 @@
 import Vue from "vue";
-import { filesApi } from "@/api";
+import { resourcesApi } from "@/api";
 import throttle from "@/utils/throttle";
 import buttons from "@/utils/buttons";
 
@@ -85,7 +85,7 @@ const actions = {
       context.commit("moveJob");
 
       if (item.file.type == "directory") {
-        await filesApi.post(item.source, item.path, "", false, undefined, {}, true);
+        await resourcesApi.post(item.source, item.path, "", false, undefined, {}, true);
       } else {
         let onUpload = throttle(
           (event) =>

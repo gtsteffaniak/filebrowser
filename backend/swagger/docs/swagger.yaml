@@ -2281,7 +2281,7 @@ paths:
             type: object
       summary: OIDC callback
       tags:
-      - OIDC
+      - Auth
   /api/auth/oidc/login:
     get:
       consumes:
@@ -2296,7 +2296,7 @@ paths:
             type: string
       summary: OIDC login
       tags:
-      - OIDC
+      - Auth
   /api/auth/otp/generate:
     post:
       consumes:
@@ -2334,7 +2334,7 @@ paths:
       - ApiKeyAuth: []
       summary: Generate OTP
       tags:
-      - OTP
+      - Auth
   /api/auth/otp/verify:
     post:
       consumes:
@@ -2375,7 +2375,7 @@ paths:
       - ApiKeyAuth: []
       summary: Verify OTP
       tags:
-      - OTP
+      - Auth
   /api/auth/signup:
     post:
       consumes:
@@ -2447,7 +2447,7 @@ paths:
             type: object
       summary: Delete API key
       tags:
-      - API Keys
+      - Auth
     put:
       consumes:
       - application/json
@@ -2502,7 +2502,7 @@ paths:
             type: object
       summary: Create API key
       tags:
-      - API Keys
+      - Auth
   /api/auth/tokens:
     get:
       consumes:
@@ -2534,55 +2534,7 @@ paths:
             type: object
       summary: List API keys
       tags:
-      - API Keys
-  /api/duplicates:
-    get:
-      consumes:
-      - application/json
-      description: 'Finds duplicate files using multi-stage filtering: size → type
-        → fuzzy filename → progressive checksums. Files must match on size, MIME type,
-        and have 50%+ filename similarity before checksum verification. Large fuzzy
-        groups (>10 files) are skipped to avoid false positives. Checksums use 2-pass
-        progressive verification (header → middle) for accuracy while minimizing disk
-        I/O (~16KB read per file).'
-      parameters:
-      - description: Source name for the desired source
-        in: query
-        name: source
-        required: true
-        type: string
-      - description: path within user scope to search
-        in: query
-        name: scope
-        type: string
-      - description: 'Minimum file size in megabytes (default: 1)'
-        in: query
-        name: minSizeMb
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: List of duplicate file groups with metadata. Response includes
-            'incomplete' flag if processing stopped early due to resource limits.
-          schema:
-            $ref: '#/definitions/http.duplicateResponse'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "503":
-          description: Service Unavailable (indexing in progress or another search
-            running)
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Find Duplicate Files
-      tags:
-      - Duplicates
+      - Auth
   /api/jobs/{action}/{target}:
     get:
       consumes:
@@ -2677,7 +2629,7 @@ paths:
             type: object
       summary: Get subtitle content
       tags:
-      - Subtitles
+      - Resources
   /api/preview:
     get:
       consumes:
@@ -3295,58 +3247,6 @@ paths:
       summary: Extract an archive on the server
       tags:
       - Resources
-  /api/search:
-    get:
-      consumes:
-      - application/json
-      description: Searches for files matching the provided query. Returns file paths
-        and metadata based on the user's session and scope. Supports searching across
-        multiple sources when using the 'sources' parameter.
-      parameters:
-      - description: Search query
-        in: query
-        name: query
-        required: true
-        type: string
-      - description: Source name for the desired source (deprecated, use 'sources'
-          instead)
-        in: query
-        name: source
-        type: string
-      - description: Comma-separated list of source names to search across multiple
-          sources. When multiple sources are specified, scope is always the user's
-          scope for each source.
-        in: query
-        name: sources
-        type: string
-      - description: path within user scope to search, for example '/first/second'
-          to search within the second directory only. Ignored when multiple sources
-          are specified.
-        in: query
-        name: scope
-        type: string
-      - description: User session ID, add unique value to prevent collisions
-        in: header
-        name: SessionId
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: List of search results with source field populated
-          schema:
-            items:
-              $ref: '#/definitions/indexing.SearchResult'
-            type: array
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Search Files
-      tags:
-      - Search
   /api/settings:
     get:
       consumes:
@@ -3613,6 +3513,106 @@ paths:
       summary: List share links
       tags:
       - Shares
+  /api/tools/duplicates:
+    get:
+      consumes:
+      - application/json
+      description: 'Finds duplicate files using multi-stage filtering: size → type
+        → fuzzy filename → progressive checksums. Files must match on size, MIME type,
+        and have 50%+ filename similarity before checksum verification. Large fuzzy
+        groups (>10 files) are skipped to avoid false positives. Checksums use 2-pass
+        progressive verification (header → middle) for accuracy while minimizing disk
+        I/O (~16KB read per file).'
+      parameters:
+      - description: Source name for the desired source
+        in: query
+        name: source
+        required: true
+        type: string
+      - description: path within user scope to search
+        in: query
+        name: scope
+        type: string
+      - description: 'Minimum file size in megabytes (default: 1)'
+        in: query
+        name: minSizeMb
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of duplicate file groups with metadata. Response includes
+            'incomplete' flag if processing stopped early due to resource limits.
+          schema:
+            $ref: '#/definitions/http.duplicateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "503":
+          description: Service Unavailable (indexing in progress or another search
+            running)
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Find Duplicate Files
+      tags:
+      - Tools
+  /api/tools/search:
+    get:
+      consumes:
+      - application/json
+      description: Searches for files matching the provided query. Returns file paths
+        and metadata based on the user's session and scope. Supports searching across
+        multiple sources when using the 'sources' parameter.
+      parameters:
+      - description: Search query
+        in: query
+        name: query
+        required: true
+        type: string
+      - description: Source name for the desired source (deprecated, use 'sources'
+          instead)
+        in: query
+        name: source
+        type: string
+      - description: Comma-separated list of source names to search across multiple
+          sources. When multiple sources are specified, scope is always the user's
+          scope for each source.
+        in: query
+        name: sources
+        type: string
+      - description: path within user scope to search, for example '/first/second'
+          to search within the second directory only. Ignored when multiple sources
+          are specified.
+        in: query
+        name: scope
+        type: string
+      - description: User session ID, add unique value to prevent collisions
+        in: header
+        name: SessionId
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of search results with source field populated
+          schema:
+            items:
+              $ref: '#/definitions/indexing.SearchResult'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Search Files
+      tags:
+      - Tools
   /api/tools/watch:
     get:
       consumes:
@@ -3877,7 +3877,7 @@ paths:
             $ref: '#/definitions/http.HttpResponse'
       summary: Health Check
       tags:
-      - Health
+      - Access
   /public/api/preview:
     get:
       consumes:
@@ -3934,7 +3934,7 @@ paths:
             type: object
       summary: Get image/video preview from a public share
       tags:
-      - Public Shares
+      - Shares
   /public/api/raw:
     get:
       consumes:
@@ -4009,7 +4009,7 @@ paths:
             type: object
       summary: Download files from a public share
       tags:
-      - Public Shares
+      - Shares
   /public/api/resources:
     get:
       consumes:
@@ -4068,7 +4068,7 @@ paths:
             type: object
       summary: Get file/directory information from a public share
       tags:
-      - Public Shares
+      - Shares
     patch:
       consumes:
       - application/json
@@ -4121,7 +4121,7 @@ paths:
             $ref: '#/definitions/http.MoveCopyResponse'
       summary: Move, copy, or rename resources in a public share
       tags:
-      - Public Shares
+      - Shares
     post:
       consumes:
       - multipart/form-data
@@ -4200,7 +4200,7 @@ paths:
             type: object
       summary: Upload files to a public upload share
       tags:
-      - Public Shares
+      - Shares
     put:
       consumes:
       - application/json
@@ -4257,7 +4257,7 @@ paths:
             type: object
       summary: Update a file in a public share
       tags:
-      - Public Shares
+      - Shares
   /public/api/resources/bulk:
     delete:
       consumes:
@@ -4309,7 +4309,7 @@ paths:
             type: object
       summary: Bulk delete resources from public share
       tags:
-      - Public Shares
+      - Shares
   /public/api/resources/items:
     get:
       consumes:
@@ -4359,7 +4359,7 @@ paths:
             type: object
       summary: Get directory items (public share)
       tags:
-      - Public Shares
+      - Shares
   /public/api/share/image:
     get:
       description: Returns a resizable preview (large size) for the banner or favicon
@@ -4405,7 +4405,7 @@ paths:
             type: object
       summary: Get share image (banner or favicon) as preview
       tags:
-      - Public Shares
+      - Shares
   /public/api/shareinfo:
     get:
       consumes:
