@@ -147,7 +147,6 @@
     "replaceMessage": "Jednen z plików który próbujesz wrzucić próbje nadpisać plik o tej samej nazwie. Czy chcesz nadpisać poprzedni plik?\n",
     "schedule": "Grafi",
     "scheduleMessage": "Wybierz datę i czas dla publikacji tego wpisu.",
-    "show": "Pokaż",
     "deleteUserMessage": "Czy na pewno chcesz usunąć tego użytkownika?",
     "filesSelected": "wybrane pliki",
     "optionalPassword": "Hasło opcjonalne",
@@ -375,11 +374,14 @@
     "shareLinksUpdatedSuccess": "Linki do paska bocznego zostały pomyślnie zaktualizowane!",
     "shareHome": "Share Home",
     "linkIconPlaceholder": "Opcjonalnie można określić nazwę ikony materiału",
-    "hideUsage": "Ukryj użycie",
-    "hideUsageDescription": "Nie pokazuj wykorzystania przestrzeni dyskowej w tym linku źródłowym (styl minimalny).",
     "onlyShowIndexedUsage": "Obliczanie użycia na podstawie zindeksowanych plików",
     "onlyShowIndexedUsageDescription": "Gdy wyłączona, pokazuje całkowite użycie partycji zgłoszone przez system operacyjny zamiast obliczonych sum indeksowanych plików dla źródła.",
-    "switchMode": "Przełącz tryb panelu bocznego"
+    "switchMode": "Przełącz tryb panelu bocznego",
+    "showIndexedUsageDescription": "Wyświetla pasek użycia obliczony na podstawie zindeksowanych plików w źródle.",
+    "showDiskUsageDescription": "Wyświetla pasek użycia na podstawie rozmiaru dysku/partycji zgłoszonego przez system operacyjny. Rozmiar ten będzie prawdopodobnie większy i obejmuje pliki niezindeksowane.",
+    "usageTextDisplay": "Jaki tekst użytkowania powinien być wyświetlany?",
+    "usageTextIndexed": "użycie jako indeksowane",
+    "usageTextDisk": "użycie zgłoszone przez dysk/partycję"
   },
   "success": {
     "linkCopied": "Link Skopiowany!"
@@ -645,7 +647,8 @@
     "reset": "Reset{suffix}",
     "space": "Przestrzeń{suffix}",
     "format": "Format{suffix}",
-    "office": "Biuro{suffix}"
+    "office": "Biuro{suffix}",
+    "show": "Pokaż{suffix}"
   },
   "access": {
     "rules": "Zasady dostępu",

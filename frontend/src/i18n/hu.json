@@ -147,7 +147,6 @@
     "replaceMessage": "Az egyik feltölteni kívánt fájl a neve miatt ütközik. Szeretné lecserélni a meglévő fájlt?\n",
     "schedule": "Ütemezés",
     "scheduleMessage": "Válasszon egy dátumot és időpontot a bejegyzés közzétételének ütemezéséhez.",
-    "show": "Megjelenítés",
     "optionalPassword": "Választható jelszó",
     "deleteUserMessage": "Biztos, hogy törölni szeretné ezt a felhasználót?",
     "filesSelected": "kiválasztott fájlok",
@@ -375,11 +374,14 @@
     "shareLinksUpdatedSuccess": "Megosztás oldalsáv linkek sikeresen frissítve!",
     "shareHome": "Megosztás",
     "linkIconPlaceholder": "Opcionálisan megadhatja az anyag ikon nevét",
-    "hideUsage": "Használat elrejtése",
-    "hideUsageDescription": "Ne jelenítse meg a tárolóhasználatot ezen a forráshivatkozáson (minimális stílus).",
     "onlyShowIndexedUsage": "Használat kiszámítása indexelt fájlokból",
     "onlyShowIndexedUsageDescription": "Ha ki van kapcsolva, akkor a forráshoz tartozó indexelt fájlok kiszámított összértéke helyett a partíció teljes használatát mutatja az operációs rendszer által jelentett módon.",
-    "switchMode": "Oldalsáv mód váltása"
+    "switchMode": "Oldalsáv mód váltása",
+    "showIndexedUsageDescription": "A forrásban lévő indexelt fájlokból számított használati sáv megjelenítése.",
+    "showDiskUsageDescription": "A lemez/partíció méretéből származó, az operációs rendszer által jelentett használati sáv megjelenítése. Ez a méret valószínűleg nagyobb lesz, és tartalmazza az indexeletlen fájlokat is.",
+    "usageTextDisplay": "Milyen használati szöveget kell megjeleníteni?",
+    "usageTextIndexed": "indexált használat",
+    "usageTextDisk": "lemez/partíció által bejelentett használat"
   },
   "success": {
     "linkCopied": "Link másolva!"
@@ -645,7 +647,8 @@
     "reset": "Reset{suffix}",
     "space": "Űr{suffix}",
     "format": "Formátum{suffix}",
-    "office": "Iroda{suffix}"
+    "office": "Iroda{suffix}",
+    "show": "Mutasd meg a{suffix}"
   },
   "access": {
     "rules": "Hozzáférési szabályok",

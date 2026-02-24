@@ -147,7 +147,6 @@
     "replaceMessage": "동일한 파일 이름이 존재합니다. 현재 파일을 덮어쓸까요?\n",
     "schedule": "일정",
     "scheduleMessage": "이 글을 공개할 시간을 알려주세요.",
-    "show": "보기",
     "deleteUserMessage": "이 사용자를 삭제하시겠습니까?",
     "filesSelected": "선택한 파일",
     "optionalPassword": "선택적 비밀번호",
@@ -375,11 +374,14 @@
     "shareLinksUpdatedSuccess": "공유 사이드바 링크가 성공적으로 업데이트되었습니다!",
     "shareHome": "홈 공유",
     "linkIconPlaceholder": "선택적으로 머티리얼 아이콘 이름을 지정합니다.",
-    "hideUsage": "사용량 숨기기",
-    "hideUsageDescription": "이 소스 링크에 저장소 사용량을 표시하지 않습니다(최소 스타일).",
     "onlyShowIndexedUsage": "인덱싱된 파일에서 사용량 계산",
     "onlyShowIndexedUsageDescription": "비활성화하면 소스에 대해 계산된 인덱싱된 파일 합계 대신 OS에서 보고한 파티션의 총 사용량을 표시합니다.",
-    "switchMode": "사이드바 모드 전환"
+    "switchMode": "사이드바 모드 전환",
+    "showIndexedUsageDescription": "소스의 인덱싱된 파일에서 계산된 사용량 표시줄을 표시합니다.",
+    "showDiskUsageDescription": "OS에서 보고한 디스크/파티션 크기에서 사용량 막대를 표시합니다. 이 크기는 더 클 수 있으며 인덱싱되지 않은 파일도 포함됩니다.",
+    "usageTextDisplay": "어떤 사용법 텍스트를 표시해야 하나요?",
+    "usageTextIndexed": "인덱싱된 사용량",
+    "usageTextDisk": "디스크/파티션별로 보고된 사용량"
   },
   "success": {
     "linkCopied": "링크가 복사되었습니다!"
@@ -645,7 +647,8 @@
     "reset": "초기화{suffix}",
     "space": "공간{suffix}",
     "format": "형식{suffix}",
-    "office": "Office{suffix}"
+    "office": "Office{suffix}",
+    "show": "표시{suffix}"
   },
   "access": {
     "rules": "액세스 규칙",

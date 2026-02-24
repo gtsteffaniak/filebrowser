@@ -147,7 +147,6 @@
     "replaceMessage": "Eine der Datei mit dem gleichen Namen, wie die Sie hochladen wollen, existiert bereits. Soll die vorhandene Datei übersprungen oder ersetzt werden?\n",
     "schedule": "Zeitplan",
     "scheduleMessage": "Wählen Sie ein Datum und eine Zeit für die Veröffentlichung dieses Beitrags.",
-    "show": "Anzeigen",
     "optionalPassword": "Optionales Kennwort",
     "deleteUserMessage": "Sind Sie sicher, dass Sie diesen Benutzer löschen möchten?",
     "filesSelected": "ausgewählte Dateien",
@@ -375,11 +374,14 @@
     "shareLinksUpdatedSuccess": "Links in der Seitenleiste erfolgreich aktualisiert!",
     "shareHome": "Startseite teilen",
     "linkIconPlaceholder": "Optional können Sie einen Materialsymbolnamen angeben",
-    "hideUsage": "Verwendung ausblenden",
-    "hideUsageDescription": "Zeigen Sie die Speichernutzung für diesen Quelllink nicht an (minimaler Stil).",
     "onlyShowIndexedUsage": "Berechnung der Nutzung von indizierten Dateien",
     "onlyShowIndexedUsageDescription": "Wenn diese Option deaktiviert ist, wird die vom Betriebssystem gemeldete Gesamtnutzung der Partition anstelle der für die Quelle berechneten indizierten Dateisummen angezeigt.",
-    "switchMode": "Seitenleistenmodus wechseln"
+    "switchMode": "Seitenleistenmodus wechseln",
+    "showIndexedUsageDescription": "Anzeige der Nutzungsleiste, die aus den indizierten Dateien in der Quelle berechnet wurde.",
+    "showDiskUsageDescription": "Anzeige der Nutzungsleiste anhand der vom Betriebssystem gemeldeten Festplatten-/Partitionsgröße. Diese Größe wird wahrscheinlich größer sein und schließt nicht indizierte Dateien ein.",
+    "usageTextDisplay": "Welcher Verwendungstext soll angezeigt werden?",
+    "usageTextIndexed": "Nutzung wie indiziert",
+    "usageTextDisk": "Nutzung, wie von der Festplatte/Partition gemeldet"
   },
   "success": {
     "linkCopied": "Link wurde kopiert!"
@@ -645,7 +647,8 @@
     "reset": "Zurücksetzen{suffix}",
     "space": "Weltraum{suffix}",
     "format": "Format{suffix}",
-    "office": "Büro{suffix}"
+    "office": "Büro{suffix}",
+    "show": "anzeigen{suffix}"
   },
   "access": {
     "rules": "Zugangsregeln",
