@@ -11,6 +11,7 @@ https://raw.githubusercontent.com/dzwillia/vue-simple-progress/master/src/compon
       {{ displayed_text }}
     </div>
 
+    <div v-if="valBackground !== null" class="vue-simple-progress-bar vue-simple-progress-bar-background" :style="bar_background_style"></div>
     <div class="vue-simple-progress-bar" :style="bar_style"></div>
     <div
       class="vue-simple-progress-text"
@@ -47,6 +48,12 @@ export default {
     },
     max: {
       default: 100,
+    },
+    "val-background": {
+      default: null,
+    },
+    "val-text": {
+      default: null,
     },
     unit: {
       type: String,
@@ -116,20 +123,30 @@ export default {
       var pct = (this.val / this.max) * 100;
       return Math.max(0, Math.min(pct.toFixed(2), 100));
     },
+    pctBackground() {
+      if (this.valBackground === null) return 0;
+      if (!isNumber(this.valBackground)) return 0;
+      if (this.max <= 0) return 0;
+      var pct = (this.valBackground / this.max) * 100;
+      return Math.max(0, Math.min(pct.toFixed(2), 100));
+    },
     displayed_text() {
-      if (!this.isValNumeric) return this.val;
+      // Use valText if provided (for hybrid mode text override), otherwise use val
+      const displayVal = this.valText !== null ? this.valText : this.val;
+      
+      if (!isNumber(displayVal)) return displayVal;
 
       const percentage =
-        this.max > 0 ? Math.round((this.val / this.max) * 100) : 0;
+        this.max > 0 ? Math.round((displayVal / this.max) * 100) : 0;
 
-      if (this.unit === "bytes" && this.isValNumeric) {
-        const valFormatted = getHumanReadableFilesize(this.val);
+      if (this.unit === "bytes" && isNumber(displayVal)) {
+        const valFormatted = getHumanReadableFilesize(displayVal);
         const maxFormatted = getHumanReadableFilesize(this.max);
         return `${valFormatted} / ${maxFormatted} (${percentage}%)`;
       }
 
       const unit_string = this.unit ? ` ${this.unit}` : "";
-      return `${this.val}${unit_string} / ${this.max}${unit_string} (${percentage}%)`;
+      return `${displayVal}${unit_string} / ${this.max}${unit_string} (${percentage}%)`;
     },
     size_px() {
       switch (this.size) {
@@ -205,6 +222,8 @@ export default {
         barColor = '#f44336';
       } else if (this.status === 'conflict') {
         barColor = '#ff9800';
+      } else if (this.status === 'disk') {
+        barColor = '#9e9e9e'; // Gray for disk usage
       }
 
       let percentage = this.pct >= 1 && this.pct < 7 ? 6 : this.pct;
@@ -216,6 +235,8 @@ export default {
         height: this.size_px + "px",
         background: barColor,
         transition: this.barTransition,
+        position: this.valBackground !== null ? 'relative' : undefined,
+        "z-index": this.valBackground !== null ? 1 : undefined,
       };
 
       // Add pulse animation for indexing status
@@ -239,6 +260,27 @@ export default {
 
       return style;
     },
+    bar_background_style() {
+      let percentage = this.pctBackground >= 1 && this.pctBackground < 7 ? 6 : this.pctBackground;
+      if (percentage < 1) {
+        percentage = 0;
+      }
+      var style = {
+        width: percentage + "%",
+        height: this.size_px + "px",
+        background: '#9e9e9e',
+        transition: this.barTransition,
+        position: 'absolute',
+        top: '0',
+        left: '0',
+      };
+
+      if (this.barBorderRadius > 0) {
+        style["border-radius"] = this.barBorderRadius + "px";
+      }
+
+      return style;
+    },
     text_style() {
       var style = {
         "color": this.textFgColor,
@@ -255,6 +297,7 @@ export default {
         style['width'] = '100%';
         style['padding'] = '0 0.5em';
         style['box-sizing'] = 'border-box';
+        style['z-index'] = this.valBackground !== null ? 2 : undefined;
       }
 
       if (

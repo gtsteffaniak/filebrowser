@@ -147,7 +147,6 @@
     "replaceMessage": "Uno dei file che stai cercando di caricare sta generando un conflitto per via del suo nome. Desideri sostituire il file già esistente?\n",
     "schedule": "Pianifica",
     "scheduleMessage": "Seleziona data e ora per programmare la pubbilicazione di questo post",
-    "show": "Mostra",
     "deleteUserMessage": "Siete sicuri di voler eliminare questo utente?",
     "filesSelected": "file selezionati",
     "optionalPassword": "Password opzionale",
@@ -375,11 +374,14 @@
     "shareLinksUpdatedSuccess": "I link della barra laterale di condivisione sono stati aggiornati con successo!",
     "shareHome": "Condividi Casa",
     "linkIconPlaceholder": "Specificare facoltativamente il nome dell'icona del materiale",
-    "hideUsage": "Nascondere l'uso",
-    "hideUsageDescription": "Non mostrare l'utilizzo della memoria su questo link di origine (stile minimale).",
     "onlyShowIndexedUsage": "Calcolo dell'utilizzo dei file indicizzati",
     "onlyShowIndexedUsageDescription": "Se disattivato, mostra l'uso totale della partizione come riportato dal sistema operativo invece dei totali dei file indicizzati calcolati per la sorgente.",
-    "switchMode": "Cambia modalità barra laterale"
+    "switchMode": "Cambia modalità barra laterale",
+    "showIndexedUsageDescription": "Visualizza la barra di utilizzo calcolata dai file indicizzati nell'origine.",
+    "showDiskUsageDescription": "Visualizza la barra di utilizzo dalla dimensione del disco/partizione come riportata dal sistema operativo. Questa dimensione sarà probabilmente maggiore e comprende i file non indicizzati.",
+    "usageTextDisplay": "Quale testo d'uso deve essere visualizzato?",
+    "usageTextIndexed": "utilizzo come indicizzato",
+    "usageTextDisk": "utilizzo come riportato dal disco/partizione"
   },
   "success": {
     "linkCopied": "Link copiato!"
@@ -645,7 +647,8 @@
     "reset": "Reset{suffix}",
     "space": "Spazio{suffix}",
     "format": "Formato{suffix}",
-    "office": "Ufficio{suffix}"
+    "office": "Ufficio{suffix}",
+    "show": "Mostra{suffix}"
   },
   "access": {
     "rules": "Regole di accesso",

@@ -147,7 +147,6 @@
     "replaceMessage": "Yüklemeye çalıştığınız dosyalardan biri, adı nedeniyle çakışıyor. Mevcut olanı değiştirmek istiyor musunuz?\n",
     "schedule": "Planla",
     "scheduleMessage": "Bu paylaşımın yayınlanmasını planlamak için bir tarih ve saat seçin.",
-    "show": "Göster",
     "optionalPassword": "İsteğe bağlı şifre",
     "deleteUserMessage": "Bu kullanıcıyı silmek istediğinizden emin misiniz?",
     "filesSelected": "seçilen dosyalar",
@@ -375,11 +374,14 @@
     "shareLinksUpdatedSuccess": "Kenar çubuğu bağlantılarını paylaşma başarıyla güncellendi!",
     "shareHome": "Ev Paylaşımı",
     "linkIconPlaceholder": "İsteğe bağlı olarak bir malzeme simgesi adı belirtin",
-    "hideUsage": "Kullanımı Gizle",
-    "hideUsageDescription": "Bu kaynak bağlantısında depolama alanı kullanımını göstermeyin (minimal stil).",
     "onlyShowIndexedUsage": "Dizinlenmiş dosyalardan kullanımı hesaplama",
     "onlyShowIndexedUsageDescription": "Devre dışı bırakıldığında, kaynak için hesaplanan dizinlenmiş dosya toplamları yerine işletim sistemi tarafından bildirilen bölümün toplam kullanımını gösterir.",
-    "switchMode": "Kenar çubuğu modunu değiştir"
+    "switchMode": "Kenar çubuğu modunu değiştir",
+    "showIndexedUsageDescription": "Kaynaktaki dizinlenmiş dosyalardan hesaplanan kullanım çubuğunu görüntüleyin.",
+    "showDiskUsageDescription": "İşletim sistemi tarafından bildirilen disk/bölüm boyutundan kullanım çubuğunu görüntüleyin. Bu boyut büyük olasılıkla daha büyük olacaktır ve dizine eklenmemiş dosyaları da içerir.",
+    "usageTextDisplay": "Hangi kullanım metni görüntülenmelidir?",
+    "usageTextIndexed": "endeksli olarak kullanım",
+    "usageTextDisk": "disk/bölüm tarafından bildirilen kullanım"
   },
   "success": {
     "linkCopied": "Link kopyalandı!"
@@ -645,7 +647,8 @@
     "reset": "Sıfırla{suffix}",
     "space": "Uzay{suffix}",
     "format": "Biçim{suffix}",
-    "office": "Ofis{suffix}"
+    "office": "Ofis{suffix}",
+    "show": "Göster{suffix}"
   },
   "access": {
     "rules": "Erişim kuralları",

@@ -147,7 +147,6 @@
     "replaceMessage": "您嘗試上傳的檔案中有一個與現有檔案的名稱存在衝突。是否取代現有的同名檔案？",
     "schedule": "計畫",
     "scheduleMessage": "請選擇發佈這篇貼文的日期。",
-    "show": "顯示",
     "destinationSource": "目的地來源：",
     "deleteUserMessage": "您確定要刪除此使用者嗎？",
     "dragAndDrop": "將檔案拖放至此",
@@ -375,11 +374,14 @@
     "shareLinksUpdatedSuccess": "分享側邊欄連結更新成功！",
     "shareHome": "分享首頁",
     "linkIconPlaceholder": "可選擇指定材質圖示名稱",
-    "hideUsage": "隱藏使用",
-    "hideUsageDescription": "請勿在此原始碼連結上顯示儲存使用量 (最小樣式)。",
     "onlyShowIndexedUsage": "從索引檔案計算使用量",
     "onlyShowIndexedUsageDescription": "停用時，會顯示作業系統報告的磁碟分割總使用量，而不是計算出的來源索引檔案總量。",
-    "switchMode": "切換側邊欄模式"
+    "switchMode": "切換側邊欄模式",
+    "showIndexedUsageDescription": "顯示從原始碼中的索引檔案計算出來的使用量列。",
+    "showDiskUsageDescription": "根據作業系統報告的磁碟/磁碟分割大小顯示使用量列。此大小可能較大，並包括未編制索引的檔案。",
+    "usageTextDisplay": "應該顯示哪些使用文字？",
+    "usageTextIndexed": "索引的用途",
+    "usageTextDisk": "磁碟/磁碟分割報告的使用量"
   },
   "success": {
     "linkCopied": "連結已複製！"
@@ -723,7 +725,8 @@
     "reset": "重設{suffix}",
     "space": "空間{suffix}",
     "format": "格式{suffix}",
-    "office": "辦公室{suffix}"
+    "office": "辦公室{suffix}",
+    "show": "顯示{suffix}"
   },
   "access": {
     "rules": "存取規則",
