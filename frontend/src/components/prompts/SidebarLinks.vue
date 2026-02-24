@@ -60,6 +60,7 @@
           <option value="">{{ $t('sidebar.selectLinkType') }}</option>
           <option v-if="context === 'user'" value="source">{{ $t('general.source') }}</option>
           <option v-if="context === 'user'" value="source-minimal">{{ $t('general.source') }}</option>
+          <option v-if="context === 'user'" value="source-hybrid">{{ $t('general.source') }}</option>
           <option value="share">{{ $t('general.share') }}</option>
           <option v-if="context === 'user'" value="tool">{{ $t('general.tool') }}</option>
           <option value="custom">{{ $t('sidebar.customLink') }}</option>
@@ -91,20 +92,29 @@
             </div>
           </div>
 
-          <!-- Source link options: Hide Usage and Usage Type -->
+          <!-- Source link options: Two toggles to control usage display type -->
           <div v-if="newLink.sourceName" class="settings-items" style="margin-top: 0.5em;">
-            <!-- Hide Usage: when on, category is source-minimal -->
+            <!-- Show usage from indexed files toggle -->
             <ToggleSwitch class="item"
-              :modelValue="newLink.category === 'source-minimal'"
-              @update:modelValue="(v) => newLink.category = v ? 'source-minimal' : 'source'"
-              :name="$t('sidebar.hideUsage')"
-              :description="$t('sidebar.hideUsageDescription')" />
-            <!-- Only show usage from indexed files: when off, category is source-alt -->
-            <ToggleSwitch v-if="newLink.category !== 'source-minimal'" class="item"
-              :modelValue="newLink.category !== 'source-alt'"
-              @update:modelValue="(v) => newLink.category = v ? 'source' : 'source-alt'"
-              :name="$t('sidebar.onlyShowIndexedUsage')"
-              :description="$t('sidebar.onlyShowIndexedUsageDescription')" />
+              :modelValue="showIndexedUsage"
+              @update:modelValue="updateUsageToggles('indexed', $event)"
+              :name="$t('sidebar.showIndexedUsage')"
+              :description="$t('sidebar.showIndexedUsageDescription')" />
+            <!-- Show disk/partition usage toggle -->
+            <ToggleSwitch class="item"
+              :modelValue="showDiskUsage"
+              @update:modelValue="updateUsageToggles('disk', $event)"
+              :name="$t('sidebar.showDiskUsage')"
+              :description="$t('sidebar.showDiskUsageDescription')" />
+            
+            <!-- Dropdown to choose which usage text to display (only shown in hybrid mode) -->
+            <div v-if="showIndexedUsage && showDiskUsage" class="form-group" style="margin-top: 0.5em;">
+              <p>{{ $t('sidebar.usageTextDisplay') }}</p>
+              <select v-model="usageTextMode" @change="updateUsageTextMode" class="input">
+                <option value="indexed">{{ $t('sidebar.usageTextIndexed') }}</option>
+                <option value="disk">{{ $t('sidebar.usageTextDisk') }}</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -307,6 +317,18 @@ export default {
 
       return this.newLink.target && this.newLink.name;
     },
+    showIndexedUsage() {
+      return this.newLink.category === 'source' || this.newLink.category === 'source-hybrid' || this.newLink.category === 'source-hybrid-2';
+    },
+    showDiskUsage() {
+      return this.newLink.category === 'source-alt' || this.newLink.category === 'source-hybrid' || this.newLink.category === 'source-hybrid-2';
+    },
+    usageTextMode() {
+      if (this.newLink.category === 'source-hybrid-2') {
+        return 'disk';
+      }
+      return 'indexed';
+    },
   },
   async mounted() {
     // Initialize with existing sidebar links based on context
@@ -388,13 +410,48 @@ export default {
       return defaultLinks;
     },
     isSourceCategory(category) {
-      return category === 'source' || category === 'source-minimal' || category === 'source-alt';
+      return category === 'source' || category === 'source-minimal' || category === 'source-alt' || category === 'source-hybrid' || category === 'source-hybrid-2';
+    },
+    updateUsageToggles(toggleType, value) {
+      // Determine the new category based on toggle states
+      // indexed=true, disk=false  -> 'source'
+      // indexed=false, disk=true  -> 'source-alt'
+      // indexed=true, disk=true   -> 'source-hybrid' or 'source-hybrid-2' (depends on usageTextMode)
+      // indexed=false, disk=false -> 'source-minimal'
+      
+      const indexed = toggleType === 'indexed' ? value : this.showIndexedUsage;
+      const disk = toggleType === 'disk' ? value : this.showDiskUsage;
+      
+      if (indexed && disk) {
+        // Preserve the hybrid mode variant if it was already set
+        if (this.newLink.category === 'source-hybrid-2') {
+          this.newLink.category = 'source-hybrid-2';
+        } else {
+          this.newLink.category = 'source-hybrid';
+        }
+      } else if (indexed && !disk) {
+        this.newLink.category = 'source';
+      } else if (!indexed && disk) {
+        this.newLink.category = 'source-alt';
+      } else {
+        this.newLink.category = 'source-minimal';
+      }
+    },
+    updateUsageTextMode(event) {
+      const mode = event.target.value;
+      if (mode === 'disk') {
+        this.newLink.category = 'source-hybrid-2';
+      } else {
+        this.newLink.category = 'source-hybrid';
+      }
     },
     getCategoryLabel(category) {
       const labels = {
         source: this.$t('general.source'),
         'source-minimal': this.$t('general.source'),
         'source-alt': this.$t('general.source'),
+        'source-hybrid': this.$t('general.source'),
+        'source-hybrid-2': this.$t('general.source'),
         tool: this.$t('general.tool'),
         custom: this.$t('sidebar.customLink'),
         share: this.$t('general.share'),
