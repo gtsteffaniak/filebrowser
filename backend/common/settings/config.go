@@ -325,7 +325,7 @@ func setupMedia(generate bool) {
 			Config.Integrations.Media.ExiftoolPath = ""
 		}
 	}
-	if Config.Integrations.Media.ExiftoolPath == "" {
+	if Config.Integrations.Media.ExiftoolPath == "" && !generate {
 		if path, err := exec.LookPath("exiftool"); err == nil && path != "" {
 			Config.Integrations.Media.ExiftoolPath = path
 		}
