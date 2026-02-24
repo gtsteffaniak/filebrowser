@@ -147,7 +147,6 @@
     "replaceMessage": "En av filerna som du försöker överföra är i konflikt på grund av dess namn. Vill du ersätta den befintliga?\n",
     "schedule": "Schema",
     "scheduleMessage": "Pick a date and time to schedule the publication of this post.",
-    "show": "Visa",
     "deleteUserMessage": "Är du säker på att du vill ta bort den här användaren?",
     "selected": "utvalda",
     "filesSelected": "valda filer",
@@ -375,11 +374,14 @@
     "shareLinksUpdatedSuccess": "Dela sidofältets länkar uppdaterades framgångsrikt!",
     "shareHome": "Dela hem",
     "linkIconPlaceholder": "Ange eventuellt ett namn på materialikonen",
-    "hideUsage": "Dölj användning",
-    "hideUsageDescription": "Visa inte lagringsanvändning på den här källänken (minimal stil).",
     "onlyShowIndexedUsage": "Beräkna användning från indexerade filer",
     "onlyShowIndexedUsageDescription": "När den är inaktiverad visas den totala användningen av partitionen som rapporteras av operativsystemet i stället för beräknade indexerade filtotaler för källan.",
-    "switchMode": "Växla sidofältsläge"
+    "switchMode": "Växla sidofältsläge",
+    "showIndexedUsageDescription": "Visa användningsfältet beräknat från indexerade filer i källan.",
+    "showDiskUsageDescription": "Visa användningsstapel från disk-/partitionsstorlek som rapporteras av operativsystemet. Denna storlek är sannolikt större och inkluderar filer som inte är indexerade.",
+    "usageTextDisplay": "Vilken användningstext ska visas?",
+    "usageTextIndexed": "användning som indexerad",
+    "usageTextDisk": "användning som rapporteras av disk/partition"
   },
   "success": {
     "linkCopied": "Länk kopierad"
@@ -723,7 +725,8 @@
     "reset": "Återställning{suffix}",
     "space": "Utrymme{suffix}",
     "format": "Format{suffix}",
-    "office": "Kontor{suffix}"
+    "office": "Kontor{suffix}",
+    "show": "Visa{suffix}"
   },
   "access": {
     "rules": "Regler för åtkomst",

@@ -147,7 +147,6 @@
     "replaceMessage": "アップロードするファイルの中に競合する名前があります。既存のファイルを置き換えますか？\n",
     "schedule": "スケジュール",
     "scheduleMessage": "この投稿の公開日時をスケジュールしてください。",
-    "show": "表示",
     "deleteUserMessage": "本当にこのユーザーを削除しますか？",
     "filesSelected": "選択されたファイル",
     "optionalPassword": "任意のパスワード",
@@ -375,11 +374,14 @@
     "shareLinksUpdatedSuccess": "サイドバーの共有リンクが正常に更新されました！",
     "shareHome": "シェア・ホーム",
     "linkIconPlaceholder": "オプションで素材アイコン名を指定",
-    "hideUsage": "用途を隠す",
-    "hideUsageDescription": "このソースリンクにストレージの使用量を表示しない（最小限のスタイル）。",
     "onlyShowIndexedUsage": "インデックスされたファイルから使用量を計算",
     "onlyShowIndexedUsageDescription": "無効にすると、計算されたソースのインデックス・ファイルの合計ではなく、OSが報告したパーティションの合計使用量を表示します。",
-    "switchMode": "サイドバーモードの切り替え"
+    "switchMode": "サイドバーモードの切り替え",
+    "showIndexedUsageDescription": "ソース内のインデックス化されたファイルから計算された使用量バーを表示します。",
+    "showDiskUsageDescription": "OSが報告したディスク/パーティションサイズから使用量バーを表示します。このサイズは、インデックス化されていないファイルを含むため、より大きくなる可能性があります。",
+    "usageTextDisplay": "どのテキストを表示するべきか？",
+    "usageTextIndexed": "索引どおり",
+    "usageTextDisk": "ディスク/パーティションごとの使用量"
   },
   "success": {
     "linkCopied": "リンクがコピーされました！"
@@ -645,7 +647,8 @@
     "reset": "リセット{suffix}",
     "space": "スペース{suffix}",
     "format": "フォーマット{suffix}",
-    "office": "オフィス{suffix}"
+    "office": "オフィス{suffix}",
+    "show": "ショー{suffix}"
   },
   "access": {
     "rules": "アクセスルール",

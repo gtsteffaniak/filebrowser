@@ -147,7 +147,6 @@
     "replaceMessage": "Niektorý nahrávaný súbor je v konflikte názvov. Chcete nahradiť existujúci súbor?\n",
     "schedule": "Naplánovať",
     "scheduleMessage": "Pick a date and time to schedule the publication of this post.",
-    "show": "Zobraziť",
     "optionalPassword": "Voliteľné heslo",
     "deleteUserMessage": "Ste si istí, že chcete odstrániť tohto používateľa?",
     "filesSelected": "vybrané súbory",
@@ -375,11 +374,14 @@
     "shareLinksUpdatedSuccess": "Zdieľanie bočného panela odkazy úspešne aktualizované!",
     "shareHome": "Zdieľať Domov",
     "linkIconPlaceholder": "Voliteľne zadajte názov ikony materiálu",
-    "hideUsage": "Skryť používanie",
-    "hideUsageDescription": "Nezobrazujte využitie úložiska na tomto zdrojovom prepojení (minimálny štýl).",
     "onlyShowIndexedUsage": "Výpočet použitia z indexovaných súborov",
     "onlyShowIndexedUsageDescription": "Ak je vypnutá, zobrazuje celkové využitie oddielu podľa hlásenia operačného systému namiesto vypočítaných indexovaných súčtov súborov pre zdroj.",
-    "switchMode": "Prepnúť režim bočného panela"
+    "switchMode": "Prepnúť režim bočného panela",
+    "showIndexedUsageDescription": "Zobrazenie lišty používania vypočítanej z indexovaných súborov v zdroji.",
+    "showDiskUsageDescription": "Zobrazenie lišty využitia z veľkosti disku/oddielu podľa hlásenia operačného systému. Táto veľkosť bude pravdepodobne väčšia a zahŕňa aj súbory, ktoré nie sú indexované.",
+    "usageTextDisplay": "Ktorý text použitia sa má zobraziť?",
+    "usageTextIndexed": "použitie ako indexované",
+    "usageTextDisk": "využitie podľa hlásenia disku/oddielu"
   },
   "success": {
     "linkCopied": "Odkaz skopírovaný!"
@@ -645,7 +647,8 @@
     "reset": "Obnovenie{suffix}",
     "space": "Priestor{suffix}",
     "format": "Formát{suffix}",
-    "office": "Kancelária{suffix}"
+    "office": "Kancelária{suffix}",
+    "show": "Zobraziť{suffix}"
   },
   "access": {
     "rules": "Pravidlá prístupu",

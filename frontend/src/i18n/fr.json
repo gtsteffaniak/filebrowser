@@ -147,7 +147,6 @@
     "replaceMessage": "Un des fichiers que vous êtes en train d'importer a le même nom qu'un autre déjà présent. Voulez-vous remplacer le fichier actuel par le nouveau ?\n",
     "schedule": "Fixer la date",
     "scheduleMessage": "Choisissez une date pour planifier la publication de ce post",
-    "show": "Montrer",
     "optionalPassword": "Mot de passe optionnel",
     "deleteUserMessage": "Êtes-vous sûr de vouloir supprimer cet utilisateur ?",
     "filesSelected": "fichiers sélectionnés",
@@ -375,11 +374,14 @@
     "shareLinksUpdatedSuccess": "Les liens de la barre latérale de partage ont été mis à jour avec succès !",
     "shareHome": "Partager l'accueil",
     "linkIconPlaceholder": "Spécifier éventuellement un nom d'icône de matériau",
-    "hideUsage": "Cacher l'utilisation",
-    "hideUsageDescription": "N'indiquez pas l'utilisation du stockage sur ce lien source (style minimal).",
     "onlyShowIndexedUsage": "Calculer l'utilisation des fichiers indexés",
     "onlyShowIndexedUsageDescription": "Lorsqu'elle est désactivée, cette option affiche l'utilisation totale de la partition telle qu'elle est rapportée par le système d'exploitation au lieu des totaux de fichiers indexés calculés pour la source.",
-    "switchMode": "Changer le mode de la barre latérale"
+    "switchMode": "Changer le mode de la barre latérale",
+    "showIndexedUsageDescription": "Affiche la barre d'utilisation calculée à partir des fichiers indexés dans la source.",
+    "showDiskUsageDescription": "Affichage de la barre d'utilisation à partir de la taille du disque/de la partition telle qu'elle est indiquée par le système d'exploitation. Cette taille est probablement plus importante et inclut les fichiers non indexés.",
+    "usageTextDisplay": "Quel texte d'utilisation doit être affiché ?",
+    "usageTextIndexed": "utilisation telle qu'indexée",
+    "usageTextDisk": "utilisation telle que rapportée par disque/partition"
   },
   "success": {
     "linkCopied": "Lien copié !"
@@ -645,7 +647,8 @@
     "reset": "Remise à zéro{suffix}",
     "space": "L'espace{suffix}",
     "format": "Format{suffix}",
-    "office": "Bureau{suffix}"
+    "office": "Bureau{suffix}",
+    "show": "Afficher{suffix}"
   },
   "access": {
     "rules": "Règles d'accès",

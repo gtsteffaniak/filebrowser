@@ -147,7 +147,6 @@
     "replaceMessage": "您尝试上传的文件中有一个与现有文件的名称存在冲突。是否替换现有的同名文件？\n",
     "schedule": "计划",
     "scheduleMessage": "请选择发布这篇帖子的日期与时间。",
-    "show": "点击以显示",
     "optionalPassword": "密码（选填，不填即无密码）",
     "deleteUserMessage": "您确定要删除该用户吗？",
     "selected": "选定的",
@@ -375,11 +374,14 @@
     "shareLinksUpdatedSuccess": "共享侧边栏链接更新成功！",
     "shareHome": "共享主页",
     "linkIconPlaceholder": "可选择指定材料图标名称",
-    "hideUsage": "隐藏使用",
-    "hideUsageDescription": "不要在此源代码链接上显示存储使用情况（最小样式）。",
     "onlyShowIndexedUsage": "计算索引文件的使用量",
     "onlyShowIndexedUsageDescription": "禁用时，显示操作系统报告的分区总使用量，而不是计算出的源索引文件总数。",
-    "switchMode": "切换侧边栏模式"
+    "switchMode": "切换侧边栏模式",
+    "showIndexedUsageDescription": "显示根据源文件中的索引文件计算出的用量条。",
+    "showDiskUsageDescription": "根据操作系统报告的磁盘/分区大小显示用量条。该大小可能更大，包括未编入索引的文件。",
+    "usageTextDisplay": "应显示哪些使用文本？",
+    "usageTextIndexed": "指数化使用",
+    "usageTextDisk": "磁盘/分区报告的使用量"
   },
   "success": {
     "linkCopied": "链接已复制！"
@@ -723,7 +725,8 @@
     "reset": "重置{suffix}",
     "space": "空间{suffix}",
     "format": "格式{suffix}",
-    "office": "办公室{suffix}"
+    "office": "办公室{suffix}",
+    "show": "显示{suffix}"
   },
   "access": {
     "rules": "访问规则",
