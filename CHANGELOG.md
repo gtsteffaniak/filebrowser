@@ -50,6 +50,17 @@ Note: a potentially breaking change for docker users: \the default user is now "
  **BugFixes**:
  - Long folder names get cut off at top navigation bar (#1934)
 
+## v1.2.7-beta
+
+ **BugFixes**:
+ - head > title > infinitely duplicating titles (#2016)
+ - Proxy auth not working with Nginx, stuck at logo (#2013)
+
+## v1.2.6-beta
+
+ **Security**:
+ - resolves https://github.com/gtsteffaniak/filebrowser/security/advisories/GHSA-8vrh-3pm2-v4v6
+
 ## v1.2.5-beta
 
  **Notes**:

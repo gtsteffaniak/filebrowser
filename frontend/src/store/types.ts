@@ -75,7 +75,6 @@ export interface UserObject {
   rules?: any[];
   lockPassword?: boolean;
   hideDotfiles?: boolean;
-  commands?: string[];
   sorting?: {
     by: string;
     asc: boolean;

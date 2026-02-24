@@ -2,9 +2,12 @@ import { mutations, getters,state } from "@/store";
 import { getApiPath, getPublicApiPath } from "@/utils/url.js";
 import { globalVars } from "@/utils/constants";
 
-export async function validateLogin() {
+export async function validateLogin(isPublicRoute = false) {
   // Use direct fetch to avoid automatic logout on 401
-  let apiPath = getPublicApiPath('users', { id: 'self' });
+  // Public routes (e.g. /public/share/...) use the public API base path
+  const apiPath = isPublicRoute
+    ? getPublicApiPath('users', { id: 'self' })
+    : getApiPath('/api/users', { id: 'self' });
   const res = await fetch(apiPath, {
     credentials: 'same-origin', // Ensure cookies are sent with the request
     headers: {
