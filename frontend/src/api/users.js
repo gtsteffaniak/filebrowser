@@ -1,6 +1,7 @@
 import { fetchURL, fetchJSON } from '@/api/utils'
 import { getApiPath, getPublicApiPath } from '@/utils/url.js'
 import { notify } from '@/notify' // Import notify for error handling
+
 export async function getAllUsers() {
   try {
     const apiPath = getApiPath('api/users')
