@@ -125,7 +125,8 @@
     "reset": "Reset{suffix}",
     "space": "Ruimte{suffix}",
     "format": "Formaat{suffix}",
-    "office": "Kantoor{suffix}"
+    "office": "Kantoor{suffix}",
+    "show": "Toon{suffix}"
   },
   "buttons": {
     "generateNewOtp": "Herstellen en nieuwe twee-factorcode genereren",
@@ -387,7 +388,6 @@
     "saveBeforeExitMessage": "U hebt niet-opgeslagen wijzigingen in de editor. Wat wilt u doen?",
     "schedule": "Plannen",
     "scheduleMessage": "Kies een datum en tijd om de publicatie van dit bericht in te plannen.",
-    "show": "Tonen",
     "uploadSettingsChunked": "Max. aantal gelijktijdige uploads: {maxConcurrentUpload}, brokgrootte: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max. aantal gelijktijdige uploads: {maxConcurrentUpload}, upload in brokken uitgeschakeld",
     "optionalPassword": "Optioneel wachtwoord",
@@ -639,11 +639,14 @@
     "sourceNotAccessible": "Deze bron is niet langer toegankelijk voor jou",
     "noLinksYet": "Er zijn nog geen links geconfigureerd. Voeg hieronder uw eerste link toe.",
     "shareHome": "Thuis delen",
-    "hideUsage": "Verberg Gebruik",
-    "hideUsageDescription": "Toon geen opslaggebruik op deze bronlink (minimale stijl).",
     "onlyShowIndexedUsage": "Gebruik van geïndexeerde bestanden berekenen",
     "onlyShowIndexedUsageDescription": "Toont, indien uitgeschakeld, het totale gebruik van de partitie zoals gerapporteerd door het OS in plaats van de berekende geïndexeerde bestandstotalen voor de bron.",
-    "switchMode": "Zijbalkmodus wijzigen"
+    "switchMode": "Zijbalkmodus wijzigen",
+    "showIndexedUsageDescription": "Gebruiksbalk weergeven die is berekend op basis van geïndexeerde bestanden in de bron.",
+    "showDiskUsageDescription": "Geef de verbruiksbalk weer van de schijf-/partitiegrootte zoals gerapporteerd door het besturingssysteem. Deze grootte zal waarschijnlijk groter zijn en omvat bestanden die niet geïndexeerd zijn.",
+    "usageTextDisplay": "Welke gebruikstekst moet worden weergegeven?",
+    "usageTextIndexed": "gebruik zoals geïndexeerd",
+    "usageTextDisk": "gebruik zoals gerapporteerd door schijf/partitie"
   },
   "success": {
     "linkCopied": "Koppeling gekopieerd!"

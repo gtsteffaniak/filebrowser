@@ -98,13 +98,13 @@
             <ToggleSwitch class="item"
               :modelValue="showIndexedUsage"
               @update:modelValue="updateUsageToggles('indexed', $event)"
-              :name="$t('sidebar.showIndexedUsage')"
+              :name="$t('general.show', { suffix: ' '+$t('sidebar.usageTextIndexed') })"
               :description="$t('sidebar.showIndexedUsageDescription')" />
             <!-- Show disk/partition usage toggle -->
             <ToggleSwitch class="item"
               :modelValue="showDiskUsage"
               @update:modelValue="updateUsageToggles('disk', $event)"
-              :name="$t('sidebar.showDiskUsage')"
+              :name="$t('general.show', { suffix: ' '+$t('sidebar.usageTextDisk') })"
               :description="$t('sidebar.showDiskUsageDescription')" />
             
             <!-- Dropdown to choose which usage text to display (only shown in hybrid mode) -->

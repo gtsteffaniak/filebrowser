@@ -147,7 +147,6 @@
     "replaceMessage": "Unul din fișierele încărcate intră în conflict din cauza denumrii. Vrei să înlocuiești fișierul existent?\n",
     "schedule": "Programare",
     "scheduleMessage": "Alege data si ora pentru a programa publicarea acestei postări.",
-    "show": "Arată",
     "deleteUserMessage": "Sunteți sigur că doriți să ștergeți acest utilizator?",
     "filesSelected": "fișiere selectate",
     "optionalPassword": "Parolă opțională",
@@ -375,11 +374,14 @@
     "shareLinksUpdatedSuccess": "Link-urile din bara laterală de partajare au fost actualizate cu succes!",
     "shareHome": "Share Home",
     "linkIconPlaceholder": "Opțional, specificați un nume de pictogramă de material",
-    "hideUsage": "Ascundeți utilizarea",
-    "hideUsageDescription": "Nu afișați utilizarea stocării pe acest link sursă (stil minimal).",
     "onlyShowIndexedUsage": "Calcularea utilizării din fișierele indexate",
     "onlyShowIndexedUsageDescription": "Atunci când este dezactivată, afișează utilizarea totală a partiției, așa cum este raportată de sistemul de operare, în loc de totalurile calculate ale fișierelor indexate pentru sursă.",
-    "switchMode": "Schimbă modul barei laterale"
+    "switchMode": "Schimbă modul barei laterale",
+    "showIndexedUsageDescription": "Afișează bara de utilizare calculată din fișierele indexate din sursă.",
+    "showDiskUsageDescription": "Afișează bara de utilizare din dimensiunea discului/partiției raportată de sistemul de operare. Această dimensiune va fi probabil mai mare și include fișiere care nu sunt indexate.",
+    "usageTextDisplay": "Ce text de utilizare ar trebui să fie afișat?",
+    "usageTextIndexed": "utilizare ca indexat",
+    "usageTextDisk": "utilizare raportată de disc/partiție"
   },
   "success": {
     "linkCopied": "Legătură copiată!"
@@ -645,7 +647,8 @@
     "reset": "Resetare{suffix}",
     "space": "Spațiu{suffix}",
     "format": "Format{suffix}",
-    "office": "Birou{suffix}"
+    "office": "Birou{suffix}",
+    "show": "Spectacol{suffix}"
   },
   "access": {
     "rules": "Reguli de acces",

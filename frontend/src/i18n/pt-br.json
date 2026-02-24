@@ -147,7 +147,6 @@
     "replaceMessage": "Já existe um arquivo com nome igual a um dos que está tentando enviar. Deseja substituir?\n",
     "schedule": "Agendar",
     "scheduleMessage": "Escolha uma data para agendar a publicação deste post.",
-    "show": "Mostrar",
     "optionalPassword": "Senha opcional",
     "deleteUserMessage": "Tem certeza de que deseja excluir esse usuário?",
     "filesSelected": "arquivos selecionados",
@@ -375,11 +374,14 @@
     "shareLinksUpdatedSuccess": "Os links da barra lateral de compartilhamento foram atualizados com sucesso!",
     "shareHome": "Compartilhar casa",
     "linkIconPlaceholder": "Opcionalmente, especifique um nome de ícone de material",
-    "hideUsage": "Ocultar uso",
-    "hideUsageDescription": "Não mostre o uso de armazenamento nesse link de origem (estilo mínimo).",
     "onlyShowIndexedUsage": "Calcular o uso de arquivos indexados",
     "onlyShowIndexedUsageDescription": "Quando desativado, mostra o uso total da partição conforme relatado pelo sistema operacional, em vez dos totais de arquivos indexados calculados para a origem.",
-    "switchMode": "Mudar modo da barra lateral"
+    "switchMode": "Mudar modo da barra lateral",
+    "showIndexedUsageDescription": "Exibir barra de uso calculada a partir de arquivos indexados na origem.",
+    "showDiskUsageDescription": "Exibe a barra de uso do tamanho do disco/partição conforme relatado pelo sistema operacional. Esse tamanho provavelmente será maior e inclui arquivos não indexados.",
+    "usageTextDisplay": "Qual texto de uso deve ser exibido?",
+    "usageTextIndexed": "uso conforme indexado",
+    "usageTextDisk": "uso conforme relatado pelo disco/partição"
   },
   "success": {
     "linkCopied": "Link copiado!"
@@ -645,7 +647,8 @@
     "reset": "Redefinir{suffix}",
     "space": "Espaço{suffix}",
     "format": "Formato{suffix}",
-    "office": "Escritório{suffix}"
+    "office": "Escritório{suffix}",
+    "show": "Mostrar{suffix}"
   },
   "access": {
     "rules": "Regras de acesso",

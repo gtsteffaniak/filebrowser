@@ -147,7 +147,6 @@
     "replaceMessage": "Já existe um ficheiro com nome igual a um dos que está a tentar enviar. Quer substituí-lo?\n",
     "schedule": "Agendar",
     "scheduleMessage": "Escolha uma data para publicar este post.",
-    "show": "Mostrar",
     "deleteUserMessage": "Tem a certeza de que pretende apagar este utilizador?",
     "selected": "selecionado",
     "filesSelected": "ficheiros selecionados",
@@ -375,11 +374,14 @@
     "shareLinksUpdatedSuccess": "As ligações da barra lateral de partilha foram actualizadas com êxito!",
     "shareHome": "Partilhar casa",
     "linkIconPlaceholder": "Especificar opcionalmente um nome de ícone de material",
-    "hideUsage": "Ocultar utilização",
-    "hideUsageDescription": "Não mostrar a utilização do armazenamento nesta hiperligação de origem (estilo mínimo).",
     "onlyShowIndexedUsage": "Calcular a utilização de ficheiros indexados",
     "onlyShowIndexedUsageDescription": "Quando desativado, mostra a utilização total da partição conforme reportado pelo SO em vez dos totais de ficheiros indexados calculados para a origem.",
-    "switchMode": "Mudar modo da barra lateral"
+    "switchMode": "Mudar modo da barra lateral",
+    "showIndexedUsageDescription": "Apresenta a barra de utilização calculada a partir dos ficheiros indexados na fonte.",
+    "showDiskUsageDescription": "Apresenta a barra de utilização a partir do tamanho do disco/partição, conforme indicado pelo SO. Este tamanho será provavelmente maior e inclui ficheiros não indexados.",
+    "usageTextDisplay": "Que texto de utilização deve ser apresentado?",
+    "usageTextIndexed": "utilização como indexado",
+    "usageTextDisk": "utilização conforme registada por disco/partição"
   },
   "success": {
     "linkCopied": "Link copiado!"
@@ -723,7 +725,8 @@
     "reset": "Reiniciar{suffix}",
     "space": "Espaço{suffix}",
     "format": "Formato{suffix}",
-    "office": "Escritório{suffix}"
+    "office": "Escritório{suffix}",
+    "show": "Mostrar{suffix}"
   },
   "access": {
     "rules": "Regras de acesso",

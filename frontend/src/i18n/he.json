@@ -147,7 +147,6 @@
     "replaceMessage": "אחד הקבצים בעל שם זהה לקובץ קיים, האם ברצונך להחליף את הקובץ הקיים בחדש? זהירות - הקובץ הישן ימחק\n",
     "schedule": "תזמון",
     "scheduleMessage": "בחר תאריך ושעה לתזמון הפרסום של פוסט זה.",
-    "show": "הצג",
     "optionalPassword": "סיסמא אופציונלית",
     "deleteUserMessage": "האם אתה בטוח שברצונך למחוק משתמש זה?",
     "selected": "נבחר",
@@ -375,11 +374,14 @@
     "shareLinksUpdatedSuccess": "קישורי הסרגל הצדדי שותפו בהצלחה!",
     "shareHome": "שתף בית",
     "linkIconPlaceholder": "אפשר לציין שם סמל חומר",
-    "hideUsage": "הסתר שימוש",
-    "hideUsageDescription": "אל תציג את השימוש באחסון בקישור מקור זה (סגנון מינימלי).",
     "onlyShowIndexedUsage": "חשב את השימוש מקבצים באינדקס",
     "onlyShowIndexedUsageDescription": "כאשר האפשרות מושבתת, מוצג השימוש הכולל במחיצה כפי שדווח על ידי מערכת ההפעלה, במקום סה\"כ הקבצים הממוקדים המחושבים עבור המקור.",
-    "switchMode": "החלף מצב סרגל צד"
+    "switchMode": "החלף מצב סרגל צד",
+    "showIndexedUsageDescription": "הצג את סרגל השימוש המחושב מקבצים באינדקס במקור.",
+    "showDiskUsageDescription": "הצג את סרגל השימוש בגודל הדיסק/מחיצה כפי שדווח על ידי מערכת ההפעלה. גודל זה צפוי להיות גדול יותר וכולל קבצים שלא הוכנסו לאינדקס.",
+    "usageTextDisplay": "איזה טקסט שימוש יש להציג?",
+    "usageTextIndexed": "שימוש כפי שמופיע באינדקס",
+    "usageTextDisk": "שימוש כפי שדווח על ידי דיסק/מחיצה"
   },
   "success": {
     "linkCopied": "הקישור הועתק!"
@@ -645,7 +647,8 @@
     "reset": "איפוס{suffix}",
     "space": "חלל{suffix}",
     "format": "פורמט{suffix}",
-    "office": "משרד{suffix}"
+    "office": "משרד{suffix}",
+    "show": "הצג{suffix}"
   },
   "access": {
     "rules": "כללי גישה",

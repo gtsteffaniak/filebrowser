@@ -228,7 +228,6 @@
     "replaceMessage": "Jeden ze souborů, které se snažíte nahrát, má konflikt kvůli stejnému názvu. Chcete pokračovat v nahrávání nebo nahradit existující?",
     "schedule": "Naplánovat",
     "scheduleMessage": "Vyberte datum a čas naplánování publikace tohoto příspěvku.",
-    "show": "Zobrazit",
     "optionalPassword": "Volitelné heslo",
     "deleted": "Úspěšně smazáno!",
     "destinationSource": "Zdroj určení:",
@@ -511,11 +510,14 @@
     "shareLinksUpdatedSuccess": "Odkazy na sdílení postranního panelu byly úspěšně aktualizovány!",
     "shareHome": "Sdílet Domů",
     "linkIconPlaceholder": "Volitelně zadejte název ikony materiálu",
-    "hideUsage": "Skrýt použití",
-    "hideUsageDescription": "Nezobrazovat využití úložiště na tomto zdrojovém odkazu (minimální styl).",
     "onlyShowIndexedUsage": "Výpočet využití z indexovaných souborů",
     "onlyShowIndexedUsageDescription": "Pokud je vypnuta, zobrazuje celkové využití oddílu podle hlášení operačního systému namísto vypočtených indexovaných součtů souborů pro zdroj.",
-    "switchMode": "Přepnout režim postranního panelu"
+    "switchMode": "Přepnout režim postranního panelu",
+    "showIndexedUsageDescription": "Zobrazení sloupce využití vypočítaného z indexovaných souborů ve zdroji.",
+    "showDiskUsageDescription": "Zobrazení sloupce využití z velikosti disku/oddílu podle hlášení operačního systému. Tato velikost bude pravděpodobně větší a zahrnuje i soubory, které nejsou indexovány.",
+    "usageTextDisplay": "Který text použití se má zobrazit?",
+    "usageTextIndexed": "použití podle indexu",
+    "usageTextDisk": "využití podle hlášení disku/oddílu"
   },
   "success": {
     "linkCopied": "Odkaz zkopírován!"
@@ -723,7 +725,8 @@
     "reset": "Obnovení{suffix}",
     "space": "Prostor{suffix}",
     "format": "Formát{suffix}",
-    "office": "Kancelář{suffix}"
+    "office": "Kancelář{suffix}",
+    "show": "Zobrazit{suffix}"
   },
   "access": {
     "rules": "Pravidla přístupu",
