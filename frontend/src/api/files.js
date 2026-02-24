@@ -565,66 +565,23 @@ export function getPreviewURL(source, path, modified) {
   }
 }
 
-// POST /api/resources/archive - Create an archive
-export async function createArchive(opts) {
-  const { fromSource, toSource, paths, destination, format, compression, deleteAfter } = opts;
-  if (!fromSource || !paths?.length || !destination) {
-    throw new Error("fromSource, paths, and destination are required");
+export async function GetOfficeConfig(req) {
+  const params = {
+    path: req.path,
+    ...(req.hash && { hash: req.hash }),
+    ...(req.source && { source: req.source })
   }
-  const body = {
-    fromSource,
-    paths,
-    destination,
-    ...(toSource && toSource !== fromSource && { toSource }),
-    ...(format && { format }),
-    ...(compression !== undefined && compression !== null && { compression }),
-    ...(deleteAfter && { deleteAfter: true }),
-  };
-  try {
-    const apiPath = getApiPath("api/resources/archive");
-    const response = await fetchURL(apiPath, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    return response.json();
-  } catch (err) {
-    notify.showError(err.message || "Error creating archive");
-    throw err;
+  let apiPath = getApiPath('api/onlyoffice/config', params)
+  if (req.hash) {
+    apiPath = getPublicApiPath('onlyoffice/config', params)
   }
+  const res = await fetchURL(apiPath)
+  return await res.json()
 }
 
-// POST /api/resources/unarchive - Extract an archive
-export async function unarchive(opts) {
-  const { fromSource, toSource, path, destination, deleteAfter } = opts;
-  if (!fromSource || !path || !destination) {
-    throw new Error("fromSource, path, and destination are required");
-  }
-  const body = {
-    fromSource,
-    ...(toSource && toSource !== fromSource && { toSource }),
-    path,
-    destination,
-    ...(deleteAfter && { deleteAfter: true }),
-  };
-  try {
-    const apiPath = getApiPath("api/resources/unarchive");
-    const response = await fetchURL(apiPath, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    return response.json();
-  } catch (err) {
-    notify.showError(err.message || "Error extracting archive");
-    throw err;
-  }
-}
-
-// GET /api/resources/media/subtitles
 export async function getSubtitleContent(source, path, subtitleName, embedded = false) {
   try {
-    const apiPath = getApiPath('api/resources/media/subtitles', {
+    const apiPath = getApiPath('api/media/subtitles', {
       source: source,
       path: path,
       name: subtitleName,

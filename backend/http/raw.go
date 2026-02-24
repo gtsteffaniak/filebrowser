@@ -103,7 +103,7 @@ func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName stri
 // @Failure 400 {object} map[string]string "Invalid request path"
 // @Failure 404 {object} map[string]string "File or directory not found"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /api/raw [get]
+// @Router /api/resources/raw [get]
 func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	source := r.URL.Query().Get("source")
 	fileList := r.URL.Query()["file"]

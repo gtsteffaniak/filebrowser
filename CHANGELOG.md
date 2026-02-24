@@ -42,7 +42,10 @@ Note: a potentially breaking change for docker users: \the default user is now "
  **Notes**:
  - Docker images default to `filebrowser` user instead of root
  - Bulk delete api moved locations and method. Now use DELETE method against `/api/resources/bulk` endpoint. See swagger page for usage. (#1984)
- #- consolidated swagger categories
+ - consolidated api routes
+   - tools are all behind /api/tools routes
+   - consolidated tags for swagger to be clearer
+   - the `/api/raw` route is deprecated, the `/api/resources/raw` route will be used instead.
 
  **BugFixes**:
  - Long folder names get cut off at top navigation bar (#1934)

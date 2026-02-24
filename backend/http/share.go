@@ -558,7 +558,7 @@ func getShareURL(r *http.Request, hash string, isDirectDownload bool, token stri
 
 	if config.Server.ExternalUrl != "" {
 		if isDirectDownload {
-			shareURL = fmt.Sprintf("%s%spublic/api/raw?hash=%s%s", config.Server.ExternalUrl, config.Server.BaseURL, hash, tokenParam)
+			shareURL = fmt.Sprintf("%s%spublic/api/resources/raw?hash=%s%s", config.Server.ExternalUrl, config.Server.BaseURL, hash, tokenParam)
 		} else {
 			shareURL = fmt.Sprintf("%s%spublic/share/%s", config.Server.ExternalUrl, config.Server.BaseURL, hash)
 		}
@@ -581,7 +581,7 @@ func getShareURL(r *http.Request, hash string, isDirectDownload bool, token stri
 			scheme = getScheme(r)
 		}
 		if isDirectDownload {
-			shareURL = fmt.Sprintf("%s://%s%spublic/api/raw?hash=%s%s", scheme, host, config.Server.BaseURL, hash, tokenParam)
+			shareURL = fmt.Sprintf("%s://%s%spublic/api/resources/raw?hash=%s%s", scheme, host, config.Server.BaseURL, hash, tokenParam)
 		} else {
 			shareURL = fmt.Sprintf("%s://%s%spublic/share/%s", scheme, host, config.Server.BaseURL, hash)
 		}

@@ -342,78 +342,6 @@ definitions:
           fromSource). Example: "restored"'
         type: string
     type: object
-  indexing.IndexStatus:
-    enum:
-    - ready
-    - indexing
-    - unavailable
-    type: string
-    x-enum-varnames:
-    - READY
-    - INDEXING
-    - UNAVAILABLE
-  indexing.ReducedIndex:
-    properties:
-      complexity:
-        type: integer
-      fullScanDurationSeconds:
-        type: integer
-      lastIndexedUnixTime:
-        type: integer
-      lastScanned:
-        type: string
-      name:
-        type: string
-      numDeleted:
-        type: integer
-      numDirs:
-        type: integer
-      numFiles:
-        type: integer
-      quickScanDurationSeconds:
-        type: integer
-      scanners:
-        items:
-          $ref: '#/definitions/indexing.ScannerInfo'
-        type: array
-      status:
-        $ref: '#/definitions/indexing.IndexStatus'
-      total:
-        type: integer
-      used:
-        type: integer
-      usedAlt:
-        type: integer
-    type: object
-  indexing.ScannerInfo:
-    properties:
-      complexity:
-        type: integer
-      currentSchedule:
-        type: integer
-      fullScanDurationSeconds:
-        type: integer
-      isRoot:
-        type: boolean
-      lastIndexedUnixTime:
-        type: integer
-      lastScanned:
-        type: string
-      numDeleted:
-        type: integer
-      numDirs:
-        type: integer
-      numFiles:
-        type: integer
-      path:
-        type: string
-      quickScanDurationSeconds:
-        type: integer
-      used:
-        type: integer
-      usedAlt:
-        type: integer
-    type: object
   indexing.SearchResult:
     properties:
       hasPreview:
@@ -2535,40 +2463,6 @@ paths:
       summary: List API keys
       tags:
       - Auth
-  /api/jobs/{action}/{target}:
-    get:
-      consumes:
-      - application/json
-      description: Returns job info for the user.
-      parameters:
-      - description: Job action
-        in: path
-        name: action
-        required: true
-        type: string
-      - description: Job target
-        in: path
-        name: target
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Job info
-          schema:
-            additionalProperties:
-              $ref: '#/definitions/indexing.ReducedIndex'
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Get jobs info
-      tags:
-      - Jobs
   /api/media/subtitles:
     get:
       consumes:
@@ -2630,6 +2524,137 @@ paths:
       summary: Get subtitle content
       tags:
       - Resources
+  /api/office/callback:
+    get:
+      consumes:
+      - application/json
+      description: Receives callbacks from OnlyOffice document server for document
+        status changes and saves
+      parameters:
+      - description: Source name
+        in: query
+        name: source
+        type: string
+      - description: File path
+        in: query
+        name: path
+        type: string
+      - description: Share hash (for public shares)
+        in: query
+        name: hash
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Callback processed successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid callback data
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Handle OnlyOffice document server callback
+      tags:
+      - Office
+    post:
+      consumes:
+      - application/json
+      description: Receives callbacks from OnlyOffice document server for document
+        status changes and saves
+      parameters:
+      - description: Source name
+        in: query
+        name: source
+        type: string
+      - description: File path
+        in: query
+        name: path
+        type: string
+      - description: Share hash (for public shares)
+        in: query
+        name: hash
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Callback processed successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid callback data
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Handle OnlyOffice document server callback
+      tags:
+      - Office
+  /api/office/config:
+    get:
+      consumes:
+      - application/json
+      description: Returns the configuration needed for OnlyOffice document editor
+        client
+      parameters:
+      - description: Source name
+        in: query
+        name: source
+        type: string
+      - description: File path
+        in: query
+        name: path
+        type: string
+      - description: Share hash (for public shares)
+        in: query
+        name: hash
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OnlyOffice configuration
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Missing or invalid parameters
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get OnlyOffice client configuration
+      tags:
+      - Office
   /api/preview:
     get:
       consumes:
@@ -2690,77 +2715,6 @@ paths:
               type: string
             type: object
       summary: Get image preview
-      tags:
-      - Resources
-  /api/raw:
-    get:
-      consumes:
-      - application/json
-      description: |-
-        Returns the raw content of a file, multiple files, or a directory. Supports downloading files as archives in various formats.
-
-        **Filename Encoding:**
-        - The Content-Disposition header will always include both:
-        1. `filename="..."`: An ASCII-safe version of the filename for compatibility.
-        2. `filename*=utf-8"...`: The full UTF-8 encoded filename (RFC 6266/5987) for modern clients.
-
-        **Multiple Files:**
-        - Use repeated query parameters: `?file=file1.txt&file=file2.txt&file=file3.txt`
-        - This supports filenames containing commas and special characters
-      parameters:
-      - description: Source name for the files (required)
-        in: query
-        name: source
-        required: true
-        type: string
-      - collectionFormat: csv
-        description: File path (can be repeated for multiple files)
-        in: query
-        items:
-          type: string
-        name: file
-        required: true
-        type: array
-      - description: If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults
-          to 'attachment'.
-        in: query
-        name: inline
-        type: boolean
-      - description: 'Compression algorithm for archiving multiple files or directories.
-          Options: ''zip'' and ''tar.gz''. Default is ''zip''.'
-        in: query
-        name: algo
-        type: string
-      responses:
-        "200":
-          description: Raw file or directory content, or archive for multiple files
-          schema:
-            type: file
-        "202":
-          description: Modify permissions required
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "400":
-          description: Invalid request path
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: File or directory not found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Get raw content of a file, multiple files, or directory
       tags:
       - Resources
   /api/renew:
@@ -3187,6 +3141,77 @@ paths:
               type: string
             type: object
       summary: Get directory items
+      tags:
+      - Resources
+  /api/resources/raw:
+    get:
+      consumes:
+      - application/json
+      description: |-
+        Returns the raw content of a file, multiple files, or a directory. Supports downloading files as archives in various formats.
+
+        **Filename Encoding:**
+        - The Content-Disposition header will always include both:
+        1. `filename="..."`: An ASCII-safe version of the filename for compatibility.
+        2. `filename*=utf-8"...`: The full UTF-8 encoded filename (RFC 6266/5987) for modern clients.
+
+        **Multiple Files:**
+        - Use repeated query parameters: `?file=file1.txt&file=file2.txt&file=file3.txt`
+        - This supports filenames containing commas and special characters
+      parameters:
+      - description: Source name for the files (required)
+        in: query
+        name: source
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: File path (can be repeated for multiple files)
+        in: query
+        items:
+          type: string
+        name: file
+        required: true
+        type: array
+      - description: If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults
+          to 'attachment'.
+        in: query
+        name: inline
+        type: boolean
+      - description: 'Compression algorithm for archiving multiple files or directories.
+          Options: ''zip'' and ''tar.gz''. Default is ''zip''.'
+        in: query
+        name: algo
+        type: string
+      responses:
+        "200":
+          description: Raw file or directory content, or archive for multiple files
+          schema:
+            type: file
+        "202":
+          description: Modify permissions required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid request path
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: File or directory not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get raw content of a file, multiple files, or directory
       tags:
       - Resources
   /api/resources/unarchive:
@@ -3876,8 +3901,6 @@ paths:
           schema:
             $ref: '#/definitions/http.HttpResponse'
       summary: Health Check
-      tags:
-      - Access
   /public/api/preview:
     get:
       consumes:
@@ -3933,81 +3956,6 @@ paths:
               type: string
             type: object
       summary: Get image/video preview from a public share
-      tags:
-      - Shares
-  /public/api/raw:
-    get:
-      consumes:
-      - application/json
-      description: |-
-        Downloads raw content from a public share. Supports single files, multiple files, or directories as archives. Enforces download limits (global or per-user) and blocks anonymous users when per-user limits are enabled.
-
-        **Multiple Files:**
-        - Use repeated query parameters: `?file=file1.txt&file=file2.txt&file=file3.txt`
-        - This supports filenames containing commas and special characters
-      parameters:
-      - description: Share hash for authentication
-        in: query
-        name: hash
-        required: true
-        type: string
-      - collectionFormat: csv
-        description: File path (can be repeated for multiple files)
-        in: query
-        items:
-          type: string
-        name: file
-        required: true
-        type: array
-      - description: If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults
-          to 'attachment'.
-        in: query
-        name: inline
-        type: boolean
-      - description: 'Compression algorithm for archiving multiple files or directories.
-          Options: ''zip'' and ''tar.gz''. Default is ''zip''.'
-        in: query
-        name: algo
-        type: string
-      produces:
-      - application/octet-stream
-      responses:
-        "200":
-          description: Raw file or directory content, or archive for multiple files
-          schema:
-            type: file
-        "400":
-          description: Invalid request path or encoding
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "403":
-          description: Download limit reached, anonymous access blocked, or share
-            unavailable
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Share not found or file not found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "501":
-          description: Downloads disabled for upload shares
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Download files from a public share
       tags:
       - Shares
   /public/api/resources:
@@ -4358,6 +4306,81 @@ paths:
               type: string
             type: object
       summary: Get directory items (public share)
+      tags:
+      - Shares
+  /public/api/resources/raw:
+    get:
+      consumes:
+      - application/json
+      description: |-
+        Downloads raw content from a public share. Supports single files, multiple files, or directories as archives. Enforces download limits (global or per-user) and blocks anonymous users when per-user limits are enabled.
+
+        **Multiple Files:**
+        - Use repeated query parameters: `?file=file1.txt&file=file2.txt&file=file3.txt`
+        - This supports filenames containing commas and special characters
+      parameters:
+      - description: Share hash for authentication
+        in: query
+        name: hash
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: File path (can be repeated for multiple files)
+        in: query
+        items:
+          type: string
+        name: file
+        required: true
+        type: array
+      - description: If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults
+          to 'attachment'.
+        in: query
+        name: inline
+        type: boolean
+      - description: 'Compression algorithm for archiving multiple files or directories.
+          Options: ''zip'' and ''tar.gz''. Default is ''zip''.'
+        in: query
+        name: algo
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: Raw file or directory content, or archive for multiple files
+          schema:
+            type: file
+        "400":
+          description: Invalid request path or encoding
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Download limit reached, anonymous access blocked, or share
+            unavailable
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Share not found or file not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "501":
+          description: Downloads disabled for upload shares
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Download files from a public share
       tags:
       - Shares
   /public/api/share/image:

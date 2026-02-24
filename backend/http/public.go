@@ -38,7 +38,7 @@ import (
 // @Failure 404 {object} map[string]string "Share not found or file not found"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Failure 501 {object} map[string]string "Downloads disabled for upload shares"
-// @Router /public/api/raw [get]
+// @Router /public/api/resources/raw [get]
 func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if d.share.ShareType == "upload" {
 		return http.StatusNotImplemented, fmt.Errorf("downloads are disabled for upload shares")

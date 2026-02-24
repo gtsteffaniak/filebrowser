@@ -138,13 +138,11 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	publicApi.HandleFunc("DELETE /resources", withHashFile(publicDeleteHandler))
 	publicApi.HandleFunc("DELETE /resources/bulk", withHashFile(publicBulkDeleteHandler))
 	publicApi.HandleFunc("PATCH /resources", withHashFile(publicPatchHandler))
-	publicApi.HandleFunc("GET /raw", withHashFile(publicRawHandler))
-	publicApi.HandleFunc("GET /preview", withTimeout(60*time.Second, withHashFileHelper(publicPreviewHandler)))
 
 	// Legacy routes (backwards compatibility for downloads)
 	api.HandleFunc("GET /raw", withUser(rawHandler))
+	publicApi.HandleFunc("GET /raw", withHashFile(publicRawHandler))
 
-	// Public Resources (hash-based auth)
 	// ========================================
 	// Access Routes - /api/access/
 	// ========================================

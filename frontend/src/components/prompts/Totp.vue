@@ -1,6 +1,6 @@
 <template>
-  <div v-if="error !== ''" class="wrong-login card">{{ error }}</div>
   <div class="card-content">
+    <div v-if="error !== ''" class="wrong-login card">{{ error }}</div>
     <p v-if="generate">{{ $t("otp.generate") }}</p>
     <div v-if="generate" class="box__element box__center">
       <p aria-label="otp-url">{{ url }}</p>

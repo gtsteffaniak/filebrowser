@@ -990,57 +990,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/jobs/{action}/{target}": {
-            "get": {
-                "description": "Returns job info for the user.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Jobs"
-                ],
-                "summary": "Get jobs info",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Job action",
-                        "name": "action",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Job target",
-                        "name": "target",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Job info",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "$ref": "#/definitions/indexing.ReducedIndex"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/api/media/subtitles": {
             "get": {
                 "description": "Returns raw subtitle content from external files or embedded streams",
@@ -1129,6 +1078,205 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/office/callback": {
+            "get": {
+                "description": "Receives callbacks from OnlyOffice document server for document status changes and saves",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Office"
+                ],
+                "summary": "Handle OnlyOffice document server callback",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Source name",
+                        "name": "source",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "File path",
+                        "name": "path",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Share hash (for public shares)",
+                        "name": "hash",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Callback processed successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid callback data",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "description": "Receives callbacks from OnlyOffice document server for document status changes and saves",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Office"
+                ],
+                "summary": "Handle OnlyOffice document server callback",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Source name",
+                        "name": "source",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "File path",
+                        "name": "path",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Share hash (for public shares)",
+                        "name": "hash",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Callback processed successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid callback data",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/office/config": {
+            "get": {
+                "description": "Returns the configuration needed for OnlyOffice document editor client",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Office"
+                ],
+                "summary": "Get OnlyOffice client configuration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Source name",
+                        "name": "source",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "File path",
+                        "name": "path",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Share hash (for public shares)",
+                        "name": "hash",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OnlyOffice configuration",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Missing or invalid parameters",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ]
+            }
+        },
         "/api/preview": {
             "get": {
                 "description": "Returns a preview image based on the requested path and size.",
@@ -1211,94 +1359,6 @@ const docTemplate = `{
                     },
                     "501": {
                         "description": "Preview generation not implemented",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/raw": {
-            "get": {
-                "description": "Returns the raw content of a file, multiple files, or a directory. Supports downloading files as archives in various formats.\n\n**Filename Encoding:**\n- The Content-Disposition header will always include both:\n1. ` + "`" + `filename=\"...\"` + "`" + `: An ASCII-safe version of the filename for compatibility.\n2. ` + "`" + `filename*=utf-8\"...` + "`" + `: The full UTF-8 encoded filename (RFC 6266/5987) for modern clients.\n\n**Multiple Files:**\n- Use repeated query parameters: ` + "`" + `?file=file1.txt\u0026file=file2.txt\u0026file=file3.txt` + "`" + `\n- This supports filenames containing commas and special characters",
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Resources"
-                ],
-                "summary": "Get raw content of a file, multiple files, or directory",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Source name for the files (required)",
-                        "name": "source",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "File path (can be repeated for multiple files)",
-                        "name": "file",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults to 'attachment'.",
-                        "name": "inline",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Compression algorithm for archiving multiple files or directories. Options: 'zip' and 'tar.gz'. Default is 'zip'.",
-                        "name": "algo",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Raw file or directory content, or archive for multiple files",
-                        "schema": {
-                            "type": "file"
-                        }
-                    },
-                    "202": {
-                        "description": "Modify permissions required",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request path",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "File or directory not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1902,6 +1962,94 @@ const docTemplate = `{
                     },
                     "403": {
                         "description": "Forbidden (access denied)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/resources/raw": {
+            "get": {
+                "description": "Returns the raw content of a file, multiple files, or a directory. Supports downloading files as archives in various formats.\n\n**Filename Encoding:**\n- The Content-Disposition header will always include both:\n1. ` + "`" + `filename=\"...\"` + "`" + `: An ASCII-safe version of the filename for compatibility.\n2. ` + "`" + `filename*=utf-8\"...` + "`" + `: The full UTF-8 encoded filename (RFC 6266/5987) for modern clients.\n\n**Multiple Files:**\n- Use repeated query parameters: ` + "`" + `?file=file1.txt\u0026file=file2.txt\u0026file=file3.txt` + "`" + `\n- This supports filenames containing commas and special characters",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Get raw content of a file, multiple files, or directory",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Source name for the files (required)",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "File path (can be repeated for multiple files)",
+                        "name": "file",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults to 'attachment'.",
+                        "name": "inline",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Compression algorithm for archiving multiple files or directories. Options: 'zip' and 'tar.gz'. Default is 'zip'.",
+                        "name": "algo",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Raw file or directory content, or archive for multiple files",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "202": {
+                        "description": "Modify permissions required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request path",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "File or directory not found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2898,9 +3046,6 @@ const docTemplate = `{
                 "produces": [
                     "application/json"
                 ],
-                "tags": [
-                    "Access"
-                ],
                 "summary": "Health Check",
                 "responses": {
                     "200": {
@@ -2983,106 +3128,6 @@ const docTemplate = `{
                     },
                     "501": {
                         "description": "Previews disabled globally, for this share, or for upload shares",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/public/api/raw": {
-            "get": {
-                "description": "Downloads raw content from a public share. Supports single files, multiple files, or directories as archives. Enforces download limits (global or per-user) and blocks anonymous users when per-user limits are enabled.\n\n**Multiple Files:**\n- Use repeated query parameters: ` + "`" + `?file=file1.txt\u0026file=file2.txt\u0026file=file3.txt` + "`" + `\n- This supports filenames containing commas and special characters",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/octet-stream"
-                ],
-                "tags": [
-                    "Shares"
-                ],
-                "summary": "Download files from a public share",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Share hash for authentication",
-                        "name": "hash",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "File path (can be repeated for multiple files)",
-                        "name": "file",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults to 'attachment'.",
-                        "name": "inline",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Compression algorithm for archiving multiple files or directories. Options: 'zip' and 'tar.gz'. Default is 'zip'.",
-                        "name": "algo",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Raw file or directory content, or archive for multiple files",
-                        "schema": {
-                            "type": "file"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request path or encoding",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "Download limit reached, anonymous access blocked, or share unavailable",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Share not found or file not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "501": {
-                        "description": "Downloads disabled for upload shares",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -3593,6 +3638,106 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/public/api/resources/raw": {
+            "get": {
+                "description": "Downloads raw content from a public share. Supports single files, multiple files, or directories as archives. Enforces download limits (global or per-user) and blocks anonymous users when per-user limits are enabled.\n\n**Multiple Files:**\n- Use repeated query parameters: ` + "`" + `?file=file1.txt\u0026file=file2.txt\u0026file=file3.txt` + "`" + `\n- This supports filenames containing commas and special characters",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "Shares"
+                ],
+                "summary": "Download files from a public share",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Share hash for authentication",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "File path (can be repeated for multiple files)",
+                        "name": "file",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults to 'attachment'.",
+                        "name": "inline",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Compression algorithm for archiving multiple files or directories. Options: 'zip' and 'tar.gz'. Default is 'zip'.",
+                        "name": "algo",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Raw file or directory content, or archive for multiple files",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request path or encoding",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Download limit reached, anonymous access blocked, or share unavailable",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Share not found or file not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "501": {
+                        "description": "Downloads disabled for upload shares",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -4194,113 +4339,6 @@ const docTemplate = `{
                 "toSource": {
                     "description": "Source name where contents will be extracted (optional; default: fromSource). Example: \"restored\"",
                     "type": "string"
-                }
-            }
-        },
-        "indexing.IndexStatus": {
-            "type": "string",
-            "enum": [
-                "ready",
-                "indexing",
-                "unavailable"
-            ],
-            "x-enum-varnames": [
-                "READY",
-                "INDEXING",
-                "UNAVAILABLE"
-            ]
-        },
-        "indexing.ReducedIndex": {
-            "type": "object",
-            "properties": {
-                "complexity": {
-                    "type": "integer"
-                },
-                "fullScanDurationSeconds": {
-                    "type": "integer"
-                },
-                "lastIndexedUnixTime": {
-                    "type": "integer"
-                },
-                "lastScanned": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "numDeleted": {
-                    "type": "integer"
-                },
-                "numDirs": {
-                    "type": "integer"
-                },
-                "numFiles": {
-                    "type": "integer"
-                },
-                "quickScanDurationSeconds": {
-                    "type": "integer"
-                },
-                "scanners": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/indexing.ScannerInfo"
-                    }
-                },
-                "status": {
-                    "$ref": "#/definitions/indexing.IndexStatus"
-                },
-                "total": {
-                    "type": "integer"
-                },
-                "used": {
-                    "type": "integer"
-                },
-                "usedAlt": {
-                    "type": "integer"
-                }
-            }
-        },
-        "indexing.ScannerInfo": {
-            "type": "object",
-            "properties": {
-                "complexity": {
-                    "type": "integer"
-                },
-                "currentSchedule": {
-                    "type": "integer"
-                },
-                "fullScanDurationSeconds": {
-                    "type": "integer"
-                },
-                "isRoot": {
-                    "type": "boolean"
-                },
-                "lastIndexedUnixTime": {
-                    "type": "integer"
-                },
-                "lastScanned": {
-                    "type": "string"
-                },
-                "numDeleted": {
-                    "type": "integer"
-                },
-                "numDirs": {
-                    "type": "integer"
-                },
-                "numFiles": {
-                    "type": "integer"
-                },
-                "path": {
-                    "type": "string"
-                },
-                "quickScanDurationSeconds": {
-                    "type": "integer"
-                },
-                "used": {
-                    "type": "integer"
-                },
-                "usedAlt": {
-                    "type": "integer"
                 }
             }
         },
