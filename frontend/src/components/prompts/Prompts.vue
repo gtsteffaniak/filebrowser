@@ -42,6 +42,19 @@
         <div class="prompt-taskbar-drag">
           <span class="prompt-title">{{ prompt?.props?.title || getDisplayTitle(prompt?.name) }}</span>
         </div>
+        <svg 
+          class="prompt-resize-corner"
+          width="24" 
+          height="24" 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          xmlns="http://www.w3.org/2000/svg"
+          @mousedown.stop="startResize($event, prompt.id, 'top-right')"
+          @touchstart.stop="startResize($event, prompt.id, 'top-right')"
+        >
+          <line x1="12" y1="2" x2="22" y2="12" stroke="var(--divider)" stroke-width="2" stroke-linecap="round"/>
+          <line x1="17" y1="2" x2="22" y2="7" stroke="var(--divider)" stroke-width="2" stroke-linecap="round"/>
+        </svg>
       </header>
       <!-- Resize for prompts -->
       <div class="resize-handles">
@@ -755,6 +768,20 @@ export default {
 
 .prompt-close .material-icons {
   font-size: 1em;
+}
+
+.prompt-resize-corner {
+  position: relative;
+  z-index: 1;
+  cursor: ne-resize;
+  transition: opacity 0.2s ease;
+  opacity: 0.5;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.prompt-resize-corner:hover {
+  opacity: 1;
 }
 
 .prompt-taskbar-drag {
