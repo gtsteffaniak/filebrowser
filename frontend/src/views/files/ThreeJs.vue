@@ -17,50 +17,13 @@
     <div v-if="!isThumbnail" class="controls-container">
       <!-- Settings icon toggle button -->
       <button 
-        v-if="!showControls"
-        @click="showControls = true"
+        @click="showControlsPrompt"
         class="controls-toggle"
-        title="Show controls"
-        aria-label="Show controls"
+        :title="$t('threejs.controls')"
+        :aria-label="$t('threejs.controls')"
       >
         <i class="material-icons">settings</i>
       </button>
-      
-      <!-- Expanded controls card -->
-      <div v-if="showControls" class="controls-card card floating-window">
-        <button 
-          @click="showControls = false"
-          class="controls-close"
-          title="Hide controls"
-          aria-label="Hide controls"
-        >
-          <i class="material-icons">close</i>
-        </button>
-        <div class="card-content">
-          <div v-if="!isMobile" class="control-row">
-            <span class="control-label">⌨️ {{ $t("threejs.keyboard") }}</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-            <span class="control-desc">
-              <kbd>{{ $t("general.space") }}</kbd> {{ getSpaceText() }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-              <kbd>R</kbd> {{ $t("general.reset") }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-              <kbd>Q</kbd>/<kbd>E</kbd> {{ $t("threejs.rotateY") }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-              <kbd>W</kbd>/<kbd>S</kbd> {{ $t("threejs.rotateX") }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-              <kbd>+</kbd>/<kbd>-</kbd> {{ $t("general.zoom") }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-            </span>
-          </div>
-          <div class="control-row">
-            <span class="control-label">🎨 {{ $t("general.background") }}</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-            <span class="control-desc">
-              <input 
-                type="color" 
-                v-model="backgroundColor" 
-                @input="updateCustomBackground"
-                class="color-picker-input"
-                title="Change background color"
-              />
-            </span>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </template>
@@ -139,7 +102,6 @@ export default {
       initialControlsTarget: null,
       backgroundColor: '#000000',
       resizeObserver: null,
-      showControls: false,
       animationMixer: null,
       animations: [],
       isAnimationPlaying: false,
@@ -208,6 +170,20 @@ export default {
     if (this.loadTimer) clearTimeout(this.loadTimer);
   },
   methods: {
+    showControlsPrompt() {
+      mutations.showHover({
+        name: 'ThreeJSControls',
+        props: {
+          backgroundColor: this.backgroundColor,
+          isMobile: this.isMobile,
+          hasAnimations: this.hasAnimations,
+          'onUpdate:backgroundColor': (newColor) => {
+            this.backgroundColor = newColor;
+            this.updateCustomBackground();
+          },
+        },
+      });
+    },
     getSpaceText() {
       return this.hasAnimations ? this.$t("general.play") + "/" + this.$t("general.pause") : this.$t("threejs.autoRotate");
     },
@@ -849,114 +825,9 @@ export default {
   font-size: 1.5rem;
 }
 
-.controls-card {
-  position: relative;
-  width: clamp(20em, 30em, 90vw);
-  max-width: 90vw;
-  animation: slideIn 0.2s ease-out;
-}
-
-@keyframes slideIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.controls-close {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background: transparent;
-  color: var(--textSecondary);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  z-index: 1;
-}
-
-.controls-close:hover {
-  background: var(--surfaceSecondary);
-  color: var(--textPrimary);
-}
-
-.controls-close i {
-  font-size: 1.2rem;
-}
-
-.controls-card .card-content {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  padding: 1rem 1.5rem;
-}
-
-.control-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-}
-
-.control-label {
-  font-weight: 600;
-  color: var(--primaryColor);
-  white-space: nowrap;
-  min-width: 100px;
-}
-
-.control-desc {
-  color: var(--textPrimary);
-  line-height: 1.5;
-}
-
-.control-desc kbd {
-  display: inline-block;
-  padding: 0.2em 0.5em;
-  font-size: 0.85em;
-  font-family: monospace;
-  background: var(--surfaceSecondary);
-  border: 1px solid var(--divider);
-  border-radius: 4px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  margin: 0 0.2em;
-}
-
-.color-picker-input {
-  width: 50px;
-  height: 32px;
-  border: 2px solid var(--divider);
-  border-radius: 8px;
-  cursor: pointer;
-  background: transparent;
-  padding: 2px;
-  vertical-align: middle;
-}
-
-.color-picker-input::-webkit-color-swatch-wrapper {
-  padding: 0;
-  border-radius: 6px;
-}
-
-.color-picker-input::-webkit-color-swatch,
-.color-picker-input::-moz-color-swatch {
-  border: none;
-  border-radius: 6px;
-}
-
 @media (max-width: 768px) {
   .controls-container { bottom: 1rem; left: 1rem; }
   .controls-toggle { width: 2.5rem; height: 2.5rem; }
   .controls-toggle i { font-size: 1.25rem; }
-  .controls-card { width: 95vw; }
-  .controls-card .card-content { padding: 0.75rem 1rem; }
-  .control-row { flex-direction: column; gap: 0.25rem; }
-  .control-label { min-width: auto; }
-  .control-desc kbd { font-size: 0.8em; padding: 0.15em 0.4em; }
-  .color-picker-input { width: 40px; height: 28px; }
 }
 </style>
