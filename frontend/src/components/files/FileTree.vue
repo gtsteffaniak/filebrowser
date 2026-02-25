@@ -558,7 +558,7 @@ export default {
       if (conflict) {
         mutations.showHover({
           name: 'replace-rename',
-          pinnedHover: true,
+          pinned: true,
           confirm: async (event, option) => {
             const overwrite = option === 'overwrite';
             const rename = option === 'rename';

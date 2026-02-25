@@ -628,7 +628,7 @@ export default {
       if (conflict) {
         mutations.showHover({
           name: "replace-rename",
-          pinnedHover: true,
+          pinned: true,
           /**
            * @param {Event} event
            * @param {string} option

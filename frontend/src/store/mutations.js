@@ -282,7 +282,7 @@ export const mutations = {
     const id = state.promptIdCounter;
     // Set parentId to the current topmost prompt, unless the prompt is pinned.
     let parentId = value?.parentId;
-    if (!parentId && !value?.pinnedHover) {
+    if (!parentId && !value?.pinned) {
       const topPrompt = state.prompts[state.prompts.length - 1];
       if (topPrompt) {
         parentId = topPrompt.id;
@@ -292,7 +292,7 @@ export const mutations = {
       id,
       name: value?.name,
       parentId,
-      pinnedHover: value?.pinnedHover || false,
+      pinned: value?.pinned || false,
       confirm: value?.confirm,
       action: value?.action,
       props: value?.props || {},
@@ -302,15 +302,15 @@ export const mutations = {
       id,
       name: value,
       parentId,
-      pinnedHover: false,
+      pinned: false,
       confirm: value?.confirm,
       action: value?.action,
       props: value?.props || {},
       discard: value?.discard,
       cancel: value?.cancel,
     };
-    const pinnedCount = state.prompts.filter(p => p.pinnedHover).length;
-    if (entry.pinnedHover) {
+    const pinnedCount = state.prompts.filter(p => p.pinned).length;
+    if (entry.pinned) {
       state.prompts.push(entry);
     } else {
       // Non‑pinned prompts go just before the first pinned prompt

@@ -43,7 +43,7 @@
           <span class="prompt-title">{{ prompt?.props?.title || getDisplayTitle(prompt?.name) }}</span>
         </div>
       </header>
-      <!-- Resize for the prompt on top -->
+      <!-- Resize for prompts -->
       <div class="resize-handles">
         <div class="resize-handle resize-handle-top" @mousedown.stop="startResize($event, prompt.id, 'top')" @touchstart.stop.passive="startResize($event, prompt.id, 'top')"></div>
         <div class="resize-handle resize-handle-bottom" @mousedown.stop="startResize($event, prompt.id, 'bottom')" @touchstart.stop.passive="startResize($event, prompt.id, 'bottom')"></div>
@@ -161,7 +161,7 @@ export default {
       return getters.isDarkMode();
     },
     pinnedPromptExists() {
-      return this.prompts.some(p => p.pinnedHover);
+      return this.prompts.some(p => p.pinned);
     },
   },
   methods: {
@@ -174,8 +174,8 @@ export default {
     },
     isBlocked(prompt) {
       // If there is a pinned prompt and this prompt isn't it, it's blocked
-      if (this.pinnedPromptExists && !prompt.pinnedHover) return true;
-      // If this prompt has any open child, also it's blocked
+      if (this.pinnedPromptExists && !prompt.pinned) return true;
+      // If this prompt has any open child, also it's blocked (parent)
       if (this.prompts.some(p => p.parentId === prompt.id)) return true;
       return false;
     },
@@ -196,10 +196,10 @@ export default {
       if (getters.isMobile()) return; // Don't allow in mobile since we can lose the prompt easily.
       const prompt = this.prompts.find(p => p.id === id);
       if (!prompt) return;
-      if (this.pinnedPromptExists && !prompt.pinnedHover) return;
+      if (this.pinnedPromptExists && !prompt.pinned) return;
       const index = state.prompts.findIndex(p => p.id === id);
       if (index === -1) return;
-      const pinnedCount = state.prompts.filter(p => p.pinnedHover).length;
+      const pinnedCount = state.prompts.filter(p => p.pinned).length;
       const targetIndex = state.prompts.length - pinnedCount;
       if (index >= targetIndex) return;
       const [movedPrompt] = state.prompts.splice(index, 1);
@@ -288,7 +288,7 @@ export default {
           // Show warning prompt instead of closing
           mutations.showHover({
             name: "CloseWithActiveUploads",
-            pinnedHover: true,
+            pinned: true,
             confirm: () => {
               // User confirmed to close anyway - close the upload prompt
               mutations.closePromptById(id);

@@ -281,7 +281,7 @@ export default {
           await new Promise((resolve, reject) => {
             mutations.showHover({
               name: "replace-rename",
-              pinnedHover: true,
+              pinned: true,
               props: {
                 isSameFile: isSameFile,
                 operation: this.operation
