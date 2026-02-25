@@ -41,7 +41,7 @@ Note: a potentially breaking change for docker users: \the default user is now "
 
  **Notes**:
  - Docker images default to `filebrowser` user instead of root
- - consolidated api routes
+ - reorganized api routes
    - consolidated tags for swagger to be more accurately grouped
    - tools are all behind `/api/tools` routes
    - `/api/raw` is deprecated (but functional). The `/api/resources/download` route will be used instead.
