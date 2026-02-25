@@ -2,7 +2,7 @@
   <Teleport to="body" v-for="prompt in prompts" :key="'prompt-' + prompt.id">
     <div
       ref="promptWindow"
-      class="card floating floating-window"
+      class="floating-window"
       :class="{
         'dark-mode': isDarkMode,
         'is-dragging': isDragging(prompt.id),
@@ -74,6 +74,8 @@ import ShareInfo from "./ShareInfo.vue";
 import FileList from "./FileListing.vue";
 import Archive from "./Archive.vue";
 import Unarchive from "./Unarchive.vue";
+import OfficeDebug from "./OfficeDebug.vue";
+import ThreeJSControls from "./ThreeJSControls.vue";
 import { state, getters, mutations } from "@/store";
 
 export default {
@@ -111,6 +113,8 @@ export default {
     FileList,
     Archive,
     Unarchive,
+    OfficeDebug,
+    ThreeJSControls,
   },
   data() {
     return {
@@ -155,10 +159,13 @@ export default {
       // convert to lowercase
       // Explicit switch statement for compile-time safety with ESLint i18n validation
       switch (promptName.toLowerCase()) {
+        case "officedebug":
+          return this.$t("onlyoffice.debug");
         case "download":
           return this.$t("prompts.download");
         case "move":
           return this.$t("general.move");
+    
         case "copy":
           return this.$t("general.copy");
         case "rename":
@@ -211,8 +218,12 @@ export default {
           return this.$t("prompts.archive");
         case "unarchive":
           return this.$t("prompts.unarchive");
+        case "threejscontrols":
+          return this.$t("threejs.controls");
+        case "delete":
+          return this.$t("general.delete");
         default:
-          console.warn("[Prompts.vue] unknown prompt name", promptName);
+          console.error("[Prompts.vue] unknown prompt name", promptName);
           // Fallback for unknown prompt types
           return promptName;
       }
@@ -356,11 +367,48 @@ export default {
 
 <style scoped>
 
+/* Floating window base styles */
+.floating-window {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 6;
+  max-width: 40em;
+  width: 90%;
+  max-height: 80vh;
+  animation: .1s show forwards;
+  display: flex !important;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: var(--surfacePrimary);
+  border-radius: 1em;
+  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes show {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .floating-window > :deep(.card-content) {
-  padding-top: 3.5em !important;
-  padding-bottom: 3.5em !important;
-  margin-top: 1px; /* 1px to avoid edge flickering */
-  margin-bottom: 1px;  /* 1px to avoid edge flickering */
+  padding: 0.5em;
+  padding-top: 3.5em;
+  padding-bottom: 3.5em;
+  margin-top: 1px;
+  margin-bottom: 1px;
+  flex-grow: 1;
+  overflow: auto;
+  min-height: 0;
+}
+
+/* No buttons variant - removes bottom padding */
+.floating-window > :deep(.card-content.no-buttons) {
+  padding-bottom: 0.5em;
 }
 
 .floating-window > :deep(.card-actions) {
@@ -368,6 +416,11 @@ export default {
   bottom: 0;
   left: 0;
   right: 0;
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.5em;
+  height: 3em;
+  gap: 0.25em;
 }
 
 /* Backdrop-filter support */

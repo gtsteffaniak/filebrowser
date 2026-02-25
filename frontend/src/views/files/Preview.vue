@@ -53,7 +53,7 @@
   </div>
 </template>
 <script>
-import { resourcesApi } from "@/api";
+import { resourcesApi, mediaApi } from "@/api";
 import { url } from "@/utils";
 import ExtendedImage from "@/components/files/ExtendedImage.vue";
 import plyrViewer from "@/views/files/plyrViewer.vue";
@@ -297,7 +297,7 @@ export default {
         const subtitleTrack = state.req.subtitles[index];
         try {
           // Fetch subtitle content from API using name and embedded
-          const content = await resourcesApi.getSubtitleContent(
+          const content = await mediaApi.getSubtitleContent(
             state.req.source,
             state.req.path,
             subtitleTrack.name,
