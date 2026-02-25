@@ -83,8 +83,6 @@
 <script>
 import { state, mutations, getters } from "@/store";
 import { eventBus } from "@/store/eventBus";
-import { getApiPath } from "@/utils/url";
-import { fetchURL } from "@/api/utils";
 import { toolsApi } from "@/api";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { formatTimestamp, fromNow } from "@/utils/moment";
@@ -591,11 +589,7 @@ export default {
     async pingHealthEndpoint() {
       const startTime = Date.now();
       try {
-        const params = {
-          latencyCheck: "true",
-        };
-        const apiPath = getApiPath("tools/watch", params);
-        await fetchURL(apiPath);
+        await toolsApi.fileWatcherLatencyCheck();
         const roundTripLatency = Date.now() - startTime;
         // Use half of round-trip latency as estimate for one-way latency
         this.currentLatency = Math.round(roundTripLatency / 2);

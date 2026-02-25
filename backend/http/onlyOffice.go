@@ -280,7 +280,7 @@ func buildOnlyOfficeDownloadURL(r *http.Request, source, path, hash, token strin
 	}
 
 	escapedPath := url.QueryEscape(path)
-	downloadURL := fmt.Sprintf("%s/api/resources/raw?file=%s&auth=%s",
+	downloadURL := fmt.Sprintf("%s/api/resources/download?file=%s&auth=%s",
 		strings.TrimSuffix(baseURL, "/"), escapedPath, token)
 	if hash != "" {
 		downloadURL = downloadURL + "&hash=" + hash
@@ -333,7 +333,7 @@ func buildOnlyOfficeCallbackURL(r *http.Request, source, path, hash, token strin
 		params.Set("path", path) // This should be the path relative to the share, not the full filesystem path
 		params.Set("auth", token)
 
-		callbackURL = fmt.Sprintf("%s/public/api/onlyoffice/callback?%s",
+		callbackURL = fmt.Sprintf("%s/public/api/office/callback?%s",
 			strings.TrimSuffix(baseURL, "/"), params.Encode())
 	} else {
 		// Regular callback URL - include source for non-share requests
@@ -342,7 +342,7 @@ func buildOnlyOfficeCallbackURL(r *http.Request, source, path, hash, token strin
 		params.Set("path", path)
 		params.Set("auth", token)
 
-		callbackURL = fmt.Sprintf("%s/api/onlyoffice/callback?%s",
+		callbackURL = fmt.Sprintf("%s/api/office/callback?%s",
 			strings.TrimSuffix(baseURL, "/"), params.Encode())
 	}
 

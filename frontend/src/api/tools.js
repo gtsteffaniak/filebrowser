@@ -67,6 +67,17 @@ export async function duplicateFinder(base, source, minSizeMb, useChecksum = fal
 }
 
 // GET /api/tools/fileWatcher
+export async function fileWatcherLatencyCheck() {
+  try {
+    const apiPath = getApiPath("tools/fileWatcher", { latencyCheck: "true" });
+    await fetchURL(apiPath);
+  } catch (err) {
+    notify.showError(err.message || "Error occurred while checking latency");
+    throw err;
+  }
+}
+
+// GET /api/tools/fileWatcher
 export async function fileWatcher(source, path) {
   try {
     const params = { source, path };

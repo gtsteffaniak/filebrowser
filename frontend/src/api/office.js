@@ -2,7 +2,7 @@ import { fetchURL } from './utils'
 import { getApiPath, getPublicApiPath } from '@/utils/url.js'
 import { notify } from '@/notify'
 
-// GET /api/office/config or /public/api/onlyoffice/config
+// GET /api/office/config or /public/api/office/config
 export async function getConfig(req) {
   try {
     const params = {
@@ -13,7 +13,7 @@ export async function getConfig(req) {
     
     let apiPath
     if (req.hash) {
-      apiPath = getPublicApiPath('onlyoffice/config', params)
+      apiPath = getPublicApiPath('office/config', params)
     } else {
       apiPath = getApiPath('office/config', params)
     }
@@ -26,12 +26,12 @@ export async function getConfig(req) {
   }
 }
 
-// POST /api/office/callback or /public/api/onlyoffice/callback
+// POST /api/office/callback or /public/api/office/callback
 export async function callback(params, hash = null) {
   try {
     let apiPath
     if (hash) {
-      apiPath = getPublicApiPath('onlyoffice/callback', { hash, ...params })
+      apiPath = getPublicApiPath('office/callback', { hash, ...params })
     } else {
       apiPath = getApiPath('office/callback', params)
     }
