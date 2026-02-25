@@ -50,62 +50,60 @@
         </div>
       </div>
     </div>
-    <div v-if="files.length > 0" class="upload-scrollable">
-      <div style="position: relative; height: 100%;">
-        <div v-if="showConflictPrompt" class="conflict-overlay">
-          <div class="card">
-            <div class="card-content">
-              <p>{{ $t("prompts.conflictsDetected") }}</p>
-            </div>
-            <div class="card-actions">
-              <button @click="resolveConflict(true)" class="button button--flat button--red">
-                {{ $t("general.replace") }}
-              </button>
-            </div>
+    <div v-if="files.length > 0" style="position: relative;">
+      <div v-if="showConflictPrompt" class="conflict-overlay">
+        <div class="card">
+          <div class="card-content">
+            <p>{{ $t("prompts.conflictsDetected") }}</p>
+          </div>
+          <div class="card-actions">
+            <button @click="resolveConflict(true)" class="button button--flat button--red">
+              {{ $t("general.replace") }}
+            </button>
           </div>
         </div>
-        <div class="upload-list">
-          <div v-for="file in files" :key="file.id" class="upload-item">
-            <i class="material-icons file-icon">{{ file.type === "directory" ? "folder" : "insert_drive_file" }}</i> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-            <div class="file-info">
-              <p class="file-name">{{ file.name }}</p>
-              <progress-bar v-if="file.type !== 'directory'" :val="file.status === 'completed'
-                  ? $t('prompts.completed')
-                  : file.status === 'error'
-                    ? $t('prompts.error')
-                    : file.status === 'conflict'
-                      ? $t('prompts.conflictsDetected')
-                      : (file.progress / 100) * file.size
-                " :unit="file.status === 'completed' || file.status === 'error' ? '' : 'bytes'" :max="file.size"
-                :status="file.status" text-position="inside" size="20"
-                :help-text="getHelpText(file)">
-              </progress-bar>
-              <div v-else class="status-label">
-                <span>{{ getStatusText(file.status, file) }}</span>
-              </div>
+      </div>
+      <div class="upload-list">
+        <div v-for="file in files" :key="file.id" class="upload-item">
+          <i class="material-icons file-icon">{{ file.type === "directory" ? "folder" : "insert_drive_file" }}</i> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <div class="file-info">
+            <p class="file-name">{{ file.name }}</p>
+            <progress-bar v-if="file.type !== 'directory'" :val="file.status === 'completed'
+                ? $t('prompts.completed')
+                : file.status === 'error'
+                  ? $t('prompts.error')
+                  : file.status === 'conflict'
+                    ? $t('prompts.conflictsDetected')
+                    : (file.progress / 100) * file.size
+              " :unit="file.status === 'completed' || file.status === 'error' ? '' : 'bytes'" :max="file.size"
+              :status="file.status" text-position="inside" size="20"
+              :help-text="getHelpText(file)">
+            </progress-bar>
+            <div v-else class="status-label">
+              <span>{{ getStatusText(file.status, file) }}</span>
             </div>
-            <div class="file-actions">
-              <button v-if="file.status === 'uploading'" @click="uploadManager.pause(file.id)" class="action"
-                :aria-label="$t('general.pause')" :title="$t('general.pause')">
-                <i class="material-icons">pause</i>
-              </button>
-              <button v-if="file.status === 'paused'" @click="uploadManager.resume(file.id)" class="action"
-                :aria-label="$t('general.resume')" :title="$t('general.resume')">
-                <i class="material-icons">play_arrow</i>
-              </button>
-              <button v-if="file.status === 'error'" @click="uploadManager.retry(file.id)" class="action"
-                :aria-label="$t('general.retry')" :title="$t('general.retry')">
-                <i class="material-icons">replay</i>
-              </button>
-              <button v-if="file.status === 'conflict'" @click="handleConflictAction(file)" class="action"
-                :aria-label="$t('general.replace')" :title="$t('general.replace')">
-                <i class="material-icons">sync_problem</i>
-              </button>
-              <button @click="cancelUpload(file.id)" class="action" :aria-label="$t('general.cancel')"
-                :title="$t('general.cancel')">
-                <i class="material-icons">close</i>
-              </button>
-            </div>
+          </div>
+          <div class="file-actions">
+            <button v-if="file.status === 'uploading'" @click="uploadManager.pause(file.id)" class="action"
+              :aria-label="$t('general.pause')" :title="$t('general.pause')">
+              <i class="material-icons">pause</i>
+            </button>
+            <button v-if="file.status === 'paused'" @click="uploadManager.resume(file.id)" class="action"
+              :aria-label="$t('general.resume')" :title="$t('general.resume')">
+              <i class="material-icons">play_arrow</i>
+            </button>
+            <button v-if="file.status === 'error'" @click="uploadManager.retry(file.id)" class="action"
+              :aria-label="$t('general.retry')" :title="$t('general.retry')">
+              <i class="material-icons">replay</i>
+            </button>
+            <button v-if="file.status === 'conflict'" @click="handleConflictAction(file)" class="action"
+              :aria-label="$t('general.replace')" :title="$t('general.replace')">
+              <i class="material-icons">sync_problem</i>
+            </button>
+            <button @click="cancelUpload(file.id)" class="action" :aria-label="$t('general.cancel')"
+              :title="$t('general.cancel')">
+              <i class="material-icons">close</i>
+            </button>
           </div>
         </div>
       </div>
@@ -613,12 +611,6 @@ export default {
 </script>
 
 <style scoped>
-.upload-scrollable {
-  flex: 1;
-  overflow-y: auto;
-  margin-top: 0.5em;
-}
-
 .button-group {
   display: flex;
   justify-content: center;

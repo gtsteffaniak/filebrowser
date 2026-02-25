@@ -211,13 +211,9 @@ export default {
 <style scoped>
 .info-content {
   height: 100%;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-}
-
-.floating-window .card-content.info-content {
-  padding-bottom: 0.5em !important;
 }
 
 .info-description {

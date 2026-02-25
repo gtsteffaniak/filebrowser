@@ -45,14 +45,14 @@
       </header>
       <!-- Resize for prompts -->
       <div class="resize-handles">
-        <div class="resize-handle resize-handle-top" @mousedown.stop="startResize($event, prompt.id, 'top')" @touchstart.stop.passive="startResize($event, prompt.id, 'top')"></div>
-        <div class="resize-handle resize-handle-bottom" @mousedown.stop="startResize($event, prompt.id, 'bottom')" @touchstart.stop.passive="startResize($event, prompt.id, 'bottom')"></div>
-        <div class="resize-handle resize-handle-left" @mousedown.stop="startResize($event, prompt.id, 'left')" @touchstart.stop.passive="startResize($event, prompt.id, 'left')"></div>
-        <div class="resize-handle resize-handle-right" @mousedown.stop="startResize($event, prompt.id, 'right')" @touchstart.stop.passive="startResize($event, prompt.id, 'right')"></div>
-        <div class="resize-handle resize-handle-top-left" @mousedown.stop="startResize($event, prompt.id, 'top-left')" @touchstart.stop.passive="startResize($event, prompt.id, 'top-left')"></div>
-        <div class="resize-handle resize-handle-top-right" @mousedown.stop="startResize($event, prompt.id, 'top-right')" @touchstart.stop.passive="startResize($event, prompt.id, 'top-right')"></div>
-        <div class="resize-handle resize-handle-bottom-left" @mousedown.stop="startResize($event, prompt.id, 'bottom-left')" @touchstart.stop.passive="startResize($event, prompt.id, 'bottom-left')"></div>
-        <div class="resize-handle resize-handle-bottom-right" @mousedown.stop="startResize($event, prompt.id, 'bottom-right')" @touchstart.stop.passive="startResize($event, prompt.id, 'bottom-right')"></div>
+        <div class="resize-handle resize-handle-top" @mousedown.stop="startResize($event, prompt.id, 'top')" @touchstart.stop="startResize($event, prompt.id, 'top')"></div>
+        <div class="resize-handle resize-handle-bottom" @mousedown.stop="startResize($event, prompt.id, 'bottom')" @touchstart.stop="startResize($event, prompt.id, 'bottom')"></div>
+        <div class="resize-handle resize-handle-left" @mousedown.stop="startResize($event, prompt.id, 'left')" @touchstart="startResize($event, prompt.id, 'left')"></div>
+        <div class="resize-handle resize-handle-right" @mousedown.stop="startResize($event, prompt.id, 'right')" @touchstart.stop="startResize($event, prompt.id, 'right')"></div>
+        <div class="resize-handle resize-handle-top-left" @mousedown.stop="startResize($event, prompt.id, 'top-left')" @touchstart.stop="startResize($event, prompt.id, 'top-left')"></div>
+        <div class="resize-handle resize-handle-top-right" @mousedown.stop="startResize($event, prompt.id, 'top-right')" @touchstart.stop="startResize($event, prompt.id, 'top-right')"></div>
+        <div class="resize-handle resize-handle-bottom-left" @mousedown.stop="startResize($event, prompt.id, 'bottom-left')" @touchstart.stop="startResize($event, prompt.id, 'bottom-left')"></div>
+        <div class="resize-handle resize-handle-bottom-right" @mousedown.stop="startResize($event, prompt.id, 'bottom-right')" @touchstart.stop="startResize($event, prompt.id, 'bottom-right')"></div>
       </div>
       <component
         :is="prompt.name"
