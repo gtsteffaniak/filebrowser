@@ -165,6 +165,7 @@ export default {
           return this.$t("prompts.download");
         case "move":
           return this.$t("general.move");
+    
         case "copy":
           return this.$t("general.copy");
         case "rename":
@@ -219,6 +220,8 @@ export default {
           return this.$t("prompts.unarchive");
         case "threejscontrols":
           return this.$t("threejs.controls");
+        case "delete":
+          return this.$t("general.delete");
         default:
           console.error("[Prompts.vue] unknown prompt name", promptName);
           // Fallback for unknown prompt types
