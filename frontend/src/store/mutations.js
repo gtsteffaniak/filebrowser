@@ -280,8 +280,7 @@ export const mutations = {
   showHover: (value) => {
     state.promptIdCounter += 1;
     const id = state.promptIdCounter;
-    // Set parentId to the current topmost prompt,
-    // unless the new prompt is pinned (which should not have a parent).
+    // Set parentId to the current topmost prompt, unless the prompt is pinned.
     let parentId = value?.parentId;
     if (!parentId && !value?.pinnedHover) {
       const topPrompt = state.prompts[state.prompts.length - 1];
