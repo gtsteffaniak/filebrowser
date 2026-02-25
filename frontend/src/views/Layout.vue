@@ -197,6 +197,7 @@ export default {
         if (state.user.showFirstLogin && !globalVars.noAuth) {
           mutations.showHover({
             name: "generic",
+            pinnedHover: true,
             props: {
               title: this.$t("prompts.firstLoadTitle"),
               body: this.$t("prompts.firstLoadBody"),

@@ -127,6 +127,7 @@ export default {
           // Show replace-rename prompt for file/folder conflicts
           mutations.showHover({
             name: "replace-rename",
+            pinnedHover: true,
             confirm: async (event, option) => {
               event.preventDefault();
               try {

@@ -44,7 +44,7 @@
         </div>
       </header>
       <!-- Resize for the prompt on top -->
-      <div v-if="isTopmost(prompt.id)" class="resize-handles">
+      <div class="resize-handles">
         <div class="resize-handle resize-handle-top" @mousedown.stop="startResize($event, prompt.id, 'top')" @touchstart.stop.passive="startResize($event, prompt.id, 'top')"></div>
         <div class="resize-handle resize-handle-bottom" @mousedown.stop="startResize($event, prompt.id, 'bottom')" @touchstart.stop.passive="startResize($event, prompt.id, 'bottom')"></div>
         <div class="resize-handle resize-handle-left" @mousedown.stop="startResize($event, prompt.id, 'left')" @touchstart.stop.passive="startResize($event, prompt.id, 'left')"></div>
@@ -288,6 +288,7 @@ export default {
           // Show warning prompt instead of closing
           mutations.showHover({
             name: "CloseWithActiveUploads",
+            pinnedHover: true,
             confirm: () => {
               // User confirmed to close anyway - close the upload prompt
               mutations.closePromptById(id);

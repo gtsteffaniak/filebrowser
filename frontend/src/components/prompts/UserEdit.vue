@@ -326,6 +326,7 @@ export default {
     deletePrompt() {
       mutations.showHover({
         name: "generic",
+        pinnedHover: true,
         props: {
           title: this.$t("general.delete"),
           body: this.$t("prompts.deleteUserMessage", { username: this.user.username }),

@@ -435,6 +435,7 @@ export default {
       this.isPromptOpen = true;
       mutations.showHover({
         name: "SaveBeforeExit",
+        pinnedHover: true,
         confirm: async () => {
           // Save and exit - throw error if save fails to keep prompt open
           try {

@@ -230,6 +230,7 @@ export default {
       conflictResolver = resolver;
       mutations.showHover({
         name: "replace-rename",
+        pinnedHover: true,
         confirm: (event, option) => {
           if (option === "overwrite") {
             resolveConflict(true);
@@ -519,6 +520,7 @@ export default {
     const handleConflictAction = (file) => {
       mutations.showHover({
         name: "replace",
+        pinnedHover: true,
         confirm: () => {
           uploadManager.retry(file.id, true);
           mutations.closeTopHover();
