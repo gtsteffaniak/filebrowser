@@ -74,20 +74,24 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 		devMode:   settings.Env.IsDevMode,
 	}
 
+	// Core routing
 	router := http.NewServeMux()
-	// API group routing
 	api := http.NewServeMux()
-	// Public group routing (new structure)
 	publicRoutes := http.NewServeMux()
+	publicApi := http.NewServeMux()
 
-	// User routes
+	// ========================================
+	// User Routes - /api/users/ (with public routes)
+	// ========================================
 	api.HandleFunc("GET /users", withUser(userGetHandler))
 	api.HandleFunc("POST /users", withSelfOrAdmin(usersPostHandler))
 	api.HandleFunc("PUT /users", withUser(userPutHandler))
 	api.HandleFunc("DELETE /users", withSelfOrAdmin(userDeleteHandler))
-	api.HandleFunc("GET /health", healthHandler)
+	publicApi.HandleFunc("GET /users", withUser(userGetHandler))
 
-	// Auth routes
+	// ========================================
+	// Auth Routes - /api/auth/
+	// ========================================
 	api.HandleFunc("POST /auth/login", userWithoutOTP(loginHandler))
 	api.HandleFunc("POST /auth/logout", withOrWithoutUser(logoutHandler))
 	api.HandleFunc("POST /auth/signup", withoutUser(signupHandler))
@@ -101,7 +105,9 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	api.HandleFunc("GET /auth/oidc/callback", wrapHandler(oidcCallbackHandler))
 	api.HandleFunc("GET /auth/oidc/login", wrapHandler(oidcLoginHandler))
 
-	// Resources routes
+	// ========================================
+	// Resources Routes - /api/resources/ (with public routes)
+	// ========================================
 	api.HandleFunc("GET /resources", withUser(resourceGetHandler))
 	api.HandleFunc("GET /resources/items", withUser(itemsGetHandler))
 	api.HandleFunc("DELETE /resources", withUser(resourceDeleteHandler))
@@ -111,14 +117,24 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	api.HandleFunc("DELETE /resources/bulk", withUser(resourceBulkDeleteHandler))
 	api.HandleFunc("POST /resources/archive", withUser(archiveCreateHandler))
 	api.HandleFunc("POST /resources/unarchive", withUser(unarchiveHandler))
-	api.HandleFunc("GET /raw", withUser(rawHandler))
-	api.HandleFunc("GET /preview", withTimeout(60*time.Second, withUserHelper(previewHandler)))
-	api.HandleFunc("GET /media/subtitles", withUser(subtitlesHandler))
-	if settings.Env.IsDevMode {
-		api.HandleFunc("GET /inspectIndex", inspectIndex)
-		api.HandleFunc("GET /mockData", mockData)
-	}
-	// Access routes
+	api.HandleFunc("GET /resources/download", withUser(downloadHandler))
+	api.HandleFunc("GET /resources/preview", withTimeout(60*time.Second, withUserHelper(previewHandler)))
+	publicApi.HandleFunc("GET /resources", withHashFile(publicGetResourceHandler))
+	publicApi.HandleFunc("GET /resources/items", withHashFile(publicItemsGetHandler))
+	publicApi.HandleFunc("POST /resources", withHashFile(publicUploadHandler))
+	publicApi.HandleFunc("PUT /resources", withHashFile(publicPutHandler))
+	publicApi.HandleFunc("DELETE /resources", withHashFile(publicDeleteHandler))
+	publicApi.HandleFunc("DELETE /resources/bulk", withHashFile(publicBulkDeleteHandler))
+	publicApi.HandleFunc("PATCH /resources", withHashFile(publicPatchHandler))
+	publicApi.HandleFunc("GET /resources/download", withHashFile(publicDownloadHandler))
+	publicApi.HandleFunc("GET /resources/preview", withHashFile(publicPreviewHandler))
+	// Legacy routes (backwards compatibility)
+	api.HandleFunc("GET /raw", withUser(downloadHandler))
+	publicApi.HandleFunc("GET /raw", withHashFile(publicDownloadHandler))
+
+	// ========================================
+	// Access Routes - /api/access/
+	// ========================================
 	api.HandleFunc("GET /access", withAdmin(accessGetHandler))
 	api.HandleFunc("POST /access", withAdmin(accessPostHandler))
 	api.HandleFunc("PATCH /access", withAdmin(accessPatchHandler))
@@ -127,84 +143,96 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	api.HandleFunc("POST /access/group", withAdmin(groupPostHandler))
 	api.HandleFunc("DELETE /access/group", withAdmin(groupDeleteHandler))
 
-	// Share management routes (require permission)
-	api.HandleFunc("GET /shares", withPermShare(shareListHandler))
+	// ========================================
+	// Share Routes - /api/share/
+	// ========================================
+	api.HandleFunc("GET /share/list", withPermShare(shareListHandler))
 	api.HandleFunc("GET /share/direct", withPermShare(shareDirectDownloadHandler))
 	api.HandleFunc("GET /share", withPermShare(shareGetHandler))
 	api.HandleFunc("POST /share", withPermShare(sharePostHandler))
 	api.HandleFunc("PATCH /share", withPermShare(sharePatchHandler))
 	api.HandleFunc("DELETE /share", withPermShare(shareDeleteHandler))
+	publicApi.HandleFunc("GET /share/info", withOrWithoutUser(shareInfoHandler))
+	publicApi.HandleFunc("GET /share/image", withHashFile(getShareImage))
 
-	// Create API sub-router for public API endpoints
-	publicAPI := http.NewServeMux()
-	// NEW PUBLIC ROUTES - All publicly accessible endpoints
-	// Public API routes (hash-based authentication)
-	publicAPI.HandleFunc("GET /raw", withHashFile(publicRawHandler))
-	publicAPI.HandleFunc("GET /preview", withTimeout(60*time.Second, withHashFileHelper(publicPreviewHandler)))
-	publicAPI.HandleFunc("GET /users", withUser(userGetHandler))
-	publicAPI.HandleFunc("POST /onlyoffice/callback", withHashFile(onlyofficeCallbackHandler))
-	publicAPI.HandleFunc("GET /onlyoffice/callback", withHashFile(onlyofficeCallbackHandler))
-	publicAPI.HandleFunc("GET /onlyoffice/config", withHashFile(onlyofficeClientConfigGetHandler))
-	publicAPI.HandleFunc("GET /resources", withHashFile(publicGetResourceHandler))
-	publicAPI.HandleFunc("GET /resources/items", withHashFile(publicItemsGetHandler))
-	publicAPI.HandleFunc("POST /resources", withHashFile(publicUploadHandler))
-	publicAPI.HandleFunc("PUT /resources", withHashFile(publicPutHandler))
-	publicAPI.HandleFunc("DELETE /resources", withHashFile(publicDeleteHandler))
-	publicAPI.HandleFunc("DELETE /resources/bulk", withHashFile(publicBulkDeleteHandler))
-	publicAPI.HandleFunc("PATCH /resources", withHashFile(publicPatchHandler))
-	publicAPI.HandleFunc("GET /shareinfo", withOrWithoutUser(shareInfoHandler))
-	publicAPI.HandleFunc("GET /share/image", withHashFile(getShareImage))
-
-	// Settings routes
+	// ========================================
+	// Settings Routes - /api/settings/
+	// ========================================
 	api.HandleFunc("GET /settings", withAdmin(settingsGetHandler))
 	api.HandleFunc("GET /settings/config", withAdmin(settingsConfigHandler))
+	api.HandleFunc("GET /settings/sources", withUser(getSourceInfoHandler))
 
-	// Events routes
+	// ========================================
+	// Tools Routes - /api/tools/
+	// ========================================
+	api.HandleFunc("GET /tools/search", withUser(searchHandler))
+	api.HandleFunc("GET /tools/duplicateFinder", withUser(duplicatesHandler))
+	api.HandleFunc("GET /tools/fileWatcher", withUser(fileWatchHandler))
+	api.HandleFunc("GET /tools/fileWatcher/sse", withUser(fileWatchSSEHandler))
+
+	// ========================================
+	// Media Routes - /api/media/
+	// ========================================
+	api.HandleFunc("GET /media/subtitles", withUser(subtitlesHandler))
+
+	// ========================================
+	// OnlyOffice Routes - /api/office/ (with public routes)
+	// ========================================
+	api.HandleFunc("GET /office/config", withUser(onlyofficeClientConfigGetHandler))
+	api.HandleFunc("POST /office/callback", withUser(onlyofficeCallbackHandler))
+	api.HandleFunc("GET /office/callback", withUser(onlyofficeCallbackHandler))
+	publicApi.HandleFunc("POST /office/callback", withHashFile(onlyofficeCallbackHandler))
+	publicApi.HandleFunc("GET /office/callback", withHashFile(onlyofficeCallbackHandler))
+	publicApi.HandleFunc("GET /office/config", withHashFile(onlyofficeClientConfigGetHandler))
+
+	// ========================================
+	// Misc Routes
+	// ========================================
+	api.HandleFunc("GET /health", healthHandler)
 	api.HandleFunc("GET /events", withUser(sseHandler))
-	// Job routes
-	api.HandleFunc("GET /jobs/{action}/{target}", withUser(getJobsHandler))
+	if settings.Env.IsDevMode {
+		api.HandleFunc("GET /inspectIndex", inspectIndex)
+		api.HandleFunc("GET /mockData", mockData)
+	}
 
-	api.HandleFunc("GET /onlyoffice/config", withUser(onlyofficeClientConfigGetHandler))
-	api.HandleFunc("POST /onlyoffice/callback", withUser(onlyofficeCallbackHandler))
-	api.HandleFunc("GET /onlyoffice/callback", withUser(onlyofficeCallbackHandler))
+	// Mount public API
+	publicRoutes.Handle("/api/", http.StripPrefix("/api", publicApi))
 
-	api.HandleFunc("GET /search", withUser(searchHandler))
-	api.HandleFunc("GET /duplicates", withUser(duplicatesHandler))
-	api.HandleFunc("GET /tools/watch", withUser(fileWatchHandler))
-	api.HandleFunc("GET /tools/watch/sse", withUser(fileWatchSSEHandler))
-	// Mount the public API sub-router
-	publicRoutes.Handle("/api/", http.StripPrefix("/api", publicAPI))
-
-	// Mount the route groups
+	// ========================================
+	// Configure Main Router
+	// ========================================
 	apiPath := config.Server.BaseURL + "api"
 	publicPath := config.Server.BaseURL + "public"
 	webDavPath := config.Server.BaseURL + "dav"
+
+	// Mount primary API and public routes
 	router.Handle(apiPath+"/", http.StripPrefix(apiPath, api))
 	router.Handle(publicPath+"/", http.StripPrefix(publicPath, publicRoutes))
 
+	// WebDAV handler
 	if !config.Server.DisableWebDAV {
-		// WebDAV handler -- uses Basic Auth where password is JWT token
-		// (reddec) do not trim /dav prefix here - webdav library for some reason does not like it.
+		// Uses Basic Auth where password is JWT token
+		// Note: do not trim /dav prefix here - webdav library requires it
 		router.Handle(webDavPath+"/{source}/{path...}", withBasicAuth(webDAVHandler))
 	}
+
 	// Frontend share route redirect (DEPRECATED - maintain for backwards compatibility)
-	// Playwright tests need updating to remove this redirect.
+	// TODO: Playwright tests need updating to remove this redirect
 	router.HandleFunc(fmt.Sprintf("GET %vshare/", config.Server.BaseURL), withOrWithoutUser(redirectToShare))
 
-	// New frontend share route handler - handle share page and any subpaths
+	// New frontend share route handler
 	publicRoutes.HandleFunc("GET /share/", withOrWithoutUser(indexHandler))
 
-	// Static and index file handlers
+	// Static assets
 	publicRoutes.Handle("GET /static/", http.HandlerFunc(staticAssetHandler))
-
-	// Standard browser favicon route
 	router.HandleFunc("GET /favicon.svg", http.HandlerFunc(staticAssetHandler))
 
+	// Index and utility routes
 	router.HandleFunc(config.Server.BaseURL, withOrWithoutUser(indexHandler))
 	router.HandleFunc(fmt.Sprintf("GET %vhealth", config.Server.BaseURL), healthHandler)
 	router.Handle(fmt.Sprintf("%vswagger/", config.Server.BaseURL), withUser(swaggerHandler))
 
-	// redirect to baseUrl if not root
+	// Base URL redirect (non-root deployments)
 	if config.Server.BaseURL != "/" {
 		router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, config.Server.BaseURL, http.StatusMovedPermanently)

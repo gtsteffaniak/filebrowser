@@ -51,7 +51,7 @@ func getUserFromApiToken(token string) (uint, error) {
 // createApiKeyHandler creates an API key for the user.
 // @Summary Create API key
 // @Description Create an API key with specified name, duration, and permissions.
-// @Tags API Keys
+// @Tags Auth
 // @Accept json
 // @Produce json
 // @Param name query string true "Name of the API key"
@@ -126,7 +126,7 @@ func createApiKeyHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 // deleteApiKeyHandler deletes an API key for the user.
 // @Summary Delete API key
 // @Description Delete an API key with specified name.
-// @Tags API Keys
+// @Tags Auth
 // @Accept json
 // @Produce json
 // @Param name query string true "Name of the API key to delete"
@@ -169,7 +169,7 @@ type AuthTokenMin struct {
 // listApiKeysHandler lists all API keys or retrieves details for a specific key.
 // @Summary List API keys
 // @Description List all API keys or retrieve details for a specific key.
-// @Tags API Keys
+// @Tags Auth
 // @Accept json
 // @Produce json
 // @Param name query string false "Name of the API to retrieve details"

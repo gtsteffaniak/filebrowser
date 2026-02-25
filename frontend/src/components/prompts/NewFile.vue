@@ -25,7 +25,7 @@
 </template>
 <script>
 import { state } from "@/store";
-import { filesApi, publicApi } from "@/api";
+import { resourcesApi } from "@/api";
 import { getters, mutations } from "@/store"; // Import your custom store
 import { notify } from "@/notify";
 import { url } from "@/utils";
@@ -98,13 +98,13 @@ export default {
         const newPath = url.joinPath(parentPath, this.name);
 
         if (getters.isShare()) {
-          await publicApi.post(state.shareInfo?.hash, newPath, "", overwrite);
+          await resourcesApi.postPublic(state.shareInfo?.hash, newPath, "", overwrite);
           mutations.setReload(true);
           mutations.closeTopHover();
           this.creating = false;
           return;
         }
-        await filesApi.post(source, newPath, "", overwrite);
+        await resourcesApi.post(source, newPath, "", overwrite);
         mutations.setReload(true);
         mutations.closeTopHover();
 
@@ -145,13 +145,13 @@ export default {
                       const newPath = url.joinPath(parentPath, newName);
 
                       if (getters.isShare()) {
-                        await publicApi.post(state.shareInfo?.hash, newPath, "", false);
+                        await resourcesApi.postPublic(state.shareInfo?.hash, newPath, "", false);
                         mutations.setReload(true);
                         mutations.closeTopHover();
                         success = true;
                         return;
                       }
-                      await filesApi.post(source, newPath, "", false);
+                      await resourcesApi.post(source, newPath, "", false);
                       mutations.setReload(true);
                       mutations.closeTopHover();
                       success = true;

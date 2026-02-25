@@ -137,7 +137,7 @@ import { globalVars } from "@/utils/constants";
 import downloadFiles from "@/utils/download";
 
 import { getHumanReadableFilesize } from "@/utils/filesizes";
-import { filesApi,publicApi } from "@/api";
+import { resourcesApi } from "@/api";
 import * as upload from "@/utils/upload";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 import { url } from "@/utils";
@@ -292,14 +292,14 @@ export default {
       // If forceFilesApi is true, always use authenticated files API
       if (this.forceFilesApi) {
         // @ts-ignore
-        return filesApi.getPreviewURL(this.source || state?.req?.source, previewPath, this.modified);
+        return resourcesApi.getPreviewURL(this.source || state?.req?.source, previewPath, this.modified);
       }
 
       if (getters.isShare()) {
-        return publicApi.getPreviewURL(previewPath);
+        return resourcesApi.getPreviewURLPublic(previewPath);
       }
       // @ts-ignore
-      return filesApi.getPreviewURL(this.source || state.req.source, previewPath, this.modified);
+      return resourcesApi.getPreviewURL(this.source || state.req.source, previewPath, this.modified);
     },
     isThumbsEnabled() {
       return globalVars.enableThumbs;
@@ -573,9 +573,9 @@ export default {
 
       let checkAction = async () => {
         if (getters.isShare()) {
-          return await publicApi.fetchPub(this.path, state.shareInfo.hash);
+          return await resourcesApi.fetchFilesPublic(this.path, state.shareInfo.hash);
         } else {
-          return await filesApi.fetchFiles(this.source, this.path);
+          return await resourcesApi.fetchFiles(this.source, this.path);
         }
       }
       const response = await checkAction();
@@ -596,9 +596,9 @@ export default {
 
         try {
           if (getters.isShare()) {
-            await publicApi.moveCopy(state.shareInfo.hash, items, "move", overwrite, rename);
+            await resourcesApi.moveCopyPublic(state.shareInfo.hash, items, "move", overwrite, rename);
           } else {
-            await filesApi.moveCopy(items, "move", overwrite, rename);
+            await resourcesApi.moveCopy(items, "move", overwrite, rename);
           }
           // Notification to move into the folder
           const buttonAction = () => {

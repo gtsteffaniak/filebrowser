@@ -15,7 +15,7 @@ import { DocumentEditor } from "@onlyoffice/document-editor-vue";
 import { globalVars } from "@/utils/constants";
 import { state, getters, mutations } from "@/store";
 import { removeLastDir } from "@/utils/url";
-import { filesApi } from "@/api";
+import { officeApi } from "@/api";
 import { toStandardLocale } from "@/i18n";
 import { events } from "@/notify";
 
@@ -79,7 +79,7 @@ export default {
       }
 
       // Fetch configuration from backend
-      const configData = await filesApi.GetOfficeConfig(state.req)
+      const configData = await officeApi.getConfig(state.req)
 
       if (this.debugMode) {
         this.updateDebugStatus("✅ API Request - Config Received");

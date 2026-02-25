@@ -1,6 +1,6 @@
 import { fetchURL, fetchJSON, adjustedData } from "./utils";
 import { notify } from "@/notify";
-import { getApiPath } from "@/utils/url.js";
+import { getApiPath, getPublicApiPath } from "@/utils/url.js";
 
 
 // ============================================================================
@@ -10,7 +10,7 @@ import { getApiPath } from "@/utils/url.js";
 // List all shares
 export async function list() {
   try {
-  const apiPath = getApiPath("api/shares");
+  const apiPath = getApiPath("share/list");
     return await fetchJSON(apiPath);
   } catch (/** @type {any} */ err) {
     notify.showError(err.message || "Error listing shares");
@@ -27,7 +27,7 @@ export async function list() {
 export async function get(path, source) {
   try {
     const params = { path, source };
-    const apiPath = getApiPath("api/share", params);
+    const apiPath = getApiPath("share", params);
     let data = await fetchJSON(apiPath);
     return adjustedData(data);
   } catch (/** @type {any} */ err) {
@@ -44,7 +44,7 @@ export async function get(path, source) {
 export async function remove(hash) {
   try {
     const params = { hash };
-    const apiPath = getApiPath("api/share", params);
+    const apiPath = getApiPath("share", params);
     await fetchURL(apiPath, {
       method: "DELETE",
     });
@@ -61,7 +61,7 @@ export async function remove(hash) {
  */
 export async function create(bodyObj = {}) {
   try {
-    const apiPath = getApiPath("api/share");
+    const apiPath = getApiPath("share");
     return await fetchJSON(apiPath, {
     method: "POST",
     body: JSON.stringify(bodyObj || {}),
@@ -80,7 +80,7 @@ export async function create(bodyObj = {}) {
  */
 export async function updatePath(hash, newPath) {
   try {
-    const apiPath = getApiPath("api/share");
+    const apiPath = getApiPath("share");
     return await fetchJSON(apiPath, {
       method: "PATCH",
       body: JSON.stringify({ hash, path: newPath }),
@@ -109,3 +109,18 @@ export async function updatePath(hash, newPath) {
  * @property {string} token
  * @property {boolean} inline
  */
+
+// ============================================================================
+// PUBLIC API ENDPOINTS (hash-based authentication)
+// ============================================================================
+
+export async function getShareInfoPublic(hash) {
+  try {
+    const apiPath = getPublicApiPath('share/info', { hash: hash })
+    const response = await fetch(apiPath)
+    return response.json()
+  } catch (err) {
+    notify.showError(err.message || 'Error getting share info')
+    throw err
+  }
+}

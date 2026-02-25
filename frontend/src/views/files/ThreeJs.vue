@@ -88,7 +88,7 @@ import { VOXLoader } from 'three/addons/loaders/VOXLoader.js';
 import { KMZLoader } from 'three/addons/loaders/KMZLoader.js';
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { state, mutations, getters } from "@/store";
-import { filesApi, publicApi } from "@/api";
+import { resourcesApi } from "@/api";
 import { removeLastDir } from "@/utils/url";
 
 const LOADERS = {
@@ -157,13 +157,13 @@ export default {
     modelUrl() {
       const useInline = this.fileExtension !== 'glb';
       if (getters.isShare()) {
-        return publicApi.getDownloadURL({
+        return resourcesApi.getDownloadURLPublic({
           path: state.shareInfo.subPath,
           hash: state.shareInfo.hash,
           token: state.shareInfo.token,
         }, [this.fbdata.path], useInline);
       }
-      return filesApi.getDownloadURL(this.fbdata.source, this.fbdata.path, useInline);
+      return resourcesApi.getDownloadURL(this.fbdata.source, this.fbdata.path, useInline);
     },
     fileExtension() {
       return this.fbdata.name ? this.fbdata.name.split('.').pop().toLowerCase() : '';
@@ -365,10 +365,10 @@ export default {
     },
 
     resolveTextureUrl(url) {
-      if (url.includes('/api/raw?')) {
+      if (url.includes('/api/resources/download?')) {
         return url;
       }
-      const filename = url.split('/api/')[1];
+      const filename = url.split('/api/resources/')[1];
       let texturePath = removeLastDir(this.fbdata.path) + "/textures/" + filename
       if (this.fbdata.parentDirItems) {
         for (const item of this.fbdata.parentDirItems) {
@@ -378,13 +378,13 @@ export default {
         }
       }
       if (getters.isShare()) {
-        return publicApi.getDownloadURL({
+        return resourcesApi.getDownloadURLPublic({
             path: state.shareInfo.subPath,
             hash: state.shareInfo.hash,
             token: state.shareInfo.token,
           }, [texturePath], true);
       }
-      return filesApi.getDownloadURL(this.fbdata.source, texturePath, true);
+      return resourcesApi.getDownloadURL(this.fbdata.source, texturePath, true);
     },
 
     async loadModel() {
@@ -466,12 +466,12 @@ export default {
       const cleanPath = this.fbdata.path.replace(/\/$/, '');
       const mtlPath = cleanPath.replace(/\.obj$/i, '.mtl');
       const mtlUrl = getters.isShare() ? 
-          publicApi.getDownloadURL({
+          resourcesApi.getDownloadURLPublic({
             path: state.shareInfo.subPath,
             hash: state.shareInfo.hash,
             token: state.shareInfo.token,
           }, [mtlPath], true) :
-          filesApi.getDownloadURL(state.req.source, mtlPath, true);
+          resourcesApi.getDownloadURL(state.req.source, mtlPath, true);
 
       const mtlLoader = new MTLLoader(manager);
       mtlLoader.load(mtlUrl, (materials) => {

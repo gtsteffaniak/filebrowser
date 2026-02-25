@@ -24,7 +24,7 @@
   </div>
 </template>
 <script>
-import { filesApi, publicApi } from "@/api";
+import { resourcesApi } from "@/api";
 import { getters, mutations, state } from "@/store"; // Import your custom store
 import { url } from "@/utils";
 import { notify } from "@/notify";
@@ -101,13 +101,13 @@ export default {
         const newPath = url.joinPath(parentPath, this.name) + "/";
 
         if (getters.isShare()) {
-          await publicApi.post(state.shareInfo?.hash, newPath, "", overwrite, undefined, {}, true);
+          await resourcesApi.postPublic(state.shareInfo?.hash, newPath, "", overwrite, undefined, {}, true);
           mutations.setReload(true);
           mutations.closeTopHover();
           this.creating = false;
           return;
         }
-        await filesApi.post(source, newPath, "", overwrite, undefined, {}, true);
+        await resourcesApi.post(source, newPath, "", overwrite, undefined, {}, true);
         mutations.setReload(true);
         mutations.closeTopHover();
 
@@ -148,13 +148,13 @@ export default {
                       const newPath = url.joinPath(parentPath, newName) + "/";
 
                       if (getters.isShare()) {
-                        await publicApi.post(state.shareInfo?.hash, newPath, "", false, undefined, {}, true);
+                        await resourcesApi.postPublic(state.shareInfo?.hash, newPath, "", false, undefined, {}, true);
                         mutations.setReload(true);
                         mutations.closeTopHover();
                         success = true;
                         return;
                       }
-                      await filesApi.post(source, newPath, "", false, undefined, {}, true);
+                      await resourcesApi.post(source, newPath, "", false, undefined, {}, true);
                       mutations.setReload(true);
                       mutations.closeTopHover();
                       success = true;

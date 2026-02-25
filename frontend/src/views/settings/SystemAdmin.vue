@@ -92,7 +92,7 @@ export default {
     async fetchConfig() {
       this.configLoading = true;
       try {
-        const response = await settingsApi.getConfig(
+        const response = await settingsApi.config(
           this.configOptions.showFull,
           this.configOptions.showComments
         );

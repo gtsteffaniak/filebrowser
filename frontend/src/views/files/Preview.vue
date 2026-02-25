@@ -53,7 +53,7 @@
   </div>
 </template>
 <script>
-import { filesApi, publicApi } from "@/api";
+import { resourcesApi } from "@/api";
 import { url } from "@/utils";
 import ExtendedImage from "@/components/files/ExtendedImage.vue";
 import plyrViewer from "@/views/files/plyrViewer.vue";
@@ -151,13 +151,13 @@ export default {
 
       if (state.isSafari && isHeicOrHeif) {
         if (getters.isShare()) {
-          return publicApi.getDownloadURL(
+          return resourcesApi.getDownloadURLPublic(
             { path: state.shareInfo.subPath, hash: state.shareInfo.hash, token: state.shareInfo.token },
             [state.req.path],
             true,
           );
         }
-        return filesApi.getDownloadURL(state.req.source, state.req.path, true);
+        return resourcesApi.getDownloadURL(state.req.source, state.req.path, true);
       }
 
       const getRawPreview = isRawImageMimeType(state.req.type) && globalVars.exiftoolAvailable;
@@ -165,10 +165,10 @@ export default {
       if (this.pdfConvertable || getRawPreview || getHeicPreview) {
         if (getters.isShare()) {
           const previewPath = url.removeTrailingSlash(state.req.path);
-          return publicApi.getPreviewURL(previewPath, "original");
+          return resourcesApi.getPreviewURLPublic(previewPath, "original");
         }
         return (
-          filesApi.getPreviewURL(
+          resourcesApi.getPreviewURL(
             state.req.source,
             state.req.path,
             state.req.modified,
@@ -176,7 +176,7 @@ export default {
         );
       }
       if (getters.isShare()) {
-        return publicApi.getDownloadURL(
+        return resourcesApi.getDownloadURLPublic(
           {
             path: state.shareInfo.subPath,
             hash: state.shareInfo.hash,
@@ -186,7 +186,7 @@ export default {
           true,
         );
       }
-      return filesApi.getDownloadURL(
+      return resourcesApi.getDownloadURL(
         state.req.source,
         state.req.path,
         true,
@@ -197,7 +197,7 @@ export default {
     },
     downloadUrl() {
       if (getters.isShare()) {
-        return publicApi.getDownloadURL(
+        return resourcesApi.getDownloadURLPublic(
           {
             path: state.shareInfo.subPath,
             hash: state.shareInfo.hash,
@@ -206,7 +206,7 @@ export default {
           [state.req.path],
         );
       }
-      return filesApi.getDownloadURL(state.req.source, state.req.path);
+      return resourcesApi.getDownloadURL(state.req.source, state.req.path);
     },
     isTransitioning() {
       return state.navigation.isTransitioning;
@@ -297,7 +297,7 @@ export default {
         const subtitleTrack = state.req.subtitles[index];
         try {
           // Fetch subtitle content from API using name and embedded
-          const content = await filesApi.getSubtitleContent(
+          const content = await resourcesApi.getSubtitleContent(
             state.req.source,
             state.req.path,
             subtitleTrack.name,
@@ -370,13 +370,13 @@ export default {
             let res;
             if (getters.isShare()) {
               // Use public API for shared files
-              res = await publicApi.fetchPub(
+              res = await resourcesApi.fetchFilesPublic(
                 directoryPath,
                 state.shareInfo?.hash,
               );
             } else {
               // Use regular files API for authenticated users
-              res = await filesApi.fetchFiles(
+              res = await resourcesApi.fetchFiles(
                 state.req.source,
                 directoryPath,
               );
@@ -409,7 +409,7 @@ export default {
     prefetchUrl(item) {
       if (getters.isShare()) {
         return this.fullSize
-          ? publicApi.getDownloadURL(
+          ? resourcesApi.getDownloadURLPublic(
               {
                 path: item.path,
                 hash: state.shareInfo?.hash,
@@ -418,11 +418,11 @@ export default {
               },
               [item.path],
             )
-          : publicApi.getPreviewURL(state.shareInfo?.hash, item.path);
+          : resourcesApi.getPreviewURLPublic(item.path);
       }
       return this.fullSize
-        ? filesApi.getDownloadURL(state.req.source, item.path, true)
-        : filesApi.getPreviewURL(
+        ? resourcesApi.getDownloadURL(state.req.source, item.path, true)
+        : resourcesApi.getPreviewURL(
             state.req.source,
             item.path,
             item.modified,
@@ -434,7 +434,7 @@ export default {
     showDeletePrompt() {
       const item = state.req;
       const previewUrl = item.hasPreview
-        ? filesApi.getPreviewURL(item.source, item.path, item.modified)
+        ? resourcesApi.getPreviewURL(item.source, item.path, item.modified)
         : null;
       mutations.showHover({
         name: "delete",
