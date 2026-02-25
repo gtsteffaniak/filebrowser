@@ -11,7 +11,7 @@ export async function fetchFiles(source, path, content = false, metadata = false
     throw new Error('no source provided')
   }
   try {
-    const apiPath = getApiPath('api/resources', {
+    const apiPath = getApiPath('resources', {
       path: path,
       source: source,
       ...(content && { content: 'true' }),
@@ -33,7 +33,7 @@ export async function getItems(source, path, only = "") {
     throw new Error('no source provided')
   }
   try {
-    const apiPath = getApiPath('api/resources/items', {
+    const apiPath = getApiPath('resources/items', {
       path: path,
       source: source,
       ...(only && { only: only }),
@@ -52,7 +52,7 @@ async function resourceAction(source, path, method, content) {
     throw new Error('no source provided')
   }
   try {
-    const apiPath = getApiPath('api/resources', { path, source })
+    const apiPath = getApiPath('resources', { path, source })
     let opts = { method }
     if (content) {
       opts.body = content
@@ -86,7 +86,7 @@ export async function bulkDelete(items) {
     throw new Error('items array is required and must not be empty')
   }
   try {
-    const apiPath = getApiPath('api/resources/bulk')
+    const apiPath = getApiPath('resources/bulk')
     const response = await fetchURL(apiPath, {
       method: 'DELETE',
       headers: {
@@ -174,7 +174,7 @@ export async function download(format, files, shareHash = "") {
     sessionId: state.sessionId
   }
 
-  const apiPath = getApiPath(shareHash == "" ? 'api/raw' : 'public/api/raw', params)
+  const apiPath = getApiPath("resources/download", params, false, shareHash !== "")
   const url = window.origin + apiPath
 
   // Create a direct link and trigger the download
@@ -226,7 +226,7 @@ async function downloadChunked(file, shareHash = "") {
     sessionId: state.sessionId
   }
 
-  const apiPath = getApiPath(shareHash == "" ? 'api/raw' : 'public/api/raw', params)
+  const apiPath = getApiPath("resources/download", params, false, shareHash !== "")
   const baseUrl = window.origin + apiPath
 
   const download = downloadManager.findById(downloadId)
@@ -374,7 +374,7 @@ export function post(
     throw new Error('no source provided')
   }
   try {
-    const apiPath = getApiPath("api/resources", {
+    const apiPath = getApiPath("resources", {
       path: path,
       source: source,
       override: overwrite,
@@ -460,7 +460,7 @@ export async function moveCopy(
       rename: rename
     }
 
-    const apiPath = getApiPath('api/resources')
+    const apiPath = getApiPath('resources')
     // We use fetch directly here instead of fetchURL because fetchURL throws on non-2xx status,
     // consuming the response body as text. We need to parse the JSON response for 500/207 errors.
     // We need to manually add headers that fetchURL adds.
@@ -515,7 +515,7 @@ export async function checksum(source, path, algo) {
       source: source,
       checksum: algo
     }
-    const apiPath = getApiPath('api/resources', params)
+    const apiPath = getApiPath('resources', params)
     const res = await fetchURL(apiPath)
     const data = await res.json()
     return data.checksums[algo]
@@ -535,7 +535,7 @@ export function getDownloadURL(source, path, inline, useExternal) {
       file: path,
       ...(inline && { inline: 'true' })
     }
-    const apiPath = getApiPath('api/raw', params)
+    const apiPath = getApiPath('resources/download', params)
     if (globalVars.externalUrl && useExternal) {
       return globalVars.externalUrl + apiPath
     }
@@ -557,7 +557,7 @@ export function getPreviewURL(source, path, modified) {
       source: source,
       inline: 'true'
     }
-    const apiPath = getApiPath('api/preview', params)
+    const apiPath = getApiPath('resources/preview', params)
     return window.origin + apiPath
   } catch (err) {
     notify.showError(err.message || 'Error getting preview URL')
@@ -565,49 +565,409 @@ export function getPreviewURL(source, path, modified) {
   }
 }
 
-export async function sources() {
+// POST /api/resources/archive - Create an archive
+export async function createArchive(opts) {
+  const { fromSource, toSource, paths, destination, format, compression, deleteAfter } = opts;
+  if (!fromSource || !paths?.length || !destination) {
+    throw new Error("fromSource, paths, and destination are required");
+  }
+  const body = {
+    fromSource,
+    paths,
+    destination,
+    ...(toSource && toSource !== fromSource && { toSource }),
+    ...(format && { format }),
+    ...(compression !== undefined && compression !== null && { compression }),
+    ...(deleteAfter && { deleteAfter: true }),
+  };
   try {
-    const apiPath = getApiPath('api/jobs/status/sources')
-    const res = await fetchURL(apiPath)
-    const data = await res.json()
-    // Return empty object if no sources are available - this is not an error
-    return data || {}
+    const apiPath = getApiPath("resources/archive");
+    const response = await fetchURL(apiPath, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    return response.json();
   } catch (err) {
-    // Only show error for actual network/server errors, not for empty sources
-    if (err.status && err.status !== 200) {
-      notify.showError(err.message || 'Error fetching usage sources')
+    notify.showError(err.message || "Error creating archive");
+    throw err;
+  }
+}
+
+// POST /api/resources/unarchive - Extract an archive
+export async function unarchive(opts) {
+  const { fromSource, toSource, path, destination, deleteAfter } = opts;
+  if (!fromSource || !path || !destination) {
+    throw new Error("fromSource, path, and destination are required");
+  }
+  const body = {
+    fromSource,
+    ...(toSource && toSource !== fromSource && { toSource }),
+    path,
+    destination,
+    ...(deleteAfter && { deleteAfter: true }),
+  };
+  try {
+    const apiPath = getApiPath("resources/unarchive");
+    const response = await fetchURL(apiPath, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    return response.json();
+  } catch (err) {
+    notify.showError(err.message || "Error extracting archive");
+    throw err;
+  }
+}
+
+// ============================================================================
+// PUBLIC API ENDPOINTS (hash-based authentication)
+// ============================================================================
+
+// Fetch public share data
+/**
+ * @param {string} path
+ * @param {string} hash
+ * @param {string} password
+ * @param {boolean} content
+ * @param {boolean} metadata
+ * @returns {Promise<any>}
+ */
+export async function fetchFilesPublic(path, hash, password = "", content = false, metadata = false, skipExtendedAttrs = false) {
+  const params = {
+    path: path,
+    hash,
+    ...(skipExtendedAttrs && { skipExtendedAttrs: 'true' }),
+    ...(content && { content: 'true' }),
+    ...(metadata && { metadata: 'true' }),
+    ...(state.shareInfo.token && { token: state.shareInfo.token })
+  }
+  const apiPath = getPublicApiPath("resources", params);
+  const response = await fetch(apiPath, {
+    headers: {
+      "X-SHARE-PASSWORD": password || "",
+    },
+  });
+
+  if (!response.ok) {
+    const error = new Error(response.statusText);
+    let data = null;
+    try {
+      data = await response.json()
+    } catch (e) {
+      // ignore
+    }
+    if (data) {
+      error.message = data.message;
+    }
+    (/** @type {any} */ (error)).status = response.status;
+    throw error;
+  }
+  let data = await response.json()
+  const adjusted = adjustedData(data);
+  return adjusted
+}
+
+export async function getItemsPublic(hash, path, only = "") {
+  if (!hash || hash === undefined || hash === null) {
+    throw new Error('no hash provided')
+  }
+  try {
+    const apiPath = getPublicApiPath('resources/items', {
+      path: path,
+      hash: hash,
+      ...(only && { only: only }),
+      ...(state.shareInfo.token && { token: state.shareInfo.token })
+    })
+    const response = await fetch(apiPath)
+    const data = await response.json()
+    return data
+  } catch (err) {
+    notify.showError(err.message || 'Error fetching items')
+    throw err
+  }
+}
+
+// Generate a download URL
+/**
+ * @param {{ path: string; hash: string; token: string; inline?: boolean }} share
+ * @param {string[]} files - Array of file paths (will be converted to repeated 'file' parameters)
+ * @returns {string}
+ */
+export function getDownloadURLPublic(share, files, inline=false) {
+  const fileArray = Array.isArray(files) ? files : [files]
+  const params = {
+    file: fileArray, // Array will be converted to repeated 'file' params by getPublicApiPath
+    hash: share.hash,
+    token: share.token,
+    ...(inline && { inline: 'true' })
+  }
+  const apiPath = getPublicApiPath("resources/download", params)
+  return window.origin + apiPath
+}
+
+// Generate a preview URL for public shares
+/**
+ * @param {string} path
+ * @param {string} size - The size parameter (small, large, original). Omit for default (small).
+ * @returns {string}
+ */
+export function getPreviewURLPublic(path, size) {
+  try {
+    const params = {
+      path: path,
+      hash: state.shareInfo.hash,
+      inline: 'true',
+      ...(size && size !== 'small' && { size: size }),
+      ...(state.shareInfo.token && { token: state.shareInfo.token })
+    }
+    const apiPath = getPublicApiPath('resources/preview', params)
+    return window.origin + apiPath
+  } catch (/** @type {any} */ err) {
+    notify.showError(err.message || 'Error getting preview URL')
+    throw err
+  }
+}
+
+export function postPublic(
+  hash,
+  path,
+  content = "",
+  overwrite = false,
+  onupload,
+  headers = {},
+  isDir = false
+) {
+  if (!hash || hash === undefined || hash === null) {
+    throw new Error('no hash provided')
+  }
+  let sharePassword = localStorage.getItem("sharepass:" + hash);
+  if (sharePassword) {
+    headers["X-SHARE-PASSWORD"] = sharePassword;
+  }
+  try {
+    const apiPath = getPublicApiPath("resources", {
+      path: path,
+      hash: hash,
+      override: overwrite,
+      ...(isDir && { isDir: 'true' })
+    });
+
+    const request = new XMLHttpRequest();
+    request.open("POST", apiPath, true);
+
+    for (const header in headers) {
+      request.setRequestHeader(header, headers[header]);
+    }
+    if (typeof onupload === "function") {
+      request.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percentComplete = Math.round(
+            (event.loaded / event.total) * 100
+          );
+          onupload(percentComplete);
+        }
+      };
+    }
+
+    const promise = new Promise((resolve, reject) => {
+      request.onload = () => {
+        if (request.status >= 200 && request.status < 300) {
+          resolve(request.responseText);
+        } else if (request.status === 409) {
+          const error = new Error("conflict");
+          error.response = { status: request.status, responseText: request.responseText };
+          reject(error);
+        } else {
+          let errorMessage = "Upload failed";
+          try {
+            const errorData = JSON.parse(request.responseText);
+            errorMessage = errorData.message || errorMessage;
+          } catch (e) {
+            errorMessage = request.responseText || errorMessage;
+          }
+
+          const error = new Error(errorMessage);
+          error.status = request.status;
+          notify.showError(errorMessage);
+          reject(error);
+        }
+      };
+
+      request.onerror = () => {
+        const error = new Error("Network error");
+        notify.showError("Network error during upload");
+        reject(error);
+      };
+
+      request.onabort = () => {
+        const error = new Error("Upload aborted");
+        notify.showError("Upload was aborted");
+        reject(error);
+      };
+
+      if (
+        content instanceof Blob &&
+        !["http:", "https:"].includes(window.location.protocol)
+      ) {
+        new Response(content).arrayBuffer()
+          .then(buffer => request.send(buffer))
+          .catch(err => reject(err));
+      } else {
+        request.send(content);
+      }
+    });
+
+    promise.xhr = request;
+    return promise;
+  } catch (err) {
+    notify.showError(err.message || "Error posting resource");
+    return Promise.reject(err);
+  }
+}
+
+async function resourceActionPublic(hash, path, method, content, token = "") {
+  try {
+    let headers = {};
+    let sharePassword = localStorage.getItem("sharepass:" + hash);
+    if (sharePassword) {
+      headers["X-SHARE-PASSWORD"] = sharePassword;
+    }
+    const apiPath = getPublicApiPath('resources', { path, hash: hash, token: token })
+    const response = await fetch(apiPath, {
+      method,
+      body: content,
+      headers,
+    });
+    if (!response.ok) {
+      const error = new Error(response.statusText);
+      let data = null;
+      try {
+        data = await response.json()
+      } catch (e) {
+        // ignore
+      }
+      if (data) {
+        error.message = data.message;
+      }
+      (/** @type {any} */ (error)).status = response.status;
+      throw error;
+    }
+    return response;
+  } catch (err) {
+    notify.showError(err.message || 'Error performing resource action')
+    throw err
+  }
+}
+
+export async function putPublic(hash, path, content = '') {
+  return await resourceActionPublic(hash, path, 'PUT', content)
+}
+
+export async function bulkDeletePublic(items) {
+  if (!items || !Array.isArray(items) || items.length === 0) {
+    throw new Error('items array is required and must not be empty')
+  }
+
+  const hash = state.shareInfo?.hash;
+  if (!hash) {
+    throw new Error('share hash is required')
+  }
+
+  const params = {
+    hash: hash,
+    ...(state.shareInfo.token && { token: state.shareInfo.token }),
+    sessionId: state.sessionId
+  }
+  const apiPath = getPublicApiPath("resources/bulk", params)
+  const baseUrl = window.origin + apiPath
+
+  try {
+    const response = await fetch(baseUrl, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'same-origin',
+      body: JSON.stringify(items),
+    })
+
+    const data = await response.json()
+
+    if (response.status === 200 || response.status === 207) {
+      return data
+    }
+
+    const error = new Error(data.message || response.statusText)
+    error.status = response.status
+    throw error
+  } catch (err) {
+    if (err.status && err.status !== 200 && err.status !== 207) {
+      return {
+        succeeded: [],
+        failed: items.map(item => ({
+          source: item.source || '',
+          path: item.path,
+          message: err.message || 'Delete failed',
+        })),
+      }
     }
     throw err
   }
 }
 
-export async function GetOfficeConfig(req) {
-  const params = {
-    path: req.path,
-    ...(req.hash && { hash: req.hash }),
-    ...(req.source && { source: req.source })
+export async function moveCopyPublic(
+  hash,
+  items,
+  action = 'copy',
+  overwrite = false,
+  rename = false
+) {
+  if (!items || !Array.isArray(items) || items.length === 0) {
+    throw new Error('items array is required and must not be empty')
   }
-  let apiPath = getApiPath('api/onlyoffice/config', params)
-  if (req.hash) {
-    apiPath = getPublicApiPath('onlyoffice/config', params)
-  }
-  const res = await fetchURL(apiPath)
-  return await res.json()
-}
 
-export async function getSubtitleContent(source, path, subtitleName, embedded = false) {
   try {
-    const apiPath = getApiPath('api/media/subtitles', {
-      source: source,
-      path: path,
-      name: subtitleName,
-      embedded: embedded.toString()
+    const requestBody = {
+      items: items.map(item => ({
+        fromPath: item.from,
+        toPath: item.to
+      })),
+      action: action,
+      overwrite: overwrite,
+      rename: rename
+    }
+
+    const apiPath = getPublicApiPath('resources', { hash: hash })
+    const response = await fetch(apiPath, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(state.shareInfo.token && { 'X-Auth-Token': state.shareInfo.token })
+      },
+      body: JSON.stringify(requestBody),
     })
-    const res = await fetchURL(apiPath)
-    const content = await res.text()
-    return content
+
+    const data = await response.json()
+
+    if (response.status === 200 || response.status === 207) {
+      return data
+    }
+
+    const error = new Error(data.message || response.statusText)
+    error.status = response.status
+    if (data.failed) {
+      error.failed = data.failed
+    }
+    if (data.succeeded) {
+      error.succeeded = data.succeeded
+    }
+    throw error
   } catch (err) {
-    notify.showError(err.message || `Error fetching subtitle ${subtitleName}`)
+    if (err.status && err.status !== 200 && err.status !== 207) {
+      console.error(err.message || 'Error moving/copying resources')
+    }
     throw err
   }
 }

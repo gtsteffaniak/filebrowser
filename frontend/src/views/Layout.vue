@@ -41,7 +41,7 @@ import Tooltip from "@/components/Tooltip.vue";
 import NextPrevious from "@/components/files/nextPrevious.vue";
 import PopupPreview from "@/components/files/PopupPreview.vue";
 import Shelf from "@/components/Shelf.vue";
-import { filesApi } from "@/api";
+import { settingsApi } from "@/api";
 import { state, getters, mutations } from "@/store";
 import { events, notify } from "@/notify";
 import { generateRandomCode } from "@/utils/auth";
@@ -185,7 +185,7 @@ export default {
     },
     async initialize() {
       if (getters.isLoggedIn()) {
-        const sourceinfo = await filesApi.sources();
+        const sourceinfo = await settingsApi.sources();
         mutations.updateSourceInfo(sourceinfo);
         if (state.user.permissions.realtime) {
           events.startSSE();

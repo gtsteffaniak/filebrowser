@@ -7,7 +7,7 @@ import { notify } from "@/notify";
 import { sortedItems } from "@/utils/sort.js";
 import { url } from "@/utils";
 import { getTypeInfo } from "@/utils/mimetype";
-import { filesApi, publicApi } from "@/api";
+import { resourcesApi } from "@/api";
 
 export const mutations = {
   disableEventThemes: () => {
@@ -780,7 +780,7 @@ export const mutations = {
   },
   getPrefetchUrl: (item) => {
     if (getters.isShare()) {
-      return publicApi.getDownloadURL(
+      return resourcesApi.getDownloadURLPublic(
         {
           path: item.path,
           hash: state.shareInfo.hash,
@@ -790,7 +790,7 @@ export const mutations = {
         true,
       );
     }
-    return filesApi.getDownloadURL(item.source, item.path, true);
+    return resourcesApi.getDownloadURL(item.source, item.path, true);
   },
   setNavigationShow: (show) => {
     if (state.navigation.show === show) {

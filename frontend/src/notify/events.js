@@ -1,7 +1,7 @@
 import { mutations, state } from '@/store'
 import { notify } from '@/notify'
 import { globalVars } from '@/utils/constants'
-import { filesApi } from '@/api'
+import { settingsApi } from '@/api'
 import i18n from '@/i18n'
 
 let eventSrc = null
@@ -12,7 +12,7 @@ let hasShownShutdownMessage = false
 
 async function updateSourceInfo() {
   try {
-    const sourceinfo = await filesApi.sources()
+    const sourceinfo = await settingsApi.sources()
     mutations.updateSourceInfo(sourceinfo)
   } catch (err) {
     mutations.updateSourceInfo('error')

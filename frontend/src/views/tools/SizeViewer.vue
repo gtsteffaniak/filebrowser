@@ -148,7 +148,7 @@
 </template>
 
 <script>
-import { search } from "@/api";
+import { toolsApi } from "@/api";
 import { state, mutations } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { getTypeInfo } from "@/utils/mimetype";
@@ -297,7 +297,7 @@ export default {
         if (!this.includeFoldersValue) {
           query += " type:file";
         }
-        this.results = await search(
+        this.results = await toolsApi.search(
           this.searchPath,
           this.selectedSource,
           query,

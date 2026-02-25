@@ -71,7 +71,7 @@ func (u *userInfoUnmarshaller) UnmarshalJSON(data []byte) error {
 // oidcLoginHandler initiates OIDC login.
 // @Summary OIDC login
 // @Description Initiates OIDC login flow.
-// @Tags OIDC
+// @Tags Auth
 // @Accept json
 // @Produce json
 // @Success 302 {string} string "Redirect to OIDC provider"
@@ -105,7 +105,7 @@ func oidcLoginHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 // oidcCallbackHandler handles OIDC callback.
 // @Summary OIDC callback
 // @Description Handles OIDC login callback.
-// @Tags OIDC
+// @Tags Auth
 // @Accept json
 // @Produce json
 // @Param code query string false "OIDC code"

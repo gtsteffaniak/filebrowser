@@ -71,7 +71,7 @@
 <script>
 import { mutations } from "@/store";
 import { notify } from "@/notify";
-import { usersApi } from "@/api";
+import { authApi } from "@/api";
 import { eventBus } from "@/store/eventBus";
 
 export default {
@@ -100,7 +100,7 @@ export default {
     async deleteApi() {
       // Dummy delete function, to be filled in later
       try {
-        usersApi.deleteApiKey({ name: this.name });
+        authApi.deleteApiKey({ name: this.name });
         // Emit event to refresh API tokens list
         setTimeout(() => {
           eventBus.emit('apiKeysChanged');

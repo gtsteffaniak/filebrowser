@@ -107,8 +107,7 @@
 </template>
 
 <script>
-import { findDuplicates } from "@/api/search";
-import { filesApi } from "@/api";
+import { toolsApi, resourcesApi } from "@/api";
 import { state, mutations } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { eventBus } from "@/store/eventBus";
@@ -258,7 +257,7 @@ export default {
       try {
         // API now expects minSizeMb directly (in megabytes)
         // Always use false for checksums due to performance issues
-        const result = await findDuplicates(
+        const result = await toolsApi.duplicateFinder(
           this.searchPath,
           this.selectedSource,
           this.minSizeValue,
@@ -438,7 +437,7 @@ export default {
               const file = group.files[fileIndex];
               const fullPath = this.getFullPath(file.path);
               const previewUrl = this.shouldHavePreview(file)
-                ? filesApi.getPreviewURL(this.selectedSource, fullPath, file.modified)
+                ? resourcesApi.getPreviewURL(this.selectedSource, fullPath, file.modified)
                 : null;
               items.push({
                 source: this.selectedSource,
@@ -491,7 +490,7 @@ export default {
       }
 
       try {
-        const response = await filesApi.bulkDelete(itemsToDelete);
+        const response = await resourcesApi.bulkDelete(itemsToDelete);
         
         // Process succeeded items
         if (response.succeeded && response.succeeded.length > 0) {

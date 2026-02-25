@@ -167,33 +167,12 @@ table tr>*:last-child {
   border-radius: 1em;
 }
 
-.card.floating {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 6;
-  max-width: 40em;
-  width: 90%;
-  max-height: 80vh; /* Constrain modal height for scrolling */
-  animation: .1s show forwards;
-  display: flex !important;
-  flex-direction: column;
-  overflow: hidden;
-}
-
 .card>*>*:first-child {
   margin-top: 0;
 }
 
 .card>*>*:last-child {
   margin-bottom: 0;
-}
-
-/* Apply flex behavior only to direct children of floating cards */
-.card.floating > .card-title {
-  text-align: center;
-  flex-shrink: 0;
 }
 
 .card-title {
@@ -207,25 +186,6 @@ table tr>*:last-child {
 body.rtl .card-title>*:first-child {
   margin-right: 0;
   text-align: right;
-}
-
-.card-actions {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: flex-end;
-  padding: 0.5em;
-  height: 3em;
-  gap: 0.25em;
-}
-
-.card.floating > .card-content {
-  flex-grow: 1;
-  overflow: auto;
-  padding: 0.5em;
-  min-height: 0; /* Allows flex child to shrink below content size */
 }
 
 /* Regular card styles (non-floating) */

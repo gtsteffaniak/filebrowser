@@ -86,7 +86,7 @@
 <script>
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { formatTimestamp } from "@/utils/moment";
-import { filesApi } from "@/api";
+import { resourcesApi } from "@/api";
 import { state, mutations } from "@/store";
 import { notify } from "@/notify";
 
@@ -171,7 +171,7 @@ export default {
         const source = this.item.source;
         const path = this.item.path;
 
-        const hash = await filesApi.checksum(source, path, this.selectedHashAlgo);
+        const hash = await resourcesApi.checksum(source, path, this.selectedHashAlgo);
         this.hashResult = hash;
       } catch (err) {
         this.hashResult = this.$t("prompts.errorGeneratingHash");

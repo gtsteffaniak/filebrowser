@@ -202,11 +202,3 @@ input.sizeInput:disabled {
   border-style: solid;
   border-color: white;
 }
-
-.floating-window {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  min-height: 0;
-  border: 2px solid var(--surfaceSecondary);
-}

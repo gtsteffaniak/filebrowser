@@ -79,15 +79,16 @@ export function removePrefix(path, prefix = "") {
 
 // get path with parameters
 // Supports array values for repeated parameters (e.g., file=a&file=b&file=c)
-export function getApiPath(path, params = {}, encode = true) {
+export function getApiPath(path, params = {}, skipEncode = false, isPublic = false) {
   if (path.startsWith("/")) {
     path = path.slice(1);
   }
-  path = `${globalVars.baseURL}${path}`;
+  const prefix = isPublic ? "public/api/" : "api/";
+  path = `${globalVars.baseURL}${prefix}${path}`;
 
   const paramKeys = Object.keys(params);
   if (paramKeys.length > 0) {
-    if (encode) {
+    if (!skipEncode) {
       const encodedParams = [];
       for (const key of paramKeys) {
         const value = params[key];
@@ -130,8 +131,8 @@ export function getApiPath(path, params = {}, encode = true) {
 
 // get path with parameters
 // relative path so it can be used behind proxy
-export function getPublicApiPath(path, params = {}, encode = true) {
-  return getApiPath(`/public/api/${path}`, params, encode);
+export function getPublicApiPath(path, params = {}, skipEncode = false) {
+  return getApiPath(path, params, skipEncode, true);
 }
 
 export function removeTrailingSlash(str) {
