@@ -874,7 +874,9 @@
     "keyboard": "Billentyűzet:",
     "autoRotate": "Automatikus forgatás",
     "rotateY": "Forgatás Y",
-    "rotateX": "Forgassa X"
+    "rotateX": "Forgassa X",
+    "controls": "3D vezérlés",
+    "changeBackground": "Háttérszín módosítása"
   },
   "onlyoffice": {
     "debugTitle": "OnlyOffice hibakeresési nyomkövetés",

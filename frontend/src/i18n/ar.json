@@ -874,7 +874,9 @@
     "keyboard": "لوحة المفاتيح:",
     "autoRotate": "تدوير تلقائي",
     "rotateY": "تدوير Y",
-    "rotateX": "تدوير X"
+    "rotateX": "تدوير X",
+    "controls": "عناصر تحكم ثلاثية الأبعاد",
+    "changeBackground": "تغيير لون الخلفية"
   },
   "onlyoffice": {
     "debugTitle": "تتبع تصحيح الأخطاء في المكتب فقط",

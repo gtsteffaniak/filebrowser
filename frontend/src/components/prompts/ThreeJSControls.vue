@@ -1,31 +1,31 @@
 <template>
   <div class="card-content no-buttons">
     <div v-if="!isMobile" class="shortcut-section">
-      <h3 class="section-title">⌨️ {{ $t("threejs.keyboard") }}</h3>
+      <h3 class="section-title">⌨️ {{ $t("threejs.keyboard") }}</h3> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
       <div class="shortcut-item">
         <kbd>{{ $t("general.space") }}</kbd>
         <span>{{ spaceText }}</span>
       </div>
       <div class="shortcut-item">
-        <kbd>R</kbd>
+        <kbd>R</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         <span>{{ $t("general.reset") }}</span>
       </div>
       <div class="shortcut-item">
-        <kbd>Q / E</kbd>
+        <kbd>Q / E</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         <span>{{ $t("threejs.rotateY") }}</span>
       </div>
       <div class="shortcut-item">
-        <kbd>W / S</kbd>
+        <kbd>W / S</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         <span>{{ $t("threejs.rotateX") }}</span>
       </div>
       <div class="shortcut-item">
-        <kbd>+ / -</kbd>
+        <kbd>+ / -</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         <span>{{ $t("general.zoom") }}</span>
       </div>
     </div>
 
     <div class="shortcut-section">
-      <h3 class="section-title">🎨 {{ $t("general.background") }}</h3>
+      <h3 class="section-title">🎨 {{ $t("general.background") }}</h3> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
       <div class="color-control">
         <input 
           type="color" 
@@ -41,8 +41,6 @@
 </template>
 
 <script>
-import { mutations } from "@/store";
-
 export default {
   name: "threeJSControls",
   props: {
@@ -67,9 +65,6 @@ export default {
     },
   },
   methods: {
-    closeHovers() {
-      mutations.closeTopHover();
-    },
     handleBackgroundChange(event) {
       this.$emit('update:backgroundColor', event.target.value);
     },

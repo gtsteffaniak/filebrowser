@@ -874,7 +874,9 @@
     "keyboard": "Tastatură:",
     "autoRotate": "Rotire automată",
     "rotateY": "Rotire Y",
-    "rotateX": "Rotiți X"
+    "rotateX": "Rotiți X",
+    "controls": "Comenzi 3D",
+    "changeBackground": "Modificarea culorii de fundal"
   },
   "onlyoffice": {
     "debugTitle": "Urme de depanare OnlyOffice",

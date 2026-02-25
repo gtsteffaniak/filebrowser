@@ -874,7 +874,9 @@
     "keyboard": "מקלדת:",
     "autoRotate": "סיבוב אוטומטי",
     "rotateY": "סובב Y",
-    "rotateX": "סובב X"
+    "rotateX": "סובב X",
+    "controls": "בקרות תלת-ממדיות",
+    "changeBackground": "שינוי צבע הרקע"
   },
   "onlyoffice": {
     "debugTitle": "עקבות באגים של OnlyOffice",

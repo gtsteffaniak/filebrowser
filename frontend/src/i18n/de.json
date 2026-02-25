@@ -874,7 +874,9 @@
     "keyboard": "Tastatur:",
     "autoRotate": "Automatisches Drehen",
     "rotateY": "Drehen Y",
-    "rotateX": "Drehen X"
+    "rotateX": "Drehen X",
+    "controls": "3D-Steuerungen",
+    "changeBackground": "Hintergrundfarbe ändern"
   },
   "onlyoffice": {
     "debugTitle": "OnlyOffice Debug-Trace",

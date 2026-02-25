@@ -2,50 +2,50 @@
   <div class="card-content no-buttons">
     <div class="debug-tooltip">
       <div class="debug-header">
-        <h3 class="debug-title">🔧 {{ $t("onlyoffice.debugTitle") }}</h3>
+        <h3 class="debug-title">🔧 {{ $t("onlyoffice.debugTitle") }}</h3> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
       </div>
       <div class="debug-section debug-section-basic">
         <div class="debug-section-header">
-          <strong class="debug-section-title">⚙️ {{ $t("onlyoffice.basicConfiguration") }}</strong>
+          <strong class="debug-section-title">⚙️ {{ $t("onlyoffice.basicConfiguration") }}</strong> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         </div>
-        {{ $t("onlyoffice.onlyOffice") }} {{ $t("general.path", { suffix: ":" }) }} {{ onlyOfficeUrl }}<br/>
-        {{ $t("onlyoffice.internalUrl") }}: {{ internalUrlInfo.message }}<br/>
-        {{ $t("general.path", { suffix: ":" }) }} {{ baseURL }}<br/>
-        {{ $t("general.source", { suffix: ":" }) }} {{ source }}<br/>
-        {{ $t("general.path", { suffix: ":" }) }} {{ path }}<br/>
-        {{ $t("general.name", { suffix: ":" }) }} {{ filename }}<br/>
-        {{ isShare ? `${$t("onlyoffice.shareHash")}: ${shareHash}` : $t("onlyoffice.userRequest") }}<br/>
+        {{ $t("onlyoffice.onlyOffice") }} {{ $t("general.path", { suffix: ":" }) }} {{ onlyOfficeUrl }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        {{ $t("onlyoffice.internalUrl") }}: {{ internalUrlInfo.message }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        {{ $t("general.path", { suffix: ":" }) }} {{ baseURL }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        {{ $t("general.source", { suffix: ":" }) }} {{ source }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        {{ $t("general.path", { suffix: ":" }) }} {{ path }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        {{ $t("general.name", { suffix: ":" }) }} {{ filename }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        {{ isShare ? `${$t("onlyoffice.shareHash")}: ${shareHash}` : $t("onlyoffice.userRequest") }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
       </div>
 
       <div v-if="clientConfig && clientConfig.document" class="debug-section debug-section-config">
         <div class="debug-section-header">
-          <strong class="debug-section-title">🔧 {{ $t("onlyoffice.configurationDetails") }}</strong>
+          <strong class="debug-section-title">🔧 {{ $t("onlyoffice.configurationDetails") }}</strong> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         </div>
-        {{ $t("onlyoffice.documentKey") }}: {{ clientConfig.document.key }}<br/>
-        {{ $t("onlyoffice.fileType") }}: {{ clientConfig.document.fileType }}<br/>
-        {{ $t("onlyoffice.editMode") }}: {{ clientConfig.editorConfig ? clientConfig.editorConfig.mode : 'N/A' }}<br/>
-        {{ $t("onlyoffice.downloadURL") }}: {{ clientConfig.document.url ? clientConfig.document.url.substring(0, 80) + '...' : 'N/A' }}<br/>
-        {{ $t("onlyoffice.callbackURL") }}: {{ clientConfig.editorConfig && clientConfig.editorConfig.callbackUrl ? clientConfig.editorConfig.callbackUrl.substring(0, 80) + '...' : 'N/A' }}<br/>
+        {{ $t("onlyoffice.documentKey") }}: {{ clientConfig.document.key }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        {{ $t("onlyoffice.fileType") }}: {{ clientConfig.document.fileType }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        {{ $t("onlyoffice.editMode") }}: {{ clientConfig.editorConfig ? clientConfig.editorConfig.mode : 'N/A' }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        {{ $t("onlyoffice.downloadURL") }}: {{ clientConfig.document.url ? clientConfig.document.url.substring(0, 80) + '...' : 'N/A' }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        {{ $t("onlyoffice.callbackURL") }}: {{ clientConfig.editorConfig && clientConfig.editorConfig.callbackUrl ? clientConfig.editorConfig.callbackUrl.substring(0, 80) + '...' : 'N/A' }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         <br/>
-        <strong>{{ $t("onlyoffice.networkFlow") }}:</strong><br/>
-        {{ $t("onlyoffice.browser") }} ({{ windowOrigin }}) ↔ {{ $t("onlyoffice.onlyOffice") }}: {{ onlyOfficeUrl }}<br/>
-        {{ $t("onlyoffice.onlyOffice") }} → {{ $t("onlyoffice.fileBrowser") }}: {{ downloadDomain }}<br/>
+        <strong>{{ $t("onlyoffice.networkFlow") }}:</strong><br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        {{ $t("onlyoffice.browser") }} ({{ windowOrigin }}) ↔ {{ $t("onlyoffice.onlyOffice") }}: {{ onlyOfficeUrl }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        {{ $t("onlyoffice.onlyOffice") }} → {{ $t("onlyoffice.fileBrowser") }}: {{ downloadDomain }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
       </div>
 
       <div class="debug-section">
-        <strong>{{ $t("onlyoffice.processSteps") }}:</strong><br/>
+        <strong>{{ $t("onlyoffice.processSteps") }}:</strong><br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         <div v-html="debugInfo"></div>
       </div>
 
       <div v-if="onlyOfficeLogs.length > 0" class="debug-section debug-section-logs">
         <div class="debug-section-header-logs">
-          <strong class="debug-section-title-logs">📋 {{ $t("onlyoffice.backendLogs") }}</strong>
+          <strong class="debug-section-title-logs">📋 {{ $t("onlyoffice.backendLogs") }}</strong> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span class="debug-section-counter">{{ onlyOfficeLogs.length }} {{ $t("onlyoffice.entries") }}</span>
         </div>
         <div v-for="log in displayedLogs" :key="log.id" class="debug-log-entry">
-          <span class="debug-log-level" :style="{ color: getLogLevelColor(log.level) }">[{{ log.level }}]</span>
+          <span class="debug-log-level" :style="{ color: getLogLevelColor(log.level) }">[{{ log.level }}]</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span class="debug-log-timestamp">{{ formatTimestamp(log.timestamp) }}</span>
-          <span class="debug-log-component">[{{ log.component }}]</span>
+          <span class="debug-log-component">[{{ log.component }}]</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span class="debug-log-message">{{ log.message }}</span>
         </div>
       </div>
@@ -59,13 +59,12 @@
 </template>
 
 <script>
-import { mutations, state, getters } from "@/store";
+import { state, getters } from "@/store";
 import { globalVars } from "@/utils/constants";
 import { officeApi } from "@/api";
 import { events } from "@/notify";
 
-const wikiLink = "https://github.com/gtsteffaniak/filebrowser/wiki/Office-Support#onlyoffice-integration-troubleshooting-guide";
-const wikiLinkText = "📖 View Troubleshooting Guide";
+const wikiLink = "https://filebrowserquantum.com/en/docs/integrations/office/troubleshooting/";
 
 export default {
   name: "officeDebug",

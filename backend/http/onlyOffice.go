@@ -280,7 +280,7 @@ func buildOnlyOfficeDownloadURL(r *http.Request, source, path, hash, token strin
 	}
 
 	escapedPath := url.QueryEscape(path)
-	downloadURL := fmt.Sprintf("%s/api/resources/download?file=%s&auth=%s",
+	downloadURL := fmt.Sprintf("%s/api/resources/downloads?file=%s&auth=%s",
 		strings.TrimSuffix(baseURL, "/"), escapedPath, token)
 	if hash != "" {
 		downloadURL = downloadURL + "&hash=" + hash

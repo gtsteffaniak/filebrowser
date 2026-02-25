@@ -874,7 +874,9 @@
     "keyboard": "Klawiatura:",
     "autoRotate": "Automatyczny obrót",
     "rotateY": "Obróć Y",
-    "rotateX": "Obrót X"
+    "rotateX": "Obrót X",
+    "controls": "Sterowanie 3D",
+    "changeBackground": "Zmiana koloru tła"
   },
   "onlyoffice": {
     "debugTitle": "Śledzenie debugowania OnlyOffice",

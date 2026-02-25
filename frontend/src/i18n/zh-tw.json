@@ -874,7 +874,9 @@
     "keyboard": "鍵盤：",
     "autoRotate": "自動旋轉",
     "rotateY": "旋轉 Y",
-    "rotateX": "旋轉 X"
+    "rotateX": "旋轉 X",
+    "controls": "3D 控制",
+    "changeBackground": "變更背景顏色"
   },
   "onlyoffice": {
     "debugTitle": "OnlyOffice 除錯追蹤",

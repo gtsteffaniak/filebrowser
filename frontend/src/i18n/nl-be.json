@@ -874,7 +874,9 @@
     "keyboard": "Toetsenbord:",
     "autoRotate": "Automatisch draaien",
     "rotateY": "Y draaien",
-    "rotateX": "X draaien"
+    "rotateX": "X draaien",
+    "controls": "3D-besturingselementen",
+    "changeBackground": "Achtergrondkleur wijzigen"
   },
   "onlyoffice": {
     "debugTitle": "OnlyOffice Debugtrace",

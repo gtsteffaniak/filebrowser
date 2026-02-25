@@ -874,7 +874,9 @@
     "keyboard": "키보드:",
     "autoRotate": "자동 회전",
     "rotateY": "Y 회전",
-    "rotateX": "X 회전"
+    "rotateX": "X 회전",
+    "controls": "3D 컨트롤",
+    "changeBackground": "배경색 변경"
   },
   "onlyoffice": {
     "debugTitle": "OnlyOffice 디버그 추적",

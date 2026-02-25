@@ -874,7 +874,9 @@
     "keyboard": "Tangentbord:",
     "autoRotate": "Auto-rotera",
     "rotateY": "Rotera Y",
-    "rotateX": "Rotera X"
+    "rotateX": "Rotera X",
+    "controls": "3D-kontroller",
+    "changeBackground": "Ändra bakgrundsfärg"
   },
   "onlyoffice": {
     "debugTitle": "OnlyOffice felsökningsspårning",

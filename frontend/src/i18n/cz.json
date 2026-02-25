@@ -874,7 +874,9 @@
     "keyboard": "Klávesnice:",
     "autoRotate": "Automatické otáčení",
     "rotateY": "Otáčení Y",
-    "rotateX": "Otáčení X"
+    "rotateX": "Otáčení X",
+    "controls": "3D ovládání",
+    "changeBackground": "Změna barvy pozadí"
   },
   "onlyoffice": {
     "debugTitle": "OnlyOffice Debug Trace",

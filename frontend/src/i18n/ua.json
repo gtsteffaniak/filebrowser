@@ -874,7 +874,9 @@
     "keyboard": "Клавіатура:",
     "autoRotate": "Автоповорот",
     "rotateY": "Поворот Y",
-    "rotateX": "Повернути X"
+    "rotateX": "Повернути X",
+    "controls": "3D-контроль",
+    "changeBackground": "Змінити колір фону"
   },
   "onlyoffice": {
     "debugTitle": "Трасування налагодження OnlyOffice",

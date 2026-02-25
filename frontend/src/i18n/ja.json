@@ -874,7 +874,9 @@
     "keyboard": "キーボード",
     "autoRotate": "自動回転",
     "rotateY": "回転Y",
-    "rotateX": "回転X"
+    "rotateX": "回転X",
+    "controls": "3Dコントロール",
+    "changeBackground": "背景色の変更"
   },
   "onlyoffice": {
     "debugTitle": "OnlyOfficeデバッグトレース",

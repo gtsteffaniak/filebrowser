@@ -874,7 +874,9 @@
     "keyboard": "Klavye:",
     "autoRotate": "Otomatik döndürme",
     "rotateY": "Y Döndür",
-    "rotateX": "X'i döndür"
+    "rotateX": "X'i döndür",
+    "controls": "3D Kontroller",
+    "changeBackground": "Arka plan rengini değiştirme"
   },
   "onlyoffice": {
     "debugTitle": "OnlyOffice Hata Ayıklama İzi",

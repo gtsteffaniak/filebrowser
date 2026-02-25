@@ -874,7 +874,9 @@
     "keyboard": "Teclado:",
     "autoRotate": "Rotação automática",
     "rotateY": "Rodar Y",
-    "rotateX": "Rodar X"
+    "rotateX": "Rodar X",
+    "controls": "Controlos 3D",
+    "changeBackground": "Alterar a cor de fundo"
   },
   "onlyoffice": {
     "debugTitle": "Traço de depuração do OnlyOffice",

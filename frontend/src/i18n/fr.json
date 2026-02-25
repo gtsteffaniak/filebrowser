@@ -874,7 +874,9 @@
     "keyboard": "Clavier :",
     "autoRotate": "Auto-rotation",
     "rotateY": "Rotation Y",
-    "rotateX": "Rotation X"
+    "rotateX": "Rotation X",
+    "controls": "Contrôles 3D",
+    "changeBackground": "Modifier la couleur d'arrière-plan"
   },
   "onlyoffice": {
     "debugTitle": "Trace de débogage d'OnlyOffice",

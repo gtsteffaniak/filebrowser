@@ -874,7 +874,9 @@
     "keyboard": "Πληκτρολόγιο:",
     "autoRotate": "Αυτόματη περιστροφή",
     "rotateY": "Περιστροφή Y",
-    "rotateX": "Περιστροφή X"
+    "rotateX": "Περιστροφή X",
+    "controls": "Έλεγχος 3D",
+    "changeBackground": "Αλλαγή χρώματος φόντου"
   },
   "onlyoffice": {
     "debugTitle": "Ιχνηλάτηση εντοπισμού σφαλμάτων του OnlyOffice",

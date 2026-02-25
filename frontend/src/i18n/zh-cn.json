@@ -874,7 +874,9 @@
     "keyboard": "键盘",
     "autoRotate": "自动旋转",
     "rotateY": "旋转 Y",
-    "rotateX": "旋转 X"
+    "rotateX": "旋转 X",
+    "controls": "3D 控制",
+    "changeBackground": "更改背景颜色"
   },
   "onlyoffice": {
     "debugTitle": "OnlyOffice 调试跟踪",
