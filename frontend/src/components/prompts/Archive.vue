@@ -99,7 +99,7 @@
 <script>
 import { mutations } from "@/store";
 import { notify } from "@/notify";
-import { archiveApi } from "@/api";
+import { resourcesApi } from "@/api";
 import { goToItem } from "@/utils/url";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FileList from "@/components/files/FileList.vue";
@@ -189,7 +189,7 @@ export default {
         if (this.deleteAfter) {
           payload.deleteAfter = true;
         }
-        await archiveApi.createArchive(payload);
+        await resourcesApi.createArchive(payload);
         mutations.setReload(true);
         mutations.closeTopHover();
 

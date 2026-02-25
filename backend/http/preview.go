@@ -53,7 +53,7 @@ func isClientCancellation(ctx context.Context, err error) bool {
 // @Failure 415 {object} map[string]string "Unsupported file type for preview"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Failure 501 {object} map[string]string "Preview generation not implemented"
-// @Router /api/preview [get]
+// @Router /api/resources/preview [get]
 func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if config.Server.DisablePreviews {
 		return http.StatusNotImplemented, fmt.Errorf("preview is disabled")
@@ -210,7 +210,7 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 
 	officeUrl := ""
 	if d.fileInfo.OnlyOfficeId != "" {
-		pathUrl := fmt.Sprintf("/api/raw?file=%s&source=%s", url.QueryEscape(d.fileInfo.Path), url.QueryEscape(d.fileInfo.Source))
+		pathUrl := fmt.Sprintf("/api/resources/download?file=%s&source=%s", url.QueryEscape(d.fileInfo.Path), url.QueryEscape(d.fileInfo.Source))
 		pathUrl = pathUrl + "&auth=" + d.token
 		if settings.Config.Server.InternalUrl != "" {
 			officeUrl = config.Server.InternalUrl + pathUrl

@@ -237,16 +237,13 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		path = "/" + path
 	}
 	if !d.user.Permissions.Download {
-		logger.Debugf("user has no permission to download")
 		return http.StatusForbidden, fmt.Errorf("download permission required")
 	}
 	if r.Method == "DELETE" && !d.user.Permissions.Delete {
-		logger.Debugf("user has no permission to delete")
 		return http.StatusForbidden, fmt.Errorf("delete permission required")
 	}
 	isWrite := r.Method == http.MethodPut || r.Method == "MKCOL"
 	if isWrite && !userCanWrite(d.user.Permissions) {
-		logger.Debugf("user has no permission to modify")
 		return http.StatusForbidden, fmt.Errorf("user has no permission to modify")
 	}
 	logger.Debugf("webdav: method=%s, request=%s, source=%s, path=%s", r.Method, r.URL.Path, source, path)
@@ -263,7 +260,6 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 
 	idx := indexing.GetIndex(source)
 	if idx == nil {
-		logger.Debugf("source %s not found", source)
 		return http.StatusNotFound, fmt.Errorf("source %s not found", source)
 	}
 	// Get the user's scope to determine the WebDAV root directory

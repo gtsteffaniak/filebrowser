@@ -6,6 +6,8 @@ import (
 	"os"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/indexing"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // settingsGetHandler retrieves the current system settings.
@@ -94,4 +96,22 @@ func settingsConfigHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	}
 
 	return http.StatusOK, nil
+}
+
+func getSourceInfoHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	sources := d.user.GetSourceNames()
+	reducedIndexes := map[string]indexing.ReducedIndex{}
+	for _, source := range sources {
+		reducedIndex, err := indexing.GetIndexInfo(source, false)
+		if err != nil {
+			logger.Debugf("error getting index info: %v", err)
+			continue
+		}
+		showScannerInfo := r.URL.Query().Get("scanners") == "true"
+		if !showScannerInfo {
+			reducedIndex.Scanners = nil
+		}
+		reducedIndexes[source] = reducedIndex
+	}
+	return renderJSON(w, r, reducedIndexes)
 }

@@ -28,7 +28,7 @@ export async function createArchive(opts) {
     ...(deleteAfter && { deleteAfter: true }),
   };
   try {
-    const apiPath = getApiPath("api/resources/archive");
+    const apiPath = getApiPath("resources/archive");
     const response = await fetchURL(apiPath, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -63,7 +63,7 @@ export async function unarchive(opts) {
     ...(deleteAfter && { deleteAfter: true }),
   };
   try {
-    const apiPath = getApiPath("api/resources/unarchive");
+    const apiPath = getApiPath("resources/unarchive");
     const response = await fetchURL(apiPath, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

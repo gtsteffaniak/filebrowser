@@ -66,7 +66,7 @@
 
 <script>
 import { notify } from "@/notify";
-import { usersApi } from "@/api";
+import { authApi } from "@/api";
 import { state, mutations, getters } from "@/store";
 import Clipboard from "clipboard";
 import Errors from "@/views/Errors.vue";
@@ -129,7 +129,7 @@ export default {
       mutations.setLoading("api", true);
       try {
         // Fetch the API keys from the specified endpoint
-        this.links = await usersApi.getApiKeys();
+        this.links = await authApi.getApiKeys();
         this.error = null; // Clear errors
       // Reinitialize clipboard after data changes
       this.$nextTick(() => {

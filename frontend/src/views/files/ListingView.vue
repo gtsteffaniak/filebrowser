@@ -142,7 +142,7 @@
 
 <script>
 import downloadFiles from "@/utils/download";
-import { filesApi } from "@/api";
+import { resourcesApi } from "@/api";
 import { router } from "@/router";
 import * as upload from "@/utils/upload";
 import throttle from "@/utils/throttle";
@@ -553,7 +553,7 @@ export default {
       for (let index of state.selected) {
         const item = state.req.items[index];
         const previewUrl = item.hasPreview
-          ? filesApi.getPreviewURL(item.source || state.req.source, item.path, item.modified)
+          ? resourcesApi.getPreviewURL(item.source || state.req.source, item.path, item.modified)
           : null;
         items.push({
           source: item.source || state.req.source,
@@ -927,9 +927,9 @@ export default {
             let action = async (overwrite, rename) => {
               try {
               if (getters.isShare()) {
-                await publicApi.moveCopy(state.shareInfo.hash, items, operation, overwrite, rename);
+                await resourcesApi.moveCopyPublic(state.shareInfo.hash, items, operation, overwrite, rename);
                 } else {
-                  await filesApi.moveCopy(items, operation, overwrite, rename);
+                  await resourcesApi.moveCopy(items, operation, overwrite, rename);
                 }
                 if (operation === "move") {
                   this.clipboard = { items: [] };

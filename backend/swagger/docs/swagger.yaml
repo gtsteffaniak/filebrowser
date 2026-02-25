@@ -342,78 +342,6 @@ definitions:
           fromSource). Example: "restored"'
         type: string
     type: object
-  indexing.IndexStatus:
-    enum:
-    - ready
-    - indexing
-    - unavailable
-    type: string
-    x-enum-varnames:
-    - READY
-    - INDEXING
-    - UNAVAILABLE
-  indexing.ReducedIndex:
-    properties:
-      complexity:
-        type: integer
-      fullScanDurationSeconds:
-        type: integer
-      lastIndexedUnixTime:
-        type: integer
-      lastScanned:
-        type: string
-      name:
-        type: string
-      numDeleted:
-        type: integer
-      numDirs:
-        type: integer
-      numFiles:
-        type: integer
-      quickScanDurationSeconds:
-        type: integer
-      scanners:
-        items:
-          $ref: '#/definitions/indexing.ScannerInfo'
-        type: array
-      status:
-        $ref: '#/definitions/indexing.IndexStatus'
-      total:
-        type: integer
-      used:
-        type: integer
-      usedAlt:
-        type: integer
-    type: object
-  indexing.ScannerInfo:
-    properties:
-      complexity:
-        type: integer
-      currentSchedule:
-        type: integer
-      fullScanDurationSeconds:
-        type: integer
-      isRoot:
-        type: boolean
-      lastIndexedUnixTime:
-        type: integer
-      lastScanned:
-        type: string
-      numDeleted:
-        type: integer
-      numDirs:
-        type: integer
-      numFiles:
-        type: integer
-      path:
-        type: string
-      quickScanDurationSeconds:
-        type: integer
-      used:
-        type: integer
-      usedAlt:
-        type: integer
-    type: object
   indexing.SearchResult:
     properties:
       hasPreview:
@@ -2281,7 +2209,7 @@ paths:
             type: object
       summary: OIDC callback
       tags:
-      - OIDC
+      - Auth
   /api/auth/oidc/login:
     get:
       consumes:
@@ -2296,7 +2224,7 @@ paths:
             type: string
       summary: OIDC login
       tags:
-      - OIDC
+      - Auth
   /api/auth/otp/generate:
     post:
       consumes:
@@ -2334,7 +2262,7 @@ paths:
       - ApiKeyAuth: []
       summary: Generate OTP
       tags:
-      - OTP
+      - Auth
   /api/auth/otp/verify:
     post:
       consumes:
@@ -2375,7 +2303,34 @@ paths:
       - ApiKeyAuth: []
       summary: Verify OTP
       tags:
-      - OTP
+      - Auth
+  /api/auth/renew:
+    post:
+      consumes:
+      - application/json
+      description: Refresh the authentication token for a logged-in user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: New JWT token generated
+          schema:
+            type: string
+        "401":
+          description: Unauthorized - invalid token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Renew authentication token
+      tags:
+      - Auth
   /api/auth/signup:
     post:
       consumes:
@@ -2447,7 +2402,7 @@ paths:
             type: object
       summary: Delete API key
       tags:
-      - API Keys
+      - Auth
     put:
       consumes:
       - application/json
@@ -2502,7 +2457,7 @@ paths:
             type: object
       summary: Create API key
       tags:
-      - API Keys
+      - Auth
   /api/auth/tokens:
     get:
       consumes:
@@ -2534,89 +2489,7 @@ paths:
             type: object
       summary: List API keys
       tags:
-      - API Keys
-  /api/duplicates:
-    get:
-      consumes:
-      - application/json
-      description: 'Finds duplicate files using multi-stage filtering: size → type
-        → fuzzy filename → progressive checksums. Files must match on size, MIME type,
-        and have 50%+ filename similarity before checksum verification. Large fuzzy
-        groups (>10 files) are skipped to avoid false positives. Checksums use 2-pass
-        progressive verification (header → middle) for accuracy while minimizing disk
-        I/O (~16KB read per file).'
-      parameters:
-      - description: Source name for the desired source
-        in: query
-        name: source
-        required: true
-        type: string
-      - description: path within user scope to search
-        in: query
-        name: scope
-        type: string
-      - description: 'Minimum file size in megabytes (default: 1)'
-        in: query
-        name: minSizeMb
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: List of duplicate file groups with metadata. Response includes
-            'incomplete' flag if processing stopped early due to resource limits.
-          schema:
-            $ref: '#/definitions/http.duplicateResponse'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "503":
-          description: Service Unavailable (indexing in progress or another search
-            running)
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Find Duplicate Files
-      tags:
-      - Duplicates
-  /api/jobs/{action}/{target}:
-    get:
-      consumes:
-      - application/json
-      description: Returns job info for the user.
-      parameters:
-      - description: Job action
-        in: path
-        name: action
-        required: true
-        type: string
-      - description: Job target
-        in: path
-        name: target
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Job info
-          schema:
-            additionalProperties:
-              $ref: '#/definitions/indexing.ReducedIndex'
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Get jobs info
-      tags:
-      - Jobs
+      - Auth
   /api/media/subtitles:
     get:
       consumes:
@@ -2677,167 +2550,138 @@ paths:
             type: object
       summary: Get subtitle content
       tags:
-      - Subtitles
-  /api/preview:
+      - Resources
+  /api/office/callback:
     get:
       consumes:
       - application/json
-      description: Returns a preview image based on the requested path and size.
+      description: Receives callbacks from OnlyOffice document server for document
+        status changes and saves
       parameters:
-      - description: File path of the image to preview
+      - description: Source name
+        in: query
+        name: source
+        type: string
+      - description: File path
         in: query
         name: path
-        required: true
         type: string
-      - description: Preview size ('small' or 'large'). Default is based on server
-          config.
+      - description: Share hash (for public shares)
         in: query
-        name: size
+        name: hash
         type: string
       produces:
       - application/json
       responses:
         "200":
-          description: Preview image content
+          description: Callback processed successfully
           schema:
-            type: file
-        "202":
-          description: Download permissions required
-          schema:
-            additionalProperties:
-              type: string
+            additionalProperties: true
             type: object
         "400":
-          description: Invalid request path
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: File not found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "415":
-          description: Unsupported file type for preview
+          description: Invalid callback data
           schema:
             additionalProperties:
               type: string
             type: object
         "500":
-          description: Internal server error
+          description: Server error
           schema:
             additionalProperties:
               type: string
             type: object
-        "501":
-          description: Preview generation not implemented
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Get image preview
+      security:
+      - ApiKeyAuth: []
+      summary: Handle OnlyOffice document server callback
       tags:
-      - Resources
-  /api/raw:
-    get:
-      consumes:
-      - application/json
-      description: |-
-        Returns the raw content of a file, multiple files, or a directory. Supports downloading files as archives in various formats.
-
-        **Filename Encoding:**
-        - The Content-Disposition header will always include both:
-        1. `filename="..."`: An ASCII-safe version of the filename for compatibility.
-        2. `filename*=utf-8"...`: The full UTF-8 encoded filename (RFC 6266/5987) for modern clients.
-
-        **Multiple Files:**
-        - Use repeated query parameters: `?file=file1.txt&file=file2.txt&file=file3.txt`
-        - This supports filenames containing commas and special characters
-      parameters:
-      - description: Source name for the files (required)
-        in: query
-        name: source
-        required: true
-        type: string
-      - collectionFormat: csv
-        description: File path (can be repeated for multiple files)
-        in: query
-        items:
-          type: string
-        name: file
-        required: true
-        type: array
-      - description: If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults
-          to 'attachment'.
-        in: query
-        name: inline
-        type: boolean
-      - description: 'Compression algorithm for archiving multiple files or directories.
-          Options: ''zip'' and ''tar.gz''. Default is ''zip''.'
-        in: query
-        name: algo
-        type: string
-      responses:
-        "200":
-          description: Raw file or directory content, or archive for multiple files
-          schema:
-            type: file
-        "202":
-          description: Modify permissions required
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "400":
-          description: Invalid request path
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: File or directory not found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Get raw content of a file, multiple files, or directory
-      tags:
-      - Resources
-  /api/renew:
+      - Office
     post:
       consumes:
       - application/json
-      description: Refresh the authentication token for a logged-in user.
+      description: Receives callbacks from OnlyOffice document server for document
+        status changes and saves
+      parameters:
+      - description: Source name
+        in: query
+        name: source
+        type: string
+      - description: File path
+        in: query
+        name: path
+        type: string
+      - description: Share hash (for public shares)
+        in: query
+        name: hash
+        type: string
       produces:
       - application/json
       responses:
         "200":
-          description: New JWT token generated
+          description: Callback processed successfully
           schema:
-            type: string
-        "401":
-          description: Unauthorized - invalid token
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid callback data
           schema:
             additionalProperties:
               type: string
             type: object
         "500":
-          description: Internal server error
+          description: Server error
           schema:
             additionalProperties:
               type: string
             type: object
-      summary: Renew authentication token
+      security:
+      - ApiKeyAuth: []
+      summary: Handle OnlyOffice document server callback
       tags:
-      - Auth
+      - Office
+  /api/office/config:
+    get:
+      consumes:
+      - application/json
+      description: Returns the configuration needed for OnlyOffice document editor
+        client
+      parameters:
+      - description: Source name
+        in: query
+        name: source
+        type: string
+      - description: File path
+        in: query
+        name: path
+        type: string
+      - description: Share hash (for public shares)
+        in: query
+        name: hash
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OnlyOffice configuration
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Missing or invalid parameters
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get OnlyOffice client configuration
+      tags:
+      - Office
   /api/resources:
     delete:
       consumes:
@@ -3194,6 +3038,77 @@ paths:
       summary: Bulk delete resources
       tags:
       - Resources
+  /api/resources/download:
+    get:
+      consumes:
+      - application/json
+      description: |-
+        Returns the raw content of a file, multiple files, or a directory. Supports downloading files as archives in various formats.
+
+        **Filename Encoding:**
+        - The Content-Disposition header will always include both:
+        1. `filename="..."`: An ASCII-safe version of the filename for compatibility.
+        2. `filename*=utf-8"...`: The full UTF-8 encoded filename (RFC 6266/5987) for modern clients.
+
+        **Multiple Files:**
+        - Use repeated query parameters: `?file=file1.txt&file=file2.txt&file=file3.txt`
+        - This supports filenames containing commas and special characters
+      parameters:
+      - description: Source name for the files (required)
+        in: query
+        name: source
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: File path (can be repeated for multiple files)
+        in: query
+        items:
+          type: string
+        name: file
+        required: true
+        type: array
+      - description: If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults
+          to 'attachment'.
+        in: query
+        name: inline
+        type: boolean
+      - description: 'Compression algorithm for archiving multiple files or directories.
+          Options: ''zip'' and ''tar.gz''. Default is ''zip''.'
+        in: query
+        name: algo
+        type: string
+      responses:
+        "200":
+          description: Raw file or directory content, or archive for multiple files
+          schema:
+            type: file
+        "202":
+          description: Modify permissions required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid request path
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: File or directory not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Download content of a file, multiple files, or directory
+      tags:
+      - Resources
   /api/resources/items:
     get:
       consumes:
@@ -3235,6 +3150,68 @@ paths:
               type: string
             type: object
       summary: Get directory items
+      tags:
+      - Resources
+  /api/resources/preview:
+    get:
+      consumes:
+      - application/json
+      description: Returns a preview image based on the requested path and size.
+      parameters:
+      - description: File path of the image to preview
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: Preview size ('small' or 'large'). Default is based on server
+          config.
+        in: query
+        name: size
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Preview image content
+          schema:
+            type: file
+        "202":
+          description: Download permissions required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid request path
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: File not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "415":
+          description: Unsupported file type for preview
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "501":
+          description: Preview generation not implemented
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get image preview
       tags:
       - Resources
   /api/resources/unarchive:
@@ -3295,58 +3272,6 @@ paths:
       summary: Extract an archive on the server
       tags:
       - Resources
-  /api/search:
-    get:
-      consumes:
-      - application/json
-      description: Searches for files matching the provided query. Returns file paths
-        and metadata based on the user's session and scope. Supports searching across
-        multiple sources when using the 'sources' parameter.
-      parameters:
-      - description: Search query
-        in: query
-        name: query
-        required: true
-        type: string
-      - description: Source name for the desired source (deprecated, use 'sources'
-          instead)
-        in: query
-        name: source
-        type: string
-      - description: Comma-separated list of source names to search across multiple
-          sources. When multiple sources are specified, scope is always the user's
-          scope for each source.
-        in: query
-        name: sources
-        type: string
-      - description: path within user scope to search, for example '/first/second'
-          to search within the second directory only. Ignored when multiple sources
-          are specified.
-        in: query
-        name: scope
-        type: string
-      - description: User session ID, add unique value to prevent collisions
-        in: header
-        name: SessionId
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: List of search results with source field populated
-          schema:
-            items:
-              $ref: '#/definitions/indexing.SearchResult'
-            type: array
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Search Files
-      tags:
-      - Search
   /api/settings:
     get:
       consumes:
@@ -3395,6 +3320,36 @@ paths:
       tags:
       - Settings
   /api/share:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a share link specified by its hash.
+      parameters:
+      - description: Hash of the share link to delete
+        in: query
+        name: hash
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Share link deleted successfully
+        "400":
+          description: Bad request - missing or invalid hash
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a share link
+      tags:
+      - Shares
     get:
       consumes:
       - application/json
@@ -3559,37 +3514,7 @@ paths:
       summary: Create direct download link
       tags:
       - Shares
-  /api/shares:
-    delete:
-      consumes:
-      - application/json
-      description: Deletes a share link specified by its hash.
-      parameters:
-      - description: Hash of the share link to delete
-        in: query
-        name: hash
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Share link deleted successfully
-        "400":
-          description: Bad request - missing or invalid hash
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Delete a share link
-      tags:
-      - Shares
+  /api/share/list:
     get:
       consumes:
       - application/json
@@ -3613,7 +3538,55 @@ paths:
       summary: List share links
       tags:
       - Shares
-  /api/tools/watch:
+  /api/tools/duplicateFinder:
+    get:
+      consumes:
+      - application/json
+      description: 'Finds duplicate files using multi-stage filtering: size → type
+        → fuzzy filename → progressive checksums. Files must match on size, MIME type,
+        and have 50%+ filename similarity before checksum verification. Large fuzzy
+        groups (>10 files) are skipped to avoid false positives. Checksums use 2-pass
+        progressive verification (header → middle) for accuracy while minimizing disk
+        I/O (~16KB read per file).'
+      parameters:
+      - description: Source name for the desired source
+        in: query
+        name: source
+        required: true
+        type: string
+      - description: path within user scope to search
+        in: query
+        name: scope
+        type: string
+      - description: 'Minimum file size in megabytes (default: 1)'
+        in: query
+        name: minSizeMb
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of duplicate file groups with metadata. Response includes
+            'incomplete' flag if processing stopped early due to resource limits.
+          schema:
+            $ref: '#/definitions/http.duplicateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "503":
+          description: Service Unavailable (indexing in progress or another search
+            running)
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Find Duplicate Files
+      tags:
+      - Tools
+  /api/tools/fileWatcher:
     get:
       consumes:
       - application/json
@@ -3671,7 +3644,7 @@ paths:
       summary: Watch a file
       tags:
       - Tools
-  /api/tools/watch/sse:
+  /api/tools/fileWatcher/sse:
     get:
       description: Establishes an SSE connection to receive periodic file updates
       parameters:
@@ -3716,6 +3689,58 @@ paths:
               type: string
             type: object
       summary: Watch a file via SSE
+      tags:
+      - Tools
+  /api/tools/search:
+    get:
+      consumes:
+      - application/json
+      description: Searches for files matching the provided query. Returns file paths
+        and metadata based on the user's session and scope. Supports searching across
+        multiple sources when using the 'sources' parameter.
+      parameters:
+      - description: Search query
+        in: query
+        name: query
+        required: true
+        type: string
+      - description: Source name for the desired source (deprecated, use 'sources'
+          instead)
+        in: query
+        name: source
+        type: string
+      - description: Comma-separated list of source names to search across multiple
+          sources. When multiple sources are specified, scope is always the user's
+          scope for each source.
+        in: query
+        name: sources
+        type: string
+      - description: path within user scope to search, for example '/first/second'
+          to search within the second directory only. Ignored when multiple sources
+          are specified.
+        in: query
+        name: scope
+        type: string
+      - description: User session ID, add unique value to prevent collisions
+        in: header
+        name: SessionId
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of search results with source field populated
+          schema:
+            items:
+              $ref: '#/definitions/indexing.SearchResult'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Search Files
       tags:
       - Tools
   /api/users:
@@ -3876,140 +3901,6 @@ paths:
           schema:
             $ref: '#/definitions/http.HttpResponse'
       summary: Health Check
-      tags:
-      - Health
-  /public/api/preview:
-    get:
-      consumes:
-      - application/json
-      description: Returns a preview (thumbnail) for images or videos accessible via
-        a public share. Preview generation can be disabled globally or per-share.
-        Not available for upload-only shares.
-      parameters:
-      - description: Share hash for authentication
-        in: query
-        name: hash
-        required: true
-        type: string
-      - description: File path within the share to preview
-        in: query
-        name: path
-        required: true
-        type: string
-      - description: 'Preview size: ''small'' or ''large''. Default is based on server
-          config.'
-        in: query
-        name: size
-        type: string
-      produces:
-      - image/jpeg
-      responses:
-        "200":
-          description: Preview image content (JPEG)
-          schema:
-            type: file
-        "403":
-          description: Share unavailable or access denied
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: File not found or preview not available
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "501":
-          description: Previews disabled globally, for this share, or for upload shares
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Get image/video preview from a public share
-      tags:
-      - Public Shares
-  /public/api/raw:
-    get:
-      consumes:
-      - application/json
-      description: |-
-        Downloads raw content from a public share. Supports single files, multiple files, or directories as archives. Enforces download limits (global or per-user) and blocks anonymous users when per-user limits are enabled.
-
-        **Multiple Files:**
-        - Use repeated query parameters: `?file=file1.txt&file=file2.txt&file=file3.txt`
-        - This supports filenames containing commas and special characters
-      parameters:
-      - description: Share hash for authentication
-        in: query
-        name: hash
-        required: true
-        type: string
-      - collectionFormat: csv
-        description: File path (can be repeated for multiple files)
-        in: query
-        items:
-          type: string
-        name: file
-        required: true
-        type: array
-      - description: If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults
-          to 'attachment'.
-        in: query
-        name: inline
-        type: boolean
-      - description: 'Compression algorithm for archiving multiple files or directories.
-          Options: ''zip'' and ''tar.gz''. Default is ''zip''.'
-        in: query
-        name: algo
-        type: string
-      produces:
-      - application/octet-stream
-      responses:
-        "200":
-          description: Raw file or directory content, or archive for multiple files
-          schema:
-            type: file
-        "400":
-          description: Invalid request path or encoding
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "403":
-          description: Download limit reached, anonymous access blocked, or share
-            unavailable
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Share not found or file not found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "501":
-          description: Downloads disabled for upload shares
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Download files from a public share
-      tags:
-      - Public Shares
   /public/api/resources:
     get:
       consumes:
@@ -4068,7 +3959,7 @@ paths:
             type: object
       summary: Get file/directory information from a public share
       tags:
-      - Public Shares
+      - Shares
     patch:
       consumes:
       - application/json
@@ -4121,7 +4012,7 @@ paths:
             $ref: '#/definitions/http.MoveCopyResponse'
       summary: Move, copy, or rename resources in a public share
       tags:
-      - Public Shares
+      - Shares
     post:
       consumes:
       - multipart/form-data
@@ -4200,7 +4091,7 @@ paths:
             type: object
       summary: Upload files to a public upload share
       tags:
-      - Public Shares
+      - Shares
     put:
       consumes:
       - application/json
@@ -4257,7 +4148,7 @@ paths:
             type: object
       summary: Update a file in a public share
       tags:
-      - Public Shares
+      - Shares
   /public/api/resources/bulk:
     delete:
       consumes:
@@ -4309,7 +4200,82 @@ paths:
             type: object
       summary: Bulk delete resources from public share
       tags:
-      - Public Shares
+      - Shares
+  /public/api/resources/download:
+    get:
+      consumes:
+      - application/json
+      description: |-
+        Downloads raw content from a public share. Supports single files, multiple files, or directories as archives. Enforces download limits (global or per-user) and blocks anonymous users when per-user limits are enabled.
+
+        **Multiple Files:**
+        - Use repeated query parameters: `?file=file1.txt&file=file2.txt&file=file3.txt`
+        - This supports filenames containing commas and special characters
+      parameters:
+      - description: Share hash for authentication
+        in: query
+        name: hash
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: File path (can be repeated for multiple files)
+        in: query
+        items:
+          type: string
+        name: file
+        required: true
+        type: array
+      - description: If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults
+          to 'attachment'.
+        in: query
+        name: inline
+        type: boolean
+      - description: 'Compression algorithm for archiving multiple files or directories.
+          Options: ''zip'' and ''tar.gz''. Default is ''zip''.'
+        in: query
+        name: algo
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: Raw file or directory content, or archive for multiple files
+          schema:
+            type: file
+        "400":
+          description: Invalid request path or encoding
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Download limit reached, anonymous access blocked, or share
+            unavailable
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Share not found or file not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "501":
+          description: Downloads disabled for upload shares
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Download files from a public share
+      tags:
+      - Shares
   /public/api/resources/items:
     get:
       consumes:
@@ -4359,7 +4325,64 @@ paths:
             type: object
       summary: Get directory items (public share)
       tags:
-      - Public Shares
+      - Shares
+  /public/api/resources/preview:
+    get:
+      consumes:
+      - application/json
+      description: Returns a preview (thumbnail) for images or videos accessible via
+        a public share. Preview generation can be disabled globally or per-share.
+        Not available for upload-only shares.
+      parameters:
+      - description: Share hash for authentication
+        in: query
+        name: hash
+        required: true
+        type: string
+      - description: File path within the share to preview
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: 'Preview size: ''small'' or ''large''. Default is based on server
+          config.'
+        in: query
+        name: size
+        type: string
+      produces:
+      - image/jpeg
+      responses:
+        "200":
+          description: Preview image content (JPEG)
+          schema:
+            type: file
+        "403":
+          description: Share unavailable or access denied
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: File not found or preview not available
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "501":
+          description: Previews disabled globally, for this share, or for upload shares
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get image/video preview from a public share
+      tags:
+      - Shares
   /public/api/share/image:
     get:
       description: Returns a resizable preview (large size) for the banner or favicon
@@ -4405,8 +4428,8 @@ paths:
             type: object
       summary: Get share image (banner or favicon) as preview
       tags:
-      - Public Shares
-  /public/api/shareinfo:
+      - Shares
+  /public/api/share/info:
     get:
       consumes:
       - application/json

@@ -16,7 +16,7 @@ import (
 // subtitlesHandler handles subtitle requests for both external files and embedded streams
 // @Summary Get subtitle content
 // @Description Returns raw subtitle content from external files or embedded streams
-// @Tags Subtitles
+// @Tags Resources
 // @Accept json
 // @Produce text/plain
 // @Param path query string true "Index path to the video file"

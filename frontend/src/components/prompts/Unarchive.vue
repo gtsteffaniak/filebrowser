@@ -80,7 +80,7 @@
 import { mutations } from "@/store";
 import { url } from "@/utils";
 import { notify } from "@/notify";
-import { archiveApi } from "@/api";
+import { resourcesApi } from "@/api";
 import { goToItem } from "@/utils/url";
 import FileList from "@/components/files/FileList.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
@@ -142,7 +142,7 @@ export default {
       this.isLoading = true;
       try {
         const toSource = this.destSource || this.itemSource;
-        await archiveApi.unarchive({
+        await resourcesApi.unarchive({
           fromSource: this.itemSource,
           toSource: toSource !== this.itemSource ? toSource : undefined,
           path: this.itemPath,

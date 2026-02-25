@@ -11,7 +11,7 @@ import (
 // generateOTPHandler handles the generation of a new TOTP secret and QR code.
 // @Summary Generate OTP
 // @Description Generates a new TOTP secret and QR code for the authenticated user. The password must be URL-encoded and sent in the X-Password header to support special characters.
-// @Tags OTP
+// @Tags Auth
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
@@ -46,7 +46,7 @@ func generateOTPHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // verifyOTPHandler handles the verification of a TOTP code.
 // @Summary Verify OTP
 // @Description Verifies the provided TOTP code for the authenticated user. The password must be URL-encoded and sent in the X-Password header to support special characters.
-// @Tags OTP
+// @Tags Auth
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth

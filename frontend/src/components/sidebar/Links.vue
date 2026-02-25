@@ -185,7 +185,7 @@ import { goToItem } from "@/utils/url";
 import { getIconClass } from "@/utils/material-icons";
 import { buildIndexInfoTooltipHTML } from "@/components/files/IndexInfo.vue";
 import { globalVars } from "@/utils/constants";
-import { publicApi } from "@/api";
+import { resourcesApi } from "@/api";
 import ShareInfo from "@/components/files/ShareInfo.vue";
 import FileTree from '@/components/files/FileTree.vue';
 
@@ -450,7 +450,7 @@ export default {
           name: "download",
           confirm: (format) => {
             mutations.closeTopHover();
-            const downloadLink = publicApi.getDownloadURL({
+            const downloadLink = resourcesApi.getDownloadURLPublic({
               path: "/",
               hash: state.shareInfo.hash,
               token: state.shareInfo.token,
@@ -461,7 +461,7 @@ export default {
         });
       } else {
         // Direct download for single files or directories
-        const downloadLink = publicApi.getDownloadURL({
+        const downloadLink = resourcesApi.getDownloadURLPublic({
           path: "/",
           hash: state.shareInfo.hash,
           token: state.shareInfo.token,

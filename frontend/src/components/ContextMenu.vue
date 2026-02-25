@@ -176,7 +176,7 @@ import Action from "@/components/Action.vue";
 import { globalVars } from "@/utils/constants.js";
 import buttons from "@/utils/buttons";
 import { notify } from "@/notify";
-import { filesApi, publicApi } from "@/api";
+import { resourcesApi } from "@/api";
 import { url } from "@/utils";
 
 function isArchivePath(pathOrName) {
@@ -701,11 +701,11 @@ export default {
     },
     goToRaw() {
       if (getters.isShare()) {
-        window.open(publicApi.getDownloadURL(state.share, state.req.path, true), "_blank");
+        window.open(resourcesApi.getDownloadURLPublic(state.shareInfo, [state.req.path], true), "_blank");
         mutations.closeHovers();
         return;
       }
-      const downloadUrl = filesApi.getDownloadURL(
+      const downloadUrl = resourcesApi.getDownloadURL(
         state.req?.source || "",
         state.req?.path || "",
         true,
