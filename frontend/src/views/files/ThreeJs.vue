@@ -365,7 +365,7 @@ export default {
     },
 
     resolveTextureUrl(url) {
-      if (url.includes('/api/resources/raw?')) {
+      if (url.includes('/api/resources/download?')) {
         return url;
       }
       const filename = url.split('/api/resources/')[1];

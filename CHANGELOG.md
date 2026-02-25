@@ -44,7 +44,7 @@ Note: a potentially breaking change for docker users: \the default user is now "
  - consolidated api routes
    - consolidated tags for swagger to be more accurately grouped
    - tools are all behind `/api/tools` routes
-   - `/api/raw` is deprecated (but functional). The `/api/resources/raw` route will be used instead.
+   - `/api/raw` is deprecated (but functional). The `/api/resources/download` route will be used instead.
    - `/api/preview` has been removed and replaced with `/api/resources/preview`
    - `/api/onlyoffice` have been replaced with `/api/office`
    - `/api/shares` has been moved to `/api/share/list`

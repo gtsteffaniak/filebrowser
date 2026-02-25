@@ -174,7 +174,7 @@ export async function download(format, files, shareHash = "") {
     sessionId: state.sessionId
   }
 
-  const apiPath = getApiPath("resources/raw", params, false, shareHash !== "")
+  const apiPath = getApiPath("resources/download", params, false, shareHash !== "")
   const url = window.origin + apiPath
 
   // Create a direct link and trigger the download
@@ -226,7 +226,7 @@ async function downloadChunked(file, shareHash = "") {
     sessionId: state.sessionId
   }
 
-  const apiPath = getApiPath("resources/raw", params, false, shareHash !== "")
+  const apiPath = getApiPath("resources/download", params, false, shareHash !== "")
   const baseUrl = window.origin + apiPath
 
   const download = downloadManager.findById(downloadId)
@@ -535,7 +535,7 @@ export function getDownloadURL(source, path, inline, useExternal) {
       file: path,
       ...(inline && { inline: 'true' })
     }
-    const apiPath = getApiPath('resources/raw', params)
+    const apiPath = getApiPath('resources/download', params)
     if (globalVars.externalUrl && useExternal) {
       return globalVars.externalUrl + apiPath
     }
@@ -703,7 +703,7 @@ export function getDownloadURLPublic(share, files, inline=false) {
     token: share.token,
     ...(inline && { inline: 'true' })
   }
-  const apiPath = getPublicApiPath("resources/raw", params)
+  const apiPath = getPublicApiPath("resources/download", params)
   return window.origin + apiPath
 }
 
