@@ -7,7 +7,8 @@
         'dark-mode': isDarkMode,
         'is-dragging': isDragging(prompt.id),
         'is-resizing': resizingId === prompt.id,
-        'prompt-behind': !isTopmost(prompt.id)
+        'prompt-behind': !isTopmost(prompt.id),
+        'blocked': isBlocked(prompt)
       }"
       @mousedown="makeTopPrompt(prompt.id)"
       :style="{
@@ -16,7 +17,7 @@
         height: sizes[prompt.id]?.height ? sizes[prompt.id].height + 'px' : null,
         maxWidth: sizes[prompt.id]?.width ? 'none' : null,
         maxHeight: sizes[prompt.id]?.height ? 'none' : null,
-        zIndex: 1000 + prompts.indexOf(prompt),
+        zIndex: 5 + prompts.indexOf(prompt),
       }"
       :aria-label="prompt.name + '-prompt'"
     >
@@ -31,6 +32,7 @@
           class="prompt-close"
           :aria-label="$t('general.close')"
           :title="$t('general.close')"
+          :disabled="isBlocked(prompt)"
           @click.stop="closePrompt(prompt.id)"
           @mousedown.stop
           @touchstart.stop
@@ -158,6 +160,9 @@ export default {
     isDarkMode() {
       return getters.isDarkMode();
     },
+    pinnedPromptExists() {
+      return this.prompts.some(p => p.pinnedHover);
+    },
   },
   methods: {
     isTopmost(id) {
@@ -166,6 +171,13 @@ export default {
     },
     isDragging(id) {
       return this.draggingIds.has(id);
+    },
+    isBlocked(prompt) {
+      // If there is a pinned prompt and this prompt isn't it, it's blocked
+      if (this.pinnedPromptExists && !prompt.pinnedHover) return true;
+      // If this prompt has any open child, also it's blocked
+      if (this.prompts.some(p => p.parentId === prompt.id)) return true;
+      return false;
     },
     getPromptProps(prompt) {
       const baseProps = {
@@ -182,10 +194,14 @@ export default {
     },
     makeTopPrompt(id) {
       if (getters.isMobile()) return; // Don't allow in mobile since we can lose the prompt easily.
+      if (this.pinnedPromptExists && !prompt.pinnedHover) return; // Don't allow when we have a pinned prompt
       const index = state.prompts.findIndex(p => p.id === id);
-      if (index === -1 || index === state.prompts.length - 1) return;
-      const [prompt] = state.prompts.splice(index, 1);
-      state.prompts.push(prompt);
+      if (index === -1) return;
+      const pinnedCount = state.prompts.filter(p => p.pinnedHover).length;
+      const targetIndex = state.prompts.length - pinnedCount;
+      if (index >= targetIndex) return;
+      const [movedPrompt] = state.prompts.splice(index, 1);
+      state.prompts.splice(targetIndex, 0, movedPrompt);
     },
     getDisplayTitle(promptName) {
       // convert to lowercase
@@ -393,7 +409,6 @@ export default {
       this.draggingIds.delete(id);
     },
     startResize(e, id, edge) {
-      if (!this.isTopmost(id)) return;
       const type = e.type === 'touchstart' ? 'touch' : 'mouse';
       const pos = this.getPointerPos(e, type);
       if (!pos) return;
@@ -571,6 +586,28 @@ export default {
   border-color: var(--primaryColor);
 }
 
+/* Block all interactions but allow move and resize */
+.floating-window.blocked > :not(.prompt-taskbar):not(.resize-handles) {
+  pointer-events: none;
+}
+
+.floating-window.blocked {
+  cursor: not-allowed;
+  user-select: none;
+  opacity: 0.7;
+  transition: opacity 0.5s;
+}
+
+.prompt-close:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.prompt-behind {
+  filter: brightness(0.85);
+  transition: filter 0.5s;
+}
+
 .prompt-taskbar {
   position: absolute;
   top: 0;
@@ -720,13 +757,6 @@ export default {
   width: 15px;
   height: 15px;
   cursor: se-resize;
-}
-
-.prompt-behind {
-  opacity: 0.8;
-  filter: brightness(0.85);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transition: opacity 0.2s, filter 0.2s;
 }
 
 </style>
