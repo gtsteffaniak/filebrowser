@@ -317,6 +317,7 @@ export default {
       return new Promise((resolve) => {
         mutations.showHover({
           name: "SaveBeforeExit",
+          pinned: true,
           confirm: async () => {
             // Save and proceed
             try {

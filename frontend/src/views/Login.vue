@@ -347,6 +347,7 @@ export default {
         if (e.message.includes("OTP authentication is enforced")) {
           mutations.showHover({
             name: "totp",
+            pinned: true,
             props: {
               username: this.username,
               password: this.password,
@@ -358,6 +359,7 @@ export default {
         if (e.message.includes("OTP is enforced, but user is not yet configured")) {
           mutations.showHover({
             name: "totp",
+            pinned: true,
             props: {
               username: this.username,
               password: this.password,
@@ -369,6 +371,7 @@ export default {
         } else if (e.message.includes("OTP code is required for user")) {
           mutations.showHover({
             name: "totp",
+            pinned: true,
             props: {
               username: this.username,
               password: this.password,

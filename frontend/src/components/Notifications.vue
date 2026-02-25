@@ -181,7 +181,7 @@ export default {
   position: fixed;
   bottom: 0;
   right: 0;
-  z-index: 6;
+  z-index: 20;
   pointer-events: none;
   margin: 1em;
 }
@@ -205,7 +205,7 @@ export default {
   padding: 0.5em;
   align-items: center;
   transition: right 1s ease;
-  z-index: 7;
+  z-index: 21;
   pointer-events: all;
   user-select: none;
   overflow: hidden;

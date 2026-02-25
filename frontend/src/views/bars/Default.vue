@@ -251,6 +251,7 @@ export default {
     showSaveBeforeExitPrompt(onConfirmAction) {
       mutations.showHover({
         name: "SaveBeforeExit",
+        pinned: true,
         confirm: async () => {
           // Save and exit - trigger the save action
           // If save fails, this will throw and be caught by SaveBeforeExit component

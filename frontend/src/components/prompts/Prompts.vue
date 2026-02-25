@@ -6,12 +6,20 @@
       :class="{
         'dark-mode': isDarkMode,
         'is-dragging': isDragging(prompt.id),
+        'is-resizing': resizingId === prompt.id,
+        'prompt-behind': !isTopmost(prompt.id),
+        'blocked': isBlocked(prompt)
       }"
+      @mousedown="makeTopPrompt(prompt.id)"
       :style="{
-        transform: `translate(calc(-50% + ${(dragOffsets[prompt.id]?.x || 0)}px), calc(-50% + ${(dragOffsets[prompt.id]?.y || 0)}px))`
+        transform: `translate(calc(-50% + ${(dragOffsets[prompt.id]?.x || 0)}px), calc(-50% + ${(dragOffsets[prompt.id]?.y || 0)}px))`,
+        width: sizes[prompt.id]?.width ? sizes[prompt.id].width + 'px' : null,
+        height: sizes[prompt.id]?.height ? sizes[prompt.id].height + 'px' : null,
+        maxWidth: sizes[prompt.id]?.width ? 'none' : null,
+        maxHeight: sizes[prompt.id]?.height ? 'none' : null,
+        zIndex: 5 + prompts.indexOf(prompt),
       }"
       :aria-label="prompt.name + '-prompt'"
-      v-show="isTopmost(prompt.id)"
     >
       <header
         class="prompt-taskbar"
@@ -24,6 +32,7 @@
           class="prompt-close"
           :aria-label="$t('general.close')"
           :title="$t('general.close')"
+          :disabled="isBlocked(prompt)"
           @click.stop="closePrompt(prompt.id)"
           @mousedown.stop
           @touchstart.stop
@@ -33,7 +42,31 @@
         <div class="prompt-taskbar-drag">
           <span class="prompt-title">{{ prompt?.props?.title || getDisplayTitle(prompt?.name) }}</span>
         </div>
+        <svg 
+          class="prompt-resize-corner"
+          width="24" 
+          height="24" 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          xmlns="http://www.w3.org/2000/svg"
+          @mousedown.stop="startResize($event, prompt.id, 'top-right')"
+          @touchstart.stop="startResize($event, prompt.id, 'top-right')"
+        >
+          <line x1="12" y1="2" x2="22" y2="12" stroke="var(--divider)" stroke-width="2" stroke-linecap="round"/>
+          <line x1="17" y1="2" x2="22" y2="7" stroke="var(--divider)" stroke-width="2" stroke-linecap="round"/>
+        </svg>
       </header>
+      <!-- Resize for prompts -->
+      <div class="resize-handles">
+        <div class="resize-handle resize-handle-top" @mousedown.stop="startResize($event, prompt.id, 'top')" @touchstart.stop="startResize($event, prompt.id, 'top')"></div>
+        <div class="resize-handle resize-handle-bottom" @mousedown.stop="startResize($event, prompt.id, 'bottom')" @touchstart.stop="startResize($event, prompt.id, 'bottom')"></div>
+        <div class="resize-handle resize-handle-left" @mousedown.stop="startResize($event, prompt.id, 'left')" @touchstart.stop="startResize($event, prompt.id, 'left')"></div>
+        <div class="resize-handle resize-handle-right" @mousedown.stop="startResize($event, prompt.id, 'right')" @touchstart.stop="startResize($event, prompt.id, 'right')"></div>
+        <div class="resize-handle resize-handle-top-left" @mousedown.stop="startResize($event, prompt.id, 'top-left')" @touchstart.stop="startResize($event, prompt.id, 'top-left')"></div>
+        <div class="resize-handle resize-handle-top-right" @mousedown.stop="startResize($event, prompt.id, 'top-right')" @touchstart.stop="startResize($event, prompt.id, 'top-right')"></div>
+        <div class="resize-handle resize-handle-bottom-left" @mousedown.stop="startResize($event, prompt.id, 'bottom-left')" @touchstart.stop="startResize($event, prompt.id, 'bottom-left')"></div>
+        <div class="resize-handle resize-handle-bottom-right" @mousedown.stop="startResize($event, prompt.id, 'bottom-right')" @touchstart.stop="startResize($event, prompt.id, 'bottom-right')"></div>
+      </div>
       <component
         :is="prompt.name"
         v-bind="getPromptProps(prompt)"
@@ -122,6 +155,17 @@ export default {
       dragStarts: {},
       draggingIds: new Set(),
       touchIds: {},
+      sizes: {},
+      resizingId: null,
+      resizingEdge: null,
+      resizeStart: {
+        width: 0,
+        height: 0,
+        offsetX: 0,
+        offsetY: 0,
+        clientX: 0,
+        clientY: 0,
+      },
     };
   },
   computed: {
@@ -133,14 +177,51 @@ export default {
     isDarkMode() {
       return getters.isDarkMode();
     },
+    pinnedPromptExists() {
+      return this.prompts.some(p => p.pinned);
+    },
+  },
+  mounted() {
+    window.addEventListener('resize', this.handleWindowResize);
+  },
+  beforeUnmount() {
+    window.removeEventListener('resize', this.handleWindowResize);
   },
   methods: {
+    handleWindowResize() {
+      const maxWidth = window.innerWidth * 0.9;
+      const maxHeight = window.innerHeight * 0.9;
+      
+      this.prompts.forEach(prompt => {
+        const size = this.sizes[prompt.id];
+        if (size) {
+          if (size.width > maxWidth || size.height > maxHeight) {
+            this.sizes[prompt.id] = {
+              width: Math.min(size.width, maxWidth),
+              height: Math.min(size.height, maxHeight),
+            };
+          }
+        }
+        
+        const el = this.getPromptElement(prompt.id);
+        if (el) {
+          this.clampDragOffset(prompt.id, el);
+        }
+      });
+    },
     isTopmost(id) {
       const allPrompts = this.prompts;
       return allPrompts[allPrompts.length - 1]?.id === id;
     },
     isDragging(id) {
       return this.draggingIds.has(id);
+    },
+    isBlocked(prompt) {
+      // If there is a pinned prompt and this prompt isn't it, it's blocked
+      if (this.pinnedPromptExists && !prompt.pinned) return true;
+      // If this prompt has any open child, also it's blocked (parent)
+      if (this.prompts.some(p => p.parentId === prompt.id)) return true;
+      return false;
     },
     getPromptProps(prompt) {
       const baseProps = {
@@ -155,10 +236,27 @@ export default {
       }
       return baseProps;
     },
+    makeTopPrompt(id) {
+      if (getters.isMobile()) return; // Don't allow in mobile since we can lose the prompt easily.
+      const prompt = this.prompts.find(p => p.id === id);
+      if (!prompt) return;
+      if (this.pinnedPromptExists && !prompt.pinned) return;
+      const index = state.prompts.findIndex(p => p.id === id);
+      if (index === -1) return;
+      const pinnedCount = state.prompts.filter(p => p.pinned).length;
+      const targetIndex = state.prompts.length - pinnedCount;
+      if (index >= targetIndex) return;
+      const [movedPrompt] = state.prompts.splice(index, 1);
+      state.prompts.splice(targetIndex, 0, movedPrompt);
+    },
     getDisplayTitle(promptName) {
       // convert to lowercase
       // Explicit switch statement for compile-time safety with ESLint i18n validation
       switch (promptName.toLowerCase()) {
+        case "delete":
+          return this.$t("general.delete");
+        case "access":
+          return this.$t("access.rules");
         case "officedebug":
           return this.$t("onlyoffice.debug");
         case "download":
@@ -220,8 +318,6 @@ export default {
           return this.$t("prompts.unarchive");
         case "threejscontrols":
           return this.$t("threejs.controls");
-        case "delete":
-          return this.$t("general.delete");
         default:
           console.error("[Prompts.vue] unknown prompt name", promptName);
           // Fallback for unknown prompt types
@@ -241,6 +337,7 @@ export default {
           // Show warning prompt instead of closing
           mutations.showHover({
             name: "CloseWithActiveUploads",
+            pinned: true,
             confirm: () => {
               // User confirmed to close anyway - close the upload prompt
               mutations.closePromptById(id);
@@ -249,6 +346,7 @@ export default {
               delete this.dragStarts[id];
               delete this.touchIds[id];
               this.draggingIds.delete(id);
+              delete this.sizes[id];
             },
             cancel: () => {
               // User cancelled - just close the warning prompt
@@ -258,7 +356,6 @@ export default {
           return;
         }
       }
-      
       // Normal close behavior
       mutations.closePromptById(id);
       // Clean up state for this prompt
@@ -266,6 +363,7 @@ export default {
       delete this.dragStarts[id];
       delete this.touchIds[id];
       this.draggingIds.delete(id);
+      delete this.sizes[id];
     },
     getPointerPos(e, type) {
       if (type === "touch") {
@@ -299,8 +397,17 @@ export default {
         y: clampedY - viewportH / 2,
       };
     },
+    getPromptElement(id) {
+      const windows = this.$refs.promptWindow;
+      const prompt = this.prompts.find(p => p.id === id);
+      if (!prompt) return null;
+      const label = `${prompt.name}-prompt`;
+      return Array.isArray(windows)
+        ? windows.find(w => w?.getAttribute('aria-label') === label)
+        : windows;
+    },
     onPointerDown(e, id, type) {
-      if (!this.isTopmost(id)) return;
+      this.makeTopPrompt(id);
       if (type === "mouse" && e.button !== 0) return;
       if (type === "touch") {
         this.touchIds[id] = e.changedTouches && e.changedTouches[0] && e.changedTouches[0].identifier;
@@ -348,7 +455,7 @@ export default {
       const el = Array.isArray(windows) ? windows.find(w => w?.getAttribute('aria-label') === `${this.prompts.find(p => p.id === id)?.name}-prompt`) : windows;
       if (el) this.clampDragOffset(id, el);
     },
-    onPointerEnd(e, id, type, moveHandler, endHandler) {
+    onPointerEnd(_e, id, type, moveHandler, endHandler) {
       if (type === "touch") {
         delete this.touchIds[id];
         window.removeEventListener("touchmove", moveHandler);
@@ -360,6 +467,138 @@ export default {
       }
       delete this.dragStarts[id];
       this.draggingIds.delete(id);
+    },
+    startResize(e, id, edge) {
+      const type = e.type === 'touchstart' ? 'touch' : 'mouse';
+      const pos = this.getPointerPos(e, type);
+      if (!pos) return;
+      // Find the window
+      const windows = this.$refs.promptWindow;
+      const el = Array.isArray(windows)
+        ? windows.find(w => w?.getAttribute('aria-label') === `${this.prompts.find(p => p.id === id)?.name}-prompt`)
+        : windows;
+      if (!el) return;
+      // Capture current size (if not already fixed, set it)
+      if (!this.sizes[id]) {
+        this.sizes[id] = {
+          width: el.offsetWidth,
+          height: el.offsetHeight,
+        };
+      }
+      // Initial values
+      this.resizingId = id;
+      this.resizingEdge = edge;
+      this.resizeStart = {
+        width: this.sizes[id].width,
+        height: this.sizes[id].height,
+        offsetX: this.dragOffsets[id]?.x || 0,
+        offsetY: this.dragOffsets[id]?.y || 0,
+        clientX: pos.x,
+        clientY: pos.y,
+      };
+
+      const moveHandler = (e) => this.onResizeMove(e, type);
+      const endHandler = (e) => this.onResizeEnd(e, type, moveHandler, endHandler);
+
+      if (type === 'mouse') {
+        window.addEventListener('mousemove', moveHandler);
+        window.addEventListener('mouseup', endHandler);
+      } else {
+        window.addEventListener('touchmove', moveHandler, { passive: false });
+        window.addEventListener('touchend', endHandler, { passive: true });
+        window.addEventListener('touchcancel', endHandler, { passive: true });
+      }
+      e.preventDefault();
+      e.stopPropagation();
+    },
+
+    onResizeMove(e, type) {
+      if (!this.resizingId) return;
+      const pos = this.getPointerPos(e, type);
+      if (!pos) return;
+      if (type === 'touch') {
+        e.preventDefault(); // prevent scrolling while resizing
+      }
+
+      const id = this.resizingId;
+      const edge = this.resizingEdge;
+      const start = this.resizeStart;
+
+      const dx = pos.x - start.clientX;
+      const dy = pos.y - start.clientY;
+
+      let newWidth = start.width;
+      let newHeight = start.height;
+      let deltaOffsetX = 0;
+      let deltaOffsetY = 0;
+
+      const MIN_WIDTH = 200;
+      const MIN_HEIGHT = 150;
+
+      // Calculate new dimensions and the required offset change to keep opposite edges fixed
+      // If not we'll have some weird behaviors when resizing.
+      if (edge.includes('left')) {
+        newWidth = Math.max(MIN_WIDTH, start.width - dx);
+        deltaOffsetX = -(newWidth - start.width) / 2;   // right
+      } else if (edge.includes('right')) {
+        newWidth = Math.max(MIN_WIDTH, start.width + dx);
+        deltaOffsetX = +(newWidth - start.width) / 2;   // left
+      }
+      if (edge.includes('top') && !edge.includes('left') && !edge.includes('right')) {
+        // pure top edge, not part of a corner
+        newHeight = Math.max(MIN_HEIGHT, start.height - dy);
+        deltaOffsetY = -(newHeight - start.height) / 2; // bottom
+      } else if (edge.includes('bottom') && !edge.includes('left') && !edge.includes('right')) {
+        // pure bottom edge
+        newHeight = Math.max(MIN_HEIGHT, start.height + dy);
+        deltaOffsetY = +(newHeight - start.height) / 2; // top
+      } else if (edge.includes('top-left')) {
+        newWidth = Math.max(MIN_WIDTH, start.width - dx);
+        newHeight = Math.max(MIN_HEIGHT, start.height - dy);
+        deltaOffsetX = -(newWidth - start.width) / 2;
+        deltaOffsetY = -(newHeight - start.height) / 2;
+      } else if (edge.includes('top-right')) {
+        newWidth = Math.max(MIN_WIDTH, start.width + dx);
+        newHeight = Math.max(MIN_HEIGHT, start.height - dy);
+        deltaOffsetX = +(newWidth - start.width) / 2;
+        deltaOffsetY = -(newHeight - start.height) / 2;
+      } else if (edge.includes('bottom-left')) {
+        newWidth = Math.max(MIN_WIDTH, start.width - dx);
+        newHeight = Math.max(MIN_HEIGHT, start.height + dy);
+        deltaOffsetX = -(newWidth - start.width) / 2;
+        deltaOffsetY = +(newHeight - start.height) / 2;
+      } else if (edge.includes('bottom-right')) {
+        newWidth = Math.max(MIN_WIDTH, start.width + dx);
+        newHeight = Math.max(MIN_HEIGHT, start.height + dy);
+        deltaOffsetX = +(newWidth - start.width) / 2;
+        deltaOffsetY = +(newHeight - start.height) / 2;
+      }
+      // Update sizes
+      this.sizes[id] = { width: newWidth, height: newHeight };
+      // Update drag
+      this.dragOffsets[id] = {
+        x: start.offsetX + deltaOffsetX,
+        y: start.offsetY + deltaOffsetY,
+      };
+      // Clamp to viewport
+      const windows = this.$refs.promptWindow;
+      const el = Array.isArray(windows)
+        ? windows.find(w => w?.getAttribute('aria-label') === `${this.prompts.find(p => p.id === id)?.name}-prompt`)
+        : windows;
+      if (el) this.clampDragOffset(id, el);
+    },
+    onResizeEnd(_e, type, moveHandler, endHandler) {
+      if (type === 'mouse') {
+        window.removeEventListener('mousemove', moveHandler);
+        window.removeEventListener('mouseup', endHandler);
+      } else {
+        window.removeEventListener('touchmove', moveHandler);
+        window.removeEventListener('touchend', endHandler);
+        window.removeEventListener('touchcancel', endHandler);
+      }
+      this.resizingId = null;
+      this.resizingEdge = null;
+      this.resizeStart = { width:0, height:0, offsetX:0, offsetY:0, clientX:0, clientY:0 };
     },
   },
 };
@@ -437,6 +676,38 @@ export default {
 
 .floating-window.is-dragging {
   border-color: var(--primaryColor);
+  user-select: none;
+}
+
+.floating-window.is-dragging > :deep(.card-content),
+.floating-window.is-dragging > :deep(.card-actions) {
+  pointer-events: none;
+}
+
+.floating-window.is-resizing {
+  border-color: var(--primaryColor);
+}
+
+/* Block all interactions but allow move and resize */
+.floating-window.blocked > :not(.prompt-taskbar):not(.resize-handles) {
+  pointer-events: none;
+}
+
+.floating-window.blocked {
+  cursor: not-allowed;
+  user-select: none;
+  opacity: 0.7;
+  transition: opacity 0.5s;
+}
+
+.prompt-close:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.prompt-behind {
+  filter: brightness(0.85);
+  transition: filter 0.5s;
 }
 
 .prompt-taskbar {
@@ -498,6 +769,20 @@ export default {
   font-size: 1em;
 }
 
+.prompt-resize-corner {
+  position: relative;
+  z-index: 1;
+  cursor: ne-resize;
+  transition: opacity 0.2s ease;
+  opacity: 0.5;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.prompt-resize-corner:hover {
+  opacity: 1;
+}
+
 .prompt-taskbar-drag {
   position: absolute;
   left: 0;
@@ -518,4 +803,76 @@ export default {
   text-overflow: ellipsis;
   max-width: 80%;
 }
+
+.resize-handles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+.resize-handle {
+  position: absolute;
+  pointer-events: auto;
+  background: transparent;
+  z-index: 20;
+}
+.resize-handle-top {
+  top: -5px;
+  left: 5px;
+  right: 5px;
+  height: 10px;
+  cursor: n-resize;
+}
+.resize-handle-bottom {
+  bottom: -5px;
+  left: 5px;
+  right: 5px;
+  height: 10px;
+  cursor: s-resize;
+}
+.resize-handle-left {
+  left: -5px;
+  top: 5px;
+  bottom: 5px;
+  width: 10px;
+  cursor: w-resize;
+}
+.resize-handle-right {
+  right: -5px;
+  top: 5px;
+  bottom: 5px;
+  width: 10px;
+  cursor: e-resize;
+}
+.resize-handle-top-left {
+  top: -5px;
+  left: -5px;
+  width: 15px;
+  height: 15px;
+  cursor: nw-resize;
+}
+.resize-handle-top-right {
+  top: -5px;
+  right: -5px;
+  width: 15px;
+  height: 15px;
+  cursor: ne-resize;
+}
+.resize-handle-bottom-left {
+  bottom: -5px;
+  left: -5px;
+  width: 15px;
+  height: 15px;
+  cursor: sw-resize;
+}
+.resize-handle-bottom-right {
+  bottom: -5px;
+  right: -5px;
+  width: 15px;
+  height: 15px;
+  cursor: se-resize;
+}
+
 </style>

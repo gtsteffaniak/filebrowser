@@ -88,6 +88,7 @@ export default {
     if (getters.eventTheme() === "halloween" && !localStorage.getItem("seenHalloweenMessage")) {
       mutations.showHover({
         name: "generic",
+        pinned: true,
         props: {
           title: this.$t("prompts.halloweenTitle"),
           body: this.$t("prompts.halloweenBody"),
@@ -553,6 +554,7 @@ export default {
     showPasswordPrompt() {
       mutations.showHover({
         name: "password",
+        pinned: true,
         props: {
           submitCallback: (password) => {
             this.sharePassword = password;

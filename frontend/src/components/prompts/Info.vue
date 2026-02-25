@@ -210,8 +210,10 @@ export default {
 
 <style scoped>
 .info-content {
-  max-height: 70vh;
+  height: 100%;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .info-description {
@@ -224,6 +226,7 @@ export default {
 .info-grid {
   display: grid;
   gap: 1.5em;
+  flex: 1;
 }
 
 .info-section {

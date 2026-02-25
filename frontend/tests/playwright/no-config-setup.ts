@@ -10,7 +10,7 @@ async function localSetup() {
   await page.getByPlaceholder("Username").fill("admin");
   await page.getByPlaceholder("Password").fill("admin");
   await page.getByRole("button", { name: "Login" }).click();
-  await page.waitForURL("**/files/", { timeout: 500 });
+  await page.waitForURL("**/files/", { timeout: 1000 });
   await context.storageState({ path: "loginAuth.json" });
   await browser.close();
 }
