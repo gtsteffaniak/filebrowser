@@ -368,7 +368,7 @@ export default {
       if (url.includes('/api/resources/raw?')) {
         return url;
       }
-      const filename = url.split('/api/')[1];
+      const filename = url.split('/api/resources/')[1];
       let texturePath = removeLastDir(this.fbdata.path) + "/textures/" + filename
       if (this.fbdata.parentDirItems) {
         for (const item of this.fbdata.parentDirItems) {

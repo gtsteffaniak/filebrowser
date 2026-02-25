@@ -692,18 +692,18 @@ export async function getItemsPublic(hash, path, only = "") {
 // Generate a download URL
 /**
  * @param {{ path: string; hash: string; token: string; inline?: boolean }} share
- * @param {string[]} files
+ * @param {string[]} files - Array of file paths (will be converted to repeated 'file' parameters)
  * @returns {string}
  */
 export function getDownloadURLPublic(share, files, inline=false) {
   const fileArray = Array.isArray(files) ? files : [files]
   const params = {
-    file: fileArray,
+    file: fileArray, // Array will be converted to repeated 'file' params by getPublicApiPath
     hash: share.hash,
     token: share.token,
     ...(inline && { inline: 'true' })
   }
-  const apiPath = getPublicApiPath("raw", params)
+  const apiPath = getPublicApiPath("resources/raw", params)
   return window.origin + apiPath
 }
 
