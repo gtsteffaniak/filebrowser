@@ -194,7 +194,9 @@ export default {
     },
     makeTopPrompt(id) {
       if (getters.isMobile()) return; // Don't allow in mobile since we can lose the prompt easily.
-      if (this.pinnedPromptExists && !prompt.pinnedHover) return; // Don't allow when we have a pinned prompt
+      const prompt = this.prompts.find(p => p.id === id);
+      if (!prompt) return;
+      if (this.pinnedPromptExists && !prompt.pinnedHover) return;
       const index = state.prompts.findIndex(p => p.id === id);
       if (index === -1) return;
       const pinnedCount = state.prompts.filter(p => p.pinnedHover).length;
@@ -347,7 +349,6 @@ export default {
     },
     onPointerDown(e, id, type) {
       this.makeTopPrompt(id);
-      if (!this.isTopmost(id)) return;
       if (type === "mouse" && e.button !== 0) return;
       if (type === "touch") {
         this.touchIds[id] = e.changedTouches && e.changedTouches[0] && e.changedTouches[0].identifier;
