@@ -1826,6 +1826,94 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/resources/download": {
+            "get": {
+                "description": "Returns the raw content of a file, multiple files, or a directory. Supports downloading files as archives in various formats.\n\n**Filename Encoding:**\n- The Content-Disposition header will always include both:\n1. ` + "`" + `filename=\"...\"` + "`" + `: An ASCII-safe version of the filename for compatibility.\n2. ` + "`" + `filename*=utf-8\"...` + "`" + `: The full UTF-8 encoded filename (RFC 6266/5987) for modern clients.\n\n**Multiple Files:**\n- Use repeated query parameters: ` + "`" + `?file=file1.txt\u0026file=file2.txt\u0026file=file3.txt` + "`" + `\n- This supports filenames containing commas and special characters",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Download content of a file, multiple files, or directory",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Source name for the files (required)",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "File path (can be repeated for multiple files)",
+                        "name": "file",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults to 'attachment'.",
+                        "name": "inline",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Compression algorithm for archiving multiple files or directories. Options: 'zip' and 'tar.gz'. Default is 'zip'.",
+                        "name": "algo",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Raw file or directory content, or archive for multiple files",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "202": {
+                        "description": "Modify permissions required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request path",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "File or directory not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/resources/items": {
             "get": {
                 "description": "Efficiently returns a basic list of items for the specified path and source. Use 'only' parameter to filter by only files or folders",
@@ -1971,94 +2059,6 @@ const docTemplate = `{
                     },
                     "501": {
                         "description": "Preview generation not implemented",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/resources/raw": {
-            "get": {
-                "description": "Returns the raw content of a file, multiple files, or a directory. Supports downloading files as archives in various formats.\n\n**Filename Encoding:**\n- The Content-Disposition header will always include both:\n1. ` + "`" + `filename=\"...\"` + "`" + `: An ASCII-safe version of the filename for compatibility.\n2. ` + "`" + `filename*=utf-8\"...` + "`" + `: The full UTF-8 encoded filename (RFC 6266/5987) for modern clients.\n\n**Multiple Files:**\n- Use repeated query parameters: ` + "`" + `?file=file1.txt\u0026file=file2.txt\u0026file=file3.txt` + "`" + `\n- This supports filenames containing commas and special characters",
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Resources"
-                ],
-                "summary": "Get raw content of a file, multiple files, or directory",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Source name for the files (required)",
-                        "name": "source",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "File path (can be repeated for multiple files)",
-                        "name": "file",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults to 'attachment'.",
-                        "name": "inline",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Compression algorithm for archiving multiple files or directories. Options: 'zip' and 'tar.gz'. Default is 'zip'.",
-                        "name": "algo",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Raw file or directory content, or archive for multiple files",
-                        "schema": {
-                            "type": "file"
-                        }
-                    },
-                    "202": {
-                        "description": "Modify permissions required",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request path",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "File or directory not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -3496,6 +3496,106 @@ const docTemplate = `{
                 }
             }
         },
+        "/public/api/resources/download": {
+            "get": {
+                "description": "Downloads raw content from a public share. Supports single files, multiple files, or directories as archives. Enforces download limits (global or per-user) and blocks anonymous users when per-user limits are enabled.\n\n**Multiple Files:**\n- Use repeated query parameters: ` + "`" + `?file=file1.txt\u0026file=file2.txt\u0026file=file3.txt` + "`" + `\n- This supports filenames containing commas and special characters",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "Shares"
+                ],
+                "summary": "Download files from a public share",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Share hash for authentication",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "File path (can be repeated for multiple files)",
+                        "name": "file",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults to 'attachment'.",
+                        "name": "inline",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Compression algorithm for archiving multiple files or directories. Options: 'zip' and 'tar.gz'. Default is 'zip'.",
+                        "name": "algo",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Raw file or directory content, or archive for multiple files",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request path or encoding",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Download limit reached, anonymous access blocked, or share unavailable",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Share not found or file not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "501": {
+                        "description": "Downloads disabled for upload shares",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/public/api/resources/items": {
             "get": {
                 "description": "Efficiently returns a basic list of items for the specified path in a public share. Use hash for authentication instead of source. Use 'only' parameter to filter by only files or folders.",
@@ -3638,106 +3738,6 @@ const docTemplate = `{
                     },
                     "501": {
                         "description": "Previews disabled globally, for this share, or for upload shares",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/public/api/resources/raw": {
-            "get": {
-                "description": "Downloads raw content from a public share. Supports single files, multiple files, or directories as archives. Enforces download limits (global or per-user) and blocks anonymous users when per-user limits are enabled.\n\n**Multiple Files:**\n- Use repeated query parameters: ` + "`" + `?file=file1.txt\u0026file=file2.txt\u0026file=file3.txt` + "`" + `\n- This supports filenames containing commas and special characters",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/octet-stream"
-                ],
-                "tags": [
-                    "Shares"
-                ],
-                "summary": "Download files from a public share",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Share hash for authentication",
-                        "name": "hash",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "File path (can be repeated for multiple files)",
-                        "name": "file",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults to 'attachment'.",
-                        "name": "inline",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Compression algorithm for archiving multiple files or directories. Options: 'zip' and 'tar.gz'. Default is 'zip'.",
-                        "name": "algo",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Raw file or directory content, or archive for multiple files",
-                        "schema": {
-                            "type": "file"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request path or encoding",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "Download limit reached, anonymous access blocked, or share unavailable",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Share not found or file not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "501": {
-                        "description": "Downloads disabled for upload shares",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {

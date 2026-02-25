@@ -80,8 +80,8 @@ func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName stri
 	w.Header().Set("Content-Disposition", fmt.Sprintf("%s; filename=%q; filename*=utf-8''%s", dispositionType, asciiFileName, encodedFileName))
 }
 
-// rawHandler serves the raw content of a file, multiple files, or directory in various formats.
-// @Summary Get raw content of a file, multiple files, or directory
+// downloadHandler serves the raw content of a file, multiple files, or directory in various formats.
+// @Summary Download content of a file, multiple files, or directory
 // @Description Returns the raw content of a file, multiple files, or a directory. Supports downloading files as archives in various formats.
 // @Description
 // @Description **Filename Encoding:**
@@ -103,8 +103,8 @@ func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName stri
 // @Failure 400 {object} map[string]string "Invalid request path"
 // @Failure 404 {object} map[string]string "File or directory not found"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /api/resources/raw [get]
-func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+// @Router /api/resources/download [get]
+func downloadHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	source := r.URL.Query().Get("source")
 	fileList := r.URL.Query()["file"]
 

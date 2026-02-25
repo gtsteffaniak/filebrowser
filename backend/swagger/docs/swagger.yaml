@@ -3038,6 +3038,77 @@ paths:
       summary: Bulk delete resources
       tags:
       - Resources
+  /api/resources/download:
+    get:
+      consumes:
+      - application/json
+      description: |-
+        Returns the raw content of a file, multiple files, or a directory. Supports downloading files as archives in various formats.
+
+        **Filename Encoding:**
+        - The Content-Disposition header will always include both:
+        1. `filename="..."`: An ASCII-safe version of the filename for compatibility.
+        2. `filename*=utf-8"...`: The full UTF-8 encoded filename (RFC 6266/5987) for modern clients.
+
+        **Multiple Files:**
+        - Use repeated query parameters: `?file=file1.txt&file=file2.txt&file=file3.txt`
+        - This supports filenames containing commas and special characters
+      parameters:
+      - description: Source name for the files (required)
+        in: query
+        name: source
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: File path (can be repeated for multiple files)
+        in: query
+        items:
+          type: string
+        name: file
+        required: true
+        type: array
+      - description: If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults
+          to 'attachment'.
+        in: query
+        name: inline
+        type: boolean
+      - description: 'Compression algorithm for archiving multiple files or directories.
+          Options: ''zip'' and ''tar.gz''. Default is ''zip''.'
+        in: query
+        name: algo
+        type: string
+      responses:
+        "200":
+          description: Raw file or directory content, or archive for multiple files
+          schema:
+            type: file
+        "202":
+          description: Modify permissions required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid request path
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: File or directory not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Download content of a file, multiple files, or directory
+      tags:
+      - Resources
   /api/resources/items:
     get:
       consumes:
@@ -3141,77 +3212,6 @@ paths:
               type: string
             type: object
       summary: Get image preview
-      tags:
-      - Resources
-  /api/resources/raw:
-    get:
-      consumes:
-      - application/json
-      description: |-
-        Returns the raw content of a file, multiple files, or a directory. Supports downloading files as archives in various formats.
-
-        **Filename Encoding:**
-        - The Content-Disposition header will always include both:
-        1. `filename="..."`: An ASCII-safe version of the filename for compatibility.
-        2. `filename*=utf-8"...`: The full UTF-8 encoded filename (RFC 6266/5987) for modern clients.
-
-        **Multiple Files:**
-        - Use repeated query parameters: `?file=file1.txt&file=file2.txt&file=file3.txt`
-        - This supports filenames containing commas and special characters
-      parameters:
-      - description: Source name for the files (required)
-        in: query
-        name: source
-        required: true
-        type: string
-      - collectionFormat: csv
-        description: File path (can be repeated for multiple files)
-        in: query
-        items:
-          type: string
-        name: file
-        required: true
-        type: array
-      - description: If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults
-          to 'attachment'.
-        in: query
-        name: inline
-        type: boolean
-      - description: 'Compression algorithm for archiving multiple files or directories.
-          Options: ''zip'' and ''tar.gz''. Default is ''zip''.'
-        in: query
-        name: algo
-        type: string
-      responses:
-        "200":
-          description: Raw file or directory content, or archive for multiple files
-          schema:
-            type: file
-        "202":
-          description: Modify permissions required
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "400":
-          description: Invalid request path
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: File or directory not found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Get raw content of a file, multiple files, or directory
       tags:
       - Resources
   /api/resources/unarchive:
@@ -4201,6 +4201,81 @@ paths:
       summary: Bulk delete resources from public share
       tags:
       - Shares
+  /public/api/resources/download:
+    get:
+      consumes:
+      - application/json
+      description: |-
+        Downloads raw content from a public share. Supports single files, multiple files, or directories as archives. Enforces download limits (global or per-user) and blocks anonymous users when per-user limits are enabled.
+
+        **Multiple Files:**
+        - Use repeated query parameters: `?file=file1.txt&file=file2.txt&file=file3.txt`
+        - This supports filenames containing commas and special characters
+      parameters:
+      - description: Share hash for authentication
+        in: query
+        name: hash
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: File path (can be repeated for multiple files)
+        in: query
+        items:
+          type: string
+        name: file
+        required: true
+        type: array
+      - description: If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults
+          to 'attachment'.
+        in: query
+        name: inline
+        type: boolean
+      - description: 'Compression algorithm for archiving multiple files or directories.
+          Options: ''zip'' and ''tar.gz''. Default is ''zip''.'
+        in: query
+        name: algo
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: Raw file or directory content, or archive for multiple files
+          schema:
+            type: file
+        "400":
+          description: Invalid request path or encoding
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Download limit reached, anonymous access blocked, or share
+            unavailable
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Share not found or file not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "501":
+          description: Downloads disabled for upload shares
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Download files from a public share
+      tags:
+      - Shares
   /public/api/resources/items:
     get:
       consumes:
@@ -4306,81 +4381,6 @@ paths:
               type: string
             type: object
       summary: Get image/video preview from a public share
-      tags:
-      - Shares
-  /public/api/resources/raw:
-    get:
-      consumes:
-      - application/json
-      description: |-
-        Downloads raw content from a public share. Supports single files, multiple files, or directories as archives. Enforces download limits (global or per-user) and blocks anonymous users when per-user limits are enabled.
-
-        **Multiple Files:**
-        - Use repeated query parameters: `?file=file1.txt&file=file2.txt&file=file3.txt`
-        - This supports filenames containing commas and special characters
-      parameters:
-      - description: Share hash for authentication
-        in: query
-        name: hash
-        required: true
-        type: string
-      - collectionFormat: csv
-        description: File path (can be repeated for multiple files)
-        in: query
-        items:
-          type: string
-        name: file
-        required: true
-        type: array
-      - description: If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults
-          to 'attachment'.
-        in: query
-        name: inline
-        type: boolean
-      - description: 'Compression algorithm for archiving multiple files or directories.
-          Options: ''zip'' and ''tar.gz''. Default is ''zip''.'
-        in: query
-        name: algo
-        type: string
-      produces:
-      - application/octet-stream
-      responses:
-        "200":
-          description: Raw file or directory content, or archive for multiple files
-          schema:
-            type: file
-        "400":
-          description: Invalid request path or encoding
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "403":
-          description: Download limit reached, anonymous access blocked, or share
-            unavailable
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Share not found or file not found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "501":
-          description: Downloads disabled for upload shares
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Download files from a public share
       tags:
       - Shares
   /public/api/share/image:

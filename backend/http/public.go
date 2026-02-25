@@ -18,7 +18,7 @@ import (
 	_ "github.com/gtsteffaniak/filebrowser/backend/swagger/docs"
 )
 
-// publicRawHandler serves the raw content of a file, multiple files, or directory via a public share.
+// publicDownloadHandler serves the raw content of a file, multiple files, or directory via a public share.
 // @Summary Download files from a public share
 // @Description Downloads raw content from a public share. Supports single files, multiple files, or directories as archives. Enforces download limits (global or per-user) and blocks anonymous users when per-user limits are enabled.
 // @Description
@@ -38,8 +38,8 @@ import (
 // @Failure 404 {object} map[string]string "Share not found or file not found"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Failure 501 {object} map[string]string "Downloads disabled for upload shares"
-// @Router /public/api/resources/raw [get]
-func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+// @Router /public/api/resources/download [get]
+func publicDownloadHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if d.share.ShareType == "upload" {
 		return http.StatusNotImplemented, fmt.Errorf("downloads are disabled for upload shares")
 	}
