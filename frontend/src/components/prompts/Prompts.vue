@@ -47,7 +47,7 @@
       <div class="resize-handles">
         <div class="resize-handle resize-handle-top" @mousedown.stop="startResize($event, prompt.id, 'top')" @touchstart.stop="startResize($event, prompt.id, 'top')"></div>
         <div class="resize-handle resize-handle-bottom" @mousedown.stop="startResize($event, prompt.id, 'bottom')" @touchstart.stop="startResize($event, prompt.id, 'bottom')"></div>
-        <div class="resize-handle resize-handle-left" @mousedown.stop="startResize($event, prompt.id, 'left')" @touchstart="startResize($event, prompt.id, 'left')"></div>
+        <div class="resize-handle resize-handle-left" @mousedown.stop="startResize($event, prompt.id, 'left')" @touchstart.stop="startResize($event, prompt.id, 'left')"></div>
         <div class="resize-handle resize-handle-right" @mousedown.stop="startResize($event, prompt.id, 'right')" @touchstart.stop="startResize($event, prompt.id, 'right')"></div>
         <div class="resize-handle resize-handle-top-left" @mousedown.stop="startResize($event, prompt.id, 'top-left')" @touchstart.stop="startResize($event, prompt.id, 'top-left')"></div>
         <div class="resize-handle resize-handle-top-right" @mousedown.stop="startResize($event, prompt.id, 'top-right')" @touchstart.stop="startResize($event, prompt.id, 'top-right')"></div>
@@ -348,6 +348,89 @@ export default {
         y: clampedY - viewportH / 2,
       };
     },
+    getPromptElement(id) {
+      const windows = this.$refs.promptWindow;
+      const prompt = this.prompts.find(p => p.id === id);
+      if (!prompt) return null;
+      const label = `${prompt.name}-prompt`;
+      return Array.isArray(windows)
+        ? windows.find(w => w?.getAttribute('aria-label') === label)
+        : windows;
+    },
+    // resize the window if it goes out of screen
+    fitWindowToViewport(id) {
+      const el = this.getPromptElement(id);
+      if (!el) return;
+
+      const viewportW = window.innerWidth;
+      const viewportH = window.innerHeight;
+      const offset = this.dragOffsets[id] || { x: 0, y: 0 };
+      const size = this.sizes[id] || { width: el.offsetWidth, height: el.offsetHeight };
+      // center position
+      const centerX = viewportW / 2 + offset.x;
+      const centerY = viewportH / 2 + offset.y;
+
+      let left = centerX - size.width / 2;
+      let right = centerX + size.width / 2;
+      let top = centerY - size.height / 2;
+      let bottom = centerY + size.height / 2;
+
+      const MIN_WIDTH = 200;
+      const MIN_HEIGHT = 150;
+
+      let newWidth = size.width;
+      let newHeight = size.height;
+      let newOffsetX = offset.x;
+      let newOffsetY = offset.y;
+      // horizontal fitting
+      if (left < 0) {
+        // shrink width to fit left edge
+        const maxWidthByLeft = centerX * 2; // width that makes left = 0
+        if (maxWidthByLeft >= MIN_WIDTH) {
+          newWidth = Math.min(newWidth, maxWidthByLeft);
+          left = centerX - newWidth / 2;
+        }
+        // if still outside after shrinking we shift right
+        if (left < 0) {
+          newOffsetX = offset.x - left; // shift right by -left
+        }
+      } else if (right > viewportW) {
+        const maxWidthByRight = (viewportW - centerX) * 2;
+        if (maxWidthByRight >= MIN_WIDTH) {
+          newWidth = Math.min(newWidth, maxWidthByRight);
+          right = centerX + newWidth / 2;
+        }
+        if (right > viewportW) {
+          newOffsetX = offset.x - (right - viewportW); // shift left
+        }
+      }
+      // vertical fitting, similar thing
+      if (top < 0) {
+        const maxHeightByTop = centerY * 2;
+        if (maxHeightByTop >= MIN_HEIGHT) {
+          newHeight = Math.min(newHeight, maxHeightByTop);
+          top = centerY - newHeight / 2;
+        }
+        if (top < 0) {
+          newOffsetY = offset.y - top;
+        }
+      } else if (bottom > viewportH) {
+        const maxHeightByBottom = (viewportH - centerY) * 2;
+        if (maxHeightByBottom >= MIN_HEIGHT) {
+          newHeight = Math.min(newHeight, maxHeightByBottom);
+          bottom = centerY + newHeight / 2;
+        }
+        if (bottom > viewportH) {
+          newOffsetY = offset.y - (bottom - viewportH);
+        }
+      }
+      if (newWidth !== size.width || newHeight !== size.height) {
+        this.sizes[id] = { width: newWidth, height: newHeight };
+      }
+      if (newOffsetX !== offset.x || newOffsetY !== offset.y) {
+        this.dragOffsets[id] = { x: newOffsetX, y: newOffsetY };
+      }
+    },
     onPointerDown(e, id, type) {
       this.makeTopPrompt(id);
       if (type === "mouse" && e.button !== 0) return;
@@ -409,6 +492,7 @@ export default {
       }
       delete this.dragStarts[id];
       this.draggingIds.delete(id);
+      this.fitWindowToViewport(id);
     },
     startResize(e, id, edge) {
       const type = e.type === 'touchstart' ? 'touch' : 'mouse';
@@ -530,6 +614,7 @@ export default {
       if (el) this.clampDragOffset(id, el);
     },
     onResizeEnd(_e, type, moveHandler, endHandler) {
+      const id = this.resizingId;
       if (type === 'mouse') {
         window.removeEventListener('mousemove', moveHandler);
         window.removeEventListener('mouseup', endHandler);
@@ -541,6 +626,9 @@ export default {
       this.resizingId = null;
       this.resizingEdge = null;
       this.resizeStart = { width:0, height:0, offsetX:0, offsetY:0, clientX:0, clientY:0 };
+      if (id) {
+        this.fitWindowToViewport(id);
+      }
     },
   },
 };
