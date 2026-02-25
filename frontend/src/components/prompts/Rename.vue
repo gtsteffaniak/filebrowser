@@ -38,7 +38,7 @@
   </div>
 </template>
 <script>
-import { resourcesApi, publicApi } from "@/api";
+import { resourcesApi } from "@/api";
 import { mutations, state, getters } from "@/store";
 import { notify } from "@/notify";
 import { getFileExtension, removePrefix } from '@/utils/files.js';
@@ -206,7 +206,7 @@ export default {
         }];
 
         if (getters.isShare()) {
-          await publicApi.moveCopy(state.shareInfo.hash, items, "move");
+          await resourcesApi.moveCopyPublic(state.shareInfo.hash, items, "move");
         } else {
           await resourcesApi.moveCopy(items, "move");
         }

@@ -927,7 +927,7 @@ export default {
             let action = async (overwrite, rename) => {
               try {
               if (getters.isShare()) {
-                await publicApi.moveCopy(state.shareInfo.hash, items, operation, overwrite, rename);
+                await resourcesApi.moveCopyPublic(state.shareInfo.hash, items, operation, overwrite, rename);
                 } else {
                   await resourcesApi.moveCopy(items, operation, overwrite, rename);
                 }

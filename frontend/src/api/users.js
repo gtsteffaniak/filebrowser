@@ -5,7 +5,7 @@ import { notify } from '@/notify'
 // GET /api/users (list all)
 export async function getAllUsers() {
   try {
-    const apiPath = getApiPath('api/users')
+    const apiPath = getApiPath('users')
     return await fetchJSON(apiPath)
   } catch (err) {
     notify.showError(err.message || 'Failed to fetch users')
@@ -27,7 +27,7 @@ export async function get(id) {
 // POST /api/users (create user)
 export async function create(user) {
   try {
-    const apiPath = getApiPath('api/users')
+    const apiPath = getApiPath('users')
     const res = await fetchURL(apiPath, {
       method: 'POST',
       body: JSON.stringify({
@@ -65,7 +65,7 @@ export async function update(user, which = ['all']) {
     })
   }
 
-  const apiPath = getApiPath('api/users', { id: user.id })
+  const apiPath = getApiPath('users', { id: user.id })
   await fetchURL(apiPath, {
     method: 'PUT',
     body: JSON.stringify({
@@ -78,7 +78,7 @@ export async function update(user, which = ['all']) {
 // DELETE /api/users (remove user)
 export async function remove(id) {
   try {
-    const apiPath = getApiPath('api/users', { id: id })
+    const apiPath = getApiPath('users', { id: id })
     await fetchURL(apiPath, {
       method: 'DELETE'
     })

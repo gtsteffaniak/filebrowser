@@ -85,6 +85,7 @@ import { state, mutations, getters } from "@/store";
 import { eventBus } from "@/store/eventBus";
 import { getApiPath } from "@/utils/url";
 import { fetchURL } from "@/api/utils";
+import { toolsApi } from "@/api";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { formatTimestamp, fromNow } from "@/utils/moment";
 import { notify } from "@/notify";
@@ -438,74 +439,59 @@ export default {
       }
     },
     startSSEWatch() {
-      // Build SSE URL with query parameters
-      const params = new URLSearchParams({
-        path: this.filePath,
-        source: this.selectedSource,
-        lines: this.selectedLines.toString(),
-        interval: this.selectedInterval.toString(),
-      });
-
-      const sseUrl = getApiPath(`api/tools/watch/sse?${params.toString()}`);
-      
-      // Create EventSource connection
-      this.eventSource = new EventSource(sseUrl);
-
       // Start latency pinging at the same interval as SSE events
       this.startLatencyPing();
 
-      this.eventSource.onmessage = (event) => {
-        try {
-          const parsed = JSON.parse(event.data);
-          
-          // Check if the data is wrapped in eventType/message format (from events system)
-          let data = parsed;
-          if (parsed.eventType === 'fileWatch' && parsed.message) {
-            // The message is a JSON string that needs to be parsed
-            data = typeof parsed.message === 'string' ? JSON.parse(parsed.message) : parsed.message;
-          }
-          
-          // Handle connection status messages
-          if (data.status) {
-            if (data.status === 'shutdown') {
-              notify.showError('Server is shutting down');
-              this.stopWatch();
-            } else if (data.status === 'error') {
-              const errorMsg = data.error || 'SSE connection error';
-              console.error('[FileWatcher] SSE error:', errorMsg);
-              notify.showError(errorMsg);
-              this.stopWatch();
+      // Create EventSource connection using the API
+      this.eventSource = toolsApi.fileWatcherSSE(
+        this.selectedSource,
+        this.filePath,
+        this.selectedLines,
+        this.selectedInterval,
+        (event) => {
+          try {
+            const parsed = JSON.parse(event.data);
+            
+            // Check if the data is wrapped in eventType/message format (from events system)
+            let data = parsed;
+            if (parsed.eventType === 'fileWatch' && parsed.message) {
+              // The message is a JSON string that needs to be parsed
+              data = typeof parsed.message === 'string' ? JSON.parse(parsed.message) : parsed.message;
             }
-            return;
-          }
+            
+            // Handle connection status messages
+            if (data.status) {
+              if (data.status === 'shutdown') {
+                notify.showError('Server is shutting down');
+                this.stopWatch();
+              } else if (data.status === 'error') {
+                const errorMsg = data.error || 'SSE connection error';
+                console.error('[FileWatcher] SSE error:', errorMsg);
+                notify.showError(errorMsg);
+                this.stopWatch();
+              }
+              return;
+            }
 
-          // Handle file watch data
-          this.handleFileWatchEvent(data);
-        } catch (err) {
-          console.error('[FileWatcher] Error parsing SSE event:', err, 'Raw data:', event.data);
-          notify.showError('Failed to parse server response');
+            // Handle file watch data
+            this.handleFileWatchEvent(data);
+          } catch (err) {
+            console.error('[FileWatcher] Error parsing SSE event:', err, 'Raw data:', event.data);
+            notify.showError('Failed to parse server response');
+            this.stopWatch();
+          }
+        },
+        (error) => {
+          console.error('[FileWatcher] SSE connection error:', error);
+          notify.showError('Lost connection to server');
           this.stopWatch();
         }
-      };
-
-      this.eventSource.onerror = (error) => {
-        console.error('[FileWatcher] SSE connection error:', error);
-        notify.showError('Lost connection to server');
-        this.stopWatch();
-      };
+      );
     },
     async fetchFileContent() {
       const startTime = Date.now();
       try {
-        const params = {
-          path: encodeURIComponent(this.filePath),
-          source: encodeURIComponent(this.selectedSource),
-          lines: this.selectedLines.toString(),
-        };
-
-        const apiPath = getApiPath("api/tools/watch", params);
-        const res = await fetchURL(apiPath);
-        const data = await res.json();
+        const data = await toolsApi.fileWatcher(this.selectedSource, this.filePath);
 
         const latency = Date.now() - startTime;
         this.currentLatency = latency;
@@ -608,7 +594,7 @@ export default {
         const params = {
           latencyCheck: "true",
         };
-        const apiPath = getApiPath("api/tools/watch", params);
+        const apiPath = getApiPath("tools/watch", params);
         await fetchURL(apiPath);
         const roundTripLatency = Date.now() - startTime;
         // Use half of round-trip latency as estimate for one-way latency

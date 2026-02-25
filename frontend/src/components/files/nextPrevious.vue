@@ -76,7 +76,7 @@ import { state, getters, mutations } from "@/store";
 import throttle from "@/utils/throttle";
 import { previewViews } from "@/utils/constants";
 import { url } from "@/utils";
-import { resourcesApi, publicApi } from "@/api";
+import { resourcesApi } from "@/api";
 
 export default {
   name: "NextPrevious",
@@ -383,7 +383,7 @@ export default {
         try {
           let res;
           if (getters.isShare()) {
-            res = await publicApi.fetchPub(directoryPath, state.shareInfo.hash);
+            res = await resourcesApi.fetchFilesPublic(directoryPath, state.shareInfo.hash);
           } else {
             res = await resourcesApi.fetchFiles(state.req.source, directoryPath);
           }

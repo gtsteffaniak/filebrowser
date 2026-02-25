@@ -57,7 +57,7 @@
 </template>
 
 <script>
-import { resourcesApi, publicApi } from "@/api";
+import { resourcesApi } from "@/api";
 import buttons from "@/utils/buttons";
 import { state, getters, mutations } from "@/store";
 import { notify } from "@/notify";
@@ -225,7 +225,7 @@ export default {
 
         // Use bulk delete API for both regular files and shares
         const response = getters.isShare()
-          ? await publicApi.bulkDelete(itemsForDelete)
+          ? await resourcesApi.bulkDeletePublic(itemsForDelete)
           : await resourcesApi.bulkDelete(itemsForDelete);
 
         // Store failed items directly from response

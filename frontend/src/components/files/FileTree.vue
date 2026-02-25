@@ -73,7 +73,7 @@
 </template>
 
 <script>
-import { resourcesApi, publicApi } from '@/api';
+import { resourcesApi } from '@/api';
 import Icon from '@/components/files/Icon.vue';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import { state, getters, mutations } from '@/store';
@@ -204,7 +204,7 @@ export default {
     },
     async fetchItems(path) {
       if (this.isShare) {
-        const res = await publicApi.fetchPub(path, this.shareHash, state.shareInfo.password, false, false, true);
+        const res = await resourcesApi.fetchFilesPublic(path, this.shareHash, state.shareInfo.password, false, false, true);
         return res.items || [];
       } else {
         const res = await resourcesApi.fetchFiles(this.currentSource, path, false, false, true);
@@ -502,7 +502,7 @@ export default {
       let response;
       try {
         if (this.isShare) {
-          response = await publicApi.fetchPub(node.path, this.shareHash);
+          response = await resourcesApi.fetchFilesPublic(node.path, this.shareHash);
         } else {
           response = await resourcesApi.fetchFiles(this.currentSource, node.path);
         }
@@ -528,7 +528,7 @@ export default {
 
         try {
           if (this.isShare) {
-            await publicApi.moveCopy(this.shareHash, items, 'move', overwrite, rename);
+            await resourcesApi.moveCopyPublic(this.shareHash, items, 'move', overwrite, rename);
           } else {
             await resourcesApi.moveCopy(items, 'move', overwrite, rename);
           }

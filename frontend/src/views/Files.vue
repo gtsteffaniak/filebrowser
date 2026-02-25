@@ -13,7 +13,7 @@
 </template>
 
 <script>
-import { resourcesApi, publicApi } from "@/api";
+import { resourcesApi, shareApi } from "@/api";
 import Errors from "@/views/Errors.vue";
 import Preview from "@/views/files/Preview.vue";
 import ListingView from "@/views/files/ListingView.vue";
@@ -177,7 +177,7 @@ export default {
 
       // Fetch and store share info if this is a share
       if (isShare) {
-        let shareInfo = await publicApi.getShareInfo(hash);
+        let shareInfo = await shareApi.getShareInfoPublic(hash);
 
         // Check if the response is an error (has status field indicating error)
         if (!shareInfo || shareInfo.status >= 400) {
@@ -251,7 +251,7 @@ export default {
             if (state.shareInfo.hasPassword) {
               mutations.setShareData({ passwordValid: false });
               try {
-                await publicApi.fetchPub(state.shareInfo.subPath, state.shareInfo.hash, this.sharePassword, false, false);
+                await resourcesApi.fetchFilesPublic(state.shareInfo.subPath, state.shareInfo.hash, this.sharePassword, false, false);
                 // If we get here, password is valid (unlikely for upload shares, but handle it)
                 mutations.setShareData({ passwordValid: true });
                 this.error = null; // Clear any previous errors
@@ -284,7 +284,7 @@ export default {
           if (state.shareInfo.hasPassword) {
             mutations.setShareData({ passwordValid: false });
             try {
-              await publicApi.fetchPub(state.shareInfo.subPath, state.shareInfo.hash, this.sharePassword, false, false);
+              await resourcesApi.fetchFilesPublic(state.shareInfo.subPath, state.shareInfo.hash, this.sharePassword, false, false);
               // Password is valid
               mutations.setShareData({ passwordValid: true });
               this.error = null; // Clear any previous errors
@@ -316,7 +316,7 @@ export default {
           this.loadingProgress = 10;
 
           // Fetch share data
-          let file = await publicApi.fetchPub(state.shareInfo.subPath, state.shareInfo.hash, this.sharePassword, false, false);
+          let file = await resourcesApi.fetchFilesPublic(state.shareInfo.subPath, state.shareInfo.hash, this.sharePassword, false, false);
           file.hash = state.shareInfo.hash;
 
           // Store token in shareInfo
@@ -337,11 +337,11 @@ export default {
             const shouldFetchParent = directoryPath !== state.shareInfo.subPath;
             // Run both fetches in parallel to minimize total API calls
             const promises = [
-              publicApi.fetchPub(state.shareInfo.subPath, state.shareInfo.hash, this.sharePassword, content, false)
+              resourcesApi.fetchFilesPublic(state.shareInfo.subPath, state.shareInfo.hash, this.sharePassword, content, false)
             ];
             if (shouldFetchParent) {
               promises.push(
-                publicApi.fetchPub(directoryPath, state.shareInfo.hash, this.sharePassword, false, false).catch(() => null)
+                resourcesApi.fetchFilesPublic(directoryPath, state.shareInfo.hash, this.sharePassword, false, false).catch(() => null)
               );
             }
 
@@ -365,7 +365,7 @@ export default {
           if (file.type === "directory" && file.hasMetadata) {
             this.loadingProgress = 90;
             // Fetch with metadata enabled (background operation)
-            publicApi.fetchPub(state.shareInfo.subPath, state.shareInfo.hash, this.sharePassword, false, true).then(fileWithMetadata => {
+            resourcesApi.fetchFilesPublic(state.shareInfo.subPath, state.shareInfo.hash, this.sharePassword, false, true).then(fileWithMetadata => {
               fileWithMetadata.hash = state.shareInfo.hash;
               fileWithMetadata.token = state.shareInfo.token;
 

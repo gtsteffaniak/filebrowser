@@ -53,7 +53,7 @@
   </div>
 </template>
 <script>
-import { resourcesApi, publicApi } from "@/api";
+import { resourcesApi } from "@/api";
 import { url } from "@/utils";
 import ExtendedImage from "@/components/files/ExtendedImage.vue";
 import plyrViewer from "@/views/files/plyrViewer.vue";
@@ -151,7 +151,7 @@ export default {
 
       if (state.isSafari && isHeicOrHeif) {
         if (getters.isShare()) {
-          return publicApi.getDownloadURL(
+          return resourcesApi.getDownloadURLPublic(
             { path: state.shareInfo.subPath, hash: state.shareInfo.hash, token: state.shareInfo.token },
             [state.req.path],
             true,
@@ -165,7 +165,7 @@ export default {
       if (this.pdfConvertable || getRawPreview || getHeicPreview) {
         if (getters.isShare()) {
           const previewPath = url.removeTrailingSlash(state.req.path);
-          return publicApi.getPreviewURL(previewPath, "original");
+          return resourcesApi.getPreviewURLPublic(previewPath, "original");
         }
         return (
           resourcesApi.getPreviewURL(
@@ -176,7 +176,7 @@ export default {
         );
       }
       if (getters.isShare()) {
-        return publicApi.getDownloadURL(
+        return resourcesApi.getDownloadURLPublic(
           {
             path: state.shareInfo.subPath,
             hash: state.shareInfo.hash,
@@ -197,7 +197,7 @@ export default {
     },
     downloadUrl() {
       if (getters.isShare()) {
-        return publicApi.getDownloadURL(
+        return resourcesApi.getDownloadURLPublic(
           {
             path: state.shareInfo.subPath,
             hash: state.shareInfo.hash,
@@ -370,7 +370,7 @@ export default {
             let res;
             if (getters.isShare()) {
               // Use public API for shared files
-              res = await publicApi.fetchPub(
+              res = await resourcesApi.fetchFilesPublic(
                 directoryPath,
                 state.shareInfo?.hash,
               );
@@ -409,7 +409,7 @@ export default {
     prefetchUrl(item) {
       if (getters.isShare()) {
         return this.fullSize
-          ? publicApi.getDownloadURL(
+          ? resourcesApi.getDownloadURLPublic(
               {
                 path: item.path,
                 hash: state.shareInfo?.hash,
@@ -418,7 +418,7 @@ export default {
               },
               [item.path],
             )
-          : publicApi.getPreviewURL(state.shareInfo?.hash, item.path);
+          : resourcesApi.getPreviewURLPublic(item.path);
       }
       return this.fullSize
         ? resourcesApi.getDownloadURL(state.req.source, item.path, true)

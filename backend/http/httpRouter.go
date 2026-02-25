@@ -80,57 +80,45 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	publicRoutes := http.NewServeMux()
 	publicApi := http.NewServeMux()
 
-	// Feature-specific muxes
-	userMux := http.NewServeMux()
-	authMux := http.NewServeMux()
-	resourcesMux := http.NewServeMux()
-	accessMux := http.NewServeMux()
-	shareMux := http.NewServeMux()
-	settingsMux := http.NewServeMux()
-	toolsMux := http.NewServeMux()
-	officeMux := http.NewServeMux()
-	sharePublicMux := http.NewServeMux()
-
 	// ========================================
-	// User Routes - /api/users/ or /public/api/users/
+	// User Routes - /api/users/ (with public routes)
 	// ========================================
-	userMux.HandleFunc("GET /", withUser(userGetHandler))
-	userMux.HandleFunc("POST /", withSelfOrAdmin(usersPostHandler))
-	userMux.HandleFunc("PUT /", withUser(userPutHandler))
-	userMux.HandleFunc("DELETE /", withSelfOrAdmin(userDeleteHandler))
+	api.HandleFunc("GET /users", withUser(userGetHandler))
+	api.HandleFunc("POST /users", withSelfOrAdmin(usersPostHandler))
+	api.HandleFunc("PUT /users", withUser(userPutHandler))
+	api.HandleFunc("DELETE /users", withSelfOrAdmin(userDeleteHandler))
 	publicApi.HandleFunc("GET /users", withUser(userGetHandler))
 
 	// ========================================
-	// Auth Routes - /api/auth/ or /public/api/auth/
+	// Auth Routes - /api/auth/
 	// ========================================
-	authMux.HandleFunc("POST /login", userWithoutOTP(loginHandler))
-	authMux.HandleFunc("POST /logout", withOrWithoutUser(logoutHandler))
-	authMux.HandleFunc("POST /signup", withoutUser(signupHandler))
-	authMux.HandleFunc("POST /otp/generate", userWithoutOTP(generateOTPHandler))
-	authMux.HandleFunc("POST /otp/verify", userWithoutOTP(verifyOTPHandler))
-	authMux.HandleFunc("POST /renew", withUser(renewHandler))
-	authMux.HandleFunc("PUT /token", withUser(createApiKeyHandler))
-	authMux.HandleFunc("GET /token", withUser(createApiKeyHandler))
-	authMux.HandleFunc("DELETE /token", withUser(deleteApiKeyHandler))
-	authMux.HandleFunc("GET /tokens", withUser(listApiKeysHandler))
-	authMux.HandleFunc("GET /oidc/callback", wrapHandler(oidcCallbackHandler))
-	authMux.HandleFunc("GET /oidc/login", wrapHandler(oidcLoginHandler))
+	api.HandleFunc("POST /auth/login", userWithoutOTP(loginHandler))
+	api.HandleFunc("POST /auth/logout", withOrWithoutUser(logoutHandler))
+	api.HandleFunc("POST /auth/signup", withoutUser(signupHandler))
+	api.HandleFunc("POST /auth/otp/generate", userWithoutOTP(generateOTPHandler))
+	api.HandleFunc("POST /auth/otp/verify", userWithoutOTP(verifyOTPHandler))
+	api.HandleFunc("POST /auth/renew", withUser(renewHandler))
+	api.HandleFunc("PUT /auth/token", withUser(createApiKeyHandler))
+	api.HandleFunc("GET /auth/token", withUser(createApiKeyHandler))
+	api.HandleFunc("DELETE /auth/token", withUser(deleteApiKeyHandler))
+	api.HandleFunc("GET /auth/tokens", withUser(listApiKeysHandler))
+	api.HandleFunc("GET /auth/oidc/callback", wrapHandler(oidcCallbackHandler))
+	api.HandleFunc("GET /auth/oidc/login", wrapHandler(oidcLoginHandler))
 
 	// ========================================
-	// Resources Routes - /api/resources/ or /public/api/resources
+	// Resources Routes - /api/resources/ (with public routes)
 	// ========================================
-	resourcesMux.HandleFunc("GET /", withUser(resourceGetHandler))
-	resourcesMux.HandleFunc("GET /items", withUser(itemsGetHandler))
-	resourcesMux.HandleFunc("DELETE /", withUser(resourceDeleteHandler))
-	resourcesMux.HandleFunc("POST /", withUser(resourcePostHandler))
-	resourcesMux.HandleFunc("PUT /", withUser(resourcePutHandler))
-	resourcesMux.HandleFunc("PATCH /", withUser(resourcePatchHandler))
-	resourcesMux.HandleFunc("DELETE /bulk", withUser(resourceBulkDeleteHandler))
-	resourcesMux.HandleFunc("POST /archive", withUser(archiveCreateHandler))
-	resourcesMux.HandleFunc("POST /unarchive", withUser(unarchiveHandler))
-	resourcesMux.HandleFunc("GET /raw", withUser(rawHandler))
-	resourcesMux.HandleFunc("GET /preview", withTimeout(60*time.Second, withUserHelper(previewHandler)))
-	resourcesMux.HandleFunc("GET /media/subtitles", withUser(subtitlesHandler))
+	api.HandleFunc("GET /resources", withUser(resourceGetHandler))
+	api.HandleFunc("GET /resources/items", withUser(itemsGetHandler))
+	api.HandleFunc("DELETE /resources", withUser(resourceDeleteHandler))
+	api.HandleFunc("POST /resources", withUser(resourcePostHandler))
+	api.HandleFunc("PUT /resources", withUser(resourcePutHandler))
+	api.HandleFunc("PATCH /resources", withUser(resourcePatchHandler))
+	api.HandleFunc("DELETE /resources/bulk", withUser(resourceBulkDeleteHandler))
+	api.HandleFunc("POST /resources/archive", withUser(archiveCreateHandler))
+	api.HandleFunc("POST /resources/unarchive", withUser(unarchiveHandler))
+	api.HandleFunc("GET /resources/raw", withUser(rawHandler))
+	api.HandleFunc("GET /resources/preview", withTimeout(60*time.Second, withUserHelper(previewHandler)))
 	publicApi.HandleFunc("GET /resources", withHashFile(publicGetResourceHandler))
 	publicApi.HandleFunc("GET /resources/items", withHashFile(publicItemsGetHandler))
 	publicApi.HandleFunc("POST /resources", withHashFile(publicUploadHandler))
@@ -138,88 +126,73 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	publicApi.HandleFunc("DELETE /resources", withHashFile(publicDeleteHandler))
 	publicApi.HandleFunc("DELETE /resources/bulk", withHashFile(publicBulkDeleteHandler))
 	publicApi.HandleFunc("PATCH /resources", withHashFile(publicPatchHandler))
-
-	// Legacy routes (backwards compatibility for downloads)
+	publicApi.HandleFunc("GET /resources/preview", withHashFile(publicPreviewHandler))
+	// Legacy routes (backwards compatibility)
 	api.HandleFunc("GET /raw", withUser(rawHandler))
 	publicApi.HandleFunc("GET /raw", withHashFile(publicRawHandler))
 
 	// ========================================
 	// Access Routes - /api/access/
 	// ========================================
-	accessMux.HandleFunc("GET /", withAdmin(accessGetHandler))
-	accessMux.HandleFunc("POST /", withAdmin(accessPostHandler))
-	accessMux.HandleFunc("PATCH /", withAdmin(accessPatchHandler))
-	accessMux.HandleFunc("DELETE /", withAdmin(accessDeleteHandler))
-	accessMux.HandleFunc("GET /groups", withAdmin(groupGetHandler))
-	accessMux.HandleFunc("POST /group", withAdmin(groupPostHandler))
-	accessMux.HandleFunc("DELETE /group", withAdmin(groupDeleteHandler))
+	api.HandleFunc("GET /access", withAdmin(accessGetHandler))
+	api.HandleFunc("POST /access", withAdmin(accessPostHandler))
+	api.HandleFunc("PATCH /access", withAdmin(accessPatchHandler))
+	api.HandleFunc("DELETE /access", withAdmin(accessDeleteHandler))
+	api.HandleFunc("GET /access/groups", withAdmin(groupGetHandler))
+	api.HandleFunc("POST /access/group", withAdmin(groupPostHandler))
+	api.HandleFunc("DELETE /access/group", withAdmin(groupDeleteHandler))
 
 	// ========================================
-	// Share Routes - /api/share/ (no public routes)
+	// Share Routes - /api/share/
 	// ========================================
-	shareMux.HandleFunc("GET /", withPermShare(shareListHandler))
-	shareMux.HandleFunc("GET /direct", withPermShare(shareDirectDownloadHandler))
-	shareMux.HandleFunc("GET /info", withPermShare(shareGetHandler))
-	shareMux.HandleFunc("POST /", withPermShare(sharePostHandler))
-	shareMux.HandleFunc("PATCH /", withPermShare(sharePatchHandler))
-	shareMux.HandleFunc("DELETE /", withPermShare(shareDeleteHandler))
+	api.HandleFunc("GET /share/list", withPermShare(shareListHandler))
+	api.HandleFunc("GET /share/direct", withPermShare(shareDirectDownloadHandler))
+	api.HandleFunc("GET /share", withPermShare(shareGetHandler))
+	api.HandleFunc("POST /share", withPermShare(sharePostHandler))
+	api.HandleFunc("PATCH /share", withPermShare(sharePatchHandler))
+	api.HandleFunc("DELETE /share", withPermShare(shareDeleteHandler))
+	publicApi.HandleFunc("GET /share/info", withOrWithoutUser(shareInfoHandler))
+	publicApi.HandleFunc("GET /share/image", withHashFile(getShareImage))
 
 	// ========================================
-	// Settings Routes - /api/settings/ (no public routes)
+	// Settings Routes - /api/settings/
 	// ========================================
-	settingsMux.HandleFunc("GET /", withAdmin(settingsGetHandler))
-	settingsMux.HandleFunc("GET /config", withAdmin(settingsConfigHandler))
-	settingsMux.HandleFunc("GET /sources", withAdmin(getSourceInfoHandler))
+	api.HandleFunc("GET /settings", withAdmin(settingsGetHandler))
+	api.HandleFunc("GET /settings/config", withAdmin(settingsConfigHandler))
+	api.HandleFunc("GET /settings/sources", withAdmin(getSourceInfoHandler))
 
 	// ========================================
-	// Tools Routes - /api/tools/ (no public routes)
+	// Tools Routes - /api/tools/
 	// ========================================
-	toolsMux.HandleFunc("GET /search", withUser(searchHandler))
-	toolsMux.HandleFunc("GET /duplicates", withUser(duplicatesHandler))
-	toolsMux.HandleFunc("GET /watch", withUser(fileWatchHandler))
-	toolsMux.HandleFunc("GET /watch/sse", withUser(fileWatchSSEHandler))
+	api.HandleFunc("GET /tools/search", withUser(searchHandler))
+	api.HandleFunc("GET /tools/duplicateFinder", withUser(duplicatesHandler))
+	api.HandleFunc("GET /tools/fileWatcher", withUser(fileWatchHandler))
+	api.HandleFunc("GET /tools/fileWatcher/sse", withUser(fileWatchSSEHandler))
 
 	// ========================================
-	// OnlyOffice Routes - /api/office/ or /public/api/onlyoffice/
+	// Media Routes - /api/media/
 	// ========================================
-	officeMux.HandleFunc("GET /config", withUser(onlyofficeClientConfigGetHandler))
-	officeMux.HandleFunc("POST /callback", withUser(onlyofficeCallbackHandler))
-	officeMux.HandleFunc("GET /callback", withUser(onlyofficeCallbackHandler))
-	publicApi.HandleFunc("POST /onlyoffice/callback", withHashFile(onlyofficeCallbackHandler))
-	publicApi.HandleFunc("GET /onlyoffice/callback", withHashFile(onlyofficeCallbackHandler))
-	publicApi.HandleFunc("GET /onlyoffice/config", withHashFile(onlyofficeClientConfigGetHandler))
+	api.HandleFunc("GET /media/subtitles", withUser(subtitlesHandler))
 
 	// ========================================
-	// Share Public Routes - /public/api/share/
+	// OnlyOffice Routes - /api/office/ (with public routes)
 	// ========================================
-	sharePublicMux.HandleFunc("GET /info", withOrWithoutUser(shareInfoHandler))
-	sharePublicMux.HandleFunc("GET /image", withHashFile(getShareImage))
+	api.HandleFunc("GET /office/config", withUser(onlyofficeClientConfigGetHandler))
+	api.HandleFunc("POST /office/callback", withUser(onlyofficeCallbackHandler))
+	api.HandleFunc("GET /office/callback", withUser(onlyofficeCallbackHandler))
+	publicApi.HandleFunc("POST /office/callback", withHashFile(onlyofficeCallbackHandler))
+	publicApi.HandleFunc("GET /office/callback", withHashFile(onlyofficeCallbackHandler))
+	publicApi.HandleFunc("GET /office/config", withHashFile(onlyofficeClientConfigGetHandler))
 
 	// ========================================
 	// Misc Routes
 	// ========================================
-	// General health check
 	api.HandleFunc("GET /health", healthHandler)
-	// Event streaming
 	api.HandleFunc("GET /events", withUser(sseHandler))
-	// Dev-only routes
 	if settings.Env.IsDevMode {
 		api.HandleFunc("GET /inspectIndex", inspectIndex)
 		api.HandleFunc("GET /mockData", mockData)
 	}
-
-	// ========================================
-	// Mount Sub-Muxes
-	// ========================================
-	api.Handle("/users/", http.StripPrefix("/users", userMux))
-	api.Handle("/auth/", http.StripPrefix("/auth", authMux))
-	api.Handle("/resources/", http.StripPrefix("/resources", resourcesMux))
-	api.Handle("/access/", http.StripPrefix("/access", accessMux))
-	api.Handle("/share/", http.StripPrefix("/share", shareMux))
-	api.Handle("/shares/", http.StripPrefix("/shares", shareMux))
-	api.Handle("/settings/", http.StripPrefix("/settings", settingsMux))
-	api.Handle("/tools/", http.StripPrefix("/tools", toolsMux))
-	api.Handle("/office/", http.StripPrefix("/office", officeMux))
 
 	// Mount public API
 	publicRoutes.Handle("/api/", http.StripPrefix("/api", publicApi))

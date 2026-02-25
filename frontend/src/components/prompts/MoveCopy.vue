@@ -40,7 +40,7 @@
 <script>
 import { mutations, state, getters } from "@/store";
 import FileList from "../files/FileList.vue";
-import { resourcesApi, publicApi } from "@/api";
+import { resourcesApi } from "@/api";
 import buttons from "@/utils/buttons";
 import * as upload from "@/utils/upload";
 import { url } from "@/utils";
@@ -193,13 +193,13 @@ export default {
         const currentSource = this.$refs.fileList.source;
         const fullPath = currentPath.endsWith('/') ? currentPath + this.newDirName + '/' : currentPath + '/' + this.newDirName + '/';
         if (getters.isShare()) {
-          await publicApi.post(state.shareInfo?.hash, fullPath, "", false, undefined, {}, true);
+          await resourcesApi.postPublic(state.shareInfo?.hash, fullPath, "", false, undefined, {}, true);
         } else {
           await resourcesApi.post(currentSource, fullPath, "", false, undefined, {}, true);
         }
         // Refresh the file list while keeping the current navigation that we did in the prompt
         if (getters.isShare()) {
-          publicApi.fetchPub(currentPath, state.shareInfo?.hash)
+          resourcesApi.fetchFilesPublic(currentPath, state.shareInfo?.hash)
             .then((req) => this.$refs.fileList.fillOptions(req, true));
         } else {
           resourcesApi.fetchFiles(currentSource, currentPath)
@@ -251,7 +251,7 @@ export default {
           buttons.loading(this.operation);
           let result;
           if (getters.isShare()) {
-            result = await publicApi.moveCopy(state.shareInfo.hash, itemsToProcess, this.operation, overwrite, rename);
+            result = await resourcesApi.moveCopyPublic(state.shareInfo.hash, itemsToProcess, this.operation, overwrite, rename);
           } else {
             result = await resourcesApi.moveCopy(itemsToProcess, this.operation, overwrite, rename);
           }
@@ -260,7 +260,7 @@ export default {
         let conflict = false;
         let dstResp = null;
         if (getters.isShare()) {
-          dstResp = await publicApi.fetchPub(this.destPath, state.shareInfo?.hash);
+          dstResp = await resourcesApi.fetchFilesPublic(this.destPath, state.shareInfo?.hash);
         } else {
           dstResp = await resourcesApi.fetchFiles(this.destSource, this.destPath);
         }

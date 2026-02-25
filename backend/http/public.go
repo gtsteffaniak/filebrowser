@@ -208,7 +208,7 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 // @Failure 404 {object} map[string]string "File not found or preview not available"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Failure 501 {object} map[string]string "Previews disabled globally, for this share, or for upload shares"
-// @Router /public/api/preview [get]
+// @Router /public/api/resources/preview [get]
 func publicPreviewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if config.Server.DisablePreviews || d.share.DisableThumbnails {
 		return http.StatusNotImplemented, fmt.Errorf("preview is disabled")

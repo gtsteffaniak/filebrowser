@@ -15,7 +15,7 @@ export async function login(username, password, recaptcha, otp) {
   }
 
   const params = { username, recaptcha };
-  let apiPath = getApiPath('api/auth/login', params);
+  let apiPath = getApiPath('auth/login', params);
   const res = await fetch(apiPath, {
     method: 'POST',
     credentials: 'same-origin',
@@ -43,7 +43,7 @@ export async function login(username, password, recaptcha, otp) {
 // POST /api/auth/logout
 export async function logout() {
   try {
-    const apiPath = getApiPath('api/auth/logout')
+    const apiPath = getApiPath('auth/logout')
     await fetchURL(apiPath, { method: 'POST' })
   } catch (err) {
     notify.showError(err.message || 'Failed to logout')
@@ -54,7 +54,7 @@ export async function logout() {
 // POST /api/auth/signup
 export async function signup(username, password, otp) {
   const params = { username, password, otp }
-  let apiPath = getApiPath('api/auth/signup', params)
+  let apiPath = getApiPath('auth/signup', params)
   const res = await fetch(apiPath, {
     method: 'POST',
     headers: {
@@ -80,7 +80,7 @@ export async function signup(username, password, otp) {
 export async function generateOTP(username, password) {
   const params = { username }
   try {
-    let apiPath = getApiPath('api/auth/otp/generate', params)
+    let apiPath = getApiPath('auth/otp/generate', params)
     const res = await fetch(apiPath, {
       method: 'POST',
       headers: {
@@ -98,7 +98,7 @@ export async function generateOTP(username, password) {
 export async function verifyOTP(username, password, otp) {
   const params = { username }
   try {
-    let apiPath = getApiPath('api/auth/otp/verify', params)
+    let apiPath = getApiPath('auth/otp/verify', params)
     const res = await fetch(apiPath, {
       method: 'POST',
       headers: {
@@ -118,7 +118,7 @@ export async function verifyOTP(username, password, otp) {
 // POST /api/auth/renew
 export async function renew() {
   try {
-    const apiPath = getApiPath('api/auth/renew')
+    const apiPath = getApiPath('auth/renew')
     await fetchURL(apiPath, { method: 'POST' })
   } catch (err) {
     notify.showError(err.message || 'Failed to renew token')
@@ -129,7 +129,7 @@ export async function renew() {
 // GET /api/auth/tokens
 export async function getApiKeys() {
   try {
-    const apiPath = getApiPath('api/auth/tokens')
+    const apiPath = getApiPath('auth/tokens')
     return await fetchJSON(apiPath)
   } catch (err) {
     notify.showError(err.message || 'Failed to get API tokens')
@@ -140,7 +140,7 @@ export async function getApiKeys() {
 // PUT /api/auth/token
 export async function createApiKey(params) {
   try {
-    const apiPath = getApiPath('api/auth/token', params)
+    const apiPath = getApiPath('auth/token', params)
     await fetchURL(apiPath, {
       method: 'PUT'
     })
@@ -153,7 +153,7 @@ export async function createApiKey(params) {
 // DELETE /api/auth/token
 export function deleteApiKey(params) {
   try {
-    const apiPath = getApiPath('api/auth/token', params)
+    const apiPath = getApiPath('auth/token', params)
     fetchURL(apiPath, {
       method: 'DELETE'
     })

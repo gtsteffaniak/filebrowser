@@ -7,7 +7,8 @@
 // - /api/settings/ -> settings.js
 // - /api/tools/ -> tools.js
 // - /api/office/ -> office.js
-// - /public/api/* -> public.js
+// - /api/media/ -> media.js
+// - /public/api/* -> public functions in respective files (e.g., resourcesApi.fetchFilesPublic)
 
 import * as authApi from "./auth";
 import * as usersApi from "./users";
@@ -17,7 +18,7 @@ import * as shareApi from "./share";
 import * as settingsApi from "./settings";
 import * as toolsApi from "./tools";
 import * as officeApi from "./office";
-import * as publicApi from "./public";
+import * as mediaApi from "./media";
 
 export { 
     authApi,
@@ -28,6 +29,6 @@ export {
     settingsApi,
     toolsApi,
     officeApi,
-    publicApi
+    mediaApi
 };
 

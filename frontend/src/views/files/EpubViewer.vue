@@ -17,7 +17,7 @@
 import { defineComponent } from "vue";
 import ePub, { type Book, type Rendition } from "epubjs";
 import { state, mutations, getters } from "@/store"; // Assuming your store setup
-import { resourcesApi, publicApi } from "@/api"; // Assuming your api setup
+import { resourcesApi } from "@/api";
 import { removeLastDir } from "@/utils/url"; // Assuming your utils setup
 
 export default defineComponent({
@@ -42,7 +42,7 @@ export default defineComponent({
     try {
       // 1. Fetch the download URL for the EPUB file
       const epubUrl = getters.isShare() 
-        ? publicApi.getDownloadURL({
+        ? resourcesApi.getDownloadURLPublic({
             path: state.shareInfo.subPath,
             hash: state.shareInfo.hash,
             token: state.shareInfo.token,

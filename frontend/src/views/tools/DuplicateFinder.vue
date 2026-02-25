@@ -257,7 +257,7 @@ export default {
       try {
         // API now expects minSizeMb directly (in megabytes)
         // Always use false for checksums due to performance issues
-        const result = await findDuplicates(
+        const result = await toolsApi.duplicateFinder(
           this.searchPath,
           this.selectedSource,
           this.minSizeValue,

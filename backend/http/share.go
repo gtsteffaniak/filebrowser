@@ -81,7 +81,7 @@ func convertToFrontendShareResponse(r *http.Request, shares []*share.Link) ([]*S
 // @Produce json
 // @Success 200 {array} share.Link "List of share links"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /api/shares [get]
+// @Router /api/share/list [get]
 func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	var err error
 	var shares []*share.Link
@@ -151,7 +151,7 @@ func shareGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 // @Success 200 "Share link deleted successfully"
 // @Failure 400 {object} map[string]string "Bad request - missing or invalid hash"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /api/shares [delete]
+// @Router /api/share [delete]
 func shareDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	hash := r.URL.Query().Get("hash")
 
@@ -598,7 +598,7 @@ func getShareURL(r *http.Request, hash string, isDirectDownload bool, token stri
 // @Param hash query string true "Hash of the share link"
 // @Success 200 {object} share.CommonShare "Share information"
 // @Failure 404 {object} map[string]string "Share hash not found"
-// @Router /public/api/shareinfo [get]
+// @Router /public/api/share/info [get]
 func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	hash := r.URL.Query().Get("hash")
 	// Get the file link by hash (need full Link to get Token)

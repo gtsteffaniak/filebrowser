@@ -142,7 +142,7 @@ func (s *duplicateProcessingStats) shouldStop() (bool, string) {
 // @Success 200 {object} duplicateResponse "List of duplicate file groups with metadata. Response includes 'incomplete' flag if processing stopped early due to resource limits."
 // @Failure 400 {object} map[string]string "Bad Request"
 // @Failure 503 {object} map[string]string "Service Unavailable (indexing in progress or another search running)"
-// @Router /api/tools/duplicates [get]
+// @Router /api/tools/duplicateFinder [get]
 func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	opts, err := prepDuplicatesOptions(r, d)
 	if err != nil {

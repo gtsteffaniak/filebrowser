@@ -34,7 +34,7 @@
 </template>
 
 <script>
-import { publicApi } from "@/api";
+import { resourcesApi } from "@/api";
 import { state, getters, mutations } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import QrcodeVue from "qrcode.vue";
@@ -58,7 +58,7 @@ export default {
       if (state.shareInfo?.banner.startsWith("http")) {
         return state.shareInfo?.banner;
       }
-      return publicApi.getDownloadURL(state.shareInfo, [state.shareInfo?.banner]);
+      return resourcesApi.getDownloadURLPublic(state.shareInfo, [state.shareInfo?.banner]);
     },
     shareInfo() {
       return state.shareInfo;

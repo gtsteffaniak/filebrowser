@@ -87,7 +87,7 @@ export default {
       try {
         await authApi.verifyOTP(this.username, this.password, this.code);
         if (this.redirect != "") {
-          await usersApi.login(this.username, this.password, this.redirect, this.code);
+          await authApi.login(this.username, this.password, this.redirect, this.code);
           await initAuth();
           this.$router.push(this.redirect);
         }
@@ -98,6 +98,7 @@ export default {
         mutations.closeTopHover();
       } catch (error) {
         this.error = this.$t("otp.verificationFailed");
+        console.log("error", error);
         return;
       }
     },

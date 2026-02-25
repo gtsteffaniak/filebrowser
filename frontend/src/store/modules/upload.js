@@ -97,8 +97,7 @@ const actions = {
           { leading: true, trailing: false }
         );
 
-        await filesApi
-          .post(item.source, item.path, item.file, item.overwrite, onUpload);
+        await resourcesApi.post(item.source, item.path, item.file, item.overwrite, onUpload);
       }
 
       context.dispatch("finishUpload", item);

@@ -53,7 +53,7 @@ func isClientCancellation(ctx context.Context, err error) bool {
 // @Failure 415 {object} map[string]string "Unsupported file type for preview"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Failure 501 {object} map[string]string "Preview generation not implemented"
-// @Router /api/preview [get]
+// @Router /api/resources/preview [get]
 func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if config.Server.DisablePreviews {
 		return http.StatusNotImplemented, fmt.Errorf("preview is disabled")

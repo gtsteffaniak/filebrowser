@@ -88,7 +88,7 @@ import { VOXLoader } from 'three/addons/loaders/VOXLoader.js';
 import { KMZLoader } from 'three/addons/loaders/KMZLoader.js';
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { state, mutations, getters } from "@/store";
-import { resourcesApi, publicApi } from "@/api";
+import { resourcesApi } from "@/api";
 import { removeLastDir } from "@/utils/url";
 
 const LOADERS = {
@@ -157,7 +157,7 @@ export default {
     modelUrl() {
       const useInline = this.fileExtension !== 'glb';
       if (getters.isShare()) {
-        return publicApi.getDownloadURL({
+        return resourcesApi.getDownloadURLPublic({
           path: state.shareInfo.subPath,
           hash: state.shareInfo.hash,
           token: state.shareInfo.token,
@@ -378,7 +378,7 @@ export default {
         }
       }
       if (getters.isShare()) {
-        return publicApi.getDownloadURL({
+        return resourcesApi.getDownloadURLPublic({
             path: state.shareInfo.subPath,
             hash: state.shareInfo.hash,
             token: state.shareInfo.token,
@@ -466,7 +466,7 @@ export default {
       const cleanPath = this.fbdata.path.replace(/\/$/, '');
       const mtlPath = cleanPath.replace(/\.obj$/i, '.mtl');
       const mtlUrl = getters.isShare() ? 
-          publicApi.getDownloadURL({
+          resourcesApi.getDownloadURLPublic({
             path: state.shareInfo.subPath,
             hash: state.shareInfo.hash,
             token: state.shareInfo.token,

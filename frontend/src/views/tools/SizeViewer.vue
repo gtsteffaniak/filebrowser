@@ -297,7 +297,7 @@ export default {
         if (!this.includeFoldersValue) {
           query += " type:file";
         }
-        this.results = await search(
+        this.results = await toolsApi.search(
           this.searchPath,
           this.selectedSource,
           query,

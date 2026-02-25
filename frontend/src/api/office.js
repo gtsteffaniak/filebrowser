@@ -15,7 +15,7 @@ export async function getConfig(req) {
     if (req.hash) {
       apiPath = getPublicApiPath('onlyoffice/config', params)
     } else {
-      apiPath = getApiPath('api/office/config', params)
+      apiPath = getApiPath('office/config', params)
     }
     
     const res = await fetchURL(apiPath)
@@ -33,7 +33,7 @@ export async function callback(params, hash = null) {
     if (hash) {
       apiPath = getPublicApiPath('onlyoffice/callback', { hash, ...params })
     } else {
-      apiPath = getApiPath('api/office/callback', params)
+      apiPath = getApiPath('office/callback', params)
     }
     
     const res = await fetchURL(apiPath, {

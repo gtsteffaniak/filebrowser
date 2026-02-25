@@ -1,9 +1,10 @@
 import { fetchURL, fetchJSON } from "./utils";
 import { getApiPath } from "@/utils/url.js";
+import { notify } from "@/notify";
 
 
 export function get(property="") {
-  const path = getApiPath("api/settings", { property });
+  const path = getApiPath("settings", { property });
   return fetchJSON(path);
 }
 
@@ -14,22 +15,17 @@ export async function update(settings) {
   });
 }
 
-export function getConfig(showFull = false, showComments = false) {
+export function config(showFull = false, showComments = false) {
   const params = {};
   if (showFull) params.full = "true";
   if (showComments) params.comments = "true";
-  const path = getApiPath("api/settings/config", params);
+  const path = getApiPath("settings/config", params);
   return fetchURL(path);
-}
-
-export function getSources() {
-  const path = getApiPath("api/settings/sources");
-  return fetchJSON(path);
 }
 
 export async function sources() {
   try {
-    const apiPath = getApiPath('api/jobs/status/sources')
+    const apiPath = getApiPath('settings/sources')
     const res = await fetchURL(apiPath)
     const data = await res.json()
     // Return empty object if no sources are available - this is not an error

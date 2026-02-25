@@ -472,7 +472,7 @@ export default {
       // Only pass scope if searching a single source
       const scope = sourcesToSearch.length === 1 ? this.getContext : null;
       
-      this.results = await search(scope, sourcesToSearch, searchTypesFull + this.value);
+      this.results = await toolsApi.search(scope, sourcesToSearch, searchTypesFull + this.value);
 
       this.ongoing = false;
       if (this.results.length == 0) {

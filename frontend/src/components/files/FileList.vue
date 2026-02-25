@@ -52,7 +52,7 @@
 <script>
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
-import { resourcesApi, publicApi } from "@/api";
+import { resourcesApi } from "@/api";
 import ListingItem from "@/components/files/ListingItem.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
@@ -175,7 +175,7 @@ export default {
       });
     } else if (this.browseShare) {
       // Browse a specific share
-      this.withLoading(() => publicApi.fetchPub("/", this.browseShare).then(this.fillOptions));
+      this.withLoading(() => resourcesApi.fetchFilesPublic("/", this.browseShare).then(this.fillOptions));
     } else {
       // Normal browse mode: fetch files
       const sourceToUse = this.currentSource;
@@ -274,7 +274,7 @@ export default {
       this.selectedSource = null;
       this.selectedType = null;
       // Fetch files for the share
-      this.withLoading(() => publicApi.fetchPub("/", newHash).then(this.fillOptions));
+      this.withLoading(() => resourcesApi.fetchFilesPublic("/", newHash).then(this.fillOptions));
     },
     fillOptions(req) {
       // Sets the current path and resets the current items.
@@ -355,7 +355,7 @@ export default {
       } else if (this.browseShare || getters.isShare()) {
         // Browsing a share - use public API
         const hashToUse = this.browseShare || state.shareInfo?.hash;
-        this.withLoading(() => publicApi.fetchPub(path, hashToUse).then(this.fillOptions));
+        this.withLoading(() => resourcesApi.fetchFilesPublic(path, hashToUse).then(this.fillOptions));
       } else {
         this.source = sourceToUse;
         this.withLoading(() => resourcesApi.fetchFiles(sourceToUse, path).then(this.fillOptions));
