@@ -256,6 +256,7 @@ func updateTokens(user *users.User) bool {
 		return false
 	}
 	if user.ApiKeys != nil {
+		user.Tokens = make(map[string]users.AuthToken)
 		for name, token := range user.ApiKeys {
 			token.Token = token.Key
 			user.Tokens[name] = token
