@@ -41,6 +41,9 @@ func validateUserInfo(newDB bool) {
 		if updateSidebarLinks(user) {
 			updateUser = true
 		}
+		if updateTokens(user) {
+			updateUser = true
+		}
 		adminUser := settings.Config.Auth.AdminUsername
 		adminPass := settings.Config.Auth.AdminPassword
 		passwordEnabled := settings.Config.Auth.Methods.PasswordAuth.Enabled
@@ -120,7 +123,7 @@ func updateShowFirstLogin(user *users.User) bool {
 
 // func to convert legacy user with perm key to permissions
 func updatePermissions(user *users.User) bool {
-	if user.Version == 1 {
+	if user.Version >= 1 {
 		return false
 	}
 	updateUser := true
@@ -166,7 +169,7 @@ func updatePermissions(user *users.User) bool {
 		user.Permissions.Delete = true
 		updateUser = true
 	}
-	user.Version = 1
+	user.Version = 2
 	if updateUser {
 		createBackup = true
 	}
@@ -246,4 +249,18 @@ func updateSidebarLinks(user *users.User) bool {
 
 	// User has at least one valid source link, no update needed
 	return false
+}
+
+func updateTokens(user *users.User) bool {
+	if user.Version >= 2 {
+		return false
+	}
+	if user.ApiKeys != nil {
+		for name, token := range user.ApiKeys {
+			token.Token = token.Key
+			user.Tokens[name] = token
+		}
+	}
+	user.Version = 2
+	return true
 }

@@ -7,12 +7,12 @@ import (
 
 func TestParseLdapServer(t *testing.T) {
 	tests := []struct {
-		name      string
-		server    string
+		name       string
+		server     string
 		wantScheme string
-		wantHost  string
-		wantPort  int
-		wantErr   bool
+		wantHost   string
+		wantPort   int
+		wantErr    bool
 	}{
 		{
 			name:       "ldap with host and port",
@@ -55,39 +55,39 @@ func TestParseLdapServer(t *testing.T) {
 			wantErr:    false,
 		},
 		{
-			name:     "port provided but invalid returns error",
-			server:   "ldap://host:bad",
-			wantErr:  true,
+			name:    "port provided but invalid returns error",
+			server:  "ldap://host:bad",
+			wantErr: true,
 		},
 		{
-			name:     "port provided but invalid (ldaps) returns error",
-			server:   "ldaps://host:xyz",
-			wantErr:  true,
+			name:    "port provided but invalid (ldaps) returns error",
+			server:  "ldaps://host:xyz",
+			wantErr: true,
 		},
 		{
-			name:     "port zero returns error",
-			server:   "ldap://host:0",
-			wantErr:  true,
+			name:    "port zero returns error",
+			server:  "ldap://host:0",
+			wantErr: true,
 		},
 		{
-			name:     "empty server",
-			server:   "",
-			wantErr:  true,
+			name:    "empty server",
+			server:  "",
+			wantErr: true,
 		},
 		{
-			name:     "no scheme",
-			server:   "localhost:389",
-			wantErr:  true,
+			name:    "no scheme",
+			server:  "localhost:389",
+			wantErr: true,
 		},
 		{
-			name:     "invalid scheme",
-			server:   "http://localhost:389",
-			wantErr:  true,
+			name:    "invalid scheme",
+			server:  "http://localhost:389",
+			wantErr: true,
 		},
 		{
-			name:     "invalid scheme ftp",
-			server:   "ftp://localhost:389",
-			wantErr:  true,
+			name:    "invalid scheme ftp",
+			server:  "ftp://localhost:389",
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -119,9 +119,9 @@ func TestVerifyLdapConnection_ValidationOnly(t *testing.T) {
 
 	t.Run("empty server returns error", func(t *testing.T) {
 		Config.Auth.Methods.LdapAuth = LdapConfig{
-			Enabled: true,
-			Server:  "",
-			BaseDN:  "dc=test,dc=local",
+			AuthCommon: AuthCommon{Enabled: true},
+			Server:     "",
+			BaseDN:     "dc=test,dc=local",
 		}
 		err := verifyLdapConnection()
 		if err == nil {
@@ -134,12 +134,12 @@ func TestVerifyLdapConnection_ValidationOnly(t *testing.T) {
 
 	t.Run("empty baseDN returns error", func(t *testing.T) {
 		Config.Auth.Methods.LdapAuth = LdapConfig{
-			Enabled: true,
-			Server:  "ldap://localhost:389",
-			Scheme:  "ldap",
-			Host:    "localhost",
-			Port:    389,
-			BaseDN:  "",
+			AuthCommon: AuthCommon{Enabled: true},
+			Server:     "ldap://localhost:389",
+			Scheme:     "ldap",
+			Host:       "localhost",
+			Port:       389,
+			BaseDN:     "",
 		}
 		err := verifyLdapConnection()
 		if err == nil {
@@ -157,10 +157,10 @@ func TestValidateLdapAuth_ConfigValidation(t *testing.T) {
 
 	t.Run("empty server returns error", func(t *testing.T) {
 		Config.Auth.Methods.LdapAuth = LdapConfig{
-			Enabled:  true,
-			Server:   "",
-			BaseDN:   "dc=test,dc=local",
-			UserDN:   "cn=admin,dc=test,dc=local",
+			AuthCommon: AuthCommon{Enabled: true},
+			Server:     "",
+			BaseDN:     "dc=test,dc=local",
+			UserDN:     "cn=admin,dc=test,dc=local",
 		}
 		err := ValidateLdapAuth()
 		if err == nil {
@@ -173,10 +173,10 @@ func TestValidateLdapAuth_ConfigValidation(t *testing.T) {
 
 	t.Run("invalid server URL returns error", func(t *testing.T) {
 		Config.Auth.Methods.LdapAuth = LdapConfig{
-			Enabled:  true,
-			Server:   "not-a-valid-ldap-url",
-			BaseDN:   "dc=test,dc=local",
-			UserDN:   "cn=admin,dc=test,dc=local",
+			AuthCommon: AuthCommon{Enabled: true},
+			Server:     "not-a-valid-ldap-url",
+			BaseDN:     "dc=test,dc=local",
+			UserDN:     "cn=admin,dc=test,dc=local",
 		}
 		err := ValidateLdapAuth()
 		if err == nil {
@@ -189,10 +189,10 @@ func TestValidateLdapAuth_ConfigValidation(t *testing.T) {
 
 	t.Run("empty baseDN returns error", func(t *testing.T) {
 		Config.Auth.Methods.LdapAuth = LdapConfig{
-			Enabled:  true,
-			Server:   "ldap://localhost:389",
-			BaseDN:   "",
-			UserDN:   "cn=admin,dc=test,dc=local",
+			AuthCommon: AuthCommon{Enabled: true},
+			Server:     "ldap://localhost:389",
+			BaseDN:     "",
+			UserDN:     "cn=admin,dc=test,dc=local",
 		}
 		err := ValidateLdapAuth()
 		if err == nil {
@@ -205,10 +205,10 @@ func TestValidateLdapAuth_ConfigValidation(t *testing.T) {
 
 	t.Run("empty userDN returns error", func(t *testing.T) {
 		Config.Auth.Methods.LdapAuth = LdapConfig{
-			Enabled:  true,
-			Server:   "ldap://localhost:389",
-			BaseDN:   "dc=test,dc=local",
-			UserDN:   "",
+			AuthCommon: AuthCommon{Enabled: true},
+			Server:     "ldap://localhost:389",
+			BaseDN:     "dc=test,dc=local",
+			UserDN:     "",
 		}
 		err := ValidateLdapAuth()
 		if err == nil {

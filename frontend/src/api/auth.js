@@ -126,10 +126,10 @@ export async function renew() {
   }
 }
 
-// GET /api/auth/tokens
+// GET /api/auth/token/list
 export async function getApiKeys() {
   try {
-    const apiPath = getApiPath('auth/tokens')
+    const apiPath = getApiPath('auth/token/list')
     return await fetchJSON(apiPath)
   } catch (err) {
     notify.showError(err.message || 'Failed to get API tokens')
@@ -142,7 +142,7 @@ export async function createApiKey(params) {
   try {
     const apiPath = getApiPath('auth/token', params)
     await fetchURL(apiPath, {
-      method: 'PUT'
+      method: 'POST'
     })
   } catch (err) {
     notify.showError(err.message || 'Failed to create API token')

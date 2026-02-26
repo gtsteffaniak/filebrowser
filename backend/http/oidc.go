@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
+	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
@@ -244,7 +245,7 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 // It creates a new user if one doesn't exist.
 func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, groups []string) (int, error) {
 	oidcCfg := config.Auth.Methods.OidcAuth
-	
+
 	// Check if user is in required groups (if userGroups is configured)
 	if len(oidcCfg.UserGroups) > 0 {
 		userInAllowedGroup := false
@@ -260,7 +261,7 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 		}
 		logger.Debugf("User %s is in required group, allowing access.", username)
 	}
-	
+
 	isAdmin := false // Default to non-admin user
 	if oidcCfg.AdminGroup != "" {
 		if slices.Contains(groups, oidcCfg.AdminGroup) {
@@ -318,8 +319,8 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 	}
 
 	expires := time.Hour * time.Duration(config.Auth.TokenExpirationHours)
-	// Generate a signed token for the user with UC=true to enable upstream validation
-	signed, err2 := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false, true)
+	// Generate a signed token for the user
+	tokenString, _, err2 := auth.MakeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false)
 	if err2 != nil {
 		// Handle potential errors during token generation
 		if strings.Contains(err2.Error(), "key already exists with same name") {
@@ -340,7 +341,7 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 	}
 	cookie := &http.Cookie{
 		Name:     "filebrowser_quantum_jwt",
-		Value:    signed.Key,
+		Value:    tokenString,
 		Domain:   strings.Split(host, ":")[0], // Set domain to the host without port
 		Path:     "/",
 		SameSite: http.SameSiteLaxMode, // Lax mode allows cookie on navigation from OIDC provider

@@ -853,8 +853,8 @@ const docTemplate = `{
             }
         },
         "/api/auth/token": {
-            "put": {
-                "description": "Create an API key with specified name, duration, and permissions.",
+            "get": {
+                "description": "Get a specific API token.",
                 "consumes": [
                     "application/json"
                 ],
@@ -864,25 +864,73 @@ const docTemplate = `{
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Create API key",
+                "summary": "Get API token",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Name of the API key",
+                        "description": "Name of the API token to retrieve",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "API token details",
+                        "schema": {
+                            "$ref": "#/definitions/http.AuthTokenFrontend"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create an API token with specified name, duration, and permissions.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Create API Token",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Name of the API token",
                         "name": "name",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Duration of the API key in days",
+                        "description": "Duration of the API token in days",
                         "name": "days",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Permissions for the API key (comma-separated)",
+                        "description": "Permissions for the API token (comma-separated)",
                         "name": "permissions",
                         "in": "query",
                         "required": true
@@ -890,7 +938,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Token created successfully, response contains json object with token key",
+                        "description": "Token created successfully, response contains json object with token",
                         "schema": {
                             "$ref": "#/definitions/http.HttpResponse"
                         }
@@ -934,7 +982,7 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "Delete an API key with specified name.",
+                "description": "Delete an API token with specified name.",
                 "consumes": [
                     "application/json"
                 ],
@@ -944,11 +992,11 @@ const docTemplate = `{
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Delete API key",
+                "summary": "Delete API token",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Name of the API key to delete",
+                        "description": "Name of the API token to delete",
                         "name": "name",
                         "in": "query",
                         "required": true
@@ -956,7 +1004,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "API key deleted successfully",
+                        "description": "API token deleted successfully",
                         "schema": {
                             "$ref": "#/definitions/http.HttpResponse"
                         }
@@ -982,9 +1030,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/auth/tokens": {
+        "/api/auth/token/list": {
             "get": {
-                "description": "List all API keys or retrieve details for a specific key.",
+                "description": "List all API tokens or retrieve details for a specific token.",
                 "consumes": [
                     "application/json"
                 ],
@@ -994,20 +1042,15 @@ const docTemplate = `{
                 "tags": [
                     "Auth"
                 ],
-                "summary": "List API keys",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Name of the API to retrieve details",
-                        "name": "name",
-                        "in": "query"
-                    }
-                ],
+                "summary": "List API tokens",
                 "responses": {
                     "200": {
-                        "description": "List of API keys or specific key details",
+                        "description": "List of API tokens",
                         "schema": {
-                            "$ref": "#/definitions/http.AuthTokenMin"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/http.AuthTokenFrontend"
+                            }
                         }
                     },
                     "404": {
@@ -3876,25 +3919,22 @@ const docTemplate = `{
                 }
             }
         },
-        "http.AuthTokenMin": {
+        "http.AuthTokenFrontend": {
             "type": "object",
             "properties": {
                 "Permissions": {
                     "$ref": "#/definitions/users.Permissions"
                 },
-                "created": {
+                "expiresAt": {
                     "type": "integer"
                 },
-                "expires": {
+                "issuedAt": {
                     "type": "integer"
-                },
-                "key": {
-                    "type": "string"
-                },
-                "minimal": {
-                    "type": "boolean"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "token": {
                     "type": "string"
                 }
             }
@@ -6018,15 +6058,21 @@ const docTemplate = `{
                 "belongsTo": {
                     "type": "integer"
                 },
+                "expiresAt": {
+                    "type": "integer"
+                },
+                "issuedAt": {
+                    "type": "integer"
+                },
                 "key": {
+                    "description": "for backward compatibility",
                     "type": "string"
                 },
                 "name": {
                     "type": "string"
                 },
-                "uc": {
-                    "description": "whether the token is a user created token",
-                    "type": "boolean"
+                "token": {
+                    "type": "string"
                 }
             }
         },
@@ -6191,6 +6237,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "apiKeys": {
+                    "description": "deprecated: use Tokens instead",
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/users.AuthToken"
@@ -6346,6 +6393,12 @@ const docTemplate = `{
                 "themeColor": {
                     "description": "theme color to use: eg. #ff0000, or var(--red), var(--purple), etc",
                     "type": "string"
+                },
+                "tokens": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/users.AuthToken"
+                    }
                 },
                 "totpNonce": {
                     "type": "string"

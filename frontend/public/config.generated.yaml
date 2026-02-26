@@ -63,7 +63,7 @@ auth:
   tokenExpirationHours: 2                 # time in hours each web UI session token is valid for. Default is 2 hours.
   methods:
     proxy:                                #  validate:omitempty
-      AuthCommon:
+      '':
         enabled: false                    # whether to enable this authentication method.
         createUser: false                 # create user if not exists after successful authentication
         adminGroup: ""                    # if set, users in this group will be granted admin privileges
@@ -84,7 +84,7 @@ auth:
         secret: ""                        #  validate:required
       enforcedOtp: false                  # if set to true, TOTP is enforced for all password users users. Otherwise, users can choose to enable TOTP.
     oidc:                                 #  validate:omitempty
-      AuthCommon:
+      '':
         enabled: false                    # whether to enable this authentication method.
         createUser: false                 # create user if not exists after successful authentication
         adminGroup: ""                    # if set, users in this group will be granted admin privileges
@@ -98,7 +98,7 @@ auth:
       issuerUrl: ""                       # authorization URL of the OIDC provider
       scopes: "openid email profile"      # scopes to request from the OIDC provider
     ldap:                                 #  validate:omitempty
-      AuthCommon:
+      '':
         enabled: false                    # whether to enable this authentication method.
         createUser: false                 # create user if not exists after successful authentication
         adminGroup: ""                    # if set, users in this group will be granted admin privileges

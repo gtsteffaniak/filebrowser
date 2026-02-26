@@ -10,19 +10,17 @@ definitions:
           type: string
         type: array
     type: object
-  http.AuthTokenMin:
+  http.AuthTokenFrontend:
     properties:
       Permissions:
         $ref: '#/definitions/users.Permissions'
-      created:
+      expiresAt:
         type: integer
-      expires:
+      issuedAt:
         type: integer
-      key:
-        type: string
-      minimal:
-        type: boolean
       name:
+        type: string
+      token:
         type: string
     type: object
   http.BulkDeleteItem:
@@ -1595,13 +1593,17 @@ definitions:
         $ref: '#/definitions/users.Permissions'
       belongsTo:
         type: integer
+      expiresAt:
+        type: integer
+      issuedAt:
+        type: integer
       key:
+        description: for backward compatibility
         type: string
       name:
         type: string
-      uc:
-        description: whether the token is a user created token
-        type: boolean
+      token:
+        type: string
     type: object
   users.FileLoading:
     properties:
@@ -1721,6 +1723,7 @@ definitions:
       apiKeys:
         additionalProperties:
           $ref: '#/definitions/users.AuthToken'
+        description: 'deprecated: use Tokens instead'
         type: object
       customTheme:
         description: Name of theme to use chosen from custom themes config.
@@ -1832,6 +1835,10 @@ definitions:
         description: 'theme color to use: eg. #ff0000, or var(--red), var(--purple),
           etc'
         type: string
+      tokens:
+        additionalProperties:
+          $ref: '#/definitions/users.AuthToken'
+        type: object
       totpNonce:
         type: string
       totpSecret:
@@ -2416,9 +2423,9 @@ paths:
     delete:
       consumes:
       - application/json
-      description: Delete an API key with specified name.
+      description: Delete an API token with specified name.
       parameters:
-      - description: Name of the API key to delete
+      - description: Name of the API token to delete
         in: query
         name: name
         required: true
@@ -2427,7 +2434,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: API key deleted successfully
+          description: API token deleted successfully
           schema:
             $ref: '#/definitions/http.HttpResponse'
         "404":
@@ -2442,25 +2449,57 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Delete API key
+      summary: Delete API token
       tags:
       - Auth
-    put:
+    get:
       consumes:
       - application/json
-      description: Create an API key with specified name, duration, and permissions.
+      description: Get a specific API token.
       parameters:
-      - description: Name of the API key
+      - description: Name of the API token to retrieve
         in: query
         name: name
         required: true
         type: string
-      - description: Duration of the API key in days
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: API token details
+          schema:
+            $ref: '#/definitions/http.AuthTokenFrontend'
+        "404":
+          description: Not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get API token
+      tags:
+      - Auth
+    post:
+      consumes:
+      - application/json
+      description: Create an API token with specified name, duration, and permissions.
+      parameters:
+      - description: Name of the API token
+        in: query
+        name: name
+        required: true
+        type: string
+      - description: Duration of the API token in days
         in: query
         name: days
         required: true
         type: string
-      - description: Permissions for the API key (comma-separated)
+      - description: Permissions for the API token (comma-separated)
         in: query
         name: permissions
         required: true
@@ -2470,7 +2509,7 @@ paths:
       responses:
         "200":
           description: Token created successfully, response contains json object with
-            token key
+            token
           schema:
             $ref: '#/definitions/http.HttpResponse'
         "400":
@@ -2497,26 +2536,23 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Create API key
+      summary: Create API Token
       tags:
       - Auth
-  /api/auth/tokens:
+  /api/auth/token/list:
     get:
       consumes:
       - application/json
-      description: List all API keys or retrieve details for a specific key.
-      parameters:
-      - description: Name of the API to retrieve details
-        in: query
-        name: name
-        type: string
+      description: List all API tokens or retrieve details for a specific token.
       produces:
       - application/json
       responses:
         "200":
-          description: List of API keys or specific key details
+          description: List of API tokens
           schema:
-            $ref: '#/definitions/http.AuthTokenMin'
+            items:
+              $ref: '#/definitions/http.AuthTokenFrontend'
+            type: array
         "404":
           description: Not found
           schema:
@@ -2529,7 +2565,7 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: List API keys
+      summary: List API tokens
       tags:
       - Auth
   /api/media/subtitles:

@@ -71,9 +71,8 @@ type PasswordAuthConfig struct {
 }
 
 type ProxyAuthConfig struct {
-	Enabled bool   `json:"enabled"`
-	Header  string `json:"header"` // required header to use for authentication. Security Warning: FileBrowser blindly accepts the header value as username.
 	AuthCommon `json:",inline"`
+	Header     string `json:"header"` // required header to use for authentication. Security Warning: FileBrowser blindly accepts the header value as username.
 }
 
 type Recaptcha struct {
@@ -84,18 +83,17 @@ type Recaptcha struct {
 
 // OpenID OAuth2.0
 type OidcConfig struct {
-	Enabled      bool                  `json:"enabled"`      // whether to enable OIDC authentication
+	AuthCommon   `json:",inline"`
 	ClientID     string                `json:"clientId"`     // secret: client id of the OIDC application
 	ClientSecret string                `json:"clientSecret"` // secret: client secret of the OIDC application
 	IssuerUrl    string                `json:"issuerUrl"`    // authorization URL of the OIDC provider
 	Scopes       string                `json:"scopes"`       // scopes to request from the OIDC provider
 	Provider     *oidc.Provider        `json:"-"`            // OIDC provider
 	Verifier     *oidc.IDTokenVerifier `json:"-"`            // OIDC verifier
-	AuthCommon   `json:",inline"`
 }
 
 type LdapConfig struct {
-	Enabled      bool   `json:"enabled"`      // whether to enable LDAP authentication
+	AuthCommon   `json:",inline"`
 	Server       string `json:"server"`       // scheme://host:port of the LDAP server (e.g. ldap://localhost:389)
 	BaseDN       string `json:"baseDN"`       // LDAP search base DN (e.g. dc=ldap,dc=goauthentik,dc=io)
 	UserDN       string `json:"userDN"`       // Bind DN for service account (e.g. cn=admin,ou=users,dc=ldap,dc=goauthentik,dc=io)
@@ -104,7 +102,6 @@ type LdapConfig struct {
 	Port         int    `json:"-"`            // derived from server
 	Scheme       string `json:"-"`            // derived from server
 	Host         string `json:"-"`            // derived from server
-	AuthCommon   `json:",inline"`
 }
 
 // ValidateLdapAuth checks LDAP config and sets defaults. Call when LDAP is enabled.
