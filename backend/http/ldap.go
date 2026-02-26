@@ -19,16 +19,29 @@ func AuthenticateLDAPUser(username, password string) (*users.User, error) {
 	if username == "" {
 		return nil, fmt.Errorf("username required")
 	}
-	groups, err := authenticateLDAP(username, password)
+	groups, userAttributes, err := authenticateLDAP(username, password)
 	if err != nil {
 		logger.Debugf("ldap authentication failed: %v", err)
 		return nil, err
 	}
-	logger.Debugf("ldap authentication successful, getting or creating user %s", username)
-	return getOrCreateLdapUser(username, groups)
+	
+	// Use the configured UserIdentifier if available, otherwise use the login username
+	ldapCfg := settings.Config.Auth.Methods.LdapAuth
+	mappedUsername := username
+	if ldapCfg.UserIdentifier != "" {
+		if val, ok := userAttributes[ldapCfg.UserIdentifier]; ok && val != "" {
+			mappedUsername = val
+			logger.Debugf("ldap: mapped username from %s: %s -> %s", ldapCfg.UserIdentifier, username, mappedUsername)
+		} else {
+			logger.Warningf("ldap: userIdentifier '%s' not found in LDAP entry for user %s, using login username", ldapCfg.UserIdentifier, username)
+		}
+	}
+	
+	logger.Debugf("ldap authentication successful, getting or creating user %s", mappedUsername)
+	return getOrCreateLdapUser(mappedUsername, groups)
 }
 
-func authenticateLDAP(username, password string) ([]string, error) {
+func authenticateLDAP(username, password string) ([]string, map[string]string, error) {
 	c := settings.Config.Auth.Methods.LdapAuth
 	logger.Debugf("ldap: connecting to %s", c.Server)
 
@@ -40,7 +53,7 @@ func authenticateLDAP(username, password string) ([]string, error) {
 
 	conn, err := ldap.DialURL(c.Server, opts...)
 	if err != nil {
-		return nil, fmt.Errorf("ldap connect: %w", err)
+		return nil, nil, fmt.Errorf("ldap connect: %w", err)
 	}
 	defer conn.Close()
 
@@ -48,10 +61,20 @@ func authenticateLDAP(username, password string) ([]string, error) {
 	if c.UserPassword != "" {
 		logger.Debugf("ldap: binding as service account %s", c.UserDN)
 		if err = conn.Bind(c.UserDN, c.UserPassword); err != nil {
-			return nil, fmt.Errorf("ldap bind (service): %w", err)
+			return nil, nil, fmt.Errorf("ldap bind (service): %w", err)
 		}
 	} else {
 		logger.Debugf("ldap: no service account bind (userPassword empty)")
+	}
+
+	// Build list of attributes to fetch
+	groupAttr := c.GroupsClaim
+	if groupAttr == "" {
+		groupAttr = "memberOf"
+	}
+	attributes := []string{"dn", groupAttr}
+	if c.UserIdentifier != "" {
+		attributes = append(attributes, c.UserIdentifier)
 	}
 
 	filter := fmt.Sprintf(c.UserFilter, ldap.EscapeFilter(username))
@@ -63,17 +86,17 @@ func authenticateLDAP(username, password string) ([]string, error) {
 		0,
 		false,
 		filter,
-		[]string{"dn", "memberOf"},
+		attributes,
 		nil,
 	)
 
 	result, err := conn.Search(searchRequest)
 	if err != nil {
-		return nil, fmt.Errorf("ldap search (%s): %w", c.Server, err)
+		return nil, nil, fmt.Errorf("ldap search (%s): %w", c.Server, err)
 	}
 
 	if len(result.Entries) == 0 {
-		return nil, fmt.Errorf("user not found: %s (LDAP search for %s returned no entries)", username, filter)
+		return nil, nil, fmt.Errorf("user not found: %s (LDAP search for %s returned no entries)", username, filter)
 	}
 
 	entry := result.Entries[0]
@@ -83,7 +106,7 @@ func authenticateLDAP(username, password string) ([]string, error) {
 			entry = u
 			logger.Debugf("ldap: multiple entries, using user entry DN=%s", entry.DN)
 		} else {
-			return nil, fmt.Errorf("multiple entries for user: %s (set userFilter to narrow, e.g. (&(cn=%%s)(objectClass=user)))", username)
+			return nil, nil, fmt.Errorf("multiple entries for user: %s (set userFilter to narrow, e.g. (&(cn=%%s)(objectClass=user)))", username)
 		}
 	}
 	userDN := entry.DN
@@ -91,7 +114,7 @@ func authenticateLDAP(username, password string) ([]string, error) {
 	// Verify password by binding as the user
 	if err := conn.Bind(userDN, password); err != nil {
 		logger.Debugf("ldap: bind as user failed: %v", err)
-		return nil, fmt.Errorf("ldap bind (user): %w", err)
+		return nil, nil, fmt.Errorf("ldap bind (user): %w", err)
 	}
 
 	// Re-bind as service account for any follow-up (we're done; this is optional)
@@ -99,8 +122,18 @@ func authenticateLDAP(username, password string) ([]string, error) {
 		_ = conn.Bind(c.UserDN, c.UserPassword)
 	}
 
-	groups := entry.GetAttributeValues("memberOf")
-	return groups, nil
+	groups := entry.GetAttributeValues(groupAttr)
+	
+	// Extract user attributes for identifier mapping
+	userAttributes := make(map[string]string)
+	if c.UserIdentifier != "" {
+		values := entry.GetAttributeValues(c.UserIdentifier)
+		if len(values) > 0 {
+			userAttributes[c.UserIdentifier] = values[0]
+		}
+	}
+	
+	return groups, userAttributes, nil
 }
 
 // pickUserEntry returns the entry that represents a user when multiple entries match (e.g. Authentik user + virtual group).
@@ -154,6 +187,28 @@ func ldapGroupMatchesAdmin(groupDN, adminGroup string) bool {
 func getOrCreateLdapUser(username string, groups []string) (*users.User, error) {
 	logger.Debugf("getting or creating ldap user %s", username)
 	ldapCfg := config.Auth.Methods.LdapAuth
+	
+	// Check if user is in required groups (if userGroups is configured)
+	if len(ldapCfg.UserGroups) > 0 {
+		userInAllowedGroup := false
+		for _, allowedGroup := range ldapCfg.UserGroups {
+			for _, userGroup := range groups {
+				if ldapGroupMatchesAdmin(userGroup, allowedGroup) {
+					userInAllowedGroup = true
+					break
+				}
+			}
+			if userInAllowedGroup {
+				break
+			}
+		}
+		if !userInAllowedGroup {
+			logger.Warningf("User %s is not in any of the required groups %v. Access denied.", username, ldapCfg.UserGroups)
+			return nil, fmt.Errorf("user %s is not authorized to access this application (not in required groups)", username)
+		}
+		logger.Debugf("User %s is in required group, allowing access.", username)
+	}
+	
 	isAdmin := false
 	if ldapCfg.AdminGroup != "" {
 		for _, g := range groups {

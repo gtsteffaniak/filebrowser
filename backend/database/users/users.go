@@ -20,6 +20,7 @@ const (
 
 type AuthToken struct {
 	MinimalAuthToken
+	UC          bool        `json:"uc,omitempty"` // whether the token is a user created token
 	Key         string      `json:"key,omitempty"`
 	Name        string      `json:"name,omitempty"`
 	BelongsTo   uint        `json:"belongsTo,omitempty"`

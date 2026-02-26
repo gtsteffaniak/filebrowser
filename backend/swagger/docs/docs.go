@@ -4807,7 +4807,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "adminGroup": {
-                    "description": "if set, users in this LDAP group get admin privileges",
+                    "description": "if set, users in this group will be granted admin privileges",
                     "type": "string"
                 },
                 "baseDN": {
@@ -4815,7 +4815,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "createUser": {
-                    "description": "create filebrowser user if not exists after successful LDAP auth",
+                    "description": "create user if not exists after successful authentication",
                     "type": "boolean"
                 },
                 "disableVerifyTLS": {
@@ -4823,11 +4823,15 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "enabled": {
-                    "description": "whether to enable LDAP authentication",
+                    "description": "whether to enable this authentication method.",
                     "type": "boolean"
                 },
+                "groupsClaim": {
+                    "description": "the JSON field name to read groups from. Default is \"groups\"",
+                    "type": "string"
+                },
                 "logoutRedirectUrl": {
-                    "description": "if set, logout redirects to this URL for LDAP users",
+                    "description": "if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.",
                     "type": "string"
                 },
                 "server": {
@@ -4840,6 +4844,17 @@ const docTemplate = `{
                 },
                 "userFilter": {
                     "description": "Search filter for finding user by username. Default (\u0026(cn=%s)(objectClass=user)); override e.g. (email=%s) or (sAMAccountName=%s) for other directories.",
+                    "type": "string"
+                },
+                "userGroups": {
+                    "description": "if set, only users in these groups are allowed to log in. Blocks all other users even with valid credentials.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "userIdentifier": {
+                    "description": "the field value to use as the username. Default is \"preferred_username\", can also be \"email\" or \"username\", or \"phone\"",
                     "type": "string"
                 },
                 "userPassword": {
@@ -4931,7 +4946,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "adminGroup": {
-                    "description": "if set, users in this group will be granted admin privileges.",
+                    "description": "if set, users in this group will be granted admin privileges",
                     "type": "string"
                 },
                 "clientId": {
@@ -4943,15 +4958,15 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "createUser": {
-                    "description": "create user if not exists",
+                    "description": "create user if not exists after successful authentication",
                     "type": "boolean"
                 },
                 "disableVerifyTLS": {
-                    "description": "disable TLS verification for the OIDC provider. This is insecure and should only be used for testing.",
+                    "description": "disable TLS verification (insecure, for testing only)",
                     "type": "boolean"
                 },
                 "enabled": {
-                    "description": "whether to enable OIDC authentication",
+                    "description": "whether to enable this authentication method.",
                     "type": "boolean"
                 },
                 "groupsClaim": {
@@ -4969,6 +4984,13 @@ const docTemplate = `{
                 "scopes": {
                     "description": "scopes to request from the OIDC provider",
                     "type": "string"
+                },
+                "userGroups": {
+                    "description": "if set, only users in these groups are allowed to log in. Blocks all other users even with valid credentials.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "userIdentifier": {
                     "description": "the field value to use as the username. Default is \"preferred_username\", can also be \"email\" or \"username\", or \"phone\"",
@@ -5032,12 +5054,25 @@ const docTemplate = `{
         "settings.ProxyAuthConfig": {
             "type": "object",
             "properties": {
+                "adminGroup": {
+                    "description": "if set, users in this group will be granted admin privileges",
+                    "type": "string"
+                },
                 "createUser": {
-                    "description": "create user if not exists",
+                    "description": "create user if not exists after successful authentication",
+                    "type": "boolean"
+                },
+                "disableVerifyTLS": {
+                    "description": "disable TLS verification (insecure, for testing only)",
                     "type": "boolean"
                 },
                 "enabled": {
+                    "description": "whether to enable this authentication method.",
                     "type": "boolean"
+                },
+                "groupsClaim": {
+                    "description": "the JSON field name to read groups from. Default is \"groups\"",
+                    "type": "string"
                 },
                 "header": {
                     "description": "required header to use for authentication. Security Warning: FileBrowser blindly accepts the header value as username.",
@@ -5045,6 +5080,17 @@ const docTemplate = `{
                 },
                 "logoutRedirectUrl": {
                     "description": "if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.",
+                    "type": "string"
+                },
+                "userGroups": {
+                    "description": "if set, only users in these groups are allowed to log in. Blocks all other users even with valid credentials.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "userIdentifier": {
+                    "description": "the field value to use as the username. Default is \"preferred_username\", can also be \"email\" or \"username\", or \"phone\"",
                     "type": "string"
                 }
             }
@@ -5977,6 +6023,10 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "uc": {
+                    "description": "whether the token is a user created token",
+                    "type": "boolean"
                 }
             }
         },

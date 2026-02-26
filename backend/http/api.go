@@ -109,7 +109,7 @@ func createApiKeyHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	// Here we assume the duration is in seconds; convert to time.Duration
 	duration := time.Duration(durationInt) * time.Hour * 24
 	// get request body like:
-	token, err := makeSignedTokenAPI(d.user, name, duration, permissions, minimal)
+	token, err := makeSignedTokenAPI(d.user, name, duration, permissions, minimal, false)
 	if err != nil {
 		if strings.Contains(err.Error(), "key already exists with same name") {
 			return http.StatusConflict, err

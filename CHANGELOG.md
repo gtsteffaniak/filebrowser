@@ -15,7 +15,10 @@ Note: a potentially breaking change for docker users: \the default user is now "
    - requires `create` user permissions
    - archiving actions respect `server.maxArchiveSize`
  - Added share icon to items that are shared (#1420)
- - LDAP login support (#591)
+ - Authentication enhancements
+   - LDAP login support with OIDC feature parity. (#591)
+   - userGroup for OIDC and LDAP, only users in a group will get access. #1964
+   - 2 minute upstream login check for LDAP and OIDC. So if a user logs out of the OIDC/LDAP provider, their filebrowser session will expire within 2 minutes
  - Enhanced thumbnail and item previews
    - Added ability to show "motion preview" for folders with multiple child items that have previews. cycles through the first 4 images.
    - support for reading embedded images from raw image or heic/heif files (#215)

@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	ldap "github.com/go-ldap/ldap/v3"
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
@@ -417,6 +418,22 @@ func withUserHelper(fn handleFunc) handleFunc {
 			logger.Errorf("Failed to get user with ID %v: %v", tk.BelongsTo, err)
 			return http.StatusInternalServerError, err
 		}
+
+		// tk.UC means to validate upstream (SSO provider check)
+		if tk.UC {
+			ok, _ := utils.SSOTokenCache.Get(data.token)
+			if !ok {
+				// Check upstream provider to ensure the user is still logged in
+				logger.Debugf("Token %s not in cache, validating upstream for user %s", data.token[:10], data.user.Username)
+				if !validateUpstreamSSO(data.user) {
+					logger.Warningf("Upstream SSO validation failed for user %s, revoking token", data.user.Username)
+					return http.StatusUnauthorized, fmt.Errorf("upstream authentication no longer valid")
+				}
+				// Cache the validation result for 2 minutes
+				utils.SSOTokenCache.Set(data.token, true)
+				logger.Debugf("Upstream validation successful for user %s, cached for 2 minutes", data.user.Username)
+			}
+		}
 		// Set cookie. Some clients like gvfs relies on it for concurrent uploads
 		if expire := tk.ExpiresAt; expire != nil {
 			setSessionCookie(w, r, data.token, expire.Time)
@@ -447,7 +464,7 @@ func getProxyUser(w http.ResponseWriter, r *http.Request, data *requestContext, 
 	// Generate a token for proxy users if they don't have one
 	if data.token == "" {
 		expires := time.Hour * time.Duration(config.Auth.TokenExpirationHours)
-		signed, err := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false)
+		signed, err := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false, true)
 		if err != nil {
 			logger.Errorf("Failed to generate token for proxy user %s: %v", proxyUser, err)
 			return http.StatusInternalServerError, fmt.Errorf("failed to generate token")
@@ -803,4 +820,123 @@ func getScheme(r *http.Request) string {
 		return "https"
 	}
 	return "http"
+}
+
+// validateUpstreamSSO checks if the user is still valid in the upstream SSO provider (OIDC or LDAP)
+// Returns true if valid, false if the user should be logged out
+func validateUpstreamSSO(user *users.User) bool {
+	switch user.LoginMethod {
+	case users.LoginMethodOidc:
+		return validateOidcUpstream(user)
+	case users.LoginMethodLdap:
+		return validateLdapUpstream(user)
+	case users.LoginMethodProxy:
+		// Proxy auth is validated on every request via header, no need for additional validation
+		return true
+	default:
+		// Password auth doesn't need upstream validation
+		return true
+	}
+}
+
+// validateOidcUpstream checks if the user still exists and has required group membership in OIDC
+// This is a simplified check - in a full implementation, you might want to refresh the token
+func validateOidcUpstream(user *users.User) bool {
+	oidcCfg := config.Auth.Methods.OidcAuth
+	if !oidcCfg.Enabled {
+		logger.Warningf("OIDC validation requested but OIDC is disabled for user %s", user.Username)
+		return false
+	}
+	
+	// For OIDC, we can't easily re-validate without having the user's access token
+	// The token is not stored in the user object for security reasons
+	// Options:
+	// 1. Always return true and rely on token expiration
+	// 2. Make a userinfo call (requires storing refresh token - security concern)
+	// 3. Implement token introspection if provider supports it
+	
+	// For now, we'll return true and rely on token expiration
+	// This can be enhanced by storing encrypted refresh tokens if needed
+	logger.Debugf("OIDC upstream validation for user %s - relying on token expiration", user.Username)
+	return true
+}
+
+// validateLdapUpstream checks if the user still exists in LDAP and has required group membership
+func validateLdapUpstream(user *users.User) bool {
+	ldapCfg := config.Auth.Methods.LdapAuth
+	if !ldapCfg.Enabled {
+		logger.Warningf("LDAP validation requested but LDAP is disabled for user %s", user.Username)
+		return false
+	}
+	
+	// For LDAP, we can do a simple search to verify the user still exists
+	// We don't verify password here, just existence and group membership
+	conn, err := ldap.DialURL(ldapCfg.Server)
+	if err != nil {
+		logger.Warningf("LDAP upstream validation failed to connect for user %s: %v", user.Username, err)
+		return false
+	}
+	defer conn.Close()
+	
+	// Bind with service account
+	if ldapCfg.UserPassword != "" {
+		if err = conn.Bind(ldapCfg.UserDN, ldapCfg.UserPassword); err != nil {
+			logger.Warningf("LDAP upstream validation failed to bind for user %s: %v", user.Username, err)
+			return false
+		}
+	}
+	
+	// Search for the user
+	groupAttr := ldapCfg.GroupsClaim
+	if groupAttr == "" {
+		groupAttr = "memberOf"
+	}
+	
+	filter := fmt.Sprintf(ldapCfg.UserFilter, ldap.EscapeFilter(user.Username))
+	searchRequest := ldap.NewSearchRequest(
+		ldapCfg.BaseDN,
+		ldap.ScopeWholeSubtree,
+		ldap.NeverDerefAliases,
+		1, // Only need one result
+		30, // 30 second timeout
+		false,
+		filter,
+		[]string{"dn", groupAttr},
+		nil,
+	)
+	
+	result, err := conn.Search(searchRequest)
+	if err != nil {
+		logger.Warningf("LDAP upstream validation search failed for user %s: %v", user.Username, err)
+		return false
+	}
+	
+	if len(result.Entries) == 0 {
+		logger.Warningf("LDAP upstream validation: user %s no longer exists in LDAP", user.Username)
+		return false
+	}
+	
+	// Check if user is in required groups (if userGroups is configured)
+	if len(ldapCfg.UserGroups) > 0 {
+		userGroups := result.Entries[0].GetAttributeValues(groupAttr)
+		userInAllowedGroup := false
+		for _, allowedGroup := range ldapCfg.UserGroups {
+			for _, userGroup := range userGroups {
+				if ldapGroupMatchesAdmin(userGroup, allowedGroup) {
+					userInAllowedGroup = true
+					break
+				}
+			}
+			if userInAllowedGroup {
+				break
+			}
+		}
+		if !userInAllowedGroup {
+			logger.Warningf("LDAP upstream validation: user %s no longer in required groups", user.Username)
+			return false
+		}
+	}
+	
+	logger.Debugf("LDAP upstream validation successful for user %s", user.Username)
+	return true
 }

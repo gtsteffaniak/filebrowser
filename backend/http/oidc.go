@@ -243,11 +243,29 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 // based on the configured UserIdentifier and logs the user into the application.
 // It creates a new user if one doesn't exist.
 func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, groups []string) (int, error) {
+	oidcCfg := config.Auth.Methods.OidcAuth
+	
+	// Check if user is in required groups (if userGroups is configured)
+	if len(oidcCfg.UserGroups) > 0 {
+		userInAllowedGroup := false
+		for _, allowedGroup := range oidcCfg.UserGroups {
+			if slices.Contains(groups, allowedGroup) {
+				userInAllowedGroup = true
+				break
+			}
+		}
+		if !userInAllowedGroup {
+			logger.Warningf("User %s is not in any of the required groups %v. Access denied.", username, oidcCfg.UserGroups)
+			return http.StatusForbidden, fmt.Errorf("user %s is not authorized to access this application (not in required groups)", username)
+		}
+		logger.Debugf("User %s is in required group, allowing access.", username)
+	}
+	
 	isAdmin := false // Default to non-admin user
-	if config.Auth.Methods.OidcAuth.AdminGroup != "" {
-		if slices.Contains(groups, config.Auth.Methods.OidcAuth.AdminGroup) {
+	if oidcCfg.AdminGroup != "" {
+		if slices.Contains(groups, oidcCfg.AdminGroup) {
 			isAdmin = true // User is in the admin group, grant admin privileges
-			logger.Debugf("User %s is in admin group %s, granting admin privileges.", username, config.Auth.Methods.OidcAuth.AdminGroup)
+			logger.Debugf("User %s is in admin group %s, granting admin privileges.", username, oidcCfg.AdminGroup)
 		}
 	}
 	logger.Debugf("Successfully authenticated OIDC username: %s isAdmin: %v", username, isAdmin)
@@ -257,8 +275,8 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 		if err.Error() != "the resource does not exist" {
 			return http.StatusInternalServerError, err
 		}
-		if config.Auth.Methods.OidcAuth.CreateUser {
-			if config.Auth.Methods.OidcAuth.AdminGroup == "" {
+		if oidcCfg.CreateUser {
+			if oidcCfg.AdminGroup == "" {
 				isAdmin = config.UserDefaults.Permissions.Admin
 			}
 			user = &users.User{
@@ -282,7 +300,7 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 		}
 	} else {
 		// update user admin perms
-		if isAdmin != user.Permissions.Admin && config.Auth.Methods.OidcAuth.AdminGroup != "" {
+		if isAdmin != user.Permissions.Admin && oidcCfg.AdminGroup != "" {
 			user.Permissions.Admin = isAdmin
 			err = store.Users.Update(user, true, "Permissions")
 			if err != nil {
@@ -300,8 +318,8 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 	}
 
 	expires := time.Hour * time.Duration(config.Auth.TokenExpirationHours)
-	// Generate a signed token for the user
-	signed, err2 := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false)
+	// Generate a signed token for the user with UC=true to enable upstream validation
+	signed, err2 := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false, true)
 	if err2 != nil {
 		// Handle potential errors during token generation
 		if strings.Contains(err2.Error(), "key already exists with same name") {

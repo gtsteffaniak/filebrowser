@@ -267,7 +267,11 @@ func renewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (in
 
 func printToken(w http.ResponseWriter, r *http.Request, user *users.User) (int, error) {
 	expires := time.Hour * time.Duration(config.Auth.TokenExpirationHours)
-	signed, err := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false)
+	// Set UC=true for SSO users (LDAP, OIDC, Proxy) to enable upstream validation
+	isSSO := user.LoginMethod == users.LoginMethodLdap || 
+		user.LoginMethod == users.LoginMethodOidc || 
+		user.LoginMethod == users.LoginMethodProxy
+	signed, err := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false, isSSO)
 	if err != nil {
 		if strings.Contains(err.Error(), "key already exists with same name") {
 			return http.StatusConflict, err
@@ -289,7 +293,7 @@ func printToken(w http.ResponseWriter, r *http.Request, user *users.User) (int, 
 	return 0, nil
 }
 
-func makeSignedTokenAPI(user *users.User, name string, duration time.Duration, perms users.Permissions, minimal bool) (users.AuthToken, error) {
+func makeSignedTokenAPI(user *users.User, name string, duration time.Duration, perms users.Permissions, minimal bool, uc bool) (users.AuthToken, error) {
 	_, ok := user.ApiKeys[name]
 	if ok {
 		return users.AuthToken{}, fmt.Errorf("key already exists with same name %v ", name)
@@ -314,6 +318,26 @@ func makeSignedTokenAPI(user *users.User, name string, duration time.Duration, p
 		if err != nil {
 			return users.AuthToken{}, err
 		}
+		// Create the AuthToken to store in database (always includes permissions and user ID)
+		storedClaim := users.AuthToken{
+			MinimalAuthToken: users.MinimalAuthToken{
+				RegisteredClaims: jwt.RegisteredClaims{
+					IssuedAt:  jwt.NewNumericDate(now),
+					ExpiresAt: jwt.NewNumericDate(expires),
+					Issuer:    "FileBrowser Quantum",
+				},
+			},
+			Key:         tokenString,
+			Name:        name,
+			Permissions: perms,
+			BelongsTo:   user.ID,
+		}
+		// Perform the user update
+		err = store.Users.AddApiKey(user.ID, name, storedClaim)
+		if err != nil {
+			return storedClaim, err
+		}
+		return storedClaim, nil
 	} else {
 		// Create full token with permissions and user ID
 		fullClaim := users.AuthToken{
@@ -324,6 +348,7 @@ func makeSignedTokenAPI(user *users.User, name string, duration time.Duration, p
 					Issuer:    "FileBrowser Quantum",
 				},
 			},
+			UC:          uc,
 			Name:        name,
 			Permissions: perms,
 			BelongsTo:   user.ID,
@@ -333,34 +358,14 @@ func makeSignedTokenAPI(user *users.User, name string, duration time.Duration, p
 		if err != nil {
 			return users.AuthToken{}, err
 		}
+		fullClaim.Key = tokenString
+		// Perform the user update
+		err = store.Users.AddApiKey(user.ID, name, fullClaim)
+		if err != nil {
+			return fullClaim, err
+		}
+		return fullClaim, nil
 	}
-
-	// Create the AuthToken to store in database (always includes permissions and user ID)
-	storedClaim := users.AuthToken{
-		MinimalAuthToken: users.MinimalAuthToken{
-			RegisteredClaims: jwt.RegisteredClaims{
-				IssuedAt:  jwt.NewNumericDate(now),
-				ExpiresAt: jwt.NewNumericDate(expires),
-				Issuer:    "FileBrowser Quantum",
-			},
-		},
-		Key:         tokenString,
-		Name:        name,
-		Permissions: perms,
-		BelongsTo:   user.ID,
-	}
-
-	if strings.HasPrefix(name, "WEB_TOKEN") {
-		// don't add to api tokens, its a short lived web token
-		return storedClaim, nil
-	}
-
-	// Perform the user update
-	err = store.Users.AddApiKey(user.ID, name, storedClaim)
-	if err != nil {
-		return storedClaim, err
-	}
-	return storedClaim, nil
 }
 
 func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {
