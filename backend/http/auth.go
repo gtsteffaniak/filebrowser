@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/golang-jwt/jwt/v4/request"
 	"golang.org/x/crypto/bcrypt"
 
@@ -154,7 +153,9 @@ func loginHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (in
 // @Success 200 {object} map[string]string "{"logoutUrl": "http://..."}"
 // @Router /api/auth/logout [post]
 func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	defer auth.RevokeAPIKey(d.token)
+	if err := auth.RevokeApiToken(store.Access, d.token); err != nil {
+		logger.Errorf("Failed to revoke token on logout: %v", err)
+	}
 
 	// Clear the authentication cookie by setting it to expire in the past
 	// Get the correct domain for cookie - prefer X-Forwarded-Host from reverse proxy
@@ -167,7 +168,7 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		Value:    "",
 		Domain:   strings.Split(host, ":")[0],
 		Path:     "/",
-		SameSite: http.SameSiteLaxMode,
+		SameSite: http.SameSiteStrictMode,
 		Expires:  time.Unix(0, 0), // Expire immediately
 		MaxAge:   -1,              // Delete cookie
 	}
@@ -267,7 +268,7 @@ func renewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (in
 
 func printToken(w http.ResponseWriter, r *http.Request, user *users.User) (int, error) {
 	expires := time.Hour * time.Duration(config.Auth.TokenExpirationHours)
-	signed, err := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false)
+	tokenString, _, err := auth.MakeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false)
 	if err != nil {
 		if strings.Contains(err.Error(), "key already exists with same name") {
 			return http.StatusConflict, err
@@ -279,88 +280,14 @@ func printToken(w http.ResponseWriter, r *http.Request, user *users.User) (int, 
 	// This allows backend to identify expired sessions and provide better user feedback
 	expiresTime := time.Now().Add(expires).Add(time.Minute * 30)
 
-	setSessionCookie(w, r, signed.Key, expiresTime)
+	setSessionCookie(w, r, tokenString, expiresTime)
 
 	// Still return token in body for backward compatibility and state management
 	w.Header().Set("Content-Type", "text/plain")
-	if _, err := w.Write([]byte(signed.Key)); err != nil {
+	if _, err := w.Write([]byte(tokenString)); err != nil {
 		return 401, errors.ErrUnauthorized
 	}
 	return 0, nil
-}
-
-func makeSignedTokenAPI(user *users.User, name string, duration time.Duration, perms users.Permissions, minimal bool) (users.AuthToken, error) {
-	_, ok := user.ApiKeys[name]
-	if ok {
-		return users.AuthToken{}, fmt.Errorf("key already exists with same name %v ", name)
-	}
-	now := time.Now()
-	expires := now.Add(duration)
-
-	var tokenString string
-	var err error
-
-	if minimal {
-		// Create minimal token with only JWT standard claims
-		minimalClaim := users.MinimalAuthToken{
-			RegisteredClaims: jwt.RegisteredClaims{
-				IssuedAt:  jwt.NewNumericDate(now),
-				ExpiresAt: jwt.NewNumericDate(expires),
-				Issuer:    "FileBrowser Quantum",
-			},
-		}
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, minimalClaim)
-		tokenString, err = token.SignedString([]byte(config.Auth.Key))
-		if err != nil {
-			return users.AuthToken{}, err
-		}
-	} else {
-		// Create full token with permissions and user ID
-		fullClaim := users.AuthToken{
-			MinimalAuthToken: users.MinimalAuthToken{
-				RegisteredClaims: jwt.RegisteredClaims{
-					IssuedAt:  jwt.NewNumericDate(now),
-					ExpiresAt: jwt.NewNumericDate(expires),
-					Issuer:    "FileBrowser Quantum",
-				},
-			},
-			Name:        name,
-			Permissions: perms,
-			BelongsTo:   user.ID,
-		}
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, fullClaim)
-		tokenString, err = token.SignedString([]byte(config.Auth.Key))
-		if err != nil {
-			return users.AuthToken{}, err
-		}
-	}
-
-	// Create the AuthToken to store in database (always includes permissions and user ID)
-	storedClaim := users.AuthToken{
-		MinimalAuthToken: users.MinimalAuthToken{
-			RegisteredClaims: jwt.RegisteredClaims{
-				IssuedAt:  jwt.NewNumericDate(now),
-				ExpiresAt: jwt.NewNumericDate(expires),
-				Issuer:    "FileBrowser Quantum",
-			},
-		},
-		Key:         tokenString,
-		Name:        name,
-		Permissions: perms,
-		BelongsTo:   user.ID,
-	}
-
-	if strings.HasPrefix(name, "WEB_TOKEN") {
-		// don't add to api tokens, its a short lived web token
-		return storedClaim, nil
-	}
-
-	// Perform the user update
-	err = store.Users.AddApiKey(user.ID, name, storedClaim)
-	if err != nil {
-		return storedClaim, err
-	}
-	return storedClaim, nil
 }
 
 func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {
@@ -420,10 +347,8 @@ func setSessionCookie(w http.ResponseWriter, r *http.Request, token string, expi
 		Value:    token,
 		Domain:   strings.Split(host, ":")[0], // Set domain to the host without port
 		Path:     "/",
-		SameSite: http.SameSiteLaxMode, // Lax mode allows cookie on navigation from OIDC provider
+		SameSite: http.SameSiteStrictMode, // strict mode prevents cookie from being sent to other domains
 		Expires:  expiresTime,
-		// HttpOnly: true, // Cannot use HttpOnly since frontend needs to read cookie for renew operations
-		// Secure: true, // Enable this in production with HTTPS
 	}
 	http.SetCookie(w, cookie)
 }

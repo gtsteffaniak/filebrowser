@@ -9,7 +9,6 @@ import (
 	storm "github.com/asdine/storm/v3"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
-	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
@@ -158,12 +157,6 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 		}
 	}
 
-	// last revoke api keys if needed.
-	if existingUser.Permissions.Api && !user.Permissions.Api && slices.Contains(fields, "Permissions") {
-		for _, key := range existingUser.ApiKeys {
-			auth.RevokeAPIKey(key.Key) // add to blacklist
-		}
-	}
 	return nil
 }
 
@@ -257,7 +250,7 @@ func parseFields(user *users.User, fields []string, actorIsAdmin bool) ([]string
 			field := t.Field(i)
 			// which=all can't update password
 			switch strings.ToLower(field.Name) {
-			case "id", "username", "password", "apikeys", "totpsecret", "totpnonce":
+			case "id", "username", "password", "tokens", "totpsecret", "totpnonce":
 				// Skip these fields
 				continue
 			}

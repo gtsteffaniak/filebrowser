@@ -10,19 +10,17 @@ definitions:
           type: string
         type: array
     type: object
-  http.AuthTokenMin:
+  http.AuthTokenFrontend:
     properties:
       Permissions:
         $ref: '#/definitions/users.Permissions'
-      created:
+      expiresAt:
         type: integer
-      expires:
+      issuedAt:
         type: integer
-      key:
-        type: string
-      minimal:
-        type: boolean
       name:
+        type: string
+      token:
         type: string
     type: object
   http.BulkDeleteItem:
@@ -698,22 +696,26 @@ definitions:
   settings.LdapConfig:
     properties:
       adminGroup:
-        description: if set, users in this LDAP group get admin privileges
+        description: if set, users in this group will be granted admin privileges
         type: string
       baseDN:
         description: LDAP search base DN (e.g. dc=ldap,dc=goauthentik,dc=io)
         type: string
       createUser:
-        description: create filebrowser user if not exists after successful LDAP auth
+        description: create user if not exists after successful authentication
         type: boolean
       disableVerifyTLS:
         description: disable TLS verification (insecure, for testing only)
         type: boolean
       enabled:
-        description: whether to enable LDAP authentication
+        description: whether to enable this authentication method.
         type: boolean
+      groupsClaim:
+        description: the JSON field name to read groups from. Default is "groups"
+        type: string
       logoutRedirectUrl:
-        description: if set, logout redirects to this URL for LDAP users
+        description: if provider logout url is provided, filebrowser will also redirect
+          to logout url. Custom logout query params are respected.
         type: string
       server:
         description: scheme://host:port of the LDAP server (e.g. ldap://localhost:389)
@@ -724,6 +726,16 @@ definitions:
       userFilter:
         description: Search filter for finding user by username. Default (&(cn=%s)(objectClass=user));
           override e.g. (email=%s) or (sAMAccountName=%s) for other directories.
+        type: string
+      userGroups:
+        description: if set, only users in these groups are allowed to log in. Blocks
+          all other users even with valid credentials.
+        items:
+          type: string
+        type: array
+      userIdentifier:
+        description: the field value to use as the username. Default is "preferred_username",
+          can also be "email" or "username", or "phone"
         type: string
       userPassword:
         description: Bind password for service account
@@ -788,7 +800,7 @@ definitions:
   settings.OidcConfig:
     properties:
       adminGroup:
-        description: if set, users in this group will be granted admin privileges.
+        description: if set, users in this group will be granted admin privileges
         type: string
       clientId:
         description: 'secret: client id of the OIDC application'
@@ -797,14 +809,13 @@ definitions:
         description: 'secret: client secret of the OIDC application'
         type: string
       createUser:
-        description: create user if not exists
+        description: create user if not exists after successful authentication
         type: boolean
       disableVerifyTLS:
-        description: disable TLS verification for the OIDC provider. This is insecure
-          and should only be used for testing.
+        description: disable TLS verification (insecure, for testing only)
         type: boolean
       enabled:
-        description: whether to enable OIDC authentication
+        description: whether to enable this authentication method.
         type: boolean
       groupsClaim:
         description: the JSON field name to read groups from. Default is "groups"
@@ -819,6 +830,12 @@ definitions:
       scopes:
         description: scopes to request from the OIDC provider
         type: string
+      userGroups:
+        description: if set, only users in these groups are allowed to log in. Blocks
+          all other users even with valid credentials.
+        items:
+          type: string
+        type: array
       userIdentifier:
         description: the field value to use as the username. Default is "preferred_username",
           can also be "email" or "username", or "phone"
@@ -866,11 +883,21 @@ definitions:
     type: object
   settings.ProxyAuthConfig:
     properties:
+      adminGroup:
+        description: if set, users in this group will be granted admin privileges
+        type: string
       createUser:
-        description: create user if not exists
+        description: create user if not exists after successful authentication
+        type: boolean
+      disableVerifyTLS:
+        description: disable TLS verification (insecure, for testing only)
         type: boolean
       enabled:
+        description: whether to enable this authentication method.
         type: boolean
+      groupsClaim:
+        description: the JSON field name to read groups from. Default is "groups"
+        type: string
       header:
         description: 'required header to use for authentication. Security Warning:
           FileBrowser blindly accepts the header value as username.'
@@ -878,6 +905,16 @@ definitions:
       logoutRedirectUrl:
         description: if provider logout url is provided, filebrowser will also redirect
           to logout url. Custom logout query params are respected.
+        type: string
+      userGroups:
+        description: if set, only users in these groups are allowed to log in. Blocks
+          all other users even with valid credentials.
+        items:
+          type: string
+        type: array
+      userIdentifier:
+        description: the field value to use as the username. Default is "preferred_username",
+          can also be "email" or "username", or "phone"
         type: string
     type: object
   settings.Recaptcha:
@@ -1556,9 +1593,16 @@ definitions:
         $ref: '#/definitions/users.Permissions'
       belongsTo:
         type: integer
+      expiresAt:
+        type: integer
+      issuedAt:
+        type: integer
       key:
+        description: for backward compatibility
         type: string
       name:
+        type: string
+      token:
         type: string
     type: object
   users.FileLoading:
@@ -1679,6 +1723,7 @@ definitions:
       apiKeys:
         additionalProperties:
           $ref: '#/definitions/users.AuthToken'
+        description: 'deprecated: use Tokens instead'
         type: object
       customTheme:
         description: Name of theme to use chosen from custom themes config.
@@ -1790,6 +1835,10 @@ definitions:
         description: 'theme color to use: eg. #ff0000, or var(--red), var(--purple),
           etc'
         type: string
+      tokens:
+        additionalProperties:
+          $ref: '#/definitions/users.AuthToken'
+        type: object
       totpNonce:
         type: string
       totpSecret:
@@ -2374,9 +2423,9 @@ paths:
     delete:
       consumes:
       - application/json
-      description: Delete an API key with specified name.
+      description: Delete an API token with specified name.
       parameters:
-      - description: Name of the API key to delete
+      - description: Name of the API token to delete
         in: query
         name: name
         required: true
@@ -2385,7 +2434,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: API key deleted successfully
+          description: API token deleted successfully
           schema:
             $ref: '#/definitions/http.HttpResponse'
         "404":
@@ -2400,25 +2449,57 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Delete API key
+      summary: Delete API token
       tags:
       - Auth
-    put:
+    get:
       consumes:
       - application/json
-      description: Create an API key with specified name, duration, and permissions.
+      description: Get a specific API token.
       parameters:
-      - description: Name of the API key
+      - description: Name of the API token to retrieve
         in: query
         name: name
         required: true
         type: string
-      - description: Duration of the API key in days
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: API token details
+          schema:
+            $ref: '#/definitions/http.AuthTokenFrontend'
+        "404":
+          description: Not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get API token
+      tags:
+      - Auth
+    post:
+      consumes:
+      - application/json
+      description: Create an API token with specified name, duration, and permissions.
+      parameters:
+      - description: Name of the API token
+        in: query
+        name: name
+        required: true
+        type: string
+      - description: Duration of the API token in days
         in: query
         name: days
         required: true
         type: string
-      - description: Permissions for the API key (comma-separated)
+      - description: Permissions for the API token (comma-separated)
         in: query
         name: permissions
         required: true
@@ -2428,7 +2509,7 @@ paths:
       responses:
         "200":
           description: Token created successfully, response contains json object with
-            token key
+            token
           schema:
             $ref: '#/definitions/http.HttpResponse'
         "400":
@@ -2455,26 +2536,23 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Create API key
+      summary: Create API Token
       tags:
       - Auth
-  /api/auth/tokens:
+  /api/auth/token/list:
     get:
       consumes:
       - application/json
-      description: List all API keys or retrieve details for a specific key.
-      parameters:
-      - description: Name of the API to retrieve details
-        in: query
-        name: name
-        type: string
+      description: List all API tokens or retrieve details for a specific token.
       produces:
       - application/json
       responses:
         "200":
-          description: List of API keys or specific key details
+          description: List of API tokens
           schema:
-            $ref: '#/definitions/http.AuthTokenMin'
+            items:
+              $ref: '#/definitions/http.AuthTokenFrontend'
+            type: array
         "404":
           description: Not found
           schema:
@@ -2487,7 +2565,7 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: List API keys
+      summary: List API tokens
       tags:
       - Auth
   /api/media/subtitles:

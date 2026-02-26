@@ -20,9 +20,12 @@ const (
 
 type AuthToken struct {
 	MinimalAuthToken
-	Key         string      `json:"key,omitempty"`
+	Key         string      `json:"key,omitempty"` // for backward compatibility
+	Token       string      `json:"token,omitempty"`
 	Name        string      `json:"name,omitempty"`
 	BelongsTo   uint        `json:"belongsTo,omitempty"`
+	IssuedAt    int64       `json:"issuedAt,omitempty"`
+	ExpiresAt   int64       `json:"expiresAt,omitempty"`
 	Permissions Permissions `json:"Permissions,omitempty"`
 }
 
@@ -70,15 +73,16 @@ type User struct {
 	Scope           string               `json:"scope,omitempty"`
 	LockPassword    bool                 `json:"lockPassword"`
 	Permissions     Permissions          `json:"permissions"`
-	ApiKeys         map[string]AuthToken `json:"apiKeys,omitempty"`
+	ApiKeys         map[string]AuthToken `json:"apiKeys,omitempty"` // deprecated: use Tokens instead
+	Tokens          map[string]AuthToken `json:"tokens,omitempty"`
 	TOTPSecret      string               `json:"totpSecret,omitempty"`
 	TOTPNonce       string               `json:"totpNonce,omitempty"`
 	LoginMethod     LoginMethod          `json:"loginMethod"`
 	OtpEnabled      bool                 `json:"otpEnabled"` // true if TOTP is enabled, false otherwise
+	Version         int                  `json:"version"`
+	ShowFirstLogin  bool                 `json:"showFirstLogin"`
 	// legacy for migration purposes... og filebrowser has perm attribute
-	Perm           Permissions `json:"perm,omitzero"`
-	Version        int         `json:"version"`
-	ShowFirstLogin bool        `json:"showFirstLogin"`
+	Perm Permissions `json:"perm,omitzero"` // deprecated: use Permissions instead
 }
 
 type SourceScope struct {

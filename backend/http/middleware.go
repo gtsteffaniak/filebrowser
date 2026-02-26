@@ -312,8 +312,34 @@ func withoutUserHelper(fn handleFunc) handleFunc {
 // allow user without OTP to pass
 func userWithoutOTPhelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-		// This middleware is used when no user authentication is required
-		// Call the actual handler function with the updated context
+		// Check if request has a valid admin token first
+		if tokenStr, err := extractToken(r); err == nil && tokenStr != "" {
+			keyFunc := func(token *jwt.Token) (interface{}, error) {
+				return []byte(config.Auth.Key), nil
+			}
+			var tk users.AuthToken
+			if token, err := jwt.ParseWithClaims(tokenStr, &tk, keyFunc); err == nil && token.Valid {
+				if !auth.IsRevokedApiToken(store.Access, tokenStr) {
+					if tk.BelongsTo == 0 {
+						// Minimal token - look up user ID
+						userID, found := store.Access.GetUserIDFromToken(tokenStr)
+						if found {
+							tk.BelongsTo = userID
+						}
+					}
+					if tk.BelongsTo > 0 {
+						user, err := store.Users.Get(tk.BelongsTo)
+						if err == nil && user.Permissions.Admin {
+							// Valid admin token - allow operation
+							d.user = user
+							return fn(w, r, d)
+						}
+					}
+				}
+			}
+		}
+
+		// No valid admin token - proceed with username/password authentication
 		username := r.URL.Query().Get("username")
 		password := r.Header.Get("X-Password")
 		// Try LDAP first if enabled; on success set d.user and continue to handler
@@ -385,41 +411,41 @@ func withUserHelper(fn handleFunc) handleFunc {
 				return getProxyUser(w, r, data, fn, proxyUser)
 			}
 			// JWT library automatically validates expiration - if expired, it returns an error
-			return http.StatusUnauthorized, fmt.Errorf("error processing token, %v", err)
+			return http.StatusUnauthorized, fmt.Errorf("invalid token: %v", err)
 		}
 		if !token.Valid {
 			return http.StatusUnauthorized, fmt.Errorf("invalid token")
 		}
-		if auth.IsRevokedApiKey(data.token) {
-			if isProxyUser {
-				return getProxyUser(w, r, data, fn, proxyUser)
-			}
-			return http.StatusUnauthorized, fmt.Errorf("token revoked")
+		if auth.IsRevokedApiToken(store.Access, data.token) {
+			return http.StatusUnauthorized, fmt.Errorf("token is expired or revoked")
 		}
 		// ExpiresAt should always be set in valid tokens created by our system
-		// If it's nil, the token is invalid
-		if tk.ExpiresAt == nil {
-			return http.StatusUnauthorized, fmt.Errorf("invalid token: missing expiration")
+		// JWT library populates RegisteredClaims.ExpiresAt
+		if tk.RegisteredClaims.ExpiresAt == nil {
+			return http.StatusUnauthorized, fmt.Errorf("token is invalid or revoked")
 		}
 		// Check if token is about to expire for renewal header
-		if tk.ExpiresAt.Unix() < time.Now().Add(time.Minute*30).Unix() {
+		if tk.RegisteredClaims.ExpiresAt.Unix() < time.Now().Add(time.Minute*30).Unix() {
 			w.Header().Add("X-Renew-Token", "true")
 		}
 		// Check if token is minimal/stateful (no BelongsTo in claim)
 		if tk.BelongsTo == 0 {
-			tk.BelongsTo, err = getUserFromApiToken(data.token)
-			if err != nil {
-				return http.StatusUnauthorized, err
+			// Hash the token and look up user ID in access storage
+			userID, found := store.Access.GetUserIDFromToken(data.token)
+			if !found {
+				return http.StatusUnauthorized, fmt.Errorf("token is invalid or revoked")
 			}
+			tk.BelongsTo = userID
 		}
 		data.user, err = store.Users.Get(tk.BelongsTo)
 		if err != nil {
 			logger.Errorf("Failed to get user with ID %v: %v", tk.BelongsTo, err)
 			return http.StatusInternalServerError, err
 		}
+
 		// Set cookie. Some clients like gvfs relies on it for concurrent uploads
-		if expire := tk.ExpiresAt; expire != nil {
-			setSessionCookie(w, r, data.token, expire.Time)
+		if tk.RegisteredClaims.ExpiresAt != nil {
+			setSessionCookie(w, r, data.token, tk.RegisteredClaims.ExpiresAt.Time)
 		}
 		setUserInResponseWriter(w, data.user)
 		if data.user.Username == "" {
@@ -447,12 +473,12 @@ func getProxyUser(w http.ResponseWriter, r *http.Request, data *requestContext, 
 	// Generate a token for proxy users if they don't have one
 	if data.token == "" {
 		expires := time.Hour * time.Duration(config.Auth.TokenExpirationHours)
-		signed, err := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false)
+		tokenString, _, err := auth.MakeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false)
 		if err != nil {
 			logger.Errorf("Failed to generate token for proxy user %s: %v", proxyUser, err)
 			return http.StatusInternalServerError, fmt.Errorf("failed to generate token")
 		}
-		data.token = signed.Key
+		data.token = tokenString
 	}
 	// Call the handler function, passing in the context (or return OK if no handler)
 	if fn == nil {

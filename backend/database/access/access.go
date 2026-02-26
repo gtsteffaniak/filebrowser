@@ -37,8 +37,10 @@ type SourceRuleMap map[string]RuleMap
 type StringSet map[string]struct{}
 
 type dbStorage struct {
-	AllRules SourceRuleMap `json:"all_rules"`
-	Groups   GroupMap      `json:"groups"`
+	AllRules      SourceRuleMap       `json:"all_rules"`
+	Groups        GroupMap            `json:"groups"`
+	RevokedTokens map[string]struct{} `json:"revoked_tokens"` // set of revoked token hashes
+	HashedTokens  map[string]uint     `json:"hashed_tokens"`  // maps token hash → user ID
 }
 
 // RuleSet groups users and groups for allow/deny lists.
@@ -72,21 +74,26 @@ type GroupMap map[string]StringSet
 
 // Storage manages access rules and group membership.
 type Storage struct {
-	mux      sync.RWMutex
-	AllRules SourceRuleMap  // AllRules[sourcePath][indexPath] - in-memory authoritative state
-	Groups   GroupMap       // key: group name, value: set of usernames - in-memory authoritative state
-	DB       *storm.DB      // Optional: DB for persistence
-	Users    *users.Storage // Reference to users storage
+	mux           sync.RWMutex
+	AllRules      SourceRuleMap       // AllRules[sourcePath][indexPath] - in-memory authoritative state
+	Groups        GroupMap            // key: group name, value: set of usernames - in-memory authoritative state
+	RevokedTokens map[string]struct{} // set of revoked token hashes - in-memory authoritative state
+	HashedTokens  map[string]uint     // maps token hash → user ID - in-memory authoritative state
+	DB            *storm.DB           // Optional: DB for persistence
+	Users         *users.Storage      // Reference to users storage
 }
 
 // SaveToDB persists all rules to the DB if DB is set.
+// IMPORTANT: Caller must hold s.mux lock (either read or write).
 func (s *Storage) SaveToDB() error {
 	if s.DB == nil {
 		return nil
 	}
 	data, err := json.Marshal(&dbStorage{
-		AllRules: s.AllRules,
-		Groups:   s.Groups,
+		AllRules:      s.AllRules,
+		Groups:        s.Groups,
+		RevokedTokens: s.RevokedTokens,
+		HashedTokens:  s.HashedTokens,
 	})
 	if err != nil {
 		return err
@@ -97,6 +104,8 @@ func (s *Storage) SaveToDB() error {
 // Flush persists the current in-memory state to the backing store.
 // Call during graceful shutdown to ensure DB matches memory.
 func (s *Storage) Flush() error {
+	s.mux.RLock()
+	defer s.mux.RUnlock()
 	return s.SaveToDB()
 }
 
@@ -123,6 +132,18 @@ func (s *Storage) LoadFromDB() error {
 	if s.Groups == nil {
 		s.Groups = make(GroupMap)
 	}
+	s.RevokedTokens = storage.RevokedTokens
+	if s.RevokedTokens == nil {
+		s.RevokedTokens = make(map[string]struct{})
+	}
+	s.HashedTokens = storage.HashedTokens
+	if s.HashedTokens == nil {
+		s.HashedTokens = make(map[string]uint)
+	}
+	s.HashedTokens = storage.HashedTokens
+	if s.HashedTokens == nil {
+		s.HashedTokens = make(map[string]uint)
+	}
 	s.mux.Unlock()
 	return nil
 }
@@ -136,10 +157,12 @@ func (s *Storage) LoadFromDB() error {
 //	if err != nil { /* handle error */ }
 func NewStorage(db *storm.DB, usersStore *users.Storage) *Storage {
 	var s = &Storage{
-		AllRules: make(SourceRuleMap),
-		Groups:   make(GroupMap),
-		DB:       db,
-		Users:    usersStore,
+		AllRules:      make(SourceRuleMap),
+		Groups:        make(GroupMap),
+		RevokedTokens: make(map[string]struct{}),
+		HashedTokens:  make(map[string]uint),
+		DB:            db,
+		Users:         usersStore,
 	}
 	return s
 }
@@ -1234,5 +1257,65 @@ func (s *Storage) UpdateRulePath(sourcePath, oldPath, newPath string) error {
 	rulesBySource[newPath] = rule
 	s.clearAllCaches()
 	logger.Debugf("access rule path updated: source=%s, fromPath=%s, toPath=%s", sourcePath, oldPath, newPath)
+	return s.SaveToDB()
+}
+
+// RevokeToken adds a token hash to the revoked list and persists to DB.
+func (s *Storage) RevokeToken(tokenHash string) error {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+
+	tokenHash = utils.HashSHA256(tokenHash)
+	s.RevokedTokens[tokenHash] = struct{}{}
+	// Also remove from HashedTokens to prevent future lookups
+	delete(s.HashedTokens, tokenHash)
+	return s.SaveToDB()
+}
+
+// IsTokenRevoked checks if a token hash is in the revoked list (memory-only read).
+func (s *Storage) IsTokenRevoked(tokenHash string) bool {
+	s.mux.RLock()
+	defer s.mux.RUnlock()
+	tokenHash = utils.HashSHA256(tokenHash)
+	_, exists := s.RevokedTokens[tokenHash]
+	return exists
+}
+
+// AddHashedToken adds a token hash to user ID mapping.
+func (s *Storage) AddApiToken(tokenString string, userID uint) error {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	tokenHash := utils.HashSHA256(tokenString)
+	s.HashedTokens[tokenHash] = userID
+	return s.SaveToDB()
+}
+
+// GetUserIDFromToken retrieves the user ID for a given token string (memory-only read).
+func (s *Storage) GetUserIDFromToken(tokenString string) (uint, bool) {
+	s.mux.RLock()
+	defer s.mux.RUnlock()
+	tokenHash := utils.HashSHA256(tokenString)
+	userID, exists := s.HashedTokens[tokenHash]
+	return userID, exists
+}
+
+// GetRevokedTokens returns a copy of all revoked token hashes.
+func (s *Storage) GetRevokedTokens() map[string]struct{} {
+	s.mux.RLock()
+	defer s.mux.RUnlock()
+	// Return a copy to prevent external modification
+	result := make(map[string]struct{}, len(s.RevokedTokens))
+	for k := range s.RevokedTokens {
+		result[k] = struct{}{}
+	}
+	return result
+}
+
+// RemoveApiToken removes a token hash mapping (used when deleting API keys).
+func (s *Storage) RemoveApiToken(tokenString string) error {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	tokenHash := utils.HashSHA256(tokenString)
+	delete(s.HashedTokens, tokenHash)
 	return s.SaveToDB()
 }

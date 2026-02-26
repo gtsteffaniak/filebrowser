@@ -8,6 +8,7 @@ import (
 	"time"
 
 	storm "github.com/asdine/storm/v3"
+	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/access"
@@ -109,7 +110,7 @@ func TestWithAdminHelper(t *testing.T) {
 			data := &requestContext{
 				user: tc.user,
 			}
-			token, err := makeSignedTokenAPI(tc.user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), time.Hour*2, tc.user.Perm, false)
+			tokenString, _, err := auth.MakeSignedTokenAPI(tc.user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), time.Hour*2, tc.user.Perm, false)
 			if err != nil {
 				t.Fatalf("Error making token for request: %v", err)
 			}
@@ -126,7 +127,7 @@ func TestWithAdminHelper(t *testing.T) {
 			}
 			req.AddCookie(&http.Cookie{
 				Name:  "filebrowser_quantum_jwt",
-				Value: token.Key,
+				Value: tokenString,
 			})
 
 			// Call the handler with the test request and mock context
