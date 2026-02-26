@@ -13,7 +13,7 @@
       </button>
       <button
         class="action copy-clipboard api-key-value-button"
-        :data-clipboard-text="info.key"
+        :data-clipboard-text="info.token"
         :aria-label="$t('api.clickToCopyKey')"
         :title="$t('api.clickToCopyKey')"
       >
@@ -27,16 +27,16 @@
       <h3 class="section-title">{{ $t('general.info') }}</h3>
       <div class="info-item">
         <span class="info-label">{{ $t('api.createdAt') }}</span>
-        <span class="info-value">{{ formatTime(info.created) }}</span>
+        <span class="info-value">{{ formatTime(info.issuedAt) }}</span>
       </div>
       <div class="info-item">
         <span class="info-label">{{ $t('api.expiresAt') }}</span>
-        <span class="info-value">{{ formatTime(info.expires) }}</span>
+        <span class="info-value">{{ formatTime(info.expiresAt) }}</span>
       </div>
     </div>
 
     <!-- Token Type or Permissions Section -->
-    <div class="api-section" v-if="info.minimal">
+    <div class="api-section" v-if="isMinimalToken">
       <p class="minimal-info">{{ $t('api.minimalInfo') }}</p>
     </div>
 
@@ -84,6 +84,12 @@ export default {
     info: {
       type: Object,
       required: true,
+    },
+  },
+  computed: {
+    isMinimalToken() {
+      // A minimal token has no Permissions object or all permissions are false
+      return !this.info.Permissions || Object.values(this.info.Permissions).every(v => !v);
     },
   },
   methods: {

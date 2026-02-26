@@ -385,18 +385,18 @@ func withUserHelper(fn handleFunc) handleFunc {
 				return getProxyUser(w, r, data, fn, proxyUser)
 			}
 			// JWT library automatically validates expiration - if expired, it returns an error
-			return http.StatusUnauthorized, fmt.Errorf("error processing token, %v", err)
+			return http.StatusUnauthorized, fmt.Errorf("invalid token: %v", err)
 		}
 		if !token.Valid {
 			return http.StatusUnauthorized, fmt.Errorf("invalid token")
 		}
 		if auth.IsRevokedApiToken(store.Access, data.token) {
-			return http.StatusUnauthorized, fmt.Errorf("token revoked")
+			return http.StatusUnauthorized, fmt.Errorf("token is expired or revoked")
 		}
 		// ExpiresAt should always be set in valid tokens created by our system
 		// JWT library populates RegisteredClaims.ExpiresAt
 		if tk.RegisteredClaims.ExpiresAt == nil {
-			return http.StatusUnauthorized, fmt.Errorf("invalid token: missing expiration")
+			return http.StatusUnauthorized, fmt.Errorf("token is invalid or revoked")
 		}
 		// Check if token is about to expire for renewal header
 		if tk.RegisteredClaims.ExpiresAt.Unix() < time.Now().Add(time.Minute*30).Unix() {
@@ -407,7 +407,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 			// Hash the token and look up user ID in access storage
 			userID, found := store.Access.GetUserIDFromToken(data.token)
 			if !found {
-				return http.StatusUnauthorized, fmt.Errorf("token not found or has been revoked")
+				return http.StatusUnauthorized, fmt.Errorf("token is invalid or revoked")
 			}
 			tk.BelongsTo = userID
 		}

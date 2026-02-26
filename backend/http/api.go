@@ -3,6 +3,7 @@ package http
 import (
 	"fmt"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -173,6 +174,11 @@ func listApiTokensHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 			Permissions: token.Permissions,
 		})
 	}
+	
+	sort.Slice(AuthTokensFrontend, func(i, j int) bool {
+		return AuthTokensFrontend[i].Name < AuthTokensFrontend[j].Name
+	})
+
 	return renderJSON(w, r, AuthTokensFrontend)
 }
 
