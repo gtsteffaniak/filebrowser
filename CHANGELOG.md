@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file. For commit 
  - login button on shares not showing (#2028)
  - removed file watcher link in context menu for shares (#2025)
  - Direct download link for single-file shares generates incorrect URL (#2026)
+ - Deleting files causes error V1.2.0 #2039
 
 ## v1.2.7-beta
 
