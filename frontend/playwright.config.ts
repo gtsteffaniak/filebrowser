@@ -41,7 +41,7 @@ export default defineConfig({
     {
       name: "dark-screenshots",
       use: {
-        ...devices["Desktop Firefox"],
+        ...devices["Desktop Chrome"],
         theme: 'dark',
       },
       testMatch: /.*screenshots.spec.ts/,
@@ -50,7 +50,7 @@ export default defineConfig({
     {
       name: "light-screenshots",
       use: {
-        ...devices["Desktop Firefox"],
+        ...devices["Desktop Chrome"],
         theme: 'light',
       },
       testMatch: /.*screenshots.spec.ts/,

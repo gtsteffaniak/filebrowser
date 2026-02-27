@@ -6,6 +6,14 @@ services:
     build:
       dockerfile: ./_docker/Dockerfile.playwright-local
       context: ../
+  local-playwright-screenshots:
+    container_name: local-playwright
+    volumes:
+      - ../frontend/generated:/app/frontend/generated
+    entrypoint: ["/bin/sh", "-c", "./filebrowser & sleep 2 && cd ../frontend && npx playwright test --project dark-screenshots && npx playwright test --project light-screenshots"]
+    build:
+      dockerfile: ./_docker/Dockerfile.playwright-local
+      context: ../
   nginx-proxy-auth:
     image: nginx
     container_name: nginx-proxy-auth

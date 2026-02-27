@@ -1,5 +1,5 @@
 <template>
-  <Teleport to="body" v-for="prompt in prompts" :key="'prompt-' + prompt.id">
+   <Teleport to="body" v-for="prompt in prompts" :key="'prompt-' + prompt.id">
     <div
       ref="promptWindow"
       class="floating-window"
@@ -608,6 +608,7 @@ export default {
 
 /* Floating window base styles */
 .floating-window {
+  border-radius: 1em;
   position: fixed;
   top: 50%;
   left: 50%;
@@ -620,9 +621,6 @@ export default {
   display: flex !important;
   flex-direction: column;
   overflow: hidden;
-  background-color: var(--surfacePrimary);
-  border-radius: 1em;
-  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
 }
 
 @keyframes show {
