@@ -4843,6 +4843,58 @@ const docTemplate = `{
                 }
             }
         },
+        "settings.JwtAuthConfig": {
+            "type": "object",
+            "properties": {
+                "adminGroup": {
+                    "description": "if set, users in this group will be granted admin privileges",
+                    "type": "string"
+                },
+                "algorithm": {
+                    "description": "JWT signing algorithm (HS256, HS384, HS512, RS256, ES256). Default is \"HS256\"",
+                    "type": "string"
+                },
+                "createUser": {
+                    "description": "deprecated: always true for supported authentication methods",
+                    "type": "boolean"
+                },
+                "disableVerifyTLS": {
+                    "description": "disable TLS verification (insecure, for testing only)",
+                    "type": "boolean"
+                },
+                "enabled": {
+                    "description": "whether to enable this authentication method.",
+                    "type": "boolean"
+                },
+                "groupsClaim": {
+                    "description": "the JSON field name to read groups from. Default is \"groups\"",
+                    "type": "string"
+                },
+                "header": {
+                    "description": "HTTP header to look for JWT token (e.g. X-JWT-Assertion). Default is \"X-JWT-Assertion\"",
+                    "type": "string"
+                },
+                "logoutRedirectUrl": {
+                    "description": "if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.",
+                    "type": "string"
+                },
+                "secret": {
+                    "description": "secret: shared secret key for verifying JWT token signatures (required)",
+                    "type": "string"
+                },
+                "userGroups": {
+                    "description": "if set, only users in these groups are allowed to log in. Blocks all other users even with valid credentials.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "userIdentifier": {
+                    "description": "the field value to use as the username. Default is \"preferred_username\" in oidc, \"sub\" in jwt. Other common values are \"email\" or \"username\", or \"phone\"",
+                    "type": "string"
+                }
+            }
+        },
         "settings.LdapConfig": {
             "type": "object",
             "properties": {
@@ -4855,7 +4907,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "createUser": {
-                    "description": "create user if not exists after successful authentication",
+                    "description": "deprecated: always true for supported authentication methods",
                     "type": "boolean"
                 },
                 "disableVerifyTLS": {
@@ -4894,7 +4946,7 @@ const docTemplate = `{
                     }
                 },
                 "userIdentifier": {
-                    "description": "the field value to use as the username. Default is \"preferred_username\", can also be \"email\" or \"username\", or \"phone\"",
+                    "description": "the field value to use as the username. Default is \"preferred_username\" in oidc, \"sub\" in jwt. Other common values are \"email\" or \"username\", or \"phone\"",
                     "type": "string"
                 },
                 "userPassword": {
@@ -4935,6 +4987,9 @@ const docTemplate = `{
         "settings.LoginMethods": {
             "type": "object",
             "properties": {
+                "jwt": {
+                    "$ref": "#/definitions/settings.JwtAuthConfig"
+                },
                 "ldap": {
                     "$ref": "#/definitions/settings.LdapConfig"
                 },
@@ -4998,7 +5053,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "createUser": {
-                    "description": "create user if not exists after successful authentication",
+                    "description": "deprecated: always true for supported authentication methods",
                     "type": "boolean"
                 },
                 "disableVerifyTLS": {
@@ -5033,7 +5088,7 @@ const docTemplate = `{
                     }
                 },
                 "userIdentifier": {
-                    "description": "the field value to use as the username. Default is \"preferred_username\", can also be \"email\" or \"username\", or \"phone\"",
+                    "description": "the field value to use as the username. Default is \"preferred_username\" in oidc, \"sub\" in jwt. Other common values are \"email\" or \"username\", or \"phone\"",
                     "type": "string"
                 }
             }
@@ -5099,7 +5154,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "createUser": {
-                    "description": "create user if not exists after successful authentication",
+                    "description": "deprecated: always true for supported authentication methods",
                     "type": "boolean"
                 },
                 "disableVerifyTLS": {
@@ -5130,7 +5185,7 @@ const docTemplate = `{
                     }
                 },
                 "userIdentifier": {
-                    "description": "the field value to use as the username. Default is \"preferred_username\", can also be \"email\" or \"username\", or \"phone\"",
+                    "description": "the field value to use as the username. Default is \"preferred_username\" in oidc, \"sub\" in jwt. Other common values are \"email\" or \"username\", or \"phone\"",
                     "type": "string"
                 }
             }
@@ -6099,13 +6154,15 @@ const docTemplate = `{
                 "password",
                 "proxy",
                 "oidc",
-                "ldap"
+                "ldap",
+                "jwt"
             ],
             "x-enum-varnames": [
                 "LoginMethodPassword",
                 "LoginMethodProxy",
                 "LoginMethodOidc",
-                "LoginMethodLdap"
+                "LoginMethodLdap",
+                "LoginMethodJwt"
             ]
         },
         "users.Permissions": {

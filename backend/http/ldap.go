@@ -227,27 +227,24 @@ func getOrCreateLdapUser(username string, groups []string) (*users.User, error) 
 		if err.Error() != "the resource does not exist" {
 			return nil, err
 		}
-		if ldapCfg.CreateUser {
-			if ldapCfg.AdminGroup == "" {
-				isAdmin = config.UserDefaults.Permissions.Admin
-			}
-			user = &users.User{
-				Username:    username,
-				LoginMethod: users.LoginMethodLdap,
-			}
-			settings.ApplyUserDefaults(user)
-			if isAdmin {
-				user.Permissions.Admin = true
-			}
-			if err = storage.CreateUser(*user, user.Permissions); err != nil {
-				return nil, err
-			}
-			user, err = store.Users.Get(username)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			return nil, fmt.Errorf("user %s does not exist and createUser is disabled", username)
+		// Auto-create user on first LDAP authentication
+		if ldapCfg.AdminGroup == "" {
+			isAdmin = config.UserDefaults.Permissions.Admin
+		}
+		user = &users.User{
+			Username:    username,
+			LoginMethod: users.LoginMethodLdap,
+		}
+		settings.ApplyUserDefaults(user)
+		if isAdmin {
+			user.Permissions.Admin = true
+		}
+		if err = storage.CreateUser(*user, user.Permissions); err != nil {
+			return nil, err
+		}
+		user, err = store.Users.Get(username)
+		if err != nil {
+			return nil, err
 		}
 	} else {
 		if user.LoginMethod != users.LoginMethodLdap {

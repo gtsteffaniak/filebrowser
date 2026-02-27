@@ -158,6 +158,7 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		logger.Errorf("failed to exchange token: %v", err)
 		return http.StatusInternalServerError, fmt.Errorf("failed to exchange token: %v", err)
 	}
+	fmt.Println("token", token)
 
 	rawIDToken, ok := token.Extra("id_token").(string)
 	// accessToken := token.AccessToken // Access token is needed for UserInfo, already in 'token'
@@ -276,28 +277,25 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 		if err.Error() != "the resource does not exist" {
 			return http.StatusInternalServerError, err
 		}
-		if oidcCfg.CreateUser {
-			if oidcCfg.AdminGroup == "" {
-				isAdmin = config.UserDefaults.Permissions.Admin
-			}
-			user = &users.User{
-				Username:    username,
-				LoginMethod: users.LoginMethodOidc,
-			}
-			settings.ApplyUserDefaults(user)
-			if isAdmin {
-				user.Permissions.Admin = true
-			}
-			err = storage.CreateUser(*user, user.Permissions)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-			user, err = store.Users.Get(username)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-		} else {
-			return http.StatusForbidden, fmt.Errorf("user %s does not exist and createUser is disabled. Your admin needs to create your user before you can access this application", username)
+		// Auto-create user on first OIDC authentication
+		if oidcCfg.AdminGroup == "" {
+			isAdmin = config.UserDefaults.Permissions.Admin
+		}
+		user = &users.User{
+			Username:    username,
+			LoginMethod: users.LoginMethodOidc,
+		}
+		settings.ApplyUserDefaults(user)
+		if isAdmin {
+			user.Permissions.Admin = true
+		}
+		err = storage.CreateUser(*user, user.Permissions)
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
+		user, err = store.Users.Get(username)
+		if err != nil {
+			return http.StatusInternalServerError, err
 		}
 	} else {
 		// update user admin perms

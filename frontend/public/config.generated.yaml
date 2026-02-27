@@ -20,8 +20,8 @@ server:
       utc: false                          # use UTC time in the output instead of local time
   database: "database.db"                 # path to the database file
   sources:                                #  validate:required,dive
-    - path: "."                           # file system path. (Can be relative)  validate:required
-      name: "backend"                     # display name
+    - path: "/relative/or/absolute/path"  # file system path. (Can be relative)  validate:required
+      name: "Source Name"                 # display name
       config:
         denyByDefault: false              # deny access unless an "allow" access rule was specifically created.
         private: false                    # designate as source as private -- currently just means no sharing permitted.
@@ -63,15 +63,13 @@ auth:
   tokenExpirationHours: 2                 # time in hours each web UI session token is valid for. Default is 2 hours.
   methods:
     proxy:                                #  validate:omitempty
-      '':
-        enabled: false                    # whether to enable this authentication method.
-        createUser: false                 # create user if not exists after successful authentication
-        adminGroup: ""                    # if set, users in this group will be granted admin privileges
-        userGroups:                       # if set, only users in these groups are allowed to log in. Blocks all other users even with valid credentials.
-        groupsClaim: ""                   # the JSON field name to read groups from. Default is "groups"
-        userIdentifier: ""                # the field value to use as the username. Default is "preferred_username", can also be "email" or "username", or "phone"
-        disableVerifyTLS: false           # disable TLS verification (insecure, for testing only)
-        logoutRedirectUrl: ""             # if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.
+      enabled: false                      # whether to enable this authentication method.
+      adminGroup: ""                      # if set, users in this group will be granted admin privileges
+      userGroups:                         # if set, only users in these groups are allowed to log in. Blocks all other users even with valid credentials.
+      groupsClaim: ""                     # the JSON field name to read groups from. Default is "groups"
+      userIdentifier: ""                  # the field value to use as the username. Default is "preferred_username" in oidc, "sub" in jwt. Other common values are "email" or "username", or "phone"
+      disableVerifyTLS: false             # disable TLS verification (insecure, for testing only)
+      logoutRedirectUrl: ""               # if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.
       header: ""                          # required header to use for authentication. Security Warning: FileBrowser blindly accepts the header value as username.
     noauth: false                         # if set to true, overrides all other auth methods and disables authentication
     password:                             #  validate:omitempty
@@ -84,34 +82,41 @@ auth:
         secret: ""                        #  validate:required
       enforcedOtp: false                  # if set to true, TOTP is enforced for all password users users. Otherwise, users can choose to enable TOTP.
     oidc:                                 #  validate:omitempty
-      '':
-        enabled: false                    # whether to enable this authentication method.
-        createUser: false                 # create user if not exists after successful authentication
-        adminGroup: ""                    # if set, users in this group will be granted admin privileges
-        userGroups:                       # if set, only users in these groups are allowed to log in. Blocks all other users even with valid credentials.
-        groupsClaim: "groups"             # the JSON field name to read groups from. Default is "groups"
-        userIdentifier: "preferred_username" # the field value to use as the username. Default is "preferred_username", can also be "email" or "username", or "phone"
-        disableVerifyTLS: false           # disable TLS verification (insecure, for testing only)
-        logoutRedirectUrl: ""             # if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.
+      enabled: false                      # whether to enable this authentication method.
+      adminGroup: ""                      # if set, users in this group will be granted admin privileges
+      userGroups:                         # if set, only users in these groups are allowed to log in. Blocks all other users even with valid credentials.
+      groupsClaim: "groups"               # the JSON field name to read groups from. Default is "groups"
+      userIdentifier: "preferred_username" # the field value to use as the username. Default is "preferred_username" in oidc, "sub" in jwt. Other common values are "email" or "username", or "phone"
+      disableVerifyTLS: false             # disable TLS verification (insecure, for testing only)
+      logoutRedirectUrl: ""               # if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.
       clientId: ""                        # secret: client id of the OIDC application
       clientSecret: ""                    # secret: client secret of the OIDC application
       issuerUrl: ""                       # authorization URL of the OIDC provider
       scopes: "openid email profile"      # scopes to request from the OIDC provider
     ldap:                                 #  validate:omitempty
-      '':
-        enabled: false                    # whether to enable this authentication method.
-        createUser: false                 # create user if not exists after successful authentication
-        adminGroup: ""                    # if set, users in this group will be granted admin privileges
-        userGroups:                       # if set, only users in these groups are allowed to log in. Blocks all other users even with valid credentials.
-        groupsClaim: ""                   # the JSON field name to read groups from. Default is "groups"
-        userIdentifier: ""                # the field value to use as the username. Default is "preferred_username", can also be "email" or "username", or "phone"
-        disableVerifyTLS: false           # disable TLS verification (insecure, for testing only)
-        logoutRedirectUrl: ""             # if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.
+      enabled: false                      # whether to enable this authentication method.
+      adminGroup: ""                      # if set, users in this group will be granted admin privileges
+      userGroups:                         # if set, only users in these groups are allowed to log in. Blocks all other users even with valid credentials.
+      groupsClaim: ""                     # the JSON field name to read groups from. Default is "groups"
+      userIdentifier: ""                  # the field value to use as the username. Default is "preferred_username" in oidc, "sub" in jwt. Other common values are "email" or "username", or "phone"
+      disableVerifyTLS: false             # disable TLS verification (insecure, for testing only)
+      logoutRedirectUrl: ""               # if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.
       server: ""                          # scheme://host:port of the LDAP server (e.g. ldap://localhost:389)
       baseDN: ""                          # LDAP search base DN (e.g. dc=ldap,dc=goauthentik,dc=io)
       userDN: ""                          # Bind DN for service account (e.g. cn=admin,ou=users,dc=ldap,dc=goauthentik,dc=io)
       userPassword: ""                    # Bind password for service account
       userFilter: ""                      # Search filter for finding user by username. Default (&(cn=%s)(objectClass=user)); override e.g. (email=%s) or (sAMAccountName=%s) for other directories.
+    jwt:                                  #  validate:omitempty
+      enabled: false                      # whether to enable this authentication method.
+      adminGroup: ""                      # if set, users in this group will be granted admin privileges
+      userGroups:                         # if set, only users in these groups are allowed to log in. Blocks all other users even with valid credentials.
+      groupsClaim: ""                     # the JSON field name to read groups from. Default is "groups"
+      userIdentifier: ""                  # the field value to use as the username. Default is "preferred_username" in oidc, "sub" in jwt. Other common values are "email" or "username", or "phone"
+      disableVerifyTLS: false             # disable TLS verification (insecure, for testing only)
+      logoutRedirectUrl: ""               # if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.
+      header: ""                          # HTTP header to look for JWT token (e.g. X-JWT-Assertion). Default is "X-JWT-Assertion"
+      secret: ""                          # secret: shared secret key for verifying JWT token signatures (required)
+      algorithm: ""                       # JWT signing algorithm (HS256, HS384, HS512, RS256, ES256). Default is "HS256"
   key: ""                                 # secret: the key used to sign the JWT tokens. If not set, a random key will be generated.
   adminUsername: "admin"                  # secret: the username of the admin user. If not set, the default is "admin".
   adminPassword: "admin"                  # secret: the password of the admin user. If not set, the default is "admin".

@@ -84,6 +84,8 @@ jobs:
             dockerfile: ./_docker/Dockerfile.playwright-screenshots
           - name: previews
             dockerfile: ./_docker/Dockerfile.playwright-previews
+          - name: jwt
+            dockerfile: ./_docker/Dockerfile.playwright-jwt
     steps:
       - name: Checkout
         uses: actions/checkout@v4

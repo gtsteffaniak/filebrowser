@@ -108,6 +108,7 @@ test-frontend:
 
 test-playwright: build-frontend
 	cd backend && GOOS=linux go build -o filebrowser .
+	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-jwt .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-proxy .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-general .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-previews .
@@ -119,7 +120,10 @@ test-playwright: build-frontend
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-screenshots .
 
 run-proxy: build-frontend
-	cd _docker && docker compose up -d --build
+	cd _docker && docker compose up -d --build nginx-proxy-auth filebrowser
+
+run-jwt: build-frontend
+	cd _docker && docker compose up -d --build nginx-proxy-jwt filebrowser-jwt
 
 # once local playwright server is running, you can also watch the tests interactively with:
 # cd frontend && npx playwright test --project dark-screenshots --ui
