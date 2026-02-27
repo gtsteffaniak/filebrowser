@@ -23,6 +23,9 @@ test("profile settings", async ({ page, checkForErrors, context, theme }) => {
   if (theme === 'light') {
     return;
   }
+  await page.locator('div[aria-label="thumbnailOptions"]').click();
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: `./generated/settings/profile-thumbnail-options-${theme}.jpg`, quality: jpgQuality });
   await page.locator('div[aria-label="sidebarOptions"]').click();
   await page.waitForTimeout(300);
   await page.screenshot({ path: `./generated/settings/profile-sidebar-options-${theme}.jpg`, quality: jpgQuality });
