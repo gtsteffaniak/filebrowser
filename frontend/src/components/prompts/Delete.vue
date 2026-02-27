@@ -65,6 +65,7 @@ import { getTypeInfo } from "@/utils/mimetype";
 import ListingItem from "@/components/files/ListingItem.vue";
 import { eventBus } from "@/store/eventBus";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import url from "@/utils/url";
 
 export default {
   name: "delete",
@@ -239,7 +240,7 @@ export default {
         const failedCount = response.failed ? response.failed.length : 0;
 
         if (failedCount === 0) {
-          // All succeeded - close prompt and reload
+          // All succeeded - close prompt and handle navigation
           buttons.success("delete");
           notify.showSuccessToast(this.$t('prompts.deleted'));
 
@@ -254,7 +255,27 @@ export default {
           if (!this.items) {
             mutations.resetSelected();
           }
-          mutations.setReload(true);
+          
+          // Smart navigation: if in preview mode with single item deletion, navigate intelligently
+          if (getters.isPreviewView() && this.itemsToDelete.length === 1) {
+            // Try next, then previous, then parent directory
+            if (state.navigation.nextItem) {
+              // Use goToItem with undefined to use router.replace (no history entry)
+              url.goToItem(state.navigation.nextItem.source, state.navigation.nextItem.path, undefined);
+            } else if (state.navigation.previousItem) {
+              // Use goToItem with undefined to use router.replace (no history entry)
+              url.goToItem(state.navigation.previousItem.source, state.navigation.previousItem.path, undefined);
+            } else {
+              // Navigate to parent directory of deleted item
+              const deletedItemPath = this.itemsToDelete[0].path;
+              const parentPath = url.removeLastDir(deletedItemPath);
+              const deletedItemSource = this.itemsToDelete[0].source;
+              url.goToItem(deletedItemSource, parentPath, {});
+            }
+          } else {
+            // For listing view or multiple deletions, just reload
+            mutations.setReload(true);
+          }
         } else if (succeededCount > 0) {
           // Partial success - keep prompt open to show errors
           buttons.done("delete");

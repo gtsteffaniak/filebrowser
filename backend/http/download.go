@@ -125,7 +125,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to download")
 	}
 
-	if len(fileList) == 0 {
+	if len(fileList) == 0 && d.share == nil {
 		return http.StatusBadRequest, fmt.Errorf("no files specified")
 	}
 

@@ -97,7 +97,7 @@ export default {
     },
     hasCreateOptions() {
       if (getters.isShare()) {
-        return state.shareInfo?.allowCreate
+        return state.shareInfo?.allowCreate == true
       }
       return state.user?.permissions?.create || state.user?.permissions?.share || state.user?.permissions?.admin;
     },
@@ -128,7 +128,7 @@ export default {
     shouldShowLogin() {
       if (getters.isShare()) {
         // Don't show login until shareInfo is fully loaded
-        if (state.shareInfo && state.shareInfo.disableLoginOption == undefined) {
+        if (state.shareInfo && state.shareInfo?.disableLoginOption) {
           return false;
         }
       }

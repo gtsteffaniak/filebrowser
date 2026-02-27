@@ -59,6 +59,15 @@ Note: a potentially breaking change for docker users: \the default user is now "
  **BugFixes**:
  - Long folder names get cut off at top navigation bar (#1934)
 
+## v1.2.1-stable
+
+ **BugFixes**:
+ - startup icon generation order issue (#2019)
+ - login button on shares not showing (#2028)
+ - removed file watcher link in context menu for shares (#2025)
+ - Direct download link for single-file shares generates incorrect URL (#2026)
+ - Deleting files causes error V1.2.0 #2039
+
 ## v1.2.7-beta
 
  **BugFixes**:

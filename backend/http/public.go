@@ -78,7 +78,7 @@ func publicDownloadHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	// Get all "file" parameter values (supports repeated params)
 	files := r.URL.Query()["file"]
 	if len(files) == 0 {
-		return http.StatusBadRequest, fmt.Errorf("no files specified")
+		files = []string{"/"}
 	}
 
 	// Get the actual source name from the share's source mapping

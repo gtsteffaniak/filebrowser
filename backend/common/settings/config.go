@@ -279,8 +279,6 @@ func setupFrontend(generate bool) {
 	}
 	// Load custom favicon if configured
 	loadCustomFavicon()
-	// Generate PWA icons from custom favicon if needed
-	generatePWAIcons()
 }
 
 func setupMedia(generate bool) {
@@ -818,23 +816,6 @@ func loadCustomFavicon() {
 	Env.FaviconPath = validatedPath
 	Env.FaviconIsCustom = true
 	logger.Infof("Using custom favicon: %s", Env.FaviconPath)
-}
-
-// generatePWAIcons sets up PWA icon paths (actual generation happens after preview service starts)
-func generatePWAIcons() {
-	// Set PWA icons directory in cache
-	Env.PWAIconsDir = filepath.Join(Config.Server.CacheDir, "icons")
-
-	// Initialize with default paths (all icons will be generated)
-	Env.PWAIcon192 = "pwa-icon-192.png"
-	Env.PWAIcon256 = "pwa-icon-256.png"
-	Env.PWAIcon512 = "pwa-icon-512.png"
-
-	// Create icons directory with configured permissions
-	// Note: Parent cache directory should already exist from testCacheDirSpeed()
-	if err := os.MkdirAll(Env.PWAIconsDir, fileutils.PermDir); err != nil {
-		logger.Warningf("Failed to create PWA icons directory %s: %v", Env.PWAIconsDir, err)
-	}
 }
 
 func loadLoginIcon() {
