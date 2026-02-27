@@ -391,6 +391,20 @@ func withUserHelper(fn handleFunc) handleFunc {
 			}
 			return fn(w, r, data)
 		}
+		
+		// Check for JWT external auth first (header or query param)
+		if config.Auth.Methods.JwtAuth.Enabled {
+			jwtToken := r.Header.Get(config.Auth.Methods.JwtAuth.Header)
+			if jwtToken == "" {
+				// Check query parameter (hardcoded to "jwt")
+				jwtToken = r.URL.Query().Get("jwt")
+			}
+			
+			if jwtToken != "" {
+				return getJwtUser(w, r, data, fn, jwtToken)
+			}
+		}
+		
 		proxyUser := r.Header.Get(config.Auth.Methods.ProxyAuth.Header)
 		isProxyUser := config.Auth.Methods.ProxyAuth.Enabled && proxyUser != ""
 		keyFunc := func(token *jwt.Token) (interface{}, error) {
@@ -457,6 +471,48 @@ func withUserHelper(fn handleFunc) handleFunc {
 		}
 		return fn(w, r, data)
 	}
+}
+
+func getJwtUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn handleFunc, jwtToken string) (int, error) {
+	// Verify the external JWT token
+	username, claims, err := auth.VerifyExternalJWT(
+		jwtToken,
+		config.Auth.Methods.JwtAuth.Secret,
+		config.Auth.Methods.JwtAuth.Algorithm,
+		config.Auth.Methods.JwtAuth.UserIdentifier,
+	)
+	if err != nil {
+		logger.Debugf("JWT verification failed: %v", err)
+		return http.StatusForbidden, fmt.Errorf("JWT authentication failed: %w", err)
+	}
+	
+	// Setup user based on JWT claims
+	user, err := setupJwtUser(r, data, username, claims)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	data.user = user
+	setUserInResponseWriter(w, data.user)
+	if data.user.Username == "" {
+		return http.StatusForbidden, errors.ErrUnauthorized
+	}
+	
+	// Generate a FileBrowser session token for JWT users if they don't have one
+	if data.token == "" {
+		expires := time.Hour * time.Duration(config.Auth.TokenExpirationHours)
+		tokenString, _, err := auth.MakeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false)
+		if err != nil {
+			logger.Errorf("Failed to generate token for JWT user %s: %v", username, err)
+			return http.StatusInternalServerError, fmt.Errorf("failed to generate token")
+		}
+		data.token = tokenString
+	}
+	
+	// Call the handler function, passing in the context (or return OK if no handler)
+	if fn == nil {
+		return http.StatusOK, nil
+	}
+	return fn(w, r, data)
 }
 
 func getProxyUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn handleFunc, proxyUser string) (int, error) {

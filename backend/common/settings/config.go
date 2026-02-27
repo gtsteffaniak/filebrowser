@@ -352,11 +352,7 @@ func setupSources(generate bool) {
 			if name == "\\" {
 				name = strings.Split(realPath, ":")[0]
 			}
-			if generate {
-				source.Path = generatorPath // use placeholder path
-			} else {
-				source.Path = realPath // use absolute path
-			}
+			source.Path = realPath // use absolute path
 			if source.Name == "" {
 				_, ok := Config.Server.SourceMap[source.Path]
 				if ok {
@@ -364,6 +360,10 @@ func setupSources(generate bool) {
 				} else {
 					source.Name = name
 				}
+			}
+			if generate {
+				source.Path = generatorPath // use placeholder path
+				source.Name = "Source Name"
 			}
 			modifyExcludeInclude(source)
 			setConditionals(source)
@@ -455,6 +455,14 @@ func setupAuth(generate bool) {
 			logger.Fatalf("Error validating LDAP auth: %v", err)
 		}
 		logger.Info("LDAP Auth configured successfully")
+	}
+	if Config.Auth.Methods.JwtAuth.Enabled || generate {
+		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "jwt")
+		err := ValidateJwtAuth()
+		if err != nil && !generate {
+			logger.Fatalf("Error validating JWT auth: %v", err)
+		}
+		logger.Info("JWT Auth configured successfully")
 	}
 
 	// use password auth as default if no auth methods are set

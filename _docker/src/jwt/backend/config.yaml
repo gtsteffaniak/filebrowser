@@ -1,0 +1,55 @@
+server:
+  port: 80
+  baseURL: "/"
+  logging:
+    - levels: "info|warning|error"
+  sources:
+    - path: "/srv"
+
+# JWT External Authentication Example Configuration
+# This configuration demonstrates how to enable JWT token authentication
+# for accepting externally-signed JWT tokens (similar to Grafana's JWT auth)
+auth:
+  tokenExpirationHours: 2
+  methods:
+    jwt:
+      enabled: true
+      # Header to check for JWT token (default: X-JWT-Assertion)
+      header: "X-JWT-Assertion"
+      # Note: Query parameter is hardcoded to "jwt" (?jwt=<token>)
+      
+      # REQUIRED: Shared secret for verifying JWT signatures
+      # This must match the secret used to sign the external JWT tokens
+      secret: "your-shared-secret-key-here"
+      
+      # JWT signing algorithm (default: HS256)
+      # Supported: HS256, HS384, HS512, RS256, RS384, RS512, ES256, ES384, ES512
+      algorithm: "HS256"
+      
+      # Claim field to use as username (default: "sub")
+      # The JWT token must contain this field
+      userIdentifier: "sub"
+      
+      # Claim field to read groups from (default: "groups")
+      groupsClaim: "groups"
+      
+      # Admin group name - users in this group get admin privileges
+      adminGroup: "admin"
+      
+      # Allowed user groups - if set, only users in these groups can log in
+      # Leave empty to allow all users with valid JWT tokens
+      userGroups: []
+      
+      # Redirect URL after logout (optional)
+      logoutRedirectUrl: ""
+
+userDefaults:
+  permissions:
+    api: false
+    admin: false
+    modify: true
+    share: true
+    realtime: true
+    delete: true
+    create: true
+    download: true

@@ -561,6 +561,130 @@ func buildNodeWithDefaults(v reflect.Value, comm CommentsMap, defaults reflect.V
 
 			currentField := v.Field(i)
 
+			// Check if this is an inline/embedded field
+			yamlTag := sf.Tag.Get("yaml")
+			jsonTag := sf.Tag.Get("json")
+			isInline := strings.Contains(yamlTag, ",inline") || strings.Contains(jsonTag, ",inline") || sf.Anonymous
+
+			// If field is inline, merge its content directly into parent
+			if isInline && sf.Type.Kind() == reflect.Struct {
+				// Get the embedded struct's fields and add them directly to this level
+				embeddedType := sf.Type
+				embeddedValue := currentField
+				embeddedTypeName := embeddedType.Name()
+
+				for j := 0; j < embeddedType.NumField(); j++ {
+					embeddedField := embeddedType.Field(j)
+
+					// Skip unexported fields
+					if embeddedField.PkgPath != "" {
+						continue
+					}
+					if embeddedYamlTag := embeddedField.Tag.Get("yaml"); embeddedYamlTag == "-" {
+						continue
+					}
+					if embeddedJsonTag := embeddedField.Tag.Get("json"); embeddedJsonTag == "-" {
+						continue
+					}
+
+					// Skip deprecated fields
+					if len(deprecated) > 0 && deprecated[embeddedTypeName][embeddedField.Name] {
+						continue
+					}
+
+					embeddedFieldValue := embeddedValue.Field(j)
+
+					// If we have defaults, compare and skip if values match
+					if defaults.IsValid() && i < defaults.NumField() {
+						defaultInlineField := defaults.Field(i)
+						if defaultInlineField.Kind() == reflect.Struct && j < defaultInlineField.NumField() {
+							defaultEmbeddedField := defaultInlineField.Field(j)
+							embeddedCurrentValue := embeddedFieldValue.Interface()
+							embeddedDefaultValue := defaultEmbeddedField.Interface()
+
+							if reflect.DeepEqual(embeddedCurrentValue, embeddedDefaultValue) {
+								continue
+							}
+						}
+					}
+
+					// Determine key name for embedded field
+					embeddedYamlTag := embeddedField.Tag.Get("yaml")
+					embeddedJsonTag := embeddedField.Tag.Get("json")
+					var embeddedKeyName string
+					if embeddedYamlTag != "" && embeddedYamlTag != "-" {
+						embeddedKeyName = strings.Split(embeddedYamlTag, ",")[0]
+					} else if embeddedJsonTag != "" && embeddedJsonTag != "-" {
+						embeddedKeyName = strings.Split(embeddedJsonTag, ",")[0]
+					} else {
+						embeddedKeyName = embeddedField.Name
+					}
+
+					keyNode := &yaml.Node{Kind: yaml.ScalarNode, Value: embeddedKeyName}
+
+					// Attach comments for embedded field
+					var parts []string
+					var comment string
+					if cm := comm[embeddedTypeName][embeddedField.Name]; cm != "" {
+						comment = cm
+					}
+
+					if comment != "" {
+						parts = append(parts, comment)
+					}
+					if len(comm) > 0 {
+						if vt := embeddedField.Tag.Get("validate"); vt != "" {
+							parts = append(parts, fmt.Sprintf(" validate:%s", vt))
+						}
+					}
+
+					if len(parts) > 0 {
+						keyNode.LineComment = strings.Join(parts, " ")
+					}
+
+					// Build value node for embedded field
+					var valNode *yaml.Node
+					var err error
+					generateConfig := os.Getenv("FILEBROWSER_GENERATE_CONFIG") == "true"
+					if secrets[embeddedTypeName][embeddedField.Name] && !generateConfig {
+						fieldValue := embeddedFieldValue.Interface()
+						if str, ok := fieldValue.(string); ok && str == "" {
+							valNode = &yaml.Node{
+								Kind:  yaml.ScalarNode,
+								Tag:   "!!str",
+								Value: "",
+								Style: yaml.DoubleQuotedStyle,
+							}
+						} else {
+							valNode = &yaml.Node{
+								Kind:  yaml.ScalarNode,
+								Tag:   "!!str",
+								Value: "**hidden**",
+								Style: yaml.DoubleQuotedStyle,
+							}
+						}
+					} else {
+						var defaultEmbeddedField reflect.Value
+						if defaults.IsValid() && i < defaults.NumField() {
+							defaultInlineField := defaults.Field(i)
+							if defaultInlineField.Kind() == reflect.Struct && j < defaultInlineField.NumField() {
+								defaultEmbeddedField = defaultInlineField.Field(j)
+							}
+						}
+
+						valNode, err = buildNodeWithDefaults(embeddedFieldValue, comm, defaultEmbeddedField, secrets, deprecated)
+						if err != nil {
+							return nil, err
+						}
+					}
+
+					mapNode.Content = append(mapNode.Content, keyNode, valNode)
+				}
+
+				// Skip adding the embedded struct itself as a field
+				continue
+			}
+
 			// If we have defaults, compare and skip if values match
 			if defaults.IsValid() && i < defaults.NumField() {
 				defaultField := defaults.Field(i)
@@ -575,8 +699,6 @@ func buildNodeWithDefaults(v reflect.Value, comm CommentsMap, defaults reflect.V
 			}
 
 			// determine key: yaml tag > json tag > field name
-			yamlTag := sf.Tag.Get("yaml")
-			jsonTag := sf.Tag.Get("json")
 			var keyName string
 			if yamlTag != "" && yamlTag != "-" {
 				keyName = strings.Split(yamlTag, ",")[0]
@@ -755,24 +877,10 @@ func GenerateYaml() {
 	setupLogging()
 	setupFs()
 	setupAuth(true)
-
-	// Save original paths before setupSources modifies them (for YAML generation)
-	originalPaths := make(map[*Source]string)
-	for _, source := range Config.Server.Sources {
-		originalPaths[source] = source.Path
-	}
-
 	setupSources(true)
 	setupUrls()
 	setupMedia(true)
 	setupFrontend(true)
-
-	// Restore original paths so the YAML output has the correct paths, not the placeholder
-	for _, source := range Config.Server.Sources {
-		if originalPath, ok := originalPaths[source]; ok {
-			source.Path = originalPath
-		}
-	}
 
 	output := "../frontend/public/config.generated.yaml" // "output YAML file"
 

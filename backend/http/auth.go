@@ -86,25 +86,22 @@ func setupProxyUser(r *http.Request, data *requestContext, proxyUser string) (*u
 		if err.Error() != "the resource does not exist" {
 			return nil, err
 		}
-		if config.Auth.Methods.ProxyAuth.CreateUser {
-			user := users.User{
-				LoginMethod: users.LoginMethodProxy,
-				Username:    proxyUser,
-			}
-			settings.ApplyUserDefaults(&user)
-			if user.Username == config.Auth.AdminUsername {
-				user.Permissions.Admin = true
-			}
-			err = storage.CreateUser(user, user.Permissions)
-			if err != nil {
-				return nil, err
-			}
-			data.user, err = store.Users.Get(proxyUser)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			return nil, fmt.Errorf("proxy authentication failed - no user found")
+		// Auto-create user on first proxy authentication
+		user := users.User{
+			LoginMethod: users.LoginMethodProxy,
+			Username:    proxyUser,
+		}
+		settings.ApplyUserDefaults(&user)
+		if user.Username == config.Auth.AdminUsername {
+			user.Permissions.Admin = true
+		}
+		err = storage.CreateUser(user, user.Permissions)
+		if err != nil {
+			return nil, err
+		}
+		data.user, err = store.Users.Get(proxyUser)
+		if err != nil {
+			return nil, err
 		}
 	}
 	if data.user.LoginMethod != users.LoginMethodProxy {
@@ -117,6 +114,99 @@ func setupProxyUser(r *http.Request, data *requestContext, proxyUser string) (*u
 			return nil, err
 		}
 	}
+	return data.user, nil
+}
+
+// setupJwtUser retrieves or creates a user based on external JWT token claims
+func setupJwtUser(r *http.Request, data *requestContext, username string, claims map[string]interface{}) (*users.User, error) {
+	var err error
+	// Retrieve the user from the store
+	data.user, err = store.Users.Get(username)
+	if err != nil {
+		if err.Error() != "the resource does not exist" {
+			return nil, err
+		}
+		// Auto-create user on first JWT authentication
+		user := users.User{
+			LoginMethod: users.LoginMethodJwt,
+			Username:    username,
+		}
+		settings.ApplyUserDefaults(&user)
+		
+		// Check if user should be admin based on groups
+		if config.Auth.Methods.JwtAuth.AdminGroup != "" {
+			groups := auth.ExtractGroupsFromClaims(claims, config.Auth.Methods.JwtAuth.GroupsClaim)
+			for _, group := range groups {
+				if group == config.Auth.Methods.JwtAuth.AdminGroup {
+					user.Permissions.Admin = true
+					break
+				}
+			}
+		}
+		
+		// Also check if username matches admin username
+		if user.Username == config.Auth.AdminUsername {
+			user.Permissions.Admin = true
+		}
+		
+		err = storage.CreateUser(user, user.Permissions)
+		if err != nil {
+			return nil, err
+		}
+		data.user, err = store.Users.Get(username)
+		if err != nil {
+			return nil, err
+		}
+	}
+	
+	// Verify login method matches
+	if data.user.LoginMethod != users.LoginMethodJwt {
+		return nil, errors.ErrWrongLoginMethod
+	}
+	
+	// Check if user is in allowed groups (if UserGroups is configured)
+	if len(config.Auth.Methods.JwtAuth.UserGroups) > 0 {
+		groups := auth.ExtractGroupsFromClaims(claims, config.Auth.Methods.JwtAuth.GroupsClaim)
+		allowed := false
+		for _, userGroup := range groups {
+			for _, allowedGroup := range config.Auth.Methods.JwtAuth.UserGroups {
+				if userGroup == allowedGroup {
+					allowed = true
+					break
+				}
+			}
+			if allowed {
+				break
+			}
+		}
+		if !allowed {
+			return nil, fmt.Errorf("user is not in allowed groups")
+		}
+	}
+	
+	// Update admin status if needed
+	shouldBeAdmin := false
+	if config.Auth.Methods.JwtAuth.AdminGroup != "" {
+		groups := auth.ExtractGroupsFromClaims(claims, config.Auth.Methods.JwtAuth.GroupsClaim)
+		for _, group := range groups {
+			if group == config.Auth.Methods.JwtAuth.AdminGroup {
+				shouldBeAdmin = true
+				break
+			}
+		}
+	}
+	if data.user.Username == config.Auth.AdminUsername {
+		shouldBeAdmin = true
+	}
+	
+	if shouldBeAdmin != data.user.Permissions.Admin {
+		data.user.Permissions.Admin = shouldBeAdmin
+		err = store.Users.Update(data.user, true, "Permissions")
+		if err != nil {
+			return nil, err
+		}
+	}
+	
 	return data.user, nil
 }
 
@@ -189,6 +279,11 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		ldapRedirectUrl := config.Auth.Methods.LdapAuth.LogoutRedirectUrl
 		if ldapRedirectUrl != "" {
 			logoutUrl = ldapRedirectUrl
+		}
+	} else if d.user != nil && d.user.LoginMethod == users.LoginMethodJwt {
+		jwtRedirectUrl := config.Auth.Methods.JwtAuth.LogoutRedirectUrl
+		if jwtRedirectUrl != "" {
+			logoutUrl = jwtRedirectUrl
 		}
 	}
 	if logoutUrl == "" {

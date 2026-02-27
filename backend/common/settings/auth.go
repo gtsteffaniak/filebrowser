@@ -35,13 +35,13 @@ func (t *userAgentTransport) RoundTrip(req *http.Request) (*http.Response, error
 // AuthCommon contains fields shared across multiple authentication methods
 type AuthCommon struct {
 	Enabled           bool     `json:"enabled"`           // whether to enable this authentication method.
-	CreateUser        bool     `json:"createUser"`        // create user if not exists after successful authentication
 	AdminGroup        string   `json:"adminGroup"`        // if set, users in this group will be granted admin privileges
 	UserGroups        []string `json:"userGroups"`        // if set, only users in these groups are allowed to log in. Blocks all other users even with valid credentials.
 	GroupsClaim       string   `json:"groupsClaim"`       // the JSON field name to read groups from. Default is "groups"
 	UserIdentifier    string   `json:"userIdentifier"`    // the field value to use as the username. Default is "preferred_username", can also be "email" or "username", or "phone"
 	DisableVerifyTLS  bool     `json:"disableVerifyTLS"`  // disable TLS verification (insecure, for testing only)
 	LogoutRedirectUrl string   `json:"logoutRedirectUrl"` // if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.
+	CreateUser        bool     `json:"createUser"`        // deprecated: always true for supported authentication methods
 }
 
 type Auth struct {
@@ -60,6 +60,7 @@ type LoginMethods struct {
 	PasswordAuth PasswordAuthConfig `json:"password" validate:"omitempty"`
 	OidcAuth     OidcConfig         `json:"oidc" validate:"omitempty"`
 	LdapAuth     LdapConfig         `json:"ldap" validate:"omitempty"`
+	JwtAuth      JwtAuthConfig      `json:"jwt" validate:"omitempty"`
 }
 
 type PasswordAuthConfig struct {
@@ -102,6 +103,16 @@ type LdapConfig struct {
 	Port         int    `json:"-"`            // derived from server
 	Scheme       string `json:"-"`            // derived from server
 	Host         string `json:"-"`            // derived from server
+}
+
+// JwtAuthConfig configures external JWT token authentication
+// Similar to Grafana's JWT auth: accepts external JWT tokens signed with a shared secret
+// The query parameter is hardcoded to "jwt" (e.g. ?jwt=<token>)
+type JwtAuthConfig struct {
+	AuthCommon `json:",inline"`
+	Header     string `json:"header"`    // HTTP header to look for JWT token (e.g. X-JWT-Assertion). Default is "X-JWT-Assertion"
+	Secret     string `json:"secret"`    // secret: shared secret key for verifying JWT token signatures (required)
+	Algorithm  string `json:"algorithm"` // JWT signing algorithm (HS256, HS384, HS512, RS256, ES256). Default is "HS256"
 }
 
 // ValidateLdapAuth checks LDAP config and sets defaults. Call when LDAP is enabled.
@@ -252,6 +263,36 @@ func verifyLdapConnection() error {
 	_, err = conn.Search(searchRequest)
 	if err != nil {
 		return fmt.Errorf("LDAP search test failed (server may require StartTLS or bind before search): %w", err)
+	}
+	return nil
+}
+
+// ValidateJwtAuth checks JWT config and sets defaults. Call when JWT auth is enabled.
+func ValidateJwtAuth() error {
+	jwtCfg := &Config.Auth.Methods.JwtAuth
+	if jwtCfg.Secret == "" {
+		return fmt.Errorf("JWT secret is required when JWT auth is enabled")
+	}
+	if jwtCfg.Header == "" {
+		jwtCfg.Header = "X-JWT-Assertion"
+	}
+	if jwtCfg.Algorithm == "" {
+		jwtCfg.Algorithm = "HS256"
+	}
+	if jwtCfg.GroupsClaim == "" {
+		jwtCfg.GroupsClaim = "groups"
+	}
+	if jwtCfg.UserIdentifier == "" {
+		jwtCfg.UserIdentifier = "sub"
+	}
+	// Validate algorithm
+	validAlgos := map[string]bool{
+		"HS256": true, "HS384": true, "HS512": true,
+		"RS256": true, "RS384": true, "RS512": true,
+		"ES256": true, "ES384": true, "ES512": true,
+	}
+	if !validAlgos[jwtCfg.Algorithm] {
+		return fmt.Errorf("unsupported JWT algorithm: %s. Supported: HS256, HS384, HS512, RS256, RS384, RS512, ES256, ES384, ES512", jwtCfg.Algorithm)
 	}
 	return nil
 }
