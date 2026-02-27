@@ -204,15 +204,15 @@
     font-size: 4em;
 }
 
-#previewer .preview .info .button {
+#previewer .preview .info a {
     display: inline-block;
 }
 
-#previewer .preview .info .button:hover {
+#previewer .preview .info a:hover {
     background-color: rgba(255, 255, 255, 0.2);
 }
 
-#previewer .preview .info .button i {
+#previewer .preview .info a i {
     display: block;
     margin-bottom: 4px;
     font-size: 1.3em;

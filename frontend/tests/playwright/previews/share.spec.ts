@@ -26,8 +26,6 @@ test("3d file preview thumbnails in share", async({ page, checkForErrors, contex
     checkForErrors(0,1); // redirect errors are expected
 });
 
-
-
 // 3d file preview, cycle through all 3d files and confirm no errors
 test("3d file preview next/previous", async ({ page, checkForErrors, context }) => {
     await page.goto("/files/");

@@ -9,7 +9,6 @@ test("root share path is valid", async ({ page, checkForErrors, openContextMenu,
   checkForErrors();
 });
 
-
 test("share file works", async ({ page, checkForErrors, context }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");

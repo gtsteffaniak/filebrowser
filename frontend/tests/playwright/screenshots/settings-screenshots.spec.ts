@@ -19,19 +19,19 @@ test("setup theme", async ({ page, checkForErrors, context, theme }) => {
 test("profile settings", async ({ page, checkForErrors, context, theme }) => {
   await page.goto("/files/settings/");
   await page.waitForTimeout(100);
-  await page.screenshot({ path: `./screenshots/settings/profile-listing-options-${theme}.jpg`, quality: jpgQuality });
+  await page.screenshot({ path: `./generated/settings/profile-listing-options-${theme}.jpg`, quality: jpgQuality });
   if (theme === 'light') {
     return;
   }
   await page.locator('div[aria-label="sidebarOptions"]').click();
   await page.waitForTimeout(300);
-  await page.screenshot({ path: `./screenshots/settings/profile-sidebar-options-${theme}.jpg`, quality: jpgQuality });
+  await page.screenshot({ path: `./generated/settings/profile-sidebar-options-${theme}.jpg`, quality: jpgQuality });
   await page.locator('div[aria-label="searchOptions"]').click();
   await page.waitForTimeout(300);
-  await page.screenshot({ path: `./screenshots/settings/profile-search-options-${theme}.jpg`, quality: jpgQuality });
+  await page.screenshot({ path: `./generated/settings/profile-search-options-${theme}.jpg`, quality: jpgQuality });
   await page.locator('div[aria-label="fileViewerOptions"]').click();
   await page.waitForTimeout(300);
-  await page.screenshot({ path: `./screenshots/settings/profile-file-viewer-options-${theme}.jpg`, quality: jpgQuality });
+  await page.screenshot({ path: `./generated/settings/profile-file-viewer-options-${theme}.jpg`, quality: jpgQuality });
   await page.locator('div[aria-label="themeLanguage"]').click();
   await page.waitForTimeout(300);
 });

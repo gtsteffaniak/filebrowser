@@ -130,16 +130,10 @@ run-jwt: build-frontend
 screenshots: build-frontend
 	cd backend && GOOS=linux go build -o filebrowser --ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.Version=latest'" .
 	@echo "Running screenshots..."
-	cd _docker && docker compose down && docker compose up -d --build local-playwright
-	@echo "Installing playwright dependencies..."
-	cd frontend && npx playwright install --with-deps chromium
-	@echo "Generating dark screenshots..."
-	cd frontend && npx playwright test --project dark-screenshots
-	@echo "Running light screenshots..."
-	cd frontend && npx playwright test --project light-screenshots
+	cd _docker && docker compose down && docker compose up --build local-playwright-screenshots
 	@if [ -d ../filebrowserDocs ]; then \
-		cp -r ./frontend/screenshots ../filebrowserDocs/static/images/; \
-		echo "Copied screenshots to ../filebrowserDocs/static/images/"; \
+		cp -r ./frontend/generated ../filebrowserDocs/static/images/generated/; \
+		echo "Copied screenshots to ../filebrowserDocs/static/images/generated/"; \
 	fi
 
 profile:

@@ -32,7 +32,7 @@
           <i class="material-icons">feedback</i>
           {{ $t("files.noPreview") }}
         </div>
-        <div v-if="permissions.download">
+        <div class="preview-buttons" v-if="permissions.download">
           <a target="_blank" :href="downloadUrl" class="button button--flat">
             <div>
               <i class="material-icons">file_download</i>{{ $t("general.download") }}
@@ -550,4 +550,17 @@ export default {
 .pdf-wrapper .floating-btn:hover {
   background: rgba(0, 0, 0, 0.7);
 }
+
+.preview .info {
+  display: flex;
+  flex-direction: row;
+  gap: 1em;
+}
+
+.preview-buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 1em;
+}
+
 </style>

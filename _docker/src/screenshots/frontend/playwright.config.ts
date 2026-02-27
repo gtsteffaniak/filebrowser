@@ -24,6 +24,15 @@ export default defineConfig({
   reporter: "line",
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
+    launchOptions: {
+      args: [
+        '--disable-gpu',
+        '--use-gl=swiftshader',  // CPU-based WebGL renderer built into Chromium
+        '--enable-webgl',
+        '--disable-dev-shm-usage',  // Overcome limited resource problems in Docker
+        '--no-sandbox',  // Required for Docker
+      ],
+    },
     actionTimeout: 5000,
     storageState: "loginAuth.json",
     /* Base URL to use in actions like `await page.goto('/')`. */
@@ -41,7 +50,7 @@ export default defineConfig({
     {
       name: "dark-screenshots",
       use: {
-        ...devices["Desktop Firefox"],
+        ...devices["Desktop Chrome"],
         theme: 'dark',
       },
       testMatch: /.*screenshots.spec.ts/,
@@ -50,7 +59,7 @@ export default defineConfig({
     {
       name: "light-screenshots",
       use: {
-        ...devices["Desktop Firefox"],
+        ...devices["Desktop Chrome"],
         theme: 'light',
       },
       testMatch: /.*screenshots.spec.ts/,
