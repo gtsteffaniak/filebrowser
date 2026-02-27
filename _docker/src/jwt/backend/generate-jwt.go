@@ -71,43 +71,6 @@ func main() {
 	fmt.Println("Token:")
 	fmt.Println(tokenString)
 	fmt.Println()
-
-	// Pretty print the claims
-	fmt.Println("Claims:")
-	claimsPretty, _ := json.MarshalIndent(claims, "", "  ")
-	fmt.Println(string(claimsPretty))
-	fmt.Println()
-
-	fmt.Println("Expiration:", expiresAt.Format(time.RFC3339))
-	fmt.Println("Valid for: 10 years")
-	fmt.Println()
-
-	// Usage examples
-	fmt.Println("=== Usage Examples ===")
-	fmt.Println()
-	fmt.Println("1. Using HTTP Header (recommended):")
-	fmt.Printf("   curl -H \"X-JWT-Assertion: %s\" http://localhost:8080/api/resources/\n", tokenString)
-	fmt.Println()
-	fmt.Println("2. Using Query Parameter:")
-	fmt.Printf("   curl \"http://localhost:8080/api/resources/?jwt=%s\"\n", tokenString)
-	fmt.Println()
-	fmt.Println("3. For tests, save to environment variable:")
-	fmt.Printf("   export TEST_JWT_TOKEN=\"%s\"\n", tokenString)
-	fmt.Println()
-
-	// Decode parts for verification (optional)
-	fmt.Println("=== Token Parts (for debugging) ===")
-	fmt.Println()
-	fmt.Println("Header (Base64):")
-	fmt.Println(headerB64)
-	fmt.Println()
-	fmt.Println("Claims (Base64):")
-	fmt.Println(claimsB64)
-	fmt.Println()
-	fmt.Println("Signature (Base64):")
-	fmt.Println(signature)
-	fmt.Println()
-
 	// Verify token can be decoded
 	parts := strings.Split(tokenString, ".")
 	if len(parts) == 3 {
