@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file. For commit 
  - startup icon generation order issue (#2019)
  - login button on shares not showing (#2028)
  - removed file watcher link in context menu for shares (#2025)
+ - Direct download link for single-file shares generates incorrect URL (#2026)
 
 ## v1.2.7-beta
 
