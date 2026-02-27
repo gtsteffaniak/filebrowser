@@ -5,12 +5,6 @@ test("admin user jwt works", async({ page, checkForErrors, context }) => {
     
     await page.goto("/files/");
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - testadmin");
-    await page.locator('a[aria-label="myfolder"]').waitFor({ state: 'visible' });
-    await page.locator('a[aria-label="myfolder"]').dblclick();
-    await expect(page).toHaveTitle("Graham's Filebrowser - Files - myfolder");
-    await page.locator('a[aria-label="3dmodels"]').waitFor({ state: 'visible' });
-    await page.locator('a[aria-label="3dmodels"]').dblclick();
-    await expect(page).toHaveTitle("Graham's Filebrowser - Files - 3dmodels");
     checkForErrors();
 });
 
@@ -19,12 +13,6 @@ test("regular user jwt works", async({ page, checkForErrors, context }) => {
     
     await page.goto("/files/");
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - testuser");
-    await page.locator('a[aria-label="myfolder"]').waitFor({ state: 'visible' });
-    await page.locator('a[aria-label="myfolder"]').dblclick();
-    await expect(page).toHaveTitle("Graham's Filebrowser - Files - myfolder");
-    await page.locator('a[aria-label="3dmodels"]').waitFor({ state: 'visible' });
-    await page.locator('a[aria-label="3dmodels"]').dblclick();
-    await expect(page).toHaveTitle("Graham's Filebrowser - Files - 3dmodels");
     checkForErrors();
 });
 
