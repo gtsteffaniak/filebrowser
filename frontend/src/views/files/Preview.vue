@@ -211,8 +211,6 @@ export default {
     },
   },
   watch: {
-    // Note: Smart delete navigation is now handled in Delete.vue prompt component
-    // When an item is deleted in preview mode, Delete.vue navigates to next/previous/parent
     async req() {
       if (!getters.isLoggedIn()) {
         return;
