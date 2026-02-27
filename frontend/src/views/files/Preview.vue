@@ -217,31 +217,11 @@ export default {
     req() {
       return state.req;
     },
-    deletedItem() {
-      return state.deletedItem;
-    },
     disableFileViewer() {
       return state.shareInfo?.disableFileViewer;
     },
   },
   watch: {
-    deletedItem() {
-      if (!state.deletedItem) {
-        return;
-      }
-      this.isDeleted = true;
-      this.listing = null; // Invalidate the listing to force a refresh
-
-      // Let the navigation component handle next/previous logic
-      if (state.navigation.nextLink) {
-        this.$router.replace({ path: state.navigation.nextLink });
-      } else if (state.navigation.previousLink) {
-        this.$router.replace({ path: state.navigation.previousLink });
-      } else {
-        this.close();
-      }
-      mutations.setDeletedItem(false);
-    },
     async req() {
       if (!getters.isLoggedIn()) {
         return;
@@ -268,7 +248,6 @@ export default {
     } else if (state.req.items) {
       this.listing = state.req.items;
     }
-    mutations.setDeletedItem(false);
     window.addEventListener("keydown", this.keyEvent);
     this.subtitlesList = await this.subtitles();
     this.updatePreview();

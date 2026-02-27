@@ -43,8 +43,8 @@ type CommonShare struct {
 	AllowReplacements        bool                `json:"allowReplacements,omitempty"` // allow replacements of files
 	SidebarLinks             []users.SidebarLink `json:"sidebarLinks"`                // customizable sidebar links
 	HasPassword              bool                `json:"hasPassword,omitempty"`
-	ShowHidden               bool                `json:"showHidden,omitempty"`         // show hidden files in share (true = show, false = hide)
-	DisableLoginOption       bool                `json:"disableLoginOption,omitempty"` // disable login option in share (true = hide, false = show)
+	ShowHidden               bool                `json:"showHidden,omitempty"` // show hidden files in share (true = show, false = hide)
+	DisableLoginOption       bool                `json:"disableLoginOption"`   // disable login option in share (true = hide, false = show)
 }
 type CreateBody struct {
 	CommonShare

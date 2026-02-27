@@ -233,7 +233,19 @@ func generateSingleIcon(previewService *preview.Service, sourceData []byte, icon
 // All icons are generated as PNG for maximum compatibility (Apple devices, PWA, older browsers)
 func GeneratePWAIcons() error {
 	logger.Info("Generating PWA icons...")
+	// Set PWA icons directory in cache
+	settings.Env.PWAIconsDir = filepath.Join(settings.Config.Server.CacheDir, "icons")
 
+	// Initialize with default paths (all icons will be generated)
+	settings.Env.PWAIcon192 = "icons/pwa-icon-192.png"
+	settings.Env.PWAIcon256 = "icons/pwa-icon-256.png"
+	settings.Env.PWAIcon512 = "icons/pwa-icon-512.png"
+
+	// Create icons directory with configured permissions
+	// Note: Parent cache directory should already exist from testCacheDirSpeed()
+	if err := os.MkdirAll(settings.Env.PWAIconsDir, fileutils.PermDir); err != nil {
+		logger.Warningf("Failed to create PWA icons directory %s: %v", settings.Env.PWAIconsDir, err)
+	}
 	// Load and prepare source data as PNG
 	sourceData, err := loadFaviconSource()
 	if err != nil {
