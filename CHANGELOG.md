@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.2.1-stable
+
+ **BugFixes**:
+ - startup icon generation order issue (#2019)
+ - login button on shares not showing (#2028)
+ - removed file watcher link in context menu for shares (#2025)
+
 ## v1.2.7-beta
 
  **BugFixes**:
