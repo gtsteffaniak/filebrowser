@@ -21,6 +21,7 @@ test("each view mode", async ({ page, checkForErrors, context, theme }) => {
     return;
   }
   await page.goto("/files/");
+  await page.waitForTimeout(250);
   await page.screenshot({ path: `./screenshots/listing/view-mode-normal-${theme}.jpg`, quality: jpgQuality });
   await page.locator('button[aria-label="Switch view"]').click();
   await page.waitForTimeout(250);
@@ -28,10 +29,6 @@ test("each view mode", async ({ page, checkForErrors, context, theme }) => {
   await page.locator('button[aria-label="Switch view"]').click();
   await page.waitForTimeout(250);
   await page.screenshot({ path: `./screenshots/listing/view-mode-list-${theme}.jpg`, quality: jpgQuality });
-  await page.locator('button[aria-label="Switch view"]').click();
-  await page.waitForTimeout(250);
-  await page.screenshot({ path: `./screenshots/listing/view-mode-compact-${theme}.jpg`, quality: jpgQuality });
-  await page.locator('button[aria-label="Switch view"]').click();
 });
 
 // run npx playwright test --ui to run these tests locally in ui mode

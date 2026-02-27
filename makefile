@@ -128,15 +128,19 @@ run-jwt: build-frontend
 # once local playwright server is running, you can also watch the tests interactively with:
 # cd frontend && npx playwright test --project dark-screenshots --ui
 screenshots: build-frontend
-	cd backend && GOOS=linux go build -o filebrowser .
+	cd backend && GOOS=linux go build -o filebrowser --ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.Version=latest'" .
 	@echo "Running screenshots..."
 	cd _docker && docker compose down && docker compose up -d --build local-playwright
 	@echo "Installing playwright dependencies..."
-	cd frontend && npx playwright install --with-deps firefox
-	echo "Generating dark screenshots...";
+	cd frontend && npx playwright install --with-deps chromium
+	@echo "Generating dark screenshots..."
 	cd frontend && npx playwright test --project dark-screenshots
-	echo "Running light screenshots...";
+	@echo "Running light screenshots..."
 	cd frontend && npx playwright test --project light-screenshots
+	@if [ -d ../filebrowserDocs ]; then \
+		cp -r ./frontend/screenshots ../filebrowserDocs/static/images/; \
+		echo "Copied screenshots to ../filebrowserDocs/static/images/"; \
+	fi
 
 profile:
 	@echo "Note: start the backend server with 'make dev' first"
