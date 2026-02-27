@@ -31,7 +31,7 @@
     </div>
 
     <div v-if="!disableQuickToggles" class="card-wrapper" @mouseleave="hideTooltip">
-      <div class="quick-toggles" :class="{ 'extra-padding': !hasCreateOptions }">
+      <div class="quick-toggles" :class="{ 'extra-padding': hasCreateOptions }">
         <div class="clickable" :class="{ active: user?.singleClick }" @click="toggleClick"
           @mouseenter="showTooltip($event, $t('index.toggleClick'))" @mouseleave="hideTooltip" v-if="!isInvalidShare">
           <i class="material-icons">ads_click</i>
@@ -97,7 +97,7 @@ export default {
     },
     hasCreateOptions() {
       if (getters.isShare()) {
-        return state.shareInfo?.allowCreate
+        return state.shareInfo?.allowCreate == true
       }
       return state.user?.permissions?.create || state.user?.permissions?.share || state.user?.permissions?.admin;
     },
@@ -128,7 +128,7 @@ export default {
     shouldShowLogin() {
       if (getters.isShare()) {
         // Don't show login until shareInfo is fully loaded
-        if (state.shareInfo && state.shareInfo.disableLoginOption == undefined) {
+        if (state.shareInfo && state.shareInfo?.disableLoginOption) {
           return false;
         }
       }
@@ -146,7 +146,6 @@ export default {
     },
   },
   methods: {
-
     openContextMenu() {
       mutations.resetSelected();
       mutations.showHover({

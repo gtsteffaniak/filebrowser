@@ -8,7 +8,6 @@
     "incompleteResultsDetails": "Max resultaten ({max}). Probeer de zoekopdracht aan te passen voor meer resultaten onder {max}."
   },
   "general": {
-    "expiration": "Vervaldatum{suffix}",
     "all": "Alle{suffix}",
     "name": "Naam{suffix}",
     "path": "Pad{suffix}",
@@ -117,6 +116,7 @@
     "lines": "Regels{suffix}",
     "lastUpdate": "Laatste update{suffix}",
     "latency": "Vertraging{suffix}",
+    "expiration": "Vervaldatum{suffix}"
   },
   "buttons": {
     "generateNewOtp": "Herstellen en nieuwe twee-factorcode genereren",

@@ -148,7 +148,7 @@
       <action v-if="showGoToRaw" icon="open_in_new" :label="$t('general.openFile')" @action="goToRaw()" />
       <action v-if="shouldShowParentFolder()" icon="folder" :label="$t('buttons.openParentFolder')" @action="openParentFolder" />
       <action v-if="isPreview && permissions.modify" icon="mode_edit" :label="$t('general.rename')" @action="showRenameHoverForPreview" />
-      <action v-if="hasDownload && !req.isDir" icon="visibility" :label="$t('buttons.watchFile')" @action="watchFile()" />
+      <action v-if="showWatch" icon="visibility" :label="$t('buttons.watchFile')" @action="watchFile()" />
       <action v-if="hasDownload" icon="file_download" :label="$t('general.download')" @action="startDownload" />
       <action v-if="showEdit" icon="edit" :label="$t('general.edit')" @action="edit()" />
       <action v-if="showSave" icon="save" :label="$t('general.save')" @action="save()" />
@@ -187,6 +187,9 @@ export default {
     },
   },
   computed: {
+    showWatch() {
+      return this.hasDownload && !this.req.isDir && !this.isShare;
+    },
     showGoToItem() {
       return this.isDuplicateFinder && this.selectedCount == 1;
     },
