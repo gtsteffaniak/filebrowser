@@ -17,7 +17,8 @@ Note: a potentially breaking change for docker users: \the default user is now "
  - Added share icon to items that are shared (#1420)
  - Authentication enhancements
    - LDAP login support with OIDC feature parity. (#591)
-   - userGroup for OIDC and LDAP, only users in a group will get access. #1964
+   - userGroup for OIDC and LDAP, only users in a group will get access. (#1964)
+   - Add JWT token authentication support (#1364)
  - Enhanced thumbnail and item previews
    - Added ability to show "motion preview" for folders with multiple child items that have previews. cycles through the first 4 images.
    - support for reading embedded images from raw image or heic/heif files (#215)
@@ -35,7 +36,7 @@ Note: a potentially breaking change for docker users: \the default user is now "
    - Prompts can be freely moved by dragging taskbar
    - Prompt styling has been updated
    - Clicking outside of prompts no longer automatically closes them.
- - add webdav support (#209) -- thanks to @reddac for #1764
+ - add webdav support (#209) -- thanks to @reddac for (#1764)
    - see docs on how to use
    - requires api an un-customized api token as password
    - respects access rules
