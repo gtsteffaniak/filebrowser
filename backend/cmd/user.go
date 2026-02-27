@@ -119,7 +119,7 @@ func updateShowFirstLogin(user *users.User) bool {
 
 // func to convert legacy user with perm key to permissions
 func updatePermissions(user *users.User) bool {
-	if user.Version == 1 {
+	if user.Version >= 1 {
 		return false
 	}
 	updateUser := true
