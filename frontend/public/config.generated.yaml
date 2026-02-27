@@ -67,7 +67,7 @@ auth:
       adminGroup: ""                      # if set, users in this group will be granted admin privileges
       userGroups:                         # if set, only users in these groups are allowed to log in. Blocks all other users even with valid credentials.
       groupsClaim: ""                     # the JSON field name to read groups from. Default is "groups"
-      userIdentifier: ""                  # the field value to use as the username. Default is "preferred_username", can also be "email" or "username", or "phone"
+      userIdentifier: ""                  # the field value to use as the username. Default is "preferred_username" in oidc, "sub" in jwt. Other common values are "email" or "username", or "phone"
       disableVerifyTLS: false             # disable TLS verification (insecure, for testing only)
       logoutRedirectUrl: ""               # if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.
       header: ""                          # required header to use for authentication. Security Warning: FileBrowser blindly accepts the header value as username.
@@ -86,7 +86,7 @@ auth:
       adminGroup: ""                      # if set, users in this group will be granted admin privileges
       userGroups:                         # if set, only users in these groups are allowed to log in. Blocks all other users even with valid credentials.
       groupsClaim: "groups"               # the JSON field name to read groups from. Default is "groups"
-      userIdentifier: "preferred_username" # the field value to use as the username. Default is "preferred_username", can also be "email" or "username", or "phone"
+      userIdentifier: "preferred_username" # the field value to use as the username. Default is "preferred_username" in oidc, "sub" in jwt. Other common values are "email" or "username", or "phone"
       disableVerifyTLS: false             # disable TLS verification (insecure, for testing only)
       logoutRedirectUrl: ""               # if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.
       clientId: ""                        # secret: client id of the OIDC application
@@ -98,7 +98,7 @@ auth:
       adminGroup: ""                      # if set, users in this group will be granted admin privileges
       userGroups:                         # if set, only users in these groups are allowed to log in. Blocks all other users even with valid credentials.
       groupsClaim: ""                     # the JSON field name to read groups from. Default is "groups"
-      userIdentifier: ""                  # the field value to use as the username. Default is "preferred_username", can also be "email" or "username", or "phone"
+      userIdentifier: ""                  # the field value to use as the username. Default is "preferred_username" in oidc, "sub" in jwt. Other common values are "email" or "username", or "phone"
       disableVerifyTLS: false             # disable TLS verification (insecure, for testing only)
       logoutRedirectUrl: ""               # if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.
       server: ""                          # scheme://host:port of the LDAP server (e.g. ldap://localhost:389)
@@ -111,7 +111,7 @@ auth:
       adminGroup: ""                      # if set, users in this group will be granted admin privileges
       userGroups:                         # if set, only users in these groups are allowed to log in. Blocks all other users even with valid credentials.
       groupsClaim: ""                     # the JSON field name to read groups from. Default is "groups"
-      userIdentifier: ""                  # the field value to use as the username. Default is "preferred_username", can also be "email" or "username", or "phone"
+      userIdentifier: ""                  # the field value to use as the username. Default is "preferred_username" in oidc, "sub" in jwt. Other common values are "email" or "username", or "phone"
       disableVerifyTLS: false             # disable TLS verification (insecure, for testing only)
       logoutRedirectUrl: ""               # if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.
       header: ""                          # HTTP header to look for JWT token (e.g. X-JWT-Assertion). Default is "X-JWT-Assertion"

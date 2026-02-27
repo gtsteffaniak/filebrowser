@@ -4890,7 +4890,7 @@ const docTemplate = `{
                     }
                 },
                 "userIdentifier": {
-                    "description": "the field value to use as the username. Default is \"preferred_username\", can also be \"email\" or \"username\", or \"phone\"",
+                    "description": "the field value to use as the username. Default is \"preferred_username\" in oidc, \"sub\" in jwt. Other common values are \"email\" or \"username\", or \"phone\"",
                     "type": "string"
                 }
             }
@@ -4946,7 +4946,7 @@ const docTemplate = `{
                     }
                 },
                 "userIdentifier": {
-                    "description": "the field value to use as the username. Default is \"preferred_username\", can also be \"email\" or \"username\", or \"phone\"",
+                    "description": "the field value to use as the username. Default is \"preferred_username\" in oidc, \"sub\" in jwt. Other common values are \"email\" or \"username\", or \"phone\"",
                     "type": "string"
                 },
                 "userPassword": {
@@ -5088,7 +5088,7 @@ const docTemplate = `{
                     }
                 },
                 "userIdentifier": {
-                    "description": "the field value to use as the username. Default is \"preferred_username\", can also be \"email\" or \"username\", or \"phone\"",
+                    "description": "the field value to use as the username. Default is \"preferred_username\" in oidc, \"sub\" in jwt. Other common values are \"email\" or \"username\", or \"phone\"",
                     "type": "string"
                 }
             }
@@ -5185,7 +5185,7 @@ const docTemplate = `{
                     }
                 },
                 "userIdentifier": {
-                    "description": "the field value to use as the username. Default is \"preferred_username\", can also be \"email\" or \"username\", or \"phone\"",
+                    "description": "the field value to use as the username. Default is \"preferred_username\" in oidc, \"sub\" in jwt. Other common values are \"email\" or \"username\", or \"phone\"",
                     "type": "string"
                 }
             }

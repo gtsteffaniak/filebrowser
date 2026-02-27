@@ -158,6 +158,7 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		logger.Errorf("failed to exchange token: %v", err)
 		return http.StatusInternalServerError, fmt.Errorf("failed to exchange token: %v", err)
 	}
+	fmt.Println("token", token)
 
 	rawIDToken, ok := token.Extra("id_token").(string)
 	// accessToken := token.AccessToken // Access token is needed for UserInfo, already in 'token'
