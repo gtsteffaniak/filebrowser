@@ -132,7 +132,8 @@ screenshots: build-frontend
 	@echo "Running screenshots..."
 	cd _docker && docker compose down && docker compose up --build local-playwright-screenshots
 	@if [ -d ../filebrowserDocs ]; then \
-		cp -r ./frontend/generated ../filebrowserDocs/static/images/generated/; \
+		rm -rf ../filebrowserDocs/static/images/generated/; \
+		cp -r ./frontend/generated ../filebrowserDocs/static/images/; \
 		echo "Copied screenshots to ../filebrowserDocs/static/images/generated/"; \
 	fi
 
