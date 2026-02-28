@@ -17,7 +17,7 @@
 
 ## Pinned
 
-:loudspeaker: [What's Coming Soon](https://github.com/gtsteffaniak/filebrowser/discussions/1622)
+:loudspeaker: [New Announcement](https://github.com/gtsteffaniak/filebrowser/discussions/2048)
 
 :pushpin: [Read The Official Docs](https://filebrowserquantum.com/) (currently english-only)
 
