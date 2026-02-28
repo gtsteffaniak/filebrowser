@@ -1,10 +1,7 @@
 <template>
-  <div v-if="isDisplayMode" class="card-title">
-    <h2>{{ effectiveTitle }}</h2>
-  </div>
-  <div class="card-content">
+  <div class="card-content" aria-label="file-list-prompt">
     <!-- Source Selection Dropdown -->
-    <div v-if="showSourceSelector && !isDisplayMode" class="source-selector" style="margin-bottom: 1rem;">
+    <div v-if="showSourceSelector" class="source-selector" style="margin-bottom: 1rem;">
       <label for="destinationSource" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">
         {{ $t("prompts.destinationSource") }}
       </label>
@@ -16,7 +13,7 @@
     </div>
 
     <!-- Current Path Display -->
-    <div v-if="!isDisplayMode" aria-label="filelist-path" class="searchContext button clickable">
+    <div v-if="!fileList" aria-label="filelist-path" class="searchContext button clickable">
       {{ $t('general.path', { suffix: ':' }) }} {{ sourcePath.path }}
     </div>
 
@@ -50,20 +47,12 @@
       />
     </div>
   </div>
-
-  <!-- Cancel button for display mode -->
-  <div v-if="isDisplayMode" class="card-action">
-    <button @click="closePrompt" class="button button--flat" :aria-label="$t('general.cancel')"
-      :title="$t('general.cancel')">
-      {{ $t('general.cancel') }}
-    </button>
-  </div>
 </template>
 
 <script>
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
-import { filesApi, publicApi } from "@/api";
+import { resourcesApi } from "@/api";
 import ListingItem from "@/components/files/ListingItem.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
@@ -140,9 +129,6 @@ export default {
     };
   },
   computed: {
-    effectiveTitle() {
-      return this.title || this.$t("general.files");
-    },
     sourcePath() {
       return { source: this.source, path: this.path };
     },
@@ -150,12 +136,8 @@ export default {
       // Get all available sources from state.sources.info
       return state.sources && state.sources.info ? Object.keys(state.sources.info) : [state.req.source];
     },
-    isDisplayMode() {
-      // Will be in display mode if the fileList prop is provided
-      return this.fileList !== null;
-    },
     showSourceSelector() {
-      return this.availableSources.length > 1 && !this.isDisplayMode && !getters.isShare() && !this.browseShare;
+      return this.availableSources.length > 1 && !this.fileList && !getters.isShare() && !this.browseShare;
     },
     isValidSelection() {
       // If file selection is required, check if a file (not folder) is selected
@@ -185,14 +167,15 @@ export default {
     },
   },
   mounted() {
-    if (this.isDisplayMode) {
+    if (this.fileList) {
+      // When fileList is provided, just display the items
       this.withLoading(async () => {
         await new Promise(resolve => setTimeout(resolve, 0));
         this.fillFromList();
       });
     } else if (this.browseShare) {
       // Browse a specific share
-      this.withLoading(() => publicApi.fetchPub("/", this.browseShare).then(this.fillOptions));
+      this.withLoading(() => resourcesApi.fetchFilesPublic("/", this.browseShare).then(this.fillOptions));
     } else {
       // Normal browse mode: fetch files
       const sourceToUse = this.currentSource;
@@ -205,7 +188,7 @@ export default {
       // Fetch the initial data for the source
       // Always fetch if browsing a different source or if browsePath was specified
       if (this.currentSource !== state.req.source || this.browsePath) {
-        this.withLoading(() => filesApi.fetchFiles(sourceToUse, pathToUse).then(this.fillOptions));
+        this.withLoading(() => resourcesApi.fetchFiles(sourceToUse, pathToUse).then(this.fillOptions));
       } else {
         this.fillOptions(initialReq);
       }
@@ -222,7 +205,6 @@ export default {
         // Handle fetch errors gracefully
         // Note: API methods already show error notifications, so we don't need to show another one
         console.error('FileList fetch error:', error);
-        
         // Always provide at least the parent directory option if not at root
         // This allows users to navigate back even if the current directory has issues
         this.items = [];
@@ -234,7 +216,6 @@ export default {
             type: "directory",
           });
         }
-        
         // Emit the current (failed) path so parent knows about the state
         this.$emit("update:selected", {
           path: this.path,
@@ -255,12 +236,10 @@ export default {
       if (!this.allowedFileTypes || this.allowedFileTypes.length === 0) {
         return true; // No filter, allow all
       }
-      
       // If itemType is not provided or is 'directory', allow it
       if (!itemType || itemType === 'directory') {
         return true;
       }
-      
       // Check if the itemType matches any of the allowed types
       // Supports both prefixes (e.g., 'image/') and full types (e.g., 'image/jpeg')
       return this.allowedFileTypes.some(allowedType => {
@@ -284,7 +263,7 @@ export default {
       this.selectedSource = null;
       this.selectedType = null;
       // Fetch files for the new source
-      this.withLoading(() => filesApi.fetchFiles(newSource, newPath).then(this.fillOptions));
+      this.withLoading(() => resourcesApi.fetchFiles(newSource, newPath).then(this.fillOptions));
     },
     resetToShare(newHash) {
       // Reset to the share root
@@ -295,11 +274,10 @@ export default {
       this.selectedSource = null;
       this.selectedType = null;
       // Fetch files for the share
-      this.withLoading(() => publicApi.fetchPub("/", newHash).then(this.fillOptions));
+      this.withLoading(() => resourcesApi.fetchFilesPublic("/", newHash).then(this.fillOptions));
     },
     fillOptions(req) {
-      // Sets the current path and resets
-      // the current items.
+      // Sets the current path and resets the current items.
       // Use this.path (the path we're browsing) instead of req.path (which may be relative)
       this.current = this.path;
       this.source = req.source || this.source; // Preserve the source we're browsing
@@ -348,7 +326,7 @@ export default {
       let path = event.currentTarget.dataset.path;
       let clickedItem = this.items.find(item => item.path === path);
       let sourceToUse = clickedItem ? clickedItem.source : this.source;
-      
+
       // If showFiles and showFolders is true, and clicked item is a file (not a directory), select it directly
       if (this.showFiles && clickedItem && clickedItem.type !== "directory") {
         this.selected = path;
@@ -362,25 +340,25 @@ export default {
         });
         return;
       }
-      
+
       this.path = path;
       // Reset selected when navigating to a directory
       this.selected = null;
       this.selectedSource = null;
       this.selectedType = null;
-      
+
       // Priority: browseSource > browseShare > isShare
       if (this.browseSource) {
         // Explicitly browsing a source - use files API
         this.source = sourceToUse;
-        this.withLoading(() => filesApi.fetchFiles(sourceToUse, path).then(this.fillOptions));
+        this.withLoading(() => resourcesApi.fetchFiles(sourceToUse, path).then(this.fillOptions));
       } else if (this.browseShare || getters.isShare()) {
         // Browsing a share - use public API
         const hashToUse = this.browseShare || state.shareInfo?.hash;
-        this.withLoading(() => publicApi.fetchPub(path, hashToUse).then(this.fillOptions));
+        this.withLoading(() => resourcesApi.fetchFilesPublic(path, hashToUse).then(this.fillOptions));
       } else {
         this.source = sourceToUse;
-        this.withLoading(() => filesApi.fetchFiles(sourceToUse, path).then(this.fillOptions));
+        this.withLoading(() => resourcesApi.fetchFiles(sourceToUse, path).then(this.fillOptions));
       }
 
     },
@@ -413,8 +391,7 @@ export default {
       event.preventDefault();
       event.stopPropagation();
 
-      // Display mode: single click navigates directly to the file
-      if (this.isDisplayMode) {
+      if (this.fileList) {
         this.navigateToItem(item);
         return;
       }
@@ -466,7 +443,6 @@ export default {
         });
         return;
       }
-
       // Otherwise select the element.
       this.selected = path;
       let clickedItem = this.items.find(item => item.path === path);
@@ -476,7 +452,7 @@ export default {
         path: this.selected,
         source: this.selectedSource,
         type: this.selectedType,
-        isValid: this.selectedType === 'directory' ? !this.requireFileSelection : true,
+        isValid: !this.requireFileSelection || isFile,
       });
     },
     createDir: async function () {
@@ -499,12 +475,9 @@ export default {
       this.items = allItems.filter(item => !item.isDirectory && item.type !== 'directory');
     },
     navigateToItem(item) {
-      mutations.closeHovers();
+      mutations.closeTopHover();
       mutations.setNavigationTransitioning(true);
       url.goToItem(item.source || state.req.source, item.path, undefined);
-    },
-    closePrompt() {
-      mutations.closeHovers();
     },
   },
 };

@@ -1,6 +1,6 @@
 <template>
   <div class="size-viewer">
-    <div class="card size-viewer-config">
+    <div class="card size-viewer-config padding-normal">
       <div class="card-content">
         <h3>{{ $t('general.source') }}</h3>
         <select v-model="selectedSource" class="input">
@@ -27,7 +27,7 @@
       </div>
     </div>
 
-    <div class="card size-viewer-results">
+    <div class="card size-viewer-results padding-normal">
       <div v-if="error" class="error-message">
         {{ error }}
       </div>
@@ -148,7 +148,7 @@
 </template>
 
 <script>
-import { search } from "@/api";
+import { toolsApi } from "@/api";
 import { state, mutations } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { getTypeInfo } from "@/utils/mimetype";
@@ -286,7 +286,7 @@ export default {
         this.selectedSource = data.source;
       }
       // Close the picker
-      mutations.closeHovers();
+      mutations.closeTopHover();
     },
     async fetchData() {
       this.loading = true;
@@ -297,7 +297,7 @@ export default {
         if (!this.includeFoldersValue) {
           query += " type:file";
         }
-        this.results = await search(
+        this.results = await toolsApi.search(
           this.searchPath,
           this.selectedSource,
           query,
@@ -634,9 +634,10 @@ export default {
 
 <style scoped>
 .size-viewer {
-  padding: 2rem;
+  max-width: 1200px;
   margin-left: auto;
   margin-right: auto;
+  padding: 1em;
 }
 
 .toggle-container {
@@ -644,7 +645,6 @@ export default {
 }
 
 .size-viewer-results {
-  max-width: 1000px;
   margin-bottom: 2em;
 }
 

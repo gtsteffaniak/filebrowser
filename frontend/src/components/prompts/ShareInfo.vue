@@ -1,8 +1,4 @@
 <template>
-  <div class="card-title">
-    <h2>{{ $t("share.shareInfo") }}</h2>
-  </div>
-
   <div class="card-content">
     <div class="share-info-content">
       <div v-if="shareInfo.banner" class="banner">
@@ -21,10 +17,10 @@
           <strong>{{ $t("prompts.displayName") }}</strong> {{ req.name }}
         </div>
         <div class="share-info-element" :title="modTime">
-          <strong>{{ $t("prompts.lastModified", { suffix: ":" }) }}</strong> {{ humanTime }}
+          <strong>{{ $t("files.lastModified", { suffix: ":" }) }}</strong> {{ humanTime }}
         </div>
         <div class="share-info-element">
-          <strong>{{ $t("prompts.size", { suffix: ":" }) }}</strong> {{ humanSize }}
+          <strong>{{ $t("general.size", { suffix: ":" }) }}</strong> {{ humanSize }}
         </div>
       </div>
 
@@ -35,20 +31,10 @@
     </div>
   </div>
 
-  <div class="card-action">
-    <button
-      class="button button--flat button--grey"
-      @click="close"
-      :aria-label="$t('general.close')"
-      :title="$t('general.close')"
-    >
-      {{ $t("general.close") }}
-    </button>
-  </div>
 </template>
 
 <script>
-import { publicApi } from "@/api";
+import { resourcesApi } from "@/api";
 import { state, getters, mutations } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import QrcodeVue from "qrcode.vue";
@@ -72,7 +58,7 @@ export default {
       if (state.shareInfo?.banner.startsWith("http")) {
         return state.shareInfo?.banner;
       }
-      return publicApi.getDownloadURL(state.shareInfo, [state.shareInfo?.banner]);
+      return resourcesApi.getDownloadURLPublic(state.shareInfo, [state.shareInfo?.banner]);
     },
     shareInfo() {
       return state.shareInfo;
@@ -100,7 +86,7 @@ export default {
       return state.shareInfo.shareURL;
     },
     close() {
-      mutations.closeHovers();
+      mutations.closeTopHover();
     },
   },
 };

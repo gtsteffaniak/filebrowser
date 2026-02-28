@@ -17,6 +17,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-cache/cache"
 	"github.com/gtsteffaniak/go-logger/logger"
+	"golang.org/x/net/webdav"
 )
 
 var (
@@ -85,6 +86,7 @@ type Stats struct {
 	Complexity      uint      `json:"complexity"`
 	LastScanned     time.Time `json:"lastScanned"`
 	DiskUsed        uint64    `json:"used"`
+	UsedAlt         uint64    `json:"usedAlt"`
 }
 
 // reduced index is json exposed to the client
@@ -113,6 +115,8 @@ type Index struct {
 	// Scan session tracking: timestamp when scan session started (for timestamp-based conflict detection)
 	scanSessionStartTime int64           // Unix timestamp when current scan session started (0 if no active scan)
 	scanUpdatedPaths     map[string]bool // Tracks directories updated by the scan (to distinguish from API updates)
+	// WebDAV lock system for this source (isolated per source)
+	WebdavLock webdav.LockSystem
 }
 
 var (
@@ -386,6 +390,7 @@ func Initialize(source *settings.Source, mock bool, isNewDb bool) {
 		scanUpdatedPaths:    make(map[string]bool),
 		folderSizes:         make(map[string]uint64),   // In-memory folder size tracking
 		folderSizesUnsynced: make(map[string]struct{}), // Track changed folders
+		WebdavLock:          webdav.NewMemLS(),         // Initialize WebDAV lock system for this source
 	}
 	newIndex.ReducedIndex = ReducedIndex{
 		Status:  "indexing",
@@ -421,11 +426,12 @@ type PathContext struct {
 
 // FileInfoRequest specifies what information to retrieve
 type FileInfoRequest struct {
-	IndexPath      string
-	FollowSymlinks bool
-	ShowHidden     bool
-	Expand         bool // get child items for directories
-	IsRoutineScan  bool // scanner vs API call
+	IndexPath         string
+	FollowSymlinks    bool
+	ShowHidden        bool
+	Expand            bool // get child items for directories
+	IsRoutineScan     bool // scanner vs API call
+	SkipExtendedAttrs bool // whether to skip extended attributes
 }
 
 // resolvePathContext resolves all path characteristics in a SINGLE stat call
@@ -553,7 +559,7 @@ func (idx *Index) getDirInfoFromContext(ctx *PathContext, isViewable, isIndexabl
 		Recursive:         false,
 		CheckViewable:     true,
 		IsRoutineScan:     req.IsRoutineScan,
-		SkipExtendedAttrs: !isIndexable, // Only fetch extended attrs if indexable
+		SkipExtendedAttrs: req.SkipExtendedAttrs || !isIndexable,
 		FollowSymlinks:    req.FollowSymlinks,
 		ShowHidden:        req.ShowHidden,
 	}

@@ -1,13 +1,11 @@
 import { mutations, getters,state } from "@/store";
-import { getApiPath, getPublicApiPath } from "@/utils/url.js";
+import { getApiPath } from "@/utils/url.js";
 import { globalVars } from "@/utils/constants";
 
 export async function validateLogin(isPublicRoute = false) {
   // Use direct fetch to avoid automatic logout on 401
   // Public routes (e.g. /public/share/...) use the public API base path
-  const apiPath = isPublicRoute
-    ? getPublicApiPath('users', { id: 'self' })
-    : getApiPath('/api/users', { id: 'self' });
+  const apiPath = getApiPath('users', { id: 'self' }, false, isPublicRoute);
   const res = await fetch(apiPath, {
     credentials: 'same-origin', // Ensure cookies are sent with the request
     headers: {
@@ -18,12 +16,11 @@ export async function validateLogin(isPublicRoute = false) {
   if (res.status !== 200) {
     throw new Error(`{"status":${res.status},"message":"${await res.text()}"}`);
   }
-
   const userInfo = await res.json();
   mutations.setCurrentUser(userInfo);
   getters.isLoggedIn()
   if (state.user.loginMethod == "proxy") {
-    let apiPath = getApiPath("api/auth/login")
+    let apiPath = getApiPath("auth/login")
     const res = await fetch(apiPath, {
       method: "POST",
       credentials: 'same-origin', // Ensure cookies are sent and can be set
@@ -39,7 +36,7 @@ export async function validateLogin(isPublicRoute = false) {
 export async function renew() {
   // Cookie-based renewal - no JWT parameter needed
   // Backend reads cookie, validates, and sets new cookie
-  let apiPath = getApiPath("api/auth/renew")
+  let apiPath = getApiPath("auth/renew")
   const res = await fetch(apiPath, {
     method: "POST",
     credentials: 'same-origin', // Cookie is sent automatically, backend renews it
@@ -66,7 +63,7 @@ export function generateRandomCode(length) {
 
 export async function logout() {
   try {
-    const res = await fetch(getApiPath("api/auth/logout"), {
+    const res = await fetch(getApiPath("auth/logout"), {
       method: "POST",
       credentials: 'same-origin'
     });

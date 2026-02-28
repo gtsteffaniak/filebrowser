@@ -167,33 +167,12 @@ table tr>*:last-child {
   border-radius: 1em;
 }
 
-.card.floating {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 5;
-  max-width: 40em;
-  width: 90%;
-  max-height: 80vh; /* Constrain modal height for scrolling */
-  animation: .1s show forwards;
-  display: flex !important;
-  flex-direction: column;
-  overflow: hidden;
-}
-
 .card>*>*:first-child {
   margin-top: 0;
 }
 
 .card>*>*:last-child {
   margin-bottom: 0;
-}
-
-/* Apply flex behavior only to direct children of floating cards */
-.card.floating > .card-title {
-  text-align: center;
-  flex-shrink: 0;
 }
 
 .card-title {
@@ -207,35 +186,6 @@ table tr>*:last-child {
 body.rtl .card-title>*:first-child {
   margin-right: 0;
   text-align: right;
-}
-
-.card>div,
-.card>form>div {
-  padding: 1em 1em;
-}
-
-.card>div:first-child,
-.card>form>div:first-child {
-  padding-top: 1.5em;
-}
-
-.card>div:last-child,
-.card>form>div:last-child {
-  padding-bottom: 1.5em;
-}
-
-/* Apply flex behavior only to direct children of floating cards */
-.card.floating > .card-action {
-  text-align: right;
-  flex-shrink: 0;
-  padding-top: 0.4em;
-  padding-bottom: 0.75em;
-}
-
-.card.floating > .card-content {
-  flex-grow: 1;
-  overflow: auto;
-  min-height: 0; /* Allows flex child to shrink below content size */
 }
 
 /* Regular card styles (non-floating) */
@@ -400,4 +350,8 @@ body.rtl .credits {
   z-index: 4;
   top: 0;
   animation: .3s show ease-in;
+}
+
+.card.padding-normal {
+  padding: 1em;
 }

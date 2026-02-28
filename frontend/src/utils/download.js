@@ -1,5 +1,5 @@
 import { state, mutations, getters } from "@/store";
-import { filesApi } from "@/api";
+import { resourcesApi } from "@/api";
 import { notify } from "@/notify";
 
 export default function downloadFiles(items) {
@@ -38,7 +38,7 @@ export default function downloadFiles(items) {
       mutations.showHover({
         name: "download",
         confirm: (format) => {
-          mutations.closeHovers();
+          mutations.closeTopHover();
           startDownload(format, items, state.shareInfo.hash);
         },
       });
@@ -59,7 +59,7 @@ export default function downloadFiles(items) {
     mutations.showHover({
       name: "download",
       confirm: (format) => {
-        mutations.closeHovers();
+        mutations.closeTopHover();
         startDownload(format, items);
       },
     });
@@ -69,7 +69,7 @@ export default function downloadFiles(items) {
 async function startDownload(config, files, hash = "") {
   try {
     notify.showSuccessToast("Downloading...");
-    await filesApi.download(config, files, hash);
+    await resourcesApi.download(config, files, hash);
   } catch (e) {
     // Don't show error if download was cancelled by user
     if (e.name === 'AbortError' || e.message?.includes('aborted') || e.message?.includes('cancelled')) {

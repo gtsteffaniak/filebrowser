@@ -7,7 +7,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 )
 
-func (s *Storage) CheckChildItemAccess(response *iteminfo.ExtendedFileInfo, index *indexing.Index, username string) error {
+func (s *Storage) CheckChildItemAccess(response *iteminfo.FileInfo, index *indexing.Index, username string) error {
 
 	// Collect all item names to check
 	allItemNames := make([]string, 0, len(response.Folders)+len(response.Files))

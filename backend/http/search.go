@@ -42,11 +42,11 @@ type searchOptions struct {
 //
 // Example request (single source):
 //
-//	GET api/search?query=myfile&source=mysource
+//	GET api/tools/search?query=myfile&source=mysource
 //
 // Example request (multiple sources):
 //
-//	GET api/search?query=myfile&sources=source1,source2
+//	GET api/tools/search?query=myfile&sources=source1,source2
 //
 // Example response:
 // [
@@ -66,7 +66,7 @@ type searchOptions struct {
 //
 // @Summary Search Files
 // @Description Searches for files matching the provided query. Returns file paths and metadata based on the user's session and scope. Supports searching across multiple sources when using the 'sources' parameter.
-// @Tags Search
+// @Tags Tools
 // @Accept json
 // @Produce json
 // @Param query query string true "Search query"
@@ -76,7 +76,7 @@ type searchOptions struct {
 // @Param SessionId header string false "User session ID, add unique value to prevent collisions"
 // @Success 200 {array} indexing.SearchResult "List of search results with source field populated"
 // @Failure 400 {object} map[string]string "Bad Request"
-// @Router /api/search [get]
+// @Router /api/tools/search [get]
 func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	searchOptions, err := prepSearchOptions(r, d)
 	if err != nil {

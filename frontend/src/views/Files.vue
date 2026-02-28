@@ -2,7 +2,7 @@
   <div>
     <div v-if="loadingProgress < 100" class="progress-line" :style="{ width: loadingProgress + '%', ...moveWithSidebar }"></div>
     <errors v-if="error" :errorCode="error.status" />
-    <component v-else-if="currentViewLoaded" :is="currentView"></component>
+    <component v-else-if="currentViewLoaded" :is="currentView" :fbdata="req"></component>
     <div v-else>
       <h2 class="message delayed">
         <LoadingSpinner size="medium" />
@@ -13,7 +13,7 @@
 </template>
 
 <script>
-import { filesApi, publicApi } from "@/api";
+import { resourcesApi, shareApi } from "@/api";
 import Errors from "@/views/Errors.vue";
 import Preview from "@/views/files/Preview.vue";
 import ListingView from "@/views/files/ListingView.vue";
@@ -22,6 +22,7 @@ import OnlyOfficeEditor from "./files/OnlyOfficeEditor.vue";
 import EpubViewer from "./files/EpubViewer.vue";
 import DocViewer from "./files/DocViewer.vue";
 import MarkdownViewer from "./files/MarkdownViewer.vue";
+import ThreeJsViewer from "./files/ThreeJs.vue";
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
 import router from "@/router";
@@ -39,6 +40,7 @@ export default {
     DocViewer,
     OnlyOfficeEditor,
     MarkdownViewer,
+    ThreeJsViewer,
     LoadingSpinner,
   },
   data() {
@@ -66,6 +68,9 @@ export default {
     currentViewLoaded() {
       return getters.currentView() != "";
     },
+    req() {
+      return state.req;
+    },
     reload() {
       return state.reload;
     },
@@ -83,6 +88,7 @@ export default {
     if (getters.eventTheme() === "halloween" && !localStorage.getItem("seenHalloweenMessage")) {
       mutations.showHover({
         name: "generic",
+        pinned: true,
         props: {
           title: this.$t("prompts.halloweenTitle"),
           body: this.$t("prompts.halloweenBody"),
@@ -169,11 +175,11 @@ export default {
     async fetchData() {
       const hash = getters.shareHash();
       let isShare = hash !== "";
-      
+
       // Fetch and store share info if this is a share
       if (isShare) {
-        let shareInfo = await publicApi.getShareInfo(hash);
-        
+        let shareInfo = await shareApi.getShareInfoPublic(hash);
+
         // Check if the response is an error (has status field indicating error)
         if (!shareInfo || shareInfo.status >= 400) {
           // show message that share is invalid and don't do anything else
@@ -184,20 +190,19 @@ export default {
           this.loadingProgress = 0;
           return;
         }
-        
+
         // Valid share - add the hash and other required fields, then store in state
         shareInfo.hash = hash;
-        
+
         // Parse share route to get subPath
         let urlPath = getters.routePath('public/share')
         let parts = urlPath.split("/");
         // Decode each part since URL paths are encoded
         let decodedParts = parts.slice(2).map(part => decodeURIComponent(part));
         shareInfo.subPath = "/" + decodedParts.join("/");
-        
         // Set shareInfo in state
         mutations.setShareInfo(shareInfo);
-        
+
         // Check for password requirement (applies to both regular and upload shares)
         if (shareInfo.hasPassword) {
           if (this.sharePassword === "") {
@@ -210,7 +215,7 @@ export default {
           // Store password in localStorage
           localStorage.setItem("sharepass:" + shareInfo.hash, this.sharePassword);
         }
-        
+
         if (shareInfo.themeColor) {
           document.documentElement.style.setProperty("--primaryColor", shareInfo.themeColor);
         }
@@ -220,7 +225,7 @@ export default {
           this.sharePassword = "";
         }
       }
-      
+
       if (state.deletedItem) {
         return;
       }
@@ -247,7 +252,7 @@ export default {
             if (state.shareInfo.hasPassword) {
               mutations.setShareData({ passwordValid: false });
               try {
-                await publicApi.fetchPub(state.shareInfo.subPath, state.shareInfo.hash, this.sharePassword, false, false);
+                await resourcesApi.fetchFilesPublic(state.shareInfo.subPath, state.shareInfo.hash, this.sharePassword, false, false);
                 // If we get here, password is valid (unlikely for upload shares, but handle it)
                 mutations.setShareData({ passwordValid: true });
                 this.error = null; // Clear any previous errors
@@ -280,7 +285,7 @@ export default {
           if (state.shareInfo.hasPassword) {
             mutations.setShareData({ passwordValid: false });
             try {
-              await publicApi.fetchPub(state.shareInfo.subPath, state.shareInfo.hash, this.sharePassword, false, false);
+              await resourcesApi.fetchFilesPublic(state.shareInfo.subPath, state.shareInfo.hash, this.sharePassword, false, false);
               // Password is valid
               mutations.setShareData({ passwordValid: true });
               this.error = null; // Clear any previous errors
@@ -308,19 +313,19 @@ export default {
           if (state.shareInfo?.singleFileShare) {
             mutations.setSidebarVisible(true);
           }
-          
+
           this.loadingProgress = 10;
-          
+
           // Fetch share data
-          let file = await publicApi.fetchPub(state.shareInfo.subPath, state.shareInfo.hash, this.sharePassword, false, false);
+          let file = await resourcesApi.fetchFilesPublic(state.shareInfo.subPath, state.shareInfo.hash, this.sharePassword, false, false);
           file.hash = state.shareInfo.hash;
-          
+
           // Store token in shareInfo
           mutations.setShareData({
             token: file.token,
             passwordValid: true,
           });
-          
+
           // If not a directory, fetch content AND parent directory in parallel
           if (file.type != "directory") {
             const content = !getters.fileViewingDisabled(file.name);
@@ -333,11 +338,11 @@ export default {
             const shouldFetchParent = directoryPath !== state.shareInfo.subPath;
             // Run both fetches in parallel to minimize total API calls
             const promises = [
-              publicApi.fetchPub(state.shareInfo.subPath, state.shareInfo.hash, this.sharePassword, content, false)
+              resourcesApi.fetchFilesPublic(state.shareInfo.subPath, state.shareInfo.hash, this.sharePassword, content, false)
             ];
             if (shouldFetchParent) {
               promises.push(
-                publicApi.fetchPub(directoryPath, state.shareInfo.hash, this.sharePassword, false, false).catch(() => null)
+                resourcesApi.fetchFilesPublic(directoryPath, state.shareInfo.hash, this.sharePassword, false, false).catch(() => null)
               );
             }
 
@@ -361,19 +366,19 @@ export default {
           if (file.type === "directory" && file.hasMetadata) {
             this.loadingProgress = 90;
             // Fetch with metadata enabled (background operation)
-            publicApi.fetchPub(state.shareInfo.subPath, state.shareInfo.hash, this.sharePassword, false, true).then(fileWithMetadata => {
+            resourcesApi.fetchFilesPublic(state.shareInfo.subPath, state.shareInfo.hash, this.sharePassword, false, true).then(fileWithMetadata => {
               fileWithMetadata.hash = state.shareInfo.hash;
               fileWithMetadata.token = state.shareInfo.token;
-              
+
               // Capture scroll position before update
               const scrollY = window.scrollY;
-              
+
               // Update the request with metadata
               mutations.replaceRequest(fileWithMetadata);
-              
+
               // Complete progress
               this.loadingProgress = 100;
-              
+
               // Restore scroll position
               requestAnimationFrame(() => {
                 window.scrollTo(0, scrollY);
@@ -427,15 +432,15 @@ export default {
           this.lastHash = "";
           // Reset view information using mutations
           mutations.resetSelected();
-          
+
           this.loadingProgress = 10;
-          
+
           const fetchSource = decodeURIComponent(result.source);
           const fetchPath = decodeURIComponent(result.path);
-          
+
           // First pass: Fetch initial data WITHOUT metadata
-          let res = await filesApi.fetchFiles(fetchSource, fetchPath, false, false);
-          
+          let res = await resourcesApi.fetchFiles(fetchSource, fetchPath, false, false);
+
           this.loadingProgress = 10;
 
           // If not a directory, fetch content AND parent directory in parallel
@@ -453,12 +458,12 @@ export default {
 
             // Run both fetches in parallel to minimize total API calls
             const promises = [
-              filesApi.fetchFiles(res.source, res.path, content, false)
+              resourcesApi.fetchFiles(res.source, res.path, content, false)
             ];
 
             if (shouldFetchParent) {
               promises.push(
-                filesApi.fetchFiles(res.source, directoryPath, false, false).catch(() => null)
+                resourcesApi.fetchFiles(res.source, directoryPath, false, false).catch(() => null)
               );
             }
 
@@ -480,21 +485,21 @@ export default {
           // Display initial data immediately and clear loading spinner
           mutations.replaceRequest(data);
           mutations.setLoading("files", false);
-          
+
           // Second pass: If directory has metadata available, fetch again with metadata IN THE BACKGROUND
           if (res.type === "directory" && res.hasMetadata) {
             this.loadingProgress = 90;
             // Fetch with metadata enabled (background operation, don't set loading state)
-            filesApi.fetchFiles(fetchSource, fetchPath, false, true).then(resWithMetadata => {
+            resourcesApi.fetchFiles(fetchSource, fetchPath, false, true).then(resWithMetadata => {
               // Capture scroll position before update
               const scrollY = window.scrollY;
-              
+
               // Update the data with metadata
               mutations.replaceRequest(resWithMetadata);
-              
+
               // Complete progress
               this.loadingProgress = 100;
-              
+
               // Restore scroll position
               requestAnimationFrame(() => {
                 window.scrollTo(0, scrollY);
@@ -514,7 +519,7 @@ export default {
         this.error = e;
         mutations.replaceRequest({});
         this.loadingProgress = 0;
-        
+
         if (e.status === 404) {
           router.push({ name: "notFound" });
         } else if (e.status === 403) {
@@ -549,6 +554,7 @@ export default {
     showPasswordPrompt() {
       mutations.showHover({
         name: "password",
+        pinned: true,
         props: {
           submitCallback: (password) => {
             this.sharePassword = password;

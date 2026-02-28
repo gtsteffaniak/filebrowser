@@ -1,8 +1,4 @@
 <template>
-  <div class="card-title">
-    <h2>{{ $t("prompts.fileInfo") }}</h2>
-  </div>
-
   <div class="card-content info-content">
     <div class="info-grid">
       <!-- Basic Information Section -->
@@ -13,15 +9,15 @@
           <span aria-label="info display name">{{ displayName }}</span>
         </div>
         <div class="info-item">
-          <strong>{{ $t("prompts.size") }}</strong>
+          <strong>{{ $t("general.size") }}</strong>
           <span aria-label="info size">{{ humanSize }}</span>
         </div>
         <div class="info-item">
-          <strong>{{ $t("prompts.typeName") }}</strong>
+          <strong>{{ $t("general.type") }}</strong>
           <span aria-label="info type">{{ type }}</span>
         </div>
         <div class="info-item" v-if="humanTime">
-          <strong>{{ $t("prompts.lastModified") }}</strong>
+          <strong>{{ $t("files.lastModified") }}</strong>
           <span aria-label="info last modified" :title="modTime">{{ humanTime }}</span>
         </div>
         <div class="info-item" v-if="source">
@@ -86,17 +82,11 @@
     </div>
   </div>
 
-  <div class="card-action">
-    <button type="submit" @click="closeHovers" class="button button--flat" :aria-label="$t('general.close')"
-      :title="$t('general.close')">
-      {{ $t("general.close") }}
-    </button>
-  </div>
 </template>
 <script>
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { formatTimestamp } from "@/utils/moment";
-import { filesApi } from "@/api";
+import { resourcesApi } from "@/api";
 import { state, mutations } from "@/store";
 import { notify } from "@/notify";
 
@@ -117,7 +107,7 @@ export default {
   },
   computed: {
     closeHovers() {
-      return mutations.closeHovers;
+      return mutations.closeTopHover();
     },
     humanSize() {
       return getHumanReadableFilesize(this.item?.size || 0);
@@ -181,7 +171,7 @@ export default {
         const source = this.item.source;
         const path = this.item.path;
 
-        const hash = await filesApi.checksum(source, path, this.selectedHashAlgo);
+        const hash = await resourcesApi.checksum(source, path, this.selectedHashAlgo);
         this.hashResult = hash;
       } catch (err) {
         this.hashResult = this.$t("prompts.errorGeneratingHash");
@@ -220,8 +210,10 @@ export default {
 
 <style scoped>
 .info-content {
-  max-height: 70vh;
+  height: 100%;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .info-description {
@@ -234,6 +226,7 @@ export default {
 .info-grid {
   display: grid;
   gap: 1.5em;
+  flex: 1;
 }
 
 .info-section {

@@ -1,124 +1,116 @@
 <template>
-  <div class="card-title">
-    <h2>{{ $t("prompts.upload") }}</h2>
-    <p>{{ uploadSettingsDescription }}</p>
-  </div>
-  <SettingsItem :title="$t('fileLoading.uploadSettings')" :collapsable="true" :start-collapsed="true">
-    <div class="settings-items upload-settings">
-      <div class="settings-number-input item">
-        <div class="no-padding">
-          <label for="maxConcurrentUpload">{{ $t("fileLoading.maxConcurrentUpload") }}</label>
-          <i class="no-select material-symbols-outlined tooltip-info-icon"
-            @mouseenter="showTooltip($event, $t('fileLoading.maxConcurrentUploadHelp'))" @mouseleave="hideTooltip">
-            help
-          </i>
+  <div class="card-content">
+    <p style="text-align: center">{{ uploadSettingsDescription }}</p>
+    <div>
+      <SettingsItem :title="$t('fileLoading.uploadSettings')" :collapsable="true" :start-collapsed="true">
+        <div class="settings-items upload-settings">
+          <div class="settings-number-input item">
+            <div class="no-padding">
+              <label for="maxConcurrentUpload">{{ $t("fileLoading.maxConcurrentUpload") }}</label>
+              <i class="no-select material-symbols-outlined tooltip-info-icon"
+                @mouseenter="showTooltip($event, $t('fileLoading.maxConcurrentUploadHelp'))" @mouseleave="hideTooltip">
+                help
+              </i>
+            </div>
+            <div>
+              <input v-model.number="maxConcurrentUpload" type="range" min="1" max="10" @change="updateUploadSettings" />
+              <span class="range-value">{{ maxConcurrentUpload }}</span>
+            </div>
+          </div>
+          <div class="settings-number-input item">
+            <div class="no-padding">
+              <label for="uploadChunkSizeMb">{{ $t("fileLoading.uploadChunkSizeMb") }}</label>
+              <i class="no-select material-symbols-outlined tooltip-info-icon"
+                @mouseenter="showTooltip($event, $t('fileLoading.uploadChunkSizeMbHelp'))" @mouseleave="hideTooltip">
+                help
+              </i>
+            </div>
+            <div class="no-padding">
+              <input class="sizeInput input" v-model.number="uploadChunkSizeMb" type="number" min="0" @change="updateUploadSettings" />
+            </div>
+          </div>
+          <ToggleSwitch class="item" v-model="clearAll" @change="updateUploadSettings"
+            :name="$t('fileLoading.clearAll')"
+            :description="$t('fileLoading.clearAllDescription')" />
         </div>
-        <div>
-          <input v-model.number="maxConcurrentUpload" type="range" min="1" max="10" @change="updateUploadSettings" />
-          <span class="range-value">{{ maxConcurrentUpload }}</span>
-        </div>
-      </div>
-      <div class="settings-number-input item">
-        <div class="no-padding">
-          <label for="uploadChunkSizeMb">{{ $t("fileLoading.uploadChunkSizeMb") }}</label>
-          <i class="no-select material-symbols-outlined tooltip-info-icon"
-            @mouseenter="showTooltip($event, $t('fileLoading.uploadChunkSizeMbHelp'))" @mouseleave="hideTooltip">
-            help
-          </i>
-        </div>
-        <div class="no-padding">
-          <input class="sizeInput input" v-model.number="uploadChunkSizeMb" type="number" min="0" @change="updateUploadSettings" />
-        </div>
-      </div>
-      <ToggleSwitch class="item" v-model="clearAll" @change="updateUploadSettings"
-        :name="$t('fileLoading.clearAll')"
-        :description="$t('fileLoading.clearAllDescription')" />
-    </div>
-  </SettingsItem>
-  <div class="upload-prompt" :class="{ dropping: isDragging }" @dragenter.prevent="onDragEnter"
-    @dragover.prevent="onDragOver" @dragleave.prevent="onDragLeave" @drop.prevent="onDrop">
-    <div class="upload-prompt-container">
-      <i v-if="files.length === 0" class="material-icons">cloud_upload</i>
-      <p v-if="files.length === 0">{{ $t("prompts.dragAndDrop") }}</p>
-      <div class="button-group">
-        <button @click="triggerFilePicker" class="button button--flat">
-          {{ $t("general.file") }}
-        </button>
-        <button style="margin-left: 1em" @click="triggerFolderPicker" class="button button--flat">
-          {{ $t("general.folder") }}
-        </button>
-      </div>
-    </div>
-  </div>
-  <div v-show="files.length > 0" class="card-content" @drop.prevent="onDrop">
-    <div v-if="showConflictPrompt" class="conflict-overlay">
-      <div class="card">
-        <div class="card-content">
-          <p>{{ $t("prompts.conflictsDetected") }}</p>
-        </div>
-        <div class="card-actions">
-          <button @click="resolveConflict(false)" class="button button--flat button--grey">
-            {{ $t("general.cancel") }}
-          </button>
-          <button @click="resolveConflict(true)" class="button button--flat button--red">
-            {{ $t("general.replace") }}
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <div v-if="files.length > 0" class="upload-list">
-      <div v-for="file in files" :key="file.id" class="upload-item">
-        <i class="material-icons file-icon">{{ file.type === "directory" ? "folder" : "insert_drive_file" }}</i> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-        <div class="file-info">
-          <p class="file-name">{{ file.name }}</p>
-          <progress-bar v-if="file.type !== 'directory'" :val="file.status === 'completed'
-              ? $t('prompts.completed')
-              : file.status === 'error'
-                ? $t('prompts.error')
-                : file.status === 'conflict'
-                  ? $t('prompts.conflictsDetected')
-                  : (file.progress / 100) * file.size
-            " :unit="file.status === 'completed' || file.status === 'error' ? '' : 'bytes'" :max="file.size"
-            :status="file.status" text-position="inside" size="20"
-            :help-text="getHelpText(file)">
-          </progress-bar>
-          <div v-else class="status-label">
-            <span>{{ getStatusText(file.status, file) }}</span>
+      </SettingsItem>
+      <div class="upload-prompt" :class="{ dropping: isDragging }" @dragenter.prevent="onDragEnter"
+        @dragover.prevent="onDragOver" @dragleave.prevent="onDragLeave" @drop.prevent="onDrop">
+        <div class="upload-prompt-container">
+          <i v-if="files.length === 0" class="material-icons">cloud_upload</i>
+          <p v-if="files.length === 0">{{ $t("prompts.dragAndDrop") }}</p>
+          <div class="button-group">
+            <button @click="triggerFilePicker" class="button button--flat">
+              {{ $t("general.file") }}
+            </button>
+            <button style="margin-left: 1em" @click="triggerFolderPicker" class="button button--flat">
+              {{ $t("general.folder") }}
+            </button>
           </div>
         </div>
-        <div class="file-actions">
-          <button v-if="file.status === 'uploading'" @click="uploadManager.pause(file.id)" class="action"
-            :aria-label="$t('general.pause')" :title="$t('general.pause')">
-            <i class="material-icons">pause</i>
-          </button>
-          <button v-if="file.status === 'paused'" @click="uploadManager.resume(file.id)" class="action"
-            :aria-label="$t('general.resume')" :title="$t('general.resume')">
-            <i class="material-icons">play_arrow</i>
-          </button>
-          <button v-if="file.status === 'error'" @click="uploadManager.retry(file.id)" class="action"
-            :aria-label="$t('general.retry')" :title="$t('general.retry')">
-            <i class="material-icons">replay</i>
-          </button>
-          <button v-if="file.status === 'conflict'" @click="handleConflictAction(file)" class="action"
-            :aria-label="$t('general.replace')" :title="$t('general.replace')">
-            <i class="material-icons">sync_problem</i>
-          </button>
-          <button @click="cancelUpload(file.id)" class="action" :aria-label="$t('general.cancel')"
-            :title="$t('general.cancel')">
-            <i class="material-icons">close</i>
-          </button>
+      </div>
+    </div>
+    <div v-if="files.length > 0" style="position: relative;">
+      <div v-if="showConflictPrompt" class="conflict-overlay">
+        <div class="card">
+          <div class="card-content">
+            <p>{{ $t("prompts.conflictsDetected") }}</p>
+          </div>
+          <div class="card-actions">
+            <button @click="resolveConflict(true)" class="button button--flat button--red">
+              {{ $t("general.replace") }}
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="upload-list">
+        <div v-for="file in files" :key="file.id" class="upload-item">
+          <i class="material-icons file-icon">{{ file.type === "directory" ? "folder" : "insert_drive_file" }}</i> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <div class="file-info">
+            <p class="file-name">{{ file.name }}</p>
+            <progress-bar v-if="file.type !== 'directory'" :val="file.status === 'completed'
+                ? $t('prompts.completed')
+                : file.status === 'error'
+                  ? $t('prompts.error')
+                  : file.status === 'conflict'
+                    ? $t('prompts.conflictsDetected')
+                    : (file.progress / 100) * file.size
+              " :unit="file.status === 'completed' || file.status === 'error' ? '' : 'bytes'" :max="file.size"
+              :status="file.status" text-position="inside" size="20"
+              :help-text="getHelpText(file)">
+            </progress-bar>
+            <div v-else class="status-label">
+              <span>{{ getStatusText(file.status, file) }}</span>
+            </div>
+          </div>
+          <div class="file-actions">
+            <button v-if="file.status === 'uploading'" @click="uploadManager.pause(file.id)" class="action"
+              :aria-label="$t('general.pause')" :title="$t('general.pause')">
+              <i class="material-icons">pause</i>
+            </button>
+            <button v-if="file.status === 'paused'" @click="uploadManager.resume(file.id)" class="action"
+              :aria-label="$t('general.resume')" :title="$t('general.resume')">
+              <i class="material-icons">play_arrow</i>
+            </button>
+            <button v-if="file.status === 'error'" @click="uploadManager.retry(file.id)" class="action"
+              :aria-label="$t('general.retry')" :title="$t('general.retry')">
+              <i class="material-icons">replay</i>
+            </button>
+            <button v-if="file.status === 'conflict'" @click="handleConflictAction(file)" class="action"
+              :aria-label="$t('general.replace')" :title="$t('general.replace')">
+              <i class="material-icons">sync_problem</i>
+            </button>
+            <button @click="cancelUpload(file.id)" class="action" :aria-label="$t('general.cancel')"
+              :title="$t('general.cancel')">
+              <i class="material-icons">close</i>
+            </button>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
   <div class="card-actions">
-    <button v-if="shareInfo.shareType !== 'upload'"  @click="close" class="button button--flat button--grey" :aria-label="$t('general.cancel')"
-      :title="$t('general.cancel')">
-      {{ $t("general.close") }}
-    </button>
-    <div class="spacer"></div>
     <button v-if="canPauseAll" @click="uploadManager.pauseAll" class="button button--flat"
       :aria-label="$t('buttons.pauseAll')" :title="$t('buttons.pauseAll')">
       {{ $t("buttons.pauseAll") }}
@@ -164,6 +156,14 @@ export default {
     filesToReplace: {
       type: Array,
       default: () => [],
+    },
+    targetPath: {
+      type: String,
+      default: null,
+    },
+    targetSource: {
+      type: String,
+      default: null,
     },
   },
   computed: {
@@ -234,6 +234,7 @@ export default {
       conflictResolver = resolver;
       mutations.showHover({
         name: "replace-rename",
+        pinned: true,
         confirm: (event, option) => {
           if (option === "overwrite") {
             resolveConflict(true);
@@ -355,8 +356,7 @@ export default {
     );
 
     const close = () => {
-      // closeHovers will automatically check isUploading and show warning if needed
-      mutations.closeHovers();
+      mutations.closeTopHover();
     };
 
     const clearCompleted = () => {
@@ -379,21 +379,25 @@ export default {
       }
     };
 
+    // Helper to get the destination path (from prop or fallback to current request)
+    const getDestinationPath = () => props.targetPath || state.req.path;
+
     const processItems = async (items) => {
+      const destination = getDestinationPath();
       // When items are passed as a prop from ListingView, they can be either
       // an array of DataTransferItem (from drag and drop) or an array of File (from input).
       if (Array.isArray(items)) {
         if (items.length > 0 && items[0] instanceof File) {
           // This is an array of File objects from the input fallback in ListingView
-          processFileList(items);
+          processFileList(items, destination);
         } else {
           // This is an array of DataTransferItem from drag and drop in ListingView
-          await processDroppedItems(items);
+          await processDroppedItems(items, destination);
         }
       } else if (items) {
         // This case handles a FileList object from the upload prompt's own input fields.
         // It is not an array, so we convert it.
-        await processDroppedItems(Array.from(items));
+        await processDroppedItems(Array.from(items), destination);
       }
     };
 
@@ -424,7 +428,7 @@ export default {
     const onFilePicked = (event) => {
       const pickedFiles = event.target.files;
       if (pickedFiles.length > 0) {
-        processFileList(pickedFiles);
+        processFileList(pickedFiles, getDestinationPath());
       }
       if (event.target) event.target.value = null;
     };
@@ -432,23 +436,24 @@ export default {
     const onFolderPicked = (event) => {
       const pickedFiles = event.target.files;
       if (pickedFiles.length > 0) {
-        processFileList(pickedFiles);
+        processFileList(pickedFiles, getDestinationPath());
       }
       if (event.target) event.target.value = null;
     };
 
     const onDrop = async (event) => {
       isDragging.value = false;
+      const destination = getDestinationPath();
       if (event.dataTransfer.items) {
         const items = Array.from(event.dataTransfer.items);
-        await processDroppedItems(items);
+        await processDroppedItems(items, destination);
       } else {
         const droppedFiles = event.dataTransfer.files;
         console.log(
           "Upload.vue: Processing dropped files (fallback):",
           droppedFiles
         );
-        processFileList(droppedFiles);
+        processFileList(droppedFiles, destination);
       }
     };
 
@@ -488,7 +493,7 @@ export default {
       return [];
     };
 
-    const processDroppedItems = async (items) => {
+    const processDroppedItems = async (items, destination) => {
       const filesToUpload = [];
       const promises = items.map(item => {
         const entry = item.webkitGetAsEntry();
@@ -502,23 +507,24 @@ export default {
       allFiles.forEach(files => filesToUpload.push(...files));
 
       if (filesToUpload.length > 0) {
-        uploadManager.add(state.req.path, filesToUpload);
+        uploadManager.add(destination, filesToUpload);
       }
     };
 
-    const processFileList = (fileList) => {
+    const processFileList = (fileList, destination) => {
       const filesToAdd = Array.from(fileList).map((file) => ({
         file,
         relativePath: file.webkitRelativePath || file.name,
       }));
       if (filesToAdd.length > 0) {
-        uploadManager.add(state.req.path, filesToAdd);
+        uploadManager.add(destination, filesToAdd);
       }
     };
 
     const handleConflictAction = (file) => {
       mutations.showHover({
         name: "replace",
+        pinned: true,
         confirm: () => {
           uploadManager.retry(file.id, true);
           mutations.closeTopHover();
@@ -605,6 +611,15 @@ export default {
 </script>
 
 <style scoped>
+.button-group {
+  display: flex;
+  justify-content: center;
+}
+
+:deep(.settings-group-title) {
+  margin-top: 0;
+}
+
 .upload-prompt {
   text-align: center;
   padding: 2em;
@@ -632,10 +647,7 @@ export default {
 }
 
 .upload-list {
-  overflow-y: auto;
-  padding-right: 0.5em;
-  /* To avoid scrollbar overlapping content */
-  flex-grow: 1;
+  height: 100%;
   display: flex;
   flex-direction: column-reverse;
   min-height: 0;
@@ -675,12 +687,6 @@ export default {
 
 .file-actions .action i {
   font-size: 1.2em;
-}
-
-.card-actions {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.5em;
 }
 
 .spacer {

@@ -574,7 +574,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "OIDC"
+                    "Auth"
                 ],
                 "summary": "OIDC callback",
                 "parameters": [
@@ -623,7 +623,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "OIDC"
+                    "Auth"
                 ],
                 "summary": "OIDC login",
                 "responses": {
@@ -646,7 +646,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "OTP"
+                    "Auth"
                 ],
                 "summary": "Generate OTP",
                 "parameters": [
@@ -702,7 +702,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "OTP"
+                    "Auth"
                 ],
                 "summary": "Verify OTP",
                 "parameters": [
@@ -750,6 +750,47 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ]
+            }
+        },
+        "/api/auth/renew": {
+            "post": {
+                "description": "Refresh the authentication token for a logged-in user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Renew authentication token",
+                "responses": {
+                    "200": {
+                        "description": "New JWT token generated",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - invalid token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
             }
         },
         "/api/auth/signup": {
@@ -812,8 +853,8 @@ const docTemplate = `{
             }
         },
         "/api/auth/token": {
-            "put": {
-                "description": "Create an API key with specified name, duration, and permissions.",
+            "get": {
+                "description": "Get a specific API token.",
                 "consumes": [
                     "application/json"
                 ],
@@ -821,27 +862,75 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "API Keys"
+                    "Auth"
                 ],
-                "summary": "Create API key",
+                "summary": "Get API token",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Name of the API key",
+                        "description": "Name of the API token to retrieve",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "API token details",
+                        "schema": {
+                            "$ref": "#/definitions/http.AuthTokenFrontend"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create an API token with specified name, duration, and permissions.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Create API Token",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Name of the API token",
                         "name": "name",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Duration of the API key in days",
+                        "description": "Duration of the API token in days",
                         "name": "days",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Permissions for the API key (comma-separated)",
+                        "description": "Permissions for the API token (comma-separated)",
                         "name": "permissions",
                         "in": "query",
                         "required": true
@@ -849,7 +938,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Token created successfully, response contains json object with token key",
+                        "description": "Token created successfully, response contains json object with token",
                         "schema": {
                             "$ref": "#/definitions/http.HttpResponse"
                         }
@@ -893,7 +982,7 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "Delete an API key with specified name.",
+                "description": "Delete an API token with specified name.",
                 "consumes": [
                     "application/json"
                 ],
@@ -901,13 +990,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "API Keys"
+                    "Auth"
                 ],
-                "summary": "Delete API key",
+                "summary": "Delete API token",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Name of the API key to delete",
+                        "description": "Name of the API token to delete",
                         "name": "name",
                         "in": "query",
                         "required": true
@@ -915,7 +1004,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "API key deleted successfully",
+                        "description": "API token deleted successfully",
                         "schema": {
                             "$ref": "#/definitions/http.HttpResponse"
                         }
@@ -941,9 +1030,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/auth/tokens": {
+        "/api/auth/token/list": {
             "get": {
-                "description": "List all API keys or retrieve details for a specific key.",
+                "description": "List all API tokens or retrieve details for a specific token.",
                 "consumes": [
                     "application/json"
                 ],
@@ -951,22 +1040,17 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "API Keys"
+                    "Auth"
                 ],
-                "summary": "List API keys",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Name of the API to retrieve details",
-                        "name": "name",
-                        "in": "query"
-                    }
-                ],
+                "summary": "List API tokens",
                 "responses": {
                     "200": {
-                        "description": "List of API keys or specific key details",
+                        "description": "List of API tokens",
                         "schema": {
-                            "$ref": "#/definitions/http.AuthTokenMin"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/http.AuthTokenFrontend"
+                            }
                         }
                     },
                     "404": {
@@ -975,119 +1059,6 @@ const docTemplate = `{
                             "type": "object",
                             "additionalProperties": {
                                 "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/duplicates": {
-            "get": {
-                "description": "Finds duplicate files using multi-stage filtering: size → type → fuzzy filename → progressive checksums. Files must match on size, MIME type, and have 50%+ filename similarity before checksum verification. Large fuzzy groups (\u003e10 files) are skipped to avoid false positives. Checksums use 2-pass progressive verification (header → middle) for accuracy while minimizing disk I/O (~16KB read per file).",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Duplicates"
-                ],
-                "summary": "Find Duplicate Files",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Source name for the desired source",
-                        "name": "source",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "path within user scope to search",
-                        "name": "scope",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Minimum file size in megabytes (default: 1)",
-                        "name": "minSizeMb",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "List of duplicate file groups with metadata. Response includes 'incomplete' flag if processing stopped early due to resource limits.",
-                        "schema": {
-                            "$ref": "#/definitions/http.duplicateResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "503": {
-                        "description": "Service Unavailable (indexing in progress or another search running)",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/jobs/{action}/{target}": {
-            "get": {
-                "description": "Returns job info for the user.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Jobs"
-                ],
-                "summary": "Get jobs info",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Job action",
-                        "name": "action",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Job target",
-                        "name": "target",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Job info",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "$ref": "#/definitions/indexing.ReducedIndex"
                             }
                         }
                     },
@@ -1113,7 +1084,7 @@ const docTemplate = `{
                     "text/plain"
                 ],
                 "tags": [
-                    "Subtitles"
+                    "Resources"
                 ],
                 "summary": "Get subtitle content",
                 "parameters": [
@@ -1191,9 +1162,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/preview": {
+        "/api/office/callback": {
             "get": {
-                "description": "Returns a preview image based on the requested path and size.",
+                "description": "Receives callbacks from OnlyOffice document server for document status changes and saves",
                 "consumes": [
                     "application/json"
                 ],
@@ -1201,157 +1172,39 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Resources"
+                    "Office"
                 ],
-                "summary": "Get image preview",
+                "summary": "Handle OnlyOffice document server callback",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "File path of the image to preview",
-                        "name": "path",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Preview size ('small' or 'large'). Default is based on server config.",
-                        "name": "size",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Preview image content",
-                        "schema": {
-                            "type": "file"
-                        }
-                    },
-                    "202": {
-                        "description": "Download permissions required",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request path",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "File not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "415": {
-                        "description": "Unsupported file type for preview",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "501": {
-                        "description": "Preview generation not implemented",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/raw": {
-            "get": {
-                "description": "Returns the raw content of a file, multiple files, or a directory. Supports downloading files as archives in various formats.\n\n**Filename Encoding:**\n- The Content-Disposition header will always include both:\n1. ` + "`" + `filename=\"...\"` + "`" + `: An ASCII-safe version of the filename for compatibility.\n2. ` + "`" + `filename*=utf-8\"...` + "`" + `: The full UTF-8 encoded filename (RFC 6266/5987) for modern clients.\n\n**Multiple Files:**\n- Use repeated query parameters: ` + "`" + `?file=file1.txt\u0026file=file2.txt\u0026file=file3.txt` + "`" + `\n- This supports filenames containing commas and special characters",
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Resources"
-                ],
-                "summary": "Get raw content of a file, multiple files, or directory",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Source name for the files (required)",
+                        "description": "Source name",
                         "name": "source",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "File path (can be repeated for multiple files)",
-                        "name": "file",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults to 'attachment'.",
-                        "name": "inline",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Compression algorithm for archiving multiple files or directories. Options: 'zip' and 'tar.gz'. Default is 'zip'.",
-                        "name": "algo",
+                        "description": "File path",
+                        "name": "path",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Share hash (for public shares)",
+                        "name": "hash",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Raw file or directory content, or archive for multiple files",
-                        "schema": {
-                            "type": "file"
-                        }
-                    },
-                    "202": {
-                        "description": "Modify permissions required",
+                        "description": "Callback processed successfully",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "additionalProperties": true
                         }
                     },
                     "400": {
-                        "description": "Invalid request path",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "File or directory not found",
+                        "description": "Invalid callback data",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1360,7 +1213,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1368,12 +1221,15 @@ const docTemplate = `{
                             }
                         }
                     }
-                }
-            }
-        },
-        "/api/renew": {
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ]
+            },
             "post": {
-                "description": "Refresh the authentication token for a logged-in user.",
+                "description": "Receives callbacks from OnlyOffice document server for document status changes and saves",
                 "consumes": [
                     "application/json"
                 ],
@@ -1381,18 +1237,39 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Auth"
+                    "Office"
                 ],
-                "summary": "Renew authentication token",
+                "summary": "Handle OnlyOffice document server callback",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Source name",
+                        "name": "source",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "File path",
+                        "name": "path",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Share hash (for public shares)",
+                        "name": "hash",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "New JWT token generated",
+                        "description": "Callback processed successfully",
                         "schema": {
-                            "type": "string"
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     },
-                    "401": {
-                        "description": "Unauthorized - invalid token",
+                    "400": {
+                        "description": "Invalid callback data",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1401,7 +1278,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1409,7 +1286,79 @@ const docTemplate = `{
                             }
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/office/config": {
+            "get": {
+                "description": "Returns the configuration needed for OnlyOffice document editor client",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Office"
+                ],
+                "summary": "Get OnlyOffice client configuration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Source name",
+                        "name": "source",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "File path",
+                        "name": "path",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Share hash (for public shares)",
+                        "name": "hash",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OnlyOffice configuration",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Missing or invalid parameters",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ]
             }
         },
         "/api/resources": {
@@ -1432,6 +1381,12 @@ const docTemplate = `{
                         "name": "path",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Skip extended attributes for faster retrieval, no hasPreview",
+                        "name": "skipExtendedAttrs",
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -1771,8 +1726,81 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/resources/bulk/delete": {
+        "/api/resources/archive": {
             "post": {
+                "description": "Creates a zip or tar.gz archive on the server from the given paths (files and/or directories). Server-side only; no archive bytes are returned. All items must be from the same source. Folders are walked recursively; access-denied paths are silently skipped. Requires create permission.\n\n**Request body parameters:**\n- **fromSource** (string, required): Source name where the paths to archive live. Example: ` + "`" + `\"default\"` + "`" + `\n- **toSource** (string, optional): Source name where the archive file will be written. Defaults to fromSource if omitted. Example: ` + "`" + `\"backups\"` + "`" + `\n- **paths** (array of strings, required): Paths of files or directories to add to the archive (relative to fromSource). Directories are walked; access-denied entries are skipped. Example: ` + "`" + `[\"/docs/file.txt\", \"/photos\"]` + "`" + `\n- **destination** (string, required): Full path where the archive file will be created (on toSource). Must end with .zip or .tar.gz (or format is inferred). Example: ` + "`" + `\"/backups/my-archive.zip\"` + "`" + `\n- **format** (string, optional): Archive format. One of: ` + "`" + `\"zip\"` + "`" + `, ` + "`" + `\"tar.gz\"` + "`" + `. Default inferred from destination extension. Example: ` + "`" + `\"zip\"` + "`" + `\n- **compression** (integer, optional): Gzip compression level for tar.gz only (0–9). 0 = default. Ignored for zip. Example: ` + "`" + `6` + "`" + `\n- **deleteAfter** (boolean, optional): If true, delete source files/directories after successful creation. Requires delete permission. Example: ` + "`" + `true` + "`" + `",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Create an archive on the server",
+                "parameters": [
+                    {
+                        "description": "Request body: fromSource, toSource (optional), paths, destination, format (optional), compression (optional)",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.archiveCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Created; returns {\\\"path\\\": \\\"\u003cdestination path\u003e\\\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request (e.g. missing required field, invalid path)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden (create permission or access denied)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Source not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/resources/bulk": {
+            "delete": {
                 "description": "Deletes multiple resources specified in the request body. Returns a list of succeeded and failed deletions.",
                 "consumes": [
                     "application/json"
@@ -1841,9 +1869,97 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/search": {
+        "/api/resources/download": {
             "get": {
-                "description": "Searches for files matching the provided query. Returns file paths and metadata based on the user's session and scope. Supports searching across multiple sources when using the 'sources' parameter.",
+                "description": "Returns the raw content of a file, multiple files, or a directory. Supports downloading files as archives in various formats.\n\n**Filename Encoding:**\n- The Content-Disposition header will always include both:\n1. ` + "`" + `filename=\"...\"` + "`" + `: An ASCII-safe version of the filename for compatibility.\n2. ` + "`" + `filename*=utf-8\"...` + "`" + `: The full UTF-8 encoded filename (RFC 6266/5987) for modern clients.\n\n**Multiple Files:**\n- Use repeated query parameters: ` + "`" + `?file=file1.txt\u0026file=file2.txt\u0026file=file3.txt` + "`" + `\n- This supports filenames containing commas and special characters",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Download content of a file, multiple files, or directory",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Source name for the files (required)",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "File path (can be repeated for multiple files)",
+                        "name": "file",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults to 'attachment'.",
+                        "name": "inline",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Compression algorithm for archiving multiple files or directories. Options: 'zip' and 'tar.gz'. Default is 'zip'.",
+                        "name": "algo",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Raw file or directory content, or archive for multiple files",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "202": {
+                        "description": "Modify permissions required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request path",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "File or directory not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/resources/items": {
+            "get": {
+                "description": "Efficiently returns a basic list of items for the specified path and source. Use 'only' parameter to filter by only files or folders",
                 "consumes": [
                     "application/json"
                 ],
@@ -1851,54 +1967,214 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Search"
+                    "Resources"
                 ],
-                "summary": "Search Files",
+                "summary": "Get directory items",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Search query",
-                        "name": "query",
+                        "description": "A directory path to list child items",
+                        "name": "path",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Source name for the desired source (deprecated, use 'sources' instead)",
+                        "description": "The source name which contains the path",
                         "name": "source",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Comma-separated list of source names to search across multiple sources. When multiple sources are specified, scope is always the user's scope for each source.",
-                        "name": "sources",
+                        "description": "Filter: 'files', 'folders', or omit for both",
+                        "name": "only",
                         "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "path within user scope to search, for example '/first/second' to search within the second directory only. Ignored when multiple sources are specified.",
-                        "name": "scope",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "User session ID, add unique value to prevent collisions",
-                        "name": "SessionId",
-                        "in": "header"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "List of search results with source field populated",
+                        "description": "lists files and folders",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/indexing.SearchResult"
+                            "$ref": "#/definitions/files.Items"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden (access denied)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/resources/preview": {
+            "get": {
+                "description": "Returns a preview image based on the requested path and size.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Get image preview",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "File path of the image to preview",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Preview size ('small' or 'large'). Default is based on server config.",
+                        "name": "size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Preview image content",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "202": {
+                        "description": "Download permissions required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
                             }
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Invalid request path",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "File not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "415": {
+                        "description": "Unsupported file type for preview",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "501": {
+                        "description": "Preview generation not implemented",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/resources/unarchive": {
+            "post": {
+                "description": "Extracts a zip or tar.gz archive on the server into the given destination directory. Server-side only; no extracted bytes are returned. Supports extracting to a different source via toSource. Requires create permission.\n\n**Request body parameters:**\n- **fromSource** (string, required): Source name where the archive file lives. Example: ` + "`" + `\"default\"` + "`" + `\n- **toSource** (string, optional): Source name where contents will be extracted. Defaults to fromSource if omitted. Example: ` + "`" + `\"restored\"` + "`" + `\n- **path** (string, required): Path to the archive file (on fromSource). Must be .zip, .tar.gz, or .tgz. Example: ` + "`" + `\"/downloads/data.zip\"` + "`" + `\n- **destination** (string, required): Directory path (on toSource) to extract into. Example: ` + "`" + `\"/projects/imported\"` + "`" + `\n- **deleteAfter** (boolean, optional): If true, delete the archive file after successful extraction. Default: false. Example: ` + "`" + `true` + "`" + `",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Extract an archive on the server",
+                "parameters": [
+                    {
+                        "description": "Request body: fromSource, toSource (optional), path, destination, deleteAfter (optional)",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.unarchiveRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Extracted; returns {\\\"path\\\": \\\"\u003cdestination path\u003e\\\", \\\"source\\\": \\\"\u003ctoSource\u003e\\\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request (e.g. missing required field, unsupported format)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden (create permission or access denied)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Source or archive file not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2077,6 +2353,51 @@ const docTemplate = `{
                     }
                 }
             },
+            "delete": {
+                "description": "Deletes a share link specified by its hash.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shares"
+                ],
+                "summary": "Delete a share link",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Hash of the share link to delete",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Share link deleted successfully"
+                    },
+                    "400": {
+                        "description": "Bad request - missing or invalid hash",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
             "patch": {
                 "description": "Updates the path for a specific share link identified by hash",
                 "consumes": [
@@ -2220,7 +2541,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/shares": {
+        "/api/share/list": {
             "get": {
                 "description": "Returns a list of share links for the current user, or all links if the user is an admin.",
                 "consumes": [
@@ -2253,9 +2574,11 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
-            "delete": {
-                "description": "Deletes a share link specified by its hash.",
+            }
+        },
+        "/api/tools/duplicateFinder": {
+            "get": {
+                "description": "Finds duplicate files using multi-stage filtering: size → type → fuzzy filename → progressive checksums. Files must match on size, MIME type, and have 50%+ filename similarity before checksum verification. Large fuzzy groups (\u003e10 files) are skipped to avoid false positives. Checksums use 2-pass progressive verification (header → middle) for accuracy while minimizing disk I/O (~16KB read per file).",
                 "consumes": [
                     "application/json"
                 ],
@@ -2263,24 +2586,39 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Shares"
+                    "Tools"
                 ],
-                "summary": "Delete a share link",
+                "summary": "Find Duplicate Files",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Hash of the share link to delete",
-                        "name": "hash",
+                        "description": "Source name for the desired source",
+                        "name": "source",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "path within user scope to search",
+                        "name": "scope",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Minimum file size in megabytes (default: 1)",
+                        "name": "minSizeMb",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Share link deleted successfully"
+                        "description": "List of duplicate file groups with metadata. Response includes 'incomplete' flag if processing stopped early due to resource limits.",
+                        "schema": {
+                            "$ref": "#/definitions/http.duplicateResponse"
+                        }
                     },
                     "400": {
-                        "description": "Bad request - missing or invalid hash",
+                        "description": "Bad Request",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2288,8 +2626,8 @@ const docTemplate = `{
                             }
                         }
                     },
-                    "500": {
-                        "description": "Internal server error",
+                    "503": {
+                        "description": "Service Unavailable (indexing in progress or another search running)",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2300,7 +2638,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/tools/watch": {
+        "/api/tools/fileWatcher": {
             "get": {
                 "description": "Returns the last N lines of a file",
                 "consumes": [
@@ -2387,7 +2725,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/tools/watch/sse": {
+        "/api/tools/fileWatcher/sse": {
             "get": {
                 "description": "Establishes an SSE connection to receive periodic file updates",
                 "tags": [
@@ -2446,6 +2784,74 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "File not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/tools/search": {
+            "get": {
+                "description": "Searches for files matching the provided query. Returns file paths and metadata based on the user's session and scope. Supports searching across multiple sources when using the 'sources' parameter.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tools"
+                ],
+                "summary": "Search Files",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search query",
+                        "name": "query",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source name for the desired source (deprecated, use 'sources' instead)",
+                        "name": "source",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Comma-separated list of source names to search across multiple sources. When multiple sources are specified, scope is always the user's scope for each source.",
+                        "name": "sources",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "path within user scope to search, for example '/first/second' to search within the second directory only. Ignored when multiple sources are specified.",
+                        "name": "scope",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "User session ID, add unique value to prevent collisions",
+                        "name": "SessionId",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of search results with source field populated",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/indexing.SearchResult"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2683,196 +3089,12 @@ const docTemplate = `{
                 "produces": [
                     "application/json"
                 ],
-                "tags": [
-                    "Health"
-                ],
                 "summary": "Health Check",
                 "responses": {
                     "200": {
                         "description": "successful health check response",
                         "schema": {
                             "$ref": "#/definitions/http.HttpResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/public/api/preview": {
-            "get": {
-                "description": "Returns a preview (thumbnail) for images or videos accessible via a public share. Preview generation can be disabled globally or per-share. Not available for upload-only shares.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "image/jpeg"
-                ],
-                "tags": [
-                    "Public Shares"
-                ],
-                "summary": "Get image/video preview from a public share",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Share hash for authentication",
-                        "name": "hash",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "File path within the share to preview",
-                        "name": "path",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Preview size: 'small' or 'large'. Default is based on server config.",
-                        "name": "size",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Preview image content (JPEG)",
-                        "schema": {
-                            "type": "file"
-                        }
-                    },
-                    "403": {
-                        "description": "Share unavailable or access denied",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "File not found or preview not available",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "501": {
-                        "description": "Previews disabled globally, for this share, or for upload shares",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/public/api/raw": {
-            "get": {
-                "description": "Downloads raw content from a public share. Supports single files, multiple files, or directories as archives. Enforces download limits (global or per-user) and blocks anonymous users when per-user limits are enabled.\n\n**Multiple Files:**\n- Use repeated query parameters: ` + "`" + `?file=file1.txt\u0026file=file2.txt\u0026file=file3.txt` + "`" + `\n- This supports filenames containing commas and special characters",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/octet-stream"
-                ],
-                "tags": [
-                    "Public Shares"
-                ],
-                "summary": "Download files from a public share",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Share hash for authentication",
-                        "name": "hash",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "File path (can be repeated for multiple files)",
-                        "name": "file",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults to 'attachment'.",
-                        "name": "inline",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Compression algorithm for archiving multiple files or directories. Options: 'zip' and 'tar.gz'. Default is 'zip'.",
-                        "name": "algo",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Raw file or directory content, or archive for multiple files",
-                        "schema": {
-                            "type": "file"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request path or encoding",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "Download limit reached, anonymous access blocked, or share unavailable",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Share not found or file not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "501": {
-                        "description": "Downloads disabled for upload shares",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
                         }
                     }
                 }
@@ -2888,7 +3110,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Public Shares"
+                    "Shares"
                 ],
                 "summary": "Get file/directory information from a public share",
                 "parameters": [
@@ -2972,7 +3194,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Public Shares"
+                    "Shares"
                 ],
                 "summary": "Update a file in a public share",
                 "parameters": [
@@ -3057,7 +3279,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Public Shares"
+                    "Shares"
                 ],
                 "summary": "Upload files to a public upload share",
                 "parameters": [
@@ -3170,7 +3392,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Public Shares"
+                    "Shares"
                 ],
                 "summary": "Move, copy, or rename resources in a public share",
                 "parameters": [
@@ -3240,8 +3462,8 @@ const docTemplate = `{
                 }
             }
         },
-        "/public/api/resources/bulk/delete": {
-            "post": {
+        "/public/api/resources/bulk": {
+            "delete": {
                 "description": "Deletes multiple resources specified in the request body. Returns a list of succeeded and failed deletions.",
                 "consumes": [
                     "application/json"
@@ -3250,7 +3472,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Public Shares"
+                    "Shares"
                 ],
                 "summary": "Bulk delete resources from public share",
                 "parameters": [
@@ -3317,6 +3539,258 @@ const docTemplate = `{
                 }
             }
         },
+        "/public/api/resources/download": {
+            "get": {
+                "description": "Downloads raw content from a public share. Supports single files, multiple files, or directories as archives. Enforces download limits (global or per-user) and blocks anonymous users when per-user limits are enabled.\n\n**Multiple Files:**\n- Use repeated query parameters: ` + "`" + `?file=file1.txt\u0026file=file2.txt\u0026file=file3.txt` + "`" + `\n- This supports filenames containing commas and special characters",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "Shares"
+                ],
+                "summary": "Download files from a public share",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Share hash for authentication",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "File path (can be repeated for multiple files)",
+                        "name": "file",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults to 'attachment'.",
+                        "name": "inline",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Compression algorithm for archiving multiple files or directories. Options: 'zip' and 'tar.gz'. Default is 'zip'.",
+                        "name": "algo",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Raw file or directory content, or archive for multiple files",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request path or encoding",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Download limit reached, anonymous access blocked, or share unavailable",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Share not found or file not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "501": {
+                        "description": "Downloads disabled for upload shares",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/public/api/resources/items": {
+            "get": {
+                "description": "Efficiently returns a basic list of items for the specified path in a public share. Use hash for authentication instead of source. Use 'only' parameter to filter by only files or folders.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shares"
+                ],
+                "summary": "Get directory items (public share)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Share hash for authentication",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Path within the share to list child items. Defaults to share root.",
+                        "name": "path",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter: 'files', 'folders', or omit for both",
+                        "name": "only",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "lists files and folders",
+                        "schema": {
+                            "$ref": "#/definitions/files.Items"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden (access denied)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Share not found or source not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/public/api/resources/preview": {
+            "get": {
+                "description": "Returns a preview (thumbnail) for images or videos accessible via a public share. Preview generation can be disabled globally or per-share. Not available for upload-only shares.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "image/jpeg"
+                ],
+                "tags": [
+                    "Shares"
+                ],
+                "summary": "Get image/video preview from a public share",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Share hash for authentication",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "File path within the share to preview",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Preview size: 'small' or 'large'. Default is based on server config.",
+                        "name": "size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Preview image content (JPEG)",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "403": {
+                        "description": "Share unavailable or access denied",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "File not found or preview not available",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "501": {
+                        "description": "Previews disabled globally, for this share, or for upload shares",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/public/api/share/image": {
             "get": {
                 "description": "Returns a resizable preview (large size) for the banner or favicon file of a share",
@@ -3324,7 +3798,7 @@ const docTemplate = `{
                     "image/jpeg"
                 ],
                 "tags": [
-                    "Public Shares"
+                    "Shares"
                 ],
                 "summary": "Get share image (banner or favicon) as preview",
                 "parameters": [
@@ -3385,7 +3859,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/public/api/shareinfo": {
+        "/public/api/share/info": {
             "get": {
                 "description": "Returns information about a share link based on its hash. This endpoint is publicly accessible and can be used with or without authentication.",
                 "consumes": [
@@ -3428,25 +3902,39 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "http.AuthTokenMin": {
+        "files.Items": {
+            "type": "object",
+            "properties": {
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "folders": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "http.AuthTokenFrontend": {
             "type": "object",
             "properties": {
                 "Permissions": {
                     "$ref": "#/definitions/users.Permissions"
                 },
-                "created": {
+                "expiresAt": {
                     "type": "integer"
                 },
-                "expires": {
+                "issuedAt": {
                     "type": "integer"
-                },
-                "key": {
-                    "type": "string"
-                },
-                "minimal": {
-                    "type": "boolean"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "token": {
                     "type": "string"
                 }
             }
@@ -3757,6 +4245,42 @@ const docTemplate = `{
                 }
             }
         },
+        "http.archiveCreateRequest": {
+            "type": "object",
+            "properties": {
+                "compression": {
+                    "description": "Gzip compression level for tar.gz only, 0-9; 0 = default; ignored for zip (optional). Example: 6",
+                    "type": "integer"
+                },
+                "deleteAfter": {
+                    "description": "If true, delete the source files/directories after successful archive creation (optional; requires delete permission). Example: true",
+                    "type": "boolean"
+                },
+                "destination": {
+                    "description": "Full path where the archive will be created; use .zip or .tar.gz extension (required). Example: \"/backups/my-archive.zip\"",
+                    "type": "string"
+                },
+                "format": {
+                    "description": "Archive format: \"zip\" or \"tar.gz\" (optional; inferred from destination if omitted). Example: \"zip\"",
+                    "type": "string"
+                },
+                "fromSource": {
+                    "description": "Source name where the paths to archive live (required). Example: \"default\"",
+                    "type": "string"
+                },
+                "paths": {
+                    "description": "Paths of files or directories to add; directories are walked; access-denied entries skipped (required). Example: [\"/docs/file.txt\", \"/photos\"]",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "toSource": {
+                    "description": "Source name where the archive file will be written (optional; default: fromSource). Example: \"backups\"",
+                    "type": "string"
+                }
+            }
+        },
         "http.duplicateGroup": {
             "type": "object",
             "properties": {
@@ -3802,12 +4326,8 @@ const docTemplate = `{
                     "description": "File name",
                     "type": "string"
                 },
-                "path": {
-                    "description": "File path",
-                    "type": "string"
-                },
                 "size": {
-                    "description": "File size in bytes",
+                    "description": "File size in bytes (for directories, total size of all files)",
                     "type": "integer"
                 },
                 "type": {
@@ -3837,104 +4357,28 @@ const docTemplate = `{
                 }
             }
         },
-        "indexing.IndexStatus": {
-            "type": "string",
-            "enum": [
-                "ready",
-                "indexing",
-                "unavailable"
-            ],
-            "x-enum-varnames": [
-                "READY",
-                "INDEXING",
-                "UNAVAILABLE"
-            ]
-        },
-        "indexing.ReducedIndex": {
+        "http.unarchiveRequest": {
             "type": "object",
             "properties": {
-                "complexity": {
-                    "type": "integer"
-                },
-                "fullScanDurationSeconds": {
-                    "type": "integer"
-                },
-                "lastIndexedUnixTime": {
-                    "type": "integer"
-                },
-                "lastScanned": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "numDeleted": {
-                    "type": "integer"
-                },
-                "numDirs": {
-                    "type": "integer"
-                },
-                "numFiles": {
-                    "type": "integer"
-                },
-                "quickScanDurationSeconds": {
-                    "type": "integer"
-                },
-                "scanners": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/indexing.ScannerInfo"
-                    }
-                },
-                "status": {
-                    "$ref": "#/definitions/indexing.IndexStatus"
-                },
-                "total": {
-                    "type": "integer"
-                },
-                "used": {
-                    "type": "integer"
-                }
-            }
-        },
-        "indexing.ScannerInfo": {
-            "type": "object",
-            "properties": {
-                "complexity": {
-                    "type": "integer"
-                },
-                "currentSchedule": {
-                    "type": "integer"
-                },
-                "fullScanDurationSeconds": {
-                    "type": "integer"
-                },
-                "isRoot": {
+                "deleteAfter": {
+                    "description": "If true, delete the archive file after successful extraction (optional; default: false). Example: true",
                     "type": "boolean"
                 },
-                "lastIndexedUnixTime": {
-                    "type": "integer"
-                },
-                "lastScanned": {
+                "destination": {
+                    "description": "Directory path on toSource to extract into (required). Example: \"/projects/imported\"",
                     "type": "string"
                 },
-                "numDeleted": {
-                    "type": "integer"
-                },
-                "numDirs": {
-                    "type": "integer"
-                },
-                "numFiles": {
-                    "type": "integer"
+                "fromSource": {
+                    "description": "Source name where the archive file lives (required). Example: \"default\"",
+                    "type": "string"
                 },
                 "path": {
+                    "description": "Path to the archive file on fromSource; .zip, .tar.gz, or .tgz (required). Example: \"/downloads/data.zip\"",
                     "type": "string"
                 },
-                "quickScanDurationSeconds": {
-                    "type": "integer"
-                },
-                "used": {
-                    "type": "integer"
+                "toSource": {
+                    "description": "Source name where contents will be extracted (optional; default: fromSource). Example: \"restored\"",
+                    "type": "string"
                 }
             }
         },
@@ -3970,6 +4414,10 @@ const docTemplate = `{
                 },
                 "hidden": {
                     "description": "whether the file is hidden",
+                    "type": "boolean"
+                },
+                "isShared": {
+                    "description": "whether the file or folder is shared",
                     "type": "boolean"
                 },
                 "metadata": {
@@ -4023,6 +4471,10 @@ const docTemplate = `{
                     "description": "whether the file is hidden",
                     "type": "boolean"
                 },
+                "isShared": {
+                    "description": "whether the file or folder is shared",
+                    "type": "boolean"
+                },
                 "modified": {
                     "description": "modification time",
                     "type": "string"
@@ -4054,6 +4506,10 @@ const docTemplate = `{
                 },
                 "hidden": {
                     "description": "whether the file is hidden",
+                    "type": "boolean"
+                },
+                "isShared": {
+                    "description": "whether the file or folder is shared",
                     "type": "boolean"
                 },
                 "modified": {
@@ -4334,6 +4790,10 @@ const docTemplate = `{
                     "description": "path to a favicon to use for the frontend",
                     "type": "string"
                 },
+                "loginButtonText": {
+                    "description": "text to display on the login button",
+                    "type": "string"
+                },
                 "loginIcon": {
                     "description": "path to an image file for the login page icon",
                     "type": "string"
@@ -4383,6 +4843,118 @@ const docTemplate = `{
                 }
             }
         },
+        "settings.JwtAuthConfig": {
+            "type": "object",
+            "properties": {
+                "adminGroup": {
+                    "description": "if set, users in this group will be granted admin privileges",
+                    "type": "string"
+                },
+                "algorithm": {
+                    "description": "JWT signing algorithm (HS256, HS384, HS512, RS256, ES256). Default is \"HS256\"",
+                    "type": "string"
+                },
+                "createUser": {
+                    "description": "deprecated: always true for supported authentication methods",
+                    "type": "boolean"
+                },
+                "disableVerifyTLS": {
+                    "description": "disable TLS verification (insecure, for testing only)",
+                    "type": "boolean"
+                },
+                "enabled": {
+                    "description": "whether to enable this authentication method.",
+                    "type": "boolean"
+                },
+                "groupsClaim": {
+                    "description": "the JSON field name to read groups from. Default is \"groups\"",
+                    "type": "string"
+                },
+                "header": {
+                    "description": "HTTP header to look for JWT token (e.g. X-JWT-Assertion). Default is \"X-JWT-Assertion\"",
+                    "type": "string"
+                },
+                "logoutRedirectUrl": {
+                    "description": "if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.",
+                    "type": "string"
+                },
+                "secret": {
+                    "description": "secret: shared secret key for verifying JWT token signatures (required)",
+                    "type": "string"
+                },
+                "userGroups": {
+                    "description": "if set, only users in these groups are allowed to log in. Blocks all other users even with valid credentials.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "userIdentifier": {
+                    "description": "the field value to use as the username. Default is \"preferred_username\" in oidc, \"sub\" in jwt. Other common values are \"email\" or \"username\", or \"phone\"",
+                    "type": "string"
+                }
+            }
+        },
+        "settings.LdapConfig": {
+            "type": "object",
+            "properties": {
+                "adminGroup": {
+                    "description": "if set, users in this group will be granted admin privileges",
+                    "type": "string"
+                },
+                "baseDN": {
+                    "description": "LDAP search base DN (e.g. dc=ldap,dc=goauthentik,dc=io)",
+                    "type": "string"
+                },
+                "createUser": {
+                    "description": "deprecated: always true for supported authentication methods",
+                    "type": "boolean"
+                },
+                "disableVerifyTLS": {
+                    "description": "disable TLS verification (insecure, for testing only)",
+                    "type": "boolean"
+                },
+                "enabled": {
+                    "description": "whether to enable this authentication method.",
+                    "type": "boolean"
+                },
+                "groupsClaim": {
+                    "description": "the JSON field name to read groups from. Default is \"groups\"",
+                    "type": "string"
+                },
+                "logoutRedirectUrl": {
+                    "description": "if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.",
+                    "type": "string"
+                },
+                "server": {
+                    "description": "scheme://host:port of the LDAP server (e.g. ldap://localhost:389)",
+                    "type": "string"
+                },
+                "userDN": {
+                    "description": "Bind DN for service account (e.g. cn=admin,ou=users,dc=ldap,dc=goauthentik,dc=io)",
+                    "type": "string"
+                },
+                "userFilter": {
+                    "description": "Search filter for finding user by username. Default (\u0026(cn=%s)(objectClass=user)); override e.g. (email=%s) or (sAMAccountName=%s) for other directories.",
+                    "type": "string"
+                },
+                "userGroups": {
+                    "description": "if set, only users in these groups are allowed to log in. Blocks all other users even with valid credentials.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "userIdentifier": {
+                    "description": "the field value to use as the username. Default is \"preferred_username\" in oidc, \"sub\" in jwt. Other common values are \"email\" or \"username\", or \"phone\"",
+                    "type": "string"
+                },
+                "userPassword": {
+                    "description": "Bind password for service account",
+                    "type": "string"
+                }
+            }
+        },
         "settings.LogConfig": {
             "type": "object",
             "properties": {
@@ -4415,6 +4987,12 @@ const docTemplate = `{
         "settings.LoginMethods": {
             "type": "object",
             "properties": {
+                "jwt": {
+                    "$ref": "#/definitions/settings.JwtAuthConfig"
+                },
+                "ldap": {
+                    "$ref": "#/definitions/settings.LdapConfig"
+                },
                 "noauth": {
                     "description": "if set to true, overrides all other auth methods and disables authentication",
                     "type": "boolean"
@@ -4445,6 +5023,10 @@ const docTemplate = `{
                     "description": "output ffmpeg stdout for media integration -- careful can produces lots of output!",
                     "type": "boolean"
                 },
+                "exiftoolPath": {
+                    "description": "path to exiftool executable",
+                    "type": "string"
+                },
                 "extractEmbeddedSubtitles": {
                     "description": "extract embedded subtitles from media files",
                     "type": "boolean"
@@ -4459,7 +5041,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "adminGroup": {
-                    "description": "if set, users in this group will be granted admin privileges.",
+                    "description": "if set, users in this group will be granted admin privileges",
                     "type": "string"
                 },
                 "clientId": {
@@ -4471,15 +5053,15 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "createUser": {
-                    "description": "create user if not exists",
+                    "description": "deprecated: always true for supported authentication methods",
                     "type": "boolean"
                 },
                 "disableVerifyTLS": {
-                    "description": "disable TLS verification for the OIDC provider. This is insecure and should only be used for testing.",
+                    "description": "disable TLS verification (insecure, for testing only)",
                     "type": "boolean"
                 },
                 "enabled": {
-                    "description": "whether to enable OIDC authentication",
+                    "description": "whether to enable this authentication method.",
                     "type": "boolean"
                 },
                 "groupsClaim": {
@@ -4498,8 +5080,15 @@ const docTemplate = `{
                     "description": "scopes to request from the OIDC provider",
                     "type": "string"
                 },
+                "userGroups": {
+                    "description": "if set, only users in these groups are allowed to log in. Blocks all other users even with valid credentials.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "userIdentifier": {
-                    "description": "the field value to use as the username. Default is \"preferred_username\", can also be \"email\" or \"username\", or \"phone\"",
+                    "description": "the field value to use as the username. Default is \"preferred_username\" in oidc, \"sub\" in jwt. Other common values are \"email\" or \"username\", or \"phone\"",
                     "type": "string"
                 }
             }
@@ -4560,12 +5149,25 @@ const docTemplate = `{
         "settings.ProxyAuthConfig": {
             "type": "object",
             "properties": {
+                "adminGroup": {
+                    "description": "if set, users in this group will be granted admin privileges",
+                    "type": "string"
+                },
                 "createUser": {
-                    "description": "create user if not exists",
+                    "description": "deprecated: always true for supported authentication methods",
+                    "type": "boolean"
+                },
+                "disableVerifyTLS": {
+                    "description": "disable TLS verification (insecure, for testing only)",
                     "type": "boolean"
                 },
                 "enabled": {
+                    "description": "whether to enable this authentication method.",
                     "type": "boolean"
+                },
+                "groupsClaim": {
+                    "description": "the JSON field name to read groups from. Default is \"groups\"",
+                    "type": "string"
                 },
                 "header": {
                     "description": "required header to use for authentication. Security Warning: FileBrowser blindly accepts the header value as username.",
@@ -4573,6 +5175,17 @@ const docTemplate = `{
                 },
                 "logoutRedirectUrl": {
                     "description": "if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.",
+                    "type": "string"
+                },
+                "userGroups": {
+                    "description": "if set, only users in these groups are allowed to log in. Blocks all other users even with valid credentials.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "userIdentifier": {
+                    "description": "the field value to use as the username. Default is \"preferred_username\" in oidc, \"sub\" in jwt. Other common values are \"email\" or \"username\", or \"phone\"",
                     "type": "string"
                 }
             }
@@ -4632,6 +5245,10 @@ const docTemplate = `{
                 },
                 "disableUpdateCheck": {
                     "description": "disables backend update check service",
+                    "type": "boolean"
+                },
+                "disableWebDAV": {
+                    "description": "disable webdav support (default: false)",
                     "type": "boolean"
                 },
                 "externalUrl": {
@@ -5007,7 +5624,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "highQuality": {
-                    "description": "use high quality thumbnails",
+                    "description": "deprecated: always true in v1.3.0+",
                     "type": "boolean"
                 },
                 "image": {
@@ -5496,10 +6113,20 @@ const docTemplate = `{
                 "belongsTo": {
                     "type": "integer"
                 },
+                "expiresAt": {
+                    "type": "integer"
+                },
+                "issuedAt": {
+                    "type": "integer"
+                },
                 "key": {
+                    "description": "for backward compatibility",
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "token": {
                     "type": "string"
                 }
             }
@@ -5526,12 +6153,16 @@ const docTemplate = `{
             "enum": [
                 "password",
                 "proxy",
-                "oidc"
+                "oidc",
+                "ldap",
+                "jwt"
             ],
             "x-enum-varnames": [
                 "LoginMethodPassword",
                 "LoginMethodProxy",
-                "LoginMethodOidc"
+                "LoginMethodOidc",
+                "LoginMethodLdap",
+                "LoginMethodJwt"
             ]
         },
         "users.Permissions": {
@@ -5590,10 +6221,6 @@ const docTemplate = `{
                     "description": "show thumbnail preview image for folder files",
                     "type": "boolean"
                 },
-                "highQuality": {
-                    "description": "generate high quality thumbnail preview images",
-                    "type": "boolean"
-                },
                 "image": {
                     "description": "show thumbnail preview image for image files",
                     "type": "boolean"
@@ -5620,7 +6247,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "category": {
-                    "description": "Category type: \"source\", \"share\", \"tool\", \"custom\", etc.",
+                    "description": "Category type: \"source\", \"source-link\", \"share\", \"tool\", \"custom\", etc.",
                     "type": "string"
                 },
                 "icon": {
@@ -5667,6 +6294,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "apiKeys": {
+                    "description": "deprecated: use Tokens instead",
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/users.AuthToken"
@@ -5822,6 +6450,12 @@ const docTemplate = `{
                 "themeColor": {
                     "description": "theme color to use: eg. #ff0000, or var(--red), var(--purple), etc",
                     "type": "string"
+                },
+                "tokens": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/users.AuthToken"
+                    }
                 },
                 "totpNonce": {
                     "type": "string"

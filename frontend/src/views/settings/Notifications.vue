@@ -202,7 +202,7 @@ export default {
   display: flex;
   padding: 0.5em;
   align-items: center;
-  z-index: 5;
+  z-index: 7;
 }
 
 .notification-content-wrapper {

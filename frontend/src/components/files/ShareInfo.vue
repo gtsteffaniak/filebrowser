@@ -18,10 +18,10 @@
             <strong>{{ $t("prompts.displayName") }}</strong> {{ req.name }}
           </div>
           <div class="share-info__box__element" :title="modTime">
-            <strong>{{ $t("prompts.lastModified", { suffix: ":" }) }}</strong> {{ humanTime }}
+            <strong>{{ $t("files.lastModified", { suffix: ":" }) }}</strong> {{ humanTime }}
           </div>
           <div class="share-info__box__element">
-            <strong>{{ $t("prompts.size", { suffix: ":" }) }}</strong> {{ humanSize }}
+            <strong>{{ $t("general.size", { suffix: ":" }) }}</strong> {{ humanSize }}
           </div>
         </div>
       </div>

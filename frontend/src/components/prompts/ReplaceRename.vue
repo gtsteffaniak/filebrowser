@@ -1,16 +1,8 @@
 <template>
-  <div class="card-title">
-    <h2>{{ $t("prompts.replace") }}</h2>
-  </div>
-
   <div class="card-content">
     <p>{{ $t("prompts.replaceMessage") }}</p>
   </div>
-  <div class="card-action">
-    <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('general.cancel')"
-      :title="$t('general.cancel')" tabindex="3">
-      {{ $t("general.cancel") }}
-    </button>
+  <div class="card-actions">
     <button class="button button--flat button--blue" @click="(event) => currentPrompt.confirm(event, 'rename')"
       :aria-label="$t('general.rename')" :title="$t('general.rename')" tabindex="2">
       {{ $t("general.rename") }}
@@ -25,7 +17,7 @@
 </template>
 
 <script>
-import { getters, mutations } from "@/store"; // Import your custom store
+import { getters } from "@/store"; // Import your custom store
 
 export default {
   name: "replace-rename",
@@ -38,10 +30,6 @@ export default {
       return this.currentPrompt?.props?.isSameFile === true;
     },
   },
-  methods: {
-    closeHovers() {
-      mutations.closeTopHover();
-    },
-  },
+  methods: {},
 };
 </script>

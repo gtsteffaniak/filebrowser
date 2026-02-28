@@ -10,9 +10,9 @@ import { defineConfig, devices } from "@playwright/test";
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-  globalSetup: "./tests/playwright/local-setup",
+  globalSetup: "./tests/playwright/screenshots-setup.ts",
   timeout: 5000,
-  testDir: "./tests/playwright/local",
+  testDir: "./tests/playwright/screenshots",
   /* Run tests in files in parallel */
   fullyParallel: false,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -41,7 +41,7 @@ export default defineConfig({
     {
       name: "dark-screenshots",
       use: {
-        ...devices["Desktop Firefox"],
+        ...devices["Desktop Chrome"],
         theme: 'dark',
       },
       testMatch: /.*screenshots.spec.ts/,
@@ -50,7 +50,7 @@ export default defineConfig({
     {
       name: "light-screenshots",
       use: {
-        ...devices["Desktop Firefox"],
+        ...devices["Desktop Chrome"],
         theme: 'light',
       },
       testMatch: /.*screenshots.spec.ts/,

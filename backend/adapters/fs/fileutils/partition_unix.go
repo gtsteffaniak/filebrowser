@@ -29,3 +29,16 @@ func GetFreeSpace(path string) (uint64, error) {
 	free := uint64(stat.Bavail) * uint64(stat.Bsize)
 	return free, nil
 }
+
+// GetPartitionUsed returns the used space for Unix systems (total - free)
+func GetPartitionUsed(path string) (uint64, error) {
+	var stat syscall.Statfs_t
+	err := syscall.Statfs(path, &stat)
+	if err != nil {
+		return 0, err
+	}
+	total := uint64(stat.Blocks) * uint64(stat.Bsize)
+	free := uint64(stat.Bavail) * uint64(stat.Bsize)
+	used := total - free
+	return used, nil
+}

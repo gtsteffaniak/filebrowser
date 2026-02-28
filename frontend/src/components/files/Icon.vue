@@ -1,31 +1,30 @@
 <template>
-  <span
-    @mouseenter="handleMouseEnter"
-    @mouseleave="handleMouseLeave"
-    v-if="hasPreviewImage"
-    :class="{ 'image-preview': hasPreviewImage }"
-  >
-    <i
-      v-if="hasMotion && isFile"
-      class="material-icons icon-optimized"
-      :class="{ larger: showLarger, smaller: !showLarger }"
-      >animation</i
-    >
-    <i
-      v-else-if="!isFile"
-      class="material-icons icon-optimized"
-      :class="{ larger: showLarger, smaller: !showLarger }"
-      >folder</i
-    >
-    <img
-      :key="imageTargetSrc"
-      :src="imageDisplaySrc"
-      class="icon icon-optimized"
-      ref="thumbnail"
-    />
+  <!-- Unified preview container for all types -->
+  <span v-if="hasPreviewImage || shouldUse3DPreview" class="image-preview" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
+    <!-- Overlay icons (folder/animation) positioned top-left -->
+    <i v-if="hasPreviewImage && hasMotion && isFile" class="material-icons overlay-icon muted">animation</i>
+    <i v-else-if="hasPreviewImage && !isFile" class="material-icons overlay-icon muted">folder</i>
+    <i v-if="isShared" class="material-icons overlay-icon">group</i>
+    <!-- Preview content: image, 3D, or fallback -->
+    <img v-if="hasPreviewImage" :key="imageTargetSrc" :src="imageDisplaySrc" ref="thumbnail" />
+    <ThreeJs v-else-if="shouldUse3DPreview && !threeJsError" 
+      :key="`3d-${path}-${gallerySizeKey}`"
+      :fbdata="{
+        name: filename,
+        path: path,
+        source: source,
+        size: size,
+        type: mimetype
+      }"
+      :is-thumbnail="true"
+      :add-load-delay="true"
+      @error="handle3DError" />
   </span>
-  <span v-else>
-    <i :class="[classes, { active: active, clickable: clickable }]" class="icon icon-optimized"> {{ materialIcon }} </i>
+  
+  <!-- Regular material icon (no preview) -->
+  <span v-else class="image-preview">
+    <i :class="[classes, { active: active, clickable: clickable }]"> {{ materialIcon }} </i>
+    <i v-if="isShared" class="material-icons overlay-icon">group</i>
   </span>
 </template>
 
@@ -34,6 +33,7 @@ import { globalVars } from "@/utils/constants";
 import { getTypeInfo } from "@/utils/mimetype";
 import { mutations, state, getters } from "@/store";
 import { setImageLoaded } from "@/utils/imageCache";
+import ThreeJs from "@/views/files/ThreeJs.vue";
 
 // NEW: Define placeholder and error image URLs for easy configuration
 const PLACEHOLDER_URL = globalVars.baseURL + "public/static/img/placeholder.png"; // A generic loading placeholder
@@ -41,6 +41,9 @@ const ERROR_URL = globalVars.baseURL + "public/static/img/placeholder.png";
 
 export default {
   name: "Icon",
+  components: {
+    ThreeJs,
+  },
   props: {
     filename: {
       type: String,
@@ -77,6 +80,18 @@ export default {
       type: Boolean,
       default: false,
     },
+    size: {
+      type: Number,
+      default: null,
+    },
+    isShared: {
+      type: Boolean,
+      default: false,
+    },
+    isDir: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     return {
@@ -89,6 +104,7 @@ export default {
       imageTargetSrc: "", // This is now a data property
       currentThumbnail: "", // Add currentThumbnail to data
       color: "", // Add color to data
+      threeJsError: false, // Track if 3D preview failed
     };
   },
   computed: {
@@ -117,6 +133,10 @@ export default {
         return false;
       }
       if (!getters.previewPerms().folder && this.mimetype == "directory") {
+        return false;
+      }
+      // 3D models - show preview thumbnails (if backend provides them)
+      if (simpleType === "3d-model" && !getters.previewPerms().image) {
         return false;
       }
       return this.imageState !== 'error' && !this.disablePreviewExt && !this.officeFileDisabled;
@@ -166,7 +186,7 @@ export default {
       return this.imageTargetSrc;
     },
     showLargeIcon() {
-      return getters.viewMode() === "gallery" && getters.previewPerms().highQuality;
+      return getters.viewMode() === "gallery";
     },
     showLarger() {
       return getters.viewMode() === "gallery" || getters.viewMode() === "normal";
@@ -179,11 +199,38 @@ export default {
         getters.previewPerms().motionVideoPreview
       );
     },
+    /** True when this is a folder with preview and we can cycle through folder images (motion preview). */
+    hasFolderMotion() {
+      return (
+        this.mimetype === "directory" &&
+        getters.previewPerms().folder &&
+        this.hasPreview
+      );
+    },
     isMaterialIcon() {
       return this.materialIcon !== "";
     },
+    shouldUse3DPreview() {
+      // Check if we should use 3D preview instead of regular icon
+      if (!this.isFile || !this.size || !this.path) return false;
+      
+      const MAX_SIZE = 250 * 1024; // 250KB in bytes
+      if (this.size > MAX_SIZE) return false;
+      
+      const typeInfo = this.getIconForType();
+      return typeInfo.simpleType === '3d-model';
+    },
+    gallerySizeKey() {
+      // Returns gallery size to force 3D preview re-initialization on size change
+      // Also includes view mode to handle view changes
+      return `${state.user?.gallerySize || 1}-${getters.viewMode()}`;
+    },
   },
   methods: {
+    handle3DError() {
+      // When 3D preview fails, fall back to material icon
+      this.threeJsError = true;
+    },
     // NEW: Centralized method to load any image and handle its state
     /**
      * @param {string} url
@@ -223,21 +270,39 @@ export default {
       targetImage.src = url;
     },
     handleMouseEnter() {
-      // Always use large thumbnails for hover/popup preview
-      const imageUrl = this.thumbnailUrl + "&size=large";
-      
-      if (this.imageState == "loaded") {
-        mutations.setPreviewSource(imageUrl);
-        // Store source/path/url/modified in state so PopupPreview can track it when image actually loads
-        if (this.path) {
-          // For shares, use shareInfo.hash as the source; otherwise use this.source or state.req.source
-          const source = getters.isShare() ? state.shareInfo?.hash : (this.source || state.req.source);
-          // Use file's modified date if available, otherwise fall back to state.req.modified
-          const modified = this.modified || state.req.modified;
-          state.popupPreviewSourceInfo = { source, path: this.path, size: 'large', url: imageUrl, modified };
-        }
+      if (!getters.previewPerms().popup || !this.path) {
+        return;
       }
-      if (!getters.previewPerms().motionVideoPreview || !this.hasMotion) {
+      const source = getters.isShare() ? state.shareInfo?.hash : (this.source || state.req.source);
+      const modified = this.modified || state.req.modified;
+
+      // 3D model: show ThreeJs in popup
+      if (this.shouldUse3DPreview) {
+        state.popupPreviewSourceInfo = {
+          type: "3d",
+          source,
+          path: this.path,
+          fbdata: {
+            name: this.filename,
+            path: this.path,
+            source,
+            size: this.size,
+            type: this.mimetype,
+          },
+        };
+        return;
+      }
+
+      // Image (and other preview types): use thumbnail URL
+      const imageUrl = this.thumbnailUrl + "&size=large";
+      if (this.imageState === "loaded") {
+        mutations.setPreviewSource(imageUrl);
+        state.popupPreviewSourceInfo = { source, path: this.path, size: "large", url: imageUrl, modified };
+      }
+      // Motion preview: video (atPercentage) or folder (cycle next previewable image)
+      const useVideoMotion = getters.previewPerms().motionVideoPreview && this.hasMotion;
+      const useFolderMotion = getters.previewPerms().popup && this.hasFolderMotion;
+      if (!useVideoMotion && !useFolderMotion) {
         return;
       }
 
@@ -370,25 +435,22 @@ export default {
 </script>
 
 <style>
-/* Performance optimization for icons */
-.icon-optimized {
-  will-change: auto;
-  transform: translateZ(0);
-  backface-visibility: hidden;
+
+/* Overlay icons (folder/animation) positioned top-left */
+.overlay-icon {
+  position: absolute;
+  width: 100% !important;
+  height: 100% !important;
+  top: 0.2em;
+  left: 0.2em;
+  font-size: 1.2em !important;
+  text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+  z-index: 2;
+  color: white;
 }
 
-.larger {
-  position: absolute;
-  opacity: 0.5;
-  padding: 0.1em !important;
-  font-size: 2em !important;
-}
-
-.smaller {
-  position: absolute;
-  opacity: 0.5;
-  padding: 0.1em !important;
-  font-size: 1em !important;
+.overlay-icon.muted {
+  opacity: 0.7;
 }
 
 .file-icons [aria-label^="."] {
@@ -416,9 +478,11 @@ export default {
   will-change: auto;
   transform: translateZ(0);
 }
+
 .icon.active {
   background: var(--background);
 }
+
 .purple-icons {
   color: purple;
 }
@@ -499,8 +563,47 @@ export default {
   font-size: 1.5em !important;
 }
 
+/* Unified .image-preview container - works universally, always square */
 .image-preview {
-  height: 100%;
+  width: var(--icon-size);
+  height: var(--icon-size);
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5em;
+  background: var(--iconBackground);
+  overflow: hidden;
+  position: relative;
+}
+
+/* Universal icon styling - uses --icon-font-size variable */
+.image-preview i {
+  padding: 0.1em;
+  box-sizing: border-box;
+  transform: translateZ(0);
+  font-size: var(--icon-font-size, 3em);
+}
+
+/* Images - default */
+.image-preview img {
   width: 100%;
+  height: 100%;
+}
+
+/* 3D viewers - universal */
+.image-preview .threejs-icon-container {
+  width: 100%;
+  height: 100%;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-preview .threejs-icon-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
 }
 </style>

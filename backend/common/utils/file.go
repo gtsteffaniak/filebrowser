@@ -52,12 +52,14 @@ type FileOptions struct {
 	IsDir                    bool
 	Expand                   bool
 	Content                  bool
-	Recursive                bool // whether to recursively index directories
-	Metadata                 bool // whether to get metadata
-	ExtractEmbeddedSubtitles bool // whether to extract embedded subtitles from media files
-	AlbumArt                 bool // whether to get album art from media files
-	ShowHidden               bool // whether to show hidden files (true = show, false = hide)
-	FollowSymlinks           bool // whether to follow symlinks
+	Recursive                bool   // whether to recursively index directories
+	Metadata                 bool   // whether to get metadata
+	ExtractEmbeddedSubtitles bool   // whether to extract embedded subtitles from media files
+	AlbumArt                 bool   // whether to get album art from media files
+	ShowHidden               bool   // whether to show hidden files (true = show, false = hide)
+	FollowSymlinks           bool   // whether to follow symlinks
+	Only                     string // whether to only get files or folders
+	SkipExtendedAttrs        bool   // whether to skip extended attributes
 }
 
 // SanitizeUserPath prevents path traversal attacks by cleaning and validating user input.

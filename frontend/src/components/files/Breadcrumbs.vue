@@ -24,7 +24,7 @@
           @dragleave="dragLeave($event, link)"
           @dragover="dragOver($event, link)"
           @drop="drop($event, link)">
-          {{ link.name }}
+          <span class="breadcrumb-text">{{ link.name }}</span>
         </router-link>
       </li>
     </ul>
@@ -34,7 +34,7 @@
 <script>
 import { state, getters, mutations } from "@/store";
 import { url } from "@/utils";
-import { filesApi, publicApi } from "@/api";
+import { resourcesApi } from "@/api";
 import { notify } from "@/notify";
 
 export default {
@@ -248,10 +248,10 @@ export default {
       let targetDirItems = [];
       try {
         if (getters.isShare()) {
-          const response = await publicApi.fetchPub(targetPath, state.shareInfo.hash);
+          const response = await resourcesApi.fetchFilesPublic(targetPath, state.shareInfo.hash);
           targetDirItems = response?.items;
         } else {
-          const response = await filesApi.fetchFiles(source, targetPath);
+          const response = await resourcesApi.fetchFiles(source, targetPath);
           targetDirItems = response?.items;
         }
       } catch (error) {
@@ -274,9 +274,9 @@ export default {
 
         try {
           if (getters.isShare()) {
-            await publicApi.moveCopy(state.shareInfo.hash, itemsToMove, "move", overwrite, rename);
+            await resourcesApi.moveCopyPublic(state.shareInfo.hash, itemsToMove, "move", overwrite, rename);
           } else {
-            await filesApi.moveCopy(itemsToMove, "move", overwrite, rename);
+            await resourcesApi.moveCopy(itemsToMove, "move", overwrite, rename);
           }
 
           const buttonAction = () => {
@@ -303,11 +303,12 @@ export default {
       if (conflict) {
         mutations.showHover({
           name: "replace-rename",
+          pinned: true,
           confirm: (event, option) => {
             const overwrite = option === "overwrite";
             const rename = option === "rename";
             event.preventDefault();
-            mutations.closeHovers();
+            mutations.closeTopHover();
             moveAction(overwrite, rename);
           },
         });
@@ -322,10 +323,18 @@ export default {
 
 <style scoped>
 #breadcrumbs {
-  overflow-y: hidden;
-  overflow-x: hidden;
-  width: 100%;
-  box-sizing: border-box;
+  overflow-x: auto;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+#breadcrumbs::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+#breadcrumbs {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }
 
 #breadcrumbs * {
@@ -359,6 +368,15 @@ export default {
   align-items: center;
   transition: all 0.2s ease;
   user-select: none;
+  white-space: nowrap;
+  max-width: 90vw;
+}
+
+#breadcrumbs ul li a .breadcrumb-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 #breadcrumbs ul li a::after {

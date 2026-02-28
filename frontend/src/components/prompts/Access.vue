@@ -1,7 +1,4 @@
 <template>
-  <div class="card-title">
-    <h2>{{ $t("access.accessManagement") }}</h2>
-  </div>
   <div class="card-content">
     <div v-if="loading" class="loading-spinner-wrapper">
       <LoadingSpinner size="medium" />
@@ -88,18 +85,13 @@
       </div>
     </template>
   </div>
-  <div class="card-action">
+  <div class="card-actions">
     <template v-if="isEditingPath">
       <button class="button button--flat" @click="cancelPathChange" :aria-label="$t('general.cancel')" :title="$t('general.cancel')">
         {{ $t("general.cancel") }}
       </button>
       <button class="button button--flat" @click="confirmPathChange" :aria-label="$t('general.ok')" :title="$t('general.ok')">
         {{ $t("general.ok") }}
-      </button>
-    </template>
-    <template v-else>
-      <button @click="closeHovers" class="button button--flat button--grey" :aria-label="$t('general.close')" :title="$t('general.close')">
-        {{ $t("general.close") }}
       </button>
     </template>
   </div>
@@ -109,7 +101,7 @@
 import { notify } from "@/notify";
 import { accessApi } from "@/api";
 import { mutations } from "@/store";
-import FileList from "./FileList.vue";
+import FileList from "../files/FileList.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { eventBus } from "@/store/eventBus";
@@ -182,7 +174,7 @@ export default {
   },
   methods: {
     closeHovers() {
-      mutations.closeHovers();
+      mutations.closeTopHover();
     },
     startPathEdit() {
       this.tempPath = this.currentPath;
@@ -305,11 +297,7 @@ export default {
       }
     },
     closePrompt() {
-      if (mutations && mutations.closeHovers) {
-        mutations.closeHovers();
-      } else {
-        this.$emit('close');
-      }
+      mutations.closeTopHover();
     },
     showTooltip(event, text) {
       mutations.showTooltip({

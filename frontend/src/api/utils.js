@@ -56,6 +56,9 @@ export function adjustedData(data) {
     data.items = [...(data.folders || []), ...(data.files || [])];
     data.items = data.items.map((item) => {
       item.source = data.source
+      if (item.isShared === undefined) {
+        item.isShared = false;
+      }
       if (data.path == "/") {
         if (item.type === "directory") {
         item.path = `/${item.name}/`

@@ -65,7 +65,7 @@ type Server struct {
 	MaxArchiveSizeGB             int64          `json:"maxArchiveSize"`  // max pre-archive combined size of files/folder that are allowed to be archived (in GB)
 	Filesystem                   Filesystem     `json:"filesystem"`      // filesystem settings
 	IndexSqlConfig               IndexSqlConfig `json:"indexSqlConfig"`  // Index database SQL configuration
-
+	DisableWebDAV                bool           `json:"disableWebDAV"`   // disable webdav support (default: false)
 	// not exposed to config
 	SourceMap    map[string]*Source `json:"-" validate:"omitempty"` // uses realpath as key
 	NameToSource map[string]*Source `json:"-" validate:"omitempty"` // uses name as key
@@ -102,6 +102,7 @@ type Media struct {
 	Convert                  FfmpegConvert `json:"convert"`                  // config for ffmpeg conversion settings
 	Debug                    bool          `json:"debug"`                    // output ffmpeg stdout for media integration -- careful can produces lots of output!
 	ExtractEmbeddedSubtitles bool          `json:"extractEmbeddedSubtitles"` // extract embedded subtitles from media files
+	ExiftoolPath             string        `json:"exiftoolPath"`             // path to exiftool executable
 }
 
 type FfmpegConvert struct {
@@ -272,6 +273,7 @@ type Frontend struct {
 	Favicon               string         `json:"favicon"`             // path to a favicon to use for the frontend
 	Description           string         `json:"description"`         // description that shows up in html head meta description
 	LoginIcon             string         `json:"loginIcon"`           // path to an image file for the login page icon
+	LoginButtonText       string         `json:"loginButtonText"`     // text to display on the login button
 	OIDCLoginButtonText   string         `json:"oidcLoginButtonText"` // text to display on the OIDC login button
 }
 
@@ -301,7 +303,7 @@ type ExternalLink struct {
 // UserDefaultsPreview holds preview settings with pointer types for defaults
 type UserDefaultsPreview struct {
 	DisableHideSidebar bool  `json:"disableHideSidebar"` // keep sidebar open when previewing files
-	HighQuality        *bool `json:"highQuality"`        // use high quality thumbnails
+	HighQuality        *bool `json:"highQuality"`        // deprecated: always true in v1.3.0+
 	Image              *bool `json:"image"`              // show thumbnails for image files
 	Video              *bool `json:"video"`              // show thumbnails for video files
 	MotionVideoPreview *bool `json:"motionVideoPreview"` // show multiple frames for videos in thumbnail preview when hovering

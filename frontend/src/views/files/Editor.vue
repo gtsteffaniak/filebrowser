@@ -6,7 +6,7 @@
 
 <script>
 import { state, getters, mutations } from "@/store";
-import { filesApi, publicApi } from "@/api";
+import { resourcesApi } from "@/api";
 import { url } from "@/utils";
 import { notify } from "@/notify";
 import ace, { version as ace_version } from "ace-builds";
@@ -267,9 +267,9 @@ export default {
         try {
           let res;
           if (getters.isShare()) {
-            res = await publicApi.fetchPub(directoryPath, state.shareInfo.hash);
+            res = await resourcesApi.fetchFilesPublic(directoryPath, state.shareInfo.hash);
           } else {
-            res = await filesApi.fetchFiles(this.req.source, directoryPath);
+            res = await resourcesApi.fetchFiles(this.req.source, directoryPath);
           }
           listing = res.items;
         } catch (error) {
@@ -386,10 +386,10 @@ export default {
 
       if (getters.isShare()) {
         // Save the file
-        await publicApi.put(state.shareInfo.hash, this.originalReq.path, this.editor.getValue());
+        await resourcesApi.putPublic(state.shareInfo.hash, this.originalReq.path, this.editor.getValue());
       } else {
         // Save the file
-        await filesApi.put(this.originalReq.source, this.originalReq.path, this.editor.getValue());
+        await resourcesApi.put(this.originalReq.source, this.originalReq.path, this.editor.getValue());
       }
 
       notify.showSuccessToast(`${this.originalReq.name} saved successfully.`);
@@ -435,6 +435,7 @@ export default {
       this.isPromptOpen = true;
       mutations.showHover({
         name: "SaveBeforeExit",
+        pinned: true,
         confirm: async () => {
           // Save and exit - throw error if save fails to keep prompt open
           try {

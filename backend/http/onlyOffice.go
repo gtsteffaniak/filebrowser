@@ -65,6 +65,21 @@ type OnlyOfficeJWTPayload struct {
 	} `json:"actions"`
 }
 
+// onlyofficeClientConfigGetHandler retrieves OnlyOffice client configuration
+//
+// @Summary Get OnlyOffice client configuration
+// @Description Returns the configuration needed for OnlyOffice document editor client
+// @Tags Office
+// @Accept json
+// @Produce json
+// @Param source query string false "Source name"
+// @Param path query string false "File path"
+// @Param hash query string false "Share hash (for public shares)"
+// @Success 200 {object} map[string]interface{} "OnlyOffice configuration"
+// @Failure 400 {object} map[string]string "Missing or invalid parameters"
+// @Failure 500 {object} map[string]string "Server error"
+// @Router /api/office/config [get]
+// @Security ApiKeyAuth
 func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if settings.Config.Integrations.OnlyOffice.Url == "" {
 		return http.StatusInternalServerError, errors.New("only-office integration must be configured in settings")
@@ -116,7 +131,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 			Source:         source,
 			Expand:         false,
 			FollowSymlinks: true,
-		}, store.Access, d.user)
+		}, store.Access, d.user, store.Share)
 		if err != nil {
 			logger.Errorf("OnlyOffice: failed to get file info for source=%s, path=%s: %v", source, path, err)
 			return errToStatus(err), err
@@ -265,7 +280,7 @@ func buildOnlyOfficeDownloadURL(r *http.Request, source, path, hash, token strin
 	}
 
 	escapedPath := url.QueryEscape(path)
-	downloadURL := fmt.Sprintf("%s/api/raw?file=%s&auth=%s",
+	downloadURL := fmt.Sprintf("%s/api/resources/download?file=%s&auth=%s",
 		strings.TrimSuffix(baseURL, "/"), escapedPath, token)
 	if hash != "" {
 		downloadURL = downloadURL + "&hash=" + hash
@@ -318,7 +333,7 @@ func buildOnlyOfficeCallbackURL(r *http.Request, source, path, hash, token strin
 		params.Set("path", path) // This should be the path relative to the share, not the full filesystem path
 		params.Set("auth", token)
 
-		callbackURL = fmt.Sprintf("%s/public/api/onlyoffice/callback?%s",
+		callbackURL = fmt.Sprintf("%s/public/api/office/callback?%s",
 			strings.TrimSuffix(baseURL, "/"), params.Encode())
 	} else {
 		// Regular callback URL - include source for non-share requests
@@ -327,7 +342,7 @@ func buildOnlyOfficeCallbackURL(r *http.Request, source, path, hash, token strin
 		params.Set("path", path)
 		params.Set("auth", token)
 
-		callbackURL = fmt.Sprintf("%s/api/onlyoffice/callback?%s",
+		callbackURL = fmt.Sprintf("%s/api/office/callback?%s",
 			strings.TrimSuffix(baseURL, "/"), params.Encode())
 	}
 
@@ -528,7 +543,7 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 		_, err = files.FileInfoFaster(utils.FileOptions{
 			Source: source,
 			Path:   path,
-		}, store.Access, d.user)
+		}, store.Access, d.user, store.Share)
 		if err != nil {
 			logger.Errorf("OnlyOffice callback: original file no longer exists at path=%s: %v",
 				path, err)
@@ -575,6 +590,22 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 	return returnOnlyOfficeSuccess(w, r)
 }
 
+// onlyofficeCallbackHandler handles OnlyOffice document server callbacks
+//
+// @Summary Handle OnlyOffice document server callback
+// @Description Receives callbacks from OnlyOffice document server for document status changes and saves
+// @Tags Office
+// @Accept json
+// @Produce json
+// @Param source query string false "Source name"
+// @Param path query string false "File path"
+// @Param hash query string false "Share hash (for public shares)"
+// @Success 200 {object} map[string]interface{} "Callback processed successfully"
+// @Failure 400 {object} map[string]string "Invalid callback data"
+// @Failure 500 {object} map[string]string "Server error"
+// @Router /api/office/callback [post]
+// @Router /api/office/callback [get]
+// @Security ApiKeyAuth
 func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	// Parse callback data based on request method
 	var callbackData *OnlyOfficeCallback

@@ -1,4 +1,19 @@
 services:
+  local-playwright:
+    container_name: local-playwright
+    ports:
+      - "8080:8080"
+    build:
+      dockerfile: ./_docker/Dockerfile.playwright-local
+      context: ../
+  local-playwright-screenshots:
+    container_name: local-playwright
+    volumes:
+      - ../frontend/generated:/app/frontend/generated
+    entrypoint: ["/bin/sh", "-c", "./filebrowser & sleep 2 && cd ../frontend && npx playwright test --project dark-screenshots && npx playwright test --project light-screenshots"]
+    build:
+      dockerfile: ./_docker/Dockerfile.playwright-local
+      context: ../
   nginx-proxy-auth:
     image: nginx
     container_name: nginx-proxy-auth
@@ -7,11 +22,30 @@ services:
     volumes:
       - ./src/proxy/backend/default.conf:/etc/nginx/conf.d/default.conf
       - ./src/proxy/backend/.htpasswd:/etc/nginx/conf.d/.htpasswd
+  nginx-proxy-jwt:
+    image: nginx
+    container_name: nginx-proxy-jwt
+    ports:
+      - "8081:8081"  # Admin user
+      - "8082:8082"  # Regular user
+      - "8083:8083"  # Wrong key
+      - "8084:8084"  # No user
+    volumes:
+      - ./src/jwt/backend/default.conf:/etc/nginx/conf.d/default.conf
+      - ./src/jwt/backend/.htpasswd:/etc/nginx/conf.d/.htpasswd
+  filebrowser-jwt:
+    hostname: filebrowser
+    volumes:
+      - '../frontend:/home/frontend'
+      - "./src/jwt/backend/config.yaml:/home/filebrowser/data/config.yaml"
+    build:
+      context: ../
+      dockerfile: ./_docker/Dockerfile.slim
   filebrowser:
     hostname: filebrowser
     volumes:
       - '../frontend:/home/frontend'
-      - "./src/proxy/backend/config.yaml:/home/filebrowser/config.yaml"
+      - "./src/proxy/backend/config.yaml:/home/filebrowser/data/config.yaml"
     build:
       context: ../
       dockerfile: ./_docker/Dockerfile.slim

@@ -81,12 +81,14 @@ export default {
     },
     actionMultiIcon() {
       if (this.show) {
+        mutations.closeContextMenus();
         mutations.showHover(this.show);
       }
       this.$emit("action");
     },
     action() {
       if (this.show) {
+        mutations.closeContextMenus();
         mutations.showHover(this.show);
       }
       this.$emit("action");
@@ -98,7 +100,6 @@ export default {
 <style>
 .ham {
   width: 2.5em;
-  margin-top: 0.25em;
   -webkit-tap-highlight-color: transparent;
   transition: transform 400ms;
   -moz-user-select: none;

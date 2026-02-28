@@ -81,6 +81,7 @@
             v-bind:reducedOpacity="item.hidden || isDragging"
             v-bind:hash="shareInfo.hash"
             v-bind:hasPreview="item.hasPreview"
+            v-bind:isShared="item.isShared"
           />
         </div>
         <!-- Files Section -->
@@ -109,6 +110,7 @@
             v-bind:hasPreview="item.hasPreview"
             v-bind:metadata="item.metadata"
             v-bind:hasDuration="hasDuration"
+            v-bind:isShared="item.isShared"
           />
         </div>
 
@@ -140,7 +142,7 @@
 
 <script>
 import downloadFiles from "@/utils/download";
-import { filesApi } from "@/api";
+import { resourcesApi } from "@/api";
 import { router } from "@/router";
 import * as upload from "@/utils/upload";
 import throttle from "@/utils/throttle";
@@ -362,50 +364,51 @@ export default {
     itemStyles() {
       const viewMode = getters.viewMode();
       const styles = {};
+      const size = state.user.gallerySize;
 
       if (viewMode === 'icons') {
-        const baseSize = 60 + (state.user.gallerySize * 15); // 60px to 135px - increased scaling
+        const baseSize = 20 + (size * 15); // 35px to 155px
         const cellSize = baseSize + 30;
-        styles['--icons-view-icon-size'] = `${baseSize}px`;
+        styles['--icon-size'] = `${baseSize}px`;
+        styles['--icon-font-size'] = `${baseSize}px`;
         styles['--icons-view-cell-size'] = `${cellSize}px`;
       } else if (viewMode === 'gallery') {
-        // Use column width and percentage-based sizing for smooth animations
-        // Keep size 5 at 205px, then scale more aggressively above that
-        const baseCalc = 80 + (state.user.gallerySize * 25);
-        const extraScaling = Math.max(0, state.user.gallerySize - 5) * 15; // Additional 15px per level above 5
+        const baseCalc = 80 + (size * 25);
+        const extraScaling = Math.max(0, size - 5) * 15;
         const baseSize = baseCalc + extraScaling; // Size 5: 205px, Size 9: 345px
+        const iconFontSize = (3 + (size * 0.5)).toFixed(2); // 3em to 7.5em
+        styles['--icon-font-size'] = `${iconFontSize}em`;
+        
         if (state.isMobile) {
-          let columns;
-          if (state.user.gallerySize <= 7) columns = 2;
-          else if (state.user.gallerySize <= 9) columns = 1;
-          else columns = 1;
-          styles['--gallery-mobile-columns'] = columns.toString();
-          // On mobile, scale height with gallery size for smooth animations
-          const mobileHeight = 120 + (state.user.gallerySize * 20); // 120px to 300px range
-          styles['--item-width'] = '150px'; // Minimum size for mobile grid
+          const minWidth = size <= 3 ? 120 : size <= 7 ? 160 : 280;
+          const mobileHeight = 120 + (size * 20); // 120px to 300px
+          styles['--gallery-mobile-min-width'] = `${minWidth}px`;
+          styles['--item-width'] = `${minWidth}px`;
           styles['--item-height'] = `${mobileHeight}px`;
         } else {
-          // Use pixel size for grid's minmax - items will stretch and animate smoothly
-          // Make height 20% larger than width for better proportions
           styles['--item-width'] = `${baseSize}px`;
           styles['--item-height'] = `${Math.round(baseSize * 1.2)}px`;
         }
       } else if (viewMode === 'list' || viewMode === 'compact') {
         const baseHeight = viewMode === 'compact'
-          ? 40 + (state.user.gallerySize * 2)  // 40px to 56px - compact
-          : 50 + (state.user.gallerySize * 3); // 50px to 74px - list
-        // Scale icons with gallery size - icon fonts: 1.6em to 2.4em, images: 1.2em to 1.8em
-        const iconFontSize = (1.6 + (state.user.gallerySize * 0.1)).toFixed(2); // 1.7em to 2.5em
-        const iconImageSize = (1.2 + (state.user.gallerySize * 0.075)).toFixed(3); // 1.275em to 1.875em
+          ? 40 + (size * 2)  // 42px to 58px
+          : 50 + (size * 3); // 53px to 77px
+        const iconSize = (2 + (size * 0.12)).toFixed(2); // 2.12em to 3.08em
+        const iconFontSize = (1.5 + (size * 0.12)).toFixed(2); // 1.62em to 2.58em
 
         styles['--item-width'] = `calc(${(100 / this.numColumns).toFixed(2)}% - 1em)`;
         styles['--item-height'] = `${baseHeight}px`;
-        styles['--list-icon-font-size'] = `${iconFontSize}em`;
-        styles['--list-icon-image-size'] = `${iconImageSize}em`;
+        styles['--icon-size'] = `${iconSize}em`;
+        styles['--icon-font-size'] = `${iconFontSize}em`;
       } else {
         // Normal view
+        const iconSize = (3.2 + (size * 0.15)).toFixed(2); // 3.35em to 4.55em
+        const iconFontSize = (2.2 + (size * 0.12)).toFixed(2); // 2.32em to 3.28em
+        
         styles['--item-width'] = `calc(${(100 / this.numColumns)}% - 1em)`;
         styles['--item-height'] = 'auto';
+        styles['--icon-size'] = `${iconSize}em`;
+        styles['--icon-font-size'] = `${iconFontSize}em`;
       }
 
       return styles;
@@ -550,7 +553,7 @@ export default {
       for (let index of state.selected) {
         const item = state.req.items[index];
         const previewUrl = item.hasPreview
-          ? filesApi.getPreviewURL(item.source || state.req.source, item.path, item.modified)
+          ? resourcesApi.getPreviewURL(item.source || state.req.source, item.path, item.modified)
           : null;
         items.push({
           source: item.source || state.req.source,
@@ -924,9 +927,9 @@ export default {
             let action = async (overwrite, rename) => {
               try {
               if (getters.isShare()) {
-                await publicApi.moveCopy(state.shareInfo.hash, items, operation, overwrite, rename);
+                await resourcesApi.moveCopyPublic(state.shareInfo.hash, items, operation, overwrite, rename);
                 } else {
-                  await filesApi.moveCopy(items, operation, overwrite, rename);
+                  await resourcesApi.moveCopy(items, operation, overwrite, rename);
                 }
                 if (operation === "move") {
                   this.clipboard = { items: [] };
@@ -950,6 +953,7 @@ export default {
             if (conflict) {
               mutations.showHover({
                 name: "replace-rename",
+                pinned: true,
                 confirm: (event, option) => {
                   const overwrite = option === "overwrite";
                   const rename = option === "rename";
@@ -1053,6 +1057,12 @@ export default {
     openContext(event) {
       event.preventDefault();
       event.stopPropagation();
+      
+      // Prevent opening if already open
+      if (getters.currentPromptName() === "ContextMenu") {
+        return;
+      }
+      
       mutations.showHover({
         name: "ContextMenu",
         props: {

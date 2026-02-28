@@ -77,6 +77,43 @@ func TestUserInfoUnmarshaller(t *testing.T) {
 				Groups: []string{},
 			},
 		},
+		{
+			name:        "preferred_username and sub",
+			jsonData:    `{"sub":"auth0|123","preferred_username":"jdoe","email":"jdoe@example.com"}`,
+			groupsClaim: "groups",
+			expected: userInfo{
+				Claims: map[string]interface{}{
+					"sub":                 "auth0|123",
+					"preferred_username": "jdoe",
+					"email":              "jdoe@example.com",
+				},
+				Groups: nil,
+			},
+		},
+		{
+			name:        "empty groups string",
+			jsonData:    `{"name":"Dana","groups":""}`,
+			groupsClaim: "groups",
+			expected: userInfo{
+				Claims: map[string]interface{}{
+					"name":   "Dana",
+					"groups": "",
+				},
+				Groups: nil,
+			},
+		},
+		{
+			name:        "single group in array",
+			jsonData:    `{"preferred_username":"single","groups":["admins"]}`,
+			groupsClaim: "groups",
+			expected: userInfo{
+				Claims: map[string]interface{}{
+					"preferred_username": "single",
+					"groups":             []interface{}{"admins"},
+				},
+				Groups: []string{"admins"},
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -96,5 +133,14 @@ func TestUserInfoUnmarshaller(t *testing.T) {
 				t.Errorf("Expected %+v, got %+v", tt.expected, userdata)
 			}
 		})
+	}
+}
+
+func TestUserInfoUnmarshaller_InvalidJSON(t *testing.T) {
+	var userdata userInfo
+	u := &userInfoUnmarshaller{userInfo: &userdata, groupsClaim: "groups"}
+	err := json.Unmarshal([]byte(`{invalid json}`), u)
+	if err == nil {
+		t.Fatal("Unmarshal expected to fail on invalid JSON")
 	}
 }

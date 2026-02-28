@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
+	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
@@ -71,7 +72,7 @@ func (u *userInfoUnmarshaller) UnmarshalJSON(data []byte) error {
 // oidcLoginHandler initiates OIDC login.
 // @Summary OIDC login
 // @Description Initiates OIDC login flow.
-// @Tags OIDC
+// @Tags Auth
 // @Accept json
 // @Produce json
 // @Success 302 {string} string "Redirect to OIDC provider"
@@ -105,7 +106,7 @@ func oidcLoginHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 // oidcCallbackHandler handles OIDC callback.
 // @Summary OIDC callback
 // @Description Handles OIDC login callback.
-// @Tags OIDC
+// @Tags Auth
 // @Accept json
 // @Produce json
 // @Param code query string false "OIDC code"
@@ -157,6 +158,7 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		logger.Errorf("failed to exchange token: %v", err)
 		return http.StatusInternalServerError, fmt.Errorf("failed to exchange token: %v", err)
 	}
+	fmt.Println("token", token)
 
 	rawIDToken, ok := token.Extra("id_token").(string)
 	// accessToken := token.AccessToken // Access token is needed for UserInfo, already in 'token'
@@ -243,11 +245,29 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 // based on the configured UserIdentifier and logs the user into the application.
 // It creates a new user if one doesn't exist.
 func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, groups []string) (int, error) {
+	oidcCfg := config.Auth.Methods.OidcAuth
+
+	// Check if user is in required groups (if userGroups is configured)
+	if len(oidcCfg.UserGroups) > 0 {
+		userInAllowedGroup := false
+		for _, allowedGroup := range oidcCfg.UserGroups {
+			if slices.Contains(groups, allowedGroup) {
+				userInAllowedGroup = true
+				break
+			}
+		}
+		if !userInAllowedGroup {
+			logger.Warningf("User %s is not in any of the required groups %v. Access denied.", username, oidcCfg.UserGroups)
+			return http.StatusForbidden, fmt.Errorf("user %s is not authorized to access this application (not in required groups)", username)
+		}
+		logger.Debugf("User %s is in required group, allowing access.", username)
+	}
+
 	isAdmin := false // Default to non-admin user
-	if config.Auth.Methods.OidcAuth.AdminGroup != "" {
-		if slices.Contains(groups, config.Auth.Methods.OidcAuth.AdminGroup) {
+	if oidcCfg.AdminGroup != "" {
+		if slices.Contains(groups, oidcCfg.AdminGroup) {
 			isAdmin = true // User is in the admin group, grant admin privileges
-			logger.Debugf("User %s is in admin group %s, granting admin privileges.", username, config.Auth.Methods.OidcAuth.AdminGroup)
+			logger.Debugf("User %s is in admin group %s, granting admin privileges.", username, oidcCfg.AdminGroup)
 		}
 	}
 	logger.Debugf("Successfully authenticated OIDC username: %s isAdmin: %v", username, isAdmin)
@@ -257,32 +277,29 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 		if err.Error() != "the resource does not exist" {
 			return http.StatusInternalServerError, err
 		}
-		if config.Auth.Methods.OidcAuth.CreateUser {
-			if config.Auth.Methods.OidcAuth.AdminGroup == "" {
-				isAdmin = config.UserDefaults.Permissions.Admin
-			}
-			user = &users.User{
-				Username:    username,
-				LoginMethod: users.LoginMethodOidc,
-			}
-			settings.ApplyUserDefaults(user)
-			if isAdmin {
-				user.Permissions.Admin = true
-			}
-			err = storage.CreateUser(*user, user.Permissions)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-			user, err = store.Users.Get(username)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-		} else {
-			return http.StatusForbidden, fmt.Errorf("user %s does not exist and createUser is disabled. Your admin needs to create your user before you can access this application", username)
+		// Auto-create user on first OIDC authentication
+		if oidcCfg.AdminGroup == "" {
+			isAdmin = config.UserDefaults.Permissions.Admin
+		}
+		user = &users.User{
+			Username:    username,
+			LoginMethod: users.LoginMethodOidc,
+		}
+		settings.ApplyUserDefaults(user)
+		if isAdmin {
+			user.Permissions.Admin = true
+		}
+		err = storage.CreateUser(*user, user.Permissions)
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
+		user, err = store.Users.Get(username)
+		if err != nil {
+			return http.StatusInternalServerError, err
 		}
 	} else {
 		// update user admin perms
-		if isAdmin != user.Permissions.Admin && config.Auth.Methods.OidcAuth.AdminGroup != "" {
+		if isAdmin != user.Permissions.Admin && oidcCfg.AdminGroup != "" {
 			user.Permissions.Admin = isAdmin
 			err = store.Users.Update(user, true, "Permissions")
 			if err != nil {
@@ -301,7 +318,7 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 
 	expires := time.Hour * time.Duration(config.Auth.TokenExpirationHours)
 	// Generate a signed token for the user
-	signed, err2 := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false)
+	tokenString, _, err2 := auth.MakeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false)
 	if err2 != nil {
 		// Handle potential errors during token generation
 		if strings.Contains(err2.Error(), "key already exists with same name") {
@@ -322,7 +339,7 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 	}
 	cookie := &http.Cookie{
 		Name:     "filebrowser_quantum_jwt",
-		Value:    signed.Key,
+		Value:    tokenString,
 		Domain:   strings.Split(host, ":")[0], // Set domain to the host without port
 		Path:     "/",
 		SameSite: http.SameSiteLaxMode, // Lax mode allows cookie on navigation from OIDC provider

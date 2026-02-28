@@ -1,8 +1,4 @@
 <template>
-  <div class="card-title">
-    <h2>{{ $t("prompts.copyPasteConfirm") }}</h2>
-  </div>
-
   <div class="card-content">
     <p>{{ operation === 'copy' ? $t("prompts.copyItemQuestion") : $t("prompts.moveItemQuestion") }}</p>
 
@@ -27,7 +23,7 @@
     </div>
   </div>
 
-  <div class="card-action">
+  <div class="card-actions">
     <button
       @click="closeHovers"
       class="button button--flat button--grey"
@@ -83,11 +79,11 @@ export default {
   },
   methods: {
     closeHovers() {
-      mutations.closeHovers();
+      mutations.closeTopHover();
     },
     confirm() {
       this.onConfirm();
-      mutations.closeHovers();
+      mutations.closeTopHover();
     },
   },
 };

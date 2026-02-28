@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/golang-jwt/jwt/v4/request"
 	"golang.org/x/crypto/bcrypt"
 
@@ -87,25 +86,22 @@ func setupProxyUser(r *http.Request, data *requestContext, proxyUser string) (*u
 		if err.Error() != "the resource does not exist" {
 			return nil, err
 		}
-		if config.Auth.Methods.ProxyAuth.CreateUser {
-			user := users.User{
-				LoginMethod: users.LoginMethodProxy,
-				Username:    proxyUser,
-			}
-			settings.ApplyUserDefaults(&user)
-			if user.Username == config.Auth.AdminUsername {
-				user.Permissions.Admin = true
-			}
-			err = storage.CreateUser(user, user.Permissions)
-			if err != nil {
-				return nil, err
-			}
-			data.user, err = store.Users.Get(proxyUser)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			return nil, fmt.Errorf("proxy authentication failed - no user found")
+		// Auto-create user on first proxy authentication
+		user := users.User{
+			LoginMethod: users.LoginMethodProxy,
+			Username:    proxyUser,
+		}
+		settings.ApplyUserDefaults(&user)
+		if user.Username == config.Auth.AdminUsername {
+			user.Permissions.Admin = true
+		}
+		err = storage.CreateUser(user, user.Permissions)
+		if err != nil {
+			return nil, err
+		}
+		data.user, err = store.Users.Get(proxyUser)
+		if err != nil {
+			return nil, err
 		}
 	}
 	if data.user.LoginMethod != users.LoginMethodProxy {
@@ -118,6 +114,99 @@ func setupProxyUser(r *http.Request, data *requestContext, proxyUser string) (*u
 			return nil, err
 		}
 	}
+	return data.user, nil
+}
+
+// setupJwtUser retrieves or creates a user based on external JWT token claims
+func setupJwtUser(r *http.Request, data *requestContext, username string, claims map[string]interface{}) (*users.User, error) {
+	var err error
+	// Retrieve the user from the store
+	data.user, err = store.Users.Get(username)
+	if err != nil {
+		if err.Error() != "the resource does not exist" {
+			return nil, err
+		}
+		// Auto-create user on first JWT authentication
+		user := users.User{
+			LoginMethod: users.LoginMethodJwt,
+			Username:    username,
+		}
+		settings.ApplyUserDefaults(&user)
+		
+		// Check if user should be admin based on groups
+		if config.Auth.Methods.JwtAuth.AdminGroup != "" {
+			groups := auth.ExtractGroupsFromClaims(claims, config.Auth.Methods.JwtAuth.GroupsClaim)
+			for _, group := range groups {
+				if group == config.Auth.Methods.JwtAuth.AdminGroup {
+					user.Permissions.Admin = true
+					break
+				}
+			}
+		}
+		
+		// Also check if username matches admin username
+		if user.Username == config.Auth.AdminUsername {
+			user.Permissions.Admin = true
+		}
+		
+		err = storage.CreateUser(user, user.Permissions)
+		if err != nil {
+			return nil, err
+		}
+		data.user, err = store.Users.Get(username)
+		if err != nil {
+			return nil, err
+		}
+	}
+	
+	// Verify login method matches
+	if data.user.LoginMethod != users.LoginMethodJwt {
+		return nil, errors.ErrWrongLoginMethod
+	}
+	
+	// Check if user is in allowed groups (if UserGroups is configured)
+	if len(config.Auth.Methods.JwtAuth.UserGroups) > 0 {
+		groups := auth.ExtractGroupsFromClaims(claims, config.Auth.Methods.JwtAuth.GroupsClaim)
+		allowed := false
+		for _, userGroup := range groups {
+			for _, allowedGroup := range config.Auth.Methods.JwtAuth.UserGroups {
+				if userGroup == allowedGroup {
+					allowed = true
+					break
+				}
+			}
+			if allowed {
+				break
+			}
+		}
+		if !allowed {
+			return nil, fmt.Errorf("user is not in allowed groups")
+		}
+	}
+	
+	// Update admin status if needed
+	shouldBeAdmin := false
+	if config.Auth.Methods.JwtAuth.AdminGroup != "" {
+		groups := auth.ExtractGroupsFromClaims(claims, config.Auth.Methods.JwtAuth.GroupsClaim)
+		for _, group := range groups {
+			if group == config.Auth.Methods.JwtAuth.AdminGroup {
+				shouldBeAdmin = true
+				break
+			}
+		}
+	}
+	if data.user.Username == config.Auth.AdminUsername {
+		shouldBeAdmin = true
+	}
+	
+	if shouldBeAdmin != data.user.Permissions.Admin {
+		data.user.Permissions.Admin = shouldBeAdmin
+		err = store.Users.Update(data.user, true, "Permissions")
+		if err != nil {
+			return nil, err
+		}
+	}
+	
 	return data.user, nil
 }
 
@@ -136,16 +225,13 @@ func setupProxyUser(r *http.Request, data *requestContext, proxyUser string) (*u
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/auth/login [post]
 func loginHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	if d.user.LoginMethod == users.LoginMethodProxy {
-		return printToken(w, r, d.user)
-	}
 	passwordUser := d.user.LoginMethod == users.LoginMethodPassword
 	enforcedOtp := config.Auth.Methods.PasswordAuth.EnforcedOtp
 	missingOtp := d.user.TOTPSecret == ""
 	if passwordUser && enforcedOtp && missingOtp {
 		return http.StatusForbidden, errors.ErrNoTotpConfigured
 	}
-	return printToken(w, r, d.user) // Pass the data object
+	return printToken(w, r, d.user)
 }
 
 // logoutHandler handles user logout
@@ -157,7 +243,9 @@ func loginHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (in
 // @Success 200 {object} map[string]string "{"logoutUrl": "http://..."}"
 // @Router /api/auth/logout [post]
 func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	defer auth.RevokeAPIKey(d.token)
+	if err := auth.RevokeApiToken(store.Access, d.token); err != nil {
+		logger.Errorf("Failed to revoke token on logout: %v", err)
+	}
 
 	// Clear the authentication cookie by setting it to expire in the past
 	// Get the correct domain for cookie - prefer X-Forwarded-Host from reverse proxy
@@ -170,7 +258,7 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		Value:    "",
 		Domain:   strings.Split(host, ":")[0],
 		Path:     "/",
-		SameSite: http.SameSiteLaxMode,
+		SameSite: http.SameSiteStrictMode,
 		Expires:  time.Unix(0, 0), // Expire immediately
 		MaxAge:   -1,              // Delete cookie
 	}
@@ -186,6 +274,16 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		oidcRedirectUrl := config.Auth.Methods.OidcAuth.LogoutRedirectUrl
 		if oidcRedirectUrl != "" {
 			logoutUrl = oidcRedirectUrl
+		}
+	} else if d.user != nil && d.user.LoginMethod == users.LoginMethodLdap {
+		ldapRedirectUrl := config.Auth.Methods.LdapAuth.LogoutRedirectUrl
+		if ldapRedirectUrl != "" {
+			logoutUrl = ldapRedirectUrl
+		}
+	} else if d.user != nil && d.user.LoginMethod == users.LoginMethodJwt {
+		jwtRedirectUrl := config.Auth.Methods.JwtAuth.LogoutRedirectUrl
+		if jwtRedirectUrl != "" {
+			logoutUrl = jwtRedirectUrl
 		}
 	}
 	if logoutUrl == "" {
@@ -257,7 +355,7 @@ func signupHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 // @Success 200 {string} string "New JWT token generated"
 // @Failure 401 {object} map[string]string "Unauthorized - invalid token"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /api/renew [post]
+// @Router /api/auth/renew [post]
 func renewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	// check if x-auth header is present and token is
 	return printToken(w, r, d.user)
@@ -265,7 +363,7 @@ func renewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (in
 
 func printToken(w http.ResponseWriter, r *http.Request, user *users.User) (int, error) {
 	expires := time.Hour * time.Duration(config.Auth.TokenExpirationHours)
-	signed, err := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false)
+	tokenString, _, err := auth.MakeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false)
 	if err != nil {
 		if strings.Contains(err.Error(), "key already exists with same name") {
 			return http.StatusConflict, err
@@ -277,88 +375,14 @@ func printToken(w http.ResponseWriter, r *http.Request, user *users.User) (int, 
 	// This allows backend to identify expired sessions and provide better user feedback
 	expiresTime := time.Now().Add(expires).Add(time.Minute * 30)
 
-	setSessionCookie(w, r, signed.Key, expiresTime)
+	setSessionCookie(w, r, tokenString, expiresTime)
 
 	// Still return token in body for backward compatibility and state management
 	w.Header().Set("Content-Type", "text/plain")
-	if _, err := w.Write([]byte(signed.Key)); err != nil {
+	if _, err := w.Write([]byte(tokenString)); err != nil {
 		return 401, errors.ErrUnauthorized
 	}
 	return 0, nil
-}
-
-func makeSignedTokenAPI(user *users.User, name string, duration time.Duration, perms users.Permissions, minimal bool) (users.AuthToken, error) {
-	_, ok := user.ApiKeys[name]
-	if ok {
-		return users.AuthToken{}, fmt.Errorf("key already exists with same name %v ", name)
-	}
-	now := time.Now()
-	expires := now.Add(duration)
-
-	var tokenString string
-	var err error
-
-	if minimal {
-		// Create minimal token with only JWT standard claims
-		minimalClaim := users.MinimalAuthToken{
-			RegisteredClaims: jwt.RegisteredClaims{
-				IssuedAt:  jwt.NewNumericDate(now),
-				ExpiresAt: jwt.NewNumericDate(expires),
-				Issuer:    "FileBrowser Quantum",
-			},
-		}
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, minimalClaim)
-		tokenString, err = token.SignedString([]byte(config.Auth.Key))
-		if err != nil {
-			return users.AuthToken{}, err
-		}
-	} else {
-		// Create full token with permissions and user ID
-		fullClaim := users.AuthToken{
-			MinimalAuthToken: users.MinimalAuthToken{
-				RegisteredClaims: jwt.RegisteredClaims{
-					IssuedAt:  jwt.NewNumericDate(now),
-					ExpiresAt: jwt.NewNumericDate(expires),
-					Issuer:    "FileBrowser Quantum",
-				},
-			},
-			Name:        name,
-			Permissions: perms,
-			BelongsTo:   user.ID,
-		}
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, fullClaim)
-		tokenString, err = token.SignedString([]byte(config.Auth.Key))
-		if err != nil {
-			return users.AuthToken{}, err
-		}
-	}
-
-	// Create the AuthToken to store in database (always includes permissions and user ID)
-	storedClaim := users.AuthToken{
-		MinimalAuthToken: users.MinimalAuthToken{
-			RegisteredClaims: jwt.RegisteredClaims{
-				IssuedAt:  jwt.NewNumericDate(now),
-				ExpiresAt: jwt.NewNumericDate(expires),
-				Issuer:    "FileBrowser Quantum",
-			},
-		},
-		Key:         tokenString,
-		Name:        name,
-		Permissions: perms,
-		BelongsTo:   user.ID,
-	}
-
-	if strings.HasPrefix(name, "WEB_TOKEN") {
-		// don't add to api tokens, its a short lived web token
-		return storedClaim, nil
-	}
-
-	// Perform the user update
-	err = store.Users.AddApiKey(user.ID, name, storedClaim)
-	if err != nil {
-		return storedClaim, err
-	}
-	return storedClaim, nil
 }
 
 func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {
@@ -418,10 +442,8 @@ func setSessionCookie(w http.ResponseWriter, r *http.Request, token string, expi
 		Value:    token,
 		Domain:   strings.Split(host, ":")[0], // Set domain to the host without port
 		Path:     "/",
-		SameSite: http.SameSiteLaxMode, // Lax mode allows cookie on navigation from OIDC provider
+		SameSite: http.SameSiteStrictMode, // strict mode prevents cookie from being sent to other domains
 		Expires:  expiresTime,
-		// HttpOnly: true, // Cannot use HttpOnly since frontend needs to read cookie for renew operations
-		// Secure: true, // Enable this in production with HTTPS
 	}
 	http.SetCookie(w, cookie)
 }

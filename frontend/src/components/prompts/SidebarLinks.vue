@@ -1,8 +1,4 @@
 <template>
-  <div class="card-title">
-    <h2>{{ currentTitle }}</h2>
-  </div>
-
   <div class="card-content sidebar-links-content">
     <p v-if="!showAddForm">{{ contextDescription }}</p>
 
@@ -27,10 +23,10 @@
             <span class="link-name">{{ getLinkDisplayName(link) }}</span>
             <span class="link-category">{{ getCategoryLabel(link.category) }}</span>
           </div>
-          <button class="action input" @click="editLink(index)" :aria-label="$t('general.edit')">
+          <button class="action" @click="editLink(index)" :aria-label="$t('general.edit')">
             <i class="material-icons">edit</i>
           </button>
-          <button class="action input" @click="removeLink(index)" :aria-label="$t('general.delete')">
+          <button class="action" @click="removeLink(index)" :aria-label="$t('general.delete')">
             <i class="material-icons">delete</i>
           </button>
         </div>
@@ -49,7 +45,7 @@
     <div v-else class="add-link-form">
       <!-- Path Browser for Source/Share Links - shown when selecting path -->
       <div v-if="isSelectingPath">
-        <file-list ref="fileList" :browse-source="newLink.category === 'source' ? newLink.sourceName : null"
+        <file-list ref="fileList" :browse-source="isSourceCategory(newLink.category) ? newLink.sourceName : null"
           :browse-share="newLink.category === 'share' ? getShareHash(newLink.target) : null"
           @update:selected="updateSelectedPath"></file-list>
       </div>
@@ -63,6 +59,8 @@
         <select aria-label="Link Type" v-model="newLink.category" @change="handleCategoryChange" class="input">
           <option value="">{{ $t('sidebar.selectLinkType') }}</option>
           <option v-if="context === 'user'" value="source">{{ $t('general.source') }}</option>
+          <option v-if="context === 'user'" value="source-minimal">{{ $t('general.source') }}</option>
+          <option v-if="context === 'user'" value="source-hybrid">{{ $t('general.source') }}</option>
           <option value="share">{{ $t('general.share') }}</option>
           <option v-if="context === 'user'" value="tool">{{ $t('general.tool') }}</option>
           <option value="custom">{{ $t('sidebar.customLink') }}</option>
@@ -70,8 +68,8 @@
           <option v-if="context === 'share'" value="download">{{ $t('general.download') }}</option>
         </select>
 
-        <!-- Source Selection -->
-        <div v-if="newLink.category === 'source'" class="form-group">
+        <!-- Source Selection (category is "source" or "source-minimal") -->
+        <div v-if="isSourceCategory(newLink.category)" class="form-group">
           <p>{{ $t('sidebar.selectSource') }}</p>
           <select v-model="newLink.sourceName" @change="handleSourceChange" class="input">
             <option value="">{{ $t('sidebar.chooseSource') }}</option>
@@ -88,9 +86,34 @@
           </div>
 
           <!-- Path Selection for Source - clickable path display -->
-          <div v-if="newLink.sourceName">
+          <div v-if="newLink.sourceName" class="padding-top">
             <div class="searchContext clickable button" @click="openPathBrowser('source')" aria-label="source-path">
               {{ $t('general.path', { suffix: ':' }) }} {{ newLink.sourcePath || '/' }}
+            </div>
+          </div>
+
+          <!-- Source link options: Two toggles to control usage display type -->
+          <div v-if="newLink.sourceName" class="settings-items" style="margin-top: 0.5em;">
+            <!-- Show usage from indexed files toggle -->
+            <ToggleSwitch class="item"
+              :modelValue="showIndexedUsage"
+              @update:modelValue="updateUsageToggles('indexed', $event)"
+              :name="$t('general.show', { suffix: ' '+$t('sidebar.usageTextIndexed') })"
+              :description="$t('sidebar.showIndexedUsageDescription')" />
+            <!-- Show disk/partition usage toggle -->
+            <ToggleSwitch class="item"
+              :modelValue="showDiskUsage"
+              @update:modelValue="updateUsageToggles('disk', $event)"
+              :name="$t('general.show', { suffix: ' '+$t('sidebar.usageTextDisk') })"
+              :description="$t('sidebar.showDiskUsageDescription')" />
+            
+            <!-- Dropdown to choose which usage text to display (only shown in hybrid mode) -->
+            <div v-if="showIndexedUsage && showDiskUsage" class="form-group" style="margin-top: 0.5em;">
+              <p>{{ $t('sidebar.usageTextDisplay') }}</p>
+              <select v-model="usageTextMode" @change="updateUsageTextMode" class="input">
+                <option value="indexed">{{ $t('sidebar.usageTextIndexed') }}</option>
+                <option value="disk">{{ $t('sidebar.usageTextDisk') }}</option>
+              </select>
             </div>
           </div>
         </div>
@@ -175,7 +198,7 @@
     </div>
   </div>
 
-  <div class="card-action">
+  <div class="card-actions">
     <!-- When selecting a path -->
     <template v-if="isSelectingPath">
       <button @click="cancelPathSelection" class="button button--flat button--grey" :aria-label="$t('general.cancel')"
@@ -202,10 +225,6 @@
 
     <!-- When viewing the list -->
     <template v-else>
-      <button @click="closePrompt" class="button button--flat button--grey" :aria-label="$t('general.cancel')"
-        :title="$t('general.cancel')">
-        {{ $t("general.cancel") }}
-      </button>
       <button aria-label="Save Links" class="button button--flat button--blue" @click="saveLinks"
         :title="$t('general.save')">
         {{ $t("general.save") }}
@@ -220,13 +239,15 @@ import { notify } from "@/notify";
 import { usersApi, shareApi } from "@/api";
 import { tools } from "@/utils/constants";
 import { getIconClass } from "@/utils/material-icons";
-import FileList from "./FileList.vue";
+import FileList from "../files/FileList.vue";
+import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import { eventBus } from "@/store/eventBus";
 
 export default {
   name: "SidebarLinks",
   components: {
     FileList,
+    ToggleSwitch,
   },
   props: {
     context: {
@@ -248,6 +269,7 @@ export default {
         target: "",
         icon: "",
         sourceName: "",
+        sourcePath: "",
       },
       draggingIndex: null,
       dragOverIndex: null,
@@ -268,15 +290,6 @@ export default {
     availableSources() {
       return state.sources?.info || {};
     },
-    currentTitle() {
-      // Always show the context title, path selection is shown inline
-      return this.contextTitle;
-    },
-    contextTitle() {
-      return this.context === 'share'
-        ? this.$t('sidebar.customizeShareLinks')
-        : this.$t('sidebar.customizeLinks');
-    },
     contextDescription() {
       return this.context === 'share'
         ? this.$t('sidebar.customizeShareLinksDescription')
@@ -294,7 +307,7 @@ export default {
         return this.newLink.name && this.newLink.target;
       }
 
-      if (this.newLink.category === "source") {
+      if (this.isSourceCategory(this.newLink.category)) {
         return this.newLink.sourceName && this.newLink.name;
       }
 
@@ -303,6 +316,18 @@ export default {
       }
 
       return this.newLink.target && this.newLink.name;
+    },
+    showIndexedUsage() {
+      return this.newLink.category === 'source' || this.newLink.category === 'source-hybrid' || this.newLink.category === 'source-hybrid-2';
+    },
+    showDiskUsage() {
+      return this.newLink.category === 'source-alt' || this.newLink.category === 'source-hybrid' || this.newLink.category === 'source-hybrid-2';
+    },
+    usageTextMode() {
+      if (this.newLink.category === 'source-hybrid-2') {
+        return 'disk';
+      }
+      return 'indexed';
     },
   },
   async mounted() {
@@ -384,9 +409,49 @@ export default {
 
       return defaultLinks;
     },
+    isSourceCategory(category) {
+      return category === 'source' || category === 'source-minimal' || category === 'source-alt' || category === 'source-hybrid' || category === 'source-hybrid-2';
+    },
+    updateUsageToggles(toggleType, value) {
+      // Determine the new category based on toggle states
+      // indexed=true, disk=false  -> 'source'
+      // indexed=false, disk=true  -> 'source-alt'
+      // indexed=true, disk=true   -> 'source-hybrid' or 'source-hybrid-2' (depends on usageTextMode)
+      // indexed=false, disk=false -> 'source-minimal'
+      
+      const indexed = toggleType === 'indexed' ? value : this.showIndexedUsage;
+      const disk = toggleType === 'disk' ? value : this.showDiskUsage;
+      
+      if (indexed && disk) {
+        // Preserve the hybrid mode variant if it was already set
+        if (this.newLink.category === 'source-hybrid-2') {
+          this.newLink.category = 'source-hybrid-2';
+        } else {
+          this.newLink.category = 'source-hybrid';
+        }
+      } else if (indexed && !disk) {
+        this.newLink.category = 'source';
+      } else if (!indexed && disk) {
+        this.newLink.category = 'source-alt';
+      } else {
+        this.newLink.category = 'source-minimal';
+      }
+    },
+    updateUsageTextMode(event) {
+      const mode = event.target.value;
+      if (mode === 'disk') {
+        this.newLink.category = 'source-hybrid-2';
+      } else {
+        this.newLink.category = 'source-hybrid';
+      }
+    },
     getCategoryLabel(category) {
       const labels = {
         source: this.$t('general.source'),
+        'source-minimal': this.$t('general.source'),
+        'source-alt': this.$t('general.source'),
+        'source-hybrid': this.$t('general.source'),
+        'source-hybrid-2': this.$t('general.source'),
         tool: this.$t('general.tool'),
         custom: this.$t('sidebar.customLink'),
         share: this.$t('general.share'),
@@ -496,7 +561,7 @@ export default {
     },
     confirmPathSelection() {
       // Apply the selected path to the link based on category
-      if (this.newLink.category === 'source') {
+      if (this.isSourceCategory(this.newLink.category)) {
         this.newLink.sourcePath = this.tempSelectedPath;
       } else if (this.newLink.category === 'share') {
         // Update target with new subpath
@@ -517,14 +582,15 @@ export default {
       this.editingIndex = index;
       this.showAddForm = true;
 
-      // Populate form with existing link data
+      // Populate form with existing link data (category stays source or source-minimal)
+      const isSource = this.isSourceCategory(link.category);
       this.newLink = {
         name: link.name,
         category: link.category,
-        target: (link.category === 'source') ? "" : (link.target || ""),
+        target: isSource ? "" : (link.target || ""),
         icon: link.icon || "",
         sourceName: link.sourceName || "",
-        sourcePath: (link.category === 'source') ? (link.target || "/") : "/",
+        sourcePath: isSource ? (link.target || "/") : "/",
       };
     },
     addLink() {
@@ -548,8 +614,9 @@ export default {
         linkData.target = "#";
       } else if (this.newLink.category === "custom") {
         linkData.target = this.processCustomUrl(this.newLink.target);
-      } else if (this.newLink.category === "source") {
-        // For sources: target is relative path, sourceName identifies the source
+      } else if (this.isSourceCategory(this.newLink.category)) {
+        // For sources: target is relative path, sourceName identifies the source; category is "source" or "source-minimal"
+        linkData.category = this.newLink.category;
         linkData.target = this.newLink.sourcePath || '/';
         linkData.sourceName = this.newLink.sourceName;
       } else if (this.newLink.category === "share") {
@@ -717,6 +784,11 @@ export default {
 </script>
 
 <style scoped>
+
+.padding-top {
+  margin-top: 0.5em;
+}
+
 .links-list {
   margin-bottom: 1.5em;
 }
@@ -853,4 +925,5 @@ export default {
   color: var(--textSecondary);
   opacity: 0.6;
 }
+
 </style>

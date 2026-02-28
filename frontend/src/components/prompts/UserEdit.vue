@@ -1,57 +1,26 @@
 <template>
-  <div class="card-title">
-    <h2 v-if="isNew">{{ $t("settings.newUser") }}</h2>
-    <h2 v-else-if="actor.id == user.id">
-      {{ $t("settings.modifyCurrentUser") }} {{ user.username }}
-    </h2>
-    <h2 v-else>{{ $t("settings.modifyOtherUser") }} {{ user.username }}</h2>
-  </div>
-
   <div class="card-content">
     <errors v-if="error" :errorCode="error.status" />
-    <h2
-      class="message"
-      v-if="user.loginMethod != 'password' && !stateUser.permissions.admin"
-    >
+    <h2 class="message" v-if="user.loginMethod != 'password' && !stateUser.permissions.admin">
       <i class="material-icons">sentiment_dissatisfied</i>
       <span>{{ $t("files.lonely") }}</span>
     </h2>
     <div v-if="user.loginMethod == 'password' && globalVars.passwordAvailable && !isNew">
       <label for="password">{{ $t("general.password") }}</label>
       <div class="form-flex-group">
-        <input
-          class="input form-form"
-          :class="{ 'form-invalid': invalidPassword }"
-          aria-label="Password1"
-          type="password"
-          autocomplete="new-password"
-          :placeholder="$t('settings.enterPassword')"
-          v-model="passwordRef"
-        />
+        <input class="input form-form" :class="{ 'form-invalid': invalidPassword }" aria-label="Password1"
+          type="password" autocomplete="new-password" :placeholder="$t('settings.enterPassword')"
+          v-model="passwordRef" />
       </div>
       <div class="form-flex-group">
-        <input
-          class="input form-form"
-          :class="{ 'flat-right': !isNew, 'form-invalid': invalidPassword }"
-          aria-label="Password2"
-          type="password"
-          autocomplete="new-password"
-          :placeholder="$t('settings.enterPasswordAgain')"
-          v-model="user.password"
-          id="password"
-        />
-        <button
-          v-if="!isNew"
-          type="button"
-          class="button form-button flat-left"
-          @click="submitUpdatePassword"
-        >
+        <input class="input form-form" :class="{ 'flat-right': !isNew, 'form-invalid': invalidPassword }"
+          aria-label="Password2" type="password" autocomplete="new-password"
+          :placeholder="$t('settings.enterPasswordAgain')" v-model="user.password" id="password" />
+        <button v-if="!isNew" type="button" class="button form-button flat-left" @click="submitUpdatePassword">
           {{ $t("general.update") }}
         </button>
       </div>
-      <div
-        style="display: flex; flex-direction: column"
-      >
+      <div style="display: flex; flex-direction: column">
         <div class="settings-items">
           <ToggleSwitch class="item" v-model="user.otpEnabled" :name="$t('otp.name')" />
         </div>
@@ -64,92 +33,46 @@
     <div v-if="stateUser.permissions.admin">
       <p v-if="isNew">
         <label for="username">{{ $t("general.username") }}</label>
-        <input
-          class="input"
-          type="text"
-          v-model="user.username"
-          id="username"
-          @input="emitUpdate"
-        />
+        <input class="input" type="text" v-model="user.username" id="username" @input="emitUpdate" />
       </p>
 
       <div v-if="user.loginMethod == 'password' && globalVars.passwordAvailable && isNew">
         <label for="password">{{ $t("general.password") }}</label>
         <div class="form-flex-group">
-          <input
-            class="input form-form"
-            :class="{ 'form-invalid': invalidPassword }"
-            aria-label="Password1"
-            type="password"
-            :placeholder="$t('settings.enterPassword')"
-            v-model="passwordRef"
-          />
+          <input class="input form-form" :class="{ 'form-invalid': invalidPassword }" aria-label="Password1"
+            type="password" :placeholder="$t('settings.enterPassword')" v-model="passwordRef" />
         </div>
         <div class="form-flex-group">
-          <input
-            class="input form-form"
-            :class="{ 'flat-right': !isNew, 'form-invalid': invalidPassword }"
-            type="password"
-            :placeholder="$t('settings.enterPasswordAgain')"
-            aria-label="Password2"
-            v-model="user.password"
-            autocomplete="new-password"
-            id="password"
-          />
-          <button
-            v-if="!isNew"
-            type="button"
-            class="button form-button flat-left"
-            @click="submitUpdatePassword"
-          >
+          <input class="input form-form" :class="{ 'flat-right': !isNew, 'form-invalid': invalidPassword }"
+            type="password" :placeholder="$t('settings.enterPasswordAgain')" aria-label="Password2"
+            v-model="user.password" autocomplete="new-password" id="password" />
+          <button v-if="!isNew" type="button" class="button form-button flat-left" @click="submitUpdatePassword">
             {{ $t("general.update") }}
           </button>
         </div>
       </div>
 
-      <div
-        v-if="user.loginMethod == 'password' && globalVars.passwordAvailable"
-        class="settings-items"
-      >
-        <ToggleSwitch
-          v-if="user.loginMethod === 'password' && stateUser.permissions?.admin"
-          class="item"
-          :modelValue="user.lockPassword"
-          @update:modelValue="(val) => updateUserField('lockPassword', val)"
-          :name="$t('settings.lockPassword')"
-        />
+      <div v-if="user.loginMethod == 'password' && globalVars.passwordAvailable" class="settings-items">
+        <ToggleSwitch v-if="user.loginMethod === 'password' && stateUser.permissions?.admin" class="item"
+          :modelValue="user.lockPassword" @update:modelValue="(val) => updateUserField('lockPassword', val)"
+          :name="$t('settings.lockPassword')" />
       </div>
 
       <div style="padding-bottom: 1em" v-if="stateUser.permissions.admin">
         <label for="scopes">{{ $t("settings.scopes") }}</label>
-        <div
-          class="scope-list"
-          :class="{ 'form-invalid': duplicateSources.includes(source.name) }"
-          v-for="(source, index) in selectedSources"
-          :key="index"
-        >
-          <select
-            @change="handleSourceChange(source, $event, source.name)"
-            class="input flat-right"
-            v-model="source.name"
-          >
+        <div class="scope-list" :class="{ 'form-invalid': duplicateSources.includes(source.name) }"
+          v-for="(source, index) in selectedSources" :key="index">
+          <select @change="handleSourceChange(source, $event, source.name)" class="input flat-right"
+            v-model="source.name">
             <option v-for="s in sourceList" :key="s.name" :value="s.name">
               {{ s.name }}
             </option>
           </select>
 
-          <input
-            class="input flat-left scope-input"
-            :placeholder="$t('settings.newUserHintSubFolder')"
-            @input="updateParent({ source: source, input: $event })"
-            :value="source.scope"
-            :class="{ 'flat-right': selectedSources.length > 1 }"
-          />
-          <button
-            v-if="selectedSources.length > 1"
-            class="button flat-left no-height"
-            @click="removeScope(index)"
-          >
+          <input class="input flat-left scope-input" :placeholder="$t('settings.newUserHintSubFolder')"
+            @input="updateParent({ source: source, input: $event })" :value="source.scope"
+            :class="{ 'flat-right': selectedSources.length > 1 }" />
+          <button v-if="selectedSources.length > 1" class="button flat-left no-height" @click="removeScope(index)">
             <i class="material-icons material-size">delete</i>
           </button>
         </div>
@@ -160,36 +83,30 @@
       </button>
 
       <div class="settings-items">
-        <ToggleSwitch
-          v-if="displayHomeDirectoryCheckbox"
-          class="item"
-          v-model="createUserDir"
-          :name="$t('settings.createUserHomeDirectory')"
-        />
+        <ToggleSwitch v-if="displayHomeDirectoryCheckbox" class="item" v-model="createUserDir"
+          :name="$t('settings.createUserHomeDirectory')" />
       </div>
 
       <p v-if="stateUser.username !== user.username">
         <label for="locale">{{ $t("general.language") }}</label>
-        <languages
-          class="input"
-          id="locale"
-          v-model:locale="user.locale"
-          @input="emitUpdate"
-        ></languages>
+        <languages class="input" id="locale" v-model:locale="user.locale" @input="emitUpdate"></languages>
       </p>
       <div v-if="stateUser.permissions.admin">
         <label for="loginMethod">{{ $t("settings.loginMethodDescription") }}</label>
         <select v-model="user.loginMethod" class="input" id="loginMethod">
-          <option v-if="globalVars.passwordAvailable" value="password">{{ $t("settings.loginMethods.password") }}</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-          <option v-if="globalVars.oidcAvailable" value="oidc">{{ $t("settings.loginMethods.oidc") }}</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-          <option v-if="globalVars.proxyAvailable" value="proxy">{{ $t("settings.loginMethods.proxy") }}</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <option v-if="globalVars.passwordAvailable" value="password">{{ $t("settings.loginMethods.password") }}
+          </option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <option v-if="globalVars.oidcAvailable" value="oidc">{{ $t("settings.loginMethods.oidc") }}</option>
+          <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <option v-if="globalVars.proxyAvailable" value="proxy">{{ $t("settings.loginMethods.proxy") }}</option>
+          <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         </select>
       </div>
       <permissions v-if="stateUser.permissions.admin" :permissions="user.permissions" />
     </div>
   </div>
 
-  <div class="card-action">
+  <div class="card-actions">
     <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('general.cancel')"
       :title="$t('general.cancel')">
       {{ $t("general.cancel") }}
@@ -225,6 +142,10 @@ export default {
   },
   props: {
     userId: {
+      type: [String, Number],
+      required: false,
+    },
+    promptId: {
       type: [String, Number],
       required: false,
     },
@@ -316,7 +237,7 @@ export default {
   },
   methods: {
     closeHovers() {
-      mutations.closeHovers();
+      mutations.closeTopHover();
     },
     async fetchData() {
       mutations.setLoading("users", true);
@@ -371,6 +292,8 @@ export default {
       } finally {
         mutations.setLoading("users", false);
         this.loaded = true;
+        // Update prompt name after user data is loaded
+        this.updatePromptTitle();
       }
     },
     async initializeForm() {
@@ -392,8 +315,8 @@ export default {
         const newSource = this.availableSources.shift();
         if (newSource) {
           // Only store {name, scope} format, not the full source config
-          this.selectedSources.push({ 
-            name: newSource.name || "", 
+          this.selectedSources.push({
+            name: newSource.name || "",
             scope: "" // Empty scope - backend will handle defaults
           });
           this.emitUserUpdate();
@@ -401,7 +324,30 @@ export default {
       }
     },
     deletePrompt() {
-      mutations.showHover({ name: "deleteUser", props: { user: this.user } });
+      mutations.showHover({
+        name: "generic",
+        pinned: true,
+        props: {
+          title: this.$t("general.delete"),
+          body: this.$t("prompts.deleteUserMessage", { username: this.user.username }),
+          buttons: [
+            {
+              label: this.$t("general.delete"),
+              action: async () => {
+                try {
+                  await usersApi.remove(this.user.id);
+                  notify.showSuccessToast(this.$t("settings.userDeleted"));
+                  eventBus.emit('usersChanged');
+                  mutations.closeTopHover();
+                } catch (e) {
+                  console.error(e);
+                  notify.showErrorToast(this.$t("settings.userDeleteFailed"));
+                }
+              },
+            },
+          ],
+        },
+      });
     },
     async save(event) {
       event.preventDefault();
@@ -413,7 +359,7 @@ export default {
           name: source.name || "",
           scope: source.scope || ""
         }));
-        
+
         if (this.isNew) {
           if (!state.user.permissions.admin) {
             notify.showError(this.$t("settings.userNotAdmin"));
@@ -423,7 +369,7 @@ export default {
           // Emit event to refresh user list
           eventBus.emit('usersChanged');
           // Close the modal
-          mutations.closeHovers();
+          mutations.closeTopHover();
         } else {
           await usersApi.update({ ...this.user, scopes: scopesToSend }, fields);
           // Only emit usersChanged for admin user management, not profile updates
@@ -431,7 +377,7 @@ export default {
             eventBus.emit('usersChanged');
           }
           notify.showSuccessToast(this.$t("settings.userUpdated"));
-          mutations.closeHovers();
+          mutations.closeTopHover();
         }
       } catch (e) {
         console.error(e);
@@ -530,6 +476,14 @@ export default {
         this.user.loginMethod = this.firstAvailableLoginMethod;
       }
     },
+    updatePromptTitle() {
+      // Update the prompt display name to show the username
+      // This allows the title to show the actual username instead of just the generic "user-edit" title
+      const displayName = this.isNew
+        ? this.$t("settings.newUser")
+        : `${this.$t("settings.modifyOtherUser")} ${this.user.username}`;
+      mutations.updatePromptTitle(this.promptId, displayName);
+    },
   },
 };
 </script>
@@ -542,9 +496,11 @@ export default {
 .scope-input {
   width: 100%;
 }
+
 .no-height {
   height: unset;
 }
+
 .material-size {
   font-size: 1em !important;
 }

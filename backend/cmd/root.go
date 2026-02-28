@@ -182,7 +182,7 @@ func rootCMD(ctx context.Context, store *bolt.BoltStore, serverConfig *settings.
 	cacheDir := settings.Config.Server.CacheDir
 	numWorkers := settings.Config.Server.NumImageProcessors
 	ffmpeg.SetFFmpegPaths()
-	
+
 	// Initialize asset filesystem before starting services
 	if settings.Env.EmbeddedFs {
 		embeddedAssets := fbhttp.GetEmbeddedAssets()
@@ -194,7 +194,7 @@ func rootCMD(ctx context.Context, store *bolt.BoltStore, serverConfig *settings.
 	} else {
 		fileutils.InitAssetFS(nil, false)
 	}
-	
+
 	// Start preview service
 	err := preview.StartPreviewGenerator(numWorkers, cacheDir)
 	if err != nil {
@@ -202,12 +202,16 @@ func rootCMD(ctx context.Context, store *bolt.BoltStore, serverConfig *settings.
 	}
 	logger.Debugf("MuPDF Enabled            : %v", settings.Env.MuPdfAvailable)
 	logger.Debugf("Media Enabled            : %v", settings.MediaEnabled())
-	
+	logger.Debugf("Exiftool Enabled         : %v", settings.Config.Integrations.Media.ExiftoolPath != "")
+
 	// Generate PWA icons after preview service is initialized
 	if err := icons.GeneratePWAIcons(); err != nil {
 		logger.Warningf("Failed to generate PWA icons: %v", err)
 	}
-	
+
+	// Initialize PWA manifest after icons are generated
+	icons.InitializePWAManifest()
+
 	fbhttp.StartHttp(ctx, store, shutdownComplete)
 	return nil
 }

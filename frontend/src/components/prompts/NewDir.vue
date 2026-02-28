@@ -1,15 +1,18 @@
 <template>
-  <div class="card-title">
-    <h2>{{ $t("prompts.newDir") }}</h2>
-  </div>
-
   <div class="card-content">
-    <p>{{ $t("prompts.newDirMessage") }}</p>
-    <input aria-label="New Folder Name" class="input" type="text" @keyup.enter="submit" v-model.trim="name"
-      v-focus />
+    <!-- Loading spinner overlay -->
+    <div v-show="creating" class="loading-content">
+      <LoadingSpinner size="small" />
+      <p class="loading-text">{{ $t("prompts.operationInProgress") }}</p>
+    </div>
+    <div v-show="!creating">
+      <p>{{ $t("prompts.newDirMessage") }}</p>
+      <input aria-label="New Folder Name" class="input" type="text" @keyup.enter="submit" v-model.trim="name"
+        v-focus />
+    </div>
   </div>
 
-  <div class="card-action">
+  <div class="card-actions">
     <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('general.cancel')"
       :title="$t('general.cancel')">
       {{ $t("general.cancel") }}
@@ -21,25 +24,30 @@
   </div>
 </template>
 <script>
-import { filesApi, publicApi } from "@/api";
+import { resourcesApi } from "@/api";
 import { getters, mutations, state } from "@/store"; // Import your custom store
 import { url } from "@/utils";
 import { notify } from "@/notify";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 export default {
   name: "new-dir",
+  components: {
+    LoadingSpinner,
+  },
   props: {
     redirect: {
       type: Boolean,
       default: true,
     },
     base: {
-      type: [String, null],
+      type: [String, Object, null],
       default: null,
     },
   },
   data() {
     return {
       name: "",
+      creating: false,
     };
   },
   computed: {
@@ -49,10 +57,31 @@ export default {
     isListing() {
       return getters.isListing();
     },
+    // Determine parent path and source based on prop
+    parentInfo() {
+      if (this.base) {
+        if (typeof this.base === 'string') {
+          return {
+            path: this.base,
+            source: state.req?.source || null,
+          };
+        } else if (typeof this.base === 'object' && this.base.path) {
+          return {
+            path: this.base.path,
+            source: this.base.source || state.req?.source || null,
+          };
+        }
+      }
+      // Fallback to current path
+      return {
+        path: state.req?.path,
+        source: state.req?.source || null,
+      };
+    },
   },
   methods: {
     closeHovers() {
-      return mutations.closeHovers();
+      return mutations.closeTopHover();
     },
     async submit(event) {
       try {
@@ -65,19 +94,22 @@ export default {
     },
 
     async createDirectory(overwrite = false) {
+      this.creating = true;
       try {
-        const newPath = url.joinPath(state.req.path, this.name) + "/";
-        const source = state.req.source;
+        const parentPath = this.parentInfo.path;
+        const source = this.parentInfo.source;
+        const newPath = url.joinPath(parentPath, this.name) + "/";
 
         if (getters.isShare()) {
-          await publicApi.post(state.shareInfo?.hash, newPath, "", overwrite, undefined, {}, true);
+          await resourcesApi.postPublic(state.shareInfo?.hash, newPath, "", overwrite, undefined, {}, true);
           mutations.setReload(true);
-          mutations.closeHovers();
+          mutations.closeTopHover();
+          this.creating = false;
           return;
         }
-        await filesApi.post(source, newPath, "", overwrite, undefined, {}, true);
+        await resourcesApi.post(source, newPath, "", overwrite, undefined, {}, true);
         mutations.setReload(true);
-        mutations.closeHovers();
+        mutations.closeTopHover();
 
         // Show success notification with "go to item" button
         const buttonAction = () => {
@@ -92,11 +124,13 @@ export default {
           }]
         };
         notify.showSuccess(this.$t("prompts.newDirSuccess"), buttonProps);
+        this.creating = false;
       } catch (error) {
         if (error.message === "conflict") {
           // Show replace-rename prompt for file/folder conflicts
           mutations.showHover({
             name: "replace-rename",
+            pinned: true,
             confirm: async (event, option) => {
               event.preventDefault();
               try {
@@ -110,19 +144,20 @@ export default {
                   for (let counter = 1; counter <= maxAttempts && !success; counter++) {
                     try {
                       const newName = counter === 1 ? `${originalName} (1)` : `${originalName} (${counter})`;
-                      const newPath = url.joinPath(state.req.path, newName) + "/";
-                      const source = state.req.source;
+                      const parentPath = this.parentInfo.path;
+                      const source = this.parentInfo.source;
+                      const newPath = url.joinPath(parentPath, newName) + "/";
 
                       if (getters.isShare()) {
-                        await publicApi.post(state.shareInfo?.hash, newPath, "", false, undefined, {}, true);
+                        await resourcesApi.postPublic(state.shareInfo?.hash, newPath, "", false, undefined, {}, true);
                         mutations.setReload(true);
-                        mutations.closeHovers();
+                        mutations.closeTopHover();
                         success = true;
                         return;
                       }
-                      await filesApi.post(source, newPath, "", false, undefined, {}, true);
+                      await resourcesApi.post(source, newPath, "", false, undefined, {}, true);
                       mutations.setReload(true);
-                      mutations.closeHovers();
+                      mutations.closeTopHover();
                       success = true;
 
                       // Show success notification with "go to item" button
@@ -153,10 +188,13 @@ export default {
                 }
               } catch (retryError) {
                 console.error(retryError);
+              } finally {
+                this.creating = false;
               }
             },
           });
         } else {
+          this.creating = false;
           throw error;
         }
       }
@@ -164,3 +202,25 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.loading-content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding-top: 2em;
+}
+
+.loading-text {
+  padding: 1em;
+  margin: 0;
+  font-size: 1em;
+  font-weight: 500;
+}
+
+.card-content {
+  position: relative;
+}
+</style>

@@ -117,22 +117,6 @@ over
   transition: 0.2s ease width;
 }
 
-button {
-  flex: 1;
-  height: 3em;
-  padding: 8px 16px;
-  border: none;
-  background-color: var(--surfaceSecondary);
-  transition: background-color 0.3s;
-  /* Add borders */
-  border-right: 1px solid #ccc;
-}
-
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 #popup-notification {
   border-radius: 1em;
   color: #fff;
@@ -145,7 +129,7 @@ button:disabled {
   padding: 0.5em;
   align-items: center;
   transition: right 1s ease;
-  z-index: 5;
+  z-index: 7;
   margin: 1em;
   height: auto;
 }
@@ -217,4 +201,16 @@ input.sizeInput:disabled {
   border: 0.25em;
   border-style: solid;
   border-color: white;
+}
+
+.floating-window {
+  background-color: var(--surfacePrimary);
+  border-style: solid;
+  border-color: var(--surfaceSecondary);
+  box-shadow:
+  0 1px 1px hsl(0deg 0% 0% / 0.075),
+  0 2px 2px hsl(0deg 0% 0% / 0.075),
+  0 4px 4px hsl(0deg 0% 0% / 0.075),
+  0 8px 8px hsl(0deg 0% 0% / 0.075),
+  0 16px 16px hsl(0deg 0% 0% / 0.075);
 }

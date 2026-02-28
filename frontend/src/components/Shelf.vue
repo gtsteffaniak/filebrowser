@@ -232,7 +232,6 @@ export default {
 @supports (backdrop-filter: none) {
   #shelf {
     backdrop-filter: blur(12px) invert(0.01);
-    background-color: color-mix(in srgb, var(--background) 75%, transparent);
   }
 }
 

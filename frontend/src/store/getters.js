@@ -39,7 +39,7 @@ export const getters = {
   },
   isPreviewView: () => {
     const cv = getters.currentView()
-    return cv == 'preview' || cv == 'onlyOfficeEditor' || cv == 'epubViewer' || cv == 'docViewer' || cv == 'editor' || cv == 'markdownViewer'
+    return cv == 'preview' || cv == 'onlyOfficeEditor' || cv == 'epubViewer' || cv == 'docViewer' || cv == 'editor' || cv == 'markdownViewer' || cv == 'threeJsViewer'
   },
   isScrollable: () => {
     if (getters.currentView() == 'markdownViewer') {
@@ -221,6 +221,7 @@ export const getters = {
     return visible
   },
   sidebarWidth: () => state.sidebar.width,
+  sidebarMode: () => state.sidebar.mode,
   isStickySidebar: () => {
     let sticky = state.user?.stickySidebar
     const currentView = getters.currentView()
@@ -304,6 +305,8 @@ export const getters = {
           listingView = 'listingView'
         } else if (state.req.onlyOfficeId && !getters.officeViewingDisabled(state.req.name)) {
           listingView = 'onlyOfficeEditor'
+        } else if (getTypeInfo(state.req.type).simpleType === '3d-model') {
+          listingView = 'threeJsViewer'
         } else if (
           'content' in state.req &&
           state.req.type == 'text/markdown' &&
@@ -472,7 +475,6 @@ export const getters = {
         video: true,
         image: true,
         popup: true,
-        highQuality: false
       },
       disableSettings: true,
       disableQuickToggles: false,
@@ -556,6 +558,7 @@ export const getters = {
         admin: false,
         api: false,
         realtime: false,
+        archive: false,
       };
     }
     return {
@@ -566,6 +569,7 @@ export const getters = {
       download: state.user?.permissions?.download,
       admin: state.user?.permissions?.admin,
       api: state.user?.permissions?.api,
+      archive: state.user?.permissions?.archive,
     };
   },
   previewPerms: () => {
@@ -577,7 +581,6 @@ export const getters = {
         office: state.user?.preview?.office ?? true,
         folder: state.user?.preview?.folder ?? true,
         popup: state.user?.preview?.popup ?? true,
-        highQuality: state.user?.preview?.highQuality ?? false,
         motionVideoPreview: state.user?.preview?.motionVideoPreview ?? false,
         disableHideSidebar: state.user?.preview?.disableHideSidebar ?? false,
         autoplayMedia: state.user?.preview?.autoplayMedia ?? false,
@@ -592,7 +595,6 @@ export const getters = {
       office: state.user?.preview?.office ?? true,
       folder: state.user?.preview?.folder ?? true,
       popup: state.user?.preview?.popup ?? true,
-      highQuality: state.user?.preview?.highQuality ?? false,
       motionVideoPreview: state.user?.preview?.motionVideoPreview ?? false,
       disableHideSidebar: state.user?.preview?.disableHideSidebar ?? false,
       autoplayMedia: state.user?.preview?.autoplayMedia ?? false,

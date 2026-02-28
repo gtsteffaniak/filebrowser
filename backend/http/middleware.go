@@ -113,8 +113,8 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			pathWithoutUserScope = pathWithoutUserScope + "/"
 		}
 		data.IndexPath = pathWithoutUserScope
-		if r.Method == "POST" && strings.Contains(r.URL.Path, "/resources") {
-			// no need to fetch file info for uploads
+		// skip file fetch for certain apis
+		if r.Method == "POST" && strings.Contains(r.URL.Path, "/resources") || r.Method == "GET" && strings.Contains(r.URL.Path, "/resources/items") {
 			return fn(w, r, data)
 		}
 		file, err := FileInfoFasterFunc(utils.FileOptions{
@@ -127,7 +127,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles && link.ExtractEmbeddedSubtitles,
 			ShowHidden:               link.ShowHidden,
 			FollowSymlinks:           true,
-		}, store.Access, data.shareUser)
+		}, store.Access, data.shareUser, store.Share)
 		if err != nil {
 			logger.Errorf("error fetching file info for share. hash=%v path=%v error=%v", hash, path, err)
 			return errToStatus(err), fmt.Errorf("error fetching share from server")
@@ -312,16 +312,48 @@ func withoutUserHelper(fn handleFunc) handleFunc {
 // allow user without OTP to pass
 func userWithoutOTPhelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-		// This middleware is used when no user authentication is required
-		// Call the actual handler function with the updated context
+		// Check if request has a valid admin token first
+		if tokenStr, err := extractToken(r); err == nil && tokenStr != "" {
+			keyFunc := func(token *jwt.Token) (interface{}, error) {
+				return []byte(config.Auth.Key), nil
+			}
+			var tk users.AuthToken
+			if token, err := jwt.ParseWithClaims(tokenStr, &tk, keyFunc); err == nil && token.Valid {
+				if !auth.IsRevokedApiToken(store.Access, tokenStr) {
+					if tk.BelongsTo == 0 {
+						// Minimal token - look up user ID
+						userID, found := store.Access.GetUserIDFromToken(tokenStr)
+						if found {
+							tk.BelongsTo = userID
+						}
+					}
+					if tk.BelongsTo > 0 {
+						user, err := store.Users.Get(tk.BelongsTo)
+						if err == nil && user.Permissions.Admin {
+							// Valid admin token - allow operation
+							d.user = user
+							return fn(w, r, d)
+						}
+					}
+				}
+			}
+		}
+
+		// No valid admin token - proceed with username/password authentication
 		username := r.URL.Query().Get("username")
 		password := r.Header.Get("X-Password")
-		if username == "" || password == "" {
-			return withUserHelper(fn)(w, r, d)
-		} else {
-			if !config.Auth.Methods.PasswordAuth.Enabled {
-				return 401, errors.ErrUnauthorized
+		// Try LDAP first if enabled; on success set d.user and continue to handler
+		if config.Auth.Methods.LdapAuth.Enabled {
+			logger.Debug("ldap auth, calling AuthenticateLDAPUser")
+			ldapUser, err := AuthenticateLDAPUser(username, password)
+			if err == nil {
+				logger.Debugf("ldap auth successful, calling handler")
+				d.user = ldapUser
+				return fn(w, r, d)
 			}
+			logger.Debug("ldap auth failed, calling password auth", err)
+		}
+		if config.Auth.Methods.PasswordAuth.Enabled {
 			// Get the authentication method from the settings
 			auther, err := store.Auth.Get("password")
 			if err != nil {
@@ -330,14 +362,16 @@ func userWithoutOTPhelper(fn handleFunc) handleFunc {
 			// Authenticate the user based on the request
 			user, err := auther.Auth(r, store.Users)
 			if err != nil {
+				logger.Debug("password auth failed, calling handler", err)
 				if err == errors.ErrNoTotpProvided {
 					return 403, err
 				}
 				return 401, errors.ErrUnauthorized
 			}
 			d.user = user
+			return fn(w, r, d)
 		}
-		return fn(w, r, d)
+		return withUserHelper(fn)(w, r, d)
 	}
 }
 
@@ -357,58 +391,75 @@ func withUserHelper(fn handleFunc) handleFunc {
 			}
 			return fn(w, r, data)
 		}
+		
+		// Check for JWT external auth first (header or query param)
+		if config.Auth.Methods.JwtAuth.Enabled {
+			jwtToken := r.Header.Get(config.Auth.Methods.JwtAuth.Header)
+			if jwtToken == "" {
+				// Check query parameter (hardcoded to "jwt")
+				jwtToken = r.URL.Query().Get("jwt")
+			}
+			
+			if jwtToken != "" {
+				return getJwtUser(w, r, data, fn, jwtToken)
+			}
+		}
+		
 		proxyUser := r.Header.Get(config.Auth.Methods.ProxyAuth.Header)
 		isProxyUser := config.Auth.Methods.ProxyAuth.Enabled && proxyUser != ""
 		keyFunc := func(token *jwt.Token) (interface{}, error) {
 			return []byte(config.Auth.Key), nil
 		}
-		tokenString, err := extractToken(r)
-		if err != nil && !isProxyUser {
-			return http.StatusUnauthorized, err
+		if data.token == "" {
+			var err error
+			data.token, err = extractToken(r)
+			if err != nil && !isProxyUser {
+				return http.StatusUnauthorized, err
+			}
 		}
-		data.token = tokenString
+
 		var tk users.AuthToken
-		token, err := jwt.ParseWithClaims(tokenString, &tk, keyFunc)
+		token, err := jwt.ParseWithClaims(data.token, &tk, keyFunc)
 		if err != nil {
 			if isProxyUser {
 				return getProxyUser(w, r, data, fn, proxyUser)
 			}
 			// JWT library automatically validates expiration - if expired, it returns an error
-			return http.StatusUnauthorized, fmt.Errorf("error processing token, %v", err)
+			return http.StatusUnauthorized, fmt.Errorf("invalid token: %v", err)
 		}
 		if !token.Valid {
 			return http.StatusUnauthorized, fmt.Errorf("invalid token")
 		}
-		if auth.IsRevokedApiKey(data.token) {
-			if isProxyUser {
-				return getProxyUser(w, r, data, fn, proxyUser)
-			}
-			return http.StatusUnauthorized, fmt.Errorf("token revoked")
+		if auth.IsRevokedApiToken(store.Access, data.token) {
+			return http.StatusUnauthorized, fmt.Errorf("token is expired or revoked")
 		}
 		// ExpiresAt should always be set in valid tokens created by our system
-		// If it's nil, the token is invalid
-		if tk.ExpiresAt == nil {
-			return http.StatusUnauthorized, fmt.Errorf("invalid token: missing expiration")
+		// JWT library populates RegisteredClaims.ExpiresAt
+		if tk.RegisteredClaims.ExpiresAt == nil {
+			return http.StatusUnauthorized, fmt.Errorf("token is invalid or revoked")
 		}
 		// Check if token is about to expire for renewal header
-		if tk.ExpiresAt.Unix() < time.Now().Add(time.Minute*30).Unix() {
+		if tk.RegisteredClaims.ExpiresAt.Unix() < time.Now().Add(time.Minute*30).Unix() {
 			w.Header().Add("X-Renew-Token", "true")
 		}
 		// Check if token is minimal/stateful (no BelongsTo in claim)
 		if tk.BelongsTo == 0 {
-			tk.BelongsTo, err = getUserFromApiToken(data.token)
-			if err != nil {
-				return http.StatusUnauthorized, err
+			// Hash the token and look up user ID in access storage
+			userID, found := store.Access.GetUserIDFromToken(data.token)
+			if !found {
+				return http.StatusUnauthorized, fmt.Errorf("token is invalid or revoked")
 			}
+			tk.BelongsTo = userID
 		}
 		data.user, err = store.Users.Get(tk.BelongsTo)
 		if err != nil {
 			logger.Errorf("Failed to get user with ID %v: %v", tk.BelongsTo, err)
 			return http.StatusInternalServerError, err
 		}
+
 		// Set cookie. Some clients like gvfs relies on it for concurrent uploads
-		if expire := tk.ExpiresAt; expire != nil {
-			setSessionCookie(w, r, tokenString, expire.Time)
+		if tk.RegisteredClaims.ExpiresAt != nil {
+			setSessionCookie(w, r, data.token, tk.RegisteredClaims.ExpiresAt.Time)
 		}
 		setUserInResponseWriter(w, data.user)
 		if data.user.Username == "" {
@@ -420,6 +471,48 @@ func withUserHelper(fn handleFunc) handleFunc {
 		}
 		return fn(w, r, data)
 	}
+}
+
+func getJwtUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn handleFunc, jwtToken string) (int, error) {
+	// Verify the external JWT token
+	username, claims, err := auth.VerifyExternalJWT(
+		jwtToken,
+		config.Auth.Methods.JwtAuth.Secret,
+		config.Auth.Methods.JwtAuth.Algorithm,
+		config.Auth.Methods.JwtAuth.UserIdentifier,
+	)
+	if err != nil {
+		logger.Debugf("JWT verification failed: %v", err)
+		return http.StatusForbidden, fmt.Errorf("JWT authentication failed: %w", err)
+	}
+	
+	// Setup user based on JWT claims
+	user, err := setupJwtUser(r, data, username, claims)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	data.user = user
+	setUserInResponseWriter(w, data.user)
+	if data.user.Username == "" {
+		return http.StatusForbidden, errors.ErrUnauthorized
+	}
+	
+	// Generate a FileBrowser session token for JWT users if they don't have one
+	if data.token == "" {
+		expires := time.Hour * time.Duration(config.Auth.TokenExpirationHours)
+		tokenString, _, err := auth.MakeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false)
+		if err != nil {
+			logger.Errorf("Failed to generate token for JWT user %s: %v", username, err)
+			return http.StatusInternalServerError, fmt.Errorf("failed to generate token")
+		}
+		data.token = tokenString
+	}
+	
+	// Call the handler function, passing in the context (or return OK if no handler)
+	if fn == nil {
+		return http.StatusOK, nil
+	}
+	return fn(w, r, data)
 }
 
 func getProxyUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn handleFunc, proxyUser string) (int, error) {
@@ -436,12 +529,12 @@ func getProxyUser(w http.ResponseWriter, r *http.Request, data *requestContext, 
 	// Generate a token for proxy users if they don't have one
 	if data.token == "" {
 		expires := time.Hour * time.Duration(config.Auth.TokenExpirationHours)
-		signed, err := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false)
+		tokenString, _, err := auth.MakeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false)
 		if err != nil {
 			logger.Errorf("Failed to generate token for proxy user %s: %v", proxyUser, err)
 			return http.StatusInternalServerError, fmt.Errorf("failed to generate token")
 		}
-		data.token = signed.Key
+		data.token = tokenString
 	}
 	// Call the handler function, passing in the context (or return OK if no handler)
 	if fn == nil {
@@ -463,16 +556,10 @@ func withSelfOrAdminHelper(fn handleFunc) handleFunc {
 }
 
 func wrapHandler(fn handleFunc) http.HandlerFunc {
-	return wrapHandlerOpts(fn, wrapperOpts{})
-}
-
-type wrapperOpts struct {
-	requestBasicAuth bool
-}
-
-func wrapHandlerOpts(fn handleFunc, opts wrapperOpts) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		data := &requestContext{}
+		data := &requestContext{
+			ctx: r.Context(),
+		}
 
 		// Call the actual handler function and get status code and error
 		status, err := fn(w, r, data)
@@ -482,10 +569,6 @@ func wrapHandlerOpts(fn handleFunc, opts wrapperOpts) http.HandlerFunc {
 			response := &HttpResponse{
 				Status:  status, // Use the status code from the middleware
 				Message: err.Error(),
-			}
-
-			if status == http.StatusUnauthorized && opts.requestBasicAuth {
-				w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
 			}
 
 			// Set the content type to JSON and status code
@@ -514,6 +597,21 @@ func wrapHandlerOpts(fn handleFunc, opts wrapperOpts) http.HandlerFunc {
 	}
 }
 
+// wrapHandlerBasicAuth wraps a handler and automatically sets WWW-Authenticate header
+// for 401 Unauthorized responses, triggering Basic Auth challenge
+func wrapHandlerBasicAuth(fn handleFunc) http.HandlerFunc {
+	// Wrap the handler to set WWW-Authenticate header for 401 responses
+	wrappedFn := func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
+		status, err := fn(w, r, data)
+		// Set WWW-Authenticate header before returning 401
+		if status == http.StatusUnauthorized {
+			w.Header().Set("WWW-Authenticate", `Basic realm="WebDAV"`)
+		}
+		return status, err
+	}
+	return wrapHandler(wrappedFn)
+}
+
 func withPermShareHelper(fn handleFunc) handleFunc {
 	return withUserHelper(func(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 		if !d.user.Permissions.Share {
@@ -523,11 +621,30 @@ func withPermShareHelper(fn handleFunc) handleFunc {
 	})
 }
 
+// withBasicAuthHelper extracts Basic Auth credentials and uses the password as a JWT token
+// to authenticate the user. The username is ignored, and the password should be a JWT token.
+func withBasicAuthHelper(fn handleFunc) handleFunc {
+	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
+		_, password, ok := r.BasicAuth()
+		if !ok || password == "" {
+			// Return 401 - wrapHandlerBasicAuth will set WWW-Authenticate header
+			return http.StatusUnauthorized, fmt.Errorf("basic authentication required")
+		}
+		data.token = password
+		return withUserHelper(fn)(w, r, data)
+	}
+}
+
+// withBasicAuth returns an http.HandlerFunc for use with router.Handle.
+// It extracts Basic Auth credentials and uses the password as a JWT token to authenticate the user.
+func withBasicAuth(fn handleFunc) http.HandlerFunc {
+	return wrapHandlerBasicAuth(withBasicAuthHelper(fn))
+}
+
 func withPermShare(fn handleFunc) http.HandlerFunc {
 	return wrapHandler(withPermShareHelper(fn))
 }
 
-// Example of wrapping specific middleware functions for use with http.HandleFunc
 func withHashFile(fn handleFunc) http.HandlerFunc {
 	return wrapHandler(withHashFileHelper(fn))
 }

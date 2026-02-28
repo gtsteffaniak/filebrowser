@@ -26,10 +26,9 @@ type fileWatchResponse struct {
 // fileWatchMetadata contains file information for non-text files
 type fileWatchMetadata struct {
 	Name     string    `json:"name"`     // File name
-	Size     int64     `json:"size"`     // File size in bytes
+	Size     int64     `json:"size"`     // File size in bytes (for directories, total size of all files)
 	Type     string    `json:"type"`     // MIME type
 	Modified time.Time `json:"modified"` // Modification time
-	Path     string    `json:"path"`     // File path
 }
 
 // readLastNLines reads the last N lines from a file efficiently
@@ -123,7 +122,7 @@ func readLastNLines(filePath string, n int) (string, error) {
 // @Failure 403 {object} map[string]string "Permission denied"
 // @Failure 404 {object} map[string]string "File not found"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /api/tools/watch [get]
+// @Router /api/tools/fileWatcher [get]
 func fileWatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	// Check for latency check request - return immediately with minimal response
 	if r.URL.Query().Get("latencyCheck") != "" {
@@ -190,55 +189,42 @@ func fileWatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusNotFound, fmt.Errorf("file not found: %v", err)
 	}
 
-	// Verify it's a file, not a directory
+	// Get file/directory info
 	info, err := os.Stat(realPath)
 	if err != nil {
-		return http.StatusNotFound, fmt.Errorf("file not found: %v", err)
-	}
-	if info.IsDir() {
-		return http.StatusBadRequest, fmt.Errorf("path is a directory, not a file")
-	}
-
-	// Check if file is a text file
-	isText, err := utils.IsTextFile(realPath)
-	if err != nil {
-		return http.StatusInternalServerError, fmt.Errorf("error checking file type: %v", err)
+		return http.StatusNotFound, fmt.Errorf("path not found: %v", err)
 	}
 
 	// Get MIME type from the index if available
 	mimeType := "application/octet-stream"
 	reducedInfo, exists := idx.GetReducedMetadata(scopePath, false)
-	if exists && reducedInfo.Type != "" && reducedInfo.Type != "directory" {
+	if exists && reducedInfo.Type != "" {
 		mimeType = reducedInfo.Type
 	}
 
-	response := fileWatchResponse{
-		IsText: isText,
+	response := fileWatchResponse{}
+	// Handle directory - just return metadata, no content
+	response.IsText = false
+	response.Metadata = &fileWatchMetadata{
+		Name:     info.Name(),
+		Size:     0, // Directories don't have a meaningful size
+		Type:     mimeType,
+		Modified: info.ModTime(),
 	}
-
-	if isText {
-		// Read the last N lines for text files
-		content, err := readLastNLines(realPath, lines)
+	if !info.IsDir() {
+		// Handle regular file
+		// Check if file is a text file
+		isText, err := utils.IsTextFile(realPath)
 		if err != nil {
-			return http.StatusInternalServerError, fmt.Errorf("error reading file: %v", err)
+			return http.StatusInternalServerError, fmt.Errorf("error checking file type: %v", err)
 		}
-		response.Contents = content
-		// Include metadata for text files too (for file size display)
-		response.Metadata = &fileWatchMetadata{
-			Name:     info.Name(),
-			Size:     info.Size(),
-			Type:     mimeType,
-			Modified: info.ModTime(),
-			Path:     path,
-		}
-	} else {
-		// For non-text files, return metadata
-		response.Metadata = &fileWatchMetadata{
-			Name:     info.Name(),
-			Size:     info.Size(),
-			Type:     mimeType,
-			Modified: info.ModTime(),
-			Path:     path,
+		if isText {
+			// Read the last N lines for text files only
+			content, err := readLastNLines(realPath, lines)
+			if err != nil {
+				return http.StatusInternalServerError, fmt.Errorf("error reading file: %v", err)
+			}
+			response.Contents = content
 		}
 	}
 
@@ -265,7 +251,7 @@ type fileWatchSSEEvent struct {
 // @Failure 400 {object} map[string]string "Invalid request"
 // @Failure 403 {object} map[string]string "Permission denied"
 // @Failure 404 {object} map[string]string "File not found"
-// @Router /api/tools/watch/sse [get]
+// @Router /api/tools/fileWatcher/sse [get]
 func fileWatchSSEHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	// Check realtime permissions
 	if !(d.user.Permissions.Realtime) {
@@ -346,16 +332,13 @@ func fileWatchSSEHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	// Get real file path
 	realPath, _, err := idx.GetRealPath(scopePath)
 	if err != nil {
-		return http.StatusNotFound, fmt.Errorf("file not found: %v", err)
+		return http.StatusNotFound, fmt.Errorf("path not found: %v", err)
 	}
 
-	// Verify it's a file, not a directory
+	// Get file/directory info
 	info, err := os.Stat(realPath)
 	if err != nil {
-		return http.StatusNotFound, fmt.Errorf("file not found: %v", err)
-	}
-	if info.IsDir() {
-		return http.StatusBadRequest, fmt.Errorf("path is a directory, not a file")
+		return http.StatusNotFound, fmt.Errorf("path not found: %v", err)
 	}
 
 	// Set up SSE headers
@@ -386,9 +369,12 @@ func fileWatchSSEHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	// Get MIME type (we'll reuse this)
 	mimeType := "application/octet-stream"
 	reducedInfo, exists := idx.GetReducedMetadata(scopePath, false)
-	if exists && reducedInfo.Type != "" && reducedInfo.Type != "directory" {
+	if exists && reducedInfo.Type != "" {
 		mimeType = reducedInfo.Type
 	}
+
+	// Determine if this is a directory
+	isDir := info.IsDir()
 
 	// Start background goroutine to periodically send file updates via events system
 	stopTicker := make(chan struct{})
@@ -397,14 +383,14 @@ func fileWatchSSEHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		defer ticker.Stop()
 
 		// Send initial update
-		sendFileWatchUpdate(username, realPath, path, lines, mimeType)
+		sendFileWatchUpdate(username, realPath, path, source, lines, mimeType, isDir)
 
 		for {
 			select {
 			case <-stopTicker:
 				return
 			case <-ticker.C:
-				sendFileWatchUpdate(username, realPath, path, lines, mimeType)
+				sendFileWatchUpdate(username, realPath, path, source, lines, mimeType, isDir)
 			}
 		}
 	}()
@@ -443,54 +429,58 @@ func fileWatchSSEHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	}
 }
 
-// sendFileWatchUpdate reads the file and sends an update via the events system
-func sendFileWatchUpdate(username, realPath, path string, lines int, mimeType string) {
-	// Re-check file (in case it was deleted or changed)
+// sendFileWatchUpdate reads the file/directory and sends an update via the events system
+func sendFileWatchUpdate(username, realPath, path, source string, lines int, mimeType string, isDir bool) {
+	// Re-check path (in case it was deleted or changed)
 	info, err := os.Stat(realPath)
 	if err != nil {
-		// File no longer exists
-		errorMsg, _ := json.Marshal(map[string]interface{}{"status": "error", "error": "file not found"})
+		// Path no longer exists
+		errorMsg, _ := json.Marshal(map[string]interface{}{"status": "error", "error": "path not found"})
 		events.SendToUsers("fileWatch", string(errorMsg), []string{username})
 		return
 	}
 
-	// Check if file is a text file
-	isText, err := utils.IsTextFile(realPath)
-	if err != nil {
-		// Error checking file, skip this update
-		return
-	}
-
 	// Build the SSE event
-	sseEvent := fileWatchSSEEvent{
-		IsText: isText,
-	}
+	sseEvent := fileWatchSSEEvent{}
 
-	if isText {
-		// Read the last N lines for text files
-		var content string
-		content, err = readLastNLines(realPath, lines)
-		if err != nil {
-			// Error reading, skip this update
-			return
-		}
-		sseEvent.Contents = content
+	if isDir {
+		// Handle directory - just return metadata, no content
+		sseEvent.IsText = false
 		sseEvent.Metadata = &fileWatchMetadata{
 			Name:     info.Name(),
-			Size:     info.Size(),
-			Type:     mimeType,
+			Size:     0, // Directories don't have a meaningful size
+			Type:     "directory",
 			Modified: info.ModTime(),
-			Path:     path,
 		}
 	} else {
-		// For non-text files, send metadata
+		// Handle regular file
+		// Check if file is a text file
+		var isText bool
+		isText, err = utils.IsTextFile(realPath)
+		if err != nil {
+			// Error checking file, skip this update
+			return
+		}
+
+		sseEvent.IsText = isText
 		sseEvent.Metadata = &fileWatchMetadata{
 			Name:     info.Name(),
 			Size:     info.Size(),
 			Type:     mimeType,
 			Modified: info.ModTime(),
-			Path:     path,
 		}
+
+		if isText {
+			// Read the last N lines for text files only
+			var content string
+			content, err = readLastNLines(realPath, lines)
+			if err != nil {
+				// Error reading, skip this update
+				return
+			}
+			sseEvent.Contents = content
+		}
+		// For non-text files, Contents stays empty - frontend displays metadata
 	}
 
 	// Serialize and send via events system

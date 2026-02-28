@@ -1,9 +1,6 @@
 <template>
-  <div class="card-title">
-    <h2>{{ $t("otp.name") }}</h2>
-  </div>
-  <div v-if="error !== ''" class="wrong-login card">{{ error }}</div>
   <div class="card-content">
+    <div v-if="error !== ''" class="wrong-login card">{{ error }}</div>
     <p v-if="generate">{{ $t("otp.generate") }}</p>
     <div v-if="generate" class="box__element box__center">
       <p aria-label="otp-url">{{ url }}</p>
@@ -14,12 +11,7 @@
       :placeholder="$t('otp.codeInputPlaceholder')" />
   </div>
 
-  <div class="card-action">
-    <button @click="closeHovers" class="button button--flat button--grey"
-      :aria-label="succeeded ? $t('general.close') : $t('general.cancel')"
-      :title="succeeded ? $t('general.close') : $t('general.cancel')">
-      {{ succeeded ? $t('general.close') : $t('general.cancel') }}
-    </button>
+  <div class="card-actions">
     <button v-if="!succeeded && code != ''" class="button button--flat button--blue" @click="verifyCode"
       :title="$t('general.verify')">
       {{ $t("general.verify") }}
@@ -30,7 +22,7 @@
 <script>
 import { mutations } from "@/store";
 import { notify } from "@/notify";
-import { usersApi } from "@/api";
+import { authApi } from "@/api";
 import { initAuth } from "@/utils/auth";
 import QrcodeVue from "qrcode.vue";
 
@@ -78,7 +70,7 @@ export default {
   methods: {
     async generateNewCode() {
       try {
-        const resp = await usersApi.generateOTP(this.username, this.password);
+        const resp = await authApi.generateOTP(this.username, this.password);
         this.url = resp.url;
       } catch (error) {
         this.error = this.$t("otp.generationFailed");
@@ -93,9 +85,9 @@ export default {
         return;
       }
       try {
-        await usersApi.verifyOtp(this.username, this.password, this.code);
+        await authApi.verifyOTP(this.username, this.password, this.code);
         if (this.redirect != "") {
-          await usersApi.login(this.username, this.password, this.redirect, this.code);
+          await authApi.login(this.username, this.password, this.redirect, this.code);
           await initAuth();
           this.$router.push(this.redirect);
         }
@@ -106,6 +98,7 @@ export default {
         mutations.closeTopHover();
       } catch (error) {
         this.error = this.$t("otp.verificationFailed");
+        console.log("error", error);
         return;
       }
     },
@@ -113,7 +106,7 @@ export default {
       if (!this.succeeded) {
         mutations.updateCurrentUser({ otpEnabled: false });
       }
-      mutations.closeHovers();
+      mutations.closeTopHover();
     },
   },
 };

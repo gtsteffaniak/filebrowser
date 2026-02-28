@@ -10,31 +10,31 @@
   <div class="card-content full">
 
 
-    <div v-if="Object.keys(links).length > 0">
+    <div v-if="links.length > 0">
       <p>
         {{ $t("api.description") }}
         <a class="link" href="swagger/index.html">{{ $t("api.swaggerLinkText") }}</a>
       </p>
 
-      <table aria-label="API Keys">
+      <table aria-label="API Tokens">
         <thead>
           <tr>
             <th>{{ $t("general.name") }}</th>
             <th>{{ $t("api.created") }}</th>
-            <th>{{ $t("api.expires") }}</th>
+            <th>{{ $t("general.expires") }}</th>
             <th>{{ $t("settings.permissions-name") }}</th>
             <th>{{ $t("api.actions") }}</th>
           </tr>
         </thead>
         <tbody class="settings-items">
-          <tr class="item" v-for="(link, name) in links" :key="name">
-            <td>{{ name }}</td>
-            <td>{{ formatTime(link.created) }}</td>
-            <td>{{ formatTime(link.expires) }}</td>
+          <tr class="item" v-for="link in links" :key="link.name">
+            <td>{{ link.name }}</td>
+            <td>{{ formatTime(link.issuedAt) }}</td>
+            <td>{{ formatTime(link.expiresAt) }}</td>
             <td v-if="!link.minimal">
               <span v-for="(value, permission) in link.Permissions" :key="permission"
                   :title="`${permission}: ${value ? $t('api.enabled') : $t('api.disabled')}`" class="clickable"
-                  @click.prevent="infoPrompt(name, link)">
+                  @click.prevent="infoPrompt(link.name, link)">
                   {{ showResult(value) }}
                 </span>
               </td>
@@ -42,12 +42,12 @@
               <span>-</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
             </td>
             <td class="small">
-              <button class="action" @click.prevent="infoPrompt(name, link)">
+              <button class="action" @click.prevent="infoPrompt(link.name, link)">
                 <i class="material-icons">info</i>
               </button>
             </td>
             <td class="small">
-              <button class="action copy-clipboard" :data-clipboard-text="link.key"
+              <button class="action copy-clipboard" :data-clipboard-text="link.token"
                 :aria-label="$t('buttons.copyToClipboard')" :title="$t('buttons.copyToClipboard')">
                 <i class="material-icons">content_paste</i>
               </button>
@@ -66,7 +66,7 @@
 
 <script>
 import { notify } from "@/notify";
-import { usersApi } from "@/api";
+import { authApi } from "@/api";
 import { state, mutations, getters } from "@/store";
 import Clipboard from "clipboard";
 import Errors from "@/views/Errors.vue";
@@ -80,7 +80,7 @@ export default {
   data: function () {
     return {
       error: null,
-      links: {},
+      links: [],
       clip: null,
       user: {
         permissions: { ...state.user.permissions}
@@ -129,7 +129,7 @@ export default {
       mutations.setLoading("api", true);
       try {
         // Fetch the API keys from the specified endpoint
-        this.links = await usersApi.getApiKeys();
+        this.links = await authApi.getApiKeys();
         this.error = null; // Clear errors
       // Reinitialize clipboard after data changes
       this.$nextTick(() => {
@@ -147,7 +147,7 @@ export default {
     createPrompt() {
       mutations.showHover({
         name: "CreateApi",
-        props: { permissions: this.user.permissions },
+        props: { permissions: this.user.permissions, userPermissions: this.user.permissions },
       });
     },
     infoPrompt(name, info) {

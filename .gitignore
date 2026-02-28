@@ -18,6 +18,7 @@ frontend/tsconfig.tsbuildinfo
 /frontend/test-results
 /frontend/playwright-files
 /frontend/screenshots
+/frontend/generated
 /frontend/tests/playwright-files/demo*
 /frontend/loginAuth.json
 /backend/vendor

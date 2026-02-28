@@ -1,8 +1,4 @@
 <template>
-  <div class="card-title">
-    <h2>{{ operation === 'move' ? $t('prompts.move') : $t('prompts.copy') }}</h2>
-  </div>
-
   <div class="card-content">
     <!-- Loading spinner overlay -->
     <!-- changed to v-show (for keep the loading spinner), otherwise the path showed in the prompt will be always "/" -->
@@ -10,51 +6,41 @@
       <LoadingSpinner size="small" mode="placeholder" />
       <p class="loading-text">{{ $t("prompts.operationInProgress") }}</p>
     </div>
-    <file-list v-show="!isLoading" ref="fileList" @update:selected="updateDestination">
-    </file-list>
+    <div v-show="!isLoading">
+      <file-list ref="fileList" @update:selected="updateDestination">
+      </file-list>
+    </div>
   </div>
-  <div>
-  </div>
-  <div v-if="!isLoading" class="card-action" style="display: flex; align-items: center; justify-content: space-between">
-    <template v-if="!showNewDirInput">
-      <button v-if="canCreateFolder" class="button button--flat" @click="createNewDir"
-        :aria-label="$t('files.newFolder')" :title="$t('files.newFolder')" style="justify-self: left">
-        <span>{{ $t("files.newFolder") }}</span>
-      </button>
-      <div>
-        <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('general.cancel')"
-          :title="$t('general.cancel')">
-          {{ $t("general.cancel") }}
-        </button>
-        <button :disabled="destContainsSrc" class="button button--flat" @click="performOperation"
-          :aria-label="operation === 'move' ? $t('general.move') : $t('general.copy')"
-          :title="operation === 'move' ? $t('general.move') : $t('general.copy')">
-          {{ operation === 'move' ? $t('general.move') : $t('general.copy') }}
-        </button>
-      </div>
-    </template>
-
-    <template v-else>
-      <div style="width: 100%;">
-        <div style="display: flex; gap: 0.3rem;">
-          <input ref="newDirInput" class="input new-dir-input" :class="{ 'form-invalid': !isDirNameValid }"
-            v-model.trim="newDirName" :placeholder="$t('prompts.newDirMessage')" @keydown.enter="handleEnter" />
-          <button class="button button--flat button--grey" @click="cancelNewDir">
-            {{ $t("general.cancel") }}
-          </button>
-          <button class="button button--flat" @click="createDirectory" :disabled="!newDirName || !isDirNameValid">
-            {{ $t("general.create") }}
-          </button>
-        </div>
-      </div>
-    </template>
+  <div class="card-actions split-buttons" >
+    <button v-if="canCreateFolder && showNewDirInput" class="button button--flat" @click="cancelNewDir" :aria-label="$t('general.cancel')" :title="$t('general.cancel')">
+      {{ $t("general.cancel") }}
+    </button>
+    <button
+      v-if="canCreateFolder && !showNewDirInput"
+      class="button button--flat"
+      @click="createNewDir"
+      :aria-label="$t('files.newFolder')"
+      :title="$t('files.newFolder')"
+    >
+      <span>{{ $t("files.newFolder") }}</span>
+    </button>
+    <input v-if="showNewDirInput" ref="newDirInput" class="input new-dir-input" :class="{ 'form-invalid': !isDirNameValid }"
+    v-model.trim="newDirName" :placeholder="$t('prompts.newDirMessage')" @keydown.enter="handleEnter" />
+    <button v-else :disabled="destContainsSrc" class="button button--flat" @click="performOperation"
+      :aria-label="operation === 'move' ? $t('general.move') : $t('general.copy')"
+      :title="operation === 'move' ? $t('general.move') : $t('general.copy')">
+      {{ operation === 'move' ? $t('general.move') : $t('general.copy') }}
+    </button>
+    <button v-if="showNewDirInput" class="button button--flat" @click="createDirectory" :disabled="!newDirName || !isDirNameValid">
+      {{ $t("general.create") }}
+    </button>
   </div>
 </template>
 
 <script>
 import { mutations, state, getters } from "@/store";
-import FileList from "./FileList.vue";
-import { filesApi, publicApi } from "@/api";
+import FileList from "../files/FileList.vue";
+import { resourcesApi } from "@/api";
 import buttons from "@/utils/buttons";
 import * as upload from "@/utils/upload";
 import { url } from "@/utils";
@@ -76,13 +62,17 @@ export default {
       type: Boolean,
       default: false,
     },
+    items: {
+      type: Array,
+      default: null,
+    },
   },
   data: function () {
     return {
       current: window.location.pathname,
       destPath: "/", // Start at root of selected source
       destSource: null, // Will be set by FileList component
-      items: [],
+      localItems: [], // Will hold the items to operate on
       isLoading: false, // Track loading state for spinner
       showNewDirInput: false, // When true will replace the new folder button with a input field
       newDirName: "",
@@ -94,15 +84,15 @@ export default {
         return false; // If dest is not set, we can't check containment
       }
       // Add null checks to prevent undefined errors
-      if (!this.items || this.items.length === 0) {
+      if (!this.localItems || this.localItems.length === 0) {
         return false;
       }
-      const itemPath = this.items[0]?.from;
+      const itemPath = this.localItems[0]?.from;
       if (!itemPath) {
         return false; // If itemPath is undefined, we can't check containment
       }
       // For different sources, allow move to root path
-      if (this.destSource !== this.items[0]?.fromSource) {
+      if (this.destSource !== this.localItems[0]?.fromSource) {
         return false;
       }
       // For move, prevent moving to the same directory, but for copy allow it.
@@ -121,21 +111,24 @@ export default {
       return !!perms?.create;
     },
     closeHovers() {
-      return mutations.closeHovers();
+      return mutations.closeTopHover();
     },
     isDirNameValid() {
       return this.validateDirName(this.newDirName);
     }
   },
   mounted() {
-    // If operationInProgress is true, show loading immediately (for drag and drop)
-    if (this.operationInProgress) {
-      this.isLoading = true;
-    }
-    if (state.isSearchActive) {
+    // If props.items is provided, use it. Otherwise use state
+    if (this.items && this.items.length > 0) {
+      this.localItems = this.items.map(item => ({
+        from: item.path,
+        fromSource: item.source,
+        name: item.name,
+      }));
+    } else if (state.isSearchActive) {
       // Add null checks to prevent undefined values
       if (state.selected && state.selected[0] && state.selected[0].path) {
-        this.items = [
+        this.localItems = [
           {
             from: state.selected[0].path,
             fromSource: state.selected[0].source,
@@ -148,7 +141,7 @@ export default {
         for (let item of state.selected) {
           const reqItem = state.req.items[item];
           if (reqItem && reqItem.path) {
-            this.items.push({
+            this.localItems.push({
               from: reqItem.path,
               fromSource: state.req.source,
               name: reqItem.name,
@@ -156,6 +149,9 @@ export default {
           }
         }
       }
+    }
+    if (this.operationInProgress) {
+      this.isLoading = true;
     }
   },
   methods: {
@@ -197,16 +193,16 @@ export default {
         const currentSource = this.$refs.fileList.source;
         const fullPath = currentPath.endsWith('/') ? currentPath + this.newDirName + '/' : currentPath + '/' + this.newDirName + '/';
         if (getters.isShare()) {
-          await publicApi.post(state.shareInfo?.hash, fullPath, "", false, undefined, {}, true);
+          await resourcesApi.postPublic(state.shareInfo?.hash, fullPath, "", false, undefined, {}, true);
         } else {
-          await filesApi.post(currentSource, fullPath, "", false, undefined, {}, true);
+          await resourcesApi.post(currentSource, fullPath, "", false, undefined, {}, true);
         }
         // Refresh the file list while keeping the current navigation that we did in the prompt
         if (getters.isShare()) {
-          publicApi.fetchPub(currentPath, state.shareInfo?.hash)
+          resourcesApi.fetchFilesPublic(currentPath, state.shareInfo?.hash)
             .then((req) => this.$refs.fileList.fillOptions(req, true));
         } else {
-          filesApi.fetchFiles(currentSource, currentPath)
+          resourcesApi.fetchFiles(currentSource, currentPath)
             .then((req) => this.$refs.fileList.fillOptions(req, true));
         }
         // Clicking create will also return the buttons to their normal state
@@ -235,32 +231,40 @@ export default {
       event.preventDefault();
       this.isLoading = true; // Show loading spinner
       try {
+        // Ensure destination source is set
+        if (!this.destSource) {
+          // If no destination source yet, use the source from the first item (or current source)
+          this.destSource = this.localItems[0]?.fromSource || state.req.source;
+        }
+        // Build items with destination paths
+        const itemsToProcess = this.localItems.map(item => {
+          // Ensure proper path construction without double slashes
+          const destPath = this.destPath.endsWith('/') ? this.destPath : this.destPath + '/';
+          return {
+            ...item,
+            to: destPath + item.name,
+            toSource: this.destSource,
+          };
+        });
         // Define the action function
         let action = async (overwrite, rename) => {
-          for (let item of this.items) {
-            // Ensure proper path construction without double slashes
-            const destPath = this.destPath.endsWith('/') ? this.destPath : this.destPath + '/';
-            item.to = destPath + item.name;
-            // Always set toSource for cross-source operations
-            item.toSource = this.destSource;
-          }
           buttons.loading(this.operation);
           let result;
           if (getters.isShare()) {
-            result = await publicApi.moveCopy(state.shareInfo.hash, this.items, this.operation, overwrite, rename);
+            result = await resourcesApi.moveCopyPublic(state.shareInfo.hash, itemsToProcess, this.operation, overwrite, rename);
           } else {
-            result = await filesApi.moveCopy(this.items, this.operation, overwrite, rename);
+            result = await resourcesApi.moveCopy(itemsToProcess, this.operation, overwrite, rename);
           }
           return result; // Return the result to check for failures
         };
         let conflict = false;
         let dstResp = null;
         if (getters.isShare()) {
-          dstResp = await publicApi.fetchPub(this.destPath, state.shareInfo?.hash);
+          dstResp = await resourcesApi.fetchFilesPublic(this.destPath, state.shareInfo?.hash);
         } else {
-          dstResp = await filesApi.fetchFiles(this.destSource, this.destPath);
+          dstResp = await resourcesApi.fetchFiles(this.destSource, this.destPath);
         }
-        conflict = upload.checkConflict(this.items, dstResp.items);
+        conflict = upload.checkConflict(itemsToProcess, dstResp.items);
         let overwrite = false;
         let rename = false;
         let result = null;
@@ -268,7 +272,7 @@ export default {
         if (conflict) {
           this.isLoading = false;
           // Check if any item is being copied/moved to itself
-          const isSameFile = this.items.some(item => {
+          const isSameFile = itemsToProcess.some(item => {
             const destPath = this.destPath.endsWith('/') ? this.destPath : this.destPath + '/';
             const targetPath = destPath + item.name;
             return item.from === targetPath && item.fromSource === this.destSource;
@@ -277,6 +281,7 @@ export default {
           await new Promise((resolve, reject) => {
             mutations.showHover({
               name: "replace-rename",
+              pinned: true,
               props: {
                 isSameFile: isSameFile,
                 operation: this.operation
@@ -301,11 +306,11 @@ export default {
           // Await the action call for non-conflicting cases
           result = await action(overwrite, rename);
         }
-        
+
         // Check if there were any failures in the result
         const hasFailures = result && result.failed && result.failed.length > 0;
         const hasSuccesses = result && result.succeeded && result.succeeded.length > 0;
-        
+
         if (hasFailures && !hasSuccesses) {
           // All operations failed - show error but DON'T close prompt
           const errorMessage = result.failed[0]?.message || this.$t("prompts.operationFailed");
@@ -319,10 +324,10 @@ export default {
             this.$t("prompts.partialSuccess", { succeeded: succeededCount, failed: failedCount })
           );
         }
-        
+
         // Only close prompts and reload on success (or partial success)
         mutations.setReload(true);
-        mutations.closeHovers();
+        mutations.closeTopHover();
         mutations.setSearch(false);
 
         // Only show success notification if there were no failures (or partial success was already shown)
@@ -359,10 +364,10 @@ export default {
       } catch (error) {
         // Handle errors thrown by the API (e.g., 500 errors)
         // DON'T close the prompt on error - let user try again or cancel manually
-        
+
         // Try to extract error message from the error response
         let errorMessage = null;
-        
+
         // Check if error has a response body with failed items
         if (error && error.failed && error.failed.length > 0 && error.failed[0]?.message) {
           errorMessage = error.failed[0].message;
@@ -371,12 +376,12 @@ export default {
         } else if (typeof error === 'string') {
           errorMessage = error;
         }
-        
+
         // Only use fallback if we couldn't extract a message
         if (!errorMessage) {
           errorMessage = this.$t("prompts.operationFailed");
         }
-        
+
         notify.showError(errorMessage);
       } finally {
         this.isLoading = false; // Hide loading spinner
@@ -393,6 +398,7 @@ export default {
   flex-direction: column;
   align-items: center;
   gap: 16px;
+  padding-top: 2em;
 }
 
 .loading-text {
@@ -409,5 +415,9 @@ export default {
 
 .new-dir-input {
   justify-self: left
+}
+
+.split-buttons {
+  justify-content: space-between;
 }
 </style>

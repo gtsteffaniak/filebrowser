@@ -1,11 +1,13 @@
 <template>
-  <div class="card-title">
-    <h2>{{ $t('api.createTitle') }}</h2>
-  </div>
-
   <div class="card-content">
-    <!-- API Key Name Input -->
-    <p>{{ $t('general.name') }}</p>
+    <!-- Loading spinner overlay -->
+    <div v-show="creating" class="loading-content">
+      <LoadingSpinner size="small" />
+      <p class="loading-text">{{ $t("prompts.operationInProgress") }}</p>
+    </div>
+    <div v-show="!creating">
+      <!-- API Key Name Input -->
+      <p>{{ $t('general.name') }}</p>
     <input v-focus class="input" type="text" v-model.trim="apiName"
       :placeholder="$t('api.keyNamePlaceholder')" />
 
@@ -20,32 +22,28 @@
       </select>
     </div>
 
-    <!-- Minimal Token Option -->
+    <!-- Customize Token Option -->
     <div class="settings-items">
       <ToggleSwitch
-        v-model="minimal"
-        name="minimal"
+        v-model="customizeToken"
+        :name="$t('api.customizeToken')"
         class="item"
-        :title="$t('api.minimalDescription')"
-        :description="$t('api.minimalInfo')"
+        :description="$t('api.customizeTokenInfo')"
       />
     </div>
 
-    <!-- Permissions Input (only shown for full tokens) -->
-    <div v-if="!minimal">
+    <!-- Permissions Input (only shown when customizing) -->
+    <div v-if="customizeToken">
       <p>{{ $t('api.permissionNote') }}</p>
       <div class="settings-items">
-        <ToggleSwitch v-for="(isEnabled, permission) in permissions" :key="permission" class="item"
-          v-model="permissions[permission]" :name="permission" />
+        <ToggleSwitch v-for="permission in Object.keys(localPerms)" :key="permission" class="item"
+          v-model="localPerms[permission]" :name="permission" :disabled="!userPermissions[permission]" />
       </div>
+    </div>
     </div>
   </div>
 
-  <div class="card-action">
-    <button @click="closeHovers" class="button button--flat button--grey" :aria-label="$t('general.cancel')"
-      :title="$t('general.cancel')">
-      {{ $t("general.cancel") }}
-    </button>
+  <div class="card-actions">
     <button class="button button--flat button--blue" @click="createAPIKey" :title="$t('general.create')">
       {{ $t("general.create") }}
     </button>
@@ -55,9 +53,10 @@
 <script>
 import { mutations } from "@/store";
 import { notify } from "@/notify";
-import { usersApi } from "@/api";
+import { authApi } from "@/api";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import { eventBus } from "@/store/eventBus";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
 export default {
   name: "CreateAPI",
@@ -66,17 +65,33 @@ export default {
       apiName: "",
       duration: 1,
       unit: "days",
-      minimal: false, // false = full token (default), true = minimal token
+      customizeToken: false, // false = minimal token (default), true = customizable/full token
+      localPerms: {},
+      creating: false,
     };
   },
   components: {
     ToggleSwitch,
+    LoadingSpinner,
   },
   props: {
     permissions: {
       type: Object,
       required: true,
     },
+    userPermissions: {
+      type: Object,
+      required: true,
+    },
+  },
+  watch: {
+    // Watch prop and update localPerms when changes
+    permissions: {
+      immediate: true,
+      handler(newVal) {
+        this.localPerms = { ...newVal };
+      }
+    }
   },
   computed: {
     durationInDays() {
@@ -86,32 +101,35 @@ export default {
   },
   methods: {
     closeHovers() {
-      mutations.closeHovers();
+      mutations.closeTopHover();
     },
     async createAPIKey() {
+      this.creating = true;
       try {
         const params = {
           name: this.apiName,
           days: this.durationInDays,
-          minimal: this.minimal,
+          minimal: !this.customizeToken, // minimal = true when NOT customizing
         };
 
-        // Only include permissions for full tokens (not minimal tokens)
-        if (!this.minimal) {
+        // Only include permissions when customizing token
+        if (this.customizeToken) {
           // Filter to get keys of permissions set to true and join them as a comma-separated string
-          const permissionsString = Object.keys(this.permissions)
-            .filter((key) => this.permissions[key])
+          const permissionsString = Object.keys(this.localPerms)
+            .filter((key) => this.localPerms[key])
             .join(",");
           params.permissions = permissionsString;
         }
 
-        await usersApi.createApiKey(params);
+        await authApi.createApiKey(params);
         // Emit event to refresh API keys list
         eventBus.emit('apiKeysChanged');
         notify.showSuccessToast(this.$t("api.createKeySuccess"));
-        mutations.closeHovers();
+        mutations.closeTopHover();
       } catch (error) {
-        notify.showError($t("api.createKeyFailed"));
+        notify.showError(this.$t("api.createKeyFailed"));
+      } finally {
+        this.creating = false;
       }
     },
   },
@@ -130,5 +148,25 @@ export default {
   font-style: italic;
   color: #666;
   margin-top: 0.5em;
+}
+
+.loading-content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding-top: 2em;
+}
+
+.loading-text {
+  padding: 1em;
+  margin: 0;
+  font-size: 1em;
+  font-weight: 500;
+}
+
+.card-content {
+  position: relative;
 }
 </style>

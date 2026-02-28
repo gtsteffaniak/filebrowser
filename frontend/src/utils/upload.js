@@ -1,5 +1,5 @@
 import { reactive } from "vue";
-import { filesApi, publicApi } from "@/api";
+import { resourcesApi } from "@/api";
 import { state,mutations } from "@/store";
 import { getters } from "@/store/getters";
 
@@ -57,9 +57,9 @@ class UploadManager {
               try {
                 const testPath = `${basePath}${dirName}`;
                 if (getters.isShare()) {
-                  await publicApi.post(state.shareInfo?.hash, testPath, new Blob([]), false, undefined, {}, true);
+                  await resourcesApi.postPublic(state.shareInfo?.hash, testPath, new Blob([]), false, undefined, {}, true);
                 } else {
-                  await filesApi.post(state.req?.source, testPath, new Blob([]), false, undefined, {}, true);
+                  await resourcesApi.post(state.req?.source, testPath, new Blob([]), false, undefined, {}, true);
                 }
                 // No conflict - directory was created successfully
                 // Mark it so we can skip it later in the queue
@@ -261,9 +261,9 @@ class UploadManager {
 
     try {
       if (getters.isShare()) {
-        await publicApi.post(state.shareInfo?.hash, upload.path, new Blob([]), upload.overwrite, undefined, {}, true);
+        await resourcesApi.postPublic(state.shareInfo?.hash, upload.path, new Blob([]), upload.overwrite, undefined, {}, true);
       } else {
-        await filesApi.post(upload.source, upload.path, new Blob([]), upload.overwrite, undefined, {}, true);
+        await resourcesApi.post(upload.source, upload.path, new Blob([]), upload.overwrite, undefined, {}, true);
       }
 
       upload.status = "completed";
@@ -301,11 +301,11 @@ class UploadManager {
       try {
         let promise;
         if (getters.isShare()) {
-          promise = publicApi.post(state.shareInfo?.hash, upload.path, upload.file, upload.overwrite, progress, {
+          promise = resourcesApi.postPublic(state.shareInfo?.hash, upload.path, upload.file, upload.overwrite, progress, {
             "X-File-Total-Size": upload.size,
           });
         } else {
-          promise = filesApi.post(upload.source, upload.path, upload.file, upload.overwrite, progress, {
+          promise = resourcesApi.post(upload.source, upload.path, upload.file, upload.overwrite, progress, {
             "X-File-Total-Size": upload.size,
           });
         }
@@ -354,7 +354,7 @@ class UploadManager {
       try {
         let promise;
         if (getters.isShare()) {
-          promise = publicApi.post(
+          promise = resourcesApi.postPublic(
             state.shareInfo?.hash,
             upload.path,
             chunk,
@@ -366,7 +366,7 @@ class UploadManager {
             }
           );
         } else {
-          promise = filesApi.post(
+          promise = resourcesApi.post(
             upload.source,
             upload.path,
             chunk,

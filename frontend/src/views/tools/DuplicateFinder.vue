@@ -1,6 +1,6 @@
 <template>
   <div class="duplicate-finder">
-    <div class="card duplicate-finder-config">
+    <div class="card duplicate-finder-config padding-normal">
       <div class="card-content">
         <h3>{{ $t('general.source') }}</h3>
         <select v-model="selectedSource" class="input">
@@ -22,7 +22,7 @@
       </div>
     </div>
 
-    <div class="card duplicate-finder-results">
+    <div class="card duplicate-finder-results padding-normal">
       <div v-if="error" class="error-message">
         {{ error }}
       </div>
@@ -107,8 +107,7 @@
 </template>
 
 <script>
-import { findDuplicates } from "@/api/search";
-import { filesApi } from "@/api";
+import { toolsApi, resourcesApi } from "@/api";
 import { state, mutations } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { eventBus } from "@/store/eventBus";
@@ -220,7 +219,7 @@ export default {
       if (data && data.source !== undefined) {
         this.selectedSource = data.source;
       }
-      mutations.closeHovers();
+      mutations.closeTopHover();
     },
     handleItemsDeleted(data) {
       // Update local state when items are deleted from the delete prompt
@@ -258,7 +257,7 @@ export default {
       try {
         // API now expects minSizeMb directly (in megabytes)
         // Always use false for checksums due to performance issues
-        const result = await findDuplicates(
+        const result = await toolsApi.duplicateFinder(
           this.searchPath,
           this.selectedSource,
           this.minSizeValue,
@@ -438,7 +437,7 @@ export default {
               const file = group.files[fileIndex];
               const fullPath = this.getFullPath(file.path);
               const previewUrl = this.shouldHavePreview(file)
-                ? filesApi.getPreviewURL(this.selectedSource, fullPath, file.modified)
+                ? resourcesApi.getPreviewURL(this.selectedSource, fullPath, file.modified)
                 : null;
               items.push({
                 source: this.selectedSource,
@@ -491,7 +490,7 @@ export default {
       }
 
       try {
-        const response = await filesApi.bulkDelete(itemsToDelete);
+        const response = await resourcesApi.bulkDelete(itemsToDelete);
         
         // Process succeeded items
         if (response.succeeded && response.succeeded.length > 0) {
@@ -526,9 +525,10 @@ export default {
 
 <style scoped>
 .duplicate-finder {
-  padding: 2rem;
-  max-width: 100%;
-  margin: 0 auto;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 1em;
 }
 
 .duplicate-finder-results {
@@ -648,7 +648,7 @@ export default {
 
 .group-files .listing-item {
   width: 100%;
-  padding: 0.25em;
+  margin: 0.25em;
   cursor: pointer;
 }
 

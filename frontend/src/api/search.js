@@ -25,7 +25,7 @@ export default async function search(base, sources, query, largest = false) {
       params.largest = "true";
     }
 
-    const apiPath = getApiPath("api/search", params);
+    const apiPath = getApiPath("tools/search", params);
     const res = await fetchURL(apiPath);
     let data = await res.json();
 
@@ -51,7 +51,7 @@ export async function findDuplicates(base, source, minSizeMb, useChecksum = fals
       params.useChecksum = "true";
     }
 
-    const apiPath = getApiPath("api/duplicates", params);
+    const apiPath = getApiPath("tools/duplicateFinder", params);
     const res = await fetchURL(apiPath);
     const data = await res.json();
 

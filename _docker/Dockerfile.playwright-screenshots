@@ -1,0 +1,15 @@
+FROM ghcr.io/gtsteffaniak/playwright-base:chromium
+WORKDIR /app
+
+WORKDIR /app/frontend
+COPY [ "./frontend/", "./" ]
+
+WORKDIR /app/backend/
+COPY [ "./backend/filebrowser*", "./"]
+COPY [ "./_docker/src/screenshots/backend/*", "./"]
+
+RUN mkdir -p ./http/dist
+COPY [ "./backend/http/embed/", "./http/dist/"]
+
+ENV FILEBROWSER_PLAYWRIGHT_TEST=true
+RUN ./filebrowser & sleep 2 && cd ../frontend && npx playwright test --project dark-screenshots

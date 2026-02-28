@@ -26,8 +26,8 @@ type Store interface {
 	Save(user *User, changePass bool, disableScopeChange bool) error
 	Delete(id interface{}) error
 	LastUpdate(id uint) int64
-	AddApiKey(username uint, name string, key AuthToken) error
-	DeleteApiKey(username uint, name string) error
+	AddApiToken(userID uint, name string, tokenString string, metadata AuthToken) error
+	DeleteApiToken(userID uint, name string) error
 }
 
 // crudBackend implements crud.CrudBackend[User] for users storage.
@@ -114,17 +114,18 @@ func (s *Storage) Update(user *User, adminIActor bool, fields ...string) error {
 	return nil
 }
 
-func (s *Storage) AddApiKey(userID uint, name string, key AuthToken) error {
+func (s *Storage) AddApiToken(userID uint, name string, tokenString string, metadata AuthToken) error {
 	user, err := s.Get(userID)
 	if err != nil {
 		return err
 	}
-	// Initialize the ApiKeys map if it is nil
-	if user.ApiKeys == nil {
-		user.ApiKeys = make(map[string]AuthToken)
+	// Initialize the TokenHashes map if it is nil
+	if user.Tokens == nil {
+		user.Tokens = make(map[string]AuthToken)
 	}
-	user.ApiKeys[name] = key
-	err = s.Update(user, true, "ApiKeys")
+	metadata.Token = tokenString
+	user.Tokens[name] = metadata
+	err = s.Update(user, true, "Tokens")
 	if err != nil {
 		return err
 	}
@@ -132,17 +133,17 @@ func (s *Storage) AddApiKey(userID uint, name string, key AuthToken) error {
 	return nil
 }
 
-func (s *Storage) DeleteApiKey(userID uint, name string) error {
+func (s *Storage) DeleteApiToken(userID uint, name string) error {
 	user, err := s.Get(userID)
 	if err != nil {
 		return err
 	}
-	// Initialize the ApiKeys map if it is nil
-	if user.ApiKeys == nil {
-		user.ApiKeys = make(map[string]AuthToken)
+	// Initialize the Tokens map if it is nil
+	if user.Tokens == nil {
+		user.Tokens = make(map[string]AuthToken)
 	}
-	delete(user.ApiKeys, name)
-	err = s.Update(user, true, "ApiKeys")
+	delete(user.Tokens, name)
+	err = s.Update(user, true, "Tokens")
 	if err != nil {
 		return err
 	}

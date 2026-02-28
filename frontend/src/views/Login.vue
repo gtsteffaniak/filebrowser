@@ -48,7 +48,7 @@
 
             <div v-if="globalVars.recaptcha" id="globalVars.recaptcha"></div>
             <input class="button button--block" type="submit"
-              :value="createMode ? $t('general.signup') : $t('general.login')" />
+              :value="createMode ? $t('general.signup') : getLoginButtonValue()" />
             <p @click="toggleMode" v-if="signup" aria-label="sign up toggle">
               {{ createMode ? $t("login.loginInstead") : $t("login.createAnAccount") }}
             </p>
@@ -196,7 +196,7 @@
 import router from "@/router";
 import { mutations, state, getters } from "@/store";
 import Prompts from "@/components/prompts/Prompts.vue";
-import { usersApi } from "@/api";
+import { authApi } from "@/api";
 import { initAuth } from "@/utils/auth";
 import { removeLeadingSlash } from "@/utils/url";
 import { globalVars } from "@/utils/constants";
@@ -260,6 +260,12 @@ export default {
   methods: {
     getLoginButtonText() {
       return globalVars.oidcLoginButtonText || "OpenID Connect";
+    },
+    getLoginButtonValue() {
+      if (globalVars.loginButtonText) {
+        return globalVars.loginButtonText;
+      }
+      return this.$t("general.login");
     },
     beforeEnter(el) {
       el.style.height = '0';
@@ -330,9 +336,9 @@ export default {
       }
       try {
         if (this.createMode) {
-          await usersApi.signupLogin(this.username, this.password);
+          await authApi.signup(this.username, this.password);
         }
-        await usersApi.login(this.username, this.password, captcha);
+        await authApi.login(this.username, this.password, captcha);
         await initAuth();
         router.push({ path: redirect });
       } catch (e) {
@@ -341,6 +347,7 @@ export default {
         if (e.message.includes("OTP authentication is enforced")) {
           mutations.showHover({
             name: "totp",
+            pinned: true,
             props: {
               username: this.username,
               password: this.password,
@@ -352,6 +359,7 @@ export default {
         if (e.message.includes("OTP is enforced, but user is not yet configured")) {
           mutations.showHover({
             name: "totp",
+            pinned: true,
             props: {
               username: this.username,
               password: this.password,
@@ -363,6 +371,7 @@ export default {
         } else if (e.message.includes("OTP code is required for user")) {
           mutations.showHover({
             name: "totp",
+            pinned: true,
             props: {
               username: this.username,
               password: this.password,

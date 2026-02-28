@@ -17,21 +17,18 @@
   color:white
 }
 
-#search.active.dark-mode #search-input {
-  border-color: white;
-}
 /* Search input */
-.dark-mode #search #search-input {
+.dark-mode #search .search-input-container {
   background: var(--surfaceSecondary);
   border-color: var(--surfaceSecondary);
 }
 
-.dark-mode #search #search-input input::placeholder {
+.dark-mode #search .search-input-container input::placeholder {
   color: var(--textSecondary);
 }
 
 /* Active Search input */
-.dark-mode #search.active #search-input {
+.dark-mode #search.active .search-input-container {
   background: var(--surfacePrimary);
   border-color: white;
 }
@@ -95,13 +92,7 @@
 
 /* Card */
 .dark-mode .card {
-  background: var(--surfacePrimary);
   color: var(--textPrimary);
-}
-
-/* Dashboard navigation */
-.dark-mode .dashboard #nav ul li {
-  color: var(--textSecondary);
 }
 
 #search.active.dark-mode #result {
@@ -111,13 +102,6 @@
 .dark-mode #result-list {
   background-color: var(--surfacePrimary);
   color:white;
-}
-
-/* Card, Dashboard navigation, and label */
-.dark-mode .card h3,
-.dark-mode .dashboard #nav,
-.dark-mode .dashboard p label {
-  color: var(--textPrimary);
 }
 
 /* Input hover and focus */
@@ -134,16 +118,6 @@
 /* Green input */
 .dark-mode .input--green {
   background: #147A41;
-}
-
-/* Collapsible and label */
-.dark-mode .dashboard #nav .wrapper,
-.dark-mode .collapsible {
-  border-color: var(--divider);
-}
-
-.dark-mode .collapsible > label * {
-  color: var(--textPrimary);
 }
 
 /* Table header */

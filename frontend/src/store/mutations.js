@@ -7,7 +7,7 @@ import { notify } from "@/notify";
 import { sortedItems } from "@/utils/sort.js";
 import { url } from "@/utils";
 import { getTypeInfo } from "@/utils/mimetype";
-import { filesApi, publicApi } from "@/api";
+import { resourcesApi } from "@/api";
 
 export const mutations = {
   disableEventThemes: () => {
@@ -119,6 +119,7 @@ export const mutations = {
             state.sources.hasSourceInfo = true
           }
           state.sources.info[k].used = source.used || 0;
+          state.sources.info[k].usedAlt = source.usedAlt || 0;
           state.sources.info[k].total = source.total || 0;
           state.sources.info[k].usedPercentage = source.total ? Math.round((source.used / source.total) * 100) : 0;
           state.sources.info[k].status = source.status || "unknown";
@@ -155,6 +156,7 @@ export const mutations = {
         pathPrefix: sources.count == 1 ? "" : encodeURIComponent(source.name),
         used: 0,
         total: 0,
+        usedAlt: 0,
         usedPercentage: 0,
         status: "unknown",
         name: source.name,
@@ -164,14 +166,15 @@ export const mutations = {
         quickScanDurationSeconds: 0,
         fullScanDurationSeconds: 0,
         complexity: 0,
-        scanners: [],
       };
     }
     // Check if user has custom sidebar links with sources
     let targetSource = sources.current;
     if (state.user?.sidebarLinks && state.user.sidebarLinks.length > 0) {
       // Find first source link in user's sidebar links
-      const firstSourceLink = state.user.sidebarLinks.find(link => link.category === 'source' && link.sourceName);
+      const firstSourceLink = state.user.sidebarLinks.find(link =>
+        (link.category === 'source' || link.category === 'source-minimal' || link.category === 'source-alt') && link.sourceName
+      );
       if (firstSourceLink) {
         targetSource = firstSourceLink.sourceName;
       }
@@ -250,72 +253,97 @@ export const mutations = {
     state.upload.isUploading = value;
     emitStateChanged();
   },
-  setUsage: (source,value) => {
-    state.usages[source] = value;
-    emitStateChanged();
-  },
   closeHovers: () => {
-    // Check if uploads are active and we're not already showing the warning
-    const hasActiveUploads = state.upload.isUploading;
-    const hasUploadPrompt = state.prompts.some(p => p.name === "upload");
-    const hasWarningPrompt = state.prompts.some(p => p.name === "CloseWithActiveUploads");
-
-    if (hasActiveUploads && hasUploadPrompt && !hasWarningPrompt) {
-      // Show warning prompt instead of closing
-      mutations.showHover({
-        name: "CloseWithActiveUploads",
-        confirm: () => {
-          // User confirmed to close anyway - force close all hovers
-          state.prompts = [];
-          if (!state.stickySidebar) {
-            state.showSidebar = false;
-          }
-          emitStateChanged();
-        },
-        cancel: () => {
-          // User cancelled - just close the warning prompt
-          mutations.closeTopHover();
-        },
-      });
-      return;
-    }
-    // Normal close behavior
-    state.prompts = [];
-    if (!state.stickySidebar) {
+    // Define which hovers should be closed (lightweight/ephemeral hovers)
+    const closeableHovers = ['search', 'ContextMenu', 'OverflowMenu'];
+    
+    // Close only specific lightweight hovers (search, ContextMenu, OverflowMenu)
+    state.prompts = state.prompts.filter(p => !closeableHovers.includes(p.name));
+    
+    // Only hide sidebar if no prompts remain
+    if (state.prompts.length === 0 && !state.stickySidebar) {
       state.showSidebar = false;
     }
     mutations.hideTooltip(true)
   },
   closeTopHover: () => {
-    state.prompts.pop();
     if (state.prompts.length === 0) {
-      if (!state.stickySidebar) {
-        state.showSidebar = false;
-      }
+      return;
     }
-    mutations.hideTooltip(true)
+    mutations.closeHovers();
+    state.prompts.pop();
+    if (state.prompts.length === 0 && !state.stickySidebar) {
+      state.showSidebar = false;
+    }
+    mutations.hideTooltip(true);
   },
   showHover: (value) => {
-    if (typeof value === "object") {
-      state.prompts.push({
-        name: value?.name,
-        confirm: value?.confirm,
-        action: value?.action,
-        props: value?.props,
-        discard: value?.discard,
-        cancel: value?.cancel,
-      });
-    } else {
-      state.prompts.push({
-        name: value,
-        confirm: value?.confirm,
-        action: value?.action,
-        props: value?.props,
-        discard: value?.discard,
-        cancel: value?.cancel,
-      });
+    state.promptIdCounter += 1;
+    const id = state.promptIdCounter;
+    // Set parentId to the current topmost prompt, unless the prompt is pinned.
+    let parentId = value?.parentId;
+    if (!parentId && !value?.pinned) {
+      const topPrompt = state.prompts[state.prompts.length - 1];
+      if (topPrompt) {
+        parentId = topPrompt.id;
+      }
     }
-    mutations.hideTooltip(true)
+    const entry = typeof value === "object" ? {
+      id,
+      name: value?.name,
+      parentId,
+      pinned: value?.pinned || false,
+      confirm: value?.confirm,
+      action: value?.action,
+      props: value?.props || {},
+      discard: value?.discard,
+      cancel: value?.cancel,
+    } : {
+      id,
+      name: value,
+      parentId,
+      pinned: false,
+      confirm: value?.confirm,
+      action: value?.action,
+      props: value?.props || {},
+      discard: value?.discard,
+      cancel: value?.cancel,
+    };
+    const pinnedCount = state.prompts.filter(p => p.pinned).length;
+    if (entry.pinned) {
+      state.prompts.push(entry);
+    } else {
+      // Non‑pinned prompts go just before the first pinned prompt
+      const insertIndex = state.prompts.length - pinnedCount;
+      state.prompts.splice(insertIndex, 0, entry);
+    }
+    mutations.hideTooltip(true);
+  },
+  closePromptById: (id) => {
+    const idx = state.prompts.findIndex((p) => p.id === id);
+    if (idx === -1) {
+      return;
+    }
+    state.prompts.splice(idx, 1);
+    if (state.prompts.length === 0 && !state.stickySidebar) {
+      state.showSidebar = false;
+    }
+    mutations.hideTooltip(true);
+  },
+  updatePromptTitle: (id, title) => {
+    const prompt = state.prompts.find((p) => p.id === id);
+    if (!prompt) {
+      return;
+    }
+    prompt.props.title = title;
+    emitStateChanged();
+  },
+  closeContextMenus: () => {
+    state.prompts = state.prompts.filter((p) => p.name !== "ContextMenu");
+    if (state.prompts.length === 0 && !state.stickySidebar) {
+      state.showSidebar = false;
+    }
+    mutations.hideTooltip(true);
   },
   setLoading: (loadType, status) => {
     if (status === false) {
@@ -752,7 +780,7 @@ export const mutations = {
   },
   getPrefetchUrl: (item) => {
     if (getters.isShare()) {
-      return publicApi.getDownloadURL(
+      return resourcesApi.getDownloadURLPublic(
         {
           path: item.path,
           hash: state.shareInfo.hash,
@@ -762,7 +790,7 @@ export const mutations = {
         true,
       );
     }
-    return filesApi.getDownloadURL(item.source, item.path, true);
+    return resourcesApi.getDownloadURL(item.source, item.path, true);
   },
   setNavigationShow: (show) => {
     if (state.navigation.show === show) {
@@ -873,6 +901,13 @@ export const mutations = {
       return;
     }
     state.sidebar.isResizing = value;
+    emitStateChanged();
+  },
+  setSidebarMode(value) {
+    const newMode = value === 'navigation' ? 'navigation' : 'links';
+    if (newMode === state.sidebar.mode) return;
+    state.sidebar.mode = newMode;
+    localStorage.setItem('sidebarMode', newMode);
     emitStateChanged();
   },
 };

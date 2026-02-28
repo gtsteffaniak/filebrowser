@@ -1,6 +1,6 @@
 <template>
   <div >
-    <div v-show="showOverlay" @contextmenu.prevent="onOverlayRightClick" @click="resetPrompts" class="overlay"></div>
+    <div v-show="showOverlay" @contextmenu.prevent="onOverlayRightClick" @click="resetItems" class="overlay"></div>
     <div v-if="progress" class="progress">
       <div v-bind:style="{ width: this.progress + '%' }"></div>
     </div>
@@ -18,10 +18,11 @@
     </Scrollbar>
     <prompts :class="{ 'dark-mode': isDarkMode }"></prompts>
   </div>
+  <search v-if="showSearch" />
   <Notifications />
   <Toast :toasts="toasts" />
   <StatusBar :class="{ moveWithSidebar: moveWithSidebar.shouldMove }" />
-  <ContextMenu v-if="showContextMenu"></ContextMenu>
+  <ContextMenu v-if="showContextMenu" v-bind="contextMenuProps"></ContextMenu>
   <Tooltip />
   <NextPrevious />
   <PopupPreview v-if="popupEnabled" />
@@ -40,11 +41,12 @@ import Tooltip from "@/components/Tooltip.vue";
 import NextPrevious from "@/components/files/nextPrevious.vue";
 import PopupPreview from "@/components/files/PopupPreview.vue";
 import Shelf from "@/components/Shelf.vue";
-import { filesApi } from "@/api";
+import { settingsApi } from "@/api";
 import { state, getters, mutations } from "@/store";
 import { events, notify } from "@/notify";
 import { generateRandomCode } from "@/utils/auth";
 import { globalVars } from "@/utils/constants";
+import Search from "@/components/Search.vue";
 
 export default {
   name: "layout",
@@ -61,6 +63,7 @@ export default {
     NextPrevious,
     PopupPreview,
     Shelf,
+    Search,
   },
   data() {
     return {
@@ -89,6 +92,9 @@ export default {
     this.initialize();
   },
   computed: {
+    showSearch() {
+      return getters.isLoggedIn() && getters.currentView() === "listingView" && !getters.isShare();
+    },
     isOnlyOffice() {
       return getters.currentView() === "onlyOfficeEditor";
     },
@@ -139,6 +145,13 @@ export default {
       // for now lets disable for tools view
       return getters.currentView() != "tools"
     },
+    contextMenuProps() {
+      const prompt = getters.currentPrompt();
+      if (prompt && prompt.name === "ContextMenu") {
+        return prompt.props || {};
+      }
+      return {};
+    },
     popupEnabled() {
       if (!state.user || state.user?.username == "") {
         return false;
@@ -161,7 +174,7 @@ export default {
       mutations.setMultiple(false);
       const currentPrompt = getters.currentPromptName();
       if (currentPrompt !== "success" && currentPrompt !== "generic") {
-        mutations.closeHovers();
+        mutations.closeTopHover();
       }
       if (window.location.hash == "" && currentView == "listingView" || currentView == "share") {
         const element = document.getElementById("main");
@@ -172,7 +185,7 @@ export default {
     },
     async initialize() {
       if (getters.isLoggedIn()) {
-        const sourceinfo = await filesApi.sources();
+        const sourceinfo = await settingsApi.sources();
         mutations.updateSourceInfo(sourceinfo);
         if (state.user.permissions.realtime) {
           events.startSSE();
@@ -184,16 +197,18 @@ export default {
         if (state.user.showFirstLogin && !globalVars.noAuth) {
           mutations.showHover({
             name: "generic",
+            pinned: true,
             props: {
               title: this.$t("prompts.firstLoadTitle"),
               body: this.$t("prompts.firstLoadBody"),
               buttons: [
                 {
-                  label: this.$t("general.close"),
+                  label: this.$t("general.acknowledge"),
                   action: () => {
                     mutations.updateCurrentUser({
                       showFirstLogin: false,
                     });
+                    mutations.closeTopHover();
                   },
                 },
               ],
@@ -205,7 +220,7 @@ export default {
     updateIsMobile() {
       mutations.setMobile();
     },
-    resetPrompts() {
+    resetItems() {
       mutations.closeSidebar();
       mutations.closeHovers();
       mutations.setSearch(false);

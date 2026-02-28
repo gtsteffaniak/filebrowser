@@ -36,6 +36,7 @@
     "plyr": "^3.8.4",
     "qrcode.vue": "^3.4.1",
     "srt-support-for-html5-videos": "^2.6.11",
+    "three": "^0.182.0",
     "vue": "^3.4.21",
     "vue-i18n": "^9.10.2",
     "vue-lazyload": "^3.0.0",

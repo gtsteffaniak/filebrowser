@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
@@ -38,6 +39,9 @@ func validateUserInfo(newDB bool) {
 			updateUser = true
 		}
 		if updateSidebarLinks(user) {
+			updateUser = true
+		}
+		if updateTokens(user) {
 			updateUser = true
 		}
 		adminUser := settings.Config.Auth.AdminUsername
@@ -165,7 +169,7 @@ func updatePermissions(user *users.User) bool {
 		user.Permissions.Delete = true
 		updateUser = true
 	}
-	user.Version = 1
+	user.Version = 2
 	if updateUser {
 		createBackup = true
 	}
@@ -197,7 +201,7 @@ func updateSidebarLinks(user *users.User) bool {
 	validSourceLinksCount := 0
 
 	for _, link := range user.SidebarLinks {
-		if link.Category == "source" {
+		if strings.HasPrefix(link.Category, "source") {
 			sourceLinksCount++
 			// Check if this source still exists
 			if link.SourceName != "" {
@@ -220,7 +224,7 @@ func updateSidebarLinks(user *users.User) bool {
 		// Remove all existing source links
 		newLinks := []users.SidebarLink{}
 		for _, link := range user.SidebarLinks {
-			if link.Category != "source" {
+			if !strings.HasPrefix(link.Category, "source") {
 				newLinks = append(newLinks, link)
 			}
 		}
@@ -245,4 +249,19 @@ func updateSidebarLinks(user *users.User) bool {
 
 	// User has at least one valid source link, no update needed
 	return false
+}
+
+func updateTokens(user *users.User) bool {
+	if user.Version >= 2 {
+		return false
+	}
+	if user.ApiKeys != nil {
+		user.Tokens = make(map[string]users.AuthToken)
+		for name, token := range user.ApiKeys {
+			token.Token = token.Key
+			user.Tokens[name] = token
+		}
+	}
+	user.Version = 2
+	return true
 }

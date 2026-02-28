@@ -5,13 +5,16 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
 
+	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 type UserRequest struct {
@@ -87,6 +90,7 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 func prepForFrontend(u *users.User) {
 	u.Password = ""
 	u.ApiKeys = nil
+	u.Tokens = nil
 	u.OtpEnabled = u.TOTPSecret != ""
 	u.TOTPSecret = ""
 	u.TOTPNonce = ""
@@ -306,9 +310,28 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		req.User.TOTPNonce = ""
 	}
 
+	// Get the old user to check if permissions changed
+	oldUser, err := store.Users.Get(req.User.ID)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("failed to get user: %w", err)
+	}
+
 	err = store.Users.Update(&req.User, d.user.Permissions.Admin, req.Which...)
 	if err != nil {
 		return http.StatusBadRequest, err
+	}
+
+	// Revoke all API keys if API permission was removed
+	if slices.Contains(req.Which, "Permissions") && oldUser.Permissions.Api && !req.User.Permissions.Api {
+		for _, tokenInfo := range oldUser.Tokens {
+			if err := auth.RevokeApiToken(store.Access, tokenInfo.Token); err != nil {
+				logger.Errorf("Failed to revoke API key: %v", err)
+			}
+			// Also remove from HashedTokens
+			if err := store.Access.RemoveApiToken(tokenInfo.Token); err != nil {
+				logger.Errorf("Failed to remove api token: %v", err)
+			}
+		}
 	}
 
 	return http.StatusNoContent, nil

@@ -1,10 +1,6 @@
 <template>
-  <div class="card-title">
-    <h2>{{ $t('api.title') }}</h2> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-  </div>
-
   <div class="card-content api-content">
-    <!-- API Key Section -->
+    <!-- API Token Section -->
     <div class="api-section">
       <button
         class="action copy-clipboard api-key-button"
@@ -15,10 +11,9 @@
         <span class="api-key-name">{{ name }}</span>
         <i class="material-icons">content_paste</i>
       </button>
-      
       <button
         class="action copy-clipboard api-key-value-button"
-        :data-clipboard-text="info.key"
+        :data-clipboard-text="info.token"
         :aria-label="$t('api.clickToCopyKey')"
         :title="$t('api.clickToCopyKey')"
       >
@@ -32,20 +27,16 @@
       <h3 class="section-title">{{ $t('general.info') }}</h3>
       <div class="info-item">
         <span class="info-label">{{ $t('api.createdAt') }}</span>
-        <span class="info-value">{{ formatTime(info.created) }}</span>
+        <span class="info-value">{{ formatTime(info.issuedAt) }}</span>
       </div>
       <div class="info-item">
         <span class="info-label">{{ $t('api.expiresAt') }}</span>
-        <span class="info-value">{{ formatTime(info.expires) }}</span>
+        <span class="info-value">{{ formatTime(info.expiresAt) }}</span>
       </div>
     </div>
 
     <!-- Token Type or Permissions Section -->
-    <div class="api-section" v-if="info.minimal">
-      <h3 class="section-title">{{ $t('api.tokenType') }}</h3>
-      <div class="info-item">
-        <span class="info-label">{{ $t('api.minimalDescription') }}</span>
-      </div>
+    <div class="api-section" v-if="isMinimalToken">
       <p class="minimal-info">{{ $t('api.minimalInfo') }}</p>
     </div>
 
@@ -66,15 +57,7 @@
     </div>
   </div>
 
-  <div class="card-action">
-    <button
-      class="button button--flat button--grey"
-      @click="closeHovers"
-      :aria-label="$t('general.close')"
-      :title="$t('general.close')"
-    >
-      {{ $t('general.close') }}
-    </button>
+  <div class="card-actions">
     <button
       class="button button--flat button--red"
       @click="deleteApi"
@@ -88,7 +71,7 @@
 <script>
 import { mutations } from "@/store";
 import { notify } from "@/notify";
-import { usersApi } from "@/api";
+import { authApi } from "@/api";
 import { eventBus } from "@/store/eventBus";
 
 export default {
@@ -103,6 +86,12 @@ export default {
       required: true,
     },
   },
+  computed: {
+    isMinimalToken() {
+      // A minimal token has no Permissions object or all permissions are false
+      return !this.info.Permissions || Object.values(this.info.Permissions).every(v => !v);
+    },
+  },
   methods: {
     formatTime(timestamp) {
       return new Date(timestamp * 1000).toLocaleDateString("en-US", {
@@ -112,17 +101,17 @@ export default {
       });
     },
     closeHovers() {
-      mutations.closeHovers();
+      mutations.closeTopHover();
     },
     async deleteApi() {
       // Dummy delete function, to be filled in later
       try {
-        usersApi.deleteApiKey({ name: this.name });
-        // Emit event to refresh API keys list
+        authApi.deleteApiKey({ name: this.name });
+        // Emit event to refresh API tokens list
         setTimeout(() => {
           eventBus.emit('apiKeysChanged');
         }, 10);
-        mutations.closeHovers();
+        mutations.closeTopHover();
         notify.showSuccessToast(this.$t("api.apiKeyDeleted"));
       } catch (error) {
         console.error(error);

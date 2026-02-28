@@ -3,90 +3,52 @@ package http
 import (
 	"fmt"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
 
-	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
-	"github.com/gtsteffaniak/go-cache/cache"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-var (
-	ApiTokenUserCache = cache.NewCache[uint](24 * time.Hour) // API token to user ID mapping gets cached for 24 hours
-)
-
-// getUserFromApiToken finds the user ID associated with a given API token
-func getUserFromApiToken(token string) (uint, error) {
-	// Check cache first
-	if cached, ok := ApiTokenUserCache.Get(token); ok {
-		return cached, nil
-	}
-
-	// Get all users
-	allUsers, err := store.Users.Gets()
-	if err != nil {
-		return 0, fmt.Errorf("failed to get all users: %w", err)
-	}
-
-	// Iterate through all users and their API keys
-	for _, user := range allUsers {
-		if user.ApiKeys == nil {
-			continue
-		}
-		for _, apiKey := range user.ApiKeys {
-			if apiKey.Key == token {
-				// Cache the result
-				ApiTokenUserCache.Set(token, user.ID)
-				return user.ID, nil
-			}
-		}
-	}
-
-	// Token not found
-	return 0, fmt.Errorf("token not found")
-}
-
-// createApiKeyHandler creates an API key for the user.
-// @Summary Create API key
-// @Description Create an API key with specified name, duration, and permissions.
-// @Tags API Keys
+// createApiTokenHandler creates an API token for the user.
+// @Summary Create API Token
+// @Description Create an API token with specified name, duration, and permissions.
+// @Tags Auth
 // @Accept json
 // @Produce json
-// @Param name query string true "Name of the API key"
-// @Param days query string true "Duration of the API key in days"
-// @Param permissions query string true "Permissions for the API key (comma-separated)"
-// @Success 200 {object} HttpResponse "Token created successfully, response contains json object with token key"
+// @Param name query string true "Name of the API token"
+// @Param days query string true "Duration of the API token in days"
+// @Param permissions query string true "Permissions for the API token (comma-separated)"
+// @Success 200 {object} HttpResponse "Token created successfully, response contains json object with token"
 // @Failure 400 {object} map[string]string "Bad request"
 // @Failure 404 {object} map[string]string "Not found"
 // @Failure 409 {object} map[string]string "Conflict"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /api/auth/token [put]
-func createApiKeyHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+// @Router /api/auth/token [post]
+func createApiTokenHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	name := r.URL.Query().Get("name")
 	durationStr := r.URL.Query().Get("days")
 	permissionsStr := r.URL.Query().Get("permissions")
-	minimal := r.URL.Query().Get("minimal") == "true"
+	minimal := permissionsStr == ""
 
 	if !d.user.Permissions.Api {
-		return http.StatusForbidden, fmt.Errorf("user does not have permission to create api keys")
+		return http.StatusForbidden, fmt.Errorf("user does not have permission to create api tokens")
 	}
 
-	if name == "" {
-		return http.StatusBadRequest, fmt.Errorf("api name must be valid")
+	if name == "" || strings.HasPrefix(name, "WEB_TOKEN") {
+		return http.StatusBadRequest, fmt.Errorf("api token name must be valid")
 	}
 	if durationStr == "" {
-		return http.StatusBadRequest, fmt.Errorf("api duration must be valid")
+		return http.StatusBadRequest, fmt.Errorf("api token duration must be valid")
 	}
 
 	// For full tokens (minimal=false), permissions are required in the claim
 	// For minimal tokens (minimal=true), permissions are not in the token
 	var permissions users.Permissions
 	if !minimal {
-		if permissionsStr == "" {
-			return http.StatusBadRequest, fmt.Errorf("api permissions must be valid for full tokens")
-		}
 		// Parse permissions from the query parameter
 		permissions = users.Permissions{
 			Api:      strings.Contains(permissionsStr, "api") && d.user.Permissions.Api,
@@ -108,156 +70,144 @@ func createApiKeyHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 
 	// Here we assume the duration is in seconds; convert to time.Duration
 	duration := time.Duration(durationInt) * time.Hour * 24
-	// get request body like:
-	token, err := makeSignedTokenAPI(d.user, name, duration, permissions, minimal)
+	tokenString, authToken, err := auth.MakeSignedTokenAPI(d.user, name, duration, permissions, minimal)
 	if err != nil {
 		if strings.Contains(err.Error(), "key already exists with same name") {
 			return http.StatusConflict, err
 		}
 		return http.StatusInternalServerError, err
 	}
+
+	// Store API token metadata in user's Tokens map
+	err = store.Users.AddApiToken(d.user.ID, name, tokenString, authToken)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	// Store token hash → user ID mapping in access storage for fast lookups
+	err = store.Access.AddApiToken(tokenString, d.user.ID)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
 	response := HttpResponse{
 		Message: "here is your token!",
-		Token:   token.Key,
+		Token:   tokenString,
 	}
 	return renderJSON(w, r, response)
 }
 
-// deleteApiKeyHandler deletes an API key for the user.
-// @Summary Delete API key
-// @Description Delete an API key with specified name.
-// @Tags API Keys
+// deleteApiTokenHandler deletes an API token for the user.
+// @Summary Delete API token
+// @Description Delete an API token with specified name.
+// @Tags Auth
 // @Accept json
 // @Produce json
-// @Param name query string true "Name of the API key to delete"
-// @Success 200 {object} HttpResponse "API key deleted successfully"
+// @Param name query string true "Name of the API token to delete"
+// @Success 200 {object} HttpResponse "API token deleted successfully"
 // @Failure 404 {object} map[string]string "Not found"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/auth/token [delete]
-func deleteApiKeyHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+func deleteApiTokenHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	name := r.URL.Query().Get("name")
 	if !d.user.Permissions.Api {
-		return http.StatusForbidden, fmt.Errorf("user does not have permission to delete api keys")
+		return http.StatusForbidden, fmt.Errorf("user does not have permission to delete api tokens")
 	}
 
-	keyInfo, ok := d.user.ApiKeys[name]
+	tokenInfo, ok := d.user.Tokens[name]
 	if !ok {
-		return http.StatusNotFound, fmt.Errorf("api key not found")
+		return http.StatusNotFound, fmt.Errorf("api token not found")
 	}
+
 	// Perform the user update
-	err := store.Users.DeleteApiKey(d.user.ID, name)
+	err := store.Users.DeleteApiToken(d.user.ID, name)
 	if err != nil {
 		return http.StatusNotFound, err
 	}
 
-	auth.RevokeAPIKey(keyInfo.Key) // add to blacklist
+	// Revoke the token (adds to RevokedTokens set)
+	if err := auth.RevokeApiToken(store.Access, tokenInfo.Token); err != nil {
+		logger.Errorf("Failed to revoke token: %v", err)
+	}
+	if err := store.Access.RemoveApiToken(tokenInfo.Token); err != nil {
+		logger.Errorf("Failed to remove api token: %v", err)
+	}
+
 	response := HttpResponse{
-		Message: "successfully deleted api key from user",
+		Message: "successfully deleted api token from user",
 	}
 	return renderJSON(w, r, response)
 }
 
-type AuthTokenMin struct {
-	Key         string            `json:"key"`
+type AuthTokenFrontend struct {
+	Token       string            `json:"token"`
 	Name        string            `json:"name"`
-	Created     int64             `json:"created"`
-	Expires     int64             `json:"expires"`
+	IssuedAt    int64             `json:"issuedAt"`
+	ExpiresAt   int64             `json:"expiresAt"`
 	Permissions users.Permissions `json:"Permissions,omitempty"`
-	Minimal     bool              `json:"minimal"`
 }
 
-// listApiKeysHandler lists all API keys or retrieves details for a specific key.
-// @Summary List API keys
-// @Description List all API keys or retrieve details for a specific key.
-// @Tags API Keys
+// listApiTokensHandler lists all API tokens or retrieves details for a specific token.
+// @Summary List API tokens
+// @Description List all API tokens or retrieve details for a specific token.
+// @Tags Auth
 // @Accept json
 // @Produce json
-// @Param name query string false "Name of the API to retrieve details"
-// @Success 200 {object} AuthTokenMin "List of API keys or specific key details"
+// @Success 200 {array} AuthTokenFrontend "List of API tokens"
 // @Failure 404 {object} map[string]string "Not found"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /api/auth/tokens [get]
-func listApiKeysHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	key := r.URL.Query().Get("name")
+// @Router /api/auth/token/list [get]
+func listApiTokensHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if !d.user.Permissions.Api {
-		return http.StatusForbidden, fmt.Errorf("user does not have permission to list api keys")
+		return http.StatusForbidden, fmt.Errorf("user does not have permission to list api tokens")
 	}
-
-	if key != "" {
-		keyInfo, ok := d.user.ApiKeys[key]
-		if !ok {
-			return http.StatusNotFound, fmt.Errorf("api key not found")
-		}
-		// Determine if token is minimal by parsing the JWT claim
-		// For minimal tokens, the JWT claim doesn't have BelongsTo even though the database record does
-		minimal := false
-		if keyInfo.Key != "" {
-			keyFunc := func(token *jwt.Token) (interface{}, error) {
-				return []byte(config.Auth.Key), nil
-			}
-			var claim users.AuthToken
-			token, err := jwt.ParseWithClaims(keyInfo.Key, &claim, keyFunc)
-			if err == nil && token.Valid {
-				// If the parsed claim doesn't have BelongsTo, it's a minimal token
-				minimal = claim.BelongsTo == 0
-			}
-		}
-		modifiedKey := AuthTokenMin{
-			Key:     keyInfo.Key,
-			Name:    key,
-			Created: 0,
-			Expires: 0,
-			Minimal: minimal,
-		}
-		// Safely access IssuedAt and ExpiresAt (they're pointers)
-		if keyInfo.IssuedAt != nil {
-			modifiedKey.Created = keyInfo.IssuedAt.Unix()
-		}
-		if keyInfo.ExpiresAt != nil {
-			modifiedKey.Expires = keyInfo.ExpiresAt.Unix()
-		}
-		// Only include Permissions for full tokens (not minimal tokens)
-		if !minimal {
-			modifiedKey.Permissions = keyInfo.Permissions
-		}
-		return renderJSON(w, r, modifiedKey)
+	if len(d.user.Tokens) == 0 {
+		return http.StatusNotFound, fmt.Errorf("no api tokens found")
 	}
-
-	modifiedList := map[string]AuthTokenMin{}
-	for key, value := range d.user.ApiKeys {
-		// Determine if token is minimal by parsing the JWT claim
-		// For minimal tokens, the JWT claim doesn't have BelongsTo even though the database record does
-		minimal := false
-		if value.Key != "" {
-			keyFunc := func(token *jwt.Token) (interface{}, error) {
-				return []byte(config.Auth.Key), nil
-			}
-			var claim users.AuthToken
-			token, err := jwt.ParseWithClaims(value.Key, &claim, keyFunc)
-			if err == nil && token.Valid {
-				// If the parsed claim doesn't have BelongsTo, it's a minimal token
-				minimal = claim.BelongsTo == 0
-			}
-		}
-		modifiedKey := AuthTokenMin{
-			Key:     value.Key,
-			Created: 0,
-			Expires: 0,
-			Minimal: minimal,
-		}
-		// Safely access IssuedAt and ExpiresAt (they're pointers)
-		if value.IssuedAt != nil {
-			modifiedKey.Created = value.IssuedAt.Unix()
-		}
-		if value.ExpiresAt != nil {
-			modifiedKey.Expires = value.ExpiresAt.Unix()
-		}
-		// Only include Permissions for full tokens (not minimal tokens)
-		if !minimal {
-			modifiedKey.Permissions = value.Permissions
-		}
-		modifiedList[key] = modifiedKey
+	AuthTokensFrontend := make([]AuthTokenFrontend, 0, len(d.user.Tokens))
+	for name, token := range d.user.Tokens {
+		AuthTokensFrontend = append(AuthTokensFrontend, AuthTokenFrontend{
+			Token:       token.Token,
+			Name:        name,
+			IssuedAt:    token.RegisteredClaims.IssuedAt.Unix(),
+			ExpiresAt:   token.RegisteredClaims.ExpiresAt.Unix(),
+			Permissions: token.Permissions,
+		})
 	}
+	
+	sort.Slice(AuthTokensFrontend, func(i, j int) bool {
+		return AuthTokensFrontend[i].Name < AuthTokensFrontend[j].Name
+	})
 
-	return renderJSON(w, r, modifiedList)
+	return renderJSON(w, r, AuthTokensFrontend)
+}
+
+// getApiTokenHandler gets a specific API token.
+// @Summary Get API token
+// @Description Get a specific API token.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param name query string true "Name of the API token to retrieve"
+// @Success 200 {object} AuthTokenFrontend "API token details"
+// @Failure 404 {object} map[string]string "Not found"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/auth/token [get]
+func getApiTokenHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	name := r.URL.Query().Get("name")
+	if !d.user.Permissions.Api {
+		return http.StatusForbidden, fmt.Errorf("user does not have permission to list api tokens")
+	}
+	tokenInfo, ok := d.user.Tokens[name]
+	if !ok {
+		return http.StatusNotFound, fmt.Errorf("api token not found")
+	}
+	AuthTokenFrontendResponse := AuthTokenFrontend{
+		Token:       tokenInfo.Token,
+		Name:        name,
+		IssuedAt:    tokenInfo.IssuedAt,
+		ExpiresAt:   tokenInfo.ExpiresAt,
+		Permissions: tokenInfo.Permissions,
+	}
+	return renderJSON(w, r, AuthTokenFrontendResponse)
 }

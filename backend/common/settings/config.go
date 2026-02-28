@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"slices"
@@ -55,7 +56,7 @@ func Initialize(configFile string) {
 	InitializeUserResolvers() // Initialize user package resolvers after sources are set up
 	setupUrls()
 	setupFrontend(false)
-	setupMedia()
+	setupMedia(false)
 }
 
 func setupServer() {
@@ -280,7 +281,7 @@ func setupFrontend(generate bool) {
 	loadCustomFavicon()
 }
 
-func setupMedia() {
+func setupMedia(generate bool) {
 	// Save user's explicit config before applying defaults
 	userImageConfig := make(map[ImagePreviewType]*bool)
 	for k, v := range Config.Integrations.Media.Convert.ImagePreview {
@@ -314,6 +315,19 @@ func setupMedia() {
 	for k, v := range userVideoConfig {
 		Config.Integrations.Media.Convert.VideoPreview[k] = v
 	}
+
+	// Resolve exiftool path once at startup: validate user path or discover via PATH
+	if Config.Integrations.Media.ExiftoolPath != "" && !generate {
+		if err := exec.Command(Config.Integrations.Media.ExiftoolPath, "-ver").Run(); err != nil {
+			logger.Warningf("exiftool path is invalid or not executable: %q (%v); disabling exiftool", Config.Integrations.Media.ExiftoolPath, err)
+			Config.Integrations.Media.ExiftoolPath = ""
+		}
+	}
+	if Config.Integrations.Media.ExiftoolPath == "" && !generate {
+		if path, err := exec.LookPath("exiftool"); err == nil && path != "" {
+			Config.Integrations.Media.ExiftoolPath = path
+		}
+	}
 }
 
 func setupSources(generate bool) {
@@ -336,11 +350,7 @@ func setupSources(generate bool) {
 			if name == "\\" {
 				name = strings.Split(realPath, ":")[0]
 			}
-			if generate {
-				source.Path = generatorPath // use placeholder path
-			} else {
-				source.Path = realPath // use absolute path
-			}
+			source.Path = realPath // use absolute path
 			if source.Name == "" {
 				_, ok := Config.Server.SourceMap[source.Path]
 				if ok {
@@ -348,6 +358,10 @@ func setupSources(generate bool) {
 				} else {
 					source.Name = name
 				}
+			}
+			if generate {
+				source.Path = generatorPath // use placeholder path
+				source.Name = "Source Name"
 			}
 			modifyExcludeInclude(source)
 			setConditionals(source)
@@ -420,19 +434,33 @@ func setupAuth(generate bool) {
 	if Config.Auth.Methods.ProxyAuth.Enabled {
 		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "proxy")
 	}
-	if Config.Auth.Methods.OidcAuth.Enabled {
-		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "oidc")
-	}
 	if Config.Auth.Methods.NoAuth {
 		logger.Warning("Configured with no authentication, this is not recommended.")
 		Config.Auth.AuthMethods = []string{"disabled"}
 	}
 	if Config.Auth.Methods.OidcAuth.Enabled || generate {
+		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "oidc")
 		err := validateOidcAuth()
 		if err != nil && !generate {
 			logger.Fatalf("Error validating OIDC auth: %v", err)
 		}
 		logger.Info("OIDC Auth configured successfully")
+	}
+	if Config.Auth.Methods.LdapAuth.Enabled || generate {
+		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "ldap")
+		err := ValidateLdapAuth()
+		if err != nil && !generate {
+			logger.Fatalf("Error validating LDAP auth: %v", err)
+		}
+		logger.Info("LDAP Auth configured successfully")
+	}
+	if Config.Auth.Methods.JwtAuth.Enabled || generate {
+		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "jwt")
+		err := ValidateJwtAuth()
+		if err != nil && !generate {
+			logger.Fatalf("Error validating JWT auth: %v", err)
+		}
+		logger.Info("JWT Auth configured successfully")
 	}
 
 	// use password auth as default if no auth methods are set
@@ -622,6 +650,11 @@ func loadEnvConfig() {
 		logger.Info("Using ReCaptcha Secret from FILEBROWSER_RECAPTCHA_SECRET environment variable")
 	}
 
+	ldapUserPassword := os.Getenv("FILEBROWSER_LDAP_USER_PASSWORD")
+	if ldapUserPassword != "" {
+		Config.Auth.Methods.LdapAuth.UserPassword = ldapUserPassword
+		logger.Info("Using LDAP bind password from FILEBROWSER_LDAP_USER_PASSWORD environment variable")
+	}
 }
 
 func setDefaults(generate bool) Settings {
@@ -697,7 +730,6 @@ func setDefaults(generate bool) Settings {
 				Download: boolPtr(true), // defaults to true
 			},
 			Preview: UserDefaultsPreview{
-				HighQuality:        boolPtr(true),
 				Image:              boolPtr(true),
 				Video:              boolPtr(true),
 				MotionVideoPreview: boolPtr(true),

@@ -10,7 +10,7 @@
       ref="contextMenu"
       v-if="showContext"
       :style="centered ? {} : { top: posY + 'px', left: posX + 'px' }"
-      class="button no-select fb-shadow"
+      class="button no-select floating-window"
       :class="{ 'dark-mode': isDarkMode, 'centered': centered }"
       :key="showCreate ? 'create-mode' : 'normal-mode'"
     >
@@ -21,7 +21,7 @@
           @click="toggleShowCreate"
         >
           <i v-if="!showCreate" class="material-icons">add</i>
-          <i v-if="showCreate" class="material-icons">arrow_back</i>
+          <i v-else class="material-icons">arrow_back</i>
         </div>
         <div
           v-if="selectedCount > 0"
@@ -32,12 +32,12 @@
           <span>{{ selectedCount }}</span>
         </div>
       </div>
-      <hr v-if="!isDuplicateFinder" class="divider">
+      <hr v-if="showDivider" class="divider">
       <action
         v-if="showCreateActions"
         icon="create_new_folder"
         :label="$t('files.newFolder')"
-        @action="showHover('newDir')"
+        @action="showNewDirHover"
       />
       <action
         v-if="showCreateActions"
@@ -49,7 +49,7 @@
         v-if="showCreateActions"
         icon="file_upload"
         :label="$t('general.upload')"
-        @action="uploadFunc"
+        @action="showUploadHover"
       />
       <action
         v-if="showInfo"
@@ -63,7 +63,18 @@
         icon="file_download"
         :label="$t('general.download')"
         @action="startDownload"
-        :counter="selectedCount"
+      />
+      <action
+        v-if="showArchive"
+        icon="archive"
+        :label="$t('prompts.archive')"
+        @action="showArchiveHover"
+      />
+      <action
+        v-if="showUnarchive"
+        icon="unarchive"
+        :label="$t('prompts.unarchive')"
+        @action="showUnarchiveHover"
       />
       <action
         v-if="showShareAction"
@@ -81,7 +92,7 @@
         v-if="showCopy"
         icon="content_copy"
         :label="$t('buttons.copyFile')"
-        show="copy"
+        @action="showCopyHover"
       />
       <action
         v-if="showOpenParentFolder"
@@ -99,7 +110,7 @@
         v-if="showMove"
         icon="forward"
         :label="$t('buttons.moveFile')"
-        show="move"
+        @action="showMoveHover"
       />
       <action
         v-if="showSelectAll"
@@ -111,7 +122,7 @@
         v-if="showDelete"
         icon="delete"
         :label="$t('general.delete')"
-        show="delete"
+        @action="showDeleteHover"
       />
       <action
         v-if="showAccess"
@@ -141,7 +152,7 @@
         top: '3em',
         right: '1em',
       }"
-      class="button no-select fb-shadow"
+      class="button no-select floating-window"
       :class="{ 'dark-mode': isDarkMode }"
     >
       <action icon="info" :label="$t('general.info')" @action="showInfoHover"/>
@@ -150,6 +161,7 @@
       <action v-if="isPreview && permissions.modify" icon="mode_edit" :label="$t('general.rename')" @action="showRenameHoverForPreview" />
       <action v-if="showWatch" icon="visibility" :label="$t('buttons.watchFile')" @action="watchFile()" />
       <action v-if="hasDownload" icon="file_download" :label="$t('general.download')" @action="startDownload" />
+      <action v-if="showUnarchiveInOverflow" icon="folder_open" :label="$t('prompts.unarchive')" @action="showUnarchiveHoverFromPreview" />
       <action v-if="showEdit" icon="edit" :label="$t('general.edit')" @action="edit()" />
       <action v-if="showSave" icon="save" :label="$t('general.save')" @action="save()" />
       <action v-if="showDelete" icon="delete" :label="$t('general.delete')" show="delete" />
@@ -164,8 +176,15 @@ import Action from "@/components/Action.vue";
 import { globalVars } from "@/utils/constants.js";
 import buttons from "@/utils/buttons";
 import { notify } from "@/notify";
-import { filesApi, publicApi } from "@/api";
+import { resourcesApi } from "@/api";
 import { url } from "@/utils";
+
+function isArchivePath(pathOrName) {
+  if (!pathOrName || typeof pathOrName !== "string") return false;
+  const lower = pathOrName.toLowerCase();
+  return lower.endsWith(".zip") || lower.endsWith(".tar.gz") || lower.endsWith(".tgz");
+}
+
 export default {
   name: "ContextMenu",
   components: {
@@ -181,12 +200,37 @@ export default {
     };
   },
   props: {
+    createOnly: {
+      type: Boolean,
+      default: false,
+    },
     showCentered: {
       type: Boolean,
       default: false,
     },
+    items: {
+      type: Array,
+      default: null, // Array of item objects { name, path, source, isDir, type, ... }
+    },
   },
   computed: {
+    // Either from prop or from state
+    providedItems() {
+      if (this.items) return this.items;
+      // Fallback to global selection (indices or objects)
+      if (state.selected.length === 0) return [];
+      // Map to actual items from state.req
+      if (typeof state.selected[0] === 'number') {
+        return state.selected.map(index => state.req.items[index]);
+      }
+      return state.selected;
+    },
+    selectedCount() {
+      return this.providedItems.length;
+    },
+    firstSelected() {
+      return this.providedItems[0] || null;
+    },
     showWatch() {
       return this.hasDownload && !this.req.isDir && !this.isShare;
     },
@@ -217,6 +261,18 @@ export default {
       if (this.isDuplicateFinder) return false;
       return !this.showCreate && this.permissions.download && this.selectedCount > 0;
     },
+    showArchive() {
+      if (this.isDuplicateFinder || getters.isShare()) return false;
+      if (!this.permissions.create) return false;
+      return !this.showCreate && this.selectedCount > 0 && !this.showUnarchive;
+    },
+    showUnarchive() {
+      if (this.isDuplicateFinder || getters.isShare()) return false;
+      if (!this.permissions.create) return false;
+      if (this.selectedCount !== 1) return false;
+      const item = this.firstSelected;
+      return item && isArchivePath(item.path || item.from || item.name);
+    },
     showShareAction() {
       if (this.isDuplicateFinder) return false;
       return (this.showCreate || this.selectedCount == 1) && this.showShare;
@@ -241,8 +297,15 @@ export default {
       return !this.showCreate && !this.isSearchActive && this.req?.items?.length > 0;
     },
     showCreateButton() {
-      if (this.isDuplicateFinder) return false;
+      if (this.isDuplicateFinder || this.createOnly) return false;
       return !this.isSearchActive && this.permissions.create && !this.isShare;
+    },
+    showDivider() {
+      if (this.isDuplicateFinder || this.createOnly) return false;
+      if (getters.isShare()) {
+        return state.shareInfo?.allowCreate
+      }
+      return state.user?.permissions?.create || state.user?.permissions?.share || state.user?.permissions?.admin;
     },
     showSelectMultiple() {
       if (this.isDuplicateFinder) return false;
@@ -258,7 +321,12 @@ export default {
       return false
     },
     hasOverflowItems() {
-      return this.showEdit || this.showDelete || this.showSave || this.showGoToRaw || this.hasDownload;
+      return this.showEdit || this.showDelete || this.showSave || this.showGoToRaw || this.hasDownload || this.showUnarchiveInOverflow;
+    },
+    showUnarchiveInOverflow() {
+      if (!this.permissions.archive || getters.isShare()) return false;
+      const req = state.req;
+      return req && !req.isDir && isArchivePath(req.path || req.name);
     },
     showGoToRaw() {
       if (!this.permissions.download) {
@@ -338,9 +406,6 @@ export default {
     isDarkMode() {
       return getters.isDarkMode();
     },
-    selectedCount() {
-      return getters.selectedCount();
-    },
     currentPrompt() {
       return getters.currentPrompt();
     },
@@ -374,15 +439,16 @@ export default {
   },
   methods: {
     showInfoHover() {
+      mutations.closeContextMenus();
       mutations.showHover({
         name: "info",
         props: {
-          item: getters.getFirstSelected(),
+          item: this.firstSelected,
         },
       });
     },
     goToItem() {
-      const item = getters.getFirstSelected();
+      const item = this.firstSelected;
       url.goToItem(item.source, item.path, {}, true);
     },
     hideTooltip() {
@@ -406,11 +472,17 @@ export default {
       return this.isPreview && state.req.path != "/";
     },
     showAccessHover() {
+      mutations.closeContextMenus();
+      let sourceName = this.firstSelected?.source || state.req.source;
+      let path = this.firstSelected?.path || state.req.path;
+      if (this.firstSelected && !this.firstSelected.isDir) {
+        path = url.removeLastDir(path) + '/';
+      }
       mutations.showHover({
         name: "access",
         props: {
-          sourceName: state.sources.current,
-          path: state.req?.path || "",
+          sourceName: sourceName,
+          path: path,
         },
       });
     },
@@ -482,29 +554,30 @@ export default {
       }
       this.showCreate = true;
     },
-    uploadFunc() {
-      mutations.showHover("upload");
-    },
     showHover(value) {
       return mutations.showHover(value);
     },
     showShareHover() {
-      mutations.showHover({name: "share",
+      mutations.closeContextMenus();
+      mutations.showHover({
+        name: "share",
         props: {
-          item: getters.selectedCount() == 1 ? getters.getFirstSelected() : state.req
+          item: this.selectedCount == 1 ? this.firstSelected : state.req
         },
       });
     },
     showRenameHover() {
+      mutations.closeContextMenus();
       mutations.showHover({
         name: "rename",
         props: {
-          item: getters.selectedCount() == 1 ? getters.getFirstSelected() : state.req,
+          item: this.selectedCount == 1 ? this.firstSelected : state.req,
           parentItems: []
         },
       });
     },
     showRenameHoverForPreview() {
+      mutations.closeTopHover(); // Close the ContextMenu (if it was open from preview)
       // Get parent items from the listing
       const parentItems = state.navigation.listing || [];
       mutations.showHover({
@@ -521,8 +594,13 @@ export default {
       this.posY = contextProps.posY;
     },
     initializeCreateState() {
+      // If createOnly is set, always show create actions
+      if (this.createOnly) {
+        this.showCreate = true;
+        return;
+      }
       // Only set initial showCreate state, don't override user choices
-      if (state.selected.length > 0 || !this.permissions.create) {
+      if (this.selectedCount > 0 || !this.permissions.create) {
         this.showCreate = false;
       } else {
         this.showCreate = true;
@@ -533,27 +611,114 @@ export default {
       mutations.closeHovers();
     },
     startDownload() {
-      mutations.closeHovers();
-      const items = state.selected.length > 0 ? state.selected : [state.req];
+      mutations.closeTopHover();
+      const items = this.providedItems;
       downloadFiles(items);
+    },
+    showDeleteHover() {
+      mutations.closeContextMenus();
+      mutations.showHover({
+        name: 'delete',
+        props: {
+          items: this.providedItems,
+        },
+      });
+    },
+    showMoveHover() {
+      mutations.closeContextMenus();
+      mutations.showHover({
+        name: 'move',
+        props: {
+          items: this.providedItems,
+          operation: 'move',
+        },
+      });
+    },
+    showCopyHover() {
+      mutations.closeContextMenus();
+      mutations.showHover({
+        name: 'copy',
+        props: {
+          items: this.providedItems,
+          operation: 'copy',
+        },
+      });
+    },
+    showNewDirHover() {
+      mutations.closeContextMenus();
+      // If the context menu was triggered on a directory, pass its path as base
+      const selectedItem = this.firstSelected;
+      let base = null;
+      if (selectedItem && selectedItem.isDir) {
+        // Pass both path and source
+        base = {
+          path: selectedItem.path,
+          source: selectedItem.source,
+        };
+      }
+      mutations.showHover({
+        name: "newDir",
+        props: {
+          base: base,
+        },
+      });
+    },
+    showArchiveHover() {
+      mutations.closeTopHover();
+      const items = this.providedItems.map(item => ({
+        path: item.path,
+        name: item.name,
+        source: item.source || state.req.source,
+      }));
+      if (items.length === 0) return;
+      mutations.showHover({
+        name: "archive",
+        props: {
+          items,
+          source: state.req.source,
+          currentPath: state.req.path || "/",
+        },
+      });
+    },
+    showUnarchiveHover() {
+      mutations.closeTopHover();
+      const item = this.firstSelected;
+      if (!item) return;
+      this.openUnarchivePrompt(item);
+    },
+    showUnarchiveHoverFromPreview() {
+      mutations.closeTopHover();
+      const req = state.req;
+      if (!req) return;
+      this.openUnarchivePrompt({ path: req.path, source: req.source, name: req.name });
+    },
+    openUnarchivePrompt(item) {
+      const path = item.path || item.from;
+      const source = item.source || state.req.source;
+      mutations.showHover({
+        name: "unarchive",
+        props: {
+          item: { path, source, name: item.name },
+        },
+      });
     },
     goToRaw() {
       if (getters.isShare()) {
-        window.open(publicApi.getDownloadURL(state.share, state.req.path, true), "_blank");
+        window.open(resourcesApi.getDownloadURLPublic(state.shareInfo, [state.req.path], true), "_blank");
         mutations.closeHovers();
         return;
       }
-      const downloadUrl = filesApi.getDownloadURL(
+      const downloadUrl = resourcesApi.getDownloadURL(
         state.req?.source || "",
         state.req?.path || "",
         true,
         false
       );
       window.open(downloadUrl, "_blank");
-      mutations.closeHovers();
+      mutations.closeContextMenus();
     },
     watchFile() {
-      mutations.closeHovers();
+      mutations.closeContextMenus();
       const source = state.req?.source || state.sources.current || "";
       const path = state.req?.path || "/";
       this.$router.push({
@@ -583,18 +748,27 @@ export default {
         // Don't show error notification here - API layer already showed it
         buttons.done(button);
       }
-      mutations.closeHovers();
+      mutations.closeContextMenus();
     },
-    showUpload() {
+    showUploadHover() {
+      mutations.closeContextMenus();
+      let targetPath = state.req.path;
+      let targetSource = state.req.source;
+      const selectedItem = this.firstSelected;
+      if (selectedItem && selectedItem.isDir) {
+        targetPath = selectedItem.path;
+        targetSource = selectedItem.source;
+      }
       mutations.showHover({
         name: "upload",
         props: {
-          filesToReplace: state.selected.map((item) => item.name || ""),
+          targetPath: targetPath,
+          targetSource: targetSource,
         },
       });
     },
     openParentFolder() {
-      const item = getters.getFirstSelected();
+      const item = this.firstSelected;
       const parentPath = url.removeLastDir(item.path) || "/";
       url.goToItem(item.source, parentPath, {}, this.isDuplicateFinder);
     },
@@ -607,7 +781,7 @@ export default {
           mutations.addSelected(index);
         });
         // Close the context menu
-        mutations.closeHovers();
+        mutations.closeContextMenus();
       }
     },
   },
@@ -636,15 +810,23 @@ export default {
 }
 
 .selected-count-header {
-  border-radius: 0.5em;
+  border-radius: 1em;
   cursor: unset;
-  margin-bottom: 0.5em;
+}
+
+.context-menu-header > .action i {
+  padding: 0.25em;
 }
 
 #context-menu .action {
-  width: auto;
   display: flex;
   align-items: center;
+  justify-content: flex-start;
+}
+
+#context-menu > div,
+#context-menu > button {
+  width: 100%;
 }
 
 #context-menu > span {

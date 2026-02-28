@@ -61,6 +61,7 @@ func validateMoveOperation(src, dst string, isSrcDir bool) error {
 // @Accept json
 // @Produce json
 // @Param path query string true "Path to the resource"
+// @Param skipExtendedAttrs query string false "Skip extended attributes for faster retrieval, no hasPreview"
 // @Param source query string true "Source name for the desired source, default is used if not provided"
 // @Param content query string false "Include file content if true"
 // @Param metadata query string false "Extract audio/video metadata if true"
@@ -74,6 +75,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	source := r.URL.Query().Get("source")
 	getContent := r.URL.Query().Get("content") == "true"
 	getMetadata := r.URL.Query().Get("metadata") == "true"
+	skipExtendedAttrs := r.URL.Query().Get("skipExtendedAttrs") == "true"
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 		FollowSymlinks:           true,
 		Path:                     path,
@@ -83,7 +85,8 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		Metadata:                 getMetadata,
 		ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles,
 		ShowHidden:               d.user.ShowHidden,
-	}, store.Access, d.user)
+		SkipExtendedAttrs:        skipExtendedAttrs,
+	}, store.Access, d.user, store.Share)
 	if err != nil {
 		return errToStatus(err), err
 	}
@@ -137,7 +140,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 		Source:     source,
 		Expand:     false,
 		ShowHidden: d.user.ShowHidden,
-	}, store.Access, d.user)
+	}, store.Access, d.user, store.Share)
 	if err != nil {
 		return errToStatus(err), err
 	}
@@ -201,7 +204,7 @@ type MoveCopyResponse struct {
 // @Failure 400 {object} map[string]string "Bad request - invalid JSON or empty items array"
 // @Failure 403 {object} map[string]string "Forbidden"
 // @Failure 500 {object} map[string]string "Internal server error - all deletions failed"
-// @Router /api/resources/bulk/delete [post]
+// @Router /api/resources/bulk [delete]
 func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	filePermUser := d.user
 	if d.share != nil {
@@ -274,7 +277,7 @@ func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *reques
 				Path:           indexPath,
 				Source:         source,
 				ShowHidden:     true,
-			}, store.Access, filePermUser)
+			}, store.Access, filePermUser, store.Share)
 			if err != nil {
 				return http.StatusNotFound, fmt.Errorf("resource not available")
 			}
@@ -330,7 +333,7 @@ func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *reques
 				Path:           idx.MakeIndexPath(item.Path, false),
 				Source:         item.Source,
 				ShowHidden:     true,
-			}, store.Access, filePermUser)
+			}, store.Access, filePermUser, store.Share)
 			if err != nil {
 				response.Failed = append(response.Failed, BulkDeleteItem{
 					Source:  item.Source,
@@ -487,7 +490,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			}
 
 			var fileInfo *iteminfo.ExtendedFileInfo
-			fileInfo, err = files.FileInfoFaster(fileOpts, store.Access, filePermUser)
+			fileInfo, err = files.FileInfoFaster(fileOpts, store.Access, filePermUser, store.Share)
 			if err == nil { // File exists
 				if r.URL.Query().Get("override") != "true" {
 					logger.Debugf("resource already exists: %v", fileInfo.RealPath)
@@ -546,7 +549,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		return http.StatusOK, nil
 	}
 
-	fileInfo, err := files.FileInfoFaster(fileOpts, store.Access, filePermUser)
+	fileInfo, err := files.FileInfoFaster(fileOpts, store.Access, filePermUser, store.Share)
 	if err == nil { // File exists
 		if r.URL.Query().Get("override") != "true" {
 			logger.Debugf("resource already exists: %v", fileInfo.RealPath)
@@ -927,7 +930,7 @@ func patchAction(ctx context.Context, params patchActionParams) error {
 			Source:         params.srcIndex,
 			IsDir:          params.isSrcDir,
 			ShowHidden:     params.d.user.ShowHidden,
-		}, store.Access, params.d.user)
+		}, store.Access, params.d.user, store.Share)
 
 		if err != nil {
 			return err
@@ -964,4 +967,34 @@ func mockData(w http.ResponseWriter, r *http.Request) {
 	}
 	mockDir := indexing.CreateMockData(NumDirs, numFiles)
 	renderJSON(w, r, mockDir) // nolint:errcheck
+}
+
+// itemsGetHandler efficiently returns a basic list of items for a directory.
+// @Summary Get directory items
+// @Description Efficiently returns a basic list of items for the specified path and source. Use 'only' parameter to filter by only files or folders
+// @Tags Resources
+// @Accept json
+// @Produce json
+// @Param path query string true "A directory path to list child items"
+// @Param source query string true "The source name which contains the path"
+// @Param only query string false "Filter: 'files', 'folders', or omit for both"
+// @Success 200 {object} files.Items "lists files and folders"
+// @Failure 403 {object} map[string]string "Forbidden (access denied)"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/resources/items [get]
+func itemsGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	items, err := files.GetDirItems(utils.FileOptions{
+		FollowSymlinks: true,
+		Path:           r.URL.Query().Get("path"),
+		Source:         r.URL.Query().Get("source"),
+		ShowHidden:     d.user.ShowHidden,
+		Only:           r.URL.Query().Get("only"),
+	}, store.Access, d.user)
+	if err != nil {
+		if err == errors.ErrAccessDenied {
+			return http.StatusForbidden, err
+		}
+		return http.StatusInternalServerError, err
+	}
+	return renderJSON(w, r, items)
 }

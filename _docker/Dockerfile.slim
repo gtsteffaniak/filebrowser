@@ -35,7 +35,6 @@ COPY --from=base --chown=filebrowser:1000 [ "/app/reduce-rounded-corners.css", "
 COPY --from=nbuild --chown=filebrowser:1000 [ "/app/dist/", "./http/dist/" ]
 ## sanity checks
 RUN [ "filebrowser", "version" ]
-USER root
 # exposing default port for auto discovery.
 EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \

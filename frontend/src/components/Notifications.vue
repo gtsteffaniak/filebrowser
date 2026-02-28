@@ -100,12 +100,9 @@ export default {
     closePopUp() {
       return notify.closePopUp();
     },
-    handleButtonClick(button, notificationId) {
+    handleButtonClick(button) {
       if (typeof button.action === "function") {
         button.action();
-      }
-      if (button.keepOpen !== true) {
-        this.closeNotification(notificationId);
       }
     },
     startDrag(event, notificationId) {
@@ -184,7 +181,7 @@ export default {
   position: fixed;
   bottom: 0;
   right: 0;
-  z-index: 6;
+  z-index: 20;
   pointer-events: none;
   margin: 1em;
 }
@@ -208,7 +205,7 @@ export default {
   padding: 0.5em;
   align-items: center;
   transition: right 1s ease;
-  z-index: 5;
+  z-index: 21;
   pointer-events: all;
   user-select: none;
   overflow: hidden;

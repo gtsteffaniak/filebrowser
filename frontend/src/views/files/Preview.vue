@@ -5,23 +5,18 @@
       <LoadingSpinner size="medium" />
     </div>
     <div class="preview" :class="{
-        'plyr-background-light': !isDarkMode && previewType == 'audio' && !useDefaultMediaPlayer,
-        'plyr-background-dark': isDarkMode && previewType == 'audio' && !useDefaultMediaPlayer,
-        'transitioning': isTransitioning }" v-if="!isDeleted">
-      <ExtendedImage v-if="showImage && !isTransitioning" :src="raw" @navigate-previous="navigatePrevious" @navigate-next="navigateNext"/>
+      'plyr-background-light': !isDarkMode && previewType == 'audio' && !useDefaultMediaPlayer,
+      'plyr-background-dark': isDarkMode && previewType == 'audio' && !useDefaultMediaPlayer,
+      'transitioning': isTransitioning
+    }" v-if="!isDeleted">
+      <ExtendedImage v-if="showImage && !isTransitioning" :src="raw" @navigate-previous="navigatePrevious"
+        @navigate-next="navigateNext" />
 
       <!-- Media Player Component -->
-      <plyrViewer v-else-if="previewType == 'audio' || previewType == 'video'"
-        ref="plyrViewer"
-        :previewType="previewType"
-        :raw="raw"
-        :subtitlesList="subtitlesList"
-        :req="req"
-        :listing="listing"
-        :useDefaultMediaPlayer="useDefaultMediaPlayer"
-        :autoPlayEnabled="autoPlay"
-        @play="autoPlay = true"
-        :class="{'plyr-background': previewType == 'audio' && !useDefaultMediaPlayer}" />
+      <plyrViewer v-else-if="previewType == 'audio' || previewType == 'video'" ref="plyrViewer"
+        :previewType="previewType" :raw="raw" :subtitlesList="subtitlesList" :req="req" :listing="listing"
+        :useDefaultMediaPlayer="useDefaultMediaPlayer" :autoPlayEnabled="autoPlay" @play="autoPlay = true"
+        :class="{ 'plyr-background': previewType == 'audio' && !useDefaultMediaPlayer }" />
 
       <div v-else-if="previewType == 'pdf'" class="pdf-wrapper">
         <iframe class="pdf" :src="raw"></iframe>
@@ -37,7 +32,7 @@
           <i class="material-icons">feedback</i>
           {{ $t("files.noPreview") }}
         </div>
-        <div v-if="permissions.download">
+        <div class="preview-buttons" v-if="permissions.download">
           <a target="_blank" :href="downloadUrl" class="button button--flat">
             <div>
               <i class="material-icons">file_download</i>{{ $t("general.download") }}
@@ -58,13 +53,14 @@
   </div>
 </template>
 <script>
-import { filesApi, publicApi } from "@/api";
+import { resourcesApi, mediaApi } from "@/api";
 import { url } from "@/utils";
 import ExtendedImage from "@/components/files/ExtendedImage.vue";
 import plyrViewer from "@/views/files/plyrViewer.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { state, getters, mutations } from "@/store";
 import { getFileExtension } from "@/utils/files";
+import { isRawImageMimeType } from "@/utils/mimetype";
 import { convertToVTT } from "@/utils/subtitles";
 import { globalVars } from "@/utils/constants";
 
@@ -91,13 +87,13 @@ export default {
       return getters.permissions();
     },
     showImage() {
-      if (state.req.type == "image/heic" || state.req.type == "image/heif") {
-        if (this.isHeicAndViewable) {
-          return true;
-        }
-        return false;
+      if (state.req.type === "image/heic" || state.req.type === "image/heif") {
+        return this.isHeicAndViewable;
       }
-      return this.previewType == 'image' || this.pdfConvertable;
+      if (isRawImageMimeType(state.req.type)) {
+        return globalVars.exiftoolAvailable === true;
+      }
+      return this.previewType === 'image' || this.pdfConvertable;
     },
     autoPlay() {
       return getters.previewPerms().autoplayMedia;
@@ -112,10 +108,11 @@ export default {
       const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
       return isIOS && isSafari;
     },
+    // Viewable when we can get embedded/original preview: (media + heic conversion) or exiftool, or Safari native
     isHeicAndViewable() {
-      if (globalVars.enableHeicConversion || state.isSafari) {
-        return true;
-      }
+      if (state.isSafari) return true;
+      if (globalVars.exiftoolAvailable) return true;
+      if (globalVars.mediaAvailable && globalVars.enableHeicConversion) return true;
       return false;
     },
     pdfConvertable() {
@@ -150,14 +147,28 @@ export default {
       return getters.previewType();
     },
     raw() {
-      const showFullSizeHeic = state.req.type === "image/heic" && !state.isSafari && globalVars.mediaAvailable && !globalVars.disableHeicConversion;
-      if (this.pdfConvertable || showFullSizeHeic) {
+      const isHeicOrHeif = state.req.type === "image/heic" || state.req.type === "image/heif";
+
+      if (state.isSafari && isHeicOrHeif) {
+        if (getters.isShare()) {
+          return resourcesApi.getDownloadURLPublic(
+            { path: state.shareInfo.subPath, hash: state.shareInfo.hash, token: state.shareInfo.token },
+            [state.req.path],
+            true,
+          );
+        }
+        return resourcesApi.getDownloadURL(state.req.source, state.req.path, true);
+      }
+
+      const getRawPreview = isRawImageMimeType(state.req.type) && globalVars.exiftoolAvailable;
+      const getHeicPreview = isHeicOrHeif && ((globalVars.mediaAvailable && globalVars.enableHeicConversion) || globalVars.exiftoolAvailable);
+      if (this.pdfConvertable || getRawPreview || getHeicPreview) {
         if (getters.isShare()) {
           const previewPath = url.removeTrailingSlash(state.req.path);
-          return publicApi.getPreviewURL(previewPath, "original");
+          return resourcesApi.getPreviewURLPublic(previewPath, "original");
         }
         return (
-          filesApi.getPreviewURL(
+          resourcesApi.getPreviewURL(
             state.req.source,
             state.req.path,
             state.req.modified,
@@ -165,7 +176,7 @@ export default {
         );
       }
       if (getters.isShare()) {
-        return publicApi.getDownloadURL(
+        return resourcesApi.getDownloadURLPublic(
           {
             path: state.shareInfo.subPath,
             hash: state.shareInfo.hash,
@@ -175,7 +186,7 @@ export default {
           true,
         );
       }
-      return filesApi.getDownloadURL(
+      return resourcesApi.getDownloadURL(
         state.req.source,
         state.req.path,
         true,
@@ -186,7 +197,7 @@ export default {
     },
     downloadUrl() {
       if (getters.isShare()) {
-        return publicApi.getDownloadURL(
+        return resourcesApi.getDownloadURLPublic(
           {
             path: state.shareInfo.subPath,
             hash: state.shareInfo.hash,
@@ -195,7 +206,7 @@ export default {
           [state.req.path],
         );
       }
-      return filesApi.getDownloadURL(state.req.source, state.req.path);
+      return resourcesApi.getDownloadURL(state.req.source, state.req.path);
     },
     isTransitioning() {
       return state.navigation.isTransitioning;
@@ -265,7 +276,7 @@ export default {
         const subtitleTrack = state.req.subtitles[index];
         try {
           // Fetch subtitle content from API using name and embedded
-          const content = await filesApi.getSubtitleContent(
+          const content = await mediaApi.getSubtitleContent(
             state.req.source,
             state.req.path,
             subtitleTrack.name,
@@ -338,13 +349,13 @@ export default {
             let res;
             if (getters.isShare()) {
               // Use public API for shared files
-              res = await publicApi.fetchPub(
+              res = await resourcesApi.fetchFilesPublic(
                 directoryPath,
                 state.shareInfo?.hash,
               );
             } else {
               // Use regular files API for authenticated users
-              res = await filesApi.fetchFiles(
+              res = await resourcesApi.fetchFiles(
                 state.req.source,
                 directoryPath,
               );
@@ -377,7 +388,7 @@ export default {
     prefetchUrl(item) {
       if (getters.isShare()) {
         return this.fullSize
-          ? publicApi.getDownloadURL(
+          ? resourcesApi.getDownloadURLPublic(
               {
                 path: item.path,
                 hash: state.shareInfo?.hash,
@@ -386,11 +397,11 @@ export default {
               },
               [item.path],
             )
-          : publicApi.getPreviewURL(state.shareInfo?.hash, item.path);
+          : resourcesApi.getPreviewURLPublic(item.path);
       }
       return this.fullSize
-        ? filesApi.getDownloadURL(state.req.source, item.path, true)
-        : filesApi.getPreviewURL(
+        ? resourcesApi.getDownloadURL(state.req.source, item.path, true)
+        : resourcesApi.getPreviewURL(
             state.req.source,
             item.path,
             item.modified,
@@ -402,7 +413,7 @@ export default {
     showDeletePrompt() {
       const item = state.req;
       const previewUrl = item.hasPreview
-        ? filesApi.getPreviewURL(item.source, item.path, item.modified)
+        ? resourcesApi.getPreviewURL(item.source, item.path, item.modified)
         : null;
       mutations.showHover({
         name: "delete",
@@ -466,7 +477,7 @@ export default {
   text-align: center;
 }
 
-.transition-loading .spinner > div {
+.transition-loading .spinner>div {
   width: 18px;
   height: 18px;
   background-color: var(--textPrimary);
@@ -487,6 +498,7 @@ export default {
   0%, 80%, 100% {
     transform: scale(0);
   }
+
   40% {
     transform: scale(1.0);
   }
@@ -517,4 +529,17 @@ export default {
 .pdf-wrapper .floating-btn:hover {
   background: rgba(0, 0, 0, 0.7);
 }
+
+.preview .info {
+  display: flex;
+  flex-direction: row;
+  gap: 1em;
+}
+
+.preview-buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 1em;
+}
+
 </style>
