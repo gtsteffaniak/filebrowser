@@ -162,7 +162,16 @@ func shareDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return http.StatusBadRequest, nil
 	}
 
-	err := store.Share.Delete(hash)
+	// only allow users to delete their own shares
+	share, err := store.Share.GetByHash(hash)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("share not found")
+	}
+	if share.UserID != d.user.ID && !d.user.Permissions.Admin {
+		return http.StatusForbidden, fmt.Errorf("you are not allowed to delete this share")
+	}
+
+	err = store.Share.Delete(hash)
 	if err != nil {
 		return errToStatus(err), err
 	}
@@ -196,8 +205,16 @@ func sharePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 		return http.StatusBadRequest, fmt.Errorf("hash and path are required")
 	}
 
+	// only allow users to update their own shares
+	share, err := store.Share.GetByHash(body.Hash)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("share not found")
+	}
+	if share.UserID != d.user.ID && !d.user.Permissions.Admin {
+		return http.StatusForbidden, fmt.Errorf("you are not allowed to update this share")
+	}
 	// Update the share path
-	err := store.Share.UpdateSharePath(body.Hash, body.Path)
+	err = store.Share.UpdateSharePath(body.Hash, body.Path)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
