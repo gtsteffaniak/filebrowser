@@ -10,7 +10,11 @@ test("Create first new file with basic auth", async ({ page, checkForErrors }, t
   });
 
   await page.goto("/subpath/");
-  await expect(page.locator('.listing-items .message > span')).toHaveText('Nothing to show here...');
+  if (testInfo.retry === 0) {
+    await expect(page.locator('.listing-items .message > span')).toHaveText('Nothing to show here...');
+  }else{
+    await expect(await page.locator('.listing-items .file-items')).toHaveCount(testInfo.retry);
+  }
   await page.locator('.listing-items').click({ button: "right" });
   await page.locator('button[aria-label="New file"]').click();
   await page.locator('input[aria-label="FileName Field"]').fill(fileName);
