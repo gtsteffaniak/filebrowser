@@ -31,7 +31,8 @@
     "goToItem": "转到项目",
     "watchFile": "观看文件",
     "showMore": "显示高级选项",
-    "showLess": "隐藏高级选项"
+    "showLess": "隐藏高级选项",
+    "goToSource": "转到源位置"
   },
   "download": {
     "downloadFile": "下载文件",
@@ -381,7 +382,8 @@
     "showDiskUsageDescription": "根据操作系统报告的磁盘/分区大小显示用量条。该大小可能更大，包括未编入索引的文件。",
     "usageTextDisplay": "应显示哪些使用文本？",
     "usageTextIndexed": "指数化使用",
-    "usageTextDisk": "磁盘/分区报告的使用量"
+    "usageTextDisk": "磁盘/分区报告的使用量",
+    "dividerNamePlaceholder": "分隔线文本（留空以显示一行）"
   },
   "success": {
     "linkCopied": "链接已复制！"
@@ -726,7 +728,8 @@
     "space": "空间{suffix}",
     "format": "格式{suffix}",
     "office": "办公室{suffix}",
-    "show": "显示{suffix}"
+    "show": "显示{suffix}",
+    "divider": "分割器{suffix}"
   },
   "access": {
     "rules": "访问规则",

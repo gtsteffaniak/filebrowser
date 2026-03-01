@@ -31,7 +31,8 @@
     "goToItem": "アイテムへ",
     "watchFile": "ウォッチファイル",
     "showMore": "詳細オプションを表示",
-    "showLess": "詳細オプションを隠す"
+    "showLess": "詳細オプションを隠す",
+    "goToSource": "ソース・ロケーションへ"
   },
   "download": {
     "downloadFile": "ファイルをダウンロード",
@@ -381,7 +382,8 @@
     "showDiskUsageDescription": "OSが報告したディスク/パーティションサイズから使用量バーを表示します。このサイズは、インデックス化されていないファイルを含むため、より大きくなる可能性があります。",
     "usageTextDisplay": "どのテキストを表示するべきか？",
     "usageTextIndexed": "索引どおり",
-    "usageTextDisk": "ディスク/パーティションごとの使用量"
+    "usageTextDisk": "ディスク/パーティションごとの使用量",
+    "dividerNamePlaceholder": "分割テキスト（行を表示するには空白にする）"
   },
   "success": {
     "linkCopied": "リンクがコピーされました！"
@@ -648,7 +650,8 @@
     "space": "スペース{suffix}",
     "format": "フォーマット{suffix}",
     "office": "オフィス{suffix}",
-    "show": "ショー{suffix}"
+    "show": "ショー{suffix}",
+    "divider": "ディバイダー{suffix}"
   },
   "access": {
     "rules": "アクセスルール",

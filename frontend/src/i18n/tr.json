@@ -31,7 +31,8 @@
     "goToItem": "Öğeye git",
     "watchFile": "Dosyayı izle",
     "showMore": "Gelişmiş Seçenekleri Göster",
-    "showLess": "Gelişmiş Seçenekleri Gizle"
+    "showLess": "Gelişmiş Seçenekleri Gizle",
+    "goToSource": "Kaynak Konuma Git"
   },
   "download": {
     "downloadFile": "Dosyayı indir",
@@ -381,7 +382,8 @@
     "showDiskUsageDescription": "İşletim sistemi tarafından bildirilen disk/bölüm boyutundan kullanım çubuğunu görüntüleyin. Bu boyut büyük olasılıkla daha büyük olacaktır ve dizine eklenmemiş dosyaları da içerir.",
     "usageTextDisplay": "Hangi kullanım metni görüntülenmelidir?",
     "usageTextIndexed": "endeksli olarak kullanım",
-    "usageTextDisk": "disk/bölüm tarafından bildirilen kullanım"
+    "usageTextDisk": "disk/bölüm tarafından bildirilen kullanım",
+    "dividerNamePlaceholder": "Bölücü metin (bir çizgi göstermek için boş bırakın)"
   },
   "success": {
     "linkCopied": "Link kopyalandı!"
@@ -648,7 +650,8 @@
     "space": "Uzay{suffix}",
     "format": "Biçim{suffix}",
     "office": "Ofis{suffix}",
-    "show": "Göster{suffix}"
+    "show": "Göster{suffix}",
+    "divider": "Bölücü{suffix}"
   },
   "access": {
     "rules": "Erişim kuralları",

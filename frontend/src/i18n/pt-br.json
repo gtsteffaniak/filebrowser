@@ -31,7 +31,8 @@
     "goToItem": "Ir para o item",
     "watchFile": "Assista ao arquivo",
     "showMore": "Mostrar opções avançadas",
-    "showLess": "Ocultar opções avançadas"
+    "showLess": "Ocultar opções avançadas",
+    "goToSource": "Ir para o local de origem"
   },
   "download": {
     "downloadFile": "Baixar arquivo",
@@ -381,7 +382,8 @@
     "showDiskUsageDescription": "Exibe a barra de uso do tamanho do disco/partição conforme relatado pelo sistema operacional. Esse tamanho provavelmente será maior e inclui arquivos não indexados.",
     "usageTextDisplay": "Qual texto de uso deve ser exibido?",
     "usageTextIndexed": "uso conforme indexado",
-    "usageTextDisk": "uso conforme relatado pelo disco/partição"
+    "usageTextDisk": "uso conforme relatado pelo disco/partição",
+    "dividerNamePlaceholder": "Texto do divisor (deixe em branco para mostrar uma linha)"
   },
   "success": {
     "linkCopied": "Link copiado!"
@@ -648,7 +650,8 @@
     "space": "Espaço{suffix}",
     "format": "Formato{suffix}",
     "office": "Escritório{suffix}",
-    "show": "Mostrar{suffix}"
+    "show": "Mostrar{suffix}",
+    "divider": "Divisor{suffix}"
   },
   "access": {
     "rules": "Regras de acesso",

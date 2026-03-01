@@ -31,7 +31,8 @@
     "goToItem": "Prejsť na položku",
     "watchFile": "Sledovať súbor",
     "showMore": "Zobraziť rozšírené možnosti",
-    "showLess": "Skryť rozšírené možnosti"
+    "showLess": "Skryť rozšírené možnosti",
+    "goToSource": "Prejsť na zdrojové miesto"
   },
   "download": {
     "downloadFile": "Stiahnuť súbor",
@@ -381,7 +382,8 @@
     "showDiskUsageDescription": "Zobrazenie lišty využitia z veľkosti disku/oddielu podľa hlásenia operačného systému. Táto veľkosť bude pravdepodobne väčšia a zahŕňa aj súbory, ktoré nie sú indexované.",
     "usageTextDisplay": "Ktorý text použitia sa má zobraziť?",
     "usageTextIndexed": "použitie ako indexované",
-    "usageTextDisk": "využitie podľa hlásenia disku/oddielu"
+    "usageTextDisk": "využitie podľa hlásenia disku/oddielu",
+    "dividerNamePlaceholder": "Text oddeľovača (nechajte prázdny, aby sa zobrazil riadok)"
   },
   "success": {
     "linkCopied": "Odkaz skopírovaný!"
@@ -648,7 +650,8 @@
     "space": "Priestor{suffix}",
     "format": "Formát{suffix}",
     "office": "Kancelária{suffix}",
-    "show": "Zobraziť{suffix}"
+    "show": "Zobraziť{suffix}",
+    "divider": "Rozdeľovač{suffix}"
   },
   "access": {
     "rules": "Pravidlá prístupu",

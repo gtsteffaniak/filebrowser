@@ -31,7 +31,8 @@
     "goToItem": "항목으로 이동",
     "watchFile": "파일 보기",
     "showMore": "고급 옵션 표시",
-    "showLess": "고급 옵션 숨기기"
+    "showLess": "고급 옵션 숨기기",
+    "goToSource": "소스 위치로 이동"
   },
   "download": {
     "downloadFile": "파일 다운로드",
@@ -381,7 +382,8 @@
     "showDiskUsageDescription": "OS에서 보고한 디스크/파티션 크기에서 사용량 막대를 표시합니다. 이 크기는 더 클 수 있으며 인덱싱되지 않은 파일도 포함됩니다.",
     "usageTextDisplay": "어떤 사용법 텍스트를 표시해야 하나요?",
     "usageTextIndexed": "인덱싱된 사용량",
-    "usageTextDisk": "디스크/파티션별로 보고된 사용량"
+    "usageTextDisk": "디스크/파티션별로 보고된 사용량",
+    "dividerNamePlaceholder": "디바이더 텍스트(줄을 표시하려면 비워둡니다)"
   },
   "success": {
     "linkCopied": "링크가 복사되었습니다!"
@@ -648,7 +650,8 @@
     "space": "공간{suffix}",
     "format": "형식{suffix}",
     "office": "Office{suffix}",
-    "show": "표시{suffix}"
+    "show": "표시{suffix}",
+    "divider": "디바이더{suffix}"
   },
   "access": {
     "rules": "액세스 규칙",

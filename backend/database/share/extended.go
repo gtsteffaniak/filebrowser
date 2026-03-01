@@ -1,11 +1,12 @@
 package share
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 )
 
 // IsSingleFileShare determines if this share is for a single file (not a directory).
@@ -144,10 +145,28 @@ func (l *Link) HasReachedUserLimit(username string) bool {
 	return count >= l.DownloadsLimit
 }
 
-func (l *Link) GetSourceName() (string, error) {
+func (l *Link) GetSourceName() string {
 	sourceInfo, ok := settings.Config.Server.SourceMap[l.Source]
 	if !ok {
-		return "", fmt.Errorf("source not found")
+		return ""
 	}
-	return sourceInfo.Name, nil
+	return sourceInfo.Name
+}
+
+func (l *Link) UserCanEdit(user *users.User) bool {
+	return l.UserID == user.ID || user.Permissions.Admin
+}
+
+func (l *Link) SourceURL(user *users.User) string {
+	sourceName := l.GetSourceName()
+	// get user scope path from share
+	userScope, err := user.GetScopeForSourceName(sourceName)
+	if err != nil {
+		return ""
+	}
+	if !strings.HasPrefix(l.Path, userScope) {
+		return ""
+	}
+	scopedPath := strings.TrimPrefix(l.Path, userScope)
+	return filepath.Join(settings.Config.Server.BaseURL, sourceName, scopedPath)
 }

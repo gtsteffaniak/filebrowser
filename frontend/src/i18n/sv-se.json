@@ -31,7 +31,8 @@
     "goToItem": "Gå till artikel",
     "watchFile": "Titta på filen",
     "showMore": "Visa avancerade alternativ",
-    "showLess": "Dölj avancerade alternativ"
+    "showLess": "Dölj avancerade alternativ",
+    "goToSource": "Gå till källplatsen"
   },
   "download": {
     "downloadFile": "Ladda ner fil",
@@ -381,7 +382,8 @@
     "showDiskUsageDescription": "Visa användningsstapel från disk-/partitionsstorlek som rapporteras av operativsystemet. Denna storlek är sannolikt större och inkluderar filer som inte är indexerade.",
     "usageTextDisplay": "Vilken användningstext ska visas?",
     "usageTextIndexed": "användning som indexerad",
-    "usageTextDisk": "användning som rapporteras av disk/partition"
+    "usageTextDisk": "användning som rapporteras av disk/partition",
+    "dividerNamePlaceholder": "Delningstext (lämna tom för att visa en rad)"
   },
   "success": {
     "linkCopied": "Länk kopierad"
@@ -726,7 +728,8 @@
     "space": "Utrymme{suffix}",
     "format": "Format{suffix}",
     "office": "Kontor{suffix}",
-    "show": "Visa{suffix}"
+    "show": "Visa{suffix}",
+    "divider": "Uppdelare{suffix}"
   },
   "access": {
     "rules": "Regler för åtkomst",

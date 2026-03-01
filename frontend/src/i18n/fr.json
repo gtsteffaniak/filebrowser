@@ -31,7 +31,8 @@
     "goToItem": "Aller à l'article",
     "watchFile": "Regarder le dossier",
     "showMore": "Afficher les options avancées",
-    "showLess": "Masquer les options avancées"
+    "showLess": "Masquer les options avancées",
+    "goToSource": "Aller à l'emplacement de la source"
   },
   "download": {
     "downloadFile": "Télécharger le fichier",
@@ -381,7 +382,8 @@
     "showDiskUsageDescription": "Affichage de la barre d'utilisation à partir de la taille du disque/de la partition telle qu'elle est indiquée par le système d'exploitation. Cette taille est probablement plus importante et inclut les fichiers non indexés.",
     "usageTextDisplay": "Quel texte d'utilisation doit être affiché ?",
     "usageTextIndexed": "utilisation telle qu'indexée",
-    "usageTextDisk": "utilisation telle que rapportée par disque/partition"
+    "usageTextDisk": "utilisation telle que rapportée par disque/partition",
+    "dividerNamePlaceholder": "Texte du séparateur (laisser en blanc pour montrer une ligne)"
   },
   "success": {
     "linkCopied": "Lien copié !"
@@ -648,7 +650,8 @@
     "space": "L'espace{suffix}",
     "format": "Format{suffix}",
     "office": "Bureau{suffix}",
-    "show": "Afficher{suffix}"
+    "show": "Afficher{suffix}",
+    "divider": "Diviseur{suffix}"
   },
   "access": {
     "rules": "Règles d'accès",

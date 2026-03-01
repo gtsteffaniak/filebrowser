@@ -3,12 +3,12 @@ package http
 import (
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io/fs"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
-	"text/template"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
@@ -25,10 +25,18 @@ type TemplateRenderer struct {
 
 // Render renders a template document with headers and data
 func (t *TemplateRenderer) Render(w http.ResponseWriter, name string, data interface{}) error {
-	// If in dev mode, reload templates on every render.
+	templates := t.templates
+	// If in dev mode, reload templates on every render by creating a fresh instance
 	if t.devMode {
 		var err error
-		t.templates, err = t.templates.ParseFS(assetFs, "public/index.html")
+		templates = template.New("").Funcs(template.FuncMap{
+			"marshal": func(v interface{}) (string, error) {
+				var a []byte
+				a, err = json.Marshal(v)
+				return string(a), err
+			},
+		})
+		templates, err = templates.ParseFS(assetFs, "public/index.html")
 		if err != nil {
 			return fmt.Errorf("error reloading template: %w", err)
 		}
@@ -39,7 +47,7 @@ func (t *TemplateRenderer) Render(w http.ResponseWriter, name string, data inter
 	w.Header().Set("X-Accel-Expires", "0")
 	w.Header().Set("Transfer-Encoding", "identity")
 	// Execute the template with the provided data
-	return t.templates.ExecuteTemplate(w, name, data)
+	return templates.ExecuteTemplate(w, name, data)
 }
 
 func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestContext, file, contentType string) (int, error) {
@@ -180,8 +188,8 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 
 	data["htmlVars"] = map[string]interface{}{
 		"title":              title,
-		"customCSS":          config.Frontend.Styling.CustomCSSRaw,
-		"userSelectedTheme":  userSelectedTheme,
+		"customCSS":          template.CSS(config.Frontend.Styling.CustomCSSRaw),
+		"userSelectedTheme":  template.CSS(userSelectedTheme),
 		"lightBackground":    config.Frontend.Styling.LightBackground,
 		"darkBackground":     config.Frontend.Styling.DarkBackground,
 		"staticURL":          staticURL,
@@ -192,7 +200,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"winIcon":            staticURL + "/mstile-256x256.png",
 		"appIcon":            staticURL + "/apple-touch-icon.png",
 		"description":        description,
-		"loadingSpinnersCSS": loadingSpinnersCSS,
+		"loadingSpinnersCSS": template.CSS(loadingSpinnersCSS),
 		"banner":             banner,
 		"image":              ogImage,
 		"url":                fullURL,
@@ -241,8 +249,8 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		return http.StatusInternalServerError, fmt.Errorf("error marshaling globalVars: %w", err)
 	}
 
-	// Replace with JSON strings for direct template usage
-	data["globalVars"] = string(globalVarsJSON)
+	// Mark as JS for html/template to avoid escaping
+	data["globalVars"] = template.JS(globalVarsJSON)
 
 	// Render the template with global variables
 	if err := templateRenderer.Render(w, file, data); err != nil {

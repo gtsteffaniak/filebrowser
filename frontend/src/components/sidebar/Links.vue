@@ -24,8 +24,30 @@
         </div>
         <transition-group name="expand" tag="div" class="inner-card">
           <template v-for="(link, index) in sidebarLinksToDisplay" :key="`link-${index}-${link.category}`">
+            <!-- Divider: renders as hr line or text label -->
+            <div v-if="link.category === 'divider'" class="sidebar-divider-container">
+              <hr v-if="!link.name || link.name.toLowerCase() === 'divider'" class="sidebar-divider" />
+              <span v-else class="sidebar-divider-text">{{ link.name }}</span>
+            </div>
+            <!-- Edit Share link -->
+            <a v-else-if="link.category === 'editShare'" :href="getLinkHref(link)"
+              :aria-label="$t('general.edit', { suffix: ' ' + $t('general.share') })"
+              class="action button sidebar-link-button" @click.prevent="showEditShareHover">
+              <div class="link-container">
+                <i class="material-icons link-icon">edit</i>
+                <span>{{ $t("general.edit", { suffix: " " + $t("general.share") }) }}</span>
+              </div>
+            </a>
+            <!-- Source Location custom link -->
+            <a v-else-if="link.category === 'custom' && link.name === 'sourceLocation'" :href="link.target"
+              :aria-label="link.name" class="action button sidebar-link-button" @click.prevent="handleLinkClick(link)">
+              <div class="link-container">
+                <i class="material-icons link-icon">open_in_new</i>
+                <span>{{ $t('buttons.goToSource') }}</span>
+              </div>
+            </a>
             <!-- Source-type links (source, source-minimal, source-alt, source-hybrid, source-hybrid-2); usage bar hidden for source-minimal -->
-            <a v-if="link.category === 'source' || link.category === 'source-minimal' || link.category === 'source-alt' || link.category === 'source-hybrid' || link.category === 'source-hybrid-2'" :href="getLinkHref(link)"
+            <a v-else-if="link.category === 'source' || link.category === 'source-minimal' || link.category === 'source-alt' || link.category === 'source-hybrid' || link.category === 'source-hybrid-2'" :href="getLinkHref(link)"
               class="action button source-button sidebar-link-button" :class="{
                 active: isLinkActive(link),
                 disabled: !isLinkAccessible(link)
@@ -86,15 +108,6 @@
               </div>
             </a>
           </template>
-          <!-- Edit Share link - only shown when viewing a share and user has share permissions -->
-          <a v-if="isShare && canEditShare" :aria-label="$t('general.edit', { suffix: ' ' + $t('general.share') })" href="#" 
-            class="action button sidebar-link-button"
-            @click.prevent="showEditShareHover">
-            <div class="link-container">
-              <i class="material-icons link-icon">edit</i>
-              <span>{{ $t("general.edit", { suffix: " " + $t("general.share") }) }}</span>
-            </div>
-          </a>
         </transition-group>
       </template>
       <!-- Navigation Mode -->
@@ -227,10 +240,6 @@ export default {
     hasCustomLinks() {
       // Check if user has customized their links
       return this.user?.sidebarLinks && this.user.sidebarLinks.length > 0;
-    },
-    canEditShare() {
-      // Check if user is logged in and has share permissions
-      return state.user && state.user.permissions && state.user.permissions.share;
     },
     // Share info card props
     disableShareCard() {
@@ -891,6 +900,27 @@ a.sidebar-link-button {
 
 .dropdown-item:hover {
   background: var(--surfaceSecondary);
+}
+
+.sidebar-divider-container {
+  width: 100%;
+  margin-top: 0.5em;
+}
+
+.sidebar-divider {
+  width: 50%;
+  border: none;
+  border-top: 0.1em solid var(--divider);
+}
+
+.sidebar-divider-text {
+  display: flex;
+  font-size: .85em;
+  color: var(--textSecondary);
+  letter-spacing: .05em;
+  justify-content: center;
+  align-content: center;
+  align-items: center;
 }
 
 </style>
