@@ -136,7 +136,10 @@ export default {
         this.initClipboard();
       });
       } catch (e) {
-        this.error = e;
+        // ignore 404 errors
+        if (e.status !== 404) {
+          this.error = e;
+        }
       } finally {
         mutations.setLoading("api", false);
       }
