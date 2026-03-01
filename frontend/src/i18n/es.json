@@ -31,7 +31,8 @@
     "goToItem": "Ir al elemento",
     "watchFile": "Ver archivo",
     "showMore": "Mostrar opciones avanzadas",
-    "showLess": "Ocultar opciones avanzadas"
+    "showLess": "Ocultar opciones avanzadas",
+    "goToSource": "Ir a la ubicación de origen"
   },
   "download": {
     "downloadFile": "Descargar archivo",
@@ -371,7 +372,8 @@
     "pickIconDescription": "Aquí puedes explorar los iconos más populates de la biblioteca \"Material Icons\"",
     "shareLinksUpdatedSuccess": "¡Se actualizaron los accesos directos del recurso compartido!",
     "shareHome": "Recurso compartido",
-    "linkIconPlaceholder": "Opcionalmente, puedes elegir un Material Icon que más te guste"
+    "linkIconPlaceholder": "Opcionalmente, puedes elegir un Material Icon que más te guste",
+    "dividerNamePlaceholder": "Texto divisor (déjelo en blanco para mostrar una línea)"
   },
   "success": {
     "linkCopied": "¡Enlace copiado!"
@@ -627,7 +629,8 @@
     "lastUpdate": "Última actualización{suffix}",
     "latency": "Latencia{suffix}",
     "all": "Todos{suffix}",
-    "expiration": "Caducidad{suffix}"
+    "expiration": "Caducidad{suffix}",
+    "divider": "Divisor{suffix}"
   },
   "access": {
     "rules": "Reglas de acceso",

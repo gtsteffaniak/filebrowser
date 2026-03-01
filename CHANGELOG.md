@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.2.2-stable
 
+ **Notes**:
+ - Share edit/delete permissions are scoped to the user's shares rather than global (#2050)
+
  **BugFixes**:
  - fixed the requirement that the database path needed to be set in the config file, now it loads `FILEBROWSER_DATABASE` value by default.
 

@@ -31,7 +31,8 @@
     "goToItem": "前往項目",
     "watchFile": "觀看檔案",
     "showMore": "顯示進階選項",
-    "showLess": "隱藏進階選項"
+    "showLess": "隱藏進階選項",
+    "goToSource": "前往來源位置"
   },
   "download": {
     "downloadFile": "下載檔案",
@@ -371,7 +372,8 @@
     "pickIconDescription": "從 Material Icons 圖示庫搜尋並選取圖示",
     "shareLinksUpdatedSuccess": "分享側邊欄連結更新成功！",
     "shareHome": "分享首頁",
-    "linkIconPlaceholder": "可選擇指定材質圖示名稱"
+    "linkIconPlaceholder": "可選擇指定材質圖示名稱",
+    "dividerNamePlaceholder": "分割線文字（留空顯示一行）"
   },
   "success": {
     "linkCopied": "連結已複製！"
@@ -707,7 +709,8 @@
     "lastUpdate": "最後更新{suffix}",
     "latency": "延遲{suffix}",
     "all": "全部{suffix}",
-    "expiration": "到期日{suffix}"
+    "expiration": "到期日{suffix}",
+    "divider": "分割器{suffix}"
   },
   "access": {
     "rules": "存取規則",

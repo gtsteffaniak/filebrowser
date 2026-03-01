@@ -31,7 +31,8 @@
     "goToItem": "Перейти к пункту",
     "watchFile": "Смотреть файл",
     "showMore": "Показать дополнительные параметры",
-    "showLess": "Скрыть дополнительные параметры"
+    "showLess": "Скрыть дополнительные параметры",
+    "goToSource": "Перейти к исходному местоположению"
   },
   "download": {
     "downloadFile": "Скачать файл",
@@ -371,7 +372,8 @@
     "pickIconDescription": "Найдите и выберите значок в библиотеке Material Icons.",
     "shareLinksUpdatedSuccess": "Ссылки на боковой панели успешно обновлены!",
     "shareHome": "Поделиться Домой",
-    "linkIconPlaceholder": "Опционально укажите имя значка материала"
+    "linkIconPlaceholder": "Опционально укажите имя значка материала",
+    "dividerNamePlaceholder": "Текст разделителя (оставьте пустым, чтобы показать строку)"
   },
   "success": {
     "linkCopied": "Ссылка скопирована!"
@@ -627,7 +629,8 @@
     "lastUpdate": "Последнее обновление{suffix}",
     "latency": "Латентность{suffix}",
     "all": "Все{suffix}",
-    "expiration": "Срок действия{suffix}"
+    "expiration": "Срок действия{suffix}",
+    "divider": "Разделитель{suffix}"
   },
   "access": {
     "rules": "Правила доступа",

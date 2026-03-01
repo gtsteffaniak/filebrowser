@@ -31,7 +31,8 @@
     "goToItem": "עבור לפריט",
     "watchFile": "צפה בקובץ",
     "showMore": "הצג אפשרויות מתקדמות",
-    "showLess": "הסתר אפשרויות מתקדמות"
+    "showLess": "הסתר אפשרויות מתקדמות",
+    "goToSource": "עבור למיקום המקור"
   },
   "download": {
     "downloadFile": "הורד קובץ",
@@ -371,7 +372,8 @@
     "pickIconDescription": "חפש ובחר סמל מספריית Material Icons.",
     "shareLinksUpdatedSuccess": "קישורי הסרגל הצדדי שותפו בהצלחה!",
     "shareHome": "שתף בית",
-    "linkIconPlaceholder": "אפשר לציין שם סמל חומר"
+    "linkIconPlaceholder": "אפשר לציין שם סמל חומר",
+    "dividerNamePlaceholder": "טקסט מפריד (השאר ריק כדי להציג קו)"
   },
   "success": {
     "linkCopied": "הקישור הועתק!"
@@ -627,7 +629,8 @@
     "lastUpdate": "עדכון אחרון{suffix}",
     "latency": "חביון{suffix}",
     "all": "כל{suffix}",
-    "expiration": "תוקף{suffix}"
+    "expiration": "תוקף{suffix}",
+    "divider": "מפריד{suffix}"
   },
   "access": {
     "rules": "כללי גישה",

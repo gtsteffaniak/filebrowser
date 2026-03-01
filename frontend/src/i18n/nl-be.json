@@ -31,7 +31,8 @@
     "goToItem": "Ga naar item",
     "watchFile": "Bestand bekijken",
     "showMore": "Geavanceerde opties weergeven",
-    "showLess": "Geavanceerde opties verbergen"
+    "showLess": "Geavanceerde opties verbergen",
+    "goToSource": "Ga naar de bronlocatie"
   },
   "download": {
     "downloadFile": "Bestand downloaden",
@@ -371,7 +372,8 @@
     "pickIconDescription": "Zoek en selecteer een pictogram uit de bibliotheek met materiaalpictogrammen",
     "shareLinksUpdatedSuccess": "Zijbalk links delen succesvol bijgewerkt!",
     "shareHome": "Thuis delen",
-    "linkIconPlaceholder": "Geef optioneel een materiaalpictogramnaam op"
+    "linkIconPlaceholder": "Geef optioneel een materiaalpictogramnaam op",
+    "dividerNamePlaceholder": "Scheidingstekst (leeg laten om een lijn weer te geven)"
   },
   "success": {
     "linkCopied": "Link gekopieerd!"
@@ -707,7 +709,8 @@
     "lastUpdate": "Laatste update{suffix}",
     "latency": "Latency{suffix}",
     "all": "Alle{suffix}",
-    "expiration": "Vervaldatum{suffix}"
+    "expiration": "Vervaldatum{suffix}",
+    "divider": "Verdeler{suffix}"
   },
   "access": {
     "rules": "Toegangsregels",

@@ -31,7 +31,8 @@
     "goToItem": "항목으로 이동",
     "watchFile": "파일 보기",
     "showMore": "고급 옵션 표시",
-    "showLess": "고급 옵션 숨기기"
+    "showLess": "고급 옵션 숨기기",
+    "goToSource": "소스 위치로 이동"
   },
   "download": {
     "downloadFile": "파일 다운로드",
@@ -371,7 +372,8 @@
     "pickIconDescription": "머티리얼 아이콘 라이브러리에서 아이콘을 검색하고 선택합니다.",
     "shareLinksUpdatedSuccess": "공유 사이드바 링크가 성공적으로 업데이트되었습니다!",
     "shareHome": "홈 공유",
-    "linkIconPlaceholder": "선택적으로 머티리얼 아이콘 이름을 지정합니다."
+    "linkIconPlaceholder": "선택적으로 머티리얼 아이콘 이름을 지정합니다.",
+    "dividerNamePlaceholder": "디바이더 텍스트(줄을 표시하려면 비워둡니다)"
   },
   "success": {
     "linkCopied": "링크가 복사되었습니다!"
@@ -627,7 +629,8 @@
     "lastUpdate": "최근 업데이트{suffix}",
     "latency": "지연 시간{suffix}",
     "all": "모두{suffix}",
-    "expiration": "만료{suffix}"
+    "expiration": "만료{suffix}",
+    "divider": "디바이더{suffix}"
   },
   "access": {
     "rules": "액세스 규칙",

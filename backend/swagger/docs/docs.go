@@ -3725,6 +3725,9 @@ const docTemplate = `{
                     "description": "Override embedded field to show source name",
                     "type": "string"
                 },
+                "sourceURL": {
+                    "type": "string"
+                },
                 "themeColor": {
                     "type": "string"
                 },
@@ -5158,6 +5161,9 @@ const docTemplate = `{
                     "description": "backend source is path to maintain between name changes",
                     "type": "string"
                 },
+                "sourceURL": {
+                    "type": "string"
+                },
                 "themeColor": {
                     "type": "string"
                 },
@@ -5303,6 +5309,9 @@ const docTemplate = `{
                 },
                 "source": {
                     "description": "backend source is path to maintain between name changes",
+                    "type": "string"
+                },
+                "sourceURL": {
                     "type": "string"
                 },
                 "themeColor": {
@@ -5456,6 +5465,9 @@ const docTemplate = `{
                 },
                 "source": {
                     "description": "backend source is path to maintain between name changes",
+                    "type": "string"
+                },
+                "sourceURL": {
                     "type": "string"
                 },
                 "themeColor": {

@@ -8,6 +8,7 @@
     "incompleteResultsDetails": "Showing max results ({max}). Try narrowing your search to get more results under {max}."
   },
   "general": {
+    "divider": "Divider{suffix}",
     "expiration": "Expiration{suffix}",
     "all": "All{suffix}",
     "name": "Name{suffix}",
@@ -150,7 +151,8 @@
     "saveAndExit": "Save and Exit",
     "keepEditing": "Keep Editing",
     "closeAnyway": "Close Anyways",
-    "goToItem": "Go to Item"
+    "goToItem": "Go to Item",
+    "goToSource": "Go to Source Location"
   },
   "download": {
     "downloadFile": "Download File",
@@ -592,6 +594,7 @@
     "adminOptions": "Admin user options"
   },
   "sidebar": {
+    "dividerNamePlaceholder": "Divider text (leave blank to show a line)",
     "siteSettings": "Site Settings",
     "updateIsAvailable": "An update is available!",
     "fileActions": "File actions",

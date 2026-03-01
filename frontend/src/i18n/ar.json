@@ -31,7 +31,8 @@
     "goToItem": "الانتقال إلى العنصر",
     "watchFile": "ملف المشاهدة",
     "showMore": "إظهار الخيارات المتقدمة",
-    "showLess": "إخفاء الخيارات المتقدمة"
+    "showLess": "إخفاء الخيارات المتقدمة",
+    "goToSource": "الانتقال إلى موقع المصدر"
   },
   "download": {
     "downloadFile": "Download File",
@@ -371,7 +372,8 @@
     "pickIconDescription": "بحث وتحديد أيقونة من مكتبة الأيقونات المادية",
     "shareLinksUpdatedSuccess": "تم تحديث روابط الشريط الجانبي المشاركة بنجاح!",
     "shareHome": "مشاركة الصفحة الرئيسية",
-    "linkIconPlaceholder": "تحديد اسم رمز المادة اختياريًا"
+    "linkIconPlaceholder": "تحديد اسم رمز المادة اختياريًا",
+    "dividerNamePlaceholder": "نص المقسم (اتركه فارغًا لإظهار سطر)"
   },
   "success": {
     "linkCopied": "تم نسخ الملف"
@@ -627,7 +629,8 @@
     "lastUpdate": "آخر تحديث{suffix}",
     "latency": "الكمون{suffix}",
     "all": "الكل{suffix}",
-    "expiration": "انتهاء الصلاحية{suffix}"
+    "expiration": "انتهاء الصلاحية{suffix}",
+    "divider": "مقسم{suffix}"
   },
   "access": {
     "rules": "قواعد الوصول",
