@@ -802,7 +802,7 @@
   "fileTypes": {
     "video": "Video",
     "image": "Afbeelding",
-    "audios": "Audios",
+    "audio": "Audio",
     "archive": "Archief",
     "document": "Document",
     "binary": "Binair",
