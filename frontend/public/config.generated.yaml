@@ -173,6 +173,7 @@ userDefaults:
     disableHideSidebar: false             # keep sidebar open when previewing files
     image: true                           # show thumbnails for image files
     video: true                           # show thumbnails for video files
+    audio: true                           # show thumbnails for audio files
     motionVideoPreview: true              # show multiple frames for videos in thumbnail preview when hovering
     office: true                          # show thumbnails for office files
     popup: true                           # show larger popup preview when hovering over thumbnail

@@ -576,6 +576,7 @@ export const getters = {
     if (getters.isShare()) {
       // For shares, use defaults for preview settings (shares don't have per-share preview config)
       return {
+        audio: state.user?.preview?.audio ?? true,
         video: state.user?.preview?.video ?? true,
         image: state.user?.preview?.image ?? true,
         office: state.user?.preview?.office ?? true,
@@ -590,6 +591,7 @@ export const getters = {
     }
     // For regular users, use their preview settings -- unless is share
     return {
+      audio: state.user?.preview?.audio ?? true,
       video: state.user?.preview?.video ?? true,
       image: state.user?.preview?.image ?? true,
       office: state.user?.preview?.office ?? true,

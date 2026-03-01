@@ -122,6 +122,9 @@ export default {
         return false;
       }
       const simpleType = this.getIconForType().simpleType;
+      if (simpleType === "audio" && !getters.previewPerms().audio) {
+        return false;
+      }
       if (simpleType === "video" && !getters.previewPerms().video) {
         return false;
       }

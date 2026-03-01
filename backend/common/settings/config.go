@@ -727,6 +727,7 @@ func setDefaults(generate bool) Settings {
 			Preview: UserDefaultsPreview{
 				Image:              boolPtr(true),
 				Video:              boolPtr(true),
+				Audio:              boolPtr(true),
 				MotionVideoPreview: boolPtr(true),
 				Office:             boolPtr(true),
 				PopUp:              boolPtr(true),

@@ -5610,6 +5610,10 @@ const docTemplate = `{
         "settings.UserDefaultsPreview": {
             "type": "object",
             "properties": {
+                "audio": {
+                    "description": "show thumbnails for audio files",
+                    "type": "boolean"
+                },
                 "autoplayMedia": {
                     "description": "autoplay media files in preview",
                     "type": "boolean"
@@ -6217,6 +6221,10 @@ const docTemplate = `{
         "users.Preview": {
             "type": "object",
             "properties": {
+                "audio": {
+                    "description": "show thumbnail preview image for audio files",
+                    "type": "boolean"
+                },
                 "autoplayMedia": {
                     "description": "autoplay media files in preview",
                     "type": "boolean"

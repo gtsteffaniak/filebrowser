@@ -56,6 +56,7 @@ type Preview struct {
 	DisableHideSidebar bool `json:"disableHideSidebar"` // disable the hide sidebar preview for previews and editors
 	Image              bool `json:"image"`              // show thumbnail preview image for image files
 	Video              bool `json:"video"`              // show thumbnail preview image for video files
+	Audio              bool `json:"audio"`              // show thumbnail preview image for audio files
 	MotionVideoPreview bool `json:"motionVideoPreview"` // show multiple frames for videos in thumbnail preview when hovering
 	Office             bool `json:"office"`             // show thumbnail preview image for office files
 	PopUp              bool `json:"popup"`              // show larger popup preview when hovering over thumbnail

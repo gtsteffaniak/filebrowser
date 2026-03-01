@@ -1286,6 +1286,9 @@ definitions:
     type: object
   settings.UserDefaultsPreview:
     properties:
+      audio:
+        description: show thumbnails for audio files
+        type: boolean
       autoplayMedia:
         description: autoplay media files in preview
         type: boolean
@@ -1717,6 +1720,9 @@ definitions:
     type: object
   users.Preview:
     properties:
+      audio:
+        description: show thumbnail preview image for audio files
+        type: boolean
       autoplayMedia:
         description: autoplay media files in preview
         type: boolean
