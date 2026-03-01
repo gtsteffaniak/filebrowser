@@ -116,7 +116,8 @@
     "lines": "Regels{suffix}",
     "lastUpdate": "Laatste update{suffix}",
     "latency": "Vertraging{suffix}",
-    "expiration": "Vervaldatum{suffix}"
+    "expiration": "Vervaldatum{suffix}",
+    "divider": "Verdeler{suffix}"
   },
   "buttons": {
     "generateNewOtp": "Herstellen en nieuwe twee-factorcode genereren",
@@ -628,7 +629,8 @@
     "linksUpdateFailed": "Bijwerken van koppelingen in zijbalk is mislukt",
     "sourceNotAccessible": "Deze bron is niet langer toegankelijk voor jou",
     "noLinksYet": "Er zijn nog geen links geconfigureerd. Voeg hieronder uw eerste link toe.",
-    "shareHome": "Thuis delen"
+    "shareHome": "Thuis delen",
+    "dividerNamePlaceholder": "Scheidingstekst (leeg laten om een lijn weer te geven)"
   },
   "success": {
     "linkCopied": "Koppeling gekopieerd!"

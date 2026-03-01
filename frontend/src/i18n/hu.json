@@ -372,7 +372,8 @@
     "pickIconDescription": "Keressen és válasszon ki egy ikont az Anyagi ikonok könyvtárból.",
     "shareLinksUpdatedSuccess": "Megosztás oldalsáv linkek sikeresen frissítve!",
     "shareHome": "Megosztás",
-    "linkIconPlaceholder": "Opcionálisan megadhatja az anyag ikon nevét"
+    "linkIconPlaceholder": "Opcionálisan megadhatja az anyag ikon nevét",
+    "dividerNamePlaceholder": "Választószöveg (üresen hagyva egy sor megjelenítéséhez)"
   },
   "success": {
     "linkCopied": "Link másolva!"
@@ -628,7 +629,8 @@
     "lastUpdate": "Utolsó frissítés{suffix}",
     "latency": "Késleltetés{suffix}",
     "all": "Minden{suffix}",
-    "expiration": "Lejárat{suffix}"
+    "expiration": "Lejárat{suffix}",
+    "divider": "Választó{suffix}"
   },
   "access": {
     "rules": "Hozzáférési szabályok",

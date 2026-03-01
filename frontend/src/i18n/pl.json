@@ -372,7 +372,8 @@
     "pickIconDescription": "Wyszukaj i wybierz ikonę z biblioteki Material Icons",
     "shareLinksUpdatedSuccess": "Linki do paska bocznego zostały pomyślnie zaktualizowane!",
     "shareHome": "Share Home",
-    "linkIconPlaceholder": "Opcjonalnie można określić nazwę ikony materiału"
+    "linkIconPlaceholder": "Opcjonalnie można określić nazwę ikony materiału",
+    "dividerNamePlaceholder": "Tekst podziału (pozostaw pusty, aby wyświetlić linię)"
   },
   "success": {
     "linkCopied": "Link Skopiowany!"
@@ -628,7 +629,8 @@
     "lastUpdate": "Ostatnia aktualizacja{suffix}",
     "latency": "Opóźnienie{suffix}",
     "all": "Wszystkie{suffix}",
-    "expiration": "Wygaśnięcie{suffix}"
+    "expiration": "Wygaśnięcie{suffix}",
+    "divider": "Dzielnik{suffix}"
   },
   "access": {
     "rules": "Zasady dostępu",

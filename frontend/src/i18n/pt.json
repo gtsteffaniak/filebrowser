@@ -372,7 +372,8 @@
     "pickIconDescription": "Procurar e selecionar um ícone na biblioteca de ícones de materiais",
     "shareLinksUpdatedSuccess": "As ligações da barra lateral de partilha foram actualizadas com êxito!",
     "shareHome": "Partilhar casa",
-    "linkIconPlaceholder": "Especificar opcionalmente um nome de ícone de material"
+    "linkIconPlaceholder": "Especificar opcionalmente um nome de ícone de material",
+    "dividerNamePlaceholder": "Texto do separador (deixar em branco para mostrar uma linha)"
   },
   "success": {
     "linkCopied": "Link copiado!"
@@ -708,7 +709,8 @@
     "lastUpdate": "Última atualização{suffix}",
     "latency": "Latência{suffix}",
     "all": "Todos{suffix}",
-    "expiration": "Prazo de validade{suffix}"
+    "expiration": "Prazo de validade{suffix}",
+    "divider": "Divisor{suffix}"
   },
   "access": {
     "rules": "Regras de acesso",

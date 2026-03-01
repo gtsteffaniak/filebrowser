@@ -372,7 +372,8 @@
     "pickIconDescription": "Suchen und wählen Sie ein Symbol aus der Bibliothek der Materialsymbole",
     "shareLinksUpdatedSuccess": "Links in der Seitenleiste erfolgreich aktualisiert!",
     "shareHome": "Startseite teilen",
-    "linkIconPlaceholder": "Optional können Sie einen Materialsymbolnamen angeben"
+    "linkIconPlaceholder": "Optional können Sie einen Materialsymbolnamen angeben",
+    "dividerNamePlaceholder": "Teilertext (leer lassen, um eine Zeile anzuzeigen)"
   },
   "success": {
     "linkCopied": "Link wurde kopiert!"
@@ -628,7 +629,8 @@
     "lastUpdate": "Letzte Aktualisierung{suffix}",
     "latency": "Latenzzeit{suffix}",
     "all": "Alle{suffix}",
-    "expiration": "Verfallsdatum{suffix}"
+    "expiration": "Verfallsdatum{suffix}",
+    "divider": "Teiler{suffix}"
   },
   "access": {
     "rules": "Zugangsregeln",

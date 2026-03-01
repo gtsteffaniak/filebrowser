@@ -509,7 +509,8 @@
     "pickIconDescription": "Vyhledejte a vyberte ikonu z knihovny Material Icons.",
     "shareLinksUpdatedSuccess": "Odkazy na sdílení postranního panelu byly úspěšně aktualizovány!",
     "shareHome": "Sdílet Domů",
-    "linkIconPlaceholder": "Volitelně zadejte název ikony materiálu"
+    "linkIconPlaceholder": "Volitelně zadejte název ikony materiálu",
+    "dividerNamePlaceholder": "Text oddělovače (pro zobrazení řádku nechte prázdný)"
   },
   "success": {
     "linkCopied": "Odkaz zkopírován!"
@@ -708,7 +709,8 @@
     "lastUpdate": "Poslední aktualizace{suffix}",
     "latency": "Zpoždění{suffix}",
     "all": "Všechny{suffix}",
-    "expiration": "Expirace{suffix}"
+    "expiration": "Expirace{suffix}",
+    "divider": "Rozdělovač{suffix}"
   },
   "access": {
     "rules": "Pravidla přístupu",

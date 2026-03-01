@@ -372,7 +372,8 @@
     "pickIconDescription": "マテリアル・アイコン・ライブラリからアイコンを検索して選択します。",
     "shareLinksUpdatedSuccess": "サイドバーの共有リンクが正常に更新されました！",
     "shareHome": "シェア・ホーム",
-    "linkIconPlaceholder": "オプションで素材アイコン名を指定"
+    "linkIconPlaceholder": "オプションで素材アイコン名を指定",
+    "dividerNamePlaceholder": "分割テキスト（行を表示するには空白にする）"
   },
   "success": {
     "linkCopied": "リンクがコピーされました！"
@@ -628,7 +629,8 @@
     "lastUpdate": "最終更新{suffix}",
     "latency": "レイテンシー{suffix}",
     "all": "すべて{suffix}",
-    "expiration": "有効期限{suffix}"
+    "expiration": "有効期限{suffix}",
+    "divider": "ディバイダー{suffix}"
   },
   "access": {
     "rules": "アクセスルール",

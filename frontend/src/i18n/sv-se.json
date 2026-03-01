@@ -372,7 +372,8 @@
     "pickIconDescription": "Sök och välj en ikon från Material Icons-biblioteket",
     "shareLinksUpdatedSuccess": "Dela sidofältets länkar uppdaterades framgångsrikt!",
     "shareHome": "Dela hem",
-    "linkIconPlaceholder": "Ange eventuellt ett namn på materialikonen"
+    "linkIconPlaceholder": "Ange eventuellt ett namn på materialikonen",
+    "dividerNamePlaceholder": "Delningstext (lämna tom för att visa en rad)"
   },
   "success": {
     "linkCopied": "Länk kopierad"
@@ -708,7 +709,8 @@
     "lastUpdate": "Senaste uppdatering{suffix}",
     "latency": "Fördröjning{suffix}",
     "all": "Alla{suffix}",
-    "expiration": "Förfallodag{suffix}"
+    "expiration": "Förfallodag{suffix}",
+    "divider": "Uppdelare{suffix}"
   },
   "access": {
     "rules": "Regler för åtkomst",

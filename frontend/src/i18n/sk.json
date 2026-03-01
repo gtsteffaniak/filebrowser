@@ -372,7 +372,8 @@
     "pickIconDescription": "Vyhľadajte a vyberte ikonu z knižnice Material Icons",
     "shareLinksUpdatedSuccess": "Zdieľanie bočného panela odkazy úspešne aktualizované!",
     "shareHome": "Zdieľať Domov",
-    "linkIconPlaceholder": "Voliteľne zadajte názov ikony materiálu"
+    "linkIconPlaceholder": "Voliteľne zadajte názov ikony materiálu",
+    "dividerNamePlaceholder": "Text oddeľovača (nechajte prázdny, aby sa zobrazil riadok)"
   },
   "success": {
     "linkCopied": "Odkaz skopírovaný!"
@@ -628,7 +629,8 @@
     "lastUpdate": "Posledná aktualizácia{suffix}",
     "latency": "Latencia{suffix}",
     "all": "Všetky{suffix}",
-    "expiration": "Uplynutie platnosti{suffix}"
+    "expiration": "Uplynutie platnosti{suffix}",
+    "divider": "Rozdeľovač{suffix}"
   },
   "access": {
     "rules": "Pravidlá prístupu",

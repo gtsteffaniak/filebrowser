@@ -372,7 +372,8 @@
     "pickIconDescription": "Căutați și selectați o pictogramă din biblioteca Material Icons",
     "shareLinksUpdatedSuccess": "Link-urile din bara laterală de partajare au fost actualizate cu succes!",
     "shareHome": "Share Home",
-    "linkIconPlaceholder": "Opțional, specificați un nume de pictogramă de material"
+    "linkIconPlaceholder": "Opțional, specificați un nume de pictogramă de material",
+    "dividerNamePlaceholder": "Textul separatorului (lăsați gol pentru a afișa o linie)"
   },
   "success": {
     "linkCopied": "Legătură copiată!"
@@ -628,7 +629,8 @@
     "lastUpdate": "Ultima actualizare{suffix}",
     "latency": "Latență{suffix}",
     "all": "Toate{suffix}",
-    "expiration": "Expirare{suffix}"
+    "expiration": "Expirare{suffix}",
+    "divider": "Divizor{suffix}"
   },
   "access": {
     "rules": "Reguli de acces",

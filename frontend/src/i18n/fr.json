@@ -372,7 +372,8 @@
     "pickIconDescription": "Rechercher et sélectionner une icône dans la bibliothèque des icônes matérielles",
     "shareLinksUpdatedSuccess": "Les liens de la barre latérale de partage ont été mis à jour avec succès !",
     "shareHome": "Partager l'accueil",
-    "linkIconPlaceholder": "Spécifier éventuellement un nom d'icône de matériau"
+    "linkIconPlaceholder": "Spécifier éventuellement un nom d'icône de matériau",
+    "dividerNamePlaceholder": "Texte du séparateur (laisser en blanc pour montrer une ligne)"
   },
   "success": {
     "linkCopied": "Lien copié !"
@@ -628,7 +629,8 @@
     "lastUpdate": "Dernière mise à jour{suffix}",
     "latency": "Temps de latence{suffix}",
     "all": "Tous{suffix}",
-    "expiration": "Expiration{suffix}"
+    "expiration": "Expiration{suffix}",
+    "divider": "Diviseur{suffix}"
   },
   "access": {
     "rules": "Règles d'accès",

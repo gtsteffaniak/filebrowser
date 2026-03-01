@@ -375,7 +375,8 @@
     "pickIconDescription": "Αναζήτηση και επιλογή ενός εικονιδίου από τη βιβλιοθήκη Material Icons",
     "shareLinksUpdatedSuccess": "Οι σύνδεσμοι της πλαϊνής μπάρας κοινής χρήσης ενημερώθηκαν με επιτυχία!",
     "shareHome": "Μοιραστείτε το Home",
-    "linkIconPlaceholder": "Προαιρετικά καθορίστε ένα όνομα εικονιδίου υλικού"
+    "linkIconPlaceholder": "Προαιρετικά καθορίστε ένα όνομα εικονιδίου υλικού",
+    "dividerNamePlaceholder": "Κείμενο διαχωριστικού (αφήστε το κενό για να εμφανιστεί μια γραμμή)"
   },
   "success": {
     "linkCopied": "Ο σύνδεσμος αντιγράφηκε!"
@@ -628,7 +629,8 @@
     "lastUpdate": "Τελευταία ενημέρωση{suffix}",
     "latency": "Καθυστέρηση{suffix}",
     "all": "Όλα{suffix}",
-    "expiration": "Λήξη{suffix}"
+    "expiration": "Λήξη{suffix}",
+    "divider": "Διαχωριστικό{suffix}"
   },
   "access": {
     "rules": "Κανόνες πρόσβασης",

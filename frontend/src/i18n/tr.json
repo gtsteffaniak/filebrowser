@@ -372,7 +372,8 @@
     "pickIconDescription": "Materyal Simgeleri kitaplığından bir simge arayın ve seçin",
     "shareLinksUpdatedSuccess": "Kenar çubuğu bağlantılarını paylaşma başarıyla güncellendi!",
     "shareHome": "Ev Paylaşımı",
-    "linkIconPlaceholder": "İsteğe bağlı olarak bir malzeme simgesi adı belirtin"
+    "linkIconPlaceholder": "İsteğe bağlı olarak bir malzeme simgesi adı belirtin",
+    "dividerNamePlaceholder": "Bölücü metin (bir çizgi göstermek için boş bırakın)"
   },
   "success": {
     "linkCopied": "Link kopyalandı!"
@@ -628,7 +629,8 @@
     "lastUpdate": "Son Güncelleme{suffix}",
     "latency": "Gecikme{suffix}",
     "all": "Tümü{suffix}",
-    "expiration": "Son kullanma tarihi{suffix}"
+    "expiration": "Son kullanma tarihi{suffix}",
+    "divider": "Bölücü{suffix}"
   },
   "access": {
     "rules": "Erişim kuralları",
