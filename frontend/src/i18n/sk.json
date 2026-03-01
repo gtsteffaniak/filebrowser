@@ -31,7 +31,8 @@
     "goToItem": "Prejsť na položku",
     "watchFile": "Sledovať súbor",
     "showMore": "Zobraziť rozšírené možnosti",
-    "showLess": "Skryť rozšírené možnosti"
+    "showLess": "Skryť rozšírené možnosti",
+    "goToSource": "Prejsť na zdrojové miesto"
   },
   "download": {
     "downloadFile": "Stiahnuť súbor",

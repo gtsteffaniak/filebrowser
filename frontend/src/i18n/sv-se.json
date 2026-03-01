@@ -31,7 +31,8 @@
     "goToItem": "Gå till artikel",
     "watchFile": "Titta på filen",
     "showMore": "Visa avancerade alternativ",
-    "showLess": "Dölj avancerade alternativ"
+    "showLess": "Dölj avancerade alternativ",
+    "goToSource": "Gå till källplatsen"
   },
   "download": {
     "downloadFile": "Ladda ner fil",

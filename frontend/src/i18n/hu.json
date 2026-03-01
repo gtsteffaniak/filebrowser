@@ -31,7 +31,8 @@
     "goToItem": "Tovább a tételhez",
     "watchFile": "Nézze meg a fájlt",
     "showMore": "Speciális beállítások megjelenítése",
-    "showLess": "Speciális beállítások elrejtése"
+    "showLess": "Speciális beállítások elrejtése",
+    "goToSource": "Menj a forráshelyre"
   },
   "download": {
     "downloadFile": "Fájl letöltése",

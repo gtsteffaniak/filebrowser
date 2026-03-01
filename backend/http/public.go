@@ -246,8 +246,8 @@ func publicPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if !d.share.AllowModify {
 		return http.StatusForbidden, fmt.Errorf("create is not allowed for this share")
 	}
-	source, err := d.share.GetSourceName()
-	if err != nil {
+	sourceName := d.share.GetSourceName()
+	if sourceName == "" {
 		return http.StatusNotFound, fmt.Errorf("source not available")
 	}
 
@@ -264,7 +264,7 @@ func publicPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 
 	resolvedPath := utils.JoinPathAsUnix(d.share.Path, cleanPath)
-	err = files.WriteFile(source, resolvedPath, r.Body)
+	err = files.WriteFile(sourceName, resolvedPath, r.Body)
 	// hide the error
 	if err != nil {
 		logger.Errorf("public put handler: error updating resource with error %v", err)
@@ -344,8 +344,8 @@ func publicPatchHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	}
 
 	// Get the source from the share
-	source, err := d.share.GetSourceName()
-	if err != nil {
+	sourceName := d.share.GetSourceName()
+	if sourceName == "" {
 		return http.StatusNotFound, fmt.Errorf("source not available")
 	}
 
@@ -371,9 +371,9 @@ func publicPatchHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	// Note: Share paths are absolute, so we don't strip user scope here
 	// resourcePatchHandler will skip adding scope for shares
 	for i := range req.Items {
-		req.Items[i].FromSource = source
+		req.Items[i].FromSource = sourceName
 		req.Items[i].FromPath = utils.JoinPathAsUnix(d.share.Path, req.Items[i].FromPath)
-		req.Items[i].ToSource = source
+		req.Items[i].ToSource = sourceName
 		req.Items[i].ToPath = utils.JoinPathAsUnix(d.share.Path, req.Items[i].ToPath)
 	}
 	d.Data = req

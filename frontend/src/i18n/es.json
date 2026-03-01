@@ -31,7 +31,8 @@
     "goToItem": "Ir al elemento",
     "watchFile": "Ver archivo",
     "showMore": "Mostrar opciones avanzadas",
-    "showLess": "Ocultar opciones avanzadas"
+    "showLess": "Ocultar opciones avanzadas",
+    "goToSource": "Ir a la ubicación de origen"
   },
   "download": {
     "downloadFile": "Descargar archivo",

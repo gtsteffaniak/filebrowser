@@ -16,8 +16,15 @@
 
       <transition-group name="expand" tag="div" class="inner-card">
         <template v-for="(link, index) in sidebarLinksToDisplay" :key="`link-${index}-${link.category}`">
+          <a v-if="link.category === 'editShare'" :href="getLinkHref(link)"
+            class="action button sidebar-link-button" @click.prevent="showEditShareHover">
+            <div class="link-container">
+              <i class="material-icons link-icon">edit</i>
+              <span>{{ $t("general.edit", { suffix: " " + $t("general.share") }) }}</span>
+            </div>
+          </a>
           <!-- Source-type links: styled exactly like original sources -->
-          <a v-if="link.category === 'source'" :href="getLinkHref(link)"
+          <a v-else-if="link.category === 'source'" :href="getLinkHref(link)"
             class="action button source-button sidebar-link-button" :class="{
               active: isLinkActive(link),
               disabled: !isLinkAccessible(link)
@@ -65,16 +72,6 @@
             </div>
           </a>
         </template>
-
-        <!-- Edit Share link - only shown when viewing a share and user has share permissions -->
-        <a v-if="isShare && canEditShare" :aria-label="$t('general.edit', { suffix: ' ' + $t('general.share') })" href="#" 
-          class="action button sidebar-link-button"
-          @click.prevent="showEditShareHover">
-          <div class="link-container">
-            <i class="material-icons link-icon">edit</i>
-            <span>{{ $t("general.edit", { suffix: " " + $t("general.share") }) }}</span>
-          </div>
-        </a>
       </transition-group>
     </div>
   </transition>
@@ -116,10 +113,6 @@ export default {
     hasCustomLinks() {
       // Check if user has customized their links
       return this.user?.sidebarLinks && this.user.sidebarLinks.length > 0;
-    },
-    canEditShare() {
-      // Check if user is logged in and has share permissions
-      return state.user && state.user.permissions && state.user.permissions.share;
     },
     // Share info card props
     disableShareCard() {

@@ -31,7 +31,8 @@
     "goToItem": "Öğeye git",
     "watchFile": "Dosyayı izle",
     "showMore": "Gelişmiş Seçenekleri Göster",
-    "showLess": "Gelişmiş Seçenekleri Gizle"
+    "showLess": "Gelişmiş Seçenekleri Gizle",
+    "goToSource": "Kaynak Konuma Git"
   },
   "download": {
     "downloadFile": "Dosyayı indir",

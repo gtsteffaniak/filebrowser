@@ -31,7 +31,8 @@
     "goToItem": "前往項目",
     "watchFile": "觀看檔案",
     "showMore": "顯示進階選項",
-    "showLess": "隱藏進階選項"
+    "showLess": "隱藏進階選項",
+    "goToSource": "前往來源位置"
   },
   "download": {
     "downloadFile": "下載檔案",

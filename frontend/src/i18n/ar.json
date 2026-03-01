@@ -31,7 +31,8 @@
     "goToItem": "الانتقال إلى العنصر",
     "watchFile": "ملف المشاهدة",
     "showMore": "إظهار الخيارات المتقدمة",
-    "showLess": "إخفاء الخيارات المتقدمة"
+    "showLess": "إخفاء الخيارات المتقدمة",
+    "goToSource": "الانتقال إلى موقع المصدر"
   },
   "download": {
     "downloadFile": "Download File",

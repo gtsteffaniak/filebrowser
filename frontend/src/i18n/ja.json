@@ -31,7 +31,8 @@
     "goToItem": "アイテムへ",
     "watchFile": "ウォッチファイル",
     "showMore": "詳細オプションを表示",
-    "showLess": "詳細オプションを隠す"
+    "showLess": "詳細オプションを隠す",
+    "goToSource": "ソース・ロケーションへ"
   },
   "download": {
     "downloadFile": "ファイルをダウンロード",

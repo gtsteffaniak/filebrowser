@@ -31,7 +31,8 @@
     "goToItem": "转到项目",
     "watchFile": "观看文件",
     "showMore": "显示高级选项",
-    "showLess": "隐藏高级选项"
+    "showLess": "隐藏高级选项",
+    "goToSource": "转到源位置"
   },
   "download": {
     "downloadFile": "下载文件",

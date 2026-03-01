@@ -150,7 +150,8 @@
     "saveAndExit": "Save and Exit",
     "keepEditing": "Keep Editing",
     "closeAnyway": "Close Anyways",
-    "goToItem": "Go to Item"
+    "goToItem": "Go to Item",
+    "goToSource": "Go to Source Location"
   },
   "download": {
     "downloadFile": "Download File",

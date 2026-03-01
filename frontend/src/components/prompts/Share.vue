@@ -34,8 +34,13 @@
     </div>
 
     <div v-else-if="!isPickingFile">
-      <div aria-label="share-path" class="searchContext button"> {{ $t('general.path', { suffix: ':' }) }} {{
+      <div v-if="isFiles" aria-label="share-path" class="searchContext button"> {{ $t('general.path', { suffix: ':' }) }} {{
         displayPath }}</div>
+      <div v-else>
+        <a :href="link.sourceURL" class="button button--block">
+          {{ $t('buttons.goToSource') }}
+        </a>
+      </div>
       <p> {{ $t('share.notice') }} </p>
 
       <div v-if="listing">
@@ -473,6 +478,9 @@ export default {
     },
     isListing() {
       return getters.isListing(); // Access getter directly from the store
+    },
+    isFiles() {
+      return getters.isFiles(); // Access getter directly from the store
     },
     url() {
       if (state.isSearchActive) {

@@ -31,7 +31,8 @@
     "goToItem": "Ga naar item",
     "watchFile": "Bestand bekijken",
     "showMore": "Geavanceerde opties weergeven",
-    "showLess": "Geavanceerde opties verbergen"
+    "showLess": "Geavanceerde opties verbergen",
+    "goToSource": "Ga naar de bronlocatie"
   },
   "download": {
     "downloadFile": "Bestand downloaden",

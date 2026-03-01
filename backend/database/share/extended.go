@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 )
 
 // IsSingleFileShare determines if this share is for a single file (not a directory).
@@ -144,10 +145,18 @@ func (l *Link) HasReachedUserLimit(username string) bool {
 	return count >= l.DownloadsLimit
 }
 
-func (l *Link) GetSourceName() (string, error) {
+func (l *Link) GetSourceName() string {
 	sourceInfo, ok := settings.Config.Server.SourceMap[l.Source]
 	if !ok {
-		return "", fmt.Errorf("source not found")
+		return ""
 	}
-	return sourceInfo.Name, nil
+	return sourceInfo.Name
+}
+
+func (l *Link) UserCanEdit(user *users.User) bool {
+	return l.UserID == user.ID || user.Permissions.Admin
+}
+
+func (l *Link) SourceURL() string {
+	return fmt.Sprintf("%s%s%s", settings.Config.Server.BaseURL, l.GetSourceName(), l.Path)
 }
