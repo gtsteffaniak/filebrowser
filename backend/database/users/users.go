@@ -63,6 +63,7 @@ type Preview struct {
 	AutoplayMedia      bool `json:"autoplayMedia"`      // autoplay media files in preview
 	DefaultMediaPlayer bool `json:"defaultMediaPlayer"` // disable html5 media player and use the default media player
 	Folder             bool `json:"folder"`             // show thumbnail preview image for folder files
+	Models             bool `json:"models"`             // show live thumbnails for 3D models files
 }
 
 // User describes a user.

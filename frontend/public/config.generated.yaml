@@ -180,6 +180,7 @@ userDefaults:
     autoplayMedia: true                   # autoplay media files in preview
     defaultMediaPlayer: false             # disable the styled feature-rich media player for browser default
     folder: true                          # show thumbnails for folders that have previewable contents
+    models: true                          # show live thumbnails for 3D models files
   permissions:
     api: false                            # allow api access
     admin: false                          # allow admin access

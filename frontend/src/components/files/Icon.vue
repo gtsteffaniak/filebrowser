@@ -139,7 +139,7 @@ export default {
         return false;
       }
       // 3D models - show preview thumbnails (if backend provides them)
-      if (simpleType === "3d-model" && !getters.previewPerms().image) {
+      if (simpleType === "3d-model" && !getters.previewPerms().models) {
         return false;
       }
       return this.imageState !== 'error' && !this.disablePreviewExt && !this.officeFileDisabled;
@@ -216,6 +216,7 @@ export default {
     shouldUse3DPreview() {
       // Check if we should use 3D preview instead of regular icon
       if (!this.isFile || !this.size || !this.path) return false;
+      if (!getters.previewPerms().models) return false;
       
       const MAX_SIZE = 250 * 1024; // 250KB in bytes
       if (this.size > MAX_SIZE) return false;

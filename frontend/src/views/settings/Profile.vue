@@ -42,6 +42,8 @@
                 :name="$t('general.office')" :description="$t('profileSettings.previewOfficeDescription')" />
               <ToggleSwitch class="item" v-model="localuser.preview.folder" @change="updateSettings"
                 :name="$t('general.folders')" :description="$t('profileSettings.previewFolderDescription')" />
+              <ToggleSwitch class="item" v-model="localuser.preview.models" @change="updateSettings"
+                :name="$t('general.models')" :description="$t('profileSettings.previewModelsDescription')" />
               <ToggleSwitch class="item" v-model="localuser.preview.popup" @change="updateSettings"
                 :name="$t('profileSettings.popupPreview')"
                 :description="$t('profileSettings.popupPreviewDescription')" />
@@ -262,6 +264,7 @@ export default {
           this.localuser.preview.office = false;
           this.localuser.preview.popup = false;
           this.localuser.preview.folder = false;
+          this.localuser.preview.models = false;
         }
       },
     },

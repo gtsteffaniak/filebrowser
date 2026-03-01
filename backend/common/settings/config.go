@@ -733,6 +733,7 @@ func setDefaults(generate bool) Settings {
 				PopUp:              boolPtr(true),
 				AutoplayMedia:      boolPtr(true),
 				Folder:             boolPtr(true),
+				Models:             boolPtr(true),
 			},
 			FileLoading: users.FileLoading{
 				MaxConcurrent:     10,

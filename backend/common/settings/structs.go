@@ -313,6 +313,7 @@ type UserDefaultsPreview struct {
 	AutoplayMedia      *bool `json:"autoplayMedia"`      // autoplay media files in preview
 	DefaultMediaPlayer bool  `json:"defaultMediaPlayer"` // disable the styled feature-rich media player for browser default
 	Folder             *bool `json:"folder"`             // show thumbnails for folders that have previewable contents
+	Models             *bool `json:"models"`             // show live thumbnails for 3D models files 
 }
 
 // UserDefaultsPermissions holds permission settings with pointer types for defaults

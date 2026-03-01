@@ -5638,6 +5638,10 @@ const docTemplate = `{
                     "description": "show thumbnails for image files",
                     "type": "boolean"
                 },
+                "models": {
+                    "description": "show live thumbnails for 3D models files",
+                    "type": "boolean"
+                },
                 "motionVideoPreview": {
                     "description": "show multiple frames for videos in thumbnail preview when hovering",
                     "type": "boolean"
@@ -6243,6 +6247,10 @@ const docTemplate = `{
                 },
                 "image": {
                     "description": "show thumbnail preview image for image files",
+                    "type": "boolean"
+                },
+                "models": {
+                    "description": "show live thumbnails for 3D models files",
                     "type": "boolean"
                 },
                 "motionVideoPreview": {
