@@ -62,7 +62,7 @@ func convertToFrontendShareResponse(r *http.Request, shares []*share.Link, user 
 		s.DownloadURL = getShareURL(r, s.Hash, true, s.Token)
 		s.ShareURL = getShareURL(r, s.Hash, false, s.Token)
 		if s.UserCanEdit(user) {
-			s.CommonShare.SourceURL = s.SourceURL()
+			s.CommonShare.SourceURL = s.SourceURL(user)
 		}
 		// Create response with source name (overrides the embedded Link's source field)
 		responses = append(responses, &ShareResponse{
@@ -646,7 +646,7 @@ func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		}
 	}
 	if shareLink.UserCanEdit(d.user) {
-		commonShare.SourceURL = shareLink.SourceURL()
+		commonShare.SourceURL = shareLink.SourceURL(d.user)
 		link := users.SidebarLink{
 			Category: "editShare",
 		}

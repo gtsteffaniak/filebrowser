@@ -20,7 +20,10 @@
             class="link-drag-handle">
             <i class="material-icons">drag_indicator</i>
           </div>
-          <div class="link-icon">
+          <div v-if="link.category === 'divider'" class="link-icon">
+            <i class="material-icons">horizontal_rule</i>
+          </div>
+          <div v-else class="link-icon">
             <i :class="getIconClass(link.icon)">{{ link.icon }}</i>
           </div>
           <div class="link-details">
@@ -66,6 +69,7 @@
           <option value="share">{{ $t('general.share') }}</option>
           <option v-if="context === 'user'" value="tool">{{ $t('general.tool') }}</option>
           <option value="custom">{{ $t('sidebar.customLink') }}</option>
+          <option value="divider">{{ $t('general.divider') }}</option>
           <option v-if="context === 'share'" value="shareInfo">{{ $t('share.shareInfo') }}</option>
           <option v-if="context === 'share'" value="download">{{ $t('general.download') }}</option>
         </select>
@@ -148,6 +152,13 @@
           <p>{{ $t('share.downloadDescription') }}</p>
         </div>
 
+        <!-- Divider - special visual separator -->
+        <div v-if="newLink.category === 'divider'" class="form-group">          
+          <p>{{ $t('sidebar.linkName') }}</p>
+          <input aria-label="Link Name" v-model="newLink.name" type="text" class="input"
+            :placeholder="$t('sidebar.dividerNamePlaceholder')" />
+        </div>
+
         <!-- Custom Link Input -->
         <div v-if="newLink.category === 'custom'" class="form-group">
           <p>{{ $t('sidebar.linkName') }}</p>
@@ -159,8 +170,8 @@
             :placeholder="$t('sidebar.linkUrlPlaceholder')" />
         </div>
 
-        <!-- Icon Selection - Available for ALL link types -->
-        <div v-if="newLink.category" class="form-group">
+        <!-- Icon Selection - Available for ALL link types except divider -->
+        <div v-if="newLink.category && newLink.category !== 'divider'" class="form-group">
           <p>{{ $t('sidebar.linkIcon') }}</p>
           <div class="icon-input-group">
             <input v-model="newLink.icon" type="text" class="input icon-input"
@@ -285,8 +296,10 @@ export default {
     isNewLinkValid() {
       if (!this.newLink.category) return false;
 
-      // Special link types for shares don't need additional validation
-      if (this.newLink.category === "shareInfo" || this.newLink.category === "download") {
+      // Special link types that don't need additional validation
+      if (this.newLink.category === "shareInfo" || 
+          this.newLink.category === "download" || 
+          this.newLink.category === "divider") {
         return true;
       }
 
@@ -392,10 +405,16 @@ export default {
         share: this.$t('general.share'),
         shareInfo: this.$t('share.shareInfo'),
         download: this.$t('general.download'),
+        divider: this.$t('general.divider'),
       };
       return labels[category] || category;
     },
     getLinkDisplayName(link) {
+      // For dividers, show the name or a default
+      if (link.category === 'divider') {
+        return link.name || this.$t('general.divider');
+      }
+      
       // Check if the name looks like a translation key that needs translating
       if (link.category === 'shareInfo' && link.name === 'share.shareInfo') {
         return this.$t('share.shareInfo');
@@ -546,6 +565,11 @@ export default {
       } else if (this.newLink.category === "download") {
         // Download is a special action link
         linkData.target = "#";
+      } else if (this.newLink.category === "divider") {
+        // Divider is a visual separator with no action
+        linkData.target = "#";
+        linkData.name = this.newLink.name || ""; // Keep the custom name if provided
+        linkData.icon = ""; // Dividers don't need an icon
       } else if (this.newLink.category === "custom") {
         linkData.target = this.processCustomUrl(this.newLink.target);
       } else if (this.newLink.category === "source") {

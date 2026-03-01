@@ -7,7 +7,8 @@
       </div>
 
       <!-- Links section header -->
-      <div class="sidebar-links-header" :class="{ 'no-edit-options': isShare, 'with-top-spacing': isShare && !disableShareCard }">
+      <div class="sidebar-links-header"
+        :class="{ 'no-edit-options': isShare, 'with-top-spacing': isShare && !disableShareCard }">
         <i v-if="!isShare" @click="goHome()" class="material-icons action">home</i>
         <span>{{ $t("general.links") }}</span>
         <i v-if="!isShare" @mouseenter="showTooltip($event, $t('sidebar.customizeLinks'))" @mouseleave="hideTooltip"
@@ -16,11 +17,17 @@
 
       <transition-group name="expand" tag="div" class="inner-card">
         <template v-for="(link, index) in sidebarLinksToDisplay" :key="`link-${index}-${link.category}`">
-          <a v-if="link.category === 'editShare'" :href="getLinkHref(link)"
+          <!-- Divider: renders as hr line or text label -->
+          <div v-if="link.category === 'divider'" class="sidebar-divider-container">
+            <hr v-if="!link.name || link.name.toLowerCase() === 'divider'" class="sidebar-divider" />
+            <span v-else class="sidebar-divider-text">{{ link.name }}</span>
+          </div>
+          <a v-else-if="link.category === 'editShare'" :href="getLinkHref(link)"
+            :aria-label="$t('general.edit', { suffix: ' ' + $t('general.share') })"
             class="action button sidebar-link-button" @click.prevent="showEditShareHover">
             <div class="link-container">
               <i class="material-icons link-icon">edit</i>
-              <span>{{ $t("general.edit", { suffix: " " + $t("general.share") }) }}</span>
+              <span>{{ editShareText() }}</span>
             </div>
           </a>
           <!-- Source-type links: styled exactly like original sources -->
@@ -53,12 +60,11 @@
               </i>
             </div>
             <div v-if="hasUsageInfo(link)" class="usage-info">
-              <ProgressBar 
+              <ProgressBar
                 :key="`progress-${link.sourceName}-${sourceInfo[link.sourceName]?.used || 0}-${sourceInfo[link.sourceName]?.total || 0}`"
-                :val="getProgressBarValue(sourceInfo[link.sourceName] || {})" 
-                :max="(sourceInfo[link.sourceName] || {}).total || 1" 
-                :status="getProgressBarStatus(sourceInfo[link.sourceName] || {})"
-                unit="bytes">
+                :val="getProgressBarValue(sourceInfo[link.sourceName] || {})"
+                :max="(sourceInfo[link.sourceName] || {}).total || 1"
+                :status="getProgressBarStatus(sourceInfo[link.sourceName] || {})" unit="bytes">
               </ProgressBar>
             </div>
           </a>
@@ -66,7 +72,7 @@
           <!-- Non-source links: tool and custom links with simple icon style -->
           <a v-else :aria-label="link.name" :href="getLinkHref(link)" class="action button sidebar-link-button"
             :class="{ active: isLinkActive(link) }" @click.prevent="handleLinkClick(link)">
-            <div  class="link-container">
+            <div class="link-container">
               <i :class="getIconClass(link.icon) + ' link-icon'">{{ link.icon }}</i>
               <span>{{ link.name }}</span>
             </div>
@@ -98,7 +104,7 @@ export default {
     hasLinks() {
       return this.sidebarLinksToDisplay?.length > 0;
     },
-    user: () => (state.user || {username: 'anonymous'}),
+    user: () => (state.user || { username: 'anonymous' }),
     sourceInfo() {
       // Access state.sources.info to create reactive dependency
       return state.sources.info;
@@ -144,6 +150,9 @@ export default {
   },
   methods: {
     getIconClass,
+    editShareText() {
+      return this.$t("general.edit") + " " + this.$t("general.share");
+    },
     hasUsageInfo(link) {
       // Check if usage info should be displayed for this link
       // Returns true when link is accessible and has usage > 0
@@ -400,7 +409,6 @@ export default {
 </script>
 
 <style scoped>
-
 .no-edit-options {
   justify-content: center !important;
 }
@@ -620,6 +628,7 @@ a.sidebar-link-button {
 .realtime-pulse.warning>.center {
   fill: rgb(255, 157, 0);
 }
+
 .vue-simple-progress {
   margin-top: 0 !important;
 }
@@ -632,5 +641,26 @@ a.sidebar-link-button {
 
 .edit-share-button .link-icon {
   color: var(--primaryColor);
+}
+
+.sidebar-divider-container {
+  width: 100%;
+  margin-top: 0.5em;
+}
+
+.sidebar-divider {
+  width: 50%;
+  border: none;
+  border-top: 0.1em solid var(--divider);
+}
+
+.sidebar-divider-text {
+  display: flex;
+  font-size: .85em;
+  color: var(--textSecondary);
+  letter-spacing: .05em;
+  justify-content: center;
+  align-content: center;
+  align-items: center;
 }
 </style>

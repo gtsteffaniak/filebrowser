@@ -1,9 +1,9 @@
 package share
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
@@ -157,6 +157,13 @@ func (l *Link) UserCanEdit(user *users.User) bool {
 	return l.UserID == user.ID || user.Permissions.Admin
 }
 
-func (l *Link) SourceURL() string {
-	return fmt.Sprintf("%s%s%s", settings.Config.Server.BaseURL, l.GetSourceName(), l.Path)
+func (l *Link) SourceURL(user *users.User) string {
+	sourceName := l.GetSourceName()
+	// get user scope path from share
+	userScope, err := user.GetScopeForSourceName(sourceName)
+	if err != nil {
+		return ""
+	}
+	scopedPath := strings.TrimPrefix(l.Path, userScope)
+	return filepath.Join(settings.Config.Server.BaseURL, sourceName, scopedPath)
 }
