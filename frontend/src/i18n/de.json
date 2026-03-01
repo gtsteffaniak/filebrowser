@@ -31,7 +31,8 @@
     "goToItem": "Weiter zu Artikel",
     "watchFile": "Datei beobachten",
     "showMore": "Erweiterte Optionen anzeigen",
-    "showLess": "Erweiterte Optionen ausblenden"
+    "showLess": "Erweiterte Optionen ausblenden",
+    "goToSource": "Zum Quellort gehen"
   },
   "download": {
     "downloadFile": "Datei herunterladen",
@@ -381,7 +382,8 @@
     "showDiskUsageDescription": "Anzeige der Nutzungsleiste anhand der vom Betriebssystem gemeldeten Festplatten-/Partitionsgröße. Diese Größe wird wahrscheinlich größer sein und schließt nicht indizierte Dateien ein.",
     "usageTextDisplay": "Welcher Verwendungstext soll angezeigt werden?",
     "usageTextIndexed": "Nutzung wie indiziert",
-    "usageTextDisk": "Nutzung, wie von der Festplatte/Partition gemeldet"
+    "usageTextDisk": "Nutzung, wie von der Festplatte/Partition gemeldet",
+    "dividerNamePlaceholder": "Teilertext (leer lassen, um eine Zeile anzuzeigen)"
   },
   "success": {
     "linkCopied": "Link wurde kopiert!"
@@ -648,7 +650,8 @@
     "space": "Weltraum{suffix}",
     "format": "Format{suffix}",
     "office": "Büro{suffix}",
-    "show": "anzeigen{suffix}"
+    "show": "anzeigen{suffix}",
+    "divider": "Teiler{suffix}"
   },
   "access": {
     "rules": "Zugangsregeln",

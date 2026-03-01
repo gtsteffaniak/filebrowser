@@ -126,7 +126,8 @@
     "space": "Ruimte{suffix}",
     "format": "Formaat{suffix}",
     "office": "Kantoor{suffix}",
-    "show": "Toon{suffix}"
+    "show": "Toon{suffix}",
+    "divider": "Verdeler{suffix}"
   },
   "buttons": {
     "generateNewOtp": "Herstellen en nieuwe twee-factorcode genereren",
@@ -160,7 +161,8 @@
     "saveAndExit": "Opslaan en afsluiten",
     "keepEditing": "Blijven bewerken",
     "closeAnyway": "Sluiten",
-    "goToItem": "Ga naar item"
+    "goToItem": "Ga naar item",
+    "goToSource": "Ga naar de bronlocatie"
   },
   "download": {
     "downloadFile": "Bestand downloaden",
@@ -646,7 +648,8 @@
     "showDiskUsageDescription": "Geef de verbruiksbalk weer van de schijf-/partitiegrootte zoals gerapporteerd door het besturingssysteem. Deze grootte zal waarschijnlijk groter zijn en omvat bestanden die niet geïndexeerd zijn.",
     "usageTextDisplay": "Welke gebruikstekst moet worden weergegeven?",
     "usageTextIndexed": "gebruik zoals geïndexeerd",
-    "usageTextDisk": "gebruik zoals gerapporteerd door schijf/partitie"
+    "usageTextDisk": "gebruik zoals gerapporteerd door schijf/partitie",
+    "dividerNamePlaceholder": "Scheidingstekst (leeg laten om een lijn weer te geven)"
   },
   "success": {
     "linkCopied": "Koppeling gekopieerd!"

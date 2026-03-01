@@ -31,7 +31,8 @@
     "goToItem": "الانتقال إلى العنصر",
     "watchFile": "ملف المشاهدة",
     "showMore": "إظهار الخيارات المتقدمة",
-    "showLess": "إخفاء الخيارات المتقدمة"
+    "showLess": "إخفاء الخيارات المتقدمة",
+    "goToSource": "الانتقال إلى موقع المصدر"
   },
   "download": {
     "downloadFile": "Download File",
@@ -381,7 +382,8 @@
     "showDiskUsageDescription": "عرض شريط الاستخدام من حجم القرص/القسم كما أبلغ عنه نظام التشغيل. من المرجح أن يكون هذا الحجم أكبر ويتضمن ملفات غير مفهرسة.",
     "usageTextDisplay": "ما هو نص الاستخدام الذي يجب عرضه؟",
     "usageTextIndexed": "الاستخدام كما هو مفهرس",
-    "usageTextDisk": "الاستخدام كما تم الإبلاغ عنه بواسطة القرص/القسم"
+    "usageTextDisk": "الاستخدام كما تم الإبلاغ عنه بواسطة القرص/القسم",
+    "dividerNamePlaceholder": "نص المقسم (اتركه فارغًا لإظهار سطر)"
   },
   "success": {
     "linkCopied": "تم نسخ الملف"
@@ -648,7 +650,8 @@
     "space": "الفضاء{suffix}",
     "format": "التنسيق{suffix}",
     "office": "المكتب{suffix}",
-    "show": "عرض{suffix}"
+    "show": "عرض{suffix}",
+    "divider": "مقسم{suffix}"
   },
   "access": {
     "rules": "قواعد الوصول",

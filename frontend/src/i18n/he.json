@@ -31,7 +31,8 @@
     "goToItem": "עבור לפריט",
     "watchFile": "צפה בקובץ",
     "showMore": "הצג אפשרויות מתקדמות",
-    "showLess": "הסתר אפשרויות מתקדמות"
+    "showLess": "הסתר אפשרויות מתקדמות",
+    "goToSource": "עבור למיקום המקור"
   },
   "download": {
     "downloadFile": "הורד קובץ",
@@ -381,7 +382,8 @@
     "showDiskUsageDescription": "הצג את סרגל השימוש בגודל הדיסק/מחיצה כפי שדווח על ידי מערכת ההפעלה. גודל זה צפוי להיות גדול יותר וכולל קבצים שלא הוכנסו לאינדקס.",
     "usageTextDisplay": "איזה טקסט שימוש יש להציג?",
     "usageTextIndexed": "שימוש כפי שמופיע באינדקס",
-    "usageTextDisk": "שימוש כפי שדווח על ידי דיסק/מחיצה"
+    "usageTextDisk": "שימוש כפי שדווח על ידי דיסק/מחיצה",
+    "dividerNamePlaceholder": "טקסט מפריד (השאר ריק כדי להציג קו)"
   },
   "success": {
     "linkCopied": "הקישור הועתק!"
@@ -648,7 +650,8 @@
     "space": "חלל{suffix}",
     "format": "פורמט{suffix}",
     "office": "משרד{suffix}",
-    "show": "הצג{suffix}"
+    "show": "הצג{suffix}",
+    "divider": "מפריד{suffix}"
   },
   "access": {
     "rules": "כללי גישה",

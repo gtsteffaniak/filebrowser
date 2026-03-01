@@ -31,7 +31,8 @@
     "goToItem": "前往項目",
     "watchFile": "觀看檔案",
     "showMore": "顯示進階選項",
-    "showLess": "隱藏進階選項"
+    "showLess": "隱藏進階選項",
+    "goToSource": "前往來源位置"
   },
   "download": {
     "downloadFile": "下載檔案",
@@ -381,7 +382,8 @@
     "showDiskUsageDescription": "根據作業系統報告的磁碟/磁碟分割大小顯示使用量列。此大小可能較大，並包括未編制索引的檔案。",
     "usageTextDisplay": "應該顯示哪些使用文字？",
     "usageTextIndexed": "索引的用途",
-    "usageTextDisk": "磁碟/磁碟分割報告的使用量"
+    "usageTextDisk": "磁碟/磁碟分割報告的使用量",
+    "dividerNamePlaceholder": "分割線文字（留空顯示一行）"
   },
   "success": {
     "linkCopied": "連結已複製！"
@@ -726,7 +728,8 @@
     "space": "空間{suffix}",
     "format": "格式{suffix}",
     "office": "辦公室{suffix}",
-    "show": "顯示{suffix}"
+    "show": "顯示{suffix}",
+    "divider": "分割器{suffix}"
   },
   "access": {
     "rules": "存取規則",

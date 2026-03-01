@@ -6,10 +6,10 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io/fs"
 	"net"
 	"net/http"
-	"text/template"
 	"time"
 
 	_ "net/http/pprof"

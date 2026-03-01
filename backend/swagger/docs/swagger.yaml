@@ -208,6 +208,8 @@ definitions:
       source:
         description: Override embedded field to show source name
         type: string
+      sourceURL:
+        type: string
       themeColor:
         type: string
       title:
@@ -1403,6 +1405,8 @@ definitions:
       source:
         description: backend source is path to maintain between name changes
         type: string
+      sourceURL:
+        type: string
       themeColor:
         type: string
       title:
@@ -1505,6 +1509,8 @@ definitions:
         type: array
       source:
         description: backend source is path to maintain between name changes
+        type: string
+      sourceURL:
         type: string
       themeColor:
         type: string
@@ -1612,6 +1618,8 @@ definitions:
         type: array
       source:
         description: backend source is path to maintain between name changes
+        type: string
+      sourceURL:
         type: string
       themeColor:
         type: string

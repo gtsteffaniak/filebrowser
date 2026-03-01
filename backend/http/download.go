@@ -139,6 +139,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	var documentId string
 	var logContext *OnlyOfficeLogContext
 
+	// modify all filepaths for user scope
 	if d.share == nil {
 		userscope, err = d.user.GetScopeForSourceName(source)
 		if err != nil {
@@ -160,8 +161,11 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 			}
 			return http.StatusForbidden, err
 		}
-		firstFilePath = utils.JoinPathAsUnix(userscope, firstFilePath)
+		for i, filePath := range fileList {
+			fileList[i] = utils.JoinPathAsUnix(userscope, filePath)
+		}
 	}
+	firstFilePath = fileList[0]
 	// For shares, the path is already correctly resolved by publicRawHandler
 	idx := indexing.GetIndex(source)
 	if idx == nil {

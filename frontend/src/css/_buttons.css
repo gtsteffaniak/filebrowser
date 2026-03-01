@@ -10,6 +10,7 @@
   color: white;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.05);
   transition: .1s ease all;
+<<<<<<< HEAD
   min-width: 2em;
   min-height: 2em;
   padding-left: 1em;
@@ -31,6 +32,9 @@ button {
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+=======
+  text-align: center;
+>>>>>>> staging/v1.2.2
 }
 
 .button--block {

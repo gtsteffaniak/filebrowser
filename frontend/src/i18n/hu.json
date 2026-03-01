@@ -31,7 +31,8 @@
     "goToItem": "Tovább a tételhez",
     "watchFile": "Nézze meg a fájlt",
     "showMore": "Speciális beállítások megjelenítése",
-    "showLess": "Speciális beállítások elrejtése"
+    "showLess": "Speciális beállítások elrejtése",
+    "goToSource": "Menj a forráshelyre"
   },
   "download": {
     "downloadFile": "Fájl letöltése",
@@ -381,7 +382,8 @@
     "showDiskUsageDescription": "A lemez/partíció méretéből származó, az operációs rendszer által jelentett használati sáv megjelenítése. Ez a méret valószínűleg nagyobb lesz, és tartalmazza az indexeletlen fájlokat is.",
     "usageTextDisplay": "Milyen használati szöveget kell megjeleníteni?",
     "usageTextIndexed": "indexált használat",
-    "usageTextDisk": "lemez/partíció által bejelentett használat"
+    "usageTextDisk": "lemez/partíció által bejelentett használat",
+    "dividerNamePlaceholder": "Választószöveg (üresen hagyva egy sor megjelenítéséhez)"
   },
   "success": {
     "linkCopied": "Link másolva!"
@@ -648,7 +650,8 @@
     "space": "Űr{suffix}",
     "format": "Formátum{suffix}",
     "office": "Iroda{suffix}",
-    "show": "Mutasd meg a{suffix}"
+    "show": "Mutasd meg a{suffix}",
+    "divider": "Választó{suffix}"
   },
   "access": {
     "rules": "Hozzáférési szabályok",

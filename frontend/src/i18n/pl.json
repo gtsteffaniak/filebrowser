@@ -31,7 +31,8 @@
     "goToItem": "Przejdź do pozycji",
     "watchFile": "Oglądaj plik",
     "showMore": "Pokaż opcje zaawansowane",
-    "showLess": "Ukryj opcje zaawansowane"
+    "showLess": "Ukryj opcje zaawansowane",
+    "goToSource": "Przejdź do lokalizacji źródłowej"
   },
   "download": {
     "downloadFile": "Pobierz plik",
@@ -381,7 +382,8 @@
     "showDiskUsageDescription": "Wyświetla pasek użycia na podstawie rozmiaru dysku/partycji zgłoszonego przez system operacyjny. Rozmiar ten będzie prawdopodobnie większy i obejmuje pliki niezindeksowane.",
     "usageTextDisplay": "Jaki tekst użytkowania powinien być wyświetlany?",
     "usageTextIndexed": "użycie jako indeksowane",
-    "usageTextDisk": "użycie zgłoszone przez dysk/partycję"
+    "usageTextDisk": "użycie zgłoszone przez dysk/partycję",
+    "dividerNamePlaceholder": "Tekst podziału (pozostaw pusty, aby wyświetlić linię)"
   },
   "success": {
     "linkCopied": "Link Skopiowany!"
@@ -648,7 +650,8 @@
     "space": "Przestrzeń{suffix}",
     "format": "Format{suffix}",
     "office": "Biuro{suffix}",
-    "show": "Pokaż{suffix}"
+    "show": "Pokaż{suffix}",
+    "divider": "Dzielnik{suffix}"
   },
   "access": {
     "rules": "Zasady dostępu",

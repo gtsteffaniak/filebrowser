@@ -537,10 +537,10 @@ func createZip(d *requestContext, source string, tmpPath string, filenames ...st
 
 	zipWriter := zip.NewWriter(file)
 
-	for _, fname := range filenames {
-		err := addFile(source, fname, d, nil, zipWriter, false)
+	for _, filepath := range filenames {
+		err := addFile(source, filepath, d, nil, zipWriter, false)
 		if err != nil {
-			logger.Errorf("Failed to add %s to ZIP: %v", fname, err)
+			logger.Errorf("Failed to add %s to ZIP: %v", filepath, err)
 			return err
 		}
 	}
@@ -562,10 +562,10 @@ func createTarGz(d *requestContext, source string, tmpPath string, filenames ...
 	gzWriter := gzip.NewWriter(file)
 	tarWriter := tar.NewWriter(gzWriter)
 
-	for _, fname := range filenames {
-		err := addFile(source, fname, d, tarWriter, nil, false)
+	for _, filepath := range filenames {
+		err := addFile(source, filepath, d, tarWriter, nil, false)
 		if err != nil {
-			logger.Errorf("Failed to add %s to TAR.GZ: %v", fname, err)
+			logger.Errorf("Failed to add %s to TAR.GZ: %v", filepath, err)
 			return err
 		}
 	}
@@ -600,10 +600,10 @@ func createTarGzWithLevel(d *requestContext, source string, destPath string, lev
 	tarWriter := tar.NewWriter(gzWriter)
 	defer tarWriter.Close()
 
-	for _, fname := range filenames {
-		err := addFile(source, fname, d, tarWriter, nil, false)
+	for _, filepath := range filenames {
+		err := addFile(source, filepath, d, tarWriter, nil, false)
 		if err != nil {
-			logger.Errorf("Failed to add %s to TAR.GZ: %v", fname, err)
+			logger.Errorf("Failed to add %s to TAR.GZ: %v", filepath, err)
 			return err
 		}
 	}
@@ -620,12 +620,16 @@ func BuildAndStreamArchive(w http.ResponseWriter, r *http.Request, d *requestCon
 	var userscope string
 	var err error
 
+	// modify all filepaths for user scope
 	if d.share == nil {
 		userscope, err = d.user.GetScopeForSourceName(source)
 		if err != nil {
 			return http.StatusForbidden, err
 		}
-		firstFilePath = utils.JoinPathAsUnix(userscope, firstFilePath)
+		for i, filePath := range fileList {
+			fileList[i] = utils.JoinPathAsUnix(userscope, filePath)
+		}
+		firstFilePath = fileList[0]
 	}
 
 	idx := indexing.GetIndex(source)

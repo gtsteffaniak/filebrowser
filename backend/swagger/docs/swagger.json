@@ -4202,6 +4202,9 @@
                     "description": "Override embedded field to show source name",
                     "type": "string"
                 },
+                "sourceURL": {
+                    "type": "string"
+                },
                 "themeColor": {
                     "type": "string"
                 },
@@ -5764,6 +5767,9 @@
                     "description": "backend source is path to maintain between name changes",
                     "type": "string"
                 },
+                "sourceURL": {
+                    "type": "string"
+                },
                 "themeColor": {
                     "type": "string"
                 },
@@ -5909,6 +5915,9 @@
                 },
                 "source": {
                     "description": "backend source is path to maintain between name changes",
+                    "type": "string"
+                },
+                "sourceURL": {
                     "type": "string"
                 },
                 "themeColor": {
@@ -6062,6 +6071,9 @@
                 },
                 "source": {
                     "description": "backend source is path to maintain between name changes",
+                    "type": "string"
+                },
+                "sourceURL": {
                     "type": "string"
                 },
                 "themeColor": {

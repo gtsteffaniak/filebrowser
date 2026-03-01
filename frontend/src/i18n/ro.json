@@ -31,7 +31,8 @@
     "goToItem": "Du-te la articol",
     "watchFile": "Fișier de vizionare",
     "showMore": "Afișare opțiuni avansate",
-    "showLess": "Ascundeți opțiunile avansate"
+    "showLess": "Ascundeți opțiunile avansate",
+    "goToSource": "Du-te la locația sursei"
   },
   "download": {
     "downloadFile": "Descarcă fișier",
@@ -381,7 +382,8 @@
     "showDiskUsageDescription": "Afișează bara de utilizare din dimensiunea discului/partiției raportată de sistemul de operare. Această dimensiune va fi probabil mai mare și include fișiere care nu sunt indexate.",
     "usageTextDisplay": "Ce text de utilizare ar trebui să fie afișat?",
     "usageTextIndexed": "utilizare ca indexat",
-    "usageTextDisk": "utilizare raportată de disc/partiție"
+    "usageTextDisk": "utilizare raportată de disc/partiție",
+    "dividerNamePlaceholder": "Textul separatorului (lăsați gol pentru a afișa o linie)"
   },
   "success": {
     "linkCopied": "Legătură copiată!"
@@ -648,7 +650,8 @@
     "space": "Spațiu{suffix}",
     "format": "Format{suffix}",
     "office": "Birou{suffix}",
-    "show": "Spectacol{suffix}"
+    "show": "Spectacol{suffix}",
+    "divider": "Divizor{suffix}"
   },
   "access": {
     "rules": "Reguli de acces",
