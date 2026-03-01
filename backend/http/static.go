@@ -31,7 +31,8 @@ func (t *TemplateRenderer) Render(w http.ResponseWriter, name string, data inter
 		var err error
 		templates = template.New("").Funcs(template.FuncMap{
 			"marshal": func(v interface{}) (string, error) {
-				a, err := json.Marshal(v)
+				var a []byte
+				a, err = json.Marshal(v)
 				return string(a), err
 			},
 		})
