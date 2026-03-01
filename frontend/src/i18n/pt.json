@@ -552,6 +552,7 @@
     "orange": "laranja"
   },
   "profileSettings": {
+    "previewModelsDescription": "Mostrar pré-visualizações em miniatura para modelos 3D, será mostrado um ícone genérico se desativado",
     "previewAudiosDescription": "Mostrar visualizações em miniatura para áudios, um ícone genérico será mostrado se desativado",
     "setDateFormat": "Definir o formato exato da data",
     "showHiddenFiles": "Mostrar ficheiros ocultos",
@@ -647,6 +648,7 @@
     "photos": "Fotos",
     "audios": "Áudios{suffix}",
     "videos": "Vídeos{suffix}",
+    "models": "Modelos 3D",
     "documents": "Documentos{suffix}",
     "archives": "Arquivos{suffix}",
     "images": "Imagens{suffix}",

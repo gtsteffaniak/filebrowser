@@ -276,6 +276,7 @@
     "photos": "Myndir",
     "audios": "Hljóðskrár{suffix}",
     "videos": "Myndskeið",
+    "models": "Þrívíð líkön",
     "documents": "Skjöl",
     "archives": "Safnskrár",
     "notEnoughCharacters": "Ekki nógu mörg stafir til að leita (lágmark {minSearchLength})",
@@ -295,6 +296,7 @@
     "helpText2": "Vísirinn: Leit nýtir vísinn sem uppfærast sjálfkrafa á stilluðu millibili (sjálfgefið: 5 mínútur). Leit þegar forritið er nýrætt getur leitt til ófullnægjandi niðurstaðna."
   },
   "profileSettings": {
+    "previewModelsDescription": "Sýna smámyndaforskoðun fyrir þrívíð líkön, mun sýna almenn tákn ef óvirkt",
     "previewAudiosDescription": "Sýna smámyndaforskoðun fyrir hljóðskrár, mun sýna almenn tákn ef óvirkt",
     "previewFolder": "Sýna smámyndir fyrir möppur ef tiltækar",
     "previewFolderDescription": "Sýna smámyndaforskoðun fyrir möppur með fyrsta barnatriði með smámynd sem forsíðu.",

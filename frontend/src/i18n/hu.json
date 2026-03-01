@@ -568,6 +568,7 @@
     "photos": "Fotók",
     "audios": "Hangfájlok{suffix}",
     "videos": "Videók{suffix}",
+    "models": "3D modellek",
     "documents": "Dokumentumok{suffix}",
     "archives": "Archívum{suffix}",
     "images": "Képek{suffix}",
@@ -697,6 +698,7 @@
     "orange": "narancs"
   },
   "profileSettings": {
+    "previewModelsDescription": "Miniatűr előnézetek megjelenítése 3D modellekhez, általános ikon jelenik meg ha letiltott",
     "previewAudiosDescription": "Miniatűr előnézetek megjelenítése hangfájlokhoz, általános ikon jelenik meg ha letiltott",
     "setDateFormat": "Pontos dátumformátum beállítása",
     "showHiddenFiles": "Rejtett fájlok megjelenítése",

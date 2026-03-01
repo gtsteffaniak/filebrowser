@@ -568,6 +568,7 @@
     "photos": "Фотографии",
     "audios": "Аудио{suffix}",
     "videos": "Видео{suffix}",
+    "models": "3D-модели",
     "documents": "Документы{suffix}",
     "archives": "Архивы{suffix}",
     "images": "Изображения{suffix}",
@@ -697,6 +698,7 @@
     "orange": "оранжевый"
   },
   "profileSettings": {
+    "previewModelsDescription": "Показывать миниатюры для 3D-моделей, если отключено, будет показана стандартная иконка",
     "previewAudiosDescription": "Показывать миниатюры для аудиофайлов, если отключено, будет показана стандартная иконка",
     "setDateFormat": "Установить точный формат даты",
     "showHiddenFiles": "Показывать скрытые файлы",

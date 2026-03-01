@@ -46,6 +46,7 @@
     "commands": "Opdrachten{suffix}",
     "photos": "Foto's",
     "audios": "Audio{suffix}",
+    "models": "3D-modellen",
     "videos": "Video's{suffix}",
     "documents": "Documenten{suffix}",
     "archives": "Archieven{suffix}",
@@ -454,6 +455,7 @@
     "helpText2": "De index: Zoeken maakt gebruik van de index die automatisch wordt bijgewerkt op het ingestelde interval (standaard: 5 minuten). Zoeken als het programma net is gestart, kan onvolledige resultaten opleveren."
   },
   "profileSettings": {
+    "previewModelsDescription": "Toon miniatuurweergaven voor 3D-modellen, er wordt een algemeen pictogram getoond indien uitgeschakeld",
     "previewAudiosDescription": "Toon miniatuurweergaven voor audiobestanden, er wordt een algemeen pictogram getoond indien uitgeschakeld",
     "debugOfficeEditor": "OnlyOffice foutopsporingsmodus inschakelen",
     "debugOfficeEditorDescription": "Een foutopsporingspop-up weergeven met aanvullende informatie in de OnlyOffice-editor.",

@@ -552,6 +552,7 @@
     "orange": "橘色"
   },
   "profileSettings": {
+    "previewModelsDescription": "显示3D模型的缩略图预览，如果禁用则显示通用图标",
     "previewAudiosDescription": "显示音频的缩略图预览，如果禁用则显示通用图标",
     "setDateFormat": "设置准确的日期格式",
     "showHiddenFiles": "显示隐藏文件",
@@ -646,6 +647,7 @@
     "users": "用户{suffix}",
     "photos": "照片",
     "audios": "音频{suffix}",
+    "models": "3D模型",
     "videos": "视频{suffix}",
     "documents": "文件{suffix}",
     "archives": "档案{suffix}",

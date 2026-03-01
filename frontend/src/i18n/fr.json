@@ -568,6 +568,7 @@
     "photos": "Photos",
     "audios": "Audios{suffix}",
     "videos": "Vidéos{suffix}",
+    "models": "Modèles 3D",
     "documents": "Documents{suffix}",
     "archives": "Archives{suffix}",
     "images": "Images{suffix}",
@@ -697,6 +698,7 @@
     "orange": "orange"
   },
   "profileSettings": {
+    "previewModelsDescription": "Afficher les aperçus miniatures pour les modèles 3D, une icône générique s'affichera si désactivé",
     "previewAudiosDescription": "Afficher les aperçus miniatures pour les fichiers audio, une icône générique s'affichera si désactivé",
     "setDateFormat": "Définir le format exact de la date",
     "showHiddenFiles": "Afficher les fichiers cachés",

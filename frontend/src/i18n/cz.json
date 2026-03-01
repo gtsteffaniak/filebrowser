@@ -324,6 +324,7 @@
     "showPreviewImagesDescription": "Zobrazení miniaturních náhledů výsledků vyhledávání, pokud jsou k dispozici, a zobrazení větších ikon u všech výsledků."
   },
   "profileSettings": {
+    "previewModelsDescription": "Zobrazit náhledy miniatur pro 3D modely, pokud je zakázáno, zobrazí se obecná ikona",
     "previewAudiosDescription": "Zobrazit náhledy miniatur pro zvuky, pokud je zakázáno, zobrazí se obecná ikona",
     "setDateFormat": "Nastavit formát data",
     "showHiddenFiles": "Zobrazit skryté soubory",
@@ -647,6 +648,7 @@
     "photos": "Fotografie",
     "audios": "Zvuky{suffix}",
     "videos": "Videa{suffix}",
+    "models": "3D modely",
     "documents": "Dokumenty{suffix}",
     "archives": "Archivy{suffix}",
     "images": "Obrázky{suffix}",

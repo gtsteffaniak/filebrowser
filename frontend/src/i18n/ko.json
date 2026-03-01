@@ -568,6 +568,7 @@
     "photos": "사진",
     "audios": "오디오{suffix}",
     "videos": "동영상{suffix}",
+    "models": "3D 모델",
     "documents": "문서{suffix}",
     "archives": "아카이브{suffix}",
     "images": "이미지{suffix}",
@@ -697,6 +698,7 @@
     "orange": "오렌지"
   },
   "profileSettings": {
+    "previewModelsDescription": "3D 모델의 썸네일 미리보기를 표시합니다. 비활성화된 경우 일반 아이콘이 표시됩니다",
     "previewAudiosDescription": "오디오의 썸네일 미리보기를 표시합니다. 비활성화된 경우 일반 아이콘이 표시됩니다",
     "setDateFormat": "정확한 날짜 형식 설정",
     "showHiddenFiles": "숨겨진 파일 표시",

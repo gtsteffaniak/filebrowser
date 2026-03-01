@@ -552,6 +552,7 @@
     "orange": "oranje"
   },
   "profileSettings": {
+    "previewModelsDescription": "Toon miniatuurweergaven voor 3D-modellen, er wordt een algemeen pictogram getoond indien uitgeschakeld",
     "previewAudiosDescription": "Toon miniatuurweergaven voor audiobestanden, er wordt een algemeen pictogram getoond indien uitgeschakeld",
     "setDateFormat": "Exact datumformaat instellen",
     "showHiddenFiles": "Verborgen bestanden weergeven",
@@ -646,6 +647,7 @@
     "users": "Gebruikers{suffix}",
     "photos": "Foto's",
     "audios": "Audio's{suffix}",
+    "models": "3D-modellen",
     "videos": "Video's{suffix}",
     "documents": "Documenten{suffix}",
     "archives": "Archief{suffix}",

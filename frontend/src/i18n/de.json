@@ -568,6 +568,7 @@
     "photos": "Fotos",
     "audios": "Audios{suffix}",
     "videos": "Videos{suffix}",
+    "models": "3D-Modelle",
     "documents": "Dokumente{suffix}",
     "archives": "Archiv{suffix}",
     "images": "Bilder{suffix}",
@@ -697,6 +698,7 @@
     "orange": "orange"
   },
   "profileSettings": {
+    "previewModelsDescription": "Vorschaubilder für 3D-Modelle anzeigen, bei Deaktivierung wird ein generisches Symbol angezeigt",
     "previewAudiosDescription": "Vorschaubilder für Audiodateien anzeigen, bei Deaktivierung wird ein generisches Symbol angezeigt",
     "setDateFormat": "Genaues Datum statt relativer Zeitangaben verwenden",
     "showHiddenFiles": "Versteckte Dateien anzeigen",

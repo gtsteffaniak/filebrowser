@@ -552,6 +552,7 @@
     "orange": "помаранчевий"
   },
   "profileSettings": {
+    "previewModelsDescription": "Показувати мініатюри для 3D-моделей, якщо вимкнено, буде показано стандартну іконку",
     "previewAudiosDescription": "Показувати мініатюри для аудіофайлів, якщо вимкнено, буде показано стандартну іконку",
     "setDateFormat": "Встановіть точний формат дати",
     "showHiddenFiles": "Показати приховані файли",
@@ -646,6 +647,7 @@
     "users": "Користувачі{suffix}",
     "photos": "Фотографії",
     "audios": "Аудіо{suffix}",
+    "models": "3D-моделі",
     "videos": "Відео{suffix}",
     "documents": "Документи{suffix}",
     "archives": "Архіви{suffix}",

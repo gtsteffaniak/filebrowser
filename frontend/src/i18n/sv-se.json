@@ -552,6 +552,7 @@
     "orange": "apelsin"
   },
   "profileSettings": {
+    "previewModelsDescription": "Visa miniatyrförhandsvisningar för 3D-modeller, kommer att visa generisk ikon om inaktiverad",
     "previewAudiosDescription": "Visa miniatyrförhandsvisningar för ljudfiler, kommer att visa generisk ikon om inaktiverad",
     "setDateFormat": "Ange exakt datumformat",
     "showHiddenFiles": "Visa dolda filer",
@@ -647,6 +648,7 @@
     "photos": "Bilder",
     "audios": "Ljud{suffix}",
     "videos": "Videor{suffix}",
+    "models": "3D-modeller",
     "documents": "Dokument{suffix}",
     "archives": "Arkiv{suffix}",
     "images": "Bilder{suffix}",

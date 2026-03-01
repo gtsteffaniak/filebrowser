@@ -568,6 +568,7 @@
     "photos": "Fotografie",
     "audios": "Zvuky{suffix}",
     "videos": "Videá{suffix}",
+    "models": "3D modely",
     "documents": "Dokumenty{suffix}",
     "archives": "Archív{suffix}",
     "images": "Obrázky{suffix}",
@@ -697,6 +698,7 @@
     "orange": "oranžová"
   },
   "profileSettings": {
+    "previewModelsDescription": "Zobraziť miniatúry náhľadov pre 3D modely, ak je zakázané, zobrazí sa všeobecná ikona",
     "previewAudiosDescription": "Zobraziť miniatúry náhľadov pre zvuky, ak je zakázané, zobrazí sa všeobecná ikona",
     "setDateFormat": "Nastavenie presného formátu dátumu",
     "showHiddenFiles": "Zobrazenie skrytých súborov",

@@ -248,7 +248,7 @@ export default {
     showThumbnailsForPreviews: {
       get() {
         const p = this.localuser.preview || {};
-        return !!(p.image || p.audio || p.video || p.motionVideoPreview || p.office || p.popup || p.folder);
+        return !!(p.image || p.audio || p.video || p.motionVideoPreview || p.office || p.popup || p.folder || p.models);
       },
       set(enabled) {
         if (!this.localuser.preview) {
