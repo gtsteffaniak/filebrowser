@@ -645,13 +645,22 @@ func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 			commonShare.SidebarLinks = append(commonShare.SidebarLinks, link)
 		}
 	}
+	commonShare.SourceURL = shareLink.SourceURL(d.user)
 	if shareLink.UserCanEdit(d.user) {
-		commonShare.SourceURL = shareLink.SourceURL(d.user)
 		link := users.SidebarLink{
 			Category: "editShare",
 		}
 		commonShare.SidebarLinks = append(commonShare.SidebarLinks, link)
 	}
+	if commonShare.SourceURL != "" {
+		link := users.SidebarLink{
+			Name:     "sourceLocation",
+			Category: "custom",
+			Target:   commonShare.SourceURL,
+		}
+		commonShare.SidebarLinks = append(commonShare.SidebarLinks, link)
+	}
+
 	return renderJSON(w, r, commonShare)
 }
 

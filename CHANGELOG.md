@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.2.2-stable
 
+ **New Features**:
+ - "Divider" option in sidebar links to add a text or divider between links ()
+ - shares offer a "go to source Location" sidebar link and button when editing a share.
+
  **Notes**:
  - Share edit/delete permissions are scoped to the user's shares rather than global (#2050)
 

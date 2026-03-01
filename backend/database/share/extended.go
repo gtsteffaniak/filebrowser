@@ -164,6 +164,9 @@ func (l *Link) SourceURL(user *users.User) string {
 	if err != nil {
 		return ""
 	}
+	if !strings.HasPrefix(l.Path, userScope) {
+		return ""
+	}
 	scopedPath := strings.TrimPrefix(l.Path, userScope)
 	return filepath.Join(settings.Config.Server.BaseURL, sourceName, scopedPath)
 }

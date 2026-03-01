@@ -30,6 +30,13 @@
               <span>{{ editShareText() }}</span>
             </div>
           </a>
+          <a v-else-if="link.category == 'custom' && link.name == 'sourceLocation'" :href="link.target"
+            :aria-label="link.name" class="action button sidebar-link-button" @click.prevent="handleLinkClick(link)">
+            <div class="link-container">
+              <i class="material-icons link-icon">open_in_new</i>
+              <span>{{ $t('buttons.goToSource') }}</span>
+            </div>
+          </a>
           <!-- Source-type links: styled exactly like original sources -->
           <a v-else-if="link.category === 'source'" :href="getLinkHref(link)"
             class="action button source-button sidebar-link-button" :class="{
