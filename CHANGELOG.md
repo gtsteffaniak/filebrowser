@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.3.1-beta
+
+ **Notes**:
+ - Share icon does not show in share listing or for shares for other users.
+
+ **BugFixes**:
+ - 405 response code error on Webdav in 1.3.0-beta #2054
+
 ## v1.3.0-beta
 
 Note: a potentially breaking change for docker users: \the default user is now "filebrowser" 1000:1000 instead of root.
