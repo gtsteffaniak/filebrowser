@@ -566,7 +566,7 @@
     "results": "תוצאות{suffix}",
     "users": "משתמשים{suffix}",
     "photos": "תמונות",
-    "audio": "אודיו{suffix}",
+    "audios": "שמע{suffix}",
     "videos": "סרטונים{suffix}",
     "documents": "מסמכים{suffix}",
     "archives": "ארכיונים{suffix}",
@@ -697,6 +697,7 @@
     "orange": "כתום"
   },
   "profileSettings": {
+    "previewAudiosDescription": "הצג תצוגות מקדימות ממוזערות לשמע, יוצג אייקון כללי אם מושבת",
     "setDateFormat": "הגדר פורמט תאריך מדויק",
     "showHiddenFiles": "הצג קבצים מוסתרים",
     "showHiddenFilesDescription": "הצג קבצים מוסתרים ברשימה (לדוגמה, .thumbnails, ProgramData), אך הם עדיין נגישים באופן ידני אם הוגדרו לאינדקס.",

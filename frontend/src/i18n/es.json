@@ -566,7 +566,7 @@
     "results": "Resultados{suffix}",
     "users": "Usuarios{suffix}",
     "photos": "Fotos",
-    "audio": "Audio{suffix}",
+    "audios": "Audios{suffix}",
     "videos": "Vídeos{suffix}",
     "documents": "Documentos{suffix}",
     "archives": "Archivos comprimidos{suffix}",
@@ -697,6 +697,7 @@
     "orange": "Naranja"
   },
   "profileSettings": {
+    "previewAudiosDescription": "Mostrar vistas previas en miniatura para audios, si está desactivado mostrará un icono generico",
     "autoplayMedia": "Reproducción automática de archivos multimedia",
     "autoplayMediaDescription": "Reproduce automaticamente los archivos multimedia al abrirlos",
     "sidebarOptions": "Opciones del panel lateral",

@@ -566,7 +566,7 @@
     "results": "Rezultate{suffix}",
     "users": "Utilizatori{suffix}",
     "photos": "Fotografii",
-    "audio": "Audio{suffix}",
+    "audios": "Audios{suffix}",
     "videos": "Video{suffix}",
     "documents": "Documente{suffix}",
     "archives": "Arhive{suffix}",
@@ -697,6 +697,7 @@
     "orange": "portocaliu"
   },
   "profileSettings": {
+    "previewAudiosDescription": "Afișează previzualizări miniatură pentru fișiere audio, se va afișa o pictogramă generică dacă este dezactivat",
     "setDateFormat": "Setați formatul exact al datei",
     "showHiddenFiles": "Afișează fișierele ascunse",
     "showHiddenFilesDescription": "Afișează fișierele ascunse în listă (de exemplu, .thumbnails, ProgramData), dar acestea sunt încă accesibile manual dacă sunt configurate pentru a fi indexate.",

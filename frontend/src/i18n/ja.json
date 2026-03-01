@@ -566,7 +566,7 @@
     "results": "結果{suffix}",
     "users": "ユーザー{suffix}",
     "photos": "写真",
-    "audio": "オーディオ{suffix}",
+    "audios": "オーディオ{suffix}",
     "videos": "ビデオ{suffix}",
     "documents": "資料{suffix}",
     "archives": "アーカイブス{suffix}",
@@ -697,6 +697,7 @@
     "orange": "オレンジ"
   },
   "profileSettings": {
+    "previewAudiosDescription": "オーディオのサムネイルプレビューを表示します。無効の場合は一般的なアイコンを表示します",
     "setDateFormat": "正確な日付書式を設定する",
     "showHiddenFiles": "隠しファイルを表示する",
     "showHiddenFilesDescription": "隠しファイル（.thumbnails、ProgramDataなど）をリストに表示します。インデックスが設定されている場合は手動でアクセスできます。",

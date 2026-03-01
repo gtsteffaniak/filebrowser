@@ -566,7 +566,7 @@
     "results": "Sonuçlar{suffix}",
     "users": "Kullanıcılar{suffix}",
     "photos": "Fotoğraflar",
-    "audio": "Ses{suffix}",
+    "audios": "Ses Dosyaları{suffix}",
     "videos": "Videolar{suffix}",
     "documents": "Belgeler{suffix}",
     "archives": "Arşivler{suffix}",
@@ -697,6 +697,7 @@
     "orange": "turuncu"
   },
   "profileSettings": {
+    "previewAudiosDescription": "Ses dosyaları için küçük resim önizlemelerini göster, devre dışı bırakılırsa genel simge gösterilir",
     "setDateFormat": "Tam tarih biçimini ayarlama",
     "showHiddenFiles": "Gizli dosyaları göster",
     "showHiddenFilesDescription": "Gizli dosyaları listede gösterin (örn. .thumbnails, ProgramData), ancak dizine eklenecek şekilde yapılandırılmışlarsa yine de manuel olarak erişilebilirler.",

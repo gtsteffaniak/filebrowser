@@ -566,7 +566,7 @@
     "results": "Ergebnisse{suffix}",
     "users": "Benutzer{suffix}",
     "photos": "Fotos",
-    "audio": "Audio{suffix}",
+    "audios": "Audios{suffix}",
     "videos": "Videos{suffix}",
     "documents": "Dokumente{suffix}",
     "archives": "Archiv{suffix}",
@@ -697,6 +697,7 @@
     "orange": "orange"
   },
   "profileSettings": {
+    "previewAudiosDescription": "Vorschaubilder für Audiodateien anzeigen, bei Deaktivierung wird ein generisches Symbol angezeigt",
     "setDateFormat": "Genaues Datum statt relativer Zeitangaben verwenden",
     "showHiddenFiles": "Versteckte Dateien anzeigen",
     "showHiddenFilesDescription": "Versteckte Dateien in der Auflistung anzeigen (z.B. .thumbnails, ProgramData), aber sie sind immer noch manuell zugänglich, wenn sie für die Indizierung konfiguriert sind.",

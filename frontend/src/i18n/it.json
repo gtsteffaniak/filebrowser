@@ -566,7 +566,7 @@
     "results": "Risultati{suffix}",
     "users": "Utenti{suffix}",
     "photos": "Foto",
-    "audio": "Audio{suffix}",
+    "audio": "Audios{suffix}",
     "videos": "Video{suffix}",
     "documents": "Documenti{suffix}",
     "archives": "Archivio{suffix}",
@@ -697,6 +697,7 @@
     "orange": "arancione"
   },
   "profileSettings": {
+    "previewAudiosDescription": "Mostra anteprime in miniatura per gli audio, verrà mostrata un'icona generica se disabilitato",
     "setDateFormat": "Impostare il formato esatto della data",
     "showHiddenFiles": "Mostra i file nascosti",
     "showHiddenFilesDescription": "Mostra i file nascosti nell'elenco (ad esempio .thumbnails, ProgramData), ma sono ancora accessibili manualmente se configurati per essere indicizzati.",

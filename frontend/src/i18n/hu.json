@@ -566,7 +566,7 @@
     "results": "Eredmények{suffix}",
     "users": "Felhasználók{suffix}",
     "photos": "Fotók",
-    "audio": "Audio{suffix}",
+    "audios": "Hangfájlok{suffix}",
     "videos": "Videók{suffix}",
     "documents": "Dokumentumok{suffix}",
     "archives": "Archívum{suffix}",
@@ -697,6 +697,7 @@
     "orange": "narancs"
   },
   "profileSettings": {
+    "previewAudiosDescription": "Miniatűr előnézetek megjelenítése hangfájlokhoz, általános ikon jelenik meg ha letiltott",
     "setDateFormat": "Pontos dátumformátum beállítása",
     "showHiddenFiles": "Rejtett fájlok megjelenítése",
     "showHiddenFilesDescription": "Rejtett fájlok megjelenítése a listában (pl. .thumbnails, ProgramData), de kézzel továbbra is elérhetőek, ha indexelésre vannak beállítva.",

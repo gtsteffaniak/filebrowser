@@ -566,7 +566,7 @@
     "results": "Αποτελέσματα{suffix}",
     "users": "Χρήστες{suffix}",
     "photos": "Φωτογραφίες",
-    "audio": "Ήχος{suffix}",
+    "audios": "Ήχοι{suffix}",
     "videos": "Βίντεο{suffix}",
     "documents": "Έγγραφα{suffix}",
     "archives": "Αρχεία{suffix}",
@@ -697,6 +697,7 @@
     "orange": "πορτοκαλί"
   },
   "profileSettings": {
+    "previewAudiosDescription": "Εμφάνιση μικρογραφιών για ήχους, θα εμφανιστεί γενικό εικονίδιο εάν είναι απενεργοποιημένο",
     "setDateFormat": "Ορισμός ακριβούς μορφής ημερομηνίας",
     "showHiddenFiles": "Εμφάνιση κρυφών αρχείων",
     "showHiddenFilesDescription": "Εμφάνιση κρυμμένων αρχείων στην καταχώριση (π.χ. .thumbnails, ProgramData), αλλά εξακολουθούν να είναι προσβάσιμα χειροκίνητα, εάν έχουν ρυθμιστεί για ευρετηρίαση.",

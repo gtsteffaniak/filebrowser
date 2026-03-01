@@ -274,7 +274,7 @@
     "onlyFiles": "Aðeins Skrár",
     "showOptions": "Sýna Valmöguleika",
     "photos": "Myndir",
-    "audio": "Hljóð",
+    "audios": "Hljóðskrár{suffix}",
     "videos": "Myndskeið",
     "documents": "Skjöl",
     "archives": "Safnskrár",
@@ -295,6 +295,7 @@
     "helpText2": "Vísirinn: Leit nýtir vísinn sem uppfærast sjálfkrafa á stilluðu millibili (sjálfgefið: 5 mínútur). Leit þegar forritið er nýrætt getur leitt til ófullnægjandi niðurstaðna."
   },
   "profileSettings": {
+    "previewAudiosDescription": "Sýna smámyndaforskoðun fyrir hljóðskrár, mun sýna almenn tákn ef óvirkt",
     "previewFolder": "Sýna smámyndir fyrir möppur ef tiltækar",
     "previewFolderDescription": "Sýna smámyndaforskoðun fyrir möppur með fyrsta barnatriði með smámynd sem forsíðu.",
     "debugOfficeEditor": "Virkja OnlyOffice Kembunarbil",

@@ -566,7 +566,7 @@
     "results": "Résultats{suffix}",
     "users": "Utilisateurs{suffix}",
     "photos": "Photos",
-    "audio": "Audio{suffix}",
+    "audios": "Audios{suffix}",
     "videos": "Vidéos{suffix}",
     "documents": "Documents{suffix}",
     "archives": "Archives{suffix}",
@@ -697,6 +697,7 @@
     "orange": "orange"
   },
   "profileSettings": {
+    "previewAudiosDescription": "Afficher les aperçus miniatures pour les fichiers audio, une icône générique s'affichera si désactivé",
     "setDateFormat": "Définir le format exact de la date",
     "showHiddenFiles": "Afficher les fichiers cachés",
     "showHiddenFilesDescription": "Affiche les fichiers cachés dans la liste (par exemple, .thumbnails, ProgramData), mais ils restent accessibles manuellement s'ils sont configurés pour être indexés.",

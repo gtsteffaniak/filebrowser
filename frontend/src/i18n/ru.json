@@ -566,7 +566,7 @@
     "results": "Результаты{suffix}",
     "users": "Пользователи{suffix}",
     "photos": "Фотографии",
-    "audio": "Аудио{suffix}",
+    "audios": "Аудио{suffix}",
     "videos": "Видео{suffix}",
     "documents": "Документы{suffix}",
     "archives": "Архивы{suffix}",
@@ -697,6 +697,7 @@
     "orange": "оранжевый"
   },
   "profileSettings": {
+    "previewAudiosDescription": "Показывать миниатюры для аудиофайлов, если отключено, будет показана стандартная иконка",
     "setDateFormat": "Установить точный формат даты",
     "showHiddenFiles": "Показывать скрытые файлы",
     "showHiddenFilesDescription": "Показывать в списке скрытые файлы (например, .thumbnails, ProgramData), но они по-прежнему доступны вручную, если настроены на индексирование.",

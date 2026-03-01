@@ -552,6 +552,7 @@
     "orange": "laranja"
   },
   "profileSettings": {
+    "previewAudiosDescription": "Mostrar visualizações em miniatura para áudios, um ícone genérico será mostrado se desativado",
     "setDateFormat": "Definir o formato exato da data",
     "showHiddenFiles": "Mostrar ficheiros ocultos",
     "showHiddenFilesDescription": "Mostrar ficheiros ocultos na listagem (por exemplo, .thumbnails, ProgramData), mas estes continuam a ser acessíveis manualmente se estiverem configurados para serem indexados.",
@@ -644,7 +645,7 @@
     "results": "Resultados{suffix}",
     "users": "Utilizadores{suffix}",
     "photos": "Fotos",
-    "audio": "Áudio{suffix}",
+    "audios": "Áudios{suffix}",
     "videos": "Vídeos{suffix}",
     "documents": "Documentos{suffix}",
     "archives": "Arquivos{suffix}",

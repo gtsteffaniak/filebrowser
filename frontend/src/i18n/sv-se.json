@@ -552,6 +552,7 @@
     "orange": "apelsin"
   },
   "profileSettings": {
+    "previewAudiosDescription": "Visa miniatyrförhandsvisningar för ljudfiler, kommer att visa generisk ikon om inaktiverad",
     "setDateFormat": "Ange exakt datumformat",
     "showHiddenFiles": "Visa dolda filer",
     "showHiddenFilesDescription": "Visa dolda filer i listan (t.ex. .thumbnails, ProgramData), men de är fortfarande manuellt åtkomliga om de är konfigurerade för att indexeras.",
@@ -644,7 +645,7 @@
     "results": "Resultat{suffix}",
     "users": "Användare{suffix}",
     "photos": "Bilder",
-    "audio": "Ljud{suffix}",
+    "audios": "Ljud{suffix}",
     "videos": "Videor{suffix}",
     "documents": "Dokument{suffix}",
     "archives": "Arkiv{suffix}",

@@ -566,7 +566,7 @@
     "results": "Výsledky{suffix}",
     "users": "Používatelia{suffix}",
     "photos": "Fotografie",
-    "audio": "Audio{suffix}",
+    "audios": "Zvuky{suffix}",
     "videos": "Videá{suffix}",
     "documents": "Dokumenty{suffix}",
     "archives": "Archív{suffix}",
@@ -697,6 +697,7 @@
     "orange": "oranžová"
   },
   "profileSettings": {
+    "previewAudiosDescription": "Zobraziť miniatúry náhľadov pre zvuky, ak je zakázané, zobrazí sa všeobecná ikona",
     "setDateFormat": "Nastavenie presného formátu dátumu",
     "showHiddenFiles": "Zobrazenie skrytých súborov",
     "showHiddenFilesDescription": "Zobrazenie skrytých súborov vo výpise (napr. .thumbnails, ProgramData), ale sú stále manuálne prístupné, ak sú nakonfigurované na indexovanie.",

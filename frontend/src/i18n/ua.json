@@ -552,6 +552,7 @@
     "orange": "помаранчевий"
   },
   "profileSettings": {
+    "previewAudiosDescription": "Показувати мініатюри для аудіофайлів, якщо вимкнено, буде показано стандартну іконку",
     "setDateFormat": "Встановіть точний формат дати",
     "showHiddenFiles": "Показати приховані файли",
     "showHiddenFilesDescription": "Показувати приховані файли у лістингу (наприклад, .thumbnails, ProgramData), але вони все ще доступні вручну, якщо їх налаштовано на індексування.",
@@ -644,7 +645,7 @@
     "results": "Результати{suffix}",
     "users": "Користувачі{suffix}",
     "photos": "Фотографії",
-    "audio": "Аудіо{suffix}",
+    "audios": "Аудіо{suffix}",
     "videos": "Відео{suffix}",
     "documents": "Документи{suffix}",
     "archives": "Архіви{suffix}",
