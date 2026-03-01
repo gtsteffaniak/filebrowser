@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.2.2-stable
 
+ **Security**:
+ - Patched Stored XSS in public share page via unsanitized share metadata (text/template misuse)
+
  **New Features**:
  - "Divider" option in sidebar links to add a text or divider between links ()
  - shares offer a "go to source Location" sidebar link and button when editing a share.
@@ -12,7 +15,8 @@ All notable changes to this project will be documented in this file. For commit 
  - Share edit/delete permissions are scoped to the user's shares rather than global (#2050)
 
  **BugFixes**:
- - fixed the requirement that the database path needed to be set in the config file, now it loads `FILEBROWSER_DATABASE` value by default.
+ - fixed the requirement that the database path needed to be set in the config file, now it loads `FILEBROWSER_DATABASE` value by default, fallback to config file property.
+ - Error downloading zipped directory: no such file or directory (users with scope) #2015
 
 ## v1.2.1-stable
 

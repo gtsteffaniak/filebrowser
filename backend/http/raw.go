@@ -14,7 +14,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
@@ -143,16 +142,6 @@ func addFile(source string, path string, d *requestContext, tarWriter *tar.Write
 		}
 	}
 
-	// Verify file exists
-	_, err := files.FileInfoFaster(utils.FileOptions{
-		Path:           path,
-		Source:         source,
-		Expand:         false,
-		FollowSymlinks: true,
-	}, store.Access, d.user)
-	if err != nil {
-		return err
-	}
 	realPath, _, _ := idx.GetRealPath(path)
 	info, err := os.Stat(realPath)
 	if err != nil {
@@ -298,6 +287,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	var documentId string
 	var logContext *OnlyOfficeLogContext
 
+	// modify all filepaths for user scope
 	if d.share == nil {
 		userscope, err = d.user.GetScopeForSourceName(source)
 		if err != nil {
@@ -319,8 +309,11 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 			}
 			return http.StatusForbidden, err
 		}
-		firstFilePath = utils.JoinPathAsUnix(userscope, firstFilePath)
+		for i, filePath := range fileList {
+			fileList[i] = utils.JoinPathAsUnix(userscope, filePath)
+		}
 	}
+	firstFilePath = fileList[0]
 	// For shares, the path is already correctly resolved by publicRawHandler
 	idx := indexing.GetIndex(source)
 	if idx == nil {
@@ -505,7 +498,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	_, err = io.Copy(w, reader)
 	os.Remove(archiveData) // Remove the file after streaming
 	if err != nil {
-		logger.Errorf("Failed to copy archive data to response: %v", err)
+		logger.Debugf("client likely aborted: %v, failed to copy archive data to response: %v", r.Context().Err(), err)
 		return http.StatusInternalServerError, err
 	}
 
@@ -519,30 +512,17 @@ func computeArchiveSize(source string, fileList []string, d *requestContext) (in
 		return 0, fmt.Errorf("source %s is not available", source)
 	}
 
-	var userScope string
-	var err error
-	if d.share == nil {
-		userScope, err = d.user.GetScopeForSourceName(source)
-		if err != nil {
-			return 0, fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
-		}
-	}
-
 	for _, path := range fileList {
-		var fullPath string
 		if d.share == nil {
-			fullPath = utils.JoinPathAsUnix(userScope, path)
 			// Check access control for each file in the archive
 			// Silently skip if access is denied (as if the file doesn't exist)
-			if store.Access != nil && !store.Access.Permitted(idx.Path, fullPath, d.user.Username) {
+			if store.Access != nil && !store.Access.Permitted(idx.Path, path, d.user.Username) {
 				continue // Skip this file and continue with the next one
 			}
-		} else {
-			fullPath = path
 		}
 
 		// For shares, the path is already correctly resolved by publicRawHandler
-		realPath, isDir, err := idx.GetRealPath(fullPath)
+		realPath, isDir, err := idx.GetRealPath(path)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
@@ -568,11 +548,11 @@ func createZip(d *requestContext, source string, tmpDirPath string, filenames ..
 
 	zipWriter := zip.NewWriter(file)
 
-	for _, fname := range filenames {
-		err := addFile(source, fname, d, nil, zipWriter, false)
+	for _, filepath := range filenames {
+		err := addFile(source, filepath, d, nil, zipWriter, false)
 		if err != nil {
 			// Access control failures return nil, so any error here is a real error
-			logger.Errorf("Failed to add %s to ZIP: %v", fname, err)
+			logger.Errorf("Failed to add %s to ZIP: %v", filepath, err)
 			return err
 		}
 	}
@@ -595,10 +575,10 @@ func createTarGz(d *requestContext, source string, tmpDirPath string, filenames 
 	gzWriter := gzip.NewWriter(file)
 	tarWriter := tar.NewWriter(gzWriter)
 
-	for _, fname := range filenames {
-		err := addFile(source, fname, d, tarWriter, nil, false)
+	for _, filepath := range filenames {
+		err := addFile(source, filepath, d, tarWriter, nil, false)
 		if err != nil {
-			logger.Errorf("Failed to add %s to TAR.GZ: %v", fname, err)
+			logger.Errorf("Failed to add %s to TAR.GZ: %v", filepath, err)
 			return err
 		}
 	}
