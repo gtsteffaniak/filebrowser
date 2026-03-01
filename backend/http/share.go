@@ -33,14 +33,10 @@ type ShareResponse struct {
 }
 
 // convertToFrontendShareResponse converts shares to response format with usernames
-func convertToFrontendShareResponse(r *http.Request, shares []*share.Link) ([]*ShareResponse, error) {
+func convertToFrontendShareResponse(r *http.Request, shares []*share.Link, user *users.User) ([]*ShareResponse, error) {
 	responses := make([]*ShareResponse, 0, len(shares))
 	for _, s := range shares {
-		user, err := store.Users.Get(s.UserID)
-		username := ""
-		if err == nil {
-			username = user.Username
-		}
+		username := user.Username
 
 		// Get source info to convert path to name for frontend
 		sourceInfo, ok := config.Server.SourceMap[s.Source]
@@ -65,6 +61,9 @@ func convertToFrontendShareResponse(r *http.Request, shares []*share.Link) ([]*S
 		s.CommonShare.HasPassword = s.HasPassword()
 		s.DownloadURL = getShareURL(r, s.Hash, true, s.Token)
 		s.ShareURL = getShareURL(r, s.Hash, false, s.Token)
+		if s.UserCanEdit(user) {
+			s.CommonShare.SourceURL = s.SourceURL()
+		}
 		// Create response with source name (overrides the embedded Link's source field)
 		responses = append(responses, &ShareResponse{
 			Link:       s,
@@ -97,7 +96,7 @@ func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusInternalServerError, err
 	}
 	shares = utils.NonNilSlice(shares)
-	sharesWithUsernames, err := convertToFrontendShareResponse(r, shares)
+	sharesWithUsernames, err := convertToFrontendShareResponse(r, shares, d.user)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -137,7 +136,7 @@ func shareGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("error getting share info from server")
 	}
-	sharesWithUsernames, err := convertToFrontendShareResponse(r, s)
+	sharesWithUsernames, err := convertToFrontendShareResponse(r, s, d.user)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -226,7 +225,7 @@ func sharePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	}
 
 	// Convert to response format
-	sharesWithUsernames, err := convertToFrontendShareResponse(r, []*share.Link{updatedShare})
+	sharesWithUsernames, err := convertToFrontendShareResponse(r, []*share.Link{updatedShare}, d.user)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -406,7 +405,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if err = store.Share.Save(s); err != nil {
 		return http.StatusInternalServerError, err
 	}
-	sharesWithUsernames, err := convertToFrontendShareResponse(r, []*share.Link{s})
+	sharesWithUsernames, err := convertToFrontendShareResponse(r, []*share.Link{s}, d.user)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
