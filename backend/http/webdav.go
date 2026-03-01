@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
+	commonerrors "github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
@@ -219,14 +221,63 @@ func (ffs *filteredFileSystem) Stat(ctx context.Context, name string) (os.FileIn
 		return ffs.fs.Stat(ctx, name)
 	}
 
-	// Check permission before stat using cached result if available
+	// Try to use cached info first
+	// This offers better performance and follows indexing and access control rules.
 	permissionPath := utils.JoinPathAsUnix(ffs.userscope, name)
-	_, err := ffs.getCachedFileInfo(permissionPath, false)
-	if err != nil {
-		return nil, err
+	_, cacheErr := ffs.getCachedFileInfo(permissionPath, false)
+	if cacheErr == nil {
+		// Found in cache and user has permission - use fast path
+		return ffs.fs.Stat(ctx, name)
 	}
 
-	return ffs.fs.Stat(ctx, name)
+	// Cache miss or error - need to determine why:
+	// 1) Access denied - always fail
+	// 2) Not indexed - only fail if !isViewable
+	// 3) Doesn't exist - allow WebDAV to proceed
+
+	// First check: is it access denied?
+	if errors.Is(cacheErr, commonerrors.ErrAccessDenied) {
+		return nil, os.ErrPermission
+	}
+
+	// Second check: is it not indexed?
+	if errors.Is(cacheErr, commonerrors.ErrNotIndexed) {
+		// Get the index to check if it's viewable
+		idx := indexing.GetIndex(ffs.source)
+		if idx == nil {
+			return nil, fmt.Errorf("source not found")
+		}
+
+		// Check if the item is viewable using GetFileInfo (without expand)
+		info, err := idx.GetFileInfo(indexing.FileInfoRequest{
+			IndexPath:         name,
+			FollowSymlinks:    false,
+			ShowHidden:        ffs.user.ShowHidden,
+			Expand:            false,
+			SkipExtendedAttrs: true,
+		})
+
+		// If GetFileInfo succeeds, the item is viewable despite not being indexed
+		if err == nil && info != nil {
+			// Item is viewable - allow access
+			return ffs.fs.Stat(ctx, name)
+		}
+
+		// Not viewable - deny access
+		return nil, os.ErrPermission
+	}
+
+	// Third check: does the file exist on filesystem?
+	_, statErr := ffs.fs.Stat(ctx, name)
+	if statErr != nil {
+		// File doesn't exist - return the error (expected behavior for WebDAV)
+		// This allows operations like MKCOL to proceed when checking non-existent paths
+		return nil, statErr
+	}
+
+	// File exists but cache check failed for an unknown reason
+	// Default to permission denied for safety
+	return nil, os.ErrPermission
 }
 
 // webDAVHandler serves WebDAV requests.
