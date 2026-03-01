@@ -45,7 +45,7 @@
     "scopes": "Bereiken{suffix}",
     "commands": "Opdrachten{suffix}",
     "photos": "Foto's",
-    "audio": "Audio{suffix}",
+    "audios": "Audio{suffix}",
     "videos": "Video's{suffix}",
     "documents": "Documenten{suffix}",
     "archives": "Archieven{suffix}",

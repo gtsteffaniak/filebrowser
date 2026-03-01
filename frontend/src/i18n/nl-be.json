@@ -645,7 +645,7 @@
     "results": "Resultaten{suffix}",
     "users": "Gebruikers{suffix}",
     "photos": "Foto's",
-    "audio": "Audio's{suffix}",
+    "audios": "Audio's{suffix}",
     "videos": "Video's{suffix}",
     "documents": "Documenten{suffix}",
     "archives": "Archief{suffix}",
