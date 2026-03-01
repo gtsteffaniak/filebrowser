@@ -344,22 +344,10 @@ func addFile(source string, path string, d *requestContext, tarWriter *tar.Write
 	}
 
 	// Check access control directly for each file and silently skip if access is denied
-	if d.share == nil && store.Access != nil {
-		if !store.Access.Permitted(idx.Path, path, d.user.Username) {
-			return nil // Silently skip this file/folder
-		}
+	if !store.Access.Permitted(idx.Path, path, d.user.Username) {
+		return nil // Silently skip this file/folder
 	}
 
-	// Verify file exists
-	_, err := files.FileInfoFaster(utils.FileOptions{
-		Path:           path,
-		Source:         source,
-		Expand:         false,
-		FollowSymlinks: true,
-	}, store.Access, d.user, store.Share)
-	if err != nil {
-		return err
-	}
 	realPath, _, _ := idx.GetRealPath(path)
 	info, err := os.Stat(realPath)
 	if err != nil {
@@ -490,27 +478,11 @@ func computeArchiveSize(source string, fileList []string, d *requestContext) (in
 		return 0, fmt.Errorf("source %s is not available", source)
 	}
 
-	var userScope string
-	var err error
-	if d.share == nil {
-		userScope, err = d.user.GetScopeForSourceName(source)
-		if err != nil {
-			return 0, fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
-		}
-	}
-
 	for _, path := range fileList {
-		var fullPath string
-		if d.share == nil {
-			fullPath = utils.JoinPathAsUnix(userScope, path)
-			if store.Access != nil && !store.Access.Permitted(idx.Path, fullPath, d.user.Username) {
-				continue
-			}
-		} else {
-			fullPath = path
+		if !store.Access.Permitted(idx.Path, path, d.user.Username) {
+			continue
 		}
-
-		realPath, isDir, err := idx.GetRealPath(fullPath)
+		realPath, isDir, err := idx.GetRealPath(path)
 		if err != nil {
 			return 0, err
 		}
@@ -616,36 +588,18 @@ func createTarGzWithLevel(d *requestContext, source string, destPath string, lev
 // BuildAndStreamArchive resolves paths, creates a zip or tar.gz archive, and streams it to w.
 // It respects access rules and max archive size. Used only by the raw handler for multi-file/directory download.
 func BuildAndStreamArchive(w http.ResponseWriter, r *http.Request, d *requestContext, source string, fileList []string) (int, error) {
-	firstFilePath := fileList[0]
-	var userscope string
-	var err error
-
-	// modify all filepaths for user scope
-	if d.share == nil {
-		userscope, err = d.user.GetScopeForSourceName(source)
-		if err != nil {
-			return http.StatusForbidden, err
-		}
-		for i, filePath := range fileList {
-			fileList[i] = utils.JoinPathAsUnix(userscope, filePath)
-		}
-		firstFilePath = fileList[0]
-	}
-
 	idx := indexing.GetIndex(source)
 	if idx == nil {
 		return http.StatusInternalServerError, fmt.Errorf("source %s is not available", source)
 	}
-	realPath, isDir, err := idx.GetRealPath(firstFilePath)
+	realPath, isDir, err := idx.GetRealPath(fileList[0])
 	if err != nil {
-		return http.StatusInternalServerError, err
+		return http.StatusInternalServerError, fmt.Errorf("failed to get real path for %s: %v", fileList[0], err)
 	}
-
 	estimatedSize, err := computeArchiveSize(source, fileList, d)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-
 	if config.Server.MaxArchiveSizeGB > 0 {
 		maxSize := config.Server.MaxArchiveSizeGB * 1024 * 1024 * 1024
 		if estimatedSize > maxSize {
@@ -664,7 +618,7 @@ func BuildAndStreamArchive(w http.ResponseWriter, r *http.Request, d *requestCon
 		return http.StatusInternalServerError, errors.New("format not implemented")
 	}
 
-	baseDirName := filepath.Base(filepath.Dir(firstFilePath))
+	baseDirName := filepath.Base(filepath.Dir(realPath))
 	if baseDirName == "" || baseDirName == "/" {
 		baseDirName = "download"
 	}
@@ -715,7 +669,6 @@ func BuildAndStreamArchive(w http.ResponseWriter, r *http.Request, d *requestCon
 	_, err = io.Copy(w, reader)
 	os.Remove(archiveData)
 	if err != nil {
-		logger.Errorf("Failed to copy archive data to response: %v", err)
 		return http.StatusInternalServerError, err
 	}
 	return 0, nil
