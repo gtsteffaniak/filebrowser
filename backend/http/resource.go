@@ -86,6 +86,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles,
 		ShowHidden:               d.user.ShowHidden,
 		SkipExtendedAttrs:        skipExtendedAttrs,
+		ShowSharedAttr:           true,
 	}, store.Access, d.user, store.Share)
 	if err != nil {
 		return errToStatus(err), err

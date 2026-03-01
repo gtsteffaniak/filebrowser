@@ -244,16 +244,16 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage, user *users.
 	if opts.SkipExtendedAttrs {
 		return response, nil
 	}
-	if share != nil && user.Permissions.Share {
+	if share != nil && user.Permissions.Share && opts.ShowSharedAttr {
 		for i := range response.Files {
 			file := &response.Files[i]
-			file.IsShared = share.IsShared(response.Path+file.Name, idx.Path)
+			file.IsShared = share.IsShared(response.Path+file.Name, idx.Path, user.ID)
 		}
 		for i := range response.Folders {
 			folder := &response.Folders[i]
-			folder.IsShared = share.IsShared(response.Path+folder.Name, idx.Path)
+			folder.IsShared = share.IsShared(response.Path+folder.Name, idx.Path, user.ID)
 		}
-		response.IsShared = share.IsShared(response.Path, idx.Path)
+		response.IsShared = share.IsShared(response.Path, idx.Path, user.ID)
 	}
 	// Process directory metadata if requested
 	if info.Type == "directory" {

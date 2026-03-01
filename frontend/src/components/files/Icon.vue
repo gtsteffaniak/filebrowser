@@ -365,7 +365,6 @@ export default {
     },
     updateImageTargetSrc() {
       let newSrc = this.thumbnailUrl || PLACEHOLDER_URL;
-      
       // If we need large thumbnails and have a thumbnail URL, append &size=large
       // Otherwise use the URL as-is (defaults to small)
       if (this.thumbnailUrl && this.showLargeIcon) {
