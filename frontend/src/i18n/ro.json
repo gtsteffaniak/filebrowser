@@ -566,8 +566,9 @@
     "results": "Rezultate{suffix}",
     "users": "Utilizatori{suffix}",
     "photos": "Fotografii",
-    "audio": "Audio{suffix}",
+    "audios": "Audios{suffix}",
     "videos": "Video{suffix}",
+    "models": "Modele 3D",
     "documents": "Documente{suffix}",
     "archives": "Arhive{suffix}",
     "images": "Imagini{suffix}",
@@ -697,6 +698,8 @@
     "orange": "portocaliu"
   },
   "profileSettings": {
+    "previewModelsDescription": "Afișează previzualizări miniatură pentru modele 3D, se va afișa o pictogramă generică dacă este dezactivat",
+    "previewAudiosDescription": "Afișează previzualizări miniatură pentru fișiere audio, se va afișa o pictogramă generică dacă este dezactivat",
     "setDateFormat": "Setați formatul exact al datei",
     "showHiddenFiles": "Afișează fișierele ascunse",
     "showHiddenFilesDescription": "Afișează fișierele ascunse în listă (de exemplu, .thumbnails, ProgramData), dar acestea sunt încă accesibile manual dacă sunt configurate pentru a fi indexate.",

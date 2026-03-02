@@ -90,12 +90,14 @@ func ApplyUserDefaults(u *users.User) {
 	u.Preview.DisableHideSidebar = Config.UserDefaults.Preview.DisableHideSidebar
 	u.Preview.Image = boolValueOrDefault(Config.UserDefaults.Preview.Image, true)
 	u.Preview.Video = boolValueOrDefault(Config.UserDefaults.Preview.Video, true)
+	u.Preview.Audio = boolValueOrDefault(Config.UserDefaults.Preview.Audio, true)
 	u.Preview.MotionVideoPreview = boolValueOrDefault(Config.UserDefaults.Preview.MotionVideoPreview, true)
 	u.Preview.Office = boolValueOrDefault(Config.UserDefaults.Preview.Office, true)
 	u.Preview.PopUp = boolValueOrDefault(Config.UserDefaults.Preview.PopUp, true)
 	u.Preview.AutoplayMedia = boolValueOrDefault(Config.UserDefaults.Preview.AutoplayMedia, true)
 	u.Preview.DefaultMediaPlayer = Config.UserDefaults.Preview.DefaultMediaPlayer
 	u.Preview.Folder = boolValueOrDefault(Config.UserDefaults.Preview.Folder, true)
+	u.Preview.Models = boolValueOrDefault(Config.UserDefaults.Preview.Models, true)
 
 	u.ShowHidden = Config.UserDefaults.ShowHidden
 	u.DateFormat = Config.UserDefaults.DateFormat

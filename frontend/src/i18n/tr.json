@@ -566,8 +566,9 @@
     "results": "Sonuçlar{suffix}",
     "users": "Kullanıcılar{suffix}",
     "photos": "Fotoğraflar",
-    "audio": "Ses{suffix}",
+    "audios": "Ses Dosyaları{suffix}",
     "videos": "Videolar{suffix}",
+    "models": "3D Modeller",
     "documents": "Belgeler{suffix}",
     "archives": "Arşivler{suffix}",
     "images": "Görüntüler{suffix}",
@@ -697,6 +698,8 @@
     "orange": "turuncu"
   },
   "profileSettings": {
+    "previewModelsDescription": "3D modeller için küçük resim önizlemelerini göster, devre dışı bırakılırsa genel simge gösterilir",
+    "previewAudiosDescription": "Ses dosyaları için küçük resim önizlemelerini göster, devre dışı bırakılırsa genel simge gösterilir",
     "setDateFormat": "Tam tarih biçimini ayarlama",
     "showHiddenFiles": "Gizli dosyaları göster",
     "showHiddenFilesDescription": "Gizli dosyaları listede gösterin (örn. .thumbnails, ProgramData), ancak dizine eklenecek şekilde yapılandırılmışlarsa yine de manuel olarak erişilebilirler.",

@@ -521,6 +521,8 @@
     "error": "錯誤"
   },
   "profileSettings": {
+    "previewModelsDescription": "顯示3D模型的縮圖預覽，如果停用則顯示通用圖示",
+    "previewAudiosDescription": "顯示音訊的縮圖預覽，如果停用則顯示通用圖示",
     "setDateFormat": "設定精確的日期格式",
     "showHiddenFiles": "顯示隱藏檔案",
     "showHiddenFilesDescription": "在列出中顯示隱藏的檔案 (例如 .縮圖、ProgramData)，但如果設定為索引，這些檔案仍可手動存取。",
@@ -644,8 +646,9 @@
     "results": "結果{suffix}",
     "users": "使用者{suffix}",
     "photos": "圖片",
-    "audio": "音訊{suffix}",
+    "audios": "音訊{suffix}",
     "videos": "影片{suffix}",
+    "models": "3D模型",
     "documents": "文件{suffix}",
     "archives": "檔案{suffix}",
     "images": "圖片{suffix}",

@@ -36,10 +36,14 @@
                 :name="$t('general.images')" :description="$t('profileSettings.previewImagesDescription')" />
               <ToggleSwitch v-if="mediaEnabled" class="item" v-model="localuser.preview.video" @change="updateSettings"
                 :name="$t('general.videos')" :description="$t('profileSettings.previewVideosDescription')" />
+              <ToggleSwitch class="item" v-model="localuser.preview.audio" @change="updateSettings"
+                :name="$t('general.audios')" :description="$t('profileSettings.previewAudiosDescription')" />
               <ToggleSwitch class="item" v-model="localuser.preview.office" @change="updateSettings"
                 :name="$t('general.office')" :description="$t('profileSettings.previewOfficeDescription')" />
               <ToggleSwitch class="item" v-model="localuser.preview.folder" @change="updateSettings"
                 :name="$t('general.folders')" :description="$t('profileSettings.previewFolderDescription')" />
+              <ToggleSwitch class="item" v-model="localuser.preview.models" @change="updateSettings"
+                :name="$t('general.models')" :description="$t('profileSettings.previewModelsDescription')" />
               <ToggleSwitch class="item" v-model="localuser.preview.popup" @change="updateSettings"
                 :name="$t('profileSettings.popupPreview')"
                 :description="$t('profileSettings.popupPreviewDescription')" />
@@ -47,6 +51,22 @@
                 v-model="localuser.preview.motionPreview" @change="updateSettings"
                 :name="$t('profileSettings.previewMotion')"
                 :description="$t('profileSettings.previewMotionVideosDescription')" />
+              <div class="centered-with-tooltip">
+                <h3>{{ $t("profileSettings.disableThumbnailPreviews") }}</h3>
+                <i class="no-select material-symbols-outlined tooltip-info-icon"
+                  @mouseenter="showTooltip($event, $t('profileSettings.disableThumbnailPreviewsDescription'))"
+                  @mouseleave="hideTooltip">
+                  help
+                </i>
+              </div>
+              <div class="form-flex-group">
+                <input class="input form-form flat-right disable-viewing"
+                  :class="{ 'form-invalid': !validateExtensions(formDisablePreviews) }" type="text"
+                  :placeholder="$t('profileSettings.disableFileExtensions')" v-model="formDisablePreviews" />
+                <button type="button" class="button form-button flat-left" @click="submitDisablePreviewsChange">
+                  {{ $t("general.save") }}
+                </button>
+              </div>
             </template>
           </div>
         </SettingsItem>
@@ -86,24 +106,6 @@
             <ToggleSwitch class="item" v-model="localuser.editorQuickSave" @change="updateSettings"
               :name="$t('profileSettings.editorQuickSave')"
               :description="$t('profileSettings.editorQuickSaveDescription')" />
-          </div>
-          <div>
-            <div class="centered-with-tooltip">
-              <h3>{{ $t("profileSettings.disableThumbnailPreviews") }}</h3>
-              <i class="no-select material-symbols-outlined tooltip-info-icon"
-                @mouseenter="showTooltip($event, $t('profileSettings.disableThumbnailPreviewsDescription'))"
-                @mouseleave="hideTooltip">
-                help
-              </i>
-            </div>
-            <div class="form-flex-group">
-              <input class="input form-form flat-right disable-viewing"
-                :class="{ 'form-invalid': !validateExtensions(formDisablePreviews) }" type="text"
-                :placeholder="$t('profileSettings.disableFileExtensions')" v-model="formDisablePreviews" />
-              <button type="button" class="button form-button flat-left" @click="submitDisablePreviewsChange">
-                {{ $t("general.save") }}
-              </button>
-            </div>
           </div>
           <div>
             <div class="centered-with-tooltip">
@@ -246,7 +248,7 @@ export default {
     showThumbnailsForPreviews: {
       get() {
         const p = this.localuser.preview || {};
-        return !!(p.image || p.video || p.motionVideoPreview || p.office || p.popup || p.folder);
+        return !!(p.image || p.audio || p.video || p.motionVideoPreview || p.office || p.popup || p.folder || p.models);
       },
       set(enabled) {
         if (!this.localuser.preview) {
@@ -256,11 +258,13 @@ export default {
           this.localuser.preview.image = true;
         } else {
           this.localuser.preview.image = false;
+          this.localuser.preview.audio = false;
           this.localuser.preview.video = false;
           this.localuser.preview.motionVideoPreview = false;
           this.localuser.preview.office = false;
           this.localuser.preview.popup = false;
           this.localuser.preview.folder = false;
+          this.localuser.preview.models = false;
         }
       },
     },
@@ -388,7 +392,7 @@ export default {
 
 <style scoped>
 .disable-viewing {
-  width: 80%;
+  width: 100%;
 }
 
 .centered-with-tooltip {

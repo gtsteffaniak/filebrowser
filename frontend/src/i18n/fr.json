@@ -566,8 +566,9 @@
     "results": "Résultats{suffix}",
     "users": "Utilisateurs{suffix}",
     "photos": "Photos",
-    "audio": "Audio{suffix}",
+    "audios": "Audios{suffix}",
     "videos": "Vidéos{suffix}",
+    "models": "Modèles 3D",
     "documents": "Documents{suffix}",
     "archives": "Archives{suffix}",
     "images": "Images{suffix}",
@@ -697,6 +698,8 @@
     "orange": "orange"
   },
   "profileSettings": {
+    "previewModelsDescription": "Afficher les aperçus miniatures pour les modèles 3D, une icône générique s'affichera si désactivé",
+    "previewAudiosDescription": "Afficher les aperçus miniatures pour les fichiers audio, une icône générique s'affichera si désactivé",
     "setDateFormat": "Définir le format exact de la date",
     "showHiddenFiles": "Afficher les fichiers cachés",
     "showHiddenFilesDescription": "Affiche les fichiers cachés dans la liste (par exemple, .thumbnails, ProgramData), mais ils restent accessibles manuellement s'ils sont configurés pour être indexés.",

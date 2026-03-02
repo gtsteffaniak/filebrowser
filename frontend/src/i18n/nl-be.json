@@ -552,6 +552,8 @@
     "orange": "oranje"
   },
   "profileSettings": {
+    "previewModelsDescription": "Toon miniatuurweergaven voor 3D-modellen, er wordt een algemeen pictogram getoond indien uitgeschakeld",
+    "previewAudiosDescription": "Toon miniatuurweergaven voor audiobestanden, er wordt een algemeen pictogram getoond indien uitgeschakeld",
     "setDateFormat": "Exact datumformaat instellen",
     "showHiddenFiles": "Verborgen bestanden weergeven",
     "showHiddenFilesDescription": "Toon verborgen bestanden in de lijst (bijv. .thumbnails, ProgramData), maar ze zijn nog steeds handmatig toegankelijk als ze zijn geconfigureerd om te worden geïndexeerd.",
@@ -644,7 +646,8 @@
     "results": "Resultaten{suffix}",
     "users": "Gebruikers{suffix}",
     "photos": "Foto's",
-    "audio": "Audio{suffix}",
+    "audios": "Audio's{suffix}",
+    "models": "3D-modellen",
     "videos": "Video's{suffix}",
     "documents": "Documenten{suffix}",
     "archives": "Archief{suffix}",
