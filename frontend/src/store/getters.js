@@ -473,8 +473,11 @@ export const getters = {
       },
       preview: {
         video: true,
+        audio: true,
         image: true,
         popup: true,
+        models: true,
+        autoplayMedia: true,
       },
       disableSettings: true,
       disableQuickToggles: false,

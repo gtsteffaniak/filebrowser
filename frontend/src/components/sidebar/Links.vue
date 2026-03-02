@@ -1,7 +1,7 @@
 <template>
   <div class="sidebar-links card">
     <!-- Header - sticks always at the top -->
-    <div class="sidebar-links-header" :class="{ 'no-edit-options': isShare, 'with-top-spacing': isShare && !disableShareCard }">
+    <div class="sidebar-links-header" :class="{ 'no-edit-options': isShare && !disableShareCard }">
       <i v-if="!isShare" @click="goHome()" class="material-icons action" :title="$t('general.home')">home</i>
       <!-- Mode button (is the title) -->
       <button @click="cycleMode" class="mode-toggle" :title="$t('sidebar.switchMode')">
@@ -669,10 +669,6 @@ export default {
   margin-bottom: 0.5em;
   padding-bottom: 0.25em;
   border-bottom: 1px solid var(--borderColor);
-}
-
-.with-top-spacing {
-  margin-top: 0.5em;
 }
 
 .usage-info .vue-simple-progress {
