@@ -5610,6 +5610,10 @@ const docTemplate = `{
         "settings.UserDefaultsPreview": {
             "type": "object",
             "properties": {
+                "audio": {
+                    "description": "show thumbnails for audio files",
+                    "type": "boolean"
+                },
                 "autoplayMedia": {
                     "description": "autoplay media files in preview",
                     "type": "boolean"
@@ -5632,6 +5636,10 @@ const docTemplate = `{
                 },
                 "image": {
                     "description": "show thumbnails for image files",
+                    "type": "boolean"
+                },
+                "models": {
+                    "description": "show live thumbnails for 3D models files",
                     "type": "boolean"
                 },
                 "motionVideoPreview": {
@@ -6217,6 +6225,10 @@ const docTemplate = `{
         "users.Preview": {
             "type": "object",
             "properties": {
+                "audio": {
+                    "description": "show thumbnail preview image for audio files",
+                    "type": "boolean"
+                },
                 "autoplayMedia": {
                     "description": "autoplay media files in preview",
                     "type": "boolean"
@@ -6235,6 +6247,10 @@ const docTemplate = `{
                 },
                 "image": {
                     "description": "show thumbnail preview image for image files",
+                    "type": "boolean"
+                },
+                "models": {
+                    "description": "show live thumbnails for 3D models files",
                     "type": "boolean"
                 },
                 "motionVideoPreview": {

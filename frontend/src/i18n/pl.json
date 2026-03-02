@@ -566,8 +566,9 @@
     "results": "Wyniki{suffix}",
     "users": "Użytkownicy{suffix}",
     "photos": "Zdjęcia",
-    "audio": "Audio{suffix}",
+    "audios": "Audios{suffix}",
     "videos": "Filmy{suffix}",
+    "models": "Modele 3D",
     "documents": "Dokumenty{suffix}",
     "archives": "Archiwa{suffix}",
     "images": "Obrazy{suffix}",
@@ -697,6 +698,8 @@
     "orange": "pomarańczowy"
   },
   "profileSettings": {
+    "previewModelsDescription": "Pokaż miniatury podglądów dla modeli 3D, jeśli wyłączone, pojawi się ogólna ikona",
+    "previewAudiosDescription": "Pokaż miniatury podglądów dla plików audio, jeśli wyłączone, pojawi się ogólna ikona",
     "setDateFormat": "Ustaw dokładny format daty",
     "showHiddenFiles": "Pokaż ukryte pliki",
     "showHiddenFilesDescription": "Pokaż ukryte pliki na liście (np. .thumbnails, ProgramData), ale są one nadal dostępne ręcznie, jeśli są skonfigurowane do indeksowania.",

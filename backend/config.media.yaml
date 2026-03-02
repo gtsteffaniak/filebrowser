@@ -8,3 +8,4 @@ userDefaults:
     image: true
     popup: true
     video: true
+    audio: true

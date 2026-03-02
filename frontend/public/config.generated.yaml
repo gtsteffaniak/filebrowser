@@ -173,12 +173,14 @@ userDefaults:
     disableHideSidebar: false             # keep sidebar open when previewing files
     image: true                           # show thumbnails for image files
     video: true                           # show thumbnails for video files
+    audio: true                           # show thumbnails for audio files
     motionVideoPreview: true              # show multiple frames for videos in thumbnail preview when hovering
     office: true                          # show thumbnails for office files
     popup: true                           # show larger popup preview when hovering over thumbnail
     autoplayMedia: true                   # autoplay media files in preview
     defaultMediaPlayer: false             # disable the styled feature-rich media player for browser default
     folder: true                          # show thumbnails for folders that have previewable contents
+    models: true                          # show live thumbnails for 3D models files
   permissions:
     api: false                            # allow api access
     admin: false                          # allow admin access

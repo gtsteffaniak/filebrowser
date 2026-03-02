@@ -141,7 +141,7 @@ export default {
       ],
       typeSelect: [
         { label: this.$t("general.photos"), value: "type:image" },
-        { label: this.$t("general.audio"), value: "type:audio" },
+        { label: this.$t("general.audios"), value: "type:audio" },
         { label: this.$t("general.videos"), value: "type:video" },
         { label: this.$t("general.documents"), value: "type:doc" },
         { label: this.$t("general.archives"), value: "type:archive" },

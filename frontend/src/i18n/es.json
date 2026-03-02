@@ -566,8 +566,9 @@
     "results": "Resultados{suffix}",
     "users": "Usuarios{suffix}",
     "photos": "Fotos",
-    "audio": "Audio{suffix}",
+    "audios": "Audios{suffix}",
     "videos": "Vídeos{suffix}",
+    "models": "Modelos 3D",
     "documents": "Documentos{suffix}",
     "archives": "Archivos comprimidos{suffix}",
     "images": "Imágenes{suffix}",
@@ -697,6 +698,8 @@
     "orange": "Naranja"
   },
   "profileSettings": {
+    "previewModelsDescription": "Mostrar vistas previas en miniatura para modelos 3D, se mostrará un icono genérico si está desactivado",
+    "previewAudiosDescription": "Mostrar vistas previas en miniatura para audios, si está desactivado mostrará un icono generico",
     "autoplayMedia": "Reproducción automática de archivos multimedia",
     "autoplayMediaDescription": "Reproduce automaticamente los archivos multimedia al abrirlos",
     "sidebarOptions": "Opciones del panel lateral",

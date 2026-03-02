@@ -306,12 +306,14 @@ type UserDefaultsPreview struct {
 	HighQuality        *bool `json:"highQuality"`        // deprecated: always true in v1.3.0+
 	Image              *bool `json:"image"`              // show thumbnails for image files
 	Video              *bool `json:"video"`              // show thumbnails for video files
+	Audio              *bool `json:"audio"`              // show thumbnails for audio files
 	MotionVideoPreview *bool `json:"motionVideoPreview"` // show multiple frames for videos in thumbnail preview when hovering
 	Office             *bool `json:"office"`             // show thumbnails for office files
 	PopUp              *bool `json:"popup"`              // show larger popup preview when hovering over thumbnail
 	AutoplayMedia      *bool `json:"autoplayMedia"`      // autoplay media files in preview
 	DefaultMediaPlayer bool  `json:"defaultMediaPlayer"` // disable the styled feature-rich media player for browser default
 	Folder             *bool `json:"folder"`             // show thumbnails for folders that have previewable contents
+	Models             *bool `json:"models"`             // show live thumbnails for 3D models files 
 }
 
 // UserDefaultsPermissions holds permission settings with pointer types for defaults

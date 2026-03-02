@@ -727,11 +727,13 @@ func setDefaults(generate bool) Settings {
 			Preview: UserDefaultsPreview{
 				Image:              boolPtr(true),
 				Video:              boolPtr(true),
+				Audio:              boolPtr(true),
 				MotionVideoPreview: boolPtr(true),
 				Office:             boolPtr(true),
 				PopUp:              boolPtr(true),
 				AutoplayMedia:      boolPtr(true),
 				Folder:             boolPtr(true),
+				Models:             boolPtr(true),
 			},
 			FileLoading: users.FileLoading{
 				MaxConcurrent:     10,

@@ -27,12 +27,14 @@ userDefaults:
     disableHideSidebar: false             # disable the hide sidebar preview for previews and editors
     image: true                           # show thumbnail preview image for image files (defaults to true if not set)
     video: true                           # show thumbnail preview image for video files (defaults to true if not set)
+    audio: true                           # show thumbnail preview image for audio files (defaults to true if not set)
     motionVideoPreview: true              # show multiple frames for videos in thumbnail preview when hovering (defaults to true if not set)
     office: true                          # show thumbnail preview image for office files (defaults to true if not set)
     popup: true                           # show larger popup preview when hovering over thumbnail (defaults to true if not set)
     autoplayMedia: true                   # autoplay media files in preview (defaults to true if not set)
     defaultMediaPlayer: false             # disable html5 media player and use the default media player
     folder: true                          # show thumbnail preview image for folder files (defaults to true if not set)
+    models: true                          # show live thumbnail preview for 3D Models files (defaults to true if not set)
   permissions:
     api: false                            # allow api access
     admin: false                          # allow admin access
