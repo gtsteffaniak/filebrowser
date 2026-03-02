@@ -5467,7 +5467,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "deleteAfterArchive": {
-                    "description": "delete original files after successful creation/extraction of archives",
+                    "description": "delete source files after successful creation/extraction of archives",
                     "type": "boolean"
                 },
                 "deleteWithoutConfirming": {
@@ -6353,7 +6353,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "deleteAfterArchive": {
-                    "description": "delete original files after successful creation/extraction of archives",
+                    "description": "delete source files after successful creation/extraction of archives",
                     "type": "boolean"
                 },
                 "deleteWithoutConfirming": {

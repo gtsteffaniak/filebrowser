@@ -194,7 +194,7 @@ userDefaults:
   loginMethod: "password"                 # login method to use: eg. password, proxy, oidc
   disableUpdateNotifications: false       # disable update notifications banner for admin users
   deleteWithoutConfirming: false          # delete files without confirmation
-  deleteAfterArchive: true                # delete original files after successful creation/extraction of archives
+  deleteAfterArchive: true                # delete source files after successful creation/extraction of archives
   fileLoading:                            # upload and download settings
     maxConcurrentUpload: 10
     uploadChunkSizeMb: 10
