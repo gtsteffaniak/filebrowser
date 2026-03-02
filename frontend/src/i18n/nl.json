@@ -431,12 +431,10 @@
     "archiveDestination": "Kies een bestemmingsmap (voer hieronder de naam van het archief in):",
     "archiveName": "Archiefnaam (standaard archive.zip):",
     "archiveCompression": "Compressieniveau (0-9):",
-    "archiveDeleteAfter": "Bronbestanden verwijderen na succesvolle creatie",
     "archiveSuccess": "Archief succesvol aangemaakt!",
     "unarchive": "Archief uitpakken",
     "unarchiveMessage": "Kies waar het archief moet worden uitgepakt.",
     "unarchiveDestination": "Uittreksel naar:",
-    "unarchiveDeleteAfter": "Archief verwijderen na uitpakken",
     "unarchiveSuccess": "Archief met succes uitgepakt!"
   },
   "search": {
@@ -455,6 +453,10 @@
     "helpText2": "De index: Zoeken maakt gebruik van de index die automatisch wordt bijgewerkt op het ingestelde interval (standaard: 5 minuten). Zoeken als het programma net is gestart, kan onvolledige resultaten opleveren."
   },
   "profileSettings": {
+    "deleteAfterArchive": "Bronbestanden verwijderen na aanmaken/uitpakken van archieven",
+    "deleteAfterArchiveDescription": "Indien ingeschakeld, worden de bronbestanden verwijderd na succesvol aanmaken/uitpakken van archieven",
+    "hideFilesInTree": "Bestanden verbergen in boomnavigatie",
+    "hideFilesInTreeDescription": "Indien ingeschakeld, worden alleen mappen weergegeven in de zijbalk mapstructuur",
     "previewModelsDescription": "Toon miniatuurweergaven voor 3D-modellen, er wordt een algemeen pictogram getoond indien uitgeschakeld",
     "previewAudiosDescription": "Toon miniatuurweergaven voor audiobestanden, er wordt een algemeen pictogram getoond indien uitgeschakeld",
     "debugOfficeEditor": "OnlyOffice foutopsporingsmodus inschakelen",

@@ -46,11 +46,9 @@
           max="9"
         />
         <div class="archive-options settings-items">
-          <ToggleSwitch
-            class="item"
-            v-model="deleteAfter"
-            :name="$t('prompts.archiveDeleteAfter')"
-          />
+          <ToggleSwitch class="item" v-model="deleteAfter" 
+            :name="$t('profileSettings.deleteAfterArchive')" 
+            :description="$t('profileSettings.deleteAfterArchiveDescription')" />
         </div>
       </template>
     </div>
@@ -97,7 +95,7 @@
 </template>
 
 <script>
-import { mutations } from "@/store";
+import { state, mutations } from "@/store";
 import { notify } from "@/notify";
 import { resourcesApi } from "@/api";
 import { goToItem } from "@/utils/url";
@@ -131,8 +129,13 @@ export default {
       compression: 0,
       creating: false,
       showFileList: false,
-      deleteAfter: true,
+      deleteAfter: state.user?.deleteAfterArchive == true,
     };
+  },
+  watch: {
+    deleteAfter(newVal) {
+      mutations.updateCurrentUser({ deleteAfterArchive: newVal });
+    }
   },
   mounted() {
     if (this.currentPath) {

@@ -336,6 +336,7 @@ type UserDefaults struct {
 	DisableQuickToggles        bool                    `json:"disableQuickToggles"`       // disable the quick toggles in the sidebar
 	DisableSearchOptions       bool                    `json:"disableSearchOptions"`      // disable the search options in the search bar
 	StickySidebar              bool                    `json:"stickySidebar"`             // keep sidebar open when navigating
+	HideFilesInTree            bool                    `json:"hideFilesInTree"`           // hide files in the sidebar tree navigation, when true, will show only directories.
 	DarkMode                   *bool                   `json:"darkMode"`                  // should dark mode be enabled
 	Locale                     string                  `json:"locale"`                    // language to use: eg. de, en, or fr
 	ViewMode                   string                  `json:"viewMode"`                  // view mode to use: eg. normal, list, grid, or compact
@@ -355,6 +356,7 @@ type UserDefaults struct {
 	LoginMethod                string                  `json:"loginMethod,omitempty"`      // login method to use: eg. password, proxy, oidc
 	DisableUpdateNotifications bool                    `json:"disableUpdateNotifications"` // disable update notifications banner for admin users
 	DeleteWithoutConfirming    bool                    `json:"deleteWithoutConfirming"`    // delete files without confirmation
+	DeleteAfterArchive         bool                    `json:"deleteAfterArchive"`         // delete source files after successful creation/extraction of archives
 	FileLoading                users.FileLoading       `json:"fileLoading"`                // upload and download settings
 	DisableOfficePreviewExt    string                  `json:"disableOfficePreviewExt"`    // deprecated: use disablePreviewExt instead
 	DisableOnlyOfficeExt       string                  `json:"disableOnlyOfficeExt"`       // list of file extensions to disable onlyoffice editor for

@@ -707,8 +707,10 @@ func setDefaults(generate bool) Settings {
 			Name: "FileBrowser Quantum",
 		},
 		UserDefaults: UserDefaults{
+			DeleteAfterArchive:   true,
 			DisableOnlyOfficeExt: ".md .txt .pdf .html .xml",
 			StickySidebar:        true,
+			HideFilesInTree:      false,
 			LockPassword:         false,
 			ShowHidden:           false,
 			DarkMode:             boolPtr(true),

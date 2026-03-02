@@ -222,12 +222,10 @@
     "archiveDestination": "בחר תיקיית יעד (ואז הזן את שם הארכיון למטה):",
     "archiveName": "שם הארכיון (ברירת מחדל: archive.zip):",
     "archiveCompression": "רמת דחיסה (0–9):",
-    "archiveDeleteAfter": "מחק קבצי מקור לאחר יצירה מוצלחת",
     "archiveSuccess": "הארכיון נוצר בהצלחה!",
     "unarchive": "חלץ ארכיון",
     "unarchiveMessage": "בחר היכן לחלץ את הארכיון.",
     "unarchiveDestination": "חלץ אל:",
-    "unarchiveDeleteAfter": "מחק את הארכיון לאחר החילוץ",
     "unarchiveSuccess": "הארכיון חולץ בהצלחה!"
   },
   "search": {
@@ -698,6 +696,10 @@
     "orange": "כתום"
   },
   "profileSettings": {
+    "deleteAfterArchive": "מחק קבצי מקור לאחר יצירה/חילוץ של ארכיונים",
+    "deleteAfterArchiveDescription": "כאשר מופעל, ימחק את קבצי המקור לאחר יצירה/חילוץ מוצלחים של ארכיונים",
+    "hideFilesInTree": "הסתר קבצים בניווט עץ",
+    "hideFilesInTreeDescription": "כאשר מופעל, רק תיקיות מוצגות בעץ התיקיות בסרגל הצד",
     "previewModelsDescription": "הצג תצוגות מקדימות ממוזערות לדגמי תלת-ממד, יוצג אייקון כללי אם מושבת",
     "previewAudiosDescription": "הצג תצוגות מקדימות ממוזערות לשמע, יוצג אייקון כללי אם מושבת",
     "setDateFormat": "הגדר פורמט תאריך מדויק",

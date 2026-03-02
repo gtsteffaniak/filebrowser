@@ -222,12 +222,10 @@
     "archiveDestination": "选择目标文件夹（然后在下面输入存档名称）：",
     "archiveName": "存档名称（默认为 archive.zip）：",
     "archiveCompression": "压缩级别（0-9）：",
-    "archiveDeleteAfter": "成功创建后删除源文件",
     "archiveSuccess": "存档创建成功！",
     "unarchive": "提取档案",
     "unarchiveMessage": "选择提取存档的位置。",
     "unarchiveDestination": "摘录至",
-    "unarchiveDeleteAfter": "提取后删除存档",
     "unarchiveSuccess": "档案提取成功！"
   },
   "search": {
@@ -552,6 +550,10 @@
     "orange": "橘色"
   },
   "profileSettings": {
+    "deleteAfterArchive": "创建/提取存档后删除源文件",
+    "deleteAfterArchiveDescription": "启用后，将在成功创建/提取存档后删除源文件",
+    "hideFilesInTree": "在树形导航中隐藏文件",
+    "hideFilesInTreeDescription": "启用后，侧边栏文件夹树中仅显示文件夹",
     "previewModelsDescription": "显示3D模型的缩略图预览，如果禁用则显示通用图标",
     "previewAudiosDescription": "显示音频的缩略图预览，如果禁用则显示通用图标",
     "setDateFormat": "设置准确的日期格式",

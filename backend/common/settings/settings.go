@@ -68,6 +68,8 @@ func AdminPerms() users.Permissions {
 func ApplyUserDefaults(u *users.User) {
 	u.StickySidebar = Config.UserDefaults.StickySidebar
 	u.DisableSettings = Config.UserDefaults.DisableSettings
+	u.HideFilesInTree = Config.UserDefaults.HideFilesInTree
+	u.DeleteAfterArchive = Config.UserDefaults.DeleteAfterArchive
 
 	// Handle DarkMode with default - dereference pointer from config
 	u.DarkMode = boolValueOrDefault(Config.UserDefaults.DarkMode, true)

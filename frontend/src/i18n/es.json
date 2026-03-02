@@ -222,12 +222,10 @@
     "archiveDestination": "Elija la carpeta de destino (a continuación, introduzca el nombre del archivo):",
     "archiveName": "Nombre del archivo (por defecto archive.zip):",
     "archiveCompression": "Nivel de compresión (0-9):",
-    "archiveDeleteAfter": "Eliminar los archivos de origen después de crearlos correctamente",
     "archiveSuccess": "¡Archivo creado con éxito!",
     "unarchive": "Extraer archivo",
     "unarchiveMessage": "Elija dónde extraer el archivo.",
     "unarchiveDestination": "Extraer a:",
-    "unarchiveDeleteAfter": "Eliminar el archivo tras la extracción",
     "unarchiveSuccess": "¡Archivo extraído con éxito!"
   },
   "search": {
@@ -698,6 +696,10 @@
     "orange": "Naranja"
   },
   "profileSettings": {
+    "deleteAfterArchive": "Eliminar archivos originales después de la creación/extracción de archivos",
+    "deleteAfterArchiveDescription": "Cuando está activado, eliminará los archivos originales después de la creación o extracción de archivos",
+    "hideFilesInTree": "Ocultar archivos en la navegación de árbol",
+    "hideFilesInTreeDescription": "Cuando está activado, solo se muestran carpetas en el árbol de carpetas de la barra lateral",
     "previewModelsDescription": "Mostrar vistas previas en miniatura para modelos 3D, se mostrará un icono genérico si está desactivado",
     "previewAudiosDescription": "Mostrar vistas previas en miniatura para audios, si está desactivado mostrará un icono generico",
     "autoplayMedia": "Reproducción automática de archivos multimedia",

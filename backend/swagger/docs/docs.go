@@ -5466,6 +5466,10 @@ const docTemplate = `{
                     "description": "debug onlyoffice editor",
                     "type": "boolean"
                 },
+                "deleteAfterArchive": {
+                    "description": "delete original files after successful creation/extraction of archives",
+                    "type": "boolean"
+                },
                 "deleteWithoutConfirming": {
                     "description": "delete files without confirmation",
                     "type": "boolean"
@@ -5517,6 +5521,10 @@ const docTemplate = `{
                 "gallerySize": {
                     "description": "0-9 - the size of the gallery thumbnails",
                     "type": "integer"
+                },
+                "hideFilesInTree": {
+                    "description": "hide files in the sidebar tree navigation, when true, will show only directories.",
+                    "type": "boolean"
                 },
                 "hideSidebarFileActions": {
                     "description": "hide the file actions in the sidebar",
@@ -6344,6 +6352,10 @@ const docTemplate = `{
                     "description": "debug onlyoffice editor",
                     "type": "boolean"
                 },
+                "deleteAfterArchive": {
+                    "description": "delete original files after successful creation/extraction of archives",
+                    "type": "boolean"
+                },
                 "deleteWithoutConfirming": {
                     "description": "delete files without confirmation",
                     "type": "boolean"
@@ -6394,6 +6406,10 @@ const docTemplate = `{
                 "gallerySize": {
                     "description": "0-9 - the size of the gallery thumbnails",
                     "type": "integer"
+                },
+                "hideFilesInTree": {
+                    "description": "hide files in the sidebar tree navigation, when true, will show only directories.",
+                    "type": "boolean"
                 },
                 "hideSidebarFileActions": {
                     "description": "hide the file actions in the sidebar",

@@ -46,6 +46,7 @@ userDefaults:
     download: true                        # allow downloading files (defaults to true if not set)
   disableUpdateNotifications: false       # disable update notifications banner for admin users
   deleteWithoutConfirming: false          # delete files without confirmation
+  deleteAfterArchive: true                # delete source files after successful creation/extraction of archives
   disableOnlyOfficeExt: ".md .txt .pdf .html .xml"   # list of file extensions to disable onlyoffice editor for
   customTheme: ""                         # Name of theme to use chosen from custom themes config.
   showSelectMultiple: false               # show select multiple files on desktop

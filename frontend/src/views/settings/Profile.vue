@@ -22,6 +22,10 @@
             <ToggleSwitch class="item" v-model="localuser.showSelectMultiple" @change="updateSettings"
               :name="$t('profileSettings.showSelectMultiple')"
               :description="$t('profileSettings.showSelectMultipleDescription')" />
+            <ToggleSwitch class="item" v-model="localuser.deleteAfterArchive" @change="updateSettings"
+              :name="$t('profileSettings.deleteAfterArchive')"
+              :description="$t('profileSettings.deleteAfterArchiveDescription')"
+            />
           </div>
         </SettingsItem>
         <SettingsItem aria-label="thumbnailOptions" :title="$t('profileSettings.thumbnailOptions')" :collapsable="true"
@@ -48,7 +52,7 @@
                 :name="$t('profileSettings.popupPreview')"
                 :description="$t('profileSettings.popupPreviewDescription')" />
               <ToggleSwitch v-if="localuser.preview.popup && ((mediaEnabled && localuser.preview.video) || localuser.preview.folder)" class="item"
-                v-model="localuser.preview.motionPreview" @change="updateSettings"
+                v-model="localuser.preview.motionVideoPreview" @change="updateSettings"
                 :name="$t('profileSettings.previewMotion')"
                 :description="$t('profileSettings.previewMotionVideosDescription')" />
               <div class="centered-with-tooltip">
@@ -82,6 +86,8 @@
               :description="$t('profileSettings.disableHideSidebarDescription')" />
             <ToggleSwitch class="item" v-model="localuser.hideSidebarFileActions" @change="updateSettings"
               :name="$t('profileSettings.hideSidebarFileActions')" />
+                <ToggleSwitch class="item" v-model="localuser.hideFilesInTree" @change="updateSettings"
+              :name="$t('profileSettings.hideFilesInTree')" :description="$t('profileSettings.hideFilesInTreeDescription')" />
           </div>
         </SettingsItem>
         <SettingsItem aria-label="searchOptions" :title="$t('settings.searchOptions')" :collapsable="true"
@@ -352,10 +358,12 @@ export default {
           "disableViewingExt",
           "disableOnlyOfficeExt",
           "deleteWithoutConfirming",
+          "deleteAfterArchive",
           "preview",
           "disableQuickToggles",
           "disableSearchOptions",
           "hideSidebarFileActions",
+          "hideFilesInTree",
           "editorQuickSave",
           "showSelectMultiple",
           "debugOffice",

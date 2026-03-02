@@ -222,12 +222,10 @@
     "archiveDestination": "Válassza ki a célmappát (majd adja meg az archívum nevét):",
     "archiveName": "Archívum neve (alapértelmezett archive.zip):",
     "archiveCompression": "Tömörítési szint (0-9):",
-    "archiveDeleteAfter": "Forrásfájlok törlése sikeres létrehozás után",
     "archiveSuccess": "Az archívum sikeresen létrehozva!",
     "unarchive": "Kivonat archívum",
     "unarchiveMessage": "Válassza ki, hová szeretné kinyomtatni az archívumot.",
     "unarchiveDestination": "Kivonat a következő címre:",
-    "unarchiveDeleteAfter": "Törölje az archívumot az extrakció után",
     "unarchiveSuccess": "Az archívum sikeresen kinyomtatva!"
   },
   "search": {
@@ -698,6 +696,10 @@
     "orange": "narancs"
   },
   "profileSettings": {
+    "deleteAfterArchive": "Forrásfájlok törlése archívumok létrehozása/kibontása után",
+    "deleteAfterArchiveDescription": "Ha engedélyezve van, törli a forrásfájlokat az archívumok sikeres létrehozása/kibontása után",
+    "hideFilesInTree": "Fájlok elrejtése a fa navigációban",
+    "hideFilesInTreeDescription": "Ha engedélyezve van, csak mappák jelennek meg az oldalsáv mappafájában",
     "previewModelsDescription": "Miniatűr előnézetek megjelenítése 3D modellekhez, általános ikon jelenik meg ha letiltott",
     "previewAudiosDescription": "Miniatűr előnézetek megjelenítése hangfájlokhoz, általános ikon jelenik meg ha letiltott",
     "setDateFormat": "Pontos dátumformátum beállítása",

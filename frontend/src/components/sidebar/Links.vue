@@ -139,7 +139,7 @@
                 warning
               </i>
               <!-- Source name -->
-              <span>{{ activeSource }}</span>
+              <span>{{ activeSourceLink.name }}</span>
               <i v-if="hasUsageInfo(activeSourceLink)"
                  class="no-select material-symbols-outlined tooltip-info-icon"
                  @mouseenter="showSourceTooltip($event, activeSourceInfo)"
@@ -174,9 +174,9 @@
           <!-- Source Dropdown -->
           <transition name="dropdown">
             <div v-if="showSourceDropdown" class="source-dropdown" ref="dropdown">
-              <div v-for="sourceName in sourceNames" :key="sourceName" class="dropdown-item"
-                   @click="selectSource(sourceName)">
-                {{ sourceName }}
+              <div v-for="item in dropdownSourceItems" :key="item.rawName" class="dropdown-item"
+                  @click="selectSource(item.rawName)">
+                {{ item.displayName }}
               </div>
             </div>
           </transition>
@@ -301,6 +301,15 @@ export default {
         icon: '',
         sourceName: this.activeSource,
       };
+    },
+    dropdownSourceItems() {
+      return this.sourceNames.map(rawName => {
+        const customLink = this.sourceLinkMap[rawName];
+        return {
+          rawName,
+          displayName: customLink ? customLink.name : rawName,
+        };
+      });
     },
   },
   mounted() {
