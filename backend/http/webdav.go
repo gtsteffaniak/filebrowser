@@ -216,11 +216,6 @@ func (ffs *filteredFileSystem) Rename(ctx context.Context, oldName, newName stri
 }
 
 func (ffs *filteredFileSystem) Stat(ctx context.Context, name string) (os.FileInfo, error) {
-	// Root path "/" should always be allowed
-	if name == "" || name == "/" {
-		return ffs.fs.Stat(ctx, name)
-	}
-
 	// Try to use cached info first
 	// This offers better performance and follows indexing and access control rules.
 	permissionPath := utils.JoinPathAsUnix(ffs.userscope, name)
@@ -267,17 +262,8 @@ func (ffs *filteredFileSystem) Stat(ctx context.Context, name string) (os.FileIn
 		return nil, os.ErrPermission
 	}
 
-	// Third check: does the file exist on filesystem?
-	_, statErr := ffs.fs.Stat(ctx, name)
-	if statErr != nil {
-		// File doesn't exist - return the error (expected behavior for WebDAV)
-		// This allows operations like MKCOL to proceed when checking non-existent paths
-		return nil, statErr
-	}
-
-	// File exists but cache check failed for an unknown reason
-	// Default to permission denied for safety
-	return nil, os.ErrPermission
+	// otherwise normal behavior
+	return ffs.fs.Stat(ctx, name)
 }
 
 // webDAVHandler serves WebDAV requests.
