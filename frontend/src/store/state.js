@@ -166,7 +166,7 @@ export const state = reactive({
     mode: getSidebarMode(),
     isResizing: false,
     minWidth: 17, // in em
-    maxWidth: 37.5, // in em
+    maxWidth: 48, // in em
   },
 });
 
