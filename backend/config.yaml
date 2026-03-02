@@ -34,7 +34,7 @@ userDefaults:
     autoplayMedia: true                   # autoplay media files in preview (defaults to true if not set)
     defaultMediaPlayer: false             # disable html5 media player and use the default media player
     folder: true                          # show thumbnail preview image for folder files (defaults to true if not set)
-    models: true                          # show live thumbnail preview for 3D Models files (defaults to true if not set) 
+    models: true                          # show live thumbnail preview for 3D Models files (defaults to true if not set)
   permissions:
     api: false                            # allow api access
     admin: false                          # allow admin access

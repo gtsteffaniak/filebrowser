@@ -8,6 +8,8 @@ userDefaults:
     image: true
     popup: true
     video: true
+    audio: true
+    models: true
     office: true
     highQuality: true
   permissions:
