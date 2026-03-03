@@ -325,7 +325,7 @@
     "deleteAfterArchive": "Smazat zdrojové soubory po vytvoření/extrahování archivů",
     "deleteAfterArchiveDescription": "Pokud je povoleno, po úspěšném vytvoření/extrahování archivů dojde ke smazání zdrojových souborů",
     "hideFilesInTree": "Skrýt soubory ve stromové navigaci",
-    "hideFilesInTreeDescription": "Pokud je povoleno, v postranním stromu složek se zobrazují pouze složky",
+    "hideFilesInTreeDescription": "Pokud je povoleno, v postranním stromovém navigačním panelu se zobrazují pouze složky",
     "previewModelsDescription": "Zobrazit náhledy miniatur pro 3D modely, pokud je zakázáno, zobrazí se obecná ikona",
     "previewAudiosDescription": "Zobrazit náhledy miniatur pro zvuky, pokud je zakázáno, zobrazí se obecná ikona",
     "setDateFormat": "Nastavit formát data",

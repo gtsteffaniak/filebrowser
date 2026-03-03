@@ -699,7 +699,7 @@
     "deleteAfterArchive": "מחק קבצי מקור לאחר יצירה/חילוץ של ארכיונים",
     "deleteAfterArchiveDescription": "כאשר מופעל, ימחק את קבצי המקור לאחר יצירה/חילוץ מוצלחים של ארכיונים",
     "hideFilesInTree": "הסתר קבצים בניווט עץ",
-    "hideFilesInTreeDescription": "כאשר מופעל, רק תיקיות מוצגות בעץ התיקיות בסרגל הצד",
+    "hideFilesInTreeDescription": "כאשר מופעל, רק תיקיות מוצגות בניווט העץ של סרגל הצד",
     "previewModelsDescription": "הצג תצוגות מקדימות ממוזערות לדגמי תלת-ממד, יוצג אייקון כללי אם מושבת",
     "previewAudiosDescription": "הצג תצוגות מקדימות ממוזערות לשמע, יוצג אייקון כללי אם מושבת",
     "setDateFormat": "הגדר פורמט תאריך מדויק",

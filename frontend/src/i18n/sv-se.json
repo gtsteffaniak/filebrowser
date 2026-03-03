@@ -553,7 +553,7 @@
     "deleteAfterArchive": "Ta bort källfiler efter skapande/extrahering av arkiv",
     "deleteAfterArchiveDescription": "När aktiverad kommer att ta bort källfilerna efter framgångsrik skapande/extrahering av arkiv",
     "hideFilesInTree": "Dölj filer i trädnavigering",
-    "hideFilesInTreeDescription": "När aktiverad visas endast mappar i sidofältets mappträd",
+    "hideFilesInTreeDescription": "När aktiverad visas endast mappar i sidofältets trädnavigering",
     "previewModelsDescription": "Visa miniatyrförhandsvisningar för 3D-modeller, kommer att visa generisk ikon om inaktiverad",
     "previewAudiosDescription": "Visa miniatyrförhandsvisningar för ljudfiler, kommer att visa generisk ikon om inaktiverad",
     "setDateFormat": "Ange exakt datumformat",

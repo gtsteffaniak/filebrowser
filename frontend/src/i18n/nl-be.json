@@ -553,7 +553,7 @@
     "deleteAfterArchive": "Bronbestanden verwijderen na aanmaken/uitpakken van archieven",
     "deleteAfterArchiveDescription": "Indien ingeschakeld, worden de bronbestanden verwijderd na succesvol aanmaken/uitpakken van archieven",
     "hideFilesInTree": "Bestanden verbergen in boomnavigatie",
-    "hideFilesInTreeDescription": "Indien ingeschakeld, worden alleen mappen weergegeven in de zijbalk mapstructuur",
+    "hideFilesInTreeDescription": "Indien ingeschakeld, worden alleen mappen weergegeven in de zijbalk Boomnavigatie",
     "previewModelsDescription": "Toon miniatuurweergaven voor 3D-modellen, er wordt een algemeen pictogram getoond indien uitgeschakeld",
     "previewAudiosDescription": "Toon miniatuurweergaven voor audiobestanden, er wordt een algemeen pictogram getoond indien uitgeschakeld",
     "setDateFormat": "Exact datumformaat instellen",

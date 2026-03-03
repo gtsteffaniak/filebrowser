@@ -699,7 +699,7 @@
     "deleteAfterArchive": "Forrásfájlok törlése archívumok létrehozása/kibontása után",
     "deleteAfterArchiveDescription": "Ha engedélyezve van, törli a forrásfájlokat az archívumok sikeres létrehozása/kibontása után",
     "hideFilesInTree": "Fájlok elrejtése a fa navigációban",
-    "hideFilesInTreeDescription": "Ha engedélyezve van, csak mappák jelennek meg az oldalsáv mappafájában",
+    "hideFilesInTreeDescription": "Ha engedélyezve van, csak mappák jelennek meg az oldalsáv fa navigációjában",
     "previewModelsDescription": "Miniatűr előnézetek megjelenítése 3D modellekhez, általános ikon jelenik meg ha letiltott",
     "previewAudiosDescription": "Miniatűr előnézetek megjelenítése hangfájlokhoz, általános ikon jelenik meg ha letiltott",
     "setDateFormat": "Pontos dátumformátum beállítása",

@@ -553,7 +553,7 @@
     "deleteAfterArchive": "创建/提取存档后删除源文件",
     "deleteAfterArchiveDescription": "启用后，将在成功创建/提取存档后删除源文件",
     "hideFilesInTree": "在树形导航中隐藏文件",
-    "hideFilesInTreeDescription": "启用后，侧边栏文件夹树中仅显示文件夹",
+    "hideFilesInTreeDescription": "启用后，侧边栏树形导航中仅显示文件夹",
     "previewModelsDescription": "显示3D模型的缩略图预览，如果禁用则显示通用图标",
     "previewAudiosDescription": "显示音频的缩略图预览，如果禁用则显示通用图标",
     "setDateFormat": "设置准确的日期格式",

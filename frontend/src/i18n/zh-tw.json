@@ -522,7 +522,7 @@
     "deleteAfterArchive": "建立/解壓縮封存檔後刪除來源檔案",
     "deleteAfterArchiveDescription": "啟用後，將在成功建立/解壓縮封存檔後刪除來源檔案",
     "hideFilesInTree": "在樹狀導航中隱藏檔案",
-    "hideFilesInTreeDescription": "啟用後，側邊欄資料夾樹中僅顯示資料夾",
+    "hideFilesInTreeDescription": "啟用後，側邊欄樹狀導航中僅顯示資料夾",
     "previewModelsDescription": "顯示3D模型的縮圖預覽，如果停用則顯示通用圖示",
     "previewAudiosDescription": "顯示音訊的縮圖預覽，如果停用則顯示通用圖示",
     "setDateFormat": "設定精確的日期格式",

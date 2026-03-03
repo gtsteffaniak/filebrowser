@@ -699,7 +699,7 @@
     "deleteAfterArchive": "Șterge fișierele sursă după crearea/extragerea arhivelor",
     "deleteAfterArchiveDescription": "Când este activat, va șterge fișierele sursă după crearea/extragerea cu succes a arhivelor",
     "hideFilesInTree": "Ascunde fișierele în navigarea arborescentă",
-    "hideFilesInTreeDescription": "Când este activat, numai folderele sunt afișate în arborele de foldere din bara laterală",
+    "hideFilesInTreeDescription": "Când este activat, numai folderele sunt afișate în navigarea arborescentă a barei laterale",
     "previewModelsDescription": "Afișează previzualizări miniatură pentru modele 3D, se va afișa o pictogramă generică dacă este dezactivat",
     "previewAudiosDescription": "Afișează previzualizări miniatură pentru fișiere audio, se va afișa o pictogramă generică dacă este dezactivat",
     "setDateFormat": "Setați formatul exact al datei",

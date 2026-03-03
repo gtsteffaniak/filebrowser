@@ -699,7 +699,7 @@
     "deleteAfterArchive": "Usuń pliki źródłowe po utworzeniu/wypakowaniu archiwów",
     "deleteAfterArchiveDescription": "Po włączeniu, usunie pliki źródłowe po pomyślnym utworzeniu/wypakowaniu archiwów",
     "hideFilesInTree": "Ukryj pliki w nawigacji drzewiastej",
-    "hideFilesInTreeDescription": "Po włączeniu, w drzewie folderów na pasku bocznym wyświetlane są tylko foldery",
+    "hideFilesInTreeDescription": "Po włączeniu, w drzewiastej nawigacji na pasku bocznym wyświetlane są tylko foldery",
     "previewModelsDescription": "Pokaż miniatury podglądów dla modeli 3D, jeśli wyłączone, pojawi się ogólna ikona",
     "previewAudiosDescription": "Pokaż miniatury podglądów dla plików audio, jeśli wyłączone, pojawi się ogólna ikona",
     "setDateFormat": "Ustaw dokładny format daty",

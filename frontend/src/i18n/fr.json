@@ -699,7 +699,7 @@
     "deleteAfterArchive": "Supprimer les fichiers source après la création/extraction d'archives",
     "deleteAfterArchiveDescription": "Lorsque activé, supprimera les fichiers source après la création/extraction réussie d'archives",
     "hideFilesInTree": "Masquer les fichiers dans l'arborescence",
-    "hideFilesInTreeDescription": "Lorsque activé, seuls les dossiers sont affichés dans l'arborescence de la barre latérale",
+    "hideFilesInTreeDescription": "Lorsque activé, seuls les dossiers sont affichés dans l'arborescence de navigation de la barre latérale",
     "previewModelsDescription": "Afficher les aperçus miniatures pour les modèles 3D, une icône générique s'affichera si désactivé",
     "previewAudiosDescription": "Afficher les aperçus miniatures pour les fichiers audio, une icône générique s'affichera si désactivé",
     "setDateFormat": "Définir le format exact de la date",

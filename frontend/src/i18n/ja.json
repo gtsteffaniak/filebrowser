@@ -699,7 +699,7 @@
     "deleteAfterArchive": "アーカイブの作成/展開後にソースファイルを削除",
     "deleteAfterArchiveDescription": "有効にすると、アーカイブの作成/展開が成功した後にソースファイルを削除します",
     "hideFilesInTree": "ツリーナビゲーションでファイルを非表示",
-    "hideFilesInTreeDescription": "有効にすると、サイドバーのフォルダーツリーにはフォルダーのみが表示されます",
+    "hideFilesInTreeDescription": "有効にすると、サイドバーのツリーナビゲーションにフォルダーのみが表示されます",
     "previewModelsDescription": "3Dモデルのサムネイルプレビューを表示します。無効の場合は一般的なアイコンを表示します",
     "previewAudiosDescription": "オーディオのサムネイルプレビューを表示します。無効の場合は一般的なアイコンを表示します",
     "setDateFormat": "正確な日付書式を設定する",

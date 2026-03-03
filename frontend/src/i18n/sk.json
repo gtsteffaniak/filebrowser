@@ -699,7 +699,7 @@
     "deleteAfterArchive": "Odstrániť zdrojové súbory po vytvorení/extrahovaní archívov",
     "deleteAfterArchiveDescription": "Ak je povolené, po úspešnom vytvorení/extrahovaní archívov odstráni zdrojové súbory",
     "hideFilesInTree": "Skryť súbory v stromovej navigácii",
-    "hideFilesInTreeDescription": "Ak je povolené, v bočnom strome priečinkov sa zobrazujú iba priečinky",
+    "hideFilesInTreeDescription": "Ak je povolené, v stromovej navigácii bočného panela sa zobrazujú iba priečinky",
     "previewModelsDescription": "Zobraziť miniatúry náhľadov pre 3D modely, ak je zakázané, zobrazí sa všeobecná ikona",
     "previewAudiosDescription": "Zobraziť miniatúry náhľadov pre zvuky, ak je zakázané, zobrazí sa všeobecná ikona",
     "setDateFormat": "Nastavenie presného formátu dátumu",

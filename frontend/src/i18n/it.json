@@ -699,7 +699,7 @@
     "deleteAfterArchive": "Elimina i file sorgente dopo la creazione/estrazione di archivi",
     "deleteAfterArchiveDescription": "Quando abilitato, eliminerà i file sorgente dopo la creazione/estrazione riuscita di archivi",
     "hideFilesInTree": "Nascondi file nella navigazione ad albero",
-    "hideFilesInTreeDescription": "Quando abilitato, solo le cartelle vengono mostrate nell'albero delle cartelle della barra laterale",
+    "hideFilesInTreeDescription": "Quando abilitato, solo le cartelle vengono mostrate nella navigazione ad albero della barra laterale",
     "previewModelsDescription": "Mostra anteprime in miniatura per modelli 3D, verrà mostrata un'icona generica se disabilitato",
     "previewAudiosDescription": "Mostra anteprime in miniatura per gli audio, verrà mostrata un'icona generica se disabilitato",
     "setDateFormat": "Impostare il formato esatto della data",

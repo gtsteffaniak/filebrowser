@@ -699,7 +699,7 @@
     "deleteAfterArchive": "Eliminar archivos originales después de la creación/extracción de archivos",
     "deleteAfterArchiveDescription": "Cuando está activado, eliminará los archivos originales después de la creación o extracción de archivos",
     "hideFilesInTree": "Ocultar archivos en la navegación de árbol",
-    "hideFilesInTreeDescription": "Cuando está activado, solo se muestran carpetas en el árbol de carpetas de la barra lateral",
+    "hideFilesInTreeDescription": "Cuando está activado, solo se muestrarán carpetas en la navegación del panel lateral",
     "previewModelsDescription": "Mostrar vistas previas en miniatura para modelos 3D, se mostrará un icono genérico si está desactivado",
     "previewAudiosDescription": "Mostrar vistas previas en miniatura para audios, si está desactivado mostrará un icono generico",
     "autoplayMedia": "Reproducción automática de archivos multimedia",

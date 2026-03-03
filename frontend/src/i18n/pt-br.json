@@ -699,7 +699,7 @@
     "deleteAfterArchive": "Excluir arquivos de origem após criação/extração de arquivos",
     "deleteAfterArchiveDescription": "Quando ativado, excluirá os arquivos de origem após criação/extração bem-sucedida de arquivos",
     "hideFilesInTree": "Ocultar arquivos na navegação em árvore",
-    "hideFilesInTreeDescription": "Quando ativado, apenas pastas são mostradas na árvore de pastas da barra lateral",
+    "hideFilesInTreeDescription": "Quando ativado, apenas pastas são mostradas na navegação em árvore da barra lateral",
     "previewModelsDescription": "Mostrar visualizações em miniatura para modelos 3D, um ícone genérico será mostrado se desativado",
     "previewAudiosDescription": "Mostrar pré-visualizações em miniatura para áudios, será mostrado um ícone genérico se desativado",
     "setDateFormat": "Definir o formato exato da data",
