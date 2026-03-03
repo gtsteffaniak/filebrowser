@@ -17,6 +17,7 @@
             'current-item': isCurrentItem(node),
             'has-children': node.childrenCount > 0,
             'drag-over': node.dragOver || isSelected(node),
+            'hidden-file': node.isHidden,
           }"
           @click="handleNodeClick(node)"
           @contextmenu.prevent="handleContextMenu($event, node)"
@@ -244,6 +245,7 @@ export default {
         childrenCount: 0,
         childrenError: null,
         dragOver: false, // For drag highlight
+        isHidden: item.hidden,
         ...item
       };
     },
@@ -675,6 +677,10 @@ export default {
   line-height: 1.4;
   width: 100%;
   box-sizing: border-box;
+}
+
+.tree-node.hidden-file {
+  opacity: 0.5;
 }
 
 .tree-node:hover {
