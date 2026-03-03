@@ -456,7 +456,7 @@
     "deleteAfterArchive": "Delete source files after creation/extraction of archives",
     "deleteAfterArchiveDescription": "When enabled, will delete the source files after successful creation/extraction of archives",
     "hideFilesInTree": "Hide files in tree navigation",
-    "hideFilesInTreeDescription": "When enabled, only folders are shown in the sidebar folder tree.",
+    "hideFilesInTreeDescription": "When enabled, only folders are shown in the sidebar Tree Navigation.",
     "previewFolder": "Show thumbnails for folders if available",
     "previewFolderDescription": "Show thumbnail previews for folders with first child item as cover -- or multiple items if motion preview is enabled.",
     "debugOfficeEditor": "Enable OnlyOffice Debug Mode",
