@@ -45,20 +45,22 @@ type filteredFileSystem struct {
 	fs        webdav.FileSystem
 	source    string
 	user      *users.User
-	userscope string
+	userScope string
 	// Cache FileInfoFaster results per path to avoid redundant calls within the same request
 	fileInfoCache map[string]*iteminfo.ExtendedFileInfo
 }
 
-// getCachedFileInfo retrieves cached FileInfoFaster result, or calls FileInfoFaster and caches it
-func (ffs *filteredFileSystem) getCachedFileInfo(permissionPath string, expand bool) (*iteminfo.ExtendedFileInfo, error) {
+// getFileInfo retrieves file information with caching and access control
+// requestPath should NOT include user scope - FileInfoFaster applies it internally
+// This function prefers cache, then tries FileInfoFaster which applies access control
+func (ffs *filteredFileSystem) getFileInfo(requestPath string, expand bool) (*iteminfo.ExtendedFileInfo, error) {
 	// Initialize cache if needed
 	if ffs.fileInfoCache == nil {
 		ffs.fileInfoCache = make(map[string]*iteminfo.ExtendedFileInfo)
 	}
 
-	// Check cache - first try exact match
-	cacheKey := permissionPath
+	// Create cache key (don't modify requestPath itself!)
+	cacheKey := requestPath
 	if expand {
 		cacheKey += ":expand"
 	}
@@ -69,14 +71,16 @@ func (ffs *filteredFileSystem) getCachedFileInfo(permissionPath string, expand b
 	// If we're looking for non-expanded but have expanded cached, we can use it
 	// (expanded contains all the same info plus more)
 	if !expand {
-		expandedKey := permissionPath + ":expand"
+		expandedKey := requestPath + ":expand"
 		if cached, found := ffs.fileInfoCache[expandedKey]; found {
 			return cached, nil
 		}
 	}
-	// Call FileInfoFaster
+
+	// Call FileInfoFaster with clean requestPath (without scope or cache suffix)
+	// FileInfoFaster applies user scope internally AND enforces access control
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
-		Path:              permissionPath,
+		Path:              requestPath,
 		Source:            ffs.source,
 		Expand:            expand,
 		ShowHidden:        ffs.user.ShowHidden,
@@ -86,17 +90,13 @@ func (ffs *filteredFileSystem) getCachedFileInfo(permissionPath string, expand b
 		return nil, err
 	}
 
-	// Cache result
+	// Cache result using the cache key
 	ffs.fileInfoCache[cacheKey] = fileInfo
 
 	// If we got an expanded directory listing, also cache individual file entries
 	// so Stat calls on those files can use the cache
 	if expand && fileInfo.Type == "directory" {
-		dirPath := permissionPath
-		if !strings.HasSuffix(dirPath, "/") && dirPath != "" {
-			dirPath += "/"
-		}
-
+		dirPath := requestPath
 		// Cache each file and folder from the directory listing
 		for _, file := range fileInfo.Files {
 			filePath := utils.JoinPathAsUnix(dirPath, file.Name)
@@ -123,12 +123,83 @@ func (ffs *filteredFileSystem) getCachedFileInfo(permissionPath string, expand b
 	return fileInfo, nil
 }
 
+// checkAccess validates if the user can access a given path
+// This is used by all write operations (mkdir, delete, rename, etc.)
+// Returns nil if access is allowed, error otherwise
+func (ffs *filteredFileSystem) checkAccess(requestPath string) error {
+	// First, validate permissions using CheckPermissions
+	indexPath, _, err := files.CheckPermissions(utils.FileOptions{
+		FollowSymlinks: false,
+		Path:           requestPath,
+		Source:         ffs.source,
+		ShowHidden:     ffs.user.ShowHidden,
+	}, store.Access, ffs.user)
+	if err != nil {
+		logger.Debugf("checkAccess: CheckPermissions denied for %s: %v", requestPath, err)
+		return err
+	}
+
+	// Try to get file info to verify it's accessible
+	// Use non-expanded to be faster (we just need to know if it exists and is accessible)
+	_, err = ffs.getFileInfo(requestPath, false)
+	if err == nil {
+		// Successfully got info - access allowed
+		return nil
+	}
+
+	// Handle specific error cases
+	if errors.Is(err, commonerrors.ErrAccessDenied) {
+		logger.Debugf("checkAccess: access explicitly denied for %s", requestPath)
+		return os.ErrPermission
+	}
+
+	// CRITICAL: If item is not indexed AND not viewable, deny access
+	// This prevents WebDAV from creating/modifying files in non-indexed areas
+	if errors.Is(err, commonerrors.ErrNotViewable) {
+		logger.Debugf("checkAccess: path not viewable for %s", requestPath)
+		return os.ErrPermission
+	}
+
+	// If not indexed but potentially viewable, we need to check more carefully
+	if errors.Is(err, commonerrors.ErrNotIndexed) {
+		// Get the index to check viewability
+		idx := indexing.GetIndex(ffs.source)
+		if idx == nil {
+			return fmt.Errorf("source not found")
+		}
+
+		// Check if the item is viewable using GetFileInfo (without expand)
+		info, getErr := idx.GetFileInfo(indexing.FileInfoRequest{
+			IndexPath:         indexPath,
+			FollowSymlinks:    false,
+			ShowHidden:        ffs.user.ShowHidden,
+			Expand:            false,
+			SkipExtendedAttrs: true,
+		})
+
+		// If GetFileInfo succeeds, the item is viewable despite not being indexed
+		if getErr == nil && info != nil {
+			logger.Debugf("checkAccess: path not indexed but viewable for %s", requestPath)
+			return nil // Allow access to viewable items
+		}
+
+		// Not viewable - deny access
+		logger.Debugf("checkAccess: path not indexed and not viewable for %s", requestPath)
+		return os.ErrPermission
+	}
+
+	// For other errors (like file not found), that's okay for new file/directory creation
+	// The caller will handle whether the operation is appropriate
+	logger.Debugf("checkAccess: path check returned: %v (may be acceptable for new items)", err)
+	return nil
+}
+
 // filteredFile wraps a webdav.File and filters Readdir results based on FileInfoFaster
 type filteredFile struct {
 	webdav.File
-	fs      *filteredFileSystem
-	dirPath string // The directory path this file represents (relative to scope root)
-	isDir   bool   // Whether this is a directory
+	fs          *filteredFileSystem
+	requestPath string // The request path (without user scope)
+	isDir       bool   // Whether this is a directory
 }
 
 func (ff *filteredFile) Readdir(count int) ([]os.FileInfo, error) {
@@ -137,21 +208,23 @@ func (ff *filteredFile) Readdir(count int) ([]os.FileInfo, error) {
 		return ff.File.Readdir(count)
 	}
 
-	// For directories, use FileInfoFaster to get filtered contents
-	// Convert dirPath (relative to scope root) to permission path (relative to userscope)
-	// Handle root path specially
-	var permissionPath string
-	if ff.dirPath == "" || ff.dirPath == "/" {
-		permissionPath = ff.fs.userscope
-	} else {
-		permissionPath = utils.JoinPathAsUnix(ff.fs.userscope, ff.dirPath)
-	}
-
-	// Use cached FileInfoFaster result if available
-	fileInfo, err := ff.fs.getCachedFileInfo(permissionPath, true)
+	// Pass the requestPath (without scope) to getCachedFileInfo
+	// FileInfoFaster will apply the user's scope internally
+	fileInfo, err := ff.fs.getFileInfo(ff.requestPath, true)
 	if err != nil {
+		logger.Debugf("readdir: getFileInfo failed for requestPath=%s: %v", ff.requestPath, err)
+		// Handle errors gracefully - return empty directory for access/indexing issues
+		// This is especially important when user's scope points to a non-viewable directory
+		if errors.Is(err, commonerrors.ErrAccessDenied) ||
+			errors.Is(err, commonerrors.ErrNotIndexed) ||
+			errors.Is(err, commonerrors.ErrNotViewable) {
+			logger.Debugf("readdir: access issue for %s: %v - returning empty", ff.requestPath, err)
+			return []os.FileInfo{}, nil
+		}
+		// Other errors - propagate them
 		return nil, err
 	}
+
 	// Build os.FileInfo list directly from FileInfoFaster's filtered results
 	// No need to read from underlying filesystem - FileInfoFaster already filtered by permissions
 	entries := make([]os.FileInfo, 0, len(fileInfo.Files)+len(fileInfo.Folders))
@@ -177,11 +250,34 @@ func (ffs *filteredFileSystem) Mkdir(ctx context.Context, name string, perm os.F
 	if !ffs.user.Permissions.Create {
 		return fmt.Errorf("create permission required")
 	}
+
+	// Check access before creating directory
+	if err := ffs.checkAccess(name); err != nil {
+		logger.Debugf("Mkdir: access denied for %s: %v", name, err)
+		return err
+	}
+
 	return ffs.fs.Mkdir(ctx, name, perm)
 }
 
-func (ffs *filteredFileSystem) OpenFile(ctx context.Context, name string, flag int, perm os.FileMode) (webdav.File, error) {
-	file, err := ffs.fs.OpenFile(ctx, name, flag, perm)
+func (ffs *filteredFileSystem) OpenFile(ctx context.Context, requestPath string, flag int, perm os.FileMode) (webdav.File, error) {
+	// Check if this is a write operation
+	isWrite := (flag&os.O_WRONLY) != 0 || (flag&os.O_RDWR) != 0 || (flag&os.O_CREATE) != 0
+
+	if isWrite {
+		// Check user permissions first
+		if !ffs.user.Permissions.Create && !ffs.user.Permissions.Modify {
+			return nil, fmt.Errorf("write permission required")
+		}
+
+		// For write operations, check access
+		if err := ffs.checkAccess(requestPath); err != nil {
+			logger.Debugf("OpenFile: write access denied for %s: %v", requestPath, err)
+			return nil, err
+		}
+	}
+
+	file, err := ffs.fs.OpenFile(ctx, requestPath, flag, perm)
 	if err != nil {
 		return nil, err
 	}
@@ -193,86 +289,77 @@ func (ffs *filteredFileSystem) OpenFile(ctx context.Context, name string, flag i
 	}
 
 	// Wrap the file to filter directory listings
+	// name is the request path (without user scope)
 	return &filteredFile{
-		File:    file,
-		fs:      ffs,
-		dirPath: name,
-		isDir:   stat.IsDir(),
+		File:        file,
+		fs:          ffs,
+		requestPath: requestPath,
+		isDir:       stat.IsDir(),
 	}, nil
 }
 
-func (ffs *filteredFileSystem) RemoveAll(ctx context.Context, name string) error {
+func (ffs *filteredFileSystem) RemoveAll(ctx context.Context, requestPath string) error {
 	if !ffs.user.Permissions.Delete {
 		return fmt.Errorf("delete permission required")
 	}
-	return ffs.fs.RemoveAll(ctx, name)
+
+	// Check access before deleting
+	if err := ffs.checkAccess(requestPath); err != nil {
+		logger.Debugf("RemoveAll: access denied for %s: %v", requestPath, err)
+		return err
+	}
+
+	return ffs.fs.RemoveAll(ctx, requestPath)
 }
 
-func (ffs *filteredFileSystem) Rename(ctx context.Context, oldName, newName string) error {
+func (ffs *filteredFileSystem) Rename(ctx context.Context, oldPath, newPath string) error {
 	if !ffs.user.Permissions.Modify {
 		return fmt.Errorf("modify permission required")
 	}
-	return ffs.fs.Rename(ctx, oldName, newName)
+
+	// Check access for both old and new paths
+	if err := ffs.checkAccess(oldPath); err != nil {
+		logger.Debugf("Rename: access denied for source %s: %v", oldPath, err)
+		return err
+	}
+
+	if err := ffs.checkAccess(newPath); err != nil {
+		logger.Debugf("Rename: access denied for destination %s: %v", newPath, err)
+		return err
+	}
+
+	return ffs.fs.Rename(ctx, oldPath, newPath)
 }
 
-func (ffs *filteredFileSystem) Stat(ctx context.Context, name string) (os.FileInfo, error) {
-	// Try to use cached info first
-	// This offers better performance and follows indexing and access control rules.
-	permissionPath := utils.JoinPathAsUnix(ffs.userscope, name)
-	_, cacheErr := ffs.getCachedFileInfo(permissionPath, false)
-	if cacheErr == nil {
-		// Found in cache and user has permission - use fast path
-		return ffs.fs.Stat(ctx, name)
+func (ffs *filteredFileSystem) Stat(ctx context.Context, requestPath string) (os.FileInfo, error) {
+	// Try to get file info (uses cache if available, FileInfoFaster otherwise)
+	_, err := ffs.getFileInfo(requestPath, false)
+	if err == nil {
+		// Successfully got info - use underlying filesystem
+		return ffs.fs.Stat(ctx, requestPath)
 	}
 
-	// Cache miss or error - need to determine why:
-	// 1) Access denied - always fail
-	// 2) Not indexed - only fail if !isViewable
-	// 3) Doesn't exist - allow WebDAV to proceed
-
-	// First check: is it access denied?
-	if errors.Is(cacheErr, commonerrors.ErrAccessDenied) {
+	// Handle specific error cases
+	if errors.Is(err, commonerrors.ErrAccessDenied) || errors.Is(err, commonerrors.ErrNotViewable) {
 		return nil, os.ErrPermission
 	}
 
-	// Second check: is it not indexed?
-	if errors.Is(cacheErr, commonerrors.ErrNotIndexed) {
-		// Get the index to check if it's viewable
-		idx := indexing.GetIndex(ffs.source)
-		if idx == nil {
-			return nil, fmt.Errorf("source not found")
+	// For not indexed, check if it's viewable
+	if errors.Is(err, commonerrors.ErrNotIndexed) {
+		// Use checkAccess to determine if viewable
+		if accessErr := ffs.checkAccess(requestPath); accessErr != nil {
+			return nil, os.ErrPermission
 		}
-
-		// Check if the item is viewable using GetFileInfo (without expand)
-		info, err := idx.GetFileInfo(indexing.FileInfoRequest{
-			IndexPath:         name,
-			FollowSymlinks:    false,
-			ShowHidden:        ffs.user.ShowHidden,
-			Expand:            false,
-			SkipExtendedAttrs: true,
-		})
-
-		// If GetFileInfo succeeds, the item is viewable despite not being indexed
-		if err == nil && info != nil {
-			// Item is viewable - allow access
-			return ffs.fs.Stat(ctx, name)
-		}
-
-		// Not viewable - deny access
-		return nil, os.ErrPermission
+		// Viewable - allow underlying filesystem
+		return ffs.fs.Stat(ctx, requestPath)
 	}
 
-	// otherwise normal behavior
-	return ffs.fs.Stat(ctx, name)
+	// For other errors (like file not found), let underlying filesystem handle it
+	return ffs.fs.Stat(ctx, requestPath)
 }
 
 // webDAVHandler serves WebDAV requests.
 func webDAVHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	path := r.PathValue("path")
-	source := r.PathValue("source")
-	if !strings.HasPrefix(path, "/") {
-		path = "/" + path
-	}
 	if !d.user.Permissions.Download {
 		return http.StatusForbidden, fmt.Errorf("download permission required")
 	}
@@ -283,15 +370,20 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	if isWrite && !userCanWrite(d.user.Permissions) {
 		return http.StatusForbidden, fmt.Errorf("user has no permission to modify")
 	}
-	logger.Debugf("webdav: method=%s, request=%s, source=%s, path=%s", r.Method, r.URL.Path, source, path)
-	indexPath, userScope, err := files.CheckPermissions(utils.FileOptions{
+	requestPath := utils.AddTrailingSlashIfNotExists(r.PathValue("path"))
+	source := r.PathValue("source")
+	if !strings.HasPrefix(requestPath, "/") {
+		requestPath = "/" + requestPath
+	}
+	logger.Debugf("webdav: method=%s, request=%s, source=%s, requestPath=%s", r.Method, r.URL.Path, source, requestPath)
+	_, userScope, err := files.CheckPermissions(utils.FileOptions{
 		FollowSymlinks: false,
-		Path:           path,
+		Path:           requestPath,
 		Source:         source,
 		ShowHidden:     d.user.ShowHidden,
 	}, store.Access, d.user)
 	if err != nil {
-		logger.Debugf("error checking file permissions for path %s: %v", path, err)
+		logger.Debugf("error checking file permissions for path %s: %v", requestPath, err)
 		return http.StatusForbidden, err
 	}
 
@@ -299,6 +391,7 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	if idx == nil {
 		return http.StatusNotFound, fmt.Errorf("source %s not found", source)
 	}
+
 	// Get the user's scope to determine the WebDAV root directory
 	// Resolve the scope path to get the real filesystem root for WebDAV
 	// This is the root directory that WebDAV will use to resolve relative paths
@@ -311,16 +404,13 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	// Construct the WebDAV prefix from BaseURL
 	webDavPrefix := config.Server.BaseURL + "dav"
 	prefix := webDavPrefix + "/" + source
-	logger.Debugf("webdav: virtual_path=%s, indexPath=%s, scope_path=%s", path, indexPath, scopePath)
-
 	// Wrap the filesystem to filter directory listings using FileInfoFaster
-	// This prevents items the user can't access from appearing in listings,
-	// which stops clients from repeatedly trying to access them
+	// We pass requestPath (without scope) to FileInfoFaster, which applies scope internally
 	filteredFS := &filteredFileSystem{
 		fs:        webdav.Dir(scopePath),
 		source:    source,
 		user:      d.user,
-		userscope: userScope,
+		userScope: userScope,
 	}
 
 	wd := &webdav.Handler{
@@ -328,7 +418,13 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		FileSystem: filteredFS,
 		LockSystem: idx.WebdavLock,
 		Logger: func(req *http.Request, err error) {
-			if err != nil && !strings.Contains(err.Error(), "no such file or directory") {
+			if err != nil {
+				errStr := err.Error()
+				// Filter out expected/benign errors that don't indicate actual failures
+				if strings.Contains(errStr, "no such file or directory") ||
+					strings.Contains(errStr, "skip this directory") {
+					return
+				}
 				logger.Errorf("webdav handler failed on path %s: %s", req.URL.Path, err)
 			}
 		},

@@ -4,7 +4,8 @@ services:
     ports:
       - "8080:8080"
     build:
-      dockerfile: ./_docker/Dockerfile.playwright-local
+      dockerfile: ./_docker
+/Dockerfile.playwright-local
       context: ../
   local-playwright-screenshots:
     container_name: local-playwright
