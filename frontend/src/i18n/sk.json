@@ -222,12 +222,10 @@
     "archiveDestination": "Vyberte cieľový priečinok (potom zadajte názov archívu nižšie):",
     "archiveName": "Názov archívu (štandardne archive.zip):",
     "archiveCompression": "Úroveň kompresie (0-9):",
-    "archiveDeleteAfter": "Odstránenie zdrojových súborov po úspešnom vytvorení",
     "archiveSuccess": "Archív bol úspešne vytvorený!",
     "unarchive": "Výpis archívu",
     "unarchiveMessage": "Vyberte, kam sa má archív extrahovať.",
     "unarchiveDestination": "Výpis na:",
-    "unarchiveDeleteAfter": "Odstránenie archívu po extrakcii",
     "unarchiveSuccess": "Archív úspešne extrahovaný!"
   },
   "search": {
@@ -698,6 +696,10 @@
     "orange": "oranžová"
   },
   "profileSettings": {
+    "deleteAfterArchive": "Odstrániť zdrojové súbory po vytvorení/extrahovaní archívov",
+    "deleteAfterArchiveDescription": "Ak je povolené, po úspešnom vytvorení/extrahovaní archívov odstráni zdrojové súbory",
+    "hideFilesInTree": "Skryť súbory v stromovej navigácii",
+    "hideFilesInTreeDescription": "Ak je povolené, v stromovej navigácii bočného panela sa zobrazujú iba priečinky",
     "previewModelsDescription": "Zobraziť miniatúry náhľadov pre 3D modely, ak je zakázané, zobrazí sa všeobecná ikona",
     "previewAudiosDescription": "Zobraziť miniatúry náhľadov pre zvuky, ak je zakázané, zobrazí sa všeobecná ikona",
     "setDateFormat": "Nastavenie presného formátu dátumu",

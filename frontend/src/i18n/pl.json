@@ -222,12 +222,10 @@
     "archiveDestination": "Wybierz folder docelowy (a następnie wprowadź nazwę archiwum poniżej):",
     "archiveName": "Nazwa archiwum (domyślnie archive.zip):",
     "archiveCompression": "Poziom kompresji (0-9):",
-    "archiveDeleteAfter": "Usuwanie plików źródłowych po pomyślnym utworzeniu",
     "archiveSuccess": "Archiwum utworzone pomyślnie!",
     "unarchive": "Wyodrębnij archiwum",
     "unarchiveMessage": "Wybierz miejsce rozpakowania archiwum.",
     "unarchiveDestination": "Wyciąg do:",
-    "unarchiveDeleteAfter": "Usuń archiwum po wyodrębnieniu",
     "unarchiveSuccess": "Archiwum rozpakowane pomyślnie!"
   },
   "search": {
@@ -698,6 +696,10 @@
     "orange": "pomarańczowy"
   },
   "profileSettings": {
+    "deleteAfterArchive": "Usuń pliki źródłowe po utworzeniu/wypakowaniu archiwów",
+    "deleteAfterArchiveDescription": "Po włączeniu, usunie pliki źródłowe po pomyślnym utworzeniu/wypakowaniu archiwów",
+    "hideFilesInTree": "Ukryj pliki w nawigacji drzewiastej",
+    "hideFilesInTreeDescription": "Po włączeniu, w drzewiastej nawigacji na pasku bocznym wyświetlane są tylko foldery",
     "previewModelsDescription": "Pokaż miniatury podglądów dla modeli 3D, jeśli wyłączone, pojawi się ogólna ikona",
     "previewAudiosDescription": "Pokaż miniatury podglądów dla plików audio, jeśli wyłączone, pojawi się ogólna ikona",
     "setDateFormat": "Ustaw dokładny format daty",

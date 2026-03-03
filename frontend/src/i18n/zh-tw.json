@@ -222,12 +222,10 @@
     "archiveDestination": "選擇目的地資料夾（然後在下方輸入存檔名稱）：",
     "archiveName": "存檔名稱 (預設為 archive.zip)：",
     "archiveCompression": "壓縮等級 (0-9)：",
-    "archiveDeleteAfter": "成功建立後刪除原始檔案",
     "archiveSuccess": "成功建立存檔！",
     "unarchive": "擷取存檔",
     "unarchiveMessage": "選擇提取存檔的位置。",
     "unarchiveDestination": "擷取至：",
-    "unarchiveDeleteAfter": "萃取後刪除存檔",
     "unarchiveSuccess": "存檔提取成功！"
   },
   "search": {
@@ -521,6 +519,10 @@
     "error": "錯誤"
   },
   "profileSettings": {
+    "deleteAfterArchive": "建立/解壓縮封存檔後刪除來源檔案",
+    "deleteAfterArchiveDescription": "啟用後，將在成功建立/解壓縮封存檔後刪除來源檔案",
+    "hideFilesInTree": "在樹狀導航中隱藏檔案",
+    "hideFilesInTreeDescription": "啟用後，側邊欄樹狀導航中僅顯示資料夾",
     "previewModelsDescription": "顯示3D模型的縮圖預覽，如果停用則顯示通用圖示",
     "previewAudiosDescription": "顯示音訊的縮圖預覽，如果停用則顯示通用圖示",
     "setDateFormat": "設定精確的日期格式",

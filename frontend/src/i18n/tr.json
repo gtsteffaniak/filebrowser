@@ -222,12 +222,10 @@
     "archiveDestination": "Hedef klasörü seçin (ardından aşağıya arşiv adını girin):",
     "archiveName": "Arşiv adı (varsayılan archive.zip):",
     "archiveCompression": "Sıkıştırma seviyesi (0-9):",
-    "archiveDeleteAfter": "Başarılı bir şekilde oluşturulduktan sonra kaynak dosyaları silme",
     "archiveSuccess": "Arşiv başarıyla oluşturuldu!",
     "unarchive": "Arşivi ayıkla",
     "unarchiveMessage": "Arşivin nereye çıkarılacağını seçin.",
     "unarchiveDestination": "Özetle:",
-    "unarchiveDeleteAfter": "Çıkarma işleminden sonra arşivi silme",
     "unarchiveSuccess": "Arşiv başarıyla çıkarıldı!"
   },
   "search": {
@@ -698,6 +696,10 @@
     "orange": "turuncu"
   },
   "profileSettings": {
+    "deleteAfterArchive": "Arşiv oluşturma/çıkarma işleminden sonra kaynak dosyaları sil",
+    "deleteAfterArchiveDescription": "Etkinleştirildiğinde, arşivlerin başarıyla oluşturulması/çıkarılmasından sonra kaynak dosyaları siler",
+    "hideFilesInTree": "Ağaç gezintisinde dosyaları gizle",
+    "hideFilesInTreeDescription": "Etkinleştirildiğinde, kenar çubuğu Ağaç Gezintisinde yalnızca klasörler gösterilir",
     "previewModelsDescription": "3D modeller için küçük resim önizlemelerini göster, devre dışı bırakılırsa genel simge gösterilir",
     "previewAudiosDescription": "Ses dosyaları için küçük resim önizlemelerini göster, devre dışı bırakılırsa genel simge gösterilir",
     "setDateFormat": "Tam tarih biçimini ayarlama",

@@ -300,12 +300,10 @@
     "archiveDestination": "Zvolte cílovou složku (pak zadejte název archivu níže):",
     "archiveName": "Název archivu (výchozí archive.zip):",
     "archiveCompression": "Úroveň komprese (0-9):",
-    "archiveDeleteAfter": "Odstranění zdrojových souborů po úspěšném vytvoření",
     "archiveSuccess": "Archiv byl úspěšně vytvořen!",
     "unarchive": "Výpis archivu",
     "unarchiveMessage": "Vyberte, kam se má archiv rozbalit.",
     "unarchiveDestination": "Výpis na:",
-    "unarchiveDeleteAfter": "Odstranění archivu po extrakci",
     "unarchiveSuccess": "Archiv úspěšně extrahován!"
   },
   "search": {
@@ -324,6 +322,10 @@
     "showPreviewImagesDescription": "Zobrazení miniaturních náhledů výsledků vyhledávání, pokud jsou k dispozici, a zobrazení větších ikon u všech výsledků."
   },
   "profileSettings": {
+    "deleteAfterArchive": "Smazat zdrojové soubory po vytvoření/extrahování archivů",
+    "deleteAfterArchiveDescription": "Pokud je povoleno, po úspěšném vytvoření/extrahování archivů dojde ke smazání zdrojových souborů",
+    "hideFilesInTree": "Skrýt soubory ve stromové navigaci",
+    "hideFilesInTreeDescription": "Pokud je povoleno, v postranním stromovém navigačním panelu se zobrazují pouze složky",
     "previewModelsDescription": "Zobrazit náhledy miniatur pro 3D modely, pokud je zakázáno, zobrazí se obecná ikona",
     "previewAudiosDescription": "Zobrazit náhledy miniatur pro zvuky, pokud je zakázáno, zobrazí se obecná ikona",
     "setDateFormat": "Nastavit formát data",

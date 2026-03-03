@@ -522,6 +522,7 @@ export const mutations = {
           "showFirstLogin",
           "sidebarLinks",
           "fileLoading",
+          "deleteAfterArchive",
         ].includes(key)
       );
       value.id = state.user.id;

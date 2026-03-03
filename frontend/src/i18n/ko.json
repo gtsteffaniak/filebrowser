@@ -222,12 +222,10 @@
     "archiveDestination": "대상 폴더를 선택한 다음 아래에 아카이브 이름을 입력합니다:",
     "archiveName": "아카이브 이름(기본값은 archive.zip):",
     "archiveCompression": "압축 수준(0-9):",
-    "archiveDeleteAfter": "생성 성공 후 소스 파일 삭제",
     "archiveSuccess": "아카이브가 성공적으로 생성되었습니다!",
     "unarchive": "아카이브 추출",
     "unarchiveMessage": "아카이브를 추출할 위치를 선택합니다.",
     "unarchiveDestination": "추출 대상:",
-    "unarchiveDeleteAfter": "추출 후 아카이브 삭제",
     "unarchiveSuccess": "아카이브가 성공적으로 추출되었습니다!"
   },
   "search": {
@@ -698,6 +696,10 @@
     "orange": "오렌지"
   },
   "profileSettings": {
+    "deleteAfterArchive": "아카이브 생성/추출 후 소스 파일 삭제",
+    "deleteAfterArchiveDescription": "활성화되면 아카이브 생성/추출 성공 후 소스 파일을 삭제합니다",
+    "hideFilesInTree": "트리 탐색에서 파일 숨기기",
+    "hideFilesInTreeDescription": "활성화되면 사이드바 트리 탐색에 폴더만 표시됩니다",
     "previewModelsDescription": "3D 모델의 썸네일 미리보기를 표시합니다. 비활성화된 경우 일반 아이콘이 표시됩니다",
     "previewAudiosDescription": "오디오의 썸네일 미리보기를 표시합니다. 비활성화된 경우 일반 아이콘이 표시됩니다",
     "setDateFormat": "정확한 날짜 형식 설정",

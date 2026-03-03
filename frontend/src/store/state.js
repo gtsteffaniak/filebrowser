@@ -53,6 +53,8 @@ export const state = reactive({
     gallerySize: 0,
     singleClick: false,
     stickySidebar: stickyStartup(),
+    hideFilesInTree: false,
+    deleteAfterArchive: true,
     locale: detectLocale(), // Default to the locale from moment
     viewMode: 'normal', // Default to mosaic view
     showHidden: false, // Default to false, assuming this is a boolean
@@ -164,7 +166,7 @@ export const state = reactive({
     mode: getSidebarMode(),
     isResizing: false,
     minWidth: 17, // in em
-    maxWidth: 37.5, // in em
+    maxWidth: 48, // in em
   },
 });
 

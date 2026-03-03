@@ -26,11 +26,9 @@
           {{ $t("general.path", { suffix: ":" }) }} {{ destPath }}{{ destSource ? ` (${destSource})` : "" }}
         </div>
         <div class="unarchive-options settings-items">
-          <ToggleSwitch
-            class="item"
-            v-model="deleteAfter"
-            :name="$t('prompts.unarchiveDeleteAfter')"
-          />
+          <ToggleSwitch class="item" v-model="deleteAfter" 
+            :name="$t('profileSettings.deleteAfterArchive')"
+            :description="$t('profileSettings.deleteAfterArchiveDescription')" />
         </div>
       </template>
     </div>
@@ -77,7 +75,7 @@
 </template>
 
 <script>
-import { mutations } from "@/store";
+import { state, mutations } from "@/store";
 import { url } from "@/utils";
 import { notify } from "@/notify";
 import { resourcesApi } from "@/api";
@@ -100,10 +98,16 @@ export default {
       destPath: "/",
       destSource: null,
       destType: null,
-      deleteAfter: true,
+      deleteAfter: state.user?.deleteAfterArchive == true,
       isLoading: false,
       showFileList: false,
     };
+  },
+  watch: {
+    deleteAfter(newVal) {
+      // Update the user preference in real time
+      mutations.updateCurrentUser({ deleteAfterArchive: newVal });
+    }
   },
   mounted() {
     this.destPath = this.parentPath || "/";

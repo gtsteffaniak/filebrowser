@@ -368,12 +368,10 @@
     "archiveDestination": "Choose destination folder (then enter archive name below):",
     "archiveName": "Archive name (default archive.zip):",
     "archiveCompression": "Compression level (0–9):",
-    "archiveDeleteAfter": "Delete source files after successful creation",
     "archiveSuccess": "Archive created successfully!",
     "unarchive": "Extract archive",
     "unarchiveMessage": "Choose where to extract the archive.",
     "unarchiveDestination": "Extract to:",
-    "unarchiveDeleteAfter": "Delete archive after successful decompression",
     "unarchiveSuccess": "Archive extracted successfully!",
     "dragAndDrop": "Drag and drop files here",
     "error": "Something went wrong",
@@ -455,6 +453,10 @@
     "helpText2": "The index: Search utilizes the index which automatically gets updated on the configured interval (default: 5 minutes). Searching when the program has just started may result in incomplete results."
   },
   "profileSettings": {
+    "deleteAfterArchive": "Delete source files after creation/extraction of archives",
+    "deleteAfterArchiveDescription": "When enabled, will delete the source files after successful creation/extraction of archives",
+    "hideFilesInTree": "Hide files in tree navigation",
+    "hideFilesInTreeDescription": "When enabled, only folders are shown in the sidebar Tree Navigation.",
     "previewFolder": "Show thumbnails for folders if available",
     "previewFolderDescription": "Show thumbnail previews for folders with first child item as cover -- or multiple items if motion preview is enabled.",
     "debugOfficeEditor": "Enable OnlyOffice Debug Mode",

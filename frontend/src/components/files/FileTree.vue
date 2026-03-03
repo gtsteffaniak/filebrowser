@@ -17,6 +17,7 @@
             'current-item': isCurrentItem(node),
             'has-children': node.childrenCount > 0,
             'drag-over': node.dragOver || isSelected(node),
+            'hidden-file': node.isHidden,
           }"
           @click="handleNodeClick(node)"
           @contextmenu.prevent="handleContextMenu($event, node)"
@@ -54,7 +55,8 @@
           :currentPath="currentPath"
         />
         <div v-else-if="node.expanded && node.children && node.children.length === 0" class="tree-empty-folder">
-          {{ $t('files.lonely') }}
+          <i class="material-icons">sentiment_dissatisfied</i>
+          <span>{{ $t('files.lonely') }}</span>
         </div>
         <div v-else-if="node.expanded && node.loading" class="tree-loading">
           <LoadingSpinner size="small" mode="placeholder" />
@@ -133,6 +135,10 @@ export default {
     canModify() {
       return getters.permissions()?.modify;
     },
+    showFiles() {
+      // Defaults to true
+      return !state.user?.hideFilesInTree;
+    },
   },
   watch: {
     currentSource: {
@@ -159,6 +165,14 @@ export default {
         }
       },
       immediate: true,
+    },
+    showFiles: {
+      handler() {
+        if (this.isRootInstance) {
+          this.refresh();
+        }
+      },
+      immediate: false,
     },
   },
   mounted() {
@@ -203,13 +217,19 @@ export default {
       }
     },
     async fetchItems(path) {
+      let items = [];
       if (this.isShare) {
         const res = await resourcesApi.fetchFilesPublic(path, this.shareHash, state.shareInfo.password, false, false, true);
-        return res.items || [];
+        items = res.items || [];
       } else {
         const res = await resourcesApi.fetchFiles(this.currentSource, path, false, false, true);
-        return res.items || [];
+        items = res.items || [];
       }
+      // Filter out files if showFiles is false
+      if (!this.showFiles) {
+        items = items.filter(item => item.type === 'directory');
+      }
+      return items;
     },
 
     createNode(item) {
@@ -225,6 +245,7 @@ export default {
         childrenCount: 0,
         childrenError: null,
         dragOver: false, // For drag highlight
+        isHidden: item.hidden,
         ...item
       };
     },
@@ -658,6 +679,10 @@ export default {
   box-sizing: border-box;
 }
 
+.tree-node.hidden-file {
+  opacity: 0.5;
+}
+
 .tree-node:hover {
   background-color: var(--surfaceSecondary);
 }
@@ -750,11 +775,22 @@ export default {
 }
 
 .tree-empty-folder {
+  display: flex;
+  align-items: center;
+  gap: 0.3em;
   padding: 0.5em 1em;
   margin-left: 1.2em;
-  text-align: center;
   color: var(--textSecondary);
   font-style: italic;
-  font-size: 0.85em;
+  font-size: 0.9em;
 }
+
+.tree-empty-folder i {
+  font-size: 1.4em;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  height: 1em;
+}
+
 </style>

@@ -100,6 +100,7 @@ type NonAdminEditable struct {
 	DisableQuickToggles        bool          `json:"disableQuickToggles"`     // disable the quick toggles in the sidebar
 	DisableSearchOptions       bool          `json:"disableSearchOptions"`    // disable the search options in the search bar
 	DeleteWithoutConfirming    bool          `json:"deleteWithoutConfirming"` // delete files without confirmation
+	DeleteAfterArchive         bool          `json:"deleteAfterArchive"`      // delete source files after successful creation/extraction of archives
 	Preview                    Preview       `json:"preview"`
 	StickySidebar              bool          `json:"stickySidebar"` // keep sidebar open when navigating
 	DarkMode                   bool          `json:"darkMode"`      // should dark mode be enabled
@@ -124,6 +125,7 @@ type NonAdminEditable struct {
 	DebugOffice                bool          `json:"debugOffice"`                // debug onlyoffice editor
 	OtpEnabled                 bool          `json:"otpEnabled"`                 // allow non-admin users to disable their own OTP
 	SidebarLinks               []SidebarLink `json:"sidebarLinks"`               // customizable sidebar links
+	HideFilesInTree            bool          `json:"hideFilesInTree"`            // hide files in the sidebar tree navigation, when true, will show only directories.
 }
 
 type FileLoading struct {

@@ -4,11 +4,19 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.3.1-beta
 
+**New Features**:
+
+  - More options to settings (#2072) (#2067):
+    - Option to disable thumbnails of Audio and 3D Models.
+    - Option to disable files in the Tree navigation.
+    - Option to disable source files deletion when creating/extracting archives. 
+
  **Notes**:
  - Share icon does not show in share listing or for shares for other users.
 
  **BugFixes**:
- - 405 response code error on Webdav in 1.3.0-beta #2054
+ - 405 response code error on Webdav in 1.3.0-beta (#2054)
+ - Motion Preview setting not saving when changed in profile settings.
 
 ## v1.3.0-beta
 

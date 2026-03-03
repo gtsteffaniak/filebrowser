@@ -222,12 +222,10 @@
     "archiveDestination": "اختر المجلد الوجهة (ثم أدخل اسم الأرشيف أدناه):",
     "archiveName": "اسم الأرشيف (archive.zip.zip الافتراضي):",
     "archiveCompression": "مستوى الضغط (0-9):",
-    "archiveDeleteAfter": "حذف ملفات المصدر بعد إنشائها بنجاح",
     "archiveSuccess": "تم إنشاء الأرشيف بنجاح!",
     "unarchive": "أرشيف المقتطفات",
     "unarchiveMessage": "اختر مكان استخراج الأرشيف.",
     "unarchiveDestination": "مقتطف إلى:",
-    "unarchiveDeleteAfter": "حذف الأرشيف بعد الاستخراج",
     "unarchiveSuccess": "تم استخراج الأرشيف بنجاح!"
   },
   "search": {
@@ -690,6 +688,10 @@
     "downloadChunkSizeMbHelp": "حجم القطع للتحميلات المقطعة. سيتم تنزيل الملفات الأكبر من هذا الحجم على شكل أجزاء لمنع حدوث مشكلات في المهلة (على سبيل المثال، أخطاء Cloudflare 524). يؤدي الإعداد إلى 0 إلى تعطيل التنزيلات المقطعة."
   },
   "profileSettings": {
+    "deleteAfterArchive": "حذف الملفات المصدر بعد إنشاء/استخراج الأرشيفات",
+    "deleteAfterArchiveDescription": "عند التمكين، سيتم حذف الملفات المصدر بعد إنشاء/استخراج الأرشيفات بنجاح",
+    "hideFilesInTree": "إخفاء الملفات في شجرة التنقل",
+    "hideFilesInTreeDescription": "عند التمكين، تظهر المجلدات فقط في التنقل الشجري للشريط الجانبي",
     "previewModelsDescription": "عرض صور مصغرة للنماذج ثلاثية الأبعاد، سيتم عرض أيقونة عامة إذا كانت معطلة",
     "setDateFormat": "تعيين تنسيق التاريخ الدقيق",
     "showHiddenFiles": "إظهار الملفات المخفية",

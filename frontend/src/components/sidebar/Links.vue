@@ -1,7 +1,7 @@
 <template>
   <div class="sidebar-links card">
     <!-- Header - sticks always at the top -->
-    <div class="sidebar-links-header" :class="{ 'no-edit-options': isShare, 'with-top-spacing': isShare && !disableShareCard }">
+    <div class="sidebar-links-header" :class="{ 'no-edit-options': isShare && !disableShareCard }">
       <i v-if="!isShare" @click="goHome()" class="material-icons action" :title="$t('general.home')">home</i>
       <!-- Mode button (is the title) -->
       <button @click="cycleMode" class="mode-toggle" :title="$t('sidebar.switchMode')">
@@ -139,7 +139,7 @@
                 warning
               </i>
               <!-- Source name -->
-              <span>{{ activeSource }}</span>
+              <span>{{ activeSourceLink.name }}</span>
               <i v-if="hasUsageInfo(activeSourceLink)"
                  class="no-select material-symbols-outlined tooltip-info-icon"
                  @mouseenter="showSourceTooltip($event, activeSourceInfo)"
@@ -174,9 +174,9 @@
           <!-- Source Dropdown -->
           <transition name="dropdown">
             <div v-if="showSourceDropdown" class="source-dropdown" ref="dropdown">
-              <div v-for="sourceName in sourceNames" :key="sourceName" class="dropdown-item"
-                   @click="selectSource(sourceName)">
-                {{ sourceName }}
+              <div v-for="item in dropdownSourceItems" :key="item.rawName" class="dropdown-item"
+                  @click="selectSource(item.rawName)">
+                {{ item.displayName }}
               </div>
             </div>
           </transition>
@@ -301,6 +301,15 @@ export default {
         icon: '',
         sourceName: this.activeSource,
       };
+    },
+    dropdownSourceItems() {
+      return this.sourceNames.map(rawName => {
+        const customLink = this.sourceLinkMap[rawName];
+        return {
+          rawName,
+          displayName: customLink ? customLink.name : rawName,
+        };
+      });
     },
   },
   mounted() {
@@ -660,10 +669,6 @@ export default {
   margin-bottom: 0.5em;
   padding-bottom: 0.25em;
   border-bottom: 1px solid var(--borderColor);
-}
-
-.with-top-spacing {
-  margin-top: 0.5em;
 }
 
 .usage-info .vue-simple-progress {

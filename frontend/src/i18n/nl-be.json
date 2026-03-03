@@ -222,12 +222,10 @@
     "archiveDestination": "Kies een bestemmingsmap (voer hieronder de naam van het archief in):",
     "archiveName": "Archiefnaam (standaard archive.zip):",
     "archiveCompression": "Compressieniveau (0-9):",
-    "archiveDeleteAfter": "Bronbestanden verwijderen na succesvolle creatie",
     "archiveSuccess": "Archief succesvol aangemaakt!",
     "unarchive": "Archief uitpakken",
     "unarchiveMessage": "Kies waar het archief moet worden uitgepakt.",
     "unarchiveDestination": "Uittreksel naar:",
-    "unarchiveDeleteAfter": "Archief verwijderen na uitpakken",
     "unarchiveSuccess": "Archief met succes uitgepakt!"
   },
   "search": {
@@ -552,6 +550,10 @@
     "orange": "oranje"
   },
   "profileSettings": {
+    "deleteAfterArchive": "Bronbestanden verwijderen na aanmaken/uitpakken van archieven",
+    "deleteAfterArchiveDescription": "Indien ingeschakeld, worden de bronbestanden verwijderd na succesvol aanmaken/uitpakken van archieven",
+    "hideFilesInTree": "Bestanden verbergen in boomnavigatie",
+    "hideFilesInTreeDescription": "Indien ingeschakeld, worden alleen mappen weergegeven in de zijbalk Boomnavigatie",
     "previewModelsDescription": "Toon miniatuurweergaven voor 3D-modellen, er wordt een algemeen pictogram getoond indien uitgeschakeld",
     "previewAudiosDescription": "Toon miniatuurweergaven voor audiobestanden, er wordt een algemeen pictogram getoond indien uitgeschakeld",
     "setDateFormat": "Exact datumformaat instellen",

@@ -222,12 +222,10 @@
     "archiveDestination": "Wählen Sie den Zielordner (geben Sie dann unten den Archivnamen ein):",
     "archiveName": "Name des Archivs (standardmäßig archive.zip):",
     "archiveCompression": "Komprimierungsstufe (0-9):",
-    "archiveDeleteAfter": "Quelldateien nach erfolgreicher Erstellung löschen",
     "archiveSuccess": "Archiv erfolgreich erstellt!",
     "unarchive": "Archiv extrahieren",
     "unarchiveMessage": "Wählen Sie, wohin das Archiv entpackt werden soll.",
     "unarchiveDestination": "Auszug zu:",
-    "unarchiveDeleteAfter": "Archiv nach Extraktion löschen",
     "unarchiveSuccess": "Archiv erfolgreich entpackt!"
   },
   "search": {
@@ -698,6 +696,10 @@
     "orange": "orange"
   },
   "profileSettings": {
+    "deleteAfterArchive": "Quelldateien nach Erstellung/Extraktion von Archiven löschen",
+    "deleteAfterArchiveDescription": "Wenn aktiviert, werden die Quelldateien nach erfolgreicher Erstellung/Extraktion von Archiven gelöscht",
+    "hideFilesInTree": "Dateien in der Baumnavigation ausblenden",
+    "hideFilesInTreeDescription": "Wenn aktiviert, werden in der Seitenleisten-Baumnavigation nur Ordner angezeigt",
     "previewModelsDescription": "Vorschaubilder für 3D-Modelle anzeigen, bei Deaktivierung wird ein generisches Symbol angezeigt",
     "previewAudiosDescription": "Vorschaubilder für Audiodateien anzeigen, bei Deaktivierung wird ein generisches Symbol angezeigt",
     "setDateFormat": "Genaues Datum statt relativer Zeitangaben verwenden",
