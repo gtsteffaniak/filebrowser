@@ -508,7 +508,7 @@ func (idx *Index) GetFileInfo(req FileInfoRequest) (*iteminfo.FileInfo, error) {
 
 	// Path must be either viewable OR indexable
 	if !isViewable && !isIndexable {
-		return nil, errors.ErrNotIndexed
+		return nil, errors.ErrNotViewable
 	}
 
 	// 3. Return appropriate info
@@ -659,10 +659,10 @@ func (idx *Index) GetFsInfoCore(indexPath string, opts Options) (*iteminfo.FileI
 		// Deny access if not viewable AND skipped
 		if opts.CheckViewable {
 			if !isViewable {
-				return nil, errors.ErrNotIndexed
+				return nil, errors.ErrNotViewable
 			}
 		} else if isSkipped {
-			return nil, errors.ErrNotIndexed
+			return nil, errors.ErrNotViewable
 		}
 
 		realSize, _ := idx.handleFile(dirInfo, indexPath, realPath, false, nil)

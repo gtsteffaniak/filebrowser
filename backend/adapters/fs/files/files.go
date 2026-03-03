@@ -25,6 +25,9 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
+// CheckPermissionsFunc allows tests to override CheckPermissions behavior
+var CheckPermissionsFunc = checkPermissionsImpl
+
 // processDirectoryMetadata extracts metadata for audio/video files in directories
 func processDirectoryMetadata(response *iteminfo.ExtendedFileInfo, idx *indexing.Index, opts utils.FileOptions) {
 	metadataCount := 0
@@ -116,7 +119,13 @@ func finalizeResponse(response *iteminfo.ExtendedFileInfo, info *iteminfo.FileIn
 	}
 }
 
+// CheckPermissions validates user access and returns the resolved index path and user scope
 func CheckPermissions(opts utils.FileOptions, access *access.Storage, user *users.User) (string, string, error) {
+	return CheckPermissionsFunc(opts, access, user)
+}
+
+// checkPermissionsImpl is the actual implementation of CheckPermissions
+func checkPermissionsImpl(opts utils.FileOptions, access *access.Storage, user *users.User) (string, string, error) {
 	if access == nil {
 		return "", "", fmt.Errorf("access not provided")
 	}
@@ -203,7 +212,15 @@ func GetDirItems(opts utils.FileOptions, access *access.Storage, user *users.Use
 	return items, nil
 }
 
+// FileInfoFasterFunc is a variable that can be mocked in tests
+var FileInfoFasterFunc = fileInfoFasterImpl
+
 func FileInfoFaster(opts utils.FileOptions, access *access.Storage, user *users.User, share *share.Storage) (*iteminfo.ExtendedFileInfo, error) {
+	return FileInfoFasterFunc(opts, access, user, share)
+}
+
+// fileInfoFasterImpl is the actual implementation of FileInfoFaster
+func fileInfoFasterImpl(opts utils.FileOptions, access *access.Storage, user *users.User, share *share.Storage) (*iteminfo.ExtendedFileInfo, error) {
 	response := &iteminfo.ExtendedFileInfo{}
 	indexPath, userScope, err := CheckPermissions(opts, access, user)
 	if err != nil {
