@@ -631,7 +631,6 @@ var types = map[string]string{
 	".jpgm":      "video/jpm",
 	".mj2":       "video/mj2",
 	".mjp2":      "video/mj2",
-	".ts":        "video/mp2t",
 	".m2t":       "video/mp2t",
 	".m2ts":      "video/mp2t",
 	".mts":       "video/mp2t",
