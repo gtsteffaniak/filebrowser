@@ -548,7 +548,7 @@ export const getters = {
     // Match by path instead of route name
     const tool = tools().find(t => t.path === state.route.path);
     if (tool === undefined) {
-      return { name: "Tools" };
+      return { name: "Tools", component: "Tools", path: "/tools" };
     }
     return tool;
   },

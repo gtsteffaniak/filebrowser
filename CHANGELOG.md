@@ -6,17 +6,19 @@ All notable changes to this project will be documented in this file. For commit 
 
 **New Features**:
 
-  - More options to settings (#2072) (#2067):
-    - Option to disable thumbnails of Audio and 3D Models.
-    - Option to disable files in the Tree navigation.
-    - Option to disable source files deletion when creating/extracting archives. 
+  - More user options for settings (#2072) (#2067):
+    - Option to disable thumbnails `userDefaults.preview.audio` and `userDefaults.preview.models` for Audio and 3D Models.
+    - Option to disable files in the Tree navigation `userDefaults.hideFilesInTree`
+    - Option to disable source files deletion when creating/extracting archives. `userDefaults.deleteAfterArchive`
 
  **Notes**:
  - Share icon does not show in share listing or for shares for other users.
+ - File Size Analyzer tool max items increased from 100 to 200.
 
  **BugFixes**:
  - 405 response code error on Webdav in 1.3.0-beta (#2054)
  - Motion Preview setting not saving when changed in profile settings.
+ - Context menu on tools not working.
 
 ## v1.3.0-beta
 

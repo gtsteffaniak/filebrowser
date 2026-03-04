@@ -813,16 +813,7 @@ export default {
       }
     },
     selectAll() {
-      for (let file of this.items.files) {
-        if (state.selected.indexOf(file.index) === -1) {
-          mutations.addSelected(file.index);
-        }
-      }
-      for (let dir of this.items.dirs) {
-        if (state.selected.indexOf(dir.index) === -1) {
-          mutations.addSelected(dir.index);
-        }
-      }
+      mutations.selectAllItems();
     },
     alphanumericKeyPress(key) {
       // Convert the key to uppercase to match the case-insensitive search
@@ -964,7 +955,6 @@ export default {
               });
               return;
             }
-
             action(false, false);
           },
         },

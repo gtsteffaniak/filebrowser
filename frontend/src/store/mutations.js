@@ -265,6 +265,7 @@ export const mutations = {
       state.showSidebar = false;
     }
     mutations.hideTooltip(true)
+    mutations.setMultiple(false);
   },
   closeTopHover: () => {
     if (state.prompts.length === 0) {
@@ -467,6 +468,19 @@ export const mutations = {
     state.selected = [];
     mutations.setMultiple(false);
     emitStateChanged();
+  },
+  selectAllItems: () => {
+    if (state.req && state.req.items && state.req.items.length > 0) {
+      // Close the context menu
+      mutations.closeContextMenus();
+      // Clear current selection first
+      mutations.resetSelected();
+      // Add all items from current directory to selection by their indices
+      state.req.items.forEach((item, index) => {
+        mutations.addSelected(index);
+      });
+      mutations.setMultiple(true);
+    }
   },
   setLastSelectedIndex: (index) => {
     if (index === state.lastSelectedIndex) {
