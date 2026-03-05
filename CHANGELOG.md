@@ -8,11 +8,12 @@ All notable changes to this project will be documented in this file. For commit 
  - Patched Stored XSS in public share page via unsanitized share metadata (text/template misuse)
 
  **New Features**:
- - "Divider" option in sidebar links to add a text or divider between links ()
+ - "Divider" option in sidebar links to add a text or divider between links (#1875)
  - shares offer a "go to source Location" sidebar link and button when editing a share.
 
  **Notes**:
  - Share edit/delete permissions are scoped to the user's shares rather than global (#2050)
+ - OIDC group claims accepted as map (#2084)
 
  **BugFixes**:
  - fixed the requirement that the database path needed to be set in the config file, now it loads `FILEBROWSER_DATABASE` value by default, fallback to config file property.
