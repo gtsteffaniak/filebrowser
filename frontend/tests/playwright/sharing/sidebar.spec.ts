@@ -77,7 +77,7 @@ test("edit previously created links and ensure they are updated", async ({ page,
     await page.goto("/public/share/" + shareHash);
     await expect(page).toHaveTitle("Graham's Filebrowser - Share - text-files");
     // sidebar should have 4 items (ShareInfo, Download, New Custom Link, Go to source location)
-    await expect(page.locator'.sidebar-links .inner-card'().locator('a')).toHaveCount(4);
+    await expect(page.locator('.sidebar-links .inner-card').locator('a')).toHaveCount(4);
     // check items exist
     await page.locator('a[aria-label="Share QR Code and Info"]').waitFor({ state: 'visible' });
     await page.locator('a[aria-label="Download"]').waitFor({ state: 'visible' });
