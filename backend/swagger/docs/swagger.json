@@ -3603,6 +3603,9 @@
                 "bannerUrl": {
                     "type": "string"
                 },
+                "canEdit": {
+                    "type": "boolean"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -5054,6 +5057,9 @@
                 "bannerUrl": {
                     "type": "string"
                 },
+                "canEdit": {
+                    "type": "boolean"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -5194,6 +5200,9 @@
                 },
                 "bannerUrl": {
                     "type": "string"
+                },
+                "canEdit": {
+                    "type": "boolean"
                 },
                 "description": {
                     "type": "string"
@@ -5347,6 +5356,9 @@
                 },
                 "bannerUrl": {
                     "type": "string"
+                },
+                "canEdit": {
+                    "type": "boolean"
                 },
                 "description": {
                     "type": "string"
