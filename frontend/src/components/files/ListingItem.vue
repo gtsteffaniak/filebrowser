@@ -66,7 +66,7 @@
         :filename="name"
         :hasPreview="hasPreview"
         mimetype="file_download"
-        style="padding-right: 0.5em"
+        style="padding: 0.5em"
         class="download-icon"
         role="button"
         aria-label="Download"
@@ -440,7 +440,7 @@ export default {
           path: this.path,
           url: this.path,
           index: this.index,
-        };        
+        };
         mutations.resetSelected();
         // @ts-ignore
         mutations.addSelected(selectedItem);
@@ -769,9 +769,9 @@ export default {
         // Local selection handling - emit events instead of updating global state
         if (event.shiftKey) {
           // Shift-click: select range (emit event for parent to handle)
-          this.$emit('selectRange', { 
+          this.$emit('selectRange', {
             startIndex: state.lastSelectedIndex !== null ? state.lastSelectedIndex : this.index,
-            endIndex: this.index 
+            endIndex: this.index
           });
           return;
         }
@@ -786,7 +786,7 @@ export default {
       if (!this.updateGlobalState) {
         return;
       }
-      
+
       // Check if state.req.items exists and has the item at this index
       // This prevents errors when ListingItem is used outside of the main file listing (e.g., duplicate finder)
       let previousHistoryItem = null;
