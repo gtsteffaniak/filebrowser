@@ -804,7 +804,6 @@ export default {
 
 <style>
 .download-icon {
-  font-size: 1.5em;
   cursor: pointer;
   color: var(--secondaryColor);
 }

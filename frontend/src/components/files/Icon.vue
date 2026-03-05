@@ -7,7 +7,7 @@
     <i v-if="isShared" class="material-icons overlay-icon">group</i>
     <!-- Preview content: image, 3D, or fallback -->
     <img v-if="hasPreviewImage" :key="imageTargetSrc" :src="imageDisplaySrc" ref="thumbnail" />
-    <ThreeJs v-else-if="shouldUse3DPreview && !threeJsError" 
+    <ThreeJs v-else-if="shouldUse3DPreview && !threeJsError"
       :key="`3d-${path}-${gallerySizeKey}`"
       :fbdata="{
         name: filename,
@@ -20,7 +20,7 @@
       :add-load-delay="true"
       @error="handle3DError" />
   </span>
-  
+
   <!-- Regular material icon (no preview) -->
   <span v-else class="image-preview">
     <i :class="[classes, { active: active, clickable: clickable }]"> {{ materialIcon }} </i>
@@ -213,10 +213,10 @@ export default {
     shouldUse3DPreview() {
       // Check if we should use 3D preview instead of regular icon
       if (!this.isFile || !this.size || !this.path) return false;
-      
+
       const MAX_SIZE = 250 * 1024; // 250KB in bytes
       if (this.size > MAX_SIZE) return false;
-      
+
       const typeInfo = this.getIconForType();
       return typeInfo.simpleType === '3d-model';
     },
@@ -365,13 +365,13 @@ export default {
     },
     updateImageTargetSrc() {
       let newSrc = this.thumbnailUrl || PLACEHOLDER_URL;
-      
+
       // If we need large thumbnails and have a thumbnail URL, append &size=large
       // Otherwise use the URL as-is (defaults to small)
       if (this.thumbnailUrl && this.showLargeIcon) {
         newSrc = this.thumbnailUrl + "&size=large";
       }
-      
+
       if (this.imageTargetSrc !== newSrc) {
         this.imageTargetSrc = newSrc;
       }
@@ -556,11 +556,6 @@ export default {
 
 .yellow-icons {
   color: yellow;
-}
-
-.simple-icons {
-  color: white;
-  font-size: 1.5em !important;
 }
 
 /* Unified .image-preview container - works universally, always square */
