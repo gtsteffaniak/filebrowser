@@ -295,6 +295,7 @@ body.rtl .listing-items {
 
 .listing-item .text {
   padding-left: 0.5em;
+  flex: 1;
 }
 
 .listing-items.compact .listing-item:first-child {
