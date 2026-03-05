@@ -439,8 +439,8 @@ export default {
   },
   methods: {
     showInfoHover() {
-      mutations.closeContextMenus();
-      mutations.showHover({
+      mutations.closeTopHover(); // close top hover to close overflow menu and replace any other open prompt
+      mutations.showHover({      // from preview we can open the same prompt multiple times, which is undesirable.
         name: "info",
         props: {
           item: this.firstSelected,
@@ -616,7 +616,7 @@ export default {
       downloadFiles(items);
     },
     showDeleteHover() {
-      mutations.closeContextMenus();
+      mutations.closeTopHover();
       mutations.showHover({
         name: 'delete',
         props: {
