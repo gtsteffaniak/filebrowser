@@ -58,7 +58,7 @@ body.rtl .listing-items {
 }
 
 .listing-item p {
-  margin: 0;
+  margin: 0.2em;
 }
 
 .listing-item .size,
