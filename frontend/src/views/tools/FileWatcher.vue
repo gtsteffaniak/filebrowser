@@ -222,6 +222,7 @@ export default {
     },
   },
   mounted() {
+    document.title = globalVars.name + " - " + this.$t('tools.title') + " - " + this.$t('tools.fileWatcher.name');
     // Initialize from URL query parameters
     this.initializeFromQuery();
     

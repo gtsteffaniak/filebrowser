@@ -28,11 +28,11 @@
     "saveAndExit": "Guardar e sair",
     "keepEditing": "Continuar a editar",
     "closeAnyway": "Fechar de qualquer maneira",
-    "goToItem": "Ir para o item",
     "watchFile": "Ver ficheiro",
     "showMore": "Mostrar opções avançadas",
     "showLess": "Ocultar opções avançadas",
-    "goToSource": "Ir para o local de origem"
+    "goToSource": "Ir para o local de origem",
+    "goToItem": "Ir para o item"
   },
   "download": {
     "downloadFile": "Descarregar ficheiro",

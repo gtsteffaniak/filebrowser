@@ -293,7 +293,7 @@ export default {
       let result = url.extractSourceFromPath(decodeURIComponent(state.route.path));
       if (this.selectedSource === "" || result.source === this.selectedSource) {
         return result.path;
-      } else {
+      } else {  
         return "/"; // if searching on non-current source, search the whole thing
       }
     },
@@ -307,6 +307,7 @@ export default {
         props: {
           posX: event.clientX,
           posY: event.clientY,
+          showLimitedOptions: true,
         },
       });
     },

@@ -289,9 +289,6 @@ export default {
     isDarkMode() {
       return getters.isDarkMode();
     },
-    getMultiple() {
-      return state.multiple;
-    },
     ascOrdered() {
       return getters.sorting().asc;
     },
@@ -813,16 +810,7 @@ export default {
       }
     },
     selectAll() {
-      for (let file of this.items.files) {
-        if (state.selected.indexOf(file.index) === -1) {
-          mutations.addSelected(file.index);
-        }
-      }
-      for (let dir of this.items.dirs) {
-        if (state.selected.indexOf(dir.index) === -1) {
-          mutations.addSelected(dir.index);
-        }
-      }
+      mutations.selectAllItems();
     },
     alphanumericKeyPress(key) {
       // Convert the key to uppercase to match the case-insensitive search
@@ -964,7 +952,6 @@ export default {
               });
               return;
             }
-
             action(false, false);
           },
         },
@@ -1019,10 +1006,6 @@ export default {
     },
     async uploadInput(event) {
       this.handleDrop(event);
-    },
-    setMultiple(val) {
-      mutations.setMultiple(val == true);
-      showMultipleSelection();
     },
     windowsResize: throttle(function () {
       // Mark as resizing to disable transitions

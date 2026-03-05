@@ -57,8 +57,7 @@ test("info from search", async ({ page, checkForErrors, context, theme }) => {
   await page.waitForTimeout(500);
   await page.screenshot({ path: `./generated/search/from-listing-${theme}.jpg`, quality: jpgQuality });
   await page.locator('li[aria-label="file.tar.gz"]').click({ button: "right" });
-  await page.locator('.selected-count-header').waitFor({ state: 'visible' });
-  await expect(page.locator('.selected-count-header')).toHaveText('1');
+  await expect(page.locator('button[aria-label="Info"]')).toBeVisible();
   await page.waitForTimeout(500);
   await page.screenshot({ path: `./generated/search/right-click-${theme}.jpg`, quality: jpgQuality });
   await page.locator('button[aria-label="Info"]').click();

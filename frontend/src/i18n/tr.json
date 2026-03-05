@@ -28,11 +28,11 @@
     "saveAndExit": "Kaydet ve Çık",
     "keepEditing": "Düzenlemeye Devam Et",
     "closeAnyway": "Her Neyse Kapat",
-    "goToItem": "Öğeye git",
     "watchFile": "Dosyayı izle",
     "showMore": "Gelişmiş Seçenekleri Göster",
     "showLess": "Gelişmiş Seçenekleri Gizle",
-    "goToSource": "Kaynak Konuma Git"
+    "goToSource": "Kaynak Konuma Git",
+    "goToItem": "Öğeye git"
   },
   "download": {
     "downloadFile": "Dosyayı indir",

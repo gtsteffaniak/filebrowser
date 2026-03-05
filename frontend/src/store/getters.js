@@ -39,7 +39,7 @@ export const getters = {
   },
   isPreviewView: () => {
     const cv = getters.currentView()
-    return cv == 'preview' || cv == 'onlyOfficeEditor' || cv == 'epubViewer' || cv == 'docViewer' || cv == 'editor' || cv == 'markdownViewer' || cv == 'threeJsViewer'
+    return previewViews.includes(cv)
   },
   isScrollable: () => {
     if (getters.currentView() == 'markdownViewer') {
@@ -547,9 +547,7 @@ export const getters = {
     }
     // Match by path instead of route name
     const tool = tools().find(t => t.path === state.route.path);
-    if (tool === undefined) {
-      return { name: "Tools" };
-    }
+    // Return null when at /tools (list view) to avoid circular component rendering
     return tool;
   },
   permissions: () => {

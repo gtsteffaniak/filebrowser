@@ -20,8 +20,6 @@ test("info from search", async({ page, checkForErrors, context }) => {
   await page.locator('#search-input').fill('file.tar.gz');
   await expect(page.locator('#result-list ul li.search-entry')).toHaveCount(1);
   await page.locator('li[aria-label="file.tar.gz"]').click({ button: "right" });
-  await page.locator('.selected-count-header').waitFor({ state: 'visible' });
-  await expect(page.locator('.selected-count-header')).toHaveText('1');
   await page.locator('button[aria-label="Info"]').click();
   await expect(page.locator('span[aria-label="info display name"]')).toHaveText('file.tar.gz');
   checkForErrors();

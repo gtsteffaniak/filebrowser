@@ -14,7 +14,7 @@
       :class="{ 'dark-mode': isDarkMode, 'centered': centered }"
       :key="showCreate ? 'create-mode' : 'normal-mode'"
     >
-      <div class="context-menu-header">
+      <div v-if="!showLimitedOptions" class="context-menu-header">
         <div
           class="action button clickable"
           v-if="showCreateButton"
@@ -208,6 +208,10 @@ export default {
       type: Boolean,
       default: false,
     },
+    showLimitedOptions: {
+      type: Boolean,
+      default: false,
+    },
     items: {
       type: Array,
       default: null, // Array of item objects { name, path, source, isDir, type, ... }
@@ -235,10 +239,7 @@ export default {
       return this.hasDownload && !this.req.isDir && !this.isShare;
     },
     showGoToItem() {
-      return this.isDuplicateFinder && this.selectedCount == 1;
-    },
-    isDuplicateFinder() {
-      return getters.currentView() === "duplicateFinder";
+      return this.showLimitedOptions && this.selectedCount == 1;
     },
     permissions() {
       return getters.permissions();
@@ -250,65 +251,65 @@ export default {
       return getters.isShare();
     },
     showCreateActions() {
-      if (this.isDuplicateFinder) return false;
+      if (this.showLimitedOptions) return false;
       return this.showCreate && !this.isSearchActive;
     },
     showInfo() {
-      if (this.isDuplicateFinder) return this.selectedCount == 1;
+      if (this.showLimitedOptions) return this.selectedCount == 1;
       return !this.showCreate && this.selectedCount == 1;
     },
     showDownload() {
-      if (this.isDuplicateFinder) return false;
+      if (this.showLimitedOptions) return false;
       return !this.showCreate && this.permissions.download && this.selectedCount > 0;
     },
     showArchive() {
-      if (this.isDuplicateFinder || getters.isShare()) return false;
+      if (this.showLimitedOptions || getters.isShare()) return false;
       if (!this.permissions.create) return false;
       return !this.showCreate && this.selectedCount > 0 && !this.showUnarchive;
     },
     showUnarchive() {
-      if (this.isDuplicateFinder || getters.isShare()) return false;
+      if (this.showLimitedOptions || getters.isShare()) return false;
       if (!this.permissions.create) return false;
       if (this.selectedCount !== 1) return false;
       const item = this.firstSelected;
       return item && isArchivePath(item.path || item.from || item.name);
     },
     showShareAction() {
-      if (this.isDuplicateFinder) return false;
+      if (this.showLimitedOptions) return false;
       return (this.showCreate || this.selectedCount == 1) && this.showShare;
     },
     showRename() {
-      if (this.isDuplicateFinder) return false;
+      if (this.showLimitedOptions) return false;
       return !this.showCreate && this.selectedCount == 1 && this.permissions.modify && !this.isSearchActive;
     },
     showCopy() {
-      if (this.isDuplicateFinder) return false;
+      if (this.showLimitedOptions) return false;
       return !this.showCreate && this.selectedCount > 0 && this.permissions.modify;
     },
     showOpenParentFolder() {
-      return !this.showCreate && this.selectedCount == 1 && (this.isSearchActive || this.isDuplicateFinder);
+      return !this.showCreate && this.selectedCount == 1 && (this.isSearchActive || this.showLimitedOptions);
     },
     showMove() {
-      if (this.isDuplicateFinder) return false;
+      if (this.showLimitedOptions) return false;
       return !this.showCreate && this.selectedCount > 0 && this.permissions.modify;
     },
     showSelectAll() {
-      if (this.isDuplicateFinder) return false;
+      if (this.showLimitedOptions) return false;
       return !this.showCreate && !this.isSearchActive && this.req?.items?.length > 0;
     },
     showCreateButton() {
-      if (this.isDuplicateFinder || this.createOnly) return false;
+      if (this.showLimitedOptions || this.createOnly) return false;
       return !this.isSearchActive && this.permissions.create && !this.isShare;
     },
     showDivider() {
-      if (this.isDuplicateFinder || this.createOnly) return false;
+      if (this.showLimitedOptions || this.createOnly) return false;
       if (getters.isShare()) {
         return state.shareInfo?.allowCreate
       }
       return state.user?.permissions?.create || state.user?.permissions?.share || state.user?.permissions?.admin;
     },
     showSelectMultiple() {
-      if (this.isDuplicateFinder) return false;
+      if (this.showLimitedOptions) return false;
       if (this.isMultiple || this.isSearchActive) {
         return false;
       }
@@ -340,7 +341,7 @@ export default {
       return cv == "markdownViewer" && this.permissions.modify;
     },
     showDelete() {
-      if (this.isDuplicateFinder) return false;
+      if (this.showLimitedOptions) return false;
       if (this.selectedCount == 0) {
         return false;
       }
@@ -352,15 +353,7 @@ export default {
       return this.selectedCount > 0 && this.permissions.download;
     },
     isPreview() {
-      const cv = getters.currentView();
-      return (
-        cv == "preview" ||
-        cv == "onlyOfficeEditor" ||
-        cv == "markdownViewer" ||
-        cv == "epubViewer" ||
-        cv == "docViewer" ||
-        cv == "editor"
-      );
+      return getters.isPreviewView();
     },
     showSave() {
       const allowEdit = this.permissions.modify || (getters.isShare() && state.shareInfo.allowEdit);
@@ -370,7 +363,7 @@ export default {
       return getters.currentPromptName() == "OverflowMenu";
     },
     showAccess() {
-      if (this.isDuplicateFinder) return false;
+      if (this.showLimitedOptions) return false;
       if (getters.isShare()) {
         return false;
       }
@@ -450,6 +443,7 @@ export default {
     goToItem() {
       const item = this.firstSelected;
       url.goToItem(item.source, item.path, {}, true);
+      mutations.closeHovers();
     },
     hideTooltip() {
       mutations.hideTooltip();
@@ -607,7 +601,7 @@ export default {
       }
     },
     toggleMultipleSelection() {
-      mutations.setMultiple(!state.multiple);
+      mutations.setMultiple(true);
       mutations.closeHovers();
     },
     startDownload() {
@@ -770,19 +764,11 @@ export default {
     openParentFolder() {
       const item = this.firstSelected;
       const parentPath = url.removeLastDir(item.path) || "/";
-      url.goToItem(item.source, parentPath, {}, this.isDuplicateFinder);
+      url.goToItem(item.source, parentPath, {}, this.showLimitedOptions);
+      mutations.closeHovers();
     },
     selectAllItems() {
-      if (state.req && state.req.items && state.req.items.length > 0) {
-        // Clear current selection first
-        mutations.resetSelected();
-        // Add all items from current directory to selection by their indices
-        state.req.items.forEach((item, index) => {
-          mutations.addSelected(index);
-        });
-        // Close the context menu
-        mutations.closeContextMenus();
-      }
+      mutations.selectAllItems()
     },
   },
 };
