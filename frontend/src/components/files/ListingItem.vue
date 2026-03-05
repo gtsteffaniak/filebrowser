@@ -66,7 +66,6 @@
         :filename="name"
         :hasPreview="hasPreview"
         mimetype="file_download"
-        style="padding: 0.5em"
         class="download-icon"
         role="button"
         aria-label="Download"
