@@ -28,11 +28,11 @@
     "saveAndExit": "Uložit a ukončit",
     "keepEditing": "Pokračovat v úpravách",
     "closeAnyway": "Stejně zavřít",
-    "goToItem": "Přejít na položku",
     "watchFile": "Sledovat soubor",
     "showMore": "Zobrazit rozšířené možnosti",
     "showLess": "Skrytí pokročilých možností",
-    "goToSource": "Přejít na zdrojové umístění"
+    "goToSource": "Přejít na zdrojové umístění",
+    "goToItem": "Přejít na položku"
   },
   "download": {
     "downloadFile": "Stáhnout soubor",

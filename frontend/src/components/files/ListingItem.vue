@@ -200,6 +200,14 @@ export default {
       type: Boolean,
       default: false,
     },
+    showLimitedOptions: {
+      type: Boolean,
+      default: false,
+    },
+    disableContextMenu: {
+      type: Boolean,
+      default: false,
+    },
   },
   computed: {
     displayName() {
@@ -441,11 +449,15 @@ export default {
         mutations.addSelected(selectedItem);
       }
       
+      if (this.disableContextMenu) {
+        return;
+      }
       mutations.showHover({
         name: "ContextMenu",
         props: {
           posX: event.clientX,
           posY: event.clientY,
+          showLimitedOptions: this.showLimitedOptions,
         },
       });
     },

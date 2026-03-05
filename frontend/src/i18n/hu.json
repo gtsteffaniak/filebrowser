@@ -28,11 +28,11 @@
     "saveAndExit": "Mentés és kilépés",
     "keepEditing": "Szerkesztés folytatása",
     "closeAnyway": "Egyébként bezárni",
-    "goToItem": "Tovább a tételhez",
     "watchFile": "Nézze meg a fájlt",
     "showMore": "Speciális beállítások megjelenítése",
     "showLess": "Speciális beállítások elrejtése",
-    "goToSource": "Menj a forráshelyre"
+    "goToSource": "Menj a forráshelyre",
+    "goToItem": "Tovább a tételhez"
   },
   "download": {
     "downloadFile": "Fájl letöltése",

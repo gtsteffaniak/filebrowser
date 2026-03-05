@@ -162,8 +162,8 @@
     "saveAndExit": "Opslaan en afsluiten",
     "keepEditing": "Blijven bewerken",
     "closeAnyway": "Sluiten",
-    "goToItem": "Ga naar item",
-    "goToSource": "Ga naar de bronlocatie"
+    "goToSource": "Ga naar de bronlocatie",
+    "goToItem": "Ga naar item"
   },
   "download": {
     "downloadFile": "Bestand downloaden",

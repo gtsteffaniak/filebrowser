@@ -13,9 +13,9 @@
           {{ $t('general.path', { suffix: ':' }) }} {{ searchPath }}
         </div>
         <h3>{{ $t('duplicateFinder.minSize') }}</h3>
-        <input v-model.number="minSizeValue" type="number" min="0" placeholder="1" class="input" />
+        <input aria-label="Minimum size input" v-model.number="minSizeValue" type="number" min="0" placeholder="1" class="input" />
         <p class="hint">{{ $t('duplicateFinder.minSizeHint') }}</p>
-        <button @click="fetchData" class="button" :disabled="loading">
+        <button aria-label="Find duplicates button" @click="fetchData" class="button" :disabled="loading">
           <i v-if="loading" class="material-icons spin">autorenew</i>
           <span v-else>{{ $t('duplicateFinder.findDuplicates') }}</span>
         </button>
@@ -87,6 +87,7 @@
                           :updateGlobalState="false"
                           :isSelectedProp="selectedIndices.has(getUniqueIndex(index, fileIndex))"
                           :clickable="false"
+                          :showLimitedOptions="true"
                           @select="handleItemSelect"
                           @clearSelection="clearSelection"
                           @selectRange="handleSelectRange"
@@ -124,7 +125,7 @@ export default {
     return {
       searchPath: "/",
       selectedSource: "",
-      minSizeValue: 1,
+      minSizeValue: 10,
       loading: false,
       error: null,
       duplicateGroups: [],
@@ -170,6 +171,8 @@ export default {
     },
   },
   mounted() {
+    document.title = globalVars.name + " - " + this.$t('tools.title') + " - " + this.$t('tools.duplicateFinder.name');
+
     // Initialize from URL query params or use defaults
     const query = this.$route.query;
     

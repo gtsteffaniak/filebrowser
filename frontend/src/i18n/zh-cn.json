@@ -28,11 +28,11 @@
     "saveAndExit": "保存并退出",
     "keepEditing": "继续编辑",
     "closeAnyway": "无论如何关闭",
-    "goToItem": "转到项目",
     "watchFile": "观看文件",
     "showMore": "显示高级选项",
     "showLess": "隐藏高级选项",
-    "goToSource": "转到源位置"
+    "goToSource": "转到源位置",
+    "goToItem": "转到项目"
   },
   "download": {
     "downloadFile": "下载文件",

@@ -15,12 +15,12 @@
         </div>
 
         <h3>{{ $t('fileSizeAnalyzer.largerThan') }}</h3>
-        <input v-model.number="largerThanValue" type="number" min="0" placeholder="100" class="input" />
+        <input aria-label="Larger than size input" v-model.number="largerThanValue" type="number" min="0" placeholder="100" class="input" />
 
         <ToggleSwitch v-model="includeFoldersValue" :name="$t('fileSizeAnalyzer.includeFolders')"
           :description="$t('fileSizeAnalyzer.includeFoldersDescription')" aria-label="Include folders toggle" />
 
-        <button @click="fetchData" class="button" :disabled="loading">
+        <button aria-label="Analyze button" @click="fetchData" class="button" :disabled="loading">
           <i v-if="loading" class="material-icons spin">autorenew</i>
           <span v-else>{{ $t('general.analyze') }}</span>
         </button>
@@ -64,12 +64,15 @@
 
             <div v-for="(rect, index) in treemapRects" :key="index">
               <!-- Invisible hit area at original position - handles mouse events -->
-              <div :class="['treemap-hit-area', { 'active': expandedItem === rect.item }]" :style="getRectStyle(rect)"
+              <div :aria-label="getDisplayPath(rect.item.path)" :class="['treemap-hit-area', { 'active': expandedItem === rect.item }]" :style="getRectStyle(rect)"
                 @click="handleItemClick(rect.item)"
                 @contextmenu.prevent="onRightClick($event, rect.item)"
                 @touchstart="onTouchStart($event, rect.item)"
                 @touchend="onTouchEnd"
-                @touchmove="onTouchMove">
+                @touchmove="onTouchMove"
+                @mouseenter="onItemHover($event, rect.item)"
+                @mousemove="onItemMouseMove($event)"
+                @mouseleave="onItemLeave">
               </div>
 
               <!-- Visual item - moves to center when expanded -->
@@ -160,7 +163,7 @@
 
 <script>
 import { toolsApi } from "@/api";
-import { state, mutations, getters } from "@/store";
+import { state, mutations } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { getTypeInfo } from "@/utils/mimetype";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
@@ -201,6 +204,9 @@ export default {
       isInitializing: true,
       expandedItem: null,
       touchHoldTimer: null,
+      tooltipHoverTimer: null,
+      tooltipMouseX: 0,
+      tooltipMouseY: 0,
       maxResults: 200,
     };
   },
@@ -252,6 +258,7 @@ export default {
     },
   },
   mounted() {
+    document.title = globalVars.name + " - " + this.$t('tools.title') + " - " + this.$t('fileSizeAnalyzer.title');
     this.initializeFromQuery();
     // Set default source if not provided via props or query
     if (!this.selectedSource) {
@@ -273,6 +280,11 @@ export default {
     if (this.touchHoldTimer) {
       clearTimeout(this.touchHoldTimer);
       this.touchHoldTimer = null;
+    }
+    // Clean up tooltip hover timer
+    if (this.tooltipHoverTimer) {
+      clearTimeout(this.tooltipHoverTimer);
+      this.tooltipHoverTimer = null;
     }
     // Clean up event listener
     eventBus.off('pathSelected', this.handlePathSelected);
@@ -636,6 +648,7 @@ export default {
         props: {
           posX: event.clientX,
           posY: event.clientY,
+          showLimitedOptions: true,
         },
       });
     },
@@ -692,6 +705,33 @@ export default {
       };
 
       return labels[simpleType] || this.$t('fileTypes.other');
+    },
+    onItemHover(event, item) {
+      this.tooltipMouseX = event.clientX;
+      this.tooltipMouseY = event.clientY;
+      
+      this.tooltipHoverTimer = setTimeout(() => {
+        const displayPath = this.getDisplayPath(item.path);
+        const size = this.humanSize(item.size);
+        const tooltipContent = `${displayPath} (${size})`;
+        mutations.showTooltip({
+          content: tooltipContent,
+          x: this.tooltipMouseX,
+          y: this.tooltipMouseY,
+        });
+        this.tooltipHoverTimer = null;
+      }, 500);
+    },
+    onItemMouseMove(event) {
+      this.tooltipMouseX = event.clientX;
+      this.tooltipMouseY = event.clientY;
+    },
+    onItemLeave() {
+      if (this.tooltipHoverTimer) {
+        clearTimeout(this.tooltipHoverTimer);
+        this.tooltipHoverTimer = null;
+      }
+      mutations.hideTooltip();
     },
   },
 };

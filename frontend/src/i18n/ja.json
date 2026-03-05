@@ -28,11 +28,11 @@
     "saveAndExit": "保存して終了する",
     "keepEditing": "編集を続ける",
     "closeAnyway": "とにかく閉じる",
-    "goToItem": "アイテムへ",
     "watchFile": "ウォッチファイル",
     "showMore": "詳細オプションを表示",
     "showLess": "詳細オプションを隠す",
-    "goToSource": "ソース・ロケーションへ"
+    "goToSource": "ソース・ロケーションへ",
+    "goToItem": "アイテムへ"
   },
   "download": {
     "downloadFile": "ファイルをダウンロード",

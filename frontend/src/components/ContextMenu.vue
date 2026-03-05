@@ -208,6 +208,10 @@ export default {
       type: Boolean,
       default: false,
     },
+    showLimitedOptions: {
+      type: Boolean,
+      default: false,
+    },
     items: {
       type: Array,
       default: null, // Array of item objects { name, path, source, isDir, type, ... }
@@ -236,10 +240,6 @@ export default {
     },
     showGoToItem() {
       return this.showLimitedOptions && this.selectedCount == 1;
-    },
-    showLimitedOptions() {
-      const component = getters.currentTool()?.component;
-      return component === "DuplicateFinder" || component === "SizeViewer";
     },
     permissions() {
       return getters.permissions();
@@ -353,15 +353,7 @@ export default {
       return this.selectedCount > 0 && this.permissions.download;
     },
     isPreview() {
-      const cv = getters.currentView();
-      return (
-        cv == "preview" ||
-        cv == "onlyOfficeEditor" ||
-        cv == "markdownViewer" ||
-        cv == "epubViewer" ||
-        cv == "docViewer" ||
-        cv == "editor"
-      );
+      return getters.isPreviewView();
     },
     showSave() {
       const allowEdit = this.permissions.modify || (getters.isShare() && state.shareInfo.allowEdit);
@@ -450,8 +442,8 @@ export default {
     },
     goToItem() {
       const item = this.firstSelected;
-      console.log(item);
       url.goToItem(item.source, item.path, {}, true);
+      mutations.closeHovers();
     },
     hideTooltip() {
       mutations.hideTooltip();
@@ -773,6 +765,7 @@ export default {
       const item = this.firstSelected;
       const parentPath = url.removeLastDir(item.path) || "/";
       url.goToItem(item.source, parentPath, {}, this.showLimitedOptions);
+      mutations.closeHovers();
     },
     selectAllItems() {
       mutations.selectAllItems()
