@@ -167,7 +167,6 @@ export default {
         return;
       }
       const currentView = getters.currentView()
-      mutations.setMultiple(false);
       const currentPrompt = getters.currentPromptName();
       if (currentPrompt !== "success" && currentPrompt !== "generic") {
         mutations.closeTopHover();

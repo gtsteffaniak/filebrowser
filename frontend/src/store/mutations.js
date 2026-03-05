@@ -265,7 +265,6 @@ export const mutations = {
       state.showSidebar = false;
     }
     mutations.hideTooltip(true)
-    mutations.setMultiple(false);
   },
   closeTopHover: () => {
     if (state.prompts.length === 0) {
@@ -449,6 +448,7 @@ export const mutations = {
       return;
     }
     state.multiple = value;
+    console.log(state.multiple);
     if (value == true) {
       notify.showMultipleSelection()
     }

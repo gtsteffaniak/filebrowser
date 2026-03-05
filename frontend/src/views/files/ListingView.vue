@@ -289,9 +289,6 @@ export default {
     isDarkMode() {
       return getters.isDarkMode();
     },
-    getMultiple() {
-      return state.multiple;
-    },
     ascOrdered() {
       return getters.sorting().asc;
     },
@@ -1009,10 +1006,6 @@ export default {
     },
     async uploadInput(event) {
       this.handleDrop(event);
-    },
-    setMultiple(val) {
-      mutations.setMultiple(val == true);
-      showMultipleSelection();
     },
     windowsResize: throttle(function () {
       // Mark as resizing to disable transitions

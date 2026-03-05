@@ -601,7 +601,7 @@ export default {
       }
     },
     toggleMultipleSelection() {
-      mutations.setMultiple(!state.multiple);
+      mutations.setMultiple(true);
       mutations.closeHovers();
     },
     startDownload() {
