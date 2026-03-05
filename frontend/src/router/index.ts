@@ -17,6 +17,7 @@ const titles = {
   Share: i18n.global.t("general.share"),
   Files: i18n.global.t("general.files"),
   Tools: i18n.global.t("tools.title"),
+  ChildTool: i18n.global.t("tools.title"),
   Settings: i18n.global.t("general.settings"),
   ProfileSettings: i18n.global.t("settings.profileSettings"),
   Shares: i18n.global.t("settings.shareManagement"),
@@ -84,7 +85,7 @@ const routes: RouteRecordRaw[] = [
     children: [
       {
         path: "",
-        name: "Tools",
+        name: "ChildTool",
         component: Tools,
       },
     ],
