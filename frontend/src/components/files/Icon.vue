@@ -131,6 +131,9 @@ export default {
       if (simpleType === "image" && !getters.previewPerms().image) {
         return false;
       }
+      if (simpleType === "ebook" && !getters.previewPerms().image) {
+        return false;
+      }
       // office files
       if ((simpleType === "document" || simpleType === "text") && !getters.previewPerms().office) {
         return false;
@@ -526,6 +529,10 @@ export default {
 
 .white-icons {
   color: white;
+}
+
+.brown-icons {
+  color: brown;
 }
 
 #listingView.gallery .listing-item i.white-icons,
