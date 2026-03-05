@@ -569,10 +569,10 @@ export default {
             }]
           };
           notify.showSuccess(this.$t('prompts.moveSuccess'), buttonProps);
-          mutations.closeHovers();
+          mutations.closeTopHover();
           mutations.setReload(true);
         } catch (error) {
-          mutations.closeHovers();
+          mutations.closeTopHover();
           throw error;
         }
       };
@@ -584,7 +584,7 @@ export default {
             const overwrite = option === 'overwrite';
             const rename = option === 'rename';
             event.preventDefault();
-            mutations.closeHovers();
+            mutations.closeTopHover();
             await performAction(overwrite, rename);
           },
         });

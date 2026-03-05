@@ -616,11 +616,11 @@ export default {
           };
           notify.showSuccess(this.$t("prompts.moveSuccess"), buttonProps);
           // Close the prompt after successful operation and reload items for reflect the changes
-          mutations.closeHovers();
+          mutations.closeTopHover();
           mutations.setReload(true);
         } catch (error) {
           // Close the prompt and let error handling continue
-          mutations.closeHovers();
+          mutations.closeTopHover();
           throw error;
         }
       };
@@ -638,7 +638,7 @@ export default {
             const rename = option === "rename";
 
             event.preventDefault();
-            mutations.closeHovers();
+            mutations.closeTopHover();
             await action(overwrite, rename);
           },
         });
