@@ -11,7 +11,7 @@
         :class="{ 'with-top-spacing': isShare && !disableShareCard }">
         <i :class="{ 'disabled': !isLoggedIn }" @click="goHome()" class="material-icons action">home</i>
         <span>{{ $t("general.links") }}</span>
-        <i v-if="isShare" @mouseenter="showTooltip($event, editShareText())" @mouseleave="hideTooltip"
+        <i v-if="isShare" aria-label="Edit Share" @mouseenter="showTooltip($event, editShareText())" @mouseleave="hideTooltip"
           :class="{ 'disabled': !canEdit }"
           @click="showEditShareHover" class="material-icons action">edit</i>
         <i v-else @mouseenter="showTooltip($event, $t('sidebar.customizeLinks'))" @mouseleave="hideTooltip"
