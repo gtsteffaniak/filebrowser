@@ -327,7 +327,8 @@ export default {
 
         // Only close prompts and reload on success (or partial success)
         mutations.setReload(true);
-        mutations.closeTopHover();
+        mutations.closeTopHover(); // close conflict prompt
+        mutations.closeTopHover(); // close moveCopy prompt after conflict is resolved
         mutations.setSearch(false);
 
         // Only show success notification if there were no failures (or partial success was already shown)

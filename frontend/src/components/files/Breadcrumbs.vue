@@ -291,10 +291,10 @@ export default {
               action: buttonAction
             }]
           });
-          mutations.closeHovers();
+          mutations.closeTopHover();
           mutations.setReload(true);
         } catch (error) {
-          mutations.closeHovers();
+          mutations.closeTopHover();
           notify.showErrorToast(this.$t("prompts.moveFailed"));
           console.log("Move failed", e);
         }

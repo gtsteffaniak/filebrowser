@@ -946,7 +946,7 @@ export default {
                   const overwrite = option === "overwrite";
                   const rename = option === "rename";
                   event.preventDefault();
-                  mutations.closeHovers();
+                  mutations.closeTopHover();
                   action(overwrite, rename);
                 },
               });
