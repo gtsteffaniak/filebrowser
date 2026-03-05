@@ -295,7 +295,6 @@ export function closeNotification(notificationId) {
     notification.message === 'Multiple Selection Enabled' &&
     state.multiple
   ) {
-    console.log('closing multiple selection')
     mutations.setMultiple(false)
   }
 
@@ -323,7 +322,6 @@ export function closePopUp() {
       n => n.message === 'Multiple Selection Enabled'
     )
     if (multipleNotification) {
-      console.log('closing multiple selection2')
       mutations.setMultiple(false)
     }
   }

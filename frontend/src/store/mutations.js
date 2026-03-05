@@ -448,7 +448,6 @@ export const mutations = {
       return;
     }
     state.multiple = value;
-    console.log(state.multiple);
     if (value == true) {
       notify.showMultipleSelection()
     }
