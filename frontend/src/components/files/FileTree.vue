@@ -39,7 +39,7 @@
           <Icon
             :mimetype="node.isDir ? 'directory' : node.type"
             :filename="node.name"
-            :isShared="isShare"
+            :isShared="node.isShared"
             class="node-icon"
           />
           <span class="node-name" :title="node.name">
@@ -219,7 +219,7 @@ export default {
     async fetchItems(path) {
       let items = [];
       if (this.isShare) {
-        const res = await resourcesApi.fetchFilesPublic(path, this.shareHash, state.shareInfo.password, false, false, true);
+        const res = await resourcesApi.fetchFilesPublic(path, this.shareHash, state.shareInfo?.password, false, false, true);
         items = res.items || [];
       } else {
         const res = await resourcesApi.fetchFiles(this.currentSource, path, false, false, true);
@@ -244,6 +244,7 @@ export default {
         children: null,
         childrenCount: 0,
         childrenError: null,
+        isShared: item.isShared,
         dragOver: false, // For drag highlight
         isHidden: item.hidden,
         ...item

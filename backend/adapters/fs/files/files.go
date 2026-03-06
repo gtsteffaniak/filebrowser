@@ -256,11 +256,6 @@ func fileInfoFasterImpl(opts utils.FileOptions, access *access.Storage, user *us
 			return response, err
 		}
 	}
-
-	defer finalizeResponse(response, info, response.RealPath, user, userScope)
-	if opts.SkipExtendedAttrs {
-		return response, nil
-	}
 	if share != nil && user.Permissions.Share && opts.ShowSharedAttr {
 		for i := range response.Files {
 			file := &response.Files[i]
@@ -271,6 +266,10 @@ func fileInfoFasterImpl(opts utils.FileOptions, access *access.Storage, user *us
 			folder.IsShared = share.IsShared(response.Path+folder.Name, idx.Path, user.ID)
 		}
 		response.IsShared = share.IsShared(response.Path, idx.Path, user.ID)
+	}
+	defer finalizeResponse(response, info, response.RealPath, user, userScope)
+	if opts.SkipExtendedAttrs {
+		return response, nil
 	}
 	// Process directory metadata if requested
 	if info.Type == "directory" {
