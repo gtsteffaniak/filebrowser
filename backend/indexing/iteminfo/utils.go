@@ -110,6 +110,5 @@ func ResolveSymlinks(path string) (string, bool, error) {
 	if err != nil {
 		return resolvedPath, false, fmt.Errorf("could not stat resolved path %s: %v", resolvedPath, err)
 	}
-	isDir := IsDirectory(info)
-	return resolvedPath, isDir, nil
+	return resolvedPath, IsDirectory(info), nil
 }
