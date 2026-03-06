@@ -76,7 +76,7 @@ export function getTypeInfo(mimeType) {
 
     if (mimeType == "file_download") {
         return {
-            classes: "material-icons simple-icons",
+            classes: "material-icons",
             materialIcon: "file_download",
             simpleType: "file_download",
         };
