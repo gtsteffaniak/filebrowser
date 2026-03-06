@@ -190,6 +190,7 @@ span {
 .duration {
   min-width: 10% !important;
   flex: 0;
+  padding-left: 1em;
 }
 
 
