@@ -275,7 +275,7 @@ body.rtl .listing-items {
 .listing-items.compact .listing-item .duration,
 .listing-items.list .listing-item .modified,
 .listing-items.compact .listing-item .modified {
-  min-width: calc(10% + 1em) !important;
+  min-width: 10% !important;
   flex: 0;
 }
 
