@@ -122,6 +122,8 @@ definitions:
         type: string
       bannerUrl:
         type: string
+      canEdit:
+        type: boolean
       description:
         type: string
       disableAnonymous:
@@ -1201,6 +1203,8 @@ definitions:
         type: string
       bannerUrl:
         type: string
+      canEdit:
+        type: boolean
       description:
         type: string
       disableAnonymous:
@@ -1300,6 +1304,8 @@ definitions:
         type: string
       bannerUrl:
         type: string
+      canEdit:
+        type: boolean
       description:
         type: string
       disableAnonymous:
@@ -1407,6 +1413,8 @@ definitions:
         type: string
       bannerUrl:
         type: string
+      canEdit:
+        type: boolean
       description:
         type: string
       disableAnonymous:

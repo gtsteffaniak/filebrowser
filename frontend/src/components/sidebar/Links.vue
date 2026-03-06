@@ -8,10 +8,13 @@
 
       <!-- Links section header -->
       <div class="sidebar-links-header"
-        :class="{ 'no-edit-options': isShare, 'with-top-spacing': isShare && !disableShareCard }">
-        <i v-if="!isShare" @click="goHome()" class="material-icons action">home</i>
+        :class="{ 'with-top-spacing': isShare && !disableShareCard }">
+        <i :class="{ 'disabled': !isLoggedIn }" @click="goHome()" class="material-icons action">home</i>
         <span>{{ $t("general.links") }}</span>
-        <i v-if="!isShare" @mouseenter="showTooltip($event, $t('sidebar.customizeLinks'))" @mouseleave="hideTooltip"
+        <i v-if="isShare" aria-label="Edit Share" @mouseenter="showTooltip($event, editShareText())" @mouseleave="hideTooltip"
+          :class="{ 'disabled': !canEdit }"
+          @click="showEditShareHover" class="material-icons action">edit</i>
+        <i v-else @mouseenter="showTooltip($event, $t('sidebar.customizeLinks'))" @mouseleave="hideTooltip"
           @click="openSidebarLinksPrompt" class="material-icons action">edit</i>
       </div>
 
@@ -22,14 +25,6 @@
             <hr v-if="!link.name || link.name.toLowerCase() === 'divider'" class="sidebar-divider" />
             <span v-else class="sidebar-divider-text">{{ link.name }}</span>
           </div>
-          <a v-else-if="link.category === 'editShare'" :href="getLinkHref(link)"
-            :aria-label="$t('general.edit', { suffix: ' ' + $t('general.share') })"
-            class="action button sidebar-link-button" @click.prevent="showEditShareHover">
-            <div class="link-container">
-              <i class="material-icons link-icon">edit</i>
-              <span>{{ editShareText() }}</span>
-            </div>
-          </a>
           <a v-else-if="link.category == 'custom' && link.name == 'sourceLocation'" :href="link.target"
             :aria-label="link.name" class="action button sidebar-link-button" @click.prevent="handleLinkClick(link)">
             <div class="link-container">
@@ -107,6 +102,12 @@ export default {
     ShareInfo,
   },
   computed: {
+    canEdit() {
+      return state.shareInfo?.canEdit || false;
+    },
+    isLoggedIn() {
+      return state.user?.username !== 'anonymous';
+    },
     isShare: () => getters.isShare(),
     hasLinks() {
       return this.sidebarLinksToDisplay?.length > 0;
@@ -194,6 +195,9 @@ export default {
       return baseURL + target;
     },
     goHome() {
+      if (!this.isLoggedIn) {
+        return;
+      }
       this.$router.push('/');
     },
     getDefaultLinks() {
@@ -329,6 +333,9 @@ export default {
       mutations.closeHovers();
     },
     openSidebarLinksPrompt() {
+      if (!this.isLoggedIn) {
+        return;
+      }
       mutations.showHover({
         name: "SidebarLinks",
       });
@@ -421,6 +428,7 @@ export default {
 }
 
 .share-info-section {
+  margin-top: 0 !important;
   margin-bottom: 1em;
   padding-bottom: 0.5em;
   border-bottom: 1px solid var(--borderColor);

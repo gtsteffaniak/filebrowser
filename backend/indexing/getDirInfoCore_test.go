@@ -196,7 +196,7 @@ func TestProcessDirectoryItem(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
+		for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			itemInfo, size, shouldCount := idx.processDirectoryItem(
 				tt.file, tt.combinedPath,
@@ -212,6 +212,7 @@ func TestProcessDirectoryItem(t *testing.T) {
 
 			if itemInfo == nil {
 				t.Fatalf("expected non-nil itemInfo")
+				return
 			}
 
 			if size != tt.expectSize {

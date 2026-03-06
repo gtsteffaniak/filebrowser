@@ -3614,6 +3614,9 @@ const docTemplate = `{
                 "bannerUrl": {
                     "type": "string"
                 },
+                "canEdit": {
+                    "type": "boolean"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -5065,6 +5068,9 @@ const docTemplate = `{
                 "bannerUrl": {
                     "type": "string"
                 },
+                "canEdit": {
+                    "type": "boolean"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -5205,6 +5211,9 @@ const docTemplate = `{
                 },
                 "bannerUrl": {
                     "type": "string"
+                },
+                "canEdit": {
+                    "type": "boolean"
                 },
                 "description": {
                     "type": "string"
@@ -5358,6 +5367,9 @@ const docTemplate = `{
                 },
                 "bannerUrl": {
                     "type": "string"
+                },
+                "canEdit": {
+                    "type": "boolean"
                 },
                 "description": {
                     "type": "string"
