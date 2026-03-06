@@ -52,6 +52,7 @@
       <span>{{ $t("files.duration") }}</span>
       <i v-if="durationSorted" class="material-icons">{{ durationIcon }}</i>
     </p>
+    <span v-if="quickDownloadEnabled" class="placeholder"></span>
   </div>
 </template>
 
@@ -112,6 +113,15 @@ export default {
       }
       return "arrow_upward";
     },
+    quickDownloadEnabled() {
+      // @ts-ignore
+      if (getters.isShare()) {
+        // @ts-ignore
+        return state.shareInfo?.quickDownload && !this.isDir;
+      }
+      // @ts-ignore
+      return state.user?.quickDownload && !this.galleryView && !this.isDir;
+    },
   },
   methods: {
     sort(field) {
@@ -154,18 +164,13 @@ export default {
   user-select: none;
 }
 
-.name {
-  margin-right: 1.5em;
-  box-sizing: border-box;
-}
-
 p {
   margin: 0;
   cursor: pointer;
   box-sizing: border-box;
   display: flex;
   align-items: center;
-  min-width: 0;
+  width: 100%;
 }
 
 span {
@@ -176,15 +181,17 @@ span {
   min-width: 0;
 }
 
-.size {
-  box-sizing: border-box;
+.name {
+  flex: 1;
 }
 
+.size,
+.modified,
 .duration {
-  margin-left: auto;
-  padding-right: 1em;
-  box-sizing: border-box;
+  min-width: 10% !important;
+  flex: 0;
 }
+
 
 .desktop-view {
   justify-content: unset !important;
