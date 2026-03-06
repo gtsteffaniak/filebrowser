@@ -100,29 +100,16 @@ func (info *FileInfo) SortItems() {
 }
 
 // ResolveSymlinks resolves symlinks in the given path and returns
-// the final resolved path, whether it's a directory (considering bundle logic), and any error.
+// Uses Go's filepath.EvalSymlinks which properly detects circular symlinks.
 func ResolveSymlinks(path string) (string, bool, error) {
-	for {
-		// Get the file info using os.Lstat to handle symlinks
-		info, err := os.Lstat(path)
-		if err != nil {
-			return path, false, fmt.Errorf("could not stat path: %s, %v", path, err)
-		}
-
-		// Check if the path is a symlink
-		if info.Mode()&os.ModeSymlink != 0 {
-			// Read the symlink target
-			target, err := os.Readlink(path)
-			if err != nil {
-				return path, false, fmt.Errorf("could not read symlink: %s, %v", path, err)
-			}
-
-			// Resolve the symlink's target relative to its directory
-			path = filepath.Join(filepath.Dir(path), target)
-		} else {
-			// Not a symlink, check with bundle-aware directory logic
-			isDir := IsDirectory(info)
-			return path, isDir, nil
-		}
+	resolvedPath, err := filepath.EvalSymlinks(path)
+	if err != nil {
+		return path, false, fmt.Errorf("could not resolve symlinks for %s: %v", path, err)
 	}
+	info, err := os.Lstat(resolvedPath)
+	if err != nil {
+		return resolvedPath, false, fmt.Errorf("could not stat resolved path %s: %v", resolvedPath, err)
+	}
+	isDir := IsDirectory(info)
+	return resolvedPath, isDir, nil
 }
