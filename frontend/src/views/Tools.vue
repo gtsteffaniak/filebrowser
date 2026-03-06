@@ -26,7 +26,7 @@
     </div>
 
     <!-- Dynamically render the selected tool component -->
-    <component v-else-if="currentTool" :is="currentTool.component" />
+    <component v-else-if="currentTool" :is="currentTool.component" :key="$route.params.toolName" />
 
     <!-- Show error if tool not found -->
     <div v-else class="tool-not-found">
