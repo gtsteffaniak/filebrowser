@@ -1,18 +1,19 @@
 <template>
   <div class="sidebar-links card">
-    <!-- Header - sticks always at the top -->
-    <div class="sidebar-links-header" :class="{ 'no-edit-options': isShare && !disableShareCard }">
-      <i v-if="!isShare" @click="goHome()" class="material-icons action" :title="$t('general.home')">home</i>
+
+    <!-- Links section header -->
+    <div class="sidebar-links-header"
+      :class="{ 'with-top-spacing': isShare && !disableShareCard }">
+      <i :class="{ 'disabled': !isLoggedIn }" @click="goHome()" class="material-icons action">home</i>
       <!-- Mode button (is the title) -->
-      <button @click="cycleMode" class="mode-toggle" :title="$t('sidebar.switchMode')">
+      <button @click="cycleMode" class="mode-toggle" :title="$t('sidebar.switchMode')" @mouseenter="showTooltip($event, $t('sidebar.switchMode'))" @mouseleave="hideTooltip">
         {{ mode === 'links' ? $t('general.links') : $t('general.navigation') }}
       </button>
-      <!-- Edit button always visible - hidden in shares -->
-      <i v-if="!isShare"
-         @mouseenter="showTooltip($event, $t('sidebar.customizeLinks'))"
-         @mouseleave="hideTooltip"
-         @click="openSidebarLinksPrompt"
-         class="material-icons action">edit</i>
+      <i v-if="isShare" aria-label="Edit Share" @mouseenter="showTooltip($event, editShareText())" @mouseleave="hideTooltip"
+        :class="{ 'disabled': !canEdit }"
+        @click="showEditShareHover" class="material-icons action">edit</i>
+      <i v-else @mouseenter="showTooltip($event, $t('sidebar.customizeLinks'))" @mouseleave="hideTooltip"
+        @click="openSidebarLinksPrompt" class="material-icons action">edit</i>
     </div>
     <!-- Scrollable Content Area -->
     <div class="sidebar-links-content">
@@ -29,15 +30,6 @@
               <hr v-if="!link.name || link.name.toLowerCase() === 'divider'" class="sidebar-divider" />
               <span v-else class="sidebar-divider-text">{{ link.name }}</span>
             </div>
-            <!-- Edit Share link -->
-            <a v-else-if="link.category === 'editShare'" :href="getLinkHref(link)"
-              :aria-label="$t('general.edit', { suffix: ' ' + $t('general.share') })"
-              class="action button sidebar-link-button" @click.prevent="showEditShareHover">
-              <div class="link-container">
-                <i class="material-icons link-icon">edit</i>
-                <span>{{ $t("general.edit", { suffix: " " + $t("general.share") }) }}</span>
-              </div>
-            </a>
             <!-- Source Location custom link -->
             <a v-else-if="link.category === 'custom' && link.name === 'sourceLocation'" :href="link.target"
               :aria-label="link.name" class="action button sidebar-link-button" @click.prevent="handleLinkClick(link)">
@@ -103,7 +95,7 @@
             <a v-else :aria-label="link.name" :href="getLinkHref(link)" class="action button sidebar-link-button"
               :class="{ active: isLinkActive(link) }" @click.prevent="handleLinkClick(link)">
               <div  class="link-container">
-                <i :class="getIconClass(link.icon) + ' link-icon'">{{ link.icon }}</i>
+                <i v-if="link.icon" :class="getIconClass(link.icon) + ' link-icon'">{{ link.icon }}</i>
                 <span>{{ link.name }}</span>
               </div>
             </a>
@@ -215,6 +207,12 @@ export default {
     };
   },
   computed: {
+    canEdit() {
+      return state.shareInfo?.canEditShare || false;
+    },
+    isLoggedIn() {
+      return state.user?.username !== 'anonymous';
+    },
     currentSource() {
       return state.req?.source || null;
     },
@@ -360,6 +358,9 @@ export default {
       return baseURL + target;
     },
     goHome() {
+      if (!this.isLoggedIn) {
+        return;
+      }
       this.$router.push('/');
     },
     getDefaultLinks() {
@@ -498,6 +499,9 @@ export default {
       mutations.closeTopHover();
     },
     openSidebarLinksPrompt() {
+      if (!this.isLoggedIn) {
+        return;
+      }
       mutations.showHover({
         name: "SidebarLinks",
       });
@@ -554,6 +558,9 @@ export default {
       return buildIndexInfoTooltipHTML(info, this.$t, state.user.locale);
     },
     async showEditShareHover() {
+      if (!this.canEdit) {
+        return;
+      }
       // Get the current share hash and fetch full share details
       const shareHash = state.shareInfo?.hash;
       if (!shareHash) {
@@ -666,6 +673,7 @@ export default {
 }
 
 .share-info-section {
+  margin-top: 0 !important;
   margin-bottom: 0.5em;
   padding-bottom: 0.25em;
   border-bottom: 1px solid var(--borderColor);
@@ -689,7 +697,8 @@ export default {
 .sidebar-link-button {
   margin: 0;
   margin-top: 0.25em;
-  padding: 0;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
   border-radius: 0.5em;
   justify-content: flex-start;
   max-width: 98%;
