@@ -302,7 +302,7 @@ export default {
 
       // Build an array with the single node (we don't support multi-select in tree yet, maybe later! But I'm not sure tbh)
       const items = [node];
-      mutations.showHover({
+      mutations.showPrompt({
         name: 'ContextMenu',
         props: {
           posX: event.clientX,
@@ -542,7 +542,7 @@ export default {
       });
 
       const performAction = async (overwrite, rename) => {
-        mutations.showHover({
+        mutations.showPrompt({
           name: 'move',
           props: { operationInProgress: true },
         });
@@ -569,22 +569,22 @@ export default {
             }]
           };
           notify.showSuccess(this.$t('prompts.moveSuccess'), buttonProps);
-          mutations.closeTopHover();
+          mutations.closePrompt();
           mutations.setReload(true);
         } catch (error) {
-          mutations.closeTopHover();
+          mutations.closePrompt();
           throw error;
         }
       };
       if (conflict) {
-        mutations.showHover({
+        mutations.showPrompt({
           name: 'replace-rename',
           pinned: true,
           confirm: async (event, option) => {
             const overwrite = option === 'overwrite';
             const rename = option === 'rename';
             event.preventDefault();
-            mutations.closeTopHover();
+            mutations.closePrompt();
             await performAction(overwrite, rename);
           },
         });

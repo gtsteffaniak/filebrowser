@@ -110,9 +110,6 @@ export default {
       const perms = getters.permissions();
       return !!perms?.create;
     },
-    closeHovers() {
-      return mutations.closeTopHover();
-    },
     isDirNameValid() {
       return this.validateDirName(this.newDirName);
     }
@@ -279,7 +276,7 @@ export default {
           });
 
           await new Promise((resolve, reject) => {
-            mutations.showHover({
+            mutations.showPrompt({
               name: "replace-rename",
               pinned: true,
               props: {
@@ -327,9 +324,9 @@ export default {
 
         // Only close prompts and reload on success (or partial success)
         mutations.setReload(true);
-        mutations.closeTopHover(); // close conflict prompt
-        mutations.closeTopHover(); // close moveCopy prompt after conflict is resolved
-        mutations.setSearch(false);
+        mutations.closePrompt(); // close conflict prompt
+        mutations.closePrompt(); // close moveCopy prompt after conflict is resolved and file copied/moved
+        mutations.setSearch(false); // close search if open
 
         // Only show success notification if there were no failures (or partial success was already shown)
         if (!hasFailures || hasSuccesses) {

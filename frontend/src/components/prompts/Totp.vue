@@ -95,18 +95,12 @@ export default {
         this.succeeded = true
         this.error = "";
         notify.showSuccessToast(this.$t("otp.verificationSucceed"));
-        mutations.closeTopHover();
+        mutations.closePrompt();
       } catch (error) {
         this.error = this.$t("otp.verificationFailed");
         console.log("error", error);
         return;
       }
-    },
-    closeHovers() {
-      if (!this.succeeded) {
-        mutations.updateCurrentUser({ otpEnabled: false });
-      }
-      mutations.closeTopHover();
     },
   },
 };

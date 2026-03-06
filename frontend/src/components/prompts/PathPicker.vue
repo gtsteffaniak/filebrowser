@@ -5,7 +5,7 @@
   </div>
 
   <div class="card-actions">
-    <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('general.cancel')"
+    <button class="button button--flat button--grey" @click="closePrompt" :aria-label="$t('general.cancel')"
       :title="$t('general.cancel')">
       {{ $t("general.cancel") }}
     </button>
@@ -54,8 +54,8 @@ export default {
     this.selectedSource = this.currentSource || "";
   },
   computed: {
-    closeHovers() {
-      return mutations.closeTopHover();
+    closePrompt() {
+      return mutations.closePrompt();
     },
   },
   methods: {
@@ -74,8 +74,8 @@ export default {
         path: this.selectedPath,
         source: this.selectedSource
       });
-      // Close the modal
-      mutations.closeTopHover();
+      // Close the prompt
+      mutations.closePrompt();
     },
   },
 };

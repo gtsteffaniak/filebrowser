@@ -7,7 +7,8 @@
       :disabled="isDisabledMultiAction"
       @action="multiAction"
     />
-    <div class="search-bar-container" v-if="showSearch && !isSearchActive" @click="openSearch">
+    <div class="search-bar-container" :class="{ disabled: isDisabled }" 
+         v-if="showSearch && !isSearchActive" @click="openSearch" >
       <i class="material-icons">search</i>
       <input 
         type="text" 
@@ -159,7 +160,7 @@ export default {
   },
   methods: {
     openSearch() {
-      if (!state.isSearchActive) {
+      if (!state.isSearchActive && !this.isDisabled) {
         mutations.closeHovers();
         mutations.closeSidebar();
         mutations.resetSelected();
@@ -194,9 +195,9 @@ export default {
     },
     toggleOverflow() {
       if (getters.currentPromptName() === "OverflowMenu") {
-        mutations.closeTopHover();
+        mutations.closeHovers();
       } else {
-        mutations.showHover({ name: "OverflowMenu" });
+        mutations.showPrompt({ name: "OverflowMenu" });
       }
     },
     switchView() {
@@ -249,7 +250,7 @@ export default {
       }
     },
     showSaveBeforeExitPrompt(onConfirmAction) {
-      mutations.showHover({
+      mutations.showPrompt({
         name: "SaveBeforeExit",
         pinned: true,
         confirm: async () => {
@@ -304,6 +305,16 @@ header {
   flex: 1;
   height: 3em;
   box-sizing: border-box;
+}
+
+/* prevent open search if a prompt is open */
+.search-bar-container.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.search-bar-container.disabled #search-bar-input {
+  pointer-events: none;
 }
 
 @media (max-width: 768px) {

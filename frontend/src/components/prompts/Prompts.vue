@@ -335,7 +335,7 @@ export default {
         
         if (hasActiveUploads && !hasWarningPrompt) {
           // Show warning prompt instead of closing
-          mutations.showHover({
+          mutations.showPrompt({
             name: "CloseWithActiveUploads",
             pinned: true,
             confirm: () => {
@@ -350,7 +350,7 @@ export default {
             },
             cancel: () => {
               // User cancelled - just close the warning prompt
-              mutations.closeTopHover();
+              mutations.closePrompt();
             },
           });
           return;

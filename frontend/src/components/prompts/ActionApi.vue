@@ -100,9 +100,6 @@ export default {
         day: "numeric",
       });
     },
-    closeHovers() {
-      mutations.closeTopHover();
-    },
     async deleteApi() {
       // Dummy delete function, to be filled in later
       try {
@@ -111,7 +108,7 @@ export default {
         setTimeout(() => {
           eventBus.emit('apiKeysChanged');
         }, 10);
-        mutations.closeTopHover();
+        mutations.closePrompt();
         notify.showSuccessToast(this.$t("api.apiKeyDeleted"));
       } catch (error) {
         console.error(error);

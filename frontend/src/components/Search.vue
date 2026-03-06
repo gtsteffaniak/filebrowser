@@ -302,7 +302,7 @@ export default {
     openContext(event) {
       event.preventDefault();
       event.stopPropagation();
-      mutations.showHover({
+      mutations.showPrompt({
         name: "ContextMenu",
         props: {
           posX: event.clientX,
@@ -398,6 +398,12 @@ export default {
         mutations.resetSelected();
         this.resetSearchFilters;
         mutations.setSearch(true);
+        // allow animation and expansion
+        setTimeout(() => {
+          const resultList = document.getElementById("result-list");
+          resultList.classList.add("active");
+          document.getElementById("search-input").focus();
+        }, 100);
       }
     },
     close(event) {

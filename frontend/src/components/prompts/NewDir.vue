@@ -13,7 +13,7 @@
   </div>
 
   <div class="card-actions">
-    <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('general.cancel')"
+    <button class="button button--flat button--grey" @click="closePrompt" :aria-label="$t('general.cancel')"
       :title="$t('general.cancel')">
       {{ $t("general.cancel") }}
     </button>
@@ -80,8 +80,8 @@ export default {
     },
   },
   methods: {
-    closeHovers() {
-      return mutations.closeTopHover();
+    closePrompt() {
+      return mutations.closePrompt();
     },
     async submit(event) {
       try {
@@ -103,13 +103,13 @@ export default {
         if (getters.isShare()) {
           await resourcesApi.postPublic(state.shareInfo?.hash, newPath, "", overwrite, undefined, {}, true);
           mutations.setReload(true);
-          mutations.closeTopHover();
+          mutations.closePrompt();
           this.creating = false;
           return;
         }
         await resourcesApi.post(source, newPath, "", overwrite, undefined, {}, true);
         mutations.setReload(true);
-        mutations.closeTopHover();
+        mutations.closePrompt();
 
         // Show success notification with "go to item" button
         const buttonAction = () => {
@@ -128,7 +128,7 @@ export default {
       } catch (error) {
         if (error.message === "conflict") {
           // Show replace-rename prompt for file/folder conflicts
-          mutations.showHover({
+          mutations.showPrompt({
             name: "replace-rename",
             pinned: true,
             confirm: async (event, option) => {
@@ -151,13 +151,13 @@ export default {
                       if (getters.isShare()) {
                         await resourcesApi.postPublic(state.shareInfo?.hash, newPath, "", false, undefined, {}, true);
                         mutations.setReload(true);
-                        mutations.closeTopHover();
+                        mutations.closePrompt();
                         success = true;
                         return;
                       }
                       await resourcesApi.post(source, newPath, "", false, undefined, {}, true);
                       mutations.setReload(true);
-                      mutations.closeTopHover();
+                      mutations.closePrompt();
                       success = true;
 
                       // Show success notification with "go to item" button

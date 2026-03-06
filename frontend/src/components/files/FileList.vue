@@ -457,7 +457,7 @@ export default {
       });
     },
     createDir: async function () {
-      mutations.showHover({
+      mutations.showPrompt({
         name: "newDir",
         action: null,
         confirm: null,
@@ -476,7 +476,7 @@ export default {
       this.items = allItems.filter(item => !item.isDirectory && item.type !== 'directory');
     },
     navigateToItem(item) {
-      mutations.closeTopHover();
+      mutations.closePrompt();
       mutations.setNavigationTransitioning(true);
       url.goToItem(item.source || state.req.source, item.path, undefined);
     },

@@ -561,7 +561,7 @@ export default {
           previewUrl: previewUrl,
         });
       }
-      mutations.showHover({
+      mutations.showPrompt({
         name: "delete",
         props: {
           items: items,
@@ -788,7 +788,7 @@ export default {
 
         case "F2":
           if (!this.permissions?.modify || state.selected.length !== 1)  return;
-          mutations.showHover({
+          mutations.showPrompt({
             name: "rename",
             props: {
               item: getters.getFirstSelected(),
@@ -904,7 +904,7 @@ export default {
       const operation = this.clipboard.key === "x" ? "move" : "copy";
 
       // Show confirmation prompt first
-      mutations.showHover({
+      mutations.showPrompt({
         name: "CopyPasteConfirm",
         props: {
           operation: operation,
@@ -939,14 +939,14 @@ export default {
             const conflict = upload.checkConflict(items, state.req.items);
 
             if (conflict) {
-              mutations.showHover({
+              mutations.showPrompt({
                 name: "replace-rename",
                 pinned: true,
                 confirm: (event, option) => {
                   const overwrite = option === "overwrite";
                   const rename = option === "rename";
                   event.preventDefault();
-                  mutations.closeTopHover();
+                  mutations.closePrompt();
                   action(overwrite, rename);
                 },
               });
@@ -1046,7 +1046,7 @@ export default {
         return;
       }
       
-      mutations.showHover({
+      mutations.showPrompt({
         name: "ContextMenu",
         props: {
           showCentered: getters.isMobile(),
@@ -1089,7 +1089,7 @@ export default {
       }
 
       if (event.type === "drop") {
-        mutations.showHover({
+        mutations.showPrompt({
           name: "upload",
           props: {
             initialItems: Array.from(event.dataTransfer.items),
@@ -1102,7 +1102,7 @@ export default {
           return;
         }
 
-        mutations.showHover({
+        mutations.showPrompt({
           name: "upload",
           props: {
             // we send it as an array-like object so that it can be processed like a FileList by the Upload component

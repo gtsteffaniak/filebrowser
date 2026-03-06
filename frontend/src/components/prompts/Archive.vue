@@ -75,7 +75,7 @@
     <template v-else>
       <button
         class="button button--flat button--grey"
-        @click="closeHovers"
+        @click="closePrompt"
         :aria-label="$t('general.cancel')"
         :title="$t('general.cancel')"
       >
@@ -159,8 +159,8 @@ export default {
     },
   },
   methods: {
-    closeHovers() {
-      mutations.closeTopHover();
+    closePrompt() {
+      mutations.closePrompt();
     },
     updateDestination(pathOrData) {
       if (typeof pathOrData === "string") {
@@ -194,7 +194,7 @@ export default {
         }
         await resourcesApi.createArchive(payload);
         mutations.setReload(true);
-        mutations.closeTopHover();
+        mutations.closePrompt();
 
         const destSource = this.destSource || this.source;
         const archivePath = dest;

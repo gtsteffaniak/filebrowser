@@ -292,7 +292,7 @@ export default {
   methods: {
     openPathPicker() {
       // Open FileList picker to select path and source
-      mutations.showHover({
+      mutations.showPrompt({
         name: "pathPicker",
         props: {
           currentPath: this.searchPath,
@@ -309,7 +309,7 @@ export default {
         this.selectedSource = data.source;
       }
       // Close the picker
-      mutations.closeTopHover();
+      mutations.closePrompt();
     },
     async fetchData() {
       this.loading = true;
@@ -643,7 +643,7 @@ export default {
       mutations.resetSelected();
       mutations.addSelected(selectedItem);
       
-      mutations.showHover({
+      mutations.showPrompt({
         name: "ContextMenu",
         props: {
           posX: event.clientX,
