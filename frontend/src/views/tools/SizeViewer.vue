@@ -270,7 +270,6 @@ export default {
     }
     // Mark initialization as complete and sync URL
     this.isInitializing = false;
-    this.updateUrl();
 
     // Listen for path selection from FileList picker
     eventBus.on('pathSelected', this.handlePathSelected);
@@ -370,6 +369,7 @@ export default {
       }
     },
     updateUrl() {
+      if (!this.$route.path.startsWith('/tools/sizeViewer')) return;
       // Use nextTick to avoid triggering updates during component lifecycle
       this.$nextTick(() => {
         // Update URL query parameters to reflect current state

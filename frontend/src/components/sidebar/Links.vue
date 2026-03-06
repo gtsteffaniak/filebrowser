@@ -454,10 +454,15 @@ export default {
         return;
       }
       // For all other links (tools, custom, share), navigate using target directly
-      if (link.target) {
+      const currentBase = this.$route.path;
+      const targetBase = link.target.split('?')[0]; // strip any query from target -- this to avoid an error when navigating back with browser history
+
+      if (currentBase === targetBase) {
+        this.$router.replace(link.target);
+      } else {
         this.$router.push(link.target);
-        mutations.closeTopHover();
       }
+      mutations.closeTopHover();
     },
     goToDownload() {
       // Check if we're in a directory with multiple items
