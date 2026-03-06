@@ -141,7 +141,7 @@ export default {
       ],
       typeSelect: [
         { label: this.$t("general.photos"), value: "type:image" },
-        { label: this.$t("general.audio"), value: "type:audio" },
+        { label: this.$t("general.audios"), value: "type:audio" },
         { label: this.$t("general.videos"), value: "type:video" },
         { label: this.$t("general.documents"), value: "type:doc" },
         { label: this.$t("general.archives"), value: "type:archive" },
@@ -293,7 +293,7 @@ export default {
       let result = url.extractSourceFromPath(decodeURIComponent(state.route.path));
       if (this.selectedSource === "" || result.source === this.selectedSource) {
         return result.path;
-      } else {
+      } else {  
         return "/"; // if searching on non-current source, search the whole thing
       }
     },
@@ -307,6 +307,7 @@ export default {
         props: {
           posX: event.clientX,
           posY: event.clientY,
+          showLimitedOptions: true,
         },
       });
     },

@@ -28,10 +28,11 @@
     "saveAndExit": "保存并退出",
     "keepEditing": "继续编辑",
     "closeAnyway": "无论如何关闭",
-    "goToItem": "转到项目",
     "watchFile": "观看文件",
     "showMore": "显示高级选项",
-    "showLess": "隐藏高级选项"
+    "showLess": "隐藏高级选项",
+    "goToSource": "转到源位置",
+    "goToItem": "转到项目"
   },
   "download": {
     "downloadFile": "下载文件",
@@ -221,12 +222,10 @@
     "archiveDestination": "选择目标文件夹（然后在下面输入存档名称）：",
     "archiveName": "存档名称（默认为 archive.zip）：",
     "archiveCompression": "压缩级别（0-9）：",
-    "archiveDeleteAfter": "成功创建后删除源文件",
     "archiveSuccess": "存档创建成功！",
     "unarchive": "提取档案",
     "unarchiveMessage": "选择提取存档的位置。",
     "unarchiveDestination": "摘录至",
-    "unarchiveDeleteAfter": "提取后删除存档",
     "unarchiveSuccess": "档案提取成功！"
   },
   "search": {
@@ -381,7 +380,8 @@
     "showDiskUsageDescription": "根据操作系统报告的磁盘/分区大小显示用量条。该大小可能更大，包括未编入索引的文件。",
     "usageTextDisplay": "应显示哪些使用文本？",
     "usageTextIndexed": "指数化使用",
-    "usageTextDisk": "磁盘/分区报告的使用量"
+    "usageTextDisk": "磁盘/分区报告的使用量",
+    "dividerNamePlaceholder": "分隔线文本（留空以显示一行）"
   },
   "success": {
     "linkCopied": "链接已复制！"
@@ -550,6 +550,12 @@
     "orange": "橘色"
   },
   "profileSettings": {
+    "deleteAfterArchive": "创建/提取存档后删除源文件",
+    "deleteAfterArchiveDescription": "启用后，将在成功创建/提取存档后删除源文件",
+    "hideFilesInTree": "在树形导航中隐藏文件",
+    "hideFilesInTreeDescription": "启用后，侧边栏树形导航中仅显示文件夹",
+    "previewModelsDescription": "显示3D模型的缩略图预览，如果禁用则显示通用图标",
+    "previewAudiosDescription": "显示音频的缩略图预览，如果禁用则显示通用图标",
     "setDateFormat": "设置准确的日期格式",
     "showHiddenFiles": "显示隐藏文件",
     "showHiddenFilesDescription": "在列表中显示隐藏文件（如 .缩略图、ProgramData），但如果配置为索引，这些文件仍可手动访问。",
@@ -642,7 +648,8 @@
     "results": "成果{suffix}",
     "users": "用户{suffix}",
     "photos": "照片",
-    "audio": "音频{suffix}",
+    "audios": "音频{suffix}",
+    "models": "3D模型",
     "videos": "视频{suffix}",
     "documents": "文件{suffix}",
     "archives": "档案{suffix}",
@@ -726,7 +733,8 @@
     "space": "空间{suffix}",
     "format": "格式{suffix}",
     "office": "办公室{suffix}",
-    "show": "显示{suffix}"
+    "show": "显示{suffix}",
+    "divider": "分割器{suffix}"
   },
   "access": {
     "rules": "访问规则",

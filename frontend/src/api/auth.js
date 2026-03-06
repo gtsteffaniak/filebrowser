@@ -132,7 +132,11 @@ export async function getApiKeys() {
     const apiPath = getApiPath('auth/token/list')
     return await fetchJSON(apiPath)
   } catch (err) {
-    notify.showError(err.message || 'Failed to get API tokens')
+    // ignore 404 errors
+    if (err.status !== 404) {
+      notify.showError(err.message || 'Failed to get API tokens')
+      throw err
+    }
     throw err
   }
 }

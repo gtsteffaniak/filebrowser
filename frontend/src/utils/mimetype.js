@@ -9,6 +9,13 @@ const RAW_IMAGE_MIME_TYPES = new Set([
   "image/x-phaseone-iiq", "image/x-kodak-nkc", "image/x-red-r3d",
 ]);
 
+const EBOOK_MIME_TYPES = new Set([
+  "application/epub+zip", "application/x-mobipocket-ebook", "application/vnd.amazon.ebook",
+  "application/x-fictionbook+xml", "application/x-fb2", "application/x-cbr", "application/x-cbz",
+  "application/x-cb7", "application/x-cbt", "application/vnd.comicbook+zip",
+  "application/vnd.comicbook-rar", "application/x-kindle", "application/x-azw"
+]);
+
 export function isRawImageMimeType(mimeType) {
   return typeof mimeType === "string" && RAW_IMAGE_MIME_TYPES.has(mimeType);
 }
@@ -26,6 +33,14 @@ export function getTypeInfo(mimeType) {
             classes: "primary-icons material-icons",
             materialIcon: "folder",
             simpleType: "directory",
+        };
+    }
+
+    if (EBOOK_MIME_TYPES.has(mimeType)) {
+        return {
+            classes: "brown-icons material-icons",
+            materialIcon: "menu_book",
+            simpleType: "ebook",
         };
     }
 

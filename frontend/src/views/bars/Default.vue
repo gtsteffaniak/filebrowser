@@ -116,7 +116,7 @@ export default {
       return getters.isShare();
     },
     noItems() {
-      return !state.contextMenuHasItems;
+      return !state.contextMenuHasItems && !getters.isPreviewView();
     },
     showEdit() {
       return window.location.hash != "#edit" && state.user.permissions.modify;

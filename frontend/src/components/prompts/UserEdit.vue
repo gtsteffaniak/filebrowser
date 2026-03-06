@@ -338,7 +338,8 @@ export default {
                   await usersApi.remove(this.user.id);
                   notify.showSuccessToast(this.$t("settings.userDeleted"));
                   eventBus.emit('usersChanged');
-                  mutations.closeTopHover();
+                  mutations.closeTopHover(); // close delete user prompt
+                  mutations.closeTopHover(); // close user prompt since user doens't exist anymore
                 } catch (e) {
                   console.error(e);
                   notify.showErrorToast(this.$t("settings.userDeleteFailed"));

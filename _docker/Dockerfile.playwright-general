@@ -14,6 +14,9 @@ COPY [ "./backend/reduce-rounded-corners.css", "./no-rounded.css" ]
 RUN mkdir -p ./http/dist
 COPY [ "./backend/http/embed/", "./http/dist/"]
 
+# generate duplicate 1.1MB files
+RUN dd if=/dev/zero of=/app/frontend/tests/playwright-files/1.1MB.bin bs=1024 count=1126 && dd if=/dev/zero of=/app/frontend/tests/playwright-files/1.1mb.bin bs=1024 count=1126
+
 # Run tests
 ENV FILEBROWSER_PLAYWRIGHT_TEST=true
 RUN ./filebrowser set -u testuser1,testuser1

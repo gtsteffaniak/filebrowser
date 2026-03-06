@@ -28,10 +28,11 @@
     "saveAndExit": "Uložiť a ukončiť",
     "keepEditing": "Pokračujte v úpravách",
     "closeAnyway": "Zavrieť Tak či onak",
-    "goToItem": "Prejsť na položku",
     "watchFile": "Sledovať súbor",
     "showMore": "Zobraziť rozšírené možnosti",
-    "showLess": "Skryť rozšírené možnosti"
+    "showLess": "Skryť rozšírené možnosti",
+    "goToSource": "Prejsť na zdrojové miesto",
+    "goToItem": "Prejsť na položku"
   },
   "download": {
     "downloadFile": "Stiahnuť súbor",
@@ -221,12 +222,10 @@
     "archiveDestination": "Vyberte cieľový priečinok (potom zadajte názov archívu nižšie):",
     "archiveName": "Názov archívu (štandardne archive.zip):",
     "archiveCompression": "Úroveň kompresie (0-9):",
-    "archiveDeleteAfter": "Odstránenie zdrojových súborov po úspešnom vytvorení",
     "archiveSuccess": "Archív bol úspešne vytvorený!",
     "unarchive": "Výpis archívu",
     "unarchiveMessage": "Vyberte, kam sa má archív extrahovať.",
     "unarchiveDestination": "Výpis na:",
-    "unarchiveDeleteAfter": "Odstránenie archívu po extrakcii",
     "unarchiveSuccess": "Archív úspešne extrahovaný!"
   },
   "search": {
@@ -381,7 +380,8 @@
     "showDiskUsageDescription": "Zobrazenie lišty využitia z veľkosti disku/oddielu podľa hlásenia operačného systému. Táto veľkosť bude pravdepodobne väčšia a zahŕňa aj súbory, ktoré nie sú indexované.",
     "usageTextDisplay": "Ktorý text použitia sa má zobraziť?",
     "usageTextIndexed": "použitie ako indexované",
-    "usageTextDisk": "využitie podľa hlásenia disku/oddielu"
+    "usageTextDisk": "využitie podľa hlásenia disku/oddielu",
+    "dividerNamePlaceholder": "Text oddeľovača (nechajte prázdny, aby sa zobrazil riadok)"
   },
   "success": {
     "linkCopied": "Odkaz skopírovaný!"
@@ -564,8 +564,9 @@
     "results": "Výsledky{suffix}",
     "users": "Používatelia{suffix}",
     "photos": "Fotografie",
-    "audio": "Audio{suffix}",
+    "audios": "Zvuky{suffix}",
     "videos": "Videá{suffix}",
+    "models": "3D modely",
     "documents": "Dokumenty{suffix}",
     "archives": "Archív{suffix}",
     "images": "Obrázky{suffix}",
@@ -648,7 +649,8 @@
     "space": "Priestor{suffix}",
     "format": "Formát{suffix}",
     "office": "Kancelária{suffix}",
-    "show": "Zobraziť{suffix}"
+    "show": "Zobraziť{suffix}",
+    "divider": "Rozdeľovač{suffix}"
   },
   "access": {
     "rules": "Pravidlá prístupu",
@@ -694,6 +696,12 @@
     "orange": "oranžová"
   },
   "profileSettings": {
+    "deleteAfterArchive": "Odstrániť zdrojové súbory po vytvorení/extrahovaní archívov",
+    "deleteAfterArchiveDescription": "Ak je povolené, po úspešnom vytvorení/extrahovaní archívov odstráni zdrojové súbory",
+    "hideFilesInTree": "Skryť súbory v stromovej navigácii",
+    "hideFilesInTreeDescription": "Ak je povolené, v stromovej navigácii bočného panela sa zobrazujú iba priečinky",
+    "previewModelsDescription": "Zobraziť miniatúry náhľadov pre 3D modely, ak je zakázané, zobrazí sa všeobecná ikona",
+    "previewAudiosDescription": "Zobraziť miniatúry náhľadov pre zvuky, ak je zakázané, zobrazí sa všeobecná ikona",
     "setDateFormat": "Nastavenie presného formátu dátumu",
     "showHiddenFiles": "Zobrazenie skrytých súborov",
     "showHiddenFilesDescription": "Zobrazenie skrytých súborov vo výpise (napr. .thumbnails, ProgramData), ale sú stále manuálne prístupné, ak sú nakonfigurované na indexovanie.",

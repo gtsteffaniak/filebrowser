@@ -33,14 +33,10 @@ type ShareResponse struct {
 }
 
 // convertToFrontendShareResponse converts shares to response format with usernames
-func convertToFrontendShareResponse(r *http.Request, shares []*share.Link) ([]*ShareResponse, error) {
+func convertToFrontendShareResponse(r *http.Request, shares []*share.Link, user *users.User) ([]*ShareResponse, error) {
 	responses := make([]*ShareResponse, 0, len(shares))
 	for _, s := range shares {
-		user, err := store.Users.Get(s.UserID)
-		username := ""
-		if err == nil {
-			username = user.Username
-		}
+		username := user.Username
 
 		// Get source info to convert path to name for frontend
 		sourceInfo, ok := config.Server.SourceMap[s.Source]
@@ -62,6 +58,9 @@ func convertToFrontendShareResponse(r *http.Request, shares []*share.Link) ([]*S
 		s.CommonShare.HasPassword = s.HasPassword()
 		s.DownloadURL = getShareURL(r, s.Hash, true, s.Token)
 		s.ShareURL = getShareURL(r, s.Hash, false, s.Token)
+		if s.UserCanEdit(user) {
+			s.CommonShare.SourceURL = s.SourceURL(user)
+		}
 		// Create response with source name (overrides the embedded Link's source field)
 		responses = append(responses, &ShareResponse{
 			Link:       s,
@@ -94,7 +93,7 @@ func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusInternalServerError, err
 	}
 	shares = utils.NonNilSlice(shares)
-	sharesWithUsernames, err := convertToFrontendShareResponse(r, shares)
+	sharesWithUsernames, err := convertToFrontendShareResponse(r, shares, d.user)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -134,7 +133,7 @@ func shareGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("error getting share info from server")
 	}
-	sharesWithUsernames, err := convertToFrontendShareResponse(r, s)
+	sharesWithUsernames, err := convertToFrontendShareResponse(r, s, d.user)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -159,7 +158,16 @@ func shareDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return http.StatusBadRequest, nil
 	}
 
-	err := store.Share.Delete(hash)
+	// only allow users to delete their own shares
+	thisShare, err := store.Share.GetByHash(hash)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("share not found")
+	}
+	if thisShare.UserID != d.user.ID && !d.user.Permissions.Admin {
+		return http.StatusForbidden, fmt.Errorf("you are not allowed to delete this share")
+	}
+
+	err = store.Share.Delete(hash)
 	if err != nil {
 		return errToStatus(err), err
 	}
@@ -193,8 +201,16 @@ func sharePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 		return http.StatusBadRequest, fmt.Errorf("hash and path are required")
 	}
 
+	// only allow users to update their own shares
+	thisShare, err := store.Share.GetByHash(body.Hash)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("share not found")
+	}
+	if thisShare.UserID != d.user.ID && !d.user.Permissions.Admin {
+		return http.StatusForbidden, fmt.Errorf("you are not allowed to update this share")
+	}
 	// Update the share path
-	err := store.Share.UpdateSharePath(body.Hash, body.Path)
+	err = store.Share.UpdateSharePath(body.Hash, body.Path)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -206,7 +222,7 @@ func sharePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	}
 
 	// Convert to response format
-	sharesWithUsernames, err := convertToFrontendShareResponse(r, []*share.Link{updatedShare})
+	sharesWithUsernames, err := convertToFrontendShareResponse(r, []*share.Link{updatedShare}, d.user)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -386,7 +402,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if err = store.Share.Save(s); err != nil {
 		return http.StatusInternalServerError, err
 	}
-	sharesWithUsernames, err := convertToFrontendShareResponse(r, []*share.Link{s})
+	sharesWithUsernames, err := convertToFrontendShareResponse(r, []*share.Link{s}, d.user)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -626,6 +642,22 @@ func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 			commonShare.SidebarLinks = append(commonShare.SidebarLinks, link)
 		}
 	}
+	commonShare.SourceURL = shareLink.SourceURL(d.user)
+	if shareLink.UserCanEdit(d.user) {
+		link := users.SidebarLink{
+			Category: "editShare",
+		}
+		commonShare.SidebarLinks = append(commonShare.SidebarLinks, link)
+	}
+	if commonShare.SourceURL != "" {
+		link := users.SidebarLink{
+			Name:     "sourceLocation",
+			Category: "custom",
+			Target:   commonShare.SourceURL,
+		}
+		commonShare.SidebarLinks = append(commonShare.SidebarLinks, link)
+	}
+
 	return renderJSON(w, r, commonShare)
 }
 

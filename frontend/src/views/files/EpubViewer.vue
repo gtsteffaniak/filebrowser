@@ -14,7 +14,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, watch } from "vue";
 import ePub, { type Book, type Rendition } from "epubjs";
 import { state, mutations, getters } from "@/store"; // Assuming your store setup
 import { resourcesApi } from "@/api";
@@ -68,6 +68,12 @@ export default defineComponent({
       // 4. Display the rendered book
       await this.rendition.display();
 
+      this.applyTheme(getters.isDarkMode());
+
+      watch(() => getters.isDarkMode(), (isDark) => {
+        this.applyTheme(isDark);
+      });
+
       // Set flags to show the book and trigger animations
       this.isReady = true;
       setTimeout(() => {
@@ -84,6 +90,20 @@ export default defineComponent({
     }
   },
   methods: {
+    applyTheme(isDark: boolean) {
+      if (!this.rendition) return;
+      if (isDark) {
+        this.rendition.themes.default({
+          body: { color: "#fff !important" },
+          a: { color: "#bb86fc !important" },
+        });
+      } else {
+        this.rendition.themes.default({
+          body: { color: "#000 !important" },
+          a: { color: "#6200ee !important" },
+        });
+      }
+    },
     // Navigate to the next page
     nextPage() {
       this.rendition?.next();
@@ -111,7 +131,7 @@ export default defineComponent({
 .epub-container {
   width: 100%;
   height: 100%;
-  background-color: var(--surfaceSecondary); /* A light background for the reader */
+  background-color: var(--background); /* background for the reader */
   z-index: 1000;
 }
 
@@ -121,7 +141,7 @@ export default defineComponent({
   align-items: center;
   height: 100%;
   font-size: 1.2em;
-  color: #6c757d;
+  color: var(--textSecondary);
 }
 
 /* The viewer must have a defined height for epub.js to work */
@@ -143,19 +163,25 @@ export default defineComponent({
   z-index: 1001; /* Ensure controls are on top */
   display: flex;
   gap: 1em;
-  background-color: rgba(255, 255, 255, 0.8);
+  background-color: var(--surfaceSecondary);
   padding: 0.5em;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  align-items: center;
 }
 
 .nav-button {
   background-color: transparent;
   border: none;
   font-size: 1.5em;
-  color: #343a40;
+  color: var(--textPrimary);
   cursor: pointer;
   padding: 0.25em 1em;
+  transition: background-color 0.2s;
+}
+
+.nav-button:hover {
+  background-color: var(--alt-background);
 }
 
 /* Copied directly from your example */
@@ -178,5 +204,6 @@ export default defineComponent({
   font-size: 2em;
   padding-right: 1em;
   padding-left: 1em;
+  color: var(--textPrimary);
 }
 </style>

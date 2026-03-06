@@ -4213,6 +4213,9 @@ const docTemplate = `{
                     "description": "Override embedded field to show source name",
                     "type": "string"
                 },
+                "sourceURL": {
+                    "type": "string"
+                },
                 "themeColor": {
                     "type": "string"
                 },
@@ -5463,6 +5466,10 @@ const docTemplate = `{
                     "description": "debug onlyoffice editor",
                     "type": "boolean"
                 },
+                "deleteAfterArchive": {
+                    "description": "delete source files after successful creation/extraction of archives",
+                    "type": "boolean"
+                },
                 "deleteWithoutConfirming": {
                     "description": "delete files without confirmation",
                     "type": "boolean"
@@ -5514,6 +5521,10 @@ const docTemplate = `{
                 "gallerySize": {
                     "description": "0-9 - the size of the gallery thumbnails",
                     "type": "integer"
+                },
+                "hideFilesInTree": {
+                    "description": "hide files in the sidebar tree navigation, when true, will show only directories.",
+                    "type": "boolean"
                 },
                 "hideSidebarFileActions": {
                     "description": "hide the file actions in the sidebar",
@@ -5607,6 +5618,10 @@ const docTemplate = `{
         "settings.UserDefaultsPreview": {
             "type": "object",
             "properties": {
+                "audio": {
+                    "description": "show thumbnails for audio files",
+                    "type": "boolean"
+                },
                 "autoplayMedia": {
                     "description": "autoplay media files in preview",
                     "type": "boolean"
@@ -5629,6 +5644,10 @@ const docTemplate = `{
                 },
                 "image": {
                     "description": "show thumbnails for image files",
+                    "type": "boolean"
+                },
+                "models": {
+                    "description": "show live thumbnails for 3D models files",
                     "type": "boolean"
                 },
                 "motionVideoPreview": {
@@ -5773,6 +5792,9 @@ const docTemplate = `{
                 },
                 "source": {
                     "description": "backend source is path to maintain between name changes",
+                    "type": "string"
+                },
+                "sourceURL": {
                     "type": "string"
                 },
                 "themeColor": {
@@ -5920,6 +5942,9 @@ const docTemplate = `{
                 },
                 "source": {
                     "description": "backend source is path to maintain between name changes",
+                    "type": "string"
+                },
+                "sourceURL": {
                     "type": "string"
                 },
                 "themeColor": {
@@ -6075,6 +6100,9 @@ const docTemplate = `{
                     "description": "backend source is path to maintain between name changes",
                     "type": "string"
                 },
+                "sourceURL": {
+                    "type": "string"
+                },
                 "themeColor": {
                     "type": "string"
                 },
@@ -6205,6 +6233,10 @@ const docTemplate = `{
         "users.Preview": {
             "type": "object",
             "properties": {
+                "audio": {
+                    "description": "show thumbnail preview image for audio files",
+                    "type": "boolean"
+                },
                 "autoplayMedia": {
                     "description": "autoplay media files in preview",
                     "type": "boolean"
@@ -6223,6 +6255,10 @@ const docTemplate = `{
                 },
                 "image": {
                     "description": "show thumbnail preview image for image files",
+                    "type": "boolean"
+                },
+                "models": {
+                    "description": "show live thumbnails for 3D models files",
                     "type": "boolean"
                 },
                 "motionVideoPreview": {
@@ -6316,6 +6352,10 @@ const docTemplate = `{
                     "description": "debug onlyoffice editor",
                     "type": "boolean"
                 },
+                "deleteAfterArchive": {
+                    "description": "delete source files after successful creation/extraction of archives",
+                    "type": "boolean"
+                },
                 "deleteWithoutConfirming": {
                     "description": "delete files without confirmation",
                     "type": "boolean"
@@ -6366,6 +6406,10 @@ const docTemplate = `{
                 "gallerySize": {
                     "description": "0-9 - the size of the gallery thumbnails",
                     "type": "integer"
+                },
+                "hideFilesInTree": {
+                    "description": "hide files in the sidebar tree navigation, when true, will show only directories.",
+                    "type": "boolean"
                 },
                 "hideSidebarFileActions": {
                     "description": "hide the file actions in the sidebar",

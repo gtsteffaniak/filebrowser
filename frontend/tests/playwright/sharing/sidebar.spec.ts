@@ -34,8 +34,8 @@ test("check previously created share has correct sidebar links", async ({ page, 
     // navigate to the share sidebar
     await page.goto("/public/share/" + shareHash);
     await expect(page).toHaveTitle("Graham's Filebrowser - Share - text-files");
-    // sidebar should have three items (ShareInfo, Download, Edit Share)
-    await expect(page.locator('.sidebar-links .inner-card').locator('a')).toHaveCount(3);
+    // sidebar should have 4 items (ShareInfo, Download, Edit Share, Go to source location)
+    await expect(page.locator('.sidebar-links .inner-card').locator('a')).toHaveCount(4);
     // check items exist
     await page.locator('a[aria-label="Share QR Code and Info"]').waitFor({ state: 'visible' });
     await page.locator('a[aria-label="Download"]').waitFor({ state: 'visible' });
@@ -76,8 +76,8 @@ test("edit previously created links and ensure they are updated", async ({ page,
     // navigate to the share sidebar
     await page.goto("/public/share/" + shareHash);
     await expect(page).toHaveTitle("Graham's Filebrowser - Share - text-files");
-    // sidebar should have four items (ShareInfo, Download, New Custom Link, Edit Share)
-    await expect(page.locator('.sidebar-links .inner-card').locator('a')).toHaveCount(4);
+    // sidebar should have 5 items (ShareInfo, Download, New Custom Link, Edit Share, Go to source location)
+    await expect(page.locator('.sidebar-links .inner-card').locator('a')).toHaveCount(5);
     // check items exist
     await page.locator('a[aria-label="Share QR Code and Info"]').waitFor({ state: 'visible' });
     await page.locator('a[aria-label="Download"]').waitFor({ state: 'visible' });

@@ -28,10 +28,11 @@
     "saveAndExit": "儲存並離開",
     "keepEditing": "繼續編輯",
     "closeAnyway": "無論如何關閉",
-    "goToItem": "前往項目",
     "watchFile": "觀看檔案",
     "showMore": "顯示進階選項",
-    "showLess": "隱藏進階選項"
+    "showLess": "隱藏進階選項",
+    "goToSource": "前往來源位置",
+    "goToItem": "前往項目"
   },
   "download": {
     "downloadFile": "下載檔案",
@@ -221,12 +222,10 @@
     "archiveDestination": "選擇目的地資料夾（然後在下方輸入存檔名稱）：",
     "archiveName": "存檔名稱 (預設為 archive.zip)：",
     "archiveCompression": "壓縮等級 (0-9)：",
-    "archiveDeleteAfter": "成功建立後刪除原始檔案",
     "archiveSuccess": "成功建立存檔！",
     "unarchive": "擷取存檔",
     "unarchiveMessage": "選擇提取存檔的位置。",
     "unarchiveDestination": "擷取至：",
-    "unarchiveDeleteAfter": "萃取後刪除存檔",
     "unarchiveSuccess": "存檔提取成功！"
   },
   "search": {
@@ -381,7 +380,8 @@
     "showDiskUsageDescription": "根據作業系統報告的磁碟/磁碟分割大小顯示使用量列。此大小可能較大，並包括未編制索引的檔案。",
     "usageTextDisplay": "應該顯示哪些使用文字？",
     "usageTextIndexed": "索引的用途",
-    "usageTextDisk": "磁碟/磁碟分割報告的使用量"
+    "usageTextDisk": "磁碟/磁碟分割報告的使用量",
+    "dividerNamePlaceholder": "分割線文字（留空顯示一行）"
   },
   "success": {
     "linkCopied": "連結已複製！"
@@ -519,6 +519,12 @@
     "error": "錯誤"
   },
   "profileSettings": {
+    "deleteAfterArchive": "建立/解壓縮封存檔後刪除來源檔案",
+    "deleteAfterArchiveDescription": "啟用後，將在成功建立/解壓縮封存檔後刪除來源檔案",
+    "hideFilesInTree": "在樹狀導航中隱藏檔案",
+    "hideFilesInTreeDescription": "啟用後，側邊欄樹狀導航中僅顯示資料夾",
+    "previewModelsDescription": "顯示3D模型的縮圖預覽，如果停用則顯示通用圖示",
+    "previewAudiosDescription": "顯示音訊的縮圖預覽，如果停用則顯示通用圖示",
     "setDateFormat": "設定精確的日期格式",
     "showHiddenFiles": "顯示隱藏檔案",
     "showHiddenFilesDescription": "在列出中顯示隱藏的檔案 (例如 .縮圖、ProgramData)，但如果設定為索引，這些檔案仍可手動存取。",
@@ -642,8 +648,9 @@
     "results": "結果{suffix}",
     "users": "使用者{suffix}",
     "photos": "圖片",
-    "audio": "音訊{suffix}",
+    "audios": "音訊{suffix}",
     "videos": "影片{suffix}",
+    "models": "3D模型",
     "documents": "文件{suffix}",
     "archives": "檔案{suffix}",
     "images": "圖片{suffix}",
@@ -726,7 +733,8 @@
     "space": "空間{suffix}",
     "format": "格式{suffix}",
     "office": "辦公室{suffix}",
-    "show": "顯示{suffix}"
+    "show": "顯示{suffix}",
+    "divider": "分割器{suffix}"
   },
   "access": {
     "rules": "存取規則",

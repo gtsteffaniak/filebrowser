@@ -28,10 +28,11 @@
     "saveAndExit": "Uložit a ukončit",
     "keepEditing": "Pokračovat v úpravách",
     "closeAnyway": "Stejně zavřít",
-    "goToItem": "Přejít na položku",
     "watchFile": "Sledovat soubor",
     "showMore": "Zobrazit rozšířené možnosti",
-    "showLess": "Skrytí pokročilých možností"
+    "showLess": "Skrytí pokročilých možností",
+    "goToSource": "Přejít na zdrojové umístění",
+    "goToItem": "Přejít na položku"
   },
   "download": {
     "downloadFile": "Stáhnout soubor",
@@ -299,12 +300,10 @@
     "archiveDestination": "Zvolte cílovou složku (pak zadejte název archivu níže):",
     "archiveName": "Název archivu (výchozí archive.zip):",
     "archiveCompression": "Úroveň komprese (0-9):",
-    "archiveDeleteAfter": "Odstranění zdrojových souborů po úspěšném vytvoření",
     "archiveSuccess": "Archiv byl úspěšně vytvořen!",
     "unarchive": "Výpis archivu",
     "unarchiveMessage": "Vyberte, kam se má archiv rozbalit.",
     "unarchiveDestination": "Výpis na:",
-    "unarchiveDeleteAfter": "Odstranění archivu po extrakci",
     "unarchiveSuccess": "Archiv úspěšně extrahován!"
   },
   "search": {
@@ -323,6 +322,12 @@
     "showPreviewImagesDescription": "Zobrazení miniaturních náhledů výsledků vyhledávání, pokud jsou k dispozici, a zobrazení větších ikon u všech výsledků."
   },
   "profileSettings": {
+    "deleteAfterArchive": "Smazat zdrojové soubory po vytvoření/extrahování archivů",
+    "deleteAfterArchiveDescription": "Pokud je povoleno, po úspěšném vytvoření/extrahování archivů dojde ke smazání zdrojových souborů",
+    "hideFilesInTree": "Skrýt soubory ve stromové navigaci",
+    "hideFilesInTreeDescription": "Pokud je povoleno, v postranním stromovém navigačním panelu se zobrazují pouze složky",
+    "previewModelsDescription": "Zobrazit náhledy miniatur pro 3D modely, pokud je zakázáno, zobrazí se obecná ikona",
+    "previewAudiosDescription": "Zobrazit náhledy miniatur pro zvuky, pokud je zakázáno, zobrazí se obecná ikona",
     "setDateFormat": "Nastavit formát data",
     "showHiddenFiles": "Zobrazit skryté soubory",
     "showQuickDownload": "Zobrazit ikonu rychlého stahování",
@@ -517,7 +522,8 @@
     "showDiskUsageDescription": "Zobrazení sloupce využití z velikosti disku/oddílu podle hlášení operačního systému. Tato velikost bude pravděpodobně větší a zahrnuje i soubory, které nejsou indexovány.",
     "usageTextDisplay": "Který text použití se má zobrazit?",
     "usageTextIndexed": "použití podle indexu",
-    "usageTextDisk": "využití podle hlášení disku/oddílu"
+    "usageTextDisk": "využití podle hlášení disku/oddílu",
+    "dividerNamePlaceholder": "Text oddělovače (pro zobrazení řádku nechte prázdný)"
   },
   "success": {
     "linkCopied": "Odkaz zkopírován!"
@@ -642,8 +648,9 @@
     "results": "Výsledky{suffix}",
     "users": "Uživatelé{suffix}",
     "photos": "Fotografie",
-    "audio": "Audio{suffix}",
+    "audios": "Zvuky{suffix}",
     "videos": "Videa{suffix}",
+    "models": "3D modely",
     "documents": "Dokumenty{suffix}",
     "archives": "Archivy{suffix}",
     "images": "Obrázky{suffix}",
@@ -726,7 +733,8 @@
     "space": "Prostor{suffix}",
     "format": "Formát{suffix}",
     "office": "Kancelář{suffix}",
-    "show": "Zobrazit{suffix}"
+    "show": "Zobrazit{suffix}",
+    "divider": "Rozdělovač{suffix}"
   },
   "access": {
     "rules": "Pravidla přístupu",

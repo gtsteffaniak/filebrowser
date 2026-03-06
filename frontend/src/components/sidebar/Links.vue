@@ -1,7 +1,7 @@
 <template>
   <div class="sidebar-links card">
     <!-- Header - sticks always at the top -->
-    <div class="sidebar-links-header" :class="{ 'no-edit-options': isShare, 'with-top-spacing': isShare && !disableShareCard }">
+    <div class="sidebar-links-header" :class="{ 'no-edit-options': isShare && !disableShareCard }">
       <i v-if="!isShare" @click="goHome()" class="material-icons action" :title="$t('general.home')">home</i>
       <!-- Mode button (is the title) -->
       <button @click="cycleMode" class="mode-toggle" :title="$t('sidebar.switchMode')">
@@ -24,8 +24,30 @@
         </div>
         <transition-group name="expand" tag="div" class="inner-card">
           <template v-for="(link, index) in sidebarLinksToDisplay" :key="`link-${index}-${link.category}`">
+            <!-- Divider: renders as hr line or text label -->
+            <div v-if="link.category === 'divider'" class="sidebar-divider-container">
+              <hr v-if="!link.name || link.name.toLowerCase() === 'divider'" class="sidebar-divider" />
+              <span v-else class="sidebar-divider-text">{{ link.name }}</span>
+            </div>
+            <!-- Edit Share link -->
+            <a v-else-if="link.category === 'editShare'" :href="getLinkHref(link)"
+              :aria-label="$t('general.edit', { suffix: ' ' + $t('general.share') })"
+              class="action button sidebar-link-button" @click.prevent="showEditShareHover">
+              <div class="link-container">
+                <i class="material-icons link-icon">edit</i>
+                <span>{{ $t("general.edit", { suffix: " " + $t("general.share") }) }}</span>
+              </div>
+            </a>
+            <!-- Source Location custom link -->
+            <a v-else-if="link.category === 'custom' && link.name === 'sourceLocation'" :href="link.target"
+              :aria-label="link.name" class="action button sidebar-link-button" @click.prevent="handleLinkClick(link)">
+              <div class="link-container">
+                <i class="material-icons link-icon">open_in_new</i>
+                <span>{{ $t('buttons.goToSource') }}</span>
+              </div>
+            </a>
             <!-- Source-type links (source, source-minimal, source-alt, source-hybrid, source-hybrid-2); usage bar hidden for source-minimal -->
-            <a v-if="link.category === 'source' || link.category === 'source-minimal' || link.category === 'source-alt' || link.category === 'source-hybrid' || link.category === 'source-hybrid-2'" :href="getLinkHref(link)"
+            <a v-else-if="link.category === 'source' || link.category === 'source-minimal' || link.category === 'source-alt' || link.category === 'source-hybrid' || link.category === 'source-hybrid-2'" :href="getLinkHref(link)"
               class="action button source-button sidebar-link-button" :class="{
                 active: isLinkActive(link),
                 disabled: !isLinkAccessible(link)
@@ -86,15 +108,6 @@
               </div>
             </a>
           </template>
-          <!-- Edit Share link - only shown when viewing a share and user has share permissions -->
-          <a v-if="isShare && canEditShare" :aria-label="$t('general.edit', { suffix: ' ' + $t('general.share') })" href="#" 
-            class="action button sidebar-link-button"
-            @click.prevent="showEditShareHover">
-            <div class="link-container">
-              <i class="material-icons link-icon">edit</i>
-              <span>{{ $t("general.edit", { suffix: " " + $t("general.share") }) }}</span>
-            </div>
-          </a>
         </transition-group>
       </template>
       <!-- Navigation Mode -->
@@ -126,7 +139,7 @@
                 warning
               </i>
               <!-- Source name -->
-              <span>{{ activeSource }}</span>
+              <span>{{ activeSourceLink.name }}</span>
               <i v-if="hasUsageInfo(activeSourceLink)"
                  class="no-select material-symbols-outlined tooltip-info-icon"
                  @mouseenter="showSourceTooltip($event, activeSourceInfo)"
@@ -161,9 +174,9 @@
           <!-- Source Dropdown -->
           <transition name="dropdown">
             <div v-if="showSourceDropdown" class="source-dropdown" ref="dropdown">
-              <div v-for="sourceName in sourceNames" :key="sourceName" class="dropdown-item"
-                   @click="selectSource(sourceName)">
-                {{ sourceName }}
+              <div v-for="item in dropdownSourceItems" :key="item.rawName" class="dropdown-item"
+                  @click="selectSource(item.rawName)">
+                {{ item.displayName }}
               </div>
             </div>
           </transition>
@@ -228,10 +241,6 @@ export default {
       // Check if user has customized their links
       return this.user?.sidebarLinks && this.user.sidebarLinks.length > 0;
     },
-    canEditShare() {
-      // Check if user is logged in and has share permissions
-      return state.user && state.user.permissions && state.user.permissions.share;
-    },
     // Share info card props
     disableShareCard() {
       return state.shareInfo?.disableShareCard;
@@ -292,6 +301,15 @@ export default {
         icon: '',
         sourceName: this.activeSource,
       };
+    },
+    dropdownSourceItems() {
+      return this.sourceNames.map(rawName => {
+        const customLink = this.sourceLinkMap[rawName];
+        return {
+          rawName,
+          displayName: customLink ? customLink.name : rawName,
+        };
+      });
     },
   },
   mounted() {
@@ -653,10 +671,6 @@ export default {
   border-bottom: 1px solid var(--borderColor);
 }
 
-.with-top-spacing {
-  margin-top: 0.5em;
-}
-
 .usage-info .vue-simple-progress {
   border-style: solid;
   border-color: var(--surfaceSecondary);
@@ -891,6 +905,27 @@ a.sidebar-link-button {
 
 .dropdown-item:hover {
   background: var(--surfaceSecondary);
+}
+
+.sidebar-divider-container {
+  width: 100%;
+  margin-top: 0.5em;
+}
+
+.sidebar-divider {
+  width: 50%;
+  border: none;
+  border-top: 0.1em solid var(--divider);
+}
+
+.sidebar-divider-text {
+  display: flex;
+  font-size: .85em;
+  color: var(--textSecondary);
+  letter-spacing: .05em;
+  justify-content: center;
+  align-content: center;
+  align-items: center;
 }
 
 </style>

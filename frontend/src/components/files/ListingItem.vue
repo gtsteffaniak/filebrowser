@@ -201,6 +201,14 @@ export default {
       type: Boolean,
       default: false,
     },
+    showLimitedOptions: {
+      type: Boolean,
+      default: false,
+    },
+    disableContextMenu: {
+      type: Boolean,
+      default: false,
+    },
   },
   computed: {
     displayName() {
@@ -425,20 +433,15 @@ export default {
     },
     /** @param {MouseEvent} event */
     onRightClick(event) {
-      if (!this.updateGlobalState) {
-        event.preventDefault();
-        return;
-      }
       event.preventDefault(); // Prevent default context menu
-      // If one or fewer items are selected, reset the selection
       if (this.updateGlobalState) {
+        // If one or fewer items are selected, reset the selection
         if (!state.multiple && getters.selectedCount() < 2) {
           mutations.resetSelected();
           // @ts-ignore
           mutations.addSelected(this.index);
         }
       } else {
-
         // Build full item object similar to Search.vue
         const selectedItem = {
           name: this.name,
@@ -455,11 +458,16 @@ export default {
         // @ts-ignore
         mutations.addSelected(selectedItem);
       }
+      
+      if (this.disableContextMenu) {
+        return;
+      }
       mutations.showHover({
         name: "ContextMenu",
         props: {
           posX: event.clientX,
           posY: event.clientY,
+          showLimitedOptions: this.showLimitedOptions,
         },
       });
     },
@@ -626,11 +634,11 @@ export default {
           };
           notify.showSuccess(this.$t("prompts.moveSuccess"), buttonProps);
           // Close the prompt after successful operation and reload items for reflect the changes
-          mutations.closeHovers();
+          mutations.closeTopHover();
           mutations.setReload(true);
         } catch (error) {
           // Close the prompt and let error handling continue
-          mutations.closeHovers();
+          mutations.closeTopHover();
           throw error;
         }
       };
@@ -648,7 +656,7 @@ export default {
             const rename = option === "rename";
 
             event.preventDefault();
-            mutations.closeHovers();
+            mutations.closeTopHover();
             await action(overwrite, rename);
           },
         });

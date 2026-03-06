@@ -56,12 +56,14 @@ type Preview struct {
 	DisableHideSidebar bool `json:"disableHideSidebar"` // disable the hide sidebar preview for previews and editors
 	Image              bool `json:"image"`              // show thumbnail preview image for image files
 	Video              bool `json:"video"`              // show thumbnail preview image for video files
+	Audio              bool `json:"audio"`              // show thumbnail preview image for audio files
 	MotionVideoPreview bool `json:"motionVideoPreview"` // show multiple frames for videos in thumbnail preview when hovering
 	Office             bool `json:"office"`             // show thumbnail preview image for office files
 	PopUp              bool `json:"popup"`              // show larger popup preview when hovering over thumbnail
 	AutoplayMedia      bool `json:"autoplayMedia"`      // autoplay media files in preview
 	DefaultMediaPlayer bool `json:"defaultMediaPlayer"` // disable html5 media player and use the default media player
 	Folder             bool `json:"folder"`             // show thumbnail preview image for folder files
+	Models             bool `json:"models"`             // show live thumbnails for 3D models files
 }
 
 // User describes a user.
@@ -122,6 +124,8 @@ type NonAdminEditable struct {
 	DebugOffice                bool          `json:"debugOffice"`                // debug onlyoffice editor
 	OtpEnabled                 bool          `json:"otpEnabled"`                 // allow non-admin users to disable their own OTP
 	SidebarLinks               []SidebarLink `json:"sidebarLinks"`               // customizable sidebar links
+	HideFilesInTree            bool          `json:"hideFilesInTree"`            // hide files in the sidebar tree navigation, when true, will show only directories.
+	DeleteAfterArchive         bool          `json:"deleteAfterArchive"`         // delete source files after successful creation/extraction of archives
 }
 
 type FileLoading struct {

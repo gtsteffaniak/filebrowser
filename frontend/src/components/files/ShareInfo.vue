@@ -166,4 +166,9 @@ export default {
 .button i {
   font-size: 1.2em;
 }
+
+.card h3 {
+  margin: 0;
+}
+
 </style>

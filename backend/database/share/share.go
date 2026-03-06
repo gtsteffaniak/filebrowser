@@ -45,6 +45,7 @@ type CommonShare struct {
 	HasPassword              bool                `json:"hasPassword,omitempty"`
 	ShowHidden               bool                `json:"showHidden,omitempty"` // show hidden files in share (true = show, false = hide)
 	DisableLoginOption       bool                `json:"disableLoginOption"`   // disable login option in share (true = hide, false = show)
+	SourceURL                string              `json:"sourceURL,omitempty"`
 }
 type CreateBody struct {
 	CommonShare

@@ -214,7 +214,9 @@ export function goToItem(source, path, previousHistoryItem, newTab = false) {
   let newPath = encodedPath(path);
   let fullPath = `/files/${encodeURIComponent(source)}${newPath}`;
   if (newTab) {
-    window.open(fullPath, '_blank');
+    // Use absolute URL for new tab to ensure proper navigation
+    const absoluteUrl = `${window.location.origin}${globalVars.baseURL}${fullPath.startsWith('/') ? fullPath.slice(1) : fullPath}`;
+    window.open(absoluteUrl, '_blank');
     return;
   }
   mutations.setPreviousHistoryItem(previousHistoryItem);
