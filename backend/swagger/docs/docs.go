@@ -4102,6 +4102,9 @@ const docTemplate = `{
                 "bannerUrl": {
                     "type": "string"
                 },
+                "canEditShare": {
+                    "type": "boolean"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -5698,6 +5701,9 @@ const docTemplate = `{
                 "bannerUrl": {
                     "type": "string"
                 },
+                "canEditShare": {
+                    "type": "boolean"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -5838,6 +5844,9 @@ const docTemplate = `{
                 },
                 "bannerUrl": {
                     "type": "string"
+                },
+                "canEditShare": {
+                    "type": "boolean"
                 },
                 "description": {
                     "type": "string"
@@ -5991,6 +6000,9 @@ const docTemplate = `{
                 },
                 "bannerUrl": {
                     "type": "string"
+                },
+                "canEditShare": {
+                    "type": "boolean"
                 },
                 "description": {
                     "type": "string"

@@ -4091,6 +4091,9 @@
                 "bannerUrl": {
                     "type": "string"
                 },
+                "canEditShare": {
+                    "type": "boolean"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -5687,6 +5690,9 @@
                 "bannerUrl": {
                     "type": "string"
                 },
+                "canEditShare": {
+                    "type": "boolean"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -5827,6 +5833,9 @@
                 },
                 "bannerUrl": {
                     "type": "string"
+                },
+                "canEditShare": {
+                    "type": "boolean"
                 },
                 "description": {
                     "type": "string"
@@ -5980,6 +5989,9 @@
                 },
                 "bannerUrl": {
                     "type": "string"
+                },
+                "canEditShare": {
+                    "type": "boolean"
                 },
                 "description": {
                     "type": "string"

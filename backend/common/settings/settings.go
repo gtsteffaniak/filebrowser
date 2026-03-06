@@ -111,7 +111,7 @@ func ApplyUserDefaults(u *users.User) {
 	u.DisableOnlyOfficeExt = Config.UserDefaults.DisableOnlyOfficeExt
 	u.FileLoading = Config.UserDefaults.FileLoading
 	u.DisableOfficePreviewExt = Config.UserDefaults.DisableOfficePreviewExt
-	if len(u.Scopes) == 0 {
+	if len(u.Scopes) == 0 && u.Username != "anonymous" {
 		for _, source := range Config.Server.Sources {
 			if source.Config.DefaultEnabled {
 				u.Scopes = append(u.Scopes, users.SourceScope{
