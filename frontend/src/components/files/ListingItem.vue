@@ -47,10 +47,9 @@
     </div>
 
     <div class="text">
-      <p :class="{ adjustment: quickDownloadEnabled }" class="name">{{ displayName }}</p>
+      <p class="name">{{ displayName }}</p>
       <p
         class="size"
-        :class="{ adjustment: quickDownloadEnabled }"
         :data-order="humanSize"
       >
         {{ humanSize }}
@@ -66,13 +65,16 @@
         :filename="name"
         :hasPreview="hasPreview"
         mimetype="file_download"
-        style="padding-right: 0.5em"
         class="download-icon"
         role="button"
         aria-label="Download"
         tabindex="0"
         :clickable=true
         :isShared="isShared"
+      />
+      <Icon
+        v-else-if="quickDownloadPlaceholder"
+        class="placeholder"
       />
   </a>
   <div
@@ -116,10 +118,9 @@
     </div>
 
     <div class="text">
-      <p :class="{ adjustment: quickDownloadEnabled }" class="name">{{ displayName }}</p>
+      <p class="name">{{ displayName }}</p>
       <p
         class="size"
-        :class="{ adjustment: quickDownloadEnabled }"
         :data-order="humanSize"
       >
         {{ humanSize }}
@@ -221,10 +222,19 @@ export default {
       // @ts-ignore
       if (getters.isShare()) {
         // @ts-ignore
-        return state.shareInfo?.quickDownload && !this.isDir;
+        return state.shareInfo?.quickDownload && !this.galleryView && !this.isDir;
       }
       // @ts-ignore
       return state.user?.quickDownload && !this.galleryView && !this.isDir;
+    },
+    quickDownloadPlaceholder() {
+      // @ts-ignore
+      if (getters.isShare()) {
+        // @ts-ignore
+        return state.shareInfo?.quickDownload && !this.galleryView && this.isDir;
+      }
+      // @ts-ignore
+      return state.user?.quickDownload && !this.galleryView && getters.viewMode() !== "icons" && getters.viewMode() !== "normal" && this.isDir;
     },
     isHiddenNotSelected() {
       return !this.isSelected && this.reducedOpacity;
@@ -777,9 +787,9 @@ export default {
         // Local selection handling - emit events instead of updating global state
         if (event.shiftKey) {
           // Shift-click: select range (emit event for parent to handle)
-          this.$emit('selectRange', { 
+          this.$emit('selectRange', {
             startIndex: state.lastSelectedIndex !== null ? state.lastSelectedIndex : this.index,
-            endIndex: this.index 
+            endIndex: this.index
           });
           return;
         }
@@ -794,7 +804,7 @@ export default {
       if (!this.updateGlobalState) {
         return;
       }
-      
+
       // Check if state.req.items exists and has the item at this index
       // This prevents errors when ListingItem is used outside of the main file listing (e.g., duplicate finder)
       let previousHistoryItem = null;
@@ -813,7 +823,6 @@ export default {
 
 <style>
 .download-icon {
-  font-size: 1.5em;
   cursor: pointer;
   color: var(--secondaryColor);
 }

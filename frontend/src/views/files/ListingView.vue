@@ -81,6 +81,7 @@
             v-bind:reducedOpacity="item.hidden || isDragging"
             v-bind:hash="shareInfo.hash"
             v-bind:hasPreview="item.hasPreview"
+            v-bind:hasDuration="hasDuration"
             v-bind:isShared="item.isShared"
           />
         </div>
@@ -88,10 +89,10 @@
         <div v-if="numFiles > 0">
           <h2 :class="{'dark-mode': isDarkMode}">{{ $t("general.files") }}</h2>
         </div>
-        <div 
-          v-if="numFiles > 0" 
-          class="file-items" 
-          :class="{ lastGroup: numFiles > 0 }" 
+        <div
+          v-if="numFiles > 0"
+          class="file-items"
+          :class="{ lastGroup: numFiles > 0 }"
           aria-label="File Items"
         >
           <item
@@ -375,7 +376,7 @@ export default {
         const baseSize = baseCalc + extraScaling; // Size 5: 205px, Size 9: 345px
         const iconFontSize = (3 + (size * 0.5)).toFixed(2); // 3em to 7.5em
         styles['--icon-font-size'] = `${iconFontSize}em`;
-        
+
         if (state.isMobile) {
           const minWidth = size <= 3 ? 120 : size <= 7 ? 160 : 280;
           const mobileHeight = 120 + (size * 20); // 120px to 300px
@@ -401,7 +402,7 @@ export default {
         // Normal view
         const iconSize = (3.2 + (size * 0.15)).toFixed(2); // 3.35em to 4.55em
         const iconFontSize = (2.2 + (size * 0.12)).toFixed(2); // 2.32em to 3.28em
-        
+
         styles['--item-width'] = `calc(${(100 / this.numColumns)}% - 1em)`;
         styles['--item-height'] = 'auto';
         styles['--icon-size'] = `${iconSize}em`;
@@ -426,7 +427,7 @@ export default {
     document.addEventListener('mouseup', this.endRectangleSelection);
     this.$el.addEventListener('mousedown', this.startRectangleSelection);
     this.$el.addEventListener("touchmove", this.handleTouchMove, { passive: true });
-    
+
     // Single dragend listener for all items (prevents N listeners for N items)
     document.addEventListener('dragend', this.handleGlobalDragEnd, { passive: true });
 
@@ -1040,7 +1041,7 @@ export default {
     openContext(event) {
       event.preventDefault();
       event.stopPropagation();
-      
+
       // Prevent opening if already open
       if (getters.currentPromptName() === "ContextMenu") {
         return;
