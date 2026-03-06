@@ -262,22 +262,10 @@ body.rtl .listing-items {
   min-width: 0;
 }
 
-.name {
-  flex: 1;
-}
-
-.size {
-  width: calc(15% + 1em) !important;
-}
-
-.modified {
-  width: calc(15% + 1em) !important;
-}
-
-
 /* These old rules are now redundant - sizing comes from unified container rules above */
 
 /* Item-specific styles (not header) */
+.listing-items .header .size,
 .listing-items.list .listing-item .size,
 .listing-items.compact .listing-item .size {
   width: 25%;
@@ -292,12 +280,7 @@ body.rtl .listing-items {
 
 .listing-items.list .listing-item .size.adjustment,
 .listing-items.compact .listing-item .size.adjustment {
-  width: calc(15% + 1em) !important;
-}
-
-.listing-items.list .listing-item .modified,
-.listing-items.compact .listing-item .modified {
-  width: calc(15% + 1em) !important;
+  width: calc(25% + 1em) !important;
 }
 
 .listing-items.list .listing-item .name,
@@ -307,7 +290,7 @@ body.rtl .listing-items {
 
 .listing-items.list .listing-item .name.adjustment,
 .listing-items.compact .listing-item .name.adjustment {
-  flex: 1;
+  width: calc(50% + 1em) !important;
 }
 
 .listing-item .text {
