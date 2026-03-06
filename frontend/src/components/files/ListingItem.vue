@@ -214,7 +214,7 @@ export default {
       // @ts-ignore
       if (getters.isShare()) {
         // @ts-ignore
-        return state.shareInfo?.quickDownload && !this.isDir;
+        return state.shareInfo?.quickDownload && !this.galleryView && !this.isDir;
       }
       // @ts-ignore
       return state.user?.quickDownload && !this.galleryView && !this.isDir;
