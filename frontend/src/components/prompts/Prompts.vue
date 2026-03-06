@@ -327,7 +327,7 @@ export default {
     closeTopPrompt(id) {
       // Find the prompt we're trying to close
       const promptToClose = state.prompts.find(p => p.id === id);
-      
+      if (!promptToClose) return;
       // Check if it's the upload prompt with active uploads
       if (promptToClose?.name === "upload") {
         const hasActiveUploads = state.upload.isUploading;
@@ -340,13 +340,9 @@ export default {
             pinned: true,
             confirm: () => {
               // User confirmed to close anyway - close the upload prompt
-              mutations.closePromptById(id);
+              mutations.closeTopPrompt(id);
               // Clean up state for this prompt
-              delete this.dragOffsets[id];
-              delete this.dragStarts[id];
-              delete this.touchIds[id];
-              this.draggingIds.delete(id);
-              delete this.sizes[id];
+              this.cleanupDragState(id);
             },
             cancel: () => {
               // User cancelled - just close the warning prompt
@@ -357,8 +353,11 @@ export default {
         }
       }
       // Normal close behavior
-      mutations.closePromptById(id);
+      mutations.closeTopPrompt(id);
       // Clean up state for this prompt
+      this.cleanupDragState(id);
+    },
+    cleanupDragState(id) {
       delete this.dragOffsets[id];
       delete this.dragStarts[id];
       delete this.touchIds[id];

@@ -260,10 +260,22 @@ export const mutations = {
     mutations.closeSidebar();
     mutations.hideTooltip(true);
   },
-  closeTopPrompt: () => {
-    if (state.prompts.length === 0) return;
-    mutations.closeHovers();
-    state.prompts.pop();
+  closeTopPrompt: (id) => {
+    if (id === undefined) {
+      // close topmost prompt
+      if (state.prompts.length === 0) return;
+      mutations.closeHovers();
+      state.prompts.pop();
+    } else {
+      // close prompt by ID
+      const idx = state.prompts.findIndex(p => p.id === id);
+      if (idx === -1) return;
+      state.prompts.splice(idx, 1);
+    }
+    if (state.prompts.length === 0 && !state.stickySidebar) {
+      state.showSidebar = false;
+    }
+    emitStateChanged();
   },
   showPrompt: (value) => {
     state.promptIdCounter += 1;
@@ -304,17 +316,6 @@ export const mutations = {
       // Non‑pinned prompts go just before the first pinned prompt
       const insertIndex = state.prompts.length - pinnedCount;
       state.prompts.splice(insertIndex, 0, entry);
-    }
-    mutations.hideTooltip(true);
-  },
-  closePromptById: (id) => {
-    const idx = state.prompts.findIndex((p) => p.id === id);
-    if (idx === -1) {
-      return;
-    }
-    state.prompts.splice(idx, 1);
-    if (state.prompts.length === 0 && !state.stickySidebar) {
-      state.showSidebar = false;
     }
     mutations.hideTooltip(true);
   },
