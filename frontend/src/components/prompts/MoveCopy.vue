@@ -324,8 +324,8 @@ export default {
 
         // Only close prompts and reload on success (or partial success)
         mutations.setReload(true);
-        mutations.closePrompt(); // close conflict prompt
-        mutations.closePrompt(); // close moveCopy prompt after conflict is resolved and file copied/moved
+        mutations.closeTopPrompt(); // close conflict prompt
+        mutations.closeTopPrompt(); // close moveCopy prompt after conflict is resolved and file copied/moved
         mutations.setSearch(false); // close search if open
 
         // Only show success notification if there were no failures (or partial success was already shown)

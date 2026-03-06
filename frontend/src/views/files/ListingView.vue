@@ -947,7 +947,7 @@ export default {
                   const overwrite = option === "overwrite";
                   const rename = option === "rename";
                   event.preventDefault();
-                  mutations.closePrompt();
+                  mutations.closeTopPrompt();
                   action(overwrite, rename);
                 },
               });

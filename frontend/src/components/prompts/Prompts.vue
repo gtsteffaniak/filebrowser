@@ -33,7 +33,7 @@
           :aria-label="$t('general.close')"
           :title="$t('general.close')"
           :disabled="isBlocked(prompt)"
-          @click.stop="closePrompt(prompt.id)"
+          @click.stop="closeTopPrompt(prompt.id)"
           @mousedown.stop
           @touchstart.stop
         >
@@ -324,7 +324,7 @@ export default {
           return promptName;
       }
     },
-    closePrompt(id) {
+    closeTopPrompt(id) {
       // Find the prompt we're trying to close
       const promptToClose = state.prompts.find(p => p.id === id);
       
@@ -350,7 +350,7 @@ export default {
             },
             cancel: () => {
               // User cancelled - just close the warning prompt
-              mutations.closePrompt();
+              mutations.closeTopPrompt();
             },
           });
           return;

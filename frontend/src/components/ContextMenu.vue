@@ -435,7 +435,7 @@ export default {
       if (!this.isPreview) {
         mutations.closeHovers();
       } else {
-        mutations.closePrompt();
+        mutations.closeTopPrompt();
       }
       mutations.showPrompt({
         name: "info",
@@ -575,7 +575,7 @@ export default {
       });
     },
     showRenamePromptForPreview() {
-      mutations.closePrompt(); // Close the ContextMenu (if it was open from preview)
+      mutations.closeTopPrompt(); // Close the ContextMenu (if it was open from preview)
       // Get parent items from the listing
       const parentItems = state.navigation.listing || [];
       mutations.showPrompt({
@@ -609,12 +609,12 @@ export default {
       mutations.closeHovers();
     },
     startDownload() {
-      mutations.closePrompt();
+      mutations.closeTopPrompt();
       const items = this.providedItems;
       downloadFiles(items);
     },
     showDeletePrompt() {
-      mutations.closePrompt();
+      mutations.closeTopPrompt();
       mutations.showPrompt({
         name: 'delete',
         props: {
@@ -662,7 +662,7 @@ export default {
       });
     },
     showArchivePrompt() {
-      mutations.closePrompt();
+      mutations.closeTopPrompt();
       const items = this.providedItems.map(item => ({
         path: item.path,
         name: item.name,
@@ -679,13 +679,13 @@ export default {
       });
     },
     showUnarchivePrompt() {
-      mutations.closePrompt();
+      mutations.closeTopPrompt();
       const item = this.firstSelected;
       if (!item) return;
       this.openUnarchivePrompt(item);
     },
     showUnarchivePromptFromPreview() {
-      mutations.closePrompt();
+      mutations.closeTopPrompt();
       const req = state.req;
       if (!req) return;
       this.openUnarchivePrompt({ path: req.path, source: req.source, name: req.name });

@@ -108,7 +108,7 @@ export default {
         setTimeout(() => {
           eventBus.emit('apiKeysChanged');
         }, 10);
-        mutations.closePrompt();
+        mutations.closeTopPrompt();
         notify.showSuccessToast(this.$t("api.apiKeyDeleted"));
       } catch (error) {
         console.error(error);

@@ -727,7 +727,7 @@ export default {
         } else {
           // emit event to reload shares in settings view
           eventBus.emit('sharesChanged');
-          mutations.closePrompt();
+          mutations.closeTopPrompt();
         }
 
         this.time = "";
@@ -827,7 +827,7 @@ export default {
     switchListing() {
       if (this.links.length === 0 && !this.listing) {
         // Access the store directly if needed
-        mutations.closePrompt();
+        mutations.closeTopPrompt();
       }
 
       this.listing = !this.listing;

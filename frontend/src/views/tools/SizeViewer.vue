@@ -308,7 +308,7 @@ export default {
         this.selectedSource = data.source;
       }
       // Close the picker
-      mutations.closePrompt();
+      mutations.closeTopPrompt();
     },
     async fetchData() {
       this.loading = true;

@@ -794,7 +794,7 @@ export default {
         }
 
         // Close only this prompt, returning to the previous one (if any)
-        mutations.closePrompt();
+        mutations.closeTopPrompt();
       } catch (error) {
         notify.showError(this.$t("sidebar.linksUpdateFailed"));
       }

@@ -107,7 +107,7 @@
   </div>
 
   <div class="card-actions">
-    <button class="button button--flat button--grey" @click="closePrompt" :aria-label="$t('general.cancel')"
+    <button class="button button--flat button--grey" @click="closeTopPrompt" :aria-label="$t('general.cancel')"
       :title="$t('general.cancel')">
       {{ $t("general.cancel") }}
     </button>
@@ -236,8 +236,8 @@ export default {
     },
   },
   methods: {
-    closePrompt() {
-      mutations.closePrompt();
+    closeTopPrompt() {
+      mutations.closeTopPrompt();
     },
     async fetchData() {
       mutations.setLoading("users", true);
@@ -338,8 +338,8 @@ export default {
                   await usersApi.remove(this.user.id);
                   notify.showSuccessToast(this.$t("settings.userDeleted"));
                   eventBus.emit('usersChanged');
-                  mutations.closePrompt(); // close delete user prompt confirmation
-                  mutations.closePrompt(); // close user prompt since user doens't exist anymore
+                  mutations.closeTopPrompt(); // close delete user prompt confirmation
+                  mutations.closeTopPrompt(); // close user prompt since user doens't exist anymore
                 } catch (e) {
                   console.error(e);
                   notify.showErrorToast(this.$t("settings.userDeleteFailed"));
@@ -370,7 +370,7 @@ export default {
           // Emit event to refresh user list
           eventBus.emit('usersChanged');
           // Close the prompt
-          mutations.closePrompt();
+          mutations.closeTopPrompt();
         } else {
           await usersApi.update({ ...this.user, scopes: scopesToSend }, fields);
           // Only emit usersChanged for admin user management, not profile updates
@@ -378,7 +378,7 @@ export default {
             eventBus.emit('usersChanged');
           }
           notify.showSuccessToast(this.$t("settings.userUpdated"));
-          mutations.closePrompt();
+          mutations.closeTopPrompt();
         }
       } catch (e) {
         console.error(e);

@@ -260,7 +260,7 @@ export const mutations = {
     mutations.closeSidebar();
     mutations.hideTooltip(true);
   },
-  closePrompt: () => {
+  closeTopPrompt: () => {
     if (state.prompts.length === 0) return;
     mutations.closeHovers();
     state.prompts.pop();

@@ -13,7 +13,7 @@
   </div>
 
   <div class="card-actions">
-    <button class="button button--flat button--grey" @click="closePrompt" :aria-label="$t('general.cancel')"
+    <button class="button button--flat button--grey" @click="closeTopPrompt" :aria-label="$t('general.cancel')"
       :title="$t('general.cancel')">
       {{ $t("general.cancel") }}
     </button>
@@ -80,8 +80,8 @@ export default {
     },
   },
   methods: {
-    closePrompt() {
-      return mutations.closePrompt();
+    closeTopPrompt() {
+      return mutations.closeTopPrompt();
     },
     async submit(event) {
       try {
@@ -103,13 +103,13 @@ export default {
         if (getters.isShare()) {
           await resourcesApi.postPublic(state.shareInfo?.hash, newPath, "", overwrite, undefined, {}, true);
           mutations.setReload(true);
-          mutations.closePrompt();
+          mutations.closeTopPrompt();
           this.creating = false;
           return;
         }
         await resourcesApi.post(source, newPath, "", overwrite, undefined, {}, true);
         mutations.setReload(true);
-        mutations.closePrompt();
+        mutations.closeTopPrompt();
 
         // Show success notification with "go to item" button
         const buttonAction = () => {
@@ -151,13 +151,13 @@ export default {
                       if (getters.isShare()) {
                         await resourcesApi.postPublic(state.shareInfo?.hash, newPath, "", false, undefined, {}, true);
                         mutations.setReload(true);
-                        mutations.closePrompt();
+                        mutations.closeTopPrompt();
                         success = true;
                         return;
                       }
                       await resourcesApi.post(source, newPath, "", false, undefined, {}, true);
                       mutations.setReload(true);
-                      mutations.closePrompt();
+                      mutations.closeTopPrompt();
                       success = true;
 
                       // Show success notification with "go to item" button

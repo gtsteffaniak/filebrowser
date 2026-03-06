@@ -95,7 +95,7 @@ export default {
         this.succeeded = true
         this.error = "";
         notify.showSuccessToast(this.$t("otp.verificationSucceed"));
-        mutations.closePrompt();
+        mutations.closeTopPrompt();
       } catch (error) {
         this.error = this.$t("otp.verificationFailed");
         console.log("error", error);

@@ -326,7 +326,7 @@ export default {
                 await saveHandler();
               }
               // Close the prompt after successful save
-              mutations.closePrompt();
+              mutations.closeTopPrompt();
               resolve(true); // Allow navigation
             } catch (error) {
               // Save failed - keep prompt open by not resolving
@@ -337,13 +337,13 @@ export default {
             // Discard changes and proceed
             mutations.setEditorDirty(false);
             // Close the prompt
-            mutations.closePrompt();
+            mutations.closeTopPrompt();
             resolve(true); // Allow navigation
           },
           cancel: () => {
             // Cancel navigation
             // Close the prompt
-            mutations.closePrompt();
+            mutations.closeTopPrompt();
             resolve(false); // Block navigation
           },
         });

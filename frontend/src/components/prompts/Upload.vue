@@ -251,11 +251,11 @@ export default {
       if (conflictResolver) {
         conflictResolver(overwrite);
       }
-      mutations.closePrompt(); // Only close the conflict prompt, return to upload prompt
+      mutations.closeTopPrompt(); // Only close the conflict prompt, return to upload prompt
     };
 
     const showRenamePrompt = () => {
-      mutations.closePrompt(); // Only close the replace-rename prompt, keep upload prompt open
+      mutations.closeTopPrompt(); // Only close the replace-rename prompt, keep upload prompt open
       // Get the conflicting folder name from the upload queue
       const conflictingFolder = uploadManager.getConflictingFolder();
       if (!conflictingFolder) {
@@ -288,7 +288,7 @@ export default {
         if (conflictResolver) {
           conflictResolver({ rename: newName });
         }
-        mutations.closePrompt(); // Only close the rename prompt, return to upload prompt
+        mutations.closeTopPrompt(); // Only close the rename prompt, return to upload prompt
       } catch (error) {
         console.error(error);
       }
@@ -356,7 +356,7 @@ export default {
     );
 
     const close = () => {
-      mutations.closePrompt();
+      mutations.closeTopPrompt();
     };
 
     const clearCompleted = () => {
@@ -527,7 +527,7 @@ export default {
         pinned: true,
         confirm: () => {
           uploadManager.retry(file.id, true);
-          mutations.closePrompt();
+          mutations.closeTopPrompt();
         },
       });
     };

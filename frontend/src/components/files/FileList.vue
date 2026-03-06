@@ -476,7 +476,7 @@ export default {
       this.items = allItems.filter(item => !item.isDirectory && item.type !== 'directory');
     },
     navigateToItem(item) {
-      mutations.closePrompt();
+      mutations.closeTopPrompt();
       mutations.setNavigationTransitioning(true);
       url.goToItem(item.source || state.req.source, item.path, undefined);
     },

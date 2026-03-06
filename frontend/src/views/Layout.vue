@@ -169,7 +169,7 @@ export default {
       const currentView = getters.currentView()
       const currentPrompt = getters.currentPromptName();
       if (currentPrompt !== "success" && currentPrompt !== "generic") {
-        mutations.closePrompt();
+        mutations.closeTopPrompt();
       }
       if (window.location.hash == "" && currentView == "listingView" || currentView == "share") {
         const element = document.getElementById("main");
@@ -203,7 +203,7 @@ export default {
                     mutations.updateCurrentUser({
                       showFirstLogin: false,
                     });
-                    mutations.closePrompt();
+                    mutations.closeTopPrompt();
                   },
                 },
               ],

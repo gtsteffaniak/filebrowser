@@ -77,7 +77,7 @@
 
   <div class="card-actions">
     <button
-      @click="closePrompt"
+      @click="closeTopPrompt"
       class="button button--flat button--grey"
       :aria-label="$t('general.cancel')"
       :title="$t('general.cancel')"
@@ -148,10 +148,10 @@ export default {
     getIconClass,
     selectIcon(iconName) {
       this.onSelect(iconName);
-      this.closePrompt();
+      this.closeTopPrompt();
     },
-    closePrompt() {
-      mutations.closePrompt();
+    closeTopPrompt() {
+      mutations.closeTopPrompt();
     },
   },
 };

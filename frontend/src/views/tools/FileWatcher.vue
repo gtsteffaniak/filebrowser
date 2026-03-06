@@ -298,7 +298,7 @@ export default {
       if (data && data.type !== undefined) {
         this.fileType = data.type;
       }
-      mutations.closePrompt();
+      mutations.closeTopPrompt();
       
       // If currently watching, restart with the new path
       if (this.watching) {

@@ -205,7 +205,7 @@ export default {
         path: state.req.path,
       });
       this.$router.push({ path: path, hash: hash });
-      mutations.closePrompt();
+      mutations.closeTopPrompt();
     },
     navigateToLogin() {
       this.$router.push({ path: "/login", query: { redirect: this.$route.path } });

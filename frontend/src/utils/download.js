@@ -38,7 +38,7 @@ export default function downloadFiles(items) {
       mutations.showPrompt({
         name: "download",
         confirm: (format) => {
-          mutations.closePrompt();
+          mutations.closeTopPrompt();
           startDownload(format, items, state.shareInfo.hash);
         },
       });
@@ -59,7 +59,7 @@ export default function downloadFiles(items) {
     mutations.showPrompt({
       name: "download",
       confirm: (format) => {
-        mutations.closePrompt();
+        mutations.closeTopPrompt();
         startDownload(format, items);
       },
     });

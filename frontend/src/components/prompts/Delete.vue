@@ -45,7 +45,7 @@
       </div>
     </div>
     <div class="card-actions">
-      <button @click="closePrompt" class="button button--flat button--grey" :aria-label="$t('general.cancel')"
+      <button @click="closeTopPrompt" class="button button--flat button--grey" :aria-label="$t('general.cancel')"
         :title="$t('general.cancel')">
         {{ $t("general.cancel") }}
       </button>
@@ -163,8 +163,8 @@ export default {
       // For custom events (like @select), just return early
       return false;
     },
-    closePrompt() {
-      mutations.closePrompt();
+    closeTopPrompt() {
+      mutations.closeTopPrompt();
     },
     getItemName(path) {
       const parts = path.split("/").filter(p => p);
@@ -250,7 +250,7 @@ export default {
               failed: []
             });
           }
-          mutations.closePrompt();
+          mutations.closeTopPrompt();
           if (!this.items) {
             mutations.resetSelected();
           }

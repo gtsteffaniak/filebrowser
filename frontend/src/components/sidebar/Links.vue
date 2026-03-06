@@ -463,7 +463,7 @@ export default {
       } else {
         this.$router.push(link.target);
       }
-      mutations.closePrompt();
+      mutations.closeTopPrompt();
     },
     goToDownload() {
       // Check if we're in a directory with multiple items
@@ -473,7 +473,7 @@ export default {
         mutations.showPrompt({
           name: "download",
           confirm: (format) => {
-            mutations.closePrompt();
+            mutations.closeTopPrompt();
             const downloadLink = resourcesApi.getDownloadURLPublic({
               path: "/",
               hash: state.shareInfo.hash,
@@ -501,7 +501,7 @@ export default {
         path: state.req?.path,
       });
       this.$router.push({ path: path, hash: hash });
-      mutations.closePrompt();
+      mutations.closeTopPrompt();
     },
     openSidebarLinksPrompt() {
       if (!this.isLoggedIn) {

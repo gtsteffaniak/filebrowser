@@ -225,7 +225,7 @@ export default {
       if (data && data.source !== undefined) {
         this.selectedSource = data.source;
       }
-      mutations.closePrompt();
+      mutations.closeTopPrompt();
     },
     handleItemsDeleted(data) {
       // Update local state when items are deleted from the delete prompt

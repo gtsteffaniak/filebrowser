@@ -291,10 +291,10 @@ export default {
               action: buttonAction
             }]
           });
-          mutations.closePrompt();
+          mutations.closeTopPrompt();
           mutations.setReload(true);
         } catch (error) {
-          mutations.closePrompt();
+          mutations.closeTopPrompt();
           notify.showErrorToast(this.$t("prompts.moveFailed"));
           console.log("Move failed", e);
         }
@@ -308,7 +308,7 @@ export default {
             const overwrite = option === "overwrite";
             const rename = option === "rename";
             event.preventDefault();
-            mutations.closePrompt();
+            mutations.closeTopPrompt();
             moveAction(overwrite, rename);
           },
         });

@@ -55,7 +55,7 @@
     <template v-else>
       <button
         class="button button--flat button--grey"
-        @click="closePrompt"
+        @click="closeTopPrompt"
         :aria-label="$t('general.cancel')"
         :title="$t('general.cancel')"
       >
@@ -129,8 +129,8 @@ export default {
     },
   },
   methods: {
-    closePrompt() {
-      mutations.closePrompt();
+    closeTopPrompt() {
+      mutations.closeTopPrompt();
     },
     updateDestination(pathOrData) {
       if (typeof pathOrData === "string") {
@@ -154,7 +154,7 @@ export default {
           deleteAfter: this.deleteAfter,
         });
         mutations.setReload(true);
-        mutations.closePrompt();
+        mutations.closeTopPrompt();
 
         const destPath = this.destPath;
         const destSource = toSource;
