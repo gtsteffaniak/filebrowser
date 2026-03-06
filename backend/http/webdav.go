@@ -85,6 +85,7 @@ func (ffs *filteredFileSystem) getFileInfo(requestPath string, expand bool) (*it
 		Expand:            expand,
 		ShowHidden:        ffs.user.ShowHidden,
 		SkipExtendedAttrs: true,
+		FollowSymlinks:    true,
 	}, store.Access, ffs.user, store.Share)
 	if err != nil {
 		return nil, err
@@ -383,7 +384,6 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		ShowHidden:     d.user.ShowHidden,
 	}, store.Access, d.user)
 	if err != nil {
-		logger.Debugf("error checking file permissions for path %s: %v", requestPath, err)
 		return http.StatusForbidden, err
 	}
 
@@ -397,7 +397,6 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	// This is the root directory that WebDAV will use to resolve relative paths
 	scopePath, _, err := idx.GetRealPath(userScope)
 	if err != nil {
-		logger.Debugf("error resolving scope path: %v", err)
 		return http.StatusNotFound, err
 	}
 
