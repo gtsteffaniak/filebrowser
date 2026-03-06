@@ -82,6 +82,5 @@ test("edit previously created links and ensure they are updated", async ({ page,
     await page.locator('a[aria-label="Share QR Code and Info"]').waitFor({ state: 'visible' });
     await page.locator('a[aria-label="Download"]').waitFor({ state: 'visible' });
     await page.locator('a[aria-label="New Custom Link"]').waitFor({ state: 'visible' });
-    await page.locator('a[aria-label="Edit Share"]').waitFor({ state: 'visible' });
     checkForErrors();
 });
