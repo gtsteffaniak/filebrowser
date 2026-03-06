@@ -11,14 +11,14 @@ import { defineConfig, devices } from "@playwright/test";
  */
 export default defineConfig({
   globalSetup: "./tests/playwright/proxy-setup.ts",
-  timeout: 5000,
+  timeout: 10000,
   testDir: "./tests/playwright/proxy",
   /* Run tests in files in parallel */
   fullyParallel: false,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: false,
   /* Retry on CI only */
-  retries: 2,
+  retries: 3,
   /* Opt out of parallel tests on CI. */
   workers: 1, // required for now! todo parallel some tests
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */

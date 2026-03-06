@@ -306,12 +306,14 @@ type UserDefaultsPreview struct {
 	HighQuality        *bool `json:"highQuality"`        // deprecated: always true in v1.3.0+
 	Image              *bool `json:"image"`              // show thumbnails for image files
 	Video              *bool `json:"video"`              // show thumbnails for video files
+	Audio              *bool `json:"audio"`              // show thumbnails for audio files
 	MotionVideoPreview *bool `json:"motionVideoPreview"` // show multiple frames for videos in thumbnail preview when hovering
 	Office             *bool `json:"office"`             // show thumbnails for office files
 	PopUp              *bool `json:"popup"`              // show larger popup preview when hovering over thumbnail
 	AutoplayMedia      *bool `json:"autoplayMedia"`      // autoplay media files in preview
 	DefaultMediaPlayer bool  `json:"defaultMediaPlayer"` // disable the styled feature-rich media player for browser default
 	Folder             *bool `json:"folder"`             // show thumbnails for folders that have previewable contents
+	Models             *bool `json:"models"`             // show live thumbnails for 3D models files
 }
 
 // UserDefaultsPermissions holds permission settings with pointer types for defaults
@@ -334,6 +336,7 @@ type UserDefaults struct {
 	DisableQuickToggles        bool                    `json:"disableQuickToggles"`       // disable the quick toggles in the sidebar
 	DisableSearchOptions       bool                    `json:"disableSearchOptions"`      // disable the search options in the search bar
 	StickySidebar              bool                    `json:"stickySidebar"`             // keep sidebar open when navigating
+	HideFilesInTree            bool                    `json:"hideFilesInTree"`           // hide files in the sidebar tree navigation, when true, will show only directories.
 	DarkMode                   *bool                   `json:"darkMode"`                  // should dark mode be enabled
 	Locale                     string                  `json:"locale"`                    // language to use: eg. de, en, or fr
 	ViewMode                   string                  `json:"viewMode"`                  // view mode to use: eg. normal, list, grid, or compact
@@ -353,6 +356,7 @@ type UserDefaults struct {
 	LoginMethod                string                  `json:"loginMethod,omitempty"`      // login method to use: eg. password, proxy, oidc
 	DisableUpdateNotifications bool                    `json:"disableUpdateNotifications"` // disable update notifications banner for admin users
 	DeleteWithoutConfirming    bool                    `json:"deleteWithoutConfirming"`    // delete files without confirmation
+	DeleteAfterArchive         bool                    `json:"deleteAfterArchive"`         // delete source files after successful creation/extraction of archives
 	FileLoading                users.FileLoading       `json:"fileLoading"`                // upload and download settings
 	DisableOfficePreviewExt    string                  `json:"disableOfficePreviewExt"`    // deprecated: use disablePreviewExt instead
 	DisableOnlyOfficeExt       string                  `json:"disableOnlyOfficeExt"`       // list of file extensions to disable onlyoffice editor for

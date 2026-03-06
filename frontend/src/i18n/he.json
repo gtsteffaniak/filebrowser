@@ -28,11 +28,11 @@
     "saveAndExit": "שמור וצא",
     "keepEditing": "המשך עריכה",
     "closeAnyway": "סגור בכל מקרה",
-    "goToItem": "עבור לפריט",
     "watchFile": "צפה בקובץ",
     "showMore": "הצג אפשרויות מתקדמות",
     "showLess": "הסתר אפשרויות מתקדמות",
-    "goToSource": "עבור למיקום המקור"
+    "goToSource": "עבור למיקום המקור",
+    "goToItem": "עבור לפריט"
   },
   "download": {
     "downloadFile": "הורד קובץ",
@@ -222,12 +222,10 @@
     "archiveDestination": "בחר תיקיית יעד (ואז הזן את שם הארכיון למטה):",
     "archiveName": "שם הארכיון (ברירת מחדל: archive.zip):",
     "archiveCompression": "רמת דחיסה (0–9):",
-    "archiveDeleteAfter": "מחק קבצי מקור לאחר יצירה מוצלחת",
     "archiveSuccess": "הארכיון נוצר בהצלחה!",
     "unarchive": "חלץ ארכיון",
     "unarchiveMessage": "בחר היכן לחלץ את הארכיון.",
     "unarchiveDestination": "חלץ אל:",
-    "unarchiveDeleteAfter": "מחק את הארכיון לאחר החילוץ",
     "unarchiveSuccess": "הארכיון חולץ בהצלחה!"
   },
   "search": {
@@ -566,8 +564,9 @@
     "results": "תוצאות{suffix}",
     "users": "משתמשים{suffix}",
     "photos": "תמונות",
-    "audio": "אודיו{suffix}",
+    "audios": "שמע{suffix}",
     "videos": "סרטונים{suffix}",
+    "models": "דגמי תלת-ממד",
     "documents": "מסמכים{suffix}",
     "archives": "ארכיונים{suffix}",
     "images": "תמונות{suffix}",
@@ -697,6 +696,12 @@
     "orange": "כתום"
   },
   "profileSettings": {
+    "deleteAfterArchive": "מחק קבצי מקור לאחר יצירה/חילוץ של ארכיונים",
+    "deleteAfterArchiveDescription": "כאשר מופעל, ימחק את קבצי המקור לאחר יצירה/חילוץ מוצלחים של ארכיונים",
+    "hideFilesInTree": "הסתר קבצים בניווט עץ",
+    "hideFilesInTreeDescription": "כאשר מופעל, רק תיקיות מוצגות בניווט העץ של סרגל הצד",
+    "previewModelsDescription": "הצג תצוגות מקדימות ממוזערות לדגמי תלת-ממד, יוצג אייקון כללי אם מושבת",
+    "previewAudiosDescription": "הצג תצוגות מקדימות ממוזערות לשמע, יוצג אייקון כללי אם מושבת",
     "setDateFormat": "הגדר פורמט תאריך מדויק",
     "showHiddenFiles": "הצג קבצים מוסתרים",
     "showHiddenFilesDescription": "הצג קבצים מוסתרים ברשימה (לדוגמה, .thumbnails, ProgramData), אך הם עדיין נגישים באופן ידני אם הוגדרו לאינדקס.",

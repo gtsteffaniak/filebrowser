@@ -22,6 +22,7 @@ var (
 	ErrNoTotpConfigured     = errors.New("OTP is enforced, but user is not yet configured")
 	ErrUnauthorized         = errors.New("user unauthorized")
 	ErrNotIndexed           = errors.New("directory or item excluded from indexing")
+	ErrNotViewable          = errors.New("directory or item is not viewable")
 	ErrWrongLoginMethod     = errors.New("user attempted to login with wrong login method")
 	ErrDownloadNotAllowed   = errors.New("downloads are not allowed for this share")
 	ErrUploadNotAllowed     = errors.New("upload permission not allowed for this share")

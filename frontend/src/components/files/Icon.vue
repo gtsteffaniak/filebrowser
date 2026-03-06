@@ -7,7 +7,7 @@
     <i v-if="isShared" class="material-icons overlay-icon">group</i>
     <!-- Preview content: image, 3D, or fallback -->
     <img v-if="hasPreviewImage" :key="imageTargetSrc" :src="imageDisplaySrc" ref="thumbnail" />
-    <ThreeJs v-else-if="shouldUse3DPreview && !threeJsError" 
+    <ThreeJs v-else-if="shouldUse3DPreview && !threeJsError"
       :key="`3d-${path}-${gallerySizeKey}`"
       :fbdata="{
         name: filename,
@@ -20,7 +20,7 @@
       :add-load-delay="true"
       @error="handle3DError" />
   </span>
-  
+
   <!-- Regular material icon (no preview) -->
   <span v-else class="image-preview">
     <i :class="[classes, { active: active, clickable: clickable }]"> {{ materialIcon }} </i>
@@ -122,10 +122,16 @@ export default {
         return false;
       }
       const simpleType = this.getIconForType().simpleType;
+      if (simpleType === "audio" && !getters.previewPerms().audio) {
+        return false;
+      }
       if (simpleType === "video" && !getters.previewPerms().video) {
         return false;
       }
       if (simpleType === "image" && !getters.previewPerms().image) {
+        return false;
+      }
+      if (simpleType === "ebook" && !getters.previewPerms().image) {
         return false;
       }
       // office files
@@ -136,7 +142,7 @@ export default {
         return false;
       }
       // 3D models - show preview thumbnails (if backend provides them)
-      if (simpleType === "3d-model" && !getters.previewPerms().image) {
+      if (simpleType === "3d-model" && !getters.previewPerms().models) {
         return false;
       }
       return this.imageState !== 'error' && !this.disablePreviewExt && !this.officeFileDisabled;
@@ -213,10 +219,11 @@ export default {
     shouldUse3DPreview() {
       // Check if we should use 3D preview instead of regular icon
       if (!this.isFile || !this.size || !this.path) return false;
-      
+      if (!getters.previewPerms().models) return false;
+
       const MAX_SIZE = 250 * 1024; // 250KB in bytes
       if (this.size > MAX_SIZE) return false;
-      
+
       const typeInfo = this.getIconForType();
       return typeInfo.simpleType === '3d-model';
     },
@@ -370,7 +377,7 @@ export default {
       if (this.thumbnailUrl && this.showLargeIcon) {
         newSrc = this.thumbnailUrl + "&size=large";
       }
-      
+
       if (this.imageTargetSrc !== newSrc) {
         this.imageTargetSrc = newSrc;
       }
@@ -524,6 +531,10 @@ export default {
   color: white;
 }
 
+.brown-icons {
+  color: brown;
+}
+
 #listingView.gallery .listing-item i.white-icons,
 .active.white-icons {
   color: var(--activeWhiteIcon);
@@ -555,11 +566,6 @@ export default {
 
 .yellow-icons {
   color: yellow;
-}
-
-.simple-icons {
-  color: white;
-  font-size: 1.5em !important;
 }
 
 /* Unified .image-preview container - works universally, always square */

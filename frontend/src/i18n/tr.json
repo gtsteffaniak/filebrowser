@@ -28,11 +28,11 @@
     "saveAndExit": "Kaydet ve Çık",
     "keepEditing": "Düzenlemeye Devam Et",
     "closeAnyway": "Her Neyse Kapat",
-    "goToItem": "Öğeye git",
     "watchFile": "Dosyayı izle",
     "showMore": "Gelişmiş Seçenekleri Göster",
     "showLess": "Gelişmiş Seçenekleri Gizle",
-    "goToSource": "Kaynak Konuma Git"
+    "goToSource": "Kaynak Konuma Git",
+    "goToItem": "Öğeye git"
   },
   "download": {
     "downloadFile": "Dosyayı indir",
@@ -222,12 +222,10 @@
     "archiveDestination": "Hedef klasörü seçin (ardından aşağıya arşiv adını girin):",
     "archiveName": "Arşiv adı (varsayılan archive.zip):",
     "archiveCompression": "Sıkıştırma seviyesi (0-9):",
-    "archiveDeleteAfter": "Başarılı bir şekilde oluşturulduktan sonra kaynak dosyaları silme",
     "archiveSuccess": "Arşiv başarıyla oluşturuldu!",
     "unarchive": "Arşivi ayıkla",
     "unarchiveMessage": "Arşivin nereye çıkarılacağını seçin.",
     "unarchiveDestination": "Özetle:",
-    "unarchiveDeleteAfter": "Çıkarma işleminden sonra arşivi silme",
     "unarchiveSuccess": "Arşiv başarıyla çıkarıldı!"
   },
   "search": {
@@ -566,8 +564,9 @@
     "results": "Sonuçlar{suffix}",
     "users": "Kullanıcılar{suffix}",
     "photos": "Fotoğraflar",
-    "audio": "Ses{suffix}",
+    "audios": "Ses Dosyaları{suffix}",
     "videos": "Videolar{suffix}",
+    "models": "3D Modeller",
     "documents": "Belgeler{suffix}",
     "archives": "Arşivler{suffix}",
     "images": "Görüntüler{suffix}",
@@ -697,6 +696,12 @@
     "orange": "turuncu"
   },
   "profileSettings": {
+    "deleteAfterArchive": "Arşiv oluşturma/çıkarma işleminden sonra kaynak dosyaları sil",
+    "deleteAfterArchiveDescription": "Etkinleştirildiğinde, arşivlerin başarıyla oluşturulması/çıkarılmasından sonra kaynak dosyaları siler",
+    "hideFilesInTree": "Ağaç gezintisinde dosyaları gizle",
+    "hideFilesInTreeDescription": "Etkinleştirildiğinde, kenar çubuğu Ağaç Gezintisinde yalnızca klasörler gösterilir",
+    "previewModelsDescription": "3D modeller için küçük resim önizlemelerini göster, devre dışı bırakılırsa genel simge gösterilir",
+    "previewAudiosDescription": "Ses dosyaları için küçük resim önizlemelerini göster, devre dışı bırakılırsa genel simge gösterilir",
     "setDateFormat": "Tam tarih biçimini ayarlama",
     "showHiddenFiles": "Gizli dosyaları göster",
     "showHiddenFilesDescription": "Gizli dosyaları listede gösterin (örn. .thumbnails, ProgramData), ancak dizine eklenecek şekilde yapılandırılmışlarsa yine de manuel olarak erişilebilirler.",

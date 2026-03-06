@@ -28,11 +28,11 @@
     "saveAndExit": "Speichern und Beenden",
     "keepEditing": "Weiter bearbeiten",
     "closeAnyway": "Jedenfalls schließen",
-    "goToItem": "Weiter zu Artikel",
     "watchFile": "Datei beobachten",
     "showMore": "Erweiterte Optionen anzeigen",
     "showLess": "Erweiterte Optionen ausblenden",
-    "goToSource": "Zum Quellort gehen"
+    "goToSource": "Zum Quellort gehen",
+    "goToItem": "Weiter zum Artikel"
   },
   "download": {
     "downloadFile": "Datei herunterladen",
@@ -222,12 +222,10 @@
     "archiveDestination": "Wählen Sie den Zielordner (geben Sie dann unten den Archivnamen ein):",
     "archiveName": "Name des Archivs (standardmäßig archive.zip):",
     "archiveCompression": "Komprimierungsstufe (0-9):",
-    "archiveDeleteAfter": "Quelldateien nach erfolgreicher Erstellung löschen",
     "archiveSuccess": "Archiv erfolgreich erstellt!",
     "unarchive": "Archiv extrahieren",
     "unarchiveMessage": "Wählen Sie, wohin das Archiv entpackt werden soll.",
     "unarchiveDestination": "Auszug zu:",
-    "unarchiveDeleteAfter": "Archiv nach Extraktion löschen",
     "unarchiveSuccess": "Archiv erfolgreich entpackt!"
   },
   "search": {
@@ -566,8 +564,9 @@
     "results": "Ergebnisse{suffix}",
     "users": "Benutzer{suffix}",
     "photos": "Fotos",
-    "audio": "Audio{suffix}",
+    "audios": "Audios{suffix}",
     "videos": "Videos{suffix}",
+    "models": "3D-Modelle",
     "documents": "Dokumente{suffix}",
     "archives": "Archiv{suffix}",
     "images": "Bilder{suffix}",
@@ -697,6 +696,12 @@
     "orange": "orange"
   },
   "profileSettings": {
+    "deleteAfterArchive": "Quelldateien nach Erstellung/Extraktion von Archiven löschen",
+    "deleteAfterArchiveDescription": "Wenn aktiviert, werden die Quelldateien nach erfolgreicher Erstellung/Extraktion von Archiven gelöscht",
+    "hideFilesInTree": "Dateien in der Baumnavigation ausblenden",
+    "hideFilesInTreeDescription": "Wenn aktiviert, werden in der Seitenleisten-Baumnavigation nur Ordner angezeigt",
+    "previewModelsDescription": "Vorschaubilder für 3D-Modelle anzeigen, bei Deaktivierung wird ein generisches Symbol angezeigt",
+    "previewAudiosDescription": "Vorschaubilder für Audiodateien anzeigen, bei Deaktivierung wird ein generisches Symbol angezeigt",
     "setDateFormat": "Genaues Datum statt relativer Zeitangaben verwenden",
     "showHiddenFiles": "Versteckte Dateien anzeigen",
     "showHiddenFilesDescription": "Versteckte Dateien in der Auflistung anzeigen (z.B. .thumbnails, ProgramData), aber sie sind immer noch manuell zugänglich, wenn sie für die Indizierung konfiguriert sind.",

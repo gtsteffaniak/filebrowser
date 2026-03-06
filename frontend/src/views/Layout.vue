@@ -22,7 +22,7 @@
   <Notifications />
   <Toast :toasts="toasts" />
   <StatusBar :class="{ moveWithSidebar: moveWithSidebar.shouldMove }" />
-  <ContextMenu v-if="showContextMenu" v-bind="contextMenuProps"></ContextMenu>
+  <ContextMenu v-bind="contextMenuProps"></ContextMenu>
   <Tooltip />
   <NextPrevious />
   <PopupPreview v-if="popupEnabled" />
@@ -141,10 +141,6 @@ export default {
     currentView() {
       return getters.currentView();
     },
-    showContextMenu() {
-      // for now lets disable for tools view
-      return getters.currentView() != "tools"
-    },
     contextMenuProps() {
       const prompt = getters.currentPrompt();
       if (prompt && prompt.name === "ContextMenu") {
@@ -171,7 +167,6 @@ export default {
         return;
       }
       const currentView = getters.currentView()
-      mutations.setMultiple(false);
       const currentPrompt = getters.currentPromptName();
       if (currentPrompt !== "success" && currentPrompt !== "generic") {
         mutations.closeTopHover();

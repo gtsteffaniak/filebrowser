@@ -131,6 +131,8 @@ definitions:
         type: string
       bannerUrl:
         type: string
+      canEditShare:
+        type: boolean
       description:
         type: string
       disableAnonymous:
@@ -1179,6 +1181,9 @@ definitions:
       debugOffice:
         description: debug onlyoffice editor
         type: boolean
+      deleteAfterArchive:
+        description: delete source files after successful creation/extraction of archives
+        type: boolean
       deleteWithoutConfirming:
         description: delete files without confirmation
         type: boolean
@@ -1216,6 +1221,10 @@ definitions:
       gallerySize:
         description: 0-9 - the size of the gallery thumbnails
         type: integer
+      hideFilesInTree:
+        description: hide files in the sidebar tree navigation, when true, will show
+          only directories.
+        type: boolean
       hideSidebarFileActions:
         description: hide the file actions in the sidebar
         type: boolean
@@ -1286,6 +1295,9 @@ definitions:
     type: object
   settings.UserDefaultsPreview:
     properties:
+      audio:
+        description: show thumbnails for audio files
+        type: boolean
       autoplayMedia:
         description: autoplay media files in preview
         type: boolean
@@ -1303,6 +1315,9 @@ definitions:
         type: boolean
       image:
         description: show thumbnails for image files
+        type: boolean
+      models:
+        description: show live thumbnails for 3D models files
         type: boolean
       motionVideoPreview:
         description: show multiple frames for videos in thumbnail preview when hovering
@@ -1338,6 +1353,8 @@ definitions:
         type: string
       bannerUrl:
         type: string
+      canEditShare:
+        type: boolean
       description:
         type: string
       disableAnonymous:
@@ -1437,6 +1454,8 @@ definitions:
         type: string
       bannerUrl:
         type: string
+      canEditShare:
+        type: boolean
       description:
         type: string
       disableAnonymous:
@@ -1544,6 +1563,8 @@ definitions:
         type: string
       bannerUrl:
         type: string
+      canEditShare:
+        type: boolean
       description:
         type: string
       disableAnonymous:
@@ -1717,6 +1738,9 @@ definitions:
     type: object
   users.Preview:
     properties:
+      audio:
+        description: show thumbnail preview image for audio files
+        type: boolean
       autoplayMedia:
         description: autoplay media files in preview
         type: boolean
@@ -1731,6 +1755,9 @@ definitions:
         type: boolean
       image:
         description: show thumbnail preview image for image files
+        type: boolean
+      models:
+        description: show live thumbnails for 3D models files
         type: boolean
       motionVideoPreview:
         description: show multiple frames for videos in thumbnail preview when hovering
@@ -1798,6 +1825,9 @@ definitions:
       debugOffice:
         description: debug onlyoffice editor
         type: boolean
+      deleteAfterArchive:
+        description: delete source files after successful creation/extraction of archives
+        type: boolean
       deleteWithoutConfirming:
         description: delete files without confirmation
         type: boolean
@@ -1834,6 +1864,10 @@ definitions:
       gallerySize:
         description: 0-9 - the size of the gallery thumbnails
         type: integer
+      hideFilesInTree:
+        description: hide files in the sidebar tree navigation, when true, will show
+          only directories.
+        type: boolean
       hideSidebarFileActions:
         description: hide the file actions in the sidebar
         type: boolean

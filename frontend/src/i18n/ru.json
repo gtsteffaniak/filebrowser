@@ -28,11 +28,11 @@
     "saveAndExit": "Сохранить и выйти",
     "keepEditing": "Продолжить редактирование",
     "closeAnyway": "Закрыть в любом случае",
-    "goToItem": "Перейти к пункту",
     "watchFile": "Смотреть файл",
     "showMore": "Показать дополнительные параметры",
     "showLess": "Скрыть дополнительные параметры",
-    "goToSource": "Перейти к исходному местоположению"
+    "goToSource": "Перейти к исходному местоположению",
+    "goToItem": "Перейти к пункту"
   },
   "download": {
     "downloadFile": "Скачать файл",
@@ -222,12 +222,10 @@
     "archiveDestination": "Выберите папку назначения (затем введите имя архива ниже):",
     "archiveName": "Имя архива (по умолчанию archive.zip):",
     "archiveCompression": "Уровень сжатия (0-9):",
-    "archiveDeleteAfter": "Удаление исходных файлов после успешного создания",
     "archiveSuccess": "Архив создан успешно!",
     "unarchive": "Распаковать архив",
     "unarchiveMessage": "Выберите, куда распаковать архив.",
     "unarchiveDestination": "Отрывок в:",
-    "unarchiveDeleteAfter": "Удаление архива после извлечения",
     "unarchiveSuccess": "Архив извлечен успешно!"
   },
   "search": {
@@ -566,8 +564,9 @@
     "results": "Результаты{suffix}",
     "users": "Пользователи{suffix}",
     "photos": "Фотографии",
-    "audio": "Аудио{suffix}",
+    "audios": "Аудио{suffix}",
     "videos": "Видео{suffix}",
+    "models": "3D-модели",
     "documents": "Документы{suffix}",
     "archives": "Архивы{suffix}",
     "images": "Изображения{suffix}",
@@ -697,6 +696,12 @@
     "orange": "оранжевый"
   },
   "profileSettings": {
+    "deleteAfterArchive": "Удалять исходные файлы после создания/извлечения архивов",
+    "deleteAfterArchiveDescription": "При включении удалит исходные файлы после успешного создания/извлечения архивов",
+    "hideFilesInTree": "Скрывать файлы в древовидной навигации",
+    "hideFilesInTreeDescription": "При включении в древовидной навигации боковой панели отображаются только папки",
+    "previewModelsDescription": "Показывать миниатюры для 3D-моделей, если отключено, будет показана стандартная иконка",
+    "previewAudiosDescription": "Показывать миниатюры для аудиофайлов, если отключено, будет показана стандартная иконка",
     "setDateFormat": "Установить точный формат даты",
     "showHiddenFiles": "Показывать скрытые файлы",
     "showHiddenFilesDescription": "Показывать в списке скрытые файлы (например, .thumbnails, ProgramData), но они по-прежнему доступны вручную, если настроены на индексирование.",

@@ -15,12 +15,12 @@
         </div>
 
         <h3>{{ $t('fileSizeAnalyzer.largerThan') }}</h3>
-        <input v-model.number="largerThanValue" type="number" min="0" placeholder="100" class="input" />
+        <input aria-label="Larger than size input" v-model.number="largerThanValue" type="number" min="0" placeholder="100" class="input" />
 
         <ToggleSwitch v-model="includeFoldersValue" :name="$t('fileSizeAnalyzer.includeFolders')"
           :description="$t('fileSizeAnalyzer.includeFoldersDescription')" aria-label="Include folders toggle" />
 
-        <button @click="fetchData" class="button" :disabled="loading">
+        <button aria-label="Analyze button" @click="fetchData" class="button" :disabled="loading">
           <i v-if="loading" class="material-icons spin">autorenew</i>
           <span v-else>{{ $t('general.analyze') }}</span>
         </button>
@@ -42,7 +42,7 @@
             <span>{{ $t('fileSizeAnalyzer.totalSize', { suffix: ': ' }) }}<strong>{{ humanSize(totalSize) }}</strong></span>
           </div>
 
-          <div v-if="results.length < 100" class="success-message">
+          <div v-if="results.length < maxResults" class="success-message">
             <i class="material-icons">check_circle</i>
             <div>
               <strong>{{ $t('fileSizeAnalyzer.completeResults') }}</strong>
@@ -51,31 +51,45 @@
           <div v-else class="warning-message">
             <i class="material-icons">warning</i>
             <div>
-              <strong>{{ $t('fileSizeAnalyzer.incompleteResults') }}</strong> {{ $t('messages.incompleteResultsDetails', { max: 100 }) }}
+              <strong>{{ $t('fileSizeAnalyzer.incompleteResults') }}</strong> {{ $t('messages.incompleteResultsDetails', { max: maxResults }) }}
             </div>
           </div>
 
-          <div class="treemap" ref="treemap" :class="{ 'has-hover': hoveredItem !== null }">
+          <div class="treemap" ref="treemap" :class="{ 'has-expanded': expandedItem !== null }">
+            <!-- Overlay that blocks interaction with other items when one is expanded -->
+            <div v-if="expandedItem !== null" class="treemap-overlay"
+              @click="collapseExpanded"
+              @contextmenu.prevent="handleOverlayRightClick">
+            </div>
+
             <div v-for="(rect, index) in treemapRects" :key="index">
               <!-- Invisible hit area at original position - handles mouse events -->
-              <div :class="['treemap-hit-area', { 'active': hoveredItem === rect.item }]" :style="getRectStyle(rect)"
-                @mouseenter="handleMouseEnter(rect.item)" @mouseleave="handleMouseLeave"
-                @click="handleItemClick(rect.item)">
+              <div :aria-label="getDisplayPath(rect.item.path)" :class="['treemap-hit-area', { 'active': expandedItem === rect.item }]" :style="getRectStyle(rect)"
+                @click="handleItemClick(rect.item)"
+                @contextmenu.prevent="onRightClick($event, rect.item)"
+                @touchstart="onTouchStart($event, rect.item)"
+                @touchend="onTouchEnd"
+                @touchmove="onTouchMove"
+                @mouseenter="onItemHover($event, rect.item)"
+                @mousemove="onItemMouseMove($event)"
+                @mouseleave="onItemLeave">
               </div>
 
-              <!-- Visual item - moves to center when hovered -->
+              <!-- Visual item - moves to center when expanded -->
               <div :class="['treemap-item', getTypeClass(rect.item.type), {
                 'small-item': isSmallItem(rect.item),
-                'hovered': hoveredItem === rect.item,
-                'dimmed': hoveredItem !== null && hoveredItem !== rect.item
-              }]" :style="getRectStyle(rect)">
+                'expanded': expandedItem === rect.item,
+                'dimmed': expandedItem !== null && expandedItem !== rect.item
+              }]" :style="getRectStyle(rect)"
+                @contextmenu.prevent>
                 <div class="item-content" v-if="!isSmallItem(rect.item)">
                   <div class="item-name">{{ getDisplayPath(rect.item.path) }}</div>
                   <div class="item-size">{{ humanSize(rect.item.size) }}</div>
                   <div class="item-percentage">{{ $t('fileSizeAnalyzer.percentageOfResults', { percentage: getPercentage(rect.item.size) }) }}</div>
                 </div>
-                <!-- Expanded hover content - shows when hovered after delay -->
-                <div class="item-expanded" v-if="hoveredItem === rect.item">
+                <!-- Expanded content - shows when clicked (sticky) -->
+                <div class="item-expanded" v-if="expandedItem === rect.item"
+                  @contextmenu.prevent="onRightClick($event, rect.item)">
                   <div class="expanded-field">
                     <span class="field-label">{{ $t('general.name', { suffix: ':' }) }}</span>
                     <span class="field-value">{{ getDisplayPath(rect.item.path) }}</span>
@@ -154,7 +168,6 @@ import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { getTypeInfo } from "@/utils/mimetype";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import { eventBus } from "@/store/eventBus";
-import { goToItem } from "@/utils/url";
 
 export default {
   name: "SizeViewer",
@@ -189,8 +202,12 @@ export default {
       error: null,
       results: [],
       isInitializing: true,
-      hoveredItem: null,
-      hoverTimeout: null,
+      expandedItem: null,
+      touchHoldTimer: null,
+      tooltipHoverTimer: null,
+      tooltipMouseX: 0,
+      tooltipMouseY: 0,
+      maxResults: 200,
     };
   },
   computed: {
@@ -241,6 +258,7 @@ export default {
     },
   },
   mounted() {
+    document.title = globalVars.name + " - " + this.$t('tools.title') + " - " + this.$t('fileSizeAnalyzer.title');
     this.initializeFromQuery();
     // Set default source if not provided via props or query
     if (!this.selectedSource) {
@@ -252,16 +270,20 @@ export default {
     }
     // Mark initialization as complete and sync URL
     this.isInitializing = false;
-    this.updateUrl();
 
     // Listen for path selection from FileList picker
     eventBus.on('pathSelected', this.handlePathSelected);
   },
   beforeUnmount() {
-    // Clean up timeout
-    if (this.hoverTimeout) {
-      clearTimeout(this.hoverTimeout);
-      this.hoverTimeout = null;
+    // Clean up touch hold timer
+    if (this.touchHoldTimer) {
+      clearTimeout(this.touchHoldTimer);
+      this.touchHoldTimer = null;
+    }
+    // Clean up tooltip hover timer
+    if (this.tooltipHoverTimer) {
+      clearTimeout(this.tooltipHoverTimer);
+      this.tooltipHoverTimer = null;
     }
     // Clean up event listener
     eventBus.off('pathSelected', this.handlePathSelected);
@@ -347,6 +369,7 @@ export default {
       }
     },
     updateUrl() {
+      if (!this.$route.path.startsWith('/tools/sizeViewer')) return;
       // Use nextTick to avoid triggering updates during component lifecycle
       this.$nextTick(() => {
         // Update URL query parameters to reflect current state
@@ -577,30 +600,85 @@ export default {
       return fullPath;
     },
     handleItemClick(item) {
-      // Navigate to the file/directory using full path
-      const fullPath = this.getFullPath(item.path);
-      goToItem(this.selectedSource, fullPath, {});
-    },
-    handleMouseEnter(item) {
-      // Clear any existing timeout
-      if (this.hoverTimeout) {
-        clearTimeout(this.hoverTimeout);
-        this.hoverTimeout = null;
+      // Toggle expanded view - sticky until clicked again
+      if (this.expandedItem === item) {
+        this.expandedItem = null;
+      } else {
+        this.expandedItem = item;
       }
-
-      // Set timeout to show hover after 500ms
-      this.hoverTimeout = setTimeout(() => {
-        this.hoveredItem = item;
-        this.hoverTimeout = null;
+    },
+    collapseExpanded() {
+      // Collapse the currently expanded item
+      this.expandedItem = null;
+    },
+    handleOverlayRightClick(event) {
+      // Prevent context menu on overlay and collapse
+      if (event && event.preventDefault) {
+        event.preventDefault();
+      }
+      this.collapseExpanded();
+    },
+    onRightClick(event, item) {
+      if (event && event.preventDefault) {
+        event.preventDefault();
+      }
+      
+      // Expand the item (sticky)
+      this.expandedItem = item;
+      
+      // Build selected item object similar to ListingItem.vue
+      const fullPath = this.getFullPath(item.path);
+      const selectedItem = {
+        name: this.getDisplayPath(item.path),
+        isDir: item.type === "directory",
+        source: this.selectedSource,
+        type: item.type,
+        size: item.size,
+        modified: item.modified,
+        path: fullPath,
+        url: fullPath,
+        index: 0,
+      };
+      
+      mutations.resetSelected();
+      mutations.addSelected(selectedItem);
+      
+      mutations.showHover({
+        name: "ContextMenu",
+        props: {
+          posX: event.clientX,
+          posY: event.clientY,
+          showLimitedOptions: true,
+        },
+      });
+    },
+    onTouchStart(event, item) {
+      // Start timer for long press (500ms)
+      this.touchHoldTimer = setTimeout(() => {
+        // Simulate right-click behavior on long press
+        const touch = event.touches[0];
+        const syntheticEvent = {
+          clientX: touch.clientX,
+          clientY: touch.clientY,
+          preventDefault: () => event.preventDefault(),
+        };
+        this.onRightClick(syntheticEvent, item);
+        this.touchHoldTimer = null;
       }, 500);
     },
-    handleMouseLeave() {
-      // Clear timeout and hover state
-      if (this.hoverTimeout) {
-        clearTimeout(this.hoverTimeout);
-        this.hoverTimeout = null;
+    onTouchEnd() {
+      // Cancel timer if touch ends before long press
+      if (this.touchHoldTimer) {
+        clearTimeout(this.touchHoldTimer);
+        this.touchHoldTimer = null;
       }
-      this.hoveredItem = null;
+    },
+    onTouchMove() {
+      // Cancel timer if touch moves (user is scrolling)
+      if (this.touchHoldTimer) {
+        clearTimeout(this.touchHoldTimer);
+        this.touchHoldTimer = null;
+      }
     },
     getPercentage(size) {
       if (this.totalSize === 0) return 0;
@@ -627,6 +705,33 @@ export default {
       };
 
       return labels[simpleType] || this.$t('fileTypes.other');
+    },
+    onItemHover(event, item) {
+      this.tooltipMouseX = event.clientX;
+      this.tooltipMouseY = event.clientY;
+      
+      this.tooltipHoverTimer = setTimeout(() => {
+        const displayPath = this.getDisplayPath(item.path);
+        const size = this.humanSize(item.size);
+        const tooltipContent = `${displayPath} (${size})`;
+        mutations.showTooltip({
+          content: tooltipContent,
+          x: this.tooltipMouseX,
+          y: this.tooltipMouseY,
+        });
+        this.tooltipHoverTimer = null;
+      }, 500);
+    },
+    onItemMouseMove(event) {
+      this.tooltipMouseX = event.clientX;
+      this.tooltipMouseY = event.clientY;
+    },
+    onItemLeave() {
+      if (this.tooltipHoverTimer) {
+        clearTimeout(this.tooltipHoverTimer);
+        this.tooltipHoverTimer = null;
+      }
+      mutations.hideTooltip();
     },
   },
 };
@@ -684,8 +789,20 @@ export default {
   overflow: hidden;
 }
 
-.treemap.has-hover {
+.treemap.has-expanded {
   overflow: visible;
+}
+
+/* Overlay that blocks interaction with other items */
+.treemap-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 50;
+  cursor: pointer;
 }
 
 /* Invisible hit area that stays at original position */
@@ -697,6 +814,18 @@ export default {
   background: transparent;
   border: none;
   outline: none;
+}
+
+/* When an item is expanded, disable hit areas for other items */
+.treemap.has-expanded .treemap-hit-area:not(.active) {
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Active hit area stays interactive above overlay but below expanded content */
+.treemap.has-expanded .treemap-hit-area.active {
+  z-index: 150;
+  pointer-events: none;
 }
 
 .treemap-item {
@@ -722,7 +851,7 @@ export default {
   filter: brightness(0.5);
 }
 
-.treemap-item.hovered {
+.treemap-item.expanded {
   z-index: 100;
   /* Fixed size: 50% of treemap width, centered */
   width: 50% !important;
@@ -731,12 +860,7 @@ export default {
   top: 25% !important;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
   border: 2px solid rgba(255, 255, 255, 0.9);
-}
-
-.treemap-item:not(.hovered):hover {
-  z-index: 10;
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  pointer-events: auto;
 }
 
 .item-content {
@@ -754,7 +878,7 @@ export default {
   transition: opacity 0.2s ease;
 }
 
-.treemap-item.hovered .item-content {
+.treemap-item.expanded .item-content {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s ease;
@@ -798,12 +922,14 @@ export default {
   transform: scale(0.9);
   transition: opacity 0.2s ease, transform 0.2s ease;
   pointer-events: none;
+  z-index: 1;
 }
 
-.treemap-item.hovered .item-expanded {
+.treemap-item.expanded .item-expanded {
   opacity: 1;
   transform: scale(1);
   pointer-events: auto;
+  z-index: 200;
 }
 
 .expanded-field {
@@ -957,7 +1083,7 @@ export default {
     gap: 0.5rem;
   }
 
-  .treemap-item.hovered {
+  .treemap-item.expanded {
     width: 50% !important;
     height: 50% !important;
     left: 25% !important;

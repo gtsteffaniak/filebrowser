@@ -41,6 +41,9 @@ export default {
   },
   computed: {
     sourceInfo() {
+      if (state.multiple) {
+        return false;
+      }
       return state.popupPreviewSourceInfo;
     },
   },

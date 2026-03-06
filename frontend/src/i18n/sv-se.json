@@ -28,11 +28,11 @@
     "saveAndExit": "Spara och avsluta",
     "keepEditing": "Fortsätt redigera",
     "closeAnyway": "Stäng i alla fall",
-    "goToItem": "Gå till artikel",
     "watchFile": "Titta på filen",
     "showMore": "Visa avancerade alternativ",
     "showLess": "Dölj avancerade alternativ",
-    "goToSource": "Gå till källplatsen"
+    "goToSource": "Gå till källplatsen",
+    "goToItem": "Gå till objektet"
   },
   "download": {
     "downloadFile": "Ladda ner fil",
@@ -222,12 +222,10 @@
     "archiveDestination": "Välj destinationsmapp (ange sedan arkivnamn nedan):",
     "archiveName": "Arkivnamn (standard archive.zip):",
     "archiveCompression": "Kompressionsnivå (0-9):",
-    "archiveDeleteAfter": "Ta bort källfiler efter lyckad skapelse",
     "archiveSuccess": "Arkiv skapat framgångsrikt!",
     "unarchive": "Extrahera arkiv",
     "unarchiveMessage": "Välj var du vill extrahera arkivet.",
     "unarchiveDestination": "Extrahera till:",
-    "unarchiveDeleteAfter": "Ta bort arkiv efter extraktion",
     "unarchiveSuccess": "Arkivet har extraherats framgångsrikt!"
   },
   "search": {
@@ -552,6 +550,12 @@
     "orange": "apelsin"
   },
   "profileSettings": {
+    "deleteAfterArchive": "Ta bort källfiler efter skapande/extrahering av arkiv",
+    "deleteAfterArchiveDescription": "När aktiverad kommer att ta bort källfilerna efter framgångsrik skapande/extrahering av arkiv",
+    "hideFilesInTree": "Dölj filer i trädnavigering",
+    "hideFilesInTreeDescription": "När aktiverad visas endast mappar i sidofältets trädnavigering",
+    "previewModelsDescription": "Visa miniatyrförhandsvisningar för 3D-modeller, kommer att visa generisk ikon om inaktiverad",
+    "previewAudiosDescription": "Visa miniatyrförhandsvisningar för ljudfiler, kommer att visa generisk ikon om inaktiverad",
     "setDateFormat": "Ange exakt datumformat",
     "showHiddenFiles": "Visa dolda filer",
     "showHiddenFilesDescription": "Visa dolda filer i listan (t.ex. .thumbnails, ProgramData), men de är fortfarande manuellt åtkomliga om de är konfigurerade för att indexeras.",
@@ -644,8 +648,9 @@
     "results": "Resultat{suffix}",
     "users": "Användare{suffix}",
     "photos": "Bilder",
-    "audio": "Ljud{suffix}",
+    "audios": "Ljud{suffix}",
     "videos": "Videor{suffix}",
+    "models": "3D-modeller",
     "documents": "Dokument{suffix}",
     "archives": "Arkiv{suffix}",
     "images": "Bilder{suffix}",

@@ -28,11 +28,11 @@
     "saveAndExit": "الحفظ والخروج",
     "keepEditing": "استمر في التحرير",
     "closeAnyway": "إغلاق على أي حال",
-    "goToItem": "الانتقال إلى العنصر",
     "watchFile": "ملف المشاهدة",
     "showMore": "إظهار الخيارات المتقدمة",
     "showLess": "إخفاء الخيارات المتقدمة",
-    "goToSource": "الانتقال إلى موقع المصدر"
+    "goToSource": "الانتقال إلى موقع المصدر",
+    "goToItem": "انتقل إلى العنصر"
   },
   "download": {
     "downloadFile": "Download File",
@@ -222,12 +222,10 @@
     "archiveDestination": "اختر المجلد الوجهة (ثم أدخل اسم الأرشيف أدناه):",
     "archiveName": "اسم الأرشيف (archive.zip.zip الافتراضي):",
     "archiveCompression": "مستوى الضغط (0-9):",
-    "archiveDeleteAfter": "حذف ملفات المصدر بعد إنشائها بنجاح",
     "archiveSuccess": "تم إنشاء الأرشيف بنجاح!",
     "unarchive": "أرشيف المقتطفات",
     "unarchiveMessage": "اختر مكان استخراج الأرشيف.",
     "unarchiveDestination": "مقتطف إلى:",
-    "unarchiveDeleteAfter": "حذف الأرشيف بعد الاستخراج",
     "unarchiveSuccess": "تم استخراج الأرشيف بنجاح!"
   },
   "search": {
@@ -566,8 +564,9 @@
     "results": "النتائج{suffix}",
     "users": "المستخدمون{suffix}",
     "photos": "الصور",
-    "audio": "الصوت{suffix}",
+    "audios": "ملفات صوتية{suffix}",
     "videos": "مقاطع الفيديو{suffix}",
+    "models": "نماذج ثلاثية الأبعاد",
     "documents": "المستندات{suffix}",
     "archives": "المحفوظات{suffix}",
     "images": "الصور{suffix}",
@@ -689,6 +688,11 @@
     "downloadChunkSizeMbHelp": "حجم القطع للتحميلات المقطعة. سيتم تنزيل الملفات الأكبر من هذا الحجم على شكل أجزاء لمنع حدوث مشكلات في المهلة (على سبيل المثال، أخطاء Cloudflare 524). يؤدي الإعداد إلى 0 إلى تعطيل التنزيلات المقطعة."
   },
   "profileSettings": {
+    "deleteAfterArchive": "حذف الملفات المصدر بعد إنشاء/استخراج الأرشيفات",
+    "deleteAfterArchiveDescription": "عند التمكين، سيتم حذف الملفات المصدر بعد إنشاء/استخراج الأرشيفات بنجاح",
+    "hideFilesInTree": "إخفاء الملفات في شجرة التنقل",
+    "hideFilesInTreeDescription": "عند التمكين، تظهر المجلدات فقط في التنقل الشجري للشريط الجانبي",
+    "previewModelsDescription": "عرض صور مصغرة للنماذج ثلاثية الأبعاد، سيتم عرض أيقونة عامة إذا كانت معطلة",
     "setDateFormat": "تعيين تنسيق التاريخ الدقيق",
     "showHiddenFiles": "إظهار الملفات المخفية",
     "showHiddenFilesDescription": "إظهار الملفات المخفية في القائمة (مثل .thumbnails، ProgramData)، ولكن لا يزال يمكن الوصول إليها يدويًا إذا تم تكوينها للفهرسة.",
@@ -740,6 +744,7 @@
     "previewFolderDescription": "إظهار معاينات الصور المصغرة للمجلدات التي تحتوي على العنصر الفرعي الأول كغلاف - أو عناصر متعددة إذا تم تمكين معاينة الحركة.",
     "previewMotion": "معاينات الحركة",
     "previewMotionVideosDescription": "معاينة الحركة هي المعاينة المنبثقة المتحركة التي تتنقل عبر إطارات الفيديو أو الصور المتعددة لمجلد",
+    "previewAudiosDescription": "عرض صور مصغرة للملفات الصوتية، سيتم عرض أيقونة عامة إذا كانت معطلة",
     "popupPreview": "العارض المنبثق",
     "popupPreviewDescription": "ستظهر نافذة منبثقة متراكبة فوق واجهة المستخدم عند التمرير فوق العناصر ذات الصور المصغرة",
     "thumbnailOptions": "خيارات الصور المصغرة",

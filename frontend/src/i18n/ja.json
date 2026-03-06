@@ -28,11 +28,11 @@
     "saveAndExit": "保存して終了する",
     "keepEditing": "編集を続ける",
     "closeAnyway": "とにかく閉じる",
-    "goToItem": "アイテムへ",
     "watchFile": "ウォッチファイル",
     "showMore": "詳細オプションを表示",
     "showLess": "詳細オプションを隠す",
-    "goToSource": "ソース・ロケーションへ"
+    "goToSource": "ソース・ロケーションへ",
+    "goToItem": "アイテムへ"
   },
   "download": {
     "downloadFile": "ファイルをダウンロード",
@@ -222,12 +222,10 @@
     "archiveDestination": "保存先フォルダを選択します：",
     "archiveName": "アーカイブ名（デフォルトはarchive.zip）：",
     "archiveCompression": "圧縮レベル（0-9）：",
-    "archiveDeleteAfter": "作成に成功したらソースファイルを削除する",
     "archiveSuccess": "アーカイブは正常に作成されました！",
     "unarchive": "アーカイブの展開",
     "unarchiveMessage": "アーカイブを展開する場所を選択します。",
     "unarchiveDestination": "に抜粋する：",
-    "unarchiveDeleteAfter": "抽出後にアーカイブを削除する",
     "unarchiveSuccess": "アーカイブは正常に抽出されました！"
   },
   "search": {
@@ -566,8 +564,9 @@
     "results": "結果{suffix}",
     "users": "ユーザー{suffix}",
     "photos": "写真",
-    "audio": "オーディオ{suffix}",
+    "audios": "オーディオ{suffix}",
     "videos": "ビデオ{suffix}",
+    "models": "3Dモデル",
     "documents": "資料{suffix}",
     "archives": "アーカイブス{suffix}",
     "images": "画像{suffix}",
@@ -697,6 +696,12 @@
     "orange": "オレンジ"
   },
   "profileSettings": {
+    "deleteAfterArchive": "アーカイブの作成/展開後にソースファイルを削除",
+    "deleteAfterArchiveDescription": "有効にすると、アーカイブの作成/展開が成功した後にソースファイルを削除します",
+    "hideFilesInTree": "ツリーナビゲーションでファイルを非表示",
+    "hideFilesInTreeDescription": "有効にすると、サイドバーのツリーナビゲーションにフォルダーのみが表示されます",
+    "previewModelsDescription": "3Dモデルのサムネイルプレビューを表示します。無効の場合は一般的なアイコンを表示します",
+    "previewAudiosDescription": "オーディオのサムネイルプレビューを表示します。無効の場合は一般的なアイコンを表示します",
     "setDateFormat": "正確な日付書式を設定する",
     "showHiddenFiles": "隠しファイルを表示する",
     "showHiddenFilesDescription": "隠しファイル（.thumbnails、ProgramDataなど）をリストに表示します。インデックスが設定されている場合は手動でアクセスできます。",

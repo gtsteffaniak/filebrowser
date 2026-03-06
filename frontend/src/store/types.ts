@@ -42,7 +42,9 @@ export interface ShareInfoObject {
 export interface UserObject {
   preview: {
     video: boolean;
+    audio: boolean;
     image: boolean;
+    models: boolean;
     popup: boolean;
     autoplayMedia?: boolean;
     defaultMediaPlayer?: boolean;
@@ -53,6 +55,8 @@ export interface UserObject {
   gallerySize: number;
   singleClick: boolean;
   stickySidebar: boolean;
+  hideFilesInTree: boolean,
+  deleteAfterArchive: boolean,
   locale: string;
   viewMode: string;
   showHidden: boolean;

@@ -119,6 +119,7 @@ func getDirectoryPreview(r *http.Request, d *requestContext, frameIndex int) (*i
 
 	source := d.fileInfo.Source
 	path := utils.JoinPathAsUnix(d.fileInfo.Path, name)
+	user := d.user
 	if d.share != nil {
 		sourceInfo, ok := settings.Config.Server.SourceMap[d.share.Source]
 		if !ok {
@@ -126,6 +127,7 @@ func getDirectoryPreview(r *http.Request, d *requestContext, frameIndex int) (*i
 		}
 		source = sourceInfo.Name
 		path = d.IndexPath + name
+		user = d.shareUser
 	}
 	fileInfo, err := files.FileInfoFaster(
 		utils.FileOptions{
@@ -133,7 +135,7 @@ func getDirectoryPreview(r *http.Request, d *requestContext, frameIndex int) (*i
 			Source:   source,
 			AlbumArt: true,
 			Metadata: true,
-		}, store.Access, d.user, store.Share)
+		}, store.Access, user, store.Share)
 	if err != nil {
 		return nil, err
 	}

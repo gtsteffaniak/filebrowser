@@ -28,11 +28,11 @@
     "saveAndExit": "Salvare e uscire",
     "keepEditing": "Continuare a modificare",
     "closeAnyway": "Chiudere comunque",
-    "goToItem": "Vai all'articolo",
     "watchFile": "Guarda il file",
     "showMore": "Mostra opzioni avanzate",
     "showLess": "Nascondere le opzioni avanzate",
-    "goToSource": "Vai alla posizione della fonte"
+    "goToSource": "Vai alla posizione della fonte",
+    "goToItem": "Vai alla voce"
   },
   "download": {
     "downloadFile": "Scarica file",
@@ -222,12 +222,10 @@
     "archiveDestination": "Scegliere la cartella di destinazione (quindi inserire il nome dell'archivio sotto):",
     "archiveName": "Nome dell'archivio (predefinito archive.zip):",
     "archiveCompression": "Livello di compressione (0-9):",
-    "archiveDeleteAfter": "Cancellare i file sorgente dopo la creazione",
     "archiveSuccess": "Archivio creato con successo!",
     "unarchive": "Estrarre l'archivio",
     "unarchiveMessage": "Scegliere dove estrarre l'archivio.",
     "unarchiveDestination": "Estratto a:",
-    "unarchiveDeleteAfter": "Eliminare l'archivio dopo l'estrazione",
     "unarchiveSuccess": "Archivio estratto con successo!"
   },
   "search": {
@@ -566,8 +564,9 @@
     "results": "Risultati{suffix}",
     "users": "Utenti{suffix}",
     "photos": "Foto",
-    "audio": "Audio{suffix}",
+    "audios": "Audios{suffix}",
     "videos": "Video{suffix}",
+    "models": "Modelli 3D",
     "documents": "Documenti{suffix}",
     "archives": "Archivio{suffix}",
     "images": "Immagini{suffix}",
@@ -697,6 +696,12 @@
     "orange": "arancione"
   },
   "profileSettings": {
+    "deleteAfterArchive": "Elimina i file sorgente dopo la creazione/estrazione di archivi",
+    "deleteAfterArchiveDescription": "Quando abilitato, eliminerà i file sorgente dopo la creazione/estrazione riuscita di archivi",
+    "hideFilesInTree": "Nascondi file nella navigazione ad albero",
+    "hideFilesInTreeDescription": "Quando abilitato, solo le cartelle vengono mostrate nella navigazione ad albero della barra laterale",
+    "previewModelsDescription": "Mostra anteprime in miniatura per modelli 3D, verrà mostrata un'icona generica se disabilitato",
+    "previewAudiosDescription": "Mostra anteprime in miniatura per gli audio, verrà mostrata un'icona generica se disabilitato",
     "setDateFormat": "Impostare il formato esatto della data",
     "showHiddenFiles": "Mostra i file nascosti",
     "showHiddenFilesDescription": "Mostra i file nascosti nell'elenco (ad esempio .thumbnails, ProgramData), ma sono ancora accessibili manualmente se configurati per essere indicizzati.",

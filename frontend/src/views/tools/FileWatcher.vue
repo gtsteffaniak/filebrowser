@@ -222,6 +222,7 @@ export default {
     },
   },
   mounted() {
+    document.title = globalVars.name + " - " + this.$t('tools.title') + " - " + this.$t('tools.fileWatcher.name');
     // Initialize from URL query parameters
     this.initializeFromQuery();
     
@@ -239,7 +240,6 @@ export default {
     
     // Mark initialization as complete
     this.isInitializing = false;
-    this.updateUrl();
 
     // Listen for path selection
     eventBus.on('pathSelected', this.handlePathSelected);
@@ -342,6 +342,7 @@ export default {
       }
     },
     updateUrl() {
+      if (!this.$route.path.startsWith('/tools/fileWatcher')) return;
       this.$nextTick(() => {
         const query = {};
 
