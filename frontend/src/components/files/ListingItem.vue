@@ -47,10 +47,9 @@
     </div>
 
     <div class="text">
-      <p :class="{ adjustment: quickDownloadEnabled }" class="name">{{ displayName }}</p>
+      <p class="name">{{ displayName }}</p>
       <p
         class="size"
-        :class="{ adjustment: quickDownloadEnabled }"
         :data-order="humanSize"
       >
         {{ humanSize }}
@@ -115,10 +114,9 @@
     </div>
 
     <div class="text">
-      <p :class="{ adjustment: quickDownloadEnabled }" class="name">{{ displayName }}</p>
+      <p class="name">{{ displayName }}</p>
       <p
         class="size"
-        :class="{ adjustment: quickDownloadEnabled }"
         :data-order="humanSize"
       >
         {{ humanSize }}

@@ -283,11 +283,6 @@ body.rtl .listing-items {
 .listing-items.compact .listing-item .name {
   flex: 1;
 }
-/*
-.listing-items.list .listing-item .name.adjustment,
-.listing-items.compact .listing-item .name.adjustment {
-  width: calc(50% + 1em) !important;
-} */
 
 .listing-item .text {
   padding-left: 0.5em;
