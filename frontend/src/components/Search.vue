@@ -673,9 +673,10 @@ export default {
 #search input {
   border: 0;
   background-color: transparent;
-  padding: 0;
+  padding-left: 0.5em;
   color: rgba(255, 255, 255, 0.9);
   font-size: 0.95em;
+  width: 100%
 }
 
 #search.active input {
