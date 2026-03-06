@@ -223,10 +223,10 @@ export default {
       // @ts-ignore
       if (getters.isShare()) {
         // @ts-ignore
-        return state.shareInfo?.quickDownload && this.isDir;
+        return state.shareInfo?.quickDownload && !this.galleryView && this.isDir;
       }
       // @ts-ignore
-      return state.user?.quickDownload && !this.galleryView && this.isDir;
+      return state.user?.quickDownload && !this.galleryView && getters.viewMode() !== "icons" && getters.viewMode() !== "normal" && this.isDir;
     },
     isHiddenNotSelected() {
       return !this.isSelected && this.reducedOpacity;
