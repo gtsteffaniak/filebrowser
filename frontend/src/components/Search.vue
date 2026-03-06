@@ -676,7 +676,10 @@ export default {
   padding-left: 0.5em;
   color: rgba(255, 255, 255, 0.9);
   font-size: 0.95em;
-  width: 100%
+}
+
+#search-input {
+  width: 100%;
 }
 
 #search.active input {
