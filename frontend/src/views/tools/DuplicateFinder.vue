@@ -137,6 +137,7 @@ export default {
       deletedFiles: new Set(),
       failedFiles: new Map(),
       deleting: false,
+      isInitializing: true,
     };
   },
   computed: {
@@ -161,13 +162,13 @@ export default {
   },
   watch: {
     searchPath() {
-      this.updateUrl();
+      if (!this.isInitializing) this.updateUrl();
     },
     selectedSource() {
-      this.updateUrl();
+      if (!this.isInitializing) this.updateUrl();
     },
     minSizeValue() {
-      this.updateUrl();
+      if (!this.isInitializing) this.updateUrl();
     },
   },
   mounted() {
@@ -185,6 +186,8 @@ export default {
         this.minSizeValue = parsed;
       }
     }
+
+    this.isInitializing = false;
 
     // Listen for events
     eventBus.on('pathSelected', this.handlePathSelected);
@@ -289,6 +292,7 @@ export default {
       }
     },
     updateUrl() {
+      if (!this.$route.path.startsWith('/tools/duplicateFinder')) return;
       const query = {};
 
       if (this.searchPath && this.searchPath !== "/") {
