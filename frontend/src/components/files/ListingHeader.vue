@@ -115,12 +115,15 @@ export default {
     },
     quickDownloadEnabled() {
       // @ts-ignore
+      if (state.isMobile) {
+        return false
+      }
       if (getters.isShare()) {
         // @ts-ignore
-        return state.shareInfo?.quickDownload && !this.isDir;
+        return state.shareInfo?.quickDownload;
       }
       // @ts-ignore
-      return state.user?.quickDownload && !this.galleryView && !this.isDir;
+      return state.user?.quickDownload && !this.galleryView;
     },
   },
   methods: {
@@ -185,27 +188,20 @@ span {
   flex: 1;
 }
 
+.desktop-view .size,
+.desktop-view .modified,
+.desktop-view .duration {
+  min-width: 10%;
+  flex: 0 !important;
+}
+
 .size,
 .modified,
 .duration {
-  min-width: 10% !important;
-  flex: 0;
+  flex: 1;
   padding-left: 1em;
 }
 
-
-.desktop-view {
-  justify-content: unset !important;
-}
-
-/* Desktop-specific column widths */
-.desktop-view .name {
-  width: 50%;
-}
-
-.desktop-view .size {
-  width: 25%;
-}
 
 i {
   font-size: 1.5em;
