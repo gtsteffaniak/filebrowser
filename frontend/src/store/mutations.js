@@ -262,8 +262,8 @@ export const mutations = {
   },
   closePrompt: () => {
     if (state.prompts.length === 0) return;
-    state.prompts.pop();
     mutations.closeHovers();
+    state.prompts.pop();
   },
   showPrompt: (value) => {
     state.promptIdCounter += 1;
