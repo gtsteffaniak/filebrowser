@@ -4,8 +4,11 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.3.1-beta
 
-**New Features**:
+ **Security**:
+ - Patched Stored XSS in public share page via unsanitized share metadata (text/template misuse) GHSA-r633-fcgp-m532
+ - Patched Incomplete Remediation of CVE-2026-27611: Password-Protected Share Bypass via /public/api/share/info GHSA-525j-95gf-766f
 
+ **New Features**:
   - More user options for settings (#2072) (#2067):
     - Option to disable thumbnails `userDefaults.preview.audio` and `userDefaults.preview.models` for Audio and 3D Models.
     - Option to disable files in the Tree navigation `userDefaults.hideFilesInTree`
