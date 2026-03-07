@@ -637,6 +637,7 @@ func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 	commonShare.Source = ""
 	commonShare.Path = ""
+	commonShare.DownloadURL = ""
 	commonShare.SidebarLinks = []users.SidebarLink{}
 	for _, link := range shareLink.SidebarLinks {
 		if link.Category == "download" && shareLink.ShareType == "upload" {
