@@ -28,10 +28,11 @@
     "saveAndExit": "Sauvegarder et quitter",
     "keepEditing": "Continuer à éditer",
     "closeAnyway": "Fermer Quoi qu'il en soit",
-    "goToItem": "Aller à l'article",
     "watchFile": "Regarder le dossier",
     "showMore": "Afficher les options avancées",
-    "showLess": "Masquer les options avancées"
+    "showLess": "Masquer les options avancées",
+    "goToSource": "Aller à l'emplacement de la source",
+    "goToItem": "Aller à l'article"
   },
   "download": {
     "downloadFile": "Télécharger le fichier",
@@ -221,12 +222,10 @@
     "archiveDestination": "Choisissez le dossier de destination (puis entrez le nom de l'archive ci-dessous) :",
     "archiveName": "Nom de l'archive (par défaut archive.zip) :",
     "archiveCompression": "Niveau de compression (0-9) :",
-    "archiveDeleteAfter": "Supprimer les fichiers sources après une création réussie",
     "archiveSuccess": "Archive créée avec succès !",
     "unarchive": "Extraire l'archive",
     "unarchiveMessage": "Choisissez l'endroit où extraire l'archive.",
     "unarchiveDestination": "Extrait à :",
-    "unarchiveDeleteAfter": "Supprimer l'archive après l'extraction",
     "unarchiveSuccess": "L'archive a été extraite avec succès !"
   },
   "search": {
@@ -381,7 +380,8 @@
     "showDiskUsageDescription": "Affichage de la barre d'utilisation à partir de la taille du disque/de la partition telle qu'elle est indiquée par le système d'exploitation. Cette taille est probablement plus importante et inclut les fichiers non indexés.",
     "usageTextDisplay": "Quel texte d'utilisation doit être affiché ?",
     "usageTextIndexed": "utilisation telle qu'indexée",
-    "usageTextDisk": "utilisation telle que rapportée par disque/partition"
+    "usageTextDisk": "utilisation telle que rapportée par disque/partition",
+    "dividerNamePlaceholder": "Texte du séparateur (laisser en blanc pour montrer une ligne)"
   },
   "success": {
     "linkCopied": "Lien copié !"
@@ -564,8 +564,9 @@
     "results": "Résultats{suffix}",
     "users": "Utilisateurs{suffix}",
     "photos": "Photos",
-    "audio": "Audio{suffix}",
+    "audios": "Audios{suffix}",
     "videos": "Vidéos{suffix}",
+    "models": "Modèles 3D",
     "documents": "Documents{suffix}",
     "archives": "Archives{suffix}",
     "images": "Images{suffix}",
@@ -648,7 +649,8 @@
     "space": "L'espace{suffix}",
     "format": "Format{suffix}",
     "office": "Bureau{suffix}",
-    "show": "Afficher{suffix}"
+    "show": "Afficher{suffix}",
+    "divider": "Diviseur{suffix}"
   },
   "access": {
     "rules": "Règles d'accès",
@@ -694,6 +696,12 @@
     "orange": "orange"
   },
   "profileSettings": {
+    "deleteAfterArchive": "Supprimer les fichiers source après la création/extraction d'archives",
+    "deleteAfterArchiveDescription": "Lorsque activé, supprimera les fichiers source après la création/extraction réussie d'archives",
+    "hideFilesInTree": "Masquer les fichiers dans l'arborescence",
+    "hideFilesInTreeDescription": "Lorsque activé, seuls les dossiers sont affichés dans l'arborescence de navigation de la barre latérale",
+    "previewModelsDescription": "Afficher les aperçus miniatures pour les modèles 3D, une icône générique s'affichera si désactivé",
+    "previewAudiosDescription": "Afficher les aperçus miniatures pour les fichiers audio, une icône générique s'affichera si désactivé",
     "setDateFormat": "Définir le format exact de la date",
     "showHiddenFiles": "Afficher les fichiers cachés",
     "showHiddenFilesDescription": "Affiche les fichiers cachés dans la liste (par exemple, .thumbnails, ProgramData), mais ils restent accessibles manuellement s'ils sont configurés pour être indexés.",

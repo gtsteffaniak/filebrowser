@@ -42,6 +42,7 @@
         :isSelectedProp="selected === item.path"
         :clickable="false"
         :forceFilesApi="!!browseSource"
+        :showLimitedOptions="true"
         @click.prevent="(event) => handleItemClick(item, index, event)"
         @dblclick.prevent="(event) => handleItemDblClick(item, index, event)"
       />

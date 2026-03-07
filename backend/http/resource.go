@@ -86,6 +86,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles,
 		ShowHidden:               d.user.ShowHidden,
 		SkipExtendedAttrs:        skipExtendedAttrs,
+		ShowSharedAttr:           true,
 	}, store.Access, d.user, store.Share)
 	if err != nil {
 		return errToStatus(err), err
@@ -255,12 +256,12 @@ func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *reques
 		}
 
 		if d.share != nil {
-			source, err := d.share.GetSourceName()
-			if err != nil {
+			sourceName := d.share.GetSourceName()
+			if sourceName == "" {
 				return http.StatusNotFound, fmt.Errorf("source not available")
 			}
 			// get user scope path from share
-			userScope, err := d.shareUser.GetScopeForSourceName(source)
+			userScope, err := d.shareUser.GetScopeForSourceName(sourceName)
 			if err != nil {
 				response.Failed = append(response.Failed, BulkDeleteItem{
 					Source:  item.Source,
@@ -275,7 +276,7 @@ func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *reques
 			fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 				FollowSymlinks: true,
 				Path:           indexPath,
-				Source:         source,
+				Source:         sourceName,
 				ShowHidden:     true,
 			}, store.Access, filePermUser, store.Share)
 			if err != nil {
@@ -283,7 +284,7 @@ func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *reques
 			}
 
 			// Delete the file/directory
-			err = files.DeleteFiles(source, fileInfo.RealPath, fileInfo.Type == "directory")
+			err = files.DeleteFiles(sourceName, fileInfo.RealPath, fileInfo.Type == "directory")
 			if err != nil {
 				logger.Errorf("resource bulk delete handler: error deleting file/directory: %v", err)
 				response.Failed = append(response.Failed, BulkDeleteItem{

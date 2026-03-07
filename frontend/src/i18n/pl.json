@@ -28,10 +28,11 @@
     "saveAndExit": "Zapisz i wyjdź",
     "keepEditing": "Kontynuuj edycję",
     "closeAnyway": "W każdym razie blisko",
-    "goToItem": "Przejdź do pozycji",
     "watchFile": "Oglądaj plik",
     "showMore": "Pokaż opcje zaawansowane",
-    "showLess": "Ukryj opcje zaawansowane"
+    "showLess": "Ukryj opcje zaawansowane",
+    "goToSource": "Przejdź do lokalizacji źródłowej",
+    "goToItem": "Przejdź do pozycji"
   },
   "download": {
     "downloadFile": "Pobierz plik",
@@ -221,12 +222,10 @@
     "archiveDestination": "Wybierz folder docelowy (a następnie wprowadź nazwę archiwum poniżej):",
     "archiveName": "Nazwa archiwum (domyślnie archive.zip):",
     "archiveCompression": "Poziom kompresji (0-9):",
-    "archiveDeleteAfter": "Usuwanie plików źródłowych po pomyślnym utworzeniu",
     "archiveSuccess": "Archiwum utworzone pomyślnie!",
     "unarchive": "Wyodrębnij archiwum",
     "unarchiveMessage": "Wybierz miejsce rozpakowania archiwum.",
     "unarchiveDestination": "Wyciąg do:",
-    "unarchiveDeleteAfter": "Usuń archiwum po wyodrębnieniu",
     "unarchiveSuccess": "Archiwum rozpakowane pomyślnie!"
   },
   "search": {
@@ -381,7 +380,8 @@
     "showDiskUsageDescription": "Wyświetla pasek użycia na podstawie rozmiaru dysku/partycji zgłoszonego przez system operacyjny. Rozmiar ten będzie prawdopodobnie większy i obejmuje pliki niezindeksowane.",
     "usageTextDisplay": "Jaki tekst użytkowania powinien być wyświetlany?",
     "usageTextIndexed": "użycie jako indeksowane",
-    "usageTextDisk": "użycie zgłoszone przez dysk/partycję"
+    "usageTextDisk": "użycie zgłoszone przez dysk/partycję",
+    "dividerNamePlaceholder": "Tekst podziału (pozostaw pusty, aby wyświetlić linię)"
   },
   "success": {
     "linkCopied": "Link Skopiowany!"
@@ -564,8 +564,9 @@
     "results": "Wyniki{suffix}",
     "users": "Użytkownicy{suffix}",
     "photos": "Zdjęcia",
-    "audio": "Audio{suffix}",
+    "audios": "Audios{suffix}",
     "videos": "Filmy{suffix}",
+    "models": "Modele 3D",
     "documents": "Dokumenty{suffix}",
     "archives": "Archiwa{suffix}",
     "images": "Obrazy{suffix}",
@@ -648,7 +649,8 @@
     "space": "Przestrzeń{suffix}",
     "format": "Format{suffix}",
     "office": "Biuro{suffix}",
-    "show": "Pokaż{suffix}"
+    "show": "Pokaż{suffix}",
+    "divider": "Dzielnik{suffix}"
   },
   "access": {
     "rules": "Zasady dostępu",
@@ -694,6 +696,12 @@
     "orange": "pomarańczowy"
   },
   "profileSettings": {
+    "deleteAfterArchive": "Usuń pliki źródłowe po utworzeniu/wypakowaniu archiwów",
+    "deleteAfterArchiveDescription": "Po włączeniu, usunie pliki źródłowe po pomyślnym utworzeniu/wypakowaniu archiwów",
+    "hideFilesInTree": "Ukryj pliki w nawigacji drzewiastej",
+    "hideFilesInTreeDescription": "Po włączeniu, w drzewiastej nawigacji na pasku bocznym wyświetlane są tylko foldery",
+    "previewModelsDescription": "Pokaż miniatury podglądów dla modeli 3D, jeśli wyłączone, pojawi się ogólna ikona",
+    "previewAudiosDescription": "Pokaż miniatury podglądów dla plików audio, jeśli wyłączone, pojawi się ogólna ikona",
     "setDateFormat": "Ustaw dokładny format daty",
     "showHiddenFiles": "Pokaż ukryte pliki",
     "showHiddenFilesDescription": "Pokaż ukryte pliki na liście (np. .thumbnails, ProgramData), ale są one nadal dostępne ręcznie, jeśli są skonfigurowane do indeksowania.",

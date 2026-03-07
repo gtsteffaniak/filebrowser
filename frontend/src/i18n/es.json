@@ -28,10 +28,11 @@
     "saveAndExit": "Guardar y salir",
     "keepEditing": "Seguir editando",
     "closeAnyway": "Cerrar de todos modos",
-    "goToItem": "Ir al elemento",
     "watchFile": "Ver archivo",
     "showMore": "Mostrar opciones avanzadas",
-    "showLess": "Ocultar opciones avanzadas"
+    "showLess": "Ocultar opciones avanzadas",
+    "goToSource": "Ir a la ubicación de origen",
+    "goToItem": "Ir al artículo"
   },
   "download": {
     "downloadFile": "Descargar archivo",
@@ -221,12 +222,10 @@
     "archiveDestination": "Elija la carpeta de destino (a continuación, introduzca el nombre del archivo):",
     "archiveName": "Nombre del archivo (por defecto archive.zip):",
     "archiveCompression": "Nivel de compresión (0-9):",
-    "archiveDeleteAfter": "Eliminar los archivos de origen después de crearlos correctamente",
     "archiveSuccess": "¡Archivo creado con éxito!",
     "unarchive": "Extraer archivo",
     "unarchiveMessage": "Elija dónde extraer el archivo.",
     "unarchiveDestination": "Extraer a:",
-    "unarchiveDeleteAfter": "Eliminar el archivo tras la extracción",
     "unarchiveSuccess": "¡Archivo extraído con éxito!"
   },
   "search": {
@@ -381,7 +380,8 @@
     "showDiskUsageDescription": "Muestra la barra de uso a partir del tamaño del disco/partición indicado por el sistema operativo. Es probable que este tamaño sea mayor e incluya archivos no indexados.",
     "usageTextDisplay": "¿Qué texto de uso debe mostrarse?",
     "usageTextIndexed": "uso como indexado",
-    "usageTextDisk": "uso por disco/partición"
+    "usageTextDisk": "uso por disco/partición",
+    "dividerNamePlaceholder": "Texto divisor (déjelo en blanco para mostrar una línea)"
   },
   "success": {
     "linkCopied": "¡Enlace copiado!"
@@ -564,8 +564,9 @@
     "results": "Resultados{suffix}",
     "users": "Usuarios{suffix}",
     "photos": "Fotos",
-    "audio": "Audio{suffix}",
+    "audios": "Audios{suffix}",
     "videos": "Vídeos{suffix}",
+    "models": "Modelos 3D",
     "documents": "Documentos{suffix}",
     "archives": "Archivos comprimidos{suffix}",
     "images": "Imágenes{suffix}",
@@ -648,7 +649,8 @@
     "space": "Espacio{suffix}",
     "format": "Formato{suffix}",
     "office": "Oficina{suffix}",
-    "show": "Mostrar{suffix}"
+    "show": "Mostrar{suffix}",
+    "divider": "Divisor{suffix}"
   },
   "access": {
     "rules": "Reglas de acceso",
@@ -694,6 +696,12 @@
     "orange": "Naranja"
   },
   "profileSettings": {
+    "deleteAfterArchive": "Eliminar archivos originales después de la creación/extracción de archivos",
+    "deleteAfterArchiveDescription": "Cuando está activado, eliminará los archivos originales después de la creación o extracción de archivos",
+    "hideFilesInTree": "Ocultar archivos en la navegación de árbol",
+    "hideFilesInTreeDescription": "Cuando está activado, solo se muestrarán carpetas en la navegación del panel lateral",
+    "previewModelsDescription": "Mostrar vistas previas en miniatura para modelos 3D, se mostrará un icono genérico si está desactivado",
+    "previewAudiosDescription": "Mostrar vistas previas en miniatura para audios, si está desactivado mostrará un icono generico",
     "autoplayMedia": "Reproducción automática de archivos multimedia",
     "autoplayMediaDescription": "Reproduce automaticamente los archivos multimedia al abrirlos",
     "sidebarOptions": "Opciones del panel lateral",

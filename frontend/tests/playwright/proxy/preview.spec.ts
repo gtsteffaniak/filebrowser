@@ -10,7 +10,11 @@ test("Create first new file with basic auth", async ({ page, checkForErrors }, t
   });
 
   await page.goto("/subpath/");
-  await expect(page.locator('.listing-items .message > span')).toHaveText('Nothing to show here...');
+  if (testInfo.retry === 0) {
+    await expect(page.locator('.listing-items .message > span')).toHaveText('Nothing to show here...');
+  }else{
+    await expect(await page.locator('.listing-items .file-items')).toHaveCount(testInfo.retry);
+  }
   await page.locator('.listing-items').click({ button: "right" });
   await page.locator('button[aria-label="New file"]').click();
   await page.locator('input[aria-label="FileName Field"]').fill(fileName);
@@ -35,6 +39,7 @@ test("Create first new file with basic auth", async ({ page, checkForErrors }, t
   await page.goto("/subpath/public/share/" + shareHash);
   await expect(page).toHaveTitle("Graham's Filebrowser - Share - demo-127.0.0.1");
   await expect(await page.locator('.listing-items .file-items')).toHaveCount(1 + testInfo.retry);
+  await page.waitForTimeout(500);
   await page.locator(`a[aria-label="${fileName}"]`).dblclick();
   checkForErrors(0, 1); // expect one redirect error
 });

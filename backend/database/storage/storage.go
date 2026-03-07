@@ -18,6 +18,7 @@ import (
 var userStore *users.Storage
 
 func InitializeDb(path string) (*bolt.BoltStore, bool, error) {
+	logger.Debugf("Initializing database: %v", path)
 	exists, err := dbExists(path)
 	if err != nil {
 		panic(err)

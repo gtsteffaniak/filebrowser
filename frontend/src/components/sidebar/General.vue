@@ -147,7 +147,6 @@ export default {
   },
   methods: {
     openContextMenu() {
-      console.log("openContextMenu")
       mutations.resetSelected();
       mutations.showHover({
         name: "ContextMenu",

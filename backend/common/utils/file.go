@@ -60,6 +60,7 @@ type FileOptions struct {
 	FollowSymlinks           bool   // whether to follow symlinks
 	Only                     string // whether to only get files or folders
 	SkipExtendedAttrs        bool   // whether to skip extended attributes
+	ShowSharedAttr           bool   // whether to show share attributes
 }
 
 // SanitizeUserPath prevents path traversal attacks by cleaning and validating user input.

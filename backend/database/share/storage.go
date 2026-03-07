@@ -309,8 +309,13 @@ func (s *Storage) GetBySourcePath(path, source string) ([]*Link, error) {
 }
 
 // IsShared returns whether the given path and source have any shares in the cache.
-func (s *Storage) IsShared(path, source string) bool {
+func (s *Storage) IsShared(path, source string, id uint) bool {
 	links, _ := s.GetBySourcePath(path, source)
+	for _, l := range links {
+		if l.UserID == id {
+			return true
+		}
+	}
 	return len(links) > 0
 }
 

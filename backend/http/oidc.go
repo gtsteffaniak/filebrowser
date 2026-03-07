@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"net/http"
 	"net/url"
 	"slices"
@@ -45,6 +46,8 @@ func (u *userInfoUnmarshaller) UnmarshalJSON(data []byte) error {
 	if u.groupsClaim != "" {
 		if v, ok := raw[u.groupsClaim]; ok {
 			switch val := v.(type) {
+			case map[string]interface{}:
+				u.userInfo.Groups = slices.Collect(maps.Keys(val))
 			case []interface{}:
 				groups := make([]string, len(val))
 				for i, g := range val {

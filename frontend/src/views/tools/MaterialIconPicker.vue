@@ -78,6 +78,9 @@ export default {
       searchQuery: "",
     };
   },
+  mounted() {
+    document.title = globalVars.name + " - " + this.$t('tools.title') + " - " + this.$t('tools.materialIconPicker.name');
+  },
   computed: {
     allMaterialIcons() {
       // Return the icon list as a computed property to avoid reactivity issues

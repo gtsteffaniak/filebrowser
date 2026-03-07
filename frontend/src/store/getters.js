@@ -39,7 +39,7 @@ export const getters = {
   },
   isPreviewView: () => {
     const cv = getters.currentView()
-    return cv == 'preview' || cv == 'onlyOfficeEditor' || cv == 'epubViewer' || cv == 'docViewer' || cv == 'editor' || cv == 'markdownViewer' || cv == 'threeJsViewer'
+    return previewViews.includes(cv)
   },
   isScrollable: () => {
     if (getters.currentView() == 'markdownViewer') {
@@ -473,14 +473,19 @@ export const getters = {
       },
       preview: {
         video: true,
+        audio: true,
         image: true,
         popup: true,
+        models: true,
+        autoplayMedia: true,
       },
       disableSettings: true,
       disableQuickToggles: false,
       disableSearchOptions: false,
       deleteWithoutConfirming: false,
+      deleteAfterArchive: true,
       stickySidebar: true,
+      hideFilesInTree: false,
       darkMode: true,
       dateFormat: false,
       disableViewingExt: "",
@@ -542,9 +547,7 @@ export const getters = {
     }
     // Match by path instead of route name
     const tool = tools().find(t => t.path === state.route.path);
-    if (tool === undefined) {
-      return { name: "Tools" };
-    }
+    // Return null when at /tools (list view) to avoid circular component rendering
     return tool;
   },
   permissions: () => {
@@ -576,11 +579,13 @@ export const getters = {
     if (getters.isShare()) {
       // For shares, use defaults for preview settings (shares don't have per-share preview config)
       return {
+        audio: state.user?.preview?.audio ?? true,
         video: state.user?.preview?.video ?? true,
         image: state.user?.preview?.image ?? true,
         office: state.user?.preview?.office ?? true,
         folder: state.user?.preview?.folder ?? true,
         popup: state.user?.preview?.popup ?? true,
+        models: state.user?.preview?.models ?? true,
         motionVideoPreview: state.user?.preview?.motionVideoPreview ?? false,
         disableHideSidebar: state.user?.preview?.disableHideSidebar ?? false,
         autoplayMedia: state.user?.preview?.autoplayMedia ?? false,
@@ -590,11 +595,13 @@ export const getters = {
     }
     // For regular users, use their preview settings -- unless is share
     return {
+      audio: state.user?.preview?.audio ?? true,
       video: state.user?.preview?.video ?? true,
       image: state.user?.preview?.image ?? true,
       office: state.user?.preview?.office ?? true,
       folder: state.user?.preview?.folder ?? true,
       popup: state.user?.preview?.popup ?? true,
+      models: state.user?.preview?.models ?? true,
       motionVideoPreview: state.user?.preview?.motionVideoPreview ?? false,
       disableHideSidebar: state.user?.preview?.disableHideSidebar ?? false,
       autoplayMedia: state.user?.preview?.autoplayMedia ?? false,

@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.3.1-beta
+
+ **Security**:
+ - Patched Stored XSS in public share page via unsanitized share metadata (text/template misuse) GHSA-r633-fcgp-m532
+ - Patched Incomplete Remediation of CVE-2026-27611: Password-Protected Share Bypass via /public/api/share/info GHSA-525j-95gf-766f
+
+ **New Features**:
+  - More user options for settings (#2072) (#2067):
+    - Option to disable thumbnails `userDefaults.preview.audio` and `userDefaults.preview.models` for Audio and 3D Models.
+    - Option to disable files in the Tree navigation `userDefaults.hideFilesInTree`
+    - Option to disable source files deletion when creating/extracting archives. `userDefaults.deleteAfterArchive`
+
+ **Notes**:
+ - Share icon does not show in share listing or for shares for other users.
+ - File Size Analyzer tool max items increased from 100 to 200.
+ - changed symlink detection logic.
+
+ **BugFixes**:
+ - 405 response code error on Webdav in 1.3.0-beta (#2054)
+ - Motion Preview setting not saving when changed in profile settings.
+ - Context menu on tools not working.
+
 ## v1.3.0-beta
 
 Note: a potentially breaking change for docker users: \the default user is now "filebrowser" 1000:1000 instead of root.
@@ -58,6 +80,22 @@ Note: a potentially breaking change for docker users: \the default user is now "
 
  **BugFixes**:
  - Long folder names get cut off at top navigation bar (#1934)
+
+## v1.2.2-stable
+
+ **Security**:
+ - Patched Stored XSS in public share page via unsanitized share metadata (text/template misuse)
+
+ **New Features**:
+ - "Divider" option in sidebar links to add a text or divider between links ()
+ - shares offer a "go to source Location" sidebar link and button when editing a share.
+
+ **Notes**:
+ - Share edit/delete permissions are scoped to the user's shares rather than global (#2050)
+
+ **BugFixes**:
+ - fixed the requirement that the database path needed to be set in the config file, now it loads `FILEBROWSER_DATABASE` value by default, fallback to config file property.
+ - Error downloading zipped directory: no such file or directory (users with scope) #2015
 
 ## v1.2.1-stable
 

@@ -83,6 +83,11 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		return http.StatusBadRequest, err
 	}
 
+	searchSize := indexing.DefaultSearchResults
+	if searchOptions.largest {
+		searchSize = 200
+	}
+
 	var response []*indexing.SearchResult
 	if len(searchOptions.sources) == 1 {
 		// Single source - use the existing Search method for backward compatibility
@@ -91,10 +96,10 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 			return http.StatusBadRequest, fmt.Errorf("index not found for source %s", searchOptions.sources[0])
 		}
 		combinedPath := searchOptions.combinedPath[searchOptions.sources[0]]
-		response = index.Search(searchOptions.query, combinedPath, searchOptions.sessionId, searchOptions.largest, indexing.DefaultSearchResults)
+		response = index.Search(searchOptions.query, combinedPath, searchOptions.sessionId, searchOptions.largest, searchSize)
 	} else {
 		// Multiple sources - use the new SearchMultiSources function
-		response = indexing.SearchMultiSources(searchOptions.query, searchOptions.sources, searchOptions.combinedPath, searchOptions.sessionId, searchOptions.largest, indexing.DefaultSearchResults)
+		response = indexing.SearchMultiSources(searchOptions.query, searchOptions.sources, searchOptions.combinedPath, searchOptions.sessionId, searchOptions.largest, searchSize)
 	}
 
 	// Filter out items that are not permitted according to access rules and trim user scope from paths

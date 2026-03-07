@@ -58,7 +58,7 @@ body.rtl .listing-items {
 }
 
 .listing-item p {
-  margin: 0;
+  margin: 0.2em;
 }
 
 .listing-item .size,
@@ -262,40 +262,53 @@ body.rtl .listing-items {
   min-width: 0;
 }
 
-/* These old rules are now redundant - sizing comes from unified container rules above */
+.placeholder {
+  width: var(--icon-size);
+  background: transparent;
+}
 
-/* Item-specific styles (not header) */
-.listing-items .header .size,
+.floating-window .listing-items.list .listing-item .size,
+.floating-window .listing-items.compact .listing-item .size,
+.floating-window .listing-items.list .listing-item .duration,
+.floating-window .listing-items.compact .listing-item .duration,
+.floating-window .listing-items.list .listing-item .modified,
+.floating-window .listing-items.compact .listing-item .modified {
+  min-width: 20%;
+  flex: 0;
+}
+
 .listing-items.list .listing-item .size,
-.listing-items.compact .listing-item .size {
-  width: 25%;
-}
-
-.listing-items .header .duration,
+.listing-items.compact .listing-item .size,
 .listing-items.list .listing-item .duration,
-.listing-items.compact .listing-item .duration {
-  margin-left: auto;
-  padding-right: 1em;
-}
-
-.listing-items.list .listing-item .size.adjustment,
-.listing-items.compact .listing-item .size.adjustment {
-  width: calc(25% + 1em) !important;
+.listing-items.compact .listing-item .duration,
+.listing-items.list .listing-item .modified,
+.listing-items.compact .listing-item .modified {
+  min-width: 10%;
+  flex: 0;
 }
 
 .listing-items.list .listing-item .name,
 .listing-items.compact .listing-item .name {
-  width: 50%;
-}
-
-.listing-items.list .listing-item .name.adjustment,
-.listing-items.compact .listing-item .name.adjustment {
-  width: calc(50% + 1em) !important;
+  flex: 1;
 }
 
 .listing-item .text {
   padding-left: 0.5em;
+  flex: 1;
 }
+
+
+.listing-items.icons .image-preview.download-icon {
+    width: 100%;
+    height: 2em;
+}
+
+.listing-items.icons .image-preview.download-icon .material-icons {
+    font-size: 2em;
+    width: 100%;
+    text-align: center;
+}
+
 
 .listing-items.compact .listing-item:first-child {
   border-top: 1px solid rgba(0, 0, 0, 0.1);
