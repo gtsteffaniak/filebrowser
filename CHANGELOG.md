@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Security**:
  - Patched Stored XSS in public share page via unsanitized share metadata (text/template misuse)
+ - Patched Incomplete Remediation of CVE-2026-27611: Password-Protected Share Bypass via /public/api/share/info GHSA-525j-95gf-766f
 
  **New Features**:
  - "Divider" option in sidebar links to add a text or divider between links (#1875)
