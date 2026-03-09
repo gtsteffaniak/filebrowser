@@ -110,39 +110,39 @@ Dedicated docs site?          | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
 Multiple sources at once      | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ |
 Docker image size             | 180 MB (with ffmpeg) | 31 MB  | 240 MB (main image) | 250 MB | ❌ | > 2 GB |
 Min. Memory Requirements      | 512 MB | 128 MB | 128 MB (main image) | 512 MB | ❌ | 512 MB   |
-has standalone binary         | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+has standalone binary         | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
 price                         | free | free | free | free tier | free tier | $99+ |
 rich media preview            | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 Upload files from the web?    | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-Advanced Search?              | ✅ | ❌ | ❌ | configurable | ✅ | ✅ |
-Indexed Search?               | ✅ | ❌ | ❌ | configurable | ✅ | ✅ |
-Content-aware search?         | ❌ | ❌ | ❌ | configurable | ✅ | ✅ |
-Custom job support            | :construction: | ✅ | ❌ | ✅ | ❌ | ✅ |
+Advanced Search?              | ✅ | ❌ | ✅ | configurable | ✅ | ✅ |
+Indexed Search?               | ✅ | ❌ | ✅ | configurable | ✅ | ✅ |
+Content-aware search?         | ❌ | ❌ | ✅ | configurable | ✅ | ✅ |
+Custom job support            | :construction: | ✅ | ✅ | ✅ | ❌ | ✅ |
 Multiple users                | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-Single sign-on support        | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ |
-LDAP sign-on support          | :construction: | ❌ | ❌ | ✅ | ❌ | ✅ |
+Single sign-on support        | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
+LDAP sign-on support          | :construction: | ❌ | ✅ | ✅ | ❌ | ✅ |
 Long-live API key support     | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
 API documentation page        | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ |
-Mobile App                    | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ |
+Mobile App                    | ❌ | ❌ | ✅ | ✅ | ✅ | ❌ |
 open source?                  | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
-tags support                  | :construction: | ❌ | ❌ | ✅ | ❌ | ✅ |
+tags support                  | :construction: | ❌ | ✅ | ✅ | ❌ | ✅ |
 shareable web links?          | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-Event-based notifications     | :construction: | ❌ | ❌ | ❌ | ❌ | ✅ |
-Metrics                       | :construction: | ❌ | ❌ | ❌ | ❌ | ❌ |
-file space quotas             | :construction: | ❌ | ❌ | ❌ | ✅ | ✅ |
+Event-based notifications     | :construction: | ❌ | ✅ | ❌ | ❌ | ✅ |
+Metrics                       | :construction: | ❌ | ✅ | ❌ | ❌ | ❌ |
+file space quotas             | :construction: | ❌ | ✅ | ❌ | ✅ | ✅ |
 text-based files editor       | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 Office file support           | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
 Office file previews          | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ |
-Themes                        | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ |
-Branding support              | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ |
-activity log                  | :construction: | ❌ | ❌ | ✅ | ✅ | ✅ |
-Comments support              | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
-trash support                 | :construction: | ❌ | ❌ | ✅ | ✅ | ✅ |
-Starred/pinned files          | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
+Themes                        | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
+Branding support              | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
+activity log                  | :construction: | ❌ | ✅ | ✅ | ✅ | ✅ |
+Comments support              | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
+trash support                 | :construction: | ❌ | ✅ | ✅ | ✅ | ✅ |
+Starred/pinned files          | ❌ | ❌ | ✅ | ❌ | ✅ | ✅ |
 Chromecast support            | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
 Share collections of files    | :construction: | ❌ | ❌ | ❌ | ❌ | ✅ |
 Can archive selected files    | :construction: | ❌ | ❌ | ❌ | ❌ | ✅ |
-Can browse archive files      | :construction: | ❌ | ❌ | ❌ | ❌ | ✅ |
+Can browse archive files      | :construction: | ❌ | ✅ | ❌ | ❌ | ✅ |
 Can convert documents         | :construction: | ❌ | ❌ | ❌ | ❌ | ✅ |
 Can convert videos            | :construction: | ❌ | ❌ | ❌ | ❌ | ❌ |
 Can convert photos            | :construction: | ❌ | ❌ | ❌ | ❌ | ❌ |
