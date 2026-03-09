@@ -148,13 +148,13 @@ export default {
       return value ? "✓" : "✗";
     },
     createPrompt() {
-      mutations.showHover({
+      mutations.showPrompt({
         name: "CreateApi",
         props: { permissions: this.user.permissions, userPermissions: this.user.permissions },
       });
     },
     infoPrompt(name, info) {
-      mutations.showHover({ name: "ActionApi", props: { name: name, info: info } });
+      mutations.showPrompt({ name: "ActionApi", props: { name: name, info: info } });
     },
     formatTime(time) {
       return new Date(time * 1000).toLocaleDateString("en-US", {

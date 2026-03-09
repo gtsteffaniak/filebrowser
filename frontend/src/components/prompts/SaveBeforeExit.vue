@@ -56,14 +56,14 @@ export default {
       if (this.currentPrompt && this.currentPrompt.cancel) {
         this.currentPrompt.cancel();
       }
-      mutations.closeTopHover();
+      mutations.closeTopPrompt();
     },
     async saveAndExit() {
       if (this.currentPrompt && this.currentPrompt.confirm) {
         try {
           await this.currentPrompt.confirm();
           // Only close prompt if save succeeded
-          mutations.closeTopHover();
+          mutations.closeTopPrompt();
         } catch (error) {
           // If save fails, keep the prompt open so user can try again or choose another option
           console.error("Save failed:", error);
@@ -75,7 +75,7 @@ export default {
       if (this.currentPrompt && this.currentPrompt.discard) {
         this.currentPrompt.discard();
       }
-      mutations.closeTopHover();
+      mutations.closeTopPrompt();
     },
   },
 };

@@ -428,7 +428,7 @@ export default {
     handleLinkClick(link) {
       // Handle special share actions
       if (link.category === 'shareInfo') {
-        mutations.showHover({ name: "ShareInfo" });
+        mutations.showPrompt({ name: "ShareInfo" });
         return;
       }
       if (link.category === 'download') {
@@ -463,17 +463,17 @@ export default {
       } else {
         this.$router.push(link.target);
       }
-      mutations.closeTopHover();
+      mutations.closeTopPrompt();
     },
     goToDownload() {
       // Check if we're in a directory with multiple items
       const hasMultipleItems = state.req.items && state.req.items.length > 1;
       if (hasMultipleItems) {
         // Show format selector for directories with multiple items
-        mutations.showHover({
+        mutations.showPrompt({
           name: "download",
           confirm: (format) => {
-            mutations.closeTopHover();
+            mutations.closeTopPrompt();
             const downloadLink = resourcesApi.getDownloadURLPublic({
               path: "/",
               hash: state.shareInfo.hash,
@@ -501,13 +501,13 @@ export default {
         path: state.req?.path,
       });
       this.$router.push({ path: path, hash: hash });
-      mutations.closeTopHover();
+      mutations.closeTopPrompt();
     },
     openSidebarLinksPrompt() {
       if (!this.isLoggedIn) {
         return;
       }
-      mutations.showHover({
+      mutations.showPrompt({
         name: "SidebarLinks",
       });
     },
@@ -581,7 +581,7 @@ export default {
           hash: shareHash,
         };
 
-        mutations.showHover({
+        mutations.showPrompt({
           name: "share",
           props: {
             editing: true,

@@ -210,7 +210,7 @@ export default {
   },
   methods: {
     openPathPicker() {
-      mutations.showHover({
+      mutations.showPrompt({
         name: "pathPicker",
         props: {
           currentPath: this.searchPath,
@@ -225,7 +225,7 @@ export default {
       if (data && data.source !== undefined) {
         this.selectedSource = data.source;
       }
-      mutations.closeTopHover();
+      mutations.closeTopPrompt();
     },
     handleItemsDeleted(data) {
       // Update local state when items are deleted from the delete prompt
@@ -460,7 +460,7 @@ export default {
         }
       }
 
-      mutations.showHover({
+      mutations.showPrompt({
         name: "delete",
         props: {
           items: items,
