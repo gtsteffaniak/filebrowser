@@ -143,8 +143,8 @@ Chromecast support            | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
 Share collections of files    | :construction: | ❌ | ❌ | ❌ | ❌ | ✅ |
 Can archive selected files    | :construction: | ❌ | ❌ | ❌ | ❌ | ✅ |
 Can browse archive files      | :construction: | ❌ | ✅ | ❌ | ❌ | ✅ |
-Can convert documents         | :construction: | ❌ | ❌ | ❌ | ❌ | ✅ |
-Can convert videos            | :construction: | ❌ | ❌ | ❌ | ❌ | ❌ |
-Can convert photos            | :construction: | ❌ | ❌ | ❌ | ❌ | ❌ |
+Can convert documents         | :construction: | ❌ | ✅ | ❌ | ❌ | ✅ |
+Can convert videos            | :construction: | ❌ | ✅ | ❌ | ❌ | ❌ |
+Can convert photos            | :construction: | ❌ | ✅ | ❌ | ❌ | ❌ |
 
 *Accessing files from FileBrowser via WebDav is a newly introduced and experimental feature.
