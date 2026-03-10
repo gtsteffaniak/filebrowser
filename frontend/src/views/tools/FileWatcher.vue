@@ -278,7 +278,7 @@ export default {
       return interval;
     },
     openPathPicker() {
-      mutations.showHover({
+      mutations.showPrompt({
         name: "pathPicker",
         props: {
           currentPath: this.filePath || "/",
@@ -298,7 +298,7 @@ export default {
       if (data && data.type !== undefined) {
         this.fileType = data.type;
       }
-      mutations.closeTopHover();
+      mutations.closeTopPrompt();
       
       // If currently watching, restart with the new path
       if (this.watching) {

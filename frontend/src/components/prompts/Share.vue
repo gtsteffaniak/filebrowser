@@ -452,9 +452,6 @@ export default {
     availableThemes() {
       return globalVars.userSelectableThemes || {};
     },
-    closeHovers() {
-      return mutations.closeTopHover();
-    },
     req() {
       return /** @type {FilebrowserRequest} */ (/** @type {unknown} */ (state.req));
     },
@@ -730,7 +727,7 @@ export default {
         } else {
           // emit event to reload shares in settings view
           eventBus.emit('sharesChanged');
-          mutations.closeTopHover();
+          mutations.closeTopPrompt();
         }
 
         this.time = "";
@@ -830,7 +827,7 @@ export default {
     switchListing() {
       if (this.links.length === 0 && !this.listing) {
         // Access the store directly if needed
-        mutations.closeTopHover();
+        mutations.closeTopPrompt();
       }
 
       this.listing = !this.listing;
@@ -924,7 +921,7 @@ export default {
         sidebarLinks: this.sidebarLinks,
       };
 
-      mutations.showHover({
+      mutations.showPrompt({
         name: 'sidebarLinks',
         props: {
           context: 'share',

@@ -415,7 +415,7 @@ export default {
       const previewUrl = item.hasPreview
         ? resourcesApi.getPreviewURL(item.source, item.path, item.modified)
         : null;
-      mutations.showHover({
+      mutations.showPrompt({
         name: "delete",
         props: {
           items: [{

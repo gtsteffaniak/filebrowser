@@ -462,7 +462,7 @@ export default {
       if (this.disableContextMenu) {
         return;
       }
-      mutations.showHover({
+      mutations.showPrompt({
         name: "ContextMenu",
         props: {
           posX: event.clientX,
@@ -605,7 +605,7 @@ export default {
        */
       let action = async (overwrite, rename) => {
         // Show move prompt with operation in progress
-        mutations.showHover({
+        mutations.showPrompt({
           name: "move",
           props: {
             operationInProgress: true,
@@ -634,17 +634,17 @@ export default {
           };
           notify.showSuccess(this.$t("prompts.moveSuccess"), buttonProps);
           // Close the prompt after successful operation and reload items for reflect the changes
-          mutations.closeTopHover();
+          mutations.closeTopPrompt();
           mutations.setReload(true);
         } catch (error) {
           // Close the prompt and let error handling continue
-          mutations.closeTopHover();
+          mutations.closeTopPrompt();
           throw error;
         }
       };
 
       if (conflict) {
-        mutations.showHover({
+        mutations.showPrompt({
           name: "replace-rename",
           pinned: true,
           /**
@@ -656,7 +656,7 @@ export default {
             const rename = option === "rename";
 
             event.preventDefault();
-            mutations.closeTopHover();
+            mutations.closeTopPrompt();
             await action(overwrite, rename);
           },
         });

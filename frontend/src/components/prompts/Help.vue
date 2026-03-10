@@ -87,7 +87,7 @@
   </div>
 
   <div class="card-actions">
-    <button type="submit" @click="closeHovers" class="button button--flat" :aria-label="$t('general.ok')"
+    <button type="submit" @click="closeTopPrompt" class="button button--flat" :aria-label="$t('general.ok')"
       :title="$t('general.ok')">
       {{ $t("general.ok") }}
     </button>
@@ -100,8 +100,8 @@ import { mutations } from "@/store"; // Import the mutations
 export default {
   name: "help",
   computed: {
-    closeHovers() {
-      return mutations.closeTopHover(); // Return the closeHovers mutation
+    closeTopPrompt() {
+      return mutations.closeTopPrompt();
     },
   },
 };

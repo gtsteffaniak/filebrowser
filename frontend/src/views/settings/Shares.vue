@@ -162,7 +162,7 @@ export default {
       });
     },
     editLink(item) {
-      mutations.showHover({
+      mutations.showPrompt({
         name: "share",
         props: {
           editing: true,
@@ -175,7 +175,7 @@ export default {
      * @param {any} item
      */
     deleteLink: async function (event, item) {
-      mutations.showHover({
+      mutations.showPrompt({
         name: "generic",
         props: {
           title: this.$t("general.delete"),
@@ -188,7 +188,7 @@ export default {
                   shareApi.remove(item.hash);
                   this.links = this.links.filter((link) => link.hash !== item.hash);
                   notify.showSuccessToast(this.$t("settings.shareDeleted"));
-                  mutations.closeTopHover();
+                  mutations.closeTopPrompt();
                 } catch (e) {
                   console.error(e);
                   notify.showErrorToast(this.$t("share.deleteFailed"));

@@ -28,17 +28,17 @@ export default function downloadFiles(items) {
     if (getters.isSingleFileSelected()) {
       // Show download prompt for chunked downloads, otherwise start directly
       if (willUseChunkedDownload) {
-        mutations.showHover({ name: "download" });
+        mutations.showPrompt({ name: "download" });
         startDownload(null, items, state.shareInfo.hash);
       } else {
         startDownload(null, items, state.shareInfo.hash);
       }
     } else {
       // Multiple files download with user confirmation
-      mutations.showHover({
+      mutations.showPrompt({
         name: "download",
         confirm: (format) => {
-          mutations.closeTopHover();
+          mutations.closeTopPrompt();
           startDownload(format, items, state.shareInfo.hash);
         },
       });
@@ -49,17 +49,17 @@ export default function downloadFiles(items) {
   if (getters.isSingleFileSelected()) {
     // Show download prompt for chunked downloads, otherwise start directly
     if (willUseChunkedDownload) {
-      mutations.showHover({ name: "download" });
+      mutations.showPrompt({ name: "download" });
       startDownload(null, items);
     } else {
       startDownload(null, items);
     }
   } else {
     // Multiple files download with user confirmation
-    mutations.showHover({
+    mutations.showPrompt({
       name: "download",
       confirm: (format) => {
-        mutations.closeTopHover();
+        mutations.closeTopPrompt();
         startDownload(format, items);
       },
     });

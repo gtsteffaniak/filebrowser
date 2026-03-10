@@ -169,7 +169,7 @@ export default {
       const currentView = getters.currentView()
       const currentPrompt = getters.currentPromptName();
       if (currentPrompt !== "success" && currentPrompt !== "generic") {
-        mutations.closeTopHover();
+        mutations.closeTopPrompt();
       }
       if (window.location.hash == "" && currentView == "listingView" || currentView == "share") {
         const element = document.getElementById("main");
@@ -190,7 +190,7 @@ export default {
           mutations.setMaxConcurrentUpload(1);
         }
         if (state.user.showFirstLogin && !globalVars.noAuth) {
-          mutations.showHover({
+          mutations.showPrompt({
             name: "generic",
             pinned: true,
             props: {
@@ -203,7 +203,7 @@ export default {
                     mutations.updateCurrentUser({
                       showFirstLogin: false,
                     });
-                    mutations.closeTopHover();
+                    mutations.closeTopPrompt();
                   },
                 },
               ],

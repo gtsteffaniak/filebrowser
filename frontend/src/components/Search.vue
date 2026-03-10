@@ -308,7 +308,7 @@ export default {
     openContext(event) {
       event.preventDefault();
       event.stopPropagation();
-      mutations.showHover({
+      mutations.showPrompt({
         name: "ContextMenu",
         props: {
           posX: event.clientX,
@@ -667,6 +667,11 @@ export default {
   padding: 0;
   color: rgba(255, 255, 255, 0.9);
   font-size: 0.95em;
+}
+
+#search-input {
+  width: 100%;
+  padding-left: 0.5em;
 }
 
 #search.active input {

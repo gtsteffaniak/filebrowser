@@ -171,7 +171,7 @@ export default {
   },
   methods: {
     showControlsPrompt() {
-      mutations.showHover({
+      mutations.showPrompt({
         name: 'ThreeJSControls',
         props: {
           backgroundColor: this.backgroundColor,

@@ -433,7 +433,7 @@ export default {
     },
     showSaveBeforeExitPrompt() {
       this.isPromptOpen = true;
-      mutations.showHover({
+      mutations.showPrompt({
         name: "SaveBeforeExit",
         pinned: true,
         confirm: async () => {

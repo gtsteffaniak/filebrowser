@@ -345,7 +345,7 @@ export default {
         console.log(e);
         this.inProgress = false;
         if (e.message.includes("OTP authentication is enforced")) {
-          mutations.showHover({
+          mutations.showPrompt({
             name: "totp",
             pinned: true,
             props: {
@@ -357,7 +357,7 @@ export default {
           });
         }
         if (e.message.includes("OTP is enforced, but user is not yet configured")) {
-          mutations.showHover({
+          mutations.showPrompt({
             name: "totp",
             pinned: true,
             props: {
@@ -369,7 +369,7 @@ export default {
             },
           });
         } else if (e.message.includes("OTP code is required for user")) {
-          mutations.showHover({
+          mutations.showPrompt({
             name: "totp",
             pinned: true,
             props: {

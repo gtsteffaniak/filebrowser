@@ -315,7 +315,7 @@ export default {
 
       // There are unsaved changes - show prompt
       return new Promise((resolve) => {
-        mutations.showHover({
+        mutations.showPrompt({
           name: "SaveBeforeExit",
           pinned: true,
           confirm: async () => {
@@ -326,7 +326,7 @@ export default {
                 await saveHandler();
               }
               // Close the prompt after successful save
-              mutations.closeTopHover();
+              mutations.closeTopPrompt();
               resolve(true); // Allow navigation
             } catch (error) {
               // Save failed - keep prompt open by not resolving
@@ -337,13 +337,13 @@ export default {
             // Discard changes and proceed
             mutations.setEditorDirty(false);
             // Close the prompt
-            mutations.closeTopHover();
+            mutations.closeTopPrompt();
             resolve(true); // Allow navigation
           },
           cancel: () => {
             // Cancel navigation
             // Close the prompt
-            mutations.closeTopHover();
+            mutations.closeTopPrompt();
             resolve(false); // Block navigation
           },
         });
@@ -964,7 +964,7 @@ export default {
 
     showCurrentListing() {
       const currentItems = this.getCurrentListingItems();
-      mutations.showHover({
+      mutations.showPrompt({
         name: "file-list",
         props: {
           fileList: currentItems,

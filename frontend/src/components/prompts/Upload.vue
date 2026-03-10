@@ -232,7 +232,7 @@ export default {
 
     const handleConflict = (resolver) => {
       conflictResolver = resolver;
-      mutations.showHover({
+      mutations.showPrompt({
         name: "replace-rename",
         pinned: true,
         confirm: (event, option) => {
@@ -251,11 +251,11 @@ export default {
       if (conflictResolver) {
         conflictResolver(overwrite);
       }
-      mutations.closeTopHover(); // Only close the conflict prompt, return to upload prompt
+      mutations.closeTopPrompt(); // Only close the conflict prompt, return to upload prompt
     };
 
     const showRenamePrompt = () => {
-      mutations.closeTopHover(); // Only close the replace-rename prompt, keep upload prompt open
+      mutations.closeTopPrompt(); // Only close the replace-rename prompt, keep upload prompt open
       // Get the conflicting folder name from the upload queue
       const conflictingFolder = uploadManager.getConflictingFolder();
       if (!conflictingFolder) {
@@ -263,7 +263,7 @@ export default {
         return;
       }
 
-      mutations.showHover({
+      mutations.showPrompt({
         name: "rename",
         confirm: (newName) => {
           renameUploadFolder(conflictingFolder, newName);
@@ -288,7 +288,7 @@ export default {
         if (conflictResolver) {
           conflictResolver({ rename: newName });
         }
-        mutations.closeTopHover(); // Only close the rename prompt, return to upload prompt
+        mutations.closeTopPrompt(); // Only close the rename prompt, return to upload prompt
       } catch (error) {
         console.error(error);
       }
@@ -356,7 +356,7 @@ export default {
     );
 
     const close = () => {
-      mutations.closeTopHover();
+      mutations.closeTopPrompt();
     };
 
     const clearCompleted = () => {
@@ -522,12 +522,12 @@ export default {
     };
 
     const handleConflictAction = (file) => {
-      mutations.showHover({
+      mutations.showPrompt({
         name: "replace",
         pinned: true,
         confirm: () => {
           uploadManager.retry(file.id, true);
-          mutations.closeTopHover();
+          mutations.closeTopPrompt();
         },
       });
     };

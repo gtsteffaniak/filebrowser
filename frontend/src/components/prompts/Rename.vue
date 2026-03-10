@@ -27,7 +27,7 @@
   </div>
 
   <div class="card-actions">
-    <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('general.cancel')"
+    <button class="button button--flat button--grey" @click="closeTopPrompt" :aria-label="$t('general.cancel')"
       :title="$t('general.cancel')">
       {{ $t("general.cancel") }}
     </button>
@@ -80,8 +80,8 @@ export default {
     };
   },
   computed: {
-    closeHovers() {
-      return mutations.closeTopHover();
+    closeTopPrompt() {
+      return mutations.closeTopPrompt();
     },
     validation() {
       return this.validateFileName(this.name);
@@ -211,7 +211,7 @@ export default {
           await resourcesApi.moveCopy(items, "move");
         }
         notify.showSuccessToast(this.$t("prompts.renameSuccess"));
-        mutations.closeTopHover();
+        mutations.closeTopPrompt();
 
         if (this.isPreviewView) {
           url.goToItem(this.item.source, newPath, undefined); // When undefined will not create browser history

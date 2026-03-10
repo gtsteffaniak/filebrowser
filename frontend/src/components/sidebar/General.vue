@@ -148,7 +148,7 @@ export default {
   methods: {
     openContextMenu() {
       mutations.resetSelected();
-      mutations.showHover({
+      mutations.showPrompt({
         name: "ContextMenu",
         props: {
           showCentered: true,
@@ -205,14 +205,14 @@ export default {
         path: state.req.path,
       });
       this.$router.push({ path: path, hash: hash });
-      mutations.closeTopHover();
+      mutations.closeTopPrompt();
     },
     navigateToLogin() {
       this.$router.push({ path: "/login", query: { redirect: this.$route.path } });
     },
     // Show the help overlay
     help() {
-      mutations.showHover("help");
+      mutations.showPrompt("help");
     },
 
     // Logout the user
