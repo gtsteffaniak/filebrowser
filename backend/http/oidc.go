@@ -3,6 +3,7 @@ package http
 import (
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"maps"
 	"net/http"
@@ -13,10 +14,10 @@ import (
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
-	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
+	libErrors "github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
-	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
+	"github.com/gtsteffaniak/filebrowser/backend/database/state"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/go-logger/logger"
 	"golang.org/x/oauth2"
@@ -275,9 +276,9 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 	}
 	logger.Debugf("Successfully authenticated OIDC username: %s isAdmin: %v", username, isAdmin)
 	// Retrieve the user from the store and store it in the context
-	user, err := store.Users.Get(username)
+	user, err := state.GetUserByUsername(username)
 	if err != nil {
-		if err.Error() != "the resource does not exist" {
+		if !errors.Is(err, libErrors.ErrNotExist) {
 			return http.StatusInternalServerError, err
 		}
 		// Auto-create user on first OIDC authentication
@@ -292,11 +293,11 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 		if isAdmin {
 			user.Permissions.Admin = true
 		}
-		err = storage.CreateUser(*user, user.Permissions)
+		err = state.CreateUser(*user, user.Permissions)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
-		user, err = store.Users.Get(username)
+		user, err = state.GetUserByUsername(username)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
@@ -304,18 +305,18 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 		// update user admin perms
 		if isAdmin != user.Permissions.Admin && oidcCfg.AdminGroup != "" {
 			user.Permissions.Admin = isAdmin
-			err = store.Users.Update(user, true, "Permissions")
+			err = state.UpdateUser(user)
 			if err != nil {
 				logger.Warningf("failed to update oidc user %s admin permissions: %v", username, err)
 			}
 		}
 	}
 	if user.LoginMethod != users.LoginMethodOidc {
-		return http.StatusForbidden, errors.ErrWrongLoginMethod
+		return http.StatusForbidden, libErrors.ErrWrongLoginMethod
 	}
 
 	// Sync OIDC groups with access control system
-	if err = store.Access.SyncUserGroups(username, groups); err != nil {
+	if err = accessStore.SyncUserGroups(username, groups); err != nil {
 		logger.Warningf("failed to sync oidc user %s groups: %v", username, err)
 	}
 

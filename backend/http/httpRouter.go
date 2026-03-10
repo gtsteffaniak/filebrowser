@@ -17,7 +17,11 @@ import (
 	"github.com/coreos/go-systemd/v22/activation"
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/database/storage/bolt"
+	"github.com/gtsteffaniak/filebrowser/backend/auth"
+	"github.com/gtsteffaniak/filebrowser/backend/database/access"
+	"github.com/gtsteffaniak/filebrowser/backend/database/share"
+	"github.com/gtsteffaniak/filebrowser/backend/database/state"
+	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/events"
 	"github.com/gtsteffaniak/go-logger/logger"
 	// http-swagger middleware
@@ -34,15 +38,25 @@ func GetEmbeddedAssets() embed.FS {
 }
 
 var (
-	store   *bolt.BoltStore
-	config  *settings.Settings
-	assetFs fs.FS
+	config      *settings.Settings
+	assetFs     fs.FS
+	accessStore *access.Storage
+	shareStore  *share.Storage
+	usersStore  *users.Storage
+	authStore   *auth.Storage
 )
 
-func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete chan struct{}) {
-	store = storage
+func StartHttp(ctx context.Context, shutdownComplete chan struct{}) {
 	config = &settings.Config
+	accessStore = state.GetAccessStorage()
+	shareStore = state.GetShareStorage()
+	usersStore = state.GetUsersStorage()
 	var err error
+	authStore, err = state.GetAuthStorage()
+	if err != nil {
+		logger.Fatalf("failed to initialize auth storage: %v", err)
+	}
+
 	// Start pprof server in a separate goroutine
 	if settings.Env.IsDevMode {
 		go func() {
@@ -347,23 +361,9 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	// Close all SSE sessions
 	events.Shutdown()
 
-	// Persist in-memory state before shutting down the HTTP server
-	if store != nil {
-		if store.Share != nil {
-			if err := store.Share.Flush(); err != nil {
-				logger.Errorf("Failed to flush share storage: %v", err)
-			}
-		}
-		if store.Access != nil {
-			if err := store.Access.Flush(); err != nil {
-				logger.Errorf("Failed to flush access storage: %v", err)
-			}
-		}
-		if store.Indexing != nil {
-			if err := store.Indexing.Flush(); err != nil {
-				logger.Errorf("Failed to flush indexing storage: %v", err)
-			}
-		}
+	// Close state management (flushes any pending writes and closes SQL connection)
+	if err := state.Close(); err != nil {
+		logger.Errorf("Failed to close state management: %v", err)
 	}
 
 	// Graceful shutdown with a timeout - 30 seconds, in case downloads are happening

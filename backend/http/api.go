@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
+	"github.com/gtsteffaniak/filebrowser/backend/database/state"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
@@ -79,13 +80,15 @@ func createApiTokenHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	}
 
 	// Store API token metadata in user's Tokens map
-	err = store.Users.AddApiToken(d.user.ID, name, tokenString, authToken)
+	authToken.Name = name
+	authToken.Token = tokenString
+	err = state.AddUserToken(d.user.ID, authToken)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 
 	// Store token hash → user ID mapping in access storage for fast lookups
-	err = store.Access.AddApiToken(tokenString, d.user.ID)
+	err = accessStore.AddApiToken(tokenString, d.user.ID)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -120,16 +123,16 @@ func deleteApiTokenHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	}
 
 	// Perform the user update
-	err := store.Users.DeleteApiToken(d.user.ID, name)
+	err := state.DeleteUserToken(d.user.ID, name)
 	if err != nil {
 		return http.StatusNotFound, err
 	}
 
 	// Revoke the token (adds to RevokedTokens set)
-	if err := auth.RevokeApiToken(store.Access, tokenInfo.Token); err != nil {
+	if err := auth.RevokeApiToken(accessStore, tokenInfo.Token); err != nil {
 		logger.Errorf("Failed to revoke token: %v", err)
 	}
-	if err := store.Access.RemoveApiToken(tokenInfo.Token); err != nil {
+	if err := accessStore.RemoveApiToken(tokenInfo.Token); err != nil {
 		logger.Errorf("Failed to remove api token: %v", err)
 	}
 

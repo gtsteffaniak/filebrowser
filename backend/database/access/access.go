@@ -79,8 +79,25 @@ type Storage struct {
 	Groups        GroupMap            // key: group name, value: set of usernames - in-memory authoritative state
 	RevokedTokens map[string]struct{} // set of revoked token hashes - in-memory authoritative state
 	HashedTokens  map[string]uint     // maps token hash → user ID - in-memory authoritative state
-	DB            *storm.DB           // Optional: DB for persistence
+	DB            *storm.DB           // Optional: DB for persistence (BoltDB - deprecated)
 	Users         *users.Storage      // Reference to users storage
+	sqlStore      SQLPersister        // SQL store for persistence (replaces DB)
+}
+
+// SQLPersister interface for SQL persistence operations
+type SQLPersister interface {
+	SaveAccessRule(source, path string, rule *AccessRule) error
+	DeleteAccessRule(source, path string) error
+	SaveGroup(name string, members StringSet) error
+	DeleteGroup(name string) error
+	SaveRevokedToken(tokenHash string) error
+	SaveHashedToken(tokenHash string, userID uint) error
+	DeleteHashedToken(tokenHash string) error
+}
+
+// SetSQLStore sets the SQL store for persistence operations
+func (s *Storage) SetSQLStore(sqlStore SQLPersister) {
+	s.sqlStore = sqlStore
 }
 
 // SaveToDB persists all rules to the DB if DB is set.

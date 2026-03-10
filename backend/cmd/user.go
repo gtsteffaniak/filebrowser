@@ -8,6 +8,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/database/state"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
@@ -16,7 +17,7 @@ var createBackup = false
 
 func validateUserInfo(newDB bool) {
 	// update source info for users if names/sources/paths might have changed
-	usersList, err := store.Users.Gets()
+	usersList, err := state.GetAllUsers()
 	if err != nil {
 		logger.Fatalf("could not load users: %v", err)
 	}
@@ -58,12 +59,12 @@ func validateUserInfo(newDB bool) {
 			skipCreateBackup := os.Getenv("FILEBROWSER_DISABLE_AUTOMATIC_BACKUP") == "true" || newDB
 			if createBackup && !skipCreateBackup {
 				logger.Warning("Incompatible user settings detected, creating backup of database before converting.")
-				err = fileutils.CopyFile(settings.Config.Server.Database, fmt.Sprintf("%s.bak", settings.Config.Server.Database))
+				err = fileutils.CopyFile(settings.Config.Server.DatabaseV2.Path, fmt.Sprintf("%s.bak", settings.Config.Server.DatabaseV2.Path))
 				if err != nil {
 					logger.Fatalf("Unable to create automatic backup of database due to error: %v", err)
 				}
 			}
-			err := store.Users.Save(user, changePass, true)
+			err := state.SaveUser(user, changePass)
 			if err != nil {
 				logger.Errorf("could not update user: %v", err)
 			}

@@ -12,7 +12,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
+	"github.com/gtsteffaniak/filebrowser/backend/database/state"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
@@ -45,7 +45,7 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		givenUserId = d.user.ID
 	} else if givenUserIdString == "" {
 
-		userList, err := store.Users.Gets()
+		userList, err := state.GetAllUsers()
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
@@ -76,7 +76,7 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	}
 
 	// Fetch the user details
-	u, err := store.Users.Get(givenUserId)
+	u, err := state.GetUser(givenUserId)
 	if err == errors.ErrNotExist {
 		return http.StatusNotFound, err
 	}
@@ -200,7 +200,7 @@ func userDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	}
 
 	// Delete the user
-	err := store.Users.Delete(givenUserId)
+	err := state.DeleteUser(givenUserId)
 	if err != nil {
 		return errToStatus(err), err
 	}
@@ -246,7 +246,7 @@ func usersPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusBadRequest, errors.ErrEmptyPassword
 	}
 
-	err = storage.CreateUser(req.User, req.User.Permissions)
+	err = state.CreateUser(req.User, req.User.Permissions)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -291,14 +291,14 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		return http.StatusBadRequest, err
 	}
 	if givenUserId != 0 {
-		u, err2 := store.Users.Get(givenUserId)
+		u, err2 := state.GetUser(givenUserId)
 		if err2 != nil {
 			return http.StatusBadRequest, fmt.Errorf("no user not found, please provide a valid id or username")
 		}
 		req.User.ID = u.ID
 		req.User.Username = u.Username
 	} else {
-		u, err2 := store.Users.Get(username)
+		u, err2 := state.GetUserByUsername(username)
 		if err2 != nil {
 			return http.StatusBadRequest, fmt.Errorf("no user not found, please provide a valid id or username")
 		}
@@ -311,12 +311,12 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	}
 
 	// Get the old user to check if permissions changed
-	oldUser, err := store.Users.Get(req.User.ID)
+	oldUser, err := state.GetUser(req.User.ID)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("failed to get user: %w", err)
 	}
 
-	err = store.Users.Update(&req.User, d.user.Permissions.Admin, req.Which...)
+	err = state.UpdateUser(&req.User)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
@@ -324,11 +324,11 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	// Revoke all API keys if API permission was removed
 	if slices.Contains(req.Which, "Permissions") && oldUser.Permissions.Api && !req.User.Permissions.Api {
 		for _, tokenInfo := range oldUser.Tokens {
-			if err := auth.RevokeApiToken(store.Access, tokenInfo.Token); err != nil {
+			if err := auth.RevokeApiToken(accessStore, tokenInfo.Token); err != nil {
 				logger.Errorf("Failed to revoke API key: %v", err)
 			}
 			// Also remove from HashedTokens
-			if err := store.Access.RemoveApiToken(tokenInfo.Token); err != nil {
+			if err := accessStore.RemoveApiToken(tokenInfo.Token); err != nil {
 				logger.Errorf("Failed to remove api token: %v", err)
 			}
 		}

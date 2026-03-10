@@ -12,7 +12,7 @@ import (
 	"github.com/goccy/go-yaml"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
-	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
+	"github.com/gtsteffaniak/filebrowser/backend/database/state"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -157,20 +157,20 @@ func setRule(dbConfig, fsPath, indexPath, ruleCategory, value string, allow bool
 	if allow {
 		switch ruleCategory {
 		case "user":
-			err = store.Access.AllowUser(fsPath, indexPath, value)
+			err = state.GetAccessStorage().AllowUser(fsPath, indexPath, value)
 		case "group":
-			err = store.Access.AllowGroup(fsPath, indexPath, value)
+			err = state.GetAccessStorage().AllowGroup(fsPath, indexPath, value)
 		default:
 			return fmt.Errorf("invalid ruleCategory for allow: must be 'user' or 'group'")
 		}
 	} else {
 		switch ruleCategory {
 		case "user":
-			err = store.Access.DenyUser(fsPath, indexPath, value)
+			err = state.GetAccessStorage().DenyUser(fsPath, indexPath, value)
 		case "group":
-			err = store.Access.DenyGroup(fsPath, indexPath, value)
+			err = state.GetAccessStorage().DenyGroup(fsPath, indexPath, value)
 		case "all":
-			err = store.Access.DenyAll(fsPath, indexPath)
+			err = state.GetAccessStorage().DenyAll(fsPath, indexPath)
 		default:
 			return fmt.Errorf("invalid ruleCategory: must be 'user', 'group', or 'all'")
 		}
@@ -203,7 +203,7 @@ func setUser(dbConfig string, asAdmin bool) error {
 	username := userInfo[0]
 	password := userInfo[1]
 	_ = getStore(dbConfig) // ignore bool check
-	user, err := store.Users.Get(username)
+	user, err := state.GetUserByUsername(username)
 	if err != nil {
 		newUser := users.User{
 			Username:    username,
@@ -229,7 +229,7 @@ func setUser(dbConfig string, asAdmin bool) error {
 		}
 		newUser.Permissions = settings.ConvertPermissionsToUsers(settings.Config.UserDefaults.Permissions)
 		newUser.Permissions.Admin = asAdmin
-		err = storage.CreateUser(newUser, newUser.Permissions)
+		err = state.CreateUser(newUser, newUser.Permissions)
 		if err != nil {
 			return fmt.Errorf("could not create user: %v", err)
 		}
@@ -250,7 +250,7 @@ func setUser(dbConfig string, asAdmin bool) error {
 	if user.Version == 0 {
 		user.Version = 1
 	}
-	err = store.Users.Save(user, true, false)
+	err = state.UpdateUser(user)
 	if err != nil {
 		return fmt.Errorf("could not update user: %v", err)
 	}

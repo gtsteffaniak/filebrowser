@@ -108,7 +108,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		index := indexing.GetIndex(result.Source)
 		combinedPath := searchOptions.combinedPath[result.Source]
 		indexPath := utils.JoinPathAsUnix(combinedPath, result.Path)
-		if store.Access != nil && !store.Access.Permitted(index.Path, indexPath, d.user.Username) {
+		if accessStore != nil && !accessStore.Permitted(index.Path, indexPath, d.user.Username) {
 			continue // Silently skip this file/folder
 		}
 		// Remove the user scope from the path (modifying in place is safe - these are fresh allocations)

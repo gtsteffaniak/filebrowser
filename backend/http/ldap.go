@@ -2,13 +2,14 @@ package http
 
 import (
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"strings"
 
 	ldap "github.com/go-ldap/ldap/v3"
-	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
+	libErrors "github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
+	"github.com/gtsteffaniak/filebrowser/backend/database/state"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
@@ -222,9 +223,9 @@ func getOrCreateLdapUser(username string, groups []string) (*users.User, error) 
 		}
 	}
 
-	user, err := store.Users.Get(username)
+	user, err := state.GetUserByUsername(username)
 	if err != nil {
-		if err.Error() != "the resource does not exist" {
+		if !errors.Is(err, libErrors.ErrNotExist) {
 			return nil, err
 		}
 		// Auto-create user on first LDAP authentication
@@ -239,24 +240,24 @@ func getOrCreateLdapUser(username string, groups []string) (*users.User, error) 
 		if isAdmin {
 			user.Permissions.Admin = true
 		}
-		if err = storage.CreateUser(*user, user.Permissions); err != nil {
+		if err = state.CreateUser(*user, user.Permissions); err != nil {
 			return nil, err
 		}
-		user, err = store.Users.Get(username)
+		user, err = state.GetUserByUsername(username)
 		if err != nil {
 			return nil, err
 		}
 	} else {
 		if user.LoginMethod != users.LoginMethodLdap {
-			return nil, errors.ErrWrongLoginMethod
+			return nil, libErrors.ErrWrongLoginMethod
 		}
 		if ldapCfg.AdminGroup != "" && isAdmin != user.Permissions.Admin {
 			user.Permissions.Admin = isAdmin
-			_ = store.Users.Update(user, true, "Permissions")
+			_ = state.UpdateUser(user)
 		}
 	}
 
-	if err := store.Access.SyncUserGroups(username, groups); err != nil {
+	if err := accessStore.SyncUserGroups(username, groups); err != nil {
 		logger.Warningf("failed to sync ldap user %s groups: %v", username, err)
 	}
 	return user, nil

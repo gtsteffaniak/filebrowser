@@ -19,6 +19,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
+	"github.com/gtsteffaniak/filebrowser/backend/database/state"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -49,7 +50,7 @@ func convertToFrontendShareResponse(r *http.Request, shares []*share.Link, user 
 			// Found by name - this is corrupted data, fix it
 			logger.Warning("Share has corrupted source - fixing", "hash", s.Hash, "from", s.Source, "to", sourceInfo.Path)
 			s.Source = sourceInfo.Path
-			_ = store.Share.Save(s) // Best effort fix
+			_ = state.SaveShare(s) // Best effort fix
 		}
 
 		// Check if the path exists on the filesystem
@@ -85,9 +86,9 @@ func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	var err error
 	var shares []*share.Link
 	if d.user.Permissions.Admin {
-		shares, err = store.Share.All()
+		shares, err = state.GetAllShares()
 	} else {
-		shares, err = store.Share.FindByUserID(d.user.ID)
+		shares, err = state.GetSharesByUserID(d.user.ID)
 	}
 	if err != nil && err != errors.ErrNotExist {
 		return http.StatusInternalServerError, err
@@ -124,7 +125,7 @@ func shareGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 	}
 	scopePath := utils.JoinPathAsUnix(userscope, path)
 	scopePath = utils.AddTrailingSlashIfNotExists(scopePath)
-	s, err := store.Share.Gets(scopePath, sourceInfo.Path, d.user.ID)
+	s, err := shareStore.Gets(scopePath, sourceInfo.Path, d.user.ID)
 	if err == errors.ErrNotExist || len(s) == 0 {
 		return renderJSON(w, r, []*ShareResponse{})
 	}
@@ -159,7 +160,7 @@ func shareDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	}
 
 	// only allow users to delete their own shares
-	thisShare, err := store.Share.GetByHash(hash)
+	thisShare, err := shareStore.GetByHash(hash)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("share not found")
 	}
@@ -167,7 +168,7 @@ func shareDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return http.StatusForbidden, fmt.Errorf("you are not allowed to delete this share")
 	}
 
-	err = store.Share.Delete(hash)
+	err = state.DeleteShare(hash)
 	if err != nil {
 		return errToStatus(err), err
 	}
@@ -202,7 +203,7 @@ func sharePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	}
 
 	// only allow users to update their own shares
-	thisShare, err := store.Share.GetByHash(body.Hash)
+	thisShare, err := shareStore.GetByHash(body.Hash)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("share not found")
 	}
@@ -210,13 +211,13 @@ func sharePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 		return http.StatusForbidden, fmt.Errorf("you are not allowed to update this share")
 	}
 	// Update the share path
-	err = store.Share.UpdateSharePath(body.Hash, body.Path)
+	err = state.UpdateSharePath(body.Hash, body.Path)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 
 	// Get the updated share
-	updatedShare, err := store.Share.GetByHash(body.Hash)
+	updatedShare, err := shareStore.GetByHash(body.Hash)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -254,7 +255,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 
 	// check if body.Hash is a valid hash
 	if body.Hash != "" {
-		s, err = store.Share.GetByHash(body.Hash)
+		s, err = shareStore.GetByHash(body.Hash)
 		if err != nil {
 			return http.StatusBadRequest, fmt.Errorf("invalid hash provided")
 		}
@@ -330,12 +331,12 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 			s.ResetDownloadCounts()
 		}
 
-		if err = store.Share.Save(s); err != nil {
+		if err = state.SaveShare(s); err != nil {
 			return http.StatusInternalServerError, err
 		}
 		// Convert to ShareResponse format with username
 		var user *users.User
-		user, err = store.Users.Get(s.UserID)
+		user, err = state.GetUser(s.UserID)
 		username := ""
 		if err == nil {
 			username = user.Username
@@ -399,7 +400,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		CommonShare:  body.CommonShare,
 		Version:      1, // Set version for new shares
 	}
-	if err = store.Share.Save(s); err != nil {
+	if err = state.SaveShare(s); err != nil {
 		return http.StatusInternalServerError, err
 	}
 	sharesWithUsernames, err := convertToFrontendShareResponse(r, []*share.Link{s}, d.user)
@@ -514,7 +515,7 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *reque
 	scopePath := utils.JoinPathAsUnix(userscope, path)
 
 	// Check if an existing share already matches these parameters
-	existingShares, err := store.Share.Gets(scopePath, sourceInfo.Path, d.user.ID)
+	existingShares, err := shareStore.Gets(scopePath, sourceInfo.Path, d.user.ID)
 	if err == nil && len(existingShares) > 0 {
 		// Look for a share that matches our parameters
 		for _, existing := range existingShares {
@@ -550,7 +551,7 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *reque
 	}
 
 	// Save the share
-	if err := store.Share.Save(shareLink); err != nil {
+	if err := state.SaveShare(shareLink); err != nil {
 		return http.StatusInternalServerError, err
 	}
 
@@ -618,7 +619,7 @@ func getShareURL(r *http.Request, hash string, isDirectDownload bool, token stri
 func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	hash := r.URL.Query().Get("hash")
 	// Get the file link by hash (need full Link to get Token)
-	shareLink, err := store.Share.GetByHash(hash)
+	shareLink, err := shareStore.GetByHash(hash)
 	if err != nil {
 		return http.StatusNotFound, fmt.Errorf("share hash not found")
 	}

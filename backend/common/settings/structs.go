@@ -56,7 +56,6 @@ type Server struct {
 	ListenAddress                string         `json:"listen"`                                 // address to listen on (default: 0.0.0.0)
 	BaseURL                      string         `json:"baseURL"`                                // base URL for the server, the subpath that the server is running on.
 	Logging                      []LogConfig    `json:"logging" yaml:"logging"`
-	Database                     string         `json:"database"` // path to the database file
 	Sources                      []*Source      `json:"sources" validate:"required,dive"`
 	ExternalUrl                  string         `json:"externalUrl"`     // used by share links if set (eg. http://mydomain.com)
 	InternalUrl                  string         `json:"internalUrl"`     // used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
@@ -69,6 +68,12 @@ type Server struct {
 	// not exposed to config
 	SourceMap    map[string]*Source `json:"-" validate:"omitempty"` // uses realpath as key
 	NameToSource map[string]*Source `json:"-" validate:"omitempty"` // uses name as key
+	DatabaseV2   Database           `json:"database"`               // SQLite database configuration
+}
+
+type Database struct {
+	Path        string `json:"path"`        // path to SQLite database file
+	MigrateFrom string `json:"migrateFrom"` // path to old BoltDB database file for migration (optional)
 }
 
 type Filesystem struct {

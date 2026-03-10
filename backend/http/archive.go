@@ -101,7 +101,7 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		return http.StatusForbidden, err
 	}
 	fullDest := utils.JoinPathAsUnix(userScopeTo, req.Destination)
-	if store.Access != nil && !store.Access.Permitted(idxTo.Path, fullDest, d.user.Username) {
+	if accessStore != nil && !accessStore.Permitted(idxTo.Path, fullDest, d.user.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to destination %s", req.Destination)
 	}
 	// Destination is a file we are about to create; resolve parent dir only (parent must exist or be creatable).
@@ -110,7 +110,7 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		destDir = "/"
 	}
 	fullDestDir := utils.JoinPathAsUnix(userScopeTo, destDir)
-	if store.Access != nil && !store.Access.Permitted(idxTo.Path, fullDestDir, d.user.Username) {
+	if accessStore != nil && !accessStore.Permitted(idxTo.Path, fullDestDir, d.user.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to destination directory %s", destDir)
 	}
 	destParentReal, _, err := idxTo.GetRealPath(fullDestDir)
@@ -146,7 +146,7 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	itemPaths := make([]string, 0, len(req.Paths))
 	for _, it := range req.Paths {
 		full := utils.JoinPathAsUnix(userScope, it)
-		if store.Access != nil && !store.Access.Permitted(idx.Path, full, d.user.Username) {
+		if accessStore != nil && !accessStore.Permitted(idx.Path, full, d.user.Username) {
 			continue // silently skip
 		}
 		itemPaths = append(itemPaths, full)
@@ -267,7 +267,7 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 
 	fullArchivePath := utils.JoinPathAsUnix(userScopeFrom, req.Path)
-	if store.Access != nil && !store.Access.Permitted(idxFrom.Path, fullArchivePath, d.user.Username) {
+	if accessStore != nil && !accessStore.Permitted(idxFrom.Path, fullArchivePath, d.user.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to archive %s", req.Path)
 	}
 	archiveReal, _, err := idxFrom.GetRealPath(fullArchivePath)
@@ -284,7 +284,7 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusForbidden, err
 	}
 	fullDestPath := utils.JoinPathAsUnix(userScopeTo, req.Destination)
-	if store.Access != nil && !store.Access.Permitted(idxTo.Path, fullDestPath, d.user.Username) {
+	if accessStore != nil && !accessStore.Permitted(idxTo.Path, fullDestPath, d.user.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to destination %s", req.Destination)
 	}
 	// Destination may not exist yet; resolve parent dir then build destination path.
@@ -293,7 +293,7 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		destDir = "/"
 	}
 	fullDestDir := utils.JoinPathAsUnix(userScopeTo, destDir)
-	if store.Access != nil && !store.Access.Permitted(idxTo.Path, fullDestDir, d.user.Username) {
+	if accessStore != nil && !accessStore.Permitted(idxTo.Path, fullDestDir, d.user.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to destination directory %s", destDir)
 	}
 	destParentReal, _, err := idxTo.GetRealPath(fullDestDir)
@@ -336,7 +336,7 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 }
 
 // addFile adds a file or directory to a tar or zip archive, respecting access rules.
-// For shares, path is already resolved; for users, access is checked via store.Access.
+// For shares, path is already resolved; for users, access is checked via accessStore.
 func addFile(source string, path string, d *requestContext, tarWriter *tar.Writer, zipWriter *zip.Writer, flatten bool) error {
 	idx := indexing.GetIndex(source)
 	if idx == nil {
@@ -344,7 +344,7 @@ func addFile(source string, path string, d *requestContext, tarWriter *tar.Write
 	}
 
 	// Check access control directly for each file and silently skip if access is denied
-	if !store.Access.Permitted(idx.Path, path, d.user.Username) {
+	if !accessStore.Permitted(idx.Path, path, d.user.Username) {
 		return nil // Silently skip this file/folder
 	}
 
@@ -382,7 +382,7 @@ func addFile(source string, path string, d *requestContext, tarWriter *tar.Write
 			if d.share == nil {
 				indexRelPath := utils.JoinPathAsUnix(path, relPath)
 				indexRelPath = filepath.ToSlash(indexRelPath)
-				if !store.Access.Permitted(idx.Path, indexRelPath, d.user.Username) {
+				if !accessStore.Permitted(idx.Path, indexRelPath, d.user.Username) {
 					if fileInfo.IsDir() {
 						return filepath.SkipDir
 					}
@@ -479,7 +479,7 @@ func computeArchiveSize(source string, fileList []string, d *requestContext) (in
 	}
 
 	for _, path := range fileList {
-		if !store.Access.Permitted(idx.Path, path, d.user.Username) {
+		if !accessStore.Permitted(idx.Path, path, d.user.Username) {
 			continue
 		}
 		realPath, isDir, err := idx.GetRealPath(path)

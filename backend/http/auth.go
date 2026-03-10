@@ -19,7 +19,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
-	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
+	"github.com/gtsteffaniak/filebrowser/backend/database/state"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
@@ -81,9 +81,9 @@ func extractToken(r *http.Request) (string, error) {
 func setupProxyUser(r *http.Request, data *requestContext, proxyUser string) (*users.User, error) {
 	var err error
 	// Retrieve the user from the store and store it in the context
-	data.user, err = store.Users.Get(proxyUser)
+	data.user, err = state.GetUserByUsername(proxyUser)
 	if err != nil {
-		if err.Error() != "the resource does not exist" {
+		if !libError.Is(err, errors.ErrNotExist) {
 			return nil, err
 		}
 		// Auto-create user on first proxy authentication
@@ -95,11 +95,11 @@ func setupProxyUser(r *http.Request, data *requestContext, proxyUser string) (*u
 		if user.Username == config.Auth.AdminUsername {
 			user.Permissions.Admin = true
 		}
-		err = storage.CreateUser(user, user.Permissions)
+		err = state.CreateUser(user, user.Permissions)
 		if err != nil {
 			return nil, err
 		}
-		data.user, err = store.Users.Get(proxyUser)
+		data.user, err = state.GetUserByUsername(proxyUser)
 		if err != nil {
 			return nil, err
 		}
@@ -109,7 +109,7 @@ func setupProxyUser(r *http.Request, data *requestContext, proxyUser string) (*u
 	}
 	if data.user.Username == config.Auth.AdminUsername && !data.user.Permissions.Admin {
 		data.user.Permissions.Admin = true
-		err = store.Users.Update(data.user, true, "Permissions")
+		err = state.UpdateUser(data.user)
 		if err != nil {
 			return nil, err
 		}
@@ -121,9 +121,9 @@ func setupProxyUser(r *http.Request, data *requestContext, proxyUser string) (*u
 func setupJwtUser(r *http.Request, data *requestContext, username string, claims map[string]interface{}) (*users.User, error) {
 	var err error
 	// Retrieve the user from the store
-	data.user, err = store.Users.Get(username)
+	data.user, err = state.GetUserByUsername(username)
 	if err != nil {
-		if err.Error() != "the resource does not exist" {
+		if !libError.Is(err, errors.ErrNotExist) {
 			return nil, err
 		}
 		// Auto-create user on first JWT authentication
@@ -149,11 +149,11 @@ func setupJwtUser(r *http.Request, data *requestContext, username string, claims
 			user.Permissions.Admin = true
 		}
 		
-		err = storage.CreateUser(user, user.Permissions)
+		err = state.CreateUser(user, user.Permissions)
 		if err != nil {
 			return nil, err
 		}
-		data.user, err = store.Users.Get(username)
+		data.user, err = state.GetUserByUsername(username)
 		if err != nil {
 			return nil, err
 		}
@@ -201,7 +201,7 @@ func setupJwtUser(r *http.Request, data *requestContext, username string, claims
 	
 	if shouldBeAdmin != data.user.Permissions.Admin {
 		data.user.Permissions.Admin = shouldBeAdmin
-		err = store.Users.Update(data.user, true, "Permissions")
+		err = state.UpdateUser(data.user)
 		if err != nil {
 			return nil, err
 		}
@@ -243,7 +243,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (in
 // @Success 200 {object} map[string]string "{"logoutUrl": "http://..."}"
 // @Router /api/auth/logout [post]
 func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	if err := auth.RevokeApiToken(store.Access, d.token); err != nil {
+	if err := auth.RevokeApiToken(accessStore, d.token); err != nil {
 		logger.Errorf("Failed to revoke token on logout: %v", err)
 	}
 
@@ -337,7 +337,7 @@ func signupHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		},
 		LoginMethod: users.LoginMethodPassword,
 	}
-	err := storage.CreateUser(user, settings.ConvertPermissionsToUsers(settings.Config.UserDefaults.Permissions))
+	err := state.CreateUser(user, settings.ConvertPermissionsToUsers(settings.Config.UserDefaults.Permissions))
 	if err != nil {
 		logger.Debug(err.Error())
 		// Return the actual error message instead of a generic one

@@ -15,8 +15,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
-	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
-	"github.com/gtsteffaniak/filebrowser/backend/database/storage/bolt"
+	"github.com/gtsteffaniak/filebrowser/backend/database/state"
 	"github.com/gtsteffaniak/filebrowser/backend/ffmpeg"
 	fbhttp "github.com/gtsteffaniak/filebrowser/backend/http"
 	"github.com/gtsteffaniak/filebrowser/backend/icons"
@@ -27,17 +26,26 @@ import (
 	"github.com/swaggo/swag"
 )
 
-var store *bolt.BoltStore
-
 func getStore(configFile string) bool {
 	// Use the config file (global flag)
 	settings.Initialize(configFile)
-	s, hasDB, err := storage.InitializeDb(settings.Config.Server.Database)
-	if err != nil {
-		logger.Fatalf("could not load db info: %v", err)
+	
+	// Check if migration is needed
+	if checkMigrationNeeded() {
+		logger.Info("Old BoltDB database detected, starting migration to SQLite...")
+		err := migrateFromBoltToSQLite()
+		if err != nil {
+			logger.Fatalf("Migration failed: %v", err)
+		}
 	}
-	store = s
-	return hasDB
+	
+	// Initialize state management system
+	err := state.Initialize(settings.Config.Server.DatabaseV2.Path)
+	if err != nil {
+		logger.Fatalf("could not initialize state: %v", err)
+	}
+	
+	return true
 }
 
 func generalUsage() {
@@ -77,9 +85,9 @@ func StartFilebrowser() {
 	done := make(chan struct{})             // Signals server has stopped
 	shutdownComplete := make(chan struct{}) // Signals shutdown process is complete
 	dbExists := getStore(configPath)
-	database := fmt.Sprintf("Using existing database  : %v", settings.Config.Server.Database)
+	database := fmt.Sprintf("Using existing database  : %v", settings.Config.Server.DatabaseV2.Path)
 	if !dbExists {
-		database = fmt.Sprintf("Creating new database    : %v", settings.Config.Server.Database)
+		database = fmt.Sprintf("Creating new database    : %v", settings.Config.Server.DatabaseV2.Path)
 	}
 
 	// Dev mode enables development features like template hot-reloading
@@ -124,10 +132,11 @@ func StartFilebrowser() {
 	}
 
 	// Set indexing storage for persistence
-	if store != nil && store.Indexing != nil {
-		indexing.SetIndexingStorage(store.Indexing)
+	indexingStorage := state.GetIndexingStorage()
+	if indexingStorage != nil {
+		indexing.SetIndexingStorage(indexingStorage)
 		if isNewDb {
-			if err := store.Indexing.ResetAllComplexities(); err != nil {
+			if err := indexingStorage.ResetAllComplexities(); err != nil {
 				logger.Errorf("Failed to reset index complexities: %v", err)
 			}
 		}
@@ -142,7 +151,7 @@ func StartFilebrowser() {
 	validateShareInfo()
 	// Start the rootCMD in a goroutine
 	go func() {
-		if err := rootCMD(ctx, store, &serverConfig, shutdownComplete); err != nil {
+		if err := rootCMD(ctx, &serverConfig, shutdownComplete); err != nil {
 			logger.Fatalf("Error starting filebrowser: %v", err)
 		}
 		close(done) // Signal that the server has stopped
@@ -175,7 +184,7 @@ func StartFilebrowser() {
 	logger.Info("Shutdown complete.")
 }
 
-func rootCMD(ctx context.Context, store *bolt.BoltStore, serverConfig *settings.Server, shutdownComplete chan struct{}) error {
+func rootCMD(ctx context.Context, serverConfig *settings.Server, shutdownComplete chan struct{}) error {
 	if serverConfig.NumImageProcessors < 1 {
 		logger.Fatal("Image resize workers count could not be < 1")
 	}
@@ -212,6 +221,6 @@ func rootCMD(ctx context.Context, store *bolt.BoltStore, serverConfig *settings.
 	// Initialize PWA manifest after icons are generated
 	icons.InitializePWAManifest()
 
-	fbhttp.StartHttp(ctx, store, shutdownComplete)
+	fbhttp.StartHttp(ctx, shutdownComplete)
 	return nil
 }
