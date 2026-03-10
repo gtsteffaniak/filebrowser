@@ -11,6 +11,7 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/gen2brain/go-fitz"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
@@ -32,9 +33,13 @@ func (s *Service) GenerateImageFromDoc(ctx context.Context, file iteminfo.Extend
 	s.docGenMutex.Lock()
 	defer s.docGenMutex.Unlock()
 
-	// 2. Lock the current goroutine to a single OS thread for CGo calls
+	// Lock the current goroutine to a single OS thread for CGo calls
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
+
+	// Create a 2-second timeout for document generation after acquiring locks
+	timeoutCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
 
 	docPath := file.RealPath
 	// copy file to a temporary location if needed
@@ -72,27 +77,40 @@ func (s *Service) GenerateImageFromDoc(ctx context.Context, file iteminfo.Extend
 				return nil, fmt.Errorf("text snippet: failed to close temporary file '%s': %w", tempFilePath, err)
 			}
 
-			docPath = tempFilePath // Update docPath to point to the new temporary text snippet file
-		}
+		docPath = tempFilePath // Update docPath to point to the new temporary text snippet file
 	}
+	}
+
+	// Check timeout before opening document
+	if timeoutCtx.Err() != nil {
+		return nil, fmt.Errorf("document preview generation timed out after 2 seconds for '%s'", file.Name)
+	}
+
 	doc, err := fitz.New(docPath) // This calls the CGo version
 	if err != nil {
-		// The error message you received: "failed to open PDF: fitz: cannot open memory"
 		return nil, fmt.Errorf("failed to open PDF from memory for file '%s': %w", docPath, err)
 	}
 	defer doc.Close()
 
+	// Check timeout after opening document
+	if timeoutCtx.Err() != nil {
+		return nil, fmt.Errorf("document preview generation timed out after 2 seconds for '%s'", file.Name)
+	}
+
 	// Get the image from the doc page
-	// Ensure pageNumber is valid (e.g., >= 0 for 0-indexed or >= 1 for 1-indexed, check go-fitz docs)
-	// And pageNumber < doc.NumPage()
 	numPages := doc.NumPage()
-	if pageNumber < 0 || pageNumber >= numPages { // Assuming 0-indexed for Image()
+	if pageNumber < 0 || pageNumber >= numPages {
 		return nil, fmt.Errorf("invalid page number %d for PDF with %d pages ('%s')", pageNumber, numPages, docPath)
 	}
 
 	img, err := doc.Image(pageNumber)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get image from page %d of '%s': %w", pageNumber, docPath, err)
+	}
+
+	// Check timeout after rendering image
+	if timeoutCtx.Err() != nil {
+		return nil, fmt.Errorf("document preview generation timed out after 2 seconds for '%s'", file.Name)
 	}
 
 	// Create a new buffer to hold the image bytes

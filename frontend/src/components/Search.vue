@@ -157,6 +157,9 @@ export default {
     };
   },
   watch: {
+    currentSourceState(){
+      this.selectedSource = state.sources.current;
+    },
     largerThan() {
       this.submit();
     },
@@ -220,6 +223,9 @@ export default {
     }
   },
   computed: {
+    currentSourceState() {
+      return state.sources.current;
+    },
     eventTheme() {
       return getters.eventTheme();
     },
@@ -390,21 +396,6 @@ export default {
       let parts = url.removeTrailingSlash(str).split("/");
       let part = parts.pop();
       return part;
-    },
-    open() {
-      if (!state.isSearchActive) {
-        mutations.closeHovers();
-        mutations.closeSidebar();
-        mutations.resetSelected();
-        this.resetSearchFilters;
-        mutations.setSearch(true);
-        // allow animation and expansion
-        setTimeout(() => {
-          const resultList = document.getElementById("result-list");
-          resultList.classList.add("active");
-          document.getElementById("search-input").focus();
-        }, 100);
-      }
     },
     close(event) {
       this.value = "";
