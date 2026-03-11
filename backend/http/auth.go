@@ -160,17 +160,15 @@ func setupProxyUser(r *http.Request, data *requestContext, proxyUser string) (*u
 func setupJwtUser(r *http.Request, data *requestContext, username string, claims map[string]interface{}) (*users.User, error) {
 	// Determine if user should be admin
 	isAdmin := username == config.Auth.AdminUsername
-	groups := []string{}
 	// Check if user should be admin based on groups
-	if config.Auth.Methods.JwtAuth.AdminGroup != "" {
-		groups = auth.ExtractGroupsFromClaims(claims, config.Auth.Methods.JwtAuth.GroupsClaim)
-		for _, group := range groups {
-			if group == config.Auth.Methods.JwtAuth.AdminGroup {
-				isAdmin = true
-				break
-			}
+	groups := auth.ExtractGroupsFromClaims(claims, config.Auth.Methods.JwtAuth.GroupsClaim)
+	for _, group := range groups {
+		if group == config.Auth.Methods.JwtAuth.AdminGroup {
+			isAdmin = true
+			break
 		}
 	}
+
 	return getOrCreateAuthenticatedUser(username, users.LoginMethodJwt, isAdmin, groups)
 }
 

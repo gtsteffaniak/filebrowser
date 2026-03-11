@@ -258,8 +258,8 @@ func sharePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 // @Router /api/share [post]
 func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	var s *share.Link
-	var err error
 	var body share.CreateBody
+	var err error
 	if r.Body != nil {
 		if err = json.NewDecoder(r.Body).Decode(&body); err != nil {
 			return http.StatusBadRequest, fmt.Errorf("failed to decode body: %w", err)
@@ -299,9 +299,9 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		expire = time.Now().Add(add).Unix()
 	}
 
-	hash, status, err := getSharePasswordHash(body)
-	if err != nil {
-		return status, err
+	hash, status, err2 := getSharePasswordHash(body)
+	if err2 != nil {
+		return status, err2
 	}
 	stringHash := ""
 	var token string
@@ -326,9 +326,9 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if s != nil {
 		// Update existing share
 		// Get the current share
-		existingShare, err := shareStore.GetByHash(body.Hash)
-		if err != nil {
-			return http.StatusInternalServerError, err
+		existingShare, err2 := shareStore.GetByHash(body.Hash)
+		if err2 != nil {
+			return http.StatusInternalServerError, err2
 		}
 
 		// Check if downloads limit or per-user limit changed - reset counts if so
@@ -362,9 +362,9 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		}
 
 		// Get the updated share to return (from cache)
-		updatedShare, err := shareStore.GetByHash(body.Hash)
-		if err != nil {
-			return http.StatusInternalServerError, err
+		updatedShare, err3 := shareStore.GetByHash(body.Hash)
+		if err3 != nil {
+			return http.StatusInternalServerError, err3
 		}
 
 		// Convert to ShareResponse format with username

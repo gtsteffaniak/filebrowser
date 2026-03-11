@@ -1,26 +1,86 @@
 package access_test
 
 import (
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
-	"github.com/asdine/storm/v3"
+	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/database/access"
-	boltusers "github.com/gtsteffaniak/filebrowser/backend/database/storage/bolt"
+	"github.com/gtsteffaniak/filebrowser/backend/database/sqldb"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 )
 
-func createTestStorage(t *testing.T) (*access.Storage, *users.Storage) {
-	dir := t.TempDir()
-	dbPath := filepath.Join(dir, "test.db")
-	db, err := storm.Open(dbPath)
-	if err != nil {
-		t.Fatalf("failed to open storm db: %v", err)
+// sqlStoreAdapter adapts SQLStore to implement users.StorageBackend interface
+type sqlStoreAdapter struct {
+	store *sqldb.SQLStore
+}
+
+func (s *sqlStoreAdapter) GetBy(id interface{}) (*users.User, error) {
+	switch v := id.(type) {
+	case string:
+		return s.store.GetUserByUsername(v)
+	case uint:
+		return s.store.GetUserByID(v)
+	default:
+		return nil, errors.ErrInvalidDataType
 	}
-	userStore := users.NewStorage(boltusers.NewUsersBackend(db))
-	return access.NewStorage(db, userStore), userStore
+}
+
+func (s *sqlStoreAdapter) Gets() ([]*users.User, error) {
+	return s.store.ListUsers()
+}
+
+func (s *sqlStoreAdapter) Save(user *users.User, changePass, disableScopeChange bool) error {
+	// Check if user exists
+	existingUser, err := s.store.GetUserByUsername(user.Username)
+	if err != nil {
+		// User doesn't exist - create new user
+		return s.store.CreateUser(user)
+	}
+	// User exists - update
+	user.ID = existingUser.ID
+	return s.store.UpdateUser(user)
+}
+
+func (s *sqlStoreAdapter) Update(user *users.User, adminActor bool, fields ...string) error {
+	return s.store.UpdateUser(user)
+}
+
+func (s *sqlStoreAdapter) DeleteByID(id uint) error {
+	return s.store.DeleteUser(id)
+}
+
+func (s *sqlStoreAdapter) DeleteByUsername(username string) error {
+	return s.store.DeleteUserByUsername(username)
+}
+
+func createTestStorage(t *testing.T) (*access.Storage, *users.Storage) {
+	// Create a temporary directory for the test database
+	tempDir, err := os.MkdirTemp("", "access_test_*")
+	if err != nil {
+		t.Fatalf("failed to create temp dir: %v", err)
+	}
+	t.Cleanup(func() {
+		os.RemoveAll(tempDir)
+	})
+
+	// Create an in-memory SQLite database for tests
+	dbPath := filepath.Join(tempDir, "test.db")
+	sqlStore, _, err := sqldb.NewSQLStore(dbPath)
+	if err != nil {
+		t.Fatalf("failed to create SQL store: %v", err)
+	}
+	t.Cleanup(func() {
+		sqlStore.Close()
+	})
+
+	// Wrap SQLStore with adapter
+	adapter := &sqlStoreAdapter{store: sqlStore}
+	userStore := users.NewStorage(adapter)
+	return access.NewStorage(userStore), userStore
 }
 
 func createTestUser(t *testing.T, userStore *users.Storage, username string) {
@@ -71,10 +131,6 @@ func TestPermitted_UserBlacklist(t *testing.T) {
 	s, userStore := createTestStorage(t)
 	createTestUser(t, userStore, "alice")
 	createTestUser(t, userStore, "bob")
-	err := s.LoadFromDB()
-	if err != nil && err != storm.ErrNotFound {
-		t.Errorf("unexpected error loading from DB: %v", err)
-	}
 	if err := s.DenyUser("mnt/storage", "/secret", "alice"); err != nil {
 		t.Errorf("DenyUser failed: %v", err)
 	}
@@ -91,10 +147,6 @@ func TestPermitted_UserWhitelist(t *testing.T) {
 	s, userStore := createTestStorage(t)
 	createTestUser(t, userStore, "alice")
 	createTestUser(t, userStore, "bob")
-	err := s.LoadFromDB()
-	if err != nil && err != storm.ErrNotFound {
-		t.Errorf("unexpected error loading from DB: %v", err)
-	}
 	if err := s.AllowUser("mnt/storage", "/vip", "bob"); err != nil {
 		t.Errorf("AllowUser failed: %v", err)
 	}
@@ -111,10 +163,6 @@ func TestPermitted_GroupBlacklist(t *testing.T) {
 	s, userStore := createTestStorage(t)
 	createTestUser(t, userStore, "alice")
 	createTestUser(t, userStore, "bob")
-	err := s.LoadFromDB()
-	if err != nil && err != storm.ErrNotFound {
-		t.Errorf("unexpected error loading from DB: %v", err)
-	}
 	_ = s.AddUserToGroup("admins", "alice")
 	if err := s.DenyGroup("mnt/storage", "/admin", "admins"); err != nil {
 		t.Errorf("DenyGroup failed: %v", err)
@@ -132,10 +180,6 @@ func TestPermitted_GroupWhitelist(t *testing.T) {
 	s, userStore := createTestStorage(t)
 	createTestUser(t, userStore, "alice")
 	createTestUser(t, userStore, "bob")
-	err := s.LoadFromDB()
-	if err != nil && err != storm.ErrNotFound {
-		t.Errorf("unexpected error loading from DB: %v", err)
-	}
 	_ = s.AddUserToGroup("vip", "bob")
 	if err := s.AllowGroup("mnt/storage", "/vip", "vip"); err != nil {
 		t.Errorf("AllowGroup failed: %v", err)
@@ -151,10 +195,6 @@ func TestPermitted_GroupWhitelist(t *testing.T) {
 func TestPermitted_NoRule(t *testing.T) {
 	setupTestSources()
 	s, _ := createTestStorage(t)
-	err := s.LoadFromDB()
-	if err != nil && err != storm.ErrNotFound {
-		t.Errorf("unexpected error loading from DB: %v", err)
-	}
 	if !s.Permitted("mnt/storage", "/public", "anyone") {
 		t.Error("anyone should be permitted if no rule exists")
 	}
@@ -167,16 +207,10 @@ func TestPermitted_CombinedRules(t *testing.T) {
 	createTestUser(t, userStore, "bob")
 	createTestUser(t, userStore, "carol")
 	createTestUser(t, userStore, "eve")
-	err := s.LoadFromDB()
-	if err != nil && err != storm.ErrNotFound {
-		t.Errorf("unexpected error loading from DB: %v", err)
-	}
-	err = s.AddUserToGroup("vip", "bob")
-	if err != nil {
+	if err := s.AddUserToGroup("vip", "bob"); err != nil {
 		t.Errorf("AddUserToGroup failed: %v", err)
 	}
-	err = s.AddUserToGroup("admins", "alice")
-	if err != nil {
+	if err := s.AddUserToGroup("admins", "alice"); err != nil {
 		t.Errorf("AddUserToGroup failed: %v", err)
 	}
 	if err := s.DenyUser("mnt/storage", "/combo", "eve"); err != nil {
@@ -210,13 +244,9 @@ func TestPermitted_DenyAll(t *testing.T) {
 	s, userStore := createTestStorage(t)
 	createTestUser(t, userStore, "alice")
 	createTestUser(t, userStore, "bob")
-	err := s.LoadFromDB()
-	if err != nil && err != storm.ErrNotFound {
-		t.Errorf("unexpected error loading from DB: %v", err)
-	}
 
 	// Test DenyAll
-	if err = s.DenyAll("mnt/storage", "/private"); err != nil {
+	if err := s.DenyAll("mnt/storage", "/private"); err != nil {
 		t.Errorf("DenyAll failed: %v", err)
 	}
 	if s.Permitted("mnt/storage", "/private", "alice") {
@@ -227,7 +257,7 @@ func TestPermitted_DenyAll(t *testing.T) {
 	}
 
 	// Test that Allow rule overrides DenyAll
-	if err = s.AllowUser("mnt/storage", "/private", "alice"); err != nil {
+	if err := s.AllowUser("mnt/storage", "/private", "alice"); err != nil {
 		t.Errorf("AllowUser failed: %v", err)
 	}
 	if !s.Permitted("mnt/storage", "/private", "alice") {
@@ -262,10 +292,6 @@ func TestPermitted_DenyByDefault(t *testing.T) {
 	s, userStore := createTestStorage(t)
 	createTestUser(t, userStore, "alice")
 	createTestUser(t, userStore, "bob")
-	err := s.LoadFromDB()
-	if err != nil && err != storm.ErrNotFound {
-		t.Errorf("unexpected error loading from DB: %v", err)
-	}
 
 	// Setup test configuration with DenyByDefault enabled for one source
 	originalSourceMap := settings.Config.Server.SourceMap
@@ -362,10 +388,6 @@ func TestPermitted_DenyByDefaultWithDenyAll(t *testing.T) {
 	s, userStore := createTestStorage(t)
 	createTestUser(t, userStore, "alice")
 	createTestUser(t, userStore, "bob")
-	err := s.LoadFromDB()
-	if err != nil && err != storm.ErrNotFound {
-		t.Errorf("unexpected error loading from DB: %v", err)
-	}
 
 	// Setup test configuration with DenyByDefault enabled
 	originalSourceMap := settings.Config.Server.SourceMap
@@ -385,7 +407,7 @@ func TestPermitted_DenyByDefaultWithDenyAll(t *testing.T) {
 	}
 
 	// Test that explicit DenyAll rule also works when DenyByDefault is enabled
-	if err = s.DenyAll("mnt/storage", "/restricted"); err != nil {
+	if err := s.DenyAll("mnt/storage", "/restricted"); err != nil {
 		t.Errorf("DenyAll failed: %v", err)
 	}
 	if s.Permitted("mnt/storage", "/restricted", "alice") {
@@ -396,7 +418,7 @@ func TestPermitted_DenyByDefaultWithDenyAll(t *testing.T) {
 	}
 
 	// Test that Allow rule overrides DenyAll even with DenyByDefault
-	if err = s.AllowUser("mnt/storage", "/restricted", "alice"); err != nil {
+	if err := s.AllowUser("mnt/storage", "/restricted", "alice"); err != nil {
 		t.Errorf("AllowUser failed: %v", err)
 	}
 	if !s.Permitted("mnt/storage", "/restricted", "alice") {
@@ -429,10 +451,6 @@ func TestPermitted_DenyByDefault_AdminRootAccess(t *testing.T) {
 	createTestUser(t, userStore, "admin")
 	createTestUser(t, userStore, "graham")
 	createTestUser(t, userStore, "bob")
-	err := s.LoadFromDB()
-	if err != nil && err != storm.ErrNotFound {
-		t.Errorf("unexpected error loading from DB: %v", err)
-	}
 
 	// 2. Configure source with DenyByDefault: true
 	originalSourceMap := settings.Config.Server.SourceMap
@@ -505,11 +523,6 @@ func TestUserReportedBug(t *testing.T) {
 	createTestUser(t, userStore, "testu1")
 	createTestUser(t, userStore, "testu2")
 
-	err := s.LoadFromDB()
-	if err != nil && err != storm.ErrNotFound {
-		t.Errorf("unexpected error loading from DB: %v", err)
-	}
-
 	// Setup test configuration for TEST_FOLDER source
 	originalSourceMap := settings.Config.Server.SourceMap
 	defer func() {
@@ -571,10 +584,6 @@ func TestSubfolderAccessLogicBug(t *testing.T) {
 	s, userStore := createTestStorage(t)
 	createTestUser(t, userStore, "testu1")
 	createTestUser(t, userStore, "testu2")
-	err := s.LoadFromDB()
-	if err != nil && err != storm.ErrNotFound {
-		t.Errorf("unexpected error loading from DB: %v", err)
-	}
 
 	originalSourceMap := settings.Config.Server.SourceMap
 	defer func() {
@@ -630,10 +639,6 @@ func TestFileInfoBrowsingBug(t *testing.T) {
 	s, userStore := createTestStorage(t)
 	createTestUser(t, userStore, "testu1")
 	createTestUser(t, userStore, "testu2")
-	err := s.LoadFromDB()
-	if err != nil && err != storm.ErrNotFound {
-		t.Errorf("unexpected error loading from DB: %v", err)
-	}
 
 	originalSourceMap := settings.Config.Server.SourceMap
 	defer func() {
@@ -708,10 +713,6 @@ func TestCacheClearingOnRuleDeletion(t *testing.T) {
 	s, userStore := createTestStorage(t)
 	createTestUser(t, userStore, "user1")
 	createTestUser(t, userStore, "user2")
-	err := s.LoadFromDB()
-	if err != nil && err != storm.ErrNotFound {
-		t.Errorf("unexpected error loading from DB: %v", err)
-	}
 
 	// Setup test sources
 	originalSourceMap := settings.Config.Server.SourceMap
@@ -731,12 +732,10 @@ func TestCacheClearingOnRuleDeletion(t *testing.T) {
 	}
 
 	// Step 1: Add some rules
-	err = s.DenyUser("test_source", "/path1/", "user1")
-	if err != nil {
+	if err := s.DenyUser("test_source", "/path1/", "user1"); err != nil {
 		t.Fatalf("Failed to deny user1: %v", err)
 	}
-	err = s.AllowUser("test_source", "/path2/", "user2")
-	if err != nil {
+	if err := s.AllowUser("test_source", "/path2/", "user2"); err != nil {
 		t.Fatalf("Failed to allow user2: %v", err)
 	}
 
@@ -825,10 +824,6 @@ func TestCacheClearingOnBulkRuleDeletion(t *testing.T) {
 	s, userStore := createTestStorage(t)
 	createTestUser(t, userStore, "user1")
 	createTestUser(t, userStore, "user2")
-	err := s.LoadFromDB()
-	if err != nil && err != storm.ErrNotFound {
-		t.Errorf("unexpected error loading from DB: %v", err)
-	}
 
 	// Setup test sources
 	originalSourceMap := settings.Config.Server.SourceMap
@@ -848,16 +843,13 @@ func TestCacheClearingOnBulkRuleDeletion(t *testing.T) {
 	}
 
 	// Step 1: Add multiple rules for user1
-	err = s.DenyUser("test_source", "/path1", "user1")
-	if err != nil {
+	if err := s.DenyUser("test_source", "/path1", "user1"); err != nil {
 		t.Fatalf("Failed to deny user1 on path1: %v", err)
 	}
-	err = s.AllowUser("test_source", "/path2", "user1")
-	if err != nil {
+	if err := s.AllowUser("test_source", "/path2", "user1"); err != nil {
 		t.Fatalf("Failed to allow user1 on path2: %v", err)
 	}
-	err = s.DenyUser("test_source", "/path3", "user1")
-	if err != nil {
+	if err := s.DenyUser("test_source", "/path3", "user1"); err != nil {
 		t.Fatalf("Failed to deny user1 on path3: %v", err)
 	}
 
@@ -898,10 +890,6 @@ func TestNestedFolderAccessBug(t *testing.T) {
 	s, userStore := createTestStorage(t)
 	createTestUser(t, userStore, "user1")
 	createTestUser(t, userStore, "user2")
-	err := s.LoadFromDB()
-	if err != nil && err != storm.ErrNotFound {
-		t.Errorf("unexpected error loading from DB: %v", err)
-	}
 
 	// Setup test sources
 	originalSourceMap := settings.Config.Server.SourceMap
@@ -921,7 +909,7 @@ func TestNestedFolderAccessBug(t *testing.T) {
 	}
 
 	// Set up access rules as described
-	err = s.DenyUser("TEST", "/folder2", "user1")
+	err := s.DenyUser("TEST", "/folder2", "user1")
 	if err != nil {
 		t.Fatalf("Failed to deny user1 access to folder2: %v", err)
 	}
@@ -1224,11 +1212,7 @@ func TestRemoveUserCascade_OnlyRemovesSpecificList(t *testing.T) {
 	setupTestSources()
 	s, userStore := createTestStorage(t)
 	createTestUser(t, userStore, "alice")
-	err := s.LoadFromDB()
-	if err != nil && err != storm.ErrNotFound {
-		t.Errorf("unexpected error loading from DB: %v", err)
-	}
-
+	var err error
 	// Set up rules: alice has both allow and deny rules on different paths
 	if err = s.AllowUser("mnt/storage", "/docs/", "alice"); err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
@@ -1281,10 +1265,7 @@ func TestRemoveUserCascade_DenyRules(t *testing.T) {
 	setupTestSources()
 	s, userStore := createTestStorage(t)
 	createTestUser(t, userStore, "bob")
-	err := s.LoadFromDB()
-	if err != nil && err != storm.ErrNotFound {
-		t.Errorf("unexpected error loading from DB: %v", err)
-	}
+	var err error
 
 	// Set up both allow and deny rules
 	if err = s.AllowUser("mnt/storage", "/projects/", "bob"); err != nil {
@@ -1338,10 +1319,6 @@ func TestRemoveUserCascade_MultipleSubpaths(t *testing.T) {
 	setupTestSources()
 	s, userStore := createTestStorage(t)
 	createTestUser(t, userStore, "carol")
-	err := s.LoadFromDB()
-	if err != nil && err != storm.ErrNotFound {
-		t.Errorf("unexpected error loading from DB: %v", err)
-	}
 
 	// Set up a deep hierarchy of allow rules
 	paths := []string{
@@ -1356,13 +1333,14 @@ func TestRemoveUserCascade_MultipleSubpaths(t *testing.T) {
 	}
 
 	for _, path := range paths {
-		if err = s.AllowUser("mnt/storage", path, "carol"); err != nil {
+		if err := s.AllowUser("mnt/storage", path, "carol"); err != nil {
 			t.Fatalf("AllowUser failed for %s: %v", path, err)
 		}
 	}
 
 	// Cascade delete from /data/2024/ should remove all 2024 subpaths
 	var count int
+	var err error
 	count, err = s.RemoveUserCascade("mnt/storage", "/data/2024/", "carol", true)
 	if err != nil {
 		t.Fatalf("RemoveUserCascade failed: %v", err)
@@ -1397,27 +1375,23 @@ func TestRemoveGroupCascade_OnlyRemovesSpecificList(t *testing.T) {
 	setupTestSources()
 	s, userStore := createTestStorage(t)
 	createTestUser(t, userStore, "alice")
-	err := s.LoadFromDB()
-	if err != nil && err != storm.ErrNotFound {
-		t.Errorf("unexpected error loading from DB: %v", err)
-	}
 
 	// Create a group
-	if err = s.AddUserToGroup("editors", "alice"); err != nil {
+	if err := s.AddUserToGroup("editors", "alice"); err != nil {
 		t.Fatalf("AddUserToGroup failed: %v", err)
 	}
 
 	// Set up both allow and deny rules for the group
-	if err = s.AllowGroup("mnt/storage", "/content/", "editors"); err != nil {
+	if err := s.AllowGroup("mnt/storage", "/content/", "editors"); err != nil {
 		t.Fatalf("AllowGroup failed: %v", err)
 	}
-	if err = s.AllowGroup("mnt/storage", "/content/articles/", "editors"); err != nil {
+	if err := s.AllowGroup("mnt/storage", "/content/articles/", "editors"); err != nil {
 		t.Fatalf("AllowGroup failed: %v", err)
 	}
-	if err = s.DenyGroup("mnt/storage", "/content/", "editors"); err != nil {
+	if err := s.DenyGroup("mnt/storage", "/content/", "editors"); err != nil {
 		t.Fatalf("DenyGroup failed: %v", err)
 	}
-	if err = s.DenyGroup("mnt/storage", "/content/drafts/", "editors"); err != nil {
+	if err := s.DenyGroup("mnt/storage", "/content/drafts/", "editors"); err != nil {
 		t.Fatalf("DenyGroup failed: %v", err)
 	}
 
@@ -1454,13 +1428,10 @@ func TestRemoveGroupCascade_DenyRules(t *testing.T) {
 	setupTestSources()
 	s, userStore := createTestStorage(t)
 	createTestUser(t, userStore, "alice")
-	err := s.LoadFromDB()
-	if err != nil && err != storm.ErrNotFound {
-		t.Errorf("unexpected error loading from DB: %v", err)
-	}
 
 	// Create a group
-	if err = s.AddUserToGroup("contractors", "alice"); err != nil {
+	err := s.AddUserToGroup("contractors", "alice")
+	if err != nil {
 		t.Fatalf("AddUserToGroup failed: %v", err)
 	}
 
@@ -1516,13 +1487,10 @@ func TestRemoveUserCascade_EmptyResult(t *testing.T) {
 	setupTestSources()
 	s, userStore := createTestStorage(t)
 	createTestUser(t, userStore, "dave")
-	err := s.LoadFromDB()
-	if err != nil && err != storm.ErrNotFound {
-		t.Errorf("unexpected error loading from DB: %v", err)
-	}
 
 	// Try to cascade delete when no rules exist
 	var count int
+	var err error
 	count, err = s.RemoveUserCascade("mnt/storage", "/nonexistent/", "dave", true)
 	if err != nil {
 		t.Fatalf("RemoveUserCascade should not error on nonexistent rules: %v", err)
@@ -1539,13 +1507,10 @@ func TestRemoveUserCascade_ExactPathOnly(t *testing.T) {
 	setupTestSources()
 	s, userStore := createTestStorage(t)
 	createTestUser(t, userStore, "eve")
-	err := s.LoadFromDB()
-	if err != nil && err != storm.ErrNotFound {
-		t.Errorf("unexpected error loading from DB: %v", err)
-	}
 
 	// Add rule only on exact path, no subpaths
-	if err = s.AllowUser("mnt/storage", "/single/", "eve"); err != nil {
+	err := s.AllowUser("mnt/storage", "/single/", "eve")
+	if err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
 
@@ -1573,19 +1538,15 @@ func TestRemoveUserCascade_DoesNotAffectParentPaths(t *testing.T) {
 	setupTestSources()
 	s, userStore := createTestStorage(t)
 	createTestUser(t, userStore, "frank")
-	err := s.LoadFromDB()
-	if err != nil && err != storm.ErrNotFound {
-		t.Errorf("unexpected error loading from DB: %v", err)
-	}
 
 	// Set up rules on parent and child paths
-	if err = s.AllowUser("mnt/storage", "/parent/", "frank"); err != nil {
+	if err := s.AllowUser("mnt/storage", "/parent/", "frank"); err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
-	if err = s.AllowUser("mnt/storage", "/parent/child/", "frank"); err != nil {
+	if err := s.AllowUser("mnt/storage", "/parent/child/", "frank"); err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
-	if err = s.AllowUser("mnt/storage", "/parent/child/grandchild/", "frank"); err != nil {
+	if err := s.AllowUser("mnt/storage", "/parent/child/grandchild/", "frank"); err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
 
@@ -1618,16 +1579,12 @@ func TestRemoveUserCascade_CleanupEmptyRules(t *testing.T) {
 	setupTestSources()
 	s, userStore := createTestStorage(t)
 	createTestUser(t, userStore, "grace")
-	err := s.LoadFromDB()
-	if err != nil && err != storm.ErrNotFound {
-		t.Errorf("unexpected error loading from DB: %v", err)
-	}
 
 	// Add only allow rule (no deny rules)
-	if err = s.AllowUser("mnt/storage", "/temp/", "grace"); err != nil {
+	if err := s.AllowUser("mnt/storage", "/temp/", "grace"); err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
-	if err = s.AllowUser("mnt/storage", "/temp/files/", "grace"); err != nil {
+	if err := s.AllowUser("mnt/storage", "/temp/files/", "grace"); err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
 
@@ -1671,13 +1628,10 @@ func TestRemoveUserCascade_MixedUsers(t *testing.T) {
 	s, userStore := createTestStorage(t)
 	createTestUser(t, userStore, "henry")
 	createTestUser(t, userStore, "iris")
-	err := s.LoadFromDB()
-	if err != nil && err != storm.ErrNotFound {
-		t.Errorf("unexpected error loading from DB: %v", err)
-	}
 
 	// Add rules for both users on same paths
-	if err = s.AllowUser("mnt/storage", "/shared/", "henry"); err != nil {
+	err := s.AllowUser("mnt/storage", "/shared/", "henry")
+	if err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
 	if err = s.AllowUser("mnt/storage", "/shared/", "iris"); err != nil {

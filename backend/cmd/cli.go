@@ -149,28 +149,27 @@ func setRule(dbConfig, fsPath, indexPath, ruleCategory, value string, allow bool
 		return fmt.Errorf("value is required when ruleCategory is 'user' or 'group': use -v <username|groupname>")
 	}
 
-	// Initialize store and settings
-	_ = getStore(dbConfig) // ignore bool check
+	accessStore := state.GetAccessStorage()
 
 	// Apply the rule based on allow flag and ruleCategory
 	var err error
 	if allow {
 		switch ruleCategory {
 		case "user":
-			err = state.GetAccessStorage().AllowUser(fsPath, indexPath, value)
+			err = accessStore.AllowUser(fsPath, indexPath, value)
 		case "group":
-			err = state.GetAccessStorage().AllowGroup(fsPath, indexPath, value)
+			err = accessStore.AllowGroup(fsPath, indexPath, value)
 		default:
 			return fmt.Errorf("invalid ruleCategory for allow: must be 'user' or 'group'")
 		}
 	} else {
 		switch ruleCategory {
 		case "user":
-			err = state.GetAccessStorage().DenyUser(fsPath, indexPath, value)
+			err = accessStore.DenyUser(fsPath, indexPath, value)
 		case "group":
-			err = state.GetAccessStorage().DenyGroup(fsPath, indexPath, value)
+			err = accessStore.DenyGroup(fsPath, indexPath, value)
 		case "all":
-			err = state.GetAccessStorage().DenyAll(fsPath, indexPath)
+			err = accessStore.DenyAll(fsPath, indexPath)
 		default:
 			return fmt.Errorf("invalid ruleCategory: must be 'user', 'group', or 'all'")
 		}
