@@ -10,12 +10,42 @@ import (
 
 // User SQL operations
 
+// UserData holds all the non-queryable user fields in JSON
+type UserData struct {
+	Password        string                   `json:"password,omitempty"`
+	Scopes          []users.SourceScope      `json:"scopes"`
+	Tokens          map[string]users.AuthToken `json:"tokens,omitempty"`
+	TOTPSecret      string                   `json:"totpSecret,omitempty"`
+	TOTPNonce       string                   `json:"totpNonce,omitempty"`
+	LoginMethod     users.LoginMethod        `json:"loginMethod"`
+	OtpEnabled      bool                     `json:"otpEnabled"`
+	Version         int                      `json:"version"`
+	ShowFirstLogin  bool                     `json:"showFirstLogin"`
+	NonAdminEditable users.NonAdminEditable  `json:"settings"`
+}
+
 // GetUserByID retrieves a user by ID
 func (s *SQLStore) GetUserByID(id uint) (*users.User, error) {
-	query := `SELECT user_data FROM users WHERE id = ?`
+	query := `SELECT id, username, perm_api, perm_admin, perm_modify, perm_share, 
+			  perm_realtime, perm_delete, perm_create, perm_download, user_data 
+			  FROM users WHERE id = ?`
 
+	var user users.User
 	var userDataJSON []byte
-	err := s.db.QueryRow(query, id).Scan(&userDataJSON)
+
+	err := s.db.QueryRow(query, id).Scan(
+		&user.ID,
+		&user.Username,
+		&user.Permissions.Api,
+		&user.Permissions.Admin,
+		&user.Permissions.Modify,
+		&user.Permissions.Share,
+		&user.Permissions.Realtime,
+		&user.Permissions.Delete,
+		&user.Permissions.Create,
+		&user.Permissions.Download,
+		&userDataJSON,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("user not found")
@@ -24,20 +54,49 @@ func (s *SQLStore) GetUserByID(id uint) (*users.User, error) {
 		return nil, fmt.Errorf("failed to get user: %w", err)
 	}
 
-	var user users.User
-	if err := json.Unmarshal(userDataJSON, &user); err != nil {
+	// Unmarshal JSON data
+	var userData UserData
+	if err := json.Unmarshal(userDataJSON, &userData); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal user data: %w", err)
 	}
+
+	// Map UserData to User struct
+	user.Password = userData.Password
+	user.Scopes = userData.Scopes
+	user.Tokens = userData.Tokens
+	user.TOTPSecret = userData.TOTPSecret
+	user.TOTPNonce = userData.TOTPNonce
+	user.LoginMethod = userData.LoginMethod
+	user.OtpEnabled = userData.OtpEnabled
+	user.Version = userData.Version
+	user.ShowFirstLogin = userData.ShowFirstLogin
+	user.NonAdminEditable = userData.NonAdminEditable
 
 	return &user, nil
 }
 
 // GetUserByUsername retrieves a user by username
 func (s *SQLStore) GetUserByUsername(username string) (*users.User, error) {
-	query := `SELECT user_data FROM users WHERE username = ?`
+	query := `SELECT id, username, perm_api, perm_admin, perm_modify, perm_share, 
+			  perm_realtime, perm_delete, perm_create, perm_download, user_data 
+			  FROM users WHERE username = ?`
 
+	var user users.User
 	var userDataJSON []byte
-	err := s.db.QueryRow(query, username).Scan(&userDataJSON)
+
+	err := s.db.QueryRow(query, username).Scan(
+		&user.ID,
+		&user.Username,
+		&user.Permissions.Api,
+		&user.Permissions.Admin,
+		&user.Permissions.Modify,
+		&user.Permissions.Share,
+		&user.Permissions.Realtime,
+		&user.Permissions.Delete,
+		&user.Permissions.Create,
+		&user.Permissions.Download,
+		&userDataJSON,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("user not found")
@@ -46,17 +105,32 @@ func (s *SQLStore) GetUserByUsername(username string) (*users.User, error) {
 		return nil, fmt.Errorf("failed to get user: %w", err)
 	}
 
-	var user users.User
-	if err := json.Unmarshal(userDataJSON, &user); err != nil {
+	// Unmarshal JSON data
+	var userData UserData
+	if err := json.Unmarshal(userDataJSON, &userData); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal user data: %w", err)
 	}
+
+	// Map UserData to User struct
+	user.Password = userData.Password
+	user.Scopes = userData.Scopes
+	user.Tokens = userData.Tokens
+	user.TOTPSecret = userData.TOTPSecret
+	user.TOTPNonce = userData.TOTPNonce
+	user.LoginMethod = userData.LoginMethod
+	user.OtpEnabled = userData.OtpEnabled
+	user.Version = userData.Version
+	user.ShowFirstLogin = userData.ShowFirstLogin
+	user.NonAdminEditable = userData.NonAdminEditable
 
 	return &user, nil
 }
 
 // ListUsers retrieves all users
 func (s *SQLStore) ListUsers() ([]*users.User, error) {
-	query := `SELECT user_data FROM users ORDER BY username`
+	query := `SELECT id, username, perm_api, perm_admin, perm_modify, perm_share, 
+			  perm_realtime, perm_delete, perm_create, perm_download, user_data 
+			  FROM users ORDER BY username`
 
 	rows, err := s.db.Query(query)
 	if err != nil {
@@ -66,15 +140,43 @@ func (s *SQLStore) ListUsers() ([]*users.User, error) {
 
 	var usersList []*users.User
 	for rows.Next() {
+		var user users.User
 		var userDataJSON []byte
-		if err := rows.Scan(&userDataJSON); err != nil {
+
+		err := rows.Scan(
+			&user.ID,
+			&user.Username,
+			&user.Permissions.Api,
+			&user.Permissions.Admin,
+			&user.Permissions.Modify,
+			&user.Permissions.Share,
+			&user.Permissions.Realtime,
+			&user.Permissions.Delete,
+			&user.Permissions.Create,
+			&user.Permissions.Download,
+			&userDataJSON,
+		)
+		if err != nil {
 			return nil, fmt.Errorf("failed to scan user: %w", err)
 		}
 
-		var user users.User
-		if err := json.Unmarshal(userDataJSON, &user); err != nil {
+		// Unmarshal JSON data
+		var userData UserData
+		if err := json.Unmarshal(userDataJSON, &userData); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal user data: %w", err)
 		}
+
+		// Map UserData to User struct
+		user.Password = userData.Password
+		user.Scopes = userData.Scopes
+		user.Tokens = userData.Tokens
+		user.TOTPSecret = userData.TOTPSecret
+		user.TOTPNonce = userData.TOTPNonce
+		user.LoginMethod = userData.LoginMethod
+		user.OtpEnabled = userData.OtpEnabled
+		user.Version = userData.Version
+		user.ShowFirstLogin = userData.ShowFirstLogin
+		user.NonAdminEditable = userData.NonAdminEditable
 
 		usersList = append(usersList, &user)
 	}
@@ -86,11 +188,25 @@ func (s *SQLStore) ListUsers() ([]*users.User, error) {
 	return usersList, nil
 }
 
-// CreateUser creates a new user in the database
+// CreateUser inserts a new user
 // The database will enforce username uniqueness via UNIQUE constraint
 func (s *SQLStore) CreateUser(user *users.User) error {
-	// Marshal entire user to JSON
-	userDataJSON, err := json.Marshal(user)
+	// Create UserData struct from user fields
+	userData := UserData{
+		Password:         user.Password,
+		Scopes:           user.Scopes,
+		Tokens:           user.Tokens,
+		TOTPSecret:       user.TOTPSecret,
+		TOTPNonce:        user.TOTPNonce,
+		LoginMethod:      user.LoginMethod,
+		OtpEnabled:       user.OtpEnabled,
+		Version:          user.Version,
+		ShowFirstLogin:   user.ShowFirstLogin,
+		NonAdminEditable: user.NonAdminEditable,
+	}
+
+	// Marshal user data to JSON
+	userDataJSON, err := json.Marshal(userData)
 	if err != nil {
 		return fmt.Errorf("failed to marshal user data: %w", err)
 	}
@@ -113,6 +229,7 @@ func (s *SQLStore) CreateUser(user *users.User) error {
 		userDataJSON,
 	)
 	if err != nil {
+		// Check for unique constraint violation on username
 		if err.Error() == "UNIQUE constraint failed: users.username" {
 			return fmt.Errorf("user with provided username already exists")
 		}
@@ -131,8 +248,22 @@ func (s *SQLStore) CreateUser(user *users.User) error {
 
 // UpdateUser updates an existing user by ID
 func (s *SQLStore) UpdateUser(user *users.User) error {
-	// Marshal entire user to JSON
-	userDataJSON, err := json.Marshal(user)
+	// Create UserData struct from user fields
+	userData := UserData{
+		Password:         user.Password,
+		Scopes:           user.Scopes,
+		Tokens:           user.Tokens,
+		TOTPSecret:       user.TOTPSecret,
+		TOTPNonce:        user.TOTPNonce,
+		LoginMethod:      user.LoginMethod,
+		OtpEnabled:       user.OtpEnabled,
+		Version:          user.Version,
+		ShowFirstLogin:   user.ShowFirstLogin,
+		NonAdminEditable: user.NonAdminEditable,
+	}
+
+	// Marshal user data to JSON
+	userDataJSON, err := json.Marshal(userData)
 	if err != nil {
 		return fmt.Errorf("failed to marshal user data: %w", err)
 	}
@@ -156,6 +287,7 @@ func (s *SQLStore) UpdateUser(user *users.User) error {
 		user.ID,
 	)
 	if err != nil {
+		// Check for unique constraint violation on username
 		if err.Error() == "UNIQUE constraint failed: users.username" {
 			return fmt.Errorf("user with provided username already exists")
 		}
@@ -173,6 +305,7 @@ func (s *SQLStore) UpdateUser(user *users.User) error {
 
 	return nil
 }
+
 
 // DeleteUser deletes a user by ID
 func (s *SQLStore) DeleteUser(id uint) error {
