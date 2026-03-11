@@ -8,8 +8,8 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/database/state"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/state"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -21,8 +21,8 @@ func validateUserInfo(newDB bool) {
 	if err != nil {
 		logger.Fatalf("could not load users: %v", err)
 	}
-	for _, user := range usersList {
-		changePass := false
+	for i := range usersList {
+		user := &usersList[i]
 		updateUser := false
 		if updateUserScopes(user) {
 			updateUser = true
@@ -45,30 +45,31 @@ func validateUserInfo(newDB bool) {
 		if updateTokens(user) {
 			updateUser = true
 		}
-		adminUser := settings.Config.Auth.AdminUsername
-		adminPass := settings.Config.Auth.AdminPassword
-		passwordEnabled := settings.Config.Auth.Methods.PasswordAuth.Enabled
-		if user.Username == adminUser && adminPass != "" && passwordEnabled {
-			logger.Info("Resetting admin user to default username and password.")
-			user.Permissions.Admin = true
-			user.Password = settings.Config.Auth.AdminPassword
-			updateUser = true
-			changePass = true
-		}
-		if updateUser {
-			skipCreateBackup := os.Getenv("FILEBROWSER_DISABLE_AUTOMATIC_BACKUP") == "true" || newDB
-			if createBackup && !skipCreateBackup {
-				logger.Warning("Incompatible user settings detected, creating backup of database before converting.")
-				err = fileutils.CopyFile(settings.Config.Server.DatabaseV2.Path, fmt.Sprintf("%s.bak", settings.Config.Server.DatabaseV2.Path))
-				if err != nil {
-					logger.Fatalf("Unable to create automatic backup of database due to error: %v", err)
-				}
-			}
-			err := state.SaveUser(user, changePass)
+	adminUser := settings.Config.Auth.AdminUsername
+	adminPass := settings.Config.Auth.AdminPassword
+	passwordEnabled := settings.Config.Auth.Methods.PasswordAuth.Enabled
+	plaintextPassword := ""
+	if user.Username == adminUser && adminPass != "" && passwordEnabled {
+		logger.Info("Resetting admin user to default username and password.")
+		user.Permissions.Admin = true
+		// Pass plaintext password to UpdateUser, it will hash it
+		plaintextPassword = settings.Config.Auth.AdminPassword
+		updateUser = true
+	}
+	if updateUser {
+		skipCreateBackup := os.Getenv("FILEBROWSER_DISABLE_AUTOMATIC_BACKUP") == "true" || newDB
+		if createBackup && !skipCreateBackup {
+			logger.Warning("Incompatible user settings detected, creating backup of database before converting.")
+			err = fileutils.CopyFile(settings.Config.Server.DatabaseV2.Path, fmt.Sprintf("%s.bak", settings.Config.Server.DatabaseV2.Path))
 			if err != nil {
-				logger.Errorf("could not update user: %v", err)
+				logger.Fatalf("Unable to create automatic backup of database due to error: %v", err)
 			}
 		}
+		err := state.UpdateUser(user, plaintextPassword)
+		if err != nil {
+			logger.Errorf("could not update user: %v", err)
+		}
+	}
 	}
 }
 

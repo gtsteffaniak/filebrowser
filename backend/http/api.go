@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
-	"github.com/gtsteffaniak/filebrowser/backend/database/state"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/state"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -177,7 +177,7 @@ func listApiTokensHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 			Permissions: token.Permissions,
 		})
 	}
-	
+
 	sort.Slice(AuthTokensFrontend, func(i, j int) bool {
 		return AuthTokensFrontend[i].Name < AuthTokensFrontend[j].Name
 	})

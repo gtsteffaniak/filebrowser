@@ -188,8 +188,9 @@ func (s *SQLStore) ListUsers() ([]*users.User, error) {
 	return usersList, nil
 }
 
-// SaveUser inserts or updates a user
-func (s *SQLStore) SaveUser(user *users.User) error {
+// CreateUser inserts a new user
+// The database will enforce username uniqueness via UNIQUE constraint
+func (s *SQLStore) CreateUser(user *users.User) error {
 	// Create UserData struct from user fields
 	userData := UserData{
 		Password:         user.Password,
@@ -210,59 +211,101 @@ func (s *SQLStore) SaveUser(user *users.User) error {
 		return fmt.Errorf("failed to marshal user data: %w", err)
 	}
 
-	if user.ID == 0 {
-		// Insert new user
-		query := `INSERT INTO users (username, perm_api, perm_admin, perm_modify, 
-				  perm_share, perm_realtime, perm_delete, perm_create, perm_download, user_data) 
-				  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	// Insert new user - database will auto-increment ID
+	query := `INSERT INTO users (username, perm_api, perm_admin, perm_modify, 
+			  perm_share, perm_realtime, perm_delete, perm_create, perm_download, user_data) 
+			  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
-		result, err := s.db.Exec(query,
-			user.Username,
-			user.Permissions.Api,
-			user.Permissions.Admin,
-			user.Permissions.Modify,
-			user.Permissions.Share,
-			user.Permissions.Realtime,
-			user.Permissions.Delete,
-			user.Permissions.Create,
-			user.Permissions.Download,
-			userDataJSON,
-		)
-		if err != nil {
-			return fmt.Errorf("failed to insert user: %w", err)
+	result, err := s.db.Exec(query,
+		user.Username,
+		user.Permissions.Api,
+		user.Permissions.Admin,
+		user.Permissions.Modify,
+		user.Permissions.Share,
+		user.Permissions.Realtime,
+		user.Permissions.Delete,
+		user.Permissions.Create,
+		user.Permissions.Download,
+		userDataJSON,
+	)
+	if err != nil {
+		// Check for unique constraint violation on username
+		if err.Error() == "UNIQUE constraint failed: users.username" {
+			return fmt.Errorf("user with provided username already exists")
 		}
+		return fmt.Errorf("failed to insert user: %w", err)
+	}
 
-		id, err := result.LastInsertId()
-		if err != nil {
-			return fmt.Errorf("failed to get last insert id: %w", err)
-		}
-		user.ID = uint(id)
-	} else {
-		// Update existing user
-		query := `UPDATE users SET username = ?, perm_api = ?, perm_admin = ?, 
-				  perm_modify = ?, perm_share = ?, perm_realtime = ?, perm_delete = ?, 
-				  perm_create = ?, perm_download = ?, user_data = ? WHERE id = ?`
+	// Get the auto-generated ID and update the user struct
+	id, err := result.LastInsertId()
+	if err != nil {
+		return fmt.Errorf("failed to get last insert id: %w", err)
+	}
+	user.ID = uint(id)
 
-		_, err := s.db.Exec(query,
-			user.Username,
-			user.Permissions.Api,
-			user.Permissions.Admin,
-			user.Permissions.Modify,
-			user.Permissions.Share,
-			user.Permissions.Realtime,
-			user.Permissions.Delete,
-			user.Permissions.Create,
-			user.Permissions.Download,
-			userDataJSON,
-			user.ID,
-		)
-		if err != nil {
-			return fmt.Errorf("failed to update user: %w", err)
+	return nil
+}
+
+// UpdateUser updates an existing user by ID
+func (s *SQLStore) UpdateUser(user *users.User) error {
+	// Create UserData struct from user fields
+	userData := UserData{
+		Password:         user.Password,
+		Scopes:           user.Scopes,
+		Tokens:           user.Tokens,
+		TOTPSecret:       user.TOTPSecret,
+		TOTPNonce:        user.TOTPNonce,
+		LoginMethod:      user.LoginMethod,
+		OtpEnabled:       user.OtpEnabled,
+		Version:          user.Version,
+		ShowFirstLogin:   user.ShowFirstLogin,
+		NonAdminEditable: user.NonAdminEditable,
+	}
+
+	// Marshal user data to JSON
+	userDataJSON, err := json.Marshal(userData)
+	if err != nil {
+		return fmt.Errorf("failed to marshal user data: %w", err)
+	}
+
+	// Update existing user
+	query := `UPDATE users SET username = ?, perm_api = ?, perm_admin = ?, 
+			  perm_modify = ?, perm_share = ?, perm_realtime = ?, perm_delete = ?, 
+			  perm_create = ?, perm_download = ?, user_data = ? WHERE id = ?`
+
+	result, err := s.db.Exec(query,
+		user.Username,
+		user.Permissions.Api,
+		user.Permissions.Admin,
+		user.Permissions.Modify,
+		user.Permissions.Share,
+		user.Permissions.Realtime,
+		user.Permissions.Delete,
+		user.Permissions.Create,
+		user.Permissions.Download,
+		userDataJSON,
+		user.ID,
+	)
+	if err != nil {
+		// Check for unique constraint violation on username
+		if err.Error() == "UNIQUE constraint failed: users.username" {
+			return fmt.Errorf("user with provided username already exists")
 		}
+		return fmt.Errorf("failed to update user: %w", err)
+	}
+
+	// Check if user exists
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to get rows affected: %w", err)
+	}
+	if rowsAffected == 0 {
+		return fmt.Errorf("user not found")
 	}
 
 	return nil
 }
+
 
 // DeleteUser deletes a user by ID
 func (s *SQLStore) DeleteUser(id uint) error {

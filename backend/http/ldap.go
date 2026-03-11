@@ -2,14 +2,11 @@ package http
 
 import (
 	"crypto/tls"
-	"errors"
 	"fmt"
 	"strings"
 
 	ldap "github.com/go-ldap/ldap/v3"
-	libErrors "github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/database/state"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
@@ -25,7 +22,7 @@ func AuthenticateLDAPUser(username, password string) (*users.User, error) {
 		logger.Debugf("ldap authentication failed: %v", err)
 		return nil, err
 	}
-	
+
 	// Use the configured UserIdentifier if available, otherwise use the login username
 	ldapCfg := settings.Config.Auth.Methods.LdapAuth
 	mappedUsername := username
@@ -37,7 +34,7 @@ func AuthenticateLDAPUser(username, password string) (*users.User, error) {
 			logger.Warningf("ldap: userIdentifier '%s' not found in LDAP entry for user %s, using login username", ldapCfg.UserIdentifier, username)
 		}
 	}
-	
+
 	logger.Debugf("ldap authentication successful, getting or creating user %s", mappedUsername)
 	return getOrCreateLdapUser(mappedUsername, groups)
 }
@@ -124,7 +121,7 @@ func authenticateLDAP(username, password string) ([]string, map[string]string, e
 	}
 
 	groups := entry.GetAttributeValues(groupAttr)
-	
+
 	// Extract user attributes for identifier mapping
 	userAttributes := make(map[string]string)
 	if c.UserIdentifier != "" {
@@ -133,7 +130,7 @@ func authenticateLDAP(username, password string) ([]string, map[string]string, e
 			userAttributes[c.UserIdentifier] = values[0]
 		}
 	}
-	
+
 	return groups, userAttributes, nil
 }
 
@@ -188,7 +185,7 @@ func ldapGroupMatchesAdmin(groupDN, adminGroup string) bool {
 func getOrCreateLdapUser(username string, groups []string) (*users.User, error) {
 	logger.Debugf("getting or creating ldap user %s", username)
 	ldapCfg := config.Auth.Methods.LdapAuth
-	
+
 	// Check if user is in required groups (if userGroups is configured)
 	if len(ldapCfg.UserGroups) > 0 {
 		userInAllowedGroup := false
@@ -209,7 +206,8 @@ func getOrCreateLdapUser(username string, groups []string) (*users.User, error) 
 		}
 		logger.Debugf("User %s is in required group, allowing access.", username)
 	}
-	
+
+	// Determine if user should be admin
 	isAdmin := false
 	if ldapCfg.AdminGroup != "" {
 		for _, g := range groups {
@@ -221,44 +219,10 @@ func getOrCreateLdapUser(username string, groups []string) (*users.User, error) 
 		if isAdmin {
 			logger.Debugf("User %s is in admin group %s, granting admin privileges.", username, ldapCfg.AdminGroup)
 		}
-	}
-
-	user, err := state.GetUserByUsername(username)
-	if err != nil {
-		if !errors.Is(err, libErrors.ErrNotExist) {
-			return nil, err
-		}
-		// Auto-create user on first LDAP authentication
-		if ldapCfg.AdminGroup == "" {
-			isAdmin = config.UserDefaults.Permissions.Admin
-		}
-		user = &users.User{
-			Username:    username,
-			LoginMethod: users.LoginMethodLdap,
-		}
-		settings.ApplyUserDefaults(user)
-		if isAdmin {
-			user.Permissions.Admin = true
-		}
-		if err = state.CreateUser(*user, user.Permissions); err != nil {
-			return nil, err
-		}
-		user, err = state.GetUserByUsername(username)
-		if err != nil {
-			return nil, err
-		}
 	} else {
-		if user.LoginMethod != users.LoginMethodLdap {
-			return nil, libErrors.ErrWrongLoginMethod
-		}
-		if ldapCfg.AdminGroup != "" && isAdmin != user.Permissions.Admin {
-			user.Permissions.Admin = isAdmin
-			_ = state.UpdateUser(user)
-		}
+		// If no admin group configured, use default permissions
+		isAdmin = config.UserDefaults.Permissions.Admin
 	}
 
-	if err := accessStore.SyncUserGroups(username, groups); err != nil {
-		logger.Warningf("failed to sync ldap user %s groups: %v", username, err)
-	}
-	return user, nil
+	return getOrCreateAuthenticatedUser(username, users.LoginMethodLdap, isAdmin, groups)
 }

@@ -6,8 +6,6 @@ import (
 	"os"
 
 	storm "github.com/asdine/storm/v3"
-	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
-	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/database/access"
 	"github.com/gtsteffaniak/filebrowser/backend/database/dbindex"
@@ -36,16 +34,11 @@ func checkMigrationNeeded() bool {
 		newExists = true
 	}
 
-	logger.Infof("Old database path: %s", oldDBPath)
-	logger.Infof("New database path: %s", newDBPath)
-	logger.Infof("Old database exists: %t", oldExists)
-	logger.Infof("New database exists: %t", newExists)
-
 	// Migration needed if old exists and new doesn't
 	return oldExists && !newExists
 }
 
-// migrateFromBoltToSQLite migrates data from BoltDB to SQLite
+// migrateFromBoltToSQLite migrates essential data from BoltDB to SQLite
 func migrateFromBoltToSQLite() error {
 	oldDBPath := settings.Config.Server.DatabaseV2.MigrateFrom
 	newDBPath := settings.Config.Server.DatabaseV2.Path
@@ -53,18 +46,8 @@ func migrateFromBoltToSQLite() error {
 	logger.Info("========================================")
 	logger.Info("Starting migration from BoltDB to SQLite")
 	logger.Info("========================================")
-
-	// Create backup of old database
-	backupPath := fmt.Sprintf("%s.pre-sqlite-migration.bak", oldDBPath)
-	logger.Infof("Creating backup of old database at: %s", backupPath)
-	err := fileutils.CopyFile(oldDBPath, backupPath)
-	if err != nil {
-		return fmt.Errorf("failed to create backup: %w", err)
-	}
-	logger.Info("✓ Backup created successfully")
-
 	// Open old BoltDB (read-only)
-	logger.Infof("Opening old BoltDB from: %s", oldDBPath)
+	logger.Info("Opening old BoltDB...")
 	oldDB, err := storm.Open(oldDBPath)
 	if err != nil {
 		return fmt.Errorf("failed to open old database: %w", err)
@@ -72,7 +55,7 @@ func migrateFromBoltToSQLite() error {
 	logger.Info("✓ Old database opened")
 
 	// Initialize new SQLite database
-	logger.Infof("Initializing new SQLite database at: %s", newDBPath)
+	logger.Info("Initializing new SQLite database...")
 	sqlStore, _, err := sqldb.NewSQLStore(newDBPath)
 	if err != nil {
 		oldDB.Close()
@@ -115,18 +98,6 @@ func migrateFromBoltToSQLite() error {
 		return fmt.Errorf("failed to migrate access rules: %w", err)
 	}
 
-	// Migrate settings
-	logger.Info("Migrating settings...")
-	if err := migrateSettings(oldDB, sqlStore); err != nil {
-		return fmt.Errorf("failed to migrate settings: %w", err)
-	}
-
-	// Migrate auth methods
-	logger.Info("Migrating auth methods...")
-	if err := migrateAuthMethods(oldDB, sqlStore); err != nil {
-		return fmt.Errorf("failed to migrate auth methods: %w", err)
-	}
-
 	// Migrate index info
 	logger.Info("Migrating index info...")
 	if err := migrateIndexInfo(oldDB, sqlStore); err != nil {
@@ -139,7 +110,7 @@ func migrateFromBoltToSQLite() error {
 	logger.Info("========================================")
 	logger.Info("Migration completed successfully!")
 	logger.Info("========================================")
-	logger.Infof("Old database backed up to: %s", backupPath)
+	logger.Infof("Your old BoltDB file is unchanged at: %s", oldDBPath)
 	logger.Infof("New SQLite database created at: %s", newDBPath)
 
 	return nil
@@ -161,8 +132,8 @@ func migrateUsers(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 		// Reset ID to 0 so SQLite assigns new auto-increment IDs
 		oldID := user.ID
 		user.ID = 0
-		
-		err := sqlStore.SaveUser(user)
+
+		err := sqlStore.CreateUser(user)
 		if err != nil {
 			return fmt.Errorf("failed to save user %s (old ID: %d): %w", user.Username, oldID, err)
 		}
@@ -264,144 +235,7 @@ func migrateAccessRules(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 	return nil
 }
 
-// migrateSettings migrates settings from BoltDB to SQLite
-func migrateSettings(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
-	// Migrate main settings
-	var set settings.Settings
-	err := oldDB.Get("config", "settings", &set)
-	if err != nil {
-		if err.Error() != "not found" {
-			// Try to read as raw JSON and transform database field
-			var rawData map[string]interface{}
-			if err2 := oldDB.Get("config", "settings", &rawData); err2 != nil {
-				return fmt.Errorf("failed to read settings: %w", err)
-			}
-
-			// Handle database field schema change: string -> Database struct
-			if rawData["server"] != nil {
-				serverMap, ok := rawData["server"].(map[string]interface{})
-				if ok && serverMap["database"] != nil {
-					// Check if database is a string (old format)
-					if dbStr, isString := serverMap["database"].(string); isString {
-						// Convert string to Database struct format
-						serverMap["database"] = map[string]interface{}{
-							"path": dbStr,
-						}
-						serverMap["migrateFrom"] = dbStr
-						logger.Info("  ✓ Converted database field from string to struct format")
-					}
-				}
-			}
-
-			// Marshal and unmarshal to validate
-			data, err3 := json.Marshal(rawData)
-			if err3 != nil {
-				return fmt.Errorf("failed to marshal settings: %w", err3)
-			}
-			if err3 := json.Unmarshal(data, &set); err3 != nil {
-				return fmt.Errorf("failed to unmarshal transformed settings: %w", err3)
-			}
-		}
-	}
-
-	if err == nil || err.Error() != "not found" {
-		err = sqlStore.SaveSetting("settings", &set)
-		if err != nil {
-			return fmt.Errorf("failed to save settings: %w", err)
-		}
-		logger.Info("  ✓ Migrated main settings")
-	}
-
-	// Migrate server config
-	var server settings.Server
-	err = oldDB.Get("config", "server", &server)
-	if err != nil {
-		if err.Error() != "not found" {
-			// Try to read as raw JSON and transform database field
-			var rawData map[string]interface{}
-			if err2 := oldDB.Get("config", "server", &rawData); err2 != nil {
-				return fmt.Errorf("failed to read server config: %w", err)
-			}
-
-			// Handle database field schema change: string -> Database struct
-			if rawData["database"] != nil {
-				if dbStr, isString := rawData["database"].(string); isString {
-					// Convert string to Database struct format
-					rawData["database"] = map[string]interface{}{
-						"path": dbStr,
-					}
-					rawData["migrateFrom"] = dbStr
-					logger.Info("  ✓ Converted server database field from string to struct format")
-				}
-			}
-
-			// Marshal and unmarshal to validate
-			data, err3 := json.Marshal(rawData)
-			if err3 != nil {
-				return fmt.Errorf("failed to marshal server config: %w", err3)
-			}
-			if err3 := json.Unmarshal(data, &server); err3 != nil {
-				return fmt.Errorf("failed to unmarshal transformed server config: %w", err3)
-			}
-		}
-	}
-
-	if err == nil || err.Error() != "not found" {
-		err = sqlStore.SaveSetting("server", &server)
-		if err != nil {
-			return fmt.Errorf("failed to save server config: %w", err)
-		}
-		logger.Info("  ✓ Migrated server configuration")
-	}
-
-	// Migrate schema version
-	var version int
-	err = oldDB.Get("config", "version", &version)
-	if err == nil {
-		err = sqlStore.SaveSetting("bolt_schema_version", version)
-		if err != nil {
-			return fmt.Errorf("failed to save schema version: %w", err)
-		}
-		logger.Infof("  ✓ Migrated schema version: %d", version)
-	}
-
-	return nil
-}
-
-// migrateAuthMethods migrates auth methods from BoltDB to SQLite
-func migrateAuthMethods(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
-	authTypes := []struct {
-		name   string
-		auther auth.Auther
-	}{
-		{"json", &auth.JSONAuth{}},
-		{"proxy", &auth.ProxyAuth{}},
-		{"none", &auth.NoAuth{}},
-	}
-
-	migratedCount := 0
-	for _, at := range authTypes {
-		err := oldDB.Get("config", "auther", at.auther)
-		if err != nil {
-			if err.Error() == "not found" {
-				continue
-			}
-			logger.Warningf("  Failed to read auth method %s: %v", at.name, err)
-			continue
-		}
-
-		err = sqlStore.SaveAuthMethod(at.name, at.auther)
-		if err != nil {
-			return fmt.Errorf("failed to save auth method %s: %w", at.name, err)
-		}
-		migratedCount++
-	}
-
-	logger.Infof("  ✓ Migrated %d auth methods", migratedCount)
-	return nil
-}
-
-// migrateIndexInfo migrates index info from BoltDB to SQLite
+// migrateIndexInfo migrates index info metadata from BoltDB to SQLite
 func migrateIndexInfo(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 	var indexList []*dbindex.IndexInfo
 	err := oldDB.All(&indexList)

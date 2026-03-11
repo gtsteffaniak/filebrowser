@@ -12,8 +12,9 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
-	"github.com/gtsteffaniak/filebrowser/backend/database/state"
+	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/preview"
+	"github.com/gtsteffaniak/filebrowser/backend/state"
 	"github.com/gtsteffaniak/go-logger/logger"
 
 	_ "github.com/gtsteffaniak/filebrowser/backend/swagger/docs"
@@ -67,9 +68,7 @@ func publicDownloadHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 		}
 	}
 
-	d.share.Mu.Lock()
 	d.share.Downloads++
-	d.share.Mu.Unlock()
 
 	// Track per-user download if enabled
 	if d.share.PerUserDownloadLimit {
@@ -350,7 +349,11 @@ func publicPatchHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	}
 
 	// Replace user with the share creator's user for proper permission checking
-	shareCreatedByUser, err := state.GetUser(d.share.UserID)
+	var shareCreatedByUser *users.User
+	userValue, err := state.GetUser(d.share.UserID)
+	if err == nil {
+		shareCreatedByUser = &userValue
+	}
 	if err != nil {
 		return http.StatusNotFound, fmt.Errorf("user for share no longer exists")
 	}
@@ -414,7 +417,11 @@ func getShareImage(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		return http.StatusBadRequest, fmt.Errorf("either banner or favicon parameter must be true")
 	}
 
-	shareCreatedByUser, err := state.GetUser(d.share.UserID)
+	userValue, err := state.GetUser(d.share.UserID)
+	var shareCreatedByUser *users.User
+	if err == nil {
+		shareCreatedByUser = &userValue
+	}
 	if err != nil {
 		return http.StatusNotFound, fmt.Errorf("user for share no longer exists")
 	}

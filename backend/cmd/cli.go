@@ -12,9 +12,9 @@ import (
 	"github.com/goccy/go-yaml"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
-	"github.com/gtsteffaniak/filebrowser/backend/database/state"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
+	"github.com/gtsteffaniak/filebrowser/backend/state"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -208,9 +208,6 @@ func setUser(dbConfig string, asAdmin bool) error {
 		newUser := users.User{
 			Username:    username,
 			LoginMethod: users.LoginMethodPassword,
-			NonAdminEditable: users.NonAdminEditable{
-				Password: password,
-			},
 		}
 		for _, source := range settings.Config.Server.SourceMap {
 			if source.Config.DefaultEnabled {
@@ -229,7 +226,7 @@ func setUser(dbConfig string, asAdmin bool) error {
 		}
 		newUser.Permissions = settings.ConvertPermissionsToUsers(settings.Config.UserDefaults.Permissions)
 		newUser.Permissions.Admin = asAdmin
-		err = state.CreateUser(newUser, newUser.Permissions)
+		err = state.CreateUser(&newUser, password)
 		if err != nil {
 			return fmt.Errorf("could not create user: %v", err)
 		}
@@ -239,7 +236,6 @@ func setUser(dbConfig string, asAdmin bool) error {
 	if user.LoginMethod != users.LoginMethodPassword {
 		return fmt.Errorf("user %s is not allowed to login with password authentication, cannot set password", username)
 	}
-	user.Password = password
 	user.TOTPSecret = "" // reset TOTP secret if it exists
 	user.TOTPNonce = ""  // reset TOTP nonce if it exists
 	user.LoginMethod = users.LoginMethodPassword
@@ -250,7 +246,8 @@ func setUser(dbConfig string, asAdmin bool) error {
 	if user.Version == 0 {
 		user.Version = 1
 	}
-	err = state.UpdateUser(user)
+	// Pass plaintext password to UpdateUser, it will hash it
+	err = state.UpdateUser(&user, password)
 	if err != nil {
 		return fmt.Errorf("could not update user: %v", err)
 	}

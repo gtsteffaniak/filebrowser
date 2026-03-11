@@ -15,12 +15,12 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
-	"github.com/gtsteffaniak/filebrowser/backend/database/state"
 	"github.com/gtsteffaniak/filebrowser/backend/ffmpeg"
 	fbhttp "github.com/gtsteffaniak/filebrowser/backend/http"
 	"github.com/gtsteffaniak/filebrowser/backend/icons"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/preview"
+	"github.com/gtsteffaniak/filebrowser/backend/state"
 	"github.com/gtsteffaniak/filebrowser/backend/swagger/docs"
 	"github.com/gtsteffaniak/go-logger/logger"
 	"github.com/swaggo/swag"
@@ -29,7 +29,7 @@ import (
 func getStore(configFile string) bool {
 	// Use the config file (global flag)
 	settings.Initialize(configFile)
-	
+
 	// Check if migration is needed
 	if checkMigrationNeeded() {
 		logger.Info("Old BoltDB database detected, starting migration to SQLite...")
@@ -38,14 +38,14 @@ func getStore(configFile string) bool {
 			logger.Fatalf("Migration failed: %v", err)
 		}
 	}
-	
+
 	// Initialize state management system
-	err := state.Initialize(settings.Config.Server.DatabaseV2.Path)
+	existingDb, err := state.Initialize(settings.Config.Server.DatabaseV2.Path)
 	if err != nil {
 		logger.Fatalf("could not initialize state: %v", err)
 	}
-	
-	return true
+
+	return existingDb
 }
 
 func generalUsage() {
@@ -84,9 +84,9 @@ func StartFilebrowser() {
 
 	done := make(chan struct{})             // Signals server has stopped
 	shutdownComplete := make(chan struct{}) // Signals shutdown process is complete
-	dbExists := getStore(configPath)
+	existingDb := getStore(configPath)
 	database := fmt.Sprintf("Using existing database  : %v", settings.Config.Server.DatabaseV2.Path)
-	if !dbExists {
+	if !existingDb {
 		database = fmt.Sprintf("Creating new database    : %v", settings.Config.Server.DatabaseV2.Path)
 	}
 
@@ -145,7 +145,7 @@ func StartFilebrowser() {
 	for _, source := range settings.Config.Server.SourceMap {
 		go indexing.Initialize(source, false, isNewDb)
 	}
-	validateUserInfo(!dbExists)
+	validateUserInfo(!existingDb)
 	validateOfficeIntegration()
 	validateAccessRules()
 	validateShareInfo()

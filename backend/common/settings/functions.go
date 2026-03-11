@@ -1,8 +1,9 @@
 package settings
 
 import (
+	"fmt"
+
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
-	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // InitializeUserResolvers sets up the global resolvers and config providers in the users package
@@ -12,8 +13,7 @@ func InitializeUserResolvers() {
 	users.SetSourceNameResolver(func(sourceName string) (string, error) {
 		source, ok := Config.Server.NameToSource[sourceName]
 		if !ok {
-			logger.Debug("Could not get scope from source name: ", sourceName)
-			return "", nil
+			return "", fmt.Errorf("source name not found: %s", sourceName)
 		}
 		return source.Path, nil
 	})

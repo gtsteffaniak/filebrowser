@@ -18,9 +18,9 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
-	"github.com/gtsteffaniak/filebrowser/backend/database/state"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
+	"github.com/gtsteffaniak/filebrowser/backend/state"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -59,6 +59,10 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		if err != nil {
 			data.share = &share.Link{}
 			return http.StatusNotFound, fmt.Errorf("share hash not found")
+		}
+		// Defensive check: data.user should be set by withOrWithoutUserHelper
+		if data.user == nil {
+			return http.StatusInternalServerError, fmt.Errorf("internal error: user context not set")
 		}
 		if link.DisableAnonymous && data.user.Username == "anonymous" {
 			return http.StatusForbidden, fmt.Errorf("share is not available to anonymous users")
@@ -99,7 +103,10 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		if link.DisableFileViewer || reachedDownloadsLimit {
 			getContent = false
 		}
-		data.shareUser, err = state.GetUser(link.UserID)
+		userValue, err := state.GetUser(link.UserID)
+		if err == nil {
+			data.shareUser = &userValue
+		}
 		if err != nil {
 			return http.StatusNotFound, fmt.Errorf("user for share no longer exists")
 		}
@@ -140,9 +147,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			file.OnlyOfficeId = ""
 		}
 		if getContent && file.Content != "" {
-			link.Mu.Lock()
 			link.Downloads++
-			link.Mu.Unlock()
 			// Track per-user download if enabled
 			if link.PerUserDownloadLimit {
 				link.IncrementUserDownload(data.user.Username)
@@ -171,7 +176,11 @@ func withAdminHelper(fn handleFunc) handleFunc {
 // This is used by withOrWithoutUserHelper to get user context even when tokens are expired
 func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.User {
 	if config.Auth.Methods.NoAuth {
-		user, err := state.GetUser(uint(0))
+		userValue, err := state.GetUser(uint(1))
+		var user *users.User
+		if err == nil {
+			user = &userValue
+		}
 		if err != nil {
 			logger.Errorf("no auth: %v", err)
 			return nil
@@ -201,7 +210,11 @@ func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.U
 
 	// Token is valid (but might be expired or revoked)
 	// Try to get the user regardless of expiration status
-	user, err := state.GetUser(tk.BelongsTo)
+	var user *users.User
+	userValue, err := state.GetUser(tk.BelongsTo)
+	if err == nil {
+		user = &userValue
+	}
 	if err != nil {
 		logger.Errorf("Failed to get user with ID %v: %v", tk.BelongsTo, err)
 		return nil
@@ -329,7 +342,11 @@ func userWithoutOTPhelper(fn handleFunc) handleFunc {
 						}
 					}
 					if tk.BelongsTo > 0 {
-						user, err := state.GetUser(tk.BelongsTo)
+						var user *users.User
+						userValue, err := state.GetUser(tk.BelongsTo)
+						if err == nil {
+							user = &userValue
+						}
 						if err == nil && user.Permissions.Admin {
 							// Valid admin token - allow operation
 							d.user = user
@@ -355,13 +372,18 @@ func userWithoutOTPhelper(fn handleFunc) handleFunc {
 			logger.Debug("ldap auth failed, calling password auth", err)
 		}
 		if config.Auth.Methods.PasswordAuth.Enabled {
-			// Get the authentication method from the settings
-			auther, err := authStore.Get("password")
-			if err != nil {
-				return 401, errors.ErrUnauthorized
+			// Build recaptcha config if enabled
+			var recaptcha *auth.ReCaptcha
+			authCfg := config.Auth.Methods.PasswordAuth
+			if authCfg.Recaptcha.Host != "" && authCfg.Recaptcha.Secret != "" {
+				recaptcha = &auth.ReCaptcha{
+					Host:   authCfg.Recaptcha.Host,
+					Key:    authCfg.Recaptcha.Key,
+					Secret: authCfg.Recaptcha.Secret,
+				}
 			}
 			// Authenticate the user based on the request
-			user, err := auther.Auth(r, usersStore)
+			user, err := auth.AuthenticatePassword(r, usersStore, recaptcha)
 			if err != nil {
 				logger.Debug("password auth failed, calling handler", err)
 				if err == errors.ErrNoTotpProvided {
@@ -382,7 +404,10 @@ func withUserHelper(fn handleFunc) handleFunc {
 		if config.Auth.Methods.NoAuth {
 			var err error
 			// Retrieve the user from the store and store it in the context
-			data.user, err = state.GetUser(uint(0))
+			userValue, err := state.GetUser(uint(1))
+			if err == nil {
+				data.user = &userValue
+			}
 			if err != nil {
 				logger.Errorf("no auth: %v", err)
 				return http.StatusInternalServerError, err
@@ -452,7 +477,10 @@ func withUserHelper(fn handleFunc) handleFunc {
 			}
 			tk.BelongsTo = userID
 		}
-		data.user, err = state.GetUser(tk.BelongsTo)
+		userValue, err := state.GetUser(tk.BelongsTo)
+		if err == nil {
+			data.user = &userValue
+		}
 		if err != nil {
 			logger.Errorf("Failed to get user with ID %v: %v", tk.BelongsTo, err)
 			return http.StatusInternalServerError, err

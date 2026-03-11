@@ -17,8 +17,8 @@ type JSONAuth struct {
 	ReCaptcha *ReCaptcha `json:"recaptcha" yaml:"recaptcha"`
 }
 
-// Auth authenticates the user via a json in content body.
-func (auther JSONAuth) Auth(r *http.Request, userStore *users.Storage) (*users.User, error) {
+// AuthenticatePassword authenticates the user via password in request headers.
+func AuthenticatePassword(r *http.Request, userStore *users.Storage, recaptchaConfig *ReCaptcha) (*users.User, error) {
 	username := r.URL.Query().Get("username")
 	recaptcha := r.URL.Query().Get("recaptcha")
 	password := r.Header.Get("X-Password")
@@ -30,8 +30,8 @@ func (auther JSONAuth) Auth(r *http.Request, userStore *users.Storage) (*users.U
 	totpCode := r.Header.Get("X-Secret")
 
 	// If ReCaptcha is enabled, check the code.
-	if auther.ReCaptcha != nil && len(auther.ReCaptcha.Secret) > 0 {
-		ok, err := auther.ReCaptcha.Ok(recaptcha) //nolint:govet
+	if recaptchaConfig != nil && len(recaptchaConfig.Secret) > 0 {
+		ok, err := recaptchaConfig.Ok(recaptcha) //nolint:govet
 
 		if err != nil {
 			return nil, err
@@ -67,7 +67,11 @@ func (auther JSONAuth) Auth(r *http.Request, userStore *users.Storage) (*users.U
 	}
 
 	return user, nil
+}
 
+// Auth authenticates the user via a json in content body (legacy method for compatibility).
+func (auther JSONAuth) Auth(r *http.Request, userStore *users.Storage) (*users.User, error) {
+	return AuthenticatePassword(r, userStore, auther.ReCaptcha)
 }
 
 const reCaptchaAPI = "/recaptcha/api/siteverify"

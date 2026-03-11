@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/database/dbindex"
 )
 
@@ -28,7 +29,7 @@ func (s *SQLStore) GetIndexInfoByPath(path string) (*dbindex.IndexInfo, error) {
 	)
 
 	if err == sql.ErrNoRows {
-		return nil, fmt.Errorf("index info not found")
+		return nil, errors.ErrNotExist
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to get index info: %w", err)
@@ -74,6 +75,10 @@ func (s *SQLStore) ListAllIndexInfo() ([]*dbindex.IndexInfo, error) {
 
 // SaveIndexInfo inserts or updates index info
 func (s *SQLStore) SaveIndexInfo(info *dbindex.IndexInfo) error {
+	if s == nil || s.db == nil {
+		return fmt.Errorf("SQLStore not initialized")
+	}
+
 	scannersJSON, err := json.Marshal(info.Scanners)
 	if err != nil {
 		return fmt.Errorf("failed to marshal scanners: %w", err)
@@ -112,7 +117,7 @@ func (s *SQLStore) DeleteIndexInfo(path string) error {
 	}
 
 	if rowsAffected == 0 {
-		return fmt.Errorf("index info not found")
+		return errors.ErrNotExist
 	}
 
 	return nil

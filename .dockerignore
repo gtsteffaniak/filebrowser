@@ -1,4 +1,5 @@
 backend/**.db
+backend/**.sqlite**
 **.crt
 **.key
 backend/tmp

@@ -12,8 +12,8 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/database/state"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/state"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -50,11 +50,12 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 			return http.StatusInternalServerError, err
 		}
 
-		selfUserList := []*users.User{}
-		for _, u := range userList {
+		selfUserList := []users.User{}
+		for i := range userList {
+			u := &userList[i]
 			prepForFrontend(u)
 			if u.ID == d.user.ID {
-				selfUserList = append(selfUserList, u)
+				selfUserList = append(selfUserList, userList[i])
 			}
 		}
 
@@ -76,7 +77,11 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	}
 
 	// Fetch the user details
-	u, err := state.GetUser(givenUserId)
+	var u *users.User
+	userValue, err := state.GetUser(givenUserId)
+	if err == nil {
+		u = &userValue
+	}
 	if err == errors.ErrNotExist {
 		return http.StatusNotFound, err
 	}
@@ -246,7 +251,9 @@ func usersPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusBadRequest, errors.ErrEmptyPassword
 	}
 
-	err = state.CreateUser(req.User, req.User.Permissions)
+	// Extract plaintext password before creating user
+	plaintextPassword := req.User.Password
+	err = state.CreateUser(&req.User, plaintextPassword)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -291,14 +298,22 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		return http.StatusBadRequest, err
 	}
 	if givenUserId != 0 {
-		u, err2 := state.GetUser(givenUserId)
+		uValue, err2 := state.GetUser(givenUserId)
+		var u *users.User
+		if err2 == nil {
+			u = &uValue
+		}
 		if err2 != nil {
 			return http.StatusBadRequest, fmt.Errorf("no user not found, please provide a valid id or username")
 		}
 		req.User.ID = u.ID
 		req.User.Username = u.Username
 	} else {
-		u, err2 := state.GetUserByUsername(username)
+		uValue, err2 := state.GetUserByUsername(username)
+		var u *users.User
+		if err2 == nil {
+			u = &uValue
+		}
 		if err2 != nil {
 			return http.StatusBadRequest, fmt.Errorf("no user not found, please provide a valid id or username")
 		}
@@ -311,12 +326,23 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	}
 
 	// Get the old user to check if permissions changed
-	oldUser, err := state.GetUser(req.User.ID)
+	var oldUser *users.User
+	userValue, err := state.GetUser(req.User.ID)
+	if err == nil {
+		oldUser = &userValue
+	}
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("failed to get user: %w", err)
 	}
 
-	err = state.UpdateUser(&req.User)
+	// Extract plaintext password if provided, otherwise pass empty string
+	plaintextPassword := ""
+	if slices.Contains(req.Which, "Password") && req.User.Password != "" {
+		plaintextPassword = req.User.Password
+	}
+
+	// Use patch update with specified fields
+	err = state.UpdateUser(&req.User, plaintextPassword, req.Which...)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}

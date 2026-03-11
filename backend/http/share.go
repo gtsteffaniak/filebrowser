@@ -19,9 +19,9 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
-	"github.com/gtsteffaniak/filebrowser/backend/database/state"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
+	"github.com/gtsteffaniak/filebrowser/backend/state"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -47,10 +47,6 @@ func convertToFrontendShareResponse(r *http.Request, shares []*share.Link, user 
 			if !ok {
 				continue
 			}
-			// Found by name - this is corrupted data, fix it
-			logger.Warning("Share has corrupted source - fixing", "hash", s.Hash, "from", s.Source, "to", sourceInfo.Path)
-			s.Source = sourceInfo.Path
-			_ = state.SaveShare(s) // Best effort fix
 		}
 
 		// Check if the path exists on the filesystem
@@ -85,12 +81,26 @@ func convertToFrontendShareResponse(r *http.Request, shares []*share.Link, user 
 func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	var err error
 	var shares []*share.Link
+	var sharesValues []share.Link
+
 	if d.user.Permissions.Admin {
-		shares, err = state.GetAllShares()
+		sharesValues, err = state.GetAllShares()
+		if err == nil {
+			shares = make([]*share.Link, len(sharesValues))
+			for i := range sharesValues {
+				shares[i] = &sharesValues[i]
+			}
+		}
 	} else {
-		shares, err = state.GetSharesByUserID(d.user.ID)
+		sharesValues, err = state.GetSharesByUserID(d.user.ID)
+		if err == nil {
+			shares = make([]*share.Link, len(sharesValues))
+			for i := range sharesValues {
+				shares[i] = &sharesValues[i]
+			}
+		}
 	}
-	if err != nil && err != errors.ErrNotExist {
+	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 	shares = utils.NonNilSlice(shares)
@@ -125,6 +135,10 @@ func shareGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 	}
 	scopePath := utils.JoinPathAsUnix(userscope, path)
 	scopePath = utils.AddTrailingSlashIfNotExists(scopePath)
+
+	// Debug: show what we're querying for
+	logger.Debug("shareGetHandler querying", "sourceName", sourceName, "sourceInfoPath", sourceInfo.Path, "scopePath", scopePath, "userID", d.user.ID)
+
 	s, err := shareStore.Gets(scopePath, sourceInfo.Path, d.user.ID)
 	if err == errors.ErrNotExist || len(s) == 0 {
 		return renderJSON(w, r, []*ShareResponse{})
@@ -168,7 +182,7 @@ func shareDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return http.StatusForbidden, fmt.Errorf("you are not allowed to delete this share")
 	}
 
-	err = state.DeleteShare(hash)
+	err = shareStore.Delete(hash)
 	if err != nil {
 		return errToStatus(err), err
 	}
@@ -211,7 +225,7 @@ func sharePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 		return http.StatusForbidden, fmt.Errorf("you are not allowed to update this share")
 	}
 	// Update the share path
-	err = state.UpdateSharePath(body.Hash, body.Path)
+	err = shareStore.UpdateSharePath(body.Hash, body.Path)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -310,39 +324,62 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		stringHash = string(hash)
 	}
 	if s != nil {
-		// Check if downloads limit or per-user limit changed - reset counts if so
-		shouldResetCounts := s.DownloadsLimit != body.DownloadsLimit || s.PerUserDownloadLimit != body.PerUserDownloadLimit
+		// Update existing share
+		// Get the current share
+		existingShare, err := shareStore.GetByHash(body.Hash)
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
 
-		s.Expire = expire
-		s.PasswordHash = stringHash
-		s.Token = token
-		// Preserve immutable fields for updates. Path and Source should not change on edits.
-		// If the request attempts to provide empty values (or any values) for these,
-		// keep the existing ones from the stored share.
-		body.Path = s.Path
-		body.Source = s.Source
-		s.CommonShare = body.CommonShare
-		if s.ShareType == "upload" && !body.AllowCreate {
-			s.AllowCreate = true
+		// Check if downloads limit or per-user limit changed - reset counts if so
+		shouldResetCounts := existingShare.DownloadsLimit != body.DownloadsLimit ||
+			existingShare.PerUserDownloadLimit != body.PerUserDownloadLimit
+
+		existingShare.Expire = expire
+		existingShare.PasswordHash = stringHash
+		existingShare.Token = token
+
+		// Update all CommonShare fields from body except Path and Source (immutable)
+		preservedPath := existingShare.Path
+		preservedSource := existingShare.Source
+		existingShare.CommonShare = body.CommonShare
+		existingShare.Path = preservedPath
+		existingShare.Source = preservedSource
+
+		if existingShare.ShareType == "upload" && !body.AllowCreate {
+			existingShare.AllowCreate = true
 		}
 
 		// Reset download counts if limit settings changed
 		if shouldResetCounts {
-			s.ResetDownloadCounts()
+			existingShare.ResetDownloadCounts()
 		}
 
-		if err = state.SaveShare(s); err != nil {
+		// Save the updated share
+		err = shareStore.UpdateShare(existingShare)
+		if err != nil {
 			return http.StatusInternalServerError, err
 		}
+
+		// Get the updated share to return (from cache)
+		updatedShare, err := shareStore.GetByHash(body.Hash)
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
+
 		// Convert to ShareResponse format with username
 		var user *users.User
-		user, err = state.GetUser(s.UserID)
+		var userValue users.User
+		userValue, err = state.GetUser(updatedShare.UserID)
+		if err == nil {
+			user = &userValue
+		}
 		username := ""
 		if err == nil {
 			username = user.Username
 		}
 		response := &ShareResponse{
-			Link:     s,
+			Link:     updatedShare,
 			Username: username,
 		}
 		return renderJSON(w, r, response)
@@ -400,9 +437,13 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		CommonShare:  body.CommonShare,
 		Version:      1, // Set version for new shares
 	}
-	if err = state.SaveShare(s); err != nil {
+	if err = shareStore.CreateShare(s); err != nil {
 		return http.StatusInternalServerError, err
 	}
+
+	// Debug: verify share was created with correct values
+	logger.Debug("Created share", "hash", s.Hash, "source", s.Source, "path", s.Path, "userID", s.UserID)
+
 	sharesWithUsernames, err := convertToFrontendShareResponse(r, []*share.Link{s}, d.user)
 	if err != nil {
 		return http.StatusInternalServerError, err
@@ -551,7 +592,7 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *reque
 	}
 
 	// Save the share
-	if err := state.SaveShare(shareLink); err != nil {
+	if err := shareStore.CreateShare(shareLink); err != nil {
 		return http.StatusInternalServerError, err
 	}
 

@@ -17,12 +17,11 @@ import (
 	"github.com/coreos/go-systemd/v22/activation"
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/database/access"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
-	"github.com/gtsteffaniak/filebrowser/backend/database/state"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/events"
+	"github.com/gtsteffaniak/filebrowser/backend/state"
 	"github.com/gtsteffaniak/go-logger/logger"
 	// http-swagger middleware
 )
@@ -43,7 +42,6 @@ var (
 	accessStore *access.Storage
 	shareStore  *share.Storage
 	usersStore  *users.Storage
-	authStore   *auth.Storage
 )
 
 func StartHttp(ctx context.Context, shutdownComplete chan struct{}) {
@@ -51,16 +49,11 @@ func StartHttp(ctx context.Context, shutdownComplete chan struct{}) {
 	accessStore = state.GetAccessStorage()
 	shareStore = state.GetShareStorage()
 	usersStore = state.GetUsersStorage()
-	var err error
-	authStore, err = state.GetAuthStorage()
-	if err != nil {
-		logger.Fatalf("failed to initialize auth storage: %v", err)
-	}
 
 	// Start pprof server in a separate goroutine
 	if settings.Env.IsDevMode {
 		go func() {
-			if err = http.ListenAndServe("localhost:6060", nil); err != nil {
+			if err := http.ListenAndServe("localhost:6060", nil); err != nil {
 				logger.Fatalf("pprof server error: %v", err)
 			}
 		}()

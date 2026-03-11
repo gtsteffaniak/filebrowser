@@ -116,7 +116,7 @@ func TestConfigLoadSpecificValues(t *testing.T) {
 		globalVal interface{}
 		newVal    interface{}
 	}{
-		{"Server.Database", Config.Server.Database, defaultConfig.Server.Database},
+		{"Server.DatabaseV2", Config.Server.DatabaseV2, defaultConfig.Server.DatabaseV2},
 	}
 
 	for _, tc := range testCases {
