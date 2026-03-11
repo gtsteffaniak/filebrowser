@@ -18,7 +18,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/go-logger/logger"
-	"golang.org/x/time/rate"
 )
 
 // archiveCreateHandler creates an archive on the server at the given destination.
@@ -167,10 +166,16 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	}
 
 	var createErr error
+	file, err := os.OpenFile(destRealPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fileutils.PermFile)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	defer file.Close()
+
 	if format == "zip" {
-		createErr = createZip(d, req.FromSource, destRealPath, itemPaths...)
+		createErr = createZip(d, req.FromSource, file, itemPaths...)
 	} else {
-		createErr = createTarGzWithLevel(d, req.FromSource, destRealPath, compression, itemPaths...)
+		createErr = createTarGzWithLevel(d, req.FromSource, file, compression, itemPaths...)
 	}
 	if createErr != nil {
 		return http.StatusInternalServerError, createErr
@@ -499,15 +504,9 @@ func computeArchiveSize(source string, fileList []string, d *requestContext) (in
 	return estimatedSize, nil
 }
 
-// createZip writes a ZIP archive to tmpPath containing the given paths; access rules apply.
-func createZip(d *requestContext, source string, tmpPath string, filenames ...string) error {
-	file, err := os.OpenFile(tmpPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fileutils.PermFile)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	zipWriter := zip.NewWriter(file)
+// createZip writes a ZIP archive into w containing the given paths; access rules apply.
+func createZip(d *requestContext, source string, w io.Writer, filenames ...string) error {
+	zipWriter := zip.NewWriter(w)
 
 	for _, filepath := range filenames {
 		err := addFile(source, filepath, d, nil, zipWriter, false)
@@ -523,15 +522,9 @@ func createZip(d *requestContext, source string, tmpPath string, filenames ...st
 	return nil
 }
 
-// createTarGz writes a tar.gz archive to tmpPath containing the given paths; access rules apply.
-func createTarGz(d *requestContext, source string, tmpPath string, filenames ...string) error {
-	file, err := os.OpenFile(tmpPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fileutils.PermFile)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	gzWriter := gzip.NewWriter(file)
+// createTarGz writes a tar.gz archive into w containing the given paths; access rules apply.
+func createTarGz(d *requestContext, source string, w io.Writer, filenames ...string) error {
+	gzWriter := gzip.NewWriter(w)
 	tarWriter := tar.NewWriter(gzWriter)
 
 	for _, filepath := range filenames {
@@ -551,22 +544,17 @@ func createTarGz(d *requestContext, source string, tmpPath string, filenames ...
 	return nil
 }
 
-// createTarGzWithLevel writes a tar.gz archive with the given gzip compression level (0=default, 1-9).
-func createTarGzWithLevel(d *requestContext, source string, destPath string, level int, filenames ...string) error {
-	file, err := os.OpenFile(destPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fileutils.PermFile)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
+// createTarGzWithLevel writes a tar.gz archive into w with the given gzip compression level (0=default, 1-9).
+func createTarGzWithLevel(d *requestContext, source string, w io.Writer, level int, filenames ...string) error {
 	var gzWriter *gzip.Writer
 	if level >= 1 && level <= 9 {
-		gzWriter, err = gzip.NewWriterLevel(file, level)
+		var err error
+		gzWriter, err = gzip.NewWriterLevel(w, level)
 		if err != nil {
 			return err
 		}
 	} else {
-		gzWriter = gzip.NewWriter(file)
+		gzWriter = gzip.NewWriter(w)
 	}
 	defer gzWriter.Close()
 	tarWriter := tar.NewWriter(gzWriter)
@@ -586,7 +574,7 @@ func createTarGzWithLevel(d *requestContext, source string, destPath string, lev
 }
 
 // BuildAndStreamArchive resolves paths, creates a zip or tar.gz archive, and streams it to w.
-// It respects access rules and max archive size. Used only by the raw handler for multi-file/directory download.
+// It respects access rules. Used only by the raw handler for multi-file/directory download.
 func BuildAndStreamArchive(w http.ResponseWriter, r *http.Request, d *requestContext, source string, fileList []string) (int, error) {
 	idx := indexing.GetIndex(source)
 	if idx == nil {
@@ -595,16 +583,6 @@ func BuildAndStreamArchive(w http.ResponseWriter, r *http.Request, d *requestCon
 	realPath, isDir, err := idx.GetRealPath(fileList[0])
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("failed to get real path for %s: %v", fileList[0], err)
-	}
-	estimatedSize, err := computeArchiveSize(source, fileList, d)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-	if config.Server.MaxArchiveSizeGB > 0 {
-		maxSize := config.Server.MaxArchiveSizeGB * 1024 * 1024 * 1024
-		if estimatedSize > maxSize {
-			return http.StatusRequestEntityTooLarge, fmt.Errorf("pre-archive combined size of files exceeds maximum limit of %d GB", config.Server.MaxArchiveSizeGB)
-		}
 	}
 
 	algo := r.URL.Query().Get("algo")
@@ -627,50 +605,18 @@ func BuildAndStreamArchive(w http.ResponseWriter, r *http.Request, d *requestCon
 	}
 	originalFileName := baseDirName + extension
 
-	archiveData := filepath.Join(config.Server.CacheDir, utils.InsecureRandomIdentifier(10))
-	if extension == ".zip" {
-		archiveData = archiveData + ".zip"
-		err = createZip(d, source, archiveData, fileList...)
-	} else {
-		archiveData = archiveData + ".tar.gz"
-		err = createTarGz(d, source, archiveData, fileList...)
-	}
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-
-	fd, err := os.Open(archiveData)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-	defer fd.Close()
-
-	fileInfo, err := fd.Stat()
-	if err != nil {
-		os.Remove(archiveData)
-		return http.StatusInternalServerError, err
-	}
-
-	sizeInMB := fileInfo.Size() / 1024 / 1024
-	if sizeInMB > 500 {
-		logger.Debugf("User %v is downloading large (%d MB) file: %v", d.user.Username, sizeInMB, originalFileName)
-	}
-
 	setContentDisposition(w, r, originalFileName)
-	w.Header().Set("Content-Length", fmt.Sprintf("%d", fileInfo.Size()))
 	w.Header().Set("Content-Type", "application/octet-stream")
 
-	var reader io.Reader = fd
-	if d.share != nil && d.share.MaxBandwidth > 0 {
-		limit := rate.Limit(d.share.MaxBandwidth * 1024)
-		burst := d.share.MaxBandwidth * 1024
-		reader = newThrottledReadSeeker(fd, limit, burst, r.Context())
+	if extension == ".zip" {
+		err = createZip(d, source, w, fileList...)
+	} else {
+		err = createTarGz(d, source, w, fileList...)
 	}
-	_, err = io.Copy(w, reader)
-	os.Remove(archiveData)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
+
 	return 0, nil
 }
 
