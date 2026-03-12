@@ -10,17 +10,17 @@ import (
 	"strings"
 	"testing"
 
-	storm "github.com/asdine/storm/v3"
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
+	commonerrors "github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
-	commonerrors "github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/database/access"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
-	"github.com/gtsteffaniak/filebrowser/backend/database/storage/bolt"
+	_ "github.com/gtsteffaniak/filebrowser/backend/database/sqldb" // Import to register SQL driver
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
+	"github.com/gtsteffaniak/filebrowser/backend/state"
 )
 
 // setupWebDAVTestEnv sets up the test environment with multiple sources and users
@@ -41,7 +41,7 @@ func setupWebDAVTestEnv(t *testing.T) (string, string) {
 		filepath.Join(dockerPath, "data"),
 		filepath.Join(source2Path, "shared"),
 	}
-	
+
 	for _, dir := range dirs {
 		if err := os.MkdirAll(dir, 0755); err != nil {
 			t.Fatal(err)
@@ -50,12 +50,12 @@ func setupWebDAVTestEnv(t *testing.T) (string, string) {
 
 	// Create test files
 	testFiles := map[string]string{
-		filepath.Join(source1Path, "public", "readme.txt"):         "public content",
-		filepath.Join(source1Path, "private", "secret.txt"):        "private content",
-		filepath.Join(source1Path, "viewable-only", "data.txt"):    "viewable content",
-		filepath.Join(source1Path, "not-viewable", "hidden.txt"):   "hidden content",
-		filepath.Join(dockerPath, "data", "config.yml"):            "docker config",
-		filepath.Join(source2Path, "shared", "document.txt"):       "shared content",
+		filepath.Join(source1Path, "public", "readme.txt"):       "public content",
+		filepath.Join(source1Path, "private", "secret.txt"):      "private content",
+		filepath.Join(source1Path, "viewable-only", "data.txt"):  "viewable content",
+		filepath.Join(source1Path, "not-viewable", "hidden.txt"): "hidden content",
+		filepath.Join(dockerPath, "data", "config.yml"):          "docker config",
+		filepath.Join(source2Path, "shared", "document.txt"):     "shared content",
 	}
 
 	for path, content := range testFiles {
@@ -64,28 +64,28 @@ func setupWebDAVTestEnv(t *testing.T) (string, string) {
 		}
 	}
 
-	// Setup database
-	dbPath := filepath.Join(tempDir, "db")
-	db, err := storm.Open(dbPath)
+	// Setup database with state
+	dbPath := filepath.Join(tempDir, "test.sqlite")
+	_, err := state.Initialize(dbPath)
 	if err != nil {
 		t.Fatal(err)
 	}
-	store, err = bolt.NewStorage(db)
-	if err != nil {
-		t.Fatal(err)
-	}
-	
-	// Clear any previous access rules
-	store.Access.AllRules = make(access.SourceRuleMap)
-	store.Access.Groups = make(access.GroupMap)
+	t.Cleanup(func() {
+		state.Close()
+	})
+
+	// Initialize global stores
+	accessStore = state.GetAccessStorage()
+	shareStore = state.GetShareStorage()
+	usersStore = state.GetUsersStorage()
 
 	// Set cache directory for index database
 	settings.Config.Server.CacheDir = tempDir
-	
+
 	// Setup config with sources - update both the local config var AND the global settings.Config
 	config = &settings.Settings{
 		Server: settings.Server{
-			BaseURL: "/", // Use / for tests to avoid prefix mismatch
+			BaseURL:  "/", // Use / for tests to avoid prefix mismatch
 			CacheDir: tempDir,
 			SourceMap: map[string]*settings.Source{
 				source1Path: {
@@ -109,7 +109,7 @@ func setupWebDAVTestEnv(t *testing.T) (string, string) {
 			},
 		},
 	}
-	
+
 	// CRITICAL: Also update the global settings.Config so access.Permitted can find sources
 	settings.Config.Server.SourceMap = config.Server.SourceMap
 	settings.Config.Server.NameToSource = config.Server.NameToSource
@@ -136,11 +136,11 @@ func setupWebDAVTestEnv(t *testing.T) (string, string) {
 // mockCheckPermissions mocks the CheckPermissions function to bypass index lookups
 func mockCheckPermissions(t *testing.T, source1Path, source2Path string) {
 	t.Helper()
-	
+
 	// Store original function
 	originalCheckPermissions := files.CheckPermissionsFunc
 	t.Cleanup(func() { files.CheckPermissionsFunc = originalCheckPermissions })
-	
+
 	// Mock the function
 	files.CheckPermissionsFunc = func(opts utils.FileOptions, access *access.Storage, user *users.User) (string, string, error) {
 		// Get the source path
@@ -152,7 +152,7 @@ func mockCheckPermissions(t *testing.T, source1Path, source2Path string) {
 		} else {
 			return "", "", fmt.Errorf("unknown source: %s", opts.Source)
 		}
-		
+
 		// Get user scope for this source - match by source PATH, not name
 		userScope := "/"
 		hasScope := false
@@ -163,26 +163,26 @@ func mockCheckPermissions(t *testing.T, source1Path, source2Path string) {
 				break
 			}
 		}
-		
+
 		// If user has no scope for this source, deny access
 		if !hasScope && len(user.Scopes) > 0 {
 			return "", "", fmt.Errorf("user has no access to source: %s", opts.Source)
 		}
-		
+
 		// Sanitize path
 		safePath, err := utils.SanitizeUserPath(opts.Path)
 		if err != nil {
 			return "", "", commonerrors.ErrAccessDenied
 		}
-		
+
 		// Combine scope + sanitized path
 		indexPath := utils.JoinPathAsUnix(userScope, safePath)
-		
+
 		// Check access control
 		if access != nil && !access.Permitted(sourcePath, indexPath, user.Username) {
 			return "", "", commonerrors.ErrAccessDenied
 		}
-		
+
 		return indexPath, userScope, nil
 	}
 }
@@ -203,7 +203,7 @@ func mockWebDAVIndexing(t *testing.T, source1Path, source2Path string) {
 		} else {
 			return nil, fmt.Errorf("unknown source: %s", opts.Source)
 		}
-		
+
 		// Simulate access control
 		if access != nil && user != nil {
 			// Simple scope check based on user's configured scopes (which use source PATH)
@@ -214,7 +214,7 @@ func mockWebDAVIndexing(t *testing.T, source1Path, source2Path string) {
 					// Check if path is within user's scope
 					userScope := scope.Scope
 					fullPath := utils.JoinPathAsUnix(userScope, opts.Path)
-					
+
 					// Check if user has permission using the access storage
 					if !access.Permitted(sourcePath, fullPath, user.Username) {
 						return nil, commonerrors.ErrAccessDenied
@@ -229,12 +229,12 @@ func mockWebDAVIndexing(t *testing.T, source1Path, source2Path string) {
 
 		// Simulate indexing rules
 		path := opts.Path
-		
+
 		// Paths containing "not-viewable" are not indexed and not viewable
 		if strings.Contains(path, "not-viewable") {
 			return nil, commonerrors.ErrNotViewable
 		}
-		
+
 		// Paths containing "viewable-only" are not indexed but viewable
 		if strings.Contains(path, "viewable-only") {
 			return nil, commonerrors.ErrNotIndexed
@@ -322,23 +322,23 @@ func TestWebDAV_PROPFIND_UserScopes(t *testing.T) {
 	}
 
 	// Save users
-	if err := store.Users.Save(adminUser, true, true); err != nil {
+	if err := state.CreateUser(adminUser, ""); err != nil {
 		t.Fatal(err)
 	}
-	if err := store.Users.Save(scopedUser, true, true); err != nil {
+	if err := state.CreateUser(scopedUser, ""); err != nil {
 		t.Fatal(err)
 	}
-	if err := store.Users.Save(restrictedUser, true, true); err != nil {
+	if err := state.CreateUser(restrictedUser, ""); err != nil {
 		t.Fatal(err)
 	}
 
 	testCases := []struct {
-		name               string
-		user               *users.User
-		source             string
-		path               string
-		expectedStatus     int
-		shouldHaveContent  bool
+		name              string
+		user              *users.User
+		source            string
+		path              string
+		expectedStatus    int
+		shouldHaveContent bool
 	}{
 		{
 			name:              "Admin can access root of source1",
@@ -353,7 +353,7 @@ func TestWebDAV_PROPFIND_UserScopes(t *testing.T) {
 			user:              scopedUser,
 			source:            "source1",
 			path:              "/",
-			expectedStatus:    207, // PROPFIND returns 207 Multi-Status
+			expectedStatus:    207,   // PROPFIND returns 207 Multi-Status
 			shouldHaveContent: false, // Empty because _docker is not viewable
 		},
 		{
@@ -390,19 +390,19 @@ func TestWebDAV_PROPFIND_UserScopes(t *testing.T) {
 			req := httptest.NewRequest("PROPFIND", "/dav/"+tc.source+tc.path, nil)
 			req.SetPathValue("source", tc.source)
 			req.SetPathValue("path", tc.path)
-			
+
 			w := httptest.NewRecorder()
 			ctx := &requestContext{user: tc.user}
 
 			status, err := webDAVHandler(w, req, ctx)
-			
+
 			// If handler returned an error status, use that instead of response code
 			if status != 0 && status != http.StatusOK {
 				if w.Code == 0 || w.Code == http.StatusOK {
 					w.Code = status
 				}
 			}
-			
+
 			// Check the actual HTTP response status code from ResponseWriter
 			if w.Code != tc.expectedStatus {
 				t.Errorf("expected status %d, got %d (err: %v)", tc.expectedStatus, w.Code, err)
@@ -464,13 +464,13 @@ func TestWebDAV_WriteOperations(t *testing.T) {
 	}
 
 	// Save users
-	if err := store.Users.Save(fullAccessUser, true, true); err != nil {
+	if err := state.CreateUser(fullAccessUser, ""); err != nil {
 		t.Fatal(err)
 	}
-	if err := store.Users.Save(readOnlyUser, true, true); err != nil {
+	if err := state.CreateUser(readOnlyUser, ""); err != nil {
 		t.Fatal(err)
 	}
-	if err := store.Users.Save(scopedUser, true, true); err != nil {
+	if err := state.CreateUser(scopedUser, ""); err != nil {
 		t.Fatal(err)
 	}
 
@@ -529,7 +529,7 @@ func TestWebDAV_WriteOperations(t *testing.T) {
 			name:           "Scoped user can write in their scope",
 			user:           scopedUser,
 			method:         http.MethodPut,
-			path:           "/scopedfile.txt", // Path relative to scope (/public)
+			path:           "/scopedfile.txt",  // Path relative to scope (/public)
 			expectedStatus: http.StatusCreated, // 201 for new file
 		},
 		{
@@ -551,19 +551,19 @@ func TestWebDAV_WriteOperations(t *testing.T) {
 			req := httptest.NewRequest(tc.method, "/dav/source1"+tc.path, body)
 			req.SetPathValue("source", "source1")
 			req.SetPathValue("path", tc.path)
-			
+
 			w := httptest.NewRecorder()
 			ctx := &requestContext{user: tc.user}
 
 			status, err := webDAVHandler(w, req, ctx)
-			
+
 			// If handler returned an error status, use that instead of response code
 			if status != 0 && status != http.StatusOK {
 				if w.Code == 0 || w.Code == http.StatusOK {
 					w.Code = status
 				}
 			}
-			
+
 			// Check the actual HTTP response status code from ResponseWriter
 			if w.Code != tc.expectedStatus {
 				t.Errorf("expected status %d, got %d (err: %v)", tc.expectedStatus, w.Code, err)
@@ -602,16 +602,16 @@ func TestWebDAV_AccessControl(t *testing.T) {
 	}
 
 	// Save users
-	if err := store.Users.Save(user1, true, true); err != nil {
+	if err := state.CreateUser(user1, ""); err != nil {
 		t.Fatal(err)
 	}
-	if err := store.Users.Save(user2, true, true); err != nil {
+	if err := state.CreateUser(user2, ""); err != nil {
 		t.Fatal(err)
 	}
 
 	// Initialize index
 	initTestIndex(t, "source1", source1Path)
-	
+
 	// Create access rules by using the internal structure
 	// User1 can access /private, user2 cannot
 	// Set up a deny rule for user2 at /private
@@ -621,15 +621,16 @@ func TestWebDAV_AccessControl(t *testing.T) {
 			Users: access.StringSet{"user2": struct{}{}},
 		},
 	}
-	
+
 	// Add the rule to the access storage
-	if store.Access.AllRules == nil {
-		store.Access.AllRules = make(access.SourceRuleMap)
+	// Access the internal AllRules map directly for testing
+	if accessStore.AllRules == nil {
+		accessStore.AllRules = make(access.SourceRuleMap)
 	}
-	if store.Access.AllRules[source1Path] == nil {
-		store.Access.AllRules[source1Path] = make(access.RuleMap)
+	if accessStore.AllRules[source1Path] == nil {
+		accessStore.AllRules[source1Path] = make(access.RuleMap)
 	}
-	store.Access.AllRules[source1Path]["/private/"] = rule // Add trailing slash
+	accessStore.AllRules[source1Path]["/private/"] = rule
 
 	testCases := []struct {
 		name           string
@@ -668,19 +669,19 @@ func TestWebDAV_AccessControl(t *testing.T) {
 			req := httptest.NewRequest("PROPFIND", "/dav/source1"+tc.path, nil)
 			req.SetPathValue("source", "source1")
 			req.SetPathValue("path", tc.path)
-			
+
 			w := httptest.NewRecorder()
 			ctx := &requestContext{user: tc.user}
 
 			status, err := webDAVHandler(w, req, ctx)
-			
+
 			// If handler returned an error status, use that instead of response code
 			if status != 0 && status != http.StatusOK {
 				if w.Code == 0 || w.Code == http.StatusOK {
 					w.Code = status
 				}
 			}
-			
+
 			// Check the actual HTTP response status code from ResponseWriter
 			if w.Code != tc.expectedStatus {
 				t.Errorf("expected status %d, got %d (err: %v)", tc.expectedStatus, w.Code, err)
@@ -708,7 +709,7 @@ func TestWebDAV_IndexingStates(t *testing.T) {
 		},
 	}
 
-	if err := store.Users.Save(user, true, true); err != nil {
+	if err := state.CreateUser(user, ""); err != nil {
 		t.Fatal(err)
 	}
 
@@ -775,19 +776,19 @@ func TestWebDAV_IndexingStates(t *testing.T) {
 			req := httptest.NewRequest(tc.method, "/dav/source1"+tc.path, body)
 			req.SetPathValue("source", "source1")
 			req.SetPathValue("path", tc.path)
-			
+
 			w := httptest.NewRecorder()
 			ctx := &requestContext{user: user}
 
 			status, err := webDAVHandler(w, req, ctx)
-			
+
 			// If handler returned an error status, use that instead of response code
 			if status != 0 && status != http.StatusOK {
 				if w.Code == 0 || w.Code == http.StatusOK {
 					w.Code = status
 				}
 			}
-			
+
 			// Check the actual HTTP response status code from ResponseWriter
 			if w.Code != tc.expectedStatus {
 				t.Errorf("%s: expected status %d, got %d (err: %v)", tc.description, tc.expectedStatus, w.Code, err)

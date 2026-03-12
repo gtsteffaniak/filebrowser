@@ -101,8 +101,7 @@ func (l *Link) GetFileName() string {
 
 // InitUserDownloads initializes the user downloads map if needed
 func (l *Link) InitUserDownloads() {
-	l.Mu.Lock()
-	defer l.Mu.Unlock()
+	// Note: This should be called within a lock at the state package level
 	if l.UserDownloads == nil {
 		l.UserDownloads = make(map[string]int)
 	}
@@ -110,8 +109,7 @@ func (l *Link) InitUserDownloads() {
 
 // IncrementUserDownload increments the download count for a specific user
 func (l *Link) IncrementUserDownload(username string) {
-	l.Mu.Lock()
-	defer l.Mu.Unlock()
+	// Note: This should be called within a lock at the state package level
 	if l.UserDownloads == nil {
 		l.UserDownloads = make(map[string]int)
 	}
@@ -120,8 +118,7 @@ func (l *Link) IncrementUserDownload(username string) {
 
 // GetUserDownloadCount returns the download count for a specific user
 func (l *Link) GetUserDownloadCount(username string) int {
-	l.Mu.Lock()
-	defer l.Mu.Unlock()
+	// Note: This should be called within a lock at the state package level
 	if l.UserDownloads == nil {
 		return 0
 	}
@@ -130,8 +127,7 @@ func (l *Link) GetUserDownloadCount(username string) int {
 
 // ResetDownloadCounts resets both global and per-user download counts
 func (l *Link) ResetDownloadCounts() {
-	l.Mu.Lock()
-	defer l.Mu.Unlock()
+	// Note: This should be called within a lock at the state package level
 	l.Downloads = 0
 	l.UserDownloads = make(map[string]int)
 }

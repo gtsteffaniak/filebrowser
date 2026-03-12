@@ -13,10 +13,8 @@ import (
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
-	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
-	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/go-logger/logger"
 	"golang.org/x/oauth2"
@@ -161,7 +159,6 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		logger.Errorf("failed to exchange token: %v", err)
 		return http.StatusInternalServerError, fmt.Errorf("failed to exchange token: %v", err)
 	}
-	fmt.Println("token", token)
 
 	rawIDToken, ok := token.Extra("id_token").(string)
 	// accessToken := token.AccessToken // Access token is needed for UserInfo, already in 'token'
@@ -266,57 +263,23 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 		logger.Debugf("User %s is in required group, allowing access.", username)
 	}
 
-	isAdmin := false // Default to non-admin user
+	// Determine if user should be admin
+	isAdmin := false
 	if oidcCfg.AdminGroup != "" {
 		if slices.Contains(groups, oidcCfg.AdminGroup) {
-			isAdmin = true // User is in the admin group, grant admin privileges
+			isAdmin = true
 			logger.Debugf("User %s is in admin group %s, granting admin privileges.", username, oidcCfg.AdminGroup)
 		}
-	}
-	logger.Debugf("Successfully authenticated OIDC username: %s isAdmin: %v", username, isAdmin)
-	// Retrieve the user from the store and store it in the context
-	user, err := store.Users.Get(username)
-	if err != nil {
-		if err.Error() != "the resource does not exist" {
-			return http.StatusInternalServerError, err
-		}
-		// Auto-create user on first OIDC authentication
-		if oidcCfg.AdminGroup == "" {
-			isAdmin = config.UserDefaults.Permissions.Admin
-		}
-		user = &users.User{
-			Username:    username,
-			LoginMethod: users.LoginMethodOidc,
-		}
-		settings.ApplyUserDefaults(user)
-		if isAdmin {
-			user.Permissions.Admin = true
-		}
-		err = storage.CreateUser(*user, user.Permissions)
-		if err != nil {
-			return http.StatusInternalServerError, err
-		}
-		user, err = store.Users.Get(username)
-		if err != nil {
-			return http.StatusInternalServerError, err
-		}
 	} else {
-		// update user admin perms
-		if isAdmin != user.Permissions.Admin && oidcCfg.AdminGroup != "" {
-			user.Permissions.Admin = isAdmin
-			err = store.Users.Update(user, true, "Permissions")
-			if err != nil {
-				logger.Warningf("failed to update oidc user %s admin permissions: %v", username, err)
-			}
-		}
-	}
-	if user.LoginMethod != users.LoginMethodOidc {
-		return http.StatusForbidden, errors.ErrWrongLoginMethod
+		// If no admin group configured, use default permissions
+		isAdmin = config.UserDefaults.Permissions.Admin
 	}
 
-	// Sync OIDC groups with access control system
-	if err = store.Access.SyncUserGroups(username, groups); err != nil {
-		logger.Warningf("failed to sync oidc user %s groups: %v", username, err)
+	logger.Debugf("Successfully authenticated OIDC username: %s isAdmin: %v", username, isAdmin)
+
+	user, err := getOrCreateAuthenticatedUser(username, users.LoginMethodOidc, isAdmin, groups)
+	if err != nil {
+		return http.StatusUnauthorized, err
 	}
 
 	expires := time.Hour * time.Duration(config.Auth.TokenExpirationHours)

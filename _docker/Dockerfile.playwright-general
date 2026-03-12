@@ -19,5 +19,4 @@ RUN dd if=/dev/zero of=/app/frontend/tests/playwright-files/1.1MB.bin bs=1024 co
 
 # Run tests
 ENV FILEBROWSER_PLAYWRIGHT_TEST=true
-RUN ./filebrowser set -u testuser1,testuser1
-RUN ./filebrowser & sleep 2 && cd ../frontend && npx playwright test
+RUN ./filebrowser set -u testuser1,testuser1 && ./filebrowser & sleep 2 && cd ../frontend && npx playwright test

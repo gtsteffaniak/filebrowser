@@ -19,8 +19,8 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
-	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/state"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -78,136 +78,98 @@ func extractToken(r *http.Request) (string, error) {
 	return "", request.ErrNoTokenInRequest
 }
 
-func setupProxyUser(r *http.Request, data *requestContext, proxyUser string) (*users.User, error) {
-	var err error
-	// Retrieve the user from the store and store it in the context
-	data.user, err = store.Users.Get(proxyUser)
+// getOrCreateAuthenticatedUser is a common helper for retrieving or auto-creating users
+// across different authentication methods (proxy, JWT, LDAP, OIDC)
+func getOrCreateAuthenticatedUser(username string, loginMethod users.LoginMethod, isAdmin bool, groups []string) (*users.User, error) {
+	// Try to get existing user
+	userValue, err := state.GetUserByUsername(username)
 	if err != nil {
-		if err.Error() != "the resource does not exist" {
+		if !libError.Is(err, errors.ErrNotExist) {
 			return nil, err
 		}
-		// Auto-create user on first proxy authentication
+		// Auto-create user on first authentication
 		user := users.User{
-			LoginMethod: users.LoginMethodProxy,
-			Username:    proxyUser,
+			LoginMethod: loginMethod,
+			Username:    username,
 		}
 		settings.ApplyUserDefaults(&user)
-		if user.Username == config.Auth.AdminUsername {
+
+		if isAdmin {
 			user.Permissions.Admin = true
 		}
-		err = storage.CreateUser(user, user.Permissions)
+
+		err = state.CreateUser(&user, "")
 		if err != nil {
 			return nil, err
 		}
-		data.user, err = store.Users.Get(proxyUser)
+
+		// Fetch the created user
+		userValue, err = state.GetUserByUsername(username)
 		if err != nil {
 			return nil, err
 		}
 	}
-	if data.user.LoginMethod != users.LoginMethodProxy {
+	allowedGroups := []string{}
+	switch loginMethod {
+	case users.LoginMethodJwt:
+		allowedGroups = config.Auth.Methods.JwtAuth.UserGroups
+	case users.LoginMethodLdap:
+		allowedGroups = config.Auth.Methods.LdapAuth.UserGroups
+	case users.LoginMethodOidc:
+		allowedGroups = config.Auth.Methods.OidcAuth.UserGroups
+	}
+	allowed := len(allowedGroups) == 0
+	for _, userGroup := range groups {
+		for _, allowedGroup := range allowedGroups {
+			if userGroup == allowedGroup {
+				allowed = true
+				break
+			}
+		}
+	}
+	if !allowed {
+		return nil, fmt.Errorf("user is not in allowed groups")
+	}
+	// Sync admin status if needed (in case admin username changed)
+	if isAdmin && !userValue.Permissions.Admin {
+		userValue.Permissions.Admin = true
+		// No password change, pass empty string
+		err = state.UpdateUser(&userValue, "")
+		if err != nil {
+			return nil, err
+		}
+	}
+	if err := accessStore.SyncUserGroups(username, groups); err != nil {
+		logger.Warningf("failed to sync ldap user %s groups: %v", username, err)
+	}
+	// Verify login method matches
+	if userValue.LoginMethod != loginMethod {
 		return nil, errors.ErrWrongLoginMethod
 	}
-	if data.user.Username == config.Auth.AdminUsername && !data.user.Permissions.Admin {
-		data.user.Permissions.Admin = true
-		err = store.Users.Update(data.user, true, "Permissions")
-		if err != nil {
-			return nil, err
-		}
-	}
-	return data.user, nil
+
+	return &userValue, nil
+}
+
+func setupProxyUser(r *http.Request, data *requestContext, proxyUser string) (*users.User, error) {
+	// Check if username matches admin username
+	isAdmin := proxyUser == config.Auth.AdminUsername
+	return getOrCreateAuthenticatedUser(proxyUser, users.LoginMethodProxy, isAdmin, []string{})
 }
 
 // setupJwtUser retrieves or creates a user based on external JWT token claims
 func setupJwtUser(r *http.Request, data *requestContext, username string, claims map[string]interface{}) (*users.User, error) {
-	var err error
-	// Retrieve the user from the store
-	data.user, err = store.Users.Get(username)
-	if err != nil {
-		if err.Error() != "the resource does not exist" {
-			return nil, err
-		}
-		// Auto-create user on first JWT authentication
-		user := users.User{
-			LoginMethod: users.LoginMethodJwt,
-			Username:    username,
-		}
-		settings.ApplyUserDefaults(&user)
-		
-		// Check if user should be admin based on groups
-		if config.Auth.Methods.JwtAuth.AdminGroup != "" {
-			groups := auth.ExtractGroupsFromClaims(claims, config.Auth.Methods.JwtAuth.GroupsClaim)
-			for _, group := range groups {
-				if group == config.Auth.Methods.JwtAuth.AdminGroup {
-					user.Permissions.Admin = true
-					break
-				}
-			}
-		}
-		
-		// Also check if username matches admin username
-		if user.Username == config.Auth.AdminUsername {
-			user.Permissions.Admin = true
-		}
-		
-		err = storage.CreateUser(user, user.Permissions)
-		if err != nil {
-			return nil, err
-		}
-		data.user, err = store.Users.Get(username)
-		if err != nil {
-			return nil, err
+	// Determine if user should be admin
+	isAdmin := username == config.Auth.AdminUsername
+	// Check if user should be admin based on groups
+	groups := auth.ExtractGroupsFromClaims(claims, config.Auth.Methods.JwtAuth.GroupsClaim)
+	for _, group := range groups {
+		if group == config.Auth.Methods.JwtAuth.AdminGroup {
+			isAdmin = true
+			break
 		}
 	}
-	
-	// Verify login method matches
-	if data.user.LoginMethod != users.LoginMethodJwt {
-		return nil, errors.ErrWrongLoginMethod
-	}
-	
-	// Check if user is in allowed groups (if UserGroups is configured)
-	if len(config.Auth.Methods.JwtAuth.UserGroups) > 0 {
-		groups := auth.ExtractGroupsFromClaims(claims, config.Auth.Methods.JwtAuth.GroupsClaim)
-		allowed := false
-		for _, userGroup := range groups {
-			for _, allowedGroup := range config.Auth.Methods.JwtAuth.UserGroups {
-				if userGroup == allowedGroup {
-					allowed = true
-					break
-				}
-			}
-			if allowed {
-				break
-			}
-		}
-		if !allowed {
-			return nil, fmt.Errorf("user is not in allowed groups")
-		}
-	}
-	
-	// Update admin status if needed
-	shouldBeAdmin := false
-	if config.Auth.Methods.JwtAuth.AdminGroup != "" {
-		groups := auth.ExtractGroupsFromClaims(claims, config.Auth.Methods.JwtAuth.GroupsClaim)
-		for _, group := range groups {
-			if group == config.Auth.Methods.JwtAuth.AdminGroup {
-				shouldBeAdmin = true
-				break
-			}
-		}
-	}
-	if data.user.Username == config.Auth.AdminUsername {
-		shouldBeAdmin = true
-	}
-	
-	if shouldBeAdmin != data.user.Permissions.Admin {
-		data.user.Permissions.Admin = shouldBeAdmin
-		err = store.Users.Update(data.user, true, "Permissions")
-		if err != nil {
-			return nil, err
-		}
-	}
-	
-	return data.user, nil
+
+	return getOrCreateAuthenticatedUser(username, users.LoginMethodJwt, isAdmin, groups)
 }
 
 // loginHandler handles user authentication via password.
@@ -243,7 +205,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (in
 // @Success 200 {object} map[string]string "{"logoutUrl": "http://..."}"
 // @Router /api/auth/logout [post]
 func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	if err := auth.RevokeApiToken(store.Access, d.token); err != nil {
+	if err := auth.RevokeApiToken(accessStore, d.token); err != nil {
 		logger.Errorf("Failed to revoke token on logout: %v", err)
 	}
 
@@ -331,13 +293,10 @@ func signupHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	}
 
 	user := users.User{
-		Username: username,
-		NonAdminEditable: users.NonAdminEditable{
-			Password: password,
-		},
+		Username:    username,
 		LoginMethod: users.LoginMethodPassword,
 	}
-	err := storage.CreateUser(user, settings.ConvertPermissionsToUsers(settings.Config.UserDefaults.Permissions))
+	err := state.CreateUser(&user, password)
 	if err != nil {
 		logger.Debug(err.Error())
 		// Return the actual error message instead of a generic one

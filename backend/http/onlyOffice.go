@@ -131,7 +131,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 			Source:         source,
 			Expand:         false,
 			FollowSymlinks: true,
-		}, store.Access, d.user, store.Share)
+		}, accessStore, d.user, shareStore)
 		if err != nil {
 			logger.Errorf("OnlyOffice: failed to get file info for source=%s, path=%s: %v", source, path, err)
 			return errToStatus(err), err
@@ -543,7 +543,7 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 		_, err = files.FileInfoFaster(utils.FileOptions{
 			Source: source,
 			Path:   path,
-		}, store.Access, d.user, store.Share)
+		}, accessStore, d.user, shareStore)
 		if err != nil {
 			logger.Errorf("OnlyOffice callback: original file no longer exists at path=%s: %v",
 				path, err)

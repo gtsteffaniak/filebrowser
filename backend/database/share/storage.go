@@ -1,6 +1,7 @@
 package share
 
 import (
+	"fmt"
 	"strings"
 	"sync"
 	"time"
@@ -379,11 +380,46 @@ func (s *Storage) UpdateSharePath(hash, newPath string) error {
 	return nil
 }
 
-// Save wraps StorageBackend.Save
-func (s *Storage) Save(l *Link) error {
+// CreateShare creates a new share and updates the cache
+// Returns an error if the share already exists
+func (s *Storage) CreateShare(l *Link) error {
+	// 1. Check if share already exists in cache (state)
+	s.mu.RLock()
+	_, existsInCache := s.shareByHash[l.Hash]
+	s.mu.RUnlock()
+	
+	if existsInCache {
+		return fmt.Errorf("share with hash %s already exists", l.Hash)
+	}
+	
+	// 2. Update database
 	if err := s.back.Save(l); err != nil {
 		return err
 	}
+	
+	// 3. Update cache to match database
+	s.setCache(l)
+	return nil
+}
+
+// UpdateShare updates an existing share and updates the cache
+// Returns an error if the share doesn't exist
+func (s *Storage) UpdateShare(l *Link) error {
+	// 1. Check if share exists in cache (state)
+	s.mu.RLock()
+	_, existsInCache := s.shareByHash[l.Hash]
+	s.mu.RUnlock()
+	
+	if !existsInCache {
+		return fmt.Errorf("share with hash %s not found in cache", l.Hash)
+	}
+	
+	// 2. Update database
+	if err := s.back.Save(l); err != nil {
+		return err
+	}
+	
+	// 3. Update cache to match database
 	s.setCache(l)
 	return nil
 }
@@ -397,7 +433,7 @@ func (s *Storage) Delete(hash string) error {
 	return nil
 }
 
-// Flush is a no-op: every share write (Save, Delete, UpdateShares, UpdateSharePath) already
+// Flush is a no-op: every share write
 // updates the database, so the cache and DB stay in sync without flushing.
 func (s *Storage) Flush() error {
 	return nil

@@ -20,6 +20,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
+	"github.com/gtsteffaniak/filebrowser/backend/state"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -54,10 +55,14 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		path := r.URL.Query().Get("path")
 
 		// Get the file link by hash
-		link, err := store.Share.GetByHash(hash)
+		link, err := shareStore.GetByHash(hash)
 		if err != nil {
 			data.share = &share.Link{}
 			return http.StatusNotFound, fmt.Errorf("share hash not found")
+		}
+		// Defensive check: data.user should be set by withOrWithoutUserHelper
+		if data.user == nil {
+			return http.StatusInternalServerError, fmt.Errorf("internal error: user context not set")
 		}
 		if link.DisableAnonymous && data.user.Username == "anonymous" {
 			return http.StatusForbidden, fmt.Errorf("share is not available to anonymous users")
@@ -98,7 +103,10 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		if link.DisableFileViewer || reachedDownloadsLimit {
 			getContent = false
 		}
-		data.shareUser, err = store.Users.Get(link.UserID)
+		userValue, err := state.GetUser(link.UserID)
+		if err == nil {
+			data.shareUser = &userValue
+		}
 		if err != nil {
 			return http.StatusNotFound, fmt.Errorf("user for share no longer exists")
 		}
@@ -127,7 +135,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles && link.ExtractEmbeddedSubtitles,
 			ShowHidden:               link.ShowHidden,
 			FollowSymlinks:           true,
-		}, store.Access, data.shareUser, store.Share)
+		}, accessStore, data.shareUser, shareStore)
 		if err != nil {
 			logger.Errorf("error fetching file info for share. hash=%v path=%v error=%v", hash, path, err)
 			return errToStatus(err), fmt.Errorf("error fetching share from server")
@@ -139,9 +147,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			file.OnlyOfficeId = ""
 		}
 		if getContent && file.Content != "" {
-			link.Mu.Lock()
 			link.Downloads++
-			link.Mu.Unlock()
 			// Track per-user download if enabled
 			if link.PerUserDownloadLimit {
 				link.IncrementUserDownload(data.user.Username)
@@ -170,7 +176,11 @@ func withAdminHelper(fn handleFunc) handleFunc {
 // This is used by withOrWithoutUserHelper to get user context even when tokens are expired
 func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.User {
 	if config.Auth.Methods.NoAuth {
-		user, err := store.Users.Get(uint(1))
+		userValue, err := state.GetUser(uint(1))
+		var user *users.User
+		if err == nil {
+			user = &userValue
+		}
 		if err != nil {
 			logger.Errorf("no auth: %v", err)
 			return nil
@@ -200,7 +210,11 @@ func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.U
 
 	// Token is valid (but might be expired or revoked)
 	// Try to get the user regardless of expiration status
-	user, err := store.Users.Get(tk.BelongsTo)
+	var user *users.User
+	userValue, err := state.GetUser(tk.BelongsTo)
+	if err == nil {
+		user = &userValue
+	}
 	if err != nil {
 		logger.Errorf("Failed to get user with ID %v: %v", tk.BelongsTo, err)
 		return nil
@@ -227,7 +241,7 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 			// Get the file link by hash
 			isShareRequest = true
 			shareHash = hash
-			link, _ = store.Share.GetByHash(hash)
+			link, _ = shareStore.GetByHash(hash)
 		} else {
 			prefix := config.Server.BaseURL + "public/share/"
 			reconstructed := config.Server.BaseURL + "public" + r.URL.Path
@@ -241,7 +255,7 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 						isShareRequest = true
 						shareHash = remaining
 						var err error
-						link, err = store.Share.GetByHash(remaining)
+						link, err = shareStore.GetByHash(remaining)
 						if err != nil {
 							logger.Debugf("error getting share by hash: %v", err)
 						}
@@ -319,16 +333,20 @@ func userWithoutOTPhelper(fn handleFunc) handleFunc {
 			}
 			var tk users.AuthToken
 			if token, err := jwt.ParseWithClaims(tokenStr, &tk, keyFunc); err == nil && token.Valid {
-				if !auth.IsRevokedApiToken(store.Access, tokenStr) {
+				if !auth.IsRevokedApiToken(accessStore, tokenStr) {
 					if tk.BelongsTo == 0 {
 						// Minimal token - look up user ID
-						userID, found := store.Access.GetUserIDFromToken(tokenStr)
+						userID, found := accessStore.GetUserIDFromToken(tokenStr)
 						if found {
 							tk.BelongsTo = userID
 						}
 					}
 					if tk.BelongsTo > 0 {
-						user, err := store.Users.Get(tk.BelongsTo)
+						var user *users.User
+						userValue, err := state.GetUser(tk.BelongsTo)
+						if err == nil {
+							user = &userValue
+						}
 						if err == nil && user.Permissions.Admin {
 							// Valid admin token - allow operation
 							d.user = user
@@ -354,13 +372,18 @@ func userWithoutOTPhelper(fn handleFunc) handleFunc {
 			logger.Debug("ldap auth failed, calling password auth", err)
 		}
 		if config.Auth.Methods.PasswordAuth.Enabled {
-			// Get the authentication method from the settings
-			auther, err := store.Auth.Get("password")
-			if err != nil {
-				return 401, errors.ErrUnauthorized
+			// Build recaptcha config if enabled
+			var recaptcha *auth.ReCaptcha
+			authCfg := config.Auth.Methods.PasswordAuth
+			if authCfg.Recaptcha.Host != "" && authCfg.Recaptcha.Secret != "" {
+				recaptcha = &auth.ReCaptcha{
+					Host:   authCfg.Recaptcha.Host,
+					Key:    authCfg.Recaptcha.Key,
+					Secret: authCfg.Recaptcha.Secret,
+				}
 			}
 			// Authenticate the user based on the request
-			user, err := auther.Auth(r, store.Users)
+			user, err := auth.AuthenticatePassword(r, usersStore, recaptcha)
 			if err != nil {
 				logger.Debug("password auth failed, calling handler", err)
 				if err == errors.ErrNoTotpProvided {
@@ -381,7 +404,10 @@ func withUserHelper(fn handleFunc) handleFunc {
 		if config.Auth.Methods.NoAuth {
 			var err error
 			// Retrieve the user from the store and store it in the context
-			data.user, err = store.Users.Get(uint(1))
+			userValue, err := state.GetUser(uint(1))
+			if err == nil {
+				data.user = &userValue
+			}
 			if err != nil {
 				logger.Errorf("no auth: %v", err)
 				return http.StatusInternalServerError, err
@@ -391,7 +417,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 			}
 			return fn(w, r, data)
 		}
-		
+
 		// Check for JWT external auth first (header or query param)
 		if config.Auth.Methods.JwtAuth.Enabled {
 			jwtToken := r.Header.Get(config.Auth.Methods.JwtAuth.Header)
@@ -399,12 +425,12 @@ func withUserHelper(fn handleFunc) handleFunc {
 				// Check query parameter (hardcoded to "jwt")
 				jwtToken = r.URL.Query().Get("jwt")
 			}
-			
+
 			if jwtToken != "" {
 				return getJwtUser(w, r, data, fn, jwtToken)
 			}
 		}
-		
+
 		proxyUser := r.Header.Get(config.Auth.Methods.ProxyAuth.Header)
 		isProxyUser := config.Auth.Methods.ProxyAuth.Enabled && proxyUser != ""
 		keyFunc := func(token *jwt.Token) (interface{}, error) {
@@ -430,7 +456,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 		if !token.Valid {
 			return http.StatusUnauthorized, fmt.Errorf("invalid token")
 		}
-		if auth.IsRevokedApiToken(store.Access, data.token) {
+		if auth.IsRevokedApiToken(accessStore, data.token) {
 			return http.StatusUnauthorized, fmt.Errorf("token is expired or revoked")
 		}
 		// ExpiresAt should always be set in valid tokens created by our system
@@ -445,13 +471,16 @@ func withUserHelper(fn handleFunc) handleFunc {
 		// Check if token is minimal/stateful (no BelongsTo in claim)
 		if tk.BelongsTo == 0 {
 			// Hash the token and look up user ID in access storage
-			userID, found := store.Access.GetUserIDFromToken(data.token)
+			userID, found := accessStore.GetUserIDFromToken(data.token)
 			if !found {
 				return http.StatusUnauthorized, fmt.Errorf("token is invalid or revoked")
 			}
 			tk.BelongsTo = userID
 		}
-		data.user, err = store.Users.Get(tk.BelongsTo)
+		userValue, err := state.GetUser(tk.BelongsTo)
+		if err == nil {
+			data.user = &userValue
+		}
 		if err != nil {
 			logger.Errorf("Failed to get user with ID %v: %v", tk.BelongsTo, err)
 			return http.StatusInternalServerError, err
@@ -485,7 +514,7 @@ func getJwtUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn
 		logger.Debugf("JWT verification failed: %v", err)
 		return http.StatusForbidden, fmt.Errorf("JWT authentication failed: %w", err)
 	}
-	
+
 	// Setup user based on JWT claims
 	user, err := setupJwtUser(r, data, username, claims)
 	if err != nil {
@@ -496,7 +525,7 @@ func getJwtUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn
 	if data.user.Username == "" {
 		return http.StatusForbidden, errors.ErrUnauthorized
 	}
-	
+
 	// Generate a FileBrowser session token for JWT users if they don't have one
 	if data.token == "" {
 		expires := time.Hour * time.Duration(config.Auth.TokenExpirationHours)
@@ -507,7 +536,7 @@ func getJwtUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn
 		}
 		data.token = tokenString
 	}
-	
+
 	// Call the handler function, passing in the context (or return OK if no handler)
 	if fn == nil {
 		return http.StatusOK, nil

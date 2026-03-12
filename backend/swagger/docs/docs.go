@@ -4710,6 +4710,19 @@ const docTemplate = `{
                 }
             }
         },
+        "settings.Database": {
+            "type": "object",
+            "properties": {
+                "migrateFrom": {
+                    "description": "path to old BoltDB database file for migration (optional)",
+                    "type": "string"
+                },
+                "path": {
+                    "description": "path to SQLite database file",
+                    "type": "string"
+                }
+            }
+        },
         "settings.ExternalLink": {
             "type": "object",
             "required": [
@@ -5234,8 +5247,12 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "database": {
-                    "description": "path to the database file",
-                    "type": "string"
+                    "description": "SQLite database configuration",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.Database"
+                        }
+                    ]
                 },
                 "disablePreviewResize": {
                     "description": "disable resizing of previews for faster loading over slow connections",

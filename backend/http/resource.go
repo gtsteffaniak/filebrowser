@@ -87,7 +87,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		ShowHidden:               d.user.ShowHidden,
 		SkipExtendedAttrs:        skipExtendedAttrs,
 		ShowSharedAttr:           true,
-	}, store.Access, d.user, store.Share)
+	}, accessStore, d.user, shareStore)
 	if err != nil {
 		return errToStatus(err), err
 	}
@@ -141,7 +141,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 		Source:     source,
 		Expand:     false,
 		ShowHidden: d.user.ShowHidden,
-	}, store.Access, d.user, store.Share)
+	}, accessStore, d.user, shareStore)
 	if err != nil {
 		return errToStatus(err), err
 	}
@@ -278,7 +278,7 @@ func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *reques
 				Path:           indexPath,
 				Source:         sourceName,
 				ShowHidden:     true,
-			}, store.Access, filePermUser, store.Share)
+			}, accessStore, filePermUser, shareStore)
 			if err != nil {
 				return http.StatusNotFound, fmt.Errorf("resource not available")
 			}
@@ -334,7 +334,7 @@ func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *reques
 				Path:           idx.MakeIndexPath(item.Path, false),
 				Source:         item.Source,
 				ShowHidden:     true,
-			}, store.Access, filePermUser, store.Share)
+			}, accessStore, filePermUser, shareStore)
 			if err != nil {
 				response.Failed = append(response.Failed, BulkDeleteItem{
 					Source:  item.Source,
@@ -427,7 +427,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	realPath, _, _ := idx.GetRealPath(fullIndexPath)
 
 	// Check access control for the target path
-	if !store.Access.Permitted(idx.Path, path, filePermUser.Username) {
+	if !accessStore.Permitted(idx.Path, path, filePermUser.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to path %s", path)
 	}
 
@@ -491,7 +491,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			}
 
 			var fileInfo *iteminfo.ExtendedFileInfo
-			fileInfo, err = files.FileInfoFaster(fileOpts, store.Access, filePermUser, store.Share)
+			fileInfo, err = files.FileInfoFaster(fileOpts, accessStore, filePermUser, shareStore)
 			if err == nil { // File exists
 				if r.URL.Query().Get("override") != "true" {
 					logger.Debugf("resource already exists: %v", fileInfo.RealPath)
@@ -541,7 +541,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			// close file before moving
 			outFile.Close()
 			// Move the completed file from the temp location to the final destination
-			err = files.MoveResource(false, source, source, tempFilePath, realPath, store.Share, store.Access)
+			err = files.MoveResource(false, source, source, tempFilePath, realPath, shareStore, accessStore)
 			if err != nil {
 				logger.Debugf("could not move file from %v to %v: %v", tempFilePath, realPath, err)
 				return http.StatusInternalServerError, fmt.Errorf("could not move file from chunked folder to destination: %v", err)
@@ -550,7 +550,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		return http.StatusOK, nil
 	}
 
-	fileInfo, err := files.FileInfoFaster(fileOpts, store.Access, filePermUser, store.Share)
+	fileInfo, err := files.FileInfoFaster(fileOpts, accessStore, filePermUser, shareStore)
 	if err == nil { // File exists
 		if r.URL.Query().Get("override") != "true" {
 			logger.Debugf("resource already exists: %v", fileInfo.RealPath)
@@ -609,7 +609,7 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if idx == nil {
 		return http.StatusNotFound, fmt.Errorf("source %s not found", source)
 	}
-	if store.Access != nil && !store.Access.Permitted(idx.Path, fullIndexPath, d.user.Username) {
+	if accessStore != nil && !accessStore.Permitted(idx.Path, fullIndexPath, d.user.Username) {
 		logger.Debugf("user %s denied access to path %s", d.user.Username, fullIndexPath)
 		return http.StatusForbidden, fmt.Errorf("access denied to path %s", path)
 	}
@@ -745,7 +745,7 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		}
 
 		// Check access control for both source and destination paths
-		if !store.Access.Permitted(srcIdx.Path, fullSrcIndexPath, d.user.Username) {
+		if !accessStore.Permitted(srcIdx.Path, fullSrcIndexPath, d.user.Username) {
 			item.Message = "access denied to source path"
 			if d.share != nil {
 				response.Failed = append(response.Failed, MoveCopyItem{
@@ -756,7 +756,7 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 			response.Failed = append(response.Failed, item)
 			continue
 		}
-		if !store.Access.Permitted(dstIdx.Path, fullDstIndexPath, d.user.Username) {
+		if !accessStore.Permitted(dstIdx.Path, fullDstIndexPath, d.user.Username) {
 			item.Message = "access denied to destination path"
 			if d.share != nil {
 				response.Failed = append(response.Failed, MoveCopyItem{
@@ -931,7 +931,7 @@ func patchAction(ctx context.Context, params patchActionParams) error {
 			Source:         params.srcIndex,
 			IsDir:          params.isSrcDir,
 			ShowHidden:     params.d.user.ShowHidden,
-		}, store.Access, params.d.user, store.Share)
+		}, accessStore, params.d.user, shareStore)
 
 		if err != nil {
 			return err
@@ -939,7 +939,7 @@ func patchAction(ctx context.Context, params patchActionParams) error {
 
 		// delete thumbnails
 		preview.DelThumbs(ctx, *fileInfo)
-		return files.MoveResource(params.isSrcDir, params.srcIndex, params.dstIndex, params.src, params.dst, store.Share, store.Access)
+		return files.MoveResource(params.isSrcDir, params.srcIndex, params.dstIndex, params.src, params.dst, shareStore, accessStore)
 	default:
 		return fmt.Errorf("unsupported action %s: %w", params.action, errors.ErrInvalidRequestParams)
 	}
@@ -990,7 +990,7 @@ func itemsGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 		Source:         r.URL.Query().Get("source"),
 		ShowHidden:     d.user.ShowHidden,
 		Only:           r.URL.Query().Get("only"),
-	}, store.Access, d.user)
+	}, accessStore, d.user)
 	if err != nil {
 		if err == errors.ErrAccessDenied {
 			return http.StatusForbidden, err

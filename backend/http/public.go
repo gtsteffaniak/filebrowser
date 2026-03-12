@@ -12,7 +12,9 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
+	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/preview"
+	"github.com/gtsteffaniak/filebrowser/backend/state"
 	"github.com/gtsteffaniak/go-logger/logger"
 
 	_ "github.com/gtsteffaniak/filebrowser/backend/swagger/docs"
@@ -66,9 +68,7 @@ func publicDownloadHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 		}
 	}
 
-	d.share.Mu.Lock()
 	d.share.Downloads++
-	d.share.Mu.Unlock()
 
 	// Track per-user download if enabled
 	if d.share.PerUserDownloadLimit {
@@ -281,7 +281,7 @@ func publicDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		FollowSymlinks: true,
 		Path:           d.IndexPath,
 		Source:         d.share.Source,
-	}, store.Access, d.shareUser, store.Share)
+	}, accessStore, d.shareUser, shareStore)
 	if err != nil {
 		return http.StatusNotFound, fmt.Errorf("resource not available")
 	}
@@ -349,7 +349,11 @@ func publicPatchHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	}
 
 	// Replace user with the share creator's user for proper permission checking
-	shareCreatedByUser, err := store.Users.Get(d.share.UserID)
+	var shareCreatedByUser *users.User
+	userValue, err := state.GetUser(d.share.UserID)
+	if err == nil {
+		shareCreatedByUser = &userValue
+	}
 	if err != nil {
 		return http.StatusNotFound, fmt.Errorf("user for share no longer exists")
 	}
@@ -413,7 +417,11 @@ func getShareImage(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		return http.StatusBadRequest, fmt.Errorf("either banner or favicon parameter must be true")
 	}
 
-	shareCreatedByUser, err := store.Users.Get(d.share.UserID)
+	userValue, err := state.GetUser(d.share.UserID)
+	var shareCreatedByUser *users.User
+	if err == nil {
+		shareCreatedByUser = &userValue
+	}
 	if err != nil {
 		return http.StatusNotFound, fmt.Errorf("user for share no longer exists")
 	}
@@ -432,7 +440,7 @@ func getShareImage(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		Metadata:       false,
 		ShowHidden:     false,
 		FollowSymlinks: true,
-	}, store.Access, shareCreatedByUser, store.Share)
+	}, accessStore, shareCreatedByUser, shareStore)
 
 	if err != nil {
 		logger.Errorf("error accessing share asset: source=%v path=%v error=%v", sourceName, assetPath, err)
@@ -514,7 +522,7 @@ func publicItemsGetHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 		Source:         sourceInfo.Name,
 		ShowHidden:     d.shareUser.ShowHidden,
 		Only:           r.URL.Query().Get("only"),
-	}, store.Access, d.shareUser)
+	}, accessStore, d.shareUser)
 	if err != nil {
 		if err == errors.ErrAccessDenied {
 			return http.StatusForbidden, err

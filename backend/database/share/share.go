@@ -1,8 +1,6 @@
 package share
 
 import (
-	"sync"
-
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 )
 
@@ -69,7 +67,6 @@ type Link struct {
 	// query arg.
 	Token string `json:"token,omitempty"`
 
-	Mu            sync.Mutex     `json:"-"`
 	UserDownloads map[string]int `json:"userDownloads,omitempty"` // Track downloads per username
 	Version       int            `json:"version,omitempty"`
 }

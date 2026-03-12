@@ -1,7 +1,6 @@
 package access
 
 import (
-	"encoding/json"
 	"fmt"
 	"maps"
 	"path/filepath"
@@ -11,7 +10,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/asdine/storm/v3"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
@@ -27,21 +25,12 @@ var (
 	rulesCache      = cache.NewCache[map[string]FrontendAccessRule](1 * time.Minute) // for rules
 )
 
-const accessRulesBucket = "access_rules"
-const accessRulesKey = "rules"
 const accessChangedKey = "newRule:"
 
 type RuleMap map[string]*AccessRule
 type SourceRuleMap map[string]RuleMap
 
 type StringSet map[string]struct{}
-
-type dbStorage struct {
-	AllRules      SourceRuleMap       `json:"all_rules"`
-	Groups        GroupMap            `json:"groups"`
-	RevokedTokens map[string]struct{} `json:"revoked_tokens"` // set of revoked token hashes
-	HashedTokens  map[string]uint     `json:"hashed_tokens"`  // maps token hash → user ID
-}
 
 // RuleSet groups users and groups for allow/deny lists.
 type RuleSet struct {
@@ -79,89 +68,39 @@ type Storage struct {
 	Groups        GroupMap            // key: group name, value: set of usernames - in-memory authoritative state
 	RevokedTokens map[string]struct{} // set of revoked token hashes - in-memory authoritative state
 	HashedTokens  map[string]uint     // maps token hash → user ID - in-memory authoritative state
-	DB            *storm.DB           // Optional: DB for persistence
 	Users         *users.Storage      // Reference to users storage
+	sqlStore      SQLPersister        // SQL store for persistence
 }
 
-// SaveToDB persists all rules to the DB if DB is set.
-// IMPORTANT: Caller must hold s.mux lock (either read or write).
-func (s *Storage) SaveToDB() error {
-	if s.DB == nil {
-		return nil
-	}
-	data, err := json.Marshal(&dbStorage{
-		AllRules:      s.AllRules,
-		Groups:        s.Groups,
-		RevokedTokens: s.RevokedTokens,
-		HashedTokens:  s.HashedTokens,
-	})
-	if err != nil {
-		return err
-	}
-	return s.DB.Set(accessRulesBucket, accessRulesKey, data)
+// SQLPersister interface for SQL persistence operations
+type SQLPersister interface {
+	SaveAccessRule(source, path string, rule *AccessRule) error
+	DeleteAccessRule(source, path string) error
+	SaveGroup(name string, members StringSet) error
+	DeleteGroup(name string) error
+	SaveRevokedToken(tokenHash string) error
+	SaveHashedToken(tokenHash string, userID uint) error
+	DeleteHashedToken(tokenHash string) error
 }
 
-// Flush persists the current in-memory state to the backing store.
-// Call during graceful shutdown to ensure DB matches memory.
+// SetSQLStore sets the SQL store for persistence operations
+func (s *Storage) SetSQLStore(sqlStore SQLPersister) {
+	s.sqlStore = sqlStore
+}
+
+// Flush is kept for interface compatibility but is now a no-op
+// since all operations write through to SQL immediately
 func (s *Storage) Flush() error {
-	s.mux.RLock()
-	defer s.mux.RUnlock()
-	return s.SaveToDB()
-}
-
-// LoadFromDB loads all rules from the DB if DB is set.
-func (s *Storage) LoadFromDB() error {
-	if s.DB == nil {
-		return nil
-	}
-	var data []byte
-	err := s.DB.Get(accessRulesBucket, accessRulesKey, &data)
-	if err != nil {
-		return err
-	}
-	var storage dbStorage
-	if err := json.Unmarshal(data, &storage); err != nil {
-		return err
-	}
-	s.mux.Lock()
-	s.AllRules = storage.AllRules
-	if s.AllRules == nil {
-		s.AllRules = make(SourceRuleMap)
-	}
-	s.Groups = storage.Groups
-	if s.Groups == nil {
-		s.Groups = make(GroupMap)
-	}
-	s.RevokedTokens = storage.RevokedTokens
-	if s.RevokedTokens == nil {
-		s.RevokedTokens = make(map[string]struct{})
-	}
-	s.HashedTokens = storage.HashedTokens
-	if s.HashedTokens == nil {
-		s.HashedTokens = make(map[string]uint)
-	}
-	s.HashedTokens = storage.HashedTokens
-	if s.HashedTokens == nil {
-		s.HashedTokens = make(map[string]uint)
-	}
-	s.mux.Unlock()
 	return nil
 }
 
-// NewStorage creates a new Storage instance. Optionally pass a DB for persistence and users storage.
-// After creating Storage with a DB, call LoadFromDB() to load rules from the database on startup.
-// Example:
-//
-//	store := NewStorage(db, usersStore)
-//	err := store.LoadFromDB()
-//	if err != nil { /* handle error */ }
-func NewStorage(db *storm.DB, usersStore *users.Storage) *Storage {
+// NewStorage creates a new Storage instance.
+func NewStorage(usersStore *users.Storage) *Storage {
 	var s = &Storage{
 		AllRules:      make(SourceRuleMap),
 		Groups:        make(GroupMap),
 		RevokedTokens: make(map[string]struct{}),
 		HashedTokens:  make(map[string]uint),
-		DB:            db,
 		Users:         usersStore,
 	}
 	return s
@@ -202,10 +141,6 @@ func (s *Storage) RemoveRuleByPath(sourcePath, indexPath string) {
 			delete(s.AllRules, sourcePath)
 		}
 		s.clearAllCaches()
-		err := s.SaveToDB()
-		if err != nil {
-			logger.Errorf("error saving access rules to database: %v", err)
-		}
 	}
 }
 
@@ -244,7 +179,7 @@ func (s *Storage) DenyUser(sourcePath, indexPath, username string) error {
 	}
 	rule.Deny.Users[username] = struct{}{}
 	s.clearAllCaches()
-	return s.SaveToDB()
+	return nil
 }
 
 // AllowUser adds a user to the allow list for a given source and index path.
@@ -263,7 +198,7 @@ func (s *Storage) AllowUser(sourcePath, indexPath, username string) error {
 	}
 	rule.Allow.Users[username] = struct{}{}
 	s.clearAllCaches()
-	return s.SaveToDB()
+	return nil
 }
 
 // DenyGroup adds a group to the deny list for a given source and index path.
@@ -280,7 +215,7 @@ func (s *Storage) DenyGroup(sourcePath, indexPath, groupname string) error {
 	}
 	rule.Deny.Groups[groupname] = struct{}{}
 	s.clearAllCaches()
-	return s.SaveToDB()
+	return nil
 }
 
 // AllowGroup adds a group to the allow list for a given source and index path.
@@ -297,7 +232,7 @@ func (s *Storage) AllowGroup(sourcePath, indexPath, groupname string) error {
 	}
 	rule.Allow.Groups[groupname] = struct{}{}
 	s.clearAllCaches()
-	return s.SaveToDB()
+	return nil
 }
 
 // DenyAll sets a rule to deny all access for a given source and index path.
@@ -310,7 +245,7 @@ func (s *Storage) DenyAll(sourcePath, indexPath string) error {
 	}
 	rule.DenyAll = true
 	s.clearAllCaches()
-	return s.SaveToDB()
+	return nil
 }
 
 // Permitted checks if a username is permitted for a given sourcePath and indexPath, recursively checking parent directories.
@@ -559,7 +494,7 @@ func (s *Storage) AddUserToGroup(group, username string) error {
 		return nil
 	}
 	s.Groups[group][username] = struct{}{}
-	return s.SaveToDB()
+	return nil
 }
 
 // GetAllGroups returns all group names.
@@ -623,7 +558,7 @@ func (s *Storage) SyncUserGroups(username string, newGroups []string) error {
 		}
 	}
 	if changed {
-		return s.SaveToDB()
+		return nil
 	}
 	return nil
 }
@@ -643,7 +578,7 @@ func (s *Storage) RemoveUserFromGroup(group, username string) error {
 	if len(s.Groups[group]) == 0 {
 		delete(s.Groups, group)
 	}
-	return s.SaveToDB()
+	return nil
 }
 
 // RemoveAllowUser removes a user from the allow list for a given source and index path.
@@ -669,7 +604,7 @@ func (s *Storage) RemoveAllowUser(sourcePath, indexPath, username string) (bool,
 	}
 	if removed {
 		s.clearAllCaches()
-		return exists, s.SaveToDB()
+		return exists, nil
 	}
 	return false, nil
 }
@@ -697,7 +632,7 @@ func (s *Storage) RemoveAllowGroup(sourcePath, indexPath, groupname string) (boo
 	}
 	if removed {
 		s.clearAllCaches()
-		return exists, s.SaveToDB()
+		return exists, nil
 	}
 	return exists, nil
 }
@@ -725,7 +660,7 @@ func (s *Storage) RemoveDenyUser(sourcePath, indexPath, username string) (bool, 
 	}
 	if removed {
 		s.clearAllCaches()
-		return exists, s.SaveToDB()
+		return exists, nil
 	}
 	return false, nil
 }
@@ -753,7 +688,7 @@ func (s *Storage) RemoveDenyGroup(sourcePath, indexPath, groupname string) (bool
 	}
 	if removed {
 		s.clearAllCaches()
-		return exists, s.SaveToDB()
+		return exists, nil
 	}
 	return exists, nil
 }
@@ -781,7 +716,7 @@ func (s *Storage) RemoveDenyAll(sourcePath, indexPath string) (bool, error) {
 	}
 	if removed {
 		s.clearAllCaches()
-		return true, s.SaveToDB()
+		return true, nil
 	}
 	return false, nil
 }
@@ -814,7 +749,7 @@ func (s *Storage) RemoveAllRulesForUser(username string) error {
 	}
 	if changed {
 		s.clearAllCaches()
-		return s.SaveToDB()
+		return nil
 	}
 	return nil
 }
@@ -847,7 +782,7 @@ func (s *Storage) RemoveAllRulesForGroup(groupname string) error {
 	}
 	if changed {
 		s.clearAllCaches()
-		return s.SaveToDB()
+		return nil
 	}
 	return nil
 }
@@ -1121,7 +1056,7 @@ func (s *Storage) RemoveUserCascade(sourcePath, indexPath, username string, allo
 
 	if changed {
 		s.clearAllCaches()
-		return removedCount, s.SaveToDB()
+		return removedCount, nil
 	}
 
 	return 0, nil
@@ -1178,7 +1113,7 @@ func (s *Storage) RemoveGroupCascade(sourcePath, indexPath, groupname string, al
 
 	if changed {
 		s.clearAllCaches()
-		return removedCount, s.SaveToDB()
+		return removedCount, nil
 	}
 
 	return 0, nil
@@ -1225,9 +1160,6 @@ func (s *Storage) UpdateRules(sourcePath, oldPath, newPath string) (int, error) 
 
 	if updated > 0 {
 		s.clearAllCaches()
-		if err := s.SaveToDB(); err != nil {
-			return updated, err
-		}
 	}
 
 	return updated, nil
@@ -1257,7 +1189,7 @@ func (s *Storage) UpdateRulePath(sourcePath, oldPath, newPath string) error {
 	rulesBySource[newPath] = rule
 	s.clearAllCaches()
 	logger.Debugf("access rule path updated: source=%s, fromPath=%s, toPath=%s", sourcePath, oldPath, newPath)
-	return s.SaveToDB()
+	return nil
 }
 
 // RevokeToken adds a token hash to the revoked list and persists to DB.
@@ -1269,7 +1201,7 @@ func (s *Storage) RevokeToken(tokenHash string) error {
 	s.RevokedTokens[tokenHash] = struct{}{}
 	// Also remove from HashedTokens to prevent future lookups
 	delete(s.HashedTokens, tokenHash)
-	return s.SaveToDB()
+	return nil
 }
 
 // IsTokenRevoked checks if a token hash is in the revoked list (memory-only read).
@@ -1287,7 +1219,7 @@ func (s *Storage) AddApiToken(tokenString string, userID uint) error {
 	defer s.mux.Unlock()
 	tokenHash := utils.HashSHA256(tokenString)
 	s.HashedTokens[tokenHash] = userID
-	return s.SaveToDB()
+	return nil
 }
 
 // GetUserIDFromToken retrieves the user ID for a given token string (memory-only read).
@@ -1317,5 +1249,5 @@ func (s *Storage) RemoveApiToken(tokenString string) error {
 	defer s.mux.Unlock()
 	tokenHash := utils.HashSHA256(tokenString)
 	delete(s.HashedTokens, tokenHash)
-	return s.SaveToDB()
+	return nil
 }

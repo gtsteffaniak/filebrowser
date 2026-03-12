@@ -5,6 +5,8 @@ import (
 	"net/http"
 
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
+	"github.com/gtsteffaniak/filebrowser/backend/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/state"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -28,11 +30,15 @@ func generateOTPHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if username != d.user.Username && !d.user.Permissions.Admin {
 		return http.StatusForbidden, fmt.Errorf("you are not authorized to generate OTP for this user")
 	}
-	targetUser, err := store.Users.Get(username)
+	var targetUser *users.User
+	userValue, err := state.GetUserByUsername(username)
+	if err == nil {
+		targetUser = &userValue
+	}
 	if err != nil {
 		return http.StatusNotFound, fmt.Errorf("user not found: %w", err)
 	}
-	url, err := auth.GenerateOtpForUser(targetUser, store.Users)
+	url, err := auth.GenerateOtpForUser(targetUser, usersStore)
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("error generating OTP secret: %w", err)
 	}
@@ -68,14 +74,19 @@ func verifyOTPHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	// If admin is verifying for another user
 	if username != "" && username != d.user.Username && d.user.Permissions.Admin {
 		var err error
-		targetUser, err = store.Users.Get(username)
+		userValue, err := state.GetUserByUsername(username)
+		if err == nil {
+			targetUser = &userValue
+		} else {
+			targetUser = nil
+		}
 		if err != nil {
 			return http.StatusNotFound, fmt.Errorf("user not found: %w", err)
 		}
 		logger.Debugf("Admin %s verifying OTP for user: %s", d.user.Username, targetUser.Username)
 	}
 
-	err := auth.VerifyTotpCode(targetUser, code, store.Users)
+	err := auth.VerifyTotpCode(targetUser, code, usersStore)
 	if err != nil {
 		return http.StatusUnauthorized, fmt.Errorf("invalid OTP token")
 	}

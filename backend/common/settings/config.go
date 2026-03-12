@@ -551,6 +551,12 @@ func loadConfigWithDefaults(configFile string, generate bool) error {
 		}
 	}
 
+	// check if database is set in the config
+	val, ok := filteredConfig["server"].(map[string]interface{})["database"].(string)
+	if ok && val != "" {
+		return fmt.Errorf("old database path is set in the config, please migrate your database to SQLite")
+	}
+
 	// Marshal the filtered config back to YAML
 	filteredYAML, err := yaml.Marshal(filteredConfig)
 	if err != nil {
@@ -664,19 +670,24 @@ func setDefaults(generate bool) Settings {
 	if cpus > 0 && !generate {
 		numCpus = cpus
 	}
+
 	database := os.Getenv("FILEBROWSER_DATABASE")
-	if database == "" {
-		database = "database.db"
+	if database != "" {
+		logger.Fatalf("FILEBROWSER_DATABASE environment variable is deprecated, please migrate your database to SQLite.")
 	}
-	if _, err := os.Stat(database); os.IsNotExist(err) {
-		logger.Warning("database file could not be found. If this is unexpected, please set the FILEBROWSER_DATABASE environment variable to the correct path.")
+
+	// New SQLite database path
+	databaseV2 := os.Getenv("FILEBROWSER_DATABASE_PATH")
+	if databaseV2 == "" {
+		databaseV2 = "filebrowser.sqlite"
 	}
+
 	s := Settings{
 		Server: Server{
 			Port:               80,
 			NumImageProcessors: numCpus,
 			BaseURL:            "",
-			Database:           database,
+			DatabaseV2:         Database{Path: databaseV2}, // New SQLite path
 			SourceMap:          map[string]*Source{},
 			NameToSource:       map[string]*Source{},
 			MaxArchiveSizeGB:   50,

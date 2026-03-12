@@ -86,7 +86,7 @@ func (ffs *filteredFileSystem) getFileInfo(requestPath string, expand bool) (*it
 		ShowHidden:        ffs.user.ShowHidden,
 		SkipExtendedAttrs: true,
 		FollowSymlinks:    true,
-	}, store.Access, ffs.user, store.Share)
+	}, accessStore, ffs.user, shareStore)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +134,7 @@ func (ffs *filteredFileSystem) checkAccess(requestPath string) error {
 		Path:           requestPath,
 		Source:         ffs.source,
 		ShowHidden:     ffs.user.ShowHidden,
-	}, store.Access, ffs.user)
+	}, accessStore, ffs.user)
 	if err != nil {
 		logger.Debugf("checkAccess: CheckPermissions denied for %s: %v", requestPath, err)
 		return err
@@ -382,7 +382,7 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		Path:           requestPath,
 		Source:         source,
 		ShowHidden:     d.user.ShowHidden,
-	}, store.Access, d.user)
+	}, accessStore, d.user)
 	if err != nil {
 		return http.StatusForbidden, err
 	}

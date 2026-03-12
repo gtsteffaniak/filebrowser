@@ -7,27 +7,34 @@ import (
 	"testing"
 	"time"
 
-	storm "github.com/asdine/storm/v3"
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/access"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
-	"github.com/gtsteffaniak/filebrowser/backend/database/storage/bolt"
+	_ "github.com/gtsteffaniak/filebrowser/backend/database/sqldb" // Import to register SQL driver
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
+	"github.com/gtsteffaniak/filebrowser/backend/state"
 )
 
 func setupTestEnv(t *testing.T) {
-	dbPath := filepath.Join(t.TempDir(), "db")
-	db, err := storm.Open(dbPath)
+	dbPath := filepath.Join(t.TempDir(), "test.sqlite")
+
+	// Initialize state with SQLite database
+	_, err := state.Initialize(dbPath)
 	if err != nil {
 		t.Fatal(err)
 	}
-	store, err = bolt.NewStorage(db)
-	if err != nil {
-		t.Fatal(err)
-	}
+	t.Cleanup(func() {
+		state.Close()
+	})
+
+	// Initialize global stores
+	accessStore = state.GetAccessStorage()
+	shareStore = state.GetShareStorage()
+	usersStore = state.GetUsersStorage()
+
 	config = &settings.Config // mocked
 	config.Server.SourceMap = map[string]*settings.Source{
 		"/srv": &settings.Source{
@@ -80,11 +87,11 @@ func TestWithAdminHelper(t *testing.T) {
 		Permissions: users.Permissions{Admin: false}, // Non-admin user
 	}
 	// Save the users to the mock database
-	if err := store.Users.Save(adminUser, true, true); err != nil {
-		t.Fatal("failed to save admin user:", err)
+	if err := state.CreateUser(adminUser, ""); err != nil {
+		t.Fatal("failed to create admin user:", err)
 	}
-	if err := store.Users.Save(nonAdminUser, true, true); err != nil {
-		t.Fatal("failed to save non-admin user:", err)
+	if err := state.CreateUser(nonAdminUser, ""); err != nil {
+		t.Fatal("failed to create non-admin user:", err)
 	}
 	// Test cases for different scenarios
 	testCases := []struct {
@@ -155,11 +162,11 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 		Username:    "testuser",
 		Permissions: users.Permissions{Admin: false},
 		Scopes: []users.SourceScope{
-			{Name: "srv", Scope: "/"}, // Root scope on srv source
+			{Name: "/srv", Scope: "/"}, // Use source PATH not name
 		},
 	}
-	if err := store.Users.Save(dummyUser, true, true); err != nil {
-		t.Fatal("failed to save dummy user:", err)
+	if err := state.CreateUser(dummyUser, ""); err != nil {
+		t.Fatal("failed to create dummy user:", err)
 	}
 
 	testCases := []struct {
@@ -238,8 +245,8 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Save the share in the mock store
-			if err := store.Share.Save(tc.share); err != nil {
+			// Save the share in the state
+			if err := state.CreateShare(tc.share); err != nil {
 				t.Fatal("failed to save share:", err)
 			}
 
@@ -248,13 +255,7 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 
 			// Wrap the handler with authentication middleware
 			handler := withHashFileHelper(publicGetResourceHandler)
-			if err := store.Settings.Save(&settings.Settings{
-				Auth: settings.Auth{
-					Key: "key",
-				},
-			}); err != nil {
-				t.Fatalf("failed to save settings: %v", err)
-			}
+			settings.Config.Auth.Key = "key"
 
 			// Prepare the request with query parameters and optional headers
 			req := newTestRequest(t, tc.share.Hash, tc.token, tc.password, tc.extraHeaders)
