@@ -24,6 +24,12 @@ type throttledReadSeeker struct {
 	ctx     context.Context
 }
 
+type throttledWriter struct {
+	w       io.Writer
+	limiter *rate.Limiter
+	ctx     context.Context
+}
+
 // newThrottledReadSeeker creates a new throttledReadSeeker.
 func newThrottledReadSeeker(rs io.ReadSeeker, limit rate.Limit, burst int, ctx context.Context) *throttledReadSeeker {
 	return &throttledReadSeeker{
@@ -49,6 +55,26 @@ func (r *throttledReadSeeker) Read(p []byte) (n int, err error) {
 
 func (r *throttledReadSeeker) Seek(offset int64, whence int) (int64, error) {
 	return r.rs.Seek(offset, whence)
+}
+
+func newThrottledWriter(w io.Writer, limit rate.Limit, burst int, ctx context.Context) *throttledWriter {
+	return &throttledWriter{
+		w:       w,
+		limiter: rate.NewLimiter(limit, burst),
+		ctx:     ctx,
+	}
+}
+
+func (w *throttledWriter) Write(p []byte) (n int, err error) {
+	n, err = w.w.Write(p)
+	if n > 0 {
+		if waitErr := w.limiter.WaitN(w.ctx, n); waitErr != nil {
+			if err != nil {
+				err = waitErr
+			}
+		}
+	}
+	return
 }
 
 // toASCIIFilename converts a filename to ASCII-safe format by replacing non-ASCII characters with underscores

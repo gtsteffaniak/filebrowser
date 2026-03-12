@@ -18,6 +18,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/go-logger/logger"
+	"golang.org/x/time/rate"
 )
 
 // archiveCreateHandler creates an archive on the server at the given destination.
@@ -608,10 +609,17 @@ func BuildAndStreamArchive(w http.ResponseWriter, r *http.Request, d *requestCon
 	setContentDisposition(w, r, originalFileName)
 	w.Header().Set("Content-Type", "application/octet-stream")
 
+	var writer io.Writer = w
+	if d.share != nil && d.share.MaxBandwidth > 0 {
+		limit := rate.Limit(d.share.MaxBandwidth * 1024)
+		burst := d.share.MaxBandwidth * 1024
+		writer = newThrottledWriter(w, limit, burst, r.Context())
+	}
+
 	if extension == ".zip" {
-		err = createZip(d, source, w, fileList...)
+		err = createZip(d, source, writer, fileList...)
 	} else {
-		err = createTarGz(d, source, w, fileList...)
+		err = createTarGz(d, source, writer, fileList...)
 	}
 	if err != nil {
 		return http.StatusInternalServerError, err
