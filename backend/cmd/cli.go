@@ -79,6 +79,7 @@ func runCLI() bool {
 			createConfig(configPath)
 			return false
 		case "set":
+			_ = initializeDatabase(dbConfig) // ensure state (and access store) is initialized
 			if len(os.Args) < 3 {
 				fmt.Printf("error: missing subcommand for 'set'. Use 'set user' or 'set rule'\n")
 				os.Exit(1)
@@ -201,7 +202,6 @@ func setUser(dbConfig string, asAdmin bool) error {
 	}
 	username := userInfo[0]
 	password := userInfo[1]
-	_ = getStore(dbConfig) // ignore bool check
 	user, err := state.GetUserByUsername(username)
 	if err != nil {
 		newUser := users.User{

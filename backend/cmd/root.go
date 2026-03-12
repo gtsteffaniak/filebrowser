@@ -26,7 +26,7 @@ import (
 	"github.com/swaggo/swag"
 )
 
-func getStore(configFile string) bool {
+func initializeDatabase(configFile string) bool {
 	// Use the config file (global flag)
 	settings.Initialize(configFile)
 
@@ -84,7 +84,7 @@ func StartFilebrowser() {
 
 	done := make(chan struct{})             // Signals server has stopped
 	shutdownComplete := make(chan struct{}) // Signals shutdown process is complete
-	existingDb := getStore(configPath)
+	existingDb := initializeDatabase(configPath)
 	database := fmt.Sprintf("Using existing database  : %v", settings.Config.Server.DatabaseV2.Path)
 	if !existingDb {
 		database = fmt.Sprintf("Creating new database    : %v", settings.Config.Server.DatabaseV2.Path)
