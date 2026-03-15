@@ -362,12 +362,11 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 	}
 
 	// Rule 1: Validate user-provided path to prevent path traversal
-	cleanPath, err := utils.SanitizeUserPath(path)
+	path, err := utils.SanitizeUserPath(path)
 	if err != nil {
 		logger.Errorf("OnlyOffice callback: invalid path: %v", err)
 		return returnOnlyOfficeError(w, r, 400, "invalid path")
 	}
-	path = cleanPath
 
 	var sourceInfo *settings.Source
 	var ok bool
@@ -385,6 +384,7 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 		}
 	}
 
+	var fullPath string // scope/share path + file path
 	if d.fileInfo.Hash == "" {
 		// Regular user request - need to resolve scope
 		userScope, scopeErr := d.user.GetScopeForSourceName(source)
@@ -392,11 +392,11 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 			logger.Errorf("OnlyOffice callback: source %s not available for user %s: %v", source, d.user.Username, scopeErr)
 			return returnOnlyOfficeError(w, r, 403, "source not available")
 		}
-		path = utils.JoinPathAsUnix(userScope, path)
+		fullPath = utils.JoinPathAsUnix(userScope, path)
 	} else {
 		source = sourceInfo.Name
 		// path is index path, so we build from share path
-		path = utils.JoinPathAsUnix(d.share.Path, path)
+		fullPath = utils.JoinPathAsUnix(d.share.Path, path)
 	}
 	// Handle document closure - clean up document key cache
 	if data.Status == onlyOfficeStatusDocumentClosedWithChanges ||
@@ -407,7 +407,7 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 		//
 		// When the document is fully closed by all editors,
 		// the document key should no longer be re-used.
-		deleteOfficeId(source, path)
+		deleteOfficeId(source, fullPath)
 
 		// Send log event for document closure and clean up log context
 		if logContext := getOnlyOfficeLogContext(data.Key); logContext != nil {
@@ -511,7 +511,7 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 			// Verify user has modify permissions
 			if !d.user.Permissions.Modify {
 				logger.Errorf("OnlyOffice callback: user %s lacks modify permissions for path=%s",
-					d.user.Username, path)
+					d.user.Username, fullPath)
 				return returnOnlyOfficeError(w, r, 403, "user lacks modify permissions")
 			}
 		}
@@ -531,58 +531,51 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 		}
 
 		logger.Debugf("OnlyOffice callback: saving document to path=%s",
-			path)
+			fullPath)
 
 		// Send detailed log event for file saving with path information
 		if logContext := getOnlyOfficeLogContext(data.Key); logContext != nil {
-			sendOnlyOfficeLogEvent(logContext, "INFO", "callback", fmt.Sprintf("Saving document to path: %s", path))
+			sendOnlyOfficeLogEvent(logContext, "INFO", "callback", fmt.Sprintf("Saving document to path: %s", fullPath))
 		}
 
 		// CRITICAL: Validate that the original file still exists before saving
 		// This prevents creating duplicate files if the original was renamed/moved
 		_, err = files.FileInfoFaster(utils.FileOptions{
 			Source: source,
-			Path:   path,
+			Path:   path, // path instead of fullPath because FileInfoFaster also prepends the scope to the path
 		}, store.Access, d.user, store.Share)
 		if err != nil {
 			logger.Errorf("OnlyOffice callback: original file no longer exists at path=%s: %v",
-				path, err)
+				fullPath, err)
 
 			// Send error log event with path information
 			if logContext := getOnlyOfficeLogContext(data.Key); logContext != nil {
 				sendOnlyOfficeLogEvent(logContext, "ERROR", "callback",
-					fmt.Sprintf("Original file no longer exists at path: %s - %v -- was it renamed or moved?", path, err))
+					fmt.Sprintf("Original file no longer exists at path: %s - %v -- was it renamed or moved?", fullPath, err))
 			}
 
 			return returnOnlyOfficeError(w, r, 404, "original file no longer exists - it may have been renamed or moved")
 		}
 
-		// Get user scope to resolve full index path for write operation
-		userScope, err := d.user.GetScopeForSourceName(source)
-		if err != nil {
-			return returnOnlyOfficeError(w, r, 403, "user scope not found")
-		}
-		fullIndexPath := utils.JoinPathAsUnix(userScope, path)
-
-		writeErr := files.WriteFile(source, fullIndexPath, doc.Body)
+		writeErr := files.WriteFile(source, fullPath, doc.Body)
 		if writeErr != nil {
 			logger.Errorf("OnlyOffice callback: failed to write updated document to path=%s: %v",
-				path, writeErr)
+				fullPath, writeErr)
 
 			// Send error log event with path information
 			if logContext := getOnlyOfficeLogContext(data.Key); logContext != nil {
-				sendOnlyOfficeLogEvent(logContext, "ERROR", "callback", fmt.Sprintf("Failed to save document to path: %s - %v", path, writeErr))
+				sendOnlyOfficeLogEvent(logContext, "ERROR", "callback", fmt.Sprintf("Failed to save document to path: %s - %v", fullPath, writeErr))
 			}
 
 			return returnOnlyOfficeError(w, r, 500, "failed to save document")
 		}
 
 		logger.Infof("OnlyOffice callback: successfully saved document to path=%s",
-			path)
+			fullPath)
 
 		// Send success log event with detailed path information
 		if logContext := getOnlyOfficeLogContext(data.Key); logContext != nil {
-			sendOnlyOfficeLogEvent(logContext, "INFO", "callback", fmt.Sprintf("Document saved successfully to path: %s", path))
+			sendOnlyOfficeLogEvent(logContext, "INFO", "callback", fmt.Sprintf("Document saved successfully to path: %s", fullPath))
 		}
 	}
 
