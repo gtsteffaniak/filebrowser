@@ -25,7 +25,7 @@
 
 FileBrowser Quantum provides an easy way to access and manage your files from the web. It has a modern responsive interface that has many advanced features to manage users, access, sharing, and file preview and editing.
 
-This version is called "Quantum" because it packs tons of advanced features into a tiny easy to run file. Unlike the majority of alternative options, FileBrowser Quantum is simple to install and easy to configure.
+This version is called "Quantum" because it packs tons of advanced features into a tiny and easy-to-run file. Unlike the majority of alternative options, FileBrowser Quantum is simple to install and easy to configure.
 
 The goal for this repo is to become the best open-source self-hosted file browsing application that exists -- **all for free**. This repo will always be free and open-source.
 
@@ -35,20 +35,20 @@ Ready to try it out? See [Getting Started Docs](https://filebrowserquantum.com/e
 
 FileBrowser Quantum is a massive fork of the file browser open-source project with the following changes:
 
-  1. ✅ Add and configure multiple sources
-  2. ✅ Login support for OIDC, password + 2FA, and proxy.
+  1. ✅ Better source configuration - multiple sources, include/exclude rules, and [more](https://filebrowserquantum.com/en/docs/configuration/sources/)
+  2. ✅ Login support for OIDC, LDAP, JWT, password + 2FA, and proxy.
   3. ✅ Beautiful, Responsive, and Customizable user interface.
   4. ✅ Streamlined configuration via `config.yaml` config file.
-  5. ✅ Ultra-efficient [indexing](https://github.com/gtsteffaniak/filebrowser/wiki/Indexing) and real-time updates
+  5. ✅ Ultra-efficient Sqlite [indexing](https://github.com/gtsteffaniak/filebrowser/wiki/Indexing)
      - Real-time search results as you type.
      - Real-time monitoring and updates in the UI.
      - Search supports file and folder sizes, along with various filters.
   6. ✅ Better listing browsing
-     - Better thumbnail support including **office**, **video**, and **album artwork**
+     - Better thumbnail support including **office**, **video**, and **album artwork**, and **3D models**.
      - Faster and more responsive views with animations.
-     - Folder sizes are displayed and support for thumbnails
+     - Folder sizes are displayed and support thumbnails
      - Navigating remembers the last scroll position.
-  7. ✅ Highly configurable and customizable sharing options
+  7. ✅ Highly configurable and [customizable sharing options](https://filebrowserquantum.com/en/docs/shares/options/)
      - share expiration time
      - users who can access share (including anonymous)
      - styling and themes
@@ -59,19 +59,9 @@ FileBrowser Quantum is a massive fork of the file browser open-source project wi
      - A helpful Swagger page is available at `/swagger` endpoint for API enabled users.
 
 Notable features that this fork *does not* have (removed):
-
- - :construction: jobs are not supported yet.
  - ❌ shell commands are completely removed and will not be returned.
 
 FileBrowser Quantum differs significantly from the original version. Many of these changes required a significant overhaul. Creating a fork was a necessary process to make the program better. There have been many growing pains, but a stable release is planned and coming soon.
-
-## System Requirements
-
-> [!WARNING]
-> Every file and directory in the source gets indexed (by default). This enables powerful features such as instant search, but large source filesystems can increase your system requirements. [See indexing wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Indexing) for more info.
-
- - **Memory**: depends on configured source complexity. See [how much RAM does it require?](https://github.com/gtsteffaniak/filebrowser/discussions/787)
- - **GPU**: Not currently used (planned)
 
 ## The UI
 
@@ -104,47 +94,45 @@ Mac                           | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
 Self hostable                 | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
 Has Stable Release?           | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 S3 support                    | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ |
-webdav support                | :warning:* | ❌ | ✅ | ✅ | ❌ | ✅ |
+webdav support                | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ |
 FTP support                   | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
 Dedicated docs site?          | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
 Multiple sources at once      | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ |
 Docker image size             | 180 MB (with ffmpeg) | 31 MB  | 240 MB (main image) | 250 MB | ❌ | > 2 GB |
 Min. Memory Requirements      | 512 MB | 128 MB | 128 MB (main image) | 512 MB | ❌ | 512 MB   |
-has standalone binary         | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+has standalone binary         | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
 price                         | free | free | free | free tier | free tier | $99+ |
 rich media preview            | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 Upload files from the web?    | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-Advanced Search?              | ✅ | ❌ | ❌ | configurable | ✅ | ✅ |
-Indexed Search?               | ✅ | ❌ | ❌ | configurable | ✅ | ✅ |
-Content-aware search?         | ❌ | ❌ | ❌ | configurable | ✅ | ✅ |
-Custom job support            | :construction: | ✅ | ❌ | ✅ | ❌ | ✅ |
+Advanced Search?              | ✅ | ❌ | ✅ | configurable | ✅ | ✅ |
+Indexed Search?               | ✅ | ❌ | ✅ | configurable | ✅ | ✅ |
+Content-aware search?         | ❌ | ❌ | ✅ | configurable | ✅ | ✅ |
+Custom job support            | :construction: | ✅ | ✅ | ✅ | ❌ | ✅ |
 Multiple users                | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-Single sign-on support        | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ |
-LDAP sign-on support          | :construction: | ❌ | ❌ | ✅ | ❌ | ✅ |
+Single sign-on support        | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
+LDAP sign-on support          | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ |
 Long-live API key support     | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
 API documentation page        | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ |
-Mobile App                    | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ |
+Mobile App                    | ❌ | ❌ | ✅ | ✅ | ✅ | ❌ |
 open source?                  | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
-tags support                  | :construction: | ❌ | ❌ | ✅ | ❌ | ✅ |
+tags support                  | :construction: | ❌ | ✅ | ✅ | ❌ | ✅ |
 shareable web links?          | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-Event-based notifications     | :construction: | ❌ | ❌ | ❌ | ❌ | ✅ |
-Metrics                       | :construction: | ❌ | ❌ | ❌ | ❌ | ❌ |
-file space quotas             | :construction: | ❌ | ❌ | ❌ | ✅ | ✅ |
+Event-based notifications     | :construction: | ❌ | ✅ | ❌ | ❌ | ✅ |
+Metrics                       | :construction: | ❌ | ✅ | ❌ | ❌ | ❌ |
+file space quotas             | :construction: | ❌ | ✅ | ❌ | ✅ | ✅ |
 text-based files editor       | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 Office file support           | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
 Office file previews          | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ |
-Themes                        | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ |
-Branding support              | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ |
-activity log                  | :construction: | ❌ | ❌ | ✅ | ✅ | ✅ |
-Comments support              | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
-trash support                 | :construction: | ❌ | ❌ | ✅ | ✅ | ✅ |
-Starred/pinned files          | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
+Themes                        | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
+Branding support              | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
+activity log                  | :construction: | ❌ | ✅ | ✅ | ✅ | ✅ |
+Comments support              | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
+trash support                 | :construction: | ❌ | ✅ | ✅ | ✅ | ✅ |
+Starred/pinned files          | ❌ | ❌ | ✅ | ❌ | ✅ | ✅ |
 Chromecast support            | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
 Share collections of files    | :construction: | ❌ | ❌ | ❌ | ❌ | ✅ |
-Can archive selected files    | :construction: | ❌ | ❌ | ❌ | ❌ | ✅ |
-Can browse archive files      | :construction: | ❌ | ❌ | ❌ | ❌ | ✅ |
-Can convert documents         | :construction: | ❌ | ❌ | ❌ | ❌ | ✅ |
-Can convert videos            | :construction: | ❌ | ❌ | ❌ | ❌ | ❌ |
-Can convert photos            | :construction: | ❌ | ❌ | ❌ | ❌ | ❌ |
-
-*Accessing files from FileBrowser via WebDav is a newly introduced and experimental feature.
+Can archive selected files    | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ |
+Can browse archive files      | :construction: | ❌ | ✅ | ❌ | ❌ | ✅ |
+Can convert documents         | :construction: | ❌ | ✅ | ❌ | ❌ | ✅ |
+Can convert videos            | :construction: | ❌ | ✅ | ❌ | ❌ | ❌ |
+Can convert photos            | :construction: | ❌ | ✅ | ❌ | ❌ | ❌ |
