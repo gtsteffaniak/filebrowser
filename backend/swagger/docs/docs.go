@@ -5309,7 +5309,7 @@ const docTemplate = `{
                     }
                 },
                 "maxArchiveSize": {
-                    "description": "max pre-archive combined size of files/folder that are allowed to be archived (in GB)",
+                    "description": "deprecated: no longer a limitation after v1.3.2-beta",
                     "type": "integer"
                 },
                 "minSearchLength": {

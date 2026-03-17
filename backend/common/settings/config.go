@@ -690,7 +690,6 @@ func setDefaults(generate bool) Settings {
 			DatabaseV2:         Database{Path: databaseV2}, // New SQLite path
 			SourceMap:          map[string]*Source{},
 			NameToSource:       map[string]*Source{},
-			MaxArchiveSizeGB:   50,
 			CacheDir:           "tmp",
 			IndexSqlConfig: IndexSqlConfig{
 				WalMode:      false,

@@ -219,11 +219,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		}
 		return http.StatusInternalServerError, err
 	}
-	// Compute estimated download size (for single-file branch and archive size check)
-	estimatedSize, err := computeArchiveSize(source, fileList, d)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
+
 	// ** Single file download with Content-Length **
 	if len(fileList) == 1 && !isDir {
 		// Get document ID and log context for OnlyOffice downloads
@@ -283,11 +279,6 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		w.Header().Set("Cache-Control", "private")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("Content-Length", fmt.Sprintf("%d", fileInfo.Size()))
-		sizeInMB := estimatedSize / 1024 / 1024
-		// if larger than 500 MB, log it
-		if sizeInMB > 500 {
-			logger.Debugf("User %v is downloading large (%d MB) file: %v", d.user.Username, sizeInMB, fileName)
-		}
 		// serve content allows for range requests.
 		// video scrubbing, etc.
 		// Note: http.ServeContent will respect our already-set Content-Disposition header
