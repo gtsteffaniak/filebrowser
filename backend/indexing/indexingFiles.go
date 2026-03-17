@@ -1334,6 +1334,85 @@ func setFilePreviewFlags(fileInfo *iteminfo.ItemInfo, realPath string) {
 	}
 }
 
+// getDirectoryPathForRuleInheritance normalizes a path to its directory form for folder rule checks.
+// For directories, it returns the normalized directory path itself.
+// For files, it returns the parent directory path.
+func getDirectoryPathForRuleInheritance(indexPath string, isDir bool) string {
+	if indexPath == "" {
+		return "/"
+	}
+
+	normalized := indexPath
+	if !strings.HasPrefix(normalized, "/") {
+		normalized = "/" + normalized
+	}
+
+	if isDir {
+		return utils.AddTrailingSlashIfNotExists(normalized)
+	}
+
+	parent := filepath.Dir(normalized)
+	if parent == "." || parent == "" {
+		return "/"
+	}
+
+	return utils.AddTrailingSlashIfNotExists(parent)
+}
+
+// findMostSpecificFolderPathRule returns the longest matching folder path rule.
+func findMostSpecificFolderPathRule(folderPath string, folderRules map[string]settings.ConditionalRule) (settings.ConditionalRule, bool) {
+	var matched settings.ConditionalRule
+	found := false
+	bestLen := -1
+
+	for rulePath, rule := range folderRules {
+		if strings.HasPrefix(folderPath, rulePath) && len(rulePath) > bestLen {
+			matched = rule
+			bestLen = len(rulePath)
+			found = true
+		}
+	}
+
+	return matched, found
+}
+
+// findInheritedFolderNameRule checks folder name-based rules (exact/startsWith/endsWith)
+// against ancestor directory names, returning the nearest matching ancestor rule.
+func findInheritedFolderNameRule(folderPath string, rules settings.ResolvedRulesConfig, includeSelf bool) (settings.ConditionalRule, bool) {
+	trimmed := strings.Trim(folderPath, "/")
+	if trimmed == "" {
+		return settings.ConditionalRule{}, false
+	}
+
+	parts := strings.Split(trimmed, "/")
+	start := len(parts) - 1
+	if !includeSelf {
+		start--
+	}
+
+	for i := start; i >= 0; i-- {
+		name := parts[i]
+
+		if rule, exists := rules.FolderNames[name]; exists {
+			return rule, true
+		}
+
+		for _, rule := range rules.FolderEndsWith {
+			if strings.HasSuffix(name, rule.FolderEndsWith) {
+				return rule, true
+			}
+		}
+
+		for _, rule := range rules.FolderStartsWith {
+			if strings.HasPrefix(name, rule.FolderStartsWith) {
+				return rule, true
+			}
+		}
+	}
+
+	return settings.ConditionalRule{}, false
+}
+
 // IsViewable checks if a path is viewable (allows FS access)
 func (idx *Index) IsViewable(isDir bool, indexPath string, isSymlink bool) bool {
 	if indexPath == "/" {
@@ -1345,45 +1424,40 @@ func (idx *Index) IsViewable(isDir bool, indexPath string, isSymlink bool) bool 
 		return false
 	}
 	rules := idx.Config.ResolvedRules
-	baseName := filepath.Base(indexPath)
+	baseName := filepath.Base(strings.TrimSuffix(indexPath, "/"))
 	if indexPath == "/" {
 		baseName = filepath.Base(idx.Path)
 	}
+	folderPath := getDirectoryPathForRuleInheritance(indexPath, isDir)
 
 	if isDir {
 		// Check folder rules - return false if explicitly set to non-viewable
 		if rule, exists := rules.FolderNames[baseName]; exists {
-			// Cache this match in FolderPaths so children inherit via prefix matching
-			if _, ok := rules.FolderPaths[indexPath]; !ok {
-				rules.FolderPaths[indexPath] = rule
-			}
 			return rule.Viewable
 		}
-		if rule, exists := rules.FolderPaths[indexPath]; exists {
+
+		if rule, exists := rules.FolderPaths[folderPath]; exists {
 			return rule.Viewable
 		}
-		for path, rule := range rules.FolderPaths {
-			if strings.HasPrefix(indexPath, path) {
-				return rule.Viewable
-			}
+
+		if rule, exists := findMostSpecificFolderPathRule(folderPath, rules.FolderPaths); exists {
+			return rule.Viewable
 		}
+
 		for _, rule := range rules.FolderEndsWith {
 			if strings.HasSuffix(baseName, rule.FolderEndsWith) {
-				// Cache this match in FolderPaths so children inherit
-				if _, ok := rules.FolderPaths[indexPath]; !ok {
-					rules.FolderPaths[indexPath] = rule
-				}
 				return rule.Viewable
 			}
 		}
+
 		for _, rule := range rules.FolderStartsWith {
 			if strings.HasPrefix(baseName, rule.FolderStartsWith) {
-				// Cache this match in FolderPaths so children inherit
-				if _, ok := rules.FolderPaths[indexPath]; !ok {
-					rules.FolderPaths[indexPath] = rule
-				}
 				return rule.Viewable
 			}
+		}
+
+		if rule, exists := findInheritedFolderNameRule(folderPath, rules, false); exists {
+			return rule.Viewable
 		}
 	} else {
 		// Check file rules
@@ -1409,10 +1483,11 @@ func (idx *Index) IsViewable(isDir bool, indexPath string, isSymlink bool) bool 
 			}
 		}
 		// Check if file inherits viewable status from parent folder
-		for path, rule := range rules.FolderPaths {
-			if strings.HasPrefix(indexPath, path) {
-				return rule.Viewable
-			}
+		if rule, exists := findMostSpecificFolderPathRule(folderPath, rules.FolderPaths); exists {
+			return rule.Viewable
+		}
+		if rule, exists := findInheritedFolderNameRule(folderPath, rules, true); exists {
+			return rule.Viewable
 		}
 	}
 

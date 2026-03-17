@@ -523,6 +523,58 @@ func TestShouldSkip_ViewableStillSkips(t *testing.T) {
 	}
 }
 
+func TestIsViewable_DoesNotMutateFolderPaths(t *testing.T) {
+	idx := setupConditionalTestIndex(settings.ConditionalFilter{})
+	idx.Config.ResolvedRules.FolderNames["private"] = settings.ConditionalRule{
+		FolderNames: "private",
+		Viewable:    false,
+	}
+
+	if len(idx.Config.ResolvedRules.FolderPaths) != 0 {
+		t.Fatalf("expected no preloaded folder path rules, got %d", len(idx.Config.ResolvedRules.FolderPaths))
+	}
+
+	if idx.IsViewable(true, "/private/", false) {
+		t.Fatal("expected /private/ to be non-viewable")
+	}
+
+	if len(idx.Config.ResolvedRules.FolderPaths) != 0 {
+		t.Fatalf("IsViewable should not mutate FolderPaths, got %d entries", len(idx.Config.ResolvedRules.FolderPaths))
+	}
+}
+
+func TestIsViewable_FileInNonViewableFolderNameRule(t *testing.T) {
+	idx := setupConditionalTestIndex(settings.ConditionalFilter{})
+	idx.Config.ResolvedRules.FolderNames["secret"] = settings.ConditionalRule{
+		FolderNames: "secret",
+		Viewable:    false,
+	}
+
+	if idx.IsViewable(false, "/secret/video.mp4", false) {
+		t.Fatal("expected file inside /secret/ to inherit non-viewable folder rule")
+	}
+
+	if len(idx.Config.ResolvedRules.FolderPaths) != 0 {
+		t.Fatalf("expected FolderPaths to remain unchanged, got %d entries", len(idx.Config.ResolvedRules.FolderPaths))
+	}
+}
+
+func TestIsViewable_DirectoryInheritsParentStartsWithRule(t *testing.T) {
+	idx := setupConditionalTestIndex(settings.ConditionalFilter{
+		ItemRules: []settings.ConditionalRule{
+			{FolderStartsWith: "archive", Viewable: false},
+		},
+	})
+
+	if idx.IsViewable(true, "/archive-2025/subfolder/", false) {
+		t.Fatal("expected child directory to inherit non-viewable startsWith rule from parent folder")
+	}
+
+	if len(idx.Config.ResolvedRules.FolderPaths) != 0 {
+		t.Fatalf("expected FolderPaths to remain unchanged, got %d entries", len(idx.Config.ResolvedRules.FolderPaths))
+	}
+}
+
 func TestShouldSkip_HiddenFiles(t *testing.T) {
 	idx := setupConditionalTestIndex(settings.ConditionalFilter{
 		IgnoreHidden: true, // Skip hidden files
