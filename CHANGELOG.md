@@ -13,6 +13,10 @@ All notable changes to this project will be documented in this file. For commit 
    - browser download progress bar will no longer show for archive downloads. this is the main drawback to the streaming approach.
    - should allow for much higher parallel download support and lower cleanup maintenenance.
 
+ **BugFixes**:
+ - [OnlyOffice] Error when saving a file under a user scope #2133
+ - Cannot edit shared file in OnlyOffice #2143
+
 ## v1.3.1-beta
 
  **Security**:
