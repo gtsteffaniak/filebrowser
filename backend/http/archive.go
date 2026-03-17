@@ -155,17 +155,6 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		return http.StatusBadRequest, fmt.Errorf("no paths accessible; add at least one path you have access to")
 	}
 
-	estimatedSize, err := computeArchiveSize(req.FromSource, req.Paths, d)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-	if config.Server.MaxArchiveSizeGB > 0 {
-		maxSize := config.Server.MaxArchiveSizeGB * 1024 * 1024 * 1024
-		if estimatedSize > maxSize {
-			return http.StatusRequestEntityTooLarge, fmt.Errorf("pre-archive combined size of files exceeds maximum limit of %d GB", config.Server.MaxArchiveSizeGB)
-		}
-	}
-
 	var createErr error
 	file, err := os.OpenFile(destRealPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fileutils.PermFile)
 	if err != nil {
@@ -473,36 +462,6 @@ func addSingleFile(realPath, archivePath string, zipWriter *zip.Writer, tarWrite
 	}
 
 	return nil
-}
-
-// computeArchiveSize returns the combined size of the given paths, respecting access rules.
-// Paths denied by access are skipped (not counted).
-func computeArchiveSize(source string, fileList []string, d *requestContext) (int64, error) {
-	var estimatedSize int64
-	idx := indexing.GetIndex(source)
-	if idx == nil {
-		return 0, fmt.Errorf("source %s is not available", source)
-	}
-
-	for _, path := range fileList {
-		if !store.Access.Permitted(idx.Path, path, d.user.Username) {
-			continue
-		}
-		realPath, isDir, err := idx.GetRealPath(path)
-		if err != nil {
-			return 0, err
-		}
-		indexPath := idx.MakeIndexPath(realPath, isDir)
-		info, ok := idx.GetReducedMetadata(indexPath, isDir)
-		if !ok {
-			info, err = idx.GetFsInfo(indexPath, false, true)
-			if err != nil {
-				return 0, fmt.Errorf("failed to get file info for %s : %v", path, err)
-			}
-		}
-		estimatedSize += info.Size
-	}
-	return estimatedSize, nil
 }
 
 // createZip writes a ZIP archive into w containing the given paths; access rules apply.
