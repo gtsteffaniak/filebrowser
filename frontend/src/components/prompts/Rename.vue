@@ -40,6 +40,7 @@
 <script>
 import { resourcesApi } from "@/api";
 import { mutations, state, getters } from "@/store";
+import { eventBus } from '@/store/eventBus';
 import { notify } from "@/notify";
 import { getFileExtension, removePrefix } from '@/utils/files.js';
 import { url } from "@/utils";
@@ -211,6 +212,12 @@ export default {
           await resourcesApi.moveCopy(items, "move");
         }
         notify.showSuccessToast(this.$t("prompts.renameSuccess"));
+        eventBus.emit('itemsRenamed', {
+          oldPath: this.item.path,
+          newPath: newPath,
+          source: this.item.source,
+          type: this.item.type
+        });
         mutations.closeTopPrompt();
 
         if (this.isPreviewView) {

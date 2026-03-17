@@ -199,6 +199,7 @@ export default {
       { immediate: false, flush: 'sync' }
     );
     eventBus.on('itemsDeleted', this.refresh);
+    eventBus.on('itemsRenamed', this.refresh);
     window.addEventListener('dragend', this.clearAllDragStates);
   },
   beforeUnmount() {
@@ -209,6 +210,7 @@ export default {
       this.unwatchReload();
     }
     eventBus.off('itemsDeleted', this.refresh);
+    eventBus.off('itemsRenamed', this.refresh);
     window.removeEventListener('dragend', this.clearAllDragStates);
   },
   methods: {
