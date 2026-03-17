@@ -212,12 +212,7 @@ export default {
           await resourcesApi.moveCopy(items, "move");
         }
         notify.showSuccessToast(this.$t("prompts.renameSuccess"));
-        eventBus.emit('itemsRenamed', {
-          oldPath: this.item.path,
-          newPath: newPath,
-          source: this.item.source,
-          type: this.item.type
-        });
+        eventBus.emit('itemsRenamed');
         mutations.closeTopPrompt();
 
         if (this.isPreviewView) {

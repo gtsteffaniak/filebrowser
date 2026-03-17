@@ -192,7 +192,6 @@ export default {
       () => state.reload,
       (newVal) => {
         if (newVal === true && this.isRootInstance && !this.isRefreshing) {
-          console.log('Reload detected, refreshing tree');
           this.refresh();
         }
       },
