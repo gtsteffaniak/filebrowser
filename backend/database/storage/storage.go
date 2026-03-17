@@ -118,7 +118,7 @@ func CreateUser(userInfo users.User, permissions users.Permissions) error {
 			return fmt.Errorf("password is required to create a password login user")
 		}
 	} else {
-		hashpass, err := users.HashPwd(userInfo.Username)
+		hashpass, err := utils.HashPwd(userInfo.Username)
 		if err != nil {
 			return err
 		}

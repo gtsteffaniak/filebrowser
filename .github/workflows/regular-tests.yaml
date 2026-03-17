@@ -14,7 +14,7 @@ jobs:
         with:
           go-version: 'stable'
       - working-directory: backend
-        run: go test -race -v ./...
+        run: go test -race -v ./... -timeout 30s
   lint-backend:
     runs-on: ubuntu-latest
     steps:
