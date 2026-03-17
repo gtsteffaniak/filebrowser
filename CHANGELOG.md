@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.3.2-beta
+
+ **Notes**:
+ - Downloading multiple files streams the archive creation rather than using cacheDir -- thanks @janakoram (#2125) (#2130)
+   - `server.maxArchiveSizeGB` deprecated since its no longer an issue with archive streaming.
+   - browser download progress bar will no longer show for archive downloads. this is the main drawback to the streaming approach.
+   - should allow for much higher parallel download support and lower cleanup maintenenance.
+
 ## v1.3.1-beta
 
  **Security**:

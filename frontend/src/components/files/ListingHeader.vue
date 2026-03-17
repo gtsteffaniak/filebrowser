@@ -191,8 +191,8 @@ span {
 .desktop-view .size,
 .desktop-view .modified,
 .desktop-view .duration {
-  min-width: 10%;
-  flex: 0 !important;
+  min-width: 15%;
+  flex: 0;
 }
 
 .size,
