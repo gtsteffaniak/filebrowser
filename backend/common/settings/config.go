@@ -679,7 +679,6 @@ func setDefaults(generate bool) Settings {
 			Database:           database,
 			SourceMap:          map[string]*Source{},
 			NameToSource:       map[string]*Source{},
-			MaxArchiveSizeGB:   50,
 			CacheDir:           "tmp",
 			IndexSqlConfig: IndexSqlConfig{
 				WalMode:      false,
