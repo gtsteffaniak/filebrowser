@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.3.2-beta
 
+ **Security**:
+ - Patched Username Enumeration via Authentication Timing Side-Channel  GHSA-7789-65hx-f26w
+
  **Notes**:
  - Downloading multiple files streams the archive creation rather than using cacheDir -- thanks @janakoram (#2125) (#2130)
    - `server.maxArchiveSizeGB` deprecated since its no longer an issue with archive streaming.
