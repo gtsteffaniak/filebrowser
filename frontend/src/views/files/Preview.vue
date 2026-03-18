@@ -238,6 +238,8 @@ export default {
         size: state.req.size,
         type: state.req.type,
         source: state.req.source,
+        modified: state.req.modified,
+        hasPreview: state.req.hasPreview,
       });
     },
   },
@@ -258,6 +260,8 @@ export default {
       size: state.req.size,
       type: state.req.type,
       source: state.req.source,
+      modified: state.req.modified,
+      hasPreview: state.req.hasPreview,
     });
   },
   beforeUnmount() {
@@ -415,7 +419,7 @@ export default {
       const previewUrl = item.hasPreview
         ? resourcesApi.getPreviewURL(item.source, item.path, item.modified)
         : null;
-      mutations.showHover({
+      mutations.showPrompt({
         name: "delete",
         props: {
           items: [{

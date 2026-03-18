@@ -157,6 +157,9 @@ export default {
     };
   },
   watch: {
+    currentSourceState(){
+      this.selectedSource = state.sources.current;
+    },
     largerThan() {
       this.submit();
     },
@@ -220,6 +223,9 @@ export default {
     }
   },
   computed: {
+    currentSourceState() {
+      return state.sources.current;
+    },
     eventTheme() {
       return getters.eventTheme();
     },
@@ -302,7 +308,7 @@ export default {
     openContext(event) {
       event.preventDefault();
       event.stopPropagation();
-      mutations.showHover({
+      mutations.showPrompt({
         name: "ContextMenu",
         props: {
           posX: event.clientX,
@@ -390,15 +396,6 @@ export default {
       let parts = url.removeTrailingSlash(str).split("/");
       let part = parts.pop();
       return part;
-    },
-    open() {
-      if (!state.isSearchActive) {
-        mutations.closeHovers();
-        mutations.closeSidebar();
-        mutations.resetSelected();
-        this.resetSearchFilters;
-        mutations.setSearch(true);
-      }
     },
     close(event) {
       this.value = "";
@@ -670,6 +667,11 @@ export default {
   padding: 0;
   color: rgba(255, 255, 255, 0.9);
   font-size: 0.95em;
+}
+
+#search-input {
+  width: 100%;
+  padding-left: 0.5em;
 }
 
 #search.active input {

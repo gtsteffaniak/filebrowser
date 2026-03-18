@@ -45,7 +45,7 @@
       </div>
     </div>
     <div class="card-actions">
-      <button @click="closeHovers" class="button button--flat button--grey" :aria-label="$t('general.cancel')"
+      <button @click="closeTopPrompt" class="button button--flat button--grey" :aria-label="$t('general.cancel')"
         :title="$t('general.cancel')">
         {{ $t("general.cancel") }}
       </button>
@@ -163,8 +163,8 @@ export default {
       // For custom events (like @select), just return early
       return false;
     },
-    closeHovers() {
-      mutations.closeTopHover();
+    closeTopPrompt() {
+      mutations.closeTopPrompt();
     },
     getItemName(path) {
       const parts = path.split("/").filter(p => p);
@@ -250,29 +250,42 @@ export default {
               failed: []
             });
           }
-
-          mutations.closeTopHover();
+          mutations.closeTopPrompt();
           if (!this.items) {
             mutations.resetSelected();
           }
           
-          // Smart navigation: if in preview mode with single item deletion, navigate intelligently
+          // If we delete a item while in a preview
           if (getters.isPreviewView() && this.itemsToDelete.length === 1) {
-            // Try next, then previous, then parent directory
-            if (state.navigation.nextItem) {
-              // Use goToItem with undefined to use router.replace (no history entry)
-              url.goToItem(state.navigation.nextItem.source, state.navigation.nextItem.path, undefined);
-            } else if (state.navigation.previousItem) {
-              // Use goToItem with undefined to use router.replace (no history entry)
-              url.goToItem(state.navigation.previousItem.source, state.navigation.previousItem.path, undefined);
+            const deletedItem = this.itemsToDelete[0];
+            const currentItem = state.req;
+            // Only navigate if we delete the current item, not by deleting a different one (from fileTree)
+            if (currentItem && deletedItem.source === currentItem.source && deletedItem.path === currentItem.path) {
+              mutations.setNavigationTransitioning(true);
+              // Try next, then previous, then parent directory
+              if (state.navigation.nextItem) {
+                url.goToItem(state.navigation.nextItem.source, state.navigation.nextItem.path, undefined);
+              } else if (state.navigation.previousItem) {
+                url.goToItem(state.navigation.previousItem.source, state.navigation.previousItem.path, undefined);
+              } else {
+                // Navigate to parent directory of deleted item
+                const parentPath = url.removeLastDir(deletedItem.path);
+                url.goToItem(deletedItem.source, parentPath, {});
+              }
             } else {
-              // Navigate to parent directory of deleted item
-              const deletedItemPath = this.itemsToDelete[0].path;
-              const parentPath = url.removeLastDir(deletedItemPath);
-              const deletedItemSource = this.itemsToDelete[0].source;
-              url.goToItem(deletedItemSource, parentPath, {});
+              mutations.setReload(true);
             }
           } else {
+            // If someone deletes the current folder (from fileTree) that they're viewing, navigate to parent directory
+            if (!getters.isPreviewView() && this.itemsToDelete.length === 1) {
+              const deletedItem = this.itemsToDelete[0];
+              if (deletedItem.type === 'directory' && deletedItem.path === state.req.path) {
+                const parentPath = url.removeLastDir(deletedItem.path);
+                url.goToItem(deletedItem.source, parentPath, {});
+                this.deleting = false;
+                return; // return early to avoid extra reload (and 404)
+              }
+            }
             // For listing view or multiple deletions, just reload
             mutations.setReload(true);
           }
