@@ -36,7 +36,12 @@ type ShareResponse struct {
 func convertToFrontendShareResponse(r *http.Request, shares []*share.Link, user *users.User) ([]*ShareResponse, error) {
 	responses := make([]*ShareResponse, 0, len(shares))
 	for _, s := range shares {
-		username := user.Username
+		// Look for the username of the user who created the share
+		creator, err := store.Users.Get(s.UserID)
+		username := ""
+		if err == nil {
+			username = creator.Username
+		}
 
 		// Get source info to convert path to name for frontend
 		sourceInfo, ok := config.Server.SourceMap[s.Source]
