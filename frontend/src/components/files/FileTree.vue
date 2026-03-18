@@ -79,6 +79,7 @@ import { resourcesApi } from '@/api';
 import Icon from '@/components/files/Icon.vue';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import { state, getters, mutations } from '@/store';
+import { eventBus } from '@/store/eventBus';
 import { goToItem, joinPath } from '@/utils/url';
 import { notify } from '@/notify';
 
@@ -116,6 +117,8 @@ export default {
       isRefreshing: false,
       unwatchReload: null,
       expandTimeouts: new Map(), // For auto-expand when dragging a item to a folder
+      pendingExpandPath: null,
+      rootLoaded: false,
     };
   },
   computed: {
@@ -142,14 +145,22 @@ export default {
   },
   watch: {
     currentSource: {
-      handler(newVal, oldVal) {
-        if (this.isRootInstance && newVal !== oldVal) this.loadRoot();
+      async handler(newVal) {
+        if (this.isRootInstance && newVal) {
+          await this.loadRoot();
+          this.rootLoaded = true;
+          this.tryExpandNodes();
+        }
       },
       immediate: true,
     },
     shareHash: {
-      handler(newVal, oldVal) {
-        if (this.isRootInstance && newVal !== oldVal) this.loadRoot();
+      async handler(newVal) {
+        if (this.isRootInstance && newVal) {
+          await this.loadRoot();
+          this.rootLoaded = true;
+          this.tryExpandNodes();
+        }
       },
       immediate: true,
     },
@@ -159,9 +170,10 @@ export default {
       },
     },
     currentPath: {
-      async handler(newPath, oldPath) {
-        if (this.isRootInstance && newPath && newPath !== oldPath) {
-          await this.expandToPath(newPath);
+      handler(newPath) {
+        if (newPath !== '/') {
+          this.pendingExpandPath = newPath;
+          this.tryExpandNodes();
         }
       },
       immediate: true,
@@ -180,12 +192,13 @@ export default {
       () => state.reload,
       (newVal) => {
         if (newVal === true && this.isRootInstance && !this.isRefreshing) {
-          console.log('Reload detected, refreshing tree');
           this.refresh();
         }
       },
       { immediate: false, flush: 'sync' }
     );
+    eventBus.on('itemsDeleted', this.refresh);
+    eventBus.on('itemsRenamed', this.refresh);
     window.addEventListener('dragend', this.clearAllDragStates);
   },
   beforeUnmount() {
@@ -195,11 +208,14 @@ export default {
     if (this.unwatchReload) {
       this.unwatchReload();
     }
+    eventBus.off('itemsDeleted', this.refresh);
+    eventBus.off('itemsRenamed', this.refresh);
     window.removeEventListener('dragend', this.clearAllDragStates);
   },
   methods: {
     async loadRoot() {
       this.error = null;
+      this.rootLoaded = false;
       if ((!this.currentSource && !this.shareHash) || !this.isRootInstance) {
         this.rootNodes = [];
         return;
@@ -208,6 +224,7 @@ export default {
       try {
         const items = await this.fetchItems(this.rootPath);
         this.rootNodes = items.map(item => this.createNode(item));
+        this.rootLoaded = true;
       } catch (err) {
         console.error('Failed to load tree root:', err);
         this.error = err.message || 'Failed to load';
@@ -285,13 +302,22 @@ export default {
       }
     },
 
+    async tryExpandNodes() {
+      if (!this.rootLoaded || !this.pendingExpandPath) return;
+      await this.expandToPath(this.pendingExpandPath);
+      this.pendingExpandPath = null;
+    },
+
     handleNodeClick(node) {
-      if (node.isDir) {
-        if (!this.isCurrentItem(node)) {
-          this.navigateTo(node);
-        } else {
-          this.toggleExpand(node, false);
+      // don't navigate to current item if we're already viewing it
+      if (this.isCurrentItem(node)) {
+        if (node.isDir) {
+          this.toggleExpand(node, false); // If the item is a folder, just expand/collapse instead of navigate again
         }
+        return;
+      }
+      if (node.isDir) {
+        this.navigateTo(node);
       } else {
         this.navigateTo(node);
       }
@@ -315,8 +341,10 @@ export default {
 
     navigateTo(node) {
       if (this.isShare) {
+        mutations.setNavigationTransitioning(true);
         goToItem(null, node.path, {}, false, this.shareHash);
       } else {
+        mutations.setNavigationTransitioning(true);
         goToItem(this.currentSource, node.path, {});
       }
     },
@@ -756,7 +784,6 @@ export default {
 .tree-error {
   padding: 1em;
   text-align: center;
-  color: var(--errorColor);
   display: flex;
   flex-direction: column;
   align-items: center;

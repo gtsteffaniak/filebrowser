@@ -164,7 +164,7 @@
       <action v-if="showUnarchiveInOverflow" icon="folder_open" :label="$t('prompts.unarchive')" @action="showUnarchivePromptFromPreview" />
       <action v-if="showEdit" icon="edit" :label="$t('general.edit')" @action="edit()" />
       <action v-if="showSave" icon="save" :label="$t('general.save')" @action="save()" />
-      <action v-if="showDelete" icon="delete" :label="$t('general.delete')" show="delete" />
+      <action v-if="showDelete" icon="delete" :label="$t('general.delete')" @action="showDeletePrompt" />
     </div>
   </transition>
 </template>
