@@ -212,10 +212,10 @@ async function downloadChunked(file, shareHash = "") {
   downloadManager.setStatus(downloadId, "downloading")
 
   // Show download prompt if not already shown (it should already be shown by downloadFiles, but check to be safe)
-  const hasDownloadPrompt = state.hovers && state.hovers.some(h => h.name === 'download');
+  const hasDownloadPrompt = state.prompts && state.prompts.some(h => h.name === 'download');
 
   if (!hasDownloadPrompt) {
-    mutations.showHover({ name: 'download' })
+    mutations.showPrompt({ name: 'download' })
   }
 
   const params = {

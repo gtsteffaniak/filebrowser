@@ -179,7 +179,7 @@ func (s *SQLStore) quickSetup() error {
 		logger.Debugf("Creating user as admin: %v", user.Username)
 
 		// Hash the password before storing
-		hashedPassword, hashErr := users.HashPwd(settings.Config.Auth.AdminPassword)
+		hashedPassword, hashErr := utils.HashPwd(settings.Config.Auth.AdminPassword)
 		if hashErr != nil {
 			return fmt.Errorf("failed to hash admin password: %w", hashErr)
 		}

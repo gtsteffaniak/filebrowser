@@ -100,9 +100,6 @@ export default {
     },
   },
   methods: {
-    closeHovers() {
-      mutations.closeTopHover();
-    },
     async createAPIKey() {
       this.creating = true;
       try {
@@ -125,7 +122,7 @@ export default {
         // Emit event to refresh API keys list
         eventBus.emit('apiKeysChanged');
         notify.showSuccessToast(this.$t("api.createKeySuccess"));
-        mutations.closeTopHover();
+        mutations.closeTopPrompt();
       } catch (error) {
         notify.showError(this.$t("api.createKeyFailed"));
       } finally {

@@ -35,7 +35,7 @@
 
 <script>
 import { resourcesApi } from "@/api";
-import { state, getters, mutations } from "@/store";
+import { state, getters } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import QrcodeVue from "qrcode.vue";
 
@@ -84,9 +84,6 @@ export default {
   methods: {
     getShareLink() {
       return state.shareInfo.shareURL;
-    },
-    close() {
-      mutations.closeTopHover();
     },
   },
 };

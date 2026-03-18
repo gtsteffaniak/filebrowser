@@ -4,11 +4,19 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.3.2-beta
 
+ **Security**:
+ - Patched Username Enumeration via Authentication Timing Side-Channel  GHSA-7789-65hx-f26w
+
  **Notes**:
+ - docs preview for text and pdf has a 2 second timeout. If it hangs for whatever reason, the maximum time would be 2 seconds. (#2105)
  - Downloading multiple files streams the archive creation rather than using cacheDir -- thanks @janakoram (#2125) (#2130)
    - `server.maxArchiveSizeGB` deprecated since its no longer an issue with archive streaming.
    - browser download progress bar will no longer show for archive downloads. this is the main drawback to the streaming approach.
    - should allow for much higher parallel download support and lower cleanup maintenenance.
+
+ **BugFixes**:
+ - [OnlyOffice] Error when saving a file under a user scope #2133
+ - Cannot edit shared file in OnlyOffice #2143
 
 ## v1.3.1-beta
 

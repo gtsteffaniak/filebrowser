@@ -7,6 +7,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
@@ -121,7 +122,7 @@ func GetAllUsers() ([]users.User, error) {
 func CreateUser(user *users.User, plaintextPassword string) error {
 	// Hash password if provided
 	if plaintextPassword != "" {
-		hashedPassword, err := users.HashPwd(plaintextPassword)
+		hashedPassword, err := utils.HashPwd(plaintextPassword)
 		if err != nil {
 			return fmt.Errorf("failed to hash password: %w", err)
 		}
@@ -191,7 +192,7 @@ func UpdateUser(user *users.User, plaintextPassword string, fields ...string) er
 			// Handle password specially
 			if jsonFieldName == "password" || jsonFieldName == "Password" {
 				if plaintextPassword != "" {
-					hashedPassword, err := users.HashPwd(plaintextPassword)
+					hashedPassword, err := utils.HashPwd(plaintextPassword)
 					if err != nil {
 						return fmt.Errorf("failed to hash password: %w", err)
 					}
@@ -219,7 +220,7 @@ func UpdateUser(user *users.User, plaintextPassword string, fields ...string) er
 	} else {
 		// Full update - replace all fields
 		if plaintextPassword != "" {
-			hashedPassword, err := users.HashPwd(plaintextPassword)
+			hashedPassword, err := utils.HashPwd(plaintextPassword)
 			if err != nil {
 				return fmt.Errorf("failed to hash password: %w", err)
 			}
@@ -228,12 +229,12 @@ func UpdateUser(user *users.User, plaintextPassword string, fields ...string) er
 			// Preserve existing password
 			user.Password = existingUser.Password
 		}
-		
+
 		// Handle username changes - remove old username key if changed
 		if existingUser.Username != user.Username {
 			delete(usersByName, existingUser.Username)
 		}
-		
+
 		// Replace entire user pointer
 		existingUser = user
 	}
@@ -256,7 +257,7 @@ func UpdateUser(user *users.User, plaintextPassword string, fields ...string) er
 func findFieldByJSONTag(t reflect.Type, jsonTag string) string {
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
-		
+
 		// Check if this field's JSON tag matches
 		jsonTagValue := field.Tag.Get("json")
 		if jsonTagValue != "" {
@@ -266,7 +267,7 @@ func findFieldByJSONTag(t reflect.Type, jsonTag string) string {
 				return field.Name
 			}
 		}
-		
+
 		// If this is an embedded struct (Anonymous field), search recursively
 		if field.Anonymous && field.Type.Kind() == reflect.Struct {
 			if nestedFieldName := findFieldByJSONTag(field.Type, jsonTag); nestedFieldName != "" {
@@ -276,7 +277,7 @@ func findFieldByJSONTag(t reflect.Type, jsonTag string) string {
 			}
 		}
 	}
-	
+
 	return ""
 }
 

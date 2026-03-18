@@ -254,30 +254,30 @@ export const mutations = {
     emitStateChanged();
   },
   closeHovers: () => {
-    // Define which hovers should be closed (lightweight/ephemeral hovers)
-    const closeableHovers = ['search', 'ContextMenu', 'OverflowMenu'];
-    
-    // Close only specific lightweight hovers (search, ContextMenu, OverflowMenu)
+    // Close only specific lightweight/ephemeral hovers. Like ContextMenu, OverflowMenu, tooltip or sidebar (if not pinned and floating)
+    const closeableHovers = ['ContextMenu', 'OverflowMenu'];
     state.prompts = state.prompts.filter(p => !closeableHovers.includes(p.name));
-    
-    // Only hide sidebar if no prompts remain
-    if (state.prompts.length === 0 && !state.stickySidebar) {
-      state.showSidebar = false;
-    }
-    mutations.hideTooltip(true)
-  },
-  closeTopHover: () => {
-    if (state.prompts.length === 0) {
-      return;
-    }
-    mutations.closeHovers();
-    state.prompts.pop();
-    if (state.prompts.length === 0 && !state.stickySidebar) {
-      state.showSidebar = false;
-    }
+    mutations.closeSidebar();
     mutations.hideTooltip(true);
   },
-  showHover: (value) => {
+  closeTopPrompt: (id) => {
+    if (id === undefined) {
+      // close topmost prompt
+      if (state.prompts.length === 0) return;
+      mutations.closeHovers();
+      state.prompts.pop();
+    } else {
+      // close prompt by ID
+      const idx = state.prompts.findIndex(p => p.id === id);
+      if (idx === -1) return;
+      state.prompts.splice(idx, 1);
+    }
+    if (state.prompts.length === 0 && !state.stickySidebar) {
+      state.showSidebar = false;
+    }
+    emitStateChanged();
+  },
+  showPrompt: (value) => {
     state.promptIdCounter += 1;
     const id = state.promptIdCounter;
     // Set parentId to the current topmost prompt, unless the prompt is pinned.
@@ -319,17 +319,6 @@ export const mutations = {
     }
     mutations.hideTooltip(true);
   },
-  closePromptById: (id) => {
-    const idx = state.prompts.findIndex((p) => p.id === id);
-    if (idx === -1) {
-      return;
-    }
-    state.prompts.splice(idx, 1);
-    if (state.prompts.length === 0 && !state.stickySidebar) {
-      state.showSidebar = false;
-    }
-    mutations.hideTooltip(true);
-  },
   updatePromptTitle: (id, title) => {
     const prompt = state.prompts.find((p) => p.id === id);
     if (!prompt) {
@@ -337,13 +326,6 @@ export const mutations = {
     }
     prompt.props.title = title;
     emitStateChanged();
-  },
-  closeContextMenus: () => {
-    state.prompts = state.prompts.filter((p) => p.name !== "ContextMenu");
-    if (state.prompts.length === 0 && !state.stickySidebar) {
-      state.showSidebar = false;
-    }
-    mutations.hideTooltip(true);
   },
   setLoading: (loadType, status) => {
     if (status === false) {
@@ -470,8 +452,8 @@ export const mutations = {
   },
   selectAllItems: () => {
     if (state.req && state.req.items && state.req.items.length > 0) {
-      // Close the context menu
-      mutations.closeContextMenus();
+      // Close hovers
+      mutations.closeHovers();
       // Clear current selection first
       mutations.resetSelected();
       // Add all items from current directory to selection by their indices

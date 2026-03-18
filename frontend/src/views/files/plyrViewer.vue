@@ -326,7 +326,7 @@ export default {
   },
   methods: {
     showQueuePrompt() {
-      mutations.showHover({
+      mutations.showPrompt({
         name: "PlaybackQueue",
       });
     },

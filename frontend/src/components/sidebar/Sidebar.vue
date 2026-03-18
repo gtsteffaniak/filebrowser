@@ -165,7 +165,7 @@ export default {
     },
     // Show the help overlay
     help() {
-      mutations.showHover("help");
+      mutations.showPrompt("help");
     },
     setSeenUpdate() {
       mutations.setSeenUpdate(globalVars.updateAvailable);

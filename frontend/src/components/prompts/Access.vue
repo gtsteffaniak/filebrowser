@@ -173,9 +173,6 @@ export default {
     }
   },
   methods: {
-    closeHovers() {
-      mutations.closeTopHover();
-    },
     startPathEdit() {
       this.tempPath = this.currentPath;
       this.isEditingPath = true;
@@ -295,9 +292,6 @@ export default {
       } catch (e) {
         console.error(e);
       }
-    },
-    closePrompt() {
-      mutations.closeTopHover();
     },
     showTooltip(event, text) {
       mutations.showTooltip({

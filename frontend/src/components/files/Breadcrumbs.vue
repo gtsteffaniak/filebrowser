@@ -267,7 +267,7 @@ export default {
       });
 
       const moveAction = async (overwrite, rename) => {
-        mutations.showHover({
+        mutations.showPrompt({
           name: "move",
           props: { operationInProgress: true },
         });
@@ -291,24 +291,24 @@ export default {
               action: buttonAction
             }]
           });
-          mutations.closeTopHover();
+          mutations.closeTopPrompt();
           mutations.setReload(true);
         } catch (error) {
-          mutations.closeTopHover();
+          mutations.closeTopPrompt();
           notify.showErrorToast(this.$t("prompts.moveFailed"));
           console.log("Move failed", e);
         }
       };
 
       if (conflict) {
-        mutations.showHover({
+        mutations.showPrompt({
           name: "replace-rename",
           pinned: true,
           confirm: (event, option) => {
             const overwrite = option === "overwrite";
             const rename = option === "rename";
             event.preventDefault();
-            mutations.closeTopHover();
+            mutations.closeTopPrompt();
             moveAction(overwrite, rename);
           },
         });
