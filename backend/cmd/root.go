@@ -89,6 +89,11 @@ func StartFilebrowser() {
 		settings.Env.EmbeddedFs = os.IsNotExist(err)
 	}
 
+	err = utils.SetInvalidPasswordHash()
+	if err != nil {
+		logger.Fatalf("Failed to set security hash: %v", err)
+	}
+
 	sourceList := []string{}
 	for path, source := range settings.Config.Server.SourceMap {
 		sourceList = append(sourceList, fmt.Sprintf("%v: %v", source.Name, path))

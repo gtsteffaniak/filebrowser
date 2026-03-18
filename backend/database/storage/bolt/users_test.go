@@ -6,11 +6,12 @@ import (
 
 	"github.com/asdine/storm/v3"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 )
 
 func init() {
-	users.BcryptCost = 4 // bcrypt.MinCost for faster tests
+	utils.BcryptCost = 4 // bcrypt.MinCost for faster tests
 
 	// Initialize test source configuration
 	settings.Config.Server.SourceMap = map[string]*settings.Source{

@@ -2,9 +2,6 @@ package utils
 
 import (
 	"cmp"
-	"crypto/rand"
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	math "math/rand"
 	"os"
@@ -21,15 +18,6 @@ func CheckErr(source string, err error) {
 	if err != nil {
 		logger.Fatalf("%s: %v", source, err)
 	}
-}
-
-func GenerateKey() string {
-	b := make([]byte, 64)
-	_, err := rand.Read(b)
-	if err != nil {
-		return ""
-	}
-	return string(b)
 }
 
 // CapitalizeFirst returns the input string with the first letter capitalized.
@@ -90,11 +78,6 @@ func GetParentDirectoryPath(path string) string {
 		return "/" // If the last slash is the first character, return root
 	}
 	return path[:lastSlash]
-}
-
-func HashSHA256(data string) string {
-	bytes := sha256.Sum256([]byte(data))
-	return hex.EncodeToString(bytes[:])
 }
 
 func GetLastComponent(path string) string {

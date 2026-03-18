@@ -173,7 +173,7 @@ func (st usersBackend) Save(user *users.User, changePass, disableScopeChange boo
 		if err != nil {
 			return err
 		}
-		pass, err := users.HashPwd(user.Password)
+		pass, err := utils.HashPwd(user.Password)
 		if err != nil {
 			return err
 		}
@@ -292,7 +292,7 @@ func parseFields(user *users.User, fields []string, actorIsAdmin bool) ([]string
 				if err != nil {
 					return nil, fmt.Errorf("password does not meet complexity requirements")
 				}
-				value, err := users.HashPwd(user.Password)
+				value, err := utils.HashPwd(user.Password)
 				if err != nil {
 					logger.Error(err.Error())
 				}
