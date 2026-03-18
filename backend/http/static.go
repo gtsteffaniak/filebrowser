@@ -305,11 +305,8 @@ func staticAssetHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Security-Policy", `default-src 'self'; style-src 'unsafe-inline';`)
 
 	// Strip baseURL and /static/ prefix to get clean asset path
-	path := r.URL.Path
-	path = strings.TrimPrefix(path, config.Server.BaseURL) // Remove /testing/ or other baseURL
-	path = strings.TrimPrefix(path, "/")                   // Remove leading slash FIRST
-	path = strings.TrimPrefix(path, "static/")             // Then remove static/ prefix
-
+	path := strings.TrimPrefix(r.URL.Path, "/public")
+	path = strings.TrimPrefix(path, "/static/")
 	// Handle special routes that need path mapping
 	var assetPath string
 	switch path {
