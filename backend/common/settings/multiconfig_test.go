@@ -231,3 +231,50 @@ frontend:
 		t.Errorf("Expected share permission false (from base), got %v", Config.UserDefaults.Permissions.Share)
 	}
 }
+
+func TestMultiConfigIgnoresNonAnchorAuxFiles(t *testing.T) {
+	testDir := t.TempDir()
+
+	mainConfig := `
+server:
+  port: 7777
+  baseURL: "/"
+  sources:
+    - path: "/srv"
+
+frontend:
+  name: "Primary Config"
+`
+	mainPath := filepath.Join(testDir, "config.yaml")
+	if err := os.WriteFile(mainPath, []byte(mainConfig), 0644); err != nil {
+		t.Fatalf("Failed to write main config: %v", err)
+	}
+
+	// This filename matches the *-config.yaml pattern but is a standalone config.
+	// It should not be merged unless it provides YAML anchors.
+	playwrightConfig := `
+server:
+  port: 9999
+  baseURL: "/playwright"
+
+frontend:
+  name: "Playwright Config"
+`
+	auxPath := filepath.Join(testDir, "playwright-config.yaml")
+	if err := os.WriteFile(auxPath, []byte(playwrightConfig), 0644); err != nil {
+		t.Fatalf("Failed to write auxiliary config: %v", err)
+	}
+
+	err := loadConfigWithDefaults(mainPath, true)
+	if err != nil {
+		t.Fatalf("Expected config load to succeed, got error: %v", err)
+	}
+
+	if Config.Server.Port != 7777 {
+		t.Errorf("Expected server port 7777 from main config, got %d", Config.Server.Port)
+	}
+
+	if Config.Frontend.Name != "Primary Config" {
+		t.Errorf("Expected frontend name 'Primary Config', got '%s'", Config.Frontend.Name)
+	}
+}

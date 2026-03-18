@@ -1,6 +1,7 @@
 package settings
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -48,7 +49,12 @@ func combineYAMLFiles(configFilePath string) ([]byte, error) {
 		return nil, fmt.Errorf("failed to read config directory: %v", err)
 	}
 
-	var yamlFiles []string
+	type auxiliaryFile struct {
+		path    string
+		content []byte
+	}
+
+	var yamlFiles []auxiliaryFile
 	var mainConfigContent []byte
 
 	for _, entry := range entries {
@@ -80,13 +86,25 @@ func combineYAMLFiles(configFilePath string) ([]byte, error) {
 			}
 			mainConfigContent = content
 		} else if strings.HasSuffix(name, pattern) {
-			// Only include files that match the pattern (e.g., *-config.yaml)
-			yamlFiles = append(yamlFiles, fullPath)
+			content, err := os.ReadFile(fullPath)
+			if err != nil {
+				return nil, fmt.Errorf("failed to read YAML file %s: %v", fullPath, err)
+			}
+
+			// Auxiliary files are intended for shared anchors/aliases.
+			// Ignore full standalone configs so they don't collide on top-level keys.
+			if !bytes.Contains(content, []byte("&")) {
+				continue
+			}
+
+			yamlFiles = append(yamlFiles, auxiliaryFile{path: fullPath, content: content})
 		}
 	}
 
 	// Sort the auxiliary files for consistent ordering
-	sort.Strings(yamlFiles)
+	sort.Slice(yamlFiles, func(i, j int) bool {
+		return yamlFiles[i].path < yamlFiles[j].path
+	})
 
 	// Combine all YAML files as raw text into a single document
 	// We do NOT use `---` separators because anchors don't work across document boundaries
@@ -94,11 +112,7 @@ func combineYAMLFiles(configFilePath string) ([]byte, error) {
 
 	// First, add all auxiliary YAML files (these typically contain anchor definitions)
 	for _, file := range yamlFiles {
-		content, err := os.ReadFile(file)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read YAML file %s: %v", file, err)
-		}
-		combined.Write(content)
+		combined.Write(file.content)
 		combined.WriteString("\n") // Add newline between files
 	}
 

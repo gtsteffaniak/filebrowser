@@ -1338,25 +1338,35 @@ func setFilePreviewFlags(fileInfo *iteminfo.ItemInfo, realPath string) {
 // For directories, it returns the normalized directory path itself.
 // For files, it returns the parent directory path.
 func getDirectoryPathForRuleInheritance(indexPath string, isDir bool) string {
-	if indexPath == "" {
+	if indexPath == "" || indexPath == "/" {
 		return "/"
 	}
 
 	normalized := indexPath
-	if !strings.HasPrefix(normalized, "/") {
+	if normalized[0] != '/' {
 		normalized = "/" + normalized
 	}
 
 	if isDir {
-		return utils.AddTrailingSlashIfNotExists(normalized)
+		if normalized[len(normalized)-1] == '/' {
+			return normalized
+		}
+		return normalized + "/"
 	}
 
-	parent := filepath.Dir(normalized)
-	if parent == "." || parent == "" {
+	// Trim accidental trailing slashes to ensure parent extraction is stable.
+	end := len(normalized)
+	for end > 1 && normalized[end-1] == '/' {
+		end--
+	}
+	normalized = normalized[:end]
+
+	lastSlash := strings.LastIndexByte(normalized, '/')
+	if lastSlash <= 0 {
 		return "/"
 	}
 
-	return utils.AddTrailingSlashIfNotExists(parent)
+	return normalized[:lastSlash+1]
 }
 
 // findMostSpecificFolderPathRule returns the longest matching folder path rule.
