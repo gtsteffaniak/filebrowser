@@ -409,3 +409,163 @@ func TestOverrideFileToDirectory(t *testing.T) {
 		t.Error("Directory 'Test Object' should have been added to Folders")
 	}
 }
+
+// TestDeleteFilesRootProtection tests that DeleteFiles refuses to delete
+// the source root directory itself, preventing catastrophic data loss.
+// This is a regression test for the safety guard added to prevent accidental
+// deletion of the entire source directory.
+func TestDeleteFilesRootProtection(t *testing.T) {
+	// Use a temporary directory for cache
+	tmpDir := t.TempDir()
+	originalCacheDir := settings.Config.Server.CacheDir
+	settings.Config.Server.CacheDir = tmpDir
+	defer func() {
+		settings.Config.Server.CacheDir = originalCacheDir
+	}()
+
+	// Ensure fileutils permissions are set
+	if fileutils.PermDir == 0 {
+		fileutils.SetFsPermissions(0644, 0755)
+	}
+
+	// Initialize the database
+	if indexing.GetIndexDB() == nil {
+		db, _, err := dbsql.NewIndexDB("test_root_protection", "OFF", 1000, 32, false)
+		if err != nil {
+			t.Fatalf("Failed to create test database: %v", err)
+		}
+		indexing.SetIndexDBForTesting(db)
+	}
+
+	// Create a real temporary directory to use as source root
+	realTmpDir := t.TempDir()
+
+	// Initialize the index with a real path
+	indexing.Initialize(&settings.Source{
+		Name: "test_root_protection",
+		Path: realTmpDir,
+	}, false, false) // false for mock mode (real path), false for isNewDb
+
+	// Wait for scanner to be ready
+	idx := indexing.GetIndex("test_root_protection")
+	if idx == nil {
+		t.Fatal("Failed to get test index")
+	}
+
+	// Wait for scanner to finish
+	for i := 0; i < 50; i++ {
+		time.Sleep(10 * time.Millisecond)
+		status := idx.GetScannerStatus()
+		if status["status"] == "ready" || status["status"] == "unavailable" {
+			break
+		}
+	}
+
+	// Test: Attempting to delete the root directory should return an error
+	err := DeleteFiles("test_root_protection", realTmpDir, true)
+	if err == nil {
+		t.Error("DeleteFiles should return an error when trying to delete root directory")
+	}
+
+	// Verify the error message contains expected text
+	expectedErrMsg := "refusing to delete source root directory"
+	if err != nil && !strings.Contains(err.Error(), expectedErrMsg) {
+		t.Errorf("Expected error message to contain '%s', got: %v", expectedErrMsg, err.Error())
+	}
+
+	// Test with trailing slash - should still be blocked
+	err = DeleteFiles("test_root_protection", realTmpDir+"/", true)
+	if err == nil {
+		t.Error("DeleteFiles should return an error for root directory with trailing slash")
+	}
+
+	// Test with cleaned path variations
+	err = DeleteFiles("test_root_protection", realTmpDir+"/.", true)
+	if err == nil {
+		t.Error("DeleteFiles should return an error for root directory with /. suffix")
+	}
+}
+
+// TestDeleteFilesSubfolderWithRootName tests that deleting a subfolder
+// with the same name as the root directory works correctly and doesn't
+// accidentally delete the root.
+// Regression test for path handling bug where /srv/srv could be mistaken for /srv.
+func TestDeleteFilesSubfolderWithRootName(t *testing.T) {
+	// Use a temporary directory for cache
+	tmpDir := t.TempDir()
+	originalCacheDir := settings.Config.Server.CacheDir
+	settings.Config.Server.CacheDir = tmpDir
+	defer func() {
+		settings.Config.Server.CacheDir = originalCacheDir
+	}()
+
+	// Ensure fileutils permissions are set
+	if fileutils.PermDir == 0 {
+		fileutils.SetFsPermissions(0644, 0755)
+	}
+
+	// Initialize the database
+	if indexing.GetIndexDB() == nil {
+		db, _, err := dbsql.NewIndexDB("test_subfolder_rootname", "OFF", 1000, 32, false)
+		if err != nil {
+			t.Fatalf("Failed to create test database: %v", err)
+		}
+		indexing.SetIndexDBForTesting(db)
+	}
+
+	// Create a real temporary directory structure:
+	// tmpDir/
+	//   └── subfolder_same_as_root/  <- This folder's name matches the last component of root path
+	realTmpDir := t.TempDir()
+	subfolderName := filepath.Base(realTmpDir) // Get the last component of the temp dir name
+	subfolderPath := filepath.Join(realTmpDir, subfolderName)
+
+	// Create the subfolder
+	if err := os.Mkdir(subfolderPath, 0755); err != nil {
+		t.Fatalf("Failed to create subfolder: %v", err)
+	}
+
+	// Create a file inside the subfolder to verify it's deletable
+	testFile := filepath.Join(subfolderPath, "test.txt")
+	if err := os.WriteFile(testFile, []byte("test content"), 0644); err != nil {
+		t.Fatalf("Failed to create test file: %v", err)
+	}
+
+	// Initialize the index
+	indexing.Initialize(&settings.Source{
+		Name: "test_subfolder_rootname",
+		Path: realTmpDir,
+	}, false, false)
+
+	// Wait for scanner to be ready
+	idx := indexing.GetIndex("test_subfolder_rootname")
+	if idx == nil {
+		t.Fatal("Failed to get test index")
+	}
+
+	// Wait for scanner to finish
+	for i := 0; i < 100; i++ {
+		time.Sleep(10 * time.Millisecond)
+		status := idx.GetScannerStatus()
+		if status["status"] == "ready" || status["status"] == "unavailable" {
+			break
+		}
+	}
+
+	// Test: Deleting the subfolder should succeed (not blocked by root protection)
+	// because subfolderPath != realTmpDir
+	err := DeleteFiles("test_subfolder_rootname", subfolderPath, true)
+	if err != nil {
+		t.Errorf("DeleteFiles should succeed for subfolder with root-like name, got error: %v", err)
+	}
+
+	// Verify the subfolder was actually deleted
+	if _, err := os.Stat(subfolderPath); !os.IsNotExist(err) {
+		t.Error("Subfolder should have been deleted")
+	}
+
+	// Verify the root directory still exists
+	if _, err := os.Stat(realTmpDir); os.IsNotExist(err) {
+		t.Error("Root directory should NOT have been deleted")
+	}
+}

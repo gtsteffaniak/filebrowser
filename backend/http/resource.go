@@ -331,7 +331,7 @@ func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *reques
 			// Get file info
 			fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 				FollowSymlinks: true,
-				Path:           idx.MakeIndexPath(item.Path, false),
+				Path:           item.Path,
 				Source:         item.Source,
 				ShowHidden:     true,
 			}, store.Access, filePermUser, store.Share)

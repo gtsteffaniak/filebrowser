@@ -457,6 +457,11 @@ func DeleteFiles(source, absPath string, isDir bool) error {
 	if index == nil {
 		return fmt.Errorf("could not get index: %v ", source)
 	}
+	// Safety guard: never allow deletion of the source root directory itself
+	cleanAbs := filepath.Clean(absPath)
+	if cleanAbs == filepath.Clean(index.Path) {
+		return fmt.Errorf("refusing to delete source root directory: %s", absPath)
+	}
 
 	if !index.Config.DisableIndexing {
 		indexPath := index.MakeIndexPath(absPath, isDir)
