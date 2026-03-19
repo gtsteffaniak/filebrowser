@@ -243,7 +243,7 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 
 	pathClean, err := utils.SanitizeUserPath(req.Path)
 	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid path: %v", err)
+		return http.StatusBadRequest, err
 	}
 	destClean, err := utils.SanitizeUserPath(req.Destination)
 	if err != nil {

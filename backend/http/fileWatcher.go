@@ -139,7 +139,7 @@ func fileWatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	var err error
 	path, err = utils.SanitizeUserPath(path)
 	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid path: %v", err)
+		return http.StatusBadRequest, err
 	}
 
 	// Parse lines parameter
@@ -275,7 +275,7 @@ func fileWatchSSEHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	// Rule 1: Validate user-provided path to prevent path traversal
 	cleanPath, err := utils.SanitizeUserPath(path)
 	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid path: %v", err)
+		return http.StatusBadRequest, err
 	}
 	path = cleanPath
 
