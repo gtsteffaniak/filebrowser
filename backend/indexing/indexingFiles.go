@@ -1405,22 +1405,18 @@ func (idx *Index) IsViewable(isDir bool, indexPath string, isSymlink bool, isHid
 // IsViewableWithParentCheck checks if a path is viewable by walking up the directory tree
 // Used for API requests where we need to check inherited rules from parent folders
 func (idx *Index) IsViewableWithParentCheck(isDir bool, indexPath string, isSymlink bool, isHidden bool) bool {
-	logger.Debugf("[IS_VIEWABLE_WITH_PARENT_CHECK] isDir: %v, indexPath: %s, isSymlink: %v, isHidden: %v", isDir, indexPath, isSymlink, isHidden)
 	if idx.Config.DisableIndexing || idx.Config.ResolvedRules.NoRules {
-		logger.Debugf("[IS_VIEWABLE_WITH_PARENT_CHECK] %s is disabled or has no rules, default to viewable", indexPath)
 		return true
 	}
 
 	// Check the item itself - if not viewable, stop here
 	if !idx.IsViewable(isDir, indexPath, isSymlink, isHidden) {
-		logger.Debugf("[IS_VIEWABLE_WITH_PARENT_CHECK] %s is not viewable", indexPath)
 		return false
 	}
 
 	// Item is viewable, now check parent recursively
 	parentDir := utils.GetParentDirectoryPath(indexPath)
 	if parentDir == "" || parentDir == "/" {
-		logger.Debugf("[IS_VIEWABLE_WITH_PARENT_CHECK] %s Reached root with no non-viewable rules, default to viewable", indexPath)
 		return true // Reached root with no non-viewable rules, default to viewable
 	}
 

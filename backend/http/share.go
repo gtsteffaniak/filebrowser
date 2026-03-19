@@ -380,7 +380,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	// Rule 1: Validate user-provided path to prevent path traversal
 	cleanPath, err := utils.SanitizeUserPath(providedPath)
 	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid path: %v", err)
+		return http.StatusBadRequest, err
 	}
 
 	body.Path = utils.JoinPathAsUnix(userscope, cleanPath)

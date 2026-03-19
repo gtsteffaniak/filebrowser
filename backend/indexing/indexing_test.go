@@ -128,7 +128,11 @@ func TestMultiScannerMutex(t *testing.T) {
 
 	// Verify markFilesChanged works
 	idx.markFilesChanged()
-	if !scanner2.filesChanged {
+	var changed bool
+	scanner2.withStatsRLock(func() {
+		changed = scanner2.filesChanged
+	})
+	if !changed {
 		t.Error("Expected scanner2.filesChanged=true")
 	}
 

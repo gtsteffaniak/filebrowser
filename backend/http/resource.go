@@ -390,7 +390,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	// Rule 1: Validate user-provided path to prevent path traversal
 	cleanPath, err := utils.SanitizeUserPath(path)
 	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid path: %v", err)
+		return http.StatusBadRequest, err
 	}
 	path = cleanPath
 
@@ -589,7 +589,7 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	// Rule 1: Validate user-provided path to prevent path traversal
 	cleanPath, err := utils.SanitizeUserPath(path)
 	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid path: %v", err)
+		return http.StatusBadRequest, err
 	}
 	path = cleanPath
 
