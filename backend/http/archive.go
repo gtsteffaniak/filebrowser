@@ -25,7 +25,7 @@ import (
 // POST /resources/archive — server-side only; does not return archive data.
 //
 // @Summary Create an archive on the server
-// @Description Creates a zip or tar.gz archive on the server from the given paths (files and/or directories). Server-side only; no archive bytes are returned. All items must be from the same source. Folders are walked recursively; access-denied paths are silently skipped. Requires create permission.
+// @Description Creates a zip or tar.gz archive on the server from the given paths (files and/or directories). Server-side only; no archive bytes are returned. All items must be from the same source. Folders are walked recursively; access-denied paths are silently skipped. Requires create permission. Archive size is checked against server.maxArchiveSizeGB limit if configured.
 // @Description
 // @Description **Request body parameters:**
 // @Description - **fromSource** (string, required): Source name where the paths to archive live. Example: `"default"`
@@ -43,6 +43,7 @@ import (
 // @Failure 400 {object} map[string]string "Invalid request (e.g. missing required field, invalid path)"
 // @Failure 403 {object} map[string]string "Forbidden (create permission or access denied)"
 // @Failure 404 {object} map[string]string "Source not found"
+// @Failure 413 {object} map[string]string "Request Entity Too Large (archive size exceeds maxArchiveSizeGB limit)"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/resources/archive [post]
 func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
@@ -155,6 +156,18 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		return http.StatusBadRequest, fmt.Errorf("no paths accessible; add at least one path you have access to")
 	}
 
+	// Check archive size limit if configured
+	if config.Server.MaxArchiveSizeGB > 0 {
+		estimatedSize, err := computeArchiveSize(req.FromSource, itemPaths, d)
+		if err != nil {
+			return http.StatusInternalServerError, fmt.Errorf("failed to compute archive size: %v", err)
+		}
+		maxSizeBytes := config.Server.MaxArchiveSizeGB * 1024 * 1024 * 1024
+		if estimatedSize > maxSizeBytes {
+			return http.StatusRequestEntityTooLarge, fmt.Errorf("archive size (%d bytes) exceeds maximum allowed size (%d GB)", estimatedSize, config.Server.MaxArchiveSizeGB)
+		}
+	}
+
 	var createErr error
 	file, err := os.OpenFile(destRealPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fileutils.PermFile)
 	if err != nil {
@@ -204,7 +217,7 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 // unarchiveHandler extracts an archive on the server. POST /resources/unarchive — server-side only.
 //
 // @Summary Extract an archive on the server
-// @Description Extracts a zip or tar.gz archive on the server into the given destination directory. Server-side only; no extracted bytes are returned. Supports extracting to a different source via toSource. Requires create permission.
+// @Description Extracts a zip or tar.gz archive on the server into the given destination directory. Server-side only; no extracted bytes are returned. Supports extracting to a different source via toSource. Requires create permission. Archive size is checked against server.maxArchiveSizeGB limit if configured.
 // @Description
 // @Description **Request body parameters:**
 // @Description - **fromSource** (string, required): Source name where the archive file lives. Example: `"default"`
@@ -220,6 +233,7 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 // @Failure 400 {object} map[string]string "Invalid request (e.g. missing required field, unsupported format)"
 // @Failure 403 {object} map[string]string "Forbidden (create permission or access denied)"
 // @Failure 404 {object} map[string]string "Source or archive file not found"
+// @Failure 413 {object} map[string]string "Request Entity Too Large (archive size exceeds maxArchiveSizeGB limit)"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/resources/unarchive [post]
 func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
@@ -306,6 +320,14 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 	if info.IsDir() {
 		return http.StatusBadRequest, fmt.Errorf("path is not an archive file: %s", req.Path)
+	}
+
+	// Check archive size limit if configured
+	if config.Server.MaxArchiveSizeGB > 0 {
+		maxSizeBytes := config.Server.MaxArchiveSizeGB * 1024 * 1024 * 1024
+		if info.Size() > maxSizeBytes {
+			return http.StatusRequestEntityTooLarge, fmt.Errorf("archive size (%d bytes) exceeds maximum allowed size (%d GB)", info.Size(), config.Server.MaxArchiveSizeGB)
+		}
 	}
 
 	lower := strings.ToLower(archiveReal)
@@ -729,4 +751,34 @@ func extractTarGz(archivePath, destDir string) error {
 		}
 	}
 	return nil
+}
+
+// computeArchiveSize returns the combined size of the given paths, respecting access rules.
+// Paths denied by access are skipped (not counted).
+func computeArchiveSize(source string, fileList []string, d *requestContext) (int64, error) {
+	var estimatedSize int64
+	idx := indexing.GetIndex(source)
+	if idx == nil {
+		return 0, fmt.Errorf("source %s is not available", source)
+	}
+
+	for _, path := range fileList {
+		if !store.Access.Permitted(idx.Path, path, d.user.Username) {
+			continue
+		}
+		realPath, isDir, err := idx.GetRealPath(path)
+		if err != nil {
+			return 0, err
+		}
+		indexPath := idx.MakeIndexPath(realPath, isDir)
+		info, ok := idx.GetReducedMetadata(indexPath, isDir)
+		if !ok {
+			info, err = idx.GetFsInfo(indexPath, false, true)
+			if err != nil {
+				return 0, fmt.Errorf("failed to get file info for %s : %v", path, err)
+			}
+		}
+		estimatedSize += info.Size
+	}
+	return estimatedSize, nil
 }
