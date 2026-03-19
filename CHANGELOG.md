@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file. For commit 
  - [OnlyOffice] Error when saving a file under a user scope #2133
  - Cannot edit shared file in OnlyOffice #2143
  - PWA install button disappeared (#2086)
+ - Deleting a root folder possible #2128
 
 ## v1.3.1-beta
 
