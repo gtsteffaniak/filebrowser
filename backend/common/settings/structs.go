@@ -261,6 +261,7 @@ type ResolvedRulesConfig struct {
 	IgnoreAllZeroSizeFolders bool // Excludes all folders with 0 size
 	IgnoreAllSymlinks        bool // Excludes all symbolic links
 	IndexingDisabled         bool // Excludes all files and folders from indexing
+	NoRules                  bool // No rules are configured
 }
 
 type Frontend struct {

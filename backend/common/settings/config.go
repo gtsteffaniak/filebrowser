@@ -850,6 +850,7 @@ func setConditionals(config *Source) {
 
 	// Merge rules from both old format (Conditionals.ItemRules) and new format (Rules)
 	rules := append(config.Config.Conditionals.ItemRules, config.Config.Rules...)
+	noRules := len(rules) == 0
 
 	// Initialize the maps structure (only exact match maps for Names)
 	resolved := ResolvedRulesConfig{
@@ -867,26 +868,31 @@ func setConditionals(config *Source) {
 		IgnoreAllZeroSizeFolders: false,
 		IgnoreAllSymlinks:        false,
 		IndexingDisabled:         false,
+		NoRules:                  noRules,
 	}
 
 	// backwards compatibility
 	if config.Config.Conditionals.Hidden {
 		logger.Warning("source.conditionals.hidden is deprecated, use source.rules instead")
 		resolved.IgnoreAllHidden = true
+		resolved.NoRules = false
 	}
 	// Backwards compatibility: if old format fields are set, treat as global rules
 	if config.Config.Conditionals.IgnoreHidden {
 		logger.Warning("source.conditionals.ignoreHidden is deprecated, use source.rules instead")
 		resolved.IgnoreAllHidden = true
+		resolved.NoRules = false
 	}
 	if config.Config.DisableIndexing {
 		logger.Warning("source.disableIndexing is deprecated, use source.rules instead")
 		resolved.IndexingDisabled = true
+		resolved.NoRules = false
 	}
 
 	if config.Config.Conditionals.ZeroSizeFolders {
 		logger.Warning("source.conditionals.zeroSizeFolders is deprecated, use source.rules instead")
 		resolved.IgnoreAllZeroSizeFolders = true
+		resolved.NoRules = false
 	}
 
 	// Process all rules and infer global flags from root-level rules

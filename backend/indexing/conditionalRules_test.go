@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 )
 
 // setupConditionalTestIndex creates a test index with conditional rules configured
@@ -621,5 +622,151 @@ func TestIsNeverWatchPath(t *testing.T) {
 					tt.description, tt.expectedSkipped, result, tt.path, tt.hasBeenIndexed)
 			}
 		})
+	}
+}
+
+// TestIsViewable_DoesNotMutateFolderPaths verifies that IsViewable doesn't modify FolderPaths
+func TestIsViewable_DoesNotMutateFolderPaths(t *testing.T) {
+	idx := setupConditionalTestIndex(settings.ConditionalFilter{})
+	idx.Config.ResolvedRules.FolderNames["private"] = settings.ConditionalRule{
+		FolderNames: "private",
+		Viewable:    false,
+	}
+
+	if len(idx.Config.ResolvedRules.FolderPaths) != 0 {
+		t.Fatalf("expected no preloaded folder path rules, got %d", len(idx.Config.ResolvedRules.FolderPaths))
+	}
+
+	if idx.IsViewable(true, "/private/", false, false) {
+		t.Fatal("expected /private/ to be non-viewable")
+	}
+
+	if len(idx.Config.ResolvedRules.FolderPaths) != 0 {
+		t.Fatalf("IsViewable should not mutate FolderPaths, got %d entries", len(idx.Config.ResolvedRules.FolderPaths))
+	}
+}
+
+// TestIsViewableWithParentCheck_RecursiveParentWalking tests API request parent checking
+func TestIsViewableWithParentCheck_RecursiveParentWalking(t *testing.T) {
+	idx := setupConditionalTestIndex(settings.ConditionalFilter{})
+	idx.Config.ResolvedRules.FolderPaths["/private"] = settings.ConditionalRule{
+		FolderPath: "/private",
+		Viewable:   false,
+	}
+	// Enable global hidden folder blocking
+	idx.Config.ResolvedRules.IgnoreAllHidden = true
+
+	tests := []struct {
+		name        string
+		path        string
+		isDir       bool
+		expected    bool
+		description string
+	}{
+		{
+			name:        "Direct non-viewable folder",
+			path:        "/private",
+			isDir:       true,
+			expected:    false,
+			description: "Folder with explicit non-viewable rule should not be viewable",
+		},
+		{
+			name:        "Child of non-viewable folder",
+			path:        "/private/subfolder",
+			isDir:       true,
+			expected:    false,
+			description: "Child should inherit parent's non-viewable status",
+		},
+		{
+			name:        "Deep child of non-viewable folder",
+			path:        "/private/subfolder/deep/nested",
+			isDir:       true,
+			expected:    false,
+			description: "Deeply nested child should inherit parent's non-viewable status",
+		},
+		{
+			name:        "File in non-viewable folder",
+			path:        "/private/secret.txt",
+			isDir:       false,
+			expected:    false,
+			description: "File should inherit parent folder's non-viewable status",
+		},
+		{
+			name:        "Unrelated folder",
+			path:        "/public/documents",
+			isDir:       true,
+			expected:    true,
+			description: "Unrelated folder should be viewable",
+		},
+		{
+			name:        "Hidden folder",
+			path:        "/.hiddenDir",
+			isDir:       true,
+			expected:    false,
+			description: "Hidden folder should not be viewable when IgnoreAllHidden is true",
+		},
+		{
+			name:        "File in hidden folder",
+			path:        "/.hiddenDir/nested.txt",
+			isDir:       false,
+			expected:    false,
+			description: "File in hidden folder should inherit parent's non-viewable status",
+		},
+		{
+			name:        "Nested hidden folder",
+			path:        "/subfolderExclusions/.hiddenDir",
+			isDir:       true,
+			expected:    false,
+			description: "Nested hidden folder should not be viewable",
+		},
+		{
+			name:        "File in nested hidden folder",
+			path:        "/subfolderExclusions/.hiddenDir/nested.txt",
+			isDir:       false,
+			expected:    false,
+			description: "File in nested hidden folder should not be viewable",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Determine if the path is hidden
+			realPath := utils.JoinPathAsUnix(idx.Path, tt.path)
+			isHidden := IsHidden(realPath)
+
+			result := idx.IsViewableWithParentCheck(tt.isDir, tt.path, false, isHidden)
+			if result != tt.expected {
+				t.Errorf("%s: expected %v, got %v (path=%s, isHidden=%v)",
+					tt.description, tt.expected, result, tt.path, isHidden)
+			}
+		})
+	}
+}
+
+// TestIsViewableWithParentCheck_DoesNotMutate verifies thread safety
+func TestIsViewableWithParentCheck_DoesNotMutate(t *testing.T) {
+	idx := setupConditionalTestIndex(settings.ConditionalFilter{})
+	idx.Config.ResolvedRules.FolderNames["restricted"] = settings.ConditionalRule{
+		FolderNames: "restricted",
+		Viewable:    false,
+	}
+
+	initialFolderPathCount := len(idx.Config.ResolvedRules.FolderPaths)
+
+	// Call IsViewableWithParentCheck multiple times with various paths
+	paths := []string{
+		"/restricted/data/file.txt",
+		"/projects/restricted/subfolder/doc.pdf",
+		"/restricted/deep/nested/path/file.csv",
+	}
+
+	for _, path := range paths {
+		_ = idx.IsViewableWithParentCheck(false, path, false, false)
+	}
+
+	// Verify no mutation occurred
+	if len(idx.Config.ResolvedRules.FolderPaths) != initialFolderPathCount {
+		t.Errorf("FolderPaths was mutated: expected %d, got %d",
+			initialFolderPathCount, len(idx.Config.ResolvedRules.FolderPaths))
 	}
 }

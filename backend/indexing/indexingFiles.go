@@ -487,7 +487,14 @@ func (idx *Index) resolvePathContext(indexPath string, followSymlinks bool) (*Pa
 // Returns whether the path is viewable and/or indexable
 // Does NOT check user permissions (that's handled in the API layer)
 func (idx *Index) evaluateIndexRules(ctx *PathContext, isRoutineScan bool) (isViewable bool, isIndexable bool) {
-	isViewable = idx.IsViewable(ctx.IsDir, ctx.IndexPath, ctx.IsSymlink)
+	// For scanner (routine scan), only check the item itself
+	// For API requests, check item and all parent paths
+	if isRoutineScan {
+		isViewable = idx.IsViewable(ctx.IsDir, ctx.IndexPath, ctx.IsSymlink, ctx.IsHidden)
+	} else {
+		isViewable = idx.IsViewableWithParentCheck(ctx.IsDir, ctx.IndexPath, ctx.IsSymlink, ctx.IsHidden)
+	}
+
 	shouldSkip := idx.ShouldSkip(ctx.IsDir, ctx.IndexPath, ctx.IsHidden, ctx.IsSymlink, isRoutineScan)
 	isIndexable = !shouldSkip
 	return isViewable, isIndexable
@@ -503,11 +510,10 @@ func (idx *Index) GetFileInfo(req FileInfoRequest) (*iteminfo.FileInfo, error) {
 		return nil, err
 	}
 
-	// 2. Apply index rules
-	isViewable, isIndexable := idx.evaluateIndexRules(ctx, req.IsRoutineScan)
-
-	// Path must be either viewable OR indexable
-	if !isViewable && !isIndexable {
+	// 2. Apply index rules (non-routine scan)
+	isViewable, isIndexable := idx.evaluateIndexRules(ctx, false)
+	// API request: path must be viewable
+	if !isViewable {
 		return nil, errors.ErrNotViewable
 	}
 
@@ -653,7 +659,7 @@ func (idx *Index) GetFsInfoCore(indexPath string, opts Options) (*iteminfo.FileI
 		// Check if item is accessible
 		hidden := IsHidden(realPath)
 		isSymlink := dirInfo.Mode()&os.ModeSymlink != 0
-		isViewable := idx.IsViewable(dirInfo.IsDir(), indexPath, isSymlink)
+		isViewable := idx.IsViewable(dirInfo.IsDir(), indexPath, isSymlink, hidden)
 		isSkipped := idx.ShouldSkip(dirInfo.IsDir(), indexPath, hidden, isSymlink, false)
 
 		// Deny access if not viewable AND skipped
@@ -927,7 +933,7 @@ func (idx *Index) GetDirInfoCore(dirInfo *os.File, stat os.FileInfo, indexPath s
 
 		// Check viewable/indexable rules
 		if !shouldSkip {
-			isViewable := idx.IsViewable(isDir, fullCombined, isSymlink)
+			isViewable := idx.IsViewable(isDir, fullCombined, isSymlink, hidden)
 			isSkipped := idx.ShouldSkip(isDir, fullCombined, hidden, isSymlink, opts.IsRoutineScan)
 			if opts.CheckViewable {
 				shouldSkip = !isViewable && isSkipped
@@ -1335,53 +1341,41 @@ func setFilePreviewFlags(fileInfo *iteminfo.ItemInfo, realPath string) {
 }
 
 // IsViewable checks if a path is viewable (allows FS access)
-func (idx *Index) IsViewable(isDir bool, indexPath string, isSymlink bool) bool {
-	if indexPath == "/" {
+// Only checks the item itself, not parent paths
+func (idx *Index) IsViewable(isDir bool, indexPath string, isSymlink bool, isHidden bool) bool {
+	if indexPath == "/" || idx.Config.ResolvedRules.NoRules {
 		return true
 	}
 
-	// Check symlinks
-	if isSymlink && idx.Config.ResolvedRules.IgnoreAllSymlinks {
+	rules := idx.Config.ResolvedRules
+
+	// Check if hidden and should be blocked
+	if isHidden && rules.IgnoreAllHidden {
 		return false
 	}
-	rules := idx.Config.ResolvedRules
-	baseName := filepath.Base(indexPath)
-	if indexPath == "/" {
-		baseName = filepath.Base(idx.Path)
+
+	// Check symlinks
+	if isSymlink && rules.IgnoreAllSymlinks {
+		return false
 	}
 
+	baseName := filepath.Base(indexPath)
+
 	if isDir {
-		// Check folder rules - return false if explicitly set to non-viewable
+		// Check folder rules
 		if rule, exists := rules.FolderNames[baseName]; exists {
-			// Cache this match in FolderPaths so children inherit via prefix matching
-			if _, ok := rules.FolderPaths[indexPath]; !ok {
-				rules.FolderPaths[indexPath] = rule
-			}
 			return rule.Viewable
 		}
 		if rule, exists := rules.FolderPaths[indexPath]; exists {
 			return rule.Viewable
 		}
-		for path, rule := range rules.FolderPaths {
-			if strings.HasPrefix(indexPath, path) {
-				return rule.Viewable
-			}
-		}
 		for _, rule := range rules.FolderEndsWith {
 			if strings.HasSuffix(baseName, rule.FolderEndsWith) {
-				// Cache this match in FolderPaths so children inherit
-				if _, ok := rules.FolderPaths[indexPath]; !ok {
-					rules.FolderPaths[indexPath] = rule
-				}
 				return rule.Viewable
 			}
 		}
 		for _, rule := range rules.FolderStartsWith {
 			if strings.HasPrefix(baseName, rule.FolderStartsWith) {
-				// Cache this match in FolderPaths so children inherit
-				if _, ok := rules.FolderPaths[indexPath]; !ok {
-					rules.FolderPaths[indexPath] = rule
-				}
 				return rule.Viewable
 			}
 		}
@@ -1393,11 +1387,6 @@ func (idx *Index) IsViewable(isDir bool, indexPath string, isSymlink bool) bool 
 		if rule, exists := rules.FilePaths[indexPath]; exists {
 			return rule.Viewable
 		}
-		for path, rule := range rules.FilePaths {
-			if strings.HasPrefix(indexPath, path) {
-				return rule.Viewable
-			}
-		}
 		for _, rule := range rules.FileEndsWith {
 			if strings.HasSuffix(baseName, rule.FileEndsWith) {
 				return rule.Viewable
@@ -1408,26 +1397,47 @@ func (idx *Index) IsViewable(isDir bool, indexPath string, isSymlink bool) bool 
 				return rule.Viewable
 			}
 		}
-		// Check if file inherits viewable status from parent folder
-		for path, rule := range rules.FolderPaths {
-			if strings.HasPrefix(indexPath, path) {
-				return rule.Viewable
-			}
-		}
 	}
 
 	return true // Default: viewable unless explicitly set to false
 }
 
+// IsViewableWithParentCheck checks if a path is viewable by walking up the directory tree
+// Used for API requests where we need to check inherited rules from parent folders
+func (idx *Index) IsViewableWithParentCheck(isDir bool, indexPath string, isSymlink bool, isHidden bool) bool {
+	logger.Debugf("[IS_VIEWABLE_WITH_PARENT_CHECK] isDir: %v, indexPath: %s, isSymlink: %v, isHidden: %v", isDir, indexPath, isSymlink, isHidden)
+	if idx.Config.DisableIndexing || idx.Config.ResolvedRules.NoRules {
+		logger.Debugf("[IS_VIEWABLE_WITH_PARENT_CHECK] %s is disabled or has no rules, default to viewable", indexPath)
+		return true
+	}
+
+	// Check the item itself - if not viewable, stop here
+	if !idx.IsViewable(isDir, indexPath, isSymlink, isHidden) {
+		logger.Debugf("[IS_VIEWABLE_WITH_PARENT_CHECK] %s is not viewable", indexPath)
+		return false
+	}
+
+	// Item is viewable, now check parent recursively
+	parentDir := utils.GetParentDirectoryPath(indexPath)
+	if parentDir == "" || parentDir == "/" {
+		logger.Debugf("[IS_VIEWABLE_WITH_PARENT_CHECK] %s Reached root with no non-viewable rules, default to viewable", indexPath)
+		return true // Reached root with no non-viewable rules, default to viewable
+	}
+
+	// Check if parent is hidden
+	realPath, _, _ := idx.GetRealPath(parentDir)
+	return idx.IsViewableWithParentCheck(true, parentDir, false, IsHidden(realPath))
+}
+
 // ShouldSkip checks if a path should be skipped from indexing
 // isRoutineScan: true for scanner (no parent checks), false for API (check parents)
 func (idx *Index) ShouldSkip(isDir bool, adjustedPath string, isHidden bool, isSymlink bool, isRoutineScan bool) bool {
-	rules := idx.Config.ResolvedRules
-	if adjustedPath == "/" {
-		return false
-	}
 	if idx.Config.DisableIndexing {
 		return true
+	}
+	rules := idx.Config.ResolvedRules
+	if adjustedPath == "/" || rules.NoRules {
+		return false
 	}
 	if isHidden && rules.IgnoreAllHidden {
 		return true
