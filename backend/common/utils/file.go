@@ -80,5 +80,9 @@ func SanitizeUserPath(userPath string) (string, error) {
 		}
 	}
 
+	if clean == "." {
+		return "", fmt.Errorf("invalid path: path must standard index path")
+	}
+
 	return clean, nil
 }
