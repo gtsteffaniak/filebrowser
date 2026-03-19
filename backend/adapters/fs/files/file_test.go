@@ -577,6 +577,8 @@ func runDeleteFilesSubfolderWithRaceStress(t *testing.T, iter int) {
 	}
 
 	indexing.StopAllScanners()
+	// Give scanners time to finish their cleanup (defer blocks in tryAcquireAndScan)
+	time.Sleep(100 * time.Millisecond)
 	indexing.ClearTestIndices()
 	t.Logf("iteration %d: cleaned scanners and indices", iter)
 }
