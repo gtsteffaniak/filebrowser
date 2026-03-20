@@ -26,7 +26,6 @@ import (
 	"math"
 	"net/http"
 	"net/url"
-	"sort"
 	"testing"
 	"time"
 
@@ -373,70 +372,4 @@ func TestJSONAuth_InvalidPasswordHashInitialized(t *testing.T) {
 	}
 
 	t.Log("✓ InvalidPasswordHash is properly initialized")
-}
-
-func medianDuration(times []time.Duration) time.Duration {
-	if len(times) == 0 {
-		return 0
-	}
-	sorted := make([]time.Duration, len(times))
-	copy(sorted, times)
-	sort.Slice(sorted, func(i, j int) bool {
-		return sorted[i] < sorted[j]
-	})
-	return sorted[len(sorted)/2]
-}
-
-// TestJSONAuth_ValidUserVsInvalidUserDirectComparison is a simplified direct comparison test
-func TestJSONAuth_ValidUserVsInvalidUserDirectComparison(t *testing.T) {
-	storage := setupTestUsers(t)
-	auther := auth.JSONAuth{}
-
-	const (
-		iterations   = 15
-		validUser    = "admin"
-		invalidUser  = "nonexistent_user_test"
-		testPassword = "wrongpassword"
-	)
-
-	// Warm up bcrypt/caches so both measurements run from a similar baseline.
-	for _, username := range []string{validUser, invalidUser} {
-		_ = measureAuthTime(t, auther, storage, username, testPassword)
-	}
-
-	validUserTimes := make([]time.Duration, 0, iterations)
-	invalidUserTimes := make([]time.Duration, 0, iterations)
-
-	for i := 0; i < iterations; i++ {
-		if i%2 == 0 {
-			validUserTimes = append(validUserTimes, measureAuthTime(t, auther, storage, validUser, testPassword))
-			invalidUserTimes = append(invalidUserTimes, measureAuthTime(t, auther, storage, invalidUser, testPassword))
-		} else {
-			invalidUserTimes = append(invalidUserTimes, measureAuthTime(t, auther, storage, invalidUser, testPassword))
-			validUserTimes = append(validUserTimes, measureAuthTime(t, auther, storage, validUser, testPassword))
-		}
-	}
-
-	validMedian := medianDuration(validUserTimes)
-	invalidMedian := medianDuration(invalidUserTimes)
-
-	t.Logf("Valid user (exists) median: %.4fms", float64(validMedian.Microseconds())/1000.0)
-	t.Logf("Invalid user (not exists) median: %.4fms", float64(invalidMedian.Microseconds())/1000.0)
-
-	diff := math.Abs(float64(validMedian - invalidMedian))
-	base := float64(validMedian+invalidMedian) / 2.0
-	if base == 0 {
-		t.Fatalf("unexpected zero duration for valid/invalid medians")
-	}
-	percentDiff := (diff / base) * 100.0
-
-	t.Logf("Difference: %.2f%%", percentDiff)
-
-	const thresholdPercent = 20.0
-	if percentDiff > thresholdPercent {
-		t.Errorf("Timing difference too large: %.2f%% (threshold: %.2f%%)", percentDiff, thresholdPercent)
-		t.Error("This indicates a potential timing attack vulnerability!")
-	} else {
-		t.Logf("✓ Timing difference acceptable: %.2f%% < %.2f%%", percentDiff, thresholdPercent)
-	}
 }

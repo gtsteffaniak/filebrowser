@@ -331,7 +331,7 @@ func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *reques
 			// Get file info
 			fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 				FollowSymlinks: true,
-				Path:           idx.MakeIndexPath(item.Path, false),
+				Path:           item.Path,
 				Source:         item.Source,
 				ShowHidden:     true,
 			}, accessStore, filePermUser, shareStore)
@@ -390,7 +390,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	// Rule 1: Validate user-provided path to prevent path traversal
 	cleanPath, err := utils.SanitizeUserPath(path)
 	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid path: %v", err)
+		return http.StatusBadRequest, err
 	}
 	path = cleanPath
 
@@ -589,21 +589,15 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	// Rule 1: Validate user-provided path to prevent path traversal
 	cleanPath, err := utils.SanitizeUserPath(path)
 	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid path: %v", err)
+		return http.StatusBadRequest, err
 	}
 	path = cleanPath
-
-	// Only allow PUT for files.
-	if strings.HasSuffix(path, "/") {
-		return http.StatusMethodNotAllowed, nil
-	}
 	// Get user scope to resolve full index path for write operation
 	userScope, err := d.user.GetScopeForSourceName(source)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
 	fullIndexPath := utils.JoinPathAsUnix(userScope, path)
-
 	// Check access control for the target path
 	idx := indexing.GetIndex(source)
 	if idx == nil {
@@ -614,7 +608,14 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return http.StatusForbidden, fmt.Errorf("access denied to path %s", path)
 	}
 
-	err = files.WriteFile(source, utils.JoinPathAsUnix(userScope, path), r.Body)
+	// check if destination is a directory
+	stat, err := os.Stat(filepath.Join(idx.Path + fullIndexPath))
+	if err == nil && stat.IsDir() {
+		// if directory return StatusMethodNotAllowed
+		return http.StatusMethodNotAllowed, fmt.Errorf("path is a directory")
+	}
+
+	err = files.WriteFile(source, fullIndexPath, r.Body)
 	return errToStatus(err), err
 }
 

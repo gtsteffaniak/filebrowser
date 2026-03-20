@@ -116,7 +116,9 @@ func (idx *Index) markFilesChanged() {
 	idx.mu.RUnlock()
 
 	if exists {
-		scanner.filesChanged = true
+		scanner.withStatsLock(func() {
+			scanner.filesChanged = true
+		})
 	}
 }
 
@@ -145,7 +147,9 @@ func (idx *Index) incrementScannerDirsUnlocked() {
 	}
 	scanner, exists := idx.scanners[activePath]
 	if exists {
-		scanner.numDirs++
+		scanner.withStatsLock(func() {
+			scanner.numDirs++
+		})
 	}
 }
 
@@ -162,7 +166,9 @@ func (idx *Index) incrementScannerFiles() {
 	idx.mu.RUnlock()
 
 	if exists {
-		scanner.numFiles++
+		scanner.withStatsLock(func() {
+			scanner.numFiles++
+		})
 	}
 }
 
@@ -252,13 +258,15 @@ func (idx *Index) setupMultiScanner(isNewDb bool) {
 	rootScanner := idx.createScanner("/")
 	if persistedScanners != nil {
 		if rootInfo, ok := persistedScanners["/"]; ok {
-			rootScanner.complexity = rootInfo.Complexity
-			rootScanner.currentSchedule = rootInfo.CurrentSchedule
-			rootScanner.quickScanTime = rootInfo.QuickScanTime
-			rootScanner.fullScanTime = rootInfo.FullScanTime
-			rootScanner.numDirs = rootInfo.NumDirs
-			rootScanner.numFiles = rootInfo.NumFiles
-			rootScanner.lastScanned = rootInfo.LastScanned
+			rootScanner.withStatsLock(func() {
+				rootScanner.complexity = rootInfo.Complexity
+				rootScanner.currentSchedule = rootInfo.CurrentSchedule
+				rootScanner.quickScanTime = rootInfo.QuickScanTime
+				rootScanner.fullScanTime = rootInfo.FullScanTime
+				rootScanner.numDirs = rootInfo.NumDirs
+				rootScanner.numFiles = rootInfo.NumFiles
+				rootScanner.lastScanned = rootInfo.LastScanned
+			})
 		}
 	}
 	idx.mu.Lock()
@@ -276,13 +284,15 @@ func (idx *Index) setupMultiScanner(isNewDb bool) {
 		// Restore persisted stats for child scanner if available (and DB is not new)
 		if persistedScanners != nil {
 			if childInfo, ok := persistedScanners[dirPath]; ok {
-				childScanner.complexity = childInfo.Complexity
-				childScanner.currentSchedule = childInfo.CurrentSchedule
-				childScanner.quickScanTime = childInfo.QuickScanTime
-				childScanner.fullScanTime = childInfo.FullScanTime
-				childScanner.numDirs = childInfo.NumDirs
-				childScanner.numFiles = childInfo.NumFiles
-				childScanner.lastScanned = childInfo.LastScanned
+				childScanner.withStatsLock(func() {
+					childScanner.complexity = childInfo.Complexity
+					childScanner.currentSchedule = childInfo.CurrentSchedule
+					childScanner.quickScanTime = childInfo.QuickScanTime
+					childScanner.fullScanTime = childInfo.FullScanTime
+					childScanner.numDirs = childInfo.NumDirs
+					childScanner.numFiles = childInfo.NumFiles
+					childScanner.lastScanned = childInfo.LastScanned
+				})
 			}
 		}
 
@@ -318,22 +328,25 @@ func (idx *Index) GetScannerStatus() map[string]interface{} {
 	activePath := idx.getActiveScannerPathUnlocked()
 	status["activeScanner"] = activePath
 	status["isScanning"] = activePath != ""
+	status["status"] = idx.Status
 
 	// Individual scanner stats
 	scannerStats := make([]map[string]interface{}, 0, len(idx.scanners))
 	for path, scanner := range idx.scanners {
 		scannerInfo := map[string]interface{}{
-			"path":            path,
-			"lastScanned":     scanner.lastScanned.Format(time.RFC3339),
-			"complexity":      scanner.complexity,
-			"currentSchedule": scanner.currentSchedule,
-			"quickScanTime":   scanner.quickScanTime,
-			"fullScanTime":    scanner.fullScanTime,
-			"numDirs":         scanner.numDirs,
-			"numFiles":        scanner.numFiles,
-			"filesChanged":    scanner.filesChanged,
-			"smartModifier":   scanner.smartModifier.String(),
+			"path": path,
 		}
+		scanner.withStatsRLock(func() {
+			scannerInfo["lastScanned"] = scanner.lastScanned.Format(time.RFC3339)
+			scannerInfo["complexity"] = scanner.complexity
+			scannerInfo["currentSchedule"] = scanner.currentSchedule
+			scannerInfo["quickScanTime"] = scanner.quickScanTime
+			scannerInfo["fullScanTime"] = scanner.fullScanTime
+			scannerInfo["numDirs"] = scanner.numDirs
+			scannerInfo["numFiles"] = scanner.numFiles
+			scannerInfo["filesChanged"] = scanner.filesChanged
+			scannerInfo["smartModifier"] = scanner.smartModifier.String()
+		})
 		scannerStats = append(scannerStats, scannerInfo)
 	}
 	status["scanners"] = scannerStats

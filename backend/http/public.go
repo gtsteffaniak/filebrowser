@@ -259,7 +259,7 @@ func publicPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	// Rule 1: Validate user-provided path to prevent path traversal
 	cleanPath, err := utils.SanitizeUserPath(path)
 	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid path: %v", err)
+		return http.StatusBadRequest, err
 	}
 
 	resolvedPath := utils.JoinPathAsUnix(d.share.Path, cleanPath)
