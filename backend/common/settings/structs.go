@@ -364,4 +364,5 @@ type UserDefaults struct {
 	CustomTheme                string                  `json:"customTheme"`                // Name of theme to use chosen from custom themes config.
 	ShowSelectMultiple         bool                    `json:"showSelectMultiple"`         // show select multiple files on desktop
 	DebugOffice                bool                    `json:"debugOffice"`                // debug onlyoffice editor
+	PreferEditorForMarkdown    bool                    `json:"preferEditorForMarkdown"`    // // prefer editor first for markdown files instead of the Markdown Viewer.
 }

@@ -601,6 +601,21 @@ export default {
           });
         }
       }
+      // CTRL+E - switch between editor and markdown viewer
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'e') {
+        event.preventDefault();
+        const currentFile = state.req;
+        if (currentFile && currentFile.type === 'text/markdown') {
+          const currentView = getters.currentView();
+          if (currentView === 'editor') {
+            router.replace({ hash: '#preview' });
+          } else if (currentView === 'markdownViewer') {
+            if (getters.permissions()?.modify) {
+              router.replace({ hash: '#edit' });
+            }
+          }
+        }
+      }
     },
   },
 };

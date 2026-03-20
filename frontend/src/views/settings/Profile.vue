@@ -112,6 +112,9 @@
             <ToggleSwitch class="item" v-model="localuser.editorQuickSave" @change="updateSettings"
               :name="$t('profileSettings.editorQuickSave')"
               :description="$t('profileSettings.editorQuickSaveDescription')" />
+            <ToggleSwitch class="item" v-model="localuser.preferEditorForMarkdown" @change="updateSettings"
+              :name="$t('profileSettings.preferEditorForMarkdown')"
+              :description="$t('profileSettings.preferEditorForMarkdownDescription')" />
           </div>
           <div>
             <div class="centered-with-tooltip">
@@ -367,6 +370,7 @@ export default {
           "editorQuickSave",
           "showSelectMultiple",
           "debugOffice",
+          "preferEditorForMarkdown",
         ]);
         if (themeChanged) {
           window.location.reload();

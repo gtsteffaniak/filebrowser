@@ -163,6 +163,7 @@
       <action v-if="hasDownload" icon="file_download" :label="$t('general.download')" @action="startDownload" />
       <action v-if="showUnarchiveInOverflow" icon="folder_open" :label="$t('prompts.unarchive')" @action="showUnarchivePromptFromPreview" />
       <action v-if="showEdit" icon="edit" :label="$t('general.edit')" @action="edit()" />
+      <action v-if="markdownPreview" icon="visibility" :label="$t('general.preview')" @action="switchToMarkdown" />
       <action v-if="showSave" icon="save" :label="$t('general.save')" @action="save()" />
       <action v-if="showDelete" icon="delete" :label="$t('general.delete')" @action="showDeletePrompt" />
     </div>
@@ -401,6 +402,10 @@ export default {
     },
     currentPrompt() {
       return getters.currentPrompt();
+    },
+    markdownPreview() {
+      if (getters.currentView() !== 'editor') return false;
+      return state.req.type === 'text/markdown';
     },
   },
   watch: {
@@ -728,7 +733,10 @@ export default {
       });
     },
     async edit() {
-      window.location.hash = "#edit";
+      this.$router.replace({ hash: '#edit' });
+    },
+    async switchToMarkdown() {
+      this.$router.replace({ hash: '#preview' });
     },
     async save() {
       const button = "save";

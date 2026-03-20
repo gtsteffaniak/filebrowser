@@ -5566,6 +5566,10 @@ const docTemplate = `{
                 "permissions": {
                     "$ref": "#/definitions/settings.UserDefaultsPermissions"
                 },
+                "preferEditorForMarkdown": {
+                    "description": "// prefer editor first for markdown files instead of the Markdown Viewer.",
+                    "type": "boolean"
+                },
                 "preview": {
                     "$ref": "#/definitions/settings.UserDefaultsPreview"
                 },
@@ -6475,6 +6479,10 @@ const docTemplate = `{
                 },
                 "permissions": {
                     "$ref": "#/definitions/users.Permissions"
+                },
+                "preferEditorForMarkdown": {
+                    "description": "prefer editor first for markdown files instead of the Markdown Viewer",
+                    "type": "boolean"
                 },
                 "preview": {
                     "$ref": "#/definitions/users.Preview"

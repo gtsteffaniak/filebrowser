@@ -711,6 +711,7 @@ func setDefaults(generate bool) Settings {
 			DisableOnlyOfficeExt: ".md .txt .pdf .html .xml",
 			StickySidebar:        true,
 			HideFilesInTree:      false,
+			PreferEditorForMarkdown: false,
 			LockPassword:         false,
 			ShowHidden:           false,
 			DarkMode:             boolPtr(true),

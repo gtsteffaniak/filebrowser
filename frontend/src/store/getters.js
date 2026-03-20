@@ -283,54 +283,35 @@ export const getters = {
     return getters.shareHash() != ""
   },
   currentView: () => {
-    if (state.navigation.isTransitioning) {
-      return 'loading'
-    }
-    let listingView = ''
-    const pathname = getters.routePath()
-    if (!state.user || state.user?.username == "") {
-      return 'login'
-    }
-    if (pathname.startsWith(`/settings`)) {
-      listingView = 'settings'
-    } else if (pathname.startsWith(`/tools`)) {
-      listingView = 'tools'
-    } else {
-      if (state.req.type !== undefined) {
-        const ext = "." + state.req.name.split(".").pop().toLowerCase(); // Ensure lowercase and dot
-        if (state.user.disableViewingExt?.includes(ext)) {
-          return 'preview'
-        }
-        if (state.req.type == 'directory') {
-          listingView = 'listingView'
-        } else if (state.req.onlyOfficeId && !getters.officeViewingDisabled(state.req.name)) {
-          listingView = 'onlyOfficeEditor'
-        } else if (getTypeInfo(state.req.type).simpleType === '3d-model') {
-          listingView = 'threeJsViewer'
-        } else if (
-          'content' in state.req &&
-          state.req.type == 'text/markdown' &&
-          window.location.hash != '#edit'
-        ) {
-          listingView = 'markdownViewer'
-        } else if ('content' in state.req) {
-          listingView = 'editor'
-        } else if (state.req.type.startsWith('application/epub')) {
-          listingView = 'epubViewer'
-        } else if (
-          state.req.type.startsWith(
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-          )
-        ) {
-          listingView = 'docViewer'
-        } else {
-          listingView = 'preview'
-        }
-      } else {
-        listingView = 'listingView'
+    if (state.navigation.isTransitioning) return 'loading';
+    const pathname = getters.routePath();
+    if (!state.user || state.user?.username == "") return 'login';
+    if (pathname.startsWith(`/settings`)) return 'settings';
+    if (pathname.startsWith(`/tools`)) return 'tools';
+
+    if (state.req.type !== undefined) {
+      const ext = "." + state.req.name.split(".").pop().toLowerCase();
+      if (state.user.disableViewingExt?.includes(ext)) return 'preview';
+      if (state.req.type == 'directory') return 'listingView';
+      if (state.req.onlyOfficeId && !getters.officeViewingDisabled(state.req.name)) return 'onlyOfficeEditor';
+      if (getTypeInfo(state.req.type).simpleType === '3d-model') return 'threeJsViewer';
+
+      if ('content' in state.req && state.req.type === 'text/markdown') {
+        const hash = window.location.hash;
+        const preferEditor = state.user.preferEditorForMarkdown;
+
+        if (hash === '#edit') return 'editor';
+        if (hash === '#preview') return 'markdownViewer';
+        if (preferEditor) return 'editor';
+        return 'markdownViewer';
       }
+
+      if ('content' in state.req) return 'editor';
+      if (state.req.type.startsWith('application/epub')) return 'epubViewer';
+      if (state.req.type.startsWith('application/vnd.openxmlformats-officedocument.wordprocessingml.document')) return 'docViewer';
+      return 'preview';
     }
-    return listingView
+    return 'listingView';
   },
   progress: () => {
     // Check if state.upload is defined and valid
@@ -491,6 +472,7 @@ export const getters = {
       disableViewingExt: "",
       disableOfficePreviewExt: "",
       disablePreviewExt: "",
+      preferEditorForMarkdown: false,
       fileLoading: {
         maxConcurrent: 1,
         chunkSizeMb: 5,

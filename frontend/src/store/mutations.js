@@ -518,6 +518,7 @@ export const mutations = {
           "sidebarLinks",
           "fileLoading",
           "deleteAfterArchive",
+          "preferEditorForMarkdown",
         ].includes(key)
       );
       value.id = state.user.id;
