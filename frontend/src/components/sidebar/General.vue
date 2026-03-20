@@ -1,24 +1,25 @@
 <template>
   <div class="card headline-card">
     <div v-if="isDataLoaded && shouldShowLogin" class="card-wrapper user-card">
-      <div v-if="settingsAllowed" class="inner-card">
+      <div v-if="settingsAllowed" class="inner-card user-card__profile">
         <a href="/settings#profile-main" class="person-button action button"
           @click.prevent="navigateTo('/settings', '#profile-main')"
           @mouseenter="showTooltip($event, $t('index.settingsHover'))" @mouseleave="hideTooltip">
-          <i class="material-icons">person</i>
-          {{ user.username }}
-          <i aria-label="settings" class="material-icons">settings</i>
+          <i class="material-icons person-button__icon">person</i>
+          <span class="person-button__name">{{ user.username }}</span>
+          <i aria-label="settings" class="material-icons person-button__icon">settings</i>
         </a>
       </div>
-      <div v-else-if="user.username === 'anonymous' && shouldShowLogin" @click="navigateToLogin" class="inner-card">
+      <div v-else-if="user.username === 'anonymous' && shouldShowLogin" @click="navigateToLogin"
+        class="inner-card user-card__profile">
         <button class="person-button action button">
           <i class="material-symbols-outlined">login</i> {{ $t("general.login") }}
         </button>
       </div>
-      <div v-else-if="user.username !== 'anonymous'" class="inner-card">
-        <button class="person-button action button">
-          <i class="material-icons">person</i>
-          {{ user.username }}
+      <div v-else-if="user.username !== 'anonymous'" class="inner-card user-card__profile">
+        <button class="person-button action button" type="button">
+          <i class="material-icons person-button__icon">person</i>
+          <span class="person-button__name">{{ user.username }}</span>
         </button>
       </div>
 
@@ -325,11 +326,19 @@ export default {
 </script>
 
 <style>
+
 .user-card {
   flex-direction: row !important;
   justify-content: space-between !important;
+  align-items: center;
+  width: 100%;
   color: var(--textPrimary);
   margin-bottom: 0.5em;
+}
+
+.user-card > .user-card__profile {
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 .quick-toggles {
@@ -412,11 +421,26 @@ button.action {
 }
 
 .person-button {
-  max-width: 13em;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
   display: flex;
   padding-right: 1em !important;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
+  gap: 0.35em;
+}
+
+.person-button__icon {
+  flex-shrink: 0;
+}
+
+.person-button__name {
+  min-width: 0;
+  flex: 1 1 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 a.person-button {

@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file. For commit 
  - PWA install button disappeared (#2086)
  - Deleting a root folder was possible #2128
  - PUT resource api errors if action against a folder (#2153) 
+ - LDAP authentication issue if a password caontains @ symbol #2154
 
 ## v1.3.1-beta
 
