@@ -82,6 +82,51 @@
           <kbd>/</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.slash") }}</span>
         </div>
+        <div class="shortcut-item">
+          <kbd>CTRL + E</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <span>{{ $t("help.ctrl.e") }}</span>
+        </div>
+      </div>
+
+      <!-- Media Section -->
+      <div class="shortcut-section">
+        <h3 class="section-title">{{ $t("help.media.title") }}</h3>
+        <div class="shortcut-item">
+          <kbd>Space / K</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <span>{{ $t("help.media.playPause") }}</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>1 to 9</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <span>{{ $t("help.media.seekPercentage") }}</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>← / →</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <span>{{ $t("help.media.seek") }}</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>↑ / ↓</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <span>{{ $t("help.media.volume") }}</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>L</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <span>{{ $t("help.media.loop") }}</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>P</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <span>{{ $t("help.media.playbackModes") }}</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>F</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <span>{{ $t("help.media.fullscreen") }}</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>M</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <span>{{ $t("help.media.mute") }}</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>C</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <span>{{ $t("help.media.captions") }}</span>
+        </div>
       </div>
     </div>
   </div>

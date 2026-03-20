@@ -215,7 +215,8 @@
       "x": "cut selected items",
       "d": "download selected items",
       "b": "toggle sidebar",
-      "comma": "go to settings"
+      "comma": "go to settings",
+      "e": "Toggle between editor and markdown viewer (on .md files)"
     },
     "del": "delete selected items",
     "esc": "clear selection and/or close the prompt",
@@ -223,7 +224,19 @@
     "f1": "show help prompt",
     "slash": "activate search",
     "description": "You can view the basic naviagation options below. For additional information, please visit",
-    "wiki": "FileBrowser Quantum Official Docs"
+    "wiki": "FileBrowser Quantum Official Docs",
+    "media": {
+      "title": "Media Player",
+      "playPause": "Play/Pause playback",
+      "seekPercentage": "Seek from 10% to 90%",
+      "seek": "Seek 10s, back or forward",
+      "volume": "Turn the volume up or down",
+      "mute": "Mute/Unmute the audio playing",
+      "loop": "Toggle between loop and single mode",
+      "playbackModes": "Toggle between playback modes (excluding loop and single)",
+      "fullscreen": "Toggle fullscreen mode in videos",
+      "captions": "Toggle captions on/off"
+    }
   },
   "languages": {
     "he": "עברית",
