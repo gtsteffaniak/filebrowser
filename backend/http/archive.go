@@ -158,13 +158,14 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 
 	// Check archive size limit if configured
 	if config.Server.MaxArchiveSizeGB > 0 {
-		estimatedSize, err := computeArchiveSize(req.FromSource, itemPaths, d)
+		var estimatedSize int64
+		estimatedSize, err = computeArchiveSize(req.FromSource, itemPaths, d)
 		if err != nil {
 			return http.StatusInternalServerError, fmt.Errorf("failed to compute archive size: %v", err)
 		}
 		maxSizeBytes := config.Server.MaxArchiveSizeGB * 1024 * 1024 * 1024
 		if estimatedSize > maxSizeBytes {
-			return http.StatusRequestEntityTooLarge, fmt.Errorf("archive size (%d bytes) exceeds maximum allowed size (%d GB)", estimatedSize, config.Server.MaxArchiveSizeGB)
+			return http.StatusRequestEntityTooLarge, fmt.Errorf("archive size would exceed the maximum allowed size (maxArchiveSize: %d GB)", config.Server.MaxArchiveSizeGB)
 		}
 	}
 
@@ -326,7 +327,7 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if config.Server.MaxArchiveSizeGB > 0 {
 		maxSizeBytes := config.Server.MaxArchiveSizeGB * 1024 * 1024 * 1024
 		if info.Size() > maxSizeBytes {
-			return http.StatusRequestEntityTooLarge, fmt.Errorf("archive size (%d bytes) exceeds maximum allowed size (%d GB)", info.Size(), config.Server.MaxArchiveSizeGB)
+			return http.StatusRequestEntityTooLarge, fmt.Errorf("archive size would exceed the maximum allowed size (maxArchiveSize: %d GB)", config.Server.MaxArchiveSizeGB)
 		}
 	}
 
