@@ -77,7 +77,6 @@ func authenticateLDAP(username, password string) ([]string, map[string]string, e
 		attributes = append(attributes, c.UserIdentifier)
 	}
 
-	// userFilter may use %[1]s to repeat the escaped login name, e.g. (&(|(cn=%[1]s)(uid=%[1]s))(objectClass=user))
 	filter := fmt.Sprintf(c.UserFilter, ldap.EscapeFilter(username))
 	searchRequest := ldap.NewSearchRequest(
 		c.BaseDN,
