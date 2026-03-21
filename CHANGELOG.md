@@ -15,7 +15,7 @@ All notable changes to this project will be documented in this file. For commit 
   - Copy to clipboard button for code blocks in Markdown Viewer (#2160)
 
  **Notes**:
- - docs preview for text and pdf has a 2 second timeout. If it hangs for whatever reason, the maximum time would be 2 seconds. (#2105)
+ - docs preview for text and pdf has a 2 second timeout. If it hangs for whatever reason, the maximum time would be 2 seconds. (#2105) (#2114)
  - Downloading multiple files streams the archive creation rather than using cacheDir -- thanks @janakoram (#2125) (#2130)
   - `server.maxArchiveSizeGB` now defaults to 20 (GB) and only applies to archive/unarchive actions (not downloads).
   - browser download progress bar will no longer show for archive downloads. this is the main drawback to the streaming approach.
@@ -33,6 +33,7 @@ All notable changes to this project will be documented in this file. For commit 
  - PUT resource api errors if action against a folder (#2153) 
  - LDAP authentication issue if a password caontains @ symbol (#2154)
  - Share banner seems to be not working for custom urls (#2120)
+
 
 ## v1.3.1-beta
 
