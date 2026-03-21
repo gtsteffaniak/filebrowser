@@ -7,6 +7,10 @@ All notable changes to this project will be documented in this file. For commit 
  **Security**:
  - Patched Username Enumeration via Authentication Timing Side-Channel  GHSA-7789-65hx-f26w
 
+ **New Features**:
+  - Option to prefer editor first for Markdown files (#2136)
+  - Copy to clipboard button for code blocks in Markdown Viewer (#2160)
+
  **Notes**:
  - docs preview for text and pdf has a 2 second timeout. If it hangs for whatever reason, the maximum time would be 2 seconds. (#2105)
  - Downloading multiple files streams the archive creation rather than using cacheDir -- thanks @janakoram (#2125) (#2130)
@@ -15,6 +19,7 @@ All notable changes to this project will be documented in this file. For commit 
    - should allow for much higher parallel download support and lower cleanup maintenenance.
 
  **BugFixes**:
+ - Wrong username in share settings (#2147) (#2148)
  - [OnlyOffice] Error when saving a file under a user scope #2133
  - Cannot edit shared file in OnlyOffice #2143
  - PWA install button disappeared (#2086)
