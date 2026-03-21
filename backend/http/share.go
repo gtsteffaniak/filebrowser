@@ -380,7 +380,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	// Rule 1: Validate user-provided path to prevent path traversal
 	cleanPath, err := utils.SanitizeUserPath(providedPath)
 	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid path: %v", err)
+		return http.StatusBadRequest, err
 	}
 
 	body.Path = utils.JoinPathAsUnix(userscope, cleanPath)
@@ -629,14 +629,8 @@ func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 	commonShare := shareLink.CommonShare
 	commonShare.ShareURL = getShareURL(r, hash, false, "")
-	_, _, err = getShareImagePartsHelper(shareLink, true)
-	if err == nil {
-		commonShare.BannerUrl = fmt.Sprintf("%spublic/api/share/image?banner=true&hash=%s", config.Server.BaseURL, hash)
-	}
-	_, _, err = getShareImagePartsHelper(shareLink, false)
-	if err == nil {
-		commonShare.FaviconUrl = fmt.Sprintf("%spublic/api/share/image?favicon=true&hash=%s", config.Server.BaseURL, hash)
-	}
+	commonShare.BannerUrl = shareLink.BannerURL()
+	commonShare.FaviconUrl = shareLink.FaviconURL()
 	commonShare.Source = ""
 	commonShare.Path = ""
 	commonShare.DownloadURL = ""

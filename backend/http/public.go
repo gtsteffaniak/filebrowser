@@ -4,14 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
-	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/preview"
 	"github.com/gtsteffaniak/go-logger/logger"
 
@@ -259,7 +257,7 @@ func publicPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	// Rule 1: Validate user-provided path to prevent path traversal
 	cleanPath, err := utils.SanitizeUserPath(path)
 	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid path: %v", err)
+		return http.StatusBadRequest, err
 	}
 
 	resolvedPath := utils.JoinPathAsUnix(d.share.Path, cleanPath)
@@ -418,7 +416,7 @@ func getShareImage(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		return http.StatusNotFound, fmt.Errorf("user for share no longer exists")
 	}
 
-	sourceName, assetPath, err := getShareImagePartsHelper(d.share, isBanner)
+	sourceName, assetPath, err := d.share.GetShareImagePartsHelper(isBanner)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid asset configuration: %v", err)
 	}
@@ -462,31 +460,6 @@ func getShareImage(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	}
 
 	return status, err
-}
-
-func getShareImagePartsHelper(share *share.Link, isBanner bool) (string, string, error) {
-	// Get the asset query string from share
-	var assetQueryString string
-	if isBanner {
-		assetQueryString = share.Banner
-	} else {
-		assetQueryString = share.Favicon
-	}
-
-	if assetQueryString == "" {
-		return "", "", fmt.Errorf("asset not configured for this share")
-	}
-
-	// Parse the query string to extract source and path
-	assetParams, err := url.ParseQuery(assetQueryString)
-	if err != nil {
-		return "", "", fmt.Errorf("invalid asset configuration: %v", err)
-	}
-
-	sourceName := assetParams.Get("source")
-	assetPath := assetParams.Get("path")
-
-	return sourceName, assetPath, nil
 }
 
 // publicItemsGetHandler efficiently returns a basic list of items for a directory in a public share.

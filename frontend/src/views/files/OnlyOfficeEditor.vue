@@ -95,7 +95,7 @@ export default {
     showDebugPrompt() {
       if (!this.debugMode) return;
 
-      mutations.showHover({
+      mutations.showPrompt({
         name: 'OfficeDebug',
         props: {
           onlyOfficeUrl: this.onlyOfficeUrl,

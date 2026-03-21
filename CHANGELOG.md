@@ -7,11 +7,31 @@ All notable changes to this project will be documented in this file. For commit 
  **Security**:
  - Patched Username Enumeration via Authentication Timing Side-Channel  GHSA-7789-65hx-f26w
 
+ **New Features**:
+  - Option in settings `userDefaults.preferEditorForMarkdown` to prefer editor first for Markdown files (#2136)
+  - Copy to clipboard button for code blocks in Markdown Viewer (#2160)
+  - Add "Last modified" filter in search dialog (#2157)
+
  **Notes**:
+ - docs preview for text and pdf has a 2 second timeout. If it hangs for whatever reason, the maximum time would be 2 seconds. (#2105) (#2114)
  - Downloading multiple files streams the archive creation rather than using cacheDir -- thanks @janakoram (#2125) (#2130)
-   - `server.maxArchiveSizeGB` deprecated since its no longer an issue with archive streaming.
+   - `server.maxArchiveSizeGB` now defaults to 20 (GB) and only applies to archive/unarchive actions (not downloads).
    - browser download progress bar will no longer show for archive downloads. this is the main drawback to the streaming approach.
    - should allow for much higher parallel download support and lower cleanup maintenenance.
+ - [docker] ffmpeg version upgraded to 8.1
+ - remote ip in logs now prefers `X-Forwarded-For` if it exists, then `X-Real-IP`, then lastly the standard RemoteAddr. Useful when running behind a proxy to log the public IP of each request. (#2110)
+ - changed loading spinner style to be more compatible with safari browsers.
+
+ **BugFixes**:
+ - Wrong username in share settings (#2147) (#2148)
+ - [OnlyOffice] Error when saving a file under a user scope #2133
+ - Cannot edit shared file in OnlyOffice #2143
+ - PWA install button disappeared (#2086)
+ - Deleting a root folder was possible #2128
+ - PUT resource api errors if action against a folder (#2153) 
+ - LDAP authentication issue if a password caontains @ symbol (#2154)
+ - Share banner seems to be not working for custom urls (#2120)
+
 
 ## v1.3.1-beta
 

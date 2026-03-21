@@ -1717,7 +1717,7 @@
         },
         "/api/resources/archive": {
             "post": {
-                "description": "Creates a zip or tar.gz archive on the server from the given paths (files and/or directories). Server-side only; no archive bytes are returned. All items must be from the same source. Folders are walked recursively; access-denied paths are silently skipped. Requires create permission.\n\n**Request body parameters:**\n- **fromSource** (string, required): Source name where the paths to archive live. Example: `\"default\"`\n- **toSource** (string, optional): Source name where the archive file will be written. Defaults to fromSource if omitted. Example: `\"backups\"`\n- **paths** (array of strings, required): Paths of files or directories to add to the archive (relative to fromSource). Directories are walked; access-denied entries are skipped. Example: `[\"/docs/file.txt\", \"/photos\"]`\n- **destination** (string, required): Full path where the archive file will be created (on toSource). Must end with .zip or .tar.gz (or format is inferred). Example: `\"/backups/my-archive.zip\"`\n- **format** (string, optional): Archive format. One of: `\"zip\"`, `\"tar.gz\"`. Default inferred from destination extension. Example: `\"zip\"`\n- **compression** (integer, optional): Gzip compression level for tar.gz only (0–9). 0 = default. Ignored for zip. Example: `6`\n- **deleteAfter** (boolean, optional): If true, delete source files/directories after successful creation. Requires delete permission. Example: `true`",
+                "description": "Creates a zip or tar.gz archive on the server from the given paths (files and/or directories). Server-side only; no archive bytes are returned. All items must be from the same source. Folders are walked recursively; access-denied paths are silently skipped. Requires create permission. Archive size is checked against server.maxArchiveSizeGB limit if configured.\n\n**Request body parameters:**\n- **fromSource** (string, required): Source name where the paths to archive live. Example: `\"default\"`\n- **toSource** (string, optional): Source name where the archive file will be written. Defaults to fromSource if omitted. Example: `\"backups\"`\n- **paths** (array of strings, required): Paths of files or directories to add to the archive (relative to fromSource). Directories are walked; access-denied entries are skipped. Example: `[\"/docs/file.txt\", \"/photos\"]`\n- **destination** (string, required): Full path where the archive file will be created (on toSource). Must end with .zip or .tar.gz (or format is inferred). Example: `\"/backups/my-archive.zip\"`\n- **format** (string, optional): Archive format. One of: `\"zip\"`, `\"tar.gz\"`. Default inferred from destination extension. Example: `\"zip\"`\n- **compression** (integer, optional): Gzip compression level for tar.gz only (0–9). 0 = default. Ignored for zip. Example: `6`\n- **deleteAfter** (boolean, optional): If true, delete source files/directories after successful creation. Requires delete permission. Example: `true`",
                 "consumes": [
                     "application/json"
                 ],
@@ -1769,6 +1769,15 @@
                     },
                     "404": {
                         "description": "Source not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "413": {
+                        "description": "Request Entity Too Large (archive size exceeds maxArchiveSizeGB limit)",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2103,7 +2112,7 @@
         },
         "/api/resources/unarchive": {
             "post": {
-                "description": "Extracts a zip or tar.gz archive on the server into the given destination directory. Server-side only; no extracted bytes are returned. Supports extracting to a different source via toSource. Requires create permission.\n\n**Request body parameters:**\n- **fromSource** (string, required): Source name where the archive file lives. Example: `\"default\"`\n- **toSource** (string, optional): Source name where contents will be extracted. Defaults to fromSource if omitted. Example: `\"restored\"`\n- **path** (string, required): Path to the archive file (on fromSource). Must be .zip, .tar.gz, or .tgz. Example: `\"/downloads/data.zip\"`\n- **destination** (string, required): Directory path (on toSource) to extract into. Example: `\"/projects/imported\"`\n- **deleteAfter** (boolean, optional): If true, delete the archive file after successful extraction. Default: false. Example: `true`",
+                "description": "Extracts a zip or tar.gz archive on the server into the given destination directory. Server-side only; no extracted bytes are returned. Supports extracting to a different source via toSource. Requires create permission. Archive size is checked against server.maxArchiveSizeGB limit if configured.\n\n**Request body parameters:**\n- **fromSource** (string, required): Source name where the archive file lives. Example: `\"default\"`\n- **toSource** (string, optional): Source name where contents will be extracted. Defaults to fromSource if omitted. Example: `\"restored\"`\n- **path** (string, required): Path to the archive file (on fromSource). Must be .zip, .tar.gz, or .tgz. Example: `\"/downloads/data.zip\"`\n- **destination** (string, required): Directory path (on toSource) to extract into. Example: `\"/projects/imported\"`\n- **deleteAfter** (boolean, optional): If true, delete the archive file after successful extraction. Default: false. Example: `true`",
                 "consumes": [
                     "application/json"
                 ],
@@ -2155,6 +2164,15 @@
                     },
                     "404": {
                         "description": "Source or archive file not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "413": {
+                        "description": "Request Entity Too Large (archive size exceeds maxArchiveSizeGB limit)",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2820,6 +2838,18 @@
                         "type": "string",
                         "description": "path within user scope to search, for example '/first/second' to search within the second directory only. Ignored when multiple sources are specified.",
                         "name": "scope",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Unix seconds; only results modified strictly before this time",
+                        "name": "olderThan",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Unix seconds; only results modified on or after this time",
+                        "name": "newerThan",
                         "in": "query"
                     },
                     {
@@ -5281,7 +5311,7 @@
                     }
                 },
                 "maxArchiveSize": {
-                    "description": "deprecated: no longer a limitation after v1.3.2-beta",
+                    "description": "maximum archive/unarchive size in GB. 0 means no limit. (default: 20)",
                     "type": "integer"
                 },
                 "minSearchLength": {
@@ -5536,6 +5566,10 @@
                 },
                 "permissions": {
                     "$ref": "#/definitions/settings.UserDefaultsPermissions"
+                },
+                "preferEditorForMarkdown": {
+                    "description": "prefer editor first for markdown files instead of the Markdown Viewer.",
+                    "type": "boolean"
                 },
                 "preview": {
                     "$ref": "#/definitions/settings.UserDefaultsPreview"
@@ -6446,6 +6480,10 @@
                 },
                 "permissions": {
                     "$ref": "#/definitions/users.Permissions"
+                },
+                "preferEditorForMarkdown": {
+                    "description": "prefer editor first for markdown files instead of the Markdown Viewer",
+                    "type": "boolean"
                 },
                 "preview": {
                     "$ref": "#/definitions/users.Preview"

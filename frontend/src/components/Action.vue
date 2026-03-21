@@ -81,15 +81,15 @@ export default {
     },
     actionMultiIcon() {
       if (this.show) {
-        mutations.closeContextMenus();
-        mutations.showHover(this.show);
+        mutations.closeHovers();
+        mutations.showPrompt(this.show);
       }
       this.$emit("action");
     },
     action() {
       if (this.show) {
-        mutations.closeContextMenus();
-        mutations.showHover(this.show);
+        mutations.closeHovers();
+        mutations.showPrompt(this.show);
       }
       this.$emit("action");
     },

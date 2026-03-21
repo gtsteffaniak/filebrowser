@@ -5,7 +5,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
+	"net/url"
 	"runtime"
 	"slices"
 	"strings"
@@ -339,11 +341,16 @@ func userWithoutOTPhelper(fn handleFunc) handleFunc {
 			}
 		}
 
-		// No valid admin token - proceed with username/password authentication
-		username := r.URL.Query().Get("username")
-		password := r.Header.Get("X-Password")
 		// Try LDAP first if enabled; on success set d.user and continue to handler
 		if config.Auth.Methods.LdapAuth.Enabled {
+			// No valid admin token - proceed with username/password authentication
+			username := r.URL.Query().Get("username")
+			password := r.Header.Get("X-Password")
+			// URL-decode password to support special characters in headers
+			password, err := url.QueryUnescape(password)
+			if err != nil {
+				return 401, fmt.Errorf("invalid password encoding")
+			}
 			logger.Debug("ldap auth, calling AuthenticateLDAPUser")
 			ldapUser, err := AuthenticateLDAPUser(username, password)
 			if err == nil {
@@ -391,7 +398,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 			}
 			return fn(w, r, data)
 		}
-		
+
 		// Check for JWT external auth first (header or query param)
 		if config.Auth.Methods.JwtAuth.Enabled {
 			jwtToken := r.Header.Get(config.Auth.Methods.JwtAuth.Header)
@@ -399,12 +406,12 @@ func withUserHelper(fn handleFunc) handleFunc {
 				// Check query parameter (hardcoded to "jwt")
 				jwtToken = r.URL.Query().Get("jwt")
 			}
-			
+
 			if jwtToken != "" {
 				return getJwtUser(w, r, data, fn, jwtToken)
 			}
 		}
-		
+
 		proxyUser := r.Header.Get(config.Auth.Methods.ProxyAuth.Header)
 		isProxyUser := config.Auth.Methods.ProxyAuth.Enabled && proxyUser != ""
 		keyFunc := func(token *jwt.Token) (interface{}, error) {
@@ -485,7 +492,7 @@ func getJwtUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn
 		logger.Debugf("JWT verification failed: %v", err)
 		return http.StatusForbidden, fmt.Errorf("JWT authentication failed: %w", err)
 	}
-	
+
 	// Setup user based on JWT claims
 	user, err := setupJwtUser(r, data, username, claims)
 	if err != nil {
@@ -496,7 +503,7 @@ func getJwtUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn
 	if data.user.Username == "" {
 		return http.StatusForbidden, errors.ErrUnauthorized
 	}
-	
+
 	// Generate a FileBrowser session token for JWT users if they don't have one
 	if data.token == "" {
 		expires := time.Hour * time.Duration(config.Auth.TokenExpirationHours)
@@ -507,7 +514,7 @@ func getJwtUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn
 		}
 		data.token = tokenString
 	}
-	
+
 	// Call the handler function, passing in the context (or return OK if no handler)
 	if fn == nil {
 		return http.StatusOK, nil
@@ -758,6 +765,26 @@ func setUserInResponseWriter(w http.ResponseWriter, user *users.User) {
 	}
 }
 
+func getRemoteIP(r *http.Request) string {
+	// 1. Check X-Forwarded-For
+	xff := r.Header.Get("X-Forwarded-For")
+	if xff != "" {
+		// The first IP is the original client
+		ips := strings.Split(xff, ",")
+		return strings.TrimSpace(ips[0])
+	}
+
+	// 2. Check X-Real-IP
+	xri := r.Header.Get("X-Real-IP")
+	if xri != "" {
+		return xri
+	}
+
+	// 3. Fallback to RemoteAddr (strip port if necessary)
+	ip, _, _ := net.SplitHostPort(r.RemoteAddr)
+	return ip
+}
+
 // LoggingMiddleware logs each request and its status code.
 func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -766,7 +793,6 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 			if rcv := recover(); rcv != nil {
 				method := r.Method
 				url := r.URL.String()
-				remoteAddr := r.RemoteAddr
 				username := "unknown" // Default username
 
 				// Attempt to get username from ResponseWriterWrapper if it's set
@@ -779,7 +805,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 				stackTrace := string(buf[:n])
 
 				logger.Errorf("PANIC RECOVERED: %v\nUser: %s\nMethod: %s\nURL: %s\nRemoteAddr: %s\nGo Stack Trace:\n%s",
-					rcv, username, method, url, remoteAddr, stackTrace)
+					rcv, username, method, url, getRemoteIP(r), stackTrace)
 
 				// Attempt to send a 500 error response to the client
 				// This is a best-effort; the connection might be broken or process too unstable.
@@ -822,7 +848,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 			fmt.Sprintf("%-7s | %3d | %-15s | %-12s | %-12s | \"%s\"",
 				r.Method,
 				wrappedWriter.StatusCode,
-				r.RemoteAddr,
+				getRemoteIP(r),
 				truncUser,
 				fmt.Sprintf("%vms", duration.Milliseconds()),
 				fullURL))

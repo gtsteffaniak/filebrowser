@@ -1,5 +1,6 @@
 {
   "buttons": {
+    "copySuccess": "已複製到剪貼簿！",
     "copyFile": "複製檔案",
     "copyToClipboard": "複製到剪貼簿",
     "moveFile": "移動檔案",
@@ -79,7 +80,8 @@
       "comma": "前往設定",
       "c": "複製選取的項目",
       "v": "貼上已複製/剪下的項目",
-      "x": "剪下選取的項目"
+      "x": "剪下選取的項目",
+      "e": "在編輯器和 Markdown 檢視器之間切換（適用於 .md 檔案）"
     },
     "del": "刪除選取的項目",
     "esc": "清除選取項目或關閉提示視窗",
@@ -88,7 +90,19 @@
     "description": "以下列出基本導覽操作。更多資訊請參閱",
     "slash": "啟動搜尋",
     "wiki": "FileBrowser Quantum 官方文件",
-    "marqueeSelect": "在空白處拖曳以選取多個檔案或目錄"
+    "marqueeSelect": "在空白處拖曳以選取多個檔案或目錄",
+    "media": {
+      "title": "媒體播放器",
+      "playPause": "播放/暫停",
+      "seekPercentage": "從 10% 跳轉到 90%",
+      "seek": "前進或後退 10 秒",
+      "volume": "調高或調低音量",
+      "mute": "靜音/取消靜音",
+      "loop": "在循環模式和單次模式之間切換",
+      "playbackModes": "切換播放模式（不包括循環和單次）",
+      "fullscreen": "影片全螢幕模式切換",
+      "captions": "開啟/關閉字幕"
+    }
   },
   "languages": {
     "he": "עברית",
@@ -114,8 +128,8 @@
     "svSE": "Swedish (Sweden)",
     "tr": "Türkçe",
     "ua": "Українська",
-    "zhCN": "中文（简体）",
-    "zhTW": "中文（繁體）",
+    "zhCN": "中文 (简体)",
+    "zhTW": "中文 (繁體)",
     "cz": "Čeština"
   },
   "login": {
@@ -241,7 +255,9 @@
     "notEnoughCharacters": "搜尋字元不足（至少需要 {minSearchLength} 個字元）",
     "typeToSearch": "請輸入至少 {minSearchLength} 個字元以開始搜尋。",
     "showPreviewImages": "顯示預覽圖片",
-    "showPreviewImagesDescription": "若可用，會為搜尋結果顯示縮圖預覽，並為所有結果顯示較大的圖示。"
+    "showPreviewImagesDescription": "若可用，會為搜尋結果顯示縮圖預覽，並為所有結果顯示較大的圖示。",
+    "olderThanDate": "年紀比",
+    "newerThanDate": "比較新："
   },
   "settings": {
     "administrator": "管理員",
@@ -519,6 +535,8 @@
     "error": "錯誤"
   },
   "profileSettings": {
+    "preferEditorForMarkdown": "優先使用編輯器開啟 Markdown 檔案",
+    "preferEditorForMarkdownDescription": "啟用後，Markdown 檔案將首先在編輯器中開啟，而不是 Markdown 檢視器。",
     "deleteAfterArchive": "建立/解壓縮封存檔後刪除來源檔案",
     "deleteAfterArchiveDescription": "啟用後，成功建立或解壓縮封存檔後會刪除來源檔案。",
     "hideFilesInTree": "在樹狀導覽中隱藏檔案",

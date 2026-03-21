@@ -44,17 +44,19 @@
                 <ButtonGroup :buttons="typeSelect" @button-clicked="addToTypes" @remove-button-clicked="removeFromTypes"
                   :isDisabled="isTypeSelectDisabled" />
                 <!-- Inputs for filtering by file size -->
-                <div class="sizeConstraints">
+                <div class="constraints">
                   <div class="sizeInputWrapper">
                     <p>{{ $t("search.smallerThan") }}</p>
                     <input class="sizeInput" v-model="smallerThan" type="number" min="0"
-                      :placeholder="$t('general.number')" />
-                    <p>MB</p> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+                    placeholder="MB" />
+                    <p>{{ $t("search.largerThan") }}</p>
+                    <input class="sizeInput" v-model="largerThan" type="number" placeholder="MB" />
                   </div>
                   <div class="sizeInputWrapper">
-                    <p>{{ $t("search.largerThan") }}</p>
-                    <input class="sizeInput" v-model="largerThan" type="number" :placeholder="$t('general.number')" />
-                    <p>MB</p> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+                    <p>{{ $t("search.olderThanDate") }}</p>
+                    <input class="sizeInput" v-model="modifiedOlderThan" type="date" />
+                    <p>{{ $t("search.newerThanDate") }}</p>
+                    <input class="sizeInput" v-model="modifiedNewerThan" type="date" />
                   </div>
                 </div>
                 <!-- Toggle for showing preview images -->
@@ -131,6 +133,8 @@ export default {
     return {
       largerThan: "",
       smallerThan: "",
+      modifiedOlderThan: "",
+      modifiedNewerThan: "",
       noneMessage: this.$t("search.typeToSearch", { minSearchLength: globalVars.minSearchLength }),
       searchTypes: "",
       isTypeSelectDisabled: false,
@@ -157,10 +161,19 @@ export default {
     };
   },
   watch: {
+    currentSourceState(){
+      this.selectedSource = state.sources.current;
+    },
     largerThan() {
       this.submit();
     },
     smallerThan() {
+      this.submit();
+    },
+    modifiedOlderThan() {
+      this.submit();
+    },
+    modifiedNewerThan() {
       this.submit();
     },
     searchTypes() {
@@ -220,6 +233,9 @@ export default {
     }
   },
   computed: {
+    currentSourceState() {
+      return state.sources.current;
+    },
     eventTheme() {
       return getters.eventTheme();
     },
@@ -302,7 +318,7 @@ export default {
     openContext(event) {
       event.preventDefault();
       event.stopPropagation();
-      mutations.showHover({
+      mutations.showPrompt({
         name: "ContextMenu",
         props: {
           posX: event.clientX,
@@ -379,6 +395,23 @@ export default {
     humanSize(size) {
       return getHumanReadableFilesize(size);
     },
+    /** YYYY-MM-DD from a date input → Unix seconds at 00:00:00 UTC for that calendar day. */
+    dateToUnixStartOfDayUTC(isoDate) {
+      if (isoDate === "" || typeof isoDate !== "string") {
+        return null;
+      }
+      const parts = isoDate.split("-");
+      if (parts.length !== 3) {
+        return null;
+      }
+      const y = Number(parts[0]);
+      const m = Number(parts[1]);
+      const d = Number(parts[2]);
+      if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d)) {
+        return null;
+      }
+      return Math.floor(Date.UTC(y, m - 1, d) / 1000);
+    },
     basePath(str, isDir) {
       let result = url.removeLastDir(str);
       if (!isDir) {
@@ -390,15 +423,6 @@ export default {
       let parts = url.removeTrailingSlash(str).split("/");
       let part = parts.pop();
       return part;
-    },
-    open() {
-      if (!state.isSearchActive) {
-        mutations.closeHovers();
-        mutations.closeSidebar();
-        mutations.resetSelected();
-        this.resetSearchFilters;
-        mutations.setSearch(true);
-      }
     },
     close(event) {
       this.value = "";
@@ -458,6 +482,15 @@ export default {
       if (this.smallerThan != "") {
         searchTypesFull = searchTypesFull + "type:smallerThan=" + this.smallerThan + " ";
       }
+      const dateParams = {};
+      const olderUnix = this.dateToUnixStartOfDayUTC(this.modifiedOlderThan);
+      if (olderUnix !== null) {
+        dateParams.olderThan = olderUnix;
+      }
+      const newerUnix = this.dateToUnixStartOfDayUTC(this.modifiedNewerThan);
+      if (newerUnix !== null) {
+        dateParams.newerThan = newerUnix;
+      }
       this.ongoing = true;
       
       // Determine which sources to search
@@ -473,7 +506,13 @@ export default {
       // Only pass scope if searching a single source
       const scope = sourcesToSearch.length === 1 ? this.getContext : null;
       
-      this.results = await toolsApi.search(scope, sourcesToSearch, searchTypesFull + this.value);
+      this.results = await toolsApi.search(
+        scope,
+        sourcesToSearch,
+        searchTypesFull + this.value,
+        false,
+        dateParams
+      );
 
       this.ongoing = false;
       if (this.results.length == 0) {
@@ -670,6 +709,11 @@ export default {
   padding: 0;
   color: rgba(255, 255, 255, 0.9);
   font-size: 0.95em;
+}
+
+#search-input {
+  width: 100%;
+  padding-left: 0.5em;
 }
 
 #search.active input {
@@ -870,7 +914,7 @@ body.rtl #search .boxes h3 {
   /* IE and Edge */
 }
 
-.sizeConstraints {
+.constraints {
   display: flex;
   flex-wrap: wrap;
   flex-direction: row;

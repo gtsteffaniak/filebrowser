@@ -289,7 +289,9 @@ func (idx *Index) IterateFiles(fn func(path, name string, size, modTime int64)) 
 }
 
 func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, error) {
+	indexesMutex.Lock()
 	idx, ok := indexes[sourceName]
+	indexesMutex.Unlock()
 	if !ok {
 		return ReducedIndex{}, fmt.Errorf("index %s not found", sourceName)
 	}

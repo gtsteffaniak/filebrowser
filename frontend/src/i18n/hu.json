@@ -1,5 +1,6 @@
 {
   "buttons": {
+    "copySuccess": "Vágólapra másolva!",
     "copyFile": "Fájl másolása",
     "copyToClipboard": "Másolás vágólapra",
     "moveFile": "Fájl mozgatása",
@@ -79,7 +80,8 @@
       "comma": "menj a beállításokhoz",
       "c": "kiválasztott elemek másolása",
       "v": "másolt/kivágott elemek beillesztése",
-      "x": "kiválasztott tételek kivágása"
+      "x": "kiválasztott tételek kivágása",
+      "e": "Váltás szerkesztő és Markdown néző között (.md fájloknál)"
     },
     "del": "kijelölt elemek törlése",
     "esc": "kijelölés törlése és/vagy parancssor bezárása",
@@ -88,7 +90,19 @@
     "description": "Az alábbiakban megtekintheti az alapvető navigációs lehetőségeket. További információkért kérjük, látogasson el a következő weboldalra",
     "slash": "keresés aktiválása",
     "wiki": "FileBrowser Quantum hivatalos dokumentumok",
-    "marqueeSelect": "több fájl vagy könyvtár kiválasztása üres helyre történő húzással"
+    "marqueeSelect": "több fájl vagy könyvtár kiválasztása üres helyre történő húzással",
+    "media": {
+      "title": "Médialejátszó",
+      "playPause": "Lejátszás/Szünet",
+      "seekPercentage": "Ugrás 10%-tól 90%-ig",
+      "seek": "Ugrás 10 másodpercet, hátra vagy előre",
+      "volume": "Hangerő növelése vagy csökkentése",
+      "mute": "Némítás/Behangzás",
+      "loop": "Váltás ismétlés és egyszeri mód között",
+      "playbackModes": "Váltás lejátszási módok között (az ismétlés és egyszeri kivételével)",
+      "fullscreen": "Teljes képernyős mód váltása videóknál",
+      "captions": "Feliratok be/ki"
+    }
   },
   "languages": {
     "he": "עברית",
@@ -241,7 +255,9 @@
     "notEnoughCharacters": "Nincs elég karakter a kereséshez (min {minSearchLength})",
     "typeToSearch": "A keresés megkezdéséhez írja be a {minSearchLength} vagy több karaktert.",
     "showPreviewImages": "Előnézeti képek megjelenítése",
-    "showPreviewImagesDescription": "A keresési találatok miniatűr előnézeteinek megjelenítése, ha rendelkezésre állnak, és nagyobb ikonok megjelenítése az összes találathoz."
+    "showPreviewImagesDescription": "A keresési találatok miniatűr előnézeteinek megjelenítése, ha rendelkezésre állnak, és nagyobb ikonok megjelenítése az összes találathoz.",
+    "olderThanDate": "Idősebb, mint:",
+    "newerThanDate": "Újabb, mint:"
   },
   "settings": {
     "administrator": "Adminisztrátor",
@@ -696,6 +712,8 @@
     "orange": "narancs"
   },
   "profileSettings": {
+    "preferEditorForMarkdown": "Szerkesztő előnyben részesítése Markdown fájlokhoz",
+    "preferEditorForMarkdownDescription": "Ha engedélyezve van, a Markdown fájlok először a szerkesztőben nyílnak meg a Markdown néző helyett.",
     "deleteAfterArchive": "Forrásfájlok törlése archívumok létrehozása/kibontása után",
     "deleteAfterArchiveDescription": "Ha engedélyezve van, törli a forrásfájlokat az archívumok sikeres létrehozása/kibontása után",
     "hideFilesInTree": "Fájlok elrejtése a fa navigációban",

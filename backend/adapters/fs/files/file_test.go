@@ -1,10 +1,12 @@
 package files
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -407,5 +409,220 @@ func TestOverrideFileToDirectory(t *testing.T) {
 	}
 	if !foundDir {
 		t.Error("Directory 'Test Object' should have been added to Folders")
+	}
+}
+
+// TestDeleteFilesRootProtection tests that DeleteFiles refuses to delete
+// the source root directory itself, preventing catastrophic data loss.
+// This is a regression test for the safety guard added to prevent accidental
+// deletion of the entire source directory.
+func TestDeleteFilesRootProtection(t *testing.T) {
+	// Use a temporary directory for cache
+	tmpDir := t.TempDir()
+	originalCacheDir := settings.Config.Server.CacheDir
+	settings.Config.Server.CacheDir = tmpDir
+	defer func() {
+		settings.Config.Server.CacheDir = originalCacheDir
+	}()
+
+	// Ensure fileutils permissions are set
+	if fileutils.PermDir == 0 {
+		fileutils.SetFsPermissions(0644, 0755)
+	}
+
+	// Initialize the database
+	if indexing.GetIndexDB() == nil {
+		db, _, err := dbsql.NewIndexDB("test_root_protection", "OFF", 1000, 32, false)
+		if err != nil {
+			t.Fatalf("Failed to create test database: %v", err)
+		}
+		indexing.SetIndexDBForTesting(db)
+	}
+
+	// Create a real temporary directory to use as source root
+	realTmpDir := t.TempDir()
+
+	// Initialize the index with a real path
+	indexing.Initialize(&settings.Source{
+		Name: "test_root_protection",
+		Path: realTmpDir,
+	}, false, false) // false for mock mode (real path), false for isNewDb
+
+	// Wait for scanner to be ready
+	idx := indexing.GetIndex("test_root_protection")
+	if idx == nil {
+		t.Fatal("Failed to get test index")
+	}
+
+	// Wait for scanner to finish
+	for i := 0; i < 50; i++ {
+		time.Sleep(10 * time.Millisecond)
+		status := idx.GetScannerStatus()
+		if status["status"] == "ready" || status["status"] == "unavailable" {
+			break
+		}
+	}
+
+	// Test: Attempting to delete the root directory should return an error
+	err := DeleteFiles("test_root_protection", realTmpDir, true)
+	if err == nil {
+		t.Error("DeleteFiles should return an error when trying to delete root directory")
+	}
+
+	// Verify the error message contains expected text
+	expectedErrMsg := "refusing to delete source root directory"
+	if err != nil && !strings.Contains(err.Error(), expectedErrMsg) {
+		t.Errorf("Expected error message to contain '%s', got: %v", expectedErrMsg, err.Error())
+	}
+
+	// Test with trailing slash - should still be blocked
+	err = DeleteFiles("test_root_protection", realTmpDir+"/", true)
+	if err == nil {
+		t.Error("DeleteFiles should return an error for root directory with trailing slash")
+	}
+
+	// Test with cleaned path variations
+	err = DeleteFiles("test_root_protection", realTmpDir+"/.", true)
+	if err == nil {
+		t.Error("DeleteFiles should return an error for root directory with /. suffix")
+	}
+}
+
+// TestDeleteFilesSubfolderWithRootName tests that deleting a subfolder
+// with the same name as the root directory works correctly and doesn't
+// accidentally delete the root.
+// Regression test for path handling bug where /srv/srv could be mistaken for /srv.
+func TestDeleteFilesSubfolderWithRootName(t *testing.T) {
+	for iter := 1; iter <= raceStressIterations; iter++ {
+		iter := iter
+		t.Run(fmt.Sprintf("stress-iter-%d", iter), func(t *testing.T) {
+			runDeleteFilesSubfolderWithRaceStress(t, iter)
+		})
+	}
+}
+
+const (
+	raceStressIterations   = 3
+	raceStatusPollInterval = 5 * time.Millisecond
+	waitStatusMaxTries     = 100
+	waitStatusSleep        = 50 * time.Millisecond
+)
+
+func runDeleteFilesSubfolderWithRaceStress(t *testing.T, iter int) {
+	t.Helper()
+	start := time.Now()
+	t.Logf("iteration %d: start", iter)
+
+	cacheDir := t.TempDir()
+	originalCache := settings.Config.Server.CacheDir
+	settings.Config.Server.CacheDir = cacheDir
+	t.Cleanup(func() { settings.Config.Server.CacheDir = originalCache })
+
+	if fileutils.PermDir == 0 {
+		fileutils.SetFsPermissions(0644, 0755)
+	}
+
+	if indexing.GetIndexDB() == nil {
+		db, _, err := dbsql.NewIndexDB("test_subfolder_rootname", "OFF", 1000, 32, false)
+		if err != nil {
+			t.Fatalf("Failed to create test database: %v", err)
+		}
+		indexing.SetIndexDBForTesting(db)
+	}
+
+	realTmpDir := t.TempDir()
+	subfolderName := filepath.Base(realTmpDir)
+	subfolderPath := filepath.Join(realTmpDir, subfolderName)
+
+	if err := os.Mkdir(subfolderPath, 0755); err != nil {
+		t.Fatalf("Failed to create subfolder: %v", err)
+	}
+
+	testFile := filepath.Join(subfolderPath, "test.txt")
+	if err := os.WriteFile(testFile, []byte("test content"), 0644); err != nil {
+		t.Fatalf("Failed to create test file: %v", err)
+	}
+
+	sourceName := fmt.Sprintf("test_subfolder_rootname-%d", iter)
+	indexing.Initialize(&settings.Source{
+		Name: sourceName,
+		Path: realTmpDir,
+	}, false, false)
+
+	idx := indexing.GetIndex(sourceName)
+	if idx == nil {
+		t.Fatalf("Failed to get test index for %s", sourceName)
+	}
+
+	stopPolling := startScannerStatusPoll(t, idx, iter)
+	defer stopPolling()
+
+	waitForScannerReady(t, idx)
+
+	err := DeleteFiles(sourceName, subfolderPath, true)
+	stopPolling()
+
+	t.Logf("iteration %d: DeleteFiles finished in %s (err=%v)", iter, time.Since(start), err)
+
+	if err != nil {
+		t.Fatalf("DeleteFiles should succeed for subfolder with root-like name, got error: %v", err)
+	}
+
+	if _, err := os.Stat(subfolderPath); !os.IsNotExist(err) {
+		t.Fatal("Subfolder should have been deleted")
+	}
+
+	if _, err := os.Stat(realTmpDir); os.IsNotExist(err) {
+		t.Fatal("Root directory should NOT have been deleted")
+	}
+
+	indexing.StopAllScanners()
+	// Give scanners time to finish their cleanup (defer blocks in tryAcquireAndScan)
+	time.Sleep(100 * time.Millisecond)
+	indexing.ClearTestIndices()
+	t.Logf("iteration %d: cleaned scanners and indices", iter)
+}
+
+func waitForScannerReady(t *testing.T, idx *indexing.Index) {
+	t.Helper()
+	// Give the scanners a moment to initialize, but don't wait for full "ready" status
+	// The initial scan can take longer than the test timeout, but DeleteFiles will work
+	// as long as the scanners are initialized and running
+	time.Sleep(500 * time.Millisecond)
+	
+	// Verify scanners exist
+	status := idx.GetScannerStatus()
+	if totalScanners, ok := status["totalScanners"].(int); !ok || totalScanners == 0 {
+		t.Fatal("No scanners were created")
+	}
+	t.Log("Scanners initialized, proceeding with delete operation")
+}
+
+func startScannerStatusPoll(t *testing.T, idx *indexing.Index, iter int) func() {
+	t.Helper()
+	stop := make(chan struct{})
+	done := make(chan struct{})
+	var once sync.Once
+
+	go func() {
+		ticker := time.NewTicker(raceStatusPollInterval)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-stop:
+				close(done)
+				return
+			case <-ticker.C:
+				idx.GetScannerStatus()
+			}
+		}
+	}()
+
+	return func() {
+		once.Do(func() {
+			close(stop)
+			<-done
+			t.Logf("iteration %d: poll watcher stopped", iter)
+		})
 	}
 }

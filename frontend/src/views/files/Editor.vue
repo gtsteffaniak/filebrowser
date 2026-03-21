@@ -15,6 +15,7 @@ import "ace-builds/src-min-noconflict/theme-github";
 import "ace-builds/src-min-noconflict/theme-tomorrow_night_bright";
 import "ace-builds/src-min-noconflict/mode-yaml";
 import "ace-builds/src-min-noconflict/mode-json";
+import "ace-builds/src-min-noconflict/mode-markdown";
 
 export default {
   name: "editor",
@@ -433,7 +434,7 @@ export default {
     },
     showSaveBeforeExitPrompt() {
       this.isPromptOpen = true;
-      mutations.showHover({
+      mutations.showPrompt({
         name: "SaveBeforeExit",
         pinned: true,
         confirm: async () => {

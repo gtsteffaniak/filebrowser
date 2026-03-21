@@ -1,5 +1,6 @@
 {
   "buttons": {
+    "copySuccess": "Skopiowano do schowka!",
     "copyFile": "Kopiuj plik",
     "copyToClipboard": "kopiuj do schowka",
     "moveFile": "Przenieś plik",
@@ -79,7 +80,8 @@
       "comma": "przejdź do ustawień",
       "c": "kopiowanie wybranych elementów",
       "v": "wklejanie skopiowanych/wyciętych elementów",
-      "x": "wycinanie wybranych elementów"
+      "x": "wycinanie wybranych elementów",
+      "e": "Przełącz między edytorem a przeglądarką Markdown (w plikach .md)"
     },
     "del": "usuń zaznaczone",
     "esc": "wyczyść zaznaczenie i/lub zamknij okno z powiadomieniem",
@@ -88,7 +90,19 @@
     "description": "Poniżej znajdują się podstawowe opcje nawigacji. Dodatkowe informacje można znaleźć na stronie",
     "slash": "aktywuj wyszukiwanie",
     "wiki": "Oficjalne dokumenty FileBrowser Quantum",
-    "marqueeSelect": "wybór wielu plików lub katalogów poprzez przeciągnięcie na puste miejsce"
+    "marqueeSelect": "wybór wielu plików lub katalogów poprzez przeciągnięcie na puste miejsce",
+    "media": {
+      "title": "Odtwarzacz multimediów",
+      "playPause": "Odtwarzaj/Wstrzymaj",
+      "seekPercentage": "Przesuń od 10% do 90%",
+      "seek": "Przesuń o 10 s, do tyłu lub do przodu",
+      "volume": "Zwiększ lub zmniejsz głośność",
+      "mute": "Wycisz/Włącz dźwięk",
+      "loop": "Przełącz między pętlą a trybem pojedynczym",
+      "playbackModes": "Przełącz między trybami odtwarzania (z wyłączeniem pętli i pojedynczego)",
+      "fullscreen": "Przełącz tryb pełnoekranowy w wideo",
+      "captions": "Włącz/Wyłącz napisy"
+    }
   },
   "languages": {
     "he": "עברית",
@@ -241,7 +255,9 @@
     "notEnoughCharacters": "Za mało znaków do wyszukania (min. {minSearchLength})",
     "typeToSearch": "Zacznij wpisywać {minSearchLength} lub więcej znaków, aby rozpocząć wyszukiwanie.",
     "showPreviewImages": "Pokaż obrazy podglądu",
-    "showPreviewImagesDescription": "Wyświetlaj podglądy miniatur wyników wyszukiwania, jeśli są dostępne, i wyświetlaj większe ikony dla wszystkich wyników."
+    "showPreviewImagesDescription": "Wyświetlaj podglądy miniatur wyników wyszukiwania, jeśli są dostępne, i wyświetlaj większe ikony dla wszystkich wyników.",
+    "olderThanDate": "Starszy niż:",
+    "newerThanDate": "Nowsze niż:"
   },
   "settings": {
     "administrator": "Administrator",
@@ -696,6 +712,8 @@
     "orange": "pomarańczowy"
   },
   "profileSettings": {
+    "preferEditorForMarkdown": "Preferuj edytor dla plików Markdown",
+    "preferEditorForMarkdownDescription": "Po włączeniu, pliki Markdown otwierają się najpierw w edytorze zamiast w przeglądarce Markdown.",
     "deleteAfterArchive": "Usuń pliki źródłowe po utworzeniu/wypakowaniu archiwów",
     "deleteAfterArchiveDescription": "Po włączeniu, usunie pliki źródłowe po pomyślnym utworzeniu/wypakowaniu archiwów",
     "hideFilesInTree": "Ukryj pliki w nawigacji drzewiastej",

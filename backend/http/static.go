@@ -119,21 +119,10 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		if d.share.DisableSidebar {
 			disableSidebar = true
 		}
-		if strings.HasPrefix(strings.ToLower(d.share.Banner), "http") {
-			banner = d.share.Banner
-		} else {
-			_, _, err := getShareImagePartsHelper(d.share, true)
-			if err == nil {
-				banner = fmt.Sprintf("%s%spublic/api/share/image?banner=true&hash=%s", config.Server.ExternalUrl, config.Server.BaseURL, d.share.Hash)
-			}
-		}
-		if strings.HasPrefix(strings.ToLower(d.share.Favicon), "http") {
-			favicon = d.share.Favicon
-		} else {
-			_, _, err := getShareImagePartsHelper(d.share, false)
-			if err == nil {
-				favicon = fmt.Sprintf("%s%spublic/api/share/image?favicon=true&hash=%s", config.Server.ExternalUrl, config.Server.BaseURL, d.share.Hash)
-			}
+		banner = d.share.BannerURL()
+		shareFavicon := d.share.FaviconURL()
+		if shareFavicon != "" {
+			favicon = shareFavicon
 		}
 		shareHash = d.share.Hash
 	}
@@ -305,11 +294,8 @@ func staticAssetHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Security-Policy", `default-src 'self'; style-src 'unsafe-inline';`)
 
 	// Strip baseURL and /static/ prefix to get clean asset path
-	path := r.URL.Path
-	path = strings.TrimPrefix(path, config.Server.BaseURL) // Remove /testing/ or other baseURL
-	path = strings.TrimPrefix(path, "/")                   // Remove leading slash FIRST
-	path = strings.TrimPrefix(path, "static/")             // Then remove static/ prefix
-
+	path := strings.TrimPrefix(r.URL.Path, "/public")
+	path = strings.TrimPrefix(path, "/static/")
 	// Handle special routes that need path mapping
 	var assetPath string
 	switch path {

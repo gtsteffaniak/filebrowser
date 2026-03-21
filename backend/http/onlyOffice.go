@@ -99,7 +99,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	// Rule 1: Validate user-provided path to prevent path traversal
 	cleanPath, err := utils.SanitizeUserPath(providedPath)
 	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid path: %v", err)
+		return http.StatusBadRequest, err
 	}
 	providedPath = cleanPath
 
@@ -280,14 +280,12 @@ func buildOnlyOfficeDownloadURL(r *http.Request, source, path, hash, token strin
 	}
 
 	escapedPath := url.QueryEscape(path)
-	downloadURL := fmt.Sprintf("%s/api/resources/download?file=%s&auth=%s",
-		strings.TrimSuffix(baseURL, "/"), escapedPath, token)
+	downloadURL := fmt.Sprintf("%s/api/resources/download?file=%s&auth=%s&source=%s",
+		strings.TrimSuffix(baseURL, "/"), escapedPath, token, url.QueryEscape(source))
 	if hash != "" {
-		downloadURL = downloadURL + "&hash=" + hash
-	} else {
-		downloadURL = downloadURL + "&source=" + url.QueryEscape(source)
+		downloadURL = fmt.Sprintf("%s/public/api/resources/download?file=%s&auth=%s&hash=%s",
+			strings.TrimSuffix(baseURL, "/"), escapedPath, token, hash)
 	}
-
 	return downloadURL
 }
 
@@ -354,6 +352,13 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 	// Extract clean parameters from query string
 	source := r.URL.Query().Get("source")
 	path := r.URL.Query().Get("path")
+	user := d.user
+
+	if d.share != nil {
+		source = d.share.GetSourceName()
+		path = d.IndexPath
+		user = d.shareUser
+	}
 
 	// Validate required parameters
 	if (path == "" || source == "") && d.fileInfo.Hash == "" {
@@ -364,40 +369,10 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 	// Rule 1: Validate user-provided path to prevent path traversal
 	cleanPath, err := utils.SanitizeUserPath(path)
 	if err != nil {
-		logger.Errorf("OnlyOffice callback: invalid path: %v", err)
-		return returnOnlyOfficeError(w, r, 400, "invalid path")
+		return returnOnlyOfficeError(w, r, 400, err.Error())
 	}
 	path = cleanPath
 
-	var sourceInfo *settings.Source
-	var ok bool
-	if d.fileInfo.Hash != "" {
-		sourceInfo, ok = settings.Config.Server.SourceMap[d.share.Source]
-		if !ok {
-			logger.Error("OnlyOffice: share source not found")
-			return returnOnlyOfficeError(w, r, 404, "source not found")
-		}
-	} else {
-		sourceInfo, ok = settings.Config.Server.NameToSource[source]
-		if !ok {
-			logger.Error("OnlyOffice: source not found")
-			return returnOnlyOfficeError(w, r, 404, "source not found")
-		}
-	}
-
-	if d.fileInfo.Hash == "" {
-		// Regular user request - need to resolve scope
-		userScope, scopeErr := d.user.GetScopeForSourceName(source)
-		if scopeErr != nil {
-			logger.Errorf("OnlyOffice callback: source %s not available for user %s: %v", source, d.user.Username, scopeErr)
-			return returnOnlyOfficeError(w, r, 403, "source not available")
-		}
-		path = utils.JoinPathAsUnix(userScope, path)
-	} else {
-		source = sourceInfo.Name
-		// path is index path, so we build from share path
-		path = utils.JoinPathAsUnix(d.share.Path, path)
-	}
 	// Handle document closure - clean up document key cache
 	if data.Status == onlyOfficeStatusDocumentClosedWithChanges ||
 		data.Status == onlyOfficeStatusDocumentClosedWithNoChanges {
@@ -502,14 +477,14 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 		}
 
 		// Check share permissions first if this is a share request
-		if d.fileInfo.Hash != "" {
+		if d.share != nil {
 			if !d.share.AllowModify {
 				logger.Errorf("OnlyOffice callback: edit permission not allowed for this share")
 				return returnOnlyOfficeError(w, r, 403, "edit permission not allowed for this share")
 			}
 		} else {
 			// Verify user has modify permissions
-			if !d.user.Permissions.Modify {
+			if !user.Permissions.Modify {
 				logger.Errorf("OnlyOffice callback: user %s lacks modify permissions for path=%s",
 					d.user.Username, path)
 				return returnOnlyOfficeError(w, r, 403, "user lacks modify permissions")
@@ -543,7 +518,7 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 		_, err = files.FileInfoFaster(utils.FileOptions{
 			Source: source,
 			Path:   path,
-		}, store.Access, d.user, store.Share)
+		}, store.Access, user, store.Share)
 		if err != nil {
 			logger.Errorf("OnlyOffice callback: original file no longer exists at path=%s: %v",
 				path, err)
@@ -558,7 +533,7 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 		}
 
 		// Get user scope to resolve full index path for write operation
-		userScope, err := d.user.GetScopeForSourceName(source)
+		userScope, err := user.GetScopeForSourceName(source)
 		if err != nil {
 			return returnOnlyOfficeError(w, r, 403, "user scope not found")
 		}

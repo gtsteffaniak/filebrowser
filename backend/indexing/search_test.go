@@ -62,7 +62,7 @@ func BenchmarkSearchAllIndexes(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		// Execute the SearchAllIndexes function
 		for _, term := range searchTerms {
-			idx.Search(term, "/", "test", false, DefaultSearchResults)
+			idx.Search(term, "/", "test", false, DefaultSearchResults, 0, 0)
 		}
 	}
 }
@@ -100,6 +100,15 @@ func TestParseSearch(t *testing.T) {
 			want: iteminfo.SearchOptions{
 				Conditions: map[string]bool{"exact": false, "audio": true},
 				Terms:      []string{"thisfile"},
+			},
+		},
+		{
+			input: "type:olderThan=2024-06-01 type:newerThan=2024-01-01 findme",
+			want: iteminfo.SearchOptions{
+				Conditions:         map[string]bool{"exact": false},
+				Terms:              []string{"findme"},
+				ModifiedOlderThan:  time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC).Unix(),
+				ModifiedNewerThan:  time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC).Unix(),
 			},
 		},
 	}
@@ -165,7 +174,7 @@ func TestSearchWhileIndexing(t *testing.T) {
 			wg.Add(1)
 			go func(searchTerm string) {
 				defer wg.Done()
-				idx.Search(searchTerm, "/", "test", false, DefaultSearchResults)
+				idx.Search(searchTerm, "/", "test", false, DefaultSearchResults, 0, 0)
 			}(term)
 		}
 
@@ -443,7 +452,7 @@ func TestSearchIndexes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.search, func(t *testing.T) {
-			result := index.Search(tt.search, tt.scope, "", false, DefaultSearchResults)
+			result := index.Search(tt.search, tt.scope, "", false, DefaultSearchResults, 0, 0)
 			// Convert results to comparable format (without Modified field)
 			expected := make([]SearchResult, len(tt.expectedResult))
 			for i, r := range tt.expectedResult {
@@ -535,7 +544,7 @@ func TestSearchLargestModeExcludesRoot(t *testing.T) {
 	}
 
 	// Test that when largest=true and scope="/", the root directory "/" is NOT included
-	result := index.Search("", "/", "test-session", true, DefaultSearchResults)
+	result := index.Search("", "/", "test-session", true, DefaultSearchResults, 0, 0)
 
 	// Verify that "/" is NOT in the results
 	rootFound := false
@@ -631,7 +640,7 @@ func TestSearchLargestModeExcludesScopeDirectory(t *testing.T) {
 	}
 
 	// Test that when largest=true and scope="/test/", the scope directory "/test/" is NOT included
-	result := index.Search("", "/test/", "test-session", true, DefaultSearchResults)
+	result := index.Search("", "/test/", "test-session", true, DefaultSearchResults, 0, 0)
 
 	// Verify that "/test/" is NOT in the results
 	scopeDirFound := false

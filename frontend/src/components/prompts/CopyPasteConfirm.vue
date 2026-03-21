@@ -25,7 +25,7 @@
 
   <div class="card-actions">
     <button
-      @click="closeHovers"
+      @click="closeTopPrompt"
       class="button button--flat button--grey"
       :aria-label="$t('general.cancel')"
       :title="$t('general.cancel')">
@@ -78,12 +78,12 @@ export default {
     },
   },
   methods: {
-    closeHovers() {
-      mutations.closeTopHover();
+    closeTopPrompt() {
+      mutations.closeTopPrompt();
     },
     confirm() {
       this.onConfirm();
-      mutations.closeTopHover();
+      mutations.closeTopPrompt();
     },
   },
 };

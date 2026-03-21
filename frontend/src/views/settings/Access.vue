@@ -107,7 +107,7 @@ export default {
       }
     },
     addAccess() {
-      mutations.showHover({
+      mutations.showPrompt({
         name: "access",
         props: {
           sourceName: this.selectedSource,
@@ -116,7 +116,7 @@ export default {
       });
     },
     editAccess(path) {
-      mutations.showHover({
+      mutations.showPrompt({
         name: "access",
         props: {
           sourceName: this.selectedSource,

@@ -62,7 +62,7 @@ type Server struct {
 	InternalUrl                  string         `json:"internalUrl"`     // used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
 	CacheDir                     string         `json:"cacheDir"`        // path to the cache directory, used for thumbnails and other cached files
 	CacheDirCleanup              bool           `json:"cacheDirCleanup"` // whether to automatically cleanup the cache directory. Note: docker must also mount a persistent volume to persist the cache (default: false)
-	MaxArchiveSizeGB             int64          `json:"maxArchiveSize"`  // deprecated: no longer a limitation after v1.3.2-beta
+	MaxArchiveSizeGB             int64          `json:"maxArchiveSize"`  // maximum archive/unarchive size in GB. 0 means no limit. (default: 20)
 	Filesystem                   Filesystem     `json:"filesystem"`      // filesystem settings
 	IndexSqlConfig               IndexSqlConfig `json:"indexSqlConfig"`  // Index database SQL configuration
 	DisableWebDAV                bool           `json:"disableWebDAV"`   // disable webdav support (default: false)
@@ -261,6 +261,7 @@ type ResolvedRulesConfig struct {
 	IgnoreAllZeroSizeFolders bool // Excludes all folders with 0 size
 	IgnoreAllSymlinks        bool // Excludes all symbolic links
 	IndexingDisabled         bool // Excludes all files and folders from indexing
+	NoRules                  bool // No rules are configured
 }
 
 type Frontend struct {
@@ -363,4 +364,5 @@ type UserDefaults struct {
 	CustomTheme                string                  `json:"customTheme"`                // Name of theme to use chosen from custom themes config.
 	ShowSelectMultiple         bool                    `json:"showSelectMultiple"`         // show select multiple files on desktop
 	DebugOffice                bool                    `json:"debugOffice"`                // debug onlyoffice editor
+	PreferEditorForMarkdown    bool                    `json:"preferEditorForMarkdown"`    // prefer editor first for markdown files instead of the Markdown Viewer.
 }

@@ -86,7 +86,7 @@ export default {
   },
   created() {
     if (getters.eventTheme() === "halloween" && !localStorage.getItem("seenHalloweenMessage")) {
-      mutations.showHover({
+      mutations.showPrompt({
         name: "generic",
         pinned: true,
         props: {
@@ -552,7 +552,7 @@ export default {
     },
 
     showPasswordPrompt() {
-      mutations.showHover({
+      mutations.showPrompt({
         name: "password",
         pinned: true,
         props: {
@@ -569,8 +569,9 @@ export default {
       // F1!
       if (event.key === "F1") {
         event.preventDefault();
+        mutations.setSearch(false);
         if (!getters.currentPromptName()) {
-          mutations.showHover("help"); // Use mutation
+          mutations.showPrompt("help"); // Use mutation
         }
       }
 
@@ -591,13 +592,28 @@ export default {
         event.preventDefault();
         if (!getters.currentPromptName()) {
           const parentItems = state.navigation.listing || [];
-          mutations.showHover({
+          mutations.showPrompt({
             name: "rename",
             props: {
               item: state.req,
               parentItems: parentItems
             },
           });
+        }
+      }
+      // CTRL+E - switch between editor and markdown viewer
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'e') {
+        event.preventDefault();
+        const currentFile = state.req;
+        if (currentFile && currentFile.type === 'text/markdown') {
+          const currentView = getters.currentView();
+          if (currentView === 'editor') {
+            router.replace({ hash: '#preview' });
+          } else if (currentView === 'markdownViewer') {
+            if (getters.permissions()?.modify) {
+              router.replace({ hash: '#edit' });
+            }
+          }
         }
       }
     },

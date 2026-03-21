@@ -65,6 +65,7 @@ export interface UserObject {
   darkMode: boolean;
   disableSettings: boolean;
   debugOffice: boolean;
+  preferEditorForMarkdown: boolean;
   profile: {
     username: string;
     email: string;

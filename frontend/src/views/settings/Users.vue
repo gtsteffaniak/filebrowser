@@ -101,9 +101,9 @@ export default {
     },
     openPrompt(userId) {
       if (userId) {
-        mutations.showHover({ name: "user-edit", props: { userId } });
+        mutations.showPrompt({ name: "user-edit", props: { userId } });
       } else {
-        mutations.showHover({ name: "user-edit" });
+        mutations.showPrompt({ name: "user-edit" });
       }
     },
   },

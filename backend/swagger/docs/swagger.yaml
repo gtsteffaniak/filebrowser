@@ -1040,7 +1040,8 @@ definitions:
           $ref: '#/definitions/settings.LogConfig'
         type: array
       maxArchiveSize:
-        description: 'deprecated: no longer a limitation after v1.3.2-beta'
+        description: 'maximum archive/unarchive size in GB. 0 means no limit. (default:
+          20)'
         type: integer
       minSearchLength:
         description: 'minimum length of search query to begin searching (default:
@@ -1238,6 +1239,10 @@ definitions:
         type: string
       permissions:
         $ref: '#/definitions/settings.UserDefaultsPermissions'
+      preferEditorForMarkdown:
+        description: prefer editor first for markdown files instead of the Markdown
+          Viewer.
+        type: boolean
       preview:
         $ref: '#/definitions/settings.UserDefaultsPreview'
       quickDownload:
@@ -1890,6 +1895,10 @@ definitions:
         description: legacy for migration purposes... og filebrowser has perm attribute
       permissions:
         $ref: '#/definitions/users.Permissions'
+      preferEditorForMarkdown:
+        description: prefer editor first for markdown files instead of the Markdown
+          Viewer
+        type: boolean
       preview:
         $ref: '#/definitions/users.Preview'
       quickDownload:
@@ -3108,7 +3117,7 @@ paths:
       consumes:
       - application/json
       description: |-
-        Creates a zip or tar.gz archive on the server from the given paths (files and/or directories). Server-side only; no archive bytes are returned. All items must be from the same source. Folders are walked recursively; access-denied paths are silently skipped. Requires create permission.
+        Creates a zip or tar.gz archive on the server from the given paths (files and/or directories). Server-side only; no archive bytes are returned. All items must be from the same source. Folders are walked recursively; access-denied paths are silently skipped. Requires create permission. Archive size is checked against server.maxArchiveSizeGB limit if configured.
 
         **Request body parameters:**
         - **fromSource** (string, required): Source name where the paths to archive live. Example: `"default"`
@@ -3149,6 +3158,13 @@ paths:
             type: object
         "404":
           description: Source not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "413":
+          description: Request Entity Too Large (archive size exceeds maxArchiveSizeGB
+            limit)
           schema:
             additionalProperties:
               type: string
@@ -3390,7 +3406,7 @@ paths:
       consumes:
       - application/json
       description: |-
-        Extracts a zip or tar.gz archive on the server into the given destination directory. Server-side only; no extracted bytes are returned. Supports extracting to a different source via toSource. Requires create permission.
+        Extracts a zip or tar.gz archive on the server into the given destination directory. Server-side only; no extracted bytes are returned. Supports extracting to a different source via toSource. Requires create permission. Archive size is checked against server.maxArchiveSizeGB limit if configured.
 
         **Request body parameters:**
         - **fromSource** (string, required): Source name where the archive file lives. Example: `"default"`
@@ -3430,6 +3446,13 @@ paths:
             type: object
         "404":
           description: Source or archive file not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "413":
+          description: Request Entity Too Large (archive size exceeds maxArchiveSizeGB
+            limit)
           schema:
             additionalProperties:
               type: string
@@ -3892,6 +3915,14 @@ paths:
         in: query
         name: scope
         type: string
+      - description: Unix seconds; only results modified strictly before this time
+        in: query
+        name: olderThan
+        type: integer
+      - description: Unix seconds; only results modified on or after this time
+        in: query
+        name: newerThan
+        type: integer
       - description: User session ID, add unique value to prevent collisions
         in: header
         name: SessionId

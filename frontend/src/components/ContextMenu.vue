@@ -37,25 +37,25 @@
         v-if="showCreateActions"
         icon="create_new_folder"
         :label="$t('files.newFolder')"
-        @action="showNewDirHover"
+        @action="showNewDirPrompt"
       />
       <action
         v-if="showCreateActions"
         icon="note_add"
         :label="$t('files.newFile')"
-        @action="showHover('newFile')"
+        @action="showPrompt('newFile')"
       />
       <action
         v-if="showCreateActions"
         icon="file_upload"
         :label="$t('general.upload')"
-        @action="showUploadHover"
+        @action="showUploadPrompt"
       />
       <action
         v-if="showInfo"
         icon="info"
         :label="$t('general.info')"
-        @action="showInfoHover"
+        @action="showInfoPrompt"
       />
 
       <action
@@ -68,31 +68,31 @@
         v-if="showArchive"
         icon="archive"
         :label="$t('prompts.archive')"
-        @action="showArchiveHover"
+        @action="showArchivePrompt"
       />
       <action
         v-if="showUnarchive"
         icon="unarchive"
         :label="$t('prompts.unarchive')"
-        @action="showUnarchiveHover"
+        @action="showUnarchivePrompt"
       />
       <action
         v-if="showShareAction"
         icon="share"
         :label="$t('general.share')"
-        @action="showShareHover"
+        @action="showSharePrompt"
       />
       <action
         v-if="showRename"
         icon="mode_edit"
         :label="$t('general.rename')"
-        @action="showRenameHover"
+        @action="showRenamePrompt"
       />
       <action
         v-if="showCopy"
         icon="content_copy"
         :label="$t('buttons.copyFile')"
-        @action="showCopyHover"
+        @action="showCopyPrompt"
       />
       <action
         v-if="showOpenParentFolder"
@@ -110,7 +110,7 @@
         v-if="showMove"
         icon="forward"
         :label="$t('buttons.moveFile')"
-        @action="showMoveHover"
+        @action="showMovePrompt"
       />
       <action
         v-if="showSelectAll"
@@ -122,13 +122,13 @@
         v-if="showDelete"
         icon="delete"
         :label="$t('general.delete')"
-        @action="showDeleteHover"
+        @action="showDeletePrompt"
       />
       <action
         v-if="showAccess"
         icon="lock"
         :label="$t('access.rules')"
-        @action="showAccessHover"
+        @action="showAccessPrompt"
       />
       <action
         v-if="showSelectMultiple"
@@ -155,16 +155,17 @@
       class="button no-select floating-window"
       :class="{ 'dark-mode': isDarkMode }"
     >
-      <action icon="info" :label="$t('general.info')" @action="showInfoHover"/>
+      <action icon="info" :label="$t('general.info')" @action="showInfoPrompt"/>
       <action v-if="showGoToRaw" icon="open_in_new" :label="$t('general.openFile')" @action="goToRaw()" />
       <action v-if="shouldShowParentFolder()" icon="folder" :label="$t('buttons.openParentFolder')" @action="openParentFolder" />
-      <action v-if="isPreview && permissions.modify" icon="mode_edit" :label="$t('general.rename')" @action="showRenameHoverForPreview" />
+      <action v-if="isPreview && permissions.modify" icon="mode_edit" :label="$t('general.rename')" @action="showRenamePromptForPreview" />
       <action v-if="showWatch" icon="visibility" :label="$t('buttons.watchFile')" @action="watchFile()" />
       <action v-if="hasDownload" icon="file_download" :label="$t('general.download')" @action="startDownload" />
-      <action v-if="showUnarchiveInOverflow" icon="folder_open" :label="$t('prompts.unarchive')" @action="showUnarchiveHoverFromPreview" />
+      <action v-if="showUnarchiveInOverflow" icon="folder_open" :label="$t('prompts.unarchive')" @action="showUnarchivePromptFromPreview" />
       <action v-if="showEdit" icon="edit" :label="$t('general.edit')" @action="edit()" />
+      <action v-if="markdownPreview" icon="visibility" :label="$t('general.preview')" @action="switchToMarkdown" />
       <action v-if="showSave" icon="save" :label="$t('general.save')" @action="save()" />
-      <action v-if="showDelete" icon="delete" :label="$t('general.delete')" show="delete" />
+      <action v-if="showDelete" icon="delete" :label="$t('general.delete')" @action="showDeletePrompt" />
     </div>
   </transition>
 </template>
@@ -325,7 +326,7 @@ export default {
       return this.showEdit || this.showDelete || this.showSave || this.showGoToRaw || this.hasDownload || this.showUnarchiveInOverflow;
     },
     showUnarchiveInOverflow() {
-      if (!this.permissions.archive || getters.isShare()) return false;
+      if (!this.permissions.create || getters.isShare()) return false;
       const req = state.req;
       return req && !req.isDir && isArchivePath(req.path || req.name);
     },
@@ -402,6 +403,10 @@ export default {
     currentPrompt() {
       return getters.currentPrompt();
     },
+    markdownPreview() {
+      if (getters.currentView() !== 'editor') return false;
+      return state.req.type === 'text/markdown';
+    },
   },
   watch: {
     hasOverflowItems: {
@@ -431,9 +436,13 @@ export default {
     }
   },
   methods: {
-    showInfoHover() {
-      mutations.closeTopHover(); // close top hover to close overflow menu and replace any other open prompt
-      mutations.showHover({      // from preview we can open the same prompt multiple times, which is undesirable.
+    showInfoPrompt() {
+      if (!this.isPreview) {
+        mutations.closeHovers();
+      } else {
+        mutations.closeTopPrompt();
+      }
+      mutations.showPrompt({
         name: "info",
         props: {
           item: this.firstSelected,
@@ -465,14 +474,14 @@ export default {
     shouldShowParentFolder() {
       return this.isPreview && state.req.path != "/";
     },
-    showAccessHover() {
-      mutations.closeContextMenus();
+    showAccessPrompt() {
+      mutations.closeHovers();
       let sourceName = this.firstSelected?.source || state.req.source;
       let path = this.firstSelected?.path || state.req.path;
       if (this.firstSelected && !this.firstSelected.isDir) {
         path = url.removeLastDir(path) + '/';
       }
-      mutations.showHover({
+      mutations.showPrompt({
         name: "access",
         props: {
           sourceName: sourceName,
@@ -548,21 +557,21 @@ export default {
       }
       this.showCreate = true;
     },
-    showHover(value) {
-      return mutations.showHover(value);
+    showPrompt(value) {
+      return mutations.showPrompt(value);
     },
-    showShareHover() {
-      mutations.closeContextMenus();
-      mutations.showHover({
+    showSharePrompt() {
+      mutations.closeHovers();
+      mutations.showPrompt({
         name: "share",
         props: {
           item: this.selectedCount == 1 ? this.firstSelected : state.req
         },
       });
     },
-    showRenameHover() {
-      mutations.closeContextMenus();
-      mutations.showHover({
+    showRenamePrompt() {
+      mutations.closeHovers();
+      mutations.showPrompt({
         name: "rename",
         props: {
           item: this.selectedCount == 1 ? this.firstSelected : state.req,
@@ -570,11 +579,11 @@ export default {
         },
       });
     },
-    showRenameHoverForPreview() {
-      mutations.closeTopHover(); // Close the ContextMenu (if it was open from preview)
+    showRenamePromptForPreview() {
+      mutations.closeTopPrompt(); // Close the ContextMenu (if it was open from preview)
       // Get parent items from the listing
       const parentItems = state.navigation.listing || [];
-      mutations.showHover({
+      mutations.showPrompt({
         name: "rename",
         props: {
           item: state.req,
@@ -605,22 +614,22 @@ export default {
       mutations.closeHovers();
     },
     startDownload() {
-      mutations.closeTopHover();
+      mutations.closeTopPrompt();
       const items = this.providedItems;
       downloadFiles(items);
     },
-    showDeleteHover() {
-      mutations.closeTopHover();
-      mutations.showHover({
+    showDeletePrompt() {
+      mutations.closeTopPrompt();
+      mutations.showPrompt({
         name: 'delete',
         props: {
           items: this.providedItems,
         },
       });
     },
-    showMoveHover() {
-      mutations.closeContextMenus();
-      mutations.showHover({
+    showMovePrompt() {
+      mutations.closeHovers();
+      mutations.showPrompt({
         name: 'move',
         props: {
           items: this.providedItems,
@@ -628,9 +637,9 @@ export default {
         },
       });
     },
-    showCopyHover() {
-      mutations.closeContextMenus();
-      mutations.showHover({
+    showCopyPrompt() {
+      mutations.closeHovers();
+      mutations.showPrompt({
         name: 'copy',
         props: {
           items: this.providedItems,
@@ -638,8 +647,8 @@ export default {
         },
       });
     },
-    showNewDirHover() {
-      mutations.closeContextMenus();
+    showNewDirPrompt() {
+      mutations.closeHovers();
       // If the context menu was triggered on a directory, pass its path as base
       const selectedItem = this.firstSelected;
       let base = null;
@@ -650,22 +659,22 @@ export default {
           source: selectedItem.source,
         };
       }
-      mutations.showHover({
+      mutations.showPrompt({
         name: "newDir",
         props: {
           base: base,
         },
       });
     },
-    showArchiveHover() {
-      mutations.closeTopHover();
+    showArchivePrompt() {
+      mutations.closeTopPrompt();
       const items = this.providedItems.map(item => ({
         path: item.path,
         name: item.name,
         source: item.source || state.req.source,
       }));
       if (items.length === 0) return;
-      mutations.showHover({
+      mutations.showPrompt({
         name: "archive",
         props: {
           items,
@@ -674,14 +683,14 @@ export default {
         },
       });
     },
-    showUnarchiveHover() {
-      mutations.closeTopHover();
+    showUnarchivePrompt() {
+      mutations.closeTopPrompt();
       const item = this.firstSelected;
       if (!item) return;
       this.openUnarchivePrompt(item);
     },
-    showUnarchiveHoverFromPreview() {
-      mutations.closeTopHover();
+    showUnarchivePromptFromPreview() {
+      mutations.closeTopPrompt();
       const req = state.req;
       if (!req) return;
       this.openUnarchivePrompt({ path: req.path, source: req.source, name: req.name });
@@ -689,7 +698,7 @@ export default {
     openUnarchivePrompt(item) {
       const path = item.path || item.from;
       const source = item.source || state.req.source;
-      mutations.showHover({
+      mutations.showPrompt({
         name: "unarchive",
         props: {
           item: { path, source, name: item.name },
@@ -709,10 +718,10 @@ export default {
         false
       );
       window.open(downloadUrl, "_blank");
-      mutations.closeContextMenus();
+      mutations.closeHovers();
     },
     watchFile() {
-      mutations.closeContextMenus();
+      mutations.closeHovers();
       const source = state.req?.source || state.sources.current || "";
       const path = state.req?.path || "/";
       this.$router.push({
@@ -724,7 +733,10 @@ export default {
       });
     },
     async edit() {
-      window.location.hash = "#edit";
+      this.$router.replace({ hash: '#edit' });
+    },
+    async switchToMarkdown() {
+      this.$router.replace({ hash: '#preview' });
     },
     async save() {
       const button = "save";
@@ -742,10 +754,10 @@ export default {
         // Don't show error notification here - API layer already showed it
         buttons.done(button);
       }
-      mutations.closeContextMenus();
+      mutations.closeHovers();
     },
-    showUploadHover() {
-      mutations.closeContextMenus();
+    showUploadPrompt() {
+      mutations.closeHovers();
       let targetPath = state.req.path;
       let targetSource = state.req.source;
       const selectedItem = this.firstSelected;
@@ -753,7 +765,7 @@ export default {
         targetPath = selectedItem.path;
         targetSource = selectedItem.source;
       }
-      mutations.showHover({
+      mutations.showPrompt({
         name: "upload",
         props: {
           targetPath: targetPath,

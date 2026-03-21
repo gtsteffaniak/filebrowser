@@ -87,7 +87,7 @@
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { formatTimestamp } from "@/utils/moment";
 import { resourcesApi } from "@/api";
-import { state, mutations } from "@/store";
+import { state } from "@/store";
 import { notify } from "@/notify";
 
 export default {
@@ -106,9 +106,6 @@ export default {
     };
   },
   computed: {
-    closeHovers() {
-      return mutations.closeTopHover();
-    },
     humanSize() {
       return getHumanReadableFilesize(this.item?.size || 0);
     },

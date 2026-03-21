@@ -680,6 +680,7 @@ func setDefaults(generate bool) Settings {
 			SourceMap:          map[string]*Source{},
 			NameToSource:       map[string]*Source{},
 			CacheDir:           "tmp",
+			MaxArchiveSizeGB:   20,
 			IndexSqlConfig: IndexSqlConfig{
 				WalMode:      false,
 				BatchSize:    1000,
@@ -710,6 +711,7 @@ func setDefaults(generate bool) Settings {
 			DisableOnlyOfficeExt: ".md .txt .pdf .html .xml",
 			StickySidebar:        true,
 			HideFilesInTree:      false,
+			PreferEditorForMarkdown: false,
 			LockPassword:         false,
 			ShowHidden:           false,
 			DarkMode:             boolPtr(true),
@@ -867,26 +869,7 @@ func setConditionals(config *Source) {
 		IgnoreAllZeroSizeFolders: false,
 		IgnoreAllSymlinks:        false,
 		IndexingDisabled:         false,
-	}
-
-	// backwards compatibility
-	if config.Config.Conditionals.Hidden {
-		logger.Warning("source.conditionals.hidden is deprecated, use source.rules instead")
-		resolved.IgnoreAllHidden = true
-	}
-	// Backwards compatibility: if old format fields are set, treat as global rules
-	if config.Config.Conditionals.IgnoreHidden {
-		logger.Warning("source.conditionals.ignoreHidden is deprecated, use source.rules instead")
-		resolved.IgnoreAllHidden = true
-	}
-	if config.Config.DisableIndexing {
-		logger.Warning("source.disableIndexing is deprecated, use source.rules instead")
-		resolved.IndexingDisabled = true
-	}
-
-	if config.Config.Conditionals.ZeroSizeFolders {
-		logger.Warning("source.conditionals.zeroSizeFolders is deprecated, use source.rules instead")
-		resolved.IgnoreAllZeroSizeFolders = true
+		NoRules:                  len(rules) == 0,
 	}
 
 	// Process all rules and infer global flags from root-level rules

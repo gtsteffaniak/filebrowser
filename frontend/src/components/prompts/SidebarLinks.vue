@@ -381,12 +381,8 @@ export default {
       }
       return '/';
     },
-    closePrompt() {
-      // Close only this prompt (SidebarLinks), returning to the previous one (Share)
-      mutations.closeTopHover();
-    },
     openIconPicker() {
-      mutations.showHover({
+      mutations.showPrompt({
         name: "IconPicker",
         props: {
           onSelect: this.handleIconSelect,
@@ -798,7 +794,7 @@ export default {
         }
 
         // Close only this prompt, returning to the previous one (if any)
-        mutations.closeTopHover();
+        mutations.closeTopPrompt();
       } catch (error) {
         notify.showError(this.$t("sidebar.linksUpdateFailed"));
       }

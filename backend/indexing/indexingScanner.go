@@ -24,6 +24,7 @@ type Scanner struct {
 	lastScanned     time.Time
 	quickScanTime   int
 	fullScanTime    int
+	statsMu         sync.RWMutex
 	scanStartTime   int64
 	isScanning      bool // True when scanner is actively scanning or waiting for mutex
 
@@ -39,6 +40,18 @@ type Scanner struct {
 
 	stopChan chan struct{}
 	stopOnce sync.Once // Ensures stopChan is only closed once
+}
+
+func (s *Scanner) withStatsLock(fn func()) {
+	s.statsMu.Lock()
+	defer s.statsMu.Unlock()
+	fn()
+}
+
+func (s *Scanner) withStatsRLock(fn func()) {
+	s.statsMu.RLock()
+	defer s.statsMu.RUnlock()
+	fn()
 }
 
 // start begins the scanner's main loop
@@ -126,14 +139,20 @@ func (s *Scanner) runRootScan(quick bool) {
 
 	if quick {
 		s.runQuickScanRoot()
+		s.statsMu.Lock()
 		s.quickScanTime = int(time.Since(startTime).Seconds())
+		s.statsMu.Unlock()
 	} else {
 		s.runFullScanRoot()
+		s.statsMu.Lock()
 		s.fullScanTime = int(time.Since(startTime).Seconds())
+		s.statsMu.Unlock()
 		s.updateComplexity()
 	}
 
+	s.statsMu.Lock()
 	s.lastScanned = time.Now()
+	s.statsMu.Unlock()
 	s.checkForNewChildDirectories()
 	if err := s.idx.db.ShrinkMemory(); err != nil {
 		logger.Errorf("Failed to shrink memory: %v", err)
@@ -147,8 +166,10 @@ func (s *Scanner) runFullScanRoot() {
 	}
 
 	// Reset counters and initialize state for full scan
-	s.numDirs = 0
-	s.numFiles = 0
+	s.withStatsLock(func() {
+		s.numDirs = 0
+		s.numFiles = 0
+	})
 	s.scanStartTime = time.Now().Unix()
 	s.idx.mu.Lock()
 	if s.idx.scanSessionStartTime == 0 {
@@ -161,7 +182,9 @@ func (s *Scanner) runFullScanRoot() {
 
 	batchSize := s.idx.db.BatchSize
 	s.batchItems = make([]*iteminfo.FileInfo, 0, batchSize)
-	s.filesChanged = false
+	s.withStatsLock(func() {
+		s.filesChanged = false
+	})
 
 	_, _, err := s.idx.indexDirectory("/", config, s)
 	if err != nil {
@@ -184,7 +207,9 @@ func (s *Scanner) runFullScanRoot() {
 
 func (s *Scanner) runQuickScanRoot() {
 	s.scanStartTime = time.Now().Unix()
-	s.filesChanged = false
+	s.withStatsLock(func() {
+		s.filesChanged = false
+	})
 
 	// Get root-level folders from folderSizes map
 	s.idx.folderSizesMu.RLock()
@@ -228,15 +253,21 @@ func (s *Scanner) runChildScan(quick bool) {
 	if quick {
 		// Quick scan: iterate folderSizes, check modtimes only (257x faster!)
 		s.runQuickScanChild()
-		s.quickScanTime = int(time.Since(startTime).Seconds())
+		s.withStatsLock(func() {
+			s.quickScanTime = int(time.Since(startTime).Seconds())
+		})
 	} else {
 		// Full scan: walk filesystem recursively, read all directory contents
 		s.runFullScanChild()
-		s.fullScanTime = int(time.Since(startTime).Seconds())
+		s.withStatsLock(func() {
+			s.fullScanTime = int(time.Since(startTime).Seconds())
+		})
 		s.updateComplexity()
 	}
 
-	s.lastScanned = time.Now()
+	s.withStatsLock(func() {
+		s.lastScanned = time.Now()
+	})
 }
 
 func (s *Scanner) runFullScanChild() {
@@ -246,8 +277,10 @@ func (s *Scanner) runFullScanChild() {
 	}
 
 	// Reset counters and initialize state for full scan
-	s.numDirs = 0
-	s.numFiles = 0
+	s.withStatsLock(func() {
+		s.numDirs = 0
+		s.numFiles = 0
+	})
 	s.scanStartTime = time.Now().Unix()
 	s.idx.mu.Lock()
 	if s.idx.scanSessionStartTime == 0 {
@@ -257,7 +290,9 @@ func (s *Scanner) runFullScanChild() {
 
 	s.processedInodes = make(map[uint64]struct{})
 	s.foundHardLinks = make(map[string]uint64)
-	s.filesChanged = false
+	s.withStatsLock(func() {
+		s.filesChanged = false
+	})
 
 	batchSize := s.idx.db.BatchSize
 	s.batchItems = make([]*iteminfo.FileInfo, 0, batchSize)
@@ -297,7 +332,9 @@ func (s *Scanner) runFullScanChild() {
 
 func (s *Scanner) runQuickScanChild() {
 	s.scanStartTime = time.Now().Unix()
-	s.filesChanged = false
+	s.withStatsLock(func() {
+		s.filesChanged = false
+	})
 
 	// Get folders in this scanner's scope from folderSizes map
 	s.idx.folderSizesMu.RLock()
@@ -451,7 +488,10 @@ func (s *Scanner) getTopLevelDirs() []string {
 
 // calculateSleepTime determines how long to wait before the next scan
 func (s *Scanner) calculateSleepTime() time.Duration {
-	sleepTime := scanSchedule[s.currentSchedule] + s.smartModifier
+	var sleepTime time.Duration
+	s.withStatsRLock(func() {
+		sleepTime = scanSchedule[s.currentSchedule] + s.smartModifier
+	})
 	if s.idx.Config.IndexingInterval > 0 {
 		sleepTime = time.Duration(s.idx.Config.IndexingInterval) * time.Minute
 	}
@@ -461,6 +501,8 @@ func (s *Scanner) calculateSleepTime() time.Duration {
 
 // updateSchedule adjusts the scanner's schedule based on whether files changed
 func (s *Scanner) updateSchedule() {
+	s.statsMu.Lock()
+	defer s.statsMu.Unlock()
 
 	// Calculate sleep time BEFORE updating schedule (based on current/old schedule)
 	s.nextSleepTime = scanSchedule[s.currentSchedule] + s.smartModifier
@@ -506,6 +548,9 @@ func (s *Scanner) updateSchedule() {
 // updateComplexity calculates the complexity level (1-10) for this scanner's directory
 // 0: unknown
 func (s *Scanner) updateComplexity() {
+	s.statsMu.Lock()
+	defer s.statsMu.Unlock()
+
 	s.complexity = calculateComplexity(s.fullScanTime, s.numDirs)
 
 	// Set smartModifier based on complexity level
@@ -564,8 +609,10 @@ func (s *Scanner) syncStatsWithDB() {
 		return
 	}
 
-	s.numDirs = dirs
-	s.numFiles = files
+	s.withStatsLock(func() {
+		s.numDirs = dirs
+		s.numFiles = files
+	})
 }
 
 // checkFolderModtime checks if a folder's modtime changed since last scan
@@ -590,7 +637,9 @@ func (s *Scanner) checkFolderModtime(folderPath string) (bool, error) {
 
 	if modtimeChanged {
 		// Modtime changed - read directory contents and update database
-		s.filesChanged = true
+		s.withStatsLock(func() {
+			s.filesChanged = true
+		})
 
 		dir, err := os.Open(realPath)
 		if err != nil {

@@ -1,5 +1,6 @@
 {
   "buttons": {
+    "copySuccess": "Afritað á klippiborð!",
     "generateNewOtp": "Endurstilla og búa til nýjan tveggja-þrepa kóða",
     "cancel": "Hætta við",
     "verify": "Staðfesta",
@@ -101,7 +102,8 @@
     "click": "velja skrá eða möppu",
     "ctrl": {
       "click": "velja margar skrár eða möppur",
-      "d": "sækja valin atriði"
+      "d": "sækja valin atriði",
+      "e": "Víxla á milli ritils og Markdown skoðara (í .md skrám)"
     },
     "del": "eyða völdum atriðum",
     "esc": "hreinsa val og/eða loka sprettiglugga",
@@ -109,7 +111,19 @@
     "f1": "sýna aðstoðarsprettiglugga",
     "help": "Hjálp",
     "description": "Þú getur skoðað grunnstýringarvalkostina hér fyrir neðan. Fyrir frekari upplýsingar, farðu á",
-    "wiki": "FileBrowser Quantum Wiki"
+    "wiki": "FileBrowser Quantum Wiki",
+    "media": {
+      "title": "Miðlunaspilari",
+      "playPause": "Spila/Gera hlé",
+      "seekPercentage": "Leita frá 10% til 90%",
+      "seek": "Leita 10 sek., aftur eða áfram",
+      "volume": "Hækka eða lækka hljóðstyrk",
+      "mute": "Þagga/Virka hljóð",
+      "loop": "Víxla á milli endurtekningar og einstaklingshams",
+      "playbackModes": "Víxla á milli spilunarhama (fyrir utan endurtekningu og einstaklingsham)",
+      "fullscreen": "Víxla í skjáfylliham í myndskeiðum",
+      "captions": "Víxla texta á/af"
+    }
   },
   "languages": {
     "he": "עברית",
@@ -296,6 +310,8 @@
     "helpText2": "Vísirinn: Leit nýtir vísinn sem uppfærast sjálfkrafa á stilluðu millibili (sjálfgefið: 5 mínútur). Leit þegar forritið er nýrætt getur leitt til ófullnægjandi niðurstaðna."
   },
   "profileSettings": {
+    "preferEditorForMarkdown": "Kjósa ritil fyrst fyrir Markdown skrár",
+    "preferEditorForMarkdownDescription": "Þegar virkt, opna Markdown skrár fyrst í ritlinum í stað Markdown skoðara.",
     "deleteAfterArchive": "Eyða upprunaskrám eftir stofnun/útdrátt safnskráa",
     "deleteAfterArchiveDescription": "Þegar virkt, mun eyða upprunaskrám eftir árangursríka stofnun/útdrátt safnskráa",
     "hideFilesInTree": "Fela skrár í trjáflakki",
