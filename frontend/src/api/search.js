@@ -25,11 +25,11 @@ export default async function search(base, sources, query, largest = false, extr
       params.largest = "true";
     }
 
-    if (extraParams.olderThan) {
-      params.olderThan = extraParams.olderThan;
+    if (extraParams.olderThan !== undefined && extraParams.olderThan !== "") {
+      params.olderThan = String(extraParams.olderThan);
     }
-    if (extraParams.newerThan) {
-      params.newerThan = extraParams.newerThan;
+    if (extraParams.newerThan !== undefined && extraParams.newerThan !== "") {
+      params.newerThan = String(extraParams.newerThan);
     }
 
     const apiPath = getApiPath("tools/search", params);

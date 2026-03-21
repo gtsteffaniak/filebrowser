@@ -395,6 +395,23 @@ export default {
     humanSize(size) {
       return getHumanReadableFilesize(size);
     },
+    /** YYYY-MM-DD from a date input → Unix seconds at 00:00:00 UTC for that calendar day. */
+    dateToUnixStartOfDayUTC(isoDate) {
+      if (isoDate === "" || typeof isoDate !== "string") {
+        return null;
+      }
+      const parts = isoDate.split("-");
+      if (parts.length !== 3) {
+        return null;
+      }
+      const y = Number(parts[0]);
+      const m = Number(parts[1]);
+      const d = Number(parts[2]);
+      if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d)) {
+        return null;
+      }
+      return Math.floor(Date.UTC(y, m - 1, d) / 1000);
+    },
     basePath(str, isDir) {
       let result = url.removeLastDir(str);
       if (!isDir) {
@@ -466,11 +483,13 @@ export default {
         searchTypesFull = searchTypesFull + "type:smallerThan=" + this.smallerThan + " ";
       }
       const dateParams = {};
-      if (this.modifiedOlderThan !== "") {
-        dateParams.olderThan = this.modifiedOlderThan;
+      const olderUnix = this.dateToUnixStartOfDayUTC(this.modifiedOlderThan);
+      if (olderUnix !== null) {
+        dateParams.olderThan = olderUnix;
       }
-      if (this.modifiedNewerThan !== "") {
-        dateParams.newerThan = this.modifiedNewerThan;
+      const newerUnix = this.dateToUnixStartOfDayUTC(this.modifiedNewerThan);
+      if (newerUnix !== null) {
+        dateParams.newerThan = newerUnix;
       }
       this.ongoing = true;
       

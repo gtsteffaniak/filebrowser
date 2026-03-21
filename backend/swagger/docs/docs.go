@@ -2852,14 +2852,14 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "type": "string",
-                        "description": "YYYY-MM-DD; only results modified strictly before this date (UTC midnight)",
+                        "type": "integer",
+                        "description": "Unix seconds; only results modified strictly before this time",
                         "name": "olderThan",
                         "in": "query"
                     },
                     {
-                        "type": "string",
-                        "description": "YYYY-MM-DD; only results modified on or after this date (UTC midnight)",
+                        "type": "integer",
+                        "description": "Unix seconds; only results modified on or after this time",
                         "name": "newerThan",
                         "in": "query"
                     },
