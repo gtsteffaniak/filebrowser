@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Patched Username Enumeration via Authentication Timing Side-Channel  GHSA-7789-65hx-f26w
 
  **New Features**:
-  - Option to prefer editor first for Markdown files (#2136)
+  - Option in settings `userDefaults.preferEditorForMarkdown` to prefer editor first for Markdown files (#2136)
   - Copy to clipboard button for code blocks in Markdown Viewer (#2160)
 
  **Notes**:
