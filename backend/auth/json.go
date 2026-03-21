@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 )
 
@@ -42,13 +43,20 @@ func (auther JSONAuth) Auth(r *http.Request, userStore *users.Storage) (*users.U
 		}
 	}
 
-	user, err := userStore.Get(username)
-	if err != nil {
-		return nil, fmt.Errorf("unable to get user from store: %v", err)
+	user, getErr := userStore.Get(username)
+	var passwordHash string
+	if getErr != nil {
+		passwordHash = utils.InvalidPasswordHash
+	} else {
+		passwordHash = user.Password
 	}
-	err = users.CheckPwd(password, user.Password)
+	// always run checkPwd to prevent timing attacks
+	err = utils.CheckPwd(password, passwordHash)
 	if err != nil {
 		return nil, err
+	}
+	if getErr != nil {
+		return nil, fmt.Errorf("unable to get user from store: %v", err)
 	}
 
 	// check for OTP for password

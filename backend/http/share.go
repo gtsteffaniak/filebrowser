@@ -36,7 +36,12 @@ type ShareResponse struct {
 func convertToFrontendShareResponse(r *http.Request, shares []*share.Link, user *users.User) ([]*ShareResponse, error) {
 	responses := make([]*ShareResponse, 0, len(shares))
 	for _, s := range shares {
-		username := user.Username
+		// Look for the username of the user who created the share
+		creator, err := store.Users.Get(s.UserID)
+		username := ""
+		if err == nil {
+			username = creator.Username
+		}
 
 		// Get source info to convert path to name for frontend
 		sourceInfo, ok := config.Server.SourceMap[s.Source]
@@ -627,14 +632,8 @@ func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 	commonShare := shareLink.CommonShare
 	commonShare.ShareURL = getShareURL(r, hash, false, "")
-	_, _, err = getShareImagePartsHelper(shareLink, true)
-	if err == nil {
-		commonShare.BannerUrl = fmt.Sprintf("%spublic/api/share/image?banner=true&hash=%s", config.Server.BaseURL, hash)
-	}
-	_, _, err = getShareImagePartsHelper(shareLink, false)
-	if err == nil {
-		commonShare.FaviconUrl = fmt.Sprintf("%spublic/api/share/image?favicon=true&hash=%s", config.Server.BaseURL, hash)
-	}
+	commonShare.BannerUrl = shareLink.BannerURL()
+	commonShare.FaviconUrl = shareLink.FaviconURL()
 	commonShare.Source = ""
 	commonShare.Path = ""
 	commonShare.DownloadURL = ""

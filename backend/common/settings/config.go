@@ -480,8 +480,8 @@ func loadConfigWithDefaults(configFile string, generate bool) error {
 
 	// Check if config file exists
 	if _, err := os.Stat(configFile); err != nil {
-		if configFile != "" {
-			logger.Errorf("could not open config file '%v', using default settings.", configFile)
+		if configFile != "" && configFile != "config.yaml" {
+			logger.Fatalf("could not open config file '%v'", configFile)
 		}
 		Config.Server.Sources = []*Source{
 			{
