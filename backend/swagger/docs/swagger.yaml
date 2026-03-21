@@ -3907,6 +3907,16 @@ paths:
         in: query
         name: scope
         type: string
+      - description: YYYY-MM-DD; only results modified strictly before this date (UTC
+          midnight)
+        in: query
+        name: olderThan
+        type: string
+      - description: YYYY-MM-DD; only results modified on or after this date (UTC
+          midnight)
+        in: query
+        name: newerThan
+        type: string
       - description: User session ID, add unique value to prevent collisions
         in: header
         name: SessionId

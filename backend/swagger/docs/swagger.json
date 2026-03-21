@@ -2842,6 +2842,18 @@
                     },
                     {
                         "type": "string",
+                        "description": "YYYY-MM-DD; only results modified strictly before this date (UTC midnight)",
+                        "name": "olderThan",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "YYYY-MM-DD; only results modified on or after this date (UTC midnight)",
+                        "name": "newerThan",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "User session ID, add unique value to prevent collisions",
                         "name": "SessionId",
                         "in": "header"
