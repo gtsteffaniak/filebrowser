@@ -15,8 +15,8 @@ All notable changes to this project will be documented in this file. For commit 
  **Notes**:
  - docs preview for text and pdf has a 2 second timeout. If it hangs for whatever reason, the maximum time would be 2 seconds. (#2105) (#2114)
  - Downloading multiple files streams the archive creation rather than using cacheDir -- thanks @janakoram (#2125) (#2130)
-  - `server.maxArchiveSizeGB` now defaults to 20 (GB) and only applies to archive/unarchive actions (not downloads).
-  - browser download progress bar will no longer show for archive downloads. this is the main drawback to the streaming approach.
+   - `server.maxArchiveSizeGB` now defaults to 20 (GB) and only applies to archive/unarchive actions (not downloads).
+   - browser download progress bar will no longer show for archive downloads. this is the main drawback to the streaming approach.
    - should allow for much higher parallel download support and lower cleanup maintenenance.
  - [docker] ffmpeg version upgraded to 8.1
  - remote ip in logs now prefers `X-Forwarded-For` if it exists, then `X-Real-IP`, then lastly the standard RemoteAddr. Useful when running behind a proxy to log the public IP of each request. (#2110)
