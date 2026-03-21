@@ -255,7 +255,9 @@
     "notEnoughCharacters": "Nu sunt suficiente caractere pentru căutare (min {minSearchLength})",
     "typeToSearch": "Începeți să tastați {minSearchLength} sau mai multe caractere pentru a începe căutarea.",
     "showPreviewImages": "Afișați imagini de previzualizare",
-    "showPreviewImagesDescription": "Afișați previzualizări în miniatură pentru rezultatele căutării, atunci când sunt disponibile, și afișați pictograme mai mari pentru toate rezultatele."
+    "showPreviewImagesDescription": "Afișați previzualizări în miniatură pentru rezultatele căutării, atunci când sunt disponibile, și afișați pictograme mai mari pentru toate rezultatele.",
+    "olderThanDate": "Mai în vârstă decât:",
+    "newerThanDate": "Mai nou decât:"
   },
   "settings": {
     "administrator": "Administrator",

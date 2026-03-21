@@ -255,7 +255,9 @@
     "notEnoughCharacters": "Non ci sono abbastanza caratteri per la ricerca (min {minSearchLength})",
     "typeToSearch": "Iniziare a digitare {minSearchLength} o più caratteri per avviare la ricerca.",
     "showPreviewImages": "Mostra le immagini di anteprima",
-    "showPreviewImagesDescription": "Visualizzare le anteprime dei risultati della ricerca, se disponibili, e mostrare icone più grandi per tutti i risultati."
+    "showPreviewImagesDescription": "Visualizzare le anteprime dei risultati della ricerca, se disponibili, e mostrare icone più grandi per tutti i risultati.",
+    "olderThanDate": "Più vecchio di:",
+    "newerThanDate": "Più recente di:"
   },
   "settings": {
     "administrator": "Amministratore",

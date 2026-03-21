@@ -2852,6 +2852,18 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "integer",
+                        "description": "Unix seconds; only results modified strictly before this time",
+                        "name": "olderThan",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Unix seconds; only results modified on or after this time",
+                        "name": "newerThan",
+                        "in": "query"
+                    },
+                    {
                         "type": "string",
                         "description": "User session ID, add unique value to prevent collisions",
                         "name": "SessionId",

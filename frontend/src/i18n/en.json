@@ -461,6 +461,8 @@
     "noResults": "No results found in indexed search.",
     "smallerThan": "Smaller than:",
     "largerThan": "Larger than:",
+    "olderThanDate": "Older than:",
+    "newerThanDate": "Newer than:",
     "showPreviewImages": "Show preview images",
     "showPreviewImagesDescription": "Display thumbnail previews for search results when available, and show larger icons for all results.",
     "helpText1": "Search occurs on each character you type (3 character minimum for search terms).",

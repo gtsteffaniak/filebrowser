@@ -255,7 +255,9 @@
     "notEnoughCharacters": "Não há caracteres suficientes para pesquisar (mín. {minSearchLength})",
     "typeToSearch": "Comece a digitar {minSearchLength} ou mais caracteres para iniciar a busca.",
     "showPreviewImages": "Mostrar imagens de visualização",
-    "showPreviewImagesDescription": "Exibir visualizações em miniatura dos resultados da pesquisa, quando disponíveis, e mostrar ícones maiores para todos os resultados."
+    "showPreviewImagesDescription": "Exibir visualizações em miniatura dos resultados da pesquisa, quando disponíveis, e mostrar ícones maiores para todos os resultados.",
+    "olderThanDate": "Mais velho que:",
+    "newerThanDate": "Mais recente que:"
   },
   "settings": {
     "administrator": "Administrador",

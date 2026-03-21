@@ -255,7 +255,9 @@
     "notEnoughCharacters": "Niet genoeg tekens om te zoeken (min {minSearchLength})",
     "typeToSearch": "Begin met het typen van {minSearchLength} of meer tekens om te beginnen met zoeken.",
     "showPreviewImages": "Voorbeeldafbeeldingen tonen",
-    "showPreviewImagesDescription": "Toon miniatuurvoorbeelden voor zoekresultaten indien beschikbaar, en toon grotere pictogrammen voor alle resultaten."
+    "showPreviewImagesDescription": "Toon miniatuurvoorbeelden voor zoekresultaten indien beschikbaar, en toon grotere pictogrammen voor alle resultaten.",
+    "olderThanDate": "Ouder dan:",
+    "newerThanDate": "Nieuwer dan:"
   },
   "settings": {
     "administrator": "Administrator",

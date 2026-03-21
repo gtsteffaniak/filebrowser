@@ -375,6 +375,13 @@ func (fi ItemInfo) ContainsSearchTerm(searchTerm string, options SearchOptions) 
 		}
 	}
 
+	if options.ModifiedNewerThan > 0 && fi.ModTime.Unix() < options.ModifiedNewerThan {
+		return false
+	}
+	if options.ModifiedOlderThan > 0 && fi.ModTime.Unix() >= options.ModifiedOlderThan {
+		return false
+	}
+
 	return true
 }
 

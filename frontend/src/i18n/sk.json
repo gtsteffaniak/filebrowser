@@ -255,7 +255,9 @@
     "notEnoughCharacters": "Nedostatok znakov na vyhľadávanie (min. {minSearchLength})",
     "typeToSearch": "Začnite písať {minSearchLength} alebo viac znakov, aby ste začali vyhľadávať.",
     "showPreviewImages": "Zobraziť náhľad obrázkov",
-    "showPreviewImagesDescription": "Zobrazenie miniatúrnych náhľadov výsledkov vyhľadávania, ak sú k dispozícii, a zobrazenie väčších ikon pre všetky výsledky."
+    "showPreviewImagesDescription": "Zobrazenie miniatúrnych náhľadov výsledkov vyhľadávania, ak sú k dispozícii, a zobrazenie väčších ikon pre všetky výsledky.",
+    "olderThanDate": "Staršie ako:",
+    "newerThanDate": "Novšie ako:"
   },
   "settings": {
     "administrator": "Administrátor",

@@ -2,8 +2,10 @@ package http
 
 import (
 	"fmt"
+	"math"
 	"net/http"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
@@ -17,7 +19,9 @@ type searchOptions struct {
 	searchScope  string
 	combinedPath map[string]string // source -> combinedPath
 	sessionId    string
-	largest      bool
+	largest         bool
+	olderThanUnix   int64 // optional; 0 = unset. Modified time must be strictly before this Unix second.
+	newerThanUnix   int64 // optional; 0 = unset. Modified time must be >= this Unix second.
 }
 
 // searchHandler handles search requests for files based on the provided query.
@@ -39,6 +43,8 @@ type searchOptions struct {
 // - source: Source name (deprecated, use 'sources' instead)
 // - sources: Comma-separated list of source names (e.g., "source1,source2")
 // - scope: Optional path within user scope to search
+// - olderThan: Optional Unix time in seconds; only items modified strictly before this instant
+// - newerThan: Optional Unix time in seconds; only items modified on or after this instant
 //
 // Example request (single source):
 //
@@ -73,6 +79,8 @@ type searchOptions struct {
 // @Param source query string false "Source name for the desired source (deprecated, use 'sources' instead)"
 // @Param sources query string false "Comma-separated list of source names to search across multiple sources. When multiple sources are specified, scope is always the user's scope for each source."
 // @Param scope query string false "path within user scope to search, for example '/first/second' to search within the second directory only. Ignored when multiple sources are specified."
+// @Param olderThan query int false "Unix seconds; only results modified strictly before this time"
+// @Param newerThan query int false "Unix seconds; only results modified on or after this time"
 // @Param SessionId header string false "User session ID, add unique value to prevent collisions"
 // @Success 200 {array} indexing.SearchResult "List of search results with source field populated"
 // @Failure 400 {object} map[string]string "Bad Request"
@@ -96,10 +104,10 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 			return http.StatusBadRequest, fmt.Errorf("index not found for source %s", searchOptions.sources[0])
 		}
 		combinedPath := searchOptions.combinedPath[searchOptions.sources[0]]
-		response = index.Search(searchOptions.query, combinedPath, searchOptions.sessionId, searchOptions.largest, searchSize)
+		response = index.Search(searchOptions.query, combinedPath, searchOptions.sessionId, searchOptions.largest, searchSize, searchOptions.olderThanUnix, searchOptions.newerThanUnix)
 	} else {
 		// Multiple sources - use the new SearchMultiSources function
-		response = indexing.SearchMultiSources(searchOptions.query, searchOptions.sources, searchOptions.combinedPath, searchOptions.sessionId, searchOptions.largest, searchSize)
+		response = indexing.SearchMultiSources(searchOptions.query, searchOptions.sources, searchOptions.combinedPath, searchOptions.sessionId, searchOptions.largest, searchSize, searchOptions.olderThanUnix, searchOptions.newerThanUnix)
 	}
 
 	// Filter out items that are not permitted according to access rules and trim user scope from paths
@@ -127,6 +135,14 @@ func prepSearchOptions(r *http.Request, d *requestContext) (*searchOptions, erro
 	sourceParam := r.URL.Query().Get("source") // deprecated, but still supported
 	scope := r.URL.Query().Get("scope")        // Go automatically decodes query params
 	largest := r.URL.Query().Get("largest") == "true"
+	olderThanUnix, err := parseOptionalUnixQueryParam("olderThan", r.URL.Query().Get("olderThan"))
+	if err != nil {
+		return nil, err
+	}
+	newerThanUnix, err := parseOptionalUnixQueryParam("newerThan", r.URL.Query().Get("newerThan"))
+	if err != nil {
+		return nil, err
+	}
 	cleanScope, err := utils.SanitizeUserPath(scope)
 	if err != nil {
 		return nil, fmt.Errorf("invalid scope: %v", err)
@@ -176,11 +192,28 @@ func prepSearchOptions(r *http.Request, d *requestContext) (*searchOptions, erro
 	}
 
 	return &searchOptions{
-		query:        query,
-		sources:      sources,
-		searchScope:  searchScope,
-		combinedPath: combinedPathMap,
-		sessionId:    sessionId,
-		largest:      largest,
+		query:         query,
+		sources:       sources,
+		searchScope:   searchScope,
+		combinedPath:  combinedPathMap,
+		sessionId:     sessionId,
+		largest:       largest,
+		olderThanUnix: olderThanUnix,
+		newerThanUnix: newerThanUnix,
 	}, nil
+}
+
+func parseOptionalUnixQueryParam(name, raw string) (int64, error) {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return 0, nil
+	}
+	v, err := strconv.ParseUint(raw, 10, 64)
+	if err != nil {
+		return 0, fmt.Errorf("invalid %s: must be a non-negative Unix timestamp in seconds", name)
+	}
+	if v > math.MaxInt64 {
+		return 0, fmt.Errorf("invalid %s: value too large", name)
+	}
+	return int64(v), nil
 }

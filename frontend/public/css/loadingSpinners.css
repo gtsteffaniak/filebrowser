@@ -1,6 +1,89 @@
-/* NOTE: This file only contains styles needed by index.html.
-   All other loader styles (base .loader, size variants, modes, etc.)
-   are defined in LoadingSpinner.vue as scoped styles.*/
+/*
+ * LoadingSpinner.vue + initial index.html shell.
+ * Embedded in index.html via the backend; also @import'd from src/css/styles.css for the Vue app.
+ *
+ * Spinner glyph: filled SVG path (data URI mask) so ring thickness tapers along the arc — not alpha-only.
+ * Regenerate: polygon from outer/inner circular arcs (~120° sweep) in viewBox 0 0 100 100; mirror X if spin/orientation needs flipping.
+ */
+
+/* -------------------------------------------------------------------------- */
+/* Core box                                                                   */
+/* -------------------------------------------------------------------------- */
+
+.loader {
+    box-sizing: border-box;
+    margin: 0 auto;
+    border: none;
+    overflow: visible;
+    position: relative;
+    display: block;
+    border-radius: 50%;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Tapered ring: solid fill + SVG mask (true stroke-width taper, not alpha)   */
+/* Path is mirrored so the thick head leads when rotating clockwise (W3C +angle = CW). */
+/* -------------------------------------------------------------------------- */
+
+.loader__comet {
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    display: block;
+    direction: ltr;
+    background-color: var(--spinner-color, var(--primaryColor));
+    /* Mirrored annulus-sector polygon, 120° sweep, viewBox 0 0 100 100 */
+    --fb-loader-taper-mask: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M57.47%2C7.65%20L54.99%2C7.29%20L52.50%2C7.07%20L50.00%2C7.00%20L47.50%2C7.07%20L45.01%2C7.29%20L42.53%2C7.65%20L40.08%2C8.16%20L37.67%2C8.81%20L35.29%2C9.59%20L32.97%2C10.52%20L30.70%2C11.57%20L28.50%2C12.76%20L26.37%2C14.07%20L24.32%2C15.51%20L22.36%2C17.06%20L20.49%2C18.72%20L18.72%2C20.49%20L17.06%2C22.36%20L15.51%2C24.32%20L14.07%2C26.37%20L12.76%2C28.50%20L11.57%2C30.70%20L10.52%2C32.97%20L9.59%2C35.29%20L8.81%2C37.67%20L8.16%2C40.08%20L7.65%2C42.53%20L7.29%2C45.01%20L7.07%2C47.50%20L7.00%2C50.00%20L7.07%2C52.50%20L7.29%2C54.99%20L7.65%2C57.47%20L8.16%2C59.92%20L8.81%2C62.33%20L9.59%2C64.71%20L10.16%2C64.50%20L9.56%2C62.11%20L9.12%2C59.69%20L8.81%2C57.26%20L8.65%2C54.83%20L8.63%2C52.41%20L8.75%2C50.00%20L9.01%2C47.61%20L9.41%2C45.26%20L9.94%2C42.94%20L10.61%2C40.66%20L11.40%2C38.44%20L12.32%2C36.28%20L13.36%2C34.19%20L14.51%2C32.18%20L15.77%2C30.24%20L17.14%2C28.39%20L18.60%2C26.63%20L20.16%2C24.96%20L21.81%2C23.40%20L23.53%2C21.95%20L25.33%2C20.60%20L27.20%2C19.37%20L29.12%2C18.26%20L31.10%2C17.26%20L33.12%2C16.39%20L35.18%2C15.64%20L37.27%2C15.02%20L39.38%2C14.52%20L41.50%2C14.15%20L43.64%2C13.91%20L45.77%2C13.79%20L47.89%2C13.79%20L50.00%2C13.92%20L52.09%2C14.18%20L54.14%2C14.55%20L56.16%2C15.04Z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: var(--fb-loader-taper-mask);
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-image: var(--fb-loader-taper-mask);
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    transform-origin: 50% 50%;
+    transform-box: fill-box;
+    animation: fb-spinner-rotation var(--animation-duration, 1s) linear infinite;
+}
+
+@keyframes fb-spinner-rotation {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Size variants                                                              */
+/* -------------------------------------------------------------------------- */
+
+.loader--xsmall {
+    width: 12px;
+    height: 12px;
+}
+
+.loader--small {
+    width: 24px;
+    height: 24px;
+}
+
+.loader--medium {
+    width: 48px;
+    height: 48px;
+}
+
+.loader--large {
+    width: 96px;
+    height: 96px;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Initial full-page shell (index.html)                                       */
+/* -------------------------------------------------------------------------- */
+
 body > .loader {
     position: fixed;
     top: 0;
@@ -11,59 +94,256 @@ body > .loader {
     align-items: center;
     justify-content: center;
     z-index: 9999;
-    transition: .1s ease opacity;
+    transition: 0.1s ease opacity;
     pointer-events: none;
-    /* Reset loader styles - spinner will be in pseudo-element */
     border: none;
     animation: none;
+    border-radius: 0;
+    margin: 0;
 }
 
-body > .loader::before {
-    content: '';
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    border-top: 3px solid var(--spinner-color, var(--primaryColor));
-    border-right: 3px solid transparent;
-    border-bottom: 3px solid transparent;
-    box-sizing: border-box;
-    animation: spinner-rotation var(--animation-duration, 1s) linear infinite;
+body > .loader.loader--xsmall,
+body > .loader.loader--small,
+body > .loader.loader--medium,
+body > .loader.loader--large {
+    width: 100%;
+    height: 100%;
 }
 
-/* Size variants for body > .loader */
-body > .loader.loader--xsmall::before {
+body > .loader .loader__comet {
+    position: relative;
+    inset: auto;
+    flex-shrink: 0;
+}
+
+body > .loader.loader--xsmall .loader__comet {
     width: 12px;
     height: 12px;
-    border-width: 1.5px;
 }
 
-body > .loader.loader--small::before {
+body > .loader.loader--small .loader__comet {
     width: 24px;
     height: 24px;
-    border-width: 2px;
 }
 
-body > .loader.loader--medium::before {
+body > .loader.loader--medium .loader__comet {
     width: 48px;
     height: 48px;
-    border-width: 3px;
 }
 
-body > .loader.loader--large::before {
+body > .loader.loader--large .loader__comet {
     width: 96px;
     height: 96px;
-    border-width: 4px;
 }
 
 body > .loader.done {
     opacity: 0;
 }
 
-@keyframes spinner-rotation {
+/* -------------------------------------------------------------------------- */
+/* Pulse mode                                                                 */
+/* -------------------------------------------------------------------------- */
+
+.loader--pulse {
+    border: none;
+    background: var(--spinner-color, var(--primaryColor));
+    animation: fb-pulse-scale var(--animation-duration, 0.75s) ease infinite;
+}
+
+@keyframes fb-pulse-scale {
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(0.95);
+        opacity: 0.8;
+    }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Bounce mode                                                                */
+/* -------------------------------------------------------------------------- */
+
+.loader--bounce {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3em;
+    border: none;
+    background: transparent;
+    animation: none;
+}
+
+.loader--bounce::before,
+.loader--bounce::after {
+    content: "";
+    width: 0.6em;
+    height: 0.6em;
+    background-color: var(--spinner-color, var(--primaryColor));
+    border-radius: 50%;
+    display: inline-block;
+    animation: fb-bounce-scale var(--animation-duration, 0.75s) infinite ease-in-out both;
+}
+
+.loader--bounce::before {
+    animation-delay: -0.32s;
+}
+
+.loader--bounce::after {
+    animation-delay: -0.16s;
+}
+
+.loader--bounce .bounce-dot {
+    width: 0.6em;
+    height: 0.6em;
+    background-color: var(--spinner-color, var(--primaryColor));
+    border-radius: 50%;
+    display: inline-block;
+    animation: fb-bounce-scale var(--animation-duration, 0.75s) infinite ease-in-out both;
+}
+
+@keyframes fb-bounce-scale {
+    0%,
+    80%,
+    100% {
+        transform: scale(0);
+        opacity: 0.5;
+    }
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.loader--bounce.loader--xsmall::before,
+.loader--bounce.loader--xsmall::after,
+.loader--bounce.loader--xsmall .bounce-dot {
+    width: 0.3em;
+    height: 0.3em;
+}
+
+.loader--bounce.loader--small::before,
+.loader--bounce.loader--small::after,
+.loader--bounce.loader--small .bounce-dot {
+    width: 0.45em;
+    height: 0.45em;
+}
+
+.loader--bounce.loader--medium::before,
+.loader--bounce.loader--medium::after,
+.loader--bounce.loader--medium .bounce-dot {
+    width: 0.6em;
+    height: 0.6em;
+}
+
+.loader--bounce.loader--large::before,
+.loader--bounce.loader--large::after,
+.loader--bounce.loader--large .bounce-dot {
+    width: 0.9em;
+    height: 0.9em;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Placeholder mode                                                           */
+/* -------------------------------------------------------------------------- */
+
+.loader--placeholder {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    border: none;
+    animation: none;
+    width: auto;
+    height: auto;
+    border-radius: 0;
+}
+
+.placeholder-item {
+    background-color: rgba(128, 128, 128, 0.1);
+    animation: fb-placeholder-ripple 1.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite,
+        fb-placeholder-bg-fade 2s ease-in-out infinite;
+    display: block;
+    border-radius: 0.25em;
+    margin: 0;
+    padding: 0;
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        box-shadow 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.placeholder-item-1 {
+    animation-delay: 0s;
+}
+
+.placeholder-item-2 {
+    animation-delay: 0.36s;
+}
+
+.placeholder-item-3 {
+    animation-delay: 0.72s;
+}
+
+@keyframes fb-placeholder-ripple {
     0% {
-        transform: rotate(0deg);
+        transform: scale(1);
+        box-shadow: none;
+        opacity: 0.3;
+    }
+    25% {
+        transform: scale(1.07);
+        box-shadow: inset 0 -3em 3em rgba(172, 172, 172, 0.211),
+            0 0 0 2px var(--alt-background), 0 4px 12px rgba(0, 0, 0, 0.15);
+        opacity: 0.6;
+    }
+    50% {
+        transform: scale(0.97);
+        box-shadow: none;
+        opacity: 0.3;
     }
     100% {
-        transform: rotate(360deg);
+        transform: scale(1);
+        box-shadow: none;
+        opacity: 0.3;
     }
+}
+
+@keyframes fb-placeholder-bg-fade {
+    0% {
+        background-color: rgba(128, 128, 128, 0.1);
+    }
+    50% {
+        background-color: rgba(128, 128, 128, 0.4);
+    }
+    100% {
+        background-color: rgba(128, 128, 128, 0.1);
+    }
+}
+
+.loader--placeholder.loader--xsmall .placeholder-item {
+    width: 30px;
+    height: 7.5px;
+    min-width: 30px;
+    min-height: 7.5px;
+}
+
+.loader--placeholder.loader--small .placeholder-item {
+    width: 150px;
+    height: 12.5px;
+    min-width: 150px;
+    min-height: 12.5px;
+}
+
+.loader--placeholder.loader--medium .placeholder-item {
+    width: 200px;
+    height: 25px;
+    min-width: 200px;
+    min-height: 25px;
+}
+
+.loader--placeholder.loader--large .placeholder-item {
+    width: 400px;
+    height: 50px;
+    min-width: 400px;
+    min-height: 50px;
 }

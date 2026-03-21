@@ -255,7 +255,9 @@
     "notEnoughCharacters": "Pas assez de caractères pour effectuer une recherche (min {minSearchLength})",
     "typeToSearch": "Commencez à taper {minSearchLength} ou plus de caractères pour lancer la recherche.",
     "showPreviewImages": "Afficher les images de prévisualisation",
-    "showPreviewImagesDescription": "Afficher les vignettes des résultats de la recherche lorsqu'elles sont disponibles, et afficher des icônes plus grandes pour tous les résultats."
+    "showPreviewImagesDescription": "Afficher les vignettes des résultats de la recherche lorsqu'elles sont disponibles, et afficher des icônes plus grandes pour tous les résultats.",
+    "olderThanDate": "Plus vieux que :",
+    "newerThanDate": "Plus récent que :"
   },
   "settings": {
     "scopes": "Définir les sources autorisées et la portée de l'utilisateur au sein de celles-ci",
