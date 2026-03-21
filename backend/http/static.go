@@ -120,7 +120,10 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 			disableSidebar = true
 		}
 		banner = d.share.BannerURL()
-		favicon = d.share.FaviconURL()
+		shareFavicon := d.share.FaviconURL()
+		if shareFavicon != "" {
+			favicon = shareFavicon
+		}
 		shareHash = d.share.Hash
 	}
 	// Set login icon URL
