@@ -1,6 +1,8 @@
 package share
 
 import (
+	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -169,4 +171,45 @@ func (l *Link) SourceURL(user *users.User) string {
 	}
 	scopedPath := strings.TrimPrefix(l.Path, userScope)
 	return "/" + filepath.Join("files", sourceName, scopedPath)
+}
+
+func (l *Link) BannerURL() string {
+	_, _, err := l.GetShareImagePartsHelper(true)
+	if err == nil {
+		return fmt.Sprintf("%s%spublic/api/share/image?banner=true&hash=%s", settings.Config.Server.ExternalUrl, settings.Config.Server.BaseURL, l.Hash)
+	}
+	return l.Banner
+}
+
+func (l *Link) FaviconURL() string {
+	_, _, err := l.GetShareImagePartsHelper(false)
+	if err == nil {
+		return fmt.Sprintf("%s%spublic/api/share/image?favicon=true&hash=%s", settings.Config.Server.ExternalUrl, settings.Config.Server.BaseURL, l.Hash)
+	}
+	return l.Favicon
+}
+
+func (l *Link) GetShareImagePartsHelper(isBanner bool) (string, string, error) {
+	// Get the asset query string from share
+	var assetQueryString string
+	if isBanner {
+		assetQueryString = l.Banner
+	} else {
+		assetQueryString = l.Favicon
+	}
+
+	if assetQueryString == "" {
+		return "", "", fmt.Errorf("asset not configured for this share")
+	}
+
+	// Parse the query string to extract source and path
+	assetParams, err := url.ParseQuery(assetQueryString)
+	if err != nil {
+		return "", "", fmt.Errorf("invalid asset configuration: %v", err)
+	}
+
+	sourceName := assetParams.Get("source")
+	assetPath := assetParams.Get("path")
+
+	return sourceName, assetPath, nil
 }
