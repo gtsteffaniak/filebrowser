@@ -13,6 +13,8 @@ All notable changes to this project will be documented in this file. For commit 
   - `server.maxArchiveSizeGB` now defaults to 20 (GB) and only applies to archive/unarchive actions (not downloads).
   - browser download progress bar will no longer show for archive downloads. this is the main drawback to the streaming approach.
    - should allow for much higher parallel download support and lower cleanup maintenenance.
+ - [docker] ffmpeg version upgraded to 8.1
+ - remote ip in logs now prefers `X-Forwarded-For` if it exists, then `X-Real-IP`, then lastly the standard RemoteAddr. Useful when running behind a proxy to log the public IP of each request. (#2110)
 
  **BugFixes**:
  - [OnlyOffice] Error when saving a file under a user scope #2133
