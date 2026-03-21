@@ -241,7 +241,9 @@
     "notEnoughCharacters": "Arama yapmak için yeterli karakter yok (min {minSearchLength})",
     "typeToSearch": "Aramaya başlamak için {minSearchLength} veya daha fazla karakter yazmaya başlayın.",
     "showPreviewImages": "Önizleme resimlerini göster",
-    "showPreviewImagesDescription": "Kullanılabilir olduğunda arama sonuçları için küçük resim önizlemelerini görüntüleyin ve tüm sonuçlar için daha büyük simgeler gösterin."
+    "showPreviewImagesDescription": "Kullanılabilir olduğunda arama sonuçları için küçük resim önizlemelerini görüntüleyin ve tüm sonuçlar için daha büyük simgeler gösterin.",
+    "olderThanDate": "Daha yaşlı:",
+    "newerThanDate": "Daha yeni:"
   },
   "settings": {
     "administrator": "Yönetici",

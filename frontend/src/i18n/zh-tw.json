@@ -114,8 +114,8 @@
     "svSE": "Swedish (Sweden)",
     "tr": "Türkçe",
     "ua": "Українська",
-    "zhCN": "中文（简体）",
-    "zhTW": "中文（繁體）",
+    "zhCN": "中文 (简体)",
+    "zhTW": "中文 (繁體)",
     "cz": "Čeština"
   },
   "login": {
@@ -241,7 +241,9 @@
     "notEnoughCharacters": "搜尋字元不足（至少需要 {minSearchLength} 個字元）",
     "typeToSearch": "請輸入至少 {minSearchLength} 個字元以開始搜尋。",
     "showPreviewImages": "顯示預覽圖片",
-    "showPreviewImagesDescription": "若可用，會為搜尋結果顯示縮圖預覽，並為所有結果顯示較大的圖示。"
+    "showPreviewImagesDescription": "若可用，會為搜尋結果顯示縮圖預覽，並為所有結果顯示較大的圖示。",
+    "olderThanDate": "年紀比",
+    "newerThanDate": "比較新："
   },
   "settings": {
     "administrator": "管理員",

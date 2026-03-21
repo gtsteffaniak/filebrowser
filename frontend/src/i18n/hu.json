@@ -241,7 +241,9 @@
     "notEnoughCharacters": "Nincs elég karakter a kereséshez (min {minSearchLength})",
     "typeToSearch": "A keresés megkezdéséhez írja be a {minSearchLength} vagy több karaktert.",
     "showPreviewImages": "Előnézeti képek megjelenítése",
-    "showPreviewImagesDescription": "A keresési találatok miniatűr előnézeteinek megjelenítése, ha rendelkezésre állnak, és nagyobb ikonok megjelenítése az összes találathoz."
+    "showPreviewImagesDescription": "A keresési találatok miniatűr előnézeteinek megjelenítése, ha rendelkezésre állnak, és nagyobb ikonok megjelenítése az összes találathoz.",
+    "olderThanDate": "Idősebb, mint:",
+    "newerThanDate": "Újabb, mint:"
   },
   "settings": {
     "administrator": "Adminisztrátor",

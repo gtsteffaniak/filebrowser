@@ -319,7 +319,9 @@
     "notEnoughCharacters": "Nedostatek znaků pro vyhledávání (min. {minSearchLength})",
     "typeToSearch": "Pro zahájení vyhledávání začněte psát {minSearchLength} nebo více znaků.",
     "showPreviewImages": "Zobrazit náhledové obrázky",
-    "showPreviewImagesDescription": "Zobrazení miniaturních náhledů výsledků vyhledávání, pokud jsou k dispozici, a zobrazení větších ikon u všech výsledků."
+    "showPreviewImagesDescription": "Zobrazení miniaturních náhledů výsledků vyhledávání, pokud jsou k dispozici, a zobrazení větších ikon u všech výsledků.",
+    "olderThanDate": "Starší než:",
+    "newerThanDate": "Novější než:"
   },
   "profileSettings": {
     "deleteAfterArchive": "Smazat zdrojové soubory po vytvoření/extrahování archivů",

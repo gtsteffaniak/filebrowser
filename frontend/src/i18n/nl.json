@@ -450,7 +450,9 @@
     "showPreviewImages": "Voorbeeldafbeeldingen tonen",
     "showPreviewImagesDescription": "Toon, indien beschikbaar, miniatuurvoorbeelden voor zoekresultaten en toon grotere pictogrammen voor alle resultaten.",
     "helpText1": "Er wordt gezocht op elk teken dat u typt (minimaal 3 tekens voor zoektermen).",
-    "helpText2": "De index: Zoeken maakt gebruik van de index die automatisch wordt bijgewerkt op het ingestelde interval (standaard: 5 minuten). Zoeken als het programma net is gestart, kan onvolledige resultaten opleveren."
+    "helpText2": "De index: Zoeken maakt gebruik van de index die automatisch wordt bijgewerkt op het ingestelde interval (standaard: 5 minuten). Zoeken als het programma net is gestart, kan onvolledige resultaten opleveren.",
+    "olderThanDate": "Ouder dan:",
+    "newerThanDate": "Nieuwer dan:"
   },
   "profileSettings": {
     "deleteAfterArchive": "Bronbestanden verwijderen na aanmaken/uitpakken van archieven",

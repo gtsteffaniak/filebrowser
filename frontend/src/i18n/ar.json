@@ -241,7 +241,9 @@
     "notEnoughCharacters": "أحرف غير كافية للبحث (الحد الأدنى {minSearchLength})",
     "typeToSearch": "ابدأ الكتابة {minSearchLength} أو أكثر لبدء البحث.",
     "showPreviewImages": "عرض صور المعاينة",
-    "showPreviewImagesDescription": "عرض معاينات الصور المصغرة لنتائج البحث عند توفرها، وإظهار أيقونات أكبر لجميع النتائج."
+    "showPreviewImagesDescription": "عرض معاينات الصور المصغرة لنتائج البحث عند توفرها، وإظهار أيقونات أكبر لجميع النتائج.",
+    "olderThanDate": "أقدم من:",
+    "newerThanDate": "أحدث من:"
   },
   "settings": {
     "administrator": "Administrator",
