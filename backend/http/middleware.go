@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"net/url"
 	"runtime"
@@ -764,6 +765,26 @@ func setUserInResponseWriter(w http.ResponseWriter, user *users.User) {
 	}
 }
 
+func getRemoteIP(r *http.Request) string {
+	// 1. Check X-Forwarded-For
+	xff := r.Header.Get("X-Forwarded-For")
+	if xff != "" {
+		// The first IP is the original client
+		ips := strings.Split(xff, ",")
+		return strings.TrimSpace(ips[0])
+	}
+
+	// 2. Check X-Real-IP
+	xri := r.Header.Get("X-Real-IP")
+	if xri != "" {
+		return xri
+	}
+
+	// 3. Fallback to RemoteAddr (strip port if necessary)
+	ip, _, _ := net.SplitHostPort(r.RemoteAddr)
+	return ip
+}
+
 // LoggingMiddleware logs each request and its status code.
 func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -772,7 +793,6 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 			if rcv := recover(); rcv != nil {
 				method := r.Method
 				url := r.URL.String()
-				remoteAddr := r.RemoteAddr
 				username := "unknown" // Default username
 
 				// Attempt to get username from ResponseWriterWrapper if it's set
@@ -785,7 +805,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 				stackTrace := string(buf[:n])
 
 				logger.Errorf("PANIC RECOVERED: %v\nUser: %s\nMethod: %s\nURL: %s\nRemoteAddr: %s\nGo Stack Trace:\n%s",
-					rcv, username, method, url, remoteAddr, stackTrace)
+					rcv, username, method, url, getRemoteIP(r), stackTrace)
 
 				// Attempt to send a 500 error response to the client
 				// This is a best-effort; the connection might be broken or process too unstable.
@@ -828,7 +848,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 			fmt.Sprintf("%-7s | %3d | %-15s | %-12s | %-12s | \"%s\"",
 				r.Method,
 				wrappedWriter.StatusCode,
-				r.RemoteAddr,
+				getRemoteIP(r),
 				truncUser,
 				fmt.Sprintf("%vms", duration.Milliseconds()),
 				fullURL))
