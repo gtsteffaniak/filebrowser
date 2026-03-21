@@ -102,7 +102,8 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 				} else {
 					typeMatches = !hasDirCondition || (hasDirCondition && !dirCondition)
 				}
-				matches = sizeMatches && typeMatches
+				dateMatches := searchDateMatches(item.ModTime.Unix(), searchOptions)
+				matches = sizeMatches && typeMatches && dateMatches
 			} else {
 				matches = item.ContainsSearchTerm(searchTerm, searchOptions)
 			}
@@ -141,6 +142,16 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 		return len(parts1) < len(parts2)
 	})
 	return sortedKeys
+}
+
+func searchDateMatches(modUnix int64, opts iteminfo.SearchOptions) bool {
+	if opts.ModifiedNewerThan > 0 && modUnix < opts.ModifiedNewerThan {
+		return false
+	}
+	if opts.ModifiedOlderThan > 0 && modUnix >= opts.ModifiedOlderThan {
+		return false
+	}
+	return true
 }
 
 // SearchMultiSources searches across multiple sources in a single database query.
@@ -237,7 +248,8 @@ func SearchMultiSources(search string, sources []string, sourceScopes map[string
 				} else {
 					typeMatches = !hasDirCondition || (hasDirCondition && !dirCondition)
 				}
-				matches = sizeMatches && typeMatches
+				dateMatches := searchDateMatches(item.ModTime.Unix(), searchOptions)
+				matches = sizeMatches && typeMatches && dateMatches
 			} else {
 				matches = item.ContainsSearchTerm(searchTerm, searchOptions)
 			}

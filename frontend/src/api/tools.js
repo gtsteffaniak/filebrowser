@@ -3,7 +3,8 @@ import { notify } from "@/notify";
 import { getApiPath } from "@/utils/url.js";
 
 // GET /api/tools/search
-export async function search(base, sources, query, largest = false) {
+// extraParams: optional { olderThan: "YYYY-MM-DD", newerThan: "YYYY-MM-DD" } for modified-time filters (UTC midnight)
+export async function search(base, sources, query, largest = false, extraParams = {}) {
   try {
     const sourcesArray = Array.isArray(sources) ? sources : [sources];
     
@@ -22,6 +23,13 @@ export async function search(base, sources, query, largest = false) {
 
     if (largest) {
       params.largest = "true";
+    }
+
+    if (extraParams.olderThan) {
+      params.olderThan = extraParams.olderThan;
+    }
+    if (extraParams.newerThan) {
+      params.newerThan = extraParams.newerThan;
     }
 
     const apiPath = getApiPath("tools/search", params);

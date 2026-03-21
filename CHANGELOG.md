@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.3.2-beta
 
+ **New Features**:
+ - Add "Last modified" filter in search dialog (#2157)
+
  **Security**:
  - Patched Username Enumeration via Authentication Timing Side-Channel  GHSA-7789-65hx-f26w
 
@@ -15,6 +18,7 @@ All notable changes to this project will be documented in this file. For commit 
    - should allow for much higher parallel download support and lower cleanup maintenenance.
  - [docker] ffmpeg version upgraded to 8.1
  - remote ip in logs now prefers `X-Forwarded-For` if it exists, then `X-Real-IP`, then lastly the standard RemoteAddr. Useful when running behind a proxy to log the public IP of each request. (#2110)
+ - changed loading spinner style to be more compatible with safari browsers.
 
  **BugFixes**:
  - [OnlyOffice] Error when saving a file under a user scope #2133

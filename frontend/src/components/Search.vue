@@ -44,17 +44,19 @@
                 <ButtonGroup :buttons="typeSelect" @button-clicked="addToTypes" @remove-button-clicked="removeFromTypes"
                   :isDisabled="isTypeSelectDisabled" />
                 <!-- Inputs for filtering by file size -->
-                <div class="sizeConstraints">
+                <div class="constraints">
                   <div class="sizeInputWrapper">
                     <p>{{ $t("search.smallerThan") }}</p>
                     <input class="sizeInput" v-model="smallerThan" type="number" min="0"
-                      :placeholder="$t('general.number')" />
-                    <p>MB</p> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+                    placeholder="MB" />
+                    <p>{{ $t("search.largerThan") }}</p>
+                    <input class="sizeInput" v-model="largerThan" type="number" placeholder="MB" />
                   </div>
                   <div class="sizeInputWrapper">
-                    <p>{{ $t("search.largerThan") }}</p>
-                    <input class="sizeInput" v-model="largerThan" type="number" :placeholder="$t('general.number')" />
-                    <p>MB</p> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+                    <p>{{ $t("search.olderThanDate") }}</p>
+                    <input class="sizeInput" v-model="modifiedOlderThan" type="date" />
+                    <p>{{ $t("search.newerThanDate") }}</p>
+                    <input class="sizeInput" v-model="modifiedNewerThan" type="date" />
                   </div>
                 </div>
                 <!-- Toggle for showing preview images -->
@@ -131,6 +133,8 @@ export default {
     return {
       largerThan: "",
       smallerThan: "",
+      modifiedOlderThan: "",
+      modifiedNewerThan: "",
       noneMessage: this.$t("search.typeToSearch", { minSearchLength: globalVars.minSearchLength }),
       searchTypes: "",
       isTypeSelectDisabled: false,
@@ -164,6 +168,12 @@ export default {
       this.submit();
     },
     smallerThan() {
+      this.submit();
+    },
+    modifiedOlderThan() {
+      this.submit();
+    },
+    modifiedNewerThan() {
       this.submit();
     },
     searchTypes() {
@@ -455,6 +465,13 @@ export default {
       if (this.smallerThan != "") {
         searchTypesFull = searchTypesFull + "type:smallerThan=" + this.smallerThan + " ";
       }
+      const dateParams = {};
+      if (this.modifiedOlderThan !== "") {
+        dateParams.olderThan = this.modifiedOlderThan;
+      }
+      if (this.modifiedNewerThan !== "") {
+        dateParams.newerThan = this.modifiedNewerThan;
+      }
       this.ongoing = true;
       
       // Determine which sources to search
@@ -470,7 +487,13 @@ export default {
       // Only pass scope if searching a single source
       const scope = sourcesToSearch.length === 1 ? this.getContext : null;
       
-      this.results = await toolsApi.search(scope, sourcesToSearch, searchTypesFull + this.value);
+      this.results = await toolsApi.search(
+        scope,
+        sourcesToSearch,
+        searchTypesFull + this.value,
+        false,
+        dateParams
+      );
 
       this.ongoing = false;
       if (this.results.length == 0) {
@@ -872,7 +895,7 @@ body.rtl #search .boxes h3 {
   /* IE and Edge */
 }
 
-.sizeConstraints {
+.constraints {
   display: flex;
   flex-wrap: wrap;
   flex-direction: row;

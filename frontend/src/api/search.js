@@ -2,7 +2,7 @@ import { fetchURL } from "./utils";
 import { notify } from "@/notify";  // Import notify for error handling
 import { getApiPath } from "@/utils/url.js";
 
-export default async function search(base, sources, query, largest = false) {
+export default async function search(base, sources, query, largest = false, extraParams = {}) {
   try {
     // Ensure sources is an array
     const sourcesArray = Array.isArray(sources) ? sources : [sources];
@@ -23,6 +23,13 @@ export default async function search(base, sources, query, largest = false) {
 
     if (largest) {
       params.largest = "true";
+    }
+
+    if (extraParams.olderThan) {
+      params.olderThan = extraParams.olderThan;
+    }
+    if (extraParams.newerThan) {
+      params.newerThan = extraParams.newerThan;
     }
 
     const apiPath = getApiPath("tools/search", params);

@@ -102,6 +102,15 @@ func TestParseSearch(t *testing.T) {
 				Terms:      []string{"thisfile"},
 			},
 		},
+		{
+			input: "type:olderThan=2024-06-01 type:newerThan=2024-01-01 findme",
+			want: iteminfo.SearchOptions{
+				Conditions:         map[string]bool{"exact": false},
+				Terms:              []string{"findme"},
+				ModifiedOlderThan:  time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC).Unix(),
+				ModifiedNewerThan:  time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC).Unix(),
+			},
+		},
 	}
 
 	for _, tt := range tests {

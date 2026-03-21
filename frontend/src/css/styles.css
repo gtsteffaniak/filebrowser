@@ -10,6 +10,8 @@
 @import "./dashboard.css";
 @import "./mobile.css";
 @import "./halloween.css";
+/* Loader / skeleton: single source in public/css/loadingSpinners.css (also inlined in index.html for first paint). */
+@import "../../public/css/loadingSpinners.css";
 
 .link {
     color: var(--blue);

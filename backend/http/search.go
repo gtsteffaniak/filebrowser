@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"net/http"
 	"path/filepath"
+	"regexp"
 	"strings"
+	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
@@ -18,7 +20,11 @@ type searchOptions struct {
 	combinedPath map[string]string // source -> combinedPath
 	sessionId    string
 	largest      bool
+	olderThan    string // YYYY-MM-DD, optional; modified time strictly before this UTC midnight
+	newerThan    string // YYYY-MM-DD, optional; modified time on or after this UTC midnight
 }
+
+var searchDateQueryParam = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`)
 
 // searchHandler handles search requests for files based on the provided query.
 //
@@ -39,6 +45,8 @@ type searchOptions struct {
 // - source: Source name (deprecated, use 'sources' instead)
 // - sources: Comma-separated list of source names (e.g., "source1,source2")
 // - scope: Optional path within user scope to search
+// - olderThan: Optional YYYY-MM-DD; only items modified strictly before that UTC date
+// - newerThan: Optional YYYY-MM-DD; only items modified on or after that UTC date
 //
 // Example request (single source):
 //
@@ -73,6 +81,8 @@ type searchOptions struct {
 // @Param source query string false "Source name for the desired source (deprecated, use 'sources' instead)"
 // @Param sources query string false "Comma-separated list of source names to search across multiple sources. When multiple sources are specified, scope is always the user's scope for each source."
 // @Param scope query string false "path within user scope to search, for example '/first/second' to search within the second directory only. Ignored when multiple sources are specified."
+// @Param olderThan query string false "YYYY-MM-DD; only results modified strictly before this date (UTC midnight)"
+// @Param newerThan query string false "YYYY-MM-DD; only results modified on or after this date (UTC midnight)"
 // @Param SessionId header string false "User session ID, add unique value to prevent collisions"
 // @Success 200 {array} indexing.SearchResult "List of search results with source field populated"
 // @Failure 400 {object} map[string]string "Bad Request"
@@ -82,6 +92,8 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
+
+	query := buildSearchQueryWithDateParams(searchOptions)
 
 	searchSize := indexing.DefaultSearchResults
 	if searchOptions.largest {
@@ -96,10 +108,10 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 			return http.StatusBadRequest, fmt.Errorf("index not found for source %s", searchOptions.sources[0])
 		}
 		combinedPath := searchOptions.combinedPath[searchOptions.sources[0]]
-		response = index.Search(searchOptions.query, combinedPath, searchOptions.sessionId, searchOptions.largest, searchSize)
+		response = index.Search(query, combinedPath, searchOptions.sessionId, searchOptions.largest, searchSize)
 	} else {
 		// Multiple sources - use the new SearchMultiSources function
-		response = indexing.SearchMultiSources(searchOptions.query, searchOptions.sources, searchOptions.combinedPath, searchOptions.sessionId, searchOptions.largest, searchSize)
+		response = indexing.SearchMultiSources(query, searchOptions.sources, searchOptions.combinedPath, searchOptions.sessionId, searchOptions.largest, searchSize)
 	}
 
 	// Filter out items that are not permitted according to access rules and trim user scope from paths
@@ -121,12 +133,47 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	return renderJSON(w, r, filteredResponse)
 }
 
+func buildSearchQueryWithDateParams(opts *searchOptions) string {
+	q := strings.TrimSpace(opts.query)
+	if opts.olderThan != "" {
+		if q != "" {
+			q += " "
+		}
+		q += "type:olderThan=" + opts.olderThan
+	}
+	if opts.newerThan != "" {
+		if q != "" {
+			q += " "
+		}
+		q += "type:newerThan=" + opts.newerThan
+	}
+	return q
+}
+
 func prepSearchOptions(r *http.Request, d *requestContext) (*searchOptions, error) {
 	query := r.URL.Query().Get("query")
 	sourcesParam := r.URL.Query().Get("sources")
 	sourceParam := r.URL.Query().Get("source") // deprecated, but still supported
 	scope := r.URL.Query().Get("scope")        // Go automatically decodes query params
 	largest := r.URL.Query().Get("largest") == "true"
+	olderThan := strings.TrimSpace(r.URL.Query().Get("olderThan"))
+	newerThan := strings.TrimSpace(r.URL.Query().Get("newerThan"))
+	if olderThan != "" {
+		if !searchDateQueryParam.MatchString(olderThan) {
+			return nil, fmt.Errorf("invalid olderThan: use YYYY-MM-DD")
+		}
+		if _, err := time.Parse("2006-01-02", olderThan); err != nil {
+			return nil, fmt.Errorf("invalid olderThan: %v", err)
+		}
+	}
+	if newerThan != "" {
+		if !searchDateQueryParam.MatchString(newerThan) {
+			return nil, fmt.Errorf("invalid newerThan: use YYYY-MM-DD")
+		}
+		if _, err := time.Parse("2006-01-02", newerThan); err != nil {
+			return nil, fmt.Errorf("invalid newerThan: %v", err)
+		}
+	}
 	cleanScope, err := utils.SanitizeUserPath(scope)
 	if err != nil {
 		return nil, fmt.Errorf("invalid scope: %v", err)
@@ -182,5 +229,7 @@ func prepSearchOptions(r *http.Request, d *requestContext) (*searchOptions, erro
 		combinedPath: combinedPathMap,
 		sessionId:    sessionId,
 		largest:      largest,
+		olderThan:    olderThan,
+		newerThan:    newerThan,
 	}, nil
 }
