@@ -323,7 +323,7 @@
       {{ $t("general.share") }}
     </button>
   </div>
-  <div v-if="isPickingFile" class="card-action">
+  <div v-if="isPickingFile" class="card-actions">
     <button class="button button--flat" @click="cancelFilePicker" :aria-label="$t('general.cancel')"
       :title="$t('general.cancel')">
       {{ $t("general.cancel") }}
