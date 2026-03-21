@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"runtime"
 	"slices"
 	"strings"
@@ -339,11 +340,16 @@ func userWithoutOTPhelper(fn handleFunc) handleFunc {
 			}
 		}
 
-		// No valid admin token - proceed with username/password authentication
-		username := r.URL.Query().Get("username")
-		password := r.Header.Get("X-Password")
 		// Try LDAP first if enabled; on success set d.user and continue to handler
 		if config.Auth.Methods.LdapAuth.Enabled {
+			// No valid admin token - proceed with username/password authentication
+			username := r.URL.Query().Get("username")
+			password := r.Header.Get("X-Password")
+			// URL-decode password to support special characters in headers
+			password, err := url.QueryUnescape(password)
+			if err != nil {
+				return 401, fmt.Errorf("invalid password encoding")
+			}
 			logger.Debug("ldap auth, calling AuthenticateLDAPUser")
 			ldapUser, err := AuthenticateLDAPUser(username, password)
 			if err == nil {
@@ -391,7 +397,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 			}
 			return fn(w, r, data)
 		}
-		
+
 		// Check for JWT external auth first (header or query param)
 		if config.Auth.Methods.JwtAuth.Enabled {
 			jwtToken := r.Header.Get(config.Auth.Methods.JwtAuth.Header)
@@ -399,12 +405,12 @@ func withUserHelper(fn handleFunc) handleFunc {
 				// Check query parameter (hardcoded to "jwt")
 				jwtToken = r.URL.Query().Get("jwt")
 			}
-			
+
 			if jwtToken != "" {
 				return getJwtUser(w, r, data, fn, jwtToken)
 			}
 		}
-		
+
 		proxyUser := r.Header.Get(config.Auth.Methods.ProxyAuth.Header)
 		isProxyUser := config.Auth.Methods.ProxyAuth.Enabled && proxyUser != ""
 		keyFunc := func(token *jwt.Token) (interface{}, error) {
@@ -485,7 +491,7 @@ func getJwtUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn
 		logger.Debugf("JWT verification failed: %v", err)
 		return http.StatusForbidden, fmt.Errorf("JWT authentication failed: %w", err)
 	}
-	
+
 	// Setup user based on JWT claims
 	user, err := setupJwtUser(r, data, username, claims)
 	if err != nil {
@@ -496,7 +502,7 @@ func getJwtUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn
 	if data.user.Username == "" {
 		return http.StatusForbidden, errors.ErrUnauthorized
 	}
-	
+
 	// Generate a FileBrowser session token for JWT users if they don't have one
 	if data.token == "" {
 		expires := time.Hour * time.Duration(config.Auth.TokenExpirationHours)
@@ -507,7 +513,7 @@ func getJwtUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn
 		}
 		data.token = tokenString
 	}
-	
+
 	// Call the handler function, passing in the context (or return OK if no handler)
 	if fn == nil {
 		return http.StatusOK, nil

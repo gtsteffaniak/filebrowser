@@ -24,7 +24,7 @@ func AuthenticateLDAPUser(username, password string) (*users.User, error) {
 		logger.Debugf("ldap authentication failed: %v", err)
 		return nil, err
 	}
-	
+
 	// Use the configured UserIdentifier if available, otherwise use the login username
 	ldapCfg := settings.Config.Auth.Methods.LdapAuth
 	mappedUsername := username
@@ -36,7 +36,7 @@ func AuthenticateLDAPUser(username, password string) (*users.User, error) {
 			logger.Warningf("ldap: userIdentifier '%s' not found in LDAP entry for user %s, using login username", ldapCfg.UserIdentifier, username)
 		}
 	}
-	
+
 	logger.Debugf("ldap authentication successful, getting or creating user %s", mappedUsername)
 	return getOrCreateLdapUser(mappedUsername, groups)
 }
@@ -123,7 +123,7 @@ func authenticateLDAP(username, password string) ([]string, map[string]string, e
 	}
 
 	groups := entry.GetAttributeValues(groupAttr)
-	
+
 	// Extract user attributes for identifier mapping
 	userAttributes := make(map[string]string)
 	if c.UserIdentifier != "" {
@@ -132,7 +132,7 @@ func authenticateLDAP(username, password string) ([]string, map[string]string, e
 			userAttributes[c.UserIdentifier] = values[0]
 		}
 	}
-	
+
 	return groups, userAttributes, nil
 }
 
@@ -187,7 +187,7 @@ func ldapGroupMatchesAdmin(groupDN, adminGroup string) bool {
 func getOrCreateLdapUser(username string, groups []string) (*users.User, error) {
 	logger.Debugf("getting or creating ldap user %s", username)
 	ldapCfg := config.Auth.Methods.LdapAuth
-	
+
 	// Check if user is in required groups (if userGroups is configured)
 	if len(ldapCfg.UserGroups) > 0 {
 		userInAllowedGroup := false
@@ -208,7 +208,7 @@ func getOrCreateLdapUser(username string, groups []string) (*users.User, error) 
 		}
 		logger.Debugf("User %s is in required group, allowing access.", username)
 	}
-	
+
 	isAdmin := false
 	if ldapCfg.AdminGroup != "" {
 		for _, g := range groups {
