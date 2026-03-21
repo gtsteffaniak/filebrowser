@@ -1,5 +1,6 @@
 {
   "buttons": {
+    "copySuccess": "¡Copiado al portapapeles!",
     "copyFile": "Copiar archivo",
     "copyToClipboard": "Copiar al portapapeles",
     "moveFile": "Mover archivo",
@@ -79,7 +80,8 @@
       "comma": "Ir a configuración",
       "c": "Copiar elementos seleccionados",
       "v": "Pegar elementos copiados o cortados",
-      "x": "Cortar elementos seleccionados"
+      "x": "Cortar elementos seleccionados",
+      "e": "Cambiar entre editor y Visor Markdown (en archivos .md)"
     },
     "del": "Eliminar elementos seleccionados",
     "esc": "Cancela la selección o cierra la ventana actual",
@@ -88,7 +90,19 @@
     "description": "Aquí puedes ver todos los atajos de teclado básicos. Para saber más, visita la",
     "slash": "Abrir panel de búsqueda",
     "wiki": "documentación oficial de FileBrowser Quantum",
-    "marqueeSelect": "Selecciona archivos o carpetas con el mouse arrastrando en un espacio vacio"
+    "marqueeSelect": "Selecciona archivos o carpetas con el mouse arrastrando en un espacio vacio",
+    "media": {
+      "title": "Reproductor multimedia",
+      "playPause": "Reproducir/Pausar",
+      "seekPercentage": "Saltar del 10% al 90%",
+      "seek": "Saltar 10s, atrás o adelante",
+      "volume": "Subir o bajar el volumen",
+      "mute": "Silenciar/Activar el sonido",
+      "loop": "Activar/Desactivar reproducción en bucle",
+      "playbackModes": "Cambiar entre modos de reproducción (excepto bucle)",
+      "fullscreen": "Cambiar a pantalla completa en vídeos",
+      "captions": "Activar/Desactivar subtítulos"
+    }
   },
   "languages": {
     "he": "עברית",
@@ -696,6 +710,8 @@
     "orange": "Naranja"
   },
   "profileSettings": {
+    "preferEditorForMarkdown": "Preferir editor primero para archivos Markdown",
+    "preferEditorForMarkdownDescription": "Cuando está activado, los archivos markdown abrirán el editor en lugar del visor de Markdown",
     "deleteAfterArchive": "Eliminar archivos originales después de la creación/extracción de archivos",
     "deleteAfterArchiveDescription": "Cuando está activado, eliminará los archivos originales después de la creación o extracción de archivos",
     "hideFilesInTree": "Ocultar archivos en la navegación de árbol",

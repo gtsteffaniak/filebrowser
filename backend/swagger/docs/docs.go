@@ -5567,7 +5567,7 @@ const docTemplate = `{
                     "$ref": "#/definitions/settings.UserDefaultsPermissions"
                 },
                 "preferEditorForMarkdown": {
-                    "description": "// prefer editor first for markdown files instead of the Markdown Viewer.",
+                    "description": "prefer editor first for markdown files instead of the Markdown Viewer.",
                     "type": "boolean"
                 },
                 "preview": {

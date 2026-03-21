@@ -1,5 +1,6 @@
 {
   "buttons": {
+    "copySuccess": "Gekopieerd naar klembord!",
     "copyFile": "Bestand kopiëren",
     "copyToClipboard": "Kopiëren naar klembord",
     "moveFile": "Verplaats bestand",
@@ -79,7 +80,8 @@
       "comma": "ga naar instellingen",
       "c": "geselecteerde items kopiëren",
       "v": "gekopieerde/afgesneden items plakken",
-      "x": "geselecteerde items knippen"
+      "x": "geselecteerde items knippen",
+      "e": "Schakel tussen editor en Markdown-viewer (bij .md-bestanden)"
     },
     "del": "verwijder geselecteerde items",
     "esc": "Wis selectie en/of sluit de prompt",
@@ -88,7 +90,19 @@
     "description": "Je kunt de basisnavigatieopties hieronder bekijken. Ga voor aanvullende informatie naar",
     "slash": "Zoeken activeren",
     "wiki": "FileBrowser Quantum Officiële documenten",
-    "marqueeSelect": "meerdere bestanden of mappen selecteren door ze over lege ruimte te slepen"
+    "marqueeSelect": "meerdere bestanden of mappen selecteren door ze over lege ruimte te slepen",
+    "media": {
+      "title": "Mediaspeler",
+      "playPause": "Afspelen/Pauzeren",
+      "seekPercentage": "Zoeken van 10% tot 90%",
+      "seek": "10 seconden vooruit of achteruit",
+      "volume": "Volume omhoog of omlaag",
+      "mute": "Geluid dempen/inschakelen",
+      "loop": "Schakel tussen herhalen en enkelvoudige modus",
+      "playbackModes": "Schakel tussen afspeelmodi (behalve herhalen en enkelvoudig)",
+      "fullscreen": "Volledig scherm modus voor video's",
+      "captions": "Ondertiteling aan/uit"
+    }
   },
   "languages": {
     "he": "עברית",
@@ -550,6 +564,8 @@
     "orange": "oranje"
   },
   "profileSettings": {
+    "preferEditorForMarkdown": "Geef de voorkeur aan editor voor Markdown-bestanden",
+    "preferEditorForMarkdownDescription": "Indien ingeschakeld, open Markdown-bestanden eerst in de editor in plaats van de Markdown-viewer.",
     "deleteAfterArchive": "Bronbestanden verwijderen na aanmaken/uitpakken van archieven",
     "deleteAfterArchiveDescription": "Indien ingeschakeld, worden de bronbestanden verwijderd na succesvol aanmaken/uitpakken van archieven",
     "hideFilesInTree": "Bestanden verbergen in boomnavigatie",

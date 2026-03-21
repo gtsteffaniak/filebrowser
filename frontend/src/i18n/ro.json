@@ -1,5 +1,6 @@
 {
   "buttons": {
+    "copySuccess": "Copiat în clipboard!",
     "copyFile": "Copiază fișier",
     "copyToClipboard": "Copiază în clipboard",
     "moveFile": "Mută fișier",
@@ -79,7 +80,8 @@
       "comma": "mergeți la setări",
       "c": "copiați elementele selectate",
       "v": "lipiți elementele copiate/tăiate",
-      "x": "tăiați articolele selectate"
+      "x": "tăiați articolele selectate",
+      "e": "Comută între editor și vizualizatorul Markdown (pentru fișiere .md)"
     },
     "del": "șterge elementele selectate",
     "esc": "elibereaza selecția și/sau închide fereastra",
@@ -88,7 +90,19 @@
     "description": "Puteți vizualiza mai jos opțiunile de navigație de bază. Pentru informații suplimentare, vă rugăm să vizitați",
     "slash": "activați căutarea",
     "wiki": "FileBrowser Quantum Documente oficiale",
-    "marqueeSelect": "selectați mai multe fișiere sau directoare prin glisarea pe spațiul gol"
+    "marqueeSelect": "selectați mai multe fișiere sau directoare prin glisarea pe spațiul gol",
+    "media": {
+      "title": "Player media",
+      "playPause": "Redare/Pauză",
+      "seekPercentage": "Salt de la 10% la 90%",
+      "seek": "Salt 10 secunde, înapoi sau înainte",
+      "volume": "Crește sau scade volumul",
+      "mute": "Activează/Dezactivează sunetul",
+      "loop": "Comută între modul repetare și modul unic",
+      "playbackModes": "Comută între modurile de redare (excluzând repetare și unic)",
+      "fullscreen": "Comută modul ecran complet în videoclipuri",
+      "captions": "Activează/Dezactivează subtitrările"
+    }
   },
   "languages": {
     "he": "עברית",
@@ -696,6 +710,8 @@
     "orange": "portocaliu"
   },
   "profileSettings": {
+    "preferEditorForMarkdown": "Preferă editorul pentru fișierele Markdown",
+    "preferEditorForMarkdownDescription": "Când este activat, deschide fișierele Markdown în editor în locul vizualizatorului Markdown.",
     "deleteAfterArchive": "Șterge fișierele sursă după crearea/extragerea arhivelor",
     "deleteAfterArchiveDescription": "Când este activat, va șterge fișierele sursă după crearea/extragerea cu succes a arhivelor",
     "hideFilesInTree": "Ascunde fișierele în navigarea arborescentă",

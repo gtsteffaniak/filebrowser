@@ -1,5 +1,6 @@
 {
   "buttons": {
+    "copySuccess": "已复制到剪贴板！",
     "copyFile": "复制文件",
     "copyToClipboard": "复制到剪贴板",
     "moveFile": "移动文件",
@@ -79,7 +80,8 @@
       "comma": "进入设置",
       "c": "复制选定项目",
       "v": "粘贴复制/剪切的项目",
-      "x": "删减"
+      "x": "删减",
+      "e": "在编辑器和 Markdown 查看器之间切换（适用于 .md 文件）"
     },
     "del": "删除所选的文件/文件夹",
     "esc": "清除已选项或关闭提示信息",
@@ -88,7 +90,19 @@
     "description": "您可以查看下面的基本导航选项。有关其他信息，请访问",
     "slash": "启动搜索",
     "wiki": "FileBrowser Quantum 官方文档",
-    "marqueeSelect": "在空白处拖动，选择多个文件或目录"
+    "marqueeSelect": "在空白处拖动，选择多个文件或目录",
+    "media": {
+      "title": "媒体播放器",
+      "playPause": "播放/暂停",
+      "seekPercentage": "从 10% 跳转到 90%",
+      "seek": "前进或后退 10 秒",
+      "volume": "调高或调低音量",
+      "mute": "静音/取消静音",
+      "loop": "在循环模式和单次模式之间切换",
+      "playbackModes": "切换播放模式（不包括循环和单次）",
+      "fullscreen": "视频全屏模式切换",
+      "captions": "开启/关闭字幕"
+    }
   },
   "languages": {
     "he": "עברית",
@@ -550,6 +564,8 @@
     "orange": "橘色"
   },
   "profileSettings": {
+    "preferEditorForMarkdown": "优先使用编辑器打开 Markdown 文件",
+    "preferEditorForMarkdownDescription": "启用后，Markdown 文件将首先在编辑器中打开，而不是 Markdown 查看器。",
     "deleteAfterArchive": "创建/提取存档后删除源文件",
     "deleteAfterArchiveDescription": "启用后，将在成功创建/提取存档后删除源文件",
     "hideFilesInTree": "在树形导航中隐藏文件",

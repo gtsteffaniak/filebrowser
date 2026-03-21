@@ -1,5 +1,6 @@
 {
   "buttons": {
+    "copySuccess": "In die Zwischenablage kopiert!",
     "copyFile": "Datei kopieren",
     "copyToClipboard": "In Zwischenablage kopieren",
     "moveFile": "Datei verschieben",
@@ -79,7 +80,8 @@
       "comma": "zu den Einstellungen gehen",
       "c": "ausgewählte Elemente kopieren",
       "v": "Kopierte/ausgeschnittene Elemente einfügen",
-      "x": "ausgewählte Artikel ausschneiden"
+      "x": "ausgewählte Artikel ausschneiden",
+      "e": "Zwischen Editor und Markdown-Betrachter umschalten (bei .md-Dateien)"
     },
     "del": "Löscht die ausgewählten Elemente",
     "esc": "Auswahl zurücksetzen und/oder Dialog schließen",
@@ -88,7 +90,19 @@
     "description": "Nachstehend finden Sie die grundlegenden Navigationsoptionen. Für zusätzliche Informationen besuchen Sie bitte das",
     "slash": "Suche aktivieren",
     "wiki": "FileBrowser Quantum-Wiki",
-    "marqueeSelect": "mehrere Dateien oder Verzeichnisse durch Ziehen auf leeren Raum auswählen"
+    "marqueeSelect": "mehrere Dateien oder Verzeichnisse durch Ziehen auf leeren Raum auswählen",
+    "media": {
+      "title": "Media Player",
+      "playPause": "Wiedergabe starten/pausieren",
+      "seekPercentage": "Springe von 10 % bis 90 %",
+      "seek": "10 Sekunden vor- oder zurückspringen",
+      "volume": "Lautstärke erhöhen oder verringern",
+      "mute": "Ton stummschalten/aktivieren",
+      "loop": "Zwischen Schleife und Einzelmodus wechseln",
+      "playbackModes": "Zwischen Wiedergabemodi wechseln (außer Schleife und Einzelmodus)",
+      "fullscreen": "Vollbildmodus bei Videos umschalten",
+      "captions": "Untertitel ein-/ausschalten"
+    }
   },
   "languages": {
     "he": "עברית",
@@ -696,6 +710,8 @@
     "orange": "orange"
   },
   "profileSettings": {
+    "preferEditorForMarkdown": "Editor für Markdown-Dateien bevorzugen",
+    "preferEditorForMarkdownDescription": "Wenn aktiviert, werden Markdown-Dateien zuerst im Editor geöffnet, anstatt im Markdown-Betrachter.",
     "deleteAfterArchive": "Quelldateien nach Erstellung/Extraktion von Archiven löschen",
     "deleteAfterArchiveDescription": "Wenn aktiviert, werden die Quelldateien nach erfolgreicher Erstellung/Extraktion von Archiven gelöscht",
     "hideFilesInTree": "Dateien in der Baumnavigation ausblenden",
