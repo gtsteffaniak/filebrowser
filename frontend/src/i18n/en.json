@@ -131,6 +131,7 @@
     "latency": "Latency{suffix}"
   },
   "buttons": {
+    "copySuccess": "Copied to clipboard!",
     "generateNewOtp": "Reset and generate new two-factor code",
     "copyFile": "Copy file",
     "copyToClipboard": "Copy to clipboard",
@@ -214,7 +215,8 @@
       "x": "cut selected items",
       "d": "download selected items",
       "b": "toggle sidebar",
-      "comma": "go to settings"
+      "comma": "go to settings",
+      "e": "Toggle between editor and markdown viewer (on .md files)"
     },
     "del": "delete selected items",
     "esc": "clear selection and/or close the prompt",
@@ -222,7 +224,19 @@
     "f1": "show help prompt",
     "slash": "activate search",
     "description": "You can view the basic naviagation options below. For additional information, please visit",
-    "wiki": "FileBrowser Quantum Official Docs"
+    "wiki": "FileBrowser Quantum Official Docs",
+    "media": {
+      "title": "Media Player",
+      "playPause": "Play/Pause playback",
+      "seekPercentage": "Seek from 10% to 90%",
+      "seek": "Seek 10s, back or forward",
+      "volume": "Turn the volume up or down",
+      "mute": "Mute/Unmute the audio playing",
+      "loop": "Toggle between loop and single mode",
+      "playbackModes": "Toggle between playback modes (excluding loop and single)",
+      "fullscreen": "Toggle fullscreen mode in videos",
+      "captions": "Toggle captions on/off"
+    }
   },
   "languages": {
     "he": "עברית",
@@ -453,6 +467,8 @@
     "helpText2": "The index: Search utilizes the index which automatically gets updated on the configured interval (default: 5 minutes). Searching when the program has just started may result in incomplete results."
   },
   "profileSettings": {
+    "preferEditorForMarkdown": "Prefer editor first for Markdown files",
+    "preferEditorForMarkdownDescription": "When enabled, open markdown files in the editor first instead of the Markdown Viewer.",
     "deleteAfterArchive": "Delete source files after creation/extraction of archives",
     "deleteAfterArchiveDescription": "When enabled, will delete the source files after successful creation/extraction of archives",
     "hideFilesInTree": "Hide files in tree navigation",

@@ -1239,6 +1239,10 @@ definitions:
         type: string
       permissions:
         $ref: '#/definitions/settings.UserDefaultsPermissions'
+      preferEditorForMarkdown:
+        description: prefer editor first for markdown files instead of the Markdown
+          Viewer.
+        type: boolean
       preview:
         $ref: '#/definitions/settings.UserDefaultsPreview'
       quickDownload:
@@ -1891,6 +1895,10 @@ definitions:
         description: legacy for migration purposes... og filebrowser has perm attribute
       permissions:
         $ref: '#/definitions/users.Permissions'
+      preferEditorForMarkdown:
+        description: prefer editor first for markdown files instead of the Markdown
+          Viewer
+        type: boolean
       preview:
         $ref: '#/definitions/users.Preview'
       quickDownload:

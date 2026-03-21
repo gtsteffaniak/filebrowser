@@ -1,5 +1,6 @@
 {
   "buttons": {
+    "copySuccess": "クリップボードにコピーしました！",
     "copyFile": "ファイルをコピー",
     "copyToClipboard": "クリップボードにコピー",
     "moveFile": "ファイルを移動",
@@ -79,7 +80,8 @@
       "comma": "設定に進む",
       "c": "選択した項目をコピーする",
       "v": "コピー/カットした項目を貼り付ける",
-      "x": "選択された項目をカット"
+      "x": "選択された項目をカット",
+      "e": "エディタとMarkdownビューアを切り替え（.mdファイル）"
     },
     "del": "選択した項目を削除",
     "esc": "選択をクリアーまたはプロンプトを閉じる",
@@ -88,7 +90,19 @@
     "description": "基本的なナビゲーションオプションは以下の通りです。その他の情報については",
     "slash": "検索をアクティブにする",
     "wiki": "FileBrowser Quantum 公式ドキュメント",
-    "marqueeSelect": "空いているスペースにドラッグして、複数のファイルやディレクトリを選択する。"
+    "marqueeSelect": "空いているスペースにドラッグして、複数のファイルやディレクトリを選択する。",
+    "media": {
+      "title": "メディアプレーヤー",
+      "playPause": "再生/一時停止",
+      "seekPercentage": "10%から90%までシーク",
+      "seek": "10秒戻る/進む",
+      "volume": "音量を上げる/下げる",
+      "mute": "ミュート/ミュート解除",
+      "loop": "ループモードとシングルモードを切り替え",
+      "playbackModes": "再生モードを切り替え（ループとシングルを除く）",
+      "fullscreen": "動画の全画面モードを切り替え",
+      "captions": "字幕のオン/オフを切り替え"
+    }
   },
   "languages": {
     "he": "עברית",
@@ -696,6 +710,8 @@
     "orange": "オレンジ"
   },
   "profileSettings": {
+    "preferEditorForMarkdown": "Markdownファイルではエディタを優先する",
+    "preferEditorForMarkdownDescription": "有効にすると、MarkdownファイルをMarkdownビューアではなくエディタで開きます。",
     "deleteAfterArchive": "アーカイブの作成/展開後にソースファイルを削除",
     "deleteAfterArchiveDescription": "有効にすると、アーカイブの作成/展開が成功した後にソースファイルを削除します",
     "hideFilesInTree": "ツリーナビゲーションでファイルを非表示",

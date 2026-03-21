@@ -131,6 +131,7 @@
     "latency": "Vertraging{suffix}"
   },
   "buttons": {
+    "copySuccess": "Gekopieerd naar klembord!",
     "generateNewOtp": "Herstellen en nieuwe twee-factorcode genereren",
     "copyFile": "Bestand kopiëren",
     "copyToClipboard": "Kopiëren naar klembord",
@@ -214,7 +215,8 @@
       "x": "geselecteerde items knippen",
       "d": "geselecteerde items downloaden",
       "b": "zijbalk schakelen",
-      "comma": "ga naar instellingen"
+      "comma": "ga naar instellingen",
+      "e": "Schakel tussen editor en Markdown-viewer (bij .md-bestanden)"
     },
     "del": "geselecteerde items verwijderen",
     "esc": "selectie wissen en/of opdrachtvenster sluiten",
@@ -222,7 +224,19 @@
     "f1": "hulp-venster tonen",
     "slash": "Zoeken inschakelen",
     "description": "U kunt de basisnavigatieopties hieronder bekijken. Ga voor aanvullende informatie naar",
-    "wiki": "FileBrowser Quantum officiële documentatie"
+    "wiki": "FileBrowser Quantum officiële documentatie",
+    "media": {
+      "title": "Mediaspeler",
+      "playPause": "Afspelen/Pauzeren",
+      "seekPercentage": "Zoeken van 10% tot 90%",
+      "seek": "10 seconden vooruit of achteruit",
+      "volume": "Volume omhoog of omlaag",
+      "mute": "Geluid dempen/inschakelen",
+      "loop": "Schakel tussen herhalen en enkelvoudige modus",
+      "playbackModes": "Schakel tussen afspeelmodi (behalve herhalen en enkelvoudig)",
+      "fullscreen": "Volledig scherm modus voor video's",
+      "captions": "Ondertiteling aan/uit"
+    }
   },
   "languages": {
     "he": "עברית",
@@ -453,6 +467,8 @@
     "helpText2": "De index: Zoeken maakt gebruik van de index die automatisch wordt bijgewerkt op het ingestelde interval (standaard: 5 minuten). Zoeken als het programma net is gestart, kan onvolledige resultaten opleveren."
   },
   "profileSettings": {
+    "preferEditorForMarkdown": "Geef de voorkeur aan editor voor Markdown-bestanden",
+    "preferEditorForMarkdownDescription": "Indien ingeschakeld, open Markdown-bestanden eerst in de editor in plaats van de Markdown-viewer.",
     "deleteAfterArchive": "Bronbestanden verwijderen na aanmaken/uitpakken van archieven",
     "deleteAfterArchiveDescription": "Indien ingeschakeld, worden de bronbestanden verwijderd na succesvol aanmaken/uitpakken van archieven",
     "hideFilesInTree": "Bestanden verbergen in boomnavigatie",

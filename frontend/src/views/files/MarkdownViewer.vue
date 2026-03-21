@@ -7,16 +7,13 @@ import { marked } from "marked";
 import DOMPurify from 'dompurify';
 import { state, mutations, getters } from "@/store";
 import hljs from 'highlight.js';
-
-// --- We have removed all `marked.use()` configuration ---
-// This allows marked to function with its robust defaults.
+import { notify } from "@/notify";
 
 export default {
   name: "markdownViewer",
   data() {
     return {
       content: "",
-      keyboardHandler: null,
     };
   },
   methods: {
@@ -44,26 +41,66 @@ export default {
       if (viewer) {
         // This tells highlight.js to find and style every code block.
         viewer.querySelectorAll('pre code').forEach((block) => {
-          hljs.highlightElement(block as HTMLElement);
+          const codeBlock = block as HTMLElement;
+          const langClass = codeBlock.className.split(/\s+/).find(c => c.startsWith('language-'));
+          let lang = langClass ? langClass.split('-')[1] : null;
 
+          if (lang && hljs.getLanguage(lang)) {
+            hljs.highlightElement(codeBlock);
+          } else {
+            const text = codeBlock.textContent;
+            const result = hljs.highlightAuto(text);
+            codeBlock.innerHTML = result.value;
+            codeBlock.classList.add('hljs');
+          }
           // Add line numbers manually after highlighting
-          this.addLineNumbers(block as HTMLElement);
+          this.addLineNumbers(codeBlock);
         });
       }
     },
     // Manual line numbers implementation
     addLineNumbers(codeBlock: HTMLElement) {
       const code = codeBlock.textContent || '';
-      const lines = code.split('\n');
+      let lines = code.split('\n');
 
-      // Don't add line numbers if there's only one line or if already added
-      if (lines.length <= 1 || codeBlock.classList.contains('line-numbers-added')) {
+      // Remove trailing empty lines
+      if (lines[lines.length - 1] === '') {
+        lines.pop();
+      }
+
+      // Don't add line numbers if already added
+      if (codeBlock.classList.contains('line-numbers-added')) {
         return;
       }
 
       // Create a wrapper div
       const wrapper = document.createElement('div');
       wrapper.className = 'code-block-wrapper';
+
+      // Create copy button
+      const copyButton = document.createElement('button');
+      copyButton.className = 'copy-code-button';
+      copyButton.innerHTML = '<span class="material-symbols-outlined">content_copy</span>';
+      copyButton.setAttribute('aria-label', 'Copy code to clipboard');
+      copyButton.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const text = codeBlock.textContent || '';
+        try {
+          await navigator.clipboard.writeText(text);
+          // Show success feedback
+          copyButton.innerHTML = '<span class="material-symbols-outlined">check</span>';
+          notify.showSuccessToast(this.$t('buttons.copySuccess'));
+          setTimeout(() => {
+            copyButton.innerHTML = '<span class="material-symbols-outlined">content_copy</span>';
+          }, 1500);
+        } catch (err) {
+          console.error('Failed to copy:', err);
+          setTimeout(() => {
+            copyButton.innerHTML = '<span class="material-symbols-outlined">content_copy</span>';
+          }, 1500);
+        }
+      });
+      wrapper.appendChild(copyButton);
 
       // Create line numbers container
       const lineNumbers = document.createElement('div');
@@ -148,39 +185,33 @@ export default {
 
     // Helper method to split highlighted HTML while preserving syntax highlighting
     splitHighlightedHTML(html: string, expectedLines: number): string[] {
-      // Create a temporary element to parse the HTML
       const temp = document.createElement('div');
       temp.innerHTML = html;
-
-      // Get the text content to count actual line breaks
       const textContent = temp.textContent || '';
-      const textLines = textContent.split('\n');
+      let textLines = textContent.split('\n');
 
-      // If there's a mismatch in line counts, fall back to simple split
+      // Remove trailing empty line from textLines if present
+      if (textLines[textLines.length - 1] === '') {
+        textLines.pop();
+      }
+
       if (textLines.length !== expectedLines) {
         return textLines.map(line => this.escapeHtml(line));
       }
 
-      // Try to split the HTML while preserving tags
-      const htmlLines: string[] = [];
+      const htmlLines = [];
       let currentHTML = html;
-      //let currentLineIndex = 0;
 
-      // For each line, try to extract the corresponding HTML
       for (let i = 0; i < textLines.length; i++) {
         const lineText = textLines[i];
-
         if (i === textLines.length - 1) {
-          // Last line - take remaining HTML
           htmlLines.push(currentHTML);
         } else {
-          // Find the line break in the HTML and split there
           const lineBreakIndex = currentHTML.indexOf('\n');
           if (lineBreakIndex !== -1) {
             htmlLines.push(currentHTML.substring(0, lineBreakIndex));
             currentHTML = currentHTML.substring(lineBreakIndex + 1);
           } else {
-            // Fallback: escape the plain text
             htmlLines.push(this.escapeHtml(lineText));
           }
         }
@@ -208,22 +239,6 @@ export default {
       // Set initial content. The `watch` will trigger the first highlight.
       const fileContent = state.req.content == "empty-file-x6OlSil" ? "" : state.req.content || "";
       this.content = fileContent;
-    },
-    setupKeyboardShortcuts() {
-      this.keyboardHandler = (event) => {
-        const { key, ctrlKey, metaKey } = event;
-        // Ctrl+E for quick edit
-        if ((ctrlKey || metaKey) && key.toLowerCase() === 'e') {
-          event.preventDefault();
-          this.quickEdit();
-        }
-      };
-      window.addEventListener('keydown', this.keyboardHandler);
-    },
-    quickEdit() {
-      if (window.location.hash !== '#edit') {
-        window.location.hash = "#edit";
-      }
     },
   },
   watch: {
@@ -266,16 +281,12 @@ export default {
   },
   mounted() {
     this.reinit();
-    this.setupKeyboardShortcuts();
   },
   unmounted() {
     // Cleanup logic is correct and remains.
     const link = document.getElementById('highlight-theme-link');
     if (link) {
       document.head.removeChild(link);
-    }
-    if (this.keyboardHandler) {
-      window.removeEventListener('keydown', this.keyboardHandler);
     }
   }
 };
@@ -288,6 +299,8 @@ export default {
   padding: 1em;
   background-color: var(--alt-background);
   border-radius: 1em;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 #markedown-viewer pre {
@@ -304,10 +317,27 @@ export default {
   font-family: 'SFMono-Regular', 'Monaco', 'Inconsolata', 'Liberation Mono', 'Courier New', monospace;
   font-size: 0.85em;
   line-height: 1.45;
+  max-width: 100%;
+  position: relative;
 }
 
 #markedown-viewer.dark-mode .code-block-wrapper {
   background-color: #161b22;
+}
+
+#markedown-viewer .copy-code-button {
+  position: absolute;
+  top: 0.4em;
+  right: 0.3em;
+  border-radius: 0.45em;
+  color: var(--primaryColor);
+  background: var(--alt-background);
+  font-size: 0.8em;
+  padding: 0.2em 0.4em;
+  transition: background 0.2s, color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Line numbers styling */
@@ -383,6 +413,7 @@ export default {
 #markedown-viewer .code-content {
   flex: 1;
   overflow-x: auto;
+  max-width: 100%;
 }
 
 #markedown-viewer .code-content pre {
@@ -391,6 +422,7 @@ export default {
   border-radius: 0;
   padding: 0;
   line-height: 1.45;
+  width: 100%;
 }
 
 #markedown-viewer .code-content code {

@@ -1,5 +1,6 @@
 {
   "buttons": {
+    "copySuccess": "Panoya kopyalandı!",
     "copyFile": "Dosyayı kopyala",
     "copyToClipboard": "Panoya kopyala",
     "moveFile": "Dosyayı taşı",
@@ -79,7 +80,8 @@
       "comma": "ayarlara git",
       "c": "seçili öğeleri kopyala",
       "v": "kopyalanan/kesilen öğeleri yapıştırma",
-      "x": "seçili öğeleri kes"
+      "x": "seçili öğeleri kes",
+      "e": "Düzenleyici ve Markdown görüntüleyici arasında geçiş yap (.md dosyalarında)"
     },
     "del": "seçilileri sil",
     "esc": "seçimi temizle veya kapatın",
@@ -88,7 +90,19 @@
     "description": "Temel navigasyon seçeneklerini aşağıda görüntüleyebilirsiniz. Ek bilgi için lütfen şu adresi ziyaret edin",
     "slash": "aramayı etkinleştir",
     "wiki": "FileBrowser Quantum Resmi Dokümanları",
-    "marqueeSelect": "boş alana sürükleyerek birden fazla dosya veya dizin seçme"
+    "marqueeSelect": "boş alana sürükleyerek birden fazla dosya veya dizin seçme",
+    "media": {
+      "title": "Medya Oynatıcı",
+      "playPause": "Oynat/Durdur",
+      "seekPercentage": "%10'dan %90'a atla",
+      "seek": "10 sn geri veya ileri atla",
+      "volume": "Sesi aç veya kıs",
+      "mute": "Sesi kapat/aç",
+      "loop": "Döngü ve tek mod arasında geçiş yap",
+      "playbackModes": "Oynatma modları arasında geçiş yap (döngü ve tek mod hariç)",
+      "fullscreen": "Videolarda tam ekran moduna geç",
+      "captions": "Altyazıları aç/kapat"
+    }
   },
   "languages": {
     "he": "עברית",
@@ -696,6 +710,8 @@
     "orange": "turuncu"
   },
   "profileSettings": {
+    "preferEditorForMarkdown": "Markdown dosyaları için önce düzenleyiciyi tercih et",
+    "preferEditorForMarkdownDescription": "Etkinleştirildiğinde, Markdown dosyalarını Markdown Görüntüleyici yerine önce düzenleyicide açar.",
     "deleteAfterArchive": "Arşiv oluşturma/çıkarma işleminden sonra kaynak dosyaları sil",
     "deleteAfterArchiveDescription": "Etkinleştirildiğinde, arşivlerin başarıyla oluşturulması/çıkarılmasından sonra kaynak dosyaları siler",
     "hideFilesInTree": "Ağaç gezintisinde dosyaları gizle",
