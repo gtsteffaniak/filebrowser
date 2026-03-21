@@ -4,15 +4,13 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.3.2-beta
 
- **New Features**:
- - Add "Last modified" filter in search dialog (#2157)
-
  **Security**:
  - Patched Username Enumeration via Authentication Timing Side-Channel  GHSA-7789-65hx-f26w
 
  **New Features**:
   - Option in settings `userDefaults.preferEditorForMarkdown` to prefer editor first for Markdown files (#2136)
   - Copy to clipboard button for code blocks in Markdown Viewer (#2160)
+  - Add "Last modified" filter in search dialog (#2157)
 
  **Notes**:
  - docs preview for text and pdf has a 2 second timeout. If it hangs for whatever reason, the maximum time would be 2 seconds. (#2105) (#2114)
