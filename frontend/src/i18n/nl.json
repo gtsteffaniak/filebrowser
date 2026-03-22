@@ -10,7 +10,7 @@
   "general": {
     "divider": "Scheiding{suffix}",
     "show": "Toon{suffix}",
-    "office": "Kantoor{suffix}",
+    "office": "Office{suffix}",
     "format": "Formaat{suffix}",
     "zoom": "Zoom{suffix}",
     "background": "Achtergrond{suffix}",
@@ -461,12 +461,12 @@
     "noResults": "Geen resultaten gevonden in geïndexeerde zoekopdrachten.",
     "smallerThan": "Kleiner dan:",
     "largerThan": "Groter dan:",
+    "olderThanDate": "Ouder dan:",
+    "newerThanDate": "Nieuwer dan:",
     "showPreviewImages": "Voorbeeldafbeeldingen tonen",
     "showPreviewImagesDescription": "Toon, indien beschikbaar, miniatuurvoorbeelden voor zoekresultaten en toon grotere pictogrammen voor alle resultaten.",
     "helpText1": "Er wordt gezocht op elk teken dat u typt (minimaal 3 tekens voor zoektermen).",
-    "helpText2": "De index: Zoeken maakt gebruik van de index die automatisch wordt bijgewerkt op het ingestelde interval (standaard: 5 minuten). Zoeken als het programma net is gestart, kan onvolledige resultaten opleveren.",
-    "olderThanDate": "Ouder dan:",
-    "newerThanDate": "Nieuwer dan:"
+    "helpText2": "De index: Zoeken maakt gebruik van de index die automatisch wordt bijgewerkt op het ingestelde interval (standaard: 5 minuten). Zoeken als het programma net is gestart, kan onvolledige resultaten opleveren."
   },
   "profileSettings": {
     "preferEditorForMarkdown": "Geef de voorkeur aan editor voor Markdown-bestanden",
@@ -497,7 +497,7 @@
     "previewMotion": "Bewegingsvoorbeelden",
     "previewMotionVideosDescription": "Bewegingsvoorbeeld is het geanimeerde popup-voorbeeld dat door de frames van de video of meerdere afbeeldingen voor een map loopt",
     "editOffice": "Office-bestanden bekijken en bewerken met OnlyOffice",
-    "editOfficeDescription": "Als alleen office is ingeschakeld, is de bestandsviewer/editor uitgeschakeld voor alle bestandsextensies die gerelateerd zijn aan Office-bestanden.",
+    "editOfficeDescription": "Als alleen Office is ingeschakeld, is de bestandsviewer/editor uitgeschakeld voor alle bestandsextensies die gerelateerd zijn aan Office-bestanden.",
     "popupPreview": "Pop-up Voorbeeldweergave",
     "popupPreviewDescription": "Er verschijnt een overlay pop-upvenster over de UI wanneer u met de muis over items met miniaturen beweegt",
     "filePreviewOptions": "Opties voor bestandsvoorbeeld",
@@ -519,7 +519,7 @@
     "editorViewerOptions": "Opties voor editor en viewer",
     "editorQuickSave": "Snel opslaan in editor",
     "editorQuickSaveDescription": "De teksteditor toont altijd het pictogram voor opslaan en verbergt alle andere acties",
-    "previewOfficeDescription": "Toon miniaturen voor kantoorbestandstypen in de listingweergave",
+    "previewOfficeDescription": "Toon miniaturen voor Office-bestandstypen in de listingweergave",
     "disableThumbnailPreviews": "Miniaturen uitschakelen voor bepaalde bestandsextensies",
     "disableThumbnailPreviewsDescription": "Een door spaties gescheiden lijst met bestandsextensies waarvoor miniatuurafbeeldingen uitgeschakeld moeten worden (bijv. '.txt .html').",
     "disableViewingFiles": "Bestandsviewer/editor uitschakelen voor bepaalde bestandsextensies",
@@ -706,10 +706,10 @@
     "enabled": "Ingeschakeld",
     "disabled": "Uitgeschakeld",
     "tokenType": "Type token:",
-    "minimalInfo": "Sluit tokenaanpassingen uit om een kleinere tokenlengte te creëren. Exacte overeenkomst met de rechten van de bijbehorende gebruiker.",
+    "clickToCopyKey": "Klik om sleutel te kopiëren (verborgen)",
     "customizeToken": "Token aanpassen",
     "customizeTokenInfo": "Pas de tokenpermissies en -attributen aan. Dit zal een langer token aanmaken dat mogelijk niet werkt bij sommige WebDAV-clients.",
-    "clickToCopyKey": "Klik om sleutel te kopiëren (verborgen)"
+    "minimalInfo": "Sluit tokenaanpassingen uit om een kleinere tokenlengte te creëren. Exacte overeenkomst met de rechten van de bijbehorende gebruiker."
   },
   "index": {
     "unknown": "Onbekend",
@@ -766,7 +766,7 @@
     "cascadeDeleteDescription": "Indien ingeschakeld, zal het verwijderen van een toegangsregel deze ook verwijderen uit alle submappen. Hierdoor kunt u een gebruiker of groep volledig verwijderen uit de hele mappenstructuur."
   },
   "fileLoading": {
-    "title": "Uploaden & Downloads",
+    "title": "Uploads & Downloads",
     "maxConcurrentUpload": "Max. gelijktijdige uploads",
     "maxConcurrentUploadHelp": "Het maximum aantal gelijktijdige uploads. Hogere waarden presteren meestal beter, maar dit hangt van veel factoren af.",
     "uploadChunkSizeMb": "Upload brokgrootte in MB",
@@ -936,7 +936,7 @@
     "apiRequest": "API verzoek - Ontvangen configuratie",
     "serverConnection": "Alleen Office-serververbinding - Verzonden configuratie",
     "testingConnectivity": "OnlyOffice serverconnectiviteit testen...",
-    "serverReachable": "Alleen de Office-server lijkt bereikbaar",
+    "serverReachable": "Alleen de OnlyOffice-server lijkt bereikbaar",
     "documentDownload": "Document downloaden - Compleet",
     "editorSuccess": "Initialisatie Editor - Succes! Alle stappen voltooid.",
     "setupError": "Setup-fout"
