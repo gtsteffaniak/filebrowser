@@ -2852,6 +2852,18 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "integer",
+                        "description": "Unix seconds; only results modified strictly before this time",
+                        "name": "olderThan",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Unix seconds; only results modified on or after this time",
+                        "name": "newerThan",
+                        "in": "query"
+                    },
+                    {
                         "type": "string",
                         "description": "User session ID, add unique value to prevent collisions",
                         "name": "SessionId",
@@ -5583,6 +5595,10 @@ const docTemplate = `{
                 "permissions": {
                     "$ref": "#/definitions/settings.UserDefaultsPermissions"
                 },
+                "preferEditorForMarkdown": {
+                    "description": "prefer editor first for markdown files instead of the Markdown Viewer.",
+                    "type": "boolean"
+                },
                 "preview": {
                     "$ref": "#/definitions/settings.UserDefaultsPreview"
                 },
@@ -6492,6 +6508,10 @@ const docTemplate = `{
                 },
                 "permissions": {
                     "$ref": "#/definitions/users.Permissions"
+                },
+                "preferEditorForMarkdown": {
+                    "description": "prefer editor first for markdown files instead of the Markdown Viewer",
+                    "type": "boolean"
                 },
                 "preview": {
                     "$ref": "#/definitions/users.Preview"

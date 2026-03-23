@@ -1,5 +1,6 @@
 {
   "buttons": {
+    "copySuccess": "Kopierat till urklipp!",
     "copyFile": "Kopiera fil",
     "copyToClipboard": "Kopiera till urklipp",
     "moveFile": "Flytta fil",
@@ -79,7 +80,8 @@
       "comma": "gå till inställningar",
       "c": "kopiera valda objekt",
       "v": "klistra in kopierade/avklippta objekt",
-      "x": "kapa valda artiklar"
+      "x": "kapa valda artiklar",
+      "e": "Växla mellan redigerare och Markdown-visare (för .md-filer)"
     },
     "del": "ta bort valda objekt",
     "esc": "Rensa markeringen och/eller stänga prompten",
@@ -88,7 +90,19 @@
     "description": "Du kan se de grundläggande navigeringsalternativen nedan. För ytterligare information, vänligen besök",
     "slash": "aktivera sökning",
     "wiki": "FileBrowser Quantum officiella dokument",
-    "marqueeSelect": "välj flera filer eller kataloger genom att dra på tomt utrymme"
+    "marqueeSelect": "välj flera filer eller kataloger genom att dra på tomt utrymme",
+    "media": {
+      "title": "Mediaspelare",
+      "playPause": "Spela/Pausa",
+      "seekPercentage": "Sök från 10% till 90%",
+      "seek": "Hoppa 10 sekunder bakåt eller framåt",
+      "volume": "Höj eller sänk volymen",
+      "mute": "Stäng av/Slå på ljudet",
+      "loop": "Växla mellan loop och enkelläge",
+      "playbackModes": "Växla mellan uppspelningslägen (exklusive loop och enkel)",
+      "fullscreen": "Växla till helskärmsläge i videor",
+      "captions": "Slå på/av undertexter"
+    }
   },
   "languages": {
     "he": "עברית",
@@ -241,7 +255,9 @@
     "notEnoughCharacters": "Inte tillräckligt med tecken för att söka (min {minSearchLength})",
     "typeToSearch": "Börja skriva {minSearchLength} eller fler tecken för att påbörja sökningen.",
     "showPreviewImages": "Visa förhandsgranskningsbilder",
-    "showPreviewImagesDescription": "Visa förhandsvisningar av miniatyrbilder för sökresultat när det är tillgängligt och visa större ikoner för alla resultat."
+    "showPreviewImagesDescription": "Visa förhandsvisningar av miniatyrbilder för sökresultat när det är tillgängligt och visa större ikoner för alla resultat.",
+    "olderThanDate": "Äldre än:",
+    "newerThanDate": "Nyare än:"
   },
   "settings": {
     "administrator": "Administratör",
@@ -550,6 +566,8 @@
     "orange": "apelsin"
   },
   "profileSettings": {
+    "preferEditorForMarkdown": "Föredra redigerare för Markdown-filer",
+    "preferEditorForMarkdownDescription": "När aktiverad, öppna Markdown-filer i redigeraren först istället för Markdown-visaren.",
     "deleteAfterArchive": "Ta bort källfiler efter skapande/extrahering av arkiv",
     "deleteAfterArchiveDescription": "När aktiverad kommer att ta bort källfilerna efter framgångsrik skapande/extrahering av arkiv",
     "hideFilesInTree": "Dölj filer i trädnavigering",

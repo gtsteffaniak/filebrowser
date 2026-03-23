@@ -119,21 +119,10 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		if d.share.DisableSidebar {
 			disableSidebar = true
 		}
-		if strings.HasPrefix(strings.ToLower(d.share.Banner), "http") {
-			banner = d.share.Banner
-		} else {
-			_, _, err := getShareImagePartsHelper(d.share, true)
-			if err == nil {
-				banner = fmt.Sprintf("%s%spublic/api/share/image?banner=true&hash=%s", config.Server.ExternalUrl, config.Server.BaseURL, d.share.Hash)
-			}
-		}
-		if strings.HasPrefix(strings.ToLower(d.share.Favicon), "http") {
-			favicon = d.share.Favicon
-		} else {
-			_, _, err := getShareImagePartsHelper(d.share, false)
-			if err == nil {
-				favicon = fmt.Sprintf("%s%spublic/api/share/image?favicon=true&hash=%s", config.Server.ExternalUrl, config.Server.BaseURL, d.share.Hash)
-			}
+		banner = d.share.BannerURL()
+		shareFavicon := d.share.FaviconURL()
+		if shareFavicon != "" {
+			favicon = shareFavicon
 		}
 		shareHash = d.share.Hash
 	}

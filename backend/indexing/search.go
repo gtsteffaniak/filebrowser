@@ -28,13 +28,19 @@ type SearchResult struct {
 	Source     string `json:"source"`
 }
 
-func (idx *Index) Search(search string, scope string, sourceSession string, largest bool, limit int) []*SearchResult {
+func (idx *Index) Search(search string, scope string, sourceSession string, largest bool, limit int, olderThanUnix, newerThanUnix int64) []*SearchResult {
 	// Ensure scope has consistent trailing slash for directory matching
 	scope = utils.AddTrailingSlashIfNotExists(scope)
 
 	runningHash := utils.InsecureRandomIdentifier(4)
 	sessionInProgress.Store(sourceSession, runningHash) // Store the value in the sync.Map
 	searchOptions := iteminfo.ParseSearch(search)
+	if olderThanUnix > 0 {
+		searchOptions.ModifiedOlderThan = olderThanUnix
+	}
+	if newerThanUnix > 0 {
+		searchOptions.ModifiedNewerThan = newerThanUnix
+	}
 	results := make(map[string]*SearchResult, 0)
 	count := 0
 
@@ -102,7 +108,8 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 				} else {
 					typeMatches = !hasDirCondition || (hasDirCondition && !dirCondition)
 				}
-				matches = sizeMatches && typeMatches
+				dateMatches := searchDateMatches(item.ModTime.Unix(), searchOptions)
+				matches = sizeMatches && typeMatches && dateMatches
 			} else {
 				matches = item.ContainsSearchTerm(searchTerm, searchOptions)
 			}
@@ -143,12 +150,22 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 	return sortedKeys
 }
 
+func searchDateMatches(modUnix int64, opts iteminfo.SearchOptions) bool {
+	if opts.ModifiedNewerThan > 0 && modUnix < opts.ModifiedNewerThan {
+		return false
+	}
+	if opts.ModifiedOlderThan > 0 && modUnix >= opts.ModifiedOlderThan {
+		return false
+	}
+	return true
+}
+
 // SearchMultiSources searches across multiple sources in a single database query.
 // sources is a list of source names to search.
 // sourceScopes is a map from source name to the scope path for that source.
 // sourceSession is used for cancellation tracking.
 // largest and limit work the same as in Search.
-func SearchMultiSources(search string, sources []string, sourceScopes map[string]string, sourceSession string, largest bool, limit int) []*SearchResult {
+func SearchMultiSources(search string, sources []string, sourceScopes map[string]string, sourceSession string, largest bool, limit int, olderThanUnix, newerThanUnix int64) []*SearchResult {
 	if len(sources) == 0 {
 		return []*SearchResult{}
 	}
@@ -168,6 +185,12 @@ func SearchMultiSources(search string, sources []string, sourceScopes map[string
 	runningHash := utils.InsecureRandomIdentifier(4)
 	sessionInProgress.Store(sourceSession, runningHash)
 	searchOptions := iteminfo.ParseSearch(search)
+	if olderThanUnix > 0 {
+		searchOptions.ModifiedOlderThan = olderThanUnix
+	}
+	if newerThanUnix > 0 {
+		searchOptions.ModifiedNewerThan = newerThanUnix
+	}
 	results := make(map[string]*SearchResult, 0)
 	count := 0
 
@@ -237,7 +260,8 @@ func SearchMultiSources(search string, sources []string, sourceScopes map[string
 				} else {
 					typeMatches = !hasDirCondition || (hasDirCondition && !dirCondition)
 				}
-				matches = sizeMatches && typeMatches
+				dateMatches := searchDateMatches(item.ModTime.Unix(), searchOptions)
+				matches = sizeMatches && typeMatches && dateMatches
 			} else {
 				matches = item.ContainsSearchTerm(searchTerm, searchOptions)
 			}

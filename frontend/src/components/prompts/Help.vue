@@ -1,3 +1,4 @@
+<!-- eslint-disable @intlify/vue-i18n/no-raw-text -->
 <template>
   <div class="card-content help-content">
     <p class="help-description">
@@ -12,19 +13,19 @@
       <div class="shortcut-section">
         <h3 class="section-title">{{ $t("help.functionKeys") }}</h3>
         <div class="shortcut-item">
-          <kbd>F1</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <kbd>F1</kbd>
           <span>{{ $t("help.f1") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>F2</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <kbd>F2</kbd>
           <span>{{ $t("help.f2") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>DEL</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <kbd>DEL</kbd>
           <span>{{ $t("help.del") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>ESC</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <kbd>ESC</kbd>
           <span>{{ $t("help.esc") }}</span>
         </div>
       </div>
@@ -33,15 +34,15 @@
       <div class="shortcut-section">
         <h3 class="section-title">{{ $t("help.mouseActions") }}</h3>
         <div class="shortcut-item">
-          <kbd>Click</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <kbd>Click</kbd>
           <span>{{ $t("help.click") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>Click + Drag</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <kbd>Click + Drag</kbd>
           <span>{{ $t("help.marqueeSelect") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>CTRL + Click</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <kbd>CTRL + Click</kbd>
           <span>{{ $t("help.ctrl.click") }}</span>
         </div>
       </div>
@@ -50,19 +51,19 @@
       <div class="shortcut-section">
         <h3 class="section-title">{{ $t("help.fileOperations") }}</h3>
         <div class="shortcut-item">
-          <kbd>CTRL + C</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <kbd>CTRL + C</kbd>
           <span>{{ $t("help.ctrl.c") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>CTRL + X</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <kbd>CTRL + X</kbd>
           <span>{{ $t("help.ctrl.x") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>CTRL + V</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <kbd>CTRL + V</kbd>
           <span>{{ $t("help.ctrl.v") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>CTRL + D</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <kbd>CTRL + D</kbd>
           <span>{{ $t("help.ctrl.d") }}</span>
         </div>
       </div>
@@ -71,16 +72,61 @@
       <div class="shortcut-section">
         <h3 class="section-title">{{ $t("general.navigation") }}</h3>
         <div class="shortcut-item">
-          <kbd>CTRL + B</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <kbd>CTRL + B</kbd>
           <span>{{ $t("help.ctrl.b") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>CTRL + ,</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <kbd>CTRL + ,</kbd>
           <span>{{ $t("help.ctrl.comma") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>/</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <kbd>/</kbd>
           <span>{{ $t("help.slash") }}</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>CTRL + E</kbd>
+          <span>{{ $t("help.ctrl.e") }}</span>
+        </div>
+      </div>
+
+      <!-- Media Section -->
+      <div class="shortcut-section">
+        <h3 class="section-title">{{ $t("help.media.title") }}</h3>
+        <div class="shortcut-item">
+          <kbd>Space / K</kbd>
+          <span>{{ $t("help.media.playPause") }}</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>1 to 9</kbd>
+          <span>{{ $t("help.media.seekPercentage") }}</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>← / →</kbd>
+          <span>{{ $t("help.media.seek") }}</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>↑ / ↓</kbd>
+          <span>{{ $t("help.media.volume") }}</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>L</kbd>
+          <span>{{ $t("help.media.loop") }}</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>P</kbd>
+          <span>{{ $t("help.media.playbackModes") }}</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>F</kbd>
+          <span>{{ $t("help.media.fullscreen") }}</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>M</kbd>
+          <span>{{ $t("help.media.mute") }}</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>C</kbd>
+          <span>{{ $t("help.media.captions") }}</span>
         </div>
       </div>
     </div>

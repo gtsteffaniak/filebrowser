@@ -1,5 +1,6 @@
 {
   "buttons": {
+    "copySuccess": "Skopírované do schránky!",
     "copyFile": "Kopírovať súbor",
     "copyToClipboard": "Kopírovať do schránky",
     "moveFile": "Presunúť súbory",
@@ -79,7 +80,8 @@
       "comma": "prejsť na nastavenia",
       "c": "kopírovať vybrané položky",
       "v": "vložiť skopírované/vyrezané položky",
-      "x": "rezanie vybraných položiek"
+      "x": "rezanie vybraných položiek",
+      "e": "Prepnúť medzi editorom a prehliadačom Markdown (pri .md súboroch)"
     },
     "del": "odstráni vybraté položky",
     "esc": "zruší výber a/alebo zavrie okno",
@@ -88,7 +90,19 @@
     "description": "Základné možnosti navigácie si môžete pozrieť nižšie. Ďalšie informácie nájdete na stránke",
     "slash": "aktivovať vyhľadávanie",
     "wiki": "Oficiálne dokumenty FileBrowser Quantum",
-    "marqueeSelect": "výber viacerých súborov alebo adresárov ťahaním na prázdne miesto"
+    "marqueeSelect": "výber viacerých súborov alebo adresárov ťahaním na prázdne miesto",
+    "media": {
+      "title": "Prehrávač médií",
+      "playPause": "Spustiť/Pozastaviť prehrávanie",
+      "seekPercentage": "Presun od 10 % do 90 %",
+      "seek": "Presun o 10 s, dozadu alebo dopredu",
+      "volume": "Zvýšiť alebo znížiť hlasitosť",
+      "mute": "Stlmiť/Zapnúť zvuk",
+      "loop": "Prepnúť medzi slučkou a jednotlivým režimom",
+      "playbackModes": "Prepnúť režimy prehrávania (okrem slučky a jednotlivého)",
+      "fullscreen": "Prepnúť režim celej obrazovky vo videách",
+      "captions": "Zapnúť/Vypnúť titulky"
+    }
   },
   "languages": {
     "he": "עברית",
@@ -241,7 +255,9 @@
     "notEnoughCharacters": "Nedostatok znakov na vyhľadávanie (min. {minSearchLength})",
     "typeToSearch": "Začnite písať {minSearchLength} alebo viac znakov, aby ste začali vyhľadávať.",
     "showPreviewImages": "Zobraziť náhľad obrázkov",
-    "showPreviewImagesDescription": "Zobrazenie miniatúrnych náhľadov výsledkov vyhľadávania, ak sú k dispozícii, a zobrazenie väčších ikon pre všetky výsledky."
+    "showPreviewImagesDescription": "Zobrazenie miniatúrnych náhľadov výsledkov vyhľadávania, ak sú k dispozícii, a zobrazenie väčších ikon pre všetky výsledky.",
+    "olderThanDate": "Staršie ako:",
+    "newerThanDate": "Novšie ako:"
   },
   "settings": {
     "administrator": "Administrátor",
@@ -696,6 +712,8 @@
     "orange": "oranžová"
   },
   "profileSettings": {
+    "preferEditorForMarkdown": "Uprednostniť editor pre Markdown súbory",
+    "preferEditorForMarkdownDescription": "Ak je povolené, otvorí Markdown súbory najprv v editore namiesto prehliadača Markdown.",
     "deleteAfterArchive": "Odstrániť zdrojové súbory po vytvorení/extrahovaní archívov",
     "deleteAfterArchiveDescription": "Ak je povolené, po úspešnom vytvorení/extrahovaní archívov odstráni zdrojové súbory",
     "hideFilesInTree": "Skryť súbory v stromovej navigácii",

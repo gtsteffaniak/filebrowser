@@ -207,7 +207,6 @@ func getOrCreateLdapUser(username string, groups []string) (*users.User, error) 
 		logger.Debugf("User %s is in required group, allowing access.", username)
 	}
 
-	// Determine if user should be admin
 	isAdmin := false
 	if ldapCfg.AdminGroup != "" {
 		for _, g := range groups {

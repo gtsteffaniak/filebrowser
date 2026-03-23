@@ -1,5 +1,6 @@
 {
   "buttons": {
+    "copySuccess": "Copiado para a área de transferência!",
     "copyFile": "Copiar ficheiro",
     "copyToClipboard": "Copiar",
     "moveFile": "Mover ficheiro",
@@ -79,7 +80,8 @@
       "comma": "ir para as definições",
       "c": "copiar itens selecionados",
       "v": "colar itens copiados/cortados",
-      "x": "cortar itens selecionados"
+      "x": "cortar itens selecionados",
+      "e": "Alternar entre editor e visualizador Markdown (em ficheiros .md)"
     },
     "del": "eliminar os ficheiros selecionados",
     "esc": "limpar seleção e/ou fechar menu",
@@ -88,7 +90,19 @@
     "description": "Pode ver as opções básicas de navegação abaixo. Para obter informações adicionais, visite",
     "slash": "ativar a pesquisa",
     "wiki": "Documentos oficiais do FileBrowser Quantum",
-    "marqueeSelect": "selecionar vários ficheiros ou diretórios arrastando-os para o espaço vazio"
+    "marqueeSelect": "selecionar vários ficheiros ou diretórios arrastando-os para o espaço vazio",
+    "media": {
+      "title": "Leitor multimédia",
+      "playPause": "Reproduzir/Pausar",
+      "seekPercentage": "Avançar de 10% a 90%",
+      "seek": "Avançar/Recuar 10 s",
+      "volume": "Aumentar ou diminuir o volume",
+      "mute": "Silenciar/Ativar som",
+      "loop": "Alternar entre modo repetição e modo único",
+      "playbackModes": "Alternar entre modos de reprodução (exceto repetição e único)",
+      "fullscreen": "Alternar modo de ecrã inteiro em vídeos",
+      "captions": "Ativar/Desativar legendas"
+    }
   },
   "languages": {
     "he": "עברית",
@@ -241,7 +255,9 @@
     "notEnoughCharacters": "Não há caracteres suficientes para pesquisar (min {minSearchLength})",
     "typeToSearch": "Comece a escrever {minSearchLength} ou mais caracteres para iniciar a pesquisa.",
     "showPreviewImages": "Mostrar imagens de pré-visualização",
-    "showPreviewImagesDescription": "Apresentar pré-visualizações em miniatura dos resultados da pesquisa, quando disponíveis, e mostrar ícones maiores para todos os resultados."
+    "showPreviewImagesDescription": "Apresentar pré-visualizações em miniatura dos resultados da pesquisa, quando disponíveis, e mostrar ícones maiores para todos os resultados.",
+    "olderThanDate": "Mais velho do que:",
+    "newerThanDate": "Mais recente do que:"
   },
   "settings": {
     "administrator": "Administrador",
@@ -550,6 +566,8 @@
     "orange": "laranja"
   },
   "profileSettings": {
+    "preferEditorForMarkdown": "Preferir editor primeiro para ficheiros Markdown",
+    "preferEditorForMarkdownDescription": "Quando ativado, abre os ficheiros Markdown no editor em vez do visualizador Markdown.",
     "deleteAfterArchive": "Eliminar ficheiros de origem após criação/extração de arquivos",
     "deleteAfterArchiveDescription": "Quando ativado, eliminará os ficheiros de origem após criação/extração bem-sucedida de arquivos",
     "hideFilesInTree": "Ocultar ficheiros na navegação em árvore",

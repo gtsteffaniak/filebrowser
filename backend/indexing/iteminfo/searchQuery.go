@@ -3,6 +3,7 @@ package iteminfo
 import (
 	"regexp"
 	"strings"
+	"time"
 )
 
 var typeRegexp = regexp.MustCompile(`type:(\S+)`)
@@ -11,7 +12,11 @@ type SearchOptions struct {
 	Conditions  map[string]bool
 	LargerThan  int
 	SmallerThan int
-	Terms       []string
+	// ModifiedOlderThan is Unix seconds (UTC start of day). If > 0, item must have ModTime strictly before this instant.
+	ModifiedOlderThan int64
+	// ModifiedNewerThan is Unix seconds (UTC start of day). If > 0, item must have ModTime >= this instant.
+	ModifiedNewerThan int64
+	Terms             []string
 }
 
 func ParseSearch(value string) SearchOptions {
@@ -61,6 +66,18 @@ func ParseSearch(value string) SearchOptions {
 			size := strings.TrimPrefix(filter, "smallerThan=")
 			opts.SmallerThan = UpdateSize(size)
 		}
+		if strings.HasPrefix(filter, "olderThan=") {
+			dateStr := strings.TrimPrefix(filter, "olderThan=")
+			if ts, ok := parseSearchDateUTCStart(dateStr); ok {
+				opts.ModifiedOlderThan = ts
+			}
+		}
+		if strings.HasPrefix(filter, "newerThan=") {
+			dateStr := strings.TrimPrefix(filter, "newerThan=")
+			if ts, ok := parseSearchDateUTCStart(dateStr); ok {
+				opts.ModifiedNewerThan = ts
+			}
+		}
 	}
 
 	if len(types) > 0 {
@@ -84,4 +101,17 @@ func ParseSearch(value string) SearchOptions {
 	value = strings.TrimSpace(value)
 	opts.Terms = strings.Split(value, "|")
 	return opts
+}
+
+// parseSearchDateUTCStart parses YYYY-MM-DD as midnight UTC; used for search date filters.
+func parseSearchDateUTCStart(s string) (int64, bool) {
+	s = strings.TrimSpace(s)
+	if len(s) != 10 {
+		return 0, false
+	}
+	t, err := time.ParseInLocation("2006-01-02", s, time.UTC)
+	if err != nil {
+		return 0, false
+	}
+	return t.Unix(), true
 }

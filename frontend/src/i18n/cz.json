@@ -1,5 +1,6 @@
 {
   "buttons": {
+    "copySuccess": "Zkopírováno do schránky!",
     "generateNewOtp": "Resetovat a vygenerovat nový kód dvoufázového ověření",
     "copyFile": "Kopírovat soubor",
     "copyToClipboard": "Kopírovat do schránky",
@@ -82,7 +83,8 @@
       "comma": "přejít do nastavení",
       "c": "kopírování vybraných položek",
       "v": "vložit zkopírované/vyjmuté položky",
-      "x": "řezání vybraných položek"
+      "x": "řezání vybraných položek",
+      "e": "Přepínání mezi editorem a prohlížečem Markdown (u souborů .md)"
     },
     "del": "smazat označené položky",
     "esc": "zrušit označení a/nebo zavřít dialog",
@@ -91,7 +93,19 @@
     "description": "Základní možnosti navigace si můžete prohlédnout níže. Další informace naleznete na adrese",
     "slash": "aktivovat vyhledávání",
     "wiki": "Oficiální dokumenty k aplikaci FileBrowser Quantum",
-    "marqueeSelect": "vybrat více souborů nebo adresářů přetažením na prázdné místo."
+    "marqueeSelect": "vybrat více souborů nebo adresářů přetažením na prázdné místo.",
+    "media": {
+      "title": "Přehrávač médií",
+      "playPause": "Spustit/pozastavit přehrávání",
+      "seekPercentage": "Přesun od 10 % do 90 %",
+      "seek": "Přesun o 10 s vzad nebo vpřed",
+      "volume": "Zvýšit nebo snížit hlasitost",
+      "mute": "Ztlumit/zapnout zvuk",
+      "loop": "Přepínání mezi smyčkou a jedním přehráním",
+      "playbackModes": "Přepínání režimů přehrávání (kromě smyčky a jednoho přehrání)",
+      "fullscreen": "Přepnout režim celé obrazovky u videí",
+      "captions": "Zapnout/vypnout titulky"
+    }
   },
   "languages": {
     "he": "עברית",
@@ -319,9 +333,13 @@
     "notEnoughCharacters": "Nedostatek znaků pro vyhledávání (min. {minSearchLength})",
     "typeToSearch": "Pro zahájení vyhledávání začněte psát {minSearchLength} nebo více znaků.",
     "showPreviewImages": "Zobrazit náhledové obrázky",
-    "showPreviewImagesDescription": "Zobrazení miniaturních náhledů výsledků vyhledávání, pokud jsou k dispozici, a zobrazení větších ikon u všech výsledků."
+    "showPreviewImagesDescription": "Zobrazení miniaturních náhledů výsledků vyhledávání, pokud jsou k dispozici, a zobrazení větších ikon u všech výsledků.",
+    "olderThanDate": "Starší než:",
+    "newerThanDate": "Novější než:"
   },
   "profileSettings": {
+    "preferEditorForMarkdown": "Upřednostnit editor pro Markdown soubory",
+    "preferEditorForMarkdownDescription": "Pokud je povoleno, otevřou se Markdown soubory nejprve v editoru místo v prohlížeči Markdown.",
     "deleteAfterArchive": "Smazat zdrojové soubory po vytvoření/extrahování archivů",
     "deleteAfterArchiveDescription": "Pokud je povoleno, po úspěšném vytvoření/extrahování archivů dojde ke smazání zdrojových souborů",
     "hideFilesInTree": "Skrýt soubory ve stromové navigaci",

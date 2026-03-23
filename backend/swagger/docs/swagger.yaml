@@ -1249,6 +1249,10 @@ definitions:
         type: string
       permissions:
         $ref: '#/definitions/settings.UserDefaultsPermissions'
+      preferEditorForMarkdown:
+        description: prefer editor first for markdown files instead of the Markdown
+          Viewer.
+        type: boolean
       preview:
         $ref: '#/definitions/settings.UserDefaultsPreview'
       quickDownload:
@@ -1901,6 +1905,10 @@ definitions:
         description: legacy for migration purposes... og filebrowser has perm attribute
       permissions:
         $ref: '#/definitions/users.Permissions'
+      preferEditorForMarkdown:
+        description: prefer editor first for markdown files instead of the Markdown
+          Viewer
+        type: boolean
       preview:
         $ref: '#/definitions/users.Preview'
       quickDownload:
@@ -3917,6 +3925,14 @@ paths:
         in: query
         name: scope
         type: string
+      - description: Unix seconds; only results modified strictly before this time
+        in: query
+        name: olderThan
+        type: integer
+      - description: Unix seconds; only results modified on or after this time
+        in: query
+        name: newerThan
+        type: integer
       - description: User session ID, add unique value to prevent collisions
         in: header
         name: SessionId
