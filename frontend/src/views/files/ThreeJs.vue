@@ -35,6 +35,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
+import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { PLYLoader } from 'three/addons/loaders/PLYLoader.js';
 import { ColladaLoader } from 'three/addons/loaders/ColladaLoader.js';
@@ -58,6 +59,7 @@ const LOADERS = {
   gltf: GLTFLoader,
   glb: GLTFLoader,
   obj: OBJLoader,
+  fbx: FBXLoader,
   stl: STLLoader,
   ply: PLYLoader,
   dae: ColladaLoader,
@@ -341,6 +343,9 @@ export default {
     },
 
     resolveTextureUrl(url) {
+      if (url.startsWith('blob:') || url.startsWith('data:')) {
+        return url;
+      }
       if (url.includes('/api/resources/download?')) {
         return url;
       }
