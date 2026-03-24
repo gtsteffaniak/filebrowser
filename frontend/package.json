@@ -16,6 +16,8 @@
     "lint:fix": "eslint --fix --ext .js,.vue,.ts src/",
     "i18n:sync": "node ./scripts/sync-translations.js",
     "i18n:check": "node ./scripts/sync-translations.js --check",
+    "i18n:enforce-order": "node scripts/sync-translations.js --enforce-order",
+    "i18n:cleanup": "node scripts/sync-translations.js --cleanup",
     "format": "prettier --write .",
     "test": "vitest run "
   },
