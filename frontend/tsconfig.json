@@ -1,12 +1,11 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
     "allowJs": true,
     "target": "ESNext",
     "useDefineForClassFields": true,
     "noEmit": true,
     "module": "ESNext",
-    "moduleResolution": "Node10",
+    "moduleResolution": "Bundler",
     "strict": false,
     "noImplicitAny": false,
     "noImplicitThis": true,
