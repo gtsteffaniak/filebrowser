@@ -100,12 +100,6 @@ check-translations:
 sync-translations:
 	cd frontend && npm run i18n:sync
 
-reorder-translations:
-	cd frontend && npm run i18n:enforce-order
-
-cleanup-translations:
-	cd frontend && npm run i18n:cleanup
-
 test-backend:
 	cd backend && go test -race -timeout=10s ./...
 
