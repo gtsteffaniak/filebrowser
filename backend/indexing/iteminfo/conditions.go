@@ -282,6 +282,7 @@ var model3DMimeType = map[string]string{
 	".gltf":  "model/gltf+json",
 	".glb":   "model/gltf-binary",
 	".obj":   "model/obj",
+	".fbx":   "model/fbx",
 	".stl":   "model/stl",
 	".ply":   "model/ply",
 	".dae":   "model/vnd.collada+xml",
