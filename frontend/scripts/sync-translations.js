@@ -8,6 +8,8 @@ import * as deepl from 'deepl-node';
 // Parse command line arguments
 const args = process.argv.slice(2);
 const checkOnly = args.includes('--check') || args.includes('-c');
+const enforceOrder = args.includes('--enforce-order'); // When using this will force the order of eng, will not perform new translations. If we move keys to a different block will count as new translations and will delete it from all the languages
+const cleanupOnly = args.includes('--cleanup'); // Will only delete keys that not longer exist in eng, no translation or reorder, just deletion.
 
 // --- Configuration ---
 const __filename = fileURLToPath(import.meta.url);
@@ -19,13 +21,14 @@ const targetLocaleFiles = glob.sync(path.join(localesDir, '*.json'))
   .filter(file => path.basename(file) !== `${masterLanguageCode}.json`)
   .filter(file => path.basename(file) !== 'is.json'); // Exclude Icelandic - DeepL doesn't support it
 
+const requireApiKey = !checkOnly && !enforceOrder && !cleanupOnly;
 const DEEPL_API_KEY = process.env.DEEPL_API_KEY;
-if (!checkOnly && !DEEPL_API_KEY) {
+if (requireApiKey && !DEEPL_API_KEY) {
   console.error("❌ Missing DEEPL_API_KEY in environment.");
   process.exit(1);
 }
 
-const translator = checkOnly ? null : new deepl.Translator(DEEPL_API_KEY);
+const translator = requireApiKey ? new deepl.Translator(DEEPL_API_KEY) : null;
 
 const deeplLangMap = {
   'zh-cn': 'ZH-HANS',
@@ -95,8 +98,23 @@ async function translateText(text, targetLanguage, keyPath = '') {
   }
 }
 
+// Reorder objects to match eng (master lang) key order
+function reorderObject(obj, masterObj) {
+  // If obj is not an object, return as is
+  if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) return obj;
+  const newObj = {};
+  for (const key in masterObj) {
+    if (Object.prototype.hasOwnProperty.call(masterObj, key)) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        newObj[key] = reorderObject(obj[key], masterObj[key]);
+      }
+    }
+  }
+  return newObj;
+}
+
 // --- Recursive key processor ---
-async function processKeys(masterObj, targetObj, targetLangCode, currentPathParts = []) {
+async function processKeys(masterObj, targetObj, targetLangCode, currentPathParts = [], doEnforceOrder, doCleanupOnly = false) {
   let changesMade = false;
   let meaningfulChanges = 0; // Only count meaningful changes
 
@@ -109,19 +127,17 @@ async function processKeys(masterObj, targetObj, targetLangCode, currentPathPart
       const masterValue = masterObj[key];
 
       // Special handling for "languages" key - always copy the entire object from master
-      if (key === 'languages' && currentPathParts.length === 0) {
-        if (checkOnly) {
-          // Don't print or count languages object copying - it's routine
-        } else {
+      if (key === 'languages' && currentPathParts.length === 0 && !doCleanupOnly) {
+        if (!checkOnly && !doEnforceOrder) {
           console.log(`Copying entire "languages" object from master to ${targetLangCode}.json`);
-          targetObj[key] = JSON.parse(JSON.stringify(masterValue)); // Deep copy
         }
+        targetObj[key] = JSON.parse(JSON.stringify(masterValue)); // Deep copy
         changesMade = true;
         continue;
       }
 
       if (typeof masterValue === 'object' && masterValue !== null && !Array.isArray(masterValue)) {
-        if (!targetObj[key] || typeof targetObj[key] !== 'object') {
+        if (!doCleanupOnly && (!targetObj[key] || typeof targetObj[key] !== 'object')) {
           if (checkOnly) {
             console.log(`Would create missing object structure for "${currentKeyPath}" in ${targetLangCode}.json`);
             meaningfulChanges++; // Creating new object structures is meaningful
@@ -133,41 +149,55 @@ async function processKeys(masterObj, targetObj, targetLangCode, currentPathPart
           }
           changesMade = true;
         }
-        const result = await processKeys(masterValue, targetObj[key], targetLangCode, currentPathPartsNext);
-        if (result == "UNSUPPORTED") {
+
+        if (targetObj[key] && typeof targetObj[key] === 'object') {
+          const result = await processKeys( masterValue, targetObj[key], targetLangCode, currentPathPartsNext,
+            doEnforceOrder, doCleanupOnly);
+          if (result == "UNSUPPORTED") {
             console.log(`Skipping translation for "${targetLangCode}" due to unsupported structure.`);
             return "UNSUPPORTED";
+          }
+          if (typeof result === 'number') {
+            meaningfulChanges += result;
+            changesMade = true;
+          } else if (result) {
+            changesMade = true;
+          }
         }
-        if (typeof result === 'number') {
-          meaningfulChanges += result;
-          changesMade = true;
-        } else if (result) {
-          changesMade = true;
-        }
-      } else if (typeof masterValue === 'string') {
-        if (!targetObj.hasOwnProperty(key) || targetObj[key] === '' || targetObj[key] === null) {
-          if (checkOnly) {
-            console.log(`Would translate "${currentKeyPath}" for ${targetLangCode}.json`);
-            meaningfulChanges++; // Translation is meaningful
-          } else {
-            const result = await translateText(masterValue, targetLangCode, currentKeyPath);
-            if (result == "") {
-              return "UNSUPPORTED";
+      } else if (!doCleanupOnly) {
+        // Only handle non‑object values
+        if (typeof masterValue === 'string') {
+          const existingTargetValue = targetObj[key];
+          const isMissing = !Object.prototype.hasOwnProperty.call(targetObj, key) || existingTargetValue === '' || existingTargetValue === null;
+
+          if (isMissing) {
+            if (checkOnly) {
+              console.log(`Would translate "${currentKeyPath}" for ${targetLangCode}.json`);
+              meaningfulChanges++; // Translation is meaningful
+            } else if (doEnforceOrder) {
+              // Skip translations for new keys
+              console.log(`Skipping new key "${currentKeyPath}" for ${targetLangCode}.json`);
+            } else {
+              // Sync translation
+              const result = await translateText(masterValue, targetLangCode, currentKeyPath);
+              if (result == "") {
+                return "UNSUPPORTED";
+              }
+              targetObj[key] = result;
+              changesMade = true;
             }
-            targetObj[key] = result;
           }
-          changesMade = true;
-        }
-      } else {
-        if (!targetObj.hasOwnProperty(key)) {
-          if (checkOnly) {
-            console.log(`Would copy key "${currentKeyPath}" (non-string) from English to ${targetLangCode}.json`);
-            meaningfulChanges++; // Copying non-string values is meaningful
-          } else {
-            console.log(`Key "${currentKeyPath}" (non-string) missing in ${targetLangCode}.json. Copying from English.`);
-            targetObj[key] = masterValue;
+        } else {
+          if (!Object.prototype.hasOwnProperty.call(targetObj, key)) {
+            if (checkOnly) {
+              console.log(`Would copy key "${currentKeyPath}" (non-string) from English to ${targetLangCode}.json`);
+              meaningfulChanges++; // Copying non-string values is meaningful
+            } else {
+              console.log(`Key "${currentKeyPath}" (non-string) missing in ${targetLangCode}.json. Copying from English.`);
+              targetObj[key] = masterValue;
+            }
+            changesMade = true;
           }
-          changesMade = true;
         }
       }
     }
@@ -177,7 +207,7 @@ async function processKeys(masterObj, targetObj, targetLangCode, currentPathPart
   const keysToRemove = [];
   for (const key in targetObj) {
     if (Object.prototype.hasOwnProperty.call(targetObj, key)) {
-      if (!masterObj.hasOwnProperty(key)) {
+      if (!Object.prototype.hasOwnProperty.call(masterObj, key)) {
         keysToRemove.push(key);
       }
     }
@@ -200,9 +230,17 @@ async function processKeys(masterObj, targetObj, targetLangCode, currentPathPart
 
 // --- Main synchronization ---
 async function syncAllTranslations() {
+  const isSync = !checkOnly && !enforceOrder && !cleanupOnly;
+  const isEnforceOrder = enforceOrder && !cleanupOnly;
+  const isCleanup = cleanupOnly;
+
   if (checkOnly) {
     console.log("--- Checking for translation changes (no translations will be performed) ---");
-  } else {
+  } else if (isCleanup) {
+    console.warn("--- Only obsolete keys will be removed - No translations, or reordering will happen ---");
+  } else if (isEnforceOrder) {
+    console.warn("--- Enforcing order of all files to match master language (no translations will be performed) ---");
+  } else if (isSync) {
     console.warn("--- Using DeepL API for translation ---");
   }
 
@@ -220,38 +258,61 @@ async function syncAllTranslations() {
   for (const targetFile of targetLocaleFiles) {
     const targetLangCode = path.basename(targetFile, '.json');
     let targetContent = {};
+    let originalTargetContent = null;
     let fileExisted = await fs.pathExists(targetFile);
 
     if (fileExisted) {
       try {
-        targetContent = await fs.readJson(targetFile);
+        originalTargetContent = await fs.readJson(targetFile);
+        targetContent = JSON.parse(JSON.stringify(originalTargetContent)); // start from original
       } catch (e) {
         console.warn(`Warning: Could not parse ${targetFile}. Starting fresh. Error: ${e.message}`);
         targetContent = {};
+        originalTargetContent = null;
       }
     } else {
+      if (isCleanup) continue;
       console.log(`\nTarget file ${targetFile} not found. Will create for language: ${targetLangCode}.`);
     }
 
-    const result = await processKeys(masterContent, targetContent, targetLangCode);
+    const result = await processKeys(masterContent, targetContent, targetLangCode, [], isEnforceOrder, isCleanup);
+
+    let reorderedContent = targetContent;
+    let orderChanged = false;
+    if (isEnforceOrder && originalTargetContent && !checkOnly) {
+      reorderedContent = reorderObject(targetContent, masterContent);
+      // Compare the reordered content with the original to see if order changed
+      const origStr = JSON.stringify(originalTargetContent);
+      const reorderedStr = JSON.stringify(reorderedContent);
+      if (origStr !== reorderedStr) {
+        orderChanged = true;
+        console.log(`- Reordered keys in ${targetLangCode}.json`);
+      }
+    }
 
     if (checkOnly) {
+      let wouldChange = false;
       if (typeof result === 'number' && result > 0) {
         meaningfulChanges += result;
-        hasMeaningfulChanges = true;
+        wouldChange = true;
         console.log(`Found ${result} meaningful changes needed for ${targetLangCode}.json`);
-      } else if (!fileExisted) {
-        meaningfulChanges++;
-        hasMeaningfulChanges = true;
+      }
+      if (!fileExisted && !isCleanup) {
+        wouldChange = true;
         console.log(`Would create new file for ${targetLangCode}.json`);
-      } else {
-        // Only print if there are meaningful changes
+      }
+      if (wouldChange) {
+        hasMeaningfulChanges = true;
       }
     } else {
-      if (result || !fileExisted) {
+      const needsWrite = result || orderChanged || (!isCleanup && !fileExisted);
+      if (needsWrite) {
+        const finalContent = (isEnforceOrder && orderChanged) ? reorderedContent : targetContent;
         try {
-          await fs.writeJson(targetFile, targetContent, { spaces: 2 });
-          console.log(`Successfully ${result ? 'updated' : 'created'} ${targetFile}`);
+          await fs.writeJson(targetFile, finalContent, { spaces: 2 });
+          if (!isCleanup && !isEnforceOrder) {
+            console.log(`Successfully ${result ? 'updated' : 'created'} ${targetFile}`);
+          }
         } catch (error) {
           console.error(`Error writing to ${targetFile}:`, error);
         }
@@ -270,7 +331,13 @@ async function syncAllTranslations() {
       return 0; // Exit code 0 for no meaningful changes
     }
   } else {
-    console.log('\n✅ Translation synchronization complete (via DeepL).');
+    if (isCleanup) {
+      console.log('\n✅ Cleanup complete (obsolete keys removed).');
+    } else if (isEnforceOrder) {
+      console.log('\n✅ Enforce order complete.');
+    } else {
+      console.log('\n✅ Translation synchronization complete (via DeepL).');
+    }
     return 0;
   }
 }
