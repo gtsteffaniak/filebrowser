@@ -671,9 +671,6 @@ func safeExtractPath(destDir, name string) (string, error) {
 }
 
 // applyArchivedTimesAndPerm sets permission bits and modification time from an archive entry using
-// only portable os APIs (Windows, Linux, macOS, FreeBSD). Chmod is best-effort where the OS maps
-// or ignores Unix bits; skipped when Perm() is zero (e.g. zip without Unix metadata). Chtimes is
-// skipped when modTime is zero.
 func applyArchivedTimesAndPerm(path string, mode fs.FileMode, modTime time.Time) error {
 	switch {
 	case mode.Type() == fs.ModeSymlink:
