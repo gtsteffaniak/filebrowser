@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.3.3
+
+ **Notes**:
+ - `.fbx` 3d model files added to supported previews.
+
+ **BugFixes**:
+ - Archives don't preserve file metadata (#2063)
+
 ## v1.3.2-beta
 
  **Security**:
@@ -31,7 +39,6 @@ All notable changes to this project will be documented in this file. For commit 
  - PUT resource api errors if action against a folder (#2153) 
  - LDAP authentication issue if a password caontains @ symbol (#2154)
  - Share banner seems to be not working for custom urls (#2120)
-
 
 ## v1.3.1-beta
 

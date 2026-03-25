@@ -8,10 +8,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
@@ -416,16 +418,21 @@ func addFile(source string, path string, d *requestContext, tarWriter *tar.Write
 
 			if fileInfo.IsDir() {
 				if tarWriter != nil {
-					header := &tar.Header{
-						Name:     relPath + "/",
-						Mode:     int64(fileutils.PermDir),
-						Typeflag: tar.TypeDir,
-						ModTime:  fileInfo.ModTime(),
+					header, err := tar.FileInfoHeader(fileInfo, "")
+					if err != nil {
+						return err
 					}
+					header.Name = relPath + "/"
 					return tarWriter.WriteHeader(header)
 				}
 				if zipWriter != nil {
-					_, err := zipWriter.Create(relPath + "/")
+					zh, err := zip.FileInfoHeader(fileInfo)
+					if err != nil {
+						return err
+					}
+					zh.Name = relPath + "/"
+					zh.Method = zip.Store
+					_, err = zipWriter.CreateHeader(zh)
 					return err
 				}
 				return nil
@@ -663,6 +670,117 @@ func safeExtractPath(destDir, name string) (string, error) {
 	return abs, nil
 }
 
+// applyArchivedTimesAndPerm sets permission bits and modification time from an archive entry using
+func applyArchivedTimesAndPerm(path string, mode fs.FileMode, modTime time.Time) error {
+	switch {
+	case mode.Type() == fs.ModeSymlink:
+		if !modTime.IsZero() {
+			_ = os.Chtimes(path, modTime, modTime)
+		}
+		return nil
+	case mode.Type() == fs.ModeDir:
+		if p := mode.Perm(); p != 0 {
+			_ = os.Chmod(path, p)
+		}
+		if modTime.IsZero() {
+			return nil
+		}
+		return os.Chtimes(path, modTime, modTime)
+	case mode.IsRegular():
+		if p := mode.Perm(); p != 0 {
+			_ = os.Chmod(path, p)
+		}
+		if modTime.IsZero() {
+			return nil
+		}
+		return os.Chtimes(path, modTime, modTime)
+	default:
+		if !modTime.IsZero() {
+			_ = os.Chtimes(path, modTime, modTime)
+		}
+		return nil
+	}
+}
+
+// symlinkTargetStaysUnderDest rejects absolute targets and paths that would resolve outside destRoot.
+func symlinkTargetStaysUnderDest(destRoot, destPath, linkname string) error {
+	if linkname == "" {
+		return fmt.Errorf("empty symlink target")
+	}
+	if filepath.IsAbs(linkname) {
+		return fmt.Errorf("symlink has absolute target")
+	}
+	destAbs, err := filepath.Abs(destRoot)
+	if err != nil {
+		return err
+	}
+	resolved := filepath.Clean(filepath.Join(filepath.Dir(destPath), linkname))
+	resAbs, err := filepath.Abs(resolved)
+	if err != nil {
+		return err
+	}
+	sep := string(filepath.Separator)
+	if resAbs != destAbs && !strings.HasPrefix(resAbs, destAbs+sep) {
+		return fmt.Errorf("symlink target escapes destination directory")
+	}
+	return nil
+}
+
+// extractArchivedDir creates a directory from an archive entry and reapplies mode and mtime.
+func extractArchivedDir(destPath string, mode fs.FileMode, modTime time.Time) error {
+	perm := mode.Perm()
+	if perm == 0 {
+		perm = fileutils.PermDir
+	}
+	if err := os.MkdirAll(destPath, perm); err != nil {
+		return err
+	}
+	return applyArchivedTimesAndPerm(destPath, mode, modTime)
+}
+
+// extractArchivedRegularFile writes one regular file from src (closed by this function) and reapplies mode and mtime.
+func extractArchivedRegularFile(destPath string, mode fs.FileMode, modTime time.Time, src io.ReadCloser) error {
+	defer func() { _ = src.Close() }()
+	if err := os.MkdirAll(filepath.Dir(destPath), fileutils.PermDir); err != nil {
+		return err
+	}
+	perm := mode.Perm()
+	if perm == 0 {
+		perm = fileutils.PermFile
+	}
+	out, err := os.OpenFile(destPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, perm)
+	if err != nil {
+		return err
+	}
+	_, copyErr := io.Copy(out, src)
+	cerr := out.Close()
+	if copyErr != nil {
+		return copyErr
+	}
+	if cerr != nil {
+		return cerr
+	}
+	return applyArchivedTimesAndPerm(destPath, mode, modTime)
+}
+
+// extractArchivedSymlink creates a symlink after validating the target stays under destRoot.
+func extractArchivedSymlink(destRoot, destPath, target string, modTime time.Time) error {
+	target = strings.TrimSpace(target)
+	if err := os.MkdirAll(filepath.Dir(destPath), fileutils.PermDir); err != nil {
+		return err
+	}
+	if err := symlinkTargetStaysUnderDest(destRoot, destPath, target); err != nil {
+		return err
+	}
+	if err := os.Remove(destPath); err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	if err := os.Symlink(target, destPath); err != nil {
+		return err
+	}
+	return applyArchivedTimesAndPerm(destPath, fs.ModeSymlink, modTime)
+}
+
 func extractZip(archivePath, destDir string) error {
 	r, err := zip.OpenReader(archivePath)
 	if err != nil {
@@ -671,33 +789,49 @@ func extractZip(archivePath, destDir string) error {
 	defer r.Close()
 
 	for _, f := range r.File {
-		destPath, err := safeExtractPath(destDir, f.Name)
+		var destPath string
+		destPath, err = safeExtractPath(destDir, f.Name)
 		if err != nil {
 			return err
 		}
 
-		if f.FileInfo().IsDir() {
-			if err = os.MkdirAll(destPath, fileutils.PermDir); err != nil {
+		fi := f.FileInfo()
+		mode := fi.Mode()
+
+		if mode.Type() == fs.ModeDir || strings.HasSuffix(f.Name, "/") {
+			if err = extractArchivedDir(destPath, mode, f.Modified); err != nil {
 				return err
 			}
 			continue
 		}
-		if err = os.MkdirAll(filepath.Dir(destPath), fileutils.PermDir); err != nil {
-			return err
+
+		if mode.Type() == fs.ModeSymlink {
+			var rc io.ReadCloser
+			rc, err = f.Open()
+			if err != nil {
+				return err
+			}
+			buf, rerr := io.ReadAll(rc)
+			rc.Close()
+			if rerr != nil {
+				return rerr
+			}
+			if err = extractArchivedSymlink(destDir, destPath, string(buf), f.Modified); err != nil {
+				return err
+			}
+			continue
 		}
-		out, err := os.OpenFile(destPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fileutils.PermFile)
+
+		if !mode.IsRegular() {
+			continue
+		}
+
+		var rc io.ReadCloser
+		rc, err = f.Open()
 		if err != nil {
 			return err
 		}
-		rc, err := f.Open()
-		if err != nil {
-			out.Close()
-			return err
-		}
-		_, err = io.Copy(out, rc)
-		rc.Close()
-		out.Close()
-		if err != nil {
+		if err = extractArchivedRegularFile(destPath, mode, f.Modified, rc); err != nil {
 			return err
 		}
 	}
@@ -726,29 +860,33 @@ func extractTarGz(archivePath, destDir string) error {
 		if err != nil {
 			return err
 		}
-		destPath, err := safeExtractPath(destDir, h.Name)
+		var destPath string
+		destPath, err = safeExtractPath(destDir, h.Name)
 		if err != nil {
 			return err
 		}
 
 		switch h.Typeflag {
 		case tar.TypeDir:
-			if err := os.MkdirAll(destPath, fileutils.PermDir); err != nil {
+			mode := h.FileInfo().Mode()
+			if err = extractArchivedDir(destPath, mode, h.ModTime); err != nil {
 				return err
 			}
 		case tar.TypeReg:
-			if err := os.MkdirAll(filepath.Dir(destPath), fileutils.PermDir); err != nil {
+			mode := h.FileInfo().Mode()
+			if err = extractArchivedRegularFile(destPath, mode, h.ModTime, io.NopCloser(tr)); err != nil {
 				return err
 			}
-			out, err := os.OpenFile(destPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fileutils.PermFile)
-			if err != nil {
+		case tar.TypeSymlink:
+			if err = extractArchivedSymlink(destDir, destPath, h.Linkname, h.ModTime); err != nil {
 				return err
 			}
-			if _, err := io.Copy(out, tr); err != nil {
-				out.Close()
-				return err
+		default:
+			if h.Size > 0 {
+				if _, err = io.CopyN(io.Discard, tr, h.Size); err != nil {
+					return err
+				}
 			}
-			out.Close()
 		}
 	}
 	return nil
