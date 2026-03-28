@@ -4,11 +4,11 @@
     "copyFile": "Copiar archivo",
     "copyToClipboard": "Copiar al portapapeles",
     "moveFile": "Mover archivo",
-    "permalink": "Enlace permanente",
+    "permalink": "Enlace sin expiración",
     "reportIssue": "Reportar problema",
     "selectMultiple": "Selección múltiple",
     "shell": "Presiona Enter para buscar...",
-    "switchView": "Cambiar modo de visualización",
+    "switchView": "Cambiar vista",
     "toggleSidebar": "Cambiar visibilidad del panel lateral",
     "copyDownloadLinkToClipboard": "Copiar enlace de descarga",
     "generateNewOtp": "Generar nuevo código de dos factores (2FA)",
@@ -33,7 +33,7 @@
     "showMore": "Mostrar opciones avanzadas",
     "showLess": "Ocultar opciones avanzadas",
     "goToSource": "Ir al origen",
-    "goToItem": "Abrir archivo"
+    "goToItem": "Abrir"
   },
   "download": {
     "downloadFile": "Descargar archivo",
@@ -45,7 +45,7 @@
     "internal": "Error interno :(",
     "notFound": "No se encontró el directorio",
     "connection": "No se puede conectar al servidor.",
-    "shareNotFound": "No pudimos encontrar lo que buscas, quizá enlace expiró.",
+    "shareNotFound": "No pudimos encontrar lo que buscas, quizá enlace expiró",
     "failedToConnectToServer": "No se pudo conectar con el servidor"
   },
   "files": {
@@ -56,7 +56,7 @@
     "sortByName": "Ordenar por nombre",
     "sortBySize": "Ordenar por tamaño",
     "noPreview": "Vista previa no disponible",
-    "noDownloadAccess": "La descarga no está disponible.",
+    "noDownloadAccess": "La descarga no está disponible",
     "itemSelected": "elemento seleccionado",
     "itemsSelected": "elementos seleccionados",
     "myFiles": "Mis archivos{suffix}",
@@ -70,7 +70,7 @@
   },
   "help": {
     "functionKeys": "Teclas de función",
-    "mouseActions": "Acciones del mouse",
+    "mouseActions": "Acciones con el mouse",
     "fileOperations": "Operaciones de Archivo",
     "click": "Selecciona un archivo o carpeta",
     "ctrl": {
@@ -256,7 +256,7 @@
     "typeToSearch": "Escribe {minSearchLength} letras o más para iniciar la búsqueda",
     "showPreviewImages": "Mostrar miniaturas",
     "showPreviewImagesDescription": "Mostrar miniaturas para los resultados de búsqueda - También hará los iconos más grandes.",
-    "olderThanDate": "Mayor que:",
+    "olderThanDate": "Más viejo que:",
     "newerThanDate": "Más nuevo que:"
   },
   "settings": {
@@ -266,8 +266,8 @@
     "allowEdit": "Editar, borrar y cambiar nombres de archivos o carpetas",
     "allowNew": "Crear nuevos archivos y carpetas",
     "allowPublish": "Publicar posts/páginas",
-    "allowSignup": "Permitir el registro de nuevos usuarios",
-    "avoidChanges": "(dejar en blanco para evitar cambios)",
+    "allowSignup": "Permitir que nuevos usuarios se registren",
+    "avoidChanges": "(dejalo en blanco para evitar cambios)",
     "brandingDirectoryPath": "Ruta del directorio con los archivos que usarás para personalizar FileBrowser Quantum",
     "changePassword": "Cambiar contraseña",
     "commandRunner": "Ejecutor de comandos",
@@ -712,14 +712,14 @@
     "orange": "Naranja"
   },
   "profileSettings": {
-    "preferEditorForMarkdown": "Preferir editor primero para archivos Markdown",
+    "preferEditorForMarkdown": "Preferir editor para archivos Markdown",
     "preferEditorForMarkdownDescription": "Cuando está activado, los archivos markdown abrirán el editor en lugar del visor de Markdown",
     "deleteAfterArchive": "Eliminar archivos originales después de la creación/extracción de archivos",
     "deleteAfterArchiveDescription": "Cuando está activado, eliminará los archivos originales después de la creación o extracción de archivos",
     "hideFilesInTree": "Ocultar archivos en la navegación de árbol",
     "hideFilesInTreeDescription": "Cuando está activado, solo se muestrarán carpetas en la navegación del panel lateral",
-    "previewModelsDescription": "Mostrar miniaturas para modelos 3D, se mostrará un icono genérico si está desactivado",
-    "previewAudiosDescription": "Mostrar miniaturas para audios, si está desactivado mostrará un icono generico",
+    "previewModelsDescription": "Mostrar miniaturas para modelos 3D, se mostrará un icono genérico si se desactiva",
+    "previewAudiosDescription": "Mostrar miniaturas para audios, se mostrará un icono genérico si se desactiva",
     "autoplayMedia": "Reproducción automática de archivos multimedia",
     "autoplayMediaDescription": "Reproduce automaticamente los archivos multimedia al abrirlos",
     "sidebarOptions": "Opciones del panel lateral",
@@ -743,8 +743,8 @@
     "showHiddenFilesDescription": "Muestra los archivos ocultos. (por ejemplo, .thumbnails, ProgramData), pero siguen siendo accesibles manualmente si están configurados para ser indexados.",
     "showQuickDownload": "Icono de descarga rápida",
     "showQuickDownloadDescription": "Mostrar icono de descarga rápida en cada archivo",
-    "previewImagesDescription": "Mostrar miniaturas para imágenes, mostrará un icono genérico si está desactivado",
-    "previewVideosDescription": "Mostrar miniaturas para vídeos, mostrará un icono genérico si está desactivado",
+    "previewImagesDescription": "Mostrar miniaturas para imágenes, se mostrará un icono genérico si se desactiva",
+    "previewVideosDescription": "Mostrar miniaturas para vídeos, se mostrará un icono genérico si se desactiva",
     "editOffice": "Ver y editar archivos de ofimática con OnlyOffice",
     "editOfficeDescription": "Cuando está activado, el visor/editor de archivos estará desactivado para todas las extensiones de archivo relacionadas con archivos office, en vez, las abrirá en OnlyOffice.",
     "filePreviewOptions": "Opciones de previsualización de archivos",
@@ -914,7 +914,7 @@
     "fileType": "Tipo de archivo",
     "editMode": "Modo Edición",
     "downloadURL": "Descargar URL",
-    "callbackURL": "callback URL",
+    "callbackURL": "Callback URL",
     "networkFlow": "Flujo de red",
     "browser": "Navegador",
     "onlyOffice": "OnlyOffice",

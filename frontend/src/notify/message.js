@@ -1,5 +1,5 @@
 import { mutations, state } from '@/store'
-import i18n from '@/i18n';
+import i18n from '@/i18n'
 
 /**
  * @typedef {Object} NotificationButton
@@ -294,7 +294,7 @@ export function closeNotification(notificationId) {
 
   // Handle special case for multiple selection
   if (notification.isMultipleSelection && state.multiple) {
-    mutations.setMultiple(false);
+    mutations.setMultiple(false)
   }
 
   // Remove from array
@@ -317,13 +317,13 @@ export function closePopUp() {
 
   // Handle multiple selection special case
   if (state.multiple) {
-    const multipleNotification = notifications.find(n => n.isMultipleSelection);
+    const multipleNotification = notifications.find(n => n.isMultipleSelection)
     if (multipleNotification) {
-      mutations.setMultiple(false);
+      mutations.setMultiple(false)
     }
   }
-  notifications = [];
-  notifyUpdate();
+  notifications = []
+  notifyUpdate()
 }
 
 /**
@@ -360,7 +360,7 @@ export function showError(message, options = {}) {
 }
 
 export function showMultipleSelection() {
-  const message = i18n.global.t('files.multipleSelectionEnabled');
+  const message = i18n.global.t('files.multipleSelectionEnabled')
   showPopup('success', message, { persistent: true })
 }
 
