@@ -180,7 +180,8 @@ export function showPopup(type, message, options = {}) {
     timeoutDuration: null,
     timeoutRemaining: null,
     progress: 100, // Start at 100% - will decrease based in the remaining timeout
-    progressInterval: null // Interval ID
+    progressInterval: null, // Interval ID
+    isMultipleSelection: true
   }
 
   notifications.push(notification)
