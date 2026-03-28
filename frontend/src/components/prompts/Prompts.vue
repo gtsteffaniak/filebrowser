@@ -254,7 +254,7 @@ export default {
       // Explicit switch statement for compile-time safety with ESLint i18n validation
       switch (promptName.toLowerCase()) {
         case "delete":
-          return this.$t("general.delete");
+          return this.$t("prompts.deleteTitle");
         case "access":
           return this.$t("access.rules");
         case "officedebug":
