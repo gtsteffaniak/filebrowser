@@ -170,6 +170,7 @@ export default {
       contextTimeout: null,
       ctrKeyPressed: false,
       clipboard: { items: [] },
+      internalClipboardTimestamp: 0,
       isRectangleSelecting: false,
       rectangleStart: { x: 0, y: 0 },
       rectangleEnd: { x: 0, y: 0 },
@@ -423,6 +424,7 @@ export default {
     window.addEventListener("click", this.clickClear);
     window.addEventListener("keyup", this.clearCtrKey);
     window.addEventListener("dragover", this.preventDefault);
+    window.addEventListener('paste', this.handlePaste);
     document.addEventListener('mousemove', this.updateRectangleSelection, { passive: true });
     document.addEventListener('mouseup', this.endRectangleSelection);
     this.$el.addEventListener('mousedown', this.startRectangleSelection);
@@ -470,6 +472,7 @@ export default {
     window.removeEventListener("click", this.clickClear);
     window.removeEventListener("keyup", this.clearCtrKey);
     window.removeEventListener("dragover", this.preventDefault);
+    window.removeEventListener('paste', this.handlePaste);
     document.removeEventListener('mousemove', this.updateRectangleSelection);
     document.removeEventListener('mouseup', this.endRectangleSelection);
     document.removeEventListener('dragend', this.handleGlobalDragEnd);
@@ -745,9 +748,6 @@ export default {
           case "x":
             this.copyCut(event, charKey);
             return;
-          case "v":
-            this.paste(event);
-            return;
           case "a":
             event.preventDefault();
             this.selectAll();
@@ -882,12 +882,125 @@ export default {
         items: items,
         path: state.route.path,
       };
+      this.internalClipboardTimestamp = Date.now();
     },
-    async paste(event) {
-      if (event.target.tagName.toLowerCase() === "input") {
+
+    async collectFilesFromEntry(entry, relativePath = "") {
+      const files = [];
+      const entryPath = relativePath ? relativePath + "/" + entry.name : entry.name;
+
+      if (entry.isFile) {
+        // If it's a file we get the File object and add it with its relative path
+        const file = await new Promise((resolve, reject) => {
+          entry.file(resolve, reject);
+        });
+        files.push({
+          file,
+          relativePath: entryPath,
+        });
+      } else if (entry.isDirectory) {
+        // But if it's a directory, read the contents
+        const reader = entry.createReader();
+        const entries = await new Promise((resolve, reject) => {
+          reader.readEntries(resolve, reject);
+        });
+        // and then for each child recursively collect files
+        for (const childEntry of entries) {
+          const childFiles = await this.collectFilesFromEntry(
+            childEntry,
+            entryPath
+          );
+          files.push(...childFiles);
+        }
+      }
+      return files;
+    },
+
+    async getClipboardItems(items) {
+      const files = [];
+      for (const item of items) {
+        if (item.type === 'entry') {
+          const collected = await this.collectFilesFromEntry(item.entry);
+          files.push(...collected);
+        } else if (item.type === 'file') {
+          files.push({ file: item.file, relativePath: item.file.name });
+        }
+      }
+      return files;
+    },
+
+    async handlePaste(event) {
+      // We can paste multiple files from clipboard and upload all of them at once, but
+      // Firefox has an issue https://bugzilla.mozilla.org/show_bug.cgi?id=864052  (12 years old lol)
+      // the clipboard entry is always getting 1 file (the first file/folder in selection),
+      // while chromium sees all and has no issues with it. Not sure about safari.
+      if (getters.currentView() !== "listingView" || getters.currentPromptName()) return;
+
+      // Check if internal clipboard is recent (20 seconds)
+      const internalRecent = this.clipboard.items.length > 0 && (Date.now() - this.internalClipboardTimestamp) < 20000;
+
+      // If internal is recent (<20s), use it immediately, in case someone have both: internal and external clipboard with a file entry.
+      // After those 20s, if the OS clipboard has a file as most recent entry, will use that.
+      if (internalRecent) {
+        this.handleInternalPaste();
+        event.preventDefault();
+        event.stopPropagation();
         return;
       }
 
+      if (event.clipboardData && (event.clipboardData.items)) {
+        // Collect all items from clipboard
+        const collectedItems = [];
+        // And loop through all items
+        for (let i = 0; i < event.clipboardData.items.length; i++) {
+          const item = event.clipboardData.items[i];
+          if (item.kind !== 'file') continue;
+
+          const entry = item.webkitGetAsEntry();
+          if (entry) {
+            collectedItems.push({ type: 'entry', entry });
+          } else {
+            const file = item.getAsFile();
+            if (file) {
+              collectedItems.push({ type: 'file', file });
+            }
+          }
+        }
+
+        // Then process the collected items (files and folders) asynchronously
+        const itemsFromClipboard = await this.getClipboardItems(collectedItems);
+        const files = itemsFromClipboard.map(item => item.file);
+
+        // If found external files, upload them
+        if (files.length > 0) {
+          event.preventDefault();
+          event.stopPropagation();
+
+          const canUpload = getters.permissions()?.modify;
+          if (canUpload) {
+            // Pass the full array of {file, relativePath} to preserve directory structure
+            mutations.showPrompt({
+              name: "upload",
+              props: {
+                initialItems: itemsFromClipboard,
+                targetPath: state.req.path,
+              },
+            });
+          }
+          return;
+        }
+      }
+      // If internal clipboard exists but is not recent (>20s), and we don't have any file in clipboard, use the internal one
+      if (this.clipboard.items.length > 0) {
+        console.log('No external files, using internal clipboard.');
+        this.handleInternalPaste();
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+    },
+
+    async handleInternalPaste() {
       if (!this.clipboard || !this.clipboard.items || this.clipboard.items.length === 0) {
         return;
       }
@@ -915,13 +1028,14 @@ export default {
 
             let action = async (overwrite, rename) => {
               try {
-              if (getters.isShare()) {
-                await resourcesApi.moveCopyPublic(state.shareInfo.hash, items, operation, overwrite, rename);
+                if (getters.isShare()) {
+                  await resourcesApi.moveCopyPublic(state.shareInfo.hash, items, operation, overwrite, rename);
                 } else {
                   await resourcesApi.moveCopy(items, operation, overwrite, rename);
                 }
                 if (operation === "move") {
                   this.clipboard = { items: [] };
+                  this.internalClipboardTimestamp = 0;
                 }
                 mutations.setLoading("listing", false);
               } catch (error) {
