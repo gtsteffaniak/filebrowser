@@ -786,13 +786,13 @@
     "orange": "arancione"
   },
   "editor": {
-    "uninitialized":"Inizializzazione editor fallita. Ricarica la pagina.",
-    "saveFailed":"Salvataggio file fallito. Riprova.",
-    "saveAborted":"Salvataggio annullato. Il nome del file non corrisponde al file attivo.",
-    "saveAbortedMessage":"Operazione annullata. Il file attivo ({activeFile}) non corrisponde a quello che stai salvando ({tryingToSave}).",
-    "syncFailed":"Impossibile sincronizzare lo stato per \"{filename}\" dopo 5 tentativi. Interruzione per prevenire corruzione dati.",
-    "fileSaved":"File salvato!",
-    "errorSavingFile":"Errore nel salvataggio del file: {error}"
+    "uninitialized": "Inizializzazione editor fallita. Ricarica la pagina.",
+    "saveFailed": "Salvataggio file fallito. Riprova.",
+    "saveAborted": "Salvataggio annullato. Il nome del file non corrisponde al file attivo.",
+    "saveAbortedMessage": "Operazione annullata. Il file attivo ({activeFile}) non corrisponde a quello che stai salvando ({tryingToSave}).",
+    "syncFailed": "Impossibile sincronizzare lo stato per \"{filename}\" dopo 5 tentativi. Interruzione per prevenire corruzione dati.",
+    "fileSaved": "File salvato!",
+    "errorSavingFile": "Errore nel salvataggio del file: {error}"
   },
   "player": {
     "LoopEnabled": "Loop Abilitato",
@@ -941,3 +941,4 @@
     "editorSuccess": "Inizializzazione Editor - Successo! Tutti i passaggi completati.",
     "setupError": "Errore Setup"
   }
+}
