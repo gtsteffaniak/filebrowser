@@ -386,13 +386,19 @@ export default {
       const destination = getDestinationPath();
       // When items are passed as a prop from ListingView, they can be either
       // an array of DataTransferItem (from drag and drop) or an array of File (from input).
+      // or an array of objects (from clipboard paste of the OS).
       if (Array.isArray(items)) {
-        if (items.length > 0 && items[0] instanceof File) {
+        if (items.length === 0) return;
+        const first = items[0];
+        if (first instanceof File) {
           // This is an array of File objects from the input fallback in ListingView
           processFileList(items, destination);
-        } else {
+        } else if (typeof first.getAsFile === 'function') {
           // This is an array of DataTransferItem from drag and drop in ListingView
           await processDroppedItems(items, destination);
+        } else if (first.file instanceof File && typeof first.relativePath === 'string') {
+          // This is an array of objects {file, relativePath} for paste from clipboard OS.
+          uploadManager.add(destination, items);
         }
       } else if (items) {
         // This case handles a FileList object from the upload prompt's own input fields.

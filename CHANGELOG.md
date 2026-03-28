@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.3.3
 
+ **New Features**:
+ - Copy/paste files and folders (`CTRL+C`/`CTRL+V`) from other apps (win explorer, thunar, finder, etc) to upload them directly (#2197)
+
  **Notes**:
  - `.fbx` 3d model files added to supported previews.
 
