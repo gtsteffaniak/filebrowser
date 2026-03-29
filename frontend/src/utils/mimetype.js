@@ -38,7 +38,7 @@ export function getTypeInfo(mimeType) {
 
     if (EBOOK_MIME_TYPES.has(mimeType)) {
         return {
-            classes: "brown-icons material-symbols",
+            classes: "brown-icons material-symbols-outlined",
             materialIcon: "menu_book",
             simpleType: "ebook",
         };
@@ -186,7 +186,8 @@ export function getTypeInfo(mimeType) {
         };
     }
 
-    if (mimeType === "text/markdown" || mimeType === "text/x-markdown") {
+    if (mimeType === "text/markdown" || mimeType === "text/x-markdown" || mimeType === "text/x-rmarkdown" ||
+        mimeType === "text/x-quarto") {
         return {
             classes: "skyblue-icons material-symbols-outlined",
             materialIcon: "markdown",
@@ -234,7 +235,7 @@ export function getTypeInfo(mimeType) {
         };
     }
 
-    if (mimeType === "text/x-scriptsh") {
+    if (mimeType === "text/x-scriptsh" || mimeType === "text/x-shellscript") {
         return {
             classes: "light-green-icons material-symbols-outlined",
             materialIcon: "terminal_2",
@@ -300,11 +301,30 @@ export function getTypeInfo(mimeType) {
         };
     }
 
+    if (mimeType === "text/x-vcard") {
+        return {
+            classes: "deep-orange-icons material-symbols-outlined",
+            materialIcon: "contacts",
+            simpleType: "text",
+        };
+    }
+
+    if (mimeType === "text/config-file") {
+        return {
+            classes: "tan-icons material-symbols-outlined",
+            materialIcon: "settings",
+            simpleType: "text",
+        };
+    }
+
    // Apllication formats
 
     if (mimeType === "application/octet-stream" || mimeType === "application/x-executable" ||
         mimeType === "application/mac-binary" || mimeType === "application/vnd.google-apps.unknown" ||
-        mimeType === "application/x-msdownload" || mimeType === "application/x-application") {
+        mimeType === "application/x-msdownload" || mimeType === "application/x-application" ||
+        mimeType === "application/x-efi" || mimeType === "application/x-installer" ||
+        mimeType === "application/vnd.microsoft.portable-executable" || 
+        mimeType == "application/x-newton-compatible-pkg") {
         return {
             classes: "gray-icons material-symbols-outlined",
             materialIcon: "memory",
@@ -349,16 +369,8 @@ export function getTypeInfo(mimeType) {
 
     if (mimeType === "application/x-php") {
         return {
-            classes: "blue-icons material-symbols",
+            classes: "blue-icons material-symbols-outlined",
             materialIcon: "php",
-            simpleType: "text",
-        };
-    }
-
-    if (mimeType === "application/sql") {
-        return {
-            classes: "brown-icons material-symbols-outlined",
-            materialIcon: "sql",
             simpleType: "text",
         };
     }
@@ -434,7 +446,7 @@ export function getTypeInfo(mimeType) {
     // 3D model formats
     if (mimeType.startsWith("model/") || mimeType === "application/vnd.google-earth.kmz") {
         return {
-            classes: "purple-icons material-symbols",
+            classes: "purple-icons material-symbols-outlined",
             materialIcon: "view_in_ar",
             simpleType: "3d-model",
         };

@@ -108,7 +108,6 @@ var types = map[string]string{
 	".chrt":      "application/vnd.kde.kchart",
 	".class":     "application/java",
 	".com":       ContentTextHeaderValue,
-	".conf":      ContentTextHeaderValue,
 	".cpio":      "application/x-cpio",
 	".cpp":       "text/x-c",
 	".cpt":       "application/mac-compactpro",
@@ -624,6 +623,7 @@ var types = map[string]string{
 	".backup":    "application/backup",
 	".xfc":       "application/x-xcf",
 	".vue":       "text/vue",
+	".conf":      "text/config-file",
 	// the ones below are some from: https://svn.apache.org/repos/asf/httpd/httpd/trunk/docs/conf/mime.types
 	".adp":       "audio/adpcm",
 	".mp4a":      "audio/mp4",
