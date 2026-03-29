@@ -90,7 +90,7 @@
         <div v-if="!showMoreExpanded">
           <p>
             {{ $t("files.duration") }}
-            <i class="no-select material-symbols-outlined tooltip-info-icon"
+            <i class="material-symbols-outlined tooltip-info-icon"
               @mouseenter="showTooltip($event, $t('share.shareDurationDescription'))" @mouseleave="hideTooltip">
               help
             </i>
@@ -106,7 +106,7 @@
           </div>
           <p>
             {{ $t("prompts.optionalPassword") }}
-            <i class="no-select material-symbols-outlined tooltip-info-icon"
+            <i class="material-symbols-outlined tooltip-info-icon"
               @mouseenter="showTooltip($event, $t('share.passwordDescription'))" @mouseleave="hideTooltip">
               help
             </i>
@@ -120,7 +120,7 @@
           <input v-else class="input" type="password" autocomplete="new-password" v-model.trim="password" />
           <p>
             {{ $t("share.shareType") }}
-            <i class="no-select material-symbols-outlined tooltip-info-icon"
+            <i class="material-symbols-outlined tooltip-info-icon"
               @mouseenter="showTooltip($event, $t('share.shareTypeDescription'))" @mouseleave="hideTooltip">
               help
             </i>
@@ -150,7 +150,7 @@
           <div class="settings-items">
             <p>
               {{ $t("prompts.shareTheme") }}
-              <i class="no-select material-symbols-outlined tooltip-info-icon"
+              <i class="material-symbols-outlined tooltip-info-icon"
                 @mouseenter="showTooltip($event, $t('share.shareThemeDescription'))" @mouseleave="hideTooltip">
                 help
               </i>
@@ -167,7 +167,7 @@
             <div v-if="shareType === 'normal'">
               <p>
                 {{ $t("share.defaultViewMode") }}
-                <i class="no-select material-symbols-outlined tooltip-info-icon"
+                <i class="material-symbols-outlined tooltip-info-icon"
                   @mouseenter="showTooltip($event, $t('share.defaultViewModeDescription'))" @mouseleave="hideTooltip">
                   help
                 </i>
@@ -201,7 +201,7 @@
               :name="$t('share.enableOnlyOffice')" :description="$t('share.enableOnlyOfficeDescription')" />
             <p>
               {{ $t("share.enforceDarkLightMode") }}
-              <i class="no-select material-symbols-outlined tooltip-info-icon"
+              <i class="material-symbols-outlined tooltip-info-icon"
                 @mouseenter="showTooltip($event, $t('share.enforceDarkLightModeDescription'))"
                 @mouseleave="hideTooltip">
                 help
@@ -237,7 +237,7 @@
           <div v-if="shareType === 'normal'">
             <p>
               {{ $t("prompts.downloadsLimit") }}
-              <i class="no-select material-symbols-outlined tooltip-info-icon"
+              <i class="material-symbols-outlined tooltip-info-icon"
                 @mouseenter="showTooltip($event, $t('share.downloadsLimitDescription'))" @mouseleave="hideTooltip">
                 help
               </i>
@@ -245,7 +245,7 @@
             <input class="input" type="number" min="0" v-model.number="downloadsLimit" />
             <p>
               {{ $t("prompts.maxBandwidth") }}
-              <i class="no-select material-symbols-outlined tooltip-info-icon"
+              <i class="material-symbols-outlined tooltip-info-icon"
                 @mouseenter="showTooltip($event, $t('share.maxBandwidthDescription'))" @mouseleave="hideTooltip">
                 help
               </i>
@@ -256,7 +256,7 @@
 
           <p>
             {{ $t("prompts.shareThemeColor") }}
-            <i class="no-select material-symbols-outlined tooltip-info-icon"
+            <i class="material-symbols-outlined tooltip-info-icon"
               @mouseenter="showTooltip($event, $t('share.shareThemeColorDescription'))" @mouseleave="hideTooltip">
               help
             </i>
@@ -265,7 +265,7 @@
 
           <p>
             {{ $t("prompts.shareTitle") }}
-            <i class="no-select material-symbols-outlined tooltip-info-icon"
+            <i class="material-symbols-outlined tooltip-info-icon"
               @mouseenter="showTooltip($event, $t('share.shareTitleDescription'))" @mouseleave="hideTooltip">
               help
             </i>
@@ -274,7 +274,7 @@
 
           <p>
             {{ $t("prompts.shareDescription") }}
-            <i class="no-select material-symbols-outlined tooltip-info-icon"
+            <i class="material-symbols-outlined tooltip-info-icon"
               @mouseenter="showTooltip($event, $t('share.shareDescriptionHelp'))" @mouseleave="hideTooltip">
               help
             </i>
@@ -283,7 +283,7 @@
 
           <p>
             {{ $t("prompts.shareBanner") }}
-            <i class="no-select material-symbols-outlined tooltip-info-icon"
+            <i class="material-symbols-outlined tooltip-info-icon"
               @mouseenter="showTooltip($event, $t('share.shareBannerDescription'))" @mouseleave="hideTooltip">
               help
             </i>
@@ -297,7 +297,7 @@
 
           <p>
             {{ $t("prompts.shareFavicon") }}
-            <i class="no-select material-symbols-outlined tooltip-info-icon"
+            <i class="material-symbols-outlined tooltip-info-icon"
               @mouseenter="showTooltip($event, $t('share.shareFaviconDescription'))" @mouseleave="hideTooltip">
               help
             </i>

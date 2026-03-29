@@ -160,7 +160,9 @@
   word-wrap: normal;
   direction: ltr;
   -webkit-font-smoothing: antialiased;
+  -webkit-user-select: none;
   user-select: none;
+  transition: 0.3s ease;
 }
 
 /* Filled variant */
@@ -171,4 +173,8 @@
 /* Outlined variant */
 .material-symbols-outlined {
   font-variation-settings: 'FILL' 0;
+}
+
+.material-symbols-outlined:hover {
+  font-variation-settings: 'FILL' 1;
 }

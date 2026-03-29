@@ -21,7 +21,7 @@ https://raw.githubusercontent.com/dzwillia/vue-simple-progress/master/src/compon
       {{ displayed_text }}
       <i
         v-if="helpText && status === 'error'"
-        class="no-select material-symbols-outlined tooltip-info-icon"
+        class="material-symbols-outlined tooltip-info-icon"
         @mouseenter="showTooltip"
         @mouseleave="hideTooltip"
       >

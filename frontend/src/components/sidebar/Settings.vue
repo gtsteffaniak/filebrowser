@@ -61,6 +61,11 @@ export default {
   color: white !important;
 }
 
+.active-settings .settings-icon,
+.settings-card:hover .material-symbols-outlined {
+  font-variation-settings: 'FILL' 1;
+}
+
 .settings-card {
   display: flex;
   align-items: center;

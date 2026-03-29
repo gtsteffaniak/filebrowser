@@ -7,7 +7,7 @@
           <div class="settings-number-input item">
             <div class="no-padding">
               <label for="maxConcurrentUpload">{{ $t("fileLoading.maxConcurrentUpload") }}</label>
-              <i class="no-select material-symbols-outlined tooltip-info-icon"
+              <i class="material-symbols-outlined tooltip-info-icon"
                 @mouseenter="showTooltip($event, $t('fileLoading.maxConcurrentUploadHelp'))" @mouseleave="hideTooltip">
                 help
               </i>
@@ -20,7 +20,7 @@
           <div class="settings-number-input item">
             <div class="no-padding">
               <label for="uploadChunkSizeMb">{{ $t("fileLoading.uploadChunkSizeMb") }}</label>
-              <i class="no-select material-symbols-outlined tooltip-info-icon"
+              <i class="material-symbols-outlined tooltip-info-icon"
                 @mouseenter="showTooltip($event, $t('fileLoading.uploadChunkSizeMbHelp'))" @mouseleave="hideTooltip">
                 help
               </i>

@@ -4,7 +4,7 @@
       <span class="toggle-name">{{ name }}</span>
       <i
         v-if="description"
-        class="no-select material-symbols-outlined tooltip-info-icon"
+        class="material-symbols-outlined tooltip-info-icon"
         @mouseenter="showTooltip"
         @mouseleave="hideTooltip"
       >

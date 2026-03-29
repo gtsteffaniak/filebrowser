@@ -73,7 +73,7 @@
         <!-- Message when no results are found -->
         <div class="searchPrompt" v-show="isEmpty && !isRunning">
           <p>{{ noneMessage }}</p>
-          <i class="no-select material-symbols-outlined tooltip-info-icon" @mouseenter="showHelpTooltip"
+          <i class="material-symbols-outlined tooltip-info-icon" @mouseenter="showHelpTooltip"
             @mouseleave="hideTooltip">
             help
           </i>

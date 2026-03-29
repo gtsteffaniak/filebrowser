@@ -27,7 +27,7 @@
           <i class="material-icons">{{ sourceDenyDefault ? 'block' : 'check_circle' }}</i>  <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           {{ $t("access.defaultBehavior", { suffix: ":" }) }} {{ sourceDenyDefault ? $t("access.deny") : $t("access.allow")
           }}
-          <i class="no-select material-symbols-outlined tooltip-info-icon"
+          <i class="material-symbols-outlined tooltip-info-icon"
             @mouseenter="showTooltip($event, $t('access.defaultBehaviorDescription'))" @mouseleave="hideTooltip">
             help
           </i>
