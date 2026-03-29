@@ -23,7 +23,7 @@
 
   <!-- Regular material icon (no preview) -->
   <span v-else class="image-preview">
-    <i :class="[classes, { active: active, clickable: clickable }]"> {{ materialIcon }} </i>
+    <i :class="[classes, { active: active, clickable: clickable }]"> {{ materialSymbol }} </i>
     <i v-if="isShared" class="material-icons overlay-icon">group</i>
   </span>
 </template>
@@ -95,7 +95,7 @@ export default {
   },
   data() {
     return {
-      materialIcon: "",
+      materialSymbol: "",
       classes: "",
       svgPath: "",
       previewTimeouts: [],
@@ -212,9 +212,6 @@ export default {
         getters.previewPerms().folder &&
         this.hasPreview
       );
-    },
-    isMaterialIcon() {
-      return this.materialIcon !== "";
     },
     shouldUse3DPreview() {
       // Check if we should use 3D preview instead of regular icon
@@ -427,7 +424,7 @@ export default {
     this.classes = result.classes || "material-icons";
     // @ts-ignore
     this.color = result.color || "lightgray";
-    this.materialIcon = result.materialIcon || "";
+    this.materialSymbol = result.materialSymbol || "";
     // @ts-ignore
     this.svgPath = result.svgPath || "";
     this.updateImageTargetSrc();

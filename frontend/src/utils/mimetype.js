@@ -24,14 +24,14 @@ export function getTypeInfo(mimeType) {
     if (!mimeType) {
         return {
             classes: "material-symbols",
-            materialIcon: "file",
+            materialSymbol: "file",
             simpleType: "file",
         };
     }
     if (mimeType === "directory" || mimeType === "application/vnd.google-apps.folder") {
         return {
             classes: "primary-icons material-symbols",
-            materialIcon: "folder",
+            materialSymbol: "folder",
             simpleType: "directory",
         };
     }
@@ -39,7 +39,7 @@ export function getTypeInfo(mimeType) {
     if (EBOOK_MIME_TYPES.has(mimeType)) {
         return {
             classes: "brown-icons material-symbols-outlined",
-            materialIcon: "menu_book",
+            materialSymbol: "menu_book",
             simpleType: "ebook",
         };
     }
@@ -47,7 +47,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType.startsWith("image/gif")) {
         return {
             classes: "coral-icons material-symbols-outlined",
-            materialIcon: "gif",
+            materialSymbol: "gif",
             simpleType: "image",
         };
     }
@@ -55,7 +55,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType.startsWith("image/")) {
         return {
             classes: "coral-icons material-symbols-outlined",
-            materialIcon: "image",
+            materialSymbol: "image",
             simpleType: "image",
         };
     }
@@ -63,7 +63,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType.startsWith("audio/") || mimeType === "application/vnd.google-apps.audio") {
         return {
             classes: "plum-icons material-symbols-outlined",
-            materialIcon: "volume_up",
+            materialSymbol: "volume_up",
             simpleType: "audio",
         };
     }
@@ -71,7 +71,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType.startsWith("video/") || mimeType === "application/vnd.google-apps.video") {
         return {
             classes: "skyblue-icons material-symbols-outlined",
-            materialIcon: "movie",
+            materialSymbol: "movie",
             simpleType: "video",
         };
     }
@@ -79,7 +79,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType == "file_download") {
         return {
             classes: "material-icons",
-            materialIcon: "file_download",
+            materialSymbol: "file_download",
             simpleType: "file_download",
         };
     }
@@ -87,7 +87,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType.startsWith("font/") || mimeType === "application/vnd.oasis.opendocument.formula-template") {
         return {
             classes: "gray-icons material-symbols-outlined",
-            materialIcon: "format_color_text",
+            materialSymbol: "format_color_text",
             simpleType: "font",
         };
     }
@@ -100,7 +100,7 @@ export function getTypeInfo(mimeType) {
         mimeType === "application/x-compressed" || mimeType === "application/x-gzip") {
         return {
             classes: "tan-icons material-symbols",
-            materialIcon: "archive",
+            materialSymbol: "archive",
             simpleType: "archive",
         };
     }
@@ -108,7 +108,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "application/pdf") {
         return {
             classes: "red-icons material-symbols-outlined",
-            materialIcon: "picture_as_pdf",
+            materialSymbol: "picture_as_pdf",
             simpleType: "document",
         };
     }
@@ -119,7 +119,7 @@ export function getTypeInfo(mimeType) {
         mimeType === "application/vnd.oasis.opendocument.text") {
         return {
             classes: "deep-blue-icons material-symbols-outlined",
-            materialIcon: "docs",
+            materialSymbol: "docs",
             simpleType: "document",
         };
     }
@@ -131,7 +131,7 @@ export function getTypeInfo(mimeType) {
         mimeType === "application/vnd.oasis.opendocument.spreadsheet" || mimeType === "text/csv") {
         return {
             classes: "green-icons material-symbols-outlined",
-            materialIcon: "table",
+            materialSymbol: "table",
             simpleType: "document",
         };
     }
@@ -143,7 +143,7 @@ export function getTypeInfo(mimeType) {
         mimeType === "application/vnd.oasis.opendocument.presentation") {
         return {
             classes: "red-icons material-symbols-outlined",
-            materialIcon: "slideshow",
+            materialSymbol: "slideshow",
             simpleType: "document",
         };
     }
@@ -151,7 +151,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "application/json" || mimeType === "application/json5") {
         return {
             classes: "brown-icons material-symbols-outlined",
-            materialIcon: "file_json",
+            materialSymbol: "file_json",
             simpleType: "text",
         };
     }
@@ -159,7 +159,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "application/javascript" || mimeType === "text/javascript") {
         return {
             classes: "yellow-icons material-symbols-outlined",
-            materialIcon: "javascript",
+            materialSymbol: "javascript",
             simpleType: "text",
         };
     }
@@ -167,7 +167,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "text/vue") {
         return {
             classes: "light-green-icons material-symbols-outlined",
-            materialIcon: "code",
+            materialSymbol: "code",
             simpleType: "text",
         };
     }
@@ -176,7 +176,7 @@ export function getTypeInfo(mimeType) {
         mimeType === "text/x-scriptphyton") {
         return {
             classes: "yellow-icons material-symbols-outlined",
-            materialIcon: "code",
+            materialSymbol: "code",
             simpleType: "text",
         };
     }
@@ -185,7 +185,7 @@ export function getTypeInfo(mimeType) {
         mimeType === "text/x-quarto") {
         return {
             classes: "skyblue-icons material-symbols-outlined",
-            materialIcon: "markdown",
+            materialSymbol: "markdown",
             simpleType: "text",
         };
     }
@@ -193,7 +193,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "text/html" || mimeType === "application/xhtml+xml") {
         return {
             classes: "orange-icons material-symbols-outlined",
-            materialIcon: "html",
+            materialSymbol: "html",
             simpleType: "text",
         };
     }
@@ -201,7 +201,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "text/xml") {
         return {
             classes: "deep-orange-icons material-symbols-outlined",
-            materialIcon: "code_xml",
+            materialSymbol: "code_xml",
             simpleType: "text",
         };
     }
@@ -209,7 +209,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "text/css" || mimeType === "text/x-scss" || mimeType === "text/x-sass") {
         return {
             classes: "lightblue-icons material-symbols-outlined",
-            materialIcon: "css",
+            materialSymbol: "css",
             simpleType: "text",
         };
     }
@@ -217,7 +217,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "text/tab-separated-values") {
         return {
             classes: "light-green-icons material-symbols-outlined",
-            materialIcon: "tsv",
+            materialSymbol: "tsv",
             simpleType: "text",
         };
     }
@@ -225,7 +225,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "text/x-java-source") {
         return {
             classes: "brown-icons material-symbols-outlined",
-            materialIcon: "local_cafe",
+            materialSymbol: "local_cafe",
             simpleType: "text",
         };
     }
@@ -234,7 +234,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "text/x-scriptsh" || mimeType === "text/x-shellscript") {
         return {
             classes: "light-green-icons material-symbols-outlined",
-            materialIcon: "terminal_2",
+            materialSymbol: "terminal_2",
             simpleType: "text",
         };
     }
@@ -243,7 +243,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "text/x-lua") {
         return {
             classes: "blue-icons material-symbols-outlined",
-            materialIcon: "blur_circular",
+            materialSymbol: "blur_circular",
             simpleType: "text",
         };
     }
@@ -252,7 +252,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "text/x-c") {
         return {
             classes: "blue-icons material-symbols-outlined",
-            materialIcon: "copyright",
+            materialSymbol: "copyright",
             simpleType: "text",
         };
     }
@@ -261,7 +261,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "text/x-rust" || mimeType === "text/rust") {
         return {
             classes: "deep-orange-icons material-symbols-outlined",
-            materialIcon: "game_button_r",
+            materialSymbol: "game_button_r",
             simpleType: "text",
         };
     }
@@ -270,7 +270,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "text/x-csharp" || mimeType === "text/csharp") {
         return {
             classes: "purple-icons material-symbols-outlined",
-            materialIcon: "tag",
+            materialSymbol: "tag",
             simpleType: "text",
         };
     }
@@ -280,7 +280,7 @@ export function getTypeInfo(mimeType) {
         mimeType === "text/subtitle-vtt" || mimeType === "text/subtitle-ssa") {
         return {
             classes: "blue-icons material-symbols-outlined",
-            materialIcon: "closed_caption",
+            materialSymbol: "closed_caption",
             simpleType: "text",
         };
     }
@@ -290,7 +290,7 @@ export function getTypeInfo(mimeType) {
         mimeType === "text/x-scpls" || mimeType === "application/xspf+xml") {
         return {
             classes: "coral-icons material-symbols-outlined",
-            materialIcon: "playlist_play",
+            materialSymbol: "playlist_play",
             simpleType: "text",
         };
     }
@@ -299,7 +299,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "text/x-vcard") {
         return {
             classes: "deep-orange-icons material-symbols-outlined",
-            materialIcon: "contacts",
+            materialSymbol: "contacts",
             simpleType: "text",
         };
     }
@@ -308,7 +308,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "text/config-file" || mimeType === "text/ini") {
         return {
             classes: "tan-icons material-symbols-outlined",
-            materialIcon: "settings",
+            materialSymbol: "settings",
             simpleType: "text",
         };
     }
@@ -317,7 +317,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "text/x-go") {
         return {
             classes: "skyblue-icons material-symbols-outlined",
-            materialIcon: "code",
+            materialSymbol: "code",
             simpleType: "text",
         };
     }
@@ -326,7 +326,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "text/x-kotlin") {
         return {
             classes: "orange-icons material-symbols-outlined",
-            materialIcon: "code",
+            materialSymbol: "code",
             simpleType: "text",
         };
     }
@@ -335,7 +335,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "text/x-typescript") {
         return {
             classes: "deep-blue-icons material-symbols-outlined",
-            materialIcon: "title",
+            materialSymbol: "title",
             simpleType: "text",
         };
     }
@@ -344,7 +344,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "text/x-scriptperl" || mimeType === "text/x-scriptperl-module") {
         return {
             classes: "deep-blue-icons material-symbols-outlined",
-            materialIcon: "chess_knight",
+            materialSymbol: "chess_knight",
             simpleType: "text",
         };
     }
@@ -353,7 +353,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "text/x-pascal" || mimeType === "text/pascal") {
         return {
             classes: "deep-blue-icons material-symbols-outlined",
-            materialIcon: "local_parking",
+            materialSymbol: "local_parking",
             simpleType: "text",
         };
     }
@@ -362,7 +362,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "text/x-zig" || mimeType === "text/zig") {
         return {
             classes: "yellow-icons material-symbols-outlined",
-            materialIcon: "electric_bolt",
+            materialSymbol: "electric_bolt",
             simpleType: "text",
         };
     }
@@ -371,7 +371,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "text/x-elixir") {
         return {
             classes: "purple-icons material-symbols-outlined",
-            materialIcon: "water_drop",
+            materialSymbol: "water_drop",
             simpleType: "text",
         };
     }
@@ -380,7 +380,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "text/nix-lang") {
         return {
             classes: "blue-icons material-symbols-outlined",
-            materialIcon: "snowflake",
+            materialSymbol: "snowflake",
             simpleType: "text",
         };
     }
@@ -389,7 +389,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "text/calendar") {
         return {
             classes: "tan-icons material-symbols-outlined",
-            materialIcon: "calendar_month",
+            materialSymbol: "calendar_month",
             simpleType: "text",
         };
     }
@@ -398,7 +398,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "text/tmp") {
         return {
             classes: "gray-icons material-symbols-outlined",
-            materialIcon: "hourglass",
+            materialSymbol: "hourglass",
             simpleType: "text",
         };
     }
@@ -413,7 +413,7 @@ export function getTypeInfo(mimeType) {
         mimeType === "application/vnd.microsoft.portable-executable") {
         return {
             classes: "gray-icons material-symbols-outlined",
-            materialIcon: "memory",
+            materialSymbol: "memory",
             simpleType: "binary",
         };
     }
@@ -422,7 +422,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "application/vnd.android.package-archive") {
         return {
             classes: "light-green-icons material-symbols-outlined",
-            materialIcon: "android",
+            materialSymbol: "android",
             simpleType: "archive",
         };
     }
@@ -436,7 +436,7 @@ export function getTypeInfo(mimeType) {
         mimeType === "application/x-vmdk-disk") {
         return {
             classes: "lightgray-icons material-symbols",
-            materialIcon: "album",
+            materialSymbol: "album",
             simpleType: "binary",
         };
     }
@@ -445,7 +445,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "application/backup") {
         return {
             classes: "gray-icons material-symbols-outlined",
-            materialIcon: "save",
+            materialSymbol: "save",
             simpleType: "text",
         };
     }
@@ -454,7 +454,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "application/x-ruby") {
         return {
             classes: "red-icons material-symbols",
-            materialIcon: "diamond",
+            materialSymbol: "diamond",
             simpleType: "text",
         };
     }
@@ -463,7 +463,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "application/x-php") {
         return {
             classes: "blue-icons material-symbols-outlined",
-            materialIcon: "php",
+            materialSymbol: "php",
             simpleType: "text",
         };
     }
@@ -472,7 +472,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "application/postscript") {
         return {
             classes: "orange-icons material-symbols-outlined",
-            materialIcon: "format_shapes",
+            materialSymbol: "format_shapes",
             simpleType: "text",
         };
     }
@@ -482,7 +482,7 @@ export function getTypeInfo(mimeType) {
         mimeType === "application/vnd.sqlite3") {
         return {
             classes: "blue-icons material-symbols-outlined",
-            materialIcon: "database",
+            materialSymbol: "database",
             simpleType: "text",
         };
     }
@@ -491,7 +491,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "application/yaml") {
         return {
             classes: "orange-icons material-symbols-outlined",
-            materialIcon: "data_object",
+            materialSymbol: "data_object",
             simpleType: "text",
         };
     }
@@ -500,7 +500,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "application/toml" || mimeType === "text/toml") {
         return {
             classes: "red-icons material-symbols-outlined",
-            materialIcon: "developer_mode_tv",
+            materialSymbol: "developer_mode_tv",
             simpleType: "text",
         };
     }
@@ -509,7 +509,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "application/acad" || mimeType === "application/dxf") {
         return {
             classes: "red-icons material-symbols-outlined",
-            materialIcon: "architecture",
+            materialSymbol: "architecture",
             simpleType: "binary",
         };
     }
@@ -520,7 +520,7 @@ export function getTypeInfo(mimeType) {
         mimeType === "application/gpx+xml" || mimeType === "application/x-navimap") {
         return {
             classes: "green-icons material-symbols-outlined",
-            materialIcon: "map",
+            materialSymbol: "map",
             simpleType: "binary",
         };
     }
@@ -530,7 +530,7 @@ export function getTypeInfo(mimeType) {
         mimeType === "application/x-sketch") {
         return {
             classes: "plum-icons material-symbols-outlined",
-            materialIcon: "brush",
+            materialSymbol: "brush",
             simpleType: "binary",
         };
     }
@@ -539,7 +539,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "application/x-powershell" || mimeType === "application/x-msdos-program") {
         return {
             classes: "deep-blue-icons material-symbols-outlined",
-            materialIcon: "terminal",
+            materialSymbol: "terminal",
             simpleType: "text",
         };
     }
@@ -548,7 +548,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "application/vnd.dart" || mimeType === "text/flutter") {
         return {
             classes: "lightblue-icons material-symbols-outlined",
-            materialIcon: "flutter",
+            materialSymbol: "flutter",
             simpleType: "text",
         };
     }
@@ -557,7 +557,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "application/wasm" || mimeType === "text/x-asm") {
         return {
             classes: "deep-blue-icons material-symbols-outlined",
-            materialIcon: "memory",
+            materialSymbol: "memory",
             simpleType: "text",
         };
     }
@@ -566,7 +566,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "application/x-debian-package" || mimeType === "application/x-newton-compatible-pkg") {
         return {
             classes: "brown-icons material-symbols-outlined",
-            materialIcon: "package_2",
+            materialSymbol: "package_2",
             simpleType: "archive",
         };
     }
@@ -576,7 +576,7 @@ export function getTypeInfo(mimeType) {
         mimeType === "application/vnd.ms-publisher") {
         return {
             classes: "deep-orange-icons material-symbols-outlined",
-            materialIcon: "key",
+            materialSymbol: "key",
             simpleType: "text",
         };
     }
@@ -585,7 +585,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "application/pkix-cert") {
         return {
             classes: "tan-icons material-symbols-outlined",
-            materialIcon: "license",
+            materialSymbol: "license",
             simpleType: "text",
         };
     }
@@ -594,7 +594,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "application/x-bittorrent") {
         return {
             classes: "light-green-icons material-symbols-outlined",
-            materialIcon: "format_underlined",
+            materialSymbol: "format_underlined",
             simpleType: "blob",
         };
     }
@@ -603,7 +603,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType === "invalid_link") {
         return {
             classes: "lightgray-icons material-symbols",
-            materialIcon: "link_off",
+            materialSymbol: "link_off",
             simpleType: "invalid_link",
         };
     }
@@ -612,7 +612,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType.startsWith("model/") || mimeType === "application/vnd.google-earth.kmz") {
         return {
             classes: "purple-icons material-symbols-outlined",
-            materialIcon: "view_in_ar",
+            materialSymbol: "view_in_ar",
             simpleType: "3d-model",
         };
     }
@@ -620,7 +620,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType.startsWith("text/")) {
         return {
             classes: "white-icons material-symbols",
-            materialIcon: "description",
+            materialSymbol: "description",
             simpleType: "text",
         };
     }
@@ -628,7 +628,7 @@ export function getTypeInfo(mimeType) {
     // Default fallback
     return {
         classes: "lightgray-icons material-symbols",
-        materialIcon: "description",
+        materialSymbol: "description",
         simpleType: "blob",
     };
 }
