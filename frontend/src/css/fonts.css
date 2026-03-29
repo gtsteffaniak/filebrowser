@@ -162,7 +162,7 @@
   -webkit-font-smoothing: antialiased;
   -webkit-user-select: none;
   user-select: none;
-  transition: 0.3s ease;
+  transition: 0.25s ease;
 }
 
 /* Filled variant */

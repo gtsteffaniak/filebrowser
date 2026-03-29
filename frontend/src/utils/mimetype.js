@@ -145,7 +145,7 @@ export function getTypeInfo(mimeType) {
         };
     }
 
-    if (mimeType === "application/json") {
+    if (mimeType === "application/json" || mimeType === "application/json5") {
         return {
             classes: "brown-icons material-symbols-outlined",
             materialIcon: "file_json",
@@ -309,10 +309,66 @@ export function getTypeInfo(mimeType) {
         };
     }
 
-    if (mimeType === "text/config-file") {
+    if (mimeType === "text/config-file" || mimeType === "text/ini") {
         return {
             classes: "tan-icons material-symbols-outlined",
             materialIcon: "settings",
+            simpleType: "text",
+        };
+    }
+
+    if (mimeType === "text/x-go") {
+        return {
+            classes: "skyblue-icons material-symbols-outlined",
+            materialIcon: "code",
+            simpleType: "text",
+        };
+    }
+
+    if (mimeType === "text/x-kotlin") {
+        return {
+            classes: "orange-icons material-symbols-outlined",
+            materialIcon: "code",
+            simpleType: "text",
+        };
+    }
+
+    if (mimeType === "text/x-typescript") {
+        return {
+            classes: "deep-blue-icons material-symbols-outlined",
+            materialIcon: "title",
+            simpleType: "text",
+        };
+    }
+
+    if (mimeType === "text/x-scriptperl" || mimeType === "text/x-scriptperl-module") {
+        return {
+            classes: "deep-blue-icons material-symbols-outlined",
+            materialIcon: "chess_knight",
+            simpleType: "text",
+        };
+    }
+
+    if (mimeType === "text/x-pascal" || mimeType === "text/pascal") {
+        return {
+            classes: "deep-blue-icons material-symbols-outlined",
+            materialIcon: "local_parking",
+            simpleType: "text",
+        };
+    }
+
+    if (mimeType === "text/x-zig" || mimeType === "text/zig") {
+        return {
+            classes: "yellow-icons material-symbols-outlined",
+            materialIcon: "electric_bolt",
+            simpleType: "text",
+        };
+    }
+
+    if (mimeType === "text/x-elixir") {
+        return {
+            classes: "purple-icons material-symbols-outlined",
+            materialIcon: "water_drop",
             simpleType: "text",
         };
     }
@@ -432,6 +488,38 @@ export function getTypeInfo(mimeType) {
             classes: "plum-icons material-symbols-outlined",
             materialIcon: "brush",
             simpleType: "binary",
+        };
+    }
+
+    if (mimeType === "application/x-powershell" || mimeType === "application/x-msdos-program") {
+        return {
+            classes: "deep-blue-icons material-symbols-outlined",
+            materialIcon: "terminal",
+            simpleType: "text",
+        };
+    }
+
+    if (mimeType === "application/vnd.dart" || mimeType === "text/flutter") {
+        return {
+            classes: "lightblue-icons material-symbols-outlined",
+            materialIcon: "flutter",
+            simpleType: "text",
+        };
+    }
+
+    if (mimeType === "application/x-mix-transfer") {
+        return {
+            classes: "blue-icons material-symbols-outlined",
+            materialIcon: "ac_unit",
+            simpleType: "text",
+        };
+    }
+
+    if (mimeType === "text/x-asm" || mimeType === "application/wasm") {
+        return {
+            classes: "deep-blue-icons material-symbols-outlined",
+            materialIcon: "memory",
+            simpleType: "text",
         };
     }
 
