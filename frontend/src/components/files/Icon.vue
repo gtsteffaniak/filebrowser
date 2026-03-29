@@ -23,7 +23,7 @@
 
   <!-- Regular material icon (no preview) -->
   <span v-else class="image-preview">
-    <i :class="[classes, { active: active, clickable: clickable }]"> {{ materialIcon }} </i>
+    <i :class="[classes, { active: active, clickable: clickable }]"> {{ materialSymbol }} </i>
     <i v-if="isShared" class="material-icons overlay-icon">group</i>
   </span>
 </template>
@@ -95,7 +95,7 @@ export default {
   },
   data() {
     return {
-      materialIcon: "",
+      materialSymbol: "",
       classes: "",
       svgPath: "",
       previewTimeouts: [],
@@ -212,9 +212,6 @@ export default {
         getters.previewPerms().folder &&
         this.hasPreview
       );
-    },
-    isMaterialIcon() {
-      return this.materialIcon !== "";
     },
     shouldUse3DPreview() {
       // Check if we should use 3D preview instead of regular icon
@@ -427,7 +424,7 @@ export default {
     this.classes = result.classes || "material-icons";
     // @ts-ignore
     this.color = result.color || "lightgray";
-    this.materialIcon = result.materialIcon || "";
+    this.materialSymbol = result.materialSymbol || "";
     // @ts-ignore
     this.svgPath = result.svgPath || "";
     this.updateImageTargetSrc();
@@ -474,13 +471,11 @@ export default {
 
 .icon {
   font-size: 1.5rem;
-  /* Default size */
   fill: currentColor;
   /* Uses inherited color */
   border-radius: 0.2em;
   padding: 0.1em;
   background: var(--iconBackground);
-  /* Performance optimization */
   will-change: auto;
   transform: translateZ(0);
 }
@@ -489,16 +484,9 @@ export default {
   background: var(--background);
 }
 
-.purple-icons {
-  color: purple;
-}
-
-/* Icon Colors */
-.blue-icons {
-  color: var(--icon-blue);
-}
-
-/* Icon Colors */
+/* ----------- 
+   Icon Colors
+   ----------- */
 .primary-icons {
   color: var(--primaryColor);
 }
@@ -507,11 +495,55 @@ export default {
   text-shadow: 0px 0px 1px #000;
 }
 
+/* blue variations */
+.blue-icons {
+  color: var(--icon-blue);
+}
+
+.deep-blue-icons {
+  color: rgb(29, 95, 191);
+}
+
 .lightblue-icons {
   color: lightskyblue;
 }
 
+.skyblue-icons {
+  color: rgb(42, 170, 242);
+}
+
+/* purple variations */
+.purple-icons {
+  color: purple;
+}
+
+.plum-icons {
+  color: plum;
+}
+
+/* yellow */
+.yellow-icons {
+  color: yellow;
+}
+
+/* orange/red variations */
 .orange-icons {
+  color: orange;
+}
+
+.red-icons {
+  color: rgb(211, 16, 16);
+}
+
+.deep-orange-icons {
+  color: rgb(255, 111, 0);
+}
+
+.brown-icons {
+  color: brown;
+}
+
+.coral-icons {
   color: lightcoral;
 }
 
@@ -519,53 +551,31 @@ export default {
   color: tan;
 }
 
-.plum-icons {
-  color: plum;
-}
-
-.red-icons {
-  color: rgb(246, 70, 70);
-}
-
-.white-icons {
-  color: white;
-}
-
-.brown-icons {
-  color: brown;
-}
-
-#listingView.gallery .listing-item i.white-icons,
-.active.white-icons {
-  color: var(--activeWhiteIcon);
-}
-
-.deep-blue-icons {
-  color: rgb(29, 95, 191);
-}
-
+/* green variations */
 .green-icons {
   color: rgb(23, 128, 74);
 }
 
-.red-orange-icons {
-  color: rgb(255, 147, 111);
+.light-green-icons {
+  color: rgb(48, 207, 117);
+}
+
+/* white variations */
+.white-icons {
+  color: white;
 }
 
 .gray-icons {
   color: gray;
 }
 
-.skyblue-icons {
-  color: rgb(42, 170, 242);
-}
-
 .lightgray-icons {
   color: rgb(176, 176, 176);
 }
 
-.yellow-icons {
-  color: yellow;
+#listingView.gallery .listing-item i.white-icons,
+.active.white-icons {
+  color: var(--activeWhiteIcon);
 }
 
 /* Unified .image-preview container - works universally, always square */

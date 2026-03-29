@@ -8,7 +8,7 @@
           @dragleave.prevent="dragLeave($event, homeLink)"
           @dragover.prevent="dragOver($event, homeLink)"
           @drop.prevent="drop($event, homeLink)">
-          <i class="material-icons">home</i>
+          <i class="material-symbols">home</i>
         </router-link>
       </li>
       <li class="item" v-for="(link, index) in items" :key="index">
