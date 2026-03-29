@@ -46,7 +46,7 @@ export function getTypeInfo(mimeType) {
 
     if (mimeType.startsWith("image/gif")) {
         return {
-            classes: "purple-icons material-symbols-outlined",
+            classes: "coral-icons material-symbols-outlined",
             materialIcon: "gif",
             simpleType: "image",
         };
@@ -92,6 +92,7 @@ export function getTypeInfo(mimeType) {
         };
     }
 
+    // archives
     if (mimeType === "application/zip" || mimeType === "application/x-7z-compressed" ||
         mimeType === "application/x-bzip" || mimeType === "application/x-rar-compressed" ||
         mimeType === "application/x-tar" || mimeType === "application/gzip" ||
@@ -112,8 +113,9 @@ export function getTypeInfo(mimeType) {
         };
     }
 
+    // documents: doc, docx, rtf, odt
     if (mimeType === "application/msword" || mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-        mimeType === "application/vnd.google-apps.document" || mimeType === "text/rtf" ||
+        mimeType === "application/vnd.google-apps.document" || mimeType === "text/richtext" ||
         mimeType === "application/vnd.oasis.opendocument.text") {
         return {
             classes: "deep-blue-icons material-symbols-outlined",
@@ -122,18 +124,19 @@ export function getTypeInfo(mimeType) {
         };
     }
 
-    if (
-        mimeType === "application/vnd.ms-excel" ||
+    // spreadsheets: xls, xlsx, ods, csv
+    if (mimeType === "application/vnd.ms-excel" || 
         mimeType === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
         mimeType === "application/vnd.google-apps.spreadsheet" || mimeType === "application/excel" ||
         mimeType === "application/vnd.oasis.opendocument.spreadsheet" || mimeType === "text/csv") {
         return {
             classes: "green-icons material-symbols-outlined",
-            materialIcon: "border_all",
+            materialIcon: "table",
             simpleType: "document",
         };
     }
 
+    // Presentations: ppt, pptx, odp
     if (mimeType === "application/vnd.ms-powerpoint" ||
         mimeType === "application/vnd.openxmlformats-officedocument.presentationml.presentation" ||
         mimeType === "application/vnd.google-apps.presentation" || mimeType === "application/mspowerpoint" ||
@@ -149,14 +152,6 @@ export function getTypeInfo(mimeType) {
         return {
             classes: "brown-icons material-symbols-outlined",
             materialIcon: "file_json",
-            simpleType: "text",
-        };
-    }
-
-    if (mimeType === "application/xml") {
-        return {
-            classes: "yellow-icons material-symbols",
-            materialIcon: "code_xml",
             simpleType: "text",
         };
     }
@@ -235,6 +230,7 @@ export function getTypeInfo(mimeType) {
         };
     }
 
+    // bash, sh
     if (mimeType === "text/x-scriptsh" || mimeType === "text/x-shellscript") {
         return {
             classes: "light-green-icons material-symbols-outlined",
@@ -243,6 +239,7 @@ export function getTypeInfo(mimeType) {
         };
     }
 
+    // lua
     if (mimeType === "text/x-lua") {
         return {
             classes: "blue-icons material-symbols-outlined",
@@ -251,14 +248,7 @@ export function getTypeInfo(mimeType) {
         };
     }
 
-    if (mimeType === "text/richtext" || mimeType === "application/rtf") {
-        return {
-            classes: "purple-icons material-symbols-outlined",
-            materialIcon: "text_fields",
-            simpleType: "text",
-        };
-    }
-
+    // C
     if (mimeType === "text/x-c") {
         return {
             classes: "blue-icons material-symbols-outlined",
@@ -267,6 +257,7 @@ export function getTypeInfo(mimeType) {
         };
     }
 
+    // rs
     if (mimeType === "text/x-rust" || mimeType === "text/rust") {
         return {
             classes: "deep-orange-icons material-symbols-outlined",
@@ -275,14 +266,16 @@ export function getTypeInfo(mimeType) {
         };
     }
 
+    // cs
     if (mimeType === "text/x-csharp" || mimeType === "text/csharp") {
         return {
             classes: "purple-icons material-symbols-outlined",
-            materialIcon: "code",
+            materialIcon: "tag",
             simpleType: "text",
         };
     }
 
+    // Subtitle files: srt, vtt, ass, ssa
     if (mimeType === "text/subtitle-srt" || mimeType === "text/subtitle-ass" ||
         mimeType === "text/subtitle-vtt" || mimeType === "text/subtitle-ssa") {
         return {
@@ -292,6 +285,7 @@ export function getTypeInfo(mimeType) {
         };
     }
 
+    // Playlist files: m3u, m3u8, pls, xspf
     if (mimeType === "text/x-mpegurl" || mimeType === "text/x-mpegURL" ||
         mimeType === "text/x-scpls" || mimeType === "application/xspf+xml") {
         return {
@@ -301,6 +295,7 @@ export function getTypeInfo(mimeType) {
         };
     }
 
+    // Contact file: vcf
     if (mimeType === "text/x-vcard") {
         return {
             classes: "deep-orange-icons material-symbols-outlined",
@@ -309,6 +304,7 @@ export function getTypeInfo(mimeType) {
         };
     }
 
+    // config: ini, conf
     if (mimeType === "text/config-file" || mimeType === "text/ini") {
         return {
             classes: "tan-icons material-symbols-outlined",
@@ -317,6 +313,7 @@ export function getTypeInfo(mimeType) {
         };
     }
 
+    // Go
     if (mimeType === "text/x-go") {
         return {
             classes: "skyblue-icons material-symbols-outlined",
@@ -325,6 +322,7 @@ export function getTypeInfo(mimeType) {
         };
     }
 
+    // Kt
     if (mimeType === "text/x-kotlin") {
         return {
             classes: "orange-icons material-symbols-outlined",
@@ -333,6 +331,7 @@ export function getTypeInfo(mimeType) {
         };
     }
 
+    // Typescrpt: ts, tsx
     if (mimeType === "text/x-typescript") {
         return {
             classes: "deep-blue-icons material-symbols-outlined",
@@ -341,6 +340,7 @@ export function getTypeInfo(mimeType) {
         };
     }
 
+    // Perl: pm, pl
     if (mimeType === "text/x-scriptperl" || mimeType === "text/x-scriptperl-module") {
         return {
             classes: "deep-blue-icons material-symbols-outlined",
@@ -349,6 +349,7 @@ export function getTypeInfo(mimeType) {
         };
     }
 
+    // Pascal: pas, p, pp 
     if (mimeType === "text/x-pascal" || mimeType === "text/pascal") {
         return {
             classes: "deep-blue-icons material-symbols-outlined",
@@ -357,6 +358,7 @@ export function getTypeInfo(mimeType) {
         };
     }
 
+    // zig
     if (mimeType === "text/x-zig" || mimeType === "text/zig") {
         return {
             classes: "yellow-icons material-symbols-outlined",
@@ -365,6 +367,7 @@ export function getTypeInfo(mimeType) {
         };
     }
 
+    // Elixir: ex, exs
     if (mimeType === "text/x-elixir") {
         return {
             classes: "purple-icons material-symbols-outlined",
@@ -373,14 +376,41 @@ export function getTypeInfo(mimeType) {
         };
     }
 
-   // Apllication formats
+    // Nixos: nix
+    if (mimeType === "text/nix-lang") {
+        return {
+            classes: "blue-icons material-symbols-outlined",
+            materialIcon: "snowflake",
+            simpleType: "text",
+        };
+    }
 
+    // calendar: ics
+    if (mimeType === "text/calendar") {
+        return {
+            classes: "tan-icons material-symbols-outlined",
+            materialIcon: "calendar_month",
+            simpleType: "text",
+        };
+    }
+
+    // Temporary files: tmp, temp
+    if (mimeType === "text/tmp") {
+        return {
+            classes: "gray-icons material-symbols-outlined",
+            materialIcon: "hourglass",
+            simpleType: "text",
+        };
+    }
+
+   // =================== //
+   // Apllication mimes   //
+   // =================== //
     if (mimeType === "application/octet-stream" || mimeType === "application/x-executable" ||
         mimeType === "application/mac-binary" || mimeType === "application/vnd.google-apps.unknown" ||
         mimeType === "application/x-msdownload" || mimeType === "application/x-application" ||
         mimeType === "application/x-efi" || mimeType === "application/x-installer" ||
-        mimeType === "application/vnd.microsoft.portable-executable" || 
-        mimeType == "application/x-newton-compatible-pkg") {
+        mimeType === "application/vnd.microsoft.portable-executable") {
         return {
             classes: "gray-icons material-symbols-outlined",
             materialIcon: "memory",
@@ -388,6 +418,7 @@ export function getTypeInfo(mimeType) {
         };
     }
 
+    // Android: APK
     if (mimeType === "application/vnd.android.package-archive") {
         return {
             classes: "light-green-icons material-symbols-outlined",
@@ -396,10 +427,13 @@ export function getTypeInfo(mimeType) {
         };
     }
 
+    // Images: dmg, iso, qcow2, img, cue, vmdk...
     if (mimeType === "application/x-disk-image" || mimeType === "application/x-iso-image" ||
         mimeType === "application/x-apple-diskimage" || mimeType === "application/x-cd-image" ||
         mimeType === "application/vnd.efi.iso" || mimeType === "application/x-qcow2" ||
-        mimeType === "application/x-vmdk") {
+        mimeType === "application/x-vmdk" || mimeType === "application/x-qemu-disk" ||
+        mimeType === "application/vnd.efi.img" || mimeType === "application/x-cue" ||
+        mimeType === "application/x-vmdk-disk") {
         return {
             classes: "lightgray-icons material-symbols",
             materialIcon: "album",
@@ -407,6 +441,7 @@ export function getTypeInfo(mimeType) {
         };
     }
 
+    // backup, bak
     if (mimeType === "application/backup") {
         return {
             classes: "gray-icons material-symbols-outlined",
@@ -415,6 +450,7 @@ export function getTypeInfo(mimeType) {
         };
     }
 
+    // ruby
     if (mimeType === "application/x-ruby") {
         return {
             classes: "red-icons material-symbols",
@@ -423,6 +459,7 @@ export function getTypeInfo(mimeType) {
         };
     }
 
+    // PHP
     if (mimeType === "application/x-php") {
         return {
             classes: "blue-icons material-symbols-outlined",
@@ -431,6 +468,7 @@ export function getTypeInfo(mimeType) {
         };
     }
 
+    // vector: ps, eps, ai
     if (mimeType === "application/postscript") {
         return {
             classes: "orange-icons material-symbols-outlined",
@@ -439,6 +477,7 @@ export function getTypeInfo(mimeType) {
         };
     }
 
+    // databases: db, sqlite, sql 
     if (mimeType === "application/x-db" || mimeType === "application/sql" ||
         mimeType === "application/vnd.sqlite3") {
         return {
@@ -448,6 +487,7 @@ export function getTypeInfo(mimeType) {
         };
     }
 
+    // yaml, yml
     if (mimeType === "application/yaml") {
         return {
             classes: "orange-icons material-symbols-outlined",
@@ -456,6 +496,7 @@ export function getTypeInfo(mimeType) {
         };
     }
 
+    // toml
     if (mimeType === "application/toml" || mimeType === "text/toml") {
         return {
             classes: "red-icons material-symbols-outlined",
@@ -464,6 +505,7 @@ export function getTypeInfo(mimeType) {
         };
     }
 
+    // cad: dwg, dxf
     if (mimeType === "application/acad" || mimeType === "application/dxf") {
         return {
             classes: "red-icons material-symbols-outlined",
@@ -472,9 +514,10 @@ export function getTypeInfo(mimeType) {
         };
     }
 
+    // map related: geojson, map, kmz, gpx, kml...
     if (mimeType === "application/x-shapefile" || mimeType === "application/geo+json" || 
         mimeType === "application/vnd.google-earth.kml+xml" || mimeType === "application/vnd.google-earth.kmz" ||
-        mimeType === "application/gpx+xml") {
+        mimeType === "application/gpx+xml" || mimeType === "application/x-navimap") {
         return {
             classes: "green-icons material-symbols-outlined",
             materialIcon: "map",
@@ -482,6 +525,7 @@ export function getTypeInfo(mimeType) {
         };
     }
 
+    // xcf, figma, fig
     if (mimeType === "application/x-xcf" || mimeType === "application/x-figma" ||
         mimeType === "application/x-sketch") {
         return {
@@ -491,6 +535,7 @@ export function getTypeInfo(mimeType) {
         };
     }
 
+    // powershell (windows): ps, ps1, ps2, ps3, cmd, bat
     if (mimeType === "application/x-powershell" || mimeType === "application/x-msdos-program") {
         return {
             classes: "deep-blue-icons material-symbols-outlined",
@@ -499,6 +544,7 @@ export function getTypeInfo(mimeType) {
         };
     }
 
+    // flutter: dart, flutter
     if (mimeType === "application/vnd.dart" || mimeType === "text/flutter") {
         return {
             classes: "lightblue-icons material-symbols-outlined",
@@ -507,21 +553,52 @@ export function getTypeInfo(mimeType) {
         };
     }
 
-    if (mimeType === "application/x-mix-transfer") {
-        return {
-            classes: "blue-icons material-symbols-outlined",
-            materialIcon: "ac_unit",
-            simpleType: "text",
-        };
-    }
-
-    if (mimeType === "text/x-asm" || mimeType === "application/wasm") {
+    // assembly: wasm, asm
+    if (mimeType === "application/wasm" || mimeType === "text/x-asm") {
         return {
             classes: "deep-blue-icons material-symbols-outlined",
             materialIcon: "memory",
             simpleType: "text",
         };
     }
+
+    // packages: deb, pkg, rpm
+    if (mimeType === "application/x-debian-package" || mimeType === "application/x-newton-compatible-pkg") {
+        return {
+            classes: "brown-icons material-symbols-outlined",
+            materialIcon: "package_2",
+            simpleType: "archive",
+        };
+    }
+
+    // keys: key, pem, pub
+    if (mimeType === "application/x-x509-ca-cert" || mimeType === "application/vnd.apple.keynote" || 
+        mimeType === "application/vnd.ms-publisher") {
+        return {
+            classes: "deep-orange-icons material-symbols-outlined",
+            materialIcon: "key",
+            simpleType: "text",
+        };
+    }
+
+    // certificates: crt, cer
+    if (mimeType === "application/pkix-cert") {
+        return {
+            classes: "tan-icons material-symbols-outlined",
+            materialIcon: "license",
+            simpleType: "text",
+        };
+    }
+
+    // torrents: torrent
+    if (mimeType === "application/x-bittorrent") {
+        return {
+            classes: "light-green-icons material-symbols-outlined",
+            materialIcon: "format_underlined",
+            simpleType: "blob",
+        };
+    }
+
 
     if (mimeType === "invalid_link") {
         return {
