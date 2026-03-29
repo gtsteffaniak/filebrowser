@@ -359,6 +359,14 @@ button:hover,
     /* Slightly enlarges the element */
 }
 
+.listing-item[aria-selected="true"] .material-symbols-outlined,
+.listing-item:hover .material-symbols-outlined,
+.tree-node:hover .material-symbols-outlined,
+.tree-node.current-item .material-symbols-outlined,
+.tree-node.drag-over .material-symbols-outlined {
+  font-variation-settings: 'FILL' 1;
+}
+
 .flat-right {
     border-top-right-radius: 0 !important;
     border-bottom-right-radius: 0 !important;

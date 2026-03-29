@@ -324,7 +324,7 @@ body.rtl .listing-items {
 }
 
 .listing-items.gallery .listing-item[aria-selected=true] {
-  border: 0.2em solid var(--primaryColor) !important;
+  border: 0.45em solid var(--primaryColor) !important;
 }
 
 .listing-items.gallery .listing-item .size,
