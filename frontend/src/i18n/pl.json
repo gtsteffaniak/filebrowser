@@ -240,7 +240,8 @@
     "unarchive": "Wyodrębnij archiwum",
     "unarchiveMessage": "Wybierz miejsce rozpakowania archiwum.",
     "unarchiveDestination": "Wyciąg do:",
-    "unarchiveSuccess": "Archiwum rozpakowane pomyślnie!"
+    "unarchiveSuccess": "Archiwum rozpakowane pomyślnie!",
+    "downloadFailed": "Pobieranie fragmentów nie powiodło się - jeśli sytuacja się powtórzy, spróbuj zmniejszyć rozmiar fragmentu: {message}"
   },
   "search": {
     "smallerThan": "Mniejszy niż:",

@@ -377,6 +377,7 @@
     "displayName": "Display Name:",
     "download": "Download files",
     "downloadMessage": "Choose the format you want to download.",
+    "downloadFailed": "Chunked download failed - if this repeats, try reducing the chunk size: {message}",
     "archive": "Create archive",
     "archiveMessage": "Create an archive on the server from the selected items.",
     "archiveDestination": "Choose destination folder (then enter archive name below):",

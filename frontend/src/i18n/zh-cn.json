@@ -13,7 +13,7 @@
     "generateNewOtp": "重置并生成新的双因素代码",
     "copyDownloadLinkToClipboard": "将下载链接复制到剪贴板",
     "pauseAll": "全部暂停",
-    "resumeAll": "全部简历",
+    "resumeAll": "全部继续",
     "clearCompleted": "清除完毕",
     "openParentFolder": "打开父文件夹",
     "selectedCount": "选择执行操作的项目数",
@@ -240,7 +240,8 @@
     "unarchive": "提取档案",
     "unarchiveMessage": "选择提取存档的位置。",
     "unarchiveDestination": "摘录至",
-    "unarchiveSuccess": "档案提取成功！"
+    "unarchiveSuccess": "档案提取成功！",
+    "downloadFailed": "分块下载失败 - 如果重复出现这种情况，请尝试减小分块大小：{message}"
   },
   "search": {
     "smallerThan": "小于",

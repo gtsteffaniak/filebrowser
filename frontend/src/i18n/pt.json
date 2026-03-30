@@ -240,7 +240,8 @@
     "unarchive": "Extrair arquivo",
     "unarchiveMessage": "Escolha onde extrair o arquivo.",
     "unarchiveDestination": "Extrair para:",
-    "unarchiveSuccess": "Arquivo extraído com sucesso!"
+    "unarchiveSuccess": "Arquivo extraído com sucesso!",
+    "downloadFailed": "Falha na transferência em pedaços - se isto se repetir, tente reduzir o tamanho dos pedaços: {message}"
   },
   "search": {
     "smallerThan": "Mais pequeno do que:",

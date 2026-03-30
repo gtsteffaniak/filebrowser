@@ -449,7 +449,8 @@
     "halloweenBody": "Il tema di Halloween è stato applicato. Puoi disabilitarlo o cambiarlo permanentemente nelle impostazioni del profilo.",
     "moveFailed": "Spostamento fallito",
     "operationFailed": "Operazione fallita",
-    "partialSuccess": "Alcune operazioni sono fallite: {succeeded} riuscite, {failed} fallite"
+    "partialSuccess": "Alcune operazioni sono fallite: {succeeded} riuscite, {failed} fallite",
+    "downloadFailed": "Il download in chunk non è riuscito: se il problema si ripete, provare a ridurre la dimensione del chunk: {message}"
   },
   "search": {
     "searchContext": "Contesto di ricerca: {context}",

@@ -240,7 +240,8 @@
     "unarchive": "أرشيف المقتطفات",
     "unarchiveMessage": "اختر مكان استخراج الأرشيف.",
     "unarchiveDestination": "مقتطف إلى:",
-    "unarchiveSuccess": "تم استخراج الأرشيف بنجاح!"
+    "unarchiveSuccess": "تم استخراج الأرشيف بنجاح!",
+    "downloadFailed": "فشل التحميل المقطوع - إذا تكرر ذلك، حاول تقليل حجم القطعة: {message}"
   },
   "search": {
     "smallerThan": "أصغر من:",

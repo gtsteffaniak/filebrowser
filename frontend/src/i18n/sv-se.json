@@ -240,7 +240,8 @@
     "unarchive": "Extrahera arkiv",
     "unarchiveMessage": "Välj var du vill extrahera arkivet.",
     "unarchiveDestination": "Extrahera till:",
-    "unarchiveSuccess": "Arkivet har extraherats framgångsrikt!"
+    "unarchiveSuccess": "Arkivet har extraherats framgångsrikt!",
+    "downloadFailed": "Nedladdningen av chunked misslyckades - om detta upprepas, försök att minska chunkstorleken: {message}"
   },
   "search": {
     "smallerThan": "Mindre än:",

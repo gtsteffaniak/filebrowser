@@ -240,7 +240,8 @@
     "unarchive": "Extraire l'archive",
     "unarchiveMessage": "Choisissez l'endroit où extraire l'archive.",
     "unarchiveDestination": "Extrait à :",
-    "unarchiveSuccess": "L'archive a été extraite avec succès !"
+    "unarchiveSuccess": "L'archive a été extraite avec succès !",
+    "downloadFailed": "Échec du téléchargement groupé - si cela se répète, essayez de réduire la taille des morceaux : {message}"
   },
   "search": {
     "smallerThan": "Plus petit que :",

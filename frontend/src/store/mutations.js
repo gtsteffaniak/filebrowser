@@ -377,6 +377,7 @@ export const mutations = {
           state.user.fileLoading.maxConcurrentUpload = 3;
         }
         if (state.user.fileLoading.uploadChunkSizeMb === undefined) {
+          console.log("uploadChunkSizeMb is undefined");
           state.user.fileLoading.uploadChunkSizeMb = 5;
         }
         if (state.user.fileLoading.clearAll === undefined) {

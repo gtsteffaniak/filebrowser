@@ -240,7 +240,8 @@
     "unarchive": "아카이브 추출",
     "unarchiveMessage": "아카이브를 추출할 위치를 선택합니다.",
     "unarchiveDestination": "추출 대상:",
-    "unarchiveSuccess": "아카이브가 성공적으로 추출되었습니다!"
+    "unarchiveSuccess": "아카이브가 성공적으로 추출되었습니다!",
+    "downloadFailed": "청크 다운로드에 실패했습니다 - 이 문제가 반복되면 청크 크기를 줄여 보세요: {message}"
   },
   "search": {
     "smallerThan": "보다 작습니다:",

@@ -240,7 +240,8 @@
     "unarchive": "アーカイブの展開",
     "unarchiveMessage": "アーカイブを展開する場所を選択します。",
     "unarchiveDestination": "に抜粋する：",
-    "unarchiveSuccess": "アーカイブは正常に抽出されました！"
+    "unarchiveSuccess": "アーカイブは正常に抽出されました！",
+    "downloadFailed": "チャンクダウンロードに失敗しました - これが繰り返される場合は、チャンクサイズを小さくしてみてください：{message}"
   },
   "search": {
     "smallerThan": "より小さい：",

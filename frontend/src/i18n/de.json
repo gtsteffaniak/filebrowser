@@ -240,7 +240,8 @@
     "unarchive": "Archiv extrahieren",
     "unarchiveMessage": "Wählen Sie, wohin das Archiv entpackt werden soll.",
     "unarchiveDestination": "Auszug zu:",
-    "unarchiveSuccess": "Archiv erfolgreich entpackt!"
+    "unarchiveSuccess": "Archiv erfolgreich entpackt!",
+    "downloadFailed": "Chunked Download fehlgeschlagen - falls sich dies wiederholt, versuchen Sie, die Chunk-Größe zu verringern: {message}"
   },
   "search": {
     "smallerThan": "Kleiner als:",

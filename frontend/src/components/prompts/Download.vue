@@ -18,34 +18,43 @@
   </div>
   <div v-if="hasDownloads" class="card-content">
     <div class="download-list">
-      <div v-for="download in downloads" :key="download.id" class="download-item">
-        <i class="material-icons file-icon">insert_drive_file</i> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-        <div class="file-info">
-          <p class="file-name">{{ download.name }}</p>
-          <progress-bar
-            :val="download.status === 'completed'
-              ? $t('prompts.completed')
-              : download.status === 'error'
-                ? $t('prompts.error')
-                : download.loaded
-            "
-            :unit="download.status === 'completed' || download.status === 'error' ? '' : 'bytes'"
-            :max="download.size"
-            :status="download.status"
-            text-position="inside"
-            size="20"
-            :help-text="download.errorDetails || ''">
-          </progress-bar>
+      <div
+        v-for="download in downloads"
+        :key="download.id"
+        class="download-item-wrapper"
+        :class="{ 'has-error': download.status === 'error' }"
+      >
+        <div class="download-item">
+          <i class="material-icons file-icon">insert_drive_file</i> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <div class="file-info">
+            <p class="file-name">{{ download.name }}</p>
+            <progress-bar
+              :val="download.status === 'completed'
+                ? $t('prompts.completed')
+                : download.status === 'error'
+                  ? $t('prompts.error')
+                  : download.loaded
+              "
+              :unit="download.status === 'completed' || download.status === 'error' ? '' : 'bytes'"
+              :max="download.size"
+              :status="download.status"
+              text-position="inside"
+              size="20">
+            </progress-bar>
+          </div>
+          <div class="file-actions">
+            <button v-if="download.status === 'error'" @click="retryDownload(download.id)" class="action"
+              :aria-label="$t('general.retry')" :title="$t('general.retry')">
+              <i class="material-icons">replay</i>
+            </button>
+            <button @click="cancelDownload(download.id)" class="action" :aria-label="$t('general.cancel')"
+              :title="$t('general.cancel')">
+              <i class="material-icons">close</i>
+            </button>
+          </div>
         </div>
-        <div class="file-actions">
-          <button v-if="download.status === 'error'" @click="retryDownload(download.id)" class="action"
-            :aria-label="$t('general.retry')" :title="$t('general.retry')">
-            <i class="material-icons">replay</i>
-          </button>
-          <button @click="cancelDownload(download.id)" class="action" :aria-label="$t('general.cancel')"
-            :title="$t('general.cancel')">
-            <i class="material-icons">close</i>
-          </button>
+        <div v-if="download.status === 'error'" class="error-banner" role="alert">
+          {{ formatDownloadError(download) }}
         </div>
       </div>
     </div>
@@ -98,6 +107,13 @@ export default {
     },
   },
   methods: {
+    formatDownloadError(download) {
+      if (download.status !== "error") {
+        return "";
+      }
+      const detail = download.errorDetails ? String(download.errorDetails) : this.$t("prompts.error");
+      return this.$t("prompts.downloadFailed", { message: detail });
+    },
     handleFormatSelect(format) {
       if (this.currentPrompt && this.currentPrompt.confirm) {
         this.currentPrompt.confirm(format);
@@ -149,6 +165,29 @@ export default {
   display: flex;
   flex-direction: column;
   min-height: 0;
+}
+
+.download-item-wrapper {
+  margin-bottom: 0.5rem;
+}
+
+.download-item-wrapper:last-child {
+  margin-bottom: 0;
+}
+
+.download-item-wrapper.has-error {
+  border-left: 3px solid var(--errorColor, #f44336);
+  padding-left: 0.5rem;
+}
+
+.error-banner {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: var(--errorBackground, rgba(244, 67, 54, 0.1));
+  color: var(--errorColor, #f44336);
+  border-radius: 4px;
+  font-size: 0.875rem;
+  word-break: break-word;
 }
 
 .download-item {
