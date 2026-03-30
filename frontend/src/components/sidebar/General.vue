@@ -354,19 +354,6 @@ button.action {
   padding: 0em !important;
 }
 
-/*.expand-enter-active,
-.expand-leave-active {
-  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
-  will-change: opacity, height;
-}
-
-.expand-enter,
-.expand-leave-to {
-  height: 0 !important;
-  opacity: 0;
-}*/
-
 .extra-padding {
   padding-bottom: 0.5em !important;
 }
