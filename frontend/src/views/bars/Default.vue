@@ -200,11 +200,37 @@ export default {
         mutations.showPrompt({ name: "OverflowMenu" });
       }
     },
+    /** Match StatusBar.adjustViewMode: list vs compact, icons vs gallery from gallery size. */
+    resolveViewModeForFamily(baseMode) {
+      const size = state.user?.gallerySize ?? 5;
+      if (baseMode === "list") {
+        return size <= 3 ? "compact" : "list";
+      }
+      if (baseMode === "icons") {
+        return size <= 4 ? "icons" : "gallery";
+      }
+      return baseMode;
+    },
+    /** Map concrete viewMode to one of the three switch-view families (list|compact → list, etc.). */
+    viewModeCycleIndex(mode) {
+      if (mode === "list" || mode === "compact") {
+        return 0;
+      }
+      if (mode === "normal") {
+        return 1;
+      }
+      if (mode === "gallery" || mode === "icons") {
+        return 2;
+      }
+      return 1;
+    },
     switchView() {
       mutations.closeHovers();
-      const index = this.viewModes.indexOf(getters.viewMode());
-      const next = (index + 1) % this.viewModes.length;
-      const newViewMode = this.viewModes[next];
+      const current = getters.viewMode();
+      const cycleIndex = this.viewModeCycleIndex(current);
+      const nextIndex = (cycleIndex + 1) % this.viewModes.length;
+      const baseMode = this.viewModes[nextIndex];
+      const newViewMode = this.resolveViewModeForFamily(baseMode);
       mutations.updateDisplayPreferences({ viewMode: newViewMode });
       mutations.updateCurrentUser({ viewMode: newViewMode });
     },

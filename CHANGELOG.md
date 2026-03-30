@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Chunked upload setting fails: "0" does not disable chunking as expected (#2202)
  - Incorrect Chinese labels for Upload controls in Quantum UI (#2191)
  - Chunked download stops after first chunk, add message explaining (#2074)
+ - Esc to Cancel and Enter to confirm popup #2079
 
 ## v1.3.2-beta
 
