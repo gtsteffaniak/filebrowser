@@ -318,7 +318,8 @@
     "unarchive": "Výpis archivu",
     "unarchiveMessage": "Vyberte, kam se má archiv rozbalit.",
     "unarchiveDestination": "Výpis na:",
-    "unarchiveSuccess": "Archiv úspěšně extrahován!"
+    "unarchiveSuccess": "Archiv úspěšně extrahován!",
+    "downloadFailed": "Stahování po částech se nezdařilo - pokud se tato situace opakuje, zkuste zmenšit velikost části: {message}"
   },
   "search": {
     "smallerThan": "Menší než:",

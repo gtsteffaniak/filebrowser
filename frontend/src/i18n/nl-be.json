@@ -240,7 +240,8 @@
     "unarchive": "Archief uitpakken",
     "unarchiveMessage": "Kies waar het archief moet worden uitgepakt.",
     "unarchiveDestination": "Uittreksel naar:",
-    "unarchiveSuccess": "Archief met succes uitgepakt!"
+    "unarchiveSuccess": "Archief met succes uitgepakt!",
+    "downloadFailed": "Chunkedownload mislukt - als dit zich herhaalt, probeer dan de grootte van de chunk te verkleinen: {message}"
   },
   "search": {
     "smallerThan": "Kleiner dan:",

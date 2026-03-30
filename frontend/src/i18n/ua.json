@@ -240,7 +240,8 @@
     "unarchive": "Витягнути архів",
     "unarchiveMessage": "Виберіть, куди розпакувати архів.",
     "unarchiveDestination": "Витягнути до:",
-    "unarchiveSuccess": "Архів успішно розпаковано!"
+    "unarchiveSuccess": "Архів успішно розпаковано!",
+    "downloadFailed": "Не вдалося завантажити фрагмент - якщо це повториться, спробуйте зменшити розмір фрагмента: {message}"
   },
   "search": {
     "smallerThan": "Менше, ніж:",

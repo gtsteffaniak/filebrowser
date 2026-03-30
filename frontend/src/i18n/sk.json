@@ -240,7 +240,8 @@
     "unarchive": "Výpis archívu",
     "unarchiveMessage": "Vyberte, kam sa má archív extrahovať.",
     "unarchiveDestination": "Výpis na:",
-    "unarchiveSuccess": "Archív úspešne extrahovaný!"
+    "unarchiveSuccess": "Archív úspešne extrahovaný!",
+    "downloadFailed": "Sťahovanie po častiach zlyhalo - ak sa to opakuje, skúste zmenšiť veľkosť časti: {message}"
   },
   "search": {
     "smallerThan": "Menšie ako:",

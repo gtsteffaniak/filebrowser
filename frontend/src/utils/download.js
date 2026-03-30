@@ -29,7 +29,7 @@ export default function downloadFiles(items) {
       // Show download prompt for chunked downloads, otherwise start directly
       if (willUseChunkedDownload) {
         mutations.showPrompt({ name: "download" });
-        startDownload(null, items, state.shareInfo.hash);
+        startDownload(null, items, state.shareInfo.hash, { silentChunkedError: true });
       } else {
         startDownload(null, items, state.shareInfo.hash);
       }
@@ -50,7 +50,7 @@ export default function downloadFiles(items) {
     // Show download prompt for chunked downloads, otherwise start directly
     if (willUseChunkedDownload) {
       mutations.showPrompt({ name: "download" });
-      startDownload(null, items);
+      startDownload(null, items, "", { silentChunkedError: true });
     } else {
       startDownload(null, items);
     }
@@ -66,13 +66,13 @@ export default function downloadFiles(items) {
   }
 }
 
-async function startDownload(config, files, hash = "") {
+async function startDownload(config, files, hash = "", opts = {}) {
+  const silentChunkedError = opts.silentChunkedError === true;
   try {
     notify.showSuccessToast("Downloading...");
     await resourcesApi.download(config, files, hash);
   } catch (e) {
-    // Don't show error if download was cancelled by user
-    if (e.name === 'AbortError' || e.message?.includes('aborted') || e.message?.includes('cancelled')) {
+    if (e?.name === "AbortError" || e?.message?.includes("aborted") || e?.message?.includes("cancelled")) {
       return;
     }
     notify.showError(`Error downloading: ${e.message || e}`);

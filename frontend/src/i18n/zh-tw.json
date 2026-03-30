@@ -240,7 +240,8 @@
     "unarchive": "解壓縮封存檔",
     "unarchiveMessage": "選擇解壓縮封存檔的位置。",
     "unarchiveDestination": "解壓縮至：",
-    "unarchiveSuccess": "封存檔解壓縮成功！"
+    "unarchiveSuccess": "封存檔解壓縮成功！",
+    "downloadFailed": "分塊下載失敗 - 如果此情況重複發生，請嘗試減少分塊大小：{message}"
   },
   "search": {
     "smallerThan": "小於：",

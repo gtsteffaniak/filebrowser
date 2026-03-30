@@ -240,7 +240,8 @@
     "unarchive": "Распаковать архив",
     "unarchiveMessage": "Выберите, куда распаковать архив.",
     "unarchiveDestination": "Отрывок в:",
-    "unarchiveSuccess": "Архив извлечен успешно!"
+    "unarchiveSuccess": "Архив извлечен успешно!",
+    "downloadFailed": "Не удалось загрузить чанк - если ситуация повторяется, попробуйте уменьшить размер чанка: {message}"
   },
   "search": {
     "smallerThan": "Меньше, чем:",

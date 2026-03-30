@@ -4,11 +4,18 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.3.3
 
+ **New Features**:
+ - Copy/paste files and folders (`CTRL+C`/`CTRL+V`) from other apps (win explorer, thunar, finder, etc) to upload them directly (#2197)
+
  **Notes**:
  - `.fbx` 3d model files added to supported previews.
+ - removed upx compression on docker image (#2193)
 
  **BugFixes**:
  - Archives don't preserve file metadata (#2063)
+ - Chunked upload setting fails: "0" does not disable chunking as expected (#2202)
+ - Incorrect Chinese labels for Upload controls in Quantum UI (#2191)
+ - Chunked download stops after first chunk, add message explaining (#2074)
 
 ## v1.3.2-beta
 

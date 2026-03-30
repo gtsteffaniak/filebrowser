@@ -240,7 +240,8 @@
     "unarchive": "Extras arhivă",
     "unarchiveMessage": "Alegeți unde să extrageți arhiva.",
     "unarchiveDestination": "Extras la:",
-    "unarchiveSuccess": "Arhiva extrasă cu succes!"
+    "unarchiveSuccess": "Arhiva extrasă cu succes!",
+    "downloadFailed": "Descărcarea fragmentată a eșuat - dacă acest lucru se repetă, încercați să reduceți dimensiunea fragmentului: {message}"
   },
   "search": {
     "smallerThan": "Mai mic decât:",
