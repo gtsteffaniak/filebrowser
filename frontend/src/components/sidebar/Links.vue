@@ -6,7 +6,7 @@
       :class="{ 'with-top-spacing': isShare && !disableShareCard }">
       <i :class="{ 'disabled': !isLoggedIn }" @click="goHome()" class="material-symbols action">home</i>
       <!-- Mode button (is the title) -->
-      <button @click="cycleMode" class="mode-toggle" :title="$t('sidebar.switchMode')" @mouseenter="showTooltip($event, $t('sidebar.switchMode'))" @mouseleave="hideTooltip">
+      <button @click="cycleMode" class="mode-toggle" @mouseenter="showTooltip($event, $t('sidebar.switchMode'))" @mouseleave="hideTooltip">
         {{ mode === 'links' ? $t('general.links') : $t('general.navigation') }}
       </button>
       <i v-if="isShare" aria-label="Edit Share" @mouseenter="showTooltip($event, editShareText())" @mouseleave="hideTooltip"
