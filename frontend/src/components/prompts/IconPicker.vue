@@ -89,9 +89,9 @@
 
 <script>
 import {
-  allMaterialIcons,
+  materialSymbols,
   getIconClass,
-} from "@/utils/material-icons";
+} from "@/utils/material-symbols";
 import { mutations } from "@/store";
 
 export default {
@@ -105,7 +105,7 @@ export default {
   data() {
     return {
       searchQuery: "",
-      allMaterialIcons,
+      materialSymbols,
     };
   },
   computed: {
@@ -113,11 +113,11 @@ export default {
       // Apply search filter
       if (this.searchQuery.trim()) {
         const query = this.searchQuery.toLowerCase();
-        return this.allMaterialIcons.filter((icon) =>
+        return this.materialSymbols.filter((icon) =>
           icon.toLowerCase().includes(query)
         );
       }
-      return this.allMaterialIcons;
+      return this.materialSymbols;
     },
     showCustomPreview() {
       // Show custom preview if:
@@ -127,7 +127,7 @@ export default {
       if (!trimmed) return false;
       
       // Check if it's an exact match
-      const exactMatch = this.allMaterialIcons.some(
+      const exactMatch = this.materialSymbols.some(
         (icon) => icon.toLowerCase() === trimmed.toLowerCase()
       );
       

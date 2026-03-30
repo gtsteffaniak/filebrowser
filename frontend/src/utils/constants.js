@@ -1,5 +1,5 @@
 import i18n from '@/i18n';
-import { getIconClass } from './material-icons';
+import { getIconClass } from './material-symbols';
 
 const globalVars = window.globalVars;
 const origin = window.location.origin;
@@ -75,5 +75,5 @@ export {
   settings,
   previewViews,
   tools,
-  getIconClass, // Re-exported from material-icons.js for convenience
+  getIconClass, // Re-exported from material-symbols.js for convenience
 };

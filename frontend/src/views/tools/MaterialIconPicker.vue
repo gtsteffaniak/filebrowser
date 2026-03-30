@@ -28,7 +28,7 @@
         {{ $t('tools.materialIconPicker.showingResults', { count: visibleIcons.length }) }}
       </span>
       <span v-else>
-        {{ $t('tools.materialIconPicker.popularIcons', { count: allMaterialIcons.length }) }}
+        {{ $t('tools.materialIconPicker.popularIcons', { count: materialSymbols.length }) }}
       </span>
     </div>
 
@@ -65,10 +65,7 @@
 </template>
 
 <script>
-import {
-  allMaterialIcons,
-  getIconClass,
-} from "@/utils/material-icons";
+import { materialSymbols, getIconClass } from "@/utils/material-symbols";
 import { notify } from "@/notify";
 
 export default {
@@ -82,9 +79,9 @@ export default {
     document.title = globalVars.name + " - " + this.$t('tools.title') + " - " + this.$t('tools.materialIconPicker.name');
   },
   computed: {
-    allMaterialIcons() {
+    materialSymbols() {
       // Return the icon list as a computed property to avoid reactivity issues
-      return allMaterialIcons;
+      return materialSymbols;
     },
     searchQueryKey() {
       // Create a unique key based on search query to force re-render when search changes
@@ -94,12 +91,12 @@ export default {
       // Apply search filter - always return a new array to avoid caching issues
       const query = this.searchQuery.trim().toLowerCase();
       if (!query) {
-        return [...this.allMaterialIcons];
+        return [...this.materialSymbols];
       }
 
       // Create a fresh filtered array
       const filtered = [];
-      for (const icon of this.allMaterialIcons) {
+      for (const icon of this.materialSymbols) {
         if (icon.toLowerCase().includes(query)) {
           filtered.push(icon);
         }
@@ -114,7 +111,7 @@ export default {
       if (!trimmed) return false;
 
       // Check if it's an exact match
-      const exactMatch = this.allMaterialIcons.some(
+      const exactMatch = this.materialSymbols.some(
         (icon) => icon.toLowerCase() === trimmed.toLowerCase()
       );
 

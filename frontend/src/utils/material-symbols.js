@@ -1,7 +1,8 @@
-// Material Symbols icons that don't exist in Material Icons
-// These need to use the 'material-symbols-outlined' class
-// Note: Many newer icons are Symbols-only. This list includes known Symbols-only icons.
-const materialSymbolsOnly = new Set([
+/**
+ * List of ~2000 commonly used Material Symbols.
+ * Excludes: excessive resolution indicators (5k-10k, 2mp-24mp), detailed signal bars, and niche variants.
+ */
+const materialSymbols = [
   // Development & Code
   'deployed_code', 'deployed_code_alert', 'deployed_code_history', 'deployed_code_update',
   'code_blocks', 'javascript', 'css', 'html', 'terminal', 'sdk', 'api', 'webhook',
@@ -16,21 +17,21 @@ const materialSymbolsOnly = new Set([
   'nest_thermostat', 'nest_wifi_router', 'nest_clock_farsight_analog',
   'nest_clock_farsight_digital', 'nest_remote', 'nest_true_radiant',
   'nest_wake_on_approach', 'nest_wake_on_press', 'nest_display', 'nest_eco_leaf',
-  'nest_heat_link', 'nest_sunblock',
+  'nest_heat_link_e', 'nest_sunblock',
 
   // Counter icons
   'counter_1', 'counter_2', 'counter_3', 'counter_4', 'counter_5',
   'counter_6', 'counter_7', 'counter_8', 'counter_9',
 
   // Media & Content
-  'movie_edit', 'audio_video_receiver', 'manga', 'sports_score',
+  'audio_video_receiver', 'manga',
 
   // UI & Navigation
   'splitscreen_vertical_add', 'splitscreen_left', 'splitscreen_right',
   'collapse_content', 'expand_content', 'keep', 'keep_off',
 
   // Communication
-  'chat_add_on', 'forums', 'news', 'subscriptions',
+  'chat_add_on', 'news',
 
   // Security & Auth
   'passkey',
@@ -38,24 +39,11 @@ const materialSymbolsOnly = new Set([
   // Assistant & AI
   'assistant', 'assistant_on_hub', 'home_app_logo',
 
-  // Modern additions (likely Symbols-only)
+  // Modern additions
   'demography', 'conveyor_belt', 'forklift', 'front_loader', 'trolley',
   'propane', 'propane_tank', 'electric_meter', 'gas_meter', 'heat_pump',
   'oil_barrel', 'solar_power', 'wind_power',
-]);
 
-/**
- * Get the appropriate icon class for an icon name
- * @param {string} iconName - The material icon name
- * @returns {string} - The CSS class to use ('material-icons' or 'material-symbols-outlined')
- */
-const getIconClass = (iconName) => {
-  return materialSymbolsOnly.has(iconName) ? 'material-symbols-outlined' : 'material-icons';
-};
-
-// Curated list of ~1500 commonly used Material Icons & Symbols
-// Excludes: excessive resolution indicators (5k-10k, 2mp-24mp), detailed signal bars, and niche variants
-const allMaterialIcons = [
   // Basic & Numbers
   '123', '360', '3d_rotation', '4k', '6_ft_apart', '18_up_rating',
 
@@ -71,30 +59,30 @@ const allMaterialIcons = [
   // Account & Profile
   'account_balance', 'account_balance_wallet', 'account_box', 'account_circle',
   'account_tree', 'admin_panel_settings', 'manage_accounts', 'person', 'person_add',
-  'person_add_alt', 'person_add_alt_1', 'person_add_disabled', 'person_off',
-  'person_outline', 'person_pin', 'person_pin_circle', 'person_remove',
-  'person_remove_alt_1', 'person_search', 'supervised_user_circle', 'supervisor_account',
+  'person_add_alt', 'person_add_disabled', 'person_off',
+  'person_pin', 'person_pin_circle', 'person_remove', 
+  'person_search', 'supervised_user_circle', 'supervisor_account',
 
   // Actions - Add
   'add', 'add_a_photo', 'add_alarm', 'add_alert', 'add_box', 'add_business', 'add_call',
-  'add_card', 'add_chart', 'add_circle', 'add_circle_outline', 'add_comment', 'add_home',
+  'add_card', 'add_chart', 'add_circle', 'add_comment', 'add_home',
   'add_home_work', 'add_ic_call', 'add_link', 'add_location', 'add_location_alt',
   'add_moderator', 'add_photo_alternate', 'add_reaction', 'add_road', 'add_shopping_cart',
   'add_task', 'add_to_drive', 'add_to_home_screen', 'add_to_photos', 'add_to_queue',
   'addchart',
 
   // Actions - Remove
-  'remove', 'remove_circle', 'remove_circle_outline', 'remove_done', 'remove_from_queue',
+  'remove', 'remove_circle', 'remove_done', 'remove_from_queue',
   'remove_moderator', 'remove_red_eye', 'remove_road', 'remove_shopping_cart',
 
   // Actions - Basic
-  'adjust', 'adb', 'archive', 'backspace', 'backup', 'backup_table', 'block',
-  'block_flipped', 'build', 'build_circle', 'cached', 'cancel', 'cancel_presentation',
+  'adjust', 'archive', 'backspace', 'backup', 'backup_table', 'block',
+  'mobile_block', 'build', 'build_circle', 'cached', 'cancel', 'cancel_presentation',
   'cancel_schedule_send', 'check', 'check_box', 'check_box_outline_blank', 'check_circle',
-  'check_circle_outline', 'clear', 'clear_all', 'close', 'close_fullscreen', 'compress',
+  'clear', 'clear_all', 'close', 'close_fullscreen', 'compress',
   'content_copy', 'content_cut', 'content_paste', 'content_paste_go', 'content_paste_off',
   'content_paste_search', 'copy_all', 'create', 'create_new_folder', 'delete',
-  'delete_forever', 'delete_outline', 'delete_sweep', 'done', 'done_all', 'done_outline',
+  'delete_forever', 'delete_sweep', 'done', 'done_all', 'done_outline',
   'download', 'download_done', 'download_for_offline', 'downloading', 'drag_handle',
   'drag_indicator', 'edit', 'edit_attributes', 'edit_calendar', 'edit_document',
   'edit_location', 'edit_location_alt', 'edit_note', 'edit_notifications', 'edit_off',
@@ -103,13 +91,13 @@ const allMaterialIcons = [
   'file_present', 'file_upload', 'file_upload_off', 'filter_list', 'filter_list_alt',
   'filter_list_off', 'find_in_page', 'find_replace', 'flip', 'flip_to_back',
   'flip_to_front', 'get_app', 'grade', 'hide_image', 'hide_source', 'highlight',
-  'highlight_alt', 'highlight_off', 'highlight_remove', 'history', 'history_edu',
+  'highlight_alt', 'highlight_off', 'history', 'history_edu',
   'history_toggle_off', 'home', 'home_filled', 'home_max', 'home_mini',
-  'home_repair_service', 'home_work', 'inbox', 'info', 'info_outline', 'input',
+  'home_repair_service', 'home_work', 'inbox', 'info', 'input',
   'inventory', 'inventory_2', 'join_full', 'join_inner', 'join_left', 'join_right',
-  'key', 'key_off', 'label', 'label_important', 'label_important_outline', 'label_off',
-  'label_outline', 'launch', 'link', 'link_off', 'list', 'list_alt', 'lock', 'lock_clock',
-  'lock_open', 'lock_outline', 'lock_person', 'lock_reset', 'login', 'logout',
+  'key', 'key_off', 'label', 'label_important', 'label_off',
+  'launch', 'link', 'link_off', 'list', 'list_alt', 'lock', 'lock_clock',
+  'lock_open', 'lock_person', 'lock_reset', 'login', 'logout',
   'markunread', 'markunread_mailbox', 'maximize', 'menu', 'menu_book', 'menu_open',
   'merge', 'merge_type', 'minimize', 'more', 'more_horiz', 'more_time', 'more_vert',
   'move_down', 'move_to_inbox', 'move_up', 'open_in_browser', 'open_in_full',
@@ -122,15 +110,15 @@ const allMaterialIcons = [
   'search', 'search_off', 'select_all', 'send', 'send_and_archive', 'send_time_extension',
   'send_to_mobile', 'settings', 'settings_accessibility', 'settings_applications',
   'settings_backup_restore', 'settings_bluetooth', 'settings_brightness', 'settings_cell',
-  'settings_display', 'settings_ethernet', 'settings_input_antenna',
+  'settings_ethernet', 'settings_input_antenna',
   'settings_input_component', 'settings_input_composite', 'settings_input_hdmi',
   'settings_input_svideo', 'settings_overscan', 'settings_phone', 'settings_power',
   'settings_remote', 'settings_suggest', 'settings_system_daydream', 'settings_voice',
-  'share', 'share_arrival_time', 'share_location', 'shortcut', 'sort', 'sort_by_alpha',
-  'source', 'star', 'star_border', 'star_half', 'star_outline', 'star_rate', 'stars',
+  'share', 'share_eta', 'share_location', 'shortcut', 'sort', 'sort_by_alpha',
+  'source', 'star', 'star_half', 'star_rate', 'stars', 'star_shine', 'award_star',
   'start', 'straighten', 'style', 'subscript', 'superscript', 'swap_calls', 'swap_horiz',
-  'swap_horizontal_circle', 'swap_vert', 'swap_vert_circle', 'swap_vertical_circle',
-  'sync', 'sync_alt', 'sync_disabled', 'sync_lock', 'sync_problem', 'task', 'task_alt',
+  'swap_horizontal_circle', 'swap_vert', 'swap_vertical_circle','sync',
+  'sync_alt', 'sync_disabled', 'sync_lock', 'sync_problem', 'task', 'task_alt',
   'thumbs_up_down', 'toggle_off', 'toggle_on', 'transform', 'translate', 'troubleshoot',
   'tune', 'undo', 'unarchive', 'unfold_less', 'unfold_less_double', 'unfold_more',
   'unfold_more_double', 'unpublished', 'unsubscribe', 'update', 'update_disabled',
@@ -161,17 +149,17 @@ const allMaterialIcons = [
   // Media & Player Controls
   'album', 'audiotrack', 'av_timer', 'fast_forward', 'fast_rewind', 'forward_10',
   'forward_30', 'forward_5', 'loop', 'music_note', 'music_off', 'music_video', 'pause',
-  'pause_circle', 'pause_circle_filled', 'pause_circle_outline', 'pause_presentation',
-  'play_arrow', 'play_circle', 'play_circle_fill', 'play_circle_filled',
-  'play_circle_outline', 'play_disabled', 'play_for_work', 'play_lesson', 'playlist_add',
+  'pause_circle', 'pause_presentation',
+  'play_arrow', 'play_circle', 'motion_play', 'play_disabled',
+  'play_for_work', 'play_lesson', 'playlist_add',
   'playlist_add_check', 'playlist_add_check_circle', 'playlist_add_circle',
   'playlist_play', 'playlist_remove', 'queue', 'queue_music', 'queue_play_next',
   'repeat', 'repeat_on', 'repeat_one', 'repeat_one_on', 'replay', 'replay_10',
-  'replay_30', 'replay_5', 'replay_circle_filled', 'shuffle', 'shuffle_on', 'skip_next',
+  'replay_30', 'replay_5', 'forward_circle', 'shuffle', 'shuffle_on', 'skip_next',
   'skip_previous', 'slow_motion_video', 'snooze', 'speed', 'stop', 'stop_circle',
   'stop_screen_share', 'subscriptions', 'subtitles', 'subtitles_off', 'surround_sound',
   'video_call', 'video_camera_back', 'video_camera_front', 'video_chat',
-  'video_collection', 'video_file', 'video_label', 'video_library', 'video_settings',
+  'video_library', 'video_file', 'video_label', 'video_settings',
   'video_stable', 'videocam', 'videocam_off', 'volume_down', 'volume_down_alt',
   'volume_mute', 'volume_off', 'volume_up',
 
@@ -187,8 +175,8 @@ const allMaterialIcons = [
   'compare', 'control_point', 'control_point_duplicate', 'crop', 'crop_16_9', 'crop_3_2',
   'crop_5_4', 'crop_7_5', 'crop_din', 'crop_free', 'crop_landscape', 'crop_original',
   'crop_portrait', 'crop_rotate', 'crop_square', 'deblur', 'dehaze', 'details', 'dirty_lens',
-  'edit', 'euro', 'exposure', 'exposure_minus_1', 'exposure_minus_2', 'exposure_neg_1',
-  'exposure_neg_2', 'exposure_plus_1', 'exposure_plus_2', 'exposure_zero',
+  'edit', 'euro', 'exposure', 'exposure_neg_1', 'exposure_neg_2',
+  'exposure_plus_1', 'exposure_plus_2', 'exposure_zero',
   'face_retouching_natural', 'face_retouching_off', 'filter', 'filter_1', 'filter_2',
   'filter_3', 'filter_4', 'filter_5', 'filter_6', 'filter_7', 'filter_8', 'filter_9',
   'filter_9_plus', 'filter_alt', 'filter_alt_off', 'filter_b_and_w', 'filter_center_focus',
@@ -204,11 +192,10 @@ const allMaterialIcons = [
   'motion_photos_on', 'motion_photos_pause', 'motion_photos_paused', 'movie_creation',
   'movie_edit', 'movie_filter', 'music_off', 'nat', 'nature', 'nature_people',
   'navigate_before', 'navigate_next', 'palette', 'panorama', 'panorama_fish_eye',
-  'panorama_fisheye', 'panorama_horizontal', 'panorama_horizontal_select',
-  'panorama_photosphere', 'panorama_photosphere_select', 'panorama_vertical',
-  'panorama_vertical_select', 'panorama_wide_angle', 'panorama_wide_angle_select',
-  'party_mode', 'photo', 'photo_album', 'photo_camera', 'photo_camera_back',
-  'photo_camera_front', 'photo_filter', 'photo_library', 'photo_size_select_actual',
+  'circle_circle', 'panorama_horizontal', 'panorama_photosphere', 'panorama_vertical',
+  'panorama_wide_angle', 'party_mode', 'photo', 'photo_album',
+  'photo_camera', 'photo_camera_back', 'photo_camera_front',
+  'photo_filter', 'photo_library', 'photo_size_select_actual',
   'photo_size_select_large', 'photo_size_select_small', 'picture_as_pdf',
   'picture_in_picture', 'picture_in_picture_alt', 'portrait', 'remove_red_eye', 'rotate_left',
   'rotate_right', 'shutter_speed', 'slideshow', 'straighten', 'style', 'switch_camera',
@@ -221,20 +208,20 @@ const allMaterialIcons = [
   'add_comment', 'alternate_email', 'attach_email', 'call', 'call_end', 'call_made',
   'call_merge', 'call_missed', 'call_missed_outgoing', 'call_received', 'call_split',
   'cancel_presentation', 'cell_tower', 'cell_wifi', 'chat', 'chat_bubble',
-  'chat_bubble_outline', 'comment', 'comment_bank', 'comments_disabled', 'contact_mail',
+  'comment', 'comment_bank', 'comments_disabled', 'contact_mail',
   'contact_page', 'contact_phone', 'contact_support', 'contacts', 'dialer_sip', 'dialpad',
   'domain_verification', 'drafts', 'duo', 'email', 'forum', 'forward_to_inbox',
-  'import_contacts', 'invert_colors_off', 'live_help', 'mail', 'mail_lock', 'mail_outline',
+  'import_contacts', 'invert_colors_off', 'live_help', 'mail', 'mail_lock',
   'mark_as_unread', 'mark_chat_read', 'mark_chat_unread', 'mark_email_read',
-  'mark_email_unread', 'mark_unread_chat_alt', 'message', 'messenger', 'messenger_outline',
+  'mark_email_unread', 'mark_unread_chat_alt', 'message', 'auto_read_play', 'auto_read_pause',
   'mobile_screen_share', 'mode_comment', 'nat', 'no_sim', 'outgoing_mail', 'phone',
   'phone_android', 'phone_bluetooth_speaker', 'phone_callback', 'phone_disabled',
   'phone_enabled', 'phone_forwarded', 'phone_in_talk', 'phone_iphone', 'phone_locked',
   'phone_missed', 'phone_paused', 'phonelink', 'phonelink_erase', 'phonelink_lock',
   'phonelink_off', 'phonelink_ring', 'phonelink_setup', 'portable_wifi_off',
   'present_to_all', 'print_disabled', 'qr_code', 'qr_code_2', 'qr_code_scanner',
-  'quick_contacts_dialer', 'quick_contacts_mail', 'read_more', 'ring_volume', 'rss_feed',
-  'rtt', 'screen_share', 'send', 'sentiment_satisfied_alt', 'speaker_notes',
+  'contact_emergency', 'recent_actors', 'read_more', 'ring_volume', 'rss_feed',
+  'rtt', 'screen_share', 'send', 'speaker_notes',
   'speaker_notes_off', 'speaker_phone', 'stay_current_landscape', 'stay_current_portrait',
   'stay_primary_landscape', 'stay_primary_portrait', 'stop_screen_share', 'swap_calls',
   'textsms', 'unsubscribe', 'voicemail', 'vpn_key', 'vpn_key_off', 'vpn_lock',
@@ -242,7 +229,7 @@ const allMaterialIcons = [
   // Files & Folders
   'article', 'attachment', 'cloud', 'cloud_circle', 'cloud_done', 'cloud_download',
   'cloud_off', 'cloud_queue', 'cloud_sync', 'cloud_upload', 'create_new_folder',
-  'description', 'drive_eta', 'drive_file_move', 'drive_file_move_outline',
+  'description', 'drive_eta', 'drive_file_move',
   'drive_file_move_rtl', 'drive_file_rename_outline', 'drive_folder_upload', 'folder',
   'folder_copy', 'folder_delete', 'folder_off', 'folder_open', 'folder_shared',
   'folder_special', 'folder_zip', 'format_overline', 'insert_drive_file', 'note',
@@ -259,11 +246,10 @@ const allMaterialIcons = [
   'format_line_spacing', 'format_list_bulleted', 'format_list_bulleted_add',
   'format_list_numbered', 'format_list_numbered_rtl', 'format_overline', 'format_paint',
   'format_quote', 'format_shapes', 'format_size', 'format_strikethrough',
-  'format_textdirection_l_to_r', 'format_textdirection_r_to_l', 'format_underline',
-  'format_underlined', 'functions', 'highlight', 'insert_chart', 'insert_chart_outlined',
+  'format_textdirection_l_to_r', 'format_textdirection_r_to_l', 'format_underlined_squiggle',
+  'format_underlined', 'functions', 'highlight', 'insert_chart',
   'insert_comment', 'insert_emoticon', 'insert_link', 'insert_photo', 'mode_comment',
-  'mode_edit', 'mode_edit_outline', 'notes', 'pie_chart', 'pie_chart_outline',
-  'pie_chart_outlined', 'post_add', 'publish', 'short_text', 'space_bar', 'spellcheck',
+  'mode_edit', 'notes', 'pie_chart', 'post_add', 'publish', 'short_text', 'space_bar', 'spellcheck',
   'strikethrough_s', 'subscript', 'superscript', 'text_decrease', 'text_fields',
   'text_format', 'text_increase', 'text_rotate_up', 'text_rotate_vertical',
   'text_rotation_angledown', 'text_rotation_angleup', 'text_rotation_down',
@@ -277,16 +263,16 @@ const allMaterialIcons = [
   'card_membership', 'card_travel', 'credit_card', 'credit_card_off', 'credit_score',
   'currency_bitcoin', 'currency_exchange', 'currency_franc', 'currency_lira',
   'currency_pound', 'currency_ruble', 'currency_rupee', 'currency_yen', 'currency_yuan',
-  'diamond', 'discount', 'euro', 'euro_symbol', 'local_atm', 'local_offer', 'monetization_on',
-  'money', 'money_off', 'money_off_csred', 'paid', 'payment', 'payments', 'point_of_sale',
+  'diamond', 'percent_discount', 'euro', 'euro_symbol', 'local_atm', 'local_offer', 'monetization_on',
+  'money', 'money_off', 'paid', 'payment', 'payments', 'point_of_sale',
   'price_change', 'price_check', 'receipt', 'receipt_long', 'redeem', 'request_quote',
   'savings', 'sell', 'shopping_bag', 'shopping_basket', 'shopping_cart',
   'shopping_cart_checkout', 'store', 'store_mall_directory', 'storefront', 'toll',
-  'wallet', 'wallet_giftcard', 'wallet_membership', 'wallet_travel', 'work', 'work_history',
-  'work_off', 'work_outline',
+  'wallet', 'work', 'work_history', 'work_off', 'credit_card_clock', 'credit_card_gear',
+  'payment_card', 'payments', 'send_money', 'upi_pay',
 
   // Devices & Hardware
-  'adb', 'ad_units', 'airplanemode_off', 'airplanemode_on', 'battery_alert',
+  'ad_units', 'airplanemode_inactive', 'battery_alert',
   'battery_charging_full', 'battery_full', 'battery_saver', 'battery_unknown', 'bluetooth',
   'bluetooth_audio', 'bluetooth_connected', 'bluetooth_disabled', 'bluetooth_drive',
   'bluetooth_searching', 'brightness_auto', 'brightness_high', 'brightness_low',
@@ -312,31 +298,30 @@ const allMaterialIcons = [
   'history_toggle_off', 'hourglass_bottom', 'hourglass_disabled', 'hourglass_empty',
   'hourglass_full', 'hourglass_top', 'next_week', 'pending', 'pending_actions',
   'query_builder', 'schedule', 'schedule_send', 'timer', 'timer_10', 'timer_10_select',
-  'timer_3', 'timer_3_select', 'timer_off', 'today', 'update', 'upcoming', 'watch_later',
+  'timer_3', 'timer_3_select', 'timer_off', 'today', 'update', 'upcoming', 'watch_later', 'alarm_pause',
 
   // Places & Location
   'add_location', 'add_location_alt', 'atm', 'attractions', 'beenhere', 'castle', 'church',
   'cottage', 'departure_board', 'directions', 'directions_bike', 'directions_boat',
-  'directions_boat_filled', 'directions_bus', 'directions_bus_filled', 'directions_car',
-  'directions_car_filled', 'directions_off', 'directions_railway', 'directions_railway_filled',
-  'directions_run', 'directions_subway', 'directions_subway_filled', 'directions_train',
-  'directions_transit', 'directions_transit_filled', 'directions_walk', 'edit_location',
-  'edit_location_alt', 'edit_road', 'ev_station', 'factory', 'flight', 'flight_land',
+  'directions_bus', 'directions_car', 'directions_off', 'directions_railway',
+  'directions_run', 'directions_subway', 'directions_transit',
+  'directions_transit_filled', 'edit_location', 'edit_location_alt',
+  'edit_road', 'ev_station', 'factory', 'flight', 'flight_land',
   'flight_takeoff', 'fort', 'house', 'layers', 'layers_clear', 'local_activity',
-  'local_airport', 'local_atm', 'local_attraction', 'local_bar', 'local_cafe',
+  'local_airport', 'local_atm', 'confirmation_number',
   'local_car_wash', 'local_convenience_store', 'local_dining', 'local_drink',
   'local_fire_department', 'local_florist', 'local_gas_station', 'local_grocery_store',
   'local_hospital', 'local_hotel', 'local_laundry_service', 'local_library', 'local_mall',
   'local_movies', 'local_offer', 'local_parking', 'local_pharmacy', 'local_phone',
   'local_pizza', 'local_play', 'local_police', 'local_post_office', 'local_printshop',
-  'local_restaurant', 'local_see', 'local_shipping', 'local_taxi', 'location_city',
+  'local_see', 'local_shipping', 'local_taxi', 'location_city',
   'location_disabled', 'location_off', 'location_on', 'location_pin', 'location_searching',
   'map', 'moped', 'mosque', 'my_location', 'navigation', 'near_me', 'near_me_disabled',
   'not_listed_location', 'park', 'pedal_bike', 'person_pin', 'person_pin_circle', 'place',
   'pin_drop', 'public', 'restaurant', 'restaurant_menu', 'route', 'run_circle', 'sailing',
   'satellite', 'satellite_alt', 'store', 'store_mall_directory', 'storefront', 'subway',
   'synagogue', 'taxi_alert', 'temple_buddhist', 'temple_hindu', 'terrain', 'traffic',
-  'train', 'tram', 'transfer_within_a_station', 'transit_enterexit', 'trip_origin',
+  'tram', 'transfer_within_a_station', 'transit_enterexit', 'trip_origin',
   'two_wheeler', 'warehouse', 'where_to_vote', 'wrong_location', 'zoom_out_map',
 
   // Social & People
@@ -347,14 +332,14 @@ const allMaterialIcons = [
   'face_6', 'female', 'girl', 'group', 'group_add', 'group_off', 'group_remove',
   'group_work', 'groups', 'groups_2', 'groups_3', 'man', 'man_2', 'man_3', 'man_4',
   'military_tech', 'mood', 'mood_bad', 'paragliding', 'people', 'people_alt',
-  'people_outline', 'person', 'pregnant_woman', 'psychology', 'psychology_alt',
+  'person', 'pregnant_woman', 'psychology', 'psychology_alt',
   'public', 'real_estate_agent', 'reduce_capacity', 'school', 'science', 'self_improvement',
   'sentiment_dissatisfied', 'sentiment_neutral', 'sentiment_satisfied',
-  'sentiment_satisfied_alt', 'sentiment_very_dissatisfied', 'sentiment_very_satisfied',
+  'sentiment_very_dissatisfied', 'sentiment_very_satisfied',
   'sick', 'social_distance', 'sports', 'sports_bar', 'sports_baseball', 'sports_basketball',
   'sports_cricket', 'sports_esports', 'sports_football', 'sports_golf', 'sports_gymnastics',
   'sports_handball', 'sports_hockey', 'sports_kabaddi', 'sports_martial_arts', 'sports_mma',
-  'sports_motorsports', 'sports_rugby', 'sports_score', 'sports_soccer', 'sports_tennis',
+  'sports_motorsports', 'sports_rugby', 'sports_soccer', 'sports_tennis',
   'sports_volleyball', 'support', 'support_agent', 'volunteer_activism', 'waving_hand',
   'woman', 'woman_2',
 
@@ -365,6 +350,7 @@ const allMaterialIcons = [
   'local_dining', 'local_drink', 'local_pizza', 'lunch_dining', 'no_food', 'no_meals',
   'outdoor_grill', 'ramen_dining', 'restaurant', 'restaurant_menu', 'rice_bowl',
   'room_service', 'set_meal', 'soup_kitchen', 'takeout_dining', 'tapas', 'wine_bar',
+  'award_meal', 'calendar_meal', 'fork_spoon', 'beer_meal',
 
   // Home & Living
   'apartment', 'architecture', 'balcony', 'bathtub', 'bed', 'bedroom_baby', 'bedroom_child',
@@ -391,10 +377,8 @@ const allMaterialIcons = [
   'airline_seat_recline_normal', 'airlines', 'airline_stops', 'airplane_ticket', 'airport_shuttle',
   'alt_route', 'bike_scooter', 'car_crash', 'car_rental', 'car_repair', 'commute',
   'connecting_airports', 'departure_board', 'directions_bike', 'directions_boat',
-  'directions_boat_filled', 'directions_bus', 'directions_bus_filled', 'directions_car',
-  'directions_car_filled', 'directions_railway', 'directions_railway_filled',
-  'directions_run', 'directions_subway', 'directions_subway_filled', 'directions_train',
-  'directions_transit', 'directions_transit_filled', 'directions_walk', 'drive_eta',
+  'directions_bus', 'directions_car', 'directions_run', 'directions_subway', 'directions_transit',
+  'directions_transit_filled', 'directions_walk', 'drive_eta',
   'electric_bike', 'electric_car', 'electric_moped', 'electric_rickshaw',
   'electric_scooter', 'ev_station', 'flight', 'flight_class', 'flight_land',
   'flight_takeoff', 'fork_left', 'fork_right', 'local_airport', 'local_car_wash',
@@ -418,7 +402,7 @@ const allMaterialIcons = [
   'add_moderator', 'airport_shuttle', 'baby_changing_station', 'back_hand', 'biotech',
   'bloodtype', 'clean_hands', 'cleaning_services', 'coronavirus', 'elderly', 'elderly_woman',
   'emergency', 'emergency_recording', 'emergency_share', 'face_retouching_natural',
-  'family_restroom', 'favorite', 'favorite_border', 'favorite_outline', 'fitbit',
+  'family_restroom', 'favorite', 'heart_check', 'bookmark_heart', 'ecg_heart',
   'fitness_center', 'healing', 'health_and_safety', 'hearing', 'hearing_disabled',
   'heart_broken', 'local_hospital', 'local_pharmacy', 'masks', 'medical_information',
   'medical_services', 'medication', 'medication_liquid', 'monitor_heart', 'monitor_weight',
@@ -427,17 +411,17 @@ const allMaterialIcons = [
   'spa', 'vaccines', 'vape_free', 'vaping_rooms', 'volunteer_activism',
 
   // Technology & Development
-  'adb', 'api', 'barcode_reader', 'bug_report', 'code', 'code_off', 'computer',
-  'connected_tv', 'construction', 'css', 'data_array', 'data_object', 'dataset',
+  'adb', 'barcode_reader', 'bug_report', 'code', 'computer',
+  'connected_tv', 'construction', 'data_array', 'data_object', 'dataset',
   'dataset_linked', 'desktop_mac', 'desktop_windows', 'developer_board',
   'developer_board_off', 'developer_mode', 'devices', 'devices_fold', 'devices_other',
   'dns', 'extension', 'extension_off', 'handyman', 'hardware', 'home_repair_service',
-  'html', 'hub', 'integration_instructions', 'javascript', 'keyboard', 'keyboard_alt',
-  'laptop', 'laptop_chromebook', 'laptop_mac', 'laptop_windows', 'memory', 'miscellaneous_services',
-  'mouse', 'network_check', 'network_ping', 'pest_control', 'pest_control_rodent', 'php',
+  'hub', 'integration_instructions', 'keyboard', 'keyboard_alt',
+  'laptop', 'laptop_chromebook', 'laptop_mac', 'laptop_windows', 'memory', 'rule_settings',
+  'mouse', 'network_check', 'network_ping', 'pest_control', 'pest_control_rodent',
   'plumbing', 'power', 'power_off', 'precision_manufacturing', 'print', 'print_disabled',
   'qr_code', 'qr_code_2', 'qr_code_scanner', 'router', 'rss_feed', 'rtt', 'scanner',
-  'schema', 'screenshot', 'screenshot_monitor', 'sdk', 'security', 'security_update',
+  'schema', 'screenshot', 'screenshot_monitor', 'security', 'security_update',
   'security_update_good', 'security_update_warning', 'settings', 'settings_applications',
   'settings_bluetooth', 'settings_cell', 'settings_ethernet', 'settings_input_antenna',
   'settings_input_component', 'settings_input_composite', 'settings_input_hdmi',
@@ -445,48 +429,43 @@ const allMaterialIcons = [
   'sim_card_download', 'smartphone', 'storage', 'sync', 'sync_alt', 'sync_disabled',
   'sync_lock', 'sync_problem', 'system_security_update', 'system_security_update_good',
   'system_security_update_warning', 'system_update', 'system_update_alt', 'tablet',
-  'tablet_android', 'tablet_mac', 'terminal', 'usb', 'usb_off', 'vpn_key', 'vpn_key_off',
-  'vpn_lock', 'webhook', 'wifi', 'wifi_calling', 'wifi_calling_3', 'wifi_channel',
+  'tablet_android', 'tablet_mac', 'usb', 'usb_off', 'vpn_key', 'vpn_key_off',
+  'vpn_lock', 'wifi', 'wifi_calling', 'wifi_calling_3', 'wifi_channel',
   'wifi_find', 'wifi_lock', 'wifi_off', 'wifi_password', 'wifi_protected_setup',
-  'wifi_tethering', 'wifi_tethering_error', 'wifi_tethering_off',
+  'wifi_tethering', 'wifi_tethering_error', 'wifi_tethering_off', 'cadence',
 
   // Charts & Data Visualization
   'analytics', 'area_chart', 'assessment', 'bar_chart', 'bubble_chart', 'candlestick_chart',
   'data_exploration', 'data_thresholding', 'data_usage', 'donut_large', 'donut_small',
-  'leaderboard', 'line_axis', 'multiline_chart', 'pie_chart', 'pie_chart_outline',
-  'pie_chart_outlined', 'poll', 'scatter_plot', 'score', 'scoreboard', 'show_chart',
-  'ssid_chart', 'stacked_bar_chart', 'stacked_line_chart', 'summarize', 'table_chart',
-  'table_rows', 'table_view', 'timeline', 'trending_down', 'trending_flat', 'trending_neutral',
+  'leaderboard', 'line_axis', 'multiline_chart', 'pie_chart', 'poll', 'scatter_plot', 
+  'score', 'scoreboard', 'show_chart', 'ssid_chart',
+  'stacked_bar_chart', 'stacked_line_chart', 'summarize', 'table_chart',
+  'table_rows', 'table_view', 'timeline', 'trending_down', 'trending_flat',
   'trending_up', 'waterfall_chart',
 
   // Views & Display
   'apps', 'dashboard', 'dashboard_customize', 'fullscreen', 'fullscreen_exit', 'grid_3x3',
   'grid_4x4', 'grid_goldenratio', 'grid_off', 'grid_on', 'grid_view', 'space_dashboard',
   'splitscreen', 'tab', 'tab_unselected', 'view_agenda', 'view_array', 'view_carousel',
-  'view_column', 'view_comfortable', 'view_comfy', 'view_comfy_alt', 'view_compact',
+  'view_column', 'view_comfy', 'view_comfy_alt', 'view_compact', 'view_apps',
   'view_compact_alt', 'view_cozy', 'view_day', 'view_headline', 'view_in_ar',
   'view_kanban', 'view_list', 'view_module', 'view_quilt', 'view_sidebar', 'view_stream',
   'view_timeline', 'view_week', 'web_asset', 'web_asset_off', 'widgets', 'window',
 
   // Alerts & Notifications
   'add_alert', 'campaign', 'circle_notifications', 'crisis_alert', 'dangerous', 'error',
-  'error_outline', 'info', 'info_outline', 'new_releases', 'notification_add',
+  'info', 'new_releases', 'notification_add', 'notification_settings', 'notification_audio',
   'notification_important', 'notifications', 'notifications_active', 'notifications_none',
-  'notifications_off', 'notifications_on', 'notifications_paused', 'priority_high',
+  'notifications_off', 'notifications_unread', 'notifications_paused', 'priority_high',
   'privacy_tip', 'report', 'report_gmailerrorred', 'report_off', 'report_problem',
   'verified', 'verified_user', 'warning', 'warning_amber',
 
-  // Brand & Social Media
-  'adobe', 'apple', 'discord', 'facebook', 'fitbit', 'logo_dev', 'paypal', 'pix', 'quora',
-  'reddit', 'shopify', 'snapchat', 'telegram', 'tiktok', 'wechat', 'woo_commerce',
-  'wordpress', 'youtube_searched_for',
-
   // Miscellaneous
-  'abc', 'animation', 'api', 'auto_graph', 'auto_mode', 'backpack', 'badge', 'block',
-  'block_flipped', 'bookmark', 'bookmark_add', 'bookmark_added', 'bookmark_border',
-  'bookmark_outline', 'bookmark_remove', 'bookmarks', 'brightness_1', 'brightness_2',
+  'youtube_searched_for', 'abc', 'animation', 'auto_graph', 'auto_mode', 'backpack', 'badge',
+  'block', 'bookmark', 'bookmark_add', 'bookmark_added', 'bookmark_border',
+  'bookmark_remove', 'bookmarks', 'brightness_1', 'brightness_2',
   'brightness_3', 'brightness_4', 'brightness_5', 'brightness_6', 'brightness_7',
-  'casino', 'catching_pokemon', 'celebration', 'checklist', 'checklist_rtl', 'circle',
+  'casino', 'poker_chip', 'celebration', 'checklist', 'checklist_rtl', 'circle',
   'class', 'construction', 'copyright', 'cruelty_free', 'dark_mode', 'deselect',
   'difference', 'disabled_by_default', 'disabled_visible', 'do_not_disturb',
   'do_not_disturb_alt', 'do_not_disturb_off', 'do_not_disturb_on',
@@ -495,15 +474,15 @@ const allMaterialIcons = [
   'event_busy', 'event_note', 'event_repeat', 'event_seat', 'explicit', 'explore',
   'explore_off', 'extension', 'extension_off', 'festival', 'fingerprint', 'flag',
   'flag_circle', 'flaky', 'flutter_dash', 'gavel', 'generating_tokens', 'gesture',
-  'gif', 'gif_box', 'goat', 'handshake', 'help', 'help_center', 'help_outline', 'hexagon',
+  'gif', 'raven', 'handshake', 'help', 'help_center', 'hexagon',
   'interests', 'interpreter_mode', 'language', 'lightbulb', 'lightbulb_circle',
-  'lightbulb_outline', 'mode', 'new_label', 'not_accessible', 'not_interested',
+  'mode', 'new_label', 'not_accessible', 'not_interested',
   'not_started', 'offline_bolt', 'offline_pin', 'offline_share', 'on_device_training',
-  'opacity', 'outlet', 'outlined_flag', 'pages', 'pageview', 'pallet', 'pattern',
+  'opacity', 'outlet', 'pages', 'pageview', 'pallet', 'pattern',
   'pentagon', 'percent', 'phishing', 'pinch', 'pivot_table_chart', 'plagiarism',
-  'policy', 'polyline', 'polymer', 'preview', 'published_with_changes', 'puzzle',
+  'policy', 'polyline', 'polymer', 'preview', 'published_with_changes', 'chess', 'crossword',
   'quickreply', 'quiz', 'recycling', 'reviews', 'rocket', 'rocket_launch', 'rule',
-  'safety_check', 'safety_divider', 'scale', 'screen_lock_landscape',
+  'safety_check', 'safety_divider', 'scale', 'screen_lock_landscape', 'toys_and_games',
   'screen_lock_portrait', 'screen_lock_rotation', 'screen_rotation', 'screen_rotation_alt',
   'screen_search_desktop', 'segment', 'settings_suggest', 'shield', 'shield_moon',
   'sign_language', 'square', 'square_foot', 'stadium', 'sticky_note_2', 'swipe',
@@ -515,15 +494,9 @@ const allMaterialIcons = [
   'type_specimen', 'upcoming', 'verified', 'verified_user', 'wysiwyg',
 ];
 
-// For backward compatibility, keep separate arrays
-// These are now just filtered views of the main allMaterialIcons array
-const materialIcons = allMaterialIcons.filter(icon => !materialSymbolsOnly.has(icon));
-const materialSymbols = allMaterialIcons.filter(icon => materialSymbolsOnly.has(icon));
+const getIconClass = () => 'material-symbols';
 
 export {
-  materialSymbolsOnly,
   getIconClass,
-  materialIcons,
   materialSymbols,
-  allMaterialIcons,
 };

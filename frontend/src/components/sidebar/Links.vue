@@ -187,7 +187,7 @@
 import { state, getters, mutations } from "@/store";
 import ProgressBar from "@/components/ProgressBar.vue";
 import { goToItem } from "@/utils/url";
-import { getIconClass } from "@/utils/material-icons";
+import { getIconClass } from "@/utils/material-symbols";
 import { buildIndexInfoTooltipHTML } from "@/components/files/IndexInfo.vue";
 import { globalVars } from "@/utils/constants";
 import { resourcesApi } from "@/api";

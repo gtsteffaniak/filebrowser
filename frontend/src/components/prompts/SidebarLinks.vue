@@ -249,7 +249,7 @@ import { state, mutations } from "@/store";
 import { notify } from "@/notify";
 import { usersApi, shareApi } from "@/api";
 import { tools } from "@/utils/constants";
-import { getIconClass } from "@/utils/material-icons";
+import { getIconClass } from "@/utils/material-symbols";
 import FileList from "../files/FileList.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import { eventBus } from "@/store/eventBus";
