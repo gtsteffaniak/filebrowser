@@ -597,6 +597,7 @@ export default {
   align-items: center;
   gap: 1rem;
   border-bottom: 1px solid var(--borderPrimary);
+  border-radius: 0.5em;
 }
 
 .group-title {

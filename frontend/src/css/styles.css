@@ -363,7 +363,8 @@ button:hover,
 .listing-item:hover .material-symbols-outlined,
 .tree-node:hover .material-symbols-outlined,
 .tree-node.current-item .material-symbols-outlined,
-.tree-node.drag-over .material-symbols-outlined {
+.tree-node.drag-over .material-symbols-outlined,
+.search-entry:hover .material-symbols-outlined {
   font-variation-settings: 'FILL' 1;
 }
 
