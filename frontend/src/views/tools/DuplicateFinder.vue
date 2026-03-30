@@ -100,7 +100,7 @@
       </div>
 
       <div v-else-if="!loading" class="empty-state">
-        <i class="material-symbols">content_copy</i>
+        <i class="material-symbols-outlined">content_copy</i>
         <p>{{ $t('duplicateFinder.emptyState') }}</p>
       </div>
     </div>

@@ -354,7 +354,9 @@ export default {
   opacity: 0.7;
 }
 
-.tooltip-info-icon:hover {
+.tooltip-info-icon:hover,
+.tooltip-info-icon:hover .material-symbols-outlined {
+  font-variation-settings: 'FILL' 1;
   opacity: 1;
 }
 

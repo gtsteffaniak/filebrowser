@@ -84,7 +84,7 @@
       />
       <action
         v-if="showRename"
-        icon="mode_edit"
+        icon="edit"
         :label="$t('general.rename')"
         @action="showRenamePrompt"
       />

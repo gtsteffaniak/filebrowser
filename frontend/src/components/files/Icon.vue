@@ -450,6 +450,7 @@ export default {
   text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
   z-index: 2;
   color: white;
+  opacity: 0.7;
 }
 
 .file-icons [aria-label^="."] {
