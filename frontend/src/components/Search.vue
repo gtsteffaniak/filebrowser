@@ -381,9 +381,6 @@ export default {
       const fullPath = context + '/' + path;
       return url.buildItemUrl(source, fullPath, true);
     },
-    getIcon(mimetype) {
-      return getMaterialIconForType(mimetype);
-    },
     enableOptions() {
       this.hiddenOptions = false;
       this.toggleOptionButton = [{ label: "Hide Options" }];
