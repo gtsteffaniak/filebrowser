@@ -9,7 +9,7 @@
     />
     <div class="search-bar-container" :class="{ disabled: isDisabled }" 
          v-if="showSearch && !isSearchActive" @click="openSearch" >
-      <i class="material-icons">search</i>
+      <i class="material-symbols">search</i>
       <input 
         type="text" 
         id="search-bar-input" 
@@ -328,7 +328,7 @@ header {
   background-color: rgba(100, 100, 100, 0.3);
 }
 
-.search-bar-container .material-icons {
+.search-bar-container .material-symbols {
   font-size: 1.25em;
   user-select: none;
 }

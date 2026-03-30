@@ -19,7 +19,7 @@
           <hr />
         </div>
         <div v-else class="thumb-letters no-select">
-          <i class="material-icons" :class="{ 'primary-icons': isFolder }"> {{ isFolder ? "folder" : "description" }} </i> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <i class="material-symbols" :class="{ 'primary-icons': isFolder }"> {{ isFolder ? "folder" : "description" }} </i> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         </div>
       </div>
       <div

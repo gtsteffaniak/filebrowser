@@ -4,7 +4,7 @@
 
     <!-- External Link -->
     <div class="external-link-banner">
-      <i class="material-icons">open_in_new</i>
+      <i class="material-symbols">open_in_new</i>
       <span>{{ $t('tools.materialIconPicker.browseFullLibrary') }}</span>
       <a href="https://fonts.google.com/icons" target="_blank" rel="noopener noreferrer">
         {{ $t('tools.materialIconPicker.iconLibraryUrl') }}
@@ -13,7 +13,7 @@
 
     <!-- Search Box -->
     <div class="search-box">
-      <i class="material-icons search-icon">search</i>
+      <i class="material-symbols search-icon">search</i>
       <input
         v-model="searchQuery"
         type="text"
@@ -23,7 +23,7 @@
         style="padding-left: 2.5em;"
       />
       <button v-if="searchQuery" @click="searchQuery = ''" class="button button--flat clear-button">
-        <i class="material-icons">close</i>
+        <i class="material-symbols">close</i>
       </button>
     </div>
 
@@ -70,7 +70,7 @@
 
     <!-- Empty State -->
     <div v-if="!showCustomPreview && visibleIcons.length === 0" class="empty-state">
-      <i class="material-icons">search_off</i>
+      <i class="material-symbols">search_off</i>
       <p>{{ $t('tools.materialIconPicker.noResults') }}</p>
     </div>
   </div>
@@ -177,7 +177,7 @@ export default {
   color: var(--textSecondary);
 }
 
-.external-link-banner .material-icons {
+.external-link-banner .material-symbols {
   font-size: 1.2em;
   color: var(--primaryColor);
 }
@@ -218,7 +218,7 @@ export default {
   padding: 0.25em !important;
 }
 
-.clear-button .material-icons {
+.clear-button .material-symbols {
   font-size: 1.2em;
 }
 
@@ -298,7 +298,7 @@ export default {
   color: var(--textSecondary);
 }
 
-.empty-state .material-icons {
+.empty-state .material-symbols {
   font-size: 3em;
   margin-bottom: 0.5em;
   opacity: 0.5;

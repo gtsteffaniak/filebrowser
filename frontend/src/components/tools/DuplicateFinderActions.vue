@@ -1,8 +1,8 @@
 <template>
   <div v-if="selectedCount > 0" class="duplicate-finder-actions">
     <button @click="handleDelete" class="button delete-button" :disabled="deleting">
-      <i v-if="deleting" class="material-icons spin">autorenew</i>
-      <i v-else class="material-icons">delete</i>
+      <i v-if="deleting" class="material-symbols spin">autorenew</i>
+      <i v-else class="material-symbols">delete</i>
       <span>{{ $t('general.delete') }} {{ selectedCount }}</span>
     </button>
     <button @click="handleClear" class="button">
@@ -56,7 +56,7 @@ export default {
   flex-shrink: 0;
 }
 
-.button .material-icons {
+.button .material-symbols {
   font-size: 1.2rem;
 }
 

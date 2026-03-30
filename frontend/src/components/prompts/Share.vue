@@ -2,7 +2,7 @@
   <div class="card-content">
     <!-- Warning banner for missing path when editing a share -->
     <div v-if="!pathExists && isEditMode && !isEditingPath" class="warning-banner">
-      <i class="material-icons">warning</i>
+      <i class="material-symbols">warning</i>
       <span>{{ $t("messages.pathNotFoundMessage") }}</span>
       <button class="button button--flat button--blue" @click="startPathReassignment">
         {{ $t("messages.reassignPath") }}
@@ -60,26 +60,26 @@
               <td class="small">
                 <button class="action" @click="editLink(link)" :aria-label="$t('general.edit')"
                   :title="$t('general.edit')">
-                  <i class="material-icons">edit</i>
+                  <i class="material-symbols">edit</i>
                 </button>
               </td>
               <td class="small">
                 <button class="action copy-clipboard" :data-clipboard-text="link.shareURL"
                   :aria-label="$t('buttons.copyToClipboard')" :title="$t('buttons.copyToClipboard')">
-                  <i class="material-icons">content_paste</i>
+                  <i class="material-symbols">content_paste</i>
                 </button>
               </td>
               <td class="small">
                 <button :disabled="link.shareType == 'upload'" class="action copy-clipboard"
                   :data-clipboard-text="link.downloadURL" :aria-label="$t('buttons.copyDownloadLinkToClipboard')"
                   :title="$t('buttons.copyDownloadLinkToClipboard')">
-                  <i class="material-icons">content_paste_go</i>
+                  <i class="material-symbols">content_paste_go</i>
                 </button>
               </td>
               <td class="small">
                 <button class="action" @click="deleteLink($event, link)" :aria-label="$t('general.delete')"
                   :title="$t('general.delete')">
-                  <i class="material-icons">delete</i>
+                  <i class="material-symbols">delete</i>
                 </button>
               </td>
             </tr>
@@ -113,7 +113,7 @@
           </p>
           <div v-if="hasExistingPassword && !isChangingPassword" class="password-change-section">
             <button class="button button--flat button--blue" @click="isChangingPassword = true" style="width: 100%;">
-              <i class="material-icons">lock_reset</i>
+              <i class="material-symbols">lock_reset</i>
               {{ $t("general.change") }}
             </button>
           </div>
@@ -130,7 +130,7 @@
             <option value="upload">{{ $t("share.uploadShare") }}</option>
           </select>
           <button @click="openSidebarLinksCustomization" class="button button--flat customize-sidebar-links-button">
-            <i class="material-icons">link</i>
+            <i class="material-symbols">link</i>
             {{ $t('share.customizeSidebarLinksButton') }}
           </button>
           <div class="settings-items" style="margin-top: 0.5em;">
@@ -291,7 +291,7 @@
           <div class="file-picker-input-group">
             <input class="input file-picker-input" type="text" v-model.trim="banner" />
             <div class="file-picker-button clickable" @click="openBannerPicker" :title="$t('share.browseFiles')">
-              <i class="material-icons">folder_open</i>
+              <i class="material-symbols">folder_open</i>
             </div>
           </div>
 
@@ -305,7 +305,7 @@
           <div class="file-picker-input-group">
             <input class="input file-picker-input" type="text" v-model.trim="favicon" />
             <div class="file-picker-button clickable" @click="openFaviconPicker" :title="$t('share.browseFiles')">
-              <i class="material-icons">folder_open</i>
+              <i class="material-symbols">folder_open</i>
             </div>
           </div>
         </SettingsItem>
@@ -1043,7 +1043,7 @@ export default {
   background: var(--surfaceTertiary);
 }
 
-.file-picker-button .material-icons {
+.file-picker-button .material-symbols {
   color: var(--primaryColor);
   font-size: 1.25em;
 }

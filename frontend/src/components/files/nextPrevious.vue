@@ -40,7 +40,7 @@
     :aria-label="$t('general.previous')"
     :title="$t('general.previous')"
   >
-    <i class="material-icons">
+    <i class="material-symbols">
       {{ dragState.type === 'previous' && dragState.atFullExtent ? 'list_alt' : 'chevron_left' }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
     </i>
   </button>
@@ -61,7 +61,7 @@
     :aria-label="$t('general.next')"
     :title="$t('general.next')"
   >
-    <i class="material-icons">
+    <i class="material-symbols">
       {{ dragState.type === 'next' && dragState.atFullExtent ? 'list_alt' : 'chevron_right' }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
     </i>
   </button>
@@ -1116,14 +1116,14 @@ export default {
   transition: none !important; /* Disable transitions during drag */
 }
 
-.nav-button i.material-icons {
+.nav-button i.material-symbols {
   font-size: 24px;
   line-height: 1;
   transition: transform 0.2s ease;
 }
 
-.nav-button:hover i.material-icons,
-.nav-button.active i.material-icons {
+.nav-button:hover i.material-symbols,
+.nav-button.active i.material-symbols {
   transform: scale(1.1);
 }
 
@@ -1134,7 +1134,7 @@ export default {
     height: 44px;
   }
 
-  .nav-button i.material-icons {
+  .nav-button i.material-symbols {
     font-size: 20px;
   }
 

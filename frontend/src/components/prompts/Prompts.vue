@@ -37,7 +37,7 @@
           @mousedown.stop
           @touchstart.stop
         >
-          <i class="material-icons">close</i>
+          <i class="material-symbols">close</i>
         </button>
         <div class="prompt-taskbar-drag">
           <span class="prompt-title">{{ prompt?.props?.title || getDisplayTitle(prompt?.name) }}</span>
@@ -762,7 +762,7 @@ export default {
   filter: brightness(1.1);
 }
 
-.prompt-close .material-icons {
+.prompt-close .material-symbols {
   font-size: 1em;
 }
 

@@ -21,7 +21,7 @@
           :description="$t('fileSizeAnalyzer.includeFoldersDescription')" aria-label="Include folders toggle" />
 
         <button aria-label="Analyze button" @click="fetchData" class="button" :disabled="loading">
-          <i v-if="loading" class="material-icons spin">autorenew</i>
+          <i v-if="loading" class="material-symbols spin">autorenew</i>
           <span v-else>{{ $t('general.analyze') }}</span>
         </button>
       </div>
@@ -43,13 +43,13 @@
           </div>
 
           <div v-if="results.length < maxResults" class="success-message">
-            <i class="material-icons">check_circle</i>
+            <i class="material-symbols">check_circle</i>
             <div>
               <strong>{{ $t('fileSizeAnalyzer.completeResults') }}</strong>
             </div>
           </div>
           <div v-else class="warning-message">
-            <i class="material-icons">warning</i>
+            <i class="material-symbols">warning</i>
             <div>
               <strong>{{ $t('fileSizeAnalyzer.incompleteResults') }}</strong> {{ $t('messages.incompleteResultsDetails', { max: maxResults }) }}
             </div>
@@ -154,7 +154,7 @@
       </div>
 
       <div v-else-if="!loading" class="empty-state">
-        <i class="material-icons">analytics</i>
+        <i class="material-symbols">analytics</i>
         <p>{{ $t('fileSizeAnalyzer.emptyState') }}</p>
       </div>
     </div>
@@ -760,7 +760,7 @@ export default {
   gap: 0.5rem;
 }
 
-.button .material-icons {
+.button .material-symbols {
   font-size: 1.2rem;
 }
 
@@ -1036,7 +1036,7 @@ export default {
   color: var(--textSecondary);
 }
 
-.empty-state .material-icons {
+.empty-state .material-symbols {
   font-size: 4rem;
   opacity: 0.3;
   margin-bottom: 1rem;

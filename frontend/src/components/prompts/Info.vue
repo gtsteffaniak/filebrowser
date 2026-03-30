@@ -73,7 +73,7 @@
                 :placeholder="$t('prompts.selectHashAlgorithm')" />
               <button class="button form-button flat-left" @click="copyToClipboard" :disabled="!hashResult"
                 :title="$t('buttons.copyToClipboard')" :aria-label="$t('buttons.copyToClipboard')">
-                <i class="material-icons" style="font-size: 16px;">content_copy</i>
+                <i class="material-symbols" style="font-size: 16px;">content_copy</i>
               </button>
             </div>
           </div>

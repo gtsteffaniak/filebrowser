@@ -37,7 +37,7 @@
       <div class="upload-prompt" :class="{ dropping: isDragging }" @dragenter.prevent="onDragEnter"
         @dragover.prevent="onDragOver" @dragleave.prevent="onDragLeave" @drop.prevent="onDrop">
         <div class="upload-prompt-container">
-          <i v-if="files.length === 0" class="material-icons">cloud_upload</i>
+          <i v-if="files.length === 0" class="material-symbols">cloud_upload</i>
           <p v-if="files.length === 0">{{ $t("prompts.dragAndDrop") }}</p>
           <div class="button-group">
             <button @click="triggerFilePicker" class="button button--flat">
@@ -65,7 +65,7 @@
       </div>
       <div class="upload-list">
         <div v-for="file in files" :key="file.id" class="upload-item">
-          <i class="material-icons file-icon">{{ file.type === "directory" ? "folder" : "insert_drive_file" }}</i> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <i class="material-symbols file-icon">{{ file.type === "directory" ? "folder" : "insert_drive_file" }}</i> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <div class="file-info">
             <p class="file-name">{{ file.name }}</p>
             <progress-bar v-if="file.type !== 'directory'" :val="file.status === 'completed'
@@ -86,23 +86,23 @@
           <div class="file-actions">
             <button v-if="file.status === 'uploading'" @click="uploadManager.pause(file.id)" class="action"
               :aria-label="$t('general.pause')" :title="$t('general.pause')">
-              <i class="material-icons">pause</i>
+              <i class="material-symbols">pause</i>
             </button>
             <button v-if="file.status === 'paused'" @click="uploadManager.resume(file.id)" class="action"
               :aria-label="$t('general.resume')" :title="$t('general.resume')">
-              <i class="material-icons">play_arrow</i>
+              <i class="material-symbols">play_arrow</i>
             </button>
             <button v-if="file.status === 'error'" @click="uploadManager.retry(file.id)" class="action"
               :aria-label="$t('general.retry')" :title="$t('general.retry')">
-              <i class="material-icons">replay</i>
+              <i class="material-symbols">replay</i>
             </button>
             <button v-if="file.status === 'conflict'" @click="handleConflictAction(file)" class="action"
               :aria-label="$t('general.replace')" :title="$t('general.replace')">
-              <i class="material-icons">sync_problem</i>
+              <i class="material-symbols">sync_problem</i>
             </button>
             <button @click="cancelUpload(file.id)" class="action" :aria-label="$t('general.cancel')"
               :title="$t('general.cancel')">
-              <i class="material-icons">close</i>
+              <i class="material-symbols">close</i>
             </button>
           </div>
         </div>

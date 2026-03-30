@@ -2,9 +2,9 @@
   <!-- Unified preview container for all types -->
   <span v-if="hasPreviewImage || shouldUse3DPreview" class="image-preview" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
     <!-- Overlay icons (folder/animation) positioned top-left -->
-    <i v-if="hasPreviewImage && hasMotion && isFile" class="material-icons overlay-icon muted">animation</i>
-    <i v-else-if="hasPreviewImage && !isFile" class="material-icons overlay-icon muted">folder</i>
-    <i v-if="isShared" class="material-icons overlay-icon">group</i>
+    <i v-if="hasPreviewImage && hasMotion && isFile" class="material-symbols-outlined overlay-icon">animation</i>
+    <i v-else-if="hasPreviewImage && !isFile" class="material-symbols overlay-icon">folder</i>
+    <i v-if="isShared" class="material-symbols overlay-icon">group</i>
     <!-- Preview content: image, 3D, or fallback -->
     <img v-if="hasPreviewImage" :key="imageTargetSrc" :src="imageDisplaySrc" ref="thumbnail" />
     <ThreeJs v-else-if="shouldUse3DPreview && !threeJsError"
@@ -24,7 +24,7 @@
   <!-- Regular material icon (no preview) -->
   <span v-else class="image-preview">
     <i :class="[classes, { active: active, clickable: clickable }]"> {{ materialSymbol }} </i>
-    <i v-if="isShared" class="material-icons overlay-icon">group</i>
+    <i v-if="isShared" class="material-symbols overlay-icon">group</i>
   </span>
 </template>
 
@@ -421,7 +421,7 @@ export default {
   },
   mounted() {
     const result = this.getIconForType();
-    this.classes = result.classes || "material-icons";
+    this.classes = result.classes || "material-symbols";
     // @ts-ignore
     this.color = result.color || "lightgray";
     this.materialSymbol = result.materialSymbol || "";
@@ -450,10 +450,6 @@ export default {
   text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
   z-index: 2;
   color: white;
-}
-
-.overlay-icon.muted {
-  opacity: 0.7;
 }
 
 .file-icons [aria-label^="."] {

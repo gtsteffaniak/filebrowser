@@ -14,10 +14,10 @@
           @dragover.prevent="handleDragOver($event, index)" @drop="handleDrop($event, index)">
           <div draggable="true" @dragstart="handleDragStart($event, index)" @dragend="handleDragEnd"
             class="link-drag-handle">
-            <i class="material-icons">drag_indicator</i>
+            <i class="material-symbols">drag_indicator</i>
           </div>
           <div v-if="link.category === 'divider'" class="link-icon">
-            <i class="material-icons">horizontal_rule</i>
+            <i class="material-symbols">horizontal_rule</i>
           </div>
           <div v-else class="link-icon">
             <i :class="getIconClass(link.icon)">{{ link.icon }}</i>
@@ -27,10 +27,10 @@
             <span class="link-category">{{ getCategoryLabel(link.category) }}</span>
           </div>
           <button class="action" @click="editLink(index)" :aria-label="$t('general.edit')">
-            <i class="material-icons">edit</i>
+            <i class="material-symbols">edit</i>
           </button>
           <button class="action" @click="removeLink(index)" :aria-label="$t('general.delete')">
-            <i class="material-icons">delete</i>
+            <i class="material-symbols">delete</i>
           </button>
         </div>
       </div>
@@ -39,7 +39,7 @@
     <!-- Add New Link Section -->
     <div v-if="!showAddForm" class="add-link-section">
       <button @click="showAddForm = true" class="button button--flat button--blue add-link-button">
-        <i class="material-icons">add</i>
+        <i class="material-symbols">add</i>
         {{ $t('sidebar.addNewLink') }}
       </button>
     </div>
@@ -201,7 +201,7 @@
               :placeholder="$t('sidebar.linkIconPlaceholder')" />
             <div class="icon-preview clickable" @click="openIconPicker" :title="$t('sidebar.browseIcons')">
               <i v-if="newLink.icon" :class="getIconClass(newLink.icon)">{{ newLink.icon }}</i>
-              <i v-else class="material-icons icon-preview-placeholder">interests</i>
+              <i v-else class="material-symbols icon-preview-placeholder">interests</i>
             </div>
           </div>
         </div>
@@ -936,7 +936,7 @@ export default {
   color: var(--primaryColor);
 }
 
-.icon-preview .material-icons,
+.icon-preview .material-symbols,
 .icon-preview .material-symbols-outlined {
   font-size: 2em;
 }

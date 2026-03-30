@@ -16,7 +16,7 @@
         <input aria-label="Minimum size input" v-model.number="minSizeValue" type="number" min="0" placeholder="1" class="input" />
         <p class="hint">{{ $t('duplicateFinder.minSizeHint') }}</p>
         <button aria-label="Find duplicates button" @click="fetchData" class="button" :disabled="loading">
-          <i v-if="loading" class="material-icons spin">autorenew</i>
+          <i v-if="loading" class="material-symbols spin">autorenew</i>
           <span v-else>{{ $t('duplicateFinder.findDuplicates') }}</span>
         </button>
       </div>
@@ -39,20 +39,20 @@
 
           <!-- Show timeout/limit warning first if applicable -->
           <div v-if="isIncomplete" class="warning-message">
-            <i class="material-icons">warning</i>
+            <i class="material-symbols">warning</i>
             <div>
               <strong>{{ $t('fileSizeAnalyzer.incompleteResults') }}</strong> {{ incompleteReason }}
             </div>
           </div>
           <!-- Show complete/maxGroups warning if no timeout -->
           <div v-else-if="duplicateGroups.length < maxGroups" class="success-message">
-            <i class="material-icons">check_circle</i>
+            <i class="material-symbols">check_circle</i>
             <div>
               <strong>{{ $t('fileSizeAnalyzer.completeResults') }}</strong>
             </div>
           </div>
           <div v-else class="warning-message">
-            <i class="material-icons">warning</i>
+            <i class="material-symbols">warning</i>
             <div>
               <strong>{{ $t('fileSizeAnalyzer.incompleteResults') }}</strong> {{ $t('messages.incompleteResultsDetails', { max: maxGroups }) }}
             </div>
@@ -100,7 +100,7 @@
       </div>
 
       <div v-else-if="!loading" class="empty-state">
-        <i class="material-icons">content_copy</i>
+        <i class="material-symbols">content_copy</i>
         <p>{{ $t('duplicateFinder.emptyState') }}</p>
       </div>
     </div>
@@ -549,7 +549,7 @@ export default {
   gap: 0.5rem;
 }
 
-.button .material-icons {
+.button .material-symbols {
   font-size: 1.2rem;
 }
 
@@ -680,7 +680,7 @@ export default {
   color: var(--textSecondary);
 }
 
-.empty-state .material-icons {
+.empty-state .material-symbols {
   font-size: 4rem;
   opacity: 0.3;
   margin-bottom: 1rem;

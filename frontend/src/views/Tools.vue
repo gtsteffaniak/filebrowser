@@ -15,7 +15,7 @@
           class="listing-item clickable"
         >
           <div class="tool-icon">
-            <i class="material-icons">{{ tool.icon }}</i>
+            <i class="material-symbols">{{ tool.icon }}</i>
           </div>
           <div class="tool-content">
             <h3 style="margin:0; padding:0;">{{ tool.name }}</h3>
@@ -30,7 +30,7 @@
 
     <!-- Show error if tool not found -->
     <div v-else class="tool-not-found">
-      <i class="material-icons">error_outline</i>
+      <i class="material-symbols-outlined">error</i>
       <h2>{{ $t('tools.toolNotFound') }}</h2>
       <router-link to="/tools" class="button button--flat">{{ $t('tools.backToTools') }}</router-link>
     </div>

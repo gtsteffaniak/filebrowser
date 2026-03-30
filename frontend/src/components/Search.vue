@@ -5,10 +5,10 @@
       <!-- Close button visible when search is active -->
       <button v-if="active" class="action" @click="close" :aria-label="$t('general.close')"
         :title="$t('general.close')">
-        <i class="material-icons">close</i>
+        <i class="material-symbols">close</i>
       </button>
       <!-- Search icon when search is not active -->
-      <i v-else class="material-icons">search</i>
+      <i v-else class="material-symbols">search</i>
       <!-- Input field for search -->
       <input id="search-input" type="text"
         @keyup.exact="keyup" @input="submit" ref="input" :autofocus="active" v-model.trim="value"
@@ -694,12 +694,12 @@ export default {
   width: 100%;
 }
 
-.search-input-container .material-icons {
+.search-input-container .material-symbols {
   font-size: 1.25em;
   color: rgba(255, 255, 255, 0.7);
 }
 
-#search.active .search-input-container .material-icons {
+#search.active .search-input-container .material-symbols {
   color: inherit;
 }
 

@@ -36,30 +36,30 @@
           </td>
           <td>{{ item.username }}</td>
           <td class="small">
-            <i v-if="!item.pathExists" class="material-icons warning-icon" :title="$t('messages.pathNotFound')">warning</i>
+            <i v-if="!item.pathExists" class="material-symbols warning-icon" :title="$t('messages.pathNotFound')">warning</i>
           </td>
           <td class="small">
             <button class="action" @click="editLink(item)" :aria-label="$t('general.edit')"
               :title="$t('general.edit')">
-              <i class="material-icons">edit</i>
+              <i class="material-symbols">edit</i>
             </button>
           </td>
           <td class="small">
             <button class="action" @click="deleteLink($event, item)" :aria-label="$t('general.delete')"
               :title="$t('general.delete')">
-              <i class="material-icons">delete</i>
+              <i class="material-symbols">delete</i>
             </button>
           </td>
           <td class="small">
             <button class="action copy-clipboard" :data-clipboard-text="buildLink(item)"
               :aria-label="$t('buttons.copyToClipboard')" :title="$t('buttons.copyToClipboard')">
-              <i class="material-icons">content_paste</i>
+              <i class="material-symbols">content_paste</i>
             </button>
           </td>
           <td class="small">
             <button :disabled="item.shareType == 'upload'" class="action copy-clipboard" :data-clipboard-text="item.downloadURL" v-if="item.downloadURL"
               :aria-label="$t('buttons.copyDownloadLinkToClipboard')" :title="$t('buttons.copyDownloadLinkToClipboard')">
-              <i class="material-icons">content_paste_go</i>
+              <i class="material-symbols">content_paste_go</i>
             </button>
           </td>
         </tr>
@@ -67,7 +67,7 @@
     </table>
   </div>
   <h2 class="message" v-else-if="!loading">
-    <i class="material-icons">sentiment_dissatisfied</i>
+    <i class="material-symbols-outlined">sentiment_dissatisfied</i>
     <span>{{ $t("files.lonely") }}</span>
   </h2>
 </template>

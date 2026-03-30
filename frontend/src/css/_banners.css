@@ -35,7 +35,7 @@
     gap: 0.75rem;
 }
 
-.warning-message .material-icons {
+.warning-message .material-symbols {
     font-size: 1.5rem;
     color: #f57c00;
     flex-shrink: 0;
@@ -58,7 +58,7 @@
     gap: 0.75rem;
 }
 
-.success-message .material-icons {
+.success-message .material-symbols {
     font-size: 1.5rem;
     color: #28a745;
     flex-shrink: 0;

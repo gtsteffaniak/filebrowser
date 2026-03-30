@@ -4,16 +4,16 @@
     <!-- Links section header -->
     <div class="sidebar-links-header"
       :class="{ 'with-top-spacing': isShare && !disableShareCard }">
-      <i :class="{ 'disabled': !isLoggedIn }" @click="goHome()" class="material-icons action">home</i>
+      <i :class="{ 'disabled': !isLoggedIn }" @click="goHome()" class="material-symbols action">home</i>
       <!-- Mode button (is the title) -->
       <button @click="cycleMode" class="mode-toggle" :title="$t('sidebar.switchMode')" @mouseenter="showTooltip($event, $t('sidebar.switchMode'))" @mouseleave="hideTooltip">
         {{ mode === 'links' ? $t('general.links') : $t('general.navigation') }}
       </button>
       <i v-if="isShare" aria-label="Edit Share" @mouseenter="showTooltip($event, editShareText())" @mouseleave="hideTooltip"
         :class="{ 'disabled': !canEdit }"
-        @click="showEditShareHover" class="material-icons action">edit</i>
+        @click="showEditShareHover" class="material-symbols action">edit</i>
       <i v-else @mouseenter="showTooltip($event, $t('sidebar.customizeLinks'))" @mouseleave="hideTooltip"
-        @click="openSidebarLinksPrompt" class="material-icons action">edit</i>
+        @click="openSidebarLinksPrompt" class="material-symbols action">edit</i>
     </div>
     <!-- Scrollable Content Area -->
     <div class="sidebar-links-content">
@@ -34,7 +34,7 @@
             <a v-else-if="link.category === 'custom' && link.name === 'sourceLocation'" :href="link.target"
               :aria-label="link.name" class="action button sidebar-link-button" @click.prevent="handleLinkClick(link)">
               <div class="link-container">
-                <i class="material-icons link-icon">open_in_new</i>
+                <i class="material-symbols link-icon">open_in_new</i>
                 <span>{{ $t('buttons.goToSource') }}</span>
               </div>
             </a>
@@ -57,7 +57,7 @@
                   <circle class="center" cx="50%" cy="50%" r="7px"></circle>
                   <circle class="pulse" cx="50%" cy="50%" r="10px"></circle>
                 </svg>
-                <i v-else class="material-icons warning-icon"
+                <i v-else class="material-symbols warning-icon"
                   @mouseenter="showTooltip($event, $t('sidebar.sourceNotAccessible'))" @mouseleave="hideTooltip">
                   warning
                 </i>
@@ -126,7 +126,7 @@
                 <circle class="center" cx="50%" cy="50%" r="7px"></circle>
                 <circle class="pulse" cx="50%" cy="50%" r="10px"></circle>
               </svg>
-              <i v-else class="material-icons warning-icon"
+              <i v-else class="material-symbols warning-icon"
                 @mouseenter="showTooltip($event, $t('sidebar.sourceNotAccessible'))" @mouseleave="hideTooltip">
                 warning
               </i>
@@ -141,7 +141,7 @@
               </i>
               <!-- Dropdown arrow -->
               <button class="source-dropdown-button" @click.stop="toggleSourceDropdown" ref="dropdownTrigger">
-                <i class="material-icons">keyboard_arrow_down</i>
+                <i class="material-symbols">keyboard_arrow_down</i>
               </button>
             </div>
             <div v-if="hasUsageInfo(activeSourceLink)" class="usage-info">
@@ -636,13 +636,13 @@ export default {
   flex-shrink: 0;
 }
 
-.sidebar-links-header .material-icons.action {
+.sidebar-links-header .material-symbols.action {
   padding: 0.25em 0.25em;
   border-radius: 0.5em;
   transition: background 0.2s;
 }
 
-.sidebar-links-header .material-icons.action:hover {
+.sidebar-links-header .material-symbols.action:hover {
   background: var(--surfaceSecondary);
 }
 

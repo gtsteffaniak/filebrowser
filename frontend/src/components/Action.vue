@@ -31,7 +31,7 @@
     class="action no-select"
   >
     <i v-if="icon == 'table_rows_narrow'" class="material-symbols-outlined">{{ icon }}</i>
-    <i v-else class="material-icons">{{ icon }}</i>
+    <i v-else class="material-symbols">{{ icon }}</i>
 
     <span>{{ label }}</span>
     <span v-if="counter > 0" class="counter">{{ counter }}</span>

@@ -6,7 +6,7 @@
     </div>
     <!-- Error state -->
     <div v-if="isRootInstance && error" class="tree-error">
-      <i class="material-icons">error</i>
+      <i class="material-symbols">error</i>
       <span>{{ $t("prompts.error") }}</span>
     </div>
     <ul v-if="effectiveNodes && effectiveNodes.length" class="tree-list">
@@ -31,7 +31,7 @@
             class="expand-icon"
             @click.stop="toggleExpand(node, true)"
           >
-            <i class="material-icons">
+            <i class="material-symbols">
               {{ node.expanded ? 'expand_more' : 'chevron_right' }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
             </i>
           </span>
@@ -55,7 +55,7 @@
           :currentPath="currentPath"
         />
         <div v-else-if="node.expanded && node.children && node.children.length === 0" class="tree-empty-folder">
-          <i class="material-icons">sentiment_dissatisfied</i>
+          <i class="material-symbols-outlined">sentiment_dissatisfied</i>
           <span>{{ $t('files.lonely') }}</span>
         </div>
         <div v-else-if="node.expanded && node.loading" class="tree-loading">
@@ -68,7 +68,7 @@
     </ul>
     <!-- Empty state -->
     <div v-if="isRootInstance && effectiveNodes && effectiveNodes.length === 0 && !loading && !error" class="tree-empty">
-      <i class="material-icons">sentiment_dissatisfied</i>
+      <i class="material-symbols-outlined">sentiment_dissatisfied</i>
       {{ $t('files.lonely') }}
     </div>
   </div>

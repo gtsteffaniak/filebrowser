@@ -17,7 +17,7 @@
           <img v-if="albumArtUrl" :src="albumArtUrl" :alt="metadata.album || 'Album art'"
             class="album-art" />
           <div v-else class="album-art-fallback">
-            <i class="material-icons">music_note</i>
+            <i class="material-symbols">music_note</i>
           </div>
         </div>
 
@@ -93,18 +93,18 @@
       :aria-label="$t('player.QueueButtonHint')"
       :title="$t('player.QueueButtonHint')"
     >
-      <i class="material-icons">queue_music</i>
+      <i class="material-symbols">queue_music</i>
       <span v-if="queueCount > 0" class="queue-count">{{ queueCount }}</span>
     </button>
 
     <!-- Toast when you change playback modes in the media player -->
     <div :class="['playback-toast', toastVisible ? 'visible' : '']">
       <!-- Loop icon for "single playback", "loop single file" and "loop all files" -->
-      <i v-if="playbackMode === 'single' || playbackMode === 'loop-single' || playbackMode === 'loop-all'" class="material-icons">
+      <i v-if="playbackMode === 'single' || playbackMode === 'loop-single' || playbackMode === 'loop-all'" class="material-symbols">
         {{ playbackMode === 'loop-single' ? 'repeat_one' : 'repeat' }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
       </i>
-      <i v-else-if="playbackMode === 'shuffle'" class="material-icons">shuffle</i>
-      <i v-else class="material-icons">playlist_play</i>
+      <i v-else-if="playbackMode === 'shuffle'" class="material-symbols">shuffle</i>
+      <i v-else class="material-symbols">playlist_play</i>
 
       <span>{{ playbackModeMessage }}</span>
 
@@ -1269,7 +1269,7 @@ export default {
   filter: brightness(0.85);
 }
 
-.album-art-fallback i.material-icons {
+.album-art-fallback i.material-symbols {
   font-size: 5rem;
   color: white;
   opacity: 0.8;
@@ -1436,12 +1436,12 @@ export default {
   color: white;
 }
 
-.queue-button i.material-icons {
+.queue-button i.material-symbols {
   font-size: 24px;
   transition: transform 0.2s ease;
 }
 
-.queue-button:hover i.material-icons {
+.queue-button:hover i.material-symbols {
   transform: scale(1.1);
 }
 
@@ -1518,7 +1518,7 @@ export default {
   opacity: 1;
 }
 
-.playback-toast .material-icons {
+.playback-toast .material-symbols {
   font-size: 24px;
   color: white;
   width: 24px;

@@ -293,7 +293,7 @@ body.rtl .listing-items {
     height: 2em;
 }
 
-.listing-items.icons .image-preview.download-icon .material-icons {
+.listing-items.icons .image-preview.download-icon .material-symbols {
     font-size: 2em;
     width: 100%;
     text-align: center;

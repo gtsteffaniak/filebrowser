@@ -22,8 +22,8 @@
           </div>
           <div class="config-item play-button">
             <button @click="toggleWatch" class="button" :disabled="!watching && !canStart">
-              <i v-if="watching" class="material-icons">pause</i>
-              <i v-else class="material-icons">play_arrow</i>
+              <i v-if="watching" class="material-symbols">pause</i>
+              <i v-else class="material-symbols">play_arrow</i>
             </button>
           </div>
         </div>
@@ -71,7 +71,7 @@
             <span class="terminal-text">{{ line.text }}</span>
           </div>
           <div v-if="outputLines.length === 0 && !watching" class="empty-state">
-            <i class="material-icons">terminal</i>
+            <i class="material-symbols">terminal</i>
             <p>{{ $t('tools.fileWatcher.emptyState') }}</p>
           </div>
         </div>
@@ -870,7 +870,7 @@ export default {
   color: var(--textSecondary);
 }
 
-.empty-state .material-icons {
+.empty-state .material-symbols {
   font-size: 4rem;
   opacity: 0.3;
   margin-bottom: 1rem;

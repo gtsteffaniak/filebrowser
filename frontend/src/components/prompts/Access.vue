@@ -6,7 +6,7 @@
     <template v-else>
       <!-- Warning banner for missing path -->
       <div v-if="!pathExists && !isEditingPath" class="warning-banner">
-        <i class="material-icons">warning</i>
+        <i class="material-symbols">warning</i>
         <span>{{ $t("messages.pathNotFoundMessage") }}</span>
         <button class="button button--flat button--blue" @click="startPathReassignment">
           {{ $t("messages.reassignPath") }}
@@ -24,7 +24,7 @@
       <!-- Default behavior banner -->
       <div class="card item">
         <div class="card-content banner-content">
-          <i class="material-icons">{{ sourceDenyDefault ? 'block' : 'check_circle' }}</i>  <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <i class="material-symbols">{{ sourceDenyDefault ? 'do_not_disturb_on' : 'check_circle' }}</i>  <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           {{ $t("access.defaultBehavior", { suffix: ":" }) }} {{ sourceDenyDefault ? $t("access.deny") : $t("access.allow")
           }}
           <i class="material-symbols-outlined tooltip-info-icon"
@@ -51,7 +51,7 @@
           <option v-for="group in groups" :key="group" :value="group"></option>
         </datalist>
         <button class="button form-button flat-left form-compact" @click="submitAdd">
-          <i class="material-icons">add</i>
+          <i class="material-symbols">add</i>
         </button>
       </div>
       <!-- Cascade Delete Toggle -->
@@ -76,7 +76,7 @@
             <td>
               <button @click="deleteAccess(entry)" class="action" :aria-label="$t('general.delete')"
                 :title="$t('general.delete')">
-                <i class="material-icons">delete</i>
+                <i class="material-symbols">delete</i>
               </button>
             </td>
           </tr>

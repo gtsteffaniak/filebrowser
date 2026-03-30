@@ -5,10 +5,10 @@
     </div>
     <div v-if="error" class="error-overlay">
       <div v-if="isThumbnail" class="error-icon">
-        <i class="material-icons">view_in_ar</i>
+        <i class="material-symbols">view_in_ar</i>
       </div>
       <div v-else class="error-content">
-        <i class="material-icons">error_outline</i>
+        <i class="material-symbols-outlined">error</i>
         <h3>{{ $t("threejs.failedToLoad") }}</h3>
         <p>{{ error }}</p>
       </div>
@@ -22,7 +22,7 @@
         :title="$t('threejs.controls')"
         :aria-label="$t('threejs.controls')"
       >
-        <i class="material-icons">settings</i>
+        <i class="material-symbols">settings</i>
       </button>
     </div>
   </div>

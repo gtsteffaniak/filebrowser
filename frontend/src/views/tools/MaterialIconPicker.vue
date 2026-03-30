@@ -5,7 +5,7 @@
 
       <!-- External Link Banner -->
       <a class="button" href="https://fonts.google.com/icons" target="_blank" rel="noopener noreferrer">
-        <i class="material-icons">open_in_new</i>
+        <i class="material-symbols">open_in_new</i>
         <span>{{ $t('tools.materialIconPicker.browseFullLibrary') }}</span>
       </a>
     </div>
@@ -13,11 +13,11 @@
     <!-- Search Controls -->
     <div class="controls">
       <div class="search-box">
-        <i class="material-icons search-icon">search</i>
+        <i class="material-symbols search-icon">search</i>
         <input v-model="searchQuery" type="text" :placeholder="$t('tools.materialIconPicker.searchPlaceholder')"
           class="input" style="padding-left: 2.5em;" />
         <button v-if="searchQuery" @click="searchQuery = ''" class="button button--flat clear-button">
-          <i class="material-icons">close</i>
+          <i class="material-symbols">close</i>
         </button>
       </div>
     </div>
@@ -56,7 +56,7 @@
 
     <!-- Empty State -->
     <div v-if="!showCustomPreview && visibleIcons.length === 0" class="empty-state">
-      <i class="material-icons">search_off</i>
+      <i class="material-symbols">search_off</i>
       <p>{{ $t('tools.materialIconPicker.noResults') }}</p>
       <p class="empty-hint">{{ $t('tools.materialIconPicker.tryDifferentSearch') }}</p>
     </div>
@@ -273,7 +273,7 @@ a.button {
   color: var(--textSecondary);
 }
 
-.empty-state .material-icons {
+.empty-state .material-symbols {
   font-size: 4em;
   margin-bottom: 0.5em;
   opacity: 0.5;

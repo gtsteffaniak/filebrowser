@@ -2,7 +2,7 @@
   <div class="card-content">
     <errors v-if="error" :errorCode="error.status" />
     <h2 class="message" v-if="user.loginMethod != 'password' && !stateUser.permissions.admin">
-      <i class="material-icons">sentiment_dissatisfied</i>
+      <i class="material-symbols-outlined">sentiment_dissatisfied</i>
       <span>{{ $t("files.lonely") }}</span>
     </h2>
     <div v-if="user.loginMethod == 'password' && globalVars.passwordAvailable && !isNew">
@@ -73,13 +73,13 @@
             @input="updateParent({ source: source, input: $event })" :value="source.scope"
             :class="{ 'flat-right': selectedSources.length > 1 }" />
           <button v-if="selectedSources.length > 1" class="button flat-left no-height" @click="removeScope(index)">
-            <i class="material-icons material-size">delete</i>
+            <i class="material-symbols material-size">delete</i>
           </button>
         </div>
       </div>
 
       <button v-if="hasMoreSources" @click="addNewScopeSource" class="button no-height">
-        <i class="material-icons material-size">add</i>
+        <i class="material-symbols material-size">add</i>
       </button>
 
       <div class="settings-items">

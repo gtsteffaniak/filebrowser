@@ -20,7 +20,7 @@
         }"
       >
         <h2 class="message">
-          <i class="material-icons">sentiment_dissatisfied</i>
+          <i class="material-symbols-outlined">sentiment_dissatisfied</i>
           <span>{{ $t("files.lonely") }}</span>
         </h2>
         <input

@@ -9,7 +9,7 @@
         :title="$t('buttons.copyToClipboard')"
       >
         <span class="api-key-name">{{ name }}</span>
-        <i class="material-icons">content_paste</i>
+        <i class="material-symbols">content_paste</i>
       </button>
       <button
         class="action copy-clipboard api-key-value-button"
@@ -18,7 +18,7 @@
         :title="$t('api.clickToCopyKey')"
       >
         <span class="api-key-value">{{ $t('api.clickToCopyKey') }}</span>
-        <i class="material-icons">content_paste</i>
+        <i class="material-symbols">content_paste</i>
       </button>
     </div>
 
@@ -183,8 +183,8 @@ export default {
   font-style: italic;
 }
 
-.api-key-button .material-icons,
-.api-key-value-button .material-icons {
+.api-key-button .material-symbols,
+.api-key-value-button .material-symbols {
   font-size: 1.2em;
   color: var(--textSecondary);
   flex-shrink: 0;

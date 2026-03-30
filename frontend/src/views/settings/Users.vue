@@ -23,13 +23,13 @@
           <td>{{ user.username }}</td>
           <td>{{ user.loginMethod }}</td>
           <td>
-            <i v-if="user.permissions.admin" class="material-icons">done</i>
-            <i v-else class="material-icons">close</i>
+            <i v-if="user.permissions.admin" class="material-symbols">done</i>
+            <i v-else class="material-symbols">close</i>
           </td>
           <td>{{ formatScopes(user.scopes) }}</td>
           <td class="small" aria-label="Edit User">
             <div @click="openPrompt(user.id)" class="clickable action button">
-              <i class="material-icons">mode_edit</i>
+              <i class="material-symbols">edit</i>
             </div>
           </td>
         </tr>

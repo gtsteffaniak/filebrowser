@@ -5,7 +5,7 @@
       <p class="notifications-description">{{ $t("notifications.description") }}</p>
       <div v-if="sortedNotifications.length > 0" class="header-actions">
         <button @click="clearHistory" class="button button--flat button--grey clear-button">
-          <i class="material-icons">delete_sweep</i>
+          <i class="material-symbols">delete_sweep</i>
           {{ $t("notifications.clearAll") }}
         </button>
         <span class="notification-count">
@@ -15,7 +15,7 @@
     </div>
 
     <div v-if="sortedNotifications.length === 0" class="empty-state">
-      <i class="material-icons empty-icon">notifications_none</i>
+      <i class="material-symbols empty-icon">notifications_none</i>
       <p>{{ $t("notifications.empty") }}</p>
     </div>
 
@@ -26,7 +26,7 @@
           <div :class="['notification-item', notification.type]">
             <div class="notification-content-wrapper">
               <div class="notification-header">
-                <i v-if="notification.icon" class="material-icons notification-icon">
+                <i v-if="notification.icon" class="material-symbols notification-icon">
                   {{ notification.icon }}
                 </i>
                 <div class="notification-message">{{ notification.message }}</div>

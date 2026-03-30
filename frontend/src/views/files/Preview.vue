@@ -22,25 +22,25 @@
         <iframe class="pdf" :src="raw"></iframe>
         <a v-if="isMobileSafari" :href="raw" target="_blank" class="button button--flat floating-btn">
           <div>
-            <i class="material-icons">open_in_new</i>{{ $t("general.openFile") }}
+            <i class="material-symbols">open_in_new</i>{{ $t("general.openFile") }}
           </div>
         </a>
       </div>
 
       <div v-else class="info">
         <div class="title">
-          <i class="material-icons">feedback</i>
+          <i class="material-symbols">feedback</i>
           {{ $t("files.noPreview") }}
         </div>
         <div class="preview-buttons" v-if="permissions.download">
           <a target="_blank" :href="downloadUrl" class="button button--flat">
             <div>
-              <i class="material-icons">file_download</i>{{ $t("general.download") }}
+              <i class="material-symbols">file_download</i>{{ $t("general.download") }}
             </div>
           </a>
           <a target="_blank" :href="raw" class="button button--flat" v-if="req.type != 'directory'">
             <div>
-              <i class="material-icons">open_in_new</i>{{ $t("general.openFile") }}
+              <i class="material-symbols">open_in_new</i>{{ $t("general.openFile") }}
             </div>
           </a>
         </div>

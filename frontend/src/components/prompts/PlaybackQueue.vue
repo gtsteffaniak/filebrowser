@@ -3,7 +3,7 @@
     <!-- Playback mode display -->
     <div class="playback-mode">
       <div class="mode-info">
-        <i class="material-icons">{{ currentModeIcon }}</i>
+        <i class="material-symbols">{{ currentModeIcon }}</i>
         <span>{{ currentModeLabel }}</span>
       </div>
     </div>
@@ -19,7 +19,7 @@
           @click="navigateToItem(index)"
         >
           <div class="item-icon">
-            <i class="material-icons">{{ getFileIcon(item) }}</i>
+            <i class="material-symbols">{{ getFileIcon(item) }}</i>
           </div>
           <div class="item-name">
             <span class="name">{{ item.name }}</span>
@@ -27,7 +27,7 @@
           <div class="item-indicator">
             <span v-if="index === currentQueueIndex" class="current-track">
               <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
-              <i class="material-icons">{{ isPlaying ? 'pause' : 'play_arrow' }}</i>
+              <i class="material-symbols">{{ isPlaying ? 'pause' : 'play_arrow' }}</i>
             </span>
             <span v-else class="track-number">{{ index + 1 }}</span>
           </div>
@@ -37,14 +37,14 @@
 
     <!-- Empty state -->
     <div v-else class="empty">
-      <i class="material-icons">queue_music</i>
+      <i class="material-symbols">queue_music</i>
       <p>{{ $t('player.emptyQueue') }}</p>
     </div>
   </div>
 
   <div class="card-actions">
     <button class="button button--flat" @click.stop="cyclePlaybackModes" :title="$t('player.changePlaybackMode')">
-      <i class="material-icons">swap_vert</i> {{ $t('player.changePlaybackMode') }}
+      <i class="material-symbols">swap_vert</i> {{ $t('player.changePlaybackMode') }}
     </button>
   </div>
 </template>
@@ -258,7 +258,7 @@ export default {
   font-weight: 500;
 }
 
-.mode-info i.material-icons {
+.mode-info i.material-symbols {
   color: var(--primaryColor);
   user-select: none;
 }
@@ -309,7 +309,7 @@ export default {
   user-select: none;
 }
 
-.item-icon i.material-icons {
+.item-icon i.material-symbols {
   color: var(--textSecondary);
   user-select: none;
 }
@@ -330,7 +330,7 @@ export default {
   color: var(--textSecondary);
 }
 
-.empty i.material-icons {
+.empty i.material-symbols {
   font-size: 3rem;
   opacity: 0.5;
   margin-bottom: 1rem;

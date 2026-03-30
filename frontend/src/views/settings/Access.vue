@@ -33,12 +33,12 @@
           <td>{{ (rule.deny.users.length + rule.deny.groups.length) + (rule.denyAll ? 1 : 0) }}</td>
           <td>{{ rule.allow.users.length + rule.allow.groups.length }}</td>
           <td class="small">
-            <i v-if="!rule.pathExists" class="material-icons warning-icon" :title="$t('messages.pathNotFound')">warning</i>
+            <i v-if="!rule.pathExists" class="material-symbols warning-icon" :title="$t('messages.pathNotFound')">warning</i>
           </td>
           <td class="small">
             <button class="action" @click="editAccess(path)" :aria-label="$t('general.edit')"
               :title="$t('general.edit')">
-              <i class="material-icons">edit</i>
+              <i class="material-symbols">edit</i>
             </button>
           </td>
         </tr>
@@ -46,7 +46,7 @@
     </table>
     <div v-if="Object.keys(rules).length === 0 && !loading">
       <h2 class="message" v-if="Object.keys(rules).length === 0">
-      <i class="material-icons">sentiment_dissatisfied</i>
+      <i class="material-symbols-outlined">sentiment_dissatisfied</i>
       <span>{{ $t("files.lonely") }}</span>
       </h2>
     </div>

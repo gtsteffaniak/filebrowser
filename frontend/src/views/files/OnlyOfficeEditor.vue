@@ -6,7 +6,7 @@
     <p>{{ $t("general.loading", { suffix: "..." }) }}</p>
   </div>
   <div @click="close" class="floating-close button" :class="{ 'float-in': floatIn }">
-    <i class="material-icons">close</i>
+    <i class="material-symbols">close</i>
   </div>
 </template>
 

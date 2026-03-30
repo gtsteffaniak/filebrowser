@@ -1,7 +1,7 @@
 <template>
   <div class="error-message">
     <h2 class="message">
-      <i class="material-icons">{{ info.icon }}</i>
+      <i class="material-symbols">{{ info.icon }}</i>
       <span>{{ $t(info.message) }}</span>
     </h2>
   </div>

@@ -19,10 +19,10 @@
         }"
       >
         <!-- Close button - always present on every notification, separate from optional buttons array -->
-        <i class="material-icons" @click="closeNotification(notification.id)">close</i>
+        <i class="material-symbols" @click="closeNotification(notification.id)">close</i>
         <div class="notification-content-wrapper">
           <div class="notification-header">
-            <i v-if="notification.icon" class="material-icons notification-icon">
+            <i v-if="notification.icon" class="material-symbols notification-icon">
               {{ notification.icon }}
             </i>
             <div class="notification-message">{{ notification.message }}</div>
@@ -255,13 +255,13 @@ export default {
   border-color: rgba(255, 255, 255, 0.5);
 }
 
-.notification-item > .material-icons:first-child {
+.notification-item > .material-symbols:first-child {
   cursor: pointer;
   font-size: 1.75em;
   opacity: 0.8;
 }
 
-.notification-item > .material-icons:first-child:hover {
+.notification-item > .material-symbols:first-child:hover {
   opacity: 1;
 }
 

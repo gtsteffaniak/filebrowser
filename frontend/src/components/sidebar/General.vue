@@ -5,9 +5,9 @@
         <a href="/settings#profile-main" class="person-button action button"
           @click.prevent="navigateTo('/settings', '#profile-main')"
           @mouseenter="showTooltip($event, $t('index.settingsHover'))" @mouseleave="hideTooltip">
-          <i class="material-icons person-button__icon">person</i>
+          <i class="material-symbols person-button__icon">person</i>
           <span class="person-button__name">{{ user.username }}</span>
-          <i aria-label="settings" class="material-icons person-button__icon">settings</i>
+          <i aria-label="settings" class="material-symbols person-button__icon">settings</i>
         </a>
       </div>
       <div v-else-if="user.username === 'anonymous' && shouldShowLogin" @click="navigateToLogin"
@@ -18,7 +18,7 @@
       </div>
       <div v-else-if="user.username !== 'anonymous'" class="inner-card user-card__profile">
         <button class="person-button action button" type="button">
-          <i class="material-icons person-button__icon">person</i>
+          <i class="material-symbols person-button__icon">person</i>
           <span class="person-button__name">{{ user.username }}</span>
         </button>
       </div>
@@ -26,7 +26,7 @@
       <div class="inner-card" v-if="canLogout" @click="logout">
         <button aria-label="logout-button" class="logout-button action button"
           @mouseenter="showTooltip($event, $t('general.logout'))" @mouseleave="hideTooltip">
-          <i class="material-icons">exit_to_app</i>
+          <i class="material-symbols">exit_to_app</i>
         </button>
       </div>
     </div>
@@ -35,16 +35,16 @@
       <div class="quick-toggles" :class="{ 'extra-padding': hasCreateOptions }">
         <div class="clickable" :class="{ active: user?.singleClick }" @click="toggleClick"
           @mouseenter="showTooltip($event, $t('index.toggleClick'))" @mouseleave="hideTooltip" v-if="!isInvalidShare">
-          <i class="material-icons">ads_click</i>
+          <i class="material-symbols">ads_click</i>
         </div>
         <div aria-label="Toggle Theme" v-if="darkModeTogglePossible" class="clickable"
           :class="{ active: user?.darkMode }" @click="toggleDarkMode"
           @mouseenter="showTooltip($event, $t('index.toggleDark'))" @mouseleave="hideTooltip">
-          <i class="material-icons">dark_mode</i>
+          <i class="material-symbols">dark_mode</i>
         </div>
         <div class="clickable" :class="{ active: isStickySidebar }" @click="toggleSticky"
           @mouseenter="showTooltip($event, $t('index.toggleSticky'))" @mouseleave="hideTooltip" v-if="!isMobile">
-          <i class="material-icons">push_pin</i>
+          <i class="material-symbols">push_pin</i>
         </div>
       </div>
     </div>
@@ -54,7 +54,7 @@
       @leave="leave">
       <div v-if="!hideSidebarFileActions && isListingView" class="card-wrapper">
         <button @click="openContextMenu" aria-label="File-Actions" data-testid="file-actions-button" class="action file-actions">
-          <i class="material-icons">add</i>
+          <i class="material-symbols">add</i>
           {{ $t("sidebar.fileActions") }}
         </button>
       </div>
@@ -425,10 +425,10 @@ button.action {
   width: 100%;
   box-sizing: border-box;
   display: flex;
-  padding-right: 1em !important;
+  padding-right: 0;
   justify-content: flex-start;
   align-items: center;
-  gap: 0.35em;
+  gap: 0.3em;
 }
 
 .person-button__icon {

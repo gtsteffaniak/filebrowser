@@ -19,7 +19,7 @@
   <div v-if="hasDownloads" class="card-content">
     <div class="download-list">
       <div v-for="download in downloads" :key="download.id" class="download-item">
-        <i class="material-icons file-icon">insert_drive_file</i> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        <i class="material-symbols file-icon">insert_drive_file</i> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         <div class="file-info">
           <p class="file-name">{{ download.name }}</p>
           <progress-bar
@@ -40,11 +40,11 @@
         <div class="file-actions">
           <button v-if="download.status === 'error'" @click="retryDownload(download.id)" class="action"
             :aria-label="$t('general.retry')" :title="$t('general.retry')">
-            <i class="material-icons">replay</i>
+            <i class="material-symbols">replay</i>
           </button>
           <button @click="cancelDownload(download.id)" class="action" :aria-label="$t('general.cancel')"
             :title="$t('general.cancel')">
-            <i class="material-icons">close</i>
+            <i class="material-symbols">close</i>
           </button>
         </div>
       </div>

@@ -6,7 +6,7 @@
   >
     <div v-if="shouldShow" class="button release-banner">
       <a :href="releaseUrl">{{ $t("sidebar.updateIsAvailable") }}</a>
-      <i @click="setSeenUpdate" aria-label="close-banner" class="material-icons">close</i>
+      <i @click="setSeenUpdate" aria-label="close-banner" class="material-symbols">close</i>
     </div>
     <SidebarSettings v-if="isSettings"></SidebarSettings>
     <SidebarGeneral v-if="!isSettings"></SidebarGeneral>

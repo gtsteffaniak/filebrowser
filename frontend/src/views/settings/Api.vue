@@ -43,13 +43,13 @@
             </td>
             <td class="small">
               <button class="action" @click.prevent="infoPrompt(link.name, link)">
-                <i class="material-icons">info</i>
+                <i class="material-symbols">info</i>
               </button>
             </td>
             <td class="small">
               <button class="action copy-clipboard" :data-clipboard-text="link.token"
                 :aria-label="$t('buttons.copyToClipboard')" :title="$t('buttons.copyToClipboard')">
-                <i class="material-icons">content_paste</i>
+                <i class="material-symbols">content_paste</i>
               </button>
             </td>
           </tr>
@@ -57,7 +57,7 @@
       </table>
     </div>
     <h2 class="message" v-else-if="!loading">
-      <i class="material-icons">sentiment_dissatisfied</i>
+      <i class="material-symbols-outlined">sentiment_dissatisfied</i>
       <span>{{ $t("files.lonely") }}</span>
     </h2>
   </div>
