@@ -116,7 +116,7 @@
 @font-face {
   font-family: 'Material Symbols Outlined';
   font-style: normal;
-  font-weight: 100 700;
+  font-weight: 400;
   font-display: swap;
   src: url(/fonts/material-symbols.woff2) format('woff2');
 }
