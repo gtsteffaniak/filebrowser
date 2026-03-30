@@ -99,10 +99,8 @@ export default {
   computed: {
     externalLinks: () => globalVars.externalLinks,
     name: () => globalVars.name,
-    isValidShare: () => getters.isValidShare(),
     releaseUrl: () => globalVars.updateAvailable,
     isDarkMode: () => getters.isDarkMode(),
-    isLoggedIn: () => getters.isLoggedIn(),
     isSettings: () => getters.isSettings(),
     isMobile: () => getters.isMobile(),
     active: () => getters.isSidebarVisible(),
@@ -175,11 +173,6 @@ export default {
 </script>
 
 <style>
-.sidebar-scroll-list {
-  overflow: auto;
-  margin-bottom: 0px !important;
-}
-
 #sidebar {
   display: flex;
   flex-direction: column;
@@ -261,11 +254,6 @@ body.rtl .action {
   display: block;
   margin-top: 0.5em;
   margin-left: 0;
-}
-
-.credits a,
-.credits a:hover {
-  cursor: pointer;
 }
 
 .buffer {
