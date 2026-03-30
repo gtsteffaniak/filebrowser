@@ -324,17 +324,13 @@ export default {
 <style scoped>
 #breadcrumbs {
   overflow-x: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
 #breadcrumbs::-webkit-scrollbar {
   display: none;
-}
-
-/* Hide scrollbar for IE, Edge and Firefox */
-#breadcrumbs {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
 }
 
 #breadcrumbs * {
@@ -350,15 +346,16 @@ export default {
 
 #breadcrumbs ul li {
   display: inline-block;
-  margin: 0 8px 0 0;
+  position: relative;
 }
 
 #breadcrumbs ul li a {
   display: flex;
   height: 0.85em;
-  background: color-mix(in srgb, var(--alt-background) 90%, transparent);
+  background: var(--surfacePrimary);
   text-align: center;
   padding: 0.85em;
+  padding-right: 1.6em;
   padding-left: 1.7em;
   position: relative;
   text-decoration: none;
@@ -370,6 +367,15 @@ export default {
   user-select: none;
   white-space: nowrap;
   max-width: 90vw;
+  clip-path: polygon(
+    0% 0%,
+    calc(100% - 1.275em) 0%,
+    100% 50%,
+    calc(100% - 1.275em) 100%,
+    0% 100%,
+    1.275em 50%);
+  margin-right: -0.85em;
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 #breadcrumbs ul li a .breadcrumb-text {
@@ -379,60 +385,34 @@ export default {
   min-width: 0;
 }
 
-#breadcrumbs ul li a::after {
-  content: "";
-  border-top: 1.275em solid transparent;
-  border-bottom: 1.275em solid transparent;
-  border-left: 1.275em solid var(--alt-background);
-  border-left-color: color-mix(in srgb, var(--alt-background) 90%, transparent);
-  position: absolute;
-  right: -1.25em;
-  top: 0;
-  z-index: 5;
-  transition: all 0.2s ease;
-}
-
-#breadcrumbs ul li a::before {
-  content: "";
-  border-top: 1.275em solid transparent;
-  border-bottom: 1.275em solid transparent;
-  border-left: 1.275em solid var(--background);
-  border-left-color: color-mix(in srgb, var(--background) 85%, transparent);
-  position: absolute;
-  left: 0;
-  top: 0;
-  z-index: 1;
-  transition: all 0.2s ease;
-}
-
 #breadcrumbs ul li:first-child a {
   border-top-left-radius: 0.85em;
   border-bottom-left-radius: 0.85em;
-  padding-left: 1.275em;
-  z-index: 3;
-}
-
-#breadcrumbs ul li:first-child a::before {
-  display: none;
+  clip-path: polygon(
+    0% 0%,
+    calc(100% - 1.275em) 0%,
+    100% 50%,
+    calc(100% - 1.275em) 100%,
+    0% 100%);
+  padding-left: 1.1em;
 }
 
 #breadcrumbs ul li:last-child a {
   padding-right: 1.275em;
   border-top-right-radius: 0.85em;
   border-bottom-right-radius: 0.85em;
-}
-
-#breadcrumbs ul li:last-child a::after {
-  display: none;
+  clip-path: polygon(
+    0% 0%,
+    100% 0%,
+    100% 100%,
+    0% 100%,
+    1.275em 50%);
+  margin-right: 0;
 }
 
 #breadcrumbs ul li a:hover {
   background: var(--primaryColor);
   color: white;
-}
-
-#breadcrumbs ul li a:hover::after {
-  border-left-color: var(--primaryColor);
 }
 
 #breadcrumbs ul li:last-child a.changeAvailable {
@@ -443,10 +423,6 @@ export default {
   background: var(--primaryColor) !important; /* Needs !important to make the hover effect work when dragging items */
   color: white !important;
   z-index: 2;
-}
-
-.drag-over::after {
-  border-left-color: var(--primaryColor) !important;
 }
 
 @keyframes breadcrumbPulse {
