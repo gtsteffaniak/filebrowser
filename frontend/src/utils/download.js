@@ -75,8 +75,6 @@ async function startDownload(config, files, hash = "", opts = {}) {
     if (e?.name === "AbortError" || e?.message?.includes("aborted") || e?.message?.includes("cancelled")) {
       return;
     }
-    if (!silentChunkedError) {
-      notify.showError(`Error downloading: ${e.message || e}`);
-    }
+    notify.showError(`Error downloading: ${e.message || e}`);
   }
 }
