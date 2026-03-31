@@ -275,6 +275,7 @@ body.rtl .listing-items {
 .listing-items.compact .listing-item .modified {
   min-width: 15%;
   flex: 0;
+  text-align: end;
 }
 
 .listing-items.list .listing-item .name,
@@ -321,6 +322,8 @@ body.rtl .listing-items {
 .listing-item[aria-selected=true] {
   background-color: color-mix(in srgb, var(--primaryColor) 85%, transparent) !important;
   color: var(--item-selected) !important;
+  scroll-margin-top: 9em;
+  scroll-margin-bottom: 3em;
 }
 
 .listing-items.gallery .listing-item[aria-selected=true] {

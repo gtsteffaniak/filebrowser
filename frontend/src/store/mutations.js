@@ -1,7 +1,7 @@
 import * as i18n from "@/i18n";
 import { state } from "./state.js";
 import { getters } from "./getters.js";
-import { emitStateChanged } from './eventBus'; // Import the function from eventBus.js
+import { emitStateChanged } from './eventBus';
 import { usersApi } from "@/api";
 import { notify } from "@/notify";
 import { sortedItems } from "@/utils/sort.js";
@@ -377,7 +377,6 @@ export const mutations = {
           state.user.fileLoading.maxConcurrentUpload = 3;
         }
         if (state.user.fileLoading.uploadChunkSizeMb === undefined) {
-          console.log("uploadChunkSizeMb is undefined");
           state.user.fileLoading.uploadChunkSizeMb = 5;
         }
         if (state.user.fileLoading.clearAll === undefined) {
@@ -579,6 +578,8 @@ export const mutations = {
     if (!state.user.sorting) {
       state.user.sorting = {};
     }
+    state.user.sorting.by = field;
+    state.user.sorting.asc = asc;
     mutations.updateDisplayPreferences({ sorting: { by: field, asc: asc } });
     emitStateChanged();
   },
@@ -667,7 +668,7 @@ export const mutations = {
     }
     const path = state.route.path;
 
-    if (!source || !path) return;
+    if (!source || path == null || path === "") return;
     if (!state.displayPreferences) {
       state.displayPreferences = {};
     }
@@ -689,7 +690,6 @@ export const mutations = {
     }
     allPreferences[state.user.username] = state.displayPreferences;
     localStorage.setItem("displayPreferences", JSON.stringify(allPreferences));
-
     emitStateChanged();
   },
   setNavigationEnabled: (enabled) => {
