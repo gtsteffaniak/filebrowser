@@ -627,7 +627,7 @@ export default {
             // do nothing
             break;
           }
-          if (!getters.isCardView) {
+          if (!getters.isCardView()) {
             newSelected = allItems[currentIndex - 1].index;
             break;
           }
@@ -650,7 +650,7 @@ export default {
             // do nothing - last item
             break;
           }
-          if (!getters.isCardView) {
+          if (!getters.isCardView()) {
             newSelected = allItems[currentIndex + 1].index;
             break;
           }
@@ -684,19 +684,22 @@ export default {
       }
       if (newSelected != null) {
         this.selectItem(newSelected);
-        setTimeout(() => {
-          // Find the element with class "item" and aria-selected="true"
-          const element = document.querySelector('.listing-item[aria-selected="true"]');
-          // Scroll the element into view if it exists
-          if (element) {
-            element.scrollIntoView({
-              behavior: "smooth",
-              block: "end",
-              inline: "nearest",
-            });
-          }
-        }, 50);
+        this.scrollSelectedIntoView();
       }
+    },
+    scrollSelectedIntoView() {
+      setTimeout(() => {
+        const element = document.querySelector(
+          '.listing-item[aria-selected="true"]'
+        );
+        if (element) {
+          element.scrollIntoView({
+            behavior: "smooth",
+            block: "nearest",
+            inline: "nearest",
+          });
+        }
+      }, 50);
     },
     clearCtrKey(event) {
       const { ctrlKey, metaKey } = event;
@@ -713,15 +716,21 @@ export default {
       if (altKey) {
         return;
       }
-      // Check if the key is alphanumeric
       const isAlphanumeric = /^[a-z0-9]$/i.test(key);
       const modifierKeys = ctrlKey || metaKey;
-      if (isAlphanumeric && !modifierKeys && getters.currentPromptName()) {
-        this.alphanumericKeyPress(key); // Call the alphanumeric key press function
-        return;
-      }
-      if (!modifierKeys && getters.currentPromptName()) {
-        return;
+      if (isAlphanumeric && !modifierKeys && state.selected.length <= 1) {
+        const t = event.target;
+        const tag = t && t.tagName ? t.tagName.toLowerCase() : "";
+        if (
+          tag !== "input" &&
+          tag !== "textarea" &&
+          tag !== "select" &&
+          !t.isContentEditable
+        ) {
+          event.preventDefault();
+          this.alphanumericKeyPress(key);
+          return;
+        }
       }
       // Handle the space bar key
       if (key === " " && !modifierKeys) {
@@ -814,49 +823,28 @@ export default {
       mutations.selectAllItems();
     },
     alphanumericKeyPress(key) {
-      // Convert the key to uppercase to match the case-insensitive search
-      const searchLetter = key.toLowerCase();
-      const currentSelected = getters.getFirstSelected();
-      let currentName = null;
-      let findNextWithName = false;
-
-      if (currentSelected != undefined) {
-        currentName = currentSelected.name.toLowerCase();
-        if (currentName.startsWith(searchLetter)) {
-          findNextWithName = true;
-        }
-      }
-      // Combine directories and files (assuming they are stored in this.items.dirs and this.items.files)
+      const prefix = key.toLowerCase();
       const allItems = [...this.items.dirs, ...this.items.files];
-      let foundPrevious = false;
-      let firstFound = null;
-      // Iterate over all items to find the first one where the name starts with the searchLetter
-      for (let i = 0; i < allItems.length; i++) {
-        const itemName = allItems[i].name.toLowerCase();
-        if (!itemName.startsWith(searchLetter)) {
-          continue;
-        }
-        if (firstFound == null) {
-          firstFound = allItems[i].index;
-        }
-        if (!findNextWithName) {
-          // return first you find
-          this.selectItem(allItems[i].index);
-          return;
-        }
-        if (itemName == currentName) {
-          foundPrevious = true;
-          continue;
-        }
-        if (foundPrevious) {
-          this.selectItem(allItems[i].index);
-          return;
+      const matches = allItems.filter((item) =>
+        item.name.toLowerCase().startsWith(prefix)
+      );
+      if (matches.length === 0) {
+        return;
+      }
+
+      let nextPos = 0;
+      if (state.selected.length === 1) {
+        const curIdx = state.selected[0];
+        const curPos = matches.findIndex((m) => m.index === curIdx);
+        if (curPos !== -1) {
+          nextPos = (curPos + 1) % matches.length;
         }
       }
-      // select the first item again
-      if (firstFound != null) {
-        this.selectItem(firstFound);
-      }
+
+      const target = matches[nextPos];
+      mutations.resetSelected();
+      mutations.addSelected(target.index);
+      this.scrollSelectedIntoView();
     },
     preventDefault(event) {
       // Wrapper around prevent default.

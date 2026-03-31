@@ -9,7 +9,7 @@
         <span class="directory-info">{{ directoryInfoText }}</span>
       </div>
       <div class="status-controls">
-        <div v-if="showGallerySize" class="gallery-size-control">
+        <div class="gallery-size-control">
           <span class="size-label">{{ $t("general.size") }}</span>
           <input
             v-model="gallerySize"
@@ -56,9 +56,6 @@ export default {
     },
     numFiles() {
       return getters.reqNumFiles();
-    },
-    showGallerySize() {
-      return getters.isCardView() && state.req?.items?.length > 0;
     },
     totalDirectorySize() {
       if (!Array.isArray(state.req?.items)) return 0;

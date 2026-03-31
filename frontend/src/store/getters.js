@@ -57,15 +57,10 @@ export const getters = {
     }
     let path = state.route.path;
 
-    // If current request is a file, use parent directory's preferences
-    // Check both state.req.type (if available) and the path itself (for when state.req is being reset during navigation)
-    const isFile = (state.req?.type && state.req.type !== 'directory') || 
-                   (path && !path.endsWith('/') && path.includes('/') && path.lastIndexOf('/') < path.length - 1);
-    
-    if (isFile) {
-      path = path.substring(0, path.lastIndexOf('/')+1) || '/';
+    if (state.req.type != "directory") {
+      path = path.substring(0, path.lastIndexOf("/") + 1) || "/";
     }
-
+  
     if (state.displayPreferences?.[source]?.[path]) {
       return state.displayPreferences[source][path];
     }
@@ -93,7 +88,9 @@ export const getters = {
   },
   previewType: () => getTypeInfo(state.req.type).simpleType,
   isCardView: () =>
-    (getters.viewMode() == 'gallery' || getters.viewMode() == 'normal' || getters.viewMode() == 'icons' || getters.currentView() == 'listingView'),
+    getters.viewMode() === 'gallery' ||
+    getters.viewMode() === 'normal' ||
+    getters.viewMode() === 'icons',
   currentHash: () => state.shareInfo?.hash,
   isMobile: () => state.isMobile,
   isLoading: () => Object.keys(state.loading).length > 0,

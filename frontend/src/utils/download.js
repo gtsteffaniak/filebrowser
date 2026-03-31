@@ -66,8 +66,7 @@ export default function downloadFiles(items) {
   }
 }
 
-async function startDownload(config, files, hash = "", opts = {}) {
-  const silentChunkedError = opts.silentChunkedError === true;
+async function startDownload(config, files, hash = "") {
   try {
     notify.showSuccessToast("Downloading...");
     await resourcesApi.download(config, files, hash);
