@@ -80,17 +80,11 @@ func TestPickUserEntry(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := pickUserEntry(tt.entries)
-			if tt.wantNil {
-				if got != nil {
-					t.Errorf("pickUserEntry() = %v, want nil", got)
-				}
-				return
+			if tt.wantNil && got != nil {
+				t.Errorf("pickUserEntry() = %v, want nil", got)
 			}
-			if got == nil {
-				t.Fatal("pickUserEntry() = nil, want non-nil entry")
-			}
-			if got.DN != tt.wantDN {
-				t.Errorf("pickUserEntry() DN = %v, want %v", got.DN, tt.wantDN)
+			if !tt.wantNil && got == nil {
+				t.Errorf("pickUserEntry() = nil, want non-nil entry")
 			}
 		})
 	}

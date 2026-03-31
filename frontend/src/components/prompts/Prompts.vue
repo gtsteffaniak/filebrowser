@@ -375,7 +375,8 @@ export default {
       if (this.prompts.length === 0) {
         return;
       }
-      const top = this.prompts[this.prompts.length - 1];
+      // get last prompt by id
+      const top = getters.currentPrompt();
       if (this.isBlocked(top)) {
         return;
       }
@@ -395,26 +396,6 @@ export default {
       }
       if (event.defaultPrevented) {
         return;
-      }
-
-      const ae = document.activeElement;
-      if (ae) {
-        const tag = ae.tagName ? ae.tagName.toLowerCase() : '';
-        if (tag === 'textarea' || tag === 'select' || ae.isContentEditable) {
-          return;
-        }
-        if (tag === 'input') {
-          const inputType = (ae.type || '').toLowerCase();
-          if (
-            inputType !== 'button' &&
-            inputType !== 'submit' &&
-            inputType !== 'reset' &&
-            inputType !== 'checkbox' &&
-            inputType !== 'radio'
-          ) {
-            return;
-          }
-        }
       }
 
       const primary = this.findPrimaryActionButton(top.id);
