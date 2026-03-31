@@ -9,7 +9,7 @@
       :title="$t('general.cancel')">
       {{ $t("general.cancel") }}
     </button>
-    <button class="button button--flat" @click="confirmSelection" :aria-label="$t('general.select')"
+    <button type="button" class="button button--flat" @click="confirmSelection" :aria-label="$t('general.select')"
       :title="$t('general.select')">
       {{ $t("general.select") }}
     </button>

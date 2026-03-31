@@ -183,9 +183,12 @@ export default {
   },
   mounted() {
     window.addEventListener('resize', this.handleWindowResize);
+    // Bubble phase so prompt inputs (e.g. Rename) handle Enter before we trigger primary action
+    window.addEventListener('keydown', this.onDocumentKeydown);
   },
   beforeUnmount() {
     window.removeEventListener('resize', this.handleWindowResize);
+    window.removeEventListener('keydown', this.onDocumentKeydown);
   },
   methods: {
     handleWindowResize() {
@@ -363,6 +366,79 @@ export default {
       delete this.touchIds[id];
       this.draggingIds.delete(id);
       delete this.sizes[id];
+    },
+    /**
+     * Escape closes the top prompt. Enter clicks the last `.card-actions` button (far right in DOM).
+     * If that button is disabled, Enter does nothing. Skips when focus is in a text field / contenteditable.
+     */
+    onDocumentKeydown(event) {
+      if (this.prompts.length === 0) {
+        return;
+      }
+      const top = this.prompts[this.prompts.length - 1];
+      if (this.isBlocked(top)) {
+        return;
+      }
+
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        this.closeTopPrompt(top.id);
+        return;
+      }
+
+      if (event.key !== 'Enter' || event.repeat) {
+        return;
+      }
+      if (event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) {
+        return;
+      }
+      if (event.defaultPrevented) {
+        return;
+      }
+
+      const ae = document.activeElement;
+      if (ae) {
+        const tag = ae.tagName ? ae.tagName.toLowerCase() : '';
+        if (tag === 'textarea' || tag === 'select' || ae.isContentEditable) {
+          return;
+        }
+        if (tag === 'input') {
+          const inputType = (ae.type || '').toLowerCase();
+          if (
+            inputType !== 'button' &&
+            inputType !== 'submit' &&
+            inputType !== 'reset' &&
+            inputType !== 'checkbox' &&
+            inputType !== 'radio'
+          ) {
+            return;
+          }
+        }
+      }
+
+      const primary = this.findPrimaryActionButton(top.id);
+      if (!primary) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      primary.click();
+    },
+    findPrimaryActionButton(promptId) {
+      const root = this.getPromptElement(promptId);
+      if (!root) {
+        return null;
+      }
+      const buttons = root.querySelectorAll('.card-actions button');
+      if (!buttons.length) {
+        return null;
+      }
+      const last = buttons[buttons.length - 1];
+      if (last.disabled) {
+        return null;
+      }
+      return last;
     },
     getPointerPos(e, type) {
       if (type === "touch") {
