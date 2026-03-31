@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Incorrect Chinese labels for Upload controls in Quantum UI (#2191)
  - Chunked download stops after first chunk, add message explaining (#2074)
  - Esc to Cancel and Enter to confirm popup (#2079)
+ - Language-tagged subtitle files not detected for videos (#2199)
 
 ## v1.3.2-beta
 

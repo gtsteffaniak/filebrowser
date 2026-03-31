@@ -59,9 +59,8 @@ import ExtendedImage from "@/components/files/ExtendedImage.vue";
 import plyrViewer from "@/views/files/plyrViewer.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { state, getters, mutations } from "@/store";
-import { getFileExtension } from "@/utils/files";
 import { isRawImageMimeType } from "@/utils/mimetype";
-import { convertToVTT } from "@/utils/subtitles";
+import { convertToVTT, getSubtitleFormatExtension } from "@/utils/subtitles";
 import { globalVars } from "@/utils/constants";
 
 export default {
@@ -293,7 +292,7 @@ export default {
           // Convert to VTT if needed
           let vttContent = content;
           if (!content.startsWith("WEBVTT")) {
-            const ext = getFileExtension(subtitleTrack.name);
+            const ext = getSubtitleFormatExtension(subtitleTrack.name);
             vttContent = convertToVTT(ext, content);
           }
           if (vttContent.startsWith("WEBVTT")) {

@@ -27,6 +27,8 @@ func (i *ExtendedFileInfo) GetSubtitles(parentInfo *FileInfo) {
 	if !strings.HasPrefix(i.Type, "video") {
 		return
 	}
+
+	// could be myvideo.mov
 	ext := filepath.Ext(i.Name)
 	baseWithoutExt := strings.TrimSuffix(i.Name, ext)
 
@@ -34,25 +36,29 @@ func (i *ExtendedFileInfo) GetSubtitles(parentInfo *FileInfo) {
 	var externalSubs []utils.SubtitleTrack
 	if parentInfo != nil && parentInfo.Files != nil {
 		for _, f := range parentInfo.Files {
+			// handle case myvideo.srt
 			fileExt := filepath.Ext(f.Name)
-			fileBase := strings.TrimSuffix(f.Name, fileExt)
+			fileBaseWithoutExt := strings.TrimSuffix(f.Name, fileExt)
+			// handle case myvideo.en.srt
+			langExt := filepath.Ext(fileBaseWithoutExt)
+			fileBaseWithoutExt2 := strings.TrimSuffix(fileBaseWithoutExt, langExt)
+			matches := fileBaseWithoutExt == baseWithoutExt || fileBaseWithoutExt2 == baseWithoutExt
 
 			// Check if this file has the same base name and a subtitle extension
-			if fileBase == baseWithoutExt && SubtitleExts[strings.ToLower(fileExt)] {
+			if matches && SubtitleExts[strings.ToLower(fileExt)] {
 				track := utils.SubtitleTrack{
 					Name:     f.Name,
 					Embedded: false,
 				}
 
 				// Try to infer language from filename patterns like "video.en.srt"
-				parts := strings.Split(fileBase, ".")
+				parts := strings.Split(fileBaseWithoutExt, ".")
 				if len(parts) > 1 {
 					lastPart := parts[len(parts)-1]
 					if len(lastPart) == 2 || len(lastPart) == 3 {
 						track.Language = lastPart
 					}
 				}
-
 				externalSubs = append(externalSubs, track)
 			}
 		}

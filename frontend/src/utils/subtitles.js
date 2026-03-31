@@ -1,3 +1,30 @@
+/** Extensions supported by {@link convertToVTT} (lowercase, with leading dot). */
+const SUBTITLE_FORMAT_EXTENSIONS = [
+  '.vtt', '.srt', '.sbv', '.lrc', '.ass', '.ssa', '.smi', '.sub'
+]
+
+/**
+ * Resolves the format extension for subtitle conversion.
+ * Filenames like `Movie.en.srt` or `Show.fr-cc.srt` must use `.srt`, not `.en.srt`
+ * (see {@link getFileExtension} in files.js, which uses the first dot segment).
+ */
+export function getSubtitleFormatExtension(filename) {
+  if (typeof filename !== 'string') {
+    return ''
+  }
+  const lower = filename.toLowerCase()
+  for (const ext of SUBTITLE_FORMAT_EXTENSIONS) {
+    if (lower.endsWith(ext)) {
+      return ext
+    }
+  }
+  const lastDot = filename.lastIndexOf('.')
+  if (lastDot === -1) {
+    return ''
+  }
+  return filename.substring(lastDot).toLowerCase()
+}
+
 /**
  * Strips ASS/SSA override blocks from dialogue text (e.g. {\fad(100,100)\blur3}).
  * Used only when converting .ass / .ssa to VTT. Other formats keep their styling.
