@@ -50,8 +50,20 @@
       <div class="plyr-video-container" ref="plyrVideoContainer">
         <video :src="raw" :type="req.type" :autoplay="shouldAutoplay" @play="handlePlay" playsinline ref="videoElement">
           <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
-            :label="sub.name" :srclang="sub.language" :default="index === 0" />
+            :label="subtitleTrackLabel(sub)" :srclang="sub.language" :default="index === 0" />
         </video>
+      </div>
+      <div
+        ref="skipFeedbackLayer"
+        class="video-skip-feedback-layer"
+        :class="{
+          'video-skip-feedback-layer--visible': skipFeedbackVisible,
+          'video-skip-feedback-layer--left': skipFeedbackSide === 'left',
+          'video-skip-feedback-layer--right': skipFeedbackSide === 'right',
+        }"
+        aria-hidden="true"
+      >
+        <i :key="skipFeedbackKey" class="material-symbols video-skip-feedback-layer__icon">{{ skipFeedbackIcon }}</i>
       </div>
     </div>
 
@@ -67,7 +79,7 @@
       <video ref="defaultVideoPlayer" :src="raw"
         controls :autoplay="shouldAutoplay" @play="handlePlay" playsinline >
         <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
-          :label="sub.name" :srclang="sub.language" :default="index === 0" />
+          :label="subtitleTrackLabel(sub)" :srclang="sub.language" :default="index === 0" />
       </video>
     </div>
 
@@ -119,7 +131,10 @@
 import { state, mutations, getters } from '@/store';
 import { url } from '@/utils';
 import { globalVars } from '@/utils/constants';
+import { getSubtitleFormatExtension } from '@/utils/subtitles';
 import Plyr from 'plyr';
+
+const PLYR_CAPTION_SIZE_IDS = ['small', 'medium', 'large', 'xlarge'];
 
 export default {
   name: "plyrViewer",
@@ -153,7 +168,7 @@ export default {
       default: () => [],
     },
   },
-  emits: ['play'],
+  emits: ['play', 'navigate-previous', 'navigate-next', 'close-preview'],
   data() {
     return {
       toastVisible: false,
@@ -169,15 +184,43 @@ export default {
       queueButtonVisible: false,
       hoverQueue: false,
       queueTimeout: null,
+      doubleTapSeekCleanup: null,
+      skipFeedbackVisible: false,
+      skipFeedbackSide: 'left',
+      skipFeedbackIcon: 'replay_10',
+      skipFeedbackKey: 0,
+      skipFeedbackTimer: null,
+      // Plyr video: full-frame edge gestures (same UX as ExtendedImage; Plyr controls live outside .plyr__video-wrapper)
+      videoEdgeKind: null,
+      videoEdgeStartX: 0,
+      videoEdgeStartY: 0,
+      videoEdgeDx: 0,
+      videoEdgeDy: 0,
+      videoDragOffsetX: 0,
+      videoDragOffsetY: 0,
+      videoGestureDecided: false,
+      videoGestureSnapBack: false,
+      videoEdgeMouseActive: false,
+      videoShowNavHint: false,
+      videoNavHintDir: 'next',
+      videoShowDismissHint: false,
+      videoDismissFlashActive: false,
+      videoEdgeHintPx: 44,
+      videoEdgeCommitX: 130,
+      videoEdgeCommitY: 110,
+      videoEdgeRubberMax: 100,
+      videoSwipeCleanup: null,
+      videoDismissCloseTimer: null,
+      videoDismissHintTimer: null,
       // Plyr instance
       player: null,
+      PlyrCaptionSizeStorageKey: 'filebrowser-plyr-caption-size',
+      captionSizeMenuInitialized: false,
       // Plyr options
       plyrOptions: {
         controls: [
           "play-large",
-          "rewind",
           "play",
-          "fast-forward",
           "progress",
           "current-time",
           "duration",
@@ -188,7 +231,11 @@ export default {
           "settings",
           "fullscreen",
         ],
-        settings: ["captions", "quality", "speed", "playback"],
+        settings: ['captions', 'captionSize', 'quality', 'speed', 'playback'],
+        i18n: {
+          playback: 'Playback',
+          captionSize: 'Caption size',
+        },
         speed: {
           selected: 1,
           options: [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2],
@@ -234,14 +281,27 @@ export default {
       }
     },
     subtitlesList(newSubs, oldSubs) {
-      // Initialize Plyr when subtitles are loaded (if we were waiting for them)
-      if (newSubs && newSubs.length > 0 && (!oldSubs || oldSubs.length === 0)) {
+      const gained = newSubs && newSubs.length > 0 && (!oldSubs || oldSubs.length === 0);
+      const lost = (!newSubs || newSubs.length === 0) && oldSubs && oldSubs.length > 0;
+      if (gained || lost) {
+        this.captionSizeMenuInitialized = false;
+      }
+      if (gained) {
         if (!this.useDefaultMediaPlayer && !this.player && this.previewType === 'video') {
           this.$nextTick(() => {
             this.initializePlyr();
           });
+        } else if (!this.useDefaultMediaPlayer && this.player && this.previewType === 'video') {
+          this.$nextTick(() => {
+            this.applyCustomCaptionSizeSettings(this.player);
+            this.syncCaptionSizeSettingsVisibility();
+            this.applyCaptionSizeClass();
+          });
         }
       }
+    },
+    hasSubtitles() {
+      this.syncCaptionSizeSettingsVisibility();
     },
   },
   computed: {
@@ -302,6 +362,23 @@ export default {
     fileName() {
       return this.req.name ? this.req.name.replace(/\.[^/.]+$/, "") : '';
     },
+    videoSwipeGesturesActive() {
+      return (
+        this.previewType === 'video' &&
+        !this.useDefaultMediaPlayer &&
+        !!this.player &&
+        !this.player.fullscreen?.active
+      );
+    },
+    videoNavigationGestureAllowed() {
+      return state.navigation.enabled && getters.currentPrompt() === null;
+    },
+    hasVideoPreviousNav() {
+      return this.videoNavigationGestureAllowed && state.navigation.previousLink !== '';
+    },
+    hasVideoNextNav() {
+      return this.videoNavigationGestureAllowed && state.navigation.nextLink !== '';
+    },
   },
   mounted() {
     this.updateMedia();
@@ -315,7 +392,7 @@ export default {
   },
   beforeUnmount() {
     // Cleanup timeouts
-    [this.toastTimeout, this.queueTimeout].forEach(timeout => {
+    [this.toastTimeout, this.queueTimeout, this.skipFeedbackTimer, this.videoDismissCloseTimer, this.videoDismissHintTimer].forEach(timeout => {
       if (timeout) clearTimeout(timeout);
     });
     // Cleanup Plyr
@@ -325,6 +402,11 @@ export default {
     document.removeEventListener('keydown', this.handleKeydown);
   },
   methods: {
+    /** Plyr captions menu: show format only (e.g. `.srt`, `.ass`), not the video basename. */
+    subtitleTrackLabel(sub) {
+      const ext = getSubtitleFormatExtension(sub?.name || '');
+      return ext || sub?.name || '';
+    },
     showQueuePrompt() {
       mutations.showPrompt({
         name: "PlaybackQueue",
@@ -434,12 +516,15 @@ export default {
     },
     destroyPlyr() {
       if (this.player) {
+        this.teardownVideoSwipeGestures();
+        this.teardownDoubleTapSeek();
         this.clearMediaSession();
         this.cleanupAlbumArt();
         this.player.off();
         this.player.destroy();
         this.player = null;
         this.playbackMenuInitialized = false;
+        this.captionSizeMenuInitialized = false;
         this.lastAppliedMode = null;
         // This should fix (most of) the "Invalid URI" warns, meanwhile we still destroying plyr.
         // Somehow firefox will still trying to "load" the empty source which causes the warn.
@@ -470,17 +555,128 @@ export default {
       try {
         const settingsMenu = this.player.elements.settings?.menu;
         const playbackBtn = this.player.elements.settings?.buttons?.playback;
+        const captionSizeBtn = this.player.elements.settings?.buttons?.captionSize;
+        const menuOpen =
+          settingsMenu
+          && settingsMenu.style.display !== 'none'
+          && settingsMenu.getAttribute('hidden') === null;
+        const needPlayback = playbackBtn && !this.playbackMenuInitialized;
+        const needCaptionSize = captionSizeBtn && !this.captionSizeMenuInitialized;
 
-        if (settingsMenu && settingsMenu.style.display !== 'none' && settingsMenu.getAttribute('hidden') === null) {
+        if (menuOpen || needPlayback || needCaptionSize) {
           this.applyCustomPlaybackSettings(this.player);
-        } else if (playbackBtn && !this.playbackMenuInitialized) {
-          // Initial setup -- if menu hasn't been initialized yet
-          console.log('Initializing custom playback menu');
-          this.applyCustomPlaybackSettings(this.player);
+          this.applyCustomCaptionSizeSettings(this.player);
         }
-        // Otherwise, skip to avoid unnecessary recreation
       } catch (error) {
         console.error('Error ensuring playback mode applied:', error);
+      }
+    },
+    getStoredCaptionSize() {
+      try {
+        const raw = localStorage.getItem(this.PlyrCaptionSizeStorageKey);
+        if (raw && PLYR_CAPTION_SIZE_IDS.includes(raw)) {
+          return raw;
+        }
+      } catch {
+        /* ignore */
+      }
+      return 'medium';
+    },
+    setStoredCaptionSize(id) {
+      try {
+        localStorage.setItem(this.PlyrCaptionSizeStorageKey, id);
+      } catch {
+        /* ignore */
+      }
+    },
+    captionSizeMenuLabels() {
+      return {
+        small: 'Small',
+        medium: 'Medium',
+        large: 'Large',
+        xlarge: 'Extra large',
+      };
+    },
+    applyCaptionSizeClass() {
+      if (this.useDefaultMediaPlayer || !this.player?.elements?.container) {
+        return;
+      }
+      const el = this.player.elements.container;
+      PLYR_CAPTION_SIZE_IDS.forEach((id) => el.classList.remove(`plyr-caption-size--${id}`));
+      el.classList.add(`plyr-caption-size--${this.getStoredCaptionSize()}`);
+    },
+    syncCaptionSizeSettingsVisibility() {
+      if (this.useDefaultMediaPlayer || !this.player) {
+        return;
+      }
+      const btn = this.player.elements.settings?.buttons?.captionSize;
+      if (!btn) {
+        return;
+      }
+      const visible = this.previewType === 'video' && this.hasSubtitles;
+      if (visible) {
+        btn.removeAttribute('hidden');
+      } else {
+        btn.setAttribute('hidden', '');
+      }
+    },
+    applyCustomCaptionSizeSettings(player) {
+      if (this.captionSizeMenuInitialized) {
+        return;
+      }
+
+      try {
+        const captionBtn = player.elements.settings?.buttons?.captionSize;
+        const captionPanel = player.elements.settings?.panels?.captionSize;
+
+        if (!captionBtn || !captionPanel) {
+          return;
+        }
+
+        const title = player.config.i18n?.captionSize || 'Caption size';
+
+        if (this.previewType !== 'video' || !this.hasSubtitles) {
+          captionBtn.setAttribute('hidden', '');
+          this.captionSizeMenuInitialized = true;
+          return;
+        }
+
+        this.syncCaptionSizeSettingsVisibility();
+        captionBtn.removeAttribute('hidden');
+
+        const labels = this.captionSizeMenuLabels();
+        const current = this.getStoredCaptionSize();
+
+        captionBtn.querySelector('span').innerHTML = `${title}: <span class="plyr__menu__value">${labels[current]}</span>`;
+
+        captionPanel.querySelector('.plyr__control--back span[aria-hidden="true"]').textContent = title;
+
+        const menu = captionPanel.querySelector('div[role="menu"]');
+        menu.innerHTML = PLYR_CAPTION_SIZE_IDS.map(
+          (id) => `<button data-plyr="caption-size" type="button" role="menuitemradio" class="plyr__control" aria-checked="${current === id}" value="${id}">
+                <span>${labels[id]}</span>
+              </button>`,
+        ).join('');
+
+        menu.querySelectorAll('button[data-plyr="caption-size"]').forEach((button) => {
+          button.addEventListener('click', (event) => {
+            const value = event.currentTarget.getAttribute('value');
+            if (!PLYR_CAPTION_SIZE_IDS.includes(value)) {
+              return;
+            }
+            this.setStoredCaptionSize(value);
+            this.applyCaptionSizeClass();
+            menu.querySelectorAll('button[data-plyr="caption-size"]').forEach((btn) => {
+              btn.setAttribute('aria-checked', btn.getAttribute('value') === value ? 'true' : 'false');
+            });
+            captionBtn.querySelector('span').innerHTML = `${title}: <span class="plyr__menu__value">${labels[value]}</span>`;
+          });
+        });
+
+        this.captionSizeMenuInitialized = true;
+        this.applyCaptionSizeClass();
+      } catch (error) {
+        console.error('Error applying caption size settings:', error);
       }
     },
     toggleLoop() {
@@ -660,6 +856,473 @@ export default {
         }
       }
       this.ensurePlaybackModeApplied();
+      if (this.previewType === 'video') {
+        this.applyCaptionSizeClass();
+        this.syncCaptionSizeSettingsVisibility();
+        this.setupDoubleTapSeek();
+        this.setupVideoSwipeGestures();
+      }
+    },
+    teardownDoubleTapSeek() {
+      if (typeof this.doubleTapSeekCleanup === 'function') {
+        this.doubleTapSeekCleanup();
+        this.doubleTapSeekCleanup = null;
+      }
+    },
+    setupDoubleTapSeek() {
+      if (this.useDefaultMediaPlayer || this.previewType !== 'video' || !this.player) {
+        return;
+      }
+      this.teardownDoubleTapSeek();
+      const wrapper = this.player.elements?.wrapper;
+      if (!wrapper || !this.player) {
+        return;
+      }
+
+      const DOUBLE_MS = 320;
+      let lastTapTime = 0;
+      let lastZone = null;
+
+      const zoneFromClientX = (clientX) => {
+        const rect = wrapper.getBoundingClientRect();
+        const x = clientX - rect.left;
+        const w = rect.width;
+        if (w <= 0) {
+          return 'center';
+        }
+        if (x < w / 3) {
+          return 'left';
+        }
+        if (x > (2 * w) / 3) {
+          return 'right';
+        }
+        return 'center';
+      };
+
+      const applySeek = (rewind) => {
+        const step = this.player.config.seekTime || 10;
+        const cur = this.player.currentTime;
+        const dur = this.player.duration;
+        const next = rewind ? cur - step : cur + step;
+        const max = Number.isFinite(dur) && dur > 0 ? dur : next;
+        this.player.currentTime = Math.max(0, Math.min(next, max));
+        this.flashSkipFeedback(rewind);
+      };
+
+      const onTouchEnd = (event) => {
+        if (event.changedTouches.length !== 1) {
+          return;
+        }
+        const clientX = event.changedTouches[0].clientX;
+        const zone = zoneFromClientX(clientX);
+        if (zone === 'center') {
+          lastTapTime = 0;
+          lastZone = null;
+          return;
+        }
+        const now = Date.now();
+        if (zone === lastZone && now - lastTapTime < DOUBLE_MS) {
+          applySeek(zone === 'left');
+          lastTapTime = 0;
+          lastZone = null;
+          event.preventDefault();
+        } else {
+          lastTapTime = now;
+          lastZone = zone;
+        }
+      };
+
+      const onDblClick = (event) => {
+        const zone = zoneFromClientX(event.clientX);
+        if (zone === 'center') {
+          return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        applySeek(zone === 'left');
+      };
+
+      wrapper.addEventListener('touchend', onTouchEnd, { passive: false });
+      wrapper.addEventListener('dblclick', onDblClick);
+
+      this.doubleTapSeekCleanup = () => {
+        wrapper.removeEventListener('touchend', onTouchEnd);
+        wrapper.removeEventListener('dblclick', onDblClick);
+      };
+    },
+    flashSkipFeedback(rewind) {
+      if (this.skipFeedbackTimer) {
+        clearTimeout(this.skipFeedbackTimer);
+      }
+      this.skipFeedbackSide = rewind ? 'left' : 'right';
+      this.skipFeedbackIcon = rewind ? 'replay_10' : 'forward_10';
+      this.skipFeedbackKey += 1;
+      this.skipFeedbackVisible = true;
+      this.skipFeedbackTimer = setTimeout(() => {
+        this.skipFeedbackVisible = false;
+        this.skipFeedbackTimer = null;
+      }, 700);
+    },
+    applyVideoSwipeTransform() {
+      const el = this.player?.elements?.wrapper;
+      if (!el) {
+        return;
+      }
+      const transition = this.videoGestureSnapBack
+        ? 'transform 0.22s cubic-bezier(0.32, 0.72, 0, 1)'
+        : 'none';
+      el.style.transition = transition;
+      const x = this.videoDragOffsetX;
+      const y = this.videoDragOffsetY;
+      el.style.transform = x || y ? `translate(${x}px, ${y}px)` : '';
+    },
+    syncVideoNavigationGestureHintToStore() {
+      const ax = Math.abs(this.videoEdgeDx);
+      const ay = Math.abs(this.videoEdgeDy);
+      const navPrevReady =
+        this.hasVideoPreviousNav &&
+        this.videoEdgeDx >= this.videoEdgeCommitX &&
+        ax >= ay;
+      const navNextReady =
+        this.hasVideoNextNav &&
+        this.videoEdgeDx <= -this.videoEdgeCommitX &&
+        ax >= ay;
+      const dismissReady =
+        this.videoEdgeDy >= this.videoEdgeCommitY && ay >= ax;
+      let kind = null;
+      let commitReady = false;
+      let flashClose = false;
+      if (this.videoDismissFlashActive) {
+        kind = 'close';
+        commitReady = dismissReady;
+        flashClose = true;
+      } else if (this.videoShowDismissHint) {
+        kind = 'close';
+        commitReady = dismissReady;
+      } else if (this.videoShowNavHint && this.videoNavHintDir === 'prev' && this.hasVideoPreviousNav) {
+        kind = 'previous';
+        commitReady = navPrevReady;
+      } else if (this.videoShowNavHint && this.videoNavHintDir === 'next' && this.hasVideoNextNav) {
+        kind = 'next';
+        commitReady = navNextReady;
+      }
+      mutations.setNavigationGestureHint({ kind, commitReady, flashClose });
+    },
+    videoRubberband(value, max) {
+      const sign = value < 0 ? -1 : 1;
+      const a = Math.abs(value);
+      if (a <= max) {
+        return value;
+      }
+      return sign * (max + (a - max) * 0.32);
+    },
+    decideVideoEdgeKind() {
+      if (this.videoEdgeKind) {
+        return;
+      }
+      const ax = Math.abs(this.videoEdgeDx);
+      const ay = Math.abs(this.videoEdgeDy);
+      if (ax < 12 && ay < 12) {
+        return;
+      }
+      if (this.videoEdgeDy > ax * 1.12 && this.videoEdgeDy > 14) {
+        this.videoEdgeKind = 'vertical-dismiss';
+        this.videoGestureDecided = true;
+      } else if (ax > ay * 1.12 && ax > 14) {
+        this.videoEdgeKind = 'horizontal';
+        this.videoGestureDecided = true;
+      }
+    },
+    applyVideoEdgeVisuals() {
+      if (!this.videoEdgeKind) {
+        const ax = Math.abs(this.videoEdgeDx);
+        const ay = Math.abs(this.videoEdgeDy);
+        if (ax <= 8 && ay <= 8) {
+          this.videoDragOffsetX = 0;
+          this.videoDragOffsetY = 0;
+          this.videoShowNavHint = false;
+          this.videoShowDismissHint = false;
+          this.applyVideoSwipeTransform();
+          this.syncVideoNavigationGestureHintToStore();
+          return;
+        }
+        if (ax > ay) {
+          this.videoDragOffsetX = this.videoRubberband(this.videoEdgeDx, this.videoEdgeRubberMax);
+          this.videoDragOffsetY = 0;
+          this.videoShowNavHint = ax >= this.videoEdgeHintPx;
+          this.videoNavHintDir = this.videoEdgeDx > 0 ? 'prev' : 'next';
+          if (this.videoNavHintDir === 'prev' && !this.hasVideoPreviousNav) {
+            this.videoShowNavHint = false;
+          }
+          if (this.videoNavHintDir === 'next' && !this.hasVideoNextNav) {
+            this.videoShowNavHint = false;
+          }
+          this.videoShowDismissHint = false;
+        } else {
+          this.videoDragOffsetX = 0;
+          const downward = this.videoEdgeDy > 0 ? this.videoEdgeDy : 0;
+          this.videoDragOffsetY = this.videoRubberband(downward, this.videoEdgeRubberMax);
+          this.videoShowDismissHint = this.videoEdgeDy >= this.videoEdgeHintPx;
+          this.videoShowNavHint = false;
+        }
+        this.applyVideoSwipeTransform();
+        this.syncVideoNavigationGestureHintToStore();
+        return;
+      }
+      if (this.videoEdgeKind === 'horizontal') {
+        this.videoDragOffsetX = this.videoRubberband(this.videoEdgeDx, this.videoEdgeRubberMax);
+        this.videoDragOffsetY = 0;
+        const adx = Math.abs(this.videoEdgeDx);
+        this.videoShowNavHint = adx >= this.videoEdgeHintPx;
+        this.videoNavHintDir = this.videoEdgeDx > 0 ? 'prev' : 'next';
+        if (this.videoNavHintDir === 'prev' && !this.hasVideoPreviousNav) {
+          this.videoShowNavHint = false;
+        }
+        if (this.videoNavHintDir === 'next' && !this.hasVideoNextNav) {
+          this.videoShowNavHint = false;
+        }
+        this.videoShowDismissHint = false;
+      } else {
+        this.videoDragOffsetX = 0;
+        const downward = this.videoEdgeDy > 0 ? this.videoEdgeDy : 0;
+        this.videoDragOffsetY = this.videoRubberband(downward, this.videoEdgeRubberMax);
+        this.videoShowDismissHint = this.videoEdgeDy >= this.videoEdgeHintPx;
+        this.videoShowNavHint = false;
+      }
+      this.applyVideoSwipeTransform();
+      this.syncVideoNavigationGestureHintToStore();
+    },
+    snapBackVideoEdgeGesture() {
+      this.videoGestureSnapBack = true;
+      this.videoDragOffsetX = 0;
+      this.videoDragOffsetY = 0;
+      this.videoShowNavHint = false;
+      this.videoShowDismissHint = false;
+      this.videoEdgeKind = null;
+      this.videoGestureDecided = false;
+      this.videoEdgeDx = 0;
+      this.videoEdgeDy = 0;
+      this.applyVideoSwipeTransform();
+      mutations.setNavigationGestureHint({});
+      setTimeout(() => {
+        this.videoGestureSnapBack = false;
+        this.applyVideoSwipeTransform();
+      }, 240);
+    },
+    resetVideoEdgeGestureImmediate() {
+      this.clearVideoDismissAnimTimers();
+      this.videoEdgeKind = null;
+      this.videoGestureDecided = false;
+      this.videoEdgeDx = 0;
+      this.videoEdgeDy = 0;
+      this.videoDragOffsetX = 0;
+      this.videoDragOffsetY = 0;
+      this.videoShowNavHint = false;
+      this.videoShowDismissHint = false;
+      this.videoGestureSnapBack = false;
+      this.videoDismissFlashActive = false;
+      this.applyVideoSwipeTransform();
+      mutations.setNavigationGestureHint({});
+    },
+    clearVideoDismissAnimTimers() {
+      if (this.videoDismissCloseTimer) {
+        clearTimeout(this.videoDismissCloseTimer);
+        this.videoDismissCloseTimer = null;
+      }
+      if (this.videoDismissHintTimer) {
+        clearTimeout(this.videoDismissHintTimer);
+        this.videoDismissHintTimer = null;
+      }
+    },
+    finishVideoEdgeGesture() {
+      if (!this.videoSwipeGesturesActive) {
+        this.resetVideoEdgeGestureImmediate();
+        return;
+      }
+      const ax0 = Math.abs(this.videoEdgeDx);
+      const ay0 = Math.abs(this.videoEdgeDy);
+      if (!this.videoEdgeKind && ax0 < 5 && ay0 < 5) {
+        this.resetVideoEdgeGestureImmediate();
+        return;
+      }
+      let kind = this.videoEdgeKind;
+      if (!kind) {
+        const ax = Math.abs(this.videoEdgeDx);
+        const ay = Math.abs(this.videoEdgeDy);
+        if (ax < this.videoEdgeHintPx && ay < this.videoEdgeHintPx) {
+          this.snapBackVideoEdgeGesture();
+          return;
+        }
+        kind = ax >= ay ? 'horizontal' : 'vertical-dismiss';
+      }
+      if (kind === 'horizontal') {
+        if (this.videoEdgeDx >= this.videoEdgeCommitX && this.hasVideoPreviousNav) {
+          this.$emit('navigate-previous');
+          this.resetVideoEdgeGestureImmediate();
+          return;
+        }
+        if (this.videoEdgeDx <= -this.videoEdgeCommitX && this.hasVideoNextNav) {
+          this.$emit('navigate-next');
+          this.resetVideoEdgeGestureImmediate();
+          return;
+        }
+      } else if (kind === 'vertical-dismiss') {
+        if (this.videoEdgeDy >= this.videoEdgeCommitY) {
+          this.clearVideoDismissAnimTimers();
+          this.videoDismissFlashActive = true;
+          this.videoShowDismissHint = true;
+          this.videoDragOffsetX = 0;
+          this.videoDragOffsetY = 0;
+          this.videoEdgeKind = null;
+          this.videoGestureDecided = false;
+          this.applyVideoSwipeTransform();
+          this.syncVideoNavigationGestureHintToStore();
+          this.videoDismissCloseTimer = setTimeout(() => {
+            this.videoDismissCloseTimer = null;
+            this.$emit('close-preview');
+          }, 120);
+          this.videoDismissHintTimer = setTimeout(() => {
+            this.videoDismissHintTimer = null;
+            this.videoDismissFlashActive = false;
+            this.videoShowDismissHint = false;
+            mutations.setNavigationGestureHint({});
+          }, 420);
+          return;
+        }
+      }
+      this.snapBackVideoEdgeGesture();
+    },
+    teardownVideoSwipeMouseDocListeners() {
+      document.removeEventListener('mousemove', this.onVideoSwipeMouseDocMove, true);
+      document.removeEventListener('mouseup', this.onVideoSwipeMouseDocUp, true);
+      this.videoEdgeMouseActive = false;
+    },
+    onVideoSwipeMouseDocMove(event) {
+      if (!this.videoEdgeMouseActive || !this.videoSwipeGesturesActive) {
+        return;
+      }
+      this.videoEdgeDx = event.clientX - this.videoEdgeStartX;
+      this.videoEdgeDy = event.clientY - this.videoEdgeStartY;
+      this.decideVideoEdgeKind();
+      this.applyVideoEdgeVisuals();
+      if (Math.abs(this.videoEdgeDx) > 3 || Math.abs(this.videoEdgeDy) > 3) {
+        event.preventDefault();
+      }
+    },
+    onVideoSwipeMouseDocUp(event) {
+      if (!this.videoEdgeMouseActive) {
+        this.teardownVideoSwipeMouseDocListeners();
+        return;
+      }
+      this.videoEdgeDx = event.clientX - this.videoEdgeStartX;
+      this.videoEdgeDy = event.clientY - this.videoEdgeStartY;
+      this.finishVideoEdgeGesture();
+      this.teardownVideoSwipeMouseDocListeners();
+      if (Math.abs(this.videoEdgeDx) > 3 || Math.abs(this.videoEdgeDy) > 3) {
+        event.preventDefault();
+      }
+    },
+    onVideoSwipeMouseDown(event) {
+      if (event.button !== 0 || !this.videoSwipeGesturesActive) {
+        return;
+      }
+      this.clearVideoDismissAnimTimers();
+      this.teardownVideoSwipeMouseDocListeners();
+      this.videoEdgeMouseActive = true;
+      this.videoEdgeStartX = event.clientX;
+      this.videoEdgeStartY = event.clientY;
+      this.videoEdgeDx = 0;
+      this.videoEdgeDy = 0;
+      this.videoEdgeKind = null;
+      this.videoGestureDecided = false;
+      document.addEventListener('mousemove', this.onVideoSwipeMouseDocMove, true);
+      document.addEventListener('mouseup', this.onVideoSwipeMouseDocUp, true);
+    },
+    onVideoSwipeTouchStart(event) {
+      if (!this.videoSwipeGesturesActive || event.targetTouches.length !== 1) {
+        return;
+      }
+      this.clearVideoDismissAnimTimers();
+      const touch = event.targetTouches[0];
+      this.videoEdgeStartX = touch.pageX;
+      this.videoEdgeStartY = touch.pageY;
+      this.videoEdgeDx = 0;
+      this.videoEdgeDy = 0;
+      this.videoEdgeKind = null;
+      this.videoGestureDecided = false;
+      this.videoDragOffsetX = 0;
+      this.videoDragOffsetY = 0;
+    },
+    onVideoSwipeTouchMove(event) {
+      if (!this.videoSwipeGesturesActive || event.targetTouches.length !== 1) {
+        if (this.videoEdgeKind || this.videoEdgeDx || this.videoEdgeDy) {
+          this.resetVideoEdgeGestureImmediate();
+        }
+        return;
+      }
+      const touch = event.targetTouches[0];
+      this.videoEdgeDx = touch.pageX - this.videoEdgeStartX;
+      this.videoEdgeDy = touch.pageY - this.videoEdgeStartY;
+      this.decideVideoEdgeKind();
+      this.applyVideoEdgeVisuals();
+      const ax = Math.abs(this.videoEdgeDx);
+      const ay = Math.abs(this.videoEdgeDy);
+      if (this.videoEdgeKind || ax > 14 || ay > 14) {
+        event.preventDefault();
+      }
+    },
+    onVideoSwipeTouchEnd(event) {
+      if (!this.videoSwipeGesturesActive || event.changedTouches.length === 0) {
+        return;
+      }
+      const t = event.changedTouches[0];
+      this.videoEdgeDx = t.pageX - this.videoEdgeStartX;
+      this.videoEdgeDy = t.pageY - this.videoEdgeStartY;
+      const ax = Math.abs(this.videoEdgeDx);
+      const ay = Math.abs(this.videoEdgeDy);
+      const hadLockedKind = this.videoEdgeKind !== null;
+      this.finishVideoEdgeGesture();
+      if (hadLockedKind || ax > 14 || ay > 14) {
+        event.preventDefault();
+      }
+    },
+    onVideoSwipeTouchCancel() {
+      if (this.videoEdgeKind || this.videoEdgeDx || this.videoEdgeDy) {
+        this.snapBackVideoEdgeGesture();
+      }
+    },
+    setupVideoSwipeGestures() {
+      this.teardownVideoSwipeGestures();
+      if (this.useDefaultMediaPlayer || this.previewType !== 'video' || !this.player) {
+        return;
+      }
+      const wrapper = this.player.elements?.wrapper;
+      if (!wrapper) {
+        return;
+      }
+      const touchOpts = { passive: false };
+      wrapper.addEventListener('touchstart', this.onVideoSwipeTouchStart, touchOpts);
+      wrapper.addEventListener('touchmove', this.onVideoSwipeTouchMove, touchOpts);
+      wrapper.addEventListener('touchend', this.onVideoSwipeTouchEnd, touchOpts);
+      wrapper.addEventListener('touchcancel', this.onVideoSwipeTouchCancel, touchOpts);
+      wrapper.addEventListener('mousedown', this.onVideoSwipeMouseDown);
+
+      this.videoSwipeCleanup = () => {
+        wrapper.removeEventListener('touchstart', this.onVideoSwipeTouchStart, touchOpts);
+        wrapper.removeEventListener('touchmove', this.onVideoSwipeTouchMove, touchOpts);
+        wrapper.removeEventListener('touchend', this.onVideoSwipeTouchEnd, touchOpts);
+        wrapper.removeEventListener('touchcancel', this.onVideoSwipeTouchCancel, touchOpts);
+        wrapper.removeEventListener('mousedown', this.onVideoSwipeMouseDown);
+        this.teardownVideoSwipeMouseDocListeners();
+      };
+    },
+    teardownVideoSwipeGestures() {
+      if (typeof this.videoSwipeCleanup === 'function') {
+        this.videoSwipeCleanup();
+        this.videoSwipeCleanup = null;
+      }
+      this.clearVideoDismissAnimTimers();
+      this.resetVideoEdgeGestureImmediate();
     },
     setupDefaultPlayerEvents(element) {
       if (!element) return;
@@ -678,6 +1341,7 @@ export default {
       });
     },
     async onFullscreenEnter() {
+      this.resetVideoEdgeGestureImmediate();
       // Allow free rotation when video enters full screen mode. This works even if the device's orientation is currently locked.
       try {
         await screen.orientation.lock('any');
@@ -1038,6 +1702,7 @@ export default {
   --plyr-tooltip-color: #ffffff;
   --plyr-video-controls-background: linear-gradient(transparent,
           rgba(0, 0, 0, 0.7));
+
   overflow: visible;
   background-color: rgb(216 216 216);
   box-shadow: 0 2px 6px rgba(88, 88, 88, 0.45);
@@ -1134,20 +1799,103 @@ export default {
   transform: translate(-50%, -50%) scale(1.05) !important;
 }
 
+/* Invisible overlaid play button still sat on top of the video and ate clicks (pause on tap). */
+.plyr--playing .plyr__control--overlaid {
+  pointer-events: none;
+}
+
 /************
 *** VIDEO ***
 ************/
 
 /* Video container size */
 .video-player-container {
+  position: relative;
   width: 100%;
   height: 100%;
+  background-color: #000;
+}
+
+/* Letterboxing and Plyr chrome: match cinema-style black (audio uses .audio-controls-container .plyr) */
+.video-player-container .plyr {
+  background-color: #000;
+  box-shadow: none;
+}
+
+@supports (backdrop-filter: none) {
+  .video-player-container .plyr {
+    backdrop-filter: none;
+  }
+}
+
+.video-player-container .plyr .plyr__controls {
+  color: #fff;
 }
 
 /* Video size in the container */
 .plyr.plyr--video {
   width: 100%;
   height: 100%;
+  cursor: pointer;
+}
+
+.plyr .plyr__video-wrapper {
+  touch-action: manipulation;
+}
+
+/* Double-tap / double-click seek feedback (left/right third of video) */
+.video-skip-feedback-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.video-skip-feedback-layer--left {
+  justify-content: flex-start;
+  padding-left: min(22%, 7rem);
+}
+
+.video-skip-feedback-layer--right {
+  justify-content: flex-end;
+  padding-right: min(22%, 7rem);
+}
+
+/*
+ * Global fonts.css sets `.material-symbols { font-size: 24px }`.
+ * Use high specificity + !important, and flex-shrink: 0 so the flex parent cannot squeeze the glyph.
+ */
+.video-skip-feedback-layer i.material-symbols.video-skip-feedback-layer__icon {
+  flex-shrink: 0;
+  font-size: 3em;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.96);
+  filter: drop-shadow(0 2px 16px rgba(0, 0, 0, 0.85));
+  opacity: 0;
+  transform: scale(0.55);
+  font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 40;
+}
+
+.video-skip-feedback-layer--visible i.material-symbols.video-skip-feedback-layer__icon {
+  animation: video-skip-feedback-pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes video-skip-feedback-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+  28% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
 }
 
 /* Hide captions button when there are no subtitle tracks */
@@ -1155,23 +1903,45 @@ export default {
   display: none !important;
 }
 
+/*
+ * Caption size only: Plyr uses --plyr-font-size-* on the root .plyr for controls,
+ * time, and menus — never override those for captions. Use --fb-captions-font-size
+ * and apply it only on .plyr__captions.
+ */
+.plyr.plyr-caption-size--small {
+  --fb-captions-font-size: 1em;
+}
+
+.plyr.plyr-caption-size--medium {
+  --fb-captions-font-size: 1.5em;
+}
+
+.plyr.plyr-caption-size--large {
+  --fb-captions-font-size: 2em;
+}
+
+.plyr.plyr-caption-size--xlarge {
+  --fb-captions-font-size: 2.5em;
+}
+
 /* Subtitles style */
 .plyr__captions {
-  font-size: max(24px, 4.5vmin) !important;
-  line-height: 150% !important; /* Line height needs to be in both, if not we'll not override the default of plyr */
-  text-shadow:  /* The multiples shadows are for better readability since we are using a transparent background */
+  pointer-events: none;
+  font-size: var(--fb-captions-font-size, 1.5em);
+  line-height: 150%;
+  text-shadow:
     0 0 6px #000,
     0 0 6px #000,
     0 0 6px #000,
     0 0 6px #000,
-    0 0 6px #000 !important;
-  font-weight: 700 !important;
+    0 0 6px #000;
+  font-weight: 700;
   -webkit-font-smoothing: antialiased;
 }
 
 .plyr__caption {
-  background: transparent !important;
-  line-height: 150% !important;
+  background: transparent;
+  line-height: 150%;
 }
 
 /************

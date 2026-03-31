@@ -35,7 +35,7 @@
 </template>
 
 <script>
-import { state, mutations, getters } from "@/store";
+import { state, mutations, getters } from '@/store';
 import throttle from "@/utils/throttle";
 import { notify } from "@/notify";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
@@ -76,18 +76,25 @@ export default {
       maxScale: 4,
       minScale: 1,
       isTiff: false,
-      // Swipe navigation properties
-      swipeStartTime: null,
-      swipeStartX: 0,
-      swipeStartY: 0,
-      swipeCurrentX: 0,
-      swipeCurrentY: 0,
-      isSwipeGesture: false,
-      hasStartedSwipe: false,
+      // Full-frame edge gestures (touch + mouse), zoom scale === 1 only
+      edgeKind: null, // null | 'horizontal' | 'vertical-dismiss'
+      edgeStartX: 0,
+      edgeStartY: 0,
+      edgeDx: 0,
+      edgeDy: 0,
+      dragOffsetX: 0,
+      dragOffsetY: 0,
       gestureDecided: false,
-      swipeMinDistance: 150,
-      swipeMaxTime: 500,
-      swipeMaxVerticalDistance: 50,
+      gestureSnapBack: false,
+      edgeMouseActive: false,
+      showNavHint: false,
+      navHintDir: 'next', // 'prev' | 'next' — chevrons match nextPrevious.vue
+      showDismissHint: false,
+      dismissFlashActive: false,
+      edgeHintPx: 44,
+      edgeCommitX: 130,
+      edgeCommitY: 110,
+      edgeRubberMax: 100,
     };
   },
   computed: {
@@ -118,6 +125,38 @@ export default {
       // For shares, use shareInfo.hash as the source; otherwise use this.source
       const source = getters.isShare() ? state.shareInfo?.hash : this.source;
       return getBestCachedImage(source, this.path, state.req?.modified);
+    },
+    navigationGestureAllowed() {
+      return state.navigation.enabled && getters.currentPrompt() == null;
+    },
+    hasImagePrevious() {
+      return this.navigationGestureAllowed && state.navigation.previousLink !== '';
+    },
+    hasImageNext() {
+      return this.navigationGestureAllowed && state.navigation.nextLink !== '';
+    },
+    navPrevCommitReady() {
+      const ax = Math.abs(this.edgeDx);
+      const ay = Math.abs(this.edgeDy);
+      return (
+        this.hasImagePrevious &&
+        this.edgeDx >= this.edgeCommitX &&
+        ax >= ay
+      );
+    },
+    navNextCommitReady() {
+      const ax = Math.abs(this.edgeDx);
+      const ay = Math.abs(this.edgeDy);
+      return (
+        this.hasImageNext &&
+        this.edgeDx <= -this.edgeCommitX &&
+        ax >= ay
+      );
+    },
+    dismissCommitReady() {
+      const ax = Math.abs(this.edgeDx);
+      const ay = Math.abs(this.edgeDy);
+      return this.edgeDy >= this.edgeCommitY && ay >= ax;
     },
   },
   mounted() {
@@ -152,10 +191,32 @@ export default {
       clearTimeout(this.loadTimeout);
       this.loadTimeout = null;
     }
+    this.teardownEdgeMouseListeners();
+    mutations.setNavigationGestureHint({});
     window.removeEventListener("resize", this.onResize);
     document.removeEventListener("mouseup", this.onMouseUp);
   },
   methods: {
+    syncNavigationGestureHintToStore() {
+      let kind = null;
+      let commitReady = false;
+      let flashClose = false;
+      if (this.dismissFlashActive) {
+        kind = 'close';
+        commitReady = this.dismissCommitReady;
+        flashClose = true;
+      } else if (this.showDismissHint) {
+        kind = 'close';
+        commitReady = this.dismissCommitReady;
+      } else if (this.showNavHint && this.navHintDir === 'prev' && this.hasImagePrevious) {
+        kind = 'previous';
+        commitReady = this.navPrevCommitReady;
+      } else if (this.showNavHint && this.navHintDir === 'next' && this.hasImageNext) {
+        kind = 'next';
+        commitReady = this.navNextCommitReady;
+      }
+      mutations.setNavigationGestureHint({ kind, commitReady, flashClose });
+    },
     loadFullImage() {
       if (!this.src) return;
       mutations.setLoading("preview-img", true);
@@ -229,41 +290,258 @@ export default {
     onResize: throttle(function () {
       if (this.imageLoaded) {
         this.setCenter();
-        this.doMove(this.position.relative.x, this.position.relative.y);
       }
     }, 100),
+    rubberband(value, max) {
+      const sign = value < 0 ? -1 : 1;
+      const a = Math.abs(value);
+      if (a <= max) {
+        return value;
+      }
+      return sign * (max + (a - max) * 0.32);
+    },
+    applyImgTransform() {
+      const img = this.$refs.imgex;
+      if (!img) {
+        return;
+      }
+      const transition = this.gestureSnapBack
+        ? 'transform 0.22s cubic-bezier(0.32, 0.72, 0, 1)'
+        : 'none';
+      img.style.transition = transition;
+      if (this.scale === 1) {
+        img.style.transform = `translate(calc(-50% + ${this.dragOffsetX}px), calc(-50% + ${this.dragOffsetY}px)) scale(1)`;
+      } else {
+        const { x: rx, y: ry } = this.position.relative;
+        img.style.transform = `translate(calc(-50% + ${rx}px), calc(-50% + ${ry}px)) scale(${this.scale})`;
+      }
+    },
+    decideEdgeKind() {
+      if (this.edgeKind) {
+        return;
+      }
+      const ax = Math.abs(this.edgeDx);
+      const ay = Math.abs(this.edgeDy);
+      if (ax < 12 && ay < 12) {
+        return;
+      }
+      if (this.edgeDy > ax * 1.12 && this.edgeDy > 14) {
+        this.edgeKind = 'vertical-dismiss';
+        this.gestureDecided = true;
+      } else if (ax > ay * 1.12 && ax > 14) {
+        this.edgeKind = 'horizontal';
+        this.gestureDecided = true;
+      }
+    },
+    applyEdgeVisuals() {
+      if (!this.edgeKind) {
+        const ax = Math.abs(this.edgeDx);
+        const ay = Math.abs(this.edgeDy);
+        if (ax <= 8 && ay <= 8) {
+          this.dragOffsetX = 0;
+          this.dragOffsetY = 0;
+          this.showNavHint = false;
+          this.showDismissHint = false;
+          this.applyImgTransform();
+          this.syncNavigationGestureHintToStore();
+          return;
+        }
+        if (ax > ay) {
+          this.dragOffsetX = this.rubberband(this.edgeDx, this.edgeRubberMax);
+          this.dragOffsetY = 0;
+          this.showNavHint = ax >= this.edgeHintPx;
+          this.navHintDir = this.edgeDx > 0 ? 'prev' : 'next';
+          if (this.navHintDir === 'prev' && !this.hasImagePrevious) {
+            this.showNavHint = false;
+          }
+          if (this.navHintDir === 'next' && !this.hasImageNext) {
+            this.showNavHint = false;
+          }
+          this.showDismissHint = false;
+        } else {
+          this.dragOffsetX = 0;
+          const downward = this.edgeDy > 0 ? this.edgeDy : 0;
+          this.dragOffsetY = this.rubberband(downward, this.edgeRubberMax);
+          this.showDismissHint = this.edgeDy >= this.edgeHintPx;
+          this.showNavHint = false;
+        }
+        this.applyImgTransform();
+        this.syncNavigationGestureHintToStore();
+        return;
+      }
+      if (this.edgeKind === 'horizontal') {
+        this.dragOffsetX = this.rubberband(this.edgeDx, this.edgeRubberMax);
+        this.dragOffsetY = 0;
+        const adx = Math.abs(this.edgeDx);
+        this.showNavHint = adx >= this.edgeHintPx;
+        this.navHintDir = this.edgeDx > 0 ? 'prev' : 'next';
+        if (this.navHintDir === 'prev' && !this.hasImagePrevious) {
+          this.showNavHint = false;
+        }
+        if (this.navHintDir === 'next' && !this.hasImageNext) {
+          this.showNavHint = false;
+        }
+        this.showDismissHint = false;
+      } else {
+        this.dragOffsetX = 0;
+        const downward = this.edgeDy > 0 ? this.edgeDy : 0;
+        this.dragOffsetY = this.rubberband(downward, this.edgeRubberMax);
+        this.showDismissHint = this.edgeDy >= this.edgeHintPx;
+        this.showNavHint = false;
+      }
+      this.applyImgTransform();
+      this.syncNavigationGestureHintToStore();
+    },
+    snapBackEdgeGesture() {
+      this.gestureSnapBack = true;
+      this.dragOffsetX = 0;
+      this.dragOffsetY = 0;
+      this.showNavHint = false;
+      this.showDismissHint = false;
+      this.edgeKind = null;
+      this.gestureDecided = false;
+      this.edgeDx = 0;
+      this.edgeDy = 0;
+      this.applyImgTransform();
+      mutations.setNavigationGestureHint({});
+      setTimeout(() => {
+        this.gestureSnapBack = false;
+        this.applyImgTransform();
+      }, 240);
+    },
+    resetEdgeGestureImmediate() {
+      this.edgeKind = null;
+      this.gestureDecided = false;
+      this.edgeDx = 0;
+      this.edgeDy = 0;
+      this.dragOffsetX = 0;
+      this.dragOffsetY = 0;
+      this.showNavHint = false;
+      this.showDismissHint = false;
+      this.gestureSnapBack = false;
+      this.dismissFlashActive = false;
+      mutations.setNavigationGestureHint({});
+    },
+    finishEdgeGesture() {
+      if (this.scale !== 1) {
+        this.resetEdgeGestureImmediate();
+        this.applyImgTransform();
+        return;
+      }
+      let kind = this.edgeKind;
+      if (!kind) {
+        const ax = Math.abs(this.edgeDx);
+        const ay = Math.abs(this.edgeDy);
+        if (ax < this.edgeHintPx && ay < this.edgeHintPx) {
+          this.snapBackEdgeGesture();
+          return;
+        }
+        kind = ax >= ay ? 'horizontal' : 'vertical-dismiss';
+      }
+      if (kind === 'horizontal') {
+        if (this.edgeDx >= this.edgeCommitX && this.hasImagePrevious) {
+          this.$emit('navigate-previous');
+          this.resetEdgeGestureImmediate();
+          this.applyImgTransform();
+          return;
+        }
+        if (this.edgeDx <= -this.edgeCommitX && this.hasImageNext) {
+          this.$emit('navigate-next');
+          this.resetEdgeGestureImmediate();
+          this.applyImgTransform();
+          return;
+        }
+      } else if (kind === 'vertical-dismiss') {
+        if (this.edgeDy >= this.edgeCommitY) {
+          this.dismissFlashActive = true;
+          this.showDismissHint = true;
+          this.dragOffsetX = 0;
+          this.dragOffsetY = 0;
+          this.edgeKind = null;
+          this.gestureDecided = false;
+          this.applyImgTransform();
+          this.syncNavigationGestureHintToStore();
+          setTimeout(() => {
+            this.$emit('close-preview');
+          }, 120);
+          setTimeout(() => {
+            this.dismissFlashActive = false;
+            this.showDismissHint = false;
+            mutations.setNavigationGestureHint({});
+          }, 420);
+          return;
+        }
+      }
+      this.snapBackEdgeGesture();
+    },
+    teardownEdgeMouseListeners() {
+      document.removeEventListener('mousemove', this.onEdgeMouseMove, true);
+      document.removeEventListener('mouseup', this.onEdgeMouseUp, true);
+      this.edgeMouseActive = false;
+    },
+    onEdgeMouseMove(event) {
+      if (!this.edgeMouseActive || this.scale !== 1) {
+        return;
+      }
+      this.edgeDx = event.clientX - this.edgeStartX;
+      this.edgeDy = event.clientY - this.edgeStartY;
+      this.decideEdgeKind();
+      this.applyEdgeVisuals();
+      event.preventDefault();
+    },
+    onEdgeMouseUp(event) {
+      if (!this.edgeMouseActive) {
+        return;
+      }
+      this.teardownEdgeMouseListeners();
+      this.edgeDx = event.clientX - this.edgeStartX;
+      this.edgeDy = event.clientY - this.edgeStartY;
+      this.finishEdgeGesture();
+      event.preventDefault();
+    },
     setCenter() {
       const container = this.$refs.container;
       const img = this.$refs.imgex;
       if (!container || !img || !img.clientWidth || !img.clientHeight) {
         return;
       }
-      // Images are centered using CSS (top: 50%, left: 50%, transform: translate(-50%, -50%))
-      // Reset pan position when centering
       this.position.relative = { x: 0, y: 0 };
       this.position.center.x = Math.floor((container.clientWidth - img.clientWidth) / 2);
       this.position.center.y = Math.floor((container.clientHeight - img.clientHeight) / 2);
-      // Update transform to reflect centered state
-      if (this.scale === 1) {
-        img.style.transform = 'translate(-50%, -50%) scale(1)';
-      } else {
-        img.style.transform = `translate(calc(-50% + ${this.position.relative.x}px), calc(-50% + ${this.position.relative.y}px)) scale(${this.scale})`;
-      }
+      this.resetEdgeGestureImmediate();
+      this.applyImgTransform();
     },
     mousedownStart(event) {
+      if (this.scale === 1) {
+        this.teardownEdgeMouseListeners();
+        this.edgeMouseActive = true;
+        this.edgeStartX = event.clientX;
+        this.edgeStartY = event.clientY;
+        this.edgeDx = 0;
+        this.edgeDy = 0;
+        this.edgeKind = null;
+        this.gestureDecided = false;
+        document.addEventListener('mousemove', this.onEdgeMouseMove, true);
+        document.addEventListener('mouseup', this.onEdgeMouseUp, true);
+        event.preventDefault();
+        return;
+      }
       this.lastX = null;
       this.lastY = null;
       this.inDrag = true;
       event.preventDefault();
     },
     mouseMove(event) {
-      if (!this.inDrag) return;
-      this.doMove(event.movementX, event.movementY);
-      event.preventDefault();
+      if (this.scale > 1 && this.inDrag) {
+        this.doMove(event.movementX, event.movementY);
+        event.preventDefault();
+      }
     },
     mouseUp(event) {
-      this.inDrag = false;
-      event.preventDefault();
+      if (this.scale > 1) {
+        this.inDrag = false;
+        event.preventDefault();
+      }
     },
     touchStart(event) {
       this.lastX = null;
@@ -271,16 +549,15 @@ export default {
       this.lastTouchDistance = null;
       if (event.targetTouches.length === 1 && this.scale === 1) {
         const touch = event.targetTouches[0];
-        this.swipeStartTime = Date.now();
-        this.swipeStartX = touch.pageX;
-        this.swipeStartY = touch.pageY;
-        this.swipeCurrentX = touch.pageX;
-        this.swipeCurrentY = touch.pageY;
-        this.isSwipeGesture = false;
-        this.hasStartedSwipe = false;
+        this.edgeStartX = touch.pageX;
+        this.edgeStartY = touch.pageY;
+        this.edgeDx = 0;
+        this.edgeDy = 0;
+        this.edgeKind = null;
         this.gestureDecided = false;
       } else {
-        this.resetSwipeTracking();
+        this.resetEdgeGestureImmediate();
+        this.applyImgTransform();
       }
       if (event.targetTouches.length < 2) {
         setTimeout(() => {
@@ -316,25 +593,16 @@ export default {
     touchMove(event) {
       if (event.targetTouches.length === 1 && this.scale === 1) {
         const touch = event.targetTouches[0];
-        this.swipeCurrentX = touch.pageX;
-        this.swipeCurrentY = touch.pageY;
-        if (!this.gestureDecided) {
-          const deltaX = Math.abs(this.swipeCurrentX - this.swipeStartX);
-          const deltaY = Math.abs(this.swipeCurrentY - this.swipeStartY);
-          if (deltaX > 10 || deltaY > 10) {
-            this.gestureDecided = true;
-            if (deltaX > deltaY * 2) {
-              this.isSwipeGesture = true;
-              event.preventDefault();
-            } else {
-              this.isSwipeGesture = false;
-            }
-          }
-        }
-        if (this.gestureDecided && this.isSwipeGesture) {
+        this.edgeDx = touch.pageX - this.edgeStartX;
+        this.edgeDy = touch.pageY - this.edgeStartY;
+        this.decideEdgeKind();
+        this.applyEdgeVisuals();
+        const ax = Math.abs(this.edgeDx);
+        const ay = Math.abs(this.edgeDy);
+        if (this.edgeKind || ax > 14 || ay > 14) {
           event.preventDefault();
-          return;
         }
+        return;
       }
       if (this.scale > 1 || event.targetTouches.length >= 2) {
         event.preventDefault();
@@ -377,11 +645,7 @@ export default {
     doMove(x, y) {
       this.position.relative.x += x;
       this.position.relative.y += y;
-      const img = this.$refs.imgex;
-      if (img) {
-        // Combine centering (-50%) with pan offset and scale
-        img.style.transform = `translate(calc(-50% + ${this.position.relative.x}px), calc(-50% + ${this.position.relative.y}px)) scale(${this.scale})`;
-      }
+      this.applyImgTransform();
     },
     wheelMove(event) {
       event.preventDefault()
@@ -392,52 +656,23 @@ export default {
       this.scale = Math.max(this.minScale, Math.min(this.maxScale, this.scale));
       if (this.scale === 1) {
         this.position.relative = { x: 0, y: 0 };
+        this.resetEdgeGestureImmediate();
       }
-      const img = this.$refs.imgex;
-      if (img) {
-        // Combine centering (-50%) with pan offset and scale
-        img.style.transform = `translate(calc(-50% + ${this.position.relative.x}px), calc(-50% + ${this.position.relative.y}px)) scale(${this.scale})`;
-      }
+      this.applyImgTransform();
     },
     pxStringToNumber(style) {
       return +style.replace("px", "");
     },
     touchEnd(event) {
-      let handledSwipe = false;
-      if (this.isSwipeGesture && this.swipeStartTime && this.scale === 1) {
-        const swipeEndTime = Date.now();
-        const swipeDuration = swipeEndTime - this.swipeStartTime;
-        const deltaX = this.swipeCurrentX - this.swipeStartX;
-        const deltaY = Math.abs(this.swipeCurrentY - this.swipeStartY);
-        const absDelataX = Math.abs(deltaX);
-        if (
-          swipeDuration <= this.swipeMaxTime &&
-          absDelataX >= this.swipeMinDistance &&
-          deltaY <= this.swipeMaxVerticalDistance
-        ) {
-          if (deltaX > 0) {
-            this.$emit('navigate-previous');
-          } else {
-            this.$emit('navigate-next');
-          }
-          handledSwipe = true;
-          event.preventDefault();
-        }
-      }
-      if (!handledSwipe && this.scale > 1) {
+      if (this.scale === 1 && event.changedTouches.length > 0) {
+        const t = event.changedTouches[0];
+        this.edgeDx = t.pageX - this.edgeStartX;
+        this.edgeDy = t.pageY - this.edgeStartY;
+        this.finishEdgeGesture();
+        event.preventDefault();
+      } else if (this.scale > 1) {
         event.preventDefault();
       }
-      this.resetSwipeTracking();
-    },
-    resetSwipeTracking() {
-      this.swipeStartTime = null;
-      this.swipeStartX = 0;
-      this.swipeStartY = 0;
-      this.swipeCurrentX = 0;
-      this.swipeCurrentY = 0;
-      this.isSwipeGesture = false;
-      this.hasStartedSwipe = false;
-      this.gestureDecided = false;
     },
   },
   watch: {
@@ -479,7 +714,8 @@ export default {
       
       this.scale = 1;
       this.position.relative = { x: 0, y: 0 };
-      this.resetSwipeTracking();
+      this.resetEdgeGestureImmediate();
+      this.applyImgTransform();
     },
   },
 };

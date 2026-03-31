@@ -804,6 +804,25 @@ export const mutations = {
     state.navigation.hoverNav = hover;
     emitStateChanged();
   },
+  /**
+   * @param {{ kind?: null | 'previous' | 'next' | 'close', commitReady?: boolean, flashClose?: boolean }} [payload]
+   */
+  setNavigationGestureHint: (payload = {}) => {
+    const kind = payload.kind ?? null;
+    const commitReady = !!payload.commitReady;
+    const flashClose = !!payload.flashClose;
+    if (
+      state.navigation.gestureHint === kind &&
+      state.navigation.gestureHintCommitReady === commitReady &&
+      state.navigation.gestureHintFlashClose === flashClose
+    ) {
+      return;
+    }
+    state.navigation.gestureHint = kind;
+    state.navigation.gestureHintCommitReady = commitReady;
+    state.navigation.gestureHintFlashClose = flashClose;
+    emitStateChanged();
+  },
   setNavigationTimeout: (timeout) => {
     if (state.navigation.timeout) {
       clearTimeout(state.navigation.timeout);
@@ -819,6 +838,9 @@ export const mutations = {
   clearNavigation: () => {
     state.navigation.show = false;
     state.navigation.hoverNav = false;
+    state.navigation.gestureHint = null;
+    state.navigation.gestureHintCommitReady = false;
+    state.navigation.gestureHintFlashClose = false;
     state.navigation.listing = null;
     state.navigation.currentIndex = -1;
     state.navigation.previousItem = null;

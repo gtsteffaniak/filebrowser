@@ -10,13 +10,16 @@
       'transitioning': isTransitioning
     }" v-if="!isDeleted">
       <ExtendedImage v-if="showImage && !isTransitioning" :src="raw" @navigate-previous="navigatePrevious"
-        @navigate-next="navigateNext" />
+        @navigate-next="navigateNext" @close-preview="exitPreviewFromImageGesture" />
 
       <!-- Media Player Component -->
       <plyrViewer v-else-if="previewType == 'audio' || previewType == 'video'" ref="plyrViewer"
         :previewType="previewType" :raw="raw" :subtitlesList="subtitlesList" :req="req" :listing="listing"
         :useDefaultMediaPlayer="useDefaultMediaPlayer" :autoPlayEnabled="autoPlay" @play="autoPlay = true"
-        :class="{ 'plyr-background': previewType == 'audio' && !useDefaultMediaPlayer }" />
+        :class="{ 'plyr-background': previewType == 'audio' && !useDefaultMediaPlayer }"
+        @navigate-previous="navigatePrevious"
+        @navigate-next="navigateNext"
+        @close-preview="exitPreviewFromImageGesture" />
 
       <div v-else-if="previewType == 'pdf'" class="pdf-wrapper">
         <iframe class="pdf" :src="raw"></iframe>
@@ -453,6 +456,20 @@ export default {
       if (state.navigation.nextLink) {
         this.$router.replace({ path: state.navigation.nextLink });
       }
+    },
+    /** Same navigation as header “back” in preview (Default.vue performNavigation). */
+    exitPreviewFromImageGesture() {
+      mutations.closeHovers();
+      if (state.previousHistoryItem?.name) {
+        url.goToItem(
+          state.previousHistoryItem.source,
+          state.previousHistoryItem.path,
+          state.previousHistoryItem,
+        );
+        return;
+      }
+      const parentPath = url.removeLastDir(state.route.path);
+      this.$router.push({ path: parentPath });
     },
   },
 };

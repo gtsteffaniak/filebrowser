@@ -6,10 +6,16 @@ All notable changes to this project will be documented in this file. For commit 
 
  **New Features**:
  - Copy/paste files and folders (`CTRL+C`/`CTRL+V`) from other apps (win explorer, thunar, finder, etc) to upload them directly (#2197)
+ - Caption font size can be adjusted in video settings
 
  **Notes**:
  - `.fbx` 3d model files added to supported previews.
  - removed upx compression on docker image (#2193)
+ - videos double tap to fast-forward and rewind added.
+ - Adjust Image album swipe behavior (#2068)
+   - swipe animation for next/previous
+   - swipe down on image to close and go to parent folder.
+   - supports videos
  - The Icons in the UI were updated! (#2203)
    - More supported icons in the Icon Picker tool.
    - More file types have new icons across all the listings (such as `.md`, `.apk`, etc).

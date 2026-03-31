@@ -140,6 +140,10 @@ export const state = reactive({
     enabled: false,
     isTransitioning: false,
     transitionStartTime: null,
+    /** Drives nextPrevious nav buttons during image/video swipe gestures */
+    gestureHint: null,
+    gestureHintCommitReady: false,
+    gestureHintFlashClose: false,
   },
   playbackQueue: {
     queue: [],
