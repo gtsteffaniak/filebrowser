@@ -80,8 +80,6 @@
       'gesture-flash': gestureHintFlashClose,
       'sidebar-resizing': isSidebarResizing,
     }"
-    :aria-label="$t('general.closePreview')"
-    :title="$t('general.closePreview')"
     :style="closeButtonStyle"
   >
     <i class="material-symbols">close</i>
