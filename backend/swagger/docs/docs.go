@@ -5709,7 +5709,7 @@ const docTemplate = `{
                     ]
                 },
                 "createUserDir": {
-                    "description": "create a user directory for each user under defaultUserScope + username",
+                    "description": "deprecated: create a user directory for each user under defaultUserScope + username (always true now)",
                     "type": "boolean"
                 },
                 "defaultEnabled": {
