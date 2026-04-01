@@ -156,7 +156,6 @@ func TestUpdateUserScopes_Phases(t *testing.T) {
 	sourceA = settings.Source{Path: "/pathA", Name: "sourceA", Config: settings.SourceConfig{
 		DefaultEnabled:   true,
 		DefaultUserScope: "/defaultA",
-		CreateUserDir:    true,
 	}}
 	sourceB = settings.Source{Path: "/pathB", Name: "sourceB", Config: settings.SourceConfig{DefaultEnabled: true, DefaultUserScope: "/defaultB"}}
 	settings.Config.Server.Sources = []*settings.Source{&sourceA, &sourceB}

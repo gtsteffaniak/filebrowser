@@ -560,6 +560,24 @@ export const mutations = {
     state.req = value;
     emitStateChanged();
   },
+  /** Merge media metadata into current directory listing (state.req.items) by file name. */
+  patchRequestMetadata: (metadataItems) => {
+    if (!state.req?.items || !metadataItems?.length) {
+      return;
+    }
+    const byName = new Map();
+    for (const e of metadataItems) {
+      if (e.metadata != null) {
+        byName.set(e.name, e.metadata);
+      }
+    }
+    for (const item of state.req.items) {
+      if (byName.has(item.name)) {
+        item.metadata = byName.get(item.name);
+      }
+    }
+    emitStateChanged();
+  },
   clearRequest: () => {
     // Set req to null to prevent API calls with empty paths
     // Components should check for null req before accessing

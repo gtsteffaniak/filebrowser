@@ -359,6 +359,72 @@ definitions:
       type:
         type: string
     type: object
+  iteminfo.ExtendedFileInfo:
+    properties:
+      checksums:
+        additionalProperties:
+          type: string
+        description: checksums for the file
+        type: object
+      content:
+        description: text content of a file, if requested
+        type: string
+      files:
+        description: files in the directory with optional metadata
+        items:
+          $ref: '#/definitions/iteminfo.ExtendedItemInfo'
+        type: array
+      folders:
+        description: folders in the directory
+        items:
+          $ref: '#/definitions/iteminfo.ItemInfo'
+        type: array
+      hasPreview:
+        description: whether the file has a thumbnail preview
+        type: boolean
+      hash:
+        description: hash for the file -- used for sharing
+        type: string
+      hidden:
+        description: whether the file is hidden
+        type: boolean
+      isShared:
+        description: whether the file or folder is shared
+        type: boolean
+      metadata:
+        allOf:
+        - $ref: '#/definitions/iteminfo.MediaMetadata'
+        description: media metadata for audio/video files (includes duration)
+      modified:
+        description: modification time
+        type: string
+      name:
+        description: name of the file
+        type: string
+      onlyOfficeId:
+        description: id for onlyoffice files
+        type: string
+      path:
+        description: path scoped to the associated index
+        type: string
+      size:
+        description: length in bytes for regular files
+        type: integer
+      source:
+        description: associated index source for the file
+        type: string
+      subtitles:
+        description: subtitles for video files
+        items:
+          $ref: '#/definitions/utils.SubtitleTrack'
+        type: array
+      token:
+        description: token for the file -- used for sharing
+        type: string
+      type:
+        description: type of the file, either "directory" or a file mimetype
+        type: string
+    type: object
   iteminfo.ExtendedItemInfo:
     properties:
       hasPreview:
@@ -1103,8 +1169,8 @@ definitions:
         - $ref: '#/definitions/settings.ConditionalFilter'
         description: 'deprecated: use source.rules instead'
       createUserDir:
-        description: create a user directory for each user under defaultUserScope
-          + username
+        description: 'deprecated: create a user directory for each user under defaultUserScope
+          + username (always true now)'
         type: boolean
       defaultEnabled:
         description: should be added as a default source for new users?
@@ -1953,6 +2019,27 @@ definitions:
         description: 'view mode to use: eg. normal, list, grid, or compact'
         type: string
     type: object
+  utils.SubtitleTrack:
+    properties:
+      codec:
+        description: codec name for embedded subtitles
+        type: string
+      embedded:
+        description: true for embedded subtitles, false for external files
+        type: boolean
+      index:
+        description: stream index for embedded subtitles (nil for external)
+        type: integer
+      language:
+        description: language code
+        type: string
+      name:
+        description: filename for external, or descriptive name for embedded
+        type: string
+      title:
+        description: title/description
+        type: string
+    type: object
 info:
   contact: {}
 paths:
@@ -2670,6 +2757,45 @@ paths:
       summary: List API tokens
       tags:
       - Auth
+  /api/media/metadata:
+    get:
+      consumes:
+      - application/json
+      description: Same ExtendedFileInfo as resources GET with metadata=true (typically
+        used for directories).
+      parameters:
+      - description: Path to the directory
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: Source name
+        in: query
+        name: source
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/iteminfo.ExtendedFileInfo'
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Directory with media metadata
+      tags:
+      - Resources
   /api/media/subtitles:
     get:
       consumes:
@@ -2915,7 +3041,8 @@ paths:
         name: path
         required: true
         type: string
-      - description: Skip extended attributes for faster retrieval, no hasPreview
+      - description: When true, omit index-level extended fields (e.g. hasPreview);
+          does not disable ffmpeg/media extraction
         in: query
         name: skipExtendedAttrs
         type: string
@@ -2928,7 +3055,8 @@ paths:
         in: query
         name: content
         type: string
-      - description: Extract audio/video metadata if true
+      - description: When true, run audio/video metadata extraction, subtitles, and
+          directory media batch processing
         in: query
         name: metadata
         type: string
@@ -3337,6 +3465,50 @@ paths:
               type: string
             type: object
       summary: Get directory items
+      tags:
+      - Resources
+  /api/resources/pause:
+    post:
+      consumes:
+      - application/json
+      description: Sets a short-lived server flag for the given source and path. When
+        the active chunk POST then fails (e.g. client abort), the server trims the
+        incomplete chunk but keeps the temp partial file for resume.
+      parameters:
+      - description: Destination path (same as upload)
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: Source name (same as upload)
+        in: query
+        name: source
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Pause registered
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Source not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register graceful chunked upload pause
       tags:
       - Resources
   /api/resources/preview:
@@ -4103,6 +4275,28 @@ paths:
           schema:
             $ref: '#/definitions/http.HttpResponse'
       summary: Health Check
+  /public/api/media/metadata:
+    get:
+      parameters:
+      - description: Share hash
+        in: query
+        name: hash
+        required: true
+        type: string
+      - description: Path within the share
+        in: query
+        name: path
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/iteminfo.ExtendedFileInfo'
+      summary: Directory with media metadata (public share)
+      tags:
+      - Shares
   /public/api/resources:
     get:
       consumes:
@@ -4526,6 +4720,43 @@ paths:
               type: string
             type: object
       summary: Get directory items (public share)
+      tags:
+      - Shares
+  /public/api/resources/pause:
+    post:
+      consumes:
+      - application/json
+      description: Same as authenticated pause, for upload shares. Uses hash and path
+        query parameters like other public resource APIs.
+      parameters:
+      - description: Share hash
+        in: query
+        name: hash
+        required: true
+        type: string
+      - description: Path within the share (same as upload)
+        in: query
+        name: path
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Pause registered
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Source not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register graceful chunked upload pause (public share)
       tags:
       - Shares
   /public/api/resources/preview:

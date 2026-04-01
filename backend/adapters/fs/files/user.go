@@ -31,10 +31,9 @@ func MakeUserDirs(u *users.User, disableScopeChange bool) error {
 			continue
 		}
 		// create directory and append user name
-		if filepath.Base(scope.Scope) != cleanedUserName && source.Config.CreateUserDir && !disableScopeChange {
+		if filepath.Base(scope.Scope) != cleanedUserName && !disableScopeChange {
 			fullPath := filepath.Join(source.Path, scope.Scope, cleanedUserName)
 			parentDir := filepath.Join(source.Path, scope.Scope)
-			// If parent directory doesn't exist and createUserDir is enabled, create it
 			if !Exists(parentDir) {
 				if err := MakeUserDir(parentDir); err != nil {
 					logger.Errorf("MakeUserDirs: failed to create parent scope directory: %s - %v", scope.Scope, err)
@@ -48,7 +47,7 @@ func MakeUserDirs(u *users.User, disableScopeChange bool) error {
 				logger.Errorf("MakeUserDirs: failed to create user home dir: %s", err)
 				// Continue to next scope even if this one failed
 			}
-		} else if filepath.Base(scope.Scope) == cleanedUserName && source.Config.CreateUserDir {
+		} else if filepath.Base(scope.Scope) == cleanedUserName {
 			// create directory exactly as specified
 			fullPath := filepath.Join(source.Path, scope.Scope)
 			parentDir := filepath.Dir(fullPath)

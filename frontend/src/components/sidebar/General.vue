@@ -1,6 +1,6 @@
 <template>
   <div class="card headline-card">
-    <div v-if="isDataLoaded && shouldShowLogin" class="card-wrapper user-card">
+    <div v-if="isDataLoaded && shouldShowLogin" class="card-wrapper user-card" :class="{ 'extra-padding': !disableQuickToggles }">
       <div v-if="settingsAllowed" class="inner-card user-card__profile">
         <a href="/settings#profile-main" class="person-button action button"
           @click.prevent="navigateTo('/settings', '#profile-main')"

@@ -119,6 +119,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	api.HandleFunc("POST /resources/unarchive", withUser(unarchiveHandler))
 	api.HandleFunc("GET /resources/download", withUser(downloadHandler))
 	api.HandleFunc("GET /resources/preview", withTimeout(60*time.Second, withUserHelper(previewHandler)))
+	api.HandleFunc("POST /resources/pause", withUser(resourcePauseHandler))
 	publicApi.HandleFunc("GET /resources", withHashFile(publicGetResourceHandler))
 	publicApi.HandleFunc("GET /resources/items", withHashFile(publicItemsGetHandler))
 	publicApi.HandleFunc("POST /resources", withHashFile(publicUploadHandler))
@@ -128,6 +129,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	publicApi.HandleFunc("PATCH /resources", withHashFile(publicPatchHandler))
 	publicApi.HandleFunc("GET /resources/download", withHashFile(publicDownloadHandler))
 	publicApi.HandleFunc("GET /resources/preview", withHashFile(publicPreviewHandler))
+	publicApi.HandleFunc("POST /resources/pause", withHashFile(publicPauseHandler))
 	// Legacy routes (backwards compatibility)
 	api.HandleFunc("GET /raw", withUser(downloadHandler))
 	publicApi.HandleFunc("GET /raw", withHashFile(publicDownloadHandler))
@@ -171,9 +173,11 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	api.HandleFunc("GET /tools/fileWatcher/sse", withUser(fileWatchSSEHandler))
 
 	// ========================================
-	// Media Routes - /api/media/
+	// Media Routes - /api/media/ (with public routes)
 	// ========================================
 	api.HandleFunc("GET /media/subtitles", withUser(subtitlesHandler))
+	api.HandleFunc("GET /media/metadata", withUser(metadataHandler))
+	publicApi.HandleFunc("GET /media/metadata", withHashFile(publicMetadataHandler))
 
 	// ========================================
 	// OnlyOffice Routes - /api/office/ (with public routes)

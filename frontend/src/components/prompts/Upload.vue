@@ -763,4 +763,8 @@ export default {
 .sizeInput {
   max-width: 100px;
 }
+.card-actions {
+  display: flex;
+  justify-content: flex-end;
+}
 </style>

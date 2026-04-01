@@ -47,6 +47,31 @@ export async function getItems(source, path, only = "") {
   }
 }
 
+/**
+ * Registers a graceful pause for the active chunked upload at this path.
+ * Call immediately before aborting the chunk XHR so the server keeps partial data.
+ */
+export async function signalUploadPause(source, path, shareHash = null) {
+  if (shareHash) {
+    const apiPath = getPublicApiPath('resources/pause', {
+      hash: shareHash,
+      path: path,
+    })
+    const headers = {}
+    const sharePassword = localStorage.getItem('sharepass:' + shareHash)
+    if (sharePassword) {
+      headers['X-SHARE-PASSWORD'] = sharePassword
+    }
+    await fetchURL(apiPath, { method: 'POST', headers })
+    return
+  }
+  if (!source || source === undefined || source === null) {
+    throw new Error('no source provided')
+  }
+  const apiPath = getApiPath('resources/pause', { path, source })
+  await fetchURL(apiPath, { method: 'POST' })
+}
+
 async function resourceAction(source, path, method, content) {
   if (!source || source === undefined || source === null) {
     throw new Error('no source provided')
