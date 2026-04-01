@@ -87,12 +87,11 @@ const (
 )
 
 type IndexSqlConfig struct {
-	BatchSize             int    `json:"batchSize"`                       // number of items to batch in a single transaction, typically 500-5000. higher = faster but could use more memory.
-	CacheSizeMB           int    `json:"cacheSizeMB"`                     // size of the SQLite cache in MB
-	WalMode               bool   `json:"walMode"`                         // enable the more complex WAL journaling mode. Slower, more memory usage, but better for deployments with constant user activity.
-	DisableReuse          bool   `json:"disableReuse"`                    // enable to always create a new indexing database on startup.
-	// validate: blank or quickCheck | probe | off (see IndexStartupIntegrity* constants).
-	StartupIntegrityCheck string `json:"startupIntegrityCheck,omitempty" validate:"omitempty,oneof=quickCheck probe off"`
+	BatchSize             int    `json:"batchSize"`                                                                       // number of items to batch in a single transaction, typically 500-5000. higher = faster but could use more memory.
+	CacheSizeMB           int    `json:"cacheSizeMB"`                                                                     // size of the SQLite cache in MB
+	WalMode               bool   `json:"walMode"`                                                                         // enable the more complex WAL journaling mode. Slower, more memory usage, but better for deployments with constant user activity.
+	DisableReuse          bool   `json:"disableReuse"`                                                                    // enable to always create a new indexing database on startup.
+	StartupIntegrityCheck string `json:"startupIntegrityCheck,omitempty" validate:"omitempty,oneof=quickCheck probe off"` // the method used to check the integrity of the index database on startup (default: quickCheck)
 }
 
 type Integrations struct {
