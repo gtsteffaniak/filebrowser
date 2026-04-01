@@ -6621,10 +6621,6 @@ const docTemplate = `{
                     "description": "space separated list of file extensions to disable viewing for",
                     "type": "string"
                 },
-                "displayMediaMetadata": {
-                    "description": "display media metadata for images, videos, and audio files in the listing view. Can cause a small delay in loading.",
-                    "type": "boolean"
-                },
                 "editorQuickSave": {
                     "description": "show quick save button in editor",
                     "type": "boolean"
