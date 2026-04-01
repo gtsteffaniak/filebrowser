@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+
+## v1.2.4-stable
+
+ **Security**:
+ - Anonymouse user shouldn't see server folder path with the "Go to source location" button from the share page. (#2216)
+
+ **Notes**:
+ - removed upx compression on docker images (#2193)
+
+**BugFixes**:
+ - Share banner URL not rendering in Open Graph (og:image) meta tags for link previews (#2189)
+
 ## v1.2.2-stable
 
  **Security**:
