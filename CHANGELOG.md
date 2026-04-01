@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file. For commit 
  **New Features**:
  - Copy/paste files and folders (`CTRL+C`/`CTRL+V`) from other apps (win explorer, thunar, finder, etc) to upload them directly (#2197)
  - Caption font size can be adjusted in video settings
- - Ability to adjust the startup check method for sql database (#2221)
+ - Ability to adjust the startup check method for sql database via `server.startupIntegrityCheck` (#2221)
 
  **Notes**:
  - `.fbx` 3d model files added to supported previews.

@@ -752,8 +752,8 @@ definitions:
         description: enable to always create a new indexing database on startup.
         type: boolean
       startupIntegrityCheck:
-        description: 'validate: blank or quickCheck | probe | off (see IndexStartupIntegrity*
-          constants).'
+        description: 'the method used to check the integrity of the index database
+          on startup (default: quickCheck)'
         enum:
         - quickCheck
         - probe

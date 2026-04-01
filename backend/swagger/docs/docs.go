@@ -5164,7 +5164,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "startupIntegrityCheck": {
-                    "description": "validate: blank or quickCheck | probe | off (see IndexStartupIntegrity* constants).",
+                    "description": "the method used to check the integrity of the index database on startup (default: quickCheck)",
                     "type": "string",
                     "enum": [
                         "quickCheck",
