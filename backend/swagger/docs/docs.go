@@ -5163,6 +5163,15 @@ const docTemplate = `{
                     "description": "enable to always create a new indexing database on startup.",
                     "type": "boolean"
                 },
+                "startupIntegrityCheck": {
+                    "description": "validate: blank or quickCheck | probe | off (see IndexStartupIntegrity* constants).",
+                    "type": "string",
+                    "enum": [
+                        "quickCheck",
+                        "probe",
+                        "off"
+                    ]
+                },
                 "walMode": {
                     "description": "enable the more complex WAL journaling mode. Slower, more memory usage, but better for deployments with constant user activity.",
                     "type": "boolean"
