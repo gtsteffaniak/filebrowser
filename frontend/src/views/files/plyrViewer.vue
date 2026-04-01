@@ -1,7 +1,11 @@
 <template>
   <div class="plyr-viewer">
     <!-- Audio with plyr -->
-    <div v-if="previewType == 'audio' && !useDefaultMediaPlayer" class="audio-player-container">
+    <div
+      v-if="previewType == 'audio' && !useDefaultMediaPlayer"
+      ref="audioPlayerGestureRoot"
+      class="audio-player-container audio-player-container--plyr-gestures"
+    >
       <div class="audio-player-content">
 
         <!-- Album art with a generic icon if no image/metadata -->
@@ -14,8 +18,8 @@
              @mouseenter="onAlbumArtHover"
              @mouseleave="onAlbumArtLeave"
              @wheel="onAlbumArtScroll">
-          <img v-if="albumArtUrl" :src="albumArtUrl" :alt="metadata.album || 'Album art'"
-            class="album-art" />
+          <img class="no-select album-art" v-if="albumArtUrl" :src="albumArtUrl" :alt="metadata.album || 'Album art'"
+            />
           <div v-else class="album-art-fallback">
             <i class="material-symbols">music_note</i>
           </div>
@@ -42,6 +46,18 @@
         <div class="plyr-audio-container" ref="plyrAudioContainer">
           <audio :src="raw" :type="req.type" :autoplay="shouldAutoplay" @play="handlePlay" ref="audioElement"></audio>
         </div>
+      </div>
+
+      <div
+        class="video-skip-feedback-layer"
+        :class="{
+          'video-skip-feedback-layer--visible': skipFeedbackVisible,
+          'video-skip-feedback-layer--left': skipFeedbackSide === 'left',
+          'video-skip-feedback-layer--right': skipFeedbackSide === 'right',
+        }"
+        aria-hidden="true"
+      >
+        <i :key="skipFeedbackKey" class="material-symbols video-skip-feedback-layer__icon">{{ skipFeedbackIcon }}</i>
       </div>
     </div>
 
@@ -210,51 +226,14 @@ export default {
       videoEdgeCommitY: 110,
       videoEdgeRubberMax: 100,
       videoSwipeCleanup: null,
+      /** When audio scrub/menu steals touchstart, ignore move/end for this touch id (Plyr has no video wrapper). */
+      videoSwipeSuppressedTouchId: null,
       videoDismissCloseTimer: null,
       videoDismissHintTimer: null,
       // Plyr instance
       player: null,
       PlyrCaptionSizeStorageKey: 'filebrowser-plyr-caption-size',
       captionSizeMenuInitialized: false,
-      // Plyr options
-      plyrOptions: {
-        controls: [
-          "play-large",
-          "play",
-          "progress",
-          "current-time",
-          "duration",
-          "mute",
-          "volume",
-          "captions",
-          "pip",
-          "settings",
-          "fullscreen",
-        ],
-        settings: ['captions', 'captionSize', 'quality', 'speed', 'playback'],
-        i18n: {
-          playback: 'Playback',
-          captionSize: 'Caption size',
-        },
-        speed: {
-          selected: 1,
-          options: [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2],
-        },
-        disableContextMenu: true,
-        seekTime: 10,
-        hideControls: true,
-        keyboard: { focused: true, global: true },
-        tooltips: { controls: true, seek: true },
-        loop: { active: false },
-        blankVideo: "",
-        muted: false, // Disable muting automatically
-        autoplay: false, // The users will manage this from their profile settings
-        playsinline: true,
-        clickToPlay: true,
-        resetOnEnd: true,
-        preload: 'metadata',
-        iconUrl: globalVars.baseURL + 'public/static/img/plyr.svg',
-      },
     };
   },
   watch: {
@@ -302,6 +281,12 @@ export default {
     },
     hasSubtitles() {
       this.syncCaptionSizeSettingsVisibility();
+    },
+    storeIsMobile(newVal, oldVal) {
+      if (newVal === oldVal) {
+        return;
+      }
+      this.rebuildPlyrAfterMobileLayoutChange();
     },
   },
   computed: {
@@ -364,7 +349,7 @@ export default {
     },
     videoSwipeGesturesActive() {
       return (
-        this.previewType === 'video' &&
+        (this.previewType === 'video' || this.previewType === 'audio') &&
         !this.useDefaultMediaPlayer &&
         !!this.player &&
         !this.player.fullscreen?.active
@@ -378,6 +363,67 @@ export default {
     },
     hasVideoNextNav() {
       return this.videoNavigationGestureAllowed && state.navigation.nextLink !== '';
+    },
+    /** Tracks `mutations.setMobile()` / window resize so watchers can react. */
+    storeIsMobile() {
+      return state.isMobile;
+    },
+    /** Rewind / fast-forward in the control bar only on non-mobile (gestures stay as elsewhere). */
+    plyrOptions() {
+      const controlsDesktop = [
+        'play-large',
+        'rewind',
+        'play',
+        'fast-forward',
+        'progress',
+        'current-time',
+        'duration',
+        'mute',
+        'volume',
+        'captions',
+        'pip',
+        'settings',
+        'fullscreen',
+      ];
+      const controlsMobile = [
+        'play-large',
+        'play',
+        'progress',
+        'current-time',
+        'duration',
+        'mute',
+        'volume',
+        'captions',
+        'pip',
+        'settings',
+        'fullscreen',
+      ];
+      return {
+        controls: this.storeIsMobile ? controlsMobile : controlsDesktop,
+        settings: ['captions', 'captionSize', 'quality', 'speed', 'playback'],
+        i18n: {
+          playback: 'Playback',
+          captionSize: 'Caption size',
+        },
+        speed: {
+          selected: 1,
+          options: [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2],
+        },
+        disableContextMenu: true,
+        seekTime: 10,
+        hideControls: true,
+        keyboard: { focused: true, global: true },
+        tooltips: { controls: true, seek: true },
+        loop: { active: false },
+        blankVideo: '',
+        muted: false,
+        autoplay: false,
+        playsinline: true,
+        clickToPlay: true,
+        resetOnEnd: true,
+        preload: 'metadata',
+        iconUrl: globalVars.baseURL + 'public/static/img/plyr.svg',
+      };
     },
   },
   mounted() {
@@ -514,12 +560,15 @@ export default {
       // Reset playback state
       navigator.mediaSession.playbackState = 'none';
     },
-    destroyPlyr() {
+    destroyPlyr(options = {}) {
+      const preserveMediaShell = options.preserveMediaShell === true;
       if (this.player) {
         this.teardownVideoSwipeGestures();
         this.teardownDoubleTapSeek();
         this.clearMediaSession();
-        this.cleanupAlbumArt();
+        if (!preserveMediaShell) {
+          this.cleanupAlbumArt();
+        }
         this.player.off();
         this.player.destroy();
         this.player = null;
@@ -530,6 +579,52 @@ export default {
         // Somehow firefox will still trying to "load" the empty source which causes the warn.
         this.mediaElement.src = this.raw;
       }
+    },
+    /** Re-instantiate Plyr so control lists match `plyrOptions()` after `state.isMobile` changes. */
+    rebuildPlyrAfterMobileLayoutChange() {
+      if (this.useDefaultMediaPlayer || !this.player) {
+        return;
+      }
+      if (this.player.fullscreen?.active) {
+        return;
+      }
+      const wasPlaying = this.player.playing;
+      const savedTime = this.player.currentTime;
+      const savedSpeed = this.player.speed;
+      const savedVolume = this.player.volume;
+      const savedMuted = this.player.muted;
+
+      this.destroyPlyr({ preserveMediaShell: true });
+
+      this.$nextTick(() => {
+        if (!this.mediaElement) {
+          return;
+        }
+        this.initializePlyr();
+        this.$nextTick(() => {
+          const player = this.player;
+          const media = this.mediaElement;
+          if (!player || !media) {
+            return;
+          }
+          const restorePlayback = () => {
+            player.speed = savedSpeed;
+            player.volume = savedVolume;
+            player.muted = savedMuted;
+            if (Number.isFinite(savedTime) && savedTime > 0) {
+              player.currentTime = savedTime;
+            }
+            if (wasPlaying) {
+              player.play().catch(() => {});
+            }
+          };
+          if (media.readyState >= 1) {
+            restorePlayback();
+          } else {
+            media.addEventListener('loadedmetadata', restorePlayback, { once: true });
+          }
+        });
+      });
     },
     togglePlayPause() {
       if (!this.mediaElement) return;
@@ -849,19 +944,44 @@ export default {
       this.player.on('canplay', () => {
         this.updateMediaSessionPlaybackState();
       });
-      if (this.previewType === 'video') {
-        if (screen.orientation) {
-          this.player.on('enterfullscreen', this.onFullscreenEnter);
-          this.player.on('exitfullscreen', this.onFullscreenExit);
-        }
+      if ((this.previewType === 'video' || this.previewType === 'audio') && screen.orientation) {
+        this.player.on('enterfullscreen', this.onFullscreenEnter);
+        this.player.on('exitfullscreen', this.onFullscreenExit);
       }
       this.ensurePlaybackModeApplied();
       if (this.previewType === 'video') {
         this.applyCaptionSizeClass();
         this.syncCaptionSizeSettingsVisibility();
+      }
+      if (this.previewType === 'video' || this.previewType === 'audio') {
         this.setupDoubleTapSeek();
         this.setupVideoSwipeGestures();
       }
+    },
+    getPlyrGestureSurface() {
+      if (
+        this.previewType === 'audio' &&
+        !this.useDefaultMediaPlayer &&
+        this.player &&
+        this.$refs.audioPlayerGestureRoot
+      ) {
+        return this.$refs.audioPlayerGestureRoot;
+      }
+      if (!this.player?.elements) {
+        return null;
+      }
+      if (this.player.elements.wrapper) {
+        return this.player.elements.wrapper;
+      }
+      return this.player.elements.container ?? null;
+    },
+    isAudioPlyrScrubOrMenuTarget(el) {
+      if (this.previewType !== 'audio' || !el || typeof el.closest !== 'function') {
+        return false;
+      }
+      return !!el.closest(
+        '.plyr__menu__container, .plyr__menu, [data-plyr="seek"], .plyr__progress, [data-plyr="volume"], .plyr__volume'
+      );
     },
     teardownDoubleTapSeek() {
       if (typeof this.doubleTapSeekCleanup === 'function') {
@@ -870,12 +990,12 @@ export default {
       }
     },
     setupDoubleTapSeek() {
-      if (this.useDefaultMediaPlayer || this.previewType !== 'video' || !this.player) {
+      if (this.useDefaultMediaPlayer || (this.previewType !== 'video' && this.previewType !== 'audio') || !this.player) {
         return;
       }
       this.teardownDoubleTapSeek();
-      const wrapper = this.player.elements?.wrapper;
-      if (!wrapper || !this.player) {
+      const surface = this.getPlyrGestureSurface();
+      if (!surface || !this.player) {
         return;
       }
 
@@ -884,7 +1004,7 @@ export default {
       let lastZone = null;
 
       const zoneFromClientX = (clientX) => {
-        const rect = wrapper.getBoundingClientRect();
+        const rect = surface.getBoundingClientRect();
         const x = clientX - rect.left;
         const w = rect.width;
         if (w <= 0) {
@@ -913,7 +1033,16 @@ export default {
         if (event.changedTouches.length !== 1) {
           return;
         }
-        const clientX = event.changedTouches[0].clientX;
+        const t = event.changedTouches[0];
+        const topEl = typeof document.elementFromPoint === 'function'
+          ? document.elementFromPoint(t.clientX, t.clientY)
+          : null;
+        if (this.isAudioPlyrScrubOrMenuTarget(topEl)) {
+          lastTapTime = 0;
+          lastZone = null;
+          return;
+        }
+        const clientX = t.clientX;
         const zone = zoneFromClientX(clientX);
         if (zone === 'center') {
           lastTapTime = 0;
@@ -933,6 +1062,9 @@ export default {
       };
 
       const onDblClick = (event) => {
+        if (this.isAudioPlyrScrubOrMenuTarget(event.target)) {
+          return;
+        }
         const zone = zoneFromClientX(event.clientX);
         if (zone === 'center') {
           return;
@@ -942,12 +1074,12 @@ export default {
         applySeek(zone === 'left');
       };
 
-      wrapper.addEventListener('touchend', onTouchEnd, { passive: false });
-      wrapper.addEventListener('dblclick', onDblClick);
+      surface.addEventListener('touchend', onTouchEnd, { passive: false });
+      surface.addEventListener('dblclick', onDblClick);
 
       this.doubleTapSeekCleanup = () => {
-        wrapper.removeEventListener('touchend', onTouchEnd);
-        wrapper.removeEventListener('dblclick', onDblClick);
+        surface.removeEventListener('touchend', onTouchEnd);
+        surface.removeEventListener('dblclick', onDblClick);
       };
     },
     flashSkipFeedback(rewind) {
@@ -964,7 +1096,7 @@ export default {
       }, 700);
     },
     applyVideoSwipeTransform() {
-      const el = this.player?.elements?.wrapper;
+      const el = this.getPlyrGestureSurface();
       if (!el) {
         return;
       }
@@ -1111,6 +1243,7 @@ export default {
     },
     resetVideoEdgeGestureImmediate() {
       this.clearVideoDismissAnimTimers();
+      this.videoSwipeSuppressedTouchId = null;
       this.videoEdgeKind = null;
       this.videoGestureDecided = false;
       this.videoEdgeDx = 0;
@@ -1226,6 +1359,9 @@ export default {
       if (event.button !== 0 || !this.videoSwipeGesturesActive) {
         return;
       }
+      if (this.isAudioPlyrScrubOrMenuTarget(event.target)) {
+        return;
+      }
       this.clearVideoDismissAnimTimers();
       this.teardownVideoSwipeMouseDocListeners();
       this.videoEdgeMouseActive = true;
@@ -1242,6 +1378,11 @@ export default {
       if (!this.videoSwipeGesturesActive || event.targetTouches.length !== 1) {
         return;
       }
+      if (this.isAudioPlyrScrubOrMenuTarget(event.target)) {
+        this.videoSwipeSuppressedTouchId = event.targetTouches[0].identifier;
+        return;
+      }
+      this.videoSwipeSuppressedTouchId = null;
       this.clearVideoDismissAnimTimers();
       const touch = event.targetTouches[0];
       this.videoEdgeStartX = touch.pageX;
@@ -1261,6 +1402,12 @@ export default {
         return;
       }
       const touch = event.targetTouches[0];
+      if (
+        this.videoSwipeSuppressedTouchId !== null &&
+        touch.identifier === this.videoSwipeSuppressedTouchId
+      ) {
+        return;
+      }
       this.videoEdgeDx = touch.pageX - this.videoEdgeStartX;
       this.videoEdgeDy = touch.pageY - this.videoEdgeStartY;
       this.decideVideoEdgeKind();
@@ -1276,6 +1423,13 @@ export default {
         return;
       }
       const t = event.changedTouches[0];
+      if (
+        this.videoSwipeSuppressedTouchId !== null &&
+        t.identifier === this.videoSwipeSuppressedTouchId
+      ) {
+        this.videoSwipeSuppressedTouchId = null;
+        return;
+      }
       this.videoEdgeDx = t.pageX - this.videoEdgeStartX;
       this.videoEdgeDy = t.pageY - this.videoEdgeStartY;
       const ax = Math.abs(this.videoEdgeDx);
@@ -1286,33 +1440,43 @@ export default {
         event.preventDefault();
       }
     },
-    onVideoSwipeTouchCancel() {
+    onVideoSwipeTouchCancel(event) {
+      if (event?.changedTouches?.length) {
+        const t = event.changedTouches[0];
+        if (
+          this.videoSwipeSuppressedTouchId !== null &&
+          t.identifier === this.videoSwipeSuppressedTouchId
+        ) {
+          this.videoSwipeSuppressedTouchId = null;
+          return;
+        }
+      }
       if (this.videoEdgeKind || this.videoEdgeDx || this.videoEdgeDy) {
         this.snapBackVideoEdgeGesture();
       }
     },
     setupVideoSwipeGestures() {
       this.teardownVideoSwipeGestures();
-      if (this.useDefaultMediaPlayer || this.previewType !== 'video' || !this.player) {
+      if (this.useDefaultMediaPlayer || (this.previewType !== 'video' && this.previewType !== 'audio') || !this.player) {
         return;
       }
-      const wrapper = this.player.elements?.wrapper;
-      if (!wrapper) {
+      const surface = this.getPlyrGestureSurface();
+      if (!surface) {
         return;
       }
       const touchOpts = { passive: false };
-      wrapper.addEventListener('touchstart', this.onVideoSwipeTouchStart, touchOpts);
-      wrapper.addEventListener('touchmove', this.onVideoSwipeTouchMove, touchOpts);
-      wrapper.addEventListener('touchend', this.onVideoSwipeTouchEnd, touchOpts);
-      wrapper.addEventListener('touchcancel', this.onVideoSwipeTouchCancel, touchOpts);
-      wrapper.addEventListener('mousedown', this.onVideoSwipeMouseDown);
+      surface.addEventListener('touchstart', this.onVideoSwipeTouchStart, touchOpts);
+      surface.addEventListener('touchmove', this.onVideoSwipeTouchMove, touchOpts);
+      surface.addEventListener('touchend', this.onVideoSwipeTouchEnd, touchOpts);
+      surface.addEventListener('touchcancel', this.onVideoSwipeTouchCancel, touchOpts);
+      surface.addEventListener('mousedown', this.onVideoSwipeMouseDown);
 
       this.videoSwipeCleanup = () => {
-        wrapper.removeEventListener('touchstart', this.onVideoSwipeTouchStart, touchOpts);
-        wrapper.removeEventListener('touchmove', this.onVideoSwipeTouchMove, touchOpts);
-        wrapper.removeEventListener('touchend', this.onVideoSwipeTouchEnd, touchOpts);
-        wrapper.removeEventListener('touchcancel', this.onVideoSwipeTouchCancel, touchOpts);
-        wrapper.removeEventListener('mousedown', this.onVideoSwipeMouseDown);
+        surface.removeEventListener('touchstart', this.onVideoSwipeTouchStart, touchOpts);
+        surface.removeEventListener('touchmove', this.onVideoSwipeTouchMove, touchOpts);
+        surface.removeEventListener('touchend', this.onVideoSwipeTouchEnd, touchOpts);
+        surface.removeEventListener('touchcancel', this.onVideoSwipeTouchCancel, touchOpts);
+        surface.removeEventListener('mousedown', this.onVideoSwipeMouseDown);
         this.teardownVideoSwipeMouseDocListeners();
       };
     },
@@ -1907,34 +2071,40 @@ export default {
  * Caption size only: Plyr uses --plyr-font-size-* on the root .plyr for controls,
  * time, and menus — never override those for captions. Use --fb-captions-font-size
  * and apply it only on .plyr__captions.
+so we re-assert font-size with higher-specificity selectors + !important.
  */
 .plyr.plyr-caption-size--small {
-  --fb-captions-font-size: 1em;
+  --fb-captions-font-size: clamp(1.25em, 1.65vmin, 1.5em);
 }
 
 .plyr.plyr-caption-size--medium {
-  --fb-captions-font-size: 1.5em;
+  --fb-captions-font-size: clamp(1.5em, 2.25vmin, 2em);
 }
 
 .plyr.plyr-caption-size--large {
-  --fb-captions-font-size: 2em;
+  --fb-captions-font-size: clamp(2em, 2.95vmin, 2.5em);
 }
 
+/* xlarge: scales with screen (vmin), never smaller than 2.5em */
 .plyr.plyr-caption-size--xlarge {
-  --fb-captions-font-size: 2.5em;
+  --fb-captions-font-size: max(2.5em, 4.5vmin);
 }
 
-/* Subtitles style */
+.plyr:is(.plyr-caption-size--small, .plyr-caption-size--medium, .plyr-caption-size--large, .plyr-caption-size--xlarge) .plyr__captions,
+.plyr:fullscreen:is(.plyr-caption-size--small, .plyr-caption-size--medium, .plyr-caption-size--large, .plyr-caption-size--xlarge) .plyr__captions,
+.plyr--fullscreen-fallback:is(.plyr-caption-size--small, .plyr-caption-size--medium, .plyr-caption-size--large, .plyr-caption-size--xlarge) .plyr__captions {
+  font-size: var(--fb-captions-font-size) !important;
+}
+
 .plyr__captions {
   pointer-events: none;
-  font-size: var(--fb-captions-font-size, 1.5em);
   line-height: 150%;
   text-shadow:
-    0 0 6px #000,
-    0 0 6px #000,
-    0 0 6px #000,
-    0 0 6px #000,
-    0 0 6px #000;
+    0 0 0.25em #000, /* And also change the shadow to em to scale with the font */
+    0 0 0.25em #000,
+    0 0 0.25em #000,
+    0 0 0.25em #000,
+    0 0 0.25em #000;
   font-weight: 700;
   -webkit-font-smoothing: antialiased;
 }
@@ -1998,6 +2168,12 @@ export default {
   box-sizing: border-box;
   height: 100%;
   justify-content: center;
+}
+
+/* Full-area swipe / double-tap seek (album art + metadata + Plyr); skip overlay uses position absolute. */
+.audio-player-container--plyr-gestures {
+  position: relative;
+  touch-action: manipulation;
 }
 
 .audio-player-content {
