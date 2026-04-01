@@ -211,5 +211,9 @@ func (l *Link) GetShareImagePartsHelper(isBanner bool) (string, string, error) {
 	sourceName := assetParams.Get("source")
 	assetPath := assetParams.Get("path")
 
+	if sourceName == "" || assetPath == "" {
+		return "", "", fmt.Errorf("source or path not found in asset configuration")
+	}
+
 	return sourceName, assetPath, nil
 }
