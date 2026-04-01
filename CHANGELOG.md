@@ -8,12 +8,13 @@ All notable changes to this project will be documented in this file. For commit 
  - Copy/paste files and folders (`CTRL+C`/`CTRL+V`) from other apps (win explorer, thunar, finder, etc) to upload them directly (#2197)
 
  **Notes**:
- - `.fbx` 3d model files added to supported previews.
- - removed upx compression on docker image (#2193)
- - chunked uploads will save to a temporary file at the destination and renamed on completion. Better upload pause handling (#2129)
  - The Icons in the UI were updated! (#2203)
    - More supported icons in the Icon Picker tool.
    - More file types have new icons across all the listings (such as `.md`, `.apk`, etc).
+ - `.fbx` 3d model files added to supported previews.
+ - removed upx compression on docker image (#2193)
+ - chunked uploads will save to a temporary file at the destination and renamed on completion. Better upload pause handling (#2129)
+ - deprecated `source.config.CreateUserDir`, now its always `true`. If a user directory doesn't exist it will get created empty.
 
  **BugFixes**:
  - Archives don't preserve file metadata (#2063)
@@ -22,6 +23,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Chunked download stops after first chunk, add message explaining (#2074)
  - Esc to Cancel and Enter to confirm popup (#2079)
  - Language-tagged subtitle files not detected for videos (#2199)
+ - Unable to use proxy auth since 1.3.0-beta (#2173)
 
 ## v1.3.2-beta
 
