@@ -690,13 +690,9 @@ export default {
       if (this.useDefaultMediaPlayer || !this.player?.elements?.container) {
         return;
       }
-      const el =
-        this.player.elements.captions ?? this.player.elements.container.querySelector('.plyr__captions');
-      if (!el) {
-        return;
-      }
-      PLYR_CAPTION_SIZE_IDS.forEach((id) => el.classList.remove(`size--${id}`));
-      el.classList.add(`size--${this.getStoredCaptionSize()}`);
+      const el = this.player.elements.container;
+      PLYR_CAPTION_SIZE_IDS.forEach((id) => el.classList.remove(`plyr-caption-size--${id}`));
+      el.classList.add(`plyr-caption-size--${this.getStoredCaptionSize()}`);
     },
     syncCaptionSizeSettingsVisibility() {
       if (this.useDefaultMediaPlayer || !this.player) {
@@ -2070,15 +2066,12 @@ export default {
 }
 
 /*
- * Caption size: use --fb-captions-font-size so custom themes can override sizes in one place
- * (e.g. `.plyr__captions.size--large { --fb-captions-font-size: 2rem; }`).
- * Fullscreen: `.video-player-container .plyr:fullscreen .plyr__captions` beats Plyr’s
- * two-part fullscreen caption rule without !important; still uses the same variable.
+ * Caption size: --fb-captions-font-size on .plyr (plyr-caption-size--* from JS; inherits to .plyr__captions).
+ * Video: cqmin replaces vmin when supported so small players don’t use the full viewport scale.
  */
 .plyr__captions {
   pointer-events: none;
-  --fb-captions-font-size: clamp(1.5em, 2.25vmin, 2em);
-  font-size: var(--fb-captions-font-size);
+  font-size: var(--fb-captions-font-size, max(20px, 4vmin));
   line-height: 150%;
   font-weight: 700;
   -webkit-font-smoothing: antialiased;
@@ -2089,21 +2082,20 @@ export default {
   text-shadow: 0 0.08em 0.2em rgba(0, 0, 0, 0.55);
 }
 
-.plyr__captions.size--small {
-  --fb-captions-font-size: clamp(1.25em, 1.65vmin, 1.5em);
+.plyr.plyr-caption-size--small {
+  --fb-captions-font-size: max(1em, 2.5vmin);
 }
 
-.plyr__captions.size--medium {
-  --fb-captions-font-size: clamp(1.5em, 2.25vmin, 2em);
+.plyr.plyr-caption-size--medium {
+  --fb-captions-font-size: max(1.5em, 4vmin);
 }
 
-.plyr__captions.size--large {
-  --fb-captions-font-size: clamp(2em, 2.95vmin, 2.5em);
+.plyr.plyr-caption-size--large {
+  --fb-captions-font-size: max(2em, 5vmin);
 }
 
-/* xlarge: scales with screen (vmin), never smaller than 2.5em */
-.plyr__captions.size--xlarge {
-  --fb-captions-font-size: max(2.5em, 4.5vmin);
+.plyr.plyr-caption-size--xlarge {
+  --fb-captions-font-size: max(2.5em, 5.5vmin);
 }
 
 .video-player-container .plyr:fullscreen .plyr__captions,
