@@ -282,12 +282,6 @@ export default {
     hasSubtitles() {
       this.syncCaptionSizeSettingsVisibility();
     },
-    storeIsMobile(newVal, oldVal) {
-      if (newVal === oldVal) {
-        return;
-      }
-      this.rebuildPlyrAfterMobileLayoutChange();
-    },
   },
   computed: {
     darkMode() {
@@ -399,7 +393,7 @@ export default {
         'fullscreen',
       ];
       return {
-        controls: this.storeIsMobile ? controlsMobile : controlsDesktop,
+        controls: getters.isMobile() ? controlsMobile : controlsDesktop,
         settings: ['captions', 'captionSize', 'quality', 'speed', 'playback'],
         i18n: {
           playback: 'Playback',
@@ -696,9 +690,13 @@ export default {
       if (this.useDefaultMediaPlayer || !this.player?.elements?.container) {
         return;
       }
-      const el = this.player.elements.container;
-      PLYR_CAPTION_SIZE_IDS.forEach((id) => el.classList.remove(`plyr-caption-size--${id}`));
-      el.classList.add(`plyr-caption-size--${this.getStoredCaptionSize()}`);
+      const el =
+        this.player.elements.captions ?? this.player.elements.container.querySelector('.plyr__captions');
+      if (!el) {
+        return;
+      }
+      PLYR_CAPTION_SIZE_IDS.forEach((id) => el.classList.remove(`size--${id}`));
+      el.classList.add(`size--${this.getStoredCaptionSize()}`);
     },
     syncCaptionSizeSettingsVisibility() {
       if (this.useDefaultMediaPlayer || !this.player) {
@@ -947,6 +945,10 @@ export default {
       if ((this.previewType === 'video' || this.previewType === 'audio') && screen.orientation) {
         this.player.on('enterfullscreen', this.onFullscreenEnter);
         this.player.on('exitfullscreen', this.onFullscreenExit);
+      }
+      if (this.previewType === 'video') {
+        this.player.on('enterfullscreen', this.applyCaptionSizeClass);
+        this.player.on('exitfullscreen', this.applyCaptionSizeClass);
       }
       this.ensurePlaybackModeApplied();
       if (this.previewType === 'video') {
@@ -2068,45 +2070,59 @@ export default {
 }
 
 /*
- * Caption size only: Plyr uses --plyr-font-size-* on the root .plyr for controls,
- * time, and menus — never override those for captions. Use --fb-captions-font-size
- * and apply it only on .plyr__captions.
-so we re-assert font-size with higher-specificity selectors + !important.
+ * Caption size: use --fb-captions-font-size so custom themes can override sizes in one place
+ * (e.g. `.plyr__captions.size--large { --fb-captions-font-size: 2rem; }`).
+ * Fullscreen: `.video-player-container .plyr:fullscreen .plyr__captions` beats Plyr’s
+ * two-part fullscreen caption rule without !important; still uses the same variable.
  */
-.plyr.plyr-caption-size--small {
+.plyr__captions {
+  pointer-events: none;
+  --fb-captions-font-size: clamp(1.5em, 2.25vmin, 2em);
+  font-size: var(--fb-captions-font-size);
+  line-height: 150%;
+  font-weight: 700;
+  -webkit-font-smoothing: antialiased;
+  /* Combo from stroke + shadow: crisp outline, soft drop for muddy mid-tones (em scales with size) */
+  color: #fff;
+  -webkit-text-stroke: 0.1em #000;
+  paint-order: stroke fill;
+  text-shadow: 0 0.08em 0.2em rgba(0, 0, 0, 0.55);
+}
+
+.plyr__captions.size--small {
   --fb-captions-font-size: clamp(1.25em, 1.65vmin, 1.5em);
 }
 
-.plyr.plyr-caption-size--medium {
+.plyr__captions.size--medium {
   --fb-captions-font-size: clamp(1.5em, 2.25vmin, 2em);
 }
 
-.plyr.plyr-caption-size--large {
+.plyr__captions.size--large {
   --fb-captions-font-size: clamp(2em, 2.95vmin, 2.5em);
 }
 
 /* xlarge: scales with screen (vmin), never smaller than 2.5em */
-.plyr.plyr-caption-size--xlarge {
+.plyr__captions.size--xlarge {
   --fb-captions-font-size: max(2.5em, 4.5vmin);
 }
 
-.plyr:is(.plyr-caption-size--small, .plyr-caption-size--medium, .plyr-caption-size--large, .plyr-caption-size--xlarge) .plyr__captions,
-.plyr:fullscreen:is(.plyr-caption-size--small, .plyr-caption-size--medium, .plyr-caption-size--large, .plyr-caption-size--xlarge) .plyr__captions,
-.plyr--fullscreen-fallback:is(.plyr-caption-size--small, .plyr-caption-size--medium, .plyr-caption-size--large, .plyr-caption-size--xlarge) .plyr__captions {
-  font-size: var(--fb-captions-font-size) !important;
+.video-player-container .plyr:fullscreen .plyr__captions,
+.video-player-container .plyr--fullscreen-fallback .plyr__captions {
+  font-size: var(--fb-captions-font-size);
 }
 
-.plyr__captions {
-  pointer-events: none;
-  line-height: 150%;
-  text-shadow:
-    0 0 0.25em #000, /* And also change the shadow to em to scale with the font */
-    0 0 0.25em #000,
-    0 0 0.25em #000,
-    0 0 0.25em #000,
-    0 0 0.25em #000;
-  font-weight: 700;
-  -webkit-font-smoothing: antialiased;
+/* No text-stroke (legacy engines): 4-offset ring in em + same halo */
+@supports not (-webkit-text-stroke: 0.1em #000) {
+  .plyr__captions {
+    -webkit-text-stroke: unset;
+    paint-order: unset;
+    text-shadow:
+      0.0625em 0.0625em 0 #000,
+      -0.0625em 0.0625em 0 #000,
+      -0.0625em -0.0625em 0 #000,
+      0.0625em -0.0625em 0 #000,
+      0 0.08em 0.2em rgba(0, 0, 0, 0.55);
+  }
 }
 
 .plyr__caption {
