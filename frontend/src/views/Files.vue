@@ -36,6 +36,14 @@ function directoryListingHasMediaChildren(req) {
   );
 }
 
+function fileListingNeedsMediaMetadataPatch(req) {
+  return (
+    req &&
+    req.type !== "directory" &&
+    (req.type?.startsWith("audio") || req.type?.startsWith("video"))
+  );
+}
+
 /** @returns {Promise<{ items?: object[], name: string, type: string, path: string, source: string, hash?: string, token?: string, parentDirItems?: object[] }>} */
 async function fetchShareItemWithParent(sharePassword) {
   let file = await resourcesApi.fetchFilesPublic(
@@ -253,21 +261,34 @@ export default {
           }, 1000);
         }
     },
-    async patchDirectoryMediaIfNeeded(listing, fetchMedia) {
-      if (!directoryListingHasMediaChildren(listing)) {
-        this.loadingProgress = 100;
+    async patchMediaMetadataIfNeeded(listing, fetchMedia) {
+      if (directoryListingHasMediaChildren(listing)) {
+        this.loadingProgress = 90;
+        try {
+          const payload = await fetchMedia();
+          if (payload?.items?.length) {
+            mutations.patchRequestMetadata(payload.items);
+          }
+          this.loadingProgress = 100;
+        } catch {
+          this.loadingProgress = 0;
+        }
         return;
       }
-      this.loadingProgress = 90;
-      try {
-        const payload = await fetchMedia();
-        if (payload?.items?.length) {
-          mutations.patchRequestMetadata(payload.items);
+      if (fileListingNeedsMediaMetadataPatch(listing)) {
+        this.loadingProgress = 90;
+        try {
+          const payload = await fetchMedia();
+          if (payload && payload.type !== "directory") {
+            mutations.patchRequestFileMediaMetadata(payload);
+          }
+          this.loadingProgress = 100;
+        } catch {
+          this.loadingProgress = 0;
         }
-        this.loadingProgress = 100;
-      } catch {
-        this.loadingProgress = 0;
+        return;
       }
+      this.loadingProgress = 100;
     },
 
     async fetchData() {
@@ -416,7 +437,7 @@ export default {
           const file = await fetchShareItemWithParent(this.sharePassword);
           mutations.replaceRequest(file);
           document.title = globalVars.name + " - " + this.$t("general.share") + " - " + file.name;
-          await this.patchDirectoryMediaIfNeeded(file, () =>
+          await this.patchMediaMetadataIfNeeded(file, () =>
             mediaApi.fetchDirectoryMediaMetadataPublic(
               state.shareInfo.subPath,
               state.shareInfo.hash,
@@ -474,7 +495,7 @@ export default {
           document.title = globalVars.name + " - " + this.$t("general.files") + " - " + res.name;
           mutations.replaceRequest(res);
           mutations.setLoading("files", false);
-          await this.patchDirectoryMediaIfNeeded(res, () =>
+          await this.patchMediaMetadataIfNeeded(res, () =>
             mediaApi.fetchDirectoryMediaMetadata(fetchSource, fetchPath)
           );
         }

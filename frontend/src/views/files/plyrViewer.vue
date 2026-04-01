@@ -151,6 +151,10 @@ import { getSubtitleFormatExtension } from '@/utils/subtitles';
 import Plyr from 'plyr';
 
 const PLYR_CAPTION_SIZE_IDS = ['small', 'medium', 'large', 'xlarge'];
+/** Same localStorage key Plyr uses for `captions`, `language`, etc. (see Plyr defaults `storage.key`). */
+const PLYR_LOCALSTORAGE_KEY = 'plyr';
+/** Custom field inside Plyr’s JSON blob so caption size travels with other Plyr prefs. */
+const PLYR_CAPTION_SIZE_FIELD = 'captionSize';
 
 export default {
   name: "plyrViewer",
@@ -232,7 +236,6 @@ export default {
       videoDismissHintTimer: null,
       // Plyr instance
       player: null,
-      PlyrCaptionSizeStorageKey: 'filebrowser-plyr-caption-size',
       captionSizeMenuInitialized: false,
     };
   },
@@ -417,6 +420,13 @@ export default {
         resetOnEnd: true,
         preload: 'metadata',
         iconUrl: globalVars.baseURL + 'public/static/img/plyr.svg',
+        // Blob/async tracks need addtrack → captions.update; otherwise meta never fills and toggle CC throws (track undefined).
+        // Do not call toggleCaptions() here — Plyr already applies `plyr` localStorage for captions on/off.
+        captions: {
+          active: false,
+          language: 'auto',
+          update: true,
+        },
       };
     },
   },
@@ -662,9 +672,14 @@ export default {
     },
     getStoredCaptionSize() {
       try {
-        const raw = localStorage.getItem(this.PlyrCaptionSizeStorageKey);
-        if (raw && PLYR_CAPTION_SIZE_IDS.includes(raw)) {
-          return raw;
+        const raw = localStorage.getItem(PLYR_LOCALSTORAGE_KEY);
+        if (!raw) {
+          return 'medium';
+        }
+        const data = JSON.parse(raw);
+        const id = data?.[PLYR_CAPTION_SIZE_FIELD];
+        if (id && PLYR_CAPTION_SIZE_IDS.includes(id)) {
+          return id;
         }
       } catch {
         /* ignore */
@@ -672,8 +687,24 @@ export default {
       return 'medium';
     },
     setStoredCaptionSize(id) {
+      if (!PLYR_CAPTION_SIZE_IDS.includes(id)) {
+        return;
+      }
+      this._mergePlyrStorage({ [PLYR_CAPTION_SIZE_FIELD]: id });
+    },
+    /** Merge into Plyr’s JSON store without clobbering `captions`, `language`, etc. */
+    _mergePlyrStorage(partial) {
       try {
-        localStorage.setItem(this.PlyrCaptionSizeStorageKey, id);
+        let data = {};
+        const raw = localStorage.getItem(PLYR_LOCALSTORAGE_KEY);
+        if (raw) {
+          data = JSON.parse(raw);
+          if (typeof data !== 'object' || data === null) {
+            data = {};
+          }
+        }
+        Object.assign(data, partial);
+        localStorage.setItem(PLYR_LOCALSTORAGE_KEY, JSON.stringify(data));
       } catch {
         /* ignore */
       }

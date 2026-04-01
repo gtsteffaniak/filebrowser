@@ -578,6 +578,29 @@ export const mutations = {
     }
     emitStateChanged();
   },
+  /** Merge media fields from GET /api/media/metadata (single file). Replace req object so Vue watchers see the update. */
+  patchRequestFileMediaMetadata: (enriched) => {
+    if (
+      !state.req ||
+      state.req.type === "directory" ||
+      !enriched ||
+      enriched.type === "directory"
+    ) {
+      return;
+    }
+    const next = { ...state.req };
+    if (enriched.metadata !== undefined) {
+      next.metadata = enriched.metadata;
+    }
+    if (enriched.subtitles !== undefined) {
+      next.subtitles = enriched.subtitles;
+    }
+    if (enriched.hasPreview !== undefined) {
+      next.hasPreview = enriched.hasPreview;
+    }
+    state.req = next;
+    emitStateChanged();
+  },
   clearRequest: () => {
     // Set req to null to prevent API calls with empty paths
     // Components should check for null req before accessing

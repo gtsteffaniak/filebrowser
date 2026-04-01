@@ -225,7 +225,8 @@ export default {
   },
   watch: {
     async req() {
-      if (!getters.isLoggedIn()) {
+      // Public shares are not "logged in"; still reload preview data when state.req updates (e.g. media metadata patch).
+      if (!getters.isLoggedIn() && !getters.isShare()) {
         return;
       }
 
@@ -303,10 +304,12 @@ export default {
             const blob = new Blob([vttContent], { type: "text/vtt" });
             const vttURL = URL.createObjectURL(blob);
 
+            const lang = (subtitleTrack.language ?? '').trim();
             subs.push({
               name: subtitleTrack.name,
               src: vttURL,
-              language: subtitleTrack.language
+              // Empty srclang breaks Plyr language matching; use 'und' (undetermined) per BCP 47.
+              language: lang || 'und',
             });
           } else {
             console.warn(
