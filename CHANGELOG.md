@@ -14,6 +14,21 @@ All notable changes to this project will be documented in this file. For commit 
 **BugFixes**:
  - Share banner URL not rendering in Open Graph (og:image) meta tags for link previews (#2189)
 
+## v1.2.3-stable
+
+ **Security**:
+ - Patched Username Enumeration via Authentication Timing Side-Channel  GHSA-7789-65hx-f26w
+
+ **Notes**:
+ - docs preview for text and pdf has a 2 second timeout. If it hangs for whatever reason, the maximum time would be 2 seconds. (#2105) (#2114)
+ - [docker] ffmpeg version upgraded to 8.1
+
+ **BugFixes**:
+ - Wrong username in share settings (#2147) (#2148)
+ - [OnlyOffice] Error when saving a file under a user scope #2133
+ - Cannot edit shared file in OnlyOffice #2143
+ - Share banner seems to be not working for custom urls (#2120)
+
 ## v1.2.2-stable
 
  **Security**:
