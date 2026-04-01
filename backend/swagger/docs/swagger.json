@@ -1063,6 +1063,63 @@
                 }
             }
         },
+        "/api/media/metadata": {
+            "get": {
+                "description": "Same ExtendedFileInfo as resources GET with metadata=true (typically used for directories).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Directory with media metadata",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Path to the directory",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source name",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/iteminfo.ExtendedFileInfo"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/media/subtitles": {
             "get": {
                 "description": "Returns raw subtitle content from external files or embedded streams",
@@ -1373,7 +1430,7 @@
                     },
                     {
                         "type": "string",
-                        "description": "Skip extended attributes for faster retrieval, no hasPreview",
+                        "description": "When true, omit index-level extended fields (e.g. hasPreview); does not disable ffmpeg/media extraction",
                         "name": "skipExtendedAttrs",
                         "in": "query"
                     },
@@ -1392,7 +1449,7 @@
                     },
                     {
                         "type": "string",
-                        "description": "Extract audio/video metadata if true",
+                        "description": "When true, run audio/video metadata extraction, subtitles, and directory media batch processing",
                         "name": "metadata",
                         "in": "query"
                     },
@@ -2008,6 +2065,69 @@
                     },
                     "500": {
                         "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/resources/pause": {
+            "post": {
+                "description": "Sets a short-lived server flag for the given source and path. When the active chunk POST then fails (e.g. client abort), the server trims the incomplete chunk but keeps the temp partial file for resume.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Register graceful chunked upload pause",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Destination path (same as upload)",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source name (same as upload)",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Pause registered"
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Source not found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -3119,6 +3239,40 @@
                 }
             }
         },
+        "/public/api/media/metadata": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shares"
+                ],
+                "summary": "Directory with media metadata (public share)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Share hash",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Path within the share",
+                        "name": "path",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/iteminfo.ExtendedFileInfo"
+                        }
+                    }
+                }
+            }
+        },
         "/public/api/resources": {
             "get": {
                 "description": "Returns metadata for files or directories accessible via a public share link. Browsing is disabled for upload-only shares.",
@@ -3719,6 +3873,60 @@
                     },
                     "500": {
                         "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/public/api/resources/pause": {
+            "post": {
+                "description": "Same as authenticated pause, for upload shares. Uses hash and path query parameters like other public resource APIs.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shares"
+                ],
+                "summary": "Register graceful chunked upload pause (public share)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Share hash",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Path within the share (same as upload)",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Pause registered"
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Source not found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -4426,6 +4634,99 @@
                     "type": "string"
                 },
                 "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "iteminfo.ExtendedFileInfo": {
+            "type": "object",
+            "properties": {
+                "checksums": {
+                    "description": "checksums for the file",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "content": {
+                    "description": "text content of a file, if requested",
+                    "type": "string"
+                },
+                "files": {
+                    "description": "files in the directory with optional metadata",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/iteminfo.ExtendedItemInfo"
+                    }
+                },
+                "folders": {
+                    "description": "folders in the directory",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/iteminfo.ItemInfo"
+                    }
+                },
+                "hasPreview": {
+                    "description": "whether the file has a thumbnail preview",
+                    "type": "boolean"
+                },
+                "hash": {
+                    "description": "hash for the file -- used for sharing",
+                    "type": "string"
+                },
+                "hidden": {
+                    "description": "whether the file is hidden",
+                    "type": "boolean"
+                },
+                "isShared": {
+                    "description": "whether the file or folder is shared",
+                    "type": "boolean"
+                },
+                "metadata": {
+                    "description": "media metadata for audio/video files (includes duration)",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/iteminfo.MediaMetadata"
+                        }
+                    ]
+                },
+                "modified": {
+                    "description": "modification time",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "name of the file",
+                    "type": "string"
+                },
+                "onlyOfficeId": {
+                    "description": "id for onlyoffice files",
+                    "type": "string"
+                },
+                "path": {
+                    "description": "path scoped to the associated index",
+                    "type": "string"
+                },
+                "size": {
+                    "description": "length in bytes for regular files",
+                    "type": "integer"
+                },
+                "source": {
+                    "description": "associated index source for the file",
+                    "type": "string"
+                },
+                "subtitles": {
+                    "description": "subtitles for video files",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/utils.SubtitleTrack"
+                    }
+                },
+                "token": {
+                    "description": "token for the file -- used for sharing",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "type of the file, either \"directory\" or a file mimetype",
                     "type": "string"
                 }
             }
@@ -6554,6 +6855,35 @@
                 },
                 "viewMode": {
                     "description": "view mode to use: eg. normal, list, grid, or compact",
+                    "type": "string"
+                }
+            }
+        },
+        "utils.SubtitleTrack": {
+            "type": "object",
+            "properties": {
+                "codec": {
+                    "description": "codec name for embedded subtitles",
+                    "type": "string"
+                },
+                "embedded": {
+                    "description": "true for embedded subtitles, false for external files",
+                    "type": "boolean"
+                },
+                "index": {
+                    "description": "stream index for embedded subtitles (nil for external)",
+                    "type": "integer"
+                },
+                "language": {
+                    "description": "language code",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "filename for external, or descriptive name for embedded",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "title/description",
                     "type": "string"
                 }
             }

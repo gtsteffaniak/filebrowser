@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
@@ -22,8 +23,23 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/preview"
+	"github.com/gtsteffaniak/go-cache/cache"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
+
+var pauseCache = cache.NewCache[string](1 * time.Minute)
+var publicPauseCache = cache.NewCache[string](1 * time.Minute)
+
+// pauseCacheKeySep separates segments in pause cache keys (not used in source names/paths).
+const pauseCacheKeySep = "\x1e"
+
+func pauseUploadCacheKey(source, path string) string {
+	return source + pauseCacheKeySep + path
+}
+
+func publicPauseUploadCacheKey(shareHash, source, indexPath string) string {
+	return shareHash + pauseCacheKeySep + source + pauseCacheKeySep + indexPath
+}
 
 // validateMoveOperation checks if a move/rename operation is valid at the HTTP level
 // It prevents moving a directory into itself or its subdirectories
@@ -61,10 +77,10 @@ func validateMoveOperation(src, dst string, isSrcDir bool) error {
 // @Accept json
 // @Produce json
 // @Param path query string true "Path to the resource"
-// @Param skipExtendedAttrs query string false "Skip extended attributes for faster retrieval, no hasPreview"
+// @Param skipExtendedAttrs query string false "When true, omit index-level extended fields (e.g. hasPreview); does not disable ffmpeg/media extraction"
 // @Param source query string true "Source name for the desired source, default is used if not provided"
 // @Param content query string false "Include file content if true"
-// @Param metadata query string false "Extract audio/video metadata if true"
+// @Param metadata query string false "When true, run audio/video metadata extraction, subtitles, and directory media batch processing"
 // @Param checksum query string false "Optional checksum validation"
 // @Success 200 {object} iteminfo.FileInfo "Resource metadata"
 // @Failure 404 {object} map[string]string "Resource not found"
@@ -367,6 +383,74 @@ func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *reques
 	return renderJSON(w, r, response, statusCode)
 }
 
+// resourcePauseHandler registers a graceful pause for an in-flight chunked upload.
+// Call immediately before aborting the chunk POST so the server keeps partial data.
+// @Summary Register graceful chunked upload pause
+// @Description Sets a short-lived server flag for the given source and path. When the active chunk POST then fails (e.g. client abort), the server trims the incomplete chunk but keeps the temp partial file for resume.
+// @Tags Resources
+// @Accept json
+// @Produce json
+// @Param path query string true "Destination path (same as upload)"
+// @Param source query string true "Source name (same as upload)"
+// @Success 200 "Pause registered"
+// @Failure 400 {object} map[string]string "Bad request"
+// @Failure 403 {object} map[string]string "Forbidden"
+// @Failure 404 {object} map[string]string "Source not found"
+// @Router /api/resources/pause [post]
+func resourcePauseHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	if d.share != nil {
+		return http.StatusBadRequest, fmt.Errorf("use public pause endpoint for share uploads")
+	}
+	if !d.user.Permissions.Create {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to pause uploads")
+	}
+	path := r.URL.Query().Get("path")
+	source := r.URL.Query().Get("source")
+	cleanPath, err := utils.SanitizeUserPath(path)
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
+	path = cleanPath
+	idx := indexing.GetIndex(source)
+	if idx == nil {
+		logger.Debugf("source %s not found", source)
+		return http.StatusNotFound, fmt.Errorf("source %s not found", source)
+	}
+	if _, err := d.user.GetScopeForSourceName(source); err != nil {
+		return http.StatusForbidden, err
+	}
+	if !store.Access.Permitted(idx.Path, path, d.user.Username) {
+		return http.StatusForbidden, fmt.Errorf("access denied to path %s", path)
+	}
+	pauseCache.Set(pauseUploadCacheKey(source, path), "1")
+	return http.StatusOK, nil
+}
+
+// publicPauseHandler registers a graceful pause for a public share chunked upload.
+// @Summary Register graceful chunked upload pause (public share)
+// @Description Same as authenticated pause, for upload shares. Uses hash and path query parameters like other public resource APIs.
+// @Tags Shares
+// @Accept json
+// @Produce json
+// @Param hash query string true "Share hash"
+// @Param path query string true "Path within the share (same as upload)"
+// @Success 200 "Pause registered"
+// @Failure 403 {object} map[string]string "Forbidden"
+// @Failure 404 {object} map[string]string "Source not found"
+// @Router /public/api/resources/pause [post]
+func publicPauseHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	if d.share.ShareType != "upload" && !d.share.AllowCreate {
+		return http.StatusForbidden, fmt.Errorf("pausing uploads is not allowed for this share")
+	}
+	src, ok := config.Server.SourceMap[d.share.Source]
+	if !ok {
+		return http.StatusNotFound, fmt.Errorf("source not found")
+	}
+	sourceName := src.Name
+	publicPauseCache.Set(publicPauseUploadCacheKey(d.share.Hash, sourceName, d.IndexPath), "1")
+	return http.StatusOK, nil
+}
+
 // resourcePostHandler creates or uploads a new resource.
 // @Summary Create or upload a resource
 // @Description Creates a new resource or uploads a file at the specified path. Supports file uploads and directory creation.
@@ -506,13 +590,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		// Create a unique name for the temporary file to avoid collisions.
 		hasher := md5.New()
 		hasher.Write([]byte(realPath))
-		uploadID := hex.EncodeToString(hasher.Sum(nil))
-		tempFilePath := filepath.Join(settings.Config.Server.CacheDir, "uploads", uploadID)
-
-		if err = os.MkdirAll(filepath.Dir(tempFilePath), fileutils.PermDir); err != nil {
-			logger.Debugf("could not create temp dir: %v", err)
-			return http.StatusInternalServerError, fmt.Errorf("could not create temp dir: %v", err)
-		}
+		tempFilePath := fmt.Sprintf("%s.%s.uploading.tmp", realPath, hex.EncodeToString(hasher.Sum(nil)))
 		// Create or open the temporary file
 		var outFile *os.File
 		outFile, err = os.OpenFile(tempFilePath, os.O_CREATE|os.O_WRONLY, fileutils.PermFile)
@@ -534,6 +612,31 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		chunkSize, err = io.Copy(outFile, r.Body)
 		if err != nil {
 			logger.Debugf("could not write chunk to temp file: %v", err)
+			if truncErr := outFile.Truncate(offset); truncErr != nil {
+				logger.Debugf("could not truncate temp file after failed chunk (offset=%d): %v", offset, truncErr)
+			}
+			_ = outFile.Sync()
+
+			gracefulPause := false
+			if d.share != nil {
+				k := publicPauseUploadCacheKey(d.share.Hash, source, path)
+				if _, ok := publicPauseCache.Get(k); ok {
+					gracefulPause = true
+					publicPauseCache.Delete(k)
+				}
+			} else {
+				k := pauseUploadCacheKey(source, path)
+				if _, ok := pauseCache.Get(k); ok {
+					gracefulPause = true
+					pauseCache.Delete(k)
+				}
+			}
+
+			if gracefulPause {
+				logger.Debugf("chunk upload ended after graceful pause; keeping partial file (source=%s path=%s)", source, path)
+				return 499, nil
+			}
+			_ = os.Remove(tempFilePath)
 			return http.StatusInternalServerError, fmt.Errorf("could not write chunk to temp file: %v", err)
 		}
 		// check if the file is complete

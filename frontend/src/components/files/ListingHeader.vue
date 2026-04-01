@@ -188,10 +188,14 @@ span {
   flex: 1;
 }
 
-.desktop-view .size,
-.desktop-view .modified,
-.desktop-view .duration {
+.desktop-view .modified{
   min-width: 15%;
+  flex: 0;
+}
+
+.desktop-view .size,
+.desktop-view .duration {
+  min-width: 10%;
   flex: 0;
 }
 
