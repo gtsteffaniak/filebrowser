@@ -28,9 +28,9 @@ import (
 // CheckPermissionsFunc allows tests to override CheckPermissions behavior
 var CheckPermissionsFunc = checkPermissionsImpl
 
-// enrichDirectoryMediaChildren runs concurrent ffmpeg/tag extraction for audio/video children.
+// addMetadataToChildren runs concurrent ffmpeg/tag extraction for audio/video children.
 // Each goroutine is registered on wg. Caller must invoke wg.Wait() after scheduling.
-func enrichDirectoryMediaChildren(response *iteminfo.ExtendedFileInfo, opts utils.FileOptions, wg *sync.WaitGroup) {
+func addMetadataToChildren(response *iteminfo.ExtendedFileInfo, opts utils.FileOptions, wg *sync.WaitGroup) {
 	hasMedia := false
 	for i := range response.Files {
 		t := response.Files[i].Type
@@ -91,12 +91,8 @@ func processDirectoryMetadata(response *iteminfo.ExtendedFileInfo, idx *indexing
 		}
 	})
 
-	if metadataCount > 0 {
-		response.HasMetadata = true
-	}
-
 	if opts.Metadata && metadataCount > 0 {
-		enrichDirectoryMediaChildren(response, opts, &wg)
+		addMetadataToChildren(response, opts, &wg)
 	}
 	wg.Wait()
 }
@@ -325,7 +321,6 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index, opts u
 			} else {
 				// Copy metadata to ExtendedFileInfo
 				info.Metadata = extItem.Metadata
-				info.HasMetadata = true
 				info.HasPreview = extItem.Metadata != nil && len(extItem.Metadata.AlbumArt) > 0
 			}
 			return

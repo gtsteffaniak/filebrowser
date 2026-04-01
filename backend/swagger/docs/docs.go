@@ -4560,10 +4560,6 @@ const docTemplate = `{
                         "$ref": "#/definitions/iteminfo.ItemInfo"
                     }
                 },
-                "hasMetadata": {
-                    "description": "whether the file or folder has metadata",
-                    "type": "boolean"
-                },
                 "hasPreview": {
                     "description": "whether the file has a thumbnail preview",
                     "type": "boolean"
