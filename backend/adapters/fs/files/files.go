@@ -101,61 +101,6 @@ func processDirectoryMetadata(response *iteminfo.ExtendedFileInfo, idx *indexing
 	wg.Wait()
 }
 
-// DirectoryMediaFile is one enriched audio/video child (transport from files layer to HTTP).
-type DirectoryMediaFile struct {
-	Name     string
-	Metadata *iteminfo.MediaMetadata
-}
-
-// ExtractDirectoryMediaFiles returns media metadata for immediate audio/video children of a directory.
-func ExtractDirectoryMediaFiles(opts utils.FileOptions, access *access.Storage, user *users.User) ([]DirectoryMediaFile, error) {
-	indexPath, _, err := CheckPermissions(opts, access, user)
-	if err != nil {
-		return nil, err
-	}
-	idx := indexing.GetIndex(opts.Source)
-	if idx == nil {
-		return nil, fmt.Errorf("could not get index: %v ", opts.Source)
-	}
-	info, err := idx.GetFileInfo(indexing.FileInfoRequest{
-		IndexPath:         indexPath,
-		FollowSymlinks:    opts.FollowSymlinks,
-		ShowHidden:        opts.ShowHidden,
-		Expand:            true,
-		SkipExtendedAttrs: true,
-	})
-	if err != nil {
-		return nil, err
-	}
-	if info.Type != "directory" {
-		return []DirectoryMediaFile{}, nil
-	}
-	if err := access.CheckChildItemAccess(info, idx, user.Username); err != nil {
-		return nil, err
-	}
-
-	wrapper := &iteminfo.ExtendedFileInfo{}
-	wrapper.FileInfo = *info
-	wrapper.RealPath = filepath.Join(idx.Path, indexPath)
-
-	extractOpts := opts
-	extractOpts.Metadata = true
-	extractOpts.AlbumArt = false
-
-	var wg sync.WaitGroup
-	enrichDirectoryMediaChildren(wrapper, extractOpts, &wg)
-	wg.Wait()
-
-	var out []DirectoryMediaFile
-	for i := range wrapper.Files {
-		f := &wrapper.Files[i]
-		if strings.HasPrefix(f.Type, "audio") || strings.HasPrefix(f.Type, "video") {
-			out = append(out, DirectoryMediaFile{Name: f.Name, Metadata: f.Metadata})
-		}
-	}
-	return out, nil
-}
-
 // finalizeResponse handles final response adjustments (OnlyOffice ID, scope stripping)
 func finalizeResponse(response *iteminfo.ExtendedFileInfo, info *iteminfo.FileInfo, realPath string, user *users.User, userScope string) {
 	// Add OnlyOffice ID if applicable

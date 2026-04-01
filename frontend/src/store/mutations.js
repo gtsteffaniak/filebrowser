@@ -565,7 +565,12 @@ export const mutations = {
     if (!state.req?.items || !metadataItems?.length) {
       return;
     }
-    const byName = new Map(metadataItems.map((e) => [e.name, e.metadata]));
+    const byName = new Map();
+    for (const e of metadataItems) {
+      if (e.metadata != null) {
+        byName.set(e.name, e.metadata);
+      }
+    }
     for (const item of state.req.items) {
       if (byName.has(item.name)) {
         item.metadata = byName.get(item.name);

@@ -9,10 +9,10 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
-	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 )
 
 // subtitlesHandler handles subtitle requests for both external files and embedded streams
@@ -102,77 +102,79 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	return http.StatusOK, nil
 }
 
-// JSON body for GET /api/media/metadata (and public share variant).
-type directoryMetadataItem struct {
-	Name     string                  `json:"name"`
-	Metadata *iteminfo.MediaMetadata `json:"metadata,omitempty"`
-}
-
-type directoryMetadataResponse struct {
-	Items []directoryMetadataItem `json:"items"`
-}
-
-// metadataHandler returns extracted media metadata for immediate audio/video children of a directory.
-// @Summary Directory media metadata
-// @Description For a directory path, returns metadata rows for each direct audio/video child for client-side patching.
+// metadataHandler returns the same directory resource shape as GET /api/resources with metadata enabled,
+// for client-side patching after a fast listing load.
+// @Summary Directory with media metadata
+// @Description Same ExtendedFileInfo as resources GET with metadata=true (typically used for directories).
 // @Tags Resources
 // @Accept json
 // @Produce json
 // @Param path query string true "Path to the directory"
 // @Param source query string true "Source name"
-// @Success 200 {object} directoryMetadataResponse
+// @Success 200 {object} iteminfo.ExtendedFileInfo
 // @Failure 403 {object} map[string]string "Forbidden"
 // @Failure 404 {object} map[string]string "Not found"
 // @Router /api/media/metadata [get]
 func metadataHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
-	filesOut, err := files.ExtractDirectoryMediaFiles(utils.FileOptions{
-		Path:           path,
-		Source:         source,
-		Expand:         true,
-		FollowSymlinks: true,
-		ShowHidden:     d.user.ShowHidden,
-	}, store.Access, d.user)
+	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
+		FollowSymlinks:           true,
+		Path:                     path,
+		Source:                   source,
+		Expand:                   true,
+		Content:                  false,
+		Metadata:                 true,
+		ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles,
+		ShowHidden:               d.user.ShowHidden,
+		SkipExtendedAttrs:        false,
+		ShowSharedAttr:           true,
+	}, store.Access, d.user, store.Share)
 	if err != nil {
 		return errToStatus(err), err
 	}
-	items := make([]directoryMetadataItem, len(filesOut))
-	for i := range filesOut {
-		items[i] = directoryMetadataItem{Name: filesOut[i].Name, Metadata: filesOut[i].Metadata}
-	}
-	return renderJSON(w, r, directoryMetadataResponse{Items: items})
+	return renderJSON(w, r, fileInfo)
 }
 
 // publicMetadataHandler is the share-link variant of metadataHandler.
-// @Summary Directory media metadata (public share)
+// @Summary Directory with media metadata (public share)
 // @Tags Shares
 // @Produce json
 // @Param hash query string true "Share hash"
 // @Param path query string false "Path within the share"
-// @Success 200 {object} directoryMetadataResponse
+// @Success 200 {object} iteminfo.ExtendedFileInfo
 // @Router /public/api/media/metadata [get]
 func publicMetadataHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if d.share.ShareType == "upload" {
 		return http.StatusNotImplemented, fmt.Errorf("browsing is disabled for upload shares")
 	}
+	path := r.URL.Query().Get("path")
 	sourceCfg, ok := config.Server.SourceMap[d.share.Source]
 	if !ok {
 		return http.StatusNotFound, fmt.Errorf("source not found")
 	}
-	filesOut, err := files.ExtractDirectoryMediaFiles(utils.FileOptions{
-		Path:           d.IndexPath,
-		Source:         sourceCfg.Name,
-		Expand:         true,
-		FollowSymlinks: true,
-		ShowHidden:     d.share.ShowHidden,
-	}, store.Access, d.shareUser)
+	link := d.share
+	reachedDownloadsLimit := link.Downloads >= link.DownloadsLimit && link.DownloadsLimit > 0
+
+	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
+		Path:                     d.IndexPath,
+		Source:                   sourceCfg.Name,
+		Expand:                   true,
+		Content:                  false,
+		Metadata:                 true,
+		ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles && link.ExtractEmbeddedSubtitles,
+		ShowHidden:               link.ShowHidden,
+		FollowSymlinks:           true,
+	}, store.Access, d.shareUser, store.Share)
 	if err != nil {
 		return errToStatus(err), err
 	}
-	items := make([]directoryMetadataItem, len(filesOut))
-	for i := range filesOut {
-		items[i] = directoryMetadataItem{Name: filesOut[i].Name, Metadata: filesOut[i].Metadata}
+	fileInfo.Token = link.Token
+	fileInfo.Source = link.Hash
+	fileInfo.Hash = link.Hash
+	if !link.EnableOnlyOffice || link.DisableFileViewer || reachedDownloadsLimit {
+		fileInfo.OnlyOfficeId = ""
 	}
-	return renderJSON(w, r, directoryMetadataResponse{Items: items})
+	fileInfo.Path = utils.AddTrailingSlashIfNotExists(path)
+	return renderJSON(w, r, fileInfo)
 }

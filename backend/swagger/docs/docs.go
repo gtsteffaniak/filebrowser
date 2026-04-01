@@ -1076,7 +1076,7 @@ const docTemplate = `{
         },
         "/api/media/metadata": {
             "get": {
-                "description": "For a directory path, returns metadata rows for each direct audio/video child for client-side patching.",
+                "description": "Same ExtendedFileInfo as resources GET with metadata=true (typically used for directories).",
                 "consumes": [
                     "application/json"
                 ],
@@ -1086,7 +1086,7 @@ const docTemplate = `{
                 "tags": [
                     "Resources"
                 ],
-                "summary": "Directory media metadata",
+                "summary": "Directory with media metadata",
                 "parameters": [
                     {
                         "type": "string",
@@ -1107,7 +1107,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/http.directoryMetadataResponse"
+                            "$ref": "#/definitions/iteminfo.ExtendedFileInfo"
                         }
                     },
                     "403": {
@@ -3195,7 +3195,7 @@ const docTemplate = `{
                 "tags": [
                     "Shares"
                 ],
-                "summary": "Directory media metadata (public share)",
+                "summary": "Directory with media metadata (public share)",
                 "parameters": [
                     {
                         "type": "string",
@@ -3215,7 +3215,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/http.directoryMetadataResponse"
+                            "$ref": "#/definitions/iteminfo.ExtendedFileInfo"
                         }
                     }
                 }
@@ -4408,28 +4408,6 @@ const docTemplate = `{
                 }
             }
         },
-        "http.directoryMetadataItem": {
-            "type": "object",
-            "properties": {
-                "metadata": {
-                    "$ref": "#/definitions/iteminfo.MediaMetadata"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "http.directoryMetadataResponse": {
-            "type": "object",
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/http.directoryMetadataItem"
-                    }
-                }
-            }
-        },
         "http.duplicateGroup": {
             "type": "object",
             "properties": {
@@ -4550,6 +4528,103 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "iteminfo.ExtendedFileInfo": {
+            "type": "object",
+            "properties": {
+                "checksums": {
+                    "description": "checksums for the file",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "content": {
+                    "description": "text content of a file, if requested",
+                    "type": "string"
+                },
+                "files": {
+                    "description": "files in the directory with optional metadata",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/iteminfo.ExtendedItemInfo"
+                    }
+                },
+                "folders": {
+                    "description": "folders in the directory",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/iteminfo.ItemInfo"
+                    }
+                },
+                "hasMetadata": {
+                    "description": "whether the file or folder has metadata",
+                    "type": "boolean"
+                },
+                "hasPreview": {
+                    "description": "whether the file has a thumbnail preview",
+                    "type": "boolean"
+                },
+                "hash": {
+                    "description": "hash for the file -- used for sharing",
+                    "type": "string"
+                },
+                "hidden": {
+                    "description": "whether the file is hidden",
+                    "type": "boolean"
+                },
+                "isShared": {
+                    "description": "whether the file or folder is shared",
+                    "type": "boolean"
+                },
+                "metadata": {
+                    "description": "media metadata for audio/video files (includes duration)",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/iteminfo.MediaMetadata"
+                        }
+                    ]
+                },
+                "modified": {
+                    "description": "modification time",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "name of the file",
+                    "type": "string"
+                },
+                "onlyOfficeId": {
+                    "description": "id for onlyoffice files",
+                    "type": "string"
+                },
+                "path": {
+                    "description": "path scoped to the associated index",
+                    "type": "string"
+                },
+                "size": {
+                    "description": "length in bytes for regular files",
+                    "type": "integer"
+                },
+                "source": {
+                    "description": "associated index source for the file",
+                    "type": "string"
+                },
+                "subtitles": {
+                    "description": "subtitles for video files",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/utils.SubtitleTrack"
+                    }
+                },
+                "token": {
+                    "description": "token for the file -- used for sharing",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "type of the file, either \"directory\" or a file mimetype",
                     "type": "string"
                 }
             }
@@ -6682,6 +6757,35 @@ const docTemplate = `{
                 },
                 "viewMode": {
                     "description": "view mode to use: eg. normal, list, grid, or compact",
+                    "type": "string"
+                }
+            }
+        },
+        "utils.SubtitleTrack": {
+            "type": "object",
+            "properties": {
+                "codec": {
+                    "description": "codec name for embedded subtitles",
+                    "type": "string"
+                },
+                "embedded": {
+                    "description": "true for embedded subtitles, false for external files",
+                    "type": "boolean"
+                },
+                "index": {
+                    "description": "stream index for embedded subtitles (nil for external)",
+                    "type": "integer"
+                },
+                "language": {
+                    "description": "language code",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "filename for external, or descriptive name for embedded",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "title/description",
                     "type": "string"
                 }
             }

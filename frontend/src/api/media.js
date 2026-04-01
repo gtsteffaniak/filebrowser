@@ -1,4 +1,4 @@
-import { fetchURL } from "./utils";
+import { fetchURL, adjustedData } from "./utils";
 import { notify } from "@/notify";
 import { getApiPath, getPublicApiPath } from "@/utils/url.js";
 import { state } from "@/store";
@@ -21,16 +21,17 @@ export async function getSubtitleContent(source, path, subtitleName, embedded = 
   }
 }
 
-// GET /api/media/metadata — directory children media metadata for patching listings.
-/** @returns {Promise<{ items: { name: string, metadata?: object }[] }>} */
+// GET /api/media/metadata — same directory shape as resources with metadata=true (adjusted to items[]).
+/** @returns {Promise<object>} directory resource (adjustedData) */
 export async function fetchDirectoryMediaMetadata(source, path) {
   const apiPath = getApiPath("media/metadata", { source, path });
   const res = await fetchURL(apiPath);
-  return res.json();
+  const data = await res.json();
+  return adjustedData(data);
 }
 
 // GET /public/api/media/metadata
-/** @returns {Promise<{ items: { name: string, metadata?: object }[] }>} */
+/** @returns {Promise<object>} directory resource (adjustedData) */
 export async function fetchDirectoryMediaMetadataPublic(path, hash, password = "") {
   const params = {
     path,
@@ -55,5 +56,6 @@ export async function fetchDirectoryMediaMetadataPublic(path, hash, password = "
     /** @type {any} */ (error).status = response.status;
     throw error;
   }
-  return response.json();
+  const data = await response.json();
+  return adjustedData(data);
 }
