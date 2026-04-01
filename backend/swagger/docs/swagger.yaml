@@ -3467,6 +3467,50 @@ paths:
       summary: Get directory items
       tags:
       - Resources
+  /api/resources/pause:
+    post:
+      consumes:
+      - application/json
+      description: Sets a short-lived server flag for the given source and path. When
+        the active chunk POST then fails (e.g. client abort), the server trims the
+        incomplete chunk but keeps the temp partial file for resume.
+      parameters:
+      - description: Destination path (same as upload)
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: Source name (same as upload)
+        in: query
+        name: source
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Pause registered
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Source not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register graceful chunked upload pause
+      tags:
+      - Resources
   /api/resources/preview:
     get:
       consumes:
@@ -4676,6 +4720,43 @@ paths:
               type: string
             type: object
       summary: Get directory items (public share)
+      tags:
+      - Shares
+  /public/api/resources/pause:
+    post:
+      consumes:
+      - application/json
+      description: Same as authenticated pause, for upload shares. Uses hash and path
+        query parameters like other public resource APIs.
+      parameters:
+      - description: Share hash
+        in: query
+        name: hash
+        required: true
+        type: string
+      - description: Path within the share (same as upload)
+        in: query
+        name: path
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Pause registered
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Source not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register graceful chunked upload pause (public share)
       tags:
       - Shares
   /public/api/resources/preview:

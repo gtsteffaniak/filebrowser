@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file. For commit 
  **Notes**:
  - `.fbx` 3d model files added to supported previews.
  - removed upx compression on docker image (#2193)
+ - chunked uploads will save to a temporary file at the destination and renamed on completion. Better upload pause handling (#2129)
  - The Icons in the UI were updated! (#2203)
    - More supported icons in the Icon Picker tool.
    - More file types have new icons across all the listings (such as `.md`, `.apk`, etc).
