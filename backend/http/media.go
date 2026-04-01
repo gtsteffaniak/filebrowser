@@ -153,27 +153,18 @@ func publicMetadataHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	if !ok {
 		return http.StatusNotFound, fmt.Errorf("source not found")
 	}
-	link := d.share
-	reachedDownloadsLimit := link.Downloads >= link.DownloadsLimit && link.DownloadsLimit > 0
-
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 		Path:                     d.IndexPath,
 		Source:                   sourceCfg.Name,
 		Expand:                   true,
 		Content:                  false,
 		Metadata:                 true,
-		ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles && link.ExtractEmbeddedSubtitles,
-		ShowHidden:               link.ShowHidden,
-		FollowSymlinks:           true,
+		ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles && d.share.ExtractEmbeddedSubtitles,
+		ShowHidden:               d.share.ShowHidden,
+		FollowSymlinks:           false,
 	}, store.Access, d.shareUser, store.Share)
 	if err != nil {
 		return errToStatus(err), err
-	}
-	fileInfo.Token = link.Token
-	fileInfo.Source = link.Hash
-	fileInfo.Hash = link.Hash
-	if !link.EnableOnlyOffice || link.DisableFileViewer || reachedDownloadsLimit {
-		fileInfo.OnlyOfficeId = ""
 	}
 	fileInfo.Path = utils.AddTrailingSlashIfNotExists(path)
 	return renderJSON(w, r, fileInfo)

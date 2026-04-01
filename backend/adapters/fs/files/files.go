@@ -31,22 +31,10 @@ var CheckPermissionsFunc = checkPermissionsImpl
 // addMetadataToChildren runs concurrent ffmpeg/tag extraction for audio/video children.
 // Each goroutine is registered on wg. Caller must invoke wg.Wait() after scheduling.
 func addMetadataToChildren(response *iteminfo.ExtendedFileInfo, opts utils.FileOptions, wg *sync.WaitGroup) {
-	hasMedia := false
-	for i := range response.Files {
-		t := response.Files[i].Type
-		if strings.HasPrefix(t, "audio") || strings.HasPrefix(t, "video") {
-			hasMedia = true
-			break
-		}
-	}
-	if !hasMedia {
-		return
-	}
 	sharedFFmpegService := ffmpeg.NewFFmpegService(10, false, "")
 	if sharedFFmpegService == nil {
 		return
 	}
-
 	for i := range response.Files {
 		fileItem := &response.Files[i]
 		isItemAudio := strings.HasPrefix(fileItem.Type, "audio")
