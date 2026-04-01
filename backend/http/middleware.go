@@ -316,30 +316,11 @@ func withoutUserHelper(fn handleFunc) handleFunc {
 // allow user without OTP to pass
 func userWithoutOTPhelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-		// Check if request has a valid admin token first
-		if tokenStr, err := extractToken(r); err == nil && tokenStr != "" {
-			keyFunc := func(token *jwt.Token) (interface{}, error) {
-				return []byte(config.Auth.Key), nil
-			}
-			var tk users.AuthToken
-			if token, err := jwt.ParseWithClaims(tokenStr, &tk, keyFunc); err == nil && token.Valid {
-				if !auth.IsRevokedApiToken(store.Access, tokenStr) {
-					if tk.BelongsTo == 0 {
-						// Minimal token - look up user ID
-						userID, found := store.Access.GetUserIDFromToken(tokenStr)
-						if found {
-							tk.BelongsTo = userID
-						}
-					}
-					if tk.BelongsTo > 0 {
-						user, err := store.Users.Get(tk.BelongsTo)
-						if err == nil && user.Permissions.Admin {
-							// Valid admin token - allow operation
-							d.user = user
-							return fn(w, r, d)
-						}
-					}
-				}
+
+		if config.Auth.Methods.ProxyAuth.Enabled {
+			proxyUser := r.Header.Get(config.Auth.Methods.ProxyAuth.Header)
+			if proxyUser != "" {
+				return getProxyUser(w, r, d, fn, proxyUser)
 			}
 		}
 

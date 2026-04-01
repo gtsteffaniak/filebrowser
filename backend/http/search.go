@@ -14,14 +14,14 @@ import (
 )
 
 type searchOptions struct {
-	query        string
-	sources      []string
-	searchScope  string
-	combinedPath map[string]string // source -> combinedPath
-	sessionId    string
-	largest         bool
-	olderThanUnix   int64 // optional; 0 = unset. Modified time must be strictly before this Unix second.
-	newerThanUnix   int64 // optional; 0 = unset. Modified time must be >= this Unix second.
+	query         string
+	sources       []string
+	searchScope   string
+	combinedPath  map[string]string // source -> combinedPath
+	sessionId     string
+	largest       bool
+	olderThanUnix int64 // optional; 0 = unset. Modified time must be strictly before this Unix second.
+	newerThanUnix int64 // optional; 0 = unset. Modified time must be >= this Unix second.
 }
 
 // searchHandler handles search requests for files based on the provided query.
@@ -142,6 +142,9 @@ func prepSearchOptions(r *http.Request, d *requestContext) (*searchOptions, erro
 	newerThanUnix, err := parseOptionalUnixQueryParam("newerThan", r.URL.Query().Get("newerThan"))
 	if err != nil {
 		return nil, err
+	}
+	if scope == "" {
+		scope = "/"
 	}
 	cleanScope, err := utils.SanitizeUserPath(scope)
 	if err != nil {
