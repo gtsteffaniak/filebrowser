@@ -28,6 +28,48 @@ import (
 // CheckPermissionsFunc allows tests to override CheckPermissions behavior
 var CheckPermissionsFunc = checkPermissionsImpl
 
+// enrichDirectoryMediaChildren runs concurrent ffmpeg/tag extraction for audio/video children.
+// Each goroutine is registered on wg. Caller must invoke wg.Wait() after scheduling.
+func enrichDirectoryMediaChildren(response *iteminfo.ExtendedFileInfo, opts utils.FileOptions, wg *sync.WaitGroup) {
+	hasMedia := false
+	for i := range response.Files {
+		t := response.Files[i].Type
+		if strings.HasPrefix(t, "audio") || strings.HasPrefix(t, "video") {
+			hasMedia = true
+			break
+		}
+	}
+	if !hasMedia {
+		return
+	}
+	sharedFFmpegService := ffmpeg.NewFFmpegService(10, false, "")
+	if sharedFFmpegService == nil {
+		return
+	}
+
+	for i := range response.Files {
+		fileItem := &response.Files[i]
+		isItemAudio := strings.HasPrefix(fileItem.Type, "audio")
+		isItemVideo := strings.HasPrefix(fileItem.Type, "video")
+		if !isItemAudio && !isItemVideo {
+			continue
+		}
+		isAudio := isItemAudio
+		wg.Go(func() {
+			fullPath := response.RealPath + "/" + fileItem.Name
+			if isAudio {
+				if err := extractAudioMetadata(context.Background(), fileItem, fullPath, opts.AlbumArt, opts.Metadata, sharedFFmpegService); err != nil {
+					logger.Debugf("failed to extract metadata for file: %s, error: %v", fileItem.Name, err)
+				}
+			} else {
+				if err := extractVideoMetadata(context.Background(), fileItem, fullPath, sharedFFmpegService); err != nil {
+					logger.Debugf("failed to extract video metadata for file: %s, error: %v", fileItem.Name, err)
+				}
+			}
+		})
+	}
+}
+
 // processDirectoryMetadata extracts metadata for audio/video files in directories
 func processDirectoryMetadata(response *iteminfo.ExtendedFileInfo, idx *indexing.Index, opts utils.FileOptions) {
 	metadataCount := 0
@@ -39,11 +81,8 @@ func processDirectoryMetadata(response *iteminfo.ExtendedFileInfo, idx *indexing
 			metadataCount++
 		}
 	}
-	// Process files concurrently using goroutines
 	var wg sync.WaitGroup
-	var mu sync.Mutex // Protects processedCount
 
-	// Refresh directory to update folder sizes
 	wg.Go(func() {
 		indexPath := idx.MakeIndexPath(response.Path, true)
 		err := idx.RefreshDirectory(indexPath, false)
@@ -52,55 +91,69 @@ func processDirectoryMetadata(response *iteminfo.ExtendedFileInfo, idx *indexing
 		}
 	})
 
-	// Set hasMetadata flag if there are files with potential metadata
 	if metadataCount > 0 {
 		response.HasMetadata = true
 	}
 
-	// Only process metadata if explicitly requested
 	if opts.Metadata && metadataCount > 0 {
-		processedCount := 0
+		enrichDirectoryMediaChildren(response, opts, &wg)
+	}
+	wg.Wait()
+}
 
-		// Create a single shared FFmpegService instance for all files to coordinate concurrency
-		sharedFFmpegService := ffmpeg.NewFFmpegService(10, false, "")
-		if sharedFFmpegService != nil {
+// DirectoryMediaFile is one enriched audio/video child (transport from files layer to HTTP).
+type DirectoryMediaFile struct {
+	Name     string
+	Metadata *iteminfo.MediaMetadata
+}
 
-			for i := range response.Files {
-				fileItem := &response.Files[i]
-				isItemAudio := strings.HasPrefix(fileItem.Type, "audio")
-				isItemVideo := strings.HasPrefix(fileItem.Type, "video")
+// ExtractDirectoryMediaFiles returns media metadata for immediate audio/video children of a directory.
+func ExtractDirectoryMediaFiles(opts utils.FileOptions, access *access.Storage, user *users.User) ([]DirectoryMediaFile, error) {
+	indexPath, _, err := CheckPermissions(opts, access, user)
+	if err != nil {
+		return nil, err
+	}
+	idx := indexing.GetIndex(opts.Source)
+	if idx == nil {
+		return nil, fmt.Errorf("could not get index: %v ", opts.Source)
+	}
+	info, err := idx.GetFileInfo(indexing.FileInfoRequest{
+		IndexPath:         indexPath,
+		FollowSymlinks:    opts.FollowSymlinks,
+		ShowHidden:        opts.ShowHidden,
+		Expand:            true,
+		SkipExtendedAttrs: true,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if info.Type != "directory" {
+		return []DirectoryMediaFile{}, nil
+	}
+	if err := access.CheckChildItemAccess(info, idx, user.Username); err != nil {
+		return nil, err
+	}
 
-				if isItemAudio || isItemVideo {
-					wg.Go(func() {
-						// Extract metadata for audio files (without album art for performance)
-						if isItemAudio {
-							err := extractAudioMetadata(context.Background(), fileItem, response.RealPath+"/"+fileItem.Name, opts.AlbumArt, opts.Metadata, sharedFFmpegService)
-							if err != nil {
-								logger.Debugf("failed to extract metadata for file: %s, error: %v", fileItem.Name, err)
-							} else {
-								mu.Lock()
-								processedCount++
-								mu.Unlock()
-							}
-						} else {
-							// Extract duration for video files
-							err := extractVideoMetadata(context.Background(), fileItem, response.RealPath+"/"+fileItem.Name, sharedFFmpegService)
-							if err != nil {
-								logger.Debugf("failed to extract video metadata for file: %s, error: %v", fileItem.Name, err)
-							} else {
-								mu.Lock()
-								processedCount++
-								mu.Unlock()
-							}
-						}
-					})
-				}
-			}
+	wrapper := &iteminfo.ExtendedFileInfo{}
+	wrapper.FileInfo = *info
+	wrapper.RealPath = filepath.Join(idx.Path, indexPath)
 
+	extractOpts := opts
+	extractOpts.Metadata = true
+	extractOpts.AlbumArt = false
+
+	var wg sync.WaitGroup
+	enrichDirectoryMediaChildren(wrapper, extractOpts, &wg)
+	wg.Wait()
+
+	var out []DirectoryMediaFile
+	for i := range wrapper.Files {
+		f := &wrapper.Files[i]
+		if strings.HasPrefix(f.Type, "audio") || strings.HasPrefix(f.Type, "video") {
+			out = append(out, DirectoryMediaFile{Name: f.Name, Metadata: f.Metadata})
 		}
 	}
-	// Wait for all goroutines to complete
-	wg.Wait()
+	return out, nil
 }
 
 // finalizeResponse handles final response adjustments (OnlyOffice ID, scope stripping)
@@ -290,48 +343,48 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index, opts u
 	if isFolder {
 		return
 	}
+	if opts.Metadata {
+		if isVideo {
 
-	if isVideo {
-		// Extract duration for video
-		extItem := &iteminfo.ExtendedItemInfo{
-			ItemInfo: info.ItemInfo,
-		}
-		err := extractVideoMetadata(context.Background(), extItem, info.RealPath, nil)
-		if err != nil {
-			logger.Debugf("failed to extract video metadata for file: "+info.RealPath, info.Name, err)
-		} else {
-			info.Metadata = extItem.Metadata
+			extItem := &iteminfo.ExtendedItemInfo{
+				ItemInfo: info.ItemInfo,
+			}
+			err := extractVideoMetadata(context.Background(), extItem, info.RealPath, nil)
+			if err != nil {
+				logger.Debugf("failed to extract video metadata for file: "+info.RealPath, info.Name, err)
+			} else {
+				info.Metadata = extItem.Metadata
+			}
+
+			parentPath := filepath.Dir(info.Path)
+			parentInfo, exists := idx.GetMetadataInfo(parentPath, true, false)
+			if exists {
+				info.GetSubtitles(parentInfo)
+			}
+			if opts.ExtractEmbeddedSubtitles {
+				subtitles := ffmpeg.DetectEmbeddedSubtitles(info.RealPath, info.ModTime)
+				info.Subtitles = append(info.Subtitles, subtitles...)
+			}
+
+			return
 		}
 
-		// Handle subtitles if requested
-		parentPath := filepath.Dir(info.Path)
-		parentInfo, exists := idx.GetMetadataInfo(parentPath, true, false)
-		if exists {
-			info.GetSubtitles(parentInfo)
+		if isAudio {
+			// Create an ExtendedItemInfo to hold the metadata
+			extItem := &iteminfo.ExtendedItemInfo{
+				ItemInfo: info.ItemInfo,
+			}
+			err := extractAudioMetadata(context.Background(), extItem, info.RealPath, opts.AlbumArt || opts.Content, opts.Metadata || opts.Content, nil)
+			if err != nil {
+				logger.Debugf("failed to extract audio metadata for file: "+info.RealPath, info.Name, err)
+			} else {
+				// Copy metadata to ExtendedFileInfo
+				info.Metadata = extItem.Metadata
+				info.HasMetadata = true
+				info.HasPreview = extItem.Metadata != nil && len(extItem.Metadata.AlbumArt) > 0
+			}
+			return
 		}
-		if opts.ExtractEmbeddedSubtitles {
-			subtitles := ffmpeg.DetectEmbeddedSubtitles(info.RealPath, info.ModTime)
-			info.Subtitles = append(info.Subtitles, subtitles...)
-		}
-
-		return
-	}
-
-	if isAudio {
-		// Create an ExtendedItemInfo to hold the metadata
-		extItem := &iteminfo.ExtendedItemInfo{
-			ItemInfo: info.ItemInfo,
-		}
-		err := extractAudioMetadata(context.Background(), extItem, info.RealPath, opts.AlbumArt || opts.Content, opts.Metadata || opts.Content, nil)
-		if err != nil {
-			logger.Debugf("failed to extract audio metadata for file: "+info.RealPath, info.Name, err)
-		} else {
-			// Copy metadata to ExtendedFileInfo
-			info.Metadata = extItem.Metadata
-			info.HasMetadata = true
-			info.HasPreview = extItem.Metadata != nil && len(extItem.Metadata.AlbumArt) > 0
-		}
-		return
 	}
 
 	// Process text content for non-video, non-audio files

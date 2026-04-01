@@ -1074,6 +1074,63 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/media/metadata": {
+            "get": {
+                "description": "For a directory path, returns metadata rows for each direct audio/video child for client-side patching.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Directory media metadata",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Path to the directory",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source name",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.directoryMetadataResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/media/subtitles": {
             "get": {
                 "description": "Returns raw subtitle content from external files or embedded streams",
@@ -1384,7 +1441,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Skip extended attributes for faster retrieval, no hasPreview",
+                        "description": "When true, omit index-level extended fields (e.g. hasPreview); does not disable ffmpeg/media extraction",
                         "name": "skipExtendedAttrs",
                         "in": "query"
                     },
@@ -1403,7 +1460,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Extract audio/video metadata if true",
+                        "description": "When true, run audio/video metadata extraction, subtitles, and directory media batch processing",
                         "name": "metadata",
                         "in": "query"
                     },
@@ -3130,6 +3187,40 @@ const docTemplate = `{
                 }
             }
         },
+        "/public/api/media/metadata": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shares"
+                ],
+                "summary": "Directory media metadata (public share)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Share hash",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Path within the share",
+                        "name": "path",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.directoryMetadataResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/public/api/resources": {
             "get": {
                 "description": "Returns metadata for files or directories accessible via a public share link. Browsing is disabled for upload-only shares.",
@@ -4314,6 +4405,28 @@ const docTemplate = `{
                 "toSource": {
                     "description": "Source name where the archive file will be written (optional; default: fromSource). Example: \"backups\"",
                     "type": "string"
+                }
+            }
+        },
+        "http.directoryMetadataItem": {
+            "type": "object",
+            "properties": {
+                "metadata": {
+                    "$ref": "#/definitions/iteminfo.MediaMetadata"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.directoryMetadataResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/http.directoryMetadataItem"
+                    }
                 }
             }
         },
@@ -6436,6 +6549,10 @@ const docTemplate = `{
                 "disableViewingExt": {
                     "description": "space separated list of file extensions to disable viewing for",
                     "type": "string"
+                },
+                "displayMediaMetadata": {
+                    "description": "display media metadata for images, videos, and audio files in the listing view. Can cause a small delay in loading.",
+                    "type": "boolean"
                 },
                 "editorQuickSave": {
                     "description": "show quick save button in editor",

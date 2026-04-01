@@ -61,10 +61,10 @@ func validateMoveOperation(src, dst string, isSrcDir bool) error {
 // @Accept json
 // @Produce json
 // @Param path query string true "Path to the resource"
-// @Param skipExtendedAttrs query string false "Skip extended attributes for faster retrieval, no hasPreview"
+// @Param skipExtendedAttrs query string false "When true, omit index-level extended fields (e.g. hasPreview); does not disable ffmpeg/media extraction"
 // @Param source query string true "Source name for the desired source, default is used if not provided"
 // @Param content query string false "Include file content if true"
-// @Param metadata query string false "Extract audio/video metadata if true"
+// @Param metadata query string false "When true, run audio/video metadata extraction, subtitles, and directory media batch processing"
 // @Param checksum query string false "Optional checksum validation"
 // @Success 200 {object} iteminfo.FileInfo "Resource metadata"
 // @Failure 404 {object} map[string]string "Resource not found"

@@ -127,6 +127,7 @@ type NonAdminEditable struct {
 	HideFilesInTree            bool          `json:"hideFilesInTree"`            // hide files in the sidebar tree navigation, when true, will show only directories.
 	DeleteAfterArchive         bool          `json:"deleteAfterArchive"`         // delete source files after successful creation/extraction of archives
 	PreferEditorForMarkdown    bool          `json:"preferEditorForMarkdown"`    // prefer editor first for markdown files instead of the Markdown Viewer
+	DisplayMediaMetadata       bool          `json:"displayMediaMetadata"`       // display media metadata for images, videos, and audio files in the listing view. Can cause a small delay in loading.
 }
 
 type FileLoading struct {

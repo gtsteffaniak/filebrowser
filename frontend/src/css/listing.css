@@ -267,15 +267,23 @@ body.rtl .listing-items {
   background: transparent;
 }
 
-.listing-items.list .listing-item .size,
-.listing-items.compact .listing-item .size,
-.listing-items.list .listing-item .duration,
-.listing-items.compact .listing-item .duration,
+
 .listing-items.list .listing-item .modified,
 .listing-items.compact .listing-item .modified {
   min-width: 15%;
   flex: 0;
   text-align: end;
+  padding-right: 1em;
+}
+
+.listing-items.list .listing-item .size,
+.listing-items.compact .listing-item .size,
+.listing-items.list .listing-item .duration,
+.listing-items.compact .listing-item .duration {
+  min-width: 10%;
+  flex: 0;
+  text-align: end;
+  padding-right: 1em;
 }
 
 .listing-items.list .listing-item .name,

@@ -271,6 +271,20 @@ definitions:
           default: fromSource). Example: "backups"'
         type: string
     type: object
+  http.directoryMetadataItem:
+    properties:
+      metadata:
+        $ref: '#/definitions/iteminfo.MediaMetadata'
+      name:
+        type: string
+    type: object
+  http.directoryMetadataResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/http.directoryMetadataItem'
+        type: array
+    type: object
   http.duplicateGroup:
     properties:
       count:
@@ -1858,6 +1872,10 @@ definitions:
       disableViewingExt:
         description: space separated list of file extensions to disable viewing for
         type: string
+      displayMediaMetadata:
+        description: display media metadata for images, videos, and audio files in
+          the listing view. Can cause a small delay in loading.
+        type: boolean
       editorQuickSave:
         description: show quick save button in editor
         type: boolean
@@ -2670,6 +2688,45 @@ paths:
       summary: List API tokens
       tags:
       - Auth
+  /api/media/metadata:
+    get:
+      consumes:
+      - application/json
+      description: For a directory path, returns metadata rows for each direct audio/video
+        child for client-side patching.
+      parameters:
+      - description: Path to the directory
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: Source name
+        in: query
+        name: source
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.directoryMetadataResponse'
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Directory media metadata
+      tags:
+      - Resources
   /api/media/subtitles:
     get:
       consumes:
@@ -2915,7 +2972,8 @@ paths:
         name: path
         required: true
         type: string
-      - description: Skip extended attributes for faster retrieval, no hasPreview
+      - description: When true, omit index-level extended fields (e.g. hasPreview);
+          does not disable ffmpeg/media extraction
         in: query
         name: skipExtendedAttrs
         type: string
@@ -2928,7 +2986,8 @@ paths:
         in: query
         name: content
         type: string
-      - description: Extract audio/video metadata if true
+      - description: When true, run audio/video metadata extraction, subtitles, and
+          directory media batch processing
         in: query
         name: metadata
         type: string
@@ -4103,6 +4162,28 @@ paths:
           schema:
             $ref: '#/definitions/http.HttpResponse'
       summary: Health Check
+  /public/api/media/metadata:
+    get:
+      parameters:
+      - description: Share hash
+        in: query
+        name: hash
+        required: true
+        type: string
+      - description: Path within the share
+        in: query
+        name: path
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.directoryMetadataResponse'
+      summary: Directory media metadata (public share)
+      tags:
+      - Shares
   /public/api/resources:
     get:
       consumes:

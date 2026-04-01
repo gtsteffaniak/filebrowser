@@ -13,7 +13,7 @@
 </template>
 
 <script>
-import { resourcesApi, shareApi } from "@/api";
+import { resourcesApi, shareApi, mediaApi } from "@/api";
 import Errors from "@/views/Errors.vue";
 import Preview from "@/views/files/Preview.vue";
 import ListingView from "@/views/files/ListingView.vue";
@@ -28,6 +28,87 @@ import { url } from "@/utils";
 import router from "@/router";
 import { extractSourceFromPath } from "@/utils/url";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
+
+function directoryListingHasMediaChildren(req) {
+  return (
+    req?.type === "directory" &&
+    req.items?.some((i) => i.type?.startsWith("audio") || i.type?.startsWith("video"))
+  );
+}
+
+/** @returns {Promise<{ items?: object[], name: string, type: string, path: string, source: string, hash?: string, token?: string, parentDirItems?: object[] }>} */
+async function fetchShareItemWithParent(sharePassword) {
+  let file = await resourcesApi.fetchFilesPublic(
+    state.shareInfo.subPath,
+    state.shareInfo.hash,
+    sharePassword,
+    false,
+    false
+  );
+  file.hash = state.shareInfo.hash;
+  mutations.setShareData({ token: file.token, passwordValid: true });
+
+  if (file.type === "directory") {
+    return file;
+  }
+
+  const content = !getters.fileViewingDisabled(file.name);
+  let directoryPath = url.removeLastDir(state.shareInfo.subPath);
+  if (!directoryPath || directoryPath === "") {
+    directoryPath = "/";
+  }
+  const shouldFetchParent = directoryPath !== state.shareInfo.subPath;
+  const promises = [
+    resourcesApi.fetchFilesPublic(
+      state.shareInfo.subPath,
+      state.shareInfo.hash,
+      sharePassword,
+      content,
+      false
+    ),
+  ];
+  if (shouldFetchParent) {
+    promises.push(
+      resourcesApi
+        .fetchFilesPublic(directoryPath, state.shareInfo.hash, sharePassword, false, false)
+        .catch(() => null)
+    );
+  }
+  const results = await Promise.all(promises);
+  file = results[0];
+  file.hash = state.shareInfo.hash;
+  mutations.setShareData({ token: results[0].token });
+  if (shouldFetchParent && results[1]?.items) {
+    file.parentDirItems = results[1].items;
+  }
+  return file;
+}
+
+/** @returns {Promise<{ items?: object[], name: string, type: string, path: string, source: string, parentDirItems?: object[] }>} */
+async function fetchAuthItemWithParent(fetchSource, fetchPath) {
+  let res = await resourcesApi.fetchFiles(fetchSource, fetchPath, false, false);
+  if (res.type === "directory" || res.type.startsWith("image")) {
+    return res;
+  }
+  const content = !getters.fileViewingDisabled(res.name);
+  let directoryPath = url.removeLastDir(res.path);
+  if (!directoryPath || directoryPath === "") {
+    directoryPath = "/";
+  }
+  const shouldFetchParent = directoryPath !== res.path;
+  const promises = [resourcesApi.fetchFiles(res.source, res.path, content, false)];
+  if (shouldFetchParent) {
+    promises.push(
+      resourcesApi.fetchFiles(res.source, directoryPath, false, false).catch(() => null)
+    );
+  }
+  const results = await Promise.all(promises);
+  res = results[0];
+  if (shouldFetchParent && results[1]?.items) {
+    res.parentDirItems = results[1].items;
+  }
+  return res;
+}
 
 export default {
   name: "files",
@@ -172,6 +253,23 @@ export default {
           }, 1000);
         }
     },
+    async patchDirectoryMediaIfNeeded(listing, fetchMedia) {
+      if (!directoryListingHasMediaChildren(listing)) {
+        this.loadingProgress = 100;
+        return;
+      }
+      this.loadingProgress = 90;
+      try {
+        const payload = await fetchMedia();
+        if (payload?.items?.length) {
+          mutations.patchRequestMetadata(payload.items);
+        }
+        this.loadingProgress = 100;
+      } catch {
+        this.loadingProgress = 0;
+      }
+    },
+
     async fetchData() {
       const hash = getters.shareHash();
       let isShare = hash !== "";
@@ -315,83 +413,16 @@ export default {
           }
 
           this.loadingProgress = 10;
-
-          // Fetch share data
-          let file = await resourcesApi.fetchFilesPublic(state.shareInfo.subPath, state.shareInfo.hash, this.sharePassword, false, false);
-          file.hash = state.shareInfo.hash;
-
-          // Store token in shareInfo
-          mutations.setShareData({
-            token: file.token,
-            passwordValid: true,
-          });
-
-          // If not a directory, fetch content AND parent directory in parallel
-          if (file.type != "directory") {
-            const content = !getters.fileViewingDisabled(file.name);
-            let directoryPath = url.removeLastDir(state.shareInfo.subPath);
-            // If directoryPath is empty, the file is in root - use '/' as the directory
-            if (!directoryPath || directoryPath === '') {
-              directoryPath = '/';
-            }
-            // Fetch parent directory unless it's the same as the file path
-            const shouldFetchParent = directoryPath !== state.shareInfo.subPath;
-            // Run both fetches in parallel to minimize total API calls
-            const promises = [
-              resourcesApi.fetchFilesPublic(state.shareInfo.subPath, state.shareInfo.hash, this.sharePassword, content, false)
-            ];
-            if (shouldFetchParent) {
-              promises.push(
-                resourcesApi.fetchFilesPublic(directoryPath, state.shareInfo.hash, this.sharePassword, false, false).catch(() => null)
-              );
-            }
-
-            const results = await Promise.all(promises);
-            file = results[0];
-            file.hash = state.shareInfo.hash;
-
-            // Update token if it changed
-            mutations.setShareData({ token: results[0].token });
-
-            // Store the parent directory items for Preview to use
-            if (shouldFetchParent && results[1] && results[1].items) {
-              file.parentDirItems = results[1].items;
-            }
-          }
-
-          // Display initial data immediately
+          const file = await fetchShareItemWithParent(this.sharePassword);
           mutations.replaceRequest(file);
           document.title = globalVars.name + " - " + this.$t("general.share") + " - " + file.name;
-          // Second pass: If directory has metadata available, fetch again with metadata IN THE BACKGROUND
-          if (file.type === "directory" && file.hasMetadata) {
-            this.loadingProgress = 90;
-            // Fetch with metadata enabled (background operation)
-            resourcesApi.fetchFilesPublic(state.shareInfo.subPath, state.shareInfo.hash, this.sharePassword, false, true).then(fileWithMetadata => {
-              fileWithMetadata.hash = state.shareInfo.hash;
-              fileWithMetadata.token = state.shareInfo.token;
-
-              // Capture scroll position before update
-              const scrollY = window.scrollY;
-
-              // Update the request with metadata
-              mutations.replaceRequest(fileWithMetadata);
-
-              // Complete progress
-              this.loadingProgress = 100;
-
-              // Restore scroll position
-              requestAnimationFrame(() => {
-                window.scrollTo(0, scrollY);
-              });
-            }).catch(() => {
-              // Don't throw - we already have the basic data displayed
-              // Clear loading progress bar on metadata fetch error
-              this.loadingProgress = 0;
-            });
-          } else {
-            // No metadata needed, complete immediately
-            this.loadingProgress = 100;
-          }
+          await this.patchDirectoryMediaIfNeeded(file, () =>
+            mediaApi.fetchDirectoryMediaMetadataPublic(
+              state.shareInfo.subPath,
+              state.shareInfo.hash,
+              this.sharePassword
+            )
+          );
         }
 
         // === FILES-SPECIFIC INITIALIZATION ===
@@ -430,89 +461,22 @@ export default {
           }
 
           this.lastHash = "";
-          // Reset view information using mutations
           mutations.resetSelected();
 
           this.loadingProgress = 10;
-
           const fetchSource = decodeURIComponent(result.source);
           const fetchPath = decodeURIComponent(result.path);
 
-          // First pass: Fetch initial data WITHOUT metadata
-          let res = await resourcesApi.fetchFiles(fetchSource, fetchPath, false, false);
-
-          this.loadingProgress = 10;
-
-          // If not a directory, fetch content AND parent directory in parallel
-          if (res.type != "directory" && !res.type.startsWith("image")) {
-            const content = !getters.fileViewingDisabled(res.name);
-            let directoryPath = url.removeLastDir(res.path);
-
-            // If directoryPath is empty, the file is in root - use '/' as the directory
-            if (!directoryPath || directoryPath === '') {
-              directoryPath = '/';
-            }
-
-            // Fetch parent directory unless it's the same as the file path
-            const shouldFetchParent = directoryPath !== res.path;
-
-            // Run both fetches in parallel to minimize total API calls
-            const promises = [
-              resourcesApi.fetchFiles(res.source, res.path, content, false)
-            ];
-
-            if (shouldFetchParent) {
-              promises.push(
-                resourcesApi.fetchFiles(res.source, directoryPath, false, false).catch(() => null)
-              );
-            }
-
-            const results = await Promise.all(promises);
-            res = results[0];
-
-            // Store the parent directory items for Preview to use
-            if (shouldFetchParent && results[1] && results[1].items) {
-              res.parentDirItems = results[1].items;
-            }
-          }
-          let data = res;
-
+          const res = await fetchAuthItemWithParent(fetchSource, fetchPath);
           if (state.sources.count > 1) {
-            mutations.setCurrentSource(data.source);
+            mutations.setCurrentSource(res.source);
           }
           document.title = globalVars.name + " - " + this.$t("general.files") + " - " + res.name;
-          
-          // Display initial data immediately and clear loading spinner
-          mutations.replaceRequest(data);
+          mutations.replaceRequest(res);
           mutations.setLoading("files", false);
-
-          // Second pass: If directory has metadata available, fetch again with metadata IN THE BACKGROUND
-          if (res.type === "directory" && res.hasMetadata) {
-            this.loadingProgress = 90;
-            // Fetch with metadata enabled (background operation, don't set loading state)
-            resourcesApi.fetchFiles(fetchSource, fetchPath, false, true).then(resWithMetadata => {
-              // Capture scroll position before update
-              const scrollY = window.scrollY;
-
-              // Update the data with metadata
-              mutations.replaceRequest(resWithMetadata);
-
-              // Complete progress
-              this.loadingProgress = 100;
-
-              // Restore scroll position
-              requestAnimationFrame(() => {
-                window.scrollTo(0, scrollY);
-              });
-            }).catch(() => {
-              // Don't throw - we already have the basic data displayed
-              // Clear loading progress bar on metadata fetch error
-              this.loadingProgress = 0;
-            });
-          } else {
-            // No metadata needed, complete immediately
-            this.loadingProgress = 100;
-          }
+          await this.patchDirectoryMediaIfNeeded(res, () =>
+            mediaApi.fetchDirectoryMediaMetadata(fetchSource, fetchPath)
+          );
         }
 
       } catch (e) {

@@ -116,7 +116,9 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		}
 		data.IndexPath = pathWithoutUserScope
 		// skip file fetch for certain apis
-		if r.Method == "POST" && strings.Contains(r.URL.Path, "/resources") || r.Method == "GET" && strings.Contains(r.URL.Path, "/resources/items") {
+		if (r.Method == "POST" && strings.Contains(r.URL.Path, "/resources")) ||
+			(r.Method == "GET" && strings.Contains(r.URL.Path, "/resources/items")) ||
+			(r.Method == "GET" && strings.Contains(r.URL.Path, "/media/metadata")) {
 			return fn(w, r, data)
 		}
 		file, err := FileInfoFasterFunc(utils.FileOptions{
