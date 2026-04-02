@@ -30,6 +30,12 @@ export const state = reactive({
   editor: null,
   editorDirty: false,
   editorSaveHandler: null, // Function to save editor content
+  editorStats: {
+    lines: 0,
+    words: 0,
+    chars: 0,
+  },
+  editorFontSize: parseInt(localStorage.getItem('editorFontSize')) || 14,
   realtimeActive: undefined,
   realtimeDownCount: 0,
   popupPreviewSourceInfo: null, // { source, path, size, url, modified } - set by Icon when hovering

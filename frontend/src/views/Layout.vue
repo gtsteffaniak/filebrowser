@@ -12,7 +12,7 @@
       'remove-padding-top': isOnlyOffice,
       'main-padding': showPadding,
       scrollable: scrollable,
-    }" :style="moveWithSidebar.style">
+    }" :style="[moveWithSidebar.style, spaceForEditorStatusBar]">
       <shelf />
       <router-view />
     </Scrollbar>
@@ -116,6 +116,13 @@ export default {
         shouldMove,
         style: shouldMove ? { paddingLeft: state.sidebar.width + 'em' } : {}
       };
+    },
+    spaceForEditorStatusBar() {
+      if (getters.currentView() === 'editor') {
+        const height = state.isMobile ? '3em' : '2.5em';
+        return { paddingBottom: height };
+      }
+      return {};
     },
     progress() {
       return getters.progress(); // Access getter directly from the store

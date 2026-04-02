@@ -1,5 +1,10 @@
 <template>
-  <div id="markedown-viewer" ref="viewer" :class="{ 'dark-mode': darkMode }" v-html="renderedContent"></div>
+  <div id="markedown-viewer">
+    <div class="markdown-content-container" :class="{ 'dark-mode': darkMode }">
+      <div ref="viewer" v-html="renderedContent" class="markdown-content"></div>
+    </div>
+    <div class="spacer" :style="{ height: spaceForStatusBar + 'em' }"></div>
+  </div>
 </template>
 
 <script lang="ts">
@@ -85,19 +90,46 @@ export default {
       copyButton.addEventListener('click', async (e) => {
         e.stopPropagation();
         const text = codeBlock.textContent || '';
+        const showFeedback = (success: boolean) => {
+          copyButton.innerHTML = success
+            ? '<span class="material-symbols-outlined">check</span>'
+            : '<span class="material-symbols-outlined">error</span>';
+          setTimeout(() => {
+            copyButton.innerHTML = '<span class="material-symbols-outlined">content_copy</span>';
+          }, 1500);
+        };
         try {
-          await navigator.clipboard.writeText(text);
-          // Show success feedback
-          copyButton.innerHTML = '<span class="material-symbols-outlined">check</span>';
-          notify.showSuccessToast(this.$t('buttons.copySuccess'));
-          setTimeout(() => {
-            copyButton.innerHTML = '<span class="material-symbols-outlined">content_copy</span>';
-          }, 1500);
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            // Using clipboard API
+            navigator.clipboard.writeText(text).then(() => {
+              showFeedback(true);
+              notify.showSuccessToast(this.$t('buttons.copySuccess'));
+            }).catch((err) => {
+              console.error('Clipboard API error:', err);
+              showFeedback(false);
+              notify.showErrorToast(this.$t('errors.copyFailed'));
+            });
+          } else {
+            // Fallback using execCommand.
+            // This seems the only way to allow copy from http (insecure) connections (even if is marked as deprecated) 
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            const success = document.execCommand('copy');
+            document.body.removeChild(textarea);
+            if (success) {
+              showFeedback(true);
+              notify.showSuccessToast(this.$t('buttons.copySuccess'));
+            } else {
+              showFeedback(false);
+              notify.showErrorToast(this.$t('errors.copyFailed'));
+            }
+          }
         } catch (err) {
-          console.error('Failed to copy:', err);
-          setTimeout(() => {
-            copyButton.innerHTML = '<span class="material-symbols-outlined">content_copy</span>';
-          }, 1500);
+          console.error('Copy failed:', err);
+          showFeedback(false);
+          notify.showErrorToast(this.$t('errors.copyFailed'));
         }
       });
       wrapper.appendChild(copyButton);
@@ -226,6 +258,12 @@ export default {
       div.textContent = text;
       return div.innerHTML;
     },
+    updateEditorStats() {
+      const text = this.content.trim();
+      const words = text ? text.split(/\s+/).length : 0;
+      const chars = text.length;
+      mutations.setEditorStats({ lines: null, words, chars });
+    },
     reinit() {
       mutations.resetSelected();
       mutations.addSelected({
@@ -239,6 +277,7 @@ export default {
       // Set initial content. The `watch` will trigger the first highlight.
       const fileContent = state.req.content == "empty-file-x6OlSil" ? "" : state.req.content || "";
       this.content = fileContent;
+      this.updateEditorStats();
     },
   },
   watch: {
@@ -249,6 +288,7 @@ export default {
       this.$nextTick(() => {
         this.applyHighlighting();
       });
+      this.updateEditorStats();
     },
     // Watch for changes in state.req.content and update local content
     req() {
@@ -278,6 +318,9 @@ export default {
         return DOMPurify.sanitize('Loading...');
       }
     },
+    spaceForStatusBar() {
+      return state.isMobile ? 3.1 : 3.5;
+    },
   },
   mounted() {
     this.reinit();
@@ -288,27 +331,35 @@ export default {
     if (link) {
       document.head.removeChild(link);
     }
+    mutations.setEditorStats({ lines: 0, words: 0, chars: 0 });
   }
 };
 </script>
 
 <style>
-/* This style block is now plain CSS, no "lang=scss" needed */
 #markedown-viewer {
   margin: 1em;
-  padding: 1em;
-  background-color: var(--alt-background);
-  border-radius: 1em;
   overflow-wrap: break-word;
   word-break: break-word;
 }
 
-#markedown-viewer pre {
-  border-radius: 8px;
+#markedown-viewer .markdown-content-container {
+  background-color: var(--alt-background);
+  border-radius: 1em;
+  padding: 1em;
+}
+
+#markedown-viewer .markdown-content {
+  width: 100%;
+}
+
+#markedown-viewer .spacer {
+  width: 100%;
+  pointer-events: none;
 }
 
 /* Code block wrapper with line numbers */
-#markedown-viewer .code-block-wrapper {
+#markedown-viewer .markdown-content-container .code-block-wrapper {
   display: flex;
   background-color: #f6f8fa;
   border-radius: 8px;
@@ -321,11 +372,11 @@ export default {
   position: relative;
 }
 
-#markedown-viewer.dark-mode .code-block-wrapper {
+#markedown-viewer .markdown-content-container.dark-mode .code-block-wrapper {
   background-color: #161b22;
 }
 
-#markedown-viewer .copy-code-button {
+#markedown-viewer .markdown-content-container .copy-code-button {
   position: absolute;
   top: 0.4em;
   right: 0.3em;
@@ -341,7 +392,7 @@ export default {
 }
 
 /* Line numbers styling */
-#markedown-viewer .line-numbers {
+#markedown-viewer .markdown-content-container .line-numbers {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
@@ -357,13 +408,13 @@ export default {
   flex-shrink: 0;
 }
 
-#markedown-viewer.dark-mode .line-numbers {
+#markedown-viewer .markdown-content-container.dark-mode .line-numbers {
   background-color: #21262d;
   border-right-color: #30363d;
   color: #7d8590;
 }
 
-#markedown-viewer .line-number {
+#markedown-viewer .markdown-content-container .line-number {
   display: block;
   white-space: nowrap;
   height: 1.45em;
@@ -372,28 +423,28 @@ export default {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-#markedown-viewer .line-number:hover {
+#markedown-viewer .markdown-content-container .line-number:hover {
   background-color: #e1e4e8;
   color: #24292e;
 }
 
-#markedown-viewer.dark-mode .line-number:hover {
+#markedown-viewer .markdown-content-container.dark-mode .line-number:hover {
   background-color: #30363d;
   color: #f0f6fc;
 }
 
-#markedown-viewer .line-number.active {
+#markedown-viewer .markdown-content-container .line-number.active {
   background-color: #0366d6;
   color: white;
 }
 
-#markedown-viewer.dark-mode .line-number.active {
+#markedown-viewer .markdown-content-container.dark-mode .line-number.active {
   background-color: #1f6feb;
   color: white;
 }
 
 /* Individual code lines */
-#markedown-viewer .code-line {
+#markedown-viewer .markdown-content-container .code-line {
   display: block;
   white-space: pre;
   line-height: 1.45;
@@ -401,32 +452,32 @@ export default {
   transition: background-color 0.2s ease;
 }
 
-#markedown-viewer .code-line.highlighted {
+#markedown-viewer .markdown-content-container .code-line.highlighted {
   background-color: #fff8c5;
 }
 
-#markedown-viewer.dark-mode .code-line.highlighted {
+#markedown-viewer .markdown-content-container.dark-mode .code-line.highlighted {
   background-color: #ffd33d20;
 }
 
 /* Code content styling */
-#markedown-viewer .code-content {
+#markedown-viewer .markdown-content-container .code-content {
   flex: 1;
   overflow-x: auto;
   max-width: 100%;
 }
 
-#markedown-viewer .code-content pre {
+#markedown-viewer .markdown-content-container .code-content pre {
   margin: 0;
-  background: transparent !important;
+  background: transparent;
   border-radius: 0;
   padding: 0;
   line-height: 1.45;
   width: 100%;
 }
 
-#markedown-viewer .code-content code {
-  background: transparent !important;
+#markedown-viewer .markdown-content-container .code-content code {
+  background: transparent;
   padding: 0.5em;
   padding-top: 0.75em;
   font-family: inherit;
@@ -437,20 +488,22 @@ export default {
 }
 
 /* Fix for code content line height to match line numbers exactly */
-#markedown-viewer .code-content pre code {
+#markedown-viewer .markdown-content-container .code-content pre code {
   line-height: 1.45;
 }
 
 /* Ensure each line in the code has the same height as line numbers */
-#markedown-viewer .code-content pre code br {
+#markedown-viewer .markdown-content-container .code-content pre code br {
   line-height: 1.45;
 }
-#markedown-viewer .code-content a {
-  color: #3737c9 !important;
-  font-weight: 500 !important;
+
+#markedown-viewer .markdown-content-container .code-content a {
+  color: #3737c9;
+  font-weight: 500;
 }
-#markedown-viewer .code-content a:hover {
-  text-decoration: underline !important;
+
+#markedown-viewer .markdown-content-container .code-content a:hover {
+  text-decoration: underline;
 }
 
 </style>

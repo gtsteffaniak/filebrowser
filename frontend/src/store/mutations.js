@@ -50,6 +50,17 @@ export const mutations = {
     state.editorSaveHandler = handler;
     emitStateChanged();
   },
+  setEditorStats: (stats) => {
+    if (JSON.stringify(state.editorStats) === JSON.stringify(stats)) return;
+    state.editorStats = stats;
+    emitStateChanged();
+  },
+  setEditorFontSize: (size) => {
+    if (state.editorFontSize === size) return;
+    state.editorFontSize = size;
+    localStorage.setItem('editorFontSize', size);
+    emitStateChanged();
+  },
   setDeletedItem: (value) => {
     if (value == state.deletedItem) {
       return;

@@ -214,6 +214,7 @@ export default {
     // Clear dirty state and save handler when leaving editor
     mutations.setEditorDirty(false);
     mutations.setEditorSaveHandler(null);
+    mutations.setEditorStats({ lines: 0, words: 0, chars: 0 });
 
     if (this.editor) {
       this.editor.destroy();
@@ -225,6 +226,11 @@ export default {
 
     // Register save handler so other components can trigger save
     mutations.setEditorSaveHandler(() => this.handleEditorValueRequest());
+    this.applyFontSize();
+    // Watch font size changes
+    this.$watch(() => state.editorFontSize, () => {
+      this.applyFontSize();
+    });
   },
   methods: {
     initializeNavigation() {
@@ -325,12 +331,14 @@ export default {
         this.editor.on('change', () => {
           this.isDirty = true;
           mutations.setEditorDirty(true);
+          this.updateEditorStats();
         });
 
         // Initialize navigation for file editing mode when synced
         if (this.isStateSynced && !this.viewerMode) {
           this.initializeNavigation();
         }
+        this.updateEditorStats();
       } catch (error) {
         notify.showError(this.$t("editor.uninitialized"));
       }
@@ -476,6 +484,29 @@ export default {
         this.pendingNavigation.next(false);
       }
       this.pendingNavigation = null;
+    },
+    updateEditorStats() {
+      if (!this.editor) return;
+      const session = this.editor.session;
+      const lines = session.getLength();
+      const value = session.getValue();
+
+      if (this.req.type === 'text/markdown' || this.req.type === 'text/x-markdown') {
+        // Count words and characters
+        const text = value.trim();
+        const words = text ? text.split(/\s+/).length : 0;
+        const chars = text.length;
+        mutations.setEditorStats({ lines, words, chars });
+      } else {
+        // For other files, show only lines
+        // Just lines because will be a bit misleading to count words if we are viewing code for example
+        mutations.setEditorStats({ lines, words: null, chars: null });
+      }
+    },
+    applyFontSize() {
+      if (this.editor) {
+        this.editor.container.style.fontSize = state.editorFontSize + 'px';
+      }
     },
   },
 };
