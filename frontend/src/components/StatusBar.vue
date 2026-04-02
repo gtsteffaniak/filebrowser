@@ -203,11 +203,11 @@ export default {
     // Ctrl + Mouse Wheel to adjust the slider sizes
     handleWheel(event) {
       if (!event.ctrlKey) return;
-      event.preventDefault();
 
       const delta = event.deltaY > 0 ? 1 : -1; // Scroll down increases, up decreases
 
       if (this.currentView === 'listingView') {
+        event.preventDefault();
         let newSize = Math.min(9, Math.max(1, this.gallerySize - delta));
         if (newSize !== this.gallerySize) {
           this.gallerySize = newSize;
@@ -215,6 +215,7 @@ export default {
           this.adjustViewMode();
         }
       } else if (this.currentView === 'editor') {
+        event.preventDefault();
         let newSize = Math.min(24, Math.max(10, this.editorFontSize - delta));
         if (newSize !== this.editorFontSize) {
           this.editorFontSize = newSize;
