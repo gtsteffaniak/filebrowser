@@ -793,7 +793,10 @@
     "saveAbortedMessage": "Operazione annullata. Il file attivo ({activeFile}) non corrisponde a quello che stai salvando ({tryingToSave}).",
     "syncFailed": "Impossibile sincronizzare lo stato per \"{filename}\" dopo 5 tentativi. Interruzione per prevenire corruzione dati.",
     "fileSaved": "File salvato!",
-    "errorSavingFile": "Errore nel salvataggio del file: {error}"
+    "errorSavingFile": "Errore nel salvataggio del file: {error}",
+    "lines": "{count} righe",
+    "words": "{count} parole",
+    "chars": "{count} caratteri"
   },
   "player": {
     "LoopEnabled": "Loop Abilitato",

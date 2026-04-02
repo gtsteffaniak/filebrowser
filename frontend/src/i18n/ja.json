@@ -785,7 +785,10 @@
     "saveAbortedMessage": "保存操作が中断されました。アプリケーションのアクティブファイル（{activeFile}）と保存しようとしているファイル（{tryingToSave}）が一致しません。",
     "syncFailed": "\"{filename}\"のルートとステートの同期に失敗しました。データの破損を防ぐためにエディタのセットアップを中止しています。",
     "fileSaved": "ファイルが保存された！",
-    "errorSavingFile": "ファイルの保存でエラーが発生しました：{error}"
+    "errorSavingFile": "ファイルの保存でエラーが発生しました：{error}",
+    "lines": "{count} 行",
+    "words": "{count} 単語",
+    "chars": "{count} 文字"
   },
   "player": {
     "LoopEnabled": "ループ有効",

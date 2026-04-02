@@ -785,7 +785,10 @@
     "saveAbortedMessage": "Der Speichervorgang wurde abgebrochen. Die aktive Datei der Anwendung ({activeFile}) stimmt nicht mit der Datei überein, die Sie zu speichern versuchen ({tryingToSave}).",
     "syncFailed": "Nach 5 Versuchen ist es nicht gelungen, den Status mit der Route für \"{filename}\" zu synchronisieren. Abbruch der Editor-Einrichtung, um Datenbeschädigung zu vermeiden.",
     "fileSaved": "Datei gespeichert!",
-    "errorSavingFile": "Fehler beim Speichern der Datei: {error}"
+    "errorSavingFile": "Fehler beim Speichern der Datei: {error}",
+    "lines": "{count} Zeilen",
+    "words": "{count} Wörter",
+    "chars": "{count} Zeichen"
   },
   "player": {
     "LoopEnabled": "Wiederholung aktiviert",

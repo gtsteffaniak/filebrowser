@@ -785,7 +785,10 @@
     "saveAbortedMessage": "Operação de salvamento abortada. O arquivo ativo do aplicativo ({activeFile}) não corresponde ao arquivo que você está tentando salvar ({tryingToSave}).",
     "syncFailed": "Falha ao sincronizar o estado com a rota para \"{filename}\" após 5 tentativas. Abortar a configuração do editor para evitar a corrupção de dados.",
     "fileSaved": "Arquivo salvo!",
-    "errorSavingFile": "Erro ao salvar o arquivo: {error}"
+    "errorSavingFile": "Erro ao salvar o arquivo: {error}",
+    "lines": "{count} linhas",
+    "words": "{count} palavras",
+    "chars": "{count} caracteres"
   },
   "player": {
     "LoopEnabled": "Repetição ativada",

@@ -785,7 +785,10 @@
     "saveAbortedMessage": "Operacja zapisywania została przerwana. Aktywny plik aplikacji ({activeFile}) nie jest zgodny z plikiem, który próbujesz zapisać ({tryingToSave}).",
     "syncFailed": "Nie udało się zsynchronizować stanu z trasą dla \"{filename}\" po 5 próbach. Przerwano konfigurację edytora, aby zapobiec uszkodzeniu danych.",
     "fileSaved": "Plik zapisany!",
-    "errorSavingFile": "Błąd zapisu pliku: {error}"
+    "errorSavingFile": "Błąd zapisu pliku: {error}",
+    "lines": "{count} wierszy",
+    "words": "{count} słów",
+    "chars": "{count} znaków"
   },
   "player": {
     "LoopEnabled": "Pętla włączona",

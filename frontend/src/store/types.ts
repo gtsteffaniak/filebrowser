@@ -88,6 +88,11 @@ export interface UserObject {
   perm?: any;
   email?: string;
   avatarUrl?: string;
+  fileLoading?: {
+    maxConcurrentUpload?: number;
+    uploadChunkSizeMb?: number;
+    clearAll?: boolean;
+  };
 }
 
 export interface RouteObject {
@@ -216,4 +221,10 @@ export interface StoreState {
     minWidth: number;
     maxWidth: number;
   };
+  editorStats: {
+    lines: number | null;
+    words: number | null;
+    chars: number | null;
+  };
+  editorFontSize: number;
 }

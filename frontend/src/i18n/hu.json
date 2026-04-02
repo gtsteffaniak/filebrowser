@@ -785,7 +785,10 @@
     "saveAbortedMessage": "A mentési művelet megszakadt. Az alkalmazás aktív fájlja ({activeFile}) nem egyezik meg a menteni kívánt fájllal ({tryingToSave}).",
     "syncFailed": "5 próbálkozás után nem sikerült szinkronizálni az állapotot a \"{filename}\" útvonallal. A szerkesztő beállításának megszakítása az adatok sérülésének elkerülése érdekében.",
     "fileSaved": "Fájl mentve!",
-    "errorSavingFile": "Hiba a fájl mentésében: {error}"
+    "errorSavingFile": "Hiba a fájl mentésében: {error}",
+    "lines": "{count} sor",
+    "words": "{count} szó",
+    "chars": "{count} karakter"
   },
   "player": {
     "LoopEnabled": "Hurok engedélyezve",

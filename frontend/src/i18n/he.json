@@ -785,7 +785,10 @@
     "saveAbortedMessage": "פעולת השמירה בוטלה. הקובץ הפעיל של היישום ({activeFile}) אינו תואם לקובץ שאתה מנסה לשמור ({tryingToSave}).",
     "syncFailed": "לא הצליח לסנכרן את המצב עם המסלול עבור \"{filename}\" לאחר 5 ניסיונות. מבטל את הגדרת העורך כדי למנוע פגיעה בנתונים.",
     "fileSaved": "הקובץ נשמר!",
-    "errorSavingFile": "שגיאה בשמירת הקובץ: {error}"
+    "errorSavingFile": "שגיאה בשמירת הקובץ: {error}",
+    "lines": "{count} שורות",
+    "words": "{count} מילים",
+    "chars": "{count} תווים"
   },
   "player": {
     "LoopEnabled": "לולאה מופעלת",

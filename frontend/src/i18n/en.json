@@ -796,8 +796,7 @@
     "errorSavingFile":"Error saving file: {error}",
     "lines": "{count} lines",
     "words": "{count} words",
-    "chars": "{count} characters",
-    "fontSize": "Font size"
+    "chars": "{count} characters"
   },
   "player": {
     "LoopEnabled": "Loop Enabled",

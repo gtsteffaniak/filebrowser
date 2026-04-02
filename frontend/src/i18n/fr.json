@@ -785,7 +785,10 @@
     "saveAbortedMessage": "L'opération d'enregistrement a été interrompue. Le fichier actif de l'application ({activeFile}) ne correspond pas au fichier que vous essayez d'enregistrer ({tryingToSave}).",
     "syncFailed": "n'a pas réussi à synchroniser l'état avec l'itinéraire pour \"{filename}\" après 5 tentatives. Abandon de la configuration de l'éditeur pour éviter la corruption des données.",
     "fileSaved": "Fichier sauvegardé !",
-    "errorSavingFile": "Erreur d'enregistrement du fichier : {error}"
+    "errorSavingFile": "Erreur d'enregistrement du fichier : {error}",
+    "lines": "{count} lignes",
+    "words": "{count} mots",
+    "chars": "{count} caractères"
   },
   "player": {
     "LoopEnabled": "Boucle activée",

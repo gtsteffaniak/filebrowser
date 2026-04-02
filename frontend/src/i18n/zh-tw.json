@@ -785,7 +785,10 @@
     "saveAbortedMessage": "儲存作業已中止。應用程式目前的作用中檔案 ({activeFile}) 與要儲存的檔案 ({tryingToSave}) 不一致。",
     "syncFailed": "嘗試 5 次後，仍無法將「{filename}」的狀態與路由同步。為避免資料毀損，已中止編輯器初始化。",
     "fileSaved": "檔案已儲存！",
-    "errorSavingFile": "儲存檔案出錯：{error}"
+    "errorSavingFile": "儲存檔案出錯：{error}",
+    "lines": "{count} 行",
+    "words": "{count} 詞",
+    "chars": "{count} 字元"
   },
   "player": {
     "LoopEnabled": "循環已啟用",

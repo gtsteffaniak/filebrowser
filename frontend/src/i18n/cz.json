@@ -785,7 +785,10 @@
     "saveAbortedMessage": "Operace ukládání byla přerušena. Aktivní soubor aplikace ({activeFile}) neodpovídá souboru, který se pokoušíte uložit ({tryingToSave}).",
     "syncFailed": "po 5 pokusech se nepodařilo synchronizovat stav s trasou pro \"{filename}\". Přerušení nastavení editoru, aby se zabránilo poškození dat.",
     "fileSaved": "Soubor uložen!",
-    "errorSavingFile": "Chyba při ukládání souboru: {error}"
+    "errorSavingFile": "Chyba při ukládání souboru: {error}",
+    "lines": "{count} řádků",
+    "words": "{count} slov",
+    "chars": "{count} znaků"
   },
   "player": {
     "LoopEnabled": "Smyčka povolena",

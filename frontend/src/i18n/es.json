@@ -785,7 +785,10 @@
     "saveAbortedMessage": "No se ha podido guardar el archivo. El nombre del archivo \"{activeFile}\" no coincide con el que estas intentando guardar ({tryingToSave}).",
     "syncFailed": "No se ha podido encontrar la ruta para \"{filename}\" después de 5 intentos - Se cerrará el editor para evitar la corrupción de datos.",
     "fileSaved": "!Se guardo el archivo correctamente!",
-    "errorSavingFile": "Error al guardar el archivo: {error}"
+    "errorSavingFile": "Error al guardar el archivo: {error}",
+    "lines": "{count} líneas",
+    "words": "{count} palabras",
+    "chars": "{count} caracteres"
   },
   "player": {
     "LoopEnabled": "Bucle activado",

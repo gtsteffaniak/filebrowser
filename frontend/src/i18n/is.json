@@ -626,7 +626,10 @@
     "saveAborted": "Vistun hætt við. Skráarheittið passar ekki við virka skrána.",
     "saveDisabled": "Vistun deildra skráa er ekki studd.",
     "saveAbortedMessage": "Vistunaraðgerð hætt við. Virka skrá forritsins ({activeFile}) passar ekki við skrána sem þú ert að reyna að vista ({tryingToSave}).",
-    "syncFailed": "tókst ekki að samstilla stöðu við slóðina fyrir \"{filename}\" eftir 5 tilraunir. Hætti við ritstjóra uppsetningu til að koma í veg fyrir gagnaspa."
+    "syncFailed": "tókst ekki að samstilla stöðu við slóðina fyrir \"{filename}\" eftir 5 tilraunir. Hætti við ritstjóra uppsetningu til að koma í veg fyrir gagnaspa.",
+    "lines": "{count} línur",
+    "words": "{count} orð",
+    "chars": "{count} stafir"
   },
   "player": {
     "LoopEnabled": "Endurtekning Virk",

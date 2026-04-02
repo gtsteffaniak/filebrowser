@@ -28,7 +28,7 @@
           />
         </div>
         <div v-if="currentView === 'editor'" class="gallery-size-control">
-          <span class="size-label">{{ $t("editor.fontSize") }}</span>
+          <span class="size-label">{{ $t("general.size") }}</span>
           <input
             v-model="editorFontSize"
             type="range"
@@ -155,6 +155,12 @@ export default {
       }
     },
   },
+  mounted() {
+    window.addEventListener('wheel', this.handleWheel, { passive: false });
+  },
+  beforeUnmount() {
+    window.removeEventListener('wheel', this.handleWheel);
+  },
   methods: {
     updateGallerySize(event) {
       const newValue = parseInt(event.target.value, 10);
@@ -194,6 +200,27 @@ export default {
         mutations.updateCurrentUser({ viewMode: newMode });
       }
     },
+    // Ctrl + Mouse Wheel to adjust the slider sizes
+    handleWheel(event) {
+      if (!event.ctrlKey) return;
+      event.preventDefault();
+
+      const delta = event.deltaY > 0 ? 1 : -1; // Scroll down increases, up decreases
+
+      if (this.currentView === 'listingView') {
+        let newSize = Math.min(9, Math.max(1, this.gallerySize - delta));
+        if (newSize !== this.gallerySize) {
+          this.gallerySize = newSize;
+          mutations.setGallerySize(newSize);
+          this.adjustViewMode();
+        }
+      } else if (this.currentView === 'editor') {
+        let newSize = Math.min(24, Math.max(10, this.editorFontSize - delta));
+        if (newSize !== this.editorFontSize) {
+          this.editorFontSize = newSize;
+        }
+      }
+    }
   },
 };
 </script>

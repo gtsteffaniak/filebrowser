@@ -785,7 +785,10 @@
     "saveAbortedMessage": "تم إجهاض عملية الحفظ. الملف النشط للتطبيق ({activeFile}) لا يتطابق مع الملف الذي تحاول حفظه ({tryingToSave}).",
     "syncFailed": "فشل مزامنة الحالة مع مسار \"{filename}\" بعد 5 محاولات. إجهاض إعداد المحرر لمنع تلف البيانات.",
     "fileSaved": "تم حفظ الملف!",
-    "errorSavingFile": "خطأ في حفظ الملف: {error}"
+    "errorSavingFile": "خطأ في حفظ الملف: {error}",
+    "lines": "{count} سطور",
+    "words": "{count} كلمات",
+    "chars": "{count} أحرف"
   },
   "player": {
     "LoopEnabled": "تفعيل التكرار",
