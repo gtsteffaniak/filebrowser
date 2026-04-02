@@ -240,8 +240,11 @@ export default {
         clearTimeout(this.loadTimeout);
         this.loadTimeout = null;
       }
-      this.setCenter();
       mutations.setLoading("preview-img", false);
+      // fullImageLoaded flips display from none → block via :style. Vue hasn't
+      // updated the DOM yet, so setCenter() in the same tick sees clientWidth/Height 0.
+      // Defer until after layout so centering / transform apply correctly.
+      this.scheduleSetCenter();
     },
     onImageError(event) {
       const img = event.target;
@@ -262,6 +265,7 @@ export default {
       if (img) {
         img.style.display = 'block';
       }
+      this.scheduleSetCenter();
     },
     checkIfTiff(src) {
       const sufs = ["tif", "tiff", "dng", "cr2", "nef"];
@@ -287,6 +291,37 @@ export default {
     onMouseUp() {
       this.inDrag = false;
     },
+    scheduleSetCenter() {
+      this.$nextTick(() => {
+        requestAnimationFrame(() => {
+          this.setCenter();
+          const img = this.$refs.imgex;
+          const container = this.$refs.container;
+          if (
+            img &&
+            this.fullImageLoaded &&
+            (!img.clientWidth || !img.clientHeight)
+          ) {
+            requestAnimationFrame(() => this.setCenter());
+          }
+          // Force layout + compositor to pick up the decoded bitmap. Without this,
+          // WebKit/Blink sometimes leave the promoted layer black until display/position
+          // is toggled in DevTools or the window is resized.
+          requestAnimationFrame(() => {
+            if (!img || !this.fullImageLoaded) {
+              return;
+            }
+            void container?.offsetHeight;
+            void img.offsetHeight;
+            const prevOp = img.style.opacity;
+            img.style.opacity = '0.9999';
+            requestAnimationFrame(() => {
+              img.style.opacity = prevOp;
+            });
+          });
+        });
+      });
+    },
     onResize: throttle(function () {
       if (this.imageLoaded) {
         this.setCenter();
@@ -310,10 +345,10 @@ export default {
         : 'none';
       img.style.transition = transition;
       if (this.scale === 1) {
-        img.style.transform = `translate(calc(-50% + ${this.dragOffsetX}px), calc(-50% + ${this.dragOffsetY}px)) scale(1)`;
+        img.style.transform = `translate3d(calc(-50% + ${this.dragOffsetX}px), calc(-50% + ${this.dragOffsetY}px), 0) scale(1)`;
       } else {
         const { x: rx, y: ry } = this.position.relative;
-        img.style.transform = `translate(calc(-50% + ${rx}px), calc(-50% + ${ry}px)) scale(${this.scale})`;
+        img.style.transform = `translate3d(calc(-50% + ${rx}px), calc(-50% + ${ry}px), 0) scale(${this.scale})`;
       }
     },
     decideEdgeKind() {
@@ -706,7 +741,9 @@ export default {
             if (!this.fullImageLoaded && !this.imageLoaded) {
               // Show the image even if load event didn't fire (might be partially loaded)
               this.fullImageLoaded = true;
+              this.imageLoaded = true;
               mutations.setLoading("preview-img", false);
+              this.scheduleSetCenter();
             }
           }, 30000); // 30 second timeout
         });
@@ -723,6 +760,9 @@ export default {
 
 <style>
 .image-ex-container {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
   max-width: 100%;
   max-height: 100%;
   overflow: hidden;
@@ -737,7 +777,8 @@ export default {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  /* translate3d tends to composite more reliably than translate with decoded <img> bitmaps */
+  transform: translate3d(-50%, -50%, 0);
   object-fit: contain;
 }
 
@@ -745,7 +786,7 @@ export default {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate3d(-50%, -50%, 0);
   z-index: 10;
   display: flex;
   align-items: center;
