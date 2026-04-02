@@ -1,5 +1,5 @@
 <template>
-  <div class="image-ex-container" ref="container" @touchstart="touchStart" @touchmove="touchMove" @touchend="touchEnd" @dblclick="zoomAuto"
+  <div class="image-ex-container" ref="container" @touchstart="touchStart" @touchmove.prevent="touchMove" @touchend="touchEnd" @dblclick="zoomAuto"
     @mousedown="mousedownStart" @mousemove="mouseMove" @mouseup="mouseUp" @wheel="wheelMove">
     <!-- Thumbnail placeholder (shown while full image loads, only if cached thumbnail exists) -->
     <img 
@@ -626,21 +626,15 @@ export default {
       event.preventDefault();
     },
     touchMove(event) {
+      // Default is prevented via @touchmove.prevent so the browser cannot steal
+      // vertical drags (pull-to-refresh) before our edge-gesture thresholds.
       if (event.targetTouches.length === 1 && this.scale === 1) {
         const touch = event.targetTouches[0];
         this.edgeDx = touch.pageX - this.edgeStartX;
         this.edgeDy = touch.pageY - this.edgeStartY;
         this.decideEdgeKind();
         this.applyEdgeVisuals();
-        const ax = Math.abs(this.edgeDx);
-        const ay = Math.abs(this.edgeDy);
-        if (this.edgeKind || ax > 14 || ay > 14) {
-          event.preventDefault();
-        }
         return;
-      }
-      if (this.scale > 1 || event.targetTouches.length >= 2) {
-        event.preventDefault();
       }
       if (this.lastX === null) {
         this.lastX = event.targetTouches[0].pageX;
@@ -769,6 +763,9 @@ export default {
   position: relative;
   display: flex;
   justify-content: center;
+  /* Block browser pull-to-refresh / overscroll so vertical dismiss & edge gestures win */
+  overscroll-behavior: none;
+  touch-action: none;
 }
 
 .image-ex-img {

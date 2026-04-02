@@ -755,6 +755,10 @@ export const mutations = {
     emitStateChanged();
   },
   setupNavigation: ({ listing, currentItem, directoryPath }) => {
+    // Cancel any pending auto-hide from a previous setupNavigation; the raw
+    // setTimeout used to leak and could fire setNavigationShow(false) right
+    // after opening a new image (nextPrevious flicker).
+    mutations.clearNavigationTimeout();
     state.navigation.listing = listing;
     state.navigation.currentIndex = -1;
     state.navigation.previousItem = null;
@@ -818,14 +822,15 @@ export const mutations = {
 
     emitStateChanged();
 
-    // Auto-show navigation when it's first set up
+    // Auto-show navigation when it's first set up (timer tracked so new opens clear it)
     if (state.navigation.enabled && (state.navigation.previousLink || state.navigation.nextLink)) {
       mutations.setNavigationShow(true);
-      setTimeout(() => {
+      const hideTimer = setTimeout(() => {
         if (!state.navigation.hoverNav) {
           mutations.setNavigationShow(false);
         }
       }, 3000);
+      mutations.setNavigationTimeout(hideTimer);
     }
   },
   getPrefetchUrl: (item) => {

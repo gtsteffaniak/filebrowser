@@ -115,6 +115,8 @@ export default {
       },
       // State tracking
       navigationTimeout: null,
+      /** Bumps on each setupNavigationForCurrentItem start; stale async completions skip applying. */
+      navigationSetupGeneration: 0,
       isSwipe: false,
       touchStartX: 0,
       touchStartY: 0,
@@ -409,8 +411,12 @@ export default {
       });
     },
     async setupNavigationForCurrentItem() {
+      const gen = ++this.navigationSetupGeneration;
+
       if (!this.enabled || !state.req || state.req.type === 'directory') {
-        // Clear navigation when not applicable
+        if (gen !== this.navigationSetupGeneration) {
+          return;
+        }
         mutations.clearNavigation();
         return;
       }
@@ -425,7 +431,9 @@ export default {
       // Special case: if we're viewing a shared single file (where the share itself is the file)
       // and directoryPath equals req.path, there's no directory to navigate within
       if (getters.isShare() && directoryPath === state.req.path) {
-        // This is a single file share with no siblings to navigate to
+        if (gen !== this.navigationSetupGeneration) {
+          return;
+        }
         mutations.clearNavigation();
         return;
       }
@@ -449,17 +457,23 @@ export default {
           }
           listing = res.items;
         } catch (error) {
-          // If we can't fetch the directory listing, navigation isn't possible
+          if (gen !== this.navigationSetupGeneration) {
+            return;
+          }
           mutations.clearNavigation();
           return;
         }
       } else {
-        // This is a file at root where directoryPath === req.path
-        // This shouldn't normally happen for non-share cases, but handle gracefully
+        if (gen !== this.navigationSetupGeneration) {
+          return;
+        }
         mutations.clearNavigation();
         return;
       }
 
+      if (gen !== this.navigationSetupGeneration) {
+        return;
+      }
       mutations.setupNavigation({
         listing: listing,
         currentItem: state.req,
@@ -471,7 +485,7 @@ export default {
       if (this.enabled && (this.hasPrevious || this.hasNext || this.autoShowNavForMediaPreview)) {
         mutations.setNavigationShow(true);
 
-        // Clear any existing timeout
+        mutations.clearNavigationTimeout();
         if (this.navigationTimeout) {
           clearTimeout(this.navigationTimeout);
           this.navigationTimeout = null;
@@ -483,6 +497,7 @@ export default {
           }
           this.navigationTimeout = null;
         }, 3000);
+        mutations.setNavigationTimeout(this.navigationTimeout);
       }
     },
     async handleClosePreviewClick() {
@@ -901,6 +916,7 @@ export default {
     },
 
     cancelNavigationTimeout() {
+      mutations.clearNavigationTimeout();
       if (this.navigationTimeout) {
         clearTimeout(this.navigationTimeout);
         this.navigationTimeout = null;
