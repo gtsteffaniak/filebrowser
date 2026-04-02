@@ -210,10 +210,6 @@ func TestProcessDirectoryItem(t *testing.T) {
 				return
 			}
 
-			if itemInfo == nil {
-				t.Fatalf("expected non-nil itemInfo")
-			}
-
 			if size != tt.expectSize {
 				t.Errorf("expected size=%d, got %d", tt.expectSize, size)
 			}

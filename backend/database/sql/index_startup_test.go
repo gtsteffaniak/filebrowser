@@ -89,14 +89,15 @@ func TestNewIndexDB_StartupProbe_ReopenWithData(t *testing.T) {
 			Hidden:  false,
 		},
 	}
-	if err := db.InsertItem("src1", "/a.txt", info); err != nil {
+	if err = db.InsertItem("src1", "/a.txt", info); err != nil {
 		t.Fatal(err)
 	}
-	if err := db.Close(); err != nil {
+	if err = db.Close(); err != nil {
 		t.Fatal(err)
 	}
 
-	db2, _, err := NewIndexDB("probe_reopen", "OFF", 1000, 32, false)
+	var db2 *IndexDB
+	db2, _, err = NewIndexDB("probe_reopen", "OFF", 1000, 32, false)
 	if err != nil {
 		t.Fatal(err)
 	}
