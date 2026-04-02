@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. For commit 
  **New Features**:
  - Copy/paste files and folders (`CTRL+C`/`CTRL+V`) from other apps (win explorer, thunar, finder, etc) to upload them directly (#2197)
  - Caption font size can be adjusted in video settings
+ - Ability to adjust the startup check method for sql database via `server.startupIntegrityCheck` (#2221)
  - Status bar for editor and markdown viewer (#2226)
 
  **Notes**:
@@ -25,6 +26,7 @@ All notable changes to this project will be documented in this file. For commit 
  - removed upx compression on docker image (#2193)
  - chunked uploads will save to a temporary file at the destination and renamed on completion. Better upload pause handling (#2129)
  - deprecated `source.config.CreateUserDir`, now its always `true`. If a user directory doesn't exist it will get created empty.
+ - `CTRL`+`Mouse Wheel` shortcut to change listing size. Also for change font size in editor (#2227)
 
  **BugFixes**:
  - Archives don't preserve file metadata (#2063)

@@ -76,11 +76,22 @@ type Filesystem struct {
 	CreateDirectoryPermission string `json:"createDirectoryPermission" validate:"required,file_permission"` // Unix permissions like 755, 2755, 1777 (default: 755)
 }
 
+// Index SQL startup integrity modes (IndexSqlConfig.StartupIntegrityCheck).
+const (
+	// IndexStartupIntegrityQuickCheck runs PRAGMA quick_check (default). Slower on very large DBs but thorough.
+	IndexStartupIntegrityQuickCheck = "quickCheck"
+	// IndexStartupIntegrityProbe verifies sqlite_master and optionally one row read only; fast for large indexes.
+	IndexStartupIntegrityProbe = "probe"
+	// IndexStartupIntegrityOff skips startup checks beyond sql.Open Ping; least safe, fastest boot.
+	IndexStartupIntegrityOff = "off"
+)
+
 type IndexSqlConfig struct {
-	BatchSize    int  `json:"batchSize"`    // number of items to batch in a single transaction, typically 500-5000. higher = faster but could use more memory.
-	CacheSizeMB  int  `json:"cacheSizeMB"`  // size of the SQLite cache in MB
-	WalMode      bool `json:"walMode"`      // enable the more complex WAL journaling mode. Slower, more memory usage, but better for deployments with constant user activity.
-	DisableReuse bool `json:"disableReuse"` // enable to always create a new indexing database on startup.
+	BatchSize             int    `json:"batchSize"`                                                                       // number of items to batch in a single transaction, typically 500-5000. higher = faster but could use more memory.
+	CacheSizeMB           int    `json:"cacheSizeMB"`                                                                     // size of the SQLite cache in MB
+	WalMode               bool   `json:"walMode"`                                                                         // enable the more complex WAL journaling mode. Slower, more memory usage, but better for deployments with constant user activity.
+	DisableReuse          bool   `json:"disableReuse"`                                                                    // enable to always create a new indexing database on startup.
+	StartupIntegrityCheck string `json:"startupIntegrityCheck,omitempty" validate:"omitempty,oneof=quickCheck probe off"` // the method used to check the integrity of the index database on startup (default: quickCheck)
 }
 
 type Integrations struct {

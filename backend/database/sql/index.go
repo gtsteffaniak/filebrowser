@@ -2,6 +2,7 @@ package sql
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -90,7 +91,8 @@ func NewIndexDB(name string, journalMode string, batchSize int, cacheSizeMB int,
 	// For persistent databases, check integrity on startup
 	// If corrupted, delete and recreate the database
 	if !disableReuse {
-		if err := idxDB.checkIntegrityAndRecreateIfNeeded(); err != nil {
+		mode := normalizeStartupIntegrityMode(settings.Config.Server.IndexSqlConfig.StartupIntegrityCheck)
+		if err := idxDB.runStartupIntegrityCheck(mode); err != nil {
 			// Database was recreated due to corruption
 			logger.Warningf("[DB_INIT] SQLite database was found with issues which could be due to a dirty shutdown, recreating: tmp/index_%s.db", name)
 			isNewDb = true
@@ -112,10 +114,73 @@ func NewIndexDB(name string, journalMode string, batchSize int, cacheSizeMB int,
 	return idxDB, isNewDb, nil
 }
 
+func normalizeStartupIntegrityMode(m string) string {
+	switch m {
+	case "", settings.IndexStartupIntegrityQuickCheck:
+		return settings.IndexStartupIntegrityQuickCheck
+	case settings.IndexStartupIntegrityProbe:
+		return settings.IndexStartupIntegrityProbe
+	case settings.IndexStartupIntegrityOff:
+		return settings.IndexStartupIntegrityOff
+	default:
+		logger.Warningf("[DB_INIT] unknown indexSqlConfig.startupIntegrityCheck %q, using %s", m, settings.IndexStartupIntegrityQuickCheck)
+		return settings.IndexStartupIntegrityQuickCheck
+	}
+}
+
+// runStartupIntegrityCheck runs the configured startup check (quick_check, probe, or off).
+func (db *IndexDB) runStartupIntegrityCheck(mode string) error {
+	switch mode {
+	case settings.IndexStartupIntegrityOff:
+		logger.Debugf("[DB_INTEGRITY] startup integrity skipped (startupIntegrityCheck=off)")
+		return nil
+	case settings.IndexStartupIntegrityProbe:
+		return db.checkAccessibilityProbe()
+	default:
+		// quickCheck (including normalized default)
+		return db.checkIntegrityAndRecreateIfNeeded()
+	}
+}
+
+// checkAccessibilityProbe verifies the DB file is readable: sqlite_master and optionally one row from index_items.
+// If index_items is absent (brand-new file), succeeds so CreateIndexTable can create it.
+func (db *IndexDB) checkAccessibilityProbe() error {
+	start := time.Now()
+	defer func() {
+		logger.Debugf("[DB_INTEGRITY] startup probe completed in %v", time.Since(start))
+	}()
+
+	var n int
+	err := db.QueryRow(`SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'index_items'`).Scan(&n)
+	if err != nil {
+		logger.Warningf("[DB_INTEGRITY] probe: cannot read sqlite_master: %v", err)
+		return db.deleteCorruptedDatabase()
+	}
+	if n == 0 {
+		logger.Debugf("[DB_INTEGRITY] probe: index_items not present yet (new database), skipping row read")
+		return nil
+	}
+
+	var dummy int
+	err = db.QueryRow(`SELECT 1 FROM index_items LIMIT 1`).Scan(&dummy)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil
+	}
+	if err != nil {
+		logger.Warningf("[DB_INTEGRITY] probe: cannot read index_items: %v", err)
+		return db.deleteCorruptedDatabase()
+	}
+	return nil
+}
+
 // checkIntegrityAndRecreateIfNeeded checks database integrity.
 // If corruption is detected, deletes the database file and returns an error to trigger recreation.
 // Returns nil if integrity is OK, error if database needs to be recreated.
 func (db *IndexDB) checkIntegrityAndRecreateIfNeeded() error {
+	start := time.Now()
+	defer func() {
+		logger.Debugf("[DB_INTEGRITY] PRAGMA quick_check completed in %v", time.Since(start))
+	}()
 	// Quick integrity check
 	var result string
 	err := db.QueryRow("PRAGMA quick_check").Scan(&result)
@@ -1196,23 +1261,6 @@ func (db *IndexDB) GetSizeGroupsForDuplicates(source string, minSize int64, path
 	}
 
 	return sizes, sizeCounts, rows.Err()
-}
-
-// GetTotalSize returns the sum of all file sizes in the index for a specific source (excluding directories).
-func (db *IndexDB) GetTotalSize(source string) (uint64, error) {
-	query := `SELECT COALESCE(SUM(size), 0) FROM index_items WHERE source = ? AND is_dir = 0`
-
-	var totalSize int64
-	err := db.QueryRow(query, source).Scan(&totalSize)
-	if err != nil {
-		// Soft failure: DB is busy or locked, return 0
-		if isBusyError(err) || isTransactionError(err) {
-			return 0, nil
-		}
-		return 0, err
-	}
-
-	return uint64(totalSize), nil
 }
 
 // Helper functions
