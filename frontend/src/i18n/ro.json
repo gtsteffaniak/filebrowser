@@ -344,9 +344,7 @@
     "brandingHelp": "Puteți personaliza aspectul instanței File Browser prin schimbarea numelui, înlocuirea logo-ului, adăugarea de stiluri personalizate și chiar dezactivarea linkurilor externe către GitHub.\nPentru mai multe informații despre brandingul personalizat, consultați {0}.",
     "commandRunnerHelp": "Aici puteți seta comenzi care sunt executate în cadrul evenimentelor numite. Trebuie să scrieți câte una pe linie. Variabilele de mediu {0} și {1} vor fi disponibile, {0} fiind relativ la {1}. Pentru mai multe informații despre această caracteristică și variabilele de mediu disponibile, vă rugăm să citiți {2}.",
     "loginMethods": {
-      "password": "Parolă",
-      "oidc": "OIDC",
-      "proxy": "Proxy"
+      "password": "Parolă"
     },
     "newUserHintSubFolder": "de exemplu \"/subfolder\" - gol pentru implicit",
     "permissionsHelp": "Permisiunile utilizatorului controlează accesul la ce tip de acțiuni poate efectua utilizatorul. Accesul de administrator oferă control deplin pentru actualizarea și modificarea setărilor oricărui utilizator, precum și a multor setări de sistem.",

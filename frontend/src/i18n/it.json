@@ -546,9 +546,7 @@
     "passwordsDoNotMatch": "Le password non corrispondono",
     "loginMethod": "Metodo di accesso",
     "loginMethods": {
-      "password": "Password",
-      "oidc": "OIDC",
-      "proxy": "Proxy"
+      "password": "Password"
     },
     "loginMethodDescription": "Metodo di accesso consentito per l'utente.",
     "modifyOtherUser": "Modifica utente:",

@@ -346,9 +346,7 @@
     "brandingHelp": "Vous pouvez personnaliser l'apparence de votre instance du navigateur de fichiers en changeant son nom, en remplaçant le logo, en ajoutant des styles personnalisés et même en désactivant les liens externes vers GitHub.\nPour plus d'informations sur la personnalisation de l'image de marque, consultez le site {0}.",
     "commandRunnerHelp": "Vous pouvez définir ici les commandes qui seront exécutées dans les événements nommés. Vous devez en écrire une par ligne. Les variables d'environnement {0} et {1} seront disponibles, {0} étant relatif à {1}. Pour plus d'informations sur cette fonctionnalité et les variables d'environnement disponibles, veuillez consulter le site {2}.",
     "loginMethods": {
-      "password": "Mot de passe",
-      "oidc": "OIDC",
-      "proxy": "Proxy"
+      "password": "Mot de passe"
     },
     "newUserHintSubFolder": "par exemple \"/sous-dossier\" - vide par défaut",
     "permissionsHelp": "Les autorisations de l'utilisateur contrôlent l'accès au type d'actions que l'utilisateur peut effectuer. L'accès administrateur permet de mettre à jour et de modifier les paramètres de tout utilisateur ainsi que de nombreux paramètres du système.",

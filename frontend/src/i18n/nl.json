@@ -546,9 +546,7 @@
     "passwordsDoNotMatch": "Wachtwoorden komen niet overeen",
     "loginMethod": "Aanmeldingsmethode",
     "loginMethods": {
-      "password": "Wachtwoord",
-      "oidc": "OIDC",
-      "proxy": "Proxy"
+      "password": "Wachtwoord"
     },
     "loginMethodDescription": "toegestane aanmeldingsmethode voor de gebruiker.",
     "modifyOtherUser": "Gebruiker wijzigen:",

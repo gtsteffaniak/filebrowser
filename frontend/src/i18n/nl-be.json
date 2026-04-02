@@ -344,9 +344,7 @@
     "brandingHelp": "Je kunt aanpassen hoe je File Browser instance eruit ziet en aanvoelt door de naam te veranderen, het logo te vervangen, aangepaste stijlen toe te voegen en zelfs externe links naar GitHub uit te schakelen.\nVoor meer informatie over het aanpassen van je branding, kun je kijken op {0}.",
     "commandRunnerHelp": "Hier kun je commando's instellen die worden uitgevoerd in de genoemde gebeurtenissen. Je moet er één per regel schrijven. De omgevingsvariabelen {0} en {1} zullen beschikbaar zijn, waarbij {0} relatief is ten opzichte van {1}. Lees voor meer informatie over deze functie en de beschikbare omgevingsvariabelen de {2}.",
     "loginMethods": {
-      "password": "Wachtwoord",
-      "oidc": "OIDC",
-      "proxy": "Proxy"
+      "password": "Wachtwoord"
     },
     "newUserHintSubFolder": "bijv. '/submap' - leeg voor standaard",
     "permissionsHelp": "Gebruikersrechten bepalen welke acties de gebruiker kan uitvoeren. Administrar toegang geeft volledige controle om de instellingen van elke gebruiker bij te werken en te wijzigen, evenals vele systeeminstellingen.",

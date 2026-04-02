@@ -336,9 +336,7 @@
     "passwordsDoNotMatch": "Las contraseñas no coinciden",
     "loginMethod": "Método de inicio de sesión",
     "loginMethods": {
-      "password": "Contraseña",
-      "oidc": "OIDC",
-      "proxy": "Proxy"
+      "password": "Contraseña"
     },
     "shareSettings": "Recursos compartidos",
     "adminOptions": "Opciones de administrador",

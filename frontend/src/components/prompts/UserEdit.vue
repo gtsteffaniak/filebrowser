@@ -94,16 +94,11 @@
       <div v-if="stateUser.permissions.admin">
         <label for="loginMethod">{{ $t("settings.loginMethodDescription") }}</label>
         <select v-model="user.loginMethod" class="input" id="loginMethod">
-          <option v-if="globalVars.passwordAvailable" value="password">{{ $t("settings.loginMethods.password") }}
-          </option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-          <option v-if="globalVars.oidcAvailable" value="oidc">{{ $t("settings.loginMethods.oidc") }}</option>
-          <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-          <option v-if="globalVars.proxyAvailable" value="proxy">{{ $t("settings.loginMethods.proxy") }}</option>
-          <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-          <option v-if="globalVars.ldapAvailable" value="ldap">{{ $t("settings.loginMethods.ldap") }}</option>
-          <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-          <option value="jwt">{{ $t("settings.loginMethods.jwt") }}</option>
-          <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <option v-if="globalVars.passwordAvailable" value="password">{{ $t("settings.loginMethods.password") }}</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <option v-if="globalVars.oidcAvailable" value="oidc">OIDC</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <option v-if="globalVars.proxyAvailable" value="proxy">Proxy</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <option v-if="globalVars.ldapAvailable" value="ldap">LDAP</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <option value="jwt">JWT</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         </select>
       </div>
       <permissions v-if="stateUser.permissions.admin" :permissions="user.permissions" />

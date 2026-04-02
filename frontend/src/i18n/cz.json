@@ -488,9 +488,7 @@
     "brandingHelp": "Vzhled instance Průzkumníka souborů si můžete přizpůsobit změnou názvu, nahrazením loga, přidáním vlastních stylů a dokonce i zakázáním externích odkazů na GitHub.\nDalší informace o vlastním brandingu naleznete na stránce {0}.",
     "commandRunnerHelp": "Zde můžete nastavit příkazy, které se provedou v pojmenovaných událostech. Na každý řádek musíte napsat jeden. K dispozici budou proměnné prostředí {0} a {1}, přičemž {0} bude relativní vůči {1}. Další informace o této funkci a dostupných proměnných prostředí naleznete na {2}.",
     "loginMethods": {
-      "password": "Heslo",
-      "oidc": "OIDC",
-      "proxy": "Proxy"
+      "password": "Heslo"
     },
     "newUserHintSubFolder": "např. '/subfolder' - prázdný pro výchozí nastavení",
     "permissionsHelp": "Oprávnění uživatele řídí přístup k typům akcí, které může uživatel provádět. Přístup administrátora poskytuje plnou kontrolu nad aktualizací a změnou nastavení libovolného uživatele i nad mnoha nastaveními systému.",

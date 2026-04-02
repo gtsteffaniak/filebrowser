@@ -344,9 +344,7 @@
     "brandingHelp": "可透過變更名稱、更換標誌、新增自訂樣式，甚至停用 GitHub 外部連結，來自訂 File Browser 執行個體的外觀與風格。\n如需更多品牌化設定資訊，請參閱 {0}。",
     "commandRunnerHelp": "可在這裡設定於命名事件中執行的指令，每行一個。環境變數 {0} 與 {1} 可供使用，其中 {0} 是相對於 {1} 的路徑。如需瞭解此功能與可用環境變數的更多資訊，請參閱 {2}。",
     "loginMethods": {
-      "password": "密碼",
-      "oidc": "OIDC",
-      "proxy": "代理"
+      "password": "密碼"
     },
     "newUserHintSubFolder": "例如：'/subfolder'，留空即為預設值",
     "permissionsHelp": "使用者權限決定可以執行哪些類型的操作。管理員權限可完整管理所有使用者設定，以及許多系統設定。",

@@ -344,9 +344,7 @@
     "brandingHelp": "Adını değiştirerek, logoyu değiştirerek, özel stiller ekleyerek ve hatta GitHub'a harici bağlantıları devre dışı bırakarak Dosya Tarayıcı örneğinizin nasıl göründüğünü ve hissettirdiğini özelleştirebilirsiniz.\nÖzel markalama hakkında daha fazla bilgi için lütfen {0} adresine göz atın.",
     "commandRunnerHelp": "Burada, adlandırılmış olaylarda yürütülecek komutları ayarlayabilirsiniz. Her satıra bir tane yazmalısınız. {0} ve {1} ortam değişkenleri kullanılabilir olacaktır, {0} ise {1} ile ilişkilidir. Bu özellik ve mevcut ortam değişkenleri hakkında daha fazla bilgi için lütfen {2} adresini okuyun.",
     "loginMethods": {
-      "password": "Şifre",
-      "oidc": "OIDC",
-      "proxy": "Proxy"
+      "password": "Şifre"
     },
     "newUserHintSubFolder": "örneğin '/subfolder' - varsayılan için boş",
     "permissionsHelp": "Kullanıcı izinleri, kullanıcının ne tür eylemler gerçekleştirebileceğine erişimi kontrol eder. Yönetici erişimi, herhangi bir kullanıcının ayarlarının yanı sıra birçok sistem ayarını güncellemek ve değiştirmek için tam kontrol sağlar.",

@@ -546,11 +546,7 @@
     "passwordsDoNotMatch": "Passwords do not match",
     "loginMethod": "Login method",
     "loginMethods": {
-      "password": "Password",
-      "oidc": "OIDC",
-      "proxy": "Proxy",
-      "ldap": "LDAP",
-      "jwt": "JWT"
+      "password": "Password"
     },
     "loginMethodDescription": "allowed login method for the user.",
     "modifyOtherUser": "Modify user:",

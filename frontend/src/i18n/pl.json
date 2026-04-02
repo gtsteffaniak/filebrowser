@@ -344,9 +344,7 @@
     "brandingHelp": "Możesz dostosować wygląd i sposób działania swojej instancji przeglądarki plików, zmieniając jej nazwę, zastępując logo, dodając niestandardowe style, a nawet wyłączając zewnętrzne łącza do GitHub.\nWięcej informacji na temat niestandardowego brandingu można znaleźć na stronie {0}.",
     "commandRunnerHelp": "Tutaj można ustawić polecenia, które będą wykonywane w nazwanych zdarzeniach. Należy wpisać jedną komendę w wierszu. Dostępne będą zmienne środowiskowe {0} i {1}, przy czym {0} będzie relatywna do {1}. Więcej informacji na temat tej funkcji i dostępnych zmiennych środowiskowych można znaleźć na stronie {2}.",
     "loginMethods": {
-      "password": "Hasło",
-      "oidc": "OIDC",
-      "proxy": "Pełnomocnik"
+      "password": "Hasło"
     },
     "newUserHintSubFolder": "np. '/subfolder' - domyślnie puste",
     "permissionsHelp": "Uprawnienia użytkownika kontrolują dostęp do rodzaju działań, które użytkownik może wykonywać. Dostęp administratora daje pełną kontrolę nad aktualizacją i zmianą ustawień dowolnego użytkownika, a także wielu ustawień systemowych.",

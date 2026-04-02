@@ -344,9 +344,7 @@
     "brandingHelp": "É possível personalizar a aparência da instância do Navegador de arquivos alterando seu nome, substituindo o logotipo, adicionando estilos personalizados e até mesmo desativando links externos para o GitHub.\nPara obter mais informações sobre a marca personalizada, consulte {0}.",
     "commandRunnerHelp": "Aqui pode definir comandos que são executados nos eventos nomeados. Deve escrever um por linha. As variáveis de ambiente {0} e {1} estarão disponíveis, sendo {0} relativo a {1}. Para obter mais informações sobre este recurso e as variáveis de ambiente disponíveis, leia {2}.",
     "loginMethods": {
-      "password": "Palavra-passe",
-      "oidc": "OIDC",
-      "proxy": "Proxy"
+      "password": "Palavra-passe"
     },
     "newUserHintSubFolder": "por exemplo, '/subpasta' - em branco por defeito",
     "permissionsHelp": "As permissões de utilizador controlam o acesso ao tipo de acções que o utilizador pode executar. O acesso de administrador dá controlo total para atualizar e alterar as definições de qualquer utilizador, bem como muitas definições do sistema.",

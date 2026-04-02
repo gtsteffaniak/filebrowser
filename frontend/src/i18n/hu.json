@@ -344,9 +344,7 @@
     "brandingHelp": "Testreszabhatja a Fájlböngésző példányának megjelenését és érzetét a név megváltoztatásával, a logó cseréjével, egyéni stílusok hozzáadásával és akár a GitHubra mutató külső hivatkozások letiltásával.\nAz egyéni márkaépítéssel kapcsolatos további információkat a {0} oldalon talál.",
     "commandRunnerHelp": "Itt állíthatja be azokat a parancsokat, amelyek a megnevezett események során végrehajtásra kerülnek. Soronként egyet kell írni. A {0} és a {1} környezeti változók lesznek elérhetőek, a {0} a {1}-hoz képest . A funkcióról és a rendelkezésre álló környezeti változókról bővebb információt a {2} oldalon talál.",
     "loginMethods": {
-      "password": "Jelszó",
-      "oidc": "OIDC",
-      "proxy": "Proxy"
+      "password": "Jelszó"
     },
     "newUserHintSubFolder": "pl. '/subfolder' - üres az alapértelmezéshez",
     "permissionsHelp": "A felhasználói engedélyek szabályozzák, hogy a felhasználó milyen típusú műveleteket hajthat végre. A rendszergazdai hozzáférés teljes körű ellenőrzést biztosít bármely felhasználó beállításainak, valamint számos rendszerbeállításnak a frissítéséhez és módosításához.",
