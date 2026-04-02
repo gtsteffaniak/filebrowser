@@ -107,7 +107,7 @@ export default {
             }).catch((err) => {
               console.error('Clipboard API error:', err);
               showFeedback(false);
-              notify.showErrorToast(this.$t('materialIconPicker.copyFailed'));
+              notify.showErrorToast(this.$t('tools.materialIconPicker.copyFailed'));
             });
           } else {
             // Fallback using execCommand.
@@ -123,13 +123,13 @@ export default {
               notify.showSuccessToast(this.$t('buttons.copySuccess'));
             } else {
               showFeedback(false);
-              notify.showErrorToast(this.$t('materialIconPicker.copyFailed'));
+              notify.showErrorToast(this.$t('tools.materialIconPicker.copyFailed'));
             }
           }
         } catch (err) {
           console.error('Copy failed:', err);
           showFeedback(false);
-          notify.showErrorToast(this.$t('materialIconPicker.copyFailed'));
+          notify.showErrorToast(this.$t('tools.materialIconPicker.copyFailed'));
         }
       });
       wrapper.appendChild(copyButton);
@@ -363,9 +363,9 @@ export default {
 #markedown-viewer .markdown-content-container .code-block-wrapper {
   display: flex;
   background-color: #f6f8fa;
-  border-radius: 8px;
+  border-radius: 0.5em;
   overflow: hidden;
-  margin: 16px 0;
+  margin: 1em 0;
   font-family: 'SFMono-Regular', 'Monaco', 'Inconsolata', 'Liberation Mono', 'Courier New', monospace;
   font-size: 0.85em;
   line-height: 1.45;
@@ -373,6 +373,15 @@ export default {
   position: relative;
 }
 
+#markedown-viewer .markdown-content code:not(pre code) {
+  background-color: #f6f8fa;
+  padding: 0.25em 0.4em;
+  border-radius: 0.5em;
+  font-family: 'SFMono-Regular', 'Monaco', 'Inconsolata', 'Liberation Mono', 'Courier New', monospace;
+  font-size: 0.85em;
+}
+
+#markedown-viewer .markdown-content-container.dark-mode code:not(pre code),
 #markedown-viewer .markdown-content-container.dark-mode .code-block-wrapper {
   background-color: #161b22;
 }
@@ -402,10 +411,10 @@ export default {
   user-select: none;
   background-color: #f1f3f4;
   border-right: 1px solid #d0d7de;
-  padding: 10px 8px 10px 12px;
+  padding: 0.625em 0.5em 0.625em 0.75em;
   text-align: right;
   color: #656d76;
-  min-width: 40px;
+  min-width: 2.5em;
   flex-shrink: 0;
 }
 
@@ -505,6 +514,27 @@ export default {
 
 #markedown-viewer .markdown-content-container .code-content a:hover {
   text-decoration: underline;
+}
+
+#markedown-viewer .markdown-content ul,
+#markedown-viewer .markdown-content ol {
+  padding-left: 2em; /* base indent for first lvl */
+  margin: 0.1em 0;
+}
+
+#markedown-viewer .markdown-content ul ul,
+#markedown-viewer .markdown-content ul ol,
+#markedown-viewer .markdown-content ol ul,
+#markedown-viewer .markdown-content ol ol {
+  padding-left: 2em; /* indent for nested lvls */
+}
+
+/* line height for list items and any paragraphs inside the nested lvls */
+#markedown-viewer .markdown-content li,
+#markedown-viewer .markdown-content li p {
+  line-height: 1.65;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 
 </style>

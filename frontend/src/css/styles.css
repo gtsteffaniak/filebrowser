@@ -13,6 +13,12 @@
 /* Loader / skeleton: single source in public/css/loadingSpinners.css (also inlined in index.html for first paint). */
 @import "../../public/css/loadingSpinners.css";
 
+/* Selection color */
+::selection {
+  background-color: color-mix(in srgb, var(--primaryColor), transparent 25%);
+  color: inherit;
+}
+
 .link {
     color: var(--blue);
 }
