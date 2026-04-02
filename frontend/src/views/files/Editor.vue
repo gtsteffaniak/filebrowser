@@ -339,6 +339,9 @@ export default {
           this.initializeNavigation();
         }
         this.updateEditorStats();
+        this.editor.selection.on('changeSelection', () => {
+          this.updateEditorStats();
+        });
       } catch (error) {
         notify.showError(this.$t("editor.uninitialized"));
       }
@@ -485,17 +488,34 @@ export default {
       }
       this.pendingNavigation = null;
     },
-    updateEditorStats() {
+    getSelectedStats() {
       if (!this.editor) return;
       const session = this.editor.session;
-      const lines = session.getLength();
-      const value = session.getValue();
+      const selectionRange = this.editor.selection.getRange();
+      const isSelectionEmpty =
+        selectionRange.start.row === selectionRange.end.row &&
+        selectionRange.start.column === selectionRange.end.column;
 
-      if (this.req.type === 'text/markdown' || this.req.type === 'text/x-markdown') {
-        // Count words and characters
-        const text = value.trim();
-        const words = text ? text.split(/\s+/).length : 0;
-        const chars = text.length;
+      let text, lines;
+      if (!isSelectionEmpty) {
+        text = this.editor.getSelectedText();
+        lines = text ? text.split('\n').length : 0;
+      } else {
+        text = session.getValue();
+        lines = session.getLength();
+      }
+
+      const chars = text.length;
+      const validWord = text.split(/\s+/).filter(t => /[a-zA-Z0-9]/.test(t));
+      const words = validWord.length;
+
+      return { lines, words, chars };
+    },
+    updateEditorStats() {
+      if (!this.editor) return;
+      const { lines, words, chars } = this.getSelectedStats();
+      const isMarkdown = this.req.type === 'text/markdown' || this.req.type === 'text/x-markdown';
+      if (isMarkdown) {
         mutations.setEditorStats({ lines, words, chars });
       } else {
         // For other files, show only lines

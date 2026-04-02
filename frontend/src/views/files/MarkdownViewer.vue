@@ -107,7 +107,7 @@ export default {
             }).catch((err) => {
               console.error('Clipboard API error:', err);
               showFeedback(false);
-              notify.showErrorToast(this.$t('errors.copyFailed'));
+              notify.showErrorToast(this.$t('materialIconPicker.copyFailed'));
             });
           } else {
             // Fallback using execCommand.
@@ -123,13 +123,13 @@ export default {
               notify.showSuccessToast(this.$t('buttons.copySuccess'));
             } else {
               showFeedback(false);
-              notify.showErrorToast(this.$t('errors.copyFailed'));
+              notify.showErrorToast(this.$t('materialIconPicker.copyFailed'));
             }
           }
         } catch (err) {
           console.error('Copy failed:', err);
           showFeedback(false);
-          notify.showErrorToast(this.$t('errors.copyFailed'));
+          notify.showErrorToast(this.$t('materialIconPicker.copyFailed'));
         }
       });
       wrapper.appendChild(copyButton);
@@ -260,7 +260,8 @@ export default {
     },
     updateEditorStats() {
       const text = this.content.trim();
-      const words = text ? text.split(/\s+/).length : 0;
+      const validWord = text.split(/\s+/).filter(t => /[a-zA-Z0-9]/.test(t));
+      const words = validWord.length;
       const chars = text.length;
       mutations.setEditorStats({ lines: null, words, chars });
     },
