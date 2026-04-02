@@ -548,7 +548,8 @@
     "loginMethods": {
       "password": "Password",
       "oidc": "OIDC",
-      "proxy": "Proxy"
+      "proxy": "Proxy",
+      "ldap": "LDAP"
     },
     "loginMethodDescription": "allowed login method for the user.",
     "modifyOtherUser": "Modify user:",

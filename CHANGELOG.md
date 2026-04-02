@@ -36,6 +36,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Esc to Cancel and Enter to confirm popup (#2079)
  - Language-tagged subtitle files not detected for videos (#2199)
  - Unable to use proxy auth since 1.3.0-beta (#2173)
+ - Updating setting on a LDAP user turns the "Login Method" to password. Thus preventing further logins. (#2179)
 
 ## v1.3.2-beta
 

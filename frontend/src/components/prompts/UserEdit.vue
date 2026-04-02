@@ -100,6 +100,8 @@
           <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <option v-if="globalVars.proxyAvailable" value="proxy">{{ $t("settings.loginMethods.proxy") }}</option>
           <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <option v-if="globalVars.ldapAvailable" value="ldap">{{ $t("settings.loginMethods.ldap") }}</option>
+          <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         </select>
       </div>
       <permissions v-if="stateUser.permissions.admin" :permissions="user.permissions" />
@@ -213,6 +215,7 @@ export default {
       if (this.globalVars.passwordAvailable) return "password";
       if (this.globalVars.oidcAvailable) return "oidc";
       if (this.globalVars.proxyAvailable) return "proxy";
+      if (this.globalVars.ldapAvailable) return "ldap";
       return "password"; // fallback
     },
   },
@@ -251,6 +254,7 @@ export default {
           if (this.globalVars.passwordAvailable) validMethods.push("password");
           if (this.globalVars.oidcAvailable) validMethods.push("oidc");
           if (this.globalVars.proxyAvailable) validMethods.push("proxy");
+          if (this.globalVars.ldapAvailable) validMethods.push("ldap");
 
           if (!this.user.loginMethod || !validMethods.includes(this.user.loginMethod)) {
             this.user.loginMethod = this.firstAvailableLoginMethod;
@@ -282,6 +286,7 @@ export default {
           if (this.globalVars.passwordAvailable) validMethods.push("password");
           if (this.globalVars.oidcAvailable) validMethods.push("oidc");
           if (this.globalVars.proxyAvailable) validMethods.push("proxy");
+          if (this.globalVars.ldapAvailable) validMethods.push("ldap");
 
           if (!this.user.loginMethod || !validMethods.includes(this.user.loginMethod)) {
             this.user.loginMethod = this.firstAvailableLoginMethod;
@@ -470,6 +475,7 @@ export default {
       if (this.globalVars.passwordAvailable) validMethods.push("password");
       if (this.globalVars.oidcAvailable) validMethods.push("oidc");
       if (this.globalVars.proxyAvailable) validMethods.push("proxy");
+      if (this.globalVars.ldapAvailable) validMethods.push("ldap");
 
       const isValidMethod = validMethods.includes(this.user.loginMethod);
 
