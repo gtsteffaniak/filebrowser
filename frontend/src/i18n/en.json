@@ -549,7 +549,8 @@
       "password": "Password",
       "oidc": "OIDC",
       "proxy": "Proxy",
-      "ldap": "LDAP"
+      "ldap": "LDAP",
+      "jwt": "JWT"
     },
     "loginMethodDescription": "allowed login method for the user.",
     "modifyOtherUser": "Modify user:",

@@ -102,6 +102,8 @@
           <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <option v-if="globalVars.ldapAvailable" value="ldap">{{ $t("settings.loginMethods.ldap") }}</option>
           <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <option value="jwt">{{ $t("settings.loginMethods.jwt") }}</option>
+          <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         </select>
       </div>
       <permissions v-if="stateUser.permissions.admin" :permissions="user.permissions" />
@@ -255,6 +257,7 @@ export default {
           if (this.globalVars.oidcAvailable) validMethods.push("oidc");
           if (this.globalVars.proxyAvailable) validMethods.push("proxy");
           if (this.globalVars.ldapAvailable) validMethods.push("ldap");
+          if (this.globalVars.jwtAvailable) validMethods.push("jwt");
 
           if (!this.user.loginMethod || !validMethods.includes(this.user.loginMethod)) {
             this.user.loginMethod = this.firstAvailableLoginMethod;
@@ -287,6 +290,7 @@ export default {
           if (this.globalVars.oidcAvailable) validMethods.push("oidc");
           if (this.globalVars.proxyAvailable) validMethods.push("proxy");
           if (this.globalVars.ldapAvailable) validMethods.push("ldap");
+          if (this.globalVars.jwtAvailable) validMethods.push("jwt");
 
           if (!this.user.loginMethod || !validMethods.includes(this.user.loginMethod)) {
             this.user.loginMethod = this.firstAvailableLoginMethod;
@@ -476,6 +480,7 @@ export default {
       if (this.globalVars.oidcAvailable) validMethods.push("oidc");
       if (this.globalVars.proxyAvailable) validMethods.push("proxy");
       if (this.globalVars.ldapAvailable) validMethods.push("ldap");
+      if (this.globalVars.jwtAvailable) validMethods.push("jwt");
 
       const isValidMethod = validMethods.includes(this.user.loginMethod);
 
