@@ -321,16 +321,9 @@ func TestWebDAV_PROPFIND_UserScopes(t *testing.T) {
 		},
 	}
 
-	// Save users
-	if err := state.CreateUser(adminUser, ""); err != nil {
-		t.Fatal(err)
-	}
-	if err := state.CreateUser(scopedUser, ""); err != nil {
-		t.Fatal(err)
-	}
-	if err := state.CreateUser(restrictedUser, ""); err != nil {
-		t.Fatal(err)
-	}
+	// Users are passed in requestContext only; do not call state.CreateUser here.
+	// CreateUser runs MakeUserDirs which rewrites scope "/" to "/<username>", breaking
+	// WebDAV chroot (expects index scope "/" to map to the source root).
 
 	testCases := []struct {
 		name              string
@@ -463,17 +456,6 @@ func TestWebDAV_WriteOperations(t *testing.T) {
 		},
 	}
 
-	// Save users
-	if err := state.CreateUser(fullAccessUser, ""); err != nil {
-		t.Fatal(err)
-	}
-	if err := state.CreateUser(readOnlyUser, ""); err != nil {
-		t.Fatal(err)
-	}
-	if err := state.CreateUser(scopedUser, ""); err != nil {
-		t.Fatal(err)
-	}
-
 	initTestIndex(t, "source1", source1Path)
 
 	testCases := []struct {
@@ -601,14 +583,6 @@ func TestWebDAV_AccessControl(t *testing.T) {
 		},
 	}
 
-	// Save users
-	if err := state.CreateUser(user1, ""); err != nil {
-		t.Fatal(err)
-	}
-	if err := state.CreateUser(user2, ""); err != nil {
-		t.Fatal(err)
-	}
-
 	// Initialize index
 	initTestIndex(t, "source1", source1Path)
 
@@ -707,10 +681,6 @@ func TestWebDAV_IndexingStates(t *testing.T) {
 		Scopes: []users.SourceScope{
 			{Name: source1Path, Scope: "/"},
 		},
-	}
-
-	if err := state.CreateUser(user, ""); err != nil {
-		t.Fatal(err)
 	}
 
 	initTestIndex(t, "source1", source1Path)

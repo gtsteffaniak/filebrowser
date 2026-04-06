@@ -42,10 +42,9 @@ func (f *fileInfoWrapper) mode() os.FileMode {
 
 // filteredFileSystem wraps a webdav.FileSystem and filters directory listings using FileInfoFaster
 type filteredFileSystem struct {
-	fs        webdav.FileSystem
-	source    string
-	user      *users.User
-	userScope string
+	fs     webdav.FileSystem
+	source string
+	user   *users.User
 	// Cache FileInfoFaster results per path to avoid redundant calls within the same request
 	fileInfoCache map[string]*iteminfo.ExtendedFileInfo
 }
@@ -376,7 +375,6 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	if !strings.HasPrefix(requestPath, "/") {
 		requestPath = "/" + requestPath
 	}
-	logger.Debugf("webdav: method=%s, request=%s, source=%s, requestPath=%s", r.Method, r.URL.Path, source, requestPath)
 	_, userScope, err := files.CheckPermissions(utils.FileOptions{
 		FollowSymlinks: false,
 		Path:           requestPath,
@@ -410,10 +408,9 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	// Wrap the filesystem to filter directory listings using FileInfoFaster
 	// We pass requestPath (without scope) to FileInfoFaster, which applies scope internally
 	filteredFS := &filteredFileSystem{
-		fs:        webdav.Dir(scopePath),
-		source:    source,
-		user:      d.user,
-		userScope: userScope,
+		fs:     webdav.Dir(scopePath),
+		source: source,
+		user:   d.user,
 	}
 
 	wd := &webdav.Handler{
