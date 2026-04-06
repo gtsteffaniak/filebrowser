@@ -22,7 +22,7 @@ export async function getSubtitleContent(source, path, subtitleName, embedded = 
 }
 
 // GET /api/media/metadata — directory or file with metadata; optional albumArt for embedded cover extraction.
-/** @param {boolean} albumArt when true, request embedded album art in audio metadata (heavier) */
+/** @param {boolean} albumArt when true, request embedded album art in audio metadata */
 /** @returns {Promise<object>} resource (adjustedData) */
 export async function fetchDirectoryMediaMetadata(source, path, albumArt = false) {
   const apiPath = getApiPath("media/metadata", {
@@ -36,7 +36,7 @@ export async function fetchDirectoryMediaMetadata(source, path, albumArt = false
 }
 
 // GET /public/api/media/metadata
-/** @param {boolean} albumArt when true, request embedded album art in audio metadata (heavier) */
+/** @param {boolean} albumArt when true, request embedded album art in audio metadata */
 /** @returns {Promise<object>} resource (adjustedData) */
 export async function fetchDirectoryMediaMetadataPublic(path, hash, password = "", albumArt = false) {
   const params = {

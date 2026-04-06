@@ -1090,7 +1090,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Path to the directory",
+                        "description": "Path to the directory or file",
                         "name": "path",
                         "in": "query",
                         "required": true
@@ -1101,6 +1101,12 @@ const docTemplate = `{
                         "name": "source",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "When true, include embedded album art bytes in audio metadata",
+                        "name": "albumArt",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -3271,6 +3277,12 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Path within the share",
                         "name": "path",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "When true, include embedded album art bytes in audio metadata (heavier)",
+                        "name": "albumArt",
                         "in": "query"
                     }
                 ],

@@ -2772,7 +2772,7 @@ paths:
       description: Same ExtendedFileInfo as resources GET with metadata=true (typically
         used for directories).
       parameters:
-      - description: Path to the directory
+      - description: Path to the directory or file
         in: query
         name: path
         required: true
@@ -2782,6 +2782,10 @@ paths:
         name: source
         required: true
         type: string
+      - description: When true, include embedded album art bytes in audio metadata
+        in: query
+        name: albumArt
+        type: boolean
       produces:
       - application/json
       responses:
@@ -4295,6 +4299,11 @@ paths:
         in: query
         name: path
         type: string
+      - description: When true, include embedded album art bytes in audio metadata
+          (heavier)
+        in: query
+        name: albumArt
+        type: boolean
       produces:
       - application/json
       responses:

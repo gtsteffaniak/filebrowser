@@ -111,7 +111,7 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 // @Produce json
 // @Param path query string true "Path to the directory or file"
 // @Param source query string true "Source name"
-// @Param albumArt query bool false "When true, include embedded album art bytes in audio metadata (heavier)"
+// @Param albumArt query bool false "When true, include embedded album art bytes in audio metadata"
 // @Success 200 {object} iteminfo.ExtendedFileInfo
 // @Failure 403 {object} map[string]string "Forbidden"
 // @Failure 404 {object} map[string]string "Not found"
