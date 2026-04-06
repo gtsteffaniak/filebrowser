@@ -579,7 +579,6 @@
     "results": "Wyniki{suffix}",
     "users": "Użytkownicy{suffix}",
     "photos": "Zdjęcia",
-    "audios": "Audios{suffix}",
     "videos": "Filmy{suffix}",
     "models": "Modele 3D",
     "documents": "Dokumenty{suffix}",
@@ -665,7 +664,8 @@
     "format": "Format{suffix}",
     "office": "Biuro{suffix}",
     "show": "Pokaż{suffix}",
-    "divider": "Dzielnik{suffix}"
+    "divider": "Dzielnik{suffix}",
+    "audio": "Audio{suffix}"
   },
   "access": {
     "rules": "Zasady dostępu",
@@ -718,7 +718,6 @@
     "hideFilesInTree": "Ukryj pliki w nawigacji drzewiastej",
     "hideFilesInTreeDescription": "Po włączeniu, w drzewiastej nawigacji na pasku bocznym wyświetlane są tylko foldery",
     "previewModelsDescription": "Pokaż miniatury podglądów dla modeli 3D, jeśli wyłączone, pojawi się ogólna ikona",
-    "previewAudiosDescription": "Pokaż miniatury podglądów dla plików audio, jeśli wyłączone, pojawi się ogólna ikona",
     "setDateFormat": "Ustaw dokładny format daty",
     "showHiddenFiles": "Pokaż ukryte pliki",
     "showHiddenFilesDescription": "Pokaż ukryte pliki na liście (np. .thumbnails, ProgramData), ale są one nadal dostępne ręcznie, jeśli są skonfigurowane do indeksowania.",
@@ -774,7 +773,8 @@
     "popupPreviewDescription": "Po najechaniu kursorem na elementy z miniaturami nad interfejsem użytkownika pojawi się wyskakujące okienko.",
     "thumbnailOptions": "Opcje miniatur",
     "showThumbnails": "Wyświetlanie miniatur obsługiwanych elementów",
-    "showThumbnailsDescription": "Po włączeniu tej opcji miniatury są wyświetlane na liście elementów, które je obsługują. Wyłącz, aby ukryć wszystkie miniatury."
+    "showThumbnailsDescription": "Po włączeniu tej opcji miniatury są wyświetlane na liście elementów, które je obsługują. Wyłącz, aby ukryć wszystkie miniatury.",
+    "previewAudiosDescription": "Wyświetlanie podglądu miniatur plików audio; jeśli opcja ta jest wyłączona, wyświetlana jest ogólna ikona."
   },
   "editor": {
     "uninitialized": "Nie udało się zainicjować edytora. Przeładuj ponownie.",

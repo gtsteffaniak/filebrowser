@@ -579,7 +579,6 @@
     "results": "Ergebnisse{suffix}",
     "users": "Benutzer{suffix}",
     "photos": "Fotos",
-    "audios": "Audios{suffix}",
     "videos": "Videos{suffix}",
     "models": "3D-Modelle",
     "documents": "Dokumente{suffix}",
@@ -665,7 +664,8 @@
     "format": "Format{suffix}",
     "office": "Büro{suffix}",
     "show": "anzeigen{suffix}",
-    "divider": "Teiler{suffix}"
+    "divider": "Teiler{suffix}",
+    "audio": "Audio{suffix}"
   },
   "access": {
     "rules": "Zugangsregeln",
@@ -718,7 +718,6 @@
     "hideFilesInTree": "Dateien in der Baumnavigation ausblenden",
     "hideFilesInTreeDescription": "Wenn aktiviert, werden in der Seitenleisten-Baumnavigation nur Ordner angezeigt",
     "previewModelsDescription": "Vorschaubilder für 3D-Modelle anzeigen, bei Deaktivierung wird ein generisches Symbol angezeigt",
-    "previewAudiosDescription": "Vorschaubilder für Audiodateien anzeigen, bei Deaktivierung wird ein generisches Symbol angezeigt",
     "setDateFormat": "Genaues Datum statt relativer Zeitangaben verwenden",
     "showHiddenFiles": "Versteckte Dateien anzeigen",
     "showHiddenFilesDescription": "Versteckte Dateien in der Auflistung anzeigen (z.B. .thumbnails, ProgramData), aber sie sind immer noch manuell zugänglich, wenn sie für die Indizierung konfiguriert sind.",
@@ -774,7 +773,8 @@
     "popupPreviewDescription": "Ein Overlay-Pop-up-Fenster wird über der Benutzeroberfläche angezeigt, wenn der Mauszeiger über Elemente mit Miniaturansichten bewegt wird",
     "thumbnailOptions": "Thumbnail-Optionen",
     "showThumbnails": "Miniaturansichten für unterstützte Artikel anzeigen",
-    "showThumbnailsDescription": "Wenn diese Option aktiviert ist, werden Miniaturansichten in der Auflistung für Artikel angezeigt, die sie unterstützen. Schalten Sie die Option aus, um alle Miniaturansichten auszublenden."
+    "showThumbnailsDescription": "Wenn diese Option aktiviert ist, werden Miniaturansichten in der Auflistung für Artikel angezeigt, die sie unterstützen. Schalten Sie die Option aus, um alle Miniaturansichten auszublenden.",
+    "previewAudiosDescription": "Miniaturvorschau für Audiodateien anzeigen, bei Deaktivierung wird ein allgemeines Symbol angezeigt."
   },
   "editor": {
     "uninitialized": "Der Editor konnte nicht initialisiert werden. Bitte neu laden.",

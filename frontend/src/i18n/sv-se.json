@@ -572,7 +572,6 @@
     "hideFilesInTree": "Dölj filer i trädnavigering",
     "hideFilesInTreeDescription": "När aktiverad visas endast mappar i sidofältets trädnavigering",
     "previewModelsDescription": "Visa miniatyrförhandsvisningar för 3D-modeller, kommer att visa generisk ikon om inaktiverad",
-    "previewAudiosDescription": "Visa miniatyrförhandsvisningar för ljudfiler, kommer att visa generisk ikon om inaktiverad",
     "setDateFormat": "Ange exakt datumformat",
     "showHiddenFiles": "Visa dolda filer",
     "showHiddenFilesDescription": "Visa dolda filer i listan (t.ex. .thumbnails, ProgramData), men de är fortfarande manuellt åtkomliga om de är konfigurerade för att indexeras.",
@@ -628,7 +627,8 @@
     "popupPreviewDescription": "Ett överliggande popup-fönster visas över användargränssnittet när du håller muspekaren över objekt med miniatyrbilder",
     "thumbnailOptions": "Alternativ för miniatyrbilder",
     "showThumbnails": "Visa miniatyrbilder för objekt som stöds",
-    "showThumbnailsDescription": "När den är aktiverad visas miniatyrbilder i listan för objekt som stöder dem. Stäng av för att dölja alla miniatyrbilder."
+    "showThumbnailsDescription": "När den är aktiverad visas miniatyrbilder i listan för objekt som stöder dem. Stäng av för att dölja alla miniatyrbilder.",
+    "previewAudiosDescription": "Visa förhandsvisningar av miniatyrbilder för ljudfiler, visar en generisk ikon om den är inaktiverad."
   },
   "general": {
     "name": "Namn",
@@ -665,7 +665,6 @@
     "results": "Resultat{suffix}",
     "users": "Användare{suffix}",
     "photos": "Bilder",
-    "audios": "Ljud{suffix}",
     "videos": "Videor{suffix}",
     "models": "3D-modeller",
     "documents": "Dokument{suffix}",
@@ -751,7 +750,8 @@
     "format": "Format{suffix}",
     "office": "Kontor{suffix}",
     "show": "Visa{suffix}",
-    "divider": "Uppdelare{suffix}"
+    "divider": "Uppdelare{suffix}",
+    "audio": "Ljud{suffix}"
   },
   "access": {
     "rules": "Regler för åtkomst",

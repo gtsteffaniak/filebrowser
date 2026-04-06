@@ -12,14 +12,28 @@
       <ExtendedImage v-if="showImage && !isTransitioning" :src="raw" @navigate-previous="navigatePrevious"
         @navigate-next="navigateNext" @close-preview="exitPreviewFromImageGesture" />
 
-      <!-- Media Player Component -->
-      <plyrViewer v-else-if="previewType == 'audio' || previewType == 'video'" ref="plyrViewer"
-        :previewType="previewType" :raw="raw" :subtitlesList="subtitlesList" :req="req" :listing="listing"
-        :useDefaultMediaPlayer="useDefaultMediaPlayer" :autoPlayEnabled="autoPlay" @play="autoPlay = true"
-        :class="{ 'plyr-background': previewType == 'audio' && !useDefaultMediaPlayer }"
-        @navigate-previous="navigatePrevious"
-        @navigate-next="navigateNext"
-        @close-preview="exitPreviewFromImageGesture" />
+      <!-- Media: load full metadata + album art from media API before mounting plyr so the correct view/art is stable. -->
+      <div v-else-if="previewType == 'audio' || previewType == 'video'" class="av-preview-wrap">
+        <div v-if="avMetadataLoading" class="av-preview-loading">
+          <LoadingSpinner size="medium" />
+        </div>
+        <plyrViewer v-else
+          :key="req.path"
+          ref="plyrViewer"
+          :previewType="previewType"
+          :raw="raw"
+          :subtitlesList="subtitlesList"
+          :req="req"
+          :listing="listing"
+          :useDefaultMediaPlayer="useDefaultMediaPlayer"
+          :autoPlayEnabled="autoPlay"
+          @play="autoPlay = true"
+          :class="{ 'plyr-background': previewType == 'audio' && !useDefaultMediaPlayer }"
+          @navigate-previous="navigatePrevious"
+          @navigate-next="navigateNext"
+          @close-preview="exitPreviewFromImageGesture"
+        />
+      </div>
 
       <div v-else-if="previewType == 'pdf'" class="pdf-wrapper">
         <iframe class="pdf" :src="raw"></iframe>
@@ -82,6 +96,9 @@ export default {
       subtitlesList: [],
       isDeleted: false,
       tapTimeout: null,
+      avMetadataLoading: false,
+      /** Skip duplicate media-metadata fetch when patchRequestFileMediaMetadata updates `req` for same path. */
+      mediaEnrichDoneForPath: null,
     };
   },
   computed: {
@@ -224,16 +241,71 @@ export default {
     },
   },
   watch: {
-    async req() {
-      // Public shares are not "logged in"; still reload preview data when state.req updates (e.g. media metadata patch).
+    req: {
+      immediate: true,
+      async handler() {
+        await this.loadPreviewForReq();
+      },
+    },
+  },
+  mounted() {
+    window.addEventListener("keydown", this.keyEvent);
+  },
+  beforeUnmount() {
+    window.removeEventListener("keydown", this.keyEvent);
+    // Clear navigation state when leaving preview
+    mutations.clearNavigation();
+  },
+  methods: {
+    async loadPreviewForReq() {
       if (!getters.isLoggedIn() && !getters.isShare()) {
         return;
       }
-
       this.isDeleted = false;
-      // Reload subtitles when navigating to a new video
+
+      if (!this.listing || this.listing === "undefined") {
+        if (state.req.parentDirItems) {
+          this.listing = state.req.parentDirItems;
+        } else if (state.req.items) {
+          this.listing = state.req.items;
+        }
+      }
+
+      const path = state.req.path;
+      const isAv =
+        !getters.fileViewingDisabled(state.req.name) &&
+        state.req.type !== "directory" &&
+        (this.previewType === "audio" || this.previewType === "video");
+
+      if (!isAv) {
+        this.avMetadataLoading = false;
+        this.mediaEnrichDoneForPath = null;
+      } else {
+        const needsEnrich = this.mediaEnrichDoneForPath !== path;
+        if (needsEnrich) {
+          this.avMetadataLoading = true;
+          try {
+            await this.enrichAvFromMediaApi(path);
+            if (state.req.path !== path) {
+              return;
+            }
+            this.mediaEnrichDoneForPath = path;
+          } finally {
+            if (state.req.path === path) {
+              this.avMetadataLoading = false;
+            }
+          }
+        } else {
+          this.avMetadataLoading = false;
+        }
+      }
+
+      if (state.req.path !== path) {
+        return;
+      }
+
       this.subtitlesList = await this.subtitles();
-      this.updatePreview();
+      await this.updatePreview();
       mutations.resetSelected();
       mutations.addSelected({
         name: state.req.name,
@@ -245,34 +317,43 @@ export default {
         hasPreview: state.req.hasPreview,
       });
     },
-  },
-  async mounted() {
-    // Check for pre-fetched parent directory items from Files.vue
-    if (state.req.parentDirItems) {
-      this.listing = state.req.parentDirItems;
-    } else if (state.req.items) {
-      this.listing = state.req.items;
-    }
-    window.addEventListener("keydown", this.keyEvent);
-    this.subtitlesList = await this.subtitles();
-    this.updatePreview();
-    mutations.resetSelected();
-    mutations.addSelected({
-      name: state.req.name,
-      path: state.req.path,
-      size: state.req.size,
-      type: state.req.type,
-      source: state.req.source,
-      modified: state.req.modified,
-      hasPreview: state.req.hasPreview,
-    });
-  },
-  beforeUnmount() {
-    window.removeEventListener("keydown", this.keyEvent);
-    // Clear navigation state when leaving preview
-    mutations.clearNavigation();
-  },
-  methods: {
+    /** GET /api/media/metadata?albumArt=true — subtitles, duration, embedded cover for plyr. */
+    async enrichAvFromMediaApi(expectedPath) {
+      if (state.req.path !== expectedPath) {
+        return;
+      }
+      const req = state.req;
+      try {
+        let enriched;
+        if (getters.isShare()) {
+          const pwd =
+            localStorage.getItem("sharepass:" + state.shareInfo.hash) || "";
+          enriched = await mediaApi.fetchDirectoryMediaMetadataPublic(
+            req.path,
+            state.shareInfo.hash,
+            pwd,
+            true,
+          );
+        } else {
+          if (!getters.isLoggedIn()) {
+            return;
+          }
+          enriched = await mediaApi.fetchDirectoryMediaMetadata(
+            req.source,
+            req.path,
+            true,
+          );
+        }
+        if (state.req.path !== expectedPath) {
+          return;
+        }
+        if (enriched && enriched.type !== "directory") {
+          mutations.patchRequestFileMediaMetadata(enriched);
+        }
+      } catch (e) {
+        console.warn("Preview: media metadata fetch failed", e);
+      }
+    },
     async subtitles() {
       if (!state.req?.subtitles?.length) {
         return [];
@@ -563,6 +644,20 @@ export default {
   display: flex;
   flex-direction: row;
   gap: 1em;
+}
+
+.av-preview-wrap {
+  width: 100%;
+  height: 100%;
+  min-height: 12rem;
+}
+
+.av-preview-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 12rem;
 }
 
 </style>

@@ -57,7 +57,6 @@
     "scopes": "Ambiti{suffix}",
     "commands": "Comandi{suffix}",
     "photos": "Foto",
-    "audios": "Audio{suffix}",
     "videos": "Video{suffix}",
     "documents": "Documenti{suffix}",
     "archives": "Archivi{suffix}",
@@ -128,7 +127,8 @@
     "watching": "Monitoraggio{suffix}",
     "lines": "Linee{suffix}",
     "lastUpdate": "Ultimo aggiornamento{suffix}",
-    "latency": "Latenza{suffix}"
+    "latency": "Latenza{suffix}",
+    "audio": "Audio{suffix}"
   },
   "buttons": {
     "copySuccess": "Copiato negli appunti!",
@@ -493,7 +493,6 @@
     "showQuickDownloadDescription": "Aggiunge un'icona su ogni file per scaricarlo istantaneamente con un click.",
     "previewImagesDescription": "Mostra anteprime per le immagini (mostra icona generica se disabilitato).",
     "previewVideosDescription": "Mostra anteprime per i video.",
-    "previewAudiosDescription": "Mostra anteprime per gli audio.",
     "previewModelsDescription": "Mostra anteprime per i modelli 3D.",
     "previewMotion": "Anteprime animate",
     "previewMotionVideosDescription": "L'anteprima animata cicla i fotogrammi del video o le immagini di una cartella al passaggio del mouse.",
@@ -533,7 +532,8 @@
     "themeAndLanguage": "Tema e Lingua",
     "thumbnailOptions": "Opzioni Miniature",
     "showThumbnails": "Mostra miniature per elementi supportati",
-    "showThumbnailsDescription": "Spegni per nascondere tutte le miniature nell'elenco."
+    "showThumbnailsDescription": "Spegni per nascondere tutte le miniature nell'elenco.",
+    "previewAudiosDescription": "Mostra le anteprime dei file audio; se è disattivato, mostra un'icona generica."
   },
   "settings": {
     "systemAdmin": "Sistema e Admin",

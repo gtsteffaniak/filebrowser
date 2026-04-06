@@ -346,7 +346,6 @@
     "hideFilesInTree": "Skrýt soubory ve stromové navigaci",
     "hideFilesInTreeDescription": "Pokud je povoleno, v postranním stromovém navigačním panelu se zobrazují pouze složky",
     "previewModelsDescription": "Zobrazit náhledy miniatur pro 3D modely, pokud je zakázáno, zobrazí se obecná ikona",
-    "previewAudiosDescription": "Zobrazit náhledy miniatur pro zvuky, pokud je zakázáno, zobrazí se obecná ikona",
     "setDateFormat": "Nastavit formát data",
     "showHiddenFiles": "Zobrazit skryté soubory",
     "showQuickDownload": "Zobrazit ikonu rychlého stahování",
@@ -402,7 +401,8 @@
     "popupPreviewDescription": "Při najetí na položky s miniaturami se nad uživatelským rozhraním zobrazí překryvné vyskakovací okno.",
     "thumbnailOptions": "Možnosti miniatur",
     "showThumbnails": "Zobrazení miniatur podporovaných položek",
-    "showThumbnailsDescription": "Pokud je tato možnost povolena, zobrazují se ve výpisu náhledy položek, které je podporují. Vypnutím se všechny miniatury skryjí."
+    "showThumbnailsDescription": "Pokud je tato možnost povolena, zobrazují se ve výpisu náhledy položek, které je podporují. Vypnutím se všechny miniatury skryjí.",
+    "previewAudiosDescription": "Zobrazení miniaturních náhledů zvukových souborů, pokud je vypnuto, zobrazí se obecná ikona."
   },
   "settings": {
     "enterPassword": "Zadejte heslo",
@@ -665,7 +665,6 @@
     "results": "Výsledky{suffix}",
     "users": "Uživatelé{suffix}",
     "photos": "Fotografie",
-    "audios": "Zvuky{suffix}",
     "videos": "Videa{suffix}",
     "models": "3D modely",
     "documents": "Dokumenty{suffix}",
@@ -751,7 +750,8 @@
     "format": "Formát{suffix}",
     "office": "Kancelář{suffix}",
     "show": "Zobrazit{suffix}",
-    "divider": "Rozdělovač{suffix}"
+    "divider": "Rozdělovač{suffix}",
+    "audio": "Audio{suffix}"
   },
   "access": {
     "rules": "Pravidla přístupu",

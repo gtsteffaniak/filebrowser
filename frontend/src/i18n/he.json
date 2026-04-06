@@ -579,7 +579,6 @@
     "results": "תוצאות{suffix}",
     "users": "משתמשים{suffix}",
     "photos": "תמונות",
-    "audios": "שמע{suffix}",
     "videos": "סרטונים{suffix}",
     "models": "דגמי תלת-ממד",
     "documents": "מסמכים{suffix}",
@@ -665,7 +664,8 @@
     "format": "פורמט{suffix}",
     "office": "משרד{suffix}",
     "show": "הצג{suffix}",
-    "divider": "מפריד{suffix}"
+    "divider": "מפריד{suffix}",
+    "audio": "אודיו{suffix}"
   },
   "access": {
     "rules": "כללי גישה",
@@ -718,7 +718,6 @@
     "hideFilesInTree": "הסתר קבצים בניווט עץ",
     "hideFilesInTreeDescription": "כאשר מופעל, רק תיקיות מוצגות בניווט העץ של סרגל הצד",
     "previewModelsDescription": "הצג תצוגות מקדימות ממוזערות לדגמי תלת-ממד, יוצג אייקון כללי אם מושבת",
-    "previewAudiosDescription": "הצג תצוגות מקדימות ממוזערות לשמע, יוצג אייקון כללי אם מושבת",
     "setDateFormat": "הגדר פורמט תאריך מדויק",
     "showHiddenFiles": "הצג קבצים מוסתרים",
     "showHiddenFilesDescription": "הצג קבצים מוסתרים ברשימה (לדוגמה, .thumbnails, ProgramData), אך הם עדיין נגישים באופן ידני אם הוגדרו לאינדקס.",
@@ -774,7 +773,8 @@
     "popupPreviewDescription": "חלון קופץ יופיע מעל ממשק המשתמש כאשר תעבור עם העכבר על פריטים עם תמונות ממוזערות.",
     "thumbnailOptions": "אפשרויות תמונות ממוזערות",
     "showThumbnails": "הצג תמונות ממוזערות עבור פריטים נתמכים",
-    "showThumbnailsDescription": "כאשר אפשרות זו מופעלת, תמונות ממוזערות מוצגות ברשימה עבור פריטים התומכים בהן. כבה את האפשרות כדי להסתיר את כל התמונות הממוזערות."
+    "showThumbnailsDescription": "כאשר אפשרות זו מופעלת, תמונות ממוזערות מוצגות ברשימה עבור פריטים התומכים בהן. כבה את האפשרות כדי להסתיר את כל התמונות הממוזערות.",
+    "previewAudiosDescription": "הצג תצוגה מקדימה של תמונות ממוזערות עבור קבצי אודיו; אם האפשרות מושבתת, יוצג סמל כללי."
   },
   "editor": {
     "uninitialized": "לא ניתן לאתחל את העורך. אנא טען מחדש.",

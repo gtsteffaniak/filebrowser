@@ -579,7 +579,6 @@
     "results": "Výsledky{suffix}",
     "users": "Používatelia{suffix}",
     "photos": "Fotografie",
-    "audios": "Zvuky{suffix}",
     "videos": "Videá{suffix}",
     "models": "3D modely",
     "documents": "Dokumenty{suffix}",
@@ -665,7 +664,8 @@
     "format": "Formát{suffix}",
     "office": "Kancelária{suffix}",
     "show": "Zobraziť{suffix}",
-    "divider": "Rozdeľovač{suffix}"
+    "divider": "Rozdeľovač{suffix}",
+    "audio": "Audio{suffix}"
   },
   "access": {
     "rules": "Pravidlá prístupu",
@@ -718,7 +718,6 @@
     "hideFilesInTree": "Skryť súbory v stromovej navigácii",
     "hideFilesInTreeDescription": "Ak je povolené, v stromovej navigácii bočného panela sa zobrazujú iba priečinky",
     "previewModelsDescription": "Zobraziť miniatúry náhľadov pre 3D modely, ak je zakázané, zobrazí sa všeobecná ikona",
-    "previewAudiosDescription": "Zobraziť miniatúry náhľadov pre zvuky, ak je zakázané, zobrazí sa všeobecná ikona",
     "setDateFormat": "Nastavenie presného formátu dátumu",
     "showHiddenFiles": "Zobrazenie skrytých súborov",
     "showHiddenFilesDescription": "Zobrazenie skrytých súborov vo výpise (napr. .thumbnails, ProgramData), ale sú stále manuálne prístupné, ak sú nakonfigurované na indexovanie.",
@@ -774,7 +773,8 @@
     "popupPreviewDescription": "Prekryvné vyskakovacie okno sa zobrazí nad používateľským rozhraním pri prejdení nad položky s miniatúrami",
     "thumbnailOptions": "Možnosti miniatúr",
     "showThumbnails": "Zobrazenie miniatúr pre podporované položky",
-    "showThumbnailsDescription": "Ak je táto možnosť povolená, vo výpise sa zobrazujú miniatúry položiek, ktoré ich podporujú. Ak chcete skryť všetky miniatúry, možnosť vypnite."
+    "showThumbnailsDescription": "Ak je táto možnosť povolená, vo výpise sa zobrazujú miniatúry položiek, ktoré ich podporujú. Ak chcete skryť všetky miniatúry, možnosť vypnite.",
+    "previewAudiosDescription": "Zobrazenie miniatúrnych náhľadov pre zvukové súbory, ak je vypnuté, zobrazí sa generická ikona."
   },
   "editor": {
     "uninitialized": "Nepodarilo sa inicializovať editor. Prosím, načítajte ho znova.",

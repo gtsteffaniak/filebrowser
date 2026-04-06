@@ -579,7 +579,6 @@
     "results": "Resultados{suffix}",
     "users": "Usuarios{suffix}",
     "photos": "Fotos",
-    "audios": "Audios{suffix}",
     "videos": "Vídeos{suffix}",
     "models": "Modelos 3D",
     "documents": "Documentos{suffix}",
@@ -665,7 +664,8 @@
     "format": "Formato{suffix}",
     "office": "Office{suffix}",
     "show": "Mostrar{suffix}",
-    "divider": "Divisor{suffix}"
+    "divider": "Divisor{suffix}",
+    "audio": "Audio{suffix}"
   },
   "access": {
     "rules": "Reglas de acceso",
@@ -718,7 +718,6 @@
     "hideFilesInTree": "Ocultar archivos en la navegación de árbol",
     "hideFilesInTreeDescription": "Cuando está activado, solo se muestrarán carpetas en la navegación del panel lateral",
     "previewModelsDescription": "Mostrar miniaturas para modelos 3D, se mostrará un icono genérico si se desactiva",
-    "previewAudiosDescription": "Mostrar miniaturas para audios, se mostrará un icono genérico si se desactiva",
     "autoplayMedia": "Reproducción automática de archivos multimedia",
     "autoplayMediaDescription": "Reproduce automaticamente los archivos multimedia al abrirlos",
     "sidebarOptions": "Opciones del panel lateral",
@@ -774,7 +773,8 @@
     "popupPreviewDescription": "Se mostrará una ventana emergente superpuesta al pasar el mouse por encima de los elementos con miniaturas.",
     "thumbnailOptions": "Opciones de miniaturas",
     "showThumbnails": "Mostrar miniaturas soportadas",
-    "showThumbnailsDescription": "Cuando está activada, se mostrarán miniaturas para todos los archivos soportados. Puedes desactivarlo para desactivar todas las miniaturas."
+    "showThumbnailsDescription": "Cuando está activada, se mostrarán miniaturas para todos los archivos soportados. Puedes desactivarlo para desactivar todas las miniaturas.",
+    "previewAudiosDescription": "Muestra vistas previas en miniatura de los archivos de audio, mostrará un icono genérico si está desactivado."
   },
   "editor": {
     "uninitialized": "No se pudo iniciar el editor",

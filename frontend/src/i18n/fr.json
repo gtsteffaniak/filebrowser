@@ -579,7 +579,6 @@
     "results": "Résultats{suffix}",
     "users": "Utilisateurs{suffix}",
     "photos": "Photos",
-    "audios": "Audios{suffix}",
     "videos": "Vidéos{suffix}",
     "models": "Modèles 3D",
     "documents": "Documents{suffix}",
@@ -665,7 +664,8 @@
     "format": "Format{suffix}",
     "office": "Bureau{suffix}",
     "show": "Afficher{suffix}",
-    "divider": "Diviseur{suffix}"
+    "divider": "Diviseur{suffix}",
+    "audio": "Audio{suffix}"
   },
   "access": {
     "rules": "Règles d'accès",
@@ -718,7 +718,6 @@
     "hideFilesInTree": "Masquer les fichiers dans l'arborescence",
     "hideFilesInTreeDescription": "Lorsque activé, seuls les dossiers sont affichés dans l'arborescence de navigation de la barre latérale",
     "previewModelsDescription": "Afficher les aperçus miniatures pour les modèles 3D, une icône générique s'affichera si désactivé",
-    "previewAudiosDescription": "Afficher les aperçus miniatures pour les fichiers audio, une icône générique s'affichera si désactivé",
     "setDateFormat": "Définir le format exact de la date",
     "showHiddenFiles": "Afficher les fichiers cachés",
     "showHiddenFilesDescription": "Affiche les fichiers cachés dans la liste (par exemple, .thumbnails, ProgramData), mais ils restent accessibles manuellement s'ils sont configurés pour être indexés.",
@@ -774,7 +773,8 @@
     "popupPreviewDescription": "Une fenêtre contextuelle s'affiche au-dessus de l'interface utilisateur lorsque l'on survole des éléments avec des vignettes.",
     "thumbnailOptions": "Options de vignettes",
     "showThumbnails": "Afficher les vignettes des éléments pris en charge",
-    "showThumbnailsDescription": "Lorsque cette option est activée, les vignettes sont affichées dans la liste pour les articles qui les prennent en charge. Désactivez cette option pour masquer toutes les vignettes."
+    "showThumbnailsDescription": "Lorsque cette option est activée, les vignettes sont affichées dans la liste pour les articles qui les prennent en charge. Désactivez cette option pour masquer toutes les vignettes.",
+    "previewAudiosDescription": "Affiche des aperçus de vignettes pour les fichiers audio, affiche une icône générique si elle est désactivée."
   },
   "editor": {
     "uninitialized": "Échec de l'initialisation de l'éditeur. Veuillez recharger.",

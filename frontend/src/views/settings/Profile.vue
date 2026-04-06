@@ -41,7 +41,7 @@
               <ToggleSwitch v-if="mediaEnabled" class="item" v-model="localuser.preview.video" @change="updateSettings"
                 :name="$t('general.videos')" :description="$t('profileSettings.previewVideosDescription')" />
               <ToggleSwitch class="item" v-model="localuser.preview.audio" @change="updateSettings"
-                :name="$t('general.audios')" :description="$t('profileSettings.previewAudiosDescription')" />
+                :name="$t('general.audio')" :description="$t('profileSettings.previewAudiosDescription')" />
               <ToggleSwitch class="item" v-model="localuser.preview.office" @change="updateSettings"
                 :name="$t('general.office')" :description="$t('profileSettings.previewOfficeDescription')" />
               <ToggleSwitch class="item" v-model="localuser.preview.folder" @change="updateSettings"

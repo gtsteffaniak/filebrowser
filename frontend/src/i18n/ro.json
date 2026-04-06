@@ -579,7 +579,6 @@
     "results": "Rezultate{suffix}",
     "users": "Utilizatori{suffix}",
     "photos": "Fotografii",
-    "audios": "Audios{suffix}",
     "videos": "Video{suffix}",
     "models": "Modele 3D",
     "documents": "Documente{suffix}",
@@ -665,7 +664,8 @@
     "format": "Format{suffix}",
     "office": "Birou{suffix}",
     "show": "Spectacol{suffix}",
-    "divider": "Divizor{suffix}"
+    "divider": "Divizor{suffix}",
+    "audio": "Audio{suffix}"
   },
   "access": {
     "rules": "Reguli de acces",
@@ -718,7 +718,6 @@
     "hideFilesInTree": "Ascunde fișierele în navigarea arborescentă",
     "hideFilesInTreeDescription": "Când este activat, numai folderele sunt afișate în navigarea arborescentă a barei laterale",
     "previewModelsDescription": "Afișează previzualizări miniatură pentru modele 3D, se va afișa o pictogramă generică dacă este dezactivat",
-    "previewAudiosDescription": "Afișează previzualizări miniatură pentru fișiere audio, se va afișa o pictogramă generică dacă este dezactivat",
     "setDateFormat": "Setați formatul exact al datei",
     "showHiddenFiles": "Afișează fișierele ascunse",
     "showHiddenFilesDescription": "Afișează fișierele ascunse în listă (de exemplu, .thumbnails, ProgramData), dar acestea sunt încă accesibile manual dacă sunt configurate pentru a fi indexate.",
@@ -774,7 +773,8 @@
     "popupPreviewDescription": "O fereastră pop-up suprapusă va fi afișată peste interfața de utilizator atunci când treceți peste elemente cu miniaturi",
     "thumbnailOptions": "Opțiuni pentru miniaturi",
     "showThumbnails": "Afișați miniaturi pentru elementele acceptate",
-    "showThumbnailsDescription": "Atunci când este activată, miniaturile sunt afișate în listă pentru articolele care le acceptă. Dezactivați pentru a ascunde toate miniaturile."
+    "showThumbnailsDescription": "Atunci când este activată, miniaturile sunt afișate în listă pentru articolele care le acceptă. Dezactivați pentru a ascunde toate miniaturile.",
+    "previewAudiosDescription": "Afișează previzualizări în miniatură pentru fișierele audio, va afișa pictograma generică dacă este dezactivată."
   },
   "editor": {
     "uninitialized": "Nu s-a reușit inițializarea editorului. Vă rugăm să reîncărcați.",

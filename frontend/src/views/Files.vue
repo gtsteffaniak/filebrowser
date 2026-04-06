@@ -36,14 +36,6 @@ function directoryListingHasMediaChildren(req) {
   );
 }
 
-function fileListingNeedsMediaMetadataPatch(req) {
-  return (
-    req &&
-    req.type !== "directory" &&
-    (req.type?.startsWith("audio") || req.type?.startsWith("video"))
-  );
-}
-
 /** @returns {Promise<{ items?: object[], name: string, type: string, path: string, source: string, hash?: string, token?: string, parentDirItems?: object[] }>} */
 async function fetchShareItemWithParent(sharePassword) {
   let file = await resourcesApi.fetchFilesPublic(
@@ -268,19 +260,6 @@ export default {
           const payload = await fetchMedia();
           if (payload?.items?.length) {
             mutations.patchRequestMetadata(payload.items);
-          }
-          this.loadingProgress = 100;
-        } catch {
-          this.loadingProgress = 0;
-        }
-        return;
-      }
-      if (fileListingNeedsMediaMetadataPatch(listing)) {
-        this.loadingProgress = 90;
-        try {
-          const payload = await fetchMedia();
-          if (payload && payload.type !== "directory") {
-            mutations.patchRequestFileMediaMetadata(payload);
           }
           this.loadingProgress = 100;
         } catch {

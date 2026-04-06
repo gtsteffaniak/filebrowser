@@ -541,7 +541,6 @@
     "hideFilesInTree": "在樹狀導覽中隱藏檔案",
     "hideFilesInTreeDescription": "啟用後，側邊欄樹狀導覽中僅顯示資料夾。",
     "previewModelsDescription": "顯示 3D 模型縮圖；停用時改顯示一般圖示。",
-    "previewAudiosDescription": "顯示音訊縮圖；停用時改顯示一般圖示。",
     "setDateFormat": "設定精確的日期格式",
     "showHiddenFiles": "顯示隱藏檔案",
     "showHiddenFilesDescription": "在清單中顯示隱藏檔案（例如 .thumbnails、ProgramData），但若已設定索引，仍可手動存取。",
@@ -597,7 +596,8 @@
     "popupPreviewDescription": "滑鼠停留在有縮圖的項目上時，會以覆蓋式彈出視窗顯示預覽。",
     "thumbnailOptions": "縮圖選項",
     "showThumbnails": "顯示支援項目的縮圖",
-    "showThumbnailsDescription": "啟用時，縮圖會顯示在支援縮圖的項目清單中。關閉可隱藏所有縮圖。"
+    "showThumbnailsDescription": "啟用時，縮圖會顯示在支援縮圖的項目清單中。關閉可隱藏所有縮圖。",
+    "previewAudiosDescription": "顯示音訊檔案的縮圖預覽，如果停用，則會顯示一般圖示。"
   },
   "otp": {
     "name": "雙因素驗證",
@@ -665,7 +665,6 @@
     "results": "結果{suffix}",
     "users": "使用者{suffix}",
     "photos": "相片",
-    "audios": "音訊{suffix}",
     "videos": "影片{suffix}",
     "models": "3D 模型",
     "documents": "文件{suffix}",
@@ -751,7 +750,8 @@
     "format": "格式{suffix}",
     "office": "Office{suffix}",
     "show": "顯示{suffix}",
-    "divider": "分隔線{suffix}"
+    "divider": "分隔線{suffix}",
+    "audio": "音訊{suffix}"
   },
   "access": {
     "rules": "存取規則",

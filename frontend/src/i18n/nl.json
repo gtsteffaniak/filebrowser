@@ -57,7 +57,6 @@
     "scopes": "Bereiken{suffix}",
     "commands": "Opdrachten{suffix}",
     "photos": "Foto's",
-    "audios": "Audio{suffix}",
     "videos": "Video{suffix}",
     "documents": "Documenten{suffix}",
     "archives": "Archieven{suffix}",
@@ -128,7 +127,8 @@
     "watching": "Bekijken{suffix}",
     "lines": "Regels{suffix}",
     "lastUpdate": "Laatste update{suffix}",
-    "latency": "Vertraging{suffix}"
+    "latency": "Vertraging{suffix}",
+    "audio": "Audio{suffix}"
   },
   "buttons": {
     "copySuccess": "Gekopieerd naar klembord!",
@@ -493,7 +493,6 @@
     "showQuickDownloadDescription": "Toon een downloadpictogram voor snelle toegang tot elk bestandsitem waarop kan worden geklikt om het meteen te downloaden.",
     "previewImagesDescription": "Toon miniatuurvoorbeelden voor afbeeldingen, toont generiek pictogram indien uitgeschakeld.",
     "previewVideosDescription": "Toon miniatuurvoorbeelden voor video, toont generiek pictogram indien uitgeschakeld.",
-    "previewAudiosDescription": "Toon miniatuurvoorbeelden voor audio, toont generiek pictogram indien uitgeschakeld.",
     "previewModelsDescription": "Toon miniatuurvoorbeelden voor 3D-modellen, toont generiek pictogram indien uitgeschakeld.",
     "previewMotion": "Bewegingsvoorbeelden",
     "previewMotionVideosDescription": "Bewegingsvoorbeeld is het geanimeerde popup-voorbeeld dat door de frames van de video of meerdere afbeeldingen voor een map loopt",
@@ -533,7 +532,8 @@
     "themeAndLanguage": "Thema & Taal",
     "thumbnailOptions": "Miniatuuropties",
     "showThumbnails": "Toon miniaturen voor ondersteunde items",
-    "showThumbnailsDescription": "Als deze optie is ingeschakeld, worden miniaturen weergegeven in de lijst met items die deze ondersteunen. Schakel deze optie uit om alle miniaturen te verbergen."
+    "showThumbnailsDescription": "Als deze optie is ingeschakeld, worden miniaturen weergegeven in de lijst met items die deze ondersteunen. Schakel deze optie uit om alle miniaturen te verbergen.",
+    "previewAudiosDescription": "Toon miniatuurvoorbeelden voor audiobestanden, toont generiek pictogram indien uitgeschakeld."
   },
   "settings": {
     "systemAdmin": "Systeem & Beheer",

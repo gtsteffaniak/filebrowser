@@ -572,7 +572,6 @@
     "hideFilesInTree": "在树形导航中隐藏文件",
     "hideFilesInTreeDescription": "启用后，侧边栏树形导航中仅显示文件夹",
     "previewModelsDescription": "显示3D模型的缩略图预览，如果禁用则显示通用图标",
-    "previewAudiosDescription": "显示音频的缩略图预览，如果禁用则显示通用图标",
     "setDateFormat": "设置准确的日期格式",
     "showHiddenFiles": "显示隐藏文件",
     "showHiddenFilesDescription": "在列表中显示隐藏文件（如 .缩略图、ProgramData），但如果配置为索引，这些文件仍可手动访问。",
@@ -628,7 +627,8 @@
     "popupPreviewDescription": "将鼠标悬停在带缩略图的项目上时，用户界面上会显示一个叠加弹出窗口",
     "thumbnailOptions": "缩略图选项",
     "showThumbnails": "显示支持项目的缩略图",
-    "showThumbnailsDescription": "启用后，支持缩略图的项目将在列表中显示缩略图。关闭则隐藏所有缩略图。"
+    "showThumbnailsDescription": "启用后，支持缩略图的项目将在列表中显示缩略图。关闭则隐藏所有缩略图。",
+    "previewAudiosDescription": "显示音频文件的缩略图预览，如果禁用，将显示通用图标。"
   },
   "general": {
     "name": "名称",
@@ -665,7 +665,6 @@
     "results": "成果{suffix}",
     "users": "用户{suffix}",
     "photos": "照片",
-    "audios": "音频{suffix}",
     "models": "3D模型",
     "videos": "视频{suffix}",
     "documents": "文件{suffix}",
@@ -751,7 +750,8 @@
     "format": "格式{suffix}",
     "office": "办公室{suffix}",
     "show": "显示{suffix}",
-    "divider": "分割器{suffix}"
+    "divider": "分割器{suffix}",
+    "audio": "音频{suffix}"
   },
   "access": {
     "rules": "访问规则",

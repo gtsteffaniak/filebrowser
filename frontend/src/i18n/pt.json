@@ -572,7 +572,6 @@
     "hideFilesInTree": "Ocultar ficheiros na navegação em árvore",
     "hideFilesInTreeDescription": "Quando ativado, apenas pastas são mostradas na navegação em árvore da barra lateral",
     "previewModelsDescription": "Mostrar pré-visualizações em miniatura para modelos 3D, será mostrado um ícone genérico se desativado",
-    "previewAudiosDescription": "Mostrar visualizações em miniatura para áudios, um ícone genérico será mostrado se desativado",
     "setDateFormat": "Definir o formato exato da data",
     "showHiddenFiles": "Mostrar ficheiros ocultos",
     "showHiddenFilesDescription": "Mostrar ficheiros ocultos na listagem (por exemplo, .thumbnails, ProgramData), mas estes continuam a ser acessíveis manualmente se estiverem configurados para serem indexados.",
@@ -628,7 +627,8 @@
     "popupPreviewDescription": "Será apresentada uma janela pop-up de sobreposição sobre a IU quando se passa o rato sobre itens com miniaturas",
     "thumbnailOptions": "Opções de miniaturas",
     "showThumbnails": "Mostrar miniaturas para itens suportados",
-    "showThumbnailsDescription": "Quando activada, as miniaturas são mostradas na listagem de itens que as suportam. Desativar para ocultar todas as miniaturas."
+    "showThumbnailsDescription": "Quando activada, as miniaturas são mostradas na listagem de itens que as suportam. Desativar para ocultar todas as miniaturas.",
+    "previewAudiosDescription": "Mostrar pré-visualizações em miniatura para ficheiros de áudio, mostrará um ícone genérico se estiver desativado."
   },
   "general": {
     "name": "Nome",
@@ -665,7 +665,6 @@
     "results": "Resultados{suffix}",
     "users": "Utilizadores{suffix}",
     "photos": "Fotos",
-    "audios": "Áudios{suffix}",
     "videos": "Vídeos{suffix}",
     "models": "Modelos 3D",
     "documents": "Documentos{suffix}",
@@ -751,7 +750,8 @@
     "format": "Formato{suffix}",
     "office": "Escritório{suffix}",
     "show": "Mostrar{suffix}",
-    "divider": "Divisor{suffix}"
+    "divider": "Divisor{suffix}",
+    "audio": "Áudio{suffix}"
   },
   "access": {
     "rules": "Regras de acesso",

@@ -579,7 +579,6 @@
     "results": "Sonuçlar{suffix}",
     "users": "Kullanıcılar{suffix}",
     "photos": "Fotoğraflar",
-    "audios": "Ses Dosyaları{suffix}",
     "videos": "Videolar{suffix}",
     "models": "3D Modeller",
     "documents": "Belgeler{suffix}",
@@ -665,7 +664,8 @@
     "format": "Biçim{suffix}",
     "office": "Ofis{suffix}",
     "show": "Göster{suffix}",
-    "divider": "Bölücü{suffix}"
+    "divider": "Bölücü{suffix}",
+    "audio": "Ses{suffix}"
   },
   "access": {
     "rules": "Erişim kuralları",
@@ -718,7 +718,6 @@
     "hideFilesInTree": "Ağaç gezintisinde dosyaları gizle",
     "hideFilesInTreeDescription": "Etkinleştirildiğinde, kenar çubuğu Ağaç Gezintisinde yalnızca klasörler gösterilir",
     "previewModelsDescription": "3D modeller için küçük resim önizlemelerini göster, devre dışı bırakılırsa genel simge gösterilir",
-    "previewAudiosDescription": "Ses dosyaları için küçük resim önizlemelerini göster, devre dışı bırakılırsa genel simge gösterilir",
     "setDateFormat": "Tam tarih biçimini ayarlama",
     "showHiddenFiles": "Gizli dosyaları göster",
     "showHiddenFilesDescription": "Gizli dosyaları listede gösterin (örn. .thumbnails, ProgramData), ancak dizine eklenecek şekilde yapılandırılmışlarsa yine de manuel olarak erişilebilirler.",
@@ -774,7 +773,8 @@
     "popupPreviewDescription": "Küçük resimli öğelerin üzerine gelindiğinde kullanıcı arayüzünün üzerinde bir kaplama açılır penceresi gösterilir",
     "thumbnailOptions": "Küçük Resim Seçenekleri",
     "showThumbnails": "Desteklenen öğeler için küçük resimleri göster",
-    "showThumbnailsDescription": "Etkinleştirildiğinde, küçük resimler onları destekleyen öğeler için listede gösterilir. Tüm küçük resimleri gizlemek için kapatın."
+    "showThumbnailsDescription": "Etkinleştirildiğinde, küçük resimler onları destekleyen öğeler için listede gösterilir. Tüm küçük resimleri gizlemek için kapatın.",
+    "previewAudiosDescription": "Ses dosyaları için küçük resim önizlemelerini göster, devre dışı bırakılırsa genel simge gösterilir."
   },
   "editor": {
     "uninitialized": "Düzenleyici başlatılamadı. Lütfen yeniden yükleyin.",

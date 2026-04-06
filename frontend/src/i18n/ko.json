@@ -579,7 +579,6 @@
     "results": "결과{suffix}",
     "users": "사용자{suffix}",
     "photos": "사진",
-    "audios": "오디오{suffix}",
     "videos": "동영상{suffix}",
     "models": "3D 모델",
     "documents": "문서{suffix}",
@@ -665,7 +664,8 @@
     "format": "형식{suffix}",
     "office": "Office{suffix}",
     "show": "표시{suffix}",
-    "divider": "디바이더{suffix}"
+    "divider": "디바이더{suffix}",
+    "audio": "오디오{suffix}"
   },
   "access": {
     "rules": "액세스 규칙",
@@ -718,7 +718,6 @@
     "hideFilesInTree": "트리 탐색에서 파일 숨기기",
     "hideFilesInTreeDescription": "활성화되면 사이드바 트리 탐색에 폴더만 표시됩니다",
     "previewModelsDescription": "3D 모델의 썸네일 미리보기를 표시합니다. 비활성화된 경우 일반 아이콘이 표시됩니다",
-    "previewAudiosDescription": "오디오의 썸네일 미리보기를 표시합니다. 비활성화된 경우 일반 아이콘이 표시됩니다",
     "setDateFormat": "정확한 날짜 형식 설정",
     "showHiddenFiles": "숨겨진 파일 표시",
     "showHiddenFilesDescription": "목록에 숨겨진 파일(예: .썸네일, 프로그램 데이터)을 표시하지만 색인화하도록 구성한 경우 여전히 수동으로 액세스할 수 있습니다.",
@@ -774,7 +773,8 @@
     "popupPreviewDescription": "썸네일이 있는 항목 위로 마우스를 가져가면 UI 위에 오버레이 팝업 창이 표시됩니다.",
     "thumbnailOptions": "썸네일 옵션",
     "showThumbnails": "지원되는 항목의 썸네일 표시",
-    "showThumbnailsDescription": "활성화하면 이를 지원하는 항목의 목록에 썸네일이 표시됩니다. 모든 섬네일을 숨기려면 끄면 됩니다."
+    "showThumbnailsDescription": "활성화하면 이를 지원하는 항목의 목록에 썸네일이 표시됩니다. 모든 섬네일을 숨기려면 끄면 됩니다.",
+    "previewAudiosDescription": "오디오 파일의 썸네일 미리보기 표시, 비활성화하면 일반 아이콘이 표시됩니다."
   },
   "editor": {
     "uninitialized": "편집기를 초기화하지 못했습니다. 다시 로드하세요.",

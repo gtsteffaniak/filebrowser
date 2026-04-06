@@ -579,7 +579,6 @@
     "results": "Resultados{suffix}",
     "users": "Usuários{suffix}",
     "photos": "Fotos",
-    "audios": "Áudios{suffix}",
     "videos": "Vídeos{suffix}",
     "models": "Modelos 3D",
     "documents": "Documentos{suffix}",
@@ -665,7 +664,8 @@
     "format": "Formato{suffix}",
     "office": "Escritório{suffix}",
     "show": "Mostrar{suffix}",
-    "divider": "Divisor{suffix}"
+    "divider": "Divisor{suffix}",
+    "audio": "Áudio{suffix}"
   },
   "access": {
     "rules": "Regras de acesso",
@@ -718,7 +718,6 @@
     "hideFilesInTree": "Ocultar arquivos na navegação em árvore",
     "hideFilesInTreeDescription": "Quando ativado, apenas pastas são mostradas na navegação em árvore da barra lateral",
     "previewModelsDescription": "Mostrar visualizações em miniatura para modelos 3D, um ícone genérico será mostrado se desativado",
-    "previewAudiosDescription": "Mostrar pré-visualizações em miniatura para áudios, será mostrado um ícone genérico se desativado",
     "setDateFormat": "Definir o formato exato da data",
     "showHiddenFiles": "Mostrar arquivos ocultos",
     "showHiddenFilesDescription": "Mostrar arquivos ocultos na listagem (por exemplo, .thumbnails, ProgramData), mas eles ainda poderão ser acessados manualmente se estiverem configurados para serem indexados.",
@@ -774,7 +773,8 @@
     "popupPreviewDescription": "Uma janela pop-up de sobreposição será exibida sobre a interface do usuário ao passar o mouse sobre itens com miniaturas",
     "thumbnailOptions": "Opções de miniaturas",
     "showThumbnails": "Mostrar miniaturas de itens compatíveis",
-    "showThumbnailsDescription": "Quando ativada, as miniaturas são mostradas na listagem de itens que as suportam. Desative para ocultar todas as miniaturas."
+    "showThumbnailsDescription": "Quando ativada, as miniaturas são mostradas na listagem de itens que as suportam. Desative para ocultar todas as miniaturas.",
+    "previewAudiosDescription": "Mostrar visualizações em miniatura de arquivos de áudio; mostrará um ícone genérico se estiver desativado."
   },
   "editor": {
     "uninitialized": "Falha ao inicializar o editor. Favor recarregar.",
