@@ -394,8 +394,12 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 
 	// Get the user's scope to determine the WebDAV root directory
 	// Resolve the scope path to get the real filesystem root for WebDAV
-	// This is the root directory that WebDAV will use to resolve relative paths
-	scopePath, _, err := idx.GetRealPath(userScope)
+	// This is the root directory that WebDAV will use to resolve relative paths.
+	// userScope is an index path (e.g. "/", "/public"); strip the leading "/" so
+	// filepath.Join inside GetRealPath does not treat it as a host-absolute path
+	// and discard idx.Path (e.g. Join(sourceRoot, "/") would become "/").
+	scopeRel := strings.TrimPrefix(userScope, "/")
+	scopePath, _, err := idx.GetRealPath(scopeRel)
 	if err != nil {
 		return http.StatusNotFound, err
 	}

@@ -38,7 +38,7 @@ func convertToFrontendShareResponse(r *http.Request, shares []*share.Link, user 
 	responses := make([]*ShareResponse, 0, len(shares))
 	for _, s := range shares {
 		// Look for the username of the user who created the share
-		creator, err := store.Users.Get(s.UserID)
+		creator, err := usersStore.Get(s.UserID)
 		username := ""
 		if err == nil {
 			username = creator.Username

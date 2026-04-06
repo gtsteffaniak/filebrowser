@@ -902,7 +902,7 @@ func computeArchiveSize(source string, fileList []string, d *requestContext) (in
 	}
 
 	for _, path := range fileList {
-		if !store.Access.Permitted(idx.Path, path, d.user.Username) {
+		if !accessStore.Permitted(idx.Path, path, d.user.Username) {
 			continue
 		}
 		realPath, isDir, err := idx.GetRealPath(path)

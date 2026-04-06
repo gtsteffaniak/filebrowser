@@ -419,7 +419,7 @@ func resourcePauseHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	if _, err := d.user.GetScopeForSourceName(source); err != nil {
 		return http.StatusForbidden, err
 	}
-	if !store.Access.Permitted(idx.Path, path, d.user.Username) {
+	if !accessStore.Permitted(idx.Path, path, d.user.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to path %s", path)
 	}
 	pauseCache.Set(pauseUploadCacheKey(source, path), "1")

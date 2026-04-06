@@ -10,7 +10,7 @@ import (
 func SetTestIndex(name string, path string) {
 	indexesMutex.Lock()
 	defer indexesMutex.Unlock()
-	
+
 	idx := &Index{
 		Source: settings.Source{
 			Name: name,
