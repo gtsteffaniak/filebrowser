@@ -14,15 +14,11 @@ const MethodNoAuth = "noauth"
 type NoAuth struct{}
 
 // AuthenticateNoAuth authenticates as the configured admin user with no credentials required.
-func AuthenticateNoAuth(r *http.Request, usr *users.Storage) (*users.User, error) {
-	admin := settings.Config.Auth.AdminUsername
-	if admin == "" {
-		admin = "admin"
-	}
-	return usr.Get(admin)
+func AuthenticateNoAuth(r *http.Request, user *users.Storage) (*users.User, error) {
+	return user.Get(settings.Config.Auth.AdminUsername)
 }
 
 // Auth uses authenticates as the configured admin user (legacy no-credentials mode).
-func (a NoAuth) Auth(r *http.Request, usr *users.Storage) (*users.User, error) {
-	return AuthenticateNoAuth(r, usr)
+func (a NoAuth) Auth(r *http.Request, user *users.Storage) (*users.User, error) {
+	return AuthenticateNoAuth(r, user)
 }

@@ -25,6 +25,35 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
+// normalizeShareStoredPath returns the index-relative path to persist on a share: directories end
+// with '/', files do not. Verifies the path exists on the source (including when indexing is disabled).
+func normalizeShareStoredPath(idx *indexing.Index, indexPath string) (string, error) {
+	var probe string
+	if indexPath == "/" {
+		probe = "/"
+	} else {
+		probe = strings.TrimSuffix(indexPath, "/")
+	}
+	_, isDir, err := idx.GetRealPath(probe)
+	if err != nil {
+		tailed := utils.AddTrailingSlashIfNotExists(probe)
+		if tailed != probe {
+			_, isDir2, err2 := idx.GetRealPath(tailed)
+			if err2 == nil && isDir2 {
+				return tailed, nil
+			}
+		}
+		return "", err
+	}
+	if isDir {
+		return utils.AddTrailingSlashIfNotExists(probe), nil
+	}
+	if probe == "/" {
+		return "/", nil
+	}
+	return probe, nil
+}
+
 // ShareResponse represents a share with computed fields and download URL
 type ShareResponse struct {
 	*share.Link
@@ -136,7 +165,15 @@ func shareGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 		return http.StatusForbidden, err
 	}
 	scopePath := utils.JoinPathAsUnix(userscope, path)
-	scopePath = utils.AddTrailingSlashIfNotExists(scopePath)
+	idx := indexing.GetIndex(sourceInfo.Name)
+	if idx == nil {
+		return http.StatusBadRequest, fmt.Errorf("index not found for source: %s", sourceName)
+	}
+	var normErr error
+	scopePath, normErr = normalizeShareStoredPath(idx, scopePath)
+	if normErr != nil {
+		return renderJSON(w, r, []*ShareResponse{})
+	}
 
 	// Debug: show what we're querying for
 	logger.Debug("shareGetHandler querying", "sourceName", sourceName, "sourceInfoPath", sourceInfo.Path, "scopePath", scopePath, "userID", d.user.ID)
@@ -408,9 +445,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 
 	body.Path = utils.JoinPathAsUnix(userscope, cleanPath)
-	body.Path = utils.AddTrailingSlashIfNotExists(body.Path)
-	// validate path exists as file or folder
-	_, _, err = idx.GetRealPath(body.Path)
+	body.Path, err = normalizeShareStoredPath(idx, body.Path)
 	if err != nil {
 		return http.StatusForbidden, fmt.Errorf("path not found: %s", providedPath)
 	}
@@ -543,8 +578,12 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *reque
 		return http.StatusInternalServerError, err
 	}
 
-	// Create the scope path
+	// Create the scope path (file: no trailing slash; matches share cache normalization)
 	scopePath := utils.JoinPathAsUnix(userscope, path)
+	scopePath, err = normalizeShareStoredPath(idx, scopePath)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("path not found: %s", path)
+	}
 
 	// Check if an existing share already matches these parameters
 	existingShares, err := shareStore.Gets(scopePath, sourceInfo.Path, d.user.ID)

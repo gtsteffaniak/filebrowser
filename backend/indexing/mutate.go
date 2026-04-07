@@ -351,7 +351,10 @@ func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, erro
 	var diskUsed uint64
 	rootTotal, ok := idx.GetFolderSize("/")
 	if !ok {
-		logger.Errorf("Failed to get root-level indexed total for index %s", sourceName)
+		// No "/" aggregate without an index scan (DisableIndexing) or before the first scan finishes.
+		if !idx.Config.DisableIndexing {
+			logger.Debugf("indexed root total not available yet for index %s", sourceName)
+		}
 		diskUsed = 0
 	} else {
 		diskUsed = rootTotal
