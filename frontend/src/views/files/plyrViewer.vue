@@ -356,10 +356,32 @@ export default {
       return state.navigation.enabled && getters.currentPrompt() === null;
     },
     hasVideoPreviousNav() {
-      return this.videoNavigationGestureAllowed && state.navigation.previousLink !== '';
+      if (!this.videoNavigationGestureAllowed) return false;
+      const mode = state.playbackQueue?.mode || 'single';
+      const queue = state.playbackQueue?.queue || [];
+      const isQueueMode = (this.previewType === 'audio' || this.previewType === 'video') &&
+        mode !== 'single' && mode !== 'loop-single' && queue.length > 1;
+      if (isQueueMode) {
+        const currentIndex = state.playbackQueue?.currentIndex ?? -1;
+        if (queue.length <= 1 || currentIndex < 0) return false;
+        if (mode === 'sequential' && currentIndex === 0) return false;
+        return true;
+      }
+      return state.navigation.previousLink !== '';
     },
     hasVideoNextNav() {
-      return this.videoNavigationGestureAllowed && state.navigation.nextLink !== '';
+      if (!this.videoNavigationGestureAllowed) return false;
+      const mode = state.playbackQueue?.mode || 'single';
+      const queue = state.playbackQueue?.queue || [];
+      const isQueueMode = (this.previewType === 'audio' || this.previewType === 'video') &&
+        mode !== 'single' && mode !== 'loop-single' && queue.length > 1;
+      if (isQueueMode) {
+        const currentIndex = state.playbackQueue?.currentIndex ?? -1;
+        if (queue.length <= 1 || currentIndex < 0) return false;
+        if (mode === 'sequential' && currentIndex >= queue.length - 1) return false;
+        return true;
+      }
+      return state.navigation.nextLink !== '';
     },
     /** Tracks `mutations.setMobile()` / window resize so watchers can react. */
     storeIsMobile() {

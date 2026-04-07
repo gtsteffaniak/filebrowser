@@ -14,6 +14,7 @@
 
       <!-- Media Player Component -->
       <plyrViewer v-else-if="previewType == 'audio' || previewType == 'video'" ref="plyrViewer"
+        :key="previewType"
         :previewType="previewType" :raw="raw" :subtitlesList="subtitlesList" :req="req" :listing="listing"
         :useDefaultMediaPlayer="useDefaultMediaPlayer" :autoPlayEnabled="autoPlay" @play="autoPlay = true"
         :class="{ 'plyr-background': previewType == 'audio' && !useDefaultMediaPlayer }"
@@ -451,11 +452,57 @@ export default {
       downloadFiles(items);
     },
     navigatePrevious() {
+      const mode = state.playbackQueue?.mode || 'single';
+      const queue = state.playbackQueue?.queue || [];
+      const isMediaQueueMode = (this.previewType === 'audio' || this.previewType === 'video') &&
+        mode !== 'single' && mode !== 'loop-single' && queue.length > 1;
+      if (isMediaQueueMode) {
+        const currentIndex = state.playbackQueue?.currentIndex ?? -1;
+        if (queue.length === 0 || currentIndex < 0) return;
+        let prevIndex = currentIndex - 1;
+        if (prevIndex < 0) {
+          if (mode === 'loop-all' || mode === 'shuffle') {
+            prevIndex = queue.length - 1;
+          } else {
+            return;
+          }
+        }
+        const prevItem = queue[prevIndex];
+        if (!prevItem) return;
+        mutations.setPlaybackQueue({ queue, currentIndex: prevIndex, mode });
+        const prevItemUrl = url.buildItemUrl(prevItem.source || state.req.source, prevItem.path);
+        mutations.replaceRequest(prevItem);
+        this.$router.replace({ path: prevItemUrl }).catch(() => {});
+        return;
+      }
       if (state.navigation.previousLink) {
         this.$router.replace({ path: state.navigation.previousLink });
       }
     },
     navigateNext() {
+      const mode = state.playbackQueue?.mode || 'single';
+      const queue = state.playbackQueue?.queue || [];
+      const isMediaQueueMode = (this.previewType === 'audio' || this.previewType === 'video') &&
+        mode !== 'single' && mode !== 'loop-single' && queue.length > 1;
+      if (isMediaQueueMode) {
+        const currentIndex = state.playbackQueue?.currentIndex ?? -1;
+        if (queue.length === 0 || currentIndex < 0) return;
+        let nextIndex = currentIndex + 1;
+        if (nextIndex >= queue.length) {
+          if (mode === 'loop-all' || mode === 'shuffle') {
+            nextIndex = 0;
+          } else {
+            return;
+          }
+        }
+        const nextItem = queue[nextIndex];
+        if (!nextItem) return;
+        mutations.setPlaybackQueue({ queue, currentIndex: nextIndex, mode });
+        const nextItemUrl = url.buildItemUrl(nextItem.source || state.req.source, nextItem.path);
+        mutations.replaceRequest(nextItem);
+        this.$router.replace({ path: nextItemUrl }).catch(() => {});
+        return;
+      }
       if (state.navigation.nextLink) {
         this.$router.replace({ path: state.navigation.nextLink });
       }
