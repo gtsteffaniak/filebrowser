@@ -226,12 +226,12 @@ func (s *SQLStore) CreateUser(user *users.User) error {
 		return fmt.Errorf("failed to marshal user data: %w", err)
 	}
 
-	query := `INSERT INTO users (username, user_id, perm_api, perm_admin, perm_realtime, user_data) 
+	query := `INSERT INTO users (user_id, username, perm_api, perm_admin, perm_realtime, user_data) 
 			  VALUES (?, ?, ?, ?, ?, ?)`
 
 	_, err = s.db.Exec(query,
-		user.Username,
 		userIDDBString(user.ID),
+		user.Username,
 		user.Permissions.Api,
 		user.Permissions.Admin,
 		user.Permissions.Realtime,
@@ -271,16 +271,16 @@ func (s *SQLStore) UpdateUser(user *users.User) error {
 		return fmt.Errorf("failed to marshal user data: %w", err)
 	}
 
-	query := `UPDATE users SET user_id = ?, perm_api = ?, perm_admin = ?, 
-			  perm_realtime = ?, user_data = ? WHERE username = ?`
+	query := `UPDATE users SET username = ?, perm_api = ?, perm_admin = ?, 
+			  perm_realtime = ?, user_data = ? WHERE user_id = ?`
 
 	result, err := s.db.Exec(query,
-		userIDDBString(user.ID),
+		user.Username,
 		user.Permissions.Api,
 		user.Permissions.Admin,
 		user.Permissions.Realtime,
 		userDataJSON,
-		user.Username,
+		userIDDBString(user.ID),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to update user: %w", err)
@@ -297,50 +297,10 @@ func (s *SQLStore) UpdateUser(user *users.User) error {
 	return nil
 }
 
-// UpdateUserUsername changes the primary key username from oldName to user (full row).
+// UpdateUserUsername updates the row for user.ID, including a new username (oldName is unused; kept for callers).
 func (s *SQLStore) UpdateUserUsername(oldName string, user *users.User) error {
-	userData := UserData{
-		Password:         user.Password,
-		Scopes:           user.Scopes,
-		Tokens:           user.Tokens,
-		TOTPSecret:       user.TOTPSecret,
-		TOTPNonce:        user.TOTPNonce,
-		LoginMethod:      user.LoginMethod,
-		OtpEnabled:       user.OtpEnabled,
-		Version:          user.Version,
-		ShowFirstLogin:   user.ShowFirstLogin,
-		NonAdminEditable: user.NonAdminEditable,
-		FilePermissions:  filePermissionsForJSON(user),
-	}
-
-	userDataJSON, err := json.Marshal(userData)
-	if err != nil {
-		return fmt.Errorf("failed to marshal user data: %w", err)
-	}
-
-	tx, err := s.db.Begin()
-	if err != nil {
-		return fmt.Errorf("failed to begin tx: %w", err)
-	}
-	defer func() { _ = tx.Rollback() }()
-
-	if _, err := tx.Exec(`DELETE FROM users WHERE username = ?`, oldName); err != nil {
-		return fmt.Errorf("failed to delete old user row: %w", err)
-	}
-
-	if _, err := tx.Exec(`INSERT INTO users (username, user_id, perm_api, perm_admin, perm_realtime, user_data) 
-		VALUES (?, ?, ?, ?, ?, ?)`,
-		user.Username,
-		userIDDBString(user.ID),
-		user.Permissions.Api,
-		user.Permissions.Admin,
-		user.Permissions.Realtime,
-		userDataJSON,
-	); err != nil {
-		return fmt.Errorf("failed to insert user with new username: %w", err)
-	}
-
-	return tx.Commit()
+	_ = oldName
+	return s.UpdateUser(user)
 }
 
 // DeleteUserByID deletes a user by stable id (non-zero only).
