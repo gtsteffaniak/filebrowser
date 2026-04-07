@@ -87,8 +87,8 @@ func createApiTokenHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 		return http.StatusInternalServerError, err
 	}
 
-	// Store token hash → username mapping in access storage for fast lookups
-	err = accessStore.AddApiToken(tokenString, d.user.Username)
+	// Store token hash → user id mapping in access storage for fast lookups
+	err = accessStore.AddApiToken(tokenString, d.user.ID)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

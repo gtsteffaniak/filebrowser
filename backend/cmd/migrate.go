@@ -78,20 +78,19 @@ func migrateFromBoltToSQLite() error {
 
 	// Migrate users (bolt User.ID is stored as SQLite users.user_id)
 	logger.Info("Migrating users...")
-	boltIDToUsername, err := migrateUsers(oldDB, sqlStore)
-	if err != nil {
+	if err := migrateUsers(oldDB, sqlStore); err != nil {
 		return fmt.Errorf("failed to migrate users: %w", err)
 	}
 
 	// Migrate shares
 	logger.Info("Migrating shares...")
-	if err := migrateShares(oldDB, sqlStore, boltIDToUsername); err != nil {
+	if err := migrateShares(oldDB, sqlStore); err != nil {
 		return fmt.Errorf("failed to migrate shares: %w", err)
 	}
 
 	// Migrate access rules and groups
 	logger.Info("Migrating access rules and groups...")
-	if err := migrateAccessRules(oldDB, sqlStore, boltIDToUsername); err != nil {
+	if err := migrateAccessRules(oldDB, sqlStore); err != nil {
 		return fmt.Errorf("failed to migrate access rules: %w", err)
 	}
 
@@ -114,35 +113,31 @@ func migrateFromBoltToSQLite() error {
 }
 
 // migrateUsers migrates all users from BoltDB to SQLite. Each bolt user.ID is written as user_id
-// (CreateUser keeps a non-zero ID). Returns bolt id → username for share.UserID and access hashed_tokens.
-func migrateUsers(oldDB *storm.DB, sqlStore *sqldb.SQLStore) (map[uint64]string, error) {
-	boltIDToUsername := make(map[uint64]string)
+// (CreateUser keeps a non-zero ID).
+func migrateUsers(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 	var usersList []*users.User
 	err := oldDB.All(&usersList)
 	if err != nil {
 		if err.Error() == "not found" {
 			logger.Info("  No users to migrate")
-			return boltIDToUsername, nil
+			return nil
 		}
-		return nil, fmt.Errorf("failed to read users from old DB: %w", err)
+		return fmt.Errorf("failed to read users from old DB: %w", err)
 	}
 
 	for _, user := range usersList {
 		boltID := user.ID
 		if err := sqlStore.CreateUser(user); err != nil {
-			return nil, fmt.Errorf("failed to save user %s (bolt id: %d): %w", user.Username, boltID, err)
-		}
-		if boltID != 0 {
-			boltIDToUsername[boltID] = user.Username
+			return fmt.Errorf("failed to save user %s (bolt id: %d): %w", user.Username, boltID, err)
 		}
 	}
 
 	logger.Infof("  ✓ Migrated %d users", len(usersList))
-	return boltIDToUsername, nil
+	return nil
 }
 
 // migrateShares migrates all shares from BoltDB to SQLite
-func migrateShares(oldDB *storm.DB, sqlStore *sqldb.SQLStore, boltIDToUsername map[uint64]string) error {
+func migrateShares(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 	var sharesList []*share.Link
 	err := oldDB.All(&sharesList)
 	if err != nil {
@@ -154,11 +149,8 @@ func migrateShares(oldDB *storm.DB, sqlStore *sqldb.SQLStore, boltIDToUsername m
 	}
 
 	for _, link := range sharesList {
-		if link.Username == "" {
-			link.Username = boltIDToUsername[link.UserID]
-		}
-		if link.Username == "" {
-			return fmt.Errorf("failed to save share %s: no username for owner id %d", link.Hash, link.UserID)
+		if link.UserID == 0 {
+			return fmt.Errorf("failed to save share %s: owner user id is missing", link.Hash)
 		}
 		err := sqlStore.SaveShare(link)
 		if err != nil {
@@ -171,7 +163,7 @@ func migrateShares(oldDB *storm.DB, sqlStore *sqldb.SQLStore, boltIDToUsername m
 }
 
 // migrateAccessRules migrates access rules and groups from BoltDB to SQLite
-func migrateAccessRules(oldDB *storm.DB, sqlStore *sqldb.SQLStore, boltIDToUsername map[uint64]string) error {
+func migrateAccessRules(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 	// Read the access rules JSON blob from BoltDB
 	var data []byte
 	err := oldDB.Get("access_rules", "rules", &data)
@@ -227,14 +219,13 @@ func migrateAccessRules(oldDB *storm.DB, sqlStore *sqldb.SQLStore, boltIDToUsern
 	}
 	logger.Infof("  ✓ Migrated %d revoked tokens", len(storage.RevokedTokens))
 
-	// Migrate hashed tokens (bolt stored user id as uint → sqlite username)
+	// Migrate hashed tokens (bolt stored owner user id)
 	for tokenHash, userID := range storage.HashedTokens {
-		username := boltIDToUsername[uint64(userID)]
-		if username == "" {
-			logger.Warningf("  skipping hashed token: unknown user id %d", userID)
+		if userID == 0 {
+			logger.Warningf("  skipping hashed token: invalid user id 0")
 			continue
 		}
-		err := sqlStore.SaveHashedToken(tokenHash, username)
+		err := sqlStore.SaveHashedToken(tokenHash, uint64(userID))
 		if err != nil {
 			return fmt.Errorf("failed to save hashed token: %w", err)
 		}

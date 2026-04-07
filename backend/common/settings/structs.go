@@ -73,7 +73,7 @@ type Server struct {
 
 type Database struct {
 	Path        string `json:"path"`        // path to SQLite database file
-	MigrateFrom string `json:"migrateFrom"` // if set, path to BoltDB file to import once into path when path is missing/empty (bolt user.id → sqlite user_id)
+	MigrateFrom string `json:"migrateFrom"` // path to old BoltDB database file for migration (optional)
 }
 
 type Filesystem struct {

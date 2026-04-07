@@ -155,7 +155,7 @@ func (l *Link) UserCanEdit(user *users.User) bool {
 	if user.Permissions.Admin {
 		return true
 	}
-	return l.Username != "" && l.Username == user.Username
+	return l.UserID != 0 && l.UserID == user.ID
 }
 
 func (l *Link) SourceURL(user *users.User) string {

@@ -28,7 +28,8 @@ import (
 // ShareResponse represents a share with computed fields and download URL
 type ShareResponse struct {
 	*share.Link
-	Source     string `json:"source"` // Override embedded field to show source name
+	Username   string `json:"username,omitempty"` // owner login (resolved from UserID)
+	Source     string `json:"source"`             // Override embedded field to show source name
 	PathExists bool   `json:"pathExists"`
 }
 
@@ -55,9 +56,14 @@ func convertToFrontendShareResponse(r *http.Request, shares []*share.Link, user 
 		if s.UserCanEdit(user) {
 			s.CommonShare.SourceURL = s.SourceURL(user)
 		}
+		owner := ""
+		if u, err := state.GetUser(s.UserID); err == nil {
+			owner = u.Username
+		}
 		// Create response with source name (overrides the embedded Link's source field)
 		responses = append(responses, &ShareResponse{
 			Link:       s,
+			Username:   owner,
 			Source:     sourceInfo.Name, // Override to show source name instead of backend path
 			PathExists: pathExists,
 		})
@@ -88,7 +94,7 @@ func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 			}
 		}
 	} else {
-		sharesValues, err = state.GetSharesByUsername(d.user.Username)
+		sharesValues, err = state.GetSharesByUserID(d.user.ID)
 		if err == nil {
 			shares = make([]*share.Link, len(sharesValues))
 			for i := range sharesValues {
@@ -133,9 +139,9 @@ func shareGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 	scopePath = utils.AddTrailingSlashIfNotExists(scopePath)
 
 	// Debug: show what we're querying for
-	logger.Debug("shareGetHandler querying", "sourceName", sourceName, "sourceInfoPath", sourceInfo.Path, "scopePath", scopePath, "username", d.user.Username)
+	logger.Debug("shareGetHandler querying", "sourceName", sourceName, "sourceInfoPath", sourceInfo.Path, "scopePath", scopePath, "userID", d.user.ID)
 
-	s, err := shareStore.Gets(scopePath, sourceInfo.Path, d.user.Username)
+	s, err := shareStore.Gets(scopePath, sourceInfo.Path, d.user.ID)
 	if err == errors.ErrNotExist || len(s) == 0 {
 		return renderJSON(w, r, []*ShareResponse{})
 	}
@@ -363,10 +369,11 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 			return http.StatusInternalServerError, err3
 		}
 
-		response := &ShareResponse{
-			Link: updatedShare,
+		out, errConv := convertToFrontendShareResponse(r, []*share.Link{updatedShare}, d.user)
+		if errConv != nil {
+			return http.StatusInternalServerError, errConv
 		}
-		return renderJSON(w, r, response)
+		return renderJSON(w, r, out[0])
 	}
 
 	source, ok := config.Server.NameToSource[body.Source]
@@ -413,9 +420,9 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 	body.Source = source.Path // backend source is path
 	s = &share.Link{
-		Expire:   expire,
-		Username: d.user.Username,
-		Hash:     secure_hash,
+		Expire:       expire,
+		UserID:       d.user.ID,
+		Hash:         secure_hash,
 		PasswordHash: stringHash,
 		Token:        token,
 		CommonShare:  body.CommonShare,
@@ -426,7 +433,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 
 	// Debug: verify share was created with correct values
-	logger.Debug("Created share", "hash", s.Hash, "source", s.Source, "path", s.Path, "username", s.Username)
+	logger.Debug("Created share", "hash", s.Hash, "source", s.Source, "path", s.Path, "userID", s.UserID)
 
 	sharesWithUsernames, err := convertToFrontendShareResponse(r, []*share.Link{s}, d.user)
 	if err != nil {
@@ -540,7 +547,7 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *reque
 	scopePath := utils.JoinPathAsUnix(userscope, path)
 
 	// Check if an existing share already matches these parameters
-	existingShares, err := shareStore.Gets(scopePath, sourceInfo.Path, d.user.Username)
+	existingShares, err := shareStore.Gets(scopePath, sourceInfo.Path, d.user.ID)
 	if err == nil && len(existingShares) > 0 {
 		// Look for a share that matches our parameters
 		for _, existing := range existingShares {
@@ -562,9 +569,9 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *reque
 
 	// No matching existing share found, create a new one
 	shareLink := &share.Link{
-		Expire:   expire,
-		Username: d.user.Username,
-		Hash:     secureHash,
+		Expire:  expire,
+		UserID:  d.user.ID,
+		Hash:    secureHash,
 		Version: 1, // Set version for new shares
 		CommonShare: share.CommonShare{
 			Path:           scopePath,

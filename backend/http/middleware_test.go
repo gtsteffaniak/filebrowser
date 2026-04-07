@@ -156,7 +156,7 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 
 	const passwordBcrypt = "$2y$10$TFAmdCbyd/mEZDe5fUeZJu.MaJQXRTwdqb/IQV.eTn6dWrF58gCSe" // bcrypt hashed password
 
-	// Create and save a dummy user (shares reference owner by Username)
+	// Create and save a dummy user (shares reference owner by UserID)
 	dummyUser := &users.User{
 		ID:          1,
 		Username:    "testuser",
@@ -180,8 +180,8 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 		{
 			name: "Public share, no auth required",
 			share: &share.Link{
-				Hash:     "public_hash",
-				Username: "testuser",
+				Hash:   "public_hash",
+				UserID: 1,
 				CommonShare: share.CommonShare{
 					Source: "/srv",
 				},
@@ -192,7 +192,7 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 			name: "Private share, valid password when token exists",
 			share: &share.Link{
 				Hash:         "pw_and_token_hash",
-				Username:     "testuser",
+				UserID:       1,
 				PasswordHash: passwordBcrypt,
 				Token:        "some_random_token",
 				CommonShare: share.CommonShare{
@@ -208,7 +208,7 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 			name: "Private share, no auth provided",
 			share: &share.Link{
 				Hash:         "private_hash",
-				Username:     "testuser",
+				UserID:       1,
 				PasswordHash: passwordBcrypt,
 				Token:        "123",
 			},
@@ -218,7 +218,7 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 			name: "Private share, valid token",
 			share: &share.Link{
 				Hash:         "token_hash",
-				Username:     "testuser",
+				UserID:       1,
 				PasswordHash: passwordBcrypt,
 				Token:        "123",
 				CommonShare: share.CommonShare{
@@ -232,7 +232,7 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 			name: "Private share, invalid password",
 			share: &share.Link{
 				Hash:         "pw_hash",
-				Username:     "testuser",
+				UserID:       1,
 				PasswordHash: passwordBcrypt,
 				Token:        "123",
 			},

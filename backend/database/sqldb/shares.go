@@ -4,25 +4,42 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 )
 
-// Share SQL operations
+func shareUserIDDB(id uint64) string {
+	return strconv.FormatUint(id, 10)
+}
+
+func scanShareUserID(s string, dest *uint64) error {
+	if s == "" {
+		*dest = 0
+		return nil
+	}
+	u, err := strconv.ParseUint(s, 10, 64)
+	if err != nil {
+		return fmt.Errorf("parse share user_id: %w", err)
+	}
+	*dest = u
+	return nil
+}
 
 // GetShareByHash retrieves a share by hash
 func (s *SQLStore) GetShareByHash(hash string) (*share.Link, error) {
-	query := `SELECT hash, username, source, path, expire, downloads, 
+	query := `SELECT hash, user_id, source, path, expire, downloads, 
 			  password_hash, token, user_downloads, share_settings, version 
 			  FROM shares WHERE hash = ?`
 
 	var link share.Link
+	var userIDStr string
 	var userDownloadsJSON, shareSettingsJSON []byte
 
 	err := s.db.QueryRow(query, hash).Scan(
 		&link.Hash,
-		&link.Username,
+		&userIDStr,
 		&link.Source,
 		&link.Path,
 		&link.Expire,
@@ -40,8 +57,10 @@ func (s *SQLStore) GetShareByHash(hash string) (*share.Link, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get share: %w", err)
 	}
+	if err := scanShareUserID(userIDStr, &link.UserID); err != nil {
+		return nil, err
+	}
 
-	// Unmarshal JSON fields
 	if userDownloadsJSON != nil {
 		if err := json.Unmarshal(userDownloadsJSON, &link.UserDownloads); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal user downloads: %w", err)
@@ -54,17 +73,17 @@ func (s *SQLStore) GetShareByHash(hash string) (*share.Link, error) {
 	return &link, nil
 }
 
-// GetSharesByUsername retrieves all non-expired shares for a user
-func (s *SQLStore) GetSharesByUsername(username string) ([]*share.Link, error) {
+// GetSharesByUserID retrieves all non-expired shares for an owner user id.
+func (s *SQLStore) GetSharesByUserID(userID uint64) ([]*share.Link, error) {
 	now := time.Now().Unix()
-	query := `SELECT hash, username, source, path, expire, downloads, 
+	query := `SELECT hash, user_id, source, path, expire, downloads, 
 			  password_hash, token, user_downloads, share_settings, version 
-			  FROM shares WHERE username = ? AND (expire = 0 OR expire > ?) 
+			  FROM shares WHERE user_id = ? AND (expire = 0 OR expire > ?) 
 			  ORDER BY path`
 
-	rows, err := s.db.Query(query, username, now)
+	rows, err := s.db.Query(query, shareUserIDDB(userID), now)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get shares by user: %w", err)
+		return nil, fmt.Errorf("failed to get shares by user id: %w", err)
 	}
 	defer rows.Close()
 
@@ -73,7 +92,7 @@ func (s *SQLStore) GetSharesByUsername(username string) ([]*share.Link, error) {
 
 // GetSharesBySourcePath retrieves shares for a specific source and path
 func (s *SQLStore) GetSharesBySourcePath(source, path string) ([]*share.Link, error) {
-	query := `SELECT hash, username, source, path, expire, downloads, 
+	query := `SELECT hash, user_id, source, path, expire, downloads, 
 			  password_hash, token, user_downloads, share_settings, version 
 			  FROM shares WHERE source = ? AND path = ? ORDER BY hash`
 
@@ -86,15 +105,15 @@ func (s *SQLStore) GetSharesBySourcePath(source, path string) ([]*share.Link, er
 	return s.scanShares(rows)
 }
 
-// GetSharesBySourcePathUser retrieves shares for a specific source, path, and user
-func (s *SQLStore) GetSharesBySourcePathUser(source, path string, username string) ([]*share.Link, error) {
+// GetSharesBySourcePathUser retrieves shares for a specific source, path, and owner user id.
+func (s *SQLStore) GetSharesBySourcePathUser(source, path string, userID uint64) ([]*share.Link, error) {
 	now := time.Now().Unix()
-	query := `SELECT hash, username, source, path, expire, downloads, 
+	query := `SELECT hash, user_id, source, path, expire, downloads, 
 			  password_hash, token, user_downloads, share_settings, version 
-			  FROM shares WHERE source = ? AND path = ? AND username = ? 
+			  FROM shares WHERE source = ? AND path = ? AND user_id = ? 
 			  AND (expire = 0 OR expire > ?) ORDER BY hash`
 
-	rows, err := s.db.Query(query, source, path, username, now)
+	rows, err := s.db.Query(query, source, path, shareUserIDDB(userID), now)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get shares: %w", err)
 	}
@@ -103,19 +122,20 @@ func (s *SQLStore) GetSharesBySourcePathUser(source, path string, username strin
 	return s.scanShares(rows)
 }
 
-// GetPermanentShare retrieves a permanent share (expire = 0) for source, path, and user
-func (s *SQLStore) GetPermanentShare(source, path string, username string) (*share.Link, error) {
-	query := `SELECT hash, username, source, path, expire, downloads, 
-			  password_hash, token, user_downloads, share_settings, version 
-			  FROM shares WHERE source = ? AND path = ? AND username = ? AND expire = 0 
+// GetPermanentShare retrieves a permanent share (expire = 0) for source, path, and owner.
+func (s *SQLStore) GetPermanentShare(source, path string, userID uint64) (*share.Link, error) {
+	query := `SELECT hash, user_id, source, path, expire, downloads,
+			  password_hash, token, user_downloads, share_settings, version
+			  FROM shares WHERE source = ? AND path = ? AND user_id = ? AND expire = 0
 			  LIMIT 1`
 
 	var link share.Link
+	var userIDStr string
 	var userDownloadsJSON, shareSettingsJSON []byte
 
-	err := s.db.QueryRow(query, source, path, username).Scan(
+	err := s.db.QueryRow(query, source, path, shareUserIDDB(userID)).Scan(
 		&link.Hash,
-		&link.Username,
+		&userIDStr,
 		&link.Source,
 		&link.Path,
 		&link.Expire,
@@ -133,8 +153,10 @@ func (s *SQLStore) GetPermanentShare(source, path string, username string) (*sha
 	if err != nil {
 		return nil, fmt.Errorf("failed to get permanent share: %w", err)
 	}
+	if err := scanShareUserID(userIDStr, &link.UserID); err != nil {
+		return nil, err
+	}
 
-	// Unmarshal JSON fields
 	if userDownloadsJSON != nil {
 		if err := json.Unmarshal(userDownloadsJSON, &link.UserDownloads); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal user downloads: %w", err)
@@ -150,7 +172,7 @@ func (s *SQLStore) GetPermanentShare(source, path string, username string) (*sha
 // ListAllShares retrieves all non-expired shares
 func (s *SQLStore) ListAllShares() ([]*share.Link, error) {
 	now := time.Now().Unix()
-	query := `SELECT hash, username, source, path, expire, downloads, 
+	query := `SELECT hash, user_id, source, path, expire, downloads, 
 			  password_hash, token, user_downloads, share_settings, version 
 			  FROM shares WHERE expire = 0 OR expire > ? ORDER BY path`
 
@@ -165,7 +187,6 @@ func (s *SQLStore) ListAllShares() ([]*share.Link, error) {
 
 // SaveShare inserts or updates a share
 func (s *SQLStore) SaveShare(link *share.Link) error {
-	// Marshal JSON fields
 	userDownloadsJSON, err := json.Marshal(link.UserDownloads)
 	if err != nil {
 		return fmt.Errorf("failed to marshal user downloads: %w", err)
@@ -176,13 +197,13 @@ func (s *SQLStore) SaveShare(link *share.Link) error {
 	}
 
 	query := `INSERT OR REPLACE INTO shares 
-			  (hash, username, source, path, expire, downloads, password_hash, 
+			  (hash, user_id, source, path, expire, downloads, password_hash, 
 			   token, user_downloads, share_settings, version) 
 			  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 	_, err = s.db.Exec(query,
 		link.Hash,
-		link.Username,
+		shareUserIDDB(link.UserID),
 		link.Source,
 		link.Path,
 		link.Expire,
@@ -252,16 +273,16 @@ func (s *SQLStore) UpdateSharesPaths(oldSource, oldPath, newSource, newPath stri
 	return nil
 }
 
-// scanShares is a helper to scan multiple share rows
 func (s *SQLStore) scanShares(rows *sql.Rows) ([]*share.Link, error) {
 	var shares []*share.Link
 	for rows.Next() {
 		var link share.Link
+		var userIDStr string
 		var userDownloadsJSON, shareSettingsJSON []byte
 
 		err := rows.Scan(
 			&link.Hash,
-			&link.Username,
+			&userIDStr,
 			&link.Source,
 			&link.Path,
 			&link.Expire,
@@ -275,8 +296,10 @@ func (s *SQLStore) scanShares(rows *sql.Rows) ([]*share.Link, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan share: %w", err)
 		}
+		if err := scanShareUserID(userIDStr, &link.UserID); err != nil {
+			return nil, err
+		}
 
-		// Unmarshal JSON fields
 		if userDownloadsJSON != nil {
 			if err := json.Unmarshal(userDownloadsJSON, &link.UserDownloads); err != nil {
 				return nil, fmt.Errorf("failed to unmarshal user downloads: %w", err)

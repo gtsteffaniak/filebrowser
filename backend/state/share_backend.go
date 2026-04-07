@@ -24,12 +24,11 @@ func (s shareBackend) All() ([]*share.Link, error) {
 	return result, nil
 }
 
-func (s shareBackend) FindByUsername(username string) ([]*share.Link, error) {
-	sharesList, err := GetSharesByUsername(username)
+func (s shareBackend) FindByUserID(userID uint64) ([]*share.Link, error) {
+	sharesList, err := GetSharesByUserID(userID)
 	if err != nil {
 		return nil, err
 	}
-	// Convert values to pointers for backward compatibility
 	result := make([]*share.Link, len(sharesList))
 	for i := range sharesList {
 		result[i] = &sharesList[i]
@@ -61,8 +60,8 @@ func (s shareBackend) GetCommonShareByHash(hash string) (*share.CommonShare, err
 	return &cs, nil
 }
 
-func (s shareBackend) GetPermanent(path, source string, username string) (*share.Link, error) {
-	link, err := sqlStore.GetPermanentShare(source, path, username)
+func (s shareBackend) GetPermanent(path, source string, userID uint64) (*share.Link, error) {
+	link, err := sqlStore.GetPermanentShare(source, path, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -85,8 +84,8 @@ func (s shareBackend) GetBySourcePath(path, source string) ([]*share.Link, error
 	return result, nil
 }
 
-func (s shareBackend) Gets(path, source string, username string) ([]*share.Link, error) {
-	logger.Debug("shareBackend.Gets ENTRY", "path", path, "source", source, "username", username)
+func (s shareBackend) Gets(path, source string, userID uint64) ([]*share.Link, error) {
+	logger.Debug("shareBackend.Gets ENTRY", "path", path, "source", source, "userID", userID)
 	links, err := GetSharesByPath(source, path)
 	logger.Debug("shareBackend.Gets after GetSharesByPath", "count", len(links), "err", err)
 	if err != nil {
@@ -96,7 +95,7 @@ func (s shareBackend) Gets(path, source string, username string) ([]*share.Link,
 	filtered := make([]*share.Link, 0)
 	for i := range links {
 		l := &links[i]
-		if l.Username == username && (l.Expire == 0 || l.Expire > now || l.KeepAfterExpiration) {
+		if l.UserID == userID && (l.Expire == 0 || l.Expire > now || l.KeepAfterExpiration) {
 			filtered = append(filtered, l)
 		}
 	}

@@ -103,7 +103,7 @@ func Initialize(dbPath string) (bool, error) {
 		AllRules:      make(access.SourceRuleMap),
 		Groups:        make(access.GroupMap),
 		RevokedTokens: make(map[string]struct{}),
-		HashedTokens:  make(map[string]string),
+		HashedTokens:  make(map[string]uint64),
 	}
 
 	// Load access rules

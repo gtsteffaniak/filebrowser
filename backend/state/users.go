@@ -122,32 +122,26 @@ func GetAllUsers() ([]users.User, error) {
 	return usersList, nil
 }
 
-// UserFromAPIToken resolves the user for a validated JWT API token (username claim, belongsTo legacy id, or minimal hash).
+// UserFromAPIToken resolves the user for a validated JWT API token (belongsTo id, legacy username claim, or minimal hash → user id).
 func UserFromAPIToken(tk users.AuthToken, rawToken string) (users.User, error) {
+	if tk.BelongsTo != 0 {
+		return GetUser(tk.BelongsTo)
+	}
 	if tk.Username != "" {
 		return GetUserByUsername(tk.Username)
 	}
-	if tk.BelongsTo != 0 {
-		usersMux.RLock()
-		uname, ok := userIDToUsername[tk.BelongsTo]
-		usersMux.RUnlock()
-		if !ok {
-			return users.User{}, errors.ErrNotExist
-		}
-		return GetUserByUsername(uname)
-	}
-	if uname, ok := accessStorage.GetUsernameFromToken(rawToken); ok {
-		return GetUserByUsername(uname)
+	if uid, ok := accessStorage.GetUserIDFromToken(rawToken); ok {
+		return GetUser(uid)
 	}
 	return users.User{}, errors.ErrNotExist
 }
 
 // UserForShareOwner resolves the user who owns a share link.
 func UserForShareOwner(link *share.Link) (users.User, error) {
-	if link.Username == "" {
+	if link.UserID == 0 {
 		return users.User{}, errors.ErrNotExist
 	}
-	return GetUserByUsername(link.Username)
+	return GetUser(link.UserID)
 }
 
 func updateUserIDMapping(oldID uint64, u *users.User) {

@@ -58,11 +58,9 @@ type CreateBody struct {
 type Link struct {
 	CommonShare
 	Downloads int    `json:"downloads"`
-	Hash      string `json:"hash" storm:"id,index"`
-	// Username is the share owner's login name (primary identity in storage).
-	Username string `json:"username"`
-	// UserID is only populated when reading pre-SQLite bolt exports (cmd migrate); runtime uses Username.
-	UserID uint64 `json:"userID,omitempty"`
+	Hash string `json:"hash" storm:"id,index"`
+	// UserID is the share owner's stable id (same as users.User.ID); not the login name.
+	UserID uint64 `json:"userID"`
 	Expire int64 `json:"expire"`
 	PasswordHash string `json:"password_hash,omitempty"`
 	// Token is a random value that will only be set when PasswordHash is set. It is
