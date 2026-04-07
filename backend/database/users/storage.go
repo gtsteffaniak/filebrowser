@@ -1,6 +1,7 @@
 package users
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -9,25 +10,42 @@ import (
 )
 
 // StorageBackend is the interface to implement for a users storage.
+// All lookups and deletes use stable numeric user ids.
 type StorageBackend interface {
-	GetBy(interface{}) (*User, error)
+	GetBy(id uint64) (*User, error)
 	Gets() ([]*User, error)
 	Save(u *User, changePass bool, disableScopeChange bool) error
 	Update(u *User, adminActor bool, fields ...string) error
-	DeleteByID(uint64) error
-	DeleteByUsername(string) error
+	DeleteByID(id uint64) error
 }
 
 // Store is an interface for user storage.
 type Store interface {
-	Get(id interface{}) (user *User, err error)
+	Get(id uint64) (user *User, err error)
 	Gets() ([]*User, error)
 	Update(user *User, adminActor bool, fields ...string) error
 	Save(user *User, changePass bool, disableScopeChange bool) error
-	Delete(id interface{}) error
-	LastUpdate(username string) int64
-	AddApiToken(username string, name string, tokenString string, metadata AuthToken) error
-	DeleteApiToken(username string, name string) error
+	Delete(id uint64) error
+	LastUpdate(id uint64) int64
+	AddApiToken(userID uint64, name string, tokenString string, metadata AuthToken) error
+	DeleteApiToken(userID uint64, name string) error
+}
+
+// usernameToID is set from state (or tests) so packages like auth can resolve
+// login names to ids without importing state (avoids import cycles).
+var usernameToID func(string) (uint64, error)
+
+// SetUsernameToID registers login name → stable id resolution. Call from state.Initialize after users load.
+func SetUsernameToID(fn func(string) (uint64, error)) {
+	usernameToID = fn
+}
+
+// ResolveUsernameToID maps a login name to stable user id using the resolver from SetUsernameToID.
+func ResolveUsernameToID(username string) (uint64, error) {
+	if usernameToID == nil {
+		return 0, fmt.Errorf("users: login name resolver not configured")
+	}
+	return usernameToID(username)
 }
 
 // crudBackend implements crud.CrudBackend[User] for users storage.
@@ -37,8 +55,16 @@ type crudBackend struct {
 
 func (c *crudBackend) GetByID(id any) (*User, error) {
 	switch v := id.(type) {
-	case string, uint64, uint:
+	case uint64:
+		if v == 0 {
+			return nil, errors.ErrNotExist
+		}
 		return c.back.GetBy(v)
+	case uint:
+		if v == 0 {
+			return nil, errors.ErrNotExist
+		}
+		return c.back.GetBy(uint64(v))
 	default:
 		return nil, errors.ErrInvalidDataType
 	}
@@ -55,8 +81,6 @@ func (c *crudBackend) Save(obj *User) error {
 
 func (c *crudBackend) DeleteByID(id any) error {
 	switch v := id.(type) {
-	case string:
-		return c.back.DeleteByUsername(v)
 	case uint64:
 		return c.back.DeleteByID(v)
 	case uint:
@@ -70,7 +94,7 @@ func (c *crudBackend) DeleteByID(id any) error {
 type Storage struct {
 	Generic *crud.Storage[User]
 	back    StorageBackend
-	updated map[string]int64
+	updated map[uint64]int64
 	mux     sync.RWMutex
 }
 
@@ -79,19 +103,16 @@ func NewStorage(back StorageBackend) *Storage {
 	return &Storage{
 		Generic: crud.NewStorage[User](&crudBackend{back: back}),
 		back:    back,
-		updated: map[string]int64{},
+		updated: map[uint64]int64{},
 	}
 }
 
-// Get allows you to get a user by its name or username. The provided
-// id must be a string for username lookup or a uint64 (or uint) for id lookup. If id
-// is neither, a ErrInvalidDataType will be returned.
-func (s *Storage) Get(id interface{}) (user *User, err error) {
-	user, err = s.back.GetBy(id)
-	if err != nil {
-		return
+// Get returns a user by stable numeric id.
+func (s *Storage) Get(id uint64) (user *User, err error) {
+	if id == 0 {
+		return nil, errors.ErrNotExist
 	}
-	return user, err
+	return s.back.GetBy(id)
 }
 
 // Gets gets a list of all users.
@@ -111,13 +132,15 @@ func (s *Storage) Update(user *User, adminIActor bool, fields ...string) error {
 	}
 
 	s.mux.Lock()
-	s.updated[user.Username] = time.Now().Unix()
+	if user.ID != 0 {
+		s.updated[user.ID] = time.Now().Unix()
+	}
 	s.mux.Unlock()
 	return nil
 }
 
-func (s *Storage) AddApiToken(username string, name string, tokenString string, metadata AuthToken) error {
-	user, err := s.Get(username)
+func (s *Storage) AddApiToken(userID uint64, name string, tokenString string, metadata AuthToken) error {
+	user, err := s.Get(userID)
 	if err != nil {
 		return err
 	}
@@ -135,8 +158,8 @@ func (s *Storage) AddApiToken(username string, name string, tokenString string, 
 	return nil
 }
 
-func (s *Storage) DeleteApiToken(username string, name string) error {
-	user, err := s.Get(username)
+func (s *Storage) DeleteApiToken(userID uint64, name string) error {
+	user, err := s.Get(userID)
 	if err != nil {
 		return err
 	}
@@ -158,27 +181,19 @@ func (s *Storage) Save(user *User, changePass, disableScopeChange bool) error {
 	return s.back.Save(user, changePass, disableScopeChange)
 }
 
-// Delete allows you to delete a user by its name or username. The provided
-// id must be a string for username lookup or a uint64 (or uint) for id lookup. If id
-// is neither, a ErrInvalidDataType will be returned.
-func (s *Storage) Delete(id interface{}) error {
-	switch id := id.(type) {
-	case string:
-		return s.back.DeleteByUsername(id)
-	case uint64:
-		return s.back.DeleteByID(id)
-	case uint:
-		return s.back.DeleteByID(uint64(id))
-	default:
+// Delete removes a user by stable numeric id.
+func (s *Storage) Delete(id uint64) error {
+	if id == 0 {
 		return errors.ErrInvalidDataType
 	}
+	return s.back.DeleteByID(id)
 }
 
-// LastUpdate gets the timestamp for the last update of a user by username.
-func (s *Storage) LastUpdate(username string) int64 {
+// LastUpdate gets the timestamp for the last update of a user by id.
+func (s *Storage) LastUpdate(id uint64) int64 {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
-	if val, ok := s.updated[username]; ok {
+	if val, ok := s.updated[id]; ok {
 		return val
 	}
 	return 0

@@ -165,13 +165,8 @@ func (s *Storage) getOrCreateRuleNL(sourcePath, indexPath string) *AccessRule {
 }
 
 // DenyUser adds a user to the deny list for a given source and index path.
+// Rules are keyed by login name (username), not user id; names are not resolved against user storage.
 func (s *Storage) DenyUser(sourcePath, indexPath, username string) error {
-	if s.Users != nil {
-		_, err := s.Users.Get(username)
-		if err != nil {
-			return fmt.Errorf("user '%s' does not exist: %w", username, err)
-		}
-	}
 	s.mux.Lock()
 	defer s.mux.Unlock()
 	rule := s.getOrCreateRuleNL(sourcePath, indexPath)
@@ -184,13 +179,8 @@ func (s *Storage) DenyUser(sourcePath, indexPath, username string) error {
 }
 
 // AllowUser adds a user to the allow list for a given source and index path.
+// Rules are keyed by login name (username), not user id; names are not resolved against user storage.
 func (s *Storage) AllowUser(sourcePath, indexPath, username string) error {
-	if s.Users != nil {
-		_, err := s.Users.Get(username)
-		if err != nil {
-			return fmt.Errorf("user '%s' does not exist: %w", username, err)
-		}
-	}
 	s.mux.Lock()
 	defer s.mux.Unlock()
 	rule := s.getOrCreateRuleNL(sourcePath, indexPath)

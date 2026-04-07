@@ -43,7 +43,14 @@ func AuthenticatePassword(r *http.Request, userStore *users.Storage, recaptchaCo
 		}
 	}
 
-	user, getErr := userStore.Get(username)
+	id, resErr := users.ResolveUsernameToID(username)
+	var user *users.User
+	var getErr error
+	if resErr != nil {
+		getErr = resErr
+	} else {
+		user, getErr = userStore.Get(id)
+	}
 	var passwordHash string
 	if getErr != nil {
 		passwordHash = utils.InvalidPasswordHash

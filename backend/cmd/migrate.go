@@ -162,7 +162,8 @@ func migrateShares(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 	return nil
 }
 
-// migrateAccessRules migrates access rules and groups from BoltDB to SQLite
+// migrateAccessRules migrates access control data from BoltDB to SQLite.
+// Path rules (AllRules) and group definitions (Groups) are unchanged through migration
 func migrateAccessRules(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 	// Read the access rules JSON blob from BoltDB
 	var data []byte

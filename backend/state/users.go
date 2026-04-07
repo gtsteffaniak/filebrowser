@@ -88,6 +88,17 @@ func GetUserByUsername(username string) (users.User, error) {
 	return userCopy, nil
 }
 
+// UserIDForUsername returns the stable id for a login name (for id-keyed user storage).
+func UserIDForUsername(username string) (uint64, error) {
+	usersMux.RLock()
+	defer usersMux.RUnlock()
+	u, ok := usersByName[username]
+	if !ok {
+		return 0, errors.ErrNotExist
+	}
+	return u.ID, nil
+}
+
 // GetAllUsers returns all users from the in-memory cache
 // Returns values (not pointers) to prevent modifications to the cache
 func GetAllUsers() ([]users.User, error) {

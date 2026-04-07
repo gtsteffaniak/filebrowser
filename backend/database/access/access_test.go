@@ -18,17 +18,11 @@ type sqlStoreAdapter struct {
 	store *sqldb.SQLStore
 }
 
-func (s *sqlStoreAdapter) GetBy(id interface{}) (*users.User, error) {
-	switch v := id.(type) {
-	case string:
-		return s.store.GetUserByUsername(v)
-	case uint64:
-		return s.store.GetUserByID(v)
-	case uint:
-		return s.store.GetUserByID(uint64(v))
-	default:
-		return nil, errors.ErrInvalidDataType
+func (s *sqlStoreAdapter) GetBy(id uint64) (*users.User, error) {
+	if id == 0 {
+		return nil, errors.ErrNotExist
 	}
+	return s.store.GetUserByID(id)
 }
 
 func (s *sqlStoreAdapter) Gets() ([]*users.User, error) {
@@ -60,10 +54,6 @@ func (s *sqlStoreAdapter) Update(user *users.User, adminActor bool, fields ...st
 
 func (s *sqlStoreAdapter) DeleteByID(id uint64) error {
 	return s.store.DeleteUserByID(id)
-}
-
-func (s *sqlStoreAdapter) DeleteByUsername(username string) error {
-	return s.store.DeleteUserByUsername(username)
 }
 
 func createTestStorage(t *testing.T) (*access.Storage, *users.Storage) {

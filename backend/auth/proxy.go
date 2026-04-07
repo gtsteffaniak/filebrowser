@@ -19,7 +19,14 @@ type ProxyAuth struct {
 // AuthenticateProxy authenticates the user via an HTTP header.
 func AuthenticateProxy(r *http.Request, usr *users.Storage, headerName string) (*users.User, error) {
 	username := r.Header.Get(headerName)
-	user, err := usr.Get(username)
+	id, err := users.ResolveUsernameToID(username)
+	if err == errors.ErrNotExist {
+		return nil, os.ErrPermission
+	}
+	if err != nil {
+		return nil, err
+	}
+	user, err := usr.Get(id)
 	if err == errors.ErrNotExist {
 		return nil, os.ErrPermission
 	}

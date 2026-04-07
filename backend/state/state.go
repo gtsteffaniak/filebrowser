@@ -73,6 +73,8 @@ func Initialize(dbPath string) (bool, error) {
 	}
 	logger.Debugf("Loaded %d users", len(usersList))
 
+	users.SetUsernameToID(UserIDForUsername)
+
 	// Load shares
 	sharesList, err := sqlStore.ListAllShares()
 	if err != nil {
@@ -157,6 +159,7 @@ func Close() error {
 	defer sharesMux.Unlock()
 	defer indexMux.Unlock()
 
+	users.SetUsernameToID(nil)
 	if sqlStore != nil {
 		return sqlStore.Close()
 	}
