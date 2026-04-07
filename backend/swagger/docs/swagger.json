@@ -4464,9 +4464,11 @@
                     }
                 },
                 "userID": {
+                    "description": "UserID is only populated when reading pre-SQLite bolt exports (cmd migrate); runtime uses Username.",
                     "type": "integer"
                 },
                 "username": {
+                    "description": "Username is the share owner's login name (primary identity in storage).",
                     "type": "string"
                 },
                 "version": {
@@ -6483,7 +6485,12 @@
                     }
                 },
                 "userID": {
+                    "description": "UserID is only populated when reading pre-SQLite bolt exports (cmd migrate); runtime uses Username.",
                     "type": "integer"
+                },
+                "username": {
+                    "description": "Username is the share owner's login name (primary identity in storage).",
+                    "type": "string"
                 },
                 "version": {
                     "type": "integer"
@@ -6501,6 +6508,7 @@
                     "$ref": "#/definitions/users.Permissions"
                 },
                 "belongsTo": {
+                    "description": "legacy numeric id in JWT claims",
                     "type": "integer"
                 },
                 "expiresAt": {
@@ -6517,6 +6525,9 @@
                     "type": "string"
                 },
                 "token": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }

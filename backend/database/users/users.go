@@ -24,7 +24,8 @@ type AuthToken struct {
 	Key         string      `json:"key,omitempty"` // for backward compatibility
 	Token       string      `json:"token,omitempty"`
 	Name        string      `json:"name,omitempty"`
-	BelongsTo   uint        `json:"belongsTo,omitempty"`
+	Username    string      `json:"username,omitempty"`
+	BelongsTo   uint64      `json:"belongsTo,omitempty"` // numeric user id in JWT claims (bolt-era small ids still work)
 	IssuedAt    int64       `json:"issuedAt,omitempty"`
 	ExpiresAt   int64       `json:"expiresAt,omitempty"`
 	Permissions Permissions `json:"Permissions,omitempty"`
@@ -70,7 +71,7 @@ type Preview struct {
 type User struct {
 	NonAdminEditable
 	DisableSettings bool                 `json:"disableSettings"`
-	ID              uint                 `storm:"id,increment" json:"id"`
+	ID              uint64               `storm:"id,increment" json:"id"`
 	Username        string               `storm:"unique" json:"username"`
 	Scopes          []SourceScope        `json:"scopes"`
 	Scope           string               `json:"scope,omitempty"`

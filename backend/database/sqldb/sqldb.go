@@ -19,12 +19,22 @@ type SQLStore struct {
 	db *sql.DB
 }
 
+// NewSQLStoreOpts configures NewSQLStoreWithOptions.
+type NewSQLStoreOpts struct {
+	// SkipQuickSetup skips creating the default admin user. Use when users will be
+	// imported immediately (e.g. BoltDB → SQLite migration) to avoid UNIQUE username conflicts.
+	SkipQuickSetup bool
+}
+
 // NewSQLStore creates a new SQLStore and initializes the database
 func NewSQLStore(dbPath string) (*SQLStore, bool, error) {
+	return NewSQLStoreWithOptions(dbPath, NewSQLStoreOpts{})
+}
+
+// NewSQLStoreWithOptions creates a new SQLStore with optional behavior (see NewSQLStoreOpts).
+func NewSQLStoreWithOptions(dbPath string, opts NewSQLStoreOpts) (*SQLStore, bool, error) {
 	// Check if database exists BEFORE opening it
 	existingDb := dbExists(dbPath)
-
-	fmt.Printf("existingDb: %s %v\n", dbPath, existingDb)
 
 	// Ensure parent directory exists
 	dir := filepath.Dir(dbPath)
@@ -88,7 +98,7 @@ func NewSQLStore(dbPath string) (*SQLStore, bool, error) {
 	isNewDB := (err != nil || userCount == 0)
 
 	// Run quickSetup for new databases (no users exist)
-	if isNewDB {
+	if isNewDB && !opts.SkipQuickSetup {
 		err = store.quickSetup()
 		if err != nil {
 			db.Close()

@@ -66,47 +66,46 @@ func (s *SQLStore) DeleteRevokedToken(tokenHash string) error {
 	return nil
 }
 
-// SaveHashedToken saves a token hash to user ID mapping
-func (s *SQLStore) SaveHashedToken(tokenHash string, userID uint) error {
-	query := `INSERT OR REPLACE INTO hashed_tokens (token_hash, user_id) VALUES (?, ?)`
-	_, err := s.db.Exec(query, tokenHash, userID)
+// SaveHashedToken saves a token hash to owner username mapping
+func (s *SQLStore) SaveHashedToken(tokenHash string, username string) error {
+	query := `INSERT OR REPLACE INTO hashed_tokens (token_hash, username) VALUES (?, ?)`
+	_, err := s.db.Exec(query, tokenHash, username)
 	if err != nil {
 		return fmt.Errorf("failed to save hashed token: %w", err)
 	}
 	return nil
 }
 
-// GetUserIDByTokenHash retrieves the user ID for a token hash
-func (s *SQLStore) GetUserIDByTokenHash(tokenHash string) (uint, error) {
-	query := `SELECT user_id FROM hashed_tokens WHERE token_hash = ?`
-	var userID uint
-	err := s.db.QueryRow(query, tokenHash).Scan(&userID)
+// GetUsernameByTokenHash retrieves the username for a token hash
+func (s *SQLStore) GetUsernameByTokenHash(tokenHash string) (string, error) {
+	query := `SELECT username FROM hashed_tokens WHERE token_hash = ?`
+	var username string
+	err := s.db.QueryRow(query, tokenHash).Scan(&username)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
-			return 0, fmt.Errorf("token not found")
+			return "", fmt.Errorf("token not found")
 		}
-		return 0, fmt.Errorf("failed to get user ID by token: %w", err)
+		return "", fmt.Errorf("failed to get username by token: %w", err)
 	}
-	return userID, nil
+	return username, nil
 }
 
-// GetAllHashedTokens retrieves all token hash to user ID mappings
-func (s *SQLStore) GetAllHashedTokens() (map[string]uint, error) {
-	query := `SELECT token_hash, user_id FROM hashed_tokens`
+// GetAllHashedTokens retrieves all token hash to username mappings
+func (s *SQLStore) GetAllHashedTokens() (map[string]string, error) {
+	query := `SELECT token_hash, username FROM hashed_tokens`
 	rows, err := s.db.Query(query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get hashed tokens: %w", err)
 	}
 	defer rows.Close()
 
-	hashedTokens := make(map[string]uint)
+	hashedTokens := make(map[string]string)
 	for rows.Next() {
-		var tokenHash string
-		var userID uint
-		if err := rows.Scan(&tokenHash, &userID); err != nil {
+		var tokenHash, username string
+		if err := rows.Scan(&tokenHash, &username); err != nil {
 			return nil, fmt.Errorf("failed to scan hashed token: %w", err)
 		}
-		hashedTokens[tokenHash] = userID
+		hashedTokens[tokenHash] = username
 	}
 
 	if err := rows.Err(); err != nil {
@@ -126,10 +125,10 @@ func (s *SQLStore) DeleteHashedToken(tokenHash string) error {
 	return nil
 }
 
-// DeleteHashedTokensByUserID removes all token hashes for a user
-func (s *SQLStore) DeleteHashedTokensByUserID(userID uint) error {
-	query := `DELETE FROM hashed_tokens WHERE user_id = ?`
-	_, err := s.db.Exec(query, userID)
+// DeleteHashedTokensByUsername removes all token hashes for a user
+func (s *SQLStore) DeleteHashedTokensByUsername(username string) error {
+	query := `DELETE FROM hashed_tokens WHERE username = ?`
+	_, err := s.db.Exec(query, username)
 	if err != nil {
 		return fmt.Errorf("failed to delete hashed tokens by user: %w", err)
 	}

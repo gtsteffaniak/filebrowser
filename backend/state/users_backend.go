@@ -16,8 +16,14 @@ func (u usersBackend) GetBy(id interface{}) (*users.User, error) {
 			return nil, err
 		}
 		return &user, nil
-	case uint:
+	case uint64:
 		user, err := GetUser(v)
+		if err != nil {
+			return nil, err
+		}
+		return &user, nil
+	case uint:
+		user, err := GetUser(uint64(v))
 		if err != nil {
 			return nil, err
 		}
@@ -68,7 +74,7 @@ func (u usersBackend) Update(user *users.User, adminActor bool, fields ...string
 	return UpdateUser(user, "", fields...)
 }
 
-func (u usersBackend) DeleteByID(id uint) error {
+func (u usersBackend) DeleteByID(id uint64) error {
 	return DeleteUser(id)
 }
 

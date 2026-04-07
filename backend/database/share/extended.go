@@ -152,7 +152,10 @@ func (l *Link) GetSourceName() string {
 }
 
 func (l *Link) UserCanEdit(user *users.User) bool {
-	return l.UserID == user.ID || user.Permissions.Admin
+	if user.Permissions.Admin {
+		return true
+	}
+	return l.Username != "" && l.Username == user.Username
 }
 
 func (l *Link) SourceURL(user *users.User) string {

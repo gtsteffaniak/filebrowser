@@ -40,9 +40,17 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	// since api self is used to validate a logged in user
 	w.Header().Add("X-Renew-Token", "false")
 
-	var givenUserId uint
+	var givenUserId uint64
 	if givenUserIdString == "self" {
-		givenUserId = d.user.ID
+		u, err := state.GetUserByUsername(d.user.Username)
+		if err == errors.ErrNotExist {
+			return http.StatusNotFound, err
+		}
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
+		prepForFrontend(&u)
+		return renderJSON(w, r, u)
 	} else if givenUserIdString == "" {
 
 		userList, err := state.GetAllUsers()
@@ -54,13 +62,16 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		for i := range userList {
 			u := &userList[i]
 			prepForFrontend(u)
-			if u.ID == d.user.ID {
+			if u.Username == d.user.Username {
 				selfUserList = append(selfUserList, userList[i])
 			}
 		}
 
 		sort.Slice(userList, func(i, j int) bool {
-			return userList[i].ID < userList[j].ID
+			if userList[i].ID != userList[j].ID {
+				return userList[i].ID < userList[j].ID
+			}
+			return userList[i].Username < userList[j].Username
 		})
 
 		if !d.user.Permissions.Admin {
@@ -68,28 +79,23 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		}
 		return renderJSON(w, r, userList)
 	} else {
-		num, _ := strconv.ParseUint(givenUserIdString, 10, 32)
-		givenUserId = uint(num)
-	}
-
-	if givenUserId != d.user.ID && !d.user.Permissions.Admin {
-		return http.StatusForbidden, nil
+		num, _ := strconv.ParseUint(givenUserIdString, 10, 64)
+		givenUserId = num
 	}
 
 	// Fetch the user details
-	var u *users.User
 	userValue, err := state.GetUser(givenUserId)
-	if err == nil {
-		u = &userValue
-	}
 	if err == errors.ErrNotExist {
 		return http.StatusNotFound, err
 	}
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	prepForFrontend(u)
-	return renderJSON(w, r, u)
+	if !d.user.Permissions.Admin && userValue.Username != d.user.Username {
+		return http.StatusForbidden, nil
+	}
+	prepForFrontend(&userValue)
+	return renderJSON(w, r, userValue)
 }
 
 func prepForFrontend(u *users.User) {
@@ -193,8 +199,8 @@ func normalizeLocale(locale string) string {
 // @Router /api/users [delete]
 func userDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	givenUserIdString := r.URL.Query().Get("id")
-	num, _ := strconv.ParseUint(givenUserIdString, 10, 32)
-	givenUserId := uint(num)
+	num, _ := strconv.ParseUint(givenUserIdString, 10, 64)
+	givenUserId := num
 
 	if givenUserId == d.user.ID {
 		return http.StatusForbidden, fmt.Errorf("cannot delete your own user")
@@ -278,8 +284,8 @@ func usersPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	givenUserIdString := r.URL.Query().Get("id")
 	username := r.URL.Query().Get("username")
-	num, _ := strconv.ParseUint(givenUserIdString, 10, 32)
-	givenUserId := uint(num)
+	num, _ := strconv.ParseUint(givenUserIdString, 10, 64)
+	givenUserId := num
 
 	if givenUserId != d.user.ID && !d.user.Permissions.Admin {
 		return http.StatusForbidden, nil

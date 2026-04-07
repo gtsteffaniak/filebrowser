@@ -348,7 +348,7 @@ func publicPatchHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 
 	// Replace user with the share creator's user for proper permission checking
 	var shareCreatedByUser *users.User
-	userValue, err := state.GetUser(d.share.UserID)
+	userValue, err := state.UserForShareOwner(d.share)
 	if err == nil {
 		shareCreatedByUser = &userValue
 	}
@@ -415,7 +415,7 @@ func getShareImage(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		return http.StatusBadRequest, fmt.Errorf("either banner or favicon parameter must be true")
 	}
 
-	userValue, err := state.GetUser(d.share.UserID)
+	userValue, err := state.UserForShareOwner(d.share)
 	var shareCreatedByUser *users.User
 	if err == nil {
 		shareCreatedByUser = &userValue

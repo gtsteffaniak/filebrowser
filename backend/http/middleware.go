@@ -105,7 +105,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		if link.DisableFileViewer || reachedDownloadsLimit {
 			getContent = false
 		}
-		userValue, err := state.GetUser(link.UserID)
+		userValue, err := state.UserForShareOwner(link)
 		if err == nil {
 			data.shareUser = &userValue
 		}
@@ -180,7 +180,11 @@ func withAdminHelper(fn handleFunc) handleFunc {
 // This is used by withOrWithoutUserHelper to get user context even when tokens are expired
 func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.User {
 	if config.Auth.Methods.NoAuth {
-		userValue, err := state.GetUser(uint(1))
+		admin := config.Auth.AdminUsername
+		if admin == "" {
+			admin = "admin"
+		}
+		userValue, err := state.GetUserByUsername(admin)
 		var user *users.User
 		if err == nil {
 			user = &userValue
@@ -215,12 +219,12 @@ func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.U
 	// Token is valid (but might be expired or revoked)
 	// Try to get the user regardless of expiration status
 	var user *users.User
-	userValue, err := state.GetUser(tk.BelongsTo)
+	userValue, err := state.UserFromAPIToken(tk, tokenString)
 	if err == nil {
 		user = &userValue
 	}
 	if err != nil {
-		logger.Errorf("Failed to get user with ID %v: %v", tk.BelongsTo, err)
+		logger.Errorf("Failed to get user from token: %v", err)
 		return nil
 	}
 
@@ -344,24 +348,11 @@ func userWithoutOTPhelper(fn handleFunc) handleFunc {
 			var tk users.AuthToken
 			if token, err := jwt.ParseWithClaims(tokenStr, &tk, keyFunc); err == nil && token.Valid {
 				if !auth.IsRevokedApiToken(accessStore, tokenStr) {
-					if tk.BelongsTo == 0 {
-						// Minimal token - look up user ID
-						userID, found := accessStore.GetUserIDFromToken(tokenStr)
-						if found {
-							tk.BelongsTo = userID
-						}
-					}
-					if tk.BelongsTo > 0 {
-						var user *users.User
-						userValue, err := state.GetUser(tk.BelongsTo)
-						if err == nil {
-							user = &userValue
-						}
-						if err == nil && user.Permissions.Admin {
-							// Valid admin token - allow operation
-							d.user = user
-							return fn(w, r, d)
-						}
+					userValue, err := state.UserFromAPIToken(tk, tokenStr)
+					if err == nil && userValue.Permissions.Admin {
+						u := userValue
+						d.user = &u
+						return fn(w, r, d)
 					}
 				}
 			}
@@ -417,9 +408,11 @@ func userWithoutOTPhelper(fn handleFunc) handleFunc {
 func withUserHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
 		if config.Auth.Methods.NoAuth {
-			var err error
-			// Retrieve the user from the store and store it in the context
-			userValue, err := state.GetUser(uint(1))
+			admin := config.Auth.AdminUsername
+			if admin == "" {
+				admin = "admin"
+			}
+			userValue, err := state.GetUserByUsername(admin)
 			if err == nil {
 				data.user = &userValue
 			}
@@ -483,22 +476,13 @@ func withUserHelper(fn handleFunc) handleFunc {
 		if tk.RegisteredClaims.ExpiresAt.Unix() < time.Now().Add(time.Minute*30).Unix() {
 			w.Header().Add("X-Renew-Token", "true")
 		}
-		// Check if token is minimal/stateful (no BelongsTo in claim)
-		if tk.BelongsTo == 0 {
-			// Hash the token and look up user ID in access storage
-			userID, found := accessStore.GetUserIDFromToken(data.token)
-			if !found {
-				return http.StatusUnauthorized, fmt.Errorf("token is invalid or revoked")
-			}
-			tk.BelongsTo = userID
-		}
-		userValue, err := state.GetUser(tk.BelongsTo)
+		userValue, err := state.UserFromAPIToken(tk, data.token)
 		if err == nil {
 			data.user = &userValue
 		}
 		if err != nil {
-			logger.Errorf("Failed to get user with ID %v: %v", tk.BelongsTo, err)
-			return http.StatusInternalServerError, err
+			logger.Errorf("Failed to get user from token: %v", err)
+			return http.StatusUnauthorized, fmt.Errorf("token is invalid or revoked")
 		}
 
 		// Set cookie. Some clients like gvfs relies on it for concurrent uploads

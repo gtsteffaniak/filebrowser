@@ -67,7 +67,7 @@ type Storage struct {
 	AllRules      SourceRuleMap       // AllRules[sourcePath][indexPath] - in-memory authoritative state
 	Groups        GroupMap            // key: group name, value: set of usernames - in-memory authoritative state
 	RevokedTokens map[string]struct{} // set of revoked token hashes - in-memory authoritative state
-	HashedTokens  map[string]uint     // maps token hash → user ID - in-memory authoritative state
+	HashedTokens  map[string]string   // maps token hash → owner username - in-memory authoritative state
 	Users         *users.Storage      // Reference to users storage
 	sqlStore      SQLPersister        // SQL store for persistence
 }
@@ -79,7 +79,7 @@ type SQLPersister interface {
 	SaveGroup(name string, members StringSet) error
 	DeleteGroup(name string) error
 	SaveRevokedToken(tokenHash string) error
-	SaveHashedToken(tokenHash string, userID uint) error
+	SaveHashedToken(tokenHash string, username string) error
 	DeleteHashedToken(tokenHash string) error
 }
 
@@ -100,7 +100,7 @@ func NewStorage(usersStore *users.Storage) *Storage {
 		AllRules:      make(SourceRuleMap),
 		Groups:        make(GroupMap),
 		RevokedTokens: make(map[string]struct{}),
-		HashedTokens:  make(map[string]uint),
+		HashedTokens:  make(map[string]string),
 		Users:         usersStore,
 	}
 	return s
@@ -1213,22 +1213,22 @@ func (s *Storage) IsTokenRevoked(tokenHash string) bool {
 	return exists
 }
 
-// AddHashedToken adds a token hash to user ID mapping.
-func (s *Storage) AddApiToken(tokenString string, userID uint) error {
+// AddApiToken maps a token string hash to an owner username (for minimal JWTs).
+func (s *Storage) AddApiToken(tokenString string, username string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 	tokenHash := utils.HashSHA256(tokenString)
-	s.HashedTokens[tokenHash] = userID
+	s.HashedTokens[tokenHash] = username
 	return nil
 }
 
-// GetUserIDFromToken retrieves the user ID for a given token string (memory-only read).
-func (s *Storage) GetUserIDFromToken(tokenString string) (uint, bool) {
+// GetUsernameFromToken retrieves the owner username for a given token string (memory-only read).
+func (s *Storage) GetUsernameFromToken(tokenString string) (string, bool) {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
 	tokenHash := utils.HashSHA256(tokenString)
-	userID, exists := s.HashedTokens[tokenHash]
-	return userID, exists
+	username, exists := s.HashedTokens[tokenHash]
+	return username, exists
 }
 
 // GetRevokedTokens returns a copy of all revoked token hashes.

@@ -22,8 +22,10 @@ func (s *sqlStoreAdapter) GetBy(id interface{}) (*users.User, error) {
 	switch v := id.(type) {
 	case string:
 		return s.store.GetUserByUsername(v)
-	case uint:
+	case uint64:
 		return s.store.GetUserByID(v)
+	case uint:
+		return s.store.GetUserByID(uint64(v))
 	default:
 		return nil, errors.ErrInvalidDataType
 	}
@@ -49,8 +51,8 @@ func (s *sqlStoreAdapter) Update(user *users.User, adminActor bool, fields ...st
 	return s.store.UpdateUser(user)
 }
 
-func (s *sqlStoreAdapter) DeleteByID(id uint) error {
-	return s.store.DeleteUser(id)
+func (s *sqlStoreAdapter) DeleteByID(id uint64) error {
+	return s.store.DeleteUserByID(id)
 }
 
 func (s *sqlStoreAdapter) DeleteByUsername(username string) error {

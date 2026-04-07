@@ -16,12 +16,12 @@ import (
 // StorageBackend is the interface to implement for a share storage.
 type StorageBackend interface {
 	All() ([]*Link, error)
-	FindByUserID(id uint) ([]*Link, error)
+	FindByUsername(username string) ([]*Link, error)
 	GetByHash(hash string) (*Link, error)
 	GetCommonShareByHash(hash string) (*CommonShare, error)
-	GetPermanent(path, source string, id uint) (*Link, error)
+	GetPermanent(path, source string, username string) (*Link, error)
 	GetBySourcePath(path, source string) ([]*Link, error)
-	Gets(path, source string, id uint) ([]*Link, error)
+	Gets(path, source string, username string) ([]*Link, error)
 	Save(s *Link) error
 	Delete(hash string) error
 }
@@ -202,12 +202,12 @@ func (s *Storage) All() ([]*Link, error) {
 	return result, nil
 }
 
-// FindByUserID returns non-expired shares for the user from the cache.
-func (s *Storage) FindByUserID(id uint) ([]*Link, error) {
+// FindByUsername returns non-expired shares for the user from the cache.
+func (s *Storage) FindByUsername(username string) ([]*Link, error) {
 	s.mu.Lock()
 	result := make([]*Link, 0)
 	for _, l := range s.shareByHash {
-		if l == nil || l.UserID != id {
+		if l == nil || l.Username != username {
 			continue
 		}
 		if l.Expire != 0 && l.Expire <= time.Now().Unix() && !l.KeepAfterExpiration {
@@ -253,8 +253,8 @@ func (s *Storage) GetByHash(hash string) (*Link, error) {
 }
 
 // GetPermanent wraps StorageBackend.GetPermanent
-func (s *Storage) GetPermanent(path, source string, id uint) (*Link, error) {
-	l, err := s.back.GetPermanent(path, source, id)
+func (s *Storage) GetPermanent(path, source string, username string) (*Link, error) {
+	l, err := s.back.GetPermanent(path, source, username)
 	if err == nil && l != nil {
 		s.setCache(l)
 	}
@@ -262,7 +262,7 @@ func (s *Storage) GetPermanent(path, source string, id uint) (*Link, error) {
 }
 
 // Gets returns shares for the given path, source, and user from the cache.
-func (s *Storage) Gets(sourcePath, source string, id uint) ([]*Link, error) {
+func (s *Storage) Gets(sourcePath, source string, username string) ([]*Link, error) {
 	s.mu.Lock()
 	adjustedPath := utils.AddTrailingSlashIfNotExists(sourcePath)
 	adjustedSource := utils.AddTrailingSlashIfNotExists(source)
@@ -271,7 +271,7 @@ func (s *Storage) Gets(sourcePath, source string, id uint) ([]*Link, error) {
 	result := make([]*Link, 0, len(hashes))
 	for h := range hashes {
 		l := s.shareByHash[h]
-		if l == nil || l.UserID != id {
+		if l == nil || l.Username != username {
 			continue
 		}
 		if l.Expire != 0 && l.Expire <= time.Now().Unix() && !l.KeepAfterExpiration {
@@ -310,10 +310,10 @@ func (s *Storage) GetBySourcePath(path, source string) ([]*Link, error) {
 }
 
 // IsShared returns whether the given path and source have any shares in the cache.
-func (s *Storage) IsShared(path, source string, id uint) bool {
+func (s *Storage) IsShared(path, source string, username string) bool {
 	links, _ := s.GetBySourcePath(path, source)
 	for _, l := range links {
-		if l.UserID == id {
+		if l.Username == username {
 			return true
 		}
 	}

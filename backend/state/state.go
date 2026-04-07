@@ -23,8 +23,9 @@ var (
 	sqlStore *sqldb.SQLStore
 
 	// In-memory caches
-	usersByID       map[uint]*users.User
-	usersByName     map[string]*users.User
+	usersByID          map[uint64]*users.User
+	usersByName        map[string]*users.User
+	userIDToUsername   map[uint64]string // JWT belongsTo numeric id → username; built at load and kept in sync
 	sharesByHash    map[string]*share.Link
 	sharesByPath    map[string][]string // "source:path" -> []hash
 	indexInfoByPath map[string]*dbindex.IndexInfo
@@ -52,8 +53,9 @@ func Initialize(dbPath string) (bool, error) {
 	}
 
 	// Initialize caches
-	usersByID = make(map[uint]*users.User)
+	usersByID = make(map[uint64]*users.User)
 	usersByName = make(map[string]*users.User)
+	userIDToUsername = make(map[uint64]string)
 	sharesByHash = make(map[string]*share.Link)
 	sharesByPath = make(map[string][]string)
 	indexInfoByPath = make(map[string]*dbindex.IndexInfo)
@@ -66,8 +68,11 @@ func Initialize(dbPath string) (bool, error) {
 		return existingDb, fmt.Errorf("failed to load users: %w", err)
 	}
 	for _, user := range usersList {
-		usersByID[user.ID] = user
 		usersByName[user.Username] = user
+		if user.ID != 0 {
+			usersByID[user.ID] = user
+			userIDToUsername[user.ID] = user.Username
+		}
 	}
 	logger.Debugf("Loaded %d users", len(usersList))
 
@@ -98,7 +103,7 @@ func Initialize(dbPath string) (bool, error) {
 		AllRules:      make(access.SourceRuleMap),
 		Groups:        make(access.GroupMap),
 		RevokedTokens: make(map[string]struct{}),
-		HashedTokens:  make(map[string]uint),
+		HashedTokens:  make(map[string]string),
 	}
 
 	// Load access rules

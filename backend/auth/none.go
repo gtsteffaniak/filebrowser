@@ -3,6 +3,7 @@ package auth
 import (
 	"net/http"
 
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 )
 
@@ -12,12 +13,16 @@ const MethodNoAuth = "noauth"
 // NoAuth is no auth implementation of auther.
 type NoAuth struct{}
 
-// AuthenticateNoAuth authenticates as user 1 (admin) with no credentials required.
+// AuthenticateNoAuth authenticates as the configured admin user with no credentials required.
 func AuthenticateNoAuth(r *http.Request, usr *users.Storage) (*users.User, error) {
-	return usr.Get(uint(1))
+	admin := settings.Config.Auth.AdminUsername
+	if admin == "" {
+		admin = "admin"
+	}
+	return usr.Get(admin)
 }
 
-// Auth uses authenticates user 1 (legacy method for compatibility).
+// Auth uses authenticates as the configured admin user (legacy no-credentials mode).
 func (a NoAuth) Auth(r *http.Request, usr *users.Storage) (*users.User, error) {
 	return AuthenticateNoAuth(r, usr)
 }

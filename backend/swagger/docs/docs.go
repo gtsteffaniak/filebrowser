@@ -4475,9 +4475,11 @@ const docTemplate = `{
                     }
                 },
                 "userID": {
+                    "description": "UserID is only populated when reading pre-SQLite bolt exports (cmd migrate); runtime uses Username.",
                     "type": "integer"
                 },
                 "username": {
+                    "description": "Username is the share owner's login name (primary identity in storage).",
                     "type": "string"
                 },
                 "version": {
@@ -6494,7 +6496,12 @@ const docTemplate = `{
                     }
                 },
                 "userID": {
+                    "description": "UserID is only populated when reading pre-SQLite bolt exports (cmd migrate); runtime uses Username.",
                     "type": "integer"
+                },
+                "username": {
+                    "description": "Username is the share owner's login name (primary identity in storage).",
+                    "type": "string"
                 },
                 "version": {
                     "type": "integer"
@@ -6512,6 +6519,7 @@ const docTemplate = `{
                     "$ref": "#/definitions/users.Permissions"
                 },
                 "belongsTo": {
+                    "description": "legacy numeric id in JWT claims",
                     "type": "integer"
                 },
                 "expiresAt": {
@@ -6528,6 +6536,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "token": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }

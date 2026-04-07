@@ -67,7 +67,6 @@ func setupServer() {
 	if os.Getenv("FILEBROWSER_SQL_WAL") == "true" {
 		Config.Server.IndexSqlConfig.WalMode = true
 	}
-	// WalMode is false by default (OFF journaling)
 }
 
 func setupEnv() {
@@ -674,6 +673,11 @@ func setDefaults(generate bool) Settings {
 	database := os.Getenv("FILEBROWSER_DATABASE")
 	if database != "" {
 		logger.Fatalf("FILEBROWSER_DATABASE environment variable is deprecated, please migrate your database to SQLite.")
+	}
+
+	// if old version of database exists, error out
+	if _, err := os.Stat("database.db"); err == nil {
+		logger.Fatalf("old version of database file found, please rename it to database.db.old and follow the migration instructions.")
 	}
 
 	// New SQLite database path

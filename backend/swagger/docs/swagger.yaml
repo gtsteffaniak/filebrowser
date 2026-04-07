@@ -228,8 +228,12 @@ definitions:
         description: Track downloads per username
         type: object
       userID:
+        description: UserID is only populated when reading pre-SQLite bolt exports
+          (cmd migrate); runtime uses Username.
         type: integer
       username:
+        description: Username is the share owner's login name (primary identity in
+          storage).
         type: string
       version:
         type: integer
@@ -1746,7 +1750,13 @@ definitions:
         description: Track downloads per username
         type: object
       userID:
+        description: UserID is only populated when reading pre-SQLite bolt exports
+          (cmd migrate); runtime uses Username.
         type: integer
+      username:
+        description: Username is the share owner's login name (primary identity in
+          storage).
+        type: string
       version:
         type: integer
       viewMode:
@@ -1759,6 +1769,7 @@ definitions:
       Permissions:
         $ref: '#/definitions/users.Permissions'
       belongsTo:
+        description: legacy numeric id in JWT claims
         type: integer
       expiresAt:
         type: integer
@@ -1770,6 +1781,8 @@ definitions:
       name:
         type: string
       token:
+        type: string
+      username:
         type: string
     type: object
   users.FileLoading:

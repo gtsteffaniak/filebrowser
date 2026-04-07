@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 )
@@ -12,55 +13,46 @@ import (
 
 // UserData holds all the non-queryable user fields in JSON
 type UserData struct {
-	Password        string                   `json:"password,omitempty"`
-	Scopes          []users.SourceScope      `json:"scopes"`
-	Tokens          map[string]users.AuthToken `json:"tokens,omitempty"`
-	TOTPSecret      string                   `json:"totpSecret,omitempty"`
-	TOTPNonce       string                   `json:"totpNonce,omitempty"`
-	LoginMethod     users.LoginMethod        `json:"loginMethod"`
-	OtpEnabled      bool                     `json:"otpEnabled"`
-	Version         int                      `json:"version"`
-	ShowFirstLogin  bool                     `json:"showFirstLogin"`
-	NonAdminEditable users.NonAdminEditable  `json:"settings"`
+	Password         string                     `json:"password,omitempty"`
+	Scopes           []users.SourceScope        `json:"scopes"`
+	Tokens           map[string]users.AuthToken `json:"tokens,omitempty"`
+	TOTPSecret       string                     `json:"totpSecret,omitempty"`
+	TOTPNonce        string                     `json:"totpNonce,omitempty"`
+	LoginMethod      users.LoginMethod          `json:"loginMethod"`
+	OtpEnabled       bool                       `json:"otpEnabled"`
+	Version          int                        `json:"version"`
+	ShowFirstLogin   bool                       `json:"showFirstLogin"`
+	NonAdminEditable users.NonAdminEditable     `json:"settings"`
+	FilePermissions  *users.Permissions         `json:"filePermissions,omitempty"`
 }
 
-// GetUserByID retrieves a user by ID
-func (s *SQLStore) GetUserByID(id uint) (*users.User, error) {
-	query := `SELECT id, username, perm_api, perm_admin, perm_modify, perm_share, 
-			  perm_realtime, perm_delete, perm_create, perm_download, user_data 
-			  FROM users WHERE id = ?`
-
-	var user users.User
-	var userDataJSON []byte
-
-	err := s.db.QueryRow(query, id).Scan(
-		&user.ID,
-		&user.Username,
-		&user.Permissions.Api,
-		&user.Permissions.Admin,
-		&user.Permissions.Modify,
-		&user.Permissions.Share,
-		&user.Permissions.Realtime,
-		&user.Permissions.Delete,
-		&user.Permissions.Create,
-		&user.Permissions.Download,
-		&userDataJSON,
-	)
-
-	if err == sql.ErrNoRows {
-		return nil, fmt.Errorf("user not found")
+func applyFilePermissionsFromJSON(user *users.User, data *UserData) {
+	if data.FilePermissions == nil {
+		return
 	}
-	if err != nil {
-		return nil, fmt.Errorf("failed to get user: %w", err)
-	}
+	fp := data.FilePermissions
+	user.Permissions.Modify = fp.Modify
+	user.Permissions.Share = fp.Share
+	user.Permissions.Delete = fp.Delete
+	user.Permissions.Create = fp.Create
+	user.Permissions.Download = fp.Download
+}
 
-	// Unmarshal JSON data
+func filePermissionsForJSON(user *users.User) *users.Permissions {
+	return &users.Permissions{
+		Modify:   user.Permissions.Modify,
+		Share:    user.Permissions.Share,
+		Delete:   user.Permissions.Delete,
+		Create:   user.Permissions.Create,
+		Download: user.Permissions.Download,
+	}
+}
+
+func finishUserLoad(user *users.User, userDataJSON []byte) error {
 	var userData UserData
 	if err := json.Unmarshal(userDataJSON, &userData); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal user data: %w", err)
+		return fmt.Errorf("failed to unmarshal user data: %w", err)
 	}
-
-	// Map UserData to User struct
 	user.Password = userData.Password
 	user.Scopes = userData.Scopes
 	user.Tokens = userData.Tokens
@@ -71,30 +63,79 @@ func (s *SQLStore) GetUserByID(id uint) (*users.User, error) {
 	user.Version = userData.Version
 	user.ShowFirstLogin = userData.ShowFirstLogin
 	user.NonAdminEditable = userData.NonAdminEditable
+	applyFilePermissionsFromJSON(user, &userData)
+	return nil
+}
 
+func scanUint64UserID(s string, dest *uint64) error {
+	if s == "" {
+		*dest = 0
+		return nil
+	}
+	u, err := strconv.ParseUint(s, 10, 64)
+	if err != nil {
+		return fmt.Errorf("parse user_id: %w", err)
+	}
+	*dest = u
+	return nil
+}
+
+func userIDDBString(id uint64) string {
+	return strconv.FormatUint(id, 10)
+}
+
+// GetUserByID retrieves a user by stable numeric id (JWT belongsTo, APIs).
+func (s *SQLStore) GetUserByID(id uint64) (*users.User, error) {
+	if id == 0 {
+		return nil, fmt.Errorf("user not found")
+	}
+	query := `SELECT username, user_id, perm_api, perm_admin, perm_realtime, user_data 
+			  FROM users WHERE user_id = ?`
+
+	var user users.User
+	var userDataJSON []byte
+	var idStr string
+
+	err := s.db.QueryRow(query, userIDDBString(id)).Scan(
+		&user.Username,
+		&idStr,
+		&user.Permissions.Api,
+		&user.Permissions.Admin,
+		&user.Permissions.Realtime,
+		&userDataJSON,
+	)
+
+	if err == sql.ErrNoRows {
+		return nil, fmt.Errorf("user not found")
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user: %w", err)
+	}
+	if err := scanUint64UserID(idStr, &user.ID); err != nil {
+		return nil, err
+	}
+
+	if err := finishUserLoad(&user, userDataJSON); err != nil {
+		return nil, err
+	}
 	return &user, nil
 }
 
 // GetUserByUsername retrieves a user by username
 func (s *SQLStore) GetUserByUsername(username string) (*users.User, error) {
-	query := `SELECT id, username, perm_api, perm_admin, perm_modify, perm_share, 
-			  perm_realtime, perm_delete, perm_create, perm_download, user_data 
+	query := `SELECT username, user_id, perm_api, perm_admin, perm_realtime, user_data 
 			  FROM users WHERE username = ?`
 
 	var user users.User
 	var userDataJSON []byte
+	var idStr string
 
 	err := s.db.QueryRow(query, username).Scan(
-		&user.ID,
 		&user.Username,
+		&idStr,
 		&user.Permissions.Api,
 		&user.Permissions.Admin,
-		&user.Permissions.Modify,
-		&user.Permissions.Share,
 		&user.Permissions.Realtime,
-		&user.Permissions.Delete,
-		&user.Permissions.Create,
-		&user.Permissions.Download,
 		&userDataJSON,
 	)
 
@@ -104,32 +145,19 @@ func (s *SQLStore) GetUserByUsername(username string) (*users.User, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user: %w", err)
 	}
-
-	// Unmarshal JSON data
-	var userData UserData
-	if err := json.Unmarshal(userDataJSON, &userData); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal user data: %w", err)
+	if err := scanUint64UserID(idStr, &user.ID); err != nil {
+		return nil, err
 	}
 
-	// Map UserData to User struct
-	user.Password = userData.Password
-	user.Scopes = userData.Scopes
-	user.Tokens = userData.Tokens
-	user.TOTPSecret = userData.TOTPSecret
-	user.TOTPNonce = userData.TOTPNonce
-	user.LoginMethod = userData.LoginMethod
-	user.OtpEnabled = userData.OtpEnabled
-	user.Version = userData.Version
-	user.ShowFirstLogin = userData.ShowFirstLogin
-	user.NonAdminEditable = userData.NonAdminEditable
-
+	if err := finishUserLoad(&user, userDataJSON); err != nil {
+		return nil, err
+	}
 	return &user, nil
 }
 
 // ListUsers retrieves all users
 func (s *SQLStore) ListUsers() ([]*users.User, error) {
-	query := `SELECT id, username, perm_api, perm_admin, perm_modify, perm_share, 
-			  perm_realtime, perm_delete, perm_create, perm_download, user_data 
+	query := `SELECT username, user_id, perm_api, perm_admin, perm_realtime, user_data 
 			  FROM users ORDER BY username`
 
 	rows, err := s.db.Query(query)
@@ -140,45 +168,26 @@ func (s *SQLStore) ListUsers() ([]*users.User, error) {
 
 	var usersList []*users.User
 	for rows.Next() {
-		var user users.User
+		var u users.User
 		var userDataJSON []byte
-
-		err := rows.Scan(
-			&user.ID,
-			&user.Username,
-			&user.Permissions.Api,
-			&user.Permissions.Admin,
-			&user.Permissions.Modify,
-			&user.Permissions.Share,
-			&user.Permissions.Realtime,
-			&user.Permissions.Delete,
-			&user.Permissions.Create,
-			&user.Permissions.Download,
+		var idStr string
+		if err := rows.Scan(
+			&u.Username,
+			&idStr,
+			&u.Permissions.Api,
+			&u.Permissions.Admin,
+			&u.Permissions.Realtime,
 			&userDataJSON,
-		)
-		if err != nil {
+		); err != nil {
 			return nil, fmt.Errorf("failed to scan user: %w", err)
 		}
-
-		// Unmarshal JSON data
-		var userData UserData
-		if err := json.Unmarshal(userDataJSON, &userData); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal user data: %w", err)
+		if err := scanUint64UserID(idStr, &u.ID); err != nil {
+			return nil, err
 		}
-
-		// Map UserData to User struct
-		user.Password = userData.Password
-		user.Scopes = userData.Scopes
-		user.Tokens = userData.Tokens
-		user.TOTPSecret = userData.TOTPSecret
-		user.TOTPNonce = userData.TOTPNonce
-		user.LoginMethod = userData.LoginMethod
-		user.OtpEnabled = userData.OtpEnabled
-		user.Version = userData.Version
-		user.ShowFirstLogin = userData.ShowFirstLogin
-		user.NonAdminEditable = userData.NonAdminEditable
-
-		usersList = append(usersList, &user)
+		if err := finishUserLoad(&u, userDataJSON); err != nil {
+			return nil, err
+		}
+		usersList = append(usersList, &u)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -188,10 +197,16 @@ func (s *SQLStore) ListUsers() ([]*users.User, error) {
 	return usersList, nil
 }
 
-// CreateUser inserts a new user
-// The database will enforce username uniqueness via UNIQUE constraint
+// CreateUser inserts a new user. If user.ID is 0, a random uint64 is assigned.
 func (s *SQLStore) CreateUser(user *users.User) error {
-	// Create UserData struct from user fields
+	if user.ID == 0 {
+		nid, err := users.NextRandomUserID()
+		if err != nil {
+			return fmt.Errorf("allocate user id: %w", err)
+		}
+		user.ID = nid
+	}
+
 	userData := UserData{
 		Password:         user.Password,
 		Scopes:           user.Scopes,
@@ -203,52 +218,40 @@ func (s *SQLStore) CreateUser(user *users.User) error {
 		Version:          user.Version,
 		ShowFirstLogin:   user.ShowFirstLogin,
 		NonAdminEditable: user.NonAdminEditable,
+		FilePermissions:  filePermissionsForJSON(user),
 	}
 
-	// Marshal user data to JSON
 	userDataJSON, err := json.Marshal(userData)
 	if err != nil {
 		return fmt.Errorf("failed to marshal user data: %w", err)
 	}
 
-	// Insert new user - database will auto-increment ID
-	query := `INSERT INTO users (username, perm_api, perm_admin, perm_modify, 
-			  perm_share, perm_realtime, perm_delete, perm_create, perm_download, user_data) 
-			  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	query := `INSERT INTO users (username, user_id, perm_api, perm_admin, perm_realtime, user_data) 
+			  VALUES (?, ?, ?, ?, ?, ?)`
 
-	result, err := s.db.Exec(query,
+	_, err = s.db.Exec(query,
 		user.Username,
+		userIDDBString(user.ID),
 		user.Permissions.Api,
 		user.Permissions.Admin,
-		user.Permissions.Modify,
-		user.Permissions.Share,
 		user.Permissions.Realtime,
-		user.Permissions.Delete,
-		user.Permissions.Create,
-		user.Permissions.Download,
 		userDataJSON,
 	)
 	if err != nil {
-		// Check for unique constraint violation on username
 		if err.Error() == "UNIQUE constraint failed: users.username" {
 			return fmt.Errorf("user with provided username already exists")
+		}
+		if err.Error() == "UNIQUE constraint failed: users.user_id" {
+			return fmt.Errorf("user with provided id already exists")
 		}
 		return fmt.Errorf("failed to insert user: %w", err)
 	}
 
-	// Get the auto-generated ID and update the user struct
-	id, err := result.LastInsertId()
-	if err != nil {
-		return fmt.Errorf("failed to get last insert id: %w", err)
-	}
-	user.ID = uint(id)
-
 	return nil
 }
 
-// UpdateUser updates an existing user by ID
+// UpdateUser updates an existing user by username
 func (s *SQLStore) UpdateUser(user *users.User) error {
-	// Create UserData struct from user fields
 	userData := UserData{
 		Password:         user.Password,
 		Scopes:           user.Scopes,
@@ -260,41 +263,29 @@ func (s *SQLStore) UpdateUser(user *users.User) error {
 		Version:          user.Version,
 		ShowFirstLogin:   user.ShowFirstLogin,
 		NonAdminEditable: user.NonAdminEditable,
+		FilePermissions:  filePermissionsForJSON(user),
 	}
 
-	// Marshal user data to JSON
 	userDataJSON, err := json.Marshal(userData)
 	if err != nil {
 		return fmt.Errorf("failed to marshal user data: %w", err)
 	}
 
-	// Update existing user
-	query := `UPDATE users SET username = ?, perm_api = ?, perm_admin = ?, 
-			  perm_modify = ?, perm_share = ?, perm_realtime = ?, perm_delete = ?, 
-			  perm_create = ?, perm_download = ?, user_data = ? WHERE id = ?`
+	query := `UPDATE users SET user_id = ?, perm_api = ?, perm_admin = ?, 
+			  perm_realtime = ?, user_data = ? WHERE username = ?`
 
 	result, err := s.db.Exec(query,
-		user.Username,
+		userIDDBString(user.ID),
 		user.Permissions.Api,
 		user.Permissions.Admin,
-		user.Permissions.Modify,
-		user.Permissions.Share,
 		user.Permissions.Realtime,
-		user.Permissions.Delete,
-		user.Permissions.Create,
-		user.Permissions.Download,
 		userDataJSON,
-		user.ID,
+		user.Username,
 	)
 	if err != nil {
-		// Check for unique constraint violation on username
-		if err.Error() == "UNIQUE constraint failed: users.username" {
-			return fmt.Errorf("user with provided username already exists")
-		}
 		return fmt.Errorf("failed to update user: %w", err)
 	}
 
-	// Check if user exists
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		return fmt.Errorf("failed to get rows affected: %w", err)
@@ -306,11 +297,59 @@ func (s *SQLStore) UpdateUser(user *users.User) error {
 	return nil
 }
 
+// UpdateUserUsername changes the primary key username from oldName to user (full row).
+func (s *SQLStore) UpdateUserUsername(oldName string, user *users.User) error {
+	userData := UserData{
+		Password:         user.Password,
+		Scopes:           user.Scopes,
+		Tokens:           user.Tokens,
+		TOTPSecret:       user.TOTPSecret,
+		TOTPNonce:        user.TOTPNonce,
+		LoginMethod:      user.LoginMethod,
+		OtpEnabled:       user.OtpEnabled,
+		Version:          user.Version,
+		ShowFirstLogin:   user.ShowFirstLogin,
+		NonAdminEditable: user.NonAdminEditable,
+		FilePermissions:  filePermissionsForJSON(user),
+	}
 
-// DeleteUser deletes a user by ID
-func (s *SQLStore) DeleteUser(id uint) error {
-	query := `DELETE FROM users WHERE id = ?`
-	result, err := s.db.Exec(query, id)
+	userDataJSON, err := json.Marshal(userData)
+	if err != nil {
+		return fmt.Errorf("failed to marshal user data: %w", err)
+	}
+
+	tx, err := s.db.Begin()
+	if err != nil {
+		return fmt.Errorf("failed to begin tx: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	if _, err := tx.Exec(`DELETE FROM users WHERE username = ?`, oldName); err != nil {
+		return fmt.Errorf("failed to delete old user row: %w", err)
+	}
+
+	if _, err := tx.Exec(`INSERT INTO users (username, user_id, perm_api, perm_admin, perm_realtime, user_data) 
+		VALUES (?, ?, ?, ?, ?, ?)`,
+		user.Username,
+		userIDDBString(user.ID),
+		user.Permissions.Api,
+		user.Permissions.Admin,
+		user.Permissions.Realtime,
+		userDataJSON,
+	); err != nil {
+		return fmt.Errorf("failed to insert user with new username: %w", err)
+	}
+
+	return tx.Commit()
+}
+
+// DeleteUserByID deletes a user by stable id (non-zero only).
+func (s *SQLStore) DeleteUserByID(id uint64) error {
+	if id == 0 {
+		return fmt.Errorf("user not found")
+	}
+	query := `DELETE FROM users WHERE user_id = ?`
+	result, err := s.db.Exec(query, userIDDBString(id))
 	if err != nil {
 		return fmt.Errorf("failed to delete user: %w", err)
 	}

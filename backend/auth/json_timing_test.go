@@ -37,13 +37,13 @@ import (
 // mockUserBackend is a simple in-memory user storage for testing.
 type mockUserBackend struct {
 	usersByUsername map[string]*users.User
-	usersByID       map[uint]*users.User
+	usersByID       map[uint64]*users.User
 }
 
 func newMockUserBackend() *mockUserBackend {
 	return &mockUserBackend{
 		usersByUsername: make(map[string]*users.User),
-		usersByID:       make(map[uint]*users.User),
+		usersByID:       make(map[uint64]*users.User),
 	}
 }
 
@@ -54,8 +54,13 @@ func (m *mockUserBackend) GetBy(id interface{}) (*users.User, error) {
 			return user, nil
 		}
 		return nil, fmt.Errorf("user not found: %s", v)
-	case uint:
+	case uint64:
 		if user, ok := m.usersByID[v]; ok {
+			return user, nil
+		}
+		return nil, fmt.Errorf("user not found: %d", v)
+	case uint:
+		if user, ok := m.usersByID[uint64(v)]; ok {
 			return user, nil
 		}
 		return nil, fmt.Errorf("user not found: %d", v)
@@ -84,7 +89,7 @@ func (m *mockUserBackend) Update(u *users.User, adminActor bool, fields ...strin
 	return nil
 }
 
-func (m *mockUserBackend) DeleteByID(id uint) error {
+func (m *mockUserBackend) DeleteByID(id uint64) error {
 	if user, ok := m.usersByID[id]; ok {
 		delete(m.usersByUsername, user.Username)
 		delete(m.usersByID, id)
