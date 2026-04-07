@@ -23,9 +23,8 @@ var (
 	sqlStore *sqldb.SQLStore
 
 	// In-memory caches
-	usersByID          map[uint64]*users.User
-	usersByName        map[string]*users.User
-	userIDToUsername   map[uint64]string // JWT belongsTo numeric id → username; built at load and kept in sync
+	usersByID   map[uint64]*users.User
+	usersByName map[string]*users.User
 	sharesByHash    map[string]*share.Link
 	sharesByPath    map[string][]string // "source:path" -> []hash
 	indexInfoByPath map[string]*dbindex.IndexInfo
@@ -55,7 +54,6 @@ func Initialize(dbPath string) (bool, error) {
 	// Initialize caches
 	usersByID = make(map[uint64]*users.User)
 	usersByName = make(map[string]*users.User)
-	userIDToUsername = make(map[uint64]string)
 	sharesByHash = make(map[string]*share.Link)
 	sharesByPath = make(map[string][]string)
 	indexInfoByPath = make(map[string]*dbindex.IndexInfo)
@@ -71,7 +69,6 @@ func Initialize(dbPath string) (bool, error) {
 		usersByName[user.Username] = user
 		if user.ID != 0 {
 			usersByID[user.ID] = user
-			userIDToUsername[user.ID] = user.Username
 		}
 	}
 	logger.Debugf("Loaded %d users", len(usersList))

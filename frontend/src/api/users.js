@@ -13,13 +13,13 @@ export async function getAllUsers() {
   }
 }
 
-// GET /api/users or /public/api/users (get single user)
-export async function get(id) {
+// GET /public/api/users?username= (single user by login name)
+export async function get(username) {
   try {
-    let apiPath = getPublicApiPath('users', { id: id })
+    let apiPath = getPublicApiPath('users', { username })
     return await fetchJSON(apiPath)
   } catch (err) {
-    notify.showError(err.message || `Failed to fetch user with ID: ${id}`)
+    notify.showError(err.message || `Failed to fetch user: ${username}`)
     throw err
   }
 }
@@ -47,14 +47,18 @@ export async function create(user) {
   }
 }
 
-// PUT /api/users (update user)
+// PUT /api/users?username= (update user; target login name is always the query key)
 export async function update(user, which = ['all']) {
   const excludeKeys = ['id', 'name']
   which = which.filter(item => !excludeKeys.includes(item))
   if (user.username === 'anonymous') {
     return
   }
-  
+  if (!user.username) {
+    notify.showError('username is required to update a user')
+    throw new Error('username is required')
+  }
+
   let userData = user
   if (which.length !== 1 || which[0] !== 'all') {
     userData = {}
@@ -65,7 +69,7 @@ export async function update(user, which = ['all']) {
     })
   }
 
-  const apiPath = getApiPath('users', { id: user.id })
+  const apiPath = getApiPath('users', { username: user.username })
   await fetchURL(apiPath, {
     method: 'PUT',
     body: JSON.stringify({
@@ -75,15 +79,15 @@ export async function update(user, which = ['all']) {
   })
 }
 
-// DELETE /api/users (remove user)
-export async function remove(id) {
+// DELETE /api/users?username=
+export async function remove(username) {
   try {
-    const apiPath = getApiPath('users', { id: id })
+    const apiPath = getApiPath('users', { username })
     await fetchURL(apiPath, {
       method: 'DELETE'
     })
   } catch (err) {
-    notify.showError(err.message || `Failed to delete user with ID: ${id}`)
+    notify.showError(err.message || `Failed to delete user: ${username}`)
     throw err
   }
 }

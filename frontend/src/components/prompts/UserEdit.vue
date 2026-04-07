@@ -140,8 +140,9 @@ export default {
     Errors,
   },
   props: {
-    userId: {
-      type: [String, Number],
+    /** Login name of the user being edited (omit for “new user”). */
+    targetUsername: {
+      type: String,
       required: false,
     },
     promptId: {
@@ -183,7 +184,7 @@ export default {
       return state.settings;
     },
     isNew() {
-      return !this.userId;
+      return !this.targetUsername;
     },
     stateUser() {
       return state.user;
@@ -258,11 +259,11 @@ export default {
             this.user.loginMethod = this.firstAvailableLoginMethod;
           }
         } else {
-          const id = this.userId;
-          if (id === undefined) {
+          const uname = this.targetUsername;
+          if (!uname) {
             return;
           }
-          this.user = { ...(await usersApi.get(id)) };
+          this.user = { ...(await usersApi.get(uname)) };
           this.user.password = "";
           // Normalize scopes to ensure they're in {name, scope} format only
           if (this.user.scopes && Array.isArray(this.user.scopes)) {
@@ -339,7 +340,7 @@ export default {
               label: this.$t("general.delete"),
               action: async () => {
                 try {
-                  await usersApi.remove(this.user.id);
+                  await usersApi.remove(this.user.username);
                   notify.showSuccessToast(this.$t("settings.userDeleted"));
                   eventBus.emit('usersChanged');
                   mutations.closeTopPrompt(); // close delete user prompt confirmation
@@ -378,7 +379,7 @@ export default {
         } else {
           await usersApi.update({ ...this.user, scopes: scopesToSend }, fields);
           // Only emit usersChanged for admin user management, not profile updates
-          if (state.user.permissions.admin && this.user.id !== state.user.id) {
+          if (state.user.permissions.admin && this.user.username !== state.user.username) {
             eventBus.emit('usersChanged');
           }
           notify.showSuccessToast(this.$t("settings.userUpdated"));
@@ -407,7 +408,7 @@ export default {
       try {
         await usersApi.update(this.user, ["password"]);
         // Only emit usersChanged for admin user management, not profile updates
-        if (state.user.permissions.admin && this.user.id !== state.user.id) {
+        if (state.user.permissions.admin && this.user.username !== state.user.username) {
           eventBus.emit('usersChanged');
         }
         notify.showSuccessToast(this.$t("settings.userUpdated"));

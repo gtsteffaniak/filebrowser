@@ -195,8 +195,14 @@ func (s *SQLStore) quickSetup() error {
 		}
 		user.Password = hashedPassword
 
+		nid, err := users.NextRandomUserID()
+		if err != nil {
+			return fmt.Errorf("failed to allocate admin user id: %w", err)
+		}
+		user.ID = nid
+
 		// Save the user directly to SQL
-		err := s.CreateUser(user)
+		err = s.CreateUser(user)
 		if err != nil {
 			return fmt.Errorf("failed to create admin user: %w", err)
 		}

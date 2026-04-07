@@ -81,6 +81,7 @@ type SQLPersister interface {
 	SaveRevokedToken(tokenHash string) error
 	SaveHashedToken(tokenHash string, userID uint64) error
 	DeleteHashedToken(tokenHash string) error
+	DeleteHashedTokensByUserID(userID uint64) error
 }
 
 // SetSQLStore sets the SQL store for persistence operations
@@ -1259,6 +1260,26 @@ func (s *Storage) RemoveApiToken(tokenString string) error {
 	s.mux.Unlock()
 	if sqlStore != nil {
 		return sqlStore.DeleteHashedToken(tokenHash)
+	}
+	return nil
+}
+
+// RemoveHashedTokensForUser removes every minimal-JWT hash → user id mapping for that owner.
+// Call when deleting a user so recycled usernames never resolve leftover token hashes to a new id.
+func (s *Storage) RemoveHashedTokensForUser(userID uint64) error {
+	if userID == 0 {
+		return nil
+	}
+	s.mux.Lock()
+	for hash, uid := range s.HashedTokens {
+		if uid == userID {
+			delete(s.HashedTokens, hash)
+		}
+	}
+	sqlStore := s.sqlStore
+	s.mux.Unlock()
+	if sqlStore != nil {
+		return sqlStore.DeleteHashedTokensByUserID(userID)
 	}
 	return nil
 }

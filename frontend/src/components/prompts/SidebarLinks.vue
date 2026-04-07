@@ -780,7 +780,6 @@ export default {
         } else {
           // Save to user
           const updatedUser = {
-            id: state.user.id,
             username: state.user.username,
             sidebarLinks: this.links,
           };

@@ -19,7 +19,7 @@
         </tr>
       </thead>
       <tbody class="settings-items">
-        <tr class="item" v-for="user in users" :key="user.id">
+        <tr class="item" v-for="user in users" :key="user.username">
           <td>{{ user.username }}</td>
           <td>{{ user.loginMethod }}</td>
           <td>
@@ -28,7 +28,7 @@
           </td>
           <td>{{ formatScopes(user.scopes) }}</td>
           <td class="small" aria-label="Edit User">
-            <div @click="openPrompt(user.id)" class="clickable action button">
+            <div @click="openPrompt(user.username)" class="clickable action button">
               <i class="material-symbols">edit</i>
             </div>
           </td>
@@ -99,9 +99,9 @@ export default {
         .map((scope) => `"${scope.name}": "${scope.scope}"`)
         .join(", ");
     },
-    openPrompt(userId) {
-      if (userId) {
-        mutations.showPrompt({ name: "user-edit", props: { userId } });
+    openPrompt(targetUsername) {
+      if (targetUsername) {
+        mutations.showPrompt({ name: "user-edit", props: { targetUsername } });
       } else {
         mutations.showPrompt({ name: "user-edit" });
       }

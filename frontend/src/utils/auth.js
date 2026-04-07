@@ -5,7 +5,7 @@ import { globalVars } from "@/utils/constants";
 export async function validateLogin(isPublicRoute = false) {
   // Use direct fetch to avoid automatic logout on 401
   // Public routes (e.g. /public/share/...) use the public API base path
-  const apiPath = getApiPath('users', { id: 'self' }, false, isPublicRoute);
+  const apiPath = getApiPath('users', { username: 'self' }, false, isPublicRoute);
   const res = await fetch(apiPath, {
     credentials: 'same-origin', // Ensure cookies are sent with the request
     headers: {

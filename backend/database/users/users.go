@@ -71,7 +71,7 @@ type Preview struct {
 type User struct {
 	NonAdminEditable
 	DisableSettings bool                 `json:"disableSettings"`
-	ID              uint64               `storm:"id,increment" json:"id"`
+	ID              uint64               `storm:"id,increment" json:"id,omitempty"`
 	Username        string               `storm:"unique" json:"username"`
 	Scopes          []SourceScope        `json:"scopes"`
 	Scope           string               `json:"scope,omitempty"`

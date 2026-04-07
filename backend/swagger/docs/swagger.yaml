@@ -4147,11 +4147,11 @@ paths:
     delete:
       consumes:
       - application/json
-      description: Deletes a user identified by their ID.
+      description: Deletes a user identified by login name.
       parameters:
-      - description: User ID
+      - description: Username
         in: query
-        name: id
+        name: username
         required: true
         type: string
       produces:
@@ -4171,18 +4171,19 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Delete a user by ID
+      summary: Delete a user by username
       tags:
       - Users
     get:
       consumes:
       - application/json
-      description: Returns a user's details based on their ID, or all users if no
-        id is provided.
+      description: Returns all users (admins) or only the current user; with ?username=self,
+        the logged-in user; with ?username=login, that user if permitted. Query id=
+        is not supported.
       parameters:
-      - description: User ID or 'self'
+      - description: Login name, or 'self' for the current session user
         in: query
-        name: id
+        name: username
         type: string
       produces:
       - application/json
@@ -4191,6 +4192,12 @@ paths:
           description: User details or list of users
           schema:
             $ref: '#/definitions/users.User'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "403":
           description: Forbidden
           schema:
@@ -4209,7 +4216,7 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Retrieve a user by ID
+      summary: List users or get one by username
       tags:
       - Users
     post:
@@ -4248,15 +4255,11 @@ paths:
     put:
       consumes:
       - application/json
-      description: Updates the details of a user identified by ID.
+      description: Updates the details of a user identified by username.
       parameters:
-      - description: user ID to update
+      - description: Username of user to update
         in: query
-        name: id
-        type: string
-      - description: usename to update
-        in: query
-        name: id
+        name: username
         type: string
       - description: User data to update
         in: body

@@ -122,13 +122,11 @@ func GetAllUsers() ([]users.User, error) {
 	return usersList, nil
 }
 
-// UserFromAPIToken resolves the user for a validated JWT API token (belongsTo id, legacy username claim, or minimal hash → user id).
+// UserFromAPIToken resolves the user for a validated API JWT: numeric belongsTo id, or minimal tokens
+// (hash → user id). Usernames are not used so a reused login name never inherits a previous account's API access.
 func UserFromAPIToken(tk users.AuthToken, rawToken string) (users.User, error) {
 	if tk.BelongsTo != 0 {
 		return GetUser(tk.BelongsTo)
-	}
-	if tk.Username != "" {
-		return GetUserByUsername(tk.Username)
 	}
 	if uid, ok := accessStorage.GetUserIDFromToken(rawToken); ok {
 		return GetUser(uid)
@@ -144,19 +142,11 @@ func UserForShareOwner(link *share.Link) (users.User, error) {
 	return GetUser(link.UserID)
 }
 
-func updateUserIDMapping(oldID uint64, u *users.User) {
-	if oldID != 0 && oldID != u.ID {
-		delete(userIDToUsername, oldID)
-	}
-	if u.ID != 0 {
-		userIDToUsername[u.ID] = u.Username
-	} else if oldID != 0 {
-		delete(userIDToUsername, oldID)
-	}
-}
-
 // CreateUser creates a new user with plaintext password
 func CreateUser(user *users.User, plaintextPassword string) error {
+	if _, exists := usersByName[user.Username]; exists {
+		return fmt.Errorf("user with username %s already exists", user.Username)
+	}
 	// Hash password if provided
 	if plaintextPassword != "" {
 		hashedPassword, err := utils.HashPwd(plaintextPassword)
@@ -182,28 +172,21 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 	usersMux.Lock()
 	defer usersMux.Unlock()
 
-	// 1. Check if user already exists in cache (state)
-	if user.ID != 0 {
-		if _, exists := usersByID[user.ID]; exists {
-			return fmt.Errorf("user with id %d already exists", user.ID)
+	if user.ID == 0 {
+		nid, genErr := users.NextRandomUserID()
+		if genErr != nil {
+			return fmt.Errorf("allocate user id: %w", genErr)
 		}
-	}
-	if _, exists := usersByName[user.Username]; exists {
-		return fmt.Errorf("user with username %s already exists", user.Username)
+		user.ID = nid
 	}
 
-	// 2. Write to database
 	err = sqlStore.CreateUser(user)
 	if err != nil {
 		return err
 	}
 
-	// 3. Update cache to match database
 	usersByName[user.Username] = user
-	if user.ID != 0 {
-		usersByID[user.ID] = user
-	}
-	updateUserIDMapping(0, user)
+	usersByID[user.ID] = user
 
 	return nil
 }
@@ -306,7 +289,6 @@ func UpdateUser(user *users.User, plaintextPassword string, fields ...string) er
 		usersByID[existingUser.ID] = existingUser
 	}
 	usersByName[existingUser.Username] = existingUser
-	updateUserIDMapping(oldUserID, existingUser)
 
 	return nil
 }
@@ -360,7 +342,10 @@ func DeleteUser(id uint64) error {
 
 	delete(usersByID, id)
 	delete(usersByName, user.Username)
-	delete(userIDToUsername, id)
+
+	if accessStorage != nil {
+		_ = accessStorage.RemoveHashedTokensForUser(id)
+	}
 
 	return nil
 }
@@ -381,11 +366,15 @@ func DeleteUserByUsername(username string) error {
 		return err
 	}
 
+	uid := user.ID
 	if user.ID != 0 {
 		delete(usersByID, user.ID)
-		delete(userIDToUsername, user.ID)
 	}
 	delete(usersByName, username)
+
+	if accessStorage != nil && uid != 0 {
+		_ = accessStorage.RemoveHashedTokensForUser(uid)
+	}
 
 	return nil
 }

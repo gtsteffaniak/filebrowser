@@ -104,7 +104,7 @@ const routes: RouteRecordRaw[] = [
         component: Settings,
       },
       {
-        path: "users/:id",
+        path: "users/:username",
         name: "User",
         component: Settings,
       },

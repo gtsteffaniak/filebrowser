@@ -197,14 +197,10 @@ func (s *SQLStore) ListUsers() ([]*users.User, error) {
 	return usersList, nil
 }
 
-// CreateUser inserts a new user. If user.ID is 0, a random uint64 is assigned.
+// CreateUser inserts a new user. user.ID must be non-zero (state.CreateUser and migration assign ids).
 func (s *SQLStore) CreateUser(user *users.User) error {
 	if user.ID == 0 {
-		nid, err := users.NextRandomUserID()
-		if err != nil {
-			return fmt.Errorf("allocate user id: %w", err)
-		}
-		user.ID = nid
+		return fmt.Errorf("user id must be set before insert")
 	}
 
 	userData := UserData{

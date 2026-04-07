@@ -40,6 +40,13 @@ func (s *sqlStoreAdapter) Save(user *users.User, changePass, disableScopeChange 
 	existingUser, err := s.store.GetUserByUsername(user.Username)
 	if err != nil {
 		// User doesn't exist - create new user
+		if user.ID == 0 {
+			nid, genErr := users.NextRandomUserID()
+			if genErr != nil {
+				return genErr
+			}
+			user.ID = nid
+		}
 		return s.store.CreateUser(user)
 	}
 	// User exists - update

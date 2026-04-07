@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v2.0.0
+
+ **Notes**:
+ - user.id has been moved to a backend property and all frontend apis now query users by username. Swagger has been updated.
+
 ## v1.3.3
 
  **New Features**:

@@ -3014,7 +3014,7 @@ const docTemplate = `{
         },
         "/api/users": {
             "get": {
-                "description": "Returns a user's details based on their ID, or all users if no id is provided.",
+                "description": "Returns all users (admins) or only the current user; with ?username=self, the logged-in user; with ?username=login, that user if permitted. Query id= is not supported.",
                 "consumes": [
                     "application/json"
                 ],
@@ -3024,12 +3024,12 @@ const docTemplate = `{
                 "tags": [
                     "Users"
                 ],
-                "summary": "Retrieve a user by ID",
+                "summary": "List users or get one by username",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "User ID or 'self'",
-                        "name": "id",
+                        "description": "Login name, or 'self' for the current session user",
+                        "name": "username",
                         "in": "query"
                     }
                 ],
@@ -3038,6 +3038,15 @@ const docTemplate = `{
                         "description": "User details or list of users",
                         "schema": {
                             "$ref": "#/definitions/users.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     },
                     "403": {
@@ -3070,7 +3079,7 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "Updates the details of a user identified by ID.",
+                "description": "Updates the details of a user identified by username.",
                 "consumes": [
                     "application/json"
                 ],
@@ -3081,14 +3090,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "user ID to update",
-                        "name": "id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "usename to update",
-                        "name": "id",
+                        "description": "Username of user to update",
+                        "name": "username",
                         "in": "query"
                     },
                     {
@@ -3185,7 +3188,7 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "Deletes a user identified by their ID.",
+                "description": "Deletes a user identified by login name.",
                 "consumes": [
                     "application/json"
                 ],
@@ -3195,12 +3198,12 @@ const docTemplate = `{
                 "tags": [
                     "Users"
                 ],
-                "summary": "Delete a user by ID",
+                "summary": "Delete a user by username",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "User ID",
-                        "name": "id",
+                        "description": "Username",
+                        "name": "username",
                         "in": "query",
                         "required": true
                     }
