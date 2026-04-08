@@ -48,6 +48,8 @@ func addMetadataToChildren(response *iteminfo.ExtendedFileInfo, opts utils.FileO
 			if isAudio {
 				if err := extractAudioMetadata(context.Background(), fileItem, fullPath, opts.AlbumArt, opts.Metadata, sharedFFmpegService); err != nil {
 					logger.Debugf("failed to extract metadata for file: %s, error: %v", fileItem.Name, err)
+				} else {
+					fileItem.HasPreview = fileItem.Metadata != nil && len(fileItem.Metadata.AlbumArt) > 0
 				}
 			} else {
 				if err := extractVideoMetadata(context.Background(), fileItem, fullPath, sharedFFmpegService); err != nil {
