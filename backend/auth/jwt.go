@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
@@ -100,32 +101,73 @@ func VerifyExternalJWT(tokenString string, secret string, algorithm string, user
 	return username, claimsMap, nil
 }
 
-// ExtractGroupsFromClaims extracts groups from JWT claims based on the configured groups claim field
+// ExtractGroupsFromClaims extracts groups from JWT claims based on the configured groups claim field.
+// Supports nested claims using ':' as a separator (e.g., "custom:groups" -> claims["custom"]["groups"])
 func ExtractGroupsFromClaims(claims map[string]interface{}, groupsClaimField string) []string {
 	var groups []string
 	
-	if groupsVal, ok := claims[groupsClaimField]; ok {
-		switch v := groupsVal.(type) {
-		case []interface{}:
-			// Groups as array of interfaces
-			for _, g := range v {
-				if groupStr, ok := g.(string); ok {
-					groups = append(groups, groupStr)
-				}
+	// Try to resolve nested path first (e.g., "custom:groups")
+	groupsVal := resolveNestedClaim(claims, groupsClaimField)
+	
+	if groupsVal == nil {
+		// If nested path didn't work, try direct lookup
+		if val, ok := claims[groupsClaimField]; ok {
+			groupsVal = val
+		}
+	}
+	
+	if groupsVal != nil {
+		groups = parseGroupsValue(groupsVal)
+	}
+	
+	return groups
+}
+
+// resolveNestedClaim resolves nested claims using ':' as a separator
+func resolveNestedClaim(claims map[string]interface{}, path string) interface{} {
+	parts := strings.Split(path, ":")
+	current := interface{}(claims)
+	
+	for _, part := range parts {
+		switch v := current.(type) {
+		case map[string]interface{}:
+			if val, ok := v[part]; ok {
+				current = val
+			} else {
+				return nil
 			}
-		case []string:
-			// Groups as array of strings
-			groups = v
-		case string:
-			// Single group as string
-			groups = []string{v}
 		default:
-			// Try to unmarshal as JSON array
-			if jsonBytes, err := json.Marshal(v); err == nil {
-				var groupsArray []string
-				if err := json.Unmarshal(jsonBytes, &groupsArray); err == nil {
-					groups = groupsArray
-				}
+			return nil
+		}
+	}
+	
+	return current
+}
+
+// parseGroupsValue parses a value into a string slice of groups
+func parseGroupsValue(groupsVal interface{}) []string {
+	var groups []string
+	
+	switch v := groupsVal.(type) {
+	case []interface{}:
+		// Groups as array of interfaces
+		for _, g := range v {
+			if groupStr, ok := g.(string); ok {
+				groups = append(groups, groupStr)
+			}
+		}
+	case []string:
+		// Groups as array of strings
+		groups = v
+	case string:
+		// Single group as string
+		groups = []string{v}
+	default:
+		// Try to unmarshal as JSON array
+		if jsonBytes, err := json.Marshal(v); err == nil {
+			var groupsArray []string
+			if err := json.Unmarshal(jsonBytes, &groupsArray); err == nil {
+				groups = groupsArray
 			}
 		}
 	}
