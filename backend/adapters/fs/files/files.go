@@ -297,22 +297,20 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index, opts u
 
 			return
 		}
+	}
 
-		if isAudio {
-			// Create an ExtendedItemInfo to hold the metadata
-			extItem := &iteminfo.ExtendedItemInfo{
-				ItemInfo: info.ItemInfo,
-			}
-			err := extractAudioMetadata(context.Background(), extItem, info.RealPath, opts.AlbumArt || opts.Content, opts.Metadata || opts.Content, nil)
-			if err != nil {
-				logger.Debugf("failed to extract audio metadata for file: "+info.RealPath, info.Name, err)
-			} else {
-				// Copy metadata to ExtendedFileInfo
-				info.Metadata = extItem.Metadata
-				info.HasPreview = extItem.Metadata != nil && len(extItem.Metadata.AlbumArt) > 0
-			}
-			return
+	if isAudio && (opts.Metadata || opts.AlbumArt || opts.Content) {
+		extItem := &iteminfo.ExtendedItemInfo{
+			ItemInfo: info.ItemInfo,
 		}
+		err := extractAudioMetadata(context.Background(), extItem, info.RealPath, opts.AlbumArt || opts.Content, opts.Metadata || opts.Content, nil)
+		if err != nil {
+			logger.Debugf("failed to extract audio metadata for file: "+info.RealPath, info.Name, err)
+		} else {
+			info.Metadata = extItem.Metadata
+			info.HasPreview = extItem.Metadata != nil && len(extItem.Metadata.AlbumArt) > 0
+		}
+		return
 	}
 
 	// Process text content for non-video, non-audio files
