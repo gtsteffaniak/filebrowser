@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.3.4
 
+ **New Features**:
+ - Epub placementg url anchors to bookmark a specific location on the doc.
+
  **BugFixes**:
  - Swiping media files doesn't respect Playback Queue (#2243)
  - Audio metadata and album thumbnails doesn't work (#2236)

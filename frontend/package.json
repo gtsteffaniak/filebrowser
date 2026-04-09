@@ -44,7 +44,8 @@
     "vue-router": "^4.3.0"
   },
   "overrides": {
-    "minimatch": "^10.2.1"
+    "minimatch": "^10.2.1",
+    "@xmldom/xmldom": "^0.8.12"
   },
   "devDependencies": {
     "@intlify/eslint-plugin-vue-i18n": "^3.2.0",

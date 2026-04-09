@@ -20,6 +20,34 @@ import { state, mutations, getters } from "@/store"; // Assuming your store setu
 import { resourcesApi } from "@/api";
 import { removeLastDir } from "@/utils/url"; // Assuming your utils setup
 
+/** Hash format: `#epubcfi=<encodeURIComponent(epub-cfi)>` — distinct from listing `#filename` hashes. */
+const EPUB_HASH_PREFIX = "epubcfi=";
+
+function parseEpubCfiFromHash(): string | null {
+  const h = window.location.hash;
+  if (!h || h.length <= 1) return null;
+  const raw = h.slice(1);
+  if (!raw.startsWith(EPUB_HASH_PREFIX)) return null;
+  try {
+    return decodeURIComponent(raw.slice(EPUB_HASH_PREFIX.length));
+  } catch {
+    return null;
+  }
+}
+
+function replaceUrlHashWithEpubCfi(cfi: string) {
+  const newHash = `#${EPUB_HASH_PREFIX}${encodeURIComponent(cfi)}`;
+  history.replaceState(null, "", `${window.location.pathname}${window.location.search}${newHash}`);
+}
+
+function cfiToString(cfi: unknown): string {
+  if (typeof cfi === "string") return cfi;
+  if (cfi != null && typeof (cfi as { toString?: () => string }).toString === "function") {
+    return String((cfi as { toString: () => string }).toString());
+  }
+  return "";
+}
+
 export default defineComponent({
   name: "epubViewer",
   data() {
@@ -28,6 +56,10 @@ export default defineComponent({
       floatIn: false, // Flag for the float-in animation
       book: null as Book | null,
       rendition: null as Rendition | null,
+      epubHashDebounceTimer: null as number | null,
+      unwatchDarkMode: null as (() => void) | null,
+      onRelocatedHandler: null as ((loc: unknown) => void) | null,
+      onWindowHashChangeHandler: null as (() => void) | null,
     };
   },
   async mounted() {
@@ -65,14 +97,45 @@ export default defineComponent({
         flow: "paginated", // Standard book-like pagination
       });
 
-      // 4. Display the rendered book
-      await this.rendition.display();
+      // 4. Display: restore from `#epubcfi=...` if present, else first linear chapter
+      const initialCfi = parseEpubCfiFromHash();
+      try {
+        if (initialCfi) {
+          await this.rendition.display(initialCfi);
+        } else {
+          await this.rendition.display();
+        }
+      } catch {
+        await this.rendition.display();
+      }
 
       this.applyTheme(getters.isDarkMode());
 
-      watch(() => getters.isDarkMode(), (isDark) => {
+      this.unwatchDarkMode = watch(() => getters.isDarkMode(), (isDark) => {
         this.applyTheme(isDark);
       });
+
+      this.onRelocatedHandler = (loc: unknown) => {
+        const start = (loc as { start?: { cfi?: unknown } })?.start;
+        const cfi = cfiToString(start?.cfi);
+        if (!cfi) return;
+        if (this.epubHashDebounceTimer !== null) {
+          clearTimeout(this.epubHashDebounceTimer);
+        }
+        this.epubHashDebounceTimer = window.setTimeout(() => {
+          this.epubHashDebounceTimer = null;
+          replaceUrlHashWithEpubCfi(cfi);
+        }, 300);
+      };
+      this.rendition.on("relocated", this.onRelocatedHandler);
+
+      this.onWindowHashChangeHandler = () => {
+        if (!this.rendition) return;
+        const cfi = parseEpubCfiFromHash();
+        if (!cfi) return;
+        this.rendition.display(cfi).catch(() => {});
+      };
+      window.addEventListener("hashchange", this.onWindowHashChangeHandler);
 
       // Set flags to show the book and trigger animations
       this.isReady = true;
@@ -84,7 +147,20 @@ export default defineComponent({
     }
   },
   beforeUnmount() {
-    // Clean up and destroy the epub instance to free up memory
+    if (this.epubHashDebounceTimer !== null) {
+      clearTimeout(this.epubHashDebounceTimer);
+      this.epubHashDebounceTimer = null;
+    }
+    if (this.onWindowHashChangeHandler) {
+      window.removeEventListener("hashchange", this.onWindowHashChangeHandler);
+      this.onWindowHashChangeHandler = null;
+    }
+    if (this.rendition && this.onRelocatedHandler) {
+      this.rendition.off("relocated", this.onRelocatedHandler);
+      this.onRelocatedHandler = null;
+    }
+    this.unwatchDarkMode?.();
+    this.unwatchDarkMode = null;
     if (this.book) {
       this.book.destroy();
     }
@@ -96,6 +172,8 @@ export default defineComponent({
         this.rendition.themes.default({
           body: { color: "#fff !important" },
           a: { color: "#bb86fc !important" },
+          p: { color: "var(--textPrimary) !important" },
+          h1: { color: "var(--textPrimary) !important" },
         });
       } else {
         this.rendition.themes.default({
