@@ -7,6 +7,9 @@ All notable changes to this project will be documented in this file. For commit 
  **New Features**:
  - Epub placementg url anchors to bookmark a specific location on the doc.
 
+ **Notes**:
+ - user scope editing has path picker and filesystem validation
+
  **BugFixes**:
  - Swiping media files doesn't respect Playback Queue (#2243)
  - Audio metadata and album thumbnails doesn't work (#2236)
