@@ -28,6 +28,7 @@
           @mouseleave="hideTooltip"
           @mouseenter="showTooltip($event, $t('buttons.selectedCount'))"
           class="button selected-count-header"
+          :class="{ 'selected-count-header--circle': selectedCount <= 99 }"
         >
           <span>{{ selectedCount }}</span>
         </div>
@@ -855,7 +856,18 @@ export default {
 .selected-count-header {
   border-radius: 1em;
   cursor: unset;
-  padding: 0.5em;
+}
+
+/* Circle for up to 3 digits; 1000+ keeps pill shape from .button */
+.selected-count-header--circle {
+  box-sizing: border-box;
+  flex-shrink: 0;
+  width: 2em;
+  height: 2em;
+  min-width: 2em;
+  min-height: 2em;
+  padding: 0;
+  border-radius: 50%;
 }
 
 .context-menu-header > .action i {
@@ -901,5 +913,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
 }
 </style>
