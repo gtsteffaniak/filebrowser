@@ -90,9 +90,15 @@
       />
       <action
         v-if="showCopy"
-        icon="content_copy"
+        icon="file_copy"
         :label="$t('buttons.copyFile')"
         @action="showCopyPrompt"
+      />
+      <action
+        v-if="showCopyPath"
+        icon="copy_all"
+        :label="$t('buttons.copyPath')"
+        @action="copyPathToClipboard"
       />
       <action
         v-if="showOpenParentFolder"
@@ -286,6 +292,10 @@ export default {
     showCopy() {
       if (this.showLimitedOptions) return false;
       return !this.showCreate && this.selectedCount > 0 && this.permissions.modify;
+    },
+    showCopyPath() {
+      if (this.showLimitedOptions) return false;
+      return !this.showCreate && this.selectedCount == 1 && !!state.user?.showCopyPath;
     },
     showOpenParentFolder() {
       return !this.showCreate && this.selectedCount == 1 && (this.isSearchActive || this.showLimitedOptions);
@@ -646,6 +656,39 @@ export default {
           operation: 'copy',
         },
       });
+    },
+    async copyPathToClipboard() {
+      const item = this.firstSelected;
+      const path = item?.path || "";
+
+      if (!path) {
+        notify.showErrorToast(this.$t("prompts.copyToClipboardFailed"));
+        mutations.closeHovers();
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(path);
+        notify.showSuccessToast(this.$t("buttons.copySuccess"));
+      } catch (err) {
+        const textArea = document.createElement("textarea");
+        textArea.value = path;
+        textArea.style.position = "fixed";
+        textArea.style.opacity = "0";
+        document.body.appendChild(textArea);
+        textArea.select();
+
+        try {
+          document.execCommand("copy");
+          notify.showSuccessToast(this.$t("buttons.copySuccess"));
+        } catch (e) {
+          notify.showErrorToast(this.$t("prompts.copyToClipboardFailed"));
+        }
+
+        document.body.removeChild(textArea);
+      }
+
+      mutations.closeHovers();
     },
     showNewDirPrompt() {
       mutations.closeHovers();

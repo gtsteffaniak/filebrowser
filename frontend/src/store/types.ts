@@ -66,6 +66,7 @@ export interface UserObject {
   disableSettings: boolean;
   debugOffice: boolean;
   preferEditorForMarkdown: boolean;
+  showCopyPath?: boolean;
   profile: {
     username: string;
     email: string;
