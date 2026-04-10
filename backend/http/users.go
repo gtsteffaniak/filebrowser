@@ -300,7 +300,7 @@ func verifyActorPasswordForUserPasswordChange(r *http.Request, d *requestContext
 
 // userPutHandler updates an existing user's details.
 // @Summary Update a user's details
-// @Description Updates the details of a user identified by ID. When updating the target user's password (which includes "password" and a non-empty password in the body), the actor must use password login, the target user must use password login, and the actor must send their current password in the X-Password header (URL-encoded, same as POST /api/auth/login).
+// @Description Updates the details of a user identified by ID. When updating the target user's password the actor must send their current password in the X-Password header
 // @Tags Users
 // @Accept json
 // @Param id query string false "user ID to update"
