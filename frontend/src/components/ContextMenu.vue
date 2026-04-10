@@ -10,7 +10,7 @@
       ref="contextMenu"
       v-if="showContext"
       :style="centered ? {} : { top: posY + 'px', left: posX + 'px' }"
-      class="button no-select floating-window"
+      class="no-select floating-window"
       :class="{ 'dark-mode': isDarkMode, 'centered': centered }"
       :key="showCreate ? 'create-mode' : 'normal-mode'"
     >
@@ -158,7 +158,7 @@
         top: '3em',
         right: '1em',
       }"
-      class="button no-select floating-window"
+      class="no-select floating-window"
       :class="{ 'dark-mode': isDarkMode }"
     >
       <action icon="info" :label="$t('general.info')" @action="showInfoPrompt"/>
@@ -835,12 +835,14 @@ export default {
   z-index: 1000;
   background-color: var(--background);
   max-width: 20em;
-  min-width: 15em;
+  min-width: 13em;
   min-height: 4em;
   height: auto;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  border-radius: 1em;
+  padding: 0.5em;
 }
 
 #context-menu.centered {
@@ -853,6 +855,7 @@ export default {
 .selected-count-header {
   border-radius: 1em;
   cursor: unset;
+  padding: 0.5em;
 }
 
 .context-menu-header > .action i {

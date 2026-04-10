@@ -26,6 +26,9 @@
               :name="$t('profileSettings.deleteAfterArchive')"
               :description="$t('profileSettings.deleteAfterArchiveDescription')"
             />
+            <ToggleSwitch class="item" v-model="localuser.showCopyPath" @change="updateSettings"
+              :name="$t('profileSettings.showCopyPath')"
+              :description="$t('profileSettings.showCopyPathDescription')" />
           </div>
         </SettingsItem>
         <SettingsItem aria-label="thumbnailOptions" :title="$t('profileSettings.thumbnailOptions')" :collapsable="true"
@@ -86,9 +89,6 @@
               :description="$t('profileSettings.disableHideSidebarDescription')" />
             <ToggleSwitch class="item" v-model="localuser.hideSidebarFileActions" @change="updateSettings"
               :name="$t('profileSettings.hideSidebarFileActions')" />
-            <ToggleSwitch class="item" v-model="localuser.showCopyPath" @change="updateSettings"
-              :name="$t('profileSettings.showCopyPath')"
-              :description="$t('profileSettings.showCopyPathDescription')" />
             <ToggleSwitch class="item" v-model="localuser.hideFilesInTree" @change="updateSettings"
               :name="$t('profileSettings.hideFilesInTree')" :description="$t('profileSettings.hideFilesInTreeDescription')" />
           </div>
