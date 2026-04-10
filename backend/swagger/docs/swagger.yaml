@@ -4234,7 +4234,11 @@ paths:
     put:
       consumes:
       - application/json
-      description: Updates the details of a user identified by ID.
+      description: Updates the details of a user identified by ID. When updating the
+        target user's password (which includes "password" and a non-empty password
+        in the body), the actor must use password login, the target user must use
+        password login, and the actor must send their current password in the X-Password
+        header (URL-encoded, same as POST /api/auth/login).
       parameters:
       - description: user ID to update
         in: query
@@ -4243,6 +4247,11 @@ paths:
       - description: usename to update
         in: query
         name: id
+        type: string
+      - description: Actor's current password (URL-encoded); required when changing
+          a password user's password
+        in: header
+        name: X-Password
         type: string
       - description: User data to update
         in: body
@@ -4255,6 +4264,13 @@ paths:
           description: No Content - User updated successfully
         "400":
           description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized - invalid or missing actor password for password
+            change
           schema:
             additionalProperties:
               type: string

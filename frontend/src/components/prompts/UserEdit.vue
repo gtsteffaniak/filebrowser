@@ -5,7 +5,7 @@
       <i class="material-symbols-outlined">sentiment_dissatisfied</i>
       <span>{{ $t("files.lonely") }}</span>
     </h2>
-    <div v-if="user.loginMethod == 'password' && globalVars.passwordAvailable && !isNew">
+    <div v-if="showPasswordChangeSection">
       <label for="password">{{ $t("general.password") }}</label>
       <div class="form-flex-group">
         <input class="input form-form" :class="{ 'form-invalid': invalidPassword }" aria-label="Password1"
@@ -16,7 +16,13 @@
         <input class="input form-form" :class="{ 'flat-right': !isNew, 'form-invalid': invalidPassword }"
           aria-label="Password2" type="password" autocomplete="new-password"
           :placeholder="$t('settings.enterPasswordAgain')" v-model="user.password" id="password" />
-        <button v-if="!isNew" type="button" class="button form-button flat-left" @click="submitUpdatePassword">
+        <button
+          v-if="!isNew"
+          type="button"
+          class="button form-button flat-left"
+          :disabled="!canUpdatePassword"
+          @click="submitUpdatePassword"
+        >
           {{ $t("general.update") }}
         </button>
       </div>
@@ -46,7 +52,13 @@
           <input class="input form-form" :class="{ 'flat-right': !isNew, 'form-invalid': invalidPassword }"
             type="password" :placeholder="$t('settings.enterPasswordAgain')" aria-label="Password2"
             v-model="user.password" autocomplete="new-password" id="password" />
-          <button v-if="!isNew" type="button" class="button form-button flat-left" @click="submitUpdatePassword">
+          <button
+            v-if="!isNew"
+            type="button"
+            class="button form-button flat-left"
+            :disabled="!canUpdatePassword"
+            @click="submitUpdatePassword"
+          >
             {{ $t("general.update") }}
           </button>
         </div>
@@ -207,6 +219,15 @@ export default {
         this.user.password != this.passwordRef && this.user.password.length > 0;
       return matching;
     },
+    /** Update is allowed only when both password fields are non-empty (trimmed) and match. */
+    canUpdatePassword() {
+      const a = String(this.passwordRef ?? "").trim();
+      const b = String(this.user.password ?? "").trim();
+      if (a.length === 0 || b.length === 0) {
+        return false;
+      }
+      return !this.invalidPassword;
+    },
     passwordAvailable: () => globalVars.passwordAvailable,
     globalVars: () => globalVars,
     duplicateSources() {
@@ -221,6 +242,15 @@ export default {
     },
     displayHomeDirectoryCheckbox() {
       return this.isNew && this.createUserDir;
+    },
+    /** Password change (existing user): target and signed-in user must both use password login. */
+    showPasswordChangeSection() {
+      return (
+        !this.isNew &&
+        this.user.loginMethod === "password" &&
+        this.stateUser.loginMethod === "password" &&
+        this.globalVars.passwordAvailable
+      );
     },
     firstAvailableLoginMethod() {
       if (this.globalVars.passwordAvailable) return "password";
@@ -414,20 +444,31 @@ export default {
     },
     async submitUpdatePassword() {
       event.preventDefault();
-      if (this.invalidPassword) {
-        notify.showError(this.$t("settings.passwordsDoNotMatch"));
+      if (!this.canUpdatePassword) {
         return;
       }
-      try {
-        await usersApi.update(this.user, ["password"]);
-        // Only emit usersChanged for admin user management, not profile updates
-        if (state.user.permissions.admin && this.user.id !== state.user.id) {
-          eventBus.emit('usersChanged');
-        }
-        notify.showSuccessToast(this.$t("settings.userUpdated"));
-      } catch (e) {
-        notify.showError(e);
-      }
+      mutations.showPrompt({
+        name: "password",
+        props: {
+          infoText: this.$t("prompts.confirmPasswordToChangeUserPassword"),
+          submitLabel: this.$t("general.confirm"),
+          submitCallback: async (actorPassword) => {
+            try {
+              await usersApi.update(this.user, ["password"], {
+                headers: {
+                  "X-Password": encodeURIComponent(actorPassword),
+                },
+              });
+              if (state.user.permissions.admin && this.user.id !== state.user.id) {
+                eventBus.emit("usersChanged");
+              }
+              notify.showSuccessToast(this.$t("settings.userUpdated"));
+            } catch (e) {
+              notify.showError(e);
+            }
+          },
+        },
+      });
     },
     emitUserUpdate() {
       // Update the user object with current scopes
