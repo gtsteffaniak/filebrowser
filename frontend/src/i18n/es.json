@@ -33,7 +33,8 @@
     "showMore": "Mostrar opciones avanzadas",
     "showLess": "Ocultar opciones avanzadas",
     "goToSource": "Ir al origen",
-    "goToItem": "Abrir"
+    "goToItem": "Abrir",
+    "copyPath": "Copiar ruta"
   },
   "download": {
     "downloadFile": "Descargar archivo",
@@ -775,7 +776,9 @@
     "thumbnailOptions": "Opciones de miniaturas",
     "showThumbnails": "Mostrar miniaturas soportadas",
     "showThumbnailsDescription": "Cuando está activada, se mostrarán miniaturas para todos los archivos soportados. Puedes desactivarlo para desactivar todas las miniaturas.",
-    "previewAudiosDescription": "Muestra vistas previas en miniatura de los archivos de audio, mostrará un icono genérico si está desactivado."
+    "previewAudiosDescription": "Muestra vistas previas en miniatura de los archivos de audio, mostrará un icono genérico si está desactivado.",
+    "showCopyPath": "Mostrar ruta de copia en el menú contextual",
+    "showCopyPathDescription": "Mostrar una acción Copiar ruta en el menú contextual de archivos y carpetas."
   },
   "editor": {
     "uninitialized": "No se pudo iniciar el editor",

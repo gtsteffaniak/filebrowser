@@ -164,7 +164,8 @@
     "keepEditing": "Continua a modificare",
     "closeAnyway": "Chiudi comunque",
     "goToItem": "Vai all'elemento",
-    "goToSource": "Vai alla posizione sorgente"
+    "goToSource": "Vai alla posizione sorgente",
+    "copyPath": "Percorso di copia"
   },
   "download": {
     "downloadFile": "Scarica file",
@@ -534,7 +535,9 @@
     "thumbnailOptions": "Opzioni Miniature",
     "showThumbnails": "Mostra miniature per elementi supportati",
     "showThumbnailsDescription": "Spegni per nascondere tutte le miniature nell'elenco.",
-    "previewAudiosDescription": "Mostra le anteprime dei file audio; se è disattivato, mostra un'icona generica."
+    "previewAudiosDescription": "Mostra le anteprime dei file audio; se è disattivato, mostra un'icona generica.",
+    "showCopyPath": "Mostra Copia percorso nel menu contestuale",
+    "showCopyPathDescription": "Mostra l'azione Copia percorso nel menu contestuale di file e cartelle."
   },
   "settings": {
     "systemAdmin": "Sistema e Admin",

@@ -33,7 +33,8 @@
     "showMore": "Pokaż opcje zaawansowane",
     "showLess": "Ukryj opcje zaawansowane",
     "goToSource": "Przejdź do lokalizacji źródłowej",
-    "goToItem": "Przejdź do pozycji"
+    "goToItem": "Przejdź do pozycji",
+    "copyPath": "Ścieżka kopiowania"
   },
   "download": {
     "downloadFile": "Pobierz plik",
@@ -775,7 +776,9 @@
     "thumbnailOptions": "Opcje miniatur",
     "showThumbnails": "Wyświetlanie miniatur obsługiwanych elementów",
     "showThumbnailsDescription": "Po włączeniu tej opcji miniatury są wyświetlane na liście elementów, które je obsługują. Wyłącz, aby ukryć wszystkie miniatury.",
-    "previewAudiosDescription": "Wyświetlanie podglądu miniatur plików audio; jeśli opcja ta jest wyłączona, wyświetlana jest ogólna ikona."
+    "previewAudiosDescription": "Wyświetlanie podglądu miniatur plików audio; jeśli opcja ta jest wyłączona, wyświetlana jest ogólna ikona.",
+    "showCopyPath": "Pokaż kopiowanie ścieżki w menu kontekstowym",
+    "showCopyPathDescription": "Wyświetlanie akcji Kopiuj ścieżkę w menu kontekstowym plików i folderów."
   },
   "editor": {
     "uninitialized": "Nie udało się zainicjować edytora. Przeładuj ponownie.",

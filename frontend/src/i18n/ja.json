@@ -33,7 +33,8 @@
     "showMore": "詳細オプションを表示",
     "showLess": "詳細オプションを隠す",
     "goToSource": "ソース・ロケーションへ",
-    "goToItem": "アイテムへ"
+    "goToItem": "アイテムへ",
+    "copyPath": "コピーパス"
   },
   "download": {
     "downloadFile": "ファイルをダウンロード",
@@ -775,7 +776,9 @@
     "thumbnailOptions": "サムネイルオプション",
     "showThumbnails": "対応アイテムのサムネイルを表示",
     "showThumbnailsDescription": "有効にすると、サムネイルをサポートしているアイテムのリストにサムネイルが表示されます。オフにするとすべてのサムネイルが非表示になります。",
-    "previewAudiosDescription": "オーディオファイルのサムネイルプレビューを表示します。無効の場合は一般的なアイコンを表示します。"
+    "previewAudiosDescription": "オーディオファイルのサムネイルプレビューを表示します。無効の場合は一般的なアイコンを表示します。",
+    "showCopyPath": "コンテキストメニューにコピーパスを表示する",
+    "showCopyPathDescription": "ファイルやフォルダのコンテキストメニューに「パスをコピー」アクションを表示します。"
   },
   "editor": {
     "uninitialized": "エディタの初期化に失敗しました。再読み込みしてください。",

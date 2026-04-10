@@ -42,34 +42,112 @@ func (u *userInfoUnmarshaller) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	// Extract groups if configured
+	// Extract groups if configured (supports nested claims like "resource_access.filebrowser-client.roles")
 	if u.groupsClaim != "" {
-		if v, ok := raw[u.groupsClaim]; ok {
-			switch val := v.(type) {
-			case map[string]interface{}:
-				u.userInfo.Groups = slices.Collect(maps.Keys(val))
-			case []interface{}:
-				groups := make([]string, len(val))
-				for i, g := range val {
-					if s, ok := g.(string); ok {
-						groups[i] = strings.TrimSpace(s)
-					}
-				}
-				u.userInfo.Groups = groups
-			case string:
-				if val != "" {
-					parts := strings.Split(val, ",")
-					for i := range parts {
-						parts[i] = strings.TrimSpace(parts[i])
-					}
-					u.userInfo.Groups = parts
+		u.userInfo.Groups = extractGroupsFromOIDCClaims(raw, u.groupsClaim)
+	}
+
+	u.userInfo.Claims = raw
+	return nil
+}
+
+// extractGroupsFromOIDCClaims extracts groups from OIDC claims supporting nested paths.
+// Supports both direct claims (e.g., "groups") and nested claims using '.' separator (e.g., "resource_access.filebrowser-client.roles")
+func extractGroupsFromOIDCClaims(claims map[string]interface{}, groupsClaimField string) []string {
+	var groups []string
+
+	if groupsClaimField == "" {
+		return groups
+	}
+
+	// Try to resolve nested path first (e.g., "custom.groups")
+	groupsVal := resolveOIDCNestedClaim(claims, groupsClaimField)
+
+	if groupsVal == nil {
+		// If nested path didn't work, try direct lookup
+		if val, ok := claims[groupsClaimField]; ok {
+			groupsVal = val
+		}
+	}
+
+	if groupsVal != nil {
+		groups = parseOIDCGroupsValue(groupsVal)
+	}
+
+	return groups
+}
+
+// resolveOIDCNestedClaim resolves nested OIDC claims using '.' as a separator
+func resolveOIDCNestedClaim(claims map[string]interface{}, path string) interface{} {
+	parts := strings.Split(path, ".")
+	current := interface{}(claims)
+
+	for _, part := range parts {
+		switch v := current.(type) {
+		case map[string]interface{}:
+			if val, ok := v[part]; ok {
+				current = val
+			} else {
+				return nil
+			}
+		default:
+			return nil
+		}
+	}
+
+	return current
+}
+
+// parseOIDCGroupsValue parses OIDC claim values into a string slice of groups
+// Returns nil for missing/empty non-array values, []string{} for empty arrays
+func parseOIDCGroupsValue(groupsVal interface{}) []string {
+	var groups []string
+
+	switch val := groupsVal.(type) {
+	case map[string]interface{}:
+		// Groups as map keys - return empty slice for empty map
+		groups = slices.Collect(maps.Keys(val))
+	case []interface{}:
+		// Groups as array of interfaces - always initialize as empty slice for arrays
+		groups = []string{}
+		for _, g := range val {
+			if groupStr, ok := g.(string); ok {
+				groups = append(groups, strings.TrimSpace(groupStr))
+			}
+		}
+	case []string:
+		// Groups as array of strings - always initialize as empty slice for arrays
+		groups = val
+		if groups == nil {
+			groups = []string{}
+		}
+	case string:
+		// Single group as string or comma-separated groups
+		// Return nil for empty strings, parsed array otherwise
+		if val != "" {
+			parts := strings.Split(val, ",")
+			for i := range parts {
+				parts[i] = strings.TrimSpace(parts[i])
+			}
+			groups = parts
+		}
+		// else: groups stays nil for empty string
+	default:
+		// Try to unmarshal as JSON array
+		if jsonBytes, err := json.Marshal(val); err == nil {
+			var groupsArray []string
+			if err := json.Unmarshal(jsonBytes, &groupsArray); err == nil {
+				// Initialize as empty slice if array was parsed
+				if groupsArray == nil {
+					groups = []string{}
+				} else {
+					groups = groupsArray
 				}
 			}
 		}
 	}
 
-	u.userInfo.Claims = raw
-	return nil
+	return groups
 }
 
 // oidcLoginHandler initiates OIDC login.
@@ -177,7 +255,7 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 
 	// --- Attempt to process ID Token ---
 	if ok && rawIDToken != "" {
-		logger.Debug("ID token found in token response, attempting verification.")
+		logger.Debugf("ID token found in token response, attempting verification. Raw ID Token: %s", rawIDToken)
 
 		// Verify the ID token
 		// This uses the verifier initialized with the provider's JWKS endpoint and client ID
@@ -202,7 +280,6 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 					claimsFromIDToken = true
 				}
 			}
-			logger.Debugf("Failed to verify ID token: %v", verify_err)
 		}
 
 	} else {

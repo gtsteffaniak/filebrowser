@@ -33,7 +33,8 @@
     "showMore": "Afficher les options avancées",
     "showLess": "Masquer les options avancées",
     "goToSource": "Aller à l'emplacement de la source",
-    "goToItem": "Aller à l'article"
+    "goToItem": "Aller à l'article",
+    "copyPath": "Chemin de la copie"
   },
   "download": {
     "downloadFile": "Télécharger le fichier",
@@ -775,7 +776,9 @@
     "thumbnailOptions": "Options de vignettes",
     "showThumbnails": "Afficher les vignettes des éléments pris en charge",
     "showThumbnailsDescription": "Lorsque cette option est activée, les vignettes sont affichées dans la liste pour les articles qui les prennent en charge. Désactivez cette option pour masquer toutes les vignettes.",
-    "previewAudiosDescription": "Affiche des aperçus de vignettes pour les fichiers audio, affiche une icône générique si elle est désactivée."
+    "previewAudiosDescription": "Affiche des aperçus de vignettes pour les fichiers audio, affiche une icône générique si elle est désactivée.",
+    "showCopyPath": "Afficher Copier le chemin dans le menu contextuel",
+    "showCopyPathDescription": "Afficher une action Copier le chemin dans le menu contextuel des fichiers et des dossiers."
   },
   "editor": {
     "uninitialized": "Échec de l'initialisation de l'éditeur. Veuillez recharger.",
