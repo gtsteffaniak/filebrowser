@@ -113,10 +113,16 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 		if err != nil {
 			return err
 		}
+		for _, scope := range adjustedScopes {
+			// ensure full path exists
+			if scope.Scope == "" {
+				return fmt.Errorf("scope name is required")
+			}
+		}
 		user.Scopes = adjustedScopes
-		err = files.MakeUserDirs(user, true)
+		err = files.MakeUserDirs(user, false)
 		if err != nil {
-			logger.Error(err.Error())
+			return err
 		}
 	}
 	// converting scopes to map of paths intead of names (names can change)
@@ -186,7 +192,7 @@ func (st usersBackend) Save(user *users.User, changePass, disableScopeChange boo
 		return err
 	}
 	user.Scopes = adjustedScopes
-	err = files.MakeUserDirs(user, disableScopeChange)
+	err = files.MakeUserDirs(user, true)
 	if err != nil {
 		logger.Error(err.Error())
 	}
