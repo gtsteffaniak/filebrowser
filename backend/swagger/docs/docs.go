@@ -3076,7 +3076,7 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "Updates the details of a user identified by ID.",
+                "description": "Updates the details of a user identified by ID. When updating the target user's password the actor must send their current password in the X-Password header",
                 "consumes": [
                     "application/json"
                 ],
@@ -3098,6 +3098,12 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "string",
+                        "description": "Actor's current password (URL-encoded); required when changing a password user's password",
+                        "name": "X-Password",
+                        "in": "header"
+                    },
+                    {
                         "description": "User data to update",
                         "name": "data",
                         "in": "body",
@@ -3113,6 +3119,15 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - invalid or missing actor password for password change",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {

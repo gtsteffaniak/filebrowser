@@ -241,7 +241,8 @@
     "unarchiveMessage": "Kies waar het archief moet worden uitgepakt.",
     "unarchiveDestination": "Uittreksel naar:",
     "unarchiveSuccess": "Archief met succes uitgepakt!",
-    "downloadFailed": "Chunkedownload mislukt - als dit zich herhaalt, probeer dan de grootte van de chunk te verkleinen: {message}"
+    "downloadFailed": "Chunkedownload mislukt - als dit zich herhaalt, probeer dan de grootte van de chunk te verkleinen: {message}",
+    "confirmPasswordToChangeUserPassword": "Voer uw huidige wachtwoord in om deze wachtwoordwijziging te autoriseren."
   },
   "search": {
     "smallerThan": "Kleiner dan:",

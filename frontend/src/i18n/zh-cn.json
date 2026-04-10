@@ -241,7 +241,8 @@
     "unarchiveMessage": "选择提取存档的位置。",
     "unarchiveDestination": "摘录至",
     "unarchiveSuccess": "档案提取成功！",
-    "downloadFailed": "分块下载失败 - 如果重复出现这种情况，请尝试减小分块大小：{message}"
+    "downloadFailed": "分块下载失败 - 如果重复出现这种情况，请尝试减小分块大小：{message}",
+    "confirmPasswordToChangeUserPassword": "输入您的当前密码以授权密码更改。"
   },
   "search": {
     "smallerThan": "小于",

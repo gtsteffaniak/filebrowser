@@ -457,6 +457,7 @@ export default {
       let clickedItem = this.items.find(item => item.path === path);
       this.selectedSource = clickedItem ? clickedItem.source : this.source;
       this.selectedType = clickedItem ? clickedItem.type : null;
+      const isFile = clickedItem && clickedItem.type !== "directory";
       this.$emit("update:selected", {
         path: this.selected,
         source: this.selectedSource,

@@ -241,7 +241,8 @@
     "unarchiveMessage": "Vyberte, kam sa má archív extrahovať.",
     "unarchiveDestination": "Výpis na:",
     "unarchiveSuccess": "Archív úspešne extrahovaný!",
-    "downloadFailed": "Sťahovanie po častiach zlyhalo - ak sa to opakuje, skúste zmenšiť veľkosť časti: {message}"
+    "downloadFailed": "Sťahovanie po častiach zlyhalo - ak sa to opakuje, skúste zmenšiť veľkosť časti: {message}",
+    "confirmPasswordToChangeUserPassword": "Zadajte svoje aktuálne heslo, aby ste autorizovali túto zmenu hesla."
   },
   "search": {
     "smallerThan": "Menšie ako:",

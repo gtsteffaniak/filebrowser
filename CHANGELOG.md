@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **New Features**:
  - Epub placementg url anchors to bookmark a specific location on the doc.
+ - Add Requirement for Current Password When Changing Account Password (#2112)
 
  **Notes**:
  - user scope editing has path picker and filesystem validation

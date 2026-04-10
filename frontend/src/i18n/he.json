@@ -241,7 +241,8 @@
     "unarchiveMessage": "בחר היכן לחלץ את הארכיון.",
     "unarchiveDestination": "חלץ אל:",
     "unarchiveSuccess": "הארכיון חולץ בהצלחה!",
-    "downloadFailed": "ההורדה המקוטעת נכשלה - אם הבעיה חוזרת על עצמה, נסה להקטין את גודל החלקים: {message}"
+    "downloadFailed": "ההורדה המקוטעת נכשלה - אם הבעיה חוזרת על עצמה, נסה להקטין את גודל החלקים: {message}",
+    "confirmPasswordToChangeUserPassword": "הזן את הסיסמה הנוכחית שלך כדי לאשר את שינוי הסיסמה."
   },
   "search": {
     "smallerThan": "קטן מ:",

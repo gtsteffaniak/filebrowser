@@ -48,6 +48,7 @@ build-backend:
 # New dev target with hot-reloading for frontend and backend
 dev: generate-docs
 	@echo "Starting dev servers... Press Ctrl+C to stop."
+	pkill -9 -f 'test_config.yaml'
 	@cd frontend && DEV_BUILD=true npm run watch & \
 	FRONTEND_PID=$$!; \
 	cd backend && export FILEBROWSER_DEVMODE=true && go tool air $$([ "$(OS)" = "Windows_NT" ] && echo "-c .air.windows.toml" || echo "") & \

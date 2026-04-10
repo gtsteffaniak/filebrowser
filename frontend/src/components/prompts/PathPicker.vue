@@ -2,7 +2,8 @@
   <div class="card-content">
     <file-list ref="fileList" @update:selected="updateSelection" :browseSource="currentSource"
       :browse-path="initialBrowsePath" :hide-destination-source="hideDestinationSource" :showFiles="showFiles"
-      :showFolders="showFolders">
+      :showFolders="showFolders" :require-file-selection="requireFileSelection"
+      :allowed-file-types="allowedFileTypes" :title="listTitle">
     </file-list>
   </div>
 
@@ -11,7 +12,8 @@
       :title="$t('general.cancel')">
       {{ $t("general.cancel") }}
     </button>
-    <button type="button" class="button button--flat" @click="confirmSelection" :aria-label="$t('general.select')"
+    <button type="button" class="button button--flat" @click="confirmSelection"
+      :disabled="requireFileSelection && !selectionIsValid" :aria-label="$t('general.select')"
       :title="$t('general.select')">
       {{ $t("general.select") }}
     </button>
@@ -52,11 +54,26 @@ export default {
       type: String,
       default: null,
     },
+    requireFileSelection: {
+      type: Boolean,
+      default: false,
+    },
+    allowedFileTypes: {
+      type: Array,
+      default: null,
+    },
+    /** Shown by FileList when set (e.g. share banner/favicon picker). */
+    listTitle: {
+      type: String,
+      default: null,
+    },
   },
   data() {
     return {
       selectedPath: "/",
       selectedSource: "",
+      /** From FileList when requireFileSelection is true (valid file picked). */
+      selectionIsValid: false,
       /** True after confirm or explicit cancel — used to avoid duplicate cancel events. */
       selectionFinished: false,
     };
@@ -74,6 +91,7 @@ export default {
     // Initialize with current values
     this.selectedPath = this.currentPath || "/";
     this.selectedSource = this.currentSource || "";
+    this.selectionIsValid = !this.requireFileSelection;
   },
   beforeUnmount() {
     if (
@@ -99,12 +117,21 @@ export default {
       // Handle both old format (just path) and new format (object with path and source)
       if (typeof pathOrData === 'string') {
         this.selectedPath = pathOrData;
+        this.selectionIsValid = !this.requireFileSelection;
       } else if (pathOrData && pathOrData.path) {
         this.selectedPath = pathOrData.path;
         this.selectedSource = pathOrData.source;
+        if (Object.prototype.hasOwnProperty.call(pathOrData, 'isValid')) {
+          this.selectionIsValid = !!pathOrData.isValid;
+        } else {
+          this.selectionIsValid = !this.requireFileSelection;
+        }
       }
     },
     confirmSelection() {
+      if (this.requireFileSelection && !this.selectionIsValid) {
+        return;
+      }
       this.selectionFinished = true;
       const payload = {
         path: this.selectedPath,

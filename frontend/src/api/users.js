@@ -48,7 +48,8 @@ export async function create(user) {
 }
 
 // PUT /api/users (update user)
-export async function update(user, which = ['all']) {
+// Optional `options.headers` (e.g. X-Password when changing a password user's password).
+export async function update(user, which = ['all'], options = {}) {
   const excludeKeys = ['id', 'name']
   which = which.filter(item => !excludeKeys.includes(item))
   if (user.username === 'anonymous') {
@@ -66,12 +67,14 @@ export async function update(user, which = ['all']) {
   }
 
   const apiPath = getApiPath('users', { id: user.id })
+  const extraHeaders = options.headers || {}
   await fetchURL(apiPath, {
     method: 'PUT',
     body: JSON.stringify({
       which: which,
       data: userData
-    })
+    }),
+    headers: extraHeaders,
   })
 }
 
