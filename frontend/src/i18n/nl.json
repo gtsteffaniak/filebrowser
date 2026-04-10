@@ -450,7 +450,8 @@
     "moveFailed": "Verplaatsen mislukt",
     "operationFailed": "Bewerking is mislukt",
     "partialSuccess": "Enkele bewerkingen zijn mislukt: {succeeded} gelukt, {failed} mislukt.",
-    "downloadFailed": "Chunkedownload mislukt - als dit zich herhaalt, probeer dan de grootte van de chunk te verkleinen: {message}"
+    "downloadFailed": "Chunkedownload mislukt - als dit zich herhaalt, probeer dan de grootte van de chunk te verkleinen: {message}",
+    "confirmPasswordToChangeUserPassword": "Voer uw huidige wachtwoord in om deze wachtwoordwijziging te autoriseren."
   },
   "search": {
     "searchContext": "Zoekcontext: {context}",

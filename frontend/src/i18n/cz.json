@@ -319,7 +319,8 @@
     "unarchiveMessage": "Vyberte, kam se má archiv rozbalit.",
     "unarchiveDestination": "Výpis na:",
     "unarchiveSuccess": "Archiv úspěšně extrahován!",
-    "downloadFailed": "Stahování po částech se nezdařilo - pokud se tato situace opakuje, zkuste zmenšit velikost části: {message}"
+    "downloadFailed": "Stahování po částech se nezdařilo - pokud se tato situace opakuje, zkuste zmenšit velikost části: {message}",
+    "confirmPasswordToChangeUserPassword": "Zadejte své aktuální heslo a autorizujte tuto změnu hesla."
   },
   "search": {
     "smallerThan": "Menší než:",

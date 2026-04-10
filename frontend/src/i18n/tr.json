@@ -241,7 +241,8 @@
     "unarchiveMessage": "Arşivin nereye çıkarılacağını seçin.",
     "unarchiveDestination": "Özetle:",
     "unarchiveSuccess": "Arşiv başarıyla çıkarıldı!",
-    "downloadFailed": "Yığın indirme başarısız oldu - bu tekrarlanırsa yığın boyutunu küçültmeyi deneyin: {message}"
+    "downloadFailed": "Yığın indirme başarısız oldu - bu tekrarlanırsa yığın boyutunu küçültmeyi deneyin: {message}",
+    "confirmPasswordToChangeUserPassword": "Bu şifre değişikliğini onaylamak için mevcut şifrenizi girin."
   },
   "search": {
     "smallerThan": "Daha küçük:",

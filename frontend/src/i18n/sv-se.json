@@ -241,7 +241,8 @@
     "unarchiveMessage": "Välj var du vill extrahera arkivet.",
     "unarchiveDestination": "Extrahera till:",
     "unarchiveSuccess": "Arkivet har extraherats framgångsrikt!",
-    "downloadFailed": "Nedladdningen av chunked misslyckades - om detta upprepas, försök att minska chunkstorleken: {message}"
+    "downloadFailed": "Nedladdningen av chunked misslyckades - om detta upprepas, försök att minska chunkstorleken: {message}",
+    "confirmPasswordToChangeUserPassword": "Ange ditt nuvarande lösenord för att godkänna denna lösenordsändring."
   },
   "search": {
     "smallerThan": "Mindre än:",

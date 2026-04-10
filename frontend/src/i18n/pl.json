@@ -241,7 +241,8 @@
     "unarchiveMessage": "Wybierz miejsce rozpakowania archiwum.",
     "unarchiveDestination": "Wyciąg do:",
     "unarchiveSuccess": "Archiwum rozpakowane pomyślnie!",
-    "downloadFailed": "Pobieranie fragmentów nie powiodło się - jeśli sytuacja się powtórzy, spróbuj zmniejszyć rozmiar fragmentu: {message}"
+    "downloadFailed": "Pobieranie fragmentów nie powiodło się - jeśli sytuacja się powtórzy, spróbuj zmniejszyć rozmiar fragmentu: {message}",
+    "confirmPasswordToChangeUserPassword": "Wprowadź bieżące hasło, aby autoryzować zmianę hasła."
   },
   "search": {
     "smallerThan": "Mniejszy niż:",

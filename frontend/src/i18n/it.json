@@ -450,7 +450,8 @@
     "moveFailed": "Spostamento fallito",
     "operationFailed": "Operazione fallita",
     "partialSuccess": "Alcune operazioni sono fallite: {succeeded} riuscite, {failed} fallite",
-    "downloadFailed": "Il download in chunk non è riuscito: se il problema si ripete, provare a ridurre la dimensione del chunk: {message}"
+    "downloadFailed": "Il download in chunk non è riuscito: se il problema si ripete, provare a ridurre la dimensione del chunk: {message}",
+    "confirmPasswordToChangeUserPassword": "Inserire la password attuale per autorizzare la modifica della password."
   },
   "search": {
     "searchContext": "Contesto di ricerca: {context}",

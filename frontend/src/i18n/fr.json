@@ -241,7 +241,8 @@
     "unarchiveMessage": "Choisissez l'endroit où extraire l'archive.",
     "unarchiveDestination": "Extrait à :",
     "unarchiveSuccess": "L'archive a été extraite avec succès !",
-    "downloadFailed": "Échec du téléchargement groupé - si cela se répète, essayez de réduire la taille des morceaux : {message}"
+    "downloadFailed": "Échec du téléchargement groupé - si cela se répète, essayez de réduire la taille des morceaux : {message}",
+    "confirmPasswordToChangeUserPassword": "Saisissez votre mot de passe actuel pour autoriser ce changement de mot de passe."
   },
   "search": {
     "smallerThan": "Plus petit que :",

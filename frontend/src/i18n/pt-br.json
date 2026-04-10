@@ -241,7 +241,8 @@
     "unarchiveMessage": "Escolha onde extrair o arquivo.",
     "unarchiveDestination": "Extrair para:",
     "unarchiveSuccess": "Arquivo extraído com sucesso!",
-    "downloadFailed": "Falha no download em pedaços - se isso se repetir, tente reduzir o tamanho do pedaço: {message}"
+    "downloadFailed": "Falha no download em pedaços - se isso se repetir, tente reduzir o tamanho do pedaço: {message}",
+    "confirmPasswordToChangeUserPassword": "Digite sua senha atual para autorizar a alteração da senha."
   },
   "search": {
     "smallerThan": "Menor que:",

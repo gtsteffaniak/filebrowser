@@ -241,7 +241,8 @@
     "unarchiveMessage": "Válassza ki, hová szeretné kinyomtatni az archívumot.",
     "unarchiveDestination": "Kivonat a következő címre:",
     "unarchiveSuccess": "Az archívum sikeresen kinyomtatva!",
-    "downloadFailed": "A darabos letöltés sikertelen - ha ez ismétlődik, próbálja meg csökkenteni a darabos letöltés méretét: {message}"
+    "downloadFailed": "A darabos letöltés sikertelen - ha ez ismétlődik, próbálja meg csökkenteni a darabos letöltés méretét: {message}",
+    "confirmPasswordToChangeUserPassword": "A jelszóváltoztatás engedélyezéséhez adja meg a jelenlegi jelszavát."
   },
   "search": {
     "smallerThan": "Kisebb, mint:",
