@@ -6849,6 +6849,10 @@ const docTemplate = `{
                         "$ref": "#/definitions/users.SourceScope"
                     }
                 },
+                "showCopyPath": {
+                    "description": "show copy path action in the context menu",
+                    "type": "boolean"
+                },
                 "showFirstLogin": {
                     "type": "boolean"
                 },

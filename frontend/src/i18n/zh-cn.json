@@ -33,7 +33,8 @@
     "showMore": "显示高级选项",
     "showLess": "隐藏高级选项",
     "goToSource": "转到源位置",
-    "goToItem": "转到项目"
+    "goToItem": "转到项目",
+    "copyPath": "复制路径"
   },
   "download": {
     "downloadFile": "下载文件",
@@ -629,7 +630,9 @@
     "thumbnailOptions": "缩略图选项",
     "showThumbnails": "显示支持项目的缩略图",
     "showThumbnailsDescription": "启用后，支持缩略图的项目将在列表中显示缩略图。关闭则隐藏所有缩略图。",
-    "previewAudiosDescription": "显示音频文件的缩略图预览，如果禁用，将显示通用图标。"
+    "previewAudiosDescription": "显示音频文件的缩略图预览，如果禁用，将显示通用图标。",
+    "showCopyPath": "在上下文菜单中显示复制路径",
+    "showCopyPathDescription": "在文件和文件夹上下文菜单中显示复制路径操作。"
   },
   "general": {
     "name": "名称",

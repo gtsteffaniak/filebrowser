@@ -33,7 +33,8 @@
     "showMore": "Zobrazit rozšířené možnosti",
     "showLess": "Skrytí pokročilých možností",
     "goToSource": "Přejít na zdrojové umístění",
-    "goToItem": "Přejít na položku"
+    "goToItem": "Přejít na položku",
+    "copyPath": "Kopírovat cestu"
   },
   "download": {
     "downloadFile": "Stáhnout soubor",
@@ -403,7 +404,9 @@
     "thumbnailOptions": "Možnosti miniatur",
     "showThumbnails": "Zobrazení miniatur podporovaných položek",
     "showThumbnailsDescription": "Pokud je tato možnost povolena, zobrazují se ve výpisu náhledy položek, které je podporují. Vypnutím se všechny miniatury skryjí.",
-    "previewAudiosDescription": "Zobrazení miniaturních náhledů zvukových souborů, pokud je vypnuto, zobrazí se obecná ikona."
+    "previewAudiosDescription": "Zobrazení miniaturních náhledů zvukových souborů, pokud je vypnuto, zobrazí se obecná ikona.",
+    "showCopyPath": "Zobrazit kopírování cesty v kontextové nabídce",
+    "showCopyPathDescription": "Zobrazení akce Kopírovat cestu v kontextové nabídce souborů a složek."
   },
   "settings": {
     "enterPassword": "Zadejte heslo",

@@ -1984,6 +1984,9 @@ definitions:
         items:
           $ref: '#/definitions/users.SourceScope'
         type: array
+      showCopyPath:
+        description: show copy path action in the context menu
+        type: boolean
       showFirstLogin:
         type: boolean
       showHidden:

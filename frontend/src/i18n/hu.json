@@ -33,7 +33,8 @@
     "showMore": "Speciális beállítások megjelenítése",
     "showLess": "Speciális beállítások elrejtése",
     "goToSource": "Menj a forráshelyre",
-    "goToItem": "Tovább a tételhez"
+    "goToItem": "Tovább a tételhez",
+    "copyPath": "Másolás útvonal"
   },
   "download": {
     "downloadFile": "Fájl letöltése",
@@ -775,7 +776,9 @@
     "thumbnailOptions": "Miniatűr beállítások",
     "showThumbnails": "A támogatott elemek miniatűrjeinek megjelenítése",
     "showThumbnailsDescription": "Ha engedélyezve van, a miniatűrök megjelennek a listában az azokat támogató elemeknél. Ha kikapcsolja, az összes miniatűr elrejti.",
-    "previewAudiosDescription": "A hangfájlok miniatűr előnézeteinek megjelenítése, általános ikon megjelenítése, ha le van tiltva."
+    "previewAudiosDescription": "A hangfájlok miniatűr előnézeteinek megjelenítése, általános ikon megjelenítése, ha le van tiltva.",
+    "showCopyPath": "Az elérési útvonal másolása a kontextusmenüben",
+    "showCopyPathDescription": "Az elérési útvonal másolása művelet megjelenítése a fájl és mappa kontextusmenüben."
   },
   "editor": {
     "uninitialized": "Nem sikerült inicializálni a szerkesztőt. Kérjük, töltse újra.",

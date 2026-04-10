@@ -33,7 +33,8 @@
     "showMore": "Visa avancerade alternativ",
     "showLess": "Dölj avancerade alternativ",
     "goToSource": "Gå till källplatsen",
-    "goToItem": "Gå till objektet"
+    "goToItem": "Gå till objektet",
+    "copyPath": "Kopiera sökväg"
   },
   "download": {
     "downloadFile": "Ladda ner fil",
@@ -629,7 +630,9 @@
     "thumbnailOptions": "Alternativ för miniatyrbilder",
     "showThumbnails": "Visa miniatyrbilder för objekt som stöds",
     "showThumbnailsDescription": "När den är aktiverad visas miniatyrbilder i listan för objekt som stöder dem. Stäng av för att dölja alla miniatyrbilder.",
-    "previewAudiosDescription": "Visa förhandsvisningar av miniatyrbilder för ljudfiler, visar en generisk ikon om den är inaktiverad."
+    "previewAudiosDescription": "Visa förhandsvisningar av miniatyrbilder för ljudfiler, visar en generisk ikon om den är inaktiverad.",
+    "showCopyPath": "Visa Kopiera sökväg i snabbmenyn",
+    "showCopyPathDescription": "Visa åtgärden Kopiera sökväg i snabbmenyn för filer och mappar."
   },
   "general": {
     "name": "Namn",

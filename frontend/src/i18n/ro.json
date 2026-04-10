@@ -33,7 +33,8 @@
     "showMore": "Afișare opțiuni avansate",
     "showLess": "Ascundeți opțiunile avansate",
     "goToSource": "Du-te la locația sursei",
-    "goToItem": "Du-te la articol"
+    "goToItem": "Du-te la articol",
+    "copyPath": "Copiați calea"
   },
   "download": {
     "downloadFile": "Descarcă fișier",
@@ -775,7 +776,9 @@
     "thumbnailOptions": "Opțiuni pentru miniaturi",
     "showThumbnails": "Afișați miniaturi pentru elementele acceptate",
     "showThumbnailsDescription": "Atunci când este activată, miniaturile sunt afișate în listă pentru articolele care le acceptă. Dezactivați pentru a ascunde toate miniaturile.",
-    "previewAudiosDescription": "Afișează previzualizări în miniatură pentru fișierele audio, va afișa pictograma generică dacă este dezactivată."
+    "previewAudiosDescription": "Afișează previzualizări în miniatură pentru fișierele audio, va afișa pictograma generică dacă este dezactivată.",
+    "showCopyPath": "Afișați calea de copiere în meniul contextual",
+    "showCopyPathDescription": "Afișați o acțiune de copiere a căii în meniul contextual al fișierelor și dosarelor."
   },
   "editor": {
     "uninitialized": "Nu s-a reușit inițializarea editorului. Vă rugăm să reîncărcați.",

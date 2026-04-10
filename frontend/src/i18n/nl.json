@@ -164,7 +164,8 @@
     "keepEditing": "Blijven bewerken",
     "closeAnyway": "Sluiten",
     "goToItem": "Ga naar item",
-    "goToSource": "Ga naar de bronlocatie"
+    "goToSource": "Ga naar de bronlocatie",
+    "copyPath": "Kopieer pad"
   },
   "download": {
     "downloadFile": "Bestand downloaden",
@@ -534,7 +535,9 @@
     "thumbnailOptions": "Miniatuuropties",
     "showThumbnails": "Toon miniaturen voor ondersteunde items",
     "showThumbnailsDescription": "Als deze optie is ingeschakeld, worden miniaturen weergegeven in de lijst met items die deze ondersteunen. Schakel deze optie uit om alle miniaturen te verbergen.",
-    "previewAudiosDescription": "Toon miniatuurvoorbeelden voor audiobestanden, toont generiek pictogram indien uitgeschakeld."
+    "previewAudiosDescription": "Toon miniatuurvoorbeelden voor audiobestanden, toont generiek pictogram indien uitgeschakeld.",
+    "showCopyPath": "Pad kopiëren tonen in contextmenu",
+    "showCopyPathDescription": "Een actie Pad kopiëren weergeven in het contextmenu van bestanden en mappen."
   },
   "settings": {
     "systemAdmin": "Systeem & Beheer",

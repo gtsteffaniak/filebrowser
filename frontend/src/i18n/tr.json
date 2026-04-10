@@ -33,7 +33,8 @@
     "showMore": "Gelişmiş Seçenekleri Göster",
     "showLess": "Gelişmiş Seçenekleri Gizle",
     "goToSource": "Kaynak Konuma Git",
-    "goToItem": "Öğeye git"
+    "goToItem": "Öğeye git",
+    "copyPath": "Kopyalama Yolu"
   },
   "download": {
     "downloadFile": "Dosyayı indir",
@@ -775,7 +776,9 @@
     "thumbnailOptions": "Küçük Resim Seçenekleri",
     "showThumbnails": "Desteklenen öğeler için küçük resimleri göster",
     "showThumbnailsDescription": "Etkinleştirildiğinde, küçük resimler onları destekleyen öğeler için listede gösterilir. Tüm küçük resimleri gizlemek için kapatın.",
-    "previewAudiosDescription": "Ses dosyaları için küçük resim önizlemelerini göster, devre dışı bırakılırsa genel simge gösterilir."
+    "previewAudiosDescription": "Ses dosyaları için küçük resim önizlemelerini göster, devre dışı bırakılırsa genel simge gösterilir.",
+    "showCopyPath": "Bağlam menüsünde Yolu Kopyala'yı göster",
+    "showCopyPathDescription": "Dosya ve klasör bağlam menüsünde Yolu Kopyala eylemini gösterin."
   },
   "editor": {
     "uninitialized": "Düzenleyici başlatılamadı. Lütfen yeniden yükleyin.",

@@ -33,7 +33,8 @@
     "showMore": "Erweiterte Optionen anzeigen",
     "showLess": "Erweiterte Optionen ausblenden",
     "goToSource": "Zum Quellort gehen",
-    "goToItem": "Weiter zum Artikel"
+    "goToItem": "Weiter zum Artikel",
+    "copyPath": "Pfad kopieren"
   },
   "download": {
     "downloadFile": "Datei herunterladen",
@@ -775,7 +776,9 @@
     "thumbnailOptions": "Thumbnail-Optionen",
     "showThumbnails": "Miniaturansichten für unterstützte Artikel anzeigen",
     "showThumbnailsDescription": "Wenn diese Option aktiviert ist, werden Miniaturansichten in der Auflistung für Artikel angezeigt, die sie unterstützen. Schalten Sie die Option aus, um alle Miniaturansichten auszublenden.",
-    "previewAudiosDescription": "Miniaturvorschau für Audiodateien anzeigen, bei Deaktivierung wird ein allgemeines Symbol angezeigt."
+    "previewAudiosDescription": "Miniaturvorschau für Audiodateien anzeigen, bei Deaktivierung wird ein allgemeines Symbol angezeigt.",
+    "showCopyPath": "Pfad kopieren im Kontextmenü anzeigen",
+    "showCopyPathDescription": "Zeigen Sie eine Aktion \"Pfad kopieren\" im Kontextmenü von Dateien und Ordnern an."
   },
   "editor": {
     "uninitialized": "Der Editor konnte nicht initialisiert werden. Bitte neu laden.",

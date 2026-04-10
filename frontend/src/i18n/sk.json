@@ -33,7 +33,8 @@
     "showMore": "Zobraziť rozšírené možnosti",
     "showLess": "Skryť rozšírené možnosti",
     "goToSource": "Prejsť na zdrojové miesto",
-    "goToItem": "Prejsť na položku"
+    "goToItem": "Prejsť na položku",
+    "copyPath": "Kopírovať cestu"
   },
   "download": {
     "downloadFile": "Stiahnuť súbor",
@@ -775,7 +776,9 @@
     "thumbnailOptions": "Možnosti miniatúr",
     "showThumbnails": "Zobrazenie miniatúr pre podporované položky",
     "showThumbnailsDescription": "Ak je táto možnosť povolená, vo výpise sa zobrazujú miniatúry položiek, ktoré ich podporujú. Ak chcete skryť všetky miniatúry, možnosť vypnite.",
-    "previewAudiosDescription": "Zobrazenie miniatúrnych náhľadov pre zvukové súbory, ak je vypnuté, zobrazí sa generická ikona."
+    "previewAudiosDescription": "Zobrazenie miniatúrnych náhľadov pre zvukové súbory, ak je vypnuté, zobrazí sa generická ikona.",
+    "showCopyPath": "Zobraziť kopírovanie cesty v kontextovom menu",
+    "showCopyPathDescription": "Zobrazenie akcie Kopírovať cestu v kontextovej ponuke súborov a priečinkov."
   },
   "editor": {
     "uninitialized": "Nepodarilo sa inicializovať editor. Prosím, načítajte ho znova.",
