@@ -248,9 +248,6 @@
   "search": {
     "smallerThan": "Menor que:",
     "largerThan": "Maior que:",
-    "helpText1": "A pesquisa ocorre em cada caractere que você digita (mínimo de 3 caracteres para termos de pesquisa).",
-    "helpText2": "O índice: A pesquisa utiliza o índice que é atualizado automaticamente no intervalo configurado (padrão: 5 minutos). A pesquisa quando o programa acaba de ser iniciado pode resultar em resultados incompletos.",
-    "noResults": "Não foram encontrados resultados na pesquisa indexada.",
     "onlyFolders": "Somente pastas",
     "onlyFiles": "Somente arquivos",
     "showOptions": "Mostrar opções",
@@ -260,7 +257,10 @@
     "showPreviewImages": "Mostrar imagens de visualização",
     "showPreviewImagesDescription": "Exibir visualizações em miniatura dos resultados da pesquisa, quando disponíveis, e mostrar ícones maiores para todos os resultados.",
     "olderThanDate": "Mais velho que:",
-    "newerThanDate": "Mais recente que:"
+    "newerThanDate": "Mais recente que:",
+    "helpText2": "Os resultados da pesquisa são baseados em arquivos indexados, portanto, os arquivos recém-adicionados podem não aparecer até que sejam indexados.",
+    "noResults": "Não foram encontrados resultados.",
+    "helpText1": "A pesquisa ocorre em cada caractere digitado ({minSearchLength} caractere mínimo)."
   },
   "settings": {
     "administrator": "Administrador",
@@ -719,14 +719,11 @@
     "deleteAfterArchiveDescription": "Quando ativado, excluirá os arquivos de origem após criação/extração bem-sucedida de arquivos",
     "hideFilesInTree": "Ocultar arquivos na navegação em árvore",
     "hideFilesInTreeDescription": "Quando ativado, apenas pastas são mostradas na navegação em árvore da barra lateral",
-    "previewModelsDescription": "Mostrar visualizações em miniatura para modelos 3D, um ícone genérico será mostrado se desativado",
     "setDateFormat": "Definir o formato exato da data",
     "showHiddenFiles": "Mostrar arquivos ocultos",
     "showHiddenFilesDescription": "Mostrar arquivos ocultos na listagem (por exemplo, .thumbnails, ProgramData), mas eles ainda poderão ser acessados manualmente se estiverem configurados para serem indexados.",
     "showQuickDownload": "Mostrar o ícone de download para acesso rápido",
     "showQuickDownloadDescription": "Mostrar o ícone de download para acesso rápido em cada item de arquivo que pode ser clicado para fazer o download instantaneamente.",
-    "previewImagesDescription": "Mostrar visualizações em miniatura de imagens; se desativado, mostrará um ícone genérico.",
-    "previewVideosDescription": "Mostrar visualizações em miniatura dos vídeos; se estiver desativado, mostrará um ícone genérico.",
     "editOffice": "Visualize e edite arquivos de escritório com o OnlyOffice",
     "editOfficeDescription": "Quando somente o Office estiver ativado, o visualizador/editor de arquivos será desativado para todas as extensões de arquivos relacionadas a arquivos do Office.",
     "filePreviewOptions": "Opções de visualização de arquivos",
@@ -776,9 +773,9 @@
     "thumbnailOptions": "Opções de miniaturas",
     "showThumbnails": "Mostrar miniaturas de itens compatíveis",
     "showThumbnailsDescription": "Quando ativada, as miniaturas são mostradas na listagem de itens que as suportam. Desative para ocultar todas as miniaturas.",
-    "previewAudiosDescription": "Mostrar visualizações em miniatura de arquivos de áudio; mostrará um ícone genérico se estiver desativado.",
     "showCopyPath": "Mostrar caminho de cópia no menu de contexto",
-    "showCopyPathDescription": "Mostrar uma ação Copiar caminho no menu de contexto de arquivos e pastas."
+    "showCopyPathDescription": "Mostrar uma ação Copiar caminho no menu de contexto de arquivos e pastas.",
+    "previewDescription": "Mostrar visualizações em miniatura para {filetype}, mostrará o ícone genérico se estiver desativado."
   },
   "editor": {
     "uninitialized": "Falha ao inicializar o editor. Favor recarregar.",

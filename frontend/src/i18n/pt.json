@@ -248,9 +248,6 @@
   "search": {
     "smallerThan": "Mais pequeno do que:",
     "largerThan": "Maior do que:",
-    "helpText1": "A pesquisa ocorre em cada caractere digitado (mínimo de 3 caracteres para termos de pesquisa).",
-    "helpText2": "O índice: A pesquisa utiliza o índice que é atualizado automaticamente no intervalo configurado (predefinição: 5 minutos). A pesquisa quando o programa acabou de ser iniciado pode resultar em resultados incompletos.",
-    "noResults": "Não foram encontrados resultados na pesquisa indexada.",
     "onlyFolders": "Apenas pastas",
     "onlyFiles": "Apenas ficheiros",
     "showOptions": "Mostrar opções",
@@ -260,7 +257,10 @@
     "showPreviewImages": "Mostrar imagens de pré-visualização",
     "showPreviewImagesDescription": "Apresentar pré-visualizações em miniatura dos resultados da pesquisa, quando disponíveis, e mostrar ícones maiores para todos os resultados.",
     "olderThanDate": "Mais velho do que:",
-    "newerThanDate": "Mais recente do que:"
+    "newerThanDate": "Mais recente do que:",
+    "helpText2": "Os resultados da pesquisa baseiam-se nos ficheiros indexados, pelo que os ficheiros recentemente adicionados podem não aparecer até serem indexados.",
+    "noResults": "Não foram encontrados resultados.",
+    "helpText1": "A pesquisa ocorre em cada carácter que escrever ({minSearchLength} carácter mínimo)."
   },
   "settings": {
     "administrator": "Administrador",
@@ -573,14 +573,11 @@
     "deleteAfterArchiveDescription": "Quando ativado, eliminará os ficheiros de origem após criação/extração bem-sucedida de arquivos",
     "hideFilesInTree": "Ocultar ficheiros na navegação em árvore",
     "hideFilesInTreeDescription": "Quando ativado, apenas pastas são mostradas na navegação em árvore da barra lateral",
-    "previewModelsDescription": "Mostrar pré-visualizações em miniatura para modelos 3D, será mostrado um ícone genérico se desativado",
     "setDateFormat": "Definir o formato exato da data",
     "showHiddenFiles": "Mostrar ficheiros ocultos",
     "showHiddenFilesDescription": "Mostrar ficheiros ocultos na listagem (por exemplo, .thumbnails, ProgramData), mas estes continuam a ser acessíveis manualmente se estiverem configurados para serem indexados.",
     "showQuickDownload": "Mostrar o ícone de transferência para acesso rápido",
     "showQuickDownloadDescription": "Mostrar o ícone de transferência para acesso rápido em cada item de ficheiro que pode ser clicado para transferir instantaneamente.",
-    "previewImagesDescription": "Mostrar pré-visualizações de miniaturas para imagens, mostrará o ícone genérico se estiver desativado.",
-    "previewVideosDescription": "Mostrar pré-visualizações de miniaturas para vídeos, mostrará um ícone genérico se estiver desativado.",
     "editOffice": "Ver e editar ficheiros de escritório com OnlyOffice",
     "editOfficeDescription": "Quando apenas o Office está ativado, o visualizador/editor de ficheiros será desativado para todas as extensões de ficheiros relacionadas com ficheiros do Office.",
     "filePreviewOptions": "Opções de pré-visualização de ficheiros",
@@ -630,9 +627,9 @@
     "thumbnailOptions": "Opções de miniaturas",
     "showThumbnails": "Mostrar miniaturas para itens suportados",
     "showThumbnailsDescription": "Quando activada, as miniaturas são mostradas na listagem de itens que as suportam. Desativar para ocultar todas as miniaturas.",
-    "previewAudiosDescription": "Mostrar pré-visualizações em miniatura para ficheiros de áudio, mostrará um ícone genérico se estiver desativado.",
     "showCopyPath": "Mostrar caminho de cópia no menu de contexto",
-    "showCopyPathDescription": "Mostrar uma ação Copiar caminho no menu de contexto de ficheiros e pastas."
+    "showCopyPathDescription": "Mostrar uma ação Copiar caminho no menu de contexto de ficheiros e pastas.",
+    "previewDescription": "Mostrar pré-visualizações em miniatura para {filetype}, mostrará o ícone genérico se estiver desativado."
   },
   "general": {
     "name": "Nome",

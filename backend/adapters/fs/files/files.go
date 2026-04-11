@@ -272,8 +272,12 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index, opts u
 	if isFolder {
 		return
 	}
-	if opts.Metadata && isVideo {
-
+	if isVideo || isAudio {
+		if !(opts.Metadata || opts.AlbumArt) {
+			return
+		}
+	}
+	if isVideo {
 		extItem := &iteminfo.ExtendedItemInfo{
 			ItemInfo: info.ItemInfo,
 		}
@@ -293,13 +297,12 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index, opts u
 			subtitles := ffmpeg.DetectEmbeddedSubtitles(info.RealPath, info.ModTime)
 			info.Subtitles = append(info.Subtitles, subtitles...)
 		}
-
 		return
 	}
 
 	// Audio: run tag/album-art extraction when full metadata or preview (AlbumArt) is requested.
 	// Preview uses AlbumArt without Metadata so we do not load arbitrary files as text content.
-	if (opts.Metadata || opts.AlbumArt) && isAudio {
+	if isAudio {
 		extItem := &iteminfo.ExtendedItemInfo{
 			ItemInfo: info.ItemInfo,
 		}

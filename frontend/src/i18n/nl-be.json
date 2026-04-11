@@ -248,9 +248,6 @@
   "search": {
     "smallerThan": "Kleiner dan:",
     "largerThan": "Groter dan:",
-    "helpText1": "Er wordt gezocht op elk teken dat je typt (minimaal 3 tekens voor zoektermen).",
-    "helpText2": "De index: Zoeken maakt gebruik van de index die automatisch wordt bijgewerkt op het ingestelde interval (standaard: 5 minuten). Zoeken als het programma net is gestart, kan onvolledige resultaten opleveren.",
-    "noResults": "Geen resultaten gevonden in geïndexeerde zoekopdrachten.",
     "onlyFolders": "Alleen mappen",
     "onlyFiles": "Alleen bestanden",
     "showOptions": "Opties weergeven",
@@ -260,7 +257,10 @@
     "showPreviewImages": "Voorbeeldafbeeldingen tonen",
     "showPreviewImagesDescription": "Toon miniatuurvoorbeelden voor zoekresultaten indien beschikbaar, en toon grotere pictogrammen voor alle resultaten.",
     "olderThanDate": "Ouder dan:",
-    "newerThanDate": "Nieuwer dan:"
+    "newerThanDate": "Nieuwer dan:",
+    "helpText2": "Zoekresultaten zijn gebaseerd op geïndexeerde bestanden, dus nieuw toegevoegde bestanden verschijnen mogelijk pas als ze geïndexeerd zijn.",
+    "noResults": "Geen resultaten gevonden.",
+    "helpText1": "Er wordt gezocht op elk teken dat je typt (minimaal{minSearchLength} tekens)."
   },
   "settings": {
     "administrator": "Administrator",
@@ -573,14 +573,11 @@
     "deleteAfterArchiveDescription": "Indien ingeschakeld, worden de bronbestanden verwijderd na succesvol aanmaken/uitpakken van archieven",
     "hideFilesInTree": "Bestanden verbergen in boomnavigatie",
     "hideFilesInTreeDescription": "Indien ingeschakeld, worden alleen mappen weergegeven in de zijbalk Boomnavigatie",
-    "previewModelsDescription": "Toon miniatuurweergaven voor 3D-modellen, er wordt een algemeen pictogram getoond indien uitgeschakeld",
     "setDateFormat": "Exact datumformaat instellen",
     "showHiddenFiles": "Verborgen bestanden weergeven",
     "showHiddenFilesDescription": "Toon verborgen bestanden in de lijst (bijv. .thumbnails, ProgramData), maar ze zijn nog steeds handmatig toegankelijk als ze zijn geconfigureerd om te worden geïndexeerd.",
     "showQuickDownload": "Downloadpictogram weergeven voor snelle toegang",
     "showQuickDownloadDescription": "Toon een downloadpictogram voor snelle toegang tot elk bestandsitem waarop kan worden geklikt om het meteen te downloaden.",
-    "previewImagesDescription": "Toon miniatuurvoorbeelden voor afbeeldingen, toont generiek pictogram indien uitgeschakeld.",
-    "previewVideosDescription": "Toon miniatuurvoorbeelden voor video's, toont generiek pictogram indien uitgeschakeld.",
     "editOffice": "Office-bestanden bekijken en bewerken met OnlyOffice",
     "editOfficeDescription": "Als alleen office is ingeschakeld, is de bestandsviewer/editor uitgeschakeld voor alle bestandsextensies die gerelateerd zijn aan Office-bestanden.",
     "filePreviewOptions": "Opties voor bestandsvoorbeeld",
@@ -630,9 +627,9 @@
     "thumbnailOptions": "Miniatuuropties",
     "showThumbnails": "Toon miniaturen voor ondersteunde items",
     "showThumbnailsDescription": "Als deze optie is ingeschakeld, worden miniaturen weergegeven in de lijst met items die deze ondersteunen. Schakel deze optie uit om alle miniaturen te verbergen.",
-    "previewAudiosDescription": "Toon miniatuurvoorbeelden voor audiobestanden, toont generiek pictogram indien uitgeschakeld.",
     "showCopyPath": "Pad kopiëren tonen in contextmenu",
-    "showCopyPathDescription": "Een actie Pad kopiëren weergeven in het contextmenu van bestanden en mappen."
+    "showCopyPathDescription": "Een actie Pad kopiëren weergeven in het contextmenu van bestanden en mappen.",
+    "previewDescription": "Toon miniatuurvoorbeelden voor {filetype}, toont generiek pictogram indien uitgeschakeld."
   },
   "general": {
     "name": "Naam",

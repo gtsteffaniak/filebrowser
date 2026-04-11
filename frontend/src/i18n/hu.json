@@ -248,9 +248,6 @@
   "search": {
     "smallerThan": "Kisebb, mint:",
     "largerThan": "Nagyobb, mint:",
-    "helpText1": "A keresés minden egyes beírt karakterre történik (minimum 3 karakteres keresőkifejezés).",
-    "helpText2": "Az index: A keresés az indexet használja, amely automatikusan frissül a beállított időközönként (alapértelmezett: 5 perc). A program indulásakor végzett keresés hiányos eredményeket eredményezhet.",
-    "noResults": "Az indexelt keresésben nem találtak találatot.",
     "onlyFolders": "Csak mappák",
     "onlyFiles": "Csak fájlok",
     "showOptions": "Beállítások megjelenítése",
@@ -260,7 +257,10 @@
     "showPreviewImages": "Előnézeti képek megjelenítése",
     "showPreviewImagesDescription": "A keresési találatok miniatűr előnézeteinek megjelenítése, ha rendelkezésre állnak, és nagyobb ikonok megjelenítése az összes találathoz.",
     "olderThanDate": "Idősebb, mint:",
-    "newerThanDate": "Újabb, mint:"
+    "newerThanDate": "Újabb, mint:",
+    "helpText2": "A keresési eredmények az indexelt fájlokon alapulnak, ezért előfordulhat, hogy az újonnan hozzáadott fájlok nem jelennek meg, amíg indexelésre nem kerülnek.",
+    "noResults": "Nem találtak eredményt.",
+    "helpText1": "A keresés minden egyes beírt karakterre történik ({minSearchLength} minimum karakter)."
   },
   "settings": {
     "administrator": "Adminisztrátor",
@@ -719,14 +719,11 @@
     "deleteAfterArchiveDescription": "Ha engedélyezve van, törli a forrásfájlokat az archívumok sikeres létrehozása/kibontása után",
     "hideFilesInTree": "Fájlok elrejtése a fa navigációban",
     "hideFilesInTreeDescription": "Ha engedélyezve van, csak mappák jelennek meg az oldalsáv fa navigációjában",
-    "previewModelsDescription": "Miniatűr előnézetek megjelenítése 3D modellekhez, általános ikon jelenik meg ha letiltott",
     "setDateFormat": "Pontos dátumformátum beállítása",
     "showHiddenFiles": "Rejtett fájlok megjelenítése",
     "showHiddenFilesDescription": "Rejtett fájlok megjelenítése a listában (pl. .thumbnails, ProgramData), de kézzel továbbra is elérhetőek, ha indexelésre vannak beállítva.",
     "showQuickDownload": "Letöltés ikon megjelenítése a gyors hozzáférés érdekében",
     "showQuickDownloadDescription": "Letöltés ikon megjelenítése a gyors hozzáférés érdekében minden egyes fájlelemen, amelyre kattintva azonnal letölthető.",
-    "previewImagesDescription": "Miniatűr előnézetek megjelenítése a képekhez, általános ikon megjelenítése, ha le van tiltva.",
-    "previewVideosDescription": "Videók miniatűr előnézeteinek megjelenítése, általános ikon megjelenítése, ha le van tiltva.",
     "editOffice": "Irodai fájlok megtekintése és szerkesztése az OnlyOffice segítségével",
     "editOfficeDescription": "Ha csak az office van engedélyezve, a fájlnézegető/szerkesztő az összes office fájlhoz kapcsolódó fájlkiterjesztés esetében le lesz tiltva.",
     "filePreviewOptions": "Fájl előnézeti beállítások",
@@ -776,9 +773,9 @@
     "thumbnailOptions": "Miniatűr beállítások",
     "showThumbnails": "A támogatott elemek miniatűrjeinek megjelenítése",
     "showThumbnailsDescription": "Ha engedélyezve van, a miniatűrök megjelennek a listában az azokat támogató elemeknél. Ha kikapcsolja, az összes miniatűr elrejti.",
-    "previewAudiosDescription": "A hangfájlok miniatűr előnézeteinek megjelenítése, általános ikon megjelenítése, ha le van tiltva.",
     "showCopyPath": "Az elérési útvonal másolása a kontextusmenüben",
-    "showCopyPathDescription": "Az elérési útvonal másolása művelet megjelenítése a fájl és mappa kontextusmenüben."
+    "showCopyPathDescription": "Az elérési útvonal másolása művelet megjelenítése a fájl és mappa kontextusmenüben.",
+    "previewDescription": "Miniatűr előnézetek megjelenítése a {filetype}, általános ikon megjelenítése, ha le van tiltva."
   },
   "editor": {
     "uninitialized": "Nem sikerült inicializálni a szerkesztőt. Kérjük, töltse újra.",
