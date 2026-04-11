@@ -272,10 +272,11 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index, opts u
 	if isFolder {
 		return
 	}
-	if isVideo || isAudio {
-		if !(opts.Metadata || opts.AlbumArt) {
-			return
-		}
+	if isVideo && !opts.Metadata {
+		return
+	}
+	if isAudio && !(opts.Metadata || opts.AlbumArt) {
+		return
 	}
 	if isVideo {
 		extItem := &iteminfo.ExtendedItemInfo{
