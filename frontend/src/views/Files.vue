@@ -440,7 +440,7 @@ export default {
             let targetPath = `/files/${state.sources.current}`;
             for (const link of state.user?.sidebarLinks || []) {
               if (link.target.startsWith('/')) {
-                if (link.category !== 'source') {
+                if (!link.category.startsWith('source')) {
                   continue;
                 }
                 targetPath = `/files/${link.sourceName}${link.target}`;
