@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Swiping media files doesn't respect Playback Queue (#2243)
  - Audio metadata and album thumbnails doesn't work (#2236)
  - Search spinner wouldn't show up sometimes while searching
+ - The default landing page source should always be the first source in the sidebar, that wasn't always respected.
 
 ## v1.3.3
 
