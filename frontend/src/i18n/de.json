@@ -248,9 +248,6 @@
   "search": {
     "smallerThan": "Kleiner als:",
     "largerThan": "Größer als:",
-    "helpText1": "Die Suche erfolgt bei jedem Zeichen, das Sie eingeben (mindestens 3 Zeichen für Suchbegriffe).",
-    "helpText2": "Der Index: Die Suche verwendet den Index, der automatisch in dem konfigurierten Intervall aktualisiert wird (Standard: 5 Minuten). Eine Suche direkt nach dem Start des Programms kann zu unvollständigen Ergebnissen führen.",
-    "noResults": "Keine Ergebnisse in der indizierten Suche gefunden.",
     "onlyFolders": "Nur Ordner",
     "onlyFiles": "Nur Dateien",
     "showOptions": "Optionen anzeigen",
@@ -260,7 +257,10 @@
     "showPreviewImages": "Vorschaubilder anzeigen",
     "showPreviewImagesDescription": "Zeigen Sie eine Miniaturvorschau für Suchergebnisse an, wenn verfügbar, und zeigen Sie größere Symbole für alle Ergebnisse an.",
     "olderThanDate": "Älter als:",
-    "newerThanDate": "Neuere als:"
+    "newerThanDate": "Neuere als:",
+    "helpText2": "Die Suchergebnisse basieren auf indizierten Dateien, so dass neu hinzugefügte Dateien möglicherweise nicht angezeigt werden, bis sie indiziert sind.",
+    "noResults": "Keine Ergebnisse gefunden.",
+    "helpText1": "Die Suche erfolgt bei jedem Zeichen, das Sie eingeben ({minSearchLength} Zeichen Minimum)."
   },
   "settings": {
     "administrator": "Administrator",
@@ -719,14 +719,11 @@
     "deleteAfterArchiveDescription": "Wenn aktiviert, werden die Quelldateien nach erfolgreicher Erstellung/Extraktion von Archiven gelöscht",
     "hideFilesInTree": "Dateien in der Baumnavigation ausblenden",
     "hideFilesInTreeDescription": "Wenn aktiviert, werden in der Seitenleisten-Baumnavigation nur Ordner angezeigt",
-    "previewModelsDescription": "Vorschaubilder für 3D-Modelle anzeigen, bei Deaktivierung wird ein generisches Symbol angezeigt",
     "setDateFormat": "Genaues Datum statt relativer Zeitangaben verwenden",
     "showHiddenFiles": "Versteckte Dateien anzeigen",
     "showHiddenFilesDescription": "Versteckte Dateien in der Auflistung anzeigen (z.B. .thumbnails, ProgramData), aber sie sind immer noch manuell zugänglich, wenn sie für die Indizierung konfiguriert sind.",
     "showQuickDownload": "Download-Symbol für schnellen Zugriff anzeigen",
     "showQuickDownloadDescription": "Zeigen Sie ein Download-Symbol für den schnellen Zugriff auf jedes Dateielement an, das zum sofortigen Herunterladen angeklickt werden kann.",
-    "previewImagesDescription": "Thumbnail-Vorschau für Bilder anzeigen, bei Deaktivierung wird ein allgemeines Symbol angezeigt.",
-    "previewVideosDescription": "Thumbnail-Vorschau für Videos anzeigen, bei Deaktivierung wird ein allgemeines Symbol angezeigt.",
     "editOffice": "Anzeigen und Bearbeiten von Office-Dateien mit OnlyOffice",
     "editOfficeDescription": "Wenn nur Office aktiviert ist, wird der Dateibetrachter/-editor für alle Dateierweiterungen deaktiviert, die mit Office-Dateien zusammenhängen.",
     "filePreviewOptions": "Optionen für die Dateivorschau",
@@ -776,9 +773,9 @@
     "thumbnailOptions": "Thumbnail-Optionen",
     "showThumbnails": "Miniaturansichten für unterstützte Artikel anzeigen",
     "showThumbnailsDescription": "Wenn diese Option aktiviert ist, werden Miniaturansichten in der Auflistung für Artikel angezeigt, die sie unterstützen. Schalten Sie die Option aus, um alle Miniaturansichten auszublenden.",
-    "previewAudiosDescription": "Miniaturvorschau für Audiodateien anzeigen, bei Deaktivierung wird ein allgemeines Symbol angezeigt.",
     "showCopyPath": "Pfad kopieren im Kontextmenü anzeigen",
-    "showCopyPathDescription": "Zeigen Sie eine Aktion \"Pfad kopieren\" im Kontextmenü von Dateien und Ordnern an."
+    "showCopyPathDescription": "Zeigen Sie eine Aktion \"Pfad kopieren\" im Kontextmenü von Dateien und Ordnern an.",
+    "previewDescription": "Vorschaubilder für {filetype} anzeigen, bei Deaktivierung wird ein allgemeines Symbol angezeigt."
   },
   "editor": {
     "uninitialized": "Der Editor konnte nicht initialisiert werden. Bitte neu laden.",

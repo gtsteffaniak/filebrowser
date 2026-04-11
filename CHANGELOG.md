@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file. For commit 
  **BugFixes**:
  - Swiping media files doesn't respect Playback Queue (#2243)
  - Audio metadata and album thumbnails doesn't work (#2236)
+ - Search spinner wouldn't show up sometimes while searching
 
 ## v1.3.3
 

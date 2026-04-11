@@ -248,9 +248,6 @@
   "search": {
     "smallerThan": "より小さい：",
     "largerThan": "より大きい：",
-    "helpText1": "検索は入力した文字ごとに行われます（検索語は最低3文字必要）。",
-    "helpText2": "インデックス：検索は、設定された間隔（デフォルト：5分）で自動的に更新されるインデックスを利用します。プログラムを開始したばかりの時に検索すると、不完全な結果になることがあります。",
-    "noResults": "インデックス検索で結果が見つかりませんでした。",
     "onlyFolders": "フォルダのみ",
     "onlyFiles": "ファイルのみ",
     "showOptions": "オプションを表示",
@@ -260,7 +257,10 @@
     "showPreviewImages": "プレビュー画像を表示する",
     "showPreviewImagesDescription": "検索結果のサムネイルプレビューを表示し、すべての検索結果に対して大きなアイコンを表示します。",
     "olderThanDate": "より古い：",
-    "newerThanDate": "より新しい："
+    "newerThanDate": "より新しい：",
+    "helpText2": "検索結果はインデックスされたファイルに基づいているため、新しく追加されたファイルはインデックスされるまで表示されないことがあります。",
+    "noResults": "結果は見つからなかった。",
+    "helpText1": "検索は入力した文字ごとに行われます（{minSearchLength} 文字以上）。"
   },
   "settings": {
     "administrator": "管理者",
@@ -719,14 +719,11 @@
     "deleteAfterArchiveDescription": "有効にすると、アーカイブの作成/展開が成功した後にソースファイルを削除します",
     "hideFilesInTree": "ツリーナビゲーションでファイルを非表示",
     "hideFilesInTreeDescription": "有効にすると、サイドバーのツリーナビゲーションにフォルダーのみが表示されます",
-    "previewModelsDescription": "3Dモデルのサムネイルプレビューを表示します。無効の場合は一般的なアイコンを表示します",
     "setDateFormat": "正確な日付書式を設定する",
     "showHiddenFiles": "隠しファイルを表示する",
     "showHiddenFilesDescription": "隠しファイル（.thumbnails、ProgramDataなど）をリストに表示します。インデックスが設定されている場合は手動でアクセスできます。",
     "showQuickDownload": "クイックアクセス用のダウンロードアイコンを表示する",
     "showQuickDownloadDescription": "各ファイルアイテムにクイックアクセス用のダウンロードアイコンを表示し、クリックすると即座にダウンロードできます。",
-    "previewImagesDescription": "画像のサムネイルプレビューを表示します。無効の場合は一般的なアイコンを表示します。",
-    "previewVideosDescription": "動画のサムネイルプレビューを表示します。無効の場合は一般的なアイコンを表示します。",
     "editOffice": "OnlyOfficeでオフィスファイルを閲覧・編集",
     "editOfficeDescription": "OnlyOfficeを有効にすると、オフィスファイルに関連するすべてのファイル拡張子でファイルビューア/エディタが無効になります。",
     "filePreviewOptions": "ファイルプレビューオプション",
@@ -776,9 +773,9 @@
     "thumbnailOptions": "サムネイルオプション",
     "showThumbnails": "対応アイテムのサムネイルを表示",
     "showThumbnailsDescription": "有効にすると、サムネイルをサポートしているアイテムのリストにサムネイルが表示されます。オフにするとすべてのサムネイルが非表示になります。",
-    "previewAudiosDescription": "オーディオファイルのサムネイルプレビューを表示します。無効の場合は一般的なアイコンを表示します。",
     "showCopyPath": "コンテキストメニューにコピーパスを表示する",
-    "showCopyPathDescription": "ファイルやフォルダのコンテキストメニューに「パスをコピー」アクションを表示します。"
+    "showCopyPathDescription": "ファイルやフォルダのコンテキストメニューに「パスをコピー」アクションを表示します。",
+    "previewDescription": "{filetype} のサムネイルプレビューを表示する。無効の場合は一般的なアイコンを表示する。"
   },
   "editor": {
     "uninitialized": "エディタの初期化に失敗しました。再読み込みしてください。",
