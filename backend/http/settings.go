@@ -100,9 +100,6 @@ func settingsConfigHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 
 func getSourceInfoHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	sources := d.user.GetSourceNames()
-	logger.Infof("api settings/sources: user=%q admin=%v backendScopeCount=%d sourceNamesReturned=%d",
-		d.user.Username, d.user.Permissions.Admin, len(d.user.BackendScopes), len(sources))
-	logger.Debugf("api settings/sources: names=%v", sources)
 	reducedIndexes := map[string]indexing.ReducedIndex{}
 	for _, source := range sources {
 		reducedIndex, err := indexing.GetIndexInfo(source, false)

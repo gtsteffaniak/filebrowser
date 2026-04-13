@@ -309,8 +309,8 @@ func appendShareToPathIndexLocked(source, path, hash string) {
 }
 
 // UpdateSharesForMovedResource updates share rows whose stored path is under a moved index path (same logic as
-// the former share.Storage.UpdateShares). It is the only supported way to reconcile shares after a filesystem move.
-// Returns hashes of updated shares for cache eviction in share.Storage.
+// share.Storage.UpdateShares). It is the only supported way to reconcile shares after a filesystem move.
+// Returns hashes of updated shares (e.g. for logging).
 func UpdateSharesForMovedResource(oldSource, oldPath, newSource, newPath string) ([]string, error) {
 	sharesMux.Lock()
 	defer sharesMux.Unlock()

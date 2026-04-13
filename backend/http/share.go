@@ -16,7 +16,6 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
@@ -185,18 +184,20 @@ func shareGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 	var normErr error
 	scopePath, normErr = normalizeShareStoredPath(idx, scopePath)
 	if normErr != nil {
+		logger.Warningf("shareGetHandler: path normalize failed path=%q sourceName=%q user=%q scopeBefore=%q err=%v (returning empty list)",
+			path, sourceName, d.user.Username, utils.JoinPathAsUnix(userscope, path), normErr)
 		return renderJSON(w, r, []share.Share{})
 	}
 
-	// Debug: show what we're querying for
 	logger.Debug("shareGetHandler querying", "sourceName", sourceName, "sourceInfoPath", sourceInfo.Path, "scopePath", scopePath, "userID", d.user.ID)
 
 	s, err := shareStore.Gets(scopePath, sourceInfo.Path, d.user.ID)
-	if err == errors.ErrNotExist || len(s) == 0 {
-		return renderJSON(w, r, []share.Share{})
-	}
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("error getting share info from server")
+	}
+	logger.Debug("shareGetHandler result", "sourceName", sourceName, "scopePath", scopePath, "userID", d.user.ID, "count", len(s))
+	if len(s) == 0 {
+		return renderJSON(w, r, []share.Share{})
 	}
 	sharesWithUsernames, err := buildShareAPIResponses(r, sharePtrsToValues(s), d.user)
 	if err != nil {
@@ -605,7 +606,6 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *reque
 	// Check if an existing share already matches these parameters
 	existingShares, err := shareStore.Gets(scopePath, sourceInfo.Path, d.user.ID)
 	if err == nil && len(existingShares) > 0 {
-		// Look for a share that matches our parameters
 		for _, existing := range existingShares {
 			if existing.DownloadsLimit == downloadCount &&
 				existing.MaxBandwidth == downloadSpeed &&
