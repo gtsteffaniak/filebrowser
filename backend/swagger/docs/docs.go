@@ -6346,7 +6346,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "scopes": {
-                    "description": "FrontendScopes use source display names (from config); persisted authority is User.BackendScopes.",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/users.SourceScope"
@@ -6683,7 +6682,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "scopes": {
-                    "description": "FrontendScopes use source display names (from config); persisted authority is User.BackendScopes.",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/users.SourceScope"

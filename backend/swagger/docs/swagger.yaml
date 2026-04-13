@@ -1628,8 +1628,6 @@ definitions:
       scope:
         type: string
       scopes:
-        description: FrontendScopes use source display names (from config); persisted
-          authority is User.BackendScopes.
         items:
           $ref: '#/definitions/users.SourceScope'
         type: array
@@ -1879,8 +1877,6 @@ definitions:
       scope:
         type: string
       scopes:
-        description: FrontendScopes use source display names (from config); persisted
-          authority is User.BackendScopes.
         items:
           $ref: '#/definitions/users.SourceScope'
         type: array
