@@ -1631,6 +1631,9 @@ definitions:
         items:
           $ref: '#/definitions/users.SourceScope'
         type: array
+      showCopyPath:
+        description: show copy path action in the context menu
+        type: boolean
       showFirstLogin:
         type: boolean
       showHidden:
@@ -1880,6 +1883,9 @@ definitions:
         items:
           $ref: '#/definitions/users.SourceScope'
         type: array
+      showCopyPath:
+        description: show copy path action in the context menu
+        type: boolean
       showFirstLogin:
         type: boolean
       showHidden:
@@ -2668,7 +2674,7 @@ paths:
       description: Same ExtendedFileInfo as resources GET with metadata=true (typically
         used for directories).
       parameters:
-      - description: Path to the directory
+      - description: Path to the directory or file
         in: query
         name: path
         required: true
@@ -2678,6 +2684,10 @@ paths:
         name: source
         required: true
         type: string
+      - description: When true, include embedded album art bytes in audio metadata
+        in: query
+        name: albumArt
+        type: boolean
       produces:
       - application/json
       responses:
@@ -4133,11 +4143,22 @@ paths:
     put:
       consumes:
       - application/json
-      description: Updates the details of a user identified by username.
+      description: Updates the details of a user identified by ID. When updating the
+        target user's password the actor must send their current password in the X-Password
+        header
       parameters:
-      - description: Username of user to update
+      - description: user ID to update
         in: query
-        name: username
+        name: id
+        type: string
+      - description: usename to update
+        in: query
+        name: id
+        type: string
+      - description: Actor's current password (URL-encoded); required when changing
+          a password user's password
+        in: header
+        name: X-Password
         type: string
       - description: User data to update
         in: body
@@ -4150,6 +4171,13 @@ paths:
           description: No Content - User updated successfully
         "400":
           description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized - invalid or missing actor password for password
+            change
           schema:
             additionalProperties:
               type: string
@@ -4194,6 +4222,11 @@ paths:
         in: query
         name: path
         type: string
+      - description: When true, include embedded album art bytes in audio metadata
+          (heavier)
+        in: query
+        name: albumArt
+        type: boolean
       produces:
       - application/json
       responses:

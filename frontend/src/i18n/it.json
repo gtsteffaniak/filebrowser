@@ -57,7 +57,6 @@
     "scopes": "Ambiti{suffix}",
     "commands": "Comandi{suffix}",
     "photos": "Foto",
-    "audios": "Audio{suffix}",
     "videos": "Video{suffix}",
     "documents": "Documenti{suffix}",
     "archives": "Archivi{suffix}",
@@ -128,7 +127,8 @@
     "watching": "Monitoraggio{suffix}",
     "lines": "Linee{suffix}",
     "lastUpdate": "Ultimo aggiornamento{suffix}",
-    "latency": "Latenza{suffix}"
+    "latency": "Latenza{suffix}",
+    "audio": "Audio{suffix}"
   },
   "buttons": {
     "copySuccess": "Copiato negli appunti!",
@@ -164,7 +164,8 @@
     "keepEditing": "Continua a modificare",
     "closeAnyway": "Chiudi comunque",
     "goToItem": "Vai all'elemento",
-    "goToSource": "Vai alla posizione sorgente"
+    "goToSource": "Vai alla posizione sorgente",
+    "copyPath": "Percorso di copia"
   },
   "download": {
     "downloadFile": "Scarica file",
@@ -450,7 +451,8 @@
     "moveFailed": "Spostamento fallito",
     "operationFailed": "Operazione fallita",
     "partialSuccess": "Alcune operazioni sono fallite: {succeeded} riuscite, {failed} fallite",
-    "downloadFailed": "Il download in chunk non è riuscito: se il problema si ripete, provare a ridurre la dimensione del chunk: {message}"
+    "downloadFailed": "Il download in chunk non è riuscito: se il problema si ripete, provare a ridurre la dimensione del chunk: {message}",
+    "confirmPasswordToChangeUserPassword": "Inserire la password attuale per autorizzare la modifica della password."
   },
   "search": {
     "searchContext": "Contesto di ricerca: {context}",
@@ -459,15 +461,15 @@
     "showOptions": "Mostra opzioni",
     "notEnoughCharacters": "Caratteri insufficienti per la ricerca (minimo {minSearchLength})",
     "typeToSearch": "Digita {minSearchLength} o più caratteri per iniziare la ricerca.",
-    "noResults": "Nessun risultato trovato nella ricerca indicizzata.",
     "smallerThan": "Minore di:",
     "largerThan": "Maggiore di:",
     "olderThanDate": "Più vecchio di:",
     "newerThanDate": "Più recente di:",
     "showPreviewImages": "Mostra anteprime immagini",
     "showPreviewImagesDescription": "Mostra miniature nei risultati di ricerca quando disponibili e icone grandi per tutti i risultati.",
-    "helpText1": "La ricerca avviene su ogni carattere digitato (minimo 3 caratteri).",
-    "helpText2": "Indice: la ricerca utilizza l'indice che si aggiorna automaticamente (default: 5 minuti). Cercare all'avvio del programma potrebbe dare risultati incompleti."
+    "helpText2": "I risultati della ricerca si basano sui file indicizzati, quindi i file aggiunti di recente potrebbero non apparire finché non vengono indicizzati.",
+    "noResults": "Nessun risultato trovato.",
+    "helpText1": "La ricerca avviene per ogni carattere digitato ({minSearchLength} minimo)."
   },
   "profileSettings": {
     "preferEditorForMarkdown": "Preferisci editor per file Markdown",
@@ -491,10 +493,6 @@
     "showHiddenFilesDescription": "Mostra i file che iniziano con un punto o quelli di sistema.",
     "showQuickDownload": "Mostra icona download rapido",
     "showQuickDownloadDescription": "Aggiunge un'icona su ogni file per scaricarlo istantaneamente con un click.",
-    "previewImagesDescription": "Mostra anteprime per le immagini (mostra icona generica se disabilitato).",
-    "previewVideosDescription": "Mostra anteprime per i video.",
-    "previewAudiosDescription": "Mostra anteprime per gli audio.",
-    "previewModelsDescription": "Mostra anteprime per i modelli 3D.",
     "previewMotion": "Anteprime animate",
     "previewMotionVideosDescription": "L'anteprima animata cicla i fotogrammi del video o le immagini di una cartella al passaggio del mouse.",
     "editOffice": "Visualizza e modifica file office con OnlyOffice",
@@ -533,7 +531,10 @@
     "themeAndLanguage": "Tema e Lingua",
     "thumbnailOptions": "Opzioni Miniature",
     "showThumbnails": "Mostra miniature per elementi supportati",
-    "showThumbnailsDescription": "Spegni per nascondere tutte le miniature nell'elenco."
+    "showThumbnailsDescription": "Spegni per nascondere tutte le miniature nell'elenco.",
+    "showCopyPath": "Mostra Copia percorso nel menu contestuale",
+    "showCopyPathDescription": "Mostra l'azione Copia percorso nel menu contestuale di file e cartelle.",
+    "previewDescription": "Mostra le anteprime per {filetype}, mostrerà un'icona generica se disabilitata."
   },
   "settings": {
     "systemAdmin": "Sistema e Admin",

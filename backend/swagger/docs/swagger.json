@@ -1079,7 +1079,7 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Path to the directory",
+                        "description": "Path to the directory or file",
                         "name": "path",
                         "in": "query",
                         "required": true
@@ -1090,6 +1090,12 @@
                         "name": "source",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "When true, include embedded album art bytes in audio metadata",
+                        "name": "albumArt",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -3068,7 +3074,7 @@
                 }
             },
             "put": {
-                "description": "Updates the details of a user identified by username.",
+                "description": "Updates the details of a user identified by ID. When updating the target user's password the actor must send their current password in the X-Password header",
                 "consumes": [
                     "application/json"
                 ],
@@ -3079,9 +3085,21 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Username of user to update",
-                        "name": "username",
+                        "description": "user ID to update",
+                        "name": "id",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "usename to update",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Actor's current password (URL-encoded); required when changing a password user's password",
+                        "name": "X-Password",
+                        "in": "header"
                     },
                     {
                         "description": "User data to update",
@@ -3099,6 +3117,15 @@
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - invalid or missing actor password for password change",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -3263,6 +3290,12 @@
                         "type": "string",
                         "description": "Path within the share",
                         "name": "path",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "When true, include embedded album art bytes in audio metadata (heavier)",
+                        "name": "albumArt",
                         "in": "query"
                     }
                 ],
@@ -6340,6 +6373,10 @@
                         "$ref": "#/definitions/users.SourceScope"
                     }
                 },
+                "showCopyPath": {
+                    "description": "show copy path action in the context menu",
+                    "type": "boolean"
+                },
                 "showFirstLogin": {
                     "type": "boolean"
                 },
@@ -6675,6 +6712,10 @@
                     "items": {
                         "$ref": "#/definitions/users.SourceScope"
                     }
+                },
+                "showCopyPath": {
+                    "description": "show copy path action in the context menu",
+                    "type": "boolean"
                 },
                 "showFirstLogin": {
                     "type": "boolean"

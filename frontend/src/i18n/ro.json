@@ -33,7 +33,8 @@
     "showMore": "Afișare opțiuni avansate",
     "showLess": "Ascundeți opțiunile avansate",
     "goToSource": "Du-te la locația sursei",
-    "goToItem": "Du-te la articol"
+    "goToItem": "Du-te la articol",
+    "copyPath": "Copiați calea"
   },
   "download": {
     "downloadFile": "Descarcă fișier",
@@ -241,14 +242,12 @@
     "unarchiveMessage": "Alegeți unde să extrageți arhiva.",
     "unarchiveDestination": "Extras la:",
     "unarchiveSuccess": "Arhiva extrasă cu succes!",
-    "downloadFailed": "Descărcarea fragmentată a eșuat - dacă acest lucru se repetă, încercați să reduceți dimensiunea fragmentului: {message}"
+    "downloadFailed": "Descărcarea fragmentată a eșuat - dacă acest lucru se repetă, încercați să reduceți dimensiunea fragmentului: {message}",
+    "confirmPasswordToChangeUserPassword": "Introduceți parola curentă pentru a autoriza această modificare a parolei."
   },
   "search": {
     "smallerThan": "Mai mic decât:",
     "largerThan": "Mai mare decât:",
-    "helpText1": "Căutarea are loc pe fiecare caracter tastat (minim 3 caractere pentru termenii de căutare).",
-    "helpText2": "Indexul: Căutarea utilizează indexul care se actualizează automat la intervalul configurat (implicit: 5 minute). Căutarea atunci când programul tocmai a început poate duce la rezultate incomplete.",
-    "noResults": "Nu s-au găsit rezultate în căutarea indexată.",
     "onlyFolders": "Numai foldere",
     "onlyFiles": "Numai fișiere",
     "showOptions": "Afișare opțiuni",
@@ -258,7 +257,10 @@
     "showPreviewImages": "Afișați imagini de previzualizare",
     "showPreviewImagesDescription": "Afișați previzualizări în miniatură pentru rezultatele căutării, atunci când sunt disponibile, și afișați pictograme mai mari pentru toate rezultatele.",
     "olderThanDate": "Mai în vârstă decât:",
-    "newerThanDate": "Mai nou decât:"
+    "newerThanDate": "Mai nou decât:",
+    "helpText2": "Rezultatele căutării se bazează pe fișierele indexate, astfel încât fișierele nou adăugate pot să nu apară până când nu sunt indexate.",
+    "noResults": "Nu s-au găsit rezultate.",
+    "helpText1": "Căutarea are loc pe fiecare caracter tastat ({minSearchLength} caracter minim)."
   },
   "settings": {
     "administrator": "Administrator",
@@ -579,7 +581,6 @@
     "results": "Rezultate{suffix}",
     "users": "Utilizatori{suffix}",
     "photos": "Fotografii",
-    "audios": "Audios{suffix}",
     "videos": "Video{suffix}",
     "models": "Modele 3D",
     "documents": "Documente{suffix}",
@@ -665,7 +666,8 @@
     "format": "Format{suffix}",
     "office": "Birou{suffix}",
     "show": "Spectacol{suffix}",
-    "divider": "Divizor{suffix}"
+    "divider": "Divizor{suffix}",
+    "audio": "Audio{suffix}"
   },
   "access": {
     "rules": "Reguli de acces",
@@ -717,15 +719,11 @@
     "deleteAfterArchiveDescription": "Când este activat, va șterge fișierele sursă după crearea/extragerea cu succes a arhivelor",
     "hideFilesInTree": "Ascunde fișierele în navigarea arborescentă",
     "hideFilesInTreeDescription": "Când este activat, numai folderele sunt afișate în navigarea arborescentă a barei laterale",
-    "previewModelsDescription": "Afișează previzualizări miniatură pentru modele 3D, se va afișa o pictogramă generică dacă este dezactivat",
-    "previewAudiosDescription": "Afișează previzualizări miniatură pentru fișiere audio, se va afișa o pictogramă generică dacă este dezactivat",
     "setDateFormat": "Setați formatul exact al datei",
     "showHiddenFiles": "Afișează fișierele ascunse",
     "showHiddenFilesDescription": "Afișează fișierele ascunse în listă (de exemplu, .thumbnails, ProgramData), dar acestea sunt încă accesibile manual dacă sunt configurate pentru a fi indexate.",
     "showQuickDownload": "Afișați pictograma de descărcare pentru acces rapid",
     "showQuickDownloadDescription": "Afișați pictograma de descărcare pentru acces rapid pe fiecare element de fișier pe care puteți face clic pentru a descărca instantaneu.",
-    "previewImagesDescription": "Afișează previzualizări în miniatură pentru imagini, va afișa pictograma generică dacă este dezactivată.",
-    "previewVideosDescription": "Afișează previzualizări ale miniaturilor pentru videoclipuri, va afișa pictograma generică dacă este dezactivată.",
     "editOffice": "Vizualizați și editați fișiere office cu OnlyOffice",
     "editOfficeDescription": "Atunci când este activată doar opțiunea Office, vizualizatorul/editorul de fișiere va fi dezactivat pentru toate extensiile de fișiere legate de fișierele Office.",
     "filePreviewOptions": "Opțiuni de previzualizare a fișierelor",
@@ -774,7 +772,10 @@
     "popupPreviewDescription": "O fereastră pop-up suprapusă va fi afișată peste interfața de utilizator atunci când treceți peste elemente cu miniaturi",
     "thumbnailOptions": "Opțiuni pentru miniaturi",
     "showThumbnails": "Afișați miniaturi pentru elementele acceptate",
-    "showThumbnailsDescription": "Atunci când este activată, miniaturile sunt afișate în listă pentru articolele care le acceptă. Dezactivați pentru a ascunde toate miniaturile."
+    "showThumbnailsDescription": "Atunci când este activată, miniaturile sunt afișate în listă pentru articolele care le acceptă. Dezactivați pentru a ascunde toate miniaturile.",
+    "showCopyPath": "Afișați calea de copiere în meniul contextual",
+    "showCopyPathDescription": "Afișați o acțiune de copiere a căii în meniul contextual al fișierelor și dosarelor.",
+    "previewDescription": "Afișează previzualizări ale miniaturilor pentru {filetype}, va afișa pictograma generică dacă este dezactivată."
   },
   "editor": {
     "uninitialized": "Nu s-a reușit inițializarea editorului. Vă rugăm să reîncărcați.",

@@ -33,7 +33,8 @@
     "showMore": "詳細オプションを表示",
     "showLess": "詳細オプションを隠す",
     "goToSource": "ソース・ロケーションへ",
-    "goToItem": "アイテムへ"
+    "goToItem": "アイテムへ",
+    "copyPath": "コピーパス"
   },
   "download": {
     "downloadFile": "ファイルをダウンロード",
@@ -241,14 +242,12 @@
     "unarchiveMessage": "アーカイブを展開する場所を選択します。",
     "unarchiveDestination": "に抜粋する：",
     "unarchiveSuccess": "アーカイブは正常に抽出されました！",
-    "downloadFailed": "チャンクダウンロードに失敗しました - これが繰り返される場合は、チャンクサイズを小さくしてみてください：{message}"
+    "downloadFailed": "チャンクダウンロードに失敗しました - これが繰り返される場合は、チャンクサイズを小さくしてみてください：{message}",
+    "confirmPasswordToChangeUserPassword": "現在のパスワードを入力して、パスワードの変更を承認します。"
   },
   "search": {
     "smallerThan": "より小さい：",
     "largerThan": "より大きい：",
-    "helpText1": "検索は入力した文字ごとに行われます（検索語は最低3文字必要）。",
-    "helpText2": "インデックス：検索は、設定された間隔（デフォルト：5分）で自動的に更新されるインデックスを利用します。プログラムを開始したばかりの時に検索すると、不完全な結果になることがあります。",
-    "noResults": "インデックス検索で結果が見つかりませんでした。",
     "onlyFolders": "フォルダのみ",
     "onlyFiles": "ファイルのみ",
     "showOptions": "オプションを表示",
@@ -258,7 +257,10 @@
     "showPreviewImages": "プレビュー画像を表示する",
     "showPreviewImagesDescription": "検索結果のサムネイルプレビューを表示し、すべての検索結果に対して大きなアイコンを表示します。",
     "olderThanDate": "より古い：",
-    "newerThanDate": "より新しい："
+    "newerThanDate": "より新しい：",
+    "helpText2": "検索結果はインデックスされたファイルに基づいているため、新しく追加されたファイルはインデックスされるまで表示されないことがあります。",
+    "noResults": "結果は見つからなかった。",
+    "helpText1": "検索は入力した文字ごとに行われます（{minSearchLength} 文字以上）。"
   },
   "settings": {
     "administrator": "管理者",
@@ -579,7 +581,6 @@
     "results": "結果{suffix}",
     "users": "ユーザー{suffix}",
     "photos": "写真",
-    "audios": "オーディオ{suffix}",
     "videos": "ビデオ{suffix}",
     "models": "3Dモデル",
     "documents": "資料{suffix}",
@@ -665,7 +666,8 @@
     "format": "フォーマット{suffix}",
     "office": "オフィス{suffix}",
     "show": "ショー{suffix}",
-    "divider": "ディバイダー{suffix}"
+    "divider": "ディバイダー{suffix}",
+    "audio": "オーディオ{suffix}"
   },
   "access": {
     "rules": "アクセスルール",
@@ -717,15 +719,11 @@
     "deleteAfterArchiveDescription": "有効にすると、アーカイブの作成/展開が成功した後にソースファイルを削除します",
     "hideFilesInTree": "ツリーナビゲーションでファイルを非表示",
     "hideFilesInTreeDescription": "有効にすると、サイドバーのツリーナビゲーションにフォルダーのみが表示されます",
-    "previewModelsDescription": "3Dモデルのサムネイルプレビューを表示します。無効の場合は一般的なアイコンを表示します",
-    "previewAudiosDescription": "オーディオのサムネイルプレビューを表示します。無効の場合は一般的なアイコンを表示します",
     "setDateFormat": "正確な日付書式を設定する",
     "showHiddenFiles": "隠しファイルを表示する",
     "showHiddenFilesDescription": "隠しファイル（.thumbnails、ProgramDataなど）をリストに表示します。インデックスが設定されている場合は手動でアクセスできます。",
     "showQuickDownload": "クイックアクセス用のダウンロードアイコンを表示する",
     "showQuickDownloadDescription": "各ファイルアイテムにクイックアクセス用のダウンロードアイコンを表示し、クリックすると即座にダウンロードできます。",
-    "previewImagesDescription": "画像のサムネイルプレビューを表示します。無効の場合は一般的なアイコンを表示します。",
-    "previewVideosDescription": "動画のサムネイルプレビューを表示します。無効の場合は一般的なアイコンを表示します。",
     "editOffice": "OnlyOfficeでオフィスファイルを閲覧・編集",
     "editOfficeDescription": "OnlyOfficeを有効にすると、オフィスファイルに関連するすべてのファイル拡張子でファイルビューア/エディタが無効になります。",
     "filePreviewOptions": "ファイルプレビューオプション",
@@ -774,7 +772,10 @@
     "popupPreviewDescription": "サムネイル付きのアイテムにカーソルを合わせると、UIの上にオーバーレイ・ポップアップ・ウィンドウが表示されます。",
     "thumbnailOptions": "サムネイルオプション",
     "showThumbnails": "対応アイテムのサムネイルを表示",
-    "showThumbnailsDescription": "有効にすると、サムネイルをサポートしているアイテムのリストにサムネイルが表示されます。オフにするとすべてのサムネイルが非表示になります。"
+    "showThumbnailsDescription": "有効にすると、サムネイルをサポートしているアイテムのリストにサムネイルが表示されます。オフにするとすべてのサムネイルが非表示になります。",
+    "showCopyPath": "コンテキストメニューにコピーパスを表示する",
+    "showCopyPathDescription": "ファイルやフォルダのコンテキストメニューに「パスをコピー」アクションを表示します。",
+    "previewDescription": "{filetype} のサムネイルプレビューを表示する。無効の場合は一般的なアイコンを表示する。"
   },
   "editor": {
     "uninitialized": "エディタの初期化に失敗しました。再読み込みしてください。",

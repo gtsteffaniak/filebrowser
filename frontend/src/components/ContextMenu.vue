@@ -10,7 +10,7 @@
       ref="contextMenu"
       v-if="showContext"
       :style="centered ? {} : { top: posY + 'px', left: posX + 'px' }"
-      class="button no-select floating-window"
+      class="no-select floating-window"
       :class="{ 'dark-mode': isDarkMode, 'centered': centered }"
       :key="showCreate ? 'create-mode' : 'normal-mode'"
     >
@@ -28,6 +28,7 @@
           @mouseleave="hideTooltip"
           @mouseenter="showTooltip($event, $t('buttons.selectedCount'))"
           class="button selected-count-header"
+          :class="{ 'selected-count-header--circle': selectedCount <= 99 }"
         >
           <span>{{ selectedCount }}</span>
         </div>
@@ -90,9 +91,15 @@
       />
       <action
         v-if="showCopy"
-        icon="content_copy"
+        icon="file_copy"
         :label="$t('buttons.copyFile')"
         @action="showCopyPrompt"
+      />
+      <action
+        v-if="showCopyPath"
+        icon="copy_all"
+        :label="$t('buttons.copyPath')"
+        @action="copyPathToClipboard"
       />
       <action
         v-if="showOpenParentFolder"
@@ -152,7 +159,7 @@
         top: '3em',
         right: '1em',
       }"
-      class="button no-select floating-window"
+      class="no-select floating-window"
       :class="{ 'dark-mode': isDarkMode }"
     >
       <action icon="info" :label="$t('general.info')" @action="showInfoPrompt"/>
@@ -286,6 +293,10 @@ export default {
     showCopy() {
       if (this.showLimitedOptions) return false;
       return !this.showCreate && this.selectedCount > 0 && this.permissions.modify;
+    },
+    showCopyPath() {
+      if (this.showLimitedOptions) return false;
+      return !this.showCreate && this.selectedCount == 1 && !!state.user?.showCopyPath;
     },
     showOpenParentFolder() {
       return !this.showCreate && this.selectedCount == 1 && (this.isSearchActive || this.showLimitedOptions);
@@ -647,6 +658,39 @@ export default {
         },
       });
     },
+    async copyPathToClipboard() {
+      const item = this.firstSelected;
+      const path = item?.path || "";
+
+      if (!path) {
+        notify.showErrorToast(this.$t("prompts.copyToClipboardFailed"));
+        mutations.closeHovers();
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(path);
+        notify.showSuccessToast(this.$t("buttons.copySuccess"));
+      } catch (err) {
+        const textArea = document.createElement("textarea");
+        textArea.value = path;
+        textArea.style.position = "fixed";
+        textArea.style.opacity = "0";
+        document.body.appendChild(textArea);
+        textArea.select();
+
+        try {
+          document.execCommand("copy");
+          notify.showSuccessToast(this.$t("buttons.copySuccess"));
+        } catch (e) {
+          notify.showErrorToast(this.$t("prompts.copyToClipboardFailed"));
+        }
+
+        document.body.removeChild(textArea);
+      }
+
+      mutations.closeHovers();
+    },
     showNewDirPrompt() {
       mutations.closeHovers();
       // If the context menu was triggered on a directory, pass its path as base
@@ -792,12 +836,14 @@ export default {
   z-index: 1000;
   background-color: var(--background);
   max-width: 20em;
-  min-width: 15em;
+  min-width: 13em;
   min-height: 4em;
   height: auto;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  border-radius: 1em;
+  padding: 0.5em;
 }
 
 #context-menu.centered {
@@ -810,6 +856,18 @@ export default {
 .selected-count-header {
   border-radius: 1em;
   cursor: unset;
+}
+
+/* Circle for up to 3 digits; 1000+ keeps pill shape from .button */
+.selected-count-header--circle {
+  box-sizing: border-box;
+  flex-shrink: 0;
+  width: 2em;
+  height: 2em;
+  min-width: 2em;
+  min-height: 2em;
+  padding: 0;
+  border-radius: 50%;
 }
 
 .context-menu-header > .action i {
@@ -855,5 +913,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
 }
 </style>

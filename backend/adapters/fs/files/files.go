@@ -272,47 +272,49 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index, opts u
 	if isFolder {
 		return
 	}
-	if opts.Metadata {
-		if isVideo {
-
-			extItem := &iteminfo.ExtendedItemInfo{
-				ItemInfo: info.ItemInfo,
-			}
-			err := extractVideoMetadata(context.Background(), extItem, info.RealPath, nil)
-			if err != nil {
-				logger.Debugf("failed to extract video metadata for file: "+info.RealPath, info.Name, err)
-			} else {
-				info.Metadata = extItem.Metadata
-			}
-
-			parentPath := filepath.Dir(info.Path)
-			parentInfo, exists := idx.GetMetadataInfo(parentPath, true, false)
-			if exists {
-				info.GetSubtitles(parentInfo)
-			}
-			if opts.ExtractEmbeddedSubtitles {
-				subtitles := ffmpeg.DetectEmbeddedSubtitles(info.RealPath, info.ModTime)
-				info.Subtitles = append(info.Subtitles, subtitles...)
-			}
-
-			return
+	if isVideo && !opts.Metadata {
+		return
+	}
+	if isAudio && !(opts.Metadata || opts.AlbumArt) {
+		return
+	}
+	if isVideo {
+		extItem := &iteminfo.ExtendedItemInfo{
+			ItemInfo: info.ItemInfo,
+		}
+		err := extractVideoMetadata(context.Background(), extItem, info.RealPath, nil)
+		if err != nil {
+			logger.Debugf("failed to extract video metadata for file: "+info.RealPath, info.Name, err)
+		} else {
+			info.Metadata = extItem.Metadata
 		}
 
-		if isAudio {
-			// Create an ExtendedItemInfo to hold the metadata
-			extItem := &iteminfo.ExtendedItemInfo{
-				ItemInfo: info.ItemInfo,
-			}
-			err := extractAudioMetadata(context.Background(), extItem, info.RealPath, opts.AlbumArt || opts.Content, opts.Metadata || opts.Content, nil)
-			if err != nil {
-				logger.Debugf("failed to extract audio metadata for file: "+info.RealPath, info.Name, err)
-			} else {
-				// Copy metadata to ExtendedFileInfo
-				info.Metadata = extItem.Metadata
-				info.HasPreview = extItem.Metadata != nil && len(extItem.Metadata.AlbumArt) > 0
-			}
-			return
+		parentPath := filepath.Dir(info.Path)
+		parentInfo, exists := idx.GetMetadataInfo(parentPath, true, false)
+		if exists {
+			info.GetSubtitles(parentInfo)
 		}
+		if opts.ExtractEmbeddedSubtitles {
+			subtitles := ffmpeg.DetectEmbeddedSubtitles(info.RealPath, info.ModTime)
+			info.Subtitles = append(info.Subtitles, subtitles...)
+		}
+		return
+	}
+
+	// Audio: run tag/album-art extraction when full metadata or preview (AlbumArt) is requested.
+	// Preview uses AlbumArt without Metadata so we do not load arbitrary files as text content.
+	if isAudio {
+		extItem := &iteminfo.ExtendedItemInfo{
+			ItemInfo: info.ItemInfo,
+		}
+		err := extractAudioMetadata(context.Background(), extItem, info.RealPath, opts.AlbumArt || opts.Content, opts.Metadata || opts.Content, nil)
+		if err != nil {
+			logger.Debugf("failed to extract audio metadata for file: "+info.RealPath, info.Name, err)
+		} else {
+			info.Metadata = extItem.Metadata
+			info.HasPreview = extItem.Metadata != nil && len(extItem.Metadata.AlbumArt) > 0
+		}
+		return
 	}
 
 	// Process text content for non-video, non-audio files

@@ -33,7 +33,8 @@
     "showMore": "Zobraziť rozšírené možnosti",
     "showLess": "Skryť rozšírené možnosti",
     "goToSource": "Prejsť na zdrojové miesto",
-    "goToItem": "Prejsť na položku"
+    "goToItem": "Prejsť na položku",
+    "copyPath": "Kopírovať cestu"
   },
   "download": {
     "downloadFile": "Stiahnuť súbor",
@@ -241,14 +242,12 @@
     "unarchiveMessage": "Vyberte, kam sa má archív extrahovať.",
     "unarchiveDestination": "Výpis na:",
     "unarchiveSuccess": "Archív úspešne extrahovaný!",
-    "downloadFailed": "Sťahovanie po častiach zlyhalo - ak sa to opakuje, skúste zmenšiť veľkosť časti: {message}"
+    "downloadFailed": "Sťahovanie po častiach zlyhalo - ak sa to opakuje, skúste zmenšiť veľkosť časti: {message}",
+    "confirmPasswordToChangeUserPassword": "Zadajte svoje aktuálne heslo, aby ste autorizovali túto zmenu hesla."
   },
   "search": {
     "smallerThan": "Menšie ako:",
     "largerThan": "Väčšie ako:",
-    "helpText1": "Vyhľadávanie prebieha na základe každého zadaného znaku (minimálne 3 znaky pre hľadané výrazy).",
-    "helpText2": "Index: Vyhľadávanie využíva index, ktorý sa automaticky aktualizuje v nastavenom intervale (predvolené: 5 minút). Vyhľadávanie, keď sa program práve spustil, môže viesť k neúplným výsledkom.",
-    "noResults": "V indexovanom vyhľadávaní sa nenašli žiadne výsledky.",
     "onlyFolders": "Iba priečinky",
     "onlyFiles": "Iba súbory",
     "showOptions": "Zobraziť možnosti",
@@ -258,7 +257,10 @@
     "showPreviewImages": "Zobraziť náhľad obrázkov",
     "showPreviewImagesDescription": "Zobrazenie miniatúrnych náhľadov výsledkov vyhľadávania, ak sú k dispozícii, a zobrazenie väčších ikon pre všetky výsledky.",
     "olderThanDate": "Staršie ako:",
-    "newerThanDate": "Novšie ako:"
+    "newerThanDate": "Novšie ako:",
+    "helpText2": "Výsledky vyhľadávania sú založené na indexovaných súboroch, takže novo pridané súbory sa nemusia zobraziť, kým nie sú indexované.",
+    "noResults": "Nenašli sa žiadne výsledky.",
+    "helpText1": "Vyhľadávanie prebieha na základe každého zadaného znaku ({minSearchLength} minimálne znak)."
   },
   "settings": {
     "administrator": "Administrátor",
@@ -579,7 +581,6 @@
     "results": "Výsledky{suffix}",
     "users": "Používatelia{suffix}",
     "photos": "Fotografie",
-    "audios": "Zvuky{suffix}",
     "videos": "Videá{suffix}",
     "models": "3D modely",
     "documents": "Dokumenty{suffix}",
@@ -665,7 +666,8 @@
     "format": "Formát{suffix}",
     "office": "Kancelária{suffix}",
     "show": "Zobraziť{suffix}",
-    "divider": "Rozdeľovač{suffix}"
+    "divider": "Rozdeľovač{suffix}",
+    "audio": "Audio{suffix}"
   },
   "access": {
     "rules": "Pravidlá prístupu",
@@ -717,15 +719,11 @@
     "deleteAfterArchiveDescription": "Ak je povolené, po úspešnom vytvorení/extrahovaní archívov odstráni zdrojové súbory",
     "hideFilesInTree": "Skryť súbory v stromovej navigácii",
     "hideFilesInTreeDescription": "Ak je povolené, v stromovej navigácii bočného panela sa zobrazujú iba priečinky",
-    "previewModelsDescription": "Zobraziť miniatúry náhľadov pre 3D modely, ak je zakázané, zobrazí sa všeobecná ikona",
-    "previewAudiosDescription": "Zobraziť miniatúry náhľadov pre zvuky, ak je zakázané, zobrazí sa všeobecná ikona",
     "setDateFormat": "Nastavenie presného formátu dátumu",
     "showHiddenFiles": "Zobrazenie skrytých súborov",
     "showHiddenFilesDescription": "Zobrazenie skrytých súborov vo výpise (napr. .thumbnails, ProgramData), ale sú stále manuálne prístupné, ak sú nakonfigurované na indexovanie.",
     "showQuickDownload": "Zobrazenie ikony na stiahnutie pre rýchly prístup",
     "showQuickDownloadDescription": "Zobrazenie ikony na stiahnutie pre rýchly prístup ku každej položke súboru, na ktorú možno kliknúť a okamžite ju stiahnuť.",
-    "previewImagesDescription": "Zobrazenie náhľadov miniatúr pre obrázky, ak je vypnuté, zobrazí sa generická ikona.",
-    "previewVideosDescription": "Zobrazenie náhľadov miniatúr pre videá, ak je vypnuté, zobrazí sa generická ikona.",
     "editOffice": "Zobrazenie a úprava kancelárskych súborov pomocou OnlyOffice",
     "editOfficeDescription": "Ak je povolená iba funkcia office, prehliadač/editor súborov bude zakázaný pre všetky prípony súborov súvisiace s kancelárskymi súbormi.",
     "filePreviewOptions": "Možnosti náhľadu súborov",
@@ -774,7 +772,10 @@
     "popupPreviewDescription": "Prekryvné vyskakovacie okno sa zobrazí nad používateľským rozhraním pri prejdení nad položky s miniatúrami",
     "thumbnailOptions": "Možnosti miniatúr",
     "showThumbnails": "Zobrazenie miniatúr pre podporované položky",
-    "showThumbnailsDescription": "Ak je táto možnosť povolená, vo výpise sa zobrazujú miniatúry položiek, ktoré ich podporujú. Ak chcete skryť všetky miniatúry, možnosť vypnite."
+    "showThumbnailsDescription": "Ak je táto možnosť povolená, vo výpise sa zobrazujú miniatúry položiek, ktoré ich podporujú. Ak chcete skryť všetky miniatúry, možnosť vypnite.",
+    "showCopyPath": "Zobraziť kopírovanie cesty v kontextovom menu",
+    "showCopyPathDescription": "Zobrazenie akcie Kopírovať cestu v kontextovej ponuke súborov a priečinkov.",
+    "previewDescription": "Zobraziť náhľady miniatúr pre {filetype}, ak je vypnuté, zobrazí sa generická ikona."
   },
   "editor": {
     "uninitialized": "Nepodarilo sa inicializovať editor. Prosím, načítajte ho znova.",

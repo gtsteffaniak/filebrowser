@@ -305,9 +305,7 @@
     "types": "Tegundir",
     "video": "Myndband",
     "smallerThan": "Minna en:",
-    "largerThan": "Stærra en:",
-    "helpText1": "Leit fer fram við hvern staf sem þú slærð inn (3 stafa lágmark fyrir leitarorð).",
-    "helpText2": "Vísirinn: Leit nýtir vísinn sem uppfærast sjálfkrafa á stilluðu millibili (sjálfgefið: 5 mínútur). Leit þegar forritið er nýrætt getur leitt til ófullnægjandi niðurstaðna."
+    "largerThan": "Stærra en:"
   },
   "profileSettings": {
     "preferEditorForMarkdown": "Kjósa ritil fyrst fyrir Markdown skrár",

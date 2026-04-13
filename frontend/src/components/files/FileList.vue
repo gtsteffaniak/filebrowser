@@ -1,6 +1,6 @@
 <template>
   <div class="card-content" aria-label="file-list-prompt">
-    <!-- Source Selection Dropdown -->
+    <!-- Source Selection Dropdown (hidden when browsing a fixed source, e.g. user scope row) -->
     <div v-if="showSourceSelector" class="source-selector" style="margin-bottom: 1rem;">
       <label for="destinationSource" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">
         {{ $t("prompts.destinationSource") }}
@@ -96,6 +96,11 @@ export default {
       type: String,
       default: null, // Optional initial path to start browsing from
     },
+    /** When true, never show the destination source dropdown (source is fixed via browseSource). */
+    hideDestinationSource: {
+      type: Boolean,
+      default: false,
+    },
     requireFileSelection: {
       type: Boolean,
       default: false, // If true, only files (not folders) can be selected
@@ -138,6 +143,9 @@ export default {
       return state.sources && state.sources.info ? Object.keys(state.sources.info) : [state.req.source];
     },
     showSourceSelector() {
+      if (this.hideDestinationSource) {
+        return false;
+      }
       return this.availableSources.length > 1 && !this.fileList && !getters.isShare() && !this.browseShare;
     },
     isValidSelection() {
@@ -449,6 +457,7 @@ export default {
       let clickedItem = this.items.find(item => item.path === path);
       this.selectedSource = clickedItem ? clickedItem.source : this.source;
       this.selectedType = clickedItem ? clickedItem.type : null;
+      const isFile = clickedItem && clickedItem.type !== "directory";
       this.$emit("update:selected", {
         path: this.selected,
         source: this.selectedSource,

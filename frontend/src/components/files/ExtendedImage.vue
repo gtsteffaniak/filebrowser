@@ -547,6 +547,7 @@ export default {
       this.applyImgTransform();
     },
     mousedownStart(event) {
+      if (event.button !== 0) return;
       if (this.scale === 1) {
         this.teardownEdgeMouseListeners();
         this.edgeMouseActive = true;
@@ -567,12 +568,14 @@ export default {
       event.preventDefault();
     },
     mouseMove(event) {
+      if (event.button !== 0) return;
       if (this.scale > 1 && this.inDrag) {
         this.doMove(event.movementX, event.movementY);
         event.preventDefault();
       }
     },
     mouseUp(event) {
+      if (event.button !== 0) return;
       if (this.scale > 1) {
         this.inDrag = false;
         event.preventDefault();

@@ -5,7 +5,7 @@
       <i class="material-symbols-outlined">sentiment_dissatisfied</i>
       <span>{{ $t("files.lonely") }}</span>
     </h2>
-    <div v-if="user.loginMethod == 'password' && globalVars.passwordAvailable && !isNew">
+    <div v-if="showPasswordChangeSection">
       <label for="password">{{ $t("general.password") }}</label>
       <div class="form-flex-group">
         <input class="input form-form" :class="{ 'form-invalid': invalidPassword }" aria-label="Password1"
@@ -16,7 +16,13 @@
         <input class="input form-form" :class="{ 'flat-right': !isNew, 'form-invalid': invalidPassword }"
           aria-label="Password2" type="password" autocomplete="new-password"
           :placeholder="$t('settings.enterPasswordAgain')" v-model="user.password" id="password" />
-        <button v-if="!isNew" type="button" class="button form-button flat-left" @click="submitUpdatePassword">
+        <button
+          v-if="!isNew"
+          type="button"
+          class="button form-button flat-left"
+          :disabled="!canUpdatePassword"
+          @click="submitUpdatePassword"
+        >
           {{ $t("general.update") }}
         </button>
       </div>
@@ -46,7 +52,13 @@
           <input class="input form-form" :class="{ 'flat-right': !isNew, 'form-invalid': invalidPassword }"
             type="password" :placeholder="$t('settings.enterPasswordAgain')" aria-label="Password2"
             v-model="user.password" autocomplete="new-password" id="password" />
-          <button v-if="!isNew" type="button" class="button form-button flat-left" @click="submitUpdatePassword">
+          <button
+            v-if="!isNew"
+            type="button"
+            class="button form-button flat-left"
+            :disabled="!canUpdatePassword"
+            @click="submitUpdatePassword"
+          >
             {{ $t("general.update") }}
           </button>
         </div>
@@ -62,16 +74,20 @@
         <label for="scopes">{{ $t("settings.scopes") }}</label>
         <div class="scope-list" :class="{ 'form-invalid': duplicateSources.includes(source.name) }"
           v-for="(source, index) in selectedSources" :key="index">
-          <select @change="handleSourceChange(source, $event, source.name)" class="input flat-right"
+          <select @change="handleSourceChange(source, $event, source.name)" class="input flat-right source-dropdown"
             v-model="source.name">
             <option v-for="s in sourceList" :key="s.name" :value="s.name">
               {{ s.name }}
             </option>
           </select>
 
-          <input class="input flat-left scope-input" :placeholder="$t('settings.newUserHintSubFolder')"
-            @input="updateParent({ source: source, input: $event })" :value="source.scope"
-            :class="{ 'flat-right': selectedSources.length > 1 }" />
+          <div
+            :aria-label="'user-edit-scope-path-' + index"
+            class="clickable button flat-left scope-path-display"
+            :class="{ 'flat-right': selectedSources.length > 1 }"
+            @click="onScopePathRowClick(index, source)"
+          >{{ scopePathDisplay(source) }}
+          </div>
           <button v-if="selectedSources.length > 1" class="button flat-left no-height" @click="removeScope(index)">
             <i class="material-symbols material-size">delete</i>
           </button>
@@ -170,11 +186,21 @@ export default {
       availableSources: [],
       selectedSources: [],
       passwordRef: "",
+      pendingScopeSelectionContextId: null,
+      pendingScopeIndex: null,
     };
   },
   async created() {
     await this.fetchData();
     await this.initializeForm();
+  },
+  mounted() {
+    eventBus.on("pathSelected", this.onPathSelectedFromPicker);
+    eventBus.on("pathPickerCancelled", this.onPathPickerCancelled);
+  },
+  beforeUnmount() {
+    eventBus.off("pathSelected", this.onPathSelectedFromPicker);
+    eventBus.off("pathPickerCancelled", this.onPathPickerCancelled);
   },
   computed: {
     actor() {
@@ -194,6 +220,15 @@ export default {
         this.user.password != this.passwordRef && this.user.password.length > 0;
       return matching;
     },
+    /** Update is allowed only when both password fields are non-empty (trimmed) and match. */
+    canUpdatePassword() {
+      const a = String(this.passwordRef ?? "").trim();
+      const b = String(this.user.password ?? "").trim();
+      if (a.length === 0 || b.length === 0) {
+        return false;
+      }
+      return !this.invalidPassword;
+    },
     passwordAvailable: () => globalVars.passwordAvailable,
     globalVars: () => globalVars,
     duplicateSources() {
@@ -208,6 +243,15 @@ export default {
     },
     displayHomeDirectoryCheckbox() {
       return this.isNew && this.createUserDir;
+    },
+    /** Password change (existing user): target and signed-in user must both use password login. */
+    showPasswordChangeSection() {
+      return (
+        !this.isNew &&
+        this.user.loginMethod === "password" &&
+        this.stateUser.loginMethod === "password" &&
+        this.globalVars.passwordAvailable
+      );
     },
     firstAvailableLoginMethod() {
       if (this.globalVars.passwordAvailable) return "password";
@@ -386,7 +430,7 @@ export default {
           mutations.closeTopPrompt();
         }
       } catch (e) {
-        console.error(e);
+        notify.showError(e);
       }
     },
     newOTP() {
@@ -401,20 +445,31 @@ export default {
     },
     async submitUpdatePassword() {
       event.preventDefault();
-      if (this.invalidPassword) {
-        notify.showError(this.$t("settings.passwordsDoNotMatch"));
+      if (!this.canUpdatePassword) {
         return;
       }
-      try {
-        await usersApi.update(this.user, ["password"]);
-        // Only emit usersChanged for admin user management, not profile updates
-        if (state.user.permissions.admin && this.user.username !== state.user.username) {
-          eventBus.emit('usersChanged');
-        }
-        notify.showSuccessToast(this.$t("settings.userUpdated"));
-      } catch (e) {
-        notify.showError(e);
-      }
+      mutations.showPrompt({
+        name: "password",
+        props: {
+          infoText: this.$t("prompts.confirmPasswordToChangeUserPassword"),
+          submitLabel: this.$t("general.confirm"),
+          submitCallback: async (actorPassword) => {
+            try {
+              await usersApi.update(this.user, ["password"], {
+                headers: {
+                  "X-Password": encodeURIComponent(actorPassword),
+                },
+              });
+              if (state.user.permissions.admin && this.user.id !== state.user.id) {
+                eventBus.emit("usersChanged");
+              }
+              notify.showSuccessToast(this.$t("settings.userUpdated"));
+            } catch (e) {
+              notify.showError(e);
+            }
+          },
+        },
+      });
     },
     emitUserUpdate() {
       // Update the user object with current scopes
@@ -435,13 +490,67 @@ export default {
     setUpdatePassword() {
       // This method is kept for compatibility but not used in the new structure
     },
-    updateParent(input) {
-      const updatedScopes = this.selectedSources.map((source) =>
-        source.name === input.source.name
-          ? { ...source, scope: input.input.target.value }
-          : source
+    onScopePathRowClick(index, source) {
+      if (!source || !source.name) {
+        return;
+      }
+      this.openScopePicker(index);
+    },
+    scopePathDisplay(source) {
+      const s = source && source.scope;
+      if (s !== undefined && s !== null && String(s).length > 0) {
+        return s;
+      }
+      return "/";
+    },
+    openScopePicker(index) {
+      const row = this.selectedSources[index];
+      if (!row || !row.name) {
+        return;
+      }
+      const selectionContextId = `user-scope-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+      this.pendingScopeSelectionContextId = selectionContextId;
+      this.pendingScopeIndex = index;
+      const initialPath =
+        row.scope && typeof row.scope === "string" && row.scope.length > 0 ? row.scope : "/";
+      mutations.showPrompt({
+        name: "pathPicker",
+        props: {
+          currentPath: initialPath,
+          currentSource: row.name,
+          hideDestinationSource: true,
+          selectionContextId,
+        },
+      });
+    },
+    onPathPickerCancelled(data) {
+      if (!this.pendingScopeSelectionContextId || !data) {
+        return;
+      }
+      if (data.selectionContextId !== this.pendingScopeSelectionContextId) {
+        return;
+      }
+      this.pendingScopeSelectionContextId = null;
+      this.pendingScopeIndex = null;
+    },
+    onPathSelectedFromPicker(data) {
+      if (!this.pendingScopeSelectionContextId) {
+        return;
+      }
+      if (!data || data.selectionContextId !== this.pendingScopeSelectionContextId) {
+        return;
+      }
+      this.pendingScopeSelectionContextId = null;
+      const idx = this.pendingScopeIndex;
+      this.pendingScopeIndex = null;
+      if (idx === null || idx === undefined || typeof data.path !== "string") {
+        return;
+      }
+      const path = data.path;
+      const next = this.selectedSources.map((s, i) =>
+        i === idx ? { ...s, scope: path } : s
       );
-      this.selectedSources = updatedScopes;
+      this.selectedSources = next;
       this.emitUserUpdate();
     },
     addNewScopeSource(event) {
@@ -499,9 +608,14 @@ export default {
 <style scoped>
 .scope-list {
   display: flex;
+  align-items: stretch;
 }
 
-.scope-input {
+.source-dropdown {
+  width: unset;
+}
+
+.scope-path-display {
   width: 100%;
 }
 

@@ -30,7 +30,7 @@
     :title="label"
     class="action no-select"
   >
-    <i v-if="icon == 'table_rows_narrow' || icon == 'content_copy'" class="material-symbols-outlined">{{ icon }}</i>
+    <i v-if="icon == 'table_rows_narrow' || icon == 'content_copy' || icon == 'file_copy' || icon == 'copy_all'" class="material-symbols-outlined">{{ icon }}</i>
     <i v-else class="material-symbols">{{ icon }}</i>
 
     <span>{{ label }}</span>

@@ -676,7 +676,7 @@ func setDefaults(generate bool) Settings {
 	}
 
 	// if old version of database exists, error out
-	if _, err := os.Stat("database.db"); err == nil {
+	if _, err := os.Stat("database.db"); err == nil && !generate {
 		logger.Fatalf("old version of database file found, please rename it to database.db.old and follow the migration instructions.")
 	}
 

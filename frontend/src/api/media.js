@@ -21,21 +21,28 @@ export async function getSubtitleContent(source, path, subtitleName, embedded = 
   }
 }
 
-// GET /api/media/metadata — same directory shape as resources with metadata=true (adjusted to items[]).
-/** @returns {Promise<object>} directory resource (adjustedData) */
-export async function fetchDirectoryMediaMetadata(source, path) {
-  const apiPath = getApiPath("media/metadata", { source, path });
+// GET /api/media/metadata — directory or file with metadata; optional albumArt for embedded cover extraction.
+/** @param {boolean} albumArt when true, request embedded album art in audio metadata */
+/** @returns {Promise<object>} resource (adjustedData) */
+export async function fetchDirectoryMediaMetadata(source, path, albumArt = false) {
+  const apiPath = getApiPath("media/metadata", {
+    source,
+    path,
+    ...(albumArt ? { albumArt: "true" } : {}),
+  });
   const res = await fetchURL(apiPath);
   const data = await res.json();
   return adjustedData(data);
 }
 
 // GET /public/api/media/metadata
-/** @returns {Promise<object>} directory resource (adjustedData) */
-export async function fetchDirectoryMediaMetadataPublic(path, hash, password = "") {
+/** @param {boolean} albumArt when true, request embedded album art in audio metadata */
+/** @returns {Promise<object>} resource (adjustedData) */
+export async function fetchDirectoryMediaMetadataPublic(path, hash, password = "", albumArt = false) {
   const params = {
     path,
     hash,
+    ...(albumArt ? { albumArt: "true" } : {}),
     ...(state.shareInfo.token && { token: state.shareInfo.token }),
   };
   const apiPath = getPublicApiPath("media/metadata", params);

@@ -33,7 +33,8 @@
     "showMore": "Zobrazit rozšířené možnosti",
     "showLess": "Skrytí pokročilých možností",
     "goToSource": "Přejít na zdrojové umístění",
-    "goToItem": "Přejít na položku"
+    "goToItem": "Přejít na položku",
+    "copyPath": "Kopírovat cestu"
   },
   "download": {
     "downloadFile": "Stáhnout soubor",
@@ -319,14 +320,12 @@
     "unarchiveMessage": "Vyberte, kam se má archiv rozbalit.",
     "unarchiveDestination": "Výpis na:",
     "unarchiveSuccess": "Archiv úspěšně extrahován!",
-    "downloadFailed": "Stahování po částech se nezdařilo - pokud se tato situace opakuje, zkuste zmenšit velikost části: {message}"
+    "downloadFailed": "Stahování po částech se nezdařilo - pokud se tato situace opakuje, zkuste zmenšit velikost části: {message}",
+    "confirmPasswordToChangeUserPassword": "Zadejte své aktuální heslo a autorizujte tuto změnu hesla."
   },
   "search": {
     "smallerThan": "Menší než:",
     "largerThan": "Větší než:",
-    "helpText1": "Vyhledávání probíhá po každém napsaném znaku (minimálně 3 znaky pro hledaný výraz).",
-    "helpText2": "Index: Vyhledávání využívá index, který se automaticky aktualizuje v nastaveném intervalu (výchozí: 5 minut). Hledání ihned po spuštění programu může vracet neúplné výsledky.",
-    "noResults": "V indexovaném vyhledávání nebyly nalezeny žádné výsledky.",
     "onlyFolders": "Pouze složky",
     "onlyFiles": "Pouze soubory",
     "showOptions": "Zobrazit možnosti",
@@ -336,7 +335,10 @@
     "showPreviewImages": "Zobrazit náhledové obrázky",
     "showPreviewImagesDescription": "Zobrazení miniaturních náhledů výsledků vyhledávání, pokud jsou k dispozici, a zobrazení větších ikon u všech výsledků.",
     "olderThanDate": "Starší než:",
-    "newerThanDate": "Novější než:"
+    "newerThanDate": "Novější než:",
+    "helpText2": "Výsledky vyhledávání jsou založeny na indexovaných souborech, takže nově přidané soubory se mohou zobrazit až po jejich indexování.",
+    "noResults": "Nebyly nalezeny žádné výsledky.",
+    "helpText1": "Vyhledávání probíhá na základě každého zadaného znaku ({minSearchLength} minimálně znaků)."
   },
   "profileSettings": {
     "preferEditorForMarkdown": "Upřednostnit editor pro Markdown soubory",
@@ -345,8 +347,6 @@
     "deleteAfterArchiveDescription": "Pokud je povoleno, po úspěšném vytvoření/extrahování archivů dojde ke smazání zdrojových souborů",
     "hideFilesInTree": "Skrýt soubory ve stromové navigaci",
     "hideFilesInTreeDescription": "Pokud je povoleno, v postranním stromovém navigačním panelu se zobrazují pouze složky",
-    "previewModelsDescription": "Zobrazit náhledy miniatur pro 3D modely, pokud je zakázáno, zobrazí se obecná ikona",
-    "previewAudiosDescription": "Zobrazit náhledy miniatur pro zvuky, pokud je zakázáno, zobrazí se obecná ikona",
     "setDateFormat": "Nastavit formát data",
     "showHiddenFiles": "Zobrazit skryté soubory",
     "showQuickDownload": "Zobrazit ikonu rychlého stahování",
@@ -364,8 +364,6 @@
     "editorQuickSave": "Zobrazení tlačítka rychlého uložení v editoru",
     "showHiddenFilesDescription": "Zobrazení skrytých souborů ve výpisu (např. .thumbnails, ProgramData), ale jsou stále ručně přístupné, pokud jsou nakonfigurovány k indexování.",
     "showQuickDownloadDescription": "Zobrazení ikony stahování pro rychlý přístup ke každé položce souboru, na kterou lze kliknout a okamžitě ji stáhnout.",
-    "previewImagesDescription": "Zobrazení náhledů miniatur obrázků, pokud je zakázáno, zobrazí se obecná ikona.",
-    "previewVideosDescription": "Zobrazení náhledů miniatur videí, pokud je vypnuto, zobrazí se obecná ikona.",
     "editOfficeDescription": "Pokud je povolena pouze funkce office, prohlížeč/editor souborů bude zakázán pro všechny přípony souborů související s kancelářskými soubory.",
     "disableUpdateNotificationsDescription": "Zakázat banner s upozorněním na aktualizaci, který se zobrazuje uživatelům správce na postranním panelu.",
     "disableHideSidebarDescription": "Je-li tato možnost povolena, postranní panel se při náhledu nebo úpravě souborů automaticky neskryje.",
@@ -402,7 +400,10 @@
     "popupPreviewDescription": "Při najetí na položky s miniaturami se nad uživatelským rozhraním zobrazí překryvné vyskakovací okno.",
     "thumbnailOptions": "Možnosti miniatur",
     "showThumbnails": "Zobrazení miniatur podporovaných položek",
-    "showThumbnailsDescription": "Pokud je tato možnost povolena, zobrazují se ve výpisu náhledy položek, které je podporují. Vypnutím se všechny miniatury skryjí."
+    "showThumbnailsDescription": "Pokud je tato možnost povolena, zobrazují se ve výpisu náhledy položek, které je podporují. Vypnutím se všechny miniatury skryjí.",
+    "showCopyPath": "Zobrazit kopírování cesty v kontextové nabídce",
+    "showCopyPathDescription": "Zobrazení akce Kopírovat cestu v kontextové nabídce souborů a složek.",
+    "previewDescription": "Zobrazit náhledy miniatur pro {filetype}, pokud je zakázáno, zobrazí se obecná ikona."
   },
   "settings": {
     "enterPassword": "Zadejte heslo",
@@ -665,7 +666,6 @@
     "results": "Výsledky{suffix}",
     "users": "Uživatelé{suffix}",
     "photos": "Fotografie",
-    "audios": "Zvuky{suffix}",
     "videos": "Videa{suffix}",
     "models": "3D modely",
     "documents": "Dokumenty{suffix}",
@@ -751,7 +751,8 @@
     "format": "Formát{suffix}",
     "office": "Kancelář{suffix}",
     "show": "Zobrazit{suffix}",
-    "divider": "Rozdělovač{suffix}"
+    "divider": "Rozdělovač{suffix}",
+    "audio": "Audio{suffix}"
   },
   "access": {
     "rules": "Pravidla přístupu",

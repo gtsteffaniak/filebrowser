@@ -87,6 +87,43 @@ export const getters = {
     return getters.displayPreference()?.sorting || state.user?.sorting || { by: "name", asc: true };
   },
   previewType: () => getTypeInfo(state.req.type).simpleType,
+  /** Audio/video preview uses folder listing nav links unless a multi-item playback queue is active. */
+  isPreviewPlaybackQueueNavMode: () => {
+    const previewType = getters.previewType();
+    const isMediaView = previewType === 'audio' || previewType === 'video';
+    const mode = state.playbackQueue?.mode || 'single';
+    const queueLength = state.playbackQueue?.queue?.length || 0;
+    return (
+      isMediaView &&
+      mode !== 'single' &&
+      mode !== 'loop-single' &&
+      queueLength > 1
+    );
+  },
+  playbackQueueCanGoPrevious: () => {
+    const queue = state.playbackQueue?.queue || [];
+    const currentIndex = state.playbackQueue?.currentIndex ?? -1;
+    const mode = state.playbackQueue?.mode || 'single';
+    if (queue.length <= 1 || currentIndex < 0) {
+      return false;
+    }
+    if (mode === 'sequential' && currentIndex === 0) {
+      return false;
+    }
+    return true;
+  },
+  playbackQueueCanGoNext: () => {
+    const queue = state.playbackQueue?.queue || [];
+    const currentIndex = state.playbackQueue?.currentIndex ?? -1;
+    const mode = state.playbackQueue?.mode || 'single';
+    if (queue.length <= 1 || currentIndex < 0) {
+      return false;
+    }
+    if (mode === 'sequential' && currentIndex >= queue.length - 1) {
+      return false;
+    }
+    return true;
+  },
   isCardView: () =>
     getters.viewMode() === 'gallery' ||
     getters.viewMode() === 'normal' ||

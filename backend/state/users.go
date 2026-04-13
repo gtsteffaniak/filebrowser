@@ -178,7 +178,7 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 	user.FrontendScopes = nil
 
 	// Create user directories and adjust scope paths if createUserDir is enabled
-	err := files.MakeUserDirs(user, false)
+	err := files.MakeUserDirs(user)
 	if err != nil {
 		logger.Error(err.Error())
 	}

@@ -74,14 +74,11 @@ func GetSharesByUserID(userID uint64) ([]share.Share, error) {
 // GetSharesByPath retrieves shares for a specific source and path
 // Returns values (not pointers) to prevent modifications to the cache
 func GetSharesByPath(source, path string) ([]share.Share, error) {
-	logger.Debug("GetSharesByPath ENTRY", "source", source, "path", path)
 	sharesMux.RLock()
 	defer sharesMux.RUnlock()
 
 	pathKey := makePathKey(source, path)
 	hashes, exists := sharesByPath[pathKey]
-
-	logger.Debug("GetSharesByPath lookup", "pathKey", pathKey, "found", exists, "count", len(hashes), "totalKeys", len(sharesByPath))
 
 	if !exists {
 		return []share.Share{}, nil
@@ -119,8 +116,6 @@ func CreateShare(link *share.Share) error {
 
 	// Add to path index
 	sharesByPath[pathKey] = append(sharesByPath[pathKey], link.Hash)
-
-	logger.Debug("CreateShare complete", "hash", link.Hash, "pathKey", pathKey, "totalSharesInPath", len(sharesByPath[pathKey]))
 
 	return nil
 }

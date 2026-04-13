@@ -36,14 +36,6 @@ function directoryListingHasMediaChildren(req) {
   );
 }
 
-function fileListingNeedsMediaMetadataPatch(req) {
-  return (
-    req &&
-    req.type !== "directory" &&
-    (req.type?.startsWith("audio") || req.type?.startsWith("video"))
-  );
-}
-
 /** @returns {Promise<{ items?: object[], name: string, type: string, path: string, source: string, hash?: string, token?: string, parentDirItems?: object[] }>} */
 async function fetchShareItemWithParent(sharePassword) {
   let file = await resourcesApi.fetchFilesPublic(
@@ -275,19 +267,6 @@ export default {
         }
         return;
       }
-      if (fileListingNeedsMediaMetadataPatch(listing)) {
-        this.loadingProgress = 90;
-        try {
-          const payload = await fetchMedia();
-          if (payload && payload.type !== "directory") {
-            mutations.patchRequestFileMediaMetadata(payload);
-          }
-          this.loadingProgress = 100;
-        } catch {
-          this.loadingProgress = 0;
-        }
-        return;
-      }
       this.loadingProgress = 100;
     },
 
@@ -461,7 +440,7 @@ export default {
             let targetPath = `/files/${state.sources.current}`;
             for (const link of state.user?.sidebarLinks || []) {
               if (link.target.startsWith('/')) {
-                if (link.category !== 'source') {
+                if (!link.category.startsWith('source')) {
                   continue;
                 }
                 targetPath = `/files/${link.sourceName}${link.target}`;

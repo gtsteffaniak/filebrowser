@@ -33,7 +33,8 @@
     "showMore": "Visa avancerade alternativ",
     "showLess": "Dölj avancerade alternativ",
     "goToSource": "Gå till källplatsen",
-    "goToItem": "Gå till objektet"
+    "goToItem": "Gå till objektet",
+    "copyPath": "Kopiera sökväg"
   },
   "download": {
     "downloadFile": "Ladda ner fil",
@@ -241,14 +242,12 @@
     "unarchiveMessage": "Välj var du vill extrahera arkivet.",
     "unarchiveDestination": "Extrahera till:",
     "unarchiveSuccess": "Arkivet har extraherats framgångsrikt!",
-    "downloadFailed": "Nedladdningen av chunked misslyckades - om detta upprepas, försök att minska chunkstorleken: {message}"
+    "downloadFailed": "Nedladdningen av chunked misslyckades - om detta upprepas, försök att minska chunkstorleken: {message}",
+    "confirmPasswordToChangeUserPassword": "Ange ditt nuvarande lösenord för att godkänna denna lösenordsändring."
   },
   "search": {
     "smallerThan": "Mindre än:",
     "largerThan": "Större än:",
-    "helpText1": "Sökningen sker på varje tecken du skriver (minst 3 tecken för sökbegrepp).",
-    "helpText2": "Indexet: Sökningen använder indexet som automatiskt uppdateras med det inställda intervallet (standard: 5 minuter). Om du söker när programmet precis har startat kan det leda till ofullständiga resultat.",
-    "noResults": "Inga resultat hittades i indexerad sökning.",
     "onlyFolders": "Endast mappar",
     "onlyFiles": "Endast filer",
     "showOptions": "Visa alternativ",
@@ -258,7 +257,10 @@
     "showPreviewImages": "Visa förhandsgranskningsbilder",
     "showPreviewImagesDescription": "Visa förhandsvisningar av miniatyrbilder för sökresultat när det är tillgängligt och visa större ikoner för alla resultat.",
     "olderThanDate": "Äldre än:",
-    "newerThanDate": "Nyare än:"
+    "newerThanDate": "Nyare än:",
+    "helpText2": "Sökresultaten baseras på indexerade filer, så det kan hända att nya filer inte visas förrän de har indexerats.",
+    "noResults": "Inga resultat hittades.",
+    "helpText1": "Sökningen sker för varje tecken du skriver ({minSearchLength} tecken minimum)."
   },
   "settings": {
     "administrator": "Administratör",
@@ -571,15 +573,11 @@
     "deleteAfterArchiveDescription": "När aktiverad kommer att ta bort källfilerna efter framgångsrik skapande/extrahering av arkiv",
     "hideFilesInTree": "Dölj filer i trädnavigering",
     "hideFilesInTreeDescription": "När aktiverad visas endast mappar i sidofältets trädnavigering",
-    "previewModelsDescription": "Visa miniatyrförhandsvisningar för 3D-modeller, kommer att visa generisk ikon om inaktiverad",
-    "previewAudiosDescription": "Visa miniatyrförhandsvisningar för ljudfiler, kommer att visa generisk ikon om inaktiverad",
     "setDateFormat": "Ange exakt datumformat",
     "showHiddenFiles": "Visa dolda filer",
     "showHiddenFilesDescription": "Visa dolda filer i listan (t.ex. .thumbnails, ProgramData), men de är fortfarande manuellt åtkomliga om de är konfigurerade för att indexeras.",
     "showQuickDownload": "Visa nedladdningsikon för snabb åtkomst",
     "showQuickDownloadDescription": "Visa nedladdningsikon för snabb åtkomst på varje filobjekt som kan klickas för att ladda ner direkt.",
-    "previewImagesDescription": "Visa förhandsvisningar av miniatyrbilder för bilder, visar generisk ikon om den är inaktiverad.",
-    "previewVideosDescription": "Visa förhandsvisningar av miniatyrbilder för videor, visar en generisk ikon om den är inaktiverad.",
     "editOffice": "Visa och redigera kontorsfiler med OnlyOffice",
     "editOfficeDescription": "När endast Office är aktiverat kommer filgranskaren/-redigeraren att inaktiveras för alla filtillägg som är relaterade till Office-filer.",
     "filePreviewOptions": "Alternativ för förhandsgranskning av filer",
@@ -628,7 +626,10 @@
     "popupPreviewDescription": "Ett överliggande popup-fönster visas över användargränssnittet när du håller muspekaren över objekt med miniatyrbilder",
     "thumbnailOptions": "Alternativ för miniatyrbilder",
     "showThumbnails": "Visa miniatyrbilder för objekt som stöds",
-    "showThumbnailsDescription": "När den är aktiverad visas miniatyrbilder i listan för objekt som stöder dem. Stäng av för att dölja alla miniatyrbilder."
+    "showThumbnailsDescription": "När den är aktiverad visas miniatyrbilder i listan för objekt som stöder dem. Stäng av för att dölja alla miniatyrbilder.",
+    "showCopyPath": "Visa Kopiera sökväg i snabbmenyn",
+    "showCopyPathDescription": "Visa åtgärden Kopiera sökväg i snabbmenyn för filer och mappar.",
+    "previewDescription": "Visa förhandsgranskning av miniatyrbilder för {filetype}, visar generisk ikon om den är inaktiverad."
   },
   "general": {
     "name": "Namn",
@@ -665,7 +666,6 @@
     "results": "Resultat{suffix}",
     "users": "Användare{suffix}",
     "photos": "Bilder",
-    "audios": "Ljud{suffix}",
     "videos": "Videor{suffix}",
     "models": "3D-modeller",
     "documents": "Dokument{suffix}",
@@ -751,7 +751,8 @@
     "format": "Format{suffix}",
     "office": "Kontor{suffix}",
     "show": "Visa{suffix}",
-    "divider": "Uppdelare{suffix}"
+    "divider": "Uppdelare{suffix}",
+    "audio": "Ljud{suffix}"
   },
   "access": {
     "rules": "Regler för åtkomst",

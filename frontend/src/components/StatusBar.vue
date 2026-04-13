@@ -202,7 +202,7 @@ export default {
     },
     // Ctrl + Mouse Wheel to adjust the slider sizes
     handleWheel(event) {
-      if (!event.ctrlKey) return;
+      if (!(event.ctrlKey || event.metaKey)) return;
 
       const delta = event.deltaY > 0 ? 1 : -1; // Scroll down increases, up decreases
 
