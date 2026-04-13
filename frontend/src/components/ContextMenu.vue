@@ -186,6 +186,7 @@ import buttons from "@/utils/buttons";
 import { notify } from "@/notify";
 import { resourcesApi } from "@/api";
 import { url } from "@/utils";
+import { copyToClipboard } from "@/utils/clipboard";
 
 function isArchivePath(pathOrName) {
   if (!pathOrName || typeof pathOrName !== "string") return false;
@@ -662,33 +663,7 @@ export default {
       const item = this.firstSelected;
       const path = item?.path || "";
 
-      if (!path) {
-        notify.showErrorToast(this.$t("prompts.copyToClipboardFailed"));
-        mutations.closeHovers();
-        return;
-      }
-
-      try {
-        await navigator.clipboard.writeText(path);
-        notify.showSuccessToast(this.$t("buttons.copySuccess"));
-      } catch (err) {
-        const textArea = document.createElement("textarea");
-        textArea.value = path;
-        textArea.style.position = "fixed";
-        textArea.style.opacity = "0";
-        document.body.appendChild(textArea);
-        textArea.select();
-
-        try {
-          document.execCommand("copy");
-          notify.showSuccessToast(this.$t("buttons.copySuccess"));
-        } catch (e) {
-          notify.showErrorToast(this.$t("prompts.copyToClipboardFailed"));
-        }
-
-        document.body.removeChild(textArea);
-      }
-
+      await copyToClipboard(path);
       mutations.closeHovers();
     },
     showNewDirPrompt() {

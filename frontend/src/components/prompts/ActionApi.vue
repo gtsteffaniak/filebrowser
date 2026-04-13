@@ -3,8 +3,8 @@
     <!-- API Token Section -->
     <div class="api-section">
       <button
-        class="action copy-clipboard api-key-button"
-        :data-clipboard-text="name"
+        class="action api-key-button"
+        @click.stop="copyToClipboard(name)"
         :aria-label="$t('buttons.copyToClipboard')"
         :title="$t('buttons.copyToClipboard')"
       >
@@ -12,8 +12,8 @@
         <i class="material-symbols">content_paste</i>
       </button>
       <button
-        class="action copy-clipboard api-key-value-button"
-        :data-clipboard-text="info.token"
+        class="action api-key-value-button"
+        @click.stop="copyToClipboard(info.token)"
         :aria-label="$t('api.clickToCopyKey')"
         :title="$t('api.clickToCopyKey')"
       >
@@ -73,6 +73,7 @@ import { mutations } from "@/store";
 import { notify } from "@/notify";
 import { authApi } from "@/api";
 import { eventBus } from "@/store/eventBus";
+import { copyToClipboard } from "@/utils/clipboard";
 
 export default {
   name: "ActionApi",
@@ -93,6 +94,9 @@ export default {
     },
   },
   methods: {
+    async copyToClipboard(text) {
+      await copyToClipboard(text);
+    },
     formatTime(timestamp) {
       return new Date(timestamp * 1000).toLocaleDateString("en-US", {
         year: "numeric",

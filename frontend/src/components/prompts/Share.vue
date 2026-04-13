@@ -57,14 +57,14 @@
                 </button>
               </td>
               <td class="small">
-                <button class="action copy-clipboard" :data-clipboard-text="link.shareURL"
+                <button class="action" @click.stop="copyToClipboard(link.shareURL)"
                   :aria-label="$t('buttons.copyToClipboard')" :title="$t('buttons.copyToClipboard')">
                   <i class="material-symbols">content_paste</i>
                 </button>
               </td>
               <td class="small">
-                <button :disabled="link.shareType == 'upload'" class="action copy-clipboard"
-                  :data-clipboard-text="link.downloadURL" :aria-label="$t('buttons.copyDownloadLinkToClipboard')"
+                <button :disabled="link.shareType == 'upload'" class="action" @click.stop="copyToClipboard(link.downloadURL)"
+                  :aria-label="$t('buttons.copyDownloadLinkToClipboard')"
                   :title="$t('buttons.copyDownloadLinkToClipboard')">
                   <i class="material-symbols">content_paste_go</i>
                 </button>
@@ -321,7 +321,7 @@
 import { notify } from "@/notify";
 import { state, getters, mutations } from "@/store";
 import { shareApi } from "@/api";
-import Clipboard from "clipboard";
+import { copyToClipboard } from "@/utils/clipboard";
 import { fromNow } from "@/utils/moment";
 import { buildItemUrl } from "@/utils/url";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
@@ -364,8 +364,6 @@ export default {
       unit: "hours",
       /** @type {Share[]} */
       links: [],
-      /** @type {Clipboard | null} */
-      clip: null,
       password: "",
       listing: true,
       allowModify: false,
@@ -558,10 +556,6 @@ export default {
     }
   },
   mounted() {
-    // Initialize clipboard after DOM is ready
-    this.$nextTick(() => {
-      this.initClipboard();
-    });
     // Listen for sidebar links updates from the SidebarLinks prompt
     eventBus.on('shareSidebarLinksUpdated', this.handleSidebarLinksUpdate);
     eventBus.on('pathSelected', this.onBannerFaviconPathSelected);
@@ -573,23 +567,10 @@ export default {
     eventBus.off('shareSidebarLinksUpdated', this.handleSidebarLinksUpdate);
     eventBus.off('pathSelected', this.onBannerFaviconPathSelected);
     eventBus.off('pathPickerCancelled', this.onBannerFaviconPathPickerCancelled);
-    // Clean up clipboard
-    if (this.clip) {
-      this.clip.destroy();
-    }
   },
   methods: {
-    initClipboard() {
-      // Destroy existing clipboard first
-      if (this.clip) {
-        this.clip.destroy();
-      }
-
-      // Create new clipboard instance
-      this.clip = new Clipboard(".copy-clipboard");
-      this.clip.on("success", () => {
-        notify.showSuccessToast(this.$t("success.linkCopied"));
-      });
+    async copyToClipboard(text) {
+      await copyToClipboard(text);
     },
     /**
      * @param {MouseEvent} event
@@ -676,10 +657,6 @@ export default {
         if (!this.isEditMode && !this.editingLink) {
           this.links.push(res);
           this.sort();
-        // reinitialize the clipboard after adding a new link
-        this.$nextTick(() => {
-          this.initClipboard();
-        });
         } else if (this.editingLink) {
           // Update the link in the local list
           const index = this.links.findIndex(l => l.hash === this.editingLink.hash);
@@ -689,10 +666,6 @@ export default {
           this.editingLink = null;
           // emit event to reload shares in settings view
           eventBus.emit('sharesChanged');
-        // Reinitialize clipboard after edit the share
-        this.$nextTick(() => {
-          this.initClipboard();
-        });
         } else {
           // emit event to reload shares in settings view
           eventBus.emit('sharesChanged');
@@ -767,10 +740,6 @@ export default {
       try {
         await shareApi.remove(link.hash);
         this.links = this.links.filter((item) => item.hash !== link.hash);
-        // Reinitialize clipboard after deletion too
-        this.$nextTick(() => {
-          this.initClipboard();
-        });
         // emit event to reload shares in settings view
         eventBus.emit('sharesChanged');
         if (this.links.length === 0) {
