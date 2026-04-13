@@ -82,7 +82,7 @@ func Initialize(dbPath string) (bool, error) {
 	}
 	for _, link := range sharesList {
 		sharesByHash[link.Hash] = link
-		pathKey := makePathKey(link.Source, link.Path)
+		pathKey := makePathKey(link.SourcePath, link.Path)
 		sharesByPath[pathKey] = append(sharesByPath[pathKey], link.Hash)
 	}
 	logger.Debugf("Loaded %d shares", len(sharesList))
@@ -171,7 +171,8 @@ func GetAccessStorage() *access.Storage {
 	return accessStorage
 }
 
-// GetShareStorage returns a share.Storage backed by state (for use with files.FileInfoFaster, etc.)
+// GetShareStorage returns share.Storage backed by state (shareBackend); reads and writes use the
+// same in-memory index as package state, updated after successful database operations.
 func GetShareStorage() *share.Storage {
 	return share.NewStorage(shareBackend{}, nil)
 }

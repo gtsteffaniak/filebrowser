@@ -16,7 +16,6 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
@@ -69,7 +68,7 @@ func buildShareAPIResponse(r *http.Request, s share.Share, viewer *users.User, s
 	if u, err := state.GetUser(s.UserID); err == nil {
 		s.OwnerUsername = u.Username
 	}
-	s.DisplaySource = sourceDisplayName
+	s.SourceName = sourceDisplayName
 	s.PathExists = pathExists
 	return s
 }
@@ -77,15 +76,20 @@ func buildShareAPIResponse(r *http.Request, s share.Share, viewer *users.User, s
 func buildShareAPIResponses(r *http.Request, shares []share.Share, viewer *users.User) ([]share.Share, error) {
 	out := make([]share.Share, 0, len(shares))
 	for _, s := range shares {
-		sourceInfo, ok := config.Server.SourceMap[s.Source]
+		sourceInfo, ok := config.Server.SourceMap[s.SourcePath]
 		if !ok {
-			sourceInfo, ok = config.Server.NameToSource[s.Source]
+			sourceInfo, ok = config.Server.NameToSource[s.SourcePath]
 			if !ok {
+				logger.Warningf("share list: skipping hash=%q sourcePath=%q (not in SourceMap or NameToSource); viewer=%q",
+					s.Hash, s.SourcePath, viewer.Username)
 				continue
 			}
 		}
 		pathExists := utils.CheckPathExists(filepath.Join(sourceInfo.Path, s.Path))
 		out = append(out, buildShareAPIResponse(r, s, viewer, sourceInfo.Name, pathExists))
+	}
+	if len(out) != len(shares) {
+		logger.Infof("share list: included %d of %d share(s) after source resolution", len(out), len(shares))
 	}
 	return out, nil
 }
@@ -142,6 +146,7 @@ func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
+	logger.Debugf("api share/list: user=%q admin=%v rawShares=%d", d.user.Username, d.user.Permissions.Admin, len(sharesValues))
 	sharesWithUsernames, err := buildShareAPIResponses(r, sharesValues, d.user)
 	if err != nil {
 		return http.StatusInternalServerError, err
@@ -179,18 +184,20 @@ func shareGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 	var normErr error
 	scopePath, normErr = normalizeShareStoredPath(idx, scopePath)
 	if normErr != nil {
+		logger.Warningf("shareGetHandler: path normalize failed path=%q sourceName=%q user=%q scopeBefore=%q err=%v (returning empty list)",
+			path, sourceName, d.user.Username, utils.JoinPathAsUnix(userscope, path), normErr)
 		return renderJSON(w, r, []share.Share{})
 	}
 
-	// Debug: show what we're querying for
 	logger.Debug("shareGetHandler querying", "sourceName", sourceName, "sourceInfoPath", sourceInfo.Path, "scopePath", scopePath, "userID", d.user.ID)
 
 	s, err := shareStore.Gets(scopePath, sourceInfo.Path, d.user.ID)
-	if err == errors.ErrNotExist || len(s) == 0 {
-		return renderJSON(w, r, []share.Share{})
-	}
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("error getting share info from server")
+	}
+	logger.Debug("shareGetHandler result", "sourceName", sourceName, "scopePath", scopePath, "userID", d.user.ID, "count", len(s))
+	if len(s) == 0 {
+		return renderJSON(w, r, []share.Share{})
 	}
 	sharesWithUsernames, err := buildShareAPIResponses(r, sharePtrsToValues(s), d.user)
 	if err != nil {
@@ -371,10 +378,10 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 			link.Password = stringHash
 			link.Token = token
 			preservedPath := link.Path
-			preservedSource := link.Source
+			preservedSourcePath := link.SourcePath
 			link.FrontendShareInfo = req.FrontendShareInfo
 			link.Path = preservedPath
-			link.Source = preservedSource
+			link.SourcePath = preservedSourcePath
 			link.UserID = ownerID
 			if link.ShareType == "upload" && !req.AllowCreate {
 				link.AllowCreate = true
@@ -403,9 +410,9 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return renderJSON(w, r, items[0])
 	}
 
-	source, ok := config.Server.NameToSource[req.Source]
+	source, ok := config.Server.NameToSource[req.SourceName]
 	if !ok {
-		return http.StatusForbidden, fmt.Errorf("source with name not found: %s", req.Source)
+		return http.StatusForbidden, fmt.Errorf("source with name not found: %s", req.SourceName)
 	}
 
 	if source.Config.Private {
@@ -418,7 +425,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 	idx := indexing.GetIndex(source.Name)
 	if idx == nil {
-		return http.StatusForbidden, fmt.Errorf("source with name not found: %s", req.Source)
+		return http.StatusForbidden, fmt.Errorf("source with name not found: %s", req.SourceName)
 	}
 	userscope, err := d.user.GetScopeForSourceName(source.Name)
 	if err != nil {
@@ -451,8 +458,9 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 			FrontendShareInfo: req.FrontendShareInfo,
 			Hash:              secureHash,
 			Path:              storedPath,
-			Source:            source.Path,
+			SourceName:        source.Name,
 		},
+		SourcePath:   source.Path,
 		UserID:       ownerID,
 		Expire:       expire,
 		PasswordHash: stringHash,
@@ -471,7 +479,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusInternalServerError, err
 	}
 
-	logger.Debug("Created share", "hash", s.Hash, "source", s.Source, "path", s.Path, "userID", s.UserID)
+	logger.Debug("Created share", "hash", s.Hash, "sourcePath", s.SourcePath, "path", s.Path, "userID", s.UserID)
 
 	created, err := state.GetShare(secureHash)
 	if err != nil {
@@ -598,7 +606,6 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *reque
 	// Check if an existing share already matches these parameters
 	existingShares, err := shareStore.Gets(scopePath, sourceInfo.Path, d.user.ID)
 	if err == nil && len(existingShares) > 0 {
-		// Look for a share that matches our parameters
 		for _, existing := range existingShares {
 			if existing.DownloadsLimit == downloadCount &&
 				existing.MaxBandwidth == downloadSpeed &&
@@ -626,11 +633,12 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *reque
 			DownloadsLimit: downloadCount,
 			Hash:           secureHash,
 			Path:           scopePath,
-			Source:         idx.Path,
+			SourceName:     sourceInfo.Name,
 		},
-		Expire:  expire,
-		UserID:  d.user.ID,
-		Version: 1,
+		SourcePath: idx.Path,
+		Expire:     expire,
+		UserID:     d.user.ID,
+		Version:    1,
 	}
 
 	if err = state.CreateShare(shareLink); err != nil {

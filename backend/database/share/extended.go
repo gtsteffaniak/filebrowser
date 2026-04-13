@@ -33,9 +33,9 @@ func (l *Share) IsSingleFileShare() bool {
 func (l *Share) isFileOnFilesystem() bool {
 	// Construct the full path using Source and Path
 	fullPath := l.Path
-	if l.Source != "" {
-		// If Source is provided, it might be a relative path from the source
-		fullPath = filepath.Join(l.Source, l.Path)
+	if l.SourcePath != "" {
+		// If SourcePath is provided, it might be a relative path from the source
+		fullPath = filepath.Join(l.SourcePath, l.Path)
 	}
 
 	info, err := os.Stat(fullPath)
@@ -51,9 +51,9 @@ func (l *Share) isFileOnFilesystem() bool {
 func (l *Share) isDirectoryOnFilesystem() bool {
 	// Construct the full path using Source and Path
 	fullPath := l.Path
-	if l.Source != "" {
-		// If Source is provided, it might be a relative path from the source
-		fullPath = filepath.Join(l.Source, l.Path)
+	if l.SourcePath != "" {
+		// If SourcePath is provided, it might be a relative path from the source
+		fullPath = filepath.Join(l.SourcePath, l.Path)
 	}
 
 	info, err := os.Stat(fullPath)
@@ -144,7 +144,7 @@ func (l *Share) HasReachedUserLimit(username string) bool {
 }
 
 func (l *Share) GetSourceName() string {
-	sourceInfo, ok := settings.Config.Server.SourceMap[l.Source]
+	sourceInfo, ok := settings.Config.Server.SourceMap[l.SourcePath]
 	if !ok {
 		return ""
 	}

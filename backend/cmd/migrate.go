@@ -112,6 +112,22 @@ func migrateFromBoltToSQLite() error {
 	return nil
 }
 
+// normalizeUserScopesBeforeSQLite copies scopes from FrontendScopes into BackendScopes when the Bolt
+// record only had JSON key "scopes" (FrontendUser) and nothing under backendScopes — CreateUser
+// persists only BackendScopes in SQLite user_data.
+func normalizeUserScopesBeforeSQLite(user *users.User) error {
+	if len(user.BackendScopes) > 0 {
+		return nil
+	}
+	backendScopes, err := users.APIScopesToBackend(user.FrontendScopes)
+	if err != nil {
+		return fmt.Errorf("convert frontend scopes to backend: %w", err)
+	}
+	user.FrontendScopes = nil
+	user.BackendScopes = backendScopes
+	return nil
+}
+
 // migrateUsers migrates all users from BoltDB to SQLite. Each bolt user.ID is written as user_id
 // (CreateUser keeps a non-zero ID).
 func migrateUsers(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
@@ -125,13 +141,27 @@ func migrateUsers(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 		return fmt.Errorf("failed to read users from old DB: %w", err)
 	}
 
+	promoted := 0
 	for _, user := range usersList {
+		feBefore := len(user.FrontendScopes)
+		beBefore := len(user.BackendScopes)
+		if err := normalizeUserScopesBeforeSQLite(user); err != nil {
+			return fmt.Errorf("failed to normalize scopes for user %s: %w", user.Username, err)
+		}
+		if len(user.BackendScopes) > beBefore {
+			promoted++
+			logger.Infof("  user %q: Bolt had scopes on frontend only (frontend=%d, backend=%d) → sqlite backend=%d",
+				user.Username, feBefore, beBefore, len(user.BackendScopes))
+		}
 		boltID := user.ID
 		if err := sqlStore.CreateUser(user); err != nil {
 			return fmt.Errorf("failed to save user %s (bolt id: %d): %w", user.Username, boltID, err)
 		}
 	}
 
+	if promoted > 0 {
+		logger.Infof("  Promoted frontend-only Bolt scopes to backend for %d user(s) before SQLite insert", promoted)
+	}
 	logger.Infof("  ✓ Migrated %d users", len(usersList))
 	return nil
 }
@@ -162,6 +192,17 @@ func migrateShares(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 		link := legacy.ToShare()
 		if link.UserID == 0 {
 			return fmt.Errorf("failed to save share %s: owner user id is missing", link.Hash)
+		}
+		// Legacy "source" was sometimes a display name, not a backend path.
+		if link.SourcePath != "" {
+			if _, ok := settings.Config.Server.SourceMap[link.SourcePath]; !ok {
+				if src, ok := settings.Config.Server.NameToSource[link.SourcePath]; ok {
+					link.SourceName = src.Name
+					link.SourcePath = src.Path
+				}
+			} else if link.SourceName == "" {
+				link.SourceName = settings.Config.Server.SourceMap[link.SourcePath].Name
+			}
 		}
 		if err := sqlStore.SaveShare(&link); err != nil {
 			return fmt.Errorf("failed to save share %s: %w", link.Hash, err)

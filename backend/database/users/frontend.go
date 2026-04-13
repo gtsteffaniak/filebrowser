@@ -2,9 +2,10 @@ package users
 
 import "strings"
 
-// PrepForFrontend fills FrontendUser from the backend fields (scopes/links/locale/TOTP display).
+// PrepForFrontend fills response-only fields (scopes, links, locale) for a user value returned from GET handlers.
+// FrontendScopes are not loaded from or saved to the database.
 func (u *User) PrepForFrontend() {
-	u.Scopes = u.GetFrontendScopes()
+	u.FrontendScopes = u.GetFrontendScopes()
 	u.SidebarLinks = u.GetFrontendSidebarLinks()
 	u.Password = ""
 	u.OtpEnabled = u.TOTPSecret != ""

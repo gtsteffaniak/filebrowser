@@ -1,9 +1,9 @@
 package share
 
 import (
+	stderrors "errors"
 	"fmt"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
@@ -55,193 +55,35 @@ func (c *crudBackend) DeleteByID(id any) error {
 	return c.back.Delete(hash)
 }
 
-// Storage is a share storage using generics.
+// Storage fronts StorageBackend (e.g. state.shareBackend). Authoritative in-memory shares live in
+// package state, updated after successful database writes; this wrapper does not keep a second copy.
 type Storage struct {
-	Generic     *crud.Storage[Share]
-	back        StorageBackend
-	shareByHash map[string]*Share            // key: link hash
-	shareByPath map[string]map[string]string // key: pathKey(Source, Path), value: set of hashes (hash -> "")
-	mu          sync.RWMutex
-	users       *users.Storage
+	Generic *crud.Storage[Share]
+	back    StorageBackend
+	users   *users.Storage
 }
 
-// pathKey returns the cache key for shareByPath (source + path).
-func pathKey(source, path string) string {
-	return source + ":" + path
-}
-
-// setCacheLocked updates both shareByHash and shareByPath for the given link.
-// Caller must hold s.mu.
-func (s *Storage) setCacheLocked(link *Share) {
-	if link == nil {
-		return
-	}
-	adjustedPath := utils.AddTrailingSlashIfNotExists(link.Path)
-	adjustedSource := utils.AddTrailingSlashIfNotExists(link.Source)
-	s.shareByHash[link.Hash] = link
-	key := pathKey(adjustedSource, adjustedPath)
-	if s.shareByPath[key] == nil {
-		s.shareByPath[key] = make(map[string]string)
-	}
-	s.shareByPath[key][link.Hash] = ""
-}
-
-// setCache updates both caches for the given link. It acquires s.mu.
-func (s *Storage) setCache(link *Share) {
-	s.mu.Lock()
-	s.setCacheLocked(link)
-	s.mu.Unlock()
-}
-
-// deleteFromCacheLocked removes the link (by hash) from both caches.
-// Caller must hold s.mu.
-func (s *Storage) deleteFromCacheLocked(hash string) {
-	link, ok := s.shareByHash[hash]
-	if !ok {
-		return
-	}
-	adjustedPath := utils.AddTrailingSlashIfNotExists(link.Path)
-	adjustedSource := utils.AddTrailingSlashIfNotExists(link.Source)
-	key := pathKey(adjustedSource, adjustedPath)
-	if inner, ok := s.shareByPath[key]; ok {
-		delete(inner, hash)
-		if len(inner) == 0 {
-			delete(s.shareByPath, key)
-		}
-	}
-	delete(s.shareByHash, hash)
-}
-
-// deleteFromCache removes the link (by hash) from both caches. It acquires s.mu.
-func (s *Storage) deleteFromCache(hash string) {
-	s.mu.Lock()
-	s.deleteFromCacheLocked(hash)
-	s.mu.Unlock()
-}
-
-// ForgetShare drops the in-memory entry so the next GetByHash reloads from the backend
-// (e.g. after state.RecordShareDownload updates the authoritative row).
-func (s *Storage) ForgetShare(hash string) {
-	s.deleteFromCache(hash)
-}
-
-// setCacheAfterMove updates both caches when a link's Source or Path changed. It acquires s.mu.
-func (s *Storage) setCacheAfterMove(link *Share, oldSource, oldPath string) {
-	s.mu.Lock()
-	if link == nil {
-		return
-	}
-	adjustedOldPath := utils.AddTrailingSlashIfNotExists(oldPath)
-	adjustedOldSource := utils.AddTrailingSlashIfNotExists(oldSource)
-	oldKey := pathKey(adjustedOldSource, adjustedOldPath)
-	if inner, ok := s.shareByPath[oldKey]; ok {
-		delete(inner, link.Hash)
-		if len(inner) == 0 {
-			delete(s.shareByPath, oldKey)
-		}
-	}
-	s.setCacheLocked(link)
-	s.mu.Unlock()
-}
-
-// NewStorage creates a share links storage from a backend and populates the
-// in-memory cache from the database so all reads can be served from cache.
+// NewStorage returns Storage that delegates all operations to back.
 func NewStorage(back StorageBackend, usersStore *users.Storage) *Storage {
-	s := &Storage{
-		Generic:     crud.NewStorage[Share](&crudBackend{back: back}),
-		back:        back,
-		shareByHash: make(map[string]*Share),
-		shareByPath: make(map[string]map[string]string),
-		users:       usersStore,
+	return &Storage{
+		Generic: crud.NewStorage[Share](&crudBackend{back: back}),
+		back:    back,
+		users:   usersStore,
 	}
-	s.loadShareCache()
-	return s
 }
 
-// loadShareCache fills shareByHash and shareByPath from the backend and removes expired links from the DB.
-// Call once at startup so all reads can be served from cache.
-func (s *Storage) loadShareCache() {
-	links, err := s.back.All()
-	if err != nil && err != errors.ErrNotExist {
-		return
-	}
-	if links == nil {
-		links = []*Share{}
-	}
-	s.mu.Lock()
-	for _, link := range links {
-		if link == nil {
-			continue
-		}
-		if link.Expire != 0 && link.Expire <= time.Now().Unix() && !link.KeepAfterExpiration {
-			_ = s.back.Delete(link.Hash)
-			continue
-		}
-		link.InitUserDownloads()
-		s.setCacheLocked(link)
-	}
-	s.mu.Unlock()
-}
-
-// LoadShareCacheFromDB repopulates the in-memory cache from the database.
-// Call at startup (e.g. from InitializeDb) to ensure shares are loaded after the store is ready.
-func (s *Storage) LoadShareCacheFromDB() {
-	s.loadShareCache()
-}
-
-// All returns all non-expired shares from the cache (populated at startup and by writes).
+// All returns all non-expired shares from the backend.
 func (s *Storage) All() ([]*Share, error) {
-	s.mu.Lock()
-	result := make([]*Share, 0, len(s.shareByHash))
-	for _, l := range s.shareByHash {
-		if l == nil {
-			continue
-		}
-		if l.Expire != 0 && l.Expire <= time.Now().Unix() && !l.KeepAfterExpiration {
-			_ = s.back.Delete(l.Hash)
-			s.deleteFromCacheLocked(l.Hash)
-			continue
-		}
-		result = append(result, l)
-	}
-	s.mu.Unlock()
-	return result, nil
+	return s.back.All()
 }
 
-// FindByUserID returns non-expired shares owned by userID from the cache.
+// FindByUserID returns non-expired shares owned by userID from the backend.
 func (s *Storage) FindByUserID(userID uint64) ([]*Share, error) {
-	s.mu.Lock()
-	result := make([]*Share, 0)
-	for _, l := range s.shareByHash {
-		if l == nil || l.UserID != userID {
-			continue
-		}
-		if l.Expire != 0 && l.Expire <= time.Now().Unix() && !l.KeepAfterExpiration {
-			_ = s.back.Delete(l.Hash)
-			s.deleteFromCacheLocked(l.Hash)
-			continue
-		}
-		result = append(result, l)
-	}
-	s.mu.Unlock()
-	return result, nil
+	return s.back.FindByUserID(userID)
 }
 
 // GetByHash wraps StorageBackend.GetByHash and handles expiry.
 func (s *Storage) GetByHash(hash string) (*Share, error) {
-	// return stable in-memory pointer if available
-	s.mu.RLock()
-	if link, ok := s.shareByHash[hash]; ok && link != nil {
-		s.mu.RUnlock()
-		if link.Expire != 0 && link.Expire <= time.Now().Unix() {
-			_ = s.back.Delete(hash)
-			s.deleteFromCache(hash)
-			return nil, errors.ErrNotExist
-		}
-		return link, nil
-	}
-	s.mu.RUnlock()
-
 	link, err := s.back.GetByHash(hash)
 	if err != nil {
 		return nil, err
@@ -250,72 +92,26 @@ func (s *Storage) GetByHash(hash string) (*Share, error) {
 		_ = s.back.Delete(hash)
 		return nil, errors.ErrNotExist
 	}
-
-	// Initialize UserDownloads map
 	link.InitUserDownloads()
-
-	s.setCache(link)
 	return link, nil
 }
 
 // GetPermanent wraps StorageBackend.GetPermanent
 func (s *Storage) GetPermanent(path, source string, userID uint64) (*Share, error) {
-	l, err := s.back.GetPermanent(path, source, userID)
-	if err == nil && l != nil {
-		s.setCache(l)
-	}
-	return l, err
+	return s.back.GetPermanent(path, source, userID)
 }
 
-// Gets returns shares for the given path, source, and owner user id from the cache.
+// Gets returns shares for the given path, source, and owner user id.
 func (s *Storage) Gets(sourcePath, source string, userID uint64) ([]*Share, error) {
-	s.mu.Lock()
-	adjustedPath := utils.AddTrailingSlashIfNotExists(sourcePath)
-	adjustedSource := utils.AddTrailingSlashIfNotExists(source)
-	key := pathKey(adjustedSource, adjustedPath)
-	hashes := s.shareByPath[key]
-	result := make([]*Share, 0, len(hashes))
-	for h := range hashes {
-		l := s.shareByHash[h]
-		if l == nil || l.UserID != userID {
-			continue
-		}
-		if l.Expire != 0 && l.Expire <= time.Now().Unix() && !l.KeepAfterExpiration {
-			_ = s.back.Delete(l.Hash)
-			s.deleteFromCacheLocked(l.Hash)
-			continue
-		}
-		result = append(result, l)
-	}
-	s.mu.Unlock()
-	return result, nil
+	return s.back.Gets(sourcePath, source, userID)
 }
 
-// GetBySourcePath returns shares for the given path and source from the cache.
+// GetBySourcePath returns shares for the given path and source.
 func (s *Storage) GetBySourcePath(path, source string) ([]*Share, error) {
-	s.mu.Lock()
-	adjustedPath := utils.AddTrailingSlashIfNotExists(path)
-	adjustedSource := utils.AddTrailingSlashIfNotExists(source)
-	key := pathKey(adjustedSource, adjustedPath)
-	hashes := s.shareByPath[key]
-	result := make([]*Share, 0, len(hashes))
-	for h := range hashes {
-		l := s.shareByHash[h]
-		if l == nil {
-			continue
-		}
-		if l.Expire != 0 && l.Expire <= time.Now().Unix() && !l.KeepAfterExpiration {
-			_ = s.back.Delete(l.Hash)
-			s.deleteFromCacheLocked(l.Hash)
-			continue
-		}
-		result = append(result, l)
-	}
-	s.mu.Unlock()
-	return result, nil
+	return s.back.GetBySourcePath(path, source)
 }
 
-// IsShared returns whether the given path and source have any shares in the cache for owner userID.
+// IsShared returns whether the given path and source have any shares for owner userID.
 func (s *Storage) IsShared(path, source string, userID uint64) bool {
 	links, _ := s.GetBySourcePath(path, source)
 	for _, l := range links {
@@ -335,13 +131,12 @@ func (s *Storage) UpdateShares(oldSource, oldPath, newSource, newPath string) (i
 		return 0, err
 	}
 
-	// Normalize paths for comparison (remove trailing slashes)
 	oldPath = utils.AddTrailingSlashIfNotExists(oldPath)
 	newPath = utils.AddTrailingSlashIfNotExists(newPath)
 
 	updated := 0
 	for _, l := range links {
-		if l == nil || l.Source != oldSource {
+		if l == nil || l.SourcePath != oldSource {
 			continue
 		}
 		l.Path = utils.AddTrailingSlashIfNotExists(l.Path)
@@ -351,15 +146,13 @@ func (s *Storage) UpdateShares(oldSource, oldPath, newSource, newPath string) (i
 			continue
 		}
 
-		l.Source = newSource
+		l.SourcePath = newSource
 		l.Path = newPath
 
 		if err := s.back.Save(l); err != nil {
 			logger.Error("failed to save updated share", "hash", l.Hash, "error", err)
 			return updated, err
 		}
-
-		s.setCacheAfterMove(l, oldSource, oldPath)
 		updated++
 	}
 	return updated, nil
@@ -372,7 +165,6 @@ func (s *Storage) UpdateSharePath(hash, newPath string) error {
 		return err
 	}
 
-	oldPath := link.Path
 	link.Path = newPath
 
 	if err := s.back.Save(link); err != nil {
@@ -380,67 +172,39 @@ func (s *Storage) UpdateSharePath(hash, newPath string) error {
 		return err
 	}
 
-	s.setCacheAfterMove(link, link.Source, oldPath)
-
-	logger.Debug("share path updated", "hash", hash, "fromPath", oldPath, "toPath", newPath)
+	logger.Debug("share path updated", "hash", hash, "toPath", newPath)
 	return nil
 }
 
-// CreateShare creates a new share and updates the cache
-// Returns an error if the share already exists
+// CreateShare creates a new share via the backend (database + state).
 func (s *Storage) CreateShare(l *Share) error {
-	// 1. Check if share already exists in cache (state)
-	s.mu.RLock()
-	_, existsInCache := s.shareByHash[l.Hash]
-	s.mu.RUnlock()
-
-	if existsInCache {
+	_, err := s.back.GetByHash(l.Hash)
+	if err == nil {
 		return fmt.Errorf("share with hash %s already exists", l.Hash)
 	}
-
-	// 2. Update database
-	if err := s.back.Save(l); err != nil {
+	if !stderrors.Is(err, errors.ErrNotExist) {
 		return err
 	}
-
-	// 3. Update cache to match database
-	s.setCache(l)
-	return nil
+	return s.back.Save(l)
 }
 
-// UpdateShare updates an existing share and updates the cache
-// Returns an error if the share doesn't exist
+// UpdateShare updates an existing share via the backend.
 func (s *Storage) UpdateShare(l *Share) error {
-	// 1. Check if share exists in cache (state)
-	s.mu.RLock()
-	_, existsInCache := s.shareByHash[l.Hash]
-	s.mu.RUnlock()
-
-	if !existsInCache {
-		return fmt.Errorf("share with hash %s not found in cache", l.Hash)
-	}
-
-	// 2. Update database
-	if err := s.back.Save(l); err != nil {
+	if _, err := s.back.GetByHash(l.Hash); err != nil {
+		if stderrors.Is(err, errors.ErrNotExist) {
+			return fmt.Errorf("share with hash %s not found", l.Hash)
+		}
 		return err
 	}
-
-	// 3. Update cache to match database
-	s.setCache(l)
-	return nil
+	return s.back.Save(l)
 }
 
 // Delete wraps StorageBackend.Delete
 func (s *Storage) Delete(hash string) error {
-	if err := s.back.Delete(hash); err != nil {
-		return err
-	}
-	s.deleteFromCache(hash)
-	return nil
+	return s.back.Delete(hash)
 }
 
-// Flush is a no-op: every share write
-// updates the database, so the cache and DB stay in sync without flushing.
+// Flush is a no-op: writes go through the backend immediately.
 func (s *Storage) Flush() error {
 	return nil
 }

@@ -115,7 +115,7 @@ func CreateShare(link *share.Share) error {
 
 	// 3. Update cache to match database
 	sharesByHash[link.Hash] = link
-	pathKey := makePathKey(link.Source, link.Path)
+	pathKey := makePathKey(link.SourcePath, link.Path)
 
 	// Add to path index
 	sharesByPath[pathKey] = append(sharesByPath[pathKey], link.Hash)
@@ -191,7 +191,7 @@ func DeleteShare(hash string) error {
 	delete(sharesByHash, hash)
 
 	// Remove from path index
-	pathKey := makePathKey(link.Source, link.Path)
+	pathKey := makePathKey(link.SourcePath, link.Path)
 	hashes := sharesByPath[pathKey]
 	for i, h := range hashes {
 		if h == hash {
@@ -219,7 +219,7 @@ func UpdateSharePath(hash, newPath string) error {
 		return fmt.Errorf("share not found in cache")
 	}
 
-	oldPathKey := makePathKey(link.Source, link.Path)
+	oldPathKey := makePathKey(link.SourcePath, link.Path)
 
 	// 2. Update database
 	err := sqlStore.UpdateSharePath(hash, newPath)
@@ -229,7 +229,7 @@ func UpdateSharePath(hash, newPath string) error {
 
 	// 3. Update cache to match database
 	link.Path = newPath
-	newPathKey := makePathKey(link.Source, newPath)
+	newPathKey := makePathKey(link.SourcePath, newPath)
 
 	// Remove from old path index
 	if oldHashes, exists := sharesByPath[oldPathKey]; exists {
@@ -266,7 +266,7 @@ func UpdateSharesPaths(oldSource, oldPath, newSource, newPath string) error {
 	if hashes, exists := sharesByPath[oldPathKey]; exists {
 		for _, hash := range hashes {
 			if link, exists := sharesByHash[hash]; exists {
-				link.Source = newSource
+				link.SourcePath = newSource
 				link.Path = newPath
 			}
 		}
@@ -309,8 +309,8 @@ func appendShareToPathIndexLocked(source, path, hash string) {
 }
 
 // UpdateSharesForMovedResource updates share rows whose stored path is under a moved index path (same logic as
-// the former share.Storage.UpdateShares). It is the only supported way to reconcile shares after a filesystem move.
-// Returns hashes of updated shares for cache eviction in share.Storage.
+// share.Storage.UpdateShares). It is the only supported way to reconcile shares after a filesystem move.
+// Returns hashes of updated shares (e.g. for logging).
 func UpdateSharesForMovedResource(oldSource, oldPath, newSource, newPath string) ([]string, error) {
 	sharesMux.Lock()
 	defer sharesMux.Unlock()
@@ -320,7 +320,7 @@ func UpdateSharesForMovedResource(oldSource, oldPath, newSource, newPath string)
 
 	var updatedHashes []string
 	for _, l := range sharesByHash {
-		if l == nil || l.Source != oldSource {
+		if l == nil || l.SourcePath != oldSource {
 			continue
 		}
 		norm := utils.AddTrailingSlashIfNotExists(l.Path)
@@ -328,9 +328,9 @@ func UpdateSharesForMovedResource(oldSource, oldPath, newSource, newPath string)
 			continue
 		}
 
-		removeShareFromPathIndexLocked(l.Source, l.Path, l.Hash)
+		removeShareFromPathIndexLocked(l.SourcePath, l.Path, l.Hash)
 
-		l.Source = newSource
+		l.SourcePath = newSource
 		l.Path = newPath
 
 		if err := sqlStore.SaveShare(l); err != nil {
@@ -338,7 +338,7 @@ func UpdateSharesForMovedResource(oldSource, oldPath, newSource, newPath string)
 			return updatedHashes, err
 		}
 
-		appendShareToPathIndexLocked(l.Source, l.Path, l.Hash)
+		appendShareToPathIndexLocked(l.SourcePath, l.Path, l.Hash)
 		updatedHashes = append(updatedHashes, l.Hash)
 	}
 	return updatedHashes, nil

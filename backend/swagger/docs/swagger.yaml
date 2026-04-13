@@ -1354,7 +1354,6 @@ definitions:
       keepAfterExpiration:
         type: boolean
       maxBandwidth:
-        description: KB/s cap; 0 = unlimited
         type: integer
       password:
         type: string
@@ -1376,8 +1375,7 @@ definitions:
         items:
           $ref: '#/definitions/users.SidebarLink'
         type: array
-      source:
-        description: configured source name
+      sourceName:
         type: string
       sourceURL:
         type: string
@@ -1459,7 +1457,6 @@ definitions:
       keepAfterExpiration:
         type: boolean
       maxBandwidth:
-        description: KB/s cap; 0 = unlimited
         type: integer
       password:
         type: string
@@ -1483,7 +1480,9 @@ definitions:
         items:
           $ref: '#/definitions/users.SidebarLink'
         type: array
-      source:
+      sourceName:
+        type: string
+      sourcePath:
         type: string
       sourceURL:
         type: string
@@ -1787,6 +1786,12 @@ definitions:
           $ref: '#/definitions/users.AuthToken'
         description: 'deprecated: use Tokens instead'
         type: object
+      backendScopes:
+        description: BackendScopes store source root paths (Name = path); persisted
+          in user_data JSON key "scopes".
+        items:
+          $ref: '#/definitions/users.SourceScope'
+        type: array
       customTheme:
         description: Name of theme to use chosen from custom themes config.
         type: string

@@ -167,20 +167,18 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 		user.Password = hashedPassword
 	}
 
-	// Convert scope names to backend paths when the client supplied frontend scopes.
-	// If only BackendScopes is set (defaults, tests, migrations), do not wipe it.
-	adjustedScopes, err := user.GetBackendScopes()
-	if err != nil {
-		return err
+	// Persisted authority is BackendScopes only. Request json "scopes" (if any) replace it.
+	if len(user.FrontendScopes) > 0 {
+		backend, convErr := users.APIScopesToBackend(user.FrontendScopes)
+		if convErr != nil {
+			return convErr
+		}
+		user.BackendScopes = backend
 	}
-	if len(user.Scopes) > 0 {
-		user.BackendScopes = adjustedScopes
-	} else if len(user.BackendScopes) == 0 {
-		user.BackendScopes = adjustedScopes
-	}
+	user.FrontendScopes = nil
 
 	// Create user directories and adjust scope paths if createUserDir is enabled
-	err = files.MakeUserDirs(user, false)
+	err := files.MakeUserDirs(user, false)
 	if err != nil {
 		logger.Error(err.Error())
 	}
@@ -284,25 +282,29 @@ func UpdateUser(user *users.User, plaintextPassword string, fields ...string) er
 		existingUser = user
 	}
 
-	// Sync backend scope paths from API/front scopes before persisting (full replace always; patch when "scopes" listed)
+	// Apply json "scopes" from the request to BackendScopes when valid payloads are present.
 	if updateAll {
-		adjustedScopes, err := existingUser.GetBackendScopes()
-		if err != nil {
-			return err
+		if len(existingUser.FrontendScopes) > 0 {
+			backend, convErr := users.APIScopesToBackend(existingUser.FrontendScopes)
+			if convErr != nil {
+				return convErr
+			}
+			existingUser.BackendScopes = backend
 		}
-		existingUser.BackendScopes = adjustedScopes
 	} else {
 		for _, jsonFieldName := range fields {
 			if strings.EqualFold(jsonFieldName, "scopes") {
-				adjustedScopes, err := existingUser.GetBackendScopes()
-				if err != nil {
-					return err
+				backend, convErr := users.APIScopesToBackend(existingUser.FrontendScopes)
+				if convErr != nil {
+					return convErr
 				}
-				existingUser.BackendScopes = adjustedScopes
+				existingUser.BackendScopes = backend
 				break
 			}
 		}
 	}
+	// FrontendScopes are derived in PrepForFrontend for responses only; never store on disk or in cache.
+	existingUser.FrontendScopes = nil
 
 	// 3. Write to database
 	var err error

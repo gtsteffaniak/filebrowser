@@ -42,8 +42,7 @@ func publicPauseUploadCacheKey(shareHash, source, indexPath string) string {
 	return shareHash + pauseCacheKeySep + source + pauseCacheKeySep + indexPath
 }
 
-// reconcileSharesAfterMove updates authoritative share rows in state after a filesystem move, then
-// evicts share.Storage cache entries so reads reload from state/SQL.
+// reconcileSharesAfterMove updates authoritative share rows in state after a filesystem move.
 func reconcileSharesAfterMove(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string) {
 	srcIdx := indexing.GetIndex(sourceIndex)
 	dstIdx := indexing.GetIndex(destIndex)
@@ -51,7 +50,7 @@ func reconcileSharesAfterMove(isSrcDir bool, sourceIndex, destIndex, realsrc, re
 		logger.Errorf("reconcile shares after move: missing index src=%s dst=%s", sourceIndex, destIndex)
 		return
 	}
-	hashes, err := state.UpdateSharesForMovedResource(
+	_, err := state.UpdateSharesForMovedResource(
 		srcIdx.Path,
 		srcIdx.MakeIndexPath(realsrc, isSrcDir),
 		dstIdx.Path,
@@ -59,10 +58,6 @@ func reconcileSharesAfterMove(isSrcDir bool, sourceIndex, destIndex, realsrc, re
 	)
 	if err != nil {
 		logger.Errorf("reconcile shares after move: %v", err)
-		return
-	}
-	for _, h := range hashes {
-		shareStore.ForgetShare(h)
 	}
 }
 
@@ -467,7 +462,7 @@ func publicPauseHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if d.share.ShareType != "upload" && !d.share.AllowCreate {
 		return http.StatusForbidden, fmt.Errorf("pausing uploads is not allowed for this share")
 	}
-	src, ok := config.Server.SourceMap[d.share.Source]
+	src, ok := config.Server.SourceMap[d.share.SourcePath]
 	if !ok {
 		return http.StatusNotFound, fmt.Errorf("source not found")
 	}

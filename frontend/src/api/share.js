@@ -96,7 +96,8 @@ export async function updatePath(hash, newPath) {
  * @typedef {object} Share
  * @property {string} hash
  * @property {string} path
- * @property {string} source
+ * @property {string} sourceName
+ * @property {string} sourcePath
  * @property {number} expire
  * @property {number} downloadsLimit
  * @property {number} maxBandwidth

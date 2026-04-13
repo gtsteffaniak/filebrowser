@@ -53,6 +53,8 @@ func accessGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 
 	if sourceName == "" {
+		logger.Warningf("api access GET: empty source query (user=%q admin=%v path=%q userQ=%q groupQ=%q)",
+			d.user.Username, d.user.Permissions.Admin, indexPath, user, group)
 		return http.StatusBadRequest, fmt.Errorf("source parameter is required for this query")
 	}
 

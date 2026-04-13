@@ -46,12 +46,12 @@ type CreateShare struct {
 	FrontendShareInfo
 	Username                 string   `json:"username,omitempty"`
 	Hash                     string   `json:"hash,omitempty" storm:"id,index"`
-	Source                   string   `json:"source,omitempty"` // configured source name
+	SourceName               string   `json:"sourceName,omitempty"`
 	Path                     string   `json:"path,omitempty"`
 	Password                 string   `json:"password,omitempty"`
 	Expires                  string   `json:"expires,omitempty"`
 	Unit                     string   `json:"unit,omitempty"`
-	MaxBandwidth             int      `json:"maxBandwidth,omitempty"` // KB/s cap; 0 = unlimited
+	MaxBandwidth             int      `json:"maxBandwidth,omitempty"`
 	AllowedUsernames         []string `json:"allowedUsernames,omitempty"`
 	PerUserDownloadLimit     bool     `json:"perUserDownloadLimit,omitempty"`
 	ExtractEmbeddedSubtitles bool     `json:"extractEmbeddedSubtitles,omitempty"`
@@ -69,21 +69,24 @@ type Share struct {
 	UserDownloads map[string]int `json:"userDownloads,omitempty"`
 	Version       int            `json:"version,omitempty"`
 	OwnerUsername string         `json:"username,omitempty"`
-	DisplaySource string         `json:"source,omitempty"`
+	SourcePath    string         `json:"sourcePath,omitempty"`
 	PathExists    bool           `json:"pathExists,omitempty"`
 }
 
-// LegacyShare embeds Share for Bolt/Storm paths that persist shares as JSON with password_hash
+// LegacyShare embeds Share for Bolt/Storm. LegacyRoutingSource is the historical Bolt/JSON "source" field
+// (path or name); it becomes Share.SourcePath after migration.
 type LegacyShare struct {
 	Share
-	PasswordHash string `json:"password_hash,omitempty"`
+	PasswordHash        string `json:"password_hash,omitempty"`
+	LegacyRoutingSource string `json:"source,omitempty"`
 }
 
-// ToShare returns a Share for SQLite/runtime: bcrypt hash on PasswordHash, CreateShare.Password cleared.
+// ToShare builds the SQLite/runtime share: password_hash → Password; legacy source → SourcePath.
 func (l *LegacyShare) ToShare() Share {
 	s := l.Share
 	if l.PasswordHash != "" {
 		s.Password = l.PasswordHash
 	}
+	s.SourcePath = l.LegacyRoutingSource
 	return s
 }

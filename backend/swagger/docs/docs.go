@@ -5981,7 +5981,6 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "maxBandwidth": {
-                    "description": "KB/s cap; 0 = unlimited",
                     "type": "integer"
                 },
                 "password": {
@@ -6014,8 +6013,7 @@ const docTemplate = `{
                         "$ref": "#/definitions/users.SidebarLink"
                     }
                 },
-                "source": {
-                    "description": "configured source name",
+                "sourceName": {
                     "type": "string"
                 },
                 "sourceURL": {
@@ -6137,7 +6135,6 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "maxBandwidth": {
-                    "description": "KB/s cap; 0 = unlimited",
                     "type": "integer"
                 },
                 "password": {
@@ -6173,7 +6170,10 @@ const docTemplate = `{
                         "$ref": "#/definitions/users.SidebarLink"
                     }
                 },
-                "source": {
+                "sourceName": {
+                    "type": "string"
+                },
+                "sourcePath": {
                     "type": "string"
                 },
                 "sourceURL": {
@@ -6591,6 +6591,13 @@ const docTemplate = `{
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/users.AuthToken"
+                    }
+                },
+                "backendScopes": {
+                    "description": "BackendScopes store source root paths (Name = path); persisted in user_data JSON key \"scopes\".",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/users.SourceScope"
                     }
                 },
                 "customTheme": {

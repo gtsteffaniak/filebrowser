@@ -154,7 +154,7 @@ func publicMetadataHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	}
 	path := r.URL.Query().Get("path")
 	albumArt := r.URL.Query().Get("albumArt") == "true"
-	sourceCfg, ok := config.Server.SourceMap[d.share.Source]
+	sourceCfg, ok := config.Server.SourceMap[d.share.SourcePath]
 	if !ok {
 		return http.StatusNotFound, fmt.Errorf("source not found")
 	}
