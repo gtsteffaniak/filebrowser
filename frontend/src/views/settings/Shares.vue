@@ -51,13 +51,13 @@
             </button>
           </td>
           <td class="small">
-            <button class="action copy-clipboard" :data-clipboard-text="buildLink(item)"
+            <button class="action" @click.stop="copyToClipboard(buildLink(item))"
               :aria-label="$t('buttons.copyToClipboard')" :title="$t('buttons.copyToClipboard')">
               <i class="material-symbols">content_paste</i>
             </button>
           </td>
           <td class="small">
-            <button :disabled="item.shareType == 'upload'" class="action copy-clipboard" :data-clipboard-text="item.downloadURL" v-if="item.downloadURL"
+            <button :disabled="item.shareType == 'upload'" class="action" @click.stop="copyToClipboard(item.downloadURL)" v-if="item.downloadURL"
               :aria-label="$t('buttons.copyDownloadLinkToClipboard')" :title="$t('buttons.copyDownloadLinkToClipboard')">
               <i class="material-symbols">content_paste_go</i>
             </button>
@@ -76,10 +76,10 @@
 import { notify } from "@/notify";
 import { shareApi } from "@/api";
 import { state, mutations, getters } from "@/store";
-import Clipboard from "clipboard";
 import Errors from "@/views/Errors.vue";
 import { fromNow } from '@/utils/moment';
 import { eventBus } from "@/store/eventBus";
+import { copyToClipboard } from "@/utils/clipboard";
 
 export default {
   name: "shares",
@@ -92,23 +92,16 @@ export default {
       error: null,
       /** @type {any[]} */
       links: [],
-      /** @type {any} */
-      clip: null,
     };
   },
   async created() {
     await this.reloadShares();
   },
   mounted() {
-    this.initClipboard();
     // Listen for share changes
     eventBus.on('sharesChanged', this.reloadShares);
   },
   beforeUnmount() {
-    // Clean up clipboard
-    if (this.clip) {
-      this.clip.destroy();
-    }
     // Clean up event listener
     eventBus.off('sharesChanged', this.reloadShares);
   },
@@ -127,6 +120,9 @@ export default {
     },
   },
   methods: {
+    async copyToClipboard(text) {
+      await copyToClipboard(text);
+    },
     async reloadShares() {
       mutations.setLoading("shares", true);
       try {
@@ -137,29 +133,12 @@ export default {
         }
         this.links = links;
         this.error = null; // Clear any previous errors
-      this.$nextTick(() => {
-        this.initClipboard();
-      });
       } catch (e) {
         this.error = e;
         console.error(e);
       } finally {
         mutations.setLoading("shares", false);
       }
-    },
-    initClipboard() {
-      // First destroy any existing clipboard
-      if (this.clip) {
-        this.clip.destroy();
-      }
-      // Create new clipboard
-      this.clip = new Clipboard(".copy-clipboard");
-      this.clip.on("success", () => {
-        notify.showSuccessToast(this.$t("success.linkCopied"));
-      });
-      this.clip.on("error", () => {
-        notify.showErrorToast(this.$t("prompts.copyToClipboardFailed"));
-      });
     },
     editLink(item) {
       mutations.showPrompt({

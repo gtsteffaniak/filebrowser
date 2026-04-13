@@ -1,6 +1,7 @@
 {
   "buttons": {
     "copySuccess": "Kopierat till urklipp!",
+    "copyFailed": "Misslyckades med att kopiera till urklipp",
     "copyFile": "Kopiera fil",
     "copyToClipboard": "Kopiera till urklipp",
     "moveFile": "Flytta fil",
@@ -215,8 +216,6 @@
     "selectHashAlgorithm": "Välj en hashalgoritm",
     "generate": "Generera",
     "errorGeneratingHash": "Fel vid generering av hash",
-    "hashCopied": "Hash kopieras till urklipp",
-    "errorCopyingHash": "Fel vid kopiering av hash",
     "token": "Token",
     "onlyOfficeId": "OnlyOffice ID",
     "firstLoadTitle": "Välkommen till FileBrowser Quantum!",
@@ -227,7 +226,6 @@
     "renameSuccess": "Objektet har bytt namn framgångsrikt!",
     "newFileSuccess": "Filen skapades framgångsrikt!",
     "newDirSuccess": "Katalog skapad framgångsrikt!",
-    "copyToClipboardFailed": "Det går inte att kopiera till urklipp",
     "moveFailed": "Flyttning misslyckades",
     "operationFailed": "Operationen misslyckades",
     "partialSuccess": "Vissa operationer misslyckades: {succeeded} lyckades, {failed} misslyckades",
@@ -845,8 +843,6 @@
       "showingResults": "Visar resultat från {count} ",
       "noResults": "Inga ikoner hittades",
       "tryDifferentSearch": "Försök med en annan sökterm",
-      "copiedToClipboard": "Kopierade '{name}' till urklipp!",
-      "copyFailed": "Misslyckades med att kopiera till klippbordet",
       "custom": "Anpassad",
       "useCustomIcon": "Använd anpassad ikon: {name}",
       "iconLibraryUrl": "teckensnitt.google.com/ikoner",

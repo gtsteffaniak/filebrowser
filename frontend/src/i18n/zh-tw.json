@@ -1,6 +1,7 @@
 {
   "buttons": {
     "copySuccess": "已複製到剪貼簿！",
+    "copyFailed": "複製到剪貼簿失敗",
     "copyFile": "複製檔案",
     "copyToClipboard": "複製到剪貼簿",
     "moveFile": "移動檔案",
@@ -215,8 +216,6 @@
     "selectHashAlgorithm": "選擇雜湊演算法",
     "generate": "產生",
     "errorGeneratingHash": "產生雜湊時出錯",
-    "hashCopied": "已將雜湊值複製到剪貼簿",
-    "errorCopyingHash": "複製雜湊時出錯",
     "token": "權杖",
     "onlyOfficeId": "OnlyOffice ID",
     "firstLoadTitle": "歡迎來到 FileBrowser Quantum！",
@@ -227,7 +226,6 @@
     "renameSuccess": "項目已成功重新命名！",
     "newFileSuccess": "檔案已成功建立！",
     "newDirSuccess": "目錄建立成功！",
-    "copyToClipboardFailed": "無法複製到剪貼簿",
     "moveFailed": "移動失敗",
     "operationFailed": "操作失敗",
     "partialSuccess": "部分作業失敗：成功 {succeeded} 項，失敗 {failed} 項",
@@ -845,8 +843,6 @@
       "showingResults": "顯示 {count} 筆結果",
       "noResults": "找不到圖示",
       "tryDifferentSearch": "嘗試不同的搜尋字詞",
-      "copiedToClipboard": "已將「{name}」複製到剪貼簿！",
-      "copyFailed": "複製到剪貼簿失敗",
       "custom": "自訂",
       "useCustomIcon": "使用自訂圖示：{name}",
       "iconLibraryUrl": "fonts.google.com/icons",

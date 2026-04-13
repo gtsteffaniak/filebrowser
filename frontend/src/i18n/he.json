@@ -1,6 +1,7 @@
 {
   "buttons": {
     "copySuccess": "הועתק ללוח!",
+    "copyFailed": "העתקה ללוח נכשלה",
     "copyFile": "העתק קובץ",
     "copyToClipboard": "העתק ללוח",
     "moveFile": "העבר קובץ",
@@ -215,8 +216,6 @@
     "selectHashAlgorithm": "בחר אלגוריתם hash",
     "generate": "ליצור",
     "errorGeneratingHash": "שגיאה ביצירת hash",
-    "hashCopied": "ה-hash הועתק ללוח",
-    "errorCopyingHash": "שגיאה בהעתקת hash",
     "token": "אסימון",
     "onlyOfficeId": "מזהה OnlyOffice",
     "firstLoadTitle": "ברוכים הבאים ל-FileBrowser Quantum!",
@@ -227,7 +226,6 @@
     "renameSuccess": "הפריט שונה בהצלחה!",
     "newFileSuccess": "הקובץ נוצר בהצלחה!",
     "newDirSuccess": "הספרייה נוצרה בהצלחה!",
-    "copyToClipboardFailed": "לא ניתן להעתיק ללוח",
     "moveFailed": "העברה נכשלה",
     "operationFailed": "הפעולה נכשלה",
     "partialSuccess": "כמה פעולות נכשלו: {succeeded} הצליחו, {failed} נכשלו",
@@ -845,8 +843,6 @@
       "showingResults": "הצגת תוצאות {count} ",
       "noResults": "לא נמצאו סמלים",
       "tryDifferentSearch": "נסה מונח חיפוש אחר",
-      "copiedToClipboard": "הועתק '{name}' ללוח!",
-      "copyFailed": "לא ניתן להעתיק ללוח",
       "custom": "מותאם אישית",
       "useCustomIcon": "השתמש בסמל מותאם אישית: {name}",
       "iconLibraryUrl": "fonts.google.com/icons",

@@ -132,6 +132,7 @@
   },
   "buttons": {
     "copySuccess": "Copied to clipboard!",
+    "copyFailed": "Failed to copy to clipboard",
     "generateNewOtp": "Reset and generate new two-factor code",
     "copyFile": "Copy file",
     "copyPath": "Copy Path",
@@ -440,9 +441,6 @@
     "selectHashAlgorithm": "Select a hash algorithm",
     "generate": "Generate",
     "errorGeneratingHash": "Error generating hash",
-    "hashCopied": "Hash copied to clipboard",
-    "copyToClipboardFailed": "Unable to copy to clipboard",
-    "errorCopyingHash": "Error copying hash",
     "token": "Token",
     "onlyOfficeId": "OnlyOffice ID",
     "firstLoadTitle": "Welcome to FileBrowser Quantum!",
@@ -855,8 +853,6 @@
       "showingResults": "Showing {count} results",
       "noResults": "No icons found",
       "tryDifferentSearch": "Try a different search term",
-      "copiedToClipboard": "Copied '{name}' to clipboard!",
-      "copyFailed": "Failed to copy to clipboard",
       "custom": "Custom",
       "useCustomIcon": "Use custom icon: {name}"
     },

@@ -1,6 +1,7 @@
 {
   "buttons": {
     "copySuccess": "¡Copiado al portapapeles!",
+    "copyFailed": "Error al copiar al portapapeles",
     "copyFile": "Copiar archivo",
     "copyToClipboard": "Copiar al portapapeles",
     "moveFile": "Mover archivo",
@@ -215,8 +216,6 @@
     "selectHashAlgorithm": "Selecciona un algoritmo",
     "generate": "Generar",
     "errorGeneratingHash": "Hubo un error al obtener el hash",
-    "hashCopied": "¡Se copio el hash al portapapeles!",
-    "errorCopyingHash": "Hubo un error al copiar el hash",
     "token": "Token",
     "onlyOfficeId": "OnlyOffice ID",
     "firstLoadTitle": "¡Bienvenido a FileBrowser Quantum!",
@@ -227,7 +226,6 @@
     "renameSuccess": "El cambio de nombre se ha realizado correctamente",
     "newFileSuccess": "¡Archivo creado con éxito!",
     "newDirSuccess": "¡Carpeta creada con éxito!",
-    "copyToClipboardFailed": "Hubo un error al copiar en el portapapeles",
     "moveFailed": "Error al mover",
     "operationFailed": "Operación fallida",
     "partialSuccess": "Algunas acciones fallaron: {succeeded} se completaron, y {failed} fallaron",
@@ -845,8 +843,6 @@
       "showingResults": "Se encontraron {count} iconos",
       "noResults": "No se pudieorn encontrar iconos",
       "tryDifferentSearch": "Prueba con otro nombre",
-      "copiedToClipboard": "¡Se copió '{name}' al portapapeles!",
-      "copyFailed": "Hubo un error al copiar al portapapeles",
       "custom": "Personalizar",
       "useCustomIcon": "Utilizar icono personalizado: {name}",
       "iconLibraryUrl": "fonts.google.com/icons",

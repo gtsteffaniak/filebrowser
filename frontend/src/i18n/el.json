@@ -1,6 +1,7 @@
 {
   "buttons": {
     "copySuccess": "Αντιγράφηκε στο πρόχειρο!",
+    "copyFailed": "Απέτυχε η αντιγραφή στο πρόχειρο",
     "copyFile": "Αντιγραφή αρχείου",
     "copyToClipboard": "Αντιγραφή στο πρόχειρο",
     "copyDownloadLinkToClipboard": "Αντιγραφή συνδέσμου λήψης στο πρόχειρο",
@@ -218,8 +219,6 @@
     "selectHashAlgorithm": "Επιλέξτε έναν αλγόριθμο κατακερματισμού",
     "generate": "Δημιουργία",
     "errorGeneratingHash": "Σφάλμα δημιουργίας hash",
-    "hashCopied": "Αντιγραφή κατακερματισμού στο πρόχειρο",
-    "errorCopyingHash": "Σφάλμα αντιγραφής hash",
     "token": "Token",
     "onlyOfficeId": "ΜόνοΤαυτότητα γραφείου",
     "firstLoadTitle": "Καλώς ήρθατε στο FileBrowser Quantum!",
@@ -230,7 +229,6 @@
     "renameSuccess": "Το στοιχείο μετονομάστηκε επιτυχώς!",
     "newFileSuccess": "Το αρχείο δημιουργήθηκε με επιτυχία!",
     "newDirSuccess": "Ο κατάλογος δημιουργήθηκε με επιτυχία!",
-    "copyToClipboardFailed": "Αδυναμία αντιγραφής στο πρόχειρο",
     "moveFailed": "Η μετακίνηση απέτυχε",
     "operationFailed": "Η λειτουργία απέτυχε",
     "partialSuccess": "Ορισμένες λειτουργίες απέτυχαν: {succeeded} πέτυχε, {failed} απέτυχε",
@@ -845,8 +843,6 @@
       "showingResults": "Εμφάνιση {count} αποτελεσμάτων",
       "noResults": "Δεν βρέθηκαν εικονίδια",
       "tryDifferentSearch": "Δοκιμάστε έναν διαφορετικό όρο αναζήτησης",
-      "copiedToClipboard": "Αντιγραφή του '{name}' στο πρόχειρο!",
-      "copyFailed": "Απέτυχε η αντιγραφή στο πρόχειρο",
       "custom": "Προσαρμοσμένο",
       "useCustomIcon": "Χρήση προσαρμοσμένου εικονιδίου: {name}",
       "iconLibraryUrl": "fonts.google.com/icons",
