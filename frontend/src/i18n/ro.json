@@ -1,6 +1,7 @@
 {
   "buttons": {
     "copySuccess": "Copiat în clipboard!",
+    "copyFailed": "Copierea în clipboard a eșuat",
     "copyFile": "Copiază fișier",
     "copyToClipboard": "Copiază în clipboard",
     "moveFile": "Mută fișier",
@@ -215,8 +216,6 @@
     "selectHashAlgorithm": "Selectați un algoritm hash",
     "generate": "Generați",
     "errorGeneratingHash": "Eroare în generarea hash-ului",
-    "hashCopied": "Hash copiat în clipboard",
-    "errorCopyingHash": "Eroare copiere hash",
     "token": "Token",
     "onlyOfficeId": "NumaiOffice ID",
     "firstLoadTitle": "Bine ați venit la FileBrowser Quantum!",
@@ -227,7 +226,6 @@
     "renameSuccess": "Element redenumit cu succes!",
     "newFileSuccess": "Fișier creat cu succes!",
     "newDirSuccess": "Director creat cu succes!",
-    "copyToClipboardFailed": "Imposibilitatea de a copia în clipboard",
     "moveFailed": "Mutarea a eșuat",
     "operationFailed": "Operațiunea a eșuat",
     "partialSuccess": "Unele operațiuni au eșuat: {succeeded} a reușit, {failed} a eșuat",
@@ -845,8 +843,6 @@
       "showingResults": "Afișarea rezultatelor {count} ",
       "noResults": "Nu s-au găsit pictograme",
       "tryDifferentSearch": "Încercați un alt termen de căutare",
-      "copiedToClipboard": "Copiat '{name}' în clipboard!",
-      "copyFailed": "A eșuat copierea în clipboard",
       "custom": "Personalizat",
       "useCustomIcon": "Utilizați pictograma personalizată: {name}",
       "iconLibraryUrl": "fonts.google.com/icons",

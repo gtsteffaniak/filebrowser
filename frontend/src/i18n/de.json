@@ -1,6 +1,7 @@
 {
   "buttons": {
     "copySuccess": "In die Zwischenablage kopiert!",
+    "copyFailed": "Kopieren in die Zwischenablage fehlgeschlagen",
     "copyFile": "Datei kopieren",
     "copyToClipboard": "In Zwischenablage kopieren",
     "moveFile": "Datei verschieben",
@@ -215,8 +216,6 @@
     "selectHashAlgorithm": "Wählen Sie einen Hash-Algorithmus",
     "generate": "Erzeugen Sie",
     "errorGeneratingHash": "Fehler bei der Hash-Erzeugung",
-    "hashCopied": "Hash in Zwischenablage kopiert",
-    "errorCopyingHash": "Fehler beim Kopieren des Hashes",
     "token": "Token",
     "onlyOfficeId": "OnlyOffice ID",
     "firstLoadTitle": "Willkommen bei FileBrowser Quantum!",
@@ -227,7 +226,6 @@
     "renameSuccess": "Artikel erfolgreich umbenannt!",
     "newFileSuccess": "Datei erfolgreich erstellt!",
     "newDirSuccess": "Verzeichnis erfolgreich erstellt!",
-    "copyToClipboardFailed": "Kopieren in die Zwischenablage nicht möglich",
     "moveFailed": "Verschieben fehlgeschlagen",
     "operationFailed": "Operation fehlgeschlagen",
     "partialSuccess": "Einige Operationen sind fehlgeschlagen: {succeeded} erfolgreich, {failed} fehlgeschlagen",
@@ -845,8 +843,6 @@
       "showingResults": "{count} Ergebnisse anzeigen",
       "noResults": "Keine Icons gefunden",
       "tryDifferentSearch": "Versuchen Sie einen anderen Suchbegriff",
-      "copiedToClipboard": "Kopiert '{name}' in die Zwischenablage!",
-      "copyFailed": "Kopieren in die Zwischenablage fehlgeschlagen",
       "custom": "Benutzerdefiniert",
       "useCustomIcon": "Benutzerdefiniertes Symbol verwenden: {name}",
       "iconLibraryUrl": "fonts.google.com/icons",

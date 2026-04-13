@@ -1,6 +1,7 @@
 {
   "buttons": {
     "copySuccess": "تم النسخ إلى الحافظة!",
+    "copyFailed": "فشل النسخ إلى الحافظة",
     "copyFile": "نسخ الملف",
     "copyToClipboard": "نسخ الى الحافظة",
     "moveFile": "نقل الملف",
@@ -215,8 +216,6 @@
     "selectHashAlgorithm": "تحديد خوارزمية تجزئة",
     "generate": "توليد",
     "errorGeneratingHash": "خطأ في توليد التجزئة",
-    "hashCopied": "التجزئة المنسوخة إلى الحافظة",
-    "errorCopyingHash": "خطأ في نسخ تجزئة التجزئة",
     "token": "الرمز المميز",
     "onlyOfficeId": "معرّف المكتب فقط",
     "firstLoadTitle": "مرحبًا بك في متصفح الملفات الكمي!",
@@ -227,7 +226,6 @@
     "renameSuccess": "تمت إعادة تسمية العنصر بنجاح!",
     "newFileSuccess": "تم إنشاء الملف بنجاح!",
     "newDirSuccess": "تم إنشاء الدليل بنجاح!",
-    "copyToClipboardFailed": "تعذر النسخ إلى الحافظة",
     "moveFailed": "فشلت عملية النقل",
     "operationFailed": "فشلت العملية",
     "partialSuccess": "فشلت بعض العمليات: {succeeded} نجحت ، {failed} فشلت ",
@@ -845,8 +843,6 @@
       "showingResults": "عرض {count} النتائج ",
       "noResults": "لم يتم العثور على أي أيقونات",
       "tryDifferentSearch": "جرّب مصطلح بحث مختلف",
-      "copiedToClipboard": "نسخ \"{name}\" إلى الحافظة!",
-      "copyFailed": "فشل النسخ إلى الحافظة",
       "custom": "مخصص",
       "useCustomIcon": "استخدام أيقونة مخصصة: {name}",
       "iconLibraryUrl": "fonts.google.com/icons",

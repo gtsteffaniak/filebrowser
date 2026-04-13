@@ -10,7 +10,7 @@ import { notify } from '@/notify';
  */
 export async function copyToClipboard(text) {
   const successMessage = i18n.global.t('buttons.copySuccess');
-  const errorMessage = i18n.global.t('tools.materialIconPicker.copyFailed');
+  const errorMessage = i18n.global.t('buttons.copyFailed');
 
   if (navigator.clipboard) {
     await navigator.clipboard.writeText(text);

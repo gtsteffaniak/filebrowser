@@ -1,6 +1,7 @@
 {
   "buttons": {
     "copySuccess": "Copiado para a área de transferência!",
+    "copyFailed": "Falha ao copiar para a área de transferência",
     "copyFile": "Copiar ficheiro",
     "copyToClipboard": "Copiar",
     "moveFile": "Mover ficheiro",
@@ -215,8 +216,6 @@
     "selectHashAlgorithm": "Selecionar um algoritmo de hash",
     "generate": "Gerar",
     "errorGeneratingHash": "Erro ao gerar hash",
-    "hashCopied": "Hash copiado para a área de transferência",
-    "errorCopyingHash": "Erro ao copiar o hash",
     "token": "Ficha",
     "onlyOfficeId": "ID do OnlyOffice",
     "firstLoadTitle": "Bem-vindo ao FileBrowser Quantum!",
@@ -227,7 +226,6 @@
     "renameSuccess": "Item renomeado com sucesso!",
     "newFileSuccess": "Ficheiro criado com sucesso!",
     "newDirSuccess": "Diretório criado com sucesso!",
-    "copyToClipboardFailed": "Não é possível copiar para a área de transferência",
     "moveFailed": "Falha ao mover",
     "operationFailed": "A operação falhou",
     "partialSuccess": "Algumas operações falharam: {succeeded} foi bem sucedido, {failed} falhou",
@@ -845,8 +843,6 @@
       "showingResults": "Mostrando {count} resultados",
       "noResults": "Não foram encontrados ícones",
       "tryDifferentSearch": "Experimente um termo de pesquisa diferente",
-      "copiedToClipboard": "Copiou '{name}' para a área de transferência!",
-      "copyFailed": "Falha ao copiar para a área de transferência",
       "custom": "Personalizado",
       "useCustomIcon": "Utilizar um ícone personalizado: {name}",
       "iconLibraryUrl": "fonts.google.com/icons",
