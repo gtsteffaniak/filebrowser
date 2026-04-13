@@ -33,7 +33,8 @@
     "showMore": "Pokaż opcje zaawansowane",
     "showLess": "Ukryj opcje zaawansowane",
     "goToSource": "Przejdź do lokalizacji źródłowej",
-    "goToItem": "Przejdź do pozycji"
+    "goToItem": "Przejdź do pozycji",
+    "copyPath": "Ścieżka kopiowania"
   },
   "download": {
     "downloadFile": "Pobierz plik",
@@ -241,14 +242,12 @@
     "unarchiveMessage": "Wybierz miejsce rozpakowania archiwum.",
     "unarchiveDestination": "Wyciąg do:",
     "unarchiveSuccess": "Archiwum rozpakowane pomyślnie!",
-    "downloadFailed": "Pobieranie fragmentów nie powiodło się - jeśli sytuacja się powtórzy, spróbuj zmniejszyć rozmiar fragmentu: {message}"
+    "downloadFailed": "Pobieranie fragmentów nie powiodło się - jeśli sytuacja się powtórzy, spróbuj zmniejszyć rozmiar fragmentu: {message}",
+    "confirmPasswordToChangeUserPassword": "Wprowadź bieżące hasło, aby autoryzować zmianę hasła."
   },
   "search": {
     "smallerThan": "Mniejszy niż:",
     "largerThan": "Większy niż:",
-    "helpText1": "Wyszukiwanie odbywa się po każdym wpisanym znaku (minimum 3 znaki dla wyszukiwanych haseł).",
-    "helpText2": "Indeks: Wyszukiwanie wykorzystuje indeks, który jest automatycznie aktualizowany w skonfigurowanych odstępach czasu (domyślnie: 5 minut). Wyszukiwanie po uruchomieniu programu może skutkować niekompletnymi wynikami.",
-    "noResults": "Nie znaleziono żadnych wyników w indeksowanym wyszukiwaniu.",
     "onlyFolders": "Tylko foldery",
     "onlyFiles": "Tylko pliki",
     "showOptions": "Pokaż opcje",
@@ -258,7 +257,10 @@
     "showPreviewImages": "Pokaż obrazy podglądu",
     "showPreviewImagesDescription": "Wyświetlaj podglądy miniatur wyników wyszukiwania, jeśli są dostępne, i wyświetlaj większe ikony dla wszystkich wyników.",
     "olderThanDate": "Starszy niż:",
-    "newerThanDate": "Nowsze niż:"
+    "newerThanDate": "Nowsze niż:",
+    "helpText2": "Wyniki wyszukiwania są oparte na zindeksowanych plikach, więc nowo dodane pliki mogą nie być wyświetlane, dopóki nie zostaną zindeksowane.",
+    "noResults": "Nie znaleziono żadnych wyników.",
+    "helpText1": "Wyszukiwanie odbywa się po każdym wpisanym znaku (minimum{minSearchLength} znaków)."
   },
   "settings": {
     "administrator": "Administrator",
@@ -579,7 +581,6 @@
     "results": "Wyniki{suffix}",
     "users": "Użytkownicy{suffix}",
     "photos": "Zdjęcia",
-    "audios": "Audios{suffix}",
     "videos": "Filmy{suffix}",
     "models": "Modele 3D",
     "documents": "Dokumenty{suffix}",
@@ -665,7 +666,8 @@
     "format": "Format{suffix}",
     "office": "Biuro{suffix}",
     "show": "Pokaż{suffix}",
-    "divider": "Dzielnik{suffix}"
+    "divider": "Dzielnik{suffix}",
+    "audio": "Audio{suffix}"
   },
   "access": {
     "rules": "Zasady dostępu",
@@ -717,15 +719,11 @@
     "deleteAfterArchiveDescription": "Po włączeniu, usunie pliki źródłowe po pomyślnym utworzeniu/wypakowaniu archiwów",
     "hideFilesInTree": "Ukryj pliki w nawigacji drzewiastej",
     "hideFilesInTreeDescription": "Po włączeniu, w drzewiastej nawigacji na pasku bocznym wyświetlane są tylko foldery",
-    "previewModelsDescription": "Pokaż miniatury podglądów dla modeli 3D, jeśli wyłączone, pojawi się ogólna ikona",
-    "previewAudiosDescription": "Pokaż miniatury podglądów dla plików audio, jeśli wyłączone, pojawi się ogólna ikona",
     "setDateFormat": "Ustaw dokładny format daty",
     "showHiddenFiles": "Pokaż ukryte pliki",
     "showHiddenFilesDescription": "Pokaż ukryte pliki na liście (np. .thumbnails, ProgramData), ale są one nadal dostępne ręcznie, jeśli są skonfigurowane do indeksowania.",
     "showQuickDownload": "Pokaż ikonę pobierania dla szybkiego dostępu",
     "showQuickDownloadDescription": "Pokaż ikonę pobierania, aby uzyskać szybki dostęp do każdego elementu pliku, który można kliknąć w celu natychmiastowego pobrania.",
-    "previewImagesDescription": "Wyświetla podgląd miniatur obrazów, wyświetla ogólną ikonę, jeśli jest wyłączona.",
-    "previewVideosDescription": "Wyświetlanie podglądu miniatur filmów; jeśli opcja ta jest wyłączona, wyświetlana będzie ogólna ikona.",
     "editOffice": "Przeglądaj i edytuj pliki biurowe za pomocą OnlyOffice",
     "editOfficeDescription": "Gdy włączona jest tylko opcja Office, przeglądarka/edytor plików będą wyłączone dla wszystkich rozszerzeń plików związanych z plikami biurowymi.",
     "filePreviewOptions": "Opcje podglądu plików",
@@ -774,7 +772,10 @@
     "popupPreviewDescription": "Po najechaniu kursorem na elementy z miniaturami nad interfejsem użytkownika pojawi się wyskakujące okienko.",
     "thumbnailOptions": "Opcje miniatur",
     "showThumbnails": "Wyświetlanie miniatur obsługiwanych elementów",
-    "showThumbnailsDescription": "Po włączeniu tej opcji miniatury są wyświetlane na liście elementów, które je obsługują. Wyłącz, aby ukryć wszystkie miniatury."
+    "showThumbnailsDescription": "Po włączeniu tej opcji miniatury są wyświetlane na liście elementów, które je obsługują. Wyłącz, aby ukryć wszystkie miniatury.",
+    "showCopyPath": "Pokaż kopiowanie ścieżki w menu kontekstowym",
+    "showCopyPathDescription": "Wyświetlanie akcji Kopiuj ścieżkę w menu kontekstowym plików i folderów.",
+    "previewDescription": "Pokaż podgląd miniatur dla {filetype}, pokaże ogólną ikonę, jeśli jest wyłączona."
   },
   "editor": {
     "uninitialized": "Nie udało się zainicjować edytora. Przeładuj ponownie.",

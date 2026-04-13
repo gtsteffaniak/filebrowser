@@ -949,6 +949,44 @@ export const mutations = {
     mutations.replaceRequest(item);
     emitStateChanged();
   },
+  /**
+   * Move playback queue by one step (same rules as next/previous nav buttons).
+   * @param {number} delta -1 = previous, 1 = next
+   * @returns {object|null} The destination queue item, or null if navigation is not allowed
+   */
+  navigatePlaybackQueueRelative: (delta) => {
+    if (delta !== -1 && delta !== 1) {
+      return null;
+    }
+    const queue = state.playbackQueue.queue || [];
+    const currentIndex = state.playbackQueue.currentIndex ?? -1;
+    const mode = state.playbackQueue.mode || 'single';
+    if (queue.length === 0 || currentIndex < 0) {
+      return null;
+    }
+    let newIndex = currentIndex + delta;
+    if (delta === -1) {
+      if (newIndex < 0) {
+        if (mode === 'loop-all' || mode === 'shuffle') {
+          newIndex = queue.length - 1;
+        } else {
+          return null;
+        }
+      }
+    } else if (newIndex >= queue.length) {
+      if (mode === 'loop-all' || mode === 'shuffle') {
+        newIndex = 0;
+      } else {
+        return null;
+      }
+    }
+    const item = queue[newIndex];
+    if (!item) {
+      return null;
+    }
+    mutations.navigateToQueueIndex(newIndex);
+    return item;
+  },
   togglePlayPause: () => {
     state.playbackQueue.shouldTogglePlayPause = !state.playbackQueue.shouldTogglePlayPause;
     emitStateChanged();

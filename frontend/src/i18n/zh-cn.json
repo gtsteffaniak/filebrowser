@@ -33,7 +33,8 @@
     "showMore": "显示高级选项",
     "showLess": "隐藏高级选项",
     "goToSource": "转到源位置",
-    "goToItem": "转到项目"
+    "goToItem": "转到项目",
+    "copyPath": "复制路径"
   },
   "download": {
     "downloadFile": "下载文件",
@@ -241,14 +242,12 @@
     "unarchiveMessage": "选择提取存档的位置。",
     "unarchiveDestination": "摘录至",
     "unarchiveSuccess": "档案提取成功！",
-    "downloadFailed": "分块下载失败 - 如果重复出现这种情况，请尝试减小分块大小：{message}"
+    "downloadFailed": "分块下载失败 - 如果重复出现这种情况，请尝试减小分块大小：{message}",
+    "confirmPasswordToChangeUserPassword": "输入您的当前密码以授权密码更改。"
   },
   "search": {
     "smallerThan": "小于",
     "largerThan": "大于：",
-    "helpText1": "您键入的每个字符都会进行搜索（搜索词最少 3 个字符）。",
-    "helpText2": "索引：利用索引进行搜索，索引会根据配置的时间间隔（默认为 5 分钟）自动更新。程序刚启动时进行搜索可能会导致搜索结果不完整。",
-    "noResults": "索引搜索未找到结果。",
     "onlyFolders": "仅文件夹",
     "onlyFiles": "仅文件",
     "showOptions": "显示选项",
@@ -258,7 +257,10 @@
     "showPreviewImages": "显示预览图像",
     "showPreviewImagesDescription": "在可用时显示搜索结果的缩略图预览，并为所有结果显示更大的图标。",
     "olderThanDate": "比",
-    "newerThanDate": "新于："
+    "newerThanDate": "新于：",
+    "helpText2": "搜索结果基于已编入索引的文件，因此新添加的文件在编入索引之前可能不会出现。",
+    "noResults": "未找到结果。",
+    "helpText1": "您输入的每个字符都会进行搜索（{minSearchLength} 字符最小值）。"
   },
   "settings": {
     "scopes": "定义允许的来源及其中的用户范围",
@@ -571,15 +573,11 @@
     "deleteAfterArchiveDescription": "启用后，将在成功创建/提取存档后删除源文件",
     "hideFilesInTree": "在树形导航中隐藏文件",
     "hideFilesInTreeDescription": "启用后，侧边栏树形导航中仅显示文件夹",
-    "previewModelsDescription": "显示3D模型的缩略图预览，如果禁用则显示通用图标",
-    "previewAudiosDescription": "显示音频的缩略图预览，如果禁用则显示通用图标",
     "setDateFormat": "设置准确的日期格式",
     "showHiddenFiles": "显示隐藏文件",
     "showHiddenFilesDescription": "在列表中显示隐藏文件（如 .缩略图、ProgramData），但如果配置为索引，这些文件仍可手动访问。",
     "showQuickDownload": "显示下载图标以便快速访问",
     "showQuickDownloadDescription": "在每个文件项目上显示可快速访问的下载图标，点击后可立即下载。",
-    "previewImagesDescription": "显示图像缩略图预览，如果禁用，将显示通用图标。",
-    "previewVideosDescription": "显示视频缩略图预览，如果禁用，将显示通用图标。",
     "editOffice": "使用 OnlyOffice 查看和编辑办公文件",
     "editOfficeDescription": "只启用 Office 时，文件查看器/编辑器将禁用与 Office 文件相关的所有文件扩展名。",
     "filePreviewOptions": "文件预览选项",
@@ -628,7 +626,10 @@
     "popupPreviewDescription": "将鼠标悬停在带缩略图的项目上时，用户界面上会显示一个叠加弹出窗口",
     "thumbnailOptions": "缩略图选项",
     "showThumbnails": "显示支持项目的缩略图",
-    "showThumbnailsDescription": "启用后，支持缩略图的项目将在列表中显示缩略图。关闭则隐藏所有缩略图。"
+    "showThumbnailsDescription": "启用后，支持缩略图的项目将在列表中显示缩略图。关闭则隐藏所有缩略图。",
+    "showCopyPath": "在上下文菜单中显示复制路径",
+    "showCopyPathDescription": "在文件和文件夹上下文菜单中显示复制路径操作。",
+    "previewDescription": "显示{filetype} 的缩略图预览，如果禁用，将显示通用图标。"
   },
   "general": {
     "name": "名称",
@@ -665,7 +666,6 @@
     "results": "成果{suffix}",
     "users": "用户{suffix}",
     "photos": "照片",
-    "audios": "音频{suffix}",
     "models": "3D模型",
     "videos": "视频{suffix}",
     "documents": "文件{suffix}",
@@ -751,7 +751,8 @@
     "format": "格式{suffix}",
     "office": "办公室{suffix}",
     "show": "显示{suffix}",
-    "divider": "分割器{suffix}"
+    "divider": "分割器{suffix}",
+    "audio": "音频{suffix}"
   },
   "access": {
     "rules": "访问规则",

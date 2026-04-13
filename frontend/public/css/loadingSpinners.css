@@ -347,3 +347,14 @@ body > .loader.done {
     min-width: 400px;
     min-height: 50px;
 }
+
+/* -------------------------------------------------------------------------- */
+/* Standard portrait mobile responsive fix                                   */
+/* -------------------------------------------------------------------------- */
+
+@media (max-width: 768px) {
+    .loader--placeholder.loader--large .placeholder-item {
+        width: 100%;
+        min-width: auto;
+    }
+}

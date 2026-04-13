@@ -33,7 +33,8 @@
     "showMore": "Gelişmiş Seçenekleri Göster",
     "showLess": "Gelişmiş Seçenekleri Gizle",
     "goToSource": "Kaynak Konuma Git",
-    "goToItem": "Öğeye git"
+    "goToItem": "Öğeye git",
+    "copyPath": "Kopyalama Yolu"
   },
   "download": {
     "downloadFile": "Dosyayı indir",
@@ -241,14 +242,12 @@
     "unarchiveMessage": "Arşivin nereye çıkarılacağını seçin.",
     "unarchiveDestination": "Özetle:",
     "unarchiveSuccess": "Arşiv başarıyla çıkarıldı!",
-    "downloadFailed": "Yığın indirme başarısız oldu - bu tekrarlanırsa yığın boyutunu küçültmeyi deneyin: {message}"
+    "downloadFailed": "Yığın indirme başarısız oldu - bu tekrarlanırsa yığın boyutunu küçültmeyi deneyin: {message}",
+    "confirmPasswordToChangeUserPassword": "Bu şifre değişikliğini onaylamak için mevcut şifrenizi girin."
   },
   "search": {
     "smallerThan": "Daha küçük:",
     "largerThan": "Daha büyük:",
-    "helpText1": "Arama, yazdığınız her karakterde gerçekleşir (arama terimleri için minimum 3 karakter).",
-    "helpText2": "Dizin: Arama, yapılandırılan aralıkta (varsayılan: 5 dakika) otomatik olarak güncellenen dizini kullanır. Program yeni başladığında arama yapmak eksik sonuçlara neden olabilir.",
-    "noResults": "Dizinlenmiş aramada sonuç bulunamadı.",
     "onlyFolders": "Yalnızca Klasörler",
     "onlyFiles": "Sadece Dosyalar",
     "showOptions": "Seçenekleri Göster",
@@ -258,7 +257,10 @@
     "showPreviewImages": "Önizleme resimlerini göster",
     "showPreviewImagesDescription": "Kullanılabilir olduğunda arama sonuçları için küçük resim önizlemelerini görüntüleyin ve tüm sonuçlar için daha büyük simgeler gösterin.",
     "olderThanDate": "Daha yaşlı:",
-    "newerThanDate": "Daha yeni:"
+    "newerThanDate": "Daha yeni:",
+    "helpText2": "Arama sonuçları dizine eklenmiş dosyaları temel alır, bu nedenle yeni eklenen dosyalar dizine eklenene kadar görünmeyebilir.",
+    "noResults": "Sonuç bulunamadı.",
+    "helpText1": "Arama, yazdığınız her karakterde gerçekleşir ({minSearchLength} minimum karakter)."
   },
   "settings": {
     "administrator": "Yönetici",
@@ -579,7 +581,6 @@
     "results": "Sonuçlar{suffix}",
     "users": "Kullanıcılar{suffix}",
     "photos": "Fotoğraflar",
-    "audios": "Ses Dosyaları{suffix}",
     "videos": "Videolar{suffix}",
     "models": "3D Modeller",
     "documents": "Belgeler{suffix}",
@@ -665,7 +666,8 @@
     "format": "Biçim{suffix}",
     "office": "Ofis{suffix}",
     "show": "Göster{suffix}",
-    "divider": "Bölücü{suffix}"
+    "divider": "Bölücü{suffix}",
+    "audio": "Ses{suffix}"
   },
   "access": {
     "rules": "Erişim kuralları",
@@ -717,15 +719,11 @@
     "deleteAfterArchiveDescription": "Etkinleştirildiğinde, arşivlerin başarıyla oluşturulması/çıkarılmasından sonra kaynak dosyaları siler",
     "hideFilesInTree": "Ağaç gezintisinde dosyaları gizle",
     "hideFilesInTreeDescription": "Etkinleştirildiğinde, kenar çubuğu Ağaç Gezintisinde yalnızca klasörler gösterilir",
-    "previewModelsDescription": "3D modeller için küçük resim önizlemelerini göster, devre dışı bırakılırsa genel simge gösterilir",
-    "previewAudiosDescription": "Ses dosyaları için küçük resim önizlemelerini göster, devre dışı bırakılırsa genel simge gösterilir",
     "setDateFormat": "Tam tarih biçimini ayarlama",
     "showHiddenFiles": "Gizli dosyaları göster",
     "showHiddenFilesDescription": "Gizli dosyaları listede gösterin (örn. .thumbnails, ProgramData), ancak dizine eklenecek şekilde yapılandırılmışlarsa yine de manuel olarak erişilebilirler.",
     "showQuickDownload": "Hızlı erişim için indirme simgesini göster",
     "showQuickDownloadDescription": "Anında indirmek için tıklanabilecek her dosya öğesinde hızlı erişim için indirme simgesini gösterin.",
-    "previewImagesDescription": "Görüntüler için küçük resim önizlemelerini göster, devre dışı bırakılırsa genel simgeyi gösterecektir.",
-    "previewVideosDescription": "Videolar için küçük resim önizlemelerini göster, devre dışı bırakılırsa genel simgeyi gösterecektir.",
     "editOffice": "OnlyOffice ile ofis dosyalarını görüntüleyin ve düzenleyin",
     "editOfficeDescription": "Yalnızca ofis etkinleştirildiğinde, dosya görüntüleyici/düzenleyici ofis dosyalarıyla ilgili tüm dosya uzantıları için devre dışı bırakılır.",
     "filePreviewOptions": "Dosya önizleme seçenekleri",
@@ -774,7 +772,10 @@
     "popupPreviewDescription": "Küçük resimli öğelerin üzerine gelindiğinde kullanıcı arayüzünün üzerinde bir kaplama açılır penceresi gösterilir",
     "thumbnailOptions": "Küçük Resim Seçenekleri",
     "showThumbnails": "Desteklenen öğeler için küçük resimleri göster",
-    "showThumbnailsDescription": "Etkinleştirildiğinde, küçük resimler onları destekleyen öğeler için listede gösterilir. Tüm küçük resimleri gizlemek için kapatın."
+    "showThumbnailsDescription": "Etkinleştirildiğinde, küçük resimler onları destekleyen öğeler için listede gösterilir. Tüm küçük resimleri gizlemek için kapatın.",
+    "showCopyPath": "Bağlam menüsünde Yolu Kopyala'yı göster",
+    "showCopyPathDescription": "Dosya ve klasör bağlam menüsünde Yolu Kopyala eylemini gösterin.",
+    "previewDescription": "{filetype} için küçük resim önizlemelerini göster, devre dışı bırakılırsa genel simgeyi gösterecektir."
   },
   "editor": {
     "uninitialized": "Düzenleyici başlatılamadı. Lütfen yeniden yükleyin.",

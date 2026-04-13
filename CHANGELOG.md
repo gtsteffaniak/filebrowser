@@ -7,6 +7,21 @@ All notable changes to this project will be documented in this file. For commit 
  **Notes**:
  - user.id has been moved to a backend property and all frontend apis now query users by username. Swagger has been updated.
 
+## v1.3.4
+
+ **New Features**:
+ - Epub placementg url anchors to bookmark a specific location on the doc.
+ - Add Requirement for Current Password When Changing Account Password (#2112)
+
+ **Notes**:
+ - user scope editing has path picker and filesystem validation
+
+ **BugFixes**:
+ - Swiping media files doesn't respect Playback Queue (#2243)
+ - Audio metadata and album thumbnails doesn't work (#2236)
+ - Search spinner wouldn't show up sometimes while searching
+ - The default landing page source should always be the first source in the sidebar, that wasn't always respected.
+
 ## v1.3.3
 
  **New Features**:

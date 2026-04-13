@@ -96,6 +96,7 @@ import throttle from "@/utils/throttle";
 import { previewViews } from "@/utils/constants";
 import { url } from "@/utils";
 import { resourcesApi } from "@/api";
+import { replaceRouteForPlaybackQueueStep } from "@/utils/previewPlaybackQueueNav.js";
 
 export default {
   name: "NextPrevious",
@@ -187,13 +188,13 @@ export default {
     },
     hasPrevious() {
       if (this.isMediaQueueMode) {
-        return this.hasMediaPrevious();
+        return getters.playbackQueueCanGoPrevious();
       }
       return state.navigation.previousLink !== "";
     },
     hasNext() {
       if (this.isMediaQueueMode) {
-        return this.hasMediaNext();
+        return getters.playbackQueueCanGoNext();
       }
       return state.navigation.nextLink !== "";
     },
@@ -212,14 +213,7 @@ export default {
       return previewType === 'audio' || previewType === 'video';
     },
     isMediaQueueMode() {
-      const previewType = getters.previewType();
-      const isMediaView = previewType === 'audio' || previewType === 'video';
-      const mode = state.playbackQueue?.mode || 'single';
-      const queueLength = state.playbackQueue?.queue?.length || 0;
-      const hasQueue = queueLength > 1;
-
-      // Use media queue when in media view, NOT in single/loop-single mode, and have a queue
-      return isMediaView && mode !== 'single' && mode !== 'loop-single' && hasQueue;
+      return getters.isPreviewPlaybackQueueNavMode();
     },
     leftZoneStyle() {
       const styles = {
@@ -531,7 +525,7 @@ export default {
         // Editor and other components check isTransitioning to prevent saves
         mutations.setNavigationTransitioning(true);
         if (this.isMediaQueueMode) {
-          this.navigateMediaPrevious();
+          replaceRouteForPlaybackQueueStep(this.$router, -1);
         } else {
           this.$router.replace({ path: state.navigation.previousLink });
         }
@@ -551,119 +545,11 @@ export default {
         mutations.setNavigationTransitioning(true);
 
         if (this.isMediaQueueMode) {
-          this.navigateMediaNext();
+          replaceRouteForPlaybackQueueStep(this.$router, 1);
         } else {
           this.$router.replace({ path: state.navigation.nextLink });
         }
       }
-    },
-    hasMediaPrevious() {
-      const queue = state.playbackQueue?.queue || [];
-      const currentIndex = state.playbackQueue?.currentIndex ?? -1;
-      const mode = state.playbackQueue?.mode || 'single';
-
-      if (queue.length <= 1 || currentIndex < 0) return false;
-
-      // For sequential mode, no previous if at start
-      if (mode === 'sequential' && currentIndex === 0) return false;
-
-      // For loop-all and shuffle, always have previous (wraps around)
-      return true;
-    },
-    hasMediaNext() {
-      const queue = state.playbackQueue?.queue || [];
-      const currentIndex = state.playbackQueue?.currentIndex ?? -1;
-      const mode = state.playbackQueue?.mode || 'single';
-
-      if (queue.length <= 1 || currentIndex < 0) return false;
-
-      // For sequential mode, no next if at end
-      if (mode === 'sequential' && currentIndex >= queue.length - 1) return false;
-
-      // For loop-all and shuffle, always have next (wraps around)
-      return true;
-    },
-    navigateMediaPrevious() {
-      const queue = state.playbackQueue?.queue || [];
-      const currentIndex = state.playbackQueue?.currentIndex ?? -1;
-      const mode = state.playbackQueue?.mode || 'single';
-
-      if (queue.length === 0 || currentIndex < 0) {
-        return;
-      }
-
-      let prevIndex = currentIndex - 1;
-
-      // Handle wrapping
-      if (prevIndex < 0) {
-        if (mode === 'loop-all' || mode === 'shuffle') {
-          prevIndex = queue.length - 1;
-        } else {
-          return;
-        }
-      }
-
-      const prevItem = queue[prevIndex];
-      if (!prevItem) {
-        return;
-      }
-
-      // Update queue index
-      mutations.setPlaybackQueue({
-        queue: queue,
-        currentIndex: prevIndex,
-        mode: mode
-      });
-
-      // Navigate
-      const prevItemUrl = url.buildItemUrl(prevItem.source || state.req.source, prevItem.path);
-      mutations.replaceRequest(prevItem);
-      this.$router.replace({ path: prevItemUrl }).catch(err => {
-        if (err.name !== 'NavigationDuplicated') {
-          // Silently ignore navigation errors
-        }
-      });
-    },
-    navigateMediaNext() {
-      const queue = state.playbackQueue?.queue || [];
-      const currentIndex = state.playbackQueue?.currentIndex ?? -1;
-      const mode = state.playbackQueue?.mode || 'single';
-
-      if (queue.length === 0 || currentIndex < 0) {
-        return;
-      }
-
-      let nextIndex = currentIndex + 1;
-
-      // Handle wrapping
-      if (nextIndex >= queue.length) {
-        if (mode === 'loop-all' || mode === 'shuffle') {
-          nextIndex = 0;
-        } else {
-          return;
-        }
-      }
-
-      const nextItem = queue[nextIndex];
-      if (!nextItem) {
-        return;
-      }
-
-      // Update queue index
-      mutations.setPlaybackQueue({
-        queue: queue,
-        currentIndex: nextIndex,
-        mode: mode
-      });
-
-      // Navigate
-      const nextItemUrl = url.buildItemUrl(nextItem.source || state.req.source, nextItem.path);
-      mutations.replaceRequest(nextItem);
-      this.$router.replace({ path: nextItemUrl }).catch(err => {
-        if (err.name !== 'NavigationDuplicated') {
-          // Silently ignore navigation errors
-        }
-      });
     },
     keyEvent(event) {
       // Only handle navigation if enabled and no prompt is active

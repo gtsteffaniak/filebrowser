@@ -26,6 +26,9 @@
               :name="$t('profileSettings.deleteAfterArchive')"
               :description="$t('profileSettings.deleteAfterArchiveDescription')"
             />
+            <ToggleSwitch class="item" v-model="localuser.showCopyPath" @change="updateSettings"
+              :name="$t('profileSettings.showCopyPath')"
+              :description="$t('profileSettings.showCopyPathDescription')" />
           </div>
         </SettingsItem>
         <SettingsItem aria-label="thumbnailOptions" :title="$t('profileSettings.thumbnailOptions')" :collapsable="true"
@@ -37,17 +40,17 @@
               :description="$t('profileSettings.showThumbnailsDescription')" />
             <template v-if="showThumbnailsForPreviews">
               <ToggleSwitch class="item" v-model="localuser.preview.image" @change="updateSettings"
-                :name="$t('general.images')" :description="$t('profileSettings.previewImagesDescription')" />
+                :name="$t('general.images')" :description="$t('profileSettings.previewDescription', { filetype: $t('general.images') })" />
               <ToggleSwitch v-if="mediaEnabled" class="item" v-model="localuser.preview.video" @change="updateSettings"
-                :name="$t('general.videos')" :description="$t('profileSettings.previewVideosDescription')" />
+                :name="$t('general.videos')" :description="$t('profileSettings.previewDescription', { filetype: $t('general.videos') })" />
               <ToggleSwitch class="item" v-model="localuser.preview.audio" @change="updateSettings"
-                :name="$t('general.audios')" :description="$t('profileSettings.previewAudiosDescription')" />
+                :name="$t('general.audio')" :description="$t('profileSettings.previewDescription', { filetype: $t('general.audio') })" />
               <ToggleSwitch class="item" v-model="localuser.preview.office" @change="updateSettings"
                 :name="$t('general.office')" :description="$t('profileSettings.previewOfficeDescription')" />
               <ToggleSwitch class="item" v-model="localuser.preview.folder" @change="updateSettings"
                 :name="$t('general.folders')" :description="$t('profileSettings.previewFolderDescription')" />
               <ToggleSwitch class="item" v-model="localuser.preview.models" @change="updateSettings"
-                :name="$t('general.models')" :description="$t('profileSettings.previewModelsDescription')" />
+                :name="$t('general.models')" :description="$t('profileSettings.previewDescription', { filetype: $t('general.models') })" />
               <ToggleSwitch class="item" v-model="localuser.preview.popup" @change="updateSettings"
                 :name="$t('profileSettings.popupPreview')"
                 :description="$t('profileSettings.popupPreviewDescription')" />
@@ -86,7 +89,7 @@
               :description="$t('profileSettings.disableHideSidebarDescription')" />
             <ToggleSwitch class="item" v-model="localuser.hideSidebarFileActions" @change="updateSettings"
               :name="$t('profileSettings.hideSidebarFileActions')" />
-                <ToggleSwitch class="item" v-model="localuser.hideFilesInTree" @change="updateSettings"
+            <ToggleSwitch class="item" v-model="localuser.hideFilesInTree" @change="updateSettings"
               :name="$t('profileSettings.hideFilesInTree')" :description="$t('profileSettings.hideFilesInTreeDescription')" />
           </div>
         </SettingsItem>
@@ -366,6 +369,7 @@ export default {
           "disableQuickToggles",
           "disableSearchOptions",
           "hideSidebarFileActions",
+          "showCopyPath",
           "hideFilesInTree",
           "editorQuickSave",
           "showSelectMultiple",

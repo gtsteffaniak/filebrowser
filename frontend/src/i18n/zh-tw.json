@@ -33,7 +33,8 @@
     "showMore": "顯示進階選項",
     "showLess": "隱藏進階選項",
     "goToSource": "前往來源位置",
-    "goToItem": "前往項目"
+    "goToItem": "前往項目",
+    "copyPath": "複製路徑"
   },
   "download": {
     "downloadFile": "下載檔案",
@@ -241,14 +242,12 @@
     "unarchiveMessage": "選擇解壓縮封存檔的位置。",
     "unarchiveDestination": "解壓縮至：",
     "unarchiveSuccess": "封存檔解壓縮成功！",
-    "downloadFailed": "分塊下載失敗 - 如果此情況重複發生，請嘗試減少分塊大小：{message}"
+    "downloadFailed": "分塊下載失敗 - 如果此情況重複發生，請嘗試減少分塊大小：{message}",
+    "confirmPasswordToChangeUserPassword": "輸入您目前的密碼以授權此密碼變更。"
   },
   "search": {
     "smallerThan": "小於：",
     "largerThan": "大於：",
-    "helpText1": "每輸入一個字元就會觸發搜尋（搜尋字詞至少需 3 個字元）。",
-    "helpText2": "搜尋會使用索引，索引會依設定的間隔自動更新（預設為 5 分鐘）。如果程式剛啟動就開始搜尋，結果可能不完整。",
-    "noResults": "在索引搜尋中未找到任何結果。",
     "onlyFolders": "僅資料夾",
     "onlyFiles": "僅檔案",
     "showOptions": "顯示選項",
@@ -258,7 +257,10 @@
     "showPreviewImages": "顯示預覽圖片",
     "showPreviewImagesDescription": "若可用，會為搜尋結果顯示縮圖預覽，並為所有結果顯示較大的圖示。",
     "olderThanDate": "年紀比",
-    "newerThanDate": "比較新："
+    "newerThanDate": "比較新：",
+    "helpText2": "搜尋結果以已編入索引的檔案為基礎，因此新加入的檔案在編入索引前可能不會出現。",
+    "noResults": "未找到結果。",
+    "helpText1": "搜尋會發生在您輸入的每個字元上（{minSearchLength} 字元最小值）。"
   },
   "settings": {
     "administrator": "管理員",
@@ -540,15 +542,11 @@
     "deleteAfterArchiveDescription": "啟用後，成功建立或解壓縮封存檔後會刪除來源檔案。",
     "hideFilesInTree": "在樹狀導覽中隱藏檔案",
     "hideFilesInTreeDescription": "啟用後，側邊欄樹狀導覽中僅顯示資料夾。",
-    "previewModelsDescription": "顯示 3D 模型縮圖；停用時改顯示一般圖示。",
-    "previewAudiosDescription": "顯示音訊縮圖；停用時改顯示一般圖示。",
     "setDateFormat": "設定精確的日期格式",
     "showHiddenFiles": "顯示隱藏檔案",
     "showHiddenFilesDescription": "在清單中顯示隱藏檔案（例如 .thumbnails、ProgramData），但若已設定索引，仍可手動存取。",
     "showQuickDownload": "顯示下載圖示以便快速存取",
     "showQuickDownloadDescription": "在每個可下載的檔案項目上顯示下載圖示，按一下即可立即下載。",
-    "previewImagesDescription": "顯示圖片縮圖；停用時改顯示一般圖示。",
-    "previewVideosDescription": "顯示影片縮圖；停用時改顯示一般圖示。",
     "editOffice": "使用 OnlyOffice 檢視和編輯 Office 檔案",
     "editOfficeDescription": "啟用 OnlyOffice 時，所有 Office 類型副檔名都會停用內建檔案檢視器／編輯器。",
     "filePreviewOptions": "檔案預覽選項",
@@ -597,7 +595,10 @@
     "popupPreviewDescription": "滑鼠停留在有縮圖的項目上時，會以覆蓋式彈出視窗顯示預覽。",
     "thumbnailOptions": "縮圖選項",
     "showThumbnails": "顯示支援項目的縮圖",
-    "showThumbnailsDescription": "啟用時，縮圖會顯示在支援縮圖的項目清單中。關閉可隱藏所有縮圖。"
+    "showThumbnailsDescription": "啟用時，縮圖會顯示在支援縮圖的項目清單中。關閉可隱藏所有縮圖。",
+    "showCopyPath": "在上下文功能表中顯示複製路徑",
+    "showCopyPathDescription": "在檔案和資料夾上下文功能表中顯示複製路徑動作。",
+    "previewDescription": "顯示{filetype} 的縮圖預覽，如果停用會顯示一般圖示。"
   },
   "otp": {
     "name": "雙因素驗證",
@@ -665,7 +666,6 @@
     "results": "結果{suffix}",
     "users": "使用者{suffix}",
     "photos": "相片",
-    "audios": "音訊{suffix}",
     "videos": "影片{suffix}",
     "models": "3D 模型",
     "documents": "文件{suffix}",
@@ -751,7 +751,8 @@
     "format": "格式{suffix}",
     "office": "Office{suffix}",
     "show": "顯示{suffix}",
-    "divider": "分隔線{suffix}"
+    "divider": "分隔線{suffix}",
+    "audio": "音訊{suffix}"
   },
   "access": {
     "rules": "存取規則",

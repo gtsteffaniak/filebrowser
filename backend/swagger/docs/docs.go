@@ -1090,7 +1090,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Path to the directory",
+                        "description": "Path to the directory or file",
                         "name": "path",
                         "in": "query",
                         "required": true
@@ -1101,6 +1101,12 @@ const docTemplate = `{
                         "name": "source",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "When true, include embedded album art bytes in audio metadata",
+                        "name": "albumArt",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -2426,7 +2432,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/share.Link"
+                                "$ref": "#/definitions/share.Share"
                             }
                         }
                     },
@@ -2460,7 +2466,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/share.CreateBody"
+                            "$ref": "#/definitions/share.CreateShare"
                         }
                     }
                 ],
@@ -2468,7 +2474,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Created share link",
                         "schema": {
-                            "$ref": "#/definitions/share.Link"
+                            "$ref": "#/definitions/share.Share"
                         }
                     },
                     "400": {
@@ -2571,7 +2577,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Updated share link",
                         "schema": {
-                            "$ref": "#/definitions/http.ShareResponse"
+                            "$ref": "#/definitions/share.Share"
                         }
                     },
                     "400": {
@@ -2698,7 +2704,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/share.Link"
+                                "$ref": "#/definitions/share.Share"
                             }
                         }
                     },
@@ -3037,7 +3043,7 @@ const docTemplate = `{
                     "200": {
                         "description": "User details or list of users",
                         "schema": {
-                            "$ref": "#/definitions/users.User"
+                            "$ref": "#/definitions/users.FrontendUser"
                         }
                     },
                     "400": {
@@ -3079,7 +3085,7 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "Updates the details of a user identified by username.",
+                "description": "Updates the details of a user identified by ID. When updating the target user's password the actor must send their current password in the X-Password header",
                 "consumes": [
                     "application/json"
                 ],
@@ -3090,9 +3096,21 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Username of user to update",
-                        "name": "username",
+                        "description": "user ID to update",
+                        "name": "id",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "usename to update",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Actor's current password (URL-encoded); required when changing a password user's password",
+                        "name": "X-Password",
+                        "in": "header"
                     },
                     {
                         "description": "User data to update",
@@ -3110,6 +3128,15 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - invalid or missing actor password for password change",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -3274,6 +3301,12 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Path within the share",
                         "name": "path",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "When true, include embedded album art bytes in audio metadata (heavier)",
+                        "name": "albumArt",
                         "in": "query"
                     }
                 ],
@@ -4126,7 +4159,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Share information",
                         "schema": {
-                            "$ref": "#/definitions/share.CommonShare"
+                            "$ref": "#/definitions/share.Share"
                         }
                     },
                     "404": {
@@ -4310,187 +4343,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/http.MoveCopyItem"
                     }
-                }
-            }
-        },
-        "http.ShareResponse": {
-            "type": "object",
-            "properties": {
-                "allowCreate": {
-                    "description": "allow creating files",
-                    "type": "boolean"
-                },
-                "allowDelete": {
-                    "type": "boolean"
-                },
-                "allowModify": {
-                    "description": "allow modifying files",
-                    "type": "boolean"
-                },
-                "allowReplacements": {
-                    "description": "allow replacements of files",
-                    "type": "boolean"
-                },
-                "allowedUsernames": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "banner": {
-                    "type": "string"
-                },
-                "bannerUrl": {
-                    "type": "string"
-                },
-                "canEditShare": {
-                    "type": "boolean"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "disableAnonymous": {
-                    "type": "boolean"
-                },
-                "disableDownload": {
-                    "description": "don't allow downloading files",
-                    "type": "boolean"
-                },
-                "disableFileViewer": {
-                    "description": "don't allow viewing files",
-                    "type": "boolean"
-                },
-                "disableLoginOption": {
-                    "description": "disable login option in share (true = hide, false = show)",
-                    "type": "boolean"
-                },
-                "disableShareCard": {
-                    "type": "boolean"
-                },
-                "disableSidebar": {
-                    "type": "boolean"
-                },
-                "disableThumbnails": {
-                    "type": "boolean"
-                },
-                "downloadURL": {
-                    "type": "string"
-                },
-                "downloads": {
-                    "type": "integer"
-                },
-                "downloadsLimit": {
-                    "type": "integer"
-                },
-                "enableOnlyOffice": {
-                    "type": "boolean"
-                },
-                "enforceDarkLightMode": {
-                    "description": "\"dark\" or \"light\"",
-                    "type": "string"
-                },
-                "expire": {
-                    "type": "integer"
-                },
-                "extractEmbeddedSubtitles": {
-                    "description": "can be io intensive for large files and take 10-30 seconds.",
-                    "type": "boolean"
-                },
-                "favicon": {
-                    "type": "string"
-                },
-                "faviconUrl": {
-                    "type": "string"
-                },
-                "hasPassword": {
-                    "type": "boolean"
-                },
-                "hash": {
-                    "type": "string"
-                },
-                "hideNavButtons": {
-                    "type": "boolean"
-                },
-                "keepAfterExpiration": {
-                    "type": "boolean"
-                },
-                "maxBandwidth": {
-                    "type": "integer"
-                },
-                "password_hash": {
-                    "type": "string"
-                },
-                "path": {
-                    "type": "string"
-                },
-                "pathExists": {
-                    "type": "boolean"
-                },
-                "perUserDownloadLimit": {
-                    "type": "boolean"
-                },
-                "quickDownload": {
-                    "type": "boolean"
-                },
-                "shareTheme": {
-                    "type": "string"
-                },
-                "shareType": {
-                    "description": "type of share: normal, upload, max",
-                    "type": "string"
-                },
-                "shareURL": {
-                    "type": "string"
-                },
-                "showHidden": {
-                    "description": "show hidden files in share (true = show, false = hide)",
-                    "type": "boolean"
-                },
-                "sidebarLinks": {
-                    "description": "customizable sidebar links",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/users.SidebarLink"
-                    }
-                },
-                "source": {
-                    "description": "Override embedded field to show source name",
-                    "type": "string"
-                },
-                "sourceURL": {
-                    "type": "string"
-                },
-                "themeColor": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                },
-                "token": {
-                    "description": "Token is a random value that will only be set when PasswordHash is set. It is\nURL-Safe and is used to download links in password-protected shares via a\nquery arg.",
-                    "type": "string"
-                },
-                "userDownloads": {
-                    "description": "Track downloads per username",
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "integer"
-                    }
-                },
-                "userID": {
-                    "description": "UserID is the share owner's stable id (same as users.User.ID); not the login name.",
-                    "type": "integer"
-                },
-                "username": {
-                    "description": "owner login (resolved from UserID)",
-                    "type": "string"
-                },
-                "version": {
-                    "type": "integer"
-                },
-                "viewMode": {
-                    "description": "default view mode for anonymous users: \"list\", \"compact\", \"normal\", \"gallery\"",
-                    "type": "string"
                 }
             }
         },
@@ -6037,22 +5889,19 @@ const docTemplate = `{
                 }
             }
         },
-        "share.CommonShare": {
+        "share.CreateShare": {
             "type": "object",
             "properties": {
                 "allowCreate": {
-                    "description": "allow creating files",
                     "type": "boolean"
                 },
                 "allowDelete": {
                     "type": "boolean"
                 },
                 "allowModify": {
-                    "description": "allow modifying files",
                     "type": "boolean"
                 },
                 "allowReplacements": {
-                    "description": "allow replacements of files",
                     "type": "boolean"
                 },
                 "allowedUsernames": {
@@ -6077,159 +5926,12 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "disableDownload": {
-                    "description": "don't allow downloading files",
                     "type": "boolean"
                 },
                 "disableFileViewer": {
-                    "description": "don't allow viewing files",
                     "type": "boolean"
                 },
                 "disableLoginOption": {
-                    "description": "disable login option in share (true = hide, false = show)",
-                    "type": "boolean"
-                },
-                "disableShareCard": {
-                    "type": "boolean"
-                },
-                "disableSidebar": {
-                    "type": "boolean"
-                },
-                "disableThumbnails": {
-                    "type": "boolean"
-                },
-                "downloadURL": {
-                    "type": "string"
-                },
-                "downloadsLimit": {
-                    "type": "integer"
-                },
-                "enableOnlyOffice": {
-                    "type": "boolean"
-                },
-                "enforceDarkLightMode": {
-                    "description": "\"dark\" or \"light\"",
-                    "type": "string"
-                },
-                "extractEmbeddedSubtitles": {
-                    "description": "can be io intensive for large files and take 10-30 seconds.",
-                    "type": "boolean"
-                },
-                "favicon": {
-                    "type": "string"
-                },
-                "faviconUrl": {
-                    "type": "string"
-                },
-                "hasPassword": {
-                    "type": "boolean"
-                },
-                "hideNavButtons": {
-                    "type": "boolean"
-                },
-                "keepAfterExpiration": {
-                    "type": "boolean"
-                },
-                "maxBandwidth": {
-                    "type": "integer"
-                },
-                "path": {
-                    "type": "string"
-                },
-                "perUserDownloadLimit": {
-                    "type": "boolean"
-                },
-                "quickDownload": {
-                    "type": "boolean"
-                },
-                "shareTheme": {
-                    "type": "string"
-                },
-                "shareType": {
-                    "description": "type of share: normal, upload, max",
-                    "type": "string"
-                },
-                "shareURL": {
-                    "type": "string"
-                },
-                "showHidden": {
-                    "description": "show hidden files in share (true = show, false = hide)",
-                    "type": "boolean"
-                },
-                "sidebarLinks": {
-                    "description": "customizable sidebar links",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/users.SidebarLink"
-                    }
-                },
-                "source": {
-                    "description": "backend source is path to maintain between name changes",
-                    "type": "string"
-                },
-                "sourceURL": {
-                    "type": "string"
-                },
-                "themeColor": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                },
-                "viewMode": {
-                    "description": "default view mode for anonymous users: \"list\", \"compact\", \"normal\", \"gallery\"",
-                    "type": "string"
-                }
-            }
-        },
-        "share.CreateBody": {
-            "type": "object",
-            "properties": {
-                "allowCreate": {
-                    "description": "allow creating files",
-                    "type": "boolean"
-                },
-                "allowDelete": {
-                    "type": "boolean"
-                },
-                "allowModify": {
-                    "description": "allow modifying files",
-                    "type": "boolean"
-                },
-                "allowReplacements": {
-                    "description": "allow replacements of files",
-                    "type": "boolean"
-                },
-                "allowedUsernames": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "banner": {
-                    "type": "string"
-                },
-                "bannerUrl": {
-                    "type": "string"
-                },
-                "canEditShare": {
-                    "type": "boolean"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "disableAnonymous": {
-                    "type": "boolean"
-                },
-                "disableDownload": {
-                    "description": "don't allow downloading files",
-                    "type": "boolean"
-                },
-                "disableFileViewer": {
-                    "description": "don't allow viewing files",
-                    "type": "boolean"
-                },
-                "disableLoginOption": {
-                    "description": "disable login option in share (true = hide, false = show)",
                     "type": "boolean"
                 },
                 "disableShareCard": {
@@ -6258,7 +5960,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "extractEmbeddedSubtitles": {
-                    "description": "can be io intensive for large files and take 10-30 seconds.",
                     "type": "boolean"
                 },
                 "favicon": {
@@ -6280,6 +5981,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "maxBandwidth": {
+                    "description": "KB/s cap; 0 = unlimited",
                     "type": "integer"
                 },
                 "password": {
@@ -6298,25 +6000,22 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "shareType": {
-                    "description": "type of share: normal, upload, max",
                     "type": "string"
                 },
                 "shareURL": {
                     "type": "string"
                 },
                 "showHidden": {
-                    "description": "show hidden files in share (true = show, false = hide)",
                     "type": "boolean"
                 },
                 "sidebarLinks": {
-                    "description": "customizable sidebar links",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/users.SidebarLink"
                     }
                 },
                 "source": {
-                    "description": "backend source is path to maintain between name changes",
+                    "description": "configured source name",
                     "type": "string"
                 },
                 "sourceURL": {
@@ -6331,28 +6030,28 @@ const docTemplate = `{
                 "unit": {
                     "type": "string"
                 },
+                "username": {
+                    "type": "string"
+                },
                 "viewMode": {
-                    "description": "default view mode for anonymous users: \"list\", \"compact\", \"normal\", \"gallery\"",
+                    "description": "default view mode for anonymous users",
                     "type": "string"
                 }
             }
         },
-        "share.Link": {
+        "share.Share": {
             "type": "object",
             "properties": {
                 "allowCreate": {
-                    "description": "allow creating files",
                     "type": "boolean"
                 },
                 "allowDelete": {
                     "type": "boolean"
                 },
                 "allowModify": {
-                    "description": "allow modifying files",
                     "type": "boolean"
                 },
                 "allowReplacements": {
-                    "description": "allow replacements of files",
                     "type": "boolean"
                 },
                 "allowedUsernames": {
@@ -6377,15 +6076,12 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "disableDownload": {
-                    "description": "don't allow downloading files",
                     "type": "boolean"
                 },
                 "disableFileViewer": {
-                    "description": "don't allow viewing files",
                     "type": "boolean"
                 },
                 "disableLoginOption": {
-                    "description": "disable login option in share (true = hide, false = show)",
                     "type": "boolean"
                 },
                 "disableShareCard": {
@@ -6416,8 +6112,10 @@ const docTemplate = `{
                 "expire": {
                     "type": "integer"
                 },
+                "expires": {
+                    "type": "string"
+                },
                 "extractEmbeddedSubtitles": {
-                    "description": "can be io intensive for large files and take 10-30 seconds.",
                     "type": "boolean"
                 },
                 "favicon": {
@@ -6439,13 +6137,17 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "maxBandwidth": {
+                    "description": "KB/s cap; 0 = unlimited",
                     "type": "integer"
                 },
-                "password_hash": {
+                "password": {
                     "type": "string"
                 },
                 "path": {
                     "type": "string"
+                },
+                "pathExists": {
+                    "type": "boolean"
                 },
                 "perUserDownloadLimit": {
                     "type": "boolean"
@@ -6457,25 +6159,21 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "shareType": {
-                    "description": "type of share: normal, upload, max",
                     "type": "string"
                 },
                 "shareURL": {
                     "type": "string"
                 },
                 "showHidden": {
-                    "description": "show hidden files in share (true = show, false = hide)",
                     "type": "boolean"
                 },
                 "sidebarLinks": {
-                    "description": "customizable sidebar links",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/users.SidebarLink"
                     }
                 },
                 "source": {
-                    "description": "backend source is path to maintain between name changes",
                     "type": "string"
                 },
                 "sourceURL": {
@@ -6488,25 +6186,28 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "token": {
-                    "description": "Token is a random value that will only be set when PasswordHash is set. It is\nURL-Safe and is used to download links in password-protected shares via a\nquery arg.",
+                    "type": "string"
+                },
+                "unit": {
                     "type": "string"
                 },
                 "userDownloads": {
-                    "description": "Track downloads per username",
                     "type": "object",
                     "additionalProperties": {
                         "type": "integer"
                     }
                 },
                 "userID": {
-                    "description": "UserID is the share owner's stable id (same as users.User.ID); not the login name.",
                     "type": "integer"
+                },
+                "username": {
+                    "type": "string"
                 },
                 "version": {
                     "type": "integer"
                 },
                 "viewMode": {
-                    "description": "default view mode for anonymous users: \"list\", \"compact\", \"normal\", \"gallery\"",
+                    "description": "default view mode for anonymous users",
                     "type": "string"
                 }
             }
@@ -6556,6 +6257,179 @@ const docTemplate = `{
                 },
                 "uploadChunkSizeMb": {
                     "type": "integer"
+                }
+            }
+        },
+        "users.FrontendUser": {
+            "type": "object",
+            "properties": {
+                "customTheme": {
+                    "description": "Name of theme to use chosen from custom themes config.",
+                    "type": "string"
+                },
+                "darkMode": {
+                    "description": "should dark mode be enabled",
+                    "type": "boolean"
+                },
+                "dateFormat": {
+                    "description": "when false, the date is relative, when true, the date is an exact timestamp",
+                    "type": "boolean"
+                },
+                "debugOffice": {
+                    "description": "debug onlyoffice editor",
+                    "type": "boolean"
+                },
+                "deleteAfterArchive": {
+                    "description": "delete source files after successful creation/extraction of archives",
+                    "type": "boolean"
+                },
+                "deleteWithoutConfirming": {
+                    "description": "delete files without confirmation",
+                    "type": "boolean"
+                },
+                "disableOfficePreviewExt": {
+                    "description": "deprecated",
+                    "type": "string"
+                },
+                "disableOnlyOfficeExt": {
+                    "description": "deprecated",
+                    "type": "string"
+                },
+                "disablePreviewExt": {
+                    "description": "space separated list of file extensions to disable preview for",
+                    "type": "string"
+                },
+                "disableQuickToggles": {
+                    "description": "disable the quick toggles in the sidebar",
+                    "type": "boolean"
+                },
+                "disableSearchOptions": {
+                    "description": "disable the search options in the search bar",
+                    "type": "boolean"
+                },
+                "disableSettings": {
+                    "type": "boolean"
+                },
+                "disableUpdateNotifications": {
+                    "description": "disable update notifications",
+                    "type": "boolean"
+                },
+                "disableViewingExt": {
+                    "description": "space separated list of file extensions to disable viewing for",
+                    "type": "string"
+                },
+                "editorQuickSave": {
+                    "description": "show quick save button in editor",
+                    "type": "boolean"
+                },
+                "fileLoading": {
+                    "description": "upload and download settings",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/users.FileLoading"
+                        }
+                    ]
+                },
+                "gallerySize": {
+                    "description": "0-9 - the size of the gallery thumbnails",
+                    "type": "integer"
+                },
+                "hideFilesInTree": {
+                    "description": "hide files in the sidebar tree navigation, when true, will show only directories.",
+                    "type": "boolean"
+                },
+                "hideSidebarFileActions": {
+                    "description": "hide the file actions in the sidebar",
+                    "type": "boolean"
+                },
+                "locale": {
+                    "description": "language to use: eg. de, en, or fr",
+                    "type": "string"
+                },
+                "lockPassword": {
+                    "type": "boolean"
+                },
+                "loginMethod": {
+                    "$ref": "#/definitions/users.LoginMethod"
+                },
+                "otpEnabled": {
+                    "type": "boolean"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "perm": {
+                    "$ref": "#/definitions/users.Permissions"
+                },
+                "permissions": {
+                    "$ref": "#/definitions/users.Permissions"
+                },
+                "preferEditorForMarkdown": {
+                    "description": "prefer editor first for markdown files instead of the Markdown Viewer",
+                    "type": "boolean"
+                },
+                "preview": {
+                    "$ref": "#/definitions/users.Preview"
+                },
+                "quickDownload": {
+                    "description": "show icon to download in one click",
+                    "type": "boolean"
+                },
+                "scope": {
+                    "type": "string"
+                },
+                "scopes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/users.SourceScope"
+                    }
+                },
+                "showCopyPath": {
+                    "description": "show copy path action in the context menu",
+                    "type": "boolean"
+                },
+                "showFirstLogin": {
+                    "type": "boolean"
+                },
+                "showHidden": {
+                    "description": "show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files",
+                    "type": "boolean"
+                },
+                "showSelectMultiple": {
+                    "description": "show select multiple files on desktop",
+                    "type": "boolean"
+                },
+                "sidebarLinks": {
+                    "description": "customizable sidebar links",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/users.SidebarLink"
+                    }
+                },
+                "singleClick": {
+                    "description": "open directory on single click, also enables middle click to open in new tab",
+                    "type": "boolean"
+                },
+                "sorting": {
+                    "$ref": "#/definitions/users.Sorting"
+                },
+                "stickySidebar": {
+                    "description": "keep sidebar open when navigating",
+                    "type": "boolean"
+                },
+                "themeColor": {
+                    "description": "theme color to use: eg. #ff0000, or var(--red), var(--purple), etc",
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                },
+                "viewMode": {
+                    "description": "view mode to use: eg. normal, list, grid, or compact",
+                    "type": "string"
                 }
             }
         },
@@ -6812,19 +6686,13 @@ const docTemplate = `{
                     "$ref": "#/definitions/users.LoginMethod"
                 },
                 "otpEnabled": {
-                    "description": "true if TOTP is enabled, false otherwise",
                     "type": "boolean"
                 },
                 "password": {
                     "type": "string"
                 },
                 "perm": {
-                    "description": "legacy for migration purposes... og filebrowser has perm attribute",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/users.Permissions"
-                        }
-                    ]
+                    "$ref": "#/definitions/users.Permissions"
                 },
                 "permissions": {
                     "$ref": "#/definitions/users.Permissions"
@@ -6848,6 +6716,10 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/users.SourceScope"
                     }
+                },
+                "showCopyPath": {
+                    "description": "show copy path action in the context menu",
+                    "type": "boolean"
                 },
                 "showFirstLogin": {
                     "type": "boolean"

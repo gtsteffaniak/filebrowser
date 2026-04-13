@@ -12,6 +12,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/state"
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -190,16 +191,59 @@ func usersPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	return http.StatusCreated, nil
 }
 
-// userPutHandler updates an existing user's details, keyed by username (?username= or body data.username).
-// Noauth: when the client omits the target login name, the configured admin user is updated.
+// passwordUpdateRequested reports whether the client intends to change the target user's password
+// (non-empty new password and "password" in the which list). This matches storage parseFields behavior.
+func passwordUpdateRequested(req *UserRequest) bool {
+	if req.User.Password == "" {
+		return false
+	}
+	for _, w := range req.Which {
+		if strings.EqualFold(w, "password") {
+			return true
+		}
+	}
+	return false
+}
+
+// verifyActorPasswordForUserPasswordChange ensures the authenticated actor re-proves their password
+// when changing another user's or their own password via PUT. Requires URL-encoded X-Password (same as login).
+func verifyActorPasswordForUserPasswordChange(r *http.Request, d *requestContext, target *users.User) (int, error) {
+	if d.user.LoginMethod != users.LoginMethodPassword || target.LoginMethod != users.LoginMethodPassword {
+		return http.StatusForbidden, fmt.Errorf("password can only be changed when both accounts use password login")
+	}
+	encoded := r.Header.Get("X-Password")
+	if encoded == "" {
+		return http.StatusUnauthorized, fmt.Errorf("X-Password header is required to confirm your password")
+	}
+	plain, err := url.QueryUnescape(encoded)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid password encoding")
+	}
+	if plain == "" {
+		return http.StatusUnauthorized, fmt.Errorf("X-Password header is required to confirm your password")
+	}
+	actor, err := state.GetUser(d.user.ID)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	if err := utils.CheckPwd(plain, actor.Password); err != nil {
+		return http.StatusUnauthorized, fmt.Errorf("invalid password")
+	}
+	return 0, nil
+}
+
+// userPutHandler updates an existing user's details.
 // @Summary Update a user's details
-// @Description Updates the details of a user identified by username.
+// @Description Updates the details of a user identified by ID. When updating the target user's password the actor must send their current password in the X-Password header
 // @Tags Users
 // @Accept json
-// @Param username query string false "Username of user to update"
+// @Param id query string false "user ID to update"
+// @Param id query string false "usename to update"
+// @Param X-Password header string false "Actor's current password (URL-encoded); required when changing a password user's password"
 // @Param data body users.User true "User data to update"
 // @Success 204 "No Content - User updated successfully"
 // @Failure 400 {object} map[string]string "Bad Request"
+// @Failure 401 {object} map[string]string "Unauthorized - invalid or missing actor password for password change"
 // @Failure 403 {object} map[string]string "Forbidden"
 // @Failure 500 {object} map[string]string "Internal Server Error"
 // @Router /api/users [put]
@@ -261,13 +305,16 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		return http.StatusBadRequest, fmt.Errorf("failed to get user: %w", err)
 	}
 
-	// Extract plaintext password if provided, otherwise pass empty string
 	plaintextPassword := ""
-	if slices.Contains(req.Which, "Password") && req.User.Password != "" {
+	if passwordUpdateRequested(&req) {
 		plaintextPassword = req.User.Password
+		var status int
+		status, err = verifyActorPasswordForUserPasswordChange(r, d, oldUser)
+		if err != nil {
+			return status, err
+		}
 	}
 
-	// Use patch update with specified fields
 	err = state.UpdateUser(&req.User, plaintextPassword, req.Which...)
 	if err != nil {
 		return http.StatusBadRequest, err

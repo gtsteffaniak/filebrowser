@@ -3,6 +3,9 @@
     <div v-if="showWrongCredentials" class="form-invalid">
       {{ $t("login.wrongCredentials") }}
     </div>
+    <div v-if="infoText">
+      <p>{{ infoText }}</p>
+    </div>
     <div class="form-flex-group">
       <input
         class="input share-password"
@@ -10,7 +13,7 @@
         type="password"
         :placeholder="$t('general.password')"
         v-model="password"
-        @keyup.enter="submit"
+        @keyup.enter="canSubmit && submit()"
       />
     </div>
   </div>
@@ -18,11 +21,13 @@
   <div class="card-actions">
     <button
       class="button button--flat"
+      type="button"
       @click="submit"
-      :aria-label="$t('general.login')"
-      :title="$t('general.login')"
+      :disabled="!canSubmit"
+      :aria-label="submitButtonTitle"
+      :title="submitButtonTitle"
     >
-      {{ $t("general.login") }}
+      {{ submitButtonTitle }}
     </button>
   </div>
 </template>
@@ -45,6 +50,22 @@ export default {
       type: String,
       default: "",
     },
+    infoText: {
+      type: String,
+      default: "",
+    },
+    submitLabel: {
+      type: String,
+      default: "",
+    },
+  },
+  computed: {
+    submitButtonTitle() {
+      return this.submitLabel || this.$t("general.login");
+    },
+    canSubmit() {
+      return String(this.password ?? "").trim().length > 0;
+    },
   },
   data() {
     return {
@@ -53,6 +74,9 @@ export default {
   },
   methods: {
     submit() {
+      if (!this.canSubmit) {
+        return;
+      }
       mutations.closeTopPrompt();
       this.submitCallback(this.password);
     },

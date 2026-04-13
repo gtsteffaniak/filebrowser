@@ -69,7 +69,7 @@
           </div>
         </div>
         <!-- Loading icon when search is ongoing -->
-          <LoadingSpinner v-if="ongoing" size="medium" />
+          <LoadingSpinner v-if="isRunning" size="medium" />
         <!-- Message when no results are found -->
         <div class="searchPrompt" v-show="isEmpty && !isRunning">
           <p>{{ noneMessage }}</p>
@@ -145,14 +145,14 @@ export default {
       ],
       typeSelect: [
         { label: this.$t("general.photos"), value: "type:image" },
-        { label: this.$t("general.audios"), value: "type:audio" },
+        { label: this.$t("general.audio"), value: "type:audio" },
         { label: this.$t("general.videos"), value: "type:video" },
         { label: this.$t("general.documents"), value: "type:doc" },
         { label: this.$t("general.archives"), value: "type:archive" },
       ],
       toggleOptionButton: [{ label: this.$t("search.showOptions") }],
       value: "",
-      ongoing: false,
+      ongoing: 0,
       results: [],
       reload: false,
       scrollable: null,
@@ -181,7 +181,7 @@ export default {
     },
     value() {
       if (this.results.length) {
-        this.ongoing = false;
+        this.ongoing = 0;
         this.results = [];
       }
     },
@@ -267,17 +267,16 @@ export default {
       return this.results.length === 0;
     },
     text() {
-      if (this.ongoing) {
+      if (this.ongoing > 0) {
         return "";
       }
       return this.$t("search.typeToSearch", { minSearchLength: globalVars.minSearchLength })
     },
     isRunning() {
-      return this.ongoing;
+      return this.ongoing > 0;
     },
     activeStates() {
       const selectedItems = state.selected ? [].concat(state.selected) : [];
-
       if (selectedItems.length === 0) {
         // Return an array of all false if nothing is selected
         return new Array(this.results.length).fill(false);
@@ -464,12 +463,11 @@ export default {
     },
     async submit(event) {
       this.results = [];
-
       if (event != undefined) {
         event.preventDefault();
       }
       if (this.value === "" || this.value.length < globalVars.minSearchLength) {
-        this.ongoing = false;        this.noneMessage = this.$t("search.notEnoughCharacters", { minSearchLength: globalVars.minSearchLength });
+        this.noneMessage = this.$t("search.notEnoughCharacters", { minSearchLength: globalVars.minSearchLength });
         return;
       }
       let searchTypesFull = this.searchTypes;
@@ -488,7 +486,7 @@ export default {
       if (newerUnix !== null) {
         dateParams.newerThan = newerUnix;
       }
-      this.ongoing = true;
+      this.ongoing++;
       
       // Determine which sources to search
       let sourcesToSearch = [];
@@ -511,13 +509,13 @@ export default {
         dateParams
       );
 
-      this.ongoing = false;
-      if (this.results.length == 0) {
+      this.ongoing--;
+      if (this.results.length == 0 && this.ongoing == 0) {
         this.noneMessage = this.$t("search.noResults");
       }
     },
     showHelpTooltip(event) {
-      const helpText = `${this.$t("search.helpText1")}\n\n${this.$t("search.helpText2")}`;
+      const helpText = `${this.$t("search.helpText1", { minSearchLength: globalVars.minSearchLength })}\n\n${this.$t("search.helpText2")}`;
       mutations.showTooltip({
         content: helpText,
         x: event.clientX,

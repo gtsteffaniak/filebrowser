@@ -33,7 +33,8 @@
     "showMore": "Erweiterte Optionen anzeigen",
     "showLess": "Erweiterte Optionen ausblenden",
     "goToSource": "Zum Quellort gehen",
-    "goToItem": "Weiter zum Artikel"
+    "goToItem": "Weiter zum Artikel",
+    "copyPath": "Pfad kopieren"
   },
   "download": {
     "downloadFile": "Datei herunterladen",
@@ -241,14 +242,12 @@
     "unarchiveMessage": "Wählen Sie, wohin das Archiv entpackt werden soll.",
     "unarchiveDestination": "Auszug zu:",
     "unarchiveSuccess": "Archiv erfolgreich entpackt!",
-    "downloadFailed": "Chunked Download fehlgeschlagen - falls sich dies wiederholt, versuchen Sie, die Chunk-Größe zu verringern: {message}"
+    "downloadFailed": "Chunked Download fehlgeschlagen - falls sich dies wiederholt, versuchen Sie, die Chunk-Größe zu verringern: {message}",
+    "confirmPasswordToChangeUserPassword": "Geben Sie Ihr aktuelles Passwort ein, um diese Passwortänderung zu autorisieren."
   },
   "search": {
     "smallerThan": "Kleiner als:",
     "largerThan": "Größer als:",
-    "helpText1": "Die Suche erfolgt bei jedem Zeichen, das Sie eingeben (mindestens 3 Zeichen für Suchbegriffe).",
-    "helpText2": "Der Index: Die Suche verwendet den Index, der automatisch in dem konfigurierten Intervall aktualisiert wird (Standard: 5 Minuten). Eine Suche direkt nach dem Start des Programms kann zu unvollständigen Ergebnissen führen.",
-    "noResults": "Keine Ergebnisse in der indizierten Suche gefunden.",
     "onlyFolders": "Nur Ordner",
     "onlyFiles": "Nur Dateien",
     "showOptions": "Optionen anzeigen",
@@ -258,7 +257,10 @@
     "showPreviewImages": "Vorschaubilder anzeigen",
     "showPreviewImagesDescription": "Zeigen Sie eine Miniaturvorschau für Suchergebnisse an, wenn verfügbar, und zeigen Sie größere Symbole für alle Ergebnisse an.",
     "olderThanDate": "Älter als:",
-    "newerThanDate": "Neuere als:"
+    "newerThanDate": "Neuere als:",
+    "helpText2": "Die Suchergebnisse basieren auf indizierten Dateien, so dass neu hinzugefügte Dateien möglicherweise nicht angezeigt werden, bis sie indiziert sind.",
+    "noResults": "Keine Ergebnisse gefunden.",
+    "helpText1": "Die Suche erfolgt bei jedem Zeichen, das Sie eingeben ({minSearchLength} Zeichen Minimum)."
   },
   "settings": {
     "administrator": "Administrator",
@@ -579,7 +581,6 @@
     "results": "Ergebnisse{suffix}",
     "users": "Benutzer{suffix}",
     "photos": "Fotos",
-    "audios": "Audios{suffix}",
     "videos": "Videos{suffix}",
     "models": "3D-Modelle",
     "documents": "Dokumente{suffix}",
@@ -665,7 +666,8 @@
     "format": "Format{suffix}",
     "office": "Büro{suffix}",
     "show": "anzeigen{suffix}",
-    "divider": "Teiler{suffix}"
+    "divider": "Teiler{suffix}",
+    "audio": "Audio{suffix}"
   },
   "access": {
     "rules": "Zugangsregeln",
@@ -717,15 +719,11 @@
     "deleteAfterArchiveDescription": "Wenn aktiviert, werden die Quelldateien nach erfolgreicher Erstellung/Extraktion von Archiven gelöscht",
     "hideFilesInTree": "Dateien in der Baumnavigation ausblenden",
     "hideFilesInTreeDescription": "Wenn aktiviert, werden in der Seitenleisten-Baumnavigation nur Ordner angezeigt",
-    "previewModelsDescription": "Vorschaubilder für 3D-Modelle anzeigen, bei Deaktivierung wird ein generisches Symbol angezeigt",
-    "previewAudiosDescription": "Vorschaubilder für Audiodateien anzeigen, bei Deaktivierung wird ein generisches Symbol angezeigt",
     "setDateFormat": "Genaues Datum statt relativer Zeitangaben verwenden",
     "showHiddenFiles": "Versteckte Dateien anzeigen",
     "showHiddenFilesDescription": "Versteckte Dateien in der Auflistung anzeigen (z.B. .thumbnails, ProgramData), aber sie sind immer noch manuell zugänglich, wenn sie für die Indizierung konfiguriert sind.",
     "showQuickDownload": "Download-Symbol für schnellen Zugriff anzeigen",
     "showQuickDownloadDescription": "Zeigen Sie ein Download-Symbol für den schnellen Zugriff auf jedes Dateielement an, das zum sofortigen Herunterladen angeklickt werden kann.",
-    "previewImagesDescription": "Thumbnail-Vorschau für Bilder anzeigen, bei Deaktivierung wird ein allgemeines Symbol angezeigt.",
-    "previewVideosDescription": "Thumbnail-Vorschau für Videos anzeigen, bei Deaktivierung wird ein allgemeines Symbol angezeigt.",
     "editOffice": "Anzeigen und Bearbeiten von Office-Dateien mit OnlyOffice",
     "editOfficeDescription": "Wenn nur Office aktiviert ist, wird der Dateibetrachter/-editor für alle Dateierweiterungen deaktiviert, die mit Office-Dateien zusammenhängen.",
     "filePreviewOptions": "Optionen für die Dateivorschau",
@@ -774,7 +772,10 @@
     "popupPreviewDescription": "Ein Overlay-Pop-up-Fenster wird über der Benutzeroberfläche angezeigt, wenn der Mauszeiger über Elemente mit Miniaturansichten bewegt wird",
     "thumbnailOptions": "Thumbnail-Optionen",
     "showThumbnails": "Miniaturansichten für unterstützte Artikel anzeigen",
-    "showThumbnailsDescription": "Wenn diese Option aktiviert ist, werden Miniaturansichten in der Auflistung für Artikel angezeigt, die sie unterstützen. Schalten Sie die Option aus, um alle Miniaturansichten auszublenden."
+    "showThumbnailsDescription": "Wenn diese Option aktiviert ist, werden Miniaturansichten in der Auflistung für Artikel angezeigt, die sie unterstützen. Schalten Sie die Option aus, um alle Miniaturansichten auszublenden.",
+    "showCopyPath": "Pfad kopieren im Kontextmenü anzeigen",
+    "showCopyPathDescription": "Zeigen Sie eine Aktion \"Pfad kopieren\" im Kontextmenü von Dateien und Ordnern an.",
+    "previewDescription": "Vorschaubilder für {filetype} anzeigen, bei Deaktivierung wird ein allgemeines Symbol angezeigt."
   },
   "editor": {
     "uninitialized": "Der Editor konnte nicht initialisiert werden. Bitte neu laden.",

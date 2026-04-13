@@ -47,8 +47,9 @@ export async function create(user) {
   }
 }
 
-// PUT /api/users?username= (update user; target login name is always the query key)
-export async function update(user, which = ['all']) {
+// PUT /api/users (update user)
+// Optional `options.headers` (e.g. X-Password when changing a password user's password).
+export async function update(user, which = ['all'], options = {}) {
   const excludeKeys = ['id', 'name']
   which = which.filter(item => !excludeKeys.includes(item))
   if (user.username === 'anonymous') {
@@ -75,7 +76,8 @@ export async function update(user, which = ['all']) {
     body: JSON.stringify({
       which: which,
       data: userData
-    })
+    }),
+    headers: extraHeaders,
   })
 }
 

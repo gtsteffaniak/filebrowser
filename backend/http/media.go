@@ -109,8 +109,9 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 // @Tags Resources
 // @Accept json
 // @Produce json
-// @Param path query string true "Path to the directory"
+// @Param path query string true "Path to the directory or file"
 // @Param source query string true "Source name"
+// @Param albumArt query bool false "When true, include embedded album art bytes in audio metadata"
 // @Success 200 {object} iteminfo.ExtendedFileInfo
 // @Failure 403 {object} map[string]string "Forbidden"
 // @Failure 404 {object} map[string]string "Not found"
@@ -118,6 +119,7 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 func metadataHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
+	albumArt := r.URL.Query().Get("albumArt") == "true"
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 		FollowSymlinks:           true,
 		Path:                     path,
@@ -125,6 +127,7 @@ func metadataHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 		Expand:                   true,
 		Content:                  false,
 		Metadata:                 true,
+		AlbumArt:                 albumArt,
 		ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles,
 		ShowHidden:               d.user.ShowHidden,
 		SkipExtendedAttrs:        false,
@@ -142,6 +145,7 @@ func metadataHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 // @Produce json
 // @Param hash query string true "Share hash"
 // @Param path query string false "Path within the share"
+// @Param albumArt query bool false "When true, include embedded album art bytes in audio metadata (heavier)"
 // @Success 200 {object} iteminfo.ExtendedFileInfo
 // @Router /public/api/media/metadata [get]
 func publicMetadataHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
@@ -149,6 +153,7 @@ func publicMetadataHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 		return http.StatusNotImplemented, fmt.Errorf("browsing is disabled for upload shares")
 	}
 	path := r.URL.Query().Get("path")
+	albumArt := r.URL.Query().Get("albumArt") == "true"
 	sourceCfg, ok := config.Server.SourceMap[d.share.Source]
 	if !ok {
 		return http.StatusNotFound, fmt.Errorf("source not found")
@@ -159,6 +164,7 @@ func publicMetadataHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 		Expand:                   true,
 		Content:                  false,
 		Metadata:                 true,
+		AlbumArt:                 albumArt,
 		ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles && d.share.ExtractEmbeddedSubtitles,
 		ShowHidden:               d.share.ShowHidden,
 		FollowSymlinks:           false,

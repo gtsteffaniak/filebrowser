@@ -356,9 +356,15 @@ export default {
       return state.navigation.enabled && getters.currentPrompt() === null;
     },
     hasVideoPreviousNav() {
+      if (getters.isPreviewPlaybackQueueNavMode()) {
+        return this.videoNavigationGestureAllowed && getters.playbackQueueCanGoPrevious();
+      }
       return this.videoNavigationGestureAllowed && state.navigation.previousLink !== '';
     },
     hasVideoNextNav() {
+      if (getters.isPreviewPlaybackQueueNavMode()) {
+        return this.videoNavigationGestureAllowed && getters.playbackQueueCanGoNext();
+      }
       return this.videoNavigationGestureAllowed && state.navigation.nextLink !== '';
     },
     /** Tracks `mutations.setMobile()` / window resize so watchers can react. */

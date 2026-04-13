@@ -8,7 +8,8 @@
         'is-dragging': isDragging(prompt.id),
         'is-resizing': resizingId === prompt.id,
         'prompt-behind': !isTopmost(prompt.id),
-        'blocked': isBlocked(prompt)
+        'blocked': isBlocked(prompt),
+        'prompt-open-flash': flashBorderIds[prompt.id],
       }"
       @mousedown="makeTopPrompt(prompt.id)"
       :style="{
@@ -166,7 +167,24 @@ export default {
         clientX: 0,
         clientY: 0,
       },
+      /** Prompt ids that should play the border highlight (cleared after animation). */
+      flashBorderIds: {},
+      flashBorderTimers: {},
     };
+  },
+  watch: {
+    prompts: {
+      handler(newVal, oldVal) {
+        const prev = oldVal ?? [];
+        const oldIds = new Set(prev.map((p) => p.id));
+        for (const p of newVal) {
+          if (!oldIds.has(p.id)) {
+            this.triggerPromptBorderFlash(p.id);
+          }
+        }
+      },
+      deep: true,
+    },
   },
   computed: {
     prompts() {
@@ -189,8 +207,21 @@ export default {
   beforeUnmount() {
     window.removeEventListener('resize', this.handleWindowResize);
     window.removeEventListener('keydown', this.onDocumentKeydown);
+    Object.values(this.flashBorderTimers).forEach((tid) => clearTimeout(tid));
   },
   methods: {
+    triggerPromptBorderFlash(id) {
+      if (this.flashBorderTimers[id]) {
+        clearTimeout(this.flashBorderTimers[id]);
+      }
+      this.flashBorderIds = { ...this.flashBorderIds, [id]: true };
+      this.flashBorderTimers[id] = setTimeout(() => {
+        const next = { ...this.flashBorderIds };
+        delete next[id];
+        this.flashBorderIds = next;
+        delete this.flashBorderTimers[id];
+      }, 500);
+    },
     handleWindowResize() {
       const maxWidth = window.innerWidth * 0.9;
       const maxHeight = window.innerHeight * 0.9;
@@ -686,6 +717,20 @@ export default {
   to {
     opacity: 1;
   }
+}
+
+@keyframes prompt-border-flash {
+  from {
+    border-color: color-mix(in srgb, var(--primaryColor) 45%, var(--surfaceSecondary));
+  }
+  to {
+    border-color: var(--surfaceSecondary);
+  }
+}
+
+/* New prompt: soft border highlight (~0.5s); keep existing show fade */
+.floating-window.prompt-open-flash {
+  animation: show 0.20s forwards, prompt-border-flash 0.60s ease-out forwards;
 }
 
 .floating-window > :deep(.card-content) {

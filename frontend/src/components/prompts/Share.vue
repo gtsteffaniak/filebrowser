@@ -23,14 +23,7 @@
       </div>
     </div>
 
-    <div v-if="isPickingFile">
-      <file-list @update:selected="updateTempFilePath" :browse-source="displaySource" :browse-path="displayPath"
-        :show-files="true" :show-folders="true" :allowed-file-types="filePickerAllowedTypes"
-        :require-file-selection="true" :title="filePickerTitle">
-      </file-list>
-    </div>
-
-    <div v-else-if="!isPickingFile">
+    <div v-else>
       <div v-if="isFiles" aria-label="share-path" class="searchContext button"> {{ $t('general.path', { suffix: ':' }) }} {{
         displayPath }}</div>
       <div v-else>
@@ -313,7 +306,7 @@
     </div>
   </div>
 
-  <div v-if="!isEditingPath && !isPickingFile" class="card-actions">
+  <div v-if="!isEditingPath" class="card-actions">
     <button v-if="listing" class="button button--flat button--blue" @click="() => switchListing()"
       :aria-label="$t('general.new')" :title="$t('general.new')">
       {{ $t("general.new") }}
@@ -321,16 +314,6 @@
     <button v-if="!listing" class="button button--flat button--blue" @click="submit" aria-label="Share-Confirm"
       :title="$t('general.share')">
       {{ $t("general.share") }}
-    </button>
-  </div>
-  <div v-if="isPickingFile" class="card-actions">
-    <button class="button button--flat" @click="cancelFilePicker" :aria-label="$t('general.cancel')"
-      :title="$t('general.cancel')">
-      {{ $t("general.cancel") }}
-    </button>
-    <button class="button button--flat button--blue" @click="confirmFilePicker" :disabled="!filePickerSelectionValid"
-      :aria-label="$t('general.ok')" :title="$t('general.ok')">
-      {{ $t("general.ok") }}
     </button>
   </div>
 </template>
@@ -425,11 +408,9 @@ export default {
       tempSource: "",
       pathExists: true,
       isChangingPassword: false,
-      isPickingFile: false,
+      /** Set while a pathPicker for banner/favicon is open; cleared on select/cancel. */
+      pendingBannerFaviconContextId: null,
       filePickerField: null, // 'banner' or 'favicon'
-      filePickerSelectionValid: false, // Track if a valid file is selected
-      tempFilePath: "",
-      tempFileSource: "",
       showMoreExpanded: false,
       //viewMode: "normal",
     };
@@ -490,22 +471,6 @@ export default {
       const currentLink = this.isEditMode ? this.link : this.editingLink;
       return currentLink && currentLink.hasPassword;
     },
-    filePickerAllowedTypes() {
-      if (this.filePickerField === 'banner') {
-        return ['image/']; // Allow all image types
-      } else if (this.filePickerField === 'favicon') {
-        return ['image/']; // Allow all image types
-      }
-      return [];
-    },
-    filePickerTitle() {
-      if (this.filePickerField === 'banner') {
-        return this.$t('share.selectBannerImage');
-      } else if (this.filePickerField === 'favicon') {
-        return this.$t('share.selectFaviconImage');
-      }
-      return this.$t('share.selectImage');
-    }
   },
   watch: {
     listing(isListing) {
@@ -599,11 +564,15 @@ export default {
     });
     // Listen for sidebar links updates from the SidebarLinks prompt
     eventBus.on('shareSidebarLinksUpdated', this.handleSidebarLinksUpdate);
+    eventBus.on('pathSelected', this.onBannerFaviconPathSelected);
+    eventBus.on('pathPickerCancelled', this.onBannerFaviconPathPickerCancelled);
   },
   beforeUnmount() {
     // Clean up event listeners
     eventBus.off('apiKeysChanged', this.reloadApiKeys);
     eventBus.off('shareSidebarLinksUpdated', this.handleSidebarLinksUpdate);
+    eventBus.off('pathSelected', this.onBannerFaviconPathSelected);
+    eventBus.off('pathPickerCancelled', this.onBannerFaviconPathPickerCancelled);
     // Clean up clipboard
     if (this.clip) {
       this.clip.destroy();
@@ -933,42 +902,70 @@ export default {
       });
     },
     openBannerPicker() {
+      const selectionContextId = `share-banner-favicon-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+      this.pendingBannerFaviconContextId = selectionContextId;
       this.filePickerField = 'banner';
-      this.tempFilePath = this.displayPath;
-      this.tempFileSource = this.displaySource;
-      this.isPickingFile = true;
+      mutations.showPrompt({
+        name: 'pathPicker',
+        pinned: true,
+        props: {
+          currentPath: this.displayPath || '/',
+          currentSource: this.displaySource,
+          hideDestinationSource: true,
+          showFiles: true,
+          showFolders: true,
+          requireFileSelection: true,
+          allowedFileTypes: ['image/'],
+          selectionContextId,
+          listTitle: this.$t('share.selectBannerImage'),
+        },
+      });
     },
     openFaviconPicker() {
+      const selectionContextId = `share-banner-favicon-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+      this.pendingBannerFaviconContextId = selectionContextId;
       this.filePickerField = 'favicon';
-      this.tempFilePath = this.displayPath;
-      this.tempFileSource = this.displaySource;
-      this.isPickingFile = true;
+      mutations.showPrompt({
+        name: 'pathPicker',
+        pinned: true,
+        props: {
+          currentPath: this.displayPath || '/',
+          currentSource: this.displaySource,
+          hideDestinationSource: true,
+          showFiles: true,
+          showFolders: true,
+          requireFileSelection: true,
+          allowedFileTypes: ['image/'],
+          selectionContextId,
+          listTitle: this.$t('share.selectFaviconImage'),
+        },
+      });
     },
-    updateTempFilePath(pathOrData) {
-      if (pathOrData && pathOrData.path) {
-        this.tempFilePath = pathOrData.path;
-        this.tempFileSource = pathOrData.source;
-        this.filePickerSelectionValid = pathOrData.isValid || false;
+    /**
+     * @param {{ path: string, source: string, selectionContextId?: string }} data
+     */
+    onBannerFaviconPathSelected(data) {
+      if (!this.pendingBannerFaviconContextId || !data || data.selectionContextId !== this.pendingBannerFaviconContextId) {
+        return;
       }
-    },
-    confirmFilePicker() {
-      if (this.tempFilePath && this.tempFileSource) {
-        // Build query params format: source=sourcename&path=indexpath
-        const queryParams = `source=${encodeURIComponent(this.tempFileSource)}&path=${encodeURIComponent(this.tempFilePath)}`;
-
-        if (this.filePickerField === 'banner') {
-          this.banner = queryParams;
-        } else if (this.filePickerField === 'favicon') {
-          this.favicon = queryParams;
-        }
+      const queryParams = `source=${encodeURIComponent(data.source)}&path=${encodeURIComponent(data.path)}`;
+      if (this.filePickerField === 'banner') {
+        this.banner = queryParams;
+      } else if (this.filePickerField === 'favicon') {
+        this.favicon = queryParams;
       }
-      this.isPickingFile = false;
+      this.pendingBannerFaviconContextId = null;
       this.filePickerField = null;
     },
-    cancelFilePicker() {
-      this.isPickingFile = false;
+    /**
+     * @param {{ selectionContextId?: string }} data
+     */
+    onBannerFaviconPathPickerCancelled(data) {
+      if (!this.pendingBannerFaviconContextId || !data || data.selectionContextId !== this.pendingBannerFaviconContextId) {
+        return;
+      }
+      this.pendingBannerFaviconContextId = null;
       this.filePickerField = null;
-      this.filePickerSelectionValid = false;
     },
   },
 };
