@@ -121,7 +121,7 @@ func getDirectoryPreview(r *http.Request, d *requestContext, frameIndex int) (*i
 	path := utils.JoinPathAsUnix(d.fileInfo.Path, name)
 	user := d.user
 	if d.share.Hash != "" {
-		sourceInfo, ok := settings.Config.Server.SourceMap[d.share.Source]
+		sourceInfo, ok := settings.Config.Server.SourceMap[d.share.SourcePath]
 		if !ok {
 			return nil, fmt.Errorf("source not found for share")
 		}

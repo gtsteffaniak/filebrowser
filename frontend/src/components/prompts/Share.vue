@@ -443,8 +443,9 @@ export default {
       return this.isEditMode ? this.link.path : this.item.path;
     },
     displaySource() {
-      // When editing, use the link's source; otherwise use the item's source
-      return this.isEditMode ? this.link.source : this.item.source;
+      const fromLink = this.link.sourceName ?? this.link.source;
+      const fromItem = this.item.source;
+      return this.isEditMode ? fromLink : fromItem;
     },
     onlyOfficeAvailable() {
       return globalVars.onlyOfficeUrl !== "";
@@ -651,7 +652,7 @@ export default {
         let isPermanent = !this.time || this.time === "0";
         const payload = {
           path: this.displayPath,
-          source: this.displaySource,
+          sourceName: this.displaySource,
           expires: isPermanent ? "" : this.time.toString(),
           unit: this.unit,
           disableAnonymous: this.disableAnonymous,

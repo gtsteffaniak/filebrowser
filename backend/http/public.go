@@ -77,7 +77,7 @@ func publicDownloadHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	}
 
 	// Get the actual source name from the share's source mapping
-	sourceInfo, ok := settings.Config.Server.SourceMap[d.share.Source]
+	sourceInfo, ok := settings.Config.Server.SourceMap[d.share.SourcePath]
 	if !ok {
 		return http.StatusInternalServerError, fmt.Errorf("source not found for share")
 	}
@@ -158,7 +158,7 @@ func publicUploadHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		return http.StatusForbidden, fmt.Errorf("cannot overwrite files for this share")
 	}
 	// Go automatically decodes query params
-	source := config.Server.SourceMap[d.share.Source].Name
+	source := config.Server.SourceMap[d.share.SourcePath].Name
 	// adjust query params to match resourcePostHandler
 	q := r.URL.Query()
 	q.Set("source", source)
@@ -275,12 +275,12 @@ func publicDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 		FollowSymlinks: true,
 		Path:           d.IndexPath,
-		Source:         d.share.Source,
+		Source:         d.share.SourcePath,
 	}, accessStore, d.shareUser, shareStore)
 	if err != nil {
 		return http.StatusNotFound, fmt.Errorf("resource not available")
 	}
-	err = files.DeleteFiles(d.share.Source, fileInfo.RealPath, fileInfo.Type == "directory")
+	err = files.DeleteFiles(d.share.SourcePath, fileInfo.RealPath, fileInfo.Type == "directory")
 	if err != nil {
 		logger.Errorf("public delete handler: error deleting resource with error %v", err)
 		return http.StatusInternalServerError, fmt.Errorf("an error occured while deleting the resource")
@@ -482,7 +482,7 @@ func getShareImage(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /public/api/resources/items [get]
 func publicItemsGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	sourceInfo, ok := config.Server.SourceMap[d.share.Source]
+	sourceInfo, ok := config.Server.SourceMap[d.share.SourcePath]
 	if !ok {
 		return http.StatusNotFound, fmt.Errorf("source not found")
 	}

@@ -40,7 +40,7 @@ func (s *SQLStore) GetShareByHash(hash string) (*share.Share, error) {
 	err := s.db.QueryRow(query, hash).Scan(
 		&link.Hash,
 		&userIDStr,
-		&link.Source,
+		&link.SourcePath,
 		&link.Path,
 		&link.Expire,
 		&link.Downloads,
@@ -136,7 +136,7 @@ func (s *SQLStore) GetPermanentShare(source, path string, userID uint64) (*share
 	err := s.db.QueryRow(query, source, path, shareUserIDDB(userID)).Scan(
 		&link.Hash,
 		&userIDStr,
-		&link.Source,
+		&link.SourcePath,
 		&link.Path,
 		&link.Expire,
 		&link.Downloads,
@@ -204,7 +204,7 @@ func (s *SQLStore) SaveShare(link *share.Share) error {
 	_, err = s.db.Exec(query,
 		link.Hash,
 		shareUserIDDB(link.UserID),
-		link.Source,
+		link.SourcePath,
 		link.Path,
 		link.Expire,
 		link.Downloads,
@@ -283,7 +283,7 @@ func (s *SQLStore) scanShares(rows *sql.Rows) ([]*share.Share, error) {
 		err := rows.Scan(
 			&link.Hash,
 			&userIDStr,
-			&link.Source,
+			&link.SourcePath,
 			&link.Path,
 			&link.Expire,
 			&link.Downloads,

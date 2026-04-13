@@ -187,10 +187,12 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 			name: "Public share, no auth required",
 			share: &share.Share{
 				CreateShare: share.CreateShare{
-					Source: "/srv",
-					Hash:   "public_hash",
+					SourceName: "srv",
+					Hash:       "public_hash",
+					Path:       "/",
 				},
-				UserID: 1,
+				SourcePath: "/srv",
+				UserID:     1,
 			},
 			expectedStatusCode: http.StatusOK, // zero means 200 on helpers
 		},
@@ -198,9 +200,11 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 			name: "Private share, valid password when token exists",
 			share: &share.Share{
 				CreateShare: share.CreateShare{
-					Source: "/srv",
-					Hash:   "pw_and_token_hash",
+					SourceName: "srv",
+					Hash:       "pw_and_token_hash",
+					Path:       "/",
 				},
+				SourcePath:   "/srv",
 				UserID:       1,
 				PasswordHash: passwordBcrypt,
 				Token:        "some_random_token",
@@ -214,8 +218,11 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 			name: "Private share, no auth provided",
 			share: &share.Share{
 				CreateShare: share.CreateShare{
-					Hash: "private_hash",
+					SourceName: "srv",
+					Hash:       "private_hash",
+					Path:       "/",
 				},
+				SourcePath:   "/srv",
 				UserID:       1,
 				PasswordHash: passwordBcrypt,
 				Token:        "123",
@@ -226,9 +233,11 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 			name: "Private share, valid token",
 			share: &share.Share{
 				CreateShare: share.CreateShare{
-					Source: "/srv",
-					Hash:   "token_hash",
+					SourceName: "srv",
+					Hash:       "token_hash",
+					Path:       "/",
 				},
+				SourcePath:   "/srv",
 				UserID:       1,
 				PasswordHash: passwordBcrypt,
 				Token:        "123",
@@ -240,8 +249,11 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 			name: "Private share, invalid password",
 			share: &share.Share{
 				CreateShare: share.CreateShare{
-					Hash: "pw_hash",
+					SourceName: "srv",
+					Hash:       "pw_hash",
+					Path:       "/",
 				},
+				SourcePath:   "/srv",
 				UserID:       1,
 				PasswordHash: passwordBcrypt,
 				Token:        "123",

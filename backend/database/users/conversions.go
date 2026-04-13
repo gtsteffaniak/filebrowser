@@ -11,9 +11,8 @@ func (u *User) GetSourceNames() []string {
 		return []string{}
 	}
 
-	sources := []string{}
 	allSources := sourceConfig.GetAllSources()
-
+	sources := []string{}
 	// Preserves order of sources
 	for _, source := range allSources {
 		_, err := u.GetScopeForSourcePath(source.Path)
@@ -24,11 +23,9 @@ func (u *User) GetSourceNames() []string {
 	return sources
 }
 
-// GetBackendScopes converts the user's scopes from frontend-style to backend-style
-func (u *User) GetBackendScopes() ([]SourceScope, error) {
-	// Only convert scopes if they are not empty
-	// Empty scopes during update should remain empty (not filled with defaults)
-	if len(u.Scopes) == 0 {
+// APIScopesToBackend maps json "scopes" payloads (source display name or filesystem path + scope path)
+func APIScopesToBackend(apiScopes []SourceScope) ([]SourceScope, error) {
+	if len(apiScopes) == 0 {
 		return []SourceScope{}, nil
 	}
 	if sourceConfig == nil {
@@ -36,23 +33,9 @@ func (u *User) GetBackendScopes() ([]SourceScope, error) {
 	}
 
 	newScopes := []SourceScope{}
-	for _, scope := range u.Scopes {
-		// First check if its already a path name and keep it
-		source, ok := sourceConfig.GetSourceByPath(scope.Name)
-		if ok {
-			if scope.Scope == "" {
-				scope.Scope = source.DefaultUserScope
-			}
-			scope.Scope = normalizeScope(scope.Scope)
-			newScopes = append(newScopes, SourceScope{
-				Name:  source.Path, // backend name is path
-				Scope: scope.Scope,
-			})
-			continue
-		}
-
+	for _, scope := range apiScopes {
 		// Check if its the name of a source and convert it to a path
-		source, ok = sourceConfig.GetSourceByName(scope.Name)
+		source, ok := sourceConfig.GetSourceByName(scope.Name)
 		if !ok {
 			// source might no longer be configured
 			continue
@@ -69,8 +52,7 @@ func (u *User) GetBackendScopes() ([]SourceScope, error) {
 	return newScopes, nil
 }
 
-// GetFrontendScopes converts the user's scopes from backend-style to frontend-style
-// Backend scopes use source paths, frontend scopes use source names
+// GetFrontendScopes returns API-style scopes from BackendScopes only (source display names).
 func (u *User) GetFrontendScopes() []SourceScope {
 	if sourceConfig == nil {
 		return []SourceScope{}

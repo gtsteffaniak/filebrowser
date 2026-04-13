@@ -107,7 +107,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	var sourceInfo *settings.Source
 	var ok bool
 	if hash != "" {
-		sourceInfo, ok = settings.Config.Server.SourceMap[d.share.Source]
+		sourceInfo, ok = settings.Config.Server.SourceMap[d.share.SourcePath]
 		if !ok {
 			logger.Error("OnlyOffice: source not found")
 			return http.StatusInternalServerError, fmt.Errorf("source not found")

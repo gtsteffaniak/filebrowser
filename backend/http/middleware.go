@@ -39,14 +39,9 @@ type requestContext struct {
 	IndexPath    string
 }
 
-// recordShareDownload updates authoritative share state and evicts the HTTP layer read cache
-// so subsequent shareStore.GetByHash reloads fresh counters.
+// recordShareDownload persists download counters; shareStore reads go through state and see updates immediately.
 func recordShareDownload(hash, viewerUsername string) error {
-	if err := state.RecordShareDownload(hash, viewerUsername); err != nil {
-		return err
-	}
-	shareStore.ForgetShare(hash)
-	return nil
+	return state.RecordShareDownload(hash, viewerUsername)
 }
 
 type HttpResponse struct {
@@ -100,7 +95,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 				return status, fmt.Errorf("could not authenticate share request")
 			}
 		}
-		source, ok := config.Server.SourceMap[link.Source]
+		source, ok := config.Server.SourceMap[link.SourcePath]
 		if !ok {
 			return http.StatusNotFound, fmt.Errorf("source not found")
 		}

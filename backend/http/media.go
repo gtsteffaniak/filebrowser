@@ -149,7 +149,7 @@ func publicMetadataHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 		return http.StatusNotImplemented, fmt.Errorf("browsing is disabled for upload shares")
 	}
 	path := r.URL.Query().Get("path")
-	sourceCfg, ok := config.Server.SourceMap[d.share.Source]
+	sourceCfg, ok := config.Server.SourceMap[d.share.SourcePath]
 	if !ok {
 		return http.StatusNotFound, fmt.Errorf("source not found")
 	}

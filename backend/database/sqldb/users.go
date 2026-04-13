@@ -13,8 +13,9 @@ import (
 
 // UserData holds all the non-queryable user fields in JSON
 type UserData struct {
-	Password         string                     `json:"password,omitempty"`
-	Scopes           []users.SourceScope        `json:"scopes"`
+	Password string `json:"password,omitempty"`
+	// BackendScopes uses JSON key "scopes" for historical on-disk user_data blobs.
+	BackendScopes    []users.SourceScope        `json:"scopes"`
 	Tokens           map[string]users.AuthToken `json:"tokens,omitempty"`
 	TOTPSecret       string                     `json:"totpSecret,omitempty"`
 	TOTPNonce        string                     `json:"totpNonce,omitempty"`
@@ -54,7 +55,7 @@ func finishUserLoad(user *users.User, userDataJSON []byte) error {
 		return fmt.Errorf("failed to unmarshal user data: %w", err)
 	}
 	user.Password = userData.Password
-	user.BackendScopes = userData.Scopes
+	user.BackendScopes = userData.BackendScopes
 	user.Tokens = userData.Tokens
 	user.TOTPSecret = userData.TOTPSecret
 	user.TOTPNonce = userData.TOTPNonce
@@ -205,7 +206,7 @@ func (s *SQLStore) CreateUser(user *users.User) error {
 
 	userData := UserData{
 		Password:         user.Password,
-		Scopes:           user.BackendScopes,
+		BackendScopes:    user.BackendScopes,
 		Tokens:           user.Tokens,
 		TOTPSecret:       user.TOTPSecret,
 		TOTPNonce:        user.TOTPNonce,
@@ -250,7 +251,7 @@ func (s *SQLStore) CreateUser(user *users.User) error {
 func (s *SQLStore) UpdateUser(user *users.User) error {
 	userData := UserData{
 		Password:         user.Password,
-		Scopes:           user.BackendScopes,
+		BackendScopes:    user.BackendScopes,
 		Tokens:           user.Tokens,
 		TOTPSecret:       user.TOTPSecret,
 		TOTPNonce:        user.TOTPNonce,
