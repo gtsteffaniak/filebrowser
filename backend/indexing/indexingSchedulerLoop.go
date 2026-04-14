@@ -4,64 +4,151 @@ import (
 	"sort"
 	"time"
 
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-// alignCeilMinute rounds t up to the next whole minute (seconds and ns zeroed).
-func alignCeilMinute(t time.Time) time.Time {
-	if t.Nanosecond() == 0 && t.Second() == 0 {
-		return t.Truncate(time.Minute)
-	}
-	return t.Truncate(time.Minute).Add(time.Minute)
-}
-
-// alignCeil5Min rounds t up to the next 5-minute boundary since Unix epoch.
-func alignCeil5Min(t time.Time) time.Time {
-	const step = int64(5 * 60)
-	epoch := t.Unix()
-	if epoch%step == 0 && t.Nanosecond() == 0 {
-		return t.UTC().Truncate(time.Second).In(t.Location())
-	}
-	aligned := ((epoch + step - 1) / step) * step
-	return time.Unix(aligned, 0).In(t.Location())
-}
-
-// computeNextAlignedRun returns the next scheduled wake time after a scan completes.
-// interval is the pre-update tier interval (same semantics as legacy nextSleepTime).
-func computeNextAlignedRun(lastScanned, ref time.Time, interval time.Duration) time.Time {
+// alignCeilToInterval rounds t up (UTC) to the next boundary where Unix time is a multiple of interval.
+func alignCeilToInterval(t time.Time, interval time.Duration) time.Time {
 	if interval < time.Minute {
 		interval = time.Minute
+	}
+	stepNs := interval.Nanoseconds()
+	total := t.UTC().UnixNano()
+	aligned := (total + stepNs - 1) / stepNs * stepNs
+	return time.Unix(0, aligned).UTC()
+}
+
+// computeNextSlotTime returns the next scheduled slot after a scan completes.
+// interval must be one of scanScheduleTiers; alignment uses that interval as the grid step.
+func computeNextSlotTime(lastScanned, ref time.Time, interval time.Duration) time.Time {
+	minStep := scanScheduleTiers[0]
+	if interval < minStep {
+		interval = minStep
 	}
 	minNext := lastScanned.Add(interval)
 	if minNext.Before(ref) {
 		minNext = ref
 	}
-	if interval >= time.Hour {
-		return alignCeil5Min(minNext)
+	return alignCeilToInterval(minNext, interval)
+}
+
+func (idx *Index) removeScannerFromSlotLocked(s *Scanner) {
+	sec := s.calendarSlotSec
+	if sec == 0 {
+		return
 	}
-	return alignCeilMinute(minNext)
+	if idx.scheduleSlots == nil {
+		s.calendarSlotSec = 0
+		return
+	}
+	lst := idx.scheduleSlots[sec]
+	out := lst[:0]
+	for _, x := range lst {
+		if x != s {
+			out = append(out, x)
+		}
+	}
+	if len(out) == 0 {
+		delete(idx.scheduleSlots, sec)
+	} else {
+		idx.scheduleSlots[sec] = out
+	}
+	s.calendarSlotSec = 0
+}
+
+// registerScannerNextRun removes the scanner from any previous slot and adds it at the given UTC time.
+func (idx *Index) registerScannerNextRun(s *Scanner, when time.Time) {
+	if !idx.useAdaptiveScheduling() {
+		return
+	}
+	when = when.UTC().Truncate(time.Second)
+	sec := when.Unix()
+	idx.scheduleSlotsMu.Lock()
+	defer idx.scheduleSlotsMu.Unlock()
+	if idx.scheduleSlots == nil {
+		idx.scheduleSlots = make(map[int64][]*Scanner)
+	}
+	idx.removeScannerFromSlotLocked(s)
+	idx.scheduleSlots[sec] = append(idx.scheduleSlots[sec], s)
+	s.calendarSlotSec = sec
+}
+
+func (idx *Index) takeDueScannerBatch(now time.Time) []*Scanner {
+	idx.scheduleSlotsMu.Lock()
+	defer idx.scheduleSlotsMu.Unlock()
+	if idx.scheduleSlots == nil {
+		return nil
+	}
+	var dueSec int64 = -1
+	nowSec := now.Unix()
+	for sec := range idx.scheduleSlots {
+		if sec <= nowSec {
+			if dueSec < 0 || sec < dueSec {
+				dueSec = sec
+			}
+		}
+	}
+	if dueSec < 0 {
+		return nil
+	}
+	lst := idx.scheduleSlots[dueSec]
+	delete(idx.scheduleSlots, dueSec)
+	for _, s := range lst {
+		s.calendarSlotSec = 0
+	}
+	return lst
+}
+
+func (idx *Index) earliestSlotWake(now time.Time) time.Time {
+	idx.scheduleSlotsMu.Lock()
+	defer idx.scheduleSlotsMu.Unlock()
+	if len(idx.scheduleSlots) == 0 {
+		return now.Add(time.Minute)
+	}
+	nowSec := now.Unix()
+	var earliest int64 = -1
+	for sec := range idx.scheduleSlots {
+		if sec <= nowSec {
+			return now
+		}
+		if earliest < 0 || sec < earliest {
+			earliest = sec
+		}
+	}
+	if earliest < 0 {
+		return now.Add(time.Minute)
+	}
+	return time.Unix(earliest, 0).UTC()
 }
 
 func (idx *Index) restoreScannerNextRuns() {
 	if !idx.useAdaptiveScheduling() {
 		return
 	}
+	idx.scheduleSlotsMu.Lock()
+	idx.scheduleSlots = make(map[int64][]*Scanner)
+	idx.scheduleSlotsMu.Unlock()
+
 	idx.mu.RLock()
 	n := len(idx.scanners)
 	idx.mu.RUnlock()
 	now := time.Now()
 	for _, s := range idx.scanners {
+		var next time.Time
 		s.withStatsLock(func() {
 			if s.lastScanned.IsZero() {
 				s.nextRun = time.Time{}
 				return
 			}
-			d := scanSchedule[s.currentSchedule] + s.smartModifier
-			if d < time.Minute {
-				d = time.Minute
-			}
-			s.nextRun = computeNextAlignedRun(s.lastScanned, now, d)
+			tier := utils.Clamp(s.currentSchedule, 0, len(scanScheduleTiers)-1)
+			d := scanScheduleDuration(tier)
+			next = computeNextSlotTime(s.lastScanned, now, d)
+			s.nextRun = next
 		})
+		if !next.IsZero() {
+			idx.registerScannerNextRun(s, next)
+		}
 	}
 	logger.Debugf("[%s] scheduler: restored nextRun for %d scanners (adaptive)", idx.Name, n)
 }
@@ -78,36 +165,33 @@ func sortedScannerPaths(idx *Index) []string {
 }
 
 func (idx *Index) pruneGoneChildScanners() {
-	idx.mu.Lock()
-	defer idx.mu.Unlock()
+	idx.mu.RLock()
+	var gone []string
 	for path, s := range idx.scanners {
 		if path == "/" {
 			continue
 		}
 		if !s.directoryExists() {
-			delete(idx.scanners, path)
-			logger.Debugf("Scheduler removed scanner [%s]: path gone", path)
+			gone = append(gone, path)
 		}
 	}
-}
+	idx.mu.RUnlock()
 
-// computeNextGlobalWake returns the earliest time any scanner needs to run, or ref if something is due now.
-func (idx *Index) computeNextGlobalWake(ref time.Time) time.Time {
-	idx.mu.RLock()
-	defer idx.mu.RUnlock()
-	var minNext time.Time
-	for _, s := range idx.scanners {
-		if s.nextRun.IsZero() || !s.nextRun.After(ref) {
-			return ref
+	for _, path := range gone {
+		idx.mu.RLock()
+		s, ok := idx.scanners[path]
+		idx.mu.RUnlock()
+		if !ok {
+			continue
 		}
-		if minNext.IsZero() || s.nextRun.Before(minNext) {
-			minNext = s.nextRun
-		}
+		idx.scheduleSlotsMu.Lock()
+		idx.removeScannerFromSlotLocked(s)
+		idx.scheduleSlotsMu.Unlock()
+		idx.mu.Lock()
+		delete(idx.scanners, path)
+		idx.mu.Unlock()
+		logger.Debugf("Scheduler removed scanner [%s]: path gone", path)
 	}
-	if minNext.IsZero() {
-		return ref.Add(time.Minute)
-	}
-	return minNext
 }
 
 func (idx *Index) needsAdaptiveBootstrap() bool {
@@ -119,43 +203,6 @@ func (idx *Index) needsAdaptiveBootstrap() bool {
 		}
 	}
 	return false
-}
-
-type dueScanner struct {
-	path string
-	s    *Scanner
-}
-
-func (idx *Index) pickNextDueScanner(now time.Time) *Scanner {
-	idx.mu.RLock()
-	candidates := make([]dueScanner, 0, len(idx.scanners))
-	for path, s := range idx.scanners {
-		if s.nextRun.IsZero() || !s.nextRun.After(now) {
-			candidates = append(candidates, dueScanner{path: path, s: s})
-		}
-	}
-	idx.mu.RUnlock()
-	if len(candidates) == 0 {
-		return nil
-	}
-	sort.Slice(candidates, func(i, j int) bool {
-		ti, tj := candidates[i].s.nextRun, candidates[j].s.nextRun
-		pi, pj := candidates[i].path, candidates[j].path
-		if ti.IsZero() && tj.IsZero() {
-			return pi < pj
-		}
-		if ti.IsZero() {
-			return true
-		}
-		if tj.IsZero() {
-			return false
-		}
-		if !ti.Equal(tj) {
-			return ti.Before(tj)
-		}
-		return pi < pj
-	})
-	return candidates[0].s
 }
 
 func (idx *Index) runSerialScanPass() {
@@ -199,25 +246,38 @@ func (idx *Index) schedulerAdaptiveTick() {
 		idx.runSerialScanPass()
 		return
 	}
-	now := time.Now()
-	s := idx.pickNextDueScanner(now)
-	if s == nil {
+	drainedAny := false
+	for {
+		batch := idx.takeDueScannerBatch(time.Now())
+		if len(batch) == 0 {
+			break
+		}
+		drainedAny = true
+		sort.Slice(batch, func(i, j int) bool {
+			return batch[i].scanPath < batch[j].scanPath
+		})
+		firstPath := batch[0].scanPath
+		logger.Debugf("[%s] scheduler: adaptive slot scanners=%d first=%s", idx.Name, len(batch), firstPath)
+		for _, s := range batch {
+			var nextRunStr string
+			s.withStatsRLock(func() {
+				if s.nextRun.IsZero() {
+					nextRunStr = "zero(immediate)"
+				} else {
+					nextRunStr = s.nextRun.UTC().Format(time.RFC3339)
+				}
+			})
+			logger.Debugf("[%s] scheduler: adaptive run path=%s nextRun=%s", idx.Name, s.scanPath, nextRunStr)
+			s.executeScan()
+		}
+	}
+	if !drainedAny {
 		idx.mu.RLock()
 		n := len(idx.scanners)
 		idx.mu.RUnlock()
-		logger.Debugf("[%s] scheduler: adaptive tick no due scanner (now=%v scanners=%d)", idx.Name, now.UTC().Format(time.RFC3339), n)
-		return
+		now := time.Now()
+		logger.Debugf("[%s] scheduler: adaptive tick no due slot (now=%v scanners=%d)", idx.Name, now.UTC().Format(time.RFC3339), n)
 	}
-	var nextRunStr string
-	s.withStatsRLock(func() {
-		if s.nextRun.IsZero() {
-			nextRunStr = "zero(immediate)"
-		} else {
-			nextRunStr = s.nextRun.UTC().Format(time.RFC3339)
-		}
-	})
-	logger.Debugf("[%s] scheduler: adaptive run path=%s nextRun=%s", idx.Name, s.scanPath, nextRunStr)
-	s.executeScan()
 }
 
 func (idx *Index) runIndexScheduler() {
@@ -253,7 +313,7 @@ func (idx *Index) runIndexScheduler() {
 	idx.schedulerAdaptiveTick()
 	for {
 		now := time.Now()
-		next := idx.computeNextGlobalWake(now)
+		next := idx.earliestSlotWake(now)
 		d := time.Until(next)
 		if d < time.Second {
 			d = time.Second

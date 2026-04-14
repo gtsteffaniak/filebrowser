@@ -5,38 +5,29 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	indexingdb "github.com/gtsteffaniak/filebrowser/backend/database/dbindex"
 	"github.com/gtsteffaniak/filebrowser/backend/events"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-// schedule in minutes
-var scanSchedule = map[int]time.Duration{
-	0: 5 * time.Minute, // 5 minute scan
-	1: 10 * time.Minute,
-	2: 20 * time.Minute,
-	3: 40 * time.Minute, // schedule index 3 for file changes
-	4: 1 * time.Hour,
-	5: 2 * time.Hour,
-	6: 3 * time.Hour,
-	7: 4 * time.Hour,
-	8: 8 * time.Hour,
-	9: 12 * time.Hour,
+// scanScheduleTiers is the only set of adaptive scan intervals (index = currentSchedule tier).
+// Fastest tier is 5 minutes so consecutive runs for a path are at least ~5 minutes apart on the grid.
+var scanScheduleTiers = []time.Duration{
+	5 * time.Minute,
+	10 * time.Minute,
+	20 * time.Minute,
+	40 * time.Minute,
+	1 * time.Hour,
+	2 * time.Hour,
+	3 * time.Hour,
+	4 * time.Hour,
+	8 * time.Hour,
+	12 * time.Hour,
 }
 
-// complexityModifier defines time adjustments based on complexity level (0-10)
-var complexityModifier = map[uint]time.Duration{
-	0:  0 * time.Minute,  // unknown: no modifier
-	1:  -4 * time.Minute, // simple: scan more frequently
-	2:  -2 * time.Minute, // normal (lightest)
-	3:  -1 * time.Minute,
-	4:  0 * time.Minute, // baseline normal
-	5:  1 * time.Minute,
-	6:  2 * time.Minute, // normal (heaviest)
-	7:  4 * time.Minute, // complex (lightest)
-	8:  8 * time.Minute,
-	9:  12 * time.Minute,
-	10: 16 * time.Minute, // highlyComplex: scan less frequently
+func scanScheduleDuration(tier int) time.Duration {
+	return scanScheduleTiers[utils.Clamp(tier, 0, len(scanScheduleTiers)-1)]
 }
 
 // calculateTimeScore returns a 1-10 score based on scan time
@@ -260,13 +251,14 @@ func (idx *Index) setupMultiScanner(isNewDb bool) {
 			rootScanner.withStatsLock(func() {
 				rootScanner.complexity = rootInfo.Complexity
 				if adaptive {
-					rootScanner.currentSchedule = rootInfo.CurrentSchedule
+					rootScanner.currentSchedule = utils.Clamp(rootInfo.CurrentSchedule, 0, len(scanScheduleTiers)-1)
 				}
 				rootScanner.quickScanTime = rootInfo.QuickScanTime
 				rootScanner.fullScanTime = rootInfo.FullScanTime
 				rootScanner.numDirs = rootInfo.NumDirs
 				rootScanner.numFiles = rootInfo.NumFiles
 				rootScanner.lastScanned = rootInfo.LastScanned
+				rootScanner.fullScanCounter = utils.Clamp(rootInfo.FullScanCounter, 0, 4)
 			})
 		}
 	}
@@ -288,13 +280,14 @@ func (idx *Index) setupMultiScanner(isNewDb bool) {
 				childScanner.withStatsLock(func() {
 					childScanner.complexity = childInfo.Complexity
 					if adaptive {
-						childScanner.currentSchedule = childInfo.CurrentSchedule
+						childScanner.currentSchedule = utils.Clamp(childInfo.CurrentSchedule, 0, len(scanScheduleTiers)-1)
 					}
 					childScanner.quickScanTime = childInfo.QuickScanTime
 					childScanner.fullScanTime = childInfo.FullScanTime
 					childScanner.numDirs = childInfo.NumDirs
 					childScanner.numFiles = childInfo.NumFiles
 					childScanner.lastScanned = childInfo.LastScanned
+					childScanner.fullScanCounter = utils.Clamp(childInfo.FullScanCounter, 0, 4)
 				})
 			}
 		}
@@ -348,7 +341,7 @@ func (idx *Index) GetScannerStatus() map[string]interface{} {
 			scannerInfo["numDirs"] = scanner.numDirs
 			scannerInfo["numFiles"] = scanner.numFiles
 			scannerInfo["filesChanged"] = scanner.filesChanged
-			scannerInfo["smartModifier"] = scanner.smartModifier.String()
+			scannerInfo["fullScanCounter"] = scanner.fullScanCounter
 			if !scanner.nextRun.IsZero() {
 				scannerInfo["nextRun"] = scanner.nextRun.Format(time.RFC3339)
 			}

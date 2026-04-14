@@ -17,8 +17,8 @@ type Scanner struct {
 
 	// Adaptive scheduling (see Index.useAdaptiveScheduling)
 	currentSchedule int
-	smartModifier   time.Duration
-	nextRun         time.Time // next aligned wake; zero means due immediately
+	calendarSlotSec int64     // UTC unix second in idx.scheduleSlots; 0 if not enrolled
+	nextRun         time.Time // next slot time; zero if not scheduled / due immediately
 	fullScanCounter int       // quick vs full cadence per folder
 	filesChanged    bool
 
@@ -82,7 +82,14 @@ func (s *Scanner) executeScan() {
 	s.idx.activeScannerPath = s.scanPath
 	s.idx.mu.Unlock()
 
-	quick := s.fullScanCounter > 0 && s.fullScanCounter < 5
+	// Cadence per scanner path: full when counter==0, then four quick scans, then wrap (5 runs per cycle).
+	pre := s.fullScanCounter
+	quick := pre > 0 && pre < 5
+	scanMode := "full"
+	if quick {
+		scanMode = "quick"
+	}
+	logger.Debugf("[%s] scanner [%s] starting %s scan (full/quick cadence step %d of 5)", s.idx.Name, s.scanPath, scanMode, pre+1)
 	s.fullScanCounter++
 	if s.fullScanCounter >= 5 {
 		s.fullScanCounter = 0
@@ -456,29 +463,20 @@ func (s *Scanner) updateSchedule() {
 	}
 
 	s.statsMu.Lock()
-	defer s.statsMu.Unlock()
-
-	scheduleIdx := s.currentSchedule
-	if scheduleIdx < 0 {
-		scheduleIdx = 0
-	} else if scheduleIdx >= len(scanSchedule) {
-		scheduleIdx = len(scanSchedule) - 1
-	}
-	intervalBefore := scanSchedule[scheduleIdx] + s.smartModifier
-	if intervalBefore < time.Minute {
-		intervalBefore = time.Minute
-	}
+	scheduleIdx := utils.Clamp(s.currentSchedule, 0, len(scanScheduleTiers)-1)
+	intervalBefore := scanScheduleDuration(scheduleIdx)
 
 	// Adjust schedule based on file changes
 	if s.filesChanged {
 		logger.Debugf("Scanner [%s] detected changes, adjusting schedule", s.scanPath)
+		// Floor at 40-minute tier (index 3)
 		if s.currentSchedule > 3 {
 			s.currentSchedule = 3
 		} else if s.currentSchedule > 0 {
 			s.currentSchedule--
 		}
 	} else {
-		if s.currentSchedule < len(scanSchedule)-1 {
+		if s.currentSchedule < len(scanScheduleTiers)-1 {
 			s.currentSchedule++
 		}
 	}
@@ -487,14 +485,18 @@ func (s *Scanner) updateSchedule() {
 		s.currentSchedule = 4
 	}
 
-	if s.currentSchedule < 0 {
-		s.currentSchedule = 0
-	} else if s.currentSchedule >= len(scanSchedule) {
-		s.currentSchedule = len(scanSchedule) - 1
-	}
+	s.currentSchedule = utils.Clamp(s.currentSchedule, 0, len(scanScheduleTiers)-1)
+	lastScanned := s.lastScanned
+	s.statsMu.Unlock()
 
 	now := time.Now()
-	s.nextRun = computeNextAlignedRun(s.lastScanned, now, intervalBefore)
+	nextRun := computeNextSlotTime(lastScanned, now, intervalBefore)
+
+	s.statsMu.Lock()
+	s.nextRun = nextRun
+	s.statsMu.Unlock()
+
+	s.idx.registerScannerNextRun(s, nextRun)
 }
 
 // updateComplexity calculates the complexity level (1-10) for this scanner's directory
@@ -504,14 +506,6 @@ func (s *Scanner) updateComplexity() {
 	defer s.statsMu.Unlock()
 
 	s.complexity = calculateComplexity(s.fullScanTime, s.numDirs)
-
-	if s.idx.useAdaptiveScheduling() {
-		if modifier, ok := complexityModifier[s.complexity]; ok {
-			s.smartModifier = modifier
-		} else {
-			s.smartModifier = 0
-		}
-	}
 }
 
 // directoryExists checks if the scanner's directory still exists
@@ -525,6 +519,10 @@ func (s *Scanner) directoryExists() bool {
 
 // removeSelf removes this scanner from the index's scanner map
 func (s *Scanner) removeSelf() {
+	s.idx.scheduleSlotsMu.Lock()
+	s.idx.removeScannerFromSlotLocked(s)
+	s.idx.scheduleSlotsMu.Unlock()
+
 	s.idx.mu.Lock()
 	defer s.idx.mu.Unlock()
 

@@ -120,6 +120,10 @@ type Index struct {
 	scanUpdatedPaths     map[string]bool // Tracks directories updated by the scan (to distinguish from API updates)
 	// WebDAV lock system for this source (isolated per source)
 	WebdavLock webdav.LockSystem
+
+	// Adaptive scheduler: shared slot map (UTC unix seconds -> scanners). Only used when IndexingInterval == 0.
+	scheduleSlotsMu sync.Mutex
+	scheduleSlots   map[int64][]*Scanner
 }
 
 var (
@@ -1627,6 +1631,7 @@ func (idx *Index) Save() error {
 			NumDirs:         scanner.numDirs,
 			NumFiles:        scanner.numFiles,
 			LastScanned:     scanner.lastScanned,
+			FullScanCounter: scanner.fullScanCounter,
 		}
 	}
 
