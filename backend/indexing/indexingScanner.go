@@ -15,21 +15,24 @@ import (
 type Scanner struct {
 	scanPath string
 
+	// Adaptive scheduling (see Index.useAdaptiveScheduling)
 	currentSchedule int
 	smartModifier   time.Duration
-	complexity      uint
-	fullScanCounter int
-	nextSleepTime   time.Duration
+	nextRun         time.Time // next aligned wake; zero means due immediately
+	fullScanCounter int       // quick vs full cadence per folder
 	filesChanged    bool
-	lastScanned     time.Time
-	quickScanTime   int
-	fullScanTime    int
-	statsMu         sync.RWMutex
-	scanStartTime   int64
-	isScanning      bool // True when scanner is actively scanning or waiting for mutex
 
-	numDirs  uint64
-	numFiles uint64
+	// Stats (API and persistence)
+	complexity    uint
+	lastScanned   time.Time
+	quickScanTime int
+	fullScanTime  int
+	numDirs       uint64
+	numFiles      uint64
+	statsMu       sync.RWMutex
+
+	// Active scan session
+	scanStartTime int64
 
 	// Per-scanner state (not shared with other scanners)
 	processedInodes map[uint64]struct{}  // Track inodes to detect hardlinks
@@ -37,9 +40,6 @@ type Scanner struct {
 	batchItems      []*iteminfo.FileInfo // Accumulates items for bulk insert
 
 	idx *Index
-
-	stopChan chan struct{}
-	stopOnce sync.Once // Ensures stopChan is only closed once
 }
 
 func (s *Scanner) withStatsLock(fn func()) {
@@ -54,66 +54,33 @@ func (s *Scanner) withStatsRLock(fn func()) {
 	fn()
 }
 
-// start begins the scanner's main loop
-func (s *Scanner) start() {
-	// Wait a bit to stagger child scanner initial scans (root goes first)
-	if s.scanPath != "/" {
-		time.Sleep(500 * time.Millisecond)
-	}
-	s.tryAcquireAndScan()
-
-	for {
-		// Check if directory still exists (for non-root scanners)
-		if s.scanPath != "/" && !s.directoryExists() {
-			logger.Debugf("Scanner [%s] stopping: directory no longer exists", s.scanPath)
-			s.removeSelf()
-			return
-		}
-
-		// Use the sleep time calculated by updateSchedule() (based on OLD schedule before increment)
-		sleepTime := s.nextSleepTime
-		if sleepTime == 0 {
-			// Fallback for first run or if not set
-			sleepTime = s.calculateSleepTime()
-		}
-
-		select {
-		case <-s.stopChan:
-			return
-
-		case <-time.After(sleepTime):
-			s.tryAcquireAndScan()
-		}
-	}
-}
-
-// tryAcquireAndScan attempts to acquire the global scan mutex and run a scan
-func (s *Scanner) tryAcquireAndScan() {
-	// Ensure isScanning is cleared even if we panic
+// executeScan runs one scan for this scanner (invoked only from the per-index scheduler).
+func (s *Scanner) executeScan() {
 	defer func() {
 		if r := recover(); r != nil {
 			logger.Errorf("[%s] Scanner panic recovered: %v", s.scanPath, r)
 		}
 		s.idx.mu.Lock()
-		s.isScanning = false
+		s.idx.activeScannerPath = ""
+		batch := s.idx.schedulerBatch > 0
 		s.idx.mu.Unlock()
-		err := s.idx.PostScan()
-		if err != nil {
-			logger.Errorf("Failed to post scan: %v", err)
+		if !batch {
+			err := s.idx.PostScan()
+			if err != nil {
+				logger.Errorf("Failed to post scan: %v", err)
+			}
 		}
 	}()
 
-	// Set isScanning flag for all scanners
-	s.idx.mu.Lock()
-	s.isScanning = true
-	s.idx.mu.Unlock()
-
-	// Root scanner can run independently since it's non-recursive
-	// Child scanners must acquire mutex to prevent concurrent child scans
-	if s.scanPath != "/" {
-		s.idx.childScanMutex.Lock()
-		defer s.idx.childScanMutex.Unlock()
+	if s.scanPath != "/" && !s.directoryExists() {
+		logger.Debugf("Scanner [%s] skipping: directory no longer exists", s.scanPath)
+		s.removeSelf()
+		return
 	}
+
+	s.idx.mu.Lock()
+	s.idx.activeScannerPath = s.scanPath
+	s.idx.mu.Unlock()
 
 	quick := s.fullScanCounter > 0 && s.fullScanCounter < 5
 	s.fullScanCounter++
@@ -416,11 +383,9 @@ func (s *Scanner) checkForNewChildDirectories() {
 	}
 	s.idx.mu.RUnlock()
 
-	for path, scanner := range existingScanners {
+	for path := range existingScanners {
 		if !currentDirsMap[path] {
-			logger.Debugf("Directory [%s] no longer exists, stopping scanner", path)
-			scanner.stop()
-			// Remove from map immediately to prevent stale scanner references
+			logger.Debugf("Directory [%s] no longer exists, removing scanner", path)
 			s.idx.mu.Lock()
 			delete(s.idx.scanners, path)
 			s.idx.mu.Unlock()
@@ -437,8 +402,6 @@ func (s *Scanner) checkForNewChildDirectories() {
 			s.idx.mu.Lock()
 			s.idx.scanners[dirPath] = newScanner
 			s.idx.mu.Unlock()
-
-			go newScanner.start()
 		}
 	}
 }
@@ -486,63 +449,52 @@ func (s *Scanner) getTopLevelDirs() []string {
 	return dirs
 }
 
-// calculateSleepTime determines how long to wait before the next scan
-func (s *Scanner) calculateSleepTime() time.Duration {
-	var sleepTime time.Duration
-	s.withStatsRLock(func() {
-		sleepTime = scanSchedule[s.currentSchedule] + s.smartModifier
-	})
-	if s.idx.Config.IndexingInterval > 0 {
-		sleepTime = time.Duration(s.idx.Config.IndexingInterval) * time.Minute
+// updateSchedule adjusts the scanner's schedule based on whether files changed (adaptive mode only).
+func (s *Scanner) updateSchedule() {
+	if !s.idx.useAdaptiveScheduling() {
+		return
 	}
 
-	return sleepTime
-}
-
-// updateSchedule adjusts the scanner's schedule based on whether files changed
-func (s *Scanner) updateSchedule() {
 	s.statsMu.Lock()
 	defer s.statsMu.Unlock()
 
-	// Calculate sleep time BEFORE updating schedule (based on current/old schedule)
-	s.nextSleepTime = scanSchedule[s.currentSchedule] + s.smartModifier
-	if s.idx.Config.IndexingInterval > 0 {
-		s.nextSleepTime = time.Duration(s.idx.Config.IndexingInterval) * time.Minute
+	scheduleIdx := s.currentSchedule
+	if scheduleIdx < 0 {
+		scheduleIdx = 0
+	} else if scheduleIdx >= len(scanSchedule) {
+		scheduleIdx = len(scanSchedule) - 1
+	}
+	intervalBefore := scanSchedule[scheduleIdx] + s.smartModifier
+	if intervalBefore < time.Minute {
+		intervalBefore = time.Minute
 	}
 
 	// Adjust schedule based on file changes
 	if s.filesChanged {
 		logger.Debugf("Scanner [%s] detected changes, adjusting schedule", s.scanPath)
-		// Move to at least schedule index 3 or reduce interval
 		if s.currentSchedule > 3 {
 			s.currentSchedule = 3
 		} else if s.currentSchedule > 0 {
 			s.currentSchedule--
 		}
 	} else {
-		// Increment toward the longest interval if no changes
 		if s.currentSchedule < len(scanSchedule)-1 {
 			s.currentSchedule++
 		}
 	}
 
-	// Cap simple complexity (1) at schedule 4
-	// Don't apply this cap if complexity is still unknown (0)
 	if s.complexity == 1 && s.currentSchedule > 4 {
 		s.currentSchedule = 4
 	}
 
-	// Ensure currentSchedule stays within bounds
 	if s.currentSchedule < 0 {
 		s.currentSchedule = 0
 	} else if s.currentSchedule >= len(scanSchedule) {
 		s.currentSchedule = len(scanSchedule) - 1
 	}
 
-	// Persist index after schedule update (happens after each scan)
-	if err := s.idx.Save(); err != nil {
-		logger.Errorf("Failed to save index after schedule update: %v", err)
-	}
+	now := time.Now()
+	s.nextRun = computeNextAlignedRun(s.lastScanned, now, intervalBefore)
 }
 
 // updateComplexity calculates the complexity level (1-10) for this scanner's directory
@@ -553,15 +505,12 @@ func (s *Scanner) updateComplexity() {
 
 	s.complexity = calculateComplexity(s.fullScanTime, s.numDirs)
 
-	// Set smartModifier based on complexity level
-	if modifier, ok := complexityModifier[s.complexity]; ok {
-		s.smartModifier = modifier
-	} else {
-		s.smartModifier = 0
-	}
-	// Persist index after complexity update (happens after full scans)
-	if err := s.idx.Save(); err != nil {
-		logger.Errorf("Failed to save index after complexity update: %v", err)
+	if s.idx.useAdaptiveScheduling() {
+		if modifier, ok := complexityModifier[s.complexity]; ok {
+			s.smartModifier = modifier
+		} else {
+			s.smartModifier = 0
+		}
 	}
 }
 
@@ -581,14 +530,6 @@ func (s *Scanner) removeSelf() {
 
 	delete(s.idx.scanners, s.scanPath)
 	logger.Infof("Removed scanner [%s] from active scanners", s.scanPath)
-}
-
-// stop gracefully stops the scanner
-// Uses sync.Once to ensure the channel is only closed once, preventing panic from "close of closed channel"
-func (s *Scanner) stop() {
-	s.stopOnce.Do(func() {
-		close(s.stopChan)
-	})
 }
 
 func (s *Scanner) syncStatsWithDB() {

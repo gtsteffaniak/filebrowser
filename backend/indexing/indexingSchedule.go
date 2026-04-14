@@ -172,13 +172,11 @@ func (idx *Index) incrementScannerFiles() {
 	}
 }
 
-func (idx *Index) PreScan() error {
-	return idx.SetStatus(INDEXING)
-}
-
 func (idx *Index) PostScan() error {
-	// Only do expensive operations when ALL scanners are done
-	if idx.getRunningScannerCount() == 0 {
+	idx.mu.RLock()
+	idle := idx.activeScannerPath == ""
+	idx.mu.RUnlock()
+	if idle {
 		// All scanners completed
 		err := idx.db.ShrinkMemory()
 		if err != nil {
@@ -256,11 +254,14 @@ func (idx *Index) setupMultiScanner(isNewDb bool) {
 
 	// Create and start root scanner
 	rootScanner := idx.createScanner("/")
+	adaptive := idx.useAdaptiveScheduling()
 	if persistedScanners != nil {
 		if rootInfo, ok := persistedScanners["/"]; ok {
 			rootScanner.withStatsLock(func() {
 				rootScanner.complexity = rootInfo.Complexity
-				rootScanner.currentSchedule = rootInfo.CurrentSchedule
+				if adaptive {
+					rootScanner.currentSchedule = rootInfo.CurrentSchedule
+				}
 				rootScanner.quickScanTime = rootInfo.QuickScanTime
 				rootScanner.fullScanTime = rootInfo.FullScanTime
 				rootScanner.numDirs = rootInfo.NumDirs
@@ -271,8 +272,8 @@ func (idx *Index) setupMultiScanner(isNewDb bool) {
 	}
 	idx.mu.Lock()
 	idx.scanners["/"] = rootScanner
+	idx.schedulerStop = make(chan struct{})
 	idx.mu.Unlock()
-	go rootScanner.start()
 
 	// Discover existing top-level directories (root scanner will create scanners for new ones dynamically)
 	topLevelDirs := rootScanner.getTopLevelDirs()
@@ -286,7 +287,9 @@ func (idx *Index) setupMultiScanner(isNewDb bool) {
 			if childInfo, ok := persistedScanners[dirPath]; ok {
 				childScanner.withStatsLock(func() {
 					childScanner.complexity = childInfo.Complexity
-					childScanner.currentSchedule = childInfo.CurrentSchedule
+					if adaptive {
+						childScanner.currentSchedule = childInfo.CurrentSchedule
+					}
 					childScanner.quickScanTime = childInfo.QuickScanTime
 					childScanner.fullScanTime = childInfo.FullScanTime
 					childScanner.numDirs = childInfo.NumDirs
@@ -299,9 +302,10 @@ func (idx *Index) setupMultiScanner(isNewDb bool) {
 		idx.mu.Lock()
 		idx.scanners[dirPath] = childScanner
 		idx.mu.Unlock()
-
-		go childScanner.start()
 	}
+
+	idx.restoreScannerNextRuns()
+	go idx.runIndexScheduler()
 
 	logger.Debugf("Created %d scanners for [%v] (1 root + %d children)", len(topLevelDirs)+1, idx.Name, len(topLevelDirs))
 }
@@ -311,7 +315,6 @@ func (idx *Index) createScanner(dirPath string) *Scanner {
 	return &Scanner{
 		scanPath:        dirPath,
 		idx:             idx,
-		stopChan:        make(chan struct{}),
 		currentSchedule: 0,
 		fullScanCounter: 0,
 		complexity:      0, // 0 = unknown until first full scan completes
@@ -346,6 +349,9 @@ func (idx *Index) GetScannerStatus() map[string]interface{} {
 			scannerInfo["numFiles"] = scanner.numFiles
 			scannerInfo["filesChanged"] = scanner.filesChanged
 			scannerInfo["smartModifier"] = scanner.smartModifier.String()
+			if !scanner.nextRun.IsZero() {
+				scannerInfo["nextRun"] = scanner.nextRun.Format(time.RFC3339)
+			}
 		})
 		scannerStats = append(scannerStats, scannerInfo)
 	}
