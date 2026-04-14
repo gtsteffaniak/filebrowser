@@ -521,6 +521,10 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		existingIsDir := stat.IsDir()
 		requestingDir := isDir
 
+		if r.URL.Query().Get("override") != "true" {
+			return http.StatusConflict, nil
+		}
+
 		// If type mismatch (file vs folder or folder vs file) and not overriding
 		if existingIsDir != requestingDir && r.URL.Query().Get("override") != "true" {
 			logger.Debugf("Type conflict detected in chunked: existing is dir=%v, requesting dir=%v at path=%v", existingIsDir, requestingDir, realPath)

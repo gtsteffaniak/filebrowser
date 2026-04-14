@@ -78,6 +78,16 @@ export default {
         source: state.req?.source || null,
       };
     },
+    currentPromptName() {
+      return getters.currentPromptName();
+    },
+  },
+  watch: {
+    currentPromptName(newName, oldName) {
+      if (this.creating && oldName === "replace-rename" && newName !== "new-dir") {
+        this.creating = false;
+      }
+    },
   },
   methods: {
     closeTopPrompt() {

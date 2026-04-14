@@ -223,7 +223,8 @@ export default {
           fromSource: selectedItem.source,
           to: url.joinPath(targetPath, selectedItem.name),
           toSource: source,
-          itemType: selectedItem.type
+          itemType: selectedItem.type,
+          name: selectedItem.name
         });
       }
 
