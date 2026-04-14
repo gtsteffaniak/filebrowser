@@ -81,9 +81,12 @@ export default {
     closeTopPrompt() {
       mutations.closeTopPrompt();
     },
-    confirm() {
-      this.onConfirm();
-      mutations.closeTopPrompt();
+    async confirm() {
+      try {
+        await this.onConfirm();
+      } finally {
+        mutations.closeTopPrompt();
+      }
     },
   },
 };

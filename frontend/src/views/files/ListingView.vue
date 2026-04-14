@@ -1000,7 +1000,8 @@ export default {
         from: item.from,
         fromSource: item.fromSource,
         to: destPath + item.name,
-        toSource: state.req.source
+        toSource: state.req.source,
+        name: item.name,
       }));
 
       const operation = this.clipboard.key === "x" ? "move" : "copy";
@@ -1011,51 +1012,51 @@ export default {
         props: {
           operation: operation,
           items: items,
-          onConfirm: async () => {
-            mutations.setLoading("listing", true);
+          onConfirm: () => {
+            return new Promise((resolve, reject) => {
 
-            let action = async (overwrite, rename) => {
-              try {
-                if (getters.isShare()) {
-                  await resourcesApi.moveCopyPublic(state.shareInfo.hash, items, operation, overwrite, rename);
-                } else {
-                  await resourcesApi.moveCopy(items, operation, overwrite, rename);
+              const action = async (overwrite, rename) => {
+                try {
+                  if (getters.isShare()) {
+                    await resourcesApi.moveCopyPublic(state.shareInfo.hash, items, operation, overwrite, rename);
+                  } else {
+                    await resourcesApi.moveCopy(items, operation, overwrite, rename);
+                  }
+                  if (operation === "move") {
+                    this.clipboard = { items: [] };
+                    this.internalClipboardTimestamp = 0;
+                  }
+                  mutations.setReload(true);
+                  resolve();
+                } catch (error) {
+                  console.error("Error moving/copying items:", error);
+                  reject(error);
                 }
-                if (operation === "move") {
-                  this.clipboard = { items: [] };
-                  this.internalClipboardTimestamp = 0;
-                }
-                mutations.setLoading("listing", false);
-              } catch (error) {
-                console.error("Error moving/copying items:", error);
-              } finally {
-                mutations.setLoading("listing", false);
-                mutations.setReload(true);
+              };
+
+              if (this.clipboard.path === state.route.path) {
+                action(false, true);
+                return;
               }
-            };
 
-            if (this.clipboard.path === state.route.path) {
-              action(false, true);
-              return;
-            }
+              const conflict = upload.checkConflict(items, state.req.items);
 
-            const conflict = upload.checkConflict(items, state.req.items);
-
-            if (conflict) {
-              mutations.showPrompt({
-                name: "replace-rename",
-                pinned: true,
-                confirm: (event, option) => {
-                  const overwrite = option === "overwrite";
-                  const rename = option === "rename";
-                  event.preventDefault();
-                  mutations.closeTopPrompt();
-                  action(overwrite, rename);
-                },
-              });
-              return;
-            }
-            action(false, false);
+              if (conflict) {
+                mutations.showPrompt({
+                  name: "replace-rename",
+                  pinned: true,
+                  confirm: (event, option) => {
+                    const overwrite = option === "overwrite";
+                    const rename = option === "rename";
+                    event.preventDefault();
+                    mutations.closeTopPrompt();
+                    action(overwrite, rename);
+                  },
+                });
+                return;
+              }
+              action(false, false);
+            });
           },
         },
       });

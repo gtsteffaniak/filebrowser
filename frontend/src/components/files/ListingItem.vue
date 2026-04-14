@@ -554,13 +554,11 @@ export default {
       let items = [];
       for (let i of state.selected) {
         items.push({
-          // @ts-ignore
           from: state.req.items[i].path,
-          // @ts-ignore
           fromSource: state.req.items[i].source,
-          // @ts-ignore
           to: url.joinPath(this.path, state.req.items[i].name),
           toSource: this.source,
+          name: state.req.items[i].name,
         });
       }
 
