@@ -827,17 +827,14 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		duration := time.Since(start)
 
 		// Use the StatusCode from wrappedWriter, which might have been set to 500 by the recover logic
-		// Skip logging for '/health' endpoint
-		if r.URL.Path != "/health" {
-			logger.Api(wrappedWriter.StatusCode,
-				fmt.Sprintf("%-7s | %3d | %-15s | %-12s | %-12s | \"%s\"",
-					r.Method,
-					wrappedWriter.StatusCode,
-					getRemoteIP(r),
-					truncUser,
-					fmt.Sprintf("%vms", duration.Milliseconds()),
-					fullURL))
-		}
+		logger.Api(wrappedWriter.StatusCode,
+			fmt.Sprintf("%-7s | %3d | %-15s | %-12s | %-12s | \"%s\"",
+				r.Method,
+				wrappedWriter.StatusCode,
+				getRemoteIP(r),
+				truncUser,
+				fmt.Sprintf("%vms", duration.Milliseconds()),
+				fullURL))
 	})
 }
 
