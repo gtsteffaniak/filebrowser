@@ -83,17 +83,21 @@ func (s *Scanner) executeScan() {
 	s.idx.mu.Unlock()
 
 	// Cadence per scanner path: full when counter==0, then four quick scans, then wrap (5 runs per cycle).
-	pre := s.fullScanCounter
-	quick := pre > 0 && pre < 5
+	var pre int
+	var quick bool
+	s.withStatsLock(func() {
+		pre = s.fullScanCounter
+		quick = pre > 0 && pre < 5
+		s.fullScanCounter++
+		if s.fullScanCounter >= 5 {
+			s.fullScanCounter = 0
+		}
+	})
 	scanMode := "full"
 	if quick {
 		scanMode = "quick"
 	}
 	logger.Debugf("[%s] scanner [%s] starting %s scan (full/quick cadence step %d of 5)", s.idx.Name, s.scanPath, scanMode, pre+1)
-	s.fullScanCounter++
-	if s.fullScanCounter >= 5 {
-		s.fullScanCounter = 0
-	}
 
 	s.runIndexing(quick)
 	s.updateSchedule()

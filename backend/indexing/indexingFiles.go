@@ -1618,21 +1618,23 @@ func (idx *Index) Save() error {
 	// Collect scanner information
 	scanners := make(map[string]*dbindex.PersistedScannerInfo)
 	for path, scanner := range idx.scanners {
-		schedule := 0
-		if adaptive {
-			schedule = scanner.currentSchedule
-		}
-		scanners[path] = &dbindex.PersistedScannerInfo{
-			Path:            path,
-			Complexity:      scanner.complexity,
-			CurrentSchedule: schedule,
-			QuickScanTime:   scanner.quickScanTime,
-			FullScanTime:    scanner.fullScanTime,
-			NumDirs:         scanner.numDirs,
-			NumFiles:        scanner.numFiles,
-			LastScanned:     scanner.lastScanned,
-			FullScanCounter: scanner.fullScanCounter,
-		}
+		scanner.withStatsRLock(func() {
+			schedule := 0
+			if adaptive {
+				schedule = scanner.currentSchedule
+			}
+			scanners[path] = &dbindex.PersistedScannerInfo{
+				Path:            path,
+				Complexity:      scanner.complexity,
+				CurrentSchedule: schedule,
+				QuickScanTime:   scanner.quickScanTime,
+				FullScanTime:    scanner.fullScanTime,
+				NumDirs:         scanner.numDirs,
+				NumFiles:        scanner.numFiles,
+				LastScanned:     scanner.lastScanned,
+				FullScanCounter: scanner.fullScanCounter,
+			}
+		})
 	}
 
 	// Get current index stats
