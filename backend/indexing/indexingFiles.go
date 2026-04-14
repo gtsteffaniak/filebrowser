@@ -111,6 +111,8 @@ type Index struct {
 	schedulerStop     chan struct{}
 	schedulerStopOnce sync.Once
 	schedulerBatch    int // >0: serial pass in progress; suppresses PostScan inside executeScan
+	// Adaptive scheduler: run one serial scan on process start (then normal slot cadence).
+	schedulerStartupPassPending bool
 	// In-memory folder size tracking (not stored in SQLite)
 	folderSizes         map[string]uint64   // path -> size (in-memory only, calculated from children)
 	folderSizesUnsynced map[string]struct{} // Tracks which folder sizes have changed since last DB sync

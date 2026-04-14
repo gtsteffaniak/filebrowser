@@ -13,6 +13,9 @@ import (
 
 // scanScheduleTiers is the only set of adaptive scan intervals (index = currentSchedule tier).
 // Fastest tier is 5 minutes so consecutive runs for a path are at least ~5 minutes apart on the grid.
+//
+// On filesChanged: if current tier is slower than 40 minutes (index > 3), jump to tier 3; otherwise
+// step one tier faster (index--). High-complexity scanners are clamped to scheduleTierBoundsForComplexity.
 var scanScheduleTiers = []time.Duration{
 	5 * time.Minute,
 	10 * time.Minute,
@@ -28,6 +31,31 @@ var scanScheduleTiers = []time.Duration{
 
 func scanScheduleDuration(tier int) time.Duration {
 	return scanScheduleTiers[utils.Clamp(tier, 0, len(scanScheduleTiers)-1)]
+}
+
+// scheduleTierBoundsForComplexity limits how aggressive or idle a scanner may be scheduled.
+// minTier: fastest allowed interval (low index); maxTier: slowest allowed (high index).
+// Complexity 0 = unknown (e.g. before first full scan): no bounds. Complexity 1: never slower than 1h.
+func scheduleTierBoundsForComplexity(c uint) (minTier, maxTier int) {
+	maxTier = len(scanScheduleTiers) - 1
+	minTier = 0
+	if c == 1 {
+		maxTier = 4 // index 4 = 1 hour; trivial trees should not stretch to multi-hour tiers
+	}
+	switch {
+	case c >= 10:
+		minTier = 4 // at least 1h between runs
+	case c >= 8:
+		minTier = 3 // at least 40m
+	case c >= 6:
+		minTier = 2 // at least 20m
+	case c >= 4:
+		minTier = 1 // at least 10m
+	}
+	if minTier > maxTier {
+		minTier = maxTier
+	}
+	return minTier, maxTier
 }
 
 // calculateTimeScore returns a 1-10 score based on scan time
@@ -294,6 +322,12 @@ func (idx *Index) setupMultiScanner(isNewDb bool) {
 
 		idx.mu.Lock()
 		idx.scanners[dirPath] = childScanner
+		idx.mu.Unlock()
+	}
+
+	if idx.useAdaptiveScheduling() {
+		idx.mu.Lock()
+		idx.schedulerStartupPassPending = true
 		idx.mu.Unlock()
 	}
 

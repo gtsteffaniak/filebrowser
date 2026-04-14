@@ -31,6 +31,28 @@ func TestComputeNextSlotTimeTenMinuteGrid(t *testing.T) {
 	}
 }
 
+func TestScheduleTierBoundsForComplexity(t *testing.T) {
+	n := len(scanScheduleTiers) - 1
+	tests := []struct {
+		c       uint
+		min, max int
+	}{
+		{0, 0, n},
+		{1, 0, 4},
+		{3, 0, n},
+		{4, 1, n},
+		{6, 2, n},
+		{8, 3, n},
+		{10, 4, n},
+	}
+	for _, tt := range tests {
+		min, max := scheduleTierBoundsForComplexity(tt.c)
+		if min != tt.min || max != tt.max {
+			t.Fatalf("complexity %d: got min=%d max=%d want min=%d max=%d", tt.c, min, max, tt.min, tt.max)
+		}
+	}
+}
+
 func TestComputeNextSlotTimeHourUsesHourGrid(t *testing.T) {
 	loc := time.UTC
 	last := time.Date(2026, 4, 14, 12, 0, 0, 0, loc)

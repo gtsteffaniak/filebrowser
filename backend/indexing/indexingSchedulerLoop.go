@@ -197,6 +197,9 @@ func (idx *Index) pruneGoneChildScanners() {
 func (idx *Index) needsAdaptiveBootstrap() bool {
 	idx.mu.RLock()
 	defer idx.mu.RUnlock()
+	if idx.schedulerStartupPassPending {
+		return true
+	}
 	for _, s := range idx.scanners {
 		if s.lastScanned.IsZero() {
 			return true
@@ -242,8 +245,20 @@ func (idx *Index) runSerialScanPass() {
 func (idx *Index) schedulerAdaptiveTick() {
 	idx.pruneGoneChildScanners()
 	if idx.needsAdaptiveBootstrap() {
-		logger.Debugf("[%s] scheduler: adaptive tick bootstrap (serial pass all scanners)", idx.Name)
+		idx.mu.Lock()
+		startupPass := idx.schedulerStartupPassPending
+		idx.mu.Unlock()
+		if startupPass {
+			logger.Debugf("[%s] scheduler: adaptive startup (serial pass all scanners)", idx.Name)
+		} else {
+			logger.Debugf("[%s] scheduler: adaptive tick bootstrap (serial pass all scanners)", idx.Name)
+		}
 		idx.runSerialScanPass()
+		if startupPass {
+			idx.mu.Lock()
+			idx.schedulerStartupPassPending = false
+			idx.mu.Unlock()
+		}
 		return
 	}
 	drainedAny := false

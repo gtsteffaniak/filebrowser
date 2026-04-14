@@ -317,6 +317,9 @@ func (s *Scanner) runQuickScanChild() {
 	// Get folders in this scanner's scope from folderSizes map
 	s.idx.folderSizesMu.RLock()
 	var foldersToCheck []string
+	// Scanner root must be modtime-checked: the loop below skips path == scanPath, but only
+	// checkFolderModtime compares modtime to lastScanned and re-reads the directory for new children.
+	foldersToCheck = append(foldersToCheck, s.scanPath)
 	for path := range s.idx.folderSizes {
 		// Child scanner: check all paths under its scope
 		if strings.HasPrefix(path, s.scanPath) && path != s.scanPath {
@@ -327,25 +330,6 @@ func (s *Scanner) runQuickScanChild() {
 
 	batchSize := s.idx.db.BatchSize
 	s.batchItems = make([]*iteminfo.FileInfo, 0, batchSize)
-
-	// Update the scanner's own root folder to prevent it from being purged
-	// (child folders are updated via checkFolderModtime, but the scanner's root needs explicit update)
-	fullScanPath := filepath.Join(s.idx.Path, s.scanPath)
-	if info, err := os.Stat(fullScanPath); err == nil {
-		rootFolderInfo := &iteminfo.FileInfo{
-			Path: s.scanPath,
-			ItemInfo: iteminfo.ItemInfo{
-				Name:       filepath.Base(strings.TrimSuffix(s.scanPath, "/")),
-				Size:       0, // Folder size managed in-memory via folderSizes map
-				ModTime:    info.ModTime(),
-				Type:       "directory",
-				Hidden:     false,
-				HasPreview: false,
-			},
-		}
-		// Add to batch for bulk update
-		s.batchItems = append(s.batchItems, rootFolderInfo)
-	}
 
 	// Track stats
 	unchangedCount := 0
@@ -467,8 +451,6 @@ func (s *Scanner) updateSchedule() {
 	}
 
 	s.statsMu.Lock()
-	scheduleIdx := utils.Clamp(s.currentSchedule, 0, len(scanScheduleTiers)-1)
-	intervalBefore := scanScheduleDuration(scheduleIdx)
 
 	// Adjust schedule based on file changes
 	if s.filesChanged {
@@ -485,16 +467,16 @@ func (s *Scanner) updateSchedule() {
 		}
 	}
 
-	if s.complexity == 1 && s.currentSchedule > 4 {
-		s.currentSchedule = 4
-	}
-
-	s.currentSchedule = utils.Clamp(s.currentSchedule, 0, len(scanScheduleTiers)-1)
+	minTier, maxTier := scheduleTierBoundsForComplexity(s.complexity)
+	s.currentSchedule = utils.Clamp(s.currentSchedule, minTier, maxTier)
+	// Next slot must use the tier *after* adjustment; using the pre-change interval ignored
+	// speed-ups on filesChanged and could schedule the next run in the far future.
+	intervalForNext := scanScheduleDuration(s.currentSchedule)
 	lastScanned := s.lastScanned
 	s.statsMu.Unlock()
 
 	now := time.Now()
-	nextRun := computeNextSlotTime(lastScanned, now, intervalBefore)
+	nextRun := computeNextSlotTime(lastScanned, now, intervalForNext)
 
 	s.statsMu.Lock()
 	s.nextRun = nextRun
@@ -615,11 +597,16 @@ func (s *Scanner) checkFolderModtime(folderPath string) (bool, error) {
 
 	// Modtime unchanged - update last_updated to prevent folder from being purged
 	// Note: we DON'T add this folder to scanUpdatedPaths, so Phase 2 won't check its files
+	// Use cached aggregate size: BulkInsertItems overwrites DB size;0 would corrupt LoadFolderSizes on restart.
+	var sizeForDB int64
+	if cached, ok := s.idx.GetFolderSize(folderPath); ok {
+		sizeForDB = int64(cached)
+	}
 	fileInfo := &iteminfo.FileInfo{
 		Path: folderPath,
 		ItemInfo: iteminfo.ItemInfo{
 			Name:       filepath.Base(strings.TrimSuffix(folderPath, "/")),
-			Size:       0, // Folder size is managed in-memory via folderSizes map
+			Size:       sizeForDB,
 			ModTime:    info.ModTime(),
 			Type:       "directory",
 			Hidden:     false,
