@@ -158,13 +158,15 @@ export default {
                       if (getters.isShare()) {
                         await resourcesApi.postPublic(state.shareInfo?.hash, newPath, "", false);
                         mutations.setReload(true);
-                        mutations.closeTopPrompt();
+                        mutations.closeTopPrompt(); // close conflict prompt
+                        mutations.closeTopPrompt(); // close new file prompt
                         success = true;
                         return;
                       }
                       await resourcesApi.post(source, newPath, "", false);
                       mutations.setReload(true);
-                      mutations.closeTopPrompt();
+                      mutations.closeTopPrompt(); // close conflict prompt
+                      mutations.closeTopPrompt(); // close new file prompt
                       success = true;
 
                       // Show success notification with "go to item" button
