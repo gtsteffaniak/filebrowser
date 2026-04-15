@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.3.5
+
+ **BugFixes**:
+ - PWA icon fixes (#2292)
+
 ## v1.3.4
 
  **New Features**:

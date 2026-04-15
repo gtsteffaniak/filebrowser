@@ -1,9 +1,6 @@
 package icons
 
 import (
-	"path/filepath"
-	"strings"
-
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 )
 
@@ -35,6 +32,9 @@ func generatePWAManifest(name, description, baseURL, themeColor, pwaIcon192, pwa
 	shortName := name
 	if len(name) > 12 {
 		shortName = name[:12]
+	}
+	if name == "FileBrowser Quantum" {
+		shortName = "FBQ"
 	}
 
 	return PWAManifest{
@@ -68,7 +68,9 @@ func generatePWAManifest(name, description, baseURL, themeColor, pwaIcon192, pwa
 	}
 }
 
-// InitializePWAManifest generates and caches the PWA manifest at startup
+// InitializePWAManifest caches the PWA manifest at startup. Icon URLs always point at
+// PNGs under public/static/icons/, which GeneratePWAIcons produces from the configured
+// favicon (custom SVG uses a raster sidecar as the raster source).
 func InitializePWAManifest() {
 	config := &settings.Config
 	staticURL := config.Server.BaseURL + "public/static"
@@ -76,21 +78,9 @@ func InitializePWAManifest() {
 	description := config.Frontend.Description
 	defaultThemeColor := "#455a64"
 
-	// Determine PWA icon URLs based on custom favicon settings
-	pwaIcon192 := staticURL + "/" + settings.Env.PWAIcon192
-	pwaIcon256 := staticURL + "/" + settings.Env.PWAIcon256
-	pwaIcon512 := staticURL + "/" + settings.Env.PWAIcon512
-
-	if settings.Env.FaviconIsCustom && strings.ToLower(filepath.Ext(settings.Env.FaviconPath)) == ".svg" {
-		favicon := staticURL + "/favicon"
-		pwaIcon192 = favicon
-		pwaIcon256 = favicon
-		pwaIcon512 = favicon
-	} else if settings.Env.FaviconIsCustom {
-		pwaIcon192 = staticURL + "/icons/pwa-icon-192.png"
-		pwaIcon256 = staticURL + "/icons/pwa-icon-256.png"
-		pwaIcon512 = staticURL + "/icons/pwa-icon-512.png"
-	}
+	pwaIcon192 := staticURL + "/icons/pwa-icon-192.png"
+	pwaIcon256 := staticURL + "/icons/pwa-icon-256.png"
+	pwaIcon512 := staticURL + "/icons/pwa-icon-512.png"
 
 	CachedManifest = generatePWAManifest(title, description, config.Server.BaseURL, defaultThemeColor, pwaIcon192, pwaIcon256, pwaIcon512)
 }

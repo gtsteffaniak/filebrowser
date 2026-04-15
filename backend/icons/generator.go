@@ -29,7 +29,6 @@ const (
 type iconSize struct {
 	size int
 	name string
-	env  *string
 }
 
 // determineSourceType determines which type of favicon source we have
@@ -153,13 +152,13 @@ func handleRasterFavicon(faviconPath string) ([]byte, error) {
 func getIconSizesToGenerate() []iconSize {
 	return []iconSize{
 		// Browser favicon (32x32 PNG for Safari/older browsers)
-		{32, "favicon-32x32.png", nil},
+		{32, "favicon-32x32.png"},
 		// PWA icons (PNG required for Apple PWA compatibility)
-		{192, "pwa-icon-192.png", &settings.Env.PWAIcon192},
-		{256, "pwa-icon-256.png", &settings.Env.PWAIcon256}, // Also serves as Windows tile
-		{512, "pwa-icon-512.png", &settings.Env.PWAIcon512},
+		{192, "pwa-icon-192.png"},
+		{256, "pwa-icon-256.png"}, // Also serves as Windows tile
+		{512, "pwa-icon-512.png"},
 		// Platform-specific icons
-		{180, "apple-touch-icon.png", nil}, // iOS home screen (required for Apple)
+		{180, "apple-touch-icon.png"}, // iOS home screen (required for Apple)
 	}
 }
 
@@ -181,10 +180,6 @@ func generateIconSizes(sourceData []byte) error {
 			continue
 		}
 
-		// Update environment variable if specified
-		if icon.env != nil {
-			*icon.env = filepath.Join("icons", icon.name)
-		}
 		generatedCount++
 	}
 
@@ -199,7 +194,7 @@ func generateIconSizes(sourceData []byte) error {
 
 // generateSingleIcon generates a single icon file at the specified size
 func generateSingleIcon(previewService *preview.Service, sourceData []byte, icon iconSize) error {
-	outputPath := filepath.Join(settings.Env.PWAIconsDir, icon.name)
+	outputPath := filepath.Join(settings.PWAIconsCacheDir(), icon.name)
 
 	// Create output file
 	outFile, err := os.Create(outputPath)
@@ -233,18 +228,11 @@ func generateSingleIcon(previewService *preview.Service, sourceData []byte, icon
 // All icons are generated as PNG for maximum compatibility (Apple devices, PWA, older browsers)
 func GeneratePWAIcons() error {
 	logger.Info("Generating PWA icons...")
-	// Set PWA icons directory in cache
-	settings.Env.PWAIconsDir = filepath.Join(settings.Config.Server.CacheDir, "icons")
-
-	// Initialize with default paths (all icons will be generated)
-	settings.Env.PWAIcon192 = "icons/pwa-icon-192.png"
-	settings.Env.PWAIcon256 = "icons/pwa-icon-256.png"
-	settings.Env.PWAIcon512 = "icons/pwa-icon-512.png"
-
+	cacheDir := settings.PWAIconsCacheDir()
 	// Create icons directory with configured permissions
 	// Note: Parent cache directory should already exist from testCacheDirSpeed()
-	if err := os.MkdirAll(settings.Env.PWAIconsDir, fileutils.PermDir); err != nil {
-		logger.Warningf("Failed to create PWA icons directory %s: %v", settings.Env.PWAIconsDir, err)
+	if err := os.MkdirAll(cacheDir, fileutils.PermDir); err != nil {
+		logger.Warningf("Failed to create PWA icons directory %s: %v", cacheDir, err)
 	}
 	// Load and prepare source data as PNG
 	sourceData, err := loadFaviconSource()
