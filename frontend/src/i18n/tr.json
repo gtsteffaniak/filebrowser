@@ -75,7 +75,12 @@
     "mouseActions": "Fare İşlemleri",
     "fileOperations": "Dosya İşlemleri",
     "click": "dosya veya klasör seçin",
+    "dbClick": "Tüm öğeleri seçmek için boş bir alana çift tıklayın",
     "ctrl": {
+      "f1": "Liste görünümüne geç",
+      "f2": "Normal görünüme geç",
+      "f3": "Galeri görünümüne geç",
+      "scroll": "Liste ve düzenleyici yazı tipi boyutlarını değiştir",
       "click": "çoklu dosya ve klasör seçin",
       "d": "seçili öğeleri indirin",
       "b": "kenar çubuğunu değiştir",
@@ -101,6 +106,7 @@
       "volume": "Sesi aç veya kıs",
       "mute": "Sesi kapat/aç",
       "loop": "Döngü ve tek mod arasında geçiş yap",
+      "playbackQueue": "Oynatma kuyruğunu aç",
       "playbackModes": "Oynatma modları arasında geçiş yap (döngü ve tek mod hariç)",
       "fullscreen": "Videolarda tam ekran moduna geç",
       "captions": "Altyazıları aç/kapat"

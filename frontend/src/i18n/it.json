@@ -209,8 +209,13 @@
     "mouseActions": "Azioni del mouse",
     "fileOperations": "Operazioni sui file",
     "click": "seleziona file o directory",
+    "dbClick": "Fare doppio clic su uno spazio vuoto per selezionare tutti gli elementi",
     "marqueeSelect": "seleziona più file o directory trascinando nello spazio vuoto",
     "ctrl": {
+      "f1": "Passa alla vista elenco",
+      "f2": "Passa alla vista normale",
+      "f3": "Passa alla vista galleria",
+      "scroll": "Modificare le dimensioni dell'elenco e il carattere dell'editor",
       "click": "seleziona più file o directory",
       "c": "copia elementi selezionati",
       "v": "incolla elementi copiati/tagliati",
@@ -235,6 +240,7 @@
       "volume": "Alza o abbassa il volume",
       "mute": "Attiva/disattiva audio",
       "loop": "Passa tra modalità loop e singola",
+      "playbackQueue": "Apri coda di riproduzione",
       "playbackModes": "Passa tra le modalità di riproduzione (escluso loop e singola)",
       "fullscreen": "Attiva/disattiva schermo intero nei video",
       "captions": "Attiva/disattiva sottotitoli"

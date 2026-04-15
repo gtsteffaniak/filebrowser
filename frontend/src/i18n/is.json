@@ -100,7 +100,12 @@
     "fileOperations": "Skráaðgerðir",
     "navigation": "Flakk",
     "click": "velja skrá eða möppu",
+    "dbClick": "Tvísmelltu á tómt svæði til að velja öll atriði",
     "ctrl": {
+      "f1": "Skipta yfir í listayfirlit",
+      "f2": "Skipta yfir í venjulegt yfirlit",
+      "f3": "Skipta yfir í galleríyfirlit",
+      "scroll": "Breyta stærð lista og letri ritils",
       "click": "velja margar skrár eða möppur",
       "d": "sækja valin atriði",
       "e": "Víxla á milli ritils og Markdown skoðara (í .md skrám)"
@@ -120,6 +125,7 @@
       "volume": "Hækka eða lækka hljóðstyrk",
       "mute": "Þagga/Virka hljóð",
       "loop": "Víxla á milli endurtekningar og einstaklingshams",
+      "playbackQueue": "Opna spilunarröð",
       "playbackModes": "Víxla á milli spilunarhama (fyrir utan endurtekningu og einstaklingsham)",
       "fullscreen": "Víxla í skjáfylliham í myndskeiðum",
       "captions": "Víxla texta á/af"

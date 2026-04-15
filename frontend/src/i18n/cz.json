@@ -78,7 +78,12 @@
     "mouseActions": "Akce Myši",
     "fileOperations": "Operace se Soubory",
     "click": "označit soubor nebo složku",
+    "dbClick": "Dvojklikem na prázdné místo vyberte všechny položky",
     "ctrl": {
+      "f1": "Přepnout na zobrazení seznamu",
+      "f2": "Přepnout na normální zobrazení",
+      "f3": "Přepnout na zobrazení galerie",
+      "scroll": "Změnit velikosti seznamu a písma editoru",
       "click": "označit více souborů nebo složek",
       "d": "stáhnout vybrané položky",
       "b": "přepínání postranního panelu",
@@ -104,6 +109,7 @@
       "volume": "Zvýšit nebo snížit hlasitost",
       "mute": "Ztlumit/zapnout zvuk",
       "loop": "Přepínání mezi smyčkou a jedním přehráním",
+      "playbackQueue": "Otevřít frontu přehrávání",
       "playbackModes": "Přepínání režimů přehrávání (kromě smyčky a jednoho přehrání)",
       "fullscreen": "Přepnout režim celé obrazovky u videí",
       "captions": "Zapnout/vypnout titulky"

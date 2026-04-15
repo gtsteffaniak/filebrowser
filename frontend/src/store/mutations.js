@@ -437,12 +437,12 @@ export const mutations = {
     emitStateChanged();
   },
   setMultiple: (value) => {
-    if (value == state.multiple) {
-      return;
-    }
+    if (value == state.multiple) return;
     state.multiple = value;
-    if (value == true) {
-      notify.showMultipleSelection()
+    if (value) {
+      notify.showMultipleSelection();
+    } else {
+      notify.hideMultipleSelection();
     }
     emitStateChanged();
   },
@@ -461,7 +461,7 @@ export const mutations = {
     mutations.setMultiple(false);
     emitStateChanged();
   },
-  selectAllItems: () => {
+  selectAllItems: (options = { multiple: true }) => {
     if (state.req && state.req.items && state.req.items.length > 0) {
       // Close hovers
       mutations.closeHovers();
@@ -471,7 +471,9 @@ export const mutations = {
       state.req.items.forEach((item, index) => {
         mutations.addSelected(index);
       });
-      mutations.setMultiple(true);
+      if (options.multiple) {
+        mutations.setMultiple(true);
+      }
     }
   },
   setLastSelectedIndex: (index) => {
@@ -543,6 +545,7 @@ export const mutations = {
   },
   replaceRequest: (value) => {
     state.selected = [];
+    mutations.setMultiple(false);
     if (!value?.items) {
       state.req = value;
       emitStateChanged();
@@ -617,6 +620,7 @@ export const mutations = {
     // Components should check for null req before accessing
     state.req = null;
     state.selected = [];
+    mutations.setMultiple(false);
     emitStateChanged();
   },
   setRoute: (value) => {
@@ -672,6 +676,7 @@ export const mutations = {
   resetAll: () => {
     state.isSearchActive = false;
     state.selected = [];
+    mutations.setMultiple(false);
     emitStateChanged();
   },
   showTooltip(value) {

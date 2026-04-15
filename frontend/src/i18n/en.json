@@ -209,8 +209,13 @@
     "mouseActions": "Mouse Actions",
     "fileOperations": "File Operations",
     "click": "select file or directory",
+    "dbClick": "Double click on a empty space to select all items",
     "marqueeSelect": "select multiple files or directories by dragging on empty space",
     "ctrl": {
+      "f1": "Switch to list view",
+      "f2": "Switch to normal view",
+      "f3": "Switch to gallery view",
+      "scroll": "Change sizes of the list and editor font",
       "click": "select multiple files or directories",
       "c": "copy selected items",
       "v": "paste copied/cut items",
@@ -235,6 +240,7 @@
       "volume": "Turn the volume up or down",
       "mute": "Mute/Unmute the audio playing",
       "loop": "Toggle between loop and single mode",
+      "playbackQueue": "Open playback queue",
       "playbackModes": "Toggle between playback modes (excluding loop and single)",
       "fullscreen": "Toggle fullscreen mode in videos",
       "captions": "Toggle captions on/off"
