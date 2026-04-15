@@ -132,6 +132,7 @@
   },
   "buttons": {
     "copySuccess": "Copiato negli appunti!",
+    "copyFailed": "Copia negli appunti fallita",
     "generateNewOtp": "Resetta e genera nuovo codice a due fattori",
     "copyFile": "Copia file",
     "copyToClipboard": "Copia negli appunti",
@@ -439,9 +440,6 @@
     "selectHashAlgorithm": "Seleziona un algoritmo hash",
     "generate": "Genera",
     "errorGeneratingHash": "Errore durante la generazione dell'hash",
-    "hashCopied": "Hash copiato negli appunti",
-    "copyToClipboardFailed": "Impossibile copiare negli appunti",
-    "errorCopyingHash": "Errore durante la copia dell'hash",
     "token": "Token",
     "onlyOfficeId": "ID OnlyOffice",
     "firstLoadTitle": "Benvenuto in FileBrowser Quantum!",
@@ -855,8 +853,6 @@
       "showingResults": "Mostrando {count} risultati",
       "noResults": "Nessuna icona trovata",
       "tryDifferentSearch": "Prova un termine diverso",
-      "copiedToClipboard": "Copiato '{name}' negli appunti!",
-      "copyFailed": "Copia fallita",
       "custom": "Personalizzata",
       "useCustomIcon": "Usa icona personalizzata: {name}"
     },

@@ -100,14 +100,19 @@ type ReducedIndex struct {
 
 type Index struct {
 	ReducedIndex
-	settings.Source  `json:"-"`
-	db               *dbsql.IndexDB
-	previousNumDirs  uint64              // Track previous NumDirs to use when scan in progress (computed value is 0)
-	previousNumFiles uint64              // Track previous NumFiles to use when scan in progress (computed value is 0)
-	scanners         map[string]*Scanner // path -> scanner
-	mock             bool
-	mu               sync.RWMutex
-	childScanMutex   sync.Mutex // Serializes child scanner execution (only one child scanner runs at a time)
+	settings.Source   `json:"-"`
+	db                *dbsql.IndexDB
+	previousNumDirs   uint64              // Track previous NumDirs to use when scan in progress (computed value is 0)
+	previousNumFiles  uint64              // Track previous NumFiles to use when scan in progress (computed value is 0)
+	scanners          map[string]*Scanner // path -> scanner
+	mock              bool
+	mu                sync.RWMutex
+	activeScannerPath string
+	schedulerStop     chan struct{}
+	schedulerStopOnce sync.Once
+	schedulerBatch    int // >0: serial pass in progress; suppresses PostScan inside executeScan
+	// Adaptive scheduler: run one serial scan on process start (then normal slot cadence).
+	schedulerStartupPassPending bool
 	// In-memory folder size tracking (not stored in SQLite)
 	folderSizes         map[string]uint64   // path -> size (in-memory only, calculated from children)
 	folderSizesUnsynced map[string]struct{} // Tracks which folder sizes have changed since last DB sync
@@ -117,6 +122,10 @@ type Index struct {
 	scanUpdatedPaths     map[string]bool // Tracks directories updated by the scan (to distinguish from API updates)
 	// WebDAV lock system for this source (isolated per source)
 	WebdavLock webdav.LockSystem
+
+	// Adaptive scheduler: shared slot map (UTC unix seconds -> scanners). Only used when IndexingInterval == 0.
+	scheduleSlotsMu sync.Mutex
+	scheduleSlots   map[int64][]*Scanner
 }
 
 var (
@@ -304,18 +313,14 @@ func (idx *Index) getStatusUnlocked() IndexStatus {
 	}
 
 	allScannedAtLeastOnce := true
-	anyScannerActive := false
 
 	for _, scanner := range idx.scanners {
 		if scanner.lastScanned.IsZero() {
 			allScannedAtLeastOnce = false
 		}
-		if scanner.isScanning {
-			anyScannerActive = true
-		}
 	}
 
-	if anyScannerActive || idx.getActiveScannerPathUnlocked() != "" {
+	if idx.getActiveScannerPathUnlocked() != "" {
 		return INDEXING
 	} else if allScannedAtLeastOnce {
 		return READY
@@ -356,11 +361,7 @@ func StopAllScanners() {
 	indexesMutex.Lock()
 	defer indexesMutex.Unlock()
 	for _, idx := range indexes {
-		idx.mu.Lock()
-		for _, scanner := range idx.scanners {
-			scanner.stop()
-		}
-		idx.mu.Unlock()
+		idx.stopScheduler()
 	}
 }
 
@@ -1563,32 +1564,7 @@ func (idx *Index) getActiveScannerPath() string {
 
 // getActiveScannerPathUnlocked returns the path of the currently active scanner, or empty string if none
 func (idx *Index) getActiveScannerPathUnlocked() string {
-	for path, scanner := range idx.scanners {
-		if scanner.isScanning {
-			return path
-		}
-	}
-	return ""
-}
-
-// getRunningScannerCount returns the number of scanners currently running
-// Assumes mutex is NOT held - will acquire its own lock
-func (idx *Index) getRunningScannerCount() int {
-	idx.mu.RLock()
-	defer idx.mu.RUnlock()
-	return idx.getRunningScannerCountUnlocked()
-}
-
-// getRunningScannerCountUnlocked returns the number of scanners currently running
-// Assumes mutex IS already held (RLock or Lock)
-func (idx *Index) getRunningScannerCountUnlocked() int {
-	count := 0
-	for _, scanner := range idx.scanners {
-		if scanner.isScanning {
-			count++
-		}
-	}
-	return count
+	return idx.activeScannerPath
 }
 
 // input should be non-index path.
@@ -1628,6 +1604,11 @@ func (idx *Index) shouldInclude(baseName string) bool {
 	return false
 }
 
+// useAdaptiveScheduling is true when the index uses tiered/aligned scheduling (IndexingInterval == 0).
+func (idx *Index) useAdaptiveScheduling() bool {
+	return idx.Config.IndexingInterval == 0
+}
+
 // Save persists the index and scanner information to the database
 func (idx *Index) Save() error {
 	if indexingStorage == nil {
@@ -1635,19 +1616,27 @@ func (idx *Index) Save() error {
 	}
 
 	idx.mu.RLock()
+	adaptive := idx.useAdaptiveScheduling()
 	// Collect scanner information
 	scanners := make(map[string]*dbindex.PersistedScannerInfo)
 	for path, scanner := range idx.scanners {
-		scanners[path] = &dbindex.PersistedScannerInfo{
-			Path:            path,
-			Complexity:      scanner.complexity,
-			CurrentSchedule: scanner.currentSchedule,
-			QuickScanTime:   scanner.quickScanTime,
-			FullScanTime:    scanner.fullScanTime,
-			NumDirs:         scanner.numDirs,
-			NumFiles:        scanner.numFiles,
-			LastScanned:     scanner.lastScanned,
-		}
+		scanner.withStatsRLock(func() {
+			schedule := 0
+			if adaptive {
+				schedule = scanner.currentSchedule
+			}
+			scanners[path] = &dbindex.PersistedScannerInfo{
+				Path:            path,
+				Complexity:      scanner.complexity,
+				CurrentSchedule: schedule,
+				QuickScanTime:   scanner.quickScanTime,
+				FullScanTime:    scanner.fullScanTime,
+				NumDirs:         scanner.numDirs,
+				NumFiles:        scanner.numFiles,
+				LastScanned:     scanner.lastScanned,
+				FullScanCounter: scanner.fullScanCounter,
+			}
+		})
 	}
 
 	// Get current index stats

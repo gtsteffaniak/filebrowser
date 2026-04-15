@@ -1,6 +1,7 @@
 {
   "buttons": {
     "copySuccess": "已复制到剪贴板！",
+    "copyFailed": "复制到剪贴板失败",
     "copyFile": "复制文件",
     "copyToClipboard": "复制到剪贴板",
     "moveFile": "移动文件",
@@ -215,8 +216,6 @@
     "selectHashAlgorithm": "选择散列算法",
     "generate": "生成",
     "errorGeneratingHash": "错误生成哈希值",
-    "hashCopied": "哈希值复制到剪贴板",
-    "errorCopyingHash": "复制哈希值出错",
     "token": "代币",
     "onlyOfficeId": "唯一办公室 ID",
     "firstLoadTitle": "欢迎访问 FileBrowser Quantum！",
@@ -227,7 +226,6 @@
     "renameSuccess": "项目重命名成功！",
     "newFileSuccess": "文件创建成功！",
     "newDirSuccess": "目录创建成功！",
-    "copyToClipboardFailed": "无法复制到剪贴板",
     "moveFailed": "移动失败",
     "operationFailed": "操作失败",
     "partialSuccess": "某些操作失败：{succeeded} 成功，{failed} 失败",
@@ -845,8 +843,6 @@
       "showingResults": "显示{count} 结果",
       "noResults": "未找到图标",
       "tryDifferentSearch": "尝试不同的搜索词",
-      "copiedToClipboard": "将 '{name}' 复制到剪贴板！",
-      "copyFailed": "复制到剪贴板失败",
       "custom": "定制",
       "useCustomIcon": "使用自定义图标：{name}",
       "iconLibraryUrl": "fonts.google.com/icons",

@@ -1,6 +1,7 @@
 {
   "buttons": {
     "copySuccess": "Zkopírováno do schránky!",
+    "copyFailed": "Kopírování do schránky se nezdařilo",
     "generateNewOtp": "Resetovat a vygenerovat nový kód dvoufázového ověření",
     "copyFile": "Kopírovat soubor",
     "copyToClipboard": "Kopírovat do schránky",
@@ -293,8 +294,6 @@
     "selectHashAlgorithm": "Výběr algoritmu hash",
     "generate": "Generovat",
     "errorGeneratingHash": "Chyba při generování hash",
-    "hashCopied": "Hash zkopírovaný do schránky",
-    "errorCopyingHash": "Chyba při kopírování hash",
     "token": "Token",
     "onlyOfficeId": "OnlyOffice ID",
     "firstLoadTitle": "Vítejte v aplikaci FileBrowser Quantum!",
@@ -305,7 +304,6 @@
     "renameSuccess": "Položka byla úspěšně přejmenována!",
     "newFileSuccess": "Soubor byl úspěšně vytvořen!",
     "newDirSuccess": "Adresář byl úspěšně vytvořen!",
-    "copyToClipboardFailed": "Nelze zkopírovat do schránky",
     "moveFailed": "Přesun se nezdařil",
     "operationFailed": "Operace se nezdařila",
     "partialSuccess": "Některé operace se nezdařily: {succeeded} uspěl, {failed} neuspěl.",
@@ -845,8 +843,6 @@
       "showingResults": "Zobrazují se výsledky {count} ",
       "noResults": "Nebyly nalezeny žádné ikony",
       "tryDifferentSearch": "Zkuste použít jiný vyhledávací výraz",
-      "copiedToClipboard": "Zkopírováno '{name}' do schránky!",
-      "copyFailed": "Nepodařilo se zkopírovat do schránky",
       "custom": "Vlastní",
       "useCustomIcon": "Použití vlastní ikony: {name}",
       "iconLibraryUrl": "fonts.google.com/icons",

@@ -132,6 +132,7 @@
   },
   "buttons": {
     "copySuccess": "Gekopieerd naar klembord!",
+    "copyFailed": "Kopiëren naar klembord mislukt",
     "generateNewOtp": "Herstellen en nieuwe twee-factorcode genereren",
     "copyFile": "Bestand kopiëren",
     "copyToClipboard": "Kopiëren naar klembord",
@@ -440,9 +441,6 @@
     "selectHashAlgorithm": "Selecteer een hash-algoritme",
     "generate": "Genereren",
     "errorGeneratingHash": "Fout bij het genereren van hash",
-    "hashCopied": "Hash gekopieerd naar klembord",
-    "copyToClipboardFailed": "Kan niet naar klembord kopiëren",
-    "errorCopyingHash": "Fout bij het kopiëren van hash",
     "token": "Token",
     "onlyOfficeId": "OnlyOffice-ID",
     "firstLoadTitle": "Welkom bij FileBrowser Quantum!",
@@ -855,8 +853,6 @@
       "showingResults": "{count} resultaten weergeven",
       "noResults": "Geen pictogrammen gevonden",
       "tryDifferentSearch": "Probeer een andere zoekterm",
-      "copiedToClipboard": "'{name}' is gekopieerd naar klembord!",
-      "copyFailed": "Kopiëren naar klembord mislukt",
       "custom": "Aangepast",
       "useCustomIcon": "Gebruik een aangepast pictogram: {name}"
     },

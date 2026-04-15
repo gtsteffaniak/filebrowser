@@ -1,6 +1,7 @@
 {
   "buttons": {
     "copySuccess": "Скопійовано в буфер обміну!",
+    "copyFailed": "Не вдалося скопіювати в буфер обміну",
     "copyFile": "Копіювати файл",
     "copyToClipboard": "Копіювати в буфер обміну",
     "moveFile": "Перемістити файл",
@@ -215,8 +216,6 @@
     "selectHashAlgorithm": "Виберіть алгоритм хешування",
     "generate": "Згенерувати",
     "errorGeneratingHash": "Хеш, що генерує помилки",
-    "hashCopied": "Хеш скопійовано до буфера обміну",
-    "errorCopyingHash": "Помилка копіювання хешу",
     "token": "Токен.",
     "onlyOfficeId": "OnlyOffice ID",
     "firstLoadTitle": "Ласкаво просимо до FileBrowser Quantum!",
@@ -227,7 +226,6 @@
     "renameSuccess": "Елемент перейменовано успішно!",
     "newFileSuccess": "Файл успішно створено!",
     "newDirSuccess": "Каталог створено успішно!",
-    "copyToClipboardFailed": "Неможливо скопіювати в буфер обміну",
     "moveFailed": "Переміщення не вдалося",
     "operationFailed": "Операція не вдалася",
     "partialSuccess": "Деякі операції не вдалися: {succeeded} вдалося, {failed} не вдалося",
@@ -845,8 +843,6 @@
       "showingResults": "Показує результати {count} ",
       "noResults": "Не знайдено жодної піктограми",
       "tryDifferentSearch": "Спробуйте інший пошуковий запит",
-      "copiedToClipboard": "Скопіюйте '{name}' в буфер обміну!",
-      "copyFailed": "Не вдалося скопіювати в буфер обміну",
       "custom": "Нестандартний",
       "useCustomIcon": "Використовуйте власну іконку: {name}",
       "iconLibraryUrl": "fonts.google.com/icons",

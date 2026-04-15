@@ -1,6 +1,7 @@
 {
   "buttons": {
     "copySuccess": "Skopiowano do schowka!",
+    "copyFailed": "Nie udało się skopiować do schowka",
     "copyFile": "Kopiuj plik",
     "copyToClipboard": "kopiuj do schowka",
     "moveFile": "Przenieś plik",
@@ -215,8 +216,6 @@
     "selectHashAlgorithm": "Wybór algorytmu skrótu",
     "generate": "Generowanie",
     "errorGeneratingHash": "Błąd generowania skrótu",
-    "hashCopied": "Hash skopiowany do schowka",
-    "errorCopyingHash": "Błąd kopiowania skrótu",
     "token": "Token",
     "onlyOfficeId": "OnlyOffice ID",
     "firstLoadTitle": "Witamy w FileBrowser Quantum!",
@@ -227,7 +226,6 @@
     "renameSuccess": "Nazwa elementu została zmieniona pomyślnie!",
     "newFileSuccess": "Plik został utworzony pomyślnie!",
     "newDirSuccess": "Katalog utworzony pomyślnie!",
-    "copyToClipboardFailed": "Nie można skopiować do schowka",
     "moveFailed": "Przenoszenie nie powiodło się",
     "operationFailed": "Operacja nie powiodła się",
     "partialSuccess": "Niektóre operacje nie powiodły się: {succeeded} powiodło się, {failed} nie powiodło się",
@@ -845,8 +843,6 @@
       "showingResults": "Wyświetlanie wyników {count} ",
       "noResults": "Nie znaleziono ikon",
       "tryDifferentSearch": "Wypróbuj inne wyszukiwane hasło",
-      "copiedToClipboard": "Skopiowano '{name}' do schowka!",
-      "copyFailed": "Nie udało się skopiować do schowka",
       "custom": "Niestandardowe",
       "useCustomIcon": "Użyj niestandardowej ikony: {name}",
       "iconLibraryUrl": "fonts.google.com/icons",

@@ -1,6 +1,7 @@
 {
   "buttons": {
     "copySuccess": "Скопировано в буфер обмена!",
+    "copyFailed": "Не удалось скопировать в буфер обмена",
     "copyFile": "Скопировать файл",
     "copyToClipboard": "Скопировать в буфер",
     "moveFile": "Переместить файл",
@@ -215,8 +216,6 @@
     "selectHashAlgorithm": "Выберите алгоритм хэширования",
     "generate": "Создать",
     "errorGeneratingHash": "Ошибка при генерации хэша",
-    "hashCopied": "Хэш копируется в буфер обмена",
-    "errorCopyingHash": "Ошибка при копировании хэша",
     "token": "Токен",
     "onlyOfficeId": "Идентификатор OnlyOffice",
     "firstLoadTitle": "Добро пожаловать в FileBrowser Quantum!",
@@ -227,7 +226,6 @@
     "renameSuccess": "Элемент успешно переименован!",
     "newFileSuccess": "Файл создан успешно!",
     "newDirSuccess": "Каталог создан успешно!",
-    "copyToClipboardFailed": "Невозможно скопировать в буфер обмена",
     "moveFailed": "Перемещение не удалось",
     "operationFailed": "Операция не удалась",
     "partialSuccess": "Некоторые операции завершились неудачей: {succeeded} - успешно, {failed} - неудачно.",
@@ -845,8 +843,6 @@
       "showingResults": "Показать результаты {count} ",
       "noResults": "Значки не найдены",
       "tryDifferentSearch": "Попробуйте использовать другой поисковый запрос",
-      "copiedToClipboard": "Скопировано '{name}' в буфер обмена!",
-      "copyFailed": "Не удалось скопировать в буфер обмена",
       "custom": "Пользовательское",
       "useCustomIcon": "Используйте пользовательский значок: {name}",
       "iconLibraryUrl": "fonts.google.com/icons",
