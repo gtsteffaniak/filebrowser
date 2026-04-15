@@ -1,0 +1,39 @@
+{
+  "name": "filebrowser",
+  "image": "mcr.microsoft.com/devcontainers/go:1.25-bookworm",
+  
+
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20"
+    },
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+
+  "containerEnv": {
+    "CGO_ENABLED": "1",
+    "FILEBROWSER_DEVMODE": "true"
+  },
+
+  "forwardPorts": [80],
+  "portsAttributes": {
+    "80": {
+      "label": "filebrowser app",
+      "onAutoForward": "notify"
+    }
+  },
+
+  "postCreateCommand": "make setup",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "golang.go",
+        "Vue.volar",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-azuretools.vscode-docker"
+      ]
+    }
+  }
+}
