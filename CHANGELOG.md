@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.4.0
+
+ **New Features**:
+ - Add config option to disable /health endpoint logging (#2291)
+
+ **Notes**:
+ - Enhanced indexing scheduler which doesn't wake the disk as often.
+
 ## v1.3.5
 
  **BugFixes**:

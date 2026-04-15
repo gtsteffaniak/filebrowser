@@ -5331,6 +5331,10 @@ const docTemplate = `{
         "settings.LogConfig": {
             "type": "object",
             "properties": {
+                "apiFilter": {
+                    "description": "regex filter that excludes matching full api paths from being logged. (eg. '/user\\?id\\=self') Defaults to '^/health|^/favicon.ico|^/static|^/public/static'",
+                    "type": "string"
+                },
                 "apiLevels": {
                     "description": "separated list of log levels to enable for the API. (eg. \"info|warning|error\")",
                     "type": "string"
@@ -5352,7 +5356,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "utc": {
-                    "description": "use UTC time in the output instead of local time",
+                    "description": "use UTC time in the output instead of local time.",
                     "type": "boolean"
                 }
             }

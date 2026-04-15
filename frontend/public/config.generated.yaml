@@ -17,7 +17,8 @@ server:
       output: "stdout"                    # output location. (eg. "stdout" or "path/to/file.log")
       noColors: false                     # disable colors in the output
       json: false                         # output in json format
-      utc: false                          # use UTC time in the output instead of local time
+      utc: false                          # use UTC time in the output instead of local time.
+      apiFilter: ""                       # regex filter that excludes matching full api paths from being logged. (eg. '/user\?id\=self') Defaults to '^/health|^/favicon.ico|^/static|^/public/static'
   database: "database.db"                 # path to the database file
   sources:                                #  validate:required,dive
     - path: "/relative/or/absolute/path"  # file system path. (Can be relative)  validate:required
