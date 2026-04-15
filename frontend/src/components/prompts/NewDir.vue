@@ -78,6 +78,16 @@ export default {
         source: state.req?.source || null,
       };
     },
+    currentPromptName() {
+      return getters.currentPromptName();
+    },
+  },
+  watch: {
+    currentPromptName(newName, oldName) {
+      if (this.creating && oldName === "replace-rename" && newName !== "new-dir") {
+        this.creating = false;
+      }
+    },
   },
   methods: {
     closeTopPrompt() {
@@ -151,13 +161,15 @@ export default {
                       if (getters.isShare()) {
                         await resourcesApi.postPublic(state.shareInfo?.hash, newPath, "", false, undefined, {}, true);
                         mutations.setReload(true);
-                        mutations.closeTopPrompt();
+                        mutations.closeTopPrompt(); // close conflict prompt
+                        mutations.closeTopPrompt(); // close new dir prompt
                         success = true;
                         return;
                       }
                       await resourcesApi.post(source, newPath, "", false, undefined, {}, true);
                       mutations.setReload(true);
-                      mutations.closeTopPrompt();
+                      mutations.closeTopPrompt(); // close conflict prompt
+                      mutations.closeTopPrompt(); // close new dir prompt
                       success = true;
 
                       // Show success notification with "go to item" button

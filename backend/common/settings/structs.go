@@ -36,10 +36,6 @@ type Environment struct {
 	FaviconPath           string `json:"-"` // resolved favicon path (filesystem or embedded)
 	FaviconIsCustom       bool   `json:"-"` // true if favicon is from custom filesystem path
 	FaviconEmbeddedPath   string `json:"-"` // embedded asset path for default favicon
-	PWAIconsDir           string `json:"-"` // directory where generated PWA icons are stored
-	PWAIcon192            string `json:"-"` // path to 192x192 PWA icon
-	PWAIcon256            string `json:"-"` // path to 256x256 PWA icon
-	PWAIcon512            string `json:"-"` // path to 512x512 PWA icon
 }
 
 type Server struct {
@@ -195,9 +191,9 @@ type LogConfig struct {
 	Output    string `json:"output" yaml:"output"`       // output location. (eg. "stdout" or "path/to/file.log")
 	NoColors  bool   `json:"noColors" yaml:"noColors"`   // disable colors in the output
 	Json      bool   `json:"json" yaml:"json"`           // output in json format
-	Utc       bool   `json:"utc" yaml:"utc"`             // use UTC time in the output instead of local time
+	Utc       bool   `json:"utc" yaml:"utc"`             // use UTC time in the output instead of local time.
+	ApiFilter string `json:"apiFilter" yaml:"apiFilter"` // regex filter that excludes matching full api paths from being logged. (eg. '/user\?id\=self') Defaults to '^/health|^/favicon.ico|^/static|^/public/static'
 }
-
 type Source struct {
 	Path   string       `json:"path" validate:"required"` // file system path. (Can be relative)
 	Name   string       `json:"name"`                     // display name

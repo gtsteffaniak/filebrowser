@@ -480,23 +480,28 @@ func setupLogging() {
 			},
 		}
 	}
-	for _, logConfig := range Config.Server.Logging {
+	for i := range Config.Server.Logging {
+		cfg := &Config.Server.Logging[i]
 		// Enable debug logging automatically in dev mode
-		levels := logConfig.Levels
+		levels := cfg.Levels
 		if os.Getenv("FILEBROWSER_DEVMODE") == "true" {
 			levels = "info|warning|error|debug"
 		}
-
-		logConfig := logger.JsonConfig{
-			Levels:     levels,
-			ApiLevels:  logConfig.ApiLevels,
-			Output:     logConfig.Output,
-			Utc:        logConfig.Utc,
-			NoColors:   logConfig.NoColors,
-			Json:       logConfig.Json,
-			Structured: false,
+		pattern := cfg.ApiFilter
+		if pattern == "" {
+			pattern = "^/health|^/favicon.ico|^/static|^/public/static"
 		}
-		err := logger.EnableCompatibilityMode(logConfig)
+		jsonCfg := logger.JsonConfig{
+			Levels:         levels,
+			ApiLevels:      cfg.ApiLevels,
+			Output:         cfg.Output,
+			Utc:            cfg.Utc,
+			NoColors:       cfg.NoColors,
+			Json:           cfg.Json,
+			Structured:     false,
+			ApiPathExclude: pattern,
+		}
+		err := logger.EnableCompatibilityMode(jsonCfg)
 		if err != nil {
 			log.Println("[ERROR] Failed to set up logger:", err)
 		}
@@ -817,6 +822,13 @@ func loadCustomFavicon() {
 	Env.FaviconPath = validatedPath
 	Env.FaviconIsCustom = true
 	logger.Infof("Using custom favicon: %s", Env.FaviconPath)
+	// PWA and platform PNGs are generated at server startup from this path (SVG uses a raster
+	// sidecar next to the .svg when present; see icons.GeneratePWAIcons).
+}
+
+// PWAIconsCacheDir is where startup icon generation writes PNGs (under the server cache dir).
+func PWAIconsCacheDir() string {
+	return filepath.Join(Config.Server.CacheDir, "icons")
 }
 
 func loadLoginIcon() {

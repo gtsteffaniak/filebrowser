@@ -83,7 +83,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	staticURL := config.Server.BaseURL + "public/static"
 	description := config.Frontend.Description
 	title := config.Frontend.Name
-	banner := staticURL + "/pwa-icon-512.png" // Use largest generated icon for best quality
+	banner := staticURL + "/icons/pwa-icon-512.png" // largest generated PWA icon
 	disableSidebar := false
 
 	// Use custom favicon if configured and validated, otherwise fall back to default
@@ -139,9 +139,9 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 
 	// Determine OpenGraph image: use banner if set, otherwise use largest available icon (512x512)
 	ogImage := banner
-	if banner == staticURL+"/pwa-icon-512.png" {
+	if banner == staticURL+"/icons/pwa-icon-512.png" {
 		// Note: 512x512 is square; OpenGraph prefers 1200x630 (1.91:1 ratio) but square works fine
-		ogImage = staticURL + "/pwa-icon-512.png"
+		ogImage = staticURL + "/icons/pwa-icon-512.png"
 	}
 
 	// Construct the full URL for the current request
@@ -158,22 +158,9 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		fullURL = fmt.Sprintf("%s://%s%s", scheme, r.Host, r.URL.Path)
 	}
 
-	// Determine PWA icon URLs based on custom favicon settings
-	pwaIcon192 := staticURL + "/" + settings.Env.PWAIcon192
-	pwaIcon256 := staticURL + "/" + settings.Env.PWAIcon256
-	pwaIcon512 := staticURL + "/" + settings.Env.PWAIcon512
-
-	// If custom favicon is set and it's SVG, use the favicon directly
-	if settings.Env.FaviconIsCustom && strings.ToLower(filepath.Ext(settings.Env.FaviconPath)) == ".svg" {
-		pwaIcon192 = favicon
-		pwaIcon256 = favicon
-		pwaIcon512 = favicon
-	} else if settings.Env.FaviconIsCustom {
-		// For custom PNG/ICO favicons, use generated PWA icons
-		pwaIcon192 = staticURL + "/pwa-icon-192.png"
-		pwaIcon256 = staticURL + "/pwa-icon-256.png"
-		pwaIcon512 = staticURL + "/pwa-icon-512.png"
-	}
+	pwaIcon192 := staticURL + "/icons/pwa-icon-192.png"
+	pwaIcon256 := staticURL + "/icons/pwa-icon-256.png"
+	pwaIcon512 := staticURL + "/icons/pwa-icon-512.png"
 
 	data["htmlVars"] = map[string]interface{}{
 		"title":              title,
@@ -186,8 +173,8 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"favicon":            favicon,
 		"loginIcon":          loginIcon,
 		"color":              defaultThemeColor,
-		"winIcon":            staticURL + "/mstile-256x256.png",
-		"appIcon":            staticURL + "/apple-touch-icon.png",
+		"winIcon":            staticURL + "/icons/mstile-256x256.png",
+		"appIcon":            staticURL + "/icons/apple-touch-icon.png",
 		"description":        description,
 		"loadingSpinnersCSS": template.CSS(loadingSpinnersCSS),
 		"banner":             banner,
@@ -313,7 +300,7 @@ func staticAssetHandler(w http.ResponseWriter, r *http.Request) {
 		assetPath = settings.Env.FaviconEmbeddedPath
 	case "favicon.png":
 		if settings.Env.FaviconIsCustom && strings.ToLower(filepath.Ext(settings.Env.FaviconPath)) != ".svg" {
-			iconPath := filepath.Join(settings.Env.PWAIconsDir, "pwa-icon-512.png")
+			iconPath := filepath.Join(settings.PWAIconsCacheDir(), "pwa-icon-512.png")
 			if _, err := os.Stat(iconPath); err == nil {
 				http.ServeFile(w, r, iconPath)
 				return
@@ -323,18 +310,10 @@ func staticAssetHandler(w http.ResponseWriter, r *http.Request) {
 		assetPath = "img/icons/favicon.png"
 	case "icons/favicon-32x32.png",
 		"icons/pwa-icon-192.png", "icons/pwa-icon-256.png", "icons/pwa-icon-512.png",
-		"icons/apple-touch-icon.png":
-		// Serve generated icons from cache directory
-		iconPath := filepath.Join(settings.Env.PWAIconsDir, path)
-		if _, err := os.Stat(iconPath); err == nil {
-			http.ServeFile(w, r, iconPath)
-			return
-		}
-		// Fall back to embedded favicon.png if generation failed
-		assetPath = "img/icons/favicon.png"
-	case "icons/mstile-256x256.png":
-		// Windows tile - redirect to pwa-icon-256.png (they're identical)
-		iconPath := filepath.Join(settings.Env.PWAIconsDir, "pwa-icon-256.png")
+		"icons/apple-touch-icon.png", "icons/mstile-256x256.png":
+		// Files are generated as PWAIconsCacheDir()/basename (URL uses icons/ prefix only for routing)
+		rel := strings.TrimPrefix(path, "icons/")
+		iconPath := filepath.Join(settings.PWAIconsCacheDir(), rel)
 		if _, err := os.Stat(iconPath); err == nil {
 			http.ServeFile(w, r, iconPath)
 			return

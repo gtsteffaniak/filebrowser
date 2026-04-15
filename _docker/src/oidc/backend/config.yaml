@@ -1,6 +1,7 @@
 server:
   logging:
     - levels: "info|error|warning|debug"
+      apiFilter: '.*'
   sources:
     - path: "../frontend/tests/playwright-files"
       config:
