@@ -57,6 +57,7 @@
     "scopes": "Bereiken{suffix}",
     "commands": "Opdrachten{suffix}",
     "photos": "Foto's",
+    "audio": "Audio{suffix}",
     "videos": "Video{suffix}",
     "documents": "Documenten{suffix}",
     "archives": "Archieven{suffix}",
@@ -127,14 +128,14 @@
     "watching": "Bekijken{suffix}",
     "lines": "Regels{suffix}",
     "lastUpdate": "Laatste update{suffix}",
-    "latency": "Vertraging{suffix}",
-    "audio": "Audio{suffix}"
+    "latency": "Vertraging{suffix}"
   },
   "buttons": {
     "copySuccess": "Gekopieerd naar klembord!",
     "copyFailed": "Kopiëren naar klembord mislukt",
     "generateNewOtp": "Herstellen en nieuwe twee-factorcode genereren",
     "copyFile": "Bestand kopiëren",
+    "copyPath": "Pad kopiëren",
     "copyToClipboard": "Kopiëren naar klembord",
     "copyDownloadLinkToClipboard": "Downloadlink kopiëren naar klembord",
     "moveFile": "Bestand verplaatsen",
@@ -165,8 +166,7 @@
     "keepEditing": "Blijven bewerken",
     "closeAnyway": "Sluiten",
     "goToItem": "Ga naar item",
-    "goToSource": "Ga naar de bronlocatie",
-    "copyPath": "Kopieer pad"
+    "goToSource": "Ga naar de bronlocatie"
   },
   "download": {
     "downloadFile": "Bestand downloaden",
@@ -449,8 +449,8 @@
     "halloweenBody": "Het Halloween-thema is toegepast. U kunt het uitschakelen als u dit niet prettig vindt, of permanent uitschakelen in de profielinstellingen door een ander thema te selecteren.",
     "moveFailed": "Verplaatsen mislukt",
     "operationFailed": "Bewerking is mislukt",
-    "confirmPasswordToChangeUserPassword": "Voer uw huidige wachtwoord in om deze wachtwoordwijziging te autoriseren.",
-    "partialSuccess": "Enkele bewerkingen zijn mislukt: {succeeded} gelukt, {failed} mislukt."
+    "partialSuccess": "Enkele bewerkingen zijn mislukt: {succeeded} gelukt, {failed} mislukt.",
+    "confirmPasswordToChangeUserPassword": "Voer uw huidige wachtwoord in om deze wachtwoordwijziging te autoriseren."
   },
   "search": {
     "searchContext": "Zoekcontext: {context}",
@@ -459,15 +459,15 @@
     "showOptions": "Opties weergeven",
     "notEnoughCharacters": "Niet genoeg tekens om te zoeken (min {minSearchLength})",
     "typeToSearch": "Begin met het typen van {minSearchLength} of meer tekens om te beginnen met zoeken.",
+    "noResults": "Geen resultaten gevonden.",
     "smallerThan": "Kleiner dan:",
     "largerThan": "Groter dan:",
     "olderThanDate": "Ouder dan:",
     "newerThanDate": "Nieuwer dan:",
     "showPreviewImages": "Voorbeeldafbeeldingen tonen",
     "showPreviewImagesDescription": "Toon, indien beschikbaar, miniatuurvoorbeelden voor zoekresultaten en toon grotere pictogrammen voor alle resultaten.",
-    "helpText2": "Zoekresultaten zijn gebaseerd op geïndexeerde bestanden, dus nieuw toegevoegde bestanden verschijnen mogelijk pas als ze geïndexeerd zijn.",
-    "noResults": "Geen resultaten gevonden.",
-    "helpText1": "Er wordt gezocht op elk teken dat je typt (minimaal{minSearchLength} tekens)."
+    "helpText1": "Er wordt gezocht op elk teken dat je typt (minimaal{minSearchLength} tekens).",
+    "helpText2": "Zoekresultaten zijn gebaseerd op geïndexeerde bestanden, dus nieuw toegevoegde bestanden verschijnen mogelijk pas als ze geïndexeerd zijn."
   },
   "profileSettings": {
     "preferEditorForMarkdown": "Geef de voorkeur aan editor voor Markdown-bestanden",
@@ -491,6 +491,7 @@
     "showHiddenFilesDescription": "Toon verborgen bestanden in de lijst (bijv. .thumbnails, ProgramData), maar ze zijn nog steeds handmatig toegankelijk als ze zijn geconfigureerd om te worden geïndexeerd.",
     "showQuickDownload": "Downloadpictogram weergeven voor snelle toegang",
     "showQuickDownloadDescription": "Toon een downloadpictogram voor snelle toegang tot elk bestandsitem waarop kan worden geklikt om het meteen te downloaden.",
+    "previewDescription": "Toon miniatuurvoorbeelden voor {filetype}, toont generiek pictogram indien uitgeschakeld.",
     "previewMotion": "Bewegingsvoorbeelden",
     "previewMotionVideosDescription": "Bewegingsvoorbeeld is het geanimeerde popup-voorbeeld dat door de frames van de video of meerdere afbeeldingen voor een map loopt",
     "editOffice": "Office-bestanden bekijken en bewerken met OnlyOffice",
@@ -511,6 +512,8 @@
     "disableSearchOptions": "Zoekopties uitschakelen",
     "disableSearchOptionsDescription": "Schakel de zoekopties in de zijbalk uit.",
     "hideSidebarFileActions": "Verberg de knop Bestandsacties in de zijbalk",
+    "showCopyPath": "Pad kopiëren tonen in contextmenu",
+    "showCopyPathDescription": "Een actie Pad kopiëren weergeven in het contextmenu van bestanden en mappen.",
     "deleteWithoutConfirming": "Bestanden verwijderen zonder bevestigingsvenster",
     "deleteWithoutConfirmingDescription": "Bestanden verwijderen zonder bevestigingsvenster. Dit werkt alleen als het bestand een mediabestand is.",
     "editorViewerOptions": "Opties voor editor en viewer",
@@ -529,10 +532,7 @@
     "themeAndLanguage": "Thema & Taal",
     "thumbnailOptions": "Miniatuuropties",
     "showThumbnails": "Toon miniaturen voor ondersteunde items",
-    "showThumbnailsDescription": "Als deze optie is ingeschakeld, worden miniaturen weergegeven in de lijst met items die deze ondersteunen. Schakel deze optie uit om alle miniaturen te verbergen.",
-    "showCopyPath": "Pad kopiëren tonen in contextmenu",
-    "showCopyPathDescription": "Een actie Pad kopiëren weergeven in het contextmenu van bestanden en mappen.",
-    "previewDescription": "Toon miniatuurvoorbeelden voor {filetype}, toont generiek pictogram indien uitgeschakeld."
+    "showThumbnailsDescription": "Als deze optie is ingeschakeld, worden miniaturen weergegeven in de lijst met items die deze ondersteunen. Schakel deze optie uit om alle miniaturen te verbergen."
   },
   "settings": {
     "systemAdmin": "Systeem & Beheer",
