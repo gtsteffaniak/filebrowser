@@ -7,7 +7,9 @@ All notable changes to this project will be documented in this file. For commit 
  **BugFixes**:
  - PWA icon fixes (#2292)
  - deny-rule'd folders visible in directory listings (regression from v1.2.4-stable) (#2295)
- - otp and password requirement fixes (#2112) (#2263)
+ - OTP and password requirement fixes (#2112) (#2263)
+ - CLI not picking up config properly
+ - Storage usage numbers on first load adjusted.
 
 ## v1.3.4
 
