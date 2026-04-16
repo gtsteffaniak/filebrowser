@@ -1,4 +1,6 @@
 *.db
+*.db.old
+*.sqlite
 *.bak
 *.log
 *.mjs

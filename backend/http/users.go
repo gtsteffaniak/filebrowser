@@ -260,8 +260,8 @@ func usersPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 // passwordUpdateRequested reports whether the client intends to change the target user's password
 // (non-empty new password and "password" in the which list). This matches storage parseFields behavior.
 func passwordUpdateRequested(req *UserRequest) bool {
-	if req.User.Password == "" {
-		return false
+	if req.User.Password != "" {
+		return true
 	}
 	for _, w := range req.Which {
 		if strings.EqualFold(w, "password") {

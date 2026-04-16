@@ -19,7 +19,7 @@ var (
 	ErrInvalidRequestParams = errors.New("invalid request params")
 	ErrSourceIsParent       = errors.New("source is parent")
 	ErrNoTotpProvided       = errors.New("OTP code is required for user")
-	ErrNoTotpConfigured     = errors.New("OTP is enforced, but user is not yet configured")
+	ErrNoTotpConfigured     = errors.New("OTP is enforced, but user is not configured")
 	ErrUnauthorized         = errors.New("user unauthorized")
 	ErrNotIndexed           = errors.New("directory or item excluded from indexing")
 	ErrNotViewable          = errors.New("directory or item is not viewable")

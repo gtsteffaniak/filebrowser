@@ -23,7 +23,7 @@ var (
 )
 
 // return bool to indicate if the program should continue running
-func runCLI() bool {
+func runCLI() (bool, bool) {
 
 	generateYaml()
 
@@ -53,85 +53,100 @@ func runCLI() bool {
 	// Show help if requested
 	if help {
 		generalUsage()
-		return false
+		return false, false
 	}
 
 	// Create a new FlagSet for the 'set' subcommand
 	setCmd := flag.NewFlagSet("set", flag.ExitOnError)
 	var user, dbConfig string
 	var asAdmin bool
-	var fsPath, indexPath, ruleCategory, value string
+	var sourceName, indexPath, ruleCategory, value string
 	var allow bool
 
 	setCmd.StringVar(&user, "u", "", "Comma-separated username and password: \"set -u <username>,<password>\"")
 	setCmd.BoolVar(&asAdmin, "a", false, "Create a user as admin user, used in combination with -u")
 	setCmd.StringVar(&dbConfig, "c", "config.yaml", "Path to the config file, default: config.yaml")
-	setCmd.StringVar(&fsPath, "f", "", "Real filesystem path (e.g. /mnt/storage) for rule command")
+	setCmd.StringVar(&sourceName, "s", "", "source name to apply the rule to")
 	setCmd.StringVar(&indexPath, "p", "", "Index path (e.g. /secret) for rule command")
 	setCmd.StringVar(&ruleCategory, "r", "", "Rule category: 'user', 'group', or 'all' (for deny only)")
 	setCmd.StringVar(&value, "v", "", "Value: username or groupname (not required if ruleCategory is 'all')")
 	setCmd.BoolVar(&allow, "allow", false, "Allow access (default: false, which means deny)")
 
-	// Parse subcommand flags only if a subcommand is specified
+	storeCfg := configPath
+	cliSubcmd := ""
+	var setKind string
+
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
-		case "setup":
-			createConfig(configPath)
-			return false
-		case "set":
-			if len(os.Args) < 3 {
-				fmt.Printf("error: missing subcommand for 'set'. Use 'set user' or 'set rule'\n")
-				os.Exit(1)
-			}
-			subcommand := os.Args[2]
-
-			// Handle old syntax: "set -u user,pass -c config.yaml"
-			if subcommand == "-u" {
-				// Parse flags starting from os.Args[2:] to include the -u flag
-				err := setCmd.Parse(os.Args[2:])
-				if err != nil {
-					setCmd.PrintDefaults()
-					os.Exit(1)
-				}
-				logger.Debugf("setUser called with args: %v, config: %v, admin: %v", os.Args, dbConfig, asAdmin)
-				err = setUser(dbConfig, asAdmin)
-				if err != nil {
-					fmt.Printf("error: %v\n", err)
-					os.Exit(1)
-				}
-				return false
-			}
-
-			// New pattern: subcommand-based (e.g., "set user" or "set rule")
-			// Parse flags starting from os.Args[3:] to skip the subcommand
-			err := setCmd.Parse(os.Args[3:])
-			if err != nil {
-				setCmd.PrintDefaults()
-				os.Exit(1)
-			}
-			switch subcommand {
-			case "rule":
-				err := setRule(dbConfig, fsPath, indexPath, ruleCategory, value, allow)
-				if err != nil {
-					fmt.Printf("error: %v\n", err)
-					os.Exit(1)
-				}
-				return false
-			default:
-				fmt.Printf("error: unknown subcommand '%s' for 'set'. Use 'set user' or 'set rule'\n", subcommand)
-				os.Exit(1)
-			}
-
 		case "version":
 			fmt.Printf(`FileBrowser Quantum - A modern web-based file manager
 	Version 	 : %v
 	Commit 		 : %v
 	Release Info 	 : https://github.com/gtsteffaniak/filebrowser/releases/tag/%v
-	`, version.Version, version.CommitSHA, version.Version)
-			return false
+`, version.Version, version.CommitSHA, version.Version)
+			return false, false
+		case "setup":
+			cliSubcmd = "setup"
+		case "set":
+			cliSubcmd = "set"
+			if len(os.Args) < 3 {
+				fmt.Printf("error: missing subcommand for 'set'. Use 'set user' or 'set rule'\n")
+				os.Exit(1)
+			}
+			setKind = os.Args[2]
+			var err error
+			// Handle old syntax: "set -u user,pass -c config.yaml"
+			if setKind == "-u" {
+				err = setCmd.Parse(os.Args[2:])
+			} else {
+				// New pattern: subcommand-based (e.g., "set user" or "set rule")
+				err = setCmd.Parse(os.Args[3:])
+			}
+			if err != nil {
+				setCmd.PrintDefaults()
+				os.Exit(1)
+			}
+			storeCfg = dbConfig
 		}
 	}
-	return true
+
+	dbExists := getStore(storeCfg)
+
+	switch cliSubcmd {
+	case "setup":
+		createConfig(configPath)
+		return false, dbExists
+	case "set":
+		if setKind == "-u" {
+			logger.Debugf("setUser called with args: %v, config: %v, admin: %v", os.Args, dbConfig, asAdmin)
+			err := setUser(dbConfig, asAdmin)
+			if err != nil {
+				fmt.Printf("error: %v\n", err)
+				os.Exit(1)
+			}
+			return false, dbExists
+		}
+		switch setKind {
+		case "rule":
+			sourceInfo, ok := settings.Config.Server.NameToSource[sourceName] // backend source is path
+			if !ok {
+				fmt.Printf("error: invalid source name: %s\n", sourceName)
+				os.Exit(1)
+			}
+			err := setRule(dbConfig, sourceInfo.Path, indexPath, ruleCategory, value, allow)
+			if err != nil {
+				fmt.Printf("error: %v\n", err)
+				os.Exit(1)
+			}
+			return false, dbExists
+		default:
+			fmt.Printf("error: unknown subcommand '%s' for 'set'. Use 'set user' or 'set rule'\n", setKind)
+			os.Exit(1)
+		}
+		return false, dbExists
+	default:
+		return true, dbExists
+	}
 }
 
 func setRule(dbConfig, fsPath, indexPath, ruleCategory, value string, allow bool) error {
@@ -148,10 +163,6 @@ func setRule(dbConfig, fsPath, indexPath, ruleCategory, value string, allow bool
 	if ruleCategory != "all" && value == "" {
 		return fmt.Errorf("value is required when ruleCategory is 'user' or 'group': use -v <username|groupname>")
 	}
-
-	// Initialize store and settings
-	_ = getStore(dbConfig) // ignore bool check
-
 	// Apply the rule based on allow flag and ruleCategory
 	var err error
 	if allow {
@@ -202,7 +213,6 @@ func setUser(dbConfig string, asAdmin bool) error {
 	}
 	username := userInfo[0]
 	password := userInfo[1]
-	_ = getStore(dbConfig) // ignore bool check
 	user, err := store.Users.Get(username)
 	if err != nil {
 		newUser := users.User{

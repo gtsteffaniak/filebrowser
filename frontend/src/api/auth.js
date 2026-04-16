@@ -83,13 +83,19 @@ export async function generateOTP(username, password) {
     let apiPath = getApiPath('auth/otp/generate', params)
     const res = await fetch(apiPath, {
       method: 'POST',
+      credentials: 'same-origin',
       headers: {
         'X-Password': encodeURIComponent(password),
       }
     })
-    return await res.json()
+    const body = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      const msg = body.message || 'Failed to generate OTP'
+      throw new Error(msg)
+    }
+    return body
   } catch (error) {
-    notify.showError(error || 'Failed to generate OTP')
+    notify.showError(error.message || error || 'Failed to generate OTP')
     throw error
   }
 }
@@ -101,16 +107,26 @@ export async function verifyOTP(username, password, otp) {
     let apiPath = getApiPath('auth/otp/verify', params)
     const res = await fetch(apiPath, {
       method: 'POST',
+      credentials: 'same-origin',
       headers: {
         'X-Password': encodeURIComponent(password),
         'X-Secret': otp,
       }
     })
     if (res.status != 200) {
-      throw new Error('Failed to verify OTP')
+      let msg = 'Failed to verify OTP'
+      try {
+        const errBody = await res.json()
+        if (errBody.message) {
+          msg = errBody.message
+        }
+      } catch {
+        // keep default message
+      }
+      throw new Error(msg)
     }
   } catch (error) {
-    notify.showError(error || 'Failed to verify OTP')
+    notify.showError(error.message || error || 'Failed to verify OTP')
     throw error
   }
 }

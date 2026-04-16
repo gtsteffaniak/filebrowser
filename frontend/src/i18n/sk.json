@@ -241,7 +241,8 @@
     "unarchiveDestination": "Výpis na:",
     "unarchiveSuccess": "Archív úspešne extrahovaný!",
     "downloadFailed": "Sťahovanie po častiach zlyhalo - ak sa to opakuje, skúste zmenšiť veľkosť časti: {message}",
-    "confirmPasswordToChangeUserPassword": "Zadajte svoje aktuálne heslo, aby ste autorizovali túto zmenu hesla."
+    "confirmPasswordToChangeUserPassword": "Zadajte svoje aktuálne heslo, aby ste autorizovali túto zmenu hesla.",
+    "confirmPasswordToGenerateOtp": "Zadajte aktuálne heslo pre toto konto a vygenerujte nový overovací kód."
   },
   "search": {
     "smallerThan": "Menšie ako:",
@@ -542,7 +543,8 @@
     "enabledSuccessfully": "OTP úspešne povolený",
     "verificationFailed": "Overenie sa nepodarilo",
     "verificationSucceed": "Overovanie Úspech",
-    "generationFailed": "Generácia zlyhala"
+    "generationFailed": "Generácia zlyhala",
+    "passwordRequiredForGeneration": "Na vygenerovanie autentifikačného kódu je potrebné vaše heslo."
   },
   "general": {
     "name": "Názov",

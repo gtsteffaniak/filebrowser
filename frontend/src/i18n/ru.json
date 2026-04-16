@@ -241,7 +241,8 @@
     "unarchiveDestination": "Отрывок в:",
     "unarchiveSuccess": "Архив извлечен успешно!",
     "downloadFailed": "Не удалось загрузить чанк - если ситуация повторяется, попробуйте уменьшить размер чанка: {message}",
-    "confirmPasswordToChangeUserPassword": "Введите свой текущий пароль, чтобы разрешить смену пароля."
+    "confirmPasswordToChangeUserPassword": "Введите свой текущий пароль, чтобы разрешить смену пароля.",
+    "confirmPasswordToGenerateOtp": "Введите текущий пароль для этой учетной записи, чтобы сгенерировать новый код аутентификатора."
   },
   "search": {
     "smallerThan": "Меньше, чем:",
@@ -542,7 +543,8 @@
     "enabledSuccessfully": "OTP успешно активирован",
     "verificationFailed": "Верификация не удалась",
     "verificationSucceed": "Проверка удалась",
-    "generationFailed": "Не удалось создать"
+    "generationFailed": "Не удалось создать",
+    "passwordRequiredForGeneration": "Ваш пароль необходим для генерации кода аутентификатора."
   },
   "general": {
     "name": "Имя",

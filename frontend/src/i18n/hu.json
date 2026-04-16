@@ -241,7 +241,8 @@
     "unarchiveDestination": "Kivonat a következő címre:",
     "unarchiveSuccess": "Az archívum sikeresen kinyomtatva!",
     "downloadFailed": "A darabos letöltés sikertelen - ha ez ismétlődik, próbálja meg csökkenteni a darabos letöltés méretét: {message}",
-    "confirmPasswordToChangeUserPassword": "A jelszóváltoztatás engedélyezéséhez adja meg a jelenlegi jelszavát."
+    "confirmPasswordToChangeUserPassword": "A jelszóváltoztatás engedélyezéséhez adja meg a jelenlegi jelszavát.",
+    "confirmPasswordToGenerateOtp": "Adja meg a fiók jelenlegi jelszavát, hogy új hitelesítési kódot generáljon."
   },
   "search": {
     "smallerThan": "Kisebb, mint:",
@@ -542,7 +543,8 @@
     "enabledSuccessfully": "OTP sikeresen engedélyezve",
     "verificationFailed": "Ellenőrzés sikertelen",
     "verificationSucceed": "Ellenőrzés Succeed",
-    "generationFailed": "Nemzedék sikertelen"
+    "generationFailed": "Nemzedék sikertelen",
+    "passwordRequiredForGeneration": "A hitelesítési kód generálásához a jelszóra van szükség."
   },
   "general": {
     "name": "Név",

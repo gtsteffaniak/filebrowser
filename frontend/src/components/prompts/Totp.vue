@@ -59,6 +59,10 @@ export default {
   },
   async mounted() {
     if (this.generate) {
+      if (String(this.password ?? "").trim() === "") {
+        this.error = this.$t("otp.passwordRequiredForGeneration");
+        return;
+      }
       this.generateNewCode();
     }
   },
@@ -69,6 +73,10 @@ export default {
   },
   methods: {
     async generateNewCode() {
+      if (String(this.password ?? "").trim() === "") {
+        this.error = this.$t("otp.passwordRequiredForGeneration");
+        return;
+      }
       try {
         const resp = await authApi.generateOTP(this.username, this.password);
         this.url = resp.url;
@@ -82,6 +90,11 @@ export default {
       if (!this.code) {
         this.error = this.$t("otp.invalidCodeType");
         notify.showError(this.$t("otp.invalidCodeType"));
+        return;
+      }
+      if (String(this.password ?? "").trim() === "") {
+        this.error = this.$t("otp.passwordRequiredForGeneration");
+        notify.showError(this.$t("otp.passwordRequiredForGeneration"));
         return;
       }
       try {

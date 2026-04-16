@@ -241,7 +241,8 @@
     "unarchiveDestination": "Wyciąg do:",
     "unarchiveSuccess": "Archiwum rozpakowane pomyślnie!",
     "downloadFailed": "Pobieranie fragmentów nie powiodło się - jeśli sytuacja się powtórzy, spróbuj zmniejszyć rozmiar fragmentu: {message}",
-    "confirmPasswordToChangeUserPassword": "Wprowadź bieżące hasło, aby autoryzować zmianę hasła."
+    "confirmPasswordToChangeUserPassword": "Wprowadź bieżące hasło, aby autoryzować zmianę hasła.",
+    "confirmPasswordToGenerateOtp": "Wprowadź bieżące hasło dla tego konta, aby wygenerować nowy kod uwierzytelniający."
   },
   "search": {
     "smallerThan": "Mniejszy niż:",
@@ -542,7 +543,8 @@
     "enabledSuccessfully": "OTP został pomyślnie włączony",
     "verificationFailed": "Weryfikacja nie powiodła się",
     "verificationSucceed": "Sukces weryfikacji",
-    "generationFailed": "Generacja nieudana"
+    "generationFailed": "Generacja nieudana",
+    "passwordRequiredForGeneration": "Hasło jest wymagane do wygenerowania kodu uwierzytelniającego."
   },
   "general": {
     "name": "Nazwa",
