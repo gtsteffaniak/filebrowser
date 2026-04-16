@@ -450,7 +450,8 @@
     "operationFailed": "Operazione fallita",
     "partialSuccess": "Alcune operazioni sono fallite: {succeeded} riuscite, {failed} fallite",
     "downloadFailed": "Il download in chunk non è riuscito: se il problema si ripete, provare a ridurre la dimensione del chunk: {message}",
-    "confirmPasswordToChangeUserPassword": "Inserire la password attuale per autorizzare la modifica della password."
+    "confirmPasswordToChangeUserPassword": "Inserire la password attuale per autorizzare la modifica della password.",
+    "confirmPasswordToGenerateOtp": "Immettere la password corrente per questo account per generare un nuovo codice autenticatore."
   },
   "search": {
     "searchContext": "Contesto di ricerca: {context}",
@@ -738,7 +739,8 @@
     "enabledSuccessfully": "OTP abilitato con successo",
     "verificationFailed": "Verifica fallita",
     "verificationSucceed": "Verifica riuscita",
-    "generationFailed": "Generazione fallita"
+    "generationFailed": "Generazione fallita",
+    "passwordRequiredForGeneration": "La password è necessaria per generare un codice autenticatore."
   },
   "access": {
     "all": "Nega Tutto",

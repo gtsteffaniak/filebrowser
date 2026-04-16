@@ -241,7 +241,8 @@
     "unarchiveDestination": "Extrait à :",
     "unarchiveSuccess": "L'archive a été extraite avec succès !",
     "downloadFailed": "Échec du téléchargement groupé - si cela se répète, essayez de réduire la taille des morceaux : {message}",
-    "confirmPasswordToChangeUserPassword": "Saisissez votre mot de passe actuel pour autoriser ce changement de mot de passe."
+    "confirmPasswordToChangeUserPassword": "Saisissez votre mot de passe actuel pour autoriser ce changement de mot de passe.",
+    "confirmPasswordToGenerateOtp": "Saisissez le mot de passe actuel de ce compte pour générer un nouveau code d'authentification."
   },
   "search": {
     "smallerThan": "Plus petit que :",
@@ -542,7 +543,8 @@
     "enabledSuccessfully": "OTP activé avec succès",
     "verificationFailed": "Échec de la vérification",
     "verificationSucceed": "Vérification réussie",
-    "generationFailed": "Génération échouée"
+    "generationFailed": "Génération échouée",
+    "passwordRequiredForGeneration": "Votre mot de passe est nécessaire pour générer un code d'authentification."
   },
   "general": {
     "name": "Nom",

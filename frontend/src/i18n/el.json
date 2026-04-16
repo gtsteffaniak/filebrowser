@@ -244,7 +244,8 @@
     "unarchiveDestination": "Απόσπασμα προς:",
     "unarchiveSuccess": "Το αρχείο εξήχθη με επιτυχία!",
     "downloadFailed": "Αποτυχημένη λήψη σε τεμάχια - αν αυτό επαναληφθεί, δοκιμάστε να μειώσετε το μέγεθος των τεμαχίων: {message}",
-    "confirmPasswordToChangeUserPassword": "Εισάγετε τον τρέχοντα κωδικό πρόσβασής σας για να εγκρίνετε αυτή την αλλαγή κωδικού πρόσβασης."
+    "confirmPasswordToChangeUserPassword": "Εισάγετε τον τρέχοντα κωδικό πρόσβασής σας για να εγκρίνετε αυτή την αλλαγή κωδικού πρόσβασης.",
+    "confirmPasswordToGenerateOtp": "Εισάγετε τον τρέχοντα κωδικό πρόσβασης για αυτόν το λογαριασμό για να δημιουργήσετε έναν νέο κωδικό ελέγχου ταυτότητας."
   },
   "search": {
     "smallerThan": "Μικρότερο από:",
@@ -542,7 +543,8 @@
     "enabledSuccessfully": "Το OTP ενεργοποιήθηκε με επιτυχία",
     "verificationFailed": "Η επαλήθευση απέτυχε",
     "verificationSucceed": "Επαλήθευση Succeed",
-    "generationFailed": "Γενιά που απέτυχε"
+    "generationFailed": "Γενιά που απέτυχε",
+    "passwordRequiredForGeneration": "Ο κωδικός πρόσβασής σας απαιτείται για τη δημιουργία ενός κωδικού ελέγχου ταυτότητας."
   },
   "general": {
     "name": "Όνομα",

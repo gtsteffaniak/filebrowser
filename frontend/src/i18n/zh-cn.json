@@ -241,7 +241,8 @@
     "unarchiveDestination": "摘录至",
     "unarchiveSuccess": "档案提取成功！",
     "downloadFailed": "分块下载失败 - 如果重复出现这种情况，请尝试减小分块大小：{message}",
-    "confirmPasswordToChangeUserPassword": "输入您的当前密码以授权密码更改。"
+    "confirmPasswordToChangeUserPassword": "输入您的当前密码以授权密码更改。",
+    "confirmPasswordToGenerateOtp": "输入此账户的当前密码，生成新的验证码。"
   },
   "search": {
     "smallerThan": "小于",
@@ -542,7 +543,8 @@
     "enabledSuccessfully": "成功启用 OTP",
     "verificationFailed": "验证失败",
     "verificationSucceed": "验证成功",
-    "generationFailed": "一代失败"
+    "generationFailed": "一代失败",
+    "passwordRequiredForGeneration": "生成验证码需要您输入密码。"
   },
   "fileLoading": {
     "title": "上传和下载",

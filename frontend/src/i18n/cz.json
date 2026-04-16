@@ -319,7 +319,8 @@
     "unarchiveDestination": "Výpis na:",
     "unarchiveSuccess": "Archiv úspěšně extrahován!",
     "downloadFailed": "Stahování po částech se nezdařilo - pokud se tato situace opakuje, zkuste zmenšit velikost části: {message}",
-    "confirmPasswordToChangeUserPassword": "Zadejte své aktuální heslo a autorizujte tuto změnu hesla."
+    "confirmPasswordToChangeUserPassword": "Zadejte své aktuální heslo a autorizujte tuto změnu hesla.",
+    "confirmPasswordToGenerateOtp": "Zadejte aktuální heslo pro tento účet a vygenerujte nový ověřovací kód."
   },
   "search": {
     "smallerThan": "Menší než:",
@@ -607,7 +608,8 @@
     "enabledSuccessfully": "OTP úspěšně aktivováno",
     "verificationFailed": "Ověření se nezdařilo",
     "verificationSucceed": "Ověření proběhlo úspěšně",
-    "generationFailed": "Generování selhalo"
+    "generationFailed": "Generování selhalo",
+    "passwordRequiredForGeneration": "Pro vygenerování ověřovacího kódu je nutné vaše heslo."
   },
   "fileLoading": {
     "title": "Nahrávání a stahování",

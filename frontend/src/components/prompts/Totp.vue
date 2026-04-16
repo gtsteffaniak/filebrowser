@@ -93,8 +93,8 @@ export default {
         return;
       }
       if (String(this.password ?? "").trim() === "") {
-        this.error = this.$t("otp.passwordRequiredForVerification");
-        notify.showError(this.$t("otp.passwordRequiredForVerification"));
+        this.error = this.$t("otp.passwordRequiredForGeneration");
+        notify.showError(this.$t("otp.passwordRequiredForGeneration"));
         return;
       }
       try {

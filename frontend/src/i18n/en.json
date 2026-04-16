@@ -740,8 +740,7 @@
     "verificationFailed": "Verification Failed",
     "verificationSucceed": "Verification Succeed",
     "generationFailed": "Generation Failed",
-    "passwordRequiredForGeneration": "Password is required to generate an authenticator code.",
-    "passwordRequiredForVerification": "Password is required to verify your authenticator code."
+    "passwordRequiredForGeneration": "Your password is required to generate an authenticator code."
   },
   "access": {
     "all": "Deny All",

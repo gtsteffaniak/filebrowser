@@ -241,7 +241,8 @@
     "unarchiveDestination": "解壓縮至：",
     "unarchiveSuccess": "封存檔解壓縮成功！",
     "downloadFailed": "分塊下載失敗 - 如果此情況重複發生，請嘗試減少分塊大小：{message}",
-    "confirmPasswordToChangeUserPassword": "輸入您目前的密碼以授權此密碼變更。"
+    "confirmPasswordToChangeUserPassword": "輸入您目前的密碼以授權此密碼變更。",
+    "confirmPasswordToGenerateOtp": "輸入此帳戶的目前密碼，以產生新的驗證碼。"
   },
   "search": {
     "smallerThan": "小於：",
@@ -607,7 +608,8 @@
     "enabledSuccessfully": "已成功啟用雙因素驗證",
     "verificationFailed": "驗證失敗",
     "verificationSucceed": "驗證成功",
-    "generationFailed": "產生驗證碼失敗"
+    "generationFailed": "產生驗證碼失敗",
+    "passwordRequiredForGeneration": "生成驗證碼需要您的密碼。"
   },
   "fileLoading": {
     "title": "上傳與下載",

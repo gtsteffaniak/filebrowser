@@ -241,7 +241,8 @@
     "unarchiveDestination": "Extrair para:",
     "unarchiveSuccess": "Arquivo extraído com sucesso!",
     "downloadFailed": "Falha na transferência em pedaços - se isto se repetir, tente reduzir o tamanho dos pedaços: {message}",
-    "confirmPasswordToChangeUserPassword": "Introduza a sua palavra-passe atual para autorizar esta alteração de palavra-passe."
+    "confirmPasswordToChangeUserPassword": "Introduza a sua palavra-passe atual para autorizar esta alteração de palavra-passe.",
+    "confirmPasswordToGenerateOtp": "Introduza a palavra-passe atual desta conta para gerar um novo código de autenticação."
   },
   "search": {
     "smallerThan": "Mais pequeno do que:",
@@ -542,7 +543,8 @@
     "enabledSuccessfully": "OTP ativado com sucesso",
     "verificationFailed": "Falha na verificação",
     "verificationSucceed": "Verificação de sucesso",
-    "generationFailed": "Geração falhada"
+    "generationFailed": "Geração falhada",
+    "passwordRequiredForGeneration": "A sua palavra-passe é necessária para gerar um código de autenticação."
   },
   "fileLoading": {
     "title": "Carregamentos e transferências",
