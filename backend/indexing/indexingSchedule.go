@@ -231,16 +231,6 @@ func (idx *Index) setupMultiScanner(isNewDb bool) {
 		logger.Errorf("Failed to load persisted index data for [%v]: %v", idx.Name, err)
 	}
 
-	// Load existing folder sizes from database to avoid marking everything as dirty on startup
-	existingSizes, err := idx.db.LoadFolderSizes(idx.Name)
-	if err != nil {
-		logger.Errorf("[INIT] Failed to load existing folder sizes for [%s]: %v", idx.Name, err)
-	} else {
-		idx.folderSizesMu.Lock()
-		idx.folderSizes = existingSizes
-		idx.folderSizesMu.Unlock()
-	}
-
 	idx.mu.Lock()
 	idx.scanners = make(map[string]*Scanner)
 	idx.mu.Unlock()

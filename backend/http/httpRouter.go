@@ -92,11 +92,11 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	// ========================================
 	// Auth Routes - /api/auth/
 	// ========================================
-	api.HandleFunc("POST /auth/login", userWithoutOTP(loginHandler))
+	api.HandleFunc("POST /auth/login", userWithoutOTP(false, loginHandler))
 	api.HandleFunc("POST /auth/logout", withOrWithoutUser(logoutHandler))
 	api.HandleFunc("POST /auth/signup", withoutUser(signupHandler))
-	api.HandleFunc("POST /auth/otp/generate", userWithoutOTP(generateOTPHandler))
-	api.HandleFunc("POST /auth/otp/verify", userWithoutOTP(verifyOTPHandler))
+	api.HandleFunc("POST /auth/otp/generate", userWithoutOTP(true, generateOTPHandler))
+	api.HandleFunc("POST /auth/otp/verify", userWithoutOTP(false, verifyOTPHandler))
 	api.HandleFunc("POST /auth/renew", withUser(renewHandler))
 	api.HandleFunc("POST /auth/token", withUser(createApiTokenHandler))
 	api.HandleFunc("DELETE /auth/token", withUser(deleteApiTokenHandler))

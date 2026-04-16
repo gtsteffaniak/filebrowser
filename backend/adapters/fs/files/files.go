@@ -226,18 +226,17 @@ func fileInfoFasterImpl(opts utils.FileOptions, access *access.Storage, user *us
 		return response, err // Path excluded by index rules OR doesn't exist
 	}
 
-	// Build response
-	response.FileInfo = *info
-	response.RealPath = filepath.Join(idx.Path, indexPath)
-	response.Source = opts.Source
-
-	// Layer 3: FILTER CHILDREN (user access)
-	// Remove child items THIS user can't access
+	// otherwise response keeps unfiltered Folders/Files while CheckChildItemAccess only mutates info.
 	if info.Type == "directory" {
 		if err := access.CheckChildItemAccess(info, idx, user.Username); err != nil {
 			return response, err
 		}
 	}
+
+	// Build response
+	response.FileInfo = *info
+	response.RealPath = filepath.Join(idx.Path, indexPath)
+	response.Source = opts.Source
 	if share != nil && user.Permissions.Share && opts.ShowSharedAttr {
 		for i := range response.Files {
 			file := &response.Files[i]

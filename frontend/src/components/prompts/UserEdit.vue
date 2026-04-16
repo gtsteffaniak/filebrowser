@@ -434,11 +434,20 @@ export default {
     },
     newOTP() {
       mutations.showPrompt({
-        name: "totp",
+        name: "password",
         props: {
-          generate: true,
-          username: this.user.username,
-          password: this.passwordRef || this.user.password || "",
+          infoText: this.$t("prompts.confirmPasswordToGenerateOtp"),
+          submitLabel: this.$t("general.confirm"),
+          submitCallback: (accountPassword) => {
+            mutations.showPrompt({
+              name: "totp",
+              props: {
+                generate: true,
+                username: this.user.username,
+                password: accountPassword,
+              },
+            });
+          },
         },
       });
     },

@@ -450,7 +450,8 @@
     "moveFailed": "Move failed",
     "operationFailed": "Operation failed",
     "partialSuccess": "Some operations failed: {succeeded} succeeded, {failed} failed",
-    "confirmPasswordToChangeUserPassword": "Enter your current password to authorize this password change."
+    "confirmPasswordToChangeUserPassword": "Enter your current password to authorize this password change.",
+    "confirmPasswordToGenerateOtp": "Enter the current password for this account to generate a new authenticator code."
   },
   "search": {
     "searchContext": "Search Context: {context}",
@@ -738,7 +739,9 @@
     "enabledSuccessfully": "OTP enabled successfully",
     "verificationFailed": "Verification Failed",
     "verificationSucceed": "Verification Succeed",
-    "generationFailed": "Generation Failed"
+    "generationFailed": "Generation Failed",
+    "passwordRequiredForGeneration": "Password is required to generate an authenticator code.",
+    "passwordRequiredForVerification": "Password is required to verify your authenticator code."
   },
   "access": {
     "all": "Deny All",

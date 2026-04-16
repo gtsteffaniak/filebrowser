@@ -1,15 +1,17 @@
 import { test, expect } from "../test-setup";
 import { Page } from "@playwright/test";
 
-test('create, check settings, and delete testuser2', async ({
+test("create, check settings, and delete user (retry-safe name)", async ({
     page,
     checkForErrors,
-}) => {
+}, testInfo) => {
+    // Unique username per run/retry so retries don't conflict with leftover users (same idea as proxy/preview.spec.ts).
+    const username = `testuser2-${testInfo.retry + 1}`;
     await page.goto('/settings')
     await expect(page).toHaveTitle("Graham's Filebrowser - Settings")
     await page.locator('#users-sidebar').click();
     await page.locator('button[aria-label="Add New User"]').click()
-    await page.locator('#username').fill('testuser2')
+    await page.locator('#username').fill(username)
     await page.locator('input[aria-label="Password1"]').fill('testpassword')
     await page.locator('input[aria-label="Password2"]').fill('testpass')
     // check that the invalid-field class is added properly
@@ -18,19 +20,25 @@ test('create, check settings, and delete testuser2', async ({
     )
     await page.locator('input[aria-label="Password2"]').fill('testpassword')
 
-    // Just create the user first
+    // Just create the user first (listen before click to avoid missing a fast 201).
+    const createResponse = page.waitForResponse(
+        (resp) =>
+            resp.url().includes('/api/users') &&
+            resp.request().method() === 'POST' &&
+            resp.status() === 201
+    );
     await page.locator('button[aria-label="Save"]').click();
-    await page.waitForResponse((resp) => resp.url().includes('/api/users') && resp.status() === 201)
+    await createResponse;
 
     // We should be back on the settings page
-    await expect(page.locator('tr.item', { hasText: 'testuser2' })).toBeVisible();
+    await expect(page.locator('tr.item', { hasText: username })).toBeVisible();
 
-    // Now, click the edit button for testuser2
-    await page.locator('tr.item', { hasText: 'testuser2' }).locator('td[aria-label="Edit User"] .clickable').click();
+    // Now, click the edit button for the new user
+    await page.locator('tr.item', { hasText: username }).locator('td[aria-label="Edit User"] .clickable').click();
 
     // Now on the edit page, toggle the settings
-    await expect(page.locator('.card.floating')).toBeVisible();
-    const modal = page.locator('.card.floating');
+    await expect(page.locator('div[aria-label="user-edit-prompt"]')).toBeVisible();
+    const modal = page.locator('div[aria-label="user-edit-prompt"]');
 
     const settingsToToggle = [
         "Administrator",
@@ -52,8 +60,8 @@ test('create, check settings, and delete testuser2', async ({
     await expect(modal).not.toBeVisible();
 
     // Re-open the modal to check the settings
-    await page.locator('tr.item', { hasText: 'testuser2' }).locator('td[aria-label="Edit User"] .clickable').click();
-    await expect(page.locator('.card.floating')).toBeVisible();
+    await page.locator('tr.item', { hasText: username }).locator('td[aria-label="Edit User"] .clickable').click();
+    await expect(page.locator('div[aria-label="user-edit-prompt"]')).toBeVisible();
 
     for (const settingName of settingsToToggle) {
         const checkbox = modal.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
@@ -62,14 +70,16 @@ test('create, check settings, and delete testuser2', async ({
 
     // Delete the user
     await modal.locator('button[aria-label="Delete User"]').click();
-    await page.locator('button[aria-label="Confirm Delete"]').click();
+    const genericModal = page.locator('div[aria-label="generic-prompt"]');
+    await expect(genericModal).toBeVisible();
+    await genericModal.locator('button[aria-label="Delete"]').click();
 
     // After deletion, we should be back on the settings page.
-    await expect(page.locator('tr.item', { hasText: 'testuser2' })).not.toBeVisible();
+    await expect(page.locator('tr.item', { hasText: username })).not.toBeVisible();
     checkForErrors()
 })
 
-test("two factor auth check", async ({ page, checkForErrors, context }) => {
+test("two factor auth check", async ({ page, checkForErrors }) => {
     // go to settings
     await page.goto("/settings");
     await expect(page).toHaveURL(/\/settings/);
@@ -77,9 +87,9 @@ test("two factor auth check", async ({ page, checkForErrors, context }) => {
     // click the edit button for testuser
     const userRow = page.locator('tr.item', { hasText: 'admin' })
     await userRow.locator('td[aria-label="Edit User"] .clickable').click();
-    await expect(page.locator('.card.floating')).toBeVisible();
+    await expect(page.locator('div[aria-label="user-edit-prompt"]')).toBeVisible();
 
-    const modal = page.locator('.card.floating');
+    const modal = page.locator('div[aria-label="user-edit-prompt"]');
 
     // Toggle the two factor authentication switch
     const twoFactorCheckbox = modal.locator('.toggle-container:has-text("Two-Factor Authentication") input[type="checkbox"]');
@@ -91,11 +101,18 @@ test("two factor auth check", async ({ page, checkForErrors, context }) => {
     // Verify it changed state
     await expect(twoFactorCheckbox).toBeChecked();
     await modal.locator('button[aria-label="Generate Code"]').click();
+
+    const passwordModal = page.locator('div[aria-label="password-prompt"]');
+    // Must match the admin password used in tests/playwright/global-setup.ts (not testuser passwords).
+    await passwordModal.locator('input').fill('admin');
+    await passwordModal.locator('button[aria-label="Confirm"]').click();
+
+    const totpModal = page.locator('div[aria-label="totp-prompt"]');
     // check for the otp url
-    await expect(modal.locator('p[aria-label="otp-url"]')).toBeVisible();
+    await expect(totpModal.locator('p[aria-label="otp-url"]')).toBeVisible();
 
     // check that the otp-url is not empty
-    const otpUrl = await modal.locator('p[aria-label="otp-url"]').textContent();
+    const otpUrl = await totpModal.locator('p[aria-label="otp-url"]').textContent();
     expect(otpUrl).not.toBe("");
     checkForErrors();
 });
@@ -109,7 +126,7 @@ test.describe("User Settings Persistence", () => {
 
     async function checkTogglePersistence(page: Page, settingName: string) {
         const userRow = page.locator("tr.item", { hasText: username });
-        const modal = page.locator('.card.floating');
+        const modal = page.locator('div[aria-label="user-edit-prompt"]');
 
         // --- Open modal and check initial state (should be OFF) ---
         // Debug: Check if the user row exists
@@ -177,7 +194,7 @@ test.describe("User Settings Persistence", () => {
     test('should persist "allowed login method" setting', async ({ page, checkForErrors }) => {
         const userRow = page.locator("tr.item", { hasText: username });
         await userRow.locator('td[aria-label="Edit User"] .clickable').click();
-        const modal = page.locator('.card.floating');
+        const modal = page.locator('div[aria-label="user-edit-prompt"]');
         await expect(modal).toBeVisible();
 
         const loginMethodSelector = modal.locator("#loginMethod");

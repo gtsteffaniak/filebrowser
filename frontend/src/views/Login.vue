@@ -356,7 +356,7 @@ export default {
             },
           });
         }
-        if (e.message.includes("OTP is enforced, but user is not yet configured")) {
+        if (e.message.includes("OTP is enforced, but user is not configured")) {
           mutations.showPrompt({
             name: "totp",
             pinned: true,

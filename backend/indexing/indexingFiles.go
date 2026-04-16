@@ -85,17 +85,17 @@ type Stats struct {
 	LastIndexedUnix int64     `json:"lastIndexedUnixTime"`
 	Complexity      uint      `json:"complexity"`
 	LastScanned     time.Time `json:"lastScanned"`
-	DiskUsed        uint64    `json:"used"`
+	UsedAsIndexed   uint64    `json:"used"`
 	UsedAlt         uint64    `json:"usedAlt"`
+	DiskTotal       uint64    `json:"total"`
 }
 
 // reduced index is json exposed to the client
 type ReducedIndex struct {
 	Stats
-	IdxName   string         `json:"name"`
-	DiskTotal uint64         `json:"total"`
-	Status    IndexStatus    `json:"status"`
-	Scanners  []*ScannerInfo `json:"scanners,omitempty"`
+	IdxName  string         `json:"name"`
+	Status   IndexStatus    `json:"status"`
+	Scanners []*ScannerInfo `json:"scanners,omitempty"`
 }
 
 type Index struct {
@@ -1158,22 +1158,6 @@ func (idx *Index) updateFolderSizeAndParents(path string, newSize uint64, previo
 	}
 }
 
-// SetFolderSize sets the size for a directory in the in-memory map
-func (idx *Index) SetFolderSize(path string, newSize uint64) {
-	idx.folderSizesMu.Lock()
-	defer idx.folderSizesMu.Unlock()
-	idx.folderSizes[path] = newSize
-	idx.folderSizesUnsynced[path] = struct{}{} // Mark as changed for next DB sync
-}
-
-// GetFolderSize retrieves the size for a directory from the in-memory map
-func (idx *Index) GetFolderSize(path string) (uint64, bool) {
-	idx.folderSizesMu.RLock()
-	defer idx.folderSizesMu.RUnlock()
-	size, exists := idx.folderSizes[path]
-	return size, exists
-}
-
 // GetFolderSizeForDisplay retrieves folder size with appropriate formatting based on config
 func (idx *Index) GetFolderSizeForDisplay(path string) int64 {
 	size, exists := idx.GetFolderSize(path)
@@ -1532,18 +1516,14 @@ func (idx *Index) IsNeverWatchPath(adjustedPath string) bool {
 	return exists
 }
 
-type DiskUsage struct {
-	Total uint64 `json:"total"`
-	Used  uint64 `json:"used"`
-}
-
-func (idx *Index) SetUsage(totalBytes uint64) {
+func (idx *Index) SetUsage(totalDiskSize, partitionUsed, UsedAsIndexed uint64) {
 	if settings.Config.Frontend.DisableUsedPercentage {
 		return
 	}
 	idx.mu.Lock()
 	defer idx.mu.Unlock()
-	idx.DiskTotal = totalBytes
+	idx.DiskTotal = totalDiskSize
+	idx.UsedAsIndexed = UsedAsIndexed
 }
 
 func (idx *Index) SetStatus(status IndexStatus) error {
