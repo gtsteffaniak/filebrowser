@@ -207,7 +207,7 @@ export default {
 
     // Add keyboard event listener for "/" to activate search
     this.handleKeydown = (event) => {
-      if (event.key === '/' && !state.isSearchActive && getters.currentPrompt() === null) {
+      if (event.key === '/' || event.key === ' ' && !state.isSearchActive && getters.currentPrompt() === null) {
         event.preventDefault();
         this.open();
       }
@@ -545,6 +545,26 @@ export default {
       } catch (err) {
         return "";
       }
+    },
+    open() {
+      if (state.isSearchActive) return;
+      if (getters.currentPromptName()) return;
+
+      mutations.closeHovers();
+      mutations.closeSidebar();
+      mutations.resetSelected();
+      mutations.setSearch(true);
+
+      this.$nextTick(() => {
+        const input = this.$refs.input;
+        if (input) {
+          input.focus();
+        }
+        const resultList = document.getElementById("result-list");
+        if (resultList) {
+          resultList.classList.add("active");
+        }
+      });
     },
     addSelected(event, s) {
       event.preventDefault();
