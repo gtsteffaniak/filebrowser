@@ -11,7 +11,7 @@ All notable changes to this project will be documented in this file. For commit 
  - CLI not picking up config properly
  - Storage usage numbers on first load adjusted.
  - Some items in userDefaults are not setting defaults for new users properly #2278
- - Fix copy to clipboard and simplify code (#2281)
+ - Fix copy to clipboard and simplify code (#2281) (#2274)
  - Fix search shortcut `/` and pdf previews (#2307)
 
 ## v1.3.4
