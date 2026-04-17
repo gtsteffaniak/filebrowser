@@ -37,14 +37,17 @@ test("navigate from search item", async({ page, checkForErrors, context }) => {
 test("share access controls exist", async ({ page, checkForErrors, context }) => {
   // localStorage is not available on about:blank; Firefox throws "The operation is insecure."
   await page.goto("/files/");
+  // Leaving /files/ while fetches are still in flight aborts them; Firefox logs NetworkError to the console.
+  await page.waitForLoadState("networkidle");
   const rootShareHash = await page.evaluate(() => localStorage.getItem("rootShareHash"));
   if (!rootShareHash) {
     throw new Error("Share hash not found in localStorage");
   }
   await page.goto("/public/share/" + rootShareHash);
-  await expect(page).toHaveTitle("Graham's Filebrowser - Share - playwright-files");
-  // expect the excluded folder to not be visible
+  // Document title stays at router default until Files.vue loads share metadata (see router beforeResolve vs Files.vue).
   await expect(page.locator('a[aria-label="excludedButVisible"]')).toBeVisible();
   await expect(page.locator('div[aria-label="excluded"]')).toBeHidden();
-  checkForErrors(); 
+  await expect(page).toHaveTitle("Graham's Filebrowser - Share - playwright-files");
+
+  checkForErrors();
 });
