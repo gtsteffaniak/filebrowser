@@ -3076,7 +3076,7 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "Updates the details of a user identified by ID. When updating the target user's password the actor must send their current password in the X-Password header",
+                "description": "Updates the details of a user identified by ID. When the authenticated actor uses password login, they must send their current password in the X-Password header unless the update only touches NonAdminEditable profile fields (not password). Full updates (which empty or \"all\") or any admin-only field require confirmation.",
                 "consumes": [
                     "application/json"
                 ],
@@ -3099,7 +3099,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Actor's current password (URL-encoded); required when changing a password user's password",
+                        "description": "Actor's current password (URL-encoded); required for password-login actors when updating password, using which=all, or any field outside NonAdminEditable",
                         "name": "X-Password",
                         "in": "header"
                     },
@@ -3127,7 +3127,7 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "Unauthorized - invalid or missing actor password for password change",
+                        "description": "Unauthorized - invalid or missing actor password when required",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {

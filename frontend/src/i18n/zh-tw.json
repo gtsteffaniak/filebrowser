@@ -241,8 +241,7 @@
     "unarchiveDestination": "解壓縮至：",
     "unarchiveSuccess": "封存檔解壓縮成功！",
     "downloadFailed": "分塊下載失敗 - 如果此情況重複發生，請嘗試減少分塊大小：{message}",
-    "confirmPasswordToChangeUserPassword": "輸入您目前的密碼以授權此密碼變更。",
-    "confirmPasswordToGenerateOtp": "輸入此帳戶的目前密碼，以產生新的驗證碼。"
+    "confirmPasswordToSaveUser": "輸入您目前的密碼以儲存這些使用者變更。"
   },
   "search": {
     "smallerThan": "小於：",

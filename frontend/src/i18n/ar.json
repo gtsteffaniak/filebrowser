@@ -241,8 +241,7 @@
     "unarchiveDestination": "مقتطف إلى:",
     "unarchiveSuccess": "تم استخراج الأرشيف بنجاح!",
     "downloadFailed": "فشل التحميل المقطوع - إذا تكرر ذلك، حاول تقليل حجم القطعة: {message}",
-    "confirmPasswordToChangeUserPassword": "أدخل كلمة المرور الحالية للسماح بتغيير كلمة المرور هذه.",
-    "confirmPasswordToGenerateOtp": "أدخل كلمة المرور الحالية لهذا الحساب لإنشاء رمز مصادقة جديد."
+    "confirmPasswordToSaveUser": "أدخل كلمة المرور الحالية لحفظ تغييرات المستخدم هذه."
   },
   "search": {
     "smallerThan": "أصغر من:",

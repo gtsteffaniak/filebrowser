@@ -1,6 +1,18 @@
 import { test, expect } from "../test-setup";
 import { Page } from "@playwright/test";
 
+/**
+ * User PUT for admin-only fields returns 401 until X-Password is supplied; the UI opens password-prompt on top.
+ * Password must match tests/playwright/global-setup.ts (same as two factor auth check).
+ */
+async function confirmActorPasswordPrompt(page: Page) {
+    const passwordModal = page.locator('div[aria-label="password-prompt"]');
+    await expect(passwordModal).toBeVisible({ timeout: 3000 });
+    await passwordModal.locator("input").fill("admin");
+    await passwordModal.locator('button[aria-label="Confirm"]').click();
+    await expect(passwordModal).not.toBeVisible();
+}
+
 test("create, check settings, and delete user (retry-safe name)", async ({
     page,
     checkForErrors,
@@ -55,8 +67,9 @@ test("create, check settings, and delete user (retry-safe name)", async ({
         await toggleSwitch.click();
     }
 
-    // Save the updated settings
+    // Save the updated settings (admin actor password required for sensitive user fields)
     await modal.locator('button[aria-label="Save"]').click();
+    await confirmActorPasswordPrompt(page);
     await expect(modal).not.toBeVisible();
 
     // Re-open the modal to check the settings
@@ -76,7 +89,8 @@ test("create, check settings, and delete user (retry-safe name)", async ({
 
     // After deletion, we should be back on the settings page.
     await expect(page.locator('tr.item', { hasText: username })).not.toBeVisible();
-    checkForErrors()
+    // usersApi.update tries PUT without X-Password first; server returns 401, then the UI retries with password (204).
+    checkForErrors(0, 1);
 })
 
 test("two factor auth check", async ({ page, checkForErrors }) => {
@@ -144,6 +158,7 @@ test.describe("User Settings Persistence", () => {
         const toggleSwitch = modal.locator(".toggle-container", { hasText: settingName }).locator("label.switch");
         await toggleSwitch.click();
         await modal.locator('button[aria-label="Save"]').click();
+        await confirmActorPasswordPrompt(page);
         await expect(modal).not.toBeVisible();
 
         // --- Re-open and check persisted state (should be ON) ---
@@ -156,6 +171,7 @@ test.describe("User Settings Persistence", () => {
         const toggleSwitchOn = modal.locator(".toggle-container", { hasText: settingName }).locator("label.switch");
         await toggleSwitchOn.click();
         await modal.locator('button[aria-label="Save"]').click();
+        await confirmActorPasswordPrompt(page);
         await expect(modal).not.toBeVisible();
 
         // --- Re-open and check state is restored (should be OFF) ---

@@ -241,8 +241,7 @@
     "unarchiveDestination": "Extrait à :",
     "unarchiveSuccess": "L'archive a été extraite avec succès !",
     "downloadFailed": "Échec du téléchargement groupé - si cela se répète, essayez de réduire la taille des morceaux : {message}",
-    "confirmPasswordToChangeUserPassword": "Saisissez votre mot de passe actuel pour autoriser ce changement de mot de passe.",
-    "confirmPasswordToGenerateOtp": "Saisissez le mot de passe actuel de ce compte pour générer un nouveau code d'authentification."
+    "confirmPasswordToSaveUser": "Saisissez votre mot de passe actuel pour enregistrer ces changements d'utilisateur."
   },
   "search": {
     "smallerThan": "Plus petit que :",

@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.3.5
 
+ **Notes**:
+ - any password change or admin user property change for a password user requires reauthentication (#2112)
+
  **BugFixes**:
  - PWA icon fixes (#2292)
  - deny-rule'd folders visible in directory listings (regression from v1.2.4-stable) (#2295)

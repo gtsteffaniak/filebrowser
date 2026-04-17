@@ -241,8 +241,7 @@
     "unarchiveDestination": "Auszug zu:",
     "unarchiveSuccess": "Archiv erfolgreich entpackt!",
     "downloadFailed": "Chunked Download fehlgeschlagen - falls sich dies wiederholt, versuchen Sie, die Chunk-Größe zu verringern: {message}",
-    "confirmPasswordToChangeUserPassword": "Geben Sie Ihr aktuelles Passwort ein, um diese Passwortänderung zu autorisieren.",
-    "confirmPasswordToGenerateOtp": "Geben Sie das aktuelle Passwort für dieses Konto ein, um einen neuen Authentifizierungscode zu generieren."
+    "confirmPasswordToSaveUser": "Geben Sie Ihr aktuelles Kennwort ein, um die Benutzeränderungen zu speichern."
   },
   "search": {
     "smallerThan": "Kleiner als:",

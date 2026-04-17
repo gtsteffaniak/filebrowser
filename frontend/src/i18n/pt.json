@@ -241,8 +241,7 @@
     "unarchiveDestination": "Extrair para:",
     "unarchiveSuccess": "Arquivo extraído com sucesso!",
     "downloadFailed": "Falha na transferência em pedaços - se isto se repetir, tente reduzir o tamanho dos pedaços: {message}",
-    "confirmPasswordToChangeUserPassword": "Introduza a sua palavra-passe atual para autorizar esta alteração de palavra-passe.",
-    "confirmPasswordToGenerateOtp": "Introduza a palavra-passe atual desta conta para gerar um novo código de autenticação."
+    "confirmPasswordToSaveUser": "Introduza a sua palavra-passe atual para guardar estas alterações de utilizador."
   },
   "search": {
     "smallerThan": "Mais pequeno do que:",

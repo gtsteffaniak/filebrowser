@@ -450,8 +450,7 @@
     "moveFailed": "Move failed",
     "operationFailed": "Operation failed",
     "partialSuccess": "Some operations failed: {succeeded} succeeded, {failed} failed",
-    "confirmPasswordToChangeUserPassword": "Enter your current password to authorize this password change.",
-    "confirmPasswordToGenerateOtp": "Enter the current password for this account to generate a new authenticator code."
+    "confirmPasswordToSaveUser": "Enter your current password to save these user changes."
   },
   "search": {
     "searchContext": "Search Context: {context}",

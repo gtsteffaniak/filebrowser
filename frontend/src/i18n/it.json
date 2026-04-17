@@ -450,8 +450,7 @@
     "operationFailed": "Operazione fallita",
     "partialSuccess": "Alcune operazioni sono fallite: {succeeded} riuscite, {failed} fallite",
     "downloadFailed": "Il download in chunk non è riuscito: se il problema si ripete, provare a ridurre la dimensione del chunk: {message}",
-    "confirmPasswordToChangeUserPassword": "Inserire la password attuale per autorizzare la modifica della password.",
-    "confirmPasswordToGenerateOtp": "Immettere la password corrente per questo account per generare un nuovo codice autenticatore."
+    "confirmPasswordToSaveUser": "Immettere la password attuale per salvare le modifiche apportate all'utente."
   },
   "search": {
     "searchContext": "Contesto di ricerca: {context}",

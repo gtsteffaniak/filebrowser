@@ -1,6 +1,9 @@
 import { fetchURL, fetchJSON } from '@/api/utils'
 import { getApiPath, getPublicApiPath } from '@/utils/url.js'
 import { notify } from '@/notify'
+import { state } from '@/store/state.js'
+import { mutations } from '@/store/mutations.js'
+import i18n from '@/i18n'
 
 // GET /api/users (list all)
 export async function getAllUsers() {
@@ -48,14 +51,18 @@ export async function create(user) {
 }
 
 // PUT /api/users (update user)
-// Optional `options.headers` (e.g. X-Password when changing a password user's password).
+// Password-login: tries without X-Password first; on 401 requiring X-Password, opens the prompt and retries.
+// options.skipActorPasswordConfirm / pre-set X-Password skip that flow.
+// options.actorPasswordPromptI18nKey — optional vue-i18n key (default: confirmPasswordToSaveUser).
 export async function update(user, which = ['all'], options = {}) {
   const excludeKeys = ['id', 'name']
   which = which.filter(item => !excludeKeys.includes(item))
   if (user.username === 'anonymous') {
     return
   }
-  
+
+  const mergedHeaders = { ...(options.headers || {}) }
+
   let userData = user
   if (which.length !== 1 || which[0] !== 'all') {
     userData = {}
@@ -67,15 +74,57 @@ export async function update(user, which = ['all'], options = {}) {
   }
 
   const apiPath = getApiPath('users', { id: user.id })
-  const extraHeaders = options.headers || {}
-  await fetchURL(apiPath, {
-    method: 'PUT',
-    body: JSON.stringify({
-      which: which,
-      data: userData
-    }),
-    headers: extraHeaders,
+  const body = JSON.stringify({
+    which: which,
+    data: userData
   })
+
+  const needsActorPasswordRetry = (err) =>
+    state.user?.loginMethod === 'password' &&
+    options.skipActorPasswordConfirm !== true &&
+    mergedHeaders['X-Password'] === undefined &&
+    err &&
+    err.status === 401 &&
+    typeof err.message === 'string' &&
+    err.message.includes('X-Password')
+
+  try {
+    await fetchURL(apiPath, {
+      method: 'PUT',
+      body,
+      headers: mergedHeaders,
+    })
+  } catch (e) {
+    if (!needsActorPasswordRetry(e)) {
+      throw e
+    }
+    const promptKey =
+      options.actorPasswordPromptI18nKey || 'prompts.confirmPasswordToSaveUser'
+    return new Promise((resolve, reject) => {
+      mutations.showPrompt({
+        name: 'password',
+        props: {
+          infoText: i18n.global.t(promptKey),
+          submitLabel: i18n.global.t('general.confirm'),
+          submitCallback: async (actorPassword) => {
+            try {
+              await update(user, which, {
+                ...options,
+                headers: {
+                  ...mergedHeaders,
+                  'X-Password': encodeURIComponent(actorPassword),
+                },
+                skipActorPasswordConfirm: true,
+              })
+              resolve(undefined)
+            } catch (err) {
+              reject(err)
+            }
+          },
+        },
+      })
+    })
+  }
 }
 
 // DELETE /api/users (remove user)
