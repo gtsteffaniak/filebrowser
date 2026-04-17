@@ -13,6 +13,9 @@ All notable changes to this project will be documented in this file. For commit 
  - Some items in userDefaults are not setting defaults for new users properly #2278
  - Fix copy to clipboard and simplify code (#2281) (#2274)
  - Fix search shortcut `/` and pdf previews (#2307)
+ - Special permissions bit not set when declared in createDirectoryPermission (#2283)
+ - Execute permission altered after editing sh script with FB Quantum (#2309)
+ - Source is red but working (#2289)
 
 ## v1.3.4
 

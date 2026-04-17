@@ -39,7 +39,7 @@
               </div>
             </a>
             <!-- Source-type links (source, source-minimal, source-alt, source-hybrid, source-hybrid-2); usage bar hidden for source-minimal -->
-            <a v-else-if="link.category === 'source' || link.category === 'source-minimal' || link.category === 'source-alt' || link.category === 'source-hybrid' || link.category === 'source-hybrid-2'" :href="getLinkHref(link)"
+            <a v-else-if="isSourceCategory(link.category)" :href="getLinkHref(link)"
               class="action button source-button sidebar-link-button" :class="{
                 active: isLinkActive(link),
                 disabled: !isLinkAccessible(link)
@@ -318,8 +318,7 @@ export default {
   },
   methods: {
     isSourceCategory(category) {
-      return category === 'source' || category === 'source-minimal' || category === 'source-alt' ||
-             category === 'source-hybrid' || category === 'source-hybrid-2';
+      return category.startsWith("source")
     },
     getIconClass,
     hasUsageInfo(link) {

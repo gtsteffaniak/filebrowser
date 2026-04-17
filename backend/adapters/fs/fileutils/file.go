@@ -12,9 +12,27 @@ import (
 var PermFile os.FileMode
 var PermDir os.FileMode
 
-func SetFsPermissions(PermFileOctal os.FileMode, PermDirOctal os.FileMode) {
-	PermFile = PermFileOctal
-	PermDir = PermDirOctal
+// SetFsPermissions sets create modes from Unix chmod(2)-style values (for example
+// values produced by strconv.ParseUint(s, 8, 32)). setuid, setgid, and sticky
+// bits must be converted for Go's os.FileMode; a plain cast from Unix octal is
+// incorrect for those bits.
+func SetFsPermissions(unixFileMode, unixDirMode uint32) {
+	PermFile = unixModeToFileMode(unixFileMode)
+	PermDir = unixModeToFileMode(unixDirMode)
+}
+
+func unixModeToFileMode(u uint32) os.FileMode {
+	m := os.FileMode(u & 0777)
+	if u&0o4000 != 0 {
+		m |= os.ModeSetuid
+	}
+	if u&0o2000 != 0 {
+		m |= os.ModeSetgid
+	}
+	if u&0o1000 != 0 {
+		m |= os.ModeSticky
+	}
+	return m
 }
 
 // MoveFile moves a file from src to dst.
