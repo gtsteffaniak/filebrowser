@@ -10,12 +10,15 @@ All notable changes to this project will be documented in this file. For commit 
  - OTP and password requirement fixes (#2112) (#2263)
  - CLI not picking up config properly
  - Storage usage numbers on first load adjusted.
+ - Some items in userDefaults are not setting defaults for new users properly #2278
+ - Fix copy to clipboard and simplify code (#2281)
 
 ## v1.3.4
 
  **New Features**:
  - Epub placementg url anchors to bookmark a specific location on the doc.
  - Add Requirement for Current Password When Changing Account Password (#2112)
+ - Copy file path to clipborad through right click (#2204)
 
  **Notes**:
  - user scope editing has path picker and filesystem validation
