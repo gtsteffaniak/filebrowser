@@ -35,7 +35,7 @@
         />
       </div>
 
-      <div v-else-if="previewType == 'pdf'" class="pdf-wrapper">
+      <div v-else-if="isPdf" class="pdf-wrapper">
         <iframe class="pdf" :src="raw"></iframe>
         <a v-if="isMobileSafari" :href="raw" target="_blank" class="button button--flat floating-btn">
           <div>
@@ -165,6 +165,9 @@ export default {
         return "preview";
       }
       return getters.previewType();
+    },
+    isPdf() {
+      return state.req.type === 'application/pdf';
     },
     raw() {
       const isHeicOrHeif = state.req.type === "image/heic" || state.req.type === "image/heif";

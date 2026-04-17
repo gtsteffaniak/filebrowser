@@ -732,19 +732,6 @@ export default {
           return;
         }
       }
-      // Handle the space bar key
-      if (key === " " && !modifierKeys) {
-        event.preventDefault();
-        if (state.isSearchActive) {
-          mutations.setSearch(false);
-          mutations.closeHovers();
-        } else {
-          mutations.setSearch(true);
-        }
-      }
-      if (getters.currentPromptName()) {
-        return;
-      }
       let currentPath = url.removeTrailingSlash(state.route.path);
       let newPath = currentPath.substring(0, currentPath.lastIndexOf("/"));
 
