@@ -65,53 +65,67 @@ func AdminPerms() users.Permissions {
 }
 
 // Apply applies the default options to a user.
+// Keep this in sync with [UserDefaults]: every user-facing field there should be copied
+// here (except DefaultScopes, which is wired through source config rather than this helper).
 func ApplyUserDefaults(u *users.User) {
-	u.StickySidebar = Config.UserDefaults.StickySidebar
-	u.DisableSettings = Config.UserDefaults.DisableSettings
-	u.HideFilesInTree = Config.UserDefaults.HideFilesInTree
-	u.DeleteAfterArchive = Config.UserDefaults.DeleteAfterArchive
+	d := Config.UserDefaults
 
-	// Handle DarkMode with default - dereference pointer from config
-	u.DarkMode = boolValueOrDefault(Config.UserDefaults.DarkMode, true)
+	u.DisableSettings = d.DisableSettings
+	u.LockPassword = d.LockPassword
 
-	u.Locale = Config.UserDefaults.Locale
-	u.ViewMode = Config.UserDefaults.ViewMode
-	u.SingleClick = Config.UserDefaults.SingleClick
+	u.EditorQuickSave = d.EditorQuickSave
+	u.HideSidebarFileActions = d.HideSidebarFileActions
+	u.DisableQuickToggles = d.DisableQuickToggles
+	u.DisableSearchOptions = d.DisableSearchOptions
+	u.StickySidebar = d.StickySidebar
+	u.HideFilesInTree = d.HideFilesInTree
+	u.DarkMode = boolValueOrDefault(d.DarkMode, true)
+	u.Locale = d.Locale
+	u.ViewMode = d.ViewMode
+	u.SingleClick = d.SingleClick
+	u.ShowHidden = d.ShowHidden
+	u.DateFormat = d.DateFormat
+	u.GallerySize = d.GallerySize
+	u.ThemeColor = d.ThemeColor
+	u.QuickDownload = d.QuickDownload
+	u.DisablePreviewExt = d.DisablePreviewExt
+	u.DisableViewingExt = d.DisableViewingExt
+	u.DisableUpdateNotifications = d.DisableUpdateNotifications
+	u.DisableOfficePreviewExt = d.DisableOfficePreviewExt
+	u.DisableOnlyOfficeExt = d.DisableOnlyOfficeExt
+	u.CustomTheme = d.CustomTheme
+	u.ShowSelectMultiple = d.ShowSelectMultiple
+	u.DebugOffice = d.DebugOffice
+	u.DeleteWithoutConfirming = d.DeleteWithoutConfirming
+	u.DeleteAfterArchive = d.DeleteAfterArchive
+	u.PreferEditorForMarkdown = d.PreferEditorForMarkdown
+	u.FileLoading = d.FileLoading
 
-	// Handle Permissions - convert from pointer-based defaults to regular bools
-	u.Permissions.Api = Config.UserDefaults.Permissions.Api
-	u.Permissions.Admin = Config.UserDefaults.Permissions.Admin
-	u.Permissions.Modify = Config.UserDefaults.Permissions.Modify
-	u.Permissions.Share = Config.UserDefaults.Permissions.Share
-	u.Permissions.Realtime = Config.UserDefaults.Permissions.Realtime
-	u.Permissions.Delete = Config.UserDefaults.Permissions.Delete
-	u.Permissions.Create = Config.UserDefaults.Permissions.Create
-	u.Permissions.Download = boolValueOrDefault(Config.UserDefaults.Permissions.Download, true)
+	u.Permissions.Api = d.Permissions.Api
+	u.Permissions.Admin = d.Permissions.Admin
+	u.Permissions.Modify = d.Permissions.Modify
+	u.Permissions.Share = d.Permissions.Share
+	u.Permissions.Realtime = d.Permissions.Realtime
+	u.Permissions.Delete = d.Permissions.Delete
+	u.Permissions.Create = d.Permissions.Create
+	u.Permissions.Download = boolValueOrDefault(d.Permissions.Download, true)
 
-	// Handle Preview - convert from pointer-based defaults to regular bools
-	u.Preview.DisableHideSidebar = Config.UserDefaults.Preview.DisableHideSidebar
-	u.Preview.Image = boolValueOrDefault(Config.UserDefaults.Preview.Image, true)
-	u.Preview.Video = boolValueOrDefault(Config.UserDefaults.Preview.Video, true)
-	u.Preview.Audio = boolValueOrDefault(Config.UserDefaults.Preview.Audio, true)
-	u.Preview.MotionVideoPreview = boolValueOrDefault(Config.UserDefaults.Preview.MotionVideoPreview, true)
-	u.Preview.Office = boolValueOrDefault(Config.UserDefaults.Preview.Office, true)
-	u.Preview.PopUp = boolValueOrDefault(Config.UserDefaults.Preview.PopUp, true)
-	u.Preview.AutoplayMedia = boolValueOrDefault(Config.UserDefaults.Preview.AutoplayMedia, true)
-	u.Preview.DefaultMediaPlayer = Config.UserDefaults.Preview.DefaultMediaPlayer
-	u.Preview.Folder = boolValueOrDefault(Config.UserDefaults.Preview.Folder, true)
-	u.Preview.Models = boolValueOrDefault(Config.UserDefaults.Preview.Models, true)
+	u.Preview.DisableHideSidebar = d.Preview.DisableHideSidebar
+	u.Preview.Image = boolValueOrDefault(d.Preview.Image, true)
+	u.Preview.Video = boolValueOrDefault(d.Preview.Video, true)
+	u.Preview.Audio = boolValueOrDefault(d.Preview.Audio, true)
+	u.Preview.MotionVideoPreview = boolValueOrDefault(d.Preview.MotionVideoPreview, true)
+	u.Preview.Office = boolValueOrDefault(d.Preview.Office, true)
+	u.Preview.PopUp = boolValueOrDefault(d.Preview.PopUp, true)
+	u.Preview.AutoplayMedia = boolValueOrDefault(d.Preview.AutoplayMedia, true)
+	u.Preview.DefaultMediaPlayer = d.Preview.DefaultMediaPlayer
+	u.Preview.Folder = boolValueOrDefault(d.Preview.Folder, true)
+	u.Preview.Models = boolValueOrDefault(d.Preview.Models, true)
 
-	u.ShowHidden = Config.UserDefaults.ShowHidden
-	u.DateFormat = Config.UserDefaults.DateFormat
-	u.DisableViewingExt = Config.UserDefaults.DisableViewingExt
-	u.ThemeColor = Config.UserDefaults.ThemeColor
-	u.GallerySize = Config.UserDefaults.GallerySize
-	u.QuickDownload = Config.UserDefaults.QuickDownload
-	u.LockPassword = Config.UserDefaults.LockPassword
-	u.DisableOnlyOfficeExt = Config.UserDefaults.DisableOnlyOfficeExt
-	u.FileLoading = Config.UserDefaults.FileLoading
-	u.DisableOfficePreviewExt = Config.UserDefaults.DisableOfficePreviewExt
-	u.PreferEditorForMarkdown = Config.UserDefaults.PreferEditorForMarkdown
+	if u.LoginMethod == "" && d.LoginMethod != "" {
+		u.LoginMethod = users.LoginMethod(d.LoginMethod)
+	}
+
 	if len(u.Scopes) == 0 && u.Username != "anonymous" {
 		for _, source := range Config.Server.Sources {
 			if source.Config.DefaultEnabled {
