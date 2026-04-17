@@ -241,8 +241,8 @@
     "unarchiveDestination": "Extraer a:",
     "unarchiveSuccess": "¡Archivo extraído con éxito!",
     "downloadFailed": "Fallo en la descarga por trozos. Si se repite, intente reducir el tamaño de los trozos: {message}",
-    "confirmPasswordToChangeUserPassword": "Introduzca su contraseña actual para autorizar este cambio de contraseña.",
-    "confirmPasswordToGenerateOtp": "Introduzca la contraseña actual de esta cuenta para generar un nuevo código de autenticación."
+    "confirmPasswordToGenerateOtp": "Introduzca la contraseña actual de esta cuenta para generar un nuevo código de autenticación.",
+    "confirmPasswordToSaveUser": "Introduzca su contraseña actual para guardar estos cambios de usuario."
   },
   "search": {
     "smallerThan": "Menor que:",

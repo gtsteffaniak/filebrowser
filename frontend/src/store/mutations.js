@@ -221,7 +221,7 @@ export const mutations = {
     }
     state.user.gallerySize = value
     emitStateChanged();
-    usersApi.update(state.user, ['gallerySize']);
+    void usersApi.update(state.user, ['gallerySize']).catch((e) => notify.showError(e));
   },
   setActiveSettingsView: (value) => {
     if (value == state.activeSettingsView) {
@@ -556,7 +556,7 @@ export const mutations = {
       value.id = state.user.id;
       value.username = state.user?.username;
       if (updatedProperties.length > 0) {
-        usersApi.update(value, updatedProperties);
+        void usersApi.update(value, updatedProperties).catch((e) => notify.showError(e));
       }
     }
     // Emit state change event

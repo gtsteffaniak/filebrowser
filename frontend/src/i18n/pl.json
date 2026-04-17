@@ -241,8 +241,8 @@
     "unarchiveDestination": "Wyciąg do:",
     "unarchiveSuccess": "Archiwum rozpakowane pomyślnie!",
     "downloadFailed": "Pobieranie fragmentów nie powiodło się - jeśli sytuacja się powtórzy, spróbuj zmniejszyć rozmiar fragmentu: {message}",
-    "confirmPasswordToChangeUserPassword": "Wprowadź bieżące hasło, aby autoryzować zmianę hasła.",
-    "confirmPasswordToGenerateOtp": "Wprowadź bieżące hasło dla tego konta, aby wygenerować nowy kod uwierzytelniający."
+    "confirmPasswordToGenerateOtp": "Wprowadź bieżące hasło dla tego konta, aby wygenerować nowy kod uwierzytelniający.",
+    "confirmPasswordToSaveUser": "Wprowadź aktualne hasło, aby zapisać zmiany użytkownika."
   },
   "search": {
     "smallerThan": "Mniejszy niż:",

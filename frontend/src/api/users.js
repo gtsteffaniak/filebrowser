@@ -1,6 +1,8 @@
 import { fetchURL, fetchJSON } from '@/api/utils'
 import { getApiPath, getPublicApiPath } from '@/utils/url.js'
 import { notify } from '@/notify'
+import { state } from '@/store/state.js'
+import i18n from '@/i18n'
 
 // GET /api/users (list all)
 export async function getAllUsers() {
@@ -48,14 +50,51 @@ export async function create(user) {
 }
 
 // PUT /api/users (update user)
-// Optional `options.headers` (e.g. X-Password when changing a password user's password).
+// When the signed-in user uses password login, prompts for their current password (unless X-Password is
+// already in options.headers or options.skipActorPasswordConfirm is true).
+// options.actorPasswordPromptI18nKey — optional vue-i18n key for the prompt body (default: confirmPasswordToSaveUser).
 export async function update(user, which = ['all'], options = {}) {
   const excludeKeys = ['id', 'name']
   which = which.filter(item => !excludeKeys.includes(item))
   if (user.username === 'anonymous') {
     return
   }
-  
+
+  const mergedHeaders = { ...(options.headers || {}) }
+  if (
+    state.user?.loginMethod === 'password' &&
+    options.skipActorPasswordConfirm !== true &&
+    mergedHeaders['X-Password'] === undefined
+  ) {
+    const { mutations } = await import('@/store/mutations.js')
+    const promptKey =
+      options.actorPasswordPromptI18nKey || 'prompts.confirmPasswordToSaveUser'
+    return new Promise((resolve, reject) => {
+      mutations.showPrompt({
+        name: 'password',
+        props: {
+          infoText: i18n.global.t(promptKey),
+          submitLabel: i18n.global.t('general.confirm'),
+          submitCallback: async (actorPassword) => {
+            try {
+              await update(user, which, {
+                ...options,
+                headers: {
+                  ...mergedHeaders,
+                  'X-Password': encodeURIComponent(actorPassword),
+                },
+                skipActorPasswordConfirm: true,
+              })
+              resolve(undefined)
+            } catch (e) {
+              reject(e)
+            }
+          },
+        },
+      })
+    })
+  }
+
   let userData = user
   if (which.length !== 1 || which[0] !== 'all') {
     userData = {}
@@ -67,14 +106,13 @@ export async function update(user, which = ['all'], options = {}) {
   }
 
   const apiPath = getApiPath('users', { id: user.id })
-  const extraHeaders = options.headers || {}
   await fetchURL(apiPath, {
     method: 'PUT',
     body: JSON.stringify({
       which: which,
       data: userData
     }),
-    headers: extraHeaders,
+    headers: mergedHeaders,
   })
 }
 

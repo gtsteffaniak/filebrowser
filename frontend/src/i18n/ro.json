@@ -241,8 +241,8 @@
     "unarchiveDestination": "Extras la:",
     "unarchiveSuccess": "Arhiva extrasă cu succes!",
     "downloadFailed": "Descărcarea fragmentată a eșuat - dacă acest lucru se repetă, încercați să reduceți dimensiunea fragmentului: {message}",
-    "confirmPasswordToChangeUserPassword": "Introduceți parola curentă pentru a autoriza această modificare a parolei.",
-    "confirmPasswordToGenerateOtp": "Introduceți parola curentă pentru acest cont pentru a genera un nou cod de autentificare."
+    "confirmPasswordToGenerateOtp": "Introduceți parola curentă pentru acest cont pentru a genera un nou cod de autentificare.",
+    "confirmPasswordToSaveUser": "Introduceți parola curentă pentru a salva aceste modificări de utilizator."
   },
   "search": {
     "smallerThan": "Mai mic decât:",
