@@ -241,7 +241,6 @@
     "unarchiveDestination": "に抜粋する：",
     "unarchiveSuccess": "アーカイブは正常に抽出されました！",
     "downloadFailed": "チャンクダウンロードに失敗しました - これが繰り返される場合は、チャンクサイズを小さくしてみてください：{message}",
-    "confirmPasswordToGenerateOtp": "このアカウントの現在のパスワードを入力して、新しい認証コードを生成します。",
     "confirmPasswordToSaveUser": "現在のパスワードを入力して、ユーザーの変更を保存します。"
   },
   "search": {

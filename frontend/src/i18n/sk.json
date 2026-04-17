@@ -241,7 +241,6 @@
     "unarchiveDestination": "Výpis na:",
     "unarchiveSuccess": "Archív úspešne extrahovaný!",
     "downloadFailed": "Sťahovanie po častiach zlyhalo - ak sa to opakuje, skúste zmenšiť veľkosť časti: {message}",
-    "confirmPasswordToGenerateOtp": "Zadajte aktuálne heslo pre toto konto a vygenerujte nový overovací kód.",
     "confirmPasswordToSaveUser": "Zadajte svoje aktuálne heslo, aby ste tieto zmeny používateľa uložili."
   },
   "search": {

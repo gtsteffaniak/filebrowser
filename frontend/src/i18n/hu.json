@@ -241,7 +241,6 @@
     "unarchiveDestination": "Kivonat a következő címre:",
     "unarchiveSuccess": "Az archívum sikeresen kinyomtatva!",
     "downloadFailed": "A darabos letöltés sikertelen - ha ez ismétlődik, próbálja meg csökkenteni a darabos letöltés méretét: {message}",
-    "confirmPasswordToGenerateOtp": "Adja meg a fiók jelenlegi jelszavát, hogy új hitelesítési kódot generáljon.",
     "confirmPasswordToSaveUser": "A felhasználói módosítások mentéséhez adja meg az aktuális jelszavát."
   },
   "search": {

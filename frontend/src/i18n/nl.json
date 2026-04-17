@@ -450,7 +450,6 @@
     "moveFailed": "Verplaatsen mislukt",
     "operationFailed": "Bewerking is mislukt",
     "partialSuccess": "Enkele bewerkingen zijn mislukt: {succeeded} gelukt, {failed} mislukt.",
-    "confirmPasswordToGenerateOtp": "Voer het huidige wachtwoord voor dit account in om een nieuwe authenticatorcode te genereren.",
     "confirmPasswordToSaveUser": "Voer uw huidige wachtwoord in om deze gebruikerswijzigingen op te slaan."
   },
   "search": {
