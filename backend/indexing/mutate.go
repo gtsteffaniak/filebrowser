@@ -309,18 +309,15 @@ func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, erro
 		// Only fetch disk total and used if not cached (this is expensive, so we cache it)
 		totalPartitionSize, err := fileutils.GetPartitionSize(sourcePath)
 		if err != nil {
-			idx.mu.Lock()
-			idx.Status = UNAVAILABLE
-			idx.mu.Unlock()
-			return ReducedIndex{}, fmt.Errorf("error getting disk usage for %s: %v", sourcePath, err)
+			logger.Errorf("Failed to get partition size for index %s: %v", sourceName, err)
 		}
 		itemInfo, dbErr := idx.db.GetDirectoryChildren(idx.Name, "/")
 		if dbErr != nil {
 			logger.Debugf("GetIndexInfo: could not read root folder size from index DB for %s: %v", sourceName, dbErr)
 		}
 		indexedSizeFromDB := uint64(0)
-		for _, folder := range itemInfo {
-			indexedSizeFromDB += uint64(folder.Size)
+		for _, item := range itemInfo {
+			indexedSizeFromDB += uint64(item.Size)
 		}
 		// Also fetch OS-reported partition used space (total - free)
 		partitionUsed, err := fileutils.GetPartitionUsed(sourcePath)
@@ -350,7 +347,7 @@ func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, erro
 	}
 	reducedIdx := idx.ReducedIndex
 	reducedIdx.UsedAsIndexed = idx.UsedAsIndexed
-	reducedIdx.UsedAlt = idx.UsedAlt
+	reducedIdx.UsedDisk = idx.UsedDisk
 	reducedIdx.DiskTotal = idx.DiskTotal
 	reducedIdx.Scanners = scannerInfos
 	reducedIdx.NumDirs = idx.getNumDirsUnlocked()
