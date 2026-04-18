@@ -199,8 +199,10 @@ export const mutations = {
       return;
     }
     state.user.gallerySize = value
-    const storageKey = `GallerySize_${state.user.id}`;
-    localStorage.setItem(storageKey, value);
+    const isAnonymous = state.user?.id === 0;
+    if (!isAnonymous) {
+      localStorage.setItem(`GallerySize_${state.user.id}`, value);
+    }
     emitStateChanged();
   },
   setActiveSettingsView: (value) => {
@@ -397,8 +399,9 @@ export const mutations = {
       }
 
       // Load stored values or use defaults as fallback
-      let viewMode = localStorage.getItem(`ViewMode_${state.user.id}`) || state.user.viewMode || 'normal';
-      let gallerySize = parseInt(localStorage.getItem(`GallerySize_${state.user.id}`)) || state.user.gallerySize || 3;
+      const isAnonymous = state.user?.id === 0;
+      let viewMode = (!isAnonymous && localStorage.getItem(`ViewMode_${state.user.id}`)) || state.user.viewMode || 'normal';
+      let gallerySize = (!isAnonymous && parseInt(localStorage.getItem(`GallerySize_${state.user.id}`))) || state.user.gallerySize || 3;
       gallerySize = Math.min(9, Math.max(1, gallerySize)); // ensure 1–9 since this is the slider min and max size
 
       // Normalize to use the view families too
@@ -411,8 +414,11 @@ export const mutations = {
 
       state.user.viewMode = viewMode;
       state.user.gallerySize = gallerySize;
-      localStorage.setItem(`ViewMode_${state.user.id}`, viewMode);
-      localStorage.setItem(`GallerySize_${state.user.id}`, gallerySize);
+
+      if (!isAnonymous) {
+        localStorage.setItem(`ViewMode_${state.user.id}`, viewMode);
+        localStorage.setItem(`GallerySize_${state.user.id}`, gallerySize);
+      }
 
       // Load display preferences for the current user
       const allPreferences = JSON.parse(localStorage.getItem("displayPreferences") || "{}");
@@ -523,13 +529,13 @@ export const mutations = {
     // Merge the new values into the current user state
     state.user = { ...state.user, ...value };
 
-    if (value.viewMode !== undefined) {
-      const viewModeKey = `ViewMode_${state.user.id}`;
-      localStorage.setItem(viewModeKey, value.viewMode);
+    const isAnonymous = state.user?.id === 0;
+
+    if (value.viewMode !== undefined && !isAnonymous) {
+      localStorage.setItem(`ViewMode_${state.user.id}`, value.viewMode);
     }
-    if (value.gallerySize !== undefined) {
-      const galleryKey = `GallerySize_${state.user.id}`;
-      localStorage.setItem(galleryKey, value.gallerySize);
+    if (value.gallerySize !== undefined && !isAnonymous) {
+      localStorage.setItem(`GallerySize_${state.user.id}`, value.gallerySize);
     }
 
     // Handle locale change
@@ -767,12 +773,15 @@ export const mutations = {
       ...payload,
     };
 
-    const allPreferences = JSON.parse(localStorage.getItem("displayPreferences") || "{}");
-    if (!allPreferences[state.user.username]) {
-      allPreferences[state.user.username] = {};
+    const isAnonymous = state.user.id === 0;
+    if (!isAnonymous) {
+      const allPreferences = JSON.parse(localStorage.getItem("displayPreferences") || "{}");
+      if (!allPreferences[state.user.username]) {
+        allPreferences[state.user.username] = {};
+      }
+      allPreferences[state.user.username] = state.displayPreferences;
+      localStorage.setItem("displayPreferences", JSON.stringify(allPreferences));
     }
-    allPreferences[state.user.username] = state.displayPreferences;
-    localStorage.setItem("displayPreferences", JSON.stringify(allPreferences));
     emitStateChanged();
   },
   setNavigationEnabled: (enabled) => {
