@@ -314,7 +314,7 @@ func withoutUserHelper(fn handleFunc) handleFunc {
 }
 
 // allow user without OTP to pass
-func userWithoutOTPhelper(fn handleFunc) handleFunc {
+func userWithoutOTPhelper(disableOtp bool, fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 
 		if config.Auth.Methods.ProxyAuth.Enabled {
@@ -344,15 +344,19 @@ func userWithoutOTPhelper(fn handleFunc) handleFunc {
 			logger.Debug("ldap auth failed, calling password auth", err)
 		}
 		if config.Auth.Methods.PasswordAuth.Enabled {
-			// Get the authentication method from the settings
 			auther, err := store.Auth.Get("password")
 			if err != nil {
 				return 401, errors.ErrUnauthorized
 			}
-			// Authenticate the user based on the request
+			// OTP routes: password only (do not mutate stored *JSONAuth).
+			if ja, ok := auther.(*auth.JSONAuth); ok {
+				x := *ja
+				x.DisableOtp = disableOtp
+				auther = &x
+			}
 			user, err := auther.Auth(r, store.Users)
 			if err != nil {
-				logger.Debug("password auth failed, calling handler", err)
+				logger.Debug("password auth failed, calling handler:", err)
 				if err == errors.ErrNoTotpProvided {
 					return 403, err
 				}
@@ -655,8 +659,8 @@ func withoutUser(fn handleFunc) http.HandlerFunc {
 	return wrapHandler(withoutUserHelper(fn))
 }
 
-func userWithoutOTP(fn handleFunc) http.HandlerFunc {
-	return wrapHandler(userWithoutOTPhelper(fn))
+func userWithoutOTP(disableOtp bool, fn handleFunc) http.HandlerFunc {
+	return wrapHandler(userWithoutOTPhelper(disableOtp, fn))
 }
 
 func withSelfOrAdmin(fn handleFunc) http.HandlerFunc {

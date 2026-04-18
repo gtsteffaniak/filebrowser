@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"reflect"
 	"slices"
 	"sort"
 	"strconv"
@@ -257,25 +258,43 @@ func usersPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	return http.StatusCreated, nil
 }
 
-// passwordUpdateRequested reports whether the client intends to change the target user's password
-// (non-empty new password and "password" in the which list). This matches storage parseFields behavior.
-func passwordUpdateRequested(req *UserRequest) bool {
-	if req.User.Password == "" {
-		return false
+// nonAdminEditableFieldNameSet returns User.NonAdminEditable struct field names (e.g. "Locale", "Preview").
+func nonAdminEditableFieldNameSet() map[string]struct{} {
+	m := make(map[string]struct{})
+	t := reflect.TypeOf(users.NonAdminEditable{})
+	for i := 0; i < t.NumField(); i++ {
+		m[t.Field(i).Name] = struct{}{}
 	}
-	for _, w := range req.Which {
-		if strings.EqualFold(w, "password") {
-			return true
-		}
-	}
-	return false
+	return m
 }
 
-// verifyActorPasswordForUserPasswordChange ensures the authenticated actor re-proves their password
-// when changing another user's or their own password via PUT. Requires URL-encoded X-Password (same as login).
-func verifyActorPasswordForUserPasswordChange(r *http.Request, d *requestContext, target *users.User) (int, error) {
-	if d.user.LoginMethod != users.LoginMethodPassword || target.LoginMethod != users.LoginMethodPassword {
-		return http.StatusForbidden, fmt.Errorf("password can only be changed when both accounts use password login")
+// userPutOnlyNonAdminEditableFields reports whether req.Which lists exclusively NonAdminEditable fields,
+// excluding Password. Empty which or which[0] == "all" means a broad update and returns false.
+func userPutOnlyNonAdminEditableFields(which []string) bool {
+	if len(which) == 0 || strings.EqualFold(strings.TrimSpace(which[0]), "all") {
+		return false
+	}
+	allowed := nonAdminEditableFieldNameSet()
+	for _, w := range which {
+		f := utils.CapitalizeFirst(strings.TrimSpace(w))
+		if f == "" {
+			return false
+		}
+		if strings.EqualFold(f, "Password") {
+			return false
+		}
+		if _, ok := allowed[f]; !ok {
+			return false
+		}
+	}
+	return true
+}
+
+// verifyActorPasswordForUserPut requires URL-encoded X-Password when the authenticated actor uses
+// password login. Callers should invoke this only when the update requires re-authentication.
+func verifyActorPasswordForUserPut(r *http.Request, d *requestContext) (int, error) {
+	if d.user.LoginMethod != users.LoginMethodPassword {
+		return 0, nil
 	}
 	encoded := r.Header.Get("X-Password")
 	if encoded == "" {
@@ -300,16 +319,16 @@ func verifyActorPasswordForUserPasswordChange(r *http.Request, d *requestContext
 
 // userPutHandler updates an existing user's details.
 // @Summary Update a user's details
-// @Description Updates the details of a user identified by ID. When updating the target user's password the actor must send their current password in the X-Password header
+// @Description Updates the details of a user identified by ID. When the authenticated actor uses password login, they must send their current password in the X-Password header unless the update only touches NonAdminEditable profile fields (not password). Full updates (which empty or "all") or any admin-only field require confirmation.
 // @Tags Users
 // @Accept json
 // @Param id query string false "user ID to update"
 // @Param id query string false "usename to update"
-// @Param X-Password header string false "Actor's current password (URL-encoded); required when changing a password user's password"
+// @Param X-Password header string false "Actor's current password (URL-encoded); required for password-login actors when updating password, using which=all, or any field outside NonAdminEditable"
 // @Param data body users.User true "User data to update"
 // @Success 204 "No Content - User updated successfully"
 // @Failure 400 {object} map[string]string "Bad Request"
-// @Failure 401 {object} map[string]string "Unauthorized - invalid or missing actor password for password change"
+// @Failure 401 {object} map[string]string "Unauthorized - invalid or missing actor password when required"
 // @Failure 403 {object} map[string]string "Forbidden"
 // @Failure 500 {object} map[string]string "Internal Server Error"
 // @Router /api/users [put]
@@ -361,9 +380,10 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		return http.StatusBadRequest, fmt.Errorf("failed to get user: %w", err)
 	}
 
-	if passwordUpdateRequested(&req) {
+	if d.user.LoginMethod == users.LoginMethodPassword && !userPutOnlyNonAdminEditableFields(req.Which) {
+		fmt.Println("verifyActorPasswordForUserPut", req.Which)
 		var status int
-		status, err = verifyActorPasswordForUserPasswordChange(r, d, oldUser)
+		status, err = verifyActorPasswordForUserPut(r, d)
 		if err != nil {
 			return status, err
 		}

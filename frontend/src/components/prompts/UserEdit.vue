@@ -434,11 +434,20 @@ export default {
     },
     newOTP() {
       mutations.showPrompt({
-        name: "totp",
+        name: "password",
         props: {
-          generate: true,
-          username: this.user.username,
-          password: this.passwordRef || this.user.password || "",
+          infoText: this.$t("prompts.confirmPasswordToSaveUser"),
+          submitLabel: this.$t("general.confirm"),
+          submitCallback: (accountPassword) => {
+            mutations.showPrompt({
+              name: "totp",
+              props: {
+                generate: true,
+                username: this.user.username,
+                password: accountPassword,
+              },
+            });
+          },
         },
       });
     },
@@ -447,28 +456,17 @@ export default {
       if (!this.canUpdatePassword) {
         return;
       }
-      mutations.showPrompt({
-        name: "password",
-        props: {
-          infoText: this.$t("prompts.confirmPasswordToChangeUserPassword"),
-          submitLabel: this.$t("general.confirm"),
-          submitCallback: async (actorPassword) => {
-            try {
-              await usersApi.update(this.user, ["password"], {
-                headers: {
-                  "X-Password": encodeURIComponent(actorPassword),
-                },
-              });
-              if (state.user.permissions.admin && this.user.id !== state.user.id) {
-                eventBus.emit("usersChanged");
-              }
-              notify.showSuccessToast(this.$t("settings.userUpdated"));
-            } catch (e) {
-              notify.showError(e);
-            }
-          },
-        },
-      });
+      try {
+        await usersApi.update(this.user, ["password"], {
+          actorPasswordPromptI18nKey: "prompts.confirmPasswordToSaveUser",
+        });
+        if (state.user.permissions.admin && this.user.id !== state.user.id) {
+          eventBus.emit("usersChanged");
+        }
+        notify.showSuccessToast(this.$t("settings.userUpdated"));
+      } catch (e) {
+        notify.showError(e);
+      }
     },
     emitUserUpdate() {
       // Update the user object with current scopes

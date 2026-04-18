@@ -241,7 +241,7 @@
     "unarchiveDestination": "Extraer a:",
     "unarchiveSuccess": "¡Archivo extraído con éxito!",
     "downloadFailed": "Fallo en la descarga por trozos. Si se repite, intente reducir el tamaño de los trozos: {message}",
-    "confirmPasswordToChangeUserPassword": "Introduzca su contraseña actual para autorizar este cambio de contraseña."
+    "confirmPasswordToSaveUser": "Introduzca su contraseña actual para guardar estos cambios de usuario."
   },
   "search": {
     "smallerThan": "Menor que:",
@@ -542,7 +542,8 @@
     "enabledSuccessfully": "¡2FA activado!",
     "verificationFailed": "No se pudo autenticar",
     "verificationSucceed": "¡Verificación exitosa!",
-    "generationFailed": "Hubo un error al generar el código"
+    "generationFailed": "Hubo un error al generar el código",
+    "passwordRequiredForGeneration": "Su contraseña es necesaria para generar un código autenticador."
   },
   "general": {
     "name": "Nombre",

@@ -160,25 +160,46 @@ export const mutations = {
     emitStateChanged();
   },
   setSources: (user) => {
-    const currentSource = user.scopes.length > 0 ? user.scopes[0].name : "";
+    // Rebuilding sources from /api/users must not wipe stats already merged from
+    // /api/settings/sources, SSE, or a prior validateLogin — otherwise the sidebar
+    // shows "unknown"/red until a full page reload (common after OTP: initAuth then
+    // router beforeResolve both refresh the user).
+    const sameUser = Boolean(state.user && user.username === state.user.username);
+    const prevInfo = sameUser && state.sources?.info ? state.sources.info : {};
+    let currentSource = user.scopes.length > 0 ? user.scopes[0].name : "";
+    if (
+      sameUser &&
+      state.sources?.current &&
+      user.scopes.some((s) => s.name === state.sources.current)
+    ) {
+      currentSource = state.sources.current;
+    }
     let sources = {info: {}, current: currentSource, count: user.scopes.length};
     for (const source of user.scopes) {
+      const prev = prevInfo[source.name];
+      const merge = Boolean(prev);
       sources.info[source.name] = {
         pathPrefix: sources.count == 1 ? "" : encodeURIComponent(source.name),
-        used: 0,
-        total: 0,
-        usedAlt: 0,
-        usedPercentage: 0,
-        status: "unknown",
-        name: source.name,
-        files: 0,
-        folders: 0,
-        lastIndex: 0,
-        quickScanDurationSeconds: 0,
-        fullScanDurationSeconds: 0,
-        complexity: 0,
+        used: merge ? prev.used : 0,
+        total: merge ? prev.total : 0,
+        usedAlt: merge ? prev.usedAlt : 0,
+        usedPercentage: merge ? prev.usedPercentage : 0,
+        status: merge ? prev.status : "unknown",
+        name: merge ? prev.name : source.name,
+        files: merge ? prev.files : 0,
+        folders: merge ? prev.folders : 0,
+        lastIndex: merge ? prev.lastIndex : 0,
+        quickScanDurationSeconds: merge ? prev.quickScanDurationSeconds : 0,
+        fullScanDurationSeconds: merge ? prev.fullScanDurationSeconds : 0,
+        complexity: merge ? prev.complexity : 0,
+        scanners: merge && prev.scanners ? [...prev.scanners] : [],
       };
     }
+    // Sidebar usage bar uses hasSourceInfo + per-source used/total; must survive object replace
+    sources.hasSourceInfo = user.scopes.some((s) => {
+      const e = sources.info[s.name];
+      return e && (e.total > 0 || e.used > 0 || e.usedAlt > 0);
+    });
     // Check if user has custom sidebar links with sources
     let targetSource = sources.current;
     if (state.user?.sidebarLinks && state.user.sidebarLinks.length > 0) {
@@ -200,7 +221,7 @@ export const mutations = {
     }
     state.user.gallerySize = value
     emitStateChanged();
-    usersApi.update(state.user, ['gallerySize']);
+    void usersApi.update(state.user, ['gallerySize']).catch((e) => notify.showError(e));
   },
   setActiveSettingsView: (value) => {
     if (value == state.activeSettingsView) {
@@ -535,7 +556,7 @@ export const mutations = {
       value.id = state.user.id;
       value.username = state.user?.username;
       if (updatedProperties.length > 0) {
-        usersApi.update(value, updatedProperties);
+        void usersApi.update(value, updatedProperties).catch((e) => notify.showError(e));
       }
     }
     // Emit state change event

@@ -241,7 +241,7 @@
     "unarchiveDestination": "חלץ אל:",
     "unarchiveSuccess": "הארכיון חולץ בהצלחה!",
     "downloadFailed": "ההורדה המקוטעת נכשלה - אם הבעיה חוזרת על עצמה, נסה להקטין את גודל החלקים: {message}",
-    "confirmPasswordToChangeUserPassword": "הזן את הסיסמה הנוכחית שלך כדי לאשר את שינוי הסיסמה."
+    "confirmPasswordToSaveUser": "הזן את הסיסמה הנוכחית שלך כדי לשמור את שינויי המשתמש."
   },
   "search": {
     "smallerThan": "קטן מ:",
@@ -542,7 +542,8 @@
     "enabledSuccessfully": "OTP הופעל בהצלחה",
     "verificationFailed": "האימות נכשל",
     "verificationSucceed": "האימות הצליח",
-    "generationFailed": "דור שנכשל"
+    "generationFailed": "דור שנכשל",
+    "passwordRequiredForGeneration": "יש להזין את הסיסמה שלך כדי ליצור קוד אימות."
   },
   "general": {
     "name": "שם",

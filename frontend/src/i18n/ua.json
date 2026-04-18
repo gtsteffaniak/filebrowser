@@ -241,7 +241,7 @@
     "unarchiveDestination": "Витягнути до:",
     "unarchiveSuccess": "Архів успішно розпаковано!",
     "downloadFailed": "Не вдалося завантажити фрагмент - якщо це повториться, спробуйте зменшити розмір фрагмента: {message}",
-    "confirmPasswordToChangeUserPassword": "Введіть ваш поточний пароль, щоб дозволити зміну пароля."
+    "confirmPasswordToSaveUser": "Введіть ваш поточний пароль, щоб зберегти зміни користувача."
   },
   "search": {
     "smallerThan": "Менше, ніж:",
@@ -542,7 +542,8 @@
     "enabledSuccessfully": "OTP успішно ввімкнено",
     "verificationFailed": "Перевірка не вдалася",
     "verificationSucceed": "Перевірка пройшла успішно",
-    "generationFailed": "Покоління зазнало невдачі"
+    "generationFailed": "Покоління зазнало невдачі",
+    "passwordRequiredForGeneration": "Ваш пароль необхідний для генерації коду автентифікатора."
   },
   "fileLoading": {
     "title": "Завантаження та вивантаження",

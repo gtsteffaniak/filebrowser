@@ -241,7 +241,7 @@
     "unarchiveDestination": "Özetle:",
     "unarchiveSuccess": "Arşiv başarıyla çıkarıldı!",
     "downloadFailed": "Yığın indirme başarısız oldu - bu tekrarlanırsa yığın boyutunu küçültmeyi deneyin: {message}",
-    "confirmPasswordToChangeUserPassword": "Bu şifre değişikliğini onaylamak için mevcut şifrenizi girin."
+    "confirmPasswordToSaveUser": "Bu kullanıcı değişikliklerini kaydetmek için mevcut şifrenizi girin."
   },
   "search": {
     "smallerThan": "Daha küçük:",
@@ -542,7 +542,8 @@
     "enabledSuccessfully": "OTP başarıyla etkinleştirildi",
     "verificationFailed": "Doğrulama Başarısız",
     "verificationSucceed": "Doğrulama Başarılı",
-    "generationFailed": "Nesil Başarısız"
+    "generationFailed": "Nesil Başarısız",
+    "passwordRequiredForGeneration": "Kimlik doğrulayıcı kodu oluşturmak için parolanız gereklidir."
   },
   "general": {
     "name": "İsim",

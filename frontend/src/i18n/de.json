@@ -241,7 +241,7 @@
     "unarchiveDestination": "Auszug zu:",
     "unarchiveSuccess": "Archiv erfolgreich entpackt!",
     "downloadFailed": "Chunked Download fehlgeschlagen - falls sich dies wiederholt, versuchen Sie, die Chunk-Größe zu verringern: {message}",
-    "confirmPasswordToChangeUserPassword": "Geben Sie Ihr aktuelles Passwort ein, um diese Passwortänderung zu autorisieren."
+    "confirmPasswordToSaveUser": "Geben Sie Ihr aktuelles Kennwort ein, um die Benutzeränderungen zu speichern."
   },
   "search": {
     "smallerThan": "Kleiner als:",
@@ -542,7 +542,8 @@
     "enabledSuccessfully": "OTP erfolgreich aktiviert",
     "verificationFailed": "Verifizierung fehlgeschlagen",
     "verificationSucceed": "Überprüfung Erfolgreich",
-    "generationFailed": "Generation gescheitert"
+    "generationFailed": "Generation gescheitert",
+    "passwordRequiredForGeneration": "Ihr Passwort ist erforderlich, um einen Authentifizierungscode zu generieren."
   },
   "general": {
     "name": "Name",

@@ -101,7 +101,6 @@ export async function logout() {
 
 export async function initAuth() {
   if (!getters.isShare()) {
-    console.log("validating login");
     await validateLogin();
   }
   if (globalVars.recaptcha) {

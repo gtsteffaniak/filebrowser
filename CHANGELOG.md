@@ -12,14 +12,28 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.3.5
 
+ **Notes**:
+ - any password change or admin user property change for a password user requires reauthentication (#2112)
+
  **BugFixes**:
  - PWA icon fixes (#2292)
+ - deny-rule'd folders visible in directory listings (regression from v1.2.4-stable) (#2295)
+ - OTP and password requirement fixes (#2112) (#2263)
+ - CLI not picking up config properly
+ - Storage usage numbers on first load adjusted.
+ - Some items in userDefaults are not setting defaults for new users properly #2278
+ - Fix copy to clipboard and simplify code (#2281) (#2274)
+ - Fix search shortcut `/` and pdf previews (#2307)
+ - Special permissions bit not set when declared in createDirectoryPermission (#2283)
+ - Execute permission altered after editing sh script with FB Quantum (#2309)
+ - Source is red but working (#2289)
 
 ## v1.3.4
 
  **New Features**:
  - Epub placementg url anchors to bookmark a specific location on the doc.
  - Add Requirement for Current Password When Changing Account Password (#2112)
+ - Copy file path to clipborad through right click (#2204)
 
  **Notes**:
  - user scope editing has path picker and filesystem validation

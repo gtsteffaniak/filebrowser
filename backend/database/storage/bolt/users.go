@@ -74,11 +74,6 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 		return err
 	}
 
-	passwordUser := existingUser.LoginMethod == users.LoginMethodPassword
-	enforcedOtp := settings.Config.Auth.Methods.PasswordAuth.EnforcedOtp
-	if passwordUser && enforcedOtp && !existingUser.OtpEnabled {
-		return errors.ErrNoTotpConfigured
-	}
 	if user.LoginMethod == "" {
 		user.LoginMethod = existingUser.LoginMethod
 	}
@@ -86,11 +81,21 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 	if err != nil {
 		return err
 	}
-
+	enforcedOtp := settings.Config.Auth.Methods.PasswordAuth.EnforcedOtp
 	if user.LoginMethod == "" {
 		user.LoginMethod = existingUser.LoginMethod
 	}
-
+	if user.TOTPNonce == "" {
+		user.TOTPNonce = existingUser.TOTPNonce
+	}
+	if user.TOTPSecret == "" {
+		user.TOTPSecret = existingUser.TOTPSecret
+	}
+	if user.LoginMethod == users.LoginMethodPassword && enforcedOtp && !user.OtpEnabled {
+		if slices.Contains(fields, "OtpEnabled") {
+			return errors.ErrNoTotpConfigured
+		}
+	}
 	if !slices.Contains(fields, "Password") {
 		user.Password = existingUser.Password
 	} else {

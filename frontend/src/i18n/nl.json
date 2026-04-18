@@ -450,7 +450,7 @@
     "moveFailed": "Verplaatsen mislukt",
     "operationFailed": "Bewerking is mislukt",
     "partialSuccess": "Enkele bewerkingen zijn mislukt: {succeeded} gelukt, {failed} mislukt.",
-    "confirmPasswordToChangeUserPassword": "Voer uw huidige wachtwoord in om deze wachtwoordwijziging te autoriseren."
+    "confirmPasswordToSaveUser": "Voer uw huidige wachtwoord in om deze gebruikerswijzigingen op te slaan."
   },
   "search": {
     "searchContext": "Zoekcontext: {context}",
@@ -738,7 +738,8 @@
     "enabledSuccessfully": "OTP succesvol ingeschakeld",
     "verificationFailed": "Verificatie is mislukt",
     "verificationSucceed": "Verificatie is geslaagd",
-    "generationFailed": "Aanmaken is mislukt"
+    "generationFailed": "Aanmaken is mislukt",
+    "passwordRequiredForGeneration": "Uw wachtwoord is nodig om een verificatiecode te genereren."
   },
   "access": {
     "all": "Alles weigeren",

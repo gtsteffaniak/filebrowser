@@ -241,7 +241,7 @@
     "unarchiveDestination": "Uittreksel naar:",
     "unarchiveSuccess": "Archief met succes uitgepakt!",
     "downloadFailed": "Chunkedownload mislukt - als dit zich herhaalt, probeer dan de grootte van de chunk te verkleinen: {message}",
-    "confirmPasswordToChangeUserPassword": "Voer uw huidige wachtwoord in om deze wachtwoordwijziging te autoriseren."
+    "confirmPasswordToSaveUser": "Voer uw huidige wachtwoord in om deze gebruikerswijzigingen op te slaan."
   },
   "search": {
     "smallerThan": "Kleiner dan:",
@@ -542,7 +542,8 @@
     "enabledSuccessfully": "OTP succesvol ingeschakeld",
     "verificationFailed": "Verificatie mislukt",
     "verificationSucceed": "Verificatie slagen",
-    "generationFailed": "Generatie mislukt"
+    "generationFailed": "Generatie mislukt",
+    "passwordRequiredForGeneration": "Uw wachtwoord is nodig om een verificatiecode te genereren."
   },
   "fileLoading": {
     "title": "Uploaden en downloads",

@@ -54,9 +54,13 @@ commands:
 }
 
 func StartFilebrowser() {
-	keepGoing := runCLI()
+	keepGoing, dbExists := runCLI()
 	if !keepGoing {
 		return
+	}
+	database := fmt.Sprintf("Using existing database  : %v", settings.Config.Server.Database)
+	if !dbExists {
+		database = fmt.Sprintf("Creating new database    : %v", settings.Config.Server.Database)
 	}
 	if !settings.Config.Server.DisableUpdateCheck {
 		info, _ := utils.CheckForUpdates()
@@ -76,11 +80,6 @@ func StartFilebrowser() {
 
 	done := make(chan struct{})             // Signals server has stopped
 	shutdownComplete := make(chan struct{}) // Signals shutdown process is complete
-	dbExists := getStore(configPath)
-	database := fmt.Sprintf("Using existing database  : %v", settings.Config.Server.Database)
-	if !dbExists {
-		database = fmt.Sprintf("Creating new database    : %v", settings.Config.Server.Database)
-	}
 
 	// Dev mode enables development features like template hot-reloading
 	_, err := os.Stat("http/dist")

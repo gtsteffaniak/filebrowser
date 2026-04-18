@@ -241,7 +241,7 @@
     "unarchiveDestination": "추출 대상:",
     "unarchiveSuccess": "아카이브가 성공적으로 추출되었습니다!",
     "downloadFailed": "청크 다운로드에 실패했습니다 - 이 문제가 반복되면 청크 크기를 줄여 보세요: {message}",
-    "confirmPasswordToChangeUserPassword": "비밀번호 변경을 승인하려면 현재 비밀번호를 입력하세요."
+    "confirmPasswordToSaveUser": "이러한 사용자 변경 사항을 저장하려면 현재 비밀번호를 입력합니다."
   },
   "search": {
     "smallerThan": "보다 작습니다:",
@@ -542,7 +542,8 @@
     "enabledSuccessfully": "OTP 활성화 성공",
     "verificationFailed": "인증 실패",
     "verificationSucceed": "인증 성공",
-    "generationFailed": "세대 실패"
+    "generationFailed": "세대 실패",
+    "passwordRequiredForGeneration": "인증 코드를 생성하려면 비밀번호가 필요합니다."
   },
   "general": {
     "name": "이름",
