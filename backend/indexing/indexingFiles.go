@@ -86,7 +86,7 @@ type Stats struct {
 	Complexity      uint      `json:"complexity"`
 	LastScanned     time.Time `json:"lastScanned"`
 	UsedAsIndexed   uint64    `json:"used"`
-	UsedAlt         uint64    `json:"usedAlt"`
+	UsedDisk        uint64    `json:"usedAlt"`
 	DiskTotal       uint64    `json:"total"`
 }
 
@@ -1524,6 +1524,7 @@ func (idx *Index) SetUsage(totalDiskSize, partitionUsed, UsedAsIndexed uint64) {
 	defer idx.mu.Unlock()
 	idx.DiskTotal = totalDiskSize
 	idx.UsedAsIndexed = UsedAsIndexed
+	idx.UsedDisk = partitionUsed
 }
 
 func (idx *Index) SetStatus(status IndexStatus) error {
