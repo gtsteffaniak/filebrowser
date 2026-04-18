@@ -201,7 +201,8 @@ export const mutations = {
     state.user.gallerySize = value
     const isAnonymous = state.user.username === 'anonymous';
     if (!isAnonymous) {
-      localStorage.setItem(`GallerySize_${state.user.username}`, value);
+      const encoded = url.base64Encode(state.user.username);
+      localStorage.setItem(`GallerySize_${encoded}`, value);
     }
     emitStateChanged();
   },
@@ -400,8 +401,9 @@ export const mutations = {
 
       // Load stored values or use defaults as fallback
       const isAnonymous = state.user.username === 'anonymous';
-      let viewMode = (!isAnonymous && localStorage.getItem(`ViewMode_${state.user.username}`)) || state.user.viewMode || 'normal';
-      let gallerySize = (!isAnonymous && parseInt(localStorage.getItem(`GallerySize_${state.user.username}`))) || state.user.gallerySize || 3;
+      const encoded = !isAnonymous ? url.base64Encode(state.user.username) : '';
+      let viewMode = (!isAnonymous && localStorage.getItem(`ViewMode_${encoded}`)) || state.user.viewMode || 'normal';
+      let gallerySize = (!isAnonymous && parseInt(localStorage.getItem(`GallerySize_${encoded}`))) || state.user.gallerySize || 3;
       gallerySize = Math.min(9, Math.max(1, gallerySize)); // ensure 1–9 since this is the slider min and max size
 
       // Normalize to use the view families too
@@ -416,8 +418,8 @@ export const mutations = {
       state.user.gallerySize = gallerySize;
 
       if (!isAnonymous) {
-        localStorage.setItem(`ViewMode_${state.user.username}`, viewMode);
-        localStorage.setItem(`GallerySize_${state.user.username}`, gallerySize);
+        localStorage.setItem(`ViewMode_${encoded}`, viewMode);
+        localStorage.setItem(`GallerySize_${encoded}`, gallerySize);
       }
 
       // Load display preferences for the current user
@@ -532,10 +534,12 @@ export const mutations = {
     const isAnonymous = state.user.username === 'anonymous';
 
     if (value.viewMode !== undefined && !isAnonymous) {
-      localStorage.setItem(`ViewMode_${state.user.username}`, value.viewMode);
+      const encoded = url.base64Encode(state.user.username);
+      localStorage.setItem(`ViewMode_${encoded}`, value.viewMode);
     }
     if (value.gallerySize !== undefined && !isAnonymous) {
-      localStorage.setItem(`GallerySize_${state.user.username}`, value.gallerySize);
+      const encoded = url.base64Encode(state.user.username);
+      localStorage.setItem(`GallerySize_${encoded}`, value.gallerySize);
     }
 
     // Handle locale change
