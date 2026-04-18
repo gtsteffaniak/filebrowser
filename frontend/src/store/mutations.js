@@ -199,9 +199,9 @@ export const mutations = {
       return;
     }
     state.user.gallerySize = value
-    const isAnonymous = state.user?.id === 0;
+    const isAnonymous = state.user.username === 'anonymous';
     if (!isAnonymous) {
-      localStorage.setItem(`GallerySize_${state.user.id}`, value);
+      localStorage.setItem(`GallerySize_${state.user.username}`, value);
     }
     emitStateChanged();
   },
@@ -399,9 +399,9 @@ export const mutations = {
       }
 
       // Load stored values or use defaults as fallback
-      const isAnonymous = state.user?.id === 0;
-      let viewMode = (!isAnonymous && localStorage.getItem(`ViewMode_${state.user.id}`)) || state.user.viewMode || 'normal';
-      let gallerySize = (!isAnonymous && parseInt(localStorage.getItem(`GallerySize_${state.user.id}`))) || state.user.gallerySize || 3;
+      const isAnonymous = state.user.username === 'anonymous';
+      let viewMode = (!isAnonymous && localStorage.getItem(`ViewMode_${state.user.username}`)) || state.user.viewMode || 'normal';
+      let gallerySize = (!isAnonymous && parseInt(localStorage.getItem(`GallerySize_${state.user.username}`))) || state.user.gallerySize || 3;
       gallerySize = Math.min(9, Math.max(1, gallerySize)); // ensure 1–9 since this is the slider min and max size
 
       // Normalize to use the view families too
@@ -416,8 +416,8 @@ export const mutations = {
       state.user.gallerySize = gallerySize;
 
       if (!isAnonymous) {
-        localStorage.setItem(`ViewMode_${state.user.id}`, viewMode);
-        localStorage.setItem(`GallerySize_${state.user.id}`, gallerySize);
+        localStorage.setItem(`ViewMode_${state.user.username}`, viewMode);
+        localStorage.setItem(`GallerySize_${state.user.username}`, gallerySize);
       }
 
       // Load display preferences for the current user
@@ -529,13 +529,13 @@ export const mutations = {
     // Merge the new values into the current user state
     state.user = { ...state.user, ...value };
 
-    const isAnonymous = state.user?.id === 0;
+    const isAnonymous = state.user.username === 'anonymous';
 
     if (value.viewMode !== undefined && !isAnonymous) {
-      localStorage.setItem(`ViewMode_${state.user.id}`, value.viewMode);
+      localStorage.setItem(`ViewMode_${state.user.username}`, value.viewMode);
     }
     if (value.gallerySize !== undefined && !isAnonymous) {
-      localStorage.setItem(`GallerySize_${state.user.id}`, value.gallerySize);
+      localStorage.setItem(`GallerySize_${state.user.username}`, value.gallerySize);
     }
 
     // Handle locale change
@@ -773,7 +773,7 @@ export const mutations = {
       ...payload,
     };
 
-    const isAnonymous = state.user.id === 0;
+    const isAnonymous = state.user.username === 'anonymous';
     if (!isAnonymous) {
       const allPreferences = JSON.parse(localStorage.getItem("displayPreferences") || "{}");
       if (!allPreferences[state.user.username]) {
