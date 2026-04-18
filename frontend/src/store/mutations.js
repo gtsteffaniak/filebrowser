@@ -199,8 +199,9 @@ export const mutations = {
       return;
     }
     state.user.gallerySize = value
+    const storageKey = `GallerySize_${state.user.id}`;
+    localStorage.setItem(storageKey, value);
     emitStateChanged();
-    usersApi.update(state.user, ['gallerySize']);
   },
   setActiveSettingsView: (value) => {
     if (value == state.activeSettingsView) {
@@ -395,6 +396,24 @@ export const mutations = {
         }
       }
 
+      // Load stored values or use defaults as fallback
+      let viewMode = localStorage.getItem(`ViewMode_${state.user.id}`) || state.user.viewMode || 'normal';
+      let gallerySize = parseInt(localStorage.getItem(`GallerySize_${state.user.id}`)) || state.user.gallerySize || 3;
+      gallerySize = Math.min(9, Math.max(1, gallerySize)); // ensure 1–9 since this is the slider min and max size
+
+      // Normalize to use the view families too
+      // for example if someone sets 'gallery' with size of 1 in the config file
+      if (viewMode === 'gallery' || viewMode === 'icons') {
+        viewMode = gallerySize <= 4 ? 'icons' : 'gallery';
+      } else if (viewMode === 'list' || viewMode === 'compact') {
+        viewMode = gallerySize <= 3 ? 'compact' : 'list';
+      }
+
+      state.user.viewMode = viewMode;
+      state.user.gallerySize = gallerySize;
+      localStorage.setItem(`ViewMode_${state.user.id}`, viewMode);
+      localStorage.setItem(`GallerySize_${state.user.id}`, gallerySize);
+
       // Load display preferences for the current user
       const allPreferences = JSON.parse(localStorage.getItem("displayPreferences") || "{}");
       state.displayPreferences = allPreferences[state.user.username] || {};
@@ -503,9 +522,18 @@ export const mutations = {
 
     // Merge the new values into the current user state
     state.user = { ...state.user, ...value };
+
+    if (value.viewMode !== undefined) {
+      const viewModeKey = `ViewMode_${state.user.id}`;
+      localStorage.setItem(viewModeKey, value.viewMode);
+    }
+    if (value.gallerySize !== undefined) {
+      const galleryKey = `GallerySize_${state.user.id}`;
+      localStorage.setItem(galleryKey, value.gallerySize);
+    }
+
     // Handle locale change
     if (state.user.locale !== previousUser.locale) {
-      //state.user.locale = i18n.detectLocale();
       i18n.setLocale(state.user.locale);
       i18n.default.locale = state.user.locale;
       localStorage.setItem("userLocale", state.user.locale);
@@ -525,8 +553,6 @@ export const mutations = {
           "darkMode",
           "showHidden",
           "sorting",
-          "gallerySize",
-          "viewMode",
           "showFirstLogin",
           "sidebarLinks",
           "fileLoading",

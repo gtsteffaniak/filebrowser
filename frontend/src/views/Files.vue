@@ -531,7 +531,7 @@ export default {
     },
     keyEvent(event) {
       // F1!
-      if (event.key === "F1" && !event.ctrlKey || event.metaKey) {
+      if (event.key === "F1" && !event.ctrlKey && !event.metaKey) {
         event.preventDefault();
         mutations.setSearch(false);
         if (!getters.currentPromptName()) {
