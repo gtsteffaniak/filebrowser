@@ -56,7 +56,7 @@ export const state = reactive({
     loginType: "",
     username: "",
     quickDownloadEnabled: false,
-    gallerySize: 0,
+    gallerySize: 3,
     singleClick: false,
     stickySidebar: stickyStartup(),
     hideFilesInTree: false,

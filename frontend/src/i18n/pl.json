@@ -75,7 +75,12 @@
     "mouseActions": "Akcje Myszy",
     "fileOperations": "Operacje na Plikach",
     "click": "wybierz plik lub foler",
+    "dbClick": "Kliknij dwukrotnie na pustym obszarze, aby zaznaczyć wszystkie elementy",
     "ctrl": {
+      "f1": "Przełącz na widok listy",
+      "f2": "Przełącz na widok normalny",
+      "f3": "Przełącz na widok galerii",
+      "scroll": "Zmień rozmiar listy i czcionki edytora",
       "click": "wybierz wiele plików lub folderów",
       "d": "Pobierz wybrane elementy",
       "b": "przełączanie paska bocznego",
@@ -101,6 +106,7 @@
       "volume": "Zwiększ lub zmniejsz głośność",
       "mute": "Wycisz/Włącz dźwięk",
       "loop": "Przełącz między pętlą a trybem pojedynczym",
+      "playbackQueue": "Otwórz kolejkę odtwarzania",
       "playbackModes": "Przełącz między trybami odtwarzania (z wyłączeniem pętli i pojedynczego)",
       "fullscreen": "Przełącz tryb pełnoekranowy w wideo",
       "captions": "Włącz/Wyłącz napisy"

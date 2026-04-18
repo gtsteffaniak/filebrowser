@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file. For commit 
 
  **New Features**:
  - Add config option to disable /health endpoint logging (#2291)
+ - More shortcuts (#2300)
+   - `CTRL+F1` switch to normal view.
+   - `CTRL+F2` switch to gallery view.
+   - `CTRL+F3` switch to list view.
+   - `Double click` on empty space to select all items.
 
  **Notes**:
  - Enhanced indexing scheduler which doesn't wake the disk as often.

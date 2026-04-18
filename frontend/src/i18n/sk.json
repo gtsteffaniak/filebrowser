@@ -75,7 +75,12 @@
     "mouseActions": "Akcie Myši",
     "fileOperations": "Operácie so Súbormi",
     "click": "vyberie súbor alebo priečinok",
+    "dbClick": "Dvojitým kliknutím na prázdne miesto vyberte všetky položky",
     "ctrl": {
+      "f1": "Prepnúť na zobrazenie zoznamu",
+      "f2": "Prepnúť na normálne zobrazenie",
+      "f3": "Prepnúť na zobrazenie galérie",
+      "scroll": "Zmeniť veľkosť zoznamu a písma editora",
       "click": "vyberie viac súborov alebo priečinkov",
       "d": "stiahnuť vybrané položky",
       "b": "prepínanie bočného panela",
@@ -101,6 +106,7 @@
       "volume": "Zvýšiť alebo znížiť hlasitosť",
       "mute": "Stlmiť/Zapnúť zvuk",
       "loop": "Prepnúť medzi slučkou a jednotlivým režimom",
+      "playbackQueue": "Otvoriť front prehrávania",
       "playbackModes": "Prepnúť režimy prehrávania (okrem slučky a jednotlivého)",
       "fullscreen": "Prepnúť režim celej obrazovky vo videách",
       "captions": "Zapnúť/Vypnúť titulky"

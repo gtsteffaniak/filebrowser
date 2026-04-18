@@ -75,7 +75,12 @@
     "mouseActions": "Ações do Mouse",
     "fileOperations": "Operações de Arquivos",
     "click": "selecionar pasta ou arquivo",
+    "dbClick": "Clique duas vezes em um espaço vazio para selecionar todos os itens",
     "ctrl": {
+      "f1": "Alternar para visualização em lista",
+      "f2": "Alternar para visualização normal",
+      "f3": "Alternar para visualização em galeria",
+      "scroll": "Alterar tamanhos da lista e da fonte do editor",
       "click": "selecionar várias pastas e arquivos",
       "d": "baixar itens selecionados",
       "b": "alternar a barra lateral",
@@ -101,6 +106,7 @@
       "volume": "Aumentar ou diminuir o volume",
       "mute": "Silenciar/Ativar som",
       "loop": "Alternar entre modo repetição e modo único",
+      "playbackQueue": "Abrir fila de reprodução",
       "playbackModes": "Alternar entre modos de reprodução (exceto repetição e único)",
       "fullscreen": "Alternar modo de tela cheia em vídeos",
       "captions": "Ativar/Desativar legendas"

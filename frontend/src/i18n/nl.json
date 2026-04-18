@@ -209,8 +209,13 @@
     "mouseActions": "Muisacties",
     "fileOperations": "Bestandsbewerkingen",
     "click": "selecteer bestand of map",
+    "dbClick": "Dubbelklik op een lege ruimte om alle items te selecteren",
     "marqueeSelect": "selecteer meerdere bestanden of mappen door over lege ruimte te slepen",
     "ctrl": {
+      "f1": "Overschakelen naar lijstweergave",
+      "f2": "Overschakelen naar normale weergave",
+      "f3": "Overschakelen naar galerijweergave",
+      "scroll": "Grootte van de lijst en het editorlettertype wijzigen",
       "click": "meerdere bestanden of mappen selecteren",
       "c": "geselecteerde items kopiëren",
       "v": "gekopieerde/geknipte items plakken",
@@ -235,6 +240,7 @@
       "volume": "Volume omhoog of omlaag",
       "mute": "Geluid dempen/inschakelen",
       "loop": "Schakel tussen herhalen en enkelvoudige modus",
+      "playbackQueue": "Afspeellijst openen",
       "playbackModes": "Schakel tussen afspeelmodi (behalve herhalen en enkelvoudig)",
       "fullscreen": "Volledig scherm modus voor video's",
       "captions": "Ondertiteling aan/uit"

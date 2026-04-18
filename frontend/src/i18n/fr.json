@@ -75,7 +75,12 @@
     "mouseActions": "Actions de la Souris",
     "fileOperations": "Opérations sur les Fichiers",
     "click": "sélectionner un élément",
+    "dbClick": "Double-cliquez sur un espace vide pour sélectionner tous les éléments",
     "ctrl": {
+      "f1": "Passer à la vue en liste",
+      "f2": "Passer à la vue normale",
+      "f3": "Passer à la vue galerie",
+      "scroll": "Modifier la taille de la liste et la police de l'éditeur",
       "click": "sélectionner plusieurs éléments",
       "d": "télécharger les éléments sélectionnés",
       "b": "barre latérale à bascule",
@@ -101,6 +106,7 @@
       "volume": "Augmenter ou diminuer le volume",
       "mute": "Activer/Désactiver le son",
       "loop": "Basculer entre mode répétition et mode unique",
+      "playbackQueue": "Ouvrir la file de lecture",
       "playbackModes": "Basculer entre les modes de lecture (hors répétition et unique)",
       "fullscreen": "Basculer en plein écran pour les vidéos",
       "captions": "Activer/Désactiver les sous-titres"

@@ -75,7 +75,12 @@
     "mouseActions": "Musåtgärder",
     "fileOperations": "Filoperationer",
     "click": "välj fil eller mapp",
+    "dbClick": "Dubbelklicka på ett tomt utrymme för att markera alla objekt",
     "ctrl": {
+      "f1": "Växla till listvy",
+      "f2": "Växla till normal vy",
+      "f3": "Växla till gallerivy",
+      "scroll": "Ändra storlek på listan och redigerarens typsnitt",
       "click": "välj flera filer eller mappar",
       "d": "ladda ner valda artiklar",
       "b": "växla sidofält",
@@ -101,6 +106,7 @@
       "volume": "Höj eller sänk volymen",
       "mute": "Stäng av/Slå på ljudet",
       "loop": "Växla mellan loop och enkelläge",
+      "playbackQueue": "Öppna uppspelningskö",
       "playbackModes": "Växla mellan uppspelningslägen (exklusive loop och enkel)",
       "fullscreen": "Växla till helskärmsläge i videor",
       "captions": "Slå på/av undertexter"

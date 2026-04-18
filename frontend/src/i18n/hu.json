@@ -75,7 +75,12 @@
     "mouseActions": "Egérműveletek",
     "fileOperations": "Fájlműveletek",
     "click": "mappa vagy fájl kijelölése",
+    "dbClick": "Kattintson duplán egy üres területre az összes elem kiválasztásához",
     "ctrl": {
+      "f1": "Váltás lista nézetre",
+      "f2": "Váltás normál nézetre",
+      "f3": "Váltás galéria nézetre",
+      "scroll": "A lista és a szerkesztő betűméretének módosítása",
       "click": "több mappa vagy fájl kijelölése",
       "d": "kiválasztott elemek letöltése",
       "b": "oldalsáv átkapcsolása",
@@ -101,6 +106,7 @@
       "volume": "Hangerő növelése vagy csökkentése",
       "mute": "Némítás/Behangzás",
       "loop": "Váltás ismétlés és egyszeri mód között",
+      "playbackQueue": "Lejátszási sor megnyitása",
       "playbackModes": "Váltás lejátszási módok között (az ismétlés és egyszeri kivételével)",
       "fullscreen": "Teljes képernyős mód váltása videóknál",
       "captions": "Feliratok be/ki"

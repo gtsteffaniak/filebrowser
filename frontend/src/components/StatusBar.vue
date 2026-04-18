@@ -32,7 +32,7 @@
           <input
             v-model="editorFontSize"
             type="range"
-            min="10"
+            min="8"
             max="24"
             step="1"
           />
@@ -216,7 +216,7 @@ export default {
         }
       } else if (this.currentView === 'editor') {
         event.preventDefault();
-        let newSize = Math.min(24, Math.max(10, this.editorFontSize - delta));
+        let newSize = Math.min(24, Math.max(8, this.editorFontSize - delta));
         if (newSize !== this.editorFontSize) {
           this.editorFontSize = newSize;
         }

@@ -75,7 +75,12 @@
     "mouseActions": "Mausaktionen",
     "fileOperations": "Dateioperationen",
     "click": "Wähle Datei oder Ordner",
+    "dbClick": "Doppelklick auf einen leeren Bereich, um alle Elemente auszuwählen",
     "ctrl": {
+      "f1": "Zur Listenansicht wechseln",
+      "f2": "Zur Normalansicht wechseln",
+      "f3": "Zur Galerieansicht wechseln",
+      "scroll": "Größe der Liste und der Schriftart im Editor ändern",
       "click": "Markiere mehrere Dateien oder Ordner",
       "d": "ausgewählte Artikel herunterladen",
       "b": "Seitenleiste umklappen",
@@ -101,6 +106,7 @@
       "volume": "Lautstärke erhöhen oder verringern",
       "mute": "Ton stummschalten/aktivieren",
       "loop": "Zwischen Schleife und Einzelmodus wechseln",
+      "playbackQueue": "Wiedergabeliste öffnen",
       "playbackModes": "Zwischen Wiedergabemodi wechseln (außer Schleife und Einzelmodus)",
       "fullscreen": "Vollbildmodus bei Videos umschalten",
       "captions": "Untertitel ein-/ausschalten"
