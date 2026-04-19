@@ -68,11 +68,12 @@ export default {
     // Check if state and route are synchronized
     isStateSynced() {
       if (this.viewerMode) return true;
-      if (!this.originalReq) return false;
-      // Share links for a file at the share root use URLs like /public/share/<hash> — the last
-      // segment is the hash, so routeFilename is "" (see routeFilename). Match state by name.
-      if (getters.isShare() && !this.routeFilename) {
-        return !!(this.req && this.originalReq.name === this.req.name);
+      if (!this.originalReq || !this.req) return false;
+      if (getters.isShare()) {
+        const subPath = state.shareInfo?.subPath;
+        if (subPath === undefined || subPath === null) return false;
+        if (!url.pathsMatch(this.req.path, subPath)) return false;
+        return url.pathsMatch(this.originalReq.path, this.req.path);
       }
       if (!this.routeFilename) return false;
       return this.originalReq.name === this.routeFilename;
@@ -83,22 +84,6 @@ export default {
         return this.content || "";
       }
       if (!this.isStateSynced) {
-        if (
-          import.meta.env.DEV &&
-          this.req?.content &&
-          this.req.content !== "empty-file-x6OlSil"
-        ) {
-          console.debug(
-            "[Editor] withholding content until route/state sync",
-            {
-              routeFilename: this.routeFilename,
-              shareHash: getters.shareHash(),
-              reqName: this.req?.name,
-              originalReqName: this.originalReq?.name,
-              isShare: getters.isShare(),
-            }
-          );
-        }
         return ""; // Show blank content until synced
       }
       return this.req.content === "empty-file-x6OlSil" ? "" : (this.req.content || "");
