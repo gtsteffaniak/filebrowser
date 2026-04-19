@@ -219,6 +219,7 @@ func fileWatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 			return http.StatusInternalServerError, fmt.Errorf("error checking file type: %v", err)
 		}
 		if isText {
+			response.IsText = true
 			// Read the last N lines for text files only
 			content, err := readLastNLines(realPath, lines)
 			if err != nil {
