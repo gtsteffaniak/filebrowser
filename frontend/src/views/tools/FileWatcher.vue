@@ -490,7 +490,7 @@ export default {
     async fetchFileContent() {
       const startTime = Date.now();
       try {
-        const data = await toolsApi.fileWatcher(this.selectedSource, this.filePath);
+        const data = await toolsApi.fileWatcher(this.selectedSource, this.filePath, this.selectedLines);
 
         const latency = Date.now() - startTime;
         this.currentLatency = latency;

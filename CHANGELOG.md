@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file. For commit 
 ## v1.3.6
 
  **BugFixes**:
- - file watcher not working for files (#2314)
+ - file watcher not working for files and not respecting line count (#2314)
  - "source" type link shows up multiple times when adding sidebar links if user has multiple sources.
  - JWT ES256 results in error (#2188)
 
