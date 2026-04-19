@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file. For commit 
  **BugFixes**:
  - file watcher not working for files (#2314)
  - "source" type link shows up multiple times when adding sidebar links if user has multiple sources.
- - Load adminPassword from env does not work #2317
+ - JWT ES256 results in error (#2188)
 
 ## v1.3.5
 

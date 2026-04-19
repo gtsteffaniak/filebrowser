@@ -197,18 +197,17 @@ func fileWatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 
 	// Get MIME type from the index if available
 	mimeType := "application/octet-stream"
-	reducedInfo, exists := idx.GetReducedMetadata(scopePath, info.IsDir())
-	metaSize := info.Size()
-	if exists && reducedInfo != nil {
-		if reducedInfo.Type != "" {
-			mimeType = reducedInfo.Type
-		}
-		metaSize = reducedInfo.Size
+	reducedInfo, exists := idx.GetReducedMetadata(scopePath, false)
+	if exists && reducedInfo.Type != "" {
+		mimeType = reducedInfo.Type
 	}
+
 	response := fileWatchResponse{}
+	// Handle directory - just return metadata, no content
+	response.IsText = false
 	response.Metadata = &fileWatchMetadata{
 		Name:     info.Name(),
-		Size:     metaSize,
+		Size:     0, // Directories don't have a meaningful size
 		Type:     mimeType,
 		Modified: info.ModTime(),
 	}
@@ -370,8 +369,8 @@ func fileWatchSSEHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 
 	// Get MIME type (we'll reuse this)
 	mimeType := "application/octet-stream"
-	reducedInfo, exists := idx.GetReducedMetadata(scopePath, info.IsDir())
-	if exists && reducedInfo != nil && reducedInfo.Type != "" {
+	reducedInfo, exists := idx.GetReducedMetadata(scopePath, false)
+	if exists && reducedInfo.Type != "" {
 		mimeType = reducedInfo.Type
 	}
 
@@ -385,14 +384,14 @@ func fileWatchSSEHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		defer ticker.Stop()
 
 		// Send initial update
-		sendFileWatchUpdate(username, realPath, scopePath, source, lines, mimeType, isDir)
+		sendFileWatchUpdate(username, realPath, path, source, lines, mimeType, isDir)
 
 		for {
 			select {
 			case <-stopTicker:
 				return
 			case <-ticker.C:
-				sendFileWatchUpdate(username, realPath, scopePath, source, lines, mimeType, isDir)
+				sendFileWatchUpdate(username, realPath, path, source, lines, mimeType, isDir)
 			}
 		}
 	}()
@@ -432,7 +431,7 @@ func fileWatchSSEHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 }
 
 // sendFileWatchUpdate reads the file/directory and sends an update via the events system
-func sendFileWatchUpdate(username, realPath, indexPath, indexName string, lines int, mimeType string, isDir bool) {
+func sendFileWatchUpdate(username, realPath, path, source string, lines int, mimeType string, isDir bool) {
 	// Re-check path (in case it was deleted or changed)
 	info, err := os.Stat(realPath)
 	if err != nil {
@@ -442,32 +441,16 @@ func sendFileWatchUpdate(username, realPath, indexPath, indexName string, lines 
 		return
 	}
 
-	// Get the index for the source
-	idx := indexing.GetIndex(indexName)
-	if idx == nil {
-		return
-	}
-
-	// Get MIME type (we'll reuse this)
-	reducedInfo, exists := idx.GetReducedMetadata(indexPath, isDir)
-	if exists && reducedInfo != nil && reducedInfo.Type != "" {
-		mimeType = reducedInfo.Type
-	}
-
 	// Build the SSE event
 	sseEvent := fileWatchSSEEvent{}
 
 	if isDir {
 		// Handle directory - just return metadata, no content
 		sseEvent.IsText = false
-		metaSize := info.Size()
-		if exists && reducedInfo != nil {
-			metaSize = reducedInfo.Size
-		}
 		sseEvent.Metadata = &fileWatchMetadata{
 			Name:     info.Name(),
-			Size:     metaSize,
-			Type:     mimeType,
+			Size:     0, // Directories don't have a meaningful size
+			Type:     "directory",
 			Modified: info.ModTime(),
 		}
 	} else {

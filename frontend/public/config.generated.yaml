@@ -115,7 +115,7 @@ auth:
       disableVerifyTLS: false             # disable TLS verification (insecure, for testing only)
       logoutRedirectUrl: ""               # if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.
       header: ""                          # HTTP header to look for JWT token (e.g. X-JWT-Assertion). Default is "X-JWT-Assertion"
-      secret: ""                          # secret: shared secret key for verifying JWT token signatures (required)
+      secret: ""                          # Shared secret key/bytes for verifying JWT token signatures (required, eg PUBLIC KEY, RSA PUBLIC KEY, EC PUBLIC KEY, or CERTIFICATE)
       algorithm: ""                       # JWT signing algorithm (HS256, HS384, HS512, RS256, ES256). Default is "HS256"
   key: ""                                 # secret: the key used to sign the JWT tokens. If not set, a random key will be generated.
   adminUsername: "admin"                  # secret: the username of the admin user. If not set, the default is "admin".
