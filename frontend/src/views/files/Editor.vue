@@ -68,7 +68,13 @@ export default {
     // Check if state and route are synchronized
     isStateSynced() {
       if (this.viewerMode) return true;
-      if (!this.routeFilename || !this.originalReq) return false;
+      if (!this.originalReq) return false;
+      // Share links for a file at the share root use URLs like /public/share/<hash> — the last
+      // segment is the hash, so routeFilename is "" (see routeFilename). Match state by name.
+      if (getters.isShare() && !this.routeFilename) {
+        return !!(this.req && this.originalReq.name === this.req.name);
+      }
+      if (!this.routeFilename) return false;
       return this.originalReq.name === this.routeFilename;
     },
     // Editor content to display
@@ -77,6 +83,22 @@ export default {
         return this.content || "";
       }
       if (!this.isStateSynced) {
+        if (
+          import.meta.env.DEV &&
+          this.req?.content &&
+          this.req.content !== "empty-file-x6OlSil"
+        ) {
+          console.debug(
+            "[Editor] withholding content until route/state sync",
+            {
+              routeFilename: this.routeFilename,
+              shareHash: getters.shareHash(),
+              reqName: this.req?.name,
+              originalReqName: this.originalReq?.name,
+              isShare: getters.isShare(),
+            }
+          );
+        }
         return ""; // Show blank content until synced
       }
       return this.req.content === "empty-file-x6OlSil" ? "" : (this.req.content || "");
@@ -284,8 +306,6 @@ export default {
           listing = [this.req];
         }
       } else {
-        console.error("No listing found Editor.vue");
-        // Shouldn't happen, but fallback to current item
         listing = [this.req];
       }
 
