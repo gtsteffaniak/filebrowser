@@ -381,7 +381,6 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	}
 
 	if d.user.LoginMethod == users.LoginMethodPassword && !userPutOnlyNonAdminEditableFields(req.Which) {
-		fmt.Println("verifyActorPasswordForUserPut", req.Which)
 		var status int
 		status, err = verifyActorPasswordForUserPut(r, d)
 		if err != nil {
