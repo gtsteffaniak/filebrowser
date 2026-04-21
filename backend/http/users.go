@@ -180,12 +180,14 @@ func normalizeLocale(locale string) string {
 
 // userDeleteHandler deletes a user by ID.
 // @Summary Delete a user by ID
-// @Description Deletes a user identified by their ID.
+// @Description Deletes a user identified by their ID. When the authenticated actor uses password login, they must send their current password in the X-Password header.
 // @Tags Users
 // @Accept json
 // @Produce json
 // @Param id query string true "User ID"
+// @Param X-Password header string false "Actor's current password (URL-encoded); required for password-login actors"
 // @Success 200 "User deleted successfully"
+// @Failure 401 {object} map[string]string "Unauthorized - invalid or missing actor password when required"
 // @Failure 403 {object} map[string]string "Forbidden"
 // @Failure 500 {object} map[string]string "Internal Server Error"
 // @Router /api/users [delete]
@@ -202,8 +204,13 @@ func userDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 		return http.StatusForbidden, fmt.Errorf("cannot delete users without admin permissions")
 	}
 
+	status, err := verifyActorPasswordForUserActions(r, d)
+	if err != nil {
+		return status, err
+	}
+
 	// Delete the user
-	err := store.Users.Delete(givenUserId)
+	err = store.Users.Delete(givenUserId)
 	if err != nil {
 		return errToStatus(err), err
 	}
@@ -212,13 +219,15 @@ func userDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 
 // usersPostHandler creates a new user.
 // @Summary Create a new user
-// @Description Adds a new user to the system.
+// @Description Adds a new user to the system. When the authenticated actor uses password login, they must send their current password in the X-Password header.
 // @Tags Users
 // @Accept json
 // @Produce json
+// @Param X-Password header string false "Actor's current password (URL-encoded); required for password-login actors"
 // @Param data body users.User true "User data to create a new user"
 // @Success 201 {object} users.User "Created user"
 // @Failure 400 {object} map[string]string "Bad Request"
+// @Failure 401 {object} map[string]string "Unauthorized - invalid or missing actor password when required"
 // @Failure 500 {object} map[string]string "Internal Server Error"
 // @Router /api/users [post]
 func usersPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
@@ -247,6 +256,11 @@ func usersPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 
 	if req.User.Password == "" && req.User.LoginMethod == "password" {
 		return http.StatusBadRequest, errors.ErrEmptyPassword
+	}
+
+	status, err := verifyActorPasswordForUserActions(r, d)
+	if err != nil {
+		return status, err
 	}
 
 	err = storage.CreateUser(req.User, req.User.Permissions)
@@ -292,7 +306,7 @@ func userPutOnlyNonAdminEditableFields(which []string) bool {
 
 // verifyActorPasswordForUserPut requires URL-encoded X-Password when the authenticated actor uses
 // password login. Callers should invoke this only when the update requires re-authentication.
-func verifyActorPasswordForUserPut(r *http.Request, d *requestContext) (int, error) {
+func verifyActorPasswordForUserActions(r *http.Request, d *requestContext) (int, error) {
 	if d.user.LoginMethod != users.LoginMethodPassword {
 		return 0, nil
 	}
@@ -382,7 +396,7 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 
 	if d.user.LoginMethod == users.LoginMethodPassword && !userPutOnlyNonAdminEditableFields(req.Which) {
 		var status int
-		status, err = verifyActorPasswordForUserPut(r, d)
+		status, err = verifyActorPasswordForUserActions(r, d)
 		if err != nil {
 			return status, err
 		}

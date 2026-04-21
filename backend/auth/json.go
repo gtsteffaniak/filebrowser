@@ -24,12 +24,12 @@ func (auther JSONAuth) Auth(r *http.Request, userStore *users.Storage) (*users.U
 	username := r.URL.Query().Get("username")
 	recaptcha := r.URL.Query().Get("recaptcha")
 	password := r.Header.Get("X-Password")
+	totpCode := r.Header.Get("X-Secret")
 	// URL-decode password to support special characters in headers
 	password, err := url.QueryUnescape(password)
 	if err != nil {
 		return nil, fmt.Errorf("invalid password encoding: %v", err)
 	}
-	totpCode := r.Header.Get("X-Secret")
 
 	// If ReCaptcha is enabled, check the code.
 	if auther.ReCaptcha != nil && len(auther.ReCaptcha.Secret) > 0 {

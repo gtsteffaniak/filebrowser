@@ -314,7 +314,7 @@ func withoutUserHelper(fn handleFunc) handleFunc {
 }
 
 // allow user without OTP to pass
-func userWithoutOTPhelper(disableOtp bool, fn handleFunc) handleFunc {
+func LoginHelper(disableOtp bool, fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 
 		if config.Auth.Methods.ProxyAuth.Enabled {
@@ -659,8 +659,8 @@ func withoutUser(fn handleFunc) http.HandlerFunc {
 	return wrapHandler(withoutUserHelper(fn))
 }
 
-func userWithoutOTP(disableOtp bool, fn handleFunc) http.HandlerFunc {
-	return wrapHandler(userWithoutOTPhelper(disableOtp, fn))
+func loginHelper(fn handleFunc) http.HandlerFunc {
+	return wrapHandler(LoginHelper(false, fn))
 }
 
 func withSelfOrAdmin(fn handleFunc) http.HandlerFunc {

@@ -414,7 +414,12 @@ export default {
             notify.showError(this.$t("settings.userNotAdmin"));
             return;
           }
-          await usersApi.create({ ...this.user, scopes: scopesToSend });
+          await usersApi.create(
+            { ...this.user, scopes: scopesToSend },
+            {
+              actorPasswordPromptI18nKey: "prompts.confirmPasswordToSaveUser",
+            }
+          );
           // Emit event to refresh user list
           eventBus.emit('usersChanged');
           // Close the prompt
