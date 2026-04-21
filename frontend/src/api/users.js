@@ -169,15 +169,57 @@ export async function update(user, which = ['all'], options = {}) {
 }
 
 // DELETE /api/users (remove user)
-export async function remove(id) {
+// Password-login: tries without X-Password first; on 401 requiring X-Password, opens the prompt and retries.
+// options.skipActorPasswordConfirm / pre-set X-Password skip that flow.
+// options.actorPasswordPromptI18nKey — optional vue-i18n key (default: confirmPasswordToSaveUser).
+export async function remove(id, options = {}) {
+  const mergedHeaders = { ...(options.headers || {}) }
+  const apiPath = getApiPath('users', { id: id })
+
+  const needsActorPasswordRetry = (err) =>
+    state.user?.loginMethod === 'password' &&
+    options.skipActorPasswordConfirm !== true &&
+    mergedHeaders['X-Password'] === undefined &&
+    err &&
+    err.status === 401 &&
+    typeof err.message === 'string' &&
+    err.message.includes('X-Password')
+
   try {
-    const apiPath = getApiPath('users', { id: id })
     await fetchURL(apiPath, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: mergedHeaders,
     })
-  } catch (err) {
-    notify.showError(err.message || `Failed to delete user with ID: ${id}`)
-    throw err
+  } catch (e) {
+    if (!needsActorPasswordRetry(e)) {
+      throw e
+    }
+    const promptKey =
+      options.actorPasswordPromptI18nKey || 'prompts.confirmPasswordToSaveUser'
+    return new Promise((resolve, reject) => {
+      mutations.showPrompt({
+        name: 'password',
+        props: {
+          infoText: i18n.global.t(promptKey),
+          submitLabel: i18n.global.t('general.confirm'),
+          submitCallback: async (actorPassword) => {
+            try {
+              await remove(id, {
+                ...options,
+                headers: {
+                  ...mergedHeaders,
+                  'X-Password': encodeURIComponent(actorPassword),
+                },
+                skipActorPasswordConfirm: true,
+              })
+              resolve(undefined)
+            } catch (err) {
+              reject(err)
+            }
+          },
+        },
+      })
+    })
   }
 }
 
