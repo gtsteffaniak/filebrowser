@@ -374,7 +374,6 @@ export default {
     deletePrompt() {
       mutations.showPrompt({
         name: "generic",
-        pinned: true,
         props: {
           title: this.$t("general.delete"),
           body: this.$t("prompts.deleteUserMessage", { username: this.user.username }),
@@ -383,7 +382,9 @@ export default {
               label: this.$t("general.delete"),
               action: async () => {
                 try {
-                  await usersApi.remove(this.user.id);
+                  await usersApi.remove(this.user.id, {
+                    actorPasswordPromptI18nKey: "prompts.confirmPasswordToSaveUser",
+                  });
                   notify.showSuccessToast(this.$t("settings.userDeleted"));
                   eventBus.emit('usersChanged');
                   mutations.closeTopPrompt(); // close delete user prompt confirmation
@@ -414,7 +415,12 @@ export default {
             notify.showError(this.$t("settings.userNotAdmin"));
             return;
           }
-          await usersApi.create({ ...this.user, scopes: scopesToSend });
+          await usersApi.create(
+            { ...this.user, scopes: scopesToSend },
+            {
+              actorPasswordPromptI18nKey: "prompts.confirmPasswordToSaveUser",
+            }
+          );
           // Emit event to refresh user list
           eventBus.emit('usersChanged');
           // Close the prompt

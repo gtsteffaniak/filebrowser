@@ -2,12 +2,14 @@ import { test, expect } from "../test-setup";
 import { Page } from "@playwright/test";
 
 /**
- * User PUT for admin-only fields returns 401 until X-Password is supplied; the UI opens password-prompt on top.
+ * User POST/PUT/DELETE for sensitive actions return 401 until X-Password is supplied; the UI opens password-prompt on top.
  * Password must match tests/playwright/global-setup.ts (same as two factor auth check).
  */
 async function confirmActorPasswordPrompt(page: Page) {
-    const passwordModal = page.locator('div[aria-label="password-prompt"]');
-    await expect(passwordModal).toBeVisible({ timeout: 3000 });
+    const passwordModal = page.locator(
+        'div[aria-label="password-prompt"]:not(.prompt-behind)'
+    );
+    await expect(passwordModal).toBeVisible();
     await passwordModal.locator("input").fill("admin");
     await passwordModal.locator('button[aria-label="Confirm"]').click();
     await expect(passwordModal).not.toBeVisible();
@@ -32,7 +34,7 @@ test("create, check settings, and delete user (retry-safe name)", async ({
     )
     await page.locator('input[aria-label="Password2"]').fill('testpassword')
 
-    // Just create the user first (listen before click to avoid missing a fast 201).
+    // usersApi.create tries POST without X-Password first; server returns 401, then password-prompt + retry (201).
     const createResponse = page.waitForResponse(
         (resp) =>
             resp.url().includes('/api/users') &&
@@ -40,6 +42,7 @@ test("create, check settings, and delete user (retry-safe name)", async ({
             resp.status() === 201
     );
     await page.locator('button[aria-label="Save"]').click();
+    await confirmActorPasswordPrompt(page);
     await createResponse;
 
     // We should be back on the settings page
@@ -86,11 +89,12 @@ test("create, check settings, and delete user (retry-safe name)", async ({
     const genericModal = page.locator('div[aria-label="generic-prompt"]');
     await expect(genericModal).toBeVisible();
     await genericModal.locator('button[aria-label="Delete"]').click();
+    await confirmActorPasswordPrompt(page);
 
     // After deletion, we should be back on the settings page.
     await expect(page.locator('tr.item', { hasText: username })).not.toBeVisible();
-    // usersApi.update tries PUT without X-Password first; server returns 401, then the UI retries with password (204).
-    checkForErrors(0, 1);
+    // usersApi.create/update/remove try without X-Password first; server returns 401, then the UI retries (201/204/200).
+    checkForErrors(0, 3);
 })
 
 test("two factor auth check", async ({ page, checkForErrors }) => {
@@ -116,7 +120,9 @@ test("two factor auth check", async ({ page, checkForErrors }) => {
     await expect(twoFactorCheckbox).toBeChecked();
     await modal.locator('button[aria-label="Generate Code"]').click();
 
-    const passwordModal = page.locator('div[aria-label="password-prompt"]');
+    const passwordModal = page.locator(
+        'div[aria-label="password-prompt"]:not(.prompt-behind)'
+    );
     // Must match the admin password used in tests/playwright/global-setup.ts (not testuser passwords).
     await passwordModal.locator('input').fill('admin');
     await passwordModal.locator('button[aria-label="Confirm"]').click();

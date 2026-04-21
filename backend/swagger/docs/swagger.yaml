@@ -4136,18 +4136,31 @@ paths:
     delete:
       consumes:
       - application/json
-      description: Deletes a user identified by their ID.
+      description: Deletes a user identified by their ID. When the authenticated actor
+        uses password login, they must send their current password in the X-Password
+        header.
       parameters:
       - description: User ID
         in: query
         name: id
         required: true
         type: string
+      - description: Actor's current password (URL-encoded); required for password-login
+          actors
+        in: header
+        name: X-Password
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: User deleted successfully
+        "401":
+          description: Unauthorized - invalid or missing actor password when required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "403":
           description: Forbidden
           schema:
@@ -4204,8 +4217,14 @@ paths:
     post:
       consumes:
       - application/json
-      description: Adds a new user to the system.
+      description: Adds a new user to the system. When the authenticated actor uses
+        password login, they must send their current password in the X-Password header.
       parameters:
+      - description: Actor's current password (URL-encoded); required for password-login
+          actors
+        in: header
+        name: X-Password
+        type: string
       - description: User data to create a new user
         in: body
         name: data
@@ -4221,6 +4240,12 @@ paths:
             $ref: '#/definitions/users.User'
         "400":
           description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized - invalid or missing actor password when required
           schema:
             additionalProperties:
               type: string
