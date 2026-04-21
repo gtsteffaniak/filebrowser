@@ -9,7 +9,7 @@ async function confirmActorPasswordPrompt(page: Page) {
     const passwordModal = page.locator(
         'div[aria-label="password-prompt"]:not(.prompt-behind)'
     );
-    await expect(passwordModal).toBeVisible({ timeout: 3000 });
+    await expect(passwordModal).toBeVisible();
     await passwordModal.locator("input").fill("admin");
     await passwordModal.locator('button[aria-label="Confirm"]').click();
     await expect(passwordModal).not.toBeVisible();
