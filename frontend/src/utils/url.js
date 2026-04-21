@@ -92,8 +92,7 @@ export function getApiPath(path, params = {}, skipEncode = false, isPublic = fal
       const encodedParams = [];
       for (const key of paramKeys) {
         const value = params[key];
-        if (value === undefined) continue;
-
+        if (value === undefined || value === null || value === "") continue;
         // Handle array values for repeated parameters
         if (Array.isArray(value)) {
           value.forEach(v => {
@@ -110,8 +109,7 @@ export function getApiPath(path, params = {}, skipEncode = false, isPublic = fal
       const queryParams = [];
       for (const key in params) {
         const value = params[key];
-        if (value === undefined) continue;
-
+        if (value === undefined || value === null || value === "") continue;
         // Handle array values for repeated parameters
         if (Array.isArray(value)) {
           value.forEach(v => {
