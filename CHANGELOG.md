@@ -8,7 +8,8 @@ All notable changes to this project will be documented in this file. For commit 
  - creating/deleting password-based user requires reauthentication (#2112)
 
  **BugFixes**:
- - TOTP works for admin but fails for standard users on re-login until Docker is restarted #2330
+ - TOTP works for admin but fails for standard users on re-login until Docker is restarted (#2330)
+ - No Loginfields shown if password authentification is set to false (#2331)
 
 ## v1.3.6
 

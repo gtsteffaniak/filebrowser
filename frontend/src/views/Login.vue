@@ -32,7 +32,7 @@
           <LoadingSpinner size="medium" />
         </div>
         <div v-else class="loginOptions no-padding" key="loginForm">
-          <div v-if="passwordAvailable" class="password-entry">
+          <div v-if="passwordAvailable || ldapAvailable" class="password-entry">
             <div v-if="error !== ''" class="wrong-login card">
               <span>{{ $t("login.failedLogin") }}</span>
               <i class="no-select material-symbols-outlined tooltip-info-icon" @mouseenter="showTooltip($event, error)"
@@ -216,6 +216,7 @@ export default {
     signup: () => globalVars.signup,
     oidcAvailable: () => globalVars.oidcAvailable,
     passwordAvailable: () => globalVars.passwordAvailable,
+    ldapAvailable: () => globalVars.ldapAvailable,
     name: () => globalVars.name || "FileBrowser Quantum",
     loginIconUrl: () => globalVars.loginIcon,
     isDarkMode() {
