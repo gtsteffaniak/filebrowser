@@ -21,6 +21,24 @@ func SetFsPermissions(unixFileMode, unixDirMode uint32) {
 	PermDir = unixModeToFileMode(unixDirMode)
 }
 
+// EffectiveDirPerm returns [PermDir] if [SetFsPermissions] was called, otherwise 0o755. On Unix,
+// [os.Mkdir] with perm 0 fails with permission denied, so use this (or [PermFile]) for creates when
+// the process has not set globals yet.
+func EffectiveDirPerm() os.FileMode {
+	if PermDir == 0 {
+		return 0o755
+	}
+	return PermDir
+}
+
+// EffectiveFilePerm returns [PermFile] if set, otherwise 0o644.
+func EffectiveFilePerm() os.FileMode {
+	if PermFile == 0 {
+		return 0o644
+	}
+	return PermFile
+}
+
 func unixModeToFileMode(u uint32) os.FileMode {
 	m := os.FileMode(u & 0777)
 	if u&0o4000 != 0 {
