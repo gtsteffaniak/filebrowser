@@ -13,7 +13,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"runtime"
 	"sort"
 	"strings"
 	"time"
@@ -25,9 +24,6 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 	"golang.org/x/time/rate"
 )
-
-// unarchiveLogFirstN is the number of archive entries to log at debug when extracting (path separator diagnosis).
-const unarchiveLogFirstN = 30
 
 // archiveCreateHandler creates an archive on the server at the given destination.
 // POST /resources/archive — server-side only; does not return archive data.
@@ -335,7 +331,6 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 
 	lower := strings.ToLower(archiveReal)
 	var extractErr error
-	logger.Debugf("unarchive: fromSource=%q toSource=%q archiveReal=%q destReal=%q GOOS=%s", req.FromSource, req.ToSource, archiveReal, destReal, runtime.GOOS)
 	if strings.HasSuffix(lower, ".zip") {
 		extractErr = extractZip(archiveReal, destReal)
 	} else if strings.HasSuffix(lower, ".tar.gz") || (strings.HasSuffix(lower, ".tgz")) {
@@ -848,9 +843,7 @@ func extractZip(archivePath, destDir string) error {
 		return files[i].Name < files[j].Name
 	})
 
-	logger.Debugf("unarchive extractZip: archivePath=%q destDir=%q GOOS=%s totalEntries=%d (sorted: deeper paths first)", archivePath, destDir, runtime.GOOS, len(files))
-
-	for i, f := range files {
+	for _, f := range files {
 		var destPath string
 		destPath, err = safeExtractPath(destDir, f.Name)
 		if err != nil {
@@ -860,11 +853,6 @@ func extractZip(archivePath, destDir string) error {
 		fi := f.FileInfo()
 		mode := fi.Mode()
 		isDirEntry := mode.Type() == fs.ModeDir || strings.HasSuffix(f.Name, "/") || strings.HasSuffix(f.Name, "\\")
-
-		if i < unarchiveLogFirstN {
-			logger.Debugf("unarchive zip entry[%d]: Name=%q clean=%q destPath=%q isDirEntry=%v ModeType=%s HasSlashSuffix=%v hasBackslashSuffix=%v nameHasBackslash=%v",
-				i, f.Name, filepath.Clean(f.Name), destPath, isDirEntry, mode.Type().String(), strings.HasSuffix(f.Name, "/"), strings.HasSuffix(f.Name, "\\"), strings.Contains(f.Name, "\\"))
-		}
 
 		if isDirEntry {
 			if err = extractArchivedDir(destPath, mode, f.Modified); err != nil {
@@ -920,8 +908,6 @@ func extractTarGz(archivePath, destDir string) error {
 	defer gz.Close()
 
 	tr := tar.NewReader(gz)
-	logger.Debugf("unarchive extractTarGz: archivePath=%q destDir=%q GOOS=%s", archivePath, destDir, runtime.GOOS)
-	var entryIdx int
 	for {
 		h, err := tr.Next()
 		if err == io.EOF {
@@ -935,12 +921,6 @@ func extractTarGz(archivePath, destDir string) error {
 		if err != nil {
 			return err
 		}
-
-		if entryIdx < unarchiveLogFirstN {
-			logger.Debugf("unarchive tar entry[%d]: Name=%q clean=%q destPath=%q typeflag=%c nameHasBackslash=%v",
-				entryIdx, h.Name, filepath.Clean(h.Name), destPath, h.Typeflag, strings.Contains(h.Name, "\\"))
-		}
-		entryIdx++
 
 		switch h.Typeflag {
 		case tar.TypeDir:
