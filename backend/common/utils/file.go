@@ -10,6 +10,7 @@ import (
 	"hash"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -85,4 +86,44 @@ func SanitizeUserPath(userPath string) (string, error) {
 	}
 
 	return clean, nil
+}
+
+// IndexPathParent returns the parent path of a logical index path (relative to the source root) using
+// forward slash semantics. Use this instead of filepath.Dir for API paths: on Windows, SanitizeUserPath
+// may produce "\Downloads\child" from "/Downloads/child", and filepath.Dir makes "\Downloads" which is
+// root-relative, so filepath.Join(userScope, "\Downloads") drops the scope and resolves to the wrong tree.
+// Backslash is always treated as a segment separator for these logical paths (unlike [filepath.ToSlash], which
+// on Unix only rewrites the native separator, so a client or zip-style "a\b\c" is handled everywhere).
+// Returns "/" when the path is a single top-level segment (or empty).
+func IndexPathParent(dest string) string {
+	s := strings.TrimSpace(dest)
+	if s == "" {
+		return "/"
+	}
+	s = strings.ReplaceAll(s, `\`, `/`)
+	s = filepath.ToSlash(s)
+	s = strings.TrimLeft(s, "/")
+	if s == "" {
+		return "/"
+	}
+	p := path.Dir(s)
+	if p == "." || p == "" {
+		return "/"
+	}
+	return p
+}
+
+// IndexPathBase returns the last segment of a logical index path (the file or directory name for that path).
+func IndexPathBase(dest string) string {
+	s := strings.TrimSpace(dest)
+	if s == "" {
+		return ""
+	}
+	s = strings.ReplaceAll(s, `\`, `/`)
+	s = filepath.ToSlash(s)
+	s = strings.TrimLeft(s, "/")
+	if s == "" {
+		return ""
+	}
+	return path.Base(s)
 }

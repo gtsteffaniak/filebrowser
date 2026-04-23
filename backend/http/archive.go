@@ -11,7 +11,9 @@ import (
 	"io/fs"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -108,10 +110,7 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		return http.StatusForbidden, fmt.Errorf("access denied to destination %s", req.Destination)
 	}
 	// Destination is a file we are about to create; resolve parent dir only (parent must exist or be creatable).
-	destDir := filepath.Dir(req.Destination)
-	if destDir == "." {
-		destDir = "/"
-	}
+	destDir := utils.IndexPathParent(req.Destination)
 	fullDestDir := utils.JoinPathAsUnix(userScopeTo, destDir)
 	if store.Access != nil && !store.Access.Permitted(idxTo.Path, fullDestDir, d.user.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to destination directory %s", destDir)
@@ -120,8 +119,8 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("destination directory invalid: %v", err)
 	}
-	destRealPath := filepath.Join(destParentReal, filepath.Base(req.Destination))
-	if err = os.MkdirAll(destParentReal, fileutils.PermDir); err != nil {
+	destRealPath := filepath.Join(destParentReal, utils.IndexPathBase(req.Destination))
+	if err = os.MkdirAll(destParentReal, fileutils.EffectiveDirPerm()); err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("cannot create destination directory: %v", err)
 	}
 
@@ -172,7 +171,7 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	}
 
 	var createErr error
-	file, err := os.OpenFile(destRealPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fileutils.PermFile)
+	file, err := os.OpenFile(destRealPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fileutils.EffectiveFilePerm())
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -300,10 +299,7 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusForbidden, fmt.Errorf("access denied to destination %s", req.Destination)
 	}
 	// Destination may not exist yet; resolve parent dir then build destination path.
-	destDir := filepath.Dir(req.Destination)
-	if destDir == "." {
-		destDir = "/"
-	}
+	destDir := utils.IndexPathParent(req.Destination)
 	fullDestDir := utils.JoinPathAsUnix(userScopeTo, destDir)
 	if store.Access != nil && !store.Access.Permitted(idxTo.Path, fullDestDir, d.user.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to destination directory %s", destDir)
@@ -312,8 +308,8 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("destination directory invalid: %v", err)
 	}
-	destReal := filepath.Join(destParentReal, filepath.Base(req.Destination))
-	if err = os.MkdirAll(destReal, fileutils.PermDir); err != nil {
+	destReal := filepath.Join(destParentReal, utils.IndexPathBase(req.Destination))
+	if err = os.MkdirAll(destReal, fileutils.EffectiveDirPerm()); err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("cannot create destination directory: %v", err)
 	}
 
@@ -649,13 +645,53 @@ type unarchiveRequest struct {
 	DeleteAfter bool `json:"deleteAfter"`
 }
 
-// safeExtractPath ensures name does not escape destDir (no ".." or absolute).
-func safeExtractPath(destDir, name string) (string, error) {
-	clean := filepath.Clean(name)
-	if clean == ".." || strings.HasPrefix(clean, ".."+string(filepath.Separator)) {
-		return "", fmt.Errorf("invalid entry path: %s", name)
+// normalizeArchiveEntryName turns a raw zip/tar name into a safe relative path (slash-separated).
+// Many Windows zips use backslashes; some start with a leading backslash, which would make
+// filepath.Join drop destDir and write under the drive root. Backslashes are not path separators
+// on Unix, so we always normalize '\' -> '/' and trim leading '/' before path.Clean.
+func normalizeArchiveEntryName(name string) (string, error) {
+	s := strings.TrimSpace(name)
+	if s == "" {
+		return "", errors.New("empty path")
 	}
-	abs := filepath.Join(destDir, clean)
+	s = strings.ReplaceAll(s, "\\", "/")
+	if strings.HasPrefix(s, "//") {
+		return "", errors.New("UNC or invalid path")
+	}
+	s = strings.TrimLeft(s, "/")
+	// Reject e.g. "C:/path" in archive
+	if len(s) >= 3 && s[1] == ':' && s[2] == '/' {
+		if 'A' <= s[0] && s[0] <= 'Z' || 'a' <= s[0] && s[0] <= 'z' {
+			return "", errors.New("absolute path in archive")
+		}
+	}
+	if s == ".." {
+		return "", errors.New("path traversal")
+	}
+	if strings.HasPrefix(s, "../") {
+		return "", errors.New("path traversal")
+	}
+	cleaned := path.Clean(s)
+	if cleaned == "" || cleaned == "." {
+		return "", errors.New("empty path after clean")
+	}
+	if cleaned == ".." {
+		return "", errors.New("path traversal after clean")
+	}
+	if strings.HasPrefix(cleaned, "../") {
+		return "", errors.New("path traversal after clean")
+	}
+	return cleaned, nil
+}
+
+// safeExtractPath ensures name does not escape destDir (no ".." or drive-root / UNC tricks).
+func safeExtractPath(destDir, name string) (string, error) {
+	relSlash, err := normalizeArchiveEntryName(name)
+	if err != nil {
+		return "", fmt.Errorf("invalid entry path: %q: %w", name, err)
+	}
+	// Convert to platform separators so filepath.Join and os.Mkdir work correctly
+	abs := filepath.Join(destDir, filepath.FromSlash(relSlash))
 	destAbs, err := filepath.Abs(destDir)
 	if err != nil {
 		return "", err
@@ -664,8 +700,13 @@ func safeExtractPath(destDir, name string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if !strings.HasPrefix(entryAbs, destAbs) {
-		return "", fmt.Errorf("invalid entry path: %s", name)
+	// Case-sensitive/prefix issues on Windows: use Rel instead of HasPrefix on absolute paths
+	rel, err := filepath.Rel(destAbs, entryAbs)
+	if err != nil {
+		return "", fmt.Errorf("invalid entry path: %q: %w", name, err)
+	}
+	if rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+		return "", fmt.Errorf("invalid entry path: %q", name)
 	}
 	return abs, nil
 }
@@ -730,10 +771,10 @@ func symlinkTargetStaysUnderDest(destRoot, destPath, linkname string) error {
 func extractArchivedDir(destPath string, mode fs.FileMode, modTime time.Time) error {
 	perm := mode.Perm()
 	if perm == 0 {
-		perm = fileutils.PermDir
+		perm = fileutils.EffectiveDirPerm()
 	}
 	if err := os.MkdirAll(destPath, perm); err != nil {
-		return err
+		return fmt.Errorf("mkdir %q: %w", destPath, err)
 	}
 	return applyArchivedTimesAndPerm(destPath, mode, modTime)
 }
@@ -741,12 +782,13 @@ func extractArchivedDir(destPath string, mode fs.FileMode, modTime time.Time) er
 // extractArchivedRegularFile writes one regular file from src (closed by this function) and reapplies mode and mtime.
 func extractArchivedRegularFile(destPath string, mode fs.FileMode, modTime time.Time, src io.ReadCloser) error {
 	defer func() { _ = src.Close() }()
-	if err := os.MkdirAll(filepath.Dir(destPath), fileutils.PermDir); err != nil {
-		return err
+	parent := filepath.Dir(destPath)
+	if err := os.MkdirAll(parent, fileutils.EffectiveDirPerm()); err != nil {
+		return fmt.Errorf("mkdir %q: %w", parent, err)
 	}
 	perm := mode.Perm()
 	if perm == 0 {
-		perm = fileutils.PermFile
+		perm = fileutils.EffectiveFilePerm()
 	}
 	out, err := os.OpenFile(destPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, perm)
 	if err != nil {
@@ -766,8 +808,9 @@ func extractArchivedRegularFile(destPath string, mode fs.FileMode, modTime time.
 // extractArchivedSymlink creates a symlink after validating the target stays under destRoot.
 func extractArchivedSymlink(destRoot, destPath, target string, modTime time.Time) error {
 	target = strings.TrimSpace(target)
-	if err := os.MkdirAll(filepath.Dir(destPath), fileutils.PermDir); err != nil {
-		return err
+	symParent := filepath.Dir(destPath)
+	if err := os.MkdirAll(symParent, fileutils.EffectiveDirPerm()); err != nil {
+		return fmt.Errorf("mkdir %q: %w", symParent, err)
 	}
 	if err := symlinkTargetStaysUnderDest(destRoot, destPath, target); err != nil {
 		return err
@@ -788,7 +831,19 @@ func extractZip(archivePath, destDir string) error {
 	}
 	defer r.Close()
 
-	for _, f := range r.File {
+	// Central directory order is arbitrary. Some zips (e.g. Windows driver packs) list a short
+	// or ambiguous name before longer paths, which can create a file where a directory is needed
+	// and cause Mkdir to fail. Process longer paths first so parent directories exist first.
+	files := make([]*zip.File, len(r.File))
+	copy(files, r.File)
+	sort.Slice(files, func(i, j int) bool {
+		if len(files[i].Name) != len(files[j].Name) {
+			return len(files[i].Name) > len(files[j].Name) // longer (deeper) paths first
+		}
+		return files[i].Name < files[j].Name
+	})
+
+	for _, f := range files {
 		var destPath string
 		destPath, err = safeExtractPath(destDir, f.Name)
 		if err != nil {
@@ -797,8 +852,9 @@ func extractZip(archivePath, destDir string) error {
 
 		fi := f.FileInfo()
 		mode := fi.Mode()
+		isDirEntry := mode.Type() == fs.ModeDir || strings.HasSuffix(f.Name, "/") || strings.HasSuffix(f.Name, "\\")
 
-		if mode.Type() == fs.ModeDir || strings.HasSuffix(f.Name, "/") {
+		if isDirEntry {
 			if err = extractArchivedDir(destPath, mode, f.Modified); err != nil {
 				return err
 			}
