@@ -57,3 +57,53 @@ func TestCapitalizeFirst(t *testing.T) {
 		})
 	}
 }
+
+func TestIndexPathParent(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		in   string
+		want string
+	}{
+		{"/Downloads/33-fbx", "Downloads"},
+		{"Downloads/33-fbx", "Downloads"},
+		{`Downloads\33-fbx`, "Downloads"},
+		// Simulates filepath.Clean("/Downloads/33-fbx") on Windows (root-relative path)
+		{`\Downloads\33-fbx`, "Downloads"},
+		{"Downloads", "/"},
+		{"a", "/"},
+		{"", "/"},
+		{"/a/b/c", "a/b"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.in, func(t *testing.T) {
+			t.Parallel()
+			got := IndexPathParent(tt.in)
+			if got != tt.want {
+				t.Fatalf("IndexPathParent(%q) = %q, want %q", tt.in, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestIndexPathBase(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		in   string
+		want string
+	}{
+		{"/Downloads/33-fbx", "33-fbx"},
+		{"Downloads/33-fbx", "33-fbx"},
+		{`\Downloads\33-fbx`, "33-fbx"},
+		{"archive.zip", "archive.zip"},
+		{"", ""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.in, func(t *testing.T) {
+			t.Parallel()
+			got := IndexPathBase(tt.in)
+			if got != tt.want {
+				t.Fatalf("IndexPathBase(%q) = %q, want %q", tt.in, got, tt.want)
+			}
+		})
+	}
+}
