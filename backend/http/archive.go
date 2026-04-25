@@ -124,7 +124,7 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		return http.StatusBadRequest, fmt.Errorf("destination directory invalid: %v", err)
 	}
 	destRealPath := filepath.Join(destParentReal, utils.IndexPathBase(req.Destination))
-	if err = os.MkdirAll(destParentReal, fileutils.PermDir); err != nil {
+	if err = os.MkdirAll(destParentReal, fileutils.EffectiveDirPerm()); err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("cannot create destination directory: %v", err)
 	}
 
@@ -175,7 +175,7 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	}
 
 	var createErr error
-	file, err := os.OpenFile(destRealPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fileutils.PermFile)
+	file, err := os.OpenFile(destRealPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fileutils.EffectiveFilePerm())
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -313,7 +313,7 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusBadRequest, fmt.Errorf("destination directory invalid: %v", err)
 	}
 	destReal := filepath.Join(destParentReal, utils.IndexPathBase(req.Destination))
-	if err = os.MkdirAll(destReal, fileutils.PermDir); err != nil {
+	if err = os.MkdirAll(destReal, fileutils.EffectiveDirPerm()); err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("cannot create destination directory: %v", err)
 	}
 
@@ -776,7 +776,7 @@ func symlinkTargetStaysUnderDest(destRoot, destPath, linkname string) error {
 func extractArchivedDir(destPath string, mode fs.FileMode, modTime time.Time) error {
 	perm := mode.Perm()
 	if perm == 0 {
-		perm = fileutils.PermDir
+		perm = fileutils.EffectiveDirPerm()
 	}
 	if err := os.MkdirAll(destPath, perm); err != nil {
 		return fmt.Errorf("mkdir %q: %w", destPath, err)
@@ -788,12 +788,12 @@ func extractArchivedDir(destPath string, mode fs.FileMode, modTime time.Time) er
 func extractArchivedRegularFile(destPath string, mode fs.FileMode, modTime time.Time, src io.ReadCloser) error {
 	defer func() { _ = src.Close() }()
 	parent := filepath.Dir(destPath)
-	if err := os.MkdirAll(parent, fileutils.PermDir); err != nil {
+	if err := os.MkdirAll(parent, fileutils.EffectiveDirPerm()); err != nil {
 		return fmt.Errorf("mkdir %q: %w", parent, err)
 	}
 	perm := mode.Perm()
 	if perm == 0 {
-		perm = fileutils.PermFile
+		perm = fileutils.EffectiveFilePerm()
 	}
 	out, err := os.OpenFile(destPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, perm)
 	if err != nil {
@@ -814,7 +814,7 @@ func extractArchivedRegularFile(destPath string, mode fs.FileMode, modTime time.
 func extractArchivedSymlink(destRoot, destPath, target string, modTime time.Time) error {
 	target = strings.TrimSpace(target)
 	symParent := filepath.Dir(destPath)
-	if err := os.MkdirAll(symParent, fileutils.PermDir); err != nil {
+	if err := os.MkdirAll(symParent, fileutils.EffectiveDirPerm()); err != nil {
 		return fmt.Errorf("mkdir %q: %w", symParent, err)
 	}
 	if err := symlinkTargetStaysUnderDest(destRoot, destPath, target); err != nil {
@@ -848,9 +848,7 @@ func extractZip(archivePath, destDir string) error {
 		return files[i].Name < files[j].Name
 	})
 
-	logger.Debugf("unarchive extractZip: archivePath=%q destDir=%q GOOS=%s totalEntries=%d (sorted: deeper paths first)", archivePath, destDir, runtime.GOOS, len(files))
-
-	for i, f := range files {
+	for _, f := range files {
 		var destPath string
 		destPath, err = safeExtractPath(destDir, f.Name)
 		if err != nil {
@@ -860,12 +858,6 @@ func extractZip(archivePath, destDir string) error {
 		fi := f.FileInfo()
 		mode := fi.Mode()
 		isDirEntry := mode.Type() == fs.ModeDir || strings.HasSuffix(f.Name, "/") || strings.HasSuffix(f.Name, "\\")
-
-		if i < unarchiveLogFirstN {
-			logger.Debugf("unarchive zip entry[%d]: Name=%q clean=%q destPath=%q isDirEntry=%v ModeType=%s HasSlashSuffix=%v hasBackslashSuffix=%v nameHasBackslash=%v",
-				i, f.Name, filepath.Clean(f.Name), destPath, isDirEntry, mode.Type().String(), strings.HasSuffix(f.Name, "/"), strings.HasSuffix(f.Name, "\\"), strings.Contains(f.Name, "\\"))
-		}
-
 		if isDirEntry {
 			if err = extractArchivedDir(destPath, mode, f.Modified); err != nil {
 				return err
