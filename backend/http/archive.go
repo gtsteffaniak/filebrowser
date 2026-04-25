@@ -105,31 +105,34 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-	fullDest := utils.JoinPathAsUnix(userScopeTo, req.Destination)
-	if store.Access != nil && !store.Access.Permitted(idxTo.Path, fullDest, d.user.Username) {
+	fullDestFile := utils.JoinPathAsUnix(userScopeTo, req.Destination)
+	if store.Access != nil && !store.Access.Permitted(idxTo.Path, fullDestFile, d.user.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to destination %s", req.Destination)
 	}
-	// Destination is a file we are about to create; resolve parent dir only (parent must exist or be creatable).
-	destDir := utils.IndexPathParent(req.Destination)
-	fullDestDir := utils.JoinPathAsUnix(userScopeTo, destDir)
-	if store.Access != nil && !store.Access.Permitted(idxTo.Path, fullDestDir, d.user.Username) {
-		return http.StatusForbidden, fmt.Errorf("access denied to destination directory %s", destDir)
+	fullDestParent := utils.GetParentDirectoryPath(fullDestFile)
+	if store.Access != nil && fullDestParent != fullDestFile && !store.Access.Permitted(idxTo.Path, fullDestParent, d.user.Username) {
+		return http.StatusForbidden, fmt.Errorf("access denied to destination parent of %s", req.Destination)
 	}
-	destParentReal, _, err := idxTo.GetRealPath(fullDestDir)
+	parentReal, _, err := idxTo.GetRealPath(fullDestParent)
 	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("destination directory invalid: %v", err)
+		return http.StatusBadRequest, fmt.Errorf("destination parent path invalid: %v", err)
 	}
-	destRealPath := filepath.Join(destParentReal, utils.IndexPathBase(req.Destination))
-	if err = os.MkdirAll(destParentReal, fileutils.EffectiveDirPerm()); err != nil {
-		return http.StatusInternalServerError, fmt.Errorf("cannot create destination directory: %v", err)
+	if err = os.MkdirAll(parentReal, fileutils.EffectiveDirPerm()); err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("cannot create destination parent directory: %v", err)
 	}
+	destRel := strings.TrimLeft(filepath.ToSlash(req.Destination), "/")
+	fileName := path.Base(destRel)
+	if fileName == "." || fileName == "/" {
+		return http.StatusBadRequest, fmt.Errorf("invalid destination file name")
+	}
+	destFileReal := filepath.Join(parentReal, fileName)
 
 	format := strings.ToLower(strings.TrimSpace(req.Format))
 	if format == "" {
-		ext := strings.ToLower(filepath.Ext(destRealPath))
-		if ext == ".gz" && len(destRealPath) > 3 && strings.HasSuffix(strings.ToLower(destRealPath), ".tar.gz") {
+		destLower := strings.ToLower(req.Destination)
+		if strings.HasSuffix(destLower, ".tar.gz") {
 			format = "tar.gz"
-		} else if ext == ".zip" {
+		} else if strings.HasSuffix(destLower, ".zip") || filepath.Ext(req.Destination) == ".zip" {
 			format = "zip"
 		} else {
 			format = "zip"
@@ -171,7 +174,7 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	}
 
 	var createErr error
-	file, err := os.OpenFile(destRealPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fileutils.EffectiveFilePerm())
+	file, err := os.OpenFile(destFileReal, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fileutils.EffectiveFilePerm())
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -298,19 +301,19 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if store.Access != nil && !store.Access.Permitted(idxTo.Path, fullDestPath, d.user.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to destination %s", req.Destination)
 	}
-	// Destination may not exist yet; resolve parent dir then build destination path.
-	destDir := utils.IndexPathParent(req.Destination)
-	fullDestDir := utils.JoinPathAsUnix(userScopeTo, destDir)
-	if store.Access != nil && !store.Access.Permitted(idxTo.Path, fullDestDir, d.user.Username) {
-		return http.StatusForbidden, fmt.Errorf("access denied to destination directory %s", destDir)
-	}
-	destParentReal, _, err := idxTo.GetRealPath(fullDestDir)
+	destReal, _, err := idxTo.GetRealPath(fullDestPath)
 	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("destination directory invalid: %v", err)
+		return http.StatusBadRequest, fmt.Errorf("destination path invalid: %v", err)
 	}
-	destReal := filepath.Join(destParentReal, utils.IndexPathBase(req.Destination))
-	if err = os.MkdirAll(destReal, fileutils.EffectiveDirPerm()); err != nil {
-		return http.StatusInternalServerError, fmt.Errorf("cannot create destination directory: %v", err)
+	destInfo, err := os.Stat(destReal)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return http.StatusBadRequest, fmt.Errorf("destination directory does not exist: %s", req.Destination)
+		}
+		return http.StatusInternalServerError, fmt.Errorf("destination: %v", err)
+	}
+	if !destInfo.IsDir() {
+		return http.StatusBadRequest, fmt.Errorf("destination must be a directory: %s", req.Destination)
 	}
 
 	info, err := os.Stat(archiveReal)
@@ -831,19 +834,39 @@ func extractZip(archivePath, destDir string) error {
 	}
 	defer r.Close()
 
-	// Central directory order is arbitrary. Some zips (e.g. Windows driver packs) list a short
-	// or ambiguous name before longer paths, which can create a file where a directory is needed
-	// and cause Mkdir to fail. Process longer paths first so parent directories exist first.
-	files := make([]*zip.File, len(r.File))
-	copy(files, r.File)
-	sort.Slice(files, func(i, j int) bool {
-		if len(files[i].Name) != len(files[j].Name) {
-			return len(files[i].Name) > len(files[j].Name) // longer (deeper) paths first
+	// Central directory order is arbitrary. Some zips (e.g. Windows driver packs) use names that
+	// are similar length at different tree depths, so byte length is a poor order key. Use the
+	// number of path segments in the *normalized* entry name: deeper trees first, then
+	// lexicographic, so parent dirs exist before shorter entries that might be mis-tagged.
+	type orderedName struct {
+		f     *zip.File
+		rel   string
+		depth int
+	}
+	ordered := make([]orderedName, 0, len(r.File))
+	for _, f := range r.File {
+		rel, nerr := normalizeArchiveEntryName(f.Name)
+		if nerr != nil {
+			rel = strings.TrimLeft(strings.ReplaceAll(strings.TrimSpace(f.Name), "\\", "/"), "/")
 		}
-		return files[i].Name < files[j].Name
+		depth := 0
+		if rel != "" {
+			depth = strings.Count(rel, "/") + 1
+		}
+		ordered = append(ordered, orderedName{f: f, rel: rel, depth: depth})
+	}
+	sort.Slice(ordered, func(i, j int) bool {
+		if ordered[i].depth != ordered[j].depth {
+			return ordered[i].depth > ordered[j].depth
+		}
+		if ordered[i].rel != ordered[j].rel {
+			return ordered[i].rel < ordered[j].rel
+		}
+		return ordered[i].f.Name < ordered[j].f.Name
 	})
 
-	for _, f := range files {
+	for _, o := range ordered {
+		f := o.f
 		var destPath string
 		destPath, err = safeExtractPath(destDir, f.Name)
 		if err != nil {
@@ -853,7 +876,6 @@ func extractZip(archivePath, destDir string) error {
 		fi := f.FileInfo()
 		mode := fi.Mode()
 		isDirEntry := mode.Type() == fs.ModeDir || strings.HasSuffix(f.Name, "/") || strings.HasSuffix(f.Name, "\\")
-
 		if isDirEntry {
 			if err = extractArchivedDir(destPath, mode, f.Modified); err != nil {
 				return err
