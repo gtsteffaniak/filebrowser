@@ -200,7 +200,7 @@ export default {
       const normalizedCurrent = normalizePath(currentPath);
 
       if (normalizedTarget === normalizedCurrent) {
-        notify.showError(this.$t("files.sameFolder"));
+        notify.showErrorToast(this.$t("files.sameFolder"));
         console.error("Cannot move to same folder");
         return;
       }
