@@ -332,7 +332,6 @@
     "tusUploadsRetryCount": "Número de tentativas a efetuar se um pedaço não for carregado.",
     "userHomeBasePath": "Caminho de base para as diretorias pessoais dos utilizadores",
     "userScopeGenerationPlaceholder": "O âmbito será gerado automaticamente",
-    "createUserHomeDirectory": "Criar o diretório pessoal do utilizador",
     "shareSettings": "Partilhar definições",
     "shareDeleted": "Partilhar eliminado!",
     "adminOptions": "Opções do utilizador administrador",

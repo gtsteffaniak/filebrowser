@@ -275,7 +275,6 @@
     "createUserDir": "Felhasználók saját mappáinak automatikus létrehozása új felhasználók hozzáadásakor",
     "userHomeBasePath": "Alap elérési útvonal a felhasználók saját mappáihoz",
     "userScopeGenerationPlaceholder": "A környezet automatikus lesz létrehozva",
-    "createUserHomeDirectory": "Felhasználói saját mappák létrehozása",
     "customStylesheet": "Egyéni stíluslap",
     "defaultUserDescription": "Ezek az alapértelmezett beállítások az új felhasználók számára.",
     "disableExternalLinks": "Külső linkek letiltása (kivéve a dokumentáció)",

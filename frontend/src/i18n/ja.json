@@ -326,7 +326,6 @@
     "tusUploadsRetryCount": "チャンクのアップロードに失敗した場合の再試行回数",
     "userHomeBasePath": "ユーザーホームディレクトリのベースパス",
     "userScopeGenerationPlaceholder": "スコープは自動生成されます。",
-    "createUserHomeDirectory": "ユーザーホームディレクトリの作成",
     "shareDeleted": "共有が削除されました",
     "loginMethodDescription": "ユーザーに許可されるログイン方法",
     "userNotAdmin": "ユーザーは管理者ではありません",

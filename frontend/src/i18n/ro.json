@@ -326,7 +326,6 @@
     "tusUploadsRetryCount": "Numărul de încercări care trebuie efectuate dacă o bucată nu reușește să fie încărcată.",
     "userHomeBasePath": "Calea de bază pentru directoarele home ale utilizatorilor",
     "userScopeGenerationPlaceholder": "Domeniul de aplicare va fi generat automat",
-    "createUserHomeDirectory": "Crearea directorului home al utilizatorului",
     "shareDeleted": "Share șters!",
     "loginMethodDescription": "metoda de conectare permisă pentru utilizator.",
     "userNotAdmin": "Utilizatorul nu este administrator",

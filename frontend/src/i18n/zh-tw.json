@@ -333,7 +333,6 @@
     "tusUploadsRetryCount": "分塊上傳失敗時的重試次數。",
     "userHomeBasePath": "使用者主目錄的基本路徑",
     "userScopeGenerationPlaceholder": "範圍會自動產生",
-    "createUserHomeDirectory": "建立使用者主目錄",
     "shareSettings": "分享設定",
     "shareDeleted": "分享已刪除！",
     "adminOptions": "管理員使用者選項",

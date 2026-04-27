@@ -94,7 +94,6 @@ func updateUserScopes(user *users.User) bool {
 		} else {
 			continue
 		}
-
 		newScopes = append(newScopes, users.SourceScope{
 			Name:  src.Path,
 			Scope: existingScope.Scope,

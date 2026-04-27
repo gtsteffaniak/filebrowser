@@ -327,7 +327,6 @@
     "tusUploadsRetryCount": "Nombre de tentatives à effectuer si un bloc ne parvient pas à être importé.",
     "userHomeBasePath": "Chemin de base pour les répertoires personnels des utilisateurs",
     "userScopeGenerationPlaceholder": "Le champ d'application sera généré automatiquement",
-    "createUserHomeDirectory": "Créer le répertoire personnel de l'utilisateur",
     "api": "API",
     "loginMethodDescription": "méthode de connexion autorisée pour l'utilisateur.",
     "userNotAdmin": "L'utilisateur n'est pas un administrateur",

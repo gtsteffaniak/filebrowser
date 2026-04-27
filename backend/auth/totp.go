@@ -146,14 +146,14 @@ func decryptSecret(b64Ciphertext, b64Nonce string) (string, error) {
 }
 
 func VerifyTotpCode(user *users.User, code string, userStore *users.Storage) error {
-	// get data from cache
 	cachedSecret, found := TotpCache.Get(user.Username)
 	if !found && user.TOTPSecret == "" {
 		return fmt.Errorf("OTP token not found in cache, please generate a new one")
 	}
+	useCache := found && user.TOTPSecret == ""
 	totpSecret := user.TOTPSecret // The encrypted or plaintext secret
 	totpNonce := user.TOTPNonce   // The nonce if encrypted, or empty if plaintext
-	if found {
+	if useCache {
 		splitSecret := strings.Split(cachedSecret, "||")
 		if len(splitSecret) < 2 {
 			return fmt.Errorf("invalid cached OTP token format")
@@ -173,9 +173,7 @@ func VerifyTotpCode(user *users.User, code string, userStore *users.Storage) err
 		}
 		secretToValidate = decryptedSecret
 	}
-	// --- END: ADD THIS DECRYPTION LOGIC ---
 
-	// Validate the token using the (now plaintext) secret.
 	valid, err := totp.ValidateCustom(code, secretToValidate, time.Now().UTC(), totp.ValidateOpts{
 		Period:    TOTPPeriod,
 		Skew:      TOTPSkew,
@@ -198,6 +196,7 @@ func VerifyTotpCode(user *users.User, code string, userStore *users.Storage) err
 			logger.Error("error updating user with OTP token:", err)
 			return fmt.Errorf("error updating user with OTP token: %w", err)
 		}
+		TotpCache.Delete(user.Username)
 	} else {
 		return fmt.Errorf("opt secret is empty, cannot enable TOTP")
 	}
