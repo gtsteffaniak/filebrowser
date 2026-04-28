@@ -61,6 +61,36 @@ func TestFetchExtendedAttributes(t *testing.T) {
 	}
 }
 
+// TestFetchExtendedAttributes_subdirHasPreviewFromMetadata checks folder hasPreview comes from one GetMetadataInfo (non-shallow).
+func TestFetchExtendedAttributes_subdirHasPreviewFromMetadata(t *testing.T) {
+	idx, _, cleanup := setupTestIndex(t)
+	defer cleanup()
+
+	deepdir, err := idx.db.GetItem("test", "/subdir/deepdir/")
+	if err != nil || deepdir == nil {
+		t.Fatalf("deepdir row: err=%v", err)
+	}
+	deepdir.HasPreview = true
+	_ = idx.db.InsertItem("test", "/subdir/deepdir/", deepdir)
+
+	now := time.Now()
+	files := []os.FileInfo{
+		&mockFileInfo{name: "deepdir", mode: os.ModeDir, modTime: now, isDir: true},
+	}
+
+	hasPreview, subdirMap := idx.fetchExtendedAttributes("/subdir/", files, Options{
+		SkipExtendedAttrs: false,
+		Recursive:         false,
+	})
+
+	if !subdirMap["/subdir/deepdir/"] {
+		t.Errorf("expected hasPreview map for /subdir/deepdir/, got %v", subdirMap)
+	}
+	if hasPreview {
+		t.Error("parent /subdir/ should not have HasPreview unless set on that row")
+	}
+}
+
 // TestGetDirectoryName tests the directory name extraction logic
 func TestGetDirectoryName(t *testing.T) {
 	tests := []struct {
