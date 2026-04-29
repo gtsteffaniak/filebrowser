@@ -8,6 +8,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
@@ -50,7 +51,10 @@ func validateUserInfo(newDB bool) {
 		if user.Username == adminUser && adminPass != "" && passwordEnabled {
 			logger.Info("Resetting admin user to default username and password.")
 			user.Permissions.Admin = true
-			user.Password = settings.Config.Auth.AdminPassword
+			user.Password, err = utils.HashPwd(settings.Config.Auth.AdminPassword)
+			if err != nil {
+				logger.Errorf("could not hash admin password: %v", err)
+			}
 			updateUser = true
 			changePass = true
 		}
