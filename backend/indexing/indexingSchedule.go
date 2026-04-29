@@ -226,7 +226,8 @@ func (idx *Index) SendSourceUpdateEvent() error {
 // setupMultiScanner creates and starts the multi-scanner system
 // isNewDb: if true, skip loading persisted complexity values (database is new or recreated)
 func (idx *Index) setupMultiScanner(isNewDb bool) {
-	// Load persisted index and scanner information
+	// Load persisted index-level stats from Bolt (complexity, numDirs/Files, used/usedAlt/total, etc.)
+	// Scanner-level stats below use a second GetByPath only for the Scanners map.
 	if err := idx.Load(); err != nil {
 		logger.Errorf("Failed to load persisted index data for [%v]: %v", idx.Name, err)
 	}

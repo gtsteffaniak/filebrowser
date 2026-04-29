@@ -297,7 +297,8 @@ func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, erro
 	}
 
 	// Only update disk total if cache is missing or explicitly forced.
-	// Indexed "used" bytes for the UI come from the SQLite root row (see below), not in-memory scan state.
+	// Indexed "used" sums root-level files from SQLite; top-level folders use idx.folderSizes (scanned rollup)
+	// because directory size columns in SQLite can lag folderSizes/SyncFolderSizesToDB.
 	sourcePath := idx.Path
 	cacheKey := "usageCache-" + sourceName
 	if forceCacheRefresh {
@@ -315,9 +316,17 @@ func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, erro
 		if dbErr != nil {
 			logger.Debugf("GetIndexInfo: could not read root folder size from index DB for %s: %v", sourceName, dbErr)
 		}
-		indexedSizeFromDB := uint64(0)
+		var indexedSizeFromDB uint64
 		for _, item := range itemInfo {
-			indexedSizeFromDB += uint64(item.Size)
+			if item.Type != "directory" {
+				indexedSizeFromDB += uint64(item.Size)
+				continue
+			}
+			if agg, ok := idx.GetFolderSize(item.Path); ok {
+				indexedSizeFromDB += agg
+			} else {
+				indexedSizeFromDB += uint64(item.Size)
+			}
 		}
 		// Also fetch OS-reported partition used space (total - free)
 		partitionUsed, err := fileutils.GetPartitionUsed(sourcePath)
@@ -326,6 +335,11 @@ func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, erro
 		}
 		idx.SetUsage(totalPartitionSize, partitionUsed, indexedSizeFromDB)
 		utils.DiskUsageCache.Set(cacheKey, true)
+		if indexingStorage != nil {
+			if err := idx.Save(); err != nil {
+				logger.Warningf("GetIndexInfo: failed to persist index disk stats for %s: %v", sourceName, err)
+			}
+		}
 	}
 
 	// Build scanner info for client

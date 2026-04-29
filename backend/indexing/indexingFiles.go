@@ -801,11 +801,7 @@ func (idx *Index) processDirectoryItem(file os.FileInfo, indexPath string, subdi
 	if !opts.SkipExtendedAttrs && subdirHasPreviewMap != nil {
 		if hasPreviewValue, exists := subdirHasPreviewMap[childIndexPath]; exists {
 			itemInfo.HasPreview = hasPreviewValue
-		} else {
-			itemInfo.HasPreview = false
 		}
-	} else {
-		itemInfo.HasPreview = false
 	}
 
 	return itemInfo, itemInfo.Size, true
@@ -1106,9 +1102,7 @@ func (idx *Index) updateFolderSizeAndParents(path string, newSize uint64, previo
 		if parentDir == "" {
 			break // Reached the top
 		}
-		if parentDir != "/" {
-			parentDir = utils.AddTrailingSlashIfNotExists(parentDir)
-		}
+		parentDir = utils.AddTrailingSlashIfNotExists(parentDir)
 
 		// Update parent size with delta
 		parentSize := idx.folderSizes[parentDir]
@@ -1160,20 +1154,6 @@ func (idx *Index) getFileSizeForDisplay(file os.FileInfo, realPath string) int64
 
 	// Disk usage mode: use getDiskUsage helper
 	return getDiskUsage(file, realPath, false)
-}
-
-// RecursiveUpdateDirSizes is now a wrapper for backwards compatibility
-// This maintains API compatibility while using the new optimized approach
-func (idx *Index) RecursiveUpdateDirSizes(path string, previousSize uint64) {
-	currentSize, exists := idx.GetFolderSize(path)
-	if !exists {
-		logger.Debugf("[FOLDER_SIZE] Path %s not found in folderSizes map", path)
-		return
-	}
-
-	if currentSize != previousSize {
-		idx.updateFolderSizeAndParents(path, currentSize, previousSize, false) // updateTarget=false, only update parents
-	}
 }
 
 // SyncFolderSizesToDB syncs in-memory folder sizes to the database after a scan completes
@@ -1605,10 +1585,13 @@ func (idx *Index) Save() error {
 		}
 	}
 
-	// Get current index stats
+	// Get current index stats (including persisted disk totals when usage is enabled / last probed)
 	complexity := idx.getComplexityUnlocked()
 	numDirs := idx.getNumDirsUnlocked()
 	numFiles := idx.getNumFilesUnlocked()
+	usedAsIndexed := idx.UsedAsIndexed
+	usedDisk := idx.UsedDisk
+	diskTotal := idx.DiskTotal
 	idx.mu.RUnlock()
 
 	// Create IndexInfo for persistence
@@ -1618,6 +1601,9 @@ func (idx *Index) Save() error {
 		Complexity: complexity,
 		NumDirs:    numDirs,
 		NumFiles:   numFiles,
+		UsedAsIndexed: usedAsIndexed,
+		UsedDisk:      usedDisk,
+		DiskTotal:     diskTotal,
 		Scanners:   scanners,
 	}
 
@@ -1658,6 +1644,9 @@ func (idx *Index) Load() error {
 	idx.Complexity = info.Complexity
 	idx.NumDirs = info.NumDirs
 	idx.NumFiles = info.NumFiles
+	idx.UsedAsIndexed = info.UsedAsIndexed
+	idx.UsedDisk = info.UsedDisk
+	idx.DiskTotal = info.DiskTotal
 
 	// Restore scanner information (will be applied when scanners are created)
 	// Store in a temporary map that setupMultiScanner can use
