@@ -18,17 +18,17 @@ export async function readAllDirectoryEntries(reader, debugLabel = "") {
   const all = [];
   let nonemptyBatches = 0;
 
-  while (true) {
-    /** @type {FileSystemEntry[]} */
-    const batch = await new Promise((resolve, reject) => {
-      reader.readEntries(resolve, reject);
-    });
+  /** @type {FileSystemEntry[]} */
+  let batch = await new Promise((resolve, reject) => {
+    reader.readEntries(resolve, reject);
+  });
 
-    if (batch.length === 0) {
-      break;
-    }
+  while (batch.length > 0) {
     nonemptyBatches++;
     all.push(...batch);
+    batch = await new Promise((resolve, reject) => {
+      reader.readEntries(resolve, reject);
+    });
   }
 
   if (nonemptyBatches > 1 || all.length > 100) {
