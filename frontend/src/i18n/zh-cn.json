@@ -333,7 +333,6 @@
     "tusUploadsRetryCount": "块上传失败时的重试次数。",
     "userHomeBasePath": "用户主目录的基本路径",
     "userScopeGenerationPlaceholder": "范围将自动生成",
-    "createUserHomeDirectory": "创建用户主目录",
     "shareSettings": "共享设置",
     "adminOptions": "管理员用户选项",
     "searchOptions": "搜索选项",

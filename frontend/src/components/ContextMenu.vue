@@ -35,19 +35,19 @@
       </div>
       <hr v-if="showDivider" class="divider">
       <action
-        v-if="showCreateActions"
+        v-if="showCreateFiles"
         icon="create_new_folder"
         :label="$t('files.newFolder')"
         @action="showNewDirPrompt"
       />
       <action
-        v-if="showCreateActions"
+        v-if="showCreateFiles"
         icon="note_add"
         :label="$t('files.newFile')"
         @action="showPrompt('newFile')"
       />
       <action
-        v-if="showCreateActions"
+        v-if="showCreateFiles"
         icon="file_upload"
         :label="$t('general.upload')"
         @action="showUploadPrompt"
@@ -258,6 +258,10 @@ export default {
     },
     isShare() {
       return getters.isShare();
+    },
+    showCreateFiles() {
+      if (this.showLimitedOptions) return false;
+      return getters.permissions().create;
     },
     showCreateActions() {
       if (this.showLimitedOptions) return false;

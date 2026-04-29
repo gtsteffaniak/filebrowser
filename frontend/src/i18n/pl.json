@@ -326,7 +326,6 @@
     "tusUploadsRetryCount": "Liczba ponawianych prób w przypadku niepowodzenia przesłania fragmentu.",
     "userHomeBasePath": "Ścieżka podstawowa dla katalogów domowych użytkownika",
     "userScopeGenerationPlaceholder": "Zakres zostanie wygenerowany automatycznie",
-    "createUserHomeDirectory": "Tworzenie katalogu domowego użytkownika",
     "shareDeleted": "Usunięto udostępnianie!",
     "loginMethodDescription": "dozwolona metoda logowania dla użytkownika.",
     "userNotAdmin": "Użytkownik nie jest administratorem",

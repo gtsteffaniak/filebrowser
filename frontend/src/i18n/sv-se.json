@@ -332,7 +332,6 @@
     "tusUploadsRetryCount": "Antal försök som ska göras om en chunk inte kan laddas upp.",
     "userHomeBasePath": "Basväg för användares hemkataloger",
     "userScopeGenerationPlaceholder": "Omfattningen kommer att genereras automatiskt",
-    "createUserHomeDirectory": "Skapa användarens hemkatalog",
     "shareSettings": "Dela inställningar",
     "shareDeleted": "Dela borttaget!",
     "adminOptions": "Alternativ för administratörsanvändare",
