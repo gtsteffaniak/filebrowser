@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Thumbnails for Folders only display sporadically (#2353)
  - Unwanted user scope change for users with non-default scopes (#2347)
  - Fix sidebar source info totals (#2321) (#2322) (#982)
+ - Error uploading a large number of photos -- only 100 items get uploaded (#2348)
 
 ## v1.3.7
 
