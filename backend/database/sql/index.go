@@ -474,51 +474,6 @@ func (db *IndexDB) GetItemsByPaths(source string, paths []string) (map[string]*i
 	return result, nil
 }
 
-// GetHasPreviewBatch retrieves hasPreview status for multiple directory paths in a single query.
-// This is optimized for the N+1 query pattern in GetDirInfo where we need hasPreview for all subdirectories.
-// Returns map[path]hasPreview. Missing paths in the result indicate they're not in the database yet.
-func (db *IndexDB) GetHasPreviewBatch(source string, paths []string) (map[string]bool, error) {
-	if len(paths) == 0 {
-		return make(map[string]bool), nil
-	}
-
-	// Build query with IN clause - only select path and has_preview for efficiency
-	placeholders := make([]string, len(paths))
-	args := make([]interface{}, len(paths)+1)
-	args[0] = source
-	for i, path := range paths {
-		placeholders[i] = "?"
-		args[i+1] = path
-	}
-
-	query := fmt.Sprintf(`
-	SELECT path, has_preview
-	FROM index_items WHERE source = ? AND path IN (%s) AND is_dir = 1
-	`, strings.Join(placeholders, ","))
-
-	rows, err := db.Query(query, args...)
-	if err != nil {
-		// Soft failure: DB is busy or locked, return empty map
-		if isBusyError(err) || isTransactionError(err) {
-			return make(map[string]bool), nil
-		}
-		return nil, err
-	}
-	defer rows.Close()
-
-	result := make(map[string]bool)
-	for rows.Next() {
-		var path string
-		var hasPreview bool
-		if err := rows.Scan(&path, &hasPreview); err != nil {
-			return nil, err
-		}
-		result[path] = hasPreview
-	}
-
-	return result, nil
-}
-
 // GetDirectoryChildren retrieves all children of a directory for a specific source.
 func (db *IndexDB) GetDirectoryChildren(source, dirPath string) ([]*iteminfo.FileInfo, error) {
 	query := `

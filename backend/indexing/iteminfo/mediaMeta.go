@@ -405,6 +405,9 @@ func IsDirectory(fileInfo os.FileInfo) bool {
 // Text files, office documents, and PDFs should NOT bubble up to folder previews.
 // This ensures consistency between indexing and preview generation.
 func ShouldBubbleUpToFolderPreview(item ItemInfo) bool {
+	if item.Type == "directory" || !item.HasPreview {
+		return false
+	}
 	// Get the simple type (e.g., "image", "video", "text")
 	simpleType := strings.Split(item.Type, "/")[0]
 	// Text files should NOT bubble up

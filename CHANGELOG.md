@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file. For commit 
  - quick download icon style after icon change.
  - missing error popup for resource creatoin actions (upload/create)
  - enforcedOtp login failure until restart (#2330)
+ - Thumbnails for Folders only display sporadically (#2353)
 
 ## v1.3.7
 

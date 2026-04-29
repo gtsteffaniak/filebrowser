@@ -12,8 +12,8 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-// UpdateFileMetadata updates the FileInfo for the specified directory in the index.
-// scanner parameter is optional - if nil (API refresh), directly inserts to database
+// UpdateMetadata persists a completed directory listing to the index. The directory row's has_preview
+// scanner is optional — if nil (API refresh), inserts run immediately; otherwise items batch until flush.
 func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo, scanner *Scanner) bool {
 	items := make([]*iteminfo.FileInfo, 0, len(info.Files)+len(info.Folders)+1)
 	dirItem := *info
