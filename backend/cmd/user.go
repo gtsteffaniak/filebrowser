@@ -63,7 +63,7 @@ func validateUserInfo(newDB bool) {
 					logger.Fatalf("Unable to create automatic backup of database due to error: %v", err)
 				}
 			}
-			err := store.Users.Update(user, true, "Scopes", "SidebarLinks", "Tokens", "Permissions", "Preview", "ShowFirstLogin", "LoginMethod", "OtpEnabled", "Version")
+			err := store.Users.Update(user, true, "Scopes", "SidebarLinks", "Tokens", "Permissions", "Preview", "ShowFirstLogin", "LoginMethod", "Version")
 			if err != nil {
 				logger.Errorf("could not update user: %v", err)
 			}
