@@ -47,14 +47,15 @@ func validateUserInfo(newDB bool) {
 		}
 		adminUser := settings.Config.Auth.AdminUsername
 		adminPass := settings.Config.Auth.AdminPassword
-		passwordEnabled := settings.Config.Auth.Methods.PasswordAuth.Enabled
-		if user.Username == adminUser && adminPass != "" && passwordEnabled {
+		if user.Username == adminUser && adminPass != "" && user.LoginMethod == users.LoginMethodPassword {
 			logger.Info("Resetting admin user to default username and password.")
 			user.Permissions.Admin = true
-			user.Password, err = utils.HashPwd(settings.Config.Auth.AdminPassword)
+			user.Password = settings.Config.Auth.AdminPassword
+			pass, err := utils.HashPwd(user.Password)
 			if err != nil {
 				logger.Errorf("could not hash admin password: %v", err)
 			}
+			user.Password = pass
 			updateUser = true
 			changePass = true
 		}
@@ -72,6 +73,7 @@ func validateUserInfo(newDB bool) {
 				logger.Errorf("could not update user: %v", err)
 			}
 			if changePass {
+				fmt.Printf("Updating user password for %s to %s\n", user.Username, user.Password)
 				err = store.Users.Update(user, true, "Password")
 				if err != nil {
 					logger.Errorf("could not update user password: %v", err)
