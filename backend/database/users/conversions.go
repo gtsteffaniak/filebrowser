@@ -43,7 +43,7 @@ func (u *User) GetBackendScopes() ([]SourceScope, error) {
 			if scope.Scope == "" {
 				scope.Scope = source.DefaultUserScope
 			}
-			scope.Scope = normalizeScope(scope.Scope)
+			scope.Scope = NormalizeScope(scope.Scope)
 			newScopes = append(newScopes, SourceScope{
 				Name:  source.Path, // backend name is path
 				Scope: scope.Scope,
@@ -60,7 +60,7 @@ func (u *User) GetBackendScopes() ([]SourceScope, error) {
 		if scope.Scope == "" {
 			scope.Scope = source.DefaultUserScope
 		}
-		scope.Scope = normalizeScope(scope.Scope)
+		scope.Scope = NormalizeScope(scope.Scope)
 		newScopes = append(newScopes, SourceScope{
 			Name:  source.Path, // backend name is path
 			Scope: scope.Scope,
@@ -144,8 +144,8 @@ func (u *User) GetFrontendSidebarLinks() []SidebarLink {
 	return newLinks
 }
 
-// normalizeScope ensures scope starts with / and doesn't end with / (except for root)
-func normalizeScope(scope string) string {
+// NormalizeScope ensures scope starts with / and doesn't end with / (except for root)
+func NormalizeScope(scope string) string {
 	if !strings.HasPrefix(scope, "/") {
 		scope = "/" + scope
 	}
