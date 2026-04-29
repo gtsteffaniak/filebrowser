@@ -4894,6 +4894,18 @@ const docTemplate = `{
                 }
             }
         },
+        "iteminfo.Lyric": {
+            "type": "object",
+            "properties": {
+                "text": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "description": "milliseconds",
+                    "type": "integer"
+                }
+            }
+        },
         "iteminfo.MediaMetadata": {
             "type": "object",
             "properties": {
@@ -4919,6 +4931,13 @@ const docTemplate = `{
                 "genre": {
                     "description": "music/video genre",
                     "type": "string"
+                },
+                "lyrics": {
+                    "description": "lyrics (from ID3 USLT or .lrc files)",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/iteminfo.Lyric"
+                    }
                 },
                 "title": {
                     "description": "track/video title",

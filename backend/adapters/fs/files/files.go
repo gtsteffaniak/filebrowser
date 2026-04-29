@@ -1,11 +1,13 @@
 package files
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -341,6 +343,44 @@ func generateOfficeId(realPath string) string {
 	return key
 }
 
+// Parses raw LRC text into a slice of Lyric.
+// Lines with [mm:ss.xx] (timestamps) will be parsed to ms for synced lyrics
+// The ones without timestamp are kept as unsynced (timestamp 0).
+func parseLRC(raw string) []iteminfo.Lyric {
+	var lines []iteminfo.Lyric
+	scanner := bufio.NewScanner(strings.NewReader(raw))
+	re := regexp.MustCompile(`^\[(\d{1,2}):(\d{1,2})\.(\d{2,3})\](.*)`)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" {
+			continue
+		}
+		matches := re.FindStringSubmatch(line)
+		if len(matches) == 5 {
+			min, _ := strconv.Atoi(matches[1])
+			sec, _ := strconv.Atoi(matches[2])
+			msStr := matches[3]
+			if len(msStr) == 2 {
+				msStr += "0"
+			}
+			ms, _ := strconv.Atoi(msStr)
+			timestamp := int64((min*60+sec)*1000 + ms)
+			text := strings.TrimSpace(matches[4])
+			lines = append(lines, iteminfo.Lyric{
+				Text:      text,
+				Timestamp: timestamp,
+			})
+		} else {
+			// Line without a valid timestamp – treat as unsynced (timestamp 0)
+			lines = append(lines, iteminfo.Lyric{
+				Text:      line,
+				Timestamp: 0,
+			})
+		}
+	}
+	return lines
+}
+
 // extractAudioMetadata extracts metadata from an audio file using dhowden/tag
 // and optionally extracts duration using the ffmpeg service with concurrency control
 // If ffmpegService is nil, a new service will be created (for backward compatibility)
@@ -379,6 +419,25 @@ func extractAudioMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 	// Extract track number
 	track, _ := m.Track()
 	item.Metadata.Track = track
+
+	// Extract synced lyrics (embedded in the USLT frame) if available
+	if rawLyrics := m.Lyrics(); rawLyrics != "" {
+		if lyrics := parseLRC(rawLyrics); len(lyrics) > 0 {
+			item.Metadata.Lyrics = lyrics
+		}
+	}
+
+	// If no embedded lyrics, try a sidecar .lrc file with the same name as the song in the same dir
+	if len(item.Metadata.Lyrics) == 0 {
+		ext := filepath.Ext(realPath)
+		baseWithoutExt := strings.TrimSuffix(realPath, ext)
+		lrcPath := baseWithoutExt + ".lrc"
+		if data, err := os.ReadFile(lrcPath); err == nil {
+			if lyrics := parseLRC(string(data)); len(lyrics) > 0 {
+				item.Metadata.Lyrics = lyrics
+			}
+		}
+	}
 
 	// Extract duration ONLY if explicitly requested using the ffmpeg VideoService
 	// This respects concurrency limits and gracefully handles missing ffmpeg

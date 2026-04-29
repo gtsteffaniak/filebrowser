@@ -811,7 +811,12 @@
     "QueuePlayback": "Playback Queue",
     "changePlaybackMode": "Change playback mode",
     "changePlaybackModeHint": "Change playback mode to see more files",
-    "emptyQueue": "Queue is empty"
+    "emptyQueue": "Queue is empty",
+    "noLyrics": "No lyrics available",
+    "lockLyrics": "Lock lyrics",
+    "unlockLyrics": "Unlock lyrics",
+    "closePanel": "Close panel",
+    "openPanel": "Open panel"
   },
   "fileSizeAnalyzer": {
     "title": "File Size Analyzer",

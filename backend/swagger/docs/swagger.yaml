@@ -514,6 +514,14 @@ definitions:
         description: type of the file, either "directory" or a file mimetype
         type: string
     type: object
+  iteminfo.Lyric:
+    properties:
+      text:
+        type: string
+      timestamp:
+        description: milliseconds
+        type: integer
+    type: object
   iteminfo.MediaMetadata:
     properties:
       album:
@@ -533,6 +541,11 @@ definitions:
       genre:
         description: music/video genre
         type: string
+      lyrics:
+        description: lyrics (from ID3 USLT or .lrc files)
+        items:
+          $ref: '#/definitions/iteminfo.Lyric'
+        type: array
       title:
         description: track/video title
         type: string

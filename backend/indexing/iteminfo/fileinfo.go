@@ -32,6 +32,12 @@ type FileInfo struct {
 	Path    string             `json:"path,omitempty"`    // path scoped to the associated index
 }
 
+// Lyric is a single line of lyrics with timestamps (if available)
+type Lyric struct {
+	Text      string `json:"text"`
+	Timestamp int64  `json:"timestamp"` // milliseconds
+}
+
 // MediaMetadata contains metadata extracted from audio and video files
 type MediaMetadata struct {
 	Title    string `json:"title,omitempty"`    // track/video title
@@ -42,6 +48,7 @@ type MediaMetadata struct {
 	Track    int    `json:"track,omitempty"`    // track number
 	Duration int    `json:"duration,omitempty"` // duration in seconds
 	AlbumArt []byte `json:"albumArt,omitempty"` // album art image data (automatically base64-encoded in JSON)
+	Lyrics   []Lyric `json:"lyrics,omitempty"`  // lyrics (from ID3 USLT or .lrc files)
 }
 
 // for efficiency, a response will be a pointer to the data
