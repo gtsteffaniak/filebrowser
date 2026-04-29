@@ -5,10 +5,11 @@ All notable changes to this project will be documented in this file. For commit 
 ## v1.3.8
 
  **BugFixes**:
- - quick download icon style after icon change.
- - missing error popup for resource creatoin actions (upload/create)
- - enforcedOtp login failure until restart (#2330)
+ - Quick download icon style after icon change.
+ - Missing error popup for resource creatoin actions (upload/create)
+ - EnforcedOtp login failure until restart (#2330)
  - Thumbnails for Folders only display sporadically (#2353)
+ - Unwanted user scope change for users with non-default scopes (#2347)
 
 ## v1.3.7
 
