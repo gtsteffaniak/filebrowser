@@ -577,7 +577,6 @@
     "tusUploadsRetryCount": "Numero di tentativi se un pezzo fallisce.",
     "userHomeBasePath": "Percorso base per le home degli utenti",
     "userScopeGenerationPlaceholder": "L'ambito verrà generato automaticamente",
-    "createUserHomeDirectory": "Crea directory home utente",
     "customStylesheet": "Foglio di stile personalizzato (CSS)",
     "defaultUserDescription": "Impostazioni predefinite per i nuovi utenti.",
     "disableExternalLinks": "Disabilita link esterni (eccetto documentazione)",

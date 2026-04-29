@@ -577,7 +577,6 @@
     "tusUploadsRetryCount": "Aantal pogingen dat moet worden uitgevoerd als het uploaden van een brok mislukt.",
     "userHomeBasePath": "Basispad voor thuismappen van gebruikers",
     "userScopeGenerationPlaceholder": "Het bereik wordt automatisch gegenereerd",
-    "createUserHomeDirectory": "Thuismap voor gebruiker aanmaken",
     "customStylesheet": "Aangepast Stylesheet",
     "defaultUserDescription": "Dit zijn de standaardinstellingen voor nieuwe gebruikers.",
     "disableExternalLinks": "Externe links uitschakelen (behalve documentatie)",

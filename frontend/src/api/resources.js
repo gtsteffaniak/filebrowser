@@ -462,7 +462,18 @@ export function post(
           error.response = { status: request.status, responseText: request.responseText };
           reject(error);
         } else {
-          reject(new Error(request.responseText || "Upload failed"));
+          let errorMessage = "Upload failed";
+          try {
+            const errorData = JSON.parse(request.responseText);
+            errorMessage = errorData.message || errorMessage;
+          } catch (e) {
+            errorMessage = request.responseText || errorMessage;
+          }
+          const error = new Error(errorMessage);
+          error.status = request.status;
+          error.response = { status: request.status, responseText: request.responseText };
+          notify.showError(errorMessage);
+          reject(error);
         }
       };
 

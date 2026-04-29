@@ -436,7 +436,6 @@
     "tusUploadsRetryCount": "Počet pokusů o opětovné nahrání části při chybě.",
     "userHomeBasePath": "Základní cesta pro domovské adresáře uživatelů",
     "userScopeGenerationPlaceholder": "Rozsah bude vygenerován automaticky",
-    "createUserHomeDirectory": "Vytvořit domovský adresář uživatele",
     "customStylesheet": "Vlastní styl",
     "defaultUserDescription": "Toto jsou výchozí nastavení pro nové uživatele.",
     "disableExternalLinks": "Zakázat externí odkazy (kromě dokumentace)",

@@ -326,7 +326,6 @@
     "tusUploadsRetryCount": "청크 업로드에 실패한 경우 수행할 재시도 횟수입니다.",
     "userHomeBasePath": "사용자 홈 디렉터리의 기본 경로",
     "userScopeGenerationPlaceholder": "범위가 자동으로 생성됩니다.",
-    "createUserHomeDirectory": "사용자 홈 디렉터리 만들기",
     "shareDeleted": "공유 삭제됨!",
     "loginMethodDescription": "사용자에게 허용된 로그인 방법을 설정합니다.",
     "userNotAdmin": "사용자가 관리자가 아닙니다.",

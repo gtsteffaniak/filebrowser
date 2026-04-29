@@ -327,7 +327,6 @@
     "tusUploadsRetryCount": "Počet opakovaných pokusov, ktoré sa vykonajú, ak sa nepodarí nahrať časť.",
     "userHomeBasePath": "Základná cesta pre domovské adresáre používateľov",
     "userScopeGenerationPlaceholder": "Rozsah sa vygeneruje automaticky",
-    "createUserHomeDirectory": "Vytvorenie domovského adresára používateľa",
     "loginMethodDescription": "povolená metóda prihlásenia pre používateľa.",
     "userNotAdmin": "Používateľ nie je správca",
     "enterPassword": "Zadajte heslo",

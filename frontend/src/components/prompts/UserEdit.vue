@@ -98,11 +98,6 @@
         <i class="material-symbols material-size">add</i>
       </button>
 
-      <div class="settings-items">
-        <ToggleSwitch v-if="displayHomeDirectoryCheckbox" class="item" v-model="createUserDir"
-          :name="$t('settings.createUserHomeDirectory')" />
-      </div>
-
       <p v-if="stateUser.username !== user.username">
         <label for="locale">{{ $t("general.language") }}</label>
         <languages class="input" id="locale" v-model:locale="user.locale" @input="emitUpdate"></languages>
@@ -240,9 +235,6 @@ export default {
     passwordPlaceholder() {
       return this.isNew ? "" : this.$t("settings.avoidChanges");
     },
-    displayHomeDirectoryCheckbox() {
-      return this.isNew && this.createUserDir;
-    },
     /** Password change (existing user): target and signed-in user must both use password login. */
     showPasswordChangeSection() {
       return (
@@ -261,10 +253,6 @@ export default {
     },
   },
   watch: {
-    createUserDir(newVal) {
-      this.user.scopes = newVal ? { default: "" } : this.originalUserScope;
-      this.emitUserUpdate();
-    },
     stateUser() {
       this.user.otpEnabled = state.user.otpEnabled;
       this.emitUserUpdate();
@@ -391,7 +379,7 @@ export default {
                   mutations.closeTopPrompt(); // close user prompt since user doens't exist anymore
                 } catch (e) {
                   console.error(e);
-                  notify.showErrorToast(this.$t("settings.userDeleteFailed"));
+                  notify.showError(e);
                 }
               },
             },

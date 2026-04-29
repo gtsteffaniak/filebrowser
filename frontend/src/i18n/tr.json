@@ -327,7 +327,6 @@
     "tusUploadsRetryCount": "Bir yığının yüklenememesi durumunda gerçekleştirilecek yeniden deneme sayısı.",
     "userHomeBasePath": "Kullanıcı ev dizinleri için temel yol",
     "userScopeGenerationPlaceholder": "Kapsam otomatik olarak oluşturulacaktır",
-    "createUserHomeDirectory": "Kullanıcı ev dizini oluşturma",
     "loginMethodDescription": "kullanıcı için izin verilen oturum açma yöntemi.",
     "userNotAdmin": "Kullanıcı yönetici değil",
     "enterPassword": "Şifre girin",

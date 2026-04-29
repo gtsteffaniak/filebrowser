@@ -327,7 +327,6 @@
     "UserManagement": "Benutzerverwaltung",
     "userHomeBasePath": "Basispfad für Benutzer-Home-Verzeichnisse",
     "userScopeGenerationPlaceholder": "Der Bereich wird automatisch generiert",
-    "createUserHomeDirectory": "Benutzer-Home-Verzeichnis erstellen",
     "loginMethodDescription": "erlaubte Anmeldemethode für den Benutzer.",
     "userNotAdmin": "Benutzer ist kein Administrator",
     "enterPassword": "Passwort eingeben",
