@@ -2,71 +2,62 @@ package iteminfo
 
 import "testing"
 
-func TestFileContributesToFolderPreviewThumbnail(t *testing.T) {
+func TestShouldBubbleUpToFolderPreview(t *testing.T) {
 	tests := []struct {
-		name  string
-		item  ItemInfo
-		want  bool
+		name string
+		item ItemInfo
+		want bool
 	}{
 		{
-			name: "video with preview contributes",
-			item: ItemInfo{
-				Name:       "clip.mp4",
-				Type:       "video/mp4",
-				HasPreview: true,
-			},
+			name: "directory type never bubbles",
+			item: ItemInfo{Name: "sub", Type: "directory"},
+			want: false,
+		},
+		{
+			name: "text markdown does not bubble",
+			item: ItemInfo{Name: "README.md", Type: "text/markdown"},
+			want: false,
+		},
+		{
+			name: "plain text does not bubble",
+			item: ItemInfo{Name: "LICENSE", Type: "text/plain; charset=utf-8"},
+			want: false,
+		},
+		{
+			name: "image bubbles regardless of HasPreview flag",
+			item: ItemInfo{Name: "a.png", Type: "image/png", HasPreview: false},
 			want: true,
 		},
 		{
-			name: "markdown with in-file preview does not contribute to folder strip",
-			item: ItemInfo{
-				Name:       "README.md",
-				Type:       "text/markdown",
-				HasPreview: true,
-			},
-			want: false,
-		},
-		{
-			name: "image with preview contributes",
-			item: ItemInfo{
-				Name:       "a.png",
-				Type:       "image/png",
-				HasPreview: true,
-			},
+			name: "video bubbles",
+			item: ItemInfo{Name: "clip.mp4", Type: "video/mp4"},
 			want: true,
 		},
 		{
-			name: "image without preview flag does not contribute",
-			item: ItemInfo{
-				Name:       "b.png",
-				Type:       "image/png",
-				HasPreview: false,
-			},
+			name: "audio type bubbles (type-level eligibility; album art is HasPreview elsewhere)",
+			item: ItemInfo{Name: "track.mp3", Type: "audio/mpeg", HasPreview: false},
+			want: true,
+		},
+		{
+			name: "OnlyOffice-backed extension does not bubble",
+			item: ItemInfo{Name: "report.docx", Type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"},
 			want: false,
 		},
 		{
-			name: "audio type with preview false does not contribute",
-			item: ItemInfo{
-				Name:       "track.mp3",
-				Type:       "audio/mpeg",
-				HasPreview: false,
-			},
+			name: "unknown blob type does not bubble",
+			item: ItemInfo{Name: "data.bin", Type: "application/octet-stream"},
 			want: false,
 		},
 		{
-			name: "directory never contributes as file child",
-			item: ItemInfo{
-				Name:       "sub",
-				Type:       "directory",
-				HasPreview: true,
-			},
+			name: "empty type does not bubble",
+			item: ItemInfo{Name: "weird", Type: ""},
 			want: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := FileContributesToFolderPreviewThumbnail(tt.item); got != tt.want {
-				t.Fatalf("FileContributesToFolderPreviewThumbnail() = %v, want %v", got, tt.want)
+			if got := ShouldBubbleUpToFolderPreview(tt.item); got != tt.want {
+				t.Fatalf("ShouldBubbleUpToFolderPreview() = %v, want %v", got, tt.want)
 			}
 		})
 	}

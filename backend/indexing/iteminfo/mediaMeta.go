@@ -400,16 +400,6 @@ func IsDirectory(fileInfo os.FileInfo) bool {
 	return false
 }
 
-// FileContributesToFolderPreviewThumbnail is true when a direct file child should make the parent folder
-// show a thumbnail strip. File HasPreview alone is not enough: markdown, PDF, and office files may show
-// in-file previews but must not bubble (see ShouldBubbleUpToFolderPreview).
-func FileContributesToFolderPreviewThumbnail(item ItemInfo) bool {
-	if item.Type == "directory" {
-		return false
-	}
-	return item.HasPreview && ShouldBubbleUpToFolderPreview(item)
-}
-
 // ShouldBubbleUpToFolderPreview checks if a file type should be used for folder previews.
 // Only images, videos, and audio files with album art should bubble up.
 // Text files, office documents, and PDFs should NOT bubble up to folder previews.

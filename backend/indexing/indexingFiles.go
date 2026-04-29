@@ -851,7 +851,7 @@ func (idx *Index) processFileItem(file os.FileInfo, indexPath string, opts Optio
 		if !usedCachedPreview {
 			setFilePreviewFlags(itemInfo, fullCombined)
 		}
-		bubblesUpHasPreview = iteminfo.FileContributesToFolderPreviewThumbnail(*itemInfo)
+		bubblesUpHasPreview = iteminfo.ShouldBubbleUpToFolderPreview(*itemInfo)
 	} else {
 		itemInfo.HasPreview = false
 	}
