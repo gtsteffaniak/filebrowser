@@ -8,7 +8,6 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
@@ -51,11 +50,6 @@ func validateUserInfo(newDB bool) {
 			logger.Info("Resetting admin user to default username and password.")
 			user.Permissions.Admin = true
 			user.Password = settings.Config.Auth.AdminPassword
-			pass, err := utils.HashPwd(user.Password)
-			if err != nil {
-				logger.Errorf("could not hash admin password: %v", err)
-			}
-			user.Password = pass
 			updateUser = true
 			changePass = true
 		}
@@ -68,16 +62,13 @@ func validateUserInfo(newDB bool) {
 					logger.Fatalf("Unable to create automatic backup of database due to error: %v", err)
 				}
 			}
-			err := store.Users.Update(user, true, "Scopes", "SidebarLinks", "Tokens", "Permissions", "Preview", "ShowFirstLogin", "LoginMethod", "Version")
+			fields := []string{"Scopes", "SidebarLinks", "Tokens", "Permissions", "Preview", "ShowFirstLogin", "LoginMethod", "Version"}
+			if changePass {
+				fields = append(fields, "Password")
+			}
+			err := store.Users.Update(user, true, fields...)
 			if err != nil {
 				logger.Errorf("could not update user: %v", err)
-			}
-			if changePass {
-				fmt.Printf("Updating user password for %s to %s\n", user.Username, user.Password)
-				err = store.Users.Update(user, true, "Password")
-				if err != nil {
-					logger.Errorf("could not update user password: %v", err)
-				}
 			}
 		}
 	}
