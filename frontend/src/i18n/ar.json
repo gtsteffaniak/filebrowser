@@ -326,7 +326,6 @@
     "tusUploadsRetryCount": "عدد مرات إعادة المحاولة التي يجب إجراؤها في حالة فشل تحميل قطعة ما.",
     "userHomeBasePath": "المسار الأساسي للدلائل الرئيسية للمستخدم",
     "userScopeGenerationPlaceholder": "سيتم إنشاء النطاق تلقائيًا",
-    "createUserHomeDirectory": "إنشاء الدليل الرئيسي للمستخدم",
     "shareDeleted": "تم حذف المشاركة",
     "loginMethodDescription": "طريقة تسجيل الدخول المسموح بها للمستخدم.",
     "userNotAdmin": "المستخدم ليس مسؤولاً",

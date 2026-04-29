@@ -276,7 +276,6 @@
     "createUserDir": "Crea automaticamente una carpeta cuando se agrega un nuevo usuario",
     "userHomeBasePath": "Ruta base para la carpeta personal del usuario",
     "userScopeGenerationPlaceholder": "La carpeta se generará automáticamente",
-    "createUserHomeDirectory": "Crea una carpeta personal para cada usuario",
     "customStylesheet": "Hoja de estilos personalizada",
     "defaultUserDescription": "Configuración por defecto nuevos usuarios",
     "disableExternalLinks": "Desactivar enlaces externos",

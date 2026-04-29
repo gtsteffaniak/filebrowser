@@ -275,7 +275,6 @@
     "createUserDir": "צור תקיית בית במהלך הוספת משתמש חדש",
     "userHomeBasePath": "נתיב ראשי לתקיות הבית של משתמשים",
     "userScopeGenerationPlaceholder": "התחום יווצר אוטומטית",
-    "createUserHomeDirectory": "צור תקיית בית למשתמש",
     "customStylesheet": "עיצוב מותאם אישית (Stylesheet)",
     "defaultUserDescription": "אלה הגדרות ברירת המחדל למשתמשים חדשים",
     "disableExternalLinks": "השבת קישורים חיצוניים (למעט תיעוד)",

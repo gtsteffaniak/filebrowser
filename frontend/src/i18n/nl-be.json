@@ -332,7 +332,6 @@
     "tusUploadsRetryCount": "Aantal pogingen dat moet worden uitgevoerd als het uploaden van een chunk mislukt.",
     "userHomeBasePath": "Basispad voor homedirectory's van gebruikers",
     "userScopeGenerationPlaceholder": "De scope wordt automatisch gegenereerd",
-    "createUserHomeDirectory": "Thuismap gebruiker aanmaken",
     "shareSettings": "Instellingen delen",
     "shareDeleted": "Deel verwijderd!",
     "adminOptions": "Opties voor beheerders",
