@@ -32,15 +32,7 @@ func MakeUserDirs(u *users.User, createDir bool) error {
 		fullPath := filepath.Join(source.Path, scope.Scope)
 		parentDir := filepath.Dir(fullPath)
 		if createDir {
-			// CreateUserDir nests users under defaultUserScope + username (see SourceConfig).
-			// Only apply when the user's scope is still the configured default — not when they
-			// chose another path such as "/" (full index). filepath.Base("/") is "/" on Unix,
-			// which wrongly satisfied the old basename != username check.
-			defaultScope := users.NormalizeScope(source.Config.DefaultUserScope)
-			currentScope := users.NormalizeScope(scope.Scope)
-			if source.Config.CreateUserDir &&
-				currentScope == defaultScope &&
-				filepath.Base(scope.Scope) != cleanedUserName {
+			if source.Config.CreateUserDir && filepath.Base(scope.Scope) != cleanedUserName {
 				scope.Scope = utils.JoinPathAsUnix(scope.Scope, cleanedUserName)
 				fullPath = filepath.Join(fullPath, cleanedUserName)
 			}
