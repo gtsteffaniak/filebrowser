@@ -12,8 +12,9 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-// UpdateFileMetadata updates the FileInfo for the specified directory in the index.
-// scanner parameter is optional - if nil (API refresh), directly inserts to database
+// UpdateMetadata persists a completed directory listing to the index: the directory row (including
+// hasPreview: only direct child files that contribute to folder thumbnails, see GetDirInfoCore) and either
+// batch-scanner direct files or all children, then BulkInsertItems / flushBatch.
 func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo, scanner *Scanner) bool {
 	items := make([]*iteminfo.FileInfo, 0, len(info.Files)+len(info.Folders)+1)
 	dirItem := *info
@@ -91,9 +92,8 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo, scanner *Scanner) bool
 	return true
 }
 
-// flushBatch writes all remaining batch items to the database (Scanner method)
-// This is called at the end of a scan to flush any items that didn't reach the BATCH_SIZE threshold
-// Also clears processedInodes/foundHardLinks maps periodically to prevent unbounded memory growth
+// flushBatch writes batched directory+file rows from the scanner to the DB via BulkInsertItems.
+// Each directory row's has_preview reflects direct bubble-up files only (see GetDirInfoCore).
 func (s *Scanner) flushBatch() {
 	items := s.batchItems
 	s.batchItems = nil

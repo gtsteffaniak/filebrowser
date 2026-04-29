@@ -734,49 +734,26 @@ func (idx *Index) GetFsInfoViewableOnly(adjustedPath string, followSymlinks bool
 	})
 }
 
-// fetchExtendedAttributes loads hasPreview for the current directory and for listed subdirectories in one GetMetadataInfo call (GetItem + GetDirectoryChildren).
-func (idx *Index) fetchExtendedAttributes(indexPath string, files []os.FileInfo, opts Options) (bool, map[string]bool) {
-	hasPreview := false
+// fetchExtendedAttributes loads indexed subfolder has_preview for the current directory from GetMetadataInfo (database).
+// The listed directory's own HasPreview is derived only in GetDirInfoCore from children (never from a stale parent DB row).
+func (idx *Index) fetchExtendedAttributes(indexPath string, opts Options) map[string]bool {
 	subdirHasPreviewMap := make(map[string]bool)
 
 	if opts.SkipExtendedAttrs || opts.Recursive {
-		return hasPreview, subdirHasPreviewMap
+		return subdirHasPreviewMap
 	}
 
 	realDirInfo, exists := idx.GetMetadataInfo(indexPath, true, false)
 	if !exists {
-		return hasPreview, subdirHasPreviewMap
-	}
-	hasPreview = realDirInfo.HasPreview
-
-	wanted := make(map[string]struct{})
-	for _, file := range files {
-		if !iteminfo.IsDirectory(file) {
-			continue
-		}
-		baseName := file.Name()
-		if indexPath == "/" {
-			if !idx.shouldInclude(baseName) {
-				continue
-			}
-		}
-		if omitList[baseName] {
-			continue
-		}
-		dirPath := indexPath + baseName
-		childIndexPath := utils.AddTrailingSlashIfNotExists(dirPath)
-		wanted[childIndexPath] = struct{}{}
+		return subdirHasPreviewMap
 	}
 
 	for _, folder := range realDirInfo.Folders {
 		key := utils.AddTrailingSlashIfNotExists(indexPath + folder.Name)
-		if _, ok := wanted[key]; !ok {
-			continue
-		}
 		subdirHasPreviewMap[key] = folder.HasPreview
 	}
 
-	return hasPreview, subdirHasPreviewMap
+	return subdirHasPreviewMap
 }
 
 // processDirectoryItem processes a directory item and returns the itemInfo, size, and whether it should be counted
@@ -874,9 +851,7 @@ func (idx *Index) processFileItem(file os.FileInfo, indexPath string, opts Optio
 		if !usedCachedPreview {
 			setFilePreviewFlags(itemInfo, fullCombined)
 		}
-		if itemInfo.HasPreview && iteminfo.ShouldBubbleUpToFolderPreview(*itemInfo) {
-			bubblesUpHasPreview = true
-		}
+		bubblesUpHasPreview = iteminfo.FileContributesToFolderPreviewThumbnail(*itemInfo)
 	} else {
 		itemInfo.HasPreview = false
 	}
@@ -893,8 +868,7 @@ func (idx *Index) GetDirInfoCore(dirInfo *os.File, stat os.FileInfo, indexPath s
 	if err != nil {
 		return nil, err
 	}
-	// Fetch extended attributes (hasPreview for current dir and subdirs)
-	hasPreview, subdirHasPreviewMap := idx.fetchExtendedAttributes(indexPath, files, opts)
+	subdirHasPreviewMap := idx.fetchExtendedAttributes(indexPath, opts)
 
 	baseName := filepath.Base(indexPath)
 	if indexPath == "/" {
@@ -958,12 +932,9 @@ func (idx *Index) GetDirInfoCore(dirInfo *os.File, stat os.FileInfo, indexPath s
 				idx.incrementScannerDirs()
 			}
 		} else {
-			itemInfo, size, shouldCount, bubblesUp := idx.processFileItem(file, indexPath, opts, scanner)
+			itemInfo, size, shouldCount, _ := idx.processFileItem(file, indexPath, opts, scanner)
 			if shouldCount {
 				totalSize += size
-			}
-			if bubblesUp {
-				hasPreview = true
 			}
 			fileInfos = append(fileInfos, iteminfo.ExtendedItemInfo{ItemInfo: *itemInfo})
 			if opts.IsRoutineScan {
@@ -972,15 +943,11 @@ func (idx *Index) GetDirInfoCore(dirInfo *os.File, stat os.FileInfo, indexPath s
 		}
 	}
 
-	// Folder preview in the index: parent has_preview if any listed subdirectory has it (recursive
-	// indexing or non-recursive read from DB). Source root "/" is excluded so it only reflects
-	// direct previewable files, not descendants (see indexingFiles_test preview tests).
-	if indexPath != "/" {
-		for i := range dirInfos {
-			if dirInfos[i].HasPreview {
-				hasPreview = true
-				break
-			}
+	hasPreview := false
+	for i := range fileInfos {
+		if iteminfo.FileContributesToFolderPreviewThumbnail(fileInfos[i].ItemInfo) {
+			hasPreview = true
+			break
 		}
 	}
 
