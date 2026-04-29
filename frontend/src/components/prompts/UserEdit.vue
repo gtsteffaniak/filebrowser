@@ -415,10 +415,7 @@ export default {
           mutations.closeTopPrompt();
         } else {
           await usersApi.update({ ...this.user, scopes: scopesToSend }, fields);
-          // Only emit usersChanged for admin user management, not profile updates
-          if (state.user.permissions.admin && this.user.id !== state.user.id) {
-            eventBus.emit('usersChanged');
-          }
+          eventBus.emit('usersChanged');
           notify.showSuccessToast(this.$t("settings.userUpdated"));
           mutations.closeTopPrompt();
         }
@@ -454,9 +451,7 @@ export default {
         await usersApi.update(this.user, ["password"], {
           actorPasswordPromptI18nKey: "prompts.confirmPasswordToSaveUser",
         });
-        if (state.user.permissions.admin && this.user.id !== state.user.id) {
-          eventBus.emit("usersChanged");
-        }
+        eventBus.emit("usersChanged");
         notify.showSuccessToast(this.$t("settings.userUpdated"));
       } catch (e) {
         notify.showError(e);
