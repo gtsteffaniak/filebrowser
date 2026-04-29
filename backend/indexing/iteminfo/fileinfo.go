@@ -30,6 +30,8 @@ type FileInfo struct {
 	Files   []ExtendedItemInfo `json:"files,omitempty"`   // files in the directory with optional metadata
 	Folders []ItemInfo         `json:"folders,omitempty"` // folders in the directory
 	Path    string             `json:"path,omitempty"`    // path scoped to the associated index
+	// IsDir is the index DB is_dir column; Type alone can disagree (legacy or malformed rows).
+	IsDir bool `json:"-"`
 }
 
 // MediaMetadata contains metadata extracted from audio and video files

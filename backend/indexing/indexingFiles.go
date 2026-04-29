@@ -801,11 +801,7 @@ func (idx *Index) processDirectoryItem(file os.FileInfo, indexPath string, subdi
 	if !opts.SkipExtendedAttrs && subdirHasPreviewMap != nil {
 		if hasPreviewValue, exists := subdirHasPreviewMap[childIndexPath]; exists {
 			itemInfo.HasPreview = hasPreviewValue
-		} else {
-			itemInfo.HasPreview = false
 		}
-	} else {
-		itemInfo.HasPreview = false
 	}
 
 	return itemInfo, itemInfo.Size, true
@@ -1106,6 +1102,7 @@ func (idx *Index) updateFolderSizeAndParents(path string, newSize uint64, previo
 		if parentDir == "" {
 			break // Reached the top
 		}
+		// Keys in folderSizes match indexing paths (trailing slash for non-root dirs; root stays "/").
 		if parentDir != "/" {
 			parentDir = utils.AddTrailingSlashIfNotExists(parentDir)
 		}
@@ -1160,20 +1157,6 @@ func (idx *Index) getFileSizeForDisplay(file os.FileInfo, realPath string) int64
 
 	// Disk usage mode: use getDiskUsage helper
 	return getDiskUsage(file, realPath, false)
-}
-
-// RecursiveUpdateDirSizes is now a wrapper for backwards compatibility
-// This maintains API compatibility while using the new optimized approach
-func (idx *Index) RecursiveUpdateDirSizes(path string, previousSize uint64) {
-	currentSize, exists := idx.GetFolderSize(path)
-	if !exists {
-		logger.Debugf("[FOLDER_SIZE] Path %s not found in folderSizes map", path)
-		return
-	}
-
-	if currentSize != previousSize {
-		idx.updateFolderSizeAndParents(path, currentSize, previousSize, false) // updateTarget=false, only update parents
-	}
 }
 
 // SyncFolderSizesToDB syncs in-memory folder sizes to the database after a scan completes
@@ -1583,14 +1566,13 @@ func (idx *Index) shouldInclude(baseName string) bool {
 	return false
 }
 
-// Save persists the index and scanner information to the database
-func (idx *Index) Save() error {
+// writePersistedIndexInfo writes scanners, stats, and disk totals to Bolt (no SSE broadcast).
+func (idx *Index) writePersistedIndexInfo() error {
 	if indexingStorage == nil {
-		return nil // No storage available, skip persistence
+		return nil
 	}
 
 	idx.mu.RLock()
-	// Collect scanner information
 	scanners := make(map[string]*dbindex.PersistedScannerInfo)
 	for path, scanner := range idx.scanners {
 		scanners[path] = &dbindex.PersistedScannerInfo{
@@ -1605,32 +1587,37 @@ func (idx *Index) Save() error {
 		}
 	}
 
-	// Get current index stats
 	complexity := idx.getComplexityUnlocked()
 	numDirs := idx.getNumDirsUnlocked()
 	numFiles := idx.getNumFilesUnlocked()
+	usedAsIndexed := idx.UsedAsIndexed
+	usedDisk := idx.UsedDisk
+	diskTotal := idx.DiskTotal
 	idx.mu.RUnlock()
 
-	// Create IndexInfo for persistence
 	info := &dbindex.IndexInfo{
-		Path:       idx.Path, // Use real filesystem path as key
-		Source:     idx.Name,
-		Complexity: complexity,
-		NumDirs:    numDirs,
-		NumFiles:   numFiles,
-		Scanners:   scanners,
+		Path:          idx.Path,
+		Source:        idx.Name,
+		Complexity:    complexity,
+		NumDirs:       numDirs,
+		NumFiles:      numFiles,
+		UsedAsIndexed: usedAsIndexed,
+		UsedDisk:      usedDisk,
+		DiskTotal:     diskTotal,
+		Scanners:      scanners,
 	}
 
-	err := indexingStorage.Save(info)
-	if err != nil {
+	return indexingStorage.Save(info)
+}
+
+// Save persists the index and scanner information to the database and notifies clients via SSE.
+func (idx *Index) Save() error {
+	if err := idx.writePersistedIndexInfo(); err != nil {
 		return err
 	}
-
-	// Send SSE update event after successful save
 	if err := idx.SendSourceUpdateEvent(); err != nil {
 		logger.Errorf("[%s] Failed to send source update event: %v", idx.Name, err)
 	}
-
 	return nil
 }
 
@@ -1658,6 +1645,9 @@ func (idx *Index) Load() error {
 	idx.Complexity = info.Complexity
 	idx.NumDirs = info.NumDirs
 	idx.NumFiles = info.NumFiles
+	idx.UsedAsIndexed = info.UsedAsIndexed
+	idx.UsedDisk = info.UsedDisk
+	idx.DiskTotal = info.DiskTotal
 
 	// Restore scanner information (will be applied when scanners are created)
 	// Store in a temporary map that setupMultiScanner can use

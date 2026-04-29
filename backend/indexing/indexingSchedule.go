@@ -205,7 +205,9 @@ func (idx *Index) SendSourceUpdateEvent() error {
 	if idx.mock {
 		return nil
 	}
-	reducedIndex, err := GetIndexInfo(idx.Name, true)
+	// Avoid force=true: otherwise GetIndexInfo invalidates DiskUsageCache, recomputes, and writePersistedIndexInfo
+	// nests under Save recursion; false uses cached probe / current idx totals for the broadcast payload.
+	reducedIndex, err := GetIndexInfo(idx.Name, false)
 	if err != nil {
 		logger.Errorf("[%s] Error getting index info: %v", idx.Name, err)
 		return err
@@ -226,7 +228,8 @@ func (idx *Index) SendSourceUpdateEvent() error {
 // setupMultiScanner creates and starts the multi-scanner system
 // isNewDb: if true, skip loading persisted complexity values (database is new or recreated)
 func (idx *Index) setupMultiScanner(isNewDb bool) {
-	// Load persisted index and scanner information
+	// Load persisted index-level stats from Bolt (complexity, numDirs/Files, used/usedAlt/total, etc.)
+	// Scanner-level stats below use a second GetByPath only for the Scanners map.
 	if err := idx.Load(); err != nil {
 		logger.Errorf("Failed to load persisted index data for [%v]: %v", idx.Name, err)
 	}
