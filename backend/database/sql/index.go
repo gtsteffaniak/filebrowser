@@ -1324,6 +1324,7 @@ func scanItem(scanner interface{ Scan(...interface{}) error }) (*iteminfo.FileIn
 		return nil, err
 	}
 	info.ModTime = time.Unix(modTime, 0)
+	info.IsDir = isDir
 	return &info, nil
 }
 

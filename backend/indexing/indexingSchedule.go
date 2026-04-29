@@ -205,7 +205,9 @@ func (idx *Index) SendSourceUpdateEvent() error {
 	if idx.mock {
 		return nil
 	}
-	reducedIndex, err := GetIndexInfo(idx.Name, true)
+	// Avoid force=true: otherwise GetIndexInfo invalidates DiskUsageCache, recomputes, and writePersistedIndexInfo
+	// nests under Save recursion; false uses cached probe / current idx totals for the broadcast payload.
+	reducedIndex, err := GetIndexInfo(idx.Name, false)
 	if err != nil {
 		logger.Errorf("[%s] Error getting index info: %v", idx.Name, err)
 		return err

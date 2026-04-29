@@ -314,15 +314,17 @@ func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, erro
 		}
 		itemInfo, dbErr := idx.db.GetDirectoryChildren(idx.Name, "/")
 		if dbErr != nil {
-			logger.Debugf("GetIndexInfo: could not read root folder size from index DB for %s: %v", sourceName, dbErr)
+			logger.Debugf("GetIndexInfo: could not read root listing from index DB for %s: %v", sourceName, dbErr)
 		}
 		var indexedSizeFromDB uint64
 		for _, item := range itemInfo {
-			if item.Type != "directory" {
+			isFolder := item.IsDir || item.Type == "directory"
+			if !isFolder {
 				indexedSizeFromDB += uint64(item.Size)
 				continue
 			}
-			if agg, ok := idx.GetFolderSize(item.Path); ok {
+			folderKey := utils.AddTrailingSlashIfNotExists(item.Path)
+			if agg, ok := idx.GetFolderSize(folderKey); ok {
 				indexedSizeFromDB += agg
 			} else {
 				indexedSizeFromDB += uint64(item.Size)
@@ -336,7 +338,7 @@ func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, erro
 		idx.SetUsage(totalPartitionSize, partitionUsed, indexedSizeFromDB)
 		utils.DiskUsageCache.Set(cacheKey, true)
 		if indexingStorage != nil {
-			if err := idx.Save(); err != nil {
+			if err := idx.writePersistedIndexInfo(); err != nil {
 				logger.Warningf("GetIndexInfo: failed to persist index disk stats for %s: %v", sourceName, err)
 			}
 		}

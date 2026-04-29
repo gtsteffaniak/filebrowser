@@ -1102,7 +1102,10 @@ func (idx *Index) updateFolderSizeAndParents(path string, newSize uint64, previo
 		if parentDir == "" {
 			break // Reached the top
 		}
-		parentDir = utils.AddTrailingSlashIfNotExists(parentDir)
+		// Keys in folderSizes match indexing paths (trailing slash for non-root dirs; root stays "/").
+		if parentDir != "/" {
+			parentDir = utils.AddTrailingSlashIfNotExists(parentDir)
+		}
 
 		// Update parent size with delta
 		parentSize := idx.folderSizes[parentDir]
@@ -1563,14 +1566,13 @@ func (idx *Index) shouldInclude(baseName string) bool {
 	return false
 }
 
-// Save persists the index and scanner information to the database
-func (idx *Index) Save() error {
+// writePersistedIndexInfo writes scanners, stats, and disk totals to Bolt (no SSE broadcast).
+func (idx *Index) writePersistedIndexInfo() error {
 	if indexingStorage == nil {
-		return nil // No storage available, skip persistence
+		return nil
 	}
 
 	idx.mu.RLock()
-	// Collect scanner information
 	scanners := make(map[string]*dbindex.PersistedScannerInfo)
 	for path, scanner := range idx.scanners {
 		scanners[path] = &dbindex.PersistedScannerInfo{
@@ -1585,7 +1587,6 @@ func (idx *Index) Save() error {
 		}
 	}
 
-	// Get current index stats (including persisted disk totals when usage is enabled / last probed)
 	complexity := idx.getComplexityUnlocked()
 	numDirs := idx.getNumDirsUnlocked()
 	numFiles := idx.getNumFilesUnlocked()
@@ -1594,29 +1595,29 @@ func (idx *Index) Save() error {
 	diskTotal := idx.DiskTotal
 	idx.mu.RUnlock()
 
-	// Create IndexInfo for persistence
 	info := &dbindex.IndexInfo{
-		Path:       idx.Path, // Use real filesystem path as key
-		Source:     idx.Name,
-		Complexity: complexity,
-		NumDirs:    numDirs,
-		NumFiles:   numFiles,
+		Path:          idx.Path,
+		Source:        idx.Name,
+		Complexity:    complexity,
+		NumDirs:       numDirs,
+		NumFiles:      numFiles,
 		UsedAsIndexed: usedAsIndexed,
 		UsedDisk:      usedDisk,
 		DiskTotal:     diskTotal,
-		Scanners:   scanners,
+		Scanners:      scanners,
 	}
 
-	err := indexingStorage.Save(info)
-	if err != nil {
+	return indexingStorage.Save(info)
+}
+
+// Save persists the index and scanner information to the database and notifies clients via SSE.
+func (idx *Index) Save() error {
+	if err := idx.writePersistedIndexInfo(); err != nil {
 		return err
 	}
-
-	// Send SSE update event after successful save
 	if err := idx.SendSourceUpdateEvent(); err != nil {
 		logger.Errorf("[%s] Failed to send source update event: %v", idx.Name, err)
 	}
-
 	return nil
 }
 
