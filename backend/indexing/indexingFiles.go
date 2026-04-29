@@ -879,6 +879,7 @@ func (idx *Index) GetDirInfoCore(dirInfo *os.File, stat os.FileInfo, indexPath s
 	fileInfos := []iteminfo.ExtendedItemInfo{}
 	dirInfos := []iteminfo.ItemInfo{}
 	processedCount := 0
+	hasPreview := false
 
 	for _, file := range files {
 		subfileBaseName := file.Name()
@@ -932,7 +933,10 @@ func (idx *Index) GetDirInfoCore(dirInfo *os.File, stat os.FileInfo, indexPath s
 				idx.incrementScannerDirs()
 			}
 		} else {
-			itemInfo, size, shouldCount, _ := idx.processFileItem(file, indexPath, opts, scanner)
+			itemInfo, size, shouldCount, bubblesUp := idx.processFileItem(file, indexPath, opts, scanner)
+			if bubblesUp {
+				hasPreview = true
+			}
 			if shouldCount {
 				totalSize += size
 			}
@@ -940,14 +944,6 @@ func (idx *Index) GetDirInfoCore(dirInfo *os.File, stat os.FileInfo, indexPath s
 			if opts.IsRoutineScan {
 				idx.incrementScannerFiles()
 			}
-		}
-	}
-
-	hasPreview := false
-	for i := range fileInfos {
-		if iteminfo.FileContributesToFolderPreviewThumbnail(fileInfos[i].ItemInfo) {
-			hasPreview = true
-			break
 		}
 	}
 
