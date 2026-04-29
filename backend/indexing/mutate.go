@@ -13,7 +13,6 @@ import (
 )
 
 // UpdateMetadata persists a completed directory listing to the index. The directory row's has_preview
-// reflects direct files only (FileContributesToFolderPreviewThumbnail), not subfolder flags.
 // scanner is optional — if nil (API refresh), inserts run immediately; otherwise items batch until flush.
 func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo, scanner *Scanner) bool {
 	items := make([]*iteminfo.FileInfo, 0, len(info.Files)+len(info.Folders)+1)

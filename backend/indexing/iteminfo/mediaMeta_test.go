@@ -24,18 +24,23 @@ func TestShouldBubbleUpToFolderPreview(t *testing.T) {
 			want: false,
 		},
 		{
-			name: "image bubbles regardless of HasPreview flag",
+			name: "image does not bubble without HasPreview",
 			item: ItemInfo{Name: "a.png", Type: "image/png", HasPreview: false},
+			want: false,
+		},
+		{
+			name: "image bubbles when HasPreview",
+			item: ItemInfo{Name: "a.png", Type: "image/png", HasPreview: true},
 			want: true,
 		},
 		{
-			name: "video bubbles",
-			item: ItemInfo{Name: "clip.mp4", Type: "video/mp4"},
+			name: "video bubbles when HasPreview",
+			item: ItemInfo{Name: "clip.mp4", Type: "video/mp4", HasPreview: true},
 			want: true,
 		},
 		{
-			name: "audio type bubbles (type-level eligibility; album art is HasPreview elsewhere)",
-			item: ItemInfo{Name: "track.mp3", Type: "audio/mpeg", HasPreview: false},
+			name: "audio bubbles when HasPreview (e.g. album art)",
+			item: ItemInfo{Name: "track.mp3", Type: "audio/mpeg", HasPreview: true},
 			want: true,
 		},
 		{
