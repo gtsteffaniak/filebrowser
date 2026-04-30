@@ -697,6 +697,8 @@ var types = map[string]string{
 	".mks":       "video/x-matroska",
 	".vob":       "video/x-ms-vob",
 	".smv":       "video/x-smv",
+	".djvu":      "image/vnd.djvu",
+	".djv":       "image/vnd.djvu",
 }
 
 //nolint:gochecknoinits

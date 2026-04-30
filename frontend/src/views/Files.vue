@@ -20,6 +20,7 @@ import ListingView from "@/views/files/ListingView.vue";
 import Editor from "@/views/files/Editor.vue";
 import OnlyOfficeEditor from "./files/OnlyOfficeEditor.vue";
 import EpubViewer from "./files/EpubViewer.vue";
+import DjvuViewer from "./files/DjvuViewer.vue";
 import DocViewer from "./files/DocViewer.vue";
 import MarkdownViewer from "./files/MarkdownViewer.vue";
 import ThreeJsViewer from "./files/ThreeJs.vue";
@@ -118,6 +119,7 @@ export default {
     ListingView,
     Editor,
     EpubViewer,
+    DjvuViewer,
     DocViewer,
     OnlyOfficeEditor,
     MarkdownViewer,

@@ -1254,6 +1254,9 @@ func setFilePreviewFlags(fileInfo *iteminfo.ItemInfo, realPath string) {
 	}
 	switch simpleType {
 	case "image":
+		if fileInfo.Type == "image/vnd.djvu" {
+			return
+		}
 		if fileInfo.Size > iteminfo.LargeFileSizeThreshold {
 			fileInfo.HasPreview = false
 			return

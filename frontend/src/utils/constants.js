@@ -19,6 +19,7 @@ const previewViews = [
   'preview',
   'markdownViewer',
   'epubViewer',
+  'djvuViewer',
   'docViewer',
   'onlyOfficeEditor',
   'editor',

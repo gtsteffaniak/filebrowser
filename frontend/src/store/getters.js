@@ -342,6 +342,7 @@ export const getters = {
 
       if ('content' in state.req) return 'editor';
       if (state.req.type.startsWith('application/epub')) return 'epubViewer';
+      if (state.req.type.startsWith('image/vnd.djvu')) return 'djvuViewer';
       if (state.req.type.startsWith('application/vnd.openxmlformats-officedocument.wordprocessingml.document')) return 'docViewer';
       return 'preview';
     }
