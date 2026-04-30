@@ -308,7 +308,7 @@ export default {
         return;
       }
       this.subtitlesList = await this.subtitles();
-      if (this.previewType === 'audio' && this.lyricsFetchedForPath !== state.req.path) {
+      if (this.previewType === 'audio' && !this.useDefaultMediaPlayer && this.lyricsFetchedForPath !== state.req.path) {
         this.lyricsFetchedForPath = state.req.path;
         if (state.req.metadata?.hasLyrics) {
           try {
