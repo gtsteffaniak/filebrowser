@@ -14,7 +14,10 @@
       :class="{ 'dark-mode': isDarkMode, 'centered': centered }"
       :key="showCreate ? 'create-mode' : 'normal-mode'"
     >
-      <div v-if="!showLimitedOptions" class="context-menu-header">
+      <div
+        v-if="!showLimitedOptions && (showCreateButton || selectedCount > 0)"
+        class="context-menu-header"
+      >
         <div
           class="action button clickable"
           v-if="showCreateButton"
@@ -35,19 +38,19 @@
       </div>
       <hr v-if="showDivider" class="divider">
       <action
-        v-if="showCreateFiles"
+        v-if="showCreateFileActions"
         icon="create_new_folder"
         :label="$t('files.newFolder')"
         @action="showNewDirPrompt"
       />
       <action
-        v-if="showCreateFiles"
+        v-if="showCreateFileActions"
         icon="note_add"
         :label="$t('files.newFile')"
         @action="showPrompt('newFile')"
       />
       <action
-        v-if="showCreateFiles"
+        v-if="showCreateFileActions"
         icon="file_upload"
         :label="$t('general.upload')"
         @action="showUploadPrompt"
@@ -229,7 +232,10 @@ export default {
   computed: {
     // Either from prop or from state
     providedItems() {
-      if (this.items) return this.items;
+      // Only treat non-empty explicit `items` as overriding selection ([] means "use global state")
+      if (Array.isArray(this.items) && this.items.length > 0) {
+        return this.items;
+      }
       // Fallback to global selection (indices or objects)
       if (state.selected.length === 0) return [];
       // Map to actual items from state.req
@@ -253,19 +259,26 @@ export default {
     permissions() {
       return getters.permissions();
     },
+    /**
+     * Whether the (+) panel can be opened (create file ops and/or admin-only rows like access rules).
+     */
+    canOpenCreatePanel() {
+      if (getters.isShare()) {
+        return !!getters.permissions().create;
+      }
+      return getters.isAdmin() || !!state.user?.permissions?.create;
+    },
+    /** New folder / new file / upload — requires permissions.create only (not admin alone). */
+    showCreateFileActions() {
+      if (this.showLimitedOptions) return false;
+      if (!this.permissions.create) return false;
+      return this.showCreate && !this.isSearchActive;
+    },
     req() {
       return state.req;
     },
     isShare() {
       return getters.isShare();
-    },
-    showCreateFiles() {
-      if (this.showLimitedOptions) return false;
-      return getters.permissions().create;
-    },
-    showCreateActions() {
-      if (this.showLimitedOptions) return false;
-      return this.showCreate && !this.isSearchActive;
     },
     showInfo() {
       if (this.showLimitedOptions) return this.selectedCount == 1;
@@ -273,7 +286,11 @@ export default {
     },
     showDownload() {
       if (this.showLimitedOptions) return false;
-      return !this.showCreate && this.permissions.download && this.selectedCount > 0;
+      return (
+        !this.showCreate &&
+        !!this.permissions.download &&
+        this.selectedCount > 0
+      );
     },
     showArchive() {
       if (this.showLimitedOptions || getters.isShare()) return false;
@@ -316,14 +333,20 @@ export default {
     },
     showCreateButton() {
       if (this.showLimitedOptions || this.createOnly) return false;
-      return !this.isSearchActive && this.permissions.create && !this.isShare;
+      return !this.isSearchActive && !this.isShare && this.canOpenCreatePanel;
     },
     showDivider() {
       if (this.showLimitedOptions || this.createOnly) return false;
+      const hasHeader = this.showCreateButton || this.selectedCount > 0;
+      if (!hasHeader) return false;
       if (getters.isShare()) {
-        return state.shareInfo?.allowCreate
+        return state.shareInfo?.allowCreate;
       }
-      return state.user?.permissions?.create || state.user?.permissions?.share || state.user?.permissions?.admin;
+      return (
+        state.user?.permissions?.create ||
+        state.user?.permissions?.share ||
+        state.user?.permissions?.admin
+      );
     },
     showSelectMultiple() {
       if (this.showLimitedOptions) return false;
@@ -363,11 +386,14 @@ export default {
         return false;
       }
       const cv = getters.currentView();
-      const showDelete = cv != "settings" && !this.isSearchActive && this.permissions.delete;
-      return showDelete;
+      return (
+        cv != "settings" &&
+        !this.isSearchActive &&
+        !!this.permissions.delete
+      );
     },
     hasDownload() {
-      return this.selectedCount > 0 && this.permissions.download;
+      return this.selectedCount > 0 && !!this.permissions.download;
     },
     isPreview() {
       return getters.isPreviewView();
@@ -384,7 +410,7 @@ export default {
       if (getters.isShare()) {
         return false;
       }
-      return this.permissions.admin && this.showCreate;
+      return getters.isAdmin() && this.showCreate;
     },
     showShare() {
       if (getters.isShare()) {
@@ -408,7 +434,12 @@ export default {
       return state.user;
     },
     centered() {
-      return this.showCentered || this.isMobileDevice || !this.posX || !this.posY;
+      return (
+        this.showCentered ||
+        this.isMobileDevice ||
+        this.posX == null ||
+        this.posY == null
+      );
     },
     isMobileDevice() {
       return state.isMobile;
@@ -481,7 +512,7 @@ export default {
       });
     },
     toggleShowCreate() {
-      if (!this.permissions.create) {
+      if (!this.canOpenCreatePanel) {
         this.showCreate = false;
         return;
       }
@@ -568,7 +599,7 @@ export default {
       }, 300);
     },
     startShowCreate() {
-      if (!this.permissions.create) {
+      if (!this.canOpenCreatePanel) {
         return;
       }
       this.showCreate = true;
@@ -613,17 +644,12 @@ export default {
       this.posY = contextProps.posY;
     },
     initializeCreateState() {
-      // If createOnly is set, always show create actions
       if (this.createOnly) {
         this.showCreate = true;
         return;
       }
-      // Only set initial showCreate state, don't override user choices
-      if (this.selectedCount > 0 || !this.permissions.create) {
-        this.showCreate = false;
-      } else {
-        this.showCreate = true;
-      }
+      // Right-click / prompt: start in normal mode; user opens create via + or sidebar (createOnly).
+      this.showCreate = false;
     },
     toggleMultipleSelection() {
       mutations.setMultiple(true);

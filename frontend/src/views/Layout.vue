@@ -22,7 +22,10 @@
   <Notifications />
   <Toast :toasts="toasts" />
   <StatusBar :class="{ moveWithSidebar: moveWithSidebar.shouldMove }" />
-  <ContextMenu v-bind="contextMenuProps"></ContextMenu>
+  <ContextMenu
+    v-bind="contextMenuProps"
+    :key="contextMenuInstanceKey"
+  ></ContextMenu>
   <Tooltip />
   <NextPrevious />
   <PopupPreview v-if="popupEnabled" />
@@ -150,11 +153,16 @@ export default {
       return getters.currentView();
     },
     contextMenuProps() {
-      const prompt = getters.currentPrompt();
-      if (prompt && prompt.name === "ContextMenu") {
+      const prompt = state.prompts.find((p) => p.name === "ContextMenu");
+      if (prompt) {
         return prompt.props || {};
       }
       return {};
+    },
+    /** Remount ContextMenu whenever its prompt entry changes so props (e.g. createOnly) never go stale. */
+    contextMenuInstanceKey() {
+      const prompt = state.prompts.find((p) => p.name === "ContextMenu");
+      return prompt ? prompt.id : 0;
     },
     popupEnabled() {
       if (!state.user || state.user?.username == "") {
