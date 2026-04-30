@@ -1,6 +1,7 @@
 package files
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -11,6 +12,7 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
+	liberrors "github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	dbsql "github.com/gtsteffaniak/filebrowser/backend/database/sql"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
@@ -86,6 +88,111 @@ func Test_GetRealPath(t *testing.T) {
 			}
 		})
 	}
+}
+
+// Regression: PUT / save must not os.Chmod to PermFile for existing files, or +x (and other mode bits) are lost (#2309).
+func TestWriteFilePreservesExecutableBit(t *testing.T) {
+	cacheDir := t.TempDir()
+	originalCache := settings.Config.Server.CacheDir
+	settings.Config.Server.CacheDir = cacheDir
+	t.Cleanup(func() { settings.Config.Server.CacheDir = originalCache })
+
+	fileutils.SetFsPermissions(0o644, 0o755)
+
+	if indexing.GetIndexDB() == nil {
+		db, _, err := dbsql.NewIndexDB("test_writefile_exec", "OFF", 1000, 32, false)
+		if err != nil {
+			t.Fatalf("Failed to create test database: %v", err)
+		}
+		indexing.SetIndexDBForTesting(db)
+	}
+
+	root := t.TempDir()
+	scriptName := "backupscript.sh"
+	scriptAbs := filepath.Join(root, scriptName)
+	if err := os.WriteFile(scriptAbs, []byte("#!/bin/sh\necho hi\n"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	sourceName := "test_writefile_exec"
+	indexing.Initialize(&settings.Source{
+		Name: sourceName,
+		Path: root,
+	}, false, false)
+
+	idx := indexing.GetIndex(sourceName)
+	if idx == nil {
+		t.Fatal("Failed to get test index")
+	}
+	stopPoll := startScannerStatusPoll(t, idx, 1)
+	defer stopPoll()
+	waitForScannerReady(t, idx)
+
+	indexPath := "/" + scriptName
+	if err := WriteFile(sourceName, indexPath, strings.NewReader("#!/bin/sh\necho bye\n")); err != nil {
+		t.Fatalf("WriteFile: %v", err)
+	}
+
+	st, err := os.Stat(scriptAbs)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if st.Mode()&0o111 == 0 {
+		t.Fatalf("executable bits cleared after save: mode=%v", st.Mode())
+	}
+
+	indexing.StopAllScanners()
+	time.Sleep(50 * time.Millisecond)
+	indexing.ClearTestIndices()
+}
+
+func TestWriteFileRejectsExistingDirectory(t *testing.T) {
+	cacheDir := t.TempDir()
+	originalCache := settings.Config.Server.CacheDir
+	settings.Config.Server.CacheDir = cacheDir
+	t.Cleanup(func() { settings.Config.Server.CacheDir = originalCache })
+
+	fileutils.SetFsPermissions(0o644, 0o755)
+
+	if indexing.GetIndexDB() == nil {
+		db, _, err := dbsql.NewIndexDB("test_writefile_isdir", "OFF", 1000, 32, false)
+		if err != nil {
+			t.Fatalf("Failed to create test database: %v", err)
+		}
+		indexing.SetIndexDBForTesting(db)
+	}
+
+	root := t.TempDir()
+	dirName := "folder"
+	if err := os.Mkdir(filepath.Join(root, dirName), 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	sourceName := "test_writefile_isdir"
+	indexing.Initialize(&settings.Source{
+		Name: sourceName,
+		Path: root,
+	}, false, false)
+
+	idx := indexing.GetIndex(sourceName)
+	if idx == nil {
+		t.Fatal("Failed to get test index")
+	}
+	stopPoll := startScannerStatusPoll(t, idx, 1)
+	defer stopPoll()
+	waitForScannerReady(t, idx)
+
+	err := WriteFile(sourceName, "/"+dirName, strings.NewReader("file content"))
+	if err == nil {
+		t.Fatal("expected error when path is an existing directory")
+	}
+	if !errors.Is(err, liberrors.ErrIsDirectory) {
+		t.Fatalf("expected ErrIsDirectory, got: %v", err)
+	}
+
+	indexing.StopAllScanners()
+	time.Sleep(50 * time.Millisecond)
+	indexing.ClearTestIndices()
 }
 
 func TestSortItems(t *testing.T) {

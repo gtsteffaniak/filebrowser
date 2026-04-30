@@ -287,6 +287,8 @@ export default {
       // convert to lowercase
       // Explicit switch statement for compile-time safety with ESLint i18n validation
       switch (promptName.toLowerCase()) {
+        case "user-edit":
+          return this.$t("settings.modifyOtherUser");
         case "delete":
           return this.$t("prompts.deleteTitle");
         case "access":

@@ -456,7 +456,7 @@
     "operationFailed": "Operazione fallita",
     "partialSuccess": "Alcune operazioni sono fallite: {succeeded} riuscite, {failed} fallite",
     "downloadFailed": "Il download in chunk non è riuscito: se il problema si ripete, provare a ridurre la dimensione del chunk: {message}",
-    "confirmPasswordToChangeUserPassword": "Inserire la password attuale per autorizzare la modifica della password."
+    "confirmPasswordToSaveUser": "Immettere la password attuale per salvare le modifiche apportate all'utente."
   },
   "search": {
     "searchContext": "Contesto di ricerca: {context}",
@@ -583,7 +583,6 @@
     "tusUploadsRetryCount": "Numero di tentativi se un pezzo fallisce.",
     "userHomeBasePath": "Percorso base per le home degli utenti",
     "userScopeGenerationPlaceholder": "L'ambito verrà generato automaticamente",
-    "createUserHomeDirectory": "Crea directory home utente",
     "customStylesheet": "Foglio di stile personalizzato (CSS)",
     "defaultUserDescription": "Impostazioni predefinite per i nuovi utenti.",
     "disableExternalLinks": "Disabilita link esterni (eccetto documentazione)",
@@ -744,7 +743,8 @@
     "enabledSuccessfully": "OTP abilitato con successo",
     "verificationFailed": "Verifica fallita",
     "verificationSucceed": "Verifica riuscita",
-    "generationFailed": "Generazione fallita"
+    "generationFailed": "Generazione fallita",
+    "passwordRequiredForGeneration": "La password è necessaria per generare un codice autenticatore."
   },
   "access": {
     "all": "Nega Tutto",

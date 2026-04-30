@@ -149,6 +149,7 @@ import * as upload from "@/utils/upload";
 import throttle from "@/utils/throttle";
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
+import { readAllDirectoryEntries } from "@/utils/upload";
 
 import Item from "@/components/files/ListingItem.vue";
 import Upload from "@/components/prompts/Upload.vue";
@@ -734,19 +735,6 @@ export default {
           return;
         }
       }
-      // Handle the space bar key
-      if (key === " " && !modifierKeys) {
-        event.preventDefault();
-        if (state.isSearchActive) {
-          mutations.setSearch(false);
-          mutations.closeHovers();
-        } else {
-          mutations.setSearch(true);
-        }
-      }
-      if (getters.currentPromptName()) {
-        return;
-      }
       let currentPath = url.removeTrailingSlash(state.route.path);
       let newPath = currentPath.substring(0, currentPath.lastIndexOf("/"));
 
@@ -886,11 +874,10 @@ export default {
           relativePath: entryPath,
         });
       } else if (entry.isDirectory) {
-        // But if it's a directory, read the contents
+        // But if it's a directory, read the contents (readEntries may require
+        // multiple calls — browsers often return at most ~100 entries per batch)
         const reader = entry.createReader();
-        const entries = await new Promise((resolve, reject) => {
-          reader.readEntries(resolve, reject);
-        });
+        const entries = await readAllDirectoryEntries(reader, entryPath);
         // and then for each child recursively collect files
         for (const childEntry of entries) {
           const childFiles = await this.collectFilesFromEntry(

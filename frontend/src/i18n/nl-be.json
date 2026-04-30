@@ -247,7 +247,7 @@
     "unarchiveDestination": "Uittreksel naar:",
     "unarchiveSuccess": "Archief met succes uitgepakt!",
     "downloadFailed": "Chunkedownload mislukt - als dit zich herhaalt, probeer dan de grootte van de chunk te verkleinen: {message}",
-    "confirmPasswordToChangeUserPassword": "Voer uw huidige wachtwoord in om deze wachtwoordwijziging te autoriseren."
+    "confirmPasswordToSaveUser": "Voer uw huidige wachtwoord in om deze gebruikerswijzigingen op te slaan."
   },
   "search": {
     "smallerThan": "Kleiner dan:",
@@ -338,7 +338,6 @@
     "tusUploadsRetryCount": "Aantal pogingen dat moet worden uitgevoerd als het uploaden van een chunk mislukt.",
     "userHomeBasePath": "Basispad voor homedirectory's van gebruikers",
     "userScopeGenerationPlaceholder": "De scope wordt automatisch gegenereerd",
-    "createUserHomeDirectory": "Thuismap gebruiker aanmaken",
     "shareSettings": "Instellingen delen",
     "shareDeleted": "Deel verwijderd!",
     "adminOptions": "Opties voor beheerders",
@@ -548,7 +547,8 @@
     "enabledSuccessfully": "OTP succesvol ingeschakeld",
     "verificationFailed": "Verificatie mislukt",
     "verificationSucceed": "Verificatie slagen",
-    "generationFailed": "Generatie mislukt"
+    "generationFailed": "Generatie mislukt",
+    "passwordRequiredForGeneration": "Uw wachtwoord is nodig om een verificatiecode te genereren."
   },
   "fileLoading": {
     "title": "Uploaden en downloads",

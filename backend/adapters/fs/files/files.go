@@ -226,18 +226,17 @@ func fileInfoFasterImpl(opts utils.FileOptions, access *access.Storage, user *us
 		return response, err // Path excluded by index rules OR doesn't exist
 	}
 
-	// Build response
-	response.FileInfo = *info
-	response.RealPath = filepath.Join(idx.Path, indexPath)
-	response.Source = opts.Source
-
-	// Layer 3: FILTER CHILDREN (user access)
-	// Remove child items THIS user can't access
+	// otherwise response keeps unfiltered Folders/Files while CheckChildItemAccess only mutates info.
 	if info.Type == "directory" {
 		if err := access.CheckChildItemAccess(info, idx, user.Username); err != nil {
 			return response, err
 		}
 	}
+
+	// Build response
+	response.FileInfo = *info
+	response.RealPath = filepath.Join(idx.Path, indexPath)
+	response.Source = opts.Source
 	if share != nil && user.Permissions.Share && opts.ShowSharedAttr {
 		for i := range response.Files {
 			file := &response.Files[i]
@@ -762,22 +761,21 @@ func WriteFile(source, path string, in io.Reader) error {
 	if err != nil {
 		return err
 	}
+	applyDefaultFilePerm := false
 	var stat os.FileInfo
-	// Check if the destination exists and is a directory
-	if stat, err = os.Stat(realPath); err == nil {
-		if stat.IsDir() {
-			// If it's a directory and we're trying to create a file, remove the directory first
-			err = os.RemoveAll(realPath)
-			if err != nil {
-				return fmt.Errorf("could not remove existing directory to create file: %v", err)
-			}
+	stat, err = os.Stat(realPath)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return fmt.Errorf("stat file: %w", err)
 		}
-		// If file exists, its permissions will be preserved (O_TRUNC doesn't change permissions)
+		applyDefaultFilePerm = true
+	} else if stat.IsDir() {
+		return fmt.Errorf("%w: %q", errors.ErrIsDirectory, path)
 	}
 
 	// Open the file for writing (create if it doesn't exist, truncate if it does)
-	// For new files: permissions are set to fileutils.PermFile (subject to umask, which is usually acceptable)
-	// For existing files: permissions are preserved automatically (O_TRUNC doesn't change them)
+	// For new files: permissions are set to fileutils.PermFile (subject to umask, then Chmod bypasses umask)
+	// For existing regular files: do not Chmod so saves preserve mode and special bits
 	file, err := os.OpenFile(realPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, fileutils.PermFile)
 	if err != nil {
 		return err
@@ -790,11 +788,11 @@ func WriteFile(source, path string, in io.Reader) error {
 		return err
 	}
 
-	// Explicitly set file permissions to bypass umask
-	err = os.Chmod(realPath, fileutils.PermFile)
-	if err != nil {
-		// Handle chmod error gracefully
-		logger.Debugf("Could not set file permissions for %s (this may be expected in restricted environments): %v", realPath, err)
+	if applyDefaultFilePerm {
+		err = os.Chmod(realPath, fileutils.PermFile)
+		if err != nil {
+			logger.Debugf("Could not set file permissions for %s (this may be expected in restricted environments): %v", realPath, err)
+		}
 	}
 
 	// Refresh the file itself

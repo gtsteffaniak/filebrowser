@@ -247,7 +247,7 @@
     "unarchiveDestination": "Výpis na:",
     "unarchiveSuccess": "Archív úspešne extrahovaný!",
     "downloadFailed": "Sťahovanie po častiach zlyhalo - ak sa to opakuje, skúste zmenšiť veľkosť časti: {message}",
-    "confirmPasswordToChangeUserPassword": "Zadajte svoje aktuálne heslo, aby ste autorizovali túto zmenu hesla."
+    "confirmPasswordToSaveUser": "Zadajte svoje aktuálne heslo, aby ste tieto zmeny používateľa uložili."
   },
   "search": {
     "smallerThan": "Menšie ako:",
@@ -333,7 +333,6 @@
     "tusUploadsRetryCount": "Počet opakovaných pokusov, ktoré sa vykonajú, ak sa nepodarí nahrať časť.",
     "userHomeBasePath": "Základná cesta pre domovské adresáre používateľov",
     "userScopeGenerationPlaceholder": "Rozsah sa vygeneruje automaticky",
-    "createUserHomeDirectory": "Vytvorenie domovského adresára používateľa",
     "loginMethodDescription": "povolená metóda prihlásenia pre používateľa.",
     "userNotAdmin": "Používateľ nie je správca",
     "enterPassword": "Zadajte heslo",
@@ -548,7 +547,8 @@
     "enabledSuccessfully": "OTP úspešne povolený",
     "verificationFailed": "Overenie sa nepodarilo",
     "verificationSucceed": "Overovanie Úspech",
-    "generationFailed": "Generácia zlyhala"
+    "generationFailed": "Generácia zlyhala",
+    "passwordRequiredForGeneration": "Na vygenerovanie autentifikačného kódu je potrebné vaše heslo."
   },
   "general": {
     "name": "Názov",

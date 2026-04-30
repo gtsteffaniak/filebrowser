@@ -247,7 +247,7 @@
     "unarchiveDestination": "Extrait à :",
     "unarchiveSuccess": "L'archive a été extraite avec succès !",
     "downloadFailed": "Échec du téléchargement groupé - si cela se répète, essayez de réduire la taille des morceaux : {message}",
-    "confirmPasswordToChangeUserPassword": "Saisissez votre mot de passe actuel pour autoriser ce changement de mot de passe."
+    "confirmPasswordToSaveUser": "Saisissez votre mot de passe actuel pour enregistrer ces changements d'utilisateur."
   },
   "search": {
     "smallerThan": "Plus petit que :",
@@ -333,7 +333,6 @@
     "tusUploadsRetryCount": "Nombre de tentatives à effectuer si un bloc ne parvient pas à être importé.",
     "userHomeBasePath": "Chemin de base pour les répertoires personnels des utilisateurs",
     "userScopeGenerationPlaceholder": "Le champ d'application sera généré automatiquement",
-    "createUserHomeDirectory": "Créer le répertoire personnel de l'utilisateur",
     "api": "API",
     "loginMethodDescription": "méthode de connexion autorisée pour l'utilisateur.",
     "userNotAdmin": "L'utilisateur n'est pas un administrateur",
@@ -548,7 +547,8 @@
     "enabledSuccessfully": "OTP activé avec succès",
     "verificationFailed": "Échec de la vérification",
     "verificationSucceed": "Vérification réussie",
-    "generationFailed": "Génération échouée"
+    "generationFailed": "Génération échouée",
+    "passwordRequiredForGeneration": "Votre mot de passe est nécessaire pour générer un code d'authentification."
   },
   "general": {
     "name": "Nom",

@@ -456,7 +456,7 @@
     "moveFailed": "Verplaatsen mislukt",
     "operationFailed": "Bewerking is mislukt",
     "partialSuccess": "Enkele bewerkingen zijn mislukt: {succeeded} gelukt, {failed} mislukt.",
-    "confirmPasswordToChangeUserPassword": "Voer uw huidige wachtwoord in om deze wachtwoordwijziging te autoriseren."
+    "confirmPasswordToSaveUser": "Voer uw huidige wachtwoord in om deze gebruikerswijzigingen op te slaan."
   },
   "search": {
     "searchContext": "Zoekcontext: {context}",
@@ -583,7 +583,6 @@
     "tusUploadsRetryCount": "Aantal pogingen dat moet worden uitgevoerd als het uploaden van een brok mislukt.",
     "userHomeBasePath": "Basispad voor thuismappen van gebruikers",
     "userScopeGenerationPlaceholder": "Het bereik wordt automatisch gegenereerd",
-    "createUserHomeDirectory": "Thuismap voor gebruiker aanmaken",
     "customStylesheet": "Aangepast Stylesheet",
     "defaultUserDescription": "Dit zijn de standaardinstellingen voor nieuwe gebruikers.",
     "disableExternalLinks": "Externe links uitschakelen (behalve documentatie)",
@@ -744,7 +743,8 @@
     "enabledSuccessfully": "OTP succesvol ingeschakeld",
     "verificationFailed": "Verificatie is mislukt",
     "verificationSucceed": "Verificatie is geslaagd",
-    "generationFailed": "Aanmaken is mislukt"
+    "generationFailed": "Aanmaken is mislukt",
+    "passwordRequiredForGeneration": "Uw wachtwoord is nodig om een verificatiecode te genereren."
   },
   "access": {
     "all": "Alles weigeren",

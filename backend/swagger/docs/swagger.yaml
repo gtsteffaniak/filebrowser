@@ -801,8 +801,8 @@ definitions:
           to logout url. Custom logout query params are respected.
         type: string
       secret:
-        description: 'secret: shared secret key for verifying JWT token signatures
-          (required)'
+        description: Shared secret key/bytes for verifying JWT token signatures (required,
+          eg PUBLIC KEY, RSA PUBLIC KEY, EC PUBLIC KEY, or CERTIFICATE)
         type: string
       userGroups:
         description: if set, only users in these groups are allowed to log in. Blocks
@@ -1181,8 +1181,8 @@ definitions:
         - $ref: '#/definitions/settings.ConditionalFilter'
         description: 'deprecated: use source.rules instead'
       createUserDir:
-        description: 'deprecated: create a user directory for each user under defaultUserScope
-          + username (always true now)'
+        description: create a user directory for each user under defaultUserScope
+          + username
         type: boolean
       defaultEnabled:
         description: should be added as a default source for new users?
@@ -4140,18 +4140,31 @@ paths:
     delete:
       consumes:
       - application/json
-      description: Deletes a user identified by their ID.
+      description: Deletes a user identified by their ID. When the authenticated actor
+        uses password login, they must send their current password in the X-Password
+        header.
       parameters:
       - description: User ID
         in: query
         name: id
         required: true
         type: string
+      - description: Actor's current password (URL-encoded); required for password-login
+          actors
+        in: header
+        name: X-Password
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: User deleted successfully
+        "401":
+          description: Unauthorized - invalid or missing actor password when required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "403":
           description: Forbidden
           schema:
@@ -4208,8 +4221,14 @@ paths:
     post:
       consumes:
       - application/json
-      description: Adds a new user to the system.
+      description: Adds a new user to the system. When the authenticated actor uses
+        password login, they must send their current password in the X-Password header.
       parameters:
+      - description: Actor's current password (URL-encoded); required for password-login
+          actors
+        in: header
+        name: X-Password
+        type: string
       - description: User data to create a new user
         in: body
         name: data
@@ -4229,6 +4248,12 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "401":
+          description: Unauthorized - invalid or missing actor password when required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "500":
           description: Internal Server Error
           schema:
@@ -4241,9 +4266,11 @@ paths:
     put:
       consumes:
       - application/json
-      description: Updates the details of a user identified by ID. When updating the
-        target user's password the actor must send their current password in the X-Password
-        header
+      description: Updates the details of a user identified by ID. When the authenticated
+        actor uses password login, they must send their current password in the X-Password
+        header unless the update only touches NonAdminEditable profile fields (not
+        password). Full updates (which empty or "all") or any admin-only field require
+        confirmation.
       parameters:
       - description: user ID to update
         in: query
@@ -4253,8 +4280,8 @@ paths:
         in: query
         name: id
         type: string
-      - description: Actor's current password (URL-encoded); required when changing
-          a password user's password
+      - description: Actor's current password (URL-encoded); required for password-login
+          actors when updating password, using which=all, or any field outside NonAdminEditable
         in: header
         name: X-Password
         type: string
@@ -4274,8 +4301,7 @@ paths:
               type: string
             type: object
         "401":
-          description: Unauthorized - invalid or missing actor password for password
-            change
+          description: Unauthorized - invalid or missing actor password when required
           schema:
             additionalProperties:
               type: string

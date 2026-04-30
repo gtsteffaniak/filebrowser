@@ -1,6 +1,6 @@
 .card,
-#listingView.gallery .item,
-#listingView.normal .item,
+.listing-item,
+.floating-window,
 .button,
 button,
 .input,

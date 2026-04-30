@@ -15,6 +15,8 @@ import i18n from "@/i18n";
 const titles = {
   Login: i18n.global.t("general.login"),
   Share: i18n.global.t("general.share"),
+  /** Same component as Share; name differs for /public optional-auth routes. */
+  PublicShare: i18n.global.t("general.share"),
   Files: i18n.global.t("general.files"),
   Tools: i18n.global.t("tools.title"),
   ChildTool: i18n.global.t("tools.title"),

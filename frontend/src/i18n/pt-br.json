@@ -247,7 +247,7 @@
     "unarchiveDestination": "Extrair para:",
     "unarchiveSuccess": "Arquivo extraído com sucesso!",
     "downloadFailed": "Falha no download em pedaços - se isso se repetir, tente reduzir o tamanho do pedaço: {message}",
-    "confirmPasswordToChangeUserPassword": "Digite sua senha atual para autorizar a alteração da senha."
+    "confirmPasswordToSaveUser": "Digite sua senha atual para salvar essas alterações de usuário."
   },
   "search": {
     "smallerThan": "Menor que:",
@@ -281,7 +281,6 @@
     "createUserDir": "Criar diretório Home para novos usuários",
     "userHomeBasePath": "Caminho base para diretórios de usuários",
     "userScopeGenerationPlaceholder": "O escopo será gerado automaticamente",
-    "createUserHomeDirectory": "Criar diretório Home de usuário",
     "customStylesheet": "Estilos personalizados",
     "defaultUserDescription": "Estas são as configurações padrão para novos usuários.",
     "disableExternalLinks": "Desabilitar links externos (exceto documentação)",
@@ -548,7 +547,8 @@
     "enabledSuccessfully": "OTP ativado com sucesso",
     "verificationFailed": "Falha na verificação",
     "verificationSucceed": "Verificação de sucesso",
-    "generationFailed": "Falha na geração"
+    "generationFailed": "Falha na geração",
+    "passwordRequiredForGeneration": "Sua senha é necessária para gerar um código de autenticação."
   },
   "general": {
     "name": "Nome",

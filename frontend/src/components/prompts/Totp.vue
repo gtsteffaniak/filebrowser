@@ -7,12 +7,13 @@
       <qrcode-vue class="qrcode" :value="url" :size="200" level="M"></qrcode-vue>
     </div>
     <p>{{ $t("otp.verifyInstructions") }}</p>
-    <input :class="{'form-invalid': error != '' && code != ''}" v-focus class="input" type="text" v-model="code" @keyup.enter="verifyCode"
+    <input :class="{'form-invalid': error != '' && code != ''}" v-focus class="input" type="text" v-model="code"
+      @keydown.enter.prevent="verifyCode"
       :placeholder="$t('otp.codeInputPlaceholder')" />
   </div>
 
   <div class="card-actions">
-    <button v-if="!succeeded && code != ''" class="button button--flat button--blue" @click="verifyCode"
+    <button v-if="!succeeded && code != ''" type="button" class="button button--flat button--blue" @click="verifyCode"
       :title="$t('general.verify')">
       {{ $t("general.verify") }}
     </button>
@@ -37,6 +38,7 @@ export default {
       code: "",
       url: "",
       succeeded: false,
+      verifyInFlight: false,
     };
   },
   props: {
@@ -59,6 +61,10 @@ export default {
   },
   async mounted() {
     if (this.generate) {
+      if (String(this.password ?? "").trim() === "") {
+        this.error = this.$t("otp.passwordRequiredForGeneration");
+        return;
+      }
       this.generateNewCode();
     }
   },
@@ -69,6 +75,10 @@ export default {
   },
   methods: {
     async generateNewCode() {
+      if (String(this.password ?? "").trim() === "") {
+        this.error = this.$t("otp.passwordRequiredForGeneration");
+        return;
+      }
       try {
         const resp = await authApi.generateOTP(this.username, this.password);
         this.url = resp.url;
@@ -78,28 +88,39 @@ export default {
       }
     },
     async verifyCode(event) {
-      event.preventDefault();
+      event?.preventDefault?.();
+      if (this.verifyInFlight || this.succeeded) {
+        return;
+      }
       if (!this.code) {
         this.error = this.$t("otp.invalidCodeType");
         notify.showError(this.$t("otp.invalidCodeType"));
         return;
       }
+      if (String(this.password ?? "").trim() === "") {
+        this.error = this.$t("otp.passwordRequiredForGeneration");
+        notify.showError(this.$t("otp.passwordRequiredForGeneration"));
+        return;
+      }
+      this.verifyInFlight = true;
       try {
         await authApi.verifyOTP(this.username, this.password, this.code);
         if (this.redirect != "") {
           await authApi.login(this.username, this.password, this.redirect, this.code);
           await initAuth();
-          this.$router.push(this.redirect);
+          // Wait for navigation so Layout mounts and registers the toast callback before we toast
+          await this.$router.push(this.redirect);
         }
         mutations.updateCurrentUser({ otpEnabled: true });
-        this.succeeded = true
+        this.succeeded = true;
         this.error = "";
         notify.showSuccessToast(this.$t("otp.verificationSucceed"));
         mutations.closeTopPrompt();
       } catch (error) {
         this.error = this.$t("otp.verificationFailed");
         console.log("error", error);
-        return;
+      } finally {
+        this.verifyInFlight = false;
       }
     },
   },

@@ -247,7 +247,7 @@
     "unarchiveDestination": "חלץ אל:",
     "unarchiveSuccess": "הארכיון חולץ בהצלחה!",
     "downloadFailed": "ההורדה המקוטעת נכשלה - אם הבעיה חוזרת על עצמה, נסה להקטין את גודל החלקים: {message}",
-    "confirmPasswordToChangeUserPassword": "הזן את הסיסמה הנוכחית שלך כדי לאשר את שינוי הסיסמה."
+    "confirmPasswordToSaveUser": "הזן את הסיסמה הנוכחית שלך כדי לשמור את שינויי המשתמש."
   },
   "search": {
     "smallerThan": "קטן מ:",
@@ -281,7 +281,6 @@
     "createUserDir": "צור תקיית בית במהלך הוספת משתמש חדש",
     "userHomeBasePath": "נתיב ראשי לתקיות הבית של משתמשים",
     "userScopeGenerationPlaceholder": "התחום יווצר אוטומטית",
-    "createUserHomeDirectory": "צור תקיית בית למשתמש",
     "customStylesheet": "עיצוב מותאם אישית (Stylesheet)",
     "defaultUserDescription": "אלה הגדרות ברירת המחדל למשתמשים חדשים",
     "disableExternalLinks": "השבת קישורים חיצוניים (למעט תיעוד)",
@@ -548,7 +547,8 @@
     "enabledSuccessfully": "OTP הופעל בהצלחה",
     "verificationFailed": "האימות נכשל",
     "verificationSucceed": "האימות הצליח",
-    "generationFailed": "דור שנכשל"
+    "generationFailed": "דור שנכשל",
+    "passwordRequiredForGeneration": "יש להזין את הסיסמה שלך כדי ליצור קוד אימות."
   },
   "general": {
     "name": "שם",

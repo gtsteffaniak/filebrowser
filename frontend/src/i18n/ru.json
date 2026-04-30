@@ -247,7 +247,7 @@
     "unarchiveDestination": "Отрывок в:",
     "unarchiveSuccess": "Архив извлечен успешно!",
     "downloadFailed": "Не удалось загрузить чанк - если ситуация повторяется, попробуйте уменьшить размер чанка: {message}",
-    "confirmPasswordToChangeUserPassword": "Введите свой текущий пароль, чтобы разрешить смену пароля."
+    "confirmPasswordToSaveUser": "Введите свой текущий пароль, чтобы сохранить изменения пользователя."
   },
   "search": {
     "smallerThan": "Меньше, чем:",
@@ -333,7 +333,6 @@
     "tusUploadsRetryCount": "Количество повторных попыток, которые необходимо выполнить, если чанк не удалось загрузить.",
     "userHomeBasePath": "Базовый путь к домашним каталогам пользователей",
     "userScopeGenerationPlaceholder": "Область действия будет сгенерирована автоматически",
-    "createUserHomeDirectory": "Создать домашний каталог пользователя",
     "loginMethodDescription": "разрешенный метод входа для пользователя.",
     "userNotAdmin": "Пользователь не является администратором",
     "enterPassword": "Введите пароль",
@@ -548,7 +547,8 @@
     "enabledSuccessfully": "OTP успешно активирован",
     "verificationFailed": "Верификация не удалась",
     "verificationSucceed": "Проверка удалась",
-    "generationFailed": "Не удалось создать"
+    "generationFailed": "Не удалось создать",
+    "passwordRequiredForGeneration": "Ваш пароль необходим для генерации кода аутентификатора."
   },
   "general": {
     "name": "Имя",

@@ -489,9 +489,13 @@ func (s *Scanner) updateSchedule() {
 // 0: unknown
 func (s *Scanner) updateComplexity() {
 	s.statsMu.Lock()
-	defer s.statsMu.Unlock()
-
 	s.complexity = calculateComplexity(s.fullScanTime, s.numDirs)
+	s.statsMu.Unlock()
+
+	// Persist after full scans — release statsMu before Save (same ordering as updateSchedule).
+	if err := s.idx.Save(); err != nil {
+		logger.Errorf("Failed to save index after complexity update: %v", err)
+	}
 }
 
 // directoryExists checks if the scanner's directory still exists

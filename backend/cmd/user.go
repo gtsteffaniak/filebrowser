@@ -46,8 +46,7 @@ func validateUserInfo(newDB bool) {
 		}
 		adminUser := settings.Config.Auth.AdminUsername
 		adminPass := settings.Config.Auth.AdminPassword
-		passwordEnabled := settings.Config.Auth.Methods.PasswordAuth.Enabled
-		if user.Username == adminUser && adminPass != "" && passwordEnabled {
+		if user.Username == adminUser && adminPass != "" && user.LoginMethod == users.LoginMethodPassword {
 			logger.Info("Resetting admin user to default username and password.")
 			user.Permissions.Admin = true
 			user.Password = settings.Config.Auth.AdminPassword
@@ -63,7 +62,11 @@ func validateUserInfo(newDB bool) {
 					logger.Fatalf("Unable to create automatic backup of database due to error: %v", err)
 				}
 			}
-			err := store.Users.Save(user, changePass, true)
+			fields := []string{"Scopes", "SidebarLinks", "Tokens", "Permissions", "Preview", "ShowFirstLogin", "LoginMethod", "Version"}
+			if changePass {
+				fields = append(fields, "Password")
+			}
+			err := store.Users.Update(user, true, fields...)
 			if err != nil {
 				logger.Errorf("could not update user: %v", err)
 			}
@@ -94,7 +97,6 @@ func updateUserScopes(user *users.User) bool {
 		} else {
 			continue
 		}
-
 		newScopes = append(newScopes, users.SourceScope{
 			Name:  src.Path,
 			Scope: existingScope.Scope,
