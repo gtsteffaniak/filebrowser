@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file. For commit 
 ## v1.4.0
 
  **New Features**:
+ - Lyrics support for audio files (#2360):
+   - The lyrics and the player gets syncronized in UI with the audio player.
+   - Supports embedded lyrics (USLT) and sidecar `.lrc` files with the same name as the audio file.
+   - Updated UI for audio previews!
  - Add config option to disable /health endpoint logging (#2291)
  - More shortcuts (#2300)
    - `CTRL+F1` switch to normal view.
@@ -14,11 +18,15 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - Enhanced indexing scheduler which doesn't wake the disk as often.
+ - New API route `media/lyrics` used to fetch and parse lyrics (embedded or from `.lrc` sidecar) (#2360)
+ - Swiping down gesture in fullscreen videos exit fullscreen instead of close preview.
 
 ## v1.3.5
 
  **BugFixes**:
  - PWA icon fixes (#2292)
+ - Blue overlay when using gestures in video files on mobile (#2360)
+ - Playback queue wasn't updating when changing of folder (#2360)
 
 ## v1.3.4
 
