@@ -23,12 +23,14 @@ All notable changes to this project will be documented in this file. For commit 
  - New API route `media/lyrics` used to fetch and parse lyrics (embedded or from `.lrc` sidecar) (#2360)
  - Swiping down gesture in fullscreen videos exit fullscreen instead of close preview.
 
+ **BugFixes**:
+ - Blue overlay when using gestures in video files on mobile (#2360)
+ - Playback queue wasn't updating when changing of folder (#2360)
+
 ## v1.3.5
 
  **BugFixes**:
  - PWA icon fixes (#2292)
- - Blue overlay when using gestures in video files on mobile (#2360)
- - Playback queue wasn't updating when changing of folder (#2360)
 
 ## v1.3.4
 
