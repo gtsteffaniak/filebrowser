@@ -2039,6 +2039,19 @@ export default {
 <style >
 @import url("plyr/dist/plyr.css");
 
+/* Remove blue overlay when tapping on mobile */
+.plyr,
+.plyr__video-wrapper,
+.plyr video,
+.video-player-container .plyr {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.plyr__video-wrapper:focus,
+.plyr video:focus {
+  outline: none;
+}
+
 /* Background styles for the audio player */
 .plyr-background-dark {
   background: radial-gradient(#3b3b3b, black);
