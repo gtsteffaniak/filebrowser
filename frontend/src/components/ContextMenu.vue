@@ -320,7 +320,7 @@ export default {
     },
     showShareAction() {
       if (this.showLimitedOptions) return false;
-      return this.showCreate && this.showShare;
+      return this.selectedCount === 1 && this.showShare;
     },
     showRename() {
       if (this.showLimitedOptions) return false;
@@ -417,6 +417,9 @@ export default {
     showAccess() {
       if (this.showLimitedOptions) return false;
       if (getters.isShare()) {
+        return false;
+      }
+      if (this.selectedCount > 1) {
         return false;
       }
       return getters.isAdmin() && this.showCreate;
@@ -535,11 +538,9 @@ export default {
     },
     showAccessPrompt() {
       mutations.closeHovers();
-      let sourceName = this.firstSelected?.source || state.req.source;
-      let path = this.firstSelected?.path || state.req.path;
-      if (this.firstSelected && !this.firstSelected.isDir) {
-        path = url.removeLastDir(path) + '/';
-      }
+      const item = this.firstSelected;
+      let sourceName = item?.source || state.req.source;
+      let path = item?.path || state.req.path;
       mutations.showPrompt({
         name: "access",
         props: {
