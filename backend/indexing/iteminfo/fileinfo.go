@@ -49,6 +49,7 @@ type MediaMetadata struct {
 	Duration int    `json:"duration,omitempty"` // duration in seconds
 	AlbumArt []byte `json:"albumArt,omitempty"` // album art image data (automatically base64-encoded in JSON)
 	Lyrics   []Lyric `json:"lyrics,omitempty"`  // lyrics (from ID3 USLT or .lrc files)
+	HasLyrics bool    `json:"hasLyrics,omitempty"`  // checks if lyrics are available without extract them
 }
 
 // for efficiency, a response will be a pointer to the data

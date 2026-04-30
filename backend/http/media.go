@@ -175,3 +175,70 @@ func publicMetadataHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	fileInfo.Path = utils.AddTrailingSlashIfNotExists(path)
 	return renderJSON(w, r, fileInfo)
 }
+
+// lyricsHandler returns synced/unsynced lyrics (with or without timestamps) for an audio file (embedded USLT or from .lrc files).
+// @Summary Get lyrics for an audio file
+// @Description Returns parsed lyrics with optional timestamps from embedded ID3 tags or sidecar .lrc files.
+// @Tags Resources
+// @Accept json
+// @Produce json
+// @Param path query string true "Path to the directory or file"
+// @Param source query string true "Source name"
+// @Success 200 {object} map[string]interface{} "Lyrics array"
+// @Failure 403 {object} map[string]string "Forbidden"
+// @Failure 404 {object} map[string]string "Not found"
+// @Router /api/media/lyrics [get]
+func lyricsHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	path := r.URL.Query().Get("path")
+	source := r.URL.Query().Get("source")
+	if path == "" || source == "" {
+		return http.StatusBadRequest, fmt.Errorf("path and source are required")
+	}
+	userscope, err := d.user.GetScopeForSourceName(source)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	idx := indexing.GetIndex(source)
+	if idx == nil {
+		return http.StatusNotFound, fmt.Errorf("source %s not found", source)
+	}
+	realPath, _, err := idx.GetRealPath(userscope, path)
+	if err != nil {
+		return http.StatusNotFound, err
+	}
+	lyrics, err := files.ExtractLyrics(realPath)
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("failed to extract lyrics: %v", err)
+	}
+	return renderJSON(w, r, map[string]any{"lyrics": lyrics})
+}
+
+// publicLyricsHandler is the share-link variant of lyricsHandler.
+// @Summary Get lyrics for an audio file (public share)
+// @Tags Shares
+// @Produce json
+// @Param hash query string true "Share hash"
+// @Param path query string false "Path within the share"
+// @Success 200 {object} map[string]interface{} "Lyrics array"
+// @Failure 403 {object} map[string]string "Forbidden"
+// @Failure 404 {object} map[string]string "Not found"
+// @Router /public/api/media/lyrics [get]
+func publicLyricsHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	sourceCfg, ok := config.Server.SourceMap[d.share.Source]
+	if !ok {
+		return http.StatusNotFound, fmt.Errorf("source not found")
+	}
+	idx := indexing.GetIndex(sourceCfg.Name)
+	if idx == nil {
+		return http.StatusNotFound, fmt.Errorf("source not found")
+	}
+	realPath, _, err := idx.GetRealPath("", d.IndexPath)
+	if err != nil {
+		return http.StatusNotFound, err
+	}
+	lyrics, err := files.ExtractLyrics(realPath)
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("failed to extract lyrics: %v", err)
+	}
+	return renderJSON(w, r, map[string]any{"lyrics": lyrics})
+}

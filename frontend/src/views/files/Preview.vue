@@ -23,6 +23,7 @@
           :previewType="previewType"
           :raw="raw"
           :subtitlesList="subtitlesList"
+          :lyrics="lyrics"
           :req="req"
           :listing="listing"
           :useDefaultMediaPlayer="useDefaultMediaPlayer"
@@ -95,6 +96,8 @@ export default {
       fullSize: true,
       currentPrompt: null, // Replaces Vuex getter `currentPrompt`
       subtitlesList: [],
+      lyrics: [],
+      lyricsFetched: null, 
       isDeleted: false,
       tapTimeout: null,
       avMetadataLoading: false,
@@ -281,16 +284,16 @@ export default {
       if (!isAv) {
         this.avMetadataLoading = false;
         this.mediaEnrichDoneForPath = null;
+        this.lyricsFetched = null;
       } else {
-        const needsEnrich = this.mediaEnrichDoneForPath !== path;
-        if (needsEnrich) {
+        if (this.mediaEnrichDoneForPath !== path) {
+          this.mediaEnrichDoneForPath = path;
           this.avMetadataLoading = true;
           try {
             await this.enrichAvFromMediaApi(path);
             if (state.req.path !== path) {
               return;
             }
-            this.mediaEnrichDoneForPath = path;
           } finally {
             if (state.req.path === path) {
               this.avMetadataLoading = false;
@@ -304,8 +307,26 @@ export default {
       if (state.req.path !== path) {
         return;
       }
-
       this.subtitlesList = await this.subtitles();
+      if (this.previewType === 'audio' && this.lyricsFetchedForPath !== state.req.path) {
+        this.lyricsFetchedForPath = state.req.path;
+        if (state.req.metadata?.hasLyrics) {
+          try {
+            if (getters.isShare()) {
+              const hash = state.shareInfo.hash;
+              const password = localStorage.getItem("sharepass:" + hash) || "";
+              this.lyrics = await mediaApi.getLyricsPublic(state.req.path, hash, password);
+            } else {
+              this.lyrics = await mediaApi.getLyrics(state.req.source, state.req.path);
+            }
+          } catch (err) {
+            console.warn("Failed to fetch lyrics:", err);
+            this.lyrics = [];
+          }
+        } else {
+          this.lyrics = [];
+        }
+      }
       await this.updatePreview();
       mutations.resetSelected();
       mutations.addSelected({

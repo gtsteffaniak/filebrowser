@@ -276,6 +276,10 @@ export default {
       type: Array,
       default: () => [],
     },
+    lyrics: {
+      type: Array,
+      default: () => [],
+    },
     req: {
       type: Object,
       required: true,
@@ -307,7 +311,6 @@ export default {
       isHovering: false, // Track hover state
 
       // Lyrics
-      lyrics: [],             // loaded from req.metadata.lyrics
       activeLyricIndex: -1,
       doubleTapSeekCleanup: null,
       mobileLyricsScrollLocked: false,
@@ -377,20 +380,6 @@ export default {
     },
     albumArtSize(val) {
       sessionStorage.setItem('plyrAlbumArtSize', val.toString());
-    },
-    'req.metadata': {
-      immediate: true,
-      handler(meta) {
-        if (!this.player) return;
-        if (meta?.lyrics) {
-          this.lyrics = meta.lyrics;
-          this.$nextTick(() => {
-            if (this.showDesktopPanel || this.showMobileLyrics) this.syncLyrics();
-          });
-        } else {
-          this.lyrics = [];
-        }
-      }
     },
     activeLyricIndex() {
       if (this.showMobileLyrics && this.isMobile) {

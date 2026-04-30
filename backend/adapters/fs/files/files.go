@@ -48,7 +48,7 @@ func addMetadataToChildren(response *iteminfo.ExtendedFileInfo, opts utils.FileO
 		wg.Go(func() {
 			fullPath := response.RealPath + "/" + fileItem.Name
 			if isAudio {
-				if err := extractAudioMetadata(context.Background(), fileItem, fullPath, opts.AlbumArt, opts.Metadata, sharedFFmpegService); err != nil {
+				if err := extractAudioMetadata(context.Background(), fileItem, fullPath, opts.AlbumArt, opts.Metadata, false, sharedFFmpegService); err != nil {
 					logger.Debugf("failed to extract metadata for file: %s, error: %v", fileItem.Name, err)
 				}
 			} else {
@@ -309,7 +309,7 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index, opts u
 		extItem := &iteminfo.ExtendedItemInfo{
 			ItemInfo: info.ItemInfo,
 		}
-		err := extractAudioMetadata(context.Background(), extItem, info.RealPath, opts.AlbumArt || opts.Content, opts.Metadata || opts.Content, nil)
+		err := extractAudioMetadata(context.Background(), extItem, info.RealPath, opts.AlbumArt || opts.Content, opts.Metadata || opts.Content, false, nil)
 		if err != nil {
 			logger.Debugf("failed to extract audio metadata for file: "+info.RealPath, info.Name, err)
 		} else {
@@ -384,7 +384,7 @@ func parseLRC(raw string) []iteminfo.Lyric {
 // extractAudioMetadata extracts metadata from an audio file using dhowden/tag
 // and optionally extracts duration using the ffmpeg service with concurrency control
 // If ffmpegService is nil, a new service will be created (for backward compatibility)
-func extractAudioMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, realPath string, getArt bool, getDuration bool, ffmpegService *ffmpeg.FFmpegService) error {
+func extractAudioMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, realPath string, getArt bool, getDuration bool, getLyrics bool, ffmpegService *ffmpeg.FFmpegService) error {
 	file, err := os.Open(realPath)
 	if err != nil {
 		return err
@@ -420,22 +420,25 @@ func extractAudioMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 	track, _ := m.Track()
 	item.Metadata.Track = track
 
-	// Extract synced lyrics (embedded in the USLT frame) if available
+	// Check if lyrics are available without extract them
 	if rawLyrics := m.Lyrics(); rawLyrics != "" {
-		if lyrics := parseLRC(rawLyrics); len(lyrics) > 0 {
-			item.Metadata.Lyrics = lyrics
+		item.Metadata.HasLyrics = true
+	} else {
+		// Check for .lrc file
+		ext := filepath.Ext(realPath)
+		base := strings.TrimSuffix(realPath, ext)
+		lrcPath := base + ".lrc"
+		if _, err := os.Stat(lrcPath); err == nil {
+			item.Metadata.HasLyrics = true
 		}
 	}
 
-	// If no embedded lyrics, try a sidecar .lrc file with the same name as the song in the same dir
-	if len(item.Metadata.Lyrics) == 0 {
-		ext := filepath.Ext(realPath)
-		baseWithoutExt := strings.TrimSuffix(realPath, ext)
-		lrcPath := baseWithoutExt + ".lrc"
-		if data, err := os.ReadFile(lrcPath); err == nil {
-			if lyrics := parseLRC(string(data)); len(lyrics) > 0 {
-				item.Metadata.Lyrics = lyrics
-			}
+	if getLyrics {
+		lyrics, err := ExtractLyrics(realPath)
+		if err != nil {
+			logger.Debugf("failed to extract lyrics for %s: %v", realPath, err)
+		} else if len(lyrics) > 0 {
+			item.Metadata.Lyrics = lyrics
 		}
 	}
 
@@ -469,6 +472,34 @@ func extractAudioMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 	}
 
 	return nil
+}
+
+// Returns lyrics from an audio file (embedded USLT or from a .lrc file with the same name).
+func ExtractLyrics(realPath string) ([]iteminfo.Lyric, error) {
+	file, err := os.Open(realPath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	m, err := tag.ReadFrom(file)
+	if err != nil {
+		return nil, err
+	}
+
+	var lyrics []iteminfo.Lyric
+	if raw := m.Lyrics(); raw != "" {
+		lyrics = parseLRC(raw)
+	}
+	if len(lyrics) == 0 {
+		ext := filepath.Ext(realPath)
+		base := strings.TrimSuffix(realPath, ext)
+		lrcPath := base + ".lrc"
+		if data, err := os.ReadFile(lrcPath); err == nil {
+			lyrics = parseLRC(string(data))
+		}
+	}
+	return lyrics, nil
 }
 
 // extractVideoMetadata extracts duration from video files using ffprobe

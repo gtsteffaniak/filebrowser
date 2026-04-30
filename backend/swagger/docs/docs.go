@@ -1074,6 +1074,64 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/media/lyrics": {
+            "get": {
+                "description": "Returns parsed lyrics with optional timestamps from embedded ID3 tags or sidecar .lrc files.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Get lyrics for an audio file",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Path to the directory or file",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source name",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lyrics array",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/media/metadata": {
             "get": {
                 "description": "Same ExtendedFileInfo as resources GET with metadata=true (typically used for directories).",
@@ -3271,6 +3329,59 @@ const docTemplate = `{
                 }
             }
         },
+        "/public/api/media/lyrics": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shares"
+                ],
+                "summary": "Get lyrics for an audio file (public share)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Share hash",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Path within the share",
+                        "name": "path",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lyrics array",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/public/api/media/metadata": {
             "get": {
                 "produces": [
@@ -4931,6 +5042,10 @@ const docTemplate = `{
                 "genre": {
                     "description": "music/video genre",
                     "type": "string"
+                },
+                "hasLyrics": {
+                    "description": "checks if lyrics are available without extract them",
+                    "type": "boolean"
                 },
                 "lyrics": {
                     "description": "lyrics (from ID3 USLT or .lrc files)",

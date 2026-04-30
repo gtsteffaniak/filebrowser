@@ -541,6 +541,9 @@ definitions:
       genre:
         description: music/video genre
         type: string
+      hasLyrics:
+        description: checks if lyrics are available without extract them
+        type: boolean
       lyrics:
         description: lyrics (from ID3 USLT or .lrc files)
         items:
@@ -2785,6 +2788,46 @@ paths:
       summary: List API tokens
       tags:
       - Auth
+  /api/media/lyrics:
+    get:
+      consumes:
+      - application/json
+      description: Returns parsed lyrics with optional timestamps from embedded ID3
+        tags or sidecar .lrc files.
+      parameters:
+      - description: Path to the directory or file
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: Source name
+        in: query
+        name: source
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lyrics array
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get lyrics for an audio file
+      tags:
+      - Resources
   /api/media/metadata:
     get:
       consumes:
@@ -4321,6 +4364,41 @@ paths:
           schema:
             $ref: '#/definitions/http.HttpResponse'
       summary: Health Check
+  /public/api/media/lyrics:
+    get:
+      parameters:
+      - description: Share hash
+        in: query
+        name: hash
+        required: true
+        type: string
+      - description: Path within the share
+        in: query
+        name: path
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lyrics array
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get lyrics for an audio file (public share)
+      tags:
+      - Shares
   /public/api/media/metadata:
     get:
       parameters:
