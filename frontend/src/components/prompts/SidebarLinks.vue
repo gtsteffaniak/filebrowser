@@ -59,11 +59,9 @@
 
         <!-- Link Type Selection -->
         <p>{{ $t('sidebar.linkType') }}</p>
-        <select aria-label="Link Type" v-model="newLink.category" @change="handleCategoryChange" class="input">
+        <select aria-label="Link Type" :value="linkTypeSelectValue" @change="onLinkTypeChange" class="input">
           <option value="">{{ $t('sidebar.selectLinkType') }}</option>
           <option v-if="context === 'user'" value="source">{{ $t('general.source') }}</option>
-          <option v-if="context === 'user'" value="source-minimal">{{ $t('general.source') }}</option>
-          <option v-if="context === 'user'" value="source-hybrid">{{ $t('general.source') }}</option>
           <option value="share">{{ $t('general.share') }}</option>
           <option v-if="context === 'user'" value="tool">{{ $t('general.tool') }}</option>
           <option value="custom">{{ $t('sidebar.customLink') }}</option>
@@ -342,6 +340,13 @@ export default {
       }
       return 'indexed';
     },
+    /** Single "Source" row in the link-type dropdown; actual variant stays in newLink.category (toggles). */
+    linkTypeSelectValue() {
+      if (this.isSourceCategory(this.newLink.category)) {
+        return 'source';
+      }
+      return this.newLink.category;
+    },
   },
   async mounted() {
     // Initialize with existing sidebar links based on context
@@ -496,21 +501,32 @@ export default {
       }
       return link.name;
     },
-    handleCategoryChange() {
-      // Reset newLink fields when category changes
+    resetNewLinkFormForTypeSwitch() {
       this.newLink.name = "";
       this.newLink.target = "";
       this.newLink.icon = "";
       this.newLink.sourceName = "";
       this.newLink.sourcePath = "";
-
-      // Set default name and icon for special share link types
-      if (this.newLink.category === "shareInfo") {
-        this.newLink.name = this.$t("share.shareInfo");
-        this.newLink.icon = "qr_code";
-      } else if (this.newLink.category === "download") {
-        this.newLink.name = this.$t("general.download");
-        this.newLink.icon = "download";
+    },
+    onLinkTypeChange(event) {
+      const value = event.target.value;
+      if (value === "source") {
+        if (!this.isSourceCategory(this.newLink.category)) {
+          this.resetNewLinkFormForTypeSwitch();
+          this.newLink.category = "source";
+        }
+        return;
+      }
+      if (value !== this.newLink.category || this.isSourceCategory(this.newLink.category)) {
+        this.resetNewLinkFormForTypeSwitch();
+        this.newLink.category = value;
+        if (value === "shareInfo") {
+          this.newLink.name = this.$t("share.shareInfo");
+          this.newLink.icon = "qr_code";
+        } else if (value === "download") {
+          this.newLink.name = this.$t("general.download");
+          this.newLink.icon = "download";
+        }
       }
     },
     handleSourceChange() {

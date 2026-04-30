@@ -53,7 +53,7 @@
     "@types/node": "^24.1.0",
     "@vitejs/plugin-vue": "^5.0.4",
     "@vue/eslint-config-typescript": "^13.0.0",
-    "deepl-node": "^1.18.0",
+    "deepl-node": "^1.16.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-vue": "^9.24.0",

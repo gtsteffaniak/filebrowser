@@ -247,7 +247,7 @@
     "unarchiveDestination": "Özetle:",
     "unarchiveSuccess": "Arşiv başarıyla çıkarıldı!",
     "downloadFailed": "Yığın indirme başarısız oldu - bu tekrarlanırsa yığın boyutunu küçültmeyi deneyin: {message}",
-    "confirmPasswordToChangeUserPassword": "Bu şifre değişikliğini onaylamak için mevcut şifrenizi girin."
+    "confirmPasswordToSaveUser": "Bu kullanıcı değişikliklerini kaydetmek için mevcut şifrenizi girin."
   },
   "search": {
     "smallerThan": "Daha küçük:",
@@ -333,7 +333,6 @@
     "tusUploadsRetryCount": "Bir yığının yüklenememesi durumunda gerçekleştirilecek yeniden deneme sayısı.",
     "userHomeBasePath": "Kullanıcı ev dizinleri için temel yol",
     "userScopeGenerationPlaceholder": "Kapsam otomatik olarak oluşturulacaktır",
-    "createUserHomeDirectory": "Kullanıcı ev dizini oluşturma",
     "loginMethodDescription": "kullanıcı için izin verilen oturum açma yöntemi.",
     "userNotAdmin": "Kullanıcı yönetici değil",
     "enterPassword": "Şifre girin",
@@ -548,7 +547,8 @@
     "enabledSuccessfully": "OTP başarıyla etkinleştirildi",
     "verificationFailed": "Doğrulama Başarısız",
     "verificationSucceed": "Doğrulama Başarılı",
-    "generationFailed": "Nesil Başarısız"
+    "generationFailed": "Nesil Başarısız",
+    "passwordRequiredForGeneration": "Kimlik doğrulayıcı kodu oluşturmak için parolanız gereklidir."
   },
   "general": {
     "name": "İsim",

@@ -93,7 +93,7 @@ func setupFs() {
 		Config.Server.Filesystem.CreateDirectoryPermission = "755"
 		dirPermOctal, _ = strconv.ParseUint("755", 8, 32)
 	}
-	fileutils.SetFsPermissions(os.FileMode(filePermOctal), os.FileMode(dirPermOctal))
+	fileutils.SetFsPermissions(uint32(filePermOctal), uint32(dirPermOctal))
 
 	// Perform mandatory cache directory speed test
 	testCacheDirSpeed()

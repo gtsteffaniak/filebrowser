@@ -256,7 +256,7 @@ export default {
           targetDirItems = response?.items;
         }
       } catch (error) {
-        notify.showErrorToast(this.$t("files.cannotAccesDir"));
+        notify.showError(this.$t("files.cannotAccesDir"));
         console.log("Cannot access to target directory", e);
         return;
       }
@@ -296,7 +296,7 @@ export default {
           mutations.setReload(true);
         } catch (error) {
           mutations.closeTopPrompt();
-          notify.showErrorToast(this.$t("prompts.moveFailed"));
+          notify.showError(this.$t("prompts.moveFailed"));
           console.log("Move failed", e);
         }
       };

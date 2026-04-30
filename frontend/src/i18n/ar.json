@@ -247,7 +247,7 @@
     "unarchiveDestination": "مقتطف إلى:",
     "unarchiveSuccess": "تم استخراج الأرشيف بنجاح!",
     "downloadFailed": "فشل التحميل المقطوع - إذا تكرر ذلك، حاول تقليل حجم القطعة: {message}",
-    "confirmPasswordToChangeUserPassword": "أدخل كلمة المرور الحالية للسماح بتغيير كلمة المرور هذه."
+    "confirmPasswordToSaveUser": "أدخل كلمة المرور الحالية لحفظ تغييرات المستخدم هذه."
   },
   "search": {
     "smallerThan": "أصغر من:",
@@ -332,7 +332,6 @@
     "tusUploadsRetryCount": "عدد مرات إعادة المحاولة التي يجب إجراؤها في حالة فشل تحميل قطعة ما.",
     "userHomeBasePath": "المسار الأساسي للدلائل الرئيسية للمستخدم",
     "userScopeGenerationPlaceholder": "سيتم إنشاء النطاق تلقائيًا",
-    "createUserHomeDirectory": "إنشاء الدليل الرئيسي للمستخدم",
     "shareDeleted": "تم حذف المشاركة",
     "loginMethodDescription": "طريقة تسجيل الدخول المسموح بها للمستخدم.",
     "userNotAdmin": "المستخدم ليس مسؤولاً",
@@ -548,7 +547,8 @@
     "enabledSuccessfully": "تم تمكين OTP بنجاح",
     "verificationFailed": "فشل التحقق",
     "verificationSucceed": "نجاح التحقق",
-    "generationFailed": "فشل التوليد"
+    "generationFailed": "فشل التوليد",
+    "passwordRequiredForGeneration": "كلمة المرور الخاصة بك مطلوبة لإنشاء رمز المصادقة."
   },
   "general": {
     "name": "الاسم",

@@ -247,7 +247,7 @@
     "unarchiveDestination": "Extrair para:",
     "unarchiveSuccess": "Arquivo extraído com sucesso!",
     "downloadFailed": "Falha na transferência em pedaços - se isto se repetir, tente reduzir o tamanho dos pedaços: {message}",
-    "confirmPasswordToChangeUserPassword": "Introduza a sua palavra-passe atual para autorizar esta alteração de palavra-passe."
+    "confirmPasswordToSaveUser": "Introduza a sua palavra-passe atual para guardar estas alterações de utilizador."
   },
   "search": {
     "smallerThan": "Mais pequeno do que:",
@@ -338,7 +338,6 @@
     "tusUploadsRetryCount": "Número de tentativas a efetuar se um pedaço não for carregado.",
     "userHomeBasePath": "Caminho de base para as diretorias pessoais dos utilizadores",
     "userScopeGenerationPlaceholder": "O âmbito será gerado automaticamente",
-    "createUserHomeDirectory": "Criar o diretório pessoal do utilizador",
     "shareSettings": "Partilhar definições",
     "shareDeleted": "Partilhar eliminado!",
     "adminOptions": "Opções do utilizador administrador",
@@ -548,7 +547,8 @@
     "enabledSuccessfully": "OTP ativado com sucesso",
     "verificationFailed": "Falha na verificação",
     "verificationSucceed": "Verificação de sucesso",
-    "generationFailed": "Geração falhada"
+    "generationFailed": "Geração falhada",
+    "passwordRequiredForGeneration": "A sua palavra-passe é necessária para gerar um código de autenticação."
   },
   "fileLoading": {
     "title": "Carregamentos e transferências",

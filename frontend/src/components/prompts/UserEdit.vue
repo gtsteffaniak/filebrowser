@@ -98,11 +98,6 @@
         <i class="material-symbols material-size">add</i>
       </button>
 
-      <div class="settings-items">
-        <ToggleSwitch v-if="displayHomeDirectoryCheckbox" class="item" v-model="createUserDir"
-          :name="$t('settings.createUserHomeDirectory')" />
-      </div>
-
       <p v-if="stateUser.username !== user.username">
         <label for="locale">{{ $t("general.language") }}</label>
         <languages class="input" id="locale" v-model:locale="user.locale" @input="emitUpdate"></languages>
@@ -240,9 +235,6 @@ export default {
     passwordPlaceholder() {
       return this.isNew ? "" : this.$t("settings.avoidChanges");
     },
-    displayHomeDirectoryCheckbox() {
-      return this.isNew && this.createUserDir;
-    },
     /** Password change (existing user): target and signed-in user must both use password login. */
     showPasswordChangeSection() {
       return (
@@ -261,10 +253,6 @@ export default {
     },
   },
   watch: {
-    createUserDir(newVal) {
-      this.user.scopes = newVal ? { default: "" } : this.originalUserScope;
-      this.emitUserUpdate();
-    },
     stateUser() {
       this.user.otpEnabled = state.user.otpEnabled;
       this.emitUserUpdate();
@@ -374,7 +362,6 @@ export default {
     deletePrompt() {
       mutations.showPrompt({
         name: "generic",
-        pinned: true,
         props: {
           title: this.$t("general.delete"),
           body: this.$t("prompts.deleteUserMessage", { username: this.user.username }),
@@ -383,14 +370,16 @@ export default {
               label: this.$t("general.delete"),
               action: async () => {
                 try {
-                  await usersApi.remove(this.user.id);
+                  await usersApi.remove(this.user.id, {
+                    actorPasswordPromptI18nKey: "prompts.confirmPasswordToSaveUser",
+                  });
                   notify.showSuccessToast(this.$t("settings.userDeleted"));
                   eventBus.emit('usersChanged');
                   mutations.closeTopPrompt(); // close delete user prompt confirmation
                   mutations.closeTopPrompt(); // close user prompt since user doens't exist anymore
                 } catch (e) {
                   console.error(e);
-                  notify.showErrorToast(this.$t("settings.userDeleteFailed"));
+                  notify.showError(e);
                 }
               },
             },
@@ -414,17 +403,19 @@ export default {
             notify.showError(this.$t("settings.userNotAdmin"));
             return;
           }
-          await usersApi.create({ ...this.user, scopes: scopesToSend });
+          await usersApi.create(
+            { ...this.user, scopes: scopesToSend },
+            {
+              actorPasswordPromptI18nKey: "prompts.confirmPasswordToSaveUser",
+            }
+          );
           // Emit event to refresh user list
           eventBus.emit('usersChanged');
           // Close the prompt
           mutations.closeTopPrompt();
         } else {
           await usersApi.update({ ...this.user, scopes: scopesToSend }, fields);
-          // Only emit usersChanged for admin user management, not profile updates
-          if (state.user.permissions.admin && this.user.id !== state.user.id) {
-            eventBus.emit('usersChanged');
-          }
+          eventBus.emit('usersChanged');
           notify.showSuccessToast(this.$t("settings.userUpdated"));
           mutations.closeTopPrompt();
         }
@@ -434,11 +425,20 @@ export default {
     },
     newOTP() {
       mutations.showPrompt({
-        name: "totp",
+        name: "password",
         props: {
-          generate: true,
-          username: this.user.username,
-          password: this.passwordRef || this.user.password || "",
+          infoText: this.$t("prompts.confirmPasswordToSaveUser"),
+          submitLabel: this.$t("general.confirm"),
+          submitCallback: (accountPassword) => {
+            mutations.showPrompt({
+              name: "totp",
+              props: {
+                generate: true,
+                username: this.user.username,
+                password: accountPassword,
+              },
+            });
+          },
         },
       });
     },
@@ -447,28 +447,15 @@ export default {
       if (!this.canUpdatePassword) {
         return;
       }
-      mutations.showPrompt({
-        name: "password",
-        props: {
-          infoText: this.$t("prompts.confirmPasswordToChangeUserPassword"),
-          submitLabel: this.$t("general.confirm"),
-          submitCallback: async (actorPassword) => {
-            try {
-              await usersApi.update(this.user, ["password"], {
-                headers: {
-                  "X-Password": encodeURIComponent(actorPassword),
-                },
-              });
-              if (state.user.permissions.admin && this.user.id !== state.user.id) {
-                eventBus.emit("usersChanged");
-              }
-              notify.showSuccessToast(this.$t("settings.userUpdated"));
-            } catch (e) {
-              notify.showError(e);
-            }
-          },
-        },
-      });
+      try {
+        await usersApi.update(this.user, ["password"], {
+          actorPasswordPromptI18nKey: "prompts.confirmPasswordToSaveUser",
+        });
+        eventBus.emit("usersChanged");
+        notify.showSuccessToast(this.$t("settings.userUpdated"));
+      } catch (e) {
+        notify.showError(e);
+      }
     },
     emitUserUpdate() {
       // Update the user object with current scopes

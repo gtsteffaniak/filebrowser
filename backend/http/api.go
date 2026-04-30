@@ -147,6 +147,22 @@ type AuthTokenFrontend struct {
 	Permissions users.Permissions `json:"Permissions,omitempty"`
 }
 
+// authTokenIssuedUnix returns iat from JWT claims when set, otherwise the persisted int64 (e.g. loaded from DB).
+func authTokenIssuedUnix(t users.AuthToken) int64 {
+	if t.RegisteredClaims.IssuedAt != nil {
+		return t.RegisteredClaims.IssuedAt.Unix()
+	}
+	return t.IssuedAt
+}
+
+// authTokenExpiresUnix returns exp from JWT claims when set, otherwise the persisted int64.
+func authTokenExpiresUnix(t users.AuthToken) int64 {
+	if t.RegisteredClaims.ExpiresAt != nil {
+		return t.RegisteredClaims.ExpiresAt.Unix()
+	}
+	return t.ExpiresAt
+}
+
 // listApiTokensHandler lists all API tokens or retrieves details for a specific token.
 // @Summary List API tokens
 // @Description List all API tokens or retrieve details for a specific token.
@@ -169,8 +185,8 @@ func listApiTokensHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		AuthTokensFrontend = append(AuthTokensFrontend, AuthTokenFrontend{
 			Token:       token.Token,
 			Name:        name,
-			IssuedAt:    token.RegisteredClaims.IssuedAt.Unix(),
-			ExpiresAt:   token.RegisteredClaims.ExpiresAt.Unix(),
+			IssuedAt:    authTokenIssuedUnix(token),
+			ExpiresAt:   authTokenExpiresUnix(token),
 			Permissions: token.Permissions,
 		})
 	}
@@ -205,8 +221,8 @@ func getApiTokenHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	AuthTokenFrontendResponse := AuthTokenFrontend{
 		Token:       tokenInfo.Token,
 		Name:        name,
-		IssuedAt:    tokenInfo.IssuedAt,
-		ExpiresAt:   tokenInfo.ExpiresAt,
+		IssuedAt:    authTokenIssuedUnix(tokenInfo),
+		ExpiresAt:   authTokenExpiresUnix(tokenInfo),
 		Permissions: tokenInfo.Permissions,
 	}
 	return renderJSON(w, r, AuthTokenFrontendResponse)

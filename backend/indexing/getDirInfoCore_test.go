@@ -16,48 +16,52 @@ func TestFetchExtendedAttributes(t *testing.T) {
 	tests := []struct {
 		name              string
 		adjustedPath      string
-		combinedPath      string
-		files             []os.FileInfo
 		opts              Options
-		expectHasPreview  bool
 		expectMapNotEmpty bool
 	}{
 		{
-			name:         "SkipExtendedAttrs returns empty",
-			adjustedPath: "/test/",
-			combinedPath: "/test/",
-			files:        []os.FileInfo{},
-			opts: Options{
-				SkipExtendedAttrs: true,
-				Recursive:         false,
-			},
-			expectHasPreview:  false,
+			name:              "SkipExtendedAttrs returns empty",
+			adjustedPath:      "/test/",
+			opts:              Options{SkipExtendedAttrs: true, Recursive: false},
 			expectMapNotEmpty: false,
 		},
 		{
-			name:         "Recursive returns empty",
-			adjustedPath: "/test/",
-			combinedPath: "/test/",
-			files:        []os.FileInfo{},
-			opts: Options{
-				SkipExtendedAttrs: false,
-				Recursive:         true,
-			},
-			expectHasPreview:  false,
+			name:              "Recursive returns empty",
+			adjustedPath:      "/test/",
+			opts:              Options{SkipExtendedAttrs: false, Recursive: true},
 			expectMapNotEmpty: false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			hasPreview, subdirMap := idx.fetchExtendedAttributes(tt.adjustedPath, tt.files, tt.opts)
-			if hasPreview != tt.expectHasPreview {
-				t.Errorf("expected hasPreview=%v, got %v", tt.expectHasPreview, hasPreview)
-			}
+			subdirMap := idx.fetchExtendedAttributes(tt.adjustedPath, tt.opts)
 			if (len(subdirMap) > 0) != tt.expectMapNotEmpty {
 				t.Errorf("expected mapNotEmpty=%v, got %v", tt.expectMapNotEmpty, len(subdirMap) > 0)
 			}
 		})
+	}
+}
+
+// TestFetchExtendedAttributes_subdirHasPreviewFromMetadata checks folder hasPreview comes from one GetMetadataInfo (non-shallow).
+func TestFetchExtendedAttributes_subdirHasPreviewFromMetadata(t *testing.T) {
+	idx, _, cleanup := setupTestIndex(t)
+	defer cleanup()
+
+	deepdir, err := idx.db.GetItem("test", "/subdir/deepdir/")
+	if err != nil || deepdir == nil {
+		t.Fatalf("deepdir row: err=%v", err)
+	}
+	deepdir.HasPreview = true
+	_ = idx.db.InsertItem("test", "/subdir/deepdir/", deepdir)
+
+	subdirMap := idx.fetchExtendedAttributes("/subdir/", Options{
+		SkipExtendedAttrs: false,
+		Recursive:         false,
+	})
+
+	if !subdirMap["/subdir/deepdir/"] {
+		t.Errorf("expected hasPreview map for /subdir/deepdir/, got %v", subdirMap)
 	}
 }
 

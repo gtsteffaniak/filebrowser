@@ -210,7 +210,7 @@ type SourceConfig struct {
 	Rules            []ConditionalRule `json:"rules"`                             // list of item rules to apply to specific paths
 	DefaultUserScope string            `json:"defaultUserScope"`                  // defaults to root of index "/" should match folders under path
 	DefaultEnabled   bool              `json:"defaultEnabled"`                    // should be added as a default source for new users?
-	CreateUserDir    bool              `json:"createUserDir"`                     // deprecated: create a user directory for each user under defaultUserScope + username (always true now)
+	CreateUserDir    bool              `json:"createUserDir"`                     // create a user directory for each user under defaultUserScope + username
 	UseLogicalSize   bool              `json:"useLogicalSize"`                    // calculate sizes based on logical size instead of disk utilization (du -sh), folders will be 0 bytes when empty.
 	// hidden but used internally - optimized map lookups for conditional rules
 	ResolvedRules ResolvedRulesConfig `json:"-"`

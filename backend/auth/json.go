@@ -15,7 +15,8 @@ import (
 
 // JSONAuth is a json implementation of an Auther.
 type JSONAuth struct {
-	ReCaptcha *ReCaptcha `json:"recaptcha" yaml:"recaptcha"`
+	ReCaptcha  *ReCaptcha `json:"recaptcha" yaml:"recaptcha"`
+	DisableOtp bool       `json:"disableOtp" yaml:"disableOtp"`
 }
 
 // Auth authenticates the user via a json in content body.
@@ -23,12 +24,12 @@ func (auther JSONAuth) Auth(r *http.Request, userStore *users.Storage) (*users.U
 	username := r.URL.Query().Get("username")
 	recaptcha := r.URL.Query().Get("recaptcha")
 	password := r.Header.Get("X-Password")
+	totpCode := r.Header.Get("X-Secret")
 	// URL-decode password to support special characters in headers
 	password, err := url.QueryUnescape(password)
 	if err != nil {
 		return nil, fmt.Errorf("invalid password encoding: %v", err)
 	}
-	totpCode := r.Header.Get("X-Secret")
 
 	// If ReCaptcha is enabled, check the code.
 	if auther.ReCaptcha != nil && len(auther.ReCaptcha.Secret) > 0 {
@@ -58,8 +59,7 @@ func (auther JSONAuth) Auth(r *http.Request, userStore *users.Storage) (*users.U
 	if getErr != nil {
 		return nil, fmt.Errorf("unable to get user from store: %v", err)
 	}
-	// check for OTP for password
-	if user.TOTPSecret != "" {
+	if user.TOTPSecret != "" && !auther.DisableOtp {
 		if totpCode == "" {
 			return nil, errors.ErrNoTotpProvided
 		}

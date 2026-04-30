@@ -132,7 +132,7 @@
 
 <script>
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
-import { uploadManager } from "@/utils/upload";
+import { readAllDirectoryEntries, uploadManager } from "@/utils/upload";
 import { mutations, state } from "@/store";
 import { notify } from "@/notify";
 import { usersApi } from "@/api";
@@ -485,9 +485,8 @@ export default {
       }
       if (entry.isDirectory) {
         const reader = entry.createReader();
-        const entries = await new Promise((resolve) => {
-          reader.readEntries((e) => resolve(e));
-        });
+        const pathLabel = entry.fullPath || entry.name || "";
+        const entries = await readAllDirectoryEntries(reader, pathLabel);
         const allFiles = await Promise.all(
           entries.map((subEntry) => getFilesFromDirectoryEntry(subEntry))
         );

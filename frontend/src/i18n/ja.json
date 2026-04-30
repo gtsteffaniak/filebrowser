@@ -247,7 +247,7 @@
     "unarchiveDestination": "に抜粋する：",
     "unarchiveSuccess": "アーカイブは正常に抽出されました！",
     "downloadFailed": "チャンクダウンロードに失敗しました - これが繰り返される場合は、チャンクサイズを小さくしてみてください：{message}",
-    "confirmPasswordToChangeUserPassword": "現在のパスワードを入力して、パスワードの変更を承認します。"
+    "confirmPasswordToSaveUser": "現在のパスワードを入力して、ユーザーの変更を保存します。"
   },
   "search": {
     "smallerThan": "より小さい：",
@@ -332,7 +332,6 @@
     "tusUploadsRetryCount": "チャンクのアップロードに失敗した場合の再試行回数",
     "userHomeBasePath": "ユーザーホームディレクトリのベースパス",
     "userScopeGenerationPlaceholder": "スコープは自動生成されます。",
-    "createUserHomeDirectory": "ユーザーホームディレクトリの作成",
     "shareDeleted": "共有が削除されました",
     "loginMethodDescription": "ユーザーに許可されるログイン方法",
     "userNotAdmin": "ユーザーは管理者ではありません",
@@ -548,7 +547,8 @@
     "enabledSuccessfully": "OTPの有効化に成功しました",
     "verificationFailed": "検証に失敗しました",
     "verificationSucceed": "検証に成功しました",
-    "generationFailed": "生成に失敗しました"
+    "generationFailed": "生成に失敗しました",
+    "passwordRequiredForGeneration": "認証コードを生成するにはパスワードが必要です。"
   },
   "general": {
     "name": "名前",

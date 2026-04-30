@@ -247,7 +247,7 @@
     "unarchiveDestination": "Kivonat a következő címre:",
     "unarchiveSuccess": "Az archívum sikeresen kinyomtatva!",
     "downloadFailed": "A darabos letöltés sikertelen - ha ez ismétlődik, próbálja meg csökkenteni a darabos letöltés méretét: {message}",
-    "confirmPasswordToChangeUserPassword": "A jelszóváltoztatás engedélyezéséhez adja meg a jelenlegi jelszavát."
+    "confirmPasswordToSaveUser": "A felhasználói módosítások mentéséhez adja meg az aktuális jelszavát."
   },
   "search": {
     "smallerThan": "Kisebb, mint:",
@@ -281,7 +281,6 @@
     "createUserDir": "Felhasználók saját mappáinak automatikus létrehozása új felhasználók hozzáadásakor",
     "userHomeBasePath": "Alap elérési útvonal a felhasználók saját mappáihoz",
     "userScopeGenerationPlaceholder": "A környezet automatikus lesz létrehozva",
-    "createUserHomeDirectory": "Felhasználói saját mappák létrehozása",
     "customStylesheet": "Egyéni stíluslap",
     "defaultUserDescription": "Ezek az alapértelmezett beállítások az új felhasználók számára.",
     "disableExternalLinks": "Külső linkek letiltása (kivéve a dokumentáció)",
@@ -548,7 +547,8 @@
     "enabledSuccessfully": "OTP sikeresen engedélyezve",
     "verificationFailed": "Ellenőrzés sikertelen",
     "verificationSucceed": "Ellenőrzés Succeed",
-    "generationFailed": "Nemzedék sikertelen"
+    "generationFailed": "Nemzedék sikertelen",
+    "passwordRequiredForGeneration": "A hitelesítési kód generálásához a jelszóra van szükség."
   },
   "general": {
     "name": "Név",

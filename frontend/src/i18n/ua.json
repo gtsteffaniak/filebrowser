@@ -247,7 +247,7 @@
     "unarchiveDestination": "Витягнути до:",
     "unarchiveSuccess": "Архів успішно розпаковано!",
     "downloadFailed": "Не вдалося завантажити фрагмент - якщо це повториться, спробуйте зменшити розмір фрагмента: {message}",
-    "confirmPasswordToChangeUserPassword": "Введіть ваш поточний пароль, щоб дозволити зміну пароля."
+    "confirmPasswordToSaveUser": "Введіть ваш поточний пароль, щоб зберегти зміни користувача."
   },
   "search": {
     "smallerThan": "Менше, ніж:",
@@ -339,7 +339,6 @@
     "tusUploadsRetryCount": "Кількість повторних спроб, якщо фрагмент не вдалося завантажити.",
     "userHomeBasePath": "Базовий шлях для домашніх каталогів користувачів",
     "userScopeGenerationPlaceholder": "Область дії буде згенеровано автоматично",
-    "createUserHomeDirectory": "Створення домашнього каталогу користувача",
     "shareSettings": "Налаштування спільного доступу",
     "adminOptions": "Параметри користувача адміністрування",
     "searchOptions": "Параметри пошуку",
@@ -548,7 +547,8 @@
     "enabledSuccessfully": "OTP успішно ввімкнено",
     "verificationFailed": "Перевірка не вдалася",
     "verificationSucceed": "Перевірка пройшла успішно",
-    "generationFailed": "Покоління зазнало невдачі"
+    "generationFailed": "Покоління зазнало невдачі",
+    "passwordRequiredForGeneration": "Ваш пароль необхідний для генерації коду автентифікатора."
   },
   "fileLoading": {
     "title": "Завантаження та вивантаження",

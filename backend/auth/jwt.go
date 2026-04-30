@@ -1,7 +1,12 @@
 package auth
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rsa"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"net/http"
 
@@ -47,14 +52,12 @@ func VerifyExternalJWT(tokenString string, secret string, algorithm string, user
 		if expectedMethod == nil {
 			return nil, fmt.Errorf("unsupported signing algorithm: %s", algorithm)
 		}
-		
+
 		if token.Method.Alg() != expectedMethod.Alg() {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		
-		// Return the secret key for HMAC algorithms
-		// For RSA/ECDSA, this would need to be a public key
-		return []byte(secret), nil
+
+		return jwtVerificationKey(secret, token.Method, algorithm)
 	})
 
 	if err != nil {
@@ -100,10 +103,102 @@ func VerifyExternalJWT(tokenString string, secret string, algorithm string, user
 	return username, claimsMap, nil
 }
 
+func jwtVerificationKey(secret string, method jwt.SigningMethod, algorithm string) (interface{}, error) {
+	switch method.(type) {
+	case *jwt.SigningMethodHMAC:
+		return []byte(secret), nil
+	case *jwt.SigningMethodRSA:
+		key, err := parsePublicKeyFromPEM(secret)
+		if err != nil {
+			return nil, err
+		}
+		rsaKey, ok := key.(*rsa.PublicKey)
+		if !ok {
+			return nil, fmt.Errorf("JWT secret must contain an RSA public key in PEM format for algorithm %s", algorithm)
+		}
+		return rsaKey, nil
+	case *jwt.SigningMethodECDSA:
+		key, err := parsePublicKeyFromPEM(secret)
+		if err != nil {
+			return nil, err
+		}
+		ecKey, ok := key.(*ecdsa.PublicKey)
+		if !ok {
+			return nil, fmt.Errorf("JWT secret must contain an ECDSA public key in PEM format for algorithm %s", algorithm)
+		}
+		if err := ecdsaCurveMatchesAlgorithm(algorithm, ecKey); err != nil {
+			return nil, err
+		}
+		return ecKey, nil
+	default:
+		return nil, fmt.Errorf("unsupported JWT signing method: %s", method.Alg())
+	}
+}
+
+func ecdsaCurveMatchesAlgorithm(algorithm string, pub *ecdsa.PublicKey) error {
+	var want elliptic.Curve
+	switch algorithm {
+	case "ES256":
+		want = elliptic.P256()
+	case "ES384":
+		want = elliptic.P384()
+	case "ES512":
+		want = elliptic.P521()
+	default:
+		return nil
+	}
+	if pub.Curve != want {
+		return fmt.Errorf("ECDSA public key curve does not match algorithm %s", algorithm)
+	}
+	return nil
+}
+
+func parsePublicKeyFromPEM(pemData string) (interface{}, error) {
+	rest := []byte(pemData)
+	var lastErr error
+	for len(rest) > 0 {
+		block, rem := pem.Decode(rest)
+		if block == nil {
+			break
+		}
+		rest = rem
+
+		var key interface{}
+		var err error
+		switch block.Type {
+		case "CERTIFICATE":
+			var cert *x509.Certificate
+			cert, err = x509.ParseCertificate(block.Bytes)
+			if err == nil {
+				key = cert.PublicKey
+			}
+		case "PUBLIC KEY":
+			key, err = x509.ParsePKIXPublicKey(block.Bytes)
+		case "RSA PUBLIC KEY":
+			key, err = x509.ParsePKCS1PublicKey(block.Bytes)
+		case "EC PUBLIC KEY":
+			key, err = x509.ParsePKIXPublicKey(block.Bytes)
+		default:
+			continue
+		}
+		if err != nil {
+			lastErr = err
+			continue
+		}
+		if key != nil {
+			return key, nil
+		}
+	}
+	if lastErr != nil {
+		return nil, fmt.Errorf("failed to parse JWT public key from PEM: %w", lastErr)
+	}
+	return nil, fmt.Errorf("no public key found in JWT secret (expected PEM: CERTIFICATE, PUBLIC KEY, RSA PUBLIC KEY, or EC PUBLIC KEY)")
+}
+
 // ExtractGroupsFromClaims extracts groups from JWT claims based on the configured groups claim field
 func ExtractGroupsFromClaims(claims map[string]interface{}, groupsClaimField string) []string {
 	var groups []string
-	
+
 	if groupsVal, ok := claims[groupsClaimField]; ok {
 		switch v := groupsVal.(type) {
 		case []interface{}:
@@ -129,6 +224,6 @@ func ExtractGroupsFromClaims(claims map[string]interface{}, groupsClaimField str
 			}
 		}
 	}
-	
+
 	return groups
 }

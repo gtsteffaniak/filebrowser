@@ -85,17 +85,17 @@ type Stats struct {
 	LastIndexedUnix int64     `json:"lastIndexedUnixTime"`
 	Complexity      uint      `json:"complexity"`
 	LastScanned     time.Time `json:"lastScanned"`
-	DiskUsed        uint64    `json:"used"`
-	UsedAlt         uint64    `json:"usedAlt"`
+	UsedAsIndexed   uint64    `json:"used"`
+	UsedDisk        uint64    `json:"usedAlt"`
+	DiskTotal       uint64    `json:"total"`
 }
 
 // reduced index is json exposed to the client
 type ReducedIndex struct {
 	Stats
-	IdxName   string         `json:"name"`
-	DiskTotal uint64         `json:"total"`
-	Status    IndexStatus    `json:"status"`
-	Scanners  []*ScannerInfo `json:"scanners,omitempty"`
+	IdxName  string         `json:"name"`
+	Status   IndexStatus    `json:"status"`
+	Scanners []*ScannerInfo `json:"scanners,omitempty"`
 }
 
 type Index struct {
@@ -735,50 +735,26 @@ func (idx *Index) GetFsInfoViewableOnly(adjustedPath string, followSymlinks bool
 	})
 }
 
-// fetchExtendedAttributes fetches hasPreview for the current directory and batch fetches for subdirectories
-func (idx *Index) fetchExtendedAttributes(indexPath string, files []os.FileInfo, opts Options) (bool, map[string]bool) {
-	hasPreview := false
+// fetchExtendedAttributes loads indexed subfolder has_preview for the current directory from GetMetadataInfo (database).
+// The listed directory's own HasPreview is derived only in GetDirInfoCore from children (never from a stale parent DB row).
+func (idx *Index) fetchExtendedAttributes(indexPath string, opts Options) map[string]bool {
 	subdirHasPreviewMap := make(map[string]bool)
 
 	if opts.SkipExtendedAttrs || opts.Recursive {
-		return hasPreview, subdirHasPreviewMap
+		return subdirHasPreviewMap
 	}
 
-	// Fetch hasPreview for current directory
-	realDirInfo, exists := idx.GetMetadataInfo(indexPath, true, true)
-	if exists {
-		hasPreview = realDirInfo.HasPreview
+	realDirInfo, exists := idx.GetMetadataInfo(indexPath, true, false)
+	if !exists {
+		return subdirHasPreviewMap
 	}
 
-	// Batch fetch hasPreview for all subdirectories
-	var subdirPaths []string
-	for _, file := range files {
-		if !iteminfo.IsDirectory(file) {
-			continue
-		}
-		baseName := file.Name()
-		if indexPath == "/" {
-			if !idx.shouldInclude(baseName) {
-				continue
-			}
-		}
-		if omitList[baseName] {
-			continue
-		}
-		dirPath := indexPath + baseName
-		childIndexPath := utils.AddTrailingSlashIfNotExists(dirPath)
-		subdirPaths = append(subdirPaths, childIndexPath)
+	for _, folder := range realDirInfo.Folders {
+		key := utils.AddTrailingSlashIfNotExists(indexPath + folder.Name)
+		subdirHasPreviewMap[key] = folder.HasPreview
 	}
 
-	if len(subdirPaths) > 0 {
-		var err error
-		subdirHasPreviewMap, err = idx.db.GetHasPreviewBatch(idx.Name, subdirPaths)
-		if err != nil {
-			subdirHasPreviewMap = make(map[string]bool)
-		}
-	}
-
-	return hasPreview, subdirHasPreviewMap
+	return subdirHasPreviewMap
 }
 
 // processDirectoryItem processes a directory item and returns the itemInfo, size, and whether it should be counted
@@ -826,11 +802,7 @@ func (idx *Index) processDirectoryItem(file os.FileInfo, indexPath string, subdi
 	if !opts.SkipExtendedAttrs && subdirHasPreviewMap != nil {
 		if hasPreviewValue, exists := subdirHasPreviewMap[childIndexPath]; exists {
 			itemInfo.HasPreview = hasPreviewValue
-		} else {
-			itemInfo.HasPreview = false
 		}
-	} else {
-		itemInfo.HasPreview = false
 	}
 
 	return itemInfo, itemInfo.Size, true
@@ -876,9 +848,7 @@ func (idx *Index) processFileItem(file os.FileInfo, indexPath string, opts Optio
 		if !usedCachedPreview {
 			setFilePreviewFlags(itemInfo, fullCombined)
 		}
-		if itemInfo.HasPreview && iteminfo.ShouldBubbleUpToFolderPreview(*itemInfo) {
-			bubblesUpHasPreview = true
-		}
+		bubblesUpHasPreview = iteminfo.ShouldBubbleUpToFolderPreview(*itemInfo)
 	} else {
 		itemInfo.HasPreview = false
 	}
@@ -895,8 +865,7 @@ func (idx *Index) GetDirInfoCore(dirInfo *os.File, stat os.FileInfo, indexPath s
 	if err != nil {
 		return nil, err
 	}
-	// Fetch extended attributes (hasPreview for current dir and subdirs)
-	hasPreview, subdirHasPreviewMap := idx.fetchExtendedAttributes(indexPath, files, opts)
+	subdirHasPreviewMap := idx.fetchExtendedAttributes(indexPath, opts)
 
 	baseName := filepath.Base(indexPath)
 	if indexPath == "/" {
@@ -907,6 +876,7 @@ func (idx *Index) GetDirInfoCore(dirInfo *os.File, stat os.FileInfo, indexPath s
 	fileInfos := []iteminfo.ExtendedItemInfo{}
 	dirInfos := []iteminfo.ItemInfo{}
 	processedCount := 0
+	hasPreview := false
 
 	for _, file := range files {
 		subfileBaseName := file.Name()
@@ -961,11 +931,11 @@ func (idx *Index) GetDirInfoCore(dirInfo *os.File, stat os.FileInfo, indexPath s
 			}
 		} else {
 			itemInfo, size, shouldCount, bubblesUp := idx.processFileItem(file, indexPath, opts, scanner)
-			if shouldCount {
-				totalSize += size
-			}
 			if bubblesUp {
 				hasPreview = true
+			}
+			if shouldCount {
+				totalSize += size
 			}
 			fileInfos = append(fileInfos, iteminfo.ExtendedItemInfo{ItemInfo: *itemInfo})
 			if opts.IsRoutineScan {
@@ -1133,6 +1103,7 @@ func (idx *Index) updateFolderSizeAndParents(path string, newSize uint64, previo
 		if parentDir == "" {
 			break // Reached the top
 		}
+		// Keys in folderSizes match indexing paths (trailing slash for non-root dirs; root stays "/").
 		if parentDir != "/" {
 			parentDir = utils.AddTrailingSlashIfNotExists(parentDir)
 		}
@@ -1157,22 +1128,6 @@ func (idx *Index) updateFolderSizeAndParents(path string, newSize uint64, previo
 		// Move up to the next parent
 		currentPath = parentDir
 	}
-}
-
-// SetFolderSize sets the size for a directory in the in-memory map
-func (idx *Index) SetFolderSize(path string, newSize uint64) {
-	idx.folderSizesMu.Lock()
-	defer idx.folderSizesMu.Unlock()
-	idx.folderSizes[path] = newSize
-	idx.folderSizesUnsynced[path] = struct{}{} // Mark as changed for next DB sync
-}
-
-// GetFolderSize retrieves the size for a directory from the in-memory map
-func (idx *Index) GetFolderSize(path string) (uint64, bool) {
-	idx.folderSizesMu.RLock()
-	defer idx.folderSizesMu.RUnlock()
-	size, exists := idx.folderSizes[path]
-	return size, exists
 }
 
 // GetFolderSizeForDisplay retrieves folder size with appropriate formatting based on config
@@ -1203,20 +1158,6 @@ func (idx *Index) getFileSizeForDisplay(file os.FileInfo, realPath string) int64
 
 	// Disk usage mode: use getDiskUsage helper
 	return getDiskUsage(file, realPath, false)
-}
-
-// RecursiveUpdateDirSizes is now a wrapper for backwards compatibility
-// This maintains API compatibility while using the new optimized approach
-func (idx *Index) RecursiveUpdateDirSizes(path string, previousSize uint64) {
-	currentSize, exists := idx.GetFolderSize(path)
-	if !exists {
-		logger.Debugf("[FOLDER_SIZE] Path %s not found in folderSizes map", path)
-		return
-	}
-
-	if currentSize != previousSize {
-		idx.updateFolderSizeAndParents(path, currentSize, previousSize, false) // updateTarget=false, only update parents
-	}
 }
 
 // SyncFolderSizesToDB syncs in-memory folder sizes to the database after a scan completes
@@ -1533,18 +1474,15 @@ func (idx *Index) IsNeverWatchPath(adjustedPath string) bool {
 	return exists
 }
 
-type DiskUsage struct {
-	Total uint64 `json:"total"`
-	Used  uint64 `json:"used"`
-}
-
-func (idx *Index) SetUsage(totalBytes uint64) {
+func (idx *Index) SetUsage(totalDiskSize, partitionUsed, UsedAsIndexed uint64) {
 	if settings.Config.Frontend.DisableUsedPercentage {
 		return
 	}
 	idx.mu.Lock()
 	defer idx.mu.Unlock()
-	idx.DiskTotal = totalBytes
+	idx.DiskTotal = totalDiskSize
+	idx.UsedAsIndexed = UsedAsIndexed
+	idx.UsedDisk = partitionUsed
 }
 
 func (idx *Index) SetStatus(status IndexStatus) error {
@@ -1609,63 +1547,59 @@ func (idx *Index) useAdaptiveScheduling() bool {
 	return idx.Config.IndexingInterval == 0
 }
 
-// Save persists the index and scanner information to the database
+// Save persists the index and scanner information to the database and notifies clients via SSE.
 func (idx *Index) Save() error {
-	if indexingStorage == nil {
-		return nil // No storage available, skip persistence
-	}
-
-	idx.mu.RLock()
-	adaptive := idx.useAdaptiveScheduling()
-	// Collect scanner information
-	scanners := make(map[string]*dbindex.PersistedScannerInfo)
-	for path, scanner := range idx.scanners {
-		scanner.withStatsRLock(func() {
-			schedule := 0
-			if adaptive {
-				schedule = scanner.currentSchedule
-			}
-			scanners[path] = &dbindex.PersistedScannerInfo{
-				Path:            path,
-				Complexity:      scanner.complexity,
-				CurrentSchedule: schedule,
-				QuickScanTime:   scanner.quickScanTime,
-				FullScanTime:    scanner.fullScanTime,
-				NumDirs:         scanner.numDirs,
-				NumFiles:        scanner.numFiles,
-				LastScanned:     scanner.lastScanned,
-				FullScanCounter: scanner.fullScanCounter,
-			}
-		})
-	}
-
-	// Get current index stats
-	complexity := idx.getComplexityUnlocked()
-	numDirs := idx.getNumDirsUnlocked()
-	numFiles := idx.getNumFilesUnlocked()
-	idx.mu.RUnlock()
-
-	// Create IndexInfo for persistence
-	info := &dbindex.IndexInfo{
-		Path:       idx.Path, // Use real filesystem path as key
-		Source:     idx.Name,
-		Complexity: complexity,
-		NumDirs:    numDirs,
-		NumFiles:   numFiles,
-		Scanners:   scanners,
-	}
-
-	err := indexingStorage.Save(info)
-	if err != nil {
+	if err := idx.writePersistedIndexInfo(); err != nil {
 		return err
 	}
-
-	// Send SSE update event after successful save
 	if err := idx.SendSourceUpdateEvent(); err != nil {
 		logger.Errorf("[%s] Failed to send source update event: %v", idx.Name, err)
 	}
-
 	return nil
+}
+
+// writePersistedIndexInfo writes scanners, stats, and disk totals to Bolt (no SSE broadcast).
+func (idx *Index) writePersistedIndexInfo() error {
+	if indexingStorage == nil {
+		return nil
+	}
+
+	idx.mu.RLock()
+	scanners := make(map[string]*dbindex.PersistedScannerInfo)
+	for path, scanner := range idx.scanners {
+		scanners[path] = &dbindex.PersistedScannerInfo{
+			Path:            path,
+			Complexity:      scanner.complexity,
+			CurrentSchedule: scanner.currentSchedule,
+			QuickScanTime:   scanner.quickScanTime,
+			FullScanTime:    scanner.fullScanTime,
+			NumDirs:         scanner.numDirs,
+			NumFiles:        scanner.numFiles,
+			LastScanned:     scanner.lastScanned,
+		}
+	}
+
+	complexity := idx.getComplexityUnlocked()
+	numDirs := idx.getNumDirsUnlocked()
+	numFiles := idx.getNumFilesUnlocked()
+	usedAsIndexed := idx.UsedAsIndexed
+	usedDisk := idx.UsedDisk
+	diskTotal := idx.DiskTotal
+	idx.mu.RUnlock()
+
+	info := &dbindex.IndexInfo{
+		Path:          idx.Path,
+		Source:        idx.Name,
+		Complexity:    complexity,
+		NumDirs:       numDirs,
+		NumFiles:      numFiles,
+		UsedAsIndexed: usedAsIndexed,
+		UsedDisk:      usedDisk,
+		DiskTotal:     diskTotal,
+		Scanners:      scanners,
+	}
+
+	return indexingStorage.Save(info)
 }
 
 // Load restores index and scanner information from the database
@@ -1692,6 +1626,9 @@ func (idx *Index) Load() error {
 	idx.Complexity = info.Complexity
 	idx.NumDirs = info.NumDirs
 	idx.NumFiles = info.NumFiles
+	idx.UsedAsIndexed = info.UsedAsIndexed
+	idx.UsedDisk = info.UsedDisk
+	idx.DiskTotal = info.DiskTotal
 
 	// Restore scanner information (will be applied when scanners are created)
 	// Store in a temporary map that setupMultiScanner can use

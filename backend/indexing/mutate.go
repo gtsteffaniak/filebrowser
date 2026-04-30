@@ -12,8 +12,8 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-// UpdateFileMetadata updates the FileInfo for the specified directory in the index.
-// scanner parameter is optional - if nil (API refresh), directly inserts to database
+// UpdateMetadata persists a completed directory listing to the index. The directory row's has_preview
+// scanner is optional — if nil (API refresh), inserts run immediately; otherwise items batch until flush.
 func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo, scanner *Scanner) bool {
 	items := make([]*iteminfo.FileInfo, 0, len(info.Files)+len(info.Folders)+1)
 	dirItem := *info
@@ -296,8 +296,9 @@ func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, erro
 		return ReducedIndex{}, fmt.Errorf("index %s not found", sourceName)
 	}
 
-	// Only update disk total if cache is missing or explicitly forced
-	// The "used" value comes from totalSize and is always current
+	// Only update disk total if cache is missing or explicitly forced.
+	// Indexed "used" sums root-level files from SQLite; top-level folders use idx.folderSizes (scanned rollup)
+	// because directory size columns in SQLite can lag folderSizes/SyncFolderSizesToDB.
 	sourcePath := idx.Path
 	cacheKey := "usageCache-" + sourceName
 	if forceCacheRefresh {
@@ -307,27 +308,40 @@ func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, erro
 	_, ok = utils.DiskUsageCache.Get(cacheKey)
 	if !ok {
 		// Only fetch disk total and used if not cached (this is expensive, so we cache it)
-		totalBytes, err := fileutils.GetPartitionSize(sourcePath)
+		totalPartitionSize, err := fileutils.GetPartitionSize(sourcePath)
 		if err != nil {
-			idx.mu.Lock()
-			idx.Status = UNAVAILABLE
-			idx.mu.Unlock()
-			return ReducedIndex{}, fmt.Errorf("error getting disk usage for %s: %v", sourcePath, err)
+			logger.Errorf("Failed to get partition size for index %s: %v", sourceName, err)
 		}
-
-		idx.SetUsage(totalBytes)
-
+		itemInfo, dbErr := idx.db.GetDirectoryChildren(idx.Name, "/")
+		if dbErr != nil {
+			logger.Debugf("GetIndexInfo: could not read root listing from index DB for %s: %v", sourceName, dbErr)
+		}
+		var indexedSizeFromDB uint64
+		for _, item := range itemInfo {
+			isFolder := item.IsDir || item.Type == "directory"
+			if !isFolder {
+				indexedSizeFromDB += uint64(item.Size)
+				continue
+			}
+			folderKey := utils.AddTrailingSlashIfNotExists(item.Path)
+			if agg, ok := idx.GetFolderSize(folderKey); ok {
+				indexedSizeFromDB += agg
+			} else {
+				indexedSizeFromDB += uint64(item.Size)
+			}
+		}
 		// Also fetch OS-reported partition used space (total - free)
-		usedAlt, err := fileutils.GetPartitionUsed(sourcePath)
+		partitionUsed, err := fileutils.GetPartitionUsed(sourcePath)
 		if err != nil {
 			logger.Errorf("Failed to get partition used space for index %s: %v", sourceName, err)
-			usedAlt = 0
 		}
-		idx.mu.Lock()
-		idx.UsedAlt = usedAlt
-		idx.mu.Unlock()
-
+		idx.SetUsage(totalPartitionSize, partitionUsed, indexedSizeFromDB)
 		utils.DiskUsageCache.Set(cacheKey, true)
+		if indexingStorage != nil {
+			if err := idx.writePersistedIndexInfo(); err != nil {
+				logger.Warningf("GetIndexInfo: failed to persist index disk stats for %s: %v", sourceName, err)
+			}
+		}
 	}
 
 	// Build scanner info for client
@@ -353,16 +367,8 @@ func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, erro
 		})
 	}
 	reducedIdx := idx.ReducedIndex
-	var diskUsed uint64
-	rootTotal, ok := idx.GetFolderSize("/")
-	if !ok {
-		logger.Errorf("Failed to get root-level indexed total for index %s", sourceName)
-		diskUsed = 0
-	} else {
-		diskUsed = rootTotal
-	}
-	reducedIdx.DiskUsed = diskUsed
-	reducedIdx.UsedAlt = idx.UsedAlt
+	reducedIdx.UsedAsIndexed = idx.UsedAsIndexed
+	reducedIdx.UsedDisk = idx.UsedDisk
 	reducedIdx.DiskTotal = idx.DiskTotal
 	reducedIdx.Scanners = scannerInfos
 	reducedIdx.NumDirs = idx.getNumDirsUnlocked()
@@ -376,4 +382,20 @@ func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, erro
 	reducedIdx.Status = idx.getStatusUnlocked()
 	idx.mu.RUnlock()
 	return reducedIdx, nil
+}
+
+// SetFolderSize sets the size for a directory in the in-memory map
+func (idx *Index) SetFolderSize(path string, newSize uint64) {
+	idx.folderSizesMu.Lock()
+	defer idx.folderSizesMu.Unlock()
+	idx.folderSizes[path] = newSize
+	idx.folderSizesUnsynced[path] = struct{}{} // Mark as changed for next DB sync
+}
+
+// GetFolderSize retrieves the size for a directory from the in-memory map
+func (idx *Index) GetFolderSize(path string) (uint64, bool) {
+	idx.folderSizesMu.RLock()
+	defer idx.folderSizesMu.RUnlock()
+	size, exists := idx.folderSizes[path]
+	return size, exists
 }

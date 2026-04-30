@@ -84,10 +84,11 @@ export default {
     if (!state.sessionId) {
       mutations.setSession(generateRandomCode(8));
     }
-    // Set up toast callback
+    // Set up toast callback (sync any toasts that were queued before Layout mounted, e.g. OTP on login)
     notify.setToastUpdateCallback((toasts) => {
       this.toasts = toasts;
     });
+    this.toasts = notify.getToasts();
     this.reEval()
     this.initialize();
   },

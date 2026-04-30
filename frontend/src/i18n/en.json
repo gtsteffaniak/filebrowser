@@ -456,7 +456,7 @@
     "moveFailed": "Move failed",
     "operationFailed": "Operation failed",
     "partialSuccess": "Some operations failed: {succeeded} succeeded, {failed} failed",
-    "confirmPasswordToChangeUserPassword": "Enter your current password to authorize this password change."
+    "confirmPasswordToSaveUser": "Enter your current password to save these user changes."
   },
   "search": {
     "searchContext": "Search Context: {context}",
@@ -583,7 +583,6 @@
     "tusUploadsRetryCount": "Number of retries to perform if a chunk fails to upload.",
     "userHomeBasePath": "Base path for user home directories",
     "userScopeGenerationPlaceholder": "The scope will be auto generated",
-    "createUserHomeDirectory": "Create user home directory",
     "customStylesheet": "Custom Stylesheet",
     "defaultUserDescription": "These are the default settings for new users.",
     "disableExternalLinks": "Disable external links (except documentation)",
@@ -744,7 +743,8 @@
     "enabledSuccessfully": "OTP enabled successfully",
     "verificationFailed": "Verification Failed",
     "verificationSucceed": "Verification Succeed",
-    "generationFailed": "Generation Failed"
+    "generationFailed": "Generation Failed",
+    "passwordRequiredForGeneration": "Your password is required to generate an authenticator code."
   },
   "access": {
     "all": "Deny All",

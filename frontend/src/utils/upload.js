@@ -3,6 +3,47 @@ import { resourcesApi } from "@/api";
 import { state,mutations } from "@/store";
 import { getters } from "@/store/getters";
 
+/**
+ * Accumulates every directory entry from a FileSystemDirectoryReader.
+ *
+ * Chromium and Safari cap DirectoryReader.readEntries() at roughly one batch
+ * (often 100 entries) per call — callers must loop until a batch is empty.
+ *
+ * @param {FileSystemDirectoryReader} reader
+ * @param {string} [debugLabel] optional path/name for diagnostic logs
+ * @returns {Promise<FileSystemEntry[]>}
+ */
+export async function readAllDirectoryEntries(reader, debugLabel = "") {
+  /** @type {FileSystemEntry[]} */
+  const all = [];
+  let nonemptyBatches = 0;
+
+  /** @type {FileSystemEntry[]} */
+  let batch = await new Promise((resolve, reject) => {
+    reader.readEntries(resolve, reject);
+  });
+
+  while (batch.length > 0) {
+    nonemptyBatches++;
+    all.push(...batch);
+    batch = await new Promise((resolve, reject) => {
+      reader.readEntries(resolve, reject);
+    });
+  }
+
+  if (nonemptyBatches > 1 || all.length > 100) {
+    const suffix =
+      debugLabel !== ""
+        ? ` (${debugLabel})`
+        : "";
+    console.info(
+      `[FileBrowser upload] directory listing${suffix}: ${nonemptyBatches} readEntries batches — collected ${all.length} entries (multiple batches indicate a directory with > ~100 immediate children)`
+    );
+  }
+
+  return all;
+}
+
 class UploadManager {
   constructor() {
     this.queue = reactive([]);
@@ -182,6 +223,13 @@ class UploadManager {
       };
       return upload;
     });
+
+    const dirCount = newUploads.length;
+    if (fileUploads.length >= 50) {
+      console.info(
+        `[FileBrowser upload] add(): ${fileUploads.length} file job(s), ${dirCount} directory job(s) → base ${basePath}`
+      );
+    }
 
     this.queue.push(...newUploads, ...fileUploads);
 
