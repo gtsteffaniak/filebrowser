@@ -5044,11 +5044,11 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "hasLyrics": {
-                    "description": "checks if lyrics are available without extract them",
+                    "description": "checks if lyrics are available without parse them",
                     "type": "boolean"
                 },
                 "lyrics": {
-                    "description": "lyrics (from ID3 USLT or .lrc files)",
+                    "description": "lyrics (from embedded tags or .lrc files)",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/iteminfo.Lyric"

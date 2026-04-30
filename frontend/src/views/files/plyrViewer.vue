@@ -391,6 +391,11 @@ export default {
         this.$nextTick(() => this.scrollMobileLyrics());
       }
     },
+    showMobileLyrics(val) {
+        if (val && this.lyrics.length) {
+            this.$nextTick(() => this.scrollMobileLyrics());
+        }
+    },
     shouldTogglePlayPause(newVal, oldVal) {
       if (newVal !== oldVal) {
       this.togglePlayPause();
