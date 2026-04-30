@@ -241,7 +241,7 @@
       "mute": "Mute/Unmute the audio playing",
       "loop": "Toggle between loop and single mode",
       "playbackQueue": "Open playback queue or the panel in audio files",
-      "switchTabs": "Switch queue/lyrics tab in the panel in audio files",
+      "switchTabs": "Switch tabs in the panel in audio files",
       "playbackModes": "Toggle between playback modes (excluding loop and single)",
       "fullscreen": "Toggle fullscreen mode in videos",
       "captions": "Toggle captions on/off"
