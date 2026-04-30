@@ -35,8 +35,9 @@
         >
           <span>{{ selectedCount }}</span>
         </div>
+        <hr class="divider">
       </div>
-      <hr v-if="showDivider" class="divider">
+      
       <action
         v-if="showCreateFileActions"
         icon="create_new_folder"

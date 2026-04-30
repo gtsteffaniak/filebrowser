@@ -5,7 +5,8 @@
     "reassignPath": "Reassign Path",
     "pathReassigned": "Path successfully updated!",
     "pathReassignFailed": "Failed to update path. Please try again.",
-    "incompleteResultsDetails": "Showing max results ({max}). Try narrowing your search to get more results under {max}."
+    "incompleteResultsDetails": "Showing max results ({max}). Try narrowing your search to get more results under {max}.",
+    "noCreateOptions": "No create options are available"
   },
   "general": {
     "divider": "Divider{suffix}",
