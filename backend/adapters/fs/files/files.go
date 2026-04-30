@@ -344,28 +344,38 @@ func generateOfficeId(realPath string) string {
 }
 
 // Parses raw LRC text into a slice of Lyric.
-// Lines with [mm:ss.xx] (timestamps) will be parsed to ms for synced lyrics
+// Lines with [hh:mm:ss.xx] (timestamps) will be parsed to ms for synced lyrics
 // The ones without timestamp are kept as unsynced (timestamp 0).
 func parseLRC(raw string) []iteminfo.Lyric {
 	var lines []iteminfo.Lyric
 	scanner := bufio.NewScanner(strings.NewReader(raw))
-	re := regexp.MustCompile(`^\[(\d{1,2}):(\d{1,2})\.(\d{2,3})\](.*)`)
+	re := regexp.MustCompile(`^\[(?:(\d{1,2}):)?(\d{1,2}):(\d{1,2})\.(\d+)\](.*)`)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		if line == "" {
 			continue
 		}
 		matches := re.FindStringSubmatch(line)
-		if len(matches) == 5 {
-			min, _ := strconv.Atoi(matches[1])
-			sec, _ := strconv.Atoi(matches[2])
-			msStr := matches[3]
-			if len(msStr) == 2 {
-				msStr += "0"
+		if len(matches) == 6 {
+			// Hours default to 0 (if not present in the timestamps)
+			h := 0
+			if matches[1] != "" {
+				h, _ = strconv.Atoi(matches[1])
+			}
+			min, _ := strconv.Atoi(matches[2])
+			sec, _ := strconv.Atoi(matches[3])
+
+			msStr := matches[4]
+			// Normalise to 3 digits, some songs have more than 3 digits in the milliseconds
+			switch {
+			case len(msStr) < 3:
+				msStr += strings.Repeat("0", 3-len(msStr))
+			case len(msStr) > 3:
+				msStr = msStr[:3]
 			}
 			ms, _ := strconv.Atoi(msStr)
-			timestamp := int64((min*60+sec)*1000 + ms)
-			text := strings.TrimSpace(matches[4])
+			timestamp := int64((h*3600+min*60+sec)*1000 + ms)
+			text := strings.TrimSpace(matches[5])
 			lines = append(lines, iteminfo.Lyric{
 				Text:      text,
 				Timestamp: timestamp,
@@ -474,7 +484,7 @@ func extractAudioMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 	return nil
 }
 
-// Returns lyrics from an audio file (embedded USLT or from a .lrc file with the same name).
+// Returns lyrics from an audio file (from embedded tags or from a .lrc file with the same name).
 func ExtractLyrics(realPath string) ([]iteminfo.Lyric, error) {
 	file, err := os.Open(realPath)
 	if err != nil {

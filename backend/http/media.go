@@ -176,9 +176,9 @@ func publicMetadataHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	return renderJSON(w, r, fileInfo)
 }
 
-// lyricsHandler returns synced/unsynced lyrics (with or without timestamps) for an audio file (embedded USLT or from .lrc files).
+// lyricsHandler returns synced/unsynced lyrics (with or without timestamps) for an audio file (embedded or from .lrc files).
 // @Summary Get lyrics for an audio file
-// @Description Returns parsed lyrics with optional timestamps from embedded ID3 tags or sidecar .lrc files.
+// @Description Returns parsed lyrics with optional timestamps from embedded tags or sidecar .lrc files.
 // @Tags Resources
 // @Accept json
 // @Produce json

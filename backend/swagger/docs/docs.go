@@ -1076,7 +1076,7 @@ const docTemplate = `{
         },
         "/api/media/lyrics": {
             "get": {
-                "description": "Returns parsed lyrics with optional timestamps from embedded ID3 tags or sidecar .lrc files.",
+                "description": "Returns parsed lyrics with optional timestamps from embedded tags or sidecar .lrc files.",
                 "consumes": [
                     "application/json"
                 ],
