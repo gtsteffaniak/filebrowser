@@ -6,9 +6,11 @@ All notable changes to this project will be documented in this file. For commit 
 
  **New Features**:
  - Lyrics support for audio files (#2360):
+   - Updated UI for audio previews!
    - The lyrics and the player gets syncronized in UI with the audio player.
    - Supports embedded lyrics (USLT) and sidecar `.lrc` files with the same name as the audio file.
-   - Updated UI for audio previews!
+   - The `Q` shortcut in audio files will toggle the new panel visibility.
+   - `E` shortcut to change between tabs of the panel if it's open.
  - Add config option to disable /health endpoint logging (#2291)
  - More shortcuts (#2300)
    - `CTRL+F1` switch to normal view.
