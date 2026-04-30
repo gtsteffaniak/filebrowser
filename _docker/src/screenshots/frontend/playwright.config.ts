@@ -18,7 +18,7 @@ export default defineConfig({
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: false,
   /* Retry on CI only */
-  retries: 2,
+  retries: 1,
   /* Opt out of parallel tests on CI. */
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: "line",
@@ -53,8 +53,6 @@ export default defineConfig({
         ...devices["Desktop Chrome"],
         theme: 'dark',
       },
-      testMatch: /.*screenshots.spec.ts/,
-      retries: 0,
     },
     {
       name: "light-screenshots",
@@ -62,8 +60,6 @@ export default defineConfig({
         ...devices["Desktop Chrome"],
         theme: 'light',
       },
-      testMatch: /.*screenshots.spec.ts/,
-      retries: 0,
     },
   ],
 });
