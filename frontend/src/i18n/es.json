@@ -866,7 +866,8 @@
     "reassignPath": "Reasignar ruta",
     "pathReassigned": "¡La ruta se actualizó correctamente!",
     "pathReassignFailed": "No se pudo actualizar la ruta. Inténtalo de nuevo",
-    "incompleteResultsDetails": "Mostrando resultados máximos ({max}). Intenta restringir la búsqueda para obtener más resultados en {max}."
+    "incompleteResultsDetails": "Mostrando resultados máximos ({max}). Intenta restringir la búsqueda para obtener más resultados en {max}.",
+    "noCreateOptions": "No hay opciones de creación disponibles"
   },
   "duplicateFinder": {
     "title": "Buscador de archivos duplicados",

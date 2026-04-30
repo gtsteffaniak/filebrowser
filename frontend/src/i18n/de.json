@@ -866,7 +866,8 @@
     "reassignPath": "Pfad neu zuweisen",
     "pathReassigned": "Pfad erfolgreich aktualisiert!",
     "pathReassignFailed": "Der Pfad konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.",
-    "incompleteResultsDetails": "Zeigt max Ergebnisse ({max}). Versuchen Sie, Ihre Suche einzugrenzen, um mehr Ergebnisse unter {max} zu erhalten."
+    "incompleteResultsDetails": "Zeigt max Ergebnisse ({max}). Versuchen Sie, Ihre Suche einzugrenzen, um mehr Ergebnisse unter {max} zu erhalten.",
+    "noCreateOptions": "Es sind keine Erstellungsoptionen verfügbar"
   },
   "duplicateFinder": {
     "title": "Duplicate File Finder",

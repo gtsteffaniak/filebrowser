@@ -866,7 +866,8 @@
     "reassignPath": "Útvonal újbóli kijelölése",
     "pathReassigned": "Az útvonal sikeresen frissült!",
     "pathReassignFailed": "Nem sikerült frissíteni az elérési utat. Kérjük, próbálja újra.",
-    "incompleteResultsDetails": "Maximális eredmények megjelenítése ({max}). Próbálja szűkíteni a keresést, hogy több eredményt kapjon a {max} alatt ."
+    "incompleteResultsDetails": "Maximális eredmények megjelenítése ({max}). Próbálja szűkíteni a keresést, hogy több eredményt kapjon a {max} alatt .",
+    "noCreateOptions": "Nincs lehetőség létrehozására"
   },
   "duplicateFinder": {
     "title": "Duplikátum fájl kereső",

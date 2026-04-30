@@ -866,7 +866,8 @@
     "reassignPath": "Reatribuiți calea",
     "pathReassigned": "Calea a fost actualizată cu succes!",
     "pathReassignFailed": "A eșuat actualizarea căii. Vă rugăm să încercați din nou.",
-    "incompleteResultsDetails": "Afișarea rezultatelor maxime ({max}). Încercați să restrângeți căutarea pentru a obține mai multe rezultate la {max}."
+    "incompleteResultsDetails": "Afișarea rezultatelor maxime ({max}). Încercați să restrângeți căutarea pentru a obține mai multe rezultate la {max}.",
+    "noCreateOptions": "Nu sunt disponibile opțiuni de creare"
   },
   "duplicateFinder": {
     "title": "Duplicate fișier Finder",

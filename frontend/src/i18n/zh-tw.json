@@ -866,7 +866,8 @@
     "reassignPath": "重新指定路徑",
     "pathReassigned": "路徑已成功更新！",
     "pathReassignFailed": "更新路徑失敗。請再試一次。",
-    "incompleteResultsDetails": "目前只顯示前 {max} 筆結果。請縮小搜尋範圍，以取得少於 {max} 筆的結果。"
+    "incompleteResultsDetails": "目前只顯示前 {max} 筆結果。請縮小搜尋範圍，以取得少於 {max} 筆的結果。",
+    "noCreateOptions": "沒有建立選項"
   },
   "duplicateFinder": {
     "title": "重複檔案搜尋器",

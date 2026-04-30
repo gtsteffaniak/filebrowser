@@ -866,7 +866,8 @@
     "reassignPath": "Ponowne przypisanie ścieżki",
     "pathReassigned": "Ścieżka została pomyślnie zaktualizowana!",
     "pathReassignFailed": "Nie udało się zaktualizować ścieżki. Spróbuj ponownie.",
-    "incompleteResultsDetails": "Wyświetlanie maksymalnych wyników ({max}). Spróbuj zawęzić wyszukiwanie, aby uzyskać więcej wyników pod {max}."
+    "incompleteResultsDetails": "Wyświetlanie maksymalnych wyników ({max}). Spróbuj zawęzić wyszukiwanie, aby uzyskać więcej wyników pod {max}.",
+    "noCreateOptions": "Opcje tworzenia nie są dostępne"
   },
   "duplicateFinder": {
     "title": "Wyszukiwarka duplikatów plików",
