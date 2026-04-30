@@ -106,7 +106,8 @@
       "volume": "Hangerő növelése vagy csökkentése",
       "mute": "Némítás/Behangzás",
       "loop": "Váltás ismétlés és egyszeri mód között",
-      "playbackQueue": "Lejátszási sor megnyitása",
+      "playbackQueue": "Lejátszási sor vagy a panel megnyitása audio fájlokban",
+      "switchTabs": "Lapok váltása a panelen audio fájloknál",
       "playbackModes": "Váltás lejátszási módok között (az ismétlés és egyszeri kivételével)",
       "fullscreen": "Teljes képernyős mód váltása videóknál",
       "captions": "Feliratok be/ki"

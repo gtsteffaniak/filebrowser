@@ -240,7 +240,8 @@
       "volume": "Volume omhoog of omlaag",
       "mute": "Geluid dempen/inschakelen",
       "loop": "Schakel tussen herhalen en enkelvoudige modus",
-      "playbackQueue": "Afspeellijst openen",
+      "playbackQueue": "Afspeellijst of het paneel openen in audiobestanden",
+      "switchTabs": "Tabbladen in het paneel bij audiobestanden wisselen",
       "playbackModes": "Schakel tussen afspeelmodi (behalve herhalen en enkelvoudig)",
       "fullscreen": "Volledig scherm modus voor video's",
       "captions": "Ondertiteling aan/uit"

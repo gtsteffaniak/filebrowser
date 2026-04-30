@@ -106,7 +106,8 @@
       "volume": "Zwiększ lub zmniejsz głośność",
       "mute": "Wycisz/Włącz dźwięk",
       "loop": "Przełącz między pętlą a trybem pojedynczym",
-      "playbackQueue": "Otwórz kolejkę odtwarzania",
+      "playbackQueue": "Otwórz kolejkę odtwarzania lub panel w plikach audio",
+      "switchTabs": "Przełącz karty w panelu dla plików audio",
       "playbackModes": "Przełącz między trybami odtwarzania (z wyłączeniem pętli i pojedynczego)",
       "fullscreen": "Przełącz tryb pełnoekranowy w wideo",
       "captions": "Włącz/Wyłącz napisy"

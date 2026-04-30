@@ -106,7 +106,8 @@
       "volume": "Crește sau scade volumul",
       "mute": "Activează/Dezactivează sunetul",
       "loop": "Comută între modul repetare și modul unic",
-      "playbackQueue": "Deschide coada de redare",
+      "playbackQueue": "Deschide coada de redare sau panoul în fișiere audio",
+      "switchTabs": "Comută filele în panoul pentru fișiere audio",
       "playbackModes": "Comută între modurile de redare (excluzând repetare și unic)",
       "fullscreen": "Comută modul ecran complet în videoclipuri",
       "captions": "Activează/Dezactivează subtitrările"

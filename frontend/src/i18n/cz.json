@@ -109,7 +109,8 @@
       "volume": "Zvýšit nebo snížit hlasitost",
       "mute": "Ztlumit/zapnout zvuk",
       "loop": "Přepínání mezi smyčkou a jedním přehráním",
-      "playbackQueue": "Otevřít frontu přehrávání",
+      "playbackQueue": "Otevřít frontu přehrávání nebo panel v audio souborech",
+      "switchTabs": "Přepínat karty v panelu u audio souborů",
       "playbackModes": "Přepínání režimů přehrávání (kromě smyčky a jednoho přehrání)",
       "fullscreen": "Přepnout režim celé obrazovky u videí",
       "captions": "Zapnout/vypnout titulky"

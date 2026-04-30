@@ -106,7 +106,8 @@
       "volume": "Subir o bajar el volumen",
       "mute": "Silenciar/Activar el sonido",
       "loop": "Activar/Desactivar reproducción en bucle",
-      "playbackQueue": "Abrir cola de reproducción",
+      "playbackQueue": "Abrir cola de reproducción o el panel (en audios)",
+      "switchTabs": "Cambiar pestañas en el panel (en audios)",
       "playbackModes": "Cambiar entre modos de reproducción (excepto bucle)",
       "fullscreen": "Cambiar a pantalla completa en vídeos",
       "captions": "Activar/Desactivar subtítulos"

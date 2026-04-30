@@ -118,6 +118,12 @@ export default {
       }
     },
   },
+  mounted() {
+    document.addEventListener('keydown', this.onKeyDown);
+  },
+  beforeUnmount() {
+    document.removeEventListener('keydown', this.onKeyDown);
+  },
   methods: {
     scrollToActiveLine() {
       if (this.lyricsScrollLocked) return;
@@ -127,6 +133,13 @@ export default {
       if (active) {
         active.scrollIntoView({ behavior: "smooth", block: "center" });
       }
+    },
+    onKeyDown(event) {
+      // 'E' shortcut to switch between tabs more easily
+      if (event.key.toLowerCase() !== 'e' || event.repeat) return;
+      if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') return;
+      event.preventDefault();
+      this.activeTab = this.activeTab === 'queue' ? 'lyrics' : 'queue';
     },
   },
 };

@@ -106,7 +106,8 @@
       "volume": "Lautstärke erhöhen oder verringern",
       "mute": "Ton stummschalten/aktivieren",
       "loop": "Zwischen Schleife und Einzelmodus wechseln",
-      "playbackQueue": "Wiedergabeliste öffnen",
+      "playbackQueue": "Wiedergabeliste oder das Panel in Audiodateien öffnen",
+      "switchTabs": "Zwischen den Registerkarten im Panel bei Audiodateien wechseln",
       "playbackModes": "Zwischen Wiedergabemodi wechseln (außer Schleife und Einzelmodus)",
       "fullscreen": "Vollbildmodus bei Videos umschalten",
       "captions": "Untertitel ein-/ausschalten"

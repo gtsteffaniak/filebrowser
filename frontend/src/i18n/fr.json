@@ -106,7 +106,8 @@
       "volume": "Augmenter ou diminuer le volume",
       "mute": "Activer/Désactiver le son",
       "loop": "Basculer entre mode répétition et mode unique",
-      "playbackQueue": "Ouvrir la file de lecture",
+      "playbackQueue": "Ouvrir la file de lecture ou le panneau dans les fichiers audio",
+      "switchTabs": "Changer d'onglet dans le panneau des fichiers audio",
       "playbackModes": "Basculer entre les modes de lecture (hors répétition et unique)",
       "fullscreen": "Basculer en plein écran pour les vidéos",
       "captions": "Activer/Désactiver les sous-titres"

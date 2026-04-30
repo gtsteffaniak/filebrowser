@@ -240,7 +240,8 @@
       "volume": "Alza o abbassa il volume",
       "mute": "Attiva/disattiva audio",
       "loop": "Passa tra modalità loop e singola",
-      "playbackQueue": "Apri coda di riproduzione",
+      "playbackQueue": "Apri coda di riproduzione o il pannello nei file audio",
+      "switchTabs": "Cambia schede nel pannello sui file audio",
       "playbackModes": "Passa tra le modalità di riproduzione (escluso loop e singola)",
       "fullscreen": "Attiva/disattiva schermo intero nei video",
       "captions": "Attiva/disattiva sottotitoli"

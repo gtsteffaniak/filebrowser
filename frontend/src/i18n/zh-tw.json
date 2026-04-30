@@ -106,7 +106,8 @@
       "volume": "調高或調低音量",
       "mute": "靜音/取消靜音",
       "loop": "在循環模式和單次模式之間切換",
-      "playbackQueue": "開啟播放佇列",
+      "playbackQueue": "在音訊檔案中開啟播放佇列或面板",
+      "switchTabs": "在音訊檔案的面板中切換標籤",
       "playbackModes": "切換播放模式（不包括循環和單次）",
       "fullscreen": "影片全螢幕模式切換",
       "captions": "開啟/關閉字幕"

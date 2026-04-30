@@ -106,7 +106,8 @@
       "volume": "볼륨 높이기/낮추기",
       "mute": "음소거 켜기/끄기",
       "loop": "반복 모드와 단일 모드 전환",
-      "playbackQueue": "재생 대기열 열기",
+      "playbackQueue": "오디오 파일에서 재생 대기열 또는 패널 열기",
+      "switchTabs": "오디오 파일의 패널에서 탭 전환",
       "playbackModes": "재생 모드 전환 (반복 및 단일 제외)",
       "fullscreen": "비디오 전체 화면 모드 전환",
       "captions": "자막 켜기/끄기"
