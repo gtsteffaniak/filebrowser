@@ -15,13 +15,21 @@
       :key="showCreate ? 'create-mode' : 'normal-mode'"
     >
       <div
-        v-if="!showLimitedOptions && (showCreateButton || selectedCount > 0)"
+        v-if="!showLimitedOptions && (showCreateToggle || selectedCount > 0)"
         class="context-menu-header"
       >
         <div
-          class="action button clickable"
-          v-if="showCreateButton"
-          @click="toggleShowCreate"
+          v-if="showCreateToggle"
+          class="action button clickable context-menu-create-toggle"
+          :class="{ 'context-menu-create-toggle--disabled': createToggleDisabled }"
+          role="button"
+          :aria-disabled="createToggleDisabled ? 'true' : 'false'"
+          :tabindex="createToggleDisabled ? -1 : 0"
+          @click="onCreateToggleClick"
+          @keydown.enter.prevent="onCreateToggleClick"
+          @keydown.space.prevent="onCreateToggleClick"
+          @mouseenter="onCreateToggleMouseEnter"
+          @mouseleave="hideTooltip"
         >
           <i v-if="!showCreate" class="material-symbols">add</i>
           <i v-else class="material-symbols">arrow_back</i>
@@ -35,9 +43,8 @@
         >
           <span>{{ selectedCount }}</span>
         </div>
-        <hr class="divider">
       </div>
-      
+      <hr v-if="showDivider" class="divider">
       <action
         v-if="showCreateFileActions"
         icon="create_new_folder"
@@ -57,6 +64,12 @@
         @action="showUploadPrompt"
       />
       <action
+        v-if="showArchive"
+        icon="archive"
+        :label="$t('prompts.archive')"
+        @action="showArchivePrompt"
+      />
+      <action
         v-if="showInfo"
         icon="info"
         :label="$t('general.info')"
@@ -68,12 +81,6 @@
         icon="file_download"
         :label="$t('general.download')"
         @action="startDownload"
-      />
-      <action
-        v-if="showArchive"
-        icon="archive"
-        :label="$t('prompts.archive')"
-        @action="showArchivePrompt"
       />
       <action
         v-if="showUnarchive"
@@ -296,18 +303,24 @@ export default {
     showArchive() {
       if (this.showLimitedOptions || getters.isShare()) return false;
       if (!this.permissions.create) return false;
-      return !this.showCreate && this.selectedCount > 0 && !this.showUnarchive;
+      return (
+        this.showCreate &&
+        this.selectedCount > 0 &&
+        !this.showUnarchive &&
+        !this.isSearchActive
+      );
     },
     showUnarchive() {
       if (this.showLimitedOptions || getters.isShare()) return false;
       if (!this.permissions.create) return false;
+      if (this.showCreate) return false;
       if (this.selectedCount !== 1) return false;
       const item = this.firstSelected;
       return item && isArchivePath(item.path || item.from || item.name);
     },
     showShareAction() {
       if (this.showLimitedOptions) return false;
-      return (this.showCreate || this.selectedCount == 1) && this.showShare;
+      return this.showCreate && this.showShare;
     },
     showRename() {
       if (this.showLimitedOptions) return false;
@@ -332,22 +345,17 @@ export default {
       if (this.showLimitedOptions) return false;
       return !this.showCreate && !this.isSearchActive && this.req?.items?.length > 0;
     },
-    showCreateButton() {
+    /** + control in listing / share directory context; disabled when the panel cannot be opened. */
+    showCreateToggle() {
       if (this.showLimitedOptions || this.createOnly) return false;
-      return !this.isSearchActive && !this.isShare && this.canOpenCreatePanel;
+      return !this.isSearchActive;
+    },
+    createToggleDisabled() {
+      return !this.canOpenCreatePanel;
     },
     showDivider() {
       if (this.showLimitedOptions || this.createOnly) return false;
-      const hasHeader = this.showCreateButton || this.selectedCount > 0;
-      if (!hasHeader) return false;
-      if (getters.isShare()) {
-        return state.shareInfo?.allowCreate;
-      }
-      return (
-        state.user?.permissions?.create ||
-        state.user?.permissions?.share ||
-        state.user?.permissions?.admin
-      );
+      return this.showCreateToggle || this.selectedCount > 0;
     },
     showSelectMultiple() {
       if (this.showLimitedOptions) return false;
@@ -435,12 +443,7 @@ export default {
       return state.user;
     },
     centered() {
-      return (
-        this.showCentered ||
-        this.isMobileDevice ||
-        this.posX == null ||
-        this.posY == null
-      );
+      return this.showCentered || this.isMobileDevice || !this.posX || !this.posY;
     },
     isMobileDevice() {
       return state.isMobile;
@@ -511,6 +514,14 @@ export default {
         x: event.clientX,
         y: event.clientY,
       });
+    },
+    onCreateToggleClick() {
+      if (this.createToggleDisabled) return;
+      this.toggleShowCreate();
+    },
+    onCreateToggleMouseEnter(event) {
+      if (!this.createToggleDisabled) return;
+      this.showTooltip(event, this.$t("messages.noCreateOptions"));
     },
     toggleShowCreate() {
       if (!this.canOpenCreatePanel) {
@@ -878,6 +889,11 @@ export default {
 
 .context-menu-header > .action i {
   padding: 0.25em;
+}
+
+.context-menu-create-toggle--disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 #context-menu .action {
