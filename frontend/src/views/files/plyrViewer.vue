@@ -83,7 +83,7 @@
           <p
             v-for="(line, i) in lyrics"
             :key="i"
-            :class="{ active: syncedLyrics && i === activeLyricIndex }"
+            :class="{ active: syncedLyrics && lyrics[i].timestamp === lyrics[activeLyricIndex]?.timestamp }"
             class="lyric-line"
             @click.stop="syncedLyrics && seekToLyric(line.timestamp)"
             tabindex="0"
@@ -1003,8 +1003,12 @@ export default {
       ) {
         idx++;
       }
-      if (idx !== this.activeLyricIndex) {
-        this.activeLyricIndex = idx;
+      let first = idx;
+      while (first > 0 && this.lyrics[first - 1].timestamp === this.lyrics[idx].timestamp) {
+        first--;
+      }
+      if (first !== this.activeLyricIndex) {
+        this.activeLyricIndex = first;
       }
     },
     scrollMobileLyrics() {

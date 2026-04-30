@@ -41,7 +41,7 @@
               <p
                 v-for="(line, i) in lyrics"
                 :key="i"
-                :class="{ active: i === activeLyricIndex, 'no-seek': !syncedLyrics }"
+                :class="{ active: syncedLyrics && lyrics[i].timestamp === lyrics[activeLyricIndex]?.timestamp, 'no-seek': !syncedLyrics }"
                 class="lyric-line"
                 @click.stop="syncedLyrics && $emit('seek', line.timestamp)"
                 :role="syncedLyrics ? 'button' : undefined"
