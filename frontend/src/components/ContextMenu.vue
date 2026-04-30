@@ -21,6 +21,7 @@
         <div
           v-if="showCreateToggle"
           class="action button clickable context-menu-create-toggle"
+          aria-label="Create Actions Toggle"
           :class="{ 'context-menu-create-toggle--disabled': createToggleDisabled }"
           role="button"
           :aria-disabled="createToggleDisabled ? 'true' : 'false'"
