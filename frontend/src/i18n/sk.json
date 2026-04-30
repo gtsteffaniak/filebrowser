@@ -803,7 +803,15 @@
     "QueuePlayback": "Front Prehrávania",
     "changePlaybackMode": "Zmeniť režim prehrávania",
     "changePlaybackModeHint": "Zmeňte režim prehrávania, aby ste videli viac súborov",
-    "emptyQueue": "Front je prázdny"
+    "emptyQueue": "Front je prázdny",
+    "queue": "Front",
+    "lyrics": "Text piesne",
+    "noLyrics": "Text nie je k dispozícii",
+    "lockLyrics": "Zamknúť text",
+    "unlockLyrics": "Odomknúť text",
+    "toggleLyrics": "Prepnúť text",
+    "closePanel": "Zavrieť panel",
+    "openPanel": "Otvoriť panel"
   },
   "fileSizeAnalyzer": {
     "title": "Analyzátor veľkosti súborov",

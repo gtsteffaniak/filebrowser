@@ -803,7 +803,15 @@
     "QueuePlayback": "قائمة التشغيل",
     "changePlaybackMode": "تغيير وضع التشغيل",
     "changePlaybackModeHint": "غير وضع التشغيل لرؤية المزيد من الملفات",
-    "emptyQueue": "قائمة التشغيل فارغة"
+    "emptyQueue": "قائمة التشغيل فارغة",
+    "queue": "قائمة الانتظار",
+    "lyrics": "كلمات الأغنية",
+    "noLyrics": "لا توجد كلمات متاحة",
+    "lockLyrics": "قفل كلمات الأغنية",
+    "unlockLyrics": "فتح قفل كلمات الأغنية",
+    "toggleLyrics": "تبديل كلمات الأغنية",
+    "closePanel": "إغلاق اللوحة",
+    "openPanel": "فتح اللوحة"
   },
   "fileSizeAnalyzer": {
     "title": "محلل حجم الملف",

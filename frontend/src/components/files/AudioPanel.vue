@@ -1,4 +1,3 @@
-<!-- eslint-disable @intlify/vue-i18n/no-raw-text -->
 <template>
   <div class="audio-side-panel" :class="{ 'dark-mode': darkMode }">
     <div class="panel-tabs">
@@ -6,14 +5,15 @@
         <input type="radio" id="tab-queue" v-model="activeTab" value="queue" hidden />
         <label for="tab-queue" class="tab-btn" :class="{ active: activeTab === 'queue' }">
           <i class="material-symbols">queue_music</i>
-          <span>Queue</span>
+          <span>{{ $t('player.queue') }}</span>
+          <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
           <span v-if="queueCount > 0">({{ queueCount }})</span>
         </label>
 
         <input type="radio" id="tab-lyrics" v-model="activeTab" value="lyrics" hidden />
         <label for="tab-lyrics" class="tab-btn" :class="{ active: activeTab === 'lyrics' }">
           <i class="material-symbols">lyrics</i>
-          <span>Lyrics</span>
+          <span>{{ $t('player.lyrics') }}</span>
         </label>
 
         <div class="tab-indicator"></div>
@@ -32,6 +32,7 @@
           @click="lyricsScrollLocked = !lyricsScrollLocked"
           :title="lyricsScrollLocked ? $t('player.lockLyrics') : $t('player.unlockLyrics')"
         >
+          <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
           <i class="material-symbols">{{ lyricsScrollLocked ? 'lock_open' : 'lock' }}</i>
         </button>
         <!-- Scrollable area -->
@@ -158,7 +159,6 @@ export default {
   gap: 0.5em;
 }
 
-/* Style the labels to look like the old buttons */
 .tab-btn {
   flex: 1;
   display: flex;
@@ -181,7 +181,6 @@ export default {
   color: white;
 }
 
-/* The sliding background indicator */
 .tab-indicator {
   position: absolute;
   top: 0; bottom: 0;

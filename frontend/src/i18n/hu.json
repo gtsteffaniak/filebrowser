@@ -803,7 +803,15 @@
     "QueuePlayback": "Lejátszási Sor",
     "changePlaybackMode": "Lejátszási mód változtatása",
     "changePlaybackModeHint": "Változtasd meg a lejátszási módot, hogy több fájlt láss",
-    "emptyQueue": "A sor üres"
+    "emptyQueue": "A sor üres",
+    "queue": "Sor",
+    "lyrics": "Dalszöveg",
+    "noLyrics": "Nincs elérhető dalszöveg",
+    "lockLyrics": "Dalszöveg zárolása",
+    "unlockLyrics": "Dalszöveg feloldása",
+    "toggleLyrics": "Dalszöveg be/ki",
+    "closePanel": "Panel bezárása",
+    "openPanel": "Panel megnyitása"
   },
   "fileSizeAnalyzer": {
     "title": "Fájlméret elemző",

@@ -803,7 +803,15 @@
     "QueuePlayback": "תור ניגון",
     "changePlaybackMode": "שנה מצב ניגון",
     "changePlaybackModeHint": "שנה מצב ניגון כדי לראות יותר קבצים",
-    "emptyQueue": "התור ריק"
+    "emptyQueue": "התור ריק",
+    "queue": "תור",
+    "lyrics": "מילים",
+    "noLyrics": "אין מילים זמינות",
+    "lockLyrics": "נעילת מילים",
+    "unlockLyrics": "ביטול נעילת מילים",
+    "toggleLyrics": "החלפת מילים",
+    "closePanel": "סגור לוח",
+    "openPanel": "פתח לוח"
   },
   "fileSizeAnalyzer": {
     "title": "מנתח גודל קובץ",

@@ -803,7 +803,15 @@
     "QueuePlayback": "Ουρά Αναπαραγωγής",
     "changePlaybackMode": "Αλλαγή λειτουργίας αναπαραγωγής",
     "changePlaybackModeHint": "Αλλάξτε λειτουργία αναπαραγωγής για να δείτε περισσότερα αρχεία",
-    "emptyQueue": "Η ουρά είναι άδεια"
+    "emptyQueue": "Η ουρά είναι άδεια",
+    "queue": "Ουρά",
+    "lyrics": "Στίχοι",
+    "noLyrics": "Δεν υπάρχουν διαθέσιμοι στίχοι",
+    "lockLyrics": "Κλείδωμα στίχων",
+    "unlockLyrics": "Ξεκλείδωμα στίχων",
+    "toggleLyrics": "Εναλλαγή στίχων",
+    "closePanel": "Κλείσιμο πλαισίου",
+    "openPanel": "Άνοιγμα πλαισίου"
   },
   "fileSizeAnalyzer": {
     "title": "Αναλυτής μεγέθους αρχείου",

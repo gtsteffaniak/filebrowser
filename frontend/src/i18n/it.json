@@ -811,7 +811,15 @@
     "QueuePlayback": "Coda di riproduzione",
     "changePlaybackMode": "Cambia modalità riproduzione",
     "changePlaybackModeHint": "Cambia modalità per vedere più file",
-    "emptyQueue": "La coda è vuota"
+    "emptyQueue": "La coda è vuota",
+    "queue": "Coda",
+    "lyrics": "Testo",
+    "noLyrics": "Nessun testo disponibile",
+    "lockLyrics": "Blocca testo",
+    "unlockLyrics": "Sblocca testo",
+    "toggleLyrics": "Attiva/disattiva testo",
+    "closePanel": "Chiudi pannello",
+    "openPanel": "Apri pannello"
   },
   "fileSizeAnalyzer": {
     "title": "Analizzatore Dimensioni File",

@@ -803,7 +803,15 @@
     "QueuePlayback": "Wiedergabeliste",
     "changePlaybackMode": "Wiedergabemodus ändern",
     "changePlaybackModeHint": "Ändern Sie den Wiedergabemodus, um mehr Dateien zu sehen",
-    "emptyQueue": "Warteschlange ist leer"
+    "emptyQueue": "Warteschlange ist leer",
+    "queue": "Warteschlange",
+    "lyrics": "Liedtext",
+    "noLyrics": "Kein Liedtext verfügbar",
+    "lockLyrics": "Liedtext sperren",
+    "unlockLyrics": "Liedtext entsperren",
+    "toggleLyrics": "Liedtext ein-/ausblenden",
+    "closePanel": "Panel schließen",
+    "openPanel": "Panel öffnen"
   },
   "fileSizeAnalyzer": {
     "title": "Dateigrößen-Analysator",

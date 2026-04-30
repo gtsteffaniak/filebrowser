@@ -812,9 +812,12 @@
     "changePlaybackMode": "Change playback mode",
     "changePlaybackModeHint": "Change playback mode to see more files",
     "emptyQueue": "Queue is empty",
+    "queue": "Queue",
+    "lyrics": "Lyrics",
     "noLyrics": "No lyrics available",
     "lockLyrics": "Lock lyrics",
     "unlockLyrics": "Unlock lyrics",
+    "toggleLyrics": "Toggle lyrics",
     "closePanel": "Close panel",
     "openPanel": "Open panel"
   },

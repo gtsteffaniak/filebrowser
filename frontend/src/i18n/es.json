@@ -803,7 +803,15 @@
     "QueuePlayback": "Cola de Reproducción",
     "changePlaybackMode": "Cambiar modo de Reproducción",
     "changePlaybackModeHint": "Cambia el modo de reproducción para ver más",
-    "emptyQueue": "La cola de reproducción está vacia..."
+    "emptyQueue": "La cola de reproducción está vacia...",
+    "queue": "Cola",
+    "lyrics": "Letra",
+    "noLyrics": "No hay letra disponible",
+    "lockLyrics": "Bloquear letras",
+    "unlockLyrics": "Desbloquear letras",
+    "toggleLyrics": "Mostrar letras",
+    "closePanel": "Cerrar panel",
+    "openPanel": "Abrir panel"
   },
   "fileSizeAnalyzer": {
     "title": "Analizador de espacio",

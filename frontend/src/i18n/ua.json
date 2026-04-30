@@ -803,7 +803,15 @@
     "QueuePlayback": "Черга Відтворення",
     "changePlaybackMode": "Змінити режим відтворення",
     "changePlaybackModeHint": "Змініть режим відтворення, щоб побачити більше файлів",
-    "emptyQueue": "Черга порожня"
+    "emptyQueue": "Черга порожня",
+    "queue": "Черга",
+    "lyrics": "Текст пісні",
+    "noLyrics": "Текст недоступний",
+    "lockLyrics": "Заблокувати текст",
+    "unlockLyrics": "Розблокувати текст",
+    "toggleLyrics": "Показати/Приховати текст",
+    "closePanel": "Закрити панель",
+    "openPanel": "Відкрити панель"
   },
   "fileSizeAnalyzer": {
     "title": "Аналізатор розміру файлів",

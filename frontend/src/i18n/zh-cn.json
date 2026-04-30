@@ -803,7 +803,15 @@
     "QueuePlayback": "播放队列",
     "changePlaybackMode": "更改播放模式",
     "changePlaybackModeHint": "更改播放模式以查看更多文件",
-    "emptyQueue": "队列为空"
+    "emptyQueue": "队列为空",
+    "queue": "队列",
+    "lyrics": "歌词",
+    "noLyrics": "没有可用的歌词",
+    "lockLyrics": "锁定歌词",
+    "unlockLyrics": "解锁歌词",
+    "toggleLyrics": "切换歌词",
+    "closePanel": "关闭面板",
+    "openPanel": "打开面板"
   },
   "fileSizeAnalyzer": {
     "title": "文件大小分析器",

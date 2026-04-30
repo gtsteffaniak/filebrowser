@@ -803,7 +803,15 @@
     "QueuePlayback": "Kolejka Odtwarzania",
     "changePlaybackMode": "Zmień tryb odtwarzania",
     "changePlaybackModeHint": "Zmień tryb odtwarzania, aby zobaczyć więcej plików",
-    "emptyQueue": "Kolejka jest pusta"
+    "emptyQueue": "Kolejka jest pusta",
+    "queue": "Kolejka",
+    "lyrics": "Tekst piosenki",
+    "noLyrics": "Brak dostępnego tekstu",
+    "lockLyrics": "Zablokuj tekst",
+    "unlockLyrics": "Odblokuj tekst",
+    "toggleLyrics": "Przełącz tekst",
+    "closePanel": "Zamknij panel",
+    "openPanel": "Otwórz panel"
   },
   "fileSizeAnalyzer": {
     "title": "Analizator rozmiaru plików",

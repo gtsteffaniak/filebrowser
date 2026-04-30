@@ -803,7 +803,15 @@
     "QueuePlayback": "Coadă de Redare",
     "changePlaybackMode": "Schimbă modul de redare",
     "changePlaybackModeHint": "Schimbă modul de redare pentru a vedea mai multe fișiere",
-    "emptyQueue": "Coada este goală"
+    "emptyQueue": "Coada este goală",
+    "queue": "Coadă",
+    "lyrics": "Versuri",
+    "noLyrics": "Nu există versuri disponibile",
+    "lockLyrics": "Blochează versurile",
+    "unlockLyrics": "Deblochează versurile",
+    "toggleLyrics": "Comută versurile",
+    "closePanel": "Închide panoul",
+    "openPanel": "Deschide panoul"
   },
   "fileSizeAnalyzer": {
     "title": "Analizor dimensiune fișier",

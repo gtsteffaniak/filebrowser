@@ -803,7 +803,15 @@
     "QueuePlayback": "再生キュー",
     "changePlaybackMode": "再生モードを変更",
     "changePlaybackModeHint": "再生モードを変更してより多くのファイルを表示",
-    "emptyQueue": "キューは空です"
+    "emptyQueue": "キューは空です",
+    "queue": "キュー",
+    "lyrics": "歌詞",
+    "noLyrics": "歌詞はありません",
+    "lockLyrics": "歌詞をロック",
+    "unlockLyrics": "歌詞のロックを解除",
+    "toggleLyrics": "歌詞の表示切り替え",
+    "closePanel": "パネルを閉じる",
+    "openPanel": "パネルを開く"
   },
   "fileSizeAnalyzer": {
     "title": "ファイル・サイズ・アナライザー",

@@ -803,7 +803,15 @@
     "QueuePlayback": "File de Lecture",
     "changePlaybackMode": "Changer le mode de lecture",
     "changePlaybackModeHint": "Changez le mode de lecture pour voir plus de fichiers",
-    "emptyQueue": "La file est vide"
+    "emptyQueue": "La file est vide",
+    "queue": "File d'attente",
+    "lyrics": "Paroles",
+    "noLyrics": "Pas de paroles disponibles",
+    "lockLyrics": "Verrouiller les paroles",
+    "unlockLyrics": "Déverrouiller les paroles",
+    "toggleLyrics": "Afficher/Masquer les paroles",
+    "closePanel": "Fermer le panneau",
+    "openPanel": "Ouvrir le panneau"
   },
   "fileSizeAnalyzer": {
     "title": "Analyseur de taille de fichier",

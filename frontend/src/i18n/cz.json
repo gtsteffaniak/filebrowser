@@ -803,7 +803,15 @@
     "QueuePlayback": "Fronta přehrávání",
     "changePlaybackMode": "Změnit režim přehrávání",
     "changePlaybackModeHint": "Změňte režim přehrávání, abyste viděli více souborů",
-    "emptyQueue": "Fronta je prázdná"
+    "emptyQueue": "Fronta je prázdná",
+    "queue": "Fronta",
+    "lyrics": "Text písně",
+    "noLyrics": "Text není k dispozici",
+    "lockLyrics": "Zamknout text",
+    "unlockLyrics": "Odemknout text",
+    "toggleLyrics": "Přepnout text",
+    "closePanel": "Zavřít panel",
+    "openPanel": "Otevřít panel"
   },
   "fileSizeAnalyzer": {
     "title": "Analyzátor velikosti souborů",

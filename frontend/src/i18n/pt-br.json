@@ -803,7 +803,15 @@
     "QueuePlayback": "Fila de Reprodução",
     "changePlaybackMode": "Alterar modo de reprodução",
     "changePlaybackModeHint": "Altere o modo de reprodução para ver mais arquivos",
-    "emptyQueue": "A fila está vazia"
+    "emptyQueue": "A fila está vazia",
+    "queue": "Fila",
+    "lyrics": "Letra",
+    "noLyrics": "Letra não disponível",
+    "lockLyrics": "Bloquear letra",
+    "unlockLyrics": "Desbloquear letra",
+    "toggleLyrics": "Alternar letra",
+    "closePanel": "Fechar painel",
+    "openPanel": "Abrir painel"
   },
   "fileSizeAnalyzer": {
     "title": "Analisador de tamanho de arquivo",

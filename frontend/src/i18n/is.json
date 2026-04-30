@@ -645,6 +645,14 @@
     "QueuePlayback": "Spilunarröð",
     "changePlaybackMode": "Breyta spilunarmodi",
     "changePlaybackModeHint": "Breyttu spilunarmoda til að sjá fleiri skrár",
-    "emptyQueue": "Röðin er tóm"
+    "emptyQueue": "Röðin er tóm",
+    "queue": "Röð",
+    "lyrics": "Texti",
+    "noLyrics": "Enginn texti tiltækur",
+    "lockLyrics": "Læsa texta",
+    "unlockLyrics": "Opna læsingu texta",
+    "toggleLyrics": "Víxla texta",
+    "closePanel": "Loka spjaldi",
+    "openPanel": "Opna spjald"
   }
 }
