@@ -97,7 +97,7 @@ export default {
       currentPrompt: null, // Replaces Vuex getter `currentPrompt`
       subtitlesList: [],
       lyrics: [],
-      lyricsFetched: null, 
+      lyricsFetchedForPath: null, 
       isDeleted: false,
       tapTimeout: null,
       avMetadataLoading: false,
@@ -284,7 +284,7 @@ export default {
       if (!isAv) {
         this.avMetadataLoading = false;
         this.mediaEnrichDoneForPath = null;
-        this.lyricsFetched = null;
+        this.lyricsFetchedForPath = null;
       } else {
         if (this.mediaEnrichDoneForPath !== path) {
           this.mediaEnrichDoneForPath = path;
