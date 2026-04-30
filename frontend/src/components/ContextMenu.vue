@@ -320,7 +320,7 @@ export default {
     },
     showShareAction() {
       if (this.showLimitedOptions) return false;
-      return this.selectedCount === 1 && this.showShare;
+      return this.selectedCount <= 1 && this.showShare;
     },
     showRename() {
       if (this.showLimitedOptions) return false;
