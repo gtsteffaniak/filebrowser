@@ -2,6 +2,7 @@ package http
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -232,13 +233,13 @@ func publicLyricsHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	if idx == nil {
 		return http.StatusNotFound, fmt.Errorf("source not found")
 	}
-	realPath, _, err := idx.GetRealPath("", d.IndexPath)
+	realPath, _, err := idx.GetRealPath(d.IndexPath)
 	if err != nil {
-		return http.StatusNotFound, err
+		return http.StatusNotFound, errors.New("could not find real path for file")
 	}
 	lyrics, err := files.ExtractLyrics(realPath)
 	if err != nil {
-		return http.StatusInternalServerError, fmt.Errorf("failed to extract lyrics: %v", err)
+		return http.StatusInternalServerError, errors.New("failed to extract lyrics")
 	}
 	return renderJSON(w, r, map[string]any{"lyrics": lyrics})
 }
