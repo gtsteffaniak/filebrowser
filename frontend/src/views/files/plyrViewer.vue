@@ -2675,7 +2675,7 @@ export default {
   .album-art-container {
     width: min(71vw);
     height: min(71vw);
-    padding-top: 1em;
+    margin-top: 1em;
   }
 }
 
