@@ -125,7 +125,8 @@
       "volume": "Hækka eða lækka hljóðstyrk",
       "mute": "Þagga/Virka hljóð",
       "loop": "Víxla á milli endurtekningar og einstaklingshams",
-      "playbackQueue": "Opna spilunarröð",
+      "playbackQueue": "Opna spilunarröð eða spjald í hljóðskrám",
+      "switchTabs": "Skipta um flipa í spjaldinu á hljóðskrám",
       "playbackModes": "Víxla á milli spilunarhama (fyrir utan endurtekningu og einstaklingsham)",
       "fullscreen": "Víxla í skjáfylliham í myndskeiðum",
       "captions": "Víxla texta á/af"
@@ -645,6 +646,14 @@
     "QueuePlayback": "Spilunarröð",
     "changePlaybackMode": "Breyta spilunarmodi",
     "changePlaybackModeHint": "Breyttu spilunarmoda til að sjá fleiri skrár",
-    "emptyQueue": "Röðin er tóm"
+    "emptyQueue": "Röðin er tóm",
+    "queue": "Röð",
+    "lyrics": "Texti",
+    "noLyrics": "Enginn texti tiltækur",
+    "lockLyrics": "Læsa texta",
+    "unlockLyrics": "Opna læsingu texta",
+    "toggleLyrics": "Víxla texta",
+    "closePanel": "Loka spjaldi",
+    "openPanel": "Opna spjald"
   }
 }

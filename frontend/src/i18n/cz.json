@@ -109,7 +109,8 @@
       "volume": "Zvýšit nebo snížit hlasitost",
       "mute": "Ztlumit/zapnout zvuk",
       "loop": "Přepínání mezi smyčkou a jedním přehráním",
-      "playbackQueue": "Otevřít frontu přehrávání",
+      "playbackQueue": "Otevřít frontu přehrávání nebo panel v audio souborech",
+      "switchTabs": "Přepínat karty v panelu u audio souborů",
       "playbackModes": "Přepínání režimů přehrávání (kromě smyčky a jednoho přehrání)",
       "fullscreen": "Přepnout režim celé obrazovky u videí",
       "captions": "Zapnout/vypnout titulky"
@@ -803,7 +804,15 @@
     "QueuePlayback": "Fronta přehrávání",
     "changePlaybackMode": "Změnit režim přehrávání",
     "changePlaybackModeHint": "Změňte režim přehrávání, abyste viděli více souborů",
-    "emptyQueue": "Fronta je prázdná"
+    "emptyQueue": "Fronta je prázdná",
+    "queue": "Fronta",
+    "lyrics": "Text písně",
+    "noLyrics": "Text není k dispozici",
+    "lockLyrics": "Zamknout text",
+    "unlockLyrics": "Odemknout text",
+    "toggleLyrics": "Přepnout text",
+    "closePanel": "Zavřít panel",
+    "openPanel": "Otevřít panel"
   },
   "fileSizeAnalyzer": {
     "title": "Analyzátor velikosti souborů",

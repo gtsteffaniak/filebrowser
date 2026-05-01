@@ -106,7 +106,8 @@
       "volume": "Sesi aç veya kıs",
       "mute": "Sesi kapat/aç",
       "loop": "Döngü ve tek mod arasında geçiş yap",
-      "playbackQueue": "Oynatma kuyruğunu aç",
+      "playbackQueue": "Ses dosyalarında oynatma kuyruğunu veya paneli aç",
+      "switchTabs": "Ses dosyalarında paneldeki sekmeleri değiştir",
       "playbackModes": "Oynatma modları arasında geçiş yap (döngü ve tek mod hariç)",
       "fullscreen": "Videolarda tam ekran moduna geç",
       "captions": "Altyazıları aç/kapat"
@@ -803,7 +804,15 @@
     "QueuePlayback": "Oynatma Kuyruğu",
     "changePlaybackMode": "Oynatma modunu değiştir",
     "changePlaybackModeHint": "Daha fazla dosya görmek için oynatma modunu değiştirin",
-    "emptyQueue": "Kuyruk boş"
+    "emptyQueue": "Kuyruk boş",
+    "queue": "Kuyruk",
+    "lyrics": "Şarkı sözü",
+    "noLyrics": "Şarkı sözü mevcut değil",
+    "lockLyrics": "Şarkı sözlerini kilitle",
+    "unlockLyrics": "Şarkı sözlerinin kilidini aç",
+    "toggleLyrics": "Şarkı sözlerini göster/gizle",
+    "closePanel": "Paneli kapat",
+    "openPanel": "Paneli aç"
   },
   "fileSizeAnalyzer": {
     "title": "Dosya Boyutu Analizörü",

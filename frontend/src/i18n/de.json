@@ -106,7 +106,8 @@
       "volume": "Lautstärke erhöhen oder verringern",
       "mute": "Ton stummschalten/aktivieren",
       "loop": "Zwischen Schleife und Einzelmodus wechseln",
-      "playbackQueue": "Wiedergabeliste öffnen",
+      "playbackQueue": "Wiedergabeliste oder das Panel in Audiodateien öffnen",
+      "switchTabs": "Zwischen den Registerkarten im Panel bei Audiodateien wechseln",
       "playbackModes": "Zwischen Wiedergabemodi wechseln (außer Schleife und Einzelmodus)",
       "fullscreen": "Vollbildmodus bei Videos umschalten",
       "captions": "Untertitel ein-/ausschalten"
@@ -803,7 +804,15 @@
     "QueuePlayback": "Wiedergabeliste",
     "changePlaybackMode": "Wiedergabemodus ändern",
     "changePlaybackModeHint": "Ändern Sie den Wiedergabemodus, um mehr Dateien zu sehen",
-    "emptyQueue": "Warteschlange ist leer"
+    "emptyQueue": "Warteschlange ist leer",
+    "queue": "Warteschlange",
+    "lyrics": "Liedtext",
+    "noLyrics": "Kein Liedtext verfügbar",
+    "lockLyrics": "Liedtext sperren",
+    "unlockLyrics": "Liedtext entsperren",
+    "toggleLyrics": "Liedtext ein-/ausblenden",
+    "closePanel": "Panel schließen",
+    "openPanel": "Panel öffnen"
   },
   "fileSizeAnalyzer": {
     "title": "Dateigrößen-Analysator",

@@ -106,7 +106,8 @@
       "volume": "Zwiększ lub zmniejsz głośność",
       "mute": "Wycisz/Włącz dźwięk",
       "loop": "Przełącz między pętlą a trybem pojedynczym",
-      "playbackQueue": "Otwórz kolejkę odtwarzania",
+      "playbackQueue": "Otwórz kolejkę odtwarzania lub panel w plikach audio",
+      "switchTabs": "Przełącz karty w panelu dla plików audio",
       "playbackModes": "Przełącz między trybami odtwarzania (z wyłączeniem pętli i pojedynczego)",
       "fullscreen": "Przełącz tryb pełnoekranowy w wideo",
       "captions": "Włącz/Wyłącz napisy"
@@ -803,7 +804,15 @@
     "QueuePlayback": "Kolejka Odtwarzania",
     "changePlaybackMode": "Zmień tryb odtwarzania",
     "changePlaybackModeHint": "Zmień tryb odtwarzania, aby zobaczyć więcej plików",
-    "emptyQueue": "Kolejka jest pusta"
+    "emptyQueue": "Kolejka jest pusta",
+    "queue": "Kolejka",
+    "lyrics": "Tekst piosenki",
+    "noLyrics": "Brak dostępnego tekstu",
+    "lockLyrics": "Zablokuj tekst",
+    "unlockLyrics": "Odblokuj tekst",
+    "toggleLyrics": "Przełącz tekst",
+    "closePanel": "Zamknij panel",
+    "openPanel": "Otwórz panel"
   },
   "fileSizeAnalyzer": {
     "title": "Analizator rozmiaru plików",

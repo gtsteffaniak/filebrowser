@@ -106,7 +106,8 @@
       "volume": "הגבר או הנמך עוצמת קול",
       "mute": "השתק/בטל השתקת שמע",
       "loop": "החלף בין מצב לולאה למצב יחיד",
-      "playbackQueue": "פתח תור ניגון",
+      "playbackQueue": "פתח תור ניגון או את הלוח בקבצי שמע",
+      "switchTabs": "החלף כרטיסיות בלוח בקבצי שמע",
       "playbackModes": "החלף בין מצבי נגינה (למעט לולאה ויחיד)",
       "fullscreen": "החלף מצב מסך מלא בסרטונים",
       "captions": "הפעל/כבה כתוביות"
@@ -803,7 +804,15 @@
     "QueuePlayback": "תור ניגון",
     "changePlaybackMode": "שנה מצב ניגון",
     "changePlaybackModeHint": "שנה מצב ניגון כדי לראות יותר קבצים",
-    "emptyQueue": "התור ריק"
+    "emptyQueue": "התור ריק",
+    "queue": "תור",
+    "lyrics": "מילים",
+    "noLyrics": "אין מילים זמינות",
+    "lockLyrics": "נעילת מילים",
+    "unlockLyrics": "ביטול נעילת מילים",
+    "toggleLyrics": "החלפת מילים",
+    "closePanel": "סגור לוח",
+    "openPanel": "פתח לוח"
   },
   "fileSizeAnalyzer": {
     "title": "מנתח גודל קובץ",

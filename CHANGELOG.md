@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file. For commit 
 ## v1.4.0
 
  **New Features**:
+ - Lyrics support for audio files (#2360):
+   - Updated UI for audio previews!
+   - The lyrics and the player gets syncronized in UI with the audio player.
+   - Supports embedded lyrics (ID3v2 USLT, flac, ogg, clyr) and sidecar `.lrc` files with the same name as the audio file.
+   - The `Q` shortcut in audio files will toggle the new panel visibility.
+   - `E` shortcut to change between tabs of the panel if it's open.
  - Add config option to disable /health endpoint logging (#2291)
  - More shortcuts (#2300)
    - `CTRL+F1` switch to normal view.
@@ -14,6 +20,40 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - Enhanced indexing scheduler which doesn't wake the disk as often.
+ - New API route `media/lyrics` used to fetch and parse lyrics (embedded or from `.lrc` sidecar) (#2360)
+ - Swiping down gesture in fullscreen videos exit fullscreen instead of close preview.
+
+ **BugFixes**:
+ - Blue overlay when using gestures in video files on mobile (#2360)
+ - Playback queue wasn't updating when changing of folder (#2360)
+
+## v1.3.8
+
+ **BugFixes**:
+ - Quick download icon style after icon change.
+ - Missing error popup for resource creatoin actions (upload/create)
+ - EnforcedOtp login failure until restart (#2330)
+ - Thumbnails for Folders only display sporadically (#2353)
+ - Unwanted user scope change for users with non-default scopes (#2347)
+ - Fix sidebar source info totals (#2321) (#2322) (#982)
+ - Error uploading a large number of photos -- only 100 items get uploaded (#2348)
+
+## v1.3.7
+
+ **Notes**:
+ - creating/deleting password-based user requires reauthentication (#2112)
+
+ **BugFixes**:
+ - TOTP works for admin but fails for standard users on re-login until Docker is restarted (#2330)
+ - No Loginfields shown if password authentification is set to false (#2331)
+
+## v1.3.6
+
+ **BugFixes**:
+ - file watcher not working for files and not respecting line count (#2314)
+ - "source" type link shows up multiple times when adding sidebar links if user has multiple sources.
+ - JWT ES256 results in error (#2188)
+ - single file shares not loading editor text content (#2122)
 
 ## v1.3.8
 

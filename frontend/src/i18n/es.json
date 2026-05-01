@@ -106,7 +106,8 @@
       "volume": "Subir o bajar el volumen",
       "mute": "Silenciar/Activar el sonido",
       "loop": "Activar/Desactivar reproducción en bucle",
-      "playbackQueue": "Abrir cola de reproducción",
+      "playbackQueue": "Abrir cola de reproducción o el panel (en audios)",
+      "switchTabs": "Cambiar pestañas en el panel (en audios)",
       "playbackModes": "Cambiar entre modos de reproducción (excepto bucle)",
       "fullscreen": "Cambiar a pantalla completa en vídeos",
       "captions": "Activar/Desactivar subtítulos"
@@ -803,7 +804,15 @@
     "QueuePlayback": "Cola de Reproducción",
     "changePlaybackMode": "Cambiar modo de Reproducción",
     "changePlaybackModeHint": "Cambia el modo de reproducción para ver más",
-    "emptyQueue": "La cola de reproducción está vacia..."
+    "emptyQueue": "La cola de reproducción está vacia...",
+    "queue": "Cola",
+    "lyrics": "Letra",
+    "noLyrics": "No hay letra disponible",
+    "lockLyrics": "Bloquear letras",
+    "unlockLyrics": "Desbloquear letras",
+    "toggleLyrics": "Mostrar letras",
+    "closePanel": "Cerrar panel",
+    "openPanel": "Abrir panel"
   },
   "fileSizeAnalyzer": {
     "title": "Analizador de espacio",

@@ -295,6 +295,15 @@ export function getTypeInfo(mimeType) {
         };
     }
 
+    // Lyric file: .lrc
+    if (mimeType === "text/lyrics") {
+        return {
+            classes: "coral-icons material-symbols-outlined",
+            materialSymbol: "lyrics",
+            simpleType: "text",
+        };
+    }
+
     // Contact file: vcf
     if (mimeType === "text/x-vcard") {
         return {

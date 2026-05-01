@@ -106,7 +106,8 @@
       "volume": "Hangerő növelése vagy csökkentése",
       "mute": "Némítás/Behangzás",
       "loop": "Váltás ismétlés és egyszeri mód között",
-      "playbackQueue": "Lejátszási sor megnyitása",
+      "playbackQueue": "Lejátszási sor vagy a panel megnyitása audio fájlokban",
+      "switchTabs": "Lapok váltása a panelen audio fájloknál",
       "playbackModes": "Váltás lejátszási módok között (az ismétlés és egyszeri kivételével)",
       "fullscreen": "Teljes képernyős mód váltása videóknál",
       "captions": "Feliratok be/ki"
@@ -803,7 +804,15 @@
     "QueuePlayback": "Lejátszási Sor",
     "changePlaybackMode": "Lejátszási mód változtatása",
     "changePlaybackModeHint": "Változtasd meg a lejátszási módot, hogy több fájlt láss",
-    "emptyQueue": "A sor üres"
+    "emptyQueue": "A sor üres",
+    "queue": "Sor",
+    "lyrics": "Dalszöveg",
+    "noLyrics": "Nincs elérhető dalszöveg",
+    "lockLyrics": "Dalszöveg zárolása",
+    "unlockLyrics": "Dalszöveg feloldása",
+    "toggleLyrics": "Dalszöveg be/ki",
+    "closePanel": "Panel bezárása",
+    "openPanel": "Panel megnyitása"
   },
   "fileSizeAnalyzer": {
     "title": "Fájlméret elemző",
