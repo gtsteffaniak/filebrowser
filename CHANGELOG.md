@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file. For commit 
 ## v1.4.0
 
  **New Features**:
+ - Lyrics support for audio files (#2360):
+   - Updated UI for audio previews!
+   - The lyrics and the player gets syncronized in UI with the audio player.
+   - Supports embedded lyrics (ID3v2 USLT, flac, ogg, clyr) and sidecar `.lrc` files with the same name as the audio file.
+   - The `Q` shortcut in audio files will toggle the new panel visibility.
+   - `E` shortcut to change between tabs of the panel if it's open.
  - Add config option to disable /health endpoint logging (#2291)
  - More shortcuts (#2300)
    - `CTRL+F1` switch to normal view.
@@ -14,6 +20,12 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - Enhanced indexing scheduler which doesn't wake the disk as often.
+ - New API route `media/lyrics` used to fetch and parse lyrics (embedded or from `.lrc` sidecar) (#2360)
+ - Swiping down gesture in fullscreen videos exit fullscreen instead of close preview.
+
+ **BugFixes**:
+ - Blue overlay when using gestures in video files on mobile (#2360)
+ - Playback queue wasn't updating when changing of folder (#2360)
 
 ## v1.3.8
 

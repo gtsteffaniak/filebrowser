@@ -106,7 +106,8 @@
       "volume": "Crește sau scade volumul",
       "mute": "Activează/Dezactivează sunetul",
       "loop": "Comută între modul repetare și modul unic",
-      "playbackQueue": "Deschide coada de redare",
+      "playbackQueue": "Deschide coada de redare sau panoul în fișiere audio",
+      "switchTabs": "Comută filele în panoul pentru fișiere audio",
       "playbackModes": "Comută între modurile de redare (excluzând repetare și unic)",
       "fullscreen": "Comută modul ecran complet în videoclipuri",
       "captions": "Activează/Dezactivează subtitrările"
@@ -803,7 +804,15 @@
     "QueuePlayback": "Coadă de Redare",
     "changePlaybackMode": "Schimbă modul de redare",
     "changePlaybackModeHint": "Schimbă modul de redare pentru a vedea mai multe fișiere",
-    "emptyQueue": "Coada este goală"
+    "emptyQueue": "Coada este goală",
+    "queue": "Coadă",
+    "lyrics": "Versuri",
+    "noLyrics": "Nu există versuri disponibile",
+    "lockLyrics": "Blochează versurile",
+    "unlockLyrics": "Deblochează versurile",
+    "toggleLyrics": "Comută versurile",
+    "closePanel": "Închide panoul",
+    "openPanel": "Deschide panoul"
   },
   "fileSizeAnalyzer": {
     "title": "Analizor dimensiune fișier",

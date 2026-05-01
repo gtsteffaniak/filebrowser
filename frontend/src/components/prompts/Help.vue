@@ -133,6 +133,10 @@
           <span>{{ $t("help.media.playbackQueue") }}</span>
         </div>
         <div class="shortcut-item">
+          <kbd>E</kbd>
+          <span>{{ $t("help.media.switchTabs") }}</span>
+        </div>
+        <div class="shortcut-item">
           <kbd>L</kbd>
           <span>{{ $t("help.media.loop") }}</span>
         </div>

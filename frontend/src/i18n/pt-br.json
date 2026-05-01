@@ -106,7 +106,8 @@
       "volume": "Aumentar ou diminuir o volume",
       "mute": "Silenciar/Ativar som",
       "loop": "Alternar entre modo repetição e modo único",
-      "playbackQueue": "Abrir fila de reprodução",
+      "playbackQueue": "Abrir fila de reprodução ou o painel em arquivos de áudio",
+      "switchTabs": "Alternar abas no painel em arquivos de áudio",
       "playbackModes": "Alternar entre modos de reprodução (exceto repetição e único)",
       "fullscreen": "Alternar modo de tela cheia em vídeos",
       "captions": "Ativar/Desativar legendas"
@@ -803,7 +804,15 @@
     "QueuePlayback": "Fila de Reprodução",
     "changePlaybackMode": "Alterar modo de reprodução",
     "changePlaybackModeHint": "Altere o modo de reprodução para ver mais arquivos",
-    "emptyQueue": "A fila está vazia"
+    "emptyQueue": "A fila está vazia",
+    "queue": "Fila",
+    "lyrics": "Letra",
+    "noLyrics": "Letra não disponível",
+    "lockLyrics": "Bloquear letra",
+    "unlockLyrics": "Desbloquear letra",
+    "toggleLyrics": "Alternar letra",
+    "closePanel": "Fechar painel",
+    "openPanel": "Abrir painel"
   },
   "fileSizeAnalyzer": {
     "title": "Analisador de tamanho de arquivo",

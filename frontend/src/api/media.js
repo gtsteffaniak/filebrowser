@@ -21,6 +21,42 @@ export async function getSubtitleContent(source, path, subtitleName, embedded = 
   }
 }
 
+// GET /api/media/lyrics
+export async function getLyrics(source, path) {
+    const apiPath = getApiPath('media/lyrics', {
+        source: source,
+        path: path,
+    });
+    const res = await fetchURL(apiPath);
+    const data = await res.json();
+    return data.lyrics || [];
+}
+
+// GET /public/api/media/lyrics
+export async function getLyricsPublic(path, hash, password = "") {
+    const params = {
+        path,
+        hash,
+        ...(state.shareInfo.token && { token: state.shareInfo.token }),
+    };
+    const apiPath = getPublicApiPath("media/lyrics", params);
+    const response = await fetch(apiPath, {
+        headers: { "X-SHARE-PASSWORD": password || "" },
+    });
+    if (!response.ok) {
+        const error = new Error(response.statusText);
+        let data = null;
+        data = await response.json();
+        if (data?.message) {
+            error.message = data.message;
+        }
+        error.status = response.status;
+        throw error;
+    }
+    const data = await response.json();
+    return data.lyrics || [];
+}
+
 // GET /api/media/metadata — directory or file with metadata; optional albumArt for embedded cover extraction.
 /** @param {boolean} albumArt when true, request embedded album art in audio metadata */
 /** @returns {Promise<object>} resource (adjustedData) */

@@ -240,7 +240,8 @@
       "volume": "Turn the volume up or down",
       "mute": "Mute/Unmute the audio playing",
       "loop": "Toggle between loop and single mode",
-      "playbackQueue": "Open playback queue",
+      "playbackQueue": "Open playback queue or the panel in audio files",
+      "switchTabs": "Switch tabs in the panel in audio files",
       "playbackModes": "Toggle between playback modes (excluding loop and single)",
       "fullscreen": "Toggle fullscreen mode in videos",
       "captions": "Toggle captions on/off"
@@ -811,7 +812,15 @@
     "QueuePlayback": "Playback Queue",
     "changePlaybackMode": "Change playback mode",
     "changePlaybackModeHint": "Change playback mode to see more files",
-    "emptyQueue": "Queue is empty"
+    "emptyQueue": "Queue is empty",
+    "queue": "Queue",
+    "lyrics": "Lyrics",
+    "noLyrics": "No lyrics available",
+    "lockLyrics": "Lock lyrics",
+    "unlockLyrics": "Unlock lyrics",
+    "toggleLyrics": "Toggle lyrics",
+    "closePanel": "Close panel",
+    "openPanel": "Open panel"
   },
   "fileSizeAnalyzer": {
     "title": "File Size Analyzer",

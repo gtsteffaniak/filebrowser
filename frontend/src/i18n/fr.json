@@ -106,7 +106,8 @@
       "volume": "Augmenter ou diminuer le volume",
       "mute": "Activer/Désactiver le son",
       "loop": "Basculer entre mode répétition et mode unique",
-      "playbackQueue": "Ouvrir la file de lecture",
+      "playbackQueue": "Ouvrir la file de lecture ou le panneau dans les fichiers audio",
+      "switchTabs": "Changer d'onglet dans le panneau des fichiers audio",
       "playbackModes": "Basculer entre les modes de lecture (hors répétition et unique)",
       "fullscreen": "Basculer en plein écran pour les vidéos",
       "captions": "Activer/Désactiver les sous-titres"
@@ -803,7 +804,15 @@
     "QueuePlayback": "File de Lecture",
     "changePlaybackMode": "Changer le mode de lecture",
     "changePlaybackModeHint": "Changez le mode de lecture pour voir plus de fichiers",
-    "emptyQueue": "La file est vide"
+    "emptyQueue": "La file est vide",
+    "queue": "File d'attente",
+    "lyrics": "Paroles",
+    "noLyrics": "Pas de paroles disponibles",
+    "lockLyrics": "Verrouiller les paroles",
+    "unlockLyrics": "Déverrouiller les paroles",
+    "toggleLyrics": "Afficher/Masquer les paroles",
+    "closePanel": "Fermer le panneau",
+    "openPanel": "Ouvrir le panneau"
   },
   "fileSizeAnalyzer": {
     "title": "Analyseur de taille de fichier",

@@ -106,7 +106,8 @@
       "volume": "Höj eller sänk volymen",
       "mute": "Stäng av/Slå på ljudet",
       "loop": "Växla mellan loop och enkelläge",
-      "playbackQueue": "Öppna uppspelningskö",
+      "playbackQueue": "Öppna uppspelningskö eller panelen i ljudfiler",
+      "switchTabs": "Växla flikar i panelen på ljudfiler",
       "playbackModes": "Växla mellan uppspelningslägen (exklusive loop och enkel)",
       "fullscreen": "Växla till helskärmsläge i videor",
       "captions": "Slå på/av undertexter"
@@ -803,7 +804,15 @@
     "QueuePlayback": "Uppspelningskö",
     "changePlaybackMode": "Ändra uppspelningsläge",
     "changePlaybackModeHint": "Ändra uppspelningsläge för att se fler filer",
-    "emptyQueue": "Kön är tom"
+    "emptyQueue": "Kön är tom",
+    "queue": "Kö",
+    "lyrics": "Text",
+    "noLyrics": "Ingen text tillgänglig",
+    "lockLyrics": "Lås texten",
+    "unlockLyrics": "Lås upp texten",
+    "toggleLyrics": "Visa/dölj text",
+    "closePanel": "Stäng panel",
+    "openPanel": "Öppna panel"
   },
   "fileSizeAnalyzer": {
     "title": "Analysator för filstorlek",

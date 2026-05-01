@@ -10,7 +10,7 @@
 
     <!-- Queue list -->
     <div v-if="formattedQueue.length > 0" class="queue-container">
-      <div class="file-list" ref="QueueList">
+      <div class="queue-list" ref="QueueList">
         <div
           v-for="(item, index) in formattedQueue"
           :key="`${item.path}-${index}`"
@@ -54,6 +54,16 @@ import { state, mutations } from "@/store";
 import { url } from "@/utils";
 export default {
   name: "PlaybackQueue",
+  props: {
+    embedded: {
+      type: Boolean,
+      default: false
+    },
+    promptId: {
+      type: Number,
+      default: null,
+    },
+  },
   computed: {
     playbackQueue() {
       return state.playbackQueue?.queue || [];
@@ -110,11 +120,13 @@ export default {
           this.scrollToCurrentItem();
         });
       }
+      if (this.embedded && newIndex !== oldIndex) {
+        this.$nextTick(() => this.scrollToCurrentItem());
+      }
     },
     isPromptVisible: {
       handler(newVal) {
-        if (newVal) {
-          // Prompt just became visible, scroll to current item
+        if (!this.embedded && newVal) {
           this.$nextTick(() => {
             setTimeout(() => {
               this.scrollToCurrentItem();
@@ -125,19 +137,17 @@ export default {
       immediate: true
     },
     playbackMode(newMode, oldMode) {
-      // Auto-scroll when mode changes
-      if (newMode !== oldMode) {
-        this.$nextTick(() => {
-          this.scrollToCurrentItem();
-        });
+      if (newMode !== oldMode && (this.isPromptVisible || this.embedded)) {
+        this.$nextTick(() => this.scrollToCurrentItem());
       }
+    },
+    queueCount() {
+      this.updatePromptTitle();
     },
   },
   mounted() {
-    // Auto-scroll to current item when prompt opens
-    this.$nextTick(() => {
-      this.scrollToCurrentItem();
-    });
+    this.$nextTick(() => this.scrollToCurrentItem());
+    this.updatePromptTitle();
   },
   methods: {
     cyclePlaybackModes() {
@@ -192,23 +202,37 @@ export default {
       this.$nextTick(() => {
         const list = this.$refs.QueueList;
         const currentItem = list.querySelector('.item.current');
-        if (currentItem) {
-          // Calculate the scroll position to center the current item
-          const itemTop = currentItem.offsetTop;
-          const itemHeight = currentItem.offsetHeight;
-          const listHeight = list.clientHeight;
-          const scrollTo = itemTop - (listHeight / 2) + (itemHeight / 2);          
-          list.scrollTo({
-            top: Math.max(0, scrollTo),
-            behavior: 'smooth'
-          });
-        }
+        if (!currentItem) return;
+
+        const listRect = list.getBoundingClientRect();
+        const itemRect = currentItem.getBoundingClientRect();
+        const itemTopRelative = itemRect.top - listRect.top + list.scrollTop;
+        const itemHeight = currentItem.offsetHeight;
+        const listHeight = list.clientHeight;
+        const maxScroll = list.scrollHeight - listHeight;
+
+        // Target the item at 35% from the top
+        const viewportOffset = listHeight * 0.35;
+        const scrollTo = itemTopRelative - viewportOffset + (itemHeight / 2);
+
+        list.scrollTo({
+          top: Math.max(0, Math.min(scrollTo, maxScroll)),
+          behavior: 'smooth'
+        });
       });
     },
     getFileIcon(item) {
       if (item.type?.startsWith('audio/')) return 'audiotrack';
       if (item.type?.startsWith('video/')) return 'movie';
-    }
+    },
+    updatePromptTitle() {
+      if (this.embedded || this.promptId == null) return;
+      const base = this.$t('player.QueuePlayback');
+      const title = this.queueCount > 0
+        ? `${base} (${this.queueCount})`
+        : base;
+      mutations.updatePromptTitle(this.promptId, title);
+    },
   }
 };
 </script>
@@ -274,7 +298,7 @@ export default {
   flex-direction: column;
 }
 
-.file-list {
+.queue-list {
   overflow-y: auto;
   min-height: 0;
   align-items: center;
@@ -325,7 +349,11 @@ export default {
 }
 
 .empty {
-  padding: 2rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
   color: var(--textSecondary);
 }
@@ -333,7 +361,6 @@ export default {
 .empty i.material-symbols {
   font-size: 3rem;
   opacity: 0.5;
-  margin-bottom: 1rem;
   user-select: none;
 }
 </style>
