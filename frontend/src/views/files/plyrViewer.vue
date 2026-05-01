@@ -2603,6 +2603,8 @@ export default {
 
 .album-art-container.no-artwork {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  height: auto;
+  aspect-ratio: 1 / 1;
 }
 
 /* Metadata */
