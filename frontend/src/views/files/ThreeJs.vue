@@ -571,7 +571,7 @@ export default {
     },
 
     clearCurrentModel() {
-      if (this.model) this.scene.remove(this.model);
+      if (this.model && this.scene) this.scene.remove(this.model);
       if (this.animationMixer) {
         this.animationMixer.stopAllAction();
         this.animationMixer = null;
@@ -661,6 +661,7 @@ export default {
             [].concat(c.material).forEach(m => m.dispose());
           }
         });
+        this.model = null;
       }
       
       if (this.renderer) {

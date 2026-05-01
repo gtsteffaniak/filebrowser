@@ -209,21 +209,20 @@
       <i class="material-symbols">lyrics</i>
     </button>
 
-    <!-- Lock button (mobile) – below lyrics button, only when lyrics are shown -->
+    <!-- Lyrics scroll lock (mobile, bottom‑right) – visible while lyrics overlay is open -->
     <button
-      v-if="showButtons && isMobile && showMobileLyrics && lyrics.length && syncedLyrics"
+      v-if="isMobile && previewType === 'audio' && !useDefaultMediaPlayer && showMobileLyrics && lyrics.length && syncedLyrics"
       class="queue-button floating lyrics-lock-fab"
       :class="{
         'dark-mode': darkMode,
       }"
       @click="mobileLyricsScrollLocked = !mobileLyricsScrollLocked"
       @touchstart="resetButtonTimer"
-      @mouseenter="buttonZoneLeft = true"
-      @mouseleave="buttonZoneLeft = false"
-      :title="mobileLyricsScrollLocked ? $t('player.lockLyrics') : $t('player.unlockLyrics')"
+      @mouseenter="buttonZoneRight = true"
+      @mouseleave="buttonZoneRight = false"
+      :title="mobileLyricsScrollLocked ? $t('player.unlockLyrics') : $t('player.lockLyrics')"
     >
-      <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
-      <i class="material-symbols">{{ mobileLyricsScrollLocked ? 'lock_open' : 'lock' }}</i>
+      <i :class="mobileLyricsScrollLocked ? 'material-symbols-outlined' : 'material-symbols'">{{ mobileLyricsScrollLocked ? 'lock_open' : 'lock' }}</i>
     </button>
 
     <!-- Toast when you change playback modes in the media player -->
@@ -479,9 +478,8 @@ export default {
       return false;
     },
     displayArtSize() {
-      // On mobile when lyrics are shown make the art more smaller.
-      if (this.isMobile && this.showMobileLyrics) {
-        return 15; // 15em
+      if (this.isMobile && this.showMobileLyrics && this.lyrics.length) {
+        return 5;
       }
       return this.albumArtSize;
     },
@@ -2441,6 +2439,11 @@ export default {
   min-height: 0;
 }
 
+.audio-player-container--lyrics-open .album-art-container {
+  width: 5em;
+  height: 5em;
+}
+
 /* Full-area swipe / double-tap seek (album art + metadata + Plyr); skip overlay uses position absolute. */
 .audio-player-container--plyr-gestures {
   position: relative;
@@ -2671,7 +2674,7 @@ export default {
   .album-art-container {
     width: min(71vw);
     height: min(71vw);
-    margin-top: 12px;
+    padding-top: 1em;
   }
 }
 
@@ -2764,15 +2767,18 @@ export default {
   right: auto;
 }
 
-/* Mobile lock button */
+/* Mobile lyrics scroll-lock FAB – bottom-right above Plyr bar */
 .lyrics-lock-fab {
   width: 36px;
   height: 36px;
-  top: 140px;
-  left: 20px;
+  top: auto;
+  left: auto;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 6rem);
+  right: calc(env(safe-area-inset-right, 0px) + 20px);
 }
 
-.lyrics-lock-fab i.material-symbols {
+.lyrics-lock-fab .material-symbols,
+.lyrics-lock-fab .material-symbols-outlined {
   font-size: 18px;
 }
 
@@ -2787,12 +2793,17 @@ export default {
   color: white;
 }
 
-.queue-button i.material-symbols {
+.queue-button i.material-symbols,
+.queue-button i.material-symbols-outlined {
   font-size: 24px;
   transition: transform 0.2s ease;
 }
 
 .queue-button:hover i.material-symbols {
+  transform: scale(1.1);
+}
+
+.queue-button:hover i.material-symbols-outlined {
   transform: scale(1.1);
 }
 

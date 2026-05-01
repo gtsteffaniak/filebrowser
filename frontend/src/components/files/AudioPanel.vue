@@ -30,10 +30,10 @@
           v-if="lyrics.length && syncedLyrics"
           class="lyrics-lock-btn"
           @click="lyricsScrollLocked = !lyricsScrollLocked"
-          :title="lyricsScrollLocked ? $t('player.lockLyrics') : $t('player.unlockLyrics')"
+          :title="lyricsScrollLocked ? $t('player.unlockLyrics') : $t('player.lockLyrics')"
         >
           <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
-          <i class="material-symbols">{{ lyricsScrollLocked ? 'lock_open' : 'lock' }}</i>
+          <i :class="lyricsScrollLocked ? 'material-symbols-outlined' : 'material-symbols'">{{ lyricsScrollLocked ? 'lock_open' : 'lock' }}</i>
         </button>
         <!-- Scrollable area -->
         <div class="lyrics-scrollable" ref="lyricsScrollable">
