@@ -126,14 +126,24 @@ func ApplyUserDefaults(u *users.User) {
 		u.LoginMethod = users.LoginMethod(d.LoginMethod)
 	}
 
-	if len(u.BackendScopes) == 0 && u.Username != "anonymous" {
-		for _, source := range Config.Server.Sources {
-			if source.Config.DefaultEnabled {
-				u.BackendScopes = append(u.BackendScopes, users.SourceScope{
-					Name:  source.Path, // backend name is path
-					Scope: source.Config.DefaultUserScope,
-				})
-			}
+	ApplyDefaultBackendScopes(u)
+}
+
+// ApplyDefaultBackendScopes appends default-enabled source scopes when the user has no BackendScopes.
+// Skips the synthetic anonymous account. Used by ApplyUserDefaults and state.CreateUser.
+func ApplyDefaultBackendScopes(u *users.User) {
+	if u == nil || u.Username == "anonymous" {
+		return
+	}
+	if len(u.BackendScopes) > 0 {
+		return
+	}
+	for _, source := range Config.Server.Sources {
+		if source.Config.DefaultEnabled {
+			u.BackendScopes = append(u.BackendScopes, users.SourceScope{
+				Name:  source.Path,
+				Scope: source.Config.DefaultUserScope,
+			})
 		}
 	}
 }

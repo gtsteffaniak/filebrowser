@@ -60,14 +60,16 @@ func runCLI() bool {
 	setCmd := flag.NewFlagSet("set", flag.ExitOnError)
 	var user, dbConfig string
 	var asAdmin bool
-	var fsPath, indexPath, ruleCategory, value string
+	var ruleSource, indexPath, ruleCategory, value string
 	var allow bool
 
 	setCmd.StringVar(&user, "u", "", "Comma-separated username and password: \"set -u <username>,<password>\"")
 	setCmd.BoolVar(&asAdmin, "a", false, "Create a user as admin user, used in combination with -u")
 	setCmd.StringVar(&dbConfig, "c", "config.yaml", "Path to the config file, default: config.yaml")
-	setCmd.StringVar(&fsPath, "f", "", "Real filesystem path (e.g. /mnt/storage) for rule command")
-	setCmd.StringVar(&indexPath, "p", "", "Index path (e.g. /secret) for rule command")
+	setCmd.StringVar(&ruleSource, "s", "", "set rule: server.sources name or backend path key")
+	setCmd.StringVar(&ruleSource, "sourceName", "", "same as -s (Docker / scripts)")
+	setCmd.StringVar(&indexPath, "p", "", "set rule: index path within the source (e.g. / or /excluded)")
+	setCmd.StringVar(&indexPath, "sourcePath", "", "same as -p (Docker / scripts)")
 	setCmd.StringVar(&ruleCategory, "r", "", "Rule category: 'user', 'group', or 'all' (for deny only)")
 	setCmd.StringVar(&value, "v", "", "Value: username or groupname (not required if ruleCategory is 'all')")
 	setCmd.BoolVar(&allow, "allow", false, "Allow access (default: false, which means deny)")
@@ -79,7 +81,6 @@ func runCLI() bool {
 			createConfig(configPath)
 			return false
 		case "set":
-			_ = initializeDatabase(dbConfig) // ensure state (and access store) is initialized
 			if len(os.Args) < 3 {
 				fmt.Printf("error: missing subcommand for 'set'. Use 'set user' or 'set rule'\n")
 				os.Exit(1)
@@ -94,6 +95,7 @@ func runCLI() bool {
 					setCmd.PrintDefaults()
 					os.Exit(1)
 				}
+				_ = initializeDatabase(dbConfig)
 				logger.Debugf("setUser called with args: %v, config: %v, admin: %v", os.Args, dbConfig, asAdmin)
 				err = setUser(dbConfig, asAdmin)
 				if err != nil {
@@ -110,9 +112,15 @@ func runCLI() bool {
 				setCmd.PrintDefaults()
 				os.Exit(1)
 			}
+			_ = initializeDatabase(dbConfig)
 			switch subcommand {
 			case "rule":
-				err := setRule(dbConfig, fsPath, indexPath, ruleCategory, value, allow)
+				backendKey, resErr := resolveRuleSourcePath(ruleSource)
+				if resErr != nil {
+					fmt.Printf("error: %v\n", resErr)
+					os.Exit(1)
+				}
+				err = setRule(dbConfig, backendKey, indexPath, ruleCategory, value, allow)
 				if err != nil {
 					fmt.Printf("error: %v\n", err)
 					os.Exit(1)
@@ -135,13 +143,28 @@ func runCLI() bool {
 	return true
 }
 
-func setRule(dbConfig, fsPath, indexPath, ruleCategory, value string, allow bool) error {
+// resolveRuleSourcePath turns a configured source name or backend path into the path
+// key used by the access store (matches server.sources entries).
+func resolveRuleSourcePath(nameOrPath string) (string, error) {
+	if nameOrPath == "" {
+		return "", fmt.Errorf("-s is required (server.sources name or backend path key)")
+	}
+	if _, ok := settings.Config.Server.SourceMap[nameOrPath]; ok {
+		return nameOrPath, nil
+	}
+	if src, ok := settings.Config.Server.NameToSource[nameOrPath]; ok {
+		return src.Path, nil
+	}
+	return "", fmt.Errorf("unknown source %q: use a configured server.sources name or path", nameOrPath)
+}
+
+func setRule(dbConfig, backendSourcePath, indexPath, ruleCategory, value string, allow bool) error {
 	// Validate required parameters
-	if fsPath == "" {
-		return fmt.Errorf("real filesystem path is required: use -f <fsPath>")
+	if backendSourcePath == "" {
+		return fmt.Errorf("backend source path is missing; check -s")
 	}
 	if indexPath == "" {
-		return fmt.Errorf("index path is required: use -p <indexPath>")
+		return fmt.Errorf("-p is required (index path within the source, e.g. /)")
 	}
 	if ruleCategory == "" {
 		return fmt.Errorf("ruleCategory is required: use -r <user|group|all>")
@@ -157,20 +180,20 @@ func setRule(dbConfig, fsPath, indexPath, ruleCategory, value string, allow bool
 	if allow {
 		switch ruleCategory {
 		case "user":
-			err = accessStore.AllowUser(fsPath, indexPath, value)
+			err = accessStore.AllowUser(backendSourcePath, indexPath, value)
 		case "group":
-			err = accessStore.AllowGroup(fsPath, indexPath, value)
+			err = accessStore.AllowGroup(backendSourcePath, indexPath, value)
 		default:
 			return fmt.Errorf("invalid ruleCategory for allow: must be 'user' or 'group'")
 		}
 	} else {
 		switch ruleCategory {
 		case "user":
-			err = accessStore.DenyUser(fsPath, indexPath, value)
+			err = accessStore.DenyUser(backendSourcePath, indexPath, value)
 		case "group":
-			err = accessStore.DenyGroup(fsPath, indexPath, value)
+			err = accessStore.DenyGroup(backendSourcePath, indexPath, value)
 		case "all":
-			err = accessStore.DenyAll(fsPath, indexPath)
+			err = accessStore.DenyAll(backendSourcePath, indexPath)
 		default:
 			return fmt.Errorf("invalid ruleCategory: must be 'user', 'group', or 'all'")
 		}
@@ -185,9 +208,9 @@ func setRule(dbConfig, fsPath, indexPath, ruleCategory, value string, allow bool
 		action = "allow"
 	}
 	if ruleCategory == "all" {
-		fmt.Printf("successfully added %s rule for all users on index path '%s' in filesystem path '%s'\n", action, indexPath, fsPath)
+		fmt.Printf("successfully added %s rule for all users on index path '%s' in filesystem path '%s'\n", action, indexPath, backendSourcePath)
 	} else {
-		fmt.Printf("successfully added %s rule for %s '%s' on index path '%s' in filesystem path '%s'\n", action, ruleCategory, value, indexPath, fsPath)
+		fmt.Printf("successfully added %s rule for %s '%s' on index path '%s' in filesystem path '%s'\n", action, ruleCategory, value, indexPath, backendSourcePath)
 	}
 	return nil
 }

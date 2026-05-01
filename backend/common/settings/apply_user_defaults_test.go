@@ -79,67 +79,81 @@ func TestApplyUserDefaults_copiesUserDefaultsOntoUser(t *testing.T) {
 		},
 	}
 
-	u := &users.User{Username: "alice"}
+	u := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username: "alice",
+		},
+	}
 	ApplyUserDefaults(u)
 
 	want := users.User{
-		DisableSettings: true,
-		LockPassword:    true,
-		LoginMethod:     users.LoginMethodPassword,
-		Permissions: users.Permissions{
-			Api:      true,
-			Admin:    true,
-			Modify:   true,
-			Share:    true,
-			Realtime: true,
-			Delete:   true,
-			Create:   true,
-			Download: false,
-		},
-		NonAdminEditable: users.NonAdminEditable{
-			EditorQuickSave:            true,
-			HideSidebarFileActions:     true,
-			DisableQuickToggles:        true,
-			DisableSearchOptions:       true,
-			StickySidebar:              false,
-			HideFilesInTree:            true,
-			DarkMode:                   false,
-			Locale:                     "de",
-			ViewMode:                   "list",
-			SingleClick:                true,
-			ShowHidden:                 true,
-			DateFormat:                 true,
-			GallerySize:                7,
-			ThemeColor:                 "var(--red)",
-			QuickDownload:              true,
-			DisablePreviewExt:          ".exe",
-			DisableViewingExt:          ".bat",
-			DisableUpdateNotifications: true,
-			DisableOfficePreviewExt:    "legacy",
-			DisableOnlyOfficeExt:       ".x",
-			CustomTheme:                "Night",
-			ShowSelectMultiple:         true,
-			DebugOffice:                true,
-			DeleteWithoutConfirming:    true,
-			DeleteAfterArchive:         false,
-			PreferEditorForMarkdown:    true,
-			FileLoading: users.FileLoading{
-				MaxConcurrent:     3,
-				UploadChunkSize:   5,
-				DownloadChunkSize: 2,
+		FrontendUser: users.FrontendUser{
+			Username:        "alice",
+			DisableSettings: true,
+			LockPassword:    true,
+			LoginMethod:     users.LoginMethodPassword,
+			Permissions: users.Permissions{
+				Api:      true,
+				Admin:    true,
+				Modify:   true,
+				Share:    true,
+				Realtime: true,
+				Delete:   true,
+				Create:   true,
+				Download: false,
 			},
-			Preview: users.Preview{
-				DisableHideSidebar: true,
-				Image:              false,
-				Video:              false,
-				Audio:              false,
-				MotionVideoPreview: false,
-				Office:             false,
-				PopUp:              false,
-				AutoplayMedia:      false,
-				DefaultMediaPlayer: true,
-				Folder:             false,
-				Models:             false,
+			NonAdminEditable: users.NonAdminEditable{
+				EditorQuickSave:         true,
+				HideSidebarFileActions:  true,
+				DisableQuickToggles:     true,
+				DisableSearchOptions:    true,
+				DeleteWithoutConfirming: true,
+				Preview: users.Preview{
+					DisableHideSidebar: true,
+					Image:              false,
+					Video:              false,
+					Audio:              false,
+					MotionVideoPreview: false,
+					Office:             false,
+					PopUp:              false,
+					AutoplayMedia:      false,
+					DefaultMediaPlayer: true,
+					Folder:             false,
+					Models:             false,
+				},
+				StickySidebar:              false,
+				DarkMode:                   false,
+				Password:                   "",
+				Locale:                     "de",
+				ViewMode:                   "list",
+				SingleClick:                true,
+				Sorting:                    users.Sorting{},
+				ShowHidden:                 true,
+				DateFormat:                 true,
+				GallerySize:                7,
+				ThemeColor:                 "var(--red)",
+				QuickDownload:              true,
+				DisableUpdateNotifications: true,
+				FileLoading: users.FileLoading{
+					MaxConcurrent:     3,
+					UploadChunkSize:   5,
+					ClearAll:          false,
+					DownloadChunkSize: 2,
+				},
+				DisableOfficePreviewExt: "legacy",
+				DisableOnlyOfficeExt:    ".x",
+				DisablePreviewExt:       ".exe",
+				DisableViewingExt:       ".bat",
+				CustomTheme:             "Night",
+				ShowSelectMultiple:      true,
+				ShowCopyPath:            false,
+				DebugOffice:             true,
+				OtpEnabled:              false,
+				SidebarLinks:            nil,
+				HideFilesInTree:         true,
+				DeleteAfterArchive:      false,
+				PreferEditorForMarkdown: true,
+				ShowFirstLogin:          false,
 			},
 		},
 	}
@@ -169,7 +183,9 @@ func TestApplyUserDefaults_setsLoginMethodWhenEmpty(t *testing.T) {
 		Server:       Server{},
 		UserDefaults: UserDefaults{LoginMethod: "jwt"},
 	}
-	u := &users.User{Username: "x"}
+	u := &users.User{
+		FrontendUser: users.FrontendUser{Username: "x"},
+	}
 	ApplyUserDefaults(u)
 	if u.LoginMethod != users.LoginMethodJwt {
 		t.Fatalf("LoginMethod: got %q want jwt", u.LoginMethod)
@@ -184,7 +200,12 @@ func TestApplyUserDefaults_preservesLoginMethodWhenAlreadySet(t *testing.T) {
 		Server:       Server{},
 		UserDefaults: UserDefaults{LoginMethod: "password"},
 	}
-	u := &users.User{Username: "x", LoginMethod: users.LoginMethodProxy}
+	u := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username:    "x",
+			LoginMethod: users.LoginMethodProxy,
+		},
+	}
 	ApplyUserDefaults(u)
 	if u.LoginMethod != users.LoginMethodProxy {
 		t.Fatalf("LoginMethod: got %q want proxy", u.LoginMethod)

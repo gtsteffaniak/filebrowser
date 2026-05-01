@@ -72,6 +72,8 @@ type FrontendUser struct {
 	NonAdminEditable
 	DisableSettings bool          `json:"disableSettings"`
 	Username        string        `json:"username"`
+	// Scopes JSON "scopes": on requests, admin/source names + paths (converted to BackendScopes in state).
+	// On GET responses, PrepForFrontend sets this from BackendScopes (GetFrontendScopes)— never loaded from SQL.
 	FrontendScopes  []SourceScope `json:"scopes"`
 	Scope           string        `json:"scope,omitempty"`
 	LockPassword    bool          `json:"lockPassword"`
@@ -83,11 +85,12 @@ type FrontendUser struct {
 	Perm            Permissions   `json:"perm,omitzero"`
 }
 
-// User is the persisted user: frontend-facing data plus id, backend scopes, and secrets.
+// User is the persisted user: profile/settings in user_data, plus BackendScopes for source access.
 type User struct {
 	FrontendUser
 	ID uint64 `json:"id,omitempty"`
-	// BackendScopes store source root paths (Name = path); persisted in user_data JSON key "scopes".
+	// BackendScopes is the authoritative, persisted access list (SourceScope.Name = backend source path).
+	// SQLite stores this inside user_data JSON under the key "scopes" (see sqldb.UserData).
 	BackendScopes []SourceScope        `json:"backendScopes,omitempty"`
 	ApiKeys       map[string]AuthToken `json:"apiKeys,omitempty"` // deprecated: use Tokens instead
 	Tokens        map[string]AuthToken `json:"tokens,omitempty"`

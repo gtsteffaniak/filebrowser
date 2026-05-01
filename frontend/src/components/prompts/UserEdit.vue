@@ -245,15 +245,6 @@ export default {
         this.globalVars.passwordAvailable
       );
     },
-    /** Password change (existing user): target and signed-in user must both use password login. */
-    showPasswordChangeSection() {
-      return (
-        !this.isNew &&
-        this.user.loginMethod === "password" &&
-        this.stateUser.loginMethod === "password" &&
-        this.globalVars.passwordAvailable
-      );
-    },
     firstAvailableLoginMethod() {
       if (this.globalVars.passwordAvailable) return "password";
       if (this.globalVars.oidcAvailable) return "oidc";
@@ -278,6 +269,11 @@ export default {
     },
   },
   methods: {
+    /** Scope path sent to the API: trimmed, or "/" when empty (matches backend root). */
+    normalizeScopeForApi(scope) {
+      const t = String(scope ?? "").trim();
+      return t.length > 0 ? t : "/";
+    },
     closeTopPrompt() {
       mutations.closeTopPrompt();
     },
@@ -308,17 +304,23 @@ export default {
           this.user.password = "";
           // Normalize scopes to ensure they're in {name, scope} format only
           if (this.user.scopes && Array.isArray(this.user.scopes)) {
-            this.user.scopes = this.user.scopes.map(scope => {
+            this.user.scopes = this.user.scopes.map((scope) => {
               // If it's already in the correct format, use it
               if (scope.name !== undefined && scope.scope !== undefined) {
-                return { name: scope.name, scope: scope.scope || "" };
+                return {
+                  name: scope.name,
+                  scope: this.normalizeScopeForApi(scope.scope),
+                };
               }
               // If it's a full source object, extract just name and scope
-              if (scope.name && typeof scope.name === 'string') {
-                return { name: scope.name, scope: scope.scope || "" };
+              if (scope.name && typeof scope.name === "string") {
+                return {
+                  name: scope.name,
+                  scope: this.normalizeScopeForApi(scope.scope),
+                };
               }
               // Fallback: try to extract from any object structure
-              return { name: "", scope: "" };
+              return { name: "", scope: "/" };
             });
           }
           // Ensure loginMethod is valid, set to first available method if not set or invalid
@@ -363,7 +365,7 @@ export default {
           // Only store {name, scope} format, not the full source config
           this.selectedSources.push({
             name: newSource.name || "",
-            scope: "" // Empty scope - backend will handle defaults
+            scope: "/",
           });
           this.emitUserUpdate();
         }
@@ -400,11 +402,10 @@ export default {
       event.preventDefault();
       try {
         let fields = ["all"];
-        // Transform selectedSources to only include {name, scope} format
-        // Empty scope strings should be passed as "" for backend to handle defaults
-        const scopesToSend = this.selectedSources.map(source => ({
+        // Transform selectedSources to only include {name, scope} format; scope is never blank (API default "/")
+        const scopesToSend = this.selectedSources.map((source) => ({
           name: source.name || "",
-          scope: source.scope || ""
+          scope: this.normalizeScopeForApi(source.scope),
         }));
 
         if (this.isNew) {
@@ -551,7 +552,7 @@ export default {
     addNewScopeSource(event) {
       event.preventDefault();
       if (this.hasMoreSources) {
-        this.selectedSources.push({ name: "", scope: "" });
+        this.selectedSources.push({ name: "", scope: "/" });
         this.emitUserUpdate();
       }
     },

@@ -51,13 +51,12 @@ func initializeDatabase(configFile string) bool {
 func generalUsage() {
 	fmt.Printf(`usage: ./filebrowser <command> [options]
 commands:
-	-h    	Print help
-	-c    	Print the default config file
-	version Print version information
-	set -u	Username and password for the new user
-	set -a	Create user as admin
-	set -s	Specify a user scope
-	set -h	Print this help message
+	-h    		Print help
+	-c    		Path to config file (global default: config.yaml)
+	version 	Print version information
+	setup   		Interactive config setup
+	set -u 		Username and password: set -u <user>,<password> [-c config.yaml]
+	set rule	Access rules: set rule -s <sourceName> -p <indexPath> -r user|group|all -v <name> [-allow] [-c config.yaml] (-sourceName/-sourcePath same as -s/-p)
 `)
 }
 

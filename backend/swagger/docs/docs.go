@@ -6394,6 +6394,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "scopes": {
+                    "description": "Scopes JSON \"scopes\": on requests, admin/source names + paths (converted to BackendScopes in state).\nOn GET responses, PrepForFrontend sets this from BackendScopes (GetFrontendScopes)— never loaded from SQL.",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/users.SourceScope"
@@ -6609,7 +6610,7 @@ const docTemplate = `{
                     }
                 },
                 "backendScopes": {
-                    "description": "BackendScopes store source root paths (Name = path); persisted in user_data JSON key \"scopes\".",
+                    "description": "BackendScopes is the authoritative, persisted access list (SourceScope.Name = backend source path).\nSQLite stores this inside user_data JSON under the key \"scopes\" (see sqldb.UserData).",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/users.SourceScope"
@@ -6734,6 +6735,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "scopes": {
+                    "description": "Scopes JSON \"scopes\": on requests, admin/source names + paths (converted to BackendScopes in state).\nOn GET responses, PrepForFrontend sets this from BackendScopes (GetFrontendScopes)— never loaded from SQL.",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/users.SourceScope"

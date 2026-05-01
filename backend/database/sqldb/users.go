@@ -14,7 +14,7 @@ import (
 // UserData holds all the non-queryable user fields in JSON
 type UserData struct {
 	Password string `json:"password,omitempty"`
-	// BackendScopes uses JSON key "scopes" for historical on-disk user_data blobs.
+	// BackendScopes: persisted source access (Name = backend path). JSON key "scopes" is historical on-disk.
 	BackendScopes    []users.SourceScope        `json:"scopes"`
 	Tokens           map[string]users.AuthToken `json:"tokens,omitempty"`
 	TOTPSecret       string                     `json:"totpSecret,omitempty"`
