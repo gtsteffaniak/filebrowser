@@ -866,7 +866,8 @@
     "reassignPath": "Yolu Yeniden Atayın",
     "pathReassigned": "Yol başarıyla güncellendi!",
     "pathReassignFailed": "Yol güncellenemedi. Lütfen tekrar deneyin.",
-    "incompleteResultsDetails": "Maksimum sonuç gösteriliyor ({max}). {max} altında daha fazla sonuç almak için aramanızı daraltmayı deneyin."
+    "incompleteResultsDetails": "Maksimum sonuç gösteriliyor ({max}). {max} altında daha fazla sonuç almak için aramanızı daraltmayı deneyin.",
+    "noCreateOptions": "Oluşturma seçeneği mevcut değil"
   },
   "duplicateFinder": {
     "title": "Yinelenen Dosya Bulucu",

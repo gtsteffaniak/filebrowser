@@ -866,7 +866,8 @@
     "reassignPath": "הקצאת נתיב מחדש",
     "pathReassigned": "הנתיב עודכן בהצלחה!",
     "pathReassignFailed": "לא ניתן לעדכן את הנתיב. אנא נסה שוב.",
-    "incompleteResultsDetails": "הצגת תוצאות מקסימליות ({max}). נסה לצמצם את החיפוש כדי לקבל תוצאות נוספות תחת {max}."
+    "incompleteResultsDetails": "הצגת תוצאות מקסימליות ({max}). נסה לצמצם את החיפוש כדי לקבל תוצאות נוספות תחת {max}.",
+    "noCreateOptions": "אין אפשרויות יצירה זמינות"
   },
   "duplicateFinder": {
     "title": "מאתר קבצים כפולים",

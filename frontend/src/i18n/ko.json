@@ -866,7 +866,8 @@
     "reassignPath": "경로 재할당",
     "pathReassigned": "경로가 성공적으로 업데이트되었습니다!",
     "pathReassignFailed": "경로를 업데이트하지 못했습니다. 다시 시도하세요.",
-    "incompleteResultsDetails": "최대 결과 표시 ({max}). 검색 범위를 좁히면 {max} 에서 더 많은 결과를 확인할 수 있습니다."
+    "incompleteResultsDetails": "최대 결과 표시 ({max}). 검색 범위를 좁히면 {max} 에서 더 많은 결과를 확인할 수 있습니다.",
+    "noCreateOptions": "사용 가능한 생성 옵션이 없습니다."
   },
   "duplicateFinder": {
     "title": "중복 파일 찾기",

@@ -866,7 +866,8 @@
     "reassignPath": "Reatribuir caminho",
     "pathReassigned": "Caminho atualizado com sucesso!",
     "pathReassignFailed": "Falha ao atualizar o caminho. Tente novamente.",
-    "incompleteResultsDetails": "Mostrando o máximo de resultados ({max}). Tente restringir sua pesquisa para obter mais resultados em {max}."
+    "incompleteResultsDetails": "Mostrando o máximo de resultados ({max}). Tente restringir sua pesquisa para obter mais resultados em {max}.",
+    "noCreateOptions": "Nenhuma opção de criação está disponível"
   },
   "duplicateFinder": {
     "title": "Localizador de arquivos duplicados",

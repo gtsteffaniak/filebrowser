@@ -866,7 +866,8 @@
     "reassignPath": "Změna přiřazení cesty",
     "pathReassigned": "Cesta byla úspěšně aktualizována!",
     "pathReassignFailed": "Nepodařilo se aktualizovat cestu. Zkuste to prosím znovu.",
-    "incompleteResultsDetails": "Zobrazeno max. výsledků ({max}). Zkuste zúžit hledání a získat více výsledků pod {max}."
+    "incompleteResultsDetails": "Zobrazeno max. výsledků ({max}). Zkuste zúžit hledání a získat více výsledků pod {max}.",
+    "noCreateOptions": "Nejsou k dispozici žádné možnosti vytváření"
   },
   "duplicateFinder": {
     "title": "Vyhledávač duplicitních souborů",

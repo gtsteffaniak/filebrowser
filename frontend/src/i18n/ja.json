@@ -866,7 +866,8 @@
     "reassignPath": "パスの再割り当て",
     "pathReassigned": "パスは正常に更新されました！",
     "pathReassignFailed": "パスの更新に失敗しました。再試行してください。",
-    "incompleteResultsDetails": "最大結果を表示 ({max}).{max} でより多くの結果を得るために絞り込んで検索してみてください。"
+    "incompleteResultsDetails": "最大結果を表示 ({max}).{max} でより多くの結果を得るために絞り込んで検索してみてください。",
+    "noCreateOptions": "作成オプションはありません"
   },
   "duplicateFinder": {
     "title": "重複ファイルファインダー",

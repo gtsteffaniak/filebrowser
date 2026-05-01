@@ -866,7 +866,8 @@
     "reassignPath": "Pad opnieuw toewijzen",
     "pathReassigned": "Pad succesvol bijgewerkt!",
     "pathReassignFailed": "Het bijwerken van het pad is mislukt. Probeer het opnieuw.",
-    "incompleteResultsDetails": "Max resultaten ({max}). Probeer uw zoekopdracht te verfijnen voor meer resultaten onder {max}."
+    "incompleteResultsDetails": "Max resultaten ({max}). Probeer uw zoekopdracht te verfijnen voor meer resultaten onder {max}.",
+    "noCreateOptions": "Er zijn geen opties beschikbaar"
   },
   "duplicateFinder": {
     "title": "Duplicaat bestand zoeken",

@@ -866,7 +866,8 @@
     "reassignPath": "Opätovné priradenie cesty",
     "pathReassigned": "Cesta bola úspešne aktualizovaná!",
     "pathReassignFailed": "Nepodarilo sa aktualizovať cestu. Skúste to prosím znova.",
-    "incompleteResultsDetails": "Zobrazené maximálne výsledky ({max}). Skúste zúžiť vyhľadávanie, aby ste získali viac výsledkov pod {max}."
+    "incompleteResultsDetails": "Zobrazené maximálne výsledky ({max}). Skúste zúžiť vyhľadávanie, aby ste získali viac výsledkov pod {max}.",
+    "noCreateOptions": "Nie sú k dispozícii žiadne možnosti vytvárania"
   },
   "duplicateFinder": {
     "title": "Vyhľadávač duplicitných súborov",

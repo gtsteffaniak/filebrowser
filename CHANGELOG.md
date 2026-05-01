@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.3.9
+
+ **BugFixes**:
+ - Fix context menu items and adjusted when items show to more accurately reflect permissions.
+
 ## v1.3.8
 
  **BugFixes**:
