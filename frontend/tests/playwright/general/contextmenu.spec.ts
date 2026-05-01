@@ -35,7 +35,7 @@ test("info from listing - regular item", async({ page, checkForErrors, context }
     await expect(page.locator('button[aria-label="Move file"]')).toBeVisible();
     await expect(page.locator('button[aria-label="Copy file"]')).toBeVisible();
     await expect(page.locator('button[aria-label="Select all"]')).toBeVisible();
-    await expect(page.locator('button[aria-label="Create archive"]')).toBeVisible();
+    await expect(page.locator('button[aria-label="Create archive"]')).toBeHidden();
     checkForErrors();
 });
 

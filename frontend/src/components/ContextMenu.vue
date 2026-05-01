@@ -14,11 +14,23 @@
       :class="{ 'dark-mode': isDarkMode, 'centered': centered }"
       :key="showCreate ? 'create-mode' : 'normal-mode'"
     >
-      <div v-if="!showLimitedOptions" class="context-menu-header">
+      <div
+        v-if="showCreateToggle"
+        class="context-menu-header"
+      >
         <div
-          class="action button clickable"
-          v-if="showCreateButton"
-          @click="toggleShowCreate"
+          v-if="showCreateToggle"
+          class="action button clickable context-menu-create-toggle"
+          aria-label="Create Actions Toggle"
+          :class="{ 'context-menu-create-toggle--disabled': createToggleDisabled }"
+          role="button"
+          :aria-disabled="createToggleDisabled ? 'true' : 'false'"
+          :tabindex="createToggleDisabled ? -1 : 0"
+          @click="onCreateToggleClick"
+          @keydown.enter.prevent="onCreateToggleClick"
+          @keydown.space.prevent="onCreateToggleClick"
+          @mouseenter="onCreateToggleMouseEnter"
+          @mouseleave="hideTooltip"
         >
           <i v-if="!showCreate" class="material-symbols">add</i>
           <i v-else class="material-symbols">arrow_back</i>
@@ -35,22 +47,28 @@
       </div>
       <hr v-if="showDivider" class="divider">
       <action
-        v-if="showCreateFiles"
+        v-if="showCreateFileActions"
         icon="create_new_folder"
         :label="$t('files.newFolder')"
         @action="showNewDirPrompt"
       />
       <action
-        v-if="showCreateFiles"
+        v-if="showCreateFileActions"
         icon="note_add"
         :label="$t('files.newFile')"
         @action="showPrompt('newFile')"
       />
       <action
-        v-if="showCreateFiles"
+        v-if="showCreateFileActions"
         icon="file_upload"
         :label="$t('general.upload')"
         @action="showUploadPrompt"
+      />
+      <action
+        v-if="showArchive"
+        icon="archive"
+        :label="$t('prompts.archive')"
+        @action="showArchivePrompt"
       />
       <action
         v-if="showInfo"
@@ -64,12 +82,6 @@
         icon="file_download"
         :label="$t('general.download')"
         @action="startDownload"
-      />
-      <action
-        v-if="showArchive"
-        icon="archive"
-        :label="$t('prompts.archive')"
-        @action="showArchivePrompt"
       />
       <action
         v-if="showUnarchive"
@@ -229,7 +241,10 @@ export default {
   computed: {
     // Either from prop or from state
     providedItems() {
-      if (this.items) return this.items;
+      // Only treat non-empty explicit `items` as overriding selection ([] means "use global state")
+      if (Array.isArray(this.items) && this.items.length > 0) {
+        return this.items;
+      }
       // Fallback to global selection (indices or objects)
       if (state.selected.length === 0) return [];
       // Map to actual items from state.req
@@ -253,19 +268,26 @@ export default {
     permissions() {
       return getters.permissions();
     },
+    /**
+     * Whether the (+) panel can be opened (create file ops and/or admin-only rows like access rules).
+     */
+    canOpenCreatePanel() {
+      if (getters.isShare()) {
+        return !!getters.permissions().create;
+      }
+      return getters.isAdmin() || !!state.user?.permissions?.create;
+    },
+    /** New folder / new file / upload — requires permissions.create only (not admin alone). */
+    showCreateFileActions() {
+      if (this.showLimitedOptions) return false;
+      if (!this.permissions.create) return false;
+      return this.showCreate && !this.isSearchActive;
+    },
     req() {
       return state.req;
     },
     isShare() {
       return getters.isShare();
-    },
-    showCreateFiles() {
-      if (this.showLimitedOptions) return false;
-      return getters.permissions().create;
-    },
-    showCreateActions() {
-      if (this.showLimitedOptions) return false;
-      return this.showCreate && !this.isSearchActive;
     },
     showInfo() {
       if (this.showLimitedOptions) return this.selectedCount == 1;
@@ -273,23 +295,33 @@ export default {
     },
     showDownload() {
       if (this.showLimitedOptions) return false;
-      return !this.showCreate && this.permissions.download && this.selectedCount > 0;
+      return (
+        !this.showCreate &&
+        !!this.permissions.download &&
+        this.selectedCount > 0
+      );
     },
     showArchive() {
       if (this.showLimitedOptions || getters.isShare()) return false;
       if (!this.permissions.create) return false;
-      return !this.showCreate && this.selectedCount > 0 && !this.showUnarchive;
+      return (
+        this.showCreate &&
+        this.selectedCount > 0 &&
+        !this.showUnarchive &&
+        !this.isSearchActive
+      );
     },
     showUnarchive() {
       if (this.showLimitedOptions || getters.isShare()) return false;
       if (!this.permissions.create) return false;
+      if (this.showCreate) return false;
       if (this.selectedCount !== 1) return false;
       const item = this.firstSelected;
       return item && isArchivePath(item.path || item.from || item.name);
     },
     showShareAction() {
       if (this.showLimitedOptions) return false;
-      return (this.showCreate || this.selectedCount == 1) && this.showShare;
+      return this.selectedCount <= 1 && this.showShare;
     },
     showRename() {
       if (this.showLimitedOptions) return false;
@@ -314,16 +346,17 @@ export default {
       if (this.showLimitedOptions) return false;
       return !this.showCreate && !this.isSearchActive && this.req?.items?.length > 0;
     },
-    showCreateButton() {
+    /** + control in listing / share directory context; disabled when the panel cannot be opened. */
+    showCreateToggle() {
       if (this.showLimitedOptions || this.createOnly) return false;
-      return !this.isSearchActive && this.permissions.create && !this.isShare;
+      return !this.isSearchActive;
+    },
+    createToggleDisabled() {
+      return !this.canOpenCreatePanel;
     },
     showDivider() {
       if (this.showLimitedOptions || this.createOnly) return false;
-      if (getters.isShare()) {
-        return state.shareInfo?.allowCreate
-      }
-      return state.user?.permissions?.create || state.user?.permissions?.share || state.user?.permissions?.admin;
+      return this.showCreateToggle || this.selectedCount > 0;
     },
     showSelectMultiple() {
       if (this.showLimitedOptions) return false;
@@ -363,11 +396,14 @@ export default {
         return false;
       }
       const cv = getters.currentView();
-      const showDelete = cv != "settings" && !this.isSearchActive && this.permissions.delete;
-      return showDelete;
+      return (
+        cv != "settings" &&
+        !this.isSearchActive &&
+        !!this.permissions.delete
+      );
     },
     hasDownload() {
-      return this.selectedCount > 0 && this.permissions.download;
+      return this.selectedCount > 0 && !!this.permissions.download;
     },
     isPreview() {
       return getters.isPreviewView();
@@ -384,7 +420,10 @@ export default {
       if (getters.isShare()) {
         return false;
       }
-      return this.permissions.admin && this.showCreate;
+      if (this.selectedCount > 1) {
+        return false;
+      }
+      return getters.isAdmin() && this.showCreate;
     },
     showShare() {
       if (getters.isShare()) {
@@ -480,8 +519,16 @@ export default {
         y: event.clientY,
       });
     },
+    onCreateToggleClick() {
+      if (this.createToggleDisabled) return;
+      this.toggleShowCreate();
+    },
+    onCreateToggleMouseEnter(event) {
+      if (!this.createToggleDisabled) return;
+      this.showTooltip(event, this.$t("messages.noCreateOptions"));
+    },
     toggleShowCreate() {
-      if (!this.permissions.create) {
+      if (!this.canOpenCreatePanel) {
         this.showCreate = false;
         return;
       }
@@ -492,11 +539,9 @@ export default {
     },
     showAccessPrompt() {
       mutations.closeHovers();
-      let sourceName = this.firstSelected?.source || state.req.source;
-      let path = this.firstSelected?.path || state.req.path;
-      if (this.firstSelected && !this.firstSelected.isDir) {
-        path = url.removeLastDir(path) + '/';
-      }
+      const item = this.firstSelected;
+      let sourceName = item?.source || state.req.source;
+      let path = item?.path || state.req.path;
       mutations.showPrompt({
         name: "access",
         props: {
@@ -568,7 +613,7 @@ export default {
       }, 300);
     },
     startShowCreate() {
-      if (!this.permissions.create) {
+      if (!this.canOpenCreatePanel) {
         return;
       }
       this.showCreate = true;
@@ -613,17 +658,12 @@ export default {
       this.posY = contextProps.posY;
     },
     initializeCreateState() {
-      // If createOnly is set, always show create actions
       if (this.createOnly) {
         this.showCreate = true;
         return;
       }
-      // Only set initial showCreate state, don't override user choices
-      if (this.selectedCount > 0 || !this.permissions.create) {
-        this.showCreate = false;
-      } else {
-        this.showCreate = true;
-      }
+      // Right-click / prompt: start in normal mode; user opens create via + or sidebar (createOnly).
+      this.showCreate = false;
     },
     toggleMultipleSelection() {
       mutations.setMultiple(true);
@@ -851,6 +891,11 @@ export default {
 
 .context-menu-header > .action i {
   padding: 0.25em;
+}
+
+.context-menu-create-toggle--disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 #context-menu .action {

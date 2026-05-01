@@ -27,33 +27,14 @@ All notable changes to this project will be documented in this file. For commit 
  - Blue overlay when using gestures in video files on mobile (#2360)
  - Playback queue wasn't updating when changing of folder (#2360)
 
-## v1.3.8
+## v1.3.9
+
+ **Security**:
+ - [Critical] Unauthenticated Path Traversal in Public Share Delete Allows Arbitrary File Deletion GHSA-fwj3-42wh-8673
+ - [Moderate] Stored XSS via SVG File in Public Share (Missing CSP Header) GHSA-mmpx-jh39-wrv6
 
  **BugFixes**:
- - Quick download icon style after icon change.
- - Missing error popup for resource creatoin actions (upload/create)
- - EnforcedOtp login failure until restart (#2330)
- - Thumbnails for Folders only display sporadically (#2353)
- - Unwanted user scope change for users with non-default scopes (#2347)
- - Fix sidebar source info totals (#2321) (#2322) (#982)
- - Error uploading a large number of photos -- only 100 items get uploaded (#2348)
-
-## v1.3.7
-
- **Notes**:
- - creating/deleting password-based user requires reauthentication (#2112)
-
- **BugFixes**:
- - TOTP works for admin but fails for standard users on re-login until Docker is restarted (#2330)
- - No Loginfields shown if password authentification is set to false (#2331)
-
-## v1.3.6
-
- **BugFixes**:
- - file watcher not working for files and not respecting line count (#2314)
- - "source" type link shows up multiple times when adding sidebar links if user has multiple sources.
- - JWT ES256 results in error (#2188)
- - single file shares not loading editor text content (#2122)
+ - Fix context menu items and adjusted when items show to more accurately reflect permissions.
 
 ## v1.3.8
 
