@@ -1,6 +1,7 @@
 {
   "buttons": {
     "copySuccess": "Zkopírováno do schránky!",
+    "copyFailed": "Kopírování do schránky se nezdařilo",
     "generateNewOtp": "Resetovat a vygenerovat nový kód dvoufázového ověření",
     "copyFile": "Kopírovat soubor",
     "copyToClipboard": "Kopírovat do schránky",
@@ -293,8 +294,6 @@
     "selectHashAlgorithm": "Výběr algoritmu hash",
     "generate": "Generovat",
     "errorGeneratingHash": "Chyba při generování hash",
-    "hashCopied": "Hash zkopírovaný do schránky",
-    "errorCopyingHash": "Chyba při kopírování hash",
     "token": "Token",
     "onlyOfficeId": "OnlyOffice ID",
     "firstLoadTitle": "Vítejte v aplikaci FileBrowser Quantum!",
@@ -305,7 +304,6 @@
     "renameSuccess": "Položka byla úspěšně přejmenována!",
     "newFileSuccess": "Soubor byl úspěšně vytvořen!",
     "newDirSuccess": "Adresář byl úspěšně vytvořen!",
-    "copyToClipboardFailed": "Nelze zkopírovat do schránky",
     "moveFailed": "Přesun se nezdařil",
     "operationFailed": "Operace se nezdařila",
     "partialSuccess": "Některé operace se nezdařily: {succeeded} uspěl, {failed} neuspěl.",
@@ -321,7 +319,7 @@
     "unarchiveDestination": "Výpis na:",
     "unarchiveSuccess": "Archiv úspěšně extrahován!",
     "downloadFailed": "Stahování po částech se nezdařilo - pokud se tato situace opakuje, zkuste zmenšit velikost části: {message}",
-    "confirmPasswordToChangeUserPassword": "Zadejte své aktuální heslo a autorizujte tuto změnu hesla."
+    "confirmPasswordToSaveUser": "Pro uložení těchto uživatelských změn zadejte své aktuální heslo."
   },
   "search": {
     "smallerThan": "Menší než:",
@@ -438,7 +436,6 @@
     "tusUploadsRetryCount": "Počet pokusů o opětovné nahrání části při chybě.",
     "userHomeBasePath": "Základní cesta pro domovské adresáře uživatelů",
     "userScopeGenerationPlaceholder": "Rozsah bude vygenerován automaticky",
-    "createUserHomeDirectory": "Vytvořit domovský adresář uživatele",
     "customStylesheet": "Vlastní styl",
     "defaultUserDescription": "Toto jsou výchozí nastavení pro nové uživatele.",
     "disableExternalLinks": "Zakázat externí odkazy (kromě dokumentace)",
@@ -609,7 +606,8 @@
     "enabledSuccessfully": "OTP úspěšně aktivováno",
     "verificationFailed": "Ověření se nezdařilo",
     "verificationSucceed": "Ověření proběhlo úspěšně",
-    "generationFailed": "Generování selhalo"
+    "generationFailed": "Generování selhalo",
+    "passwordRequiredForGeneration": "Pro vygenerování ověřovacího kódu je nutné vaše heslo."
   },
   "fileLoading": {
     "title": "Nahrávání a stahování",
@@ -845,8 +843,6 @@
       "showingResults": "Zobrazují se výsledky {count} ",
       "noResults": "Nebyly nalezeny žádné ikony",
       "tryDifferentSearch": "Zkuste použít jiný vyhledávací výraz",
-      "copiedToClipboard": "Zkopírováno '{name}' do schránky!",
-      "copyFailed": "Nepodařilo se zkopírovat do schránky",
       "custom": "Vlastní",
       "useCustomIcon": "Použití vlastní ikony: {name}",
       "iconLibraryUrl": "fonts.google.com/icons",
@@ -870,7 +866,8 @@
     "reassignPath": "Změna přiřazení cesty",
     "pathReassigned": "Cesta byla úspěšně aktualizována!",
     "pathReassignFailed": "Nepodařilo se aktualizovat cestu. Zkuste to prosím znovu.",
-    "incompleteResultsDetails": "Zobrazeno max. výsledků ({max}). Zkuste zúžit hledání a získat více výsledků pod {max}."
+    "incompleteResultsDetails": "Zobrazeno max. výsledků ({max}). Zkuste zúžit hledání a získat více výsledků pod {max}.",
+    "noCreateOptions": "Nejsou k dispozici žádné možnosti vytváření"
   },
   "duplicateFinder": {
     "title": "Vyhledávač duplicitních souborů",

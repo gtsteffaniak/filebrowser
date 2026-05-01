@@ -1,6 +1,7 @@
 {
   "buttons": {
     "copySuccess": "Kopierat till urklipp!",
+    "copyFailed": "Misslyckades med att kopiera till urklipp",
     "copyFile": "Kopiera fil",
     "copyToClipboard": "Kopiera till urklipp",
     "moveFile": "Flytta fil",
@@ -215,8 +216,6 @@
     "selectHashAlgorithm": "Välj en hashalgoritm",
     "generate": "Generera",
     "errorGeneratingHash": "Fel vid generering av hash",
-    "hashCopied": "Hash kopieras till urklipp",
-    "errorCopyingHash": "Fel vid kopiering av hash",
     "token": "Token",
     "onlyOfficeId": "OnlyOffice ID",
     "firstLoadTitle": "Välkommen till FileBrowser Quantum!",
@@ -227,7 +226,6 @@
     "renameSuccess": "Objektet har bytt namn framgångsrikt!",
     "newFileSuccess": "Filen skapades framgångsrikt!",
     "newDirSuccess": "Katalog skapad framgångsrikt!",
-    "copyToClipboardFailed": "Det går inte att kopiera till urklipp",
     "moveFailed": "Flyttning misslyckades",
     "operationFailed": "Operationen misslyckades",
     "partialSuccess": "Vissa operationer misslyckades: {succeeded} lyckades, {failed} misslyckades",
@@ -243,7 +241,7 @@
     "unarchiveDestination": "Extrahera till:",
     "unarchiveSuccess": "Arkivet har extraherats framgångsrikt!",
     "downloadFailed": "Nedladdningen av chunked misslyckades - om detta upprepas, försök att minska chunkstorleken: {message}",
-    "confirmPasswordToChangeUserPassword": "Ange ditt nuvarande lösenord för att godkänna denna lösenordsändring."
+    "confirmPasswordToSaveUser": "Ange ditt nuvarande lösenord för att spara dessa användarändringar."
   },
   "search": {
     "smallerThan": "Mindre än:",
@@ -334,7 +332,6 @@
     "tusUploadsRetryCount": "Antal försök som ska göras om en chunk inte kan laddas upp.",
     "userHomeBasePath": "Basväg för användares hemkataloger",
     "userScopeGenerationPlaceholder": "Omfattningen kommer att genereras automatiskt",
-    "createUserHomeDirectory": "Skapa användarens hemkatalog",
     "shareSettings": "Dela inställningar",
     "shareDeleted": "Dela borttaget!",
     "adminOptions": "Alternativ för administratörsanvändare",
@@ -544,7 +541,8 @@
     "enabledSuccessfully": "OTP aktiverat framgångsrikt",
     "verificationFailed": "Verifiering misslyckades",
     "verificationSucceed": "Verifiering lyckas",
-    "generationFailed": "Generation misslyckad"
+    "generationFailed": "Generation misslyckad",
+    "passwordRequiredForGeneration": "Ditt lösenord krävs för att generera en autentiseringskod."
   },
   "fileLoading": {
     "title": "Uppladdningar och nedladdningar",
@@ -845,8 +843,6 @@
       "showingResults": "Visar resultat från {count} ",
       "noResults": "Inga ikoner hittades",
       "tryDifferentSearch": "Försök med en annan sökterm",
-      "copiedToClipboard": "Kopierade '{name}' till urklipp!",
-      "copyFailed": "Misslyckades med att kopiera till klippbordet",
       "custom": "Anpassad",
       "useCustomIcon": "Använd anpassad ikon: {name}",
       "iconLibraryUrl": "teckensnitt.google.com/ikoner",
@@ -870,7 +866,8 @@
     "reassignPath": "Omfördela sökväg",
     "pathReassigned": "Sökvägen har uppdaterats!",
     "pathReassignFailed": "Misslyckades med att uppdatera sökvägen. Vänligen försök igen.",
-    "incompleteResultsDetails": "Visar max resultat ({max}). Försök att begränsa din sökning för att få fler resultat under {max}."
+    "incompleteResultsDetails": "Visar max resultat ({max}). Försök att begränsa din sökning för att få fler resultat under {max}.",
+    "noCreateOptions": "Inga alternativ för skapande är tillgängliga"
   },
   "duplicateFinder": {
     "title": "Hitta duplicerade filer",

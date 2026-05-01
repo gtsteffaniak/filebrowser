@@ -48,8 +48,8 @@ build-backend:
 # New dev target with hot-reloading for frontend and backend
 dev: generate-docs
 	@echo "Starting dev servers... Press Ctrl+C to stop."
-	pkill -f 'test_config.yaml' || true
-	pkill -f 'go tool air' || true
+	pkill -f '[t]est_config.yaml' || true
+	pkill -f '[g]o tool air' || true
 	@cd frontend && DEV_BUILD=true npm run watch & \
 	FRONTEND_PID=$$!; \
 	cd backend && export FILEBROWSER_DEVMODE=true && go tool air $$([ "$(OS)" = "Windows_NT" ] && echo "-c .air.windows.toml" || echo "") & \
@@ -116,13 +116,12 @@ test-frontend:
 
 test-playwright: build-frontend
 	cd backend && GOOS=linux go build -o filebrowser .
-	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-sharing .
+	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-settings .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-noauth .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-general .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-jwt .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-proxy .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-previews .
-	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-settings .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-oidc .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-no-config .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-screenshots .

@@ -99,11 +99,11 @@ func StartHttp(ctx context.Context, shutdownComplete chan struct{}) {
 	// ========================================
 	// Auth Routes - /api/auth/
 	// ========================================
-	api.HandleFunc("POST /auth/login", userWithoutOTP(loginHandler))
+	api.HandleFunc("POST /auth/login", loginHelper(loginHandler))
 	api.HandleFunc("POST /auth/logout", withOrWithoutUser(logoutHandler))
 	api.HandleFunc("POST /auth/signup", withoutUser(signupHandler))
-	api.HandleFunc("POST /auth/otp/generate", userWithoutOTP(generateOTPHandler))
-	api.HandleFunc("POST /auth/otp/verify", userWithoutOTP(verifyOTPHandler))
+	api.HandleFunc("POST /auth/otp/generate", withOrWithoutUser(generateOTPHandler))
+	api.HandleFunc("POST /auth/otp/verify", withOrWithoutUser(verifyOTPHandler))
 	api.HandleFunc("POST /auth/renew", withUser(renewHandler))
 	api.HandleFunc("POST /auth/token", withUser(createApiTokenHandler))
 	api.HandleFunc("DELETE /auth/token", withUser(deleteApiTokenHandler))
@@ -157,7 +157,7 @@ func StartHttp(ctx context.Context, shutdownComplete chan struct{}) {
 	// ========================================
 	api.HandleFunc("GET /share/list", withPermShare(shareListHandler))
 	api.HandleFunc("GET /share/direct", withPermShare(shareDirectDownloadHandler))
-	api.HandleFunc("GET /share", withPermShare(shareGetHandler))
+	api.HandleFunc("GET /share", withUser(shareGetHandler))
 	api.HandleFunc("POST /share", withPermShare(sharePostHandler))
 	api.HandleFunc("PATCH /share", withPermShare(sharePatchHandler))
 	api.HandleFunc("DELETE /share", withPermShare(shareDeleteHandler))

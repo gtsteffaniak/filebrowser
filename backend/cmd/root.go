@@ -66,6 +66,11 @@ func StartFilebrowser() {
 	if !keepGoing {
 		return
 	}
+	existingDb := initializeDatabase(configPath)
+	database := fmt.Sprintf("Using existing database  : %v", settings.Config.Server.DatabaseV2.Path)
+	if !existingDb {
+		database = fmt.Sprintf("Creating new database    : %v", settings.Config.Server.DatabaseV2.Path)
+	}
 	if !settings.Config.Server.DisableUpdateCheck {
 		info, _ := utils.CheckForUpdates()
 		if info.LatestVersion != "" {
@@ -84,11 +89,6 @@ func StartFilebrowser() {
 
 	done := make(chan struct{})             // Signals server has stopped
 	shutdownComplete := make(chan struct{}) // Signals shutdown process is complete
-	existingDb := initializeDatabase(configPath)
-	database := fmt.Sprintf("Using existing database  : %v", settings.Config.Server.DatabaseV2.Path)
-	if !existingDb {
-		database = fmt.Sprintf("Creating new database    : %v", settings.Config.Server.DatabaseV2.Path)
-	}
 
 	// Dev mode enables development features like template hot-reloading
 	_, err := os.Stat("http/dist")

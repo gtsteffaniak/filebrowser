@@ -3,11 +3,11 @@ package http
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
-	"github.com/gtsteffaniak/filebrowser/backend/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/state"
-	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // generateOTPHandler handles the generation of a new TOTP secret and QR code.
@@ -23,22 +23,15 @@ import (
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/auth/otp/generate [post]
 func generateOTPHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	username := r.URL.Query().Get("username")
-	if username == "" {
-		username = d.user.Username
-	}
-	if username != d.user.Username && !d.user.Permissions.Admin {
-		return http.StatusForbidden, fmt.Errorf("you are not authorized to generate OTP for this user")
-	}
-	var targetUser *users.User
-	userValue, err := state.GetUserByUsername(username)
-	if err == nil {
-		targetUser = &userValue
-	}
+	err := checkPassword(r, d)
 	if err != nil {
-		return http.StatusNotFound, fmt.Errorf("user not found: %w", err)
+		return http.StatusUnauthorized, err
 	}
-	url, err := auth.GenerateOtpForUser(targetUser, usersStore)
+	user, getErr := state.GetUserByUsername(r.URL.Query().Get("username"))
+	if getErr != nil {
+		return http.StatusNotFound, fmt.Errorf("user not found: %w", getErr)
+	}
+	url, err := auth.GenerateOtpForUser(&user, usersStore)
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("error generating OTP secret: %w", err)
 	}
@@ -67,26 +60,15 @@ func verifyOTPHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if code == "" {
 		return http.StatusUnauthorized, fmt.Errorf("code is required")
 	}
-
-	targetUser := d.user
-	username := r.URL.Query().Get("username")
-
-	// If admin is verifying for another user
-	if username != "" && username != d.user.Username && d.user.Permissions.Admin {
-		var err error
-		userValue, err := state.GetUserByUsername(username)
-		if err == nil {
-			targetUser = &userValue
-		} else {
-			targetUser = nil
-		}
-		if err != nil {
-			return http.StatusNotFound, fmt.Errorf("user not found: %w", err)
-		}
-		logger.Debugf("Admin %s verifying OTP for user: %s", d.user.Username, targetUser.Username)
+	err := checkPassword(r, d)
+	if err != nil {
+		return http.StatusUnauthorized, err
 	}
-
-	err := auth.VerifyTotpCode(targetUser, code, usersStore)
+	user, getErr := state.GetUserByUsername(r.URL.Query().Get("username"))
+	if getErr != nil {
+		return http.StatusNotFound, fmt.Errorf("user not found: %w", getErr)
+	}
+	err = auth.VerifyTotpCode(&user, code, usersStore)
 	if err != nil {
 		return http.StatusUnauthorized, fmt.Errorf("invalid OTP token")
 	}
@@ -96,4 +78,33 @@ func verifyOTPHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 	// On success, return a simple confirmation.
 	return renderJSON(w, r, response)
+}
+
+func checkPassword(r *http.Request, d *requestContext) error {
+	providedPassword := r.Header.Get("X-Password")
+	username := r.URL.Query().Get("username")
+	if d.user.Permissions.Admin {
+		username = d.user.Username
+	}
+	// url decode
+	providedPassword, err := url.QueryUnescape(providedPassword)
+	if err != nil {
+		return fmt.Errorf("invalid password encoding: %v", err)
+	}
+	if providedPassword == "" {
+		return fmt.Errorf("password is required")
+	}
+	user, getErr := state.GetUserByUsername(username)
+	var passwordHash string
+	if getErr != nil {
+		passwordHash = utils.InvalidPasswordHash
+	} else {
+		passwordHash = user.Password
+	}
+	// always run checkPwd to prevent timing attacks
+	err = utils.CheckPwd(providedPassword, passwordHash)
+	if err != nil {
+		return fmt.Errorf("invalid password or user not found")
+	}
+	return nil
 }

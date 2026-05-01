@@ -68,7 +68,14 @@ export default {
     // Check if state and route are synchronized
     isStateSynced() {
       if (this.viewerMode) return true;
-      if (!this.routeFilename || !this.originalReq) return false;
+      if (!this.originalReq || !this.req) return false;
+      if (getters.isShare()) {
+        const subPath = state.shareInfo?.subPath;
+        if (subPath === undefined || subPath === null) return false;
+        if (!url.pathsMatch(this.req.path, subPath)) return false;
+        return url.pathsMatch(this.originalReq.path, this.req.path);
+      }
+      if (!this.routeFilename) return false;
       return this.originalReq.name === this.routeFilename;
     },
     // Editor content to display
@@ -284,8 +291,6 @@ export default {
           listing = [this.req];
         }
       } else {
-        console.error("No listing found Editor.vue");
-        // Shouldn't happen, but fallback to current item
         listing = [this.req];
       }
 

@@ -3085,7 +3085,7 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "Updates the details of a user identified by ID. When updating the target user's password the actor must send their current password in the X-Password header",
+                "description": "Updates the details of a user identified by ID. When the authenticated actor uses password login, they must send their current password in the X-Password header unless the update only touches NonAdminEditable profile fields (not password). Full updates (which empty or \"all\") or any admin-only field require confirmation.",
                 "consumes": [
                     "application/json"
                 ],
@@ -3108,7 +3108,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Actor's current password (URL-encoded); required when changing a password user's password",
+                        "description": "Actor's current password (URL-encoded); required for password-login actors when updating password, using which=all, or any field outside NonAdminEditable",
                         "name": "X-Password",
                         "in": "header"
                     },
@@ -3136,7 +3136,7 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "Unauthorized - invalid or missing actor password for password change",
+                        "description": "Unauthorized - invalid or missing actor password when required",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -3165,7 +3165,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "Adds a new user to the system.",
+                "description": "Adds a new user to the system. When the authenticated actor uses password login, they must send their current password in the X-Password header.",
                 "consumes": [
                     "application/json"
                 ],
@@ -3177,6 +3177,12 @@ const docTemplate = `{
                 ],
                 "summary": "Create a new user",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Actor's current password (URL-encoded); required for password-login actors",
+                        "name": "X-Password",
+                        "in": "header"
+                    },
                     {
                         "description": "User data to create a new user",
                         "name": "data",
@@ -3196,6 +3202,15 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - invalid or missing actor password when required",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -5095,7 +5110,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "secret": {
-                    "description": "secret: shared secret key for verifying JWT token signatures (required)",
+                    "description": "Shared secret key/bytes for verifying JWT token signatures (required, eg PUBLIC KEY, RSA PUBLIC KEY, EC PUBLIC KEY, or CERTIFICATE)",
                     "type": "string"
                 },
                 "userGroups": {
@@ -5592,7 +5607,7 @@ const docTemplate = `{
                     ]
                 },
                 "createUserDir": {
-                    "description": "deprecated: create a user directory for each user under defaultUserScope + username (always true now)",
+                    "description": "create a user directory for each user under defaultUserScope + username",
                     "type": "boolean"
                 },
                 "defaultEnabled": {

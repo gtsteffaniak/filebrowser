@@ -1,6 +1,7 @@
 {
   "buttons": {
     "copySuccess": "Gekopieerd naar klembord!",
+    "copyFailed": "Kopiëren naar klembord mislukt",
     "copyFile": "Bestand kopiëren",
     "copyToClipboard": "Kopiëren naar klembord",
     "moveFile": "Verplaats bestand",
@@ -215,8 +216,6 @@
     "selectHashAlgorithm": "Selecteer een hash-algoritme",
     "generate": "genereren",
     "errorGeneratingHash": "Fout bij het genereren van hash",
-    "hashCopied": "Hash gekopieerd naar klembord",
-    "errorCopyingHash": "Fout bij het kopiëren van hash",
     "token": "Penning",
     "onlyOfficeId": "Alleen kantoor-ID",
     "firstLoadTitle": "Welkom bij FileBrowser Quantum!",
@@ -227,7 +226,6 @@
     "renameSuccess": "Item hernoemd succesvol!",
     "newFileSuccess": "Bestand succesvol aangemaakt!",
     "newDirSuccess": "Directory succesvol aangemaakt!",
-    "copyToClipboardFailed": "Kan niet naar klembord kopiëren",
     "moveFailed": "Verplaatsen mislukt",
     "operationFailed": "Operatie mislukt",
     "partialSuccess": "Sommige bewerkingen zijn mislukt: {succeeded} gelukt, {failed} mislukt.",
@@ -243,7 +241,7 @@
     "unarchiveDestination": "Uittreksel naar:",
     "unarchiveSuccess": "Archief met succes uitgepakt!",
     "downloadFailed": "Chunkedownload mislukt - als dit zich herhaalt, probeer dan de grootte van de chunk te verkleinen: {message}",
-    "confirmPasswordToChangeUserPassword": "Voer uw huidige wachtwoord in om deze wachtwoordwijziging te autoriseren."
+    "confirmPasswordToSaveUser": "Voer uw huidige wachtwoord in om deze gebruikerswijzigingen op te slaan."
   },
   "search": {
     "smallerThan": "Kleiner dan:",
@@ -334,7 +332,6 @@
     "tusUploadsRetryCount": "Aantal pogingen dat moet worden uitgevoerd als het uploaden van een chunk mislukt.",
     "userHomeBasePath": "Basispad voor homedirectory's van gebruikers",
     "userScopeGenerationPlaceholder": "De scope wordt automatisch gegenereerd",
-    "createUserHomeDirectory": "Thuismap gebruiker aanmaken",
     "shareSettings": "Instellingen delen",
     "shareDeleted": "Deel verwijderd!",
     "adminOptions": "Opties voor beheerders",
@@ -544,7 +541,8 @@
     "enabledSuccessfully": "OTP succesvol ingeschakeld",
     "verificationFailed": "Verificatie mislukt",
     "verificationSucceed": "Verificatie slagen",
-    "generationFailed": "Generatie mislukt"
+    "generationFailed": "Generatie mislukt",
+    "passwordRequiredForGeneration": "Uw wachtwoord is nodig om een verificatiecode te genereren."
   },
   "fileLoading": {
     "title": "Uploaden en downloads",
@@ -845,8 +843,6 @@
       "showingResults": "Resultaten tonen {count} ",
       "noResults": "Geen pictogrammen gevonden",
       "tryDifferentSearch": "Probeer een andere zoekterm",
-      "copiedToClipboard": "Gekopieerd '{name}' naar klembord!",
-      "copyFailed": "Kopiëren naar klembord mislukt",
       "custom": "Aangepast",
       "useCustomIcon": "Gebruik een aangepast pictogram: {name}",
       "iconLibraryUrl": "lettertypen.google.com/iconen",
@@ -870,7 +866,8 @@
     "reassignPath": "Pad opnieuw toewijzen",
     "pathReassigned": "Pad succesvol bijgewerkt!",
     "pathReassignFailed": "Het bijwerken van het pad is mislukt. Probeer het opnieuw.",
-    "incompleteResultsDetails": "Max resultaten ({max}). Probeer uw zoekopdracht te verfijnen voor meer resultaten onder {max}."
+    "incompleteResultsDetails": "Max resultaten ({max}). Probeer uw zoekopdracht te verfijnen voor meer resultaten onder {max}.",
+    "noCreateOptions": "Er zijn geen opties beschikbaar"
   },
   "duplicateFinder": {
     "title": "Duplicaat bestand zoeken",

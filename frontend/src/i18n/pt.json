@@ -1,6 +1,7 @@
 {
   "buttons": {
     "copySuccess": "Copiado para a área de transferência!",
+    "copyFailed": "Falha ao copiar para a área de transferência",
     "copyFile": "Copiar ficheiro",
     "copyToClipboard": "Copiar",
     "moveFile": "Mover ficheiro",
@@ -215,8 +216,6 @@
     "selectHashAlgorithm": "Selecionar um algoritmo de hash",
     "generate": "Gerar",
     "errorGeneratingHash": "Erro ao gerar hash",
-    "hashCopied": "Hash copiado para a área de transferência",
-    "errorCopyingHash": "Erro ao copiar o hash",
     "token": "Ficha",
     "onlyOfficeId": "ID do OnlyOffice",
     "firstLoadTitle": "Bem-vindo ao FileBrowser Quantum!",
@@ -227,7 +226,6 @@
     "renameSuccess": "Item renomeado com sucesso!",
     "newFileSuccess": "Ficheiro criado com sucesso!",
     "newDirSuccess": "Diretório criado com sucesso!",
-    "copyToClipboardFailed": "Não é possível copiar para a área de transferência",
     "moveFailed": "Falha ao mover",
     "operationFailed": "A operação falhou",
     "partialSuccess": "Algumas operações falharam: {succeeded} foi bem sucedido, {failed} falhou",
@@ -243,7 +241,7 @@
     "unarchiveDestination": "Extrair para:",
     "unarchiveSuccess": "Arquivo extraído com sucesso!",
     "downloadFailed": "Falha na transferência em pedaços - se isto se repetir, tente reduzir o tamanho dos pedaços: {message}",
-    "confirmPasswordToChangeUserPassword": "Introduza a sua palavra-passe atual para autorizar esta alteração de palavra-passe."
+    "confirmPasswordToSaveUser": "Introduza a sua palavra-passe atual para guardar estas alterações de utilizador."
   },
   "search": {
     "smallerThan": "Mais pequeno do que:",
@@ -334,7 +332,6 @@
     "tusUploadsRetryCount": "Número de tentativas a efetuar se um pedaço não for carregado.",
     "userHomeBasePath": "Caminho de base para as diretorias pessoais dos utilizadores",
     "userScopeGenerationPlaceholder": "O âmbito será gerado automaticamente",
-    "createUserHomeDirectory": "Criar o diretório pessoal do utilizador",
     "shareSettings": "Partilhar definições",
     "shareDeleted": "Partilhar eliminado!",
     "adminOptions": "Opções do utilizador administrador",
@@ -544,7 +541,8 @@
     "enabledSuccessfully": "OTP ativado com sucesso",
     "verificationFailed": "Falha na verificação",
     "verificationSucceed": "Verificação de sucesso",
-    "generationFailed": "Geração falhada"
+    "generationFailed": "Geração falhada",
+    "passwordRequiredForGeneration": "A sua palavra-passe é necessária para gerar um código de autenticação."
   },
   "fileLoading": {
     "title": "Carregamentos e transferências",
@@ -845,8 +843,6 @@
       "showingResults": "Mostrando {count} resultados",
       "noResults": "Não foram encontrados ícones",
       "tryDifferentSearch": "Experimente um termo de pesquisa diferente",
-      "copiedToClipboard": "Copiou '{name}' para a área de transferência!",
-      "copyFailed": "Falha ao copiar para a área de transferência",
       "custom": "Personalizado",
       "useCustomIcon": "Utilizar um ícone personalizado: {name}",
       "iconLibraryUrl": "fonts.google.com/icons",
@@ -870,7 +866,8 @@
     "reassignPath": "Reatribuir trajetória",
     "pathReassigned": "Caminho atualizado com sucesso!",
     "pathReassignFailed": "Falha ao atualizar o caminho. Por favor, tente novamente.",
-    "incompleteResultsDetails": "Mostrando resultados máximos ({max}). Tente restringir a sua pesquisa para obter mais resultados em {max}."
+    "incompleteResultsDetails": "Mostrando resultados máximos ({max}). Tente restringir a sua pesquisa para obter mais resultados em {max}.",
+    "noCreateOptions": "Não estão disponíveis opções de criação"
   },
   "duplicateFinder": {
     "title": "Localizador de ficheiros duplicados",

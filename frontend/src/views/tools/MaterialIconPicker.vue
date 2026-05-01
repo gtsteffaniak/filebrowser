@@ -66,7 +66,7 @@
 
 <script>
 import { materialSymbols, getIconClass } from "@/utils/material-symbols";
-import { notify } from "@/notify";
+import { copyToClipboard } from "@/utils/clipboard";
 
 export default {
   name: "MaterialIconPicker",
@@ -125,37 +125,7 @@ export default {
   methods: {
     getIconClass,
     async copyIconName(iconName) {
-      try {
-        await navigator.clipboard.writeText(iconName);
-        notify.showSuccessToast(
-          this.$t('tools.materialIconPicker.copiedToClipboard', { name: iconName })
-        );
-      } catch (err) {
-        console.error("Failed to copy icon name:", err);
-        // Fallback for older browsers
-        this.fallbackCopy(iconName);
-      }
-    },
-    fallbackCopy(text) {
-      const textArea = document.createElement("textarea");
-      textArea.value = text;
-      textArea.style.position = "fixed";
-      textArea.style.left = "-999999px";
-      document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-
-      try {
-        document.execCommand("copy");
-        notify.showSuccessToast(
-          this.$t('tools.materialIconPicker.copiedToClipboard', { name: text })
-        );
-      } catch (err) {
-        console.error("Fallback copy failed:", err);
-        notify.showErrorToast(this.$t('tools.materialIconPicker.copyFailed'));
-      }
-
-      document.body.removeChild(textArea);
+      await copyToClipboard(iconName);
     },
   },
 };

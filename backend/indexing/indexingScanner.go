@@ -502,7 +502,6 @@ func (s *Scanner) calculateSleepTime() time.Duration {
 // updateSchedule adjusts the scanner's schedule based on whether files changed
 func (s *Scanner) updateSchedule() {
 	s.statsMu.Lock()
-	defer s.statsMu.Unlock()
 
 	// Calculate sleep time BEFORE updating schedule (based on current/old schedule)
 	s.nextSleepTime = scanSchedule[s.currentSchedule] + s.smartModifier
@@ -539,7 +538,10 @@ func (s *Scanner) updateSchedule() {
 		s.currentSchedule = len(scanSchedule) - 1
 	}
 
-	// Persist index after schedule update (happens after each scan)
+	s.statsMu.Unlock()
+
+	// Save must NOT run while holding statsMu (see deadlock: GetScannerStatus = idx.mu then
+	// scanner stats; Save = idx.mu RL while GetIndexInfo may queue idx.mu LW).
 	if err := s.idx.Save(); err != nil {
 		logger.Errorf("Failed to save index after schedule update: %v", err)
 	}
@@ -549,8 +551,6 @@ func (s *Scanner) updateSchedule() {
 // 0: unknown
 func (s *Scanner) updateComplexity() {
 	s.statsMu.Lock()
-	defer s.statsMu.Unlock()
-
 	s.complexity = calculateComplexity(s.fullScanTime, s.numDirs)
 
 	// Set smartModifier based on complexity level
@@ -559,7 +559,9 @@ func (s *Scanner) updateComplexity() {
 	} else {
 		s.smartModifier = 0
 	}
-	// Persist index after complexity update (happens after full scans)
+	s.statsMu.Unlock()
+
+	// Persist after full scans — release statsMu before Save (same ordering as updateSchedule).
 	if err := s.idx.Save(); err != nil {
 		logger.Errorf("Failed to save index after complexity update: %v", err)
 	}

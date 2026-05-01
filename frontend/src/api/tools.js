@@ -86,9 +86,9 @@ export async function fileWatcherLatencyCheck() {
 }
 
 // GET /api/tools/fileWatcher
-export async function fileWatcher(source, path) {
+export async function fileWatcher(source, path, lines) {
   try {
-    const params = { source, path };
+    const params = { source, path, lines: lines };
     const apiPath = getApiPath("tools/fileWatcher", params);
     const res = await fetchURL(apiPath);
     return await res.json();

@@ -19,7 +19,7 @@ func MakeUserDir(fullPath string) error {
 	return nil
 }
 
-func MakeUserDirs(u *users.User) error {
+func MakeUserDirs(u *users.User, createDir bool) error {
 	cleanedUserName := users.CleanUsername(u.Username)
 	if cleanedUserName == "" || cleanedUserName == "-" || cleanedUserName == "." {
 		return fmt.Errorf("MakeUserDirs: invalid user for home dir creation: [%s]", u.Username)
@@ -31,8 +31,8 @@ func MakeUserDirs(u *users.User) error {
 		}
 		fullPath := filepath.Join(source.Path, scope.Scope)
 		parentDir := filepath.Dir(fullPath)
-		if source.Config.CreateUserDir {
-			if filepath.Base(scope.Scope) != cleanedUserName {
+		if createDir {
+			if source.Config.CreateUserDir && filepath.Base(scope.Scope) != cleanedUserName {
 				scope.Scope = utils.JoinPathAsUnix(scope.Scope, cleanedUserName)
 				fullPath = filepath.Join(fullPath, cleanedUserName)
 			}

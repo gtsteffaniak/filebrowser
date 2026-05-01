@@ -72,10 +72,6 @@
         :clickable=true
         :isShared="isShared"
       />
-      <Icon
-        v-else-if="quickDownloadPlaceholder"
-        class="placeholder"
-      />
   </a>
   <div
     v-else
@@ -222,10 +218,10 @@ export default {
       // @ts-ignore
       if (getters.isShare()) {
         // @ts-ignore
-        return state.shareInfo?.quickDownload && !this.galleryView && !this.isDir;
+        return state.shareInfo?.quickDownload && !this.galleryView;
       }
       // @ts-ignore
-      return state.user?.quickDownload && !this.galleryView && !this.isDir;
+      return state.user?.quickDownload && !this.galleryView;
     },
     quickDownloadPlaceholder() {
       // @ts-ignore
@@ -554,13 +550,11 @@ export default {
       let items = [];
       for (let i of state.selected) {
         items.push({
-          // @ts-ignore
           from: state.req.items[i].path,
-          // @ts-ignore
           fromSource: state.req.items[i].source,
-          // @ts-ignore
           to: url.joinPath(this.path, state.req.items[i].name),
           toSource: this.source,
+          name: state.req.items[i].name,
         });
       }
 

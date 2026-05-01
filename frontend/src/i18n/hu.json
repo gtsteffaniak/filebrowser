@@ -1,6 +1,7 @@
 {
   "buttons": {
     "copySuccess": "Vágólapra másolva!",
+    "copyFailed": "Nem sikerült a vágólapra másolni",
     "copyFile": "Fájl másolása",
     "copyToClipboard": "Másolás vágólapra",
     "moveFile": "Fájl mozgatása",
@@ -215,8 +216,6 @@
     "selectHashAlgorithm": "Válasszon ki egy hash algoritmust",
     "generate": "Generálja",
     "errorGeneratingHash": "Hiba generáló hash",
-    "hashCopied": "Hash másolva a vágólapra",
-    "errorCopyingHash": "Hiba a hash másolásában",
     "token": "Token",
     "onlyOfficeId": "OnlyOffice ID",
     "firstLoadTitle": "Üdvözöljük a FileBrowser Quantum-on!",
@@ -227,7 +226,6 @@
     "renameSuccess": "Az elem átnevezése sikeres volt!",
     "newFileSuccess": "A fájl sikeresen létrehozva!",
     "newDirSuccess": "A könyvtárat sikeresen létrehoztuk!",
-    "copyToClipboardFailed": "Nem lehet a vágólapra másolni",
     "moveFailed": "Áthelyezés sikertelen",
     "operationFailed": "A művelet sikertelen",
     "partialSuccess": "Néhány művelet sikertelen: {succeeded} sikeres volt, {failed} sikertelen.",
@@ -243,7 +241,7 @@
     "unarchiveDestination": "Kivonat a következő címre:",
     "unarchiveSuccess": "Az archívum sikeresen kinyomtatva!",
     "downloadFailed": "A darabos letöltés sikertelen - ha ez ismétlődik, próbálja meg csökkenteni a darabos letöltés méretét: {message}",
-    "confirmPasswordToChangeUserPassword": "A jelszóváltoztatás engedélyezéséhez adja meg a jelenlegi jelszavát."
+    "confirmPasswordToSaveUser": "A felhasználói módosítások mentéséhez adja meg az aktuális jelszavát."
   },
   "search": {
     "smallerThan": "Kisebb, mint:",
@@ -277,7 +275,6 @@
     "createUserDir": "Felhasználók saját mappáinak automatikus létrehozása új felhasználók hozzáadásakor",
     "userHomeBasePath": "Alap elérési útvonal a felhasználók saját mappáihoz",
     "userScopeGenerationPlaceholder": "A környezet automatikus lesz létrehozva",
-    "createUserHomeDirectory": "Felhasználói saját mappák létrehozása",
     "customStylesheet": "Egyéni stíluslap",
     "defaultUserDescription": "Ezek az alapértelmezett beállítások az új felhasználók számára.",
     "disableExternalLinks": "Külső linkek letiltása (kivéve a dokumentáció)",
@@ -544,7 +541,8 @@
     "enabledSuccessfully": "OTP sikeresen engedélyezve",
     "verificationFailed": "Ellenőrzés sikertelen",
     "verificationSucceed": "Ellenőrzés Succeed",
-    "generationFailed": "Nemzedék sikertelen"
+    "generationFailed": "Nemzedék sikertelen",
+    "passwordRequiredForGeneration": "A hitelesítési kód generálásához a jelszóra van szükség."
   },
   "general": {
     "name": "Név",
@@ -845,8 +843,6 @@
       "showingResults": "{count} eredmények megjelenítése",
       "noResults": "Nem talált ikonok",
       "tryDifferentSearch": "Próbáljon ki egy másik kereső kifejezést",
-      "copiedToClipboard": "Másolt '{name}' a vágólapra!",
-      "copyFailed": "Nem sikerült a vágólapra másolni",
       "custom": "Custom",
       "useCustomIcon": "Egyéni ikon használata: {name}",
       "iconLibraryUrl": "fonts.google.com/icons",
@@ -870,7 +866,8 @@
     "reassignPath": "Útvonal újbóli kijelölése",
     "pathReassigned": "Az útvonal sikeresen frissült!",
     "pathReassignFailed": "Nem sikerült frissíteni az elérési utat. Kérjük, próbálja újra.",
-    "incompleteResultsDetails": "Maximális eredmények megjelenítése ({max}). Próbálja szűkíteni a keresést, hogy több eredményt kapjon a {max} alatt ."
+    "incompleteResultsDetails": "Maximális eredmények megjelenítése ({max}). Próbálja szűkíteni a keresést, hogy több eredményt kapjon a {max} alatt .",
+    "noCreateOptions": "Nincs lehetőség létrehozására"
   },
   "duplicateFinder": {
     "title": "Duplikátum fájl kereső",

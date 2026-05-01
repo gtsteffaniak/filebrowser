@@ -1,6 +1,7 @@
 {
   "buttons": {
     "copySuccess": "クリップボードにコピーしました！",
+    "copyFailed": "クリップボードへのコピーに失敗しました",
     "copyFile": "ファイルをコピー",
     "copyToClipboard": "クリップボードにコピー",
     "moveFile": "ファイルを移動",
@@ -215,8 +216,6 @@
     "selectHashAlgorithm": "ハッシュアルゴリズムの選択",
     "generate": "生成する",
     "errorGeneratingHash": "ハッシュ生成エラー",
-    "hashCopied": "クリップボードにコピーされたハッシュ",
-    "errorCopyingHash": "ハッシュのコピーエラー",
     "token": "トークン",
     "onlyOfficeId": "オンリーオフィスID",
     "firstLoadTitle": "FileBrowser Quantumへようこそ！",
@@ -227,7 +226,6 @@
     "renameSuccess": "アイテム名の変更に成功しました！",
     "newFileSuccess": "ファイルは正常に作成されました！",
     "newDirSuccess": "ディレクトリは正常に作成されました！",
-    "copyToClipboardFailed": "クリップボードにコピーできない",
     "moveFailed": "移動に失敗しました",
     "operationFailed": "操作失敗",
     "partialSuccess": "{succeeded} は成功、{failed} は失敗。",
@@ -243,7 +241,7 @@
     "unarchiveDestination": "に抜粋する：",
     "unarchiveSuccess": "アーカイブは正常に抽出されました！",
     "downloadFailed": "チャンクダウンロードに失敗しました - これが繰り返される場合は、チャンクサイズを小さくしてみてください：{message}",
-    "confirmPasswordToChangeUserPassword": "現在のパスワードを入力して、パスワードの変更を承認します。"
+    "confirmPasswordToSaveUser": "現在のパスワードを入力して、ユーザーの変更を保存します。"
   },
   "search": {
     "smallerThan": "より小さい：",
@@ -328,7 +326,6 @@
     "tusUploadsRetryCount": "チャンクのアップロードに失敗した場合の再試行回数",
     "userHomeBasePath": "ユーザーホームディレクトリのベースパス",
     "userScopeGenerationPlaceholder": "スコープは自動生成されます。",
-    "createUserHomeDirectory": "ユーザーホームディレクトリの作成",
     "shareDeleted": "共有が削除されました",
     "loginMethodDescription": "ユーザーに許可されるログイン方法",
     "userNotAdmin": "ユーザーは管理者ではありません",
@@ -544,7 +541,8 @@
     "enabledSuccessfully": "OTPの有効化に成功しました",
     "verificationFailed": "検証に失敗しました",
     "verificationSucceed": "検証に成功しました",
-    "generationFailed": "生成に失敗しました"
+    "generationFailed": "生成に失敗しました",
+    "passwordRequiredForGeneration": "認証コードを生成するにはパスワードが必要です。"
   },
   "general": {
     "name": "名前",
@@ -845,8 +843,6 @@
       "showingResults": "{count} の結果を表示",
       "noResults": "アイコンが見つかりません",
       "tryDifferentSearch": "別の検索語を試す",
-      "copiedToClipboard": "{name}' をクリップボードにコピー！",
-      "copyFailed": "クリップボードへのコピーに失敗しました",
       "custom": "カスタム",
       "useCustomIcon": "カスタムアイコンを使用する：{name}",
       "iconLibraryUrl": "fonts.google.com/icons",
@@ -870,7 +866,8 @@
     "reassignPath": "パスの再割り当て",
     "pathReassigned": "パスは正常に更新されました！",
     "pathReassignFailed": "パスの更新に失敗しました。再試行してください。",
-    "incompleteResultsDetails": "最大結果を表示 ({max}).{max} でより多くの結果を得るために絞り込んで検索してみてください。"
+    "incompleteResultsDetails": "最大結果を表示 ({max}).{max} でより多くの結果を得るために絞り込んで検索してみてください。",
+    "noCreateOptions": "作成オプションはありません"
   },
   "duplicateFinder": {
     "title": "重複ファイルファインダー",

@@ -42,6 +42,7 @@ server:
             ignoreSymlinks: false         # Excludes symbolic links
         defaultUserScope: "/"             # defaults to root of index "/" should match folders under path
         defaultEnabled: true              # should be added as a default source for new users?
+        createUserDir: false              # create a user directory for each user under defaultUserScope + username
         useLogicalSize: false             # calculate sizes based on logical size instead of disk utilization (du -sh), folders will be 0 bytes when empty.
   externalUrl: ""                         # used by share links if set (eg. http://mydomain.com)
   internalUrl: ""                         # used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
@@ -117,7 +118,7 @@ auth:
       disableVerifyTLS: false             # disable TLS verification (insecure, for testing only)
       logoutRedirectUrl: ""               # if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.
       header: ""                          # HTTP header to look for JWT token (e.g. X-JWT-Assertion). Default is "X-JWT-Assertion"
-      secret: ""                          # secret: shared secret key for verifying JWT token signatures (required)
+      secret: ""                          # Shared secret key/bytes for verifying JWT token signatures (required, eg PUBLIC KEY, RSA PUBLIC KEY, EC PUBLIC KEY, or CERTIFICATE)
       algorithm: ""                       # JWT signing algorithm (HS256, HS384, HS512, RS256, ES256). Default is "HS256"
   key: ""                                 # secret: the key used to sign the JWT tokens. If not set, a random key will be generated.
   adminUsername: "admin"                  # secret: the username of the admin user. If not set, the default is "admin".

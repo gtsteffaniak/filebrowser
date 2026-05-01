@@ -376,13 +376,14 @@ export default {
           "debugOffice",
           "preferEditorForMarkdown",
         ]);
-        if (themeChanged) {
-          window.location.reload();
-        }
         notify.showSuccessToast(
           this.$t('settings.settingsUpdated')
         );
-
+        if (themeChanged) {
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        }
       } catch (e) {
         console.error(e);
       }

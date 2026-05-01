@@ -47,7 +47,7 @@
               </button>
             </td>
             <td class="small">
-              <button class="action copy-clipboard" :data-clipboard-text="link.token"
+              <button class="action" @click.stop="copyToClipboard(link.token)"
                 :aria-label="$t('buttons.copyToClipboard')" :title="$t('buttons.copyToClipboard')">
                 <i class="material-symbols">content_paste</i>
               </button>
@@ -65,10 +65,9 @@
 </template>
 
 <script>
-import { notify } from "@/notify";
 import { authApi } from "@/api";
 import { state, mutations, getters } from "@/store";
-import Clipboard from "clipboard";
+import { copyToClipboard } from "@/utils/clipboard";
 import Errors from "@/views/Errors.vue";
 import { eventBus } from "@/store/eventBus";
 
@@ -81,7 +80,6 @@ export default {
     return {
       error: null,
       links: [],
-      clip: null,
       user: {
         permissions: { ...state.user.permissions}
       },
@@ -93,14 +91,10 @@ export default {
   mounted() {
     // Listen for API key changes
     eventBus.on('apiKeysChanged', this.reloadApiKeys);
-    this.initClipboard();
   },
   beforeUnmount() {
     // Clean up event listener
     eventBus.off('apiKeysChanged', this.reloadApiKeys);
-    if (this.clip) {
-      this.clip.destroy();
-    }
   },
   computed: {
     settings() {
@@ -114,16 +108,8 @@ export default {
     },
   },
   methods: {
-    initClipboard() {
-      // Destroy existing clipboard first
-      if (this.clip) {
-        this.clip.destroy();
-      }
-      // Create new clipboard instance
-      this.clip = new Clipboard(".copy-clipboard");
-      this.clip.on("success", () => {
-        notify.showSuccessToast(this.$t("success.linkCopied")); // Use consistent message
-      });
+    async copyToClipboard(text) {
+      await copyToClipboard(text);
     },
     async reloadApiKeys() {
       mutations.setLoading("api", true);
@@ -131,10 +117,6 @@ export default {
         // Fetch the API keys from the specified endpoint
         this.links = await authApi.getApiKeys();
         this.error = null; // Clear errors
-      // Reinitialize clipboard after data changes
-      this.$nextTick(() => {
-        this.initClipboard();
-      });
       } catch (e) {
         // ignore 404 errors
         if (e.status !== 404) {

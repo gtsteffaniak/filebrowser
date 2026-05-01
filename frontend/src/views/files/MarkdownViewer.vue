@@ -12,7 +12,7 @@ import { marked } from "marked";
 import DOMPurify from 'dompurify';
 import { state, mutations, getters } from "@/store";
 import hljs from 'highlight.js';
-import { notify } from "@/notify";
+import { copyToClipboard } from "@/utils/clipboard";
 
 export default {
   name: "markdownViewer",
@@ -99,37 +99,11 @@ export default {
           }, 1500);
         };
         try {
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            // Using clipboard API
-            navigator.clipboard.writeText(text).then(() => {
-              showFeedback(true);
-              notify.showSuccessToast(this.$t('buttons.copySuccess'));
-            }).catch((err) => {
-              console.error('Clipboard API error:', err);
-              showFeedback(false);
-              notify.showErrorToast(this.$t('tools.materialIconPicker.copyFailed'));
-            });
-          } else {
-            // Fallback using execCommand.
-            // This seems the only way to allow copy from http (insecure) connections (even if is marked as deprecated) 
-            const textarea = document.createElement('textarea');
-            textarea.value = text;
-            document.body.appendChild(textarea);
-            textarea.select();
-            const success = document.execCommand('copy');
-            document.body.removeChild(textarea);
-            if (success) {
-              showFeedback(true);
-              notify.showSuccessToast(this.$t('buttons.copySuccess'));
-            } else {
-              showFeedback(false);
-              notify.showErrorToast(this.$t('tools.materialIconPicker.copyFailed'));
-            }
-          }
+          const success = await copyToClipboard(text);
+          showFeedback(success);
         } catch (err) {
           console.error('Copy failed:', err);
           showFeedback(false);
-          notify.showErrorToast(this.$t('tools.materialIconPicker.copyFailed'));
         }
       });
       wrapper.appendChild(copyButton);

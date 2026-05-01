@@ -59,7 +59,11 @@ type handleFunc func(w http.ResponseWriter, r *http.Request, data *requestContex
 func withHashFileHelper(fn handleFunc) handleFunc {
 	return withOrWithoutUserHelper(func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
 		hash := r.URL.Query().Get("hash")
-		path := r.URL.Query().Get("path")
+		inputPath := r.URL.Query().Get("path")
+		path, err := utils.SanitizeUserPath(inputPath)
+		if err != nil && inputPath != "" {
+			return http.StatusBadRequest, err
+		}
 
 		link, err := state.GetShare(hash)
 		if err != nil {
@@ -339,7 +343,7 @@ func withoutUserHelper(fn handleFunc) handleFunc {
 }
 
 // allow user without OTP to pass
-func userWithoutOTPhelper(fn handleFunc) handleFunc {
+func LoginHelper(disableOtp bool, fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 		if config.Auth.Methods.ProxyAuth.Enabled {
 			proxyUser := r.Header.Get(config.Auth.Methods.ProxyAuth.Header)
@@ -385,18 +389,7 @@ func userWithoutOTPhelper(fn handleFunc) handleFunc {
 			logger.Debug("ldap auth failed, calling password auth", err)
 		}
 		if config.Auth.Methods.PasswordAuth.Enabled {
-			// Build recaptcha config if enabled
-			var recaptcha *auth.ReCaptcha
-			authCfg := config.Auth.Methods.PasswordAuth
-			if authCfg.Recaptcha.Host != "" && authCfg.Recaptcha.Secret != "" {
-				recaptcha = &auth.ReCaptcha{
-					Host:   authCfg.Recaptcha.Host,
-					Key:    authCfg.Recaptcha.Key,
-					Secret: authCfg.Recaptcha.Secret,
-				}
-			}
-			// Authenticate the user based on the request
-			user, err := auth.AuthenticatePassword(r, usersStore, recaptcha)
+			user, err := auth.AuthenticatePassword(r, usersStore, true)
 			if err != nil {
 				logger.Debug("password auth failed, calling handler", err)
 				if err == errors.ErrNoTotpProvided {
@@ -700,8 +693,8 @@ func withoutUser(fn handleFunc) http.HandlerFunc {
 	return wrapHandler(withoutUserHelper(fn))
 }
 
-func userWithoutOTP(fn handleFunc) http.HandlerFunc {
-	return wrapHandler(userWithoutOTPhelper(fn))
+func loginHelper(fn handleFunc) http.HandlerFunc {
+	return wrapHandler(LoginHelper(false, fn))
 }
 
 func withSelfOrAdmin(fn handleFunc) http.HandlerFunc {

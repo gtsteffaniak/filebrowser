@@ -105,7 +105,7 @@ func getDirectoryPreview(r *http.Request, d *requestContext, frameIndex int) (*i
 	// Build list of previewable item names in stable order (same as d.fileInfo.Files)
 	var previewableNames []string
 	for _, item := range d.fileInfo.Files {
-		if !item.HasPreview || !iteminfo.ShouldBubbleUpToFolderPreview(item.ItemInfo) {
+		if !iteminfo.ShouldBubbleUpToFolderPreview(item.ItemInfo) {
 			continue
 		}
 		previewableNames = append(previewableNames, item.Name)

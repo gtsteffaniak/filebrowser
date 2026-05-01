@@ -1,6 +1,7 @@
 {
   "buttons": {
     "copySuccess": "已复制到剪贴板！",
+    "copyFailed": "复制到剪贴板失败",
     "copyFile": "复制文件",
     "copyToClipboard": "复制到剪贴板",
     "moveFile": "移动文件",
@@ -215,8 +216,6 @@
     "selectHashAlgorithm": "选择散列算法",
     "generate": "生成",
     "errorGeneratingHash": "错误生成哈希值",
-    "hashCopied": "哈希值复制到剪贴板",
-    "errorCopyingHash": "复制哈希值出错",
     "token": "代币",
     "onlyOfficeId": "唯一办公室 ID",
     "firstLoadTitle": "欢迎访问 FileBrowser Quantum！",
@@ -227,7 +226,6 @@
     "renameSuccess": "项目重命名成功！",
     "newFileSuccess": "文件创建成功！",
     "newDirSuccess": "目录创建成功！",
-    "copyToClipboardFailed": "无法复制到剪贴板",
     "moveFailed": "移动失败",
     "operationFailed": "操作失败",
     "partialSuccess": "某些操作失败：{succeeded} 成功，{failed} 失败",
@@ -243,7 +241,7 @@
     "unarchiveDestination": "摘录至",
     "unarchiveSuccess": "档案提取成功！",
     "downloadFailed": "分块下载失败 - 如果重复出现这种情况，请尝试减小分块大小：{message}",
-    "confirmPasswordToChangeUserPassword": "输入您的当前密码以授权密码更改。"
+    "confirmPasswordToSaveUser": "输入您当前的密码以保存这些用户更改。"
   },
   "search": {
     "smallerThan": "小于",
@@ -335,7 +333,6 @@
     "tusUploadsRetryCount": "块上传失败时的重试次数。",
     "userHomeBasePath": "用户主目录的基本路径",
     "userScopeGenerationPlaceholder": "范围将自动生成",
-    "createUserHomeDirectory": "创建用户主目录",
     "shareSettings": "共享设置",
     "adminOptions": "管理员用户选项",
     "searchOptions": "搜索选项",
@@ -544,7 +541,8 @@
     "enabledSuccessfully": "成功启用 OTP",
     "verificationFailed": "验证失败",
     "verificationSucceed": "验证成功",
-    "generationFailed": "一代失败"
+    "generationFailed": "一代失败",
+    "passwordRequiredForGeneration": "生成验证码需要您输入密码。"
   },
   "fileLoading": {
     "title": "上传和下载",
@@ -845,8 +843,6 @@
       "showingResults": "显示{count} 结果",
       "noResults": "未找到图标",
       "tryDifferentSearch": "尝试不同的搜索词",
-      "copiedToClipboard": "将 '{name}' 复制到剪贴板！",
-      "copyFailed": "复制到剪贴板失败",
       "custom": "定制",
       "useCustomIcon": "使用自定义图标：{name}",
       "iconLibraryUrl": "fonts.google.com/icons",
@@ -870,7 +866,8 @@
     "reassignPath": "重新分配路径",
     "pathReassigned": "路径更新成功！",
     "pathReassignFailed": "更新路径失败。请重试。",
-    "incompleteResultsDetails": "显示最大结果 ({max})。请尝试缩小搜索范围，以获得{max} 下的更多结果。"
+    "incompleteResultsDetails": "显示最大结果 ({max})。请尝试缩小搜索范围，以获得{max} 下的更多结果。",
+    "noCreateOptions": "没有创建选项"
   },
   "duplicateFinder": {
     "title": "重复文件查找器",

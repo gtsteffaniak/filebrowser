@@ -1,6 +1,14 @@
 package auth_test
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"crypto/x509/pkix"
+	"encoding/pem"
+	"math/big"
 	"testing"
 	"time"
 
@@ -141,6 +149,140 @@ func TestVerifyExternalJWT_CustomUserIdentifier(t *testing.T) {
 
 	if extractedUsername != username {
 		t.Errorf("Expected username %s, got %s", username, extractedUsername)
+	}
+}
+
+func TestVerifyExternalJWT_ES256_PublicKeyPEM(t *testing.T) {
+	priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		t.Fatalf("GenerateKey: %v", err)
+	}
+	pubDER, err := x509.MarshalPKIXPublicKey(&priv.PublicKey)
+	if err != nil {
+		t.Fatalf("MarshalPKIXPublicKey: %v", err)
+	}
+	pubPEM := string(pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: pubDER}))
+
+	username := "ec-user"
+	claims := jwt.MapClaims{
+		"sub": username,
+		"exp": time.Now().Add(time.Hour).Unix(),
+		"iat": time.Now().Unix(),
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
+	tokenString, err := token.SignedString(priv)
+	if err != nil {
+		t.Fatalf("SignedString: %v", err)
+	}
+
+	got, _, err := auth.VerifyExternalJWT(tokenString, pubPEM, "ES256", "sub")
+	if err != nil {
+		t.Fatalf("VerifyExternalJWT: %v", err)
+	}
+	if got != username {
+		t.Errorf("username: got %q want %q", got, username)
+	}
+}
+
+func TestVerifyExternalJWT_RS256_PublicKeyPEM(t *testing.T) {
+	priv, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatalf("GenerateKey: %v", err)
+	}
+	pubDER, err := x509.MarshalPKIXPublicKey(&priv.PublicKey)
+	if err != nil {
+		t.Fatalf("MarshalPKIXPublicKey: %v", err)
+	}
+	pubPEM := string(pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: pubDER}))
+
+	username := "rsa-user"
+	claims := jwt.MapClaims{
+		"sub": username,
+		"exp": time.Now().Add(time.Hour).Unix(),
+		"iat": time.Now().Unix(),
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+	tokenString, err := token.SignedString(priv)
+	if err != nil {
+		t.Fatalf("SignedString: %v", err)
+	}
+
+	got, _, err := auth.VerifyExternalJWT(tokenString, pubPEM, "RS256", "sub")
+	if err != nil {
+		t.Fatalf("VerifyExternalJWT: %v", err)
+	}
+	if got != username {
+		t.Errorf("username: got %q want %q", got, username)
+	}
+}
+
+func TestVerifyExternalJWT_ES256_WrongCurveRejected(t *testing.T) {
+	p256Priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		t.Fatalf("GenerateKey: %v", err)
+	}
+	p384Priv, err := ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
+	if err != nil {
+		t.Fatalf("GenerateKey: %v", err)
+	}
+	verifyDER, err := x509.MarshalPKIXPublicKey(&p384Priv.PublicKey)
+	if err != nil {
+		t.Fatalf("MarshalPKIXPublicKey: %v", err)
+	}
+	verifyPEM := string(pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: verifyDER}))
+
+	claims := jwt.MapClaims{
+		"sub": "u",
+		"exp": time.Now().Add(time.Hour).Unix(),
+		"iat": time.Now().Unix(),
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
+	tokenString, err := token.SignedString(p256Priv)
+	if err != nil {
+		t.Fatalf("SignedString: %v", err)
+	}
+
+	_, _, err = auth.VerifyExternalJWT(tokenString, verifyPEM, "ES256", "sub")
+	if err == nil {
+		t.Fatal("expected error when PEM public key curve does not match algorithm")
+	}
+}
+
+func TestVerifyExternalJWT_CertificatePEM(t *testing.T) {
+	priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		t.Fatalf("GenerateKey: %v", err)
+	}
+	tpl := &x509.Certificate{
+		SerialNumber: big.NewInt(1),
+		Subject:      pkix.Name{CommonName: "jwt-test"},
+		NotBefore:    time.Now().Add(-time.Hour),
+		NotAfter:     time.Now().Add(24 * time.Hour),
+	}
+	certDER, err := x509.CreateCertificate(rand.Reader, tpl, tpl, &priv.PublicKey, priv)
+	if err != nil {
+		t.Fatalf("CreateCertificate: %v", err)
+	}
+	certPEM := string(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certDER}))
+
+	username := "cert-user"
+	claims := jwt.MapClaims{
+		"sub": username,
+		"exp": time.Now().Add(time.Hour).Unix(),
+		"iat": time.Now().Unix(),
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
+	tokenString, err := token.SignedString(priv)
+	if err != nil {
+		t.Fatalf("SignedString: %v", err)
+	}
+
+	got, _, err := auth.VerifyExternalJWT(tokenString, certPEM, "ES256", "sub")
+	if err != nil {
+		t.Fatalf("VerifyExternalJWT: %v", err)
+	}
+	if got != username {
+		t.Errorf("username: got %q want %q", got, username)
 	}
 }
 

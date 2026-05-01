@@ -1,6 +1,7 @@
 {
   "buttons": {
     "copySuccess": "已複製到剪貼簿！",
+    "copyFailed": "複製到剪貼簿失敗",
     "copyFile": "複製檔案",
     "copyToClipboard": "複製到剪貼簿",
     "moveFile": "移動檔案",
@@ -215,8 +216,6 @@
     "selectHashAlgorithm": "選擇雜湊演算法",
     "generate": "產生",
     "errorGeneratingHash": "產生雜湊時出錯",
-    "hashCopied": "已將雜湊值複製到剪貼簿",
-    "errorCopyingHash": "複製雜湊時出錯",
     "token": "權杖",
     "onlyOfficeId": "OnlyOffice ID",
     "firstLoadTitle": "歡迎來到 FileBrowser Quantum！",
@@ -227,7 +226,6 @@
     "renameSuccess": "項目已成功重新命名！",
     "newFileSuccess": "檔案已成功建立！",
     "newDirSuccess": "目錄建立成功！",
-    "copyToClipboardFailed": "無法複製到剪貼簿",
     "moveFailed": "移動失敗",
     "operationFailed": "操作失敗",
     "partialSuccess": "部分作業失敗：成功 {succeeded} 項，失敗 {failed} 項",
@@ -243,7 +241,7 @@
     "unarchiveDestination": "解壓縮至：",
     "unarchiveSuccess": "封存檔解壓縮成功！",
     "downloadFailed": "分塊下載失敗 - 如果此情況重複發生，請嘗試減少分塊大小：{message}",
-    "confirmPasswordToChangeUserPassword": "輸入您目前的密碼以授權此密碼變更。"
+    "confirmPasswordToSaveUser": "輸入您目前的密碼以儲存這些使用者變更。"
   },
   "search": {
     "smallerThan": "小於：",
@@ -335,7 +333,6 @@
     "tusUploadsRetryCount": "分塊上傳失敗時的重試次數。",
     "userHomeBasePath": "使用者主目錄的基本路徑",
     "userScopeGenerationPlaceholder": "範圍會自動產生",
-    "createUserHomeDirectory": "建立使用者主目錄",
     "shareSettings": "分享設定",
     "shareDeleted": "分享已刪除！",
     "adminOptions": "管理員使用者選項",
@@ -609,7 +606,8 @@
     "enabledSuccessfully": "已成功啟用雙因素驗證",
     "verificationFailed": "驗證失敗",
     "verificationSucceed": "驗證成功",
-    "generationFailed": "產生驗證碼失敗"
+    "generationFailed": "產生驗證碼失敗",
+    "passwordRequiredForGeneration": "生成驗證碼需要您的密碼。"
   },
   "fileLoading": {
     "title": "上傳與下載",
@@ -845,8 +843,6 @@
       "showingResults": "顯示 {count} 筆結果",
       "noResults": "找不到圖示",
       "tryDifferentSearch": "嘗試不同的搜尋字詞",
-      "copiedToClipboard": "已將「{name}」複製到剪貼簿！",
-      "copyFailed": "複製到剪貼簿失敗",
       "custom": "自訂",
       "useCustomIcon": "使用自訂圖示：{name}",
       "iconLibraryUrl": "fonts.google.com/icons",
@@ -870,7 +866,8 @@
     "reassignPath": "重新指定路徑",
     "pathReassigned": "路徑已成功更新！",
     "pathReassignFailed": "更新路徑失敗。請再試一次。",
-    "incompleteResultsDetails": "目前只顯示前 {max} 筆結果。請縮小搜尋範圍，以取得少於 {max} 筆的結果。"
+    "incompleteResultsDetails": "目前只顯示前 {max} 筆結果。請縮小搜尋範圍，以取得少於 {max} 筆的結果。",
+    "noCreateOptions": "沒有建立選項"
   },
   "duplicateFinder": {
     "title": "重複檔案搜尋器",

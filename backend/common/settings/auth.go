@@ -106,12 +106,12 @@ type LdapConfig struct {
 }
 
 // JwtAuthConfig configures external JWT token authentication
-// Similar to Grafana's JWT auth: accepts external JWT tokens signed with a shared secret
+// Similar to Grafana's JWT auth: verifies HS* tokens with a shared secret, or RS*/ES* with a PEM public key (or certificate)
 // The query parameter is hardcoded to "jwt" (e.g. ?jwt=<token>)
 type JwtAuthConfig struct {
 	AuthCommon `json:",inline"`
 	Header     string `json:"header"`    // HTTP header to look for JWT token (e.g. X-JWT-Assertion). Default is "X-JWT-Assertion"
-	Secret     string `json:"secret"`    // secret: shared secret key for verifying JWT token signatures (required)
+	Secret     string `json:"secret"`    // Shared secret key/bytes for verifying JWT token signatures (required, eg PUBLIC KEY, RSA PUBLIC KEY, EC PUBLIC KEY, or CERTIFICATE)
 	Algorithm  string `json:"algorithm"` // JWT signing algorithm (HS256, HS384, HS512, RS256, ES256). Default is "HS256"
 }
 
