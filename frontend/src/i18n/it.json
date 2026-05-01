@@ -5,7 +5,8 @@
     "reassignPath": "Riassegna percorso",
     "pathReassigned": "Percorso aggiornato con successo!",
     "pathReassignFailed": "Aggiornamento del percorso fallito. Riprova.",
-    "incompleteResultsDetails": "Visualizzazione dei risultati massimi ({max}). Prova a restringere la ricerca per ottenere più risultati sotto {max}."
+    "incompleteResultsDetails": "Visualizzazione dei risultati massimi ({max}). Prova a restringere la ricerca per ottenere più risultati sotto {max}.",
+    "noCreateOptions": "Non sono disponibili opzioni di creazione"
   },
   "general": {
     "divider": "Divisore{suffix}",

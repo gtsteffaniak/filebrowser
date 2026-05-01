@@ -34,7 +34,8 @@
             :description="$t('fileLoading.clearAllDescription')" />
         </div>
       </SettingsItem>
-      <div class="upload-prompt" :class="{ dropping: isDragging }" @dragenter.prevent="onDragEnter"
+      <div class="upload-prompt" :class="{ dropping: isDragging }"
+        @dragenter.prevent="onDragEnter"
         @dragover.prevent="onDragOver" @dragleave.prevent="onDragLeave" @drop.prevent="onDrop">
         <div class="upload-prompt-container">
           <i v-if="files.length === 0" class="material-symbols">cloud_upload</i>

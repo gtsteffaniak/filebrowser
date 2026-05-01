@@ -1142,6 +1142,7 @@ export default {
           showCentered: getters.isMobile(),
           posX: event.clientX,
           posY: event.clientY,
+          createOnly: this.selectedCount == 0,
         },
       });
     },

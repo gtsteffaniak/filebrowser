@@ -44,7 +44,8 @@ export default defineConfig({
         ...devices["Desktop Chrome"],
         theme: 'dark',
       },
-      testMatch: /.*screenshots.spec.ts/,
+      /* Include every spec under testDir (prompts.spec.ts, settings-screenshots, etc.) */
+      testMatch: /\.spec\.ts$/,
       retries: 0,
     },
     {
@@ -53,7 +54,7 @@ export default defineConfig({
         ...devices["Desktop Chrome"],
         theme: 'light',
       },
-      testMatch: /.*screenshots.spec.ts/,
+      testMatch: /\.spec\.ts$/,
       retries: 0,
     },
   ],

@@ -27,6 +27,15 @@ All notable changes to this project will be documented in this file. For commit 
  - Blue overlay when using gestures in video files on mobile (#2360)
  - Playback queue wasn't updating when changing of folder (#2360)
 
+## v1.3.9
+
+ **Security**:
+ - [Critical] Unauthenticated Path Traversal in Public Share Delete Allows Arbitrary File Deletion GHSA-fwj3-42wh-8673
+ - [Moderate] Stored XSS via SVG File in Public Share (Missing CSP Header) GHSA-mmpx-jh39-wrv6
+
+ **BugFixes**:
+ - Fix context menu items and adjusted when items show to more accurately reflect permissions.
+
 ## v1.3.8
 
  **BugFixes**:
