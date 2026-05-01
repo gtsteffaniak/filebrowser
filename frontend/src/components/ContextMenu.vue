@@ -15,7 +15,7 @@
       :key="showCreate ? 'create-mode' : 'normal-mode'"
     >
       <div
-        v-if="!showLimitedOptions && (showCreateToggle || selectedCount > 0)"
+        v-if="showCreateToggle"
         class="context-menu-header"
       >
         <div

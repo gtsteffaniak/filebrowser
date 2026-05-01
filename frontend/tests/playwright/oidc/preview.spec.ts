@@ -4,7 +4,6 @@ test("Create first new file", async ({  page, checkForErrors, context }) => {
   await page.goto("/");
   await expect(page.locator('.listing-items .message > span')).toHaveText('Nothing to show here...');
   await page.locator('.listing-items').click({ button: "right" });
-  await page.locator('button[aria-label="Create Actions Toggle"]').click();
   await page.locator('button[aria-label="New file"]').click();
   await page.locator('input[aria-label="FileName Field"]').fill('test.txt');
   await page.locator('button[aria-label="Create"]').click();
