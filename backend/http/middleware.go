@@ -53,7 +53,11 @@ type handleFunc func(w http.ResponseWriter, r *http.Request, data *requestContex
 func withHashFileHelper(fn handleFunc) handleFunc {
 	return withOrWithoutUserHelper(func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
 		hash := r.URL.Query().Get("hash")
-		path := r.URL.Query().Get("path")
+		inputPath := r.URL.Query().Get("path")
+		path, err := utils.SanitizeUserPath(inputPath)
+		if err != nil && inputPath != "" {
+			return http.StatusBadRequest, err
+		}
 
 		// Get the file link by hash
 		link, err := store.Share.GetByHash(hash)

@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.3.9
 
+ **Security**:
+ - [Critical] Unauthenticated Path Traversal in Public Share Delete Allows Arbitrary File Deletion GHSA-fwj3-42wh-8673
+
  **BugFixes**:
  - Fix context menu items and adjusted when items show to more accurately reflect permissions.
 
