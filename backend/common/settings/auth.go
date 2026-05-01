@@ -111,7 +111,7 @@ type LdapConfig struct {
 type JwtAuthConfig struct {
 	AuthCommon `json:",inline"`
 	Header     string `json:"header"`    // HTTP header to look for JWT token (e.g. X-JWT-Assertion). Default is "X-JWT-Assertion"
-	Secret     string `json:"secret"`    // Shared secret key/bytes for verifying JWT token signatures (required, eg PUBLIC KEY, RSA PUBLIC KEY, EC PUBLIC KEY, or CERTIFICATE)
+	Secret     string `json:"secret"`    // secret: Shared secret key/bytes for verifying JWT token signatures (required, eg PUBLIC KEY, RSA PUBLIC KEY, EC PUBLIC KEY, or CERTIFICATE)
 	Algorithm  string `json:"algorithm"` // JWT signing algorithm (HS256, HS384, HS512, RS256, ES256). Default is "HS256"
 }
 
