@@ -222,6 +222,7 @@
       @mouseleave="buttonZoneRight = false"
       :title="mobileLyricsScrollLocked ? $t('player.unlockLyrics') : $t('player.lockLyrics')"
     >
+      <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
       <i :class="mobileLyricsScrollLocked ? 'material-symbols-outlined' : 'material-symbols'">{{ mobileLyricsScrollLocked ? 'lock_open' : 'lock' }}</i>
     </button>
 
