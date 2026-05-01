@@ -19,6 +19,35 @@ const (
 	LoginMethodJwt      LoginMethod = "jwt"
 )
 
+// WebAuthnCredentialFlags mirrors the boolean flags from authenticator data.
+type WebAuthnCredentialFlags struct {
+	UserPresent    bool `json:"userPresent"`
+	UserVerified   bool `json:"userVerified"`
+	BackupEligible bool `json:"backupEligible"`
+	BackupState    bool `json:"backupState"`
+}
+
+// WebAuthnCredential stores a single passkey credential in BoltDB-friendly format.
+type WebAuthnCredential struct {
+	ID                string                  `json:"id"`
+	PublicKey         string                  `json:"publicKey"`
+	AttestationType   string                  `json:"attestationType"`
+	AttestationFormat string                  `json:"attestationFormat"`
+	Transport         []string                `json:"transport"`
+	Flags             WebAuthnCredentialFlags `json:"flags"`
+	AAGUID            string                  `json:"aaguid"`
+	SignCount         uint32                  `json:"signCount"`
+	CloneWarning      bool                    `json:"cloneWarning"`
+	Name              string                  `json:"name"`
+	CreatedAt         int64                   `json:"createdAt"`
+	LastUsedAt        int64                   `json:"lastUsedAt"`
+	ClientDataJSON    string                  `json:"clientDataJSON"`
+	ClientDataHash    string                  `json:"clientDataHash"`
+	AuthenticatorData string                  `json:"authenticatorData"`
+	PublicKeyAlg      int64                   `json:"publicKeyAlg"`
+	AttestationObj    string                  `json:"attestationObj"`
+}
+
 type AuthToken struct {
 	MinimalAuthToken
 	Key         string      `json:"key,omitempty"` // for backward compatibility
@@ -69,20 +98,20 @@ type Preview struct {
 // User describes a user.
 type User struct {
 	NonAdminEditable
-	DisableSettings bool                 `json:"disableSettings"`
-	ID              uint                 `storm:"id,increment" json:"id"`
-	Username        string               `storm:"unique" json:"username"`
-	Scopes          []SourceScope        `json:"scopes"`
-	Scope           string               `json:"scope,omitempty"`
-	LockPassword    bool                 `json:"lockPassword"`
-	Permissions     Permissions          `json:"permissions"`
-	ApiKeys         map[string]AuthToken `json:"apiKeys,omitempty"` // deprecated: use Tokens instead
-	Tokens          map[string]AuthToken `json:"tokens,omitempty"`
-	TOTPSecret      string               `json:"totpSecret,omitempty"`
-	TOTPNonce       string               `json:"totpNonce,omitempty"`
-	LoginMethod     LoginMethod          `json:"loginMethod"`
-	OtpEnabled      bool                 `json:"otpEnabled"` // true if TOTP is enabled, false otherwise
-	Version         int                  `json:"version"`
+	DisableSettings      bool                  `json:"disableSettings"`
+	ID                   uint                  `storm:"id,increment" json:"id"`
+	Username             string                `storm:"unique" json:"username"`
+	Scopes               []SourceScope         `json:"scopes"`
+	Scope                string                `json:"scope,omitempty"`
+	LockPassword         bool                  `json:"lockPassword"`
+	Permissions          Permissions           `json:"permissions"`
+	ApiKeys              map[string]AuthToken  `json:"apiKeys,omitempty"` // deprecated: use Tokens instead
+	Tokens               map[string]AuthToken  `json:"tokens,omitempty"`
+	TOTPSecret           string                `json:"totpSecret,omitempty"`
+	TOTPNonce            string                `json:"totpNonce,omitempty"`
+	LoginMethod          LoginMethod           `json:"loginMethod"`
+	OtpEnabled           bool                  `json:"otpEnabled"` // true if TOTP is enabled, false otherwise
+	Version              int                   `json:"version"`
 	// legacy for migration purposes... og filebrowser has perm attribute
 	Perm Permissions `json:"perm,omitzero"` // deprecated: use Permissions instead
 }
@@ -127,7 +156,8 @@ type NonAdminEditable struct {
 	HideFilesInTree            bool          `json:"hideFilesInTree"`            // hide files in the sidebar tree navigation, when true, will show only directories.
 	DeleteAfterArchive         bool          `json:"deleteAfterArchive"`         // delete source files after successful creation/extraction of archives
 	PreferEditorForMarkdown    bool          `json:"preferEditorForMarkdown"`    // prefer editor first for markdown files instead of the Markdown Viewer
-	ShowFirstLogin             bool          `json:"showFirstLogin"`
+	ShowFirstLogin             bool                  `json:"showFirstLogin"`
+	PasskeyCredentials         []WebAuthnCredential  `json:"passkeyCredentials,omitempty"`
 }
 
 type FileLoading struct {

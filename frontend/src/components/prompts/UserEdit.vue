@@ -70,6 +70,16 @@
           :name="$t('settings.lockPassword')" />
       </div>
 
+      <div v-if="user.loginMethod == 'password' && globalVars.passkeyAvailable && user.passkeyCredentials && user.passkeyCredentials.length > 0" style="margin-top: 0.5em;">
+        <label>{{ $t("profileSettings.passkeys") }}</label>
+        <div class="passkey-list">
+          <div v-for="pk in user.passkeyCredentials" :key="pk.id" class="passkey-item">
+            <span class="passkey-name">{{ pk.name || 'Passkey' }}</span>
+            <span class="passkey-meta">{{ formatDate(pk.createdAt) }}</span>
+          </div>
+        </div>
+      </div>
+
       <div style="padding-bottom: 1em" v-if="stateUser.permissions.admin">
         <label for="scopes">{{ $t("settings.scopes") }}</label>
         <div class="scope-list" :class="{ 'form-invalid': duplicateSources.includes(source.name) }"
@@ -587,6 +597,11 @@ export default {
         : `${this.$t("settings.modifyOtherUser")} ${this.user.username}`;
       mutations.updatePromptTitle(this.promptId, displayName);
     },
+    formatDate(timestamp) {
+      if (!timestamp) return "";
+      const date = new Date(timestamp * 1000);
+      return date.toLocaleDateString();
+    },
   },
 };
 </script>
@@ -611,5 +626,26 @@ export default {
 
 .material-size {
   font-size: 1em !important;
+}
+
+.passkey-list {
+  margin-top: 0.3em;
+}
+
+.passkey-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.3em 0;
+  border-bottom: 1px solid var(--borderColor, #ddd);
+}
+
+.passkey-name {
+  font-weight: 500;
+}
+
+.passkey-meta {
+  font-size: 0.8em;
+  color: var(--textSecondary, #888);
 }
 </style>

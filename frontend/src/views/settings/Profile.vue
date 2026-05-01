@@ -184,6 +184,12 @@
           <Languages class="input" :locale="localuser.locale" @update:locale="updateLocale"></Languages>
         </SettingsItem>
       </div>
+      <div v-if="passkeyAvailable" class="card-content">
+        <div class="card-title">
+          <h3>{{ $t("profileSettings.passkeys") }}</h3>
+        </div>
+        <PasskeySettings />
+      </div>
     </form>
     <br />
   </div>
@@ -198,6 +204,7 @@ import Languages from "@/components/settings/Languages.vue";
 import ButtonGroup from "@/components/ButtonGroup.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
+import PasskeySettings from "@/components/settings/PasskeySettings.vue";
 
 export default {
   name: "settings",
@@ -206,6 +213,7 @@ export default {
     ButtonGroup,
     ToggleSwitch,
     SettingsItem,
+    PasskeySettings,
   },
   data() {
     return {
@@ -232,6 +240,9 @@ export default {
     },
     onlyOfficeAvailable() {
       return globalVars.onlyOfficeUrl !== "";
+    },
+    passkeyAvailable() {
+      return globalVars.passkeyAvailable;
     },
     user() {
       return state.user;

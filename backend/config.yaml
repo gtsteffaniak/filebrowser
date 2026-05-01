@@ -5,6 +5,16 @@ server:
     - levels: "info|warning|error"
   sources:
     - path: "/srv"
+auth:
+  key: "change-me-to-a-random-string"
+  totpSecret: "change-me-to-another-random-string"
+  methods:
+    password:
+      enabled: true
+      minLength: 5
+      signup: false
+    passkey:
+      enabled: false
 userDefaults:
   editorQuickSave: false                  # show quick save button in editor
   hideSidebarFileActions: false           # hide the file actions in the sidebar
