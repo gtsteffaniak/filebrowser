@@ -129,13 +129,8 @@ func (s *SQLStore) DeleteAccessRule(source, path string) error {
 		return fmt.Errorf("failed to delete access rule: %w", err)
 	}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
+	if _, err := result.RowsAffected(); err != nil {
 		return fmt.Errorf("failed to get rows affected: %w", err)
-	}
-
-	if rowsAffected == 0 {
-		return fmt.Errorf("access rule not found")
 	}
 
 	return nil

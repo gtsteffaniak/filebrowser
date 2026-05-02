@@ -358,7 +358,7 @@ func StartHttp(ctx context.Context, shutdownComplete chan struct{}) {
 	// Close all SSE sessions
 	events.Shutdown()
 
-	// Close state management (flushes any pending writes and closes SQL connection)
+	// Close state management (closes SQL connection; access rules already write-through)
 	if err := state.Close(); err != nil {
 		logger.Errorf("Failed to close state management: %v", err)
 	}
