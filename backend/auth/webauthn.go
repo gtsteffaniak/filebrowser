@@ -93,17 +93,21 @@ func generateSessionID() string {
 }
 
 func (s *WebAuthnService) BeginMFALogin(username, password string, rpID string, userStore *users.Storage) (sessionID string, assertion *protocol.CredentialAssertion, err error) {
-	user, err := userStore.Get(username)
-	if err != nil {
-		return "", nil, fmt.Errorf("user not found: %w", err)
+	user, getErr := userStore.Get(username)
+	passwordHash := utils.InvalidPasswordHash
+	if getErr == nil {
+		passwordHash = user.Password
 	}
-
-	if err = utils.CheckPwd(password, user.Password); err != nil {
-		return "", nil, fmt.Errorf("password check failed: %w", err)
+	// Always run password check to prevent timing-based username enumeration
+	if err = utils.CheckPwd(password, passwordHash); err != nil {
+		return "", nil, errors.ErrUnauthorized
+	}
+	if getErr != nil {
+		return "", nil, errors.ErrUnauthorized
 	}
 
 	if !user.HasPasskeyMFA() {
-		return "", nil, fmt.Errorf("%w (has %d credentials)", errors.ErrPasskeyNoCredential, len(user.PasskeyCredentials))
+		return "", nil, errors.ErrPasskeyNoCredential
 	}
 
 	var opts []webauthn.LoginOption
