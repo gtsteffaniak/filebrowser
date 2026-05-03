@@ -167,7 +167,7 @@
     "keepEditing": "Blijven bewerken",
     "closeAnyway": "Sluiten",
     "goToItem": "Ga naar item",
-    "goToSource": "Ga naar de bronlocatie"
+    "goToSource": "Ga naar bronlocatie"
   },
   "download": {
     "downloadFile": "Bestand downloaden",
@@ -893,7 +893,7 @@
     "serverShutdown": "De server is uitgeschakeld.",
     "authenticationFailed": "Authenticatie is mislukt. Ververs de pagina om opnieuw in te loggen.",
     "reconnected": "Opnieuw verbinding gemaakt met server.",
-    "connectionLost": "De verbinding met de server is verbroken. Probeer opnieuw verbinding te maken..."
+    "connectionLost": "De verbinding met de server is verbroken. Verbinding herstellen..."
   },
   "threejs": {
     "controls": "3D-besturingselementen",
@@ -905,8 +905,8 @@
     "rotateX": "X draaien"
   },
   "onlyoffice": {
-    "debugTitle": "OnlyOffice Debugtrace",
-    "debug": "OnlyOffice Debug",
+    "debugTitle": "OnlyOffice Foutopsporing",
+    "debug": "OnlyOffice Foutopsporing",
     "basicConfiguration": "Basisconfiguratie",
     "configurationDetails": "Configuratiegegevens van OnlyOffice",
     "backendLogs": "Backend-logboeken",
@@ -914,8 +914,8 @@
     "fileType": "Bestandstype",
     "editMode": "Modus Bewerken",
     "downloadURL": "URL downloaden",
-    "callbackURL": "Terugbel URL",
-    "networkFlow": "Netwerkstroom",
+    "callbackURL": "Terugbel-URL",
+    "networkFlow": "Netwerkketen",
     "browser": "Browser",
     "onlyOffice": "OnlyOffice",
     "fileBrowser": "Bestandsbrowser",
@@ -929,16 +929,16 @@
     "errorDetected": "Fout gedetecteerd",
     "integrationFailed": "Integratie met OnlyOffice is mislukt. Controleer de mislukte stappen hierboven.",
     "documentInitialized": "Document geïnitialiseerd",
-    "integrationSuccess": "OnlyOffice integratie succesvol geïnitialiseerd. Controleer de logboeken van de backend op eventuele problemen.",
+    "integrationSuccess": "Integratie met OnlyOffice succesvol geïnitialiseerd. Controleer de logboeken van de backend op eventuele problemen.",
     "troubleshootingGuide": "Gids voor probleemoplossing bekijken",
     "startingInit": "OnlyOffice initialisatie starten...",
     "configCheck": "Configuratiecontrole - URL opgebouwd",
     "apiRequest": "API verzoek - Ontvangen configuratie",
-    "serverConnection": "Alleen Office-serververbinding - Verzonden configuratie",
-    "testingConnectivity": "OnlyOffice serverconnectiviteit testen...",
-    "serverReachable": "Alleen de OnlyOffice-server lijkt bereikbaar",
-    "documentDownload": "Document downloaden - Compleet",
-    "editorSuccess": "Initialisatie Editor - Succes! Alle stappen voltooid.",
-    "setupError": "Setup-fout"
+    "serverConnection": "OnlyOffice serververbinding - Verzonden configuratie",
+    "testingConnectivity": "OnlyOffice serververbnding testen...",
+    "serverReachable": "OnlyOffice-server lijkt bereikbaar",
+    "documentDownload": "Document downloaden - Voltooid",
+    "editorSuccess": "Editor-inintialisatie - Succes! Alle stappen voltooid.",
+    "setupError": "Instellingenfout"
   }
 }
