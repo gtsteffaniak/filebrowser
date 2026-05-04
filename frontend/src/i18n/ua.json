@@ -144,7 +144,8 @@
     "or": "АБО",
     "inProgress": "Вхід в систему...",
     "failedLogin": "Не вдалося увійти в систему",
-    "invalidCredentials": "Надано невірні облікові дані"
+    "invalidCredentials": "Надано невірні облікові дані",
+    "passkeyLogin": "__NOT_TRANSLATED__"
   },
   "prompts": {
     "copyMessage": "Копіювати в:",
@@ -627,7 +628,19 @@
     "showThumbnailsDescription": "Якщо увімкнено, мініатюри показуються у списку для елементів, які їх підтримують. Вимкніть, щоб приховати всі мініатюри.",
     "showCopyPath": "Показати шлях копіювання в контекстному меню",
     "showCopyPathDescription": "Показати дію Копіювати шлях у контекстному меню файлів і папок.",
-    "previewDescription": "Показувати попередній перегляд мініатюр для {filetype}, якщо вимкнено, буде показано загальну піктограму."
+    "previewDescription": "Показувати попередній перегляд мініатюр для {filetype}, якщо вимкнено, буде показано загальну піктограму.",
+    "passkeys": "__NOT_TRANSLATED__",
+    "passkeysDescription": "__NOT_TRANSLATED__",
+    "noPasskeys": "__NOT_TRANSLATED__",
+    "addPasskey": "__NOT_TRANSLATED__",
+    "addingPasskey": "__NOT_TRANSLATED__",
+    "passkeyAdded": "__NOT_TRANSLATED__",
+    "passkeyAddFailed": "__NOT_TRANSLATED__",
+    "passkeyDeleted": "__NOT_TRANSLATED__",
+    "passkeyDeleteFailed": "__NOT_TRANSLATED__",
+    "created": "__NOT_TRANSLATED__",
+    "lastUsed": "__NOT_TRANSLATED__",
+    "passkeyDefaultName": "__NOT_TRANSLATED__"
   },
   "general": {
     "name": "Ім'я",

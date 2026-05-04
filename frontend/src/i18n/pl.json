@@ -144,7 +144,8 @@
     "or": "LUB",
     "inProgress": "Logowanie...",
     "failedLogin": "Logowanie nie powiodło się",
-    "invalidCredentials": "Podano nieprawidłowe dane uwierzytelniające"
+    "invalidCredentials": "Podano nieprawidłowe dane uwierzytelniające",
+    "passkeyLogin": "__NOT_TRANSLATED__"
   },
   "prompts": {
     "copyMessage": "Wybierz lokalizację do której mają być skopiowane wybrane pliki",
@@ -773,7 +774,19 @@
     "showThumbnailsDescription": "Po włączeniu tej opcji miniatury są wyświetlane na liście elementów, które je obsługują. Wyłącz, aby ukryć wszystkie miniatury.",
     "showCopyPath": "Pokaż kopiowanie ścieżki w menu kontekstowym",
     "showCopyPathDescription": "Wyświetlanie akcji Kopiuj ścieżkę w menu kontekstowym plików i folderów.",
-    "previewDescription": "Pokaż podgląd miniatur dla {filetype}, pokaże ogólną ikonę, jeśli jest wyłączona."
+    "previewDescription": "Pokaż podgląd miniatur dla {filetype}, pokaże ogólną ikonę, jeśli jest wyłączona.",
+    "passkeys": "__NOT_TRANSLATED__",
+    "passkeysDescription": "__NOT_TRANSLATED__",
+    "noPasskeys": "__NOT_TRANSLATED__",
+    "addPasskey": "__NOT_TRANSLATED__",
+    "addingPasskey": "__NOT_TRANSLATED__",
+    "passkeyAdded": "__NOT_TRANSLATED__",
+    "passkeyAddFailed": "__NOT_TRANSLATED__",
+    "passkeyDeleted": "__NOT_TRANSLATED__",
+    "passkeyDeleteFailed": "__NOT_TRANSLATED__",
+    "created": "__NOT_TRANSLATED__",
+    "lastUsed": "__NOT_TRANSLATED__",
+    "passkeyDefaultName": "__NOT_TRANSLATED__"
   },
   "editor": {
     "uninitialized": "Nie udało się zainicjować edytora. Przeładuj ponownie.",

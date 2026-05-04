@@ -144,7 +144,8 @@
     "or": "或",
     "inProgress": "登录...",
     "failedLogin": "登录失败",
-    "invalidCredentials": "提供的证书无效"
+    "invalidCredentials": "提供的证书无效",
+    "passkeyLogin": "__NOT_TRANSLATED__"
   },
   "prompts": {
     "copyMessage": "请选择欲复制至的目录：",
@@ -627,7 +628,19 @@
     "showThumbnailsDescription": "启用后，支持缩略图的项目将在列表中显示缩略图。关闭则隐藏所有缩略图。",
     "showCopyPath": "在上下文菜单中显示复制路径",
     "showCopyPathDescription": "在文件和文件夹上下文菜单中显示复制路径操作。",
-    "previewDescription": "显示{filetype} 的缩略图预览，如果禁用，将显示通用图标。"
+    "previewDescription": "显示{filetype} 的缩略图预览，如果禁用，将显示通用图标。",
+    "passkeys": "__NOT_TRANSLATED__",
+    "passkeysDescription": "__NOT_TRANSLATED__",
+    "noPasskeys": "__NOT_TRANSLATED__",
+    "addPasskey": "__NOT_TRANSLATED__",
+    "addingPasskey": "__NOT_TRANSLATED__",
+    "passkeyAdded": "__NOT_TRANSLATED__",
+    "passkeyAddFailed": "__NOT_TRANSLATED__",
+    "passkeyDeleted": "__NOT_TRANSLATED__",
+    "passkeyDeleteFailed": "__NOT_TRANSLATED__",
+    "created": "__NOT_TRANSLATED__",
+    "lastUsed": "__NOT_TRANSLATED__",
+    "passkeyDefaultName": "__NOT_TRANSLATED__"
   },
   "general": {
     "name": "名称",

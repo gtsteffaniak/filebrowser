@@ -6,12 +6,9 @@
     <div v-if="passkeys.length > 0" class="passkey-list">
       <div v-for="pk in passkeys" :key="pk.id" class="passkey-item">
         <div class="passkey-info">
-          <span class="passkey-name">{{ pk.name || 'Passkey' }}</span>
+          <span class="passkey-name">{{ pk.name || $t("profileSettings.passkeyDefaultName") }}</span>
           <span class="passkey-meta">
-            {{ $t("profileSettings.created") }} {{ formatDate(pk.createdAt) }}
-            <template v-if="pk.lastUsedAt">
-              · {{ $t("profileSettings.lastUsed") }} {{ formatDate(pk.lastUsedAt) }}
-            </template>
+            {{ $t("profileSettings.created") }} {{ formatDate(pk.createdAt) }}<template v-if="pk.lastUsedAt"> &middot; {{ $t("profileSettings.lastUsed") }} {{ formatDate(pk.lastUsedAt) }}</template>
           </span>
         </div>
         <button type="button" class="button button--flat button--red" @click="deletePasskey(pk.id)">
@@ -31,7 +28,7 @@
 
 <script>
 import { notify } from "@/notify";
-import { state, mutations } from "@/store";
+import { state } from "@/store";
 import { authApi } from "@/api";
 
 export default {

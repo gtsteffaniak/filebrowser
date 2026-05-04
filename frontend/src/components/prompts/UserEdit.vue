@@ -74,7 +74,7 @@
         <label>{{ $t("profileSettings.passkeys") }}</label>
         <div class="passkey-list">
           <div v-for="pk in user.passkeyCredentials" :key="pk.id" class="passkey-item">
-            <span class="passkey-name">{{ pk.name || 'Passkey' }}</span>
+            <span class="passkey-name">{{ pk.name || $t("profileSettings.passkeyDefaultName") }}</span>
             <span class="passkey-meta">{{ formatDate(pk.createdAt) }}</span>
           </div>
         </div>

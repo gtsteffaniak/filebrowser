@@ -144,7 +144,8 @@
     "or": "أو",
     "inProgress": "تسجيل الدخول...",
     "failedLogin": "فشل في تسجيل الدخول",
-    "invalidCredentials": "تم توفير بيانات اعتماد غير صالحة"
+    "invalidCredentials": "تم توفير بيانات اعتماد غير صالحة",
+    "passkeyLogin": "__NOT_TRANSLATED__"
   },
   "prompts": {
     "copyMessage": "رجاء حدد المكان لنسخ ملفاتك فيه:",
@@ -765,7 +766,19 @@
     "showThumbnailsDescription": "عند التمكين، تظهر الصور المصغرة في القائمة للعناصر التي تدعمها. قم بإيقاف التشغيل لإخفاء جميع الصور المصغرة.",
     "showCopyPath": "إظهار مسار النسخ في قائمة السياق",
     "showCopyPathDescription": "إظهار إجراء نسخ المسار في قائمة سياق الملف والمجلد.",
-    "previewDescription": "إظهار معاينات الصور المصغرة لـ {filetype} ، ستظهر أيقونة عامة إذا تم تعطيلها."
+    "previewDescription": "إظهار معاينات الصور المصغرة لـ {filetype} ، ستظهر أيقونة عامة إذا تم تعطيلها.",
+    "passkeys": "__NOT_TRANSLATED__",
+    "passkeysDescription": "__NOT_TRANSLATED__",
+    "noPasskeys": "__NOT_TRANSLATED__",
+    "addPasskey": "__NOT_TRANSLATED__",
+    "addingPasskey": "__NOT_TRANSLATED__",
+    "passkeyAdded": "__NOT_TRANSLATED__",
+    "passkeyAddFailed": "__NOT_TRANSLATED__",
+    "passkeyDeleted": "__NOT_TRANSLATED__",
+    "passkeyDeleteFailed": "__NOT_TRANSLATED__",
+    "created": "__NOT_TRANSLATED__",
+    "lastUsed": "__NOT_TRANSLATED__",
+    "passkeyDefaultName": "__NOT_TRANSLATED__"
   },
   "colors": {
     "red": "أحمر",

@@ -144,7 +144,8 @@
     "or": "OU",
     "inProgress": "Connexion...",
     "failedLogin": "Échec de la connexion",
-    "invalidCredentials": "Les informations d'identification fournies ne sont pas valides"
+    "invalidCredentials": "Les informations d'identification fournies ne sont pas valides",
+    "passkeyLogin": "__NOT_TRANSLATED__"
   },
   "prompts": {
     "copyMessage": "Choisissez l'emplacement où copier la sélection :",
@@ -773,7 +774,19 @@
     "showThumbnailsDescription": "Lorsque cette option est activée, les vignettes sont affichées dans la liste pour les articles qui les prennent en charge. Désactivez cette option pour masquer toutes les vignettes.",
     "showCopyPath": "Afficher Copier le chemin dans le menu contextuel",
     "showCopyPathDescription": "Afficher une action Copier le chemin dans le menu contextuel des fichiers et des dossiers.",
-    "previewDescription": "Affiche des aperçus de vignettes pour {filetype}, affichera l'icône générique si elle est désactivée."
+    "previewDescription": "Affiche des aperçus de vignettes pour {filetype}, affichera l'icône générique si elle est désactivée.",
+    "passkeys": "__NOT_TRANSLATED__",
+    "passkeysDescription": "__NOT_TRANSLATED__",
+    "noPasskeys": "__NOT_TRANSLATED__",
+    "addPasskey": "__NOT_TRANSLATED__",
+    "addingPasskey": "__NOT_TRANSLATED__",
+    "passkeyAdded": "__NOT_TRANSLATED__",
+    "passkeyAddFailed": "__NOT_TRANSLATED__",
+    "passkeyDeleted": "__NOT_TRANSLATED__",
+    "passkeyDeleteFailed": "__NOT_TRANSLATED__",
+    "created": "__NOT_TRANSLATED__",
+    "lastUsed": "__NOT_TRANSLATED__",
+    "passkeyDefaultName": "__NOT_TRANSLATED__"
   },
   "editor": {
     "uninitialized": "Échec de l'initialisation de l'éditeur. Veuillez recharger.",

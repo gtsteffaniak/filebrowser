@@ -144,7 +144,8 @@
     "or": "ИЛИ",
     "inProgress": "Вход в систему...",
     "failedLogin": "Не удалось войти в систему",
-    "invalidCredentials": "Предоставлены неверные учетные данные"
+    "invalidCredentials": "Предоставлены неверные учетные данные",
+    "passkeyLogin": "__NOT_TRANSLATED__"
   },
   "prompts": {
     "copyMessage": "Копировать в:",
@@ -773,7 +774,19 @@
     "showThumbnailsDescription": "Если эта функция включена, миниатюры отображаются в списке товаров, которые их поддерживают. Выключите, чтобы скрыть все эскизы.",
     "showCopyPath": "Показывать путь копирования в контекстном меню",
     "showCopyPathDescription": "Показать действие \"Копировать путь\" в контекстном меню файлов и папок.",
-    "previewDescription": "Показывать миниатюры для {filetype}, если отключено, будет отображаться общий значок."
+    "previewDescription": "Показывать миниатюры для {filetype}, если отключено, будет отображаться общий значок.",
+    "passkeys": "__NOT_TRANSLATED__",
+    "passkeysDescription": "__NOT_TRANSLATED__",
+    "noPasskeys": "__NOT_TRANSLATED__",
+    "addPasskey": "__NOT_TRANSLATED__",
+    "addingPasskey": "__NOT_TRANSLATED__",
+    "passkeyAdded": "__NOT_TRANSLATED__",
+    "passkeyAddFailed": "__NOT_TRANSLATED__",
+    "passkeyDeleted": "__NOT_TRANSLATED__",
+    "passkeyDeleteFailed": "__NOT_TRANSLATED__",
+    "created": "__NOT_TRANSLATED__",
+    "lastUsed": "__NOT_TRANSLATED__",
+    "passkeyDefaultName": "__NOT_TRANSLATED__"
   },
   "editor": {
     "uninitialized": "Не удалось инициализировать редактор. Пожалуйста, перезагрузитесь.",

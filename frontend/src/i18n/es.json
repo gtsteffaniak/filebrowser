@@ -144,7 +144,8 @@
     "or": "O",
     "inProgress": "Iniciando sesión...",
     "failedLogin": "Error al iniciar sesión",
-    "invalidCredentials": "Credenciales no válidas"
+    "invalidCredentials": "Credenciales no válidas",
+    "passkeyLogin": "__NOT_TRANSLATED__"
   },
   "prompts": {
     "copyMessage": "Selecciona una ubicación para copiar",
@@ -773,7 +774,19 @@
     "showThumbnailsDescription": "Cuando está activada, se mostrarán miniaturas para todos los archivos soportados. Puedes desactivarlo para desactivar todas las miniaturas.",
     "showCopyPath": "Mostrar ruta de copia en el menú contextual",
     "showCopyPathDescription": "Mostrar una acción Copiar ruta en el menú contextual de archivos y carpetas.",
-    "previewDescription": "Mostrar vistas previas en miniatura para {filetype}, mostrará el icono genérico si está desactivado."
+    "previewDescription": "Mostrar vistas previas en miniatura para {filetype}, mostrará el icono genérico si está desactivado.",
+    "passkeys": "__NOT_TRANSLATED__",
+    "passkeysDescription": "__NOT_TRANSLATED__",
+    "noPasskeys": "__NOT_TRANSLATED__",
+    "addPasskey": "__NOT_TRANSLATED__",
+    "addingPasskey": "__NOT_TRANSLATED__",
+    "passkeyAdded": "__NOT_TRANSLATED__",
+    "passkeyAddFailed": "__NOT_TRANSLATED__",
+    "passkeyDeleted": "__NOT_TRANSLATED__",
+    "passkeyDeleteFailed": "__NOT_TRANSLATED__",
+    "created": "__NOT_TRANSLATED__",
+    "lastUsed": "__NOT_TRANSLATED__",
+    "passkeyDefaultName": "__NOT_TRANSLATED__"
   },
   "editor": {
     "uninitialized": "No se pudo iniciar el editor",

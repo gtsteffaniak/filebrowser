@@ -144,7 +144,8 @@
     "or": "או",
     "inProgress": "מתחבר...",
     "failedLogin": "נכשל בכניסה",
-    "invalidCredentials": "פרטי הזדהות לא חוקיים"
+    "invalidCredentials": "פרטי הזדהות לא חוקיים",
+    "passkeyLogin": "__NOT_TRANSLATED__"
   },
   "prompts": {
     "copyMessage": "בחר לאן להעתיק את הקבצים:",
@@ -773,7 +774,19 @@
     "showThumbnailsDescription": "כאשר אפשרות זו מופעלת, תמונות ממוזערות מוצגות ברשימה עבור פריטים התומכים בהן. כבה את האפשרות כדי להסתיר את כל התמונות הממוזערות.",
     "showCopyPath": "הצג את האפשרות \"העתק נתיב\" בתפריט ההקשר",
     "showCopyPathDescription": "הצג את הפעולה \"העתק נתיב\" בתפריט ההקשר של קבצים ותיקיות.",
-    "previewDescription": "הצג תצוגה מקדימה של תמונות ממוזערות עבור {filetype}; אם האפשרות מושבתת, יוצג סמל כללי."
+    "previewDescription": "הצג תצוגה מקדימה של תמונות ממוזערות עבור {filetype}; אם האפשרות מושבתת, יוצג סמל כללי.",
+    "passkeys": "__NOT_TRANSLATED__",
+    "passkeysDescription": "__NOT_TRANSLATED__",
+    "noPasskeys": "__NOT_TRANSLATED__",
+    "addPasskey": "__NOT_TRANSLATED__",
+    "addingPasskey": "__NOT_TRANSLATED__",
+    "passkeyAdded": "__NOT_TRANSLATED__",
+    "passkeyAddFailed": "__NOT_TRANSLATED__",
+    "passkeyDeleted": "__NOT_TRANSLATED__",
+    "passkeyDeleteFailed": "__NOT_TRANSLATED__",
+    "created": "__NOT_TRANSLATED__",
+    "lastUsed": "__NOT_TRANSLATED__",
+    "passkeyDefaultName": "__NOT_TRANSLATED__"
   },
   "editor": {
     "uninitialized": "לא ניתן לאתחל את העורך. אנא טען מחדש.",

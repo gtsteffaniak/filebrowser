@@ -88,7 +88,9 @@ func (s *WebAuthnService) EnsureRPID(rpID string) {
 
 func generateSessionID() string {
 	b := make([]byte, 16)
-	rand.Read(b)
+	if _, err := rand.Read(b); err != nil {
+		return hex.EncodeToString([]byte(fmt.Sprintf("%d", time.Now().UnixNano())))
+	}
 	return hex.EncodeToString(b)
 }
 
@@ -134,7 +136,10 @@ func (s *WebAuthnService) FinishMFALogin(sessionID string, r *http.Request, user
 	if !ok {
 		return nil, errors.ErrPasskeyInvalidSession
 	}
-	sess := sessionVal.(*webAuthnSession)
+	sess, ok := sessionVal.(*webAuthnSession)
+	if !ok {
+		return nil, errors.ErrPasskeyInvalidSession
+	}
 	defer s.sessions.Delete(sessionID)
 
 	if time.Now().After(sess.ExpiresAt) {
@@ -190,7 +195,10 @@ func (s *WebAuthnService) FinishRegistration(user *users.User, sessionID string,
 	if !ok {
 		return errors.ErrPasskeyInvalidSession
 	}
-	sess := sessionVal.(*webAuthnSession)
+	sess, ok := sessionVal.(*webAuthnSession)
+	if !ok {
+		return errors.ErrPasskeyInvalidSession
+	}
 	defer s.sessions.Delete(sessionID)
 
 	if time.Now().After(sess.ExpiresAt) {
@@ -236,7 +244,11 @@ func (s *WebAuthnService) cleanupExpiredSessions() {
 		case <-ticker.C:
 			now := time.Now()
 			s.sessions.Range(func(key, value interface{}) bool {
-				sess := value.(*webAuthnSession)
+				sess, ok := value.(*webAuthnSession)
+				if !ok {
+					s.sessions.Delete(key)
+					return true
+				}
 				if now.After(sess.ExpiresAt) {
 					s.sessions.Delete(key)
 				}

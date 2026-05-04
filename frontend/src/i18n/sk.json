@@ -144,7 +144,8 @@
     "or": "ALEBO",
     "inProgress": "Prihlásenie...",
     "failedLogin": "Nepodarilo sa prihlásiť",
-    "invalidCredentials": "Zadané neplatné poverenia"
+    "invalidCredentials": "Zadané neplatné poverenia",
+    "passkeyLogin": "__NOT_TRANSLATED__"
   },
   "prompts": {
     "copyMessage": "Zvoľte miesto, kde chcete kopírovať súbory:",
@@ -773,7 +774,19 @@
     "showThumbnailsDescription": "Ak je táto možnosť povolená, vo výpise sa zobrazujú miniatúry položiek, ktoré ich podporujú. Ak chcete skryť všetky miniatúry, možnosť vypnite.",
     "showCopyPath": "Zobraziť kopírovanie cesty v kontextovom menu",
     "showCopyPathDescription": "Zobrazenie akcie Kopírovať cestu v kontextovej ponuke súborov a priečinkov.",
-    "previewDescription": "Zobraziť náhľady miniatúr pre {filetype}, ak je vypnuté, zobrazí sa generická ikona."
+    "previewDescription": "Zobraziť náhľady miniatúr pre {filetype}, ak je vypnuté, zobrazí sa generická ikona.",
+    "passkeys": "__NOT_TRANSLATED__",
+    "passkeysDescription": "__NOT_TRANSLATED__",
+    "noPasskeys": "__NOT_TRANSLATED__",
+    "addPasskey": "__NOT_TRANSLATED__",
+    "addingPasskey": "__NOT_TRANSLATED__",
+    "passkeyAdded": "__NOT_TRANSLATED__",
+    "passkeyAddFailed": "__NOT_TRANSLATED__",
+    "passkeyDeleted": "__NOT_TRANSLATED__",
+    "passkeyDeleteFailed": "__NOT_TRANSLATED__",
+    "created": "__NOT_TRANSLATED__",
+    "lastUsed": "__NOT_TRANSLATED__",
+    "passkeyDefaultName": "__NOT_TRANSLATED__"
   },
   "editor": {
     "uninitialized": "Nepodarilo sa inicializovať editor. Prosím, načítajte ho znova.",

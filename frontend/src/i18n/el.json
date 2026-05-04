@@ -147,7 +147,8 @@
     "or": "Ή",
     "inProgress": "Σύνδεση...",
     "failedLogin": "Απέτυχε η σύνδεση",
-    "invalidCredentials": "Παρέχονται άκυρα διαπιστευτήρια"
+    "invalidCredentials": "Παρέχονται άκυρα διαπιστευτήρια",
+    "passkeyLogin": "__NOT_TRANSLATED__"
   },
   "prompts": {
     "copyMessage": "Επιλέξτε τοποθεσία για αντιγραφή των αρχείων σας:",
@@ -773,7 +774,19 @@
     "showThumbnailsDescription": "Όταν είναι ενεργοποιημένη, οι μικρογραφίες εμφανίζονται στην καταχώριση για τα στοιχεία που τις υποστηρίζουν. Απενεργοποιήστε την επιλογή για να αποκρύψετε όλες τις μικρογραφίες.",
     "showCopyPath": "Εμφάνιση της διαδρομής αντιγραφής στο μενού περιβάλλοντος",
     "showCopyPathDescription": "Εμφάνιση της ενέργειας Αντιγραφή διαδρομής στο μενού περιβάλλοντος αρχείων και φακέλων.",
-    "previewDescription": "Εμφάνιση προεπισκοπήσεων μικρογραφιών για το {filetype}, θα εμφανίζει γενικό εικονίδιο εάν είναι απενεργοποιημένο."
+    "previewDescription": "Εμφάνιση προεπισκοπήσεων μικρογραφιών για το {filetype}, θα εμφανίζει γενικό εικονίδιο εάν είναι απενεργοποιημένο.",
+    "passkeys": "__NOT_TRANSLATED__",
+    "passkeysDescription": "__NOT_TRANSLATED__",
+    "noPasskeys": "__NOT_TRANSLATED__",
+    "addPasskey": "__NOT_TRANSLATED__",
+    "addingPasskey": "__NOT_TRANSLATED__",
+    "passkeyAdded": "__NOT_TRANSLATED__",
+    "passkeyAddFailed": "__NOT_TRANSLATED__",
+    "passkeyDeleted": "__NOT_TRANSLATED__",
+    "passkeyDeleteFailed": "__NOT_TRANSLATED__",
+    "created": "__NOT_TRANSLATED__",
+    "lastUsed": "__NOT_TRANSLATED__",
+    "passkeyDefaultName": "__NOT_TRANSLATED__"
   },
   "editor": {
     "uninitialized": "Απέτυχε η αρχικοποίηση του συντάκτη. Παρακαλούμε επαναφορτώστε.",

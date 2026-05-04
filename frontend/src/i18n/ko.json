@@ -144,7 +144,8 @@
     "or": "또는",
     "inProgress": "로그인...",
     "failedLogin": "로그인에 실패했습니다.",
-    "invalidCredentials": "제공된 자격 증명이 잘못되었습니다."
+    "invalidCredentials": "제공된 자격 증명이 잘못되었습니다.",
+    "passkeyLogin": "__NOT_TRANSLATED__"
   },
   "prompts": {
     "copyMessage": "복사할 디렉토리:",
@@ -773,7 +774,19 @@
     "showThumbnailsDescription": "활성화하면 이를 지원하는 항목의 목록에 썸네일이 표시됩니다. 모든 섬네일을 숨기려면 끄면 됩니다.",
     "showCopyPath": "컨텍스트 메뉴에 경로 복사 표시",
     "showCopyPathDescription": "파일 및 폴더 컨텍스트 메뉴에 경로 복사 작업을 표시합니다.",
-    "previewDescription": "{filetype} 에 대한 썸네일 미리보기 표시 , 비활성화하면 일반 아이콘이 표시됩니다."
+    "previewDescription": "{filetype} 에 대한 썸네일 미리보기 표시 , 비활성화하면 일반 아이콘이 표시됩니다.",
+    "passkeys": "__NOT_TRANSLATED__",
+    "passkeysDescription": "__NOT_TRANSLATED__",
+    "noPasskeys": "__NOT_TRANSLATED__",
+    "addPasskey": "__NOT_TRANSLATED__",
+    "addingPasskey": "__NOT_TRANSLATED__",
+    "passkeyAdded": "__NOT_TRANSLATED__",
+    "passkeyAddFailed": "__NOT_TRANSLATED__",
+    "passkeyDeleted": "__NOT_TRANSLATED__",
+    "passkeyDeleteFailed": "__NOT_TRANSLATED__",
+    "created": "__NOT_TRANSLATED__",
+    "lastUsed": "__NOT_TRANSLATED__",
+    "passkeyDefaultName": "__NOT_TRANSLATED__"
   },
   "editor": {
     "uninitialized": "편집기를 초기화하지 못했습니다. 다시 로드하세요.",

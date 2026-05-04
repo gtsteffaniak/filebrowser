@@ -278,7 +278,8 @@
     "or": "OF",
     "inProgress": "Inloggen...",
     "failedLogin": "Inloggen is mislukt",
-    "invalidCredentials": "Ongeldige inloggegevens verstrekt"
+    "invalidCredentials": "Ongeldige inloggegevens verstrekt",
+    "passkeyLogin": "__NOT_TRANSLATED__"
   },
   "share": {
     "notice": "Opmerking: wanneer een gedeelde map wordt aangemaakt, wordt deze meer blootgesteld aan het publiek en gelden er andere toegangsregels. Als uw gedeelde map niet veilig is geconfigureerd, kan iedereen er toegang tot krijgen.",
@@ -532,7 +533,19 @@
     "themeAndLanguage": "Thema & Taal",
     "thumbnailOptions": "Miniatuuropties",
     "showThumbnails": "Toon miniaturen voor ondersteunde items",
-    "showThumbnailsDescription": "Als deze optie is ingeschakeld, worden miniaturen weergegeven in de lijst met items die deze ondersteunen. Schakel deze optie uit om alle miniaturen te verbergen."
+    "showThumbnailsDescription": "Als deze optie is ingeschakeld, worden miniaturen weergegeven in de lijst met items die deze ondersteunen. Schakel deze optie uit om alle miniaturen te verbergen.",
+    "passkeys": "__NOT_TRANSLATED__",
+    "passkeysDescription": "__NOT_TRANSLATED__",
+    "noPasskeys": "__NOT_TRANSLATED__",
+    "addPasskey": "__NOT_TRANSLATED__",
+    "addingPasskey": "__NOT_TRANSLATED__",
+    "passkeyAdded": "__NOT_TRANSLATED__",
+    "passkeyAddFailed": "__NOT_TRANSLATED__",
+    "passkeyDeleted": "__NOT_TRANSLATED__",
+    "passkeyDeleteFailed": "__NOT_TRANSLATED__",
+    "created": "__NOT_TRANSLATED__",
+    "lastUsed": "__NOT_TRANSLATED__",
+    "passkeyDefaultName": "__NOT_TRANSLATED__"
   },
   "settings": {
     "systemAdmin": "Systeem & Beheer",

@@ -144,7 +144,8 @@
     "or": "OR",
     "inProgress": "Einloggen...",
     "failedLogin": "Anmeldung fehlgeschlagen",
-    "invalidCredentials": "Ungültige Anmeldedaten angegeben"
+    "invalidCredentials": "Ungültige Anmeldedaten angegeben",
+    "passkeyLogin": "__NOT_TRANSLATED__"
   },
   "prompts": {
     "copyMessage": "Wählen Sie einen Zielort zum Kopieren:",
@@ -773,7 +774,19 @@
     "showThumbnailsDescription": "Wenn diese Option aktiviert ist, werden Miniaturansichten in der Auflistung für Artikel angezeigt, die sie unterstützen. Schalten Sie die Option aus, um alle Miniaturansichten auszublenden.",
     "showCopyPath": "Pfad kopieren im Kontextmenü anzeigen",
     "showCopyPathDescription": "Zeigen Sie eine Aktion \"Pfad kopieren\" im Kontextmenü von Dateien und Ordnern an.",
-    "previewDescription": "Vorschaubilder für {filetype} anzeigen, bei Deaktivierung wird ein allgemeines Symbol angezeigt."
+    "previewDescription": "Vorschaubilder für {filetype} anzeigen, bei Deaktivierung wird ein allgemeines Symbol angezeigt.",
+    "passkeys": "__NOT_TRANSLATED__",
+    "passkeysDescription": "__NOT_TRANSLATED__",
+    "noPasskeys": "__NOT_TRANSLATED__",
+    "addPasskey": "__NOT_TRANSLATED__",
+    "addingPasskey": "__NOT_TRANSLATED__",
+    "passkeyAdded": "__NOT_TRANSLATED__",
+    "passkeyAddFailed": "__NOT_TRANSLATED__",
+    "passkeyDeleted": "__NOT_TRANSLATED__",
+    "passkeyDeleteFailed": "__NOT_TRANSLATED__",
+    "created": "__NOT_TRANSLATED__",
+    "lastUsed": "__NOT_TRANSLATED__",
+    "passkeyDefaultName": "__NOT_TRANSLATED__"
   },
   "editor": {
     "uninitialized": "Der Editor konnte nicht initialisiert werden. Bitte neu laden.",

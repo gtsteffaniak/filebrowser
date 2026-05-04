@@ -144,7 +144,8 @@
     "or": "或",
     "inProgress": "登入中…",
     "failedLogin": "登入失敗",
-    "invalidCredentials": "提供的認證資料無效"
+    "invalidCredentials": "提供的認證資料無效",
+    "passkeyLogin": "__NOT_TRANSLATED__"
   },
   "prompts": {
     "copyMessage": "請選擇要複製到哪個位置：",
@@ -595,7 +596,19 @@
     "showThumbnailsDescription": "啟用時，縮圖會顯示在支援縮圖的項目清單中。關閉可隱藏所有縮圖。",
     "showCopyPath": "在上下文功能表中顯示複製路徑",
     "showCopyPathDescription": "在檔案和資料夾上下文功能表中顯示複製路徑動作。",
-    "previewDescription": "顯示{filetype} 的縮圖預覽，如果停用會顯示一般圖示。"
+    "previewDescription": "顯示{filetype} 的縮圖預覽，如果停用會顯示一般圖示。",
+    "passkeys": "__NOT_TRANSLATED__",
+    "passkeysDescription": "__NOT_TRANSLATED__",
+    "noPasskeys": "__NOT_TRANSLATED__",
+    "addPasskey": "__NOT_TRANSLATED__",
+    "addingPasskey": "__NOT_TRANSLATED__",
+    "passkeyAdded": "__NOT_TRANSLATED__",
+    "passkeyAddFailed": "__NOT_TRANSLATED__",
+    "passkeyDeleted": "__NOT_TRANSLATED__",
+    "passkeyDeleteFailed": "__NOT_TRANSLATED__",
+    "created": "__NOT_TRANSLATED__",
+    "lastUsed": "__NOT_TRANSLATED__",
+    "passkeyDefaultName": "__NOT_TRANSLATED__"
   },
   "otp": {
     "name": "雙因素驗證",

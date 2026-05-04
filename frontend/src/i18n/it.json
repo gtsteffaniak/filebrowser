@@ -278,7 +278,8 @@
     "or": "OPPURE",
     "inProgress": "Accesso in corso...",
     "failedLogin": "Accesso fallito",
-    "invalidCredentials": "Credenziali fornite non valide"
+    "invalidCredentials": "Credenziali fornite non valide",
+    "passkeyLogin": "__NOT_TRANSLATED__"
   },
   "share": {
     "notice": "Nota: quando viene creata una condivisione, essa diventa pubblica e segue regole di accesso diverse. Se non configurata correttamente, chiunque potrebbe accedervi.",
@@ -532,7 +533,19 @@
     "showThumbnailsDescription": "Spegni per nascondere tutte le miniature nell'elenco.",
     "showCopyPath": "Mostra Copia percorso nel menu contestuale",
     "showCopyPathDescription": "Mostra l'azione Copia percorso nel menu contestuale di file e cartelle.",
-    "previewDescription": "Mostra le anteprime per {filetype}, mostrerà un'icona generica se disabilitata."
+    "previewDescription": "Mostra le anteprime per {filetype}, mostrerà un'icona generica se disabilitata.",
+    "passkeys": "__NOT_TRANSLATED__",
+    "passkeysDescription": "__NOT_TRANSLATED__",
+    "noPasskeys": "__NOT_TRANSLATED__",
+    "addPasskey": "__NOT_TRANSLATED__",
+    "addingPasskey": "__NOT_TRANSLATED__",
+    "passkeyAdded": "__NOT_TRANSLATED__",
+    "passkeyAddFailed": "__NOT_TRANSLATED__",
+    "passkeyDeleted": "__NOT_TRANSLATED__",
+    "passkeyDeleteFailed": "__NOT_TRANSLATED__",
+    "created": "__NOT_TRANSLATED__",
+    "lastUsed": "__NOT_TRANSLATED__",
+    "passkeyDefaultName": "__NOT_TRANSLATED__"
   },
   "settings": {
     "systemAdmin": "Sistema e Admin",

@@ -144,7 +144,8 @@
     "or": "ELLER",
     "inProgress": "Loggar in...",
     "failedLogin": "Misslyckades med att logga in",
-    "invalidCredentials": "Ogiltiga inloggningsuppgifter har angetts"
+    "invalidCredentials": "Ogiltiga inloggningsuppgifter har angetts",
+    "passkeyLogin": "__NOT_TRANSLATED__"
   },
   "prompts": {
     "copyMessage": "Välj var dina filer skall sparas:",
@@ -627,7 +628,19 @@
     "showThumbnailsDescription": "När den är aktiverad visas miniatyrbilder i listan för objekt som stöder dem. Stäng av för att dölja alla miniatyrbilder.",
     "showCopyPath": "Visa Kopiera sökväg i snabbmenyn",
     "showCopyPathDescription": "Visa åtgärden Kopiera sökväg i snabbmenyn för filer och mappar.",
-    "previewDescription": "Visa förhandsgranskning av miniatyrbilder för {filetype}, visar generisk ikon om den är inaktiverad."
+    "previewDescription": "Visa förhandsgranskning av miniatyrbilder för {filetype}, visar generisk ikon om den är inaktiverad.",
+    "passkeys": "__NOT_TRANSLATED__",
+    "passkeysDescription": "__NOT_TRANSLATED__",
+    "noPasskeys": "__NOT_TRANSLATED__",
+    "addPasskey": "__NOT_TRANSLATED__",
+    "addingPasskey": "__NOT_TRANSLATED__",
+    "passkeyAdded": "__NOT_TRANSLATED__",
+    "passkeyAddFailed": "__NOT_TRANSLATED__",
+    "passkeyDeleted": "__NOT_TRANSLATED__",
+    "passkeyDeleteFailed": "__NOT_TRANSLATED__",
+    "created": "__NOT_TRANSLATED__",
+    "lastUsed": "__NOT_TRANSLATED__",
+    "passkeyDefaultName": "__NOT_TRANSLATED__"
   },
   "general": {
     "name": "Namn",

@@ -147,7 +147,8 @@
     "or": "NEBO",
     "inProgress": "Přihlášení...",
     "failedLogin": "Nepodařilo se přihlásit",
-    "invalidCredentials": "Neplatné zadané pověření"
+    "invalidCredentials": "Neplatné zadané pověření",
+    "passkeyLogin": "__NOT_TRANSLATED__"
   },
   "share": {
     "notice": "Poznámka: po vytvoření sdílené složky je tato složka více vystavena veřejnosti a platí pro ni jiná pravidla přístupu. Pokud není sdílená složka bezpečně nakonfigurována, může k ní mít přístup kdokoli.",
@@ -401,7 +402,19 @@
     "showThumbnailsDescription": "Pokud je tato možnost povolena, zobrazují se ve výpisu náhledy položek, které je podporují. Vypnutím se všechny miniatury skryjí.",
     "showCopyPath": "Zobrazit kopírování cesty v kontextové nabídce",
     "showCopyPathDescription": "Zobrazení akce Kopírovat cestu v kontextové nabídce souborů a složek.",
-    "previewDescription": "Zobrazit náhledy miniatur pro {filetype}, pokud je zakázáno, zobrazí se obecná ikona."
+    "previewDescription": "Zobrazit náhledy miniatur pro {filetype}, pokud je zakázáno, zobrazí se obecná ikona.",
+    "passkeys": "__NOT_TRANSLATED__",
+    "passkeysDescription": "__NOT_TRANSLATED__",
+    "noPasskeys": "__NOT_TRANSLATED__",
+    "addPasskey": "__NOT_TRANSLATED__",
+    "addingPasskey": "__NOT_TRANSLATED__",
+    "passkeyAdded": "__NOT_TRANSLATED__",
+    "passkeyAddFailed": "__NOT_TRANSLATED__",
+    "passkeyDeleted": "__NOT_TRANSLATED__",
+    "passkeyDeleteFailed": "__NOT_TRANSLATED__",
+    "created": "__NOT_TRANSLATED__",
+    "lastUsed": "__NOT_TRANSLATED__",
+    "passkeyDefaultName": "__NOT_TRANSLATED__"
   },
   "settings": {
     "enterPassword": "Zadejte heslo",

@@ -544,7 +544,8 @@
     "passkeyDeleted": "Passkey deleted.",
     "passkeyDeleteFailed": "Failed to delete passkey",
     "created": "Created",
-    "lastUsed": "Last used"
+    "lastUsed": "Last used",
+    "passkeyDefaultName": "Passkey"
   },
   "settings": {
     "systemAdmin": "System & Admin",
