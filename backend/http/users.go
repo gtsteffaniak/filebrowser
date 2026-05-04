@@ -100,6 +100,18 @@ func prepForFrontend(u *users.User) {
 	u.Scopes = u.GetFrontendScopes()
 	u.SidebarLinks = u.GetFrontendSidebarLinks()
 	u.Locale = normalizeLocale(u.Locale)
+	for i := range u.PasskeyCredentials {
+		u.PasskeyCredentials[i].PublicKey = ""
+		u.PasskeyCredentials[i].AttestationType = ""
+		u.PasskeyCredentials[i].AttestationFormat = ""
+		u.PasskeyCredentials[i].Flags = users.WebAuthnCredentialFlags{}
+		u.PasskeyCredentials[i].SignCount = 0
+		u.PasskeyCredentials[i].ClientDataJSON = ""
+		u.PasskeyCredentials[i].ClientDataHash = ""
+		u.PasskeyCredentials[i].AuthenticatorData = ""
+		u.PasskeyCredentials[i].PublicKeyAlg = 0
+		u.PasskeyCredentials[i].AttestationObj = ""
+	}
 }
 
 // normalizeLocale converts various locale formats (xx_xx, xx-xx, xxxx) to camelCase format (xxXX)
