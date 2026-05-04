@@ -5282,7 +5282,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "secret": {
-                    "description": "Shared secret key/bytes for verifying JWT token signatures (required, eg PUBLIC KEY, RSA PUBLIC KEY, EC PUBLIC KEY, or CERTIFICATE)",
+                    "description": "secret: Shared secret key/bytes for verifying JWT token signatures (required, eg PUBLIC KEY, RSA PUBLIC KEY, EC PUBLIC KEY, or CERTIFICATE)",
                     "type": "string"
                 },
                 "userGroups": {
