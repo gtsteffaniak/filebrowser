@@ -1,6 +1,7 @@
 {
   "buttons": {
     "copySuccess": "Скопировано в буфер обмена!",
+    "copyFailed": "Не удалось скопировать в буфер обмена",
     "copyFile": "Скопировать файл",
     "copyToClipboard": "Скопировать в буфер",
     "moveFile": "Переместить файл",
@@ -215,8 +216,6 @@
     "selectHashAlgorithm": "Выберите алгоритм хэширования",
     "generate": "Создать",
     "errorGeneratingHash": "Ошибка при генерации хэша",
-    "hashCopied": "Хэш копируется в буфер обмена",
-    "errorCopyingHash": "Ошибка при копировании хэша",
     "token": "Токен",
     "onlyOfficeId": "Идентификатор OnlyOffice",
     "firstLoadTitle": "Добро пожаловать в FileBrowser Quantum!",
@@ -227,7 +226,6 @@
     "renameSuccess": "Элемент успешно переименован!",
     "newFileSuccess": "Файл создан успешно!",
     "newDirSuccess": "Каталог создан успешно!",
-    "copyToClipboardFailed": "Невозможно скопировать в буфер обмена",
     "moveFailed": "Перемещение не удалось",
     "operationFailed": "Операция не удалась",
     "partialSuccess": "Некоторые операции завершились неудачей: {succeeded} - успешно, {failed} - неудачно.",
@@ -243,7 +241,7 @@
     "unarchiveDestination": "Отрывок в:",
     "unarchiveSuccess": "Архив извлечен успешно!",
     "downloadFailed": "Не удалось загрузить чанк - если ситуация повторяется, попробуйте уменьшить размер чанка: {message}",
-    "confirmPasswordToChangeUserPassword": "Введите свой текущий пароль, чтобы разрешить смену пароля."
+    "confirmPasswordToSaveUser": "Введите свой текущий пароль, чтобы сохранить изменения пользователя."
   },
   "search": {
     "smallerThan": "Меньше, чем:",
@@ -329,7 +327,6 @@
     "tusUploadsRetryCount": "Количество повторных попыток, которые необходимо выполнить, если чанк не удалось загрузить.",
     "userHomeBasePath": "Базовый путь к домашним каталогам пользователей",
     "userScopeGenerationPlaceholder": "Область действия будет сгенерирована автоматически",
-    "createUserHomeDirectory": "Создать домашний каталог пользователя",
     "loginMethodDescription": "разрешенный метод входа для пользователя.",
     "userNotAdmin": "Пользователь не является администратором",
     "enterPassword": "Введите пароль",
@@ -544,7 +541,8 @@
     "enabledSuccessfully": "OTP успешно активирован",
     "verificationFailed": "Верификация не удалась",
     "verificationSucceed": "Проверка удалась",
-    "generationFailed": "Не удалось создать"
+    "generationFailed": "Не удалось создать",
+    "passwordRequiredForGeneration": "Ваш пароль необходим для генерации кода аутентификатора."
   },
   "general": {
     "name": "Имя",
@@ -845,8 +843,6 @@
       "showingResults": "Показать результаты {count} ",
       "noResults": "Значки не найдены",
       "tryDifferentSearch": "Попробуйте использовать другой поисковый запрос",
-      "copiedToClipboard": "Скопировано '{name}' в буфер обмена!",
-      "copyFailed": "Не удалось скопировать в буфер обмена",
       "custom": "Пользовательское",
       "useCustomIcon": "Используйте пользовательский значок: {name}",
       "iconLibraryUrl": "fonts.google.com/icons",
@@ -870,7 +866,8 @@
     "reassignPath": "Переназначить путь",
     "pathReassigned": "Путь успешно обновлен!",
     "pathReassignFailed": "Не удалось обновить путь. Пожалуйста, попробуйте еще раз.",
-    "incompleteResultsDetails": "Показано максимум результатов ({max}). Попробуйте сузить поиск, чтобы получить больше результатов по запросу {max}."
+    "incompleteResultsDetails": "Показано максимум результатов ({max}). Попробуйте сузить поиск, чтобы получить больше результатов по запросу {max}.",
+    "noCreateOptions": "Опции создания недоступны"
   },
   "duplicateFinder": {
     "title": "Поиск дубликатов файлов",

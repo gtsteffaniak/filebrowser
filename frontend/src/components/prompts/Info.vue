@@ -86,6 +86,7 @@
 <script>
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { formatTimestamp } from "@/utils/moment";
+import { copyToClipboard } from "@/utils/clipboard";
 import { resourcesApi } from "@/api";
 import { state } from "@/store";
 import { notify } from "@/notify";
@@ -180,26 +181,7 @@ export default {
     },
     async copyToClipboard() {
       if (!this.hashResult) return;
-
-      try {
-        await navigator.clipboard.writeText(this.hashResult);
-        notify.showSuccessToast(this.$t("prompts.hashCopied"));
-      } catch (err) {
-        // Fallback for older browsers
-        const textArea = document.createElement("textarea");
-        textArea.value = this.hashResult;
-        textArea.style.position = "fixed";
-        textArea.style.opacity = "0";
-        document.body.appendChild(textArea);
-        textArea.select();
-        try {
-          document.execCommand("copy");
-          notify.showSuccessToast(this.$t("prompts.hashCopied"));
-        } catch (e) {
-          notify.showError(this.$t("prompts.errorCopyingHash"));
-        }
-        document.body.removeChild(textArea);
-      }
+      await copyToClipboard(this.hashResult);
     },
   },
 };

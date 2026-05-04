@@ -2,7 +2,8 @@ FROM ghcr.io/gtsteffaniak/playwright-base:chromium
 WORKDIR /app
 
 WORKDIR /app/frontend
-COPY [ "./frontend/", "./" ]
+COPY [ "./frontend/tests", "./tests" ]
+COPY [ "./_docker/src/screenshots/frontend/", "./" ]
 
 WORKDIR /app/backend/
 COPY [ "./backend/filebrowser*", "./"]

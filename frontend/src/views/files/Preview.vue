@@ -35,13 +35,8 @@
         />
       </div>
 
-      <div v-else-if="previewType == 'pdf'" class="pdf-wrapper">
-        <iframe class="pdf" :src="raw"></iframe>
-        <a v-if="isMobileSafari" :href="raw" target="_blank" class="button button--flat floating-btn">
-          <div>
-            <i class="material-symbols">open_in_new</i>{{ $t("general.openFile") }}
-          </div>
-        </a>
+      <div v-else-if="isPdf" class="pdf-wrapper">
+        <iframe allow="web-share" class="pdf" :src="raw"></iframe>
       </div>
 
       <div v-else class="info">
@@ -165,6 +160,9 @@ export default {
         return "preview";
       }
       return getters.previewType();
+    },
+    isPdf() {
+      return state.req.type === 'application/pdf';
     },
     raw() {
       const isHeicOrHeif = state.req.type === "image/heic" || state.req.type === "image/heif";
@@ -457,8 +455,6 @@ export default {
             this.listing = [state.req];
           }
         } else {
-          console.error("No listing found Preview.vue");
-          // Shouldn't happen, but fallback to current item
           this.listing = [state.req];
         }
       }

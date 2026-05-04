@@ -1,6 +1,7 @@
 {
   "buttons": {
     "copySuccess": "¡Copiado al portapapeles!",
+    "copyFailed": "Error al copiar al portapapeles",
     "copyFile": "Copiar archivo",
     "copyToClipboard": "Copiar al portapapeles",
     "moveFile": "Mover archivo",
@@ -215,8 +216,6 @@
     "selectHashAlgorithm": "Selecciona un algoritmo",
     "generate": "Generar",
     "errorGeneratingHash": "Hubo un error al obtener el hash",
-    "hashCopied": "¡Se copio el hash al portapapeles!",
-    "errorCopyingHash": "Hubo un error al copiar el hash",
     "token": "Token",
     "onlyOfficeId": "OnlyOffice ID",
     "firstLoadTitle": "¡Bienvenido a FileBrowser Quantum!",
@@ -227,7 +226,6 @@
     "renameSuccess": "El cambio de nombre se ha realizado correctamente",
     "newFileSuccess": "¡Archivo creado con éxito!",
     "newDirSuccess": "¡Carpeta creada con éxito!",
-    "copyToClipboardFailed": "Hubo un error al copiar en el portapapeles",
     "moveFailed": "Error al mover",
     "operationFailed": "Operación fallida",
     "partialSuccess": "Algunas acciones fallaron: {succeeded} se completaron, y {failed} fallaron",
@@ -243,7 +241,7 @@
     "unarchiveDestination": "Extraer a:",
     "unarchiveSuccess": "¡Archivo extraído con éxito!",
     "downloadFailed": "Fallo en la descarga por trozos. Si se repite, intente reducir el tamaño de los trozos: {message}",
-    "confirmPasswordToChangeUserPassword": "Introduzca su contraseña actual para autorizar este cambio de contraseña."
+    "confirmPasswordToSaveUser": "Introduzca su contraseña actual para guardar estos cambios de usuario."
   },
   "search": {
     "smallerThan": "Menor que:",
@@ -278,7 +276,6 @@
     "createUserDir": "Crea automaticamente una carpeta cuando se agrega un nuevo usuario",
     "userHomeBasePath": "Ruta base para la carpeta personal del usuario",
     "userScopeGenerationPlaceholder": "La carpeta se generará automáticamente",
-    "createUserHomeDirectory": "Crea una carpeta personal para cada usuario",
     "customStylesheet": "Hoja de estilos personalizada",
     "defaultUserDescription": "Configuración por defecto nuevos usuarios",
     "disableExternalLinks": "Desactivar enlaces externos",
@@ -544,7 +541,8 @@
     "enabledSuccessfully": "¡2FA activado!",
     "verificationFailed": "No se pudo autenticar",
     "verificationSucceed": "¡Verificación exitosa!",
-    "generationFailed": "Hubo un error al generar el código"
+    "generationFailed": "Hubo un error al generar el código",
+    "passwordRequiredForGeneration": "Su contraseña es necesaria para generar un código autenticador."
   },
   "general": {
     "name": "Nombre",
@@ -845,8 +843,6 @@
       "showingResults": "Se encontraron {count} iconos",
       "noResults": "No se pudieorn encontrar iconos",
       "tryDifferentSearch": "Prueba con otro nombre",
-      "copiedToClipboard": "¡Se copió '{name}' al portapapeles!",
-      "copyFailed": "Hubo un error al copiar al portapapeles",
       "custom": "Personalizar",
       "useCustomIcon": "Utilizar icono personalizado: {name}",
       "iconLibraryUrl": "fonts.google.com/icons",
@@ -870,7 +866,8 @@
     "reassignPath": "Reasignar ruta",
     "pathReassigned": "¡La ruta se actualizó correctamente!",
     "pathReassignFailed": "No se pudo actualizar la ruta. Inténtalo de nuevo",
-    "incompleteResultsDetails": "Mostrando resultados máximos ({max}). Intenta restringir la búsqueda para obtener más resultados en {max}."
+    "incompleteResultsDetails": "Mostrando resultados máximos ({max}). Intenta restringir la búsqueda para obtener más resultados en {max}.",
+    "noCreateOptions": "No hay opciones de creación disponibles"
   },
   "duplicateFinder": {
     "title": "Buscador de archivos duplicados",

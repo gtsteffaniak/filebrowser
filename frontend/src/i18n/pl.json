@@ -1,6 +1,7 @@
 {
   "buttons": {
     "copySuccess": "Skopiowano do schowka!",
+    "copyFailed": "Nie udało się skopiować do schowka",
     "copyFile": "Kopiuj plik",
     "copyToClipboard": "kopiuj do schowka",
     "moveFile": "Przenieś plik",
@@ -215,8 +216,6 @@
     "selectHashAlgorithm": "Wybór algorytmu skrótu",
     "generate": "Generowanie",
     "errorGeneratingHash": "Błąd generowania skrótu",
-    "hashCopied": "Hash skopiowany do schowka",
-    "errorCopyingHash": "Błąd kopiowania skrótu",
     "token": "Token",
     "onlyOfficeId": "OnlyOffice ID",
     "firstLoadTitle": "Witamy w FileBrowser Quantum!",
@@ -227,7 +226,6 @@
     "renameSuccess": "Nazwa elementu została zmieniona pomyślnie!",
     "newFileSuccess": "Plik został utworzony pomyślnie!",
     "newDirSuccess": "Katalog utworzony pomyślnie!",
-    "copyToClipboardFailed": "Nie można skopiować do schowka",
     "moveFailed": "Przenoszenie nie powiodło się",
     "operationFailed": "Operacja nie powiodła się",
     "partialSuccess": "Niektóre operacje nie powiodły się: {succeeded} powiodło się, {failed} nie powiodło się",
@@ -243,7 +241,7 @@
     "unarchiveDestination": "Wyciąg do:",
     "unarchiveSuccess": "Archiwum rozpakowane pomyślnie!",
     "downloadFailed": "Pobieranie fragmentów nie powiodło się - jeśli sytuacja się powtórzy, spróbuj zmniejszyć rozmiar fragmentu: {message}",
-    "confirmPasswordToChangeUserPassword": "Wprowadź bieżące hasło, aby autoryzować zmianę hasła."
+    "confirmPasswordToSaveUser": "Wprowadź aktualne hasło, aby zapisać zmiany użytkownika."
   },
   "search": {
     "smallerThan": "Mniejszy niż:",
@@ -328,7 +326,6 @@
     "tusUploadsRetryCount": "Liczba ponawianych prób w przypadku niepowodzenia przesłania fragmentu.",
     "userHomeBasePath": "Ścieżka podstawowa dla katalogów domowych użytkownika",
     "userScopeGenerationPlaceholder": "Zakres zostanie wygenerowany automatycznie",
-    "createUserHomeDirectory": "Tworzenie katalogu domowego użytkownika",
     "shareDeleted": "Usunięto udostępnianie!",
     "loginMethodDescription": "dozwolona metoda logowania dla użytkownika.",
     "userNotAdmin": "Użytkownik nie jest administratorem",
@@ -544,7 +541,8 @@
     "enabledSuccessfully": "OTP został pomyślnie włączony",
     "verificationFailed": "Weryfikacja nie powiodła się",
     "verificationSucceed": "Sukces weryfikacji",
-    "generationFailed": "Generacja nieudana"
+    "generationFailed": "Generacja nieudana",
+    "passwordRequiredForGeneration": "Hasło jest wymagane do wygenerowania kodu uwierzytelniającego."
   },
   "general": {
     "name": "Nazwa",
@@ -845,8 +843,6 @@
       "showingResults": "Wyświetlanie wyników {count} ",
       "noResults": "Nie znaleziono ikon",
       "tryDifferentSearch": "Wypróbuj inne wyszukiwane hasło",
-      "copiedToClipboard": "Skopiowano '{name}' do schowka!",
-      "copyFailed": "Nie udało się skopiować do schowka",
       "custom": "Niestandardowe",
       "useCustomIcon": "Użyj niestandardowej ikony: {name}",
       "iconLibraryUrl": "fonts.google.com/icons",
@@ -870,7 +866,8 @@
     "reassignPath": "Ponowne przypisanie ścieżki",
     "pathReassigned": "Ścieżka została pomyślnie zaktualizowana!",
     "pathReassignFailed": "Nie udało się zaktualizować ścieżki. Spróbuj ponownie.",
-    "incompleteResultsDetails": "Wyświetlanie maksymalnych wyników ({max}). Spróbuj zawęzić wyszukiwanie, aby uzyskać więcej wyników pod {max}."
+    "incompleteResultsDetails": "Wyświetlanie maksymalnych wyników ({max}). Spróbuj zawęzić wyszukiwanie, aby uzyskać więcej wyników pod {max}.",
+    "noCreateOptions": "Opcje tworzenia nie są dostępne"
   },
   "duplicateFinder": {
     "title": "Wyszukiwarka duplikatów plików",

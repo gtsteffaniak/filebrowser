@@ -17,6 +17,11 @@ type IndexInfo struct {
 	NumDirs    uint64 `json:"numDirs"`
 	NumFiles   uint64 `json:"numFiles"`
 
+	// Disk usage (cached from periodic GetIndexInfo / partition probes; aligns with ReducedIndex Stats)
+	UsedAsIndexed uint64 `json:"used"`
+	UsedDisk      uint64 `json:"usedAlt"`
+	DiskTotal     uint64 `json:"total"`
+
 	// Scanner information - map of scanner path to scanner stats
 	Scanners map[string]*PersistedScannerInfo `json:"scanners"`
 }

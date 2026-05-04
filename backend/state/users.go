@@ -7,6 +7,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
@@ -153,7 +154,12 @@ func UserForShareOwner(link share.Share) (users.User, error) {
 	return GetUser(link.UserID)
 }
 
-// CreateUser creates a new user with plaintext password
+// CreateUser creates a new user with plaintext password.
+//
+// Scope model: only BackendScopes are persisted (SQL user_data). JSON "scopes" on the API unmarshals into
+// FrontendScopes; state converts those to BackendScopes via APIScopesToBackend, clears FrontendScopes, then
+// may apply default-enabled sources. In-memory/cache users always keep FrontendScopes nil; GET handlers use
+// PrepForFrontend to repopulate FrontendScopes from BackendScopes for responses.
 func CreateUser(user *users.User, plaintextPassword string) error {
 	if _, exists := usersByName[user.Username]; exists {
 		return fmt.Errorf("user with username %s already exists", user.Username)
@@ -167,7 +173,7 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 		user.Password = hashedPassword
 	}
 
-	// Persisted authority is BackendScopes only. Request json "scopes" (if any) replace it.
+	// Incoming API "scopes" → BackendScopes; FrontendScopes must not remain on the persisted user.
 	if len(user.FrontendScopes) > 0 {
 		backend, convErr := users.APIScopesToBackend(user.FrontendScopes)
 		if convErr != nil {
@@ -177,8 +183,11 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 	}
 	user.FrontendScopes = nil
 
+	// If still no BackendScopes (omitted or invalid API names), same defaults as ApplyUserDefaults.
+	settings.ApplyDefaultBackendScopes(user)
+
 	// Create user directories and adjust scope paths if createUserDir is enabled
-	err := files.MakeUserDirs(user)
+	err := files.MakeUserDirs(user, true)
 	if err != nil {
 		logger.Error(err.Error())
 	}
@@ -228,8 +237,12 @@ func UpdateUser(user *users.User, plaintextPassword string, fields ...string) er
 	oldUsername := existingUser.Username
 	oldUserID := existingUser.ID
 
-	// If no fields specified, update all fields (full replacement)
+	// If no fields specified, or the API sends which=["all"], replace the entire user (full update).
+	// Client UX sends "all" as a broad save; it must not be interpreted as a single JSON field name.
 	updateAll := len(fields) == 0
+	if !updateAll && len(fields) == 1 && strings.EqualFold(strings.TrimSpace(fields[0]), "all") {
+		updateAll = true
+	}
 
 	if !updateAll {
 		// 2. Patch operation - selectively copy specified fields using reflection
@@ -282,7 +295,7 @@ func UpdateUser(user *users.User, plaintextPassword string, fields ...string) er
 		existingUser = user
 	}
 
-	// Apply json "scopes" from the request to BackendScopes when valid payloads are present.
+	// Request JSON "scopes" → BackendScopes only; FrontendScopes are never persisted (see PrepForFrontend).
 	if updateAll {
 		if len(existingUser.FrontendScopes) > 0 {
 			backend, convErr := users.APIScopesToBackend(existingUser.FrontendScopes)
@@ -292,18 +305,20 @@ func UpdateUser(user *users.User, plaintextPassword string, fields ...string) er
 			existingUser.BackendScopes = backend
 		}
 	} else {
-		for _, jsonFieldName := range fields {
-			if strings.EqualFold(jsonFieldName, "scopes") {
-				backend, convErr := users.APIScopesToBackend(existingUser.FrontendScopes)
-				if convErr != nil {
-					return convErr
+		if !fieldListPatchesBackendScopes(fields) {
+			for _, jsonFieldName := range fields {
+				if strings.EqualFold(jsonFieldName, "scopes") {
+					backend, convErr := users.APIScopesToBackend(existingUser.FrontendScopes)
+					if convErr != nil {
+						return convErr
+					}
+					existingUser.BackendScopes = backend
+					break
 				}
-				existingUser.BackendScopes = backend
-				break
 			}
 		}
 	}
-	// FrontendScopes are derived in PrepForFrontend for responses only; never store on disk or in cache.
+	// Keep cache aligned with SQL: derive FrontendScopes only when serving GET.
 	existingUser.FrontendScopes = nil
 
 	// 3. Write to database
@@ -329,6 +344,18 @@ func UpdateUser(user *users.User, plaintextPassword string, fields ...string) er
 	usersByName[existingUser.Username] = existingUser
 
 	return nil
+}
+
+// fieldListPatchesBackendScopes reports whether fields include persisted scope paths (JSON tag
+// "backendScopes", case-insensitive; matches struct name BackendScopes as well).
+func fieldListPatchesBackendScopes(fields []string) bool {
+	for _, f := range fields {
+		f = strings.TrimSpace(f)
+		if strings.EqualFold(f, "backendScopes") {
+			return true
+		}
+	}
+	return false
 }
 
 // findFieldByJSONTag recursively searches for a struct field by its JSON tag name

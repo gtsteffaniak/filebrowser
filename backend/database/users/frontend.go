@@ -2,8 +2,8 @@ package users
 
 import "strings"
 
-// PrepForFrontend fills response-only fields (scopes, links, locale) for a user value returned from GET handlers.
-// FrontendScopes are not loaded from or saved to the database.
+// PrepForFrontend fills response-only fields for GET handlers. FrontendScopes are derived from
+// persisted BackendScopes (GetFrontendScopes); they are not read from SQL and must not be written back as-is.
 func (u *User) PrepForFrontend() {
 	u.FrontendScopes = u.GetFrontendScopes()
 	u.SidebarLinks = u.GetFrontendSidebarLinks()

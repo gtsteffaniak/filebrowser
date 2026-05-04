@@ -1,6 +1,7 @@
 {
   "buttons": {
     "copySuccess": "Αντιγράφηκε στο πρόχειρο!",
+    "copyFailed": "Απέτυχε η αντιγραφή στο πρόχειρο",
     "copyFile": "Αντιγραφή αρχείου",
     "copyToClipboard": "Αντιγραφή στο πρόχειρο",
     "copyDownloadLinkToClipboard": "Αντιγραφή συνδέσμου λήψης στο πρόχειρο",
@@ -218,8 +219,6 @@
     "selectHashAlgorithm": "Επιλέξτε έναν αλγόριθμο κατακερματισμού",
     "generate": "Δημιουργία",
     "errorGeneratingHash": "Σφάλμα δημιουργίας hash",
-    "hashCopied": "Αντιγραφή κατακερματισμού στο πρόχειρο",
-    "errorCopyingHash": "Σφάλμα αντιγραφής hash",
     "token": "Token",
     "onlyOfficeId": "ΜόνοΤαυτότητα γραφείου",
     "firstLoadTitle": "Καλώς ήρθατε στο FileBrowser Quantum!",
@@ -230,7 +229,6 @@
     "renameSuccess": "Το στοιχείο μετονομάστηκε επιτυχώς!",
     "newFileSuccess": "Το αρχείο δημιουργήθηκε με επιτυχία!",
     "newDirSuccess": "Ο κατάλογος δημιουργήθηκε με επιτυχία!",
-    "copyToClipboardFailed": "Αδυναμία αντιγραφής στο πρόχειρο",
     "moveFailed": "Η μετακίνηση απέτυχε",
     "operationFailed": "Η λειτουργία απέτυχε",
     "partialSuccess": "Ορισμένες λειτουργίες απέτυχαν: {succeeded} πέτυχε, {failed} απέτυχε",
@@ -246,7 +244,7 @@
     "unarchiveDestination": "Απόσπασμα προς:",
     "unarchiveSuccess": "Το αρχείο εξήχθη με επιτυχία!",
     "downloadFailed": "Αποτυχημένη λήψη σε τεμάχια - αν αυτό επαναληφθεί, δοκιμάστε να μειώσετε το μέγεθος των τεμαχίων: {message}",
-    "confirmPasswordToChangeUserPassword": "Εισάγετε τον τρέχοντα κωδικό πρόσβασής σας για να εγκρίνετε αυτή την αλλαγή κωδικού πρόσβασης."
+    "confirmPasswordToSaveUser": "Εισάγετε τον τρέχοντα κωδικό πρόσβασης για να αποθηκεύσετε αυτές τις αλλαγές χρήστη."
   },
   "search": {
     "smallerThan": "Μικρότερο από:",
@@ -284,7 +282,6 @@
     "tusUploadsRetryCount": "Αριθμός επαναληπτικών δοκιμών που θα πραγματοποιηθούν αν αποτύχει η μεταφόρτωση ενός τμήματος.",
     "userHomeBasePath": "Βασική διαδρομή αρχείων για τους φακέλους των χρηστών",
     "userScopeGenerationPlaceholder": "Η εμβέλεια εφαρμογής θα δημιουργηθεί αυτόματα",
-    "createUserHomeDirectory": "Δημιουργία φακέλου χρήστη",
     "customStylesheet": "Προσαρμοσμένο στυλ εμφάνισης (stylesheet)",
     "defaultUserDescription": "Αυτές είναι οι προεπιλεγμένες ρυθμίσεις για νέους χρήστες.",
     "disableExternalLinks": "Απενεργοποίηση εξωτερικών συνδέσμων (εκτός από συνδέσμους προς τις οδηγίες χρήσης)",
@@ -544,7 +541,8 @@
     "enabledSuccessfully": "Το OTP ενεργοποιήθηκε με επιτυχία",
     "verificationFailed": "Η επαλήθευση απέτυχε",
     "verificationSucceed": "Επαλήθευση Succeed",
-    "generationFailed": "Γενιά που απέτυχε"
+    "generationFailed": "Γενιά που απέτυχε",
+    "passwordRequiredForGeneration": "Ο κωδικός πρόσβασής σας απαιτείται για τη δημιουργία ενός κωδικού ελέγχου ταυτότητας."
   },
   "general": {
     "name": "Όνομα",
@@ -845,8 +843,6 @@
       "showingResults": "Εμφάνιση {count} αποτελεσμάτων",
       "noResults": "Δεν βρέθηκαν εικονίδια",
       "tryDifferentSearch": "Δοκιμάστε έναν διαφορετικό όρο αναζήτησης",
-      "copiedToClipboard": "Αντιγραφή του '{name}' στο πρόχειρο!",
-      "copyFailed": "Απέτυχε η αντιγραφή στο πρόχειρο",
       "custom": "Προσαρμοσμένο",
       "useCustomIcon": "Χρήση προσαρμοσμένου εικονιδίου: {name}",
       "iconLibraryUrl": "fonts.google.com/icons",
@@ -870,7 +866,8 @@
     "reassignPath": "Επαναπροσδιορισμός διαδρομής",
     "pathReassigned": "Η διαδρομή ενημερώθηκε επιτυχώς!",
     "pathReassignFailed": "Απέτυχε η ενημέρωση της διαδρομής. Προσπαθήστε ξανά.",
-    "incompleteResultsDetails": "Εμφάνιση μέγιστων αποτελεσμάτων ({max}). Προσπαθήστε να περιορίσετε την αναζήτησή σας για να πάρετε περισσότερα αποτελέσματα κάτω από {max}."
+    "incompleteResultsDetails": "Εμφάνιση μέγιστων αποτελεσμάτων ({max}). Προσπαθήστε να περιορίσετε την αναζήτησή σας για να πάρετε περισσότερα αποτελέσματα κάτω από {max}.",
+    "noCreateOptions": "Δεν υπάρχουν διαθέσιμες επιλογές δημιουργίας"
   },
   "duplicateFinder": {
     "title": "Αναζήτηση διπλών αρχείων",

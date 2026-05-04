@@ -1,6 +1,7 @@
 {
   "buttons": {
     "copySuccess": "Copiado para a área de transferência!",
+    "copyFailed": "Falha ao copiar para a área de transferência",
     "copyFile": "Copiar arquivo",
     "copyToClipboard": "Copiar",
     "moveFile": "Mover arquivo",
@@ -215,8 +216,6 @@
     "selectHashAlgorithm": "Selecione um algoritmo de hash",
     "generate": "Gerar",
     "errorGeneratingHash": "Erro ao gerar hash",
-    "hashCopied": "Hash copiado para a área de transferência",
-    "errorCopyingHash": "Erro ao copiar o hash",
     "token": "Token",
     "onlyOfficeId": "ID do OnlyOffice",
     "firstLoadTitle": "Bem-vindo ao FileBrowser Quantum!",
@@ -227,7 +226,6 @@
     "renameSuccess": "Item renomeado com sucesso!",
     "newFileSuccess": "Arquivo criado com sucesso!",
     "newDirSuccess": "Diretório criado com sucesso!",
-    "copyToClipboardFailed": "Não é possível copiar para a área de transferência",
     "moveFailed": "Falha ao mover",
     "operationFailed": "Falha na operação",
     "partialSuccess": "Algumas operações falharam: {succeeded} foi bem-sucedido, {failed} falhou",
@@ -243,7 +241,7 @@
     "unarchiveDestination": "Extrair para:",
     "unarchiveSuccess": "Arquivo extraído com sucesso!",
     "downloadFailed": "Falha no download em pedaços - se isso se repetir, tente reduzir o tamanho do pedaço: {message}",
-    "confirmPasswordToChangeUserPassword": "Digite sua senha atual para autorizar a alteração da senha."
+    "confirmPasswordToSaveUser": "Digite sua senha atual para salvar essas alterações de usuário."
   },
   "search": {
     "smallerThan": "Menor que:",
@@ -277,7 +275,6 @@
     "createUserDir": "Criar diretório Home para novos usuários",
     "userHomeBasePath": "Caminho base para diretórios de usuários",
     "userScopeGenerationPlaceholder": "O escopo será gerado automaticamente",
-    "createUserHomeDirectory": "Criar diretório Home de usuário",
     "customStylesheet": "Estilos personalizados",
     "defaultUserDescription": "Estas são as configurações padrão para novos usuários.",
     "disableExternalLinks": "Desabilitar links externos (exceto documentação)",
@@ -544,7 +541,8 @@
     "enabledSuccessfully": "OTP ativado com sucesso",
     "verificationFailed": "Falha na verificação",
     "verificationSucceed": "Verificação de sucesso",
-    "generationFailed": "Falha na geração"
+    "generationFailed": "Falha na geração",
+    "passwordRequiredForGeneration": "Sua senha é necessária para gerar um código de autenticação."
   },
   "general": {
     "name": "Nome",
@@ -845,8 +843,6 @@
       "showingResults": "Mostrando {count} resultados",
       "noResults": "Nenhum ícone encontrado",
       "tryDifferentSearch": "Tente um termo de pesquisa diferente",
-      "copiedToClipboard": "Copiou '{name}' para a área de transferência!",
-      "copyFailed": "Falha ao copiar para a área de transferência",
       "custom": "Personalizado",
       "useCustomIcon": "Usar ícone personalizado: {name}",
       "iconLibraryUrl": "fonts.google.com/icons",
@@ -870,7 +866,8 @@
     "reassignPath": "Reatribuir caminho",
     "pathReassigned": "Caminho atualizado com sucesso!",
     "pathReassignFailed": "Falha ao atualizar o caminho. Tente novamente.",
-    "incompleteResultsDetails": "Mostrando o máximo de resultados ({max}). Tente restringir sua pesquisa para obter mais resultados em {max}."
+    "incompleteResultsDetails": "Mostrando o máximo de resultados ({max}). Tente restringir sua pesquisa para obter mais resultados em {max}.",
+    "noCreateOptions": "Nenhuma opção de criação está disponível"
   },
   "duplicateFinder": {
     "title": "Localizador de arquivos duplicados",

@@ -5,7 +5,8 @@
     "reassignPath": "Reassign Path",
     "pathReassigned": "Path successfully updated!",
     "pathReassignFailed": "Failed to update path. Please try again.",
-    "incompleteResultsDetails": "Showing max results ({max}). Try narrowing your search to get more results under {max}."
+    "incompleteResultsDetails": "Showing max results ({max}). Try narrowing your search to get more results under {max}.",
+    "noCreateOptions": "No create options are available"
   },
   "general": {
     "divider": "Divider{suffix}",
@@ -132,6 +133,7 @@
   },
   "buttons": {
     "copySuccess": "Copied to clipboard!",
+    "copyFailed": "Failed to copy to clipboard",
     "generateNewOtp": "Reset and generate new two-factor code",
     "copyFile": "Copy file",
     "copyPath": "Copy Path",
@@ -440,9 +442,6 @@
     "selectHashAlgorithm": "Select a hash algorithm",
     "generate": "Generate",
     "errorGeneratingHash": "Error generating hash",
-    "hashCopied": "Hash copied to clipboard",
-    "copyToClipboardFailed": "Unable to copy to clipboard",
-    "errorCopyingHash": "Error copying hash",
     "token": "Token",
     "onlyOfficeId": "OnlyOffice ID",
     "firstLoadTitle": "Welcome to FileBrowser Quantum!",
@@ -452,7 +451,7 @@
     "moveFailed": "Move failed",
     "operationFailed": "Operation failed",
     "partialSuccess": "Some operations failed: {succeeded} succeeded, {failed} failed",
-    "confirmPasswordToChangeUserPassword": "Enter your current password to authorize this password change."
+    "confirmPasswordToSaveUser": "Enter your current password to save these user changes."
   },
   "search": {
     "searchContext": "Search Context: {context}",
@@ -579,7 +578,6 @@
     "tusUploadsRetryCount": "Number of retries to perform if a chunk fails to upload.",
     "userHomeBasePath": "Base path for user home directories",
     "userScopeGenerationPlaceholder": "The scope will be auto generated",
-    "createUserHomeDirectory": "Create user home directory",
     "customStylesheet": "Custom Stylesheet",
     "defaultUserDescription": "These are the default settings for new users.",
     "disableExternalLinks": "Disable external links (except documentation)",
@@ -740,7 +738,8 @@
     "enabledSuccessfully": "OTP enabled successfully",
     "verificationFailed": "Verification Failed",
     "verificationSucceed": "Verification Succeed",
-    "generationFailed": "Generation Failed"
+    "generationFailed": "Generation Failed",
+    "passwordRequiredForGeneration": "Your password is required to generate an authenticator code."
   },
   "access": {
     "all": "Deny All",
@@ -855,8 +854,6 @@
       "showingResults": "Showing {count} results",
       "noResults": "No icons found",
       "tryDifferentSearch": "Try a different search term",
-      "copiedToClipboard": "Copied '{name}' to clipboard!",
-      "copyFailed": "Failed to copy to clipboard",
       "custom": "Custom",
       "useCustomIcon": "Use custom icon: {name}"
     },

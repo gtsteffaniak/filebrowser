@@ -44,6 +44,19 @@ test("context menu", async ({ page, checkForErrors, context, theme }) => {
     return;
   }
   await page.screenshot({ path: `./generated/listing/right-click-${theme}.jpg`, quality: jpgQuality });
+  // assert options exist and don't exist
+  await expect(page.locator('button[aria-label="New folder"]')).toBeHidden();
+  await expect(page.locator('button[aria-label="New file"]')).toBeHidden();
+  await expect(page.locator('button[aria-label="Upload"]')).toBeHidden();
+  await expect(page.locator('button[aria-label="Info"]')).toBeVisible();
+  await expect(page.locator('button[aria-label="Download"]')).toBeVisible();
+  await expect(page.locator('button[aria-label="Share"]')).toBeVisible();
+  await expect(page.locator('button[aria-label="Delete"]')).toBeVisible();
+  await expect(page.locator('button[aria-label="Rename"]')).toBeVisible();
+  await expect(page.locator('button[aria-label="Move file"]')).toBeVisible();
+  await expect(page.locator('button[aria-label="Copy file"]')).toBeVisible();
+  await expect(page.locator('button[aria-label="Select all"]')).toBeVisible();
+  await expect(page.locator('button[aria-label="Create archive"]')).toBeHidden();
 });
 
 test("info from search", async ({ page, checkForErrors, context, theme }) => {
@@ -75,7 +88,6 @@ test("no viewer available", async ({ page, checkForErrors, context, theme }) => 
   await page.waitForTimeout(500);
   await page.screenshot({ path: `./generated/viewer/no-viewer-available-${theme}.jpg`, quality: jpgQuality });
 })
-
 
 test("copy from listing to new folder", async ({ page, checkForErrors, context, theme }) => {
   if (theme === 'light') {

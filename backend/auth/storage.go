@@ -45,7 +45,7 @@ func InitializeEncryption() error {
 // NewStorage creates a auth storage from a backend.
 func NewStorage(back StorageBackend, userStore *users.Storage) (*Storage, error) {
 	store := &Storage{back: back, users: userStore}
-	err := store.Save(&JSONAuth{})
+	err := store.Save(&JSONAuth{DisableOtp: true})
 	if err != nil {
 		return nil, err
 	}
@@ -57,13 +57,13 @@ func NewStorage(back StorageBackend, userStore *users.Storage) (*Storage, error)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Initialize encryption key
 	err = InitializeEncryption()
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return store, nil
 }
 

@@ -149,6 +149,7 @@ import * as upload from "@/utils/upload";
 import throttle from "@/utils/throttle";
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
+import { readAllDirectoryEntries } from "@/utils/upload";
 
 import Item from "@/components/files/ListingItem.vue";
 import Upload from "@/components/prompts/Upload.vue";
@@ -732,19 +733,6 @@ export default {
           return;
         }
       }
-      // Handle the space bar key
-      if (key === " " && !modifierKeys) {
-        event.preventDefault();
-        if (state.isSearchActive) {
-          mutations.setSearch(false);
-          mutations.closeHovers();
-        } else {
-          mutations.setSearch(true);
-        }
-      }
-      if (getters.currentPromptName()) {
-        return;
-      }
       let currentPath = url.removeTrailingSlash(state.route.path);
       let newPath = currentPath.substring(0, currentPath.lastIndexOf("/"));
 
@@ -887,11 +875,10 @@ export default {
           relativePath: entryPath,
         });
       } else if (entry.isDirectory) {
-        // But if it's a directory, read the contents
+        // But if it's a directory, read the contents (readEntries may require
+        // multiple calls — browsers often return at most ~100 entries per batch)
         const reader = entry.createReader();
-        const entries = await new Promise((resolve, reject) => {
-          reader.readEntries(resolve, reject);
-        });
+        const entries = await readAllDirectoryEntries(reader, entryPath);
         // and then for each child recursively collect files
         for (const childEntry of entries) {
           const childFiles = await this.collectFilesFromEntry(
@@ -1000,7 +987,8 @@ export default {
         from: item.from,
         fromSource: item.fromSource,
         to: destPath + item.name,
-        toSource: state.req.source
+        toSource: state.req.source,
+        name: item.name,
       }));
 
       const operation = this.clipboard.key === "x" ? "move" : "copy";
@@ -1011,51 +999,51 @@ export default {
         props: {
           operation: operation,
           items: items,
-          onConfirm: async () => {
-            mutations.setLoading("listing", true);
+          onConfirm: () => {
+            return new Promise((resolve, reject) => {
 
-            let action = async (overwrite, rename) => {
-              try {
-                if (getters.isShare()) {
-                  await resourcesApi.moveCopyPublic(state.shareInfo.hash, items, operation, overwrite, rename);
-                } else {
-                  await resourcesApi.moveCopy(items, operation, overwrite, rename);
+              const action = async (overwrite, rename) => {
+                try {
+                  if (getters.isShare()) {
+                    await resourcesApi.moveCopyPublic(state.shareInfo.hash, items, operation, overwrite, rename);
+                  } else {
+                    await resourcesApi.moveCopy(items, operation, overwrite, rename);
+                  }
+                  if (operation === "move") {
+                    this.clipboard = { items: [] };
+                    this.internalClipboardTimestamp = 0;
+                  }
+                  mutations.setReload(true);
+                  resolve();
+                } catch (error) {
+                  console.error("Error moving/copying items:", error);
+                  reject(error);
                 }
-                if (operation === "move") {
-                  this.clipboard = { items: [] };
-                  this.internalClipboardTimestamp = 0;
-                }
-                mutations.setLoading("listing", false);
-              } catch (error) {
-                console.error("Error moving/copying items:", error);
-              } finally {
-                mutations.setLoading("listing", false);
-                mutations.setReload(true);
+              };
+
+              if (this.clipboard.path === state.route.path) {
+                action(false, true);
+                return;
               }
-            };
 
-            if (this.clipboard.path === state.route.path) {
-              action(false, true);
-              return;
-            }
+              const conflict = upload.checkConflict(items, state.req.items);
 
-            const conflict = upload.checkConflict(items, state.req.items);
-
-            if (conflict) {
-              mutations.showPrompt({
-                name: "replace-rename",
-                pinned: true,
-                confirm: (event, option) => {
-                  const overwrite = option === "overwrite";
-                  const rename = option === "rename";
-                  event.preventDefault();
-                  mutations.closeTopPrompt();
-                  action(overwrite, rename);
-                },
-              });
-              return;
-            }
-            action(false, false);
+              if (conflict) {
+                mutations.showPrompt({
+                  name: "replace-rename",
+                  pinned: true,
+                  confirm: (event, option) => {
+                    const overwrite = option === "overwrite";
+                    const rename = option === "rename";
+                    event.preventDefault();
+                    mutations.closeTopPrompt();
+                    action(overwrite, rename);
+                  },
+                });
+                return;
+              }
+              action(false, false);
+            });
           },
         },
       });
@@ -1155,6 +1143,7 @@ export default {
           showCentered: getters.isMobile(),
           posX: event.clientX,
           posY: event.clientY,
+          createOnly: this.selectedCount == 0,
         },
       });
     },

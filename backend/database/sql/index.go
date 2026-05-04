@@ -298,28 +298,70 @@ func (db *IndexDB) InsertItem(source, path string, info *iteminfo.FileInfo) erro
 	return err
 }
 
+// dbTransientOpAttempts is how many times to run a bulk DB op that may hit SQLITE_BUSY before giving up.
+const dbTransientOpAttempts = 2
+
+const dbTransientRetryBackoff = 50 * time.Millisecond
+
 // BulkInsertItems inserts multiple items in a single transaction for a specific source.
 // Database errors (busy/locked) are treated as soft failures - the filesystem is the source of truth.
 // Returns nil on success or soft failure (busy/locked), error only on hard failures.
+// Transient busy/locked errors retry once before giving up (see dbTransientOpAttempts).
 func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) error {
+	if len(items) == 0 {
+		return nil
+	}
 
 	startTime := time.Now()
+	for attempt := 1; attempt <= dbTransientOpAttempts; attempt++ {
+		ok, transient, err := db.attemptBulkInsert(source, items)
+		if err != nil {
+			return err
+		}
+		if ok {
+			if attempt > 1 {
+				logger.Infof("[DB_TX] BulkInsertItems: succeeded on retry (%d items, attempt %d, %v)",
+					len(items), attempt, time.Since(startTime))
+			}
+			return nil
+		}
+		if transient && attempt < dbTransientOpAttempts {
+			logger.Warningf("[DB_TX] BulkInsertItems: transient DB error (attempt %d/%d, %d items), retrying after %v",
+				attempt, dbTransientOpAttempts, len(items), dbTransientRetryBackoff)
+			time.Sleep(dbTransientRetryBackoff)
+			continue
+		}
+		if transient {
+			logger.Warningf("[DB_TX] BulkInsertItems: still failing after %d attempts (%d items, %v) — batch dropped",
+				dbTransientOpAttempts, len(items), time.Since(startTime))
+		}
+		return nil
+	}
+	return nil // defensive if dbTransientOpAttempts is ever 0 and loop never runs
+}
 
+// attemptBulkInsert runs one transactional bulk insert.
+// Returns success=true when committed; transient=true when SQLITE_BUSY-like errors allow a retry (mutex released).
+func (db *IndexDB) attemptBulkInsert(source string, items []*iteminfo.FileInfo) (success bool, transient bool, err error) {
 	tx, err := db.BeginTransaction()
 	if err != nil {
-		// Soft failure: DB is busy or locked, skip this update
 		if isBusyError(err) || isTransactionError(err) {
-			db.mu.Unlock() // Release mutex on error
-			logger.Debugf("[DB_TX] BulkInsertItems: BeginTransaction failed (DB busy/locked), skipping - took %v", time.Since(startTime))
-			return nil // Non-fatal: filesystem will be used as fallback
+			db.mu.Unlock()
+			logger.Debugf("[DB_TX] BulkInsertItems: BeginTransaction failed (DB busy/locked): %v", err)
+			return false, true, nil
 		}
-		db.mu.Unlock() // Release mutex on error
-		return err     // Hard failure: something is wrong with the DB
+		db.mu.Unlock()
+		return false, false, err
 	}
-	defer db.mu.Unlock() // Ensure mutex is always released
 
-	// Always update all fields including last_updated, even if nothing changed
-	// This ensures last_updated stays current for stale entry detection
+	committed := false
+	defer func() {
+		if !committed {
+			_ = tx.Rollback()
+		}
+		db.mu.Unlock()
+	}()
+
 	stmt, err := tx.Prepare(`
 	INSERT INTO index_items (source, path, parent_path, name, size, mod_time, type, is_dir, is_hidden, has_preview, last_updated)
 	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -336,14 +378,12 @@ func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) er
 	`)
 	if err != nil {
 		if isBusyError(err) || isTransactionError(err) {
-			// With EXCLUSIVE locking and mutex, this shouldn't happen.
-			// Log as warning to surface potential issues (another process accessing DB, bug, etc.)
-			logger.Errorf("[DB] BulkInsertItems: Unexpected busy/lock error during Prepare: %v", err)
-			return nil
+			logger.Debugf("[DB_TX] BulkInsertItems: Prepare busy/locked: %v", err)
+			return false, true, nil
 		}
-		return err
+		return false, false, err
 	}
-	defer stmt.Close() // Ensure statement is always closed
+	defer stmt.Close()
 
 	nowUnix := time.Now().Unix()
 	for _, info := range items {
@@ -363,28 +403,23 @@ func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) er
 		)
 		if err != nil {
 			if isBusyError(err) || isTransactionError(err) {
-				// With EXCLUSIVE locking and mutex, this shouldn't happen.
-				// Log as warning to surface potential issues (another process accessing DB, bug, etc.)
-				logger.Errorf("[DB] BulkInsertItems: Unexpected busy/lock error during Exec: %v", err)
-				return nil
+				logger.Debugf("[DB_TX] BulkInsertItems: Exec busy/locked during insert: %v", err)
+				return false, true, nil
 			}
 			logger.Errorf("[DB] BulkInsertItems: Exec failed for path=%s, source=%s, error=%v", info.Path, source, err)
-			return err
+			return false, false, err
 		}
 	}
 
-	// Try to commit
 	if err := tx.Commit(); err != nil {
 		if isBusyError(err) || isTransactionError(err) {
-			// With EXCLUSIVE locking and mutex, this shouldn't happen.
-			// Log as warning to surface potential issues (another process accessing DB, bug, etc.)
-			logger.Errorf("[DB] BulkInsertItems: Unexpected busy/lock error during Commit: %v", err)
-			return nil
+			logger.Debugf("[DB_TX] BulkInsertItems: Commit busy/locked: %v", err)
+			return false, true, nil
 		}
-		return err
+		return false, false, err
 	}
-
-	return nil
+	committed = true
+	return true, false, nil
 }
 
 // isBusyError checks if an error is SQLITE_BUSY (error code 5)
@@ -469,51 +504,6 @@ func (db *IndexDB) GetItemsByPaths(source string, paths []string) (map[string]*i
 			return nil, err
 		}
 		result[item.Path] = item
-	}
-
-	return result, nil
-}
-
-// GetHasPreviewBatch retrieves hasPreview status for multiple directory paths in a single query.
-// This is optimized for the N+1 query pattern in GetDirInfo where we need hasPreview for all subdirectories.
-// Returns map[path]hasPreview. Missing paths in the result indicate they're not in the database yet.
-func (db *IndexDB) GetHasPreviewBatch(source string, paths []string) (map[string]bool, error) {
-	if len(paths) == 0 {
-		return make(map[string]bool), nil
-	}
-
-	// Build query with IN clause - only select path and has_preview for efficiency
-	placeholders := make([]string, len(paths))
-	args := make([]interface{}, len(paths)+1)
-	args[0] = source
-	for i, path := range paths {
-		placeholders[i] = "?"
-		args[i+1] = path
-	}
-
-	query := fmt.Sprintf(`
-	SELECT path, has_preview
-	FROM index_items WHERE source = ? AND path IN (%s) AND is_dir = 1
-	`, strings.Join(placeholders, ","))
-
-	rows, err := db.Query(query, args...)
-	if err != nil {
-		// Soft failure: DB is busy or locked, return empty map
-		if isBusyError(err) || isTransactionError(err) {
-			return make(map[string]bool), nil
-		}
-		return nil, err
-	}
-	defer rows.Close()
-
-	result := make(map[string]bool)
-	for rows.Next() {
-		var path string
-		var hasPreview bool
-		if err := rows.Scan(&path, &hasPreview); err != nil {
-			return nil, err
-		}
-		result[path] = hasPreview
 	}
 
 	return result, nil
@@ -1077,17 +1067,31 @@ func (db *IndexDB) UpdateFolderSizesIfChanged(source string, pathSizes map[strin
 		args = append(args, path)
 	}
 
-	result, err := db.Exec(query, args...)
-	if err != nil {
-		if isBusyError(err) || isTransactionError(err) {
-			logger.Debugf("[DB_TX] UpdateFolderSizesIfChanged: DB busy/locked, skipping update")
-			return 0, nil // Non-fatal: sizes will be synced on next scan
+	startTime := time.Now()
+	for attempt := 1; attempt <= dbTransientOpAttempts; attempt++ {
+		result, err := db.Exec(query, args...)
+		if err != nil {
+			if isBusyError(err) || isTransactionError(err) {
+				if attempt < dbTransientOpAttempts {
+					logger.Warningf("[DB_TX] UpdateFolderSizesIfChanged: busy/locked (attempt %d/%d), retrying after %v: %v",
+						attempt, dbTransientOpAttempts, dbTransientRetryBackoff, err)
+					time.Sleep(dbTransientRetryBackoff)
+					continue
+				}
+				logger.Warningf("[DB_TX] UpdateFolderSizesIfChanged: still busy after %d attempts (%d paths, %v) — skipped",
+					dbTransientOpAttempts, len(pathSizes), time.Since(startTime))
+				return 0, nil
+			}
+			return 0, err
 		}
-		return 0, err
+		n, _ := result.RowsAffected()
+		if attempt > 1 {
+			logger.Infof("[DB_TX] UpdateFolderSizesIfChanged: succeeded on retry (%d rows, attempt %d, %v)",
+				n, attempt, time.Since(startTime))
+		}
+		return n, nil
 	}
-
-	rowsAffected, _ := result.RowsAffected()
-	return rowsAffected, nil
+	return 0, nil // defensive: unreachable when dbTransientOpAttempts >= 1
 }
 
 // LoadFolderSizes loads all folder sizes for a source from the database
@@ -1320,6 +1324,7 @@ func scanItem(scanner interface{ Scan(...interface{}) error }) (*iteminfo.FileIn
 		return nil, err
 	}
 	info.ModTime = time.Unix(modTime, 0)
+	info.IsDir = isDir
 	return &info, nil
 }
 

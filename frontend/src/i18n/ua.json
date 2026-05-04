@@ -1,6 +1,7 @@
 {
   "buttons": {
     "copySuccess": "Скопійовано в буфер обміну!",
+    "copyFailed": "Не вдалося скопіювати в буфер обміну",
     "copyFile": "Копіювати файл",
     "copyToClipboard": "Копіювати в буфер обміну",
     "moveFile": "Перемістити файл",
@@ -215,8 +216,6 @@
     "selectHashAlgorithm": "Виберіть алгоритм хешування",
     "generate": "Згенерувати",
     "errorGeneratingHash": "Хеш, що генерує помилки",
-    "hashCopied": "Хеш скопійовано до буфера обміну",
-    "errorCopyingHash": "Помилка копіювання хешу",
     "token": "Токен.",
     "onlyOfficeId": "OnlyOffice ID",
     "firstLoadTitle": "Ласкаво просимо до FileBrowser Quantum!",
@@ -227,7 +226,6 @@
     "renameSuccess": "Елемент перейменовано успішно!",
     "newFileSuccess": "Файл успішно створено!",
     "newDirSuccess": "Каталог створено успішно!",
-    "copyToClipboardFailed": "Неможливо скопіювати в буфер обміну",
     "moveFailed": "Переміщення не вдалося",
     "operationFailed": "Операція не вдалася",
     "partialSuccess": "Деякі операції не вдалися: {succeeded} вдалося, {failed} не вдалося",
@@ -243,7 +241,7 @@
     "unarchiveDestination": "Витягнути до:",
     "unarchiveSuccess": "Архів успішно розпаковано!",
     "downloadFailed": "Не вдалося завантажити фрагмент - якщо це повториться, спробуйте зменшити розмір фрагмента: {message}",
-    "confirmPasswordToChangeUserPassword": "Введіть ваш поточний пароль, щоб дозволити зміну пароля."
+    "confirmPasswordToSaveUser": "Введіть ваш поточний пароль, щоб зберегти зміни користувача."
   },
   "search": {
     "smallerThan": "Менше, ніж:",
@@ -335,7 +333,6 @@
     "tusUploadsRetryCount": "Кількість повторних спроб, якщо фрагмент не вдалося завантажити.",
     "userHomeBasePath": "Базовий шлях для домашніх каталогів користувачів",
     "userScopeGenerationPlaceholder": "Область дії буде згенеровано автоматично",
-    "createUserHomeDirectory": "Створення домашнього каталогу користувача",
     "shareSettings": "Налаштування спільного доступу",
     "adminOptions": "Параметри користувача адміністрування",
     "searchOptions": "Параметри пошуку",
@@ -544,7 +541,8 @@
     "enabledSuccessfully": "OTP успішно ввімкнено",
     "verificationFailed": "Перевірка не вдалася",
     "verificationSucceed": "Перевірка пройшла успішно",
-    "generationFailed": "Покоління зазнало невдачі"
+    "generationFailed": "Покоління зазнало невдачі",
+    "passwordRequiredForGeneration": "Ваш пароль необхідний для генерації коду автентифікатора."
   },
   "fileLoading": {
     "title": "Завантаження та вивантаження",
@@ -845,8 +843,6 @@
       "showingResults": "Показує результати {count} ",
       "noResults": "Не знайдено жодної піктограми",
       "tryDifferentSearch": "Спробуйте інший пошуковий запит",
-      "copiedToClipboard": "Скопіюйте '{name}' в буфер обміну!",
-      "copyFailed": "Не вдалося скопіювати в буфер обміну",
       "custom": "Нестандартний",
       "useCustomIcon": "Використовуйте власну іконку: {name}",
       "iconLibraryUrl": "fonts.google.com/icons",
@@ -870,7 +866,8 @@
     "reassignPath": "Перепризначити шлях",
     "pathReassigned": "Шлях успішно оновлено!",
     "pathReassignFailed": "Не вдалося оновити шлях. Спробуйте ще раз.",
-    "incompleteResultsDetails": "Показано максимум результатів ({max}). Спробуйте звузити пошук, щоб отримати більше результатів за темою {max}."
+    "incompleteResultsDetails": "Показано максимум результатів ({max}). Спробуйте звузити пошук, щоб отримати більше результатів за темою {max}.",
+    "noCreateOptions": "Опції створення недоступні"
   },
   "duplicateFinder": {
     "title": "Пошук дублікатів файлів",

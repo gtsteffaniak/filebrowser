@@ -92,7 +92,7 @@ func setupFs() {
 		Config.Server.Filesystem.CreateDirectoryPermission = "755"
 		dirPermOctal, _ = strconv.ParseUint("755", 8, 32)
 	}
-	fileutils.SetFsPermissions(os.FileMode(filePermOctal), os.FileMode(dirPermOctal))
+	fileutils.SetFsPermissions(uint32(filePermOctal), uint32(dirPermOctal))
 
 	// Perform mandatory cache directory speed test
 	testCacheDirSpeed()
@@ -832,6 +832,13 @@ func loadCustomFavicon() {
 	Env.FaviconPath = validatedPath
 	Env.FaviconIsCustom = true
 	logger.Infof("Using custom favicon: %s", Env.FaviconPath)
+	// PWA and platform PNGs are generated at server startup from this path (SVG uses a raster
+	// sidecar next to the .svg when present; see icons.GeneratePWAIcons).
+}
+
+// PWAIconsCacheDir is where startup icon generation writes PNGs (under the server cache dir).
+func PWAIconsCacheDir() string {
+	return filepath.Join(Config.Server.CacheDir, "icons")
 }
 
 func loadLoginIcon() {

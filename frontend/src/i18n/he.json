@@ -1,6 +1,7 @@
 {
   "buttons": {
     "copySuccess": "הועתק ללוח!",
+    "copyFailed": "העתקה ללוח נכשלה",
     "copyFile": "העתק קובץ",
     "copyToClipboard": "העתק ללוח",
     "moveFile": "העבר קובץ",
@@ -215,8 +216,6 @@
     "selectHashAlgorithm": "בחר אלגוריתם hash",
     "generate": "ליצור",
     "errorGeneratingHash": "שגיאה ביצירת hash",
-    "hashCopied": "ה-hash הועתק ללוח",
-    "errorCopyingHash": "שגיאה בהעתקת hash",
     "token": "אסימון",
     "onlyOfficeId": "מזהה OnlyOffice",
     "firstLoadTitle": "ברוכים הבאים ל-FileBrowser Quantum!",
@@ -227,7 +226,6 @@
     "renameSuccess": "הפריט שונה בהצלחה!",
     "newFileSuccess": "הקובץ נוצר בהצלחה!",
     "newDirSuccess": "הספרייה נוצרה בהצלחה!",
-    "copyToClipboardFailed": "לא ניתן להעתיק ללוח",
     "moveFailed": "העברה נכשלה",
     "operationFailed": "הפעולה נכשלה",
     "partialSuccess": "כמה פעולות נכשלו: {succeeded} הצליחו, {failed} נכשלו",
@@ -243,7 +241,7 @@
     "unarchiveDestination": "חלץ אל:",
     "unarchiveSuccess": "הארכיון חולץ בהצלחה!",
     "downloadFailed": "ההורדה המקוטעת נכשלה - אם הבעיה חוזרת על עצמה, נסה להקטין את גודל החלקים: {message}",
-    "confirmPasswordToChangeUserPassword": "הזן את הסיסמה הנוכחית שלך כדי לאשר את שינוי הסיסמה."
+    "confirmPasswordToSaveUser": "הזן את הסיסמה הנוכחית שלך כדי לשמור את שינויי המשתמש."
   },
   "search": {
     "smallerThan": "קטן מ:",
@@ -277,7 +275,6 @@
     "createUserDir": "צור תקיית בית במהלך הוספת משתמש חדש",
     "userHomeBasePath": "נתיב ראשי לתקיות הבית של משתמשים",
     "userScopeGenerationPlaceholder": "התחום יווצר אוטומטית",
-    "createUserHomeDirectory": "צור תקיית בית למשתמש",
     "customStylesheet": "עיצוב מותאם אישית (Stylesheet)",
     "defaultUserDescription": "אלה הגדרות ברירת המחדל למשתמשים חדשים",
     "disableExternalLinks": "השבת קישורים חיצוניים (למעט תיעוד)",
@@ -544,7 +541,8 @@
     "enabledSuccessfully": "OTP הופעל בהצלחה",
     "verificationFailed": "האימות נכשל",
     "verificationSucceed": "האימות הצליח",
-    "generationFailed": "דור שנכשל"
+    "generationFailed": "דור שנכשל",
+    "passwordRequiredForGeneration": "יש להזין את הסיסמה שלך כדי ליצור קוד אימות."
   },
   "general": {
     "name": "שם",
@@ -845,8 +843,6 @@
       "showingResults": "הצגת תוצאות {count} ",
       "noResults": "לא נמצאו סמלים",
       "tryDifferentSearch": "נסה מונח חיפוש אחר",
-      "copiedToClipboard": "הועתק '{name}' ללוח!",
-      "copyFailed": "לא ניתן להעתיק ללוח",
       "custom": "מותאם אישית",
       "useCustomIcon": "השתמש בסמל מותאם אישית: {name}",
       "iconLibraryUrl": "fonts.google.com/icons",
@@ -870,7 +866,8 @@
     "reassignPath": "הקצאת נתיב מחדש",
     "pathReassigned": "הנתיב עודכן בהצלחה!",
     "pathReassignFailed": "לא ניתן לעדכן את הנתיב. אנא נסה שוב.",
-    "incompleteResultsDetails": "הצגת תוצאות מקסימליות ({max}). נסה לצמצם את החיפוש כדי לקבל תוצאות נוספות תחת {max}."
+    "incompleteResultsDetails": "הצגת תוצאות מקסימליות ({max}). נסה לצמצם את החיפוש כדי לקבל תוצאות נוספות תחת {max}.",
+    "noCreateOptions": "אין אפשרויות יצירה זמינות"
   },
   "duplicateFinder": {
     "title": "מאתר קבצים כפולים",

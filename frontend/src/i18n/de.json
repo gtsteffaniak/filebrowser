@@ -1,6 +1,7 @@
 {
   "buttons": {
     "copySuccess": "In die Zwischenablage kopiert!",
+    "copyFailed": "Kopieren in die Zwischenablage fehlgeschlagen",
     "copyFile": "Datei kopieren",
     "copyToClipboard": "In Zwischenablage kopieren",
     "moveFile": "Datei verschieben",
@@ -215,8 +216,6 @@
     "selectHashAlgorithm": "Wählen Sie einen Hash-Algorithmus",
     "generate": "Erzeugen Sie",
     "errorGeneratingHash": "Fehler bei der Hash-Erzeugung",
-    "hashCopied": "Hash in Zwischenablage kopiert",
-    "errorCopyingHash": "Fehler beim Kopieren des Hashes",
     "token": "Token",
     "onlyOfficeId": "OnlyOffice ID",
     "firstLoadTitle": "Willkommen bei FileBrowser Quantum!",
@@ -227,7 +226,6 @@
     "renameSuccess": "Artikel erfolgreich umbenannt!",
     "newFileSuccess": "Datei erfolgreich erstellt!",
     "newDirSuccess": "Verzeichnis erfolgreich erstellt!",
-    "copyToClipboardFailed": "Kopieren in die Zwischenablage nicht möglich",
     "moveFailed": "Verschieben fehlgeschlagen",
     "operationFailed": "Operation fehlgeschlagen",
     "partialSuccess": "Einige Operationen sind fehlgeschlagen: {succeeded} erfolgreich, {failed} fehlgeschlagen",
@@ -243,7 +241,7 @@
     "unarchiveDestination": "Auszug zu:",
     "unarchiveSuccess": "Archiv erfolgreich entpackt!",
     "downloadFailed": "Chunked Download fehlgeschlagen - falls sich dies wiederholt, versuchen Sie, die Chunk-Größe zu verringern: {message}",
-    "confirmPasswordToChangeUserPassword": "Geben Sie Ihr aktuelles Passwort ein, um diese Passwortänderung zu autorisieren."
+    "confirmPasswordToSaveUser": "Geben Sie Ihr aktuelles Kennwort ein, um die Benutzeränderungen zu speichern."
   },
   "search": {
     "smallerThan": "Kleiner als:",
@@ -329,7 +327,6 @@
     "UserManagement": "Benutzerverwaltung",
     "userHomeBasePath": "Basispfad für Benutzer-Home-Verzeichnisse",
     "userScopeGenerationPlaceholder": "Der Bereich wird automatisch generiert",
-    "createUserHomeDirectory": "Benutzer-Home-Verzeichnis erstellen",
     "loginMethodDescription": "erlaubte Anmeldemethode für den Benutzer.",
     "userNotAdmin": "Benutzer ist kein Administrator",
     "enterPassword": "Passwort eingeben",
@@ -544,7 +541,8 @@
     "enabledSuccessfully": "OTP erfolgreich aktiviert",
     "verificationFailed": "Verifizierung fehlgeschlagen",
     "verificationSucceed": "Überprüfung Erfolgreich",
-    "generationFailed": "Generation gescheitert"
+    "generationFailed": "Generation gescheitert",
+    "passwordRequiredForGeneration": "Ihr Passwort ist erforderlich, um einen Authentifizierungscode zu generieren."
   },
   "general": {
     "name": "Name",
@@ -845,8 +843,6 @@
       "showingResults": "{count} Ergebnisse anzeigen",
       "noResults": "Keine Icons gefunden",
       "tryDifferentSearch": "Versuchen Sie einen anderen Suchbegriff",
-      "copiedToClipboard": "Kopiert '{name}' in die Zwischenablage!",
-      "copyFailed": "Kopieren in die Zwischenablage fehlgeschlagen",
       "custom": "Benutzerdefiniert",
       "useCustomIcon": "Benutzerdefiniertes Symbol verwenden: {name}",
       "iconLibraryUrl": "fonts.google.com/icons",
@@ -870,7 +866,8 @@
     "reassignPath": "Pfad neu zuweisen",
     "pathReassigned": "Pfad erfolgreich aktualisiert!",
     "pathReassignFailed": "Der Pfad konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.",
-    "incompleteResultsDetails": "Zeigt max Ergebnisse ({max}). Versuchen Sie, Ihre Suche einzugrenzen, um mehr Ergebnisse unter {max} zu erhalten."
+    "incompleteResultsDetails": "Zeigt max Ergebnisse ({max}). Versuchen Sie, Ihre Suche einzugrenzen, um mehr Ergebnisse unter {max} zu erhalten.",
+    "noCreateOptions": "Es sind keine Erstellungsoptionen verfügbar"
   },
   "duplicateFinder": {
     "title": "Duplicate File Finder",

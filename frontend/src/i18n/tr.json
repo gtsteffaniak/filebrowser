@@ -1,6 +1,7 @@
 {
   "buttons": {
     "copySuccess": "Panoya kopyalandı!",
+    "copyFailed": "Panoya kopyalama başarısız",
     "copyFile": "Dosyayı kopyala",
     "copyToClipboard": "Panoya kopyala",
     "moveFile": "Dosyayı taşı",
@@ -215,8 +216,6 @@
     "selectHashAlgorithm": "Bir karma algoritma seçin",
     "generate": "Oluşturmak",
     "errorGeneratingHash": "Hash oluştururken hata oluştu",
-    "hashCopied": "Panoya kopyalanan karma",
-    "errorCopyingHash": "Karma kopyalama hatası",
     "token": "Jeton",
     "onlyOfficeId": "SadeceOfis Kimliği",
     "firstLoadTitle": "FileBrowser Quantum'a hoş geldiniz!",
@@ -227,7 +226,6 @@
     "renameSuccess": "Öğe başarıyla yeniden adlandırıldı!",
     "newFileSuccess": "Dosya başarıyla oluşturuldu!",
     "newDirSuccess": "Dizin başarıyla oluşturuldu!",
-    "copyToClipboardFailed": "Panoya kopyalanamıyor",
     "moveFailed": "Taşıma başarısız",
     "operationFailed": "İşlem başarısız oldu",
     "partialSuccess": "Bazı işlemler başarısız oldu: {succeeded} başarılı, {failed} başarısız",
@@ -243,7 +241,7 @@
     "unarchiveDestination": "Özetle:",
     "unarchiveSuccess": "Arşiv başarıyla çıkarıldı!",
     "downloadFailed": "Yığın indirme başarısız oldu - bu tekrarlanırsa yığın boyutunu küçültmeyi deneyin: {message}",
-    "confirmPasswordToChangeUserPassword": "Bu şifre değişikliğini onaylamak için mevcut şifrenizi girin."
+    "confirmPasswordToSaveUser": "Bu kullanıcı değişikliklerini kaydetmek için mevcut şifrenizi girin."
   },
   "search": {
     "smallerThan": "Daha küçük:",
@@ -329,7 +327,6 @@
     "tusUploadsRetryCount": "Bir yığının yüklenememesi durumunda gerçekleştirilecek yeniden deneme sayısı.",
     "userHomeBasePath": "Kullanıcı ev dizinleri için temel yol",
     "userScopeGenerationPlaceholder": "Kapsam otomatik olarak oluşturulacaktır",
-    "createUserHomeDirectory": "Kullanıcı ev dizini oluşturma",
     "loginMethodDescription": "kullanıcı için izin verilen oturum açma yöntemi.",
     "userNotAdmin": "Kullanıcı yönetici değil",
     "enterPassword": "Şifre girin",
@@ -544,7 +541,8 @@
     "enabledSuccessfully": "OTP başarıyla etkinleştirildi",
     "verificationFailed": "Doğrulama Başarısız",
     "verificationSucceed": "Doğrulama Başarılı",
-    "generationFailed": "Nesil Başarısız"
+    "generationFailed": "Nesil Başarısız",
+    "passwordRequiredForGeneration": "Kimlik doğrulayıcı kodu oluşturmak için parolanız gereklidir."
   },
   "general": {
     "name": "İsim",
@@ -845,8 +843,6 @@
       "showingResults": "{count} sonuçları gösteriliyor",
       "noResults": "Simge bulunamadı",
       "tryDifferentSearch": "Farklı bir arama terimi deneyin",
-      "copiedToClipboard": "'{name}' panoya kopyalandı!",
-      "copyFailed": "Panoya kopyalanamadı",
       "custom": "Özel",
       "useCustomIcon": "Özel simge kullanın: {name}",
       "iconLibraryUrl": "fonts.google.com/icons",
@@ -870,7 +866,8 @@
     "reassignPath": "Yolu Yeniden Atayın",
     "pathReassigned": "Yol başarıyla güncellendi!",
     "pathReassignFailed": "Yol güncellenemedi. Lütfen tekrar deneyin.",
-    "incompleteResultsDetails": "Maksimum sonuç gösteriliyor ({max}). {max} altında daha fazla sonuç almak için aramanızı daraltmayı deneyin."
+    "incompleteResultsDetails": "Maksimum sonuç gösteriliyor ({max}). {max} altında daha fazla sonuç almak için aramanızı daraltmayı deneyin.",
+    "noCreateOptions": "Oluşturma seçeneği mevcut değil"
   },
   "duplicateFinder": {
     "title": "Yinelenen Dosya Bulucu",

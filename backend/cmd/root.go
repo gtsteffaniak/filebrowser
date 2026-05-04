@@ -51,13 +51,12 @@ func initializeDatabase(configFile string) bool {
 func generalUsage() {
 	fmt.Printf(`usage: ./filebrowser <command> [options]
 commands:
-	-h    	Print help
-	-c    	Print the default config file
-	version Print version information
-	set -u	Username and password for the new user
-	set -a	Create user as admin
-	set -s	Specify a user scope
-	set -h	Print this help message
+	-h    		Print help
+	-c    		Path to config file (global default: config.yaml)
+	version 	Print version information
+	setup   		Interactive config setup
+	set -u 		Username and password: set -u <user>,<password> [-c config.yaml]
+	set rule	Access rules: set rule -s <sourceName> -p <indexPath> -r user|group|all -v <name> [-allow] [-c config.yaml] (-sourceName/-sourcePath same as -s/-p)
 `)
 }
 
@@ -65,6 +64,11 @@ func StartFilebrowser() {
 	keepGoing := runCLI()
 	if !keepGoing {
 		return
+	}
+	existingDb := initializeDatabase(configPath)
+	database := fmt.Sprintf("Using existing database  : %v", settings.Config.Server.DatabaseV2.Path)
+	if !existingDb {
+		database = fmt.Sprintf("Creating new database    : %v", settings.Config.Server.DatabaseV2.Path)
 	}
 	if !settings.Config.Server.DisableUpdateCheck {
 		info, _ := utils.CheckForUpdates()
@@ -84,11 +88,6 @@ func StartFilebrowser() {
 
 	done := make(chan struct{})             // Signals server has stopped
 	shutdownComplete := make(chan struct{}) // Signals shutdown process is complete
-	existingDb := initializeDatabase(configPath)
-	database := fmt.Sprintf("Using existing database  : %v", settings.Config.Server.DatabaseV2.Path)
-	if !existingDb {
-		database = fmt.Sprintf("Creating new database    : %v", settings.Config.Server.DatabaseV2.Path)
-	}
 
 	// Dev mode enables development features like template hot-reloading
 	_, err := os.Stat("http/dist")

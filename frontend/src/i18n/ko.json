@@ -1,6 +1,7 @@
 {
   "buttons": {
     "copySuccess": "클립보드에 복사되었습니다!",
+    "copyFailed": "클립보드 복사 실패",
     "copyFile": "파일 복사",
     "copyToClipboard": "클립보드 복사",
     "moveFile": "파일 이동",
@@ -215,8 +216,6 @@
     "selectHashAlgorithm": "해시 알고리즘 선택",
     "generate": "생성",
     "errorGeneratingHash": "해시 생성 오류",
-    "hashCopied": "클립보드에 해시 복사",
-    "errorCopyingHash": "해시 복사 오류",
     "token": "토큰",
     "onlyOfficeId": "OnlyOffice ID",
     "firstLoadTitle": "파일브라우저 퀀텀에 오신 것을 환영합니다!",
@@ -227,7 +226,6 @@
     "renameSuccess": "아이템 이름 변경에 성공했습니다!",
     "newFileSuccess": "파일이 성공적으로 생성되었습니다!",
     "newDirSuccess": "디렉토리가 성공적으로 생성되었습니다!",
-    "copyToClipboardFailed": "클립보드에 복사할 수 없습니다.",
     "moveFailed": "이동 실패",
     "operationFailed": "작업 실패",
     "partialSuccess": "일부 작업 실패: {succeeded} 성공, {failed} 실패",
@@ -243,7 +241,7 @@
     "unarchiveDestination": "추출 대상:",
     "unarchiveSuccess": "아카이브가 성공적으로 추출되었습니다!",
     "downloadFailed": "청크 다운로드에 실패했습니다 - 이 문제가 반복되면 청크 크기를 줄여 보세요: {message}",
-    "confirmPasswordToChangeUserPassword": "비밀번호 변경을 승인하려면 현재 비밀번호를 입력하세요."
+    "confirmPasswordToSaveUser": "이러한 사용자 변경 사항을 저장하려면 현재 비밀번호를 입력합니다."
   },
   "search": {
     "smallerThan": "보다 작습니다:",
@@ -328,7 +326,6 @@
     "tusUploadsRetryCount": "청크 업로드에 실패한 경우 수행할 재시도 횟수입니다.",
     "userHomeBasePath": "사용자 홈 디렉터리의 기본 경로",
     "userScopeGenerationPlaceholder": "범위가 자동으로 생성됩니다.",
-    "createUserHomeDirectory": "사용자 홈 디렉터리 만들기",
     "shareDeleted": "공유 삭제됨!",
     "loginMethodDescription": "사용자에게 허용된 로그인 방법을 설정합니다.",
     "userNotAdmin": "사용자가 관리자가 아닙니다.",
@@ -544,7 +541,8 @@
     "enabledSuccessfully": "OTP 활성화 성공",
     "verificationFailed": "인증 실패",
     "verificationSucceed": "인증 성공",
-    "generationFailed": "세대 실패"
+    "generationFailed": "세대 실패",
+    "passwordRequiredForGeneration": "인증 코드를 생성하려면 비밀번호가 필요합니다."
   },
   "general": {
     "name": "이름",
@@ -845,8 +843,6 @@
       "showingResults": "{count} 결과 표시",
       "noResults": "아이콘을 찾을 수 없습니다.",
       "tryDifferentSearch": "다른 검색어를 사용해 보세요.",
-      "copiedToClipboard": "'{name}' 클립보드에 복사했습니다!",
-      "copyFailed": "클립보드에 복사하지 못했습니다.",
       "custom": "사용자 지정",
       "useCustomIcon": "사용자 지정 아이콘을 사용합니다: {name}",
       "iconLibraryUrl": "fonts.google.com/icons",
@@ -870,7 +866,8 @@
     "reassignPath": "경로 재할당",
     "pathReassigned": "경로가 성공적으로 업데이트되었습니다!",
     "pathReassignFailed": "경로를 업데이트하지 못했습니다. 다시 시도하세요.",
-    "incompleteResultsDetails": "최대 결과 표시 ({max}). 검색 범위를 좁히면 {max} 에서 더 많은 결과를 확인할 수 있습니다."
+    "incompleteResultsDetails": "최대 결과 표시 ({max}). 검색 범위를 좁히면 {max} 에서 더 많은 결과를 확인할 수 있습니다.",
+    "noCreateOptions": "사용 가능한 생성 옵션이 없습니다."
   },
   "duplicateFinder": {
     "title": "중복 파일 찾기",

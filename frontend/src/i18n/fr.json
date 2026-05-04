@@ -1,6 +1,7 @@
 {
   "buttons": {
     "copySuccess": "Copié dans le presse-papiers !",
+    "copyFailed": "Échec de la copie dans le presse-papiers",
     "copyFile": "Copier le fichier",
     "copyToClipboard": "Copier dans le presse-papier",
     "moveFile": "Déplacer le fichier",
@@ -215,8 +216,6 @@
     "selectHashAlgorithm": "Sélectionner un algorithme de hachage",
     "generate": "Générer",
     "errorGeneratingHash": "Erreur dans la génération du hachage",
-    "hashCopied": "Hash copié dans le presse-papiers",
-    "errorCopyingHash": "Erreur de copie du hachage",
     "token": "Jeton",
     "onlyOfficeId": "OnlyOffice ID",
     "firstLoadTitle": "Bienvenue à FileBrowser Quantum !",
@@ -227,7 +226,6 @@
     "renameSuccess": "L'élément a été renommé avec succès !",
     "newFileSuccess": "Fichier créé avec succès !",
     "newDirSuccess": "Répertoire créé avec succès !",
-    "copyToClipboardFailed": "Impossible de copier dans le presse-papiers",
     "moveFailed": "Échec du déplacement",
     "operationFailed": "Échec de l'opération",
     "partialSuccess": "Certaines opérations ont échoué : {succeeded} a réussi, {failed} a échoué",
@@ -243,7 +241,7 @@
     "unarchiveDestination": "Extrait à :",
     "unarchiveSuccess": "L'archive a été extraite avec succès !",
     "downloadFailed": "Échec du téléchargement groupé - si cela se répète, essayez de réduire la taille des morceaux : {message}",
-    "confirmPasswordToChangeUserPassword": "Saisissez votre mot de passe actuel pour autoriser ce changement de mot de passe."
+    "confirmPasswordToSaveUser": "Saisissez votre mot de passe actuel pour enregistrer ces changements d'utilisateur."
   },
   "search": {
     "smallerThan": "Plus petit que :",
@@ -329,7 +327,6 @@
     "tusUploadsRetryCount": "Nombre de tentatives à effectuer si un bloc ne parvient pas à être importé.",
     "userHomeBasePath": "Chemin de base pour les répertoires personnels des utilisateurs",
     "userScopeGenerationPlaceholder": "Le champ d'application sera généré automatiquement",
-    "createUserHomeDirectory": "Créer le répertoire personnel de l'utilisateur",
     "api": "API",
     "loginMethodDescription": "méthode de connexion autorisée pour l'utilisateur.",
     "userNotAdmin": "L'utilisateur n'est pas un administrateur",
@@ -544,7 +541,8 @@
     "enabledSuccessfully": "OTP activé avec succès",
     "verificationFailed": "Échec de la vérification",
     "verificationSucceed": "Vérification réussie",
-    "generationFailed": "Génération échouée"
+    "generationFailed": "Génération échouée",
+    "passwordRequiredForGeneration": "Votre mot de passe est nécessaire pour générer un code d'authentification."
   },
   "general": {
     "name": "Nom",
@@ -845,8 +843,6 @@
       "showingResults": "Afficher les résultats de {count} ",
       "noResults": "Aucune icône trouvée",
       "tryDifferentSearch": "Essayez un autre terme de recherche",
-      "copiedToClipboard": "Copie de '{name}' dans le presse-papiers !",
-      "copyFailed": "Échec de la copie dans le presse-papiers",
       "custom": "Sur mesure",
       "useCustomIcon": "Utiliser une icône personnalisée : {name}",
       "iconLibraryUrl": "fonts.google.com/icons",
@@ -870,7 +866,8 @@
     "reassignPath": "Réaffecter le chemin",
     "pathReassigned": "Mise à jour du chemin d'accès réussie !",
     "pathReassignFailed": "Échec de la mise à jour du chemin d'accès. Veuillez réessayer.",
-    "incompleteResultsDetails": "Résultats maximums ({max}). Essayez d'affiner votre recherche pour obtenir plus de résultats sous {max}."
+    "incompleteResultsDetails": "Résultats maximums ({max}). Essayez d'affiner votre recherche pour obtenir plus de résultats sous {max}.",
+    "noCreateOptions": "Aucune option de création n'est disponible"
   },
   "duplicateFinder": {
     "title": "Recherche de fichiers en double",

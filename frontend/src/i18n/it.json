@@ -5,7 +5,8 @@
     "reassignPath": "Riassegna percorso",
     "pathReassigned": "Percorso aggiornato con successo!",
     "pathReassignFailed": "Aggiornamento del percorso fallito. Riprova.",
-    "incompleteResultsDetails": "Visualizzazione dei risultati massimi ({max}). Prova a restringere la ricerca per ottenere più risultati sotto {max}."
+    "incompleteResultsDetails": "Visualizzazione dei risultati massimi ({max}). Prova a restringere la ricerca per ottenere più risultati sotto {max}.",
+    "noCreateOptions": "Non sono disponibili opzioni di creazione"
   },
   "general": {
     "divider": "Divisore{suffix}",
@@ -132,6 +133,7 @@
   },
   "buttons": {
     "copySuccess": "Copiato negli appunti!",
+    "copyFailed": "Copia negli appunti fallita",
     "generateNewOtp": "Resetta e genera nuovo codice a due fattori",
     "copyFile": "Copia file",
     "copyToClipboard": "Copia negli appunti",
@@ -439,9 +441,6 @@
     "selectHashAlgorithm": "Seleziona un algoritmo hash",
     "generate": "Genera",
     "errorGeneratingHash": "Errore durante la generazione dell'hash",
-    "hashCopied": "Hash copiato negli appunti",
-    "copyToClipboardFailed": "Impossibile copiare negli appunti",
-    "errorCopyingHash": "Errore durante la copia dell'hash",
     "token": "Token",
     "onlyOfficeId": "ID OnlyOffice",
     "firstLoadTitle": "Benvenuto in FileBrowser Quantum!",
@@ -452,7 +451,7 @@
     "operationFailed": "Operazione fallita",
     "partialSuccess": "Alcune operazioni sono fallite: {succeeded} riuscite, {failed} fallite",
     "downloadFailed": "Il download in chunk non è riuscito: se il problema si ripete, provare a ridurre la dimensione del chunk: {message}",
-    "confirmPasswordToChangeUserPassword": "Inserire la password attuale per autorizzare la modifica della password."
+    "confirmPasswordToSaveUser": "Immettere la password attuale per salvare le modifiche apportate all'utente."
   },
   "search": {
     "searchContext": "Contesto di ricerca: {context}",
@@ -579,7 +578,6 @@
     "tusUploadsRetryCount": "Numero di tentativi se un pezzo fallisce.",
     "userHomeBasePath": "Percorso base per le home degli utenti",
     "userScopeGenerationPlaceholder": "L'ambito verrà generato automaticamente",
-    "createUserHomeDirectory": "Crea directory home utente",
     "customStylesheet": "Foglio di stile personalizzato (CSS)",
     "defaultUserDescription": "Impostazioni predefinite per i nuovi utenti.",
     "disableExternalLinks": "Disabilita link esterni (eccetto documentazione)",
@@ -740,7 +738,8 @@
     "enabledSuccessfully": "OTP abilitato con successo",
     "verificationFailed": "Verifica fallita",
     "verificationSucceed": "Verifica riuscita",
-    "generationFailed": "Generazione fallita"
+    "generationFailed": "Generazione fallita",
+    "passwordRequiredForGeneration": "La password è necessaria per generare un codice autenticatore."
   },
   "access": {
     "all": "Nega Tutto",
@@ -855,8 +854,6 @@
       "showingResults": "Mostrando {count} risultati",
       "noResults": "Nessuna icona trovata",
       "tryDifferentSearch": "Prova un termine diverso",
-      "copiedToClipboard": "Copiato '{name}' negli appunti!",
-      "copyFailed": "Copia fallita",
       "custom": "Personalizzata",
       "useCustomIcon": "Usa icona personalizzata: {name}"
     },

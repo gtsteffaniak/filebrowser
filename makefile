@@ -8,6 +8,8 @@ else
     SHELL := /bin/bash
 endif
 
+PLAYWRIGHT_TEST ?= "settings"
+
 # git checkout remote branch PR
 # git fetch origin pull/####/head:pr-####
 
@@ -48,8 +50,8 @@ build-backend:
 # New dev target with hot-reloading for frontend and backend
 dev: generate-docs
 	@echo "Starting dev servers... Press Ctrl+C to stop."
-	pkill -f 'test_config.yaml' || true
-	pkill -f 'go tool air' || true
+	pkill -f '[t]est_config.yaml' || true
+	pkill -f '[g]o tool air' || true
 	@cd frontend && DEV_BUILD=true npm run watch & \
 	FRONTEND_PID=$$!; \
 	cd backend && export FILEBROWSER_DEVMODE=true && go tool air $$([ "$(OS)" = "Windows_NT" ] && echo "-c .air.windows.toml" || echo "") & \
@@ -116,16 +118,30 @@ test-frontend:
 
 test-playwright: build-frontend
 	cd backend && GOOS=linux go build -o filebrowser .
-	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-sharing .
+	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-settings .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-noauth .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-general .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-jwt .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-proxy .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-previews .
-	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-settings .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-oidc .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-no-config .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-screenshots .
+
+# get version from environment variable, for example
+# cd frontend && npm i @playwright/test && npx playwright install --with-deps chromium
+# make PLAYWRIGHT_TEST=settings test-playwright-ui 
+test-playwright-ui: build-frontend
+	docker stop local-playwright-tests || true
+	docker rm local-playwright-tests || true
+	rm -rf _docker/src/tmp/ || true && mkdir -p _docker/src/tmp/
+	cp -r _docker/src/$(PLAYWRIGHT_TEST)/backend/* _docker/src/tmp/
+	cp -r backend/reduce-rounded-corners.css _docker/src/tmp/no-rounded.css
+	cp -r _docker/src/$(PLAYWRIGHT_TEST)/frontend/playwright.config.ts $(shell pwd)/frontend/playwright.config.ts
+	cd backend && GOOS=linux go build -o ../_docker/src/tmp/filebrowser .
+	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-local .
+	docker run -d -p 80:80 --name local-playwright-tests -t filebrowser-playwright-tests .
+	cd frontend && npx playwright test --ui
 
 run-proxy: build-frontend
 	cd _docker && docker compose up -d --build nginx-proxy-auth filebrowser
@@ -134,7 +150,6 @@ run-jwt: build-frontend
 	cd _docker && docker compose up -d --build nginx-proxy-jwt filebrowser-jwt
 
 # optional: install playwright locally
-# cd fronted && npm i @playwright/test && npx playwright install --with-deps chromium
 # once local playwright server is running, you can also watch the tests interactively with:
 # cd frontend && npx playwright test --project dark-screenshots --ui
 screenshots: build-frontend
@@ -146,29 +161,3 @@ screenshots: build-frontend
 		cp -r ./frontend/generated ../filebrowserDocs/static/images/; \
 		echo "Copied screenshots to ../filebrowserDocs/static/images/generated/"; \
 	fi
-
-profile:
-	@echo "Note: start the backend server with 'make dev' first"
-	@echo "Results will be in ./backend/debug/ directory"
-	@mkdir -p backend/debug
-	@echo "Downloading heap profile..."
-	@curl -s http://localhost:6060/debug/pprof/heap > backend/debug/heap.pb.gz || (echo "Error: Could not download heap profile. Is the server running?" && exit 1)
-	@echo "Generating heap profile (SVG)..."
-	cd backend && go tool pprof -svg -output debug/heap.svg debug/heap.pb.gz
-	@echo "Generating heap profile (text)..."
-	cd backend && go tool pprof -text debug/heap.pb.gz > debug/heap.txt 2>&1
-	@echo "Downloading CPU profile..."
-	@curl -s "http://localhost:6060/debug/pprof/profile?seconds=30" > backend/debug/cpu.pb.gz || (echo "Error: Could not download CPU profile. Is the server running?" && exit 1)
-	@echo "Generating CPU profile (SVG)..."
-	cd backend && go tool pprof -svg -output debug/cpu.svg debug/cpu.pb.gz
-	@echo "Generating CPU profile (text)..."
-	cd backend && go tool pprof -text debug/cpu.pb.gz > debug/cpu.txt 2>&1
-	@echo "✓ Generated debug files: heap.pb.gz, heap.svg, heap.txt, cpu.pb.gz, cpu.svg, cpu.txt"
-
-memory:
-	@echo "Fetching memory stats from running server..."
-	@echo "Note: start the backend server with 'make dev' first"
-	@echo "Usage: make memory [PORT=8080]"
-	@PORT=$${PORT:-8080}; \
-	curl -s http://localhost:$$PORT/api/memory | python3 -m json.tool || \
-	(echo "Error: Could not fetch memory stats. Is the server running on port $$PORT?" && exit 1)

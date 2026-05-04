@@ -36,10 +36,6 @@ type Environment struct {
 	FaviconPath           string `json:"-"` // resolved favicon path (filesystem or embedded)
 	FaviconIsCustom       bool   `json:"-"` // true if favicon is from custom filesystem path
 	FaviconEmbeddedPath   string `json:"-"` // embedded asset path for default favicon
-	PWAIconsDir           string `json:"-"` // directory where generated PWA icons are stored
-	PWAIcon192            string `json:"-"` // path to 192x192 PWA icon
-	PWAIcon256            string `json:"-"` // path to 256x256 PWA icon
-	PWAIcon512            string `json:"-"` // path to 512x512 PWA icon
 }
 
 type Server struct {
@@ -219,7 +215,7 @@ type SourceConfig struct {
 	Rules            []ConditionalRule `json:"rules"`                             // list of item rules to apply to specific paths
 	DefaultUserScope string            `json:"defaultUserScope"`                  // defaults to root of index "/" should match folders under path
 	DefaultEnabled   bool              `json:"defaultEnabled"`                    // should be added as a default source for new users?
-	CreateUserDir    bool              `json:"createUserDir"`                     // deprecated: create a user directory for each user under defaultUserScope + username (always true now)
+	CreateUserDir    bool              `json:"createUserDir"`                     // create a user directory for each user under defaultUserScope + username
 	UseLogicalSize   bool              `json:"useLogicalSize"`                    // calculate sizes based on logical size instead of disk utilization (du -sh), folders will be 0 bytes when empty.
 	// hidden but used internally - optimized map lookups for conditional rules
 	ResolvedRules ResolvedRulesConfig `json:"-"`
