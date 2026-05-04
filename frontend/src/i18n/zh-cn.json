@@ -145,7 +145,7 @@
     "inProgress": "登录...",
     "failedLogin": "登录失败",
     "invalidCredentials": "提供的证书无效",
-    "passkeyLogin": "__NOT_TRANSLATED__"
+    "passkeyLogin": "使用通行密钥"
   },
   "prompts": {
     "copyMessage": "请选择欲复制至的目录：",
@@ -629,18 +629,18 @@
     "showCopyPath": "在上下文菜单中显示复制路径",
     "showCopyPathDescription": "在文件和文件夹上下文菜单中显示复制路径操作。",
     "previewDescription": "显示{filetype} 的缩略图预览，如果禁用，将显示通用图标。",
-    "passkeys": "__NOT_TRANSLATED__",
-    "passkeysDescription": "__NOT_TRANSLATED__",
-    "noPasskeys": "__NOT_TRANSLATED__",
-    "addPasskey": "__NOT_TRANSLATED__",
-    "addingPasskey": "__NOT_TRANSLATED__",
-    "passkeyAdded": "__NOT_TRANSLATED__",
-    "passkeyAddFailed": "__NOT_TRANSLATED__",
-    "passkeyDeleted": "__NOT_TRANSLATED__",
-    "passkeyDeleteFailed": "__NOT_TRANSLATED__",
-    "created": "__NOT_TRANSLATED__",
-    "lastUsed": "__NOT_TRANSLATED__",
-    "passkeyDefaultName": "__NOT_TRANSLATED__"
+    "passkeys": "通行密钥",
+    "passkeysDescription": "使用通行密钥进行安全、无密码的多因素认证。在您的设备上注册通行密钥，使用生物识别或 PIN 验证代替 OTP 代码。",
+    "noPasskeys": "尚未注册通行密钥。",
+    "addPasskey": "添加通行密钥",
+    "addingPasskey": "正在添加通行密钥...",
+    "passkeyAdded": "通行密钥添加成功！",
+    "passkeyAddFailed": "添加通行密钥失败",
+    "passkeyDeleted": "通行密钥已删除。",
+    "passkeyDeleteFailed": "删除通行密钥失败",
+    "created": "创建时间",
+    "lastUsed": "上次使用",
+    "passkeyDefaultName": "通行密钥"
   },
   "general": {
     "name": "名称",

@@ -145,7 +145,7 @@
     "inProgress": "Вход в систему...",
     "failedLogin": "Не удалось войти в систему",
     "invalidCredentials": "Предоставлены неверные учетные данные",
-    "passkeyLogin": "__NOT_TRANSLATED__"
+    "passkeyLogin": "Использовать ключ доступа"
   },
   "prompts": {
     "copyMessage": "Копировать в:",
@@ -775,18 +775,18 @@
     "showCopyPath": "Показывать путь копирования в контекстном меню",
     "showCopyPathDescription": "Показать действие \"Копировать путь\" в контекстном меню файлов и папок.",
     "previewDescription": "Показывать миниатюры для {filetype}, если отключено, будет отображаться общий значок.",
-    "passkeys": "__NOT_TRANSLATED__",
-    "passkeysDescription": "__NOT_TRANSLATED__",
-    "noPasskeys": "__NOT_TRANSLATED__",
-    "addPasskey": "__NOT_TRANSLATED__",
-    "addingPasskey": "__NOT_TRANSLATED__",
-    "passkeyAdded": "__NOT_TRANSLATED__",
-    "passkeyAddFailed": "__NOT_TRANSLATED__",
-    "passkeyDeleted": "__NOT_TRANSLATED__",
-    "passkeyDeleteFailed": "__NOT_TRANSLATED__",
-    "created": "__NOT_TRANSLATED__",
-    "lastUsed": "__NOT_TRANSLATED__",
-    "passkeyDefaultName": "__NOT_TRANSLATED__"
+    "passkeys": "Ключи доступа",
+    "passkeysDescription": "Используйте ключи доступа для безопасной многофакторной аутентификации без пароля. Зарегистрируйте ключ на устройстве, чтобы использовать биометрическую проверку или PIN-код вместо OTP-кодов.",
+    "noPasskeys": "Ключи доступа ещё не зарегистрированы.",
+    "addPasskey": "Добавить ключ доступа",
+    "addingPasskey": "Добавление ключа доступа...",
+    "passkeyAdded": "Ключ доступа успешно добавлен!",
+    "passkeyAddFailed": "Не удалось добавить ключ доступа",
+    "passkeyDeleted": "Ключ доступа удалён.",
+    "passkeyDeleteFailed": "Не удалось удалить ключ доступа",
+    "created": "Создан",
+    "lastUsed": "Последнее использование",
+    "passkeyDefaultName": "Ключ доступа"
   },
   "editor": {
     "uninitialized": "Не удалось инициализировать редактор. Пожалуйста, перезагрузитесь.",

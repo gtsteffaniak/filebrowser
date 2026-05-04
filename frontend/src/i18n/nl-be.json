@@ -145,7 +145,7 @@
     "inProgress": "Inloggen...",
     "failedLogin": "Aanmelden mislukt",
     "invalidCredentials": "Ongeldige referenties verstrekt",
-    "passkeyLogin": "__NOT_TRANSLATED__"
+    "passkeyLogin": "Passkey gebruiken"
   },
   "prompts": {
     "copyMessage": "Kies een locatie om uw bestanden te kopiëren: ",
@@ -629,18 +629,18 @@
     "showCopyPath": "Pad kopiëren tonen in contextmenu",
     "showCopyPathDescription": "Een actie Pad kopiëren weergeven in het contextmenu van bestanden en mappen.",
     "previewDescription": "Toon miniatuurvoorbeelden voor {filetype}, toont generiek pictogram indien uitgeschakeld.",
-    "passkeys": "__NOT_TRANSLATED__",
-    "passkeysDescription": "__NOT_TRANSLATED__",
-    "noPasskeys": "__NOT_TRANSLATED__",
-    "addPasskey": "__NOT_TRANSLATED__",
-    "addingPasskey": "__NOT_TRANSLATED__",
-    "passkeyAdded": "__NOT_TRANSLATED__",
-    "passkeyAddFailed": "__NOT_TRANSLATED__",
-    "passkeyDeleted": "__NOT_TRANSLATED__",
-    "passkeyDeleteFailed": "__NOT_TRANSLATED__",
-    "created": "__NOT_TRANSLATED__",
-    "lastUsed": "__NOT_TRANSLATED__",
-    "passkeyDefaultName": "__NOT_TRANSLATED__"
+    "passkeys": "Passkeys",
+    "passkeysDescription": "Gebruik passkeys voor veilige, wachtwoordloze multi-factor authenticatie. Registreer een passkey op uw apparaat om biometrische verificatie of PIN te gebruiken in plaats van OTP-codes.",
+    "noPasskeys": "Nog geen passkeys geregistreerd.",
+    "addPasskey": "Passkey toevoegen",
+    "addingPasskey": "Passkey toevoegen...",
+    "passkeyAdded": "Passkey succesvol toegevoegd!",
+    "passkeyAddFailed": "Passkey toevoegen mislukt",
+    "passkeyDeleted": "Passkey verwijderd.",
+    "passkeyDeleteFailed": "Passkey verwijderen mislukt",
+    "created": "Aangemaakt",
+    "lastUsed": "Laatst gebruikt",
+    "passkeyDefaultName": "Passkey"
   },
   "general": {
     "name": "Naam",

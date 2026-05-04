@@ -279,7 +279,7 @@
     "inProgress": "Accesso in corso...",
     "failedLogin": "Accesso fallito",
     "invalidCredentials": "Credenziali fornite non valide",
-    "passkeyLogin": "__NOT_TRANSLATED__"
+    "passkeyLogin": "Usa Passkey"
   },
   "share": {
     "notice": "Nota: quando viene creata una condivisione, essa diventa pubblica e segue regole di accesso diverse. Se non configurata correttamente, chiunque potrebbe accedervi.",
@@ -534,18 +534,18 @@
     "showCopyPath": "Mostra Copia percorso nel menu contestuale",
     "showCopyPathDescription": "Mostra l'azione Copia percorso nel menu contestuale di file e cartelle.",
     "previewDescription": "Mostra le anteprime per {filetype}, mostrerà un'icona generica se disabilitata.",
-    "passkeys": "__NOT_TRANSLATED__",
-    "passkeysDescription": "__NOT_TRANSLATED__",
-    "noPasskeys": "__NOT_TRANSLATED__",
-    "addPasskey": "__NOT_TRANSLATED__",
-    "addingPasskey": "__NOT_TRANSLATED__",
-    "passkeyAdded": "__NOT_TRANSLATED__",
-    "passkeyAddFailed": "__NOT_TRANSLATED__",
-    "passkeyDeleted": "__NOT_TRANSLATED__",
-    "passkeyDeleteFailed": "__NOT_TRANSLATED__",
-    "created": "__NOT_TRANSLATED__",
-    "lastUsed": "__NOT_TRANSLATED__",
-    "passkeyDefaultName": "__NOT_TRANSLATED__"
+    "passkeys": "Passkey",
+    "passkeysDescription": "Utilizza le passkey per un'autenticazione sicura multi-fattore senza password. Registra una passkey sul tuo dispositivo per utilizzare la verifica biometrica o il PIN invece dei codici OTP.",
+    "noPasskeys": "Nessuna passkey registrata.",
+    "addPasskey": "Aggiungi Passkey",
+    "addingPasskey": "Aggiunta passkey...",
+    "passkeyAdded": "Passkey aggiunta con successo!",
+    "passkeyAddFailed": "Impossibile aggiungere la passkey",
+    "passkeyDeleted": "Passkey eliminata.",
+    "passkeyDeleteFailed": "Impossibile eliminare la passkey",
+    "created": "Creato",
+    "lastUsed": "Ultimo utilizzo",
+    "passkeyDefaultName": "Passkey"
   },
   "settings": {
     "systemAdmin": "Sistema e Admin",

@@ -148,7 +148,7 @@
     "inProgress": "Přihlášení...",
     "failedLogin": "Nepodařilo se přihlásit",
     "invalidCredentials": "Neplatné zadané pověření",
-    "passkeyLogin": "__NOT_TRANSLATED__"
+    "passkeyLogin": "Použít Passkey"
   },
   "share": {
     "notice": "Poznámka: po vytvoření sdílené složky je tato složka více vystavena veřejnosti a platí pro ni jiná pravidla přístupu. Pokud není sdílená složka bezpečně nakonfigurována, může k ní mít přístup kdokoli.",
@@ -403,18 +403,18 @@
     "showCopyPath": "Zobrazit kopírování cesty v kontextové nabídce",
     "showCopyPathDescription": "Zobrazení akce Kopírovat cestu v kontextové nabídce souborů a složek.",
     "previewDescription": "Zobrazit náhledy miniatur pro {filetype}, pokud je zakázáno, zobrazí se obecná ikona.",
-    "passkeys": "__NOT_TRANSLATED__",
-    "passkeysDescription": "__NOT_TRANSLATED__",
-    "noPasskeys": "__NOT_TRANSLATED__",
-    "addPasskey": "__NOT_TRANSLATED__",
-    "addingPasskey": "__NOT_TRANSLATED__",
-    "passkeyAdded": "__NOT_TRANSLATED__",
-    "passkeyAddFailed": "__NOT_TRANSLATED__",
-    "passkeyDeleted": "__NOT_TRANSLATED__",
-    "passkeyDeleteFailed": "__NOT_TRANSLATED__",
-    "created": "__NOT_TRANSLATED__",
-    "lastUsed": "__NOT_TRANSLATED__",
-    "passkeyDefaultName": "__NOT_TRANSLATED__"
+    "passkeys": "Passkeys",
+    "passkeysDescription": "Používejte passkeys pro bezpečné vícefaktorové ověřování bez hesla. Zaregistrujte passkey na svém zařízení a používejte biometrické ověření nebo PIN místo OTP kódů.",
+    "noPasskeys": "Zatím nejsou registrovány žádné passkeys.",
+    "addPasskey": "Přidat Passkey",
+    "addingPasskey": "Přidávání passkey...",
+    "passkeyAdded": "Passkey byl úspěšně přidán!",
+    "passkeyAddFailed": "Nepodařilo se přidat passkey",
+    "passkeyDeleted": "Passkey byl smazán.",
+    "passkeyDeleteFailed": "Nepodařilo se smazat passkey",
+    "created": "Vytvořeno",
+    "lastUsed": "Naposledy použito",
+    "passkeyDefaultName": "Passkey"
   },
   "settings": {
     "enterPassword": "Zadejte heslo",

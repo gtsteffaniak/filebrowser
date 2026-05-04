@@ -145,7 +145,7 @@
     "inProgress": "Вхід в систему...",
     "failedLogin": "Не вдалося увійти в систему",
     "invalidCredentials": "Надано невірні облікові дані",
-    "passkeyLogin": "__NOT_TRANSLATED__"
+    "passkeyLogin": "Використати ключ доступу"
   },
   "prompts": {
     "copyMessage": "Копіювати в:",
@@ -629,18 +629,18 @@
     "showCopyPath": "Показати шлях копіювання в контекстному меню",
     "showCopyPathDescription": "Показати дію Копіювати шлях у контекстному меню файлів і папок.",
     "previewDescription": "Показувати попередній перегляд мініатюр для {filetype}, якщо вимкнено, буде показано загальну піктограму.",
-    "passkeys": "__NOT_TRANSLATED__",
-    "passkeysDescription": "__NOT_TRANSLATED__",
-    "noPasskeys": "__NOT_TRANSLATED__",
-    "addPasskey": "__NOT_TRANSLATED__",
-    "addingPasskey": "__NOT_TRANSLATED__",
-    "passkeyAdded": "__NOT_TRANSLATED__",
-    "passkeyAddFailed": "__NOT_TRANSLATED__",
-    "passkeyDeleted": "__NOT_TRANSLATED__",
-    "passkeyDeleteFailed": "__NOT_TRANSLATED__",
-    "created": "__NOT_TRANSLATED__",
-    "lastUsed": "__NOT_TRANSLATED__",
-    "passkeyDefaultName": "__NOT_TRANSLATED__"
+    "passkeys": "Ключі доступу",
+    "passkeysDescription": "Використовуйте ключі доступу для безпечної багатофакторної автентифікації без пароля. Зареєструйте ключ на пристрої, щоб використовувати біометричну перевірку або PIN-код замість OTP-кодів.",
+    "noPasskeys": "Ключі доступу ще не зареєстровані.",
+    "addPasskey": "Додати ключ доступу",
+    "addingPasskey": "Додавання ключа доступу...",
+    "passkeyAdded": "Ключ доступу успішно додано!",
+    "passkeyAddFailed": "Не вдалося додати ключ доступу",
+    "passkeyDeleted": "Ключ доступу видалено.",
+    "passkeyDeleteFailed": "Не вдалося видалити ключ доступу",
+    "created": "Створено",
+    "lastUsed": "Останнє використання",
+    "passkeyDefaultName": "Ключ доступу"
   },
   "general": {
     "name": "Ім'я",

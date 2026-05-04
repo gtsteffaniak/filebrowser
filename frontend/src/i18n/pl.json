@@ -145,7 +145,7 @@
     "inProgress": "Logowanie...",
     "failedLogin": "Logowanie nie powiodło się",
     "invalidCredentials": "Podano nieprawidłowe dane uwierzytelniające",
-    "passkeyLogin": "__NOT_TRANSLATED__"
+    "passkeyLogin": "Użyj klucza dostępu"
   },
   "prompts": {
     "copyMessage": "Wybierz lokalizację do której mają być skopiowane wybrane pliki",
@@ -775,18 +775,18 @@
     "showCopyPath": "Pokaż kopiowanie ścieżki w menu kontekstowym",
     "showCopyPathDescription": "Wyświetlanie akcji Kopiuj ścieżkę w menu kontekstowym plików i folderów.",
     "previewDescription": "Pokaż podgląd miniatur dla {filetype}, pokaże ogólną ikonę, jeśli jest wyłączona.",
-    "passkeys": "__NOT_TRANSLATED__",
-    "passkeysDescription": "__NOT_TRANSLATED__",
-    "noPasskeys": "__NOT_TRANSLATED__",
-    "addPasskey": "__NOT_TRANSLATED__",
-    "addingPasskey": "__NOT_TRANSLATED__",
-    "passkeyAdded": "__NOT_TRANSLATED__",
-    "passkeyAddFailed": "__NOT_TRANSLATED__",
-    "passkeyDeleted": "__NOT_TRANSLATED__",
-    "passkeyDeleteFailed": "__NOT_TRANSLATED__",
-    "created": "__NOT_TRANSLATED__",
-    "lastUsed": "__NOT_TRANSLATED__",
-    "passkeyDefaultName": "__NOT_TRANSLATED__"
+    "passkeys": "Klucze dostępu",
+    "passkeysDescription": "Używaj kluczy dostępu do bezpiecznego uwierzytelniania wieloskładnikowego bez hasła. Zarejestruj klucz na swoim urządzeniu, aby używać weryfikacji biometrycznej lub PIN zamiast kodów OTP.",
+    "noPasskeys": "Brak zarejestrowanych kluczy dostępu.",
+    "addPasskey": "Dodaj klucz dostępu",
+    "addingPasskey": "Dodawanie klucza dostępu...",
+    "passkeyAdded": "Klucz dostępu został pomyślnie dodany!",
+    "passkeyAddFailed": "Nie udało się dodać klucza dostępu",
+    "passkeyDeleted": "Klucz dostępu został usunięty.",
+    "passkeyDeleteFailed": "Nie udało się usunąć klucza dostępu",
+    "created": "Utworzono",
+    "lastUsed": "Ostatnio użyty",
+    "passkeyDefaultName": "Klucz dostępu"
   },
   "editor": {
     "uninitialized": "Nie udało się zainicjować edytora. Przeładuj ponownie.",

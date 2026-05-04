@@ -145,7 +145,7 @@
     "inProgress": "로그인...",
     "failedLogin": "로그인에 실패했습니다.",
     "invalidCredentials": "제공된 자격 증명이 잘못되었습니다.",
-    "passkeyLogin": "__NOT_TRANSLATED__"
+    "passkeyLogin": "패스키 사용"
   },
   "prompts": {
     "copyMessage": "복사할 디렉토리:",
@@ -775,18 +775,18 @@
     "showCopyPath": "컨텍스트 메뉴에 경로 복사 표시",
     "showCopyPathDescription": "파일 및 폴더 컨텍스트 메뉴에 경로 복사 작업을 표시합니다.",
     "previewDescription": "{filetype} 에 대한 썸네일 미리보기 표시 , 비활성화하면 일반 아이콘이 표시됩니다.",
-    "passkeys": "__NOT_TRANSLATED__",
-    "passkeysDescription": "__NOT_TRANSLATED__",
-    "noPasskeys": "__NOT_TRANSLATED__",
-    "addPasskey": "__NOT_TRANSLATED__",
-    "addingPasskey": "__NOT_TRANSLATED__",
-    "passkeyAdded": "__NOT_TRANSLATED__",
-    "passkeyAddFailed": "__NOT_TRANSLATED__",
-    "passkeyDeleted": "__NOT_TRANSLATED__",
-    "passkeyDeleteFailed": "__NOT_TRANSLATED__",
-    "created": "__NOT_TRANSLATED__",
-    "lastUsed": "__NOT_TRANSLATED__",
-    "passkeyDefaultName": "__NOT_TRANSLATED__"
+    "passkeys": "패스키",
+    "passkeysDescription": "안전한 비밀번호 없는 다중 인증을 위해 패스키를 사용하세요. 기기에 패스키를 등록하여 OTP 코드 대신 생체 인증 또는 PIN 인증을 사용할 수 있습니다.",
+    "noPasskeys": "등록된 패스키가 없습니다.",
+    "addPasskey": "패스키 추가",
+    "addingPasskey": "패스키 추가 중...",
+    "passkeyAdded": "패스키가 성공적으로 추가되었습니다!",
+    "passkeyAddFailed": "패스키 추가 실패",
+    "passkeyDeleted": "패스키가 삭제되었습니다.",
+    "passkeyDeleteFailed": "패스키 삭제 실패",
+    "created": "생성일",
+    "lastUsed": "마지막 사용",
+    "passkeyDefaultName": "패스키"
   },
   "editor": {
     "uninitialized": "편집기를 초기화하지 못했습니다. 다시 로드하세요.",

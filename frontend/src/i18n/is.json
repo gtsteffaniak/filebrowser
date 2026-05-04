@@ -191,7 +191,7 @@
     "inProgress": "Skrái inn...",
     "failedLogin": "Tókst ekki að skrá inn",
     "invalidCredentials": "Ógild skilríki voru gefin",
-    "passkeyLogin": "__NOT_TRANSLATED__"
+    "passkeyLogin": "Nota lykilorðslykil"
   },
   "share": {
     "notice": "Athugið: þegar deiling er búin til, verður hún birtari fyrir almenningi og hefur önnur aðgangsreglu. Ef deilingin þín er ekki öruggt stillt, getur hver sem er nálgast hana.",
@@ -484,18 +484,18 @@
     "thumbnailOptions": "__NOT_TRANSLATED__",
     "showThumbnails": "__NOT_TRANSLATED__",
     "showThumbnailsDescription": "__NOT_TRANSLATED__",
-    "passkeys": "__NOT_TRANSLATED__",
-    "passkeysDescription": "__NOT_TRANSLATED__",
-    "noPasskeys": "__NOT_TRANSLATED__",
-    "addPasskey": "__NOT_TRANSLATED__",
-    "addingPasskey": "__NOT_TRANSLATED__",
-    "passkeyAdded": "__NOT_TRANSLATED__",
-    "passkeyAddFailed": "__NOT_TRANSLATED__",
-    "passkeyDeleted": "__NOT_TRANSLATED__",
-    "passkeyDeleteFailed": "__NOT_TRANSLATED__",
-    "created": "__NOT_TRANSLATED__",
-    "lastUsed": "__NOT_TRANSLATED__",
-    "passkeyDefaultName": "__NOT_TRANSLATED__"
+    "passkeys": "Lykilorðslyklar",
+    "passkeysDescription": "Notaðu lykilorðslykla fyrir örugga, lykilorðslausa fjölþátta auðkenningu. Skráðu lykilorðslykil á tækinu þínu til að nota lífkennasannvottun eða PIN-númer í stað OTP-kóða.",
+    "noPasskeys": "Engir lykilorðslyklar skráðir ennþá.",
+    "addPasskey": "Bæta við lykilorðslykli",
+    "addingPasskey": "Bæti við lykilorðslykli...",
+    "passkeyAdded": "Lykilorðslykli bætt við!",
+    "passkeyAddFailed": "Mistókst að bæta við lykilorðslykli",
+    "passkeyDeleted": "Lykilorðslykli eytt.",
+    "passkeyDeleteFailed": "Mistókst að eyða lykilorðslykli",
+    "created": "Búið til",
+    "lastUsed": "Síðast notað",
+    "passkeyDefaultName": "Lykilorðslykill"
   },
   "settings": {
     "systemAdmin": "Kerfi & Stjórnandi",

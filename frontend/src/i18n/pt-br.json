@@ -145,7 +145,7 @@
     "inProgress": "Fazendo login...",
     "failedLogin": "Falha no login",
     "invalidCredentials": "Credenciais inválidas fornecidas",
-    "passkeyLogin": "__NOT_TRANSLATED__"
+    "passkeyLogin": "Usar chave de acesso"
   },
   "prompts": {
     "copyMessage": "Escolha um lugar para copiar os arquivos:",
@@ -775,18 +775,18 @@
     "showCopyPath": "Mostrar caminho de cópia no menu de contexto",
     "showCopyPathDescription": "Mostrar uma ação Copiar caminho no menu de contexto de arquivos e pastas.",
     "previewDescription": "Mostrar visualizações em miniatura para {filetype}, mostrará o ícone genérico se estiver desativado.",
-    "passkeys": "__NOT_TRANSLATED__",
-    "passkeysDescription": "__NOT_TRANSLATED__",
-    "noPasskeys": "__NOT_TRANSLATED__",
-    "addPasskey": "__NOT_TRANSLATED__",
-    "addingPasskey": "__NOT_TRANSLATED__",
-    "passkeyAdded": "__NOT_TRANSLATED__",
-    "passkeyAddFailed": "__NOT_TRANSLATED__",
-    "passkeyDeleted": "__NOT_TRANSLATED__",
-    "passkeyDeleteFailed": "__NOT_TRANSLATED__",
-    "created": "__NOT_TRANSLATED__",
-    "lastUsed": "__NOT_TRANSLATED__",
-    "passkeyDefaultName": "__NOT_TRANSLATED__"
+    "passkeys": "Chaves de acesso",
+    "passkeysDescription": "Utilize chaves de acesso para autenticação segura multifator sem senha. Registre uma chave no seu dispositivo para usar verificação biométrica ou PIN em vez de códigos OTP.",
+    "noPasskeys": "Nenhuma chave de acesso registrada.",
+    "addPasskey": "Adicionar chave de acesso",
+    "addingPasskey": "Adicionando chave de acesso...",
+    "passkeyAdded": "Chave de acesso adicionada com sucesso!",
+    "passkeyAddFailed": "Falha ao adicionar chave de acesso",
+    "passkeyDeleted": "Chave de acesso excluída.",
+    "passkeyDeleteFailed": "Falha ao excluir chave de acesso",
+    "created": "Criado",
+    "lastUsed": "Último uso",
+    "passkeyDefaultName": "Chave de acesso"
   },
   "editor": {
     "uninitialized": "Falha ao inicializar o editor. Favor recarregar.",

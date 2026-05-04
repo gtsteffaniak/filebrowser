@@ -145,7 +145,7 @@
     "inProgress": "Connexion...",
     "failedLogin": "Échec de la connexion",
     "invalidCredentials": "Les informations d'identification fournies ne sont pas valides",
-    "passkeyLogin": "__NOT_TRANSLATED__"
+    "passkeyLogin": "Utiliser une clé d'accès"
   },
   "prompts": {
     "copyMessage": "Choisissez l'emplacement où copier la sélection :",
@@ -775,18 +775,18 @@
     "showCopyPath": "Afficher Copier le chemin dans le menu contextuel",
     "showCopyPathDescription": "Afficher une action Copier le chemin dans le menu contextuel des fichiers et des dossiers.",
     "previewDescription": "Affiche des aperçus de vignettes pour {filetype}, affichera l'icône générique si elle est désactivée.",
-    "passkeys": "__NOT_TRANSLATED__",
-    "passkeysDescription": "__NOT_TRANSLATED__",
-    "noPasskeys": "__NOT_TRANSLATED__",
-    "addPasskey": "__NOT_TRANSLATED__",
-    "addingPasskey": "__NOT_TRANSLATED__",
-    "passkeyAdded": "__NOT_TRANSLATED__",
-    "passkeyAddFailed": "__NOT_TRANSLATED__",
-    "passkeyDeleted": "__NOT_TRANSLATED__",
-    "passkeyDeleteFailed": "__NOT_TRANSLATED__",
-    "created": "__NOT_TRANSLATED__",
-    "lastUsed": "__NOT_TRANSLATED__",
-    "passkeyDefaultName": "__NOT_TRANSLATED__"
+    "passkeys": "Clés d'accès",
+    "passkeysDescription": "Utilisez des clés d'accès pour une authentification sécurisée multifacteur sans mot de passe. Enregistrez une clé sur votre appareil pour utiliser la vérification biométrique ou le code PIN au lieu des codes OTP.",
+    "noPasskeys": "Aucune clé d'accès enregistrée pour l'instant.",
+    "addPasskey": "Ajouter une clé d'accès",
+    "addingPasskey": "Ajout de la clé d'accès...",
+    "passkeyAdded": "Clé d'accès ajoutée avec succès !",
+    "passkeyAddFailed": "Échec de l'ajout de la clé d'accès",
+    "passkeyDeleted": "Clé d'accès supprimée.",
+    "passkeyDeleteFailed": "Échec de la suppression de la clé d'accès",
+    "created": "Créé",
+    "lastUsed": "Dernière utilisation",
+    "passkeyDefaultName": "Clé d'accès"
   },
   "editor": {
     "uninitialized": "Échec de l'initialisation de l'éditeur. Veuillez recharger.",

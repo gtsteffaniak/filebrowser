@@ -145,7 +145,7 @@
     "inProgress": "Bejelentkezés...",
     "failedLogin": "Sikertelen bejelentkezés",
     "invalidCredentials": "Érvénytelen hitelesítő adatok megadása",
-    "passkeyLogin": "__NOT_TRANSLATED__"
+    "passkeyLogin": "Jelszókulcs használata"
   },
   "prompts": {
     "copyMessage": "Válassza ki a másolás célját:",
@@ -775,18 +775,18 @@
     "showCopyPath": "Az elérési útvonal másolása a kontextusmenüben",
     "showCopyPathDescription": "Az elérési útvonal másolása művelet megjelenítése a fájl és mappa kontextusmenüben.",
     "previewDescription": "Miniatűr előnézetek megjelenítése a {filetype}, általános ikon megjelenítése, ha le van tiltva.",
-    "passkeys": "__NOT_TRANSLATED__",
-    "passkeysDescription": "__NOT_TRANSLATED__",
-    "noPasskeys": "__NOT_TRANSLATED__",
-    "addPasskey": "__NOT_TRANSLATED__",
-    "addingPasskey": "__NOT_TRANSLATED__",
-    "passkeyAdded": "__NOT_TRANSLATED__",
-    "passkeyAddFailed": "__NOT_TRANSLATED__",
-    "passkeyDeleted": "__NOT_TRANSLATED__",
-    "passkeyDeleteFailed": "__NOT_TRANSLATED__",
-    "created": "__NOT_TRANSLATED__",
-    "lastUsed": "__NOT_TRANSLATED__",
-    "passkeyDefaultName": "__NOT_TRANSLATED__"
+    "passkeys": "Jelszókulcsok",
+    "passkeysDescription": "Használjon jelszókulcsokat a biztonságos, jelszó nélküli többtényezős hitelesítéshez. Regisztráljon egy jelszókulcsot az eszközén, hogy biometrikus azonosítást vagy PIN-kódot használhasson OTP-kódok helyett.",
+    "noPasskeys": "Még nincsenek regisztrált jelszókulcsok.",
+    "addPasskey": "Jelszókulcs hozzáadása",
+    "addingPasskey": "Jelszókulcs hozzáadása...",
+    "passkeyAdded": "Jelszókulcs sikeresen hozzáadva!",
+    "passkeyAddFailed": "Nem sikerült hozzáadni a jelszókulcsot",
+    "passkeyDeleted": "Jelszókulcs törölve.",
+    "passkeyDeleteFailed": "Nem sikerült törölni a jelszókulcsot",
+    "created": "Létrehozva",
+    "lastUsed": "Utoljára használva",
+    "passkeyDefaultName": "Jelszókulcs"
   },
   "editor": {
     "uninitialized": "Nem sikerült inicializálni a szerkesztőt. Kérjük, töltse újra.",

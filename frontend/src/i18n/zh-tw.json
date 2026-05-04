@@ -145,7 +145,7 @@
     "inProgress": "登入中…",
     "failedLogin": "登入失敗",
     "invalidCredentials": "提供的認證資料無效",
-    "passkeyLogin": "__NOT_TRANSLATED__"
+    "passkeyLogin": "使用通行密鑰"
   },
   "prompts": {
     "copyMessage": "請選擇要複製到哪個位置：",
@@ -597,18 +597,18 @@
     "showCopyPath": "在上下文功能表中顯示複製路徑",
     "showCopyPathDescription": "在檔案和資料夾上下文功能表中顯示複製路徑動作。",
     "previewDescription": "顯示{filetype} 的縮圖預覽，如果停用會顯示一般圖示。",
-    "passkeys": "__NOT_TRANSLATED__",
-    "passkeysDescription": "__NOT_TRANSLATED__",
-    "noPasskeys": "__NOT_TRANSLATED__",
-    "addPasskey": "__NOT_TRANSLATED__",
-    "addingPasskey": "__NOT_TRANSLATED__",
-    "passkeyAdded": "__NOT_TRANSLATED__",
-    "passkeyAddFailed": "__NOT_TRANSLATED__",
-    "passkeyDeleted": "__NOT_TRANSLATED__",
-    "passkeyDeleteFailed": "__NOT_TRANSLATED__",
-    "created": "__NOT_TRANSLATED__",
-    "lastUsed": "__NOT_TRANSLATED__",
-    "passkeyDefaultName": "__NOT_TRANSLATED__"
+    "passkeys": "通行密鑰",
+    "passkeysDescription": "使用通行密鑰進行安全、無密碼的多因素認證。在您的裝置上註冊通行密鑰，使用生物識別或 PIN 驗證代替 OTP 代碼。",
+    "noPasskeys": "尚未註冊通行密鑰。",
+    "addPasskey": "新增通行密鑰",
+    "addingPasskey": "正在新增通行密鑰...",
+    "passkeyAdded": "通行密鑰新增成功！",
+    "passkeyAddFailed": "新增通行密鑰失敗",
+    "passkeyDeleted": "通行密鑰已刪除。",
+    "passkeyDeleteFailed": "刪除通行密鑰失敗",
+    "created": "建立時間",
+    "lastUsed": "上次使用",
+    "passkeyDefaultName": "通行密鑰"
   },
   "otp": {
     "name": "雙因素驗證",

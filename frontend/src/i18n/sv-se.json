@@ -145,7 +145,7 @@
     "inProgress": "Loggar in...",
     "failedLogin": "Misslyckades med att logga in",
     "invalidCredentials": "Ogiltiga inloggningsuppgifter har angetts",
-    "passkeyLogin": "__NOT_TRANSLATED__"
+    "passkeyLogin": "Använd Passkey"
   },
   "prompts": {
     "copyMessage": "Välj var dina filer skall sparas:",
@@ -629,18 +629,18 @@
     "showCopyPath": "Visa Kopiera sökväg i snabbmenyn",
     "showCopyPathDescription": "Visa åtgärden Kopiera sökväg i snabbmenyn för filer och mappar.",
     "previewDescription": "Visa förhandsgranskning av miniatyrbilder för {filetype}, visar generisk ikon om den är inaktiverad.",
-    "passkeys": "__NOT_TRANSLATED__",
-    "passkeysDescription": "__NOT_TRANSLATED__",
-    "noPasskeys": "__NOT_TRANSLATED__",
-    "addPasskey": "__NOT_TRANSLATED__",
-    "addingPasskey": "__NOT_TRANSLATED__",
-    "passkeyAdded": "__NOT_TRANSLATED__",
-    "passkeyAddFailed": "__NOT_TRANSLATED__",
-    "passkeyDeleted": "__NOT_TRANSLATED__",
-    "passkeyDeleteFailed": "__NOT_TRANSLATED__",
-    "created": "__NOT_TRANSLATED__",
-    "lastUsed": "__NOT_TRANSLATED__",
-    "passkeyDefaultName": "__NOT_TRANSLATED__"
+    "passkeys": "Passkeys",
+    "passkeysDescription": "Använd passkeys för säker, lösenordsfri multifaktorautentisering. Registrera en passkey på din enhet för att använda biometrisk verifiering eller PIN istället för OTP-koder.",
+    "noPasskeys": "Inga passkeys registrerade ännu.",
+    "addPasskey": "Lägg till Passkey",
+    "addingPasskey": "Lägger till passkey...",
+    "passkeyAdded": "Passkey har lagts till!",
+    "passkeyAddFailed": "Kunde inte lägga till passkey",
+    "passkeyDeleted": "Passkey borttagen.",
+    "passkeyDeleteFailed": "Kunde inte ta bort passkey",
+    "created": "Skapad",
+    "lastUsed": "Senast använd",
+    "passkeyDefaultName": "Passkey"
   },
   "general": {
     "name": "Namn",

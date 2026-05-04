@@ -145,7 +145,7 @@
     "inProgress": "מתחבר...",
     "failedLogin": "נכשל בכניסה",
     "invalidCredentials": "פרטי הזדהות לא חוקיים",
-    "passkeyLogin": "__NOT_TRANSLATED__"
+    "passkeyLogin": "השתמש במפתח גישה"
   },
   "prompts": {
     "copyMessage": "בחר לאן להעתיק את הקבצים:",
@@ -775,18 +775,18 @@
     "showCopyPath": "הצג את האפשרות \"העתק נתיב\" בתפריט ההקשר",
     "showCopyPathDescription": "הצג את הפעולה \"העתק נתיב\" בתפריט ההקשר של קבצים ותיקיות.",
     "previewDescription": "הצג תצוגה מקדימה של תמונות ממוזערות עבור {filetype}; אם האפשרות מושבתת, יוצג סמל כללי.",
-    "passkeys": "__NOT_TRANSLATED__",
-    "passkeysDescription": "__NOT_TRANSLATED__",
-    "noPasskeys": "__NOT_TRANSLATED__",
-    "addPasskey": "__NOT_TRANSLATED__",
-    "addingPasskey": "__NOT_TRANSLATED__",
-    "passkeyAdded": "__NOT_TRANSLATED__",
-    "passkeyAddFailed": "__NOT_TRANSLATED__",
-    "passkeyDeleted": "__NOT_TRANSLATED__",
-    "passkeyDeleteFailed": "__NOT_TRANSLATED__",
-    "created": "__NOT_TRANSLATED__",
-    "lastUsed": "__NOT_TRANSLATED__",
-    "passkeyDefaultName": "__NOT_TRANSLATED__"
+    "passkeys": "מפתחות גישה",
+    "passkeysDescription": "השתמש במפתחות גישה לאימות רב-שלבי מאובטח ללא סיסמה. רשום מפתח גישה במכשיר שלך כדי להשתמש באימות ביומטרי או קוד PIN במקום קודי OTP.",
+    "noPasskeys": "אין מפתחות גישה רשומים עדיין.",
+    "addPasskey": "הוסף מפתח גישה",
+    "addingPasskey": "מוסיף מפתח גישה...",
+    "passkeyAdded": "מפתח הגישה נוסף בהצלחה!",
+    "passkeyAddFailed": "הוספת מפתח הגישה נכשלה",
+    "passkeyDeleted": "מפתח הגישה נמחק.",
+    "passkeyDeleteFailed": "מחיקת מפתח הגישה נכשלה",
+    "created": "נוצר",
+    "lastUsed": "בשימוש לאחרונה",
+    "passkeyDefaultName": "מפתח גישה"
   },
   "editor": {
     "uninitialized": "לא ניתן לאתחל את העורך. אנא טען מחדש.",

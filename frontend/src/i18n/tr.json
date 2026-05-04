@@ -145,7 +145,7 @@
     "inProgress": "Giriş yapıyorum...",
     "failedLogin": "Giriş yapılamadı",
     "invalidCredentials": "Geçersiz kimlik bilgileri sağlandı",
-    "passkeyLogin": "__NOT_TRANSLATED__"
+    "passkeyLogin": "Geçiş Anahtarını Kullan"
   },
   "prompts": {
     "copyMessage": "Dosyalarınızı kopyalayacağınız yeri seçin:",
@@ -775,18 +775,18 @@
     "showCopyPath": "Bağlam menüsünde Yolu Kopyala'yı göster",
     "showCopyPathDescription": "Dosya ve klasör bağlam menüsünde Yolu Kopyala eylemini gösterin.",
     "previewDescription": "{filetype} için küçük resim önizlemelerini göster, devre dışı bırakılırsa genel simgeyi gösterecektir.",
-    "passkeys": "__NOT_TRANSLATED__",
-    "passkeysDescription": "__NOT_TRANSLATED__",
-    "noPasskeys": "__NOT_TRANSLATED__",
-    "addPasskey": "__NOT_TRANSLATED__",
-    "addingPasskey": "__NOT_TRANSLATED__",
-    "passkeyAdded": "__NOT_TRANSLATED__",
-    "passkeyAddFailed": "__NOT_TRANSLATED__",
-    "passkeyDeleted": "__NOT_TRANSLATED__",
-    "passkeyDeleteFailed": "__NOT_TRANSLATED__",
-    "created": "__NOT_TRANSLATED__",
-    "lastUsed": "__NOT_TRANSLATED__",
-    "passkeyDefaultName": "__NOT_TRANSLATED__"
+    "passkeys": "Geçiş Anahtarları",
+    "passkeysDescription": "Güvenli, parolasız çok faktörlü kimlik doğrulama için geçiş anahtarlarını kullanın. OTP kodları yerine biyometrik doğrulama veya PIN kullanmak için cihazınıza bir geçiş anahtarı kaydedin.",
+    "noPasskeys": "Henüz kayıtlı geçiş anahtarı yok.",
+    "addPasskey": "Geçiş Anahtarı Ekle",
+    "addingPasskey": "Geçiş anahtarı ekleniyor...",
+    "passkeyAdded": "Geçiş anahtarı başarıyla eklendi!",
+    "passkeyAddFailed": "Geçiş anahtarı eklenemedi",
+    "passkeyDeleted": "Geçiş anahtarı silindi.",
+    "passkeyDeleteFailed": "Geçiş anahtarı silinemedi",
+    "created": "Oluşturuldu",
+    "lastUsed": "Son kullanım",
+    "passkeyDefaultName": "Geçiş Anahtarı"
   },
   "editor": {
     "uninitialized": "Düzenleyici başlatılamadı. Lütfen yeniden yükleyin.",
