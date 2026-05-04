@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - When indexing is disabled for a source, the usage will always reported as partition size.
+ - removed deprecated `source.config.disableIndexing`, see [rules](https://filebrowserquantum.com/en/docs/advanced/source-configuration/conditional-rules/#disable-indexing)
 
  **BugFixes**:
  - Disable index option not working (#2385)
