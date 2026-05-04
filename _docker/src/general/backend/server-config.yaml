@@ -11,5 +11,7 @@ server-main: &server-main
     - path: "."
       name: "docker"
       config:
-        disableIndexing: true
         defaultEnabled: true
+        rules:
+          - folderPath: "/"
+            viewable: true

@@ -5790,10 +5790,6 @@ const docTemplate = `{
                     "description": "deny access unless an \"allow\" access rule was specifically created.",
                     "type": "boolean"
                 },
-                "disableIndexing": {
-                    "description": "deprecated: use indexingDisabled instead to disable the indexing of this source",
-                    "type": "boolean"
-                },
                 "disabled": {
                     "description": "disable the source, this is useful so you don't need to remove it from the config file",
                     "type": "boolean"

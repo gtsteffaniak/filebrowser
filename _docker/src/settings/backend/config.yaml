@@ -11,8 +11,10 @@ server:
     - path: "."
       name: "docker"
       config:
-        disableIndexing: true
         defaultEnabled: true
+        rules:
+          - folderPath: "/"
+            viewable: true
     - path: "/tests/playwright-files"
       name: "access"
       config:
