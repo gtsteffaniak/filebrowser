@@ -8,7 +8,7 @@
         <div class="passkey-info">
           <span class="passkey-name">{{ pk.name || $t("profileSettings.passkeyDefaultName") }}</span>
           <span class="passkey-meta">
-            {{ $t("profileSettings.created") }} {{ formatDate(pk.createdAt) }}<template v-if="pk.lastUsedAt"> &middot; {{ $t("profileSettings.lastUsed") }} {{ formatDate(pk.lastUsedAt) }}</template>
+            {{ $t("profileSettings.created") }} {{ formatDate(pk.createdAt) }}<span v-if="pk.lastUsedAt" class="passkey-last-used">{{ $t("profileSettings.lastUsed") }} {{ formatDate(pk.lastUsedAt) }}</span>
           </span>
         </div>
         <button type="button" class="button button--flat button--red" @click="deletePasskey(pk.id)">
@@ -99,6 +99,10 @@ export default {
 .passkey-meta {
   font-size: 0.8em;
   color: var(--textSecondary, #888);
+}
+
+.passkey-last-used::before {
+  content: " · ";
 }
 
 .passkey-empty {
