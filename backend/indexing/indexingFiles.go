@@ -401,7 +401,7 @@ func Initialize(source *settings.Source, mock bool, isNewDb bool) {
 	}
 	indexes[newIndex.Name] = &newIndex
 	indexesMutex.Unlock()
-	if !newIndex.Config.DisableIndexing {
+	if !newIndex.Config.ResolvedRules.IndexingDisabled {
 		logger.Infof("initializing index: [%v]", newIndex.Name)
 		// Start multi-scanner system (each scanner will do its own initial scan)
 		// Pass isNewDb flag so setupMultiScanner knows whether to load persisted complexity
@@ -834,7 +834,7 @@ func (idx *Index) processFileItem(file os.FileInfo, indexPath string, opts Optio
 	bubblesUpHasPreview := false
 	if !opts.SkipExtendedAttrs {
 		usedCachedPreview := false
-		if !idx.Config.DisableIndexing && opts.Recursive {
+		if !idx.Config.ResolvedRules.IndexingDisabled && opts.Recursive {
 			simpleType := strings.Split(itemInfo.Type, "/")[0]
 			if simpleType == "audio" {
 				previousInfo, exists := idx.GetReducedMetadata(fullCombined, false)
@@ -1024,6 +1024,9 @@ func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
 // Use recursive=true for copy/move operations to capture entire tree
 // Use recursive=false for simple metadata updates (like after file edits)
 func (idx *Index) RefreshDirectory(indexPath string, recursive bool) error {
+	if idx.Config.ResolvedRules.IndexingDisabled {
+		return nil
+	}
 	if !strings.HasSuffix(indexPath, "/") {
 		indexPath = indexPath + "/"
 	}
@@ -1346,7 +1349,7 @@ func (idx *Index) IsViewable(isDir bool, indexPath string, isSymlink bool, isHid
 // IsViewableWithParentCheck checks if a path is viewable by walking up the directory tree
 // Used for API requests where we need to check inherited rules from parent folders
 func (idx *Index) IsViewableWithParentCheck(isDir bool, indexPath string, isSymlink bool, isHidden bool) bool {
-	if idx.Config.DisableIndexing || idx.Config.ResolvedRules.NoRules {
+	if idx.Config.ResolvedRules.IndexingDisabled || idx.Config.ResolvedRules.NoRules {
 		return true
 	}
 
@@ -1369,7 +1372,7 @@ func (idx *Index) IsViewableWithParentCheck(isDir bool, indexPath string, isSyml
 // ShouldSkip checks if a path should be skipped from indexing
 // isRoutineScan: true for scanner (no parent checks), false for API (check parents)
 func (idx *Index) ShouldSkip(isDir bool, adjustedPath string, isHidden bool, isSymlink bool, isRoutineScan bool) bool {
-	if idx.Config.DisableIndexing {
+	if idx.Config.ResolvedRules.IndexingDisabled {
 		return true
 	}
 	rules := idx.Config.ResolvedRules

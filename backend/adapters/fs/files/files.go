@@ -445,7 +445,7 @@ func DeleteFiles(source, absPath string, isDir bool) error {
 		return fmt.Errorf("refusing to delete source root directory: %s", absPath)
 	}
 
-	if !index.Config.DisableIndexing {
+	if !index.Config.ResolvedRules.IndexingDisabled {
 		indexPath := index.MakeIndexPath(absPath, isDir)
 
 		// Perform the physical deletion
@@ -482,7 +482,7 @@ func RefreshIndex(source string, path string, isDir bool, recursive bool) error 
 	if idx == nil {
 		return fmt.Errorf("could not get index: %v ", source)
 	}
-	if idx.Config.DisableIndexing {
+	if idx.Config.ResolvedRules.IndexingDisabled {
 		return nil
 	}
 	// Always normalize path using MakeIndexPath
@@ -590,7 +590,7 @@ func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 
 	// Handle SOURCE cleanup (treat as deletion)
 	// Run async to avoid blocking the HTTP response
-	if !srcIdx.Config.DisableIndexing {
+	if !srcIdx.Config.ResolvedRules.IndexingDisabled {
 		go func() {
 			if isSrcDir {
 				srcIdx.DeleteMetadata(srcIndexPath, true, true)
@@ -605,7 +605,7 @@ func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 
 	// Handle DESTINATION indexing
 	// Run async to avoid blocking the HTTP response
-	if !dstIdx.Config.DisableIndexing {
+	if !dstIdx.Config.ResolvedRules.IndexingDisabled {
 		if isSrcDir {
 			go func() {
 				// Recursively index the moved directory tree
@@ -663,7 +663,7 @@ func CopyResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 
 	// Refresh source (non-recursive, just metadata)
 	srcIdx := indexing.GetIndex(sourceIndex)
-	if srcIdx != nil && !srcIdx.Config.DisableIndexing {
+	if srcIdx != nil && !srcIdx.Config.ResolvedRules.IndexingDisabled {
 		srcRefreshPath := realsrc
 		if !isSrcDir {
 			srcRefreshPath = filepath.Dir(realsrc)
@@ -674,7 +674,7 @@ func CopyResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 	// Refresh destination (RECURSIVE for directories to capture full tree)
 	// Run async to avoid blocking the HTTP response
 	dstIdx := indexing.GetIndex(destIndex)
-	if dstIdx != nil && !dstIdx.Config.DisableIndexing {
+	if dstIdx != nil && !dstIdx.Config.ResolvedRules.IndexingDisabled {
 		if isSrcDir {
 			go func() {
 				// Recursively index the copied directory tree

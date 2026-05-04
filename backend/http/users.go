@@ -14,6 +14,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
@@ -98,8 +99,31 @@ func prepForFrontend(u *users.User) {
 	u.TOTPSecret = ""
 	u.TOTPNonce = ""
 	u.Scopes = u.GetFrontendScopes()
-	u.SidebarLinks = u.GetFrontendSidebarLinks()
+	u.SidebarLinks = GetFrontendSidebarLinks(u.SidebarLinks)
 	u.Locale = normalizeLocale(u.Locale)
+}
+
+// GetFrontendSidebarLinks converts the user's sidebar links from backend-style to frontend-style
+// Converts source paths to source names for the frontend
+func GetFrontendSidebarLinks(links []users.SidebarLink) []users.SidebarLink {
+	newLinks := []users.SidebarLink{}
+	for _, link := range links {
+		// For source links, validate that the source still exists
+		if strings.HasPrefix(link.Category, "source") {
+			source, ok := settings.Config.Server.SourceMap[link.SourceName]
+			if !ok {
+				continue
+			}
+			if source.Config.ResolvedRules.IndexingDisabled && link.Category != "source-minimal" {
+				link.Category = "source-alt"
+			}
+			link.SourceName = source.Name
+		}
+		// For share links, just pass through (shares are validated separately)
+		// For all other links, pass through as-is
+		newLinks = append(newLinks, link)
+	}
+	return newLinks
 }
 
 // normalizeLocale converts various locale formats (xx_xx, xx-xx, xxxx) to camelCase format (xxXX)

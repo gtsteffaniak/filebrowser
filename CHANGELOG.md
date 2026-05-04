@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.3.10
+
+ **Notes**:
+ - When indexing is disabled for a source, the usage will always reported as partition size.
+
+ **BugFixes**:
+ - Disable index option not working (#2385)
+
 ## v1.3.9
 
  **Security**:

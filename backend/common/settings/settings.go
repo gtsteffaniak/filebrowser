@@ -133,6 +133,13 @@ func ApplyUserDefaults(u *users.User) {
 					Name:  source.Path, // backend name is path
 					Scope: source.Config.DefaultUserScope,
 				})
+				u.SidebarLinks = append(u.SidebarLinks, users.SidebarLink{
+					Name:       source.Name,
+					Category:   "source",
+					Target:     "/",
+					Icon:       "",
+					SourceName: source.Path,
+				})
 			}
 		}
 	}

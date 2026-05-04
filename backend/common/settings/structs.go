@@ -205,7 +205,6 @@ type SourceConfig struct {
 	Private          bool              `json:"private"`                           // designate as source as private -- currently just means no sharing permitted.
 	Disabled         bool              `json:"disabled,omitempty"`                // disable the source, this is useful so you don't need to remove it from the config file
 	IndexingInterval uint32            `json:"indexingIntervalMinutes,omitempty"` // deprecated: create a rule with indexingIntervalMinutes to set the indexing interval for this source
-	DisableIndexing  bool              `json:"disableIndexing,omitempty"`         // deprecated: use indexingDisabled instead to disable the indexing of this source
 	Conditionals     ConditionalFilter `json:"conditionals"`                      // deprecated: use source.rules instead
 	Rules            []ConditionalRule `json:"rules"`                             // list of item rules to apply to specific paths
 	DefaultUserScope string            `json:"defaultUserScope"`                  // defaults to root of index "/" should match folders under path

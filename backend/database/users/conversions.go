@@ -105,43 +105,20 @@ func (u *User) GetBackendSidebarLinks() ([]SidebarLink, error) {
 			}
 			// Validate source exists
 			sourceInfo, ok := sourceConfig.GetSourceByName(link.SourceName)
-			if !ok {
+			sourceInfo2, ok2 := sourceConfig.GetSourceByPath(link.SourceName)
+			if !ok && !ok2 {
 				return nil, fmt.Errorf("source not found: %v (link name: %v)", link.SourceName, link.Name)
 			}
-			link.SourceName = sourceInfo.Path // if name changes keep link alive
+			if ok {
+				link.SourceName = sourceInfo.Path
+			} else {
+				link.SourceName = sourceInfo2.Path
+			}
 		}
 		// Store the link as-is with all fields preserved
 		newLinks = append(newLinks, link)
 	}
 	return newLinks, nil
-}
-
-// GetFrontendSidebarLinks converts the user's sidebar links from backend-style to frontend-style
-// Converts source paths to source names for the frontend
-func (u *User) GetFrontendSidebarLinks() []SidebarLink {
-	if sourceConfig == nil {
-		return []SidebarLink{}
-	}
-
-	newLinks := []SidebarLink{}
-	for _, link := range u.SidebarLinks {
-		// For source links, validate that the source still exists
-		if strings.HasPrefix(link.Category, "source") {
-			if link.SourceName == "" {
-				continue
-			}
-			// Check if source exists
-			sourceInfo, ok := sourceConfig.GetSourceByPath(link.SourceName)
-			if !ok {
-				continue
-			}
-			link.SourceName = sourceInfo.Name
-		}
-		// For share links, just pass through (shares are validated separately)
-		// For all other links, pass through as-is
-		newLinks = append(newLinks, link)
-	}
-	return newLinks
 }
 
 // normalizeScope ensures scope starts with / and doesn't end with / (except for root)
