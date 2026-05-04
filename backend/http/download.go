@@ -276,12 +276,10 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 				fmt.Sprintf("OnlyOffice Server downloading file: %s", firstFilePath))
 		}
 
-		// Set headers
+		// ServeContent sets Content-Length (full resource or range); avoid pre-setting so partial/range responses stay consistent.
 		setContentDisposition(w, r, fileName)
 		w.Header().Set("Cache-Control", "private")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
-		w.Header().Set("Content-Length", fmt.Sprintf("%d", fileInfo.Size()))
-		// serve content allows for range requests.
 		// video scrubbing, etc.
 		// Note: http.ServeContent will respect our already-set Content-Disposition header
 		var reader io.ReadSeeker = fd

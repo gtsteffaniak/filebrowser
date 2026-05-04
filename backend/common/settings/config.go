@@ -98,6 +98,8 @@ func setupFs() {
 	// Perform mandatory cache directory speed test
 	testCacheDirSpeed()
 
+	os.MkdirAll(DownloadCacheDir(), fileutils.PermDir)
+
 	logger.Infof("cache directory setup successfully: %v", Config.Server.CacheDir)
 
 }
@@ -824,6 +826,11 @@ func loadCustomFavicon() {
 // PWAIconsCacheDir is where startup icon generation writes PNGs (under the server cache dir).
 func PWAIconsCacheDir() string {
 	return filepath.Join(Config.Server.CacheDir, "icons")
+}
+
+// DownloadSpoolDir is where transient spooled archives for multi-request (Range) downloads are stored.
+func DownloadCacheDir() string {
+	return filepath.Join(Config.Server.CacheDir, "downloads")
 }
 
 func loadLoginIcon() {
