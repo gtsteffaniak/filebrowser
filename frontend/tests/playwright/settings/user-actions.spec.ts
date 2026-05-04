@@ -15,7 +15,7 @@ async function confirmActorPasswordPrompt(page: Page) {
     await expect(passwordModal).not.toBeVisible();
 }
 
-test("create, check settings, and delete user (retry-safe name)", async ({
+test("create, check settings, and delete user", async ({
     page,
     checkForErrors,
 }, testInfo) => {

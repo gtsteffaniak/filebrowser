@@ -1,3 +1,6 @@
+## any files/folders
+filebrowser
+filebrowser.exe
 *.db
 *.db.old
 *.sqlite**
@@ -6,23 +9,14 @@
 *.mjs
 _old
 rice-box.go
-.idea/
-/backend/backend
-/backend/filebrowser
-/backend/filebrowser.exe
-frontend/tsconfig.tsbuildinfo
+.DS_Store
+node_modules
+
+## backend
 /backend/backend.exe
 /backend/playwright-files.db
 /backend/tmp
 /backend/dist
-/frontend/dist
-/frontend/pkg
-/frontend/test-results
-/frontend/playwright-files
-/frontend/screenshots
-/frontend/generated
-/frontend/tests/playwright-files/demo*
-/frontend/loginAuth.json
 /backend/vendor
 /backend/*.cov
 /backend/*test_config.yaml
@@ -32,12 +26,26 @@ frontend/tsconfig.tsbuildinfo
 /backend/http/embed
 /backend/debug
 
-.DS_Store
-node_modules
+# Runtime cache directories created by tests/application
+backend/preview/heic/
+backend/preview/thumbnails/
+
+## frontend
+/frontend/tsconfig.tsbuildinfo
+/frontend/dist
+/frontend/pkg
+/frontend/test-results
+/frontend/playwright-files
+/frontend/screenshots
+/frontend/generated
+/frontend/tests/playwright-files/demo*
+/frontend/loginAuth.json
+/frontend/playwright.config.ts
 
 # local env files
 .env.local
 .env.*.local
+.idea/
 
 # Log files
 npm-debug.log*
@@ -57,6 +65,4 @@ build/
 *__debug*
 backend/custom.css
 
-# Runtime cache directories created by tests/application
-backend/preview/heic/
-backend/preview/thumbnails/
+_docker/src/tmp

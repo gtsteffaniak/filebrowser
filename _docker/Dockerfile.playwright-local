@@ -2,13 +2,16 @@ FROM ghcr.io/gtsteffaniak/playwright-base:chromium
 WORKDIR /app
 
 WORKDIR /app/frontend
-COPY [ "./frontend/", "./" ]
+COPY [ "./frontend/tests/", "./tests" ]
+COPY [ "./frontend/tests/playwright-files", "/tests/playwright-files" ]
 
 WORKDIR /app/backend/
-COPY [ "./backend/filebrowser*", "./"]
-COPY [ "./_docker/src/screenshots/backend/*", "./"]
+COPY [ "./_docker/src/tmp/*", "./"]
 
 RUN mkdir -p ./http/dist
 COPY [ "./backend/http/embed/", "./http/dist/"]
 
 ENTRYPOINT [ "./filebrowser" ]
+ENV FILEBROWSER_PLAYWRIGHT_TEST=true
+RUN ./filebrowser set rule -s access -p / -r user -v admin -allow || true
+RUN ./filebrowser set rule -s access -p /excluded -r user -v admin || true

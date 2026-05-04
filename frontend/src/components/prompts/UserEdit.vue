@@ -382,12 +382,14 @@ export default {
               label: this.$t("general.delete"),
               action: async () => {
                 try {
-                  await usersApi.remove(this.user.id, {
+                  await usersApi.deleteUser(this.user.username, {
                     actorPasswordPromptI18nKey: "prompts.confirmPasswordToSaveUser",
                   });
                   notify.showSuccessToast(this.$t("settings.userDeleted"));
                   eventBus.emit('usersChanged');
-                  mutations.closeTopPrompt(); // close prompt
+                  // Dismiss delete confirmation, then the user-edit prompt (password prompt closes itself on submit).
+                  mutations.closeTopPrompt();
+                  mutations.closeTopPrompt();
                 } catch (e) {
                   console.error(e);
                   notify.showError(e);

@@ -96,7 +96,7 @@ export async function create(user, options = {}) {
 // options.skipActorPasswordConfirm / pre-set X-Password skip that flow.
 // options.actorPasswordPromptI18nKey — optional vue-i18n key (default: confirmPasswordToSaveUser).
 export async function update(user, which = ['all'], options = {}) {
-  const excludeKeys = ['id', 'name']
+  const excludeKeys = ['name']
   which = which.filter(item => !excludeKeys.includes(item))
   if (user.username === 'anonymous') {
     return
@@ -114,7 +114,7 @@ export async function update(user, which = ['all'], options = {}) {
     })
   }
 
-  const apiPath = getApiPath('users', { id: user.id })
+  const apiPath = getApiPath('users', { username: user.username })
   const body = JSON.stringify({
     which: which,
     data: userData
@@ -172,9 +172,9 @@ export async function update(user, which = ['all'], options = {}) {
 // Password-login: tries without X-Password first; on 401 requiring X-Password, opens the prompt and retries.
 // options.skipActorPasswordConfirm / pre-set X-Password skip that flow.
 // options.actorPasswordPromptI18nKey — optional vue-i18n key (default: confirmPasswordToSaveUser).
-export async function remove(id, options = {}) {
+export async function deleteUser(username, options = {}) {
   const mergedHeaders = { ...(options.headers || {}) }
-  const apiPath = getApiPath('users', { id: id })
+  const apiPath = getApiPath('users', { username: username })
 
   const needsActorPasswordRetry = (err) =>
     state.user?.loginMethod === 'password' &&
@@ -204,7 +204,7 @@ export async function remove(id, options = {}) {
           submitLabel: i18n.global.t('general.confirm'),
           submitCallback: async (actorPassword) => {
             try {
-              await remove(id, {
+              await deleteUser(username, {
                 ...options,
                 headers: {
                   ...mergedHeaders,
