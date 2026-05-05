@@ -41,8 +41,16 @@
         </td>
       </tr>
       <tr v-if="sortedItems.length === 0">
-        <td :colspan="columns.length" class="settings-table__empty">
-          <slot name="empty">{{ emptyLabel }}</slot>
+        <td
+          :colspan="emptyColumnSpan"
+          class="settings-table__empty settings-table__empty-cell"
+        >
+          <slot name="empty">
+            <h2 class="message settings-table__lonely">
+              <i class="material-symbols-outlined" aria-hidden="true">sentiment_dissatisfied</i>
+              <span>{{ lonelyCaption }}</span>
+            </h2>
+          </slot>
         </td>
       </tr>
     </tbody>
@@ -98,9 +106,10 @@ export default {
       type: String,
       default: undefined,
     },
-    emptyLabel: {
+    /** i18n key for empty-state caption (icon + label), default `files.lonely`. */
+    lonelyMessageKey: {
       type: String,
-      default: "",
+      default: "files.lonely",
     },
     /** Override default sort detection: first column sortable ascending. */
     defaultSortKey: {
@@ -124,6 +133,13 @@ export default {
   },
 
   computed: {
+    emptyColumnSpan() {
+      const n = Array.isArray(this.columns) ? this.columns.length : 0;
+      return Math.max(n, 1);
+    },
+    lonelyCaption() {
+      return this.$t(this.lonelyMessageKey);
+    },
     sortedItems() {
       const list = [...(this.items ?? [])];
       const cols = Array.isArray(this.columns) ? this.columns : [];
@@ -386,6 +402,14 @@ body.rtl .settings-table tr > *:last-child {
   color: var(--textSecondary, #757575);
   padding-top: 1rem;
   padding-bottom: 1rem;
+  vertical-align: middle;
+}
+
+/* Match settings empty UX (listing `.message`; icon stacks above caption) */
+.settings-table__empty-cell .settings-table__lonely.message {
+  margin: 1em auto;
+  width: 100%;
+  max-width: 100%;
 }
 
 .settings-table tbody .settings-table__align-left {

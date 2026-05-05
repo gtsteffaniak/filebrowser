@@ -26,7 +26,8 @@
           class="clickable action button"
           role="button"
           tabindex="0"
-          :aria-label="$t('general.edit')"
+          :aria-label="$t('settings.editUser')"
+          :title="$t('settings.editUser')"
           @keydown.enter.prevent="openPrompt(row.id)"
           @keydown.space.prevent="openPrompt(row.id)"
         >

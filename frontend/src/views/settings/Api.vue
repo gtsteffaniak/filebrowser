@@ -8,21 +8,20 @@
   </div>
 
   <div class="card-content full">
-
-
-    <div v-if="links.length > 0">
+    <template v-if="links.length > 0">
       <p>
         {{ $t("api.description") }}
         <a class="link" href="swagger/index.html">{{ $t("api.swaggerLinkText") }}</a>
       </p>
-
-      <settings-table
-        :columns="apiTableColumns"
-        :items="links"
-        item-key="name"
-        default-sort-key="name"
-        :aria-label="$t('api.title')"
-      >
+    </template>
+    <settings-table
+      v-if="!loading"
+      :columns="apiTableColumns"
+      :items="links"
+      item-key="name"
+      default-sort-key="name"
+      :aria-label="$t('api.title')"
+    >
         <template #cell-issuedAt="{ row }">{{ formatTime(row.issuedAt) }}</template>
         <template #cell-expiresAt="{ row }">{{ formatTime(row.expiresAt) }}</template>
         <template #cell-permissions="{ row }">
@@ -51,12 +50,7 @@
             </button>
           </div>
         </template>
-      </settings-table>
-    </div>
-    <h2 class="message" v-else-if="!loading">
-      <i class="material-symbols-outlined">sentiment_dissatisfied</i>
-      <span>{{ $t("files.lonely") }}</span>
-    </h2>
+    </settings-table>
   </div>
 
 </template>

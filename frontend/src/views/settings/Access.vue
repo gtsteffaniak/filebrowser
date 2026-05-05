@@ -39,12 +39,6 @@
           <i class="material-symbols">edit</i>
         </button>
       </template>
-      <template #empty>
-        <h2 class="message">
-          <i class="material-symbols-outlined">sentiment_dissatisfied</i>
-          <span>{{ $t('files.lonely') }}</span>
-        </h2>
-      </template>
     </settings-table>
   </div>
 </template>

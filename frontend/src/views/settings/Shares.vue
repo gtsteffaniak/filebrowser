@@ -4,8 +4,9 @@
     <h2>{{ $t("settings.shareManagement") }}</h2>
   </div>
 
-  <div class="card-content full" v-if="links.length > 0">
+  <div class="card-content full">
     <settings-table
+      v-if="!loading"
       :columns="sharesTableColumns"
       :items="links"
       item-key="hash"
@@ -65,10 +66,6 @@
       </template>
     </settings-table>
   </div>
-  <h2 class="message" v-else-if="!loading">
-    <i class="material-symbols-outlined">sentiment_dissatisfied</i>
-    <span>{{ $t("files.lonely") }}</span>
-  </h2>
 </template>
 
 <script>
