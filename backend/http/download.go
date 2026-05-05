@@ -18,15 +18,10 @@ import (
 )
 
 // throttledReadSeeker is a wrapper around an io.ReadSeeker that throttles the reading speed.
+// Used for single-file downloads and for share archive downloads (see serveArchiveWithServeContent);
+// archives are built to a temp file first, then bytes to the client are limited on read.
 type throttledReadSeeker struct {
 	rs      io.ReadSeeker
-	limiter *rate.Limiter
-	ctx     context.Context
-}
-
-// throttledWriter is a wrapper around an io.Writer that throttles the writing speed.
-type throttledWriter struct {
-	w       io.Writer
 	limiter *rate.Limiter
 	ctx     context.Context
 }
@@ -56,29 +51,6 @@ func (r *throttledReadSeeker) Read(p []byte) (n int, err error) {
 
 func (r *throttledReadSeeker) Seek(offset int64, whence int) (int64, error) {
 	return r.rs.Seek(offset, whence)
-}
-
-// newThrottledWriter creates a new throttledWriter.
-func newThrottledWriter(w io.Writer, limit rate.Limit, burst int, ctx context.Context) *throttledWriter {
-	return &throttledWriter{
-		w:       w,
-		limiter: rate.NewLimiter(limit, burst),
-		ctx:     ctx,
-	}
-}
-
-func (w *throttledWriter) Write(p []byte) (n int, err error) {
-	n, err = w.w.Write(p)
-	if n > 0 {
-		if waitErr := w.limiter.WaitN(w.ctx, n); waitErr != nil {
-			if err != nil {
-				// The original error (like io.EOF) is potentially more important
-				// than the context error.
-				err = waitErr
-			}
-		}
-	}
-	return
 }
 
 // toASCIIFilename converts a filename to ASCII-safe format by replacing non-ASCII characters with underscores

@@ -106,6 +106,9 @@ export default {
       );
     },
   },
+  beforeUnmount() {
+    downloadManager.reset();
+  },
   methods: {
     formatDownloadError(download) {
       if (download.status !== "error") {
