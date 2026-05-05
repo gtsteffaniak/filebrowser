@@ -44,6 +44,10 @@
           <strong>{{ $t("prompts.hasPreview") }}</strong>
           <span aria-label="info has preview">{{ hasPreview ? "✓" : "✗" }}</span><!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         </div>
+        <div class="info-item" v-if="protectionRemaining">
+          <strong>Protection expires</strong><!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <span aria-label="info protection remaining">{{ protectionRemaining }}</span>
+        </div>
       </div>
       <!-- Directory Information Section -->
       <div class="info-section" v-if="dir && selected.length === 0">
@@ -255,6 +259,24 @@ export default {
         return state.req.hasPreview;
       }
       return getters.getFirstSelected()?.hasPreview;
+    },
+    protectionRemaining() {
+      const protectedUntil = getters.selectedCount() === 0
+        ? state.req.protectedUntil
+        : getters.getFirstSelected()?.protectedUntil;
+      if (!protectedUntil) return null;
+
+      const msLeft = new Date(protectedUntil).getTime() - Date.now();
+      if (msLeft <= 0) return "Expired";
+
+      const totalMinutes = Math.floor(msLeft / 60000);
+      const days = Math.floor(totalMinutes / 1440);
+      const hours = Math.floor((totalMinutes % 1440) / 60);
+      const minutes = totalMinutes % 60;
+
+      if (days > 0) return `${days}d ${hours}h remaining`;
+      if (hours > 0) return `${hours}h ${minutes}m remaining`;
+      return `${minutes}m remaining`;
     },
     additionalInfo() {
       const info = [];
