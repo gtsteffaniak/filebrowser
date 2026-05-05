@@ -53,6 +53,33 @@ func (r *throttledReadSeeker) Seek(offset int64, whence int) (int64, error) {
 	return r.rs.Seek(offset, whence)
 }
 
+// throttledWriter wraps an io.Writer and rate-limits outbound bytes (streaming archives to the client).
+type throttledWriter struct {
+	w       io.Writer
+	limiter *rate.Limiter
+	ctx     context.Context
+}
+
+func newThrottledWriter(w io.Writer, limit rate.Limit, burst int, ctx context.Context) *throttledWriter {
+	return &throttledWriter{
+		w:       w,
+		limiter: rate.NewLimiter(limit, burst),
+		ctx:     ctx,
+	}
+}
+
+func (tw *throttledWriter) Write(p []byte) (n int, err error) {
+	n, err = tw.w.Write(p)
+	if n > 0 {
+		if waitErr := tw.limiter.WaitN(tw.ctx, n); waitErr != nil {
+			if err == nil {
+				err = waitErr
+			}
+		}
+	}
+	return
+}
+
 // toASCIIFilename converts a filename to ASCII-safe format by replacing non-ASCII characters with underscores
 func toASCIIFilename(fileName string) string {
 	var result strings.Builder
