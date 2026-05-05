@@ -10,7 +10,7 @@ auth:
   methods:
     chainfs:
       enabled: true
-      apiBaseUrl: "https://nansenprod.azurewebsites.net"
+      apiBaseUrl: "https://nansendev.azurewebsites.net"   # B2C stays on DEV until further notice
       clientSecret: "YOUR_AZURE_CLIENT_SECRET_HERE"
       createUser: false  # Manual user creation in production for security
       adminClaim: "roles"

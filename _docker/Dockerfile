@@ -45,7 +45,7 @@ RUN [ "ffprobe", "-version" ]
 RUN [ "exiftool", "-ver" ]
 USER root
 # exposing default port for auto discovery.
-EXPOSE 80
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-  CMD curl -f http://localhost:80/health || exit 1
+EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=3s --start-period=15s --retries=3 \
+  CMD curl -f http://localhost:8080/health || exit 1
 ENTRYPOINT [ "./filebrowser" ]

@@ -75,5 +75,5 @@ jobs:
         run: |
           az containerapp update \
             --name $CONTAINER_APP \
-            --resource-group rg-acorntools \
+            --resource-group rg-acorndrive \
             --image $REGISTRY/$IMAGE:$ENV
