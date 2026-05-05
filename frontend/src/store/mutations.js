@@ -401,6 +401,7 @@ export const mutations = {
         state.user.fileLoading = {
           maxConcurrentUpload: 3,
           uploadChunkSizeMb: 5,
+          downloadChunkSizeMb: 0,
           clearAll: false
         };
       } else {
@@ -413,6 +414,9 @@ export const mutations = {
         }
         if (state.user.fileLoading.clearAll === undefined) {
           state.user.fileLoading.clearAll = false;
+        }
+        if (state.user.fileLoading.downloadChunkSizeMb === undefined) {
+          state.user.fileLoading.downloadChunkSizeMb = 0;
         }
       }
 

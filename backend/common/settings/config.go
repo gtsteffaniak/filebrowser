@@ -98,6 +98,10 @@ func setupFs() {
 	// Perform mandatory cache directory speed test
 	testCacheDirSpeed()
 
+	if err := PrepareDownloadSpoolDir(); err != nil {
+		logger.Fatalf("cacheDir failed to prepare download spool: %v", err)
+	}
+
 	logger.Infof("cache directory setup successfully: %v", Config.Server.CacheDir)
 
 }
@@ -824,6 +828,19 @@ func loadCustomFavicon() {
 // PWAIconsCacheDir is where startup icon generation writes PNGs (under the server cache dir).
 func PWAIconsCacheDir() string {
 	return filepath.Join(Config.Server.CacheDir, "icons")
+}
+
+// Where transient archives for multi-request (Range) downloads are stored to support chunked downloads.
+func DownloadCacheDir() string {
+	return filepath.Join(Config.Server.CacheDir, "downloads")
+}
+
+// PrepareDownloadSpoolDir creates the download spool directory and removes any leftover dl-archive-*
+func PrepareDownloadSpoolDir() error {
+	if err := os.MkdirAll(DownloadCacheDir(), fileutils.PermDir); err != nil {
+		return err
+	}
+	return fileutils.ClearDirectoryContents(DownloadCacheDir())
 }
 
 func loadLoginIcon() {
