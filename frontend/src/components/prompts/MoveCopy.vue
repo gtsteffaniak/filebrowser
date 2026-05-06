@@ -7,7 +7,21 @@
       <p class="loading-text">{{ $t("prompts.operationInProgress") }}</p>
     </div>
     <div v-show="!isLoading">
-      <file-list ref="fileList" @update:selected="updateDestination">
+      <PathPickerButton
+        v-if="!isShareContext"
+        v-model:path="destPath"
+        v-model:source="destSource"
+        class="move-copy-path-picker"
+        :show-files="false"
+        :show-folders="true"
+        :placeholder="$t('sidebar.chooseSource')"
+        @navigate="syncFileListFromPicker"
+      />
+      <file-list
+        ref="fileList"
+        :hide-path-chrome="!isShareContext"
+        @update:selected="updateDestination"
+      >
       </file-list>
     </div>
   </div>
@@ -47,10 +61,11 @@ import { url } from "@/utils";
 import { notify } from "@/notify";
 import { goToItem } from "@/utils/url";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import PathPickerButton from "@/components/files/PathPickerButton.vue";
 
 export default {
   name: "move-copy",
-  components: { FileList, LoadingSpinner },
+  components: { FileList, LoadingSpinner, PathPickerButton },
   props: {
     operation: {
       type: String,
@@ -112,7 +127,10 @@ export default {
     },
     isDirNameValid() {
       return this.validateDirName(this.newDirName);
-    }
+    },
+    isShareContext() {
+      return getters.isShare();
+    },
   },
   mounted() {
     // If props.items is provided, use it. Otherwise use state
@@ -152,6 +170,13 @@ export default {
     }
   },
   methods: {
+    syncFileListFromPicker() {
+      this.$nextTick(() => {
+        if (this.$refs.fileList && this.destSource && this.destPath) {
+          this.$refs.fileList.jumpTo(this.destSource, this.destPath);
+        }
+      });
+    },
     createNewDir() {
       this.showNewDirInput = true;
       this.newDirName = "";
@@ -417,5 +442,9 @@ export default {
 
 .split-buttons {
   justify-content: space-between;
+}
+
+.move-copy-path-picker {
+  margin-bottom: 1rem;
 }
 </style>

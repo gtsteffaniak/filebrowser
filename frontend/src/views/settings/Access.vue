@@ -11,19 +11,15 @@
         </option>
       </select>
     </div>
-
   </div>
   <div class="card-content full">
-    <div v-if="loading" class="loading-spinner-wrapper">
-      <LoadingSpinner size="medium" />
-    </div>
     <settings-table
-      v-else
       :columns="accessTableColumns"
       :items="accessTableRows"
       item-key="path"
       default-sort-key="path"
       :aria-label="$t('access.accessManagement')"
+      :loading="loading"
     >
       <template #cell-warning="{ row }">
         <i
@@ -49,13 +45,10 @@ import { state, mutations } from "@/store";
 import Errors from "@/views/Errors.vue";
 import SettingsTable from "@/components/settings/Table.vue";
 import { eventBus } from "@/store/eventBus";
-import LoadingSpinner from "@/components/LoadingSpinner.vue";
-
 export default {
   name: "accessSettings",
   components: {
     Errors,
-    LoadingSpinner,
     SettingsTable,
   },
   data: function () {
@@ -64,7 +57,8 @@ export default {
       accessPath: "",
       error: null,
       selectedSource: "",
-      loading: false,
+      /** True until first `fetchRules` completes so the table does not flash the empty state. */
+      loading: true,
     };
   },
   async mounted() {
@@ -78,9 +72,6 @@ export default {
     eventBus.off('accessRulesChanged', this.fetchRules);
   },
   computed: {
-    /*loading() {
-      return state.loading;
-    },*/
     availableSources() {
       return Object.keys(state.sources.info);
     },
@@ -152,12 +143,8 @@ export default {
   },
 };
 </script>
-
 <style scoped>
-.loading-spinner-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2em 0;
+.form-flex-group {
+  margin-bottom: 1em;
 }
 </style>

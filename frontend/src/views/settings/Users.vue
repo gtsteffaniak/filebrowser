@@ -14,6 +14,7 @@
       item-key="id"
       default-sort-key="username"
       :aria-label="$t('general.users')"
+      :loading="loading"
     >
       <template #cell-admin="{ row }">
         <i v-if="row.permissions.admin" class="material-symbols">done</i>
@@ -40,7 +41,7 @@
 </template>
 
 <script>
-import { state, mutations, getters } from "@/store";
+import { state, mutations } from "@/store";
 import { usersApi } from "@/api";
 import Errors from "@/views/Errors.vue";
 import SettingsTable from "@/components/settings/Table.vue";
@@ -56,6 +57,8 @@ export default {
     return {
       error: null,
       users: [],
+      /** Local fetch state; avoids global Settings overlay spinner (table shows its own). */
+      loading: true,
     };
   },
   async created() {
@@ -75,10 +78,6 @@ export default {
     },
     isAdmin() {
       return state.user.permissions.admin;
-    },
-    // Access the loading state directly from the store
-    loading() {
-      return getters.isLoading();
     },
     userTableColumns() {
       return [
@@ -111,14 +110,14 @@ export default {
   },
   methods: {
     async reloadUsers() {
-      mutations.setLoading("users", true);
+      this.loading = true;
       try {
         this.users = await usersApi.getAllUsers();
         this.error = null; // Clear any previous errors
       } catch (e) {
         this.error = e;
       } finally {
-        mutations.setLoading("users", false);
+        this.loading = false;
       }
     },
     formatScopes(scopes) {

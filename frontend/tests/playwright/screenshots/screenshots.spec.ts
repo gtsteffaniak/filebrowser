@@ -99,7 +99,7 @@ test("copy from listing to new folder", async ({ page, checkForErrors, context, 
   await page.locator('.selected-count-header').waitFor({ state: 'visible' });
   await expect(page.locator('.selected-count-header')).toHaveText('1');
   await page.locator('button[aria-label="Copy file"]').click();
-  await expect(page.locator('div[aria-label="filelist-path"]')).toHaveText('Path: /');
+  await expect(page.locator('div[aria-label="copy-prompt"] .move-copy-path-picker')).toHaveText('/ (playwright)');
   await expect(page.locator('li[aria-selected="true"]')).toHaveCount(0);
   await page.locator('.card-content > .listing-items > div[aria-label="myfolder"]').click();
   await expect(page.locator('.card-content > .listing-items > div[aria-selected="true"]')).toHaveCount(1);
