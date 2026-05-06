@@ -1,9 +1,7 @@
 name: main release
 
 on:
-  push:
-    branches:
-      - "main"
+  workflow_dispatch: # disabled automatic trigger - not used in this fork
 
 jobs:
   test_playwright:
