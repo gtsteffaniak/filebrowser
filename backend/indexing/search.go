@@ -28,7 +28,7 @@ type SearchResult struct {
 	Source     string `json:"source"`
 }
 
-func (idx *Index) Search(search string, scope string, sourceSession string, largest bool, limit int, olderThanUnix, newerThanUnix int64, useGlob bool) []*SearchResult {
+func (idx *Index) Search(search string, scope string, sourceSession string, largest bool, limit int, olderThanUnix, newerThanUnix int64, useWildcard bool) []*SearchResult {
 	// Ensure scope has consistent trailing slash for directory matching
 	scope = utils.AddTrailingSlashIfNotExists(scope)
 
@@ -49,7 +49,7 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 		searchOptions.Terms = []string{""}
 	}
 
-	nameGlobPatterns := nameGlobPatternsForSearch(searchOptions, useGlob, largest)
+	nameGlobPatterns := nameGlobPatternsForSearch(searchOptions, useWildcard, largest)
 
 	rows, err := idx.db.SearchItems(idx.Name, scope, largest, nameGlobPatterns)
 	if err != nil {
@@ -102,7 +102,7 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 			}
 			dateMatches := searchDateMatches(item.ModTime.Unix(), searchOptions)
 			matches = sizeMatches && typeMatches && dateMatches
-		} else if useGlob && len(nameGlobPatterns) > 0 {
+		} else if useWildcard && len(nameGlobPatterns) > 0 {
 			matches = item.MatchesSearchAuxiliaryFilters(searchOptions)
 		} else {
 			for _, searchTerm := range searchOptions.Terms {
@@ -149,8 +149,8 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 }
 
 // nameGlobPatternsForSearch builds non-empty parsed terms for SQLite name GLOB OR clauses.
-func nameGlobPatternsForSearch(opts iteminfo.SearchOptions, useGlob, largest bool) []string {
-	if largest || !useGlob || len(opts.Terms) == 0 {
+func nameGlobPatternsForSearch(opts iteminfo.SearchOptions, useWildcard, largest bool) []string {
+	if largest || !useWildcard || len(opts.Terms) == 0 {
 		return nil
 	}
 	var patterns []string
@@ -180,7 +180,7 @@ func searchDateMatches(modUnix int64, opts iteminfo.SearchOptions) bool {
 // sourceScopes is a map from source name to the scope path for that source.
 // sourceSession is used for cancellation tracking.
 // largest and limit work the same as in Search.
-func SearchMultiSources(search string, sources []string, sourceScopes map[string]string, sourceSession string, largest bool, limit int, olderThanUnix, newerThanUnix int64, useGlob bool) []*SearchResult {
+func SearchMultiSources(search string, sources []string, sourceScopes map[string]string, sourceSession string, largest bool, limit int, olderThanUnix, newerThanUnix int64, useWildcard bool) []*SearchResult {
 	if len(sources) == 0 {
 		return []*SearchResult{}
 	}
@@ -214,7 +214,7 @@ func SearchMultiSources(search string, sources []string, sourceScopes map[string
 		searchOptions.Terms = []string{""}
 	}
 
-	nameGlobPatterns := nameGlobPatternsForSearch(searchOptions, useGlob, largest)
+	nameGlobPatterns := nameGlobPatternsForSearch(searchOptions, useWildcard, largest)
 
 	rows, err := db.SearchItemsMultiSource(sources, normalizedScopes, largest, nameGlobPatterns)
 	if err != nil {
@@ -269,7 +269,7 @@ func SearchMultiSources(search string, sources []string, sourceScopes map[string
 			}
 			dateMatches := searchDateMatches(item.ModTime.Unix(), searchOptions)
 			matches = sizeMatches && typeMatches && dateMatches
-		} else if useGlob && len(nameGlobPatterns) > 0 {
+		} else if useWildcard && len(nameGlobPatterns) > 0 {
 			matches = item.MatchesSearchAuxiliaryFilters(searchOptions)
 		} else {
 			for _, searchTerm := range searchOptions.Terms {

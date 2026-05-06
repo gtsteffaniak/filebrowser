@@ -4170,12 +4170,16 @@ paths:
         in: query
         name: newerThan
         type: integer
-      - description: When true, match indexed file names with SQLite GLOB (same as
-          useGlob)
+      - description: When true, match indexed file names with SQLite GLOB (wildcard
+          patterns)
+        in: query
+        name: useWildcard
+        type: boolean
+      - description: 'Deprecated: alias for useWildcard'
         in: query
         name: glob
         type: boolean
-      - description: Alias for glob; when true, use SQLite GLOB for file names
+      - description: 'Deprecated: alias for useWildcard'
         in: query
         name: useGlob
         type: boolean

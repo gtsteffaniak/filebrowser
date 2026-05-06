@@ -493,7 +493,7 @@ export default {
         dateParams.newerThan = newerUnix;
       }
       if (this.useWildcardSearch) {
-        dateParams.glob = true;
+        dateParams.useWildcard = true;
       }
       this.ongoing++;
       

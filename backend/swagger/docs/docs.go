@@ -3049,13 +3049,19 @@ const docTemplate = `{
                     },
                     {
                         "type": "boolean",
-                        "description": "When true, match indexed file names with SQLite GLOB (same as useGlob)",
+                        "description": "When true, match indexed file names with SQLite GLOB (wildcard patterns)",
+                        "name": "useWildcard",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Deprecated: alias for useWildcard",
                         "name": "glob",
                         "in": "query"
                     },
                     {
                         "type": "boolean",
-                        "description": "Alias for glob; when true, use SQLite GLOB for file names",
+                        "description": "Deprecated: alias for useWildcard",
                         "name": "useGlob",
                         "in": "query"
                     },

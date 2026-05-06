@@ -3,7 +3,7 @@ import { notify } from "@/notify";
 import { getApiPath } from "@/utils/url.js";
 
 // GET /api/tools/search
-// extraParams: optional { olderThan, newerThan, glob | useGlob } — when glob/useGlob is true, names match SQLite GLOB patterns
+// extraParams: optional { olderThan, newerThan, useWildcard } — legacy glob/useGlob also accepted; when true, names match SQLite GLOB patterns
 export async function search(base, sources, query, largest = false, extraParams = {}) {
   try {
     const sourcesArray = Array.isArray(sources) ? sources : [sources];
@@ -31,8 +31,12 @@ export async function search(base, sources, query, largest = false, extraParams 
     if (extraParams.newerThan !== undefined && extraParams.newerThan !== "") {
       params.newerThan = String(extraParams.newerThan);
     }
-    if (extraParams.useGlob === true || extraParams.glob === true) {
-      params.glob = "true";
+    if (
+      extraParams.useWildcard === true ||
+      extraParams.useGlob === true ||
+      extraParams.glob === true
+    ) {
+      params.useWildcard = "true";
     }
 
     const apiPath = getApiPath("tools/search", params);
