@@ -263,9 +263,11 @@
     "showPreviewImagesDescription": "Afficher les vignettes des résultats de la recherche lorsqu'elles sont disponibles, et afficher des icônes plus grandes pour tous les résultats.",
     "olderThanDate": "Plus vieux que :",
     "newerThanDate": "Plus récent que :",
-    "helpText2": "Les résultats de la recherche sont basés sur les fichiers indexés, de sorte que les fichiers nouvellement ajoutés peuvent ne pas apparaître tant qu'ils n'ont pas été indexés.",
     "noResults": "Aucun résultat n'a été trouvé.",
-    "helpText1": "La recherche s'effectue sur chaque caractère que vous tapez ({minSearchLength} caractère minimum)."
+    "useWildcardSearch": "Recherche de caractères génériques",
+    "helpText1": "La recherche s'effectue sur chaque caractère que vous tapez ({minSearchLength} caractère minimum).",
+    "useWildcardSearchDescription": "Caractères génériques pris en charge :\n\n- Correspond à n'importe quelle séquence : *\n\n- Correspondance avec un seul caractère : ?\n\n- Classe de caractères : [a-z], [0-9]\n\n- Négation : [^0-9]\n\n- Les valeurs littérales *, ? ou [ doivent être mises entre parenthèses, par exemple [*], [ ?], [[]].",
+    "helpText2": "Correspondance de sous-chaînes sur les noms de fichiers ou de dossiers uniquement (pas sur les chemins d'accès complets). case:exact pour une correspondance sensible à la casse.\n\n pour le OU entre les termes, utiliser le caractère pipe ; les guillemets doubles pour une seule phrase.\n\nActivez la recherche par caractères génériques pour obtenir des options plus avancées."
   },
   "settings": {
     "scopes": "Définir les sources autorisées et la portée de l'utilisateur au sein de celles-ci",

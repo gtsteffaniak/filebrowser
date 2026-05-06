@@ -263,9 +263,11 @@
     "showPreviewImagesDescription": "Mostrar miniaturas para los resultados de búsqueda - También hará los iconos más grandes.",
     "olderThanDate": "Más viejo que:",
     "newerThanDate": "Más nuevo que:",
-    "helpText2": "Los resultados de la búsqueda se basan en los archivos indexados, por lo que es posible que los archivos recién añadidos no aparezcan hasta que se indexen.",
     "noResults": "No se han encontrado resultados.",
-    "helpText1": "La búsqueda se produce en cada carácter que escriba ({minSearchLength} carácter mínimo)."
+    "useWildcardSearch": "Búsqueda con comodín",
+    "helpText1": "La búsqueda se produce en cada carácter que escriba ({minSearchLength} carácter mínimo).",
+    "useWildcardSearchDescription": "Comodines admitidos:\n\n- Coinciden con cualquier secuencia: *\n\n- Coincidencia con un carácter: ?\n\n- Clase de caracteres: [a-z], [0-9]\n\n- Negación: [^0-9]\n\n- Los caracteres *, ? o [ deben ir entre paréntesis, por ejemplo [*], [?], [[].",
+    "helpText2": "Coincidencia de subcadenas sólo en nombres de archivos o carpetas (no en rutas completas). case:exact para coincidencia sensible a mayúsculas y minúsculas.\n\n para OR entre términos utilice el carácter pipa; comillas dobles para una frase.\n\nHabilite la búsqueda con comodines para opciones más avanzadas."
   },
   "settings": {
     "scopes": "Fuentes a las que el usuario tendrá acceso:",

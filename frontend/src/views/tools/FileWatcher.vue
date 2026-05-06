@@ -32,7 +32,7 @@
 
     <div class="card">
       <div class="card-content file-watcher-output">
-        <div class="terminal-header boarder-radius" :class="{ 'mobile': isMobile }">
+        <div class="terminal-header border-radius" :class="{ 'mobile': isMobile }">
           <div class="header-row header-row-first">
             <div class="header-left"></div>
             <div v-if="fileName" class="header-center">
@@ -66,7 +66,7 @@
             </div>
           </div>
         </div>
-        <div ref="terminalOutput" class="terminal-output boarder-radius" :class="{ 'dark-mode': isDarkMode }">
+        <div ref="terminalOutput" class="terminal-output border-radius" :class="{ 'dark-mode': isDarkMode }">
           <div v-for="(line, index) in outputLines" :key="index" class="terminal-line">
             <span class="terminal-text">{{ line.text }}</span>
           </div>
