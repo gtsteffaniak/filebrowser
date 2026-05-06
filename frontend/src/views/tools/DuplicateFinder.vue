@@ -2,16 +2,14 @@
   <div class="duplicate-finder">
     <div class="card duplicate-finder-config padding-normal">
       <div class="card-content">
-        <h3>{{ $t('general.source') }}</h3>
-        <select v-model="selectedSource" class="input">
-          <option v-for="(info, name) in sourceInfo" :key="name" :value="name">
-            {{ name }}
-          </option>
-        </select>
-        <h3>{{ $t('general.path') }}</h3>
-        <div aria-label="duplicate-finder-path" class="searchContext clickable button" @click="openPathPicker">
-          {{ $t('general.path', { suffix: ':' }) }} {{ searchPath }}
-        </div>
+        <PathPickerButton
+          v-model:path="searchPath"
+          v-model:source="selectedSource"
+          aria-label="duplicate-finder-path"
+          :show-files="false"
+          :show-folders="true"
+          :placeholder="$t('sidebar.chooseSource')"
+        />
         <h3>{{ $t('duplicateFinder.minSize') }}</h3>
         <input aria-label="Minimum size input" v-model.number="minSizeValue" type="number" min="0" placeholder="1" class="input" />
         <p class="hint">{{ $t('duplicateFinder.minSizeHint') }}</p>
@@ -113,6 +111,7 @@ import { state, mutations } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { eventBus } from "@/store/eventBus";
 import ListingItem from "@/components/files/ListingItem.vue";
+import PathPickerButton from "@/components/files/PathPickerButton.vue";
 import * as url from "@/utils/url";
 import { getTypeInfo } from "@/utils/mimetype";
 
@@ -120,6 +119,7 @@ export default {
   name: "DuplicateFinder",
   components: {
     ListingItem,
+    PathPickerButton,
   },
   data() {
     return {
@@ -141,9 +141,6 @@ export default {
     };
   },
   computed: {
-    sourceInfo() {
-      return state.sources.info || {};
-    },
     selectedCount() {
       return this.selectedIndices.size;
     },
@@ -178,7 +175,7 @@ export default {
     const query = this.$route.query;
     
     this.searchPath = (typeof query.path === 'string' ? query.path : null) || "/";
-    this.selectedSource = (typeof query.source === 'string' ? query.source : null) || state.sources.current || Object.keys(this.sourceInfo)[0] || "";
+    this.selectedSource = (typeof query.source === 'string' ? query.source : null) || state.sources.current || Object.keys(state.sources.info || {})[0] || "";
     
     if (query.minSize) {
       const parsed = parseInt(String(query.minSize), 10);
@@ -190,7 +187,6 @@ export default {
     this.isInitializing = false;
 
     // Listen for events
-    eventBus.on('pathSelected', this.handlePathSelected);
     eventBus.on('itemsDeleted', this.handleItemsDeleted);
     eventBus.on('duplicateFinderDeleteRequested', this.showDeleteConfirm);
     eventBus.on('duplicateFinderClearRequested', this.clearSelection);
@@ -199,7 +195,6 @@ export default {
     // Clear local selection when leaving
     this.selectedIndices.clear();
     
-    eventBus.off('pathSelected', this.handlePathSelected);
     eventBus.off('itemsDeleted', this.handleItemsDeleted);
     eventBus.off('duplicateFinderDeleteRequested', this.showDeleteConfirm);
     eventBus.off('duplicateFinderClearRequested', this.clearSelection);
@@ -209,24 +204,6 @@ export default {
     eventBus.emit('duplicateFinderDeletingChanged', false);
   },
   methods: {
-    openPathPicker() {
-      mutations.showPrompt({
-        name: "pathPicker",
-        props: {
-          currentPath: this.searchPath,
-          currentSource: this.selectedSource,
-        }
-      });
-    },
-    handlePathSelected(data) {
-      if (data && data.path !== undefined) {
-        this.searchPath = data.path;
-      }
-      if (data && data.source !== undefined) {
-        this.selectedSource = data.source;
-      }
-      mutations.closeTopPrompt();
-    },
     handleItemsDeleted(data) {
       // Update local state when items are deleted from the delete prompt
       if (data && data.succeeded) {

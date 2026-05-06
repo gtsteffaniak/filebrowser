@@ -1,5 +1,10 @@
 import { test, expect, checkForNotification } from "../test-setup";
 
+/** Move/Copy prompt path line: PathPickerButton shows `/path (source)`; noauth config names the tree `exclude`. */
+const copyDestLabel = (page: import("@playwright/test").Page) =>
+  page.locator('div[aria-label="copy-prompt"] .move-copy-path-picker');
+
+const NOAUTH_COPY_SOURCE = "exclude";
 
 test("info from listing", async({ page, checkForErrors, context }) => {
   await page.goto("/files/");
@@ -45,10 +50,10 @@ test("2x copy from listing to new folder", async({ page, checkForErrors, context
   await page.locator('.selected-count-header').waitFor({ state: 'visible' });
   await expect(page.locator('.selected-count-header')).toHaveText('1');
   await page.locator('button[aria-label="Copy file"]').click();
-  await expect(page.locator('div[aria-label="filelist-path"]')).toHaveText('Path: /');
+  await expect(copyDestLabel(page)).toHaveText(`/ (${NOAUTH_COPY_SOURCE})`);
   await expect(page.locator('div[aria-label="copy-prompt"] .listing-item[aria-selected="true"]')).toHaveCount(0);
   await page.locator('div[aria-label="copy-prompt"] .listing-item[aria-label="myfolder"]').dblclick();
-  await expect(page.locator('div[aria-label="filelist-path"]')).toHaveText('Path: /myfolder/');
+  await expect(copyDestLabel(page)).toHaveText(`/myfolder/ (${NOAUTH_COPY_SOURCE})`);
   await page.locator('button[aria-label="Copy"]').click();
   await checkForNotification(page, "Files copied successfully!");
   await page.goto("/files/files/exclude/myfolder/");
@@ -75,9 +80,9 @@ test("2x copy from listing to new folder", async({ page, checkForErrors, context
   await page.locator('.selected-count-header').waitFor({ state: 'visible' });
   await expect(page.locator('.selected-count-header')).toHaveText('1');
   await page.locator('button[aria-label="Copy file"]').click();
-  await expect(page.locator('div[aria-label="filelist-path"]')).toHaveText('Path: /myfolder/');
+  await expect(copyDestLabel(page)).toHaveText(`/myfolder/ (${NOAUTH_COPY_SOURCE})`);
   await page.locator('div[aria-label="copy-prompt"] .listing-item[aria-label="newfolder"]').dblclick();
-  await expect(page.locator('div[aria-label="filelist-path"]')).toHaveText('Path: /myfolder/newfolder/');
+  await expect(copyDestLabel(page)).toHaveText(`/myfolder/newfolder/ (${NOAUTH_COPY_SOURCE})`);
   await page.locator('button[aria-label="Copy"]').click();
   await checkForNotification(page, "Files copied successfully!");
   await page.goto("/files/files/exclude/myfolder/newfolder/");

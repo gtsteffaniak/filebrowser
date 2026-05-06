@@ -1,7 +1,9 @@
 <template>
   <table
     class="settings-table border-radius"
+    :class="{ 'settings-table--loading': loading }"
     :aria-label="ariaLabel"
+    :aria-busy="loading ? 'true' : undefined"
   >
     <thead>
       <tr>
@@ -21,43 +23,54 @@
       </tr>
     </thead>
     <tbody>
-      <tr v-for="item in sortedItems" :key="resolvedKey(item)">
-        <td
-          v-for="column in columns"
-          :key="column.key"
-          :class="[
-            alignClass(column),
-            column.narrow === true ? 'settings-table__td--narrow' : '',
-          ]"
-        >
-          <slot
-            :name="cellSlot(column.key)"
-            :row="item"
-            :value="cellValue(item, column)"
-            :column="column"
+      <tr v-if="loading" class="settings-table__loading-row">
+        <td :colspan="emptyColumnSpan" class="settings-table__loading-cell">
+          <div class="settings-table__loading-inner">
+            <LoadingSpinner size="small" mode="placeholder" />
+          </div>
+        </td>
+      </tr>
+      <template v-else>
+        <tr v-for="item in sortedItems" :key="resolvedKey(item)">
+          <td
+            v-for="column in columns"
+            :key="column.key"
+            :class="[
+              alignClass(column),
+              column.narrow === true ? 'settings-table__td--narrow' : '',
+            ]"
           >
-            {{ renderCell(item, column) }}
-          </slot>
-        </td>
-      </tr>
-      <tr v-if="sortedItems.length === 0">
-        <td
-          :colspan="emptyColumnSpan"
-          class="settings-table__empty settings-table__empty-cell"
-        >
-          <slot name="empty">
-            <h2 class="message settings-table__lonely">
-              <i class="material-symbols-outlined" aria-hidden="true">sentiment_dissatisfied</i>
-              <span>{{ lonelyCaption }}</span>
-            </h2>
-          </slot>
-        </td>
-      </tr>
+            <slot
+              :name="cellSlot(column.key)"
+              :row="item"
+              :value="cellValue(item, column)"
+              :column="column"
+            >
+              {{ renderCell(item, column) }}
+            </slot>
+          </td>
+        </tr>
+        <tr v-if="sortedItems.length === 0">
+          <td
+            :colspan="emptyColumnSpan"
+            class="settings-table__empty settings-table__empty-cell"
+          >
+            <slot name="empty">
+              <h2 class="message settings-table__lonely">
+                <i class="material-symbols-outlined" aria-hidden="true">sentiment_dissatisfied</i>
+                <span>{{ lonelyCaption }}</span>
+              </h2>
+            </slot>
+          </td>
+        </tr>
+      </template>
     </tbody>
   </table>
 </template>
 
 <script>
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
+
 function defaultCompare(av, bv) {
   if (av === bv) {
     return 0;
@@ -87,6 +100,10 @@ function cellValueLookup(row, k) {
 
 export default {
   name: "SettingsTable",
+
+  components: {
+    LoadingSpinner,
+  },
 
   props: {
     columns: {
@@ -122,6 +139,11 @@ export default {
       validator(value) {
         return value === "asc" || value === "desc";
       },
+    },
+    /** When true, header stays visible and body shows a placeholder spinner until data is ready. */
+    loading: {
+      type: Boolean,
+      default: false,
     },
   },
 
@@ -298,6 +320,8 @@ export default {
   margin: 0;
   background: var(--surfacePrimary);
   border: 1px solid var(--divider);
+  outline: 1px solid var(--divider);
+  outline-offset: -1px;
   overflow: hidden;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.05);
 }
@@ -387,6 +411,29 @@ body.rtl .settings-table tr > *:last-child {
 
 .settings-table tbody tr:hover td {
   background-color: var(--surfaceSecondary);
+}
+
+.settings-table--loading thead th.settings-table__th {
+  pointer-events: none;
+}
+
+.settings-table__loading-cell {
+  text-align: center;
+  padding: 2em 1em;
+  vertical-align: middle;
+  border-bottom: none;
+}
+
+.settings-table__loading-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 1em;
+}
+
+.settings-table__loading-row:hover td {
+  background-color: transparent;
 }
 
 .settings-table__td--narrow {

@@ -39,6 +39,7 @@
           :items="links"
           item-key="hash"
           :aria-label="$t('settings.shareManagement')"
+          :loading="linksLoading"
         >
           <template #cell-expire="{ row }">
             <template v-if="row.expire !== 0">{{ humanTime(row.expire) }}</template>
@@ -412,8 +413,15 @@ export default {
       pendingBannerFaviconContextId: null,
       filePickerField: null, // 'banner' or 'favicon'
       showMoreExpanded: false,
+      /** True while fetching existing shares for the path (create flow); table uses its placeholder spinner. */
+      linksLoading: true,
       //viewMode: "normal",
     };
+  },
+  created() {
+    if (this.isEditMode) {
+      this.linksLoading = false;
+    }
   },
   computed: {
     createAllowed() {
@@ -559,15 +567,18 @@ export default {
   },
   async beforeMount() {
     if (this.isEditMode) {
+      this.linksLoading = false;
       return;
     }
+    this.linksLoading = true;
     try {
-      // get last element of the path
       const links = await shareApi.get(this.item.path, this.item.source);
       this.links = links;
     } catch (err) {
       console.error(err);
       return;
+    } finally {
+      this.linksLoading = false;
     }
     this.sort();
 
