@@ -55,4 +55,6 @@ jobs:
           az containerapp update \
             --name $CONTAINER_APP \
             --resource-group rg-acornDrive \
-            --image $REGISTRY/$IMAGE:$ENV
+            --image $REGISTRY/$IMAGE:$ENV \
+            --registry-server $REGISTRY \
+            --registry-identity system
