@@ -341,9 +341,11 @@
     "showPreviewImagesDescription": "Zobrazení miniaturních náhledů výsledků vyhledávání, pokud jsou k dispozici, a zobrazení větších ikon u všech výsledků.",
     "olderThanDate": "Starší než:",
     "newerThanDate": "Novější než:",
-    "helpText2": "Výsledky vyhledávání jsou založeny na indexovaných souborech, takže nově přidané soubory se mohou zobrazit až po jejich indexování.",
     "noResults": "Nebyly nalezeny žádné výsledky.",
-    "helpText1": "Vyhledávání probíhá na základě každého zadaného znaku ({minSearchLength} minimálně znaků)."
+    "useWildcardSearch": "Vyhledávání pomocí zástupných znaků",
+    "helpText1": "Vyhledávání probíhá na základě každého zadaného znaku ({minSearchLength} minimálně znaků).",
+    "useWildcardSearchDescription": "Podporované zástupné znaky:\n\n- Shodují se s libovolnou sekvencí: *\n\n- Shoda s jedním znakem: ?\n\n- Třída znaků: [a-z], [0-9]\n\n- Negace: [^0-9]\n\n- Doslovné *, ? nebo [ je třeba zabalit do závorek, např. [*], [?], [[].",
+    "helpText2": "Shoda podřetězce pouze s názvy souborů nebo složek (ne s úplnými cestami). case:exact pro porovnávání s rozlišováním malých a velkých písmen.\n\n pro OR mezi výrazy použijte znak pipe; dvojité uvozovky pro jednu frázi.\n\nPovolte vyhledávání se zástupnými znaky pro pokročilejší možnosti."
   },
   "profileSettings": {
     "preferEditorForMarkdown": "Upřednostnit editor pro Markdown soubory",

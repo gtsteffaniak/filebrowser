@@ -263,9 +263,11 @@
     "showPreviewImagesDescription": "Wyświetlaj podglądy miniatur wyników wyszukiwania, jeśli są dostępne, i wyświetlaj większe ikony dla wszystkich wyników.",
     "olderThanDate": "Starszy niż:",
     "newerThanDate": "Nowsze niż:",
-    "helpText2": "Wyniki wyszukiwania są oparte na zindeksowanych plikach, więc nowo dodane pliki mogą nie być wyświetlane, dopóki nie zostaną zindeksowane.",
     "noResults": "Nie znaleziono żadnych wyników.",
-    "helpText1": "Wyszukiwanie odbywa się po każdym wpisanym znaku (minimum{minSearchLength} znaków)."
+    "useWildcardSearch": "Wyszukiwanie z użyciem symboli wieloznacznych",
+    "helpText1": "Wyszukiwanie odbywa się po każdym wpisanym znaku (minimum{minSearchLength} znaków).",
+    "useWildcardSearchDescription": "Obsługiwane symbole wieloznaczne:\n\n- Dopasowanie dowolnej sekwencji: *\n\n- Dopasowanie jednego znaku: ?\n\n- Klasa znaków: [a-z], [0-9]\n\n- Negacja: [^0-9]\n\n- Dosłowne *, ? lub [ muszą być ujęte w nawiasy, np. [*], [?], [[]",
+    "helpText2": "Dopasowanie podciągu tylko do nazw plików lub folderów (nie pełnych ścieżek). case:exact dla dopasowania z uwzględnieniem wielkości liter.\n\n dla OR między wyrażeniami użyj znaku potoku; podwójne cudzysłowy dla jednej frazy.\n\nWłącz wyszukiwanie wieloznaczne, aby uzyskać bardziej zaawansowane opcje."
   },
   "settings": {
     "administrator": "Administrator",

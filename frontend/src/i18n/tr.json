@@ -263,9 +263,11 @@
     "showPreviewImagesDescription": "Kullanılabilir olduğunda arama sonuçları için küçük resim önizlemelerini görüntüleyin ve tüm sonuçlar için daha büyük simgeler gösterin.",
     "olderThanDate": "Daha yaşlı:",
     "newerThanDate": "Daha yeni:",
-    "helpText2": "Arama sonuçları dizine eklenmiş dosyaları temel alır, bu nedenle yeni eklenen dosyalar dizine eklenene kadar görünmeyebilir.",
     "noResults": "Sonuç bulunamadı.",
-    "helpText1": "Arama, yazdığınız her karakterde gerçekleşir ({minSearchLength} minimum karakter)."
+    "useWildcardSearch": "Joker karakter araması",
+    "helpText1": "Arama, yazdığınız her karakterde gerçekleşir ({minSearchLength} minimum karakter).",
+    "useWildcardSearchDescription": "Desteklenen joker karakterler:\n\n- Herhangi bir diziyi eşleştirin: *\n\n- Bir karakteri eşleştirin: ?\n\n- Karakter sınıfı: [a-z], [0-9]\n\n- Negasyon: [^0-9]\n\n- Literal *, ? veya [ parantez içine alınmalıdır, örneğin [*], [?], [[]",
+    "helpText2": "Yalnızca dosya veya klasör adlarında alt dize eşleşmesi (tam yollarda değil). case:exact büyük/küçük harfe duyarlı eşleştirme için\n\n terimler arasında VEYA için boru karakteri kullanın; bir ifade için çift tırnak kullanın.\n\nDaha gelişmiş seçenekler için joker karakter aramayı etkinleştirin."
   },
   "settings": {
     "administrator": "Yönetici",

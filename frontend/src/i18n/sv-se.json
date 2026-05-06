@@ -263,9 +263,11 @@
     "showPreviewImagesDescription": "Visa förhandsvisningar av miniatyrbilder för sökresultat när det är tillgängligt och visa större ikoner för alla resultat.",
     "olderThanDate": "Äldre än:",
     "newerThanDate": "Nyare än:",
-    "helpText2": "Sökresultaten baseras på indexerade filer, så det kan hända att nya filer inte visas förrän de har indexerats.",
     "noResults": "Inga resultat hittades.",
-    "helpText1": "Sökningen sker för varje tecken du skriver ({minSearchLength} tecken minimum)."
+    "useWildcardSearch": "Sök med jokertecken",
+    "helpText1": "Sökningen sker för varje tecken du skriver ({minSearchLength} tecken minimum).",
+    "useWildcardSearchDescription": "Jokertecken som stöds:\n\n- Matchar vilken sekvens som helst: *\n\n- Matcha ett tecken: ?\n\n- Teckenklass: [a-z], [0-9]\n\n- Negation: [^0-9]\n\n- Bokstavliga *, ? eller [ måste omslutas av parenteser, t.ex. [*], [?], [[]",
+    "helpText2": "Delsträngsmatchning endast på fil- eller mappnamn (inte fullständiga sökvägar). case:exact för skiftlägeskänslig matchning\n\n för OR mellan termer använd pipe-tecken; dubbla citattecken för en fras.\n\nAktivera jokerteckensökning för mer avancerade alternativ."
   },
   "settings": {
     "administrator": "Administratör",

@@ -474,8 +474,10 @@
     "newerThanDate": "Nieuwer dan:",
     "showPreviewImages": "Voorbeeldafbeeldingen tonen",
     "showPreviewImagesDescription": "Toon, indien beschikbaar, miniatuurvoorbeelden voor zoekresultaten en toon grotere pictogrammen voor alle resultaten.",
+    "useWildcardSearch": "Zoeken met jokertekens",
     "helpText1": "Er wordt gezocht op elk teken dat je typt (minimaal{minSearchLength} tekens).",
-    "helpText2": "Zoekresultaten zijn gebaseerd op geïndexeerde bestanden, dus nieuw toegevoegde bestanden verschijnen mogelijk pas als ze geïndexeerd zijn."
+    "useWildcardSearchDescription": "Ondersteunde jokertekens:\n\n- Overeenstemming met elke reeks: *\n\n- Overeenstemming met één teken: ?\n\n- Tekenklasse: [a-z], [0-9]\n\n- Negatie: [^0-9]\n\n- Letterlijke *, ?, of [ moeten tussen haakjes staan, bijv. [*], [?], [[]",
+    "helpText2": "Substring match alleen op bestands- of mapnamen (geen volledige paden). case:exact voor hoofdlettergevoelig matchen\n\n voor OR tussen termen gebruik je het teken pipe; dubbele aanhalingstekens voor één zin.\n\nSchakel wildcard zoeken in voor meer geavanceerde opties."
   },
   "profileSettings": {
     "preferEditorForMarkdown": "Geef de voorkeur aan editor voor Markdown-bestanden",

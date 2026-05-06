@@ -4170,6 +4170,19 @@ paths:
         in: query
         name: newerThan
         type: integer
+      - description: When true, match indexed file names with SQLite GLOB (wildcard
+          patterns)
+        in: query
+        name: useWildcard
+        type: boolean
+      - description: 'Deprecated: alias for useWildcard'
+        in: query
+        name: glob
+        type: boolean
+      - description: 'Deprecated: alias for useWildcard'
+        in: query
+        name: useGlob
+        type: boolean
       - description: User session ID, add unique value to prevent collisions
         in: header
         name: SessionId

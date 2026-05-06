@@ -263,9 +263,11 @@
     "showPreviewImagesDescription": "가능한 경우 검색 결과의 썸네일 미리 보기를 표시하고 모든 결과에 대해 더 큰 아이콘을 표시합니다.",
     "olderThanDate": "이전보다 오래되었습니다:",
     "newerThanDate": "보다 최신:",
-    "helpText2": "검색 결과는 색인된 파일을 기반으로 하므로 새로 추가된 파일은 색인이 완료될 때까지 표시되지 않을 수 있습니다.",
     "noResults": "결과를 찾을 수 없습니다.",
-    "helpText1": "검색은 입력하는 각 문자({minSearchLength} 최소 글자 수)에 대해 이루어집니다."
+    "useWildcardSearch": "와일드카드 검색",
+    "helpText1": "검색은 입력하는 각 문자({minSearchLength} 최소 글자 수)에 대해 이루어집니다.",
+    "useWildcardSearchDescription": "지원되는 와일드카드:\n\n- 모든 시퀀스와 일치합니다: *\n\n- 한 문자 일치: ?\n\n- 문자 클래스: [a-z], [0-9]\n\n- 부정: [^0-9]\n\n- 리터럴 *, ? 또는 [는 괄호로 묶어야 합니다(예: [*], [?], [[]).",
+    "helpText2": "대소문자 구분 일치를 위해 파일 또는 폴더 이름에 대해서만 하위 문자열 일치(전체 경로가 아님).\n\n 용어 사이의 OR에는 파이프 문자를, 한 구문에는 큰따옴표를 사용합니다.\n\n고급 옵션을 사용하려면 와일드카드 검색을 사용 설정하세요."
   },
   "settings": {
     "administrator": "관리자",

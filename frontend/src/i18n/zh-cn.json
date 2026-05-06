@@ -263,9 +263,11 @@
     "showPreviewImagesDescription": "在可用时显示搜索结果的缩略图预览，并为所有结果显示更大的图标。",
     "olderThanDate": "比",
     "newerThanDate": "新于：",
-    "helpText2": "搜索结果基于已编入索引的文件，因此新添加的文件在编入索引之前可能不会出现。",
     "noResults": "未找到结果。",
-    "helpText1": "您输入的每个字符都会进行搜索（{minSearchLength} 字符最小值）。"
+    "useWildcardSearch": "通配符搜索",
+    "helpText1": "您输入的每个字符都会进行搜索（{minSearchLength} 字符最小值）。",
+    "useWildcardSearchDescription": "支持通配符：\n\n- 匹配任何序列：*\n\n- 匹配一个字符：?\n\n- 字符类别：[a-z]、[0-9］\n\n- 否定：[^0-9]\n\n- 字面 *、? 或 [ 需要用括号包装，例如 [*]、[?]、[[]",
+    "helpText2": "仅对文件或文件夹名称（而非完整路径）进行子串匹配。 case:exact 用于大小写敏感匹配\n\n 对于术语之间的 OR，使用管道字符；一个短语使用双引号。\n\n启用通配符搜索可获得更多高级选项。"
   },
   "settings": {
     "scopes": "定义允许的来源及其中的用户范围",
