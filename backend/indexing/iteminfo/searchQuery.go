@@ -99,7 +99,15 @@ func ParseSearch(value string) SearchOptions {
 		return opts
 	}
 	value = strings.TrimSpace(value)
-	opts.Terms = strings.Split(value, "|")
+	parts := strings.Split(value, "|")
+	terms := make([]string, 0, len(parts))
+	for _, p := range parts {
+		t := strings.TrimSpace(p)
+		if t != "" {
+			terms = append(terms, t)
+		}
+	}
+	opts.Terms = terms
 	return opts
 }
 

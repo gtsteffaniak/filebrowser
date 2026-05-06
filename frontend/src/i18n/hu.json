@@ -263,9 +263,11 @@
     "showPreviewImagesDescription": "A keresési találatok miniatűr előnézeteinek megjelenítése, ha rendelkezésre állnak, és nagyobb ikonok megjelenítése az összes találathoz.",
     "olderThanDate": "Idősebb, mint:",
     "newerThanDate": "Újabb, mint:",
-    "helpText2": "A keresési eredmények az indexelt fájlokon alapulnak, ezért előfordulhat, hogy az újonnan hozzáadott fájlok nem jelennek meg, amíg indexelésre nem kerülnek.",
     "noResults": "Nem találtak eredményt.",
-    "helpText1": "A keresés minden egyes beírt karakterre történik ({minSearchLength} minimum karakter)."
+    "useWildcardSearch": "Wildcard keresés",
+    "helpText1": "A keresés minden egyes beírt karakterre történik ({minSearchLength} minimum karakter).",
+    "useWildcardSearchDescription": "Támogatott helyettesítő karakterek:\n\n- Bármelyik sorozatra illeszkedik: *\n\n- Egy karakterrel való egyezés: ?\n\n- Karakterosztály: [a-z], [0-9]\n\n- Negáció: [^0-9]\n\n- A szó szerinti *, ? vagy [ karaktereket zárójelbe kell tenni, pl. [*], [?], [[]",
+    "helpText2": "Csak fájl- vagy mappanevek (nem teljes elérési utak) részlánc-illesztése. case:exact a nagy- és kisbetű-érzékeny illesztéshez.\n\n a kifejezések közötti VAGY-hoz használja a pipe karaktert; dupla idézőjelek egy kifejezéshez.\n\nEngedélyezze a vadkártyás keresést a fejlettebb lehetőségekhez."
   },
   "settings": {
     "administrator": "Adminisztrátor",

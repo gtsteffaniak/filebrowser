@@ -4170,6 +4170,15 @@ paths:
         in: query
         name: newerThan
         type: integer
+      - description: When true, match indexed file names with SQLite GLOB (same as
+          useGlob)
+        in: query
+        name: glob
+        type: boolean
+      - description: Alias for glob; when true, use SQLite GLOB for file names
+        in: query
+        name: useGlob
+        type: boolean
       - description: User session ID, add unique value to prevent collisions
         in: header
         name: SessionId

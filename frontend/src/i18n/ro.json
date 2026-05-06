@@ -263,9 +263,11 @@
     "showPreviewImagesDescription": "Afișați previzualizări în miniatură pentru rezultatele căutării, atunci când sunt disponibile, și afișați pictograme mai mari pentru toate rezultatele.",
     "olderThanDate": "Mai în vârstă decât:",
     "newerThanDate": "Mai nou decât:",
-    "helpText2": "Rezultatele căutării se bazează pe fișierele indexate, astfel încât fișierele nou adăugate pot să nu apară până când nu sunt indexate.",
     "noResults": "Nu s-au găsit rezultate.",
-    "helpText1": "Căutarea are loc pe fiecare caracter tastat ({minSearchLength} caracter minim)."
+    "useWildcardSearch": "Căutare wildcard",
+    "helpText1": "Căutarea are loc pe fiecare caracter tastat ({minSearchLength} caracter minim).",
+    "useWildcardSearchDescription": "Caractere sălbatice acceptate:\n\n- Potrivește orice secvență: *\n\n- Potrivește un singur caracter: ?\n\n- Clasa caracterelor: [a-z], [0-9]\n\n- Negație: [^0-9]\n\n- Literele *, ? sau [ trebuie să fie puse între paranteze, de exemplu [*], [?], [[]",
+    "helpText2": "Potrivire de substringuri numai pe nume de fișiere sau de foldere (nu pe căi complete). case:exact pentru potrivire în funcție de caz\n\n pentru OR între termeni utilizați caracterul pipă; ghilimele duble pentru o frază.\n\nActivați căutarea wildcard pentru opțiuni mai avansate."
   },
   "settings": {
     "administrator": "Administrator",

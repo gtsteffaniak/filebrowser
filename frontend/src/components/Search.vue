@@ -60,9 +60,11 @@
                   </div>
                 </div>
                 <!-- Toggle for showing preview images -->
-                <div class="search-option-item">
-                  <ToggleSwitch v-model="showPreviewImages" :name="$t('search.showPreviewImages')"
+                <div class="settings-items">
+                  <ToggleSwitch class="item"  v-model="showPreviewImages" :name="$t('search.showPreviewImages')"
                     :description="$t('search.showPreviewImagesDescription')" />
+                  <ToggleSwitch class="item" v-model="useWildcardSearch" :name="$t('search.useWildcardSearch')"
+                    :description="$t('search.useWildcardSearchDescription')" />
                 </div>
               </div>
             </transition>
@@ -139,6 +141,7 @@ export default {
       searchTypes: "",
       isTypeSelectDisabled: false,
       showPreviewImages: false,
+      useWildcardSearch: false,
       folderSelect: [
         { label: this.$t("search.onlyFolders"), value: "type:folder" },
         { label: this.$t("search.onlyFiles"), value: "type:file" },
@@ -174,6 +177,9 @@ export default {
       this.submit();
     },
     modifiedNewerThan() {
+      this.submit();
+    },
+    useWildcardSearch() {
       this.submit();
     },
     searchTypes() {
@@ -486,6 +492,9 @@ export default {
       if (newerUnix !== null) {
         dateParams.newerThan = newerUnix;
       }
+      if (this.useWildcardSearch) {
+        dateParams.glob = true;
+      }
       this.ongoing++;
       
       // Determine which sources to search
@@ -788,12 +797,6 @@ export default {
 .search-entry.active {
   background-color: var(--surfacePrimary);
 }
-
-/* Toggle switch styling in search options */
-.search-option-item {
-  margin: 1em;
-}
-
 
 .text-container {
   margin-left: 0.25em;

@@ -20,6 +20,7 @@ type searchOptions struct {
 	combinedPath  map[string]string // source -> combinedPath
 	sessionId     string
 	largest       bool
+	useGlob       bool
 	olderThanUnix int64 // optional; 0 = unset. Modified time must be strictly before this Unix second.
 	newerThanUnix int64 // optional; 0 = unset. Modified time must be >= this Unix second.
 }
@@ -45,6 +46,7 @@ type searchOptions struct {
 // - scope: Optional path within user scope to search
 // - olderThan: Optional Unix time in seconds; only items modified strictly before this instant
 // - newerThan: Optional Unix time in seconds; only items modified on or after this instant
+// - glob / useGlob: Optional; when true, file names are matched with SQLite GLOB (wildcards) instead of substring search.
 //
 // Example request (single source):
 //
@@ -81,6 +83,8 @@ type searchOptions struct {
 // @Param scope query string false "path within user scope to search, for example '/first/second' to search within the second directory only. Ignored when multiple sources are specified."
 // @Param olderThan query int false "Unix seconds; only results modified strictly before this time"
 // @Param newerThan query int false "Unix seconds; only results modified on or after this time"
+// @Param glob query bool false "When true, match indexed file names with SQLite GLOB (same as useGlob)"
+// @Param useGlob query bool false "Alias for glob; when true, use SQLite GLOB for file names"
 // @Param SessionId header string false "User session ID, add unique value to prevent collisions"
 // @Success 200 {array} indexing.SearchResult "List of search results with source field populated"
 // @Failure 400 {object} map[string]string "Bad Request"
@@ -104,10 +108,10 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 			return http.StatusBadRequest, fmt.Errorf("index not found for source %s", searchOptions.sources[0])
 		}
 		combinedPath := searchOptions.combinedPath[searchOptions.sources[0]]
-		response = index.Search(searchOptions.query, combinedPath, searchOptions.sessionId, searchOptions.largest, searchSize, searchOptions.olderThanUnix, searchOptions.newerThanUnix)
+		response = index.Search(searchOptions.query, combinedPath, searchOptions.sessionId, searchOptions.largest, searchSize, searchOptions.olderThanUnix, searchOptions.newerThanUnix, searchOptions.useGlob)
 	} else {
 		// Multiple sources - use the new SearchMultiSources function
-		response = indexing.SearchMultiSources(searchOptions.query, searchOptions.sources, searchOptions.combinedPath, searchOptions.sessionId, searchOptions.largest, searchSize, searchOptions.olderThanUnix, searchOptions.newerThanUnix)
+		response = indexing.SearchMultiSources(searchOptions.query, searchOptions.sources, searchOptions.combinedPath, searchOptions.sessionId, searchOptions.largest, searchSize, searchOptions.olderThanUnix, searchOptions.newerThanUnix, searchOptions.useGlob)
 	}
 
 	// Filter out items that are not permitted according to access rules and trim user scope from paths
@@ -135,6 +139,11 @@ func prepSearchOptions(r *http.Request, d *requestContext) (*searchOptions, erro
 	sourceParam := r.URL.Query().Get("source") // deprecated, but still supported
 	scope := r.URL.Query().Get("scope")        // Go automatically decodes query params
 	largest := r.URL.Query().Get("largest") == "true"
+	globRaw := strings.TrimSpace(r.URL.Query().Get("glob"))
+	if globRaw == "" {
+		globRaw = strings.TrimSpace(r.URL.Query().Get("useGlob"))
+	}
+	useGlob := strings.EqualFold(globRaw, "true") || globRaw == "1"
 	olderThanUnix, err := parseOptionalUnixQueryParam("olderThan", r.URL.Query().Get("olderThan"))
 	if err != nil {
 		return nil, err
@@ -201,6 +210,7 @@ func prepSearchOptions(r *http.Request, d *requestContext) (*searchOptions, erro
 		combinedPath:  combinedPathMap,
 		sessionId:     sessionId,
 		largest:       largest,
+		useGlob:       useGlob,
 		olderThanUnix: olderThanUnix,
 		newerThanUnix: newerThanUnix,
 	}, nil

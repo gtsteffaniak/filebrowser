@@ -3048,6 +3048,18 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "boolean",
+                        "description": "When true, match indexed file names with SQLite GLOB (same as useGlob)",
+                        "name": "glob",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Alias for glob; when true, use SQLite GLOB for file names",
+                        "name": "useGlob",
+                        "in": "query"
+                    },
+                    {
                         "type": "string",
                         "description": "User session ID, add unique value to prevent collisions",
                         "name": "SessionId",
