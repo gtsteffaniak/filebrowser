@@ -1,13 +1,11 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
-    "ignoreDeprecations": "6.0",
     "allowJs": true,
     "target": "ESNext",
     "useDefineForClassFields": true,
     "noEmit": true,
     "module": "ESNext",
-    "moduleResolution": "Node10",
+    "moduleResolution": "bundler",
     "strict": false,
     "noImplicitAny": false,
     "noImplicitThis": true,
