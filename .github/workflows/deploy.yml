@@ -52,9 +52,12 @@ jobs:
 
       - name: Deploy to Container App
         run: |
+          az containerapp registry set \
+            --name $CONTAINER_APP \
+            --resource-group rg-acornDrive \
+            --server $REGISTRY \
+            --identity system
           az containerapp update \
             --name $CONTAINER_APP \
             --resource-group rg-acornDrive \
-            --image $REGISTRY/$IMAGE:$ENV \
-            --registry-server $REGISTRY \
-            --registry-identity system
+            --image $REGISTRY/$IMAGE:$ENV
