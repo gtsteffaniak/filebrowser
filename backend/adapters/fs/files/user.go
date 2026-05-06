@@ -25,7 +25,11 @@ func MakeUserDirs(u *users.User, createDir bool) error {
 		return fmt.Errorf("MakeUserDirs: invalid user for home dir creation: [%s]", u.Username)
 	}
 	for i, scope := range u.Scopes {
-		source, ok := settings.Config.Server.SourceMap[scope.Name]
+		info, ok := users.ResolveSourceKey(scope.Name)
+		if !ok {
+			return fmt.Errorf("MakeUserDirs: source not found: %s", scope.Name)
+		}
+		source, ok := settings.Config.Server.SourceMap[info.Path]
 		if !ok {
 			return fmt.Errorf("MakeUserDirs: source not found: %s", scope.Name)
 		}
