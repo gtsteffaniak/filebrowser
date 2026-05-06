@@ -1,5 +1,15 @@
 import { test, expect } from "../test-setup";
-import { Page } from "@playwright/test";
+import { Page, Locator } from "@playwright/test";
+
+/** Users tab uses SettingsTable (no `tr.item`); scoped to `.settings-table` body rows only. */
+function userRowInSettingsUsersTable(page: Page, usernameText: string): Locator {
+    return page.locator("table.settings-table tbody tr").filter({ hasText: usernameText });
+}
+
+/** Edit opener: `role="button"` div with `$t('general.edit')` (typically "Edit"). */
+function editUserTrigger(row: Locator): Locator {
+    return row.getByRole("button", { name: /Edit/i });
+}
 
 /**
  * User POST/PUT/DELETE for sensitive actions return 401 until X-Password is supplied; the UI opens password-prompt on top.
@@ -46,10 +56,10 @@ test("create, check settings, and delete user (retry-safe name)", async ({
     await createResponse;
 
     // We should be back on the settings page
-    await expect(page.locator('tr.item', { hasText: username })).toBeVisible();
+    await expect(userRowInSettingsUsersTable(page, username)).toBeVisible();
 
     // Now, click the edit button for the new user
-    await page.locator('tr.item', { hasText: username }).locator('td[aria-label="Edit User"] .clickable').click();
+    await editUserTrigger(userRowInSettingsUsersTable(page, username)).click();
 
     // Now on the edit page, toggle the settings
     await expect(page.locator('div[aria-label="user-edit-prompt"]')).toBeVisible();
@@ -76,7 +86,7 @@ test("create, check settings, and delete user (retry-safe name)", async ({
     await expect(modal).not.toBeVisible();
 
     // Re-open the modal to check the settings
-    await page.locator('tr.item', { hasText: username }).locator('td[aria-label="Edit User"] .clickable').click();
+    await editUserTrigger(userRowInSettingsUsersTable(page, username)).click();
     await expect(page.locator('div[aria-label="user-edit-prompt"]')).toBeVisible();
 
     for (const settingName of settingsToToggle) {
@@ -92,7 +102,7 @@ test("create, check settings, and delete user (retry-safe name)", async ({
     await confirmActorPasswordPrompt(page);
 
     // After deletion, we should be back on the settings page.
-    await expect(page.locator('tr.item', { hasText: username })).not.toBeVisible();
+    await expect(userRowInSettingsUsersTable(page, username)).not.toBeVisible();
     // usersApi.create/update/remove try without X-Password first; server returns 401, then the UI retries (201/204/200).
     checkForErrors(0, 3);
 })
@@ -103,8 +113,8 @@ test("two factor auth check", async ({ page, checkForErrors }) => {
     await expect(page).toHaveURL(/\/settings/);
     await page.locator('#users-sidebar').click();
     // click the edit button for testuser
-    const userRow = page.locator('tr.item', { hasText: 'admin' })
-    await userRow.locator('td[aria-label="Edit User"] .clickable').click();
+    const userRow = userRowInSettingsUsersTable(page, "admin");
+    await editUserTrigger(userRow).click();
     await expect(page.locator('div[aria-label="user-edit-prompt"]')).toBeVisible();
 
     const modal = page.locator('div[aria-label="user-edit-prompt"]');
@@ -112,9 +122,7 @@ test("two factor auth check", async ({ page, checkForErrors }) => {
     // Toggle the two factor authentication switch
     const twoFactorCheckbox = modal.locator('.toggle-container:has-text("Two-Factor Authentication") input[type="checkbox"]');
     const twoFactorToggle = modal.locator('.toggle-container:has-text("Two-Factor Authentication") label.switch');
-    // Check if it's currently enabled
-    const isChecked = await twoFactorCheckbox.isChecked();
-    // Toggle it by clicking the label (since checkbox is hidden)
+    // Toggle by clicking the label (checkbox is hidden).
     await twoFactorToggle.click();
     // Verify it changed state
     await expect(twoFactorCheckbox).toBeChecked();
@@ -145,7 +153,7 @@ test.describe("User Settings Persistence", () => {
     });
 
     async function checkTogglePersistence(page: Page, settingName: string) {
-        const userRow = page.locator("tr.item", { hasText: username });
+        const userRow = userRowInSettingsUsersTable(page, username);
         const modal = page.locator('div[aria-label="user-edit-prompt"]');
 
         // --- Open modal and check initial state (should be OFF) ---
@@ -153,8 +161,8 @@ test.describe("User Settings Persistence", () => {
         await expect(userRow).toBeVisible({ timeout: 5000 });
         // Debug: Take a screenshot before clicking
         await page.screenshot({ path: `debug-before-click-${settingName.replace(/\s+/g, '-')}.png` });
-        // Click the edit button - use the clickable div inside the td with aria-label
-        await userRow.locator('td[aria-label="Edit User"] .clickable').click()
+        // Open edit modal (settings table edit control — role button, aria from general.edit).
+        await editUserTrigger(userRow).click();
 
         await expect(modal).toBeVisible();
         const checkbox = modal.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
@@ -168,7 +176,7 @@ test.describe("User Settings Persistence", () => {
         await expect(modal).not.toBeVisible();
 
         // --- Re-open and check persisted state (should be ON) ---
-        await userRow.locator('td[aria-label="Edit User"] .clickable').click();
+        await editUserTrigger(userRow).click();
         await expect(modal).toBeVisible();
         const checkboxOn = modal.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
         await expect(checkboxOn).toBeChecked();
@@ -181,7 +189,7 @@ test.describe("User Settings Persistence", () => {
         await expect(modal).not.toBeVisible();
 
         // --- Re-open and check state is restored (should be OFF) ---
-        await userRow.locator('td[aria-label="Edit User"] .clickable').click();
+        await editUserTrigger(userRow).click();
         await expect(modal).toBeVisible();
         const checkboxOff = modal.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
         await expect(checkboxOff).not.toBeChecked();
@@ -214,8 +222,8 @@ test.describe("User Settings Persistence", () => {
     });
 
     test('should persist "allowed login method" setting', async ({ page, checkForErrors }) => {
-        const userRow = page.locator("tr.item", { hasText: username });
-        await userRow.locator('td[aria-label="Edit User"] .clickable').click();
+        const userRow = userRowInSettingsUsersTable(page, username);
+        await editUserTrigger(userRow).click();
         const modal = page.locator('div[aria-label="user-edit-prompt"]');
         await expect(modal).toBeVisible();
 
