@@ -11,7 +11,9 @@ All notable changes to this project will be documented in this file. For commit 
    - Supports embedded lyrics (ID3v2 USLT, flac, ogg, clyr) and sidecar `.lrc` files with the same name as the audio file.
    - The `Q` shortcut in audio files will toggle the new panel visibility.
    - `E` shortcut to change between tabs of the panel if it's open.
- - Add config option to disable /health endpoint logging (#2291)
+ - Api log filtering support via `apiFilter` option for logging.
+   - regex filter that excludes matching full api paths from being logged. (eg. '/user\?id\=self') Defaults to '^/health|^/favicon.ico|^/static|^/public/static'
+   - Add config option to disable /health endpoint logging (#2291)
  - More shortcuts (#2300)
    - `CTRL+F1` switch to normal view.
    - `CTRL+F2` switch to gallery view.
@@ -23,6 +25,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Enhanced indexing scheduler which doesn't wake the disk as often.
  - New API route `media/lyrics` used to fetch and parse lyrics (embedded or from `.lrc` sidecar) (#2360)
  - Swiping down gesture in fullscreen videos exit fullscreen instead of close preview.
+ - Improved styles for path selection and tables
 
  **BugFixes**:
  - Blue overlay when using gestures in video files on mobile (#2360)
