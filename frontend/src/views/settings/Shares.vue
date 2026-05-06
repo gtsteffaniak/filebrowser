@@ -6,12 +6,12 @@
 
   <div class="card-content full">
     <settings-table
-      v-if="!loading"
       :columns="sharesTableColumns"
       :items="links"
       item-key="hash"
       default-sort-key="path"
       :aria-label="$t('settings.shareManagement')"
+      :loading="loading"
     >
       <template #cell-path="{ row }">
         <a :href="buildLink(row)" target="_blank" rel="noopener noreferrer">{{ row.path }}</a>
@@ -71,7 +71,7 @@
 <script>
 import { notify } from "@/notify";
 import { shareApi } from "@/api";
-import { state, mutations, getters } from "@/store";
+import { state, mutations } from "@/store";
 import Errors from "@/views/Errors.vue";
 import SettingsTable from "@/components/settings/Table.vue";
 import { fromNow } from '@/utils/moment';
@@ -90,6 +90,8 @@ export default {
       error: null,
       /** @type {any[]} */
       links: [],
+      /** Local fetch state; avoids global Settings overlay spinner (table shows its own). */
+      loading: true,
     };
   },
   async created() {
@@ -112,9 +114,6 @@ export default {
     },
     user() {
       return state.user;
-    },
-    loading() {
-      return getters.isLoading();
     },
     sharesTableColumns() {
       return [
@@ -163,7 +162,7 @@ export default {
       await copyToClipboard(text);
     },
     async reloadShares() {
-      mutations.setLoading("shares", true);
+      this.loading = true;
       try {
         let links = await shareApi.list();
         if (links.length === 0) {
@@ -176,7 +175,7 @@ export default {
         this.error = e;
         console.error(e);
       } finally {
-        mutations.setLoading("shares", false);
+        this.loading = false;
       }
     },
     editLink(item) {

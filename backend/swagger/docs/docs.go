@@ -6864,7 +6864,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "sourceName": {
-                    "description": "Source identifier for source-type links",
+                    "description": "Bolt: filesystem path. JSON out: display name (after prepForFrontend).",
                     "type": "string"
                 },
                 "target": {
@@ -6888,9 +6888,11 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "name": {
+                    "description": "Bolt: filesystem path; JSON API: display name after prepForFrontend",
                     "type": "string"
                 },
                 "scope": {
+                    "description": "index path within that source",
                     "type": "string"
                 }
             }
@@ -7030,6 +7032,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "scopes": {
+                    "description": "Bolt / in-process: Name = source path. JSON out: display name (prepForFrontend).",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/users.SourceScope"

@@ -2,17 +2,14 @@
   <div class="size-viewer">
     <div class="card size-viewer-config padding-normal">
       <div class="card-content">
-        <h3>{{ $t('general.source') }}</h3>
-        <select v-model="selectedSource" class="input">
-          <option v-for="(info, name) in sourceInfo" :key="name" :value="name">
-            {{ name }}
-          </option>
-        </select>
-
-        <h3>{{ $t('general.path') }}</h3>
-        <div aria-label="size-viewer-path" class="searchContext clickable button" @click="openPathPicker">
-          {{ $t('general.path', { suffix: ':' }) }} {{ searchPath }}
-        </div>
+        <PathPickerButton
+          v-model:path="searchPath"
+          v-model:source="selectedSource"
+          aria-label="size-viewer-path"
+          :show-files="false"
+          :show-folders="true"
+          :placeholder="$t('sidebar.chooseSource')"
+        />
 
         <h3>{{ $t('fileSizeAnalyzer.largerThan') }}</h3>
         <input aria-label="Larger than size input" v-model.number="largerThanValue" type="number" min="0" placeholder="100" class="input" />
@@ -166,13 +163,15 @@ import { toolsApi } from "@/api";
 import { state, mutations } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { getTypeInfo } from "@/utils/mimetype";
+import { globalVars } from "@/utils/constants";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
-import { eventBus } from "@/store/eventBus";
+import PathPickerButton from "@/components/files/PathPickerButton.vue";
 
 export default {
   name: "SizeViewer",
   components: {
     ToggleSwitch,
+    PathPickerButton,
   },
   props: {
     path: {
@@ -211,9 +210,6 @@ export default {
     };
   },
   computed: {
-    sourceInfo() {
-      return state.sources.info || {};
-    },
     sortedResults() {
       // Sort by size descending for better treemap layout
       return [...this.results].sort((a, b) => b.size - a.size);
@@ -264,15 +260,12 @@ export default {
     if (!this.selectedSource) {
       if (state.sources.current) {
         this.selectedSource = state.sources.current;
-      } else if (Object.keys(this.sourceInfo).length > 0) {
-        this.selectedSource = Object.keys(this.sourceInfo)[0];
+      } else if (Object.keys(state.sources.info || {}).length > 0) {
+        this.selectedSource = Object.keys(state.sources.info)[0];
       }
     }
     // Mark initialization as complete and sync URL
     this.isInitializing = false;
-
-    // Listen for path selection from FileList picker
-    eventBus.on('pathSelected', this.handlePathSelected);
   },
   beforeUnmount() {
     // Clean up touch hold timer
@@ -285,31 +278,8 @@ export default {
       clearTimeout(this.tooltipHoverTimer);
       this.tooltipHoverTimer = null;
     }
-    // Clean up event listener
-    eventBus.off('pathSelected', this.handlePathSelected);
   },
   methods: {
-    openPathPicker() {
-      // Open FileList picker to select path and source
-      mutations.showPrompt({
-        name: "pathPicker",
-        props: {
-          currentPath: this.searchPath,
-          currentSource: this.selectedSource,
-        }
-      });
-    },
-    handlePathSelected(data) {
-      // Handle path selection from FileList picker
-      if (data && data.path !== undefined) {
-        this.searchPath = data.path;
-      }
-      if (data && data.source !== undefined) {
-        this.selectedSource = data.source;
-      }
-      // Close the picker
-      mutations.closeTopPrompt();
-    },
     async fetchData() {
       this.loading = true;
       this.error = null;

@@ -15,12 +15,12 @@
       </p>
     </template>
     <settings-table
-      v-if="!loading"
       :columns="apiTableColumns"
       :items="links"
       item-key="name"
       default-sort-key="name"
       :aria-label="$t('api.title')"
+      :loading="loading"
     >
         <template #cell-issuedAt="{ row }">{{ formatTime(row.issuedAt) }}</template>
         <template #cell-expiresAt="{ row }">{{ formatTime(row.expiresAt) }}</template>
@@ -57,7 +57,7 @@
 
 <script>
 import { authApi } from "@/api";
-import { state, mutations, getters } from "@/store";
+import { state, mutations } from "@/store";
 import { copyToClipboard } from "@/utils/clipboard";
 import Errors from "@/views/Errors.vue";
 import SettingsTable from "@/components/settings/Table.vue";
@@ -76,6 +76,8 @@ export default {
       user: {
         permissions: { ...state.user.permissions}
       },
+      /** Local fetch state; avoids global Settings overlay spinner (table shows its own). */
+      loading: true,
     };
   },
   async created() {
@@ -95,9 +97,6 @@ export default {
     },
     active() {
       return state.activeSettingsView === "shares-main";
-    },
-    loading() {
-      return getters.isLoading();
     },
     apiTableColumns() {
       return [
@@ -131,7 +130,7 @@ export default {
       await copyToClipboard(text);
     },
     async reloadApiKeys() {
-      mutations.setLoading("api", true);
+      this.loading = true;
       try {
         // Fetch the API keys from the specified endpoint
         this.links = await authApi.getApiKeys();
@@ -142,7 +141,7 @@ export default {
           this.error = e;
         }
       } finally {
-        mutations.setLoading("api", false);
+        this.loading = false;
       }
     },
     showResult(value) {
