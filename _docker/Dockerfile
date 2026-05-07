@@ -26,6 +26,7 @@ RUN go build -tags mupdf,musl -ldflags="-w -s \
 RUN upx filebrowser
 
 FROM alpine:latest
+ARG CONFIG_FILE=config.yaml
 COPY --from=ffmpeg [ "/ffmpeg", "/ffprobe", "/usr/local/bin/" ]
 ENV FILEBROWSER_FFMPEG_PATH="/usr/local/bin/"
 ENV FILEBROWSER_DATABASE="/home/filebrowser/data/database.db"
@@ -35,8 +36,8 @@ RUN adduser -D -s /bin/true -u 1000 filebrowser
 USER filebrowser
 WORKDIR /home/filebrowser
 COPY --from=base --chown=filebrowser:1000 [ "/app/filebrowser", "./" ]
-COPY --from=base --chown=filebrowser:1000 [ "/app/config.yaml", "./data/config.yaml" ]
-COPY --from=base --chown=filebrowser:1000 [ "/app/config.yaml", "./" ]
+COPY --from=base --chown=filebrowser:1000 [ "/app/${CONFIG_FILE}", "./data/config.yaml" ]
+COPY --from=base --chown=filebrowser:1000 [ "/app/${CONFIG_FILE}", "./config.yaml" ]
 COPY --from=base --chown=filebrowser:1000 [ "/app/reduce-rounded-corners.css", "./" ]
 COPY --from=nbuild --chown=filebrowser:1000 [ "/app/dist/", "./http/dist/" ]
 ## sanity checks

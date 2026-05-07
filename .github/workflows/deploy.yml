@@ -47,7 +47,7 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker build -t $REGISTRY/$IMAGE:$ENV -f _docker/Dockerfile .
+          docker build -t $REGISTRY/$IMAGE:$ENV -f _docker/Dockerfile --build-arg CONFIG_FILE=$CONFIG_FILE .
           docker push $REGISTRY/$IMAGE:$ENV
 
       - name: Deploy to Container App
