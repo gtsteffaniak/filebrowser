@@ -749,6 +749,8 @@
     "pause": "暂停{suffix}",
     "resume": "简历{suffix}",
     "retry": "重试{suffix}",
+    "pin": "置顶{suffix}",
+    "unpin": "取消置顶{suffix}",
     "disable": "禁用{suffix}",
     "confirm": "确认{suffix}",
     "stay": "停留{suffix}",

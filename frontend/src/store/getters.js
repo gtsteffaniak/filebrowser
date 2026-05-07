@@ -9,6 +9,13 @@ import { tools } from '@/utils/constants'
 import * as i18n from '@/i18n'
 
 export const getters = {
+  displayPreferenceFor: (source, path) => {
+    const sourceKey = getters.isShare() ? getters.currentHash() : source;
+    if (!sourceKey || !path) {
+      return null;
+    }
+    return state.displayPreferences?.[sourceKey]?.[path] || null;
+  },
   eventTheme: () => {
     if (getters.isShare()) {
       return "";
@@ -61,10 +68,19 @@ export const getters = {
       path = path.substring(0, path.lastIndexOf("/") + 1) || "/";
     }
   
-    if (state.displayPreferences?.[source]?.[path]) {
-      return state.displayPreferences[source][path];
+    return getters.displayPreferenceFor(source, path);
+  },
+  pinnedPathsFor: (source, path) => {
+    const pinnedPaths = getters.displayPreferenceFor(source, path)?.pinnedPaths;
+    return Array.isArray(pinnedPaths) ? pinnedPaths : [];
+  },
+  isItemPinned: (item) => {
+    if (!item?.path) {
+      return false;
     }
-    return null;
+    const directoryPath = url.removeLastDir(item.path) || "/";
+    const source = getters.isShare() ? getters.currentHash() : (item.source || state.req?.source);
+    return getters.pinnedPathsFor(source, directoryPath).includes(item.path);
   },
   viewMode: () => {
     if (!state.user || state.user?.username == "") {

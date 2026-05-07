@@ -9,6 +9,57 @@ import { url } from "@/utils";
 import { getTypeInfo } from "@/utils/mimetype";
 import { resourcesApi } from "@/api";
 
+function normalizeDirectoryPath(path) {
+  if (!path || path === "/") {
+    return "/";
+  }
+  const normalized = url.removeLastDir(path);
+  return normalized && normalized !== "" ? normalized : "/";
+}
+
+function getPreferenceSourceKey(source) {
+  if (getters.isShare()) {
+    return getters.currentHash();
+  }
+  return source || state.sources.current || state.req?.source || "";
+}
+
+function ensurePreferenceEntry(sourceKey, path) {
+  if (!sourceKey || !path) {
+    return null;
+  }
+  if (!state.displayPreferences) {
+    state.displayPreferences = {};
+  }
+  if (!state.displayPreferences[sourceKey]) {
+    state.displayPreferences[sourceKey] = {};
+  }
+  if (!state.displayPreferences[sourceKey][path]) {
+    state.displayPreferences[sourceKey][path] = {};
+  }
+  return state.displayPreferences[sourceKey][path];
+}
+
+function getPreferenceEntry(sourceKey, path) {
+  return state.displayPreferences?.[sourceKey]?.[path] || null;
+}
+
+function persistDisplayPreferences() {
+  const username = state.user?.username;
+  if (!username) {
+    return;
+  }
+  const allPreferences = JSON.parse(localStorage.getItem("displayPreferences") || "{}");
+  allPreferences[username] = state.displayPreferences;
+  localStorage.setItem("displayPreferences", JSON.stringify(allPreferences));
+}
+
+function getPinnedPathsForContext(source, path) {
+  const sourceKey = getPreferenceSourceKey(source);
+  const preference = getPreferenceEntry(sourceKey, path || "/");
+  return Array.isArray(preference?.pinnedPaths) ? preference.pinnedPaths : [];
+}
+
 export const mutations = {
   disableEventThemes: () => {
     if (state.disableEventThemes) {
@@ -523,7 +574,7 @@ export const mutations = {
       // Clear current selection first
       mutations.resetSelected();
       // Add all items from current directory to selection by their indices
-      state.req.items.forEach((item, index) => {
+      state.req.items.forEach((_, index) => {
         mutations.addSelected(index);
       });
       if (options.multiple) {
@@ -620,13 +671,14 @@ export const mutations = {
     const sorting = getters.sorting();
     sortby = sorting.by;
     asc = sorting.asc;
+    const pinnedPaths = getPinnedPathsForContext(value.source, value.path || state.route.path || "/");
     // Separate directories and files
     const dirs = value.items.filter((item) => item.type === 'directory');
     const files = value.items.filter((item) => item.type !== 'directory');
 
     // Sort them separately
-    const sortedDirs = sortedItems(dirs, sortby, asc);
-    const sortedFiles = sortedItems(files, sortby, asc);
+    const sortedDirs = sortedItems(dirs, sortby, asc, pinnedPaths);
+    const sortedFiles = sortedItems(files, sortby, asc, pinnedPaths);
 
     // Combine them and assign indices
     value.items = [...sortedDirs, ...sortedFiles];
@@ -816,6 +868,45 @@ export const mutations = {
     }
     emitStateChanged();
   },
+  togglePinnedItem: (item) => {
+    if (!item?.path) {
+      return;
+    }
+
+    const directoryPath = normalizeDirectoryPath(item.path);
+    const sourceKey = getPreferenceSourceKey(item.source || state.req?.source);
+    const preference = ensurePreferenceEntry(sourceKey, directoryPath);
+
+    if (!preference) {
+      return;
+    }
+
+    const pinnedPaths = Array.isArray(preference.pinnedPaths) ? [...preference.pinnedPaths] : [];
+    const existingIndex = pinnedPaths.indexOf(item.path);
+
+    if (existingIndex >= 0) {
+      pinnedPaths.splice(existingIndex, 1);
+    } else {
+      pinnedPaths.push(item.path);
+    }
+
+    preference.pinnedPaths = pinnedPaths;
+    persistDisplayPreferences();
+
+    const currentDirectoryPath = state.req?.type === "directory" ? state.req.path : normalizeDirectoryPath(state.req?.path);
+    const currentSourceKey = getPreferenceSourceKey(state.req?.source);
+
+    if (
+      getters.currentView() === "listingView" &&
+      currentDirectoryPath === directoryPath &&
+      currentSourceKey === sourceKey
+    ) {
+      mutations.updateListingItems();
+      return;
+    }
+
+    emitStateChanged();
+  },
   setNavigationEnabled: (enabled) => {
     if (state.navigation.enabled === enabled) {
       return;
@@ -847,7 +938,8 @@ export const mutations = {
 
     // Sort listing according to sorting preferences
     const sorting = getters.sorting();
-    listing = sortedItems(listing, sorting.by, sorting.asc);
+    const pinnedPaths = getPinnedPathsForContext(currentItem?.source || state.req?.source, directoryPath);
+    listing = sortedItems(listing, sorting.by, sorting.asc, pinnedPaths);
 
     // Find current item index in the listing
     for (let i = 0; i < listing.length; i++) {
