@@ -104,6 +104,8 @@
     "pause": "Pause{suffix}",
     "resume": "Resume{suffix}",
     "retry": "Retry{suffix}",
+    "pin": "Pin{suffix}",
+    "unpin": "Unpin{suffix}",
     "disable": "Disable{suffix}",
     "confirm": "Confirm{suffix}",
     "uploading": "Uploading{suffix}",

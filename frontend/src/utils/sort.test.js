@@ -138,4 +138,21 @@ describe('testSort', () => {
     expect(result[3]).toEqual({ name: "video2.mp4", metadata: { duration: 240.75 } });
   });
 
+  it('keeps pinned items at the top while preserving sort order among them', () => {
+    const input = [
+      { name: "beta.txt", path: "/beta.txt" },
+      { name: "delta.txt", path: "/delta.txt" },
+      { name: "alpha.txt", path: "/alpha.txt" },
+      { name: "gamma.txt", path: "/gamma.txt" },
+    ];
+    const expected = [
+      { name: "alpha.txt", path: "/alpha.txt" },
+      { name: "delta.txt", path: "/delta.txt" },
+      { name: "beta.txt", path: "/beta.txt" },
+      { name: "gamma.txt", path: "/gamma.txt" },
+    ];
+
+    expect(sortedItems(input, "name", true, ["/delta.txt", "/alpha.txt"])).toEqual(expected);
+  });
+
 });

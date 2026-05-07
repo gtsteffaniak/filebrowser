@@ -102,6 +102,12 @@
         @action="showRenamePrompt"
       />
       <action
+        v-if="showPinAction"
+        icon="push_pin"
+        :label="pinActionLabel"
+        @action="togglePin"
+      />
+      <action
         v-if="showCopy"
         icon="file_copy"
         :label="$t('buttons.copyFile')"
@@ -326,6 +332,21 @@ export default {
     showRename() {
       if (this.showLimitedOptions) return false;
       return !this.showCreate && this.selectedCount === 1 && this.permissions.modify && !this.isSearchActive;
+    },
+    showPinAction() {
+      if (this.showLimitedOptions) return false;
+      if (this.showCreate || this.isSearchActive) return false;
+      if (this.selectedCount !== 1) return false;
+      return getters.currentView() === "listingView";
+    },
+    pinActionLabel() {
+      return this.isPinnedSelection ? this.$t("general.unpin") : this.$t("general.pin");
+    },
+    isPinnedSelection() {
+      if (!this.firstSelected) {
+        return false;
+      }
+      return getters.isItemPinned(this.firstSelected);
     },
     showCopy() {
       if (this.showLimitedOptions) return false;
@@ -702,6 +723,10 @@ export default {
           operation: 'copy',
         },
       });
+    },
+    togglePin() {
+      mutations.closeHovers();
+      mutations.togglePinnedItem(this.firstSelected);
     },
     async copyPathToClipboard() {
       const item = this.firstSelected;
