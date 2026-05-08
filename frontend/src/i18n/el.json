@@ -561,6 +561,8 @@
     "audio": "Ήχος{suffix}",
     "and": "και",
     "or": "ή",
+    "pin": "Pin{suffix}",
+    "unpin": "Unpin{suffix}",
     "readOnly": "Μόνο για ανάγνωση{suffix}",
     "private": "Ιδιωτικό{suffix}",
     "yes": "Ναι{suffix}",

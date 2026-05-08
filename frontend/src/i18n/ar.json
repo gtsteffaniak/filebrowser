@@ -561,6 +561,8 @@
     "audio": "الصوت{suffix}",
     "and": "و",
     "or": "أو",
+    "pin": "Pin{suffix}",
+    "unpin": "Unpin{suffix}",
     "readOnly": "للقراءة فقط{suffix}",
     "private": "خاص{suffix}",
     "yes": "نعم{suffix}",

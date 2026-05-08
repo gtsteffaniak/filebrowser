@@ -115,7 +115,9 @@
     "readOnly": "Alleen-lezen{suffix}",
     "private": "Privé{suffix}",
     "yes": "Ja{suffix}",
-    "no": "Geen{suffix}"
+    "no": "Geen{suffix}",
+    "pin": "Pin{suffix}",
+    "unpin": "Unpin{suffix}"
   },
   "buttons": {
     "copySuccess": "Gekopieerd naar klembord!",

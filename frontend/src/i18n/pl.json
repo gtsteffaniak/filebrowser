@@ -561,6 +561,8 @@
     "audio": "Audio{suffix}",
     "and": "oraz",
     "or": "lub",
+    "pin": "Pin{suffix}",
+    "unpin": "Unpin{suffix}",
     "readOnly": "Tylko do odczytu{suffix}",
     "private": "Prywatny{suffix}",
     "yes": "Tak{suffix}",

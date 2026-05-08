@@ -561,6 +561,8 @@
     "audio": "Ses{suffix}",
     "and": "ve",
     "or": "veya",
+    "pin": "Pin{suffix}",
+    "unpin": "Unpin{suffix}",
     "readOnly": "Salt okunur{suffix}",
     "private": "Özel{suffix}",
     "yes": "Evet{suffix}",

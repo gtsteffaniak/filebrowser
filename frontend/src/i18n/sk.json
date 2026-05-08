@@ -561,6 +561,8 @@
     "audio": "Audio{suffix}",
     "and": "a",
     "or": "alebo",
+    "pin": "Pin{suffix}",
+    "unpin": "Unpin{suffix}",
     "readOnly": "Len na čítanie{suffix}",
     "private": "Súkromná stránka{suffix}",
     "yes": "Áno{suffix}",

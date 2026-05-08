@@ -561,6 +561,8 @@
     "audio": "Аудио{suffix}",
     "and": "и",
     "or": "или",
+    "pin": "Pin{suffix}",
+    "unpin": "Unpin{suffix}",
     "readOnly": "Только для чтения{suffix}",
     "private": "Частный{suffix}",
     "yes": "Да{suffix}",

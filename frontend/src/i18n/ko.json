@@ -561,6 +561,8 @@
     "audio": "오디오{suffix}",
     "and": "그리고",
     "or": "또는",
+    "pin": "Pin{suffix}",
+    "unpin": "Unpin{suffix}",
     "readOnly": "읽기 전용{suffix}",
     "private": "비공개{suffix}",
     "yes": "예{suffix}",

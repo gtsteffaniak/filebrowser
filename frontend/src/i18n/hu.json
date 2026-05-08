@@ -561,6 +561,8 @@
     "audio": "Audio{suffix}",
     "and": "és",
     "or": "vagy",
+    "pin": "Pin{suffix}",
+    "unpin": "Unpin{suffix}",
     "readOnly": "Csak olvasható{suffix}",
     "private": "Privát{suffix}",
     "yes": "Igen{suffix}",
