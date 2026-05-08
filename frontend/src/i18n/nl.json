@@ -129,7 +129,9 @@
     "watching": "Bekijken{suffix}",
     "lines": "Regels{suffix}",
     "lastUpdate": "Laatste update{suffix}",
-    "latency": "Vertraging{suffix}"
+    "latency": "Vertraging{suffix}",
+    "and": "en",
+    "or": "of"
   },
   "buttons": {
     "copySuccess": "Gekopieerd naar klembord!",
@@ -283,7 +285,6 @@
     "passwordsDontMatch": "Wachtwoorden komen niet overeen",
     "usernameTaken": "Gebruikersnaam al in gebruik",
     "wrongCredentials": "Verkeerde inloggegevens",
-    "or": "OF",
     "inProgress": "Inloggen...",
     "failedLogin": "Inloggen is mislukt",
     "invalidCredentials": "Ongeldige inloggegevens verstrekt"
@@ -474,10 +475,11 @@
     "newerThanDate": "Nieuwer dan:",
     "showPreviewImages": "Voorbeeldafbeeldingen tonen",
     "showPreviewImagesDescription": "Toon, indien beschikbaar, miniatuurvoorbeelden voor zoekresultaten en toon grotere pictogrammen voor alle resultaten.",
-    "useWildcardSearch": "Zoeken met jokertekens",
     "helpText1": "Er wordt gezocht op elk teken dat je typt (minimaal{minSearchLength} tekens).",
-    "useWildcardSearchDescription": "Ondersteunde jokertekens:\n\n- Overeenstemming met elke reeks: *\n\n- Overeenstemming met één teken: ?\n\n- Tekenklasse: [a-z], [0-9]\n\n- Negatie: [^0-9]\n\n- Letterlijke *, ?, of [ moeten tussen haakjes staan, bijv. [*], [?], [[]",
-    "helpText2": "Substring match alleen op bestands- of mapnamen (geen volledige paden). case:exact voor hoofdlettergevoelig matchen\n\n voor OR tussen termen gebruik je het teken pipe; dubbele aanhalingstekens voor één zin.\n\nSchakel wildcard zoeken in voor meer geavanceerde opties."
+    "helpText2": "Substring match alleen op bestands- of mapnamen (geen volledige paden). case:exact voor hoofdlettergevoelig matchen\n\n voor OR tussen termen gebruik je het teken pipe; dubbele aanhalingstekens voor één zin.\n\nSchakel wildcard zoeken in voor meer geavanceerde opties.",
+    "useWildcardSearch": "Zoeken met jokertekens (hoofdlettergevoelig)",
+    "useWildcardSearchDescription": "Ondersteunde jokertekenopties:\n\n- Overeenstemming met een willekeurige reeks: *\n\n- Overeenstemming met één teken: ?\n\n- Tekenklasse: [a-z], [0-9]\n\n- Negatie: [^0-9]\n\n- Letterlijke *, ?, of [ moeten tussen haakjes staan, bijv. [*], [?], [[]\n\n- Alle resultaten zijn hoofdlettergevoelig",
+    "openInAdvancedSearch": "Openen in geavanceerd zoeken"
   },
   "profileSettings": {
     "preferEditorForMarkdown": "Geef de voorkeur aan editor voor Markdown-bestanden",
@@ -884,7 +886,21 @@
       "chooseFile": "Kies een bestand"
     },
     "toolNotFound": "Gereedschap niet gevonden",
-    "backToTools": "Terug naar Gereedschap"
+    "backToTools": "Terug naar Gereedschap",
+    "advancedSearch": {
+      "name": "Geavanceerd zoeken",
+      "description": "Zoek in de index met volledige controle over bronnen, filters en opties",
+      "searchTerms": "Zoektermen",
+      "matchAllTerms": "Alle termen matchen",
+      "matchAllTermsDescription": "Indien ingeschakeld, moeten alle zoektermen worden gevonden voor elk bestand",
+      "scopeAria": "Zoekopdracht beperken tot een map",
+      "noTerms": "Voer ten minste één zoekterm in.",
+      "termTooShort": "Elke zoekterm moet minimaal {minSearchLength} tekens bevatten.",
+      "caseExact": "Hoofdlettergevoelige match",
+      "resultsTitle": "Zoekresultaten",
+      "invalidSources": "Zet minstens één bron aan.",
+      "noResults": "Geen overeenkomende bestanden of mappen."
+    }
   },
   "notifications": {
     "title": "Meldingen",

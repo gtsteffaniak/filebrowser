@@ -117,7 +117,6 @@ export default {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-top: 1em;
     background: var(--alt-background) !important;
     color: var(--textPrimary) !important;
     padding: 0.5em;

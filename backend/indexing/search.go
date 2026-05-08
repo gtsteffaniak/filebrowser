@@ -28,36 +28,43 @@ type SearchResult struct {
 	Source     string `json:"source"`
 }
 
+// Search parses query and delegates to SearchParsed (legacy / tests).
 func (idx *Index) Search(search string, scope string, sourceSession string, largest bool, limit int, olderThanUnix, newerThanUnix int64, useWildcard bool) []*SearchResult {
-	// Ensure scope has consistent trailing slash for directory matching
+	return idx.SearchParsed(iteminfo.ParseSearch(search), scope, sourceSession, largest, limit, olderThanUnix, newerThanUnix, useWildcard)
+}
+
+// SearchParsed runs indexing search using pre-built options (e.g. repeated HTTP term parameters plus filter prefix).
+func (idx *Index) SearchParsed(baseOpts iteminfo.SearchOptions, scope string, sourceSession string, largest bool, limit int, olderThanUnix, newerThanUnix int64, useWildcard bool) []*SearchResult {
 	scope = utils.AddTrailingSlashIfNotExists(scope)
 
 	runningHash := utils.InsecureRandomIdentifier(4)
-	sessionInProgress.Store(sourceSession, runningHash) // Store the value in the sync.Map
-	searchOptions := iteminfo.ParseSearch(search)
+	sessionInProgress.Store(sourceSession, runningHash)
+
+	searchOptions := baseOpts
 	if olderThanUnix > 0 {
 		searchOptions.ModifiedOlderThan = olderThanUnix
 	}
 	if newerThanUnix > 0 {
 		searchOptions.ModifiedNewerThan = newerThanUnix
 	}
-	results := make(map[string]*SearchResult, 0)
+
+	results := make(map[string]*SearchResult)
 	count := 0
 
-	// When largest=true and no search terms, ensure we run at least once
 	if largest && len(searchOptions.Terms) == 0 {
 		searchOptions.Terms = []string{""}
 	}
 
 	nameGlobPatterns := nameGlobPatternsForSearch(searchOptions, useWildcard, largest)
+	globAnd := useWildcard && searchOptions.MatchAllTerms
 
-	rows, err := idx.db.SearchItems(idx.Name, scope, largest, nameGlobPatterns)
+	rows, err := idx.db.SearchItems(idx.Name, scope, largest, nameGlobPatterns, globAnd)
 	if err != nil {
 		return []*SearchResult{}
 	}
 	defer rows.Close()
+
 	for rows.Next() {
-		// Check for cancellation
 		value, found := sessionInProgress.Load(sourceSession)
 		if !found || value != runningHash {
 			return []*SearchResult{}
@@ -80,7 +87,6 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 			continue
 		}
 
-		// Create ItemInfo for matching
 		item := iteminfo.ItemInfo{
 			Name:       name,
 			Size:       size,
@@ -89,32 +95,7 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 			HasPreview: hasPreview,
 		}
 
-		var matches bool
-		if largest {
-			largerThan := int64(searchOptions.LargerThan) * 1024 * 1024
-			sizeMatches := largerThan == 0 || item.Size > largerThan
-			dirCondition, hasDirCondition := searchOptions.Conditions["dir"]
-			var typeMatches bool
-			if isDir {
-				typeMatches = hasDirCondition && dirCondition
-			} else {
-				typeMatches = !hasDirCondition || (hasDirCondition && !dirCondition)
-			}
-			dateMatches := searchDateMatches(item.ModTime.Unix(), searchOptions)
-			matches = sizeMatches && typeMatches && dateMatches
-		} else if useWildcard && len(nameGlobPatterns) > 0 {
-			matches = item.MatchesSearchAuxiliaryFilters(searchOptions)
-		} else {
-			for _, searchTerm := range searchOptions.Terms {
-				if searchTerm == "" {
-					continue
-				}
-				if item.ContainsSearchTerm(searchTerm, searchOptions) {
-					matches = true
-					break
-				}
-			}
-		}
+		matches := itemMatchesSearchFilters(item, isDir, searchOptions, largest, useWildcard, nameGlobPatterns)
 
 		if matches {
 			resType := mimeType
@@ -134,18 +115,57 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 		}
 	}
 
-	// Sort keys based on the number of elements in the path after splitting by "/"
 	sortedKeys := make([]*SearchResult, 0, len(results))
 	for _, v := range results {
 		sortedKeys = append(sortedKeys, v)
 	}
-	// Sort the strings based on the number of elements after splitting by "/"
 	sort.Slice(sortedKeys, func(i, j int) bool {
 		parts1 := strings.Split(sortedKeys[i].Path, "/")
 		parts2 := strings.Split(sortedKeys[j].Path, "/")
 		return len(parts1) < len(parts2)
 	})
 	return sortedKeys
+}
+
+func itemMatchesSearchFilters(item iteminfo.ItemInfo, isDir bool, searchOptions iteminfo.SearchOptions, largest, useWildcard bool, nameGlobPatterns []string) bool {
+	if largest {
+		largerThan := int64(searchOptions.LargerThan) * 1024 * 1024
+		sizeMatches := largerThan == 0 || item.Size > largerThan
+		dirCondition, hasDirCondition := searchOptions.Conditions["dir"]
+		var typeMatches bool
+		if isDir {
+			typeMatches = hasDirCondition && dirCondition
+		} else {
+			typeMatches = !hasDirCondition || (hasDirCondition && !dirCondition)
+		}
+		dateMatches := searchDateMatches(item.ModTime.Unix(), searchOptions)
+		return sizeMatches && typeMatches && dateMatches
+	}
+	if useWildcard && len(nameGlobPatterns) > 0 {
+		return item.MatchesSearchAuxiliaryFilters(searchOptions)
+	}
+	if searchOptions.MatchAllTerms {
+		sawNonempty := false
+		for _, searchTerm := range searchOptions.Terms {
+			if searchTerm == "" {
+				continue
+			}
+			sawNonempty = true
+			if !item.ContainsSearchTerm(searchTerm, searchOptions) {
+				return false
+			}
+		}
+		return sawNonempty
+	}
+	for _, searchTerm := range searchOptions.Terms {
+		if searchTerm == "" {
+			continue
+		}
+		if item.ContainsSearchTerm(searchTerm, searchOptions) {
+			return true
+		}
+	}
+	return false
 }
 
 // nameGlobPatternsForSearch builds non-empty parsed terms for SQLite name GLOB OR clauses.
@@ -175,23 +195,22 @@ func searchDateMatches(modUnix int64, opts iteminfo.SearchOptions) bool {
 	return true
 }
 
-// SearchMultiSources searches across multiple sources in a single database query.
-// sources is a list of source names to search.
-// sourceScopes is a map from source name to the scope path for that source.
-// sourceSession is used for cancellation tracking.
-// largest and limit work the same as in Search.
+// SearchMultiSources parses query and delegates to SearchMultiSourcesParsed.
 func SearchMultiSources(search string, sources []string, sourceScopes map[string]string, sourceSession string, largest bool, limit int, olderThanUnix, newerThanUnix int64, useWildcard bool) []*SearchResult {
+	return SearchMultiSourcesParsed(iteminfo.ParseSearch(search), sources, sourceScopes, sourceSession, largest, limit, olderThanUnix, newerThanUnix, useWildcard)
+}
+
+// SearchMultiSourcesParsed searches multiple sources using pre-built options.
+func SearchMultiSourcesParsed(baseOpts iteminfo.SearchOptions, sources []string, sourceScopes map[string]string, sourceSession string, largest bool, limit int, olderThanUnix, newerThanUnix int64, useWildcard bool) []*SearchResult {
 	if len(sources) == 0 {
 		return []*SearchResult{}
 	}
 
-	// Get the shared database
 	db := GetIndexDB()
 	if db == nil {
 		return []*SearchResult{}
 	}
 
-	// Ensure all scopes have consistent trailing slash
 	normalizedScopes := make(map[string]string)
 	for source, scope := range sourceScopes {
 		normalizedScopes[source] = utils.AddTrailingSlashIfNotExists(scope)
@@ -199,31 +218,32 @@ func SearchMultiSources(search string, sources []string, sourceScopes map[string
 
 	runningHash := utils.InsecureRandomIdentifier(4)
 	sessionInProgress.Store(sourceSession, runningHash)
-	searchOptions := iteminfo.ParseSearch(search)
+
+	searchOptions := baseOpts
 	if olderThanUnix > 0 {
 		searchOptions.ModifiedOlderThan = olderThanUnix
 	}
 	if newerThanUnix > 0 {
 		searchOptions.ModifiedNewerThan = newerThanUnix
 	}
-	results := make(map[string]*SearchResult, 0)
+
+	results := make(map[string]*SearchResult)
 	count := 0
 
-	// When largest=true and no search terms, ensure we run at least once
 	if largest && len(searchOptions.Terms) == 0 {
 		searchOptions.Terms = []string{""}
 	}
 
 	nameGlobPatterns := nameGlobPatternsForSearch(searchOptions, useWildcard, largest)
+	globAnd := useWildcard && searchOptions.MatchAllTerms
 
-	rows, err := db.SearchItemsMultiSource(sources, normalizedScopes, largest, nameGlobPatterns)
+	rows, err := db.SearchItemsMultiSource(sources, normalizedScopes, largest, nameGlobPatterns, globAnd)
 	if err != nil {
 		return []*SearchResult{}
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		// Check for cancellation
 		value, found := sessionInProgress.Load(sourceSession)
 		if !found || value != runningHash {
 			return []*SearchResult{}
@@ -247,7 +267,6 @@ func SearchMultiSources(search string, sources []string, sourceScopes map[string
 			continue
 		}
 
-		// Create ItemInfo for matching
 		item := iteminfo.ItemInfo{
 			Name:       name,
 			Size:       size,
@@ -256,32 +275,7 @@ func SearchMultiSources(search string, sources []string, sourceScopes map[string
 			HasPreview: hasPreview,
 		}
 
-		var matches bool
-		if largest {
-			largerThan := int64(searchOptions.LargerThan) * 1024 * 1024
-			sizeMatches := largerThan == 0 || item.Size > largerThan
-			dirCondition, hasDirCondition := searchOptions.Conditions["dir"]
-			var typeMatches bool
-			if isDir {
-				typeMatches = hasDirCondition && dirCondition
-			} else {
-				typeMatches = !hasDirCondition || (hasDirCondition && !dirCondition)
-			}
-			dateMatches := searchDateMatches(item.ModTime.Unix(), searchOptions)
-			matches = sizeMatches && typeMatches && dateMatches
-		} else if useWildcard && len(nameGlobPatterns) > 0 {
-			matches = item.MatchesSearchAuxiliaryFilters(searchOptions)
-		} else {
-			for _, searchTerm := range searchOptions.Terms {
-				if searchTerm == "" {
-					continue
-				}
-				if item.ContainsSearchTerm(searchTerm, searchOptions) {
-					matches = true
-					break
-				}
-			}
-		}
+		matches := itemMatchesSearchFilters(item, isDir, searchOptions, largest, useWildcard, nameGlobPatterns)
 
 		if matches {
 			resType := mimeType
@@ -302,12 +296,10 @@ func SearchMultiSources(search string, sources []string, sourceScopes map[string
 		}
 	}
 
-	// Sort keys based on the number of elements in the path after splitting by "/"
 	sortedKeys := make([]*SearchResult, 0, len(results))
 	for _, v := range results {
 		sortedKeys = append(sortedKeys, v)
 	}
-	// Sort the strings based on the number of elements after splitting by "/"
 	sort.Slice(sortedKeys, func(i, j int) bool {
 		parts1 := strings.Split(sortedKeys[i].Path, "/")
 		parts2 := strings.Split(sortedKeys[j].Path, "/")
