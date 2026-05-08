@@ -30,6 +30,7 @@ All notable changes to this project will be documented in this file. For commit 
  **BugFixes**:
  - Blue overlay when using gestures in video files on mobile (#2360)
  - Playback queue wasn't updating when changing of folder (#2360)
+ - Added missing `UserDefaults.ShowCopyPath` option to config file (#2364)
 
 ## v1.3.9
 
