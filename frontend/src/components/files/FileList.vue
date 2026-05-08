@@ -528,7 +528,12 @@ export default {
         if (hideExt && shouldHideFile(item.name, hideExt)) return false;
         return true;
       });
-    }
+    },
+    navigateToItem(item) {
+      mutations.closeTopPrompt();
+      mutations.setNavigationTransitioning(true);
+      url.goToItem(item.source || state.req.source, item.path, undefined);
+    },
   },
 };
 </script>
