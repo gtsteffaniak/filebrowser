@@ -6112,6 +6112,10 @@ const docTemplate = `{
                     "description": "show icon to download in one click",
                     "type": "boolean"
                 },
+                "showCopyPath": {
+                    "description": "show copy path button in the context menu",
+                    "type": "boolean"
+                },
                 "showHidden": {
                     "description": "show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files",
                     "type": "boolean"

@@ -372,4 +372,5 @@ type UserDefaults struct {
 	ShowSelectMultiple         bool                    `json:"showSelectMultiple"`         // show select multiple files on desktop
 	DebugOffice                bool                    `json:"debugOffice"`                // debug onlyoffice editor
 	PreferEditorForMarkdown    bool                    `json:"preferEditorForMarkdown"`    // prefer editor first for markdown files instead of the Markdown Viewer.
+	ShowCopyPath               bool                    `json:"showCopyPath"`               // show copy path button in the context menu
 }

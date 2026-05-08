@@ -99,6 +99,7 @@ func ApplyUserDefaults(u *users.User) {
 	u.DeleteWithoutConfirming = d.DeleteWithoutConfirming
 	u.DeleteAfterArchive = d.DeleteAfterArchive
 	u.PreferEditorForMarkdown = d.PreferEditorForMarkdown
+	u.ShowCopyPath = d.ShowCopyPath
 	u.FileLoading = d.FileLoading
 
 	u.Permissions.Api = d.Permissions.Api
