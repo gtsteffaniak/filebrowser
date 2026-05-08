@@ -480,6 +480,8 @@
     "helpText2": "Substring match on file or folder names only (not full paths). case:exact for case-sensitive matching\n\n for OR between terms use pipe character; double quotes for one phrase.\n\nEnable wildcard search for more advanced options."
   },
   "profileSettings": {
+    "hideFileExt": "Hide certain files (by extension)",
+    "hideFileExtDescription": "A space-separated list of file extensions. Extensions in this field will be hidden from all the UI (visually, like the listing or FileTree) -- The files still accessible.",
     "preferEditorForMarkdown": "Prefer editor first for Markdown files",
     "preferEditorForMarkdownDescription": "When enabled, open markdown files in the editor first instead of the Markdown Viewer.",
     "deleteAfterArchive": "Delete source files after creation/extraction of archives",

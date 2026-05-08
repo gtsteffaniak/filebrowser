@@ -480,6 +480,8 @@
     "helpText2": "Corrispondenza di sottostringhe solo sui nomi di file o cartelle (non sui percorsi completi). case:exact per una corrispondenza sensibile alle maiuscole e alle minuscole.\n\n per OR tra termini usare il carattere pipe; doppi apici per una frase.\n\nAbilitare la ricerca con caratteri jolly per opzioni più avanzate."
   },
   "profileSettings": {
+    "hideFileExt": "Nascondere determinati file (per estensione)",
+    "hideFileExtDescription": "Un elenco di estensioni di file separate da spazi. Le estensioni inserite in questo campo verranno nascoste da tutta l'interfaccia utente (visivamente, come nell'elenco o nell'albero dei file) — Rimangono comunque accessibili.",
     "preferEditorForMarkdown": "Preferisci editor per file Markdown",
     "preferEditorForMarkdownDescription": "Se abilitato, apre i file markdown nell'editor invece che nel visualizzatore.",
     "deleteAfterArchive": "Elimina sorgenti dopo creazione/estrazione archivio",

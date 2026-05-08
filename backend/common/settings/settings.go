@@ -93,6 +93,7 @@ func ApplyUserDefaults(u *users.User) {
 	u.DisableUpdateNotifications = d.DisableUpdateNotifications
 	u.DisableOfficePreviewExt = d.DisableOfficePreviewExt
 	u.DisableOnlyOfficeExt = d.DisableOnlyOfficeExt
+	u.HideFileExt = d.HideFileExt
 	u.CustomTheme = d.CustomTheme
 	u.ShowSelectMultiple = d.ShowSelectMultiple
 	u.DebugOffice = d.DebugOffice

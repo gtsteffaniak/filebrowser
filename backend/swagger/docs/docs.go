@@ -6078,6 +6078,10 @@ const docTemplate = `{
                     "description": "0-9 - the size of the gallery thumbnails",
                     "type": "integer"
                 },
+                "hideFileExt": {
+                    "description": "space separated list of file extensions to hide in UI",
+                    "type": "string"
+                },
                 "hideFilesInTree": {
                     "description": "hide files in the sidebar tree navigation, when true, will show only directories.",
                     "type": "boolean"
@@ -6977,6 +6981,10 @@ const docTemplate = `{
                 "gallerySize": {
                     "description": "0-9 - the size of the gallery thumbnails",
                     "type": "integer"
+                },
+                "hideFileExt": {
+                    "description": "space separated list of file extensions to hide in UI",
+                    "type": "string"
                 },
                 "hideFilesInTree": {
                     "description": "hide files in the sidebar tree navigation, when true, will show only directories.",

@@ -715,6 +715,7 @@ func setDefaults(generate bool) Settings {
 		UserDefaults: UserDefaults{
 			DeleteAfterArchive:      true,
 			DisableOnlyOfficeExt:    ".md .txt .pdf .html .xml",
+			HideFileExt:             "",
 			StickySidebar:           true,
 			HideFilesInTree:         false,
 			PreferEditorForMarkdown: false,

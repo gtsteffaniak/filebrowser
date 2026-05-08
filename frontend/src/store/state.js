@@ -70,6 +70,7 @@ export const state = reactive({
     disableSettings: false,
     debugOffice: false, // Debug mode for OnlyOffice integration
     preferEditorForMarkdown: false,
+    hideFileExt: "",   // files with certain extensions to hide in UI
     profile: { // Example of additional user properties
       username: '', // Default to an empty string
       email: '', // Default to an empty string

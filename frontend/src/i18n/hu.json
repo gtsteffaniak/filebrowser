@@ -720,6 +720,8 @@
     "orange": "narancs"
   },
   "profileSettings": {
+    "hideFileExt": "Bizonyos fájlok elrejtése (kiterjesztés alapján)",
+    "hideFileExtDescription": "Szóközzel elválasztott fájlkiterjesztések listája. Az ebben a mezőben megadott kiterjesztések elrejtésre kerülnek a teljes felhasználói felületen (vizuálisan, például a listában vagy a fájlfastruktúrában) — továbbra is elérhetők maradnak.",
     "preferEditorForMarkdown": "Szerkesztő előnyben részesítése Markdown fájlokhoz",
     "preferEditorForMarkdownDescription": "Ha engedélyezve van, a Markdown fájlok először a szerkesztőben nyílnak meg a Markdown néző helyett.",
     "deleteAfterArchive": "Forrásfájlok törlése archívumok létrehozása/kibontása után",

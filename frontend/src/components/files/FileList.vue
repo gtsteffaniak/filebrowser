@@ -53,6 +53,7 @@
 <script>
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
+import { shouldHideFile } from "@/utils/files";
 import { resourcesApi } from "@/api";
 import ListingItem from "@/components/files/ListingItem.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
@@ -291,6 +292,7 @@ export default {
       this.withLoading(() => resourcesApi.fetchFilesPublic("/", newHash).then(this.fillOptions));
     },
     fillOptions(req) {
+      const hideExt = state.user?.hideFileExt; 
       // Sets the current path and resets the current items.
       // Use this.path (the path we're browsing) instead of req.path (which may be relative)
       this.current = this.path;
@@ -324,6 +326,7 @@ export default {
         if (!this.showFiles && item.type !== "directory") continue;
         // Filter by file type if specified (only for files, not directories)
         if (item.type !== "directory" && !this.isFileTypeAllowed(item.type)) continue;
+        if (hideExt && item.type !== "directory" && shouldHideFile(item.name, hideExt)) continue;
         this.items.push({
           name: item.name,
           path: item.path,
@@ -517,15 +520,15 @@ export default {
       }
     },
     fillFromList() {
-      // Use the provided fileList, filtering out directories to show only files
       const allItems = this.fileList || [];
-      this.items = allItems.filter(item => !item.isDirectory && item.type !== 'directory');
-    },
-    navigateToItem(item) {
-      mutations.closeTopPrompt();
-      mutations.setNavigationTransitioning(true);
-      url.goToItem(item.source || state.req.source, item.path, undefined);
-    },
+      const hideExt = state.user?.hideFileExt;
+      this.items = allItems.filter(item => {
+        if (item.type === 'directory' || item.isDirectory) return true;
+        // Filter out files hidden based on hideFileExt setting
+        if (hideExt && shouldHideFile(item.name, hideExt)) return false;
+        return true;
+      });
+    }
   },
 };
 </script>

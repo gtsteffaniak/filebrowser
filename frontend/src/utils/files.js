@@ -34,3 +34,10 @@ export function removePrefix(filename, prefix = "") {
   }
   return filename;
 }
+
+// Check if a file should be hidden based on hideFileExt setting
+export function shouldHideFile(filename, hideExt) {
+  if (!hideExt || hideExt.trim() === '') return false;
+  const extensions = hideExt.trim().split(/\s+/);
+  return extensions.some(ext => filename.toLowerCase().endsWith(ext.toLowerCase()));
+}

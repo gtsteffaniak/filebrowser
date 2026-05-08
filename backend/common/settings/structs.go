@@ -356,6 +356,7 @@ type UserDefaults struct {
 	QuickDownload              bool                    `json:"quickDownload"`             // show icon to download in one click
 	DisablePreviewExt          string                  `json:"disablePreviewExt"`         // space separated list of file extensions to disable preview for
 	DisableViewingExt          string                  `json:"disableViewingExt"`         // space separated list of file extensions to disable viewing for
+	HideFileExt                string                  `json:"hideFileExt"`               // space separated list of file extensions to hide in UI
 	LockPassword               bool                    `json:"lockPassword"`              // disable the user from changing their password
 	DisableSettings            bool                    `json:"disableSettings,omitempty"` // disable the user from viewing the settings page
 	Preview                    UserDefaultsPreview     `json:"preview"`

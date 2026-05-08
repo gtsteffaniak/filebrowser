@@ -170,6 +170,7 @@ userDefaults:
   quickDownload: false                    # show icon to download in one click
   disablePreviewExt: ""                   # space separated list of file extensions to disable preview for
   disableViewingExt: ""                   # space separated list of file extensions to disable viewing for
+  hideFileExt: ""                         # space separated list of file extensions to hide in UI
   lockPassword: false                     # disable the user from changing their password
   disableSettings: false                  # disable the user from viewing the settings page
   preview:

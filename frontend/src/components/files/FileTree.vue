@@ -81,6 +81,7 @@ import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import { state, getters, mutations } from '@/store';
 import { eventBus } from '@/store/eventBus';
 import { goToItem, joinPath } from '@/utils/url';
+import { shouldHideFile } from '@/utils/files';
 import { notify } from '@/notify';
 
 export default {
@@ -241,6 +242,13 @@ export default {
       } else {
         const res = await resourcesApi.fetchFiles(this.currentSource, path, false, false, true);
         items = res.items || [];
+      }
+      // Hide files based on hideFileExt
+      const hideExt = state.user?.hideFileExt;
+      if (hideExt) {
+        items = items.filter(item => 
+          item.type === 'directory' || !shouldHideFile(item.name, hideExt)
+        );
       }
       // Filter out files if showFiles is false
       if (!this.showFiles) {

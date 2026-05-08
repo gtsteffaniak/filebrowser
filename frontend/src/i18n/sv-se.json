@@ -574,6 +574,8 @@
     "orange": "apelsin"
   },
   "profileSettings": {
+    "hideFileExt": "Dölj vissa filer (efter filändelse)",
+    "hideFileExtDescription": "En blankstegsseparerad lista över filändelser. Filändelser som anges i detta fält kommer att döljas från hela användargränssnittet (visuellt, som i listan eller filträdet) — De är fortfarande tillgängliga.",
     "preferEditorForMarkdown": "Föredra redigerare för Markdown-filer",
     "preferEditorForMarkdownDescription": "När aktiverad, öppna Markdown-filer i redigeraren först istället för Markdown-visaren.",
     "deleteAfterArchive": "Ta bort källfiler efter skapande/extrahering av arkiv",

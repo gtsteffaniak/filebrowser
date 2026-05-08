@@ -720,6 +720,8 @@
     "orange": "오렌지"
   },
   "profileSettings": {
+    "hideFileExt": "특정 파일 숨기기 (확장자 기준)",
+    "hideFileExtDescription": "공백으로 구분된 파일 확장자 목록입니다. 이 필드에 입력된 확장자는 모든 UI(목록 또는 파일 트리와 같은 시각적 요소)에서 숨겨집니다 — 여전히 접근 가능합니다.",
     "preferEditorForMarkdown": "Markdown 파일에 대해 편집기 우선 사용",
     "preferEditorForMarkdownDescription": "활성화하면 Markdown 파일을 Markdown 뷰어 대신 편집기에서 먼저 엽니다.",
     "deleteAfterArchive": "아카이브 생성/추출 후 소스 파일 삭제",
