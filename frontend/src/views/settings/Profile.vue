@@ -30,7 +30,7 @@
               :name="$t('profileSettings.showCopyPath')"
               :description="$t('profileSettings.showCopyPathDescription')" />
           </div>
-          <div class="centered-with-tooltip" style="margin-top: 1rem;">
+          <div class="centered-with-tooltip">
             <h3>{{ $t("profileSettings.hideFileExt") }}</h3>
             <i class="no-select material-symbols-outlined tooltip-info-icon"
               @mouseenter="showTooltip($event, $t('profileSettings.hideFileExtDescription'))"
