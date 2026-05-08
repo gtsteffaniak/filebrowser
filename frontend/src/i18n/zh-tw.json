@@ -778,7 +778,9 @@
     "divider": "分隔線{suffix}",
     "audio": "音訊{suffix}",
     "and": "和",
-    "or": "或"
+    "or": "或",
+    "pin": "Pin{suffix}",
+    "unpin": "Unpin{suffix}"
   },
   "access": {
     "rules": "存取規則",

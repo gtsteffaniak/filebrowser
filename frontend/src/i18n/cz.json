@@ -778,7 +778,9 @@
     "divider": "Rozdělovač{suffix}",
     "audio": "Audio{suffix}",
     "and": "a",
-    "or": "nebo"
+    "or": "nebo",
+    "pin": "Pin{suffix}",
+    "unpin": "Unpin{suffix}"
   },
   "access": {
     "rules": "Pravidla přístupu",

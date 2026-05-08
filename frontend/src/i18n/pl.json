@@ -677,7 +677,9 @@
     "divider": "Dzielnik{suffix}",
     "audio": "Audio{suffix}",
     "and": "oraz",
-    "or": "lub"
+    "or": "lub",
+    "pin": "Pin{suffix}",
+    "unpin": "Unpin{suffix}"
   },
   "access": {
     "rules": "Zasady dostępu",

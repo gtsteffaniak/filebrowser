@@ -677,7 +677,9 @@
     "divider": "מפריד{suffix}",
     "audio": "אודיו{suffix}",
     "and": "ו-",
-    "or": "או"
+    "or": "או",
+    "pin": "Pin{suffix}",
+    "unpin": "Unpin{suffix}"
   },
   "access": {
     "rules": "כללי גישה",

@@ -677,7 +677,9 @@
     "divider": "Разделитель{suffix}",
     "audio": "Аудио{suffix}",
     "and": "и",
-    "or": "или"
+    "or": "или",
+    "pin": "Pin{suffix}",
+    "unpin": "Unpin{suffix}"
   },
   "access": {
     "rules": "Правила доступа",

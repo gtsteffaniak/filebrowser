@@ -778,7 +778,9 @@
     "divider": "Перегородка{suffix}",
     "audio": "Аудіо{suffix}",
     "and": "і",
-    "or": "або"
+    "or": "або",
+    "pin": "Pin{suffix}",
+    "unpin": "Unpin{suffix}"
   },
   "access": {
     "rules": "Правила доступу",

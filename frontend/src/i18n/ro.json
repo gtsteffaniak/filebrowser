@@ -677,7 +677,9 @@
     "divider": "Divizor{suffix}",
     "audio": "Audio{suffix}",
     "and": "și",
-    "or": "sau"
+    "or": "sau",
+    "pin": "Pin{suffix}",
+    "unpin": "Unpin{suffix}"
   },
   "access": {
     "rules": "Reguli de acces",
