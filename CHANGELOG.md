@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file. For commit 
    - `CTRL+F2` switch to gallery view.
    - `CTRL+F3` switch to list view.
    - `Double click` on empty space to select all items.
+ - Option to hide certain files in UI by extension (#2403) (#2277)
  - Wildcard search support (limited to sqlite GLOB)
 
  **Notes**:
