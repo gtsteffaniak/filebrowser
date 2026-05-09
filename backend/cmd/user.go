@@ -128,13 +128,13 @@ func updateUserScopes(user *users.User) bool {
 	return changed
 }
 
-// updateShowToolsInSidebar one-time defaults for legacy users (Version < 3) from configured userDefaults.
+// updateShowToolsInSidebar one-time defaults for legacy users (Version < CurrentUserMigrationVersion) from configured userDefaults.
 func updateShowToolsInSidebar(user *users.User) bool {
 	if user.Version >= 3 {
 		return false
 	}
 	user.ShowToolsInSidebar = settings.Config.UserDefaults.ShowToolsInSidebar
-	user.Version = 3
+	user.Version = users.CurrentUserMigrationVersion
 	return true
 }
 
@@ -194,7 +194,7 @@ func updatePermissions(user *users.User) bool {
 		user.Permissions.Delete = true
 		updateUser = true
 	}
-	user.Version = 2
+	user.Version = users.CurrentUserMigrationVersion
 	if updateUser {
 		createBackup = true
 	}
@@ -284,6 +284,6 @@ func updateTokens(user *users.User) bool {
 			user.Tokens[name] = token
 		}
 	}
-	user.Version = 2
+	user.Version = users.CurrentUserMigrationVersion
 	return true
 }

@@ -123,6 +123,7 @@ func CreateUser(userInfo users.User, permissions users.Permissions) error {
 	}
 	settings.ApplyUserDefaults(newUser)
 	newUser.Permissions = permissions
+	newUser.Version = users.CurrentUserMigrationVersion
 	logger.Debugf("Creating user: %v %v", userInfo.Username, userInfo.Scopes)
 	// create new home directories
 	err := userStore.Save(newUser, true, false)

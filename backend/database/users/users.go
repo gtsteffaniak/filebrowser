@@ -7,7 +7,8 @@ import (
 	jwt "github.com/golang-jwt/jwt/v4"
 )
 
-const ()
+// CurrentUserMigrationVersion is persisted for newly created accounts and after legacy migrations finish.
+const CurrentUserMigrationVersion = 3
 
 type LoginMethod string
 
