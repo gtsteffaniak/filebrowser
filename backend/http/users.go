@@ -100,6 +100,7 @@ func prepForFrontend(u *users.User) {
 	u.TOTPSecret = ""
 	u.TOTPNonce = ""
 	u.Scopes = u.GetFrontendScopes()
+	u.PinnedItems = u.GetFrontendPinnedItems()
 	u.SidebarLinks = GetFrontendSidebarLinks(u.SidebarLinks, u.ShowToolsInSidebar)
 	u.Locale = normalizeLocale(u.Locale)
 	for i := range u.PasskeyCredentials {
@@ -356,6 +357,10 @@ func userPutOnlyNonAdminEditableFields(which []string) bool {
 	return true
 }
 
+func userPutOnlyPinnedItems(which []string) bool {
+	return len(which) == 1 && strings.EqualFold(strings.TrimSpace(which[0]), "PinnedItems")
+}
+
 // verifyActorPasswordForUserPut requires URL-encoded X-Password when the authenticated actor uses
 // password login. Callers should invoke this only when the update requires re-authentication.
 func verifyActorPasswordForUserActions(r *http.Request, d *requestContext) (int, error) {
@@ -452,6 +457,18 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		if err != nil {
 			return status, err
 		}
+	}
+
+	if userPutOnlyPinnedItems(req.Which) {
+		adjustedPinnedItems, err := req.User.GetBackendPinnedItems()
+		if err != nil {
+			return http.StatusBadRequest, err
+		}
+		oldUser.PinnedItems = adjustedPinnedItems
+		if err := store.Users.Save(oldUser, false, false); err != nil {
+			return http.StatusBadRequest, err
+		}
+		return http.StatusNoContent, nil
 	}
 
 	err = store.Users.Update(&req.User, d.user.Permissions.Admin, req.Which...)

@@ -47,6 +47,7 @@ export const state = reactive({
     info: {},
   },
   user: {
+    pinnedItems: {},
     preview: {
       audio: true,
       video: true,

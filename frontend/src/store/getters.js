@@ -8,6 +8,14 @@ import { fromNow } from '@/utils/moment'
 import { tools } from '@/utils/constants'
 import * as i18n from '@/i18n'
 
+function normalizePinnedDirectoryPath(path) {
+  if (!path || path === "/") {
+    return "/";
+  }
+  const normalized = url.removeLastDir(path);
+  return normalized && normalized !== "" ? normalized : "/";
+}
+
 export const getters = {
   displayPreferenceFor: (source, path) => {
     const sourceKey = getters.isShare() ? getters.currentHash() : source;
@@ -71,15 +79,20 @@ export const getters = {
     return getters.displayPreferenceFor(source, path);
   },
   pinnedPathsFor: (source, path) => {
-    const pinnedPaths = getters.displayPreferenceFor(source, path)?.pinnedPaths;
+    if (getters.isShare() || !getters.isLoggedIn()) {
+      return [];
+    }
+    const sourceKey = source || state.sources.current || state.req?.source || "";
+    const directoryPath = path || "/";
+    const pinnedPaths = state.user?.pinnedItems?.[sourceKey]?.[directoryPath];
     return Array.isArray(pinnedPaths) ? pinnedPaths : [];
   },
   isItemPinned: (item) => {
-    if (!item?.path) {
+    if (!item?.path || getters.isShare() || !getters.isLoggedIn()) {
       return false;
     }
-    const directoryPath = url.removeLastDir(item.path) || "/";
-    const source = getters.isShare() ? getters.currentHash() : (item.source || state.req?.source);
+    const directoryPath = normalizePinnedDirectoryPath(item.path);
+    const source = item.source || state.req?.source || state.sources.current;
     return getters.pinnedPathsFor(source, directoryPath).includes(item.path);
   },
   viewMode: () => {

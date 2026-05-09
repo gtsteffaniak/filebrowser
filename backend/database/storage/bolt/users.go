@@ -138,8 +138,17 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 		}
 		user.SidebarLinks = adjustedLinks
 	}
+	if slices.Contains(fields, "PinnedItems") {
+		adjustedPinnedItems, err := user.GetBackendPinnedItems()
+		if err != nil {
+			return err
+		}
+		user.PinnedItems = adjustedPinnedItems
+	}
 	// Use reflection to access struct fields
 	userFields := reflect.ValueOf(user).Elem() // Get struct value
+	existingUserFields := reflect.ValueOf(existingUser).Elem()
+	needsUserSave := false
 	for _, field := range fields {
 		// Get the corresponding field using reflection
 		fieldValue := userFields.FieldByName(field)
@@ -162,9 +171,24 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 			}
 			// If otpEnabled is true, continue with normal field update
 		}
+		existingFieldValue := existingUserFields.FieldByName(field)
+		if existingFieldValue.IsValid() && existingFieldValue.CanSet() {
+			existingFieldValue.Set(reflect.ValueOf(val))
+		}
+		if field == "PinnedItems" {
+			existingUser.PinnedItems = user.PinnedItems
+			needsUserSave = true
+			continue
+		}
 		// Update the database
 		if err := st.db.UpdateField(existingUser, field, val); err != nil {
 			return fmt.Errorf("failed to update user field: %s, error: %v", field, err)
+		}
+	}
+
+	if needsUserSave {
+		if err := st.db.Save(existingUser); err != nil {
+			return fmt.Errorf("failed to save user with pinned items: %v", err)
 		}
 	}
 

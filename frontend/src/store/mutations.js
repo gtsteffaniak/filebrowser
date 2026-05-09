@@ -17,47 +17,14 @@ function normalizeDirectoryPath(path) {
   return normalized && normalized !== "" ? normalized : "/";
 }
 
-function getPreferenceSourceKey(source) {
-  if (getters.isShare()) {
-    return getters.currentHash();
-  }
-  return source || state.sources.current || state.req?.source || "";
-}
-
-function ensurePreferenceEntry(sourceKey, path) {
-  if (!sourceKey || !path) {
-    return null;
-  }
-  if (!state.displayPreferences) {
-    state.displayPreferences = {};
-  }
-  if (!state.displayPreferences[sourceKey]) {
-    state.displayPreferences[sourceKey] = {};
-  }
-  if (!state.displayPreferences[sourceKey][path]) {
-    state.displayPreferences[sourceKey][path] = {};
-  }
-  return state.displayPreferences[sourceKey][path];
-}
-
-function getPreferenceEntry(sourceKey, path) {
-  return state.displayPreferences?.[sourceKey]?.[path] || null;
-}
-
-function persistDisplayPreferences() {
-  const username = state.user?.username;
-  if (!username) {
-    return;
-  }
-  const allPreferences = JSON.parse(localStorage.getItem("displayPreferences") || "{}");
-  allPreferences[username] = state.displayPreferences;
-  localStorage.setItem("displayPreferences", JSON.stringify(allPreferences));
-}
-
 function getPinnedPathsForContext(source, path) {
-  const sourceKey = getPreferenceSourceKey(source);
-  const preference = getPreferenceEntry(sourceKey, path || "/");
-  return Array.isArray(preference?.pinnedPaths) ? preference.pinnedPaths : [];
+  if (getters.isShare() || !getters.isLoggedIn()) {
+    return [];
+  }
+  const sourceKey = source || state.sources.current || state.req?.source || "";
+  const directoryPath = path || "/";
+  const pinnedPaths = state.user?.pinnedItems?.[sourceKey]?.[directoryPath];
+  return Array.isArray(pinnedPaths) ? pinnedPaths : [];
 }
 
 export const mutations = {
@@ -450,6 +417,9 @@ export const mutations = {
         i18n.setLocale(value.locale);
       }
       state.user = value;
+      if (!state.user.pinnedItems || typeof state.user.pinnedItems !== "object") {
+        state.user.pinnedItems = {};
+      }
       state.user.sorting = {};
       state.user.sorting.by = "name";
       state.user.sorting.asc = true;
@@ -647,6 +617,7 @@ export const mutations = {
           "fileLoading",
           "deleteAfterArchive",
           "preferEditorForMarkdown",
+          "pinnedItems",
         ].includes(key)
       );
       value.id = state.user.id;
@@ -869,19 +840,23 @@ export const mutations = {
     emitStateChanged();
   },
   togglePinnedItem: (item) => {
-    if (!item?.path) {
+    if (!item?.path || getters.isShare() || !getters.isLoggedIn()) {
       return;
     }
 
     const directoryPath = normalizeDirectoryPath(item.path);
-    const sourceKey = getPreferenceSourceKey(item.source || state.req?.source);
-    const preference = ensurePreferenceEntry(sourceKey, directoryPath);
-
-    if (!preference) {
+    const sourceKey = item.source || state.req?.source || state.sources.current;
+    if (!sourceKey) {
       return;
     }
 
-    const pinnedPaths = Array.isArray(preference.pinnedPaths) ? [...preference.pinnedPaths] : [];
+    const nextPinnedItems = {
+      ...(state.user?.pinnedItems || {}),
+    };
+    const sourcePinnedItems = {
+      ...(nextPinnedItems[sourceKey] || {}),
+    };
+    const pinnedPaths = Array.isArray(sourcePinnedItems[directoryPath]) ? [...sourcePinnedItems[directoryPath]] : [];
     const existingIndex = pinnedPaths.indexOf(item.path);
 
     if (existingIndex >= 0) {
@@ -890,11 +865,24 @@ export const mutations = {
       pinnedPaths.push(item.path);
     }
 
-    preference.pinnedPaths = pinnedPaths;
-    persistDisplayPreferences();
+    if (pinnedPaths.length > 0) {
+      sourcePinnedItems[directoryPath] = pinnedPaths;
+      nextPinnedItems[sourceKey] = sourcePinnedItems;
+    } else {
+      delete sourcePinnedItems[directoryPath];
+      if (Object.keys(sourcePinnedItems).length > 0) {
+        nextPinnedItems[sourceKey] = sourcePinnedItems;
+      } else {
+        delete nextPinnedItems[sourceKey];
+      }
+    }
+
+    mutations.updateCurrentUser({
+      pinnedItems: nextPinnedItems,
+    });
 
     const currentDirectoryPath = state.req?.type === "directory" ? state.req.path : normalizeDirectoryPath(state.req?.path);
-    const currentSourceKey = getPreferenceSourceKey(state.req?.source);
+    const currentSourceKey = state.req?.source || state.sources.current;
 
     if (
       getters.currentView() === "listingView" &&

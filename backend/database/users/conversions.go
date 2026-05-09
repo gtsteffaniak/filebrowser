@@ -119,6 +119,64 @@ func (u *User) GetBackendSidebarLinks() ([]SidebarLink, error) {
 	return newLinks, nil
 }
 
+// GetBackendPinnedItems converts pinned item source keys from frontend source names to backend source paths.
+func (u *User) GetBackendPinnedItems() (PinnedItems, error) {
+	if len(u.PinnedItems) == 0 {
+		return PinnedItems{}, nil
+	}
+	if sourceConfig == nil {
+		return nil, fmt.Errorf("source config not initialized")
+	}
+
+	newPinnedItems := PinnedItems{}
+	for sourceKey, directories := range u.PinnedItems {
+		source, ok := sourceConfig.GetSourceByPath(sourceKey)
+		if !ok {
+			source, ok = sourceConfig.GetSourceByName(sourceKey)
+		}
+		if !ok {
+			continue
+		}
+
+		if newPinnedItems[source.Path] == nil {
+			newPinnedItems[source.Path] = map[string][]string{}
+		}
+
+		for directoryPath, pinnedPaths := range directories {
+			copiedPaths := append([]string(nil), pinnedPaths...)
+			newPinnedItems[source.Path][directoryPath] = copiedPaths
+		}
+	}
+
+	return newPinnedItems, nil
+}
+
+// GetFrontendPinnedItems converts pinned item source keys from backend source paths to frontend source names.
+func (u *User) GetFrontendPinnedItems() PinnedItems {
+	if len(u.PinnedItems) == 0 || sourceConfig == nil {
+		return PinnedItems{}
+	}
+
+	newPinnedItems := PinnedItems{}
+	for sourceKey, directories := range u.PinnedItems {
+		source, ok := sourceConfig.GetSourceByPath(sourceKey)
+		if !ok {
+			continue
+		}
+
+		if newPinnedItems[source.Name] == nil {
+			newPinnedItems[source.Name] = map[string][]string{}
+		}
+
+		for directoryPath, pinnedPaths := range directories {
+			copiedPaths := append([]string(nil), pinnedPaths...)
+			newPinnedItems[source.Name][directoryPath] = copiedPaths
+		}
+	}
+
+	return newPinnedItems
+}
+
 // normalizeScope ensures scope starts with / and doesn't end with / (except for root)
 func normalizeScope(scope string) string {
 	if !strings.HasPrefix(scope, "/") {

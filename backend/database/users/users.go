@@ -96,6 +96,8 @@ type Preview struct {
 	Models             bool `json:"models"`             // show live thumbnails for 3D models files
 }
 
+type PinnedItems map[string]map[string][]string
+
 // User describes a persisted account. Scopes and source sidebar links store filesystem paths in Name/SourceName;
 // JSON responses use display names only (see http prepForFrontend).
 type User struct {
@@ -151,6 +153,7 @@ type NonAdminEditable struct {
 	DisablePreviewExt          string        `json:"disablePreviewExt"`          // space separated list of file extensions to disable preview for
 	DisableViewingExt          string        `json:"disableViewingExt"`          // space separated list of file extensions to disable viewing for
 	CustomTheme                string        `json:"customTheme"`                // Name of theme to use chosen from custom themes config.
+	PinnedItems                PinnedItems   `json:"pinnedItems,omitempty"`      // pinned items organized by source and directory path
 	ShowSelectMultiple         bool          `json:"showSelectMultiple"`         // show select multiple files on desktop
 	ShowCopyPath               bool          `json:"showCopyPath"`               // show copy path action in the context menu
 	ShowToolsInSidebar         bool          `json:"showToolsInSidebar"`         // when false, sidebar hides links with category "tool" (default: true)
