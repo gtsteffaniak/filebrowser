@@ -137,4 +137,6 @@ func ApplyUserDefaults(u *users.User) {
 			}
 		}
 	}
+
+	u.Version = users.CurrentUserMigrationVersion
 }
