@@ -335,6 +335,7 @@ export default {
     },
     showPinAction() {
       if (this.showLimitedOptions) return false;
+      if (getters.isShare() || !getters.isLoggedIn()) return false;
       if (this.showCreate || this.isSearchActive) return false;
       if (this.selectedCount !== 1) return false;
       return getters.currentView() === "listingView";

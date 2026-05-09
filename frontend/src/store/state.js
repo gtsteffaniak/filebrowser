@@ -49,6 +49,7 @@ export const state = reactive({
     info: {},
   },
   user: {
+    pinnedItems: {},
     preview: {
       audio: true,
       video: true,
@@ -223,3 +224,4 @@ function eventTheme() {
   const disableEventThemes = localStorage.getItem("disableEventThemes");
   return disableEventThemes === "true"
 }
+

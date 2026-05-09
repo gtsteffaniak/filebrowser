@@ -1306,6 +1306,15 @@ definitions:
       customTheme:
         description: 'deprecated: use ui.customTheme instead'
         type: string
+      pinnedItems:
+        additionalProperties:
+          additionalProperties:
+            items:
+              type: string
+            type: array
+          type: object
+        description: pinned items organized by source and directory path
+        type: object
       darkMode:
         description: 'deprecated: use sidebar.darkMode instead'
         type: boolean

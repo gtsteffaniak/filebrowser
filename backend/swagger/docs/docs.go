@@ -6310,6 +6310,19 @@ const docTemplate = `{
                     "description": "deprecated: use ui.customTheme instead",
                     "type": "string"
                 },
+                "pinnedItems": {
+                    "description": "pinned items organized by source and directory path",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
                 "darkMode": {
                     "description": "deprecated: use sidebar.darkMode instead",
                     "type": "boolean"
@@ -7783,4 +7796,3 @@ var SwaggerInfo = &swag.Spec{
 	LeftDelim:        "{{",
 	RightDelim:       "}}",
 }
-
