@@ -7,6 +7,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -240,32 +241,57 @@ if (hash) {
 		MaxAge: -1,
 	})
 
-	// Exchange code for tokens using PKCE (no client_secret needed).
-	// AuthStyleInParams puts client_id in POST body without any Authorization header,
-	// which is required for B2C public clients that reject client_secret entirely.
-	oauth2Config := &oauth2.Config{
-		ClientID:    clientID,
-		RedirectURL: redirectURL,
-		Endpoint: oauth2.Endpoint{
-			TokenURL:  tokenEndpoint,
-			AuthStyle: oauth2.AuthStyleInParams,
-		},
-	}
-
-	var exchangeOpts []oauth2.AuthCodeOption
+	// Raw HTTP POST token exchange — bypass golang.org/x/oauth2 entirely so no
+	// hidden Authorization header or client_secret field can be injected.
+	exchangeBody := url.Values{}
+	exchangeBody.Set("grant_type", "authorization_code")
+	exchangeBody.Set("code", code)
+	exchangeBody.Set("client_id", clientID)
+	exchangeBody.Set("redirect_uri", redirectURL)
 	if verifier != "" {
-		exchangeOpts = append(exchangeOpts, oauth2.VerifierOption(verifier))
+		exchangeBody.Set("code_verifier", verifier)
 	}
-	token, err := oauth2Config.Exchange(ctx, code, exchangeOpts...)
-	if err != nil {
-		logger.Errorf("Failed to exchange authorization code: %v", err)
-		return http.StatusInternalServerError, fmt.Errorf("failed to exchange code: %w", err)
+	// Include client_secret only if explicitly configured (confidential client fallback).
+	if chainfsConfig.ClientSecret != "" {
+		exchangeBody.Set("client_secret", chainfsConfig.ClientSecret)
 	}
 
-	// Extract ID token
-	rawIDToken, ok := token.Extra("id_token").(string)
-	if !ok || rawIDToken == "" {
-		logger.Error("No ID token in response")
+	logger.Infof("Token exchange: endpoint=%s client_id=%s has_verifier=%v has_secret=%v",
+		tokenEndpoint, clientID, verifier != "", chainfsConfig.ClientSecret != "")
+
+	tokenReq, err := http.NewRequestWithContext(ctx, http.MethodPost, tokenEndpoint,
+		strings.NewReader(exchangeBody.Encode()))
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("failed to build token request: %w", err)
+	}
+	tokenReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	tokenResp, err := (&http.Client{Timeout: 30 * time.Second}).Do(tokenReq)
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("token request failed: %w", err)
+	}
+	defer tokenResp.Body.Close()
+
+	tokenRespBytes, _ := io.ReadAll(tokenResp.Body)
+	if tokenResp.StatusCode != http.StatusOK {
+		logger.Errorf("Token exchange failed: status=%d body=%s", tokenResp.StatusCode, string(tokenRespBytes))
+		return http.StatusInternalServerError, fmt.Errorf("failed to exchange code: B2C returned %d: %s",
+			tokenResp.StatusCode, string(tokenRespBytes))
+	}
+
+	var rawTokenResponse struct {
+		AccessToken  string `json:"access_token"`
+		IDToken      string `json:"id_token"`
+		RefreshToken string `json:"refresh_token"`
+		ExpiresIn    int    `json:"expires_in"`
+	}
+	if err := json.Unmarshal(tokenRespBytes, &rawTokenResponse); err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("failed to parse token response: %w", err)
+	}
+
+	rawIDToken := rawTokenResponse.IDToken
+	if rawIDToken == "" {
+		logger.Errorf("No ID token in response: %s", string(tokenRespBytes))
 		return http.StatusInternalServerError, fmt.Errorf("no ID token received")
 	}
 
@@ -309,7 +335,7 @@ if (hash) {
 	displayName := extractDisplayName(claims)
 
 	// Login or create user
-	return loginWithChainFsUser(w, r, username, displayName, isAdmin, token.AccessToken, token.RefreshToken, expiresAt, fbRedirect)
+	return loginWithChainFsUser(w, r, username, displayName, isAdmin, rawTokenResponse.AccessToken, rawTokenResponse.RefreshToken, expiresAt, fbRedirect)
 }
 
 // loginWithChainFsUser creates or updates a user and logs them in
