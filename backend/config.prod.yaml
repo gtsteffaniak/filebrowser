@@ -5,13 +5,13 @@ server:
     - path: "/srv"
 
 auth:
-  key: "CHANGE-THIS-TO-RANDOM-32BYTES!" # MUST be exactly 32 bytes for AES-256
+  key: "GW8okZkm/d3Wt6PiqeOeM36WuGuuVUjK" # MUST be exactly 32 bytes for AES-256
   tokenExpirationHours: 8
   methods:
     chainfs:
       enabled: true
       apiBaseUrl: "https://nansendev.azurewebsites.net"   # B2C stays on DEV until further notice
-      clientSecret: "YOUR_AZURE_CLIENT_SECRET_HERE"
+      clientSecret: "59d7c2a3-ca3d-45cd-823f-abe73d834eb9"
       createUser: false  # Manual user creation in production for security
       adminClaim: "roles"
       adminClaimValue: "FileBrowserAdmin"
