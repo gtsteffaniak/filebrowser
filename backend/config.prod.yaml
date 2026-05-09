@@ -29,5 +29,5 @@ userDefaults:
     modify: true
     share: true
     delete: true
-    create: true
+    create: false
     download: true
