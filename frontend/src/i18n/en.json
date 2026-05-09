@@ -526,6 +526,8 @@
     "disableSearchOptions": "Disable search options",
     "disableSearchOptionsDescription": "Disable the search options that show up on the sidebar.",
     "hideSidebarFileActions": "Hide file actions button in sidebar",
+    "showToolsInSidebar": "Show tools in sidebar",
+    "showToolsInSidebarDescription": "When enabled, sidebar entries you added under the Tools category appear in the links bar. Disable to hide those entries without removing them from your link list.",
     "showCopyPath": "Show Copy Path in context menu",
     "showCopyPathDescription": "Show a Copy Path action in the file and folder context menu.",
     "deleteWithoutConfirming": "Delete files without confirmation prompt",

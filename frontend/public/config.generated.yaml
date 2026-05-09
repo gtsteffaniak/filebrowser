@@ -206,6 +206,7 @@ userDefaults:
   disableOnlyOfficeExt: ".md .txt .pdf .html .xml" # list of file extensions to disable onlyoffice editor for
   customTheme: ""                         # Name of theme to use chosen from custom themes config.
   showSelectMultiple: false               # show select multiple files on desktop
+  showToolsInSidebar: true                 # show sidebar links of category "tool" (user default for new users / legacy migration)
   debugOffice: false                      # debug onlyoffice editor
   preferEditorForMarkdown: false          # prefer editor first for markdown files instead of the Markdown Viewer.
   showCopyPath: false                     # show copy path button in the context menu

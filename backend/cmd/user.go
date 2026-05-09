@@ -44,6 +44,11 @@ func validateUserInfo(newDB bool) {
 		if updateTokens(user) {
 			updateUser = true
 		}
+		toolsSidebarMigrated := false
+		if updateShowToolsInSidebar(user) {
+			updateUser = true
+			toolsSidebarMigrated = true
+		}
 		adminUser := settings.Config.Auth.AdminUsername
 		adminPass := settings.Config.Auth.AdminPassword
 		if user.Username == adminUser && adminPass != "" && user.LoginMethod == users.LoginMethodPassword {
@@ -65,6 +70,9 @@ func validateUserInfo(newDB bool) {
 			fields := []string{"Scopes", "SidebarLinks", "Tokens", "Permissions", "Preview", "ShowFirstLogin", "LoginMethod", "Version"}
 			if changePass {
 				fields = append(fields, "Password")
+			}
+			if toolsSidebarMigrated {
+				fields = append(fields, "ShowToolsInSidebar")
 			}
 			err := store.Users.Update(user, true, fields...)
 			if err != nil {
@@ -118,6 +126,16 @@ func updateUserScopes(user *users.User) bool {
 	changed := !reflect.DeepEqual(user.Scopes, newScopes)
 	user.Scopes = newScopes
 	return changed
+}
+
+// updateShowToolsInSidebar one-time defaults for legacy users (Version < 3) from configured userDefaults.
+func updateShowToolsInSidebar(user *users.User) bool {
+	if user.Version >= 3 {
+		return false
+	}
+	user.ShowToolsInSidebar = settings.Config.UserDefaults.ShowToolsInSidebar
+	user.Version = 3
+	return true
 }
 
 func updateShowFirstLogin(user *users.User) bool {

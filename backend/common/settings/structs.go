@@ -370,6 +370,7 @@ type UserDefaults struct {
 	DisableOnlyOfficeExt       string                  `json:"disableOnlyOfficeExt"`       // list of file extensions to disable onlyoffice editor for
 	CustomTheme                string                  `json:"customTheme"`                // Name of theme to use chosen from custom themes config.
 	ShowSelectMultiple         bool                    `json:"showSelectMultiple"`         // show select multiple files on desktop
+	ShowToolsInSidebar         bool                    `json:"showToolsInSidebar"` // show sidebar links with category "tool"; default comes from Config.UserDefaults / ApplyUserDefaults
 	DebugOffice                bool                    `json:"debugOffice"`                // debug onlyoffice editor
 	PreferEditorForMarkdown    bool                    `json:"preferEditorForMarkdown"`    // prefer editor first for markdown files instead of the Markdown Viewer.
 	ShowCopyPath               bool                    `json:"showCopyPath"`               // show copy path button in the context menu
