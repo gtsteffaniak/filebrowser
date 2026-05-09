@@ -244,19 +244,25 @@ export const getters = {
     return fileCount
   },
   reqItems: () => {
-    if (state.user === null) return { dirs: [], files: [] };
+    if (state.user === null) return { pinned: [], dirs: [], files: [] };
+    const pinned = [];
     const dirs = [];
     const files = [];
-    if (!state.req.items) return { dirs, files };
+    if (!state.req.items) return { pinned, dirs, files };
 
     for (const item of state.req.items) {
+      if (getters.isItemPinned(item)) {
+        pinned.push(item);
+        continue;
+      }
       if (item.type === 'directory') {
         dirs.push(item);
       } else {
+        item.Path = state.req.path;
         files.push(item);
       }
     }
-    return { dirs, files };
+    return { pinned, dirs, files };
   },
   isSidebarVisible: () => {
     if (globalVars.disableSidebar || getters.isInvalidShare()) {
