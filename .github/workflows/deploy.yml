@@ -60,4 +60,5 @@ jobs:
           az containerapp update \
             --name $CONTAINER_APP \
             --resource-group rg-acornDrive \
-            --image $REGISTRY/$IMAGE:$ENV
+            --image $REGISTRY/$IMAGE:$ENV \
+            --revision-suffix "gh${GITHUB_SHA:0:7}"
