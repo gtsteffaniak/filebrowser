@@ -24,7 +24,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/go-logger/logger"
-	"golang.org/x/oauth2"
 )
 
 // chainfsLoginHandler initiates ChainFS Azure AD B2C login.
@@ -87,10 +86,18 @@ func chainfsLoginHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	state := fmt.Sprintf("%s:%s", nonce, fbRedirect)
 	query.Set("state", state)
 
-	// Add PKCE code challenge (avoids need for client_secret)
-	verifier := oauth2.GenerateVerifier()
-	query.Set("code_challenge", oauth2.S256ChallengeFromVerifier(verifier))
+	// Generate PKCE code verifier: 32 random bytes → base64url (no padding) = 43 chars
+	verifierBytes := make([]byte, 32)
+	if _, err := io.ReadFull(rand.Reader, verifierBytes); err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("failed to generate PKCE verifier: %w", err)
+	}
+	verifier := base64.RawURLEncoding.EncodeToString(verifierBytes)
+	// S256 code challenge: BASE64URL(SHA256(verifier))
+	challengeHash := sha256.Sum256([]byte(verifier))
+	codeChallenge := base64.RawURLEncoding.EncodeToString(challengeHash[:])
+	query.Set("code_challenge", codeChallenge)
 	query.Set("code_challenge_method", "S256")
+	logger.Infof("ChainFS Login - PKCE verifier_len=%d challenge=%s", len(verifier), codeChallenge)
 
 	// Store nonce and PKCE verifier in short-lived cookies
 	http.SetCookie(w, &http.Cookie{
