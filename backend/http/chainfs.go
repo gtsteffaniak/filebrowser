@@ -356,15 +356,29 @@ func loginWithChainFsUser(w http.ResponseWriter, r *http.Request, username, disp
 		isAdmin = true
 	}
 
-	// Check subscription — must have Enhanced or Enterprise tier to access acorndrive
-	userInfo, err := chainfs.GetUserInfo(chainfsConfig.ApiBaseUrl, accessToken)
-	if err != nil {
-		logger.Infof("Could not fetch ChainFS subscription status for %s: %v", username, err)
-		return http.StatusServiceUnavailable, fmt.Errorf("could not verify subscription status, please try again")
+	// Check subscription via acorn.tools billing system.
+	var subscribed bool
+	if settings.Env.ChainFsBypass {
+		subscribed = true
+		logger.Infof("Subscription check bypassed for %s via FILEBROWSER_CHAINFS_BYPASS", username)
+	} else if settings.Env.AcornToolsSecret != "" {
+		access, accessErr := chainfs.CheckAcornToolsAccess(settings.Env.AcornToolsURL, settings.Env.AcornToolsSecret, username)
+		if accessErr != nil {
+			logger.Errorf("acorn.tools subscription check failed for %s: %v", username, accessErr)
+			return http.StatusServiceUnavailable, fmt.Errorf("could not verify subscription status, please try again")
+		}
+		subscribed = access.HasAccess
+		logger.Infof("acorn.tools subscription for %s: plan=%s hasAccess=%v admin=%v", username, access.PlanTier, subscribed, isAdmin)
+	} else {
+		// Fallback: ChainFS UserInfo (legacy)
+		userInfo, userInfoErr := chainfs.GetUserInfo(chainfsConfig.ApiBaseUrl, accessToken)
+		if userInfoErr != nil {
+			logger.Infof("Could not fetch ChainFS subscription status for %s: %v", username, userInfoErr)
+			return http.StatusServiceUnavailable, fmt.Errorf("could not verify subscription status, please try again")
+		}
+		subscribed = userInfo.IsActive()
+		logger.Infof("ChainFS subscription for %s: enhancedSubscription=%v admin=%v", username, userInfo.EnhancedSubscription, isAdmin)
 	}
-	subscribed := userInfo.IsActive() || settings.Env.ChainFsBypass
-	logger.Infof("ChainFS subscription for %s: enhancedSubscription=%v admin=%v bypass=%v — access=%v",
-		username, userInfo.EnhancedSubscription, isAdmin, settings.Env.ChainFsBypass, subscribed || isAdmin)
 	if !subscribed && !isAdmin {
 		loginURL := fmt.Sprintf("%slogin?error=subscription", config.Server.BaseURL)
 		http.Redirect(w, r, loginURL, http.StatusFound)

@@ -232,6 +232,44 @@ func GetUserInfo(baseUrl, bearerToken string) (*UserInfo, error) {
 	return &info, nil
 }
 
+// AcornToolsAccess is the response from the acorn.tools internal access check.
+type AcornToolsAccess struct {
+	HasAccess bool   `json:"hasAccess"`
+	PlanTier  string `json:"planTier"`
+}
+
+// CheckAcornToolsAccess verifies whether a user (identified by their Azure sub claim)
+// has acorn-drive access according to the acorn.tools billing system.
+func CheckAcornToolsAccess(acornToolsBaseURL, apiSecret, azureSub string) (*AcornToolsAccess, error) {
+	endpoint := fmt.Sprintf("%s/api/internal/acorn-drive/access?azure_sub=%s", acornToolsBaseURL, azureSub)
+	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create acorn.tools request: %w", err)
+	}
+	req.Header.Set("X-Api-Key", apiSecret)
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("acorn.tools access check failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read acorn.tools response: %w", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("acorn.tools access check returned status %d: %s", resp.StatusCode, string(body))
+	}
+
+	var access AcornToolsAccess
+	if err := json.Unmarshal(body, &access); err != nil {
+		return nil, fmt.Errorf("failed to parse acorn.tools response: %w", err)
+	}
+	return &access, nil
+}
+
 // GetLoginUrl fetches the Azure AD B2C login URL from ChainFS API
 func GetLoginUrl(baseUrl string) (string, error) {
 	endpoint := fmt.Sprintf("%s/api/NansenFile/LoginURL", baseUrl)

@@ -631,6 +631,15 @@ func loadEnvConfig() {
 		logger.Info("ChainFS subscription check bypassed via FILEBROWSER_CHAINFS_BYPASS env var")
 	}
 
+	if v := os.Getenv("FILEBROWSER_ACORN_TOOLS_URL"); v != "" {
+		Env.AcornToolsURL = v
+	} else {
+		Env.AcornToolsURL = "https://acorn.tools"
+	}
+	if v := os.Getenv("FILEBROWSER_ACORN_TOOLS_SECRET"); v != "" {
+		Env.AcornToolsSecret = v
+	}
+
 }
 
 func setDefaults(generate bool) Settings {
