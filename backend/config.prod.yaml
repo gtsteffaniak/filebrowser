@@ -11,10 +11,10 @@ auth:
     chainfs:
       enabled: true
       apiBaseUrl: "https://nansendev.azurewebsites.net"   # B2C stays on DEV until further notice
-      clientSecret: "zou8Q~VmY6-CB0t64jnj1z6qthRwZ7DSUHiJ4b~G"
-      createUser: false  # Manual user creation in production for security
+      clientSecret: ""
+      createUser: true
       adminClaim: "roles"
-      adminClaimValue: "FileBrowserAdmin"
+      adminClaimValue: "admin"
     password:
       enabled: false
     oidc:

@@ -86,12 +86,26 @@ func chainfsLoginHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	state := fmt.Sprintf("%s:%s", nonce, fbRedirect)
 	query.Set("state", state)
 
-	// Store nonce in a short-lived cookie for CSRF validation on callback
+	// Add PKCE code challenge (avoids need for client_secret)
+	verifier := oauth2.GenerateVerifier()
+	query.Set("code_challenge", oauth2.S256ChallengeFromVerifier(verifier))
+	query.Set("code_challenge_method", "S256")
+
+	// Store nonce and PKCE verifier in short-lived cookies
 	http.SetCookie(w, &http.Cookie{
 		Name:     "chainfs_state_nonce",
 		Value:    nonce,
 		Path:     "/",
-		MaxAge:   300, // 5 minutes
+		MaxAge:   300,
+		HttpOnly: true,
+		Secure:   getScheme(r) == "https",
+		SameSite: http.SameSiteLaxMode,
+	})
+	http.SetCookie(w, &http.Cookie{
+		Name:     "chainfs_pkce_verifier",
+		Value:    verifier,
+		Path:     "/",
+		MaxAge:   300,
 		HttpOnly: true,
 		Secure:   getScheme(r) == "https",
 		SameSite: http.SameSiteLaxMode,
@@ -214,17 +228,32 @@ if (hash) {
 	// Replace 127.0.0.1 with localhost for Azure B2C compatibility
 	redirectURL = strings.Replace(redirectURL, "127.0.0.1", "localhost", 1)
 
-	// Exchange code for tokens
+	// Read PKCE verifier cookie
+	verifier := ""
+	if verifierCookie, err := r.Cookie("chainfs_pkce_verifier"); err == nil {
+		verifier = verifierCookie.Value
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name:   "chainfs_pkce_verifier",
+		Value:  "",
+		Path:   "/",
+		MaxAge: -1,
+	})
+
+	// Exchange code for tokens using PKCE (no client_secret needed)
 	oauth2Config := &oauth2.Config{
-		ClientID:     clientID,
-		ClientSecret: chainfsConfig.ClientSecret,
-		RedirectURL:  redirectURL,
+		ClientID:    clientID,
+		RedirectURL: redirectURL,
 		Endpoint: oauth2.Endpoint{
 			TokenURL: tokenEndpoint,
 		},
 	}
 
-	token, err := oauth2Config.Exchange(ctx, code)
+	var exchangeOpts []oauth2.AuthCodeOption
+	if verifier != "" {
+		exchangeOpts = append(exchangeOpts, oauth2.VerifierOption(verifier))
+	}
+	token, err := oauth2Config.Exchange(ctx, code, exchangeOpts...)
 	if err != nil {
 		logger.Errorf("Failed to exchange authorization code: %v", err)
 		return http.StatusInternalServerError, fmt.Errorf("failed to exchange code: %w", err)
