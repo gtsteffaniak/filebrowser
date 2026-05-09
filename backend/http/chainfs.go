@@ -240,12 +240,15 @@ if (hash) {
 		MaxAge: -1,
 	})
 
-	// Exchange code for tokens using PKCE (no client_secret needed)
+	// Exchange code for tokens using PKCE (no client_secret needed).
+	// AuthStyleInParams puts client_id in POST body without any Authorization header,
+	// which is required for B2C public clients that reject client_secret entirely.
 	oauth2Config := &oauth2.Config{
 		ClientID:    clientID,
 		RedirectURL: redirectURL,
 		Endpoint: oauth2.Endpoint{
-			TokenURL: tokenEndpoint,
+			TokenURL:  tokenEndpoint,
+			AuthStyle: oauth2.AuthStyleInParams,
 		},
 	}
 
