@@ -36,6 +36,13 @@
       </div>
     </div>
 
+    <div v-if="!showAddForm && context === 'user'" class="settings-items">
+      <ToggleSwitch class="item" :modelValue="showToolsInSidebar"
+        @update:modelValue="onShowToolsInSidebarChange"
+        :name="$t('profileSettings.showToolsInSidebar')"
+        :description="$t('profileSettings.showToolsInSidebarDescription')" />
+    </div>
+
     <!-- Add New Link Section -->
     <div v-if="!showAddForm" class="add-link-section">
       <button @click="showAddForm = true" class="button button--flat button--blue add-link-button">
@@ -62,7 +69,7 @@
         <select aria-label="Link Type" :value="linkTypeSelectValue" @change="onLinkTypeChange" class="input">
           <option value="">{{ $t('sidebar.selectLinkType') }}</option>
           <option v-if="context === 'user'" value="source">{{ $t('general.source') }}</option>
-          <option value="share">{{ $t('general.share') }}</option>
+          <option v-if="canListShares" value="share">{{ $t('general.share') }}</option>
           <option v-if="context === 'user'" value="tool">{{ $t('general.tool') }}</option>
           <option value="custom">{{ $t('sidebar.customLink') }}</option>
           <option value="divider">{{ $t('general.divider') }}</option>
@@ -243,7 +250,7 @@
 </template>
 
 <script>
-import { state, mutations } from "@/store";
+import { state, getters, mutations } from "@/store";
 import { notify } from "@/notify";
 import { usersApi, shareApi } from "@/api";
 import { tools } from "@/utils/constants";
@@ -293,6 +300,7 @@ export default {
       isSelectingPath: false,
       tempSelectedPath: "",
       tempSelectedSource: "",
+      showToolsInSidebar: true,
     };
   },
   computed: {
@@ -347,6 +355,10 @@ export default {
       }
       return this.newLink.category;
     },
+    /** Share link type requires manage-share permission; avoids listing shares when forbidden */
+    canListShares() {
+      return this.context === "user" && getters.permissions().share;
+    },
   },
   async mounted() {
     // Initialize with existing sidebar links based on context
@@ -359,12 +371,45 @@ export default {
       this.links = this.getDefaultLinks();
     }
 
-    // Load available shares for share link type
     if (this.context === 'user') {
-      await this.loadAvailableShares();
+      if (typeof state.user?.showToolsInSidebar === 'boolean') {
+        this.showToolsInSidebar = state.user.showToolsInSidebar;
+      } else {
+        this.showToolsInSidebar = true;
+      }
+      this.syncMainToolsHubLinkRow(this.showToolsInSidebar);
     }
+
+    // Share list loads lazily when adding/editing a share link (requires permission).
   },
   methods: {
+    /** Main Tools hub uses category "tool" and target "/tools"; keep in sync when the toggle changes. */
+    isMainToolsHubLink(link) {
+      return link?.category === "tool" && link?.target === "/tools";
+    },
+    syncMainToolsHubLinkRow(showHub) {
+      if (this.context !== "user") return;
+      if (!showHub) {
+        this.links = this.links.filter((link) => !this.isMainToolsHubLink(link));
+        return;
+      }
+      if (this.links.some((link) => this.isMainToolsHubLink(link))) {
+        return;
+      }
+      const mainEntry = this.availableTools.find((t) => t.path === "/tools");
+      const name = mainEntry ? this.$t(mainEntry.name) : this.$t("tools.title");
+      const icon = mainEntry ? mainEntry.icon : "build";
+      this.links.push({
+        name,
+        category: "tool",
+        target: "/tools",
+        icon,
+      });
+    },
+    onShowToolsInSidebarChange(value) {
+      this.showToolsInSidebar = value;
+      this.syncMainToolsHubLinkRow(value);
+    },
     getIconClass,
     getShareHash(target) {
       // Extract hash from /public/share/<hash> or /public/share/<hash>/path
@@ -398,6 +443,10 @@ export default {
       this.newLink.icon = iconName;
     },
     async loadAvailableShares() {
+      if (!this.canListShares) {
+        this.availableShares = [];
+        return;
+      }
       try {
         this.availableShares = await shareApi.list();
       } catch (error) {
@@ -528,6 +577,9 @@ export default {
           this.newLink.icon = "download";
         }
       }
+      if (value === "share") {
+        void this.loadAvailableShares();
+      }
     },
     handleSourceChange() {
       if (this.newLink.sourceName) {
@@ -623,6 +675,9 @@ export default {
         sourceName: link.sourceName || "",
         sourcePath: isSource ? (link.target || "/") : "/",
       };
+      if (link.category === "share") {
+        void this.loadAvailableShares();
+      }
     },
     addLink() {
       if (!this.isNewLinkValid) return;
@@ -799,12 +854,15 @@ export default {
             id: state.user.id,
             username: state.user.username,
             sidebarLinks: this.links,
+            showToolsInSidebar: this.showToolsInSidebar,
           };
 
-          await usersApi.update(updatedUser, ['sidebarLinks']);
+          await usersApi.update(updatedUser, ['sidebarLinks', 'showToolsInSidebar']);
 
-          // Update the local state
-          state.user.sidebarLinks = [...this.links];
+          mutations.updateCurrentUser({
+            sidebarLinks: [...this.links],
+            showToolsInSidebar: this.showToolsInSidebar,
+          });
 
           notify.showSuccessToast(this.$t("sidebar.linksUpdatedSuccess"));
         }
@@ -821,12 +879,13 @@ export default {
 
 <style scoped>
 
-.padding-top {
+.settings-items {
   margin-top: 0.5em;
+  margin-bottom: 0.5em;
 }
 
-.links-list {
-  margin-bottom: 1.5em;
+.padding-top {
+  margin-top: 0.5em;
 }
 
 .links-list h3,
@@ -898,13 +957,6 @@ export default {
 .link-category {
   font-size: 0.85em;
   color: var(--textSecondary);
-}
-
-/* Form sections */
-.add-link-section {
-  margin-top: 1.5em;
-  padding-top: 1em;
-  border-top: 1px solid var(--borderColor);
 }
 
 .add-link-button {

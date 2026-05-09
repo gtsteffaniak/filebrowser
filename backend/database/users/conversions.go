@@ -118,6 +118,7 @@ func (u *User) GetFrontendSidebarLinks() []SidebarLink {
 	if sourceConfig == nil {
 		return []SidebarLink{}
 	}
+	hasTools := false
 
 	newLinks := []SidebarLink{}
 	for _, link := range u.SidebarLinks {
@@ -130,8 +131,18 @@ func (u *User) GetFrontendSidebarLinks() []SidebarLink {
 				continue
 			}
 			link.SourceName = source.Name
+		} else if link.Category == "tool" && link.Target == "/tools" {
+			hasTools = true
 		}
 		newLinks = append(newLinks, link)
+	}
+	if !hasTools && u.ShowToolsInSidebar {
+		newLinks = append(newLinks, SidebarLink{
+			Name:     "Tools",
+			Category: "tool",
+			Target:   "/tools",
+			Icon:     "build",
+		})
 	}
 	return newLinks
 }

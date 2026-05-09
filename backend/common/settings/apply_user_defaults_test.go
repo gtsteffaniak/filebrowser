@@ -45,6 +45,7 @@ func TestApplyUserDefaults_copiesUserDefaultsOntoUser(t *testing.T) {
 			DisableOnlyOfficeExt:       ".x",
 			CustomTheme:                "Night",
 			ShowSelectMultiple:         true,
+			ShowToolsInSidebar:         true,
 			DebugOffice:                true,
 			PreferEditorForMarkdown:    true,
 			LoginMethod:                "password",
@@ -123,6 +124,7 @@ func TestApplyUserDefaults_copiesUserDefaultsOntoUser(t *testing.T) {
 			DeleteWithoutConfirming:    true,
 			DeleteAfterArchive:         false,
 			PreferEditorForMarkdown:    true,
+			ShowToolsInSidebar:         true,
 			FileLoading: users.FileLoading{
 				MaxConcurrent:     3,
 				UploadChunkSize:   5,

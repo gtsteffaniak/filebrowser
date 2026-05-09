@@ -95,6 +95,7 @@ func ApplyUserDefaults(u *users.User) {
 	u.DisableOnlyOfficeExt = d.DisableOnlyOfficeExt
 	u.CustomTheme = d.CustomTheme
 	u.ShowSelectMultiple = d.ShowSelectMultiple
+	u.ShowToolsInSidebar = d.ShowToolsInSidebar
 	u.DebugOffice = d.DebugOffice
 	u.DeleteWithoutConfirming = d.DeleteWithoutConfirming
 	u.DeleteAfterArchive = d.DeleteAfterArchive

@@ -91,6 +91,9 @@
               :name="$t('profileSettings.hideSidebarFileActions')" />
             <ToggleSwitch class="item" v-model="localuser.hideFilesInTree" @change="updateSettings"
               :name="$t('profileSettings.hideFilesInTree')" :description="$t('profileSettings.hideFilesInTreeDescription')" />
+            <ToggleSwitch class="item" v-model="localuser.showToolsInSidebar" @change="updateSettings"
+              :name="$t('profileSettings.showToolsInSidebar')"
+              :description="$t('profileSettings.showToolsInSidebarDescription')" />
           </div>
         </SettingsItem>
         <SettingsItem aria-label="searchOptions" :title="$t('settings.searchOptions')" :collapsable="true"
@@ -289,6 +292,9 @@ export default {
     this.formDisablePreviews = this.localuser.disablePreviewExt;
     this.formDisabledViewing = this.localuser.disableViewingExt;
     this.formDisableOfficeViewing = this.localuser.disableOnlyOfficeExt;
+    if (typeof this.localuser.showToolsInSidebar !== 'boolean') {
+      this.localuser.showToolsInSidebar = true;
+    }
   },
   methods: {
     showTooltip(event, text) {
@@ -375,6 +381,7 @@ export default {
           "showSelectMultiple",
           "debugOffice",
           "preferEditorForMarkdown",
+          "showToolsInSidebar",
         ]);
         notify.showSuccessToast(
           this.$t('settings.settingsUpdated')

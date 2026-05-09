@@ -122,6 +122,7 @@ type NonAdminEditable struct {
 	CustomTheme                string        `json:"customTheme"`                // Name of theme to use chosen from custom themes config.
 	ShowSelectMultiple         bool          `json:"showSelectMultiple"`         // show select multiple files on desktop
 	ShowCopyPath               bool          `json:"showCopyPath"`               // show copy path action in the context menu
+	ShowToolsInSidebar         bool          `json:"showToolsInSidebar"`         // when false, sidebar hides links with category "tool" (default: true)
 	DebugOffice                bool          `json:"debugOffice"`                // debug onlyoffice editor
 	OtpEnabled                 bool          `json:"otpEnabled"`                 // allow non-admin users to disable their own OTP
 	SidebarLinks               []SidebarLink `json:"sidebarLinks"`               // customizable sidebar links
