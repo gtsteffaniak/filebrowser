@@ -626,6 +626,11 @@ func loadEnvConfig() {
 		logger.Info("Using ReCaptcha Secret from FILEBROWSER_RECAPTCHA_SECRET environment variable")
 	}
 
+	if os.Getenv("FILEBROWSER_CHAINFS_BYPASS") == "true" {
+		Env.ChainFsBypass = true
+		logger.Info("ChainFS subscription check bypassed via FILEBROWSER_CHAINFS_BYPASS env var")
+	}
+
 }
 
 func setDefaults(generate bool) Settings {
