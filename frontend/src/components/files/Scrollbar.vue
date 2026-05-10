@@ -131,7 +131,7 @@ export default {
       const sectionId = this.$refs.sectionId;
       const scrollRatio = scrollTop / (content.scrollHeight - content.clientHeight);
       const thumbHeight = thumb.clientHeight;
-      const maxThumbTop = scrollbar.clientHeight - thumbHeight - (this.isNotListing ? offsetFromBottomFull : offsetFromBottomListing);
+      const maxThumbTop = scrollbar.clientHeight - thumbHeight - (getters.showStatusBar() ? offsetFromBottomListing : offsetFromBottomFull);
       const thumbPosition = scrollRatio * maxThumbTop;
 
       // Use transform3d for better performance
@@ -179,7 +179,7 @@ export default {
 
       const deltaY = clientY - this.startY;
       const scrollableHeight = content.scrollHeight - content.clientHeight;
-      const offsetFromBottom = this.isNotListing ? offsetFromBottomFull : offsetFromBottomListing;
+      const offsetFromBottom = getters.showStatusBar() ? offsetFromBottomListing : offsetFromBottomFull;
       const scrollbarHeight =
         scrollbar.clientHeight - thumb.clientHeight - offsetFromBottom;
       const scrollRatio = scrollableHeight / scrollbarHeight;

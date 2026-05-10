@@ -19,7 +19,11 @@ All notable changes to this project will be documented in this file. For commit 
    - `CTRL+F2` switch to gallery view.
    - `CTRL+F3` switch to list view.
    - `Double click` on empty space to select all items.
- - Wildcard search support (limited to sqlite GLOB)
+ - Aditional search features
+   - wildcard search similar to regex, but limited to sqlite GLOB syntax (#769)
+   - advanced search tool that shows all results in a listing thats sortable and actionable like a normal listing (#1051)
+   - advanced search supports multiple custom scopes per search
+   - multiple search terms with AND or OR logic support
 
  **Notes**:
  - Enhanced indexing scheduler which doesn't wake the disk as often.

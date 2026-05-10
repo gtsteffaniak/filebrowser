@@ -408,6 +408,9 @@ export default {
 </script>
 
 <style scoped>
+.settings-group {
+  padding-top: 0.5em;
+}
 .disable-viewing {
   width: 100%;
 }
