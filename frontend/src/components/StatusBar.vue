@@ -131,9 +131,8 @@ export default {
       const sizeText = `(${this.displayTotalSize})`;
 
       if (dirs === 0 && files === 0) {
-        return this.$t('files.lonely');   // "No files or folders yet – drop something here"
+        return this.$t('files.lonely');
       }
-
       let parts = [];
       if (dirs > 0) parts.push(`${dirs} ${this.foldersLabel}`);
       if (files > 0) parts.push(`${files} ${this.filesLabel}`);
