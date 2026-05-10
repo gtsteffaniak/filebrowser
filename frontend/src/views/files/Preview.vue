@@ -532,6 +532,7 @@ export default {
             type: item.type,
             size: item.size,
             modified: item.modified,
+            hasPreview: item.hasPreview,
             previewUrl: previewUrl,
           }],
         },

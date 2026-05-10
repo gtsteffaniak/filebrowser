@@ -1,5 +1,5 @@
 <template>
-  <div >
+  <div @dragover.prevent @drop.prevent>
     <div v-show="showOverlay" @contextmenu.prevent="onOverlayRightClick" @click="resetItems" class="overlay"></div>
     <div v-if="progress" class="progress">
       <div v-bind:style="{ width: this.progress + '%' }"></div>

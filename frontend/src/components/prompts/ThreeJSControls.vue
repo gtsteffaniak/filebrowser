@@ -75,7 +75,6 @@ export default {
 <style scoped>
 .card-content {
   min-width: 300px;
-  max-height: 70vh;
   overflow-y: auto;
 }
 
