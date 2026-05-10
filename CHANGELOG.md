@@ -32,8 +32,8 @@ All notable changes to this project will be documented in this file. For commit 
  - Blue overlay when using gestures in video files on mobile (#2360)
  - Playback queue wasn't updating when changing of folder (#2360)
  - Added missing `UserDefaults.ShowCopyPath` option to config file (#2364)
- - Delete prompt thumbnail didn't worked when using it with the shortcut. (#2407)
- - Searching icons in the Icon picker prompt was working properly (#2407) 
+ - Delete prompt thumbnail didn't worked when using it with the `delete` shortcut. (#2407)
+ - Searching icons in the Icon picker prompt wasn't working properly (#2407) 
  - Drag and drop style state was stuck until page reload (#2407)
 
 ## v1.3.9
