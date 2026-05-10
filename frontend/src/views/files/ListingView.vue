@@ -29,7 +29,7 @@
       <div v-if="isDragging" class="drop-indicator">
         <div class="drop-indicator-content">
           <i class="material-symbols">cloud_upload</i>
-          <p>{{ $t("prompts.dropToUpload") }}</p>
+          <p>{{ $t("prompts.dragAndDrop") }}</p>
         </div>
       </div>
 
