@@ -36,6 +36,28 @@
       </div>
       <hr />
     </div>
+    <div v-if="globalVars.passkeyAvailable" style="margin-top: 0.5em;">
+      <label>{{ $t("profileSettings.passkeys") }}</label>
+      <div v-if="user.passkeyCredentials && user.passkeyCredentials.length > 0" class="passkey-list">
+        <div v-for="pk in user.passkeyCredentials" :key="pk.id" class="passkey-item">
+          <div class="passkey-info">
+            <span class="passkey-name">{{ pk.name || $t("profileSettings.passkeyDefaultName") }}</span>
+            <span class="passkey-meta">
+              {{ $t("profileSettings.created") }} {{ formatDate(pk.createdAt) }}<span v-if="pk.lastUsedAt" class="passkey-last-used">{{ $t("profileSettings.lastUsed") }} {{ formatDate(pk.lastUsedAt) }}</span>
+            </span>
+          </div>
+          <button type="button" class="button button--flat button--red" @click="deletePasskey(pk.id)">
+            {{ $t("general.delete") }}
+          </button>
+        </div>
+      </div>
+      <div v-else class="passkey-empty">
+        {{ $t("profileSettings.noPasskeys") }}
+      </div>
+      <button type="button" class="button" style="margin-top: 0.5em;" :disabled="addingPasskey" @click="addPasskey">
+        {{ addingPasskey ? $t("profileSettings.addingPasskey") : $t("profileSettings.addPasskey") }}
+      </button>
+    </div>
     <div v-if="stateUser.permissions.admin">
       <p v-if="isNew">
         <label for="username">{{ $t("general.username") }}</label>
@@ -68,29 +90,6 @@
         <ToggleSwitch v-if="user.loginMethod === 'password' && stateUser.permissions?.admin" class="item"
           :modelValue="user.lockPassword" @update:modelValue="(val) => updateUserField('lockPassword', val)"
           :name="$t('settings.lockPassword')" />
-      </div>
-
-      <div v-if="globalVars.passkeyAvailable" style="margin-top: 0.5em;">
-        <label>{{ $t("profileSettings.passkeys") }}</label>
-        <div v-if="user.passkeyCredentials && user.passkeyCredentials.length > 0" class="passkey-list">
-          <div v-for="pk in user.passkeyCredentials" :key="pk.id" class="passkey-item">
-            <div class="passkey-info">
-              <span class="passkey-name">{{ pk.name || $t("profileSettings.passkeyDefaultName") }}</span>
-              <span class="passkey-meta">
-                {{ $t("profileSettings.created") }} {{ formatDate(pk.createdAt) }}<span v-if="pk.lastUsedAt" class="passkey-last-used">{{ $t("profileSettings.lastUsed") }} {{ formatDate(pk.lastUsedAt) }}</span>
-              </span>
-            </div>
-            <button type="button" class="button button--flat button--red" @click="deletePasskey(pk.id)">
-              {{ $t("general.delete") }}
-            </button>
-          </div>
-        </div>
-        <div v-else class="passkey-empty">
-          {{ $t("profileSettings.noPasskeys") }}
-        </div>
-        <button type="button" class="button" style="margin-top: 0.5em;" :disabled="addingPasskey" @click="addPasskey">
-          {{ addingPasskey ? $t("profileSettings.addingPasskey") : $t("profileSettings.addPasskey") }}
-        </button>
       </div>
 
       <div style="padding-bottom: 1em" v-if="stateUser.permissions.admin">

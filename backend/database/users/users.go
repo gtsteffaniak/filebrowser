@@ -113,20 +113,6 @@ type User struct {
 	LoginMethod          LoginMethod           `json:"loginMethod"`
 	OtpEnabled           bool                  `json:"otpEnabled"` // true if TOTP is enabled, false otherwise
 	Version              int                   `json:"version"`
-	DisableSettings bool                 `json:"disableSettings"`
-	ID              uint                 `storm:"id,increment" json:"id"`
-	Username        string               `storm:"unique" json:"username"`
-	Scopes          []SourceScope        `json:"scopes"` // Bolt / in-process: Name = source path. JSON out: display name (prepForFrontend).
-	Scope           string               `json:"scope,omitempty"`
-	LockPassword    bool                 `json:"lockPassword"`
-	Permissions     Permissions          `json:"permissions"`
-	ApiKeys         map[string]AuthToken `json:"apiKeys,omitempty"` // deprecated: use Tokens instead
-	Tokens          map[string]AuthToken `json:"tokens,omitempty"`
-	TOTPSecret      string               `json:"totpSecret,omitempty"`
-	TOTPNonce       string               `json:"totpNonce,omitempty"`
-	LoginMethod     LoginMethod          `json:"loginMethod"`
-	OtpEnabled      bool                 `json:"otpEnabled"` // true if TOTP is enabled, false otherwise
-	Version         int                  `json:"version"`
 	// legacy for migration purposes... og filebrowser has perm attribute
 	Perm Permissions `json:"perm,omitzero"` // deprecated: use Permissions instead
 }
