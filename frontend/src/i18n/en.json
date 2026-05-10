@@ -9,6 +9,8 @@
     "noCreateOptions": "No create options are available"
   },
   "general": {
+    "and": "and",
+    "or": "or",
     "divider": "Divider{suffix}",
     "show": "Show{suffix}",
     "office": "Office{suffix}",
@@ -283,7 +285,6 @@
     "passwordsDontMatch": "Passwords don't match",
     "usernameTaken": "Username already taken",
     "wrongCredentials": "Wrong credentials",
-    "or": "OR",
     "inProgress": "Logging in...",
     "failedLogin": "Failed to login",
     "invalidCredentials": "Invalid credentials provided"
@@ -477,7 +478,8 @@
     "useWildcardSearch": "Wildcard search",
     "useWildcardSearchDescription": "Supported wildcard options:\n\n• Match any sequence: *\n\n• Match one character: ?\n\n• Character class: [a-z], [0-9]\n\n• Negation: [^0-9]\n\n• Literal *, ?, or [ need to be wrapped in brackets, e.g. [*], [?], [[]",
     "helpText1": "Search occurs on each character you type ({minSearchLength} character minimum).",
-    "helpText2": "Substring match on file or folder names only (not full paths). case:exact for case-sensitive matching\n\n for OR between terms use pipe character; double quotes for one phrase.\n\nEnable wildcard search for more advanced options."
+    "helpText2": "Substring match on file or folder names only (not full paths). case:exact for case-sensitive matching\n\n for OR between terms use pipe character; double quotes for one phrase.\n\nEnable wildcard search for more advanced options.",
+    "openInAdvancedSearch": "Open in Advanced Search"
   },
   "profileSettings": {
     "hideFileExt": "Hide certain files (by extension)",
@@ -862,6 +864,20 @@
     "duplicateFinder": {
       "name": "Duplicate File Finder",
       "description": "Find and manage duplicate files to reclaim storage space"
+    },
+    "advancedSearch": {
+      "name": "Advanced Search",
+      "description": "Search the index with full control over sources, filters, and options",
+      "searchTerms": "Search terms",
+      "matchAllTerms": "Match all terms",
+      "matchAllTermsDescription": "When enabled, all search terms must be found for each file",
+      "scopeAria": "Limit search to a folder",
+      "noTerms": "Enter at least one search term.",
+      "termTooShort": "Each search term must be at least {minSearchLength} characters",
+      "caseExact": "Case-sensitive match",
+      "resultsTitle": "Search results",
+      "invalidSources": "Turn on at least one source.",
+      "noResults": "No matching files or folders."
     },
     "materialIconPicker": {
       "name": "Material Icon Picker",

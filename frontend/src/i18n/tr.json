@@ -148,7 +148,6 @@
     "passwordsDontMatch": "Şifreler uyuşmuyor",
     "usernameTaken": "Kullanıcı adı mevcut",
     "wrongCredentials": "Yanlış hesap bilgileri",
-    "or": "VEYA",
     "inProgress": "Giriş yapıyorum...",
     "failedLogin": "Giriş yapılamadı",
     "invalidCredentials": "Geçersiz kimlik bilgileri sağlandı"
@@ -264,10 +263,11 @@
     "olderThanDate": "Daha yaşlı:",
     "newerThanDate": "Daha yeni:",
     "noResults": "Sonuç bulunamadı.",
-    "useWildcardSearch": "Joker karakter araması",
     "helpText1": "Arama, yazdığınız her karakterde gerçekleşir ({minSearchLength} minimum karakter).",
-    "useWildcardSearchDescription": "Desteklenen joker karakterler:\n\n- Herhangi bir diziyi eşleştirin: *\n\n- Bir karakteri eşleştirin: ?\n\n- Karakter sınıfı: [a-z], [0-9]\n\n- Negasyon: [^0-9]\n\n- Literal *, ? veya [ parantez içine alınmalıdır, örneğin [*], [?], [[]",
-    "helpText2": "Yalnızca dosya veya klasör adlarında alt dize eşleşmesi (tam yollarda değil). case:exact büyük/küçük harfe duyarlı eşleştirme için\n\n terimler arasında VEYA için boru karakteri kullanın; bir ifade için çift tırnak kullanın.\n\nDaha gelişmiş seçenekler için joker karakter aramayı etkinleştirin."
+    "helpText2": "Yalnızca dosya veya klasör adlarında alt dize eşleşmesi (tam yollarda değil). case:exact büyük/küçük harfe duyarlı eşleştirme için\n\n terimler arasında VEYA için boru karakteri kullanın; bir ifade için çift tırnak kullanın.\n\nDaha gelişmiş seçenekler için joker karakter aramayı etkinleştirin.",
+    "useWildcardSearch": "Joker karakter araması (büyük/küçük harfe duyarlı)",
+    "useWildcardSearchDescription": "Desteklenen joker karakter seçenekleri:\n\n- Herhangi bir diziyi eşleştirin: *\n\n- Bir karakteri eşleştirin: ?\n\n- Karakter sınıfı: [a-z], [0-9]\n\n- Negasyon: [^0-9]\n\n- Literal *, ? veya [ parantez içine alınmalıdır, örneğin [*], [?], [[]\n\n- Tüm sonuçlar büyük/küçük harfe duyarlıdır",
+    "openInAdvancedSearch": "Gelişmiş Aramada Aç"
   },
   "settings": {
     "administrator": "Yönetici",
@@ -674,7 +674,9 @@
     "office": "Ofis{suffix}",
     "show": "Göster{suffix}",
     "divider": "Bölücü{suffix}",
-    "audio": "Ses{suffix}"
+    "audio": "Ses{suffix}",
+    "and": "ve",
+    "or": "veya"
   },
   "access": {
     "rules": "Erişim kuralları",
@@ -877,6 +879,20 @@
       "stopWatching": "İzlemeyi Bırak",
       "emptyState": "Bir dosya seçin ve dosya değişikliklerini izlemeye başlamak için oynat'a tıklayın",
       "chooseFile": "Bir dosya seçin"
+    },
+    "advancedSearch": {
+      "name": "Gelişmiş Arama",
+      "description": "Kaynaklar, filtreler ve seçenekler üzerinde tam kontrol ile dizinde arama yapın",
+      "searchTerms": "Arama terimleri",
+      "matchAllTerms": "Tüm terimleri eşleştirin",
+      "matchAllTermsDescription": "Etkinleştirildiğinde, her dosya için tüm arama terimleri bulunmalıdır",
+      "scopeAria": "Aramayı bir klasörle sınırlandırın",
+      "noTerms": "En az bir arama terimi girin.",
+      "termTooShort": "Her bir arama terimi en az {minSearchLength} karakter olmalıdır",
+      "caseExact": "Harfe duyarlı eşleşme",
+      "resultsTitle": "Arama sonuçları",
+      "invalidSources": "En az bir kaynağı açın.",
+      "noResults": "Eşleşen dosya veya klasör yok."
     }
   },
   "messages": {

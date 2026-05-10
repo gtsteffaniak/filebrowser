@@ -148,7 +148,6 @@
     "passwordsDontMatch": "密碼不一致",
     "usernameTaken": "此帳號名稱已被使用",
     "wrongCredentials": "帳號或密碼錯誤",
-    "or": "或",
     "inProgress": "登入中…",
     "failedLogin": "登入失敗",
     "invalidCredentials": "提供的認證資料無效"
@@ -264,10 +263,11 @@
     "olderThanDate": "年紀比",
     "newerThanDate": "比較新：",
     "noResults": "未找到結果。",
-    "useWildcardSearch": "通配符搜尋",
     "helpText1": "搜尋會發生在您輸入的每個字元上（{minSearchLength} 字元最小值）。",
-    "useWildcardSearchDescription": "支援的通配符：\n\n- 匹配任何序列：*\n\n- 匹配一個字元：?\n\n- 字元類別：[a-z]、[0-9]\n\n- 否定：[^0-9]\n\n- 字面 *、?或 [ 需要包在括弧中，例如 [*]、[?]、[[]",
-    "helpText2": "僅對檔案或資料夾名稱進行子串匹配（而非完整路徑）。\n\n 對於詞彙之間的 OR，使用管道符號；對於單一詞組，使用雙引號。\n\n啟用通配符搜尋以獲得更多進階選項。"
+    "helpText2": "僅對檔案或資料夾名稱進行子串匹配（而非完整路徑）。\n\n 對於詞彙之間的 OR，使用管道符號；對於單一詞組，使用雙引號。\n\n啟用通配符搜尋以獲得更多進階選項。",
+    "useWildcardSearch": "通配符搜尋 (區分大小寫)",
+    "useWildcardSearchDescription": "支援的通配符選項：\n\n- 匹配任何序列：*\n\n- 匹配一個字元：?\n\n- 字元類別：[a-z]、[0-9]\n\n- 否定：[^0-9]\n\n- 字面 *、?或 [ 需要包在括弧中，例如 [*]、[?]、[[]\n\n- 所有結果都區分大小寫",
+    "openInAdvancedSearch": "在進階搜尋中開啟"
   },
   "settings": {
     "administrator": "管理員",
@@ -761,7 +761,9 @@
     "office": "Office{suffix}",
     "show": "顯示{suffix}",
     "divider": "分隔線{suffix}",
-    "audio": "音訊{suffix}"
+    "audio": "音訊{suffix}",
+    "and": "和",
+    "or": "或"
   },
   "access": {
     "rules": "存取規則",
@@ -877,6 +879,20 @@
       "stopWatching": "停止監看",
       "emptyState": "選擇檔案並按一下播放，即可開始監看檔案變更",
       "chooseFile": "選擇檔案"
+    },
+    "advancedSearch": {
+      "name": "進階搜尋",
+      "description": "可完全控制來源、篩選器和選項來搜尋索引",
+      "searchTerms": "搜尋條件",
+      "matchAllTerms": "匹配所有詞彙",
+      "matchAllTermsDescription": "啟用時，必須找到每個檔案的所有搜尋字詞",
+      "scopeAria": "限制搜尋至資料夾",
+      "noTerms": "至少輸入一個搜尋字詞。",
+      "termTooShort": "每個搜尋字詞必須至少為{minSearchLength} 字元",
+      "caseExact": "大小寫敏感匹配",
+      "resultsTitle": "搜尋結果",
+      "invalidSources": "開啟至少一個來源。",
+      "noResults": "沒有匹配的檔案或資料夾。"
     }
   },
   "messages": {

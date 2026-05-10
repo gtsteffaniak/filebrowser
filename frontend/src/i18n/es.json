@@ -148,7 +148,6 @@
     "passwordsDontMatch": "Las contraseñas no coinciden",
     "usernameTaken": "El usuario ya existe, intenta con otro nombre",
     "wrongCredentials": "Nombre de usuario y/o contraseña incorrectos",
-    "or": "O",
     "inProgress": "Iniciando sesión...",
     "failedLogin": "Error al iniciar sesión",
     "invalidCredentials": "Credenciales no válidas"
@@ -264,10 +263,11 @@
     "olderThanDate": "Más viejo que:",
     "newerThanDate": "Más nuevo que:",
     "noResults": "No se han encontrado resultados.",
-    "useWildcardSearch": "Búsqueda con comodín",
     "helpText1": "La búsqueda se produce en cada carácter que escriba ({minSearchLength} carácter mínimo).",
-    "useWildcardSearchDescription": "Comodines admitidos:\n\n- Coinciden con cualquier secuencia: *\n\n- Coincidencia con un carácter: ?\n\n- Clase de caracteres: [a-z], [0-9]\n\n- Negación: [^0-9]\n\n- Los caracteres *, ? o [ deben ir entre paréntesis, por ejemplo [*], [?], [[].",
-    "helpText2": "Coincidencia de subcadenas sólo en nombres de archivos o carpetas (no en rutas completas). case:exact para coincidencia sensible a mayúsculas y minúsculas.\n\n para OR entre términos utilice el carácter pipa; comillas dobles para una frase.\n\nHabilite la búsqueda con comodines para opciones más avanzadas."
+    "helpText2": "Coincidencia de subcadenas sólo en nombres de archivos o carpetas (no en rutas completas). case:exact para coincidencia sensible a mayúsculas y minúsculas.\n\n para OR entre términos utilice el carácter pipa; comillas dobles para una frase.\n\nHabilite la búsqueda con comodines para opciones más avanzadas.",
+    "useWildcardSearch": "Búsqueda con comodín (distingue mayúsculas de minúsculas)",
+    "useWildcardSearchDescription": "Opciones de comodín admitidas:\n\n- Coinciden con cualquier secuencia: *\n\n- Coincidir con un carácter: ?\n\n- Clase de caracteres: [a-z], [0-9]\n\n- Negación: [^0-9]\n\n- Los caracteres *, ? o [ deben ir entre paréntesis, por ejemplo [*], [?], [[].\n\n- Todos los resultados distinguen entre mayúsculas y minúsculas",
+    "openInAdvancedSearch": "Abrir en búsqueda avanzada"
   },
   "settings": {
     "scopes": "Fuentes a las que el usuario tendrá acceso:",
@@ -674,7 +674,9 @@
     "office": "Office{suffix}",
     "show": "Mostrar{suffix}",
     "divider": "Divisor{suffix}",
-    "audio": "Audio{suffix}"
+    "audio": "Audio{suffix}",
+    "and": "y",
+    "or": "o"
   },
   "access": {
     "rules": "Reglas de acceso",
@@ -877,6 +879,20 @@
       "stopWatching": "Dejar de ver",
       "emptyState": "Elije un archivo y haz clic en el botón para empezar a ver los cambios en el archivo",
       "chooseFile": "Elije un archivo"
+    },
+    "advancedSearch": {
+      "name": "Búsqueda avanzada",
+      "description": "Búsqueda en el índice con control total sobre fuentes, filtros y opciones",
+      "searchTerms": "Términos de la búsqueda",
+      "matchAllTerms": "Emparejar todos los términos",
+      "matchAllTermsDescription": "Cuando está activada, deben encontrarse todos los términos de búsqueda para cada archivo",
+      "scopeAria": "Limitar la búsqueda a una carpeta",
+      "noTerms": "Introduzca al menos un término de búsqueda.",
+      "termTooShort": "Cada término de búsqueda debe tener al menos {minSearchLength} caracteres",
+      "caseExact": "Coincidencia entre mayúsculas y minúsculas",
+      "resultsTitle": "Resultados de la búsqueda",
+      "invalidSources": "Enciende al menos una fuente.",
+      "noResults": "No hay archivos o carpetas coincidentes."
     }
   },
   "messages": {

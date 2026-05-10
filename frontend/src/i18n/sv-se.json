@@ -148,7 +148,6 @@
     "passwordsDontMatch": "Lösenord matchar inte",
     "usernameTaken": "Användarnamn upptaget",
     "wrongCredentials": "Fel inloggning",
-    "or": "ELLER",
     "inProgress": "Loggar in...",
     "failedLogin": "Misslyckades med att logga in",
     "invalidCredentials": "Ogiltiga inloggningsuppgifter har angetts"
@@ -264,10 +263,11 @@
     "olderThanDate": "Äldre än:",
     "newerThanDate": "Nyare än:",
     "noResults": "Inga resultat hittades.",
-    "useWildcardSearch": "Sök med jokertecken",
     "helpText1": "Sökningen sker för varje tecken du skriver ({minSearchLength} tecken minimum).",
-    "useWildcardSearchDescription": "Jokertecken som stöds:\n\n- Matchar vilken sekvens som helst: *\n\n- Matcha ett tecken: ?\n\n- Teckenklass: [a-z], [0-9]\n\n- Negation: [^0-9]\n\n- Bokstavliga *, ? eller [ måste omslutas av parenteser, t.ex. [*], [?], [[]",
-    "helpText2": "Delsträngsmatchning endast på fil- eller mappnamn (inte fullständiga sökvägar). case:exact för skiftlägeskänslig matchning\n\n för OR mellan termer använd pipe-tecken; dubbla citattecken för en fras.\n\nAktivera jokerteckensökning för mer avancerade alternativ."
+    "helpText2": "Delsträngsmatchning endast på fil- eller mappnamn (inte fullständiga sökvägar). case:exact för skiftlägeskänslig matchning\n\n för OR mellan termer använd pipe-tecken; dubbla citattecken för en fras.\n\nAktivera jokerteckensökning för mer avancerade alternativ.",
+    "useWildcardSearch": "Sökning med jokertecken (skiftlägeskänslig)",
+    "useWildcardSearchDescription": "Alternativ för jokertecken som stöds:\n\n- Matchar vilken sekvens som helst: *\n\n- Matcha ett tecken: ?\n\n- Teckenklass: [a-z], [0-9]\n\n- Negation: [^0-9]\n\n- Bokstavliga *, ? eller [ måste omslutas av parenteser, t.ex. [*], [?], [[]\n\n- Alla resultat är skiftlägeskänsliga",
+    "openInAdvancedSearch": "Öppna i avancerad sökning"
   },
   "settings": {
     "administrator": "Administratör",
@@ -761,7 +761,9 @@
     "office": "Kontor{suffix}",
     "show": "Visa{suffix}",
     "divider": "Uppdelare{suffix}",
-    "audio": "Ljud{suffix}"
+    "audio": "Ljud{suffix}",
+    "and": "och",
+    "or": "eller"
   },
   "access": {
     "rules": "Regler för åtkomst",
@@ -877,6 +879,20 @@
       "stopWatching": "Sluta titta på",
       "emptyState": "Välj en fil och klicka på play för att börja övervaka filändringar",
       "chooseFile": "Välj en fil"
+    },
+    "advancedSearch": {
+      "name": "Avancerad sökning",
+      "description": "Sök i indexet med full kontroll över källor, filter och alternativ",
+      "searchTerms": "Sökord",
+      "matchAllTerms": "Matcha alla termer",
+      "matchAllTermsDescription": "När den är aktiverad måste alla söktermer hittas för varje fil",
+      "scopeAria": "Begränsa sökningen till en mapp",
+      "noTerms": "Ange minst en sökterm.",
+      "termTooShort": "Varje sökterm måste innehålla minst {minSearchLength} tecken",
+      "caseExact": "Matchning med skiftlägeskänslighet",
+      "resultsTitle": "Sökresultat",
+      "invalidSources": "Slå på minst en källa.",
+      "noResults": "Inga matchande filer eller mappar."
     }
   },
   "messages": {

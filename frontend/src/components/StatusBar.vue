@@ -14,7 +14,7 @@
       </div>
       <!-- Right side: Slider to control the listing size or the font size in editor -->
       <div class="status-controls">
-        <div v-if="currentView === 'listingView'" class="gallery-size-control">
+        <div v-if="showGallerySizeSlider" class="gallery-size-control">
           <span class="size-label">{{ $t("general.size") }}</span>
           <input
             v-model="gallerySize"
@@ -59,13 +59,10 @@ export default {
       return getters.currentView();
     },
     isEditorOrMarkdownView() {
-      return this.currentView === 'editor' || this.currentView === 'markdownViewer';
+      return getters.isEditorOrMarkdownView();
     },
     showStatusBar() {
-      if (getters.isShare() && state.shareInfo.shareType === "upload") {
-        return false;
-      }
-      return this.currentView === "listingView" || this.isEditorOrMarkdownView;
+      return getters.showStatusBar();
     },
     isDarkMode() {
       return getters.isDarkMode();
@@ -206,7 +203,8 @@ export default {
 
       const delta = event.deltaY > 0 ? 1 : -1; // Scroll down increases, up decreases
 
-      if (this.currentView === 'listingView') {
+      const advSearch = (state.route?.path || "").startsWith("/tools/advancedSearch");
+      if (this.currentView === "listingView" || advSearch) {
         event.preventDefault();
         let newSize = Math.min(9, Math.max(1, this.gallerySize - delta));
         if (newSize !== this.gallerySize) {

@@ -44,6 +44,13 @@ const getTools = () => [
     component: "DuplicateFinder",
   },
   {
+    name: i18n.global.t("tools.advancedSearch.name"),
+    description: i18n.global.t("tools.advancedSearch.description"),
+    icon: "manage_search",
+    path: "/tools/advancedSearch",
+    component: "AdvancedSearch",
+  },
+  {
     name: i18n.global.t("tools.materialIconPicker.name"),
     description: i18n.global.t("tools.materialIconPicker.description"),
     icon: "interests",
@@ -59,15 +66,8 @@ const getTools = () => [
   },
 ];
 
-// Export tools as both a function and direct array for convenience
-// Cache the tools array
-let toolsCache = null;
-const tools = () => {
-  if (!toolsCache) {
-    toolsCache = getTools();
-  }
-  return toolsCache;
-};
+// Resolve tools lazily each call so locale and new registrations stay accurate
+const tools = () => getTools();
 
 export {
   globalVars,

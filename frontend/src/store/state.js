@@ -96,6 +96,7 @@ export const state = reactive({
     letter: "A",
     scrolling: false,
     scrollRatio: 0,
+    listingScrollTop: 0,
   },
   previewRaw: "",
   oldReq: {},

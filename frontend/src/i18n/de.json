@@ -148,7 +148,6 @@
     "passwordsDontMatch": "Kennwörter stimmen nicht überein",
     "usernameTaken": "Benutzername ist bereits vergeben",
     "wrongCredentials": "Falsche Zugangsdaten",
-    "or": "OR",
     "inProgress": "Einloggen...",
     "failedLogin": "Anmeldung fehlgeschlagen",
     "invalidCredentials": "Ungültige Anmeldedaten angegeben"
@@ -264,10 +263,11 @@
     "olderThanDate": "Älter als:",
     "newerThanDate": "Neuere als:",
     "noResults": "Keine Ergebnisse gefunden.",
-    "useWildcardSearch": "Wildcard-Suche",
     "helpText1": "Die Suche erfolgt bei jedem Zeichen, das Sie eingeben ({minSearchLength} Zeichen Minimum).",
-    "useWildcardSearchDescription": "Unterstützte Wildcards:\n\n- Entspricht jeder Sequenz: *\n\n- Übereinstimmung mit einem Zeichen: ?\n\n- Zeichenklasse: [a-z], [0-9]\n\n- Negation: [^0-9]\n\n- Buchstäbliche *, ? oder [ müssen in Klammern eingeschlossen werden, z. B. [*], [?], [[]",
-    "helpText2": "Teilstring-Übereinstimmung nur bei Datei- oder Ordnernamen (nicht bei vollständigen Pfaden). case:exact für Übereinstimmung unter Berücksichtigung der Groß-/Kleinschreibung\n\n für ODER zwischen Begriffen Pipe-Zeichen verwenden; doppelte Anführungszeichen für eine Phrase.\n\nAktivieren Sie die Platzhaltersuche für erweiterte Optionen."
+    "helpText2": "Teilstring-Übereinstimmung nur bei Datei- oder Ordnernamen (nicht bei vollständigen Pfaden). case:exact für Übereinstimmung unter Berücksichtigung der Groß-/Kleinschreibung\n\n für ODER zwischen Begriffen Pipe-Zeichen verwenden; doppelte Anführungszeichen für eine Phrase.\n\nAktivieren Sie die Platzhaltersuche für erweiterte Optionen.",
+    "useWildcardSearch": "Wildcard-Suche (Groß- und Kleinschreibung beachten)",
+    "useWildcardSearchDescription": "Unterstützte Platzhalteroptionen:\n\n- Entspricht einer beliebigen Sequenz: *\n\n- Übereinstimmung mit einem Zeichen: ?\n\n- Zeichenklasse: [a-z], [0-9]\n\n- Negation: [^0-9]\n\n- Buchstäbliche *, ? oder [ müssen in Klammern eingeschlossen werden, z. B. [*], [?], [[]\n\n- Bei allen Ergebnissen wird zwischen Groß- und Kleinschreibung unterschieden.",
+    "openInAdvancedSearch": "In der erweiterten Suche öffnen"
   },
   "settings": {
     "administrator": "Administrator",
@@ -674,7 +674,9 @@
     "office": "Büro{suffix}",
     "show": "anzeigen{suffix}",
     "divider": "Teiler{suffix}",
-    "audio": "Audio{suffix}"
+    "audio": "Audio{suffix}",
+    "and": "und",
+    "or": "oder"
   },
   "access": {
     "rules": "Zugangsregeln",
@@ -877,6 +879,20 @@
       "stopWatching": "Aufhören zu beobachten",
       "emptyState": "Wählen Sie eine Datei aus und klicken Sie auf \"Play\", um die Dateiänderungen zu überwachen.",
       "chooseFile": "Wählen Sie eine Datei"
+    },
+    "advancedSearch": {
+      "name": "Erweiterte Suche",
+      "description": "Suche im Index mit voller Kontrolle über Quellen, Filter und Optionen",
+      "searchTerms": "Suchbegriffe",
+      "matchAllTerms": "Alle Begriffe zuordnen",
+      "matchAllTermsDescription": "Wenn aktiviert, müssen alle Suchbegriffe für jede Datei gefunden werden",
+      "scopeAria": "Suche auf einen Ordner beschränken",
+      "noTerms": "Geben Sie mindestens einen Suchbegriff ein.",
+      "termTooShort": "Jeder Suchbegriff muss mindestens {minSearchLength} Zeichen umfassen.",
+      "caseExact": "Abgleich unter Berücksichtigung der Groß-/Kleinschreibung",
+      "resultsTitle": "Suchergebnisse",
+      "invalidSources": "Schalten Sie mindestens eine Quelle ein.",
+      "noResults": "Keine passenden Dateien oder Ordner."
     }
   },
   "messages": {

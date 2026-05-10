@@ -562,6 +562,16 @@ export const getters = {
     // Return null when at /tools (list view) to avoid circular component rendering
     return tool;
   },
+  isEditorOrMarkdownView: () => {
+    return getters.currentView() === 'editor' || getters.currentView() === 'markdownViewer';
+  },
+  showStatusBar: () => {
+    if (getters.isShare() && state.shareInfo.shareType === "upload") {
+      return false;
+    }
+    const isAdvancedSearchRoute = (state.route?.path || "").startsWith("/tools/advancedSearch");
+    return getters.currentView() === "listingView" || getters.isEditorOrMarkdownView() || isAdvancedSearchRoute;
+  },
   permissions: () => {
     if (getters.isShare()) {
       return {

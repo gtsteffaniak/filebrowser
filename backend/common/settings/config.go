@@ -719,6 +719,7 @@ func setDefaults(generate bool) Settings {
 			StickySidebar:           true,
 			HideFilesInTree:         false,
 			PreferEditorForMarkdown: false,
+			ShowCopyPath:            false,
 			LockPassword:            false,
 			ShowHidden:              false,
 			DarkMode:                boolPtr(true),
