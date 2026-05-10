@@ -126,7 +126,19 @@ export default {
       return `${this.itemsSelectedLabel} (${this.displayTotalSize})`;
     },
     directoryInfoText() {
-      return `${this.numDirs} ${this.foldersLabel} | ${this.numFiles} ${this.filesLabel} (${this.displayTotalSize})`;
+      const dirs = this.numDirs;
+      const files = this.numFiles;
+      const sizeText = `(${this.displayTotalSize})`;
+
+      if (dirs === 0 && files === 0) {
+        return this.$t('files.lonely');   // "No files or folders yet – drop something here"
+      }
+
+      let parts = [];
+      if (dirs > 0) parts.push(`${dirs} ${this.foldersLabel}`);
+      if (files > 0) parts.push(`${files} ${this.filesLabel}`);
+
+      return parts.join(' | ') + ' ' + sizeText;
     },
     moveWithSidebar() {
       if (getters.isStickySidebar() && getters.isSidebarVisible()) {
