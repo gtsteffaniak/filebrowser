@@ -115,6 +115,22 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		response = indexing.SearchMultiSources(searchOptions.query, searchOptions.sources, searchOptions.combinedPath, searchOptions.sessionId, searchOptions.largest, searchSize, searchOptions.olderThanUnix, searchOptions.newerThanUnix, searchOptions.useWildcard)
 	}
 
+	// Filter out ext-hidden files when the showHidden is false
+	if d.user.HideFileExt != "" && !d.user.ShowHidden {
+		filter := make([]*indexing.SearchResult, 0, len(response))
+		for _, res := range response {
+			if res.Type == "directory" {
+				filter = append(filter, res)
+				continue
+			}
+			baseName := filepath.Base(res.Path)
+			if !utils.HideFileByExt(baseName, d.user.HideFileExt) {
+				filter = append(filter, res)
+			}
+		}
+		response = filter
+	}
+
 	// Filter out items that are not permitted according to access rules and trim user scope from paths
 	filteredResponse := make([]*indexing.SearchResult, 0, len(response))
 	for _, result := range response {

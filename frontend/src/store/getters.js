@@ -1,6 +1,6 @@
 import { removePrefix, buildItemUrl, removeLeadingSlash } from '@/utils/url.js'
 import { url } from '@/utils'
-import { getFileExtension, shouldHideFile } from '@/utils/files.js'
+import { getFileExtension } from '@/utils/files.js'
 import { state, mutations } from '@/store'
 import { globalVars, previewViews } from '@/utils/constants.js'
 import { getTypeInfo } from '@/utils/mimetype'
@@ -221,14 +221,10 @@ export const getters = {
     const files = [];
     if (!state.req.items) return { dirs, files };
 
-    const hideExt = state.user?.hideFileExt;
-
     for (const item of state.req.items) {
       if (item.type === 'directory') {
         dirs.push(item);
       } else {
-        // Apply hide filter only to files
-        if (hideExt && shouldHideFile(item.name, hideExt)) continue;
         item.Path = state.req.path;
         files.push(item);
       }

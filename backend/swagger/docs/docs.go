@@ -6983,7 +6983,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "hideFileExt": {
-                    "description": "space separated list of file extensions to hide in UI",
+                    "description": "space separated list of file extensions to hide in UI and API",
                     "type": "string"
                 },
                 "hideFilesInTree": {

@@ -171,6 +171,7 @@ func GetDirItems(opts utils.FileOptions, access *access.Storage, user *users.Use
 		IndexPath:         indexPath,
 		FollowSymlinks:    opts.FollowSymlinks,
 		ShowHidden:        opts.ShowHidden,
+		HideFileExt:       opts.HideFileExt,
 		Expand:            true,
 		SkipExtendedAttrs: true,
 	})
@@ -221,6 +222,7 @@ func fileInfoFasterImpl(opts utils.FileOptions, access *access.Storage, user *us
 		IndexPath:         indexPath,
 		FollowSymlinks:    opts.FollowSymlinks,
 		ShowHidden:        opts.ShowHidden,
+		HideFileExt:       opts.HideFileExt,
 		Expand:            opts.Expand,
 		SkipExtendedAttrs: opts.SkipExtendedAttrs,
 	})
