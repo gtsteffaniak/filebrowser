@@ -155,7 +155,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	// ========================================
 	api.HandleFunc("GET /share/list", withPermShare(shareListHandler))
 	api.HandleFunc("GET /share/direct", withPermShare(shareDirectDownloadHandler))
-	api.HandleFunc("GET /share", withPermShare(shareGetHandler))
+	api.HandleFunc("GET /share", withUser(shareGetHandler))
 	api.HandleFunc("POST /share", withPermShare(sharePostHandler))
 	api.HandleFunc("PATCH /share", withPermShare(sharePatchHandler))
 	api.HandleFunc("DELETE /share", withPermShare(shareDeleteHandler))
@@ -182,7 +182,9 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	// ========================================
 	api.HandleFunc("GET /media/subtitles", withUser(subtitlesHandler))
 	api.HandleFunc("GET /media/metadata", withUser(metadataHandler))
+	api.HandleFunc("GET /media/lyrics", withUser(lyricsHandler))
 	publicApi.HandleFunc("GET /media/metadata", withHashFile(publicMetadataHandler))
+	publicApi.HandleFunc("GET /media/lyrics", withHashFile(publicLyricsHandler))
 
 	// ========================================
 	// OnlyOffice Routes - /api/office/ (with public routes)

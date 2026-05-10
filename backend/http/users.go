@@ -90,6 +90,7 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	return renderJSON(w, r, u)
 }
 
+// prepForFrontend strips secrets and maps source identifiers to display names for JSON (never expose paths).
 func prepForFrontend(u *users.User) {
 	u.Password = ""
 	u.ApiKeys = nil

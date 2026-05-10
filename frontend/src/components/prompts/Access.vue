@@ -17,10 +17,15 @@
         <file-list @update:selected="updateTempPath" :browseSource="sourceName" :showFiles="true"></file-list>
       </div>
       <div v-else>
-      <p>{{ $t("general.source", { suffix: ":" }) }} {{ currentSource }}</p>
-      <div aria-label="access-path" class="searchContext clickable button" @click="startPathEdit">
-        {{ $t("general.path", { suffix: ":" }) }} {{ currentPath }}
-      </div>
+      <PathPickerButton
+        v-model:path="currentPath"
+        v-model:source="currentSource"
+        aria-label="access-path"
+        :show-files="true"
+        :show-folders="true"
+        :placeholder="$t('sidebar.chooseSource')"
+        @navigate="onPathPickerNavigate"
+      />
       <!-- Default behavior banner -->
       <div class="card item">
         <div class="card-content banner-content">
@@ -104,11 +109,12 @@ import { mutations } from "@/store";
 import FileList from "../files/FileList.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import PathPickerButton from "@/components/files/PathPickerButton.vue";
 import { eventBus } from "@/store/eventBus";
 
 export default {
   name: "access",
-  components: { FileList, ToggleSwitch, LoadingSpinner },
+  components: { FileList, ToggleSwitch, LoadingSpinner, PathPickerButton },
   props: {
     sourceName: { type: String, required: true },
     path: { type: String, required: true, default: "/" }
@@ -173,9 +179,9 @@ export default {
     }
   },
   methods: {
-    startPathEdit() {
-      this.tempPath = this.currentPath;
-      this.isEditingPath = true;
+    async onPathPickerNavigate() {
+      await this.fetchRule();
+      eventBus.emit("accessRulesChanged");
     },
     /**
      * @param {{path: string, source: string}} pathOrData

@@ -75,7 +75,12 @@
     "mouseActions": "鼠标操作",
     "fileOperations": "文件操作",
     "click": "选择文件或目录",
+    "dbClick": "双击空白区域以选择所有项目",
     "ctrl": {
+      "f1": "切换到列表视图",
+      "f2": "切换到普通视图",
+      "f3": "切换到画廊视图",
+      "scroll": "更改列表大小和编辑器字体",
       "click": "选择多个文件或目录",
       "d": "下载所选项目",
       "b": "切换侧栏",
@@ -101,6 +106,8 @@
       "volume": "调高或调低音量",
       "mute": "静音/取消静音",
       "loop": "在循环模式和单次模式之间切换",
+      "playbackQueue": "在音频文件中打开播放队列或面板",
+      "switchTabs": "在音频文件的面板中切换选项卡",
       "playbackModes": "切换播放模式（不包括循环和单次）",
       "fullscreen": "视频全屏模式切换",
       "captions": "开启/关闭字幕"
@@ -257,9 +264,11 @@
     "showPreviewImagesDescription": "在可用时显示搜索结果的缩略图预览，并为所有结果显示更大的图标。",
     "olderThanDate": "比",
     "newerThanDate": "新于：",
-    "helpText2": "搜索结果基于已编入索引的文件，因此新添加的文件在编入索引之前可能不会出现。",
     "noResults": "未找到结果。",
-    "helpText1": "您输入的每个字符都会进行搜索（{minSearchLength} 字符最小值）。"
+    "useWildcardSearch": "通配符搜索",
+    "helpText1": "您输入的每个字符都会进行搜索（{minSearchLength} 字符最小值）。",
+    "useWildcardSearchDescription": "支持通配符：\n\n- 匹配任何序列：*\n\n- 匹配一个字符：?\n\n- 字符类别：[a-z]、[0-9］\n\n- 否定：[^0-9]\n\n- 字面 *、? 或 [ 需要用括号包装，例如 [*]、[?]、[[]",
+    "helpText2": "仅对文件或文件夹名称（而非完整路径）进行子串匹配。 case:exact 用于大小写敏感匹配\n\n 对于术语之间的 OR，使用管道字符；一个短语使用双引号。\n\n启用通配符搜索可获得更多高级选项。"
   },
   "settings": {
     "scopes": "定义允许的来源及其中的用户范围",
@@ -810,7 +819,15 @@
     "QueuePlayback": "播放队列",
     "changePlaybackMode": "更改播放模式",
     "changePlaybackModeHint": "更改播放模式以查看更多文件",
-    "emptyQueue": "队列为空"
+    "emptyQueue": "队列为空",
+    "queue": "队列",
+    "lyrics": "歌词",
+    "noLyrics": "没有可用的歌词",
+    "lockLyrics": "锁定歌词",
+    "unlockLyrics": "解锁歌词",
+    "toggleLyrics": "切换歌词",
+    "closePanel": "关闭面板",
+    "openPanel": "打开面板"
   },
   "fileSizeAnalyzer": {
     "title": "文件大小分析器",
@@ -879,7 +896,8 @@
     "reassignPath": "重新分配路径",
     "pathReassigned": "路径更新成功！",
     "pathReassignFailed": "更新路径失败。请重试。",
-    "incompleteResultsDetails": "显示最大结果 ({max})。请尝试缩小搜索范围，以获得{max} 下的更多结果。"
+    "incompleteResultsDetails": "显示最大结果 ({max})。请尝试缩小搜索范围，以获得{max} 下的更多结果。",
+    "noCreateOptions": "没有创建选项"
   },
   "duplicateFinder": {
     "title": "重复文件查找器",

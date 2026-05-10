@@ -514,6 +514,14 @@ definitions:
         description: type of the file, either "directory" or a file mimetype
         type: string
     type: object
+  iteminfo.Lyric:
+    properties:
+      text:
+        type: string
+      timestamp:
+        description: milliseconds
+        type: integer
+    type: object
   iteminfo.MediaMetadata:
     properties:
       album:
@@ -533,6 +541,14 @@ definitions:
       genre:
         description: music/video genre
         type: string
+      hasLyrics:
+        description: checks if lyrics are available without parse them
+        type: boolean
+      lyrics:
+        description: lyrics (from embedded tags or .lrc files)
+        items:
+          $ref: '#/definitions/iteminfo.Lyric'
+        type: array
       title:
         description: track/video title
         type: string
@@ -867,6 +883,10 @@ definitions:
     type: object
   settings.LogConfig:
     properties:
+      apiFilter:
+        description: regex filter that excludes matching full api paths from being
+          logged. (eg. '/user\?id\=self') Defaults to '^/health|^/favicon.ico|^/static|^/public/static'
+        type: string
       apiLevels:
         description: separated list of log levels to enable for the API. (eg. "info|warning|error")
         type: string
@@ -883,7 +903,7 @@ definitions:
         description: output location. (eg. "stdout" or "path/to/file.log")
         type: string
       utc:
-        description: use UTC time in the output instead of local time
+        description: use UTC time in the output instead of local time.
         type: boolean
     type: object
   settings.LoginMethods:
@@ -1343,6 +1363,9 @@ definitions:
         $ref: '#/definitions/settings.UserDefaultsPreview'
       quickDownload:
         description: show icon to download in one click
+        type: boolean
+      showCopyPath:
+        description: show copy path button in the context menu
         type: boolean
       showHidden:
         description: show hidden files in the UI. On windows this includes files starting
@@ -1885,7 +1908,7 @@ definitions:
         description: Display name of the link
         type: string
       sourceName:
-        description: Source identifier for source-type links
+        description: 'Bolt: filesystem path. JSON out: display name (after prepForFrontend).'
         type: string
       target:
         description: Target path/URL for the link (relative for source/share)
@@ -1901,8 +1924,10 @@ definitions:
   users.SourceScope:
     properties:
       name:
+        description: 'Bolt: filesystem path; JSON API: display name after prepForFrontend'
         type: string
       scope:
+        description: index path within that source
         type: string
     type: object
   users.User:
@@ -2007,6 +2032,8 @@ definitions:
       scope:
         type: string
       scopes:
+        description: 'Bolt / in-process: Name = source path. JSON out: display name
+          (prepForFrontend).'
         items:
           $ref: '#/definitions/users.SourceScope'
         type: array
@@ -2884,6 +2911,21 @@ paths:
       - description: URL-encoded password
         in: header
         name: X-Password
+  /api/media/lyrics:
+    get:
+      consumes:
+      - application/json
+      description: Returns parsed lyrics with optional timestamps from embedded tags
+        or sidecar .lrc files.
+      parameters:
+      - description: Path to the directory or file
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: Source name
+        in: query
+        name: source
         required: true
         type: string
       produces:
@@ -2913,6 +2955,7 @@ paths:
       responses:
         "200":
           description: Passkey creation options
+          description: Lyrics array
           schema:
             additionalProperties: true
             type: object
@@ -2979,6 +3022,8 @@ paths:
             type: object
         "403":
           description: Forbidden
+        "404":
+          description: Not found
           schema:
             additionalProperties:
               type: string
@@ -2986,6 +3031,9 @@ paths:
       summary: Finish passkey registration
       tags:
       - Auth
+      summary: Get lyrics for an audio file
+      tags:
+      - Resources
   /api/media/metadata:
     get:
       consumes:
@@ -4328,6 +4376,19 @@ paths:
         in: query
         name: newerThan
         type: integer
+      - description: When true, match indexed file names with SQLite GLOB (wildcard
+          patterns)
+        in: query
+        name: useWildcard
+        type: boolean
+      - description: 'Deprecated: alias for useWildcard'
+        in: query
+        name: glob
+        type: boolean
+      - description: 'Deprecated: alias for useWildcard'
+        in: query
+        name: useGlob
+        type: boolean
       - description: User session ID, add unique value to prevent collisions
         in: header
         name: SessionId
@@ -4548,6 +4609,41 @@ paths:
           schema:
             $ref: '#/definitions/http.HttpResponse'
       summary: Health Check
+  /public/api/media/lyrics:
+    get:
+      parameters:
+      - description: Share hash
+        in: query
+        name: hash
+        required: true
+        type: string
+      - description: Path within the share
+        in: query
+        name: path
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lyrics array
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get lyrics for an audio file (public share)
+      tags:
+      - Shares
   /public/api/media/metadata:
     get:
       parameters:

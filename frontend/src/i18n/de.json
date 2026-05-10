@@ -75,7 +75,12 @@
     "mouseActions": "Mausaktionen",
     "fileOperations": "Dateioperationen",
     "click": "Wähle Datei oder Ordner",
+    "dbClick": "Doppelklick auf einen leeren Bereich, um alle Elemente auszuwählen",
     "ctrl": {
+      "f1": "Zur Listenansicht wechseln",
+      "f2": "Zur Normalansicht wechseln",
+      "f3": "Zur Galerieansicht wechseln",
+      "scroll": "Größe der Liste und der Schriftart im Editor ändern",
       "click": "Markiere mehrere Dateien oder Ordner",
       "d": "ausgewählte Artikel herunterladen",
       "b": "Seitenleiste umklappen",
@@ -101,6 +106,8 @@
       "volume": "Lautstärke erhöhen oder verringern",
       "mute": "Ton stummschalten/aktivieren",
       "loop": "Zwischen Schleife und Einzelmodus wechseln",
+      "playbackQueue": "Wiedergabeliste oder das Panel in Audiodateien öffnen",
+      "switchTabs": "Zwischen den Registerkarten im Panel bei Audiodateien wechseln",
       "playbackModes": "Zwischen Wiedergabemodi wechseln (außer Schleife und Einzelmodus)",
       "fullscreen": "Vollbildmodus bei Videos umschalten",
       "captions": "Untertitel ein-/ausschalten"
@@ -257,9 +264,11 @@
     "showPreviewImagesDescription": "Zeigen Sie eine Miniaturvorschau für Suchergebnisse an, wenn verfügbar, und zeigen Sie größere Symbole für alle Ergebnisse an.",
     "olderThanDate": "Älter als:",
     "newerThanDate": "Neuere als:",
-    "helpText2": "Die Suchergebnisse basieren auf indizierten Dateien, so dass neu hinzugefügte Dateien möglicherweise nicht angezeigt werden, bis sie indiziert sind.",
     "noResults": "Keine Ergebnisse gefunden.",
-    "helpText1": "Die Suche erfolgt bei jedem Zeichen, das Sie eingeben ({minSearchLength} Zeichen Minimum)."
+    "useWildcardSearch": "Wildcard-Suche",
+    "helpText1": "Die Suche erfolgt bei jedem Zeichen, das Sie eingeben ({minSearchLength} Zeichen Minimum).",
+    "useWildcardSearchDescription": "Unterstützte Wildcards:\n\n- Entspricht jeder Sequenz: *\n\n- Übereinstimmung mit einem Zeichen: ?\n\n- Zeichenklasse: [a-z], [0-9]\n\n- Negation: [^0-9]\n\n- Buchstäbliche *, ? oder [ müssen in Klammern eingeschlossen werden, z. B. [*], [?], [[]",
+    "helpText2": "Teilstring-Übereinstimmung nur bei Datei- oder Ordnernamen (nicht bei vollständigen Pfaden). case:exact für Übereinstimmung unter Berücksichtigung der Groß-/Kleinschreibung\n\n für ODER zwischen Begriffen Pipe-Zeichen verwenden; doppelte Anführungszeichen für eine Phrase.\n\nAktivieren Sie die Platzhaltersuche für erweiterte Optionen."
   },
   "settings": {
     "administrator": "Administrator",
@@ -810,7 +819,15 @@
     "QueuePlayback": "Wiedergabeliste",
     "changePlaybackMode": "Wiedergabemodus ändern",
     "changePlaybackModeHint": "Ändern Sie den Wiedergabemodus, um mehr Dateien zu sehen",
-    "emptyQueue": "Warteschlange ist leer"
+    "emptyQueue": "Warteschlange ist leer",
+    "queue": "Warteschlange",
+    "lyrics": "Liedtext",
+    "noLyrics": "Kein Liedtext verfügbar",
+    "lockLyrics": "Liedtext sperren",
+    "unlockLyrics": "Liedtext entsperren",
+    "toggleLyrics": "Liedtext ein-/ausblenden",
+    "closePanel": "Panel schließen",
+    "openPanel": "Panel öffnen"
   },
   "fileSizeAnalyzer": {
     "title": "Dateigrößen-Analysator",
@@ -879,7 +896,8 @@
     "reassignPath": "Pfad neu zuweisen",
     "pathReassigned": "Pfad erfolgreich aktualisiert!",
     "pathReassignFailed": "Der Pfad konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.",
-    "incompleteResultsDetails": "Zeigt max Ergebnisse ({max}). Versuchen Sie, Ihre Suche einzugrenzen, um mehr Ergebnisse unter {max} zu erhalten."
+    "incompleteResultsDetails": "Zeigt max Ergebnisse ({max}). Versuchen Sie, Ihre Suche einzugrenzen, um mehr Ergebnisse unter {max} zu erhalten.",
+    "noCreateOptions": "Es sind keine Erstellungsoptionen verfügbar"
   },
   "duplicateFinder": {
     "title": "Duplicate File Finder",

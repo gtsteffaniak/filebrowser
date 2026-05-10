@@ -2,6 +2,45 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.4.0
+
+ **New Features**:
+ - Lyrics support for audio files (#2360):
+   - Updated UI for audio previews!
+   - The lyrics and the player gets syncronized in UI with the audio player.
+   - Supports embedded lyrics (ID3v2 USLT, flac, ogg, clyr) and sidecar `.lrc` files with the same name as the audio file.
+   - The `Q` shortcut in audio files will toggle the new panel visibility.
+   - `E` shortcut to change between tabs of the panel if it's open.
+ - Api log filtering support via `apiFilter` option for logging.
+   - regex filter that excludes matching full api paths from being logged. (eg. '/user\?id\=self') Defaults to '^/health|^/favicon.ico|^/static|^/public/static'
+   - Add config option to disable /health endpoint logging (#2291)
+ - More shortcuts (#2300)
+   - `CTRL+F1` switch to normal view.
+   - `CTRL+F2` switch to gallery view.
+   - `CTRL+F3` switch to list view.
+   - `Double click` on empty space to select all items.
+ - Wildcard search support (limited to sqlite GLOB)
+
+ **Notes**:
+ - Enhanced indexing scheduler which doesn't wake the disk as often.
+ - New API route `media/lyrics` used to fetch and parse lyrics (embedded or from `.lrc` sidecar) (#2360)
+ - Swiping down gesture in fullscreen videos exit fullscreen instead of close preview.
+ - Improved styles for path selection and tables
+
+ **BugFixes**:
+ - Blue overlay when using gestures in video files on mobile (#2360)
+ - Playback queue wasn't updating when changing of folder (#2360)
+ - Added missing `UserDefaults.ShowCopyPath` option to config file (#2364)
+
+## v1.3.9
+
+ **Security**:
+ - [Critical] Unauthenticated Path Traversal in Public Share Delete Allows Arbitrary File Deletion GHSA-fwj3-42wh-8673
+ - [Moderate] Stored XSS via SVG File in Public Share (Missing CSP Header) GHSA-mmpx-jh39-wrv6
+
+ **BugFixes**:
+ - Fix context menu items and adjusted when items show to more accurately reflect permissions.
+
 ## v1.3.8
 
  **BugFixes**:

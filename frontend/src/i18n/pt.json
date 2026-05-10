@@ -75,7 +75,12 @@
     "mouseActions": "Ações do Rato",
     "fileOperations": "Operações de Ficheiros",
     "click": "selecionar pasta ou ficheiro",
+    "dbClick": "Clique duas vezes num espaço vazio para selecionar todos os itens",
     "ctrl": {
+      "f1": "Mudar para vista de lista",
+      "f2": "Mudar para vista normal",
+      "f3": "Mudar para vista de galeria",
+      "scroll": "Alterar tamanhos da lista e da fonte do editor",
       "click": "selecionar várias pastas e ficheiros",
       "d": "descarregar itens selecionados",
       "b": "alternar a barra lateral",
@@ -101,6 +106,8 @@
       "volume": "Aumentar ou diminuir o volume",
       "mute": "Silenciar/Ativar som",
       "loop": "Alternar entre modo repetição e modo único",
+      "playbackQueue": "Abrir fila de reprodução ou o painel em ficheiros de áudio",
+      "switchTabs": "Alternar separadores no painel em ficheiros de áudio",
       "playbackModes": "Alternar entre modos de reprodução (exceto repetição e único)",
       "fullscreen": "Alternar modo de ecrã inteiro em vídeos",
       "captions": "Ativar/Desativar legendas"
@@ -257,9 +264,11 @@
     "showPreviewImagesDescription": "Apresentar pré-visualizações em miniatura dos resultados da pesquisa, quando disponíveis, e mostrar ícones maiores para todos os resultados.",
     "olderThanDate": "Mais velho do que:",
     "newerThanDate": "Mais recente do que:",
-    "helpText2": "Os resultados da pesquisa baseiam-se nos ficheiros indexados, pelo que os ficheiros recentemente adicionados podem não aparecer até serem indexados.",
     "noResults": "Não foram encontrados resultados.",
-    "helpText1": "A pesquisa ocorre em cada carácter que escrever ({minSearchLength} carácter mínimo)."
+    "useWildcardSearch": "Pesquisa com curinga",
+    "helpText1": "A pesquisa ocorre em cada carácter que escrever ({minSearchLength} carácter mínimo).",
+    "useWildcardSearchDescription": "Curingas suportados:\n\n- Corresponde a qualquer sequência: *\n\n- Corresponder a um carácter: ?\n\n- Classe de caracteres: [a-z], [0-9]\n\n- Negação: [^0-9]\n\n- Os literais *, ?, ou [ devem ser colocados entre parêntesis, por exemplo, [*], [?], [[]",
+    "helpText2": "Correspondência de subcadeia de caracteres apenas em nomes de ficheiros ou pastas (não em caminhos completos). case:exact para correspondência sensível a maiúsculas e minúsculas\n\n para OU entre termos, utilizar o carácter pipe; aspas duplas para uma frase.\n\nAtivar a pesquisa de wildcards para opções mais avançadas."
   },
   "settings": {
     "administrator": "Administrador",
@@ -810,7 +819,15 @@
     "QueuePlayback": "Fila de Reprodução",
     "changePlaybackMode": "Alterar modo de reprodução",
     "changePlaybackModeHint": "Altere o modo de reprodução para ver mais arquivos",
-    "emptyQueue": "A fila está vazia"
+    "emptyQueue": "A fila está vazia",
+    "queue": "Fila",
+    "lyrics": "Letra",
+    "noLyrics": "Letra não disponível",
+    "lockLyrics": "Bloquear letra",
+    "unlockLyrics": "Desbloquear letra",
+    "toggleLyrics": "Alternar letra",
+    "closePanel": "Fechar painel",
+    "openPanel": "Abrir painel"
   },
   "fileSizeAnalyzer": {
     "title": "Analisador de tamanho de ficheiro",
@@ -879,7 +896,8 @@
     "reassignPath": "Reatribuir trajetória",
     "pathReassigned": "Caminho atualizado com sucesso!",
     "pathReassignFailed": "Falha ao atualizar o caminho. Por favor, tente novamente.",
-    "incompleteResultsDetails": "Mostrando resultados máximos ({max}). Tente restringir a sua pesquisa para obter mais resultados em {max}."
+    "incompleteResultsDetails": "Mostrando resultados máximos ({max}). Tente restringir a sua pesquisa para obter mais resultados em {max}.",
+    "noCreateOptions": "Não estão disponíveis opções de criação"
   },
   "duplicateFinder": {
     "title": "Localizador de ficheiros duplicados",

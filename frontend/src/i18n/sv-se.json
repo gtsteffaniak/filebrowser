@@ -75,7 +75,12 @@
     "mouseActions": "Musåtgärder",
     "fileOperations": "Filoperationer",
     "click": "välj fil eller mapp",
+    "dbClick": "Dubbelklicka på ett tomt utrymme för att markera alla objekt",
     "ctrl": {
+      "f1": "Växla till listvy",
+      "f2": "Växla till normal vy",
+      "f3": "Växla till gallerivy",
+      "scroll": "Ändra storlek på listan och redigerarens typsnitt",
       "click": "välj flera filer eller mappar",
       "d": "ladda ner valda artiklar",
       "b": "växla sidofält",
@@ -101,6 +106,8 @@
       "volume": "Höj eller sänk volymen",
       "mute": "Stäng av/Slå på ljudet",
       "loop": "Växla mellan loop och enkelläge",
+      "playbackQueue": "Öppna uppspelningskö eller panelen i ljudfiler",
+      "switchTabs": "Växla flikar i panelen på ljudfiler",
       "playbackModes": "Växla mellan uppspelningslägen (exklusive loop och enkel)",
       "fullscreen": "Växla till helskärmsläge i videor",
       "captions": "Slå på/av undertexter"
@@ -257,9 +264,11 @@
     "showPreviewImagesDescription": "Visa förhandsvisningar av miniatyrbilder för sökresultat när det är tillgängligt och visa större ikoner för alla resultat.",
     "olderThanDate": "Äldre än:",
     "newerThanDate": "Nyare än:",
-    "helpText2": "Sökresultaten baseras på indexerade filer, så det kan hända att nya filer inte visas förrän de har indexerats.",
     "noResults": "Inga resultat hittades.",
-    "helpText1": "Sökningen sker för varje tecken du skriver ({minSearchLength} tecken minimum)."
+    "useWildcardSearch": "Sök med jokertecken",
+    "helpText1": "Sökningen sker för varje tecken du skriver ({minSearchLength} tecken minimum).",
+    "useWildcardSearchDescription": "Jokertecken som stöds:\n\n- Matchar vilken sekvens som helst: *\n\n- Matcha ett tecken: ?\n\n- Teckenklass: [a-z], [0-9]\n\n- Negation: [^0-9]\n\n- Bokstavliga *, ? eller [ måste omslutas av parenteser, t.ex. [*], [?], [[]",
+    "helpText2": "Delsträngsmatchning endast på fil- eller mappnamn (inte fullständiga sökvägar). case:exact för skiftlägeskänslig matchning\n\n för OR mellan termer använd pipe-tecken; dubbla citattecken för en fras.\n\nAktivera jokerteckensökning för mer avancerade alternativ."
   },
   "settings": {
     "administrator": "Administratör",
@@ -810,7 +819,15 @@
     "QueuePlayback": "Uppspelningskö",
     "changePlaybackMode": "Ändra uppspelningsläge",
     "changePlaybackModeHint": "Ändra uppspelningsläge för att se fler filer",
-    "emptyQueue": "Kön är tom"
+    "emptyQueue": "Kön är tom",
+    "queue": "Kö",
+    "lyrics": "Text",
+    "noLyrics": "Ingen text tillgänglig",
+    "lockLyrics": "Lås texten",
+    "unlockLyrics": "Lås upp texten",
+    "toggleLyrics": "Visa/dölj text",
+    "closePanel": "Stäng panel",
+    "openPanel": "Öppna panel"
   },
   "fileSizeAnalyzer": {
     "title": "Analysator för filstorlek",
@@ -879,7 +896,8 @@
     "reassignPath": "Omfördela sökväg",
     "pathReassigned": "Sökvägen har uppdaterats!",
     "pathReassignFailed": "Misslyckades med att uppdatera sökvägen. Vänligen försök igen.",
-    "incompleteResultsDetails": "Visar max resultat ({max}). Försök att begränsa din sökning för att få fler resultat under {max}."
+    "incompleteResultsDetails": "Visar max resultat ({max}). Försök att begränsa din sökning för att få fler resultat under {max}.",
+    "noCreateOptions": "Inga alternativ för skapande är tillgängliga"
   },
   "duplicateFinder": {
     "title": "Hitta duplicerade filer",

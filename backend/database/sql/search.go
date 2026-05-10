@@ -18,9 +18,23 @@ type SearchItem struct {
 	HasPreview bool
 }
 
+// appendNameGlobSQL adds AND (name GLOB ? OR ...) when patterns is non-empty (SQLite-native matching).
+func appendNameGlobSQL(query string, args []interface{}, patterns []string) (string, []interface{}) {
+	if len(patterns) == 0 {
+		return query, args
+	}
+	parts := make([]string, len(patterns))
+	for i := range patterns {
+		parts[i] = "name GLOB ?"
+		args = append(args, patterns[i])
+	}
+	return query + " AND (" + strings.Join(parts, " OR ") + ")", args
+}
+
 // SearchItems queries the database for items matching the search criteria for a single source.
+// When nameGlobPatterns is non-empty (and largest is false), rows are restricted with SQLite name GLOB ... OR ....
 // Returns rows that can be iterated to scan search results.
-func (db *IndexDB) SearchItems(source string, scope string, largest bool) (*sql.Rows, error) {
+func (db *IndexDB) SearchItems(source string, scope string, largest bool, nameGlobPatterns []string) (*sql.Rows, error) {
 	query := `
 		SELECT path, name, size, mod_time, type, is_dir, has_preview 
 		FROM index_items 
@@ -35,6 +49,10 @@ func (db *IndexDB) SearchItems(source string, scope string, largest bool) (*sql.
 		args = append(args, scope+"*")
 	}
 
+	if !largest && len(nameGlobPatterns) > 0 {
+		query, args = appendNameGlobSQL(query, args, nameGlobPatterns)
+	}
+
 	if largest {
 		query += " ORDER BY size DESC"
 	}
@@ -43,8 +61,9 @@ func (db *IndexDB) SearchItems(source string, scope string, largest bool) (*sql.
 }
 
 // SearchItemsMultiSource queries the database for items matching the search criteria across multiple sources.
+// When nameGlobPatterns is non-empty (and largest is false), restricts rows with SQLite name GLOB ... OR ....
 // Returns rows that can be iterated to scan search results.
-func (db *IndexDB) SearchItemsMultiSource(sources []string, sourceScopes map[string]string, largest bool) (*sql.Rows, error) {
+func (db *IndexDB) SearchItemsMultiSource(sources []string, sourceScopes map[string]string, largest bool, nameGlobPatterns []string) (*sql.Rows, error) {
 	if len(sources) == 0 {
 		return nil, fmt.Errorf("at least one source is required")
 	}
@@ -93,6 +112,10 @@ func (db *IndexDB) SearchItemsMultiSource(sources []string, sourceScopes map[str
 
 	if len(whereClauses) > 0 {
 		query += " WHERE " + strings.Join(whereClauses, " AND ")
+	}
+
+	if !largest && len(nameGlobPatterns) > 0 {
+		query, args = appendNameGlobSQL(query, args, nameGlobPatterns)
 	}
 
 	if largest {

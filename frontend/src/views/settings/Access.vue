@@ -11,45 +11,31 @@
         </option>
       </select>
     </div>
-
   </div>
   <div class="card-content full">
-    <div v-if="loading" class="loading-spinner-wrapper">
-      <LoadingSpinner size="medium" />
-    </div>
-    <table v-else aria-label="Access Rules">
-      <thead>
-        <tr>
-          <th>{{$t('general.path')}}</th>
-          <th>{{$t('access.totalDenied')}}</th>
-          <th>{{$t('access.totalAllowed')}}</th>
-          <th></th>
-          <th>{{$t('general.edit') }}</th>
-        </tr>
-      </thead>
-      <tbody class="settings-items">
-        <tr class="item" v-for="(rule, path) in rules" :key="path">
-          <td>{{ path }}</td>
-          <td>{{ (rule.deny.users.length + rule.deny.groups.length) + (rule.denyAll ? 1 : 0) }}</td>
-          <td>{{ rule.allow.users.length + rule.allow.groups.length }}</td>
-          <td class="small">
-            <i v-if="!rule.pathExists" class="material-symbols warning-icon" :title="$t('messages.pathNotFound')">warning</i>
-          </td>
-          <td class="small">
-            <button class="action" @click="editAccess(path)" :aria-label="$t('general.edit')"
-              :title="$t('general.edit')">
-              <i class="material-symbols">edit</i>
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <div v-if="Object.keys(rules).length === 0 && !loading">
-      <h2 class="message" v-if="Object.keys(rules).length === 0">
-      <i class="material-symbols-outlined">sentiment_dissatisfied</i>
-      <span>{{ $t("files.lonely") }}</span>
-      </h2>
-    </div>
+    <settings-table
+      :columns="accessTableColumns"
+      :items="accessTableRows"
+      item-key="path"
+      default-sort-key="path"
+      :aria-label="$t('access.accessManagement')"
+      :loading="loading"
+    >
+      <template #cell-warning="{ row }">
+        <i
+          v-if="!row.rule.pathExists"
+          class="material-symbols warning-icon"
+          :title="$t('messages.pathNotFound')"
+        >warning</i>
+      </template>
+      <template #cell-edit="{ row }">
+        <button class="action" @click="editAccess(row.path)" :aria-label="$t('general.edit')"
+          :title="$t('general.edit')"
+        >
+          <i class="material-symbols">edit</i>
+        </button>
+      </template>
+    </settings-table>
   </div>
 </template>
 
@@ -57,14 +43,13 @@
 import { accessApi } from "@/api";
 import { state, mutations } from "@/store";
 import Errors from "@/views/Errors.vue";
+import SettingsTable from "@/components/settings/Table.vue";
 import { eventBus } from "@/store/eventBus";
-import LoadingSpinner from "@/components/LoadingSpinner.vue";
-
 export default {
   name: "accessSettings",
   components: {
     Errors,
-    LoadingSpinner,
+    SettingsTable,
   },
   data: function () {
     return {
@@ -72,7 +57,8 @@ export default {
       accessPath: "",
       error: null,
       selectedSource: "",
-      loading: false,
+      /** True until first `fetchRules` completes so the table does not flash the empty state. */
+      loading: true,
     };
   },
   async mounted() {
@@ -86,11 +72,41 @@ export default {
     eventBus.off('accessRulesChanged', this.fetchRules);
   },
   computed: {
-    /*loading() {
-      return state.loading;
-    },*/
     availableSources() {
       return Object.keys(state.sources.info);
+    },
+    accessTableRows() {
+      return Object.entries(this.rules).map(([path, rule]) => ({
+        path,
+        rule,
+        denyTotal:
+          rule.deny.users.length + rule.deny.groups.length + (rule.denyAll ? 1 : 0),
+        allowTotal: rule.allow.users.length + rule.allow.groups.length,
+      }));
+    },
+    accessTableColumns() {
+      return [
+        { key: "path", label: this.$t("general.path"), sortable: true },
+        {
+          key: "denyTotal",
+          label: this.$t("access.totalDenied"),
+          sortable: true,
+          sortFn: (a, b) => (a.denyTotal ?? 0) - (b.denyTotal ?? 0),
+        },
+        {
+          key: "allowTotal",
+          label: this.$t("access.totalAllowed"),
+          sortable: true,
+          sortFn: (a, b) => (a.allowTotal ?? 0) - (b.allowTotal ?? 0),
+        },
+        { key: "warning", label: "", narrow: true },
+        {
+          key: "edit",
+          label: this.$t("general.edit"),
+          narrow: true,
+          align: "right",
+        },
+      ];
     },
   },
   methods: {
@@ -127,12 +143,8 @@ export default {
   },
 };
 </script>
-
 <style scoped>
-.loading-spinner-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2em 0;
+.form-flex-group {
+  margin-bottom: 1em;
 }
 </style>

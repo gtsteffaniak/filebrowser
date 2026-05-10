@@ -430,6 +430,7 @@ export default {
     document.addEventListener('mouseup', this.endRectangleSelection);
     this.$el.addEventListener('mousedown', this.startRectangleSelection);
     this.$el.addEventListener("touchmove", this.handleTouchMove, { passive: true });
+    this.$el.addEventListener('dblclick', this.handleDoubleClick);
 
     // Single dragend listener for all items (prevents N listeners for N items)
     document.addEventListener('dragend', this.handleGlobalDragEnd, { passive: true });
@@ -478,6 +479,7 @@ export default {
     document.removeEventListener('mouseup', this.endRectangleSelection);
     document.removeEventListener('dragend', this.handleGlobalDragEnd);
     this.$el.removeEventListener('mousedown', this.startRectangleSelection);
+    this.$el.removeEventListener('dblclick', this.handleDoubleClick);
 
     this.$el.removeEventListener("touchmove", this.handleTouchMove);
     this.$el.removeEventListener("contextmenu", this.openContext);
@@ -747,7 +749,7 @@ export default {
             return;
           case "a":
             event.preventDefault();
-            this.selectAll();
+            mutations.selectAllItems({ multiple: false });
             return;
           case "d":
             event.preventDefault();
@@ -806,9 +808,6 @@ export default {
           this.navigateKeboardArrows(key);
           break;
       }
-    },
-    selectAll() {
-      mutations.selectAllItems();
     },
     alphanumericKeyPress(key) {
       const prefix = key.toLowerCase();
@@ -1143,6 +1142,7 @@ export default {
           showCentered: getters.isMobile(),
           posX: event.clientX,
           posY: event.clientY,
+          createOnly: this.selectedCount == 0,
         },
       });
     },
@@ -1336,6 +1336,12 @@ export default {
         mutations.resetSelected();
         rectangleSelectedIndexes.forEach(index => mutations.addSelected(index));
       }
+    },
+    handleDoubleClick(event) {
+      if (event.target.closest('.listing-item')) return;
+      if (getters.currentView() !== 'listingView' || getters.currentPromptName()) return;
+      if (event.ctrlKey || event.metaKey || event.shiftKey) return; // Don't interfere when pressing any mod key
+      mutations.selectAllItems({ multiple: getters.isMobile() });
     },
   },
 };

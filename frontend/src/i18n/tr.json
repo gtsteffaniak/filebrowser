@@ -75,7 +75,12 @@
     "mouseActions": "Fare İşlemleri",
     "fileOperations": "Dosya İşlemleri",
     "click": "dosya veya klasör seçin",
+    "dbClick": "Tüm öğeleri seçmek için boş bir alana çift tıklayın",
     "ctrl": {
+      "f1": "Liste görünümüne geç",
+      "f2": "Normal görünüme geç",
+      "f3": "Galeri görünümüne geç",
+      "scroll": "Liste ve düzenleyici yazı tipi boyutlarını değiştir",
       "click": "çoklu dosya ve klasör seçin",
       "d": "seçili öğeleri indirin",
       "b": "kenar çubuğunu değiştir",
@@ -101,6 +106,8 @@
       "volume": "Sesi aç veya kıs",
       "mute": "Sesi kapat/aç",
       "loop": "Döngü ve tek mod arasında geçiş yap",
+      "playbackQueue": "Ses dosyalarında oynatma kuyruğunu veya paneli aç",
+      "switchTabs": "Ses dosyalarında paneldeki sekmeleri değiştir",
       "playbackModes": "Oynatma modları arasında geçiş yap (döngü ve tek mod hariç)",
       "fullscreen": "Videolarda tam ekran moduna geç",
       "captions": "Altyazıları aç/kapat"
@@ -257,9 +264,11 @@
     "showPreviewImagesDescription": "Kullanılabilir olduğunda arama sonuçları için küçük resim önizlemelerini görüntüleyin ve tüm sonuçlar için daha büyük simgeler gösterin.",
     "olderThanDate": "Daha yaşlı:",
     "newerThanDate": "Daha yeni:",
-    "helpText2": "Arama sonuçları dizine eklenmiş dosyaları temel alır, bu nedenle yeni eklenen dosyalar dizine eklenene kadar görünmeyebilir.",
     "noResults": "Sonuç bulunamadı.",
-    "helpText1": "Arama, yazdığınız her karakterde gerçekleşir ({minSearchLength} minimum karakter)."
+    "useWildcardSearch": "Joker karakter araması",
+    "helpText1": "Arama, yazdığınız her karakterde gerçekleşir ({minSearchLength} minimum karakter).",
+    "useWildcardSearchDescription": "Desteklenen joker karakterler:\n\n- Herhangi bir diziyi eşleştirin: *\n\n- Bir karakteri eşleştirin: ?\n\n- Karakter sınıfı: [a-z], [0-9]\n\n- Negasyon: [^0-9]\n\n- Literal *, ? veya [ parantez içine alınmalıdır, örneğin [*], [?], [[]",
+    "helpText2": "Yalnızca dosya veya klasör adlarında alt dize eşleşmesi (tam yollarda değil). case:exact büyük/küçük harfe duyarlı eşleştirme için\n\n terimler arasında VEYA için boru karakteri kullanın; bir ifade için çift tırnak kullanın.\n\nDaha gelişmiş seçenekler için joker karakter aramayı etkinleştirin."
   },
   "settings": {
     "administrator": "Yönetici",
@@ -810,7 +819,15 @@
     "QueuePlayback": "Oynatma Kuyruğu",
     "changePlaybackMode": "Oynatma modunu değiştir",
     "changePlaybackModeHint": "Daha fazla dosya görmek için oynatma modunu değiştirin",
-    "emptyQueue": "Kuyruk boş"
+    "emptyQueue": "Kuyruk boş",
+    "queue": "Kuyruk",
+    "lyrics": "Şarkı sözü",
+    "noLyrics": "Şarkı sözü mevcut değil",
+    "lockLyrics": "Şarkı sözlerini kilitle",
+    "unlockLyrics": "Şarkı sözlerinin kilidini aç",
+    "toggleLyrics": "Şarkı sözlerini göster/gizle",
+    "closePanel": "Paneli kapat",
+    "openPanel": "Paneli aç"
   },
   "fileSizeAnalyzer": {
     "title": "Dosya Boyutu Analizörü",
@@ -879,7 +896,8 @@
     "reassignPath": "Yolu Yeniden Atayın",
     "pathReassigned": "Yol başarıyla güncellendi!",
     "pathReassignFailed": "Yol güncellenemedi. Lütfen tekrar deneyin.",
-    "incompleteResultsDetails": "Maksimum sonuç gösteriliyor ({max}). {max} altında daha fazla sonuç almak için aramanızı daraltmayı deneyin."
+    "incompleteResultsDetails": "Maksimum sonuç gösteriliyor ({max}). {max} altında daha fazla sonuç almak için aramanızı daraltmayı deneyin.",
+    "noCreateOptions": "Oluşturma seçeneği mevcut değil"
   },
   "duplicateFinder": {
     "title": "Yinelenen Dosya Bulucu",

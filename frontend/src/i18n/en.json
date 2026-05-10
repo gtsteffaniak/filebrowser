@@ -5,7 +5,8 @@
     "reassignPath": "Reassign Path",
     "pathReassigned": "Path successfully updated!",
     "pathReassignFailed": "Failed to update path. Please try again.",
-    "incompleteResultsDetails": "Showing max results ({max}). Try narrowing your search to get more results under {max}."
+    "incompleteResultsDetails": "Showing max results ({max}). Try narrowing your search to get more results under {max}.",
+    "noCreateOptions": "No create options are available"
   },
   "general": {
     "divider": "Divider{suffix}",
@@ -209,8 +210,13 @@
     "mouseActions": "Mouse Actions",
     "fileOperations": "File Operations",
     "click": "select file or directory",
+    "dbClick": "Double click on a empty space to select all items",
     "marqueeSelect": "select multiple files or directories by dragging on empty space",
     "ctrl": {
+      "f1": "Switch to list view",
+      "f2": "Switch to normal view",
+      "f3": "Switch to gallery view",
+      "scroll": "Change sizes of the list and editor font",
       "click": "select multiple files or directories",
       "c": "copy selected items",
       "v": "paste copied/cut items",
@@ -235,6 +241,8 @@
       "volume": "Turn the volume up or down",
       "mute": "Mute/Unmute the audio playing",
       "loop": "Toggle between loop and single mode",
+      "playbackQueue": "Open playback queue or the panel in audio files",
+      "switchTabs": "Switch tabs in the panel in audio files",
       "playbackModes": "Toggle between playback modes (excluding loop and single)",
       "fullscreen": "Toggle fullscreen mode in videos",
       "captions": "Toggle captions on/off"
@@ -467,8 +475,10 @@
     "newerThanDate": "Newer than:",
     "showPreviewImages": "Show preview images",
     "showPreviewImagesDescription": "Display thumbnail previews for search results when available, and show larger icons for all results.",
+    "useWildcardSearch": "Wildcard search",
+    "useWildcardSearchDescription": "Supported wildcard options:\n\n• Match any sequence: *\n\n• Match one character: ?\n\n• Character class: [a-z], [0-9]\n\n• Negation: [^0-9]\n\n• Literal *, ?, or [ need to be wrapped in brackets, e.g. [*], [?], [[]",
     "helpText1": "Search occurs on each character you type ({minSearchLength} character minimum).",
-    "helpText2": "Search results are based on indexed files, so newly added files may not appear until they are indexed."
+    "helpText2": "Substring match on file or folder names only (not full paths). case:exact for case-sensitive matching\n\n for OR between terms use pipe character; double quotes for one phrase.\n\nEnable wildcard search for more advanced options."
   },
   "profileSettings": {
     "preferEditorForMarkdown": "Prefer editor first for Markdown files",
@@ -818,7 +828,15 @@
     "QueuePlayback": "Playback Queue",
     "changePlaybackMode": "Change playback mode",
     "changePlaybackModeHint": "Change playback mode to see more files",
-    "emptyQueue": "Queue is empty"
+    "emptyQueue": "Queue is empty",
+    "queue": "Queue",
+    "lyrics": "Lyrics",
+    "noLyrics": "No lyrics available",
+    "lockLyrics": "Lock lyrics",
+    "unlockLyrics": "Unlock lyrics",
+    "toggleLyrics": "Toggle lyrics",
+    "closePanel": "Close panel",
+    "openPanel": "Open panel"
   },
   "fileSizeAnalyzer": {
     "title": "File Size Analyzer",

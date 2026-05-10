@@ -191,9 +191,9 @@ type LogConfig struct {
 	Output    string `json:"output" yaml:"output"`       // output location. (eg. "stdout" or "path/to/file.log")
 	NoColors  bool   `json:"noColors" yaml:"noColors"`   // disable colors in the output
 	Json      bool   `json:"json" yaml:"json"`           // output in json format
-	Utc       bool   `json:"utc" yaml:"utc"`             // use UTC time in the output instead of local time
+	Utc       bool   `json:"utc" yaml:"utc"`             // use UTC time in the output instead of local time.
+	ApiFilter string `json:"apiFilter" yaml:"apiFilter"` // regex filter that excludes matching full api paths from being logged. (eg. '/user\?id\=self') Defaults to '^/health|^/favicon.ico|^/static|^/public/static'
 }
-
 type Source struct {
 	Path   string       `json:"path" validate:"required"` // file system path. (Can be relative)
 	Name   string       `json:"name"`                     // display name
@@ -372,4 +372,5 @@ type UserDefaults struct {
 	ShowSelectMultiple         bool                    `json:"showSelectMultiple"`         // show select multiple files on desktop
 	DebugOffice                bool                    `json:"debugOffice"`                // debug onlyoffice editor
 	PreferEditorForMarkdown    bool                    `json:"preferEditorForMarkdown"`    // prefer editor first for markdown files instead of the Markdown Viewer.
+	ShowCopyPath               bool                    `json:"showCopyPath"`               // show copy path button in the context menu
 }

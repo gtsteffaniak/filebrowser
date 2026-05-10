@@ -34,50 +34,51 @@
       <p> {{ $t('share.notice') }} </p>
 
       <div v-if="listing">
-        <table>
-          <tbody>
-            <tr>
-              <th>#</th> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-              <th>{{ $t("time.unit") }}</th>
-              <th></th>
-              <th></th>
-              <th></th>
-            </tr>
-
-            <tr v-for="link in links" :key="link.hash">
-              <td>{{ link.hash }}</td>
-              <td>
-                <template v-if="link.expire !== 0">{{ humanTime(link.expire) }}</template>
-                <template v-else>{{ $t("general.permanent") }}</template>
-              </td>
-              <td class="small">
-                <button class="action" @click="editLink(link)" :aria-label="$t('general.edit')"
-                  :title="$t('general.edit')">
-                  <i class="material-symbols">edit</i>
-                </button>
-              </td>
-              <td class="small">
-                <button class="action" @click.stop="copyToClipboard(link.shareURL)"
-                  :aria-label="$t('buttons.copyToClipboard')" :title="$t('buttons.copyToClipboard')">
-                  <i class="material-symbols">content_paste</i>
-                </button>
-              </td>
-              <td class="small">
-                <button :disabled="link.shareType == 'upload'" class="action" @click.stop="copyToClipboard(link.downloadURL)"
-                  :aria-label="$t('buttons.copyDownloadLinkToClipboard')"
-                  :title="$t('buttons.copyDownloadLinkToClipboard')">
-                  <i class="material-symbols">content_paste_go</i>
-                </button>
-              </td>
-              <td class="small">
-                <button class="action" @click="deleteLink($event, link)" :aria-label="$t('general.delete')"
-                  :title="$t('general.delete')">
-                  <i class="material-symbols">delete</i>
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <settings-table
+          :columns="sharePromptTableColumns"
+          :items="links"
+          item-key="hash"
+          :aria-label="$t('settings.shareManagement')"
+          :loading="linksLoading"
+        >
+          <template #cell-expire="{ row }">
+            <template v-if="row.expire !== 0">{{ humanTime(row.expire) }}</template>
+            <template v-else>{{ $t("general.permanent") }}</template>
+          </template>
+          <template #cell-editShare="{ row }">
+            <button class="action" @click="editLink(row)" :aria-label="$t('general.edit')"
+              :title="$t('general.edit')"
+            >
+              <i class="material-symbols">edit</i>
+            </button>
+          </template>
+          <template #cell-copyShare="{ row }">
+            <button class="action" @click.stop="copyToClipboard(row.shareURL)"
+              :aria-label="$t('buttons.copyToClipboard')" :title="$t('buttons.copyToClipboard')"
+            >
+              <i class="material-symbols">content_paste</i>
+            </button>
+          </template>
+          <template #cell-downloadShare="{ row }">
+            <button
+              :disabled="row.shareType === 'upload'"
+              class="action"
+              v-if="row.downloadURL"
+              @click.stop="copyToClipboard(row.downloadURL)"
+              :aria-label="$t('buttons.copyDownloadLinkToClipboard')"
+              :title="$t('buttons.copyDownloadLinkToClipboard')"
+            >
+              <i class="material-symbols">content_paste_go</i>
+            </button>
+          </template>
+          <template #cell-deleteShare="{ row }">
+            <button class="action" @click="deleteLink($event, row)" :aria-label="$t('general.delete')"
+              :title="$t('general.delete')"
+            >
+              <i class="material-symbols">delete</i>
+            </button>
+          </template>
+        </settings-table>
       </div>
       <div v-else>
         <div v-if="!showMoreExpanded">
@@ -326,6 +327,7 @@ import { fromNow } from "@/utils/moment";
 import { buildItemUrl } from "@/utils/url";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
+import SettingsTable from "@/components/settings/Table.vue";
 import FileList from "../files/FileList.vue";
 import { globalVars } from "@/utils/constants";
 import { eventBus } from "@/store/eventBus";
@@ -336,6 +338,7 @@ export default {
   components: {
     ToggleSwitch,
     SettingsItem,
+    SettingsTable,
     FileList,
     //ViewMode,
   },
@@ -410,8 +413,15 @@ export default {
       pendingBannerFaviconContextId: null,
       filePickerField: null, // 'banner' or 'favicon'
       showMoreExpanded: false,
+      /** True while fetching existing shares for the path (create flow); table uses its placeholder spinner. */
+      linksLoading: true,
       //viewMode: "normal",
     };
+  },
+  created() {
+    if (this.isEditMode) {
+      this.linksLoading = false;
+    }
   },
   computed: {
     createAllowed() {
@@ -445,6 +455,27 @@ export default {
     },
     isFiles() {
       return getters.isFiles(); // Access getter directly from the store
+    },
+    sharePromptTableColumns() {
+      return [
+        {
+          key: "hash",
+          label: this.$t("general.hash"),
+          sortable: true,
+          align: "center",
+        },
+        {
+          key: "expire",
+          label: this.$t("general.expiration"),
+          sortable: true,
+          sortFn: (a, b) => (a.expire ?? 0) - (b.expire ?? 0),
+          align: "center",
+        },
+        { key: "editShare", label: "", narrow: true, align: "center" },
+        { key: "copyShare", label: "", narrow: true, align: "center" },
+        { key: "downloadShare", label: "", narrow: true, align: "center" },
+        { key: "deleteShare", label: "", narrow: true, align: "center" },
+      ];
     },
     url() {
       if (state.isSearchActive) {
@@ -536,15 +567,18 @@ export default {
   },
   async beforeMount() {
     if (this.isEditMode) {
+      this.linksLoading = false;
       return;
     }
+    this.linksLoading = true;
     try {
-      // get last element of the path
       const links = await shareApi.get(this.item.path, this.item.source);
       this.links = links;
     } catch (err) {
       console.error(err);
       return;
+    } finally {
+      this.linksLoading = false;
     }
     this.sort();
 

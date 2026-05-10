@@ -255,8 +255,6 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 
 	// --- Attempt to process ID Token ---
 	if ok && rawIDToken != "" {
-		logger.Debugf("ID token found in token response, attempting verification. Raw ID Token: %s", rawIDToken)
-
 		// Verify the ID token
 		// This uses the verifier initialized with the provider's JWKS endpoint and client ID
 		idToken, verify_err := oidcCfg.Verifier.Verify(ctx, rawIDToken)

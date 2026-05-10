@@ -580,7 +580,8 @@ export const getters = {
       };
     }
     return {
-      share: state.user?.permissions?.share,
+      share:
+        !!(state.user?.permissions?.share || state.user?.permissions?.admin),
       modify: state.user?.permissions?.modify,
       create: state.user?.permissions?.create,
       delete: state.user?.permissions?.delete,

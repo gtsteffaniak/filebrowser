@@ -44,6 +44,19 @@ test("context menu", async ({ page, checkForErrors, context, theme }) => {
     return;
   }
   await page.screenshot({ path: `./generated/listing/right-click-${theme}.jpg`, quality: jpgQuality });
+  // assert options exist and don't exist
+  await expect(page.locator('button[aria-label="New folder"]')).toBeHidden();
+  await expect(page.locator('button[aria-label="New file"]')).toBeHidden();
+  await expect(page.locator('button[aria-label="Upload"]')).toBeHidden();
+  await expect(page.locator('button[aria-label="Info"]')).toBeVisible();
+  await expect(page.locator('button[aria-label="Download"]')).toBeVisible();
+  await expect(page.locator('button[aria-label="Share"]')).toBeVisible();
+  await expect(page.locator('button[aria-label="Delete"]')).toBeVisible();
+  await expect(page.locator('button[aria-label="Rename"]')).toBeVisible();
+  await expect(page.locator('button[aria-label="Move file"]')).toBeVisible();
+  await expect(page.locator('button[aria-label="Copy file"]')).toBeVisible();
+  await expect(page.locator('button[aria-label="Select all"]')).toBeVisible();
+  await expect(page.locator('button[aria-label="Create archive"]')).toBeHidden();
 });
 
 test("info from search", async ({ page, checkForErrors, context, theme }) => {
@@ -76,7 +89,6 @@ test("no viewer available", async ({ page, checkForErrors, context, theme }) => 
   await page.screenshot({ path: `./generated/viewer/no-viewer-available-${theme}.jpg`, quality: jpgQuality });
 })
 
-
 test("copy from listing to new folder", async ({ page, checkForErrors, context, theme }) => {
   if (theme === 'light') {
     return;
@@ -87,7 +99,7 @@ test("copy from listing to new folder", async ({ page, checkForErrors, context, 
   await page.locator('.selected-count-header').waitFor({ state: 'visible' });
   await expect(page.locator('.selected-count-header')).toHaveText('1');
   await page.locator('button[aria-label="Copy file"]').click();
-  await expect(page.locator('div[aria-label="filelist-path"]')).toHaveText('Path: /');
+  await expect(page.locator('div[aria-label="copy-prompt"] .move-copy-path-picker')).toHaveText('/ (playwright)');
   await expect(page.locator('li[aria-selected="true"]')).toHaveCount(0);
   await page.locator('.card-content > .listing-items > div[aria-label="myfolder"]').click();
   await expect(page.locator('.card-content > .listing-items > div[aria-selected="true"]')).toHaveCount(1);

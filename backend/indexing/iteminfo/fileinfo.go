@@ -34,16 +34,24 @@ type FileInfo struct {
 	IsDir bool `json:"-"`
 }
 
+// Lyric is a single line of lyrics with timestamps (if available)
+type Lyric struct {
+	Text      string `json:"text"`
+	Timestamp int64  `json:"timestamp"` // milliseconds
+}
+
 // MediaMetadata contains metadata extracted from audio and video files
 type MediaMetadata struct {
-	Title    string `json:"title,omitempty"`    // track/video title
-	Artist   string `json:"artist,omitempty"`   // track artist
-	Album    string `json:"album,omitempty"`    // album name
-	Year     int    `json:"year,omitempty"`     // release year
-	Genre    string `json:"genre,omitempty"`    // music/video genre
-	Track    int    `json:"track,omitempty"`    // track number
-	Duration int    `json:"duration,omitempty"` // duration in seconds
-	AlbumArt []byte `json:"albumArt,omitempty"` // album art image data (automatically base64-encoded in JSON)
+	Title     string  `json:"title,omitempty"`     // track/video title
+	Artist    string  `json:"artist,omitempty"`    // track artist
+	Album     string  `json:"album,omitempty"`     // album name
+	Year      int     `json:"year,omitempty"`      // release year
+	Genre     string  `json:"genre,omitempty"`     // music/video genre
+	Track     int     `json:"track,omitempty"`     // track number
+	Duration  int     `json:"duration,omitempty"`  // duration in seconds
+	AlbumArt  []byte  `json:"albumArt,omitempty"`  // album art image data (automatically base64-encoded in JSON)
+	Lyrics    []Lyric `json:"lyrics,omitempty"`    // lyrics (from embedded tags or .lrc files)
+	HasLyrics bool    `json:"hasLyrics,omitempty"` // checks if lyrics are available without parse them
 }
 
 // for efficiency, a response will be a pointer to the data

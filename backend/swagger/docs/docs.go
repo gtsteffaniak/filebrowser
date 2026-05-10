@@ -1077,6 +1077,9 @@ const docTemplate = `{
         "/api/auth/webauthn/begin-login": {
             "post": {
                 "description": "Verifies the user's password and returns a WebAuthn assertion challenge for passkey MFA.",
+        "/api/media/lyrics": {
+            "get": {
+                "description": "Returns parsed lyrics with optional timestamps from embedded tags or sidecar .lrc files.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1092,6 +1095,14 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Username",
                         "name": "username",
+                    "Resources"
+                ],
+                "summary": "Get lyrics for an audio file",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Path to the directory or file",
+                        "name": "path",
                         "in": "query",
                         "required": true
                     },
@@ -1174,6 +1185,8 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Passkey session ID from begin-login",
                         "name": "session_id",
+                        "description": "Source name",
+                        "name": "source",
                         "in": "query",
                         "required": true
                     }
@@ -1234,6 +1247,10 @@ const docTemplate = `{
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        "description": "Lyrics array",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     },
                     "403": {
@@ -1276,6 +1293,9 @@ const docTemplate = `{
                     },
                     "403": {
                         "description": "Forbidden",
+                    },
+                    "404": {
+                        "description": "Not found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -3202,6 +3222,24 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "boolean",
+                        "description": "When true, match indexed file names with SQLite GLOB (wildcard patterns)",
+                        "name": "useWildcard",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Deprecated: alias for useWildcard",
+                        "name": "glob",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Deprecated: alias for useWildcard",
+                        "name": "useGlob",
+                        "in": "query"
+                    },
+                    {
                         "type": "string",
                         "description": "User session ID, add unique value to prevent collisions",
                         "name": "SessionId",
@@ -3508,6 +3546,59 @@ const docTemplate = `{
                         "description": "successful health check response",
                         "schema": {
                             "$ref": "#/definitions/http.HttpResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/public/api/media/lyrics": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shares"
+                ],
+                "summary": "Get lyrics for an audio file (public share)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Share hash",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Path within the share",
+                        "name": "path",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lyrics array",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     }
                 }
@@ -5136,6 +5227,18 @@ const docTemplate = `{
                 }
             }
         },
+        "iteminfo.Lyric": {
+            "type": "object",
+            "properties": {
+                "text": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "description": "milliseconds",
+                    "type": "integer"
+                }
+            }
+        },
         "iteminfo.MediaMetadata": {
             "type": "object",
             "properties": {
@@ -5161,6 +5264,17 @@ const docTemplate = `{
                 "genre": {
                     "description": "music/video genre",
                     "type": "string"
+                },
+                "hasLyrics": {
+                    "description": "checks if lyrics are available without parse them",
+                    "type": "boolean"
+                },
+                "lyrics": {
+                    "description": "lyrics (from embedded tags or .lrc files)",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/iteminfo.Lyric"
+                    }
                 },
                 "title": {
                     "description": "track/video title",
@@ -5573,6 +5687,10 @@ const docTemplate = `{
         "settings.LogConfig": {
             "type": "object",
             "properties": {
+                "apiFilter": {
+                    "description": "regex filter that excludes matching full api paths from being logged. (eg. '/user\\?id\\=self') Defaults to '^/health|^/favicon.ico|^/static|^/public/static'",
+                    "type": "string"
+                },
                 "apiLevels": {
                     "description": "separated list of log levels to enable for the API. (eg. \"info|warning|error\")",
                     "type": "string"
@@ -5594,7 +5712,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "utc": {
-                    "description": "use UTC time in the output instead of local time",
+                    "description": "use UTC time in the output instead of local time.",
                     "type": "boolean"
                 }
             }
@@ -6197,6 +6315,10 @@ const docTemplate = `{
                 },
                 "quickDownload": {
                     "description": "show icon to download in one click",
+                    "type": "boolean"
+                },
+                "showCopyPath": {
+                    "description": "show copy path button in the context menu",
                     "type": "boolean"
                 },
                 "showHidden": {
@@ -6951,7 +7073,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "sourceName": {
-                    "description": "Source identifier for source-type links",
+                    "description": "Bolt: filesystem path. JSON out: display name (after prepForFrontend).",
                     "type": "string"
                 },
                 "target": {
@@ -6975,9 +7097,11 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "name": {
+                    "description": "Bolt: filesystem path; JSON API: display name after prepForFrontend",
                     "type": "string"
                 },
                 "scope": {
+                    "description": "index path within that source",
                     "type": "string"
                 }
             }
@@ -7123,6 +7247,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "scopes": {
+                    "description": "Bolt / in-process: Name = source path. JSON out: display name (prepForFrontend).",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/users.SourceScope"

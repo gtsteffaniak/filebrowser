@@ -28,7 +28,7 @@ type SearchResult struct {
 	Source     string `json:"source"`
 }
 
-func (idx *Index) Search(search string, scope string, sourceSession string, largest bool, limit int, olderThanUnix, newerThanUnix int64) []*SearchResult {
+func (idx *Index) Search(search string, scope string, sourceSession string, largest bool, limit int, olderThanUnix, newerThanUnix int64, useWildcard bool) []*SearchResult {
 	// Ensure scope has consistent trailing slash for directory matching
 	scope = utils.AddTrailingSlashIfNotExists(scope)
 
@@ -49,7 +49,9 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 		searchOptions.Terms = []string{""}
 	}
 
-	rows, err := idx.db.SearchItems(idx.Name, scope, largest)
+	nameGlobPatterns := nameGlobPatternsForSearch(searchOptions, useWildcard, largest)
+
+	rows, err := idx.db.SearchItems(idx.Name, scope, largest, nameGlobPatterns)
 	if err != nil {
 		return []*SearchResult{}
 	}
@@ -87,52 +89,48 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 			HasPreview: hasPreview,
 		}
 
-		// Check against all search terms
-		for _, searchTerm := range searchOptions.Terms {
-			if searchTerm == "" && !largest {
-				continue
-			}
-
-			var matches bool
-			if largest {
-				// When largest=true, check size and type conditions, skip name matching
-				largerThan := int64(searchOptions.LargerThan) * 1024 * 1024
-				sizeMatches := largerThan == 0 || item.Size > largerThan
-				// Check if directories should be excluded (when type:file is specified)
-				dirCondition, hasDirCondition := searchOptions.Conditions["dir"]
-				// For directories: match if dir condition is explicitly true
-				// For files: match if no dir condition, or if dir condition is false
-				var typeMatches bool
-				if isDir {
-					typeMatches = hasDirCondition && dirCondition
-				} else {
-					typeMatches = !hasDirCondition || (hasDirCondition && !dirCondition)
-				}
-				dateMatches := searchDateMatches(item.ModTime.Unix(), searchOptions)
-				matches = sizeMatches && typeMatches && dateMatches
+		var matches bool
+		if largest {
+			largerThan := int64(searchOptions.LargerThan) * 1024 * 1024
+			sizeMatches := largerThan == 0 || item.Size > largerThan
+			dirCondition, hasDirCondition := searchOptions.Conditions["dir"]
+			var typeMatches bool
+			if isDir {
+				typeMatches = hasDirCondition && dirCondition
 			} else {
-				matches = item.ContainsSearchTerm(searchTerm, searchOptions)
+				typeMatches = !hasDirCondition || (hasDirCondition && !dirCondition)
+			}
+			dateMatches := searchDateMatches(item.ModTime.Unix(), searchOptions)
+			matches = sizeMatches && typeMatches && dateMatches
+		} else if useWildcard && len(nameGlobPatterns) > 0 {
+			matches = item.MatchesSearchAuxiliaryFilters(searchOptions)
+		} else {
+			for _, searchTerm := range searchOptions.Terms {
+				if searchTerm == "" {
+					continue
+				}
+				if item.ContainsSearchTerm(searchTerm, searchOptions) {
+					matches = true
+					break
+				}
+			}
+		}
+
+		if matches {
+			resType := mimeType
+			if isDir {
+				resType = "directory"
 			}
 
-			if matches {
-				// Determine type string for response
-				resType := mimeType
-				if isDir {
-					resType = "directory"
-				}
-
-				results[path] = &SearchResult{
-					Path:       path,
-					Type:       resType,
-					Size:       size,
-					Modified:   item.ModTime.Format(time.RFC3339),
-					HasPreview: hasPreview,
-					Source:     idx.Name,
-				}
-				count++
-				// Break inner loop (terms) if matched, move to next row
-				break
+			results[path] = &SearchResult{
+				Path:       path,
+				Type:       resType,
+				Size:       size,
+				Modified:   item.ModTime.Format(time.RFC3339),
+				HasPreview: hasPreview,
+				Source:     idx.Name,
 			}
+			count++
 		}
 	}
 
@@ -150,6 +148,23 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 	return sortedKeys
 }
 
+// nameGlobPatternsForSearch builds non-empty parsed terms for SQLite name GLOB OR clauses.
+func nameGlobPatternsForSearch(opts iteminfo.SearchOptions, useWildcard, largest bool) []string {
+	if largest || !useWildcard || len(opts.Terms) == 0 {
+		return nil
+	}
+	var patterns []string
+	for _, t := range opts.Terms {
+		if t != "" {
+			patterns = append(patterns, t)
+		}
+	}
+	if len(patterns) == 0 {
+		return nil
+	}
+	return patterns
+}
+
 func searchDateMatches(modUnix int64, opts iteminfo.SearchOptions) bool {
 	if opts.ModifiedNewerThan > 0 && modUnix < opts.ModifiedNewerThan {
 		return false
@@ -165,7 +180,7 @@ func searchDateMatches(modUnix int64, opts iteminfo.SearchOptions) bool {
 // sourceScopes is a map from source name to the scope path for that source.
 // sourceSession is used for cancellation tracking.
 // largest and limit work the same as in Search.
-func SearchMultiSources(search string, sources []string, sourceScopes map[string]string, sourceSession string, largest bool, limit int, olderThanUnix, newerThanUnix int64) []*SearchResult {
+func SearchMultiSources(search string, sources []string, sourceScopes map[string]string, sourceSession string, largest bool, limit int, olderThanUnix, newerThanUnix int64, useWildcard bool) []*SearchResult {
 	if len(sources) == 0 {
 		return []*SearchResult{}
 	}
@@ -199,7 +214,9 @@ func SearchMultiSources(search string, sources []string, sourceScopes map[string
 		searchOptions.Terms = []string{""}
 	}
 
-	rows, err := db.SearchItemsMultiSource(sources, normalizedScopes, largest)
+	nameGlobPatterns := nameGlobPatternsForSearch(searchOptions, useWildcard, largest)
+
+	rows, err := db.SearchItemsMultiSource(sources, normalizedScopes, largest, nameGlobPatterns)
 	if err != nil {
 		return []*SearchResult{}
 	}
@@ -239,54 +256,49 @@ func SearchMultiSources(search string, sources []string, sourceScopes map[string
 			HasPreview: hasPreview,
 		}
 
-		// Check against all search terms
-		for _, searchTerm := range searchOptions.Terms {
-			if searchTerm == "" && !largest {
-				continue
-			}
-
-			var matches bool
-			if largest {
-				// When largest=true, check size and type conditions, skip name matching
-				largerThan := int64(searchOptions.LargerThan) * 1024 * 1024
-				sizeMatches := largerThan == 0 || item.Size > largerThan
-				// Check if directories should be excluded (when type:file is specified)
-				dirCondition, hasDirCondition := searchOptions.Conditions["dir"]
-				// For directories: match if dir condition is explicitly true
-				// For files: match if no dir condition, or if dir condition is false
-				var typeMatches bool
-				if isDir {
-					typeMatches = hasDirCondition && dirCondition
-				} else {
-					typeMatches = !hasDirCondition || (hasDirCondition && !dirCondition)
-				}
-				dateMatches := searchDateMatches(item.ModTime.Unix(), searchOptions)
-				matches = sizeMatches && typeMatches && dateMatches
+		var matches bool
+		if largest {
+			largerThan := int64(searchOptions.LargerThan) * 1024 * 1024
+			sizeMatches := largerThan == 0 || item.Size > largerThan
+			dirCondition, hasDirCondition := searchOptions.Conditions["dir"]
+			var typeMatches bool
+			if isDir {
+				typeMatches = hasDirCondition && dirCondition
 			} else {
-				matches = item.ContainsSearchTerm(searchTerm, searchOptions)
+				typeMatches = !hasDirCondition || (hasDirCondition && !dirCondition)
+			}
+			dateMatches := searchDateMatches(item.ModTime.Unix(), searchOptions)
+			matches = sizeMatches && typeMatches && dateMatches
+		} else if useWildcard && len(nameGlobPatterns) > 0 {
+			matches = item.MatchesSearchAuxiliaryFilters(searchOptions)
+		} else {
+			for _, searchTerm := range searchOptions.Terms {
+				if searchTerm == "" {
+					continue
+				}
+				if item.ContainsSearchTerm(searchTerm, searchOptions) {
+					matches = true
+					break
+				}
+			}
+		}
+
+		if matches {
+			resType := mimeType
+			if isDir {
+				resType = "directory"
 			}
 
-			if matches {
-				// Determine type string for response
-				resType := mimeType
-				if isDir {
-					resType = "directory"
-				}
-
-				// Use source+path as key to handle same path in different sources
-				key := source + ":" + path
-				results[key] = &SearchResult{
-					Path:       path,
-					Type:       resType,
-					Size:       size,
-					Modified:   item.ModTime.Format(time.RFC3339),
-					HasPreview: hasPreview,
-					Source:     source,
-				}
-				count++
-				// Break inner loop (terms) if matched, move to next row
-				break
+			key := source + ":" + path
+			results[key] = &SearchResult{
+				Path:       path,
+				Type:       resType,
+				Size:       size,
+				Modified:   item.ModTime.Format(time.RFC3339),
+				HasPreview: hasPreview,
+				Source:     source,
 			}
+			count++
 		}
 	}
 

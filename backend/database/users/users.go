@@ -95,7 +95,8 @@ type Preview struct {
 	Models             bool `json:"models"`             // show live thumbnails for 3D models files
 }
 
-// User describes a user.
+// User describes a persisted account. Scopes and source sidebar links store filesystem paths in Name/SourceName;
+// JSON responses use display names only (see http prepForFrontend).
 type User struct {
 	NonAdminEditable
 	DisableSettings      bool                  `json:"disableSettings"`
@@ -112,13 +113,27 @@ type User struct {
 	LoginMethod          LoginMethod           `json:"loginMethod"`
 	OtpEnabled           bool                  `json:"otpEnabled"` // true if TOTP is enabled, false otherwise
 	Version              int                   `json:"version"`
+	DisableSettings bool                 `json:"disableSettings"`
+	ID              uint                 `storm:"id,increment" json:"id"`
+	Username        string               `storm:"unique" json:"username"`
+	Scopes          []SourceScope        `json:"scopes"` // Bolt / in-process: Name = source path. JSON out: display name (prepForFrontend).
+	Scope           string               `json:"scope,omitempty"`
+	LockPassword    bool                 `json:"lockPassword"`
+	Permissions     Permissions          `json:"permissions"`
+	ApiKeys         map[string]AuthToken `json:"apiKeys,omitempty"` // deprecated: use Tokens instead
+	Tokens          map[string]AuthToken `json:"tokens,omitempty"`
+	TOTPSecret      string               `json:"totpSecret,omitempty"`
+	TOTPNonce       string               `json:"totpNonce,omitempty"`
+	LoginMethod     LoginMethod          `json:"loginMethod"`
+	OtpEnabled      bool                 `json:"otpEnabled"` // true if TOTP is enabled, false otherwise
+	Version         int                  `json:"version"`
 	// legacy for migration purposes... og filebrowser has perm attribute
 	Perm Permissions `json:"perm,omitzero"` // deprecated: use Permissions instead
 }
 
 type SourceScope struct {
-	Name  string `json:"name"`
-	Scope string `json:"scope"`
+	Name  string `json:"name"`  // Bolt: filesystem path; JSON API: display name after prepForFrontend
+	Scope string `json:"scope"` // index path within that source
 }
 
 // json tags must match variable name with smaller case first letter
@@ -173,7 +188,7 @@ type SidebarLink struct {
 	Category   string `json:"category"`             // Category type: "source", "source-link", "share", "tool", "custom", etc.
 	Target     string `json:"target"`               // Target path/URL for the link (relative for source/share)
 	Icon       string `json:"icon"`                 // Material icon name
-	SourceName string `json:"sourceName,omitempty"` // Source identifier for source-type links
+	SourceName string `json:"sourceName,omitempty"` // Bolt: filesystem path. JSON out: display name (after prepForFrontend).
 }
 
 func CleanUsername(s string) string {

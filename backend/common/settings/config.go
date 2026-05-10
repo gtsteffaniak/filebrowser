@@ -484,23 +484,28 @@ func setupLogging() {
 			},
 		}
 	}
-	for _, logConfig := range Config.Server.Logging {
+	for i := range Config.Server.Logging {
+		cfg := &Config.Server.Logging[i]
 		// Enable debug logging automatically in dev mode
-		levels := logConfig.Levels
+		levels := cfg.Levels
 		if os.Getenv("FILEBROWSER_DEVMODE") == "true" {
 			levels = "info|warning|error|debug"
 		}
-
-		logConfig := logger.JsonConfig{
-			Levels:     levels,
-			ApiLevels:  logConfig.ApiLevels,
-			Output:     logConfig.Output,
-			Utc:        logConfig.Utc,
-			NoColors:   logConfig.NoColors,
-			Json:       logConfig.Json,
-			Structured: false,
+		pattern := cfg.ApiFilter
+		if pattern == "" {
+			pattern = "^/health|^/favicon.ico|^/static|^/public/static"
 		}
-		err := logger.EnableCompatibilityMode(logConfig)
+		jsonCfg := logger.JsonConfig{
+			Levels:         levels,
+			ApiLevels:      cfg.ApiLevels,
+			Output:         cfg.Output,
+			Utc:            cfg.Utc,
+			NoColors:       cfg.NoColors,
+			Json:           cfg.Json,
+			Structured:     false,
+			ApiPathExclude: pattern,
+		}
+		err := logger.EnableCompatibilityMode(jsonCfg)
 		if err != nil {
 			log.Println("[ERROR] Failed to set up logger:", err)
 		}
@@ -717,6 +722,7 @@ func setDefaults(generate bool) Settings {
 			StickySidebar:           true,
 			HideFilesInTree:         false,
 			PreferEditorForMarkdown: false,
+			ShowCopyPath:            false,
 			LockPassword:            false,
 			ShowHidden:              false,
 			DarkMode:                boolPtr(true),

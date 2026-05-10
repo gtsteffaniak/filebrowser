@@ -75,7 +75,12 @@
     "mouseActions": "マウス操作",
     "fileOperations": "ファイル操作",
     "click": "ファイルやディレクトリを選択",
+    "dbClick": "空のスペースをダブルクリックしてすべての項目を選択",
     "ctrl": {
+      "f1": "リスト表示に切り替え",
+      "f2": "通常表示に切り替え",
+      "f3": "ギャラリー表示に切り替え",
+      "scroll": "リストとエディタのフォントサイズを変更",
       "click": "複数のファイルやディレクトリを選択",
       "d": "ダウンロード",
       "b": "トグル・サイドバー",
@@ -101,6 +106,8 @@
       "volume": "音量を上げる/下げる",
       "mute": "ミュート/ミュート解除",
       "loop": "ループモードとシングルモードを切り替え",
+      "playbackQueue": "オーディオファイルで再生キューまたはパネルを開く",
+      "switchTabs": "オーディオファイルのパネルでタブを切り替える",
       "playbackModes": "再生モードを切り替え（ループとシングルを除く）",
       "fullscreen": "動画の全画面モードを切り替え",
       "captions": "字幕のオン/オフを切り替え"
@@ -257,9 +264,11 @@
     "showPreviewImagesDescription": "検索結果のサムネイルプレビューを表示し、すべての検索結果に対して大きなアイコンを表示します。",
     "olderThanDate": "より古い：",
     "newerThanDate": "より新しい：",
-    "helpText2": "検索結果はインデックスされたファイルに基づいているため、新しく追加されたファイルはインデックスされるまで表示されないことがあります。",
     "noResults": "結果は見つからなかった。",
-    "helpText1": "検索は入力した文字ごとに行われます（{minSearchLength} 文字以上）。"
+    "useWildcardSearch": "ワイルドカード検索",
+    "helpText1": "検索は入力した文字ごとに行われます（{minSearchLength} 文字以上）。",
+    "useWildcardSearchDescription": "サポートされているワイルドカード：\n\n- 任意のシーケンスにマッチします：*\n\n- 1文字にマッチ: ?\n\n- 文字クラス：[a-z], [0-9］\n\n- 否定[^0-9]\n\n- 例えば、[*]、[?]、[[]のように、*、?",
+    "helpText2": "ファイル名またはフォルダ名のみ（フルパスではない）の部分文字列マッチ case:exactで大文字小文字を区別してマッチング\n\n パイプ文字を使用し、1つのフレーズを二重引用符で囲みます。\n\nワイルドカード検索を有効にすると、より高度なオプションを使用できます。"
   },
   "settings": {
     "administrator": "管理者",
@@ -810,7 +819,15 @@
     "QueuePlayback": "再生キュー",
     "changePlaybackMode": "再生モードを変更",
     "changePlaybackModeHint": "再生モードを変更してより多くのファイルを表示",
-    "emptyQueue": "キューは空です"
+    "emptyQueue": "キューは空です",
+    "queue": "キュー",
+    "lyrics": "歌詞",
+    "noLyrics": "歌詞はありません",
+    "lockLyrics": "歌詞をロック",
+    "unlockLyrics": "歌詞のロックを解除",
+    "toggleLyrics": "歌詞の表示切り替え",
+    "closePanel": "パネルを閉じる",
+    "openPanel": "パネルを開く"
   },
   "fileSizeAnalyzer": {
     "title": "ファイル・サイズ・アナライザー",
@@ -879,7 +896,8 @@
     "reassignPath": "パスの再割り当て",
     "pathReassigned": "パスは正常に更新されました！",
     "pathReassignFailed": "パスの更新に失敗しました。再試行してください。",
-    "incompleteResultsDetails": "最大結果を表示 ({max}).{max} でより多くの結果を得るために絞り込んで検索してみてください。"
+    "incompleteResultsDetails": "最大結果を表示 ({max}).{max} でより多くの結果を得るために絞り込んで検索してみてください。",
+    "noCreateOptions": "作成オプションはありません"
   },
   "duplicateFinder": {
     "title": "重複ファイルファインダー",

@@ -78,7 +78,12 @@
     "mouseActions": "Akce Myši",
     "fileOperations": "Operace se Soubory",
     "click": "označit soubor nebo složku",
+    "dbClick": "Dvojklikem na prázdné místo vyberte všechny položky",
     "ctrl": {
+      "f1": "Přepnout na zobrazení seznamu",
+      "f2": "Přepnout na normální zobrazení",
+      "f3": "Přepnout na zobrazení galerie",
+      "scroll": "Změnit velikosti seznamu a písma editoru",
       "click": "označit více souborů nebo složek",
       "d": "stáhnout vybrané položky",
       "b": "přepínání postranního panelu",
@@ -104,6 +109,8 @@
       "volume": "Zvýšit nebo snížit hlasitost",
       "mute": "Ztlumit/zapnout zvuk",
       "loop": "Přepínání mezi smyčkou a jedním přehráním",
+      "playbackQueue": "Otevřít frontu přehrávání nebo panel v audio souborech",
+      "switchTabs": "Přepínat karty v panelu u audio souborů",
       "playbackModes": "Přepínání režimů přehrávání (kromě smyčky a jednoho přehrání)",
       "fullscreen": "Přepnout režim celé obrazovky u videí",
       "captions": "Zapnout/vypnout titulky"
@@ -335,9 +342,11 @@
     "showPreviewImagesDescription": "Zobrazení miniaturních náhledů výsledků vyhledávání, pokud jsou k dispozici, a zobrazení větších ikon u všech výsledků.",
     "olderThanDate": "Starší než:",
     "newerThanDate": "Novější než:",
-    "helpText2": "Výsledky vyhledávání jsou založeny na indexovaných souborech, takže nově přidané soubory se mohou zobrazit až po jejich indexování.",
     "noResults": "Nebyly nalezeny žádné výsledky.",
-    "helpText1": "Vyhledávání probíhá na základě každého zadaného znaku ({minSearchLength} minimálně znaků)."
+    "useWildcardSearch": "Vyhledávání pomocí zástupných znaků",
+    "helpText1": "Vyhledávání probíhá na základě každého zadaného znaku ({minSearchLength} minimálně znaků).",
+    "useWildcardSearchDescription": "Podporované zástupné znaky:\n\n- Shodují se s libovolnou sekvencí: *\n\n- Shoda s jedním znakem: ?\n\n- Třída znaků: [a-z], [0-9]\n\n- Negace: [^0-9]\n\n- Doslovné *, ? nebo [ je třeba zabalit do závorek, např. [*], [?], [[].",
+    "helpText2": "Shoda podřetězce pouze s názvy souborů nebo složek (ne s úplnými cestami). case:exact pro porovnávání s rozlišováním malých a velkých písmen.\n\n pro OR mezi výrazy použijte znak pipe; dvojité uvozovky pro jednu frázi.\n\nPovolte vyhledávání se zástupnými znaky pro pokročilejší možnosti."
   },
   "profileSettings": {
     "preferEditorForMarkdown": "Upřednostnit editor pro Markdown soubory",
@@ -810,7 +819,15 @@
     "QueuePlayback": "Fronta přehrávání",
     "changePlaybackMode": "Změnit režim přehrávání",
     "changePlaybackModeHint": "Změňte režim přehrávání, abyste viděli více souborů",
-    "emptyQueue": "Fronta je prázdná"
+    "emptyQueue": "Fronta je prázdná",
+    "queue": "Fronta",
+    "lyrics": "Text písně",
+    "noLyrics": "Text není k dispozici",
+    "lockLyrics": "Zamknout text",
+    "unlockLyrics": "Odemknout text",
+    "toggleLyrics": "Přepnout text",
+    "closePanel": "Zavřít panel",
+    "openPanel": "Otevřít panel"
   },
   "fileSizeAnalyzer": {
     "title": "Analyzátor velikosti souborů",
@@ -879,7 +896,8 @@
     "reassignPath": "Změna přiřazení cesty",
     "pathReassigned": "Cesta byla úspěšně aktualizována!",
     "pathReassignFailed": "Nepodařilo se aktualizovat cestu. Zkuste to prosím znovu.",
-    "incompleteResultsDetails": "Zobrazeno max. výsledků ({max}). Zkuste zúžit hledání a získat více výsledků pod {max}."
+    "incompleteResultsDetails": "Zobrazeno max. výsledků ({max}). Zkuste zúžit hledání a získat více výsledků pod {max}.",
+    "noCreateOptions": "Nejsou k dispozici žádné možnosti vytváření"
   },
   "duplicateFinder": {
     "title": "Vyhledávač duplicitních souborů",

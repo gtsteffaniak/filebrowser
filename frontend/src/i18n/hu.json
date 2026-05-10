@@ -75,7 +75,12 @@
     "mouseActions": "Egérműveletek",
     "fileOperations": "Fájlműveletek",
     "click": "mappa vagy fájl kijelölése",
+    "dbClick": "Kattintson duplán egy üres területre az összes elem kiválasztásához",
     "ctrl": {
+      "f1": "Váltás lista nézetre",
+      "f2": "Váltás normál nézetre",
+      "f3": "Váltás galéria nézetre",
+      "scroll": "A lista és a szerkesztő betűméretének módosítása",
       "click": "több mappa vagy fájl kijelölése",
       "d": "kiválasztott elemek letöltése",
       "b": "oldalsáv átkapcsolása",
@@ -101,6 +106,8 @@
       "volume": "Hangerő növelése vagy csökkentése",
       "mute": "Némítás/Behangzás",
       "loop": "Váltás ismétlés és egyszeri mód között",
+      "playbackQueue": "Lejátszási sor vagy a panel megnyitása audio fájlokban",
+      "switchTabs": "Lapok váltása a panelen audio fájloknál",
       "playbackModes": "Váltás lejátszási módok között (az ismétlés és egyszeri kivételével)",
       "fullscreen": "Teljes képernyős mód váltása videóknál",
       "captions": "Feliratok be/ki"
@@ -257,9 +264,11 @@
     "showPreviewImagesDescription": "A keresési találatok miniatűr előnézeteinek megjelenítése, ha rendelkezésre állnak, és nagyobb ikonok megjelenítése az összes találathoz.",
     "olderThanDate": "Idősebb, mint:",
     "newerThanDate": "Újabb, mint:",
-    "helpText2": "A keresési eredmények az indexelt fájlokon alapulnak, ezért előfordulhat, hogy az újonnan hozzáadott fájlok nem jelennek meg, amíg indexelésre nem kerülnek.",
     "noResults": "Nem találtak eredményt.",
-    "helpText1": "A keresés minden egyes beírt karakterre történik ({minSearchLength} minimum karakter)."
+    "useWildcardSearch": "Wildcard keresés",
+    "helpText1": "A keresés minden egyes beírt karakterre történik ({minSearchLength} minimum karakter).",
+    "useWildcardSearchDescription": "Támogatott helyettesítő karakterek:\n\n- Bármelyik sorozatra illeszkedik: *\n\n- Egy karakterrel való egyezés: ?\n\n- Karakterosztály: [a-z], [0-9]\n\n- Negáció: [^0-9]\n\n- A szó szerinti *, ? vagy [ karaktereket zárójelbe kell tenni, pl. [*], [?], [[]",
+    "helpText2": "Csak fájl- vagy mappanevek (nem teljes elérési utak) részlánc-illesztése. case:exact a nagy- és kisbetű-érzékeny illesztéshez.\n\n a kifejezések közötti VAGY-hoz használja a pipe karaktert; dupla idézőjelek egy kifejezéshez.\n\nEngedélyezze a vadkártyás keresést a fejlettebb lehetőségekhez."
   },
   "settings": {
     "administrator": "Adminisztrátor",
@@ -810,7 +819,15 @@
     "QueuePlayback": "Lejátszási Sor",
     "changePlaybackMode": "Lejátszási mód változtatása",
     "changePlaybackModeHint": "Változtasd meg a lejátszási módot, hogy több fájlt láss",
-    "emptyQueue": "A sor üres"
+    "emptyQueue": "A sor üres",
+    "queue": "Sor",
+    "lyrics": "Dalszöveg",
+    "noLyrics": "Nincs elérhető dalszöveg",
+    "lockLyrics": "Dalszöveg zárolása",
+    "unlockLyrics": "Dalszöveg feloldása",
+    "toggleLyrics": "Dalszöveg be/ki",
+    "closePanel": "Panel bezárása",
+    "openPanel": "Panel megnyitása"
   },
   "fileSizeAnalyzer": {
     "title": "Fájlméret elemző",
@@ -879,7 +896,8 @@
     "reassignPath": "Útvonal újbóli kijelölése",
     "pathReassigned": "Az útvonal sikeresen frissült!",
     "pathReassignFailed": "Nem sikerült frissíteni az elérési utat. Kérjük, próbálja újra.",
-    "incompleteResultsDetails": "Maximális eredmények megjelenítése ({max}). Próbálja szűkíteni a keresést, hogy több eredményt kapjon a {max} alatt ."
+    "incompleteResultsDetails": "Maximális eredmények megjelenítése ({max}). Próbálja szűkíteni a keresést, hogy több eredményt kapjon a {max} alatt .",
+    "noCreateOptions": "Nincs lehetőség létrehozására"
   },
   "duplicateFinder": {
     "title": "Duplikátum fájl kereső",

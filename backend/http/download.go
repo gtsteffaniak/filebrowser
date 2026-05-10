@@ -99,6 +99,8 @@ func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName stri
 	dispositionType := "attachment"
 	if r.URL.Query().Get("inline") == "true" {
 		dispositionType = "inline"
+		// Inline SVG (and similar) can execute embedded scripts when opened as a top-level document; match upstream filebrowser mitigation.
+		w.Header().Set("Content-Security-Policy", "script-src 'none'")
 	}
 
 	// standard: ASCII-only safe fallback

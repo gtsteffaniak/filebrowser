@@ -75,7 +75,12 @@
     "mouseActions": "Acciones con el mouse",
     "fileOperations": "Operaciones de Archivo",
     "click": "Selecciona un archivo o carpeta",
+    "dbClick": "Doble clic en un espacio vacío para seleccionar todos los elementos",
     "ctrl": {
+      "f1": "Cambiar a vista de lista",
+      "f2": "Cambiar a vista normal",
+      "f3": "Cambiar a vista de galería",
+      "scroll": "Cambiar tamaños de la lista y la fuente del editor",
       "click": "Selecciona varios archivos o carpetas (Selección multiple)",
       "d": "Descargar elementos seleccionados",
       "b": "Mostrar/ocultar el panel lateral",
@@ -86,7 +91,7 @@
       "e": "Cambiar entre editor y Visor Markdown (en archivos .md)"
     },
     "del": "Eliminar elementos seleccionados",
-    "esc": "Cancela la selección o cierra la vista actual",
+    "esc": "Cancela la selección o cierra el archivo actual",
     "f2": "Cambiar nombre del archivo o carpeta",
     "f1": "Abrir ventana de ayuda",
     "description": "Aquí puedes ver todos los atajos de teclado básicos. Si quieres saber más, visita la",
@@ -101,6 +106,8 @@
       "volume": "Subir o bajar el volumen",
       "mute": "Silenciar/Activar el sonido",
       "loop": "Activar/Desactivar reproducción en bucle",
+      "playbackQueue": "Abrir cola de reproducción o el panel (en audios)",
+      "switchTabs": "Cambiar pestañas en el panel (en audios)",
       "playbackModes": "Cambiar entre modos de reproducción (excepto bucle)",
       "fullscreen": "Cambiar a pantalla completa en vídeos",
       "captions": "Activar/Desactivar subtítulos"
@@ -257,9 +264,11 @@
     "showPreviewImagesDescription": "Mostrar miniaturas para los resultados de búsqueda - También hará los iconos más grandes.",
     "olderThanDate": "Más viejo que:",
     "newerThanDate": "Más nuevo que:",
-    "helpText2": "Los resultados de la búsqueda se basan en los archivos indexados, por lo que es posible que los archivos recién añadidos no aparezcan hasta que se indexen.",
     "noResults": "No se han encontrado resultados.",
-    "helpText1": "La búsqueda se produce en cada carácter que escriba ({minSearchLength} carácter mínimo)."
+    "useWildcardSearch": "Búsqueda con comodín",
+    "helpText1": "La búsqueda se produce en cada carácter que escriba ({minSearchLength} carácter mínimo).",
+    "useWildcardSearchDescription": "Comodines admitidos:\n\n- Coinciden con cualquier secuencia: *\n\n- Coincidencia con un carácter: ?\n\n- Clase de caracteres: [a-z], [0-9]\n\n- Negación: [^0-9]\n\n- Los caracteres *, ? o [ deben ir entre paréntesis, por ejemplo [*], [?], [[].",
+    "helpText2": "Coincidencia de subcadenas sólo en nombres de archivos o carpetas (no en rutas completas). case:exact para coincidencia sensible a mayúsculas y minúsculas.\n\n para OR entre términos utilice el carácter pipa; comillas dobles para una frase.\n\nHabilite la búsqueda con comodines para opciones más avanzadas."
   },
   "settings": {
     "scopes": "Fuentes a las que el usuario tendrá acceso:",
@@ -810,7 +819,15 @@
     "QueuePlayback": "Cola de Reproducción",
     "changePlaybackMode": "Cambiar modo de Reproducción",
     "changePlaybackModeHint": "Cambia el modo de reproducción para ver más",
-    "emptyQueue": "La cola de reproducción está vacia..."
+    "emptyQueue": "La cola de reproducción está vacia...",
+    "queue": "Cola",
+    "lyrics": "Letra",
+    "noLyrics": "No hay letra disponible",
+    "lockLyrics": "Bloquear letras",
+    "unlockLyrics": "Desbloquear letras",
+    "toggleLyrics": "Mostrar letras",
+    "closePanel": "Cerrar panel",
+    "openPanel": "Abrir panel"
   },
   "fileSizeAnalyzer": {
     "title": "Analizador de espacio",
@@ -879,7 +896,8 @@
     "reassignPath": "Reasignar ruta",
     "pathReassigned": "¡La ruta se actualizó correctamente!",
     "pathReassignFailed": "No se pudo actualizar la ruta. Inténtalo de nuevo",
-    "incompleteResultsDetails": "Mostrando resultados máximos ({max}). Intenta restringir la búsqueda para obtener más resultados en {max}."
+    "incompleteResultsDetails": "Mostrando resultados máximos ({max}). Intenta restringir la búsqueda para obtener más resultados en {max}.",
+    "noCreateOptions": "No hay opciones de creación disponibles"
   },
   "duplicateFinder": {
     "title": "Buscador de archivos duplicados",

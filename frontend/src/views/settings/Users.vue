@@ -8,52 +8,57 @@
   </div>
 
   <div class="card-content full">
-    <table aria-label="Users">
-      <thead>
-        <tr>
-          <th>{{ $t("general.username") }}</th>
-          <th>{{ $t("settings.loginMethod") }}</th>
-          <th>{{ $t("general.admin") }}</th>
-          <th>{{ $t("general.scopes") }}</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody class="settings-items">
-        <tr class="item" v-for="user in users" :key="user.id">
-          <td>{{ user.username }}</td>
-          <td>{{ user.loginMethod }}</td>
-          <td>
-            <i v-if="user.permissions.admin" class="material-symbols">done</i>
-            <i v-else class="material-symbols">close</i>
-          </td>
-          <td>{{ formatScopes(user.scopes) }}</td>
-          <td class="small" aria-label="Edit User">
-            <div @click="openPrompt(user.id)" class="clickable action button">
-              <i class="material-symbols">edit</i>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <settings-table
+      :columns="userTableColumns"
+      :items="users"
+      item-key="id"
+      default-sort-key="username"
+      :aria-label="$t('general.users')"
+      :loading="loading"
+    >
+      <template #cell-admin="{ row }">
+        <i v-if="row.permissions.admin" class="material-symbols">done</i>
+        <i v-else class="material-symbols">close</i>
+      </template>
+      <template #cell-scopes="{ row }">{{ formatScopes(row.scopes) }}</template>
+      <template #cell-actions="{ row }">
+        <div
+          @click="openPrompt(row.id)"
+          class="clickable action button"
+          role="button"
+          tabindex="0"
+          :aria-label="$t('general.edit')"
+          :title="$t('general.edit')"
+          @keydown.enter.prevent="openPrompt(row.id)"
+          @keydown.space.prevent="openPrompt(row.id)"
+        >
+          <i class="material-symbols">edit</i>
+        </div>
+      </template>
+    </settings-table>
   </div>
 
 </template>
 
 <script>
-import { state, mutations, getters } from "@/store";
+import { state, mutations } from "@/store";
 import { usersApi } from "@/api";
 import Errors from "@/views/Errors.vue";
+import SettingsTable from "@/components/settings/Table.vue";
 import { eventBus } from "@/store/eventBus";
 
 export default {
   name: "users",
   components: {
     Errors,
+    SettingsTable,
   },
   data: function () {
     return {
       error: null,
       users: [],
+      /** Local fetch state; avoids global Settings overlay spinner (table shows its own). */
+      loading: true,
     };
   },
   async created() {
@@ -74,21 +79,45 @@ export default {
     isAdmin() {
       return state.user.permissions.admin;
     },
-    // Access the loading state directly from the store
-    loading() {
-      return getters.isLoading();
+    userTableColumns() {
+      return [
+        {
+          key: "username",
+          label: this.$t("general.username"),
+          sortable: true,
+        },
+        {
+          key: "loginMethod",
+          label: this.$t("settings.loginMethod"),
+          sortable: true,
+        },
+        {
+          key: "admin",
+          label: this.$t("general.admin"),
+        },
+        {
+          key: "scopes",
+          label: this.$t("general.scopes"),
+        },
+        {
+          key: "actions",
+          label: "",
+          align: "right",
+          narrow: true,
+        },
+      ];
     },
   },
   methods: {
     async reloadUsers() {
-      mutations.setLoading("users", true);
+      this.loading = true;
       try {
         this.users = await usersApi.getAllUsers();
         this.error = null; // Clear any previous errors
       } catch (e) {
         this.error = e;
       } finally {
-        mutations.setLoading("users", false);
+        this.loading = false;
       }
     },
     formatScopes(scopes) {

@@ -5,7 +5,8 @@
     "reassignPath": "Riassegna percorso",
     "pathReassigned": "Percorso aggiornato con successo!",
     "pathReassignFailed": "Aggiornamento del percorso fallito. Riprova.",
-    "incompleteResultsDetails": "Visualizzazione dei risultati massimi ({max}). Prova a restringere la ricerca per ottenere più risultati sotto {max}."
+    "incompleteResultsDetails": "Visualizzazione dei risultati massimi ({max}). Prova a restringere la ricerca per ottenere più risultati sotto {max}.",
+    "noCreateOptions": "Non sono disponibili opzioni di creazione"
   },
   "general": {
     "divider": "Divisore{suffix}",
@@ -209,8 +210,13 @@
     "mouseActions": "Azioni del mouse",
     "fileOperations": "Operazioni sui file",
     "click": "seleziona file o directory",
+    "dbClick": "Fare doppio clic su uno spazio vuoto per selezionare tutti gli elementi",
     "marqueeSelect": "seleziona più file o directory trascinando nello spazio vuoto",
     "ctrl": {
+      "f1": "Passa alla vista elenco",
+      "f2": "Passa alla vista normale",
+      "f3": "Passa alla vista galleria",
+      "scroll": "Modificare le dimensioni dell'elenco e il carattere dell'editor",
       "click": "seleziona più file o directory",
       "c": "copia elementi selezionati",
       "v": "incolla elementi copiati/tagliati",
@@ -235,6 +241,8 @@
       "volume": "Alza o abbassa il volume",
       "mute": "Attiva/disattiva audio",
       "loop": "Passa tra modalità loop e singola",
+      "playbackQueue": "Apri coda di riproduzione o il pannello nei file audio",
+      "switchTabs": "Cambia schede nel pannello sui file audio",
       "playbackModes": "Passa tra le modalità di riproduzione (escluso loop e singola)",
       "fullscreen": "Attiva/disattiva schermo intero nei video",
       "captions": "Attiva/disattiva sottotitoli"
@@ -466,9 +474,11 @@
     "newerThanDate": "Più recente di:",
     "showPreviewImages": "Mostra anteprime immagini",
     "showPreviewImagesDescription": "Mostra miniature nei risultati di ricerca quando disponibili e icone grandi per tutti i risultati.",
-    "helpText2": "I risultati della ricerca si basano sui file indicizzati, quindi i file aggiunti di recente potrebbero non apparire finché non vengono indicizzati.",
     "noResults": "Nessun risultato trovato.",
-    "helpText1": "La ricerca avviene per ogni carattere digitato ({minSearchLength} minimo)."
+    "useWildcardSearch": "Ricerca con caratteri jolly",
+    "helpText1": "La ricerca avviene per ogni carattere digitato ({minSearchLength} minimo).",
+    "useWildcardSearchDescription": "I caratteri jolly supportati:\n\n- Corrisponde a qualsiasi sequenza: *\n\n- Corrisponde a un solo carattere: ?\n\n- Classe di caratteri: [a-z], [0-9]\n\n- Negazione: [^0-9]\n\n- I caratteri letterali *, ?, o [ devono essere racchiusi tra parentesi, ad esempio [*], [?], [[]",
+    "helpText2": "Corrispondenza di sottostringhe solo sui nomi di file o cartelle (non sui percorsi completi). case:exact per una corrispondenza sensibile alle maiuscole e alle minuscole.\n\n per OR tra termini usare il carattere pipe; doppi apici per una frase.\n\nAbilitare la ricerca con caratteri jolly per opzioni più avanzate."
   },
   "profileSettings": {
     "preferEditorForMarkdown": "Preferisci editor per file Markdown",
@@ -818,7 +828,15 @@
     "QueuePlayback": "Coda di riproduzione",
     "changePlaybackMode": "Cambia modalità riproduzione",
     "changePlaybackModeHint": "Cambia modalità per vedere più file",
-    "emptyQueue": "La coda è vuota"
+    "emptyQueue": "La coda è vuota",
+    "queue": "Coda",
+    "lyrics": "Testo",
+    "noLyrics": "Nessun testo disponibile",
+    "lockLyrics": "Blocca testo",
+    "unlockLyrics": "Sblocca testo",
+    "toggleLyrics": "Attiva/disattiva testo",
+    "closePanel": "Chiudi pannello",
+    "openPanel": "Apri pannello"
   },
   "fileSizeAnalyzer": {
     "title": "Analizzatore Dimensioni File",

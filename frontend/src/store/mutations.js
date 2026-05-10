@@ -220,8 +220,12 @@ export const mutations = {
       return;
     }
     state.user.gallerySize = value
+    const isAnonymous = state.user.username === 'anonymous';
+    if (!isAnonymous) {
+      const encoded = url.base64Encode(state.user.username);
+      localStorage.setItem(`GallerySize_${encoded}`, value);
+    }
     emitStateChanged();
-    void usersApi.update(state.user, ['gallerySize']).catch((e) => notify.showError(e));
   },
   setActiveSettingsView: (value) => {
     if (value == state.activeSettingsView) {
@@ -416,6 +420,29 @@ export const mutations = {
         }
       }
 
+      // Load stored values or use defaults as fallback
+      const isAnonymous = state.user.username === 'anonymous';
+      const encoded = !isAnonymous ? url.base64Encode(state.user.username) : '';
+      let viewMode = (!isAnonymous && localStorage.getItem(`ViewMode_${encoded}`)) || state.user.viewMode || 'normal';
+      let gallerySize = (!isAnonymous && parseInt(localStorage.getItem(`GallerySize_${encoded}`))) || state.user.gallerySize || 3;
+      gallerySize = Math.min(9, Math.max(1, gallerySize)); // ensure 1–9 since this is the slider min and max size
+
+      // Normalize to use the view families too
+      // for example if someone sets 'gallery' with size of 1 in the config file
+      if (viewMode === 'gallery' || viewMode === 'icons') {
+        viewMode = gallerySize <= 4 ? 'icons' : 'gallery';
+      } else if (viewMode === 'list' || viewMode === 'compact') {
+        viewMode = gallerySize <= 3 ? 'compact' : 'list';
+      }
+
+      state.user.viewMode = viewMode;
+      state.user.gallerySize = gallerySize;
+
+      if (!isAnonymous) {
+        localStorage.setItem(`ViewMode_${encoded}`, viewMode);
+        localStorage.setItem(`GallerySize_${encoded}`, gallerySize);
+      }
+
       // Load display preferences for the current user
       const allPreferences = JSON.parse(localStorage.getItem("displayPreferences") || "{}");
       state.displayPreferences = allPreferences[state.user.username] || {};
@@ -458,12 +485,12 @@ export const mutations = {
     emitStateChanged();
   },
   setMultiple: (value) => {
-    if (value == state.multiple) {
-      return;
-    }
+    if (value == state.multiple) return;
     state.multiple = value;
-    if (value == true) {
-      notify.showMultipleSelection()
+    if (value) {
+      notify.showMultipleSelection();
+    } else {
+      notify.hideMultipleSelection();
     }
     emitStateChanged();
   },
@@ -482,7 +509,7 @@ export const mutations = {
     mutations.setMultiple(false);
     emitStateChanged();
   },
-  selectAllItems: () => {
+  selectAllItems: (options = { multiple: true }) => {
     if (state.req && state.req.items && state.req.items.length > 0) {
       // Close hovers
       mutations.closeHovers();
@@ -492,7 +519,9 @@ export const mutations = {
       state.req.items.forEach((item, index) => {
         mutations.addSelected(index);
       });
-      mutations.setMultiple(true);
+      if (options.multiple) {
+        mutations.setMultiple(true);
+      }
     }
   },
   setLastSelectedIndex: (index) => {
@@ -522,9 +551,20 @@ export const mutations = {
 
     // Merge the new values into the current user state
     state.user = { ...state.user, ...value };
+
+    const isAnonymous = state.user.username === 'anonymous';
+
+    if (value.viewMode !== undefined && !isAnonymous) {
+      const encoded = url.base64Encode(state.user.username);
+      localStorage.setItem(`ViewMode_${encoded}`, value.viewMode);
+    }
+    if (value.gallerySize !== undefined && !isAnonymous) {
+      const encoded = url.base64Encode(state.user.username);
+      localStorage.setItem(`GallerySize_${encoded}`, value.gallerySize);
+    }
+
     // Handle locale change
     if (state.user.locale !== previousUser.locale) {
-      //state.user.locale = i18n.detectLocale();
       i18n.setLocale(state.user.locale);
       i18n.default.locale = state.user.locale;
       localStorage.setItem("userLocale", state.user.locale);
@@ -544,8 +584,6 @@ export const mutations = {
           "darkMode",
           "showHidden",
           "sorting",
-          "gallerySize",
-          "viewMode",
           "showFirstLogin",
           "sidebarLinks",
           "fileLoading",
@@ -564,6 +602,7 @@ export const mutations = {
   },
   replaceRequest: (value) => {
     state.selected = [];
+    mutations.setMultiple(false);
     if (!value?.items) {
       state.req = value;
       emitStateChanged();
@@ -638,6 +677,7 @@ export const mutations = {
     // Components should check for null req before accessing
     state.req = null;
     state.selected = [];
+    mutations.setMultiple(false);
     emitStateChanged();
   },
   setRoute: (value) => {
@@ -693,6 +733,7 @@ export const mutations = {
   resetAll: () => {
     state.isSearchActive = false;
     state.selected = [];
+    mutations.setMultiple(false);
     emitStateChanged();
   },
   showTooltip(value) {
@@ -757,12 +798,15 @@ export const mutations = {
       ...payload,
     };
 
-    const allPreferences = JSON.parse(localStorage.getItem("displayPreferences") || "{}");
-    if (!allPreferences[state.user.username]) {
-      allPreferences[state.user.username] = {};
+    const isAnonymous = state.user.username === 'anonymous';
+    if (!isAnonymous) {
+      const allPreferences = JSON.parse(localStorage.getItem("displayPreferences") || "{}");
+      if (!allPreferences[state.user.username]) {
+        allPreferences[state.user.username] = {};
+      }
+      allPreferences[state.user.username] = state.displayPreferences;
+      localStorage.setItem("displayPreferences", JSON.stringify(allPreferences));
     }
-    allPreferences[state.user.username] = state.displayPreferences;
-    localStorage.setItem("displayPreferences", JSON.stringify(allPreferences));
     emitStateChanged();
   },
   setNavigationEnabled: (enabled) => {
