@@ -799,7 +799,7 @@
     "passkeyDeleteFailed": "Nepodarilo sa zmazať passkey",
     "created": "Vytvorené",
     "lastUsed": "Naposledy použité",
-    "passkeyDefaultName": "Passkey"
+    "passkeyDefaultName": "Passkey",
     "showToolsInSidebar": "Zobrazenie nástrojov v bočnom paneli",
     "showToolsInSidebarDescription": "V bočnom paneli vždy zobrazte odkaz na nástroje."
   },

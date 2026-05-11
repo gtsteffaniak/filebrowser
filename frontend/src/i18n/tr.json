@@ -799,7 +799,7 @@
     "passkeyDeleteFailed": "Geçiş anahtarı silinemedi",
     "created": "Oluşturuldu",
     "lastUsed": "Son kullanım",
-    "passkeyDefaultName": "Geçiş Anahtarı"
+    "passkeyDefaultName": "Geçiş Anahtarı",
     "showToolsInSidebar": "Araçları kenar çubuğunda göster",
     "showToolsInSidebarDescription": "Araçlar bağlantısını her zaman kenar çubuğunda gösterin."
   },

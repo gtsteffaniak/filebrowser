@@ -799,7 +799,7 @@
     "passkeyDeleteFailed": "Error al eliminar la clave de acceso",
     "created": "Creado",
     "lastUsed": "Último uso",
-    "passkeyDefaultName": "Clave de acceso"
+    "passkeyDefaultName": "Clave de acceso",
     "showToolsInSidebar": "Mostrar herramientas en la barra lateral",
     "showToolsInSidebarDescription": "Mostrar siempre el enlace de herramientas en la barra lateral."
   },

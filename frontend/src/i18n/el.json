@@ -799,7 +799,7 @@
     "passkeyDeleteFailed": "Αποτυχία διαγραφής passkey",
     "created": "Δημιουργήθηκε",
     "lastUsed": "Τελευταία χρήση",
-    "passkeyDefaultName": "Passkey"
+    "passkeyDefaultName": "Passkey",
     "showToolsInSidebar": "Εμφάνιση εργαλείων στην πλευρική γραμμή",
     "showToolsInSidebarDescription": "Να εμφανίζετε πάντα τον σύνδεσμο εργαλείων στην πλαϊνή γραμμή."
   },

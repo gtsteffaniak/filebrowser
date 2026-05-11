@@ -559,7 +559,7 @@
     "passkeyDeleteFailed": "Impossibile eliminare la passkey",
     "created": "Creato",
     "lastUsed": "Ultimo utilizzo",
-    "passkeyDefaultName": "Passkey"
+    "passkeyDefaultName": "Passkey",
     "showToolsInSidebar": "Mostra gli strumenti nella barra laterale",
     "showToolsInSidebarDescription": "Mostrate sempre il link agli strumenti nella barra laterale."
   },

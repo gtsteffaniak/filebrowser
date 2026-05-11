@@ -799,7 +799,7 @@
     "passkeyDeleteFailed": "Échec de la suppression de la clé d'accès",
     "created": "Créé",
     "lastUsed": "Dernière utilisation",
-    "passkeyDefaultName": "Clé d'accès"
+    "passkeyDefaultName": "Clé d'accès",
     "showToolsInSidebar": "Afficher les outils dans la barre latérale",
     "showToolsInSidebarDescription": "Le lien vers les outils doit toujours figurer dans la barre latérale."
   },

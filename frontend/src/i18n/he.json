@@ -799,7 +799,7 @@
     "passkeyDeleteFailed": "מחיקת מפתח הגישה נכשלה",
     "created": "נוצר",
     "lastUsed": "בשימוש לאחרונה",
-    "passkeyDefaultName": "מפתח גישה"
+    "passkeyDefaultName": "מפתח גישה",
     "showToolsInSidebar": "הצג כלים בסרגל הצד",
     "showToolsInSidebarDescription": "הצג תמיד את הקישור 'כלים' בסרגל הצדדי."
   },

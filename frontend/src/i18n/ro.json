@@ -799,7 +799,7 @@
     "passkeyDeleteFailed": "Ștergerea cheii de acces a eșuat",
     "created": "Creat",
     "lastUsed": "Ultima utilizare",
-    "passkeyDefaultName": "Cheie de acces"
+    "passkeyDefaultName": "Cheie de acces",
     "showToolsInSidebar": "Afișați instrumentele în bara laterală",
     "showToolsInSidebarDescription": "Afișați întotdeauna link-ul de instrumente în bara laterală."
   },

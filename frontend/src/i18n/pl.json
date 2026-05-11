@@ -799,7 +799,7 @@
     "passkeyDeleteFailed": "Nie udało się usunąć klucza dostępu",
     "created": "Utworzono",
     "lastUsed": "Ostatnio użyty",
-    "passkeyDefaultName": "Klucz dostępu"
+    "passkeyDefaultName": "Klucz dostępu",
     "showToolsInSidebar": "Pokaż narzędzia na pasku bocznym",
     "showToolsInSidebarDescription": "Zawsze wyświetlaj link do narzędzi na pasku bocznym."
   },

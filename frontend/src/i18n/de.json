@@ -799,7 +799,7 @@
     "passkeyDeleteFailed": "Passkey konnte nicht gelöscht werden",
     "created": "Erstellt",
     "lastUsed": "Zuletzt verwendet",
-    "passkeyDefaultName": "Passkey"
+    "passkeyDefaultName": "Passkey",
     "showToolsInSidebar": "Werkzeuge in der Seitenleiste anzeigen",
     "showToolsInSidebarDescription": "Zeigen Sie immer den Link \"Tools\" in der Seitenleiste an."
   },

@@ -425,7 +425,7 @@
     "passkeyDeleteFailed": "Nepodařilo se smazat passkey",
     "created": "Vytvořeno",
     "lastUsed": "Naposledy použito",
-    "passkeyDefaultName": "Passkey"
+    "passkeyDefaultName": "Passkey",
     "showToolsInSidebar": "Zobrazení nástrojů v postranním panelu",
     "showToolsInSidebarDescription": "V postranním panelu vždy zobrazte odkaz na nástroje."
   },

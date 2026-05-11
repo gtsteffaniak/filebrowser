@@ -799,7 +799,7 @@
     "passkeyDeleteFailed": "パスキーの削除に失敗しました",
     "created": "作成日",
     "lastUsed": "最終使用",
-    "passkeyDefaultName": "パスキー"
+    "passkeyDefaultName": "パスキー",
     "showToolsInSidebar": "サイドバーにツールを表示",
     "showToolsInSidebarDescription": "サイドバーにツールリンクを常に表示する。"
   },

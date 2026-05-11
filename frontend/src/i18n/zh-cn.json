@@ -651,7 +651,7 @@
     "passkeyDeleteFailed": "删除通行密钥失败",
     "created": "创建时间",
     "lastUsed": "上次使用",
-    "passkeyDefaultName": "通行密钥"
+    "passkeyDefaultName": "通行密钥",
     "showToolsInSidebar": "在侧边栏显示工具",
     "showToolsInSidebarDescription": "始终在侧边栏显示工具链接。"
   },

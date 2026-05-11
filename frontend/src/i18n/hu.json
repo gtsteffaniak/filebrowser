@@ -799,7 +799,7 @@
     "passkeyDeleteFailed": "Nem sikerült törölni a jelszókulcsot",
     "created": "Létrehozva",
     "lastUsed": "Utoljára használva",
-    "passkeyDefaultName": "Jelszókulcs"
+    "passkeyDefaultName": "Jelszókulcs",
     "showToolsInSidebar": "Eszközök megjelenítése az oldalsávban",
     "showToolsInSidebarDescription": "Mindig jelenítse meg az eszközök linket az oldalsávban."
   },

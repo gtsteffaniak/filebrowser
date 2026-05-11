@@ -559,7 +559,7 @@
     "passkeyDeleteFailed": "Passkey verwijderen mislukt",
     "created": "Aangemaakt",
     "lastUsed": "Laatst gebruikt",
-    "passkeyDefaultName": "Passkey"
+    "passkeyDefaultName": "Passkey",
     "showToolsInSidebar": "Toon gereedschappen in de zijbalk",
     "showToolsInSidebarDescription": "Toon altijd de link naar de hulpmiddelen in de zijbalk."
   },

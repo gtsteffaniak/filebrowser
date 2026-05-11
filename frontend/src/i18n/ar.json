@@ -791,7 +791,7 @@
     "passkeyDeleteFailed": "فشل في حذف مفتاح المرور",
     "created": "أُنشئ",
     "lastUsed": "آخر استخدام",
-    "passkeyDefaultName": "مفتاح المرور"
+    "passkeyDefaultName": "مفتاح المرور",
     "showToolsInSidebar": "إظهار الأدوات في الشريط الجانبي",
     "showToolsInSidebarDescription": "اعرض دائمًا رابط الأدوات في الشريط الجانبي."
   },

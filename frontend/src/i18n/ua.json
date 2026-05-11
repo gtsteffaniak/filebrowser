@@ -651,7 +651,7 @@
     "passkeyDeleteFailed": "Не вдалося видалити ключ доступу",
     "created": "Створено",
     "lastUsed": "Останнє використання",
-    "passkeyDefaultName": "Ключ доступу"
+    "passkeyDefaultName": "Ключ доступу",
     "showToolsInSidebar": "Показати інструменти на бічній панелі",
     "showToolsInSidebarDescription": "Завжди показуйте посилання на інструменти на бічній панелі."
   },

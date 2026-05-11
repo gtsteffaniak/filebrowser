@@ -651,7 +651,7 @@
     "passkeyDeleteFailed": "Kunde inte ta bort passkey",
     "created": "Skapad",
     "lastUsed": "Senast använd",
-    "passkeyDefaultName": "Passkey"
+    "passkeyDefaultName": "Passkey",
     "showToolsInSidebar": "Visa verktyg i sidofältet",
     "showToolsInSidebarDescription": "Visa alltid verktygslänken i sidofältet."
   },

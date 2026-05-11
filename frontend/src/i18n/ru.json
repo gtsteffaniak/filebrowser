@@ -799,7 +799,7 @@
     "passkeyDeleteFailed": "Не удалось удалить ключ доступа",
     "created": "Создан",
     "lastUsed": "Последнее использование",
-    "passkeyDefaultName": "Ключ доступа"
+    "passkeyDefaultName": "Ключ доступа",
     "showToolsInSidebar": "Показать инструменты в боковой панели",
     "showToolsInSidebarDescription": "Всегда показывайте ссылку на инструменты в боковой панели."
   },

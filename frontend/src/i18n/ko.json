@@ -799,7 +799,7 @@
     "passkeyDeleteFailed": "패스키 삭제 실패",
     "created": "생성일",
     "lastUsed": "마지막 사용",
-    "passkeyDefaultName": "패스키"
+    "passkeyDefaultName": "패스키",
     "showToolsInSidebar": "사이드바에 도구 표시",
     "showToolsInSidebarDescription": "사이드바에 항상 도구 링크를 표시합니다."
   },
