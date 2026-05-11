@@ -119,40 +119,6 @@ func (u *User) GetBackendSidebarLinks() ([]SidebarLink, error) {
 	return newLinks, nil
 }
 
-// GetFrontendSidebarLinks converts source links for JSON clients: SourceName is the display name.
-func (u *User) GetFrontendSidebarLinks() []SidebarLink {
-	if sourceConfig == nil {
-		return []SidebarLink{}
-	}
-	hasTools := false
-
-	newLinks := []SidebarLink{}
-	for _, link := range u.SidebarLinks {
-		if strings.HasPrefix(link.Category, "source") {
-			if link.SourceName == "" {
-				continue
-			}
-			source, ok := ResolveSourceKey(link.SourceName)
-			if !ok {
-				continue
-			}
-			link.SourceName = source.Name
-		} else if link.Category == "tool" && link.Target == "/tools" {
-			hasTools = true
-		}
-		newLinks = append(newLinks, link)
-	}
-	if !hasTools && u.ShowToolsInSidebar {
-		newLinks = append(newLinks, SidebarLink{
-			Name:     "Tools",
-			Category: "tool",
-			Target:   "/tools",
-			Icon:     "build",
-		})
-	}
-	return newLinks
-}
-
 // normalizeScope ensures scope starts with / and doesn't end with / (except for root)
 func normalizeScope(scope string) string {
 	if !strings.HasPrefix(scope, "/") {

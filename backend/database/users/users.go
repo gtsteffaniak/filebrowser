@@ -194,6 +194,11 @@ func SetSourceConfig(config *SourceConfigProvider) {
 	sourceConfig = config
 }
 
+// SourceConfigLoaded reports whether SetSourceConfig has been called (needed for ResolveSourceKey).
+func SourceConfigLoaded() bool {
+	return sourceConfig != nil
+}
+
 // GetScopeForSourcePath returns the scope for a given source path (backend-style)
 // This method works with backend-style scopes where Name is the source path
 func (u *User) GetScopeForSourcePath(sourcePath string) (string, error) {
