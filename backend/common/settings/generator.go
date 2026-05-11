@@ -539,6 +539,10 @@ func buildNodeWithDefaults(v reflect.Value, comm CommentsMap, defaults reflect.V
 	case reflect.Struct:
 		rt := v.Type()
 		typeName := rt.Name()
+		if typeName == "UserDefaults" {
+			defUd := defaults
+			return buildGroupedUserDefaultsYAML(v, defUd, comm, secrets, deprecated)
+		}
 		mapNode := &yaml.Node{Kind: yaml.MappingNode}
 		for i := 0; i < rt.NumField(); i++ {
 			sf := rt.Field(i)

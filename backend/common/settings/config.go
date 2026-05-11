@@ -25,6 +25,9 @@ import (
 
 var Config Settings
 
+// userDefaultsDeprecationsPending holds YAML migration notices until [setupLogging] runs (logger not configured during load).
+var userDefaultsDeprecationsPending []UserDefaultsDeprecationNotice
+
 const (
 	generatorPath = "/relative/or/absolute/path"
 )
@@ -510,6 +513,11 @@ func setupLogging() {
 			log.Println("[ERROR] Failed to set up logger:", err)
 		}
 	}
+
+	if len(userDefaultsDeprecationsPending) > 0 {
+		LogUserDefaultsDeprecations(userDefaultsDeprecationsPending)
+		userDefaultsDeprecationsPending = nil
+	}
 }
 
 func loadConfigWithDefaults(configFile string, generate bool) error {
@@ -557,6 +565,13 @@ func loadConfigWithDefaults(configFile string, generate bool) error {
 	for key, value := range rawConfig {
 		if validFields[key] {
 			filteredConfig[key] = value
+		}
+	}
+
+	if rawUD, ok := filteredConfig["userDefaults"]; ok {
+		if ud, ok := rawUD.(map[string]interface{}); ok {
+			userDefaultsDeprecationsPending = NormalizeUserDefaultsMap(ud)
+			filteredConfig["userDefaults"] = ud
 		}
 	}
 

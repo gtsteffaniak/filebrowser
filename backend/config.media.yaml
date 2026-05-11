@@ -4,7 +4,7 @@ server:
   sources:
     - path: "/srv"
 userDefaults:
-  preview:
+  thumbnailOptions:
     image: true
     popup: true
     video: true

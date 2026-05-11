@@ -335,8 +335,10 @@ type UserDefaultsPermissions struct {
 	Download *bool `json:"download"` // allow downloading files
 }
 
-// UserDefaults is a type that holds the default values
-// for some fields on User.
+// UserDefaults holds default values for some fields on User ([ApplyUserDefaults]).
+// In config YAML, prefer subsection groups matching Profile settings (listingOptions, thumbnailOptions,
+// sidebarOptions, searchOptions, fileViewerOptions, themeLanguage; plus account, admin, fileLoading).
+// Legacy flat keys under userDefaults are still recognized; the server logs hints with prefix `deprecated userDefaults:` where applicable.
 type UserDefaults struct {
 	EditorQuickSave            bool                    `json:"editorQuickSave"`           // show quick save button in editor
 	HideSidebarFileActions     bool                    `json:"hideSidebarFileActions"`    // hide the file actions in the sidebar

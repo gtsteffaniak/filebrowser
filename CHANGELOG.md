@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file. For commit 
 ## v1.4.0
 
  **New Features**:
+ - `userDefaults` YAML **grouped layout** (aligned with Profile settings): `listingOptions`, `thumbnailOptions`, `sidebarOptions`, `searchOptions`, `fileViewerOptions`, `themeLanguage`, `account`, `admin` (reference: `frontend/public/config.generated.yaml`). Legacy **flat** `userDefaults` keys still load; deprecation hints use log prefix `deprecated userDefaults:`.
  - Lyrics support for audio files (#2360):
    - Updated UI for audio previews!
    - The lyrics and the player gets syncronized in UI with the audio player.
@@ -32,6 +33,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Swiping down gesture in fullscreen videos exit fullscreen instead of close preview.
  - Improved styles for path selection and tables
  - Edit Sidebar links has new "show tools in sidebar" toggle and all users have this enabled by default. can be disabled via for new users `userDefaults.showToolsInSidebar: false`
+ - UserDefaults updated with new ordering (#1140)
 
  **BugFixes**:
  - Blue overlay when using gestures in video files on mobile (#2360)
