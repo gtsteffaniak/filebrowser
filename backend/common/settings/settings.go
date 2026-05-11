@@ -84,6 +84,7 @@ func ApplyUserDefaults(u *users.User) {
 	u.ViewMode = d.ViewMode
 	u.SingleClick = d.SingleClick
 	u.ShowHidden = d.ShowHidden
+	u.HideFileExt = d.HideFileExt
 	u.DateFormat = d.DateFormat
 	u.GallerySize = d.GallerySize
 	u.ThemeColor = d.ThemeColor
@@ -100,6 +101,7 @@ func ApplyUserDefaults(u *users.User) {
 	u.DeleteWithoutConfirming = d.DeleteWithoutConfirming
 	u.DeleteAfterArchive = d.DeleteAfterArchive
 	u.PreferEditorForMarkdown = d.PreferEditorForMarkdown
+	u.ShowCopyPath = d.ShowCopyPath
 	u.FileLoading = d.FileLoading
 
 	u.Permissions.Api = d.Permissions.Api

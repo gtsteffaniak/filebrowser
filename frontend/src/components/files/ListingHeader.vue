@@ -89,6 +89,9 @@ export default {
     ascOrdered() {
       return getters.sorting().asc;
     },
+    galleryView() {
+      return getters.viewMode() === "gallery";
+    },
     nameIcon() {
       if (this.nameSorted && !this.ascOrdered) {
         return "arrow_upward";

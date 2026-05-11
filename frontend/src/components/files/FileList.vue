@@ -517,7 +517,6 @@ export default {
       }
     },
     fillFromList() {
-      // Use the provided fileList, filtering out directories to show only files
       const allItems = this.fileList || [];
       this.items = allItems.filter(item => !item.isDirectory && item.type !== 'directory');
     },

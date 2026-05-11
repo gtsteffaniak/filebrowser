@@ -3012,10 +3012,19 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Search query",
+                        "description": "Filter prefix or full legacy search text (required when no terms are supplied)",
                         "name": "query",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Repeated: one literal search term per parameter; combined with OR unless termJoin=and",
+                        "name": "terms",
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -3025,13 +3034,17 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Comma-separated list of source names to search across multiple sources. When multiple sources are specified, scope is always the user's scope for each source.",
+                        "description": "Comma-separated source names when not using repeated scope=source:path",
                         "name": "sources",
                         "in": "query"
                     },
                     {
-                        "type": "string",
-                        "description": "path within user scope to search, for example '/first/second' to search within the second directory only. Ignored when multiple sources are specified.",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Repeated: either 'sourceName:relativePath' per source, or legacy single path when one source",
                         "name": "scope",
                         "in": "query"
                     },
@@ -3067,9 +3080,9 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "User session ID, add unique value to prevent collisions",
-                        "name": "SessionId",
-                        "in": "header"
+                        "description": "Optional: 'and' to require all repeated 'terms' match; default is OR",
+                        "name": "termJoin",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -4591,6 +4604,10 @@ const docTemplate = `{
                 "hash": {
                     "type": "string"
                 },
+                "hideFileExt": {
+                    "description": "show hidden files based on extensions in shares",
+                    "type": "string"
+                },
                 "hideNavButtons": {
                     "type": "boolean"
                 },
@@ -6078,6 +6095,10 @@ const docTemplate = `{
                     "description": "0-9 - the size of the gallery thumbnails",
                     "type": "integer"
                 },
+                "hideFileExt": {
+                    "description": "space separated list of file extensions to hide in UI",
+                    "type": "string"
+                },
                 "hideFilesInTree": {
                     "description": "hide files in the sidebar tree navigation, when true, will show only directories.",
                     "type": "boolean"
@@ -6110,6 +6131,10 @@ const docTemplate = `{
                 },
                 "quickDownload": {
                     "description": "show icon to download in one click",
+                    "type": "boolean"
+                },
+                "showCopyPath": {
+                    "description": "show copy path button in the context menu",
                     "type": "boolean"
                 },
                 "showHidden": {
@@ -6318,6 +6343,10 @@ const docTemplate = `{
                 "hasPassword": {
                     "type": "boolean"
                 },
+                "hideFileExt": {
+                    "description": "show hidden files based on extensions in shares",
+                    "type": "string"
+                },
                 "hideNavButtons": {
                     "type": "boolean"
                 },
@@ -6466,6 +6495,10 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "hash": {
+                    "type": "string"
+                },
+                "hideFileExt": {
+                    "description": "show hidden files based on extensions in shares",
                     "type": "string"
                 },
                 "hideNavButtons": {
@@ -6625,6 +6658,10 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "hash": {
+                    "type": "string"
+                },
+                "hideFileExt": {
+                    "description": "show hidden files based on extensions in shares",
                     "type": "string"
                 },
                 "hideNavButtons": {
@@ -6981,6 +7018,10 @@ const docTemplate = `{
                 "gallerySize": {
                     "description": "0-9 - the size of the gallery thumbnails",
                     "type": "integer"
+                },
+                "hideFileExt": {
+                    "description": "space separated list of file extensions to hide in UI and API",
+                    "type": "string"
                 },
                 "hideFilesInTree": {
                     "description": "hide files in the sidebar tree navigation, when true, will show only directories.",

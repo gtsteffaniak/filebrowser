@@ -148,7 +148,6 @@
     "passwordsDontMatch": "Les mots de passe ne concordent pas",
     "usernameTaken": "Le nom d'utilisateur est déjà pris",
     "wrongCredentials": "Identifiants incorrects !",
-    "or": "OU",
     "inProgress": "Connexion...",
     "failedLogin": "Échec de la connexion",
     "invalidCredentials": "Les informations d'identification fournies ne sont pas valides"
@@ -264,10 +263,11 @@
     "olderThanDate": "Plus vieux que :",
     "newerThanDate": "Plus récent que :",
     "noResults": "Aucun résultat n'a été trouvé.",
-    "useWildcardSearch": "Recherche de caractères génériques",
     "helpText1": "La recherche s'effectue sur chaque caractère que vous tapez ({minSearchLength} caractère minimum).",
-    "useWildcardSearchDescription": "Caractères génériques pris en charge :\n\n- Correspond à n'importe quelle séquence : *\n\n- Correspondance avec un seul caractère : ?\n\n- Classe de caractères : [a-z], [0-9]\n\n- Négation : [^0-9]\n\n- Les valeurs littérales *, ? ou [ doivent être mises entre parenthèses, par exemple [*], [ ?], [[]].",
-    "helpText2": "Correspondance de sous-chaînes sur les noms de fichiers ou de dossiers uniquement (pas sur les chemins d'accès complets). case:exact pour une correspondance sensible à la casse.\n\n pour le OU entre les termes, utiliser le caractère pipe ; les guillemets doubles pour une seule phrase.\n\nActivez la recherche par caractères génériques pour obtenir des options plus avancées."
+    "helpText2": "Correspondance de sous-chaînes sur les noms de fichiers ou de dossiers uniquement (pas sur les chemins d'accès complets). case:exact pour une correspondance sensible à la casse.\n\n pour le OU entre les termes, utiliser le caractère pipe ; les guillemets doubles pour une seule phrase.\n\nActivez la recherche par caractères génériques pour obtenir des options plus avancées.",
+    "useWildcardSearch": "Recherche par caractères génériques (sensible à la casse)",
+    "useWildcardSearchDescription": "Options de caractères génériques prises en charge :\n\n- Correspond à n'importe quelle séquence : *\n\n- Correspondre à un seul caractère : ?\n\n- Classe de caractères : [a-z], [0-9]\n\n- Négation : [^0-9]\n\n- Les valeurs littérales *, ? ou [ doivent être mises entre parenthèses, par exemple [*], [ ?], [[]].\n\n- Tous les résultats sont sensibles à la casse",
+    "openInAdvancedSearch": "Ouvrir en recherche avancée"
   },
   "settings": {
     "scopes": "Définir les sources autorisées et la portée de l'utilisateur au sein de celles-ci",
@@ -674,7 +674,9 @@
     "office": "Bureau{suffix}",
     "show": "Afficher{suffix}",
     "divider": "Diviseur{suffix}",
-    "audio": "Audio{suffix}"
+    "audio": "Audio{suffix}",
+    "and": "et",
+    "or": "ou"
   },
   "access": {
     "rules": "Règles d'accès",
@@ -720,6 +722,8 @@
     "orange": "orange"
   },
   "profileSettings": {
+    "hideFileExt": "Masquer certains fichiers (par extension)",
+    "hideFileExtDescription": "Une liste d'extensions de fichiers séparées par des espaces. Les extensions saisies dans ce champ seront masquées dans toute l'interface utilisateur (visuellement, comme dans la liste ou l'arborescence) — Elles restent accessibles.",
     "preferEditorForMarkdown": "Privilégier d'abord l'éditeur pour les fichiers Markdown",
     "preferEditorForMarkdownDescription": "Lorsque activé, ouvre les fichiers Markdown dans l'éditeur plutôt que dans le visualiseur Markdown.",
     "deleteAfterArchive": "Supprimer les fichiers source après la création/extraction d'archives",
@@ -875,6 +879,20 @@
       "stopWatching": "Arrêter de regarder",
       "emptyState": "Choisissez un fichier et cliquez sur lecture pour commencer à surveiller les modifications du fichier.",
       "chooseFile": "Choisir un fichier"
+    },
+    "advancedSearch": {
+      "name": "Recherche avancée",
+      "description": "Recherche dans l'index avec un contrôle total des sources, des filtres et des options",
+      "searchTerms": "Termes de recherche",
+      "matchAllTerms": "Faire correspondre tous les termes",
+      "matchAllTermsDescription": "Lorsque cette option est activée, tous les termes de recherche doivent être trouvés pour chaque fichier.",
+      "scopeAria": "Limiter la recherche à un dossier",
+      "noTerms": "Saisissez au moins un terme de recherche.",
+      "termTooShort": "Chaque terme de recherche doit comporter au moins {minSearchLength} caractères.",
+      "caseExact": "Correspondance sensible à la casse",
+      "resultsTitle": "Résultats de la recherche",
+      "invalidSources": "Allumez au moins une source.",
+      "noResults": "Aucun fichier ou dossier correspondant."
     }
   },
   "messages": {

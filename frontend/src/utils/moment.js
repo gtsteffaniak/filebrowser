@@ -99,7 +99,29 @@ function normalizeDate(date) {
     return normalizedDate;
 }
 
+/**
+ * YYYY-MM-DD from `<input type="date">` → Unix seconds at 00:00:00 UTC (search date filters).
+ * @returns {number | null}
+ */
+export function utcStartOfDaySecondsFromDateInput(isoDate) {
+    if (isoDate === "" || typeof isoDate !== "string") {
+        return null;
+    }
+    const parts = isoDate.split("-");
+    if (parts.length !== 3) {
+        return null;
+    }
+    const y = Number(parts[0]);
+    const m = Number(parts[1]);
+    const d = Number(parts[2]);
+    if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d)) {
+        return null;
+    }
+    return Math.floor(Date.UTC(y, m - 1, d) / 1000);
+}
+
 export default {
     formatTimestamp,
     fromNow,
+    utcStartOfDaySecondsFromDateInput,
 };

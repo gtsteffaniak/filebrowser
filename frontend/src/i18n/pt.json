@@ -148,7 +148,6 @@
     "passwordsDontMatch": "As palavras-passe não coincidem",
     "usernameTaken": "O nome de utilizador já está registado",
     "wrongCredentials": "Dados errados",
-    "or": "OU",
     "inProgress": "Iniciar sessão...",
     "failedLogin": "Falha no início de sessão",
     "invalidCredentials": "Credenciais inválidas fornecidas"
@@ -264,10 +263,11 @@
     "olderThanDate": "Mais velho do que:",
     "newerThanDate": "Mais recente do que:",
     "noResults": "Não foram encontrados resultados.",
-    "useWildcardSearch": "Pesquisa com curinga",
     "helpText1": "A pesquisa ocorre em cada carácter que escrever ({minSearchLength} carácter mínimo).",
-    "useWildcardSearchDescription": "Curingas suportados:\n\n- Corresponde a qualquer sequência: *\n\n- Corresponder a um carácter: ?\n\n- Classe de caracteres: [a-z], [0-9]\n\n- Negação: [^0-9]\n\n- Os literais *, ?, ou [ devem ser colocados entre parêntesis, por exemplo, [*], [?], [[]",
-    "helpText2": "Correspondência de subcadeia de caracteres apenas em nomes de ficheiros ou pastas (não em caminhos completos). case:exact para correspondência sensível a maiúsculas e minúsculas\n\n para OU entre termos, utilizar o carácter pipe; aspas duplas para uma frase.\n\nAtivar a pesquisa de wildcards para opções mais avançadas."
+    "helpText2": "Correspondência de subcadeia de caracteres apenas em nomes de ficheiros ou pastas (não em caminhos completos). case:exact para correspondência sensível a maiúsculas e minúsculas\n\n para OU entre termos, utilizar o carácter pipe; aspas duplas para uma frase.\n\nAtivar a pesquisa de wildcards para opções mais avançadas.",
+    "useWildcardSearch": "Pesquisa com caracteres curinga (sensível a maiúsculas e minúsculas)",
+    "useWildcardSearchDescription": "Opções curingas suportadas:\n\n- Corresponde a qualquer sequência: *\n\n- Corresponder a um carácter: ?\n\n- Classe de caracteres: [a-z], [0-9]\n\n- Negação: [^0-9]\n\n- Os literais *, ?, ou [ devem ser colocados entre parênteses, por exemplo, [*], [?], [[]\n\n- Todos os resultados são sensíveis a maiúsculas e minúsculas",
+    "openInAdvancedSearch": "Abrir na Pesquisa Avançada"
   },
   "settings": {
     "administrator": "Administrador",
@@ -574,6 +574,8 @@
     "orange": "laranja"
   },
   "profileSettings": {
+    "hideFileExt": "Ocultar certos ficheiros (por extensão)",
+    "hideFileExtDescription": "Uma lista de extensões de ficheiros separadas por espaços. As extensões inseridas neste campo serão ocultadas em toda a interface do utilizador (visualmente, como na lista ou árvore de ficheiros) — Continuam acessíveis.",
     "preferEditorForMarkdown": "Preferir editor primeiro para ficheiros Markdown",
     "preferEditorForMarkdownDescription": "Quando ativado, abre os ficheiros Markdown no editor em vez do visualizador Markdown.",
     "deleteAfterArchive": "Eliminar ficheiros de origem após criação/extração de arquivos",
@@ -759,7 +761,9 @@
     "office": "Escritório{suffix}",
     "show": "Mostrar{suffix}",
     "divider": "Divisor{suffix}",
-    "audio": "Áudio{suffix}"
+    "audio": "Áudio{suffix}",
+    "and": "e",
+    "or": "ou"
   },
   "access": {
     "rules": "Regras de acesso",
@@ -875,6 +879,20 @@
       "stopWatching": "Parar de ver",
       "emptyState": "Escolha um ficheiro e clique em reproduzir para começar a monitorizar as alterações do ficheiro",
       "chooseFile": "Escolher um ficheiro"
+    },
+    "advancedSearch": {
+      "name": "Pesquisa avançada",
+      "description": "Pesquise o índice com controlo total sobre fontes, filtros e opções",
+      "searchTerms": "Termos de pesquisa",
+      "matchAllTerms": "Fazer corresponder todos os termos",
+      "matchAllTermsDescription": "Quando ativado, todos os termos de pesquisa devem ser encontrados para cada ficheiro",
+      "scopeAria": "Limitar a pesquisa a uma pasta",
+      "noTerms": "Introduzir pelo menos um termo de pesquisa.",
+      "termTooShort": "Cada termo de pesquisa deve ter, pelo menos, {minSearchLength} caracteres",
+      "caseExact": "Correspondência com distinção de maiúsculas e minúsculas",
+      "resultsTitle": "Resultados da pesquisa",
+      "invalidSources": "Ligar pelo menos uma fonte.",
+      "noResults": "Não há ficheiros ou pastas correspondentes."
     }
   },
   "messages": {

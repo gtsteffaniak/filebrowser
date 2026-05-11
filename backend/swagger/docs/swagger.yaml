@@ -176,6 +176,9 @@ definitions:
         type: boolean
       hash:
         type: string
+      hideFileExt:
+        description: show hidden files based on extensions in shares
+        type: string
       hideNavButtons:
         type: boolean
       keepAfterExpiration:
@@ -1315,6 +1318,9 @@ definitions:
       gallerySize:
         description: 0-9 - the size of the gallery thumbnails
         type: integer
+      hideFileExt:
+        description: space separated list of file extensions to hide in UI
+        type: string
       hideFilesInTree:
         description: hide files in the sidebar tree navigation, when true, will show
           only directories.
@@ -1341,6 +1347,9 @@ definitions:
         $ref: '#/definitions/settings.UserDefaultsPreview'
       quickDownload:
         description: show icon to download in one click
+        type: boolean
+      showCopyPath:
+        description: show copy path button in the context menu
         type: boolean
       showHidden:
         description: show hidden files in the UI. On windows this includes files starting
@@ -1493,6 +1502,9 @@ definitions:
         type: string
       hasPassword:
         type: boolean
+      hideFileExt:
+        description: show hidden files based on extensions in shares
+        type: string
       hideNavButtons:
         type: boolean
       keepAfterExpiration:
@@ -1597,6 +1609,9 @@ definitions:
       hasPassword:
         type: boolean
       hash:
+        type: string
+      hideFileExt:
+        description: show hidden files based on extensions in shares
         type: string
       hideNavButtons:
         type: boolean
@@ -1708,6 +1723,9 @@ definitions:
       hasPassword:
         type: boolean
       hash:
+        type: string
+      hideFileExt:
+        description: show hidden files based on extensions in shares
         type: string
       hideNavButtons:
         type: boolean
@@ -1967,6 +1985,9 @@ definitions:
       gallerySize:
         description: 0-9 - the size of the gallery thumbnails
         type: integer
+      hideFileExt:
+        description: space separated list of file extensions to hide in UI and API
+        type: string
       hideFilesInTree:
         description: hide files in the sidebar tree navigation, when true, will show
           only directories.
@@ -4151,28 +4172,36 @@ paths:
         and metadata based on the user's session and scope. Supports searching across
         multiple sources when using the 'sources' parameter.
       parameters:
-      - description: Search query
+      - description: Filter prefix or full legacy search text (required when no terms
+          are supplied)
         in: query
         name: query
-        required: true
         type: string
+      - collectionFormat: csv
+        description: 'Repeated: one literal search term per parameter; combined with
+          OR unless termJoin=and'
+        in: query
+        items:
+          type: string
+        name: terms
+        type: array
       - description: Source name for the desired source (deprecated, use 'sources'
           instead)
         in: query
         name: source
         type: string
-      - description: Comma-separated list of source names to search across multiple
-          sources. When multiple sources are specified, scope is always the user's
-          scope for each source.
+      - description: Comma-separated source names when not using repeated scope=source:path
         in: query
         name: sources
         type: string
-      - description: path within user scope to search, for example '/first/second'
-          to search within the second directory only. Ignored when multiple sources
-          are specified.
+      - collectionFormat: csv
+        description: 'Repeated: either ''sourceName:relativePath'' per source, or
+          legacy single path when one source'
         in: query
+        items:
+          type: string
         name: scope
-        type: string
+        type: array
       - description: Unix seconds; only results modified strictly before this time
         in: query
         name: olderThan
@@ -4194,9 +4223,10 @@ paths:
         in: query
         name: useGlob
         type: boolean
-      - description: User session ID, add unique value to prevent collisions
-        in: header
-        name: SessionId
+      - description: 'Optional: ''and'' to require all repeated ''terms'' match; default
+          is OR'
+        in: query
+        name: termJoin
         type: string
       produces:
       - application/json

@@ -110,6 +110,7 @@ type NonAdminEditable struct {
 	SingleClick                bool          `json:"singleClick"` // open directory on single click, also enables middle click to open in new tab
 	Sorting                    Sorting       `json:"sorting"`
 	ShowHidden                 bool          `json:"showHidden"`                 // show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files
+	HideFileExt                string        `json:"hideFileExt"`                // space separated list of file extensions to hide in UI and API
 	DateFormat                 bool          `json:"dateFormat"`                 // when false, the date is relative, when true, the date is an exact timestamp
 	GallerySize                int           `json:"gallerySize"`                // 0-9 - the size of the gallery thumbnails
 	ThemeColor                 string        `json:"themeColor"`                 // theme color to use: eg. #ff0000, or var(--red), var(--purple), etc

@@ -30,6 +30,22 @@
               :name="$t('profileSettings.showCopyPath')"
               :description="$t('profileSettings.showCopyPathDescription')" />
           </div>
+          <div class="centered-with-tooltip">
+            <h3>{{ $t("profileSettings.hideFileExt") }}</h3>
+            <i class="no-select material-symbols-outlined tooltip-info-icon"
+              @mouseenter="showTooltip($event, $t('profileSettings.hideFileExtDescription'))"
+              @mouseleave="hideTooltip">
+              help
+            </i>
+          </div>
+          <div class="form-flex-group">
+            <input class="input form-form flat-right disable-viewing"
+              :class="{ 'form-invalid': !validateExtensions(formHideExt) }" type="text"
+              :placeholder="$t('profileSettings.disableFileExtensions')" v-model="formHideExt" />
+            <button type="button" class="button form-button flat-left" @click="submitHideExtChange">
+              {{ $t("general.save") }}
+            </button>
+          </div>
         </SettingsItem>
         <SettingsItem aria-label="thumbnailOptions" :title="$t('profileSettings.thumbnailOptions')" :collapsable="true"
           :start-collapsed="true" :force-collapsed="isSectionCollapsed('thumbnailOptions')"
@@ -216,6 +232,7 @@ export default {
       formDisablePreviews: "", // holds temporary input before saving
       formDisabledViewing: "", // holds temporary input before saving
       formDisableOfficeViewing: "", // holds temporary input before saving
+      formHideExt: "", // holds temporary input before saving
       expandedSection: 'listingOptions', // Track which section is currently expanded for accordion behavior
     };
   },
@@ -295,6 +312,7 @@ export default {
     if (typeof this.localuser.showToolsInSidebar !== 'boolean') {
       this.localuser.showToolsInSidebar = true;
     }
+    this.formHideExt = this.localuser.hideFileExt;
   },
   methods: {
     showTooltip(event, text) {
@@ -328,6 +346,14 @@ export default {
         return;
       }
       this.localuser.disableViewingExt = this.formDisabledViewing;
+      this.updateSettings();
+    },
+    submitHideExtChange() {
+      if (!this.validateExtensions(this.formHideExt)) {
+        notify.showError("Invalid input, does not match requirement.");
+        return;
+      }
+      this.localuser.hideFileExt = this.formHideExt;
       this.updateSettings();
     },
     submitDisableOfficeViewingChange() {
@@ -369,6 +395,7 @@ export default {
           "disablePreviewExt",
           "disableViewingExt",
           "disableOnlyOfficeExt",
+          "hideFileExt",
           "deleteWithoutConfirming",
           "deleteAfterArchive",
           "preview",
@@ -415,6 +442,9 @@ export default {
 </script>
 
 <style scoped>
+.settings-group {
+  padding-top: 0.5em;
+}
 .disable-viewing {
   width: 100%;
 }
