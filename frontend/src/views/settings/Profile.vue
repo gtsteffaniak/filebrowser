@@ -309,6 +309,9 @@ export default {
     this.formDisablePreviews = this.localuser.disablePreviewExt;
     this.formDisabledViewing = this.localuser.disableViewingExt;
     this.formDisableOfficeViewing = this.localuser.disableOnlyOfficeExt;
+    if (typeof this.localuser.showToolsInSidebar !== 'boolean') {
+      this.localuser.showToolsInSidebar = true;
+    }
     this.formHideExt = this.localuser.hideFileExt;
     if (typeof this.localuser.showToolsInSidebar !== 'boolean') {
       this.localuser.showToolsInSidebar = true;
