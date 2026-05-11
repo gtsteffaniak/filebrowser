@@ -788,7 +788,7 @@
     "showCopyPathDescription": "Afficher une action Copier le chemin dans le menu contextuel des fichiers et des dossiers.",
     "previewDescription": "Affiche des aperçus de vignettes pour {filetype}, affichera l'icône générique si elle est désactivée.",
     "showToolsInSidebar": "Afficher les outils dans la barre latérale",
-    "showToolsInSidebarDescription": "Lorsque cette option est activée, les entrées de la barre latérale que vous avez ajoutées dans la catégorie Outils apparaissent dans la barre de liens. Désactivez cette option pour masquer ces entrées sans les supprimer de votre liste de liens."
+    "showToolsInSidebarDescription": "Le lien vers les outils doit toujours figurer dans la barre latérale."
   },
   "editor": {
     "uninitialized": "Échec de l'initialisation de l'éditeur. Veuillez recharger.",

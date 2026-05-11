@@ -788,7 +788,7 @@
     "showCopyPathDescription": "Zeigen Sie eine Aktion \"Pfad kopieren\" im Kontextmenü von Dateien und Ordnern an.",
     "previewDescription": "Vorschaubilder für {filetype} anzeigen, bei Deaktivierung wird ein allgemeines Symbol angezeigt.",
     "showToolsInSidebar": "Werkzeuge in der Seitenleiste anzeigen",
-    "showToolsInSidebarDescription": "Wenn diese Option aktiviert ist, werden die Einträge in der Seitenleiste, die Sie unter der Kategorie Werkzeuge hinzugefügt haben, in der Linkleiste angezeigt. Deaktivieren Sie diese Option, um diese Einträge auszublenden, ohne sie aus Ihrer Linkliste zu entfernen."
+    "showToolsInSidebarDescription": "Zeigen Sie immer den Link \"Tools\" in der Seitenleiste an."
   },
   "editor": {
     "uninitialized": "Der Editor konnte nicht initialisiert werden. Bitte neu laden.",

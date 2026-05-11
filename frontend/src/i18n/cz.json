@@ -414,7 +414,7 @@
     "showCopyPathDescription": "Zobrazení akce Kopírovat cestu v kontextové nabídce souborů a složek.",
     "previewDescription": "Zobrazit náhledy miniatur pro {filetype}, pokud je zakázáno, zobrazí se obecná ikona.",
     "showToolsInSidebar": "Zobrazení nástrojů v postranním panelu",
-    "showToolsInSidebarDescription": "Pokud je tato funkce povolena, zobrazí se na panelu odkazů položky postranního panelu přidané do kategorie Nástroje. Zakázáním tyto položky skryjete, aniž byste je odstranili ze seznamu odkazů."
+    "showToolsInSidebarDescription": "V postranním panelu vždy zobrazte odkaz na nástroje."
   },
   "settings": {
     "enterPassword": "Zadejte heslo",

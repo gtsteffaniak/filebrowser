@@ -548,7 +548,7 @@
     "showThumbnails": "Toon miniaturen voor ondersteunde items",
     "showThumbnailsDescription": "Als deze optie is ingeschakeld, worden miniaturen weergegeven in de lijst met items die deze ondersteunen. Schakel deze optie uit om alle miniaturen te verbergen.",
     "showToolsInSidebar": "Toon gereedschappen in de zijbalk",
-    "showToolsInSidebarDescription": "Als deze optie is ingeschakeld, worden de items in de zijbalk die je hebt toegevoegd in de categorie Extra weergegeven in de koppelingenbalk. Uitschakelen om deze items te verbergen zonder ze uit je koppelingenlijst te verwijderen."
+    "showToolsInSidebarDescription": "Toon altijd de link naar de hulpmiddelen in de zijbalk."
   },
   "settings": {
     "systemAdmin": "Systeem & Beheer",

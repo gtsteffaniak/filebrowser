@@ -788,7 +788,7 @@
     "showCopyPathDescription": "Mostrar uma ação Copiar caminho no menu de contexto de arquivos e pastas.",
     "previewDescription": "Mostrar visualizações em miniatura para {filetype}, mostrará o ícone genérico se estiver desativado.",
     "showToolsInSidebar": "Mostrar ferramentas na barra lateral",
-    "showToolsInSidebarDescription": "Quando ativado, as entradas da barra lateral que você adicionou na categoria Ferramentas aparecem na barra de links. Desative para ocultar essas entradas sem removê-las da sua lista de links."
+    "showToolsInSidebarDescription": "Sempre mostre o link de ferramentas na barra lateral."
   },
   "editor": {
     "uninitialized": "Falha ao inicializar o editor. Favor recarregar.",
