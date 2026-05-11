@@ -640,7 +640,7 @@
     "showCopyPathDescription": "Visa åtgärden Kopiera sökväg i snabbmenyn för filer och mappar.",
     "previewDescription": "Visa förhandsgranskning av miniatyrbilder för {filetype}, visar generisk ikon om den är inaktiverad.",
     "showToolsInSidebar": "Visa verktyg i sidofältet",
-    "showToolsInSidebarDescription": "När funktionen är aktiverad visas sidofältsposter som du har lagt till under kategorin Verktyg i länkfältet. Avaktivera för att dölja dessa poster utan att ta bort dem från din länklista."
+    "showToolsInSidebarDescription": "Visa alltid verktygslänken i sidofältet."
   },
   "general": {
     "name": "Namn",

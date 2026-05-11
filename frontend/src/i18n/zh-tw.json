@@ -608,7 +608,7 @@
     "showCopyPathDescription": "在檔案和資料夾上下文功能表中顯示複製路徑動作。",
     "previewDescription": "顯示{filetype} 的縮圖預覽，如果停用會顯示一般圖示。",
     "showToolsInSidebar": "在側邊欄顯示工具",
-    "showToolsInSidebarDescription": "啟用時，您在工具類別下新增的側邊列項目會顯示在連結列中。停用可隱藏這些項目，但不會從連結清單中移除。"
+    "showToolsInSidebarDescription": "總是在側邊欄顯示工具連結。"
   },
   "otp": {
     "name": "雙因素驗證",

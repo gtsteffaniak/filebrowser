@@ -640,7 +640,7 @@
     "showCopyPathDescription": "Mostrar uma ação Copiar caminho no menu de contexto de ficheiros e pastas.",
     "previewDescription": "Mostrar pré-visualizações em miniatura para {filetype}, mostrará o ícone genérico se estiver desativado.",
     "showToolsInSidebar": "Mostrar ferramentas na barra lateral",
-    "showToolsInSidebarDescription": "Quando ativado, as entradas da barra lateral que adicionou na categoria Ferramentas aparecem na barra de ligações. Desativar para ocultar essas entradas sem as remover da sua lista de ligações."
+    "showToolsInSidebarDescription": "Mostrar sempre a ligação para as ferramentas na barra lateral."
   },
   "general": {
     "name": "Nome",

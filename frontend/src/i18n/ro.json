@@ -788,7 +788,7 @@
     "showCopyPathDescription": "Afișați o acțiune de copiere a căii în meniul contextual al fișierelor și dosarelor.",
     "previewDescription": "Afișează previzualizări ale miniaturilor pentru {filetype}, va afișa pictograma generică dacă este dezactivată.",
     "showToolsInSidebar": "Afișați instrumentele în bara laterală",
-    "showToolsInSidebarDescription": "Când este activată, intrările din bara laterală pe care le-ați adăugat în categoria Instrumente apar în bara de legături. Dezactivați pentru a ascunde aceste intrări fără a le elimina din lista de linkuri."
+    "showToolsInSidebarDescription": "Afișați întotdeauna link-ul de instrumente în bara laterală."
   },
   "editor": {
     "uninitialized": "Nu s-a reușit inițializarea editorului. Vă rugăm să reîncărcați.",

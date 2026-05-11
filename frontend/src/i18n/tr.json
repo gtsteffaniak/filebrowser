@@ -788,7 +788,7 @@
     "showCopyPathDescription": "Dosya ve klasör bağlam menüsünde Yolu Kopyala eylemini gösterin.",
     "previewDescription": "{filetype} için küçük resim önizlemelerini göster, devre dışı bırakılırsa genel simgeyi gösterecektir.",
     "showToolsInSidebar": "Araçları kenar çubuğunda göster",
-    "showToolsInSidebarDescription": "Etkinleştirildiğinde, Araçlar kategorisi altına eklediğiniz kenar çubuğu girdileri bağlantılar çubuğunda görünür. Bu girişleri bağlantı listenizden kaldırmadan gizlemek için devre dışı bırakın."
+    "showToolsInSidebarDescription": "Araçlar bağlantısını her zaman kenar çubuğunda gösterin."
   },
   "editor": {
     "uninitialized": "Düzenleyici başlatılamadı. Lütfen yeniden yükleyin.",

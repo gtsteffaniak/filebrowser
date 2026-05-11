@@ -62,6 +62,9 @@ func AdminPerms() users.Permissions {
 		Admin:    true,
 		Api:      true,
 		Download: true,
+		Delete:   true,
+		Create:   true,
+		Realtime: true,
 	}
 }
 
