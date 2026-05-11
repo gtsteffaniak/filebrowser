@@ -57,10 +57,11 @@ func GetSettingsConfig(nameType string, Value string) string {
 
 func AdminPerms() users.Permissions {
 	return users.Permissions{
-		Modify: true,
-		Share:  true,
-		Admin:  true,
-		Api:    true,
+		Modify:   true,
+		Share:    true,
+		Admin:    true,
+		Api:      true,
+		Download: true,
 	}
 }
 

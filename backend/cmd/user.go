@@ -152,7 +152,6 @@ func updatePermissions(user *users.User) bool {
 		return false
 	}
 	updateUser := true
-	user.Permissions.Download = true
 	// if any keys are true, set the permissions to true
 	if user.Perm.Api {
 		user.Permissions.Api = true
