@@ -606,7 +606,9 @@
     "showThumbnailsDescription": "啟用時，縮圖會顯示在支援縮圖的項目清單中。關閉可隱藏所有縮圖。",
     "showCopyPath": "在上下文功能表中顯示複製路徑",
     "showCopyPathDescription": "在檔案和資料夾上下文功能表中顯示複製路徑動作。",
-    "previewDescription": "顯示{filetype} 的縮圖預覽，如果停用會顯示一般圖示。"
+    "previewDescription": "顯示{filetype} 的縮圖預覽，如果停用會顯示一般圖示。",
+    "showToolsInSidebar": "在側邊欄顯示工具",
+    "showToolsInSidebarDescription": "總是在側邊欄顯示工具連結。"
   },
   "otp": {
     "name": "雙因素驗證",

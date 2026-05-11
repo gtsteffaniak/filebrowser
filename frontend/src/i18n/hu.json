@@ -786,7 +786,9 @@
     "showThumbnailsDescription": "Ha engedélyezve van, a miniatűrök megjelennek a listában az azokat támogató elemeknél. Ha kikapcsolja, az összes miniatűr elrejti.",
     "showCopyPath": "Az elérési útvonal másolása a kontextusmenüben",
     "showCopyPathDescription": "Az elérési útvonal másolása művelet megjelenítése a fájl és mappa kontextusmenüben.",
-    "previewDescription": "Miniatűr előnézetek megjelenítése a {filetype}, általános ikon megjelenítése, ha le van tiltva."
+    "previewDescription": "Miniatűr előnézetek megjelenítése a {filetype}, általános ikon megjelenítése, ha le van tiltva.",
+    "showToolsInSidebar": "Eszközök megjelenítése az oldalsávban",
+    "showToolsInSidebarDescription": "Mindig jelenítse meg az eszközök linket az oldalsávban."
   },
   "editor": {
     "uninitialized": "Nem sikerült inicializálni a szerkesztőt. Kérjük, töltse újra.",

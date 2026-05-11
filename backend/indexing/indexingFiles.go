@@ -63,9 +63,9 @@ type Options struct {
 	IsRoutineScan bool // whether this is a routine/scheduled scan (vs initial indexing)
 
 	// Filesystem info retrieval options
-	SkipExtendedAttrs bool // Skip hasPreview and other extended attributes
-	FollowSymlinks    bool // Whether to follow symlinks or return symlink info
-	ShowHidden        bool // Whether to include hidden files/directories
+	SkipExtendedAttrs bool   // Skip hasPreview and other extended attributes
+	FollowSymlinks    bool   // Whether to follow symlinks or return symlink info
+	ShowHidden        bool   // Whether to include hidden files/directories
 	HideFileExt       string // Hide files based on extensions
 }
 
@@ -432,9 +432,9 @@ type FileInfoRequest struct {
 	FollowSymlinks    bool
 	ShowHidden        bool
 	HideFileExt       string // Hide files based on their extension
-	Expand            bool // get child items for directories
-	IsRoutineScan     bool // scanner vs API call
-	SkipExtendedAttrs bool // whether to skip extended attributes
+	Expand            bool   // get child items for directories
+	IsRoutineScan     bool   // scanner vs API call
+	SkipExtendedAttrs bool   // whether to skip extended attributes
 }
 
 // resolvePathContext resolves all path characteristics in a SINGLE stat call
@@ -1031,6 +1031,7 @@ func (idx *Index) RefreshDirectory(indexPath string, recursive bool) error {
 	if idx.Config.ResolvedRules.IndexingDisabled {
 		return nil
 	}
+
 	if !strings.HasSuffix(indexPath, "/") {
 		indexPath = indexPath + "/"
 	}

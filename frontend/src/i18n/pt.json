@@ -638,7 +638,9 @@
     "showThumbnailsDescription": "Quando activada, as miniaturas são mostradas na listagem de itens que as suportam. Desativar para ocultar todas as miniaturas.",
     "showCopyPath": "Mostrar caminho de cópia no menu de contexto",
     "showCopyPathDescription": "Mostrar uma ação Copiar caminho no menu de contexto de ficheiros e pastas.",
-    "previewDescription": "Mostrar pré-visualizações em miniatura para {filetype}, mostrará o ícone genérico se estiver desativado."
+    "previewDescription": "Mostrar pré-visualizações em miniatura para {filetype}, mostrará o ícone genérico se estiver desativado.",
+    "showToolsInSidebar": "Mostrar ferramentas na barra lateral",
+    "showToolsInSidebarDescription": "Mostrar sempre a ligação para as ferramentas na barra lateral."
   },
   "general": {
     "name": "Nome",

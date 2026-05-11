@@ -638,7 +638,9 @@
     "showThumbnailsDescription": "启用后，支持缩略图的项目将在列表中显示缩略图。关闭则隐藏所有缩略图。",
     "showCopyPath": "在上下文菜单中显示复制路径",
     "showCopyPathDescription": "在文件和文件夹上下文菜单中显示复制路径操作。",
-    "previewDescription": "显示{filetype} 的缩略图预览，如果禁用，将显示通用图标。"
+    "previewDescription": "显示{filetype} 的缩略图预览，如果禁用，将显示通用图标。",
+    "showToolsInSidebar": "在侧边栏显示工具",
+    "showToolsInSidebarDescription": "始终在侧边栏显示工具链接。"
   },
   "general": {
     "name": "名称",

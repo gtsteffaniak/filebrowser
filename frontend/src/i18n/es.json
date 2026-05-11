@@ -786,7 +786,9 @@
     "showThumbnailsDescription": "Cuando está activada, se mostrarán miniaturas para todos los archivos soportados. Puedes desactivarlo para desactivar todas las miniaturas.",
     "showCopyPath": "Mostrar ruta de copia en el menú contextual",
     "showCopyPathDescription": "Mostrar una acción Copiar ruta en el menú contextual de archivos y carpetas.",
-    "previewDescription": "Mostrar vistas previas en miniatura para {filetype}, mostrará el icono genérico si está desactivado."
+    "previewDescription": "Mostrar vistas previas en miniatura para {filetype}, mostrará el icono genérico si está desactivado.",
+    "showToolsInSidebar": "Mostrar herramientas en la barra lateral",
+    "showToolsInSidebarDescription": "Mostrar siempre el enlace de herramientas en la barra lateral."
   },
   "editor": {
     "uninitialized": "No se pudo iniciar el editor",

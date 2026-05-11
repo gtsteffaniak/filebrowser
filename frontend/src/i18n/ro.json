@@ -786,7 +786,9 @@
     "showThumbnailsDescription": "Atunci când este activată, miniaturile sunt afișate în listă pentru articolele care le acceptă. Dezactivați pentru a ascunde toate miniaturile.",
     "showCopyPath": "Afișați calea de copiere în meniul contextual",
     "showCopyPathDescription": "Afișați o acțiune de copiere a căii în meniul contextual al fișierelor și dosarelor.",
-    "previewDescription": "Afișează previzualizări ale miniaturilor pentru {filetype}, va afișa pictograma generică dacă este dezactivată."
+    "previewDescription": "Afișează previzualizări ale miniaturilor pentru {filetype}, va afișa pictograma generică dacă este dezactivată.",
+    "showToolsInSidebar": "Afișați instrumentele în bara laterală",
+    "showToolsInSidebarDescription": "Afișați întotdeauna link-ul de instrumente în bara laterală."
   },
   "editor": {
     "uninitialized": "Nu s-a reușit inițializarea editorului. Vă rugăm să reîncărcați.",

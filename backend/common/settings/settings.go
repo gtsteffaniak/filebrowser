@@ -57,10 +57,14 @@ func GetSettingsConfig(nameType string, Value string) string {
 
 func AdminPerms() users.Permissions {
 	return users.Permissions{
-		Modify: true,
-		Share:  true,
-		Admin:  true,
-		Api:    true,
+		Modify:   true,
+		Share:    true,
+		Admin:    true,
+		Api:      true,
+		Download: true,
+		Delete:   true,
+		Create:   true,
+		Realtime: false,
 	}
 }
 
@@ -96,6 +100,7 @@ func ApplyUserDefaults(u *users.User) {
 	u.DisableOnlyOfficeExt = d.DisableOnlyOfficeExt
 	u.CustomTheme = d.CustomTheme
 	u.ShowSelectMultiple = d.ShowSelectMultiple
+	u.ShowToolsInSidebar = boolValueOrDefault(d.ShowToolsInSidebar, true)
 	u.DebugOffice = d.DebugOffice
 	u.DeleteWithoutConfirming = d.DeleteWithoutConfirming
 	u.DeleteAfterArchive = d.DeleteAfterArchive
@@ -145,4 +150,6 @@ func ApplyUserDefaults(u *users.User) {
 			}
 		}
 	}
+
+	u.Version = users.CurrentUserMigrationVersion
 }
