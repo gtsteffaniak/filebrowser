@@ -102,17 +102,24 @@ func (u *User) GetBackendSidebarLinks() ([]SidebarLink, error) {
 			if link.SourceName == "" {
 				return nil, fmt.Errorf("source link missing sourceName (link name: %v)", link.Name)
 			}
-			source, ok := ResolveSourceKey(link.SourceName)
-			if !ok {
+			// Validate source exists
+			sourceInfo, ok := sourceConfig.GetSourceByName(link.SourceName)
+			sourceInfo2, ok2 := sourceConfig.GetSourceByPath(link.SourceName)
+			if !ok && !ok2 {
 				return nil, fmt.Errorf("source not found: %v (link name: %v)", link.SourceName, link.Name)
 			}
-			link.SourceName = source.Path
+			if ok {
+				link.SourceName = sourceInfo.Path
+			} else {
+				link.SourceName = sourceInfo2.Path
+			}
 		}
 		newLinks = append(newLinks, link)
 	}
 	return newLinks, nil
 }
 
+<<<<<<< HEAD
 // GetFrontendSidebarLinks converts source links for JSON clients: SourceName is the display name.
 func (u *User) GetFrontendSidebarLinks() []SidebarLink {
 	if sourceConfig == nil {
@@ -147,6 +154,8 @@ func (u *User) GetFrontendSidebarLinks() []SidebarLink {
 	return newLinks
 }
 
+=======
+>>>>>>> dev/v1.4.0
 // normalizeScope ensures scope starts with / and doesn't end with / (except for root)
 func normalizeScope(scope string) string {
 	if !strings.HasPrefix(scope, "/") {

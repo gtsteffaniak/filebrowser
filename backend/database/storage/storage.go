@@ -93,13 +93,6 @@ func quickSetup(store *bolt.BoltStore) {
 		}
 		user.Password = settings.Config.Auth.AdminPassword
 		user.Permissions.Admin = true
-		user.Scopes = []users.SourceScope{}
-		for _, val := range settings.Config.Server.Sources {
-			user.Scopes = append(user.Scopes, users.SourceScope{
-				Name:  val.Path, // backend name is path
-				Scope: "",
-			})
-		}
 		user.LockPassword = false
 		user.Permissions = settings.AdminPerms()
 		user.ShowFirstLogin = settings.Env.IsFirstLoad && user.Permissions.Admin
