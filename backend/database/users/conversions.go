@@ -119,7 +119,6 @@ func (u *User) GetBackendSidebarLinks() ([]SidebarLink, error) {
 	return newLinks, nil
 }
 
-<<<<<<< HEAD
 // GetFrontendSidebarLinks converts source links for JSON clients: SourceName is the display name.
 func (u *User) GetFrontendSidebarLinks() []SidebarLink {
 	if sourceConfig == nil {
@@ -154,8 +153,6 @@ func (u *User) GetFrontendSidebarLinks() []SidebarLink {
 	return newLinks
 }
 
-=======
->>>>>>> dev/v1.4.0
 // normalizeScope ensures scope starts with / and doesn't end with / (except for root)
 func normalizeScope(scope string) string {
 	if !strings.HasPrefix(scope, "/") {
