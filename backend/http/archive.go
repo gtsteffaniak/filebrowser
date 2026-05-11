@@ -4,6 +4,8 @@ import (
 	"archive/tar"
 	"archive/zip"
 	"compress/gzip"
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,16 +16,162 @@ import (
 	"path"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
+	"github.com/gtsteffaniak/go-cache/cache"
 	"github.com/gtsteffaniak/go-logger/logger"
 	"golang.org/x/time/rate"
 )
+
+// archiveMultiRequestIdle is how long without another Range/HEAD on the same archiveToken before
+// the spooled file is removed (abandoned chunked download). Each chunk request extends this window.
+const archiveMultiRequestIdle = 5 * time.Minute
+
+// archiveSpoolPathCache maps archiveToken -> temp file path on disk for chunked archive downloads.
+var archiveSpoolPathCache = cache.NewCache[string](archiveMultiRequestIdle)
+
+// archiveSpoolIdleTimers implements a sliding idle deadline per token so temp files are deleted
+// after abandonment; the in-process cache alone does not remove on-disk spool files.
+var (
+	archiveSpoolIdleMu     sync.Mutex
+	archiveSpoolIdleTimers = make(map[string]*time.Timer) // guarded by archiveSpoolIdleMu
+)
+
+func randomArchiveToken() (string, error) {
+	b := make([]byte, 16)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(b), nil
+}
+
+func stopArchiveSpoolIdleTimer(token string) {
+	archiveSpoolIdleMu.Lock()
+	t, ok := archiveSpoolIdleTimers[token]
+	if ok {
+		delete(archiveSpoolIdleTimers, token)
+	}
+	archiveSpoolIdleMu.Unlock()
+	if !ok {
+		return
+	}
+	if !t.Stop() {
+		select {
+		case <-t.C:
+		default:
+		}
+	}
+}
+
+// removeSpooledArchiveNow drops token state and deletes the temp file (idle timeout or final chunk served).
+func removeSpooledArchiveNow(token, tmpPath string) {
+	stopArchiveSpoolIdleTimer(token)
+	archiveSpoolPathCache.Delete(token)
+	if err := os.Remove(tmpPath); err != nil && !os.IsNotExist(err) {
+		logger.Debugf("archive spool remove %s: %v", tmpPath, err)
+	}
+}
+
+func rescheduleArchiveSpoolIdleCleanup(token, tmpPath string) {
+	stopArchiveSpoolIdleTimer(token)
+	timer := time.AfterFunc(archiveMultiRequestIdle, func() {
+		removeSpooledArchiveNow(token, tmpPath)
+	})
+	archiveSpoolIdleMu.Lock()
+	archiveSpoolIdleTimers[token] = timer
+	archiveSpoolIdleMu.Unlock()
+}
+
+// archiveGetDeliversThroughEOF reports whether this GET serves through the last byte (full body or Range that ends at size-1).
+func archiveGetDeliversThroughEOF(r *http.Request, size int64) bool {
+	if r.Method != http.MethodGet || size <= 0 {
+		return false
+	}
+	rg := r.Header.Get("Range")
+	if rg == "" {
+		return true
+	}
+	const prefix = "bytes="
+	if !strings.HasPrefix(rg, prefix) {
+		return false
+	}
+	rg = strings.TrimSpace(rg[len(prefix):])
+	if i := strings.IndexByte(rg, ','); i >= 0 {
+		rg = rg[:i]
+	}
+	dash := strings.IndexByte(rg, '-')
+	if dash < 0 {
+		return false
+	}
+	startStr := strings.TrimSpace(rg[:dash])
+	endStr := strings.TrimSpace(rg[dash+1:])
+	if endStr == "" {
+		// "bytes=N-": suffix through EOF
+		return true
+	}
+	if startStr == "" && endStr != "" {
+		// "bytes=-N": last-N suffix includes EOF when size > 0
+		return true
+	}
+	end, err := strconv.ParseInt(endStr, 10, 64)
+	if err != nil {
+		return false
+	}
+	return end >= size-1
+}
+
+// archiveAttachmentStem is the filename stem (no extension) for Content-Disposition on multi-item /
+// directory downloads. It prefers the client file path so names match the UI (e.g. "Desktop.zip"); the
+// old filepath.Dir(realPath)+Base trick can yield "/" at filesystem root or the wrong parent if index metadata lags.
+func archiveAttachmentStem(fileList []string, realPath string) string {
+	if len(fileList) == 0 {
+		return "download"
+	}
+	first := filepath.ToSlash(strings.TrimSuffix(strings.TrimSpace(fileList[0]), "/"))
+	var stem string
+	if len(fileList) == 1 {
+		stem = path.Base(first)
+	} else {
+		stem = path.Base(path.Dir(first))
+	}
+	if stem == "" || stem == "." || stem == "/" {
+		if len(fileList) == 1 {
+			stem = filepath.Base(realPath)
+		} else {
+			stem = filepath.Base(filepath.Dir(realPath))
+		}
+	}
+	if stem == "" || stem == "." || stem == "/" {
+		return "download"
+	}
+	return stem
+}
+
+// serveArchiveWithServeContent sends a built archive using ServeContent (Range-capable).
+// For share links with MaxBandwidth > 0, outbound data is throttled via newThrottledReadSeeker (same limit as single-file download).
+func serveArchiveWithServeContent(w http.ResponseWriter, r *http.Request, d *requestContext, rs io.ReadSeeker, fi os.FileInfo, originalFileName string) (int, error) {
+	setContentDisposition(w, r, originalFileName)
+	w.Header().Set("Content-Type", "application/octet-stream")
+	w.Header().Set("Cache-Control", "private")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+
+	reader := rs
+	if d.share != nil && d.share.MaxBandwidth > 0 {
+		limit := rate.Limit(d.share.MaxBandwidth * 1024)
+		burst := d.share.MaxBandwidth * 1024
+		reader = newThrottledReadSeeker(rs, limit, burst, r.Context())
+	}
+	http.ServeContent(w, r, originalFileName, fi.ModTime(), reader)
+	return 0, nil
+}
 
 // archiveCreateHandler creates an archive on the server at the given destination.
 // POST /resources/archive — server-side only; does not return archive data.
@@ -562,14 +710,20 @@ func createTarGzWithLevel(d *requestContext, source string, w io.Writer, level i
 	return nil
 }
 
-// BuildAndStreamArchive resolves paths, creates a zip or tar.gz archive, and streams it to w.
-// It respects access rules. Used only by the raw handler for multi-file/directory download.
+// BuildAndStreamArchive builds a zip or tar.gz for multi-file/directory download.
+// Plain GET without Range streams the archive straight to the response (no temp file), matching
+// clients with chunked downloads disabled. HEAD or Range builds a temp file under cacheDir downloads,
+// returns X-Archive-Token on the first response, and serves via ServeContent for Range/resume;
+// follow-up GETs use ?archiveToken=.... Idle chunked sessions delete the spool file after
+// archiveMultiRequestIdle without another request.
+//
+// server.maxArchiveSizeGB is enforced only for the HEAD/Range spool path.
 func BuildAndStreamArchive(w http.ResponseWriter, r *http.Request, d *requestContext, source string, fileList []string) (int, error) {
 	idx := indexing.GetIndex(source)
 	if idx == nil {
 		return http.StatusInternalServerError, fmt.Errorf("source %s is not available", source)
 	}
-	realPath, isDir, err := idx.GetRealPath(fileList[0])
+	realPath, _, err := idx.GetRealPath(fileList[0])
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("failed to get real path for %s: %v", fileList[0], err)
 	}
@@ -585,35 +739,142 @@ func BuildAndStreamArchive(w http.ResponseWriter, r *http.Request, d *requestCon
 		return http.StatusInternalServerError, errors.New("format not implemented")
 	}
 
-	baseDirName := filepath.Base(filepath.Dir(realPath))
-	if baseDirName == "" || baseDirName == "/" {
-		baseDirName = "download"
-	}
-	if len(fileList) == 1 && isDir {
-		baseDirName = filepath.Base(realPath)
-	}
-	originalFileName := baseDirName + extension
+	originalFileName := archiveAttachmentStem(fileList, realPath) + extension
 
-	setContentDisposition(w, r, originalFileName)
-	w.Header().Set("Content-Type", "application/octet-stream")
-
-	var writer io.Writer = w
-	if d.share != nil && d.share.MaxBandwidth > 0 {
-		limit := rate.Limit(d.share.MaxBandwidth * 1024)
-		burst := d.share.MaxBandwidth * 1024
-		writer = newThrottledWriter(w, limit, burst, r.Context())
+	token := r.URL.Query().Get("archiveToken")
+	if token != "" {
+		tmpPath, ok := archiveSpoolPathCache.Get(token)
+		if !ok {
+			return http.StatusGone, fmt.Errorf("invalid or expired archiveToken")
+		}
+		archiveSpoolPathCache.SetWithExp(token, tmpPath, archiveMultiRequestIdle)
+		rescheduleArchiveSpoolIdleCleanup(token, tmpPath)
+		if _, err = os.Stat(tmpPath); err != nil {
+			archiveSpoolPathCache.Delete(token)
+			return http.StatusGone, fmt.Errorf("archive no longer available")
+		}
+		var fd *os.File
+		fd, err = os.Open(tmpPath)
+		if err != nil {
+			return http.StatusGone, err
+		}
+		var fi os.FileInfo
+		fi, err = fd.Stat()
+		if err != nil {
+			_ = fd.Close()
+			return http.StatusInternalServerError, err
+		}
+		code, srvErr := serveArchiveWithServeContent(w, r, d, fd, fi, originalFileName)
+		if closeErr := fd.Close(); closeErr != nil && srvErr == nil {
+			srvErr = closeErr
+		}
+		if srvErr == nil && archiveGetDeliversThroughEOF(r, fi.Size()) {
+			removeSpooledArchiveNow(token, tmpPath)
+		}
+		return code, srvErr
 	}
+
+	// HEAD or Range: same condition as chunked archive probing / retained spool (X-Archive-Token).
+	needMultiRequestSession := r.Method == http.MethodHead || r.Header.Get("Range") != ""
+
+	if needMultiRequestSession && config.Server.MaxArchiveSizeGB > 0 {
+		var estimatedSize int64
+		estimatedSize, err = computeArchiveSize(source, fileList, d)
+		if err != nil {
+			return http.StatusInternalServerError, fmt.Errorf("failed to compute archive size: %v", err)
+		}
+		maxSizeBytes := config.Server.MaxArchiveSizeGB * 1024 * 1024 * 1024
+		if estimatedSize > maxSizeBytes {
+			return http.StatusRequestEntityTooLarge, fmt.Errorf("archive size would exceed the maximum allowed size (maxArchiveSize: %d GB)", config.Server.MaxArchiveSizeGB)
+		}
+	}
+
+	// Direct streaming: no temp file (typical browser download when chunked downloads are disabled).
+	if !needMultiRequestSession {
+		if r.Method != http.MethodGet {
+			return http.StatusMethodNotAllowed, fmt.Errorf("method not allowed")
+		}
+		setContentDisposition(w, r, originalFileName)
+		w.Header().Set("Content-Type", "application/octet-stream")
+		w.Header().Set("Cache-Control", "private")
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+
+		writer := io.Writer(w)
+		if d.share != nil && d.share.MaxBandwidth > 0 {
+			limit := rate.Limit(d.share.MaxBandwidth * 1024)
+			burst := d.share.MaxBandwidth * 1024
+			writer = newThrottledWriter(w, limit, burst, r.Context())
+		}
+		if extension == ".zip" {
+			err = createZip(d, source, writer, fileList...)
+		} else {
+			err = createTarGz(d, source, writer, fileList...)
+		}
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
+		return 0, nil
+	}
+
+	dlDir := settings.DownloadCacheDir()
+	tmpF, err := os.CreateTemp(dlDir, "dl-archive-*"+extension)
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("create temp archive: %w", err)
+	}
+	tmpPath := tmpF.Name()
 
 	if extension == ".zip" {
-		err = createZip(d, source, writer, fileList...)
+		err = createZip(d, source, tmpF, fileList...)
 	} else {
-		err = createTarGz(d, source, writer, fileList...)
+		err = createTarGz(d, source, tmpF, fileList...)
 	}
 	if err != nil {
+		_ = tmpF.Close()
+		_ = os.Remove(tmpPath)
 		return http.StatusInternalServerError, err
 	}
 
-	return 0, nil
+	if _, err = tmpF.Seek(0, 0); err != nil {
+		_ = tmpF.Close()
+		_ = os.Remove(tmpPath)
+		return http.StatusInternalServerError, fmt.Errorf("seek temp archive: %w", err)
+	}
+	fi, err := tmpF.Stat()
+	if err != nil {
+		_ = tmpF.Close()
+		_ = os.Remove(tmpPath)
+		return http.StatusInternalServerError, err
+	}
+
+	sizeInMB := fi.Size() / 1024 / 1024
+	if sizeInMB > 500 {
+		logger.Debugf("User %v is downloading large (%d MB) archive: %v", d.user.Username, sizeInMB, originalFileName)
+	}
+
+	// needMultiRequestSession: HEAD or Range — always spool and use ServeContent (+ token for follow-ups).
+	if err = tmpF.Close(); err != nil {
+		_ = os.Remove(tmpPath)
+		return http.StatusInternalServerError, err
+	}
+	newTok, err := randomArchiveToken()
+	if err != nil {
+		_ = os.Remove(tmpPath)
+		return http.StatusInternalServerError, err
+	}
+	archiveSpoolPathCache.SetWithExp(newTok, tmpPath, archiveMultiRequestIdle)
+	rescheduleArchiveSpoolIdleCleanup(newTok, tmpPath)
+	w.Header().Set("X-Archive-Token", newTok)
+
+	fd, err := os.Open(tmpPath)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	defer fd.Close()
+	fi2, err := fd.Stat()
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	return serveArchiveWithServeContent(w, r, d, fd, fi2, originalFileName)
 }
 
 // archiveCreateRequest is the body for POST /resources/archive (server-side create).

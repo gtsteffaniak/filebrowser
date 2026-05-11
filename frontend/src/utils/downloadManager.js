@@ -82,6 +82,26 @@ class DownloadManager {
     }
   }
 
+  /** Abort in-flight downloads, clear the queue, reset ids (fresh Download prompt instance). */
+  reset() {
+    if (!this.queue) {
+      this.queue = reactive([]);
+      this.nextId = 0;
+      return;
+    }
+    for (const item of this.queue) {
+      if (item.abortController) {
+        try {
+          item.abortController.abort();
+        } catch {
+          // ignore
+        }
+      }
+    }
+    this.queue.splice(0, this.queue.length);
+    this.nextId = 0;
+  }
+
   hasActive() {
     if (!this.queue) return false;
     return this.queue.some((item) => item.status === "downloading" || item.status === "pending");
