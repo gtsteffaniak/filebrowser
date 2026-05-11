@@ -44,10 +44,8 @@ func validateUserInfo(newDB bool) {
 		if updateTokens(user) {
 			updateUser = true
 		}
-		toolsSidebarMigrated := false
 		if updateShowToolsInSidebar(user) {
 			updateUser = true
-			toolsSidebarMigrated = true
 		}
 		adminUser := settings.Config.Auth.AdminUsername
 		adminPass := settings.Config.Auth.AdminPassword
@@ -67,12 +65,9 @@ func validateUserInfo(newDB bool) {
 					logger.Fatalf("Unable to create automatic backup of database due to error: %v", err)
 				}
 			}
-			fields := []string{"Scopes", "SidebarLinks", "Tokens", "Permissions", "Preview", "ShowFirstLogin", "LoginMethod", "Version"}
+			fields := []string{"Scopes", "SidebarLinks", "Tokens", "Permissions", "Preview", "ShowFirstLogin", "LoginMethod", "Version", "ShowToolsInSidebar"}
 			if changePass {
 				fields = append(fields, "Password")
-			}
-			if toolsSidebarMigrated {
-				fields = append(fields, "ShowToolsInSidebar")
 			}
 			err := store.Users.Update(user, true, fields...)
 			if err != nil {
@@ -133,7 +128,7 @@ func updateShowToolsInSidebar(user *users.User) bool {
 	if user.Version >= 3 {
 		return false
 	}
-	user.ShowToolsInSidebar = settings.Config.UserDefaults.ShowToolsInSidebar
+	user.ShowToolsInSidebar = true
 	user.Version = users.CurrentUserMigrationVersion
 	return true
 }
