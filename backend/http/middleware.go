@@ -134,7 +134,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			AlbumArt:                 strings.Contains(r.URL.Path, "/preview"),
 			ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles && link.ExtractEmbeddedSubtitles,
 			ShowHidden:               link.ShowHidden,
-			HideFileExt:              data.shareUser.HideFileExt,
+			HideFileExt:	          link.HideFileExt,
 			FollowSymlinks:           true,
 		}, store.Access, data.shareUser, store.Share)
 		if err != nil {

@@ -4604,6 +4604,10 @@ const docTemplate = `{
                 "hash": {
                     "type": "string"
                 },
+                "hideFileExt": {
+                    "description": "show hidden files based on extensions in shares",
+                    "type": "string"
+                },
                 "hideNavButtons": {
                     "type": "boolean"
                 },
@@ -6335,6 +6339,10 @@ const docTemplate = `{
                 "hasPassword": {
                     "type": "boolean"
                 },
+                "hideFileExt": {
+                    "description": "show hidden files based on extensions in shares",
+                    "type": "string"
+                },
                 "hideNavButtons": {
                     "type": "boolean"
                 },
@@ -6483,6 +6491,10 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "hash": {
+                    "type": "string"
+                },
+                "hideFileExt": {
+                    "description": "show hidden files based on extensions in shares",
                     "type": "string"
                 },
                 "hideNavButtons": {
@@ -6642,6 +6654,10 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "hash": {
+                    "type": "string"
+                },
+                "hideFileExt": {
+                    "description": "show hidden files based on extensions in shares",
                     "type": "string"
                 },
                 "hideNavButtons": {

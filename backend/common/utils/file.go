@@ -89,7 +89,6 @@ func SanitizeUserPath(userPath string) (string, error) {
 }
 
 // HideFileByExt will check if a filename matches any of the hidden extensions
-// Extensions without a dot will be normalised to have one, just in case.
 func HideFileByExt(filename, hideExt string) bool {
 	if hideExt == "" {
 		return false

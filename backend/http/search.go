@@ -139,22 +139,6 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		response = indexing.SearchMultiSourcesParsed(searchOptions.parsed, searchOptions.sources, searchOptions.combinedPath, searchOptions.sessionId, searchOptions.largest, searchSize, searchOptions.olderThanUnix, searchOptions.newerThanUnix, searchOptions.useWildcard)
 	}
 
-	// Filter out ext-hidden files when the showHidden is false
-	if d.user.HideFileExt != "" && !d.user.ShowHidden {
-		filter := make([]*indexing.SearchResult, 0, len(response))
-		for _, res := range response {
-			if res.Type == "directory" {
-				filter = append(filter, res)
-				continue
-			}
-			baseName := filepath.Base(res.Path)
-			if !utils.HideFileByExt(baseName, d.user.HideFileExt) {
-				filter = append(filter, res)
-			}
-		}
-		response = filter
-	}
-
 	// Filter out items that are not permitted according to access rules and trim user scope from paths
 	filteredResponse := make([]*indexing.SearchResult, 0, len(response))
 	for _, result := range response {
@@ -170,6 +154,21 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 			result.Path = "/"
 		}
 		filteredResponse = append(filteredResponse, result)
+		// This is to filter the ext-hidden files from search results, like the ones with the hidden property
+		if d.user.HideFileExt != "" {
+			filtered := filteredResponse[:0]
+			for _, res := range filteredResponse {
+				if res.Type == "directory" {
+					filtered = append(filtered, res)
+					continue
+				}
+				baseName := filepath.Base(res.Path)
+				if !utils.HideFileByExt(baseName, d.user.HideFileExt) {
+					filtered = append(filtered, res)
+				}
+			}
+			filteredResponse = filtered
+		}
 	}
 	return renderJSON(w, r, filteredResponse)
 }

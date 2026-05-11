@@ -176,6 +176,9 @@ definitions:
         type: boolean
       hash:
         type: string
+      hideFileExt:
+        description: show hidden files based on extensions in shares
+        type: string
       hideNavButtons:
         type: boolean
       keepAfterExpiration:
@@ -1496,6 +1499,9 @@ definitions:
         type: string
       hasPassword:
         type: boolean
+      hideFileExt:
+        description: show hidden files based on extensions in shares
+        type: string
       hideNavButtons:
         type: boolean
       keepAfterExpiration:
@@ -1600,6 +1606,9 @@ definitions:
       hasPassword:
         type: boolean
       hash:
+        type: string
+      hideFileExt:
+        description: show hidden files based on extensions in shares
         type: string
       hideNavButtons:
         type: boolean
@@ -1711,6 +1720,9 @@ definitions:
       hasPassword:
         type: boolean
       hash:
+        type: string
+      hideFileExt:
+        description: show hidden files based on extensions in shares
         type: string
       hideNavButtons:
         type: boolean

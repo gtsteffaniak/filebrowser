@@ -155,6 +155,20 @@ type Items struct {
 	Folders []string `json:"folders,omitempty"`
 }
 
+// This removes files whose names match any extension in hideFileExt.
+func filterFilesByExt(files []iteminfo.ExtendedItemInfo, hideFileExt string) []iteminfo.ExtendedItemInfo {
+    if hideFileExt == "" {
+        return files
+    }
+    filtered := files[:0]
+    for _, f := range files {
+        if !utils.HideFileByExt(f.Name, hideFileExt) {
+            filtered = append(filtered, f)
+        }
+    }
+    return filtered
+}
+
 func GetDirItems(opts utils.FileOptions, access *access.Storage, user *users.User) (Items, error) {
 	items := Items{}
 	indexPath, _, err := CheckPermissions(opts, access, user)
@@ -186,6 +200,9 @@ func GetDirItems(opts utils.FileOptions, access *access.Storage, user *users.Use
 	}
 	if opts.Only == "files" || opts.Only == "" {
 		for _, file := range info.Files {
+			if opts.HideFileExt != "" && utils.HideFileByExt(file.Name, opts.HideFileExt) {
+				continue
+			}
 			items.Files = append(items.Files, file.Name)
 		}
 	}
@@ -254,11 +271,17 @@ func fileInfoFasterImpl(opts utils.FileOptions, access *access.Storage, user *us
 	}
 	defer finalizeResponse(response, info, response.RealPath, user, userScope)
 	if opts.SkipExtendedAttrs {
+		if info.Type == "directory" && opts.HideFileExt != "" {
+			response.Files = filterFilesByExt(response.Files, opts.HideFileExt)
+		}
 		return response, nil
 	}
 	// Process directory metadata if requested
 	if info.Type == "directory" {
 		processDirectoryMetadata(response, idx, opts)
+		if opts.HideFileExt != "" {
+			response.Files = filterFilesByExt(response.Files, opts.HideFileExt)
+		}
 	}
 	// Process single file content/metadata
 	isAudioVideo := strings.HasPrefix(info.Type, "audio") || strings.HasPrefix(info.Type, "video")
