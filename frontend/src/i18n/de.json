@@ -786,7 +786,9 @@
     "showThumbnailsDescription": "Wenn diese Option aktiviert ist, werden Miniaturansichten in der Auflistung für Artikel angezeigt, die sie unterstützen. Schalten Sie die Option aus, um alle Miniaturansichten auszublenden.",
     "showCopyPath": "Pfad kopieren im Kontextmenü anzeigen",
     "showCopyPathDescription": "Zeigen Sie eine Aktion \"Pfad kopieren\" im Kontextmenü von Dateien und Ordnern an.",
-    "previewDescription": "Vorschaubilder für {filetype} anzeigen, bei Deaktivierung wird ein allgemeines Symbol angezeigt."
+    "previewDescription": "Vorschaubilder für {filetype} anzeigen, bei Deaktivierung wird ein allgemeines Symbol angezeigt.",
+    "showToolsInSidebar": "Werkzeuge in der Seitenleiste anzeigen",
+    "showToolsInSidebarDescription": "Wenn diese Option aktiviert ist, werden die Einträge in der Seitenleiste, die Sie unter der Kategorie Werkzeuge hinzugefügt haben, in der Linkleiste angezeigt. Deaktivieren Sie diese Option, um diese Einträge auszublenden, ohne sie aus Ihrer Linkliste zu entfernen."
   },
   "editor": {
     "uninitialized": "Der Editor konnte nicht initialisiert werden. Bitte neu laden.",
