@@ -6142,7 +6142,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "showToolsInSidebar": {
-                    "description": "show sidebar links with category \"tool\"; default comes from Config.UserDefaults / ApplyUserDefaults",
+                    "description": "show sidebar links with category \"tool\"; default is true",
                     "type": "boolean"
                 },
                 "singleClick": {
