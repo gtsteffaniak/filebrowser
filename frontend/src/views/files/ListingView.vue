@@ -1392,6 +1392,9 @@ export default {
 
 .listing-items.dropping {
   margin: 0.5em;
+  overflow: hidden;
+  min-height: 0;
+  flex: 1 1 0;
 }
 
 .listing-items {
@@ -1432,7 +1435,7 @@ export default {
 .drop-indicator {
   position: absolute;
   inset: 0;
-  bottom: 2em;
+  bottom: 1.75em;
   z-index: 50;
   border: 0.2em dashed var(--primaryColor);
   background: rgba(0, 0, 0, 0.3);
