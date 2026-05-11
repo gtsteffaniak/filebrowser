@@ -6141,6 +6141,10 @@ const docTemplate = `{
                     "description": "show select multiple files on desktop",
                     "type": "boolean"
                 },
+                "showToolsInSidebar": {
+                    "description": "show sidebar links with category \"tool\"; default is true",
+                    "type": "boolean"
+                },
                 "singleClick": {
                     "description": "open directory on single click, also enables middle click to open in new tab",
                     "type": "boolean"
@@ -7088,6 +7092,10 @@ const docTemplate = `{
                 },
                 "showSelectMultiple": {
                     "description": "show select multiple files on desktop",
+                    "type": "boolean"
+                },
+                "showToolsInSidebar": {
+                    "description": "when false, sidebar hides links with category \"tool\" (default: true)",
                     "type": "boolean"
                 },
                 "sidebarLinks": {

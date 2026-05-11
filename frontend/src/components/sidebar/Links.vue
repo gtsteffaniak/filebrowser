@@ -764,8 +764,7 @@ a.sidebar-link-button {
 }
 
 .source-button {
-  margin-top: 0.5em !important;
-  display: block !important;
+  display: block;
 }
 
 .source-button.active {
@@ -850,9 +849,9 @@ a.sidebar-link-button {
 }
 
 .edit-share-button {
-  margin-top: 0.5em !important;
+  margin-top: 0.5em;
   border-top: 1px solid var(--surfaceSecondary);
-  padding-top: 0.5em !important;
+  padding-top: 0.5em;
 }
 
 .edit-share-button .link-icon {
@@ -867,7 +866,7 @@ a.sidebar-link-button {
 }
 
 .navigation-source-card {
-  margin-top: 0 !important;
+  margin-top: 0;
   max-width: 98%;
 }
 

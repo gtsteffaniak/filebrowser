@@ -786,7 +786,9 @@
     "showThumbnailsDescription": "활성화하면 이를 지원하는 항목의 목록에 썸네일이 표시됩니다. 모든 섬네일을 숨기려면 끄면 됩니다.",
     "showCopyPath": "컨텍스트 메뉴에 경로 복사 표시",
     "showCopyPathDescription": "파일 및 폴더 컨텍스트 메뉴에 경로 복사 작업을 표시합니다.",
-    "previewDescription": "{filetype} 에 대한 썸네일 미리보기 표시 , 비활성화하면 일반 아이콘이 표시됩니다."
+    "previewDescription": "{filetype} 에 대한 썸네일 미리보기 표시 , 비활성화하면 일반 아이콘이 표시됩니다.",
+    "showToolsInSidebar": "사이드바에 도구 표시",
+    "showToolsInSidebarDescription": "사이드바에 항상 도구 링크를 표시합니다."
   },
   "editor": {
     "uninitialized": "편집기를 초기화하지 못했습니다. 다시 로드하세요.",

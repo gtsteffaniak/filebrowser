@@ -546,7 +546,9 @@
     "themeAndLanguage": "Thema & Taal",
     "thumbnailOptions": "Miniatuuropties",
     "showThumbnails": "Toon miniaturen voor ondersteunde items",
-    "showThumbnailsDescription": "Als deze optie is ingeschakeld, worden miniaturen weergegeven in de lijst met items die deze ondersteunen. Schakel deze optie uit om alle miniaturen te verbergen."
+    "showThumbnailsDescription": "Als deze optie is ingeschakeld, worden miniaturen weergegeven in de lijst met items die deze ondersteunen. Schakel deze optie uit om alle miniaturen te verbergen.",
+    "showToolsInSidebar": "Toon gereedschappen in de zijbalk",
+    "showToolsInSidebarDescription": "Toon altijd de link naar de hulpmiddelen in de zijbalk."
   },
   "settings": {
     "systemAdmin": "Systeem & Beheer",

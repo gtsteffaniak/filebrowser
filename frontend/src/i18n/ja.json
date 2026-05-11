@@ -786,7 +786,9 @@
     "showThumbnailsDescription": "有効にすると、サムネイルをサポートしているアイテムのリストにサムネイルが表示されます。オフにするとすべてのサムネイルが非表示になります。",
     "showCopyPath": "コンテキストメニューにコピーパスを表示する",
     "showCopyPathDescription": "ファイルやフォルダのコンテキストメニューに「パスをコピー」アクションを表示します。",
-    "previewDescription": "{filetype} のサムネイルプレビューを表示する。無効の場合は一般的なアイコンを表示する。"
+    "previewDescription": "{filetype} のサムネイルプレビューを表示する。無効の場合は一般的なアイコンを表示する。",
+    "showToolsInSidebar": "サイドバーにツールを表示",
+    "showToolsInSidebarDescription": "サイドバーにツールリンクを常に表示する。"
   },
   "editor": {
     "uninitialized": "エディタの初期化に失敗しました。再読み込みしてください。",

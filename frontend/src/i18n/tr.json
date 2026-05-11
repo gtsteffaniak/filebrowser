@@ -786,7 +786,9 @@
     "showThumbnailsDescription": "Etkinleştirildiğinde, küçük resimler onları destekleyen öğeler için listede gösterilir. Tüm küçük resimleri gizlemek için kapatın.",
     "showCopyPath": "Bağlam menüsünde Yolu Kopyala'yı göster",
     "showCopyPathDescription": "Dosya ve klasör bağlam menüsünde Yolu Kopyala eylemini gösterin.",
-    "previewDescription": "{filetype} için küçük resim önizlemelerini göster, devre dışı bırakılırsa genel simgeyi gösterecektir."
+    "previewDescription": "{filetype} için küçük resim önizlemelerini göster, devre dışı bırakılırsa genel simgeyi gösterecektir.",
+    "showToolsInSidebar": "Araçları kenar çubuğunda göster",
+    "showToolsInSidebarDescription": "Araçlar bağlantısını her zaman kenar çubuğunda gösterin."
   },
   "editor": {
     "uninitialized": "Düzenleyici başlatılamadı. Lütfen yeniden yükleyin.",

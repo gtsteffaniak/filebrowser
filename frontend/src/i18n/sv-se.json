@@ -638,7 +638,9 @@
     "showThumbnailsDescription": "När den är aktiverad visas miniatyrbilder i listan för objekt som stöder dem. Stäng av för att dölja alla miniatyrbilder.",
     "showCopyPath": "Visa Kopiera sökväg i snabbmenyn",
     "showCopyPathDescription": "Visa åtgärden Kopiera sökväg i snabbmenyn för filer och mappar.",
-    "previewDescription": "Visa förhandsgranskning av miniatyrbilder för {filetype}, visar generisk ikon om den är inaktiverad."
+    "previewDescription": "Visa förhandsgranskning av miniatyrbilder för {filetype}, visar generisk ikon om den är inaktiverad.",
+    "showToolsInSidebar": "Visa verktyg i sidofältet",
+    "showToolsInSidebarDescription": "Visa alltid verktygslänken i sidofältet."
   },
   "general": {
     "name": "Namn",

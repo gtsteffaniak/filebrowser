@@ -7,7 +7,8 @@ import (
 	jwt "github.com/golang-jwt/jwt/v4"
 )
 
-const ()
+// CurrentUserMigrationVersion is persisted for newly created accounts and after legacy migrations finish.
+const CurrentUserMigrationVersion = 3
 
 type LoginMethod string
 
@@ -123,6 +124,7 @@ type NonAdminEditable struct {
 	CustomTheme                string        `json:"customTheme"`                // Name of theme to use chosen from custom themes config.
 	ShowSelectMultiple         bool          `json:"showSelectMultiple"`         // show select multiple files on desktop
 	ShowCopyPath               bool          `json:"showCopyPath"`               // show copy path action in the context menu
+	ShowToolsInSidebar         bool          `json:"showToolsInSidebar"`         // when false, sidebar hides links with category "tool" (default: true)
 	DebugOffice                bool          `json:"debugOffice"`                // debug onlyoffice editor
 	OtpEnabled                 bool          `json:"otpEnabled"`                 // allow non-admin users to disable their own OTP
 	SidebarLinks               []SidebarLink `json:"sidebarLinks"`               // customizable sidebar links
@@ -190,6 +192,11 @@ func SetSourceNameResolver(resolver SourceNameResolver) {
 // This should be called once during initialization by the settings package
 func SetSourceConfig(config *SourceConfigProvider) {
 	sourceConfig = config
+}
+
+// SourceConfigLoaded reports whether SetSourceConfig has been called (needed for ResolveSourceKey).
+func SourceConfigLoaded() bool {
+	return sourceConfig != nil
 }
 
 // GetScopeForSourcePath returns the scope for a given source path (backend-style)

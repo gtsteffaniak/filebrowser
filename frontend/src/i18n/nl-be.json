@@ -638,7 +638,9 @@
     "showThumbnailsDescription": "Als deze optie is ingeschakeld, worden miniaturen weergegeven in de lijst met items die deze ondersteunen. Schakel deze optie uit om alle miniaturen te verbergen.",
     "showCopyPath": "Pad kopiëren tonen in contextmenu",
     "showCopyPathDescription": "Een actie Pad kopiëren weergeven in het contextmenu van bestanden en mappen.",
-    "previewDescription": "Toon miniatuurvoorbeelden voor {filetype}, toont generiek pictogram indien uitgeschakeld."
+    "previewDescription": "Toon miniatuurvoorbeelden voor {filetype}, toont generiek pictogram indien uitgeschakeld.",
+    "showToolsInSidebar": "Toon gereedschappen in de zijbalk",
+    "showToolsInSidebarDescription": "Toon altijd de link naar de hulpmiddelen in de zijbalk."
   },
   "general": {
     "name": "Naam",

@@ -786,7 +786,9 @@
     "showThumbnailsDescription": "Po włączeniu tej opcji miniatury są wyświetlane na liście elementów, które je obsługują. Wyłącz, aby ukryć wszystkie miniatury.",
     "showCopyPath": "Pokaż kopiowanie ścieżki w menu kontekstowym",
     "showCopyPathDescription": "Wyświetlanie akcji Kopiuj ścieżkę w menu kontekstowym plików i folderów.",
-    "previewDescription": "Pokaż podgląd miniatur dla {filetype}, pokaże ogólną ikonę, jeśli jest wyłączona."
+    "previewDescription": "Pokaż podgląd miniatur dla {filetype}, pokaże ogólną ikonę, jeśli jest wyłączona.",
+    "showToolsInSidebar": "Pokaż narzędzia na pasku bocznym",
+    "showToolsInSidebarDescription": "Zawsze wyświetlaj link do narzędzi na pasku bocznym."
   },
   "editor": {
     "uninitialized": "Nie udało się zainicjować edytora. Przeładuj ponownie.",
