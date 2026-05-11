@@ -6146,7 +6146,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "showToolsInSidebar": {
-                    "description": "show tool-type sidebar links (nil inherits true in ApplyUserDefaults)",
+                    "description": "show sidebar links with category \"tool\"; default comes from Config.UserDefaults / ApplyUserDefaults",
                     "type": "boolean"
                 },
                 "singleClick": {
@@ -7099,7 +7099,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "showToolsInSidebar": {
-                    "description": "when false, sidebar hides links with category \"tool\" (nil = legacy default-on)",
+                    "description": "when false, sidebar hides links with category \"tool\" (default: true)",
                     "type": "boolean"
                 },
                 "sidebarLinks": {
