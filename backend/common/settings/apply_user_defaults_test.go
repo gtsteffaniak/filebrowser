@@ -45,7 +45,7 @@ func TestApplyUserDefaults_copiesUserDefaultsOntoUser(t *testing.T) {
 			DisableOnlyOfficeExt:       ".x",
 			CustomTheme:                "Night",
 			ShowSelectMultiple:         true,
-			ShowToolsInSidebar:         true,
+			ShowToolsInSidebar:         boolPtr(true),
 			DebugOffice:                true,
 			PreferEditorForMarkdown:    true,
 			LoginMethod:                "password",
