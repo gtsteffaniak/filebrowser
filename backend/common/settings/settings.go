@@ -84,6 +84,7 @@ func ApplyUserDefaults(u *users.User) {
 	u.ViewMode = d.ViewMode
 	u.SingleClick = d.SingleClick
 	u.ShowHidden = d.ShowHidden
+	u.HideFileExt = d.HideFileExt
 	u.DateFormat = d.DateFormat
 	u.GallerySize = d.GallerySize
 	u.ThemeColor = d.ThemeColor

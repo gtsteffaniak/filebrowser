@@ -4604,6 +4604,10 @@ const docTemplate = `{
                 "hash": {
                     "type": "string"
                 },
+                "hideFileExt": {
+                    "description": "show hidden files based on extensions in shares",
+                    "type": "string"
+                },
                 "hideNavButtons": {
                     "type": "boolean"
                 },
@@ -6091,6 +6095,10 @@ const docTemplate = `{
                     "description": "0-9 - the size of the gallery thumbnails",
                     "type": "integer"
                 },
+                "hideFileExt": {
+                    "description": "space separated list of file extensions to hide in UI",
+                    "type": "string"
+                },
                 "hideFilesInTree": {
                     "description": "hide files in the sidebar tree navigation, when true, will show only directories.",
                     "type": "boolean"
@@ -6331,6 +6339,10 @@ const docTemplate = `{
                 "hasPassword": {
                     "type": "boolean"
                 },
+                "hideFileExt": {
+                    "description": "show hidden files based on extensions in shares",
+                    "type": "string"
+                },
                 "hideNavButtons": {
                     "type": "boolean"
                 },
@@ -6479,6 +6491,10 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "hash": {
+                    "type": "string"
+                },
+                "hideFileExt": {
+                    "description": "show hidden files based on extensions in shares",
                     "type": "string"
                 },
                 "hideNavButtons": {
@@ -6638,6 +6654,10 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "hash": {
+                    "type": "string"
+                },
+                "hideFileExt": {
+                    "description": "show hidden files based on extensions in shares",
                     "type": "string"
                 },
                 "hideNavButtons": {
@@ -6994,6 +7014,10 @@ const docTemplate = `{
                 "gallerySize": {
                     "description": "0-9 - the size of the gallery thumbnails",
                     "type": "integer"
+                },
+                "hideFileExt": {
+                    "description": "space separated list of file extensions to hide in UI and API",
+                    "type": "string"
                 },
                 "hideFilesInTree": {
                     "description": "hide files in the sidebar tree navigation, when true, will show only directories.",

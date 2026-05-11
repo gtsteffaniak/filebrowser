@@ -66,6 +66,7 @@ type Options struct {
 	SkipExtendedAttrs bool // Skip hasPreview and other extended attributes
 	FollowSymlinks    bool // Whether to follow symlinks or return symlink info
 	ShowHidden        bool // Whether to include hidden files/directories
+	HideFileExt       string // Hide files based on extensions
 }
 
 // ScannerInfo is the exposed scanner information for the client
@@ -430,6 +431,7 @@ type FileInfoRequest struct {
 	IndexPath         string
 	FollowSymlinks    bool
 	ShowHidden        bool
+	HideFileExt       string // Hide files based on their extension
 	Expand            bool // get child items for directories
 	IsRoutineScan     bool // scanner vs API call
 	SkipExtendedAttrs bool // whether to skip extended attributes
@@ -569,6 +571,7 @@ func (idx *Index) getDirInfoFromContext(ctx *PathContext, isViewable, isIndexabl
 		SkipExtendedAttrs: req.SkipExtendedAttrs || !isIndexable,
 		FollowSymlinks:    req.FollowSymlinks,
 		ShowHidden:        req.ShowHidden,
+		HideFileExt:       req.HideFileExt,
 	}
 
 	return idx.GetDirInfoCore(dir, ctx.FileInfo, ctx.IndexPath, opts, nil)

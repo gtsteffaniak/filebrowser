@@ -154,6 +154,21 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 			result.Path = "/"
 		}
 		filteredResponse = append(filteredResponse, result)
+		// This is to filter the ext-hidden files from search results, like the ones with the hidden property
+		if d.user.HideFileExt != "" {
+			filtered := filteredResponse[:0]
+			for _, res := range filteredResponse {
+				if res.Type == "directory" {
+					filtered = append(filtered, res)
+					continue
+				}
+				baseName := filepath.Base(res.Path)
+				if !utils.HideFileByExt(baseName, d.user.HideFileExt) {
+					filtered = append(filtered, res)
+				}
+			}
+			filteredResponse = filtered
+		}
 	}
 	return renderJSON(w, r, filteredResponse)
 }

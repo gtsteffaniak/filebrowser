@@ -722,6 +722,8 @@
     "orange": "pomarańczowy"
   },
   "profileSettings": {
+    "hideFileExt": "Ukryj wybrane pliki (według rozszerzenia)",
+    "hideFileExtDescription": "Lista rozszerzeń plików oddzielonych spacjami. Rozszerzenia wprowadzone w tym polu zostaną ukryte w całym interfejsie użytkownika (wizualnie, np. na liście lub w drzewie plików) — Nadal pozostają dostępne.",
     "preferEditorForMarkdown": "Preferuj edytor dla plików Markdown",
     "preferEditorForMarkdownDescription": "Po włączeniu, pliki Markdown otwierają się najpierw w edytorze zamiast w przeglądarce Markdown.",
     "deleteAfterArchive": "Usuń pliki źródłowe po utworzeniu/wypakowaniu archiwów",

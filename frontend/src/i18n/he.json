@@ -722,6 +722,8 @@
     "orange": "כתום"
   },
   "profileSettings": {
+    "hideFileExt": "הסתר קבצים מסוימים (לפי סיומת)",
+    "hideFileExtDescription": "רשימה של סיומות קבצים מופרדות ברווחים. סיומות שהוזנו בשדה זה יוסתרו מכל ממשק המשתמש (חזותית, כמו ברשימה או בעץ הקבצים) — הן עדיין נגישות.",
     "preferEditorForMarkdown": "העדף עורך תחילה עבור קבצי Markdown",
     "preferEditorForMarkdownDescription": "כאשר מופעל, פתח קבצי Markdown בעורך תחילה במקום בצופה Markdown.",
     "deleteAfterArchive": "מחק קבצי מקור לאחר יצירה/חילוץ של ארכיונים",

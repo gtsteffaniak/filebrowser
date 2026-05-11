@@ -722,6 +722,8 @@
     "orange": "oranžová"
   },
   "profileSettings": {
+    "hideFileExt": "Skryť určité súbory (podľa prípony)",
+    "hideFileExtDescription": "Zoznam prípon súborov oddelených medzerami. Prípony zadané v tomto poli budú skryté v celom používateľskom rozhraní (vizuálne, napr. v zozname alebo strome súborov) — Stále sú prístupné.",
     "preferEditorForMarkdown": "Uprednostniť editor pre Markdown súbory",
     "preferEditorForMarkdownDescription": "Ak je povolené, otvorí Markdown súbory najprv v editore namiesto prehliadača Markdown.",
     "deleteAfterArchive": "Odstrániť zdrojové súbory po vytvorení/extrahovaní archívov",

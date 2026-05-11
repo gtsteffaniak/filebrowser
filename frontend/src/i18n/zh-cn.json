@@ -574,6 +574,8 @@
     "orange": "橘色"
   },
   "profileSettings": {
+    "hideFileExt": "隐藏特定文件（按扩展名）",
+    "hideFileExtDescription": "空格分隔的文件扩展名列表。在此字段中输入的扩展名将从所有用户界面中隐藏（视觉上，如列表或文件树）——它们仍然可访问。",
     "preferEditorForMarkdown": "优先使用编辑器打开 Markdown 文件",
     "preferEditorForMarkdownDescription": "启用后，Markdown 文件将首先在编辑器中打开，而不是 Markdown 查看器。",
     "deleteAfterArchive": "创建/提取存档后删除源文件",

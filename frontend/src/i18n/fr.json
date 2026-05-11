@@ -722,6 +722,8 @@
     "orange": "orange"
   },
   "profileSettings": {
+    "hideFileExt": "Masquer certains fichiers (par extension)",
+    "hideFileExtDescription": "Une liste d'extensions de fichiers séparées par des espaces. Les extensions saisies dans ce champ seront masquées dans toute l'interface utilisateur (visuellement, comme dans la liste ou l'arborescence) — Elles restent accessibles.",
     "preferEditorForMarkdown": "Privilégier d'abord l'éditeur pour les fichiers Markdown",
     "preferEditorForMarkdownDescription": "Lorsque activé, ouvre les fichiers Markdown dans l'éditeur plutôt que dans le visualiseur Markdown.",
     "deleteAfterArchive": "Supprimer les fichiers source après la création/extraction d'archives",

@@ -722,6 +722,8 @@
     "orange": "turuncu"
   },
   "profileSettings": {
+    "hideFileExt": "Belirli dosyaları gizle (uzantıya göre)",
+    "hideFileExtDescription": "Boşlukla ayrılmış dosya uzantıları listesi. Bu alana girilen uzantılar tüm kullanıcı arayüzünden (görsel olarak, liste veya Dosya Ağacı gibi) gizlenecektir — Hâlâ erişilebilir durumdadırlar.",
     "preferEditorForMarkdown": "Markdown dosyaları için önce düzenleyiciyi tercih et",
     "preferEditorForMarkdownDescription": "Etkinleştirildiğinde, Markdown dosyalarını Markdown Görüntüleyici yerine önce düzenleyicide açar.",
     "deleteAfterArchive": "Arşiv oluşturma/çıkarma işleminden sonra kaynak dosyaları sil",

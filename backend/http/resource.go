@@ -101,6 +101,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		Metadata:                 getMetadata,
 		ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles,
 		ShowHidden:               d.user.ShowHidden,
+		HideFileExt:              d.user.HideFileExt,
 		SkipExtendedAttrs:        skipExtendedAttrs,
 		ShowSharedAttr:           true,
 	}, store.Access, d.user, store.Share)
@@ -157,6 +158,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 		Source:     source,
 		Expand:     false,
 		ShowHidden: d.user.ShowHidden,
+		HideFileExt: d.user.HideFileExt,
 	}, store.Access, d.user, store.Share)
 	if err != nil {
 		return errToStatus(err), err
@@ -1049,6 +1051,7 @@ func patchAction(ctx context.Context, params patchActionParams) error {
 			Source:         params.srcIndex,
 			IsDir:          params.isSrcDir,
 			ShowHidden:     params.d.user.ShowHidden,
+			HideFileExt:    params.d.user.HideFileExt,
 		}, store.Access, params.d.user, store.Share)
 
 		if err != nil {

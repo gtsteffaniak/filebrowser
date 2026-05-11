@@ -722,6 +722,8 @@
     "orange": "portocaliu"
   },
   "profileSettings": {
+    "hideFileExt": "Ascunde anumite fișiere (după extensie)",
+    "hideFileExtDescription": "O listă de extensii de fișiere separate prin spații. Extensiile introduse în acest câmp vor fi ascunse din întreaga interfață utilizator (vizual, cum ar fi în listă sau în arborele de fișiere) — Rămân accesibile.",
     "preferEditorForMarkdown": "Preferă editorul pentru fișierele Markdown",
     "preferEditorForMarkdownDescription": "Când este activat, deschide fișierele Markdown în editor în locul vizualizatorului Markdown.",
     "deleteAfterArchive": "Șterge fișierele sursă după crearea/extragerea arhivelor",

@@ -131,6 +131,7 @@ func metadataHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 		AlbumArt:                 albumArt,
 		ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles,
 		ShowHidden:               d.user.ShowHidden,
+		HideFileExt:              d.user.HideFileExt,
 		SkipExtendedAttrs:        false,
 		ShowSharedAttr:           true,
 	}, store.Access, d.user, store.Share)
@@ -168,6 +169,7 @@ func publicMetadataHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 		AlbumArt:                 albumArt,
 		ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles && d.share.ExtractEmbeddedSubtitles,
 		ShowHidden:               d.share.ShowHidden,
+		HideFileExt:              d.user.HideFileExt,
 		FollowSymlinks:           false,
 	}, store.Access, d.shareUser, store.Share)
 	if err != nil {

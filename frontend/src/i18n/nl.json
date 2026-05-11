@@ -482,6 +482,8 @@
     "openInAdvancedSearch": "Openen in geavanceerd zoeken"
   },
   "profileSettings": {
+    "hideFileExt": "Bepaalde bestanden verbergen (op extensie)",
+    "hideFileExtDescription": "Een door spaties gescheiden lijst van bestandsextensies. Extensies die in dit veld worden ingevoerd, worden verborgen in de hele gebruikersinterface (visueel, zoals in de lijst of bestandsboom) — Ze blijven toegankelijk.",
     "preferEditorForMarkdown": "Geef de voorkeur aan editor voor Markdown-bestanden",
     "preferEditorForMarkdownDescription": "Indien ingeschakeld, open Markdown-bestanden eerst in de editor in plaats van de Markdown-viewer.",
     "deleteAfterArchive": "Bronbestanden verwijderen na aanmaken/uitpakken van archieven",

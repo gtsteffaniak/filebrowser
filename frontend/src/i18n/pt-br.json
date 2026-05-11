@@ -722,6 +722,8 @@
     "orange": "laranja"
   },
   "profileSettings": {
+    "hideFileExt": "Ocultar certos arquivos (por extensão)",
+    "hideFileExtDescription": "Uma lista de extensões de arquivo separadas por espaços. As extensões inseridas neste campo serão ocultadas em toda a interface do usuário (visualmente, como na lista ou árvore de arquivos) — Continuam acessíveis.",
     "preferEditorForMarkdown": "Preferir editor primeiro para arquivos Markdown",
     "preferEditorForMarkdownDescription": "Quando ativado, abre arquivos Markdown no editor em vez do visualizador Markdown.",
     "deleteAfterArchive": "Excluir arquivos de origem após criação/extração de arquivos",

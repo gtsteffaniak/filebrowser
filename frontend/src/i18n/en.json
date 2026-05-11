@@ -482,6 +482,8 @@
     "openInAdvancedSearch": "Open in Advanced Search"
   },
   "profileSettings": {
+    "hideFileExt": "Hide certain files (by extension)",
+    "hideFileExtDescription": "A space-separated list of file extensions. Extensions in this field will be hidden from all the UI (visually, like the listing or FileTree) -- The files still accessible.",
     "preferEditorForMarkdown": "Prefer editor first for Markdown files",
     "preferEditorForMarkdownDescription": "When enabled, open markdown files in the editor first instead of the Markdown Viewer.",
     "deleteAfterArchive": "Delete source files after creation/extraction of archives",

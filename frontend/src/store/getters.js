@@ -216,23 +216,20 @@ export const getters = {
     return fileCount
   },
   reqItems: () => {
-    if (state.user == null) {
-      return {}
-    }
-    const dirs = []
-    const files = []
-    if (!state.req.items) {
-      return { dirs, files }
-    }
-    state.req.items.forEach(item => {
-      if (item.type == 'directory') {
-        dirs.push(item)
+    if (state.user == null) return { dirs: [], files: [] };
+    const dirs = [];
+    const files = [];
+    if (!state.req.items) return { dirs, files };
+
+    for (const item of state.req.items) {
+      if (item.type === 'directory') {
+        dirs.push(item);
       } else {
-        item.Path = state.req.Path
-        files.push(item)
+        item.Path = state.req.path;
+        files.push(item);
       }
-    })
-    return { dirs, files }
+    }
+    return { dirs, files };
   },
   isSidebarVisible: () => {
     if (globalVars.disableSidebar || getters.isInvalidShare()) {

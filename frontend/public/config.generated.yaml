@@ -164,6 +164,7 @@ userDefaults:
   viewMode: "normal"                      # view mode to use: eg. normal, list, grid, or compact
   singleClick: false                      # open directory on single click, also enables middle click to open in new tab
   showHidden: false                       # show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files
+  hideFileExt: ""                         # space separated list of file extensions to hide in UI
   dateFormat: false                       # when false, the date is relative, when true, the date is an exact timestamp
   gallerySize: 3                          # 0-9 - the size of the gallery thumbnails
   themeColor: "var(--blue)"               # theme color to use: eg. #ff0000, or var(--red), var(--purple), etc

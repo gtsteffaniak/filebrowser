@@ -348,6 +348,8 @@
     "openInAdvancedSearch": "Otevřít v rozšířeném vyhledávání"
   },
   "profileSettings": {
+    "hideFileExt": "Skrýt určité soubory (podle přípony)",
+    "hideFileExtDescription": "Seznam přípon souborů oddělených mezerami. Přípony zadané v tomto poli budou skryty ve všech částech UI (vizuálně, např. v seznamu nebo stromu souborů) — stále jsou přístupné.",
     "preferEditorForMarkdown": "Upřednostnit editor pro Markdown soubory",
     "preferEditorForMarkdownDescription": "Pokud je povoleno, otevřou se Markdown soubory nejprve v editoru místo v prohlížeči Markdown.",
     "deleteAfterArchive": "Smazat zdrojové soubory po vytvoření/extrahování archivů",

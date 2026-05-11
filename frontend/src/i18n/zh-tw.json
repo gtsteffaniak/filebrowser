@@ -542,6 +542,8 @@
     "error": "錯誤"
   },
   "profileSettings": {
+    "hideFileExt": "隱藏特定檔案（按副檔名）",
+    "hideFileExtDescription": "空格分隔的副檔名列表。在此欄位中輸入的副檔名將從所有使用者介面中隱藏（視覺上，如清單或檔案樹）——它們仍然可存取。",
     "preferEditorForMarkdown": "優先使用編輯器開啟 Markdown 檔案",
     "preferEditorForMarkdownDescription": "啟用後，Markdown 檔案將首先在編輯器中開啟，而不是 Markdown 檢視器。",
     "deleteAfterArchive": "建立/解壓縮封存檔後刪除來源檔案",
