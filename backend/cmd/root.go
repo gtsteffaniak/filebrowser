@@ -176,6 +176,9 @@ func StartFilebrowser() {
 		fileutils.ClearCacheDir(settings.Config.Server.CacheDir)
 	}
 	<-shutdownComplete
+	if err := fileutils.ClearDirectoryContents(settings.DownloadCacheDir()); err != nil {
+		logger.Warningf("failed to clear download spool on shutdown: %v", err)
+	}
 	logger.Info("Shutdown complete.")
 }
 

@@ -147,9 +147,14 @@ export async function put(source, path, content = '') {
 }
 
 export async function download(format, files, shareHash = "") {
-  // Check if chunked download should be used (single file only)
   const downloadChunkSizeMb = state.user?.fileLoading?.downloadChunkSizeMb || 0
-  const sizeThreshold = downloadChunkSizeMb * 1024 * 1024;
+  const sizeThreshold = downloadChunkSizeMb * 1024 * 1024
+
+  const isMultiItemArchive =
+    files.length > 1 || (files.length === 1 && files[0].isDir)
+
+  const useChunkedArchive =
+    downloadChunkSizeMb > 0 && isMultiItemArchive
 
   const useChunkedDownload =
     downloadChunkSizeMb > 0 &&
@@ -159,24 +164,19 @@ export async function download(format, files, shareHash = "") {
     files[0].size >= sizeThreshold
 
   if (useChunkedDownload) {
-    // Use chunked download for large single files
     return await downloadChunked(files[0], shareHash)
   }
 
-  // Normal download (archive or small files)
   if (format !== 'zip') {
     format = 'tar.gz'
   }
 
-  // For non-share downloads, validate single source and build file list
   let source = null
   let filePaths = []
 
   if (shareHash) {
-    // For shares, no source parameter needed, just paths
-    filePaths = files.map(file => file.path)
+    filePaths = files.map((file) => file.path)
   } else {
-    // Validate all files are from the same source
     for (let file of files) {
       if (!file.source) {
         throw new Error('File source is required for downloads')
@@ -191,29 +191,27 @@ export async function download(format, files, shareHash = "") {
   }
 
   const params = {
-    file: filePaths, // Array of file paths - getApiPath will create repeated parameters
+    file: filePaths,
     algo: format,
     ...(shareHash && { hash: shareHash }),
     ...(!shareHash && source && { source: source }),
     ...(state.shareInfo.token && { token: state.shareInfo.token }),
-    sessionId: state.sessionId
+    sessionId: state.sessionId,
   }
 
   const apiPath = getApiPath("resources/download", params, false, shareHash !== "")
   const url = window.origin + apiPath
 
-  // Create a direct link and trigger the download
-  // This allows the browser to handle the download natively with:
-  // - Native download progress indicator
-  // - Shows up in browser's download menu
-  // - Doesn't load entire file into memory first
+  if (useChunkedArchive) {
+    return await downloadChunkedArchive(url, format, files, filePaths, source, shareHash)
+  }
+
   const link = document.createElement('a')
   link.href = url
   link.style.display = 'none'
   document.body.appendChild(link)
   link.click()
 
-  // Clean up after a short delay
   setTimeout(() => {
     document.body.removeChild(link)
   }, 100)
@@ -232,6 +230,319 @@ async function readDownloadErrorBody(response) {
   return ''
 }
 
+/** Parse total size from Content-Range: bytes 0-0/12345 */
+function totalFromContentRange(headerVal) {
+  if (!headerVal || typeof headerVal !== 'string') return 0
+  const idx = headerVal.lastIndexOf('/')
+  if (idx === -1) return 0
+  const n = parseInt(headerVal.slice(idx + 1), 10)
+  return Number.isFinite(n) ? n : 0
+}
+
+function appendArchiveTokenToUrl(url, token) {
+  if (!token) return url
+  const sep = url.includes('?') ? '&' : '?'
+  return `${url}${sep}archiveToken=${encodeURIComponent(token)}`
+}
+
+/** @returns {Promise<{ size: number, token: string | null }>} */
+async function resolveDownloadContentLength(url) {
+  let token = null
+  let res = await fetch(url, { method: 'HEAD', credentials: 'same-origin' })
+  if (res.ok) {
+    token = res.headers.get('X-Archive-Token')
+    const cl = res.headers.get('Content-Length')
+    if (cl) {
+      const n = parseInt(cl, 10)
+      if (Number.isFinite(n) && n > 0) {
+        return { size: n, token }
+      }
+    }
+  }
+  res = await fetch(url, {
+    method: 'GET',
+    headers: { Range: 'bytes=0-0' },
+    credentials: 'same-origin',
+  })
+  try {
+    token = res.headers.get('X-Archive-Token') || token
+    if (res.status === 206) {
+      const total = totalFromContentRange(res.headers.get('Content-Range'))
+      if (total > 0) {
+        return { size: total, token }
+      }
+    }
+    if (res.ok) {
+      const cl = res.headers.get('Content-Length')
+      if (cl) {
+        const n = parseInt(cl, 10)
+        if (Number.isFinite(n) && n > 0) {
+          return { size: n, token }
+        }
+      }
+    }
+  } finally {
+    if (res.body && typeof res.body.cancel === 'function') {
+      try {
+        await res.body.cancel()
+      } catch {
+        // ignore
+      }
+    }
+  }
+  return { size: 0, token: null }
+}
+
+function archiveDisplayFileName(format, files) {
+  const ext = format === 'zip' ? '.zip' : '.tar.gz'
+  const first = files[0]
+  if (files.length === 1 && first.isDir) {
+    const base =
+      first.name ||
+      (first.path && first.path.split('/').filter(Boolean).pop()) ||
+      'download'
+    return base + ext
+  }
+  if (first && first.path) {
+    const parts = first.path.split('/').filter(Boolean)
+    if (parts.length >= 2) {
+      return parts[parts.length - 2] + ext
+    }
+    if (parts.length === 1) {
+      return parts[0] + ext
+    }
+  }
+  return 'download' + ext
+}
+
+/**
+ * Range-based fetch; updates downloadManager progress for downloadId.
+ * @returns {Promise<Blob|null>}
+ */
+async function chunkedRangeDownloadToBlob(
+  baseUrl,
+  fileSize,
+  chunkSize,
+  downloadId,
+  abortController
+) {
+  const chunks = []
+  let offset = 0
+  let loaded = 0
+  if (!Number.isFinite(fileSize) || fileSize <= 0) {
+    throw new Error('Invalid file size for chunked download')
+  }
+  /** May be corrected from Content-Range when the listing size disagrees with the file on disk. */
+  let totalSize = fileSize
+
+  while (offset < totalSize) {
+    const download = downloadManager.findById(downloadId)
+    if (download && download.status === 'cancelled') {
+      return null
+    }
+
+    const end = Math.min(offset + chunkSize - 1, totalSize - 1)
+    const rangeHeader = `bytes=${offset}-${end}`
+
+    const response = await fetch(baseUrl, {
+      headers: {
+        Range: rangeHeader,
+      },
+      credentials: 'same-origin',
+      signal: abortController.signal,
+    })
+
+    if (!response.ok && response.status !== 206) {
+      const body = (await readDownloadErrorBody(response)).trim()
+      const fromHttp =
+        body ||
+        [response.statusText, `HTTP ${response.status}`].filter(Boolean).join(' ').trim()
+      throw new Error(fromHttp || 'Request failed')
+    }
+
+    if (!response.body) {
+      throw new Error(
+        [response.statusText, `HTTP ${response.status}`].filter(Boolean).join(' ').trim() ||
+          'No response body'
+      )
+    }
+
+    if (response.status === 206) {
+      const fromCr = totalFromContentRange(response.headers.get('Content-Range'))
+      if (fromCr > 0) {
+        totalSize = fromCr
+        const dl = downloadManager.findById(downloadId)
+        if (dl) {
+          dl.size = fromCr
+        }
+      }
+    } else if (response.status === 200) {
+      const clFull = response.headers.get('Content-Length')
+      if (clFull) {
+        const n = parseInt(clFull, 10)
+        if (Number.isFinite(n) && n > 0) {
+          totalSize = n
+          const dl = downloadManager.findById(downloadId)
+          if (dl) {
+            dl.size = n
+          }
+        }
+      }
+    }
+
+    const cl = response.headers.get('Content-Length')
+    let expectedChunkSize = end - offset + 1
+    if (cl) {
+      const n = parseInt(cl, 10)
+      if (Number.isFinite(n) && n > 0) {
+        expectedChunkSize = n
+      }
+    }
+
+    const reader = response.body.getReader()
+    const chunkParts = []
+    let chunkLoaded = 0
+    let lastProgressUpdate = 0
+    const progressUpdateInterval = Math.max(50000, expectedChunkSize / 50)
+
+    try {
+      let reading = true
+      while (reading) {
+        const { done, value } = await reader.read()
+        if (done) {
+          reading = false
+          break
+        }
+
+        chunkParts.push(value)
+        chunkLoaded += value.length
+
+        const chunkProgress = Math.min(chunkLoaded, expectedChunkSize)
+        const totalLoaded = offset + chunkProgress
+
+        if (
+          chunkLoaded - lastProgressUpdate >= progressUpdateInterval ||
+          chunkLoaded >= expectedChunkSize
+        ) {
+          downloadManager.updateProgress(downloadId, totalLoaded, totalSize)
+          lastProgressUpdate = chunkLoaded
+        }
+      }
+    } catch (readError) {
+      const download = downloadManager.findById(downloadId)
+      if (readError.name === 'AbortError' || (download && download.status === 'cancelled')) {
+        downloadManager.setStatus(downloadId, 'cancelled')
+        return null
+      }
+      throw readError
+    }
+
+    if (chunkLoaded < expectedChunkSize) {
+      throw new Error('Connection closed before the full chunk was received')
+    }
+
+    const chunk = new Uint8Array(chunkLoaded)
+    let position = 0
+    for (const part of chunkParts) {
+      chunk.set(part, position)
+      position += part.length
+    }
+
+    const chunkToUse =
+      chunk.byteLength > expectedChunkSize
+        ? chunk.slice(0, expectedChunkSize).buffer
+        : chunk.buffer
+
+    chunks.push(chunkToUse)
+    loaded += expectedChunkSize
+    downloadManager.updateProgress(downloadId, loaded, totalSize)
+    offset += expectedChunkSize
+  }
+
+  return new Blob(chunks, { type: 'application/octet-stream' })
+}
+
+async function downloadChunkedArchive(url, format, files, filePaths, source, shareHash) {
+  const downloadChunkSizeMb = state.user?.fileLoading?.downloadChunkSizeMb || 0
+  if (downloadChunkSizeMb === 0) {
+    throw new Error('Chunked download is disabled (chunk size is 0)')
+  }
+  const chunkSize = downloadChunkSizeMb * 1024 * 1024
+  const fileName = archiveDisplayFileName(format, files)
+  const { size: fileSize, token } = await resolveDownloadContentLength(url)
+  if (!fileSize || fileSize <= 0) {
+    throw new Error('Could not determine archive size for chunked download')
+  }
+
+  const baseUrl = appendArchiveTokenToUrl(url, token)
+
+  const stub = {
+    name: fileName,
+    path: filePaths[0],
+    source: source || '',
+    size: fileSize,
+    isDir: false,
+  }
+  const downloadId = downloadManager.add(stub, shareHash)
+  const dl = downloadManager.findById(downloadId)
+  if (dl) {
+    dl.archiveFormat = format
+    dl.archiveFiles = files
+  }
+
+  downloadManager.setStatus(downloadId, 'downloading')
+
+  const hasDownloadPrompt = state.prompts && state.prompts.some((h) => h.name === 'download')
+  if (!hasDownloadPrompt) {
+    mutations.showPrompt({ name: 'download' })
+  }
+
+  const abortController = new AbortController()
+  const dlm = downloadManager.findById(downloadId)
+  if (dlm) {
+    dlm.abortController = abortController
+  }
+
+  try {
+    const blob = await chunkedRangeDownloadToBlob(
+      baseUrl,
+      fileSize,
+      chunkSize,
+      downloadId,
+      abortController
+    )
+    if (!blob) {
+      return
+    }
+
+    const blobUrl = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = blobUrl
+    link.download = fileName
+    link.style.display = 'none'
+    document.body.appendChild(link)
+    link.click()
+
+    downloadManager.setStatus(downloadId, 'completed')
+    downloadManager.updateProgress(downloadId, fileSize, fileSize)
+
+    setTimeout(() => {
+      document.body.removeChild(link)
+      URL.revokeObjectURL(blobUrl)
+    }, 100)
+  } catch (error) {
+    const download = downloadManager.findById(downloadId)
+    if (error.name === 'AbortError' || (download && download.status === 'cancelled')) {
+      downloadManager.setStatus(downloadId, 'cancelled')
+      return
+    }
+    const message =
+      error instanceof Error ? error.message || 'Unknown error' : String(error)
+    downloadManager.setError(downloadId, message)
+    throw error
+  }
+}
+
 async function downloadChunked(file, shareHash = "") {
   const chunkSizeMb = state.user?.fileLoading?.downloadChunkSizeMb || 0
 
@@ -239,22 +550,9 @@ async function downloadChunked(file, shareHash = "") {
     throw new Error("Chunked download is disabled (chunk size is 0)")
   }
   const chunkSize = chunkSizeMb * 1024 * 1024 // Convert MB to bytes
-  const fileSize = file.size
 
   // Extract filename from path if name is not available
   const fileName = file.name || (file.path ? file.path.split('/').pop() : 'download')
-
-  // Add to download manager
-  const downloadId = downloadManager.add(file, shareHash)
-
-  downloadManager.setStatus(downloadId, "downloading")
-
-  // Show download prompt if not already shown (it should already be shown by downloadFiles, but check to be safe)
-  const hasDownloadPrompt = state.prompts && state.prompts.some(h => h.name === 'download');
-
-  if (!hasDownloadPrompt) {
-    mutations.showPrompt({ name: 'download' })
-  }
 
   const params = {
     file: file.path,
@@ -267,123 +565,45 @@ async function downloadChunked(file, shareHash = "") {
   const apiPath = getApiPath("resources/download", params, false, shareHash !== "")
   const baseUrl = window.origin + apiPath
 
+  let fileSize = Number(file.size)
+  const { size: serverLen } = await resolveDownloadContentLength(baseUrl)
+  if (Number.isFinite(serverLen) && serverLen > 0) {
+    fileSize = serverLen
+  }
+  if (!Number.isFinite(fileSize) || fileSize <= 0) {
+    throw new Error('Could not determine file size for chunked download')
+  }
+
+  const queuedFile = { ...file, size: fileSize }
+  const downloadId = downloadManager.add(queuedFile, shareHash)
+
+  downloadManager.setStatus(downloadId, "downloading")
+
+  // Show download prompt if not already shown (it should already be shown by downloadFiles, but check to be safe)
+  const hasDownloadPrompt = state.prompts && state.prompts.some(h => h.name === 'download');
+
+  if (!hasDownloadPrompt) {
+    mutations.showPrompt({ name: 'download' })
+  }
+
   const download = downloadManager.findById(downloadId)
   const abortController = new AbortController()
   download.abortController = abortController
 
   try {
-    // Download file in chunks
-    const chunks = []
-    let offset = 0
-    let loaded = 0
-
-    while (offset < fileSize) {
-
-      const download = downloadManager.findById(downloadId);
-      if (download && download.status === "cancelled") {
-        // Silently handle cancellation - don't throw error
-        return;
-      }
-
-      const end = Math.min(offset + chunkSize - 1, fileSize - 1)
-      const rangeHeader = `bytes=${offset}-${end}`
-
-      const response = await fetch(baseUrl, {
-        headers: {
-          'Range': rangeHeader
-        },
-        credentials: 'same-origin',
-        signal: abortController.signal
-      })
-
-      if (!response.ok && response.status !== 206) {
-        const body = (await readDownloadErrorBody(response)).trim()
-        const fromHttp =
-          body ||
-          [response.statusText, `HTTP ${response.status}`].filter(Boolean).join(" ").trim()
-        throw new Error(fromHttp || "Request failed")
-      }
-
-      if (!response.body) {
-        throw new Error(
-          [response.statusText, `HTTP ${response.status}`].filter(Boolean).join(" ").trim() ||
-            "No response body"
-        )
-      }
-
-      // Track progress within the chunk using ReadableStream
-      const expectedChunkSize = end - offset + 1;
-
-      const reader = response.body.getReader();
-      const chunkParts = [];
-      let chunkLoaded = 0;
-      let lastProgressUpdate = 0;
-      const progressUpdateInterval = Math.max(50000, expectedChunkSize / 50); // Update every ~2% of chunk or 50KB
-
-      try {
-        let reading = true;
-        while (reading) {
-          const { done, value } = await reader.read();
-          if (done) {
-            reading = false;
-            break;
-          }
-
-          chunkParts.push(value);
-          chunkLoaded += value.length;
-
-          // Calculate progress: only count up to expected chunk size to avoid over-counting
-          const chunkProgress = Math.min(chunkLoaded, expectedChunkSize);
-          const totalLoaded = offset + chunkProgress;
-
-          // Update progress in real-time, but throttle updates for performance
-          if (chunkLoaded - lastProgressUpdate >= progressUpdateInterval || chunkLoaded >= expectedChunkSize) {
-            downloadManager.updateProgress(downloadId, totalLoaded, fileSize);
-            lastProgressUpdate = chunkLoaded;
-          }
-        }
-      } catch (readError) {
-        // If read was aborted, check if download was cancelled
-        const download = downloadManager.findById(downloadId);
-        if (readError.name === 'AbortError' || (download && download.status === "cancelled")) {
-          downloadManager.setStatus(downloadId, "cancelled");
-          return; // Silently handle cancellation
-        }
-        throw readError; // Re-throw other errors
-      }
-
-      if (chunkLoaded < expectedChunkSize) {
-        throw new Error("Connection closed before the full chunk was received")
-      }
-
-      // Combine chunk parts into single ArrayBuffer
-      const chunk = new Uint8Array(chunkLoaded);
-      let position = 0;
-      for (const part of chunkParts) {
-        chunk.set(part, position);
-        position += part.length;
-      }
-
-      // Only use the expected chunk size portion if server returned more (handles Range header issues)
-      const chunkToUse = chunk.byteLength > expectedChunkSize
-        ? chunk.slice(0, expectedChunkSize).buffer
-        : chunk.buffer;
-
-      chunks.push(chunkToUse)
-      // Always use expected chunk size for progress to avoid double-counting
-      loaded += expectedChunkSize
-
-      // Final progress update for this chunk
-      downloadManager.updateProgress(downloadId, loaded, fileSize)
-
-      offset = end + 1
+    const blob = await chunkedRangeDownloadToBlob(
+      baseUrl,
+      fileSize,
+      chunkSize,
+      downloadId,
+      abortController
+    )
+    if (!blob) {
+      return
     }
 
-    // Combine all chunks into a single blob
-    const blob = new Blob(chunks, { type: 'application/octet-stream' })
     const blobUrl = URL.createObjectURL(blob)
 
-    // Trigger download
     const link = document.createElement('a')
     link.href = blobUrl
     link.download = fileName
@@ -391,11 +611,11 @@ async function downloadChunked(file, shareHash = "") {
     document.body.appendChild(link)
     link.click()
 
-    // Mark as completed
     downloadManager.setStatus(downloadId, "completed")
-    downloadManager.updateProgress(downloadId, fileSize, fileSize)
+    const dlDone = downloadManager.findById(downloadId)
+    const finalSize = dlDone?.size ?? fileSize
+    downloadManager.updateProgress(downloadId, finalSize, finalSize)
 
-    // Clean up
     setTimeout(() => {
       document.body.removeChild(link)
       URL.revokeObjectURL(blobUrl)

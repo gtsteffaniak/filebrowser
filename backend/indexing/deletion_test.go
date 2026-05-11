@@ -26,11 +26,9 @@ func setupTestIndexForDeletion(t *testing.T) *Index {
 	// Create index with mock data
 	idx := &Index{
 		Source: settings.Source{
-			Name: "test_delete",
-			Path: "/mock/path",
-			Config: settings.SourceConfig{
-				DisableIndexing: false,
-			},
+			Name:   "test_delete",
+			Path:   "/mock/path",
+			Config: settings.SourceConfig{},
 		},
 		db:   indexDB,
 		mock: true, // Enable mock mode
