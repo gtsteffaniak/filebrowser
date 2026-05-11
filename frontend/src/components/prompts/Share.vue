@@ -213,6 +213,21 @@
             <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="showHidden"
               :name="$t('profileSettings.showHiddenFiles')"
               :description="$t('profileSettings.showHiddenFilesDescription')" />
+            <div>
+              <p>
+                {{ $t("profileSettings.hideFileExt") }}
+                <i class="material-symbols-outlined tooltip-info-icon"
+                  @mouseenter="showTooltip($event, $t('profileSettings.hideFileExtDescription'))"
+                  @mouseleave="hideTooltip">
+                  help
+                </i>
+              </p>
+            <input class="input"
+              :class="{ 'form-invalid': !validateExtensions(hideFileExt) }"
+              type="text"
+              :placeholder="$t('profileSettings.disableFileExtensions')"
+              v-model.trim="hideFileExt" />
+            </div>
             <ToggleSwitch v-if="shareType !== 'upload'" class="item" v-model="disableNavButtons"
               :name="$t('share.hideNavButtons')" :description="$t('share.hideNavButtonsDescription')" />
             <ToggleSwitch class="item" v-model="disableShareCard" :name="$t('share.disableShareCard')"
@@ -382,6 +397,7 @@ export default {
       disableFileViewer: false,
       disableThumbnails: false,
       showHidden: false,
+      hideFileExt: "",
       enableAllowedUsernames: false,
       allowedUsernames: "",
       keepAfterExpiration: false,
@@ -541,6 +557,7 @@ export default {
           this.disableThumbnails = this.link.disableThumbnails || false;
           this.disableFileViewer = this.link.disableFileViewer || false;
           this.showHidden = this.link.showHidden || false;
+          this.hideFileExt = this.link.hideFileExt || "";
           this.enableAllowedUsernames = Array.isArray(this.link.allowedUsernames) && this.link.allowedUsernames.length > 0;
           this.allowedUsernames = this.enableAllowedUsernames ? this.link.allowedUsernames.join(", ") : "";
           this.keepAfterExpiration = this.link.keepAfterExpiration || false;
@@ -621,6 +638,10 @@ export default {
       mutations.hideTooltip();
     },
     async submit() {
+      if (this.hideFileExt !== "" && !this.validateExtensions(this.hideFileExt)) {
+        notify.showError("Invalid input, does not match requirement.");
+        return;
+      }
       try {
         if (!this.description) {
           if (this.shareType === 'upload') {
@@ -651,6 +672,7 @@ export default {
           disableFileViewer: this.disableFileViewer,
           disableThumbnails: this.disableThumbnails,
           showHidden: this.showHidden,
+          hideFileExt: this.hideFileExt,
           allowedUsernames: this.enableAllowedUsernames ? this.allowedUsernames.split(',').map(u => u.trim()) : [],
           keepAfterExpiration: this.keepAfterExpiration,
           hash: '',
@@ -743,6 +765,7 @@ export default {
       this.disableThumbnails = link.disableThumbnails || false;
       this.disableFileViewer = link.disableFileViewer || false;
       this.showHidden = link.showHidden || false;
+      this.hideFileExt = link.hideFileExt || "";
       this.enableAllowedUsernames = Array.isArray(link.allowedUsernames) && link.allowedUsernames.length > 0;
       this.allowedUsernames = this.enableAllowedUsernames ? link.allowedUsernames.join(", ") : "";
       this.keepAfterExpiration = link.keepAfterExpiration || false;
@@ -969,6 +992,11 @@ export default {
       }
       this.pendingBannerFaviconContextId = null;
       this.filePickerField = null;
+    },
+    validateExtensions(value) {
+        if (value === "" || value === "*") return true;
+        const regex = /^\.\w+(?: \.\w+)*$/;
+        return regex.test(value);
     },
   },
 };

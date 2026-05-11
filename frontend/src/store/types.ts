@@ -157,6 +157,7 @@ export interface StoreState {
     letter: string;
     scrolling: boolean;
     scrollRatio: number;
+    listingScrollTop: number;
   };
   previewRaw: string;
   oldReq: any;

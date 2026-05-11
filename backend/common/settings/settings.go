@@ -57,10 +57,14 @@ func GetSettingsConfig(nameType string, Value string) string {
 
 func AdminPerms() users.Permissions {
 	return users.Permissions{
-		Modify: true,
-		Share:  true,
-		Admin:  true,
-		Api:    true,
+		Modify:   true,
+		Share:    true,
+		Admin:    true,
+		Api:      true,
+		Download: true,
+		Delete:   true,
+		Create:   true,
+		Realtime: false,
 	}
 }
 
@@ -84,6 +88,7 @@ func ApplyUserDefaults(u *users.User) {
 	u.ViewMode = d.ViewMode
 	u.SingleClick = d.SingleClick
 	u.ShowHidden = d.ShowHidden
+	u.HideFileExt = d.HideFileExt
 	u.DateFormat = d.DateFormat
 	u.GallerySize = d.GallerySize
 	u.ThemeColor = d.ThemeColor
@@ -95,6 +100,7 @@ func ApplyUserDefaults(u *users.User) {
 	u.DisableOnlyOfficeExt = d.DisableOnlyOfficeExt
 	u.CustomTheme = d.CustomTheme
 	u.ShowSelectMultiple = d.ShowSelectMultiple
+	u.ShowToolsInSidebar = boolValueOrDefault(d.ShowToolsInSidebar, true)
 	u.DebugOffice = d.DebugOffice
 	u.DeleteWithoutConfirming = d.DeleteWithoutConfirming
 	u.DeleteAfterArchive = d.DeleteAfterArchive
@@ -134,7 +140,16 @@ func ApplyUserDefaults(u *users.User) {
 					Name:  source.Path, // backend name is path
 					Scope: source.Config.DefaultUserScope,
 				})
+				u.SidebarLinks = append(u.SidebarLinks, users.SidebarLink{
+					Name:       source.Name,
+					Category:   "source",
+					Target:     "/",
+					Icon:       "",
+					SourceName: source.Path,
+				})
 			}
 		}
 	}
+
+	u.Version = users.CurrentUserMigrationVersion
 }

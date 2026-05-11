@@ -76,7 +76,3 @@ button:disabled {
   right: 1rem;
   z-index: 1000;
 }
-
-.searchContext {
-  margin-bottom: 1em;
-}

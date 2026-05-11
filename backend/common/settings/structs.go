@@ -205,7 +205,6 @@ type SourceConfig struct {
 	Private          bool              `json:"private"`                           // designate as source as private -- currently just means no sharing permitted.
 	Disabled         bool              `json:"disabled,omitempty"`                // disable the source, this is useful so you don't need to remove it from the config file
 	IndexingInterval uint32            `json:"indexingIntervalMinutes,omitempty"` // deprecated: create a rule with indexingIntervalMinutes to set the indexing interval for this source
-	DisableIndexing  bool              `json:"disableIndexing,omitempty"`         // deprecated: use indexingDisabled instead to disable the indexing of this source
 	Conditionals     ConditionalFilter `json:"conditionals"`                      // deprecated: use source.rules instead
 	Rules            []ConditionalRule `json:"rules"`                             // list of item rules to apply to specific paths
 	DefaultUserScope string            `json:"defaultUserScope"`                  // defaults to root of index "/" should match folders under path
@@ -350,6 +349,7 @@ type UserDefaults struct {
 	ViewMode                   string                  `json:"viewMode"`                  // view mode to use: eg. normal, list, grid, or compact
 	SingleClick                bool                    `json:"singleClick"`               // open directory on single click, also enables middle click to open in new tab
 	ShowHidden                 bool                    `json:"showHidden"`                // show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files
+	HideFileExt                string                  `json:"hideFileExt"`               // space separated list of file extensions to hide in UI
 	DateFormat                 bool                    `json:"dateFormat"`                // when false, the date is relative, when true, the date is an exact timestamp
 	GallerySize                int                     `json:"gallerySize"`               // 0-9 - the size of the gallery thumbnails
 	ThemeColor                 string                  `json:"themeColor"`                // theme color to use: eg. #ff0000, or var(--red), var(--purple), etc
@@ -370,6 +370,7 @@ type UserDefaults struct {
 	DisableOnlyOfficeExt       string                  `json:"disableOnlyOfficeExt"`       // list of file extensions to disable onlyoffice editor for
 	CustomTheme                string                  `json:"customTheme"`                // Name of theme to use chosen from custom themes config.
 	ShowSelectMultiple         bool                    `json:"showSelectMultiple"`         // show select multiple files on desktop
+	ShowToolsInSidebar         *bool                   `json:"showToolsInSidebar"`         // show sidebar links with category "tool"; default is true
 	DebugOffice                bool                    `json:"debugOffice"`                // debug onlyoffice editor
 	PreferEditorForMarkdown    bool                    `json:"preferEditorForMarkdown"`    // prefer editor first for markdown files instead of the Markdown Viewer.
 	ShowCopyPath               bool                    `json:"showCopyPath"`               // show copy path button in the context menu

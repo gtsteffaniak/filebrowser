@@ -148,7 +148,6 @@
     "passwordsDontMatch": "비밀번호가 일치하지 않습니다",
     "usernameTaken": "사용자 이름이 존재합니다",
     "wrongCredentials": "사용자 이름 또는 비밀번호를 확인하십시오",
-    "or": "또는",
     "inProgress": "로그인...",
     "failedLogin": "로그인에 실패했습니다.",
     "invalidCredentials": "제공된 자격 증명이 잘못되었습니다.",
@@ -265,10 +264,11 @@
     "olderThanDate": "이전보다 오래되었습니다:",
     "newerThanDate": "보다 최신:",
     "noResults": "결과를 찾을 수 없습니다.",
-    "useWildcardSearch": "와일드카드 검색",
     "helpText1": "검색은 입력하는 각 문자({minSearchLength} 최소 글자 수)에 대해 이루어집니다.",
-    "useWildcardSearchDescription": "지원되는 와일드카드:\n\n- 모든 시퀀스와 일치합니다: *\n\n- 한 문자 일치: ?\n\n- 문자 클래스: [a-z], [0-9]\n\n- 부정: [^0-9]\n\n- 리터럴 *, ? 또는 [는 괄호로 묶어야 합니다(예: [*], [?], [[]).",
-    "helpText2": "대소문자 구분 일치를 위해 파일 또는 폴더 이름에 대해서만 하위 문자열 일치(전체 경로가 아님).\n\n 용어 사이의 OR에는 파이프 문자를, 한 구문에는 큰따옴표를 사용합니다.\n\n고급 옵션을 사용하려면 와일드카드 검색을 사용 설정하세요."
+    "helpText2": "대소문자 구분 일치를 위해 파일 또는 폴더 이름에 대해서만 하위 문자열 일치(전체 경로가 아님).\n\n 용어 사이의 OR에는 파이프 문자를, 한 구문에는 큰따옴표를 사용합니다.\n\n고급 옵션을 사용하려면 와일드카드 검색을 사용 설정하세요.",
+    "useWildcardSearch": "와일드카드 검색(대소문자 구분)",
+    "useWildcardSearchDescription": "지원되는 와일드카드 옵션:\n\n- 모든 시퀀스와 일치합니다: *\n\n- 한 문자 일치: ?\n\n- 문자 클래스: [a-z], [0-9]\n\n- 부정: [^0-9]\n\n- 리터럴 *, ? 또는 [는 괄호로 묶어야 합니다(예: [*], [?], [[]).\n\n- 모든 결과는 대소문자를 구분합니다.",
+    "openInAdvancedSearch": "고급 검색에서 열기"
   },
   "settings": {
     "administrator": "관리자",
@@ -675,7 +675,9 @@
     "office": "Office{suffix}",
     "show": "표시{suffix}",
     "divider": "디바이더{suffix}",
-    "audio": "오디오{suffix}"
+    "audio": "오디오{suffix}",
+    "and": "그리고",
+    "or": "또는"
   },
   "access": {
     "rules": "액세스 규칙",
@@ -721,6 +723,8 @@
     "orange": "오렌지"
   },
   "profileSettings": {
+    "hideFileExt": "특정 파일 숨기기 (확장자 기준)",
+    "hideFileExtDescription": "공백으로 구분된 파일 확장자 목록입니다. 이 필드에 입력된 확장자는 모든 UI(목록 또는 파일 트리와 같은 시각적 요소)에서 숨겨집니다 — 여전히 접근 가능합니다.",
     "preferEditorForMarkdown": "Markdown 파일에 대해 편집기 우선 사용",
     "preferEditorForMarkdownDescription": "활성화하면 Markdown 파일을 Markdown 뷰어 대신 편집기에서 먼저 엽니다.",
     "deleteAfterArchive": "아카이브 생성/추출 후 소스 파일 삭제",
@@ -796,6 +800,8 @@
     "created": "생성일",
     "lastUsed": "마지막 사용",
     "passkeyDefaultName": "패스키"
+    "showToolsInSidebar": "사이드바에 도구 표시",
+    "showToolsInSidebarDescription": "사이드바에 항상 도구 링크를 표시합니다."
   },
   "editor": {
     "uninitialized": "편집기를 초기화하지 못했습니다. 다시 로드하세요.",
@@ -888,6 +894,20 @@
       "stopWatching": "시청 중지",
       "emptyState": "파일을 선택하고 재생을 클릭하여 파일 변경 사항 모니터링을 시작하세요.",
       "chooseFile": "파일 선택"
+    },
+    "advancedSearch": {
+      "name": "고급 검색",
+      "description": "소스, 필터 및 옵션을 완벽하게 제어하여 색인을 검색하세요.",
+      "searchTerms": "검색어",
+      "matchAllTerms": "모든 용어 일치",
+      "matchAllTermsDescription": "활성화하면 각 파일에 대해 모든 검색어를 찾아야 합니다.",
+      "scopeAria": "폴더로 검색 제한",
+      "noTerms": "검색어를 하나 이상 입력합니다.",
+      "termTooShort": "각 검색어는 {minSearchLength} 자 이상이어야 합니다.",
+      "caseExact": "대소문자 구분 일치",
+      "resultsTitle": "검색 결과",
+      "invalidSources": "하나 이상의 소스를 켭니다.",
+      "noResults": "일치하는 파일이나 폴더가 없습니다."
     }
   },
   "messages": {

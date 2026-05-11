@@ -14,8 +14,7 @@ func setupConditionalTestIndex(conditionals settings.ConditionalFilter) *Index {
 		Name: "test",
 		Path: "/test/path",
 		Config: settings.SourceConfig{
-			DisableIndexing: false,
-			Conditionals:    conditionals,
+			Conditionals: conditionals,
 		},
 	}
 

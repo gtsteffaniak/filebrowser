@@ -67,11 +67,9 @@ func TestMultiScannerMutex(t *testing.T) {
 	// Create a mock index with multi-scanner support
 	idx := &Index{
 		Source: settings.Source{
-			Name: "test-multiscanner",
-			Path: "/tmp/test",
-			Config: settings.SourceConfig{
-				DisableIndexing: false,
-			},
+			Name:   "test-multiscanner",
+			Path:   "/tmp/test",
+			Config: settings.SourceConfig{},
 		},
 		mock:     true,
 		db:       indexDB,

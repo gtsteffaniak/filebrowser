@@ -416,6 +416,8 @@
     "helpText2": "__NOT_TRANSLATED__"
   },
   "profileSettings": {
+    "hideFileExt": "Fela ákveðnar skrár (eftir skráarendingu)",
+    "hideFileExtDescription": "Bilskiptur listi yfir skráarendingar. Skráarendingar sem slegnar eru inn í þennan reit verða faldar í öllu notendaviðmótinu (sjónrænt, eins og í listanum eða skráatrénu) — Þær eru samt aðgengilegar.",
     "preferEditorForMarkdown": "Kjósa ritil fyrst fyrir Markdown skrár",
     "preferEditorForMarkdownDescription": "Þegar virkt, opna Markdown skrár fyrst í ritlinum í stað Markdown skoðara.",
     "deleteAfterArchive": "Eyða upprunaskrám eftir stofnun/útdrátt safnskráa",

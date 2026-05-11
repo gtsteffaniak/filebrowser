@@ -155,6 +155,20 @@ type Items struct {
 	Folders []string `json:"folders,omitempty"`
 }
 
+// This removes files whose names match any extension in hideFileExt.
+func filterFilesByExt(files []iteminfo.ExtendedItemInfo, hideFileExt string) []iteminfo.ExtendedItemInfo {
+    if hideFileExt == "" {
+        return files
+    }
+    filtered := files[:0]
+    for _, f := range files {
+        if !utils.HideFileByExt(f.Name, hideFileExt) {
+            filtered = append(filtered, f)
+        }
+    }
+    return filtered
+}
+
 func GetDirItems(opts utils.FileOptions, access *access.Storage, user *users.User) (Items, error) {
 	items := Items{}
 	indexPath, _, err := CheckPermissions(opts, access, user)
@@ -171,6 +185,7 @@ func GetDirItems(opts utils.FileOptions, access *access.Storage, user *users.Use
 		IndexPath:         indexPath,
 		FollowSymlinks:    opts.FollowSymlinks,
 		ShowHidden:        opts.ShowHidden,
+		HideFileExt:       opts.HideFileExt,
 		Expand:            true,
 		SkipExtendedAttrs: true,
 	})
@@ -185,6 +200,9 @@ func GetDirItems(opts utils.FileOptions, access *access.Storage, user *users.Use
 	}
 	if opts.Only == "files" || opts.Only == "" {
 		for _, file := range info.Files {
+			if opts.HideFileExt != "" && utils.HideFileByExt(file.Name, opts.HideFileExt) {
+				continue
+			}
 			items.Files = append(items.Files, file.Name)
 		}
 	}
@@ -221,6 +239,7 @@ func fileInfoFasterImpl(opts utils.FileOptions, access *access.Storage, user *us
 		IndexPath:         indexPath,
 		FollowSymlinks:    opts.FollowSymlinks,
 		ShowHidden:        opts.ShowHidden,
+		HideFileExt:       opts.HideFileExt,
 		Expand:            opts.Expand,
 		SkipExtendedAttrs: opts.SkipExtendedAttrs,
 	})
@@ -252,11 +271,17 @@ func fileInfoFasterImpl(opts utils.FileOptions, access *access.Storage, user *us
 	}
 	defer finalizeResponse(response, info, response.RealPath, user, userScope)
 	if opts.SkipExtendedAttrs {
+		if info.Type == "directory" && opts.HideFileExt != "" {
+			response.Files = filterFilesByExt(response.Files, opts.HideFileExt)
+		}
 		return response, nil
 	}
 	// Process directory metadata if requested
 	if info.Type == "directory" {
 		processDirectoryMetadata(response, idx, opts)
+		if opts.HideFileExt != "" {
+			response.Files = filterFilesByExt(response.Files, opts.HideFileExt)
+		}
 	}
 	// Process single file content/metadata
 	isAudioVideo := strings.HasPrefix(info.Type, "audio") || strings.HasPrefix(info.Type, "video")
@@ -545,7 +570,7 @@ func DeleteFiles(source, absPath string, isDir bool) error {
 		return fmt.Errorf("refusing to delete source root directory: %s", absPath)
 	}
 
-	if !index.Config.DisableIndexing {
+	if !index.Config.ResolvedRules.IndexingDisabled {
 		indexPath := index.MakeIndexPath(absPath, isDir)
 
 		// Perform the physical deletion
@@ -582,7 +607,7 @@ func RefreshIndex(source string, path string, isDir bool, recursive bool) error 
 	if idx == nil {
 		return fmt.Errorf("could not get index: %v ", source)
 	}
-	if idx.Config.DisableIndexing {
+	if idx.Config.ResolvedRules.IndexingDisabled {
 		return nil
 	}
 	// Always normalize path using MakeIndexPath
@@ -690,7 +715,7 @@ func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 
 	// Handle SOURCE cleanup (treat as deletion)
 	// Run async to avoid blocking the HTTP response
-	if !srcIdx.Config.DisableIndexing {
+	if !srcIdx.Config.ResolvedRules.IndexingDisabled {
 		go func() {
 			if isSrcDir {
 				srcIdx.DeleteMetadata(srcIndexPath, true, true)
@@ -705,7 +730,7 @@ func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 
 	// Handle DESTINATION indexing
 	// Run async to avoid blocking the HTTP response
-	if !dstIdx.Config.DisableIndexing {
+	if !dstIdx.Config.ResolvedRules.IndexingDisabled {
 		if isSrcDir {
 			go func() {
 				// Recursively index the moved directory tree
@@ -763,7 +788,7 @@ func CopyResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 
 	// Refresh source (non-recursive, just metadata)
 	srcIdx := indexing.GetIndex(sourceIndex)
-	if srcIdx != nil && !srcIdx.Config.DisableIndexing {
+	if srcIdx != nil && !srcIdx.Config.ResolvedRules.IndexingDisabled {
 		srcRefreshPath := realsrc
 		if !isSrcDir {
 			srcRefreshPath = filepath.Dir(realsrc)
@@ -774,7 +799,7 @@ func CopyResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 	// Refresh destination (RECURSIVE for directories to capture full tree)
 	// Run async to avoid blocking the HTTP response
 	dstIdx := indexing.GetIndex(destIndex)
-	if dstIdx != nil && !dstIdx.Config.DisableIndexing {
+	if dstIdx != nil && !dstIdx.Config.ResolvedRules.IndexingDisabled {
 		if isSrcDir {
 			go func() {
 				// Recursively index the copied directory tree

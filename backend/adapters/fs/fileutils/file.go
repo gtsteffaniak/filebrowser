@@ -240,3 +240,22 @@ func ClearCacheDir(cacheDir string) {
 	}
 
 }
+
+// ClearDirectoryContents removes all files and subdirectories inside dir; dir itself remains.
+// If dir does not exist, returns nil.
+func ClearDirectoryContents(dir string) error {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return err
+	}
+	for _, entry := range entries {
+		path := filepath.Join(dir, entry.Name())
+		if err := os.RemoveAll(path); err != nil {
+			return err
+		}
+	}
+	return nil
+}

@@ -148,7 +148,6 @@
     "passwordsDontMatch": "Wachtwoorden komen niet overeen",
     "usernameTaken": "Gebruikersnaam reeds in gebruik",
     "wrongCredentials": "Verkeerde inloggegevens",
-    "or": "OF",
     "inProgress": "Inloggen...",
     "failedLogin": "Aanmelden mislukt",
     "invalidCredentials": "Ongeldige referenties verstrekt",
@@ -265,10 +264,11 @@
     "olderThanDate": "Ouder dan:",
     "newerThanDate": "Nieuwer dan:",
     "noResults": "Geen resultaten gevonden.",
-    "useWildcardSearch": "Zoeken met jokertekens",
     "helpText1": "Er wordt gezocht op elk teken dat je typt (minimaal{minSearchLength} tekens).",
-    "useWildcardSearchDescription": "Ondersteunde jokertekens:\n\n- Overeenstemming met elke reeks: *\n\n- Overeenstemming met één teken: ?\n\n- Tekenklasse: [a-z], [0-9]\n\n- Negatie: [^0-9]\n\n- Letterlijke *, ?, of [ moeten tussen haakjes staan, bijv. [*], [?], [[]",
-    "helpText2": "Substring match alleen op bestands- of mapnamen (geen volledige paden). case:exact voor hoofdlettergevoelig matchen\n\n voor OR tussen termen gebruik je het teken pipe; dubbele aanhalingstekens voor één zin.\n\nSchakel wildcard zoeken in voor meer geavanceerde opties."
+    "helpText2": "Substring match alleen op bestands- of mapnamen (geen volledige paden). case:exact voor hoofdlettergevoelig matchen\n\n voor OR tussen termen gebruik je het teken pipe; dubbele aanhalingstekens voor één zin.\n\nSchakel wildcard zoeken in voor meer geavanceerde opties.",
+    "useWildcardSearch": "Zoeken met jokertekens (hoofdlettergevoelig)",
+    "useWildcardSearchDescription": "Ondersteunde jokertekenopties:\n\n- Overeenstemming met een willekeurige reeks: *\n\n- Overeenstemming met één teken: ?\n\n- Tekenklasse: [a-z], [0-9]\n\n- Negatie: [^0-9]\n\n- Letterlijke *, ?, of [ moeten tussen haakjes staan, bijv. [*], [?], [[]\n\n- Alle resultaten zijn hoofdlettergevoelig",
+    "openInAdvancedSearch": "Openen in geavanceerd zoeken"
   },
   "settings": {
     "administrator": "Administrator",
@@ -575,6 +575,8 @@
     "orange": "oranje"
   },
   "profileSettings": {
+    "hideFileExt": "Bepaalde bestanden verbergen (op extensie)",
+    "hideFileExtDescription": "Een door spaties gescheiden lijst van bestandsextensies. Extensies die in dit veld worden ingevoerd, worden verborgen in de hele gebruikersinterface (visueel, zoals in de lijst of bestandsboom) — Ze blijven toegankelijk.",
     "preferEditorForMarkdown": "Geef de voorkeur aan editor voor Markdown-bestanden",
     "preferEditorForMarkdownDescription": "Indien ingeschakeld, open Markdown-bestanden eerst in de editor in plaats van de Markdown-viewer.",
     "deleteAfterArchive": "Bronbestanden verwijderen na aanmaken/uitpakken van archieven",
@@ -650,6 +652,8 @@
     "created": "Aangemaakt",
     "lastUsed": "Laatst gebruikt",
     "passkeyDefaultName": "Passkey"
+    "showToolsInSidebar": "Toon gereedschappen in de zijbalk",
+    "showToolsInSidebarDescription": "Toon altijd de link naar de hulpmiddelen in de zijbalk."
   },
   "general": {
     "name": "Naam",
@@ -772,7 +776,9 @@
     "office": "Kantoor{suffix}",
     "show": "Toon{suffix}",
     "divider": "Verdeler{suffix}",
-    "audio": "Audio{suffix}"
+    "audio": "Audio{suffix}",
+    "and": "en",
+    "or": "of"
   },
   "access": {
     "rules": "Toegangsregels",
@@ -888,6 +894,20 @@
       "stopWatching": "Stop met kijken",
       "emptyState": "Kies een bestand en klik op afspelen om te beginnen met het controleren van bestandswijzigingen",
       "chooseFile": "Kies een bestand"
+    },
+    "advancedSearch": {
+      "name": "Geavanceerd zoeken",
+      "description": "Zoek in de index met volledige controle over bronnen, filters en opties",
+      "searchTerms": "Zoektermen",
+      "matchAllTerms": "Alle termen matchen",
+      "matchAllTermsDescription": "Indien ingeschakeld, moeten alle zoektermen worden gevonden voor elk bestand",
+      "scopeAria": "Zoekopdracht beperken tot een map",
+      "noTerms": "Voer ten minste één zoekterm in.",
+      "termTooShort": "Elke zoekterm moet minimaal {minSearchLength} tekens bevatten.",
+      "caseExact": "Hoofdlettergevoelige match",
+      "resultsTitle": "Zoekresultaten",
+      "invalidSources": "Zet minstens één bron aan.",
+      "noResults": "Geen overeenkomende bestanden of mappen."
     }
   },
   "messages": {

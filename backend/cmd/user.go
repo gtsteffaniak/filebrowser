@@ -44,6 +44,9 @@ func validateUserInfo(newDB bool) {
 		if updateTokens(user) {
 			updateUser = true
 		}
+		if updateShowToolsInSidebar(user) {
+			updateUser = true
+		}
 		adminUser := settings.Config.Auth.AdminUsername
 		adminPass := settings.Config.Auth.AdminPassword
 		if user.Username == adminUser && adminPass != "" && user.LoginMethod == users.LoginMethodPassword {
@@ -62,7 +65,7 @@ func validateUserInfo(newDB bool) {
 					logger.Fatalf("Unable to create automatic backup of database due to error: %v", err)
 				}
 			}
-			fields := []string{"Scopes", "SidebarLinks", "Tokens", "Permissions", "Preview", "ShowFirstLogin", "LoginMethod", "Version"}
+			fields := []string{"Scopes", "SidebarLinks", "Tokens", "Permissions", "Preview", "ShowFirstLogin", "LoginMethod", "Version", "ShowToolsInSidebar"}
 			if changePass {
 				fields = append(fields, "Password")
 			}
@@ -120,6 +123,16 @@ func updateUserScopes(user *users.User) bool {
 	return changed
 }
 
+// updateShowToolsInSidebar one-time defaults for legacy users (Version < CurrentUserMigrationVersion) from configured userDefaults.
+func updateShowToolsInSidebar(user *users.User) bool {
+	if user.Version >= 3 {
+		return false
+	}
+	user.ShowToolsInSidebar = true
+	user.Version = users.CurrentUserMigrationVersion
+	return true
+}
+
 func updateShowFirstLogin(user *users.User) bool {
 	if user.ShowFirstLogin && !settings.Env.IsFirstLoad {
 		user.ShowFirstLogin = false
@@ -134,7 +147,6 @@ func updatePermissions(user *users.User) bool {
 		return false
 	}
 	updateUser := true
-	user.Permissions.Download = true
 	// if any keys are true, set the permissions to true
 	if user.Perm.Api {
 		user.Permissions.Api = true
@@ -176,7 +188,7 @@ func updatePermissions(user *users.User) bool {
 		user.Permissions.Delete = true
 		updateUser = true
 	}
-	user.Version = 2
+	user.Version = users.CurrentUserMigrationVersion
 	if updateUser {
 		createBackup = true
 	}
@@ -266,6 +278,6 @@ func updateTokens(user *users.User) bool {
 			user.Tokens[name] = token
 		}
 	}
-	user.Version = 2
+	user.Version = users.CurrentUserMigrationVersion
 	return true
 }

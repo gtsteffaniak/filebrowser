@@ -22,6 +22,7 @@ userDefaults:
   disableSearchOptions: false             # disable the search options in the search bar
   stickySidebar: true                     # keep sidebar open when navigating
   hideFilesInTree: false                  # hide files in the sidebar tree navigation, when true, will show only directories.
+  showToolsInSidebar: true                # show sidebar links of category "tool"; when false they stay in the list but are hidden in the UI
   darkMode: true                          # should dark mode be enabled (defaults to true if not set)
   viewMode: "normal"                      # view mode to use: eg. normal, list, grid, or compact
   singleClick: false                      # open directory on single click, also enables middle click to open in new tab

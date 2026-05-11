@@ -148,7 +148,6 @@
     "passwordsDontMatch": "As senhas não coincidem",
     "usernameTaken": "Nome de usuário já existe",
     "wrongCredentials": "Ops! Dados incorretos.",
-    "or": "OU",
     "inProgress": "Fazendo login...",
     "failedLogin": "Falha no login",
     "invalidCredentials": "Credenciais inválidas fornecidas",
@@ -265,10 +264,11 @@
     "olderThanDate": "Mais velho que:",
     "newerThanDate": "Mais recente que:",
     "noResults": "Não foram encontrados resultados.",
-    "useWildcardSearch": "Pesquisa com curinga",
     "helpText1": "A pesquisa ocorre em cada caractere digitado ({minSearchLength} caractere mínimo).",
-    "useWildcardSearchDescription": "Curingas compatíveis:\n\n- Corresponde a qualquer sequência: *\n\n- Corresponde a um caractere: ?\n\n- Classe de caracteres: [a-z], [0-9]\n\n- Negação: [^0-9]\n\n- Os literais *, ? ou [ precisam ser colocados entre colchetes, por exemplo, [*], [?], [[]",
-    "helpText2": "Correspondência de subcadeia somente em nomes de arquivos ou pastas (não em caminhos completos). case:exact para correspondência com distinção entre maiúsculas e minúsculas\n\n para OU entre termos, use o caractere pipe; aspas duplas para uma frase.\n\nAtive a pesquisa curinga para obter opções mais avançadas."
+    "helpText2": "Correspondência de subcadeia somente em nomes de arquivos ou pastas (não em caminhos completos). case:exact para correspondência com distinção entre maiúsculas e minúsculas\n\n para OU entre termos, use o caractere pipe; aspas duplas para uma frase.\n\nAtive a pesquisa curinga para obter opções mais avançadas.",
+    "useWildcardSearch": "Pesquisa curinga (diferencia maiúsculas de minúsculas)",
+    "useWildcardSearchDescription": "Opções curinga compatíveis:\n\n- Corresponde a qualquer sequência: *\n\n- Corresponde a um caractere: ?\n\n- Classe de caracteres: [a-z], [0-9]\n\n- Negação: [^0-9]\n\n- Os literais *, ? ou [ precisam ser colocados entre colchetes, por exemplo, [*], [?], [[]\n\n- Todos os resultados diferenciam maiúsculas de minúsculas",
+    "openInAdvancedSearch": "Abrir na pesquisa avançada"
   },
   "settings": {
     "administrator": "Administrador",
@@ -675,7 +675,9 @@
     "office": "Escritório{suffix}",
     "show": "Mostrar{suffix}",
     "divider": "Divisor{suffix}",
-    "audio": "Áudio{suffix}"
+    "audio": "Áudio{suffix}",
+    "and": "e",
+    "or": "ou"
   },
   "access": {
     "rules": "Regras de acesso",
@@ -721,6 +723,8 @@
     "orange": "laranja"
   },
   "profileSettings": {
+    "hideFileExt": "Ocultar certos arquivos (por extensão)",
+    "hideFileExtDescription": "Uma lista de extensões de arquivo separadas por espaços. As extensões inseridas neste campo serão ocultadas em toda a interface do usuário (visualmente, como na lista ou árvore de arquivos) — Continuam acessíveis.",
     "preferEditorForMarkdown": "Preferir editor primeiro para arquivos Markdown",
     "preferEditorForMarkdownDescription": "Quando ativado, abre arquivos Markdown no editor em vez do visualizador Markdown.",
     "deleteAfterArchive": "Excluir arquivos de origem após criação/extração de arquivos",
@@ -796,6 +800,8 @@
     "created": "Criado",
     "lastUsed": "Último uso",
     "passkeyDefaultName": "Chave de acesso"
+    "showToolsInSidebar": "Mostrar ferramentas na barra lateral",
+    "showToolsInSidebarDescription": "Sempre mostre o link de ferramentas na barra lateral."
   },
   "editor": {
     "uninitialized": "Falha ao inicializar o editor. Favor recarregar.",
@@ -888,6 +894,20 @@
       "stopWatching": "Parar de assistir",
       "emptyState": "Escolha um arquivo e clique em reproduzir para começar a monitorar as alterações no arquivo",
       "chooseFile": "Escolha um arquivo"
+    },
+    "advancedSearch": {
+      "name": "Pesquisa avançada",
+      "description": "Pesquise o índice com controle total sobre fontes, filtros e opções",
+      "searchTerms": "Termos de pesquisa",
+      "matchAllTerms": "Corresponder todos os termos",
+      "matchAllTermsDescription": "Quando ativado, todos os termos de pesquisa devem ser encontrados para cada arquivo",
+      "scopeAria": "Limitar a pesquisa a uma pasta",
+      "noTerms": "Digite pelo menos um termo de pesquisa.",
+      "termTooShort": "Cada termo de pesquisa deve ter pelo menos {minSearchLength} caracteres",
+      "caseExact": "Correspondência com distinção entre maiúsculas e minúsculas",
+      "resultsTitle": "Resultados da pesquisa",
+      "invalidSources": "Ligue pelo menos uma fonte.",
+      "noResults": "Não há arquivos ou pastas correspondentes."
     }
   },
   "messages": {

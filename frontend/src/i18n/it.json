@@ -129,7 +129,9 @@
     "lines": "Linee{suffix}",
     "lastUpdate": "Ultimo aggiornamento{suffix}",
     "latency": "Latenza{suffix}",
-    "audio": "Audio{suffix}"
+    "audio": "Audio{suffix}",
+    "and": "e",
+    "or": "o"
   },
   "buttons": {
     "copySuccess": "Copiato negli appunti!",
@@ -283,7 +285,6 @@
     "passwordsDontMatch": "Le password non corrispondono",
     "usernameTaken": "Nome utente già occupato",
     "wrongCredentials": "Credenziali errate",
-    "or": "OPPURE",
     "inProgress": "Accesso in corso...",
     "failedLogin": "Accesso fallito",
     "invalidCredentials": "Credenziali fornite non valide",
@@ -475,12 +476,15 @@
     "showPreviewImages": "Mostra anteprime immagini",
     "showPreviewImagesDescription": "Mostra miniature nei risultati di ricerca quando disponibili e icone grandi per tutti i risultati.",
     "noResults": "Nessun risultato trovato.",
-    "useWildcardSearch": "Ricerca con caratteri jolly",
     "helpText1": "La ricerca avviene per ogni carattere digitato ({minSearchLength} minimo).",
-    "useWildcardSearchDescription": "I caratteri jolly supportati:\n\n- Corrisponde a qualsiasi sequenza: *\n\n- Corrisponde a un solo carattere: ?\n\n- Classe di caratteri: [a-z], [0-9]\n\n- Negazione: [^0-9]\n\n- I caratteri letterali *, ?, o [ devono essere racchiusi tra parentesi, ad esempio [*], [?], [[]",
-    "helpText2": "Corrispondenza di sottostringhe solo sui nomi di file o cartelle (non sui percorsi completi). case:exact per una corrispondenza sensibile alle maiuscole e alle minuscole.\n\n per OR tra termini usare il carattere pipe; doppi apici per una frase.\n\nAbilitare la ricerca con caratteri jolly per opzioni più avanzate."
+    "helpText2": "Corrispondenza di sottostringhe solo sui nomi di file o cartelle (non sui percorsi completi). case:exact per una corrispondenza sensibile alle maiuscole e alle minuscole.\n\n per OR tra termini usare il carattere pipe; doppi apici per una frase.\n\nAbilitare la ricerca con caratteri jolly per opzioni più avanzate.",
+    "useWildcardSearch": "Ricerca con caratteri jolly (sensibile alle maiuscole)",
+    "useWildcardSearchDescription": "Opzioni jolly supportate:\n\n- Corrisponde a qualsiasi sequenza: *\n\n- Corrisponde a un solo carattere: ?\n\n- Classe di caratteri: [a-z], [0-9]\n\n- Negazione: [^0-9]\n\n- I caratteri letterali *, ?, o [ devono essere racchiusi tra parentesi, ad esempio [*], [?], [[]\n\n- Tutti i risultati sono sensibili alle maiuscole e alle minuscole",
+    "openInAdvancedSearch": "Aprire la ricerca avanzata"
   },
   "profileSettings": {
+    "hideFileExt": "Nascondere determinati file (per estensione)",
+    "hideFileExtDescription": "Un elenco di estensioni di file separate da spazi. Le estensioni inserite in questo campo verranno nascoste da tutta l'interfaccia utente (visivamente, come nell'elenco o nell'albero dei file) — Rimangono comunque accessibili.",
     "preferEditorForMarkdown": "Preferisci editor per file Markdown",
     "preferEditorForMarkdownDescription": "Se abilitato, apre i file markdown nell'editor invece che nel visualizzatore.",
     "deleteAfterArchive": "Elimina sorgenti dopo creazione/estrazione archivio",
@@ -556,6 +560,8 @@
     "created": "Creato",
     "lastUsed": "Ultimo utilizzo",
     "passkeyDefaultName": "Passkey"
+    "showToolsInSidebar": "Mostra gli strumenti nella barra laterale",
+    "showToolsInSidebarDescription": "Mostrate sempre il link agli strumenti nella barra laterale."
   },
   "settings": {
     "systemAdmin": "Sistema e Admin",
@@ -897,7 +903,21 @@
       "chooseFile": "Scegli un file"
     },
     "toolNotFound": "Strumento non trovato",
-    "backToTools": "Torna agli Strumenti"
+    "backToTools": "Torna agli Strumenti",
+    "advancedSearch": {
+      "name": "Ricerca avanzata",
+      "description": "Ricerca nell'indice con pieno controllo delle fonti, dei filtri e delle opzioni",
+      "searchTerms": "Termini di ricerca",
+      "matchAllTerms": "Abbinare tutti i termini",
+      "matchAllTermsDescription": "Se abilitato, tutti i termini di ricerca devono essere trovati per ogni file.",
+      "scopeAria": "Limitare la ricerca a una cartella",
+      "noTerms": "Inserite almeno un termine di ricerca.",
+      "termTooShort": "Ogni termine di ricerca deve essere composto da almeno {minSearchLength} caratteri.",
+      "caseExact": "Corrispondenza sensibile alle maiuscole e alle minuscole",
+      "resultsTitle": "Risultati della ricerca",
+      "invalidSources": "Accendere almeno una sorgente.",
+      "noResults": "Nessun file o cartella corrispondente."
+    }
   },
   "notifications": {
     "title": "Notifiche",
