@@ -58,18 +58,6 @@
         <div>
           <div class="header card" :class="{ 'dark-mode-item-header': isDarkMode }">
             <p
-              :class="{ active: protectedSorted }"
-              class="protected"
-              role="button"
-              tabindex="0"
-              @click="sort('protected')"
-              title="Sort by Protected status"
-              aria-label="Sort by Protected status"
-            >
-              <i class="material-icons">lock</i>
-              <i class="material-icons sort-icon">{{ protectedIcon }}</i>
-            </p>
-            <p
               :class="{ active: nameSorted }"
               class="name"
               role="button"

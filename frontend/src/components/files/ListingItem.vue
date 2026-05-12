@@ -31,9 +31,6 @@
     @touchend="cancelContext"
     @mouseup="cancelContext"
   >
-    <span class="protected-indicator" @click.prevent.stop>
-      <span class="protected-dot" :class="{ active: isProtected }"></span>
-    </span>
     <div :class="{ 'gallery-div': galleryView }" class="icon-area">
       <Icon
         :mimetype="type"
