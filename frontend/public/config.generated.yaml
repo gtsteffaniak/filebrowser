@@ -153,63 +153,70 @@ frontend:
   loginButtonText: ""                     # text to display on the login button
   oidcLoginButtonText: ""                 # text to display on the OIDC login button
 userDefaults:
-  editorQuickSave: false                  # show quick save button in editor
-  hideSidebarFileActions: false           # hide the file actions in the sidebar
-  disableQuickToggles: false              # disable the quick toggles in the sidebar
-  disableSearchOptions: false             # disable the search options in the search bar
-  stickySidebar: true                     # keep sidebar open when navigating
-  hideFilesInTree: false                  # hide files in the sidebar tree navigation, when true, will show only directories.
-  darkMode: true                          # should dark mode be enabled
-  locale: "en"                            # language to use: eg. de, en, or fr
-  viewMode: "normal"                      # view mode to use: eg. normal, list, grid, or compact
-  singleClick: false                      # open directory on single click, also enables middle click to open in new tab
-  showHidden: false                       # show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files
-  hideFileExt: ""                         # space separated list of file extensions to hide in UI
-  dateFormat: false                       # when false, the date is relative, when true, the date is an exact timestamp
-  gallerySize: 3                          # 0-9 - the size of the gallery thumbnails
-  themeColor: "var(--blue)"               # theme color to use: eg. #ff0000, or var(--red), var(--purple), etc
-  quickDownload: false                    # show icon to download in one click
-  disablePreviewExt: ""                   # space separated list of file extensions to disable preview for
-  disableViewingExt: ""                   # space separated list of file extensions to disable viewing for
-  lockPassword: false                     # disable the user from changing their password
-  disableSettings: false                  # disable the user from viewing the settings page
-  preview:
-    disableHideSidebar: false             # keep sidebar open when previewing files
+  sidebar:                                # New organized structure
+    disableQuickToggles: false            # disable the quick toggles in the sidebar
+    hideFileActions: false                # hide the file actions in the sidebar
+    disableHideOnPreview: false           # keep sidebar open when previewing files (was preview.disableHideSidebar)
+    sticky: true                          # keep sidebar open when navigating
+    viewMode: "normal"                    # view mode to use: eg. normal, list, grid, or compact
+    gallerySize: 3                        # 0-9 - the size of the gallery thumbnails
+    hideFiles: false                      # hide files in the sidebar tree navigation, when true, will show only directories
+    showTools: true                       # show sidebar links with category "tool"; default is true
+  listing:
+    deleteWithoutConfirming: false        # delete files without confirmation
+    dateFormat: false                     # when false, the date is relative, when true, the date is an exact timestamp
+    showHidden: false                     # show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files
+    quickDownload: false                  # show icon to download in one click
+    showSelectMultiple: false             # show select multiple files on desktop
+    singleClick: false                    # open directory on single click, also enables middle click to open in new tab
+    hideFileExt: ""                       # space separated list of file extensions to hide in UI
+    showCopyPath: false                   # show copy path button in the context menu
+    deleteAfterArchive: true              # delete source files after successful creation/extraction of archives
+  preview:                                # Note: struct name is PreviewNew to avoid conflict with deprecated Preview field below
     image: true                           # show thumbnails for image files
     video: true                           # show thumbnails for video files
     audio: true                           # show thumbnails for audio files
     motionVideoPreview: true              # show multiple frames for videos in thumbnail preview when hovering
     office: true                          # show thumbnails for office files
     popup: true                           # show larger popup preview when hovering over thumbnail
-    autoplayMedia: true                   # autoplay media files in preview
-    defaultMediaPlayer: false             # disable the styled feature-rich media player for browser default
+    disablePreviewExt: ""                 # comma separated list of file extensions to disable preview for
+    highQuality: true                     # high quality preview thumbnails
     folder: true                          # show thumbnails for folders that have previewable contents
     models: true                          # show live thumbnails for 3D models files
-  permissions:
-    api: false                            # allow api access
-    admin: false                          # allow admin access
-    modify: false                         # allow modifying files
-    share: false                          # allow sharing files
-    realtime: false                       # allow realtime updates
-    delete: false                         # allow deleting files
-    create: false                         # allow creating or uploading files
-    download: true                        # allow downloading files
-  loginMethod: "password"                 # login method to use: eg. password, proxy, oidc
-  disableUpdateNotifications: false       # disable update notifications banner for admin users
-  deleteWithoutConfirming: false          # delete files without confirmation
-  deleteAfterArchive: true                # delete source files after successful creation/extraction of archives
-  fileLoading:                            # upload and download settings
+  fileViewer:
+    editorQuickSave: false                # show quick save button in editor
+    autoplayMedia: true                   # autoplay media files in preview
+    disableViewingExt: ""                 # comma separated list of file extensions to disable viewing for
+    disableOnlyOfficeExt: ".md .txt .pdf .html .xml" # list of file extensions to disable onlyoffice editor for
+    preferEditorForMarkdown: false        # prefer editor first for markdown files instead of the Markdown Viewer
+    debugOffice: false                    # debug onlyoffice editor
+    defaultMediaPlayer: false             # disable the styled feature-rich media player for browser default
+  search:
+    disableOptions: false                 # disable the search options in the search bar
+  ui:
+    darkMode: true                        # should dark mode be enabled
+    themeColor: "var(--blue)"             # theme color to use: eg. #ff0000, or var(--red), var(--purple), etc
+    customTheme: ""                       # Name of theme to use chosen from custom themes config
+    locale: "en"                          # language to use: eg. de, en, or fr
+  fileLoading:
     maxConcurrentUpload: 10
     uploadChunkSizeMb: 10
     clearAll: false
     downloadChunkSizeMb: 0
-  disableOnlyOfficeExt: ".md .txt .pdf .html .xml" # list of file extensions to disable onlyoffice editor for
-  customTheme: ""                         # Name of theme to use chosen from custom themes config.
-  showSelectMultiple: false               # show select multiple files on desktop
-  showToolsInSidebar: null                # show sidebar links with category "tool"; default is true
-  debugOffice: false                      # debug onlyoffice editor
-  preferEditorForMarkdown: false          # prefer editor first for markdown files instead of the Markdown Viewer.
-  showCopyPath: false                     # show copy path button in the context menu
+  account:
+    permissions:
+      api: false                          # allow api access
+      admin: false                        # allow admin access
+      modify: false                       # allow modifying files
+      share: false                        # allow sharing files
+      realtime: false                     # allow realtime updates
+      delete: false                       # allow deleting files
+      create: false                       # allow creating or uploading files
+      download: true                      # allow downloading files
+    lockPassword: false                   # disable the user from changing their password
+    disableSettings: false                # disable the user from viewing the settings page
+    loginMethod: ""                       # login method to use: eg. password, proxy, oidc
+    disableUpdateNotifications: false     # disable update notifications banner for admin users
 integrations:
   office:                                 #  validate:omitempty
     url: ""                               # The URL to the OnlyOffice Document Server, needs to be accessible to the user.  validate:required

@@ -31,7 +31,9 @@ All notable changes to this project will be documented in this file. For commit 
  - New API route `media/lyrics` used to fetch and parse lyrics (embedded or from `.lrc` sidecar) (#2360)
  - Swiping down gesture in fullscreen videos exit fullscreen instead of close preview.
  - Improved styles for path selection and tables
- - Edit Sidebar links has new "show tools in sidebar" toggle and all users have this enabled by default. can be disabled via for new users `userDefaults.showToolsInSidebar: false`
+ - Edit Sidebar links has new "show tools in sidebar" toggle and all users have this enabled by default. can be disabled via for new users `userDefaults.sidebar.showTools: false`
+ - Update user defaults ordering (#1140)
+ 
 
  **BugFixes**:
  - Blue overlay when using gestures in video files on mobile (#2360)

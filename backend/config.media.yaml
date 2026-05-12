@@ -1,11 +1,10 @@
-server:
-  logging:
-    - levels: "info|warning|error"
-  sources:
-    - path: "/srv"
 userDefaults:
   preview:
     image: true
-    popup: true
     video: true
     audio: true
+    motionVideoPreview: true
+    office: true
+    popup: true
+    folder: true
+    models: true
