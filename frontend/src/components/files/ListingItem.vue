@@ -8,6 +8,7 @@
       'half-selected': isDraggedOver,
       'drag-hover': isDraggedOver,
       'out-of-view': !isInView && !isSelected,
+      'safemode-blurred': isSafeBlurred,
     }"
     :id="getID"
     role="button"
@@ -33,18 +34,16 @@
     <span class="protected-indicator" @click.prevent.stop>
       <span class="protected-dot" :class="{ active: isProtected }"></span>
     </span>
-    <div class="safemode-wrapper" :class="{ 'is-safemode': isSafeBlurred }">
-      <div :class="{ 'gallery-div': galleryView, 'safemode-blurred': isSafeBlurred }">
-        <Icon
-          :mimetype="type"
-          :active="isSelected"
-          :thumbnailUrl="isThumbnailInView ? thumbnailUrl : ''"
-          :filename="name"
-          :hasPreview="hasPreview"
-        />
-      </div>
-      <span v-if="isSafeBlurred" class="safemode-lock-overlay material-icons">lock</span><!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+    <div :class="{ 'gallery-div': galleryView }">
+      <Icon
+        :mimetype="type"
+        :active="isSelected"
+        :thumbnailUrl="isThumbnailInView ? thumbnailUrl : ''"
+        :filename="name"
+        :hasPreview="hasPreview"
+      />
     </div>
+    <span v-if="isSafeBlurred" class="safemode-lock-overlay material-icons">lock</span><!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
 
     <div class="text">
       <p :class="{ adjustment: quickDownloadEnabled }" class="name">{{ displayName }}</p>
@@ -716,30 +715,19 @@ export default {
   border-style: solid !important;
 }
 
-.safemode-wrapper {
-  position: relative;
-  display: contents;
-}
-
-.safemode-wrapper.is-safemode {
-  display: block;
-  position: relative;
-}
-
-.safemode-blurred {
+.listing-item.safemode-blurred img,
+.listing-item.safemode-blurred i.icon {
   filter: blur(8px);
-  pointer-events: none;
 }
 
 .safemode-lock-overlay {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 1.5em;
+  top: 30%;
+  left: 15%;
+  font-size: 1.2em;
   color: rgba(255, 255, 255, 0.9);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
   pointer-events: none;
-  z-index: 1;
+  z-index: 2;
 }
 </style>
