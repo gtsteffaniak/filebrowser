@@ -260,7 +260,6 @@ export default {
         mutations.closeHovers();
         if (cv === "settings") {
           if (state.previousHistoryItem?.name) {
-            console.log("previousHistoryItem", state.previousHistoryItem);
             url.goToItem(state.previousHistoryItem.source, state.previousHistoryItem.path, state.previousHistoryItem);
             return;
           }

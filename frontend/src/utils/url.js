@@ -209,10 +209,12 @@ export function goToItem(source, path, previousHistoryItem, newTab = false) {
   if (source == state.sources.current && path == state.req.path) {
     return;
   }
+  mutations.setPreviousHistoryItem(previousHistoryItem);
+  mutations.resetAll()
   let newPath = encodedPath(path);
   let fullPath = `/files/${encodeURIComponent(source)}${newPath}`;
-  if (previousHistoryItem?.isShare) {
-    fullPath = `/public/share/${previousHistoryItem.source}${newPath}`;
+  if (getters.isShare()) {
+    fullPath = `/public/share/${source}${newPath}`;
   }
   if (newTab) {
     // Use absolute URL for new tab to ensure proper navigation
@@ -220,8 +222,7 @@ export function goToItem(source, path, previousHistoryItem, newTab = false) {
     window.open(absoluteUrl, '_blank');
     return;
   }
-  mutations.setPreviousHistoryItem(previousHistoryItem);
-  mutations.resetAll()
+
   if (previousHistoryItem === undefined) {
     // When undefined will not create browser history
     router.replace({ path: fullPath });
