@@ -47,9 +47,16 @@
 import { mutations } from "@/store";
 import { safeModeApi } from "@/api";
 import { notify } from "@/notify";
+import { url } from "@/utils";
 
 export default {
   name: "SafeModeUnlock",
+  props: {
+    target: {
+      type: Object,
+      default: null,
+    },
+  },
   data() {
     return {
       pin: "",
@@ -71,6 +78,9 @@ export default {
           mutations.setSafeModeUnlocked(true);
           notify.showSuccessToast(this.$t("prompts.safeModeUnlocked"));
           mutations.closeHovers();
+          if (this.target) {
+            url.goToItem(this.target.source, this.target.path, null);
+          }
         } else {
           this.errorMessage = this.$t("prompts.safeModePINIncorrect");
           this.pin = "";

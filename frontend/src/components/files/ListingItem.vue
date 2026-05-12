@@ -34,16 +34,19 @@
     <span class="protected-indicator" @click.prevent.stop>
       <span class="protected-dot" :class="{ active: isProtected }"></span>
     </span>
-    <div :class="{ 'gallery-div': galleryView }">
+    <div :class="{ 'gallery-div': galleryView }" class="icon-area">
       <Icon
         :mimetype="type"
         :active="isSelected"
-        :thumbnailUrl="isThumbnailInView ? thumbnailUrl : ''"
+        :thumbnailUrl="isSafeBlurred ? '' : (isThumbnailInView ? thumbnailUrl : '')"
         :filename="name"
         :hasPreview="hasPreview"
       />
+      <div v-if="isSafeBlurred" class="safemode-cover">
+        <span class="material-icons safemode-shield-icon">shield</span><!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        <span class="safemode-cover-label">SAFE</span><!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+      </div>
     </div>
-    <span v-if="isSafeBlurred" class="safemode-lock-overlay material-icons">lock</span><!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
 
     <div class="text">
       <p :class="{ adjustment: quickDownloadEnabled }" class="name">{{ displayName }}</p>
@@ -646,6 +649,13 @@ export default {
       mutations.setLastSelectedIndex(this.index);
     },
     open() {
+      if (this.isSafeBlurred) {
+        mutations.showHover({
+          name: "SafeModeUnlock",
+          props: { target: { source: this.source, path: this.path } },
+        });
+        return;
+      }
       // Check if state.req.items exists and has the item at this index
       // This prevents errors when ListingItem is used outside of the main file listing (e.g., duplicate finder)
       let previousHistoryItem = null;
@@ -715,19 +725,33 @@ export default {
   border-style: solid !important;
 }
 
-.listing-item.safemode-blurred img,
-.listing-item.safemode-blurred i.icon {
-  filter: blur(8px);
+.icon-area {
+  position: relative;
 }
 
-.safemode-lock-overlay {
+.safemode-cover {
   position: absolute;
-  top: 30%;
-  left: 15%;
-  font-size: 1.2em;
-  color: rgba(255, 255, 255, 0.9);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border-radius: 0.3em;
+  gap: 0.05em;
+  z-index: 1;
   pointer-events: none;
-  z-index: 2;
+}
+
+.safemode-shield-icon {
+  font-size: 1.6em;
+  color: #1a73e8;
+}
+
+.safemode-cover-label {
+  font-size: 0.65em;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  color: #1a73e8;
 }
 </style>
