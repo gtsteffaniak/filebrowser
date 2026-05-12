@@ -148,7 +148,6 @@
     "passwordsDontMatch": "Hasła różnią się",
     "usernameTaken": "Nazwa użytkownika już zajęta",
     "wrongCredentials": "Błędne dane logowania",
-    "or": "LUB",
     "inProgress": "Logowanie...",
     "failedLogin": "Logowanie nie powiodło się",
     "invalidCredentials": "Podano nieprawidłowe dane uwierzytelniające"
@@ -264,10 +263,11 @@
     "olderThanDate": "Starszy niż:",
     "newerThanDate": "Nowsze niż:",
     "noResults": "Nie znaleziono żadnych wyników.",
-    "useWildcardSearch": "Wyszukiwanie z użyciem symboli wieloznacznych",
     "helpText1": "Wyszukiwanie odbywa się po każdym wpisanym znaku (minimum{minSearchLength} znaków).",
-    "useWildcardSearchDescription": "Obsługiwane symbole wieloznaczne:\n\n- Dopasowanie dowolnej sekwencji: *\n\n- Dopasowanie jednego znaku: ?\n\n- Klasa znaków: [a-z], [0-9]\n\n- Negacja: [^0-9]\n\n- Dosłowne *, ? lub [ muszą być ujęte w nawiasy, np. [*], [?], [[]",
-    "helpText2": "Dopasowanie podciągu tylko do nazw plików lub folderów (nie pełnych ścieżek). case:exact dla dopasowania z uwzględnieniem wielkości liter.\n\n dla OR między wyrażeniami użyj znaku potoku; podwójne cudzysłowy dla jednej frazy.\n\nWłącz wyszukiwanie wieloznaczne, aby uzyskać bardziej zaawansowane opcje."
+    "helpText2": "Dopasowanie podciągu tylko do nazw plików lub folderów (nie pełnych ścieżek). case:exact dla dopasowania z uwzględnieniem wielkości liter.\n\n dla OR między wyrażeniami użyj znaku potoku; podwójne cudzysłowy dla jednej frazy.\n\nWłącz wyszukiwanie wieloznaczne, aby uzyskać bardziej zaawansowane opcje.",
+    "useWildcardSearch": "Wyszukiwanie z użyciem symboli wieloznacznych (z uwzględnieniem wielkości liter)",
+    "useWildcardSearchDescription": "Obsługiwane opcje symboli wieloznacznych:\n\n- Dopasuj dowolną sekwencję: *\n\n- Dopasowanie jednego znaku: ?\n\n- Klasa znaków: [a-z], [0-9]\n\n- Negacja: [^0-9]\n\n- Dosłowne *, ? lub [ muszą być ujęte w nawiasy, np. [*], [?], [[]\n\n- We wszystkich wynikach rozróżniana jest wielkość liter",
+    "openInAdvancedSearch": "Otwórz w wyszukiwaniu zaawansowanym"
   },
   "settings": {
     "administrator": "Administrator",
@@ -674,7 +674,9 @@
     "office": "Biuro{suffix}",
     "show": "Pokaż{suffix}",
     "divider": "Dzielnik{suffix}",
-    "audio": "Audio{suffix}"
+    "audio": "Audio{suffix}",
+    "and": "oraz",
+    "or": "lub"
   },
   "access": {
     "rules": "Zasady dostępu",
@@ -720,6 +722,8 @@
     "orange": "pomarańczowy"
   },
   "profileSettings": {
+    "hideFileExt": "Ukryj wybrane pliki (według rozszerzenia)",
+    "hideFileExtDescription": "Lista rozszerzeń plików oddzielonych spacjami. Rozszerzenia wprowadzone w tym polu zostaną ukryte w całym interfejsie użytkownika (wizualnie, np. na liście lub w drzewie plików) — Nadal pozostają dostępne.",
     "preferEditorForMarkdown": "Preferuj edytor dla plików Markdown",
     "preferEditorForMarkdownDescription": "Po włączeniu, pliki Markdown otwierają się najpierw w edytorze zamiast w przeglądarce Markdown.",
     "deleteAfterArchive": "Usuń pliki źródłowe po utworzeniu/wypakowaniu archiwów",
@@ -782,7 +786,9 @@
     "showThumbnailsDescription": "Po włączeniu tej opcji miniatury są wyświetlane na liście elementów, które je obsługują. Wyłącz, aby ukryć wszystkie miniatury.",
     "showCopyPath": "Pokaż kopiowanie ścieżki w menu kontekstowym",
     "showCopyPathDescription": "Wyświetlanie akcji Kopiuj ścieżkę w menu kontekstowym plików i folderów.",
-    "previewDescription": "Pokaż podgląd miniatur dla {filetype}, pokaże ogólną ikonę, jeśli jest wyłączona."
+    "previewDescription": "Pokaż podgląd miniatur dla {filetype}, pokaże ogólną ikonę, jeśli jest wyłączona.",
+    "showToolsInSidebar": "Pokaż narzędzia na pasku bocznym",
+    "showToolsInSidebarDescription": "Zawsze wyświetlaj link do narzędzi na pasku bocznym."
   },
   "editor": {
     "uninitialized": "Nie udało się zainicjować edytora. Przeładuj ponownie.",
@@ -875,6 +881,20 @@
       "stopWatching": "Przestań oglądać",
       "emptyState": "Wybierz plik i kliknij przycisk odtwarzania, aby rozpocząć monitorowanie zmian w pliku",
       "chooseFile": "Wybierz plik"
+    },
+    "advancedSearch": {
+      "name": "Wyszukiwanie zaawansowane",
+      "description": "Przeszukiwanie indeksu z pełną kontrolą nad źródłami, filtrami i opcjami",
+      "searchTerms": "Wyszukiwane hasła",
+      "matchAllTerms": "Dopasuj wszystkie terminy",
+      "matchAllTermsDescription": "Gdy opcja ta jest włączona, wszystkie wyszukiwane hasła muszą zostać znalezione dla każdego pliku",
+      "scopeAria": "Ograniczenie wyszukiwania do folderu",
+      "noTerms": "Wprowadź co najmniej jedno wyszukiwane hasło.",
+      "termTooShort": "Każde wyszukiwane hasło musi zawierać co najmniej {minSearchLength} znaków",
+      "caseExact": "Dopasowanie z uwzględnieniem wielkości liter",
+      "resultsTitle": "Wyniki wyszukiwania",
+      "invalidSources": "Włącz co najmniej jedno źródło.",
+      "noResults": "Brak pasujących plików lub folderów."
     }
   },
   "messages": {

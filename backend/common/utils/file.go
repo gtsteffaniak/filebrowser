@@ -57,6 +57,7 @@ type FileOptions struct {
 	ExtractEmbeddedSubtitles bool   // whether to extract embedded subtitles from media files
 	AlbumArt                 bool   // whether to get album art from media files
 	ShowHidden               bool   // whether to show hidden files (true = show, false = hide)
+	HideFileExt              string // Hide files based on extensions (eg: '.lrc' or '.srt')
 	FollowSymlinks           bool   // whether to follow symlinks
 	Only                     string // whether to only get files or folders
 	SkipExtendedAttrs        bool   // whether to skip extended attributes
@@ -85,4 +86,26 @@ func SanitizeUserPath(userPath string) (string, error) {
 	}
 
 	return clean, nil
+}
+
+// HideFileByExt will check if a filename matches any of the hidden extensions
+func HideFileByExt(filename, hideExt string) bool {
+	if hideExt == "" {
+		return false
+	}
+	exts := strings.Fields(hideExt)
+	nameLower := strings.ToLower(filename)
+	for _, ext := range exts {
+		ext = strings.TrimSpace(ext)
+		if ext == "" {
+			continue
+		}
+		if !strings.HasPrefix(ext, ".") {
+			ext = "." + ext
+		}
+		if strings.HasSuffix(nameLower, strings.ToLower(ext)) {
+			return true
+		}
+	}
+	return false
 }

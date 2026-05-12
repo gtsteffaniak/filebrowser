@@ -92,16 +92,10 @@ func quickSetup(store *bolt.BoltStore) {
 			settings.Config.Auth.AdminPassword = "admin"
 		}
 		user.Password = settings.Config.Auth.AdminPassword
-		user.Permissions.Admin = true
-		user.Scopes = []users.SourceScope{}
-		for _, val := range settings.Config.Server.Sources {
-			user.Scopes = append(user.Scopes, users.SourceScope{
-				Name:  val.Path, // backend name is path
-				Scope: "",
-			})
-		}
 		user.LockPassword = false
+		download := user.Permissions.Download
 		user.Permissions = settings.AdminPerms()
+		user.Permissions.Download = download
 		user.ShowFirstLogin = settings.Env.IsFirstLoad && user.Permissions.Admin
 		logger.Debugf("Creating user as admin: %v %v", user.Username, user.Password)
 		err = store.Users.Save(user, true, true)
@@ -130,6 +124,7 @@ func CreateUser(userInfo users.User, permissions users.Permissions) error {
 	}
 	settings.ApplyUserDefaults(newUser)
 	newUser.Permissions = permissions
+	newUser.Version = users.CurrentUserMigrationVersion
 	logger.Debugf("Creating user: %v %v", userInfo.Username, userInfo.Scopes)
 	// create new home directories
 	err := userStore.Save(newUser, true, false)

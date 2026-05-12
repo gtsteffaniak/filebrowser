@@ -12,14 +12,19 @@ All notable changes to this project will be documented in this file. For commit 
    - The `Q` shortcut in audio files will toggle the new panel visibility.
    - `E` shortcut to change between tabs of the panel if it's open.
  - Api log filtering support via `apiFilter` option for logging.
-   - regex filter that excludes matching full api paths from being logged. (eg. '/user\?id\=self') Defaults to '^/health|^/favicon.ico|^/static|^/public/static'
+   - regex filter that excludes matching full api paths from being logged. (eg. `/user\?id\=self`) Defaults to `^/health|^/favicon.ico|^/static|^/public/static`
    - Add config option to disable /health endpoint logging (#2291)
  - More shortcuts (#2300)
    - `CTRL+F1` switch to normal view.
    - `CTRL+F2` switch to gallery view.
    - `CTRL+F3` switch to list view.
    - `Double click` on empty space to select all items.
- - Wildcard search support (limited to sqlite GLOB)
+ - Option to hide certain files in UI by extension (#2403) (#2277)
+ - Additional search features
+   - wildcard search similar to regex, but limited to sqlite GLOB syntax (#769)
+   - advanced search tool that shows all results in a listing thats sortable and actionable like a normal listing (#1051)
+   - advanced search supports multiple custom scopes per search
+   - multiple search terms with AND or OR logic support
 
  **Notes**:
  - Enhanced indexing scheduler which doesn't wake the disk as often.
@@ -27,6 +32,8 @@ All notable changes to this project will be documented in this file. For commit 
  - Swiping down gesture in fullscreen videos exit fullscreen instead of close preview.
  - Improved styles for path selection and tables
  - Improved style of drag and drop into listing view (#2407)
+ - Edit Sidebar links has new "show tools in sidebar" toggle and all users have this enabled by default. can be disabled via for new users `userDefaults.sidebar.showTools: false`
+ - Update user defaults ordering (#1140)
 
  **BugFixes**:
  - Blue overlay when using gestures in video files on mobile (#2360)
@@ -35,6 +42,15 @@ All notable changes to this project will be documented in this file. For commit 
  - Delete prompt thumbnail didn't worked when using it with the `delete` shortcut. (#2407)
  - Searching icons in the Icon picker prompt wasn't working properly (#2407) 
  - Drag and drop style state was stuck until page reload (#2407)
+
+## v1.3.10
+
+ **Notes**:
+ - When indexing is disabled for a source, the usage will always reported as partition size.
+ - removed deprecated `source.config.disableIndexing`, see [rules](https://filebrowserquantum.com/en/docs/advanced/source-configuration/conditional-rules/#disable-indexing)
+
+ **BugFixes**:
+ - Disable index option not working (#2385)
 
 ## v1.3.9
 

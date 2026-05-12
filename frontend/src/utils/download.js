@@ -12,24 +12,34 @@ export default function downloadFiles(items) {
     items = items.map(i => state.req.items[i]);
   }
   
-  // Check if chunked download will be used (single file only)
+  // Chunked single-file (large) vs chunked multi-item archive (folder / multi-select)
   const downloadChunkSizeMb = state.user?.fileLoading?.downloadChunkSizeMb || 0
   const sizeThreshold = downloadChunkSizeMb * 1024 * 1024;
   
-  const willUseChunkedDownload = 
-    downloadChunkSizeMb > 0 && 
-    items.length === 1 && 
-    !items[0].isDir && 
-    items[0].size && 
+  const willUseChunkedDownload =
+    downloadChunkSizeMb > 0 &&
+    items.length === 1 &&
+    !items[0].isDir &&
+    items[0].size &&
     items[0].size >= sizeThreshold
+
+  const isMultiItemArchive =
+    items.length > 1 || (items.length === 1 && items[0].isDir)
+
+  const willUseChunkedArchive =
+    downloadChunkSizeMb > 0 && isMultiItemArchive
+
+  const showChunkedProgressFirst =
+    willUseChunkedDownload || willUseChunkedArchive
 
   if (getters.isShare()) {
     // Perform download without opening a new window
     if (getters.isSingleFileSelected()) {
-      // Show download prompt for chunked downloads, otherwise start directly
-      if (willUseChunkedDownload) {
+      if (showChunkedProgressFirst) {
         mutations.showPrompt({ name: "download" });
-        startDownload(null, items, state.shareInfo.hash, { silentChunkedError: true });
+        startDownload(null, items, state.shareInfo.hash, {
+          silentChunkedError: true,
+        });
       } else {
         startDownload(null, items, state.shareInfo.hash);
       }
@@ -39,7 +49,9 @@ export default function downloadFiles(items) {
         name: "download",
         confirm: (format) => {
           mutations.closeTopPrompt();
-          startDownload(format, items, state.shareInfo.hash);
+          startDownload(format, items, state.shareInfo.hash, {
+            silentChunkedError: willUseChunkedArchive,
+          });
         },
       });
     }
@@ -47,8 +59,7 @@ export default function downloadFiles(items) {
   }
 
   if (getters.isSingleFileSelected()) {
-    // Show download prompt for chunked downloads, otherwise start directly
-    if (willUseChunkedDownload) {
+    if (showChunkedProgressFirst) {
       mutations.showPrompt({ name: "download" });
       startDownload(null, items, "", { silentChunkedError: true });
     } else {
@@ -60,18 +71,23 @@ export default function downloadFiles(items) {
       name: "download",
       confirm: (format) => {
         mutations.closeTopPrompt();
-        startDownload(format, items);
+        startDownload(format, items, "", {
+          silentChunkedError: willUseChunkedArchive,
+        });
       },
     });
   }
 }
 
-async function startDownload(config, files, hash = "") {
+async function startDownload(config, files, hash = "", options = {}) {
   try {
     notify.showSuccessToast("Downloading...");
     await resourcesApi.download(config, files, hash);
   } catch (e) {
     if (e?.name === "AbortError" || e?.message?.includes("aborted") || e?.message?.includes("cancelled")) {
+      return;
+    }
+    if (options.silentChunkedError) {
       return;
     }
     notify.showError(`Error downloading: ${e.message || e}`);

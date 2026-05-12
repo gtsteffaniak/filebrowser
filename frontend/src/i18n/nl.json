@@ -129,7 +129,9 @@
     "watching": "Bekijken{suffix}",
     "lines": "Regels{suffix}",
     "lastUpdate": "Laatste update{suffix}",
-    "latency": "Vertraging{suffix}"
+    "latency": "Vertraging{suffix}",
+    "and": "en",
+    "or": "of"
   },
   "buttons": {
     "copySuccess": "Gekopieerd naar klembord!",
@@ -167,7 +169,7 @@
     "keepEditing": "Blijven bewerken",
     "closeAnyway": "Sluiten",
     "goToItem": "Ga naar item",
-    "goToSource": "Ga naar de bronlocatie"
+    "goToSource": "Ga naar bronlocatie"
   },
   "download": {
     "downloadFile": "Bestand downloaden",
@@ -283,7 +285,6 @@
     "passwordsDontMatch": "Wachtwoorden komen niet overeen",
     "usernameTaken": "Gebruikersnaam al in gebruik",
     "wrongCredentials": "Verkeerde inloggegevens",
-    "or": "OF",
     "inProgress": "Inloggen...",
     "failedLogin": "Inloggen is mislukt",
     "invalidCredentials": "Ongeldige inloggegevens verstrekt"
@@ -474,12 +475,15 @@
     "newerThanDate": "Nieuwer dan:",
     "showPreviewImages": "Voorbeeldafbeeldingen tonen",
     "showPreviewImagesDescription": "Toon, indien beschikbaar, miniatuurvoorbeelden voor zoekresultaten en toon grotere pictogrammen voor alle resultaten.",
-    "useWildcardSearch": "Zoeken met jokertekens",
     "helpText1": "Er wordt gezocht op elk teken dat je typt (minimaal{minSearchLength} tekens).",
-    "useWildcardSearchDescription": "Ondersteunde jokertekens:\n\n- Overeenstemming met elke reeks: *\n\n- Overeenstemming met één teken: ?\n\n- Tekenklasse: [a-z], [0-9]\n\n- Negatie: [^0-9]\n\n- Letterlijke *, ?, of [ moeten tussen haakjes staan, bijv. [*], [?], [[]",
-    "helpText2": "Substring match alleen op bestands- of mapnamen (geen volledige paden). case:exact voor hoofdlettergevoelig matchen\n\n voor OR tussen termen gebruik je het teken pipe; dubbele aanhalingstekens voor één zin.\n\nSchakel wildcard zoeken in voor meer geavanceerde opties."
+    "helpText2": "Substring match alleen op bestands- of mapnamen (geen volledige paden). case:exact voor hoofdlettergevoelig matchen\n\n voor OR tussen termen gebruik je het teken pipe; dubbele aanhalingstekens voor één zin.\n\nSchakel wildcard zoeken in voor meer geavanceerde opties.",
+    "useWildcardSearch": "Zoeken met jokertekens (hoofdlettergevoelig)",
+    "useWildcardSearchDescription": "Ondersteunde jokertekenopties:\n\n- Overeenstemming met een willekeurige reeks: *\n\n- Overeenstemming met één teken: ?\n\n- Tekenklasse: [a-z], [0-9]\n\n- Negatie: [^0-9]\n\n- Letterlijke *, ?, of [ moeten tussen haakjes staan, bijv. [*], [?], [[]\n\n- Alle resultaten zijn hoofdlettergevoelig",
+    "openInAdvancedSearch": "Openen in geavanceerd zoeken"
   },
   "profileSettings": {
+    "hideFileExt": "Bepaalde bestanden verbergen (op extensie)",
+    "hideFileExtDescription": "Een door spaties gescheiden lijst van bestandsextensies. Extensies die in dit veld worden ingevoerd, worden verborgen in de hele gebruikersinterface (visueel, zoals in de lijst of bestandsboom) — Ze blijven toegankelijk.",
     "preferEditorForMarkdown": "Geef de voorkeur aan editor voor Markdown-bestanden",
     "preferEditorForMarkdownDescription": "Indien ingeschakeld, open Markdown-bestanden eerst in de editor in plaats van de Markdown-viewer.",
     "deleteAfterArchive": "Bronbestanden verwijderen na aanmaken/uitpakken van archieven",
@@ -542,7 +546,9 @@
     "themeAndLanguage": "Thema & Taal",
     "thumbnailOptions": "Miniatuuropties",
     "showThumbnails": "Toon miniaturen voor ondersteunde items",
-    "showThumbnailsDescription": "Als deze optie is ingeschakeld, worden miniaturen weergegeven in de lijst met items die deze ondersteunen. Schakel deze optie uit om alle miniaturen te verbergen."
+    "showThumbnailsDescription": "Als deze optie is ingeschakeld, worden miniaturen weergegeven in de lijst met items die deze ondersteunen. Schakel deze optie uit om alle miniaturen te verbergen.",
+    "showToolsInSidebar": "Toon gereedschappen in de zijbalk",
+    "showToolsInSidebarDescription": "Toon altijd de link naar de hulpmiddelen in de zijbalk."
   },
   "settings": {
     "systemAdmin": "Systeem & Beheer",
@@ -884,7 +890,21 @@
       "chooseFile": "Kies een bestand"
     },
     "toolNotFound": "Gereedschap niet gevonden",
-    "backToTools": "Terug naar Gereedschap"
+    "backToTools": "Terug naar Gereedschap",
+    "advancedSearch": {
+      "name": "Geavanceerd zoeken",
+      "description": "Zoek in de index met volledige controle over bronnen, filters en opties",
+      "searchTerms": "Zoektermen",
+      "matchAllTerms": "Alle termen matchen",
+      "matchAllTermsDescription": "Indien ingeschakeld, moeten alle zoektermen worden gevonden voor elk bestand",
+      "scopeAria": "Zoekopdracht beperken tot een map",
+      "noTerms": "Voer ten minste één zoekterm in.",
+      "termTooShort": "Elke zoekterm moet minimaal {minSearchLength} tekens bevatten.",
+      "caseExact": "Hoofdlettergevoelige match",
+      "resultsTitle": "Zoekresultaten",
+      "invalidSources": "Zet minstens één bron aan.",
+      "noResults": "Geen overeenkomende bestanden of mappen."
+    }
   },
   "notifications": {
     "title": "Meldingen",
@@ -910,7 +930,7 @@
     "serverShutdown": "De server is uitgeschakeld.",
     "authenticationFailed": "Authenticatie is mislukt. Ververs de pagina om opnieuw in te loggen.",
     "reconnected": "Opnieuw verbinding gemaakt met server.",
-    "connectionLost": "De verbinding met de server is verbroken. Probeer opnieuw verbinding te maken..."
+    "connectionLost": "De verbinding met de server is verbroken. Verbinding herstellen..."
   },
   "threejs": {
     "controls": "3D-besturingselementen",
@@ -922,8 +942,8 @@
     "rotateX": "X draaien"
   },
   "onlyoffice": {
-    "debugTitle": "OnlyOffice Debugtrace",
-    "debug": "OnlyOffice Debug",
+    "debugTitle": "OnlyOffice Foutopsporing",
+    "debug": "OnlyOffice Foutopsporing",
     "basicConfiguration": "Basisconfiguratie",
     "configurationDetails": "Configuratiegegevens van OnlyOffice",
     "backendLogs": "Backend-logboeken",
@@ -931,8 +951,8 @@
     "fileType": "Bestandstype",
     "editMode": "Modus Bewerken",
     "downloadURL": "URL downloaden",
-    "callbackURL": "Terugbel URL",
-    "networkFlow": "Netwerkstroom",
+    "callbackURL": "Terugbel-URL",
+    "networkFlow": "Netwerkketen",
     "browser": "Browser",
     "onlyOffice": "OnlyOffice",
     "fileBrowser": "Bestandsbrowser",
@@ -946,16 +966,16 @@
     "errorDetected": "Fout gedetecteerd",
     "integrationFailed": "Integratie met OnlyOffice is mislukt. Controleer de mislukte stappen hierboven.",
     "documentInitialized": "Document geïnitialiseerd",
-    "integrationSuccess": "OnlyOffice integratie succesvol geïnitialiseerd. Controleer de logboeken van de backend op eventuele problemen.",
+    "integrationSuccess": "Integratie met OnlyOffice succesvol geïnitialiseerd. Controleer de logboeken van de backend op eventuele problemen.",
     "troubleshootingGuide": "Gids voor probleemoplossing bekijken",
     "startingInit": "OnlyOffice initialisatie starten...",
     "configCheck": "Configuratiecontrole - URL opgebouwd",
     "apiRequest": "API verzoek - Ontvangen configuratie",
-    "serverConnection": "Alleen Office-serververbinding - Verzonden configuratie",
-    "testingConnectivity": "OnlyOffice serverconnectiviteit testen...",
-    "serverReachable": "Alleen de OnlyOffice-server lijkt bereikbaar",
-    "documentDownload": "Document downloaden - Compleet",
-    "editorSuccess": "Initialisatie Editor - Succes! Alle stappen voltooid.",
-    "setupError": "Setup-fout"
+    "serverConnection": "OnlyOffice serververbinding - Verzonden configuratie",
+    "testingConnectivity": "OnlyOffice serververbnding testen...",
+    "serverReachable": "OnlyOffice-server lijkt bereikbaar",
+    "documentDownload": "Document downloaden - Voltooid",
+    "editorSuccess": "Editor-inintialisatie - Succes! Alle stappen voltooid.",
+    "setupError": "Instellingenfout"
   }
 }

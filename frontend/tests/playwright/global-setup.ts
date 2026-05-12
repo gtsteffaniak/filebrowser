@@ -17,7 +17,7 @@ async function globalSetup() {
   expect(cookies.find((c) => c.name === "filebrowser_quantum_jwt")?.value).toBeDefined();
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
 
-  await page.waitForURL("**/files/playwright%20+%20files", { timeout: 1000 });
+  await page.waitForURL("**/files/playwright%20+%20files/", { timeout: 1000 });
 
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
 
@@ -39,7 +39,7 @@ async function globalSetup() {
     localStorage.setItem('shareHash', hash);
   }, shareHash);
 
-  await page.goto("http://127.0.0.1/files/playwright%20%2B%20files", { timeout: 1000 });
+  await page.goto("http://127.0.0.1/files/playwright%20%2B%20files/", { timeout: 1000 });
   // Create a share of file
   await page.locator('a[aria-label="1file1.txt"]').waitFor({ state: 'visible' });
   await page.locator('a[aria-label="1file1.txt"]').click({ button: "right" });
@@ -59,7 +59,7 @@ async function globalSetup() {
   }, shareHashFile);
 
   // Create a share of root folder "/"
-  await page.goto("http://127.0.0.1/files/playwright%20%2B%20files", { timeout: 1000 });
+  await page.goto("http://127.0.0.1/files/playwright%20%2B%20files/", { timeout: 1000 });
   await page.locator('a[aria-label="share"]').waitFor({ state: 'visible' });
   await openContextMenuHelper(page);
   await page.locator('button[aria-label="Share"]').click();

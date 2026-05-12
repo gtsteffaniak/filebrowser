@@ -14,6 +14,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
@@ -99,8 +100,46 @@ func prepForFrontend(u *users.User) {
 	u.TOTPSecret = ""
 	u.TOTPNonce = ""
 	u.Scopes = u.GetFrontendScopes()
-	u.SidebarLinks = u.GetFrontendSidebarLinks()
+	u.SidebarLinks = GetFrontendSidebarLinks(u.SidebarLinks, u.ShowToolsInSidebar)
 	u.Locale = normalizeLocale(u.Locale)
+}
+
+// GetFrontendSidebarLinks converts the user's sidebar links from backend-style to frontend-style:
+func GetFrontendSidebarLinks(links []users.SidebarLink, showToolsInSidebar bool) []users.SidebarLink {
+	if !users.SourceConfigLoaded() {
+		return []users.SidebarLink{}
+	}
+	hasTools := false
+	newLinks := []users.SidebarLink{}
+	for _, link := range links {
+		if strings.HasPrefix(link.Category, "source") {
+			if link.SourceName == "" {
+				continue
+			}
+			source, ok := users.ResolveSourceKey(link.SourceName)
+			if !ok {
+				continue
+			}
+			if full, ok := settings.Config.Server.SourceMap[source.Path]; ok {
+				if full.Config.ResolvedRules.IndexingDisabled && link.Category != "source-minimal" {
+					link.Category = "source-alt"
+				}
+			}
+			link.SourceName = source.Name
+		} else if link.Category == "tool" && link.Target == "/tools" {
+			hasTools = true
+		}
+		newLinks = append(newLinks, link)
+	}
+	if !hasTools && showToolsInSidebar {
+		newLinks = append(newLinks, users.SidebarLink{
+			Name:     "Tools",
+			Category: "tool",
+			Target:   "/tools",
+			Icon:     "build",
+		})
+	}
+	return newLinks
 }
 
 // normalizeLocale converts various locale formats (xx_xx, xx-xx, xxxx) to camelCase format (xxXX)

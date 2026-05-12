@@ -39,6 +39,8 @@ func Initialize(configFile string) {
 	setupLogging()
 	// setup logging first to ensure we log any errors
 	setupEnv()
+	// Migrate deprecated UserDefaults fields to new organized structure
+	migrateUserDefaults()
 	err = ValidateConfig(Config)
 	if err != nil {
 		errmsg := "The provided config file failed validation. "
@@ -97,6 +99,10 @@ func setupFs() {
 
 	// Perform mandatory cache directory speed test
 	testCacheDirSpeed()
+
+	if err := PrepareDownloadSpoolDir(); err != nil {
+		logger.Fatalf("cacheDir failed to prepare download spool: %v", err)
+	}
 
 	logger.Infof("cache directory setup successfully: %v", Config.Server.CacheDir)
 
@@ -508,6 +514,348 @@ func setupLogging() {
 	}
 }
 
+// migrateUserDefaults migrates deprecated UserDefaults fields to the new organized structure.
+// This function maintains backwards compatibility by checking if new fields are unset and copying
+// values from old deprecated fields if found. Logs warnings when old fields are migrated.
+func migrateUserDefaults() {
+	ud := &Config.UserDefaults
+	hasOldFields := false
+
+	// Helper function to check if a bool pointer is unset (nil)
+	isUnsetBoolPtr := func(v *bool) bool {
+		return v == nil
+	}
+
+	// Helper function to check if a string is unset (empty)
+	isUnsetString := func(v string) bool {
+		return v == ""
+	}
+
+	// Helper function to check if an int is unset (zero)
+	isUnsetInt := func(v int) bool {
+		return v == 0
+	}
+
+	// Migrate Sidebar fields
+	if !ud.Sidebar.DisableQuickToggles && ud.DisableQuickToggles {
+		ud.Sidebar.DisableQuickToggles = ud.DisableQuickToggles
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'disableQuickToggles' to 'sidebar.disableQuickToggles'")
+	}
+
+	if !ud.Sidebar.HideFileActions && ud.HideSidebarFileActions {
+		ud.Sidebar.HideFileActions = ud.HideSidebarFileActions
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'hideSidebarFileActions' to 'sidebar.hideFileActions'")
+	}
+
+	if !ud.Sidebar.Sticky && ud.StickySidebar {
+		ud.Sidebar.Sticky = ud.StickySidebar
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'stickySidebar' to 'sidebar.sticky'")
+	}
+
+	if isUnsetString(ud.Sidebar.ViewMode) && !isUnsetString(ud.ViewMode) {
+		ud.Sidebar.ViewMode = ud.ViewMode
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'viewMode' to 'sidebar.viewMode'")
+	}
+
+	if isUnsetInt(ud.Sidebar.GallerySize) && !isUnsetInt(ud.GallerySize) {
+		ud.Sidebar.GallerySize = ud.GallerySize
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'gallerySize' to 'sidebar.gallerySize'")
+	}
+
+	if !ud.Sidebar.HideFiles && ud.HideFilesInTree {
+		ud.Sidebar.HideFiles = ud.HideFilesInTree
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'hideFilesInTree' to 'sidebar.hideFiles'")
+	}
+
+	if isUnsetBoolPtr(ud.Sidebar.ShowTools) && ud.ShowToolsInSidebar != nil {
+		ud.Sidebar.ShowTools = ud.ShowToolsInSidebar
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'showToolsInSidebar' to 'sidebar.showTools'")
+	}
+
+	// Migrate preview.disableHideSidebar to sidebar.disableHideOnPreview
+	if !ud.Sidebar.DisableHideOnPreview && ud.Preview.DisableHideSidebar {
+		ud.Sidebar.DisableHideOnPreview = ud.Preview.DisableHideSidebar
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'preview.disableHideSidebar' to 'sidebar.disableHideOnPreview'")
+	}
+
+	// Migrate Listing fields
+	if !ud.Listing.DeleteWithoutConfirming && ud.DeleteWithoutConfirming {
+		ud.Listing.DeleteWithoutConfirming = ud.DeleteWithoutConfirming
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'deleteWithoutConfirming' to 'listing.deleteWithoutConfirming'")
+	}
+
+	if !ud.Listing.DateFormat && ud.DateFormat {
+		ud.Listing.DateFormat = ud.DateFormat
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'dateFormat' to 'listing.dateFormat'")
+	}
+
+	if !ud.Listing.ShowHidden && ud.ShowHidden {
+		ud.Listing.ShowHidden = ud.ShowHidden
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'showHidden' to 'listing.showHidden'")
+	}
+
+	if !ud.Listing.QuickDownload && ud.QuickDownload {
+		ud.Listing.QuickDownload = ud.QuickDownload
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'quickDownload' to 'listing.quickDownload'")
+	}
+
+	if !ud.Listing.ShowSelectMultiple && ud.ShowSelectMultiple {
+		ud.Listing.ShowSelectMultiple = ud.ShowSelectMultiple
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'showSelectMultiple' to 'listing.showSelectMultiple'")
+	}
+
+	if !ud.Listing.SingleClick && ud.SingleClick {
+		ud.Listing.SingleClick = ud.SingleClick
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'singleClick' to 'listing.singleClick'")
+	}
+
+	if isUnsetString(ud.Listing.HideFileExt) && !isUnsetString(ud.HideFileExt) {
+		ud.Listing.HideFileExt = ud.HideFileExt
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'hideFileExt' to 'listing.hideFileExt'")
+	}
+
+	if !ud.Listing.ShowCopyPath && ud.ShowCopyPath {
+		ud.Listing.ShowCopyPath = ud.ShowCopyPath
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'showCopyPath' to 'listing.showCopyPath'")
+	}
+
+	if !ud.Listing.DeleteAfterArchive && ud.DeleteAfterArchive {
+		ud.Listing.DeleteAfterArchive = ud.DeleteAfterArchive
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'deleteAfterArchive' to 'listing.deleteAfterArchive'")
+	}
+
+	// Migrate Preview fields (old flat preview.* to new organized preview.*)
+	if isUnsetBoolPtr(ud.PreviewNew.Image) && ud.Preview.Image != nil {
+		ud.PreviewNew.Image = ud.Preview.Image
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'preview.image' to organized 'preview.image'")
+	}
+
+	if isUnsetBoolPtr(ud.PreviewNew.Video) && ud.Preview.Video != nil {
+		ud.PreviewNew.Video = ud.Preview.Video
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'preview.video' to organized 'preview.video'")
+	}
+
+	if isUnsetBoolPtr(ud.PreviewNew.Audio) && ud.Preview.Audio != nil {
+		ud.PreviewNew.Audio = ud.Preview.Audio
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'preview.audio' to organized 'preview.audio'")
+	}
+
+	if isUnsetBoolPtr(ud.PreviewNew.MotionVideoPreview) && ud.Preview.MotionVideoPreview != nil {
+		ud.PreviewNew.MotionVideoPreview = ud.Preview.MotionVideoPreview
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'preview.motionVideoPreview' to organized 'preview.motionVideoPreview'")
+	}
+
+	if isUnsetBoolPtr(ud.PreviewNew.Office) && ud.Preview.Office != nil {
+		ud.PreviewNew.Office = ud.Preview.Office
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'preview.office' to organized 'preview.office'")
+	}
+
+	if isUnsetBoolPtr(ud.PreviewNew.PopUp) && ud.Preview.PopUp != nil {
+		ud.PreviewNew.PopUp = ud.Preview.PopUp
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'preview.popup' to organized 'preview.popup'")
+	}
+
+	if isUnsetBoolPtr(ud.PreviewNew.HighQuality) && ud.Preview.HighQuality != nil {
+		ud.PreviewNew.HighQuality = ud.Preview.HighQuality
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'preview.highQuality' to organized 'preview.highQuality'")
+	}
+
+	if isUnsetBoolPtr(ud.PreviewNew.Folder) && ud.Preview.Folder != nil {
+		ud.PreviewNew.Folder = ud.Preview.Folder
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'preview.folder' to organized 'preview.folder'")
+	}
+
+	if isUnsetBoolPtr(ud.PreviewNew.Models) && ud.Preview.Models != nil {
+		ud.PreviewNew.Models = ud.Preview.Models
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'preview.models' to organized 'preview.models'")
+	}
+
+	if isUnsetString(ud.PreviewNew.DisablePreviewExt) && !isUnsetString(ud.DisablePreviewExt) {
+		ud.PreviewNew.DisablePreviewExt = ud.DisablePreviewExt
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'disablePreviewExt' to 'preview.disablePreviewExt'")
+	}
+
+	// Migrate FileViewer fields
+	if !ud.FileViewer.EditorQuickSave && ud.EditorQuickSave {
+		ud.FileViewer.EditorQuickSave = ud.EditorQuickSave
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'editorQuickSave' to 'fileViewer.editorQuickSave'")
+	}
+
+	if isUnsetBoolPtr(ud.FileViewer.AutoplayMedia) && ud.Preview.AutoplayMedia != nil {
+		ud.FileViewer.AutoplayMedia = ud.Preview.AutoplayMedia
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'preview.autoplayMedia' to 'fileViewer.autoplayMedia'")
+	}
+
+	if isUnsetString(ud.FileViewer.DisableViewingExt) && !isUnsetString(ud.DisableViewingExt) {
+		ud.FileViewer.DisableViewingExt = ud.DisableViewingExt
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'disableViewingExt' to 'fileViewer.disableViewingExt'")
+	}
+
+	if isUnsetString(ud.FileViewer.DisableOnlyOfficeExt) && !isUnsetString(ud.DisableOnlyOfficeExt) {
+		ud.FileViewer.DisableOnlyOfficeExt = ud.DisableOnlyOfficeExt
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'disableOnlyOfficeExt' to 'fileViewer.disableOnlyOfficeExt'")
+	}
+
+	if !ud.FileViewer.PreferEditorForMarkdown && ud.PreferEditorForMarkdown {
+		ud.FileViewer.PreferEditorForMarkdown = ud.PreferEditorForMarkdown
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'preferEditorForMarkdown' to 'fileViewer.preferEditorForMarkdown'")
+	}
+
+	if !ud.FileViewer.DebugOffice && ud.DebugOffice {
+		ud.FileViewer.DebugOffice = ud.DebugOffice
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'debugOffice' to 'fileViewer.debugOffice'")
+	}
+
+	if !ud.FileViewer.DefaultMediaPlayer && ud.Preview.DefaultMediaPlayer {
+		ud.FileViewer.DefaultMediaPlayer = ud.Preview.DefaultMediaPlayer
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'preview.defaultMediaPlayer' to 'fileViewer.defaultMediaPlayer'")
+	}
+
+	// Migrate Search fields
+	if !ud.Search.DisableOptions && ud.DisableSearchOptions {
+		ud.Search.DisableOptions = ud.DisableSearchOptions
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'disableSearchOptions' to 'search.disableOptions'")
+	}
+
+	// Migrate UI fields
+	if isUnsetBoolPtr(ud.UI.DarkMode) && ud.DarkMode != nil {
+		ud.UI.DarkMode = ud.DarkMode
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'darkMode' to 'ui.darkMode'")
+	}
+
+	if isUnsetString(ud.UI.ThemeColor) && !isUnsetString(ud.ThemeColor) {
+		ud.UI.ThemeColor = ud.ThemeColor
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'themeColor' to 'ui.themeColor'")
+	}
+
+	if isUnsetString(ud.UI.CustomTheme) && !isUnsetString(ud.CustomTheme) {
+		ud.UI.CustomTheme = ud.CustomTheme
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'customTheme' to 'ui.customTheme'")
+	}
+
+	if isUnsetString(ud.UI.Locale) && !isUnsetString(ud.Locale) {
+		ud.UI.Locale = ud.Locale
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'locale' to 'ui.locale'")
+	}
+
+	// Migrate Account fields
+	if !ud.Account.LockPassword && ud.LockPassword {
+		ud.Account.LockPassword = ud.LockPassword
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'lockPassword' to 'account.lockPassword'")
+	}
+
+	if !ud.Account.DisableSettings && ud.DisableSettings {
+		ud.Account.DisableSettings = ud.DisableSettings
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'disableSettings' to 'account.disableSettings'")
+	}
+
+	if isUnsetString(ud.Account.LoginMethod) && !isUnsetString(ud.LoginMethod) {
+		ud.Account.LoginMethod = ud.LoginMethod
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'loginMethod' to 'account.loginMethod'")
+	}
+
+	if !ud.Account.DisableUpdateNotifications && ud.DisableUpdateNotifications {
+		ud.Account.DisableUpdateNotifications = ud.DisableUpdateNotifications
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'disableUpdateNotifications' to 'account.disableUpdateNotifications'")
+	}
+
+	// Migrate Account Permissions fields
+	if !ud.Account.Permissions.Api && ud.Permissions.Api {
+		ud.Account.Permissions.Api = ud.Permissions.Api
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'permissions.api' to 'account.permissions.api'")
+	}
+
+	if !ud.Account.Permissions.Admin && ud.Permissions.Admin {
+		ud.Account.Permissions.Admin = ud.Permissions.Admin
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'permissions.admin' to 'account.permissions.admin'")
+	}
+
+	if !ud.Account.Permissions.Modify && ud.Permissions.Modify {
+		ud.Account.Permissions.Modify = ud.Permissions.Modify
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'permissions.modify' to 'account.permissions.modify'")
+	}
+
+	if !ud.Account.Permissions.Share && ud.Permissions.Share {
+		ud.Account.Permissions.Share = ud.Permissions.Share
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'permissions.share' to 'account.permissions.share'")
+	}
+
+	if !ud.Account.Permissions.Realtime && ud.Permissions.Realtime {
+		ud.Account.Permissions.Realtime = ud.Permissions.Realtime
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'permissions.realtime' to 'account.permissions.realtime'")
+	}
+
+	if !ud.Account.Permissions.Delete && ud.Permissions.Delete {
+		ud.Account.Permissions.Delete = ud.Permissions.Delete
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'permissions.delete' to 'account.permissions.delete'")
+	}
+
+	if !ud.Account.Permissions.Create && ud.Permissions.Create {
+		ud.Account.Permissions.Create = ud.Permissions.Create
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'permissions.create' to 'account.permissions.create'")
+	}
+
+	if isUnsetBoolPtr(ud.Account.Permissions.Download) && ud.Permissions.Download != nil {
+		ud.Account.Permissions.Download = ud.Permissions.Download
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'permissions.download' to 'account.permissions.download'")
+	}
+
+	if hasOldFields {
+		logger.Warning("userDefaults: Please update your configuration to use the new organized structure. See documentation for details.")
+	}
+}
+
 func loadConfigWithDefaults(configFile string, generate bool) error {
 	Config = setDefaults(generate)
 
@@ -713,42 +1061,78 @@ func setDefaults(generate bool) Settings {
 			Name: "FileBrowser Quantum",
 		},
 		UserDefaults: UserDefaults{
-			DeleteAfterArchive:      true,
-			DisableOnlyOfficeExt:    ".md .txt .pdf .html .xml",
-			StickySidebar:           true,
-			HideFilesInTree:         false,
-			PreferEditorForMarkdown: false,
-			ShowCopyPath:            false,
-			LockPassword:            false,
-			ShowHidden:              false,
-			DarkMode:                boolPtr(true),
-			DisableSettings:         false,
-			ViewMode:                "normal",
-			Locale:                  "en",
-			GallerySize:             3,
-			ThemeColor:              "var(--blue)",
-			Permissions: UserDefaultsPermissions{
-				Modify:   false,
-				Share:    false,
-				Admin:    false,
-				Api:      false,
-				Download: boolPtr(true), // defaults to true
+			// New organized structure
+			Sidebar: UserDefaultsSidebar{
+				DisableQuickToggles:  false,
+				HideFileActions:      false,
+				DisableHideOnPreview: false,
+				Sticky:               true,
+				ViewMode:             "normal",
+				GallerySize:          3,
+				HideFiles:            false,
+				ShowTools:            boolPtr(true),
 			},
-			Preview: UserDefaultsPreview{
+			Listing: UserDefaultsListing{
+				DeleteWithoutConfirming: false,
+				DateFormat:              false,
+				ShowHidden:              false,
+				QuickDownload:           false,
+				ShowSelectMultiple:      false,
+				SingleClick:             false,
+				HideFileExt:             "",
+				ShowCopyPath:            false,
+				DeleteAfterArchive:      true,
+			},
+			PreviewNew: UserDefaultsPreviewNew{
 				Image:              boolPtr(true),
 				Video:              boolPtr(true),
 				Audio:              boolPtr(true),
 				MotionVideoPreview: boolPtr(true),
 				Office:             boolPtr(true),
 				PopUp:              boolPtr(true),
-				AutoplayMedia:      boolPtr(true),
+				DisablePreviewExt:  "",
+				HighQuality:        boolPtr(true),
 				Folder:             boolPtr(true),
 				Models:             boolPtr(true),
+			},
+			FileViewer: UserDefaultsFileViewer{
+				EditorQuickSave:         false,
+				AutoplayMedia:           boolPtr(true),
+				DisableViewingExt:       "",
+				DisableOnlyOfficeExt:    ".md .txt .pdf .html .xml",
+				PreferEditorForMarkdown: false,
+				DebugOffice:             false,
+				DefaultMediaPlayer:      false,
+			},
+			Search: UserDefaultsSearch{
+				DisableOptions: false,
+			},
+			UI: UserDefaultsUI{
+				DarkMode:    boolPtr(true),
+				ThemeColor:  "var(--blue)",
+				CustomTheme: "",
+				Locale:      "en",
 			},
 			FileLoading: users.FileLoading{
 				MaxConcurrent:     10,
 				UploadChunkSize:   10, // 10MB
 				DownloadChunkSize: 0,  // 0MB, default to no chunking
+			},
+			Account: UserDefaultsAccount{
+				Permissions: UserDefaultsAccountPermissions{
+					Api:      false,
+					Admin:    false,
+					Modify:   false,
+					Share:    false,
+					Realtime: false,
+					Delete:   false,
+					Create:   false,
+					Download: boolPtr(true), // defaults to true
+				},
+				LockPassword:               false,
+				DisableSettings:            false,
+				LoginMethod:                "",
+				DisableUpdateNotifications: false,
 			},
 		},
 	}
@@ -830,6 +1214,19 @@ func loadCustomFavicon() {
 // PWAIconsCacheDir is where startup icon generation writes PNGs (under the server cache dir).
 func PWAIconsCacheDir() string {
 	return filepath.Join(Config.Server.CacheDir, "icons")
+}
+
+// Where transient archives for multi-request (Range) downloads are stored to support chunked downloads.
+func DownloadCacheDir() string {
+	return filepath.Join(Config.Server.CacheDir, "downloads")
+}
+
+// PrepareDownloadSpoolDir creates the download spool directory and removes any leftover dl-archive-*
+func PrepareDownloadSpoolDir() error {
+	if err := os.MkdirAll(DownloadCacheDir(), fileutils.PermDir); err != nil {
+		return err
+	}
+	return fileutils.ClearDirectoryContents(DownloadCacheDir())
 }
 
 func loadLoginIcon() {

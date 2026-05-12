@@ -18,15 +18,10 @@ import (
 )
 
 // throttledReadSeeker is a wrapper around an io.ReadSeeker that throttles the reading speed.
+// Used for single-file downloads and for share archive downloads (see serveArchiveWithServeContent);
+// archives are built to a temp file first, then bytes to the client are limited on read.
 type throttledReadSeeker struct {
 	rs      io.ReadSeeker
-	limiter *rate.Limiter
-	ctx     context.Context
-}
-
-// throttledWriter is a wrapper around an io.Writer that throttles the writing speed.
-type throttledWriter struct {
-	w       io.Writer
 	limiter *rate.Limiter
 	ctx     context.Context
 }
@@ -58,7 +53,13 @@ func (r *throttledReadSeeker) Seek(offset int64, whence int) (int64, error) {
 	return r.rs.Seek(offset, whence)
 }
 
-// newThrottledWriter creates a new throttledWriter.
+// throttledWriter wraps an io.Writer and rate-limits outbound bytes (streaming archives to the client).
+type throttledWriter struct {
+	w       io.Writer
+	limiter *rate.Limiter
+	ctx     context.Context
+}
+
 func newThrottledWriter(w io.Writer, limit rate.Limit, burst int, ctx context.Context) *throttledWriter {
 	return &throttledWriter{
 		w:       w,
@@ -67,13 +68,11 @@ func newThrottledWriter(w io.Writer, limit rate.Limit, burst int, ctx context.Co
 	}
 }
 
-func (w *throttledWriter) Write(p []byte) (n int, err error) {
-	n, err = w.w.Write(p)
+func (tw *throttledWriter) Write(p []byte) (n int, err error) {
+	n, err = tw.w.Write(p)
 	if n > 0 {
-		if waitErr := w.limiter.WaitN(w.ctx, n); waitErr != nil {
-			if err != nil {
-				// The original error (like io.EOF) is potentially more important
-				// than the context error.
+		if waitErr := tw.limiter.WaitN(tw.ctx, n); waitErr != nil {
+			if err == nil {
 				err = waitErr
 			}
 		}
@@ -276,12 +275,10 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 				fmt.Sprintf("OnlyOffice Server downloading file: %s", firstFilePath))
 		}
 
-		// Set headers
+		// ServeContent sets Content-Length (full resource or range); avoid pre-setting so partial/range responses stay consistent.
 		setContentDisposition(w, r, fileName)
 		w.Header().Set("Cache-Control", "private")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
-		w.Header().Set("Content-Length", fmt.Sprintf("%d", fileInfo.Size()))
-		// serve content allows for range requests.
 		// video scrubbing, etc.
 		// Note: http.ServeContent will respect our already-set Content-Disposition header
 		var reader io.ReadSeeker = fd
