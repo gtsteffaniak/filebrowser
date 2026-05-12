@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file. For commit 
 ## v1.4.0
 
  **New Features**:
+ - add WebAuthn/Passkey multi-factor authentication support
+(#2379) -- thanks @juansoler
  - Lyrics support for audio files (#2360):
    - Updated UI for audio previews!
    - The lyrics and the player gets syncronized in UI with the audio player.
