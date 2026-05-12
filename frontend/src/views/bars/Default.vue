@@ -252,7 +252,7 @@ export default {
       this.performNavigation(cv);
     },
     performNavigation(cv) {
-      if (cv == "listingView" || ( getters.isShare() && !getters.multibuttonState() === "close")) {
+      if (cv == "listingView" || ( getters.isShare() && !getters.multibuttonState() === "close") || cv == "tools") {
         mutations.toggleSidebar();
       } else if (cv == "settings" && state.isMobile) {
         mutations.toggleSidebar();
@@ -260,6 +260,7 @@ export default {
         mutations.closeHovers();
         if (cv === "settings") {
           if (state.previousHistoryItem?.name) {
+            console.log("previousHistoryItem", state.previousHistoryItem);
             url.goToItem(state.previousHistoryItem.source, state.previousHistoryItem.path, state.previousHistoryItem);
             return;
           }

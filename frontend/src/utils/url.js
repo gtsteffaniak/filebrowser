@@ -211,6 +211,9 @@ export function goToItem(source, path, previousHistoryItem, newTab = false) {
   }
   let newPath = encodedPath(path);
   let fullPath = `/files/${encodeURIComponent(source)}${newPath}`;
+  if (previousHistoryItem?.isShare) {
+    fullPath = `/public/share/${previousHistoryItem.source}${newPath}`;
+  }
   if (newTab) {
     // Use absolute URL for new tab to ensure proper navigation
     const absoluteUrl = `${window.location.origin}${globalVars.baseURL}${fullPath.startsWith('/') ? fullPath.slice(1) : fullPath}`;
@@ -219,17 +222,6 @@ export function goToItem(source, path, previousHistoryItem, newTab = false) {
   }
   mutations.setPreviousHistoryItem(previousHistoryItem);
   mutations.resetAll()
-  if (getters.isShare()) {
-    fullPath = `/public/share/${state.shareInfo?.hash}${newPath}`;
-    if (previousHistoryItem === undefined) {
-      // When undefined will not create browser history
-      router.replace({ path: fullPath });
-      return;
-    }
-    router.push({ path: fullPath });
-    return;
-  }
-
   if (previousHistoryItem === undefined) {
     // When undefined will not create browser history
     router.replace({ path: fullPath });

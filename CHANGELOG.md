@@ -5,8 +5,7 @@ All notable changes to this project will be documented in this file. For commit 
 ## v1.4.0
 
  **New Features**:
- - add WebAuthn/Passkey multi-factor authentication support
-(#2379) -- thanks @juansoler
+ - Add Passkey (WebAuthn) support for passwordless authentication (#2287) (#2379) -- thanks @juansoler
  - Lyrics support for audio files (#2360):
    - Updated UI for audio previews!
    - The lyrics and the player gets syncronized in UI with the audio player.
@@ -36,6 +35,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Improved style of drag and drop into listing view (#2407)
  - Edit Sidebar links has new "show tools in sidebar" toggle and all users have this enabled by default. can be disabled via for new users `userDefaults.sidebar.showTools: false`
  - Update user defaults ordering (#1140)
+ - Save view modes and sizes into local storage instead of db (#2301) 
 
  **BugFixes**:
  - Blue overlay when using gestures in video files on mobile (#2360)
@@ -44,6 +44,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Delete prompt thumbnail didn't worked when using it with the `delete` shortcut. (#2407)
  - Searching icons in the Icon picker prompt wasn't working properly (#2407) 
  - Drag and drop style state was stuck until page reload (#2407)
+ - Navigate close settings shows "something went wrong" (#2047)
 
 ## v1.3.10
 

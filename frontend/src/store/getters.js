@@ -513,6 +513,12 @@ export const getters = {
     const cv = getters.currentView()
     const isSidebarVisible = getters.isSidebarVisible()
     if (isSidebarVisible) {
+      if (cv == "tools") {
+        if (state.user.stickySidebar) {
+          return "menu";
+        }
+        return "back";
+      }
       if (cv == "settings") {
         if (state.isMobile) {
           return "back";
@@ -529,6 +535,9 @@ export const getters = {
         return "back";
       }
       return "close";
+    }
+    if (cv == "tools") {
+      return "menu";
     }
     if (state.shareInfo?.singleFileShare) {
       return "menu";

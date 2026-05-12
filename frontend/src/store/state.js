@@ -15,6 +15,7 @@ export const state = reactive({
     name: "",
     source: "",
     path: "",
+    isShare: false,
   },
   contextMenuHasItems: false,
   deletedItem: false,
