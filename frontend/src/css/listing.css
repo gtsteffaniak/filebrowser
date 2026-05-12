@@ -299,55 +299,32 @@ body.rtl #listingView {
   align-items: center;
 }
 
-/* ── Protected indicator column ── */
-#listingView.list .listing-item .protected-indicator,
-#listingView.compact .listing-item .protected-indicator {
-  width: 1.5em;
-  margin-right: 1.5em;
+/* ── Status indicator columns (Protected & SAFEMode) ── */
+.status-col {
+  width: 4.5em;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-#listingView .header .protected {
-  width: 3.5em;
-  margin-right: 1.5em;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.9em;
-  font-weight: 700;
-  cursor: pointer;
-  gap: 0.1em;
-}
-
-#listingView .header .protected .material-icons:first-child {
-  font-size: 1em;
-  opacity: 0.5;
-}
-
-#listingView .header .protected .sort-icon {
-  font-size: 1em;
-  opacity: 0;
-  transition: .1s ease all;
-}
-
-#listingView .header .protected:hover .sort-icon,
-#listingView .header .protected.active .sort-icon {
-  opacity: 1;
-}
-
-#listingView .header .protected.active {
-  font-weight: bold;
-}
-
-.protected-indicator {
   pointer-events: none;
 }
 
-.protected-dot {
+.status-col-header {
+  font-size: 0.72em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--textSecondary, #888);
+  pointer-events: none;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.status-indicator {
+  pointer-events: none;
+}
+
+.status-dot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
@@ -357,16 +334,19 @@ body.rtl #listingView {
   flex-shrink: 0;
 }
 
-.protected-dot.active {
+.status-dot.active {
   background: #4caf50;
   border-color: #4caf50;
   box-shadow: 0 0 4px rgba(76, 175, 80, 0.5);
 }
 
-/* Hide in gallery/icons views */
-#listingView.gallery .listing-item .protected-indicator,
-#listingView.icons .listing-item .protected-indicator,
-#listingView.normal .listing-item .protected-indicator {
+/* Hide status columns in gallery/icons/normal views */
+#listingView.gallery .listing-item .status-col,
+#listingView.icons .listing-item .status-col,
+#listingView.normal .listing-item .status-col,
+#listingView.gallery .header .status-col,
+#listingView.icons .header .status-col,
+#listingView.normal .header .status-col {
   display: none;
 }
 

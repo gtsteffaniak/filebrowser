@@ -2,6 +2,8 @@ import * as i18n from "@/i18n";
 import { state } from "./state.js";
 import { getters } from "./getters.js";
 import { emitStateChanged } from './eventBus'; // Import the function from eventBus.js
+
+let _safeModeTimer = null;
 import { usersApi } from "@/api";
 import { notify } from "@/notify";
 import { sortedItems } from "@/utils/sort.js";
@@ -853,7 +855,18 @@ export const mutations = {
     emitStateChanged();
   },
   setSafeModeUnlocked: (value) => {
+    if (_safeModeTimer) {
+      clearTimeout(_safeModeTimer);
+      _safeModeTimer = null;
+    }
     state.safeMode.unlocked = value;
+    if (value) {
+      _safeModeTimer = setTimeout(() => {
+        state.safeMode.unlocked = false;
+        _safeModeTimer = null;
+        emitStateChanged();
+      }, 10 * 60 * 1000);
+    }
     emitStateChanged();
   },
 };

@@ -57,6 +57,8 @@
         ></div>
         <div>
           <div class="header card" :class="{ 'dark-mode-item-header': isDarkMode }">
+            <p class="status-col status-col-header" :title="$t('general.protected')">{{ $t("general.protected") }}</p>
+            <p class="status-col status-col-header" :title="$t('general.safeMode')">{{ $t("general.safeMode") }}</p>
             <p
               :class="{ active: nameSorted }"
               class="name"

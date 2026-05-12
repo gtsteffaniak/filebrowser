@@ -31,6 +31,12 @@
     @touchend="cancelContext"
     @mouseup="cancelContext"
   >
+    <span class="status-col status-indicator">
+      <span class="status-dot" :class="{ active: isProtected }"></span>
+    </span>
+    <span class="status-col status-indicator">
+      <span class="status-dot" :class="{ active: isInSafeMode }"></span>
+    </span>
     <div :class="{ 'gallery-div': galleryView }" class="icon-area">
       <Icon
         :mimetype="type"
@@ -140,9 +146,12 @@ export default {
       if (!this.protectedUntil) return true;
       return new Date(this.protectedUntil) > new Date();
     },
-    isSafeBlurred() {
+    isInSafeMode() {
       if (!this.path || !this.source) return false;
-      return getters.isSafeModeItem(this.source, this.path) && !getters.safeModeUnlocked();
+      return getters.isSafeModeItem(this.source, this.path);
+    },
+    isSafeBlurred() {
+      return this.isInSafeMode && !getters.safeModeUnlocked();
     },
     galleryView() {
       return getters.viewMode() === "gallery";

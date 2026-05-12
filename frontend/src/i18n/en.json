@@ -9,6 +9,8 @@
   },
   "general": {
     "name": "Name{suffix}",
+    "protected": "Protected",
+    "safeMode": "SAFEMode",
     "path": "Path{suffix}",
     "user": "User{suffix}",
     "group": "Group{suffix}",
