@@ -136,7 +136,7 @@ func protectHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 			// the DEV server or token may be out of sync — use bypass mode so protection still records locally.
 			if strings.Contains(err.Error(), "User not subscribed") && acornSubscribed {
 				fileGuid = "acorn-bypass-" + utils.InsecureRandomIdentifier(16)
-				logger.Warnf("ChainFS subscription mismatch for %s (acorn.tools OK, ChainFS rejected) — using local bypass, FileGuid: %s", fileInfo.RealPath, fileGuid)
+				logger.Infof("ChainFS subscription mismatch for %s (acorn.tools OK, ChainFS rejected) — using local bypass, FileGuid: %s", fileInfo.RealPath, fileGuid)
 			} else {
 				logger.Errorf("ChainFS upload failed for %s: %v", fileInfo.RealPath, err)
 				return http.StatusBadGateway, fmt.Errorf("ChainFS upload failed: %w", err)
