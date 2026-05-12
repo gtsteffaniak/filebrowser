@@ -150,7 +150,8 @@
     "wrongCredentials": "Hibás hitelesítő adatok",
     "inProgress": "Bejelentkezés...",
     "failedLogin": "Sikertelen bejelentkezés",
-    "invalidCredentials": "Érvénytelen hitelesítő adatok megadása"
+    "invalidCredentials": "Érvénytelen hitelesítő adatok megadása",
+    "passkeyLogin": "Jelszókulcs használata"
   },
   "prompts": {
     "copyMessage": "Válassza ki a másolás célját:",
@@ -787,6 +788,18 @@
     "showCopyPath": "Az elérési útvonal másolása a kontextusmenüben",
     "showCopyPathDescription": "Az elérési útvonal másolása művelet megjelenítése a fájl és mappa kontextusmenüben.",
     "previewDescription": "Miniatűr előnézetek megjelenítése a {filetype}, általános ikon megjelenítése, ha le van tiltva.",
+    "passkeys": "Jelszókulcsok",
+    "passkeysDescription": "Használjon jelszókulcsokat a biztonságos, jelszó nélküli többtényezős hitelesítéshez. Regisztráljon egy jelszókulcsot az eszközén, hogy biometrikus azonosítást vagy PIN-kódot használhasson OTP-kódok helyett.",
+    "noPasskeys": "Még nincsenek regisztrált jelszókulcsok.",
+    "addPasskey": "Jelszókulcs hozzáadása",
+    "addingPasskey": "Jelszókulcs hozzáadása...",
+    "passkeyAdded": "Jelszókulcs sikeresen hozzáadva!",
+    "passkeyAddFailed": "Nem sikerült hozzáadni a jelszókulcsot",
+    "passkeyDeleted": "Jelszókulcs törölve.",
+    "passkeyDeleteFailed": "Nem sikerült törölni a jelszókulcsot",
+    "created": "Létrehozva",
+    "lastUsed": "Utoljára használva",
+    "passkeyDefaultName": "Jelszókulcs",
     "showToolsInSidebar": "Eszközök megjelenítése az oldalsávban",
     "showToolsInSidebarDescription": "Mindig jelenítse meg az eszközök linket az oldalsávban."
   },

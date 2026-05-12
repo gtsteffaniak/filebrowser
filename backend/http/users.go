@@ -102,6 +102,18 @@ func prepForFrontend(u *users.User) {
 	u.Scopes = u.GetFrontendScopes()
 	u.SidebarLinks = GetFrontendSidebarLinks(u.SidebarLinks, u.ShowToolsInSidebar)
 	u.Locale = normalizeLocale(u.Locale)
+	for i := range u.PasskeyCredentials {
+		u.PasskeyCredentials[i].PublicKey = ""
+		u.PasskeyCredentials[i].AttestationType = ""
+		u.PasskeyCredentials[i].AttestationFormat = ""
+		u.PasskeyCredentials[i].Flags = users.WebAuthnCredentialFlags{}
+		u.PasskeyCredentials[i].SignCount = 0
+		u.PasskeyCredentials[i].ClientDataJSON = ""
+		u.PasskeyCredentials[i].ClientDataHash = ""
+		u.PasskeyCredentials[i].AuthenticatorData = ""
+		u.PasskeyCredentials[i].PublicKeyAlg = 0
+		u.PasskeyCredentials[i].AttestationObj = ""
+	}
 }
 
 // GetFrontendSidebarLinks converts the user's sidebar links from backend-style to frontend-style:

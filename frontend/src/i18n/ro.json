@@ -150,7 +150,8 @@
     "wrongCredentials": "Informații greșite",
     "inProgress": "Conectarea...",
     "failedLogin": "A eșuat autentificarea",
-    "invalidCredentials": "Acreditări invalide furnizate"
+    "invalidCredentials": "Acreditări invalide furnizate",
+    "passkeyLogin": "Folosește cheie de acces"
   },
   "prompts": {
     "copyMessage": "Alege unde vrei să copiezi fișierele:",
@@ -787,6 +788,18 @@
     "showCopyPath": "Afișați calea de copiere în meniul contextual",
     "showCopyPathDescription": "Afișați o acțiune de copiere a căii în meniul contextual al fișierelor și dosarelor.",
     "previewDescription": "Afișează previzualizări ale miniaturilor pentru {filetype}, va afișa pictograma generică dacă este dezactivată.",
+    "passkeys": "Chei de acces",
+    "passkeysDescription": "Folosiți chei de acces pentru autentificare securizată multifactor fără parolă. Înregistrați o cheie pe dispozitiv pentru a folosi verificare biometrică sau PIN în loc de coduri OTP.",
+    "noPasskeys": "Nicio cheie de acces înregistrată încă.",
+    "addPasskey": "Adaugă cheie de acces",
+    "addingPasskey": "Se adaugă cheia de acces...",
+    "passkeyAdded": "Cheia de acces a fost adăugată cu succes!",
+    "passkeyAddFailed": "Adăugarea cheii de acces a eșuat",
+    "passkeyDeleted": "Cheia de acces a fost ștearsă.",
+    "passkeyDeleteFailed": "Ștergerea cheii de acces a eșuat",
+    "created": "Creat",
+    "lastUsed": "Ultima utilizare",
+    "passkeyDefaultName": "Cheie de acces",
     "showToolsInSidebar": "Afișați instrumentele în bara laterală",
     "showToolsInSidebarDescription": "Afișați întotdeauna link-ul de instrumente în bara laterală."
   },

@@ -150,7 +150,8 @@
     "wrongCredentials": "ユーザー名またはパスワードが間違っています。",
     "inProgress": "ログイン...",
     "failedLogin": "ログインに失敗しました",
-    "invalidCredentials": "無効な認証情報が提供された"
+    "invalidCredentials": "無効な認証情報が提供された",
+    "passkeyLogin": "パスキーを使用"
   },
   "prompts": {
     "copyMessage": "コピーの目標ディレクトリを選択してください：",
@@ -787,6 +788,18 @@
     "showCopyPath": "コンテキストメニューにコピーパスを表示する",
     "showCopyPathDescription": "ファイルやフォルダのコンテキストメニューに「パスをコピー」アクションを表示します。",
     "previewDescription": "{filetype} のサムネイルプレビューを表示する。無効の場合は一般的なアイコンを表示する。",
+    "passkeys": "パスキー",
+    "passkeysDescription": "パスキーを使用して安全でパスワード不要の多要素認証を行います。デバイスにパスキーを登録すると、OTPコードの代わりに生体認証またはPIN認証が使用できます。",
+    "noPasskeys": "パスキーはまだ登録されていません。",
+    "addPasskey": "パスキーを追加",
+    "addingPasskey": "パスキーを追加中...",
+    "passkeyAdded": "パスキーが正常に追加されました！",
+    "passkeyAddFailed": "パスキーの追加に失敗しました",
+    "passkeyDeleted": "パスキーが削除されました。",
+    "passkeyDeleteFailed": "パスキーの削除に失敗しました",
+    "created": "作成日",
+    "lastUsed": "最終使用",
+    "passkeyDefaultName": "パスキー",
     "showToolsInSidebar": "サイドバーにツールを表示",
     "showToolsInSidebarDescription": "サイドバーにツールリンクを常に表示する。"
   },

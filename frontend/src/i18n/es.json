@@ -150,7 +150,8 @@
     "wrongCredentials": "Nombre de usuario y/o contraseña incorrectos",
     "inProgress": "Iniciando sesión...",
     "failedLogin": "Error al iniciar sesión",
-    "invalidCredentials": "Credenciales no válidas"
+    "invalidCredentials": "Credenciales no válidas",
+    "passkeyLogin": "Usar clave de acceso"
   },
   "prompts": {
     "copyMessage": "Selecciona una ubicación para copiar",
@@ -787,6 +788,18 @@
     "showCopyPath": "Mostrar ruta de copia en el menú contextual",
     "showCopyPathDescription": "Mostrar una acción Copiar ruta en el menú contextual de archivos y carpetas.",
     "previewDescription": "Mostrar vistas previas en miniatura para {filetype}, mostrará el icono genérico si está desactivado.",
+    "passkeys": "Claves de acceso",
+    "passkeysDescription": "Utilice claves de acceso para una autenticación segura multifactor sin contraseña. Registre una clave en su dispositivo para usar verificación biométrica o PIN en lugar de códigos OTP.",
+    "noPasskeys": "No hay claves de acceso registradas aún.",
+    "addPasskey": "Añadir clave de acceso",
+    "addingPasskey": "Añadiendo clave de acceso...",
+    "passkeyAdded": "¡Clave de acceso añadida correctamente!",
+    "passkeyAddFailed": "Error al añadir la clave de acceso",
+    "passkeyDeleted": "Clave de acceso eliminada.",
+    "passkeyDeleteFailed": "Error al eliminar la clave de acceso",
+    "created": "Creado",
+    "lastUsed": "Último uso",
+    "passkeyDefaultName": "Clave de acceso",
     "showToolsInSidebar": "Mostrar herramientas en la barra lateral",
     "showToolsInSidebarDescription": "Mostrar siempre el enlace de herramientas en la barra lateral."
   },

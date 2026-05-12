@@ -150,7 +150,8 @@
     "wrongCredentials": "Identifiants incorrects !",
     "inProgress": "Connexion...",
     "failedLogin": "Échec de la connexion",
-    "invalidCredentials": "Les informations d'identification fournies ne sont pas valides"
+    "invalidCredentials": "Les informations d'identification fournies ne sont pas valides",
+    "passkeyLogin": "Utiliser une clé d'accès"
   },
   "prompts": {
     "copyMessage": "Choisissez l'emplacement où copier la sélection :",
@@ -787,6 +788,18 @@
     "showCopyPath": "Afficher Copier le chemin dans le menu contextuel",
     "showCopyPathDescription": "Afficher une action Copier le chemin dans le menu contextuel des fichiers et des dossiers.",
     "previewDescription": "Affiche des aperçus de vignettes pour {filetype}, affichera l'icône générique si elle est désactivée.",
+    "passkeys": "Clés d'accès",
+    "passkeysDescription": "Utilisez des clés d'accès pour une authentification sécurisée multifacteur sans mot de passe. Enregistrez une clé sur votre appareil pour utiliser la vérification biométrique ou le code PIN au lieu des codes OTP.",
+    "noPasskeys": "Aucune clé d'accès enregistrée pour l'instant.",
+    "addPasskey": "Ajouter une clé d'accès",
+    "addingPasskey": "Ajout de la clé d'accès...",
+    "passkeyAdded": "Clé d'accès ajoutée avec succès !",
+    "passkeyAddFailed": "Échec de l'ajout de la clé d'accès",
+    "passkeyDeleted": "Clé d'accès supprimée.",
+    "passkeyDeleteFailed": "Échec de la suppression de la clé d'accès",
+    "created": "Créé",
+    "lastUsed": "Dernière utilisation",
+    "passkeyDefaultName": "Clé d'accès",
     "showToolsInSidebar": "Afficher les outils dans la barre latérale",
     "showToolsInSidebarDescription": "Le lien vers les outils doit toujours figurer dans la barre latérale."
   },

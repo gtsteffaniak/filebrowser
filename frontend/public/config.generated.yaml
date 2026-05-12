@@ -119,6 +119,12 @@ auth:
       header: ""                          # HTTP header to look for JWT token (e.g. X-JWT-Assertion). Default is "X-JWT-Assertion"
       secret: ""                          # secret: Shared secret key/bytes for verifying JWT token signatures (required, eg PUBLIC KEY, RSA PUBLIC KEY, EC PUBLIC KEY, or CERTIFICATE)
       algorithm: ""                       # JWT signing algorithm (HS256, HS384, HS512, RS256, ES256). Default is "HS256"
+    passkey:                              #  validate:omitempty
+      enabled: false                      # whether to enable passkey MFA
+      rpDisplayName: ""                   # the Relying Party display name (defaults to frontend name)
+      rpId: ""                            # the Relying Party ID; if empty, auto-derived from base URL host
+      rpOrigins:                          # allowed origins; if empty, auto-derived from base URL
+      loginButtonText: ""                 # custom text for the passkey login button
   key: ""                                 # secret: the key used to sign the JWT tokens. If not set, a random key will be generated.
   adminUsername: "admin"                  # secret: the username of the admin user. If not set, the default is "admin".
   adminPassword: "admin"                  # secret: the password of the admin user. If not set, the default is "admin".

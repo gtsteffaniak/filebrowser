@@ -153,7 +153,8 @@
     "wrongCredentials": "Λάθος όνομα ή/και κωδικός πρόσβασης",
     "inProgress": "Σύνδεση...",
     "failedLogin": "Απέτυχε η σύνδεση",
-    "invalidCredentials": "Παρέχονται άκυρα διαπιστευτήρια"
+    "invalidCredentials": "Παρέχονται άκυρα διαπιστευτήρια",
+    "passkeyLogin": "Χρήση Passkey"
   },
   "prompts": {
     "copyMessage": "Επιλέξτε τοποθεσία για αντιγραφή των αρχείων σας:",
@@ -787,6 +788,18 @@
     "showCopyPath": "Εμφάνιση της διαδρομής αντιγραφής στο μενού περιβάλλοντος",
     "showCopyPathDescription": "Εμφάνιση της ενέργειας Αντιγραφή διαδρομής στο μενού περιβάλλοντος αρχείων και φακέλων.",
     "previewDescription": "Εμφάνιση προεπισκοπήσεων μικρογραφιών για το {filetype}, θα εμφανίζει γενικό εικονίδιο εάν είναι απενεργοποιημένο.",
+    "passkeys": "Passkeys",
+    "passkeysDescription": "Χρησιμοποιήστε passkeys για ασφαλή έλεγχο ταυτότητας πολλαπλών παραγόντων χωρίς κωδικό. Καταχωρίστε ένα passkey στη συσκευή σας για να χρησιμοποιήσετε βιομετρική επαλήθευση ή PIN αντί για κωδικούς OTP.",
+    "noPasskeys": "Δεν έχουν καταχωριστεί passkeys ακόμα.",
+    "addPasskey": "Προσθήκη Passkey",
+    "addingPasskey": "Προσθήκη passkey...",
+    "passkeyAdded": "Το passkey προστέθηκε με επιτυχία!",
+    "passkeyAddFailed": "Αποτυχία προσθήκης passkey",
+    "passkeyDeleted": "Το passkey διαγράφηκε.",
+    "passkeyDeleteFailed": "Αποτυχία διαγραφής passkey",
+    "created": "Δημιουργήθηκε",
+    "lastUsed": "Τελευταία χρήση",
+    "passkeyDefaultName": "Passkey",
     "showToolsInSidebar": "Εμφάνιση εργαλείων στην πλευρική γραμμή",
     "showToolsInSidebarDescription": "Να εμφανίζετε πάντα τον σύνδεσμο εργαλείων στην πλαϊνή γραμμή."
   },
