@@ -128,7 +128,7 @@ export default {
         mutations.closeTopPrompt();
       } catch (error) {
         this.error = this.$t("otp.verificationFailed");
-        console.log("error", error);
+        console.error("error", error);
       } finally {
         this.verifyInFlight = false;
       }
@@ -150,7 +150,7 @@ export default {
         mutations.closeTopPrompt();
       } catch (error) {
         this.error = error.message || this.$t("login.failedLogin");
-        console.log("error", error);
+        console.error("error", error);
       } finally {
         this.verifyInFlight = false;
       }

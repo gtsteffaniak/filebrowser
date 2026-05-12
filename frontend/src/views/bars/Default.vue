@@ -252,7 +252,7 @@ export default {
       this.performNavigation(cv);
     },
     performNavigation(cv) {
-      if (cv == "listingView" || ( getters.isShare() && !getters.multibuttonState() === "close")) {
+      if (cv == "listingView" || ( getters.isShare() && !getters.multibuttonState() === "close") || cv == "tools") {
         mutations.toggleSidebar();
       } else if (cv == "settings" && state.isMobile) {
         mutations.toggleSidebar();
