@@ -587,5 +587,12 @@ export const getters = {
       defaultMediaPlayer: state.user?.preview?.defaultMediaPlayer ?? false,
       showHidden: false, // Backend handles this now, but kept for API compatibility
     };
-  }
+  },
+  isSafeModeItem: (source, path) => {
+    return state.safeMode.items.some(item => item.source === source && item.path === path);
+  },
+  isSafeModeActive: () => {
+    return state.safeMode.items.length > 0 && !state.safeMode.unlocked;
+  },
+  safeModeUnlocked: () => state.safeMode.unlocked,
 };

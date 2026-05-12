@@ -33,14 +33,17 @@
     <span class="protected-indicator" @click.prevent.stop>
       <span class="protected-dot" :class="{ active: isProtected }"></span>
     </span>
-    <div :class="{ 'gallery-div': galleryView }">
-      <Icon
-        :mimetype="type"
-        :active="isSelected"
-        :thumbnailUrl="isThumbnailInView ? thumbnailUrl : ''"
-        :filename="name"
-        :hasPreview="hasPreview"
-      />
+    <div class="safemode-wrapper" :class="{ 'is-safemode': isSafeBlurred }">
+      <div :class="{ 'gallery-div': galleryView, 'safemode-blurred': isSafeBlurred }">
+        <Icon
+          :mimetype="type"
+          :active="isSelected"
+          :thumbnailUrl="isThumbnailInView ? thumbnailUrl : ''"
+          :filename="name"
+          :hasPreview="hasPreview"
+        />
+      </div>
+      <span v-if="isSafeBlurred" class="safemode-lock-overlay material-icons">lock</span><!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
     </div>
 
     <div class="text">
@@ -137,6 +140,10 @@ export default {
       if (!this.protected) return false;
       if (!this.protectedUntil) return true;
       return new Date(this.protectedUntil) > new Date();
+    },
+    isSafeBlurred() {
+      if (!this.path || !this.source) return false;
+      return getters.isSafeModeItem(this.source, this.path) && !getters.safeModeUnlocked();
     },
     galleryView() {
       return getters.viewMode() === "gallery";
@@ -707,5 +714,32 @@ export default {
 .half-selected {
   border-color: var(--primaryColor) !important;
   border-style: solid !important;
+}
+
+.safemode-wrapper {
+  position: relative;
+  display: contents;
+}
+
+.safemode-wrapper.is-safemode {
+  display: block;
+  position: relative;
+}
+
+.safemode-blurred {
+  filter: blur(8px);
+  pointer-events: none;
+}
+
+.safemode-lock-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.5em;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+  z-index: 1;
 }
 </style>

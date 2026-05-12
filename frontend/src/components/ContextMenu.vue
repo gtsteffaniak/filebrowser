@@ -120,6 +120,24 @@
         @action="showAccessHover"
       />
       <action
+        v-if="showSafeModeUnlock"
+        icon="lock_open"
+        :label="$t('buttons.safeModeUnlock')"
+        @action="safeModeUnlockSession"
+      />
+      <action
+        v-if="showSafeModeAdd"
+        icon="visibility_off"
+        :label="$t('buttons.safeModeAdd')"
+        @action="safeModeAddSelected"
+      />
+      <action
+        v-if="showSafeModeRemove"
+        icon="visibility"
+        :label="$t('buttons.safeModeRemove')"
+        @action="safeModeRemoveSelected"
+      />
+      <action
         v-if="showSelectMultiple"
         icon="check_circle"
         :label="$t('buttons.selectMultiple')"
@@ -262,9 +280,38 @@ export default {
       }
       return this.permissions.admin && this.showCreate;
     },
+    showSafeModeUnlock() {
+      if (this.isShare) return false;
+      return getters.isSafeModeActive();
+    },
+    showSafeModeAdd() {
+      if (this.showCreate || this.isShare || this.isSearchActive) return false;
+      if (this.selectedCount === 0) return false;
+      const item = getters.getFirstSelected();
+      if (!item) return false;
+      const source = item.source || state.req.source;
+      return !getters.isSafeModeItem(source, item.path);
+    },
+    showSafeModeRemove() {
+      if (this.showCreate || this.isShare || this.isSearchActive) return false;
+      if (this.selectedCount === 0) return false;
+      const item = getters.getFirstSelected();
+      if (!item) return false;
+      const source = item.source || state.req.source;
+      return getters.isSafeModeItem(source, item.path);
+    },
     showShare() {
       if (getters.isShare()) {
         return false;
+      }
+      if (this.selectedCount === 1) {
+        const item = getters.getFirstSelected();
+        if (item) {
+          const source = item.source || state.req.source;
+          if (getters.isSafeModeItem(source, item.path) && !getters.safeModeUnlocked()) {
+            return false;
+          }
+        }
       }
       return this.permissions.share;
     },
@@ -526,6 +573,39 @@ export default {
       mutations.showHover({
         name: "ProtectDuration",
         props: { item, source },
+      });
+    },
+    safeModeUnlockSession() {
+      mutations.closeHovers();
+      mutations.showHover({ name: "SafeModeUnlock", props: {} });
+    },
+    async safeModeAddSelected() {
+      const items = state.selected.length > 0
+        ? state.selected.map(i => state.req.items[i]).filter(Boolean)
+        : [state.req];
+      const safeModeItems = items.map(item => ({
+        source: item.source || state.req.source,
+        path: item.path,
+      }));
+      const hasPIN = state.safeMode.items.length > 0 || false;
+      mutations.closeHovers();
+      mutations.showHover({
+        name: "SafeMode",
+        props: { items: safeModeItems, hasPIN, isRemoving: false },
+      });
+    },
+    async safeModeRemoveSelected() {
+      const items = state.selected.length > 0
+        ? state.selected.map(i => state.req.items[i]).filter(Boolean)
+        : [state.req];
+      const safeModeItems = items.map(item => ({
+        source: item.source || state.req.source,
+        path: item.path,
+      }));
+      mutations.closeHovers();
+      mutations.showHover({
+        name: "SafeMode",
+        props: { items: safeModeItems, hasPIN: true, isRemoving: true },
       });
     },
     selectAllItems() {

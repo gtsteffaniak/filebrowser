@@ -104,6 +104,10 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	api.HandleFunc("GET /auth/chainfs/callback", wrapHandler(chainfsCallbackHandler))
 	api.HandleFunc("GET /auth/chainfs/login", wrapHandler(chainfsLoginHandler))
 	api.HandleFunc("POST /chainfs/protect", withUser(protectHandler))
+	api.HandleFunc("GET /safemode", withUser(safeModeGetHandler))
+	api.HandleFunc("POST /safemode", withUser(safeModeAddHandler))
+	api.HandleFunc("DELETE /safemode", withUser(safeModeRemoveHandler))
+	api.HandleFunc("POST /safemode/verify", withUser(safeModeVerifyHandler))
 
 	// Resources routes
 	api.HandleFunc("GET /resources", withUser(resourceGetHandler))

@@ -45,6 +45,10 @@ export const state = reactive({
     hasSourceInfo: false,
     info: {},
   },
+  safeMode: {
+    items: [],      // [{source, path}] — loaded from user object on login
+    unlocked: false, // session-only: true after correct PIN entered
+  },
   user: {
     preview: {
       video: true,

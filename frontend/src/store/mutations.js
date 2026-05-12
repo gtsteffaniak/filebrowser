@@ -374,6 +374,10 @@ export const mutations = {
       const allPreferences = JSON.parse(localStorage.getItem("displayPreferences") || "{}");
       state.displayPreferences = allPreferences[state.user.username] || {};
 
+      // Sync SAFEMode items from user object; unlock state is always reset on login
+      state.safeMode.items = value.safeModeItems || [];
+      state.safeMode.unlocked = false;
+
     } catch (error) {
       // Silently ignore errors when loading preferences
     }
@@ -842,6 +846,14 @@ export const mutations = {
       return;
     }
     state.shareInfo = shareInfo;
+    emitStateChanged();
+  },
+  setSafeModeItems: (items) => {
+    state.safeMode.items = items || [];
+    emitStateChanged();
+  },
+  setSafeModeUnlocked: (value) => {
+    state.safeMode.unlocked = value;
     emitStateChanged();
   },
 };

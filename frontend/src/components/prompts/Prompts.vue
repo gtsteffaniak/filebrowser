@@ -50,6 +50,8 @@ import CloseWithActiveUploads from "./CloseWithActiveUploads.vue";
 import Generic from "./Generic.vue";
 import ShareInfo from "./ShareInfo.vue";
 import ProtectDuration from "./ProtectDuration.vue";
+import SafeMode from "./SafeMode.vue";
+import SafeModeUnlock from "./SafeModeUnlock.vue";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 
 export default {
@@ -88,6 +90,8 @@ export default {
     generic: Generic,
     ShareInfo,
     ProtectDuration,
+    SafeMode,
+    SafeModeUnlock,
   },
   data() {
     return {

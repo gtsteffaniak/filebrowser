@@ -80,6 +80,7 @@ type User struct {
 	AzureRefreshToken   string               `json:"azureRefreshToken,omitempty"`   // Azure AD B2C refresh token (encrypted)
 	AzureTokenExpiry    int64                `json:"azureTokenExpiry,omitempty"`    // Token expiration time (Unix timestamp)
 	ChainFSSubscribed   bool                 `json:"chainfsSubscribed"`             // whether the user has an active ChainFS subscription
+	SafeModePINHash     string               `json:"safeModePinHash,omitempty"`     // SHA-256 hash of the user's SAFEMode PIN (never sent to frontend via API)
 	// legacy for migration purposes... og filebrowser has perm attribute
 	Perm           Permissions `json:"perm,omitzero"`
 	Version        int         `json:"version"`
@@ -122,7 +123,14 @@ type NonAdminEditable struct {
 	DebugOffice                bool          `json:"debugOffice"`                // debug onlyoffice editor
 	OtpEnabled                 bool          `json:"otpEnabled"`                 // allow non-admin users to disable their own OTP
 	DefaultLandingPage         string        `json:"defaultLandingPage"`         // deprecated: determined by sidebar link order instead
-	SidebarLinks               []SidebarLink `json:"sidebarLinks"`               // customizable sidebar links
+	SidebarLinks               []SidebarLink  `json:"sidebarLinks"`               // customizable sidebar links
+	SafeModeItems              []SafeModeItem `json:"safeModeItems,omitempty"`    // paths the user has put in SAFEMode
+}
+
+// SafeModeItem identifies a file or folder the user has placed in SAFEMode.
+type SafeModeItem struct {
+	Source string `json:"source"`
+	Path   string `json:"path"`
 }
 
 type FileLoading struct {
