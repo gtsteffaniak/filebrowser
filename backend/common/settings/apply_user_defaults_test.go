@@ -19,63 +19,77 @@ func TestApplyUserDefaults_copiesUserDefaultsOntoUser(t *testing.T) {
 	Config = Settings{
 		Server: Server{},
 		UserDefaults: UserDefaults{
-			EditorQuickSave:            true,
-			HideSidebarFileActions:     true,
-			DisableQuickToggles:        true,
-			DisableSearchOptions:       true,
-			StickySidebar:              false,
-			HideFilesInTree:            true,
-			DarkMode:                   &dark,
-			Locale:                     "de",
-			ViewMode:                   "list",
-			SingleClick:                true,
-			ShowHidden:                 true,
-			DateFormat:                 true,
-			GallerySize:                7,
-			ThemeColor:                 "var(--red)",
-			QuickDownload:              true,
-			DisablePreviewExt:          ".exe",
-			DisableViewingExt:          ".bat",
-			DisableSettings:            true,
-			LockPassword:               true,
-			DisableUpdateNotifications: true,
-			DeleteWithoutConfirming:    true,
-			DeleteAfterArchive:         false,
-			DisableOfficePreviewExt:    "legacy",
-			DisableOnlyOfficeExt:       ".x",
-			CustomTheme:                "Night",
-			ShowSelectMultiple:         true,
-			ShowToolsInSidebar:         boolPtr(true),
-			DebugOffice:                true,
-			PreferEditorForMarkdown:    true,
-			LoginMethod:                "password",
-			FileLoading: users.FileLoading{
-				MaxConcurrent:     3,
-				UploadChunkSize:   5,
-				DownloadChunkSize: 2,
+			Sidebar: UserDefaultsSidebar{
+				DisableQuickToggles:  true,
+				HideFileActions:      true,
+				DisableHideOnPreview: true,
+				Sticky:               false,
+				ViewMode:             "list",
+				GallerySize:          7,
+				HideFiles:            true,
+				ShowTools:            boolPtr(true),
 			},
-			Permissions: UserDefaultsPermissions{
-				Api:      true,
-				Admin:    true,
-				Modify:   true,
-				Share:    true,
-				Realtime: true,
-				Delete:   true,
-				Create:   true,
-				Download: &dlFalse,
+			Listing: UserDefaultsListing{
+				DeleteWithoutConfirming: true,
+				DateFormat:              true,
+				ShowHidden:              true,
+				QuickDownload:           true,
+				ShowSelectMultiple:      true,
+				SingleClick:             true,
+				HideFileExt:             "",
+				ShowCopyPath:            false,
+				DeleteAfterArchive:      false,
 			},
-			Preview: UserDefaultsPreview{
-				DisableHideSidebar: true,
+			PreviewNew: UserDefaultsPreviewNew{
 				Image:              boolPtr(false),
 				Video:              boolPtr(false),
 				Audio:              boolPtr(false),
 				MotionVideoPreview: boolPtr(false),
 				Office:             boolPtr(false),
 				PopUp:              boolPtr(false),
-				AutoplayMedia:      boolPtr(false),
-				DefaultMediaPlayer: true,
+				DisablePreviewExt:  ".exe",
+				HighQuality:        boolPtr(true),
 				Folder:             boolPtr(false),
 				Models:             boolPtr(false),
+			},
+			FileViewer: UserDefaultsFileViewer{
+				EditorQuickSave:         true,
+				AutoplayMedia:           boolPtr(false),
+				DisableViewingExt:       ".bat",
+				DisableOnlyOfficeExt:    ".x",
+				PreferEditorForMarkdown: true,
+				DebugOffice:             true,
+				DefaultMediaPlayer:      true,
+			},
+			Search: UserDefaultsSearch{
+				DisableOptions: true,
+			},
+			UI: UserDefaultsUI{
+				DarkMode:    &dark,
+				ThemeColor:  "var(--red)",
+				CustomTheme: "Night",
+				Locale:      "de",
+			},
+			FileLoading: users.FileLoading{
+				MaxConcurrent:     3,
+				UploadChunkSize:   5,
+				DownloadChunkSize: 2,
+			},
+			Account: UserDefaultsAccount{
+				Permissions: UserDefaultsAccountPermissions{
+					Api:      true,
+					Admin:    true,
+					Modify:   true,
+					Share:    true,
+					Realtime: true,
+					Delete:   true,
+					Create:   true,
+					Download: &dlFalse,
+				},
+				LockPassword:               true,
+				DisableSettings:            true,
+				LoginMethod:                "password",
+				DisableUpdateNotifications: true,
 			},
 		},
 	}
@@ -116,7 +130,7 @@ func TestApplyUserDefaults_copiesUserDefaultsOntoUser(t *testing.T) {
 			DisablePreviewExt:          ".exe",
 			DisableViewingExt:          ".bat",
 			DisableUpdateNotifications: true,
-			DisableOfficePreviewExt:    "legacy",
+			DisableOfficePreviewExt:    ".x", // deprecated: mapped to DisableOnlyOfficeExt
 			DisableOnlyOfficeExt:       ".x",
 			CustomTheme:                "Night",
 			ShowSelectMultiple:         true,
@@ -168,8 +182,12 @@ func TestApplyUserDefaults_setsLoginMethodWhenEmpty(t *testing.T) {
 	defer func() { Config = saved }()
 
 	Config = Settings{
-		Server:       Server{},
-		UserDefaults: UserDefaults{LoginMethod: "jwt"},
+		Server: Server{},
+		UserDefaults: UserDefaults{
+			Account: UserDefaultsAccount{
+				LoginMethod: "jwt",
+			},
+		},
 	}
 	u := &users.User{Username: "x"}
 	ApplyUserDefaults(u)
@@ -183,8 +201,12 @@ func TestApplyUserDefaults_preservesLoginMethodWhenAlreadySet(t *testing.T) {
 	defer func() { Config = saved }()
 
 	Config = Settings{
-		Server:       Server{},
-		UserDefaults: UserDefaults{LoginMethod: "password"},
+		Server: Server{},
+		UserDefaults: UserDefaults{
+			Account: UserDefaultsAccount{
+				LoginMethod: "password",
+			},
+		},
 	}
 	u := &users.User{Username: "x", LoginMethod: users.LoginMethodProxy}
 	ApplyUserDefaults(u)
