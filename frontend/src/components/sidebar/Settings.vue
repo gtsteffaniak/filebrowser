@@ -77,6 +77,11 @@ export default {
   color: #1a2e30 !important;
 }
 
+#sidebar.dark-mode .settings-card,
+#sidebar.dark-mode .settings-card .settings-icon {
+  color: #f4f8f8 !important;
+}
+
 .settings-item-content {
   display: flex;
   align-items: center;
