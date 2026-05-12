@@ -64,6 +64,9 @@ export default {
     showStatusBar() {
       return getters.showStatusBar();
     },
+    showGallerySizeSlider() {
+      return getters.showGallerySizeSlider();
+    },
     isDarkMode() {
       return getters.isDarkMode();
     },
