@@ -1074,6 +1074,218 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/auth/webauthn/begin-login": {
+            "post": {
+                "description": "Verifies the user's password and returns a WebAuthn assertion challenge for passkey MFA.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Begin passkey MFA login",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Username",
+                        "name": "username",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "URL-encoded password",
+                        "name": "X-Password",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Passkey assertion options",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/webauthn/begin-register": {
+            "post": {
+                "description": "Returns WebAuthn credential creation options for adding a new passkey.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Begin passkey registration",
+                "responses": {
+                    "200": {
+                        "description": "Passkey creation options",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/webauthn/finish-login": {
+            "post": {
+                "description": "Verifies the WebAuthn assertion and returns a JWT token.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Finish passkey MFA login",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Passkey session ID from begin-login",
+                        "name": "session_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "JWT token",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/webauthn/finish-register": {
+            "post": {
+                "description": "Verifies the attestation and stores the new passkey credential.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Finish passkey registration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Registration session ID",
+                        "name": "session_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Display name for the passkey",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/webauthn/{id}": {
+            "delete": {
+                "description": "Removes a passkey credential by its ID.",
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Delete a passkey credential",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Base64-encoded credential ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/media/lyrics": {
             "get": {
                 "description": "Returns parsed lyrics with optional timestamps from embedded tags or sidecar .lrc files.",
@@ -5576,6 +5788,9 @@ const docTemplate = `{
                 "oidc": {
                     "$ref": "#/definitions/settings.OidcConfig"
                 },
+                "passkey": {
+                    "$ref": "#/definitions/settings.PasskeyAuthConfig"
+                },
                 "password": {
                     "$ref": "#/definitions/settings.PasswordAuthConfig"
                 },
@@ -5691,6 +5906,34 @@ const docTemplate = `{
                 "viewOnly": {
                     "description": "view only mode for OnlyOffice",
                     "type": "boolean"
+                }
+            }
+        },
+        "settings.PasskeyAuthConfig": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "description": "whether to enable passkey MFA",
+                    "type": "boolean"
+                },
+                "loginButtonText": {
+                    "description": "custom text for the passkey login button",
+                    "type": "string"
+                },
+                "rpDisplayName": {
+                    "description": "the Relying Party display name (defaults to frontend name)",
+                    "type": "string"
+                },
+                "rpId": {
+                    "description": "the Relying Party ID; if empty, auto-derived from base URL host",
+                    "type": "string"
+                },
+                "rpOrigins": {
+                    "description": "allowed origins; if empty, auto-derived from base URL",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -7266,6 +7509,12 @@ const docTemplate = `{
                     "description": "true if TOTP is enabled, false otherwise",
                     "type": "boolean"
                 },
+                "passkeyCredentials": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/users.WebAuthnCredential"
+                    }
+                },
                 "password": {
                     "type": "string"
                 },
@@ -7295,7 +7544,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "scopes": {
-                    "description": "Bolt / in-process: Name = source path. JSON out: display name (prepForFrontend).",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/users.SourceScope"
@@ -7363,6 +7611,82 @@ const docTemplate = `{
                 "viewMode": {
                     "description": "view mode to use: eg. normal, list, grid, or compact",
                     "type": "string"
+                }
+            }
+        },
+        "users.WebAuthnCredential": {
+            "type": "object",
+            "properties": {
+                "aaguid": {
+                    "type": "string"
+                },
+                "attestationFormat": {
+                    "type": "string"
+                },
+                "attestationObj": {
+                    "type": "string"
+                },
+                "attestationType": {
+                    "type": "string"
+                },
+                "authenticatorData": {
+                    "type": "string"
+                },
+                "clientDataHash": {
+                    "type": "string"
+                },
+                "clientDataJSON": {
+                    "type": "string"
+                },
+                "cloneWarning": {
+                    "type": "boolean"
+                },
+                "createdAt": {
+                    "type": "integer"
+                },
+                "flags": {
+                    "$ref": "#/definitions/users.WebAuthnCredentialFlags"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "lastUsedAt": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "publicKey": {
+                    "type": "string"
+                },
+                "publicKeyAlg": {
+                    "type": "integer"
+                },
+                "signCount": {
+                    "type": "integer"
+                },
+                "transport": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "users.WebAuthnCredentialFlags": {
+            "type": "object",
+            "properties": {
+                "backupEligible": {
+                    "type": "boolean"
+                },
+                "backupState": {
+                    "type": "boolean"
+                },
+                "userPresent": {
+                    "type": "boolean"
+                },
+                "userVerified": {
+                    "type": "boolean"
                 }
             }
         },

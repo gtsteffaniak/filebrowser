@@ -36,6 +36,28 @@
       </div>
       <hr />
     </div>
+    <div v-if="globalVars.passkeyAvailable" style="margin-top: 0.5em;">
+      <label>{{ $t("profileSettings.passkeys") }}</label>
+      <div v-if="user.passkeyCredentials && user.passkeyCredentials.length > 0" class="passkey-list">
+        <div v-for="pk in user.passkeyCredentials" :key="pk.id" class="passkey-item">
+          <div class="passkey-info">
+            <span class="passkey-name">{{ pk.name || $t("profileSettings.passkeyDefaultName") }}</span>
+            <span class="passkey-meta">
+              {{ $t("profileSettings.created") }} {{ formatDate(pk.createdAt) }}<span v-if="pk.lastUsedAt" class="passkey-last-used">{{ $t("profileSettings.lastUsed") }} {{ formatDate(pk.lastUsedAt) }}</span>
+            </span>
+          </div>
+          <button type="button" class="button button--flat button--red" @click="deletePasskey(pk.id)">
+            {{ $t("general.delete") }}
+          </button>
+        </div>
+      </div>
+      <div v-else class="passkey-empty">
+        {{ $t("profileSettings.noPasskeys") }}
+      </div>
+      <button type="button" class="button" style="margin-top: 0.5em;" :disabled="addingPasskey" @click="addPasskey">
+        {{ addingPasskey ? $t("profileSettings.addingPasskey") : $t("profileSettings.addPasskey") }}
+      </button>
+    </div>
     <div v-if="stateUser.permissions.admin">
       <p v-if="isNew">
         <label for="username">{{ $t("general.username") }}</label>
@@ -133,7 +155,7 @@
 
 <script>
 import { mutations, state } from "@/store";
-import { usersApi, settingsApi } from "@/api";
+import { usersApi, settingsApi, authApi } from "@/api";
 import Languages from "@/components/settings/Languages.vue";
 import Permissions from "@/components/settings/Permissions.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
@@ -182,6 +204,7 @@ export default {
       passwordRef: "",
       pendingScopeSelectionContextId: null,
       pendingScopeIndex: null,
+      addingPasskey: false,
     };
   },
   async created() {
@@ -587,6 +610,32 @@ export default {
         : `${this.$t("settings.modifyOtherUser")} ${this.user.username}`;
       mutations.updatePromptTitle(this.promptId, displayName);
     },
+    async addPasskey() {
+      this.addingPasskey = true;
+      try {
+        await authApi.beginPasskeyRegistration();
+        notify.showSuccessToast(this.$t("profileSettings.passkeyAdded"));
+        setTimeout(() => { window.location.reload(); }, 500);
+      } catch (err) {
+        notify.showError(err.message || this.$t("profileSettings.passkeyAddFailed"));
+      } finally {
+        this.addingPasskey = false;
+      }
+    },
+    async deletePasskey(id) {
+      try {
+        await authApi.deletePasskeyCredential(id);
+        notify.showSuccessToast(this.$t("profileSettings.passkeyDeleted"));
+        setTimeout(() => { window.location.reload(); }, 500);
+      } catch (err) {
+        notify.showError(err.message || this.$t("profileSettings.passkeyDeleteFailed"));
+      }
+    },
+    formatDate(timestamp) {
+      if (!timestamp) return "";
+      const date = new Date(timestamp * 1000);
+      return date.toLocaleDateString();
+    },
   },
 };
 </script>
@@ -611,5 +660,41 @@ export default {
 
 .material-size {
   font-size: 1em !important;
+}
+
+.passkey-list {
+  margin-top: 0.3em;
+}
+
+.passkey-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.3em 0;
+  border-bottom: 1px solid var(--borderColor, #ddd);
+}
+
+.passkey-name {
+  font-weight: 500;
+}
+
+.passkey-meta {
+  font-size: 0.8em;
+  color: var(--textSecondary, #888);
+}
+
+.passkey-last-used::before {
+  content: " · ";
+}
+
+.passkey-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.passkey-empty {
+  padding: 0.3em 0;
+  color: var(--textSecondary, #888);
+  font-size: 0.8em;
 }
 </style>

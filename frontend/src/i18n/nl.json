@@ -287,7 +287,8 @@
     "wrongCredentials": "Verkeerde inloggegevens",
     "inProgress": "Inloggen...",
     "failedLogin": "Inloggen is mislukt",
-    "invalidCredentials": "Ongeldige inloggegevens verstrekt"
+    "invalidCredentials": "Ongeldige inloggegevens verstrekt",
+    "passkeyLogin": "Passkey gebruiken"
   },
   "share": {
     "notice": "Opmerking: wanneer een gedeelde map wordt aangemaakt, wordt deze meer blootgesteld aan het publiek en gelden er andere toegangsregels. Als uw gedeelde map niet veilig is geconfigureerd, kan iedereen er toegang tot krijgen.",
@@ -547,6 +548,18 @@
     "thumbnailOptions": "Miniatuuropties",
     "showThumbnails": "Toon miniaturen voor ondersteunde items",
     "showThumbnailsDescription": "Als deze optie is ingeschakeld, worden miniaturen weergegeven in de lijst met items die deze ondersteunen. Schakel deze optie uit om alle miniaturen te verbergen.",
+    "passkeys": "Passkeys",
+    "passkeysDescription": "Gebruik passkeys voor veilige, wachtwoordloze multi-factor authenticatie. Registreer een passkey op uw apparaat om biometrische verificatie of PIN te gebruiken in plaats van OTP-codes.",
+    "noPasskeys": "Nog geen passkeys geregistreerd.",
+    "addPasskey": "Passkey toevoegen",
+    "addingPasskey": "Passkey toevoegen...",
+    "passkeyAdded": "Passkey succesvol toegevoegd!",
+    "passkeyAddFailed": "Passkey toevoegen mislukt",
+    "passkeyDeleted": "Passkey verwijderd.",
+    "passkeyDeleteFailed": "Passkey verwijderen mislukt",
+    "created": "Aangemaakt",
+    "lastUsed": "Laatst gebruikt",
+    "passkeyDefaultName": "Passkey",
     "showToolsInSidebar": "Toon gereedschappen in de zijbalk",
     "showToolsInSidebarDescription": "Toon altijd de link naar de hulpmiddelen in de zijbalk."
   },

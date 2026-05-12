@@ -216,8 +216,10 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"loginIcon":            loginIcon,
 		"disableSidebar":       disableSidebar,
 		"shareHash":            shareHash,
-		"oidcLoginButtonText":  config.Frontend.OIDCLoginButtonText,
-		"loginButtonText":      config.Frontend.LoginButtonText,
+		"oidcLoginButtonText":         config.Frontend.OIDCLoginButtonText,
+		"loginButtonText":             config.Frontend.LoginButtonText,
+		"passkeyAvailable":            config.Auth.Methods.PasskeyAuth.Enabled,
+		"passkeyLoginButtonText":      config.Auth.Methods.PasskeyAuth.LoginButtonText,
 	}
 
 	// Marshal each variable to JSON strings for direct template usage

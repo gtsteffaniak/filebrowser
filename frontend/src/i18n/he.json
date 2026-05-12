@@ -150,7 +150,8 @@
     "wrongCredentials": "פרטי התחברות שגויים",
     "inProgress": "מתחבר...",
     "failedLogin": "נכשל בכניסה",
-    "invalidCredentials": "פרטי הזדהות לא חוקיים"
+    "invalidCredentials": "פרטי הזדהות לא חוקיים",
+    "passkeyLogin": "השתמש במפתח גישה"
   },
   "prompts": {
     "copyMessage": "בחר לאן להעתיק את הקבצים:",
@@ -787,6 +788,18 @@
     "showCopyPath": "הצג את האפשרות \"העתק נתיב\" בתפריט ההקשר",
     "showCopyPathDescription": "הצג את הפעולה \"העתק נתיב\" בתפריט ההקשר של קבצים ותיקיות.",
     "previewDescription": "הצג תצוגה מקדימה של תמונות ממוזערות עבור {filetype}; אם האפשרות מושבתת, יוצג סמל כללי.",
+    "passkeys": "מפתחות גישה",
+    "passkeysDescription": "השתמש במפתחות גישה לאימות רב-שלבי מאובטח ללא סיסמה. רשום מפתח גישה במכשיר שלך כדי להשתמש באימות ביומטרי או קוד PIN במקום קודי OTP.",
+    "noPasskeys": "אין מפתחות גישה רשומים עדיין.",
+    "addPasskey": "הוסף מפתח גישה",
+    "addingPasskey": "מוסיף מפתח גישה...",
+    "passkeyAdded": "מפתח הגישה נוסף בהצלחה!",
+    "passkeyAddFailed": "הוספת מפתח הגישה נכשלה",
+    "passkeyDeleted": "מפתח הגישה נמחק.",
+    "passkeyDeleteFailed": "מחיקת מפתח הגישה נכשלה",
+    "created": "נוצר",
+    "lastUsed": "בשימוש לאחרונה",
+    "passkeyDefaultName": "מפתח גישה",
     "showToolsInSidebar": "הצג כלים בסרגל הצד",
     "showToolsInSidebarDescription": "הצג תמיד את הקישור 'כלים' בסרגל הצדדי."
   },

@@ -12,6 +12,7 @@ import (
 	_ "net/http/pprof"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
@@ -218,6 +219,11 @@ func rootCMD(ctx context.Context, store *bolt.BoltStore, serverConfig *settings.
 
 	// Initialize PWA manifest after icons are generated
 	icons.InitializePWAManifest()
+
+	// Initialize WebAuthn/Passkey service if enabled
+	if err := auth.InitWebAuthn(); err != nil {
+		logger.Fatalf("Failed to initialize WebAuthn: %v", err)
+	}
 
 	fbhttp.StartHttp(ctx, store, shutdownComplete)
 	return nil

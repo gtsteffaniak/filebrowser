@@ -150,7 +150,8 @@
     "wrongCredentials": "Błędne dane logowania",
     "inProgress": "Logowanie...",
     "failedLogin": "Logowanie nie powiodło się",
-    "invalidCredentials": "Podano nieprawidłowe dane uwierzytelniające"
+    "invalidCredentials": "Podano nieprawidłowe dane uwierzytelniające",
+    "passkeyLogin": "Użyj klucza dostępu"
   },
   "prompts": {
     "copyMessage": "Wybierz lokalizację do której mają być skopiowane wybrane pliki",
@@ -787,6 +788,18 @@
     "showCopyPath": "Pokaż kopiowanie ścieżki w menu kontekstowym",
     "showCopyPathDescription": "Wyświetlanie akcji Kopiuj ścieżkę w menu kontekstowym plików i folderów.",
     "previewDescription": "Pokaż podgląd miniatur dla {filetype}, pokaże ogólną ikonę, jeśli jest wyłączona.",
+    "passkeys": "Klucze dostępu",
+    "passkeysDescription": "Używaj kluczy dostępu do bezpiecznego uwierzytelniania wieloskładnikowego bez hasła. Zarejestruj klucz na swoim urządzeniu, aby używać weryfikacji biometrycznej lub PIN zamiast kodów OTP.",
+    "noPasskeys": "Brak zarejestrowanych kluczy dostępu.",
+    "addPasskey": "Dodaj klucz dostępu",
+    "addingPasskey": "Dodawanie klucza dostępu...",
+    "passkeyAdded": "Klucz dostępu został pomyślnie dodany!",
+    "passkeyAddFailed": "Nie udało się dodać klucza dostępu",
+    "passkeyDeleted": "Klucz dostępu został usunięty.",
+    "passkeyDeleteFailed": "Nie udało się usunąć klucza dostępu",
+    "created": "Utworzono",
+    "lastUsed": "Ostatnio użyty",
+    "passkeyDefaultName": "Klucz dostępu",
     "showToolsInSidebar": "Pokaż narzędzia na pasku bocznym",
     "showToolsInSidebarDescription": "Zawsze wyświetlaj link do narzędzi na pasku bocznym."
   },

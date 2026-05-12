@@ -231,6 +231,9 @@ func loginHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (in
 	if passwordUser && enforcedOtp && missingOtp {
 		return http.StatusForbidden, errors.ErrNoTotpConfigured
 	}
+	if d.user.HasPasskeyMFA() && d.user.TOTPSecret == "" {
+		return http.StatusForbidden, errors.ErrPasskeyMFARequired
+	}
 	return printToken(w, r, d.user)
 }
 

@@ -921,6 +921,8 @@ definitions:
         type: boolean
       oidc:
         $ref: '#/definitions/settings.OidcConfig'
+      passkey:
+        $ref: '#/definitions/settings.PasskeyAuthConfig'
       password:
         $ref: '#/definitions/settings.PasswordAuthConfig'
       proxy:
@@ -1011,6 +1013,26 @@ definitions:
     required:
     - secret
     - url
+    type: object
+  settings.PasskeyAuthConfig:
+    properties:
+      enabled:
+        description: whether to enable passkey MFA
+        type: boolean
+      loginButtonText:
+        description: custom text for the passkey login button
+        type: string
+      rpDisplayName:
+        description: the Relying Party display name (defaults to frontend name)
+        type: string
+      rpId:
+        description: the Relying Party ID; if empty, auto-derived from base URL host
+        type: string
+      rpOrigins:
+        description: allowed origins; if empty, auto-derived from base URL
+        items:
+          type: string
+        type: array
     type: object
   settings.PasswordAuthConfig:
     properties:
@@ -2167,6 +2189,10 @@ definitions:
       otpEnabled:
         description: true if TOTP is enabled, false otherwise
         type: boolean
+      passkeyCredentials:
+        items:
+          $ref: '#/definitions/users.WebAuthnCredential'
+        type: array
       password:
         type: string
       perm:
@@ -2187,8 +2213,6 @@ definitions:
       scope:
         type: string
       scopes:
-        description: 'Bolt / in-process: Name = source path. JSON out: display name
-          (prepForFrontend).'
         items:
           $ref: '#/definitions/users.SourceScope'
         type: array
@@ -2241,6 +2265,56 @@ definitions:
       viewMode:
         description: 'view mode to use: eg. normal, list, grid, or compact'
         type: string
+    type: object
+  users.WebAuthnCredential:
+    properties:
+      aaguid:
+        type: string
+      attestationFormat:
+        type: string
+      attestationObj:
+        type: string
+      attestationType:
+        type: string
+      authenticatorData:
+        type: string
+      clientDataHash:
+        type: string
+      clientDataJSON:
+        type: string
+      cloneWarning:
+        type: boolean
+      createdAt:
+        type: integer
+      flags:
+        $ref: '#/definitions/users.WebAuthnCredentialFlags'
+      id:
+        type: string
+      lastUsedAt:
+        type: integer
+      name:
+        type: string
+      publicKey:
+        type: string
+      publicKeyAlg:
+        type: integer
+      signCount:
+        type: integer
+      transport:
+        items:
+          type: string
+        type: array
+    type: object
+  users.WebAuthnCredentialFlags:
+    properties:
+      backupEligible:
+        type: boolean
+      backupState:
+        type: boolean
+      userPresent:
+        type: boolean
+      userVerified:
+        type: boolean
     type: object
   utils.SubtitleTrack:
     properties:
@@ -2978,6 +3052,148 @@ paths:
               type: string
             type: object
       summary: List API tokens
+      tags:
+      - Auth
+  /api/auth/webauthn/{id}:
+    delete:
+      description: Removes a passkey credential by its ID.
+      parameters:
+      - description: Base64-encoded credential ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a passkey credential
+      tags:
+      - Auth
+  /api/auth/webauthn/begin-login:
+    post:
+      consumes:
+      - application/json
+      description: Verifies the user's password and returns a WebAuthn assertion challenge
+        for passkey MFA.
+      parameters:
+      - description: Username
+        in: query
+        name: username
+        required: true
+        type: string
+      - description: URL-encoded password
+        in: header
+        name: X-Password
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Passkey assertion options
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Begin passkey MFA login
+      tags:
+      - Auth
+  /api/auth/webauthn/begin-register:
+    post:
+      consumes:
+      - application/json
+      description: Returns WebAuthn credential creation options for adding a new passkey.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Passkey creation options
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Begin passkey registration
+      tags:
+      - Auth
+  /api/auth/webauthn/finish-login:
+    post:
+      consumes:
+      - application/json
+      description: Verifies the WebAuthn assertion and returns a JWT token.
+      parameters:
+      - description: Passkey session ID from begin-login
+        in: query
+        name: session_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: JWT token
+          schema:
+            type: string
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Finish passkey MFA login
+      tags:
+      - Auth
+  /api/auth/webauthn/finish-register:
+    post:
+      consumes:
+      - application/json
+      description: Verifies the attestation and stores the new passkey credential.
+      parameters:
+      - description: Registration session ID
+        in: query
+        name: session_id
+        required: true
+        type: string
+      - description: Display name for the passkey
+        in: query
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Finish passkey registration
       tags:
       - Auth
   /api/media/lyrics:

@@ -150,7 +150,8 @@
     "wrongCredentials": "بيانات دخول خاطئة",
     "inProgress": "تسجيل الدخول...",
     "failedLogin": "فشل في تسجيل الدخول",
-    "invalidCredentials": "تم توفير بيانات اعتماد غير صالحة"
+    "invalidCredentials": "تم توفير بيانات اعتماد غير صالحة",
+    "passkeyLogin": "استخدام مفتاح المرور"
   },
   "prompts": {
     "copyMessage": "رجاء حدد المكان لنسخ ملفاتك فيه:",
@@ -779,6 +780,18 @@
     "showCopyPath": "إظهار مسار النسخ في قائمة السياق",
     "showCopyPathDescription": "إظهار إجراء نسخ المسار في قائمة سياق الملف والمجلد.",
     "previewDescription": "إظهار معاينات الصور المصغرة لـ {filetype} ، ستظهر أيقونة عامة إذا تم تعطيلها.",
+    "passkeys": "مفاتيح المرور",
+    "passkeysDescription": "استخدم مفاتيح المرور للمصادقة الآمنة متعددة العوامل بدون كلمة مرور. سجّل مفتاح مرور على جهازك لاستخدام التحقق البيومتري أو رمز PIN بدلاً من رموز OTP.",
+    "noPasskeys": "لا توجد مفاتيح مرور مسجلة بعد.",
+    "addPasskey": "إضافة مفتاح مرور",
+    "addingPasskey": "جارٍ إضافة مفتاح المرور...",
+    "passkeyAdded": "تمت إضافة مفتاح المرور بنجاح!",
+    "passkeyAddFailed": "فشل في إضافة مفتاح المرور",
+    "passkeyDeleted": "تم حذف مفتاح المرور.",
+    "passkeyDeleteFailed": "فشل في حذف مفتاح المرور",
+    "created": "أُنشئ",
+    "lastUsed": "آخر استخدام",
+    "passkeyDefaultName": "مفتاح المرور",
     "showToolsInSidebar": "إظهار الأدوات في الشريط الجانبي",
     "showToolsInSidebarDescription": "اعرض دائمًا رابط الأدوات في الشريط الجانبي."
   },

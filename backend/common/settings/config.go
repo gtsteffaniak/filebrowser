@@ -468,6 +468,10 @@ func setupAuth(generate bool) {
 		}
 		logger.Info("JWT Auth configured successfully")
 	}
+	if Config.Auth.Methods.PasskeyAuth.Enabled || generate {
+		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "passkey")
+		logger.Info("Passkey Auth configured successfully")
+	}
 
 	// use password auth as default if no auth methods are set
 	if len(Config.Auth.AuthMethods) == 0 {

@@ -384,6 +384,15 @@ export default {
               generate: false,
             },
           });
+        } else if (e.message.includes("passkey MFA is required")) {
+          try {
+            await authApi.beginPasskeyLogin(this.username, this.password);
+            await initAuth();
+            router.push({ path: redirect });
+          } catch (passkeyErr) {
+            this.error = passkeyErr.message;
+            this.inProgress = false;
+          }
         } else if (e.message == 409) {
           this.error = this.$t("login.usernameTaken");
         } else if (e.message == 401) {

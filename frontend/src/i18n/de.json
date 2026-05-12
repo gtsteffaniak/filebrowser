@@ -150,7 +150,8 @@
     "wrongCredentials": "Falsche Zugangsdaten",
     "inProgress": "Einloggen...",
     "failedLogin": "Anmeldung fehlgeschlagen",
-    "invalidCredentials": "Ungültige Anmeldedaten angegeben"
+    "invalidCredentials": "Ungültige Anmeldedaten angegeben",
+    "passkeyLogin": "Passkey verwenden"
   },
   "prompts": {
     "copyMessage": "Wählen Sie einen Zielort zum Kopieren:",
@@ -787,6 +788,18 @@
     "showCopyPath": "Pfad kopieren im Kontextmenü anzeigen",
     "showCopyPathDescription": "Zeigen Sie eine Aktion \"Pfad kopieren\" im Kontextmenü von Dateien und Ordnern an.",
     "previewDescription": "Vorschaubilder für {filetype} anzeigen, bei Deaktivierung wird ein allgemeines Symbol angezeigt.",
+    "passkeys": "Passkeys",
+    "passkeysDescription": "Verwenden Sie Passkeys für eine sichere, passwortlose Multi-Faktor-Authentifizierung. Registrieren Sie einen Passkey auf Ihrem Gerät, um biometrische Verifizierung oder PIN anstelle von OTP-Codes zu nutzen.",
+    "noPasskeys": "Noch keine Passkeys registriert.",
+    "addPasskey": "Passkey hinzufügen",
+    "addingPasskey": "Passkey wird hinzugefügt...",
+    "passkeyAdded": "Passkey erfolgreich hinzugefügt!",
+    "passkeyAddFailed": "Passkey konnte nicht hinzugefügt werden",
+    "passkeyDeleted": "Passkey gelöscht.",
+    "passkeyDeleteFailed": "Passkey konnte nicht gelöscht werden",
+    "created": "Erstellt",
+    "lastUsed": "Zuletzt verwendet",
+    "passkeyDefaultName": "Passkey",
     "showToolsInSidebar": "Werkzeuge in der Seitenleiste anzeigen",
     "showToolsInSidebarDescription": "Zeigen Sie immer den Link \"Tools\" in der Seitenleiste an."
   },

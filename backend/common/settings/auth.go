@@ -61,6 +61,7 @@ type LoginMethods struct {
 	OidcAuth     OidcConfig         `json:"oidc" validate:"omitempty"`
 	LdapAuth     LdapConfig         `json:"ldap" validate:"omitempty"`
 	JwtAuth      JwtAuthConfig      `json:"jwt" validate:"omitempty"`
+	PasskeyAuth  PasskeyAuthConfig  `json:"passkey" validate:"omitempty"`
 }
 
 type PasswordAuthConfig struct {
@@ -113,6 +114,15 @@ type JwtAuthConfig struct {
 	Header     string `json:"header"`    // HTTP header to look for JWT token (e.g. X-JWT-Assertion). Default is "X-JWT-Assertion"
 	Secret     string `json:"secret"`    // secret: Shared secret key/bytes for verifying JWT token signatures (required, eg PUBLIC KEY, RSA PUBLIC KEY, EC PUBLIC KEY, or CERTIFICATE)
 	Algorithm  string `json:"algorithm"` // JWT signing algorithm (HS256, HS384, HS512, RS256, ES256). Default is "HS256"
+}
+
+// PasskeyAuthConfig configures WebAuthn / Passkey authentication as a second factor.
+type PasskeyAuthConfig struct {
+	Enabled         bool   `json:"enabled"`         // whether to enable passkey MFA
+	RPDisplayName   string `json:"rpDisplayName"`   // the Relying Party display name (defaults to frontend name)
+	RPID            string `json:"rpId"`            // the Relying Party ID; if empty, auto-derived from base URL host
+	RPOrigins       []string `json:"rpOrigins"`     // allowed origins; if empty, auto-derived from base URL
+	LoginButtonText string   `json:"loginButtonText"` // custom text for the passkey login button
 }
 
 // ValidateLdapAuth checks LDAP config and sets defaults. Call when LDAP is enabled.

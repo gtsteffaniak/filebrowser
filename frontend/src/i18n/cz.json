@@ -153,7 +153,8 @@
     "wrongCredentials": "Nesprávné přihlašovací údaje",
     "inProgress": "Přihlášení...",
     "failedLogin": "Nepodařilo se přihlásit",
-    "invalidCredentials": "Neplatné zadané pověření"
+    "invalidCredentials": "Neplatné zadané pověření",
+    "passkeyLogin": "Použít Passkey"
   },
   "share": {
     "notice": "Poznámka: po vytvoření sdílené složky je tato složka více vystavena veřejnosti a platí pro ni jiná pravidla přístupu. Pokud není sdílená složka bezpečně nakonfigurována, může k ní mít přístup kdokoli.",
@@ -413,6 +414,18 @@
     "showCopyPath": "Zobrazit kopírování cesty v kontextové nabídce",
     "showCopyPathDescription": "Zobrazení akce Kopírovat cestu v kontextové nabídce souborů a složek.",
     "previewDescription": "Zobrazit náhledy miniatur pro {filetype}, pokud je zakázáno, zobrazí se obecná ikona.",
+    "passkeys": "Passkeys",
+    "passkeysDescription": "Používejte passkeys pro bezpečné vícefaktorové ověřování bez hesla. Zaregistrujte passkey na svém zařízení a používejte biometrické ověření nebo PIN místo OTP kódů.",
+    "noPasskeys": "Zatím nejsou registrovány žádné passkeys.",
+    "addPasskey": "Přidat Passkey",
+    "addingPasskey": "Přidávání passkey...",
+    "passkeyAdded": "Passkey byl úspěšně přidán!",
+    "passkeyAddFailed": "Nepodařilo se přidat passkey",
+    "passkeyDeleted": "Passkey byl smazán.",
+    "passkeyDeleteFailed": "Nepodařilo se smazat passkey",
+    "created": "Vytvořeno",
+    "lastUsed": "Naposledy použito",
+    "passkeyDefaultName": "Passkey",
     "showToolsInSidebar": "Zobrazení nástrojů v postranním panelu",
     "showToolsInSidebarDescription": "V postranním panelu vždy zobrazte odkaz na nástroje."
   },
