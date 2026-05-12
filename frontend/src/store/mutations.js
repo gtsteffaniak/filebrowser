@@ -29,8 +29,9 @@ export const mutations = {
     if (value == state.previousHistoryItem) {
       return;
     }
-    value.isShare = getters.isShare();
-    console.log("setPreviousHistoryItem", value);
+    if (value != null) {
+      value.isShare = getters.isShare();
+    }
     state.previousHistoryItem = value;
     emitStateChanged();
   },
