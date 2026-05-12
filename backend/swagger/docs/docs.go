@@ -6019,28 +6019,31 @@ const docTemplate = `{
         "settings.UserDefaults": {
             "type": "object",
             "properties": {
+                "account": {
+                    "$ref": "#/definitions/settings.UserDefaultsAccount"
+                },
                 "customTheme": {
-                    "description": "Name of theme to use chosen from custom themes config.",
+                    "description": "deprecated: use ui.customTheme instead",
                     "type": "string"
                 },
                 "darkMode": {
-                    "description": "should dark mode be enabled",
+                    "description": "deprecated: use sidebar.darkMode instead",
                     "type": "boolean"
                 },
                 "dateFormat": {
-                    "description": "when false, the date is relative, when true, the date is an exact timestamp",
+                    "description": "deprecated: use listing.dateFormat instead",
                     "type": "boolean"
                 },
                 "debugOffice": {
-                    "description": "debug onlyoffice editor",
+                    "description": "deprecated: use fileViewer.debugOffice instead",
                     "type": "boolean"
                 },
                 "deleteAfterArchive": {
-                    "description": "delete source files after successful creation/extraction of archives",
+                    "description": "deprecated: use listing.deleteAfterArchive instead",
                     "type": "boolean"
                 },
                 "deleteWithoutConfirming": {
-                    "description": "delete files without confirmation",
+                    "description": "deprecated: use listing.deleteWithoutConfirming instead",
                     "type": "boolean"
                 },
                 "disableOfficePreviewExt": {
@@ -6048,21 +6051,149 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "disableOnlyOfficeExt": {
-                    "description": "list of file extensions to disable onlyoffice editor for",
+                    "description": "deprecated: use fileViewer.disableOnlyOfficeExt instead",
                     "type": "string"
                 },
                 "disablePreviewExt": {
-                    "description": "space separated list of file extensions to disable preview for",
+                    "description": "deprecated: use previewNew.disablePreviewExt instead",
                     "type": "string"
                 },
                 "disableQuickToggles": {
-                    "description": "disable the quick toggles in the sidebar",
+                    "description": "deprecated: use sidebar.disableQuickToggles instead",
                     "type": "boolean"
                 },
                 "disableSearchOptions": {
-                    "description": "disable the search options in the search bar",
+                    "description": "deprecated: use search.disableOptions instead",
                     "type": "boolean"
                 },
+                "disableSettings": {
+                    "description": "deprecated: use account.disableSettings instead",
+                    "type": "boolean"
+                },
+                "disableUpdateNotifications": {
+                    "description": "deprecated: use account.disableUpdateNotifications instead",
+                    "type": "boolean"
+                },
+                "disableViewingExt": {
+                    "description": "deprecated: use fileViewer.disableViewingExt instead",
+                    "type": "string"
+                },
+                "editorQuickSave": {
+                    "description": "Deprecated fields - kept for backwards compatibility",
+                    "type": "boolean"
+                },
+                "fileLoading": {
+                    "$ref": "#/definitions/users.FileLoading"
+                },
+                "fileViewer": {
+                    "$ref": "#/definitions/settings.UserDefaultsFileViewer"
+                },
+                "gallerySize": {
+                    "description": "deprecated: use sidebar.gallerySize instead",
+                    "type": "integer"
+                },
+                "hideFileExt": {
+                    "description": "deprecated: use listing.hideFileExt instead",
+                    "type": "string"
+                },
+                "hideFilesInTree": {
+                    "description": "deprecated: use sidebar.hideFilesInTree instead",
+                    "type": "boolean"
+                },
+                "hideSidebarFileActions": {
+                    "description": "deprecated: use sidebar.hideSidebarFileActions instead",
+                    "type": "boolean"
+                },
+                "listing": {
+                    "$ref": "#/definitions/settings.UserDefaultsListing"
+                },
+                "locale": {
+                    "description": "deprecated: use ui.locale instead",
+                    "type": "string"
+                },
+                "lockPassword": {
+                    "description": "deprecated: use account.lockPassword instead",
+                    "type": "boolean"
+                },
+                "loginMethod": {
+                    "description": "deprecated: use account.loginMethod instead",
+                    "type": "string"
+                },
+                "permissions": {
+                    "description": "deprecated: use account.permissions instead",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.UserDefaultsPermissions"
+                        }
+                    ]
+                },
+                "preferEditorForMarkdown": {
+                    "description": "deprecated: use fileViewer.preferEditorForMarkdown instead",
+                    "type": "boolean"
+                },
+                "preview": {
+                    "description": "Note: struct name is PreviewNew to avoid conflict with deprecated Preview field below",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.UserDefaultsPreviewNew"
+                        }
+                    ]
+                },
+                "quickDownload": {
+                    "description": "deprecated: use listing.quickDownload instead",
+                    "type": "boolean"
+                },
+                "search": {
+                    "$ref": "#/definitions/settings.UserDefaultsSearch"
+                },
+                "showCopyPath": {
+                    "description": "deprecated: use listing.showCopyPath instead",
+                    "type": "boolean"
+                },
+                "showHidden": {
+                    "description": "deprecated: use listing.showHidden instead",
+                    "type": "boolean"
+                },
+                "showSelectMultiple": {
+                    "description": "deprecated: use listing.showSelectMultiple instead",
+                    "type": "boolean"
+                },
+                "showToolsInSidebar": {
+                    "description": "deprecated: use sidebar.showToolsInSidebar instead",
+                    "type": "boolean"
+                },
+                "sidebar": {
+                    "description": "New organized structure",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.UserDefaultsSidebar"
+                        }
+                    ]
+                },
+                "singleClick": {
+                    "description": "deprecated: use sidebar.singleClick instead",
+                    "type": "boolean"
+                },
+                "stickySidebar": {
+                    "description": "deprecated: use sidebar.stickySidebar instead",
+                    "type": "boolean"
+                },
+                "themeColor": {
+                    "description": "deprecated: use ui.themeColor instead",
+                    "type": "string"
+                },
+                "ui": {
+                    "$ref": "#/definitions/settings.UserDefaultsUI"
+                },
+                "viewMode": {
+                    "description": "deprecated: use sidebar.viewMode instead",
+                    "type": "string"
+                }
+            }
+        },
+        "settings.UserDefaultsAccount": {
+            "type": "object",
+            "properties": {
                 "disableSettings": {
                     "description": "disable the user from viewing the settings page",
                     "type": "boolean"
@@ -6070,42 +6201,6 @@ const docTemplate = `{
                 "disableUpdateNotifications": {
                     "description": "disable update notifications banner for admin users",
                     "type": "boolean"
-                },
-                "disableViewingExt": {
-                    "description": "space separated list of file extensions to disable viewing for",
-                    "type": "string"
-                },
-                "editorQuickSave": {
-                    "description": "show quick save button in editor",
-                    "type": "boolean"
-                },
-                "fileLoading": {
-                    "description": "upload and download settings",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/users.FileLoading"
-                        }
-                    ]
-                },
-                "gallerySize": {
-                    "description": "0-9 - the size of the gallery thumbnails",
-                    "type": "integer"
-                },
-                "hideFileExt": {
-                    "description": "space separated list of file extensions to hide in UI",
-                    "type": "string"
-                },
-                "hideFilesInTree": {
-                    "description": "hide files in the sidebar tree navigation, when true, will show only directories.",
-                    "type": "boolean"
-                },
-                "hideSidebarFileActions": {
-                    "description": "hide the file actions in the sidebar",
-                    "type": "boolean"
-                },
-                "locale": {
-                    "description": "language to use: eg. de, en, or fr",
-                    "type": "string"
                 },
                 "lockPassword": {
                     "description": "disable the user from changing their password",
@@ -6116,54 +6211,11 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "permissions": {
-                    "$ref": "#/definitions/settings.UserDefaultsPermissions"
-                },
-                "preferEditorForMarkdown": {
-                    "description": "prefer editor first for markdown files instead of the Markdown Viewer.",
-                    "type": "boolean"
-                },
-                "preview": {
-                    "$ref": "#/definitions/settings.UserDefaultsPreview"
-                },
-                "quickDownload": {
-                    "description": "show icon to download in one click",
-                    "type": "boolean"
-                },
-                "showCopyPath": {
-                    "description": "show copy path button in the context menu",
-                    "type": "boolean"
-                },
-                "showHidden": {
-                    "description": "show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files",
-                    "type": "boolean"
-                },
-                "showSelectMultiple": {
-                    "description": "show select multiple files on desktop",
-                    "type": "boolean"
-                },
-                "showToolsInSidebar": {
-                    "description": "show sidebar links with category \"tool\"; default is true",
-                    "type": "boolean"
-                },
-                "singleClick": {
-                    "description": "open directory on single click, also enables middle click to open in new tab",
-                    "type": "boolean"
-                },
-                "stickySidebar": {
-                    "description": "keep sidebar open when navigating",
-                    "type": "boolean"
-                },
-                "themeColor": {
-                    "description": "theme color to use: eg. #ff0000, or var(--red), var(--purple), etc",
-                    "type": "string"
-                },
-                "viewMode": {
-                    "description": "view mode to use: eg. normal, list, grid, or compact",
-                    "type": "string"
+                    "$ref": "#/definitions/settings.UserDefaultsAccountPermissions"
                 }
             }
         },
-        "settings.UserDefaultsPermissions": {
+        "settings.UserDefaultsAccountPermissions": {
             "type": "object",
             "properties": {
                 "admin": {
@@ -6200,31 +6252,134 @@ const docTemplate = `{
                 }
             }
         },
-        "settings.UserDefaultsPreview": {
+        "settings.UserDefaultsFileViewer": {
             "type": "object",
             "properties": {
-                "audio": {
-                    "description": "show thumbnails for audio files",
-                    "type": "boolean"
-                },
                 "autoplayMedia": {
                     "description": "autoplay media files in preview",
+                    "type": "boolean"
+                },
+                "debugOffice": {
+                    "description": "debug onlyoffice editor",
                     "type": "boolean"
                 },
                 "defaultMediaPlayer": {
                     "description": "disable the styled feature-rich media player for browser default",
                     "type": "boolean"
                 },
-                "disableHideSidebar": {
-                    "description": "keep sidebar open when previewing files",
+                "disableOnlyOfficeExt": {
+                    "description": "list of file extensions to disable onlyoffice editor for",
+                    "type": "string"
+                },
+                "disableViewingExt": {
+                    "description": "comma separated list of file extensions to disable viewing for",
+                    "type": "string"
+                },
+                "editorQuickSave": {
+                    "description": "show quick save button in editor",
                     "type": "boolean"
+                },
+                "preferEditorForMarkdown": {
+                    "description": "prefer editor first for markdown files instead of the Markdown Viewer",
+                    "type": "boolean"
+                }
+            }
+        },
+        "settings.UserDefaultsListing": {
+            "type": "object",
+            "properties": {
+                "dateFormat": {
+                    "description": "when false, the date is relative, when true, the date is an exact timestamp",
+                    "type": "boolean"
+                },
+                "deleteAfterArchive": {
+                    "description": "delete source files after successful creation/extraction of archives",
+                    "type": "boolean"
+                },
+                "deleteWithoutConfirming": {
+                    "description": "delete files without confirmation",
+                    "type": "boolean"
+                },
+                "hideFileExt": {
+                    "description": "space separated list of file extensions to hide in UI",
+                    "type": "string"
+                },
+                "quickDownload": {
+                    "description": "show icon to download in one click",
+                    "type": "boolean"
+                },
+                "showCopyPath": {
+                    "description": "show copy path button in the context menu",
+                    "type": "boolean"
+                },
+                "showHidden": {
+                    "description": "show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files",
+                    "type": "boolean"
+                },
+                "showSelectMultiple": {
+                    "description": "show select multiple files on desktop",
+                    "type": "boolean"
+                },
+                "singleClick": {
+                    "description": "open directory on single click, also enables middle click to open in new tab",
+                    "type": "boolean"
+                }
+            }
+        },
+        "settings.UserDefaultsPermissions": {
+            "type": "object",
+            "properties": {
+                "admin": {
+                    "description": "deprecated: use account.permissions.admin instead. allow admin access",
+                    "type": "boolean"
+                },
+                "api": {
+                    "description": "deprecated: use account.permissions.api instead. allow api access",
+                    "type": "boolean"
+                },
+                "create": {
+                    "description": "deprecated: use account.permissions.create instead. allow creating or uploading files",
+                    "type": "boolean"
+                },
+                "delete": {
+                    "description": "deprecated: use account.permissions.delete instead. allow deleting files",
+                    "type": "boolean"
+                },
+                "download": {
+                    "description": "deprecated: use account.permissions.download instead. allow downloading files",
+                    "type": "boolean"
+                },
+                "modify": {
+                    "description": "deprecated: use account.permissions.modify instead. allow modifying files",
+                    "type": "boolean"
+                },
+                "realtime": {
+                    "description": "deprecated: use account.permissions.realtime instead. allow realtime updates",
+                    "type": "boolean"
+                },
+                "share": {
+                    "description": "deprecated: use account.permissions.share instead. allow sharing files",
+                    "type": "boolean"
+                }
+            }
+        },
+        "settings.UserDefaultsPreviewNew": {
+            "type": "object",
+            "properties": {
+                "audio": {
+                    "description": "show thumbnails for audio files",
+                    "type": "boolean"
+                },
+                "disablePreviewExt": {
+                    "description": "comma separated list of file extensions to disable preview for",
+                    "type": "string"
                 },
                 "folder": {
                     "description": "show thumbnails for folders that have previewable contents",
                     "type": "boolean"
                 },
                 "highQuality": {
-                    "description": "deprecated: always true in v1.3.0+",
+                    "description": "high quality preview thumbnails",
                     "type": "boolean"
                 },
                 "image": {
@@ -6250,6 +6405,73 @@ const docTemplate = `{
                 "video": {
                     "description": "show thumbnails for video files",
                     "type": "boolean"
+                }
+            }
+        },
+        "settings.UserDefaultsSearch": {
+            "type": "object",
+            "properties": {
+                "disableOptions": {
+                    "description": "disable the search options in the search bar",
+                    "type": "boolean"
+                }
+            }
+        },
+        "settings.UserDefaultsSidebar": {
+            "type": "object",
+            "properties": {
+                "disableHideOnPreview": {
+                    "description": "keep sidebar open when previewing files (was preview.disableHideSidebar)",
+                    "type": "boolean"
+                },
+                "disableQuickToggles": {
+                    "description": "disable the quick toggles in the sidebar",
+                    "type": "boolean"
+                },
+                "gallerySize": {
+                    "description": "0-9 - the size of the gallery thumbnails",
+                    "type": "integer"
+                },
+                "hideFileActions": {
+                    "description": "hide the file actions in the sidebar",
+                    "type": "boolean"
+                },
+                "hideFiles": {
+                    "description": "hide files in the sidebar tree navigation, when true, will show only directories",
+                    "type": "boolean"
+                },
+                "showTools": {
+                    "description": "show sidebar links with category \"tool\"; default is true",
+                    "type": "boolean"
+                },
+                "sticky": {
+                    "description": "keep sidebar open when navigating",
+                    "type": "boolean"
+                },
+                "viewMode": {
+                    "description": "view mode to use: eg. normal, list, grid, or compact",
+                    "type": "string"
+                }
+            }
+        },
+        "settings.UserDefaultsUI": {
+            "type": "object",
+            "properties": {
+                "customTheme": {
+                    "description": "Name of theme to use chosen from custom themes config",
+                    "type": "string"
+                },
+                "darkMode": {
+                    "description": "should dark mode be enabled",
+                    "type": "boolean"
+                },
+                "locale": {
+                    "description": "language to use: eg. de, en, or fr",
+                    "type": "string"
+                },
+                "themeColor": {
+                    "description": "theme color to use: eg. #ff0000, or var(--red), var(--purple), etc",
+                    "type": "string"
                 }
             }
         },

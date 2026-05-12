@@ -513,7 +513,6 @@ export default {
 }
 
 .card-content {
-  max-height: 70vh;
   overflow-y: auto;
 }
 </style>

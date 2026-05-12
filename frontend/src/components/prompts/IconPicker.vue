@@ -38,7 +38,7 @@
     </div>
 
     <!-- Icon Grid -->
-    <div class="icon-grid">
+    <div class="icon-grid" :key="searchQueryKey">
       <!-- Custom Icon Preview (if searching and doesn't exactly match existing) -->
       <div
         v-if="showCustomPreview"
@@ -137,6 +137,9 @@ export default {
       // Limit results for performance (more now that cards are smaller)
       return this.filteredIcons.slice(0, 150);
     },
+    searchQueryKey() {
+      return this.searchQuery.trim();
+    },
   },
   mounted() {
     // Focus the search input when the picker opens
@@ -159,7 +162,6 @@ export default {
 
 <style scoped>
 .card-content {
-  max-height: 60vh;
   overflow-y: auto;
 }
 

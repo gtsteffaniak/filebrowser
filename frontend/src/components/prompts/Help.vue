@@ -183,7 +183,6 @@ export default {
 
 <style scoped>
 .help-content {
-  max-height: 70vh;
   overflow-y: auto;
 }
 
