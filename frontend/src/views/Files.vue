@@ -551,10 +551,14 @@ export default {
           mutations.resetSelected();
         }
       }
-      // F2! - for rename in previews
-      if (event.key == "F2" && getters.isPreviewView() && getters.permissions()?.modify) {
+      // F2! - for rename in listing or preview
+      if (event.key == "F2") {
         event.preventDefault();
-        if (!getters.currentPromptName()) {
+        if (getters.currentPromptName()) return;
+
+        const canModify = getters.permissions()?.modify;
+
+        if (getters.isPreviewView() && canModify) {
           const parentItems = state.navigation.listing || [];
           mutations.showPrompt({
             name: "rename",
@@ -563,6 +567,12 @@ export default {
               parentItems: parentItems
             },
           });
+        }
+        else if (getters.currentView() === 'listingView' && canModify && state.selected.length === 1) {
+          const item = getters.getFirstSelected();
+          if (item) {
+            mutations.showPrompt({ name: "rename", props: { item, parentItems: [] } });
+          }
         }
       }
       // CTRL+E - switch between editor and markdown viewer
