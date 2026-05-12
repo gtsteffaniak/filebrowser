@@ -2049,8 +2049,6 @@ definitions:
       scope:
         type: string
       scopes:
-        description: 'Bolt / in-process: Name = source path. JSON out: display name
-          (prepForFrontend).'
         items:
           $ref: '#/definitions/users.SourceScope'
         type: array
@@ -2932,21 +2930,6 @@ paths:
       - description: URL-encoded password
         in: header
         name: X-Password
-  /api/media/lyrics:
-    get:
-      consumes:
-      - application/json
-      description: Returns parsed lyrics with optional timestamps from embedded tags
-        or sidecar .lrc files.
-      parameters:
-      - description: Path to the directory or file
-        in: query
-        name: path
-        required: true
-        type: string
-      - description: Source name
-        in: query
-        name: source
         required: true
         type: string
       produces:
@@ -2976,7 +2959,6 @@ paths:
       responses:
         "200":
           description: Passkey creation options
-          description: Lyrics array
           schema:
             additionalProperties: true
             type: object
@@ -3043,8 +3025,6 @@ paths:
             type: object
         "403":
           description: Forbidden
-        "404":
-          description: Not found
           schema:
             additionalProperties:
               type: string
@@ -3052,6 +3032,43 @@ paths:
       summary: Finish passkey registration
       tags:
       - Auth
+  /api/media/lyrics:
+    get:
+      consumes:
+      - application/json
+      description: Returns parsed lyrics with optional timestamps from embedded tags
+        or sidecar .lrc files.
+      parameters:
+      - description: Path to the directory or file
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: Source name
+        in: query
+        name: source
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lyrics array
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       summary: Get lyrics for an audio file
       tags:
       - Resources

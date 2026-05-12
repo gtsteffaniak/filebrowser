@@ -1077,9 +1077,6 @@ const docTemplate = `{
         "/api/auth/webauthn/begin-login": {
             "post": {
                 "description": "Verifies the user's password and returns a WebAuthn assertion challenge for passkey MFA.",
-        "/api/media/lyrics": {
-            "get": {
-                "description": "Returns parsed lyrics with optional timestamps from embedded tags or sidecar .lrc files.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1095,14 +1092,6 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Username",
                         "name": "username",
-                    "Resources"
-                ],
-                "summary": "Get lyrics for an audio file",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Path to the directory or file",
-                        "name": "path",
                         "in": "query",
                         "required": true
                     },
@@ -1185,8 +1174,6 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Passkey session ID from begin-login",
                         "name": "session_id",
-                        "description": "Source name",
-                        "name": "source",
                         "in": "query",
                         "required": true
                     }
@@ -1247,10 +1234,6 @@ const docTemplate = `{
                             "additionalProperties": {
                                 "type": "string"
                             }
-                        "description": "Lyrics array",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
                         }
                     },
                     "403": {
@@ -1293,6 +1276,61 @@ const docTemplate = `{
                     },
                     "403": {
                         "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/media/lyrics": {
+            "get": {
+                "description": "Returns parsed lyrics with optional timestamps from embedded tags or sidecar .lrc files.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Get lyrics for an audio file",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Path to the directory or file",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source name",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lyrics array",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     },
                     "404": {
                         "description": "Not found",
@@ -7284,7 +7322,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "scopes": {
-                    "description": "Bolt / in-process: Name = source path. JSON out: display name (prepForFrontend).",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/users.SourceScope"
