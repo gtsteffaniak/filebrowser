@@ -37,12 +37,12 @@ func (s *Storage) Save(set *Settings) error {
 		return errors.ErrEmptyKey
 	}
 
-	if set.UserDefaults.Locale == "" {
-		set.UserDefaults.Locale = "en"
+	if set.UserDefaults.UI.Locale == "" {
+		set.UserDefaults.UI.Locale = "en"
 	}
 
-	if set.UserDefaults.ViewMode == "" {
-		set.UserDefaults.ViewMode = "normal"
+	if set.UserDefaults.Listing.ViewMode == "" {
+		set.UserDefaults.Listing.ViewMode = "normal"
 	}
 
 	err := s.back.Save(set)

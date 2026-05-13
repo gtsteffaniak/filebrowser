@@ -21,7 +21,7 @@ func boolValueOrDefault(ptr *bool, defaultValue bool) bool {
 }
 
 // ConvertPermissionsToUsers converts UserDefaultsPermissions to users.Permissions
-func ConvertPermissionsToUsers(p UserDefaultsPermissions) users.Permissions {
+func ConvertPermissionsToUsers(p UserDefaultsAccountPermissions) users.Permissions {
 	return users.Permissions{
 		Api:      p.Api,
 		Admin:    p.Admin,
@@ -84,8 +84,6 @@ func ApplyUserDefaults(u *users.User) {
 	u.HideSidebarFileActions = d.Sidebar.HideFileActions
 	u.StickySidebar = d.Sidebar.Sticky
 	u.HideFilesInTree = d.Sidebar.HideFiles
-	u.ViewMode = d.Sidebar.ViewMode
-	u.GallerySize = d.Sidebar.GallerySize
 	u.ShowToolsInSidebar = boolValueOrDefault(d.Sidebar.ShowTools, true)
 
 	// Listing settings
@@ -98,18 +96,20 @@ func ApplyUserDefaults(u *users.User) {
 	u.HideFileExt = d.Listing.HideFileExt
 	u.ShowCopyPath = d.Listing.ShowCopyPath
 	u.DeleteAfterArchive = d.Listing.DeleteAfterArchive
+	u.ViewMode = d.Listing.ViewMode
+	u.GallerySize = d.Listing.GallerySize
 
 	// Preview settings
 	u.Preview.DisableHideSidebar = d.Sidebar.DisableHideOnPreview
-	u.Preview.Image = boolValueOrDefault(d.PreviewNew.Image, true)
-	u.Preview.Video = boolValueOrDefault(d.PreviewNew.Video, true)
-	u.Preview.Audio = boolValueOrDefault(d.PreviewNew.Audio, true)
-	u.Preview.MotionVideoPreview = boolValueOrDefault(d.PreviewNew.MotionVideoPreview, true)
-	u.Preview.Office = boolValueOrDefault(d.PreviewNew.Office, true)
-	u.Preview.PopUp = boolValueOrDefault(d.PreviewNew.PopUp, true)
-	u.Preview.Folder = boolValueOrDefault(d.PreviewNew.Folder, true)
-	u.Preview.Models = boolValueOrDefault(d.PreviewNew.Models, true)
-	u.DisablePreviewExt = d.PreviewNew.DisablePreviewExt
+	u.Preview.Image = boolValueOrDefault(d.Preview.Image, true)
+	u.Preview.Video = boolValueOrDefault(d.Preview.Video, true)
+	u.Preview.Audio = boolValueOrDefault(d.Preview.Audio, true)
+	u.Preview.MotionVideoPreview = boolValueOrDefault(d.Preview.MotionVideoPreview, true)
+	u.Preview.Office = boolValueOrDefault(d.Preview.Office, true)
+	u.Preview.PopUp = boolValueOrDefault(d.Preview.PopUp, true)
+	u.Preview.Folder = boolValueOrDefault(d.Preview.Folder, true)
+	u.Preview.Models = boolValueOrDefault(d.Preview.Models, true)
+	u.DisablePreviewExt = d.Preview.DisablePreviewExt
 
 	// FileViewer settings
 	u.EditorQuickSave = d.FileViewer.EditorQuickSave

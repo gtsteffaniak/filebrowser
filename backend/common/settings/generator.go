@@ -286,7 +286,7 @@ func buildPathMapRecursive(structType reflect.Type, structValue reflect.Value, c
 		fieldType := field.Type
 
 		// Handle pointers
-		if fieldType.Kind() == reflect.Ptr {
+		if fieldType.Kind() == reflect.Pointer {
 			if fieldValue.IsNil() {
 				// Skip nil pointers
 				continue
@@ -479,7 +479,7 @@ func CollectCommentsFromEmbeddedYaml(yamlContent string) (CommentsMap, SecretFie
 // parseDefaultsFromEmbeddedYaml creates a default config by parsing the embedded YAML template
 func parseDefaultsFromEmbeddedYaml(embeddedYaml string) (*Settings, error) {
 	// Start with baseline defaults from setDefaults to ensure all fields are initialized
-	defaultConfig := setDefaults(true)
+	defaultConfig := SetDefaults(true)
 	defaultConfig.Server.Sources = []*Source{{Path: "."}}
 
 	// Parse the embedded YAML to overlay the documented defaults
@@ -516,7 +516,7 @@ func BuildNode(v reflect.Value, comm CommentsMap) (*yaml.Node, error) {
 // buildNodeWithDefaults constructs a yaml.Node for any Go value, skipping fields that match defaults, redacting secrets, and filtering deprecated fields
 func buildNodeWithDefaults(v reflect.Value, comm CommentsMap, defaults reflect.Value, secrets SecretFieldsMap, deprecated DeprecatedFieldsMap) (*yaml.Node, error) {
 	// Dereference pointers
-	if v.Kind() == reflect.Ptr {
+	if v.Kind() == reflect.Pointer {
 		if v.IsNil() {
 			return &yaml.Node{Kind: yaml.ScalarNode, Tag: "!!null", Value: "null"}, nil
 		}
@@ -790,7 +790,7 @@ func buildNodeWithDefaults(v reflect.Value, comm CommentsMap, defaults reflect.V
 		elemType := v.Type().Elem()
 		// Check if element is a struct or pointer to struct
 		isStructSlice := elemType.Kind() == reflect.Struct ||
-			(elemType.Kind() == reflect.Ptr && elemType.Elem().Kind() == reflect.Struct)
+			(elemType.Kind() == reflect.Pointer && elemType.Elem().Kind() == reflect.Struct)
 		if !isStructSlice {
 			seq.Style = yaml.FlowStyle
 		}
@@ -995,7 +995,7 @@ func GenerateConfigYamlWithEmbedded(config *Settings, showComments bool, showFul
 
 // identifySecretFieldsByReflection identifies secret fields by known field names
 func identifySecretFieldsByReflection(v reflect.Value, typeName string, secrets SecretFieldsMap) {
-	if v.Kind() == reflect.Ptr {
+	if v.Kind() == reflect.Pointer {
 		if v.IsNil() {
 			return
 		}
@@ -1030,9 +1030,9 @@ func identifySecretFieldsByReflection(v reflect.Value, typeName string, secrets 
 
 		// Recursively check nested structs
 		fieldValue := v.Field(i)
-		if fieldValue.Kind() == reflect.Struct || (fieldValue.Kind() == reflect.Ptr && !fieldValue.IsNil() && fieldValue.Elem().Kind() == reflect.Struct) {
+		if fieldValue.Kind() == reflect.Struct || (fieldValue.Kind() == reflect.Pointer && !fieldValue.IsNil() && fieldValue.Elem().Kind() == reflect.Struct) {
 			nestedTypeName := field.Type.Name()
-			if field.Type.Kind() == reflect.Ptr {
+			if field.Type.Kind() == reflect.Pointer {
 				nestedTypeName = field.Type.Elem().Name()
 			}
 			identifySecretFieldsByReflection(fieldValue, nestedTypeName, secrets)
@@ -1042,7 +1042,7 @@ func identifySecretFieldsByReflection(v reflect.Value, typeName string, secrets 
 
 // identifyDeprecatedFieldsByReflection identifies deprecated fields by known field names
 func identifyDeprecatedFieldsByReflection(v reflect.Value, typeName string, deprecated DeprecatedFieldsMap) {
-	if v.Kind() == reflect.Ptr {
+	if v.Kind() == reflect.Pointer {
 		if v.IsNil() {
 			return
 		}
@@ -1072,9 +1072,9 @@ func identifyDeprecatedFieldsByReflection(v reflect.Value, typeName string, depr
 
 		// Recursively check nested structs
 		fieldValue := v.Field(i)
-		if fieldValue.Kind() == reflect.Struct || (fieldValue.Kind() == reflect.Ptr && !fieldValue.IsNil() && fieldValue.Elem().Kind() == reflect.Struct) {
+		if fieldValue.Kind() == reflect.Struct || (fieldValue.Kind() == reflect.Pointer && !fieldValue.IsNil() && fieldValue.Elem().Kind() == reflect.Struct) {
 			nestedTypeName := field.Type.Name()
-			if field.Type.Kind() == reflect.Ptr {
+			if field.Type.Kind() == reflect.Pointer {
 				nestedTypeName = field.Type.Elem().Name()
 			}
 			identifyDeprecatedFieldsByReflection(fieldValue, nestedTypeName, deprecated)
@@ -1108,7 +1108,7 @@ func GenerateConfigYamlWithEmptyMaps(config *Settings, showFull bool) (string, e
 		}
 		if err != nil || readErr != nil {
 			// Fallback to setDefaults
-			defaultConfigValue := setDefaults(true)
+			defaultConfigValue := SetDefaults(true)
 			defaultConfigValue.Server.Sources = []*Source{{Path: "."}}
 			defaultConfig = &defaultConfigValue
 		}
@@ -1201,7 +1201,7 @@ func GenerateConfigYamlWithSource(config *Settings, showComments bool, showFull 
 		}
 		if err != nil || readErr != nil {
 			// Fallback to setDefaults
-			defaultConfigValue := setDefaults(true)
+			defaultConfigValue := SetDefaults(true)
 			defaultConfigValue.Server.Sources = []*Source{{Path: "."}}
 			defaultConfig = &defaultConfigValue
 		}

@@ -110,14 +110,13 @@ func runCLI() (bool, bool) {
 		}
 	}
 
-	dbExists := getStore(storeCfg)
-
 	switch cliSubcmd {
 	case "setup":
 		createConfig(configPath)
-		return false, dbExists
+		return false, false
 	case "set":
 		if setKind == "-u" {
+			dbExists := getStore(storeCfg)
 			logger.Debugf("setUser called with args: %v, config: %v, admin: %v", os.Args, dbConfig, asAdmin)
 			err := setUser(dbConfig, asAdmin)
 			if err != nil {
@@ -128,6 +127,7 @@ func runCLI() (bool, bool) {
 		}
 		switch setKind {
 		case "rule":
+			dbExists := getStore(storeCfg)
 			sourceInfo, ok := settings.Config.Server.NameToSource[sourceName] // backend source is path
 			if !ok {
 				fmt.Printf("error: invalid source name: %s\n", sourceName)
@@ -143,8 +143,9 @@ func runCLI() (bool, bool) {
 			fmt.Printf("error: unknown subcommand '%s' for 'set'. Use 'set user' or 'set rule'\n", setKind)
 			os.Exit(1)
 		}
-		return false, dbExists
+		return false, false
 	default:
+		dbExists := getStore(storeCfg)
 		return true, dbExists
 	}
 }
@@ -237,7 +238,7 @@ func setUser(dbConfig string, asAdmin bool) error {
 		} else {
 			logger.Infof("Creating non-admin user: %s\n", username)
 		}
-		newUser.Permissions = settings.ConvertPermissionsToUsers(settings.Config.UserDefaults.Permissions)
+		newUser.Permissions = settings.ConvertPermissionsToUsers(settings.Config.UserDefaults.Account.Permissions)
 		newUser.Permissions.Admin = asAdmin
 		err = storage.CreateUser(newUser, newUser.Permissions)
 		if err != nil {
@@ -266,51 +267,6 @@ func setUser(dbConfig string, asAdmin bool) error {
 	}
 	fmt.Printf("successfully updated user: %s\n", username)
 	return nil
-}
-
-// UserDefaults defines default settings for new users.
-type UserDefaults struct {
-	Permissions users.Permissions `yaml:"permissions"`
-}
-
-// Frontend defines settings related to the web interface.
-type Frontend struct {
-	Name string `yaml:"name,omitempty"`
-}
-
-// Source defines a directory to be served.
-type Source struct {
-	Name string `yaml:"name,omitempty"`
-	Path string `yaml:"path"`
-}
-
-// Server defines server-specific configurations.
-type Server struct {
-	Port     int         `yaml:"port"`
-	Database string      `yaml:"database"`
-	Sources  []Source    `yaml:"sources"`
-	Logging  []LogConfig `json:"logging"`
-}
-
-type LogConfig struct {
-	Levels    string `json:"levels"`    // separated list of log levels to enable. (eg. "info|warning|error|debug")
-	ApiLevels string `json:"apiLevels"` // separated list of log levels to enable for the API. (eg. "info|warning|error")
-	Output    string `json:"output"`    // output location. (eg. "stdout" or "path/to/file.log")
-	NoColors  bool   `json:"noColors"`  // disable colors in the output
-	Utc       bool   `json:"utc"`       // use UTC time in the output instead of local time
-}
-
-type Auth struct {
-	AdminUsername string `yaml:"adminUsername"`
-	AdminPassword string `yaml:"adminPassword"`
-}
-
-// Settings is the top-level configuration structure.
-type Settings struct {
-	Server       Server       `yaml:"server"`
-	Frontend     Frontend     `yaml:"frontend,omitempty"`
-	Auth         Auth         `yaml:"auth"`
-	UserDefaults UserDefaults `yaml:"userDefaults"`
 }
 
 // askQuestion displays a prompt and reads a line of input from the user.
@@ -344,30 +300,9 @@ func askYesNoQuestion(reader *bufio.Reader, prompt string, defaultValue string) 
 
 // createConfig orchestrates the configuration process by asking the user a series of questions.
 func createConfig(configpath string) {
-	// check if config file exists
-	if _, err := os.Stat("config.yaml"); err == nil {
-		fmt.Println("Config file 'config.yaml' already exists, skipping setup.")
-		return
-	}
 	reader := bufio.NewReader(os.Stdin)
-	config := Settings{
-		Server: Server{
-			Logging: []LogConfig{
-				{
-					Levels:    "info|warning|error",
-					ApiLevels: "info|warning|error",
-					Output:    "stdout",
-					NoColors:  false,
-					Utc:       false,
-				},
-			},
-			Sources: []Source{
-				{
-					Path: "",
-				},
-			},
-		},
-	}
+	config := settings.SetDefaults(false)
+	config.Server.Sources = []*settings.Source{{Path: "./"}}
 
 	fmt.Println("--- Starting Configuration Setup ---")
 	realPath := ""
@@ -434,8 +369,8 @@ func createConfig(configpath string) {
 	config.Auth.AdminPassword = askQuestion(reader, "What should the default admin password be?", "admin")
 
 	// 6. Ask boolean (Yes/No) questions using the helper
-	config.UserDefaults.Permissions.Modify = askYesNoQuestion(reader, "Should a new user be able to modify content by default?", "no")
-	config.UserDefaults.Permissions.Share = askYesNoQuestion(reader, "Should a new user be able to create shares by default?", "no")
+	config.UserDefaults.Account.Permissions.Modify = askYesNoQuestion(reader, "Should a new user be able to modify content by default?", "no")
+	config.UserDefaults.Account.Permissions.Share = askYesNoQuestion(reader, "Should a new user be able to create shares by default?", "no")
 
 	fmt.Println("--- 	Configuration Complete 	---")
 

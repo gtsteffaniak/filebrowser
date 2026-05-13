@@ -229,7 +229,7 @@ func getOrCreateLdapUser(username string, groups []string) (*users.User, error) 
 		}
 		// Auto-create user on first LDAP authentication
 		if ldapCfg.AdminGroup == "" {
-			isAdmin = config.UserDefaults.Permissions.Admin
+			isAdmin = config.UserDefaults.Account.Permissions.Admin
 		}
 		user = &users.User{
 			Username:    username,
