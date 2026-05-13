@@ -110,14 +110,13 @@ func runCLI() (bool, bool) {
 		}
 	}
 
-	dbExists := getStore(storeCfg)
-
 	switch cliSubcmd {
 	case "setup":
 		createConfig(configPath)
-		return false, dbExists
+		return false, false
 	case "set":
 		if setKind == "-u" {
+			dbExists := getStore(storeCfg)
 			logger.Debugf("setUser called with args: %v, config: %v, admin: %v", os.Args, dbConfig, asAdmin)
 			err := setUser(dbConfig, asAdmin)
 			if err != nil {
@@ -128,6 +127,7 @@ func runCLI() (bool, bool) {
 		}
 		switch setKind {
 		case "rule":
+			dbExists := getStore(storeCfg)
 			sourceInfo, ok := settings.Config.Server.NameToSource[sourceName] // backend source is path
 			if !ok {
 				fmt.Printf("error: invalid source name: %s\n", sourceName)
@@ -143,9 +143,9 @@ func runCLI() (bool, bool) {
 			fmt.Printf("error: unknown subcommand '%s' for 'set'. Use 'set user' or 'set rule'\n", setKind)
 			os.Exit(1)
 		}
-		return false, dbExists
+		return false, false
 	default:
-		return true, dbExists
+		return true, false
 	}
 }
 
@@ -299,13 +299,9 @@ func askYesNoQuestion(reader *bufio.Reader, prompt string, defaultValue string) 
 
 // createConfig orchestrates the configuration process by asking the user a series of questions.
 func createConfig(configpath string) {
-	// check if config file exists
-	if _, err := os.Stat("config.yaml"); err == nil {
-		fmt.Println("Config file 'config.yaml' already exists, skipping setup.")
-		return
-	}
 	reader := bufio.NewReader(os.Stdin)
 	config := settings.SetDefaults(false)
+	config.Server.Sources = []*settings.Source{{Path: "./"}}
 
 	fmt.Println("--- Starting Configuration Setup ---")
 	realPath := ""
