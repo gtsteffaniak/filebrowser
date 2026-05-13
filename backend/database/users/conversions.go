@@ -41,15 +41,15 @@ func (u *User) GetSourceNames() []string {
 }
 
 // APIScopesToBackend maps json "scopes" payloads (source display name or filesystem path + scope path)
-func APIScopesToBackend(apiScopes []SourceScope) ([]SourceScope, error) {
+func APIScopesToBackend(apiScopes []FrontendScope) ([]BackendScope, error) {
 	if len(apiScopes) == 0 {
-		return []SourceScope{}, nil
+		return []BackendScope{}, nil
 	}
 	if sourceConfig == nil {
 		return nil, fmt.Errorf("source config not initialized")
 	}
 
-	newScopes := []SourceScope{}
+	newScopes := []BackendScope{}
 	for _, scope := range apiScopes {
 		// Check if its the name of a source and convert it to a path
 		source, ok := sourceConfig.GetSourceByName(scope.Name)
@@ -60,8 +60,8 @@ func APIScopesToBackend(apiScopes []SourceScope) ([]SourceScope, error) {
 			scope.Scope = source.DefaultUserScope
 		}
 		scope.Scope = normalizeScope(scope.Scope)
-		newScopes = append(newScopes, SourceScope{
-			Name:  source.Path,
+		newScopes = append(newScopes, BackendScope{
+			Path:  source.Path,
 			Scope: scope.Scope,
 		})
 	}
@@ -69,54 +69,23 @@ func APIScopesToBackend(apiScopes []SourceScope) ([]SourceScope, error) {
 }
 
 // GetFrontendScopes returns API-style scopes from BackendScopes only (source display names).
-func (u *User) GetFrontendScopes() []SourceScope {
+func (u *User) GetFrontendScopes() []FrontendScope {
 	if sourceConfig == nil {
-		return []SourceScope{}
+		return []FrontendScope{}
 	}
 
-	newScopes := []SourceScope{}
+	newScopes := []FrontendScope{}
 	for _, scope := range u.BackendScopes {
-		if source, ok := sourceConfig.GetSourceByPath(scope.Name); ok {
-			// Replace scope.Name with source.Name while keeping the same Scope value
-			newScopes = append(newScopes, SourceScope{
-				Name:  source.Name,
-				Scope: scope.Scope,
-			})
+		source, ok := sourceConfig.GetSourceByPath(scope.Path)
+		if !ok {
+			continue
 		}
-		newScopes = append(newScopes, SourceScope{
-			Name:  scope.Name,
+		newScopes = append(newScopes, FrontendScope{
+			Name:  source.Name,
 			Scope: scope.Scope,
 		})
 	}
 	return newScopes
-}
-
-// GetFrontendSidebarLinks converts the user's sidebar links from backend-style to frontend-style
-// Converts source paths to source names for the frontend
-func (u *User) GetFrontendSidebarLinks() []SidebarLink {
-	if sourceConfig == nil {
-		return []SidebarLink{}
-	}
-
-	newLinks := []SidebarLink{}
-	for _, link := range u.SidebarLinks {
-		// For source links, validate that the source still exists
-		if strings.HasPrefix(link.Category, "source") {
-			if link.SourceName == "" {
-				continue
-			}
-			// Check if source exists
-			sourceInfo, ok := sourceConfig.GetSourceByPath(link.SourceName)
-			if !ok {
-				continue
-			}
-			link.SourceName = sourceInfo.Name
-		}
-		// For share links, just pass through (shares are validated separately)
-		// For all other links, pass through as-is
-		newLinks = append(newLinks, link)
-	}
-	return newLinks
 }
 
 // GetBackendSidebarLinks normalizes source links for Bolt: SourceName is the filesystem path.

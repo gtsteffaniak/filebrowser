@@ -15,7 +15,7 @@ import (
 type UserData struct {
 	Password string `json:"password,omitempty"`
 	// BackendScopes: persisted source access (Name = backend path). JSON key "scopes" is historical on-disk.
-	BackendScopes    []users.SourceScope        `json:"scopes"`
+	BackendScopes    []users.BackendScope       `json:"backendScopes"`
 	Tokens           map[string]users.AuthToken `json:"tokens,omitempty"`
 	TOTPSecret       string                     `json:"totpSecret,omitempty"`
 	TOTPNonce        string                     `json:"totpNonce,omitempty"`

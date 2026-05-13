@@ -71,14 +71,3 @@ test("Uploads & Downloads settings", async ({ page, checkForErrors, context, the
   await page.screenshot({ path: `./generated/settings/uploads-downloads-options-${theme}.jpg`, quality: jpgQuality });
 
 });
-
-// run npx playwright test --ui to run these tests locally in ui mode
-test("Uploads & Downloads settings", async ({ page, checkForErrors, context, theme }) => {
-  if (theme === 'light') {
-    return;
-  }
-  await page.goto("/files/settings#fileLoading-main");
-  await page.waitForTimeout(300);
-  await page.screenshot({ path: `./generated/settings/uploads-downloads-options-${theme}.jpg`, quality: jpgQuality });
-
-});

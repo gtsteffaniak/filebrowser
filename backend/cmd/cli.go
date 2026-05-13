@@ -229,8 +229,8 @@ func setUser(dbConfig string, asAdmin bool) error {
 		}
 		for _, source := range settings.Config.Server.SourceMap {
 			if source.Config.DefaultEnabled {
-				newUser.FrontendScopes = append(newUser.FrontendScopes, users.SourceScope{
-					Name:  source.Name,
+				newUser.BackendScopes = append(newUser.BackendScopes, users.BackendScope{
+					Path:  source.Path,
 					Scope: source.Config.DefaultUserScope,
 				})
 			}

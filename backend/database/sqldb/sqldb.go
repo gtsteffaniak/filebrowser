@@ -174,10 +174,10 @@ func (s *SQLStore) quickSetup() error {
 		user.LoginMethod = users.LoginMethodPassword
 
 		// Set scopes for all sources (using Sources, not SourceMap)
-		user.BackendScopes = []users.SourceScope{}
+		user.BackendScopes = []users.BackendScope{}
 		for _, val := range settings.Config.Server.Sources {
-			user.BackendScopes = append(user.BackendScopes, users.SourceScope{
-				Name:  val.Path, // backend name is path
+			user.BackendScopes = append(user.BackendScopes, users.BackendScope{
+				Path:  val.Path,
 				Scope: "/",
 			})
 		}

@@ -100,19 +100,15 @@ type Preview struct {
 // FrontendUser holds fields safe to return from user APIs (embedded on User).
 type FrontendUser struct {
 	NonAdminEditable
-	DisableSettings bool   `json:"disableSettings"`
-	Username        string `json:"username"`
-	// Scopes JSON "scopes": on requests, admin/source names + paths (converted to BackendScopes in state).
-	// On GET responses, PrepForFrontend sets this from BackendScopes (GetFrontendScopes)— never loaded from SQL.
-	FrontendScopes []SourceScope `json:"scopes"`
-	Scope          string        `json:"scope,omitempty"`
-	LockPassword   bool          `json:"lockPassword"`
-	Permissions    Permissions   `json:"permissions"`
-	LoginMethod    LoginMethod   `json:"loginMethod"`
-	OtpEnabled     bool          `json:"otpEnabled"`
-	Version        int           `json:"version"`
-	ShowFirstLogin bool          `json:"showFirstLogin"`
-	Perm           Permissions   `json:"perm,omitzero"`
+	DisableSettings bool            `json:"disableSettings"`
+	Username        string          `json:"username"`
+	FrontendScopes  []FrontendScope `json:"scopes"`
+	LockPassword    bool            `json:"lockPassword"`
+	Permissions     Permissions     `json:"permissions"`
+	LoginMethod     LoginMethod     `json:"loginMethod"`
+	OtpEnabled      bool            `json:"otpEnabled"`
+	ShowFirstLogin  bool            `json:"showFirstLogin"`
+	Perm            Permissions     `json:"perm,omitzero"`
 }
 
 // User is the persisted user: profile/settings in user_data, plus BackendScopes for source access.
@@ -121,16 +117,22 @@ type User struct {
 	ID uint64 `json:"id,omitempty"`
 	// BackendScopes is the authoritative, persisted access list (SourceScope.Name = backend source path).
 	// SQLite stores this inside user_data JSON under the key "scopes" (see sqldb.UserData).
-	BackendScopes      []SourceScope        `json:"backendScopes,omitempty"`
+	BackendScopes      []BackendScope       `json:"backendScopes,omitempty"`
 	ApiKeys            map[string]AuthToken `json:"apiKeys,omitempty"` // deprecated: use Tokens instead
 	Tokens             map[string]AuthToken `json:"tokens,omitempty"`
 	TOTPSecret         string               `json:"totpSecret,omitempty"`
 	TOTPNonce          string               `json:"totpNonce,omitempty"`
 	PasskeyCredentials []WebAuthnCredential `json:"passkeyCredentials,omitempty"`
+	Version            int                  `json:"version"`
 }
 
-type SourceScope struct {
+type FrontendScope struct {
 	Name  string `json:"name"`  // Bolt: filesystem path; JSON API: display name after prepForFrontend
+	Scope string `json:"scope"` // index path within that source
+}
+
+type BackendScope struct {
+	Path  string `json:"path"`  // real path for the source
 	Scope string `json:"scope"` // index path within that source
 }
 
@@ -214,7 +216,7 @@ type SourceConfigProvider struct {
 	GetSourceByPath  func(path string) (SourceInfo, bool)
 	GetSourceByName  func(name string) (SourceInfo, bool)
 	GetAllSources    func() []SourceInfo
-	GetDefaultScopes func() []SourceScope
+	GetDefaultScopes func() []BackendScope
 }
 
 // Global variables set by the settings package
@@ -244,7 +246,7 @@ func SourceConfigLoaded() bool {
 // This method works with backend-style scopes where Name is the source path
 func (u *User) GetScopeForSourcePath(sourcePath string) (string, error) {
 	for _, scope := range u.BackendScopes {
-		if scope.Name == sourcePath {
+		if scope.Path == sourcePath {
 			return scope.Scope, nil
 		}
 	}
@@ -269,7 +271,7 @@ func (u *User) GetScopeForSourceName(sourceName string) (string, error) {
 // HasSourceByPath checks if the user has access to a given source path
 func (u *User) HasSourceByPath(sourcePath string) bool {
 	for _, scope := range u.BackendScopes {
-		if scope.Name == sourcePath {
+		if scope.Path == sourcePath {
 			return true
 		}
 	}
@@ -280,7 +282,7 @@ func (u *User) HasSourceByPath(sourcePath string) bool {
 func (u *User) GetSourcePaths() []string {
 	paths := make([]string, 0, len(u.BackendScopes))
 	for _, scope := range u.BackendScopes {
-		paths = append(paths, scope.Name)
+		paths = append(paths, scope.Path)
 	}
 	return paths
 }

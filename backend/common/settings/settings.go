@@ -150,8 +150,8 @@ func ApplyUserDefaults(u *users.User) {
 	if len(u.BackendScopes) == 0 && u.Username != "anonymous" {
 		for _, source := range Config.Server.Sources {
 			if source.Config.DefaultEnabled {
-				u.BackendScopes = append(u.BackendScopes, users.SourceScope{
-					Name:  source.Path, // backend name is path
+				u.BackendScopes = append(u.BackendScopes, users.BackendScope{
+					Path:  source.Path,
 					Scope: source.Config.DefaultUserScope,
 				})
 				u.SidebarLinks = append(u.SidebarLinks, users.SidebarLink{

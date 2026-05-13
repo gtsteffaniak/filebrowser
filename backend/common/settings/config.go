@@ -379,7 +379,7 @@ func setupSources(generate bool) {
 	}
 	// clean up the in memory source list to be accurate and unique
 	sourceList := []*Source{}
-	defaultScopes := []users.SourceScope{}
+	defaultScopes := []users.BackendScope{}
 	allSourceNames := []string{}
 	if len(Config.Server.Sources) == 1 {
 		Config.Server.Sources[0].Config.DefaultEnabled = true
@@ -394,8 +394,8 @@ func setupSources(generate bool) {
 		if ok && !slices.Contains(allSourceNames, source.Name) {
 			sourceList = append(sourceList, source)
 			if source.Config.DefaultEnabled {
-				defaultScopes = append(defaultScopes, users.SourceScope{
-					Name:  source.Path,
+				defaultScopes = append(defaultScopes, users.BackendScope{
+					Path:  source.Path,
 					Scope: source.Config.DefaultUserScope,
 				})
 			}

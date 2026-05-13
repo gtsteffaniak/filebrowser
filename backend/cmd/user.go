@@ -79,13 +79,13 @@ func validateUserInfo(newDB bool) {
 }
 
 func updateUserScopes(user *users.User) bool {
-	newScopes := []users.SourceScope{}
+	newScopes := []users.BackendScope{}
 	seen := make(map[string]struct{})
 
 	// Build map for existing scopes by Name
-	existing := make(map[string]users.SourceScope)
+	existing := make(map[string]users.BackendScope)
 	for _, s := range user.BackendScopes {
-		existing[s.Name] = s
+		existing[s.Path] = s
 	}
 
 	// Preserve order by using Config.Server.Sources
@@ -101,8 +101,8 @@ func updateUserScopes(user *users.User) bool {
 		} else {
 			continue
 		}
-		newScopes = append(newScopes, users.SourceScope{
-			Name:  src.Path,
+		newScopes = append(newScopes, users.BackendScope{
+			Path:  src.Path,
 			Scope: existingScope.Scope,
 		})
 		seen[src.Path] = struct{}{}
@@ -110,7 +110,7 @@ func updateUserScopes(user *users.User) bool {
 
 	// Preserve user-defined scopes not matching current sources, append to end
 	for _, s := range user.BackendScopes {
-		if _, ok := seen[s.Name]; !ok {
+		if _, ok := seen[s.Path]; !ok {
 			newScopes = append(newScopes, s)
 		}
 	}
@@ -237,7 +237,7 @@ func updateSidebarLinks(user *users.User) bool {
 
 		// Add new source links based on user's scopes
 		for _, scope := range user.BackendScopes {
-			if source, ok := settings.Config.Server.SourceMap[scope.Name]; ok {
+			if source, ok := settings.Config.Server.SourceMap[scope.Path]; ok {
 				// User has access to this source, add it to sidebar
 				newLinks = append(newLinks, users.SidebarLink{
 					Name:       source.Name,

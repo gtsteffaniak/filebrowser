@@ -1754,6 +1754,15 @@ definitions:
       username:
         type: string
     type: object
+  users.BackendScope:
+    properties:
+      path:
+        description: real path for the source
+        type: string
+      scope:
+        description: index path within that source
+        type: string
+    type: object
   users.FileLoading:
     properties:
       clearAll:
@@ -1764,6 +1773,15 @@ definitions:
         type: integer
       uploadChunkSizeMb:
         type: integer
+    type: object
+  users.FrontendScope:
+    properties:
+      name:
+        description: 'Bolt: filesystem path; JSON API: display name after prepForFrontend'
+        type: string
+      scope:
+        description: index path within that source
+        type: string
     type: object
   users.FrontendUser:
     properties:
@@ -1857,14 +1875,9 @@ definitions:
       quickDownload:
         description: show icon to download in one click
         type: boolean
-      scope:
-        type: string
       scopes:
-        description: |-
-          Scopes JSON "scopes": on requests, admin/source names + paths (converted to BackendScopes in state).
-          On GET responses, PrepForFrontend sets this from BackendScopes (GetFrontendScopes)— never loaded from SQL.
         items:
-          $ref: '#/definitions/users.SourceScope'
+          $ref: '#/definitions/users.FrontendScope'
         type: array
       showCopyPath:
         description: show copy path action in the context menu
@@ -1902,8 +1915,6 @@ definitions:
         type: string
       username:
         type: string
-      version:
-        type: integer
       viewMode:
         description: 'view mode to use: eg. normal, list, grid, or compact'
         type: string
@@ -2011,15 +2022,6 @@ definitions:
       by:
         type: string
     type: object
-  users.SourceScope:
-    properties:
-      name:
-        description: 'Bolt: filesystem path; JSON API: display name after prepForFrontend'
-        type: string
-      scope:
-        description: index path within that source
-        type: string
-    type: object
   users.User:
     properties:
       apiKeys:
@@ -2032,7 +2034,7 @@ definitions:
           BackendScopes is the authoritative, persisted access list (SourceScope.Name = backend source path).
           SQLite stores this inside user_data JSON under the key "scopes" (see sqldb.UserData).
         items:
-          $ref: '#/definitions/users.SourceScope'
+          $ref: '#/definitions/users.BackendScope'
         type: array
       customTheme:
         description: Name of theme to use chosen from custom themes config.
@@ -2126,14 +2128,9 @@ definitions:
       quickDownload:
         description: show icon to download in one click
         type: boolean
-      scope:
-        type: string
       scopes:
-        description: |-
-          Scopes JSON "scopes": on requests, admin/source names + paths (converted to BackendScopes in state).
-          On GET responses, PrepForFrontend sets this from BackendScopes (GetFrontendScopes)— never loaded from SQL.
         items:
-          $ref: '#/definitions/users.SourceScope'
+          $ref: '#/definitions/users.FrontendScope'
         type: array
       showCopyPath:
         description: show copy path action in the context menu

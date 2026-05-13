@@ -448,7 +448,7 @@ type UserDefaults struct {
 	DisableViewingExt          string                  `json:"disableViewingExt,omitempty"`      // deprecated: use fileViewer.disableViewingExt instead
 	LockPassword               bool                    `json:"lockPassword,omitempty"`           // deprecated: use account.lockPassword instead
 	DisableSettings            bool                    `json:"disableSettings,omitempty"`        // deprecated: use account.disableSettings instead
-	DefaultScopes              []users.SourceScope     `json:"-"`
+	DefaultScopes              []users.BackendScope    `json:"-"`
 	Permissions                UserDefaultsPermissions `json:"permissions,omitempty"`                // deprecated: use account.permissions instead
 	LoginMethod                string                  `json:"loginMethod,omitempty"`                // deprecated: use account.loginMethod instead
 	DisableUpdateNotifications bool                    `json:"disableUpdateNotifications,omitempty"` // deprecated: use account.disableUpdateNotifications instead

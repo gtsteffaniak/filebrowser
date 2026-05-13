@@ -6915,6 +6915,19 @@ const docTemplate = `{
                 }
             }
         },
+        "users.BackendScope": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "description": "real path for the source",
+                    "type": "string"
+                },
+                "scope": {
+                    "description": "index path within that source",
+                    "type": "string"
+                }
+            }
+        },
         "users.FileLoading": {
             "type": "object",
             "properties": {
@@ -6929,6 +6942,19 @@ const docTemplate = `{
                 },
                 "uploadChunkSizeMb": {
                     "type": "integer"
+                }
+            }
+        },
+        "users.FrontendScope": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "Bolt: filesystem path; JSON API: display name after prepForFrontend",
+                    "type": "string"
+                },
+                "scope": {
+                    "description": "index path within that source",
+                    "type": "string"
                 }
             }
         },
@@ -7057,14 +7083,10 @@ const docTemplate = `{
                     "description": "show icon to download in one click",
                     "type": "boolean"
                 },
-                "scope": {
-                    "type": "string"
-                },
                 "scopes": {
-                    "description": "Scopes JSON \"scopes\": on requests, admin/source names + paths (converted to BackendScopes in state).\nOn GET responses, PrepForFrontend sets this from BackendScopes (GetFrontendScopes)— never loaded from SQL.",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/users.SourceScope"
+                        "$ref": "#/definitions/users.FrontendScope"
                     }
                 },
                 "showCopyPath": {
@@ -7110,9 +7132,6 @@ const docTemplate = `{
                 },
                 "username": {
                     "type": "string"
-                },
-                "version": {
-                    "type": "integer"
                 },
                 "viewMode": {
                     "description": "view mode to use: eg. normal, list, grid, or compact",
@@ -7259,19 +7278,6 @@ const docTemplate = `{
                 }
             }
         },
-        "users.SourceScope": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "description": "Bolt: filesystem path; JSON API: display name after prepForFrontend",
-                    "type": "string"
-                },
-                "scope": {
-                    "description": "index path within that source",
-                    "type": "string"
-                }
-            }
-        },
         "users.User": {
             "type": "object",
             "properties": {
@@ -7286,7 +7292,7 @@ const docTemplate = `{
                     "description": "BackendScopes is the authoritative, persisted access list (SourceScope.Name = backend source path).\nSQLite stores this inside user_data JSON under the key \"scopes\" (see sqldb.UserData).",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/users.SourceScope"
+                        "$ref": "#/definitions/users.BackendScope"
                     }
                 },
                 "customTheme": {
@@ -7414,14 +7420,10 @@ const docTemplate = `{
                     "description": "show icon to download in one click",
                     "type": "boolean"
                 },
-                "scope": {
-                    "type": "string"
-                },
                 "scopes": {
-                    "description": "Scopes JSON \"scopes\": on requests, admin/source names + paths (converted to BackendScopes in state).\nOn GET responses, PrepForFrontend sets this from BackendScopes (GetFrontendScopes)— never loaded from SQL.",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/users.SourceScope"
+                        "$ref": "#/definitions/users.FrontendScope"
                     }
                 },
                 "showCopyPath": {

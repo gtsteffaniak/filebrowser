@@ -405,7 +405,7 @@ export default {
               label: this.$t("general.delete"),
               action: async () => {
                 try {
-                  await usersApi.remove(this.user.id, {
+                  await usersApi.deleteUser(this.user.username, {
                     actorPasswordPromptI18nKey: "prompts.confirmPasswordToSaveUser",
                   });
                   notify.showSuccessToast(this.$t("settings.userDeleted"));

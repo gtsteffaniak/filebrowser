@@ -11,7 +11,7 @@
     <settings-table
       :columns="userTableColumns"
       :items="users"
-      item-key="id"
+      item-key="username"
       default-sort-key="username"
       :aria-label="$t('general.users')"
       :loading="loading"
@@ -23,14 +23,14 @@
       <template #cell-scopes="{ row }">{{ formatScopes(row.scopes) }}</template>
       <template #cell-actions="{ row }">
         <div
-          @click="openPrompt(row.id)"
+          @click="openPrompt(row.username)"
           class="clickable action button"
           role="button"
           tabindex="0"
           :aria-label="$t('general.edit')"
           :title="$t('general.edit')"
-          @keydown.enter.prevent="openPrompt(row.id)"
-          @keydown.space.prevent="openPrompt(row.id)"
+          @keydown.enter.prevent="openPrompt(row.username)"
+          @keydown.space.prevent="openPrompt(row.username)"
         >
           <i class="material-symbols">edit</i>
         </div>

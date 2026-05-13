@@ -43,12 +43,12 @@ type scopedSourcePath struct {
 //
 // Per-source search scope (preferred for multi-source):
 //
-//   Repeated query parameter "scope" with the value "sourceName:relativePath",
-//   split on the first colon. The path is user-relative (same as the legacy single-scope
-//   path). Encode the whole value with the normal query string rules (e.g. %3A for ':' if needed).
-//   Examples:
-//     ?scope=mydisk:/&scope=backup:/Photos
-//   Duplicate source names: the last repeated scope for that source wins.
+//	Repeated query parameter "scope" with the value "sourceName:relativePath",
+//	split on the first colon. The path is user-relative (same as the legacy single-scope
+//	path). Encode the whole value with the normal query string rules (e.g. %3A for ':' if needed).
+//	Examples:
+//	  ?scope=mydisk:/&scope=backup:/Photos
+//	Duplicate source names: the last repeated scope for that source wins.
 //
 // Legacy (still supported):
 //
