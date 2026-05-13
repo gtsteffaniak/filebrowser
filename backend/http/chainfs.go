@@ -54,10 +54,15 @@ func chainfsLoginHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		return http.StatusInternalServerError, fmt.Errorf("failed to parse login URL: %w", err)
 	}
 
-	// Get FileBrowser's callback URL
-	origin := r.Header.Get("Origin")
-	if origin == "" {
-		origin = fmt.Sprintf("%s://%s", getScheme(r), r.Host)
+	// Get FileBrowser's callback URL — prefer ExternalUrl so it stays correct behind reverse proxies
+	var origin string
+	if config.Server.ExternalUrl != "" {
+		origin = strings.TrimRight(config.Server.ExternalUrl, "/")
+	} else {
+		origin = r.Header.Get("Origin")
+		if origin == "" {
+			origin = fmt.Sprintf("%s://%s", getScheme(r), r.Host)
+		}
 	}
 	callbackURL := fmt.Sprintf("%s%sapi/auth/chainfs/callback", origin, config.Server.BaseURL)
 	// Replace 127.0.0.1 with localhost for Azure B2C compatibility
@@ -231,8 +236,14 @@ if (hash) {
 		tokenEndpoint = tokenEndpoint[:idx]
 	}
 
-	// Build callback URL
-	redirectURL := fmt.Sprintf("%s://%s%sapi/auth/chainfs/callback", getScheme(r), r.Host, config.Server.BaseURL)
+	// Build callback URL — prefer ExternalUrl so it stays correct behind reverse proxies
+	var callbackOrigin string
+	if config.Server.ExternalUrl != "" {
+		callbackOrigin = strings.TrimRight(config.Server.ExternalUrl, "/")
+	} else {
+		callbackOrigin = fmt.Sprintf("%s://%s", getScheme(r), r.Host)
+	}
+	redirectURL := fmt.Sprintf("%s%sapi/auth/chainfs/callback", callbackOrigin, config.Server.BaseURL)
 	// Replace 127.0.0.1 with localhost for Azure B2C compatibility
 	redirectURL = strings.Replace(redirectURL, "127.0.0.1", "localhost", 1)
 

@@ -1,6 +1,7 @@
 server:
   port: 8080
   baseURL: "/"
+  externalUrl: "https://drive.acorn.tools"
   sources:
     - path: "/srv"
 
