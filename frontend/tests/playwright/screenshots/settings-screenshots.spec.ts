@@ -18,15 +18,19 @@ test("setup theme", async ({ page, checkForErrors, context, theme }) => {
 // run npx playwright test --ui to run these tests locally in ui mode
 test("profile settings", async ({ page, checkForErrors, context, theme }) => {
   await page.goto("/files/settings/");
+  const listingOptionsDiv = page.locator('div[aria-label="listingOptions"]');
+  await listingOptionsDiv.click(); // collapse the listing options section
+
   await page.waitForTimeout(300);
   await page.screenshot({ path: `./generated/settings/profile-listing-options-${theme}.jpg`, quality: jpgQuality });
   if (theme === 'light') {
     return;
   }
-  const settingsContainer = page.locator('.settings-views')
-  await settingsContainer.evaluate(el => el.scrollIntoView({ block: 'start', behavior: 'instant' }));
+  await listingOptionsDiv.click(); // open the listing options section
   await page.waitForTimeout(300);
   await page.screenshot({ path: `./generated/settings/profile-settings-container-${theme}.jpg`, quality: jpgQuality });
+  await listingOptionsDiv.click();
+
   const thumbnailDiv = page.locator('div[aria-label="thumbnailOptions"]');
   await thumbnailDiv.click();
   await page.waitForTimeout(300);
