@@ -6298,7 +6298,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "disablePreviewExt": {
-                    "description": "deprecated: use Preview.disablePreviewExt instead",
+                    "description": "deprecated: use preview.disablePreviewExt instead",
                     "type": "string"
                 },
                 "disableQuickToggles": {
@@ -6375,12 +6375,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "preview": {
-                    "description": "Note: struct name is Preview to avoid conflict with deprecated Preview field below",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/settings.UserDefaultsPreview"
-                        }
-                    ]
+                    "$ref": "#/definitions/settings.UserDefaultsPreview"
                 },
                 "quickDownload": {
                     "description": "deprecated: use listing.quickDownload instead",
@@ -6619,6 +6614,18 @@ const docTemplate = `{
             "properties": {
                 "audio": {
                     "description": "show thumbnails for audio files",
+                    "type": "boolean"
+                },
+                "autoplayMedia": {
+                    "description": "deprecated: use fileViewer.autoplayMedia instead. autoplay media files in preview",
+                    "type": "boolean"
+                },
+                "defaultMediaPlayer": {
+                    "description": "deprecated: use fileViewer.defaultMediaPlayer instead. disable the styled feature-rich media player for browser default",
+                    "type": "boolean"
+                },
+                "disableHideSidebar": {
+                    "description": "deprecated fields",
                     "type": "boolean"
                 },
                 "disablePreviewExt": {
@@ -7735,3 +7742,4 @@ var SwaggerInfo = &swag.Spec{
 	LeftDelim:        "{{",
 	RightDelim:       "}}",
 }
+

@@ -178,7 +178,7 @@ userDefaults:
     deleteAfterArchive: true              # delete source files after successful creation/extraction of archives
     viewMode: "normal"                    # view mode to use: eg. normal, list, grid, or compact
     gallerySize: 3                        # 0-9 - the size of the gallery thumbnails
-  preview:                                # Note: struct name is PreviewNew to avoid conflict with deprecated Preview field below
+  preview:
     image: true                           # show thumbnails for image files
     video: true                           # show thumbnails for video files
     audio: true                           # show thumbnails for audio files

@@ -540,15 +540,30 @@ func migrateUserDefaults() {
 		return v == 0
 	}
 
-	// warn about deprecated fields
-	if ud.Preview.DisableHideSidebar {
-		logger.Warning("userDefaults: migrating deprecated field 'disableHideSidebar' to 'sidebar.disableHideOnPreview'")
+	// Migrate Preview-related deprecated fields
+	if !ud.Sidebar.DisableHideOnPreview && ud.Preview.DisableHideSidebar {
+		ud.Sidebar.DisableHideOnPreview = ud.Preview.DisableHideSidebar
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'preview.disableHideSidebar' to 'sidebar.disableHideOnPreview'")
 	}
-	if ud.Preview.DefaultMediaPlayer {
-		logger.Warning("userDefaults: migrating deprecated field 'defaultMediaPlayer' to 'fileViewer.defaultMediaPlayer'")
+
+	if !ud.FileViewer.DefaultMediaPlayer && ud.Preview.DefaultMediaPlayer {
+		ud.FileViewer.DefaultMediaPlayer = ud.Preview.DefaultMediaPlayer
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'preview.defaultMediaPlayer' to 'fileViewer.defaultMediaPlayer'")
 	}
-	if ud.Preview.AutoplayMedia {
-		logger.Warning("userDefaults: migrating deprecated field 'autoplayMedia' to 'fileViewer.autoplayMedia'")
+
+	if isUnsetBoolPtr(ud.FileViewer.AutoplayMedia) && ud.Preview.AutoplayMedia {
+		autoplay := ud.Preview.AutoplayMedia
+		ud.FileViewer.AutoplayMedia = &autoplay
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'preview.autoplayMedia' to 'fileViewer.autoplayMedia'")
+	}
+
+	if isUnsetString(ud.Preview.DisablePreviewExt) && !isUnsetString(ud.DisablePreviewExt) {
+		ud.Preview.DisablePreviewExt = ud.DisablePreviewExt
+		hasOldFields = true
+		logger.Warning("userDefaults: migrating deprecated field 'disablePreviewExt' to 'preview.disablePreviewExt'")
 	}
 
 	// Migrate Sidebar fields

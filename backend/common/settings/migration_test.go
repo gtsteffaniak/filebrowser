@@ -60,6 +60,10 @@ func TestMigrateUserDefaults_OldToNew(t *testing.T) {
 			HighQuality:        boolPtr(true),
 			Folder:             boolPtr(true),
 			Models:             boolPtr(true),
+			// Deprecated fields that should be migrated
+			DisableHideSidebar: true,
+			AutoplayMedia:      true,
+			DefaultMediaPlayer: true,
 		},
 		FileLoading: users.FileLoading{
 			MaxConcurrent:   5,
