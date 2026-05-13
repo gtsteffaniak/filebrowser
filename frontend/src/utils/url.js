@@ -207,7 +207,7 @@ export function encodedPath(path) {
 // assume non-encoded input path and source
 export function goToItem(source, path, previousHistoryItem, newTab = false) {
   const cv = getters.currentView();
-  if (source == state.sources.current && path === state.req.path && cv === "listingView") {
+  if (source === state.sources.current && path === state.req.path && cv === "listingView") {
     return;
   }
   if (previousHistoryItem && cv === "listingView`") {
