@@ -209,7 +209,7 @@ export function goToItem(source, path, previousHistoryItem, newTab = false) {
   if (source == state.sources.current && path == state.req.path) {
     return;
   }
-  if (!!previousHistoryItem) {
+  if (previousHistoryItem) {
     mutations.setPreviousHistoryItem(previousHistoryItem);
   }
   mutations.resetAll()
