@@ -23,9 +23,12 @@ test("profile settings", async ({ page, checkForErrors, context, theme }) => {
   if (theme === 'light') {
     return;
   }
+  const settingsContainer = page.locator('.settings-views')
+  await settingsContainer.evaluate(el => el.scrollIntoView({ block: 'start', behavior: 'instant' }));
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: `./generated/settings/profile-settings-container-${theme}.jpg`, quality: jpgQuality });
   const thumbnailDiv = page.locator('div[aria-label="thumbnailOptions"]');
   await thumbnailDiv.click();
-  await thumbnailDiv.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
   await page.waitForTimeout(300);
   await page.screenshot({ path: `./generated/settings/profile-thumbnail-options-${theme}.jpg`, quality: jpgQuality });
   
