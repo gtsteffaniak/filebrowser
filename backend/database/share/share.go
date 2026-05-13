@@ -56,6 +56,7 @@ type CreateShare struct {
 	PerUserDownloadLimit     bool     `json:"perUserDownloadLimit,omitempty"`
 	ExtractEmbeddedSubtitles bool     `json:"extractEmbeddedSubtitles,omitempty"`
 	DownloadsLimit           int      `json:"downloadsLimit,omitempty"`
+	HideFileExt              string   `json:"hideFileExt,omitempty"` // show hidden files based on extensions in shares
 }
 
 // Share is the persisted share: embedded CreateShare (routing + presentation) plus server-only columns.

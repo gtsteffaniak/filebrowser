@@ -30,6 +30,22 @@
               :name="$t('profileSettings.showCopyPath')"
               :description="$t('profileSettings.showCopyPathDescription')" />
           </div>
+          <div class="centered-with-tooltip">
+            <h3>{{ $t("profileSettings.hideFileExt") }}</h3>
+            <i class="no-select material-symbols-outlined tooltip-info-icon"
+              @mouseenter="showTooltip($event, $t('profileSettings.hideFileExtDescription'))"
+              @mouseleave="hideTooltip">
+              help
+            </i>
+          </div>
+          <div class="form-flex-group">
+            <input class="input form-form flat-right disable-viewing"
+              :class="{ 'form-invalid': !validateExtensions(formHideExt) }" type="text"
+              :placeholder="$t('profileSettings.disableFileExtensions')" v-model="formHideExt" />
+            <button type="button" class="button form-button flat-left" @click="submitHideExtChange">
+              {{ $t("general.save") }}
+            </button>
+          </div>
         </SettingsItem>
         <SettingsItem aria-label="thumbnailOptions" :title="$t('profileSettings.thumbnailOptions')" :collapsable="true"
           :start-collapsed="true" :force-collapsed="isSectionCollapsed('thumbnailOptions')"
@@ -91,6 +107,9 @@
               :name="$t('profileSettings.hideSidebarFileActions')" />
             <ToggleSwitch class="item" v-model="localuser.hideFilesInTree" @change="updateSettings"
               :name="$t('profileSettings.hideFilesInTree')" :description="$t('profileSettings.hideFilesInTreeDescription')" />
+            <ToggleSwitch class="item" v-model="localuser.showToolsInSidebar" @change="updateSettings"
+              :name="$t('profileSettings.showToolsInSidebar')"
+              :description="$t('profileSettings.showToolsInSidebarDescription')" />
           </div>
         </SettingsItem>
         <SettingsItem aria-label="searchOptions" :title="$t('settings.searchOptions')" :collapsable="true"
@@ -213,6 +232,7 @@ export default {
       formDisablePreviews: "", // holds temporary input before saving
       formDisabledViewing: "", // holds temporary input before saving
       formDisableOfficeViewing: "", // holds temporary input before saving
+      formHideExt: "", // holds temporary input before saving
       expandedSection: 'listingOptions', // Track which section is currently expanded for accordion behavior
     };
   },
@@ -289,6 +309,13 @@ export default {
     this.formDisablePreviews = this.localuser.disablePreviewExt;
     this.formDisabledViewing = this.localuser.disableViewingExt;
     this.formDisableOfficeViewing = this.localuser.disableOnlyOfficeExt;
+    if (typeof this.localuser.showToolsInSidebar !== 'boolean') {
+      this.localuser.showToolsInSidebar = true;
+    }
+    this.formHideExt = this.localuser.hideFileExt;
+    if (typeof this.localuser.showToolsInSidebar !== 'boolean') {
+      this.localuser.showToolsInSidebar = true;
+    }
   },
   methods: {
     showTooltip(event, text) {
@@ -322,6 +349,14 @@ export default {
         return;
       }
       this.localuser.disableViewingExt = this.formDisabledViewing;
+      this.updateSettings();
+    },
+    submitHideExtChange() {
+      if (!this.validateExtensions(this.formHideExt)) {
+        notify.showError("Invalid input, does not match requirement.");
+        return;
+      }
+      this.localuser.hideFileExt = this.formHideExt;
       this.updateSettings();
     },
     submitDisableOfficeViewingChange() {
@@ -363,6 +398,7 @@ export default {
           "disablePreviewExt",
           "disableViewingExt",
           "disableOnlyOfficeExt",
+          "hideFileExt",
           "deleteWithoutConfirming",
           "deleteAfterArchive",
           "preview",
@@ -375,6 +411,7 @@ export default {
           "showSelectMultiple",
           "debugOffice",
           "preferEditorForMarkdown",
+          "showToolsInSidebar",
         ]);
         notify.showSuccessToast(
           this.$t('settings.settingsUpdated')
@@ -408,6 +445,9 @@ export default {
 </script>
 
 <style scoped>
+.settings-group {
+  padding-top: 0.5em;
+}
 .disable-viewing {
   width: 100%;
 }

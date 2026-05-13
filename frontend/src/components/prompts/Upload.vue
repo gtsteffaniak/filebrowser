@@ -699,7 +699,6 @@ export default {
 .card.floating {
   display: flex !important;
   flex-direction: column;
-  max-height: 85vh;
 }
 
 .card-content {

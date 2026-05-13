@@ -75,7 +75,12 @@
     "mouseActions": "滑鼠操作",
     "fileOperations": "檔案操作",
     "click": "選取檔案或目錄",
+    "dbClick": "雙擊空白區域以選擇所有項目",
     "ctrl": {
+      "f1": "切換到清單檢視",
+      "f2": "切換到普通檢視",
+      "f3": "切換到畫廊檢視",
+      "scroll": "更改清單大小和編輯器字型",
       "click": "選取多個檔案或目錄",
       "d": "下載所選項目",
       "b": "切換側邊欄",
@@ -101,6 +106,8 @@
       "volume": "調高或調低音量",
       "mute": "靜音/取消靜音",
       "loop": "在循環模式和單次模式之間切換",
+      "playbackQueue": "在音訊檔案中開啟播放佇列或面板",
+      "switchTabs": "在音訊檔案的面板中切換標籤",
       "playbackModes": "切換播放模式（不包括循環和單次）",
       "fullscreen": "影片全螢幕模式切換",
       "captions": "開啟/關閉字幕"
@@ -141,10 +148,10 @@
     "passwordsDontMatch": "密碼不一致",
     "usernameTaken": "此帳號名稱已被使用",
     "wrongCredentials": "帳號或密碼錯誤",
-    "or": "或",
     "inProgress": "登入中…",
     "failedLogin": "登入失敗",
-    "invalidCredentials": "提供的認證資料無效"
+    "invalidCredentials": "提供的認證資料無效",
+    "passkeyLogin": "使用通行密鑰"
   },
   "prompts": {
     "copyMessage": "請選擇要複製到哪個位置：",
@@ -256,9 +263,12 @@
     "showPreviewImagesDescription": "若可用，會為搜尋結果顯示縮圖預覽，並為所有結果顯示較大的圖示。",
     "olderThanDate": "年紀比",
     "newerThanDate": "比較新：",
-    "helpText2": "搜尋結果以已編入索引的檔案為基礎，因此新加入的檔案在編入索引前可能不會出現。",
     "noResults": "未找到結果。",
-    "helpText1": "搜尋會發生在您輸入的每個字元上（{minSearchLength} 字元最小值）。"
+    "helpText1": "搜尋會發生在您輸入的每個字元上（{minSearchLength} 字元最小值）。",
+    "helpText2": "僅對檔案或資料夾名稱進行子串匹配（而非完整路徑）。\n\n 對於詞彙之間的 OR，使用管道符號；對於單一詞組，使用雙引號。\n\n啟用通配符搜尋以獲得更多進階選項。",
+    "useWildcardSearch": "通配符搜尋 (區分大小寫)",
+    "useWildcardSearchDescription": "支援的通配符選項：\n\n- 匹配任何序列：*\n\n- 匹配一個字元：?\n\n- 字元類別：[a-z]、[0-9]\n\n- 否定：[^0-9]\n\n- 字面 *、?或 [ 需要包在括弧中，例如 [*]、[?]、[[]\n\n- 所有結果都區分大小寫",
+    "openInAdvancedSearch": "在進階搜尋中開啟"
   },
   "settings": {
     "administrator": "管理員",
@@ -533,6 +543,8 @@
     "error": "錯誤"
   },
   "profileSettings": {
+    "hideFileExt": "隱藏特定檔案（按副檔名）",
+    "hideFileExtDescription": "空格分隔的副檔名列表。在此欄位中輸入的副檔名將從所有使用者介面中隱藏（視覺上，如清單或檔案樹）——它們仍然可存取。",
     "preferEditorForMarkdown": "優先使用編輯器開啟 Markdown 檔案",
     "preferEditorForMarkdownDescription": "啟用後，Markdown 檔案將首先在編輯器中開啟，而不是 Markdown 檢視器。",
     "deleteAfterArchive": "建立/解壓縮封存檔後刪除來源檔案",
@@ -595,7 +607,21 @@
     "showThumbnailsDescription": "啟用時，縮圖會顯示在支援縮圖的項目清單中。關閉可隱藏所有縮圖。",
     "showCopyPath": "在上下文功能表中顯示複製路徑",
     "showCopyPathDescription": "在檔案和資料夾上下文功能表中顯示複製路徑動作。",
-    "previewDescription": "顯示{filetype} 的縮圖預覽，如果停用會顯示一般圖示。"
+    "previewDescription": "顯示{filetype} 的縮圖預覽，如果停用會顯示一般圖示。",
+    "passkeys": "通行密鑰",
+    "passkeysDescription": "使用通行密鑰進行安全、無密碼的多因素認證。在您的裝置上註冊通行密鑰，使用生物識別或 PIN 驗證代替 OTP 代碼。",
+    "noPasskeys": "尚未註冊通行密鑰。",
+    "addPasskey": "新增通行密鑰",
+    "addingPasskey": "正在新增通行密鑰...",
+    "passkeyAdded": "通行密鑰新增成功！",
+    "passkeyAddFailed": "新增通行密鑰失敗",
+    "passkeyDeleted": "通行密鑰已刪除。",
+    "passkeyDeleteFailed": "刪除通行密鑰失敗",
+    "created": "建立時間",
+    "lastUsed": "上次使用",
+    "passkeyDefaultName": "通行密鑰",
+    "showToolsInSidebar": "在側邊欄顯示工具",
+    "showToolsInSidebarDescription": "總是在側邊欄顯示工具連結。"
   },
   "otp": {
     "name": "雙因素驗證",
@@ -750,7 +776,9 @@
     "office": "Office{suffix}",
     "show": "顯示{suffix}",
     "divider": "分隔線{suffix}",
-    "audio": "音訊{suffix}"
+    "audio": "音訊{suffix}",
+    "and": "和",
+    "or": "或"
   },
   "access": {
     "rules": "存取規則",
@@ -797,7 +825,15 @@
     "QueuePlayback": "播放佇列",
     "changePlaybackMode": "變更播放模式",
     "changePlaybackModeHint": "變更播放模式以查看更多檔案",
-    "emptyQueue": "佇列為空"
+    "emptyQueue": "佇列為空",
+    "queue": "佇列",
+    "lyrics": "歌詞",
+    "noLyrics": "沒有可用的歌詞",
+    "lockLyrics": "鎖定歌詞",
+    "unlockLyrics": "解鎖歌詞",
+    "toggleLyrics": "切換歌詞",
+    "closePanel": "關閉面板",
+    "openPanel": "開啟面板"
   },
   "fileSizeAnalyzer": {
     "title": "檔案大小分析器",
@@ -858,6 +894,20 @@
       "stopWatching": "停止監看",
       "emptyState": "選擇檔案並按一下播放，即可開始監看檔案變更",
       "chooseFile": "選擇檔案"
+    },
+    "advancedSearch": {
+      "name": "進階搜尋",
+      "description": "可完全控制來源、篩選器和選項來搜尋索引",
+      "searchTerms": "搜尋條件",
+      "matchAllTerms": "匹配所有詞彙",
+      "matchAllTermsDescription": "啟用時，必須找到每個檔案的所有搜尋字詞",
+      "scopeAria": "限制搜尋至資料夾",
+      "noTerms": "至少輸入一個搜尋字詞。",
+      "termTooShort": "每個搜尋字詞必須至少為{minSearchLength} 字元",
+      "caseExact": "大小寫敏感匹配",
+      "resultsTitle": "搜尋結果",
+      "invalidSources": "開啟至少一個來源。",
+      "noResults": "沒有匹配的檔案或資料夾。"
     }
   },
   "messages": {

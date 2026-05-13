@@ -3,9 +3,15 @@
     <div class="card file-watcher-config padding-normal">
       <div class="card-content config-row" :class="{ 'mobile': isMobile }">
         <div class="config-item file-picker">
-          <div aria-label="file-watcher-file" class="searchContext clickable button file-picker-button" @click="openPathPicker">
-            {{ getFilePathText }}
-          </div>
+          <PathPickerButton
+            class="file-picker-button"
+            v-model:path="filePath"
+            v-model:source="selectedSource"
+            :aria-label="$t('general.file')"
+            :show-files="true"
+            :show-folders="true"
+            :placeholder="$t('tools.fileWatcher.chooseFile')"
+          />
         </div>
         <div class="config-row-second" :class="{ 'mobile': isMobile }">
           <div class="config-item interval-select">
@@ -32,7 +38,7 @@
 
     <div class="card">
       <div class="card-content file-watcher-output">
-        <div class="terminal-header boarder-radius" :class="{ 'mobile': isMobile }">
+        <div class="terminal-header border-radius" :class="{ 'mobile': isMobile }">
           <div class="header-row header-row-first">
             <div class="header-left"></div>
             <div v-if="fileName" class="header-center">
@@ -66,7 +72,7 @@
             </div>
           </div>
         </div>
-        <div ref="terminalOutput" class="terminal-output boarder-radius" :class="{ 'dark-mode': isDarkMode }">
+        <div ref="terminalOutput" class="terminal-output border-radius" :class="{ 'dark-mode': isDarkMode }">
           <div v-for="(line, index) in outputLines" :key="index" class="terminal-line">
             <span class="terminal-text">{{ line.text }}</span>
           </div>
@@ -81,15 +87,18 @@
 </template>
 
 <script>
-import { state, mutations, getters } from "@/store";
-import { eventBus } from "@/store/eventBus";
+import { state, getters } from "@/store";
 import { toolsApi } from "@/api";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { formatTimestamp, fromNow } from "@/utils/moment";
 import { notify } from "@/notify";
+import PathPickerButton from "@/components/files/PathPickerButton.vue";
 
 export default {
   name: "FileWatcher",
+  components: {
+    PathPickerButton,
+  },
   data() {
     return {
       selectedSource: "",
@@ -110,7 +119,6 @@ export default {
       updateTimer: null,
       currentTime: Date.now(),
       latencyPingInterval: null,
-      fileType: null,
     };
   },
   computed: {
@@ -136,12 +144,6 @@ export default {
         { value: 15, label: "15s", disabled: false },
         { value: 30, label: "30s", disabled: false },
       ];
-    },
-    getFilePathText() {
-      if (this.filePath) {
-        return `${this.$t('general.file', { suffix: ':' })} ${this.filePath}`;
-      }
-      return this.$t('tools.fileWatcher.chooseFile');
     },
     getRelativeUpdateTime() {
       if (!this.lastUpdateTime) return '';
@@ -241,9 +243,6 @@ export default {
     // Mark initialization as complete
     this.isInitializing = false;
 
-    // Listen for path selection
-    eventBus.on('pathSelected', this.handlePathSelected);
-
     // Start timer to update relative time every second
     this.updateTimer = setInterval(() => {
       this.currentTime = Date.now();
@@ -252,7 +251,6 @@ export default {
     document.addEventListener('keydown', this.handleKeydown);
   },
   beforeUnmount() {
-    eventBus.off('pathSelected', this.handlePathSelected);
     this.stopWatch();
     // Clear update timer
     if (this.updateTimer) {
@@ -276,37 +274,6 @@ export default {
         return 5;
       }
       return interval;
-    },
-    openPathPicker() {
-      mutations.showPrompt({
-        name: "pathPicker",
-        props: {
-          currentPath: this.filePath || "/",
-          currentSource: this.selectedSource || state.sources.current || "",
-          showFiles: true,
-          showFolders: true,
-        }
-      });
-    },
-    handlePathSelected(data) {
-      if (data && data.path !== undefined) {
-        this.filePath = data.path;
-      }
-      if (data && data.source !== undefined) {
-        this.selectedSource = data.source;
-      }
-      if (data && data.type !== undefined) {
-        this.fileType = data.type;
-      }
-      mutations.closeTopPrompt();
-      
-      // If currently watching, restart with the new path
-      if (this.watching) {
-        this.stopWatch();
-        this.$nextTick(() => {
-          this.startWatch();
-        });
-      }
     },
     initializeFromQuery() {
       const query = this.$route.query;

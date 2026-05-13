@@ -121,6 +121,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		Metadata:                 getMetadata,
 		ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles,
 		ShowHidden:               d.user.ShowHidden,
+		HideFileExt:              d.user.HideFileExt,
 		SkipExtendedAttrs:        skipExtendedAttrs,
 		ShowSharedAttr:           true,
 	}, accessStore, d.user, shareStore)
@@ -173,10 +174,11 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 		return http.StatusForbidden, fmt.Errorf("cannot delete your user's root directory")
 	}
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
-		Path:       path,
-		Source:     source,
-		Expand:     false,
-		ShowHidden: d.user.ShowHidden,
+		Path:        path,
+		Source:      source,
+		Expand:      false,
+		ShowHidden:  d.user.ShowHidden,
+		HideFileExt: d.user.HideFileExt,
 	}, accessStore, d.user, shareStore)
 	if err != nil {
 		return errToStatus(err), err
@@ -1070,6 +1072,7 @@ func patchAction(ctx context.Context, params patchActionParams) error {
 			Source:         params.srcIndex,
 			IsDir:          params.isSrcDir,
 			ShowHidden:     params.d.user.ShowHidden,
+			HideFileExt:    params.d.user.HideFileExt,
 		}, accessStore, params.d.user, shareStore)
 
 		if err != nil {

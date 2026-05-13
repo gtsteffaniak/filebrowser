@@ -416,7 +416,7 @@ export default {
 
       if (event.key === 'Escape') {
         event.preventDefault();
-        event.stopPropagation();
+        event.stopImmediatePropagation();
         this.closeTopPrompt(top.id);
         return;
       }

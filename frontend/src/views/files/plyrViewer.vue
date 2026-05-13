@@ -5,49 +5,104 @@
       v-if="previewType == 'audio' && !useDefaultMediaPlayer"
       ref="audioPlayerGestureRoot"
       class="audio-player-container audio-player-container--plyr-gestures"
+      :class="{ 'audio-player-container--lyrics-open': isMobile && showMobileLyrics && lyrics.length }"
     >
-      <div class="audio-player-content">
+      <!-- Desktop panel button, will auto‑hide only when panel is closed -->
+      <button
+        v-if="showButtons && previewType === 'audio' && !isMobile"
+        @click="showDesktopPanel = !showDesktopPanel"
+        @touchstart="resetButtonTimer"
+        @mouseenter="buttonZoneRight = true"
+        @mouseleave="buttonZoneRight = false"
+        class="queue-button floating panel-toggle-fab"
+        :class="{
+          'dark-mode': darkMode,
+        }"
+        :aria-label="showDesktopPanel ? $t('player.closePanel') : $t('player.openPanel')"
+        :title="showDesktopPanel ? $t('player.closePanel') : $t('player.openPanel')"
+      >
+        <i class="material-symbols">{{ showDesktopPanel ? 'close' : 'queue_music' }}</i> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        <span v-if="!showDesktopPanel && queueCount > 0" class="queue-count">{{ queueCount }}</span>
+      </button>
 
-        <!-- Album art with a generic icon if no image/metadata -->
-        <div class="album-art-container"
-             :class="{ 'no-artwork': !albumArtUrl }"
-             :style="{
-                 maxHeight: albumArtSize + 'em',
-                 maxWidth: albumArtSize + 'em'
-             }"
-             @mouseenter="onAlbumArtHover"
-             @mouseleave="onAlbumArtLeave"
-             @wheel="onAlbumArtScroll">
-          <img class="no-select album-art" v-if="albumArtUrl" :src="albumArtUrl" :alt="metadata.album || 'Album art'"
-            />
-          <div v-else class="album-art-fallback">
-            <i class="material-symbols">music_note</i>
+      <!-- Two‑column layout -->
+        <div class="audio-player-content" :class="{ 'panel-open': !isMobile && showDesktopPanel }" >
+        <!-- Left column: art + meta -->
+        <div class="audio-left-column">
+          <!-- Album art with a generic icon if no image/metadata -->
+          <div class="album-art-container"
+                :class="{ 'no-artwork': !albumArtUrl }"
+                :style="{
+                  maxHeight: displayArtSize + 'em',
+                  maxWidth: displayArtSize + 'em'
+                }"
+               @mouseenter="onAlbumArtHover"
+               @mouseleave="onAlbumArtLeave"
+               @wheel="onAlbumArtScroll">
+            <img class="no-select album-art" v-if="albumArtUrl" :src="albumArtUrl" :alt="metadata.album || 'Album art'"
+              />
+            <div v-else class="album-art-fallback">
+              <i class="material-symbols">music_note</i>
+            </div>
+          </div>
+
+          <!-- Metadata info -->
+          <div class="audio-metadata" v-if="metadata">
+            <div class="audio-title">
+              {{ metadata.title }}
+            </div>
+            <div class="audio-artist" v-if="metadata.artist">
+              {{ formattedArtist }}
+            </div>
+            <div class="audio-album" v-if="metadata.album">
+              {{ metadata.album }}
+            </div>
+            <div class="audio-year" v-if="metadata.album">
+              {{ metadata.year }}
+              <span class="filetype-badge">{{ filetype }}</span>
+            </div>
           </div>
         </div>
 
-        <!-- Metadata info -->
-        <div class="audio-metadata" v-if="metadata">
-          <div class="audio-title">
-            {{ metadata.title }}
-          </div>
-          <div class="audio-artist" v-if="metadata.artist">
-            {{ metadata.artist }}
-          </div>
-          <div class="audio-album" v-if="metadata.album">
-            {{ metadata.album }}
-          </div>
-          <div class="audio-year" v-if="metadata.album">
-            {{ metadata.year }}
-          </div>
+        <!-- Right column: panel with Queue & Lyrics tabs (desktop) -->
+        <Transition name="panel-slide">
+          <AudioPanel
+            v-if="!isMobile && showDesktopPanel"
+            :lyrics="lyrics"
+            :active-lyric-index="activeLyricIndex"
+            class="lyrics-panel"
+            @seek="seekToLyric"
+          />
+        </Transition>
+      </div>
+
+      <!-- Mobile inline lyrics -->
+      <div v-if="isMobile && showMobileLyrics && lyrics.length" class="lyrics-mobile">
+        <!-- Scrollable area -->
+        <div class="lyrics-mobile-scrollable" ref="lyricsMobileScrollable">
+          <p
+            v-for="(line, i) in lyrics"
+            :key="i"
+            :class="{ active: syncedLyrics && lyrics[i].timestamp === lyrics[activeLyricIndex]?.timestamp }"
+            class="lyric-line"
+            @click.stop="syncedLyrics && seekToLyric(line.timestamp)"
+            tabindex="0"
+            role="button"
+            :aria-label="syncedLyrics ? 'Seek to ' + line.text : undefined"
+          >
+            {{ line.text }}
+          </p>
         </div>
       </div>
 
+      <!-- Audio controls -->
       <div class="audio-controls-container" :class="{ 'dark-mode': darkMode, 'light-mode': !darkMode }">
         <div class="plyr-audio-container" ref="plyrAudioContainer">
           <audio :src="raw" :type="req.type" :autoplay="shouldAutoplay" @play="handlePlay" ref="audioElement"></audio>
         </div>
       </div>
 
+      <!-- Double‑tap / seek feedback overlay -->
       <div
         class="video-skip-feedback-layer"
         :class="{
@@ -66,7 +121,7 @@
       <div class="plyr-video-container" ref="plyrVideoContainer">
         <video :src="raw" :type="req.type" :autoplay="shouldAutoplay" @play="handlePlay" playsinline ref="videoElement">
           <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
-            :label="subtitleTrackLabel(sub)" :srclang="sub.language" :default="index === 0" />
+            :label="subtitleTrackLabel(sub)" :srclang="sub.language" />
         </video>
       </div>
       <div
@@ -99,30 +154,76 @@
       </video>
     </div>
 
-    <!-- Mouse detection zone for top-left corner -->
+    <!-- Right detection zone – always for video/mobile audio queue button & desktop panel toggle -->
     <div
-      v-if="showQueueButton"
-      class="queue-zone"
-      @mousemove="toggleQueueButton"
-      @mouseover="setHoverQueue(true)"
-      @mouseleave="setHoverQueue(false)"
+      v-if="showRightZone"
+      class="floating-zone floating-zone--right"
+      @mousemove="resetButtonTimer"
+      @touchstart="resetButtonTimer"
+      @mouseenter="buttonZoneRight = true"
+      @mouseleave="buttonZoneRight = false"
     ></div>
 
+    <!-- Left detection zone – only on mobile audio when lyrics exist -->
+    <div
+      v-if="isMobile && previewType === 'audio' && lyrics.length"
+      class="floating-zone floating-zone--left"
+      @mousemove="resetButtonTimer"
+      @touchstart="resetButtonTimer"
+      @mouseenter="buttonZoneLeft = true"
+      @mouseleave="buttonZoneLeft = false"
+    ></div>
+
+    <!-- Queue button – visible on videos, in audio on mobile -->
     <button
-      v-if="showQueueButton"
-      @click="showQueuePrompt"
-      @mouseover="setHoverQueue(true)"
-      @mouseleave="setHoverQueue(false)"
+      v-if="showButtons && showQueueButton"
       class="queue-button floating"
       :class="{
-          'dark-mode': darkMode,
-          'hidden': !showQueueButtonVisible,
+        'dark-mode': darkMode,
       }"
+      @click="showQueuePrompt"
+      @touchstart="resetButtonTimer"
+      @mouseenter="buttonZoneRight = true"
+      @mouseleave="buttonZoneRight = false"
       :aria-label="$t('player.QueueButtonHint')"
       :title="$t('player.QueueButtonHint')"
     >
       <i class="material-symbols">queue_music</i>
       <span v-if="queueCount > 0" class="queue-count">{{ queueCount }}</span>
+    </button>
+
+    <!-- Lyrics button (left side) – only on mobile when lyrics exist -->
+    <button
+      v-if="showButtons && isMobile && lyrics.length"
+      class="queue-button floating lyrics-fab-left"
+      :class="{
+        'dark-mode': darkMode,
+      }"
+      @click="showMobileLyrics = !showMobileLyrics"
+      @touchstart="resetButtonTimer"
+      @mouseenter="buttonZoneLeft = true"
+      @mouseleave="buttonZoneLeft = false"
+      :aria-label="$t('player.toggleLyrics')"
+      :title="$t('player.toggleLyrics')"
+    >
+      <i class="material-symbols">lyrics</i>
+    </button>
+
+    <!-- Lyrics scroll lock (mobile, bottom‑right) – visible while lyrics overlay is open -->
+    <button
+      v-if="isMobile && previewType === 'audio' && !useDefaultMediaPlayer && showMobileLyrics && lyrics.length && syncedLyrics"
+      class="queue-button floating lyrics-lock-fab"
+      :class="{
+        'dark-mode': darkMode,
+      }"
+      @click="mobileLyricsScrollLocked = !mobileLyricsScrollLocked"
+      @touchstart="resetButtonTimer"
+      @mouseenter="buttonZoneRight = true"
+      @mouseleave="buttonZoneRight = false"
+      :title="mobileLyricsScrollLocked ? $t('player.unlockLyrics') : $t('player.lockLyrics')"
+    >
+      <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
+      <i :class="mobileLyricsScrollLocked ? 'material-symbols-outlined' : 'material-symbols'">{{ mobileLyricsScrollLocked ? 'lock_open' : 'lock' }}</i>
     </button>
 
     <!-- Toast when you change playback modes in the media player -->
@@ -148,6 +249,7 @@ import { state, mutations, getters } from '@/store';
 import { url } from '@/utils';
 import { globalVars } from '@/utils/constants';
 import { getSubtitleFormatExtension } from '@/utils/subtitles';
+import AudioPanel from "@/components/files/AudioPanel.vue";
 import Plyr from 'plyr';
 
 const PLYR_CAPTION_SIZE_IDS = ['small', 'medium', 'large', 'xlarge'];
@@ -158,6 +260,9 @@ const PLYR_CAPTION_SIZE_FIELD = 'captionSize';
 
 export default {
   name: "plyrViewer",
+  components: {
+    AudioPanel,
+  },
   props: {
     previewType: {
       type: String,
@@ -168,6 +273,10 @@ export default {
       required: true,
     },
     subtitlesList: {
+      type: Array,
+      default: () => [],
+    },
+    lyrics: {
       type: Array,
       default: () => [],
     },
@@ -191,20 +300,34 @@ export default {
   emits: ['play', 'navigate-previous', 'navigate-next', 'close-preview'],
   data() {
     return {
+      // Toast
       toastVisible: false,
       toastTimeout: null,
+
+      // Metadata & Art
       metadata: null, // Null by default, will be loaded from the audio file.
       albumArtUrl: null,
-      albumArtSize: 25, // Default size in em
+      albumArtSize: parseFloat(sessionStorage.getItem('plyrAlbumArtSize')) || 24,
       isHovering: false, // Track hover state
+
+      // Lyrics
+      activeLyricIndex: -1,
+      doubleTapSeekCleanup: null,
+      mobileLyricsScrollLocked: false,
+
       // Playback settings
       playbackMenuInitialized: false,
       lastAppliedMode: null,
-      // Queue button visibility state
-      queueButtonVisible: false,
-      hoverQueue: false,
-      queueTimeout: null,
-      doubleTapSeekCleanup: null,
+      showDesktopPanel: sessionStorage.getItem('plyrShowDesktopPanel') === '1',
+      showMobileLyrics: false,
+
+      // Buttons visibility
+      buttonVisible: false,
+      buttonTimer: null,
+      buttonZoneLeft: false,
+      buttonZoneRight: false,
+
+      // Gestures
       skipFeedbackVisible: false,
       skipFeedbackSide: 'left',
       skipFeedbackIcon: 'replay_10',
@@ -234,6 +357,7 @@ export default {
       videoSwipeSuppressedTouchId: null,
       videoDismissCloseTimer: null,
       videoDismissHintTimer: null,
+
       // Plyr instance
       player: null,
       captionSizeMenuInitialized: false,
@@ -251,16 +375,40 @@ export default {
         }
       },
     },
+    showDesktopPanel(val) {
+      sessionStorage.setItem('plyrShowDesktopPanel', val ? '1' : '0');
+    },
+    albumArtSize(val) {
+      sessionStorage.setItem('plyrAlbumArtSize', val.toString());
+    },
+    activeLyricIndex() {
+      if (this.showMobileLyrics && this.isMobile) {
+        this.$nextTick(() => this.scrollMobileLyrics());
+      }
+    },
+    mobileLyricsScrollLocked(val) {
+      if (!val && this.showMobileLyrics && this.lyrics.length) {
+        this.$nextTick(() => this.scrollMobileLyrics());
+      }
+    },
+    showMobileLyrics(val) {
+        if (val && this.lyrics.length) {
+            this.$nextTick(() => this.scrollMobileLyrics());
+        }
+    },
     shouldTogglePlayPause(newVal, oldVal) {
       if (newVal !== oldVal) {
       this.togglePlayPause();
       }
     },
-    listing(newListing) {
-      // update queue if the listing changes
-      if (newListing && newListing.length > 0) {
-        this.setupPlaybackQueue(true);
-      }
+    listing: {
+      handler(newListing) {
+        // update queue if the listing changes
+        if (newListing && newListing.length > 0) {
+          this.setupPlaybackQueue(true);
+        }
+      },
+      immediate: true
     },
     subtitlesList(newSubs, oldSubs) {
       const gained = newSubs && newSubs.length > 0 && (!oldSubs || oldSubs.length === 0);
@@ -290,12 +438,51 @@ export default {
     darkMode() {
       return state.user.darkMode;
     },
-    showQueueButtonVisible() {
-      return this.queueButtonVisible || this.hoverQueue;
+    filetype() {
+      const mime = this.req.type || '';
+      const prefix = 'audio/';
+      if (mime.startsWith(prefix)) {
+        return mime.slice(prefix.length).toLowerCase();
+      }
+      return '';
+    },
+    formattedArtist() {
+      if (!this.metadata?.artist) return '';
+      const parts = this.metadata.artist
+        // Common separators like 'feat.' 'ft.' ',' ';' '/' '&'
+        .split(/[,;/&]|\s+feat\.\s+|\s+ft\.\s+/i)
+        .map(s => s.trim())
+        .filter(Boolean);
+      return parts.join(' • ');
+    },
+    showButtons() {
+      if (this.previewType === 'audio' && !this.isMobile && this.showDesktopPanel) {
+        return true;
+      }
+      if (this.isMobile) {
+        return this.buttonVisible;
+      }
+      return this.buttonVisible || this.buttonZoneLeft || this.buttonZoneRight;
+    },
+    showRightZone() {
+      // show zone only when panel is closed
+      if (this.previewType === 'audio' && !this.isMobile) {
+        return !this.showDesktopPanel;
+      }
+      if (this.previewType === 'video') return true;
+      if (this.isMobile && this.previewType === 'audio') return true;
+      return false;
     },
     showQueueButton() {
-      return state.req && (state.req.type?.startsWith('audio/') || state.req.type?.startsWith('video/')) &&
-      state.navigation.enabled;
+      if (this.previewType === 'video') return true;
+      if (this.isMobile && this.previewType === 'audio') return true;
+      return false;
+    },
+    displayArtSize() {
+      if (this.isMobile && this.showMobileLyrics && this.lyrics.length) {
+        return 5;
+      }
+      return this.albumArtSize;
     },
     queueCount() {
       return state.playbackQueue?.queue?.length || 0;
@@ -321,9 +508,6 @@ export default {
       'single': this.$t('player.LoopDisabled')
       };
       return mode[this.playbackMode] || mode.single;
-    },
-    isPlaying() {
-      return state.playbackQueue?.isPlaying || false;
     },
     hasSubtitles() {
       return this.subtitlesList && this.subtitlesList.length > 0;
@@ -367,9 +551,11 @@ export default {
       }
       return this.videoNavigationGestureAllowed && state.navigation.nextLink !== '';
     },
-    /** Tracks `mutations.setMobile()` / window resize so watchers can react. */
-    storeIsMobile() {
+    isMobile() {
       return state.isMobile;
+    },
+    syncedLyrics() {
+      return this.lyrics.length > 0 && !this.lyrics.every(line => line.timestamp === 0);
     },
     /** Rewind / fast-forward in the control bar only on non-mobile (gestures stay as elsewhere). */
     plyrOptions() {
@@ -402,7 +588,7 @@ export default {
         'fullscreen',
       ];
       return {
-        controls: getters.isMobile() ? controlsMobile : controlsDesktop,
+        controls: this.isMobile ? controlsMobile : controlsDesktop,
         settings: ['captions', 'captionSize', 'quality', 'speed', 'playback'],
         i18n: {
           playback: 'Playback',
@@ -423,7 +609,7 @@ export default {
         autoplay: false,
         playsinline: true,
         clickToPlay: true,
-        resetOnEnd: true,
+        resetOnEnd: false,
         preload: 'metadata',
         iconUrl: globalVars.baseURL + 'public/static/img/plyr.svg',
         // Blob/async tracks need addtrack → captions.update; otherwise meta never fills and toggle CC throws (track undefined).
@@ -438,17 +624,17 @@ export default {
   },
   mounted() {
     this.updateMedia();
-    this.$nextTick(() => {
-      // Show queue button initially if it should be shown
-      if (this.showQueueButton) {
-        this.showQueueButtonMethod();
-      }
-    });
     document.addEventListener('keydown', this.handleKeydown);
+    this.resetButtonTimer(); // Show buttons initially
   },
   beforeUnmount() {
     // Cleanup timeouts
-    [this.toastTimeout, this.queueTimeout, this.skipFeedbackTimer, this.videoDismissCloseTimer, this.videoDismissHintTimer].forEach(timeout => {
+    [this.toastTimeout,
+    this.buttonTimer,
+    this.skipFeedbackTimer,
+    this.videoDismissCloseTimer,
+    this.videoDismissHintTimer
+  ].forEach(timeout => {
       if (timeout) clearTimeout(timeout);
     });
     // Cleanup Plyr
@@ -458,6 +644,20 @@ export default {
     document.removeEventListener('keydown', this.handleKeydown);
   },
   methods: {
+    resetButtonTimer() {
+      this.buttonVisible = true;
+      if (this.buttonTimer) clearTimeout(this.buttonTimer);
+      this.buttonTimer = setTimeout(() => {
+        if (this.isMobile) {
+          this.buttonVisible = false;
+        } else {
+          if (!this.buttonZoneLeft && !this.buttonZoneRight) {
+            this.buttonVisible = false;
+          }
+        }
+        this.buttonTimer = null;
+      }, 3000);
+    },
     /** Plyr captions menu: show format only (e.g. `.srt`, `.ass`), not the video basename. */
     subtitleTrackLabel(sub) {
       const ext = getSubtitleFormatExtension(sub?.name || '');
@@ -467,31 +667,6 @@ export default {
       mutations.showPrompt({
         name: "PlaybackQueue",
       });
-    },
-    toggleQueueButton() {
-      if (!this.showQueueButton) {
-        return;
-      }
-      this.showQueueButtonMethod();
-    },
-    showQueueButtonMethod() {
-      this.queueButtonVisible = true;
-      this.clearQueueTimeout();
-      this.queueTimeout = setTimeout(() => {
-        if (!this.hoverQueue) {
-          this.queueButtonVisible = false;
-        }
-        this.queueTimeout = null;
-      }, 3000); // Show for 3 seconds
-    },
-    setHoverQueue(value) {
-      this.hoverQueue = value;
-    },
-    clearQueueTimeout() {
-      if (this.queueTimeout) {
-        clearTimeout(this.queueTimeout);
-        this.queueTimeout = null;
-      }
     },
     setupMediaSession() {
       if (!('mediaSession' in navigator) || !this.player) return;
@@ -589,52 +764,6 @@ export default {
         // Somehow firefox will still trying to "load" the empty source which causes the warn.
         this.mediaElement.src = this.raw;
       }
-    },
-    /** Re-instantiate Plyr so control lists match `plyrOptions()` after `state.isMobile` changes. */
-    rebuildPlyrAfterMobileLayoutChange() {
-      if (this.useDefaultMediaPlayer || !this.player) {
-        return;
-      }
-      if (this.player.fullscreen?.active) {
-        return;
-      }
-      const wasPlaying = this.player.playing;
-      const savedTime = this.player.currentTime;
-      const savedSpeed = this.player.speed;
-      const savedVolume = this.player.volume;
-      const savedMuted = this.player.muted;
-
-      this.destroyPlyr({ preserveMediaShell: true });
-
-      this.$nextTick(() => {
-        if (!this.mediaElement) {
-          return;
-        }
-        this.initializePlyr();
-        this.$nextTick(() => {
-          const player = this.player;
-          const media = this.mediaElement;
-          if (!player || !media) {
-            return;
-          }
-          const restorePlayback = () => {
-            player.speed = savedSpeed;
-            player.volume = savedVolume;
-            player.muted = savedMuted;
-            if (Number.isFinite(savedTime) && savedTime > 0) {
-              player.currentTime = savedTime;
-            }
-            if (wasPlaying) {
-              player.play().catch(() => {});
-            }
-          };
-          if (media.readyState >= 1) {
-            restorePlayback();
-          } else {
-            media.addEventListener('loadedmetadata', restorePlayback, { once: true });
-          }
-        });
-      });
     },
     togglePlayPause() {
       if (!this.mediaElement) return;
@@ -816,6 +945,7 @@ export default {
       this.showToast();
     },
     handleKeydown(event) {
+      if (event.repeat) return;
       // Handle 'P' and 'L' keys for loop and change playback
       const key = event.key.toLowerCase();
 
@@ -826,11 +956,17 @@ export default {
         if (key === 'p') this.cyclePlaybackModes();
         if (key === 'l') this.toggleLoop();
       }
-      // "Q" key for open the queue prompt
-      if (key === 'q' && state.prompts.length === 0) { // Only open if no other prompts are open
-        event.stopPropagation();
-        event.preventDefault();
-        this.showQueuePrompt();
+      // "Q" key – open/close panel on desktop audio, queue prompt on vids
+      if (key === 'q') {
+        if (this.previewType === 'audio' && !this.isMobile) {
+          event.stopPropagation();
+          event.preventDefault();
+          this.showDesktopPanel = !this.showDesktopPanel;
+        } else if (state.prompts.length === 0) {
+          event.stopPropagation();
+          event.preventDefault();
+          this.showQueuePrompt();
+        }
       }
     },
     cyclePlaybackModes() {
@@ -846,6 +982,40 @@ export default {
         mode: newMode
       });
       this.showToast();
+    },
+    // Seek the player to the given timestamp (in milliseconds)
+    seekToLyric(timestampMs) {
+      if (!this.player) return;
+      this.player.currentTime = timestampMs / 1000;
+    },
+    // Update active lyric line based on current player time.
+    syncLyrics() {
+      if (!this.lyrics.length || !this.syncedLyrics) return;
+      const currentMs = this.player.currentTime * 1000;
+      let idx = this.activeLyricIndex;
+      if (idx > 0 && this.lyrics[idx]?.timestamp > currentMs) {
+        idx = 0;
+      }
+      while (
+        idx + 1 < this.lyrics.length &&
+        this.lyrics[idx + 1].timestamp <= currentMs
+      ) {
+        idx++;
+      }
+      let first = idx;
+      while (first > 0 && this.lyrics[first - 1].timestamp === this.lyrics[idx].timestamp) {
+        first--;
+      }
+      if (first !== this.activeLyricIndex) {
+        this.activeLyricIndex = first;
+      }
+    },
+    scrollMobileLyrics() {
+      if (this.mobileLyricsScrollLocked) return;
+      const el = this.$refs.lyricsMobileScrollable;
+      if (!el) return;
+      const active = el.querySelector('.lyric-line.active');
+      if (active) active.scrollIntoView({ behavior: 'smooth', block: 'center' });
     },
     showToast() {
       if (this.toastTimeout) {
@@ -962,6 +1132,7 @@ export default {
       });
       this.player.on('timeupdate', () => {
         this.updateMediaSessionPlaybackState();
+        this.syncLyrics();
       });
       this.player.on('seeked', () => {
         this.updateMediaSessionPlaybackState();
@@ -1201,6 +1372,20 @@ export default {
       }
     },
     applyVideoEdgeVisuals() {
+      if (this.showMobileLyrics) {
+        // Allow horizontal navigation swipes, ignore vertical if lyrics are shown
+        const ax = Math.abs(this.videoEdgeDx);
+        const ay = Math.abs(this.videoEdgeDy);
+        if (ay > ax) {
+          this.videoDragOffsetX = 0;
+          this.videoDragOffsetY = 0;
+          this.videoShowNavHint = false;
+          this.videoShowDismissHint = false;
+          this.applyVideoSwipeTransform();
+          this.syncVideoNavigationGestureHintToStore();
+          return;
+        }
+      }
       if (!this.videoEdgeKind) {
         const ax = Math.abs(this.videoEdgeDx);
         const ay = Math.abs(this.videoEdgeDy);
@@ -1335,6 +1520,10 @@ export default {
           return;
         }
       } else if (kind === 'vertical-dismiss') {
+        if (this.showMobileLyrics) {
+          this.resetVideoEdgeGestureImmediate();
+          return;
+        }
         if (this.videoEdgeDy >= this.videoEdgeCommitY) {
           this.clearVideoDismissAnimTimers();
           this.videoDismissFlashActive = true;
@@ -1345,6 +1534,18 @@ export default {
           this.videoGestureDecided = false;
           this.applyVideoSwipeTransform();
           this.syncVideoNavigationGestureHintToStore();
+          // If we're in fullscreen, exit fullscreen instead of closing preview
+          if (this.player?.fullscreen?.active) {
+            this.player.fullscreen.exit();
+            this.videoDismissHintTimer = setTimeout(() => {
+              this.videoDismissHintTimer = null;
+              this.videoDismissFlashActive = false;
+              this.videoShowDismissHint = false;
+              mutations.setNavigationGestureHint({});
+            }, 420);
+            return;
+          }
+          // Normal close preview
           this.videoDismissCloseTimer = setTimeout(() => {
             this.videoDismissCloseTimer = null;
             this.$emit('close-preview');
@@ -1391,9 +1592,9 @@ export default {
       }
     },
     onVideoSwipeMouseDown(event) {
-      if (event.button !== 0 || !this.videoSwipeGesturesActive) {
-        return;
-      }
+      if (event.button !== 0 || !this.videoSwipeGesturesActive) return;
+      // Don't start a gesture if we are selecting some text
+      if (window.getSelection()?.toString().length > 0) return;
       if (this.isAudioPlyrScrubOrMenuTarget(event.target)) {
         return;
       }
@@ -1410,9 +1611,9 @@ export default {
       document.addEventListener('mouseup', this.onVideoSwipeMouseDocUp, true);
     },
     onVideoSwipeTouchStart(event) {
-      if (!this.videoSwipeGesturesActive || event.targetTouches.length !== 1) {
-        return;
-      }
+      if (!this.videoSwipeGesturesActive || event.targetTouches.length !== 1) return;
+      // Don't start a gesture if we are selecting some text
+      if (window.getSelection()?.toString().length > 0) return;
       if (this.isAudioPlyrScrubOrMenuTarget(event.target)) {
         this.videoSwipeSuppressedTouchId = event.targetTouches[0].identifier;
         return;
@@ -1590,8 +1791,11 @@ export default {
 
       switch (this.playbackMode) {
         case 'single':
+          finalQueue = [];
+          finalIndex = -1;
+          break;
         case 'loop-single':
-          // When playing the same file (single modes), the queue only contains only the current file
+          // When playing the same file (loop-single), the queue only contains the current file
           finalQueue = currentIndex !== -1 ? [mediaFiles[currentIndex]] : [];
           finalIndex = 0;
           break;
@@ -1649,23 +1853,6 @@ export default {
         [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
       }
       return shuffled;
-    },
-    updateCurrentQueueIndex() {
-      if (this.playbackQueue.length === 0) {
-        this.setupPlaybackQueue();
-        return;
-      }
-      // Find current file in the existing queue
-      const currentIndex = this.playbackQueue.findIndex(item => item.path === this.req.path);
-      if (currentIndex !== -1) {
-        mutations.setPlaybackQueue({
-          queue: this.playbackQueue,
-          currentIndex: currentIndex,
-          mode: this.playbackMode
-        });
-      } else {
-        this.setupPlaybackQueue(true);
-      }
     },
     playPrevious() {
       if (this.playbackQueue.length === 0) return;
@@ -1859,6 +2046,19 @@ export default {
 
 <style >
 @import url("plyr/dist/plyr.css");
+
+/* Remove blue overlay when tapping on mobile */
+.plyr,
+.plyr__video-wrapper,
+.plyr video,
+.video-player-container .plyr {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.plyr__video-wrapper:focus,
+.plyr video:focus {
+  outline: none;
+}
 
 /* Background styles for the audio player */
 .plyr-background-dark {
@@ -2215,6 +2415,36 @@ export default {
   justify-content: center;
 }
 
+/* When mobile lyrics are open: push art+meta to top */
+.audio-player-container--lyrics-open {
+  justify-content: flex-start;
+  gap: 0;
+}
+
+.audio-player-container--lyrics-open .audio-player-content {
+  height: auto;
+  flex: none;
+}
+
+.audio-player-container--lyrics-open .lyrics-mobile {
+  flex: 1 1 0%;
+  min-height: 0;
+  max-height: none;
+  margin-top: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.audio-player-container--lyrics-open .lyrics-mobile-scrollable {
+  flex: 1;
+  min-height: 0;
+}
+
+.audio-player-container--lyrics-open .album-art-container {
+  width: 5em;
+  height: 5em;
+}
+
 /* Full-area swipe / double-tap seek (album art + metadata + Plyr); skip overlay uses position absolute. */
 .audio-player-container--plyr-gestures {
   position: relative;
@@ -2223,14 +2453,122 @@ export default {
 
 .audio-player-content {
   width: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+  gap: 0;
+  padding-bottom: 0;
+  padding: 0 2em;
+  box-sizing: border-box;
   height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Left column (album art + metadata) */
+.audio-left-column {
   display: flex;
   flex-direction: column;
   align-items: center;
-  flex-grow: 1;
-  margin: 0 auto;
-  gap: 1em;
   justify-content: center;
+  text-align: center;
+  width: 50%;
+  padding: 0 2em;
+  box-sizing: border-box;
+  transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* When panel closed – centre the left column */
+.audio-player-content:not(.panel-open) .audio-left-column {
+  transform: translateX(50%);
+}
+
+/* When panel open – no extra offset */
+.panel-open .audio-left-column {
+  transform: translateX(0);
+}
+
+/* Right panel (lyrics / queue) */
+.lyrics-panel {
+  width: 50%;
+  height: 100%;
+  overflow-y: auto;
+  padding: 0.5em 2em;
+  color: var(--textPrimary);
+  scroll-behavior: smooth;
+  text-align: center;
+  background: transparent;
+  border-radius: 12px;
+  box-sizing: border-box;
+}
+
+/* --- panel transition --- */
+.panel-slide-enter-active {
+  transition: opacity 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.panel-slide-leave-active {
+  transition: none;
+}
+.panel-slide-enter-from,
+.panel-slide-leave-to {
+  opacity: 0;
+}
+
+/* Lyrics */
+.lyric-line {
+  padding: 0.2em 0;
+  opacity: 0.5;
+  transition: opacity 0.2s, font-weight 0.2s, font-size 0.2s;
+  word-break: break-word;
+  cursor: pointer;
+  font-size: 1.15rem;
+}
+
+.lyric-line:hover {
+  opacity: 0.85;
+}
+
+.lyric-line.active {
+  opacity: 1;
+  font-weight: bold;
+  color: var(--primaryColor);
+  font-size: 1.35rem;
+}
+
+.lyrics-mobile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  max-height: 30vh;
+  margin-top: -0.5em;
+  padding-top: 0;
+}
+
+.lyrics-mobile-scrollable {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 1em;
+  text-align: center;
+  color: var(--textPrimary);
+}
+
+.lyrics-mobile-scrollable .lyric-line:first-child {
+  padding-top: 0;
+}
+
+/* Hide scrollbars in lyrics */
+.lyrics-scrollable,
+.lyrics-mobile-scrollable,
+.lyrics-panel {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.lyrics-scrollable::-webkit-scrollbar,
+.lyrics-mobile-scrollable::-webkit-scrollbar,
+.lyrics-panel::-webkit-scrollbar {
+  display: none;
 }
 
 .album-art-container {
@@ -2269,8 +2607,11 @@ export default {
 
 .album-art-container.no-artwork {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  height: auto;
+  aspect-ratio: 1 / 1;
 }
 
+/* Metadata */
 .audio-title {
   font-size: max(1.4rem, 3.1vmin);
   font-weight: bold;
@@ -2282,7 +2623,9 @@ export default {
    text-align: center;
    color: whitesmoke;
    box-sizing: border-box;
-   padding: 10px 15px;
+   padding-bottom: 0;
+   margin-bottom: 0;
+   padding-top: 1.2em;
    word-wrap: break-word;
 }
 
@@ -2293,6 +2636,17 @@ export default {
   opacity: 0.8;
   margin-bottom: 5px;
   word-break: break-word;
+}
+
+.filetype-badge {
+  display: inline-block;
+  background: var(--primaryColor);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 1em;
+  font-size: 0.8em;
+  margin-left: 0.5em;
+  vertical-align: middle;
 }
 
 .audio-controls-container {
@@ -2318,14 +2672,10 @@ export default {
     gap: 5px;
   }
 
-  .audio-metadata {
-    padding: 12px 15px;
-  }
-
   .album-art-container {
     width: min(71vw);
     height: min(71vw);
-    margin-top: 12px;
+    margin-top: 1em;
   }
 }
 
@@ -2340,41 +2690,20 @@ export default {
     font-size: 14px;
     margin: 0 5px;
   }
+  .audio-left-column {
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    transform: none !important;
+    transition: none;
+  }
 }
-
 
 /* For small screens in landscape orientation (Like a phone) */
 @media (max-height: 600px) and (orientation: landscape) {
-
-  .audio-player-container {
-    justify-content: center;
-    align-items: center;
-    padding: 1em;
-  }
-
-  .audio-player-content {
-    flex-direction: row;
-    align-items: center;
-    gap: 1.5em;
-    width: auto;
-    max-width: 90vw;
-    margin: 0 auto;
-  }
-
-  .audio-metadata {
-    text-align: left;
-    margin: 0;
-    padding: 15px;
-    flex: 0 1 auto;
-    align-self: center;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-
   .album-art-container {
-    width: min(150px, 30vh);
-    height: min(150px, 30vh);
+    width: min(100px, 30vh);
+    height: min(100px, 30vh);
     margin: 0;
     flex-shrink: 0;
   }
@@ -2385,15 +2714,23 @@ export default {
 *******************/
 
 /* Queue detection zone for top-right corner */
-.queue-zone {
+.floating-zone {
   position: fixed;
-  top: 4em; /* Account for header bar */
-  right: 0;
+  top: 4em; /* below header */
   width: 5em;
   height: 5em;
   pointer-events: auto;
   z-index: 1000;
   background: transparent;
+}
+
+.floating-zone--right {
+  right: 0;
+}
+
+.floating-zone--left {
+  left: 0;
+  height: 8.5em;
 }
 
 .queue-button {
@@ -2416,6 +2753,36 @@ export default {
   z-index: 9998; /* Make sure it's below prompts but above other content */
 }
 
+/* Desktop panel toggle button */
+.panel-toggle-fab {
+  top: 80px;
+  right: 20px;
+  position: fixed;
+  z-index: 9999;
+}
+
+/* Lyrics floating button */
+.lyrics-fab-left {
+  top: 80px;
+  left: 20px;
+  right: auto;
+}
+
+/* Mobile lyrics scroll-lock FAB – bottom-right above Plyr bar */
+.lyrics-lock-fab {
+  width: 36px;
+  height: 36px;
+  top: auto;
+  left: auto;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 6rem);
+  right: calc(env(safe-area-inset-right, 0px) + 20px);
+}
+
+.lyrics-lock-fab .material-symbols,
+.lyrics-lock-fab .material-symbols-outlined {
+  font-size: 18px;
+}
+
 .queue-button.dark-mode {
   background: var(--surfacePrimary);
 }
@@ -2427,12 +2794,17 @@ export default {
   color: white;
 }
 
-.queue-button i.material-symbols {
+.queue-button i.material-symbols,
+.queue-button i.material-symbols-outlined {
   font-size: 24px;
   transition: transform 0.2s ease;
 }
 
 .queue-button:hover i.material-symbols {
+  transform: scale(1.1);
+}
+
+.queue-button:hover i.material-symbols-outlined {
   transform: scale(1.1);
 }
 
@@ -2455,13 +2827,6 @@ export default {
     0 0 5px rgba(0, 0, 0, 0.7),
     0 0 8px rgba(0, 0, 0, 0.5),
     0 0 8px rgba(0, 0, 0, 0.3);
-}
-
-.queue-button.hidden {
-  opacity: 0;
-  transform: translateY(-2px) scale(0.9);
-  pointer-events: none !important;
-  z-index: -1;
 }
 
 /* Smooth show animation for better UX */

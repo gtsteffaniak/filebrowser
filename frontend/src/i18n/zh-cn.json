@@ -75,7 +75,12 @@
     "mouseActions": "鼠标操作",
     "fileOperations": "文件操作",
     "click": "选择文件或目录",
+    "dbClick": "双击空白区域以选择所有项目",
     "ctrl": {
+      "f1": "切换到列表视图",
+      "f2": "切换到普通视图",
+      "f3": "切换到画廊视图",
+      "scroll": "更改列表大小和编辑器字体",
       "click": "选择多个文件或目录",
       "d": "下载所选项目",
       "b": "切换侧栏",
@@ -101,6 +106,8 @@
       "volume": "调高或调低音量",
       "mute": "静音/取消静音",
       "loop": "在循环模式和单次模式之间切换",
+      "playbackQueue": "在音频文件中打开播放队列或面板",
+      "switchTabs": "在音频文件的面板中切换选项卡",
       "playbackModes": "切换播放模式（不包括循环和单次）",
       "fullscreen": "视频全屏模式切换",
       "captions": "开启/关闭字幕"
@@ -141,10 +148,10 @@
     "passwordsDontMatch": "密码不一致",
     "usernameTaken": "用户名已经被使用",
     "wrongCredentials": "用户名或密码错误",
-    "or": "或",
     "inProgress": "登录...",
     "failedLogin": "登录失败",
-    "invalidCredentials": "提供的证书无效"
+    "invalidCredentials": "提供的证书无效",
+    "passkeyLogin": "使用通行密钥"
   },
   "prompts": {
     "copyMessage": "请选择欲复制至的目录：",
@@ -256,9 +263,12 @@
     "showPreviewImagesDescription": "在可用时显示搜索结果的缩略图预览，并为所有结果显示更大的图标。",
     "olderThanDate": "比",
     "newerThanDate": "新于：",
-    "helpText2": "搜索结果基于已编入索引的文件，因此新添加的文件在编入索引之前可能不会出现。",
     "noResults": "未找到结果。",
-    "helpText1": "您输入的每个字符都会进行搜索（{minSearchLength} 字符最小值）。"
+    "helpText1": "您输入的每个字符都会进行搜索（{minSearchLength} 字符最小值）。",
+    "helpText2": "仅对文件或文件夹名称（而非完整路径）进行子串匹配。 case:exact 用于大小写敏感匹配\n\n 对于术语之间的 OR，使用管道字符；一个短语使用双引号。\n\n启用通配符搜索可获得更多高级选项。",
+    "useWildcardSearch": "通配符搜索（区分大小写）",
+    "useWildcardSearchDescription": "支持通配符选项：\n\n- 匹配任何序列：*\n\n- 匹配一个字符：?\n\n- 字符类别：[a-z]、[0-9］\n\n- 否定：[^0-9]\n\n- 字面 *、? 或 [ 需要用括号包装，例如 [*]、[?]、[[]\n\n- 所有结果均区分大小写",
+    "openInAdvancedSearch": "在高级搜索中打开"
   },
   "settings": {
     "scopes": "定义允许的来源及其中的用户范围",
@@ -565,6 +575,8 @@
     "orange": "橘色"
   },
   "profileSettings": {
+    "hideFileExt": "隐藏特定文件（按扩展名）",
+    "hideFileExtDescription": "空格分隔的文件扩展名列表。在此字段中输入的扩展名将从所有用户界面中隐藏（视觉上，如列表或文件树）——它们仍然可访问。",
     "preferEditorForMarkdown": "优先使用编辑器打开 Markdown 文件",
     "preferEditorForMarkdownDescription": "启用后，Markdown 文件将首先在编辑器中打开，而不是 Markdown 查看器。",
     "deleteAfterArchive": "创建/提取存档后删除源文件",
@@ -627,7 +639,21 @@
     "showThumbnailsDescription": "启用后，支持缩略图的项目将在列表中显示缩略图。关闭则隐藏所有缩略图。",
     "showCopyPath": "在上下文菜单中显示复制路径",
     "showCopyPathDescription": "在文件和文件夹上下文菜单中显示复制路径操作。",
-    "previewDescription": "显示{filetype} 的缩略图预览，如果禁用，将显示通用图标。"
+    "previewDescription": "显示{filetype} 的缩略图预览，如果禁用，将显示通用图标。",
+    "passkeys": "通行密钥",
+    "passkeysDescription": "使用通行密钥进行安全、无密码的多因素认证。在您的设备上注册通行密钥，使用生物识别或 PIN 验证代替 OTP 代码。",
+    "noPasskeys": "尚未注册通行密钥。",
+    "addPasskey": "添加通行密钥",
+    "addingPasskey": "正在添加通行密钥...",
+    "passkeyAdded": "通行密钥添加成功！",
+    "passkeyAddFailed": "添加通行密钥失败",
+    "passkeyDeleted": "通行密钥已删除。",
+    "passkeyDeleteFailed": "删除通行密钥失败",
+    "created": "创建时间",
+    "lastUsed": "上次使用",
+    "passkeyDefaultName": "通行密钥",
+    "showToolsInSidebar": "在侧边栏显示工具",
+    "showToolsInSidebarDescription": "始终在侧边栏显示工具链接。"
   },
   "general": {
     "name": "名称",
@@ -750,7 +776,9 @@
     "office": "办公室{suffix}",
     "show": "显示{suffix}",
     "divider": "分割器{suffix}",
-    "audio": "音频{suffix}"
+    "audio": "音频{suffix}",
+    "and": "和",
+    "or": "或"
   },
   "access": {
     "rules": "访问规则",
@@ -797,7 +825,15 @@
     "QueuePlayback": "播放队列",
     "changePlaybackMode": "更改播放模式",
     "changePlaybackModeHint": "更改播放模式以查看更多文件",
-    "emptyQueue": "队列为空"
+    "emptyQueue": "队列为空",
+    "queue": "队列",
+    "lyrics": "歌词",
+    "noLyrics": "没有可用的歌词",
+    "lockLyrics": "锁定歌词",
+    "unlockLyrics": "解锁歌词",
+    "toggleLyrics": "切换歌词",
+    "closePanel": "关闭面板",
+    "openPanel": "打开面板"
   },
   "fileSizeAnalyzer": {
     "title": "文件大小分析器",
@@ -858,6 +894,20 @@
       "stopWatching": "停止观看",
       "emptyState": "选择文件并点击播放，开始监控文件变化",
       "chooseFile": "选择文件"
+    },
+    "advancedSearch": {
+      "name": "高级搜索",
+      "description": "通过对来源、过滤器和选项的全面控制搜索索引",
+      "searchTerms": "搜索条件",
+      "matchAllTerms": "匹配所有术语",
+      "matchAllTermsDescription": "启用后，必须为每个文件找到所有搜索条件",
+      "scopeAria": "限制搜索文件夹",
+      "noTerms": "至少输入一个搜索词。",
+      "termTooShort": "每个搜索词必须至少包含{minSearchLength} 个字符",
+      "caseExact": "区分大小写匹配",
+      "resultsTitle": "搜索结果",
+      "invalidSources": "至少打开一个信号源。",
+      "noResults": "没有匹配的文件或文件夹。"
     }
   },
   "messages": {

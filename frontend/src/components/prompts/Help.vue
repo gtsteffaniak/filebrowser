@@ -38,6 +38,10 @@
           <span>{{ $t("help.click") }}</span>
         </div>
         <div class="shortcut-item">
+          <kbd>Double click</kbd>
+          <span>{{ $t("help.dbClick") }}</span>
+        </div>
+        <div class="shortcut-item">
           <kbd>Click + Drag</kbd>
           <span>{{ $t("help.marqueeSelect") }}</span>
         </div>
@@ -80,12 +84,28 @@
           <span>{{ $t("help.ctrl.comma") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>/</kbd>
+          <kbd>space or /</kbd>
           <span>{{ $t("help.slash") }}</span>
         </div>
         <div class="shortcut-item">
           <kbd>CTRL + E</kbd>
           <span>{{ $t("help.ctrl.e") }}</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>CTRL + F1</kbd>
+          <span>{{ $t("help.ctrl.f1") }}</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>CTRL + F2</kbd>
+          <span>{{ $t("help.ctrl.f2") }}</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>CTRL + F3</kbd>
+          <span>{{ $t("help.ctrl.f3") }}</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>CTRL + Scroll</kbd>
+          <span>{{ $t("help.ctrl.scroll") }}</span>
         </div>
       </div>
 
@@ -107,6 +127,14 @@
         <div class="shortcut-item">
           <kbd>↑ / ↓</kbd>
           <span>{{ $t("help.media.volume") }}</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>Q</kbd>
+          <span>{{ $t("help.media.playbackQueue") }}</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>E</kbd>
+          <span>{{ $t("help.media.switchTabs") }}</span>
         </div>
         <div class="shortcut-item">
           <kbd>L</kbd>
@@ -155,7 +183,6 @@ export default {
 
 <style scoped>
 .help-content {
-  max-height: 70vh;
   overflow-y: auto;
 }
 

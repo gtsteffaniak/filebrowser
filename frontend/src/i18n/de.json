@@ -75,7 +75,12 @@
     "mouseActions": "Mausaktionen",
     "fileOperations": "Dateioperationen",
     "click": "Wähle Datei oder Ordner",
+    "dbClick": "Doppelklick auf einen leeren Bereich, um alle Elemente auszuwählen",
     "ctrl": {
+      "f1": "Zur Listenansicht wechseln",
+      "f2": "Zur Normalansicht wechseln",
+      "f3": "Zur Galerieansicht wechseln",
+      "scroll": "Größe der Liste und der Schriftart im Editor ändern",
       "click": "Markiere mehrere Dateien oder Ordner",
       "d": "ausgewählte Artikel herunterladen",
       "b": "Seitenleiste umklappen",
@@ -101,6 +106,8 @@
       "volume": "Lautstärke erhöhen oder verringern",
       "mute": "Ton stummschalten/aktivieren",
       "loop": "Zwischen Schleife und Einzelmodus wechseln",
+      "playbackQueue": "Wiedergabeliste oder das Panel in Audiodateien öffnen",
+      "switchTabs": "Zwischen den Registerkarten im Panel bei Audiodateien wechseln",
       "playbackModes": "Zwischen Wiedergabemodi wechseln (außer Schleife und Einzelmodus)",
       "fullscreen": "Vollbildmodus bei Videos umschalten",
       "captions": "Untertitel ein-/ausschalten"
@@ -141,10 +148,10 @@
     "passwordsDontMatch": "Kennwörter stimmen nicht überein",
     "usernameTaken": "Benutzername ist bereits vergeben",
     "wrongCredentials": "Falsche Zugangsdaten",
-    "or": "OR",
     "inProgress": "Einloggen...",
     "failedLogin": "Anmeldung fehlgeschlagen",
-    "invalidCredentials": "Ungültige Anmeldedaten angegeben"
+    "invalidCredentials": "Ungültige Anmeldedaten angegeben",
+    "passkeyLogin": "Passkey verwenden"
   },
   "prompts": {
     "copyMessage": "Wählen Sie einen Zielort zum Kopieren:",
@@ -256,9 +263,12 @@
     "showPreviewImagesDescription": "Zeigen Sie eine Miniaturvorschau für Suchergebnisse an, wenn verfügbar, und zeigen Sie größere Symbole für alle Ergebnisse an.",
     "olderThanDate": "Älter als:",
     "newerThanDate": "Neuere als:",
-    "helpText2": "Die Suchergebnisse basieren auf indizierten Dateien, so dass neu hinzugefügte Dateien möglicherweise nicht angezeigt werden, bis sie indiziert sind.",
     "noResults": "Keine Ergebnisse gefunden.",
-    "helpText1": "Die Suche erfolgt bei jedem Zeichen, das Sie eingeben ({minSearchLength} Zeichen Minimum)."
+    "helpText1": "Die Suche erfolgt bei jedem Zeichen, das Sie eingeben ({minSearchLength} Zeichen Minimum).",
+    "helpText2": "Teilstring-Übereinstimmung nur bei Datei- oder Ordnernamen (nicht bei vollständigen Pfaden). case:exact für Übereinstimmung unter Berücksichtigung der Groß-/Kleinschreibung\n\n für ODER zwischen Begriffen Pipe-Zeichen verwenden; doppelte Anführungszeichen für eine Phrase.\n\nAktivieren Sie die Platzhaltersuche für erweiterte Optionen.",
+    "useWildcardSearch": "Wildcard-Suche (Groß- und Kleinschreibung beachten)",
+    "useWildcardSearchDescription": "Unterstützte Platzhalteroptionen:\n\n- Entspricht einer beliebigen Sequenz: *\n\n- Übereinstimmung mit einem Zeichen: ?\n\n- Zeichenklasse: [a-z], [0-9]\n\n- Negation: [^0-9]\n\n- Buchstäbliche *, ? oder [ müssen in Klammern eingeschlossen werden, z. B. [*], [?], [[]\n\n- Bei allen Ergebnissen wird zwischen Groß- und Kleinschreibung unterschieden.",
+    "openInAdvancedSearch": "In der erweiterten Suche öffnen"
   },
   "settings": {
     "administrator": "Administrator",
@@ -665,7 +675,9 @@
     "office": "Büro{suffix}",
     "show": "anzeigen{suffix}",
     "divider": "Teiler{suffix}",
-    "audio": "Audio{suffix}"
+    "audio": "Audio{suffix}",
+    "and": "und",
+    "or": "oder"
   },
   "access": {
     "rules": "Zugangsregeln",
@@ -711,6 +723,8 @@
     "orange": "orange"
   },
   "profileSettings": {
+    "hideFileExt": "Bestimmte Dateien ausblenden (nach Erweiterung)",
+    "hideFileExtDescription": "Eine durch Leerzeichen getrennte Liste von Dateierweiterungen. Erweiterungen, die in dieses Feld eingegeben werden, werden in der gesamten Benutzeroberfläche ausgeblendet (visuell, z. B. in der Liste oder im Dateibaum) – sie bleiben jedoch zugänglich.",
     "preferEditorForMarkdown": "Editor für Markdown-Dateien bevorzugen",
     "preferEditorForMarkdownDescription": "Wenn aktiviert, werden Markdown-Dateien zuerst im Editor geöffnet, anstatt im Markdown-Betrachter.",
     "deleteAfterArchive": "Quelldateien nach Erstellung/Extraktion von Archiven löschen",
@@ -773,7 +787,21 @@
     "showThumbnailsDescription": "Wenn diese Option aktiviert ist, werden Miniaturansichten in der Auflistung für Artikel angezeigt, die sie unterstützen. Schalten Sie die Option aus, um alle Miniaturansichten auszublenden.",
     "showCopyPath": "Pfad kopieren im Kontextmenü anzeigen",
     "showCopyPathDescription": "Zeigen Sie eine Aktion \"Pfad kopieren\" im Kontextmenü von Dateien und Ordnern an.",
-    "previewDescription": "Vorschaubilder für {filetype} anzeigen, bei Deaktivierung wird ein allgemeines Symbol angezeigt."
+    "previewDescription": "Vorschaubilder für {filetype} anzeigen, bei Deaktivierung wird ein allgemeines Symbol angezeigt.",
+    "passkeys": "Passkeys",
+    "passkeysDescription": "Verwenden Sie Passkeys für eine sichere, passwortlose Multi-Faktor-Authentifizierung. Registrieren Sie einen Passkey auf Ihrem Gerät, um biometrische Verifizierung oder PIN anstelle von OTP-Codes zu nutzen.",
+    "noPasskeys": "Noch keine Passkeys registriert.",
+    "addPasskey": "Passkey hinzufügen",
+    "addingPasskey": "Passkey wird hinzugefügt...",
+    "passkeyAdded": "Passkey erfolgreich hinzugefügt!",
+    "passkeyAddFailed": "Passkey konnte nicht hinzugefügt werden",
+    "passkeyDeleted": "Passkey gelöscht.",
+    "passkeyDeleteFailed": "Passkey konnte nicht gelöscht werden",
+    "created": "Erstellt",
+    "lastUsed": "Zuletzt verwendet",
+    "passkeyDefaultName": "Passkey",
+    "showToolsInSidebar": "Werkzeuge in der Seitenleiste anzeigen",
+    "showToolsInSidebarDescription": "Zeigen Sie immer den Link \"Tools\" in der Seitenleiste an."
   },
   "editor": {
     "uninitialized": "Der Editor konnte nicht initialisiert werden. Bitte neu laden.",
@@ -797,7 +825,15 @@
     "QueuePlayback": "Wiedergabeliste",
     "changePlaybackMode": "Wiedergabemodus ändern",
     "changePlaybackModeHint": "Ändern Sie den Wiedergabemodus, um mehr Dateien zu sehen",
-    "emptyQueue": "Warteschlange ist leer"
+    "emptyQueue": "Warteschlange ist leer",
+    "queue": "Warteschlange",
+    "lyrics": "Liedtext",
+    "noLyrics": "Kein Liedtext verfügbar",
+    "lockLyrics": "Liedtext sperren",
+    "unlockLyrics": "Liedtext entsperren",
+    "toggleLyrics": "Liedtext ein-/ausblenden",
+    "closePanel": "Panel schließen",
+    "openPanel": "Panel öffnen"
   },
   "fileSizeAnalyzer": {
     "title": "Dateigrößen-Analysator",
@@ -858,6 +894,20 @@
       "stopWatching": "Aufhören zu beobachten",
       "emptyState": "Wählen Sie eine Datei aus und klicken Sie auf \"Play\", um die Dateiänderungen zu überwachen.",
       "chooseFile": "Wählen Sie eine Datei"
+    },
+    "advancedSearch": {
+      "name": "Erweiterte Suche",
+      "description": "Suche im Index mit voller Kontrolle über Quellen, Filter und Optionen",
+      "searchTerms": "Suchbegriffe",
+      "matchAllTerms": "Alle Begriffe zuordnen",
+      "matchAllTermsDescription": "Wenn aktiviert, müssen alle Suchbegriffe für jede Datei gefunden werden",
+      "scopeAria": "Suche auf einen Ordner beschränken",
+      "noTerms": "Geben Sie mindestens einen Suchbegriff ein.",
+      "termTooShort": "Jeder Suchbegriff muss mindestens {minSearchLength} Zeichen umfassen.",
+      "caseExact": "Abgleich unter Berücksichtigung der Groß-/Kleinschreibung",
+      "resultsTitle": "Suchergebnisse",
+      "invalidSources": "Schalten Sie mindestens eine Quelle ein.",
+      "noResults": "Keine passenden Dateien oder Ordner."
     }
   },
   "messages": {

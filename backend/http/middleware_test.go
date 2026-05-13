@@ -94,8 +94,17 @@ func TestWithAdminHelper(t *testing.T) {
 	if err := state.CreateUser(adminUser, ""); err != nil {
 		t.Fatal("failed to create admin user:", err)
 	}
+	// CreateUser runs ApplyUserDefaults, which replaces permissions from global UserDefaults.
+	adminUser.Permissions = users.Permissions{Admin: true}
+	if err := state.UpdateUser(adminUser, "", "permissions"); err != nil {
+		t.Fatal("failed to set admin permissions:", err)
+	}
 	if err := state.CreateUser(nonAdminUser, ""); err != nil {
 		t.Fatal("failed to create non-admin user:", err)
+	}
+	nonAdminUser.Permissions = users.Permissions{Admin: false}
+	if err := state.UpdateUser(nonAdminUser, "", "permissions"); err != nil {
+		t.Fatal("failed to set non-admin permissions:", err)
 	}
 	// Test cases for different scenarios
 	testCases := []struct {
@@ -121,7 +130,7 @@ func TestWithAdminHelper(t *testing.T) {
 			data := &requestContext{
 				user: tc.user,
 			}
-			tokenString, _, err := auth.MakeSignedTokenAPI(tc.user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), time.Hour*2, tc.user.Perm, false)
+			tokenString, _, err := auth.MakeSignedTokenAPI(tc.user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), time.Hour*2, tc.user.Permissions, false)
 			if err != nil {
 				t.Fatalf("Error making token for request: %v", err)
 			}

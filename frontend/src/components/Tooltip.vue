@@ -116,7 +116,8 @@ export default {
   z-index: 9999;
   pointer-events: none;
   max-width: 20em;
-  white-space: normal;
+  /* Preserve newlines from i18n strings (e.g. search help) while still wrapping long lines */
+  white-space: pre-line;
   overflow-wrap: break-word;
 }
 

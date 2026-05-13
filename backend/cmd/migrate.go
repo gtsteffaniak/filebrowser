@@ -149,7 +149,7 @@ func migrateUsers(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 			return fmt.Errorf("failed to normalize scopes for user %s: %w", user.Username, err)
 		}
 		if len(user.BackendScopes) == 0 {
-			settings.ApplyDefaultBackendScopes(user)
+			settings.ApplyUserDefaults(user)
 		}
 		if len(user.BackendScopes) > beBefore {
 			promoted++

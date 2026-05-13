@@ -14,7 +14,7 @@
       </div>
       <!-- Right side: Slider to control the listing size or the font size in editor -->
       <div class="status-controls">
-        <div v-if="currentView === 'listingView'" class="gallery-size-control">
+        <div v-if="showGallerySizeSlider" class="gallery-size-control">
           <span class="size-label">{{ $t("general.size") }}</span>
           <input
             v-model="gallerySize"
@@ -32,7 +32,7 @@
           <input
             v-model="editorFontSize"
             type="range"
-            min="10"
+            min="8"
             max="24"
             step="1"
           />
@@ -59,13 +59,13 @@ export default {
       return getters.currentView();
     },
     isEditorOrMarkdownView() {
-      return this.currentView === 'editor' || this.currentView === 'markdownViewer';
+      return getters.isEditorOrMarkdownView();
     },
     showStatusBar() {
-      if (getters.isShare() && state.shareInfo.shareType === "upload") {
-        return false;
-      }
-      return this.currentView === "listingView" || this.isEditorOrMarkdownView;
+      return getters.showStatusBar();
+    },
+    showGallerySizeSlider() {
+      return getters.showGallerySizeSlider();
     },
     isDarkMode() {
       return getters.isDarkMode();
@@ -126,7 +126,18 @@ export default {
       return `${this.itemsSelectedLabel} (${this.displayTotalSize})`;
     },
     directoryInfoText() {
-      return `${this.numDirs} ${this.foldersLabel} | ${this.numFiles} ${this.filesLabel} (${this.displayTotalSize})`;
+      const dirs = this.numDirs;
+      const files = this.numFiles;
+      const sizeText = `(${this.displayTotalSize})`;
+
+      if (dirs === 0 && files === 0) {
+        return this.$t('files.lonely');
+      }
+      let parts = [];
+      if (dirs > 0) parts.push(`${dirs} ${this.foldersLabel}`);
+      if (files > 0) parts.push(`${files} ${this.filesLabel}`);
+
+      return parts.join(' | ') + ' ' + sizeText;
     },
     moveWithSidebar() {
       if (getters.isStickySidebar() && getters.isSidebarVisible()) {
@@ -206,7 +217,8 @@ export default {
 
       const delta = event.deltaY > 0 ? 1 : -1; // Scroll down increases, up decreases
 
-      if (this.currentView === 'listingView') {
+      const advSearch = (state.route?.path || "").startsWith("/tools/advancedSearch");
+      if (this.currentView === "listingView" || advSearch) {
         event.preventDefault();
         let newSize = Math.min(9, Math.max(1, this.gallerySize - delta));
         if (newSize !== this.gallerySize) {
@@ -216,7 +228,7 @@ export default {
         }
       } else if (this.currentView === 'editor') {
         event.preventDefault();
-        let newSize = Math.min(24, Math.max(10, this.editorFontSize - delta));
+        let newSize = Math.min(24, Math.max(8, this.editorFontSize - delta));
         if (newSize !== this.editorFontSize) {
           this.editorFontSize = newSize;
         }

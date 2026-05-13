@@ -1,5 +1,11 @@
 import { test, expect, checkForNotification } from "../test-setup";
 
+const copyDestLabel = (page: import("@playwright/test").Page) =>
+  page.locator('div[aria-label="copy-prompt"] .move-copy-path-picker');
+
+/** Matches `_docker/src/general/backend/server-config.yaml` source name. */
+const GENERAL_COPY_SOURCE = "playwright + files";
+
 test("info from listing", async({ page, checkForErrors, context }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
@@ -68,7 +74,7 @@ test("2x copy from listing to new folder", async({ page, checkForErrors, context
   await page.locator('.selected-count-header').waitFor({ state: 'visible' });
   await expect(page.locator('.selected-count-header')).toHaveText('1');
   await page.locator('button[aria-label="Copy file"]').click();
-  await expect(page.locator('div[aria-label="filelist-path"]')).toHaveText('Path: /');
+  await expect(copyDestLabel(page)).toHaveText(`/ (${GENERAL_COPY_SOURCE})`);
   await expect(page.locator('div[aria-label="copy-prompt"] .listing-item[aria-selected="true"]')).toHaveCount(0);
   await page.locator('div[aria-label="copy-prompt"] .listing-item[aria-label="myfolder"]').click();
   await expect(page.locator('div[aria-label="copy-prompt"] .listing-item[aria-selected="true"]')).toHaveCount(1);
@@ -98,7 +104,7 @@ test("2x copy from listing to new folder", async({ page, checkForErrors, context
   await page.locator('.selected-count-header').waitFor({ state: 'visible' });
   await expect(page.locator('.selected-count-header')).toHaveText('1');
   await page.locator('button[aria-label="Copy file"]').click();
-  await expect(page.locator('div[aria-label="filelist-path"]')).toHaveText('Path: /myfolder/');
+  await expect(copyDestLabel(page)).toHaveText(`/myfolder/ (${GENERAL_COPY_SOURCE})`);
   await page.locator('div[aria-label="copy-prompt"] .listing-item[aria-label="newfolder"]').click();
   await page.locator('button[aria-label="Copy"]').click();
   await checkForNotification(page, "Files copied successfully!");
@@ -123,7 +129,7 @@ test("copy 'text-files' to 'folder#hash' verify folder size is updated", async({
   await page.locator('.selected-count-header').waitFor({ state: 'visible' });
   await expect(page.locator('.selected-count-header')).toHaveText('1');
   await page.locator('button[aria-label="Copy file"]').click();
-  await expect(page.locator('div[aria-label="filelist-path"]')).toHaveText('Path: /');
+  await expect(copyDestLabel(page)).toHaveText(`/ (${GENERAL_COPY_SOURCE})`);
   await page.locator('div[aria-label="copy-prompt"] .listing-item[aria-label="folder#hash"]').click();
   await page.locator('button[aria-label="Copy"]').click();
   await checkForNotification(page, "Files copied successfully!");

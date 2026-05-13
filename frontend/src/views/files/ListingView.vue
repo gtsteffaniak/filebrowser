@@ -1,5 +1,5 @@
 <template>
-  <div v-if="shareInfo.shareType != 'upload'" class="no-select" :style="containerStyles">
+  <div v-if="shareInfo.shareType != 'upload'" class="listing-view-root no-select" :style="containerStyles">
     <!-- Show loading spinner while loading OR if we haven't loaded any data yet -->
     <div v-if="loading">
       <h2 class="message delayed">
@@ -7,19 +7,35 @@
         <span>{{ $t("general.loading", { suffix: "..." }) }}</span>
       </h2>
     </div>
-    <!-- Show empty state only when NOT loading AND data has been loaded AND there are no items -->
-    <div v-else-if="numDirs + numFiles == 0 && req.name">
-      <div
-        ref="listingView"
-        class="listing-items font-size-large"
-        :class="{
-          'add-padding': isStickySidebar,
-          [listingViewMode]: true,
-          dropping: isDragging,
-          'rectangle-selecting': isRectangleSelecting
-        }"
-      >
-        <h2 class="message">
+
+    <!-- listing container -->
+    <div
+      v-else
+      ref="listingView"
+      :class="{
+        'add-padding': isStickySidebar,
+        [listingViewMode]: true,
+        dropping: isDragging,
+        'rectangle-selecting': isRectangleSelecting,
+        'font-size-large': numDirs + numFiles == 0 
+      }"
+      :style="itemStyles"
+      class="listing-items"
+    >
+      <!-- Rectangle selection overlay -->
+      <div class="selection-rectangle" :style="rectangleStyle"></div>
+
+      <!-- Drop indicator -->
+      <div v-if="isDragging" class="drop-indicator">
+        <div class="drop-indicator-content">
+          <i class="material-symbols">cloud_upload</i>
+          <p>{{ $t("prompts.dragAndDrop") }}</p>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <template v-if="numDirs + numFiles == 0">
+        <h2 class="message font-size-large">
           <i class="material-symbols-outlined">sentiment_dissatisfied</i>
           <span>{{ $t("files.lonely") }}</span>
         </h2>
@@ -38,25 +54,9 @@
           webkitdirectory
           multiple
         />
-      </div>
-    </div>
-    <div v-else>
-      <div
-        ref="listingView"
-        :class="{
-          'add-padding': isStickySidebar,
-          [listingViewMode]: true,
-          dropping: isDragging,
-          'rectangle-selecting': isRectangleSelecting
-        }"
-        :style="itemStyles"
-        class="listing-items file-icons"
-      >
-        <!-- Rectangle selection overlay -->
-        <div class="selection-rectangle"
-          :style="rectangleStyle"
-        ></div>
+      </template>
 
+      <template v-else>
         <!-- Directories Section -->
         <div v-if="numDirs > 0">
           <h2 :class="{'dark-mode': isDarkMode}">{{ $t("general.folders") }}</h2>
@@ -130,7 +130,7 @@
           webkitdirectory
           multiple
         />
-      </div>
+      </template>
     </div>
   </div>
 
@@ -165,7 +165,7 @@ export default {
   data() {
     return {
       columnWidth: 250 + state.user.gallerySize * 50,
-      dragCounter: 0,
+      dragTargets: new Set(),
       width: window.innerWidth,
       lastSelected: {},
       contextTimeout: null,
@@ -239,9 +239,9 @@ export default {
     },
     isDragging() {
       if (getters.isShare()) {
-        return state.shareInfo.allowCreate && this.dragCounter > 0;
+        return state.shareInfo.allowCreate && this.dragTargets.has(this.$el);
       }
-      return this.dragCounter > 0;
+      return this.dragTargets.has(this.$el);
     },
     scrolling() {
       return state.listing.scrollRatio;
@@ -263,6 +263,7 @@ export default {
       return null; // Return null if there are no files
     },
     numColumns() {
+      void this.width;
       if (!getters.isCardView()) {
         return 1;
       }
@@ -354,11 +355,15 @@ export default {
     },
     containerStyles() {
       // Dynamic padding-top: applied to the entire container (loading spinner + listing items)
+      const isEmpty = this.numDirs + this.numFiles === 0;
       const isRootPath = state.req.path === '/' || !state.req.path;
-      if (isRootPath) {
+
+      if (isEmpty) {
+        return { 'padding-top': '4.1em' }; // Empty - no files or folders
+      } else if (isRootPath) {
         return { 'padding-top': '4.25em' }; // Root - no breadcrumbs showing
       } else {
-        return { 'padding-top': '7.25em' }; // Non-root - breadcrumbs + listing header
+        return { 'padding-top': '7.28em' }; // Non-root - breadcrumbs + listing header
       }
     },
     itemStyles() {
@@ -430,6 +435,7 @@ export default {
     document.addEventListener('mouseup', this.endRectangleSelection);
     this.$el.addEventListener('mousedown', this.startRectangleSelection);
     this.$el.addEventListener("touchmove", this.handleTouchMove, { passive: true });
+    this.$el.addEventListener('dblclick', this.handleDoubleClick);
 
     // Single dragend listener for all items (prevents N listeners for N items)
     document.addEventListener('dragend', this.handleGlobalDragEnd, { passive: true });
@@ -478,6 +484,7 @@ export default {
     document.removeEventListener('mouseup', this.endRectangleSelection);
     document.removeEventListener('dragend', this.handleGlobalDragEnd);
     this.$el.removeEventListener('mousedown', this.startRectangleSelection);
+    this.$el.removeEventListener('dblclick', this.handleDoubleClick);
 
     this.$el.removeEventListener("touchmove", this.handleTouchMove);
     this.$el.removeEventListener("contextmenu", this.openContext);
@@ -506,6 +513,7 @@ export default {
           el.classList.remove('drag-hover', 'half-selected');
         });
       }
+      this.dragTargets.clear();
     },
     cancelContext() {
       if (this.contextTimeout) {
@@ -563,6 +571,7 @@ export default {
           type: item.type,
           size: item.size,
           modified: item.modified,
+          hasPreview: item.hasPreview,
           previewUrl: previewUrl,
         });
       }
@@ -747,7 +756,7 @@ export default {
             return;
           case "a":
             event.preventDefault();
-            this.selectAll();
+            mutations.selectAllItems({ multiple: false });
             return;
           case "d":
             event.preventDefault();
@@ -776,22 +785,17 @@ export default {
           break;
 
         case "Escape":
+          if (this.dragTargets.size > 0) {
+            this.dragTargets.clear();
+            event.preventDefault();
+            return;
+          }
           mutations.resetSelected();
           break;
 
         case "Delete":
           if (!this.permissions?.modify || state.selected.length === 0) return;
           this.showDeletePrompt();
-          break;
-
-        case "F2":
-          if (!this.permissions?.modify || state.selected.length !== 1)  return;
-          mutations.showPrompt({
-            name: "rename",
-            props: {
-              item: getters.getFirstSelected(),
-            },
-          });
           break;
 
         case "ArrowUp":
@@ -806,9 +810,6 @@ export default {
           this.navigateKeboardArrows(key);
           break;
       }
-    },
-    selectAll() {
-      mutations.selectAllItems();
     },
     alphanumericKeyPress(key) {
       const prefix = key.toLowerCase();
@@ -1060,10 +1061,11 @@ export default {
       const isInternal = Array.from(event.dataTransfer.types).includes(
         "application/x-filebrowser-internal-drag"
       );
-      if (isInternal) {
-        return;
+      if (isInternal) return;
+
+      if (!this.$el.contains(event.relatedTarget)) {
+        this.dragTargets.add(this.$el);
       }
-      this.dragCounter++;
     },
     dragLeave(event) {
       // If in upload share mode, let the embedded Upload component handle it
@@ -1073,13 +1075,11 @@ export default {
       const isInternal = Array.from(event.dataTransfer.types).includes(
         "application/x-filebrowser-internal-drag"
       );
-      if (isInternal) {
-        return;
+      if (isInternal) return;
+
+      if (!this.$el.contains(event.relatedTarget)) {
+        this.dragTargets.delete(this.$el);
       }
-      if (this.dragCounter == 0) {
-        return;
-      }
-      this.dragCounter--;
     },
     async drop(event) {
       event.preventDefault();
@@ -1172,7 +1172,6 @@ export default {
     },
     async handleDrop(event) {
       event.preventDefault();
-      this.dragCounter = 0;
 
       // If we're already in the embedded upload view, don't open a new prompt
       // The embedded Upload component will handle its own drops
@@ -1202,6 +1201,7 @@ export default {
           },
         });
       }
+      this.dragTargets.clear();
     },
     startRectangleSelection(event) {
       // Start rectangle selection when clicking on empty space - don't start if the click was in the status bar, an item or the header
@@ -1216,13 +1216,27 @@ export default {
 
       // Get the position to the listing view container
       const listingRect = this.$refs.listingView.getBoundingClientRect();
+      let startX = event.clientX - listingRect.left;
+      let startY = event.clientY - listingRect.top;
+
+      // Clamp to container bounds
+      const statusBar = document.getElementById('status-bar');
+      const statusBarVisible = statusBar && getComputedStyle(statusBar).display !== 'none';
+      const maxX = listingRect.width;
+      const maxY = statusBarVisible
+        ? Math.max(0, statusBar.getBoundingClientRect().top - listingRect.top)
+        : listingRect.height;
+
+      startX = Math.max(0, Math.min(startX, maxX));
+      startY = Math.max(0, Math.min(startY, maxY));
+
       this.rectangleStart = {
-        x: event.clientX - listingRect.left,
-        y: event.clientY - listingRect.top
+        x: startX,
+        y: startY
       };
       this.rectangleEnd = {
-        x: event.clientX - listingRect.left,
-        y: event.clientY - listingRect.top
+        x: startX,
+        y: startY
       };
 
       // Store the current selection state when starting rectangle
@@ -1242,9 +1256,23 @@ export default {
 
       // Get the position to the listing view container
       const listingRect = this.$refs.listingView.getBoundingClientRect();
+      let endX = event.clientX - listingRect.left;
+      let endY = event.clientY - listingRect.top;
+
+      // Clamp to container bounds
+      const statusBar = document.getElementById('status-bar');
+      const statusBarVisible = statusBar && getComputedStyle(statusBar).display !== 'none';
+      const maxX = listingRect.width;
+      const maxY = statusBarVisible
+        ? Math.max(0, statusBar.getBoundingClientRect().top - listingRect.top)
+        : listingRect.height;
+
+      endX = Math.max(0, Math.min(endX, maxX));
+      endY = Math.max(0, Math.min(endY, maxY));
+
       this.rectangleEnd = {
-        x: event.clientX - listingRect.left,
-        y: event.clientY - listingRect.top
+        x: endX,
+        y: endY
       };
 
       // Use requestAnimationFrame to batch updates
@@ -1338,11 +1366,22 @@ export default {
         rectangleSelectedIndexes.forEach(index => mutations.addSelected(index));
       }
     },
+    handleDoubleClick(event) {
+      if (event.target.closest('.listing-item')) return;
+      if (getters.currentView() !== 'listingView' || getters.currentPromptName()) return;
+      if (event.ctrlKey || event.metaKey || event.shiftKey) return; // Don't interfere when pressing any mod key
+      mutations.selectAllItems({ multiple: getters.isMobile() });
+    },
   },
 };
 </script>
 
 <style scoped>
+.listing-view-root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
 
 .add-padding {
   padding-left: 0.5em;
@@ -1352,17 +1391,15 @@ export default {
 }
 
 .listing-items.dropping {
-  border-radius: 1em;
-  max-height: 70vh;
-  width: 97%;
+  margin: 0.5em;
   overflow: hidden;
-  margin: 1em;
-  box-shadow: var(--primaryColor) 0 0 1em;
+  min-height: 0;
+  flex: 1 1 0;
 }
 
 .listing-items {
-  min-height: 75vh !important;
   position: relative;
+  flex: 1;
 }
 
 .folder-items a {
@@ -1393,6 +1430,32 @@ export default {
 
 .rectangle-selecting .listing-item {
   pointer-events: none;
+}
+
+.drop-indicator {
+  position: absolute;
+  inset: 0;
+  bottom: 1.75em;
+  z-index: 50;
+  border: 0.2em dashed var(--primaryColor);
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(2px);
+  border-radius: 1em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  box-shadow: var(--primaryColor) 0 0 1em;
+}
+
+.drop-indicator-content {
+  text-align: center;
+  color: var(--textPrimary);
+  font-size: 1.5em;
+}
+
+.drop-indicator-content i {
+  font-size: 4em;
 }
 
 </style>

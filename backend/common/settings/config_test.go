@@ -35,7 +35,7 @@ func Test_setDefaults(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := setDefaults(true); !reflect.DeepEqual(got, tt.want) {
+			if got := SetDefaults(true); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("setDefaults() = %v, want %v", got, tt.want)
 			}
 		})
@@ -54,7 +54,7 @@ func TestConfigLoadChanged(t *testing.T) {
 		t.Fatalf("failed to write test config: %v", err)
 	}
 
-	defaultConfig := setDefaults(true)
+	defaultConfig := SetDefaults(true)
 	err = loadConfigWithDefaults(configFile, true)
 	if err != nil {
 		t.Fatalf("error loading config file: %v", err)
@@ -77,7 +77,7 @@ func TestConfigLoadEnvVars(t *testing.T) {
 		t.Fatalf("failed to write test config: %v", err)
 	}
 
-	defaultConfig := setDefaults(true)
+	defaultConfig := SetDefaults(true)
 	expectedKey := "MYKEY"
 	// mock environment variables
 	os.Setenv("FILEBROWSER_ONLYOFFICE_SECRET", expectedKey)
@@ -106,7 +106,7 @@ func TestConfigLoadSpecificValues(t *testing.T) {
 		t.Fatalf("failed to write test config: %v", err)
 	}
 
-	defaultConfig := setDefaults(true)
+	defaultConfig := SetDefaults(true)
 	err = loadConfigWithDefaults(configFile, true)
 	if err != nil {
 		t.Fatalf("error loading config file: %v", err)

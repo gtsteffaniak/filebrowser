@@ -206,27 +206,23 @@ export function encodedPath(path) {
 
 // assume non-encoded input path and source
 export function goToItem(source, path, previousHistoryItem, newTab = false) {
-  if (source == state.sources.current && path == state.req.path) {
+  const cv = getters.currentView();
+  if (source === state.sources.current && path === state.req.path && cv === "listingView") {
     return;
   }
+  if (previousHistoryItem && cv === "listingView`") {
+    mutations.setPreviousHistoryItem(previousHistoryItem);
+  }
+  mutations.resetAll()
   let newPath = encodedPath(path);
   let fullPath = `/files/${encodeURIComponent(source)}${newPath}`;
+  if (getters.isShare()) {
+    fullPath = `/public/share/${source}${newPath}`;
+  }
   if (newTab) {
     // Use absolute URL for new tab to ensure proper navigation
     const absoluteUrl = `${window.location.origin}${globalVars.baseURL}${fullPath.startsWith('/') ? fullPath.slice(1) : fullPath}`;
     window.open(absoluteUrl, '_blank');
-    return;
-  }
-  mutations.setPreviousHistoryItem(previousHistoryItem);
-  mutations.resetAll()
-  if (getters.isShare()) {
-    fullPath = `/public/share/${state.shareInfo?.hash}${newPath}`;
-    if (previousHistoryItem === undefined) {
-      // When undefined will not create browser history
-      router.replace({ path: fullPath });
-      return;
-    }
-    router.push({ path: fullPath });
     return;
   }
 

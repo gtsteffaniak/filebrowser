@@ -7,6 +7,59 @@ All notable changes to this project will be documented in this file. For commit 
  **Notes**:
  - user.id has been moved to a backend property and all frontend apis now query users by username. Swagger has been updated.
 
+## v1.4.0
+
+ **New Features**:
+ - Add Passkey (WebAuthn) support for passwordless authentication (#2287) (#2379) -- thanks @juansoler
+ - Lyrics support for audio files (#2360):
+   - Updated UI for audio previews!
+   - The lyrics and the player gets syncronized in UI with the audio player.
+   - Supports embedded lyrics (ID3v2 USLT, flac, ogg, clyr) and sidecar `.lrc` files with the same name as the audio file.
+   - The `Q` shortcut in audio files will toggle the new panel visibility.
+   - `E` shortcut to change between tabs of the panel if it's open.
+ - Api log filtering support via `apiFilter` option for logging.
+   - regex filter that excludes matching full api paths from being logged. (eg. `/user\?id\=self`) Defaults to `^/health|^/favicon.ico|^/static|^/public/static`
+   - Add config option to disable /health endpoint logging (#2291)
+ - More shortcuts (#2300)
+   - `CTRL+F1` switch to normal view.
+   - `CTRL+F2` switch to gallery view.
+   - `CTRL+F3` switch to list view.
+   - `Double click` on empty space to select all items.
+ - Option to hide certain files in UI by extension (#2403) (#2277)
+ - Additional search features
+   - wildcard search similar to regex, but limited to sqlite GLOB syntax (#769)
+   - advanced search tool that shows all results in a listing thats sortable and actionable like a normal listing (#1051)
+   - advanced search supports multiple custom scopes per search
+   - multiple search terms with AND or OR logic support
+
+ **Notes**:
+ - Enhanced indexing scheduler which doesn't wake the disk as often.
+ - New API route `media/lyrics` used to fetch and parse lyrics (embedded or from `.lrc` sidecar) (#2360)
+ - Swiping down gesture in fullscreen videos exit fullscreen instead of close preview.
+ - Improved styles for path selection and tables
+ - Improved style of drag and drop into listing view (#2407)
+ - Edit Sidebar links has new "show tools in sidebar" toggle and all users have this enabled by default. can be disabled via for new users `userDefaults.sidebar.showTools: false`
+ - Update user defaults ordering (#1140)
+ - Save view modes and sizes into local storage instead of db (#2301) 
+
+ **BugFixes**:
+ - Blue overlay when using gestures in video files on mobile (#2360)
+ - Playback queue wasn't updating when changing of folder (#2360)
+ - Added missing `UserDefaults.listing.showCopyPath` option to config file (#2364)
+ - Delete prompt thumbnail didn't worked when using it with the `delete` shortcut. (#2407)
+ - Searching icons in the Icon picker prompt wasn't working properly (#2407) 
+ - Drag and drop style state was stuck until page reload (#2407)
+ - Navigate close settings shows "something went wrong" (#2047)
+
+## v1.3.10
+
+ **Notes**:
+ - When indexing is disabled for a source, the usage will always reported as partition size.
+ - removed deprecated `source.config.disableIndexing`, see [rules](https://filebrowserquantum.com/en/docs/advanced/source-configuration/conditional-rules/#disable-indexing)
+
+ **BugFixes**:
+ - Disable index option not working (#2385)
+
 ## v1.3.9
 
  **Security**:

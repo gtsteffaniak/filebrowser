@@ -64,8 +64,15 @@ export default {
       return getters.shareHash();
     },
     showListingHeader() {
-      // Show listing header when in listing view with items
-      return getters.currentView() === 'listingView' && state.req?.items?.length > 0;
+      const path = state.route.path || "";
+      if (path === "/tools/advancedSearch") {
+        return false;
+      }
+      const itemsLen = state.req?.items?.length ?? 0;
+      if (itemsLen <= 0) {
+        return false;
+      }
+      return getters.currentView() === "listingView";
     },
     hasDuration() {
       // Check if any file has duration metadata

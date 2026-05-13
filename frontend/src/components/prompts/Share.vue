@@ -34,50 +34,51 @@
       <p> {{ $t('share.notice') }} </p>
 
       <div v-if="listing">
-        <table>
-          <tbody>
-            <tr>
-              <th>#</th> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-              <th>{{ $t("time.unit") }}</th>
-              <th></th>
-              <th></th>
-              <th></th>
-            </tr>
-
-            <tr v-for="link in links" :key="link.hash">
-              <td>{{ link.hash }}</td>
-              <td>
-                <template v-if="link.expire !== 0">{{ humanTime(link.expire) }}</template>
-                <template v-else>{{ $t("general.permanent") }}</template>
-              </td>
-              <td class="small">
-                <button class="action" @click="editLink(link)" :aria-label="$t('general.edit')"
-                  :title="$t('general.edit')">
-                  <i class="material-symbols">edit</i>
-                </button>
-              </td>
-              <td class="small">
-                <button class="action" @click.stop="copyToClipboard(link.shareURL)"
-                  :aria-label="$t('buttons.copyToClipboard')" :title="$t('buttons.copyToClipboard')">
-                  <i class="material-symbols">content_paste</i>
-                </button>
-              </td>
-              <td class="small">
-                <button :disabled="link.shareType == 'upload'" class="action" @click.stop="copyToClipboard(link.downloadURL)"
-                  :aria-label="$t('buttons.copyDownloadLinkToClipboard')"
-                  :title="$t('buttons.copyDownloadLinkToClipboard')">
-                  <i class="material-symbols">content_paste_go</i>
-                </button>
-              </td>
-              <td class="small">
-                <button class="action" @click="deleteLink($event, link)" :aria-label="$t('general.delete')"
-                  :title="$t('general.delete')">
-                  <i class="material-symbols">delete</i>
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <settings-table
+          :columns="sharePromptTableColumns"
+          :items="links"
+          item-key="hash"
+          :aria-label="$t('settings.shareManagement')"
+          :loading="linksLoading"
+        >
+          <template #cell-expire="{ row }">
+            <template v-if="row.expire !== 0">{{ humanTime(row.expire) }}</template>
+            <template v-else>{{ $t("general.permanent") }}</template>
+          </template>
+          <template #cell-editShare="{ row }">
+            <button class="action" @click="editLink(row)" :aria-label="$t('general.edit')"
+              :title="$t('general.edit')"
+            >
+              <i class="material-symbols">edit</i>
+            </button>
+          </template>
+          <template #cell-copyShare="{ row }">
+            <button class="action" @click.stop="copyToClipboard(row.shareURL)"
+              :aria-label="$t('buttons.copyToClipboard')" :title="$t('buttons.copyToClipboard')"
+            >
+              <i class="material-symbols">content_paste</i>
+            </button>
+          </template>
+          <template #cell-downloadShare="{ row }">
+            <button
+              :disabled="row.shareType === 'upload'"
+              class="action"
+              v-if="row.downloadURL"
+              @click.stop="copyToClipboard(row.downloadURL)"
+              :aria-label="$t('buttons.copyDownloadLinkToClipboard')"
+              :title="$t('buttons.copyDownloadLinkToClipboard')"
+            >
+              <i class="material-symbols">content_paste_go</i>
+            </button>
+          </template>
+          <template #cell-deleteShare="{ row }">
+            <button class="action" @click="deleteLink($event, row)" :aria-label="$t('general.delete')"
+              :title="$t('general.delete')"
+            >
+              <i class="material-symbols">delete</i>
+            </button>
+          </template>
+        </settings-table>
       </div>
       <div v-else>
         <div v-if="!showMoreExpanded">
@@ -212,6 +213,21 @@
             <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="showHidden"
               :name="$t('profileSettings.showHiddenFiles')"
               :description="$t('profileSettings.showHiddenFilesDescription')" />
+            <div>
+              <p>
+                {{ $t("profileSettings.hideFileExt") }}
+                <i class="material-symbols-outlined tooltip-info-icon"
+                  @mouseenter="showTooltip($event, $t('profileSettings.hideFileExtDescription'))"
+                  @mouseleave="hideTooltip">
+                  help
+                </i>
+              </p>
+            <input class="input"
+              :class="{ 'form-invalid': !validateExtensions(hideFileExt) }"
+              type="text"
+              :placeholder="$t('profileSettings.disableFileExtensions')"
+              v-model.trim="hideFileExt" />
+            </div>
             <ToggleSwitch v-if="shareType !== 'upload'" class="item" v-model="disableNavButtons"
               :name="$t('share.hideNavButtons')" :description="$t('share.hideNavButtonsDescription')" />
             <ToggleSwitch class="item" v-model="disableShareCard" :name="$t('share.disableShareCard')"
@@ -326,6 +342,7 @@ import { fromNow } from "@/utils/moment";
 import { buildItemUrl } from "@/utils/url";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
+import SettingsTable from "@/components/settings/Table.vue";
 import FileList from "../files/FileList.vue";
 import { globalVars } from "@/utils/constants";
 import { eventBus } from "@/store/eventBus";
@@ -336,6 +353,7 @@ export default {
   components: {
     ToggleSwitch,
     SettingsItem,
+    SettingsTable,
     FileList,
     //ViewMode,
   },
@@ -379,6 +397,7 @@ export default {
       disableFileViewer: false,
       disableThumbnails: false,
       showHidden: false,
+      hideFileExt: "",
       enableAllowedUsernames: false,
       allowedUsernames: "",
       keepAfterExpiration: false,
@@ -410,8 +429,15 @@ export default {
       pendingBannerFaviconContextId: null,
       filePickerField: null, // 'banner' or 'favicon'
       showMoreExpanded: false,
+      /** True while fetching existing shares for the path (create flow); table uses its placeholder spinner. */
+      linksLoading: true,
       //viewMode: "normal",
     };
+  },
+  created() {
+    if (this.isEditMode) {
+      this.linksLoading = false;
+    }
   },
   computed: {
     createAllowed() {
@@ -446,6 +472,27 @@ export default {
     },
     isFiles() {
       return getters.isFiles(); // Access getter directly from the store
+    },
+    sharePromptTableColumns() {
+      return [
+        {
+          key: "hash",
+          label: this.$t("general.hash"),
+          sortable: true,
+          align: "center",
+        },
+        {
+          key: "expire",
+          label: this.$t("general.expiration"),
+          sortable: true,
+          sortFn: (a, b) => (a.expire ?? 0) - (b.expire ?? 0),
+          align: "center",
+        },
+        { key: "editShare", label: "", narrow: true, align: "center" },
+        { key: "copyShare", label: "", narrow: true, align: "center" },
+        { key: "downloadShare", label: "", narrow: true, align: "center" },
+        { key: "deleteShare", label: "", narrow: true, align: "center" },
+      ];
     },
     url() {
       if (state.isSearchActive) {
@@ -511,6 +558,7 @@ export default {
           this.disableThumbnails = this.link.disableThumbnails || false;
           this.disableFileViewer = this.link.disableFileViewer || false;
           this.showHidden = this.link.showHidden || false;
+          this.hideFileExt = this.link.hideFileExt || "";
           this.enableAllowedUsernames = Array.isArray(this.link.allowedUsernames) && this.link.allowedUsernames.length > 0;
           this.allowedUsernames = this.enableAllowedUsernames ? this.link.allowedUsernames.join(", ") : "";
           this.keepAfterExpiration = this.link.keepAfterExpiration || false;
@@ -537,15 +585,18 @@ export default {
   },
   async beforeMount() {
     if (this.isEditMode) {
+      this.linksLoading = false;
       return;
     }
+    this.linksLoading = true;
     try {
-      // get last element of the path
       const links = await shareApi.get(this.item.path, this.item.source);
       this.links = links;
     } catch (err) {
       console.error(err);
       return;
+    } finally {
+      this.linksLoading = false;
     }
     this.sort();
 
@@ -588,6 +639,10 @@ export default {
       mutations.hideTooltip();
     },
     async submit() {
+      if (this.hideFileExt !== "" && !this.validateExtensions(this.hideFileExt)) {
+        notify.showError("Invalid input, does not match requirement.");
+        return;
+      }
       try {
         if (!this.description) {
           if (this.shareType === 'upload') {
@@ -618,6 +673,7 @@ export default {
           disableFileViewer: this.disableFileViewer,
           disableThumbnails: this.disableThumbnails,
           showHidden: this.showHidden,
+          hideFileExt: this.hideFileExt,
           allowedUsernames: this.enableAllowedUsernames ? this.allowedUsernames.split(',').map(u => u.trim()) : [],
           keepAfterExpiration: this.keepAfterExpiration,
           hash: '',
@@ -710,6 +766,7 @@ export default {
       this.disableThumbnails = link.disableThumbnails || false;
       this.disableFileViewer = link.disableFileViewer || false;
       this.showHidden = link.showHidden || false;
+      this.hideFileExt = link.hideFileExt || "";
       this.enableAllowedUsernames = Array.isArray(link.allowedUsernames) && link.allowedUsernames.length > 0;
       this.allowedUsernames = this.enableAllowedUsernames ? link.allowedUsernames.join(", ") : "";
       this.keepAfterExpiration = link.keepAfterExpiration || false;
@@ -936,6 +993,11 @@ export default {
       }
       this.pendingBannerFaviconContextId = null;
       this.filePickerField = null;
+    },
+    validateExtensions(value) {
+        if (value === "" || value === "*") return true;
+        const regex = /^\.\w+(?: \.\w+)*$/;
+        return regex.test(value);
     },
   },
 };

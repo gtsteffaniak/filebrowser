@@ -75,7 +75,12 @@
     "mouseActions": "Acțiuni Mouse",
     "fileOperations": "Operații Fișiere",
     "click": "alege fișier sau director",
+    "dbClick": "Faceți dublu clic pe un spațiu gol pentru a selecta toate elementele",
     "ctrl": {
+      "f1": "Comută la vizualizarea listă",
+      "f2": "Comută la vizualizarea normală",
+      "f3": "Comută la vizualizarea galerie",
+      "scroll": "Modifică dimensiunile listei și fontul editorului",
       "click": "alege multiple fișiere sau directoare",
       "d": "descărcați elementele selectate",
       "b": "comutare bară laterală",
@@ -101,6 +106,8 @@
       "volume": "Crește sau scade volumul",
       "mute": "Activează/Dezactivează sunetul",
       "loop": "Comută între modul repetare și modul unic",
+      "playbackQueue": "Deschide coada de redare sau panoul în fișiere audio",
+      "switchTabs": "Comută filele în panoul pentru fișiere audio",
       "playbackModes": "Comută între modurile de redare (excluzând repetare și unic)",
       "fullscreen": "Comută modul ecran complet în videoclipuri",
       "captions": "Activează/Dezactivează subtitrările"
@@ -141,10 +148,10 @@
     "passwordsDontMatch": "Parolele nu se potrivesc",
     "usernameTaken": "Utilizatorul există",
     "wrongCredentials": "Informații greșite",
-    "or": "SAU",
     "inProgress": "Conectarea...",
     "failedLogin": "A eșuat autentificarea",
-    "invalidCredentials": "Acreditări invalide furnizate"
+    "invalidCredentials": "Acreditări invalide furnizate",
+    "passkeyLogin": "Folosește cheie de acces"
   },
   "prompts": {
     "copyMessage": "Alege unde vrei să copiezi fișierele:",
@@ -256,9 +263,12 @@
     "showPreviewImagesDescription": "Afișați previzualizări în miniatură pentru rezultatele căutării, atunci când sunt disponibile, și afișați pictograme mai mari pentru toate rezultatele.",
     "olderThanDate": "Mai în vârstă decât:",
     "newerThanDate": "Mai nou decât:",
-    "helpText2": "Rezultatele căutării se bazează pe fișierele indexate, astfel încât fișierele nou adăugate pot să nu apară până când nu sunt indexate.",
     "noResults": "Nu s-au găsit rezultate.",
-    "helpText1": "Căutarea are loc pe fiecare caracter tastat ({minSearchLength} caracter minim)."
+    "helpText1": "Căutarea are loc pe fiecare caracter tastat ({minSearchLength} caracter minim).",
+    "helpText2": "Potrivire de substringuri numai pe nume de fișiere sau de foldere (nu pe căi complete). case:exact pentru potrivire în funcție de caz\n\n pentru OR între termeni utilizați caracterul pipă; ghilimele duble pentru o frază.\n\nActivați căutarea wildcard pentru opțiuni mai avansate.",
+    "useWildcardSearch": "Căutare wildcard (sensibil la majuscule)",
+    "useWildcardSearchDescription": "Opțiuni de wildcard acceptate:\n\n- Potrivește orice secvență: *\n\n- Potrivește un singur caracter: ?\n\n- Clasa de caractere: [a-z], [0-9]\n\n- Negație: [^0-9]\n\n- Literele *, ? sau [ trebuie să fie puse între paranteze, de exemplu [*], [?], [[]\n\n- Toate rezultatele sunt sensibile la majuscule",
+    "openInAdvancedSearch": "Deschidere în căutarea avansată"
   },
   "settings": {
     "administrator": "Administrator",
@@ -665,7 +675,9 @@
     "office": "Birou{suffix}",
     "show": "Spectacol{suffix}",
     "divider": "Divizor{suffix}",
-    "audio": "Audio{suffix}"
+    "audio": "Audio{suffix}",
+    "and": "și",
+    "or": "sau"
   },
   "access": {
     "rules": "Reguli de acces",
@@ -711,6 +723,8 @@
     "orange": "portocaliu"
   },
   "profileSettings": {
+    "hideFileExt": "Ascunde anumite fișiere (după extensie)",
+    "hideFileExtDescription": "O listă de extensii de fișiere separate prin spații. Extensiile introduse în acest câmp vor fi ascunse din întreaga interfață utilizator (vizual, cum ar fi în listă sau în arborele de fișiere) — Rămân accesibile.",
     "preferEditorForMarkdown": "Preferă editorul pentru fișierele Markdown",
     "preferEditorForMarkdownDescription": "Când este activat, deschide fișierele Markdown în editor în locul vizualizatorului Markdown.",
     "deleteAfterArchive": "Șterge fișierele sursă după crearea/extragerea arhivelor",
@@ -773,7 +787,21 @@
     "showThumbnailsDescription": "Atunci când este activată, miniaturile sunt afișate în listă pentru articolele care le acceptă. Dezactivați pentru a ascunde toate miniaturile.",
     "showCopyPath": "Afișați calea de copiere în meniul contextual",
     "showCopyPathDescription": "Afișați o acțiune de copiere a căii în meniul contextual al fișierelor și dosarelor.",
-    "previewDescription": "Afișează previzualizări ale miniaturilor pentru {filetype}, va afișa pictograma generică dacă este dezactivată."
+    "previewDescription": "Afișează previzualizări ale miniaturilor pentru {filetype}, va afișa pictograma generică dacă este dezactivată.",
+    "passkeys": "Chei de acces",
+    "passkeysDescription": "Folosiți chei de acces pentru autentificare securizată multifactor fără parolă. Înregistrați o cheie pe dispozitiv pentru a folosi verificare biometrică sau PIN în loc de coduri OTP.",
+    "noPasskeys": "Nicio cheie de acces înregistrată încă.",
+    "addPasskey": "Adaugă cheie de acces",
+    "addingPasskey": "Se adaugă cheia de acces...",
+    "passkeyAdded": "Cheia de acces a fost adăugată cu succes!",
+    "passkeyAddFailed": "Adăugarea cheii de acces a eșuat",
+    "passkeyDeleted": "Cheia de acces a fost ștearsă.",
+    "passkeyDeleteFailed": "Ștergerea cheii de acces a eșuat",
+    "created": "Creat",
+    "lastUsed": "Ultima utilizare",
+    "passkeyDefaultName": "Cheie de acces",
+    "showToolsInSidebar": "Afișați instrumentele în bara laterală",
+    "showToolsInSidebarDescription": "Afișați întotdeauna link-ul de instrumente în bara laterală."
   },
   "editor": {
     "uninitialized": "Nu s-a reușit inițializarea editorului. Vă rugăm să reîncărcați.",
@@ -797,7 +825,15 @@
     "QueuePlayback": "Coadă de Redare",
     "changePlaybackMode": "Schimbă modul de redare",
     "changePlaybackModeHint": "Schimbă modul de redare pentru a vedea mai multe fișiere",
-    "emptyQueue": "Coada este goală"
+    "emptyQueue": "Coada este goală",
+    "queue": "Coadă",
+    "lyrics": "Versuri",
+    "noLyrics": "Nu există versuri disponibile",
+    "lockLyrics": "Blochează versurile",
+    "unlockLyrics": "Deblochează versurile",
+    "toggleLyrics": "Comută versurile",
+    "closePanel": "Închide panoul",
+    "openPanel": "Deschide panoul"
   },
   "fileSizeAnalyzer": {
     "title": "Analizor dimensiune fișier",
@@ -858,6 +894,20 @@
       "stopWatching": "Nu te mai uita",
       "emptyState": "Alegeți un fișier și faceți clic pe redare pentru a începe monitorizarea modificărilor fișierului",
       "chooseFile": "Alegeți un fișier"
+    },
+    "advancedSearch": {
+      "name": "Căutare avansată",
+      "description": "Căutați în index cu control deplin asupra surselor, filtrelor și opțiunilor",
+      "searchTerms": "Termeni de căutare",
+      "matchAllTerms": "Potriviți toți termenii",
+      "matchAllTermsDescription": "Atunci când este activat, toți termenii de căutare trebuie să fie găsiți pentru fiecare fișier",
+      "scopeAria": "Limitarea căutării la un dosar",
+      "noTerms": "Introduceți cel puțin un termen de căutare.",
+      "termTooShort": "Fiecare termen de căutare trebuie să aibă cel puțin {minSearchLength} caractere",
+      "caseExact": "Potrivire sensibilă la majuscule",
+      "resultsTitle": "Rezultatele căutării",
+      "invalidSources": "Porniți cel puțin o sursă.",
+      "noResults": "Nu există fișiere sau foldere corespunzătoare."
     }
   },
   "messages": {

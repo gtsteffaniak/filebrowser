@@ -446,6 +446,7 @@ var types = map[string]string{
 	".ass":       "text/subtitle-ass",
 	".vtt":       "text/subtitle-vtt",
 	".ssa":       "text/subtitle-ssa",
+	".lrc":       "text/lyrics",
 	".sbv":       "text/plain",
 	".ssi":       "text/x-server-parsed-html",
 	".ssm":       "application/streamingmedia",

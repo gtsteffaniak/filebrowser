@@ -1,11 +1,13 @@
 package files
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -46,7 +48,7 @@ func addMetadataToChildren(response *iteminfo.ExtendedFileInfo, opts utils.FileO
 		wg.Go(func() {
 			fullPath := response.RealPath + "/" + fileItem.Name
 			if isAudio {
-				if err := extractAudioMetadata(context.Background(), fileItem, fullPath, opts.AlbumArt, opts.Metadata, sharedFFmpegService); err != nil {
+				if err := extractAudioMetadata(context.Background(), fileItem, fullPath, opts.AlbumArt, opts.Metadata, false, sharedFFmpegService); err != nil {
 					logger.Debugf("failed to extract metadata for file: %s, error: %v", fileItem.Name, err)
 				}
 			} else {
@@ -153,6 +155,20 @@ type Items struct {
 	Folders []string `json:"folders,omitempty"`
 }
 
+// This removes files whose names match any extension in hideFileExt.
+func filterFilesByExt(files []iteminfo.ExtendedItemInfo, hideFileExt string) []iteminfo.ExtendedItemInfo {
+	if hideFileExt == "" {
+		return files
+	}
+	filtered := files[:0]
+	for _, f := range files {
+		if !utils.HideFileByExt(f.Name, hideFileExt) {
+			filtered = append(filtered, f)
+		}
+	}
+	return filtered
+}
+
 func GetDirItems(opts utils.FileOptions, access *access.Storage, user *users.User) (Items, error) {
 	items := Items{}
 	indexPath, _, err := CheckPermissions(opts, access, user)
@@ -169,6 +185,7 @@ func GetDirItems(opts utils.FileOptions, access *access.Storage, user *users.Use
 		IndexPath:         indexPath,
 		FollowSymlinks:    opts.FollowSymlinks,
 		ShowHidden:        opts.ShowHidden,
+		HideFileExt:       opts.HideFileExt,
 		Expand:            true,
 		SkipExtendedAttrs: true,
 	})
@@ -183,6 +200,9 @@ func GetDirItems(opts utils.FileOptions, access *access.Storage, user *users.Use
 	}
 	if opts.Only == "files" || opts.Only == "" {
 		for _, file := range info.Files {
+			if opts.HideFileExt != "" && utils.HideFileByExt(file.Name, opts.HideFileExt) {
+				continue
+			}
 			items.Files = append(items.Files, file.Name)
 		}
 	}
@@ -219,6 +239,7 @@ func fileInfoFasterImpl(opts utils.FileOptions, access *access.Storage, user *us
 		IndexPath:         indexPath,
 		FollowSymlinks:    opts.FollowSymlinks,
 		ShowHidden:        opts.ShowHidden,
+		HideFileExt:       opts.HideFileExt,
 		Expand:            opts.Expand,
 		SkipExtendedAttrs: opts.SkipExtendedAttrs,
 	})
@@ -250,11 +271,17 @@ func fileInfoFasterImpl(opts utils.FileOptions, access *access.Storage, user *us
 	}
 	defer finalizeResponse(response, info, response.RealPath, user, userScope)
 	if opts.SkipExtendedAttrs {
+		if info.Type == "directory" && opts.HideFileExt != "" {
+			response.Files = filterFilesByExt(response.Files, opts.HideFileExt)
+		}
 		return response, nil
 	}
 	// Process directory metadata if requested
 	if info.Type == "directory" {
 		processDirectoryMetadata(response, idx, opts)
+		if opts.HideFileExt != "" {
+			response.Files = filterFilesByExt(response.Files, opts.HideFileExt)
+		}
 	}
 	// Process single file content/metadata
 	isAudioVideo := strings.HasPrefix(info.Type, "audio") || strings.HasPrefix(info.Type, "video")
@@ -306,7 +333,7 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index, opts u
 		extItem := &iteminfo.ExtendedItemInfo{
 			ItemInfo: info.ItemInfo,
 		}
-		err := extractAudioMetadata(context.Background(), extItem, info.RealPath, opts.AlbumArt || opts.Content, opts.Metadata || opts.Content, nil)
+		err := extractAudioMetadata(context.Background(), extItem, info.RealPath, opts.AlbumArt || opts.Content, opts.Metadata || opts.Content, false, nil)
 		if err != nil {
 			logger.Debugf("failed to extract audio metadata for file: "+info.RealPath, info.Name, err)
 		} else {
@@ -340,10 +367,58 @@ func generateOfficeId(realPath string) string {
 	return key
 }
 
+// Parses raw LRC text into a slice of Lyric.
+// Lines with [hh:mm:ss.xx] (timestamps) will be parsed to ms for synced lyrics
+// The ones without timestamp are kept as unsynced (timestamp 0).
+func parseLRC(raw string) []iteminfo.Lyric {
+	var lines []iteminfo.Lyric
+	scanner := bufio.NewScanner(strings.NewReader(raw))
+	re := regexp.MustCompile(`^\[(?:(\d{1,2}):)?(\d{1,2}):(\d{1,2})\.(\d+)\](.*)`)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" {
+			continue
+		}
+		matches := re.FindStringSubmatch(line)
+		if len(matches) == 6 {
+			// Hours default to 0 (if not present in the timestamps)
+			h := 0
+			if matches[1] != "" {
+				h, _ = strconv.Atoi(matches[1])
+			}
+			min, _ := strconv.Atoi(matches[2])
+			sec, _ := strconv.Atoi(matches[3])
+
+			msStr := matches[4]
+			// Normalise to 3 digits, some songs have more than 3 digits in the milliseconds
+			switch {
+			case len(msStr) < 3:
+				msStr += strings.Repeat("0", 3-len(msStr))
+			case len(msStr) > 3:
+				msStr = msStr[:3]
+			}
+			ms, _ := strconv.Atoi(msStr)
+			timestamp := int64((h*3600+min*60+sec)*1000 + ms)
+			text := strings.TrimSpace(matches[5])
+			lines = append(lines, iteminfo.Lyric{
+				Text:      text,
+				Timestamp: timestamp,
+			})
+		} else {
+			// Line without a valid timestamp – treat as unsynced (timestamp 0)
+			lines = append(lines, iteminfo.Lyric{
+				Text:      line,
+				Timestamp: 0,
+			})
+		}
+	}
+	return lines
+}
+
 // extractAudioMetadata extracts metadata from an audio file using dhowden/tag
 // and optionally extracts duration using the ffmpeg service with concurrency control
 // If ffmpegService is nil, a new service will be created (for backward compatibility)
-func extractAudioMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, realPath string, getArt bool, getDuration bool, ffmpegService *ffmpeg.FFmpegService) error {
+func extractAudioMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, realPath string, getArt bool, getDuration bool, getLyrics bool, ffmpegService *ffmpeg.FFmpegService) error {
 	file, err := os.Open(realPath)
 	if err != nil {
 		return err
@@ -379,6 +454,28 @@ func extractAudioMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 	track, _ := m.Track()
 	item.Metadata.Track = track
 
+	// Check if lyrics are available without extract them
+	if rawLyrics := m.Lyrics(); rawLyrics != "" {
+		item.Metadata.HasLyrics = true
+	} else {
+		// Check for .lrc file
+		ext := filepath.Ext(realPath)
+		base := strings.TrimSuffix(realPath, ext)
+		lrcPath := base + ".lrc"
+		if _, err := os.Stat(lrcPath); err == nil {
+			item.Metadata.HasLyrics = true
+		}
+	}
+
+	if getLyrics {
+		lyrics, err := ExtractLyrics(realPath)
+		if err != nil {
+			logger.Debugf("failed to extract lyrics for %s: %v", realPath, err)
+		} else if len(lyrics) > 0 {
+			item.Metadata.Lyrics = lyrics
+		}
+	}
+
 	// Extract duration ONLY if explicitly requested using the ffmpeg VideoService
 	// This respects concurrency limits and gracefully handles missing ffmpeg
 	if getDuration {
@@ -409,6 +506,34 @@ func extractAudioMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 	}
 
 	return nil
+}
+
+// Returns lyrics from an audio file (from embedded tags or from a .lrc file with the same name).
+func ExtractLyrics(realPath string) ([]iteminfo.Lyric, error) {
+	file, err := os.Open(realPath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	m, err := tag.ReadFrom(file)
+	if err != nil {
+		return nil, err
+	}
+
+	var lyrics []iteminfo.Lyric
+	if raw := m.Lyrics(); raw != "" {
+		lyrics = parseLRC(raw)
+	}
+	if len(lyrics) == 0 {
+		ext := filepath.Ext(realPath)
+		base := strings.TrimSuffix(realPath, ext)
+		lrcPath := base + ".lrc"
+		if data, err := os.ReadFile(lrcPath); err == nil {
+			lyrics = parseLRC(string(data))
+		}
+	}
+	return lyrics, nil
 }
 
 // extractVideoMetadata extracts duration from video files using ffprobe
@@ -445,7 +570,7 @@ func DeleteFiles(source, absPath string, isDir bool) error {
 		return fmt.Errorf("refusing to delete source root directory: %s", absPath)
 	}
 
-	if !index.Config.DisableIndexing {
+	if !index.Config.ResolvedRules.IndexingDisabled {
 		indexPath := index.MakeIndexPath(absPath, isDir)
 
 		// Perform the physical deletion
@@ -482,7 +607,7 @@ func RefreshIndex(source string, path string, isDir bool, recursive bool) error 
 	if idx == nil {
 		return fmt.Errorf("could not get index: %v ", source)
 	}
-	if idx.Config.DisableIndexing {
+	if idx.Config.ResolvedRules.IndexingDisabled {
 		return nil
 	}
 	// Always normalize path using MakeIndexPath
@@ -590,7 +715,7 @@ func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 
 	// Handle SOURCE cleanup (treat as deletion)
 	// Run async to avoid blocking the HTTP response
-	if !srcIdx.Config.DisableIndexing {
+	if !srcIdx.Config.ResolvedRules.IndexingDisabled {
 		go func() {
 			if isSrcDir {
 				srcIdx.DeleteMetadata(srcIndexPath, true, true)
@@ -605,7 +730,7 @@ func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 
 	// Handle DESTINATION indexing
 	// Run async to avoid blocking the HTTP response
-	if !dstIdx.Config.DisableIndexing {
+	if !dstIdx.Config.ResolvedRules.IndexingDisabled {
 		if isSrcDir {
 			go func() {
 				// Recursively index the moved directory tree
@@ -662,7 +787,7 @@ func CopyResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 
 	// Refresh source (non-recursive, just metadata)
 	srcIdx := indexing.GetIndex(sourceIndex)
-	if srcIdx != nil && !srcIdx.Config.DisableIndexing {
+	if srcIdx != nil && !srcIdx.Config.ResolvedRules.IndexingDisabled {
 		srcRefreshPath := realsrc
 		if !isSrcDir {
 			srcRefreshPath = filepath.Dir(realsrc)
@@ -673,7 +798,7 @@ func CopyResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 	// Refresh destination (RECURSIVE for directories to capture full tree)
 	// Run async to avoid blocking the HTTP response
 	dstIdx := indexing.GetIndex(destIndex)
-	if dstIdx != nil && !dstIdx.Config.DisableIndexing {
+	if dstIdx != nil && !dstIdx.Config.ResolvedRules.IndexingDisabled {
 		if isSrcDir {
 			go func() {
 				// Recursively index the copied directory tree

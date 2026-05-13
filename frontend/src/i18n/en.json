@@ -9,6 +9,8 @@
     "noCreateOptions": "No create options are available"
   },
   "general": {
+    "and": "and",
+    "or": "or",
     "divider": "Divider{suffix}",
     "show": "Show{suffix}",
     "office": "Office{suffix}",
@@ -210,8 +212,13 @@
     "mouseActions": "Mouse Actions",
     "fileOperations": "File Operations",
     "click": "select file or directory",
+    "dbClick": "Double click on a empty space to select all items",
     "marqueeSelect": "select multiple files or directories by dragging on empty space",
     "ctrl": {
+      "f1": "Switch to list view",
+      "f2": "Switch to normal view",
+      "f3": "Switch to gallery view",
+      "scroll": "Change sizes of the list and editor font",
       "click": "select multiple files or directories",
       "c": "copy selected items",
       "v": "paste copied/cut items",
@@ -236,6 +243,8 @@
       "volume": "Turn the volume up or down",
       "mute": "Mute/Unmute the audio playing",
       "loop": "Toggle between loop and single mode",
+      "playbackQueue": "Open playback queue or the panel in audio files",
+      "switchTabs": "Switch tabs in the panel in audio files",
       "playbackModes": "Toggle between playback modes (excluding loop and single)",
       "fullscreen": "Toggle fullscreen mode in videos",
       "captions": "Toggle captions on/off"
@@ -276,10 +285,10 @@
     "passwordsDontMatch": "Passwords don't match",
     "usernameTaken": "Username already taken",
     "wrongCredentials": "Wrong credentials",
-    "or": "OR",
     "inProgress": "Logging in...",
     "failedLogin": "Failed to login",
-    "invalidCredentials": "Invalid credentials provided"
+    "invalidCredentials": "Invalid credentials provided",
+    "passkeyLogin": "Use Passkey"
   },
   "share": {
     "notice": "Note: when a share is a created, it becomes more exposed to the public and has different rules for access. If your share is not securely configured, it may be accessed by anyone.",
@@ -467,10 +476,15 @@
     "newerThanDate": "Newer than:",
     "showPreviewImages": "Show preview images",
     "showPreviewImagesDescription": "Display thumbnail previews for search results when available, and show larger icons for all results.",
+    "useWildcardSearch": "Wildcard search",
+    "useWildcardSearchDescription": "Supported wildcard options:\n\n• Match any sequence: *\n\n• Match one character: ?\n\n• Character class: [a-z], [0-9]\n\n• Negation: [^0-9]\n\n• Literal *, ?, or [ need to be wrapped in brackets, e.g. [*], [?], [[]",
     "helpText1": "Search occurs on each character you type ({minSearchLength} character minimum).",
-    "helpText2": "Search results are based on indexed files, so newly added files may not appear until they are indexed."
+    "helpText2": "Substring match on file or folder names only (not full paths). case:exact for case-sensitive matching\n\n for OR between terms use pipe character; double quotes for one phrase.\n\nEnable wildcard search for more advanced options.",
+    "openInAdvancedSearch": "Open in Advanced Search"
   },
   "profileSettings": {
+    "hideFileExt": "Hide certain files (by extension)",
+    "hideFileExtDescription": "A space-separated list of file extensions. Extensions in this field will be hidden from all the UI (visually, like the listing or FileTree) -- The files still accessible.",
     "preferEditorForMarkdown": "Prefer editor first for Markdown files",
     "preferEditorForMarkdownDescription": "When enabled, open markdown files in the editor first instead of the Markdown Viewer.",
     "deleteAfterArchive": "Delete source files after creation/extraction of archives",
@@ -513,6 +527,8 @@
     "disableSearchOptions": "Disable search options",
     "disableSearchOptionsDescription": "Disable the search options that show up on the sidebar.",
     "hideSidebarFileActions": "Hide file actions button in sidebar",
+    "showToolsInSidebar": "Show tools in sidebar",
+    "showToolsInSidebarDescription": "Always show the tools link in the sidebar.",
     "showCopyPath": "Show Copy Path in context menu",
     "showCopyPathDescription": "Show a Copy Path action in the file and folder context menu.",
     "deleteWithoutConfirming": "Delete files without confirmation prompt",
@@ -533,7 +549,19 @@
     "themeAndLanguage": "Theme & Language",
     "thumbnailOptions": "Thumbnail Options",
     "showThumbnails": "Show thumbnails for supported items",
-    "showThumbnailsDescription": "When enabled, thumbnails are shown in the listing for items that support them. Turn off to hide all thumbnails."
+    "showThumbnailsDescription": "When enabled, thumbnails are shown in the listing for items that support them. Turn off to hide all thumbnails.",
+    "passkeys": "Passkeys",
+    "passkeysDescription": "Use passkeys for secure, passwordless multi-factor authentication. Register a passkey on your device to use biometric or PIN verification instead of OTP codes.",
+    "noPasskeys": "No passkeys registered yet.",
+    "addPasskey": "Add Passkey",
+    "addingPasskey": "Adding passkey...",
+    "passkeyAdded": "Passkey added successfully!",
+    "passkeyAddFailed": "Failed to add passkey",
+    "passkeyDeleted": "Passkey deleted.",
+    "passkeyDeleteFailed": "Failed to delete passkey",
+    "created": "Created",
+    "lastUsed": "Last used",
+    "passkeyDefaultName": "Passkey"
   },
   "settings": {
     "systemAdmin": "System & Admin",
@@ -806,7 +834,15 @@
     "QueuePlayback": "Playback Queue",
     "changePlaybackMode": "Change playback mode",
     "changePlaybackModeHint": "Change playback mode to see more files",
-    "emptyQueue": "Queue is empty"
+    "emptyQueue": "Queue is empty",
+    "queue": "Queue",
+    "lyrics": "Lyrics",
+    "noLyrics": "No lyrics available",
+    "lockLyrics": "Lock lyrics",
+    "unlockLyrics": "Unlock lyrics",
+    "toggleLyrics": "Toggle lyrics",
+    "closePanel": "Close panel",
+    "openPanel": "Open panel"
   },
   "fileSizeAnalyzer": {
     "title": "File Size Analyzer",
@@ -843,6 +879,20 @@
     "duplicateFinder": {
       "name": "Duplicate File Finder",
       "description": "Find and manage duplicate files to reclaim storage space"
+    },
+    "advancedSearch": {
+      "name": "Advanced Search",
+      "description": "Search the index with full control over sources, filters, and options",
+      "searchTerms": "Search terms",
+      "matchAllTerms": "Match all terms",
+      "matchAllTermsDescription": "When enabled, all search terms must be found for each file",
+      "scopeAria": "Limit search to a folder",
+      "noTerms": "Enter at least one search term.",
+      "termTooShort": "Each search term must be at least {minSearchLength} characters",
+      "caseExact": "Case-sensitive match",
+      "resultsTitle": "Search results",
+      "invalidSources": "Turn on at least one source.",
+      "noResults": "No matching files or folders."
     },
     "materialIconPicker": {
       "name": "Material Icon Picker",

@@ -31,24 +31,37 @@
       <div id="result-list">
         <div v-if="!disableSearchOptions">
           <div v-if="active">
-            <div v-if="isMobile">
-              <ButtonGroup :buttons="toggleOptionButton" @button-clicked="enableOptions"
-                @remove-button-clicked="disableOptions" />
-            </div>
-            <transition name="expand">
-              <div v-show="showOptions" class="search-options">
-                <!-- Button groups for filtering search results -->
-                <ButtonGroup :buttons="folderSelect" @button-clicked="addToTypes"
-                  @remove-button-clicked="removeFromTypes" @disableAll="folderSelectClicked()"
-                  @enableAll="resetButtonGroups()" />
-                <ButtonGroup :buttons="typeSelect" @button-clicked="addToTypes" @remove-button-clicked="removeFromTypes"
-                  :isDisabled="isTypeSelectDisabled" />
-                <!-- Inputs for filtering by file size -->
+            <SettingsItem
+              class="search-options-settings-item"
+              :title="advancedOptionsExpanded ? $t('buttons.showLess') : $t('buttons.showMore')"
+              :collapsable="true"
+              :start-collapsed="!advancedOptionsExpanded"
+              @toggle="advancedOptionsExpanded = $event"
+            >
+              <div class="search-options-inner">
+                <ButtonGroup
+                  :buttons="folderSelect"
+                  @button-clicked="addToTypes"
+                  @remove-button-clicked="removeFromTypes"
+                  @disable-all="folderSelectClicked()"
+                  @enable-all="resetButtonGroups()"
+                />
+                <ButtonGroup
+                  :buttons="typeSelect"
+                  @button-clicked="addToTypes"
+                  @remove-button-clicked="removeFromTypes"
+                  :isDisabled="isTypeSelectDisabled"
+                />
                 <div class="constraints">
                   <div class="sizeInputWrapper">
                     <p>{{ $t("search.smallerThan") }}</p>
-                    <input class="sizeInput" v-model="smallerThan" type="number" min="0"
-                    placeholder="MB" />
+                    <input
+                      class="sizeInput"
+                      v-model="smallerThan"
+                      type="number"
+                      min="0"
+                      placeholder="MB"
+                    />
                     <p>{{ $t("search.largerThan") }}</p>
                     <input class="sizeInput" v-model="largerThan" type="number" placeholder="MB" />
                   </div>
@@ -59,13 +72,22 @@
                     <input class="sizeInput" v-model="modifiedNewerThan" type="date" />
                   </div>
                 </div>
-                <!-- Toggle for showing preview images -->
-                <div class="search-option-item">
-                  <ToggleSwitch v-model="showPreviewImages" :name="$t('search.showPreviewImages')"
-                    :description="$t('search.showPreviewImagesDescription')" />
+                <div class="settings-items">
+                  <ToggleSwitch
+                    class="item"
+                    v-model="showPreviewImages"
+                    :name="$t('search.showPreviewImages')"
+                    :description="$t('search.showPreviewImagesDescription')"
+                  />
+                  <ToggleSwitch
+                    class="item"
+                    v-model="useWildcardSearch"
+                    :name="$t('search.useWildcardSearch')"
+                    :description="$t('search.useWildcardSearchDescription')"
+                  />
                 </div>
               </div>
-            </transition>
+            </SettingsItem>
           </div>
         </div>
         <!-- Loading icon when search is ongoing -->
@@ -95,6 +117,13 @@
             </a>
           </li>
         </ul>
+        <button
+          type="button"
+          class="button open-advanced-search-button"
+          @click.stop.prevent="openInAdvancedSearch"
+        >
+          {{ $t("search.openInAdvancedSearch") }}
+        </button>
       </div>
     </div>
   </div>
@@ -108,8 +137,11 @@ import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { url } from "@/utils/";
 import Icon from "@/components/files/Icon.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
+import SettingsItem from "@/components/settings/SettingsItem.vue";
 import { globalVars } from "@/utils/constants";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import { utcStartOfDaySecondsFromDateInput } from "@/utils/moment";
+import router from "@/router";
 
 var boxes = {
   folder: { label: "folders", icon: "folder" },
@@ -126,6 +158,7 @@ export default {
     ButtonGroup,
     Icon,
     ToggleSwitch,
+    SettingsItem,
     LoadingSpinner,
   },
   name: "search",
@@ -139,6 +172,7 @@ export default {
       searchTypes: "",
       isTypeSelectDisabled: false,
       showPreviewImages: false,
+      useWildcardSearch: false,
       folderSelect: [
         { label: this.$t("search.onlyFolders"), value: "type:folder" },
         { label: this.$t("search.onlyFiles"), value: "type:file" },
@@ -150,13 +184,12 @@ export default {
         { label: this.$t("general.documents"), value: "type:doc" },
         { label: this.$t("general.archives"), value: "type:archive" },
       ],
-      toggleOptionButton: [{ label: this.$t("search.showOptions") }],
       value: "",
       ongoing: 0,
       results: [],
       reload: false,
       scrollable: null,
-      hiddenOptions: true,
+      advancedOptionsExpanded: false,
       selectedSource: "",
     };
   },
@@ -176,6 +209,9 @@ export default {
     modifiedNewerThan() {
       this.submit();
     },
+    useWildcardSearch() {
+      this.submit();
+    },
     searchTypes() {
       this.submit();
     },
@@ -183,6 +219,11 @@ export default {
       if (this.results.length) {
         this.ongoing = 0;
         this.results = [];
+      }
+    },
+    active(isNowActive) {
+      if (isNowActive) {
+        this.resetSearchOnOpen();
       }
     },
   },
@@ -241,12 +282,6 @@ export default {
     },
     disableSearchOptions() {
       return state.user.disableSearchOptions;
-    },
-    showOptions() {
-      return !this.hiddenOptions || !this.isMobile;
-    },
-    isMobile() {
-      return state.isMobile;
     },
     foldersOnly() {
       return this.isTypeSelectDisabled;
@@ -380,33 +415,8 @@ export default {
       const fullPath = context + '/' + path;
       return url.buildItemUrl(source, fullPath, true);
     },
-    enableOptions() {
-      this.hiddenOptions = false;
-      this.toggleOptionButton = [{ label: "Hide Options" }];
-    },
-    disableOptions() {
-      this.hiddenOptions = true;
-      this.toggleOptionButton = [{ label: "Show Options" }];
-    },
     humanSize(size) {
       return getHumanReadableFilesize(size);
-    },
-    /** YYYY-MM-DD from a date input → Unix seconds at 00:00:00 UTC for that calendar day. */
-    dateToUnixStartOfDayUTC(isoDate) {
-      if (isoDate === "" || typeof isoDate !== "string") {
-        return null;
-      }
-      const parts = isoDate.split("-");
-      if (parts.length !== 3) {
-        return null;
-      }
-      const y = Number(parts[0]);
-      const m = Number(parts[1]);
-      const d = Number(parts[2]);
-      if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d)) {
-        return null;
-      }
-      return Math.floor(Date.UTC(y, m - 1, d) / 1000);
     },
     basePath(str, isDir) {
       let result = url.removeLastDir(str);
@@ -419,6 +429,15 @@ export default {
       let parts = url.removeTrailingSlash(str).split("/");
       let part = parts.pop();
       return part;
+    },
+    /** Clear query state whenever the overlay opens (open paths do not always call close()). */
+    resetSearchOnOpen() {
+      this.value = "";
+      this.results = [];
+      this.ongoing = 0;
+      this.noneMessage = this.$t("search.typeToSearch", {
+        minSearchLength: globalVars.minSearchLength,
+      });
     },
     close(event) {
       this.value = "";
@@ -443,7 +462,7 @@ export default {
     },
     resetSearchFilters() {
       this.searchTypes = "";
-      this.hiddenOptions = true;
+      this.advancedOptionsExpanded = false;
       this.showPreviewImages = false;
     },
     removeFromTypes(string) {
@@ -478,13 +497,16 @@ export default {
         searchTypesFull = searchTypesFull + "type:smallerThan=" + this.smallerThan + " ";
       }
       const dateParams = {};
-      const olderUnix = this.dateToUnixStartOfDayUTC(this.modifiedOlderThan);
+      const olderUnix = utcStartOfDaySecondsFromDateInput(this.modifiedOlderThan);
       if (olderUnix !== null) {
         dateParams.olderThan = olderUnix;
       }
-      const newerUnix = this.dateToUnixStartOfDayUTC(this.modifiedNewerThan);
+      const newerUnix = utcStartOfDaySecondsFromDateInput(this.modifiedNewerThan);
       if (newerUnix !== null) {
         dateParams.newerThan = newerUnix;
+      }
+      if (this.useWildcardSearch) {
+        dateParams.useWildcard = true;
       }
       this.ongoing++;
       
@@ -566,6 +588,73 @@ export default {
         }
       });
     },
+    openInAdvancedSearch() {
+      let sourcesToSearch = [];
+      if (this.selectedSource === "__all__" || this.selectedSource === "") {
+        sourcesToSearch = Object.keys(this.sourceInfo || {});
+      } else {
+        sourcesToSearch = [this.selectedSource || state.sources.current];
+      }
+
+      const picked = [...sourcesToSearch].sort();
+
+      /** @type {Record<string, string | string[]>} */
+      const query = {};
+      query.term = this.value.trim();
+
+      const trimmedTypes = String(this.searchTypes || "").trim();
+      if (trimmedTypes !== "") {
+        query.types = trimmedTypes;
+      }
+      if (this.largerThan !== "") {
+        query.largerThan = String(this.largerThan);
+      }
+      if (this.smallerThan !== "") {
+        query.smallerThan = String(this.smallerThan);
+      }
+      if (this.modifiedOlderThan !== "") {
+        query.dateOlder = String(this.modifiedOlderThan);
+      }
+      if (this.modifiedNewerThan !== "") {
+        query.dateNewer = String(this.modifiedNewerThan);
+      }
+      if (this.useWildcardSearch) {
+        query.wildcard = "1";
+      }
+      if (this.isTypeSelectDisabled) {
+        query.typeLock = "1";
+      }
+
+      /** @type {string[]} */
+      const scopeClauses = [];
+      for (const sourceName of picked) {
+        let scopedFolderPath = "/";
+        if (picked.length === 1) {
+          const raw = String(this.getContext || "").trim();
+          if (raw !== "" && raw !== "/") {
+            const withSlash = raw.startsWith("/") ? raw : `/${raw}`;
+            scopedFolderPath = url.removeTrailingSlash(withSlash);
+          }
+        }
+        if (scopedFolderPath === "") {
+          scopedFolderPath = "/";
+        }
+        if (!scopedFolderPath.startsWith("/")) {
+          scopedFolderPath = `/${scopedFolderPath}`;
+        }
+        scopeClauses.push(`${sourceName}:${scopedFolderPath}`);
+      }
+      if (scopeClauses.length === 1) {
+        query.scope = scopeClauses[0];
+      } else {
+        query.scope = scopeClauses;
+      }
+
+      mutations.setSearch(false);
+      router
+        .push({ path: "/tools/advancedSearch", query })
+        .catch(() => {});
+    },
     addSelected(event, s) {
       event.preventDefault();
       const pathParts = url.removeTrailingSlash(s.path).split("/");
@@ -630,6 +719,17 @@ export default {
 .searchContext.input option:hover {
   background: var(--primaryColor);
   color: white;
+}
+
+.open-advanced-search-row {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.35em 0.75em 0;
+}
+
+.open-advanced-search-button {
+  font-size: 0.875rem;
+  margin: auto
 }
 
 #results>#result-list {
@@ -788,12 +888,6 @@ export default {
 .search-entry.active {
   background-color: var(--surfacePrimary);
 }
-
-/* Toggle switch styling in search options */
-.search-option-item {
-  margin: 1em;
-}
-
 
 .text-container {
   margin-left: 0.25em;
@@ -972,26 +1066,13 @@ body.rtl #search .boxes h3 {
   min-width: fit-content;
 }
 
-/* Smooth expand/collapse animation for search options */
-.expand-enter-active,
-.expand-leave-active {
-  transition: all 0.3s ease;
-  overflow: hidden;
+.search-options-settings-item {
+  padding: 0.5em;
 }
 
-.expand-enter-from,
-.expand-leave-to {
-  max-height: 0;
-  opacity: 0;
-}
-
-.expand-enter-to,
-.expand-leave-from {
-  max-height: 500px;
-  opacity: 1;
-}
-
-.search-options {
+.search-options-inner {
+  box-sizing: border-box;
+  width: 100%;
   overflow: hidden;
 }
 

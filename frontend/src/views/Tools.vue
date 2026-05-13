@@ -1,5 +1,5 @@
 <template>
-  <div class="tools-wrapper">
+  <div class="tools-wrapper" :class="{ 'tools-wrapper--advanced-search': isAdvancedSearchTool }">
     <!-- Show tools list when no tool is selected -->
     <div v-if="showToolsList" class="tools-list-container">
       <div class="card-title">
@@ -43,6 +43,7 @@ import SizeViewer from "@/views/tools/SizeViewer.vue";
 import DuplicateFinder from "@/views/tools/DuplicateFinder.vue";
 import MaterialIconPicker from "@/views/tools/MaterialIconPicker.vue";
 import FileWatcher from "@/views/tools/FileWatcher.vue";
+import AdvancedSearch from "@/views/tools/AdvancedSearch.vue";
 import { getters } from "@/store";
 
 export default {
@@ -52,6 +53,7 @@ export default {
     DuplicateFinder,
     MaterialIconPicker,
     FileWatcher,
+    AdvancedSearch,
   },
   computed: {
     tools() {
@@ -65,6 +67,9 @@ export default {
     },
     currentTool() {
       return getters.currentTool();
+    },
+    isAdvancedSearchTool() {
+      return this.$route.path === "/tools/advancedSearch";
     },
   },
 };
@@ -118,5 +123,16 @@ export default {
 .tool-not-found h2 {
   margin: 0.5em 0;
   color: var(--textPrimary);
+}
+
+.tools-wrapper--advanced-search {
+  max-width: none;
+  width: 100%;
+  margin: 0;
+  align-self: stretch;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 </style>

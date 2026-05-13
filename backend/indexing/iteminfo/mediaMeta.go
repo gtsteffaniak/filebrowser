@@ -317,28 +317,33 @@ func DetectTypeByHeader(realPath string) string {
 // returns file type if the file name contains the search term
 // returns size of file/dir if the file name contains the search term
 func (fi ItemInfo) ContainsSearchTerm(searchTerm string, options SearchOptions) bool {
+	conditions := options.Conditions
+	lowerFileName := strings.ToLower(fi.Name)
 
+	st := searchTerm
+	if !conditions["exact"] {
+		st = strings.ToLower(st)
+	}
+
+	if !strings.Contains(lowerFileName, st) {
+		return false
+	}
+
+	return fi.MatchesSearchAuxiliaryFilters(options)
+}
+
+// MatchesSearchAuxiliaryFilters applies type/size/date constraints from SearchOptions without checking the file name.
+// Used when SQLite has already filtered names (e.g. name GLOB patterns).
+func (fi ItemInfo) MatchesSearchAuxiliaryFilters(options SearchOptions) bool {
 	fileTypes := map[string]bool{}
 	largerThan := int64(options.LargerThan) * 1024 * 1024
 	smallerThan := int64(options.SmallerThan) * 1024 * 1024
 	conditions := options.Conditions
 	lowerFileName := strings.ToLower(fi.Name)
 
-	// Convert to lowercase if not exact match
-	if !conditions["exact"] {
-		searchTerm = strings.ToLower(searchTerm)
-	}
-
-	// Check if the file name contains the search term
-	if !strings.Contains(lowerFileName, searchTerm) {
-		return false
-	}
-
-	// Initialize file size and fileTypes map
 	var fileSize int64
 	extension := filepath.Ext(lowerFileName)
 
-	// Collect file types using the actual detected MIME type, not just extension
 	for _, k := range AllFiletypeOptions {
 		if IsMatchingDetectedType(fi.Type, extension, k) {
 			fileTypes[k] = true
@@ -348,7 +353,6 @@ func (fi ItemInfo) ContainsSearchTerm(searchTerm string, options SearchOptions) 
 	fileTypes["dir"] = isDir
 	fileSize = fi.Size
 
-	// Evaluate all conditions
 	for t, v := range conditions {
 		if t == "exact" {
 			continue
@@ -367,7 +371,6 @@ func (fi ItemInfo) ContainsSearchTerm(searchTerm string, options SearchOptions) 
 				}
 			}
 		default:
-			// Handle other file type conditions
 			notMatchType := v != fileTypes[t]
 			if notMatchType {
 				return false

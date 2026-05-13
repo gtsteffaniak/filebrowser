@@ -75,7 +75,12 @@
     "mouseActions": "Egérműveletek",
     "fileOperations": "Fájlműveletek",
     "click": "mappa vagy fájl kijelölése",
+    "dbClick": "Kattintson duplán egy üres területre az összes elem kiválasztásához",
     "ctrl": {
+      "f1": "Váltás lista nézetre",
+      "f2": "Váltás normál nézetre",
+      "f3": "Váltás galéria nézetre",
+      "scroll": "A lista és a szerkesztő betűméretének módosítása",
       "click": "több mappa vagy fájl kijelölése",
       "d": "kiválasztott elemek letöltése",
       "b": "oldalsáv átkapcsolása",
@@ -101,6 +106,8 @@
       "volume": "Hangerő növelése vagy csökkentése",
       "mute": "Némítás/Behangzás",
       "loop": "Váltás ismétlés és egyszeri mód között",
+      "playbackQueue": "Lejátszási sor vagy a panel megnyitása audio fájlokban",
+      "switchTabs": "Lapok váltása a panelen audio fájloknál",
       "playbackModes": "Váltás lejátszási módok között (az ismétlés és egyszeri kivételével)",
       "fullscreen": "Teljes képernyős mód váltása videóknál",
       "captions": "Feliratok be/ki"
@@ -141,10 +148,10 @@
     "passwordsDontMatch": "A jelszavak nem egyeznek",
     "usernameTaken": "A felhasználói név már foglalt",
     "wrongCredentials": "Hibás hitelesítő adatok",
-    "or": "VAGY",
     "inProgress": "Bejelentkezés...",
     "failedLogin": "Sikertelen bejelentkezés",
-    "invalidCredentials": "Érvénytelen hitelesítő adatok megadása"
+    "invalidCredentials": "Érvénytelen hitelesítő adatok megadása",
+    "passkeyLogin": "Jelszókulcs használata"
   },
   "prompts": {
     "copyMessage": "Válassza ki a másolás célját:",
@@ -256,9 +263,12 @@
     "showPreviewImagesDescription": "A keresési találatok miniatűr előnézeteinek megjelenítése, ha rendelkezésre állnak, és nagyobb ikonok megjelenítése az összes találathoz.",
     "olderThanDate": "Idősebb, mint:",
     "newerThanDate": "Újabb, mint:",
-    "helpText2": "A keresési eredmények az indexelt fájlokon alapulnak, ezért előfordulhat, hogy az újonnan hozzáadott fájlok nem jelennek meg, amíg indexelésre nem kerülnek.",
     "noResults": "Nem találtak eredményt.",
-    "helpText1": "A keresés minden egyes beírt karakterre történik ({minSearchLength} minimum karakter)."
+    "helpText1": "A keresés minden egyes beírt karakterre történik ({minSearchLength} minimum karakter).",
+    "helpText2": "Csak fájl- vagy mappanevek (nem teljes elérési utak) részlánc-illesztése. case:exact a nagy- és kisbetű-érzékeny illesztéshez.\n\n a kifejezések közötti VAGY-hoz használja a pipe karaktert; dupla idézőjelek egy kifejezéshez.\n\nEngedélyezze a vadkártyás keresést a fejlettebb lehetőségekhez.",
+    "useWildcardSearch": "Wildcard keresés (nagy- és kisbetű-érzékeny)",
+    "useWildcardSearchDescription": "Támogatott helyettesítő opciók:\n\n- Bármilyen sorozatra illeszkedik: *\n\n- Egy karakterrel való egyezés: ?\n\n- Karakterosztály: [a-z], [0-9]\n\n- Negáció: [^0-9]\n\n- A szó szerinti *, ? vagy [ karaktereket zárójelbe kell tenni, pl. [*], [?], [[]\n\n- Minden eredmény nagy- és kisbetű-érzékeny",
+    "openInAdvancedSearch": "Megnyitás a bővített keresőben"
   },
   "settings": {
     "administrator": "Adminisztrátor",
@@ -665,7 +675,9 @@
     "office": "Iroda{suffix}",
     "show": "Mutasd meg a{suffix}",
     "divider": "Választó{suffix}",
-    "audio": "Audio{suffix}"
+    "audio": "Audio{suffix}",
+    "and": "és",
+    "or": "vagy"
   },
   "access": {
     "rules": "Hozzáférési szabályok",
@@ -711,6 +723,8 @@
     "orange": "narancs"
   },
   "profileSettings": {
+    "hideFileExt": "Bizonyos fájlok elrejtése (kiterjesztés alapján)",
+    "hideFileExtDescription": "Szóközzel elválasztott fájlkiterjesztések listája. Az ebben a mezőben megadott kiterjesztések elrejtésre kerülnek a teljes felhasználói felületen (vizuálisan, például a listában vagy a fájlfastruktúrában) — továbbra is elérhetők maradnak.",
     "preferEditorForMarkdown": "Szerkesztő előnyben részesítése Markdown fájlokhoz",
     "preferEditorForMarkdownDescription": "Ha engedélyezve van, a Markdown fájlok először a szerkesztőben nyílnak meg a Markdown néző helyett.",
     "deleteAfterArchive": "Forrásfájlok törlése archívumok létrehozása/kibontása után",
@@ -773,7 +787,21 @@
     "showThumbnailsDescription": "Ha engedélyezve van, a miniatűrök megjelennek a listában az azokat támogató elemeknél. Ha kikapcsolja, az összes miniatűr elrejti.",
     "showCopyPath": "Az elérési útvonal másolása a kontextusmenüben",
     "showCopyPathDescription": "Az elérési útvonal másolása művelet megjelenítése a fájl és mappa kontextusmenüben.",
-    "previewDescription": "Miniatűr előnézetek megjelenítése a {filetype}, általános ikon megjelenítése, ha le van tiltva."
+    "previewDescription": "Miniatűr előnézetek megjelenítése a {filetype}, általános ikon megjelenítése, ha le van tiltva.",
+    "passkeys": "Jelszókulcsok",
+    "passkeysDescription": "Használjon jelszókulcsokat a biztonságos, jelszó nélküli többtényezős hitelesítéshez. Regisztráljon egy jelszókulcsot az eszközén, hogy biometrikus azonosítást vagy PIN-kódot használhasson OTP-kódok helyett.",
+    "noPasskeys": "Még nincsenek regisztrált jelszókulcsok.",
+    "addPasskey": "Jelszókulcs hozzáadása",
+    "addingPasskey": "Jelszókulcs hozzáadása...",
+    "passkeyAdded": "Jelszókulcs sikeresen hozzáadva!",
+    "passkeyAddFailed": "Nem sikerült hozzáadni a jelszókulcsot",
+    "passkeyDeleted": "Jelszókulcs törölve.",
+    "passkeyDeleteFailed": "Nem sikerült törölni a jelszókulcsot",
+    "created": "Létrehozva",
+    "lastUsed": "Utoljára használva",
+    "passkeyDefaultName": "Jelszókulcs",
+    "showToolsInSidebar": "Eszközök megjelenítése az oldalsávban",
+    "showToolsInSidebarDescription": "Mindig jelenítse meg az eszközök linket az oldalsávban."
   },
   "editor": {
     "uninitialized": "Nem sikerült inicializálni a szerkesztőt. Kérjük, töltse újra.",
@@ -797,7 +825,15 @@
     "QueuePlayback": "Lejátszási Sor",
     "changePlaybackMode": "Lejátszási mód változtatása",
     "changePlaybackModeHint": "Változtasd meg a lejátszási módot, hogy több fájlt láss",
-    "emptyQueue": "A sor üres"
+    "emptyQueue": "A sor üres",
+    "queue": "Sor",
+    "lyrics": "Dalszöveg",
+    "noLyrics": "Nincs elérhető dalszöveg",
+    "lockLyrics": "Dalszöveg zárolása",
+    "unlockLyrics": "Dalszöveg feloldása",
+    "toggleLyrics": "Dalszöveg be/ki",
+    "closePanel": "Panel bezárása",
+    "openPanel": "Panel megnyitása"
   },
   "fileSizeAnalyzer": {
     "title": "Fájlméret elemző",
@@ -858,6 +894,20 @@
       "stopWatching": "Stop Watching",
       "emptyState": "Válasszon ki egy fájlt, és kattintson a lejátszásra a fájlváltozások megfigyelésének megkezdéséhez.",
       "chooseFile": "Válasszon egy fájlt"
+    },
+    "advancedSearch": {
+      "name": "Speciális keresés",
+      "description": "Keresés az indexben a források, szűrők és opciók teljes körű ellenőrzésével",
+      "searchTerms": "Keresési feltételek",
+      "matchAllTerms": "Minden kifejezés egyezése",
+      "matchAllTermsDescription": "Ha engedélyezve van, minden keresési kifejezést meg kell találni minden egyes fájlhoz.",
+      "scopeAria": "Keresés korlátozása egy mappára",
+      "noTerms": "Adjon meg legalább egy keresési kifejezést.",
+      "termTooShort": "Minden keresési kifejezésnek legalább {minSearchLength} karakterből kell állnia.",
+      "caseExact": "Nagy- és kisbetű-érzékeny egyezés",
+      "resultsTitle": "Keresési eredmények",
+      "invalidSources": "Kapcsoljon be legalább egy forrást.",
+      "noResults": "Nincsenek megfelelő fájlok vagy mappák."
     }
   },
   "messages": {

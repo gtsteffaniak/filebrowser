@@ -16,7 +16,30 @@ type SearchOptions struct {
 	ModifiedOlderThan int64
 	// ModifiedNewerThan is Unix seconds (UTC start of day). If > 0, item must have ModTime >= this instant.
 	ModifiedNewerThan int64
-	Terms             []string
+	Terms []string
+	// MatchAllTerms, when true and non-wildcard search, an item must contain every term (AND). When false (default), any term matches (OR).
+	// For name GLOB wildcard search, name must match every pattern when true; when false, patterns are OR-combined in SQL.
+	MatchAllTerms bool
+}
+
+// BuildSearchOptionsFromQuery merges optional repeated literal terms (HTTP "terms" parameters) with structured filter text ("query" prefix).
+// When termValues has no non-empty entries, parses prefixQuery only (legacy behavior, including | for OR within the string).
+func BuildSearchOptionsFromQuery(prefixQuery string, termValues []string, termJoinAnd bool) SearchOptions {
+	prefixQuery = strings.TrimSpace(prefixQuery)
+	normalized := make([]string, 0, len(termValues))
+	for _, t := range termValues {
+		t = strings.TrimSpace(t)
+		if t != "" {
+			normalized = append(normalized, t)
+		}
+	}
+	if len(normalized) == 0 {
+		return ParseSearch(prefixQuery)
+	}
+	opts := ParseSearch(prefixQuery)
+	opts.Terms = normalized
+	opts.MatchAllTerms = termJoinAnd
+	return opts
 }
 
 func ParseSearch(value string) SearchOptions {
@@ -99,7 +122,15 @@ func ParseSearch(value string) SearchOptions {
 		return opts
 	}
 	value = strings.TrimSpace(value)
-	opts.Terms = strings.Split(value, "|")
+	parts := strings.Split(value, "|")
+	terms := make([]string, 0, len(parts))
+	for _, p := range parts {
+		t := strings.TrimSpace(p)
+		if t != "" {
+			terms = append(terms, t)
+		}
+	}
+	opts.Terms = terms
 	return opts
 }
 

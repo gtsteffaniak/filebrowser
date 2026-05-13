@@ -75,7 +75,12 @@
     "mouseActions": "Acciones con el mouse",
     "fileOperations": "Operaciones de Archivo",
     "click": "Selecciona un archivo o carpeta",
+    "dbClick": "Doble clic en un espacio vacío para seleccionar todos los elementos",
     "ctrl": {
+      "f1": "Cambiar a vista de lista",
+      "f2": "Cambiar a vista normal",
+      "f3": "Cambiar a vista de galería",
+      "scroll": "Cambiar tamaños de la lista y la fuente del editor",
       "click": "Selecciona varios archivos o carpetas (Selección multiple)",
       "d": "Descargar elementos seleccionados",
       "b": "Mostrar/ocultar el panel lateral",
@@ -86,7 +91,7 @@
       "e": "Cambiar entre editor y Visor Markdown (en archivos .md)"
     },
     "del": "Eliminar elementos seleccionados",
-    "esc": "Cancela la selección o cierra la vista actual",
+    "esc": "Cancela la selección o cierra el archivo actual",
     "f2": "Cambiar nombre del archivo o carpeta",
     "f1": "Abrir ventana de ayuda",
     "description": "Aquí puedes ver todos los atajos de teclado básicos. Si quieres saber más, visita la",
@@ -101,6 +106,8 @@
       "volume": "Subir o bajar el volumen",
       "mute": "Silenciar/Activar el sonido",
       "loop": "Activar/Desactivar reproducción en bucle",
+      "playbackQueue": "Abrir cola de reproducción o el panel (en audios)",
+      "switchTabs": "Cambiar pestañas en el panel (en audios)",
       "playbackModes": "Cambiar entre modos de reproducción (excepto bucle)",
       "fullscreen": "Cambiar a pantalla completa en vídeos",
       "captions": "Activar/Desactivar subtítulos"
@@ -141,10 +148,10 @@
     "passwordsDontMatch": "Las contraseñas no coinciden",
     "usernameTaken": "El usuario ya existe, intenta con otro nombre",
     "wrongCredentials": "Nombre de usuario y/o contraseña incorrectos",
-    "or": "O",
     "inProgress": "Iniciando sesión...",
     "failedLogin": "Error al iniciar sesión",
-    "invalidCredentials": "Credenciales no válidas"
+    "invalidCredentials": "Credenciales no válidas",
+    "passkeyLogin": "Usar clave de acceso"
   },
   "prompts": {
     "copyMessage": "Selecciona una ubicación para copiar",
@@ -256,9 +263,12 @@
     "showPreviewImagesDescription": "Mostrar miniaturas para los resultados de búsqueda - También hará los iconos más grandes.",
     "olderThanDate": "Más viejo que:",
     "newerThanDate": "Más nuevo que:",
-    "helpText2": "Los resultados de la búsqueda se basan en los archivos indexados, por lo que es posible que los archivos recién añadidos no aparezcan hasta que se indexen.",
     "noResults": "No se han encontrado resultados.",
-    "helpText1": "La búsqueda se produce en cada carácter que escriba ({minSearchLength} carácter mínimo)."
+    "helpText1": "La búsqueda se produce en cada carácter que escriba ({minSearchLength} carácter mínimo).",
+    "helpText2": "Coincidencia de subcadenas sólo en nombres de archivos o carpetas (no en rutas completas). case:exact para coincidencia sensible a mayúsculas y minúsculas.\n\n para OR entre términos utilice el carácter pipa; comillas dobles para una frase.\n\nHabilite la búsqueda con comodines para opciones más avanzadas.",
+    "useWildcardSearch": "Búsqueda con comodín (distingue mayúsculas de minúsculas)",
+    "useWildcardSearchDescription": "Opciones de comodín admitidas:\n\n- Coinciden con cualquier secuencia: *\n\n- Coincidir con un carácter: ?\n\n- Clase de caracteres: [a-z], [0-9]\n\n- Negación: [^0-9]\n\n- Los caracteres *, ? o [ deben ir entre paréntesis, por ejemplo [*], [?], [[].\n\n- Todos los resultados distinguen entre mayúsculas y minúsculas",
+    "openInAdvancedSearch": "Abrir en búsqueda avanzada"
   },
   "settings": {
     "scopes": "Fuentes a las que el usuario tendrá acceso:",
@@ -665,7 +675,9 @@
     "office": "Office{suffix}",
     "show": "Mostrar{suffix}",
     "divider": "Divisor{suffix}",
-    "audio": "Audio{suffix}"
+    "audio": "Audio{suffix}",
+    "and": "y",
+    "or": "o"
   },
   "access": {
     "rules": "Reglas de acceso",
@@ -711,6 +723,8 @@
     "orange": "Naranja"
   },
   "profileSettings": {
+    "hideFileExt": "Ocultar ciertos archivos (por extensión)",
+    "hideFileExtDescription": "Una lista de extensiones de archivo separadas por espacios. Las extensiones que agreges aquí se ocultarán de toda la interfaz (visualmente, como en la lista o en la navegación de árbol) — Los archivos siguen siendo accesibles.",
     "preferEditorForMarkdown": "Preferir editor para archivos Markdown",
     "preferEditorForMarkdownDescription": "Cuando está activado, los archivos markdown abrirán el editor en lugar del visor de Markdown",
     "deleteAfterArchive": "Eliminar archivos originales después de la creación/extracción de archivos",
@@ -773,7 +787,21 @@
     "showThumbnailsDescription": "Cuando está activada, se mostrarán miniaturas para todos los archivos soportados. Puedes desactivarlo para desactivar todas las miniaturas.",
     "showCopyPath": "Mostrar ruta de copia en el menú contextual",
     "showCopyPathDescription": "Mostrar una acción Copiar ruta en el menú contextual de archivos y carpetas.",
-    "previewDescription": "Mostrar vistas previas en miniatura para {filetype}, mostrará el icono genérico si está desactivado."
+    "previewDescription": "Mostrar vistas previas en miniatura para {filetype}, mostrará el icono genérico si está desactivado.",
+    "passkeys": "Claves de acceso",
+    "passkeysDescription": "Utilice claves de acceso para una autenticación segura multifactor sin contraseña. Registre una clave en su dispositivo para usar verificación biométrica o PIN en lugar de códigos OTP.",
+    "noPasskeys": "No hay claves de acceso registradas aún.",
+    "addPasskey": "Añadir clave de acceso",
+    "addingPasskey": "Añadiendo clave de acceso...",
+    "passkeyAdded": "¡Clave de acceso añadida correctamente!",
+    "passkeyAddFailed": "Error al añadir la clave de acceso",
+    "passkeyDeleted": "Clave de acceso eliminada.",
+    "passkeyDeleteFailed": "Error al eliminar la clave de acceso",
+    "created": "Creado",
+    "lastUsed": "Último uso",
+    "passkeyDefaultName": "Clave de acceso",
+    "showToolsInSidebar": "Mostrar herramientas en la barra lateral",
+    "showToolsInSidebarDescription": "Mostrar siempre el enlace de herramientas en la barra lateral."
   },
   "editor": {
     "uninitialized": "No se pudo iniciar el editor",
@@ -797,7 +825,15 @@
     "QueuePlayback": "Cola de Reproducción",
     "changePlaybackMode": "Cambiar modo de Reproducción",
     "changePlaybackModeHint": "Cambia el modo de reproducción para ver más",
-    "emptyQueue": "La cola de reproducción está vacia..."
+    "emptyQueue": "La cola de reproducción está vacia...",
+    "queue": "Cola",
+    "lyrics": "Letra",
+    "noLyrics": "No hay letra disponible",
+    "lockLyrics": "Bloquear letras",
+    "unlockLyrics": "Desbloquear letras",
+    "toggleLyrics": "Mostrar letras",
+    "closePanel": "Cerrar panel",
+    "openPanel": "Abrir panel"
   },
   "fileSizeAnalyzer": {
     "title": "Analizador de espacio",
@@ -858,6 +894,20 @@
       "stopWatching": "Dejar de ver",
       "emptyState": "Elije un archivo y haz clic en el botón para empezar a ver los cambios en el archivo",
       "chooseFile": "Elije un archivo"
+    },
+    "advancedSearch": {
+      "name": "Búsqueda avanzada",
+      "description": "Búsqueda en el índice con control total sobre fuentes, filtros y opciones",
+      "searchTerms": "Términos de la búsqueda",
+      "matchAllTerms": "Emparejar todos los términos",
+      "matchAllTermsDescription": "Cuando está activada, deben encontrarse todos los términos de búsqueda para cada archivo",
+      "scopeAria": "Limitar la búsqueda a una carpeta",
+      "noTerms": "Introduzca al menos un término de búsqueda.",
+      "termTooShort": "Cada término de búsqueda debe tener al menos {minSearchLength} caracteres",
+      "caseExact": "Coincidencia entre mayúsculas y minúsculas",
+      "resultsTitle": "Resultados de la búsqueda",
+      "invalidSources": "Enciende al menos una fuente.",
+      "noResults": "No hay archivos o carpetas coincidentes."
     }
   },
   "messages": {

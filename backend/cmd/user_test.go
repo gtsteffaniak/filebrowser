@@ -25,6 +25,7 @@ func TestUpdateUserScopes_Phases(t *testing.T) {
 		"sourceA": &sourceA,
 		"sourceB": &sourceB,
 	}
+	settings.InitializeUserResolvers()
 
 	// ---------------------
 	// Test Cases Definition

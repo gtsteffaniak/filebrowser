@@ -111,6 +111,11 @@ func StartHttp(ctx context.Context, shutdownComplete chan struct{}) {
 	api.HandleFunc("GET /auth/token", withUser(getApiTokenHandler))
 	api.HandleFunc("GET /auth/oidc/callback", wrapHandler(oidcCallbackHandler))
 	api.HandleFunc("GET /auth/oidc/login", wrapHandler(oidcLoginHandler))
+	api.HandleFunc("POST /auth/webauthn/begin-login", withoutUser(beginPasskeyLoginHandler))
+	api.HandleFunc("POST /auth/webauthn/finish-login", withoutUser(finishPasskeyLoginHandler))
+	api.HandleFunc("POST /auth/webauthn/begin-register", withUser(beginPasskeyRegistrationHandler))
+	api.HandleFunc("POST /auth/webauthn/finish-register", withUser(finishPasskeyRegistrationHandler))
+	api.HandleFunc("DELETE /auth/webauthn/{id}", withUser(deletePasskeyCredentialHandler))
 
 	// ========================================
 	// Resources Routes - /api/resources/ (with public routes)
@@ -184,7 +189,9 @@ func StartHttp(ctx context.Context, shutdownComplete chan struct{}) {
 	// ========================================
 	api.HandleFunc("GET /media/subtitles", withUser(subtitlesHandler))
 	api.HandleFunc("GET /media/metadata", withUser(metadataHandler))
+	api.HandleFunc("GET /media/lyrics", withUser(lyricsHandler))
 	publicApi.HandleFunc("GET /media/metadata", withHashFile(publicMetadataHandler))
+	publicApi.HandleFunc("GET /media/lyrics", withHashFile(publicLyricsHandler))
 
 	// ========================================
 	// OnlyOffice Routes - /api/office/ (with public routes)
