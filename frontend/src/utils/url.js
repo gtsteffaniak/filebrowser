@@ -206,10 +206,11 @@ export function encodedPath(path) {
 
 // assume non-encoded input path and source
 export function goToItem(source, path, previousHistoryItem, newTab = false) {
-  if (source == state.sources.current && path == state.req.path) {
+  const cv = getters.currentView();
+  if (source == state.sources.current && path == state.req.path && cv == "listingView") {
     return;
   }
-  if (previousHistoryItem) {
+  if (previousHistoryItem && cv == "listingView`") {
     mutations.setPreviousHistoryItem(previousHistoryItem);
   }
   mutations.resetAll()
