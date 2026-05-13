@@ -132,7 +132,7 @@ func setupJwtUser(r *http.Request, data *requestContext, username string, claims
 			Username:    username,
 		}
 		settings.ApplyUserDefaults(&user)
-		
+
 		// Check if user should be admin based on groups
 		if config.Auth.Methods.JwtAuth.AdminGroup != "" {
 			groups := auth.ExtractGroupsFromClaims(claims, config.Auth.Methods.JwtAuth.GroupsClaim)
@@ -143,12 +143,12 @@ func setupJwtUser(r *http.Request, data *requestContext, username string, claims
 				}
 			}
 		}
-		
+
 		// Also check if username matches admin username
 		if user.Username == config.Auth.AdminUsername {
 			user.Permissions.Admin = true
 		}
-		
+
 		err = storage.CreateUser(user, user.Permissions)
 		if err != nil {
 			return nil, err
@@ -158,12 +158,12 @@ func setupJwtUser(r *http.Request, data *requestContext, username string, claims
 			return nil, err
 		}
 	}
-	
+
 	// Verify login method matches
 	if data.user.LoginMethod != users.LoginMethodJwt {
 		return nil, errors.ErrWrongLoginMethod
 	}
-	
+
 	// Check if user is in allowed groups (if UserGroups is configured)
 	if len(config.Auth.Methods.JwtAuth.UserGroups) > 0 {
 		groups := auth.ExtractGroupsFromClaims(claims, config.Auth.Methods.JwtAuth.GroupsClaim)
@@ -183,7 +183,7 @@ func setupJwtUser(r *http.Request, data *requestContext, username string, claims
 			return nil, fmt.Errorf("user is not in allowed groups")
 		}
 	}
-	
+
 	// Update admin status if needed
 	shouldBeAdmin := false
 	if config.Auth.Methods.JwtAuth.AdminGroup != "" {
@@ -198,7 +198,7 @@ func setupJwtUser(r *http.Request, data *requestContext, username string, claims
 	if data.user.Username == config.Auth.AdminUsername {
 		shouldBeAdmin = true
 	}
-	
+
 	if shouldBeAdmin != data.user.Permissions.Admin {
 		data.user.Permissions.Admin = shouldBeAdmin
 		err = store.Users.Update(data.user, true, "Permissions")
@@ -206,7 +206,7 @@ func setupJwtUser(r *http.Request, data *requestContext, username string, claims
 			return nil, err
 		}
 	}
-	
+
 	return data.user, nil
 }
 
@@ -340,7 +340,7 @@ func signupHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		},
 		LoginMethod: users.LoginMethodPassword,
 	}
-	err := storage.CreateUser(user, settings.ConvertPermissionsToUsers(settings.Config.UserDefaults.Permissions))
+	err := storage.CreateUser(user, settings.ConvertPermissionsToUsers(settings.Config.UserDefaults.Account.Permissions))
 	if err != nil {
 		logger.Debug(err.Error())
 		// Return the actual error message instead of a generic one

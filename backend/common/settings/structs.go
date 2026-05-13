@@ -339,14 +339,12 @@ type UserDefaultsPermissions struct {
 
 // UserDefaultsSidebar holds sidebar-related settings
 type UserDefaultsSidebar struct {
-	DisableQuickToggles  bool   `json:"disableQuickToggles"`  // disable the quick toggles in the sidebar
-	HideFileActions      bool   `json:"hideFileActions"`      // hide the file actions in the sidebar
-	DisableHideOnPreview bool   `json:"disableHideOnPreview"` // keep sidebar open when previewing files (was preview.disableHideSidebar)
-	Sticky               bool   `json:"sticky"`               // keep sidebar open when navigating
-	ViewMode             string `json:"viewMode"`             // view mode to use: eg. normal, list, grid, or compact
-	GallerySize          int    `json:"gallerySize"`          // 0-9 - the size of the gallery thumbnails
-	HideFiles            bool   `json:"hideFiles"`            // hide files in the sidebar tree navigation, when true, will show only directories
-	ShowTools            *bool  `json:"showTools"`            // show sidebar links with category "tool"; default is true
+	DisableQuickToggles  bool  `json:"disableQuickToggles"`  // disable the quick toggles in the sidebar
+	HideFileActions      bool  `json:"hideFileActions"`      // hide the file actions in the sidebar
+	DisableHideOnPreview bool  `json:"disableHideOnPreview"` // keep sidebar open when previewing files (was preview.disableHideSidebar)
+	Sticky               bool  `json:"sticky"`               // keep sidebar open when navigating
+	HideFiles            bool  `json:"hideFiles"`            // hide files in the sidebar tree navigation, when true, will show only directories
+	ShowTools            *bool `json:"showTools"`            // show sidebar links with category "tool"; default is true
 }
 
 // UserDefaultsListing holds file listing display settings
@@ -360,6 +358,8 @@ type UserDefaultsListing struct {
 	HideFileExt             string `json:"hideFileExt"`             // space separated list of file extensions to hide in UI
 	ShowCopyPath            bool   `json:"showCopyPath"`            // show copy path button in the context menu
 	DeleteAfterArchive      bool   `json:"deleteAfterArchive"`      // delete source files after successful creation/extraction of archives
+	ViewMode                string `json:"viewMode"`                // view mode to use: eg. normal, list, grid, or compact
+	GallerySize             int    `json:"gallerySize"`             // 0-9 - the size of the gallery thumbnails
 }
 
 // UserDefaultsPreviewNew holds preview-related settings
@@ -398,6 +398,7 @@ type UserDefaultsUI struct {
 	ThemeColor  string `json:"themeColor"`  // theme color to use: eg. #ff0000, or var(--red), var(--purple), etc
 	CustomTheme string `json:"customTheme"` // Name of theme to use chosen from custom themes config
 	Locale      string `json:"locale"`      // language to use: eg. de, en, or fr
+
 }
 
 // UserDefaultsAccount holds account/security settings
@@ -426,7 +427,7 @@ type UserDefaults struct {
 	// New organized structure
 	Sidebar     UserDefaultsSidebar    `json:"sidebar,omitempty"`
 	Listing     UserDefaultsListing    `json:"listing,omitempty"`
-	PreviewNew  UserDefaultsPreviewNew `json:"preview,omitempty"`  // Note: struct name is PreviewNew to avoid conflict with deprecated Preview field below
+	PreviewNew  UserDefaultsPreviewNew `json:"preview,omitempty"` // Note: struct name is PreviewNew to avoid conflict with deprecated Preview field below
 	FileViewer  UserDefaultsFileViewer `json:"fileViewer,omitempty"`
 	Search      UserDefaultsSearch     `json:"search,omitempty"`
 	UI          UserDefaultsUI         `json:"ui,omitempty"`

@@ -21,7 +21,7 @@ func boolValueOrDefault(ptr *bool, defaultValue bool) bool {
 }
 
 // ConvertPermissionsToUsers converts UserDefaultsPermissions to users.Permissions
-func ConvertPermissionsToUsers(p UserDefaultsPermissions) users.Permissions {
+func ConvertPermissionsToUsers(p UserDefaultsAccountPermissions) users.Permissions {
 	return users.Permissions{
 		Api:      p.Api,
 		Admin:    p.Admin,
@@ -84,8 +84,6 @@ func ApplyUserDefaults(u *users.User) {
 	u.HideSidebarFileActions = d.Sidebar.HideFileActions
 	u.StickySidebar = d.Sidebar.Sticky
 	u.HideFilesInTree = d.Sidebar.HideFiles
-	u.ViewMode = d.Sidebar.ViewMode
-	u.GallerySize = d.Sidebar.GallerySize
 	u.ShowToolsInSidebar = boolValueOrDefault(d.Sidebar.ShowTools, true)
 
 	// Listing settings
@@ -98,6 +96,8 @@ func ApplyUserDefaults(u *users.User) {
 	u.HideFileExt = d.Listing.HideFileExt
 	u.ShowCopyPath = d.Listing.ShowCopyPath
 	u.DeleteAfterArchive = d.Listing.DeleteAfterArchive
+	u.ViewMode = d.Listing.ViewMode
+	u.GallerySize = d.Listing.GallerySize
 
 	// Preview settings
 	u.Preview.DisableHideSidebar = d.Sidebar.DisableHideOnPreview

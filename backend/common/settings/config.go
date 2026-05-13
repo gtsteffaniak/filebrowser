@@ -478,7 +478,7 @@ func setupAuth(generate bool) {
 		Config.Auth.Methods.PasswordAuth.Enabled = true
 		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "password")
 	}
-	Config.UserDefaults.LoginMethod = Config.Auth.AuthMethods[0]
+	Config.UserDefaults.Account.LoginMethod = Config.Auth.AuthMethods[0]
 
 }
 
@@ -559,14 +559,14 @@ func migrateUserDefaults() {
 		logger.Warning("userDefaults: migrating deprecated field 'stickySidebar' to 'sidebar.sticky'")
 	}
 
-	if isUnsetString(ud.Sidebar.ViewMode) && !isUnsetString(ud.ViewMode) {
-		ud.Sidebar.ViewMode = ud.ViewMode
+	if isUnsetString(ud.Listing.ViewMode) && !isUnsetString(ud.ViewMode) {
+		ud.Listing.ViewMode = ud.ViewMode
 		hasOldFields = true
 		logger.Warning("userDefaults: migrating deprecated field 'viewMode' to 'sidebar.viewMode'")
 	}
 
-	if isUnsetInt(ud.Sidebar.GallerySize) && !isUnsetInt(ud.GallerySize) {
-		ud.Sidebar.GallerySize = ud.GallerySize
+	if isUnsetInt(ud.Listing.GallerySize) && !isUnsetInt(ud.GallerySize) {
+		ud.Listing.GallerySize = ud.GallerySize
 		hasOldFields = true
 		logger.Warning("userDefaults: migrating deprecated field 'gallerySize' to 'sidebar.gallerySize'")
 	}
@@ -861,7 +861,7 @@ func migrateUserDefaults() {
 }
 
 func loadConfigWithDefaults(configFile string, generate bool) error {
-	Config = setDefaults(generate)
+	Config = SetDefaults(generate)
 
 	// Check if config file exists
 	if _, err := os.Stat(configFile); err != nil {
@@ -1014,7 +1014,7 @@ func loadEnvConfig() {
 	}
 }
 
-func setDefaults(generate bool) Settings {
+func SetDefaults(generate bool) Settings {
 	// get number of CPUs available
 	numCpus := 4 // default to 4 CPUs if runtime.NumCPU() fails or is not available
 	cpus := runtime.NumCPU()
@@ -1071,8 +1071,6 @@ func setDefaults(generate bool) Settings {
 				HideFileActions:      false,
 				DisableHideOnPreview: false,
 				Sticky:               true,
-				ViewMode:             "normal",
-				GallerySize:          3,
 				HideFiles:            false,
 				ShowTools:            boolPtr(true),
 			},
@@ -1086,6 +1084,8 @@ func setDefaults(generate bool) Settings {
 				HideFileExt:             "",
 				ShowCopyPath:            false,
 				DeleteAfterArchive:      true,
+				ViewMode:                "normal",
+				GallerySize:             3,
 			},
 			PreviewNew: UserDefaultsPreviewNew{
 				Image:              boolPtr(true),

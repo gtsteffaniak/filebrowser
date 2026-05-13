@@ -6543,6 +6543,10 @@ const docTemplate = `{
                     "description": "delete files without confirmation",
                     "type": "boolean"
                 },
+                "gallerySize": {
+                    "description": "0-9 - the size of the gallery thumbnails",
+                    "type": "integer"
+                },
                 "hideFileExt": {
                     "description": "space separated list of file extensions to hide in UI",
                     "type": "string"
@@ -6566,6 +6570,10 @@ const docTemplate = `{
                 "singleClick": {
                     "description": "open directory on single click, also enables middle click to open in new tab",
                     "type": "boolean"
+                },
+                "viewMode": {
+                    "description": "view mode to use: eg. normal, list, grid, or compact",
+                    "type": "string"
                 }
             }
         },
@@ -6671,10 +6679,6 @@ const docTemplate = `{
                     "description": "disable the quick toggles in the sidebar",
                     "type": "boolean"
                 },
-                "gallerySize": {
-                    "description": "0-9 - the size of the gallery thumbnails",
-                    "type": "integer"
-                },
                 "hideFileActions": {
                     "description": "hide the file actions in the sidebar",
                     "type": "boolean"
@@ -6690,10 +6694,6 @@ const docTemplate = `{
                 "sticky": {
                     "description": "keep sidebar open when navigating",
                     "type": "boolean"
-                },
-                "viewMode": {
-                    "description": "view mode to use: eg. normal, list, grid, or compact",
-                    "type": "string"
                 }
             }
         },
