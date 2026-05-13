@@ -225,7 +225,6 @@ export const getters = {
       if (item.type === 'directory') {
         dirs.push(item);
       } else {
-        item.Path = state.req.path;
         files.push(item);
       }
     }
@@ -580,6 +579,10 @@ export const getters = {
     }
     const isAdvancedSearchRoute = (state.route?.path || "").startsWith("/tools/advancedSearch");
     return getters.currentView() === "listingView" || getters.isEditorOrMarkdownView() || isAdvancedSearchRoute;
+  },
+  showGallerySizeSlider: () => {
+    const isAdvancedSearchRoute = (state.route?.path || "").startsWith("/tools/advancedSearch");
+    return getters.currentView() === "listingView" || isAdvancedSearchRoute;
   },
   permissions: () => {
     if (getters.isShare()) {
