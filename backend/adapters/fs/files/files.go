@@ -458,10 +458,12 @@ func extractAudioMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 	if rawLyrics := m.Lyrics(); rawLyrics != "" {
 		item.Metadata.HasLyrics = true
 	} else {
-		// Check for .lrc file
-		ext := filepath.Ext(realPath)
-		base := strings.TrimSuffix(realPath, ext)
-		lrcPath := base + ".lrc"
+		// Check for sidecar .lrc file
+		dir := filepath.Dir(realPath)
+		base := filepath.Base(realPath)
+		ext := filepath.Ext(base)
+		nameWithoutExt := strings.TrimSuffix(base, ext)
+		lrcPath := filepath.Join(dir, nameWithoutExt+".lrc")
 		if _, err := os.Stat(lrcPath); err == nil {
 			item.Metadata.HasLyrics = true
 		}
@@ -526,9 +528,12 @@ func ExtractLyrics(realPath string) ([]iteminfo.Lyric, error) {
 		lyrics = parseLRC(raw)
 	}
 	if len(lyrics) == 0 {
-		ext := filepath.Ext(realPath)
-		base := strings.TrimSuffix(realPath, ext)
-		lrcPath := base + ".lrc"
+		// Check for sidecar .lrc file
+		dir := filepath.Dir(realPath)
+		base := filepath.Base(realPath)
+		ext := filepath.Ext(base)
+		nameWithoutExt := strings.TrimSuffix(base, ext)
+		lrcPath := filepath.Join(dir, nameWithoutExt+".lrc")
 		if data, err := os.ReadFile(lrcPath); err == nil {
 			lyrics = parseLRC(string(data))
 		}
