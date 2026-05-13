@@ -164,8 +164,6 @@ userDefaults:
     hideFileActions: false                # hide the file actions in the sidebar
     disableHideOnPreview: false           # keep sidebar open when previewing files (was preview.disableHideSidebar)
     sticky: true                          # keep sidebar open when navigating
-    viewMode: "normal"                    # view mode to use: eg. normal, list, grid, or compact
-    gallerySize: 3                        # 0-9 - the size of the gallery thumbnails
     hideFiles: false                      # hide files in the sidebar tree navigation, when true, will show only directories
     showTools: true                       # show sidebar links with category "tool"; default is true
   listing:
@@ -178,7 +176,9 @@ userDefaults:
     hideFileExt: ""                       # space separated list of file extensions to hide in UI
     showCopyPath: false                   # show copy path button in the context menu
     deleteAfterArchive: true              # delete source files after successful creation/extraction of archives
-  preview:                                # Note: struct name is PreviewNew to avoid conflict with deprecated Preview field below
+    viewMode: "normal"                    # view mode to use: eg. normal, list, grid, or compact
+    gallerySize: 3                        # 0-9 - the size of the gallery thumbnails
+  preview:
     image: true                           # show thumbnails for image files
     video: true                           # show thumbnails for video files
     audio: true                           # show thumbnails for audio files
@@ -221,7 +221,7 @@ userDefaults:
       download: true                      # allow downloading files
     lockPassword: false                   # disable the user from changing their password
     disableSettings: false                # disable the user from viewing the settings page
-    loginMethod: ""                       # login method to use: eg. password, proxy, oidc
+    loginMethod: "password"               # login method to use: eg. password, proxy, oidc
     disableUpdateNotifications: false     # disable update notifications banner for admin users
 integrations:
   office:                                 #  validate:omitempty
