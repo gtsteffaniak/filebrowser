@@ -1310,7 +1310,7 @@ definitions:
         description: 'deprecated: use fileViewer.disableOnlyOfficeExt instead'
         type: string
       disablePreviewExt:
-        description: 'deprecated: use previewNew.disablePreviewExt instead'
+        description: 'deprecated: use Preview.disablePreviewExt instead'
         type: string
       disableQuickToggles:
         description: 'deprecated: use sidebar.disableQuickToggles instead'
@@ -1366,8 +1366,8 @@ definitions:
         type: boolean
       preview:
         allOf:
-        - $ref: '#/definitions/settings.UserDefaultsPreviewNew'
-        description: 'Note: struct name is PreviewNew to avoid conflict with deprecated
+        - $ref: '#/definitions/settings.UserDefaultsPreview'
+        description: 'Note: struct name is Preview to avoid conflict with deprecated
           Preview field below'
       quickDownload:
         description: 'deprecated: use listing.quickDownload instead'
@@ -1547,7 +1547,7 @@ definitions:
           files'
         type: boolean
     type: object
-  settings.UserDefaultsPreviewNew:
+  settings.UserDefaultsPreview:
     properties:
       audio:
         description: show thumbnails for audio files

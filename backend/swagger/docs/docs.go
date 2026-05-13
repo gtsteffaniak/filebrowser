@@ -6298,7 +6298,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "disablePreviewExt": {
-                    "description": "deprecated: use previewNew.disablePreviewExt instead",
+                    "description": "deprecated: use Preview.disablePreviewExt instead",
                     "type": "string"
                 },
                 "disableQuickToggles": {
@@ -6375,10 +6375,10 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "preview": {
-                    "description": "Note: struct name is PreviewNew to avoid conflict with deprecated Preview field below",
+                    "description": "Note: struct name is Preview to avoid conflict with deprecated Preview field below",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/settings.UserDefaultsPreviewNew"
+                            "$ref": "#/definitions/settings.UserDefaultsPreview"
                         }
                     ]
                 },
@@ -6614,7 +6614,7 @@ const docTemplate = `{
                 }
             }
         },
-        "settings.UserDefaultsPreviewNew": {
+        "settings.UserDefaultsPreview": {
             "type": "object",
             "properties": {
                 "audio": {
@@ -7735,4 +7735,3 @@ var SwaggerInfo = &swag.Spec{
 	LeftDelim:        "{{",
 	RightDelim:       "}}",
 }
-

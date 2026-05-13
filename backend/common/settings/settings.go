@@ -101,15 +101,15 @@ func ApplyUserDefaults(u *users.User) {
 
 	// Preview settings
 	u.Preview.DisableHideSidebar = d.Sidebar.DisableHideOnPreview
-	u.Preview.Image = boolValueOrDefault(d.PreviewNew.Image, true)
-	u.Preview.Video = boolValueOrDefault(d.PreviewNew.Video, true)
-	u.Preview.Audio = boolValueOrDefault(d.PreviewNew.Audio, true)
-	u.Preview.MotionVideoPreview = boolValueOrDefault(d.PreviewNew.MotionVideoPreview, true)
-	u.Preview.Office = boolValueOrDefault(d.PreviewNew.Office, true)
-	u.Preview.PopUp = boolValueOrDefault(d.PreviewNew.PopUp, true)
-	u.Preview.Folder = boolValueOrDefault(d.PreviewNew.Folder, true)
-	u.Preview.Models = boolValueOrDefault(d.PreviewNew.Models, true)
-	u.DisablePreviewExt = d.PreviewNew.DisablePreviewExt
+	u.Preview.Image = boolValueOrDefault(d.Preview.Image, true)
+	u.Preview.Video = boolValueOrDefault(d.Preview.Video, true)
+	u.Preview.Audio = boolValueOrDefault(d.Preview.Audio, true)
+	u.Preview.MotionVideoPreview = boolValueOrDefault(d.Preview.MotionVideoPreview, true)
+	u.Preview.Office = boolValueOrDefault(d.Preview.Office, true)
+	u.Preview.PopUp = boolValueOrDefault(d.Preview.PopUp, true)
+	u.Preview.Folder = boolValueOrDefault(d.Preview.Folder, true)
+	u.Preview.Models = boolValueOrDefault(d.Preview.Models, true)
+	u.DisablePreviewExt = d.Preview.DisablePreviewExt
 
 	// FileViewer settings
 	u.EditorQuickSave = d.FileViewer.EditorQuickSave

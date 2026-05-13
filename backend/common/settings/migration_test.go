@@ -51,14 +51,12 @@ func TestMigrateUserDefaults_OldToNew(t *testing.T) {
 			Download: boolPtr(false),
 		},
 		Preview: UserDefaultsPreview{
-			DisableHideSidebar: true,
 			Image:              boolPtr(true),
 			Video:              boolPtr(true),
 			Audio:              boolPtr(true),
 			MotionVideoPreview: boolPtr(true),
 			Office:             boolPtr(true),
 			PopUp:              boolPtr(true),
-			AutoplayMedia:      boolPtr(true),
 			HighQuality:        boolPtr(true),
 			Folder:             boolPtr(true),
 			Models:             boolPtr(true),
@@ -125,17 +123,17 @@ func TestMigrateUserDefaults_OldToNew(t *testing.T) {
 	}
 
 	// Preview fields
-	if ud.PreviewNew.Image == nil || *ud.PreviewNew.Image != true {
+	if ud.Preview.Image == nil || *ud.Preview.Image != true {
 		t.Error("preview.image should be true")
 	}
-	if ud.PreviewNew.Video == nil || *ud.PreviewNew.Video != true {
+	if ud.Preview.Video == nil || *ud.Preview.Video != true {
 		t.Error("preview.video should be true")
 	}
-	if ud.PreviewNew.Audio == nil || *ud.PreviewNew.Audio != true {
+	if ud.Preview.Audio == nil || *ud.Preview.Audio != true {
 		t.Error("preview.audio should be true")
 	}
-	if ud.PreviewNew.DisablePreviewExt != ".exe" {
-		t.Errorf("preview.disablePreviewExt should be '.exe', got '%s'", ud.PreviewNew.DisablePreviewExt)
+	if ud.Preview.DisablePreviewExt != ".exe" {
+		t.Errorf("preview.disablePreviewExt should be '.exe', got '%s'", ud.Preview.DisablePreviewExt)
 	}
 
 	// FileViewer fields

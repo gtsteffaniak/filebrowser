@@ -307,22 +307,6 @@ type ExternalLink struct {
 	Url   string `json:"url" validate:"required"`  // the url to link to
 }
 
-// UserDefaultsPreview holds preview settings with pointer types for defaults
-type UserDefaultsPreview struct {
-	DisableHideSidebar bool  `json:"disableHideSidebar"` // deprecated: use sidebar.disableHideSidebarOnPreview instead. keep sidebar open when previewing files
-	HighQuality        *bool `json:"highQuality"`        // deprecated: always true in v1.3.0+
-	Image              *bool `json:"image"`              // deprecated: use preview.image instead. show thumbnails for image files
-	Video              *bool `json:"video"`              // deprecated: use preview.video instead. show thumbnails for video files
-	Audio              *bool `json:"audio"`              // deprecated: use preview.audio instead. show thumbnails for audio files
-	MotionVideoPreview *bool `json:"motionVideoPreview"` // deprecated: use preview.motionVideoPreview instead. show multiple frames for videos in thumbnail preview when hovering
-	Office             *bool `json:"office"`             // deprecated: use preview.office instead. show thumbnails for office files
-	PopUp              *bool `json:"popup"`              // deprecated: use preview.popup instead. show larger popup preview when hovering over thumbnail
-	AutoplayMedia      *bool `json:"autoplayMedia"`      // deprecated: use fileViewer.autoplayMedia instead. autoplay media files in preview
-	DefaultMediaPlayer bool  `json:"defaultMediaPlayer"` // disable the styled feature-rich media player for browser default
-	Folder             *bool `json:"folder"`             // show thumbnails for folders that have previewable contents
-	Models             *bool `json:"models"`             // show live thumbnails for 3D models files
-}
-
 // UserDefaultsPermissions holds permission settings with pointer types for defaults
 type UserDefaultsPermissions struct {
 	Api      bool  `json:"api"`      // deprecated: use account.permissions.api instead. allow api access
@@ -362,8 +346,8 @@ type UserDefaultsListing struct {
 	GallerySize             int    `json:"gallerySize"`             // 0-9 - the size of the gallery thumbnails
 }
 
-// UserDefaultsPreviewNew holds preview-related settings
-type UserDefaultsPreviewNew struct {
+// UserDefaultsPreview holds preview-related settings
+type UserDefaultsPreview struct {
 	Image              *bool  `json:"image"`              // show thumbnails for image files
 	Video              *bool  `json:"video"`              // show thumbnails for video files
 	Audio              *bool  `json:"audio"`              // show thumbnails for audio files
@@ -374,6 +358,10 @@ type UserDefaultsPreviewNew struct {
 	HighQuality        *bool  `json:"highQuality"`        // high quality preview thumbnails
 	Folder             *bool  `json:"folder"`             // show thumbnails for folders that have previewable contents
 	Models             *bool  `json:"models"`             // show live thumbnails for 3D models files
+	// deprecated fields
+	DisableHideSidebar bool `json:"disableHideSidebar"` // deprecated: use sidebar.disableHideOnPreview instead. disable the hide sidebar preview for previews and editors
+	DefaultMediaPlayer bool `json:"defaultMediaPlayer"` // deprecated: use fileViewer.defaultMediaPlayer instead. disable the styled feature-rich media player for browser default
+	AutoplayMedia      bool `json:"autoplayMedia"`      // deprecated: use fileViewer.autoplayMedia instead. autoplay media files in preview
 }
 
 // UserDefaultsFileViewer holds file viewer/editor settings
@@ -427,7 +415,7 @@ type UserDefaults struct {
 	// New organized structure
 	Sidebar     UserDefaultsSidebar    `json:"sidebar,omitempty"`
 	Listing     UserDefaultsListing    `json:"listing,omitempty"`
-	PreviewNew  UserDefaultsPreviewNew `json:"preview,omitempty"` // Note: struct name is PreviewNew to avoid conflict with deprecated Preview field below
+	Preview     UserDefaultsPreview    `json:"preview,omitempty"`
 	FileViewer  UserDefaultsFileViewer `json:"fileViewer,omitempty"`
 	Search      UserDefaultsSearch     `json:"search,omitempty"`
 	UI          UserDefaultsUI         `json:"ui,omitempty"`
@@ -451,11 +439,10 @@ type UserDefaults struct {
 	GallerySize                int                     `json:"gallerySize,omitempty"`            // deprecated: use sidebar.gallerySize instead
 	ThemeColor                 string                  `json:"themeColor,omitempty"`             // deprecated: use ui.themeColor instead
 	QuickDownload              bool                    `json:"quickDownload,omitempty"`          // deprecated: use listing.quickDownload instead
-	DisablePreviewExt          string                  `json:"disablePreviewExt,omitempty"`      // deprecated: use previewNew.disablePreviewExt instead
+	DisablePreviewExt          string                  `json:"disablePreviewExt,omitempty"`      // deprecated: use preview.disablePreviewExt instead
 	DisableViewingExt          string                  `json:"disableViewingExt,omitempty"`      // deprecated: use fileViewer.disableViewingExt instead
 	LockPassword               bool                    `json:"lockPassword,omitempty"`           // deprecated: use account.lockPassword instead
 	DisableSettings            bool                    `json:"disableSettings,omitempty"`        // deprecated: use account.disableSettings instead
-	Preview                    UserDefaultsPreview     `json:"-"`                                // deprecated: excluded from config, use new organized preview structure (see PreviewNew field above)
 	DefaultScopes              []users.SourceScope     `json:"-"`
 	Permissions                UserDefaultsPermissions `json:"permissions,omitempty"`                // deprecated: use account.permissions instead
 	LoginMethod                string                  `json:"loginMethod,omitempty"`                // deprecated: use account.loginMethod instead

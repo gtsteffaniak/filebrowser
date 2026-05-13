@@ -145,7 +145,8 @@ func runCLI() (bool, bool) {
 		}
 		return false, false
 	default:
-		return true, false
+		dbExists := getStore(storeCfg)
+		return true, dbExists
 	}
 }
 

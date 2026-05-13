@@ -540,6 +540,17 @@ func migrateUserDefaults() {
 		return v == 0
 	}
 
+	// warn about deprecated fields
+	if ud.Preview.DisableHideSidebar {
+		logger.Warning("userDefaults: migrating deprecated field 'disableHideSidebar' to 'sidebar.disableHideOnPreview'")
+	}
+	if ud.Preview.DefaultMediaPlayer {
+		logger.Warning("userDefaults: migrating deprecated field 'defaultMediaPlayer' to 'fileViewer.defaultMediaPlayer'")
+	}
+	if ud.Preview.AutoplayMedia {
+		logger.Warning("userDefaults: migrating deprecated field 'autoplayMedia' to 'fileViewer.autoplayMedia'")
+	}
+
 	// Migrate Sidebar fields
 	if !ud.Sidebar.DisableQuickToggles && ud.DisableQuickToggles {
 		ud.Sidebar.DisableQuickToggles = ud.DisableQuickToggles
@@ -581,13 +592,6 @@ func migrateUserDefaults() {
 		ud.Sidebar.ShowTools = ud.ShowToolsInSidebar
 		hasOldFields = true
 		logger.Warning("userDefaults: migrating deprecated field 'showToolsInSidebar' to 'sidebar.showTools'")
-	}
-
-	// Migrate preview.disableHideSidebar to sidebar.disableHideOnPreview
-	if !ud.Sidebar.DisableHideOnPreview && ud.Preview.DisableHideSidebar {
-		ud.Sidebar.DisableHideOnPreview = ud.Preview.DisableHideSidebar
-		hasOldFields = true
-		logger.Warning("userDefaults: migrating deprecated field 'preview.disableHideSidebar' to 'sidebar.disableHideOnPreview'")
 	}
 
 	// Migrate Listing fields
@@ -645,78 +649,11 @@ func migrateUserDefaults() {
 		logger.Warning("userDefaults: migrating deprecated field 'deleteAfterArchive' to 'listing.deleteAfterArchive'")
 	}
 
-	// Migrate Preview fields (old flat preview.* to new organized preview.*)
-	if isUnsetBoolPtr(ud.PreviewNew.Image) && ud.Preview.Image != nil {
-		ud.PreviewNew.Image = ud.Preview.Image
-		hasOldFields = true
-		logger.Warning("userDefaults: migrating deprecated field 'preview.image' to organized 'preview.image'")
-	}
-
-	if isUnsetBoolPtr(ud.PreviewNew.Video) && ud.Preview.Video != nil {
-		ud.PreviewNew.Video = ud.Preview.Video
-		hasOldFields = true
-		logger.Warning("userDefaults: migrating deprecated field 'preview.video' to organized 'preview.video'")
-	}
-
-	if isUnsetBoolPtr(ud.PreviewNew.Audio) && ud.Preview.Audio != nil {
-		ud.PreviewNew.Audio = ud.Preview.Audio
-		hasOldFields = true
-		logger.Warning("userDefaults: migrating deprecated field 'preview.audio' to organized 'preview.audio'")
-	}
-
-	if isUnsetBoolPtr(ud.PreviewNew.MotionVideoPreview) && ud.Preview.MotionVideoPreview != nil {
-		ud.PreviewNew.MotionVideoPreview = ud.Preview.MotionVideoPreview
-		hasOldFields = true
-		logger.Warning("userDefaults: migrating deprecated field 'preview.motionVideoPreview' to organized 'preview.motionVideoPreview'")
-	}
-
-	if isUnsetBoolPtr(ud.PreviewNew.Office) && ud.Preview.Office != nil {
-		ud.PreviewNew.Office = ud.Preview.Office
-		hasOldFields = true
-		logger.Warning("userDefaults: migrating deprecated field 'preview.office' to organized 'preview.office'")
-	}
-
-	if isUnsetBoolPtr(ud.PreviewNew.PopUp) && ud.Preview.PopUp != nil {
-		ud.PreviewNew.PopUp = ud.Preview.PopUp
-		hasOldFields = true
-		logger.Warning("userDefaults: migrating deprecated field 'preview.popup' to organized 'preview.popup'")
-	}
-
-	if isUnsetBoolPtr(ud.PreviewNew.HighQuality) && ud.Preview.HighQuality != nil {
-		ud.PreviewNew.HighQuality = ud.Preview.HighQuality
-		hasOldFields = true
-		logger.Warning("userDefaults: migrating deprecated field 'preview.highQuality' to organized 'preview.highQuality'")
-	}
-
-	if isUnsetBoolPtr(ud.PreviewNew.Folder) && ud.Preview.Folder != nil {
-		ud.PreviewNew.Folder = ud.Preview.Folder
-		hasOldFields = true
-		logger.Warning("userDefaults: migrating deprecated field 'preview.folder' to organized 'preview.folder'")
-	}
-
-	if isUnsetBoolPtr(ud.PreviewNew.Models) && ud.Preview.Models != nil {
-		ud.PreviewNew.Models = ud.Preview.Models
-		hasOldFields = true
-		logger.Warning("userDefaults: migrating deprecated field 'preview.models' to organized 'preview.models'")
-	}
-
-	if isUnsetString(ud.PreviewNew.DisablePreviewExt) && !isUnsetString(ud.DisablePreviewExt) {
-		ud.PreviewNew.DisablePreviewExt = ud.DisablePreviewExt
-		hasOldFields = true
-		logger.Warning("userDefaults: migrating deprecated field 'disablePreviewExt' to 'preview.disablePreviewExt'")
-	}
-
 	// Migrate FileViewer fields
 	if !ud.FileViewer.EditorQuickSave && ud.EditorQuickSave {
 		ud.FileViewer.EditorQuickSave = ud.EditorQuickSave
 		hasOldFields = true
 		logger.Warning("userDefaults: migrating deprecated field 'editorQuickSave' to 'fileViewer.editorQuickSave'")
-	}
-
-	if isUnsetBoolPtr(ud.FileViewer.AutoplayMedia) && ud.Preview.AutoplayMedia != nil {
-		ud.FileViewer.AutoplayMedia = ud.Preview.AutoplayMedia
-		hasOldFields = true
-		logger.Warning("userDefaults: migrating deprecated field 'preview.autoplayMedia' to 'fileViewer.autoplayMedia'")
 	}
 
 	if isUnsetString(ud.FileViewer.DisableViewingExt) && !isUnsetString(ud.DisableViewingExt) {
@@ -741,12 +678,6 @@ func migrateUserDefaults() {
 		ud.FileViewer.DebugOffice = ud.DebugOffice
 		hasOldFields = true
 		logger.Warning("userDefaults: migrating deprecated field 'debugOffice' to 'fileViewer.debugOffice'")
-	}
-
-	if !ud.FileViewer.DefaultMediaPlayer && ud.Preview.DefaultMediaPlayer {
-		ud.FileViewer.DefaultMediaPlayer = ud.Preview.DefaultMediaPlayer
-		hasOldFields = true
-		logger.Warning("userDefaults: migrating deprecated field 'preview.defaultMediaPlayer' to 'fileViewer.defaultMediaPlayer'")
 	}
 
 	// Migrate Search fields
@@ -1087,7 +1018,7 @@ func SetDefaults(generate bool) Settings {
 				ViewMode:                "normal",
 				GallerySize:             3,
 			},
-			PreviewNew: UserDefaultsPreviewNew{
+			Preview: UserDefaultsPreview{
 				Image:              boolPtr(true),
 				Video:              boolPtr(true),
 				Audio:              boolPtr(true),

@@ -40,7 +40,7 @@ func TestApplyUserDefaults_copiesUserDefaultsOntoUser(t *testing.T) {
 				ViewMode:                "list",
 				GallerySize:             7,
 			},
-			PreviewNew: UserDefaultsPreviewNew{
+			Preview: UserDefaultsPreview{
 				Image:              boolPtr(false),
 				Video:              boolPtr(false),
 				Audio:              boolPtr(false),
