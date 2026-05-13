@@ -24,8 +24,6 @@ func TestApplyUserDefaults_copiesUserDefaultsOntoUser(t *testing.T) {
 				HideFileActions:      true,
 				DisableHideOnPreview: true,
 				Sticky:               false,
-				ViewMode:             "list",
-				GallerySize:          7,
 				HideFiles:            true,
 				ShowTools:            boolPtr(true),
 			},
@@ -39,6 +37,8 @@ func TestApplyUserDefaults_copiesUserDefaultsOntoUser(t *testing.T) {
 				HideFileExt:             "",
 				ShowCopyPath:            false,
 				DeleteAfterArchive:      false,
+				ViewMode:                "list",
+				GallerySize:             7,
 			},
 			PreviewNew: UserDefaultsPreviewNew{
 				Image:              boolPtr(false),

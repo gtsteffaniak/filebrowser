@@ -251,7 +251,7 @@ func parseFields(user *users.User, fields []string, actorIsAdmin bool) ([]string
 	if len(fields) == 0 || fields[0] == "all" {
 		fields = []string{}
 		v := reflect.ValueOf(user)
-		if v.Kind() == reflect.Ptr {
+		if v.Kind() == reflect.Pointer {
 			v = v.Elem()
 		}
 		t := v.Type()
@@ -270,7 +270,7 @@ func parseFields(user *users.User, fields []string, actorIsAdmin bool) ([]string
 			if field.Anonymous {
 				// Get the embedded struct type
 				embeddedType := field.Type
-				if embeddedType.Kind() == reflect.Ptr {
+				if embeddedType.Kind() == reflect.Pointer {
 					embeddedType = embeddedType.Elem()
 				}
 
