@@ -301,7 +301,7 @@ body.rtl #listingView {
 
 /* ── Status indicator columns (Protected & SAFEMode) ── */
 .status-col {
-  width: 4.5em;
+  width: 2em;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -310,14 +310,14 @@ body.rtl #listingView {
 }
 
 .status-col-header {
-  font-size: 0.72em;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
   color: var(--textSecondary, #888);
   pointer-events: none;
   text-align: center;
-  white-space: nowrap;
+}
+
+.status-col-header .material-icons {
+  font-size: 1em;
+  line-height: 1;
 }
 
 .status-indicator {
