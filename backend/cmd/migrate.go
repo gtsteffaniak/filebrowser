@@ -153,7 +153,7 @@ func migrateUsers(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 		}
 		if newScopesCount > oldScopesCount {
 			promoted++
-			logger.Infof("  user %q: Bolt had scopes on frontend only (frontend=%d, backend=%d) → sqlite backend=%d",
+			logger.Infof("  user %q: Bolt had %d scopes, SQLite now has %d",
 				user.Username, oldScopesCount, newScopesCount)
 		}
 		boltID := user.ID

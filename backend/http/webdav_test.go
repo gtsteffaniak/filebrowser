@@ -157,7 +157,7 @@ func mockCheckPermissions(t *testing.T, source1Path, source2Path string) {
 		userScope := "/"
 		hasScope := false
 		for _, scope := range user.BackendScopes {
-			if scope.Name == sourcePath {
+			if scope.Path == sourcePath {
 				userScope = scope.Scope
 				hasScope = true
 				break
@@ -209,7 +209,7 @@ func mockWebDAVIndexing(t *testing.T, source1Path, source2Path string) {
 			// Simple scope check based on user's configured scopes (which use source PATH)
 			hasAccess := false
 			for _, scope := range user.BackendScopes {
-				if scope.Name == sourcePath {
+				if scope.Path == sourcePath {
 					hasAccess = true
 					// Check if path is within user's scope
 					userScope := scope.Scope
@@ -295,9 +295,9 @@ func TestWebDAV_PROPFIND_UserScopes(t *testing.T) {
 				Modify:   true,
 			},
 		},
-		BackendScopes: []users.SourceScope{
-			{Name: source1Path, Scope: "/"},
-			{Name: source2Path, Scope: "/"},
+		BackendScopes: []users.BackendScope{
+			{Path: source1Path, Scope: "/"},
+			{Path: source2Path, Scope: "/"},
 		},
 	}
 
@@ -309,8 +309,8 @@ func TestWebDAV_PROPFIND_UserScopes(t *testing.T) {
 				Download: true,
 			},
 		},
-		BackendScopes: []users.SourceScope{
-			{Name: source1Path, Scope: "/_docker"},
+		BackendScopes: []users.BackendScope{
+			{Path: source1Path, Scope: "/_docker"},
 		},
 	}
 
@@ -322,8 +322,8 @@ func TestWebDAV_PROPFIND_UserScopes(t *testing.T) {
 				Download: true,
 			},
 		},
-		BackendScopes: []users.SourceScope{
-			{Name: source1Path, Scope: "/public"},
+		BackendScopes: []users.BackendScope{
+			{Path: source1Path, Scope: "/public"},
 		},
 	}
 
@@ -434,8 +434,8 @@ func TestWebDAV_WriteOperations(t *testing.T) {
 				Modify:   true,
 			},
 		},
-		BackendScopes: []users.SourceScope{
-			{Name: source1Path, Scope: "/"},
+		BackendScopes: []users.BackendScope{
+			{Path: source1Path, Scope: "/"},
 		},
 	}
 
@@ -447,8 +447,8 @@ func TestWebDAV_WriteOperations(t *testing.T) {
 				Download: true,
 			},
 		},
-		BackendScopes: []users.SourceScope{
-			{Name: source1Path, Scope: "/"},
+		BackendScopes: []users.BackendScope{
+			{Path: source1Path, Scope: "/"},
 		},
 	}
 
@@ -463,8 +463,8 @@ func TestWebDAV_WriteOperations(t *testing.T) {
 				Delete:   true,
 			},
 		},
-		BackendScopes: []users.SourceScope{
-			{Name: source1Path, Scope: "/public"},
+		BackendScopes: []users.BackendScope{
+			{Path: source1Path, Scope: "/public"},
 		},
 	}
 
@@ -581,8 +581,8 @@ func TestWebDAV_AccessControl(t *testing.T) {
 				Create:   true,
 			},
 		},
-		BackendScopes: []users.SourceScope{
-			{Name: source1Path, Scope: "/"},
+		BackendScopes: []users.BackendScope{
+			{Path: source1Path, Scope: "/"},
 		},
 	}
 
@@ -594,8 +594,8 @@ func TestWebDAV_AccessControl(t *testing.T) {
 				Download: true,
 			},
 		},
-		BackendScopes: []users.SourceScope{
-			{Name: source1Path, Scope: "/"},
+		BackendScopes: []users.BackendScope{
+			{Path: source1Path, Scope: "/"},
 		},
 	}
 
@@ -696,8 +696,8 @@ func TestWebDAV_IndexingStates(t *testing.T) {
 				Delete:   true,
 			},
 		},
-		BackendScopes: []users.SourceScope{
-			{Name: source1Path, Scope: "/"},
+		BackendScopes: []users.BackendScope{
+			{Path: source1Path, Scope: "/"},
 		},
 	}
 

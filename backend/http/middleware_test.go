@@ -176,8 +176,8 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 			Username:    "testuser",
 			Permissions: users.Permissions{Admin: false},
 		},
-		BackendScopes: []users.SourceScope{
-			{Name: "/srv", Scope: "/"}, // Use source PATH not name
+		BackendScopes: []users.BackendScope{
+			{Path: "/srv", Scope: "/"}, // Must match SourceMap key (canonical path, no trailing slash)
 		},
 	}
 	if err := state.CreateUser(dummyUser, ""); err != nil {
