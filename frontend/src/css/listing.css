@@ -286,6 +286,12 @@ body.rtl #listingView {
   margin-right: 0;
 }
 
+/* Shift "Name" label past the icon area so it aligns with filename text */
+#listingView.list .header .name,
+#listingView.compact .header .name {
+  padding-left: 3em;
+}
+
 #listingView .header>p {
   margin: 0;
   cursor: pointer;
