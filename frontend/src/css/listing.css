@@ -301,12 +301,17 @@ body.rtl #listingView {
 
 /* ── Status indicator columns (Protected & SAFEMode) ── */
 .status-col {
-  width: 2em;
+  width: 1.4em;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   pointer-events: none;
+}
+
+/* Gap between second status col and the icon/name column */
+.status-col ~ .status-col {
+  margin-right: 0.7em;
 }
 
 .status-col-header {
@@ -318,6 +323,11 @@ body.rtl #listingView {
 .status-col-header .material-icons {
   font-size: 1em;
   line-height: 1;
+}
+
+/* Override the header i { opacity:0 } rule for status icons */
+#listingView .header .status-col-header i {
+  opacity: 1;
 }
 
 .status-indicator {
