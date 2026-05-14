@@ -34,3 +34,4 @@ export function removePrefix(filename, prefix = "") {
   }
   return filename;
 }
+

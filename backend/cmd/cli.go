@@ -23,7 +23,7 @@ var (
 )
 
 // return bool to indicate if the program should continue running
-func runCLI() bool {
+func runCLI() (bool, bool) {
 
 	generateYaml()
 
@@ -53,109 +53,103 @@ func runCLI() bool {
 	// Show help if requested
 	if help {
 		generalUsage()
-		return false
+		return false, false
 	}
 
 	// Create a new FlagSet for the 'set' subcommand
 	setCmd := flag.NewFlagSet("set", flag.ExitOnError)
 	var user, dbConfig string
 	var asAdmin bool
-	var ruleSource, indexPath, ruleCategory, value string
+	var sourceName, indexPath, ruleCategory, value string
 	var allow bool
 
 	setCmd.StringVar(&user, "u", "", "Comma-separated username and password: \"set -u <username>,<password>\"")
 	setCmd.BoolVar(&asAdmin, "a", false, "Create a user as admin user, used in combination with -u")
 	setCmd.StringVar(&dbConfig, "c", "config.yaml", "Path to the config file, default: config.yaml")
-	setCmd.StringVar(&ruleSource, "s", "", "set rule: server.sources name or backend path key")
-	setCmd.StringVar(&ruleSource, "sourceName", "", "same as -s")
+	setCmd.StringVar(&sourceName, "s", "", "set rule: server.sources name or backend path key")
+	setCmd.StringVar(&sourceName, "sourceName", "", "same as -s")
 	setCmd.StringVar(&indexPath, "p", "", "set rule: index path within the source (e.g. / or /excluded)")
 	setCmd.StringVar(&indexPath, "sourcePath", "", "same as -p")
 	setCmd.StringVar(&ruleCategory, "r", "", "Rule category: 'user', 'group', or 'all' (for deny only)")
 	setCmd.StringVar(&value, "v", "", "Value: username or groupname (not required if ruleCategory is 'all')")
 	setCmd.BoolVar(&allow, "allow", false, "Allow access (default: false, which means deny)")
 
-	// Parse subcommand flags only if a subcommand is specified
+	storeCfg := configPath
+	cliSubcmd := ""
+	var setKind string
+
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
-		case "setup":
-			createConfig(configPath)
-			return false
-		case "set":
-			if len(os.Args) < 3 {
-				fmt.Printf("error: missing subcommand for 'set'. Use 'set user' or 'set rule'\n")
-				os.Exit(1)
-			}
-			subcommand := os.Args[2]
-
-			// Handle old syntax: "set -u user,pass -c config.yaml"
-			if subcommand == "-u" {
-				// Parse flags starting from os.Args[2:] to include the -u flag
-				err := setCmd.Parse(os.Args[2:])
-				if err != nil {
-					setCmd.PrintDefaults()
-					os.Exit(1)
-				}
-				_ = initializeDatabase(dbConfig)
-				logger.Debugf("setUser called with args: %v, config: %v, admin: %v", os.Args, dbConfig, asAdmin)
-				err = setUser(dbConfig, asAdmin)
-				if err != nil {
-					fmt.Printf("error: %v\n", err)
-					os.Exit(1)
-				}
-				return false
-			}
-
-			// New pattern: subcommand-based (e.g., "set user" or "set rule")
-			// Parse flags starting from os.Args[3:] to skip the subcommand
-			err := setCmd.Parse(os.Args[3:])
-			if err != nil {
-				setCmd.PrintDefaults()
-				os.Exit(1)
-			}
-			_ = initializeDatabase(dbConfig)
-			switch subcommand {
-			case "rule":
-				backendKey, resErr := resolveRuleSourcePath(ruleSource)
-				if resErr != nil {
-					fmt.Printf("error: %v\n", resErr)
-					os.Exit(1)
-				}
-				err = setRule(dbConfig, backendKey, indexPath, ruleCategory, value, allow)
-				if err != nil {
-					fmt.Printf("error: %v\n", err)
-					os.Exit(1)
-				}
-				return false
-			default:
-				fmt.Printf("error: unknown subcommand '%s' for 'set'. Use 'set user' or 'set rule'\n", subcommand)
-				os.Exit(1)
-			}
-
 		case "version":
 			fmt.Printf(`FileBrowser Quantum - A modern web-based file manager
 	Version 	 : %v
 	Commit 		 : %v
 	Release Info 	 : https://github.com/gtsteffaniak/filebrowser/releases/tag/%v
-	`, version.Version, version.CommitSHA, version.Version)
-			return false
+`, version.Version, version.CommitSHA, version.Version)
+			return false, false
+		case "setup":
+			cliSubcmd = "setup"
+		case "set":
+			cliSubcmd = "set"
+			if len(os.Args) < 3 {
+				fmt.Printf("error: missing subcommand for 'set'. Use 'set user' or 'set rule'\n")
+				os.Exit(1)
+			}
+			setKind = os.Args[2]
+			var err error
+			// Handle old syntax: "set -u user,pass -c config.yaml"
+			if setKind == "-u" {
+				err = setCmd.Parse(os.Args[2:])
+			} else {
+				// New pattern: subcommand-based (e.g., "set user" or "set rule")
+				err = setCmd.Parse(os.Args[3:])
+			}
+			if err != nil {
+				setCmd.PrintDefaults()
+				os.Exit(1)
+			}
+			storeCfg = dbConfig
 		}
 	}
-	return true
-}
 
-// resolveRuleSourcePath turns a configured source name or backend path into the path
-// key used by the access store (matches server.sources entries).
-func resolveRuleSourcePath(nameOrPath string) (string, error) {
-	if nameOrPath == "" {
-		return "", fmt.Errorf("-s is required (server.sources name or backend path key)")
+	switch cliSubcmd {
+	case "setup":
+		createConfig(configPath)
+		return false, false
+	case "set":
+		if setKind == "-u" {
+			dbExists := initializeDatabase(storeCfg)
+			logger.Debugf("setUser called with args: %v, config: %v, admin: %v", os.Args, dbConfig, asAdmin)
+			err := setUser(dbConfig, asAdmin)
+			if err != nil {
+				fmt.Printf("error: %v\n", err)
+				os.Exit(1)
+			}
+			return false, dbExists
+		}
+		switch setKind {
+		case "rule":
+			dbExists := initializeDatabase(storeCfg)
+			sourceInfo, ok := settings.Config.Server.NameToSource[sourceName] // backend source is path
+			if !ok {
+				fmt.Printf("error: invalid source name: %s\n", sourceName)
+				os.Exit(1)
+			}
+			err := setRule(dbConfig, sourceInfo.Path, indexPath, ruleCategory, value, allow)
+			if err != nil {
+				fmt.Printf("error: %v\n", err)
+				os.Exit(1)
+			}
+			return false, dbExists
+		default:
+			fmt.Printf("error: unknown subcommand '%s' for 'set'. Use 'set user' or 'set rule'\n", setKind)
+			os.Exit(1)
+		}
+		return false, false
+	default:
+		dbExists := initializeDatabase(storeCfg)
+		return true, dbExists
 	}
-	if _, ok := settings.Config.Server.SourceMap[nameOrPath]; ok {
-		return nameOrPath, nil
-	}
-	if src, ok := settings.Config.Server.NameToSource[nameOrPath]; ok {
-		return src.Path, nil
-	}
-	return "", fmt.Errorf("unknown source %q: use a configured server.sources name or path", nameOrPath)
 }
 
 func setRule(dbConfig, backendSourcePath, indexPath, ruleCategory, value string, allow bool) error {
@@ -235,8 +229,8 @@ func setUser(dbConfig string, asAdmin bool) error {
 		}
 		for _, source := range settings.Config.Server.SourceMap {
 			if source.Config.DefaultEnabled {
-				newUser.FrontendScopes = append(newUser.FrontendScopes, users.SourceScope{
-					Name:  source.Name,
+				newUser.BackendScopes = append(newUser.BackendScopes, users.BackendScope{
+					Path:  source.Path,
 					Scope: source.Config.DefaultUserScope,
 				})
 			}
@@ -248,7 +242,7 @@ func setUser(dbConfig string, asAdmin bool) error {
 		} else {
 			logger.Infof("Creating non-admin user: %s\n", username)
 		}
-		newUser.Permissions = settings.ConvertPermissionsToUsers(settings.Config.UserDefaults.Permissions)
+		newUser.Permissions = settings.ConvertPermissionsToUsers(settings.Config.UserDefaults.Account.Permissions)
 		newUser.Permissions.Admin = asAdmin
 		err = state.CreateUser(&newUser, password)
 		if err != nil {
@@ -268,7 +262,7 @@ func setUser(dbConfig string, asAdmin bool) error {
 	}
 	// Ensure version is set for existing users being updated
 	if user.Version == 0 {
-		user.Version = 1
+		user.Version = users.CurrentUserMigrationVersion
 	}
 	// Pass plaintext password to UpdateUser, it will hash it
 	err = state.UpdateUser(&user, password)
@@ -277,51 +271,6 @@ func setUser(dbConfig string, asAdmin bool) error {
 	}
 	fmt.Printf("successfully updated user: %s\n", username)
 	return nil
-}
-
-// UserDefaults defines default settings for new users.
-type UserDefaults struct {
-	Permissions users.Permissions `yaml:"permissions"`
-}
-
-// Frontend defines settings related to the web interface.
-type Frontend struct {
-	Name string `yaml:"name,omitempty"`
-}
-
-// Source defines a directory to be served.
-type Source struct {
-	Name string `yaml:"name,omitempty"`
-	Path string `yaml:"path"`
-}
-
-// Server defines server-specific configurations.
-type Server struct {
-	Port     int         `yaml:"port"`
-	Database string      `yaml:"database"`
-	Sources  []Source    `yaml:"sources"`
-	Logging  []LogConfig `json:"logging"`
-}
-
-type LogConfig struct {
-	Levels    string `json:"levels"`    // separated list of log levels to enable. (eg. "info|warning|error|debug")
-	ApiLevels string `json:"apiLevels"` // separated list of log levels to enable for the API. (eg. "info|warning|error")
-	Output    string `json:"output"`    // output location. (eg. "stdout" or "path/to/file.log")
-	NoColors  bool   `json:"noColors"`  // disable colors in the output
-	Utc       bool   `json:"utc"`       // use UTC time in the output instead of local time
-}
-
-type Auth struct {
-	AdminUsername string `yaml:"adminUsername"`
-	AdminPassword string `yaml:"adminPassword"`
-}
-
-// Settings is the top-level configuration structure.
-type Settings struct {
-	Server       Server       `yaml:"server"`
-	Frontend     Frontend     `yaml:"frontend,omitempty"`
-	Auth         Auth         `yaml:"auth"`
-	UserDefaults UserDefaults `yaml:"userDefaults"`
 }
 
 // askQuestion displays a prompt and reads a line of input from the user.
@@ -355,30 +304,9 @@ func askYesNoQuestion(reader *bufio.Reader, prompt string, defaultValue string) 
 
 // createConfig orchestrates the configuration process by asking the user a series of questions.
 func createConfig(configpath string) {
-	// check if config file exists
-	if _, err := os.Stat("config.yaml"); err == nil {
-		fmt.Println("Config file 'config.yaml' already exists, skipping setup.")
-		return
-	}
 	reader := bufio.NewReader(os.Stdin)
-	config := Settings{
-		Server: Server{
-			Logging: []LogConfig{
-				{
-					Levels:    "info|warning|error",
-					ApiLevels: "info|warning|error",
-					Output:    "stdout",
-					NoColors:  false,
-					Utc:       false,
-				},
-			},
-			Sources: []Source{
-				{
-					Path: "",
-				},
-			},
-		},
-	}
+	config := settings.SetDefaults(false)
+	config.Server.Sources = []*settings.Source{{Path: "./"}}
 
 	fmt.Println("--- Starting Configuration Setup ---")
 	realPath := ""
@@ -431,11 +359,11 @@ func createConfig(configpath string) {
 	}
 
 	for {
-		config.Server.Database = askQuestion(reader, "What should the file name and path be for the database?", "./database.db")
-		if strings.HasSuffix(config.Server.Database, ".db") {
+		config.Server.DatabaseV2.Path = askQuestion(reader, "What should the file name and path be for the database?", "./database.db")
+		if strings.HasSuffix(config.Server.DatabaseV2.Path, ".db") {
 			break // Valid path found, exit loop
 		}
-		fmt.Printf("Error: '%s' is not a valid path. Please enter a path to a file ending in .db", config.Server.Database)
+		fmt.Printf("Error: '%s' is not a valid path. Please enter a path to a file ending in .db", config.Server.DatabaseV2.Path)
 	}
 	// 4. Ask for the application brand name
 	config.Frontend.Name = askQuestion(reader, "What should the application brand name be?", "FileBrowser Quantum")
@@ -445,8 +373,8 @@ func createConfig(configpath string) {
 	config.Auth.AdminPassword = askQuestion(reader, "What should the default admin password be?", "admin")
 
 	// 6. Ask boolean (Yes/No) questions using the helper
-	config.UserDefaults.Permissions.Modify = askYesNoQuestion(reader, "Should a new user be able to modify content by default?", "no")
-	config.UserDefaults.Permissions.Share = askYesNoQuestion(reader, "Should a new user be able to create shares by default?", "no")
+	config.UserDefaults.Account.Permissions.Modify = askYesNoQuestion(reader, "Should a new user be able to modify content by default?", "no")
+	config.UserDefaults.Account.Permissions.Share = askYesNoQuestion(reader, "Should a new user be able to create shares by default?", "no")
 
 	fmt.Println("--- 	Configuration Complete 	---")
 
@@ -463,14 +391,14 @@ func createConfig(configpath string) {
 		return
 	}
 	// cleanup database if it exists
-	if _, err := os.Stat(config.Server.Database); err == nil {
+	if _, err := os.Stat(config.Server.DatabaseV2.Path); err == nil {
 		response := askYesNoQuestion(reader, "Database specified already exists. Move database file to backup to start fresh?", "no")
 		if !response {
 			return
 		}
 		// move database file to backup
-		backupPath := config.Server.Database + ".bak"
-		err = os.Rename(config.Server.Database, backupPath)
+		backupPath := config.Server.DatabaseV2.Path + ".bak"
+		err = os.Rename(config.Server.DatabaseV2.Path, backupPath)
 		if err != nil {
 			fmt.Printf("Error moving database file to backup: %v\n", err)
 		} else {

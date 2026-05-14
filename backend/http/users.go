@@ -13,6 +13,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/state"
@@ -54,7 +55,7 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
-		u.PrepForFrontend()
+		u = PrepForFrontend(u)
 		return renderJSON(w, r, u.FrontendUser)
 	}
 
@@ -69,7 +70,7 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		if !d.user.Permissions.Admin && userValue.Username != d.user.Username {
 			return http.StatusForbidden, nil
 		}
-		userValue.PrepForFrontend()
+		userValue = PrepForFrontend(userValue)
 		return renderJSON(w, r, userValue.FrontendUser)
 	}
 
@@ -81,7 +82,7 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	userListFE := make([]users.FrontendUser, 0, len(userList))
 	for i := range userList {
 		u := userList[i]
-		u.PrepForFrontend()
+		u = PrepForFrontend(u)
 		userListFE = append(userListFE, u.FrontendUser)
 	}
 
@@ -363,4 +364,119 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	}
 
 	return http.StatusNoContent, nil
+}
+
+// PrepForFrontend fills response-only fields for GET handlers. FrontendScopes are derived from
+// persisted BackendScopes (GetFrontendScopes); they are not read from SQL and must not be written back as-is.
+func PrepForFrontend(u users.User) users.User {
+	u.FrontendScopes = u.GetFrontendScopes()
+	u.SidebarLinks = GetFrontendSidebarLinks(u.SidebarLinks, u.ShowToolsInSidebar)
+	u.Password = ""
+	u.OtpEnabled = u.TOTPSecret != ""
+	u.Locale = NormalizeLocaleForFrontend(u.Locale)
+	return u
+}
+
+// GetFrontendSidebarLinks converts the user's sidebar links from backend-style to frontend-style:
+func GetFrontendSidebarLinks(links []users.SidebarLink, showToolsInSidebar bool) []users.SidebarLink {
+	if !users.SourceConfigLoaded() {
+		return []users.SidebarLink{}
+	}
+	hasTools := false
+	newLinks := []users.SidebarLink{}
+	for _, link := range links {
+		if strings.HasPrefix(link.Category, "source") {
+			if link.SourceName == "" {
+				continue
+			}
+			source, ok := users.ResolveSourceKey(link.SourceName)
+			if !ok {
+				continue
+			}
+			if full, ok := settings.Config.Server.SourceMap[source.Path]; ok {
+				if full.Config.ResolvedRules.IndexingDisabled && link.Category != "source-minimal" {
+					link.Category = "source-alt"
+				}
+			}
+			link.SourceName = source.Name
+		} else if link.Category == "tool" && link.Target == "/tools" {
+			hasTools = true
+		}
+		newLinks = append(newLinks, link)
+	}
+	if !hasTools && showToolsInSidebar {
+		newLinks = append(newLinks, users.SidebarLink{
+			Name:     "Tools",
+			Category: "tool",
+			Target:   "/tools",
+			Icon:     "build",
+		})
+	}
+	return newLinks
+}
+
+// normalizeLocaleForFrontend converts various locale formats to camelCase (e.g. zhCN, ptBR).
+func NormalizeLocaleForFrontend(locale string) string {
+	if locale == "" {
+		return locale
+	}
+
+	lower := strings.ToLower(locale)
+
+	specialCases := map[string]string{
+		"cs":    "cz",
+		"uk":    "ua",
+		"zh-cn": "zhCN",
+		"zh_cn": "zhCN",
+		"zhcn":  "zhCN",
+		"zh-tw": "zhTW",
+		"zh_tw": "zhTW",
+		"zhtw":  "zhTW",
+		"pt-br": "ptBR",
+		"pt_br": "ptBR",
+		"ptbr":  "ptBR",
+		"sv-se": "svSE",
+		"sv_se": "svSE",
+		"svse":  "svSE",
+		"nl-be": "nlBE",
+		"nl_be": "nlBE",
+		"nlbe":  "nlBE",
+	}
+
+	if normalized, ok := specialCases[lower]; ok {
+		return normalized
+	}
+
+	if len(locale) >= 4 {
+		knownCamelCase := map[string]bool{
+			"zhCN": true, "zhTW": true, "ptBR": true, "svSE": true, "nlBE": true,
+		}
+		if knownCamelCase[locale] {
+			return locale
+		}
+	}
+
+	parts := strings.FieldsFunc(lower, func(r rune) bool {
+		return r == '_' || r == '-'
+	})
+
+	if len(parts) == 2 {
+		first := parts[0]
+		second := parts[1]
+		if len(second) > 0 {
+			second = strings.ToUpper(second[:1]) + second[1:]
+		}
+		normalized := first + second
+
+		knownCompound := map[string]string{
+			"zhcn": "zhCN", "zhtw": "zhTW", "ptbr": "ptBR",
+			"svse": "svSE", "nlbe": "nlBE",
+		}
+		if normalizedVal, ok := knownCompound[normalized]; ok {
+			return normalizedVal
+		}
+		return normalized
+	}
+
+	return lower
 }

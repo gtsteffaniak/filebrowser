@@ -67,15 +67,13 @@ func TestMultiScannerMutex(t *testing.T) {
 	// Create a mock index with multi-scanner support
 	idx := &Index{
 		Source: settings.Source{
-			Name: "test-multiscanner",
-			Path: "/tmp/test",
-			Config: settings.SourceConfig{
-				DisableIndexing: false,
-			},
+			Name:   "test-multiscanner",
+			Path:   "/tmp/test",
+			Config: settings.SourceConfig{},
 		},
-		mock:       true,
-		db:         indexDB,
-		scanners:   make(map[string]*Scanner),
+		mock:     true,
+		db:       indexDB,
+		scanners: make(map[string]*Scanner),
 	}
 
 	// Create multiple scanners
@@ -113,8 +111,8 @@ func TestMultiScannerMutex(t *testing.T) {
 	}
 
 	// Verify scanner counters can be updated
-	// Test with active scanner - mark scanner2 as scanning
-	scanner2.isScanning = true
+	// Test with active scanner
+	idx.activeScannerPath = "/test1/"
 	idx.scanners = map[string]*Scanner{"/test1/": scanner2}
 	idx.incrementScannerDirs()
 	idx.incrementScannerFiles()

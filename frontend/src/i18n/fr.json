@@ -75,7 +75,12 @@
     "mouseActions": "Actions de la Souris",
     "fileOperations": "Opérations sur les Fichiers",
     "click": "sélectionner un élément",
+    "dbClick": "Double-cliquez sur un espace vide pour sélectionner tous les éléments",
     "ctrl": {
+      "f1": "Passer à la vue en liste",
+      "f2": "Passer à la vue normale",
+      "f3": "Passer à la vue galerie",
+      "scroll": "Modifier la taille de la liste et la police de l'éditeur",
       "click": "sélectionner plusieurs éléments",
       "d": "télécharger les éléments sélectionnés",
       "b": "barre latérale à bascule",
@@ -101,6 +106,8 @@
       "volume": "Augmenter ou diminuer le volume",
       "mute": "Activer/Désactiver le son",
       "loop": "Basculer entre mode répétition et mode unique",
+      "playbackQueue": "Ouvrir la file de lecture ou le panneau dans les fichiers audio",
+      "switchTabs": "Changer d'onglet dans le panneau des fichiers audio",
       "playbackModes": "Basculer entre les modes de lecture (hors répétition et unique)",
       "fullscreen": "Basculer en plein écran pour les vidéos",
       "captions": "Activer/Désactiver les sous-titres"
@@ -141,10 +148,10 @@
     "passwordsDontMatch": "Les mots de passe ne concordent pas",
     "usernameTaken": "Le nom d'utilisateur est déjà pris",
     "wrongCredentials": "Identifiants incorrects !",
-    "or": "OU",
     "inProgress": "Connexion...",
     "failedLogin": "Échec de la connexion",
-    "invalidCredentials": "Les informations d'identification fournies ne sont pas valides"
+    "invalidCredentials": "Les informations d'identification fournies ne sont pas valides",
+    "passkeyLogin": "Utiliser une clé d'accès"
   },
   "prompts": {
     "copyMessage": "Choisissez l'emplacement où copier la sélection :",
@@ -256,9 +263,12 @@
     "showPreviewImagesDescription": "Afficher les vignettes des résultats de la recherche lorsqu'elles sont disponibles, et afficher des icônes plus grandes pour tous les résultats.",
     "olderThanDate": "Plus vieux que :",
     "newerThanDate": "Plus récent que :",
-    "helpText2": "Les résultats de la recherche sont basés sur les fichiers indexés, de sorte que les fichiers nouvellement ajoutés peuvent ne pas apparaître tant qu'ils n'ont pas été indexés.",
     "noResults": "Aucun résultat n'a été trouvé.",
-    "helpText1": "La recherche s'effectue sur chaque caractère que vous tapez ({minSearchLength} caractère minimum)."
+    "helpText1": "La recherche s'effectue sur chaque caractère que vous tapez ({minSearchLength} caractère minimum).",
+    "helpText2": "Correspondance de sous-chaînes sur les noms de fichiers ou de dossiers uniquement (pas sur les chemins d'accès complets). case:exact pour une correspondance sensible à la casse.\n\n pour le OU entre les termes, utiliser le caractère pipe ; les guillemets doubles pour une seule phrase.\n\nActivez la recherche par caractères génériques pour obtenir des options plus avancées.",
+    "useWildcardSearch": "Recherche par caractères génériques (sensible à la casse)",
+    "useWildcardSearchDescription": "Options de caractères génériques prises en charge :\n\n- Correspond à n'importe quelle séquence : *\n\n- Correspondre à un seul caractère : ?\n\n- Classe de caractères : [a-z], [0-9]\n\n- Négation : [^0-9]\n\n- Les valeurs littérales *, ? ou [ doivent être mises entre parenthèses, par exemple [*], [ ?], [[]].\n\n- Tous les résultats sont sensibles à la casse",
+    "openInAdvancedSearch": "Ouvrir en recherche avancée"
   },
   "settings": {
     "scopes": "Définir les sources autorisées et la portée de l'utilisateur au sein de celles-ci",
@@ -665,7 +675,9 @@
     "office": "Bureau{suffix}",
     "show": "Afficher{suffix}",
     "divider": "Diviseur{suffix}",
-    "audio": "Audio{suffix}"
+    "audio": "Audio{suffix}",
+    "and": "et",
+    "or": "ou"
   },
   "access": {
     "rules": "Règles d'accès",
@@ -711,6 +723,8 @@
     "orange": "orange"
   },
   "profileSettings": {
+    "hideFileExt": "Masquer certains fichiers (par extension)",
+    "hideFileExtDescription": "Une liste d'extensions de fichiers séparées par des espaces. Les extensions saisies dans ce champ seront masquées dans toute l'interface utilisateur (visuellement, comme dans la liste ou l'arborescence) — Elles restent accessibles.",
     "preferEditorForMarkdown": "Privilégier d'abord l'éditeur pour les fichiers Markdown",
     "preferEditorForMarkdownDescription": "Lorsque activé, ouvre les fichiers Markdown dans l'éditeur plutôt que dans le visualiseur Markdown.",
     "deleteAfterArchive": "Supprimer les fichiers source après la création/extraction d'archives",
@@ -773,7 +787,21 @@
     "showThumbnailsDescription": "Lorsque cette option est activée, les vignettes sont affichées dans la liste pour les articles qui les prennent en charge. Désactivez cette option pour masquer toutes les vignettes.",
     "showCopyPath": "Afficher Copier le chemin dans le menu contextuel",
     "showCopyPathDescription": "Afficher une action Copier le chemin dans le menu contextuel des fichiers et des dossiers.",
-    "previewDescription": "Affiche des aperçus de vignettes pour {filetype}, affichera l'icône générique si elle est désactivée."
+    "previewDescription": "Affiche des aperçus de vignettes pour {filetype}, affichera l'icône générique si elle est désactivée.",
+    "passkeys": "Clés d'accès",
+    "passkeysDescription": "Utilisez des clés d'accès pour une authentification sécurisée multifacteur sans mot de passe. Enregistrez une clé sur votre appareil pour utiliser la vérification biométrique ou le code PIN au lieu des codes OTP.",
+    "noPasskeys": "Aucune clé d'accès enregistrée pour l'instant.",
+    "addPasskey": "Ajouter une clé d'accès",
+    "addingPasskey": "Ajout de la clé d'accès...",
+    "passkeyAdded": "Clé d'accès ajoutée avec succès !",
+    "passkeyAddFailed": "Échec de l'ajout de la clé d'accès",
+    "passkeyDeleted": "Clé d'accès supprimée.",
+    "passkeyDeleteFailed": "Échec de la suppression de la clé d'accès",
+    "created": "Créé",
+    "lastUsed": "Dernière utilisation",
+    "passkeyDefaultName": "Clé d'accès",
+    "showToolsInSidebar": "Afficher les outils dans la barre latérale",
+    "showToolsInSidebarDescription": "Le lien vers les outils doit toujours figurer dans la barre latérale."
   },
   "editor": {
     "uninitialized": "Échec de l'initialisation de l'éditeur. Veuillez recharger.",
@@ -797,7 +825,15 @@
     "QueuePlayback": "File de Lecture",
     "changePlaybackMode": "Changer le mode de lecture",
     "changePlaybackModeHint": "Changez le mode de lecture pour voir plus de fichiers",
-    "emptyQueue": "La file est vide"
+    "emptyQueue": "La file est vide",
+    "queue": "File d'attente",
+    "lyrics": "Paroles",
+    "noLyrics": "Pas de paroles disponibles",
+    "lockLyrics": "Verrouiller les paroles",
+    "unlockLyrics": "Déverrouiller les paroles",
+    "toggleLyrics": "Afficher/Masquer les paroles",
+    "closePanel": "Fermer le panneau",
+    "openPanel": "Ouvrir le panneau"
   },
   "fileSizeAnalyzer": {
     "title": "Analyseur de taille de fichier",
@@ -858,6 +894,20 @@
       "stopWatching": "Arrêter de regarder",
       "emptyState": "Choisissez un fichier et cliquez sur lecture pour commencer à surveiller les modifications du fichier.",
       "chooseFile": "Choisir un fichier"
+    },
+    "advancedSearch": {
+      "name": "Recherche avancée",
+      "description": "Recherche dans l'index avec un contrôle total des sources, des filtres et des options",
+      "searchTerms": "Termes de recherche",
+      "matchAllTerms": "Faire correspondre tous les termes",
+      "matchAllTermsDescription": "Lorsque cette option est activée, tous les termes de recherche doivent être trouvés pour chaque fichier.",
+      "scopeAria": "Limiter la recherche à un dossier",
+      "noTerms": "Saisissez au moins un terme de recherche.",
+      "termTooShort": "Chaque terme de recherche doit comporter au moins {minSearchLength} caractères.",
+      "caseExact": "Correspondance sensible à la casse",
+      "resultsTitle": "Résultats de la recherche",
+      "invalidSources": "Allumez au moins une source.",
+      "noResults": "Aucun fichier ou dossier correspondant."
     }
   },
   "messages": {

@@ -75,7 +75,12 @@
     "mouseActions": "Fare İşlemleri",
     "fileOperations": "Dosya İşlemleri",
     "click": "dosya veya klasör seçin",
+    "dbClick": "Tüm öğeleri seçmek için boş bir alana çift tıklayın",
     "ctrl": {
+      "f1": "Liste görünümüne geç",
+      "f2": "Normal görünüme geç",
+      "f3": "Galeri görünümüne geç",
+      "scroll": "Liste ve düzenleyici yazı tipi boyutlarını değiştir",
       "click": "çoklu dosya ve klasör seçin",
       "d": "seçili öğeleri indirin",
       "b": "kenar çubuğunu değiştir",
@@ -101,6 +106,8 @@
       "volume": "Sesi aç veya kıs",
       "mute": "Sesi kapat/aç",
       "loop": "Döngü ve tek mod arasında geçiş yap",
+      "playbackQueue": "Ses dosyalarında oynatma kuyruğunu veya paneli aç",
+      "switchTabs": "Ses dosyalarında paneldeki sekmeleri değiştir",
       "playbackModes": "Oynatma modları arasında geçiş yap (döngü ve tek mod hariç)",
       "fullscreen": "Videolarda tam ekran moduna geç",
       "captions": "Altyazıları aç/kapat"
@@ -141,10 +148,10 @@
     "passwordsDontMatch": "Şifreler uyuşmuyor",
     "usernameTaken": "Kullanıcı adı mevcut",
     "wrongCredentials": "Yanlış hesap bilgileri",
-    "or": "VEYA",
     "inProgress": "Giriş yapıyorum...",
     "failedLogin": "Giriş yapılamadı",
-    "invalidCredentials": "Geçersiz kimlik bilgileri sağlandı"
+    "invalidCredentials": "Geçersiz kimlik bilgileri sağlandı",
+    "passkeyLogin": "Geçiş Anahtarını Kullan"
   },
   "prompts": {
     "copyMessage": "Dosyalarınızı kopyalayacağınız yeri seçin:",
@@ -256,9 +263,12 @@
     "showPreviewImagesDescription": "Kullanılabilir olduğunda arama sonuçları için küçük resim önizlemelerini görüntüleyin ve tüm sonuçlar için daha büyük simgeler gösterin.",
     "olderThanDate": "Daha yaşlı:",
     "newerThanDate": "Daha yeni:",
-    "helpText2": "Arama sonuçları dizine eklenmiş dosyaları temel alır, bu nedenle yeni eklenen dosyalar dizine eklenene kadar görünmeyebilir.",
     "noResults": "Sonuç bulunamadı.",
-    "helpText1": "Arama, yazdığınız her karakterde gerçekleşir ({minSearchLength} minimum karakter)."
+    "helpText1": "Arama, yazdığınız her karakterde gerçekleşir ({minSearchLength} minimum karakter).",
+    "helpText2": "Yalnızca dosya veya klasör adlarında alt dize eşleşmesi (tam yollarda değil). case:exact büyük/küçük harfe duyarlı eşleştirme için\n\n terimler arasında VEYA için boru karakteri kullanın; bir ifade için çift tırnak kullanın.\n\nDaha gelişmiş seçenekler için joker karakter aramayı etkinleştirin.",
+    "useWildcardSearch": "Joker karakter araması (büyük/küçük harfe duyarlı)",
+    "useWildcardSearchDescription": "Desteklenen joker karakter seçenekleri:\n\n- Herhangi bir diziyi eşleştirin: *\n\n- Bir karakteri eşleştirin: ?\n\n- Karakter sınıfı: [a-z], [0-9]\n\n- Negasyon: [^0-9]\n\n- Literal *, ? veya [ parantez içine alınmalıdır, örneğin [*], [?], [[]\n\n- Tüm sonuçlar büyük/küçük harfe duyarlıdır",
+    "openInAdvancedSearch": "Gelişmiş Aramada Aç"
   },
   "settings": {
     "administrator": "Yönetici",
@@ -665,7 +675,9 @@
     "office": "Ofis{suffix}",
     "show": "Göster{suffix}",
     "divider": "Bölücü{suffix}",
-    "audio": "Ses{suffix}"
+    "audio": "Ses{suffix}",
+    "and": "ve",
+    "or": "veya"
   },
   "access": {
     "rules": "Erişim kuralları",
@@ -711,6 +723,8 @@
     "orange": "turuncu"
   },
   "profileSettings": {
+    "hideFileExt": "Belirli dosyaları gizle (uzantıya göre)",
+    "hideFileExtDescription": "Boşlukla ayrılmış dosya uzantıları listesi. Bu alana girilen uzantılar tüm kullanıcı arayüzünden (görsel olarak, liste veya Dosya Ağacı gibi) gizlenecektir — Hâlâ erişilebilir durumdadırlar.",
     "preferEditorForMarkdown": "Markdown dosyaları için önce düzenleyiciyi tercih et",
     "preferEditorForMarkdownDescription": "Etkinleştirildiğinde, Markdown dosyalarını Markdown Görüntüleyici yerine önce düzenleyicide açar.",
     "deleteAfterArchive": "Arşiv oluşturma/çıkarma işleminden sonra kaynak dosyaları sil",
@@ -773,7 +787,21 @@
     "showThumbnailsDescription": "Etkinleştirildiğinde, küçük resimler onları destekleyen öğeler için listede gösterilir. Tüm küçük resimleri gizlemek için kapatın.",
     "showCopyPath": "Bağlam menüsünde Yolu Kopyala'yı göster",
     "showCopyPathDescription": "Dosya ve klasör bağlam menüsünde Yolu Kopyala eylemini gösterin.",
-    "previewDescription": "{filetype} için küçük resim önizlemelerini göster, devre dışı bırakılırsa genel simgeyi gösterecektir."
+    "previewDescription": "{filetype} için küçük resim önizlemelerini göster, devre dışı bırakılırsa genel simgeyi gösterecektir.",
+    "passkeys": "Geçiş Anahtarları",
+    "passkeysDescription": "Güvenli, parolasız çok faktörlü kimlik doğrulama için geçiş anahtarlarını kullanın. OTP kodları yerine biyometrik doğrulama veya PIN kullanmak için cihazınıza bir geçiş anahtarı kaydedin.",
+    "noPasskeys": "Henüz kayıtlı geçiş anahtarı yok.",
+    "addPasskey": "Geçiş Anahtarı Ekle",
+    "addingPasskey": "Geçiş anahtarı ekleniyor...",
+    "passkeyAdded": "Geçiş anahtarı başarıyla eklendi!",
+    "passkeyAddFailed": "Geçiş anahtarı eklenemedi",
+    "passkeyDeleted": "Geçiş anahtarı silindi.",
+    "passkeyDeleteFailed": "Geçiş anahtarı silinemedi",
+    "created": "Oluşturuldu",
+    "lastUsed": "Son kullanım",
+    "passkeyDefaultName": "Geçiş Anahtarı",
+    "showToolsInSidebar": "Araçları kenar çubuğunda göster",
+    "showToolsInSidebarDescription": "Araçlar bağlantısını her zaman kenar çubuğunda gösterin."
   },
   "editor": {
     "uninitialized": "Düzenleyici başlatılamadı. Lütfen yeniden yükleyin.",
@@ -797,7 +825,15 @@
     "QueuePlayback": "Oynatma Kuyruğu",
     "changePlaybackMode": "Oynatma modunu değiştir",
     "changePlaybackModeHint": "Daha fazla dosya görmek için oynatma modunu değiştirin",
-    "emptyQueue": "Kuyruk boş"
+    "emptyQueue": "Kuyruk boş",
+    "queue": "Kuyruk",
+    "lyrics": "Şarkı sözü",
+    "noLyrics": "Şarkı sözü mevcut değil",
+    "lockLyrics": "Şarkı sözlerini kilitle",
+    "unlockLyrics": "Şarkı sözlerinin kilidini aç",
+    "toggleLyrics": "Şarkı sözlerini göster/gizle",
+    "closePanel": "Paneli kapat",
+    "openPanel": "Paneli aç"
   },
   "fileSizeAnalyzer": {
     "title": "Dosya Boyutu Analizörü",
@@ -858,6 +894,20 @@
       "stopWatching": "İzlemeyi Bırak",
       "emptyState": "Bir dosya seçin ve dosya değişikliklerini izlemeye başlamak için oynat'a tıklayın",
       "chooseFile": "Bir dosya seçin"
+    },
+    "advancedSearch": {
+      "name": "Gelişmiş Arama",
+      "description": "Kaynaklar, filtreler ve seçenekler üzerinde tam kontrol ile dizinde arama yapın",
+      "searchTerms": "Arama terimleri",
+      "matchAllTerms": "Tüm terimleri eşleştirin",
+      "matchAllTermsDescription": "Etkinleştirildiğinde, her dosya için tüm arama terimleri bulunmalıdır",
+      "scopeAria": "Aramayı bir klasörle sınırlandırın",
+      "noTerms": "En az bir arama terimi girin.",
+      "termTooShort": "Her bir arama terimi en az {minSearchLength} karakter olmalıdır",
+      "caseExact": "Harfe duyarlı eşleşme",
+      "resultsTitle": "Arama sonuçları",
+      "invalidSources": "En az bir kaynağı açın.",
+      "noResults": "Eşleşen dosya veya klasör yok."
     }
   },
   "messages": {

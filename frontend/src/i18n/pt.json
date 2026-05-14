@@ -75,7 +75,12 @@
     "mouseActions": "Ações do Rato",
     "fileOperations": "Operações de Ficheiros",
     "click": "selecionar pasta ou ficheiro",
+    "dbClick": "Clique duas vezes num espaço vazio para selecionar todos os itens",
     "ctrl": {
+      "f1": "Mudar para vista de lista",
+      "f2": "Mudar para vista normal",
+      "f3": "Mudar para vista de galeria",
+      "scroll": "Alterar tamanhos da lista e da fonte do editor",
       "click": "selecionar várias pastas e ficheiros",
       "d": "descarregar itens selecionados",
       "b": "alternar a barra lateral",
@@ -101,6 +106,8 @@
       "volume": "Aumentar ou diminuir o volume",
       "mute": "Silenciar/Ativar som",
       "loop": "Alternar entre modo repetição e modo único",
+      "playbackQueue": "Abrir fila de reprodução ou o painel em ficheiros de áudio",
+      "switchTabs": "Alternar separadores no painel em ficheiros de áudio",
       "playbackModes": "Alternar entre modos de reprodução (exceto repetição e único)",
       "fullscreen": "Alternar modo de ecrã inteiro em vídeos",
       "captions": "Ativar/Desativar legendas"
@@ -141,10 +148,10 @@
     "passwordsDontMatch": "As palavras-passe não coincidem",
     "usernameTaken": "O nome de utilizador já está registado",
     "wrongCredentials": "Dados errados",
-    "or": "OU",
     "inProgress": "Iniciar sessão...",
     "failedLogin": "Falha no início de sessão",
-    "invalidCredentials": "Credenciais inválidas fornecidas"
+    "invalidCredentials": "Credenciais inválidas fornecidas",
+    "passkeyLogin": "Usar chave de acesso"
   },
   "prompts": {
     "copyMessage": "Escolha um lugar para onde copiar os ficheiros:",
@@ -256,9 +263,12 @@
     "showPreviewImagesDescription": "Apresentar pré-visualizações em miniatura dos resultados da pesquisa, quando disponíveis, e mostrar ícones maiores para todos os resultados.",
     "olderThanDate": "Mais velho do que:",
     "newerThanDate": "Mais recente do que:",
-    "helpText2": "Os resultados da pesquisa baseiam-se nos ficheiros indexados, pelo que os ficheiros recentemente adicionados podem não aparecer até serem indexados.",
     "noResults": "Não foram encontrados resultados.",
-    "helpText1": "A pesquisa ocorre em cada carácter que escrever ({minSearchLength} carácter mínimo)."
+    "helpText1": "A pesquisa ocorre em cada carácter que escrever ({minSearchLength} carácter mínimo).",
+    "helpText2": "Correspondência de subcadeia de caracteres apenas em nomes de ficheiros ou pastas (não em caminhos completos). case:exact para correspondência sensível a maiúsculas e minúsculas\n\n para OU entre termos, utilizar o carácter pipe; aspas duplas para uma frase.\n\nAtivar a pesquisa de wildcards para opções mais avançadas.",
+    "useWildcardSearch": "Pesquisa com caracteres curinga (sensível a maiúsculas e minúsculas)",
+    "useWildcardSearchDescription": "Opções curingas suportadas:\n\n- Corresponde a qualquer sequência: *\n\n- Corresponder a um carácter: ?\n\n- Classe de caracteres: [a-z], [0-9]\n\n- Negação: [^0-9]\n\n- Os literais *, ?, ou [ devem ser colocados entre parênteses, por exemplo, [*], [?], [[]\n\n- Todos os resultados são sensíveis a maiúsculas e minúsculas",
+    "openInAdvancedSearch": "Abrir na Pesquisa Avançada"
   },
   "settings": {
     "administrator": "Administrador",
@@ -565,6 +575,8 @@
     "orange": "laranja"
   },
   "profileSettings": {
+    "hideFileExt": "Ocultar certos ficheiros (por extensão)",
+    "hideFileExtDescription": "Uma lista de extensões de ficheiros separadas por espaços. As extensões inseridas neste campo serão ocultadas em toda a interface do utilizador (visualmente, como na lista ou árvore de ficheiros) — Continuam acessíveis.",
     "preferEditorForMarkdown": "Preferir editor primeiro para ficheiros Markdown",
     "preferEditorForMarkdownDescription": "Quando ativado, abre os ficheiros Markdown no editor em vez do visualizador Markdown.",
     "deleteAfterArchive": "Eliminar ficheiros de origem após criação/extração de arquivos",
@@ -627,7 +639,21 @@
     "showThumbnailsDescription": "Quando activada, as miniaturas são mostradas na listagem de itens que as suportam. Desativar para ocultar todas as miniaturas.",
     "showCopyPath": "Mostrar caminho de cópia no menu de contexto",
     "showCopyPathDescription": "Mostrar uma ação Copiar caminho no menu de contexto de ficheiros e pastas.",
-    "previewDescription": "Mostrar pré-visualizações em miniatura para {filetype}, mostrará o ícone genérico se estiver desativado."
+    "previewDescription": "Mostrar pré-visualizações em miniatura para {filetype}, mostrará o ícone genérico se estiver desativado.",
+    "passkeys": "Chaves de acesso",
+    "passkeysDescription": "Utilize chaves de acesso para autenticação segura multifator sem palavra-passe. Registe uma chave no seu dispositivo para usar verificação biométrica ou PIN em vez de códigos OTP.",
+    "noPasskeys": "Nenhuma chave de acesso registada.",
+    "addPasskey": "Adicionar chave de acesso",
+    "addingPasskey": "Adicionando chave de acesso...",
+    "passkeyAdded": "Chave de acesso adicionada com sucesso!",
+    "passkeyAddFailed": "Falha ao adicionar chave de acesso",
+    "passkeyDeleted": "Chave de acesso eliminada.",
+    "passkeyDeleteFailed": "Falha ao eliminar chave de acesso",
+    "created": "Criado",
+    "lastUsed": "Última utilização",
+    "passkeyDefaultName": "Chave de acesso",
+    "showToolsInSidebar": "Mostrar ferramentas na barra lateral",
+    "showToolsInSidebarDescription": "Mostrar sempre a ligação para as ferramentas na barra lateral."
   },
   "general": {
     "name": "Nome",
@@ -750,7 +776,9 @@
     "office": "Escritório{suffix}",
     "show": "Mostrar{suffix}",
     "divider": "Divisor{suffix}",
-    "audio": "Áudio{suffix}"
+    "audio": "Áudio{suffix}",
+    "and": "e",
+    "or": "ou"
   },
   "access": {
     "rules": "Regras de acesso",
@@ -797,7 +825,15 @@
     "QueuePlayback": "Fila de Reprodução",
     "changePlaybackMode": "Alterar modo de reprodução",
     "changePlaybackModeHint": "Altere o modo de reprodução para ver mais arquivos",
-    "emptyQueue": "A fila está vazia"
+    "emptyQueue": "A fila está vazia",
+    "queue": "Fila",
+    "lyrics": "Letra",
+    "noLyrics": "Letra não disponível",
+    "lockLyrics": "Bloquear letra",
+    "unlockLyrics": "Desbloquear letra",
+    "toggleLyrics": "Alternar letra",
+    "closePanel": "Fechar painel",
+    "openPanel": "Abrir painel"
   },
   "fileSizeAnalyzer": {
     "title": "Analisador de tamanho de ficheiro",
@@ -858,6 +894,20 @@
       "stopWatching": "Parar de ver",
       "emptyState": "Escolha um ficheiro e clique em reproduzir para começar a monitorizar as alterações do ficheiro",
       "chooseFile": "Escolher um ficheiro"
+    },
+    "advancedSearch": {
+      "name": "Pesquisa avançada",
+      "description": "Pesquise o índice com controlo total sobre fontes, filtros e opções",
+      "searchTerms": "Termos de pesquisa",
+      "matchAllTerms": "Fazer corresponder todos os termos",
+      "matchAllTermsDescription": "Quando ativado, todos os termos de pesquisa devem ser encontrados para cada ficheiro",
+      "scopeAria": "Limitar a pesquisa a uma pasta",
+      "noTerms": "Introduzir pelo menos um termo de pesquisa.",
+      "termTooShort": "Cada termo de pesquisa deve ter, pelo menos, {minSearchLength} caracteres",
+      "caseExact": "Correspondência com distinção de maiúsculas e minúsculas",
+      "resultsTitle": "Resultados da pesquisa",
+      "invalidSources": "Ligar pelo menos uma fonte.",
+      "noResults": "Não há ficheiros ou pastas correspondentes."
     }
   },
   "messages": {

@@ -54,7 +54,7 @@
             </p>
           </div>
           <div v-if="oidcAvailable" class="password-entry">
-            <div v-if="passwordAvailable" class="or">{{ $t("login.or") }}</div>
+            <div v-if="passwordAvailable" class="or">{{ getOrLabel() }}</div>
             <a :href="loginURL" class="button button--block direct-login">
               {{ getLoginButtonText() }}
             </a>
@@ -259,6 +259,9 @@ export default {
     });
   },
   methods: {
+    getOrLabel() {
+      return this.$t("general.or").toUpperCase();
+    },
     getLoginButtonText() {
       return globalVars.oidcLoginButtonText || "OpenID Connect";
     },
@@ -381,6 +384,15 @@ export default {
               generate: false,
             },
           });
+        } else if (e.message.includes("passkey MFA is required")) {
+          try {
+            await authApi.beginPasskeyLogin(this.username, this.password);
+            await initAuth();
+            router.push({ path: redirect });
+          } catch (passkeyErr) {
+            this.error = passkeyErr.message;
+            this.inProgress = false;
+          }
         } else if (e.message == 409) {
           this.error = this.$t("login.usernameTaken");
         } else if (e.message == 401) {

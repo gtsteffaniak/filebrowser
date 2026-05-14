@@ -346,11 +346,16 @@ func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, erro
 
 	// Build scanner info for client
 	idx.mu.RLock()
+	adaptiveSched := idx.useAdaptiveScheduling()
 	scannerInfos := make([]*ScannerInfo, 0, len(idx.scanners))
 	for _, scanner := range idx.scanners {
+		schedule := 0
+		if adaptiveSched {
+			schedule = scanner.currentSchedule
+		}
 		scannerInfos = append(scannerInfos, &ScannerInfo{
 			Path:            scanner.scanPath,
-			CurrentSchedule: scanner.currentSchedule,
+			CurrentSchedule: schedule,
 			Stats: Stats{
 				LastScanned:   scanner.lastScanned,
 				Complexity:    scanner.complexity,

@@ -3,22 +3,56 @@ import { notify } from "@/notify";
 import { getApiPath } from "@/utils/url.js";
 
 // GET /api/tools/search
-// extraParams: optional { olderThan, newerThan } — Unix timestamps in seconds (number or numeric string); modified time must be strictly before olderThan / on or after newerThan
+// extraParams: optional { olderThan, newerThan, useWildcard, terms, termJoin, perSourceScopes }
+// When perSourceScopes is a non-empty array of { source, path }, sends repeated scope=source:path and omits sources (multi-scope API).
+// Otherwise legacy: sources + optional scope path for single source.
 export async function search(base, sources, query, largest = false, extraParams = {}) {
   try {
-    const sourcesArray = Array.isArray(sources) ? sources : [sources];
-    
-    const params = {
-      query: query,
-      sources: sourcesArray.join(",")
-    };
+    const params = {};
 
-    // Only include scope if searching a single source
-    if (sourcesArray.length === 1 && base) {
-      if (!base.endsWith("/")) {
-        base += "/";
+    const rawTerms = extraParams.terms;
+    const terms =
+      Array.isArray(rawTerms) ?
+        rawTerms.map((t) => String(t).trim()).filter((t) => t !== "") :
+        [];
+
+    const prefixQuery = query === undefined || query === null ? "" : String(query).trim();
+
+    if (terms.length > 0) {
+      params.query = prefixQuery;
+      params.terms = terms;
+      if (extraParams.termJoin === "and") {
+        params.termJoin = "and";
       }
-      params.scope = base;
+    } else {
+      params.query = prefixQuery;
+    }
+
+    const perSource = extraParams.perSourceScopes;
+    if (Array.isArray(perSource) && perSource.length > 0) {
+      params.scope = perSource.map(({ source, path }) => {
+        const sourceName = String(source || "").trim();
+        let scopedPath =
+          path === undefined || path === null ? "/" : String(path).trim();
+        if (scopedPath === "") {
+          scopedPath = "/";
+        }
+        if (!scopedPath.startsWith("/")) {
+          scopedPath = `/${scopedPath}`;
+        }
+        return `${sourceName}:${scopedPath}`;
+      });
+    } else {
+      const sourcesArray = Array.isArray(sources) ? sources : [sources];
+      params.sources = sourcesArray.join(",");
+
+      if (sourcesArray.length === 1 && base) {
+        let scopeBase = base;
+        if (!scopeBase.endsWith("/")) {
+          scopeBase += "/";
+        }
+        params.scope = scopeBase;
+      }
     }
 
     if (largest) {
@@ -31,12 +65,19 @@ export async function search(base, sources, query, largest = false, extraParams 
     if (extraParams.newerThan !== undefined && extraParams.newerThan !== "") {
       params.newerThan = String(extraParams.newerThan);
     }
+    if (
+      extraParams.useWildcard === true ||
+      extraParams.useGlob === true ||
+      extraParams.glob === true
+    ) {
+      params.useWildcard = "true";
+    }
 
     const apiPath = getApiPath("tools/search", params);
     const res = await fetchURL(apiPath);
     let data = await res.json();
 
-    return data
+    return data;
   } catch (err) {
     notify.showError(err.message || "Error occurred during search");
     throw err;

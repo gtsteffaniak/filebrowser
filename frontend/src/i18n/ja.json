@@ -75,7 +75,12 @@
     "mouseActions": "マウス操作",
     "fileOperations": "ファイル操作",
     "click": "ファイルやディレクトリを選択",
+    "dbClick": "空のスペースをダブルクリックしてすべての項目を選択",
     "ctrl": {
+      "f1": "リスト表示に切り替え",
+      "f2": "通常表示に切り替え",
+      "f3": "ギャラリー表示に切り替え",
+      "scroll": "リストとエディタのフォントサイズを変更",
       "click": "複数のファイルやディレクトリを選択",
       "d": "ダウンロード",
       "b": "トグル・サイドバー",
@@ -101,6 +106,8 @@
       "volume": "音量を上げる/下げる",
       "mute": "ミュート/ミュート解除",
       "loop": "ループモードとシングルモードを切り替え",
+      "playbackQueue": "オーディオファイルで再生キューまたはパネルを開く",
+      "switchTabs": "オーディオファイルのパネルでタブを切り替える",
       "playbackModes": "再生モードを切り替え（ループとシングルを除く）",
       "fullscreen": "動画の全画面モードを切り替え",
       "captions": "字幕のオン/オフを切り替え"
@@ -141,10 +148,10 @@
     "passwordsDontMatch": "パスワードが一致しません",
     "usernameTaken": "ユーザー名はすでに使用されています",
     "wrongCredentials": "ユーザー名またはパスワードが間違っています。",
-    "or": "または",
     "inProgress": "ログイン...",
     "failedLogin": "ログインに失敗しました",
-    "invalidCredentials": "無効な認証情報が提供された"
+    "invalidCredentials": "無効な認証情報が提供された",
+    "passkeyLogin": "パスキーを使用"
   },
   "prompts": {
     "copyMessage": "コピーの目標ディレクトリを選択してください：",
@@ -256,9 +263,12 @@
     "showPreviewImagesDescription": "検索結果のサムネイルプレビューを表示し、すべての検索結果に対して大きなアイコンを表示します。",
     "olderThanDate": "より古い：",
     "newerThanDate": "より新しい：",
-    "helpText2": "検索結果はインデックスされたファイルに基づいているため、新しく追加されたファイルはインデックスされるまで表示されないことがあります。",
     "noResults": "結果は見つからなかった。",
-    "helpText1": "検索は入力した文字ごとに行われます（{minSearchLength} 文字以上）。"
+    "helpText1": "検索は入力した文字ごとに行われます（{minSearchLength} 文字以上）。",
+    "helpText2": "ファイル名またはフォルダ名のみ（フルパスではない）の部分文字列マッチ case:exactで大文字小文字を区別してマッチング\n\n パイプ文字を使用し、1つのフレーズを二重引用符で囲みます。\n\nワイルドカード検索を有効にすると、より高度なオプションを使用できます。",
+    "useWildcardSearch": "ワイルドカード検索（大文字と小文字を区別）",
+    "useWildcardSearchDescription": "サポートされているワイルドカードオプション：\n\n- 任意のシーケンスにマッチします：*\n\n- 1文字にマッチ: ?\n\n- 文字クラス：[a-z], [0-9］\n\n- 否定[^0-9]\n\n- 例えば、[*]、[?]、[[]のように、*、?\n\n- すべての結果は大文字と小文字を区別します。",
+    "openInAdvancedSearch": "詳細検索で開く"
   },
   "settings": {
     "administrator": "管理者",
@@ -665,7 +675,9 @@
     "office": "オフィス{suffix}",
     "show": "ショー{suffix}",
     "divider": "ディバイダー{suffix}",
-    "audio": "オーディオ{suffix}"
+    "audio": "オーディオ{suffix}",
+    "and": "そして",
+    "or": "または"
   },
   "access": {
     "rules": "アクセスルール",
@@ -711,6 +723,8 @@
     "orange": "オレンジ"
   },
   "profileSettings": {
+    "hideFileExt": "特定のファイルを非表示にする（拡張子で）",
+    "hideFileExtDescription": "スペース区切りのファイル拡張子リスト。このフィールドに入力された拡張子は、すべてのUI（リストやファイルツリーなどの視覚的な部分）から非表示になります — ただし、アクセスは可能です。",
     "preferEditorForMarkdown": "Markdownファイルではエディタを優先する",
     "preferEditorForMarkdownDescription": "有効にすると、MarkdownファイルをMarkdownビューアではなくエディタで開きます。",
     "deleteAfterArchive": "アーカイブの作成/展開後にソースファイルを削除",
@@ -773,7 +787,21 @@
     "showThumbnailsDescription": "有効にすると、サムネイルをサポートしているアイテムのリストにサムネイルが表示されます。オフにするとすべてのサムネイルが非表示になります。",
     "showCopyPath": "コンテキストメニューにコピーパスを表示する",
     "showCopyPathDescription": "ファイルやフォルダのコンテキストメニューに「パスをコピー」アクションを表示します。",
-    "previewDescription": "{filetype} のサムネイルプレビューを表示する。無効の場合は一般的なアイコンを表示する。"
+    "previewDescription": "{filetype} のサムネイルプレビューを表示する。無効の場合は一般的なアイコンを表示する。",
+    "passkeys": "パスキー",
+    "passkeysDescription": "パスキーを使用して安全でパスワード不要の多要素認証を行います。デバイスにパスキーを登録すると、OTPコードの代わりに生体認証またはPIN認証が使用できます。",
+    "noPasskeys": "パスキーはまだ登録されていません。",
+    "addPasskey": "パスキーを追加",
+    "addingPasskey": "パスキーを追加中...",
+    "passkeyAdded": "パスキーが正常に追加されました！",
+    "passkeyAddFailed": "パスキーの追加に失敗しました",
+    "passkeyDeleted": "パスキーが削除されました。",
+    "passkeyDeleteFailed": "パスキーの削除に失敗しました",
+    "created": "作成日",
+    "lastUsed": "最終使用",
+    "passkeyDefaultName": "パスキー",
+    "showToolsInSidebar": "サイドバーにツールを表示",
+    "showToolsInSidebarDescription": "サイドバーにツールリンクを常に表示する。"
   },
   "editor": {
     "uninitialized": "エディタの初期化に失敗しました。再読み込みしてください。",
@@ -797,7 +825,15 @@
     "QueuePlayback": "再生キュー",
     "changePlaybackMode": "再生モードを変更",
     "changePlaybackModeHint": "再生モードを変更してより多くのファイルを表示",
-    "emptyQueue": "キューは空です"
+    "emptyQueue": "キューは空です",
+    "queue": "キュー",
+    "lyrics": "歌詞",
+    "noLyrics": "歌詞はありません",
+    "lockLyrics": "歌詞をロック",
+    "unlockLyrics": "歌詞のロックを解除",
+    "toggleLyrics": "歌詞の表示切り替え",
+    "closePanel": "パネルを閉じる",
+    "openPanel": "パネルを開く"
   },
   "fileSizeAnalyzer": {
     "title": "ファイル・サイズ・アナライザー",
@@ -858,6 +894,20 @@
       "stopWatching": "ストップ・ウォッチング",
       "emptyState": "ファイルを選択し、再生をクリックすると、ファイルの変更を監視し始めます。",
       "chooseFile": "ファイルを選択する"
+    },
+    "advancedSearch": {
+      "name": "高度な検索",
+      "description": "ソース、フィルター、オプションを完全に制御してインデックスを検索する。",
+      "searchTerms": "検索条件",
+      "matchAllTerms": "すべての用語にマッチ",
+      "matchAllTermsDescription": "有効にすると、各ファイルに対してすべての検索語を検索する必要があります。",
+      "scopeAria": "検索対象をフォルダに限定する",
+      "noTerms": "少なくとも1つの検索語を入力してください。",
+      "termTooShort": "各検索語は{minSearchLength} 文字以上でなければなりません。",
+      "caseExact": "大文字と小文字の一致",
+      "resultsTitle": "検索結果",
+      "invalidSources": "少なくとも1つのソースをオンにする。",
+      "noResults": "一致するファイルやフォルダがありません。"
     }
   },
   "messages": {

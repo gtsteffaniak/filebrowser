@@ -75,7 +75,12 @@
     "mouseActions": "마우스 작업",
     "fileOperations": "파일 작업",
     "click": "파일이나 디렉토리를 선택해주세요.",
+    "dbClick": "빈 공간을 두 번 클릭하여 모든 항목 선택",
     "ctrl": {
+      "f1": "목록 보기로 전환",
+      "f2": "일반 보기로 전환",
+      "f3": "갤러리 보기로 전환",
+      "scroll": "목록 크기 및 편집기 글꼴 변경",
       "click": "여러 개의 파일이나 디렉토리를 선택해주세요.",
       "d": "선택한 항목 다운로드",
       "b": "사이드바 토글",
@@ -101,6 +106,8 @@
       "volume": "볼륨 높이기/낮추기",
       "mute": "음소거 켜기/끄기",
       "loop": "반복 모드와 단일 모드 전환",
+      "playbackQueue": "오디오 파일에서 재생 대기열 또는 패널 열기",
+      "switchTabs": "오디오 파일의 패널에서 탭 전환",
       "playbackModes": "재생 모드 전환 (반복 및 단일 제외)",
       "fullscreen": "비디오 전체 화면 모드 전환",
       "captions": "자막 켜기/끄기"
@@ -141,10 +148,10 @@
     "passwordsDontMatch": "비밀번호가 일치하지 않습니다",
     "usernameTaken": "사용자 이름이 존재합니다",
     "wrongCredentials": "사용자 이름 또는 비밀번호를 확인하십시오",
-    "or": "또는",
     "inProgress": "로그인...",
     "failedLogin": "로그인에 실패했습니다.",
-    "invalidCredentials": "제공된 자격 증명이 잘못되었습니다."
+    "invalidCredentials": "제공된 자격 증명이 잘못되었습니다.",
+    "passkeyLogin": "패스키 사용"
   },
   "prompts": {
     "copyMessage": "복사할 디렉토리:",
@@ -256,9 +263,12 @@
     "showPreviewImagesDescription": "가능한 경우 검색 결과의 썸네일 미리 보기를 표시하고 모든 결과에 대해 더 큰 아이콘을 표시합니다.",
     "olderThanDate": "이전보다 오래되었습니다:",
     "newerThanDate": "보다 최신:",
-    "helpText2": "검색 결과는 색인된 파일을 기반으로 하므로 새로 추가된 파일은 색인이 완료될 때까지 표시되지 않을 수 있습니다.",
     "noResults": "결과를 찾을 수 없습니다.",
-    "helpText1": "검색은 입력하는 각 문자({minSearchLength} 최소 글자 수)에 대해 이루어집니다."
+    "helpText1": "검색은 입력하는 각 문자({minSearchLength} 최소 글자 수)에 대해 이루어집니다.",
+    "helpText2": "대소문자 구분 일치를 위해 파일 또는 폴더 이름에 대해서만 하위 문자열 일치(전체 경로가 아님).\n\n 용어 사이의 OR에는 파이프 문자를, 한 구문에는 큰따옴표를 사용합니다.\n\n고급 옵션을 사용하려면 와일드카드 검색을 사용 설정하세요.",
+    "useWildcardSearch": "와일드카드 검색(대소문자 구분)",
+    "useWildcardSearchDescription": "지원되는 와일드카드 옵션:\n\n- 모든 시퀀스와 일치합니다: *\n\n- 한 문자 일치: ?\n\n- 문자 클래스: [a-z], [0-9]\n\n- 부정: [^0-9]\n\n- 리터럴 *, ? 또는 [는 괄호로 묶어야 합니다(예: [*], [?], [[]).\n\n- 모든 결과는 대소문자를 구분합니다.",
+    "openInAdvancedSearch": "고급 검색에서 열기"
   },
   "settings": {
     "administrator": "관리자",
@@ -665,7 +675,9 @@
     "office": "Office{suffix}",
     "show": "표시{suffix}",
     "divider": "디바이더{suffix}",
-    "audio": "오디오{suffix}"
+    "audio": "오디오{suffix}",
+    "and": "그리고",
+    "or": "또는"
   },
   "access": {
     "rules": "액세스 규칙",
@@ -711,6 +723,8 @@
     "orange": "오렌지"
   },
   "profileSettings": {
+    "hideFileExt": "특정 파일 숨기기 (확장자 기준)",
+    "hideFileExtDescription": "공백으로 구분된 파일 확장자 목록입니다. 이 필드에 입력된 확장자는 모든 UI(목록 또는 파일 트리와 같은 시각적 요소)에서 숨겨집니다 — 여전히 접근 가능합니다.",
     "preferEditorForMarkdown": "Markdown 파일에 대해 편집기 우선 사용",
     "preferEditorForMarkdownDescription": "활성화하면 Markdown 파일을 Markdown 뷰어 대신 편집기에서 먼저 엽니다.",
     "deleteAfterArchive": "아카이브 생성/추출 후 소스 파일 삭제",
@@ -773,7 +787,21 @@
     "showThumbnailsDescription": "활성화하면 이를 지원하는 항목의 목록에 썸네일이 표시됩니다. 모든 섬네일을 숨기려면 끄면 됩니다.",
     "showCopyPath": "컨텍스트 메뉴에 경로 복사 표시",
     "showCopyPathDescription": "파일 및 폴더 컨텍스트 메뉴에 경로 복사 작업을 표시합니다.",
-    "previewDescription": "{filetype} 에 대한 썸네일 미리보기 표시 , 비활성화하면 일반 아이콘이 표시됩니다."
+    "previewDescription": "{filetype} 에 대한 썸네일 미리보기 표시 , 비활성화하면 일반 아이콘이 표시됩니다.",
+    "passkeys": "패스키",
+    "passkeysDescription": "안전한 비밀번호 없는 다중 인증을 위해 패스키를 사용하세요. 기기에 패스키를 등록하여 OTP 코드 대신 생체 인증 또는 PIN 인증을 사용할 수 있습니다.",
+    "noPasskeys": "등록된 패스키가 없습니다.",
+    "addPasskey": "패스키 추가",
+    "addingPasskey": "패스키 추가 중...",
+    "passkeyAdded": "패스키가 성공적으로 추가되었습니다!",
+    "passkeyAddFailed": "패스키 추가 실패",
+    "passkeyDeleted": "패스키가 삭제되었습니다.",
+    "passkeyDeleteFailed": "패스키 삭제 실패",
+    "created": "생성일",
+    "lastUsed": "마지막 사용",
+    "passkeyDefaultName": "패스키",
+    "showToolsInSidebar": "사이드바에 도구 표시",
+    "showToolsInSidebarDescription": "사이드바에 항상 도구 링크를 표시합니다."
   },
   "editor": {
     "uninitialized": "편집기를 초기화하지 못했습니다. 다시 로드하세요.",
@@ -797,7 +825,15 @@
     "QueuePlayback": "재생 대기열",
     "changePlaybackMode": "재생 모드 변경",
     "changePlaybackModeHint": "더 많은 파일을 보려면 재생 모드를 변경하세요",
-    "emptyQueue": "대기열이 비어 있습니다"
+    "emptyQueue": "대기열이 비어 있습니다",
+    "queue": "대기열",
+    "lyrics": "가사",
+    "noLyrics": "사용 가능한 가사 없음",
+    "lockLyrics": "가사 잠금",
+    "unlockLyrics": "가사 잠금 해제",
+    "toggleLyrics": "가사 토글",
+    "closePanel": "패널 닫기",
+    "openPanel": "패널 열기"
   },
   "fileSizeAnalyzer": {
     "title": "파일 크기 분석기",
@@ -858,6 +894,20 @@
       "stopWatching": "시청 중지",
       "emptyState": "파일을 선택하고 재생을 클릭하여 파일 변경 사항 모니터링을 시작하세요.",
       "chooseFile": "파일 선택"
+    },
+    "advancedSearch": {
+      "name": "고급 검색",
+      "description": "소스, 필터 및 옵션을 완벽하게 제어하여 색인을 검색하세요.",
+      "searchTerms": "검색어",
+      "matchAllTerms": "모든 용어 일치",
+      "matchAllTermsDescription": "활성화하면 각 파일에 대해 모든 검색어를 찾아야 합니다.",
+      "scopeAria": "폴더로 검색 제한",
+      "noTerms": "검색어를 하나 이상 입력합니다.",
+      "termTooShort": "각 검색어는 {minSearchLength} 자 이상이어야 합니다.",
+      "caseExact": "대소문자 구분 일치",
+      "resultsTitle": "검색 결과",
+      "invalidSources": "하나 이상의 소스를 켭니다.",
+      "noResults": "일치하는 파일이나 폴더가 없습니다."
     }
   },
   "messages": {

@@ -12,7 +12,8 @@ input,
 #search-input,
 .floating-tooltip,
 .settings-items>.item,
-.button-group {
+.button-group,
+.border-radius {
     border-radius: 0.25em !important;
 }
 

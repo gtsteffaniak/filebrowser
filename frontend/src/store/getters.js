@@ -216,23 +216,19 @@ export const getters = {
     return fileCount
   },
   reqItems: () => {
-    if (state.user == null) {
-      return {}
-    }
-    const dirs = []
-    const files = []
-    if (!state.req.items) {
-      return { dirs, files }
-    }
-    state.req.items.forEach(item => {
-      if (item.type == 'directory') {
-        dirs.push(item)
+    if (state.user == null) return { dirs: [], files: [] };
+    const dirs = [];
+    const files = [];
+    if (!state.req.items) return { dirs, files };
+
+    for (const item of state.req.items) {
+      if (item.type === 'directory') {
+        dirs.push(item);
       } else {
-        item.Path = state.req.Path
-        files.push(item)
+        files.push(item);
       }
-    })
-    return { dirs, files }
+    }
+    return { dirs, files };
   },
   isSidebarVisible: () => {
     if (globalVars.disableSidebar || getters.isInvalidShare()) {
@@ -516,6 +512,12 @@ export const getters = {
     const cv = getters.currentView()
     const isSidebarVisible = getters.isSidebarVisible()
     if (isSidebarVisible) {
+      if (cv == "tools") {
+        if (state.user.stickySidebar) {
+          return "menu";
+        }
+        return "back";
+      }
       if (cv == "settings") {
         if (state.isMobile) {
           return "back";
@@ -532,6 +534,9 @@ export const getters = {
         return "back";
       }
       return "close";
+    }
+    if (cv == "tools") {
+      return "menu";
     }
     if (state.shareInfo?.singleFileShare) {
       return "menu";
@@ -564,6 +569,20 @@ export const getters = {
     const tool = tools().find(t => t.path === state.route.path);
     // Return null when at /tools (list view) to avoid circular component rendering
     return tool;
+  },
+  isEditorOrMarkdownView: () => {
+    return getters.currentView() === 'editor' || getters.currentView() === 'markdownViewer';
+  },
+  showStatusBar: () => {
+    if (getters.isShare() && state.shareInfo.shareType === "upload") {
+      return false;
+    }
+    const isAdvancedSearchRoute = (state.route?.path || "").startsWith("/tools/advancedSearch");
+    return getters.currentView() === "listingView" || getters.isEditorOrMarkdownView() || isAdvancedSearchRoute;
+  },
+  showGallerySizeSlider: () => {
+    const isAdvancedSearchRoute = (state.route?.path || "").startsWith("/tools/advancedSearch");
+    return getters.currentView() === "listingView" || isAdvancedSearchRoute;
   },
   permissions: () => {
     if (getters.isShare()) {

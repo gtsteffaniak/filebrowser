@@ -19,7 +19,7 @@
     </div>
     <title v-if="!showSearch" class="topTitle">{{ getTopTitle }}</title>
     <action
-      v-if="isListingView && !disableNavButtons"
+      v-if="showHeaderSwitchView && !disableNavButtons"
       class="menu-button"
       :icon="viewIcon"
       :label="$t('buttons.switchView')"
@@ -28,7 +28,7 @@
     />
     <action
       class="overflow-menu-button"
-      v-else-if="!isListingView && !showQuickSave"
+      v-else-if="!showHeaderSwitchView && !showQuickSave"
       :icon="iconName"
       :disabled="noItems"
       @click="toggleOverflow"
@@ -99,6 +99,12 @@ export default {
     isListingView() {
       return getters.currentView() == "listingView";
     },
+    isAdvancedSearchRoute() {
+      return (state.route?.path || "") === "/tools/advancedSearch";
+    },
+    showHeaderSwitchView() {
+      return this.isListingView || this.isAdvancedSearchRoute;
+    },
     iconName() {
       return getters.currentPromptName() === "OverflowMenu"
         ? "keyboard_arrow_up"
@@ -143,7 +149,7 @@ export default {
       return this.isDisabled || regularDisabled || shareDisabled;
     },
     showSwitchView() {
-      return getters.currentView() === "listingView";
+      return this.showHeaderSwitchView;
     },
     showSidebarToggle() {
       return getters.currentView() === "listingView";
@@ -246,7 +252,7 @@ export default {
       this.performNavigation(cv);
     },
     performNavigation(cv) {
-      if (cv == "listingView" || ( getters.isShare() && !getters.multibuttonState() === "close")) {
+      if (cv == "listingView" || ( getters.isShare() && !getters.multibuttonState() === "close") || cv == "tools") {
         mutations.toggleSidebar();
       } else if (cv == "settings" && state.isMobile) {
         mutations.toggleSidebar();

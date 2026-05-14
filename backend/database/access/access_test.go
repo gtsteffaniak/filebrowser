@@ -123,8 +123,8 @@ func setupTestSources() {
 		settings.Config.Server.SourceMap["mnt/storage"],
 		settings.Config.Server.SourceMap["mnt/open"],
 	}
-	settings.Config.UserDefaults.DefaultScopes = []users.SourceScope{
-		{Name: "mnt/storage", Scope: "/"},
+	settings.Config.UserDefaults.DefaultScopes = []users.BackendScope{
+		{Path: "mnt/storage/", Scope: "/"},
 	}
 	// Initialize user package resolvers
 	settings.InitializeUserResolvers()

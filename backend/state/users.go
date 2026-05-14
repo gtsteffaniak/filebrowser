@@ -35,7 +35,7 @@ func GetUser(id uint64) (users.User, error) {
 
 	// Deep copy slices and maps
 	if user.BackendScopes != nil {
-		userCopy.BackendScopes = make([]users.SourceScope, len(user.BackendScopes))
+		userCopy.BackendScopes = make([]users.BackendScope, len(user.BackendScopes))
 		copy(userCopy.BackendScopes, user.BackendScopes)
 	}
 
@@ -70,7 +70,7 @@ func GetUserByUsername(username string) (users.User, error) {
 
 	// Deep copy slices and maps
 	if user.BackendScopes != nil {
-		userCopy.BackendScopes = make([]users.SourceScope, len(user.BackendScopes))
+		userCopy.BackendScopes = make([]users.BackendScope, len(user.BackendScopes))
 		copy(userCopy.BackendScopes, user.BackendScopes)
 	}
 
@@ -113,7 +113,7 @@ func GetAllUsers() ([]users.User, error) {
 
 		// Deep copy slices and maps
 		if user.BackendScopes != nil {
-			userCopy.BackendScopes = make([]users.SourceScope, len(user.BackendScopes))
+			userCopy.BackendScopes = make([]users.BackendScope, len(user.BackendScopes))
 			copy(userCopy.BackendScopes, user.BackendScopes)
 		}
 
@@ -184,7 +184,7 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 	user.FrontendScopes = nil
 
 	// If still no BackendScopes (omitted or invalid API names), same defaults as ApplyUserDefaults.
-	settings.ApplyDefaultBackendScopes(user)
+	settings.ApplyUserDefaults(user)
 
 	// Create user directories and adjust scope paths if createUserDir is enabled
 	err := files.MakeUserDirs(user, true)

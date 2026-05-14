@@ -14,8 +14,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/preview"
 	"github.com/gtsteffaniak/filebrowser/backend/state"
 	"github.com/gtsteffaniak/go-logger/logger"
-
-	_ "github.com/gtsteffaniak/filebrowser/backend/swagger/docs"
 )
 
 // publicDownloadHandler serves the raw content of a file, multiple files, or directory via a public share.

@@ -123,7 +123,6 @@ export default {
 </script>
 <style scoped>
 .api-content {
-  max-height: 70vh;
   overflow-y: auto;
 }
 

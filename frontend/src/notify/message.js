@@ -360,8 +360,19 @@ export function showError(message, options = {}) {
 }
 
 export function showMultipleSelection() {
-  const message = i18n.global.t('files.multipleSelectionEnabled')
-  showPopup('success', message, { persistent: true })
+  const message = i18n.global.t('files.multipleSelectionEnabled');
+  showPopup('success', message, { persistent: true });
+  const Notification = notifications[notifications.length - 1];
+  if (Notification) {
+    Notification.isMultipleSelection = true;
+  }
+}
+
+export function hideMultipleSelection() {
+  const multipleNotification = notifications.find(n => n.isMultipleSelection);
+  if (multipleNotification) {
+    closeNotification(multipleNotification.id);
+  }
 }
 
 /**

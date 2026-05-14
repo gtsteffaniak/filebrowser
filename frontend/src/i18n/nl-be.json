@@ -75,7 +75,12 @@
     "mouseActions": "Muisacties",
     "fileOperations": "Bestandsbewerkingen",
     "click": "selecteer bestand of map",
+    "dbClick": "Dubbelklik op een lege ruimte om alle items te selecteren",
     "ctrl": {
+      "f1": "Overschakelen naar lijstweergave",
+      "f2": "Overschakelen naar normale weergave",
+      "f3": "Overschakelen naar galerijweergave",
+      "scroll": "Grootte van de lijst en het editorlettertype wijzigen",
       "click": "selecteer meerdere bestanden of mappen",
       "d": "geselecteerde items downloaden",
       "b": "naar zijbalk wisselen",
@@ -101,6 +106,8 @@
       "volume": "Volume omhoog of omlaag",
       "mute": "Geluid dempen/inschakelen",
       "loop": "Schakel tussen herhalen en enkelvoudige modus",
+      "playbackQueue": "Afspeellijst of het paneel openen in audiobestanden",
+      "switchTabs": "Tabbladen in het paneel bij audiobestanden wisselen",
       "playbackModes": "Schakel tussen afspeelmodi (behalve herhalen en enkelvoudig)",
       "fullscreen": "Volledig scherm modus voor video's",
       "captions": "Ondertiteling aan/uit"
@@ -141,10 +148,10 @@
     "passwordsDontMatch": "Wachtwoorden komen niet overeen",
     "usernameTaken": "Gebruikersnaam reeds in gebruik",
     "wrongCredentials": "Verkeerde inloggegevens",
-    "or": "OF",
     "inProgress": "Inloggen...",
     "failedLogin": "Aanmelden mislukt",
-    "invalidCredentials": "Ongeldige referenties verstrekt"
+    "invalidCredentials": "Ongeldige referenties verstrekt",
+    "passkeyLogin": "Passkey gebruiken"
   },
   "prompts": {
     "copyMessage": "Kies een locatie om uw bestanden te kopiëren: ",
@@ -256,9 +263,12 @@
     "showPreviewImagesDescription": "Toon miniatuurvoorbeelden voor zoekresultaten indien beschikbaar, en toon grotere pictogrammen voor alle resultaten.",
     "olderThanDate": "Ouder dan:",
     "newerThanDate": "Nieuwer dan:",
-    "helpText2": "Zoekresultaten zijn gebaseerd op geïndexeerde bestanden, dus nieuw toegevoegde bestanden verschijnen mogelijk pas als ze geïndexeerd zijn.",
     "noResults": "Geen resultaten gevonden.",
-    "helpText1": "Er wordt gezocht op elk teken dat je typt (minimaal{minSearchLength} tekens)."
+    "helpText1": "Er wordt gezocht op elk teken dat je typt (minimaal{minSearchLength} tekens).",
+    "helpText2": "Substring match alleen op bestands- of mapnamen (geen volledige paden). case:exact voor hoofdlettergevoelig matchen\n\n voor OR tussen termen gebruik je het teken pipe; dubbele aanhalingstekens voor één zin.\n\nSchakel wildcard zoeken in voor meer geavanceerde opties.",
+    "useWildcardSearch": "Zoeken met jokertekens (hoofdlettergevoelig)",
+    "useWildcardSearchDescription": "Ondersteunde jokertekenopties:\n\n- Overeenstemming met een willekeurige reeks: *\n\n- Overeenstemming met één teken: ?\n\n- Tekenklasse: [a-z], [0-9]\n\n- Negatie: [^0-9]\n\n- Letterlijke *, ?, of [ moeten tussen haakjes staan, bijv. [*], [?], [[]\n\n- Alle resultaten zijn hoofdlettergevoelig",
+    "openInAdvancedSearch": "Openen in geavanceerd zoeken"
   },
   "settings": {
     "administrator": "Administrator",
@@ -565,6 +575,8 @@
     "orange": "oranje"
   },
   "profileSettings": {
+    "hideFileExt": "Bepaalde bestanden verbergen (op extensie)",
+    "hideFileExtDescription": "Een door spaties gescheiden lijst van bestandsextensies. Extensies die in dit veld worden ingevoerd, worden verborgen in de hele gebruikersinterface (visueel, zoals in de lijst of bestandsboom) — Ze blijven toegankelijk.",
     "preferEditorForMarkdown": "Geef de voorkeur aan editor voor Markdown-bestanden",
     "preferEditorForMarkdownDescription": "Indien ingeschakeld, open Markdown-bestanden eerst in de editor in plaats van de Markdown-viewer.",
     "deleteAfterArchive": "Bronbestanden verwijderen na aanmaken/uitpakken van archieven",
@@ -627,7 +639,21 @@
     "showThumbnailsDescription": "Als deze optie is ingeschakeld, worden miniaturen weergegeven in de lijst met items die deze ondersteunen. Schakel deze optie uit om alle miniaturen te verbergen.",
     "showCopyPath": "Pad kopiëren tonen in contextmenu",
     "showCopyPathDescription": "Een actie Pad kopiëren weergeven in het contextmenu van bestanden en mappen.",
-    "previewDescription": "Toon miniatuurvoorbeelden voor {filetype}, toont generiek pictogram indien uitgeschakeld."
+    "previewDescription": "Toon miniatuurvoorbeelden voor {filetype}, toont generiek pictogram indien uitgeschakeld.",
+    "passkeys": "Passkeys",
+    "passkeysDescription": "Gebruik passkeys voor veilige, wachtwoordloze multi-factor authenticatie. Registreer een passkey op uw apparaat om biometrische verificatie of PIN te gebruiken in plaats van OTP-codes.",
+    "noPasskeys": "Nog geen passkeys geregistreerd.",
+    "addPasskey": "Passkey toevoegen",
+    "addingPasskey": "Passkey toevoegen...",
+    "passkeyAdded": "Passkey succesvol toegevoegd!",
+    "passkeyAddFailed": "Passkey toevoegen mislukt",
+    "passkeyDeleted": "Passkey verwijderd.",
+    "passkeyDeleteFailed": "Passkey verwijderen mislukt",
+    "created": "Aangemaakt",
+    "lastUsed": "Laatst gebruikt",
+    "passkeyDefaultName": "Passkey",
+    "showToolsInSidebar": "Toon gereedschappen in de zijbalk",
+    "showToolsInSidebarDescription": "Toon altijd de link naar de hulpmiddelen in de zijbalk."
   },
   "general": {
     "name": "Naam",
@@ -750,7 +776,9 @@
     "office": "Kantoor{suffix}",
     "show": "Toon{suffix}",
     "divider": "Verdeler{suffix}",
-    "audio": "Audio{suffix}"
+    "audio": "Audio{suffix}",
+    "and": "en",
+    "or": "of"
   },
   "access": {
     "rules": "Toegangsregels",
@@ -797,7 +825,15 @@
     "QueuePlayback": "Afspeellijst",
     "changePlaybackMode": "Afspeelmodus wijzigen",
     "changePlaybackModeHint": "Wijzig afspeelmodus om meer bestanden te zien",
-    "emptyQueue": "Wachtrij is leeg"
+    "emptyQueue": "Wachtrij is leeg",
+    "queue": "Wachtrij",
+    "lyrics": "Songtekst",
+    "noLyrics": "Geen songtekst beschikbaar",
+    "lockLyrics": "Songtekst vergrendelen",
+    "unlockLyrics": "Songtekst ontgrendelen",
+    "toggleLyrics": "Songtekst in-/uitschakelen",
+    "closePanel": "Paneel sluiten",
+    "openPanel": "Paneel openen"
   },
   "fileSizeAnalyzer": {
     "title": "Bestandsgrootte analyzer",
@@ -858,6 +894,20 @@
       "stopWatching": "Stop met kijken",
       "emptyState": "Kies een bestand en klik op afspelen om te beginnen met het controleren van bestandswijzigingen",
       "chooseFile": "Kies een bestand"
+    },
+    "advancedSearch": {
+      "name": "Geavanceerd zoeken",
+      "description": "Zoek in de index met volledige controle over bronnen, filters en opties",
+      "searchTerms": "Zoektermen",
+      "matchAllTerms": "Alle termen matchen",
+      "matchAllTermsDescription": "Indien ingeschakeld, moeten alle zoektermen worden gevonden voor elk bestand",
+      "scopeAria": "Zoekopdracht beperken tot een map",
+      "noTerms": "Voer ten minste één zoekterm in.",
+      "termTooShort": "Elke zoekterm moet minimaal {minSearchLength} tekens bevatten.",
+      "caseExact": "Hoofdlettergevoelige match",
+      "resultsTitle": "Zoekresultaten",
+      "invalidSources": "Zet minstens één bron aan.",
+      "noResults": "Geen overeenkomende bestanden of mappen."
     }
   },
   "messages": {

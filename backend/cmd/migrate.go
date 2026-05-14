@@ -143,18 +143,18 @@ func migrateUsers(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 
 	promoted := 0
 	for _, user := range usersList {
-		feBefore := len(user.FrontendScopes)
-		beBefore := len(user.BackendScopes)
+		oldScopesCount := len(user.FrontendScopes)
+		newScopesCount := len(user.BackendScopes)
 		if err := normalizeUserScopesBeforeSQLite(user); err != nil {
 			return fmt.Errorf("failed to normalize scopes for user %s: %w", user.Username, err)
 		}
 		if len(user.BackendScopes) == 0 {
-			settings.ApplyDefaultBackendScopes(user)
+			settings.ApplyUserDefaults(user)
 		}
-		if len(user.BackendScopes) > beBefore {
+		if newScopesCount > oldScopesCount {
 			promoted++
-			logger.Infof("  user %q: Bolt had scopes on frontend only (frontend=%d, backend=%d) → sqlite backend=%d",
-				user.Username, feBefore, beBefore, len(user.BackendScopes))
+			logger.Infof("  user %q: Bolt had %d scopes, SQLite now has %d",
+				user.Username, oldScopesCount, newScopesCount)
 		}
 		boltID := user.ID
 		if err := sqlStore.CreateUser(user); err != nil {

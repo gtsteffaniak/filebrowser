@@ -2,7 +2,8 @@ server:
   port: 80
   baseURL:  "/"
   logging:
-    - levels: "info|error|debug"
+    - levels: "info|error|warning|debug"
+      apiFilter: '.*'
   sources:
     - path: "../frontend/tests/playwright-files"
 

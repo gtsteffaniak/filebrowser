@@ -53,7 +53,7 @@ func InitializeUserResolvers() {
 			}
 			return sources
 		},
-		GetDefaultScopes: func() []users.SourceScope {
+		GetDefaultScopes: func() []users.BackendScope {
 			return Config.UserDefaults.DefaultScopes
 		},
 	})

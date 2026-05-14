@@ -15,6 +15,7 @@ export const state = reactive({
     name: "",
     source: "",
     path: "",
+    isShare: false,
   },
   contextMenuHasItems: false,
   deletedItem: false,
@@ -56,7 +57,7 @@ export const state = reactive({
     loginType: "",
     username: "",
     quickDownloadEnabled: false,
-    gallerySize: 0,
+    gallerySize: 3,
     singleClick: false,
     stickySidebar: stickyStartup(),
     hideFilesInTree: false,
@@ -70,6 +71,7 @@ export const state = reactive({
     disableSettings: false,
     debugOffice: false, // Debug mode for OnlyOffice integration
     preferEditorForMarkdown: false,
+    hideFileExt: "",   // files with certain extensions to hide in UI
     profile: { // Example of additional user properties
       username: '', // Default to an empty string
       email: '', // Default to an empty string
@@ -95,6 +97,7 @@ export const state = reactive({
     letter: "A",
     scrolling: false,
     scrollRatio: 0,
+    listingScrollTop: 0,
   },
   previewRaw: "",
   oldReq: {},

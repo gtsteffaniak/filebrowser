@@ -531,7 +531,7 @@ export default {
     },
     keyEvent(event) {
       // F1!
-      if (event.key === "F1") {
+      if (event.key === "F1" && !event.ctrlKey && !event.metaKey) {
         event.preventDefault();
         mutations.setSearch(false);
         if (!getters.currentPromptName()) {
@@ -551,10 +551,14 @@ export default {
           mutations.resetSelected();
         }
       }
-      // F2! - for rename in previews
-      if (event.key == "F2" && getters.isPreviewView() && getters.permissions()?.modify) {
+      // F2! - for rename in listing or preview
+      if (event.key == "F2") {
         event.preventDefault();
-        if (!getters.currentPromptName()) {
+        if (getters.currentPromptName()) return;
+
+        const canModify = getters.permissions()?.modify;
+
+        if (getters.isPreviewView() && canModify) {
           const parentItems = state.navigation.listing || [];
           mutations.showPrompt({
             name: "rename",
@@ -563,6 +567,12 @@ export default {
               parentItems: parentItems
             },
           });
+        }
+        else if (getters.currentView() === 'listingView' && canModify && state.selected.length === 1) {
+          const item = getters.getFirstSelected();
+          if (item) {
+            mutations.showPrompt({ name: "rename", props: { item, parentItems: [] } });
+          }
         }
       }
       // CTRL+E - switch between editor and markdown viewer
@@ -579,6 +589,28 @@ export default {
             }
           }
         }
+      }
+      // Ctrl+F1, Ctrl+F2, Ctrl+F3 to change view modes
+      if ((event.ctrlKey || event.metaKey) && ['F1', 'F2', 'F3'].includes(event.key)) {
+        if (getters.currentView() !== 'listingView') return;
+        event.preventDefault();
+
+        const key = event.key;
+        const baseModes = { F1: 'normal', F2: 'icons', F3: 'list' };
+        const baseMode = baseModes[key];
+        if (!baseMode) return;
+
+        const size = state.user?.gallerySize ?? 5;
+        let newViewMode = baseMode;
+        if (baseMode === 'list') {
+          newViewMode = size <= 3 ? 'compact' : 'list';
+        } else if (baseMode === 'icons') {
+          newViewMode = size <= 4 ? 'icons' : 'gallery';
+        }
+
+        mutations.updateDisplayPreferences({ viewMode: newViewMode });
+        mutations.updateCurrentUser({ viewMode: newViewMode });
+        mutations.closeHovers();
       }
     },
   },

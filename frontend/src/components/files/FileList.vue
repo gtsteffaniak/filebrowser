@@ -1,7 +1,7 @@
 <template>
   <div class="card-content" aria-label="file-list-prompt">
     <!-- Source Selection Dropdown (hidden when browsing a fixed source, e.g. user scope row) -->
-    <div v-if="showSourceSelector" class="source-selector" style="margin-bottom: 1rem;">
+    <div v-if="!hidePathChrome && showSourceSelector" class="source-selector" style="margin-bottom: 1rem;">
       <label for="destinationSource" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">
         {{ $t("prompts.destinationSource") }}
       </label>
@@ -13,7 +13,7 @@
     </div>
 
     <!-- Current Path Display -->
-    <div v-if="!fileList" aria-label="filelist-path" class="searchContext button clickable">
+    <div v-if="!hidePathChrome && !fileList" aria-label="filelist-path" class="searchContext button clickable">
       {{ $t('general.path', { suffix: ':' }) }} {{ sourcePath.path }}
     </div>
 
@@ -98,6 +98,11 @@ export default {
     },
     /** When true, never show the destination source dropdown (source is fixed via browseSource). */
     hideDestinationSource: {
+      type: Boolean,
+      default: false,
+    },
+    /** Hide the source dropdown and path caption (e.g. when PathPickerButton provides both). */
+    hidePathChrome: {
       type: Boolean,
       default: false,
     },
@@ -479,8 +484,39 @@ export default {
     onSourceChange() {
       this.resetToSource(this.currentSource);
     },
+    /**
+     * Jump listing to a source/path (e.g. after PathPickerButton confirms).
+     * Normalizes to a directory path with trailing slash (except root).
+     */
+    jumpTo(source, path) {
+      if (!source) {
+        return;
+      }
+      let p = path == null || path === "" ? "/" : String(path);
+      if (!p.startsWith("/")) {
+        p = `/${p}`;
+      }
+      if (p !== "/" && !p.endsWith("/")) {
+        p = `${p}/`;
+      }
+      this.currentSource = source;
+      this.source = source;
+      this.path = p;
+      this.selected = null;
+      this.selectedSource = null;
+      this.selectedType = null;
+      if (this.browseShare || getters.isShare()) {
+        const hashToUse = this.browseShare || state.shareInfo?.hash;
+        this.withLoading(() =>
+          resourcesApi.fetchFilesPublic(p, hashToUse).then(this.fillOptions)
+        );
+      } else {
+        this.withLoading(() =>
+          resourcesApi.fetchFiles(source, p).then(this.fillOptions)
+        );
+      }
+    },
     fillFromList() {
-      // Use the provided fileList, filtering out directories to show only files
       const allItems = this.fileList || [];
       this.items = allItems.filter(item => !item.isDirectory && item.type !== 'directory');
     },

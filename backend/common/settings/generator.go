@@ -479,7 +479,7 @@ func CollectCommentsFromEmbeddedYaml(yamlContent string) (CommentsMap, SecretFie
 // parseDefaultsFromEmbeddedYaml creates a default config by parsing the embedded YAML template
 func parseDefaultsFromEmbeddedYaml(embeddedYaml string) (*Settings, error) {
 	// Start with baseline defaults from setDefaults to ensure all fields are initialized
-	defaultConfig := setDefaults(true)
+	defaultConfig := SetDefaults(true)
 	defaultConfig.Server.Sources = []*Source{{Path: "."}}
 
 	// Parse the embedded YAML to overlay the documented defaults
@@ -1108,7 +1108,7 @@ func GenerateConfigYamlWithEmptyMaps(config *Settings, showFull bool) (string, e
 		}
 		if err != nil || readErr != nil {
 			// Fallback to setDefaults
-			defaultConfigValue := setDefaults(true)
+			defaultConfigValue := SetDefaults(true)
 			defaultConfigValue.Server.Sources = []*Source{{Path: "."}}
 			defaultConfig = &defaultConfigValue
 		}
@@ -1201,7 +1201,7 @@ func GenerateConfigYamlWithSource(config *Settings, showComments bool, showFull 
 		}
 		if err != nil || readErr != nil {
 			// Fallback to setDefaults
-			defaultConfigValue := setDefaults(true)
+			defaultConfigValue := SetDefaults(true)
 			defaultConfigValue.Server.Sources = []*Source{{Path: "."}}
 			defaultConfig = &defaultConfigValue
 		}

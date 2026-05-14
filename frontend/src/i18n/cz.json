@@ -78,7 +78,12 @@
     "mouseActions": "Akce Myši",
     "fileOperations": "Operace se Soubory",
     "click": "označit soubor nebo složku",
+    "dbClick": "Dvojklikem na prázdné místo vyberte všechny položky",
     "ctrl": {
+      "f1": "Přepnout na zobrazení seznamu",
+      "f2": "Přepnout na normální zobrazení",
+      "f3": "Přepnout na zobrazení galerie",
+      "scroll": "Změnit velikosti seznamu a písma editoru",
       "click": "označit více souborů nebo složek",
       "d": "stáhnout vybrané položky",
       "b": "přepínání postranního panelu",
@@ -104,6 +109,8 @@
       "volume": "Zvýšit nebo snížit hlasitost",
       "mute": "Ztlumit/zapnout zvuk",
       "loop": "Přepínání mezi smyčkou a jedním přehráním",
+      "playbackQueue": "Otevřít frontu přehrávání nebo panel v audio souborech",
+      "switchTabs": "Přepínat karty v panelu u audio souborů",
       "playbackModes": "Přepínání režimů přehrávání (kromě smyčky a jednoho přehrání)",
       "fullscreen": "Přepnout režim celé obrazovky u videí",
       "captions": "Zapnout/vypnout titulky"
@@ -144,10 +151,10 @@
     "passwordsDontMatch": "Hesla se neshodují",
     "usernameTaken": "Uživatelské jméno je již obsazeno",
     "wrongCredentials": "Nesprávné přihlašovací údaje",
-    "or": "NEBO",
     "inProgress": "Přihlášení...",
     "failedLogin": "Nepodařilo se přihlásit",
-    "invalidCredentials": "Neplatné zadané pověření"
+    "invalidCredentials": "Neplatné zadané pověření",
+    "passkeyLogin": "Použít Passkey"
   },
   "share": {
     "notice": "Poznámka: po vytvoření sdílené složky je tato složka více vystavena veřejnosti a platí pro ni jiná pravidla přístupu. Pokud není sdílená složka bezpečně nakonfigurována, může k ní mít přístup kdokoli.",
@@ -334,11 +341,16 @@
     "showPreviewImagesDescription": "Zobrazení miniaturních náhledů výsledků vyhledávání, pokud jsou k dispozici, a zobrazení větších ikon u všech výsledků.",
     "olderThanDate": "Starší než:",
     "newerThanDate": "Novější než:",
-    "helpText2": "Výsledky vyhledávání jsou založeny na indexovaných souborech, takže nově přidané soubory se mohou zobrazit až po jejich indexování.",
     "noResults": "Nebyly nalezeny žádné výsledky.",
-    "helpText1": "Vyhledávání probíhá na základě každého zadaného znaku ({minSearchLength} minimálně znaků)."
+    "helpText1": "Vyhledávání probíhá na základě každého zadaného znaku ({minSearchLength} minimálně znaků).",
+    "helpText2": "Shoda podřetězce pouze s názvy souborů nebo složek (ne s úplnými cestami). case:exact pro porovnávání s rozlišováním malých a velkých písmen.\n\n pro OR mezi výrazy použijte znak pipe; dvojité uvozovky pro jednu frázi.\n\nPovolte vyhledávání se zástupnými znaky pro pokročilejší možnosti.",
+    "useWildcardSearch": "Vyhledávání se zástupnými znaky (rozlišování velkých a malých písmen)",
+    "useWildcardSearchDescription": "Podporované možnosti zástupných znaků:\n\n- Shodují se s libovolnou sekvencí: *\n\n- Shoda s jedním znakem: ?\n\n- Třída znaků: [a-z], [0-9]\n\n- Negace: [^0-9]\n\n- Doslovné *, ? nebo [ je třeba zabalit do závorek, např. [*], [?], [[].\n\n- U všech výsledků se rozlišují velká a malá písmena",
+    "openInAdvancedSearch": "Otevřít v rozšířeném vyhledávání"
   },
   "profileSettings": {
+    "hideFileExt": "Skrýt určité soubory (podle přípony)",
+    "hideFileExtDescription": "Seznam přípon souborů oddělených mezerami. Přípony zadané v tomto poli budou skryty ve všech částech UI (vizuálně, např. v seznamu nebo stromu souborů) — stále jsou přístupné.",
     "preferEditorForMarkdown": "Upřednostnit editor pro Markdown soubory",
     "preferEditorForMarkdownDescription": "Pokud je povoleno, otevřou se Markdown soubory nejprve v editoru místo v prohlížeči Markdown.",
     "deleteAfterArchive": "Smazat zdrojové soubory po vytvoření/extrahování archivů",
@@ -401,7 +413,21 @@
     "showThumbnailsDescription": "Pokud je tato možnost povolena, zobrazují se ve výpisu náhledy položek, které je podporují. Vypnutím se všechny miniatury skryjí.",
     "showCopyPath": "Zobrazit kopírování cesty v kontextové nabídce",
     "showCopyPathDescription": "Zobrazení akce Kopírovat cestu v kontextové nabídce souborů a složek.",
-    "previewDescription": "Zobrazit náhledy miniatur pro {filetype}, pokud je zakázáno, zobrazí se obecná ikona."
+    "previewDescription": "Zobrazit náhledy miniatur pro {filetype}, pokud je zakázáno, zobrazí se obecná ikona.",
+    "passkeys": "Passkeys",
+    "passkeysDescription": "Používejte passkeys pro bezpečné vícefaktorové ověřování bez hesla. Zaregistrujte passkey na svém zařízení a používejte biometrické ověření nebo PIN místo OTP kódů.",
+    "noPasskeys": "Zatím nejsou registrovány žádné passkeys.",
+    "addPasskey": "Přidat Passkey",
+    "addingPasskey": "Přidávání passkey...",
+    "passkeyAdded": "Passkey byl úspěšně přidán!",
+    "passkeyAddFailed": "Nepodařilo se přidat passkey",
+    "passkeyDeleted": "Passkey byl smazán.",
+    "passkeyDeleteFailed": "Nepodařilo se smazat passkey",
+    "created": "Vytvořeno",
+    "lastUsed": "Naposledy použito",
+    "passkeyDefaultName": "Passkey",
+    "showToolsInSidebar": "Zobrazení nástrojů v postranním panelu",
+    "showToolsInSidebarDescription": "V postranním panelu vždy zobrazte odkaz na nástroje."
   },
   "settings": {
     "enterPassword": "Zadejte heslo",
@@ -750,7 +776,9 @@
     "office": "Kancelář{suffix}",
     "show": "Zobrazit{suffix}",
     "divider": "Rozdělovač{suffix}",
-    "audio": "Audio{suffix}"
+    "audio": "Audio{suffix}",
+    "and": "a",
+    "or": "nebo"
   },
   "access": {
     "rules": "Pravidla přístupu",
@@ -797,7 +825,15 @@
     "QueuePlayback": "Fronta přehrávání",
     "changePlaybackMode": "Změnit režim přehrávání",
     "changePlaybackModeHint": "Změňte režim přehrávání, abyste viděli více souborů",
-    "emptyQueue": "Fronta je prázdná"
+    "emptyQueue": "Fronta je prázdná",
+    "queue": "Fronta",
+    "lyrics": "Text písně",
+    "noLyrics": "Text není k dispozici",
+    "lockLyrics": "Zamknout text",
+    "unlockLyrics": "Odemknout text",
+    "toggleLyrics": "Přepnout text",
+    "closePanel": "Zavřít panel",
+    "openPanel": "Otevřít panel"
   },
   "fileSizeAnalyzer": {
     "title": "Analyzátor velikosti souborů",
@@ -858,6 +894,20 @@
       "stopWatching": "Přestaňte se dívat",
       "emptyState": "Vyberte soubor a kliknutím na tlačítko přehrát začněte sledovat změny souboru.",
       "chooseFile": "Výběr souboru"
+    },
+    "advancedSearch": {
+      "name": "Rozšířené vyhledávání",
+      "description": "Vyhledávání v indexu s plnou kontrolou zdrojů, filtrů a možností",
+      "searchTerms": "Vyhledávací podmínky",
+      "matchAllTerms": "Shoda všech termínů",
+      "matchAllTermsDescription": "Pokud je tato možnost povolena, musí být pro každý soubor nalezeny všechny vyhledávané výrazy.",
+      "scopeAria": "Omezení vyhledávání na složku",
+      "noTerms": "Zadejte alespoň jeden hledaný výraz.",
+      "termTooShort": "Každý hledaný výraz musí mít alespoň {minSearchLength} znaků.",
+      "caseExact": "Shoda rozlišující malá a velká písmena",
+      "resultsTitle": "Výsledky vyhledávání",
+      "invalidSources": "Zapněte alespoň jeden zdroj.",
+      "noResults": "Žádné odpovídající soubory nebo složky."
     }
   },
   "messages": {

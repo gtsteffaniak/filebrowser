@@ -257,7 +257,6 @@ export default {
         }
       } catch (error) {
         notify.showError(this.$t("files.cannotAccesDir"));
-        console.log("Cannot access to target directory", e);
         return;
       }
 
@@ -297,7 +296,6 @@ export default {
         } catch (error) {
           mutations.closeTopPrompt();
           notify.showError(this.$t("prompts.moveFailed"));
-          console.log("Move failed", e);
         }
       };
 

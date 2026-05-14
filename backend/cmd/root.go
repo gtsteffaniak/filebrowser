@@ -12,6 +12,7 @@ import (
 	_ "net/http/pprof"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
@@ -61,13 +62,12 @@ commands:
 }
 
 func StartFilebrowser() {
-	keepGoing := runCLI()
+	keepGoing, dbExists := runCLI()
 	if !keepGoing {
 		return
 	}
-	existingDb := initializeDatabase(configPath)
 	database := fmt.Sprintf("Using existing database  : %v", settings.Config.Server.DatabaseV2.Path)
-	if !existingDb {
+	if !dbExists {
 		database = fmt.Sprintf("Creating new database    : %v", settings.Config.Server.DatabaseV2.Path)
 	}
 	if !settings.Config.Server.DisableUpdateCheck {
@@ -149,7 +149,7 @@ func StartFilebrowser() {
 	for _, source := range settings.Config.Server.SourceMap {
 		go indexing.Initialize(source, false, isNewDb)
 	}
-	validateUserInfo(!existingDb)
+	validateUserInfo(!dbExists)
 	validateOfficeIntegration()
 	validateAccessRules()
 	validateShareInfo()
@@ -185,6 +185,9 @@ func StartFilebrowser() {
 		fileutils.ClearCacheDir(settings.Config.Server.CacheDir)
 	}
 	<-shutdownComplete
+	if err := fileutils.ClearDirectoryContents(settings.DownloadCacheDir()); err != nil {
+		logger.Warningf("failed to clear download spool on shutdown: %v", err)
+	}
 	logger.Info("Shutdown complete.")
 }
 
@@ -224,6 +227,11 @@ func rootCMD(ctx context.Context, serverConfig *settings.Server, shutdownComplet
 
 	// Initialize PWA manifest after icons are generated
 	icons.InitializePWAManifest()
+
+	// Initialize WebAuthn/Passkey service if enabled
+	if err := auth.InitWebAuthn(); err != nil {
+		logger.Fatalf("Failed to initialize WebAuthn: %v", err)
+	}
 
 	fbhttp.StartHttp(ctx, shutdownComplete)
 	return nil

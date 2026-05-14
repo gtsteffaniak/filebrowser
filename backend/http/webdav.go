@@ -83,6 +83,7 @@ func (ffs *filteredFileSystem) getFileInfo(requestPath string, expand bool) (*it
 		Source:            ffs.source,
 		Expand:            expand,
 		ShowHidden:        ffs.user.ShowHidden,
+		HideFileExt:       ffs.user.HideFileExt,
 		SkipExtendedAttrs: true,
 		FollowSymlinks:    true,
 	}, accessStore, ffs.user, shareStore)
@@ -380,6 +381,7 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		Path:           requestPath,
 		Source:         source,
 		ShowHidden:     d.user.ShowHidden,
+		HideFileExt:    d.user.HideFileExt,
 	}, accessStore, d.user)
 	if err != nil {
 		return http.StatusForbidden, err

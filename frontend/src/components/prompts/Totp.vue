@@ -17,6 +17,10 @@
       :title="$t('general.verify')">
       {{ $t("general.verify") }}
     </button>
+    <button v-if="!succeeded && passkeyAvailable" type="button" class="button button--flat" @click="usePasskey"
+      :title="$t('login.passkeyLogin')">
+      <i class="material-symbols-outlined">passkey</i> {{ $t("login.passkeyLogin") }}
+    </button>
   </div>
 </template>
 
@@ -25,6 +29,7 @@ import { mutations } from "@/store";
 import { notify } from "@/notify";
 import { authApi } from "@/api";
 import { initAuth } from "@/utils/auth";
+import { globalVars } from "@/utils/constants";
 import QrcodeVue from "qrcode.vue";
 
 export default {
@@ -40,6 +45,11 @@ export default {
       succeeded: false,
       verifyInFlight: false,
     };
+  },
+  computed: {
+    passkeyAvailable() {
+      return globalVars.passkeyAvailable;
+    },
   },
   props: {
     redirect: {
@@ -118,7 +128,29 @@ export default {
         mutations.closeTopPrompt();
       } catch (error) {
         this.error = this.$t("otp.verificationFailed");
-        console.log("error", error);
+        console.error("error", error);
+      } finally {
+        this.verifyInFlight = false;
+      }
+    },
+    async usePasskey() {
+      if (String(this.password ?? "").trim() === "") {
+        this.error = this.$t("otp.passwordRequiredForGeneration");
+        return;
+      }
+      this.verifyInFlight = true;
+      try {
+        await authApi.beginPasskeyLogin(this.username, this.password);
+        if (this.redirect != "") {
+          await initAuth();
+          await this.$router.push(this.redirect);
+        }
+        this.succeeded = true;
+        this.error = "";
+        mutations.closeTopPrompt();
+      } catch (error) {
+        this.error = error.message || this.$t("login.failedLogin");
+        console.error("error", error);
       } finally {
         this.verifyInFlight = false;
       }

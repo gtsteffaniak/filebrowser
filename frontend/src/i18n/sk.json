@@ -75,7 +75,12 @@
     "mouseActions": "Akcie Myši",
     "fileOperations": "Operácie so Súbormi",
     "click": "vyberie súbor alebo priečinok",
+    "dbClick": "Dvojitým kliknutím na prázdne miesto vyberte všetky položky",
     "ctrl": {
+      "f1": "Prepnúť na zobrazenie zoznamu",
+      "f2": "Prepnúť na normálne zobrazenie",
+      "f3": "Prepnúť na zobrazenie galérie",
+      "scroll": "Zmeniť veľkosť zoznamu a písma editora",
       "click": "vyberie viac súborov alebo priečinkov",
       "d": "stiahnuť vybrané položky",
       "b": "prepínanie bočného panela",
@@ -101,6 +106,8 @@
       "volume": "Zvýšiť alebo znížiť hlasitosť",
       "mute": "Stlmiť/Zapnúť zvuk",
       "loop": "Prepnúť medzi slučkou a jednotlivým režimom",
+      "playbackQueue": "Otvoriť front prehrávania alebo panel v audio súboroch",
+      "switchTabs": "Prepnúť karty v paneli pri audio súboroch",
       "playbackModes": "Prepnúť režimy prehrávania (okrem slučky a jednotlivého)",
       "fullscreen": "Prepnúť režim celej obrazovky vo videách",
       "captions": "Zapnúť/Vypnúť titulky"
@@ -141,10 +148,10 @@
     "passwordsDontMatch": "Heslá nesúhlasia",
     "usernameTaken": "Meno je už obsadené",
     "wrongCredentials": "Nesprávne prihlasovacie údaje",
-    "or": "ALEBO",
     "inProgress": "Prihlásenie...",
     "failedLogin": "Nepodarilo sa prihlásiť",
-    "invalidCredentials": "Zadané neplatné poverenia"
+    "invalidCredentials": "Zadané neplatné poverenia",
+    "passkeyLogin": "Použiť Passkey"
   },
   "prompts": {
     "copyMessage": "Zvoľte miesto, kde chcete kopírovať súbory:",
@@ -256,9 +263,12 @@
     "showPreviewImagesDescription": "Zobrazenie miniatúrnych náhľadov výsledkov vyhľadávania, ak sú k dispozícii, a zobrazenie väčších ikon pre všetky výsledky.",
     "olderThanDate": "Staršie ako:",
     "newerThanDate": "Novšie ako:",
-    "helpText2": "Výsledky vyhľadávania sú založené na indexovaných súboroch, takže novo pridané súbory sa nemusia zobraziť, kým nie sú indexované.",
     "noResults": "Nenašli sa žiadne výsledky.",
-    "helpText1": "Vyhľadávanie prebieha na základe každého zadaného znaku ({minSearchLength} minimálne znak)."
+    "helpText1": "Vyhľadávanie prebieha na základe každého zadaného znaku ({minSearchLength} minimálne znak).",
+    "helpText2": "Zhoda podreťazca len na názvoch súborov alebo priečinkov (nie na celých cestách). case:exact pre porovnávanie podľa veľkosti písmen\n\n pre OR medzi výrazmi použite znak pipe; dvojité úvodzovky pre jednu frázu.\n\nPovoľte vyhľadávanie so zástupnými znakmi pre pokročilejšie možnosti.",
+    "useWildcardSearch": "Vyhľadávanie so zástupnými znakmi (rozlišovanie veľkých a malých písmen)",
+    "useWildcardSearchDescription": "Podporované možnosti zástupných znakov:\n\n- Zodpovedajú akejkoľvek sekvencii: *\n\n- Zodpovedá jednému znaku: ?\n\n- Trieda znakov: [a-z], [0-9]\n\n- Negácia: [^0-9]\n\n- Doslovné *, ? alebo [ musia byť uzavreté v zátvorkách, napr. [*], [?], [[]\n\n- Pri všetkých výsledkoch sa rozlišujú veľké a malé písmená",
+    "openInAdvancedSearch": "Otvoriť v rozšírenom vyhľadávaní"
   },
   "settings": {
     "administrator": "Administrátor",
@@ -665,7 +675,9 @@
     "office": "Kancelária{suffix}",
     "show": "Zobraziť{suffix}",
     "divider": "Rozdeľovač{suffix}",
-    "audio": "Audio{suffix}"
+    "audio": "Audio{suffix}",
+    "and": "a",
+    "or": "alebo"
   },
   "access": {
     "rules": "Pravidlá prístupu",
@@ -711,6 +723,8 @@
     "orange": "oranžová"
   },
   "profileSettings": {
+    "hideFileExt": "Skryť určité súbory (podľa prípony)",
+    "hideFileExtDescription": "Zoznam prípon súborov oddelených medzerami. Prípony zadané v tomto poli budú skryté v celom používateľskom rozhraní (vizuálne, napr. v zozname alebo strome súborov) — Stále sú prístupné.",
     "preferEditorForMarkdown": "Uprednostniť editor pre Markdown súbory",
     "preferEditorForMarkdownDescription": "Ak je povolené, otvorí Markdown súbory najprv v editore namiesto prehliadača Markdown.",
     "deleteAfterArchive": "Odstrániť zdrojové súbory po vytvorení/extrahovaní archívov",
@@ -773,7 +787,21 @@
     "showThumbnailsDescription": "Ak je táto možnosť povolená, vo výpise sa zobrazujú miniatúry položiek, ktoré ich podporujú. Ak chcete skryť všetky miniatúry, možnosť vypnite.",
     "showCopyPath": "Zobraziť kopírovanie cesty v kontextovom menu",
     "showCopyPathDescription": "Zobrazenie akcie Kopírovať cestu v kontextovej ponuke súborov a priečinkov.",
-    "previewDescription": "Zobraziť náhľady miniatúr pre {filetype}, ak je vypnuté, zobrazí sa generická ikona."
+    "previewDescription": "Zobraziť náhľady miniatúr pre {filetype}, ak je vypnuté, zobrazí sa generická ikona.",
+    "passkeys": "Passkeys",
+    "passkeysDescription": "Používajte passkeys na bezpečné viacfaktorové overenie bez hesla. Zaregistrujte passkey na svojom zariadení a používajte biometrické overenie alebo PIN namiesto OTP kódov.",
+    "noPasskeys": "Zatiaľ nie sú zaregistrované žiadne passkeys.",
+    "addPasskey": "Pridať Passkey",
+    "addingPasskey": "Pridávam passkey...",
+    "passkeyAdded": "Passkey bol úspešne pridaný!",
+    "passkeyAddFailed": "Nepodarilo sa pridať passkey",
+    "passkeyDeleted": "Passkey bol zmazaný.",
+    "passkeyDeleteFailed": "Nepodarilo sa zmazať passkey",
+    "created": "Vytvorené",
+    "lastUsed": "Naposledy použité",
+    "passkeyDefaultName": "Passkey",
+    "showToolsInSidebar": "Zobrazenie nástrojov v bočnom paneli",
+    "showToolsInSidebarDescription": "V bočnom paneli vždy zobrazte odkaz na nástroje."
   },
   "editor": {
     "uninitialized": "Nepodarilo sa inicializovať editor. Prosím, načítajte ho znova.",
@@ -797,7 +825,15 @@
     "QueuePlayback": "Front Prehrávania",
     "changePlaybackMode": "Zmeniť režim prehrávania",
     "changePlaybackModeHint": "Zmeňte režim prehrávania, aby ste videli viac súborov",
-    "emptyQueue": "Front je prázdny"
+    "emptyQueue": "Front je prázdny",
+    "queue": "Front",
+    "lyrics": "Text piesne",
+    "noLyrics": "Text nie je k dispozícii",
+    "lockLyrics": "Zamknúť text",
+    "unlockLyrics": "Odomknúť text",
+    "toggleLyrics": "Prepnúť text",
+    "closePanel": "Zavrieť panel",
+    "openPanel": "Otvoriť panel"
   },
   "fileSizeAnalyzer": {
     "title": "Analyzátor veľkosti súborov",
@@ -858,6 +894,20 @@
       "stopWatching": "Prestaňte sa pozerať",
       "emptyState": "Vyberte súbor a kliknite na tlačidlo prehrávania, aby ste začali sledovať zmeny v súbore",
       "chooseFile": "Výber súboru"
+    },
+    "advancedSearch": {
+      "name": "Rozšírené vyhľadávanie",
+      "description": "Vyhľadávanie v indexe s úplnou kontrolou zdrojov, filtrov a možností",
+      "searchTerms": "Vyhľadávacie podmienky",
+      "matchAllTerms": "Zodpovedajú všetky pojmy",
+      "matchAllTermsDescription": "Ak je táto funkcia zapnutá, musia sa pre každý súbor nájsť všetky hľadané výrazy.",
+      "scopeAria": "Obmedzenie vyhľadávania na priečinok",
+      "noTerms": "Zadajte aspoň jeden vyhľadávací výraz.",
+      "termTooShort": "Každý hľadaný výraz musí mať aspoň {minSearchLength} znakov.",
+      "caseExact": "Zhoda s rozlišovaním veľkých a malých písmen",
+      "resultsTitle": "Výsledky vyhľadávania",
+      "invalidSources": "Zapnite aspoň jeden zdroj.",
+      "noResults": "Žiadne zodpovedajúce súbory alebo priečinky."
     }
   },
   "messages": {

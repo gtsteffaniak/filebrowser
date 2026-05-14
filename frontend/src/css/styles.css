@@ -16,7 +16,6 @@
 /* Selection color */
 ::selection {
   background-color: color-mix(in srgb, var(--primaryColor), transparent 25%);
-  color: inherit;
 }
 
 .link {
@@ -393,7 +392,7 @@ button:hover,
 .form-flex-group {
     display: flex;
     flex-direction: row;
-    align-items: stretch;
+    align-items: center;
 }
 
 .form-flex-group>.form-compact {

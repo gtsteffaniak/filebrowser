@@ -8,73 +8,66 @@
   </div>
 
   <div class="card-content full">
-
-
-    <div v-if="links.length > 0">
+    <template v-if="links.length > 0">
       <p>
         {{ $t("api.description") }}
         <a class="link" href="swagger/index.html">{{ $t("api.swaggerLinkText") }}</a>
       </p>
-
-      <table aria-label="API Tokens">
-        <thead>
-          <tr>
-            <th>{{ $t("general.name") }}</th>
-            <th>{{ $t("api.created") }}</th>
-            <th>{{ $t("general.expires") }}</th>
-            <th>{{ $t("settings.permissions-name") }}</th>
-            <th>{{ $t("api.actions") }}</th>
-          </tr>
-        </thead>
-        <tbody class="settings-items">
-          <tr class="item" v-for="link in links" :key="link.name">
-            <td>{{ link.name }}</td>
-            <td>{{ formatTime(link.issuedAt) }}</td>
-            <td>{{ formatTime(link.expiresAt) }}</td>
-            <td v-if="!link.minimal">
-              <span v-for="(value, permission) in link.Permissions" :key="permission"
-                  :title="`${permission}: ${value ? $t('api.enabled') : $t('api.disabled')}`" class="clickable"
-                  @click.prevent="infoPrompt(link.name, link)">
-                  {{ showResult(value) }}
-                </span>
-              </td>
-            <td v-else>
-              <span>-</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-            </td>
-            <td class="small">
-              <button class="action" @click.prevent="infoPrompt(link.name, link)">
-                <i class="material-symbols">info</i>
-              </button>
-            </td>
-            <td class="small">
-              <button class="action" @click.stop="copyToClipboard(link.token)"
-                :aria-label="$t('buttons.copyToClipboard')" :title="$t('buttons.copyToClipboard')">
-                <i class="material-symbols">content_paste</i>
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <h2 class="message" v-else-if="!loading">
-      <i class="material-symbols-outlined">sentiment_dissatisfied</i>
-      <span>{{ $t("files.lonely") }}</span>
-    </h2>
+    </template>
+    <settings-table
+      :columns="apiTableColumns"
+      :items="links"
+      item-key="name"
+      default-sort-key="name"
+      :aria-label="$t('api.title')"
+      :loading="loading"
+    >
+        <template #cell-issuedAt="{ row }">{{ formatTime(row.issuedAt) }}</template>
+        <template #cell-expiresAt="{ row }">{{ formatTime(row.expiresAt) }}</template>
+        <template #cell-permissions="{ row }">
+          <template v-if="!row.minimal">
+            <span
+              v-for="(value, permission) in row.Permissions"
+              :key="permission"
+              :title="`${permission}: ${value ? $t('api.enabled') : $t('api.disabled')}`"
+              class="clickable"
+              @click.prevent="infoPrompt(row.name, row)"
+            >
+              {{ showResult(value) }}
+            </span>
+          </template>
+          <span v-else>-</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        </template>
+        <template #cell-actions="{ row }">
+          <div class="api-table-actions">
+            <button class="action" @click.prevent="infoPrompt(row.name, row)" :aria-label="$t('api.actions')" :title="$t('api.actions')">
+              <i class="material-symbols">info</i>
+            </button>
+            <button class="action" @click.stop="copyToClipboard(row.token)"
+              :aria-label="$t('buttons.copyToClipboard')" :title="$t('buttons.copyToClipboard')"
+            >
+              <i class="material-symbols">content_paste</i>
+            </button>
+          </div>
+        </template>
+    </settings-table>
   </div>
 
 </template>
 
 <script>
 import { authApi } from "@/api";
-import { state, mutations, getters } from "@/store";
+import { state, mutations } from "@/store";
 import { copyToClipboard } from "@/utils/clipboard";
 import Errors from "@/views/Errors.vue";
+import SettingsTable from "@/components/settings/Table.vue";
 import { eventBus } from "@/store/eventBus";
 
 export default {
   name: "api",
   components: {
     Errors,
+    SettingsTable,
   },
   data: function () {
     return {
@@ -83,6 +76,8 @@ export default {
       user: {
         permissions: { ...state.user.permissions}
       },
+      /** Local fetch state; avoids global Settings overlay spinner (table shows its own). */
+      loading: true,
     };
   },
   async created() {
@@ -103,8 +98,31 @@ export default {
     active() {
       return state.activeSettingsView === "shares-main";
     },
-    loading() {
-      return getters.isLoading();
+    apiTableColumns() {
+      return [
+        { key: "name", label: this.$t("general.name"), sortable: true },
+        {
+          key: "issuedAt",
+          label: this.$t("api.created"),
+          sortable: true,
+          sortFn: (a, b) =>
+            ((a?.issuedAt ?? 0) - (b?.issuedAt ?? 0)),
+        },
+        {
+          key: "expiresAt",
+          label: this.$t("general.expires"),
+          sortable: true,
+          sortFn: (a, b) =>
+            ((a?.expiresAt ?? 0) - (b?.expiresAt ?? 0)),
+        },
+        { key: "permissions", label: this.$t("settings.permissions-name") },
+        {
+          key: "actions",
+          label: this.$t("api.actions"),
+          align: "right",
+          narrow: true,
+        },
+      ];
     },
   },
   methods: {
@@ -112,7 +130,7 @@ export default {
       await copyToClipboard(text);
     },
     async reloadApiKeys() {
-      mutations.setLoading("api", true);
+      this.loading = true;
       try {
         // Fetch the API keys from the specified endpoint
         this.links = await authApi.getApiKeys();
@@ -123,7 +141,7 @@ export default {
           this.error = e;
         }
       } finally {
-        mutations.setLoading("api", false);
+        this.loading = false;
       }
     },
     showResult(value) {
@@ -175,5 +193,18 @@ export default {
 
 .permissions-cell:hover .permissions-list {
   display: block;
+}
+
+.api-table-actions {
+  display: inline-flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 0.25em;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.api-table-actions .action {
+  flex-shrink: 0;
 }
 </style>

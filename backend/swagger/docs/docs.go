@@ -1074,6 +1074,276 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/auth/webauthn/begin-login": {
+            "post": {
+                "description": "Verifies the user's password and returns a WebAuthn assertion challenge for passkey MFA.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Begin passkey MFA login",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Username",
+                        "name": "username",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "URL-encoded password",
+                        "name": "X-Password",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Passkey assertion options",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/webauthn/begin-register": {
+            "post": {
+                "description": "Returns WebAuthn credential creation options for adding a new passkey.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Begin passkey registration",
+                "responses": {
+                    "200": {
+                        "description": "Passkey creation options",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/webauthn/finish-login": {
+            "post": {
+                "description": "Verifies the WebAuthn assertion and returns a JWT token.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Finish passkey MFA login",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Passkey session ID from begin-login",
+                        "name": "session_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "JWT token",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/webauthn/finish-register": {
+            "post": {
+                "description": "Verifies the attestation and stores the new passkey credential.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Finish passkey registration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Registration session ID",
+                        "name": "session_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Display name for the passkey",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/webauthn/{id}": {
+            "delete": {
+                "description": "Removes a passkey credential by its ID.",
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Delete a passkey credential",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Base64-encoded credential ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/media/lyrics": {
+            "get": {
+                "description": "Returns parsed lyrics with optional timestamps from embedded tags or sidecar .lrc files.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Get lyrics for an audio file",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Path to the directory or file",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source name",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lyrics array",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/media/metadata": {
             "get": {
                 "description": "Same ExtendedFileInfo as resources GET with metadata=true (typically used for directories).",
@@ -2954,10 +3224,19 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Search query",
+                        "description": "Filter prefix or full legacy search text (required when no terms are supplied)",
                         "name": "query",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Repeated: one literal search term per parameter; combined with OR unless termJoin=and",
+                        "name": "terms",
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -2967,13 +3246,17 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Comma-separated list of source names to search across multiple sources. When multiple sources are specified, scope is always the user's scope for each source.",
+                        "description": "Comma-separated source names when not using repeated scope=source:path",
                         "name": "sources",
                         "in": "query"
                     },
                     {
-                        "type": "string",
-                        "description": "path within user scope to search, for example '/first/second' to search within the second directory only. Ignored when multiple sources are specified.",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Repeated: either 'sourceName:relativePath' per source, or legacy single path when one source",
                         "name": "scope",
                         "in": "query"
                     },
@@ -2990,10 +3273,28 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "boolean",
+                        "description": "When true, match indexed file names with SQLite GLOB (wildcard patterns)",
+                        "name": "useWildcard",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Deprecated: alias for useWildcard",
+                        "name": "glob",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Deprecated: alias for useWildcard",
+                        "name": "useGlob",
+                        "in": "query"
+                    },
+                    {
                         "type": "string",
-                        "description": "User session ID, add unique value to prevent collisions",
-                        "name": "SessionId",
-                        "in": "header"
+                        "description": "Optional: 'and' to require all repeated 'terms' match; default is OR",
+                        "name": "termJoin",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -3290,6 +3591,59 @@ const docTemplate = `{
                         "description": "successful health check response",
                         "schema": {
                             "$ref": "#/definitions/http.HttpResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/public/api/media/lyrics": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shares"
+                ],
+                "summary": "Get lyrics for an audio file (public share)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Share hash",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Path within the share",
+                        "name": "path",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lyrics array",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     }
                 }
@@ -4739,6 +5093,18 @@ const docTemplate = `{
                 }
             }
         },
+        "iteminfo.Lyric": {
+            "type": "object",
+            "properties": {
+                "text": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "description": "milliseconds",
+                    "type": "integer"
+                }
+            }
+        },
         "iteminfo.MediaMetadata": {
             "type": "object",
             "properties": {
@@ -4764,6 +5130,17 @@ const docTemplate = `{
                 "genre": {
                     "description": "music/video genre",
                     "type": "string"
+                },
+                "hasLyrics": {
+                    "description": "checks if lyrics are available without parse them",
+                    "type": "boolean"
+                },
+                "lyrics": {
+                    "description": "lyrics (from embedded tags or .lrc files)",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/iteminfo.Lyric"
+                    }
                 },
                 "title": {
                     "description": "track/video title",
@@ -5110,7 +5487,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "secret": {
-                    "description": "Shared secret key/bytes for verifying JWT token signatures (required, eg PUBLIC KEY, RSA PUBLIC KEY, EC PUBLIC KEY, or CERTIFICATE)",
+                    "description": "secret: Shared secret key/bytes for verifying JWT token signatures (required, eg PUBLIC KEY, RSA PUBLIC KEY, EC PUBLIC KEY, or CERTIFICATE)",
                     "type": "string"
                 },
                 "userGroups": {
@@ -5189,6 +5566,10 @@ const docTemplate = `{
         "settings.LogConfig": {
             "type": "object",
             "properties": {
+                "apiFilter": {
+                    "description": "regex filter that excludes matching full api paths from being logged. (eg. '/user\\?id\\=self') Defaults to '^/health|^/favicon.ico|^/static|^/public/static'",
+                    "type": "string"
+                },
                 "apiLevels": {
                     "description": "separated list of log levels to enable for the API. (eg. \"info|warning|error\")",
                     "type": "string"
@@ -5210,7 +5591,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "utc": {
-                    "description": "use UTC time in the output instead of local time",
+                    "description": "use UTC time in the output instead of local time.",
                     "type": "boolean"
                 }
             }
@@ -5230,6 +5611,9 @@ const docTemplate = `{
                 },
                 "oidc": {
                     "$ref": "#/definitions/settings.OidcConfig"
+                },
+                "passkey": {
+                    "$ref": "#/definitions/settings.PasskeyAuthConfig"
                 },
                 "password": {
                     "$ref": "#/definitions/settings.PasswordAuthConfig"
@@ -5346,6 +5730,34 @@ const docTemplate = `{
                 "viewOnly": {
                     "description": "view only mode for OnlyOffice",
                     "type": "boolean"
+                }
+            }
+        },
+        "settings.PasskeyAuthConfig": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "description": "whether to enable passkey MFA",
+                    "type": "boolean"
+                },
+                "loginButtonText": {
+                    "description": "custom text for the passkey login button",
+                    "type": "string"
+                },
+                "rpDisplayName": {
+                    "description": "the Relying Party display name (defaults to frontend name)",
+                    "type": "string"
+                },
+                "rpId": {
+                    "description": "the Relying Party ID; if empty, auto-derived from base URL host",
+                    "type": "string"
+                },
+                "rpOrigins": {
+                    "description": "allowed origins; if empty, auto-derived from base URL",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -5622,10 +6034,6 @@ const docTemplate = `{
                     "description": "deny access unless an \"allow\" access rule was specifically created.",
                     "type": "boolean"
                 },
-                "disableIndexing": {
-                    "description": "deprecated: use indexingDisabled instead to disable the indexing of this source",
-                    "type": "boolean"
-                },
                 "disabled": {
                     "description": "disable the source, this is useful so you don't need to remove it from the config file",
                     "type": "boolean"
@@ -5682,28 +6090,31 @@ const docTemplate = `{
         "settings.UserDefaults": {
             "type": "object",
             "properties": {
+                "account": {
+                    "$ref": "#/definitions/settings.UserDefaultsAccount"
+                },
                 "customTheme": {
-                    "description": "Name of theme to use chosen from custom themes config.",
+                    "description": "deprecated: use ui.customTheme instead",
                     "type": "string"
                 },
                 "darkMode": {
-                    "description": "should dark mode be enabled",
+                    "description": "deprecated: use sidebar.darkMode instead",
                     "type": "boolean"
                 },
                 "dateFormat": {
-                    "description": "when false, the date is relative, when true, the date is an exact timestamp",
+                    "description": "deprecated: use listing.dateFormat instead",
                     "type": "boolean"
                 },
                 "debugOffice": {
-                    "description": "debug onlyoffice editor",
+                    "description": "deprecated: use fileViewer.debugOffice instead",
                     "type": "boolean"
                 },
                 "deleteAfterArchive": {
-                    "description": "delete source files after successful creation/extraction of archives",
+                    "description": "deprecated: use listing.deleteAfterArchive instead",
                     "type": "boolean"
                 },
                 "deleteWithoutConfirming": {
-                    "description": "delete files without confirmation",
+                    "description": "deprecated: use listing.deleteWithoutConfirming instead",
                     "type": "boolean"
                 },
                 "disableOfficePreviewExt": {
@@ -5711,21 +6122,144 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "disableOnlyOfficeExt": {
-                    "description": "list of file extensions to disable onlyoffice editor for",
+                    "description": "deprecated: use fileViewer.disableOnlyOfficeExt instead",
                     "type": "string"
                 },
                 "disablePreviewExt": {
-                    "description": "space separated list of file extensions to disable preview for",
+                    "description": "deprecated: use preview.disablePreviewExt instead",
                     "type": "string"
                 },
                 "disableQuickToggles": {
-                    "description": "disable the quick toggles in the sidebar",
+                    "description": "deprecated: use sidebar.disableQuickToggles instead",
                     "type": "boolean"
                 },
                 "disableSearchOptions": {
-                    "description": "disable the search options in the search bar",
+                    "description": "deprecated: use search.disableOptions instead",
                     "type": "boolean"
                 },
+                "disableSettings": {
+                    "description": "deprecated: use account.disableSettings instead",
+                    "type": "boolean"
+                },
+                "disableUpdateNotifications": {
+                    "description": "deprecated: use account.disableUpdateNotifications instead",
+                    "type": "boolean"
+                },
+                "disableViewingExt": {
+                    "description": "deprecated: use fileViewer.disableViewingExt instead",
+                    "type": "string"
+                },
+                "editorQuickSave": {
+                    "description": "Deprecated fields - kept for backwards compatibility",
+                    "type": "boolean"
+                },
+                "fileLoading": {
+                    "$ref": "#/definitions/users.FileLoading"
+                },
+                "fileViewer": {
+                    "$ref": "#/definitions/settings.UserDefaultsFileViewer"
+                },
+                "gallerySize": {
+                    "description": "deprecated: use sidebar.gallerySize instead",
+                    "type": "integer"
+                },
+                "hideFileExt": {
+                    "description": "deprecated: use listing.hideFileExt instead",
+                    "type": "string"
+                },
+                "hideFilesInTree": {
+                    "description": "deprecated: use sidebar.hideFilesInTree instead",
+                    "type": "boolean"
+                },
+                "hideSidebarFileActions": {
+                    "description": "deprecated: use sidebar.hideSidebarFileActions instead",
+                    "type": "boolean"
+                },
+                "listing": {
+                    "$ref": "#/definitions/settings.UserDefaultsListing"
+                },
+                "locale": {
+                    "description": "deprecated: use ui.locale instead",
+                    "type": "string"
+                },
+                "lockPassword": {
+                    "description": "deprecated: use account.lockPassword instead",
+                    "type": "boolean"
+                },
+                "loginMethod": {
+                    "description": "deprecated: use account.loginMethod instead",
+                    "type": "string"
+                },
+                "permissions": {
+                    "description": "deprecated: use account.permissions instead",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.UserDefaultsPermissions"
+                        }
+                    ]
+                },
+                "preferEditorForMarkdown": {
+                    "description": "deprecated: use fileViewer.preferEditorForMarkdown instead",
+                    "type": "boolean"
+                },
+                "preview": {
+                    "$ref": "#/definitions/settings.UserDefaultsPreview"
+                },
+                "quickDownload": {
+                    "description": "deprecated: use listing.quickDownload instead",
+                    "type": "boolean"
+                },
+                "search": {
+                    "$ref": "#/definitions/settings.UserDefaultsSearch"
+                },
+                "showCopyPath": {
+                    "description": "deprecated: use listing.showCopyPath instead",
+                    "type": "boolean"
+                },
+                "showHidden": {
+                    "description": "deprecated: use listing.showHidden instead",
+                    "type": "boolean"
+                },
+                "showSelectMultiple": {
+                    "description": "deprecated: use listing.showSelectMultiple instead",
+                    "type": "boolean"
+                },
+                "showToolsInSidebar": {
+                    "description": "deprecated: use sidebar.showToolsInSidebar instead",
+                    "type": "boolean"
+                },
+                "sidebar": {
+                    "description": "New organized structure",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.UserDefaultsSidebar"
+                        }
+                    ]
+                },
+                "singleClick": {
+                    "description": "deprecated: use sidebar.singleClick instead",
+                    "type": "boolean"
+                },
+                "stickySidebar": {
+                    "description": "deprecated: use sidebar.stickySidebar instead",
+                    "type": "boolean"
+                },
+                "themeColor": {
+                    "description": "deprecated: use ui.themeColor instead",
+                    "type": "string"
+                },
+                "ui": {
+                    "$ref": "#/definitions/settings.UserDefaultsUI"
+                },
+                "viewMode": {
+                    "description": "deprecated: use sidebar.viewMode instead",
+                    "type": "string"
+                }
+            }
+        },
+        "settings.UserDefaultsAccount": {
+            "type": "object",
+            "properties": {
                 "disableSettings": {
                     "description": "disable the user from viewing the settings page",
                     "type": "boolean"
@@ -5733,38 +6267,6 @@ const docTemplate = `{
                 "disableUpdateNotifications": {
                     "description": "disable update notifications banner for admin users",
                     "type": "boolean"
-                },
-                "disableViewingExt": {
-                    "description": "space separated list of file extensions to disable viewing for",
-                    "type": "string"
-                },
-                "editorQuickSave": {
-                    "description": "show quick save button in editor",
-                    "type": "boolean"
-                },
-                "fileLoading": {
-                    "description": "upload and download settings",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/users.FileLoading"
-                        }
-                    ]
-                },
-                "gallerySize": {
-                    "description": "0-9 - the size of the gallery thumbnails",
-                    "type": "integer"
-                },
-                "hideFilesInTree": {
-                    "description": "hide files in the sidebar tree navigation, when true, will show only directories.",
-                    "type": "boolean"
-                },
-                "hideSidebarFileActions": {
-                    "description": "hide the file actions in the sidebar",
-                    "type": "boolean"
-                },
-                "locale": {
-                    "description": "language to use: eg. de, en, or fr",
-                    "type": "string"
                 },
                 "lockPassword": {
                     "description": "disable the user from changing their password",
@@ -5775,46 +6277,11 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "permissions": {
-                    "$ref": "#/definitions/settings.UserDefaultsPermissions"
-                },
-                "preferEditorForMarkdown": {
-                    "description": "prefer editor first for markdown files instead of the Markdown Viewer.",
-                    "type": "boolean"
-                },
-                "preview": {
-                    "$ref": "#/definitions/settings.UserDefaultsPreview"
-                },
-                "quickDownload": {
-                    "description": "show icon to download in one click",
-                    "type": "boolean"
-                },
-                "showHidden": {
-                    "description": "show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files",
-                    "type": "boolean"
-                },
-                "showSelectMultiple": {
-                    "description": "show select multiple files on desktop",
-                    "type": "boolean"
-                },
-                "singleClick": {
-                    "description": "open directory on single click, also enables middle click to open in new tab",
-                    "type": "boolean"
-                },
-                "stickySidebar": {
-                    "description": "keep sidebar open when navigating",
-                    "type": "boolean"
-                },
-                "themeColor": {
-                    "description": "theme color to use: eg. #ff0000, or var(--red), var(--purple), etc",
-                    "type": "string"
-                },
-                "viewMode": {
-                    "description": "view mode to use: eg. normal, list, grid, or compact",
-                    "type": "string"
+                    "$ref": "#/definitions/settings.UserDefaultsAccountPermissions"
                 }
             }
         },
-        "settings.UserDefaultsPermissions": {
+        "settings.UserDefaultsAccountPermissions": {
             "type": "object",
             "properties": {
                 "admin": {
@@ -5851,6 +6318,125 @@ const docTemplate = `{
                 }
             }
         },
+        "settings.UserDefaultsFileViewer": {
+            "type": "object",
+            "properties": {
+                "autoplayMedia": {
+                    "description": "autoplay media files in preview",
+                    "type": "boolean"
+                },
+                "debugOffice": {
+                    "description": "debug onlyoffice editor",
+                    "type": "boolean"
+                },
+                "defaultMediaPlayer": {
+                    "description": "disable the styled feature-rich media player for browser default",
+                    "type": "boolean"
+                },
+                "disableOnlyOfficeExt": {
+                    "description": "list of file extensions to disable onlyoffice editor for",
+                    "type": "string"
+                },
+                "disableViewingExt": {
+                    "description": "comma separated list of file extensions to disable viewing for",
+                    "type": "string"
+                },
+                "editorQuickSave": {
+                    "description": "show quick save button in editor",
+                    "type": "boolean"
+                },
+                "preferEditorForMarkdown": {
+                    "description": "prefer editor first for markdown files instead of the Markdown Viewer",
+                    "type": "boolean"
+                }
+            }
+        },
+        "settings.UserDefaultsListing": {
+            "type": "object",
+            "properties": {
+                "dateFormat": {
+                    "description": "when false, the date is relative, when true, the date is an exact timestamp",
+                    "type": "boolean"
+                },
+                "deleteAfterArchive": {
+                    "description": "delete source files after successful creation/extraction of archives",
+                    "type": "boolean"
+                },
+                "deleteWithoutConfirming": {
+                    "description": "delete files without confirmation",
+                    "type": "boolean"
+                },
+                "gallerySize": {
+                    "description": "0-9 - the size of the gallery thumbnails",
+                    "type": "integer"
+                },
+                "hideFileExt": {
+                    "description": "space separated list of file extensions to hide in UI",
+                    "type": "string"
+                },
+                "quickDownload": {
+                    "description": "show icon to download in one click",
+                    "type": "boolean"
+                },
+                "showCopyPath": {
+                    "description": "show copy path button in the context menu",
+                    "type": "boolean"
+                },
+                "showHidden": {
+                    "description": "show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files",
+                    "type": "boolean"
+                },
+                "showSelectMultiple": {
+                    "description": "show select multiple files on desktop",
+                    "type": "boolean"
+                },
+                "singleClick": {
+                    "description": "open directory on single click, also enables middle click to open in new tab",
+                    "type": "boolean"
+                },
+                "viewMode": {
+                    "description": "view mode to use: eg. normal, list, grid, or compact",
+                    "type": "string"
+                }
+            }
+        },
+        "settings.UserDefaultsPermissions": {
+            "type": "object",
+            "properties": {
+                "admin": {
+                    "description": "deprecated: use account.permissions.admin instead. allow admin access",
+                    "type": "boolean"
+                },
+                "api": {
+                    "description": "deprecated: use account.permissions.api instead. allow api access",
+                    "type": "boolean"
+                },
+                "create": {
+                    "description": "deprecated: use account.permissions.create instead. allow creating or uploading files",
+                    "type": "boolean"
+                },
+                "delete": {
+                    "description": "deprecated: use account.permissions.delete instead. allow deleting files",
+                    "type": "boolean"
+                },
+                "download": {
+                    "description": "deprecated: use account.permissions.download instead. allow downloading files",
+                    "type": "boolean"
+                },
+                "modify": {
+                    "description": "deprecated: use account.permissions.modify instead. allow modifying files",
+                    "type": "boolean"
+                },
+                "realtime": {
+                    "description": "deprecated: use account.permissions.realtime instead. allow realtime updates",
+                    "type": "boolean"
+                },
+                "share": {
+                    "description": "deprecated: use account.permissions.share instead. allow sharing files",
+                    "type": "boolean"
+                }
+            }
+        },
         "settings.UserDefaultsPreview": {
             "type": "object",
             "properties": {
@@ -5859,23 +6445,27 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "autoplayMedia": {
-                    "description": "autoplay media files in preview",
+                    "description": "deprecated: use fileViewer.autoplayMedia instead. autoplay media files in preview",
                     "type": "boolean"
                 },
                 "defaultMediaPlayer": {
-                    "description": "disable the styled feature-rich media player for browser default",
+                    "description": "deprecated: use fileViewer.defaultMediaPlayer instead. disable the styled feature-rich media player for browser default",
                     "type": "boolean"
                 },
                 "disableHideSidebar": {
-                    "description": "keep sidebar open when previewing files",
+                    "description": "deprecated fields",
                     "type": "boolean"
+                },
+                "disablePreviewExt": {
+                    "description": "comma separated list of file extensions to disable preview for",
+                    "type": "string"
                 },
                 "folder": {
                     "description": "show thumbnails for folders that have previewable contents",
                     "type": "boolean"
                 },
                 "highQuality": {
-                    "description": "deprecated: always true in v1.3.0+",
+                    "description": "high quality preview thumbnails",
                     "type": "boolean"
                 },
                 "image": {
@@ -5901,6 +6491,65 @@ const docTemplate = `{
                 "video": {
                     "description": "show thumbnails for video files",
                     "type": "boolean"
+                }
+            }
+        },
+        "settings.UserDefaultsSearch": {
+            "type": "object",
+            "properties": {
+                "disableOptions": {
+                    "description": "disable the search options in the search bar",
+                    "type": "boolean"
+                }
+            }
+        },
+        "settings.UserDefaultsSidebar": {
+            "type": "object",
+            "properties": {
+                "disableHideOnPreview": {
+                    "description": "keep sidebar open when previewing files (was preview.disableHideSidebar)",
+                    "type": "boolean"
+                },
+                "disableQuickToggles": {
+                    "description": "disable the quick toggles in the sidebar",
+                    "type": "boolean"
+                },
+                "hideFileActions": {
+                    "description": "hide the file actions in the sidebar",
+                    "type": "boolean"
+                },
+                "hideFiles": {
+                    "description": "hide files in the sidebar tree navigation, when true, will show only directories",
+                    "type": "boolean"
+                },
+                "showTools": {
+                    "description": "show sidebar links with category \"tool\"; default is true",
+                    "type": "boolean"
+                },
+                "sticky": {
+                    "description": "keep sidebar open when navigating",
+                    "type": "boolean"
+                }
+            }
+        },
+        "settings.UserDefaultsUI": {
+            "type": "object",
+            "properties": {
+                "customTheme": {
+                    "description": "Name of theme to use chosen from custom themes config",
+                    "type": "string"
+                },
+                "darkMode": {
+                    "description": "should dark mode be enabled",
+                    "type": "boolean"
+                },
+                "locale": {
+                    "description": "language to use: eg. de, en, or fr",
+                    "type": "string"
+                },
+                "themeColor": {
+                    "description": "theme color to use: eg. #ff0000, or var(--red), var(--purple), etc",
+                    "type": "string"
                 }
             }
         },
@@ -5987,6 +6636,10 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "hash": {
+                    "type": "string"
+                },
+                "hideFileExt": {
+                    "description": "show hidden files based on extensions in shares",
                     "type": "string"
                 },
                 "hideNavButtons": {
@@ -6143,6 +6796,10 @@ const docTemplate = `{
                 "hash": {
                     "type": "string"
                 },
+                "hideFileExt": {
+                    "description": "show hidden files based on extensions in shares",
+                    "type": "string"
+                },
                 "hideNavButtons": {
                     "type": "boolean"
                 },
@@ -6258,6 +6915,19 @@ const docTemplate = `{
                 }
             }
         },
+        "users.BackendScope": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "description": "real path for the source",
+                    "type": "string"
+                },
+                "scope": {
+                    "description": "index path within that source",
+                    "type": "string"
+                }
+            }
+        },
         "users.FileLoading": {
             "type": "object",
             "properties": {
@@ -6272,6 +6942,19 @@ const docTemplate = `{
                 },
                 "uploadChunkSizeMb": {
                     "type": "integer"
+                }
+            }
+        },
+        "users.FrontendScope": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "Bolt: filesystem path; JSON API: display name after prepForFrontend",
+                    "type": "string"
+                },
+                "scope": {
+                    "description": "index path within that source",
+                    "type": "string"
                 }
             }
         },
@@ -6349,6 +7032,10 @@ const docTemplate = `{
                     "description": "0-9 - the size of the gallery thumbnails",
                     "type": "integer"
                 },
+                "hideFileExt": {
+                    "description": "space separated list of file extensions to hide in UI and API",
+                    "type": "string"
+                },
                 "hideFilesInTree": {
                     "description": "hide files in the sidebar tree navigation, when true, will show only directories.",
                     "type": "boolean"
@@ -6370,6 +7057,12 @@ const docTemplate = `{
                 "otpEnabled": {
                     "type": "boolean"
                 },
+                "passkeyCredentials": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/users.WebAuthnCredential"
+                    }
+                },
                 "password": {
                     "type": "string"
                 },
@@ -6390,14 +7083,10 @@ const docTemplate = `{
                     "description": "show icon to download in one click",
                     "type": "boolean"
                 },
-                "scope": {
-                    "type": "string"
-                },
                 "scopes": {
-                    "description": "Scopes JSON \"scopes\": on requests, admin/source names + paths (converted to BackendScopes in state).\nOn GET responses, PrepForFrontend sets this from BackendScopes (GetFrontendScopes)— never loaded from SQL.",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/users.SourceScope"
+                        "$ref": "#/definitions/users.FrontendScope"
                     }
                 },
                 "showCopyPath": {
@@ -6413,6 +7102,10 @@ const docTemplate = `{
                 },
                 "showSelectMultiple": {
                     "description": "show select multiple files on desktop",
+                    "type": "boolean"
+                },
+                "showToolsInSidebar": {
+                    "description": "when false, sidebar hides links with category \"tool\" (default: true)",
                     "type": "boolean"
                 },
                 "sidebarLinks": {
@@ -6439,9 +7132,6 @@ const docTemplate = `{
                 },
                 "username": {
                     "type": "string"
-                },
-                "version": {
-                    "type": "integer"
                 },
                 "viewMode": {
                     "description": "view mode to use: eg. normal, list, grid, or compact",
@@ -6568,7 +7258,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "sourceName": {
-                    "description": "Source identifier for source-type links",
+                    "description": "Bolt: filesystem path. JSON out: display name (after prepForFrontend).",
                     "type": "string"
                 },
                 "target": {
@@ -6588,17 +7278,6 @@ const docTemplate = `{
                 }
             }
         },
-        "users.SourceScope": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string"
-                },
-                "scope": {
-                    "type": "string"
-                }
-            }
-        },
         "users.User": {
             "type": "object",
             "properties": {
@@ -6613,7 +7292,7 @@ const docTemplate = `{
                     "description": "BackendScopes is the authoritative, persisted access list (SourceScope.Name = backend source path).\nSQLite stores this inside user_data JSON under the key \"scopes\" (see sqldb.UserData).",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/users.SourceScope"
+                        "$ref": "#/definitions/users.BackendScope"
                     }
                 },
                 "customTheme": {
@@ -6687,6 +7366,10 @@ const docTemplate = `{
                     "description": "0-9 - the size of the gallery thumbnails",
                     "type": "integer"
                 },
+                "hideFileExt": {
+                    "description": "space separated list of file extensions to hide in UI and API",
+                    "type": "string"
+                },
                 "hideFilesInTree": {
                     "description": "hide files in the sidebar tree navigation, when true, will show only directories.",
                     "type": "boolean"
@@ -6711,6 +7394,12 @@ const docTemplate = `{
                 "otpEnabled": {
                     "type": "boolean"
                 },
+                "passkeyCredentials": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/users.WebAuthnCredential"
+                    }
+                },
                 "password": {
                     "type": "string"
                 },
@@ -6731,14 +7420,10 @@ const docTemplate = `{
                     "description": "show icon to download in one click",
                     "type": "boolean"
                 },
-                "scope": {
-                    "type": "string"
-                },
                 "scopes": {
-                    "description": "Scopes JSON \"scopes\": on requests, admin/source names + paths (converted to BackendScopes in state).\nOn GET responses, PrepForFrontend sets this from BackendScopes (GetFrontendScopes)— never loaded from SQL.",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/users.SourceScope"
+                        "$ref": "#/definitions/users.FrontendScope"
                     }
                 },
                 "showCopyPath": {
@@ -6754,6 +7439,10 @@ const docTemplate = `{
                 },
                 "showSelectMultiple": {
                     "description": "show select multiple files on desktop",
+                    "type": "boolean"
+                },
+                "showToolsInSidebar": {
+                    "description": "when false, sidebar hides links with category \"tool\" (default: true)",
                     "type": "boolean"
                 },
                 "sidebarLinks": {
@@ -6799,6 +7488,82 @@ const docTemplate = `{
                 "viewMode": {
                     "description": "view mode to use: eg. normal, list, grid, or compact",
                     "type": "string"
+                }
+            }
+        },
+        "users.WebAuthnCredential": {
+            "type": "object",
+            "properties": {
+                "aaguid": {
+                    "type": "string"
+                },
+                "attestationFormat": {
+                    "type": "string"
+                },
+                "attestationObj": {
+                    "type": "string"
+                },
+                "attestationType": {
+                    "type": "string"
+                },
+                "authenticatorData": {
+                    "type": "string"
+                },
+                "clientDataHash": {
+                    "type": "string"
+                },
+                "clientDataJSON": {
+                    "type": "string"
+                },
+                "cloneWarning": {
+                    "type": "boolean"
+                },
+                "createdAt": {
+                    "type": "integer"
+                },
+                "flags": {
+                    "$ref": "#/definitions/users.WebAuthnCredentialFlags"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "lastUsedAt": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "publicKey": {
+                    "type": "string"
+                },
+                "publicKeyAlg": {
+                    "type": "integer"
+                },
+                "signCount": {
+                    "type": "integer"
+                },
+                "transport": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "users.WebAuthnCredentialFlags": {
+            "type": "object",
+            "properties": {
+                "backupEligible": {
+                    "type": "boolean"
+                },
+                "backupState": {
+                    "type": "boolean"
+                },
+                "userPresent": {
+                    "type": "boolean"
+                },
+                "userVerified": {
+                    "type": "boolean"
                 }
             }
         },

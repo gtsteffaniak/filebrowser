@@ -75,7 +75,12 @@
     "mouseActions": "Musåtgärder",
     "fileOperations": "Filoperationer",
     "click": "välj fil eller mapp",
+    "dbClick": "Dubbelklicka på ett tomt utrymme för att markera alla objekt",
     "ctrl": {
+      "f1": "Växla till listvy",
+      "f2": "Växla till normal vy",
+      "f3": "Växla till gallerivy",
+      "scroll": "Ändra storlek på listan och redigerarens typsnitt",
       "click": "välj flera filer eller mappar",
       "d": "ladda ner valda artiklar",
       "b": "växla sidofält",
@@ -101,6 +106,8 @@
       "volume": "Höj eller sänk volymen",
       "mute": "Stäng av/Slå på ljudet",
       "loop": "Växla mellan loop och enkelläge",
+      "playbackQueue": "Öppna uppspelningskö eller panelen i ljudfiler",
+      "switchTabs": "Växla flikar i panelen på ljudfiler",
       "playbackModes": "Växla mellan uppspelningslägen (exklusive loop och enkel)",
       "fullscreen": "Växla till helskärmsläge i videor",
       "captions": "Slå på/av undertexter"
@@ -141,10 +148,10 @@
     "passwordsDontMatch": "Lösenord matchar inte",
     "usernameTaken": "Användarnamn upptaget",
     "wrongCredentials": "Fel inloggning",
-    "or": "ELLER",
     "inProgress": "Loggar in...",
     "failedLogin": "Misslyckades med att logga in",
-    "invalidCredentials": "Ogiltiga inloggningsuppgifter har angetts"
+    "invalidCredentials": "Ogiltiga inloggningsuppgifter har angetts",
+    "passkeyLogin": "Använd Passkey"
   },
   "prompts": {
     "copyMessage": "Välj var dina filer skall sparas:",
@@ -256,9 +263,12 @@
     "showPreviewImagesDescription": "Visa förhandsvisningar av miniatyrbilder för sökresultat när det är tillgängligt och visa större ikoner för alla resultat.",
     "olderThanDate": "Äldre än:",
     "newerThanDate": "Nyare än:",
-    "helpText2": "Sökresultaten baseras på indexerade filer, så det kan hända att nya filer inte visas förrän de har indexerats.",
     "noResults": "Inga resultat hittades.",
-    "helpText1": "Sökningen sker för varje tecken du skriver ({minSearchLength} tecken minimum)."
+    "helpText1": "Sökningen sker för varje tecken du skriver ({minSearchLength} tecken minimum).",
+    "helpText2": "Delsträngsmatchning endast på fil- eller mappnamn (inte fullständiga sökvägar). case:exact för skiftlägeskänslig matchning\n\n för OR mellan termer använd pipe-tecken; dubbla citattecken för en fras.\n\nAktivera jokerteckensökning för mer avancerade alternativ.",
+    "useWildcardSearch": "Sökning med jokertecken (skiftlägeskänslig)",
+    "useWildcardSearchDescription": "Alternativ för jokertecken som stöds:\n\n- Matchar vilken sekvens som helst: *\n\n- Matcha ett tecken: ?\n\n- Teckenklass: [a-z], [0-9]\n\n- Negation: [^0-9]\n\n- Bokstavliga *, ? eller [ måste omslutas av parenteser, t.ex. [*], [?], [[]\n\n- Alla resultat är skiftlägeskänsliga",
+    "openInAdvancedSearch": "Öppna i avancerad sökning"
   },
   "settings": {
     "administrator": "Administratör",
@@ -565,6 +575,8 @@
     "orange": "apelsin"
   },
   "profileSettings": {
+    "hideFileExt": "Dölj vissa filer (efter filändelse)",
+    "hideFileExtDescription": "En blankstegsseparerad lista över filändelser. Filändelser som anges i detta fält kommer att döljas från hela användargränssnittet (visuellt, som i listan eller filträdet) — De är fortfarande tillgängliga.",
     "preferEditorForMarkdown": "Föredra redigerare för Markdown-filer",
     "preferEditorForMarkdownDescription": "När aktiverad, öppna Markdown-filer i redigeraren först istället för Markdown-visaren.",
     "deleteAfterArchive": "Ta bort källfiler efter skapande/extrahering av arkiv",
@@ -627,7 +639,21 @@
     "showThumbnailsDescription": "När den är aktiverad visas miniatyrbilder i listan för objekt som stöder dem. Stäng av för att dölja alla miniatyrbilder.",
     "showCopyPath": "Visa Kopiera sökväg i snabbmenyn",
     "showCopyPathDescription": "Visa åtgärden Kopiera sökväg i snabbmenyn för filer och mappar.",
-    "previewDescription": "Visa förhandsgranskning av miniatyrbilder för {filetype}, visar generisk ikon om den är inaktiverad."
+    "previewDescription": "Visa förhandsgranskning av miniatyrbilder för {filetype}, visar generisk ikon om den är inaktiverad.",
+    "passkeys": "Passkeys",
+    "passkeysDescription": "Använd passkeys för säker, lösenordsfri multifaktorautentisering. Registrera en passkey på din enhet för att använda biometrisk verifiering eller PIN istället för OTP-koder.",
+    "noPasskeys": "Inga passkeys registrerade ännu.",
+    "addPasskey": "Lägg till Passkey",
+    "addingPasskey": "Lägger till passkey...",
+    "passkeyAdded": "Passkey har lagts till!",
+    "passkeyAddFailed": "Kunde inte lägga till passkey",
+    "passkeyDeleted": "Passkey borttagen.",
+    "passkeyDeleteFailed": "Kunde inte ta bort passkey",
+    "created": "Skapad",
+    "lastUsed": "Senast använd",
+    "passkeyDefaultName": "Passkey",
+    "showToolsInSidebar": "Visa verktyg i sidofältet",
+    "showToolsInSidebarDescription": "Visa alltid verktygslänken i sidofältet."
   },
   "general": {
     "name": "Namn",
@@ -750,7 +776,9 @@
     "office": "Kontor{suffix}",
     "show": "Visa{suffix}",
     "divider": "Uppdelare{suffix}",
-    "audio": "Ljud{suffix}"
+    "audio": "Ljud{suffix}",
+    "and": "och",
+    "or": "eller"
   },
   "access": {
     "rules": "Regler för åtkomst",
@@ -797,7 +825,15 @@
     "QueuePlayback": "Uppspelningskö",
     "changePlaybackMode": "Ändra uppspelningsläge",
     "changePlaybackModeHint": "Ändra uppspelningsläge för att se fler filer",
-    "emptyQueue": "Kön är tom"
+    "emptyQueue": "Kön är tom",
+    "queue": "Kö",
+    "lyrics": "Text",
+    "noLyrics": "Ingen text tillgänglig",
+    "lockLyrics": "Lås texten",
+    "unlockLyrics": "Lås upp texten",
+    "toggleLyrics": "Visa/dölj text",
+    "closePanel": "Stäng panel",
+    "openPanel": "Öppna panel"
   },
   "fileSizeAnalyzer": {
     "title": "Analysator för filstorlek",
@@ -858,6 +894,20 @@
       "stopWatching": "Sluta titta på",
       "emptyState": "Välj en fil och klicka på play för att börja övervaka filändringar",
       "chooseFile": "Välj en fil"
+    },
+    "advancedSearch": {
+      "name": "Avancerad sökning",
+      "description": "Sök i indexet med full kontroll över källor, filter och alternativ",
+      "searchTerms": "Sökord",
+      "matchAllTerms": "Matcha alla termer",
+      "matchAllTermsDescription": "När den är aktiverad måste alla söktermer hittas för varje fil",
+      "scopeAria": "Begränsa sökningen till en mapp",
+      "noTerms": "Ange minst en sökterm.",
+      "termTooShort": "Varje sökterm måste innehålla minst {minSearchLength} tecken",
+      "caseExact": "Matchning med skiftlägeskänslighet",
+      "resultsTitle": "Sökresultat",
+      "invalidSources": "Slå på minst en källa.",
+      "noResults": "Inga matchande filer eller mappar."
     }
   },
   "messages": {

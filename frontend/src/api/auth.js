@@ -182,3 +182,149 @@ export function deleteApiKey(params) {
     throw err
   }
 }
+
+function arrayBufferToBase64(buffer) {
+  const bytes = new Uint8Array(buffer)
+  let binary = ''
+  bytes.forEach(b => binary += String.fromCharCode(b))
+  return btoa(binary).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_')
+}
+
+function base64ToArrayBuffer(base64url) {
+  // Convert URL-safe base64 to standard base64
+  let base64 = base64url.replace(/-/g, '+').replace(/_/g, '/')
+  while (base64.length % 4) base64 += '='
+  const binary = atob(base64)
+  const bytes = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i)
+  }
+  return bytes.buffer
+}
+
+function preprocessPublicKeyOptions(options) {
+  const opts = { ...options }
+  if (typeof opts.challenge === 'string') {
+    opts.challenge = base64ToArrayBuffer(opts.challenge)
+  }
+  if (opts.user && typeof opts.user.id === 'string') {
+    opts.user = { ...opts.user, id: base64ToArrayBuffer(opts.user.id) }
+  }
+  if (opts.allowCredentials && Array.isArray(opts.allowCredentials)) {
+    opts.allowCredentials = opts.allowCredentials.map(c => ({
+      ...c,
+      id: typeof c.id === 'string' ? base64ToArrayBuffer(c.id) : c.id,
+    }))
+  }
+  if (opts.excludeCredentials && Array.isArray(opts.excludeCredentials)) {
+    opts.excludeCredentials = opts.excludeCredentials.map(c => ({
+      ...c,
+      id: typeof c.id === 'string' ? base64ToArrayBuffer(c.id) : c.id,
+    }))
+  }
+  return opts
+}
+
+function formatCredentialResponse(cred) {
+  return {
+    id: cred.id,
+    rawId: arrayBufferToBase64(cred.rawId),
+    type: cred.type,
+    response: {
+      clientDataJSON: arrayBufferToBase64(cred.response.clientDataJSON),
+      authenticatorData: arrayBufferToBase64(cred.response.authenticatorData),
+      signature: arrayBufferToBase64(cred.response.signature),
+      userHandle: cred.response.userHandle ? arrayBufferToBase64(cred.response.userHandle) : null,
+    },
+  }
+}
+
+function formatAttestationResponse(cred) {
+  return {
+    id: cred.id,
+    rawId: arrayBufferToBase64(cred.rawId),
+    type: cred.type,
+    response: {
+      clientDataJSON: arrayBufferToBase64(cred.response.clientDataJSON),
+      attestationObject: arrayBufferToBase64(cred.response.attestationObject),
+      transports: cred.response.getTransports ? cred.response.getTransports() : [],
+    },
+  }
+}
+
+export async function beginPasskeyLogin(username, password) {
+  const apiPath = getApiPath('auth/webauthn/begin-login', { username })
+  const res = await fetch(apiPath, {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: {
+      'X-Password': encodeURIComponent(password),
+    },
+  })
+
+  const body = await res.json().catch(() => ({}))
+  if (res.status !== 200) {
+    const msg = body.message || 'Passkey login failed'
+    throw new Error(msg)
+  }
+
+  const credential = await navigator.credentials.get({ publicKey: preprocessPublicKeyOptions(body.publicKey) })
+  const formatted = formatCredentialResponse(credential)
+
+  const finishPath = getApiPath('auth/webauthn/finish-login', { session_id: body.sessionID })
+  const finishRes = await fetch(finishPath, {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(formatted),
+  })
+
+  if (finishRes.status !== 200) {
+    const errBody = await finishRes.json().catch(() => ({}))
+    throw new Error(errBody.message || 'Passkey login failed')
+  }
+}
+
+export async function beginPasskeyRegistration() {
+  const apiPath = getApiPath('auth/webauthn/begin-register')
+  const res = await fetch(apiPath, {
+    method: 'POST',
+    credentials: 'same-origin',
+  })
+
+  const body = await res.json().catch(() => ({}))
+  if (res.status !== 200) {
+    const msg = body.message || 'Failed to begin passkey registration'
+    throw new Error(msg)
+  }
+
+  const credential = await navigator.credentials.create({ publicKey: preprocessPublicKeyOptions(body.publicKey) })
+  const formatted = formatAttestationResponse(credential)
+
+  const name = prompt('Name for this passkey (e.g. "iPhone", "YubiKey"):') || 'Passkey'
+  const finishPath = getApiPath('auth/webauthn/finish-register', { session_id: body.sessionID, name })
+  const finishRes = await fetch(finishPath, {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(formatted),
+  })
+
+  if (finishRes.status !== 200) {
+    const errBody = await finishRes.json().catch(() => ({}))
+    throw new Error(errBody.message || 'Failed to register passkey')
+  }
+}
+
+export async function deletePasskeyCredential(credentialId) {
+  const apiPath = getApiPath(`auth/webauthn/${encodeURIComponent(credentialId)}`)
+  const res = await fetch(apiPath, {
+    method: 'DELETE',
+    credentials: 'same-origin',
+  })
+
+  if (res.status !== 200) {
+    const errBody = await res.json().catch(() => ({}))
+    throw new Error(errBody.message || 'Failed to delete passkey')
+  }
+}

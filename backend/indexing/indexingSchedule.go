@@ -5,38 +5,57 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	indexingdb "github.com/gtsteffaniak/filebrowser/backend/database/dbindex"
 	"github.com/gtsteffaniak/filebrowser/backend/events"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-// schedule in minutes
-var scanSchedule = map[int]time.Duration{
-	0: 5 * time.Minute, // 5 minute scan
-	1: 10 * time.Minute,
-	2: 20 * time.Minute,
-	3: 40 * time.Minute, // schedule index 3 for file changes
-	4: 1 * time.Hour,
-	5: 2 * time.Hour,
-	6: 3 * time.Hour,
-	7: 4 * time.Hour,
-	8: 8 * time.Hour,
-	9: 12 * time.Hour,
+// scanScheduleTiers is the only set of adaptive scan intervals (index = currentSchedule tier).
+// Fastest tier is 5 minutes so consecutive runs for a path are at least ~5 minutes apart on the grid.
+//
+// On filesChanged: if current tier is slower than 40 minutes (index > 3), jump to tier 3; otherwise
+// step one tier faster (index--). High-complexity scanners are clamped to scheduleTierBoundsForComplexity.
+var scanScheduleTiers = []time.Duration{
+	5 * time.Minute,
+	10 * time.Minute,
+	20 * time.Minute,
+	40 * time.Minute,
+	1 * time.Hour,
+	2 * time.Hour,
+	3 * time.Hour,
+	4 * time.Hour,
+	8 * time.Hour,
+	12 * time.Hour,
 }
 
-// complexityModifier defines time adjustments based on complexity level (0-10)
-var complexityModifier = map[uint]time.Duration{
-	0:  0 * time.Minute,  // unknown: no modifier
-	1:  -4 * time.Minute, // simple: scan more frequently
-	2:  -2 * time.Minute, // normal (lightest)
-	3:  -1 * time.Minute,
-	4:  0 * time.Minute, // baseline normal
-	5:  1 * time.Minute,
-	6:  2 * time.Minute, // normal (heaviest)
-	7:  4 * time.Minute, // complex (lightest)
-	8:  8 * time.Minute,
-	9:  12 * time.Minute,
-	10: 16 * time.Minute, // highlyComplex: scan less frequently
+func scanScheduleDuration(tier int) time.Duration {
+	return scanScheduleTiers[utils.Clamp(tier, 0, len(scanScheduleTiers)-1)]
+}
+
+// scheduleTierBoundsForComplexity limits how aggressive or idle a scanner may be scheduled.
+// minTier: fastest allowed interval (low index); maxTier: slowest allowed (high index).
+// Complexity 0 = unknown (e.g. before first full scan): no bounds. Complexity 1: never slower than 1h.
+func scheduleTierBoundsForComplexity(c uint) (minTier, maxTier int) {
+	maxTier = len(scanScheduleTiers) - 1
+	minTier = 0
+	if c == 1 {
+		maxTier = 4 // index 4 = 1 hour; trivial trees should not stretch to multi-hour tiers
+	}
+	switch {
+	case c >= 10:
+		minTier = 4 // at least 1h between runs
+	case c >= 8:
+		minTier = 3 // at least 40m
+	case c >= 6:
+		minTier = 2 // at least 20m
+	case c >= 4:
+		minTier = 1 // at least 10m
+	}
+	if minTier > maxTier {
+		minTier = maxTier
+	}
+	return minTier, maxTier
 }
 
 // calculateTimeScore returns a 1-10 score based on scan time
@@ -172,13 +191,11 @@ func (idx *Index) incrementScannerFiles() {
 	}
 }
 
-func (idx *Index) PreScan() error {
-	return idx.SetStatus(INDEXING)
-}
-
 func (idx *Index) PostScan() error {
-	// Only do expensive operations when ALL scanners are done
-	if idx.getRunningScannerCount() == 0 {
+	idx.mu.RLock()
+	idle := idx.activeScannerPath == ""
+	idx.mu.RUnlock()
+	if idle {
 		// All scanners completed
 		err := idx.db.ShrinkMemory()
 		if err != nil {
@@ -249,23 +266,27 @@ func (idx *Index) setupMultiScanner(isNewDb bool) {
 
 	// Create and start root scanner
 	rootScanner := idx.createScanner("/")
+	adaptive := idx.useAdaptiveScheduling()
 	if persistedScanners != nil {
 		if rootInfo, ok := persistedScanners["/"]; ok {
 			rootScanner.withStatsLock(func() {
 				rootScanner.complexity = rootInfo.Complexity
-				rootScanner.currentSchedule = rootInfo.CurrentSchedule
+				if adaptive {
+					rootScanner.currentSchedule = utils.Clamp(rootInfo.CurrentSchedule, 0, len(scanScheduleTiers)-1)
+				}
 				rootScanner.quickScanTime = rootInfo.QuickScanTime
 				rootScanner.fullScanTime = rootInfo.FullScanTime
 				rootScanner.numDirs = rootInfo.NumDirs
 				rootScanner.numFiles = rootInfo.NumFiles
 				rootScanner.lastScanned = rootInfo.LastScanned
+				rootScanner.fullScanCounter = utils.Clamp(rootInfo.FullScanCounter, 0, 4)
 			})
 		}
 	}
 	idx.mu.Lock()
 	idx.scanners["/"] = rootScanner
+	idx.schedulerStop = make(chan struct{})
 	idx.mu.Unlock()
-	go rootScanner.start()
 
 	// Discover existing top-level directories (root scanner will create scanners for new ones dynamically)
 	topLevelDirs := rootScanner.getTopLevelDirs()
@@ -279,12 +300,15 @@ func (idx *Index) setupMultiScanner(isNewDb bool) {
 			if childInfo, ok := persistedScanners[dirPath]; ok {
 				childScanner.withStatsLock(func() {
 					childScanner.complexity = childInfo.Complexity
-					childScanner.currentSchedule = childInfo.CurrentSchedule
+					if adaptive {
+						childScanner.currentSchedule = utils.Clamp(childInfo.CurrentSchedule, 0, len(scanScheduleTiers)-1)
+					}
 					childScanner.quickScanTime = childInfo.QuickScanTime
 					childScanner.fullScanTime = childInfo.FullScanTime
 					childScanner.numDirs = childInfo.NumDirs
 					childScanner.numFiles = childInfo.NumFiles
 					childScanner.lastScanned = childInfo.LastScanned
+					childScanner.fullScanCounter = utils.Clamp(childInfo.FullScanCounter, 0, 4)
 				})
 			}
 		}
@@ -292,9 +316,16 @@ func (idx *Index) setupMultiScanner(isNewDb bool) {
 		idx.mu.Lock()
 		idx.scanners[dirPath] = childScanner
 		idx.mu.Unlock()
-
-		go childScanner.start()
 	}
+
+	if idx.useAdaptiveScheduling() {
+		idx.mu.Lock()
+		idx.schedulerStartupPassPending = true
+		idx.mu.Unlock()
+	}
+
+	idx.restoreScannerNextRuns()
+	go idx.runIndexScheduler()
 
 	logger.Debugf("Created %d scanners for [%v] (1 root + %d children)", len(topLevelDirs)+1, idx.Name, len(topLevelDirs))
 }
@@ -304,7 +335,6 @@ func (idx *Index) createScanner(dirPath string) *Scanner {
 	return &Scanner{
 		scanPath:        dirPath,
 		idx:             idx,
-		stopChan:        make(chan struct{}),
 		currentSchedule: 0,
 		fullScanCounter: 0,
 		complexity:      0, // 0 = unknown until first full scan completes
@@ -338,7 +368,10 @@ func (idx *Index) GetScannerStatus() map[string]interface{} {
 			scannerInfo["numDirs"] = scanner.numDirs
 			scannerInfo["numFiles"] = scanner.numFiles
 			scannerInfo["filesChanged"] = scanner.filesChanged
-			scannerInfo["smartModifier"] = scanner.smartModifier.String()
+			scannerInfo["fullScanCounter"] = scanner.fullScanCounter
+			if !scanner.nextRun.IsZero() {
+				scannerInfo["nextRun"] = scanner.nextRun.Format(time.RFC3339)
+			}
 		})
 		scannerStats = append(scannerStats, scannerInfo)
 	}

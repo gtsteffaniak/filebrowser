@@ -25,6 +25,7 @@ func TestUpdateUserScopes_Phases(t *testing.T) {
 		"sourceA": &sourceA,
 		"sourceB": &sourceB,
 	}
+	settings.InitializeUserResolvers()
 
 	// ---------------------
 	// Test Cases Definition
@@ -32,108 +33,109 @@ func TestUpdateUserScopes_Phases(t *testing.T) {
 	testCases := []struct {
 		name           string
 		user           *users.User
-		expectedPhase1 []users.SourceScope
-		expectedPhase2 []users.SourceScope
+		expectedPhase1 []users.BackendScope
+		expectedPhase2 []users.BackendScope
 	}{
 		{
 			name: "Single valid scope",
 			user: &users.User{
-				BackendScopes: []users.SourceScope{
-					{Scope: "/home", Name: "/pathA"},
+				BackendScopes: []users.BackendScope{
+					{Scope: "/home", Path: "/pathA"},
 				},
 			},
-			expectedPhase1: []users.SourceScope{
-				{Scope: "/home", Name: "/pathA"},
-				{Scope: "/defaultB", Name: "/pathB"},
+			expectedPhase1: []users.BackendScope{
+				{Scope: "/home", Path: "/pathA"},
+				{Scope: "/defaultB", Path: "/pathB"},
 			},
-			expectedPhase2: []users.SourceScope{
-				{Scope: "/home", Name: "/pathA"},
-				{Scope: "/defaultB", Name: "/pathB"},
+			expectedPhase2: []users.BackendScope{
+				{Scope: "/home", Path: "/pathA"},
+				{Scope: "/defaultB", Path: "/pathB"},
 			},
 		},
 		{
 			name: "Single empty scope path",
 			user: &users.User{
-				BackendScopes: []users.SourceScope{
-					{Scope: "", Name: "/pathB"},
+				BackendScopes: []users.BackendScope{
+					{Scope: "", Path: "/pathB"},
 				},
 			},
-			expectedPhase1: []users.SourceScope{
-				{Scope: "/defaultB", Name: "/pathB"},
+			expectedPhase1: []users.BackendScope{
+				{Scope: "/defaultB", Path: "/pathB"},
 			},
-			expectedPhase2: []users.SourceScope{
-				{Scope: "/defaultA", Name: "/pathA"},
-				{Scope: "/defaultB", Name: "/pathB"},
+			expectedPhase2: []users.BackendScope{
+				{Scope: "/defaultA", Path: "/pathA"},
+				{Scope: "/defaultB", Path: "/pathB"},
 			},
 		},
 		{
 			name: "Two scopes, one includes username in path",
 			user: &users.User{
 				FrontendUser: users.FrontendUser{Username: "user123"},
-				BackendScopes: []users.SourceScope{
-					{Scope: "/home/user123", Name: "/pathA"},
-					{Scope: "/data", Name: "/pathB"},
+				BackendScopes: []users.BackendScope{
+					{Scope: "/home/user123", Path: "/pathA"},
+					{Scope: "/data", Path: "/pathB"},
 				},
 			},
-			expectedPhase1: []users.SourceScope{
-				{Scope: "/home/user123", Name: "/pathA"},
-				{Scope: "/data", Name: "/pathB"},
+			expectedPhase1: []users.BackendScope{
+				{Scope: "/home/user123", Path: "/pathA"},
+				{Scope: "/data", Path: "/pathB"},
 			},
-			expectedPhase2: []users.SourceScope{
-				{Scope: "/home/user123", Name: "/pathA"},
-				{Scope: "/data", Name: "/pathB"},
+			expectedPhase2: []users.BackendScope{
+				{Scope: "/home/user123", Path: "/pathA"},
+				{Scope: "/data", Path: "/pathB"},
 			},
 		},
 		{
 			name: "Two scopes, one with empty name",
 			user: &users.User{
-				BackendScopes: []users.SourceScope{
-					{Scope: "/home", Name: "/pathB"},
-					{Scope: "/data", Name: "/somethingElse"},
+				BackendScopes: []users.BackendScope{
+					{Scope: "/home", Path: "/pathB"},
+					{Scope: "/data", Path: "/somethingElse"},
 				},
 			},
-			expectedPhase1: []users.SourceScope{
-				{Scope: "/home", Name: "/pathB"},
-				{Scope: "/data", Name: "/somethingElse"},
+			expectedPhase1: []users.BackendScope{
+				{Scope: "/home", Path: "/pathB"},
+				{Scope: "/data", Path: "/somethingElse"},
 			},
-			expectedPhase2: []users.SourceScope{
-				{Scope: "/defaultA", Name: "/pathA"},
-				{Scope: "/home", Name: "/pathB"},
-				{Scope: "/data", Name: "/somethingElse"},
+			expectedPhase2: []users.BackendScope{
+				{Scope: "/defaultA", Path: "/pathA"},
+				{Scope: "/home", Path: "/pathB"},
+				{Scope: "/data", Path: "/somethingElse"},
 			},
 		},
 		{
 			name: "No scopes at all",
 			user: &users.User{
-				BackendScopes: []users.SourceScope{},
+				BackendScopes: []users.BackendScope{},
 			},
-			expectedPhase1: []users.SourceScope{
-				{Scope: "/defaultB", Name: "/pathB"},
+			expectedPhase1: []users.BackendScope{
+				{Scope: "/defaultB", Path: "/pathB"},
 			},
-			expectedPhase2: []users.SourceScope{
-				{Scope: "/defaultA", Name: "/pathA"},
-				{Scope: "/defaultB", Name: "/pathB"},
+			expectedPhase2: []users.BackendScope{
+				{Scope: "/defaultA", Path: "/pathA"},
+				{Scope: "/defaultB", Path: "/pathB"},
 			},
 		},
 		{
 			name: "All user Scope and source change",
 			user: &users.User{
 				FrontendUser: users.FrontendUser{Username: "user123"},
-				BackendScopes: []users.SourceScope{
-					{Scope: "/defaultC/user123", Name: "/pathC"},
-					{Scope: "/defaultA/user123", Name: "/pathA"},
-					{Scope: "/defaultB/user123", Name: "/pathB"},
+				BackendScopes: []users.BackendScope{
+					{Scope: "/defaultC/user123", Path: "/pathC"},
+					{Scope: "/defaultA/user123", Path: "/pathA"},
+					{Scope: "/defaultB/user123", Path: "/pathB"},
 				},
 			},
-			expectedPhase1: []users.SourceScope{
-				{Scope: "/defaultA/user123", Name: "/pathA"},
-				{Scope: "/defaultB/user123", Name: "/pathB"},
-				{Scope: "/defaultC/user123", Name: "/pathC"},
+			// updateUserScopes emits configured sources first (Sources order), then unknown paths.
+			expectedPhase1: []users.BackendScope{
+				{Scope: "/defaultA/user123", Path: "/pathA"},
+				{Scope: "/defaultB/user123", Path: "/pathB"},
+				{Scope: "/defaultC/user123", Path: "/pathC"},
 			},
-			expectedPhase2: []users.SourceScope{
-				{Scope: "/defaultA/user123", Name: "/pathA"},
-				{Scope: "/defaultB/user123", Name: "/pathB"},
-				{Scope: "/defaultC/user123", Name: "/pathC"},
+			expectedPhase2: []users.BackendScope{
+				{Scope: "/defaultA/user123", Path: "/pathA"},
+				{Scope: "/defaultB/user123", Path: "/pathB"},
+				{Scope: "/defaultC/user123", Path: "/pathC"},
 			},
 		},
 	}
