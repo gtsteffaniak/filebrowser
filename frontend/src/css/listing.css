@@ -577,6 +577,12 @@ body.rtl #listingView {
   box-sizing: border-box;
 }
 
+/* Match list/compact item left offset (margin 0.5em + padding 0.5em = 1em) */
+#listingView.list .header,
+#listingView.compact .header {
+  padding-left: 1em;
+}
+
 #listingView.list .header i,
 #listingView.normal .header i,
 #listingView.gallery .header i,
