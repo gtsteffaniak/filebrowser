@@ -580,7 +580,7 @@ body.rtl #listingView {
 /* Align header status icons with item dots — empirically tuned */
 #listingView.list .header,
 #listingView.compact .header {
-  padding-left: 2.5em;
+  padding-left: 2em;
 }
 
 #listingView.list .header i,
