@@ -47,8 +47,12 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker build -t $REGISTRY/$IMAGE:$ENV -f _docker/Dockerfile --build-arg CONFIG_FILE=$CONFIG_FILE .
+          SHA_TAG=$REGISTRY/$IMAGE:$ENV-${GITHUB_SHA:0:7}
+          docker build -t $SHA_TAG -f _docker/Dockerfile --build-arg CONFIG_FILE=$CONFIG_FILE .
+          docker tag $SHA_TAG $REGISTRY/$IMAGE:$ENV
+          docker push $SHA_TAG
           docker push $REGISTRY/$IMAGE:$ENV
+          echo "SHA_TAG=$SHA_TAG" >> $GITHUB_ENV
 
       - name: Deploy to Container App
         run: |
@@ -60,5 +64,5 @@ jobs:
           az containerapp update \
             --name $CONTAINER_APP \
             --resource-group rg-acornDrive \
-            --image $REGISTRY/$IMAGE:$ENV \
+            --image $SHA_TAG \
             --revision-suffix "gh${GITHUB_SHA:0:7}"
