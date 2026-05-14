@@ -48,7 +48,10 @@ jobs:
       - name: Build and push Docker image
         run: |
           SHA_TAG=$REGISTRY/$IMAGE:$ENV-${GITHUB_SHA:0:7}
-          docker build -t $SHA_TAG -f _docker/Dockerfile --build-arg CONFIG_FILE=$CONFIG_FILE .
+          docker build --no-cache -t $SHA_TAG -f _docker/Dockerfile \
+            --build-arg CONFIG_FILE=$CONFIG_FILE \
+            --build-arg REVISION=$GITHUB_SHA \
+            .
           docker tag $SHA_TAG $REGISTRY/$IMAGE:$ENV
           docker push $SHA_TAG
           docker push $REGISTRY/$IMAGE:$ENV
