@@ -2,7 +2,6 @@ server:
   port: 8080
   baseURL: "/"
   externalUrl: "https://drive.acorn.tools"
-  database: "/database/filebrowser.db"
   sources:
     - path: "/srv"
 
