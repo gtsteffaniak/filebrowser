@@ -188,10 +188,12 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 			logoutUrl = oidcRedirectUrl
 		}
 	} else if d.user != nil && d.user.LoginMethod == users.LoginMethodChainFs {
-		chainfsLogoutUrl, err := chainfs.GetLogoutUrl(config.Auth.Methods.ChainFsAuth.ApiBaseUrl)
-		if err == nil && chainfsLogoutUrl != "" {
-			logoutUrl = chainfsLogoutUrl
-		}
+		go func() {
+			chainfsLogoutUrl, err := chainfs.GetLogoutUrl(config.Auth.Methods.ChainFsAuth.ApiBaseUrl)
+			if err == nil && chainfsLogoutUrl != "" {
+				http.Get(chainfsLogoutUrl) //nolint:errcheck
+			}
+		}()
 	}
 	if logoutUrl == "" {
 		logger.Debug("no logout url found, using default")
