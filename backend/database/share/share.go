@@ -11,7 +11,6 @@ type FrontendShareInfo struct {
 	DisableThumbnails    bool                `json:"disableThumbnails,omitempty"`
 	KeepAfterExpiration  bool                `json:"keepAfterExpiration,omitempty"`
 	ThemeColor           string              `json:"themeColor,omitempty"`
-	Banner               string              `json:"banner,omitempty"`
 	Title                string              `json:"title,omitempty"`
 	Description          string              `json:"description,omitempty"`
 	Favicon              string              `json:"favicon,omitempty"`
@@ -57,6 +56,7 @@ type CreateShare struct {
 	ExtractEmbeddedSubtitles bool     `json:"extractEmbeddedSubtitles,omitempty"`
 	DownloadsLimit           int      `json:"downloadsLimit,omitempty"`
 	HideFileExt              string   `json:"hideFileExt,omitempty"` // show hidden files based on extensions in shares
+	Banner                   string   `json:"banner,omitempty"`
 }
 
 // Share is the persisted share: embedded CreateShare (routing + presentation) plus server-only columns.
