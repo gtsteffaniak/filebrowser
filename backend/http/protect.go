@@ -152,11 +152,6 @@ func protectHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		return http.StatusInternalServerError, fmt.Errorf("failed to save protection record: %w", err)
 	}
 
-	// Make the file read-only
-	if err := os.Chmod(fileInfo.RealPath, 0444); err != nil {
-		return http.StatusInternalServerError, fmt.Errorf("failed to set file read-only: %w", err)
-	}
-
 	return renderJSON(w, r, map[string]string{"fileGuid": fileGuid, "protectedUntil": time.Unix(expiry, 0).UTC().Format(time.RFC3339)})
 }
 
