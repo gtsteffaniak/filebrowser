@@ -101,15 +101,6 @@ func ApplyUserDefaults(u *users.User) {
 	u.PreferEditorForMarkdown = d.PreferEditorForMarkdown
 	u.FileLoading = d.FileLoading
 
-	u.Permissions.Api = d.Permissions.Api
-	u.Permissions.Admin = d.Permissions.Admin
-	u.Permissions.Modify = d.Permissions.Modify
-	u.Permissions.Share = d.Permissions.Share
-	u.Permissions.Realtime = d.Permissions.Realtime
-	u.Permissions.Delete = d.Permissions.Delete
-	u.Permissions.Create = d.Permissions.Create
-	u.Permissions.Download = boolValueOrDefault(d.Permissions.Download, true)
-
 	u.Preview.DisableHideSidebar = d.Preview.DisableHideSidebar
 	u.Preview.Image = boolValueOrDefault(d.Preview.Image, true)
 	u.Preview.Video = boolValueOrDefault(d.Preview.Video, true)
@@ -122,11 +113,24 @@ func ApplyUserDefaults(u *users.User) {
 	u.Preview.Folder = boolValueOrDefault(d.Preview.Folder, true)
 	u.Preview.Models = boolValueOrDefault(d.Preview.Models, true)
 
+	if u.Username == "anonymous" {
+		return
+	}
+
+	u.Permissions.Api = d.Permissions.Api
+	u.Permissions.Admin = d.Permissions.Admin
+	u.Permissions.Modify = d.Permissions.Modify
+	u.Permissions.Share = d.Permissions.Share
+	u.Permissions.Realtime = d.Permissions.Realtime
+	u.Permissions.Delete = d.Permissions.Delete
+	u.Permissions.Create = d.Permissions.Create
+	u.Permissions.Download = boolValueOrDefault(d.Permissions.Download, true)
+
 	if u.LoginMethod == "" && d.LoginMethod != "" {
 		u.LoginMethod = users.LoginMethod(d.LoginMethod)
 	}
 
-	if len(u.Scopes) == 0 && u.Username != "anonymous" {
+	if len(u.Scopes) == 0 {
 		for _, source := range Config.Server.Sources {
 			if source.Config.DefaultEnabled {
 				u.Scopes = append(u.Scopes, users.SourceScope{
