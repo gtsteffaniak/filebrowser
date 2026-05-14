@@ -325,8 +325,9 @@ body.rtl #listingView {
   line-height: 1;
 }
 
-/* Override the header i { opacity:0 } rule for status icons */
-#listingView .header .status-col-header i {
+/* Override both header i { opacity:0 } rules for status icons */
+#listingView .header .status-col-header i,
+#listingView.list .header .status-col-header i {
   opacity: 1;
 }
 
