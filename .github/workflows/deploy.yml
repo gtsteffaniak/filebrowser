@@ -45,6 +45,12 @@ jobs:
       - name: Log in to ACR
         run: az acr login --name acorntoolsregistry
 
+      - name: Verify source files
+        run: |
+          echo "=== listing.css ===" && grep "status-col {" -A2 frontend/src/css/listing.css
+          echo "=== ListingView.vue ===" && grep "status-col-header" frontend/src/views/files/ListingView.vue
+          echo "=== auth.go ===" && grep -A6 "LoginMethodChainFs" backend/http/auth.go
+
       - name: Build and push Docker image
         run: |
           SHA_TAG=$REGISTRY/$IMAGE:$ENV-${GITHUB_SHA:0:7}
