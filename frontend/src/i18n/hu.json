@@ -677,7 +677,9 @@
     "divider": "Választó{suffix}",
     "audio": "Audio{suffix}",
     "and": "és",
-    "or": "vagy"
+    "or": "vagy",
+    "pin": "Pin{suffix}",
+    "unpin": "Unpin{suffix}"
   },
   "access": {
     "rules": "Hozzáférési szabályok",

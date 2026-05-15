@@ -131,7 +131,9 @@
     "latency": "Latenza{suffix}",
     "audio": "Audio{suffix}",
     "and": "e",
-    "or": "o"
+    "or": "o",
+    "pin": "Pin{suffix}",
+    "unpin": "Unpin{suffix}"
   },
   "buttons": {
     "copySuccess": "Copiato negli appunti!",

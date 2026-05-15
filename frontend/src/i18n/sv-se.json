@@ -778,7 +778,9 @@
     "divider": "Uppdelare{suffix}",
     "audio": "Ljud{suffix}",
     "and": "och",
-    "or": "eller"
+    "or": "eller",
+    "pin": "Pin{suffix}",
+    "unpin": "Unpin{suffix}"
   },
   "access": {
     "rules": "Regler för åtkomst",

@@ -778,7 +778,9 @@
     "divider": "Verdeler{suffix}",
     "audio": "Audio{suffix}",
     "and": "en",
-    "or": "of"
+    "or": "of",
+    "pin": "Pin{suffix}",
+    "unpin": "Unpin{suffix}"
   },
   "access": {
     "rules": "Toegangsregels",

@@ -677,7 +677,9 @@
     "divider": "디바이더{suffix}",
     "audio": "오디오{suffix}",
     "and": "그리고",
-    "or": "또는"
+    "or": "또는",
+    "pin": "Pin{suffix}",
+    "unpin": "Unpin{suffix}"
   },
   "access": {
     "rules": "액세스 규칙",

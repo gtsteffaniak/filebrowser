@@ -677,7 +677,9 @@
     "divider": "مقسم{suffix}",
     "audio": "الصوت{suffix}",
     "and": "و",
-    "or": "أو"
+    "or": "أو",
+    "pin": "Pin{suffix}",
+    "unpin": "Unpin{suffix}"
   },
   "access": {
     "rules": "قواعد الوصول",

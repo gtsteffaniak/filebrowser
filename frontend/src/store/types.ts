@@ -40,6 +40,7 @@ export interface ShareInfoObject {
 }
 
 export interface UserObject {
+  pinnedItems?: Record<string, Record<string, string[]>>;
   preview: {
     video: boolean;
     audio: boolean;

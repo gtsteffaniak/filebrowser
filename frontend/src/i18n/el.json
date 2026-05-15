@@ -677,7 +677,9 @@
     "divider": "Διαχωριστικό{suffix}",
     "audio": "Ήχος{suffix}",
     "and": "και",
-    "or": "ή"
+    "or": "ή",
+    "pin": "Pin{suffix}",
+    "unpin": "Unpin{suffix}"
   },
   "access": {
     "rules": "Κανόνες πρόσβασης",

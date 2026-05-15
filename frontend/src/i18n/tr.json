@@ -677,7 +677,9 @@
     "divider": "Bölücü{suffix}",
     "audio": "Ses{suffix}",
     "and": "ve",
-    "or": "veya"
+    "or": "veya",
+    "pin": "Pin{suffix}",
+    "unpin": "Unpin{suffix}"
   },
   "access": {
     "rules": "Erişim kuralları",

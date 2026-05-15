@@ -492,13 +492,13 @@ func TestFilterRestrictedFields(t *testing.T) {
 	}{
 		{
 			name:     "all allowed fields",
-			fields:   []string{"DarkMode", "OtpEnabled", "Locale", "ViewMode"},
-			expected: []string{"DarkMode", "OtpEnabled", "Locale", "ViewMode"},
+			fields:   []string{"DarkMode", "OtpEnabled", "Locale", "ViewMode", "PinnedItems"},
+			expected: []string{"DarkMode", "OtpEnabled", "Locale", "ViewMode", "PinnedItems"},
 		},
 		{
 			name:     "mixed allowed and restricted",
-			fields:   []string{"DarkMode", "Permissions", "Scopes", "OtpEnabled"},
-			expected: []string{"DarkMode", "OtpEnabled"},
+			fields:   []string{"DarkMode", "Permissions", "Scopes", "OtpEnabled", "PinnedItems"},
+			expected: []string{"DarkMode", "OtpEnabled", "PinnedItems"},
 		},
 		{
 			name:     "all restricted fields",

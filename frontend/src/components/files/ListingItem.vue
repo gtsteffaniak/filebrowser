@@ -5,6 +5,7 @@
     class="listing-item clickable no-select"
     :class="{
       activebutton: isSelected,
+      'pinned-item': isPinned,
       hiddenFile: isHiddenNotSelected && this && !this.isDraggedOver,
       'half-selected': isDraggedOver,
       'drag-hover': isDraggedOver,
@@ -47,7 +48,10 @@
     </div>
 
     <div class="text">
-      <p class="name">{{ displayName }}</p>
+      <p class="name">
+        <span>{{ displayName }}</span>
+        <i v-if="isPinned" class="material-symbols pinned-indicator">push_pin</i>
+      </p>
       <p
         class="size"
         :data-order="humanSize"
@@ -78,6 +82,7 @@
     class="listing-item no-select clickable"
     :class="{
       activebutton: isSelected,
+      'pinned-item': isPinned,
       hiddenFile: isHiddenNotSelected && this && !this.isDraggedOver,
       'half-selected': isDraggedOver,
       'drag-hover': isDraggedOver,
@@ -114,7 +119,10 @@
     </div>
 
     <div class="text">
-      <p class="name">{{ displayName }}</p>
+      <p class="name">
+        <span>{{ displayName }}</span>
+        <i v-if="isPinned" class="material-symbols pinned-indicator">push_pin</i>
+      </p>
       <p
         class="size"
         :data-order="humanSize"
@@ -320,6 +328,12 @@ export default {
     },
     isClickable() {
       return this.clickable;
+    },
+    isPinned() {
+      return getters.isItemPinned({
+        path: this.path,
+        source: this.source,
+      });
     },
     // Computed properties for display values - Vue caches these automatically!
     humanSize() {
@@ -829,6 +843,10 @@ export default {
   -webkit-touch-callout: none; /* Disable the default long press preview */
 }
 
+.listing-item.pinned-item {
+  border-color: color-mix(in srgb, var(--primaryColor) 35%, transparent);
+}
+
 /* Disable transitions and hide content for out-of-view items for better performance */
 .listing-item.out-of-view {
   transition: none !important;
@@ -865,5 +883,18 @@ export default {
 .half-selected {
   border-color: var(--primaryColor) !important;
   border-style: solid !important;
+}
+
+.name {
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
+}
+
+.pinned-indicator {
+  font-size: 0.95em;
+  opacity: 0.8;
+  color: var(--primaryColor);
+  flex-shrink: 0;
 }
 </style>

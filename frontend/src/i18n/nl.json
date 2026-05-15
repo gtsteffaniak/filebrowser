@@ -131,7 +131,9 @@
     "lastUpdate": "Laatste update{suffix}",
     "latency": "Vertraging{suffix}",
     "and": "en",
-    "or": "of"
+    "or": "of",
+    "pin": "Pin{suffix}",
+    "unpin": "Unpin{suffix}"
   },
   "buttons": {
     "copySuccess": "Gekopieerd naar klembord!",
