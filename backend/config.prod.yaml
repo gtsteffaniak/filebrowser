@@ -12,6 +12,8 @@ auth:
     chainfs:
       enabled: true
       apiBaseUrl: "https://nansendev.azurewebsites.net"   # B2C stays on DEV until further notice
+      loginUrl: "https://nansendev2.b2clogin.com/NansenDEV2.onmicrosoft.com/B2C_1_signupsignin1/oauth2/v2.0/authorize?client_id=ae8e4cce-f313-459b-b86b-2fa59b4f1cb8&scope=openid+profile+https%3A%2F%2FNansenDEV2.onmicrosoft.com%2Ftasks-api%2Faccess_as_user"
+      tokenUrl: "https://nansendev2.b2clogin.com/NansenDEV2.onmicrosoft.com/B2C_1_signupsignin1/oauth2/v2.0/token"
       clientSecret: ""
       createUser: true
       adminClaim: "roles"
