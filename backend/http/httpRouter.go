@@ -80,6 +80,10 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	publicRoutes := http.NewServeMux()
 	publicApi := http.NewServeMux()
 
+	// health routes
+	api.HandleFunc("GET /health", healthHandler)
+	publicApi.HandleFunc("GET /health", healthHandler)
+
 	// ========================================
 	// User Routes - /api/users/ (with public routes)
 	// ========================================
@@ -199,7 +203,6 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	// ========================================
 	// Misc Routes
 	// ========================================
-	api.HandleFunc("GET /health", healthHandler)
 	api.HandleFunc("GET /events", withUser(sseHandler))
 	if settings.Env.IsDevMode {
 		api.HandleFunc("GET /inspectIndex", inspectIndex)

@@ -1,3 +1,4 @@
+import { writeFile } from "node:fs/promises";
 import { Browser, firefox, expect, Page } from "@playwright/test";
 import { openContextMenuHelper } from "./test-setup";
 
@@ -82,6 +83,29 @@ async function globalSetup() {
   await page.evaluate((hash) => {
     localStorage.setItem('rootShareHash', hash);
   }, rootShareHash);
+
+  // Anonymous share tests: same share hashes in localStorage, no JWT cookies.
+  await writeFile(
+    "./sharePrepStorage.json",
+    JSON.stringify(
+      {
+        cookies: [],
+        origins: [
+          {
+            origin: "http://127.0.0.1",
+            localStorage: [
+              { name: "shareHash", value: shareHash },
+              { name: "shareHashFile", value: shareHashFile },
+              { name: "rootShareHash", value: rootShareHash },
+            ],
+          },
+        ],
+      },
+      null,
+      2,
+    ),
+    "utf-8",
+  );
 
   await context.storageState({ path: "./loginAuth.json" });
   await browser.close();
