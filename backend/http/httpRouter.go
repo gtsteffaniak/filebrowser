@@ -104,10 +104,6 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	api.HandleFunc("GET /auth/chainfs/callback", wrapHandler(chainfsCallbackHandler))
 	api.HandleFunc("GET /auth/chainfs/login", wrapHandler(chainfsLoginHandler))
 	api.HandleFunc("POST /chainfs/protect", withUser(protectHandler))
-	api.HandleFunc("GET /safemode", withUser(safeModeGetHandler))
-	api.HandleFunc("POST /safemode", withUser(safeModeAddHandler))
-	api.HandleFunc("DELETE /safemode", withUser(safeModeRemoveHandler))
-	api.HandleFunc("POST /safemode/verify", withUser(safeModeVerifyHandler))
 
 	// Resources routes
 	api.HandleFunc("GET /resources", withUser(resourceGetHandler))
@@ -155,6 +151,9 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	publicAPI.HandleFunc("DELETE /resources", withHashFileRateLimited(publicDeleteHandler))
 	publicAPI.HandleFunc("PATCH /resources", withHashFileRateLimited(publicPatchHandler))
 	publicAPI.HandleFunc("GET /shareinfo", withOrWithoutUser(shareInfoHandler))
+
+	// Internal routes (service-to-service, authenticated via x-api-key)
+	api.HandleFunc("DELETE /internal/delete-user", wrapHandler(internalDeleteUserHandler))
 
 	// Admin routes
 	api.HandleFunc("GET /admin/stats", withAdmin(adminStatsHandler))
