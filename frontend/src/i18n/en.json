@@ -655,7 +655,6 @@
     "adminOptions": "Admin user options"
   },
   "sidebar": {
-    "navigateHome": "Navigate Home",
     "dividerNamePlaceholder": "Divider text (leave blank to show a line)",
     "siteSettings": "Site Settings",
     "updateIsAvailable": "An update is available!",

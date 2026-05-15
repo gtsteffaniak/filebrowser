@@ -5,7 +5,7 @@
     <div class="sidebar-links-header"
       :class="{ 'with-top-spacing': isShare && !disableShareCard }">
       <i :class="{ 'disabled': !isLoggedIn }"
-        :aria-label="$t('sidebar.navigateHome')"
+        aria-label="Navigate Home"
         @click="goHome()" class="material-symbols action">home</i>
       <!-- Mode button (is the title) -->
       <button @click="cycleMode" class="mode-toggle" @mouseenter="showTooltip($event, $t('sidebar.switchMode'))" @mouseleave="hideTooltip">
