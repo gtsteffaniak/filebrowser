@@ -12,7 +12,7 @@
       </div>
       <div v-else-if="user.username === 'anonymous' && shouldShowLogin" @click="navigateToLogin"
         class="inner-card user-card__profile">
-        <button class="person-button action button">
+        <button class="person-button action button" aria-label="Login">
           <i class="material-symbols-outlined">login</i> {{ $t("general.login") }}
         </button>
       </div>

@@ -4,7 +4,9 @@
     <!-- Links section header -->
     <div class="sidebar-links-header"
       :class="{ 'with-top-spacing': isShare && !disableShareCard }">
-      <i :class="{ 'disabled': !isLoggedIn }" @click="goHome()" class="material-symbols action">home</i>
+      <i :class="{ 'disabled': !isLoggedIn }"
+        :aria-label="$t('sidebar.navigateHome')"
+        @click="goHome()" class="material-symbols action">home</i>
       <!-- Mode button (is the title) -->
       <button @click="cycleMode" class="mode-toggle" @mouseenter="showTooltip($event, $t('sidebar.switchMode'))" @mouseleave="hideTooltip">
         {{ mode === 'links' ? $t('general.links') : $t('general.navigation') }}
@@ -13,6 +15,7 @@
         :class="{ 'disabled': !canEdit }"
         @click="showEditShareHover" class="material-symbols action">edit</i>
       <i v-else @mouseenter="showTooltip($event, $t('sidebar.customizeLinks'))" @mouseleave="hideTooltip"
+        aria-label="Edit Links"
         @click="openSidebarLinksPrompt" class="material-symbols action">edit</i>
     </div>
     <!-- Scrollable Content Area -->
@@ -214,7 +217,7 @@ export default {
       return state.shareInfo?.canEditShare || false;
     },
     isLoggedIn() {
-      return state.user?.username !== 'anonymous';
+      return getters.isLoggedIn();
     },
     currentSource() {
       return state.req?.source || null;
