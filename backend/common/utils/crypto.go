@@ -3,6 +3,7 @@ package utils
 import (
 	"crypto/rand"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 
 	"golang.org/x/crypto/bcrypt"
@@ -43,4 +44,14 @@ func GenerateKey() string {
 		return ""
 	}
 	return string(b)
+}
+
+// CSPNonce returns a base64-encoded random value suitable for Content-Security-Policy nonces
+// and matching HTML nonce="" attributes (cryptographically random, URL/header safe characters).
+func CSPNonce() (string, error) {
+	b := make([]byte, 16)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(b), nil
 }

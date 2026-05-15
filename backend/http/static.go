@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"io/fs"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -17,6 +18,48 @@ import (
 )
 
 var templateRenderer *TemplateRenderer
+
+func onlyOfficeOrigin() string {
+	oo := strings.TrimSpace(settings.Config.Integrations.OnlyOffice.Url)
+	if oo == "" {
+		return ""
+	}
+	u, err := url.Parse(oo)
+	if err != nil || u.Host == "" || (u.Scheme != "https" && u.Scheme != "http") {
+		return ""
+	}
+	return u.Scheme + "://" + u.Host
+}
+
+func htmlContentSecurityPolicy(nonce string) string {
+	oo := onlyOfficeOrigin()
+	var b strings.Builder
+	b.WriteString("default-src 'self'; ")
+	b.WriteString("base-uri 'self'; ")
+	fmt.Fprintf(&b, "script-src 'self' 'nonce-%s'", nonce)
+	if oo != "" {
+		fmt.Fprintf(&b, " %s", oo)
+	}
+	b.WriteString("; ")
+	fmt.Fprintf(&b, "style-src 'self' 'nonce-%s'; ", nonce)
+	b.WriteString("img-src 'self' data: blob: https:; ")
+	b.WriteString("font-src 'self'; ")
+	b.WriteString("connect-src 'self'")
+	if oo != "" {
+		fmt.Fprintf(&b, " %s", oo)
+	}
+	b.WriteString("; ")
+	b.WriteString("frame-src 'self'")
+	if oo != "" {
+		fmt.Fprintf(&b, " %s", oo)
+	}
+	b.WriteString("; ")
+	b.WriteString("worker-src 'self'; ")
+	b.WriteString("manifest-src 'self'; ")
+	b.WriteString("object-src 'none'; ")
+	b.WriteString("frame-ancestors 'self'")
+	return b.String()
+}
 
 type TemplateRenderer struct {
 	templates *template.Template
@@ -230,6 +273,13 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 
 	// Mark as JS for html/template to avoid escaping
 	data["globalVars"] = template.JS(globalVarsJSON)
+
+	cspNonce, err := utils.CSPNonce()
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("csp nonce: %w", err)
+	}
+	data["cspNonce"] = cspNonce
+	w.Header().Set("Content-Security-Policy", htmlContentSecurityPolicy(cspNonce))
 
 	// Render the template with global variables
 	if err := templateRenderer.Render(w, file, data); err != nil {
