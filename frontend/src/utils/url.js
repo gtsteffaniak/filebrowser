@@ -210,7 +210,7 @@ export function goToItem(source, path, previousHistoryItem, newTab = false) {
   if (source === state.sources.current && path === state.req.path && cv === "listingView") {
     return;
   }
-  if (previousHistoryItem && cv === "listingView`") {
+  if (previousHistoryItem && cv === "listingView") {
     mutations.setPreviousHistoryItem(previousHistoryItem);
   }
   mutations.resetAll()

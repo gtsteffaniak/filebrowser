@@ -76,6 +76,7 @@ import * as auth from "@/utils/auth";
 import { globalVars } from "@/utils/constants";
 import { state, getters, mutations } from "@/store";
 import SidebarLinks from "./Links.vue";
+import { url } from "@/utils"; 
 
 export default {
   name: "SidebarGeneral",
@@ -184,7 +185,20 @@ export default {
     },
 
     // Logout the user
-    logout: auth.logout,
+    async logout() {
+      const isShare = getters.isShare();
+      let sharePath;
+
+      if (isShare && state.shareInfo?.hash) {
+        const shareBase = `/public/share/${state.shareInfo.hash}`;
+        const subPath = state.req?.path && state.req.path !== '/'
+          ? url.removeLeadingSlash(state.req.path)
+          : '';
+        sharePath = subPath ? `${shareBase}/${subPath}` : shareBase;
+      }
+      await auth.logout();
+      window.location.href = sharePath || '/login';
+    },
     beforeEnter(el) {
       el.style.maxHeight = '0';
       el.style.opacity = '0';
