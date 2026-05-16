@@ -317,8 +317,8 @@ export default {
         });
       }
 
-      // If this folder is empty, finish here.
-      if (req.items === null) return;
+      // If this folder has no items or items is not an array, finish here.
+      if (!req.items || !Array.isArray(req.items)) return;
       for (let item of req.items) {
         if (!this.showFolders && item.type === "directory") continue;
         if (!this.showFiles && item.type !== "directory") continue;

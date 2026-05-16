@@ -216,7 +216,12 @@ export default {
         mutations.closeTopPrompt();
 
         if (this.isPreviewView) {
-          url.goToItem(this.item.source, newPath, undefined); // When undefined will not create browser history
+          // Navigate only if we rename the file that we're currently previewing (eg: from fileTree)
+          if (this.item.path === state.req?.path && this.item.source === state.req?.source) {
+            url.goToItem(this.item.source, newPath, undefined); // When undefined will not create browser history
+          } else {
+            mutations.setReload(true);
+          }
         } else {
           mutations.setReload(true);
         }

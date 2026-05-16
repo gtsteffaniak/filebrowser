@@ -62,6 +62,7 @@ import { notify } from "@/notify";
 import { goToItem } from "@/utils/url";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
+import { eventBus } from '@/store/eventBus';
 
 export default {
   name: "move-copy",
@@ -347,41 +348,73 @@ export default {
           );
         }
 
-        // Only close prompts and reload on success (or partial success)
-        mutations.setReload(true);
-        mutations.closeTopPrompt(); // close conflict prompt
-        mutations.closeTopPrompt(); // close moveCopy prompt after conflict is resolved and file copied/moved
-        mutations.setSearch(false); // close search if open
+        // Determine if we should navigate (we can move items with fileTree context menu in previews)
+        const shouldNavigate = getters.isPreviewView() && this.operation === 'move';
+        let currentItemMoved = false;
 
-        // Only show success notification if there were no failures (or partial success was already shown)
-        if (!hasFailures || hasSuccesses) {
-          // Store destination info for the button action
-          const destSource = this.destSource;
-          const destPath = this.destPath;
+        if (shouldNavigate) {
+          currentItemMoved = this.localItems.some(item =>
+            item.from === state.req?.path && item.fromSource === state.req?.source
+          );
+        }
 
-          // Show success notification with optional button to navigate to destination
-          // For shares, destSource might be null, but goToItem handles shares via state.shareInfo.hash
-          const buttonAction = () => {
-            if (destPath) {
-              // For shares, goToItem will use state.shareInfo.hash, so source can be null
-              // For regular files, destSource should be set
-              goToItem(destSource || null, destPath, {});
-            }
-          };
-          const buttonProps = {
-            icon: "folder",
-            buttons: destPath ? [
-              {
-                label: this.$t("buttons.goToItem"),
-                primary: true,
-                action: buttonAction
-              }
-            ] : undefined
-          };
-          if (this.operation === "move") {
-            notify.showSuccess(this.$t("prompts.moveSuccess"), buttonProps);
+        if (shouldNavigate && currentItemMoved) {
+          eventBus.emit('itemsMoved');
+          mutations.closeTopPrompt(); // close conflict prompt
+          mutations.closeTopPrompt(); // close moveCopy prompt
+
+          if (!hasFailures || hasSuccesses) {
+            notify.showSuccessToast(this.$t("prompts.moveSuccess"));
+          }
+
+          // Navigate next, previous or parent dir (like when deleting)
+          const next = state.navigation.nextItem;
+          const prev = state.navigation.previousItem;
+          if (next) {
+            url.goToItem(next.source, next.path, undefined);
+          } else if (prev) {
+            url.goToItem(prev.source, prev.path, undefined);
           } else {
-            notify.showSuccess(this.$t("prompts.copySuccess"), buttonProps);
+            url.goToItem(state.req.source, url.removeLastDir(state.req.path), {});
+          }
+        } else {
+
+          // Only close prompts and reload on success (or partial success)
+          mutations.setReload(true);
+          mutations.closeTopPrompt(); // close conflict prompt
+          mutations.closeTopPrompt(); // close moveCopy prompt after conflict is resolved and file copied/moved
+          mutations.setSearch(false); // close search if open
+
+          // Only show success notification if there were no failures (or partial success was already shown)
+          if (!hasFailures || hasSuccesses) {
+            // Store destination info for the button action
+            const destSource = this.destSource;
+            const destPath = this.destPath;
+
+            // Show success notification with optional button to navigate to destination
+            // For shares, destSource might be null, but goToItem handles shares via state.shareInfo.hash
+            const buttonAction = () => {
+              if (destPath) {
+                // For shares, goToItem will use state.shareInfo.hash, so source can be null
+                // For regular files, destSource should be set
+                goToItem(destSource || null, destPath, {});
+              }
+            };
+            const buttonProps = {
+              icon: "folder",
+              buttons: destPath ? [
+                {
+                  label: this.$t("buttons.goToItem"),
+                  primary: true,
+                  action: buttonAction
+                }
+              ] : undefined
+            };
+            if (this.operation === "move") {
+              notify.showSuccess(this.$t("prompts.moveSuccess"), buttonProps);
+            } else {
+              notify.showSuccess(this.$t("prompts.copySuccess"), buttonProps);
+            }
           }
         }
       } catch (error) {

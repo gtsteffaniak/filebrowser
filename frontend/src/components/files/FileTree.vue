@@ -199,6 +199,7 @@ export default {
     );
     eventBus.on('itemsDeleted', this.refresh);
     eventBus.on('itemsRenamed', this.refresh);
+    eventBus.on('itemsMoved', this.refresh);
     window.addEventListener('dragend', this.clearAllDragStates);
   },
   beforeUnmount() {
@@ -210,6 +211,7 @@ export default {
     }
     eventBus.off('itemsDeleted', this.refresh);
     eventBus.off('itemsRenamed', this.refresh);
+    eventBus.off('itemsMoved', this.refresh);
     window.removeEventListener('dragend', this.clearAllDragStates);
   },
   methods: {
@@ -406,7 +408,7 @@ export default {
     },
 
     async refresh() {
-      if (!this.isRootInstance || this.isRefreshing || this.expanding) return;
+      if (!this.isRootInstance || this.isRefreshing ) return;
       this.isRefreshing = true;
       this.expandTimeouts.clear();
       // Save expanded paths before reload to restore them
