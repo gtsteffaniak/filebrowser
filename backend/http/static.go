@@ -41,7 +41,9 @@ func htmlContentSecurityPolicy(nonce string) string {
 		fmt.Fprintf(&b, " %s", oo)
 	}
 	b.WriteString("; ")
-	fmt.Fprintf(&b, "style-src 'self' 'nonce-%s'; ", nonce)
+	b.WriteString("style-src 'self' 'unsafe-inline'; ")
+	b.WriteString("style-src-elem 'self' 'unsafe-inline'; ")
+	b.WriteString("style-src-attr 'unsafe-inline'; ")
 	b.WriteString("img-src 'self' data: blob: https:; ")
 	b.WriteString("font-src 'self'; ")
 	b.WriteString("connect-src 'self'")
@@ -228,7 +230,15 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"pwaIcon512":         pwaIcon512,
 		"manifestURL":        staticURL + "/site.webmanifest",
 	}
-	// variables consumed by frontend as json
+
+	cspNonce, err := utils.CSPNonce()
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("csp nonce: %w", err)
+	}
+	data["cspNonce"] = cspNonce
+	w.Header().Set("Content-Security-Policy", htmlContentSecurityPolicy(cspNonce))
+
+	// variables consumed by frontend as json (cspNonce lets SPA attach matching nonces to injected <style>)
 	data["globalVars"] = map[string]interface{}{
 		"name":                   config.Frontend.Name,
 		"minSearchLength":        config.Server.MinSearchLength,
@@ -263,6 +273,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"loginButtonText":        config.Frontend.LoginButtonText,
 		"passkeyAvailable":       config.Auth.Methods.PasskeyAuth.Enabled,
 		"passkeyLoginButtonText": config.Auth.Methods.PasskeyAuth.LoginButtonText,
+		"cspNonce":               cspNonce,
 	}
 
 	// Marshal each variable to JSON strings for direct template usage
@@ -273,13 +284,6 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 
 	// Mark as JS for html/template to avoid escaping
 	data["globalVars"] = template.JS(globalVarsJSON)
-
-	cspNonce, err := utils.CSPNonce()
-	if err != nil {
-		return http.StatusInternalServerError, fmt.Errorf("csp nonce: %w", err)
-	}
-	data["cspNonce"] = cspNonce
-	w.Header().Set("Content-Security-Policy", htmlContentSecurityPolicy(cspNonce))
 
 	// Render the template with global variables
 	if err := templateRenderer.Render(w, file, data); err != nil {

@@ -25,6 +25,7 @@ vi.mock('@/utils/constants', () => {
       disableExternal: false,
       externalLinks: [],
       updateAvailable: "",
+      cspNonce: "unit-test-nonce",
     },
     logoURL: "test-logo.png",
     origin: "http://localhost",

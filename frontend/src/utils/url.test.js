@@ -25,6 +25,7 @@ vi.mock('@/utils/constants', () => {
       disableExternal: false,
       externalLinks: [],
       updateAvailable: "",
+      cspNonce: "unit-test-nonce",
     },
     shareInfo: {
       isShare: false,
