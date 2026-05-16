@@ -31,7 +31,6 @@ type requestContext struct {
 	fileInfo     iteminfo.ExtendedFileInfo
 	token        string
 	share        *share.Link
-	shareValid   bool
 	ctx          context.Context
 	MaxBandwidth int
 	Data         interface{}
@@ -226,57 +225,19 @@ func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.U
 // If authentication fails, the request continues without a user.
 func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
-		var link *share.Link
-		var isShareRequest bool
-		var shareHash string
-
 		hash := r.URL.Query().Get("hash")
 		if hash != "" {
-			// Get the file link by hash
-			isShareRequest = true
-			shareHash = hash
-			link, _ = store.Share.GetByHash(hash)
-		} else {
-			prefix := config.Server.BaseURL + "public/share/"
-			reconstructed := config.Server.BaseURL + "public" + r.URL.Path
-			if strings.HasPrefix(reconstructed, prefix) {
-				remaining := strings.TrimPrefix(reconstructed, prefix)
-				if remaining != "" {
-					if idx := strings.IndexByte(remaining, '/'); idx >= 0 {
-						remaining = remaining[:idx]
-					}
-					if remaining != "" {
-						isShareRequest = true
-						shareHash = remaining
-						var err error
-						link, err = store.Share.GetByHash(remaining)
-						if err != nil {
-							logger.Debugf("error getting share by hash: %v", err)
-						}
-					}
-				}
-			}
-		}
-
-		// If this is a share request, always create a share context (even if invalid)
-		if isShareRequest {
-			if link != nil {
-				data.share = link
-				data.shareValid = true
-			} else {
-				// Create an empty share with just the hash for invalid shares
-				data.share = &share.Link{Hash: shareHash}
-				data.shareValid = false
+			_, err := store.Share.GetByHash(hash)
+			if err != nil {
+				return http.StatusNotFound, fmt.Errorf("share hash not found")
 			}
 		}
 
 		// Try to authenticate user first
 		status, err := withUserHelper(nil)(w, r, data)
 		if err == nil && status < 400 {
-			if data.share != nil && data.shareValid {
-				if data.user != nil {
-					data.user.CustomTheme = data.share.ShareTheme
-				}
+			if data.share != nil && data.user != nil {
+				data.user.CustomTheme = data.share.ShareTheme
 			}
 			return fn(w, r, data)
 		}
@@ -287,7 +248,7 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 			userFromExpiredToken := extractUserFromExpiredToken(r, data)
 			if userFromExpiredToken != nil {
 				data.user = userFromExpiredToken
-				if data.share != nil && data.shareValid {
+				if data.share != nil {
 					data.user.CustomTheme = data.share.ShareTheme
 				}
 				setUserInResponseWriter(w, data.user)
@@ -299,7 +260,7 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 			settings.ApplyUserDefaults(data.user)
 			// Clear any user data that might have been partially set
 			data.token = ""
-			if data.share != nil && data.shareValid {
+			if data.share != nil {
 				data.user.CustomTheme = data.share.ShareTheme
 			}
 			// Call the handler function without user context
