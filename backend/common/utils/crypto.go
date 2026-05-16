@@ -9,6 +9,23 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+func randomBytes(n int) ([]byte, error) {
+	b := make([]byte, n)
+	if _, err := rand.Read(b); err != nil {
+		return nil, err
+	}
+	return b, nil
+}
+
+// RandomHex returns a hex-encoded string from byteLen bytes of crypto/rand (length 2*byteLen).
+func RandomHex(byteLen int) (string, error) {
+	b, err := randomBytes(byteLen)
+	if err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(b), nil
+}
+
 var BcryptCost = bcrypt.DefaultCost
 var InvalidPasswordHash = ""
 
@@ -49,8 +66,8 @@ func GenerateKey() string {
 // CSPNonce returns a base64-encoded random value suitable for Content-Security-Policy nonces
 // and matching HTML nonce="" attributes (cryptographically random, URL/header safe characters).
 func CSPNonce() (string, error) {
-	b := make([]byte, 16)
-	if _, err := rand.Read(b); err != nil {
+	b, err := randomBytes(16)
+	if err != nil {
 		return "", err
 	}
 	return base64.StdEncoding.EncodeToString(b), nil
