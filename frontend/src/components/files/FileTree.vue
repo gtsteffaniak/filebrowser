@@ -342,7 +342,7 @@ export default {
     navigateTo(node) {
       if (this.isShare) {
         mutations.setNavigationTransitioning(true);
-        goToItem(null, node.path, {}, false, this.shareHash);
+        goToItem(this.shareHash, node.path, {});
       } else {
         mutations.setNavigationTransitioning(true);
         goToItem(this.currentSource, node.path, {});
