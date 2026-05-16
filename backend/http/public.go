@@ -368,6 +368,14 @@ func publicPatchHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	// Note: Share paths are absolute, so we don't strip user scope here
 	// resourcePatchHandler will skip adding scope for shares
 	for i := range req.Items {
+		sanitizedFromPath, err := utils.SanitizeUserPath(req.Items[i].FromPath)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid from path: %w", err)
+		}
+		sanitizedToPath, err := utils.SanitizeUserPath(req.Items[i].ToPath)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid to path: %w", err)
+		}
 		req.Items[i].FromSource = sourceName
 		req.Items[i].FromPath = utils.JoinPathAsUnix(d.share.Path, req.Items[i].FromPath)
 		req.Items[i].ToSource = sourceName
