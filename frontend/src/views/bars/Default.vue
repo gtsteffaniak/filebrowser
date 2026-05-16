@@ -261,7 +261,7 @@ export default {
         if (cv === "settings") {
           if (state.previousHistoryItem?.name) {
             if (state.previousHistoryItem.isShare) {
-              const sharePath = `/public/share/${state.previousHistoryItem.source}${state.previousHistoryItem.path}`;
+              const sharePath = `/public/share/${state.previousHistoryItem.source}${url.encodedPath(state.previousHistoryItem.path)}`;
               router.push({ path: sharePath });
             } else {
               url.goToItem(state.previousHistoryItem.source, state.previousHistoryItem.path, state.previousHistoryItem);
@@ -269,7 +269,7 @@ export default {
             return;
           }
           if (state.shareInfo?.hash && state.req?.source === state.shareInfo.hash) {
-            const sharePath = `/public/share/${state.shareInfo.hash}${state.req.path || ''}`;
+            const sharePath = `/public/share/${state.shareInfo.hash}${url.encodedPath(state.req.path || '')}`;
             router.push({ path: sharePath });
             return;
           }

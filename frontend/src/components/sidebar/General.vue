@@ -76,7 +76,7 @@ import * as auth from "@/utils/auth";
 import { globalVars } from "@/utils/constants";
 import { state, getters, mutations } from "@/store";
 import SidebarLinks from "./Links.vue";
-import { url } from "@/utils"; 
+import { url } from "@/utils";
 
 export default {
   name: "SidebarGeneral",
@@ -172,6 +172,7 @@ export default {
         name: state.req.name,
         source: state.req.source,
         path: state.req.path,
+        isShare: getters.isShare()
       });
       this.$router.push({ path: path, hash: hash });
       mutations.closeTopPrompt();
@@ -194,7 +195,7 @@ export default {
         const subPath = state.req?.path && state.req.path !== '/'
           ? url.removeLeadingSlash(state.req.path)
           : '';
-        sharePath = subPath ? `${shareBase}/${subPath}` : shareBase;
+        sharePath = subPath ? `${shareBase}/${url.encodedPath(subPath)}` : shareBase;
       }
       await auth.logout();
       window.location.href = sharePath || '/login';
