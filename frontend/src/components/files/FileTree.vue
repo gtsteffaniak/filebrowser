@@ -214,6 +214,7 @@ export default {
   },
   methods: {
     async loadRoot() {
+      if (this.expanding) return;
       this.error = null;
       this.rootLoaded = false;
       if ((!this.currentSource && !this.shareHash) || !this.isRootInstance) {
@@ -303,7 +304,7 @@ export default {
     },
 
     async tryExpandNodes() {
-      if (!this.rootLoaded || !this.pendingExpandPath) return;
+      if (this.expanding || !this.rootLoaded || !this.pendingExpandPath) return;
       await this.expandToPath(this.pendingExpandPath);
       this.pendingExpandPath = null;
     },
@@ -349,11 +350,18 @@ export default {
       }
     },
 
+    normalizePath(p) {
+      if (!p || p === '/') return '/';
+      return p.replace(/\/+$/, '');
+    },
+
     isCurrentItem(node) {
+      const normalizedNodePath = this.normalizePath(node.path);
+      const normalizedCurrentPath = this.normalizePath(this.currentPath);
       if (this.isShare) {
-        return node.path === this.currentPath;
+        return normalizedNodePath === normalizedCurrentPath;
       } else {
-        return node.source === this.currentSource && node.path === this.currentPath;
+        return node.source === this.currentSource && normalizedNodePath === normalizedCurrentPath;
       }
     },
 
@@ -398,7 +406,7 @@ export default {
     },
 
     async refresh() {
-      if (!this.isRootInstance || this.isRefreshing) return;
+      if (!this.isRootInstance || this.isRefreshing || this.expanding) return;
       this.isRefreshing = true;
       this.expandTimeouts.clear();
       // Save expanded paths before reload to restore them
@@ -537,13 +545,8 @@ export default {
 
       if (items.length === 0) return;
 
-      // We'll use the same logic as Breadcrumbs
-      const normalizePath = (path) => {
-        if (!path || path === "/") return "/";
-        return path.replace(/\/$/, '');
-      };
-      const targetDir = normalizePath(node.path);
-      const sourceDir = normalizePath(state.req.path);
+      const targetDir = this.normalizePath(node.path);
+      const sourceDir = this.normalizePath(state.req.path);
       if (targetDir === sourceDir) {
         notify.showErrorToast(this.$t("files.sameFolder"));
         return;
