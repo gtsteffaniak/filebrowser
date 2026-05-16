@@ -622,6 +622,7 @@ func getShareURL(r *http.Request, hash string, isDirectDownload bool, token stri
 // @Router /public/api/share/info [get]
 func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	hash := r.URL.Query().Get("hash")
+	fmt.Printf("shareInfoHandler: hash=%v\n", hash)
 	// Get the file link by hash (need full Link to get Token)
 	shareLink, err := store.Share.GetByHash(hash)
 	if err != nil {
