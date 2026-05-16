@@ -31,7 +31,6 @@ type requestContext struct {
 	fileInfo     iteminfo.ExtendedFileInfo
 	token        string
 	share        *share.Link
-	shareValid   bool
 	ctx          context.Context
 	MaxBandwidth int
 	Data         interface{}
@@ -230,7 +229,6 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 		if hash != "" {
 			_, err := store.Share.GetByHash(hash)
 			if err != nil {
-				logger.Debugf("error getting share by hash: %v", err)
 				return http.StatusNotFound, fmt.Errorf("share hash not found")
 			}
 		}
@@ -238,10 +236,8 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 		// Try to authenticate user first
 		status, err := withUserHelper(nil)(w, r, data)
 		if err == nil && status < 400 {
-			if data.share != nil && data.shareValid {
-				if data.user != nil {
-					data.user.CustomTheme = data.share.ShareTheme
-				}
+			if data.share != nil && data.user != nil {
+				data.user.CustomTheme = data.share.ShareTheme
 			}
 			return fn(w, r, data)
 		}
@@ -252,7 +248,7 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 			userFromExpiredToken := extractUserFromExpiredToken(r, data)
 			if userFromExpiredToken != nil {
 				data.user = userFromExpiredToken
-				if data.share != nil && data.shareValid {
+				if data.share != nil {
 					data.user.CustomTheme = data.share.ShareTheme
 				}
 				setUserInResponseWriter(w, data.user)
@@ -264,7 +260,7 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 			settings.ApplyUserDefaults(data.user)
 			// Clear any user data that might have been partially set
 			data.token = ""
-			if data.share != nil && data.shareValid {
+			if data.share != nil {
 				data.user.CustomTheme = data.share.ShareTheme
 			}
 			// Call the handler function without user context
