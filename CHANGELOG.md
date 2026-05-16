@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.3.3-stable
+
+ **Security**:
+ - [Critical] Path traversal in public share PATCH allows file ops outside shared directory -- thanks @fg0x0 and @Revanth011 for reporting GHSA-qqqm-5547-774
+
+ **Notes**:
+ - updated share hash middleware (#2443)
+
 ## v1.3.9
 
  **Security**:
