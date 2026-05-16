@@ -377,9 +377,9 @@ func publicPatchHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 			return http.StatusBadRequest, fmt.Errorf("invalid to path: %w", err)
 		}
 		req.Items[i].FromSource = sourceName
-		req.Items[i].FromPath = utils.JoinPathAsUnix(d.share.Path, req.Items[i].FromPath)
+		req.Items[i].FromPath = utils.JoinPathAsUnix(d.share.Path, sanitizedFromPath)
 		req.Items[i].ToSource = sourceName
-		req.Items[i].ToPath = utils.JoinPathAsUnix(d.share.Path, req.Items[i].ToPath)
+		req.Items[i].ToPath = utils.JoinPathAsUnix(d.share.Path, sanitizedToPath)
 	}
 	d.Data = req
 
