@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"path/filepath"
 	"runtime"
 	"slices"
 	"strings"
@@ -64,6 +65,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			data.share = &share.Link{}
 			return http.StatusNotFound, fmt.Errorf("share hash not found")
 		}
+		link.Path = filepath.ToSlash(link.Path)
 		if link.DisableAnonymous && data.user.Username == "anonymous" {
 			return http.StatusForbidden, fmt.Errorf("share is not available to anonymous users")
 		}

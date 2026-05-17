@@ -225,7 +225,6 @@ func fileInfoFasterImpl(opts utils.FileOptions, access *access.Storage, user *us
 	if err != nil {
 		return response, err // Path excluded by index rules OR doesn't exist
 	}
-	info.Path = filepath.ToSlash(info.Path)
 
 	// otherwise response keeps unfiltered Folders/Files while CheckChildItemAccess only mutates info.
 	if info.Type == "directory" {
