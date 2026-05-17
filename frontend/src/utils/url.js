@@ -205,7 +205,7 @@ export function encodedPath(path) {
 }
 
 // assume non-encoded input path and source
-export function goToItem(source, path, previousHistoryItem, newTab = false) {
+export function goToItem(source, path, previousHistoryItem, newTab = false, isShare = false) {
   const cv = getters.currentView();
   if (source === state.sources.current && path === state.req.path && cv === "listingView") {
     return;
@@ -215,9 +215,12 @@ export function goToItem(source, path, previousHistoryItem, newTab = false) {
   }
   mutations.resetAll()
   let newPath = encodedPath(path);
-  let fullPath = `/files/${encodeURIComponent(source)}${newPath}`;
-  if (getters.isShare()) {
-    fullPath = `/public/share/${source}${newPath}`;
+  let fullPath;
+  const share = isShare || getters.isShare();
+  if (share) {
+    fullPath = `/public/share/${encodeURIComponent(source)}${newPath}`;
+  } else {
+    fullPath = `/files/${encodeURIComponent(source)}${newPath}`;
   }
   if (newTab) {
     // Use absolute URL for new tab to ensure proper navigation

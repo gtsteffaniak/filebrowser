@@ -260,17 +260,17 @@ export default {
         mutations.closeHovers();
         if (cv === "settings") {
           if (state.previousHistoryItem?.name) {
-            if (state.previousHistoryItem.isShare) {
-              const sharePath = `/public/share/${state.previousHistoryItem.source}${url.encodedPath(state.previousHistoryItem.path)}`;
-              router.push({ path: sharePath });
-            } else {
-              url.goToItem(state.previousHistoryItem.source, state.previousHistoryItem.path, state.previousHistoryItem);
-            }
+            url.goToItem(
+              state.previousHistoryItem.source,
+              state.previousHistoryItem.path,
+              state.previousHistoryItem,
+              false,
+              state.previousHistoryItem.isShare
+            );
             return;
           }
           if (state.shareInfo?.hash && state.req?.source === state.shareInfo.hash) {
-            const sharePath = `/public/share/${state.shareInfo.hash}${url.encodedPath(state.req.path || '')}`;
-            router.push({ path: sharePath });
+            url.goToItem(state.shareInfo.hash, state.req.path);
             return;
           }
           router.push({ path: "/files" });
