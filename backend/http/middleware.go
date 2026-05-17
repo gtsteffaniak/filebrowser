@@ -58,6 +58,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		if err != nil && inputPath != "" {
 			return http.StatusBadRequest, err
 		}
+		path = filepath.ToSlash(path)
 
 		// Get the file link by hash
 		link, err := store.Share.GetByHash(hash)
@@ -65,7 +66,6 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			data.share = &share.Link{}
 			return http.StatusNotFound, fmt.Errorf("share hash not found")
 		}
-		link.Path = filepath.ToSlash(link.Path)
 		if link.DisableAnonymous && data.user.Username == "anonymous" {
 			return http.StatusForbidden, fmt.Errorf("share is not available to anonymous users")
 		}
