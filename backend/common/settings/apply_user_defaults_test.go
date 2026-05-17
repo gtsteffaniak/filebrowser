@@ -177,6 +177,37 @@ func TestApplyUserDefaults_copiesUserDefaultsOntoUser(t *testing.T) {
 	}
 }
 
+func TestApplyUserDefaults_anonymousKeepsDownloadOnly(t *testing.T) {
+	saved := Config
+	defer func() { Config = saved }()
+
+	Config = Settings{
+		Server: Server{},
+		UserDefaults: UserDefaults{
+			Account: UserDefaultsAccount{
+				Permissions: UserDefaultsAccountPermissions{
+					Api:      true,
+					Admin:    true,
+					Modify:   true,
+					Share:    true,
+					Realtime: true,
+					Delete:   true,
+					Create:   true,
+					Download: boolPtr(true),
+				},
+			},
+		},
+	}
+
+	u := &users.User{Username: "anonymous"}
+	ApplyUserDefaults(u)
+
+	want := users.Permissions{Download: true}
+	if diff := cmp.Diff(want, u.Permissions); diff != "" {
+		t.Fatalf("anonymous permissions mismatch (-want +got):\n%s", diff)
+	}
+}
+
 func TestApplyUserDefaults_setsLoginMethodWhenEmpty(t *testing.T) {
 	saved := Config
 	defer func() { Config = saved }()

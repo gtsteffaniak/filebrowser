@@ -134,6 +134,7 @@ func ApplyUserDefaults(u *users.User) {
 	u.FileLoading = d.FileLoading
 
 	if u.Username == "anonymous" {
+		u.Permissions.Download = boolValueOrDefault(d.Account.Permissions.Download, true)
 		return
 	}
 
