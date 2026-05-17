@@ -198,10 +198,7 @@ export function encodedPath(path) {
   if (path === undefined) {
     return "";
   }
-  // Normalize Windows backslashes to forward slashes
-  const normalized = path.replace(/\\/g, '/');
-  // break apart path into parts and url encode each part
-  const parts = normalized.split("/");
+  const parts = path.split("/");
   const encodedParts = parts.map(part => encodeURIComponent(part));
   return encodedParts.join("/").replace("//", "/");
 }
