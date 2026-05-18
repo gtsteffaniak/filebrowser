@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.4.2
 
+ **Security**:
+ - [Moderate] Add Rate Limiting on Authentication Endpoint Enables Brute Force Attacks (GHSA-r4v7-6wcg-ghj5)
+
  **Notes**:
  - static content handler change: Content-Security-Policy for Inline (#2141)
  - auth rate limiting can be disabled via `auth.disableRateLimit`
