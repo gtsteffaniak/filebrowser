@@ -47,10 +47,11 @@ type AuthCommon struct {
 type Auth struct {
 	TokenExpirationHours int          `json:"tokenExpirationHours"` // time in hours each web UI session token is valid for. Default is 2 hours.
 	Methods              LoginMethods `json:"methods"`
-	Key                  string       `json:"key"`           // secret: the key used to sign the JWT tokens. If not set, a random key will be generated.
-	AdminUsername        string       `json:"adminUsername"` // secret: the username of the admin user. If not set, the default is "admin".
-	AdminPassword        string       `json:"adminPassword"` // secret: the password of the admin user. If not set, the default is "admin".
-	TotpSecret           string       `json:"totpSecret"`    // secret: secret used to encrypt TOTP secrets
+	DisableRateLimit     bool         `json:"disableRateLimit"` // turns off built-in auth route rate limiting and failed-login lockout (default false).
+	Key                  string       `json:"key"`              // secret: the key used to sign the JWT tokens. If not set, a random key will be generated.
+	AdminUsername        string       `json:"adminUsername"`    // secret: the username of the admin user. If not set, the default is "admin".
+	AdminPassword        string       `json:"adminPassword"`    // secret: the password of the admin user. If not set, the default is "admin".
+	TotpSecret           string       `json:"totpSecret"`       // secret: secret used to encrypt TOTP secrets
 	AuthMethods          []string     `json:"-"`
 }
 
@@ -118,10 +119,10 @@ type JwtAuthConfig struct {
 
 // PasskeyAuthConfig configures WebAuthn / Passkey authentication as a second factor.
 type PasskeyAuthConfig struct {
-	Enabled         bool   `json:"enabled"`         // whether to enable passkey MFA
-	RPDisplayName   string `json:"rpDisplayName"`   // the Relying Party display name (defaults to frontend name)
-	RPID            string `json:"rpId"`            // the Relying Party ID; if empty, auto-derived from base URL host
-	RPOrigins       []string `json:"rpOrigins"`     // allowed origins; if empty, auto-derived from base URL
+	Enabled         bool     `json:"enabled"`         // whether to enable passkey MFA
+	RPDisplayName   string   `json:"rpDisplayName"`   // the Relying Party display name (defaults to frontend name)
+	RPID            string   `json:"rpId"`            // the Relying Party ID; if empty, auto-derived from base URL host
+	RPOrigins       []string `json:"rpOrigins"`       // allowed origins; if empty, auto-derived from base URL
 	LoginButtonText string   `json:"loginButtonText"` // custom text for the passkey login button
 }
 

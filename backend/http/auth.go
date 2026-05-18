@@ -221,7 +221,9 @@ func setupJwtUser(r *http.Request, data *requestContext, username string, claims
 // @Param X-Password header string true "URL-encoded password"
 // @Param X-Secret header string false "TOTP code (if 2FA is enabled)"
 // @Success 200 {string} string "JWT token for authentication"
+// @Failure 401 {object} map[string]string "Unauthorized - authentication failed"
 // @Failure 403 {object} map[string]string "Forbidden - authentication failed"
+// @Failure 429 {object} map[string]string "Too many requests - rate limited or temporarily locked out after failed attempts"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/auth/login [post]
 func loginHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
