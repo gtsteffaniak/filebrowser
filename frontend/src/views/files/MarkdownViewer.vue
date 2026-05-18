@@ -13,6 +13,10 @@ import DOMPurify from 'dompurify';
 import { state, mutations, getters } from "@/store";
 import hljs from 'highlight.js';
 import { copyToClipboard } from "@/utils/clipboard";
+import { globalVars } from "@/utils/constants";
+
+import githubLightCss from "highlight.js/styles/github.min.css?raw";
+import githubDarkCss from "highlight.js/styles/github-dark.min.css?raw";
 
 export default {
   name: "markdownViewer",
@@ -24,21 +28,25 @@ export default {
   methods: {
     // This theme switcher logic is correct and remains.
     setHighlightTheme(isDark: boolean) {
-      const THEME_LINK_ID = 'highlight-theme-link';
-      const lightTheme = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css';
-      const darkTheme = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css';
-      const themeUrl = isDark ? darkTheme : lightTheme;
+      const THEME_STYLE_ID = "highlight-theme-style";
+      const cssText = isDark ? githubDarkCss : githubLightCss;
+      const nonce =
+        typeof globalVars.cspNonce === "string" && globalVars.cspNonce !== ""
+          ? globalVars.cspNonce
+          : "";
 
-      let link = document.getElementById(THEME_LINK_ID) as HTMLLinkElement;
-      if (link) {
-        link.href = themeUrl;
-      } else {
-        link = document.createElement('link');
-        link.id = THEME_LINK_ID;
-        link.rel = 'stylesheet';
-        link.href = themeUrl;
-        document.head.appendChild(link);
+      let style = document.getElementById(THEME_STYLE_ID) as HTMLStyleElement | null;
+      if (!style) {
+        style = document.createElement("style");
+        style.id = THEME_STYLE_ID;
+        if (nonce) {
+          style.setAttribute("nonce", nonce);
+        }
+        document.head.appendChild(style);
+      } else if (nonce) {
+        style.setAttribute("nonce", nonce);
       }
+      style.textContent = cssText;
     },
     // NEW METHOD: Finds and highlights all code blocks and adds line numbers
     applyHighlighting() {
@@ -303,10 +311,9 @@ export default {
     this.reinit();
   },
   unmounted() {
-    // Cleanup logic is correct and remains.
-    const link = document.getElementById('highlight-theme-link');
-    if (link) {
-      document.head.removeChild(link);
+    const style = document.getElementById("highlight-theme-style");
+    if (style?.parentNode) {
+      style.parentNode.removeChild(style);
     }
     mutations.setEditorStats({ lines: 0, words: 0, chars: 0 });
   }

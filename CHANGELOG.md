@@ -10,6 +10,9 @@ All notable changes to this project will be documented in this file. For commit 
  - Fix FileTree rename and move actions in previews. (#2245)
  - Delete prompt not showing date and thumbnails in some previews. (#2245)
 
+ **Notes**:
+ - static content handler change: Content-Security-Policy for Inline (#2141)
+
 ## v1.4.1
 
  **Security**:

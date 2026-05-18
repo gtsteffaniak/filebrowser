@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"io/fs"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -17,6 +18,41 @@ import (
 )
 
 var templateRenderer *TemplateRenderer
+
+func onlyOfficeOrigin() string {
+	oo := strings.TrimSpace(settings.Config.Integrations.OnlyOffice.Url)
+	if oo == "" {
+		return ""
+	}
+	u, err := url.Parse(oo)
+	if err != nil || u.Host == "" || (u.Scheme != "https" && u.Scheme != "http") {
+		return ""
+	}
+	return u.Scheme + "://" + u.Host
+}
+
+func htmlContentSecurityPolicy(nonce string) string {
+	// Unified style-src covers <style>, stylesheet links, and inline style="" (no need for CSP3
+	// style-src-elem / style-src-attr unless we split nonce vs unsafe-inline per surface).
+	ooExtra := ""
+	if oo := onlyOfficeOrigin(); oo != "" {
+		ooExtra = " " + oo
+	}
+	// Omitted fetch directives that would duplicate default-src 'self': font-src, manifest-src,
+	// worker-src (workers fall back to script-src, then default-src, per CSP3).
+	// connect-src / frame-src are omitted when OnlyOffice is off — same effective policy as default-src.
+	connectFrame := ""
+	if ooExtra != "" {
+		connectFrame = fmt.Sprintf(" connect-src 'self'%s; frame-src 'self'%s;", ooExtra, ooExtra)
+	}
+	return fmt.Sprintf(
+		"default-src 'self'; base-uri 'self'; script-src 'self' 'nonce-%s'%s; "+
+			"style-src 'self' 'unsafe-inline'; "+
+			"img-src 'self' data: blob: https:;%s "+
+			"object-src 'none'; frame-ancestors 'self'",
+		nonce, ooExtra, connectFrame,
+	)
+}
 
 type TemplateRenderer struct {
 	templates *template.Template
@@ -185,7 +221,15 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"pwaIcon512":         pwaIcon512,
 		"manifestURL":        staticURL + "/site.webmanifest",
 	}
-	// variables consumed by frontend as json
+
+	cspNonce, err := utils.CSPNonce()
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("csp nonce: %w", err)
+	}
+	data["cspNonce"] = cspNonce
+	w.Header().Set("Content-Security-Policy", htmlContentSecurityPolicy(cspNonce))
+
+	// variables consumed by frontend as json (cspNonce lets SPA attach matching nonces to injected <style>)
 	data["globalVars"] = map[string]interface{}{
 		"name":                   config.Frontend.Name,
 		"minSearchLength":        config.Server.MinSearchLength,
@@ -220,6 +264,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"loginButtonText":        config.Frontend.LoginButtonText,
 		"passkeyAvailable":       config.Auth.Methods.PasskeyAuth.Enabled,
 		"passkeyLoginButtonText": config.Auth.Methods.PasskeyAuth.LoginButtonText,
+		"cspNonce":               cspNonce,
 	}
 
 	// Marshal each variable to JSON strings for direct template usage
