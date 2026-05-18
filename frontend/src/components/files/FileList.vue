@@ -426,11 +426,6 @@ export default {
       event.preventDefault();
       event.stopPropagation();
 
-      // Double click: navigate (into folder or open file)
-      if (this.isDisplayMode) {
-        this.navigateToItem(item);
-        return;
-      }
       const syntheticEvent = {
         currentTarget: {
           dataset: {
@@ -523,7 +518,9 @@ export default {
     navigateToItem(item) {
       mutations.closeTopPrompt();
       mutations.setNavigationTransitioning(true);
-      url.goToItem(item.source || state.req.source, item.path, undefined, false, getters.isShare);
+      const isShare = !!(this.browseShare) || getters.isShare();
+      const source = isShare ? (state.shareInfo?.hash) : (item.source || state.req.source);
+      url.goToItem(source, item.path, undefined, false, isShare);
     },
   },
 };
