@@ -32,35 +32,26 @@ func onlyOfficeOrigin() string {
 }
 
 func htmlContentSecurityPolicy(nonce string) string {
-	oo := onlyOfficeOrigin()
-	var b strings.Builder
-	b.WriteString("default-src 'self'; ")
-	b.WriteString("base-uri 'self'; ")
-	fmt.Fprintf(&b, "script-src 'self' 'nonce-%s'", nonce)
-	if oo != "" {
-		fmt.Fprintf(&b, " %s", oo)
+	// Unified style-src covers <style>, stylesheet links, and inline style="" (no need for CSP3
+	// style-src-elem / style-src-attr unless we split nonce vs unsafe-inline per surface).
+	ooExtra := ""
+	if oo := onlyOfficeOrigin(); oo != "" {
+		ooExtra = " " + oo
 	}
-	b.WriteString("; ")
-	b.WriteString("style-src 'self' 'unsafe-inline'; ")
-	b.WriteString("style-src-elem 'self' 'unsafe-inline'; ")
-	b.WriteString("style-src-attr 'unsafe-inline'; ")
-	b.WriteString("img-src 'self' data: blob: https:; ")
-	b.WriteString("font-src 'self'; ")
-	b.WriteString("connect-src 'self'")
-	if oo != "" {
-		fmt.Fprintf(&b, " %s", oo)
+	// Omitted fetch directives that would duplicate default-src 'self': font-src, manifest-src,
+	// worker-src (workers fall back to script-src, then default-src, per CSP3).
+	// connect-src / frame-src are omitted when OnlyOffice is off — same effective policy as default-src.
+	connectFrame := ""
+	if ooExtra != "" {
+		connectFrame = fmt.Sprintf(" connect-src 'self'%s; frame-src 'self'%s;", ooExtra, ooExtra)
 	}
-	b.WriteString("; ")
-	b.WriteString("frame-src 'self'")
-	if oo != "" {
-		fmt.Fprintf(&b, " %s", oo)
-	}
-	b.WriteString("; ")
-	b.WriteString("worker-src 'self'; ")
-	b.WriteString("manifest-src 'self'; ")
-	b.WriteString("object-src 'none'; ")
-	b.WriteString("frame-ancestors 'self'")
-	return b.String()
+	return fmt.Sprintf(
+		"default-src 'self'; base-uri 'self'; script-src 'self' 'nonce-%s'%s; "+
+			"style-src 'self' 'unsafe-inline'; "+
+			"img-src 'self' data: blob: https:;%s "+
+			"object-src 'none'; frame-ancestors 'self'",
+		nonce, ooExtra, connectFrame,
+	)
 }
 
 type TemplateRenderer struct {
