@@ -127,7 +127,7 @@ export const mutations = {
       for (const k of Object.keys(value)) {
         const source = value[k];
         if (state.sources.info[k]) {
-          if (source.total == 0) {
+          if (source.total === 0) {
             state.sources.hasSourceInfo = false
           } else {
             state.sources.hasSourceInfo = true

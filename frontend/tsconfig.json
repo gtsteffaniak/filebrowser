@@ -21,7 +21,7 @@
     "types": ["vite/client", "@intlify/unplugin-vue-i18n/messages"],
     "paths": {
       "@/*": ["./src/*"]
-    },
+    }
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue", "tests-playwright/**/*.ts"],
   "exclude": ["node_modules", "dist", "../_docker/src/proxy/frontend/playwright.config.ts"]
