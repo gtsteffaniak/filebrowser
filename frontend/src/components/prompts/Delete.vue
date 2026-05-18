@@ -264,13 +264,13 @@ export default {
               mutations.setNavigationTransitioning(true);
               // Try next, then previous, then parent directory
               if (state.navigation.nextItem) {
-                url.goToItem(state.navigation.nextItem.source, state.navigation.nextItem.path, undefined);
+                url.goToItem(state.navigation.nextItem.source, state.navigation.nextItem.path, undefined, false, getters.isShare());
               } else if (state.navigation.previousItem) {
-                url.goToItem(state.navigation.previousItem.source, state.navigation.previousItem.path, undefined);
+                url.goToItem(state.navigation.previousItem.source, state.navigation.previousItem.path, undefined, false, getters.isShare());
               } else {
                 // Navigate to parent directory of deleted item
                 const parentPath = url.removeLastDir(deletedItem.path);
-                url.goToItem(deletedItem.source, parentPath, {});
+                url.goToItem(deletedItem.source, parentPath, {}, false, getters.isShare());
               }
             } else {
               mutations.setReload(true);
@@ -281,7 +281,7 @@ export default {
               const deletedItem = this.itemsToDelete[0];
               if (deletedItem.type === 'directory' && deletedItem.path === state.req.path) {
                 const parentPath = url.removeLastDir(deletedItem.path);
-                url.goToItem(deletedItem.source, parentPath, {});
+                url.goToItem(deletedItem.source, parentPath, {}, false, getters.isShare());
                 this.deleting = false;
                 return; // return early to avoid extra reload (and 404)
               }

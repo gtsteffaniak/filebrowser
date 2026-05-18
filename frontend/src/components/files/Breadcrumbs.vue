@@ -280,7 +280,7 @@ export default {
           }
 
           const buttonAction = () => {
-            url.goToItem(source, targetPath, {});
+            url.goToItem(source, targetPath, {}, false, getters.isShare());
           };
 
           notify.showSuccess(this.$t("prompts.moveSuccess"), {

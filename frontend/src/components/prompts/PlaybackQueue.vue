@@ -195,7 +195,7 @@ export default {
       }
     },
     triggerNavigation(item) {
-      url.goToItem( item.source || state.req.source, item.path, undefined );
+      url.goToItem(item.source || state.req.source, item.path, undefined, false, getters.isShare());
     },
     scrollToCurrentItem() {
       if (this.queueCount === 0) return;

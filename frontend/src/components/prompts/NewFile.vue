@@ -120,7 +120,7 @@ export default {
 
         // Show success notification with "go to item" button
         const buttonAction = () => {
-          url.goToItem(source, newPath, {});
+          url.goToItem(source, newPath, {}, false, getters.isShare());
         };
         const buttonProps = {
           icon: "insert_drive_file",
@@ -171,7 +171,7 @@ export default {
 
                       // Show success notification with "go to item" button
                       const buttonAction = () => {
-                        url.goToItem(source, newPath, {});
+                        url.goToItem(source, newPath, {}, false, getters.isShare());
                       };
                       const buttonProps = {
                         icon: "insert_drive_file",

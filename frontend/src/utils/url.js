@@ -215,8 +215,7 @@ export function goToItem(source, path, previousHistoryItem, newTab = false, isSh
   mutations.resetAll()
   let newPath = encodedPath(path);
   let fullPath;
-  const share = isShare || getters.isShare();
-  if (share) {
+  if (isShare) {
     fullPath = `/public/share/${encodeURIComponent(source)}${newPath}`;
   } else {
     fullPath = `/files/${encodeURIComponent(source)}${newPath}`;

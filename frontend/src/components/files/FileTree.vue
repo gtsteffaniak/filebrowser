@@ -345,7 +345,7 @@ export default {
     navigateTo(node) {
       if (this.isShare) {
         mutations.setNavigationTransitioning(true);
-        goToItem(this.shareHash, node.path, {});
+        goToItem(this.shareHash, node.path, {}, false, true);
       } else {
         mutations.setNavigationTransitioning(true);
         goToItem(this.currentSource, node.path, {});
@@ -589,7 +589,7 @@ export default {
           }
           const buttonAction = () => {
             if (this.isShare) {
-              goToItem(null, node.path, {}, false, this.shareHash);
+              goToItem(null, node.path, {}, false, true);
             } else {
               goToItem(this.currentSource, node.path, {});
             }

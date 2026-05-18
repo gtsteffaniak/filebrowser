@@ -371,11 +371,11 @@ export default {
           const next = state.navigation.nextItem;
           const prev = state.navigation.previousItem;
           if (next) {
-            url.goToItem(next.source, next.path, undefined);
+            url.goToItem(next.source, next.path, undefined, false, getters.isShare());
           } else if (prev) {
-            url.goToItem(prev.source, prev.path, undefined);
+            url.goToItem(prev.source, prev.path, undefined, false, getters.isShare());
           } else {
-            url.goToItem(state.req.source, url.removeLastDir(state.req.path), {});
+            url.goToItem(state.req.source, url.removeLastDir(state.req.path), {}, false, getters.isShare());
           }
         } else {
 
@@ -395,9 +395,7 @@ export default {
             // For shares, destSource might be null, but goToItem handles shares via state.shareInfo.hash
             const buttonAction = () => {
               if (destPath) {
-                // For shares, goToItem will use state.shareInfo.hash, so source can be null
-                // For regular files, destSource should be set
-                goToItem(destSource || null, destPath, {});
+                goToItem(destSource || state.shareInfo?.hash, destPath, {}, false, getters.isShare());
               }
             };
             const buttonProps = {

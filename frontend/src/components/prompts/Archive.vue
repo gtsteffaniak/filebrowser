@@ -200,7 +200,7 @@ export default {
         const archivePath = dest;
         const buttonAction = () => {
           if (archivePath) {
-            goToItem(destSource || null, archivePath, {});
+            goToItem(destSource || null, archivePath, {}, false, getters.isShare());
           }
         };
         notify.showSuccess(this.$t("prompts.archiveSuccess"), {

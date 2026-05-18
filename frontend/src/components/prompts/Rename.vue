@@ -218,7 +218,7 @@ export default {
         if (this.isPreviewView) {
           // Navigate only if we rename the file that we're currently previewing (eg: from fileTree)
           if (this.item.path === state.req?.path && this.item.source === state.req?.source) {
-            url.goToItem(this.item.source, newPath, undefined); // When undefined will not create browser history
+            url.goToItem(this.item.source, newPath, undefined, false, getters.isShare()); // When undefined will not create browser history
           } else {
             mutations.setReload(true);
           }
