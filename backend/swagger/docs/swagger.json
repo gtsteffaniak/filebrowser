@@ -6229,6 +6229,10 @@
                     "description": "designate as source as private -- currently just means no sharing permitted.",
                     "type": "boolean"
                 },
+                "readOnly": {
+                    "description": "read-only source, changes from the UI, webdav, and API will be disabled.",
+                    "type": "boolean"
+                },
                 "rules": {
                     "description": "list of item rules to apply to specific paths",
                     "type": "array",
