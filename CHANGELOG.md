@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.4.2
 
+ **BugFixes**:
+ - Logout from share page now redirects to the share instead of `/Login` again. (#2245)
+ - `This location cannot be reached` error when navigating with FileTree in shares. (#2245)
+ - Fix FileTree rename and move actions in previews. (#2245)
+ - Delete prompt not showing date and thumbnails in some previews. (#2245)
+
  **Notes**:
  - static content handler change: Content-Security-Policy for Inline (#2141)
 

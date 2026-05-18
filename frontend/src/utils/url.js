@@ -198,26 +198,27 @@ export function encodedPath(path) {
   if (path === undefined) {
     return "";
   }
-  // break apart path into parts and url encode each part
   const parts = path.split("/");
   const encodedParts = parts.map(part => encodeURIComponent(part));
   return encodedParts.join("/").replace("//", "/");
 }
 
 // assume non-encoded input path and source
-export function goToItem(source, path, previousHistoryItem, newTab = false) {
+export function goToItem(source, path, previousHistoryItem, newTab = false, isShare = false) {
   const cv = getters.currentView();
   if (source === state.sources.current && path === state.req.path && cv === "listingView") {
     return;
   }
-  if (previousHistoryItem && cv === "listingView`") {
+  if (previousHistoryItem && cv === "listingView") {
     mutations.setPreviousHistoryItem(previousHistoryItem);
   }
   mutations.resetAll()
   let newPath = encodedPath(path);
-  let fullPath = `/files/${encodeURIComponent(source)}${newPath}`;
-  if (getters.isShare()) {
-    fullPath = `/public/share/${source}${newPath}`;
+  let fullPath;
+  if (isShare) {
+    fullPath = `/public/share/${encodeURIComponent(source)}${newPath}`;
+  } else {
+    fullPath = `/files/${encodeURIComponent(source)}${newPath}`;
   }
   if (newTab) {
     // Use absolute URL for new tab to ensure proper navigation

@@ -209,6 +209,8 @@ export default {
         size: this.fbdata.size,
         type: this.fbdata.type,
         source: this.fbdata.source,
+        modified: this.fbdata.modified,
+        hasPreview: this.fbdata.hasPreview,
       });
     },
 

@@ -450,7 +450,7 @@ export default {
         // For source links, use sourceName and target (relative path)
         if (!link.sourceName) return;
         const path = link.target || "/";
-        goToItem(link.sourceName, path, {});
+        goToItem(link.sourceName, path, {}, false, false);
         return;
       }
 
@@ -609,7 +609,7 @@ export default {
       this.navigateToSource(sourceName);
     },
     navigateToSource(sourceName) {
-      goToItem(sourceName, '/', {});
+      goToItem(sourceName, '/', {}, false, false);
     },
     closeDropdown(event) {
       if (!this.showSourceDropdown) return;

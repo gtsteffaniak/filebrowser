@@ -255,6 +255,8 @@ export default {
         size: state.req.size,
         type: state.req.type,
         source: state.req.source,
+        modified: state.req.modified,
+        hasPreview: state.req.hasPreview,
       });
       this.setHighlightTheme(getters.isDarkMode());
       // Set initial content. The `watch` will trigger the first highlight.
