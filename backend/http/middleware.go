@@ -627,8 +627,8 @@ func withoutUser(fn handleFunc) http.HandlerFunc {
 	return wrapHandler(withoutUserHelper(fn))
 }
 
-func loginHelper(fn handleFunc) http.HandlerFunc {
-	return wrapHandler(LoginHelper(false, fn))
+func loginHelper(fn handleFunc) handleFunc {
+	return LoginHelper(false, fn)
 }
 
 func withSelfOrAdmin(fn handleFunc) http.HandlerFunc {
