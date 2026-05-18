@@ -523,7 +523,7 @@ export default {
     navigateToItem(item) {
       mutations.closeTopPrompt();
       mutations.setNavigationTransitioning(true);
-      url.goToItem(item.source || state.req.source, item.path, undefined);
+      url.goToItem(item.source || state.req.source, item.path, undefined, false, getters.isShare);
     },
   },
 };

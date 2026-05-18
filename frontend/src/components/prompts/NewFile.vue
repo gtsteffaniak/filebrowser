@@ -100,6 +100,21 @@ export default {
       }
     },
 
+    showNotification(source, newPath) {
+      const buttonAction = () => {
+        url.goToItem(source, newPath, {}, false, getters.isShare());
+      };
+      const buttonProps = {
+        icon: "insert_drive_file",
+        buttons: [{
+          label: this.$t("buttons.goToItem"),
+          primary: true,
+          action: buttonAction
+        }]
+      };
+      notify.showSuccess(this.$t("prompts.newFileSuccess"), buttonProps);
+    },
+
     async createFile(overwrite = false) {
       this.creating = true;
       try {
@@ -112,25 +127,16 @@ export default {
           mutations.setReload(true);
           mutations.closeTopPrompt();
           this.creating = false;
+          // Show notification for shares
+          this.showNotification(state.shareInfo?.hash, newPath);
           return;
         }
         await resourcesApi.post(source, newPath, "", overwrite);
         mutations.setReload(true);
         mutations.closeTopPrompt();
 
-        // Show success notification with "go to item" button
-        const buttonAction = () => {
-          url.goToItem(source, newPath, {}, false, getters.isShare());
-        };
-        const buttonProps = {
-          icon: "insert_drive_file",
-          buttons: [{
-            label: this.$t("buttons.goToItem"),
-            primary: true,
-            action: buttonAction
-          }]
-        };
-        notify.showSuccess(this.$t("prompts.newFileSuccess"), buttonProps);
+        // Show notification
+        this.showNotification(source, newPath);
         this.creating = false;
       } catch (error) {
         if (error.message === "conflict") {
@@ -161,6 +167,8 @@ export default {
                         mutations.closeTopPrompt(); // close conflict prompt
                         mutations.closeTopPrompt(); // close new file prompt
                         success = true;
+                        // Show notification for shares after rename
+                        this.showNotification(state.shareInfo?.hash, newPath);
                         return;
                       }
                       await resourcesApi.post(source, newPath, "", false);
@@ -169,19 +177,8 @@ export default {
                       mutations.closeTopPrompt(); // close new file prompt
                       success = true;
 
-                      // Show success notification with "go to item" button
-                      const buttonAction = () => {
-                        url.goToItem(source, newPath, {}, false, getters.isShare());
-                      };
-                      const buttonProps = {
-                        icon: "insert_drive_file",
-                        buttons: [{
-                          label: this.$t("buttons.goToItem"),
-                          primary: true,
-                          action: buttonAction
-                        }]
-                      };
-                      notify.showSuccess(this.$t("prompts.newFileSuccess"), buttonProps);
+                      // Show notification
+                      this.showNotification(source, newPath);
                     } catch (renameError) {
                       if (renameError.message === "conflict") {
                         // Continue to next iteration

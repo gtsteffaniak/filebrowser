@@ -589,7 +589,7 @@ export default {
           }
           const buttonAction = () => {
             if (this.isShare) {
-              goToItem(null, node.path, {}, false, true);
+              goToItem(this.shareHash, node.path, {}, false, true);
             } else {
               goToItem(this.currentSource, node.path, {});
             }

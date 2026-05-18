@@ -112,7 +112,6 @@ import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { eventBus } from "@/store/eventBus";
 import ListingItem from "@/components/files/ListingItem.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
-import * as url from "@/utils/url";
 import { getTypeInfo } from "@/utils/mimetype";
 
 export default {
@@ -355,17 +354,6 @@ export default {
         return true;
       }
       return false;
-    },
-    navigateToFile(file) {
-      const previousHistoryItem = {
-        name: "Duplicate Finder",
-        source: this.selectedSource,
-        path: this.$route.path,
-      };
-
-      // Get the full path including search path context
-      const filePath = this.getFullPath(file.path);
-      url.goToItem(this.selectedSource, filePath, previousHistoryItem);
     },
     getFileKey(file) {
       // Create a unique key for the file based on source and path

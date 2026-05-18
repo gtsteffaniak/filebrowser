@@ -217,8 +217,19 @@ export default {
 
         if (this.isPreviewView) {
           // Navigate only if we rename the file that we're currently previewing (eg: from fileTree)
-          if (this.item.path === state.req?.path && this.item.source === state.req?.source) {
-            url.goToItem(this.item.source, newPath, undefined, false, getters.isShare()); // When undefined will not create browser history
+          const normalizePath = (p) => (p || '').replace(/^\/+|\/+$/g, '');
+          const currentReqPath = normalizePath(state.req?.path);
+          const oldItemPath = normalizePath(this.item.path);
+          
+          // For shares compare path and for regulars compare both path and source
+          const isCurrentItem = getters.isShare()
+            ? currentReqPath === oldItemPath
+            : (currentReqPath === oldItemPath && this.item.source === state.req?.source);
+          
+          if (isCurrentItem) {
+            // Navigate to the renamed file
+            const source = getters.isShare() ? state.shareInfo.hash : this.item.source;
+            url.goToItem(source, newPath, undefined, false, getters.isShare()); // When undefined will not create browser history
           } else {
             mutations.setReload(true);
           }
