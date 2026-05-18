@@ -92,6 +92,11 @@ export function buildIndexInfoRows(info, $t, locale) {
 </script>
 
 <style scoped>
+.index-info-table :deep(thead th),
+.index-info-table :deep(tbody td) {
+  padding: 0.5em;
+}
+
 .index-info-table :deep(tbody td:first-child) {
   font-weight: 500;
   color: var(--textSecondary);

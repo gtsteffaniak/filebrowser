@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file. For commit 
  - static content handler change: Content-Security-Policy for Inline (#2141)
  - auth rate limiting can be disabled via `auth.disableRateLimit`
  - updated share hash middleware (#2443)
+ - updated source info popup to include private and readOnly properties
 
  **BugFixes**:
  - Logout from share page now redirects to the share instead of `/Login` again. (#2245)

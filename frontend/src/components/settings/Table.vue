@@ -351,6 +351,26 @@ export default {
   font-size: 1.0625rem;
   font-weight: 500;
   line-height: 1.35;
+  padding-top: 0.65em;
+  padding-bottom: 0.65em;
+}
+
+.settings-table tr > *:first-child {
+  padding-left: 1em;
+}
+
+.settings-table tr > *:last-child {
+  padding-right: 1em;
+}
+
+body.rtl .settings-table tr > *:first-child {
+  padding-left: unset;
+  padding-right: 1em;
+}
+
+body.rtl .settings-table tr > *:last-child {
+  padding-right: unset;
+  padding-left: 1em;
 }
 
 .settings-table thead th.settings-table__th {
