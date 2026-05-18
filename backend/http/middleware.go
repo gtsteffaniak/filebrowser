@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"path/filepath"
 	"runtime"
 	"slices"
 	"strings"
@@ -57,6 +58,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		if err != nil && inputPath != "" {
 			return http.StatusBadRequest, err
 		}
+		path = filepath.ToSlash(path)
 
 		// Get the file link by hash
 		link, err := store.Share.GetByHash(hash)
