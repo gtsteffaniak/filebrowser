@@ -14,7 +14,7 @@ import (
 	"golang.org/x/time/rate"
 )
 
-// Built-in auth rate limits (per process). Toggle all off with auth.disableAuthRateLimit.
+// Built-in auth rate limits (per process). Toggle all off with auth.disableRateLimit.
 const (
 	authCredentialRPM          = 10
 	authCredentialBurst        = 8
@@ -82,7 +82,7 @@ func withRateLimit(kind AuthRateLimitKind, fn handleFunc) http.HandlerFunc {
 }
 
 func authRateLimitActive() bool {
-	if settings.Config.Auth.DisableAuthRateLimit {
+	if settings.Config.Auth.DisableRateLimit {
 		return false
 	}
 	if settings.Config.Auth.Methods.NoAuth {
@@ -283,4 +283,3 @@ func withAuthRateLimitAuthenticated(fn handleFunc) handleFunc {
 		return fn(w, r, d)
 	}
 }
-

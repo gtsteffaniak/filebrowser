@@ -5374,7 +5374,7 @@ const docTemplate = `{
                     "description": "secret: the username of the admin user. If not set, the default is \"admin\".",
                     "type": "string"
                 },
-                "disableAuthRateLimit": {
+                "disableRateLimit": {
                     "description": "turns off built-in auth route rate limiting and failed-login lockout (default false).",
                     "type": "boolean"
                 },
