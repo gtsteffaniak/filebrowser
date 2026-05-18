@@ -5,7 +5,7 @@ export function fromNow(date, locale) {
     const now = new Date();
     const diffInSeconds = Math.floor((now - date) / 1000);
     const intervals = [
-        { label: 'year', seconds: 31536000 },
+        { label: 'year', seconds: 60 * 60 * 24 * 365 },
         { label: 'month', seconds: 2592000 },
         { label: 'week', seconds: 604800 },
         { label: 'day', seconds: 86400 },
