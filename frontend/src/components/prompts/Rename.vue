@@ -183,6 +183,9 @@ export default {
 
       return { valid: true };
     },
+    normalizePath(p) {
+      return (p || '').replace(/^\/+|\/+$/g, '');
+    },
     async submit() {
       // remove trailing slashes
       if (this.name.endsWith("/") || this.name.endsWith("\\")) {
@@ -217,9 +220,8 @@ export default {
 
         if (this.isPreviewView) {
           // Navigate only if we rename the file that we're currently previewing (eg: from fileTree)
-          const normalizePath = (p) => (p || '').replace(/^\/+|\/+$/g, '');
-          const currentReqPath = normalizePath(state.req?.path);
-          const oldItemPath = normalizePath(this.item.path);
+          const currentReqPath = this.normalizePath(state.req?.path);
+          const oldItemPath = this.normalizePath(this.item.path);
           
           // For shares compare path and for regulars compare both path and source
           const isCurrentItem = getters.isShare()
