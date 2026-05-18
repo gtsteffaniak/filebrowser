@@ -512,8 +512,26 @@ const docTemplate = `{
                             "type": "string"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized - authentication failed",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
                     "403": {
                         "description": "Forbidden - authentication failed",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Too many requests - rate limited or temporarily locked out after failed attempts",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -5355,6 +5373,10 @@ const docTemplate = `{
                 "adminUsername": {
                     "description": "secret: the username of the admin user. If not set, the default is \"admin\".",
                     "type": "string"
+                },
+                "disableAuthRateLimit": {
+                    "description": "turns off built-in auth route rate limiting and failed-login lockout (default false).",
+                    "type": "boolean"
                 },
                 "key": {
                     "description": "secret: the key used to sign the JWT tokens. If not set, a random key will be generated.",

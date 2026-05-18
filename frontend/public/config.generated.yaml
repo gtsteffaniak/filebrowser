@@ -125,6 +125,7 @@ auth:
       rpId: ""                            # the Relying Party ID; if empty, auto-derived from base URL host
       rpOrigins:                          # allowed origins; if empty, auto-derived from base URL
       loginButtonText: ""                 # custom text for the passkey login button
+  disableAuthRateLimit: false             # turns off built-in auth route rate limiting and failed-login lockout (default false).
   key: ""                                 # secret: the key used to sign the JWT tokens. If not set, a random key will be generated.
   adminUsername: "admin"                  # secret: the username of the admin user. If not set, the default is "admin".
   adminPassword: "admin"                  # secret: the password of the admin user. If not set, the default is "admin".
