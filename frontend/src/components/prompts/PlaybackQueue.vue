@@ -50,7 +50,7 @@
 </template>
 
 <script>
-import { state, mutations } from "@/store";
+import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
 export default {
   name: "PlaybackQueue",
