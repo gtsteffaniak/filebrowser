@@ -4,8 +4,6 @@ import (
 	"archive/tar"
 	"archive/zip"
 	"compress/gzip"
-	"crypto/rand"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -46,11 +44,7 @@ var (
 )
 
 func randomArchiveToken() (string, error) {
-	b := make([]byte, 16)
-	if _, err := rand.Read(b); err != nil {
-		return "", err
-	}
-	return hex.EncodeToString(b), nil
+	return utils.RandomHex(16)
 }
 
 func stopArchiveSpoolIdleTimer(token string) {

@@ -49,11 +49,11 @@
   <link rel="canonical" href="https://filebrowserquantum.com">
 
   <!-- Injected variables come from backend server -->
-  <script>
+  <script nonce="{{ .cspNonce }}">
     window.globalVars = {{ .globalVars }};
   </script>
 
-  <style>
+  <style nonce="{{ .cspNonce }}">
     /* Basic Styles */
     :root {
       --background: {{ .htmlVars.lightBackground }};
@@ -87,7 +87,7 @@
 
   <script type="module" src="/src/main.ts"></script>
 
-  <style>
+  <style nonce="{{ .cspNonce }}">
     {{ .htmlVars.customCSS }}
     {{ .htmlVars.userSelectedTheme }}
   </style>
