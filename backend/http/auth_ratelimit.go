@@ -3,10 +3,8 @@ package http
 import (
 	"fmt"
 	"math"
-	"net"
 	"net/http"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
@@ -26,6 +24,8 @@ const (
 	authAuthenticatedBurst     = 60
 	authFailedLoginMaxAttempts = 10
 	authFailedLoginLockoutMins = 15
+	// Evict idle per-key token buckets so unique IPs/usernames cannot grow without bound.
+	authLimiterEntryTTL = 24 * time.Hour
 )
 
 // In-memory failed-attempt counters and lockout flags (per server process).
@@ -34,12 +34,13 @@ var (
 	authLockouts   = cache.NewCache[bool](time.Minute, 10*time.Minute)
 )
 
+// Per-route-class token buckets (keys: IP or username). Expired entries are dropped by go-cache.
 var (
-	credentialIPLimiters      sync.Map // string -> *rate.Limiter
-	credentialUsernameLimiter sync.Map
-	moderateIPLimiters        sync.Map
-	oidcIPLimiters            sync.Map
-	authenticatedUserLimiters sync.Map
+	authRateLimitCredentialByIP       = cache.NewCache[*rate.Limiter](authLimiterEntryTTL)
+	authRateLimitCredentialByUsername = cache.NewCache[*rate.Limiter](authLimiterEntryTTL)
+	authRateLimitModerateByIP         = cache.NewCache[*rate.Limiter](authLimiterEntryTTL)
+	authRateLimitOIDCByIP             = cache.NewCache[*rate.Limiter](authLimiterEntryTTL)
+	authRateLimitAuthenticatedByUser  = cache.NewCache[*rate.Limiter](authLimiterEntryTTL)
 )
 
 const authRateKeySep = "\x1e"
@@ -91,32 +92,19 @@ func authRateLimitActive() bool {
 	return true
 }
 
-func clientIPForAuthRateLimit(r *http.Request) string {
-	ip, _, err := net.SplitHostPort(r.RemoteAddr)
-	if err != nil {
-		return r.RemoteAddr
-	}
-	return ip
-}
-
-func limiterFor(m *sync.Map, key string, requestsPerMinute, burst int) *rate.Limiter {
+func tokenBucketLimiter(c *cache.KeyCache[*rate.Limiter], key string, requestsPerMinute, burst int) *rate.Limiter {
 	if requestsPerMinute < 1 {
 		requestsPerMinute = 1
 	}
 	if burst < 1 {
 		burst = 1
 	}
-	if v, ok := m.Load(key); ok {
-		if lim, ok := v.(*rate.Limiter); ok {
-			return lim
-		}
+	if lim, ok := c.Get(key); ok && lim != nil {
+		c.SetWithExp(key, lim, authLimiterEntryTTL)
+		return lim
 	}
 	lim := rate.NewLimiter(rate.Limit(float64(requestsPerMinute))/60.0, burst)
-	if actual, loaded := m.LoadOrStore(key, lim); loaded {
-		if existing, ok := actual.(*rate.Limiter); ok {
-			return existing
-		}
-	}
+	c.SetWithExp(key, lim, authLimiterEntryTTL)
 	return lim
 }
 
@@ -132,13 +120,13 @@ func retryAfterSeconds(lim *rate.Limiter) int {
 }
 
 func allowCredential(r *http.Request, loginUsername string) (retryAfter int, ok bool) {
-	ip := clientIPForAuthRateLimit(r)
-	limIP := limiterFor(&credentialIPLimiters, "ip:"+ip, authCredentialRPM, authCredentialBurst)
+	ip := getRemoteIP(r)
+	limIP := tokenBucketLimiter(authRateLimitCredentialByIP, ip, authCredentialRPM, authCredentialBurst)
 	if !limIP.Allow() {
 		return retryAfterSeconds(limIP), false
 	}
 	if loginUsername != "" {
-		limUser := limiterFor(&credentialUsernameLimiter, "u:"+loginUsername, authCredentialRPM, authCredentialBurst)
+		limUser := tokenBucketLimiter(authRateLimitCredentialByUsername, loginUsername, authCredentialRPM, authCredentialBurst)
 		if !limUser.Allow() {
 			return retryAfterSeconds(limUser), false
 		}
@@ -147,8 +135,8 @@ func allowCredential(r *http.Request, loginUsername string) (retryAfter int, ok 
 }
 
 func allowModerate(r *http.Request) (retryAfter int, ok bool) {
-	ip := clientIPForAuthRateLimit(r)
-	lim := limiterFor(&moderateIPLimiters, "ip:"+ip, authModerateRPM, authModerateBurst)
+	ip := getRemoteIP(r)
+	lim := tokenBucketLimiter(authRateLimitModerateByIP, ip, authModerateRPM, authModerateBurst)
 	if !lim.Allow() {
 		return retryAfterSeconds(lim), false
 	}
@@ -156,8 +144,8 @@ func allowModerate(r *http.Request) (retryAfter int, ok bool) {
 }
 
 func allowOIDC(r *http.Request) (retryAfter int, ok bool) {
-	ip := clientIPForAuthRateLimit(r)
-	lim := limiterFor(&oidcIPLimiters, "ip:"+ip, authOIDCRPM, authOIDCBurst)
+	ip := getRemoteIP(r)
+	lim := tokenBucketLimiter(authRateLimitOIDCByIP, ip, authOIDCRPM, authOIDCBurst)
 	if !lim.Allow() {
 		return retryAfterSeconds(lim), false
 	}
@@ -165,7 +153,7 @@ func allowOIDC(r *http.Request) (retryAfter int, ok bool) {
 }
 
 func allowAuthenticated(username string) (retryAfter int, ok bool) {
-	lim := limiterFor(&authenticatedUserLimiters, "user:"+username, authAuthenticatedRPM, authAuthenticatedBurst)
+	lim := tokenBucketLimiter(authRateLimitAuthenticatedByUser, username, authAuthenticatedRPM, authAuthenticatedBurst)
 	if !lim.Allow() {
 		return retryAfterSeconds(lim), false
 	}
@@ -211,6 +199,20 @@ func recordAuthFailure(ip, username string) {
 	}
 }
 
+// withRateLimitInternal applies token-bucket allow checks: when inactive, calls fn; when denied, 429 + Retry-After.
+func withRateLimitInternal(fn handleFunc, allow func(*http.Request, *requestContext) (retryAfter int, ok bool)) handleFunc {
+	return func(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+		if !authRateLimitActive() {
+			return fn(w, r, d)
+		}
+		if after, ok := allow(r, d); !ok {
+			w.Header().Set("Retry-After", strconv.Itoa(after))
+			return http.StatusTooManyRequests, fmt.Errorf("too many requests")
+		}
+		return fn(w, r, d)
+	}
+}
+
 // withAuthRateLimitCredential enforces the credential tier (and optional per-username limits).
 // When trackFailures is true, 401 responses increment failed-attempt state for lockout; success clears it.
 func withAuthRateLimitCredential(trackFailures bool, fn handleFunc) handleFunc {
@@ -219,7 +221,7 @@ func withAuthRateLimitCredential(trackFailures bool, fn handleFunc) handleFunc {
 			return fn(w, r, d)
 		}
 		username := r.URL.Query().Get("username")
-		if isAuthLockout(clientIPForAuthRateLimit(r), username) {
+		if isAuthLockout(getRemoteIP(r), username) {
 			w.Header().Set("Retry-After", strconv.Itoa(authLockoutRetryAfterSecs()))
 			return http.StatusTooManyRequests, fmt.Errorf("too many failed authentication attempts")
 		}
@@ -231,7 +233,7 @@ func withAuthRateLimitCredential(trackFailures bool, fn handleFunc) handleFunc {
 		if !trackFailures {
 			return status, err
 		}
-		ip := clientIPForAuthRateLimit(r)
+		ip := getRemoteIP(r)
 		if status == http.StatusUnauthorized && username != "" {
 			recordAuthFailure(ip, username)
 		}
@@ -243,43 +245,22 @@ func withAuthRateLimitCredential(trackFailures bool, fn handleFunc) handleFunc {
 }
 
 func withAuthRateLimitModerate(fn handleFunc) handleFunc {
-	return func(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-		if !authRateLimitActive() {
-			return fn(w, r, d)
-		}
-		if after, ok := allowModerate(r); !ok {
-			w.Header().Set("Retry-After", strconv.Itoa(after))
-			return http.StatusTooManyRequests, fmt.Errorf("too many requests")
-		}
-		return fn(w, r, d)
-	}
+	return withRateLimitInternal(fn, func(r *http.Request, _ *requestContext) (int, bool) {
+		return allowModerate(r)
+	})
 }
 
 func withAuthRateLimitOIDC(fn handleFunc) handleFunc {
-	return func(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-		if !authRateLimitActive() {
-			return fn(w, r, d)
-		}
-		if after, ok := allowOIDC(r); !ok {
-			w.Header().Set("Retry-After", strconv.Itoa(after))
-			return http.StatusTooManyRequests, fmt.Errorf("too many requests")
-		}
-		return fn(w, r, d)
-	}
+	return withRateLimitInternal(fn, func(r *http.Request, _ *requestContext) (int, bool) {
+		return allowOIDC(r)
+	})
 }
 
 func withAuthRateLimitAuthenticated(fn handleFunc) handleFunc {
-	return func(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-		if !authRateLimitActive() {
-			return fn(w, r, d)
-		}
+	return withRateLimitInternal(fn, func(_ *http.Request, d *requestContext) (int, bool) {
 		if d.user == nil || d.user.Username == "" || d.user.Username == "anonymous" {
-			return fn(w, r, d)
+			return 0, true
 		}
-		if after, ok := allowAuthenticated(d.user.Username); !ok {
-			w.Header().Set("Retry-After", strconv.Itoa(after))
-			return http.StatusTooManyRequests, fmt.Errorf("too many requests")
-		}
-		return fn(w, r, d)
-	}
+		return allowAuthenticated(d.user.Username)
+	})
 }
