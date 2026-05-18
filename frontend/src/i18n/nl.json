@@ -478,7 +478,7 @@
     "showPreviewImagesDescription": "Toon, indien beschikbaar, miniatuurvoorbeelden voor zoekresultaten en toon grotere pictogrammen voor alle resultaten.",
     "useWildcardSearch": "Zoeken met jokertekens (hoofdlettergevoelig)",
     "useWildcardSearchDescription": "Ondersteunde jokertekenopties:\n\n- Overeenstemming met een willekeurige reeks: *\n\n- Overeenstemming met één teken: ?\n\n- Tekenklasse: [a-z], [0-9]\n\n- Negatie: [^0-9]\n\n- Letterlijke *, ?, of [ moeten tussen haakjes staan, bijv. [*], [?], [[]\n\n- Alle resultaten zijn hoofdlettergevoelig",
-    "helpText1": "Er wordt gezocht op elk teken dat je typt (minimaal{minSearchLength} tekens).",
+    "helpText1": "Er wordt gezocht op elk teken dat je typt (minimaal {minSearchLength} tekens).",
     "helpText2": "Substring match alleen op bestands- of mapnamen (geen volledige paden). case:exact voor hoofdlettergevoelig matchen\n\n voor OR tussen termen gebruik je het teken pipe; dubbele aanhalingstekens voor één zin.\n\nSchakel wildcard zoeken in voor meer geavanceerde opties.",
     "openInAdvancedSearch": "Openen in geavanceerd zoeken"
   },
