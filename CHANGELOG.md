@@ -12,7 +12,6 @@ All notable changes to this project will be documented in this file. For commit 
  - read-only source configuration via `source.config.readOnly: true` (#2438)
 
  **Notes**:
- - static content handler change: Content-Security-Policy for Inline (#2141)
  - auth rate limiting can be disabled via `auth.disableRateLimit`
  - updated share hash middleware (#2443)
  - updated source info popup to include private and readOnly properties
