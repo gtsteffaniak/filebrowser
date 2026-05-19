@@ -493,7 +493,8 @@
     "selectBannerImage": "选择横幅图片",
     "selectFaviconImage": "选择图标图像",
     "selectImage": "选择图像",
-    "deleteFailed": "删除共享失败"
+    "deleteFailed": "删除共享失败",
+    "readOnlySourceNotice": "此源为只读。上传共享和修改文件的权限被禁用。"
   },
   "api": {
     "createdAt": "创建于",
@@ -778,7 +779,11 @@
     "divider": "分割器{suffix}",
     "audio": "音频{suffix}",
     "and": "和",
-    "or": "或"
+    "or": "或",
+    "readOnly": "只读{suffix}",
+    "private": "私人{suffix}",
+    "yes": "是{suffix}",
+    "no": "没有{suffix}"
   },
   "access": {
     "rules": "访问规则",

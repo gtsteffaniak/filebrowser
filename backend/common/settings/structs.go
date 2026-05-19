@@ -203,6 +203,7 @@ type Source struct {
 type SourceConfig struct {
 	DenyByDefault    bool              `json:"denyByDefault,omitempty"`           // deny access unless an "allow" access rule was specifically created.
 	Private          bool              `json:"private"`                           // designate as source as private -- currently just means no sharing permitted.
+	ReadOnly         bool              `json:"readOnly,omitempty"`                // read-only source, changes from the UI, webdav, and API will be disabled.
 	Disabled         bool              `json:"disabled,omitempty"`                // disable the source, this is useful so you don't need to remove it from the config file
 	IndexingInterval uint32            `json:"indexingIntervalMinutes,omitempty"` // deprecated: create a rule with indexingIntervalMinutes to set the indexing interval for this source
 	Conditionals     ConditionalFilter `json:"conditionals"`                      // deprecated: use source.rules instead

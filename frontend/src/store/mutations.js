@@ -1,3 +1,4 @@
+import { markRaw } from "vue";
 import * as i18n from "@/i18n";
 import { state } from "./state.js";
 import { getters } from "./getters.js";
@@ -145,6 +146,8 @@ export const mutations = {
           state.sources.info[k].fullScanDurationSeconds = source.fullScanDurationSeconds || 0;
           state.sources.info[k].complexity = source.complexity || 0;
           state.sources.info[k].scanners = source.scanners || [];
+          state.sources.info[k].readOnly = source.readOnly || false;
+          state.sources.info[k].private = source.private || false;
         }
       }
     }
@@ -196,6 +199,8 @@ export const mutations = {
         fullScanDurationSeconds: merge ? prev.fullScanDurationSeconds : 0,
         complexity: merge ? prev.complexity : 0,
         scanners: merge && prev.scanners ? [...prev.scanners] : [],
+        readOnly: merge ? prev.readOnly : false,
+        private: merge ? prev.private : false,
       };
     }
     // Sidebar usage bar uses hasSourceInfo + per-source used/total; must survive object replace
@@ -744,9 +749,14 @@ export const mutations = {
     emitStateChanged();
   },
   showTooltip(value) {
-    state.tooltip.content = value.content;
+    const useComponent = Boolean(value.component);
+    state.tooltip.content = useComponent ? "" : (value.content ?? "");
+    state.tooltip.component = useComponent ? markRaw(value.component) : null;
+    state.tooltip.componentProps = useComponent ? (value.componentProps ?? {}) : null;
     state.tooltip.x = value.x;
     state.tooltip.y = value.y;
+    state.tooltip.width = value.width ?? null;
+    state.tooltip.pointerEvents = value.pointerEvents ?? false;
     state.tooltip.show = true;
     emitStateChanged();
   },
@@ -758,6 +768,11 @@ export const mutations = {
       return;
     }
     state.tooltip.show = false;
+    state.tooltip.content = "";
+    state.tooltip.component = null;
+    state.tooltip.componentProps = null;
+    state.tooltip.width = null;
+    state.tooltip.pointerEvents = false;
     emitStateChanged();
   },
   setMaxConcurrentUpload: (value) => {

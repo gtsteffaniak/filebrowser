@@ -493,7 +493,8 @@
     "selectBannerImage": "Afiş resmini seçin",
     "selectFaviconImage": "Favicon resmini seçin",
     "selectImage": "Resim seçiniz",
-    "deleteFailed": "Paylaşım silinemedi"
+    "deleteFailed": "Paylaşım silinemedi",
+    "readOnlySourceNotice": "Bu kaynak salt okunurdur. Yükleme paylaşımları ve dosyaları değiştiren izinler devre dışı bırakılmıştır."
   },
   "api": {
     "createdAt": "Oluşturuldu:",
@@ -677,7 +678,11 @@
     "divider": "Bölücü{suffix}",
     "audio": "Ses{suffix}",
     "and": "ve",
-    "or": "veya"
+    "or": "veya",
+    "readOnly": "Salt okunur{suffix}",
+    "private": "Özel{suffix}",
+    "yes": "Evet{suffix}",
+    "no": "Hayır{suffix}"
   },
   "access": {
     "rules": "Erişim kuralları",

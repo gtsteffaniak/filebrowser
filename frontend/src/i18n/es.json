@@ -493,7 +493,8 @@
     "selectBannerImage": "Seleccionar imagen de banner",
     "selectFaviconImage": "Seleccionar imagen de favicon",
     "selectImage": "Seleccionar imagen",
-    "deleteFailed": "Error al borrar recurso compartido"
+    "deleteFailed": "Error al borrar recurso compartido",
+    "readOnlySourceNotice": "Esta fuente es de sólo lectura. Los recursos compartidos de carga y los permisos que modifican archivos están desactivados."
   },
   "api": {
     "createdAt": "Creado en:",
@@ -677,7 +678,11 @@
     "divider": "Divisor{suffix}",
     "audio": "Audio{suffix}",
     "and": "y",
-    "or": "o"
+    "or": "o",
+    "readOnly": "Sólo lectura{suffix}",
+    "private": "Privado{suffix}",
+    "yes": "Sí{suffix}",
+    "no": "No{suffix}"
   },
   "access": {
     "rules": "Reglas de acceso",

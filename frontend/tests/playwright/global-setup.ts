@@ -1,6 +1,6 @@
 import { writeFile } from "node:fs/promises";
 import { Browser, firefox, expect, Page } from "@playwright/test";
-import { openContextMenuHelper } from "./test-setup";
+import { openContextMenuHelper, openShareAndExpectPath } from "./test-setup";
 
 // Perform authentication and store auth state
 async function globalSetup() {
@@ -24,11 +24,12 @@ async function globalSetup() {
 
   // Create a share of folder
   await page.locator('a[aria-label="myfolder"]').waitFor({ state: 'visible' });
-  await page.locator('a[aria-label="myfolder"]').click({ button: "right" });
-  await page.locator('.selected-count-header').waitFor({ state: 'visible' });
-  await expect(page.locator('.selected-count-header')).toHaveText('1');
-  await page.locator('button[aria-label="Share"]').click();
-  await expect(page.locator('div[aria-label="share-path"]')).toHaveText('Path: /myfolder/');
+  await openShareAndExpectPath(page, 'Path: /myfolder/', async () => {
+    await page.locator('a[aria-label="myfolder"]').click({ button: "right" });
+    await page.locator('.selected-count-header').waitFor({ state: 'visible' });
+    await expect(page.locator('.selected-count-header')).toHaveText('1');
+    await page.locator('button[aria-label="Share"]').click();
+  });
   await page.locator('button[aria-label="Share-Confirm"]').click();
   await expect(page.locator("div[aria-label='share-prompt'] .card-content table tbody tr:not(:has(th))")).toHaveCount(1);
   const shareHash = await page.locator("div[aria-label='share-prompt'] .card-content table tbody tr:not(:has(th)) td").first().textContent();
@@ -43,11 +44,12 @@ async function globalSetup() {
   await page.goto("http://127.0.0.1/files/playwright%20%2B%20files/", { timeout: 1000 });
   // Create a share of file
   await page.locator('a[aria-label="1file1.txt"]').waitFor({ state: 'visible' });
-  await page.locator('a[aria-label="1file1.txt"]').click({ button: "right" });
-  await page.locator('.selected-count-header').waitFor({ state: 'visible' });
-  await expect(page.locator('.selected-count-header')).toHaveText('1');
-  await page.locator('button[aria-label="Share"]').click();
-  await expect(page.locator('div[aria-label="share-path"]')).toHaveText('Path: /1file1.txt');
+  await openShareAndExpectPath(page, 'Path: /1file1.txt', async () => {
+    await page.locator('a[aria-label="1file1.txt"]').click({ button: "right" });
+    await page.locator('.selected-count-header').waitFor({ state: 'visible' });
+    await expect(page.locator('.selected-count-header')).toHaveText('1');
+    await page.locator('button[aria-label="Share"]').click();
+  });
   await page.locator('button[aria-label="Share-Confirm"]').click();
   await expect(page.locator("div[aria-label='share-prompt'] .card-content table tbody tr:not(:has(th))")).toHaveCount(1);
   const shareHashFile = await page.locator("div[aria-label='share-prompt'] .card-content table tbody tr:not(:has(th)) td").first().textContent();
@@ -62,9 +64,10 @@ async function globalSetup() {
   // Create a share of root folder "/"
   await page.goto("http://127.0.0.1/files/playwright%20%2B%20files/", { timeout: 1000 });
   await page.locator('a[aria-label="share"]').waitFor({ state: 'visible' });
-  await openContextMenuHelper(page);
-  await page.locator('button[aria-label="Share"]').click();
-  await expect(page.locator('div[aria-label="share-path"]')).toHaveText('Path: /');
+  await openShareAndExpectPath(page, 'Path: /', async () => {
+    await openContextMenuHelper(page);
+    await page.locator('button[aria-label="Share"]').click();
+  });
   // Toggle "Allow creating and uploading files and folders" setting
   await page.locator('input[aria-label="allow creating and uploading files and folders toggle"]').waitFor({ state: 'attached' });
   await page.locator('input[aria-label="allow creating and uploading files and folders toggle"] + .slider').click();

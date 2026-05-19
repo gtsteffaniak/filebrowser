@@ -493,7 +493,8 @@
     "selectBannerImage": "Selecteer bannerafbeelding",
     "selectFaviconImage": "Selecteer favicon afbeelding",
     "selectImage": "Afbeelding selecteren",
-    "deleteFailed": "Share niet verwijderd"
+    "deleteFailed": "Share niet verwijderd",
+    "readOnlySourceNotice": "Deze bron is alleen-lezen. Upload shares en rechten om bestanden te wijzigen zijn uitgeschakeld."
   },
   "api": {
     "createdAt": "Gemaakt op:",
@@ -778,7 +779,11 @@
     "divider": "Verdeler{suffix}",
     "audio": "Audio{suffix}",
     "and": "en",
-    "or": "of"
+    "or": "of",
+    "readOnly": "Alleen-lezen{suffix}",
+    "private": "Privé{suffix}",
+    "yes": "Ja{suffix}",
+    "no": "Geen{suffix}"
   },
   "access": {
     "rules": "Toegangsregels",

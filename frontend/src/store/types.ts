@@ -109,6 +109,8 @@ export interface StoreState {
   tooltip: {
     show: boolean;
     content: string;
+    component: import("vue").Component | null;
+    componentProps: Record<string, unknown> | null;
     x: number;
     y: number;
     pointerEvents: boolean;
