@@ -390,6 +390,15 @@ func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *reques
 				continue
 			}
 
+			if idx.Config.ReadOnly {
+				response.Failed = append(response.Failed, BulkDeleteItem{
+					Source:  item.Source,
+					Path:    sanitizedPath,
+					Message: "source is read-only",
+				})
+				continue
+			}
+
 			// Get file info
 			fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 				FollowSymlinks: true,
@@ -896,6 +905,16 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 			}
 			response.Failed = append(response.Failed, item)
 			continue
+		}
+
+		if srcIdx.Config.ReadOnly && req.Action == "move" {
+			item.Message = "source source is read-only"
+			if d.share != nil {
+				response.Failed = append(response.Failed, MoveCopyItem{
+					Message: item.Message,
+				})
+				continue
+			}
 		}
 
 		if dstIdx.Config.ReadOnly {
