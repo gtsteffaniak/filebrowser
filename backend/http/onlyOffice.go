@@ -347,6 +347,57 @@ func buildOnlyOfficeCallbackURL(r *http.Request, source, path, hash, token strin
 	return callbackURL
 }
 
+// rewriteOnlyOfficeIntegrationURL replaces the public OnlyOffice document server
+// origin with integrations.office.internalUrl when configured. OnlyOffice puts cache
+// download links in callbacks using the host clients use to reach the document server;
+// the FileBrowser backend must fetch those links using an address reachable from the server.
+func rewriteOnlyOfficeIntegrationURL(rawURL string) string {
+	if rawURL == "" {
+		return rawURL
+	}
+
+	internalBase := settings.Config.Integrations.OnlyOffice.InternalUrl
+	publicBase := settings.Config.Integrations.OnlyOffice.Url
+	if internalBase == "" || publicBase == "" {
+		return rawURL
+	}
+
+	parsedURL, err := url.Parse(rawURL)
+	if err != nil {
+		logger.Warningf("OnlyOffice callback: could not parse URL for internal rewrite (%q): %v", rawURL, err)
+		return rawURL
+	}
+
+	publicURL, err := url.Parse(publicBase)
+	if err != nil {
+		logger.Warningf("OnlyOffice callback: could not parse integrations.office.url (%q): %v", publicBase, err)
+		return rawURL
+	}
+
+	internalURL, err := url.Parse(internalBase)
+	if err != nil {
+		logger.Warningf("OnlyOffice callback: could not parse integrations.office.internalUrl (%q): %v", internalBase, err)
+		return rawURL
+	}
+
+	if !onlyOfficeURLHostsMatch(parsedURL, publicURL) {
+		return rawURL
+	}
+
+	rewritten := *parsedURL
+	rewritten.Scheme = internalURL.Scheme
+	rewritten.Host = internalURL.Host
+	result := rewritten.String()
+	if result != rawURL {
+		logger.Debugf("OnlyOffice callback: rewrote URL from %s to %s", rawURL, result)
+	}
+	return result
+}
+
+func onlyOfficeURLHostsMatch(a, b *url.URL) bool {
+	return a.Host == b.Host
+}
+
 // processOnlyOfficeCallback handles the common callback processing logic for both GET and POST requests
 func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *requestContext, data *OnlyOfficeCallback) (int, error) {
 	// Extract clean parameters from query string
@@ -492,7 +543,12 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 		}
 
 		// Download the updated document from OnlyOffice server
-		doc, err := http.Get(data.URL)
+		downloadURL := rewriteOnlyOfficeIntegrationURL(data.URL)
+		if downloadURL == "" {
+			logger.Errorf("OnlyOffice callback: missing document URL in callback payload")
+			return returnOnlyOfficeError(w, r, 500, "missing document URL in callback payload")
+		}
+		doc, err := http.Get(downloadURL)
 		if err != nil {
 			logger.Errorf("OnlyOffice callback: failed to download updated document: %v", err)
 			return returnOnlyOfficeError(w, r, 500, "failed to download updated document")
