@@ -70,6 +70,7 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo, scanner *Scanner) bool
 	if scanner != nil {
 		// Track that this directory was updated by the scan (for timestamp conflict detection)
 		normalizedPath := utils.AddTrailingSlashIfNotExists(info.Path)
+		idx.ensureScanUpdatedPaths()
 		idx.mu.Lock()
 		idx.scanUpdatedPaths[normalizedPath] = true
 		idx.mu.Unlock()
