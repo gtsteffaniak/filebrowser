@@ -493,7 +493,8 @@
     "selectBannerImage": "בחר תמונת באנר",
     "selectFaviconImage": "בחר תמונת סמל מועדף",
     "selectImage": "בחר תמונה",
-    "deleteFailed": "לא ניתן למחוק את השיתוף"
+    "deleteFailed": "לא ניתן למחוק את השיתוף",
+    "readOnlySourceNotice": "מקור זה מוגדר לקריאה בלבד. העלאת קבצים והרשאות המשנות קבצים אינן זמינות."
   },
   "api": {
     "createdAt": "נוצר ב:",
@@ -677,7 +678,11 @@
     "divider": "מפריד{suffix}",
     "audio": "אודיו{suffix}",
     "and": "ו-",
-    "or": "או"
+    "or": "או",
+    "readOnly": "לקריאה בלבד{suffix}",
+    "private": "פרטי{suffix}",
+    "yes": "כן{suffix}",
+    "no": "לא{suffix}"
   },
   "access": {
     "rules": "כללי גישה",

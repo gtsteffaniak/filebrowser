@@ -493,7 +493,8 @@
     "selectBannerImage": "Selectați imaginea bannerului",
     "selectFaviconImage": "Selectați imaginea favicon",
     "selectImage": "Selectați imaginea",
-    "deleteFailed": "Eșec la ștergerea partajului"
+    "deleteFailed": "Eșec la ștergerea partajului",
+    "readOnlySourceNotice": "Această sursă este numai pentru citire. Acțiunile de încărcare și permisiunile care modifică fișiere sunt dezactivate."
   },
   "api": {
     "createdAt": "Creat la:",
@@ -677,7 +678,11 @@
     "divider": "Divizor{suffix}",
     "audio": "Audio{suffix}",
     "and": "și",
-    "or": "sau"
+    "or": "sau",
+    "readOnly": "Numai citire{suffix}",
+    "private": "Privat{suffix}",
+    "yes": "Da{suffix}",
+    "no": "Nu{suffix}"
   },
   "access": {
     "rules": "Reguli de acces",

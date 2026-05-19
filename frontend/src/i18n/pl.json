@@ -493,7 +493,8 @@
     "selectBannerImage": "Wybierz obraz banera",
     "selectFaviconImage": "Wybierz obraz favicon",
     "selectImage": "Wybierz obraz",
-    "deleteFailed": "Nie udało się usunąć udziału"
+    "deleteFailed": "Nie udało się usunąć udziału",
+    "readOnlySourceNotice": "To źródło jest tylko do odczytu. Udziały przesyłania i uprawnienia modyfikujące pliki są wyłączone."
   },
   "api": {
     "createdAt": "Utworzono w:",
@@ -677,7 +678,11 @@
     "divider": "Dzielnik{suffix}",
     "audio": "Audio{suffix}",
     "and": "oraz",
-    "or": "lub"
+    "or": "lub",
+    "readOnly": "Tylko do odczytu{suffix}",
+    "private": "Prywatny{suffix}",
+    "yes": "Tak{suffix}",
+    "no": "Nie{suffix}"
   },
   "access": {
     "rules": "Zasady dostępu",

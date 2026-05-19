@@ -131,7 +131,11 @@
     "latency": "Latenza{suffix}",
     "audio": "Audio{suffix}",
     "and": "e",
-    "or": "o"
+    "or": "o",
+    "readOnly": "Solo lettura{suffix}",
+    "private": "Privato{suffix}",
+    "yes": "Sì{suffix}",
+    "no": "No{suffix}"
   },
   "buttons": {
     "copySuccess": "Copiato negli appunti!",
@@ -363,7 +367,8 @@
     "shareInfo": "QR Code e Info Condivisione",
     "shareInfoDescription": "Mostra le informazioni della condivisione (titolo, descrizione, banner, QR) in un popup.",
     "downloadDescription": "Permette di scaricare l'intero contenuto della condivisione come file compresso.",
-    "deleteFailed": "Eliminazione condivisione fallita"
+    "deleteFailed": "Eliminazione condivisione fallita",
+    "readOnlySourceNotice": "Questa sorgente è di sola lettura. Le azioni di caricamento e le autorizzazioni che modificano i file sono disabilitate."
   },
   "prompts": {
     "operationInProgress": "Operazione in corso, attendere...",
