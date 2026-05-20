@@ -6624,7 +6624,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "expire": {
-                    "description": "Unix expiry (0 = permanent). Always emitted in API JSON so clients can distinguish permanent from missing.",
                     "type": "integer"
                 },
                 "expires": {
@@ -6804,7 +6803,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "expire": {
-                    "description": "Unix expiry (0 = permanent). Always emitted in API JSON so clients can distinguish permanent from missing.",
                     "type": "integer"
                 },
                 "expires": {
@@ -6963,7 +6961,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "expire": {
-                    "description": "Unix expiry (0 = permanent). Always emitted in API JSON so clients can distinguish permanent from missing.",
                     "type": "integer"
                 },
                 "expires": {
