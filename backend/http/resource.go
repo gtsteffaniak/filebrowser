@@ -52,9 +52,9 @@ func reconcileSharesAfterMove(isSrcDir bool, sourceIndex, destIndex, realsrc, re
 	}
 	_, err := state.UpdateSharesForMovedResource(
 		srcIdx.Path,
-		srcIdx.MakeIndexPath(realsrc, isSrcDir),
+		srcIdx.MakeIndexPath(realsrc, isSrcDir).String(),
 		dstIdx.Path,
-		dstIdx.MakeIndexPath(realdst, isSrcDir),
+		dstIdx.MakeIndexPath(realdst, isSrcDir).String(),
 	)
 	if err != nil {
 		logger.Errorf("reconcile shares after move: %v", err)
@@ -438,11 +438,11 @@ func resourcePauseHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	}
 	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
-	cleanPath, err := utils.SanitizeUserPath(path)
+	parsedPath, err := utils.ParseSanitizedIndexPath(path, true)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
-	path = cleanPath
+	path = parsedPath.String()
 	idx := indexing.GetIndex(source)
 	if idx == nil {
 		logger.Debugf("source %s not found", source)
@@ -451,7 +451,7 @@ func resourcePauseHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	if _, err := d.user.GetScopeForSourceName(source); err != nil {
 		return http.StatusForbidden, err
 	}
-	if !accessStore.Permitted(idx.Path, path, d.user.Username) {
+	if !accessStore.Permitted(idx.Path, parsedPath, d.user.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to path %s", path)
 	}
 	pauseCache.Set(pauseUploadCacheKey(source, path), "1")
@@ -543,7 +543,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	realPath, _, _ := idx.GetRealPath(fullIndexPath)
 
 	// Check access control for the target path
-	if !accessStore.Permitted(idx.Path, path, filePermUser.Username) {
+	if !accessStore.Permitted(idx.Path, utils.IndexPathFromNormalized(path, true), filePermUser.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to path %s", path)
 	}
 
@@ -743,7 +743,7 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if idx == nil {
 		return http.StatusNotFound, fmt.Errorf("source %s not found", source)
 	}
-	if accessStore != nil && !accessStore.Permitted(idx.Path, fullIndexPath, d.user.Username) {
+	if accessStore != nil && !accessStore.Permitted(idx.Path, utils.IndexPathFromNormalized(fullIndexPath, true), d.user.Username) {
 		logger.Debugf("user %s denied access to path %s", d.user.Username, fullIndexPath)
 		return http.StatusForbidden, fmt.Errorf("access denied to path %s", path)
 	}
@@ -886,7 +886,7 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		}
 
 		// Check access control for both source and destination paths
-		if !accessStore.Permitted(srcIdx.Path, fullSrcIndexPath, d.user.Username) {
+		if !accessStore.Permitted(srcIdx.Path, utils.IndexPathFromNormalized(fullSrcIndexPath, true), d.user.Username) {
 			item.Message = "access denied to source path"
 			if d.share.Hash != "" {
 				response.Failed = append(response.Failed, MoveCopyItem{
@@ -897,7 +897,7 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 			response.Failed = append(response.Failed, item)
 			continue
 		}
-		if !accessStore.Permitted(dstIdx.Path, fullDstIndexPath, d.user.Username) {
+		if !accessStore.Permitted(dstIdx.Path, utils.IndexPathFromNormalized(fullDstIndexPath, true), d.user.Username) {
 			item.Message = "access denied to destination path"
 			if d.share.Hash != "" {
 				response.Failed = append(response.Failed, MoveCopyItem{
@@ -1058,7 +1058,7 @@ func patchAction(ctx context.Context, params patchActionParams) error {
 		return err
 	case "rename", "move":
 		idx := indexing.GetIndex(params.srcIndex)
-		srcPath := idx.MakeIndexPath(params.src, params.isSrcDir)
+		srcPath := idx.MakeIndexPath(params.src, params.isSrcDir).String()
 		userScope := ""
 		userScope, _ = params.d.user.GetScopeForSourceName(params.srcIndex)
 		if userScope != "" && userScope != "/" {

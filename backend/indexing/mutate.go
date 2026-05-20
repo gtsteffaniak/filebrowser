@@ -139,11 +139,7 @@ func (idx *Index) DeleteMetadata(path string, isDir bool, recursive bool) bool {
 // GetMetadataInfo retrieves the FileInfo from the specified file or directory in the index.
 func (idx *Index) GetReducedMetadata(target string, isDir bool) (*iteminfo.FileInfo, bool) {
 
-	checkPath := idx.MakeIndexPath(target, isDir)
-
-	if checkPath == "" {
-		checkPath = "/"
-	}
+	checkPath := idx.MakeIndexPath(target, isDir).String()
 
 	// checkPath is already an index path (relative to source root)
 	item, err := idx.db.GetItem(idx.Name, checkPath)
@@ -176,13 +172,9 @@ func (idx *Index) GetMetadataInfo(target string, isDir bool, shallow bool) (*ite
 
 	var checkDir string
 	if !isDir {
-		checkDir = idx.MakeIndexPath(filepath.Dir(target), true)
+		checkDir = idx.MakeIndexPath(filepath.Dir(target), true).String()
 	} else {
-		checkDir = idx.MakeIndexPath(target, true)
-	}
-
-	if checkDir == "" {
-		checkDir = "/"
+		checkDir = idx.MakeIndexPath(target, true).String()
 	}
 
 	// checkDir is already an index path (relative to source root)

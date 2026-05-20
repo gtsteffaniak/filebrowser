@@ -145,7 +145,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		index := indexing.GetIndex(result.Source)
 		combinedPath := searchOptions.combinedPath[result.Source]
 		indexPath := utils.JoinPathAsUnix(combinedPath, result.Path)
-		if accessStore != nil && !accessStore.Permitted(index.Path, indexPath, d.user.Username) {
+		if accessStore != nil && !accessStore.Permitted(index.Path, utils.IndexPathFromNormalized(indexPath, true), d.user.Username) {
 			continue // Silently skip this file/folder
 		}
 		// Remove the user scope from the path (modifying in place is safe - these are fresh allocations)
@@ -297,7 +297,7 @@ func prepSearchOptions(r *http.Request, d *requestContext) (*searchOptions, erro
 				return nil, err
 			}
 			rel := strings.TrimPrefix(pathBySource[source], ".")
-			combinedPathMap[source] = index.MakeIndexPath(filepath.Join(userscope, rel), true)
+			combinedPathMap[source] = index.MakeIndexPath(filepath.Join(userscope, rel), true).String()
 		}
 	} else {
 		if sourcesParam != "" {
@@ -338,8 +338,7 @@ func prepSearchOptions(r *http.Request, d *requestContext) (*searchOptions, erro
 			if err != nil {
 				return nil, err
 			}
-			combinedPath := index.MakeIndexPath(filepath.Join(userscope, searchScopeOut), true)
-			combinedPathMap[source] = combinedPath
+			combinedPathMap[source] = index.MakeIndexPath(filepath.Join(userscope, searchScopeOut), true).String()
 		}
 	}
 

@@ -74,7 +74,7 @@ func processDirectoryMetadata(response *iteminfo.ExtendedFileInfo, idx *indexing
 	var wg sync.WaitGroup
 
 	wg.Go(func() {
-		indexPath := idx.MakeIndexPath(response.Path, true)
+		indexPath := idx.MakeIndexPath(response.Path, true).String()
 		err := idx.RefreshDirectory(indexPath, false)
 		if err != nil {
 			logger.Debugf("Failed to refresh directory for folder size update: %v", err)
@@ -140,11 +140,12 @@ func checkPermissionsImpl(opts utils.FileOptions, access *access.Storage, user *
 		return "", "", errors.ErrAccessDenied
 	}
 
-	// Combine scope + sanitized path
 	indexPath := utils.JoinPathAsUnix(userScope, safePath)
-	// Layer 1: USER ACCESS CONTROL
-	// Quick check: Does THIS user have permission?
-	if !access.Permitted(idx.Path, indexPath, user.Username) {
+	parsedPath, err := utils.ParseSanitizedIndexPath(indexPath, true)
+	if err != nil {
+		return "", "", errors.ErrAccessDenied
+	}
+	if !access.Permitted(idx.Path, parsedPath, user.Username) {
 		return "", "", errors.ErrAccessDenied
 	}
 	return indexPath, userScope, nil
@@ -571,7 +572,7 @@ func DeleteFiles(source, absPath string, isDir bool) error {
 	}
 
 	if !index.Config.ResolvedRules.IndexingDisabled {
-		indexPath := index.MakeIndexPath(absPath, isDir)
+		indexPath := index.MakeIndexPath(absPath, isDir).String()
 
 		// Perform the physical deletion
 		err := os.RemoveAll(absPath)
@@ -591,7 +592,7 @@ func DeleteFiles(source, absPath string, isDir bool) error {
 
 		// Refresh the parent directory to recalculate sizes and update counts
 		refreshConfig := utils.FileOptions{
-			Path:  index.MakeIndexPath(filepath.Dir(absPath), true),
+			Path:  index.MakeIndexPath(filepath.Dir(absPath), true).String(),
 			IsDir: true,
 		}
 		err = index.RefreshFileInfo(refreshConfig)
@@ -611,7 +612,7 @@ func RefreshIndex(source string, path string, isDir bool, recursive bool) error 
 		return nil
 	}
 	// Always normalize path using MakeIndexPath
-	path = idx.MakeIndexPath(path, isDir)
+	path = idx.MakeIndexPath(path, isDir).String()
 
 	// Check if path is a symlink
 	realPath, _, _ := idx.GetRealPath(path)
@@ -704,7 +705,7 @@ func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 	}
 
 	// Prepare paths for index operations
-	srcIndexPath := srcIdx.MakeIndexPath(realsrc, isSrcDir)
+	srcIndexPath := srcIdx.MakeIndexPath(realsrc, isSrcDir).String()
 	srcParentPath := filepath.Dir(realsrc)
 
 	// Perform the physical move
@@ -758,7 +759,7 @@ func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 	if a != nil {
 		// If moving within the same source, update the rules
 		if srcIdx.Path == dstIdx.Path {
-			go a.UpdateRules(srcIdx.Path, srcIdx.MakeIndexPath(realsrc, isSrcDir), dstIdx.MakeIndexPath(realdst, isSrcDir)) //nolint:errcheck
+			go a.UpdateRules(srcIdx.Path, srcIdx.MakeIndexPath(realsrc, isSrcDir), dstIdx.MakeIndexPath(realdst, isSrcDir)) //nolint:errcheck // IndexPath passed directly
 		}
 		// Cross-source moves don't preserve access rules (they're source-specific)
 	}

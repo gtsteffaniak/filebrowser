@@ -591,7 +591,7 @@ func prepDuplicatesOptions(r *http.Request, d *requestContext) (*duplicatesOptio
 	return &duplicatesOptions{
 		source:       source,
 		searchScope:  searchScope,
-		combinedPath: combinedPath,
+		combinedPath: combinedPath.String(),
 		minSize:      minSize,
 		useChecksum:  useChecksum,
 		username:     d.user.Username,
@@ -952,7 +952,7 @@ func filterFilesByPermission(files []*iteminfo.FileInfo, index *indexing.Index, 
 	filtered := make([]*iteminfo.FileInfo, 0, len(files))
 	for _, file := range files {
 		// Check permission using index.Path (source root) and file.Path (index-relative path)
-		if accessStore.Permitted(index.Path, file.Path, username) {
+		if accessStore.Permitted(index.Path, utils.IndexPathFromNormalized(file.Path, true), username) {
 			filtered = append(filtered, file)
 		}
 	}

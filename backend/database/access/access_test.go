@@ -14,6 +14,10 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 )
 
+func idxPath(s string) utils.IndexPath {
+	return utils.IndexPathFromNormalized(s, true)
+}
+
 // sqlStoreAdapter adapts SQLStore to implement users.StorageBackend interface
 type sqlStoreAdapter struct {
 	store *sqldb.SQLStore
@@ -136,13 +140,13 @@ func TestPermitted_UserBlacklist(t *testing.T) {
 	s, userStore := createTestStorage(t)
 	createTestUser(t, userStore, "alice")
 	createTestUser(t, userStore, "bob")
-	if err := s.DenyUser("mnt/storage", "/secret", "alice"); err != nil {
+	if err := s.DenyUser("mnt/storage", idxPath("/secret"), "alice"); err != nil {
 		t.Errorf("DenyUser failed: %v", err)
 	}
-	if s.Permitted("mnt/storage", "/secret", "alice") {
+	if s.Permitted("mnt/storage", idxPath("/secret"), "alice") {
 		t.Error("alice should not be permitted (denied)")
 	}
-	if !s.Permitted("mnt/storage", "/secret", "bob") {
+	if !s.Permitted("mnt/storage", idxPath("/secret"), "bob") {
 		t.Error("bob should be permitted (not denied)")
 	}
 }
@@ -152,13 +156,13 @@ func TestPermitted_UserWhitelist(t *testing.T) {
 	s, userStore := createTestStorage(t)
 	createTestUser(t, userStore, "alice")
 	createTestUser(t, userStore, "bob")
-	if err := s.AllowUser("mnt/storage", "/vip", "bob"); err != nil {
+	if err := s.AllowUser("mnt/storage", idxPath("/vip"), "bob"); err != nil {
 		t.Errorf("AllowUser failed: %v", err)
 	}
-	if !s.Permitted("mnt/storage", "/vip", "bob") {
+	if !s.Permitted("mnt/storage", idxPath("/vip"), "bob") {
 		t.Error("bob should be permitted (allowed)")
 	}
-	if !s.Permitted("mnt/storage", "/vip", "alice") {
+	if !s.Permitted("mnt/storage", idxPath("/vip"), "alice") {
 		t.Error("alice should be permitted (default allow behavior when DenyByDefault=false)")
 	}
 }
@@ -169,13 +173,13 @@ func TestPermitted_GroupBlacklist(t *testing.T) {
 	createTestUser(t, userStore, "alice")
 	createTestUser(t, userStore, "bob")
 	_ = s.AddUserToGroup("admins", "alice")
-	if err := s.DenyGroup("mnt/storage", "/admin", "admins"); err != nil {
+	if err := s.DenyGroup("mnt/storage", idxPath("/admin"), "admins"); err != nil {
 		t.Errorf("DenyGroup failed: %v", err)
 	}
-	if s.Permitted("mnt/storage", "/admin", "bob") == false {
+	if s.Permitted("mnt/storage", idxPath("/admin"), "bob") == false {
 		t.Error("bob should be permitted (not in denied group)")
 	}
-	if s.Permitted("mnt/storage", "/admin", "alice") {
+	if s.Permitted("mnt/storage", idxPath("/admin"), "alice") {
 		t.Error("alice should not be permitted (in denied group)")
 	}
 }
@@ -186,13 +190,13 @@ func TestPermitted_GroupWhitelist(t *testing.T) {
 	createTestUser(t, userStore, "alice")
 	createTestUser(t, userStore, "bob")
 	_ = s.AddUserToGroup("vip", "bob")
-	if err := s.AllowGroup("mnt/storage", "/vip", "vip"); err != nil {
+	if err := s.AllowGroup("mnt/storage", idxPath("/vip"), "vip"); err != nil {
 		t.Errorf("AllowGroup failed: %v", err)
 	}
-	if !s.Permitted("mnt/storage", "/vip", "bob") {
+	if !s.Permitted("mnt/storage", idxPath("/vip"), "bob") {
 		t.Error("bob should be permitted (in allowed group)")
 	}
-	if !s.Permitted("mnt/storage", "/vip", "alice") {
+	if !s.Permitted("mnt/storage", idxPath("/vip"), "alice") {
 		t.Error("alice should be permitted (default allow behavior when DenyByDefault=false)")
 	}
 }
@@ -200,7 +204,7 @@ func TestPermitted_GroupWhitelist(t *testing.T) {
 func TestPermitted_NoRule(t *testing.T) {
 	setupTestSources()
 	s, _ := createTestStorage(t)
-	if !s.Permitted("mnt/storage", "/public", "anyone") {
+	if !s.Permitted("mnt/storage", idxPath("/public"), "anyone") {
 		t.Error("anyone should be permitted if no rule exists")
 	}
 }
@@ -218,28 +222,28 @@ func TestPermitted_CombinedRules(t *testing.T) {
 	if err := s.AddUserToGroup("admins", "alice"); err != nil {
 		t.Errorf("AddUserToGroup failed: %v", err)
 	}
-	if err := s.DenyUser("mnt/storage", "/combo", "eve"); err != nil {
+	if err := s.DenyUser("mnt/storage", idxPath("/combo"), "eve"); err != nil {
 		t.Errorf("DenyUser failed: %v", err)
 	}
-	if err := s.AllowUser("mnt/storage", "/combo", "carol"); err != nil {
+	if err := s.AllowUser("mnt/storage", idxPath("/combo"), "carol"); err != nil {
 		t.Errorf("AllowUser failed: %v", err)
 	}
-	if err := s.DenyGroup("mnt/storage", "/combo", "admins"); err != nil {
+	if err := s.DenyGroup("mnt/storage", idxPath("/combo"), "admins"); err != nil {
 		t.Errorf("DenyGroup failed: %v", err)
 	}
-	if err := s.AllowGroup("mnt/storage", "/combo", "vip"); err != nil {
+	if err := s.AllowGroup("mnt/storage", idxPath("/combo"), "vip"); err != nil {
 		t.Errorf("AllowGroup failed: %v", err)
 	}
-	if s.Permitted("mnt/storage", "/combo", "eve") {
+	if s.Permitted("mnt/storage", idxPath("/combo"), "eve") {
 		t.Error("eve should not be permitted (user denied)")
 	}
-	if !s.Permitted("mnt/storage", "/combo", "carol") {
+	if !s.Permitted("mnt/storage", idxPath("/combo"), "carol") {
 		t.Error("carol should be permitted (user allowed)")
 	}
-	if s.Permitted("mnt/storage", "/combo", "alice") {
+	if s.Permitted("mnt/storage", idxPath("/combo"), "alice") {
 		t.Error("alice should not be permitted (in group denied)")
 	}
-	if !s.Permitted("mnt/storage", "/combo", "bob") {
+	if !s.Permitted("mnt/storage", idxPath("/combo"), "bob") {
 		t.Error("bob should be permitted (in group allowed)")
 	}
 }
@@ -251,26 +255,26 @@ func TestPermitted_DenyAll(t *testing.T) {
 	createTestUser(t, userStore, "bob")
 
 	// Test DenyAll
-	if err := s.DenyAll("mnt/storage", "/private"); err != nil {
+	if err := s.DenyAll("mnt/storage", idxPath("/private")); err != nil {
 		t.Errorf("DenyAll failed: %v", err)
 	}
-	if s.Permitted("mnt/storage", "/private", "alice") {
+	if s.Permitted("mnt/storage", idxPath("/private"), "alice") {
 		t.Error("alice should not be permitted (deny all)")
 	}
-	if s.Permitted("mnt/storage", "/private", "bob") {
+	if s.Permitted("mnt/storage", idxPath("/private"), "bob") {
 		t.Error("bob should not be permitted (deny all)")
 	}
 
 	// Test that Allow rule overrides DenyAll
-	if err := s.AllowUser("mnt/storage", "/private", "alice"); err != nil {
+	if err := s.AllowUser("mnt/storage", idxPath("/private"), "alice"); err != nil {
 		t.Errorf("AllowUser failed: %v", err)
 	}
-	if !s.Permitted("mnt/storage", "/private", "alice") {
+	if !s.Permitted("mnt/storage", idxPath("/private"), "alice") {
 		t.Error("alice should be permitted (allow overrides deny all)")
 	}
 
 	// Test removing DenyAll
-	removed, err := s.RemoveDenyAll("mnt/storage", "/private")
+	removed, err := s.RemoveDenyAll("mnt/storage", idxPath("/private"))
 	if err != nil {
 		t.Errorf("RemoveDenyAll failed: %v", err)
 	}
@@ -279,12 +283,12 @@ func TestPermitted_DenyAll(t *testing.T) {
 	}
 
 	// After removing DenyAll, alice should be permitted due to the Allow rule
-	if !s.Permitted("mnt/storage", "/private", "alice") {
+	if !s.Permitted("mnt/storage", idxPath("/private"), "alice") {
 		t.Error("alice should be permitted after removing deny all")
 	}
 
 	// Bob should be permitted because DenyByDefault=false makes allow lists additive (not exclusive)
-	if !s.Permitted("mnt/storage", "/private", "bob") {
+	if !s.Permitted("mnt/storage", idxPath("/private"), "bob") {
 		t.Error("bob should be permitted after removing deny all (DenyByDefault=false makes allow lists additive)")
 	}
 }
@@ -323,64 +327,64 @@ func TestPermitted_DenyByDefault(t *testing.T) {
 	}
 
 	// Test DenyByDefault: When no rules exist, users should be denied
-	if s.Permitted("mnt/storage", "/private", "alice") {
+	if s.Permitted("mnt/storage", idxPath("/private"), "alice") {
 		t.Error("alice should not be permitted (DenyByDefault is true and no rules exist)")
 	}
-	if s.Permitted("mnt/storage", "/private", "bob") {
+	if s.Permitted("mnt/storage", idxPath("/private"), "bob") {
 		t.Error("bob should not be permitted (DenyByDefault is true and no rules exist)")
 	}
 
 	// Test that explicit allow rules override DenyByDefault
-	if err := s.AllowUser("mnt/storage", "/allowed", "alice"); err != nil {
+	if err := s.AllowUser("mnt/storage", idxPath("/allowed"), "alice"); err != nil {
 		t.Errorf("AllowUser failed: %v", err)
 	}
-	if !s.Permitted("mnt/storage", "/allowed", "alice") {
+	if !s.Permitted("mnt/storage", idxPath("/allowed"), "alice") {
 		t.Error("alice should be permitted (explicit allow rule overrides DenyByDefault)")
 	}
-	if s.Permitted("mnt/storage", "/allowed", "bob") {
+	if s.Permitted("mnt/storage", idxPath("/allowed"), "bob") {
 		t.Error("bob should not be permitted (not in allow list and DenyByDefault is true)")
 	}
 
 	// Test that explicit deny rules work with DenyByDefault
-	if err := s.DenyUser("mnt/storage", "/denied", "alice"); err != nil {
+	if err := s.DenyUser("mnt/storage", idxPath("/denied"), "alice"); err != nil {
 		t.Errorf("DenyUser failed: %v", err)
 	}
-	if s.Permitted("mnt/storage", "/denied", "alice") {
+	if s.Permitted("mnt/storage", idxPath("/denied"), "alice") {
 		t.Error("alice should not be permitted (explicit deny rule)")
 	}
-	if s.Permitted("mnt/storage", "/denied", "bob") {
+	if s.Permitted("mnt/storage", idxPath("/denied"), "bob") {
 		t.Error("bob should not be permitted (DenyByDefault is true)")
 	}
 
 	// Test that DenyByDefault doesn't affect sources where it's disabled
-	if !s.Permitted("mnt/open", "/public", "alice") {
+	if !s.Permitted("mnt/open", idxPath("/public"), "alice") {
 		t.Error("alice should be permitted in open source (DenyByDefault is false)")
 	}
-	if !s.Permitted("mnt/open", "/public", "bob") {
+	if !s.Permitted("mnt/open", idxPath("/public"), "bob") {
 		t.Error("bob should be permitted in open source (DenyByDefault is false)")
 	}
 
 	// Test recursive path checking with DenyByDefault
 	// Allow alice at parent path, should work for child paths too
-	if err := s.AllowUser("mnt/storage", "/parent", "alice"); err != nil {
+	if err := s.AllowUser("mnt/storage", idxPath("/parent"), "alice"); err != nil {
 		t.Errorf("AllowUser failed: %v", err)
 	}
-	if !s.Permitted("mnt/storage", "/parent/child", "alice") {
+	if !s.Permitted("mnt/storage", idxPath("/parent/child"), "alice") {
 		t.Error("alice should be permitted for child path (inherits from parent allow rule)")
 	}
-	if s.Permitted("mnt/storage", "/parent/child", "bob") {
+	if s.Permitted("mnt/storage", idxPath("/parent/child"), "bob") {
 		t.Error("bob should not be permitted for child path (DenyByDefault and not in allow list)")
 	}
 
 	// Test that group rules work with DenyByDefault
 	_ = s.AddUserToGroup("vip", "alice")
-	if err := s.AllowGroup("mnt/storage", "/vip", "vip"); err != nil {
+	if err := s.AllowGroup("mnt/storage", idxPath("/vip"), "vip"); err != nil {
 		t.Errorf("AllowGroup failed: %v", err)
 	}
-	if !s.Permitted("mnt/storage", "/vip", "alice") {
+	if !s.Permitted("mnt/storage", idxPath("/vip"), "alice") {
 		t.Error("alice should be permitted (in allowed group)")
 	}
-	if s.Permitted("mnt/storage", "/vip", "bob") {
+	if s.Permitted("mnt/storage", idxPath("/vip"), "bob") {
 		t.Error("bob should not be permitted (not in allowed group and DenyByDefault is true)")
 	}
 }
@@ -412,26 +416,26 @@ func TestPermitted_DenyByDefaultWithDenyAll(t *testing.T) {
 	}
 
 	// Test that explicit DenyAll rule also works when DenyByDefault is enabled
-	if err := s.DenyAll("mnt/storage", "/restricted"); err != nil {
+	if err := s.DenyAll("mnt/storage", idxPath("/restricted")); err != nil {
 		t.Errorf("DenyAll failed: %v", err)
 	}
-	if s.Permitted("mnt/storage", "/restricted", "alice") {
+	if s.Permitted("mnt/storage", idxPath("/restricted"), "alice") {
 		t.Error("alice should not be permitted (DenyAll rule)")
 	}
-	if s.Permitted("mnt/storage", "/restricted", "bob") {
+	if s.Permitted("mnt/storage", idxPath("/restricted"), "bob") {
 		t.Error("bob should not be permitted (DenyAll rule)")
 	}
 
 	// Test that Allow rule overrides DenyAll even with DenyByDefault
-	if err := s.AllowUser("mnt/storage", "/restricted", "alice"); err != nil {
+	if err := s.AllowUser("mnt/storage", idxPath("/restricted"), "alice"); err != nil {
 		t.Errorf("AllowUser failed: %v", err)
 	}
-	if !s.Permitted("mnt/storage", "/restricted", "alice") {
+	if !s.Permitted("mnt/storage", idxPath("/restricted"), "alice") {
 		t.Error("alice should be permitted (allow overrides DenyAll)")
 	}
 
 	// Remove DenyAll and test that DenyByDefault takes effect
-	removed, err := s.RemoveDenyAll("mnt/storage", "/restricted")
+	removed, err := s.RemoveDenyAll("mnt/storage", idxPath("/restricted"))
 	if err != nil {
 		t.Errorf("RemoveDenyAll failed: %v", err)
 	}
@@ -440,11 +444,11 @@ func TestPermitted_DenyByDefaultWithDenyAll(t *testing.T) {
 	}
 
 	// After removing DenyAll, alice should be permitted due to Allow rule
-	if !s.Permitted("mnt/storage", "/restricted", "alice") {
+	if !s.Permitted("mnt/storage", idxPath("/restricted"), "alice") {
 		t.Error("alice should be permitted after removing DenyAll (has allow rule)")
 	}
 	// Bob should not be permitted due to DenyByDefault
-	if s.Permitted("mnt/storage", "/restricted", "bob") {
+	if s.Permitted("mnt/storage", idxPath("/restricted"), "bob") {
 		t.Error("bob should not be permitted (DenyByDefault is true and no allow rule)")
 	}
 }
@@ -474,47 +478,47 @@ func TestPermitted_DenyByDefault_AdminRootAccess(t *testing.T) {
 	}
 
 	// 3. Set up access rules
-	if err := s.AllowUser("mnt/secure", "/", "admin"); err != nil {
+	if err := s.AllowUser("mnt/secure", idxPath("/"), "admin"); err != nil {
 		t.Fatalf("AllowUser for admin failed: %v", err)
 	}
-	if err := s.AllowUser("mnt/secure", "/test", "graham"); err != nil {
+	if err := s.AllowUser("mnt/secure", idxPath("/test"), "graham"); err != nil {
 		t.Fatalf("AllowUser for graham failed: %v", err)
 	}
 
 	// 4. Assertions
 	// Admin checks
-	if !s.Permitted("mnt/secure", "/", "admin") {
+	if !s.Permitted("mnt/secure", idxPath("/"), "admin") {
 		t.Error("admin should be permitted for /")
 	}
-	if !s.Permitted("mnt/secure", "/test", "admin") {
+	if !s.Permitted("mnt/secure", idxPath("/test"), "admin") {
 		t.Error("admin should be permitted for /test")
 	}
-	if !s.Permitted("mnt/secure", "/test/sub", "admin") {
+	if !s.Permitted("mnt/secure", idxPath("/test/sub"), "admin") {
 		t.Error("admin should be permitted for /test/sub (this is the bug)")
 	}
 
 	// Graham checks
-	if !s.Permitted("mnt/secure", "/test", "graham") {
+	if !s.Permitted("mnt/secure", idxPath("/test"), "graham") {
 		t.Error("graham should be permitted for /test")
 	}
-	if !s.Permitted("mnt/secure", "/test/sub", "graham") {
+	if !s.Permitted("mnt/secure", idxPath("/test/sub"), "graham") {
 		t.Error("graham should be permitted for /test/sub")
 	}
-	if s.Permitted("mnt/secure", "/", "graham") {
+	if s.Permitted("mnt/secure", idxPath("/"), "graham") {
 		t.Error("graham should NOT be permitted for /")
 	}
-	if s.Permitted("mnt/secure", "/anotherfolder", "graham") {
+	if s.Permitted("mnt/secure", idxPath("/anotherfolder"), "graham") {
 		t.Error("graham should NOT be permitted for /anotherfolder")
 	}
 
 	// Bob checks (should have no access)
-	if s.Permitted("mnt/secure", "/", "bob") {
+	if s.Permitted("mnt/secure", idxPath("/"), "bob") {
 		t.Error("bob should NOT be permitted for /")
 	}
-	if s.Permitted("mnt/secure", "/test", "bob") {
+	if s.Permitted("mnt/secure", idxPath("/test"), "bob") {
 		t.Error("bob should NOT be permitted for /test")
 	}
-	if s.Permitted("mnt/secure", "/test/sub", "bob") {
+	if s.Permitted("mnt/secure", idxPath("/test/sub"), "bob") {
 		t.Error("bob should NOT be permitted for /test/sub")
 	}
 }
@@ -547,28 +551,28 @@ func TestUserReportedBug(t *testing.T) {
 
 	// SCENARIO 1: Set up initial access rules exactly as described
 	// testu1 is denied access to USER2_folder
-	if err := s.DenyUser("TEST_FOLDER", "/USER2_folder", "testu1"); err != nil {
+	if err := s.DenyUser("TEST_FOLDER", idxPath("/USER2_folder"), "testu1"); err != nil {
 		t.Fatalf("DenyUser failed for testu1->USER2_folder: %v", err)
 	}
 
 	// testu2 is denied access to USER1_folder
-	if err := s.DenyUser("TEST_FOLDER", "/USER1_folder", "testu2"); err != nil {
+	if err := s.DenyUser("TEST_FOLDER", idxPath("/USER1_folder"), "testu2"); err != nil {
 		t.Fatalf("DenyUser failed for testu2->USER1_folder: %v", err)
 	}
 
 	// VERIFY SCENARIO 1: Initial permissions work correctly
-	if s.Permitted("TEST_FOLDER", "/USER2_folder", "testu1") {
+	if s.Permitted("TEST_FOLDER", idxPath("/USER2_folder"), "testu1") {
 		t.Error("SCENARIO 1 FAILED: testu1 should NOT be permitted to access USER2_folder")
 	}
-	if s.Permitted("TEST_FOLDER", "/USER1_folder", "testu2") {
+	if s.Permitted("TEST_FOLDER", idxPath("/USER1_folder"), "testu2") {
 		t.Error("SCENARIO 1 FAILED: testu2 should NOT be permitted to access USER1_folder")
 	}
 
 	// Verify allowed access still works
-	if !s.Permitted("TEST_FOLDER", "/USER1_folder", "testu1") {
+	if !s.Permitted("TEST_FOLDER", idxPath("/USER1_folder"), "testu1") {
 		t.Error("SCENARIO 1 FAILED: testu1 SHOULD be permitted to access USER1_folder")
 	}
-	if !s.Permitted("TEST_FOLDER", "/USER2_folder", "testu2") {
+	if !s.Permitted("TEST_FOLDER", idxPath("/USER2_folder"), "testu2") {
 		t.Error("SCENARIO 1 FAILED: testu2 SHOULD be permitted to access USER2_folder")
 	}
 
@@ -576,7 +580,7 @@ func TestUserReportedBug(t *testing.T) {
 
 	// SCENARIO 2: The bug should NOT happen with proper access control
 	// testu2 should still be denied access regardless of filesystem changes
-	if s.Permitted("TEST_FOLDER", "/USER1_folder", "testu2") {
+	if s.Permitted("TEST_FOLDER", idxPath("/USER1_folder"), "testu2") {
 		t.Fatal("BUG REPRODUCED: testu2 can now access USER1_folder!")
 	}
 
@@ -607,27 +611,27 @@ func TestSubfolderAccessLogicBug(t *testing.T) {
 	}
 
 	// Set up the exact scenario: testu2 denied access to /USER1_folder
-	if err := s.DenyUser("TEST_FOLDER", "/USER1_folder", "testu2"); err != nil {
+	if err := s.DenyUser("TEST_FOLDER", idxPath("/USER1_folder"), "testu2"); err != nil {
 		t.Fatalf("DenyUser failed: %v", err)
 	}
 
 	// TEST THEORY: What happens when we check testu2's access to a SUBFOLDER that has no explicit rule?
 
 	// Case 1: testu2 access to parent folder (should be denied)
-	if s.Permitted("TEST_FOLDER", "/USER1_folder", "testu2") {
+	if s.Permitted("TEST_FOLDER", idxPath("/USER1_folder"), "testu2") {
 		t.Error("testu2 should be denied access to /USER1_folder")
 	}
 
 	// Case 2: testu2 access to subfolder that doesn't have explicit deny rule
 	// With DenyByDefault=false, this should be ALLOWED!
-	if !s.Permitted("TEST_FOLDER", "/USER1_folder/test_folder", "testu2") {
+	if !s.Permitted("TEST_FOLDER", idxPath("/USER1_folder/test_folder"), "testu2") {
 		t.Log("testu2 is denied access to /USER1_folder/test_folder (subfolder)")
 	} else {
 		t.Log("testu2 HAS access to /USER1_folder/test_folder (subfolder) - this might be the bug!")
 	}
 
 	// Case 3: Let's test with a deeply nested subfolder
-	if s.Permitted("TEST_FOLDER", "/USER1_folder/sub1/sub2/deep", "testu2") {
+	if s.Permitted("TEST_FOLDER", idxPath("/USER1_folder/sub1/sub2/deep"), "testu2") {
 		t.Log("testu2 HAS access to deep subfolder - confirming the pattern")
 	}
 
@@ -662,7 +666,7 @@ func TestFileInfoBrowsingBug(t *testing.T) {
 	}
 
 	// Set up: testu2 denied access to /USER1_folder
-	if err := s.DenyUser("TEST_FOLDER", "/USER1_folder", "testu2"); err != nil {
+	if err := s.DenyUser("TEST_FOLDER", idxPath("/USER1_folder"), "testu2"); err != nil {
 		t.Fatalf("DenyUser failed: %v", err)
 	}
 
@@ -670,8 +674,8 @@ func TestFileInfoBrowsingBug(t *testing.T) {
 	// This tests the exact line: indexPath := info.Path + subFolder.Name
 
 	// Scenario A: Subfolder should inherit deny rule from parent (correct behavior)
-	parentDenied := !s.Permitted("TEST_FOLDER", "/USER1_folder", "testu2")
-	subfolderDenied := !s.Permitted("TEST_FOLDER", "/USER1_folder/test_folder", "testu2")
+	parentDenied := !s.Permitted("TEST_FOLDER", idxPath("/USER1_folder"), "testu2")
+	subfolderDenied := !s.Permitted("TEST_FOLDER", idxPath("/USER1_folder/test_folder"), "testu2")
 
 	t.Logf("Parent denied: %v, Subfolder denied: %v", parentDenied, subfolderDenied)
 
@@ -691,7 +695,7 @@ func TestFileInfoBrowsingBug(t *testing.T) {
 	}
 
 	for _, testPath := range testPaths {
-		permitted := s.Permitted("TEST_FOLDER", testPath, "testu2")
+		permitted := s.Permitted("TEST_FOLDER", idxPath(testPath), "testu2")
 		t.Logf("Path %q permitted for testu2: %v", testPath, permitted)
 
 		// Paths without leading slash should ALWAYS be denied (security fix)
@@ -737,10 +741,10 @@ func TestCacheClearingOnRuleDeletion(t *testing.T) {
 	}
 
 	// Step 1: Add some rules
-	if err := s.DenyUser("test_source", "/path1/", "user1"); err != nil {
+	if err := s.DenyUser("test_source", idxPath("/path1/"), "user1"); err != nil {
 		t.Fatalf("Failed to deny user1: %v", err)
 	}
-	if err := s.AllowUser("test_source", "/path2/", "user2"); err != nil {
+	if err := s.AllowUser("test_source", idxPath("/path2/"), "user2"); err != nil {
 		t.Fatalf("Failed to allow user2: %v", err)
 	}
 
@@ -773,7 +777,7 @@ func TestCacheClearingOnRuleDeletion(t *testing.T) {
 	}
 
 	// Step 4: Delete a rule
-	removed, err := s.RemoveDenyUser("test_source", "/path1/", "user1")
+	removed, err := s.RemoveDenyUser("test_source", idxPath("/path1/"), "user1")
 	if err != nil {
 		t.Fatalf("Failed to remove deny user: %v", err)
 	}
@@ -799,7 +803,7 @@ func TestCacheClearingOnRuleDeletion(t *testing.T) {
 	}
 
 	// Step 6: Delete the remaining rule
-	removed, err = s.RemoveAllowUser("test_source", "/path2/", "user2")
+	removed, err = s.RemoveAllowUser("test_source", idxPath("/path2/"), "user2")
 	if err != nil {
 		t.Fatalf("Failed to remove allow user: %v", err)
 	}
@@ -848,13 +852,13 @@ func TestCacheClearingOnBulkRuleDeletion(t *testing.T) {
 	}
 
 	// Step 1: Add multiple rules for user1
-	if err := s.DenyUser("test_source", "/path1", "user1"); err != nil {
+	if err := s.DenyUser("test_source", idxPath("/path1"), "user1"); err != nil {
 		t.Fatalf("Failed to deny user1 on path1: %v", err)
 	}
-	if err := s.AllowUser("test_source", "/path2", "user1"); err != nil {
+	if err := s.AllowUser("test_source", idxPath("/path2"), "user1"); err != nil {
 		t.Fatalf("Failed to allow user1 on path2: %v", err)
 	}
-	if err := s.DenyUser("test_source", "/path3", "user1"); err != nil {
+	if err := s.DenyUser("test_source", idxPath("/path3"), "user1"); err != nil {
 		t.Fatalf("Failed to deny user1 on path3: %v", err)
 	}
 
@@ -914,11 +918,11 @@ func TestNestedFolderAccessBug(t *testing.T) {
 	}
 
 	// Set up access rules as described
-	err := s.DenyUser("TEST", "/folder2", "user1")
+	err := s.DenyUser("TEST", idxPath("/folder2"), "user1")
 	if err != nil {
 		t.Fatalf("Failed to deny user1 access to folder2: %v", err)
 	}
-	err = s.DenyUser("TEST", "/folder1", "user2")
+	err = s.DenyUser("TEST", idxPath("/folder1"), "user2")
 	if err != nil {
 		t.Fatalf("Failed to deny user2 access to folder1: %v", err)
 	}
@@ -927,7 +931,7 @@ func TestNestedFolderAccessBug(t *testing.T) {
 
 	// Scenario 1: Direct folder access (should work correctly)
 	t.Log("Testing user1 access to /folder2 (should be denied)")
-	result1 := s.Permitted("TEST", "/folder2", "user1")
+	result1 := s.Permitted("TEST", idxPath("/folder2"), "user1")
 	if result1 {
 		t.Error("user1 should be denied access to /folder2")
 	} else {
@@ -935,7 +939,7 @@ func TestNestedFolderAccessBug(t *testing.T) {
 	}
 
 	t.Log("Testing user2 access to /folder1 (should be denied)")
-	result2 := s.Permitted("TEST", "/folder1", "user2")
+	result2 := s.Permitted("TEST", idxPath("/folder1"), "user2")
 	if result2 {
 		t.Error("user2 should be denied access to /folder1")
 	} else {
@@ -943,7 +947,7 @@ func TestNestedFolderAccessBug(t *testing.T) {
 	}
 
 	t.Log("Testing user1 access to /folder1 (should be allowed)")
-	result3 := s.Permitted("TEST", "/folder1", "user1")
+	result3 := s.Permitted("TEST", idxPath("/folder1"), "user1")
 	if !result3 {
 		t.Error("user1 should be allowed access to /folder1")
 	} else {
@@ -951,7 +955,7 @@ func TestNestedFolderAccessBug(t *testing.T) {
 	}
 
 	t.Log("Testing user2 access to /folder2 (should be allowed)")
-	result4 := s.Permitted("TEST", "/folder2", "user2")
+	result4 := s.Permitted("TEST", idxPath("/folder2"), "user2")
 	if !result4 {
 		t.Error("user2 should be allowed access to /folder2")
 	} else {
@@ -962,7 +966,7 @@ func TestNestedFolderAccessBug(t *testing.T) {
 
 	// Scenario 2: Nested folder access (this is where the bug occurs)
 	t.Log("Testing user1 access to /folder2/another_folder2 (should be denied due to parent rule)")
-	result5 := s.Permitted("TEST", "/folder2/another_folder2", "user1")
+	result5 := s.Permitted("TEST", idxPath("/folder2/another_folder2"), "user1")
 	if result5 {
 		t.Error("BUG: user1 should be denied access to /folder2/another_folder2 (parent folder is denied)")
 	} else {
@@ -970,7 +974,7 @@ func TestNestedFolderAccessBug(t *testing.T) {
 	}
 
 	t.Log("Testing user2 access to /folder1/another_folder1 (should be denied due to parent rule)")
-	result6 := s.Permitted("TEST", "/folder1/another_folder1", "user2")
+	result6 := s.Permitted("TEST", idxPath("/folder1/another_folder1"), "user2")
 	if result6 {
 		t.Error("BUG: user2 should be denied access to /folder1/another_folder1 (parent folder is denied)")
 	} else {
@@ -978,7 +982,7 @@ func TestNestedFolderAccessBug(t *testing.T) {
 	}
 
 	t.Log("Testing user1 access to /folder1/another_folder1 (should be allowed)")
-	result7 := s.Permitted("TEST", "/folder1/another_folder1", "user1")
+	result7 := s.Permitted("TEST", idxPath("/folder1/another_folder1"), "user1")
 	if !result7 {
 		t.Error("user1 should be allowed access to /folder1/another_folder1")
 	} else {
@@ -986,7 +990,7 @@ func TestNestedFolderAccessBug(t *testing.T) {
 	}
 
 	t.Log("Testing user2 access to /folder2/another_folder2 (should be allowed)")
-	result8 := s.Permitted("TEST", "/folder2/another_folder2", "user2")
+	result8 := s.Permitted("TEST", idxPath("/folder2/another_folder2"), "user2")
 	if !result8 {
 		t.Error("user2 should be allowed access to /folder2/another_folder2")
 	} else {
@@ -995,7 +999,7 @@ func TestNestedFolderAccessBug(t *testing.T) {
 
 	// Test deeper nesting
 	t.Log("Testing deeper nesting: user1 access to /folder2/another_folder2/deep_folder (should be denied)")
-	result9 := s.Permitted("TEST", "/folder2/another_folder2/deep_folder", "user1")
+	result9 := s.Permitted("TEST", idxPath("/folder2/another_folder2/deep_folder"), "user1")
 	if result9 {
 		t.Error("BUG: user1 should be denied access to /folder2/another_folder2/deep_folder (parent folder is denied)")
 	} else {
@@ -1005,13 +1009,13 @@ func TestNestedFolderAccessBug(t *testing.T) {
 	t.Log("=== SCENARIO 3: Specific allow rule on subfolder ===")
 
 	// Add a specific allow rule for user1 on a subfolder of folder2
-	err = s.AllowUser("TEST", "/folder2/allowed_subfolder", "user1")
+	err = s.AllowUser("TEST", idxPath("/folder2/allowed_subfolder"), "user1")
 	if err != nil {
 		t.Fatalf("Failed to allow user1 access to /folder2/allowed_subfolder: %v", err)
 	}
 
 	t.Log("Testing user1 access to /folder2/allowed_subfolder (should be allowed due to specific allow rule)")
-	result10 := s.Permitted("TEST", "/folder2/allowed_subfolder", "user1")
+	result10 := s.Permitted("TEST", idxPath("/folder2/allowed_subfolder"), "user1")
 	if !result10 {
 		t.Error("user1 should be allowed access to /folder2/allowed_subfolder (has specific allow rule)")
 	} else {
@@ -1019,7 +1023,7 @@ func TestNestedFolderAccessBug(t *testing.T) {
 	}
 
 	t.Log("Testing user1 access to /folder2/denied_subfolder (should be denied - no specific allow rule)")
-	result11 := s.Permitted("TEST", "/folder2/denied_subfolder", "user1")
+	result11 := s.Permitted("TEST", idxPath("/folder2/denied_subfolder"), "user1")
 	if result11 {
 		t.Error("user1 should be denied access to /folder2/denied_subfolder (no specific allow rule)")
 	} else {
@@ -1074,11 +1078,11 @@ func TestFolderVisibilityBugReproduction(t *testing.T) {
 	}
 
 	// Set up the exact access rules from the user's report
-	err = s.DenyUser("TEST", "/test/folder1", "user2")
+	err = s.DenyUser("TEST", idxPath("/test/folder1"), "user2")
 	if err != nil {
 		t.Fatalf("failed to deny user2 access to /test/folder1: %v", err)
 	}
-	err = s.DenyUser("TEST", "/test/folder2", "user1")
+	err = s.DenyUser("TEST", idxPath("/test/folder2"), "user1")
 	if err != nil {
 		t.Fatalf("failed to deny user1 access to /test/folder2: %v", err)
 	}
@@ -1087,7 +1091,7 @@ func TestFolderVisibilityBugReproduction(t *testing.T) {
 	// This simulates what happens when the frontend calls the API
 
 	// First, verify that user1 cannot access /test/folder2 directly
-	permitted := s.Permitted("TEST", "/test/folder2", "user1")
+	permitted := s.Permitted("TEST", idxPath("/test/folder2"), "user1")
 	if permitted {
 		t.Error("user1 should be denied access to /test/folder2")
 	} else {
@@ -1114,7 +1118,7 @@ func TestFolderVisibilityBugReproduction(t *testing.T) {
 
 	// These should fail (buggy behavior) - but they actually fail due to missing source config
 	for i, path := range buggyPaths {
-		permitted := s.Permitted("TEST", path, "user1")
+		permitted := s.Permitted("TEST", idxPath(path), "user1")
 		// Note: These actually return false because there's no source config, not because of the path bug
 		t.Logf("Buggy path %d: %s -> %v (would be true if source config existed)", i+1, path, permitted)
 	}
@@ -1127,7 +1131,7 @@ func TestFolderVisibilityBugReproduction(t *testing.T) {
 
 	// These should fail (correct behavior)
 	for i, path := range correctPaths {
-		permitted := s.Permitted("TEST", path, "user1")
+		permitted := s.Permitted("TEST", idxPath(path), "user1")
 		if permitted {
 			t.Errorf("Correct path construction should deny access: %s", path)
 		}
@@ -1139,7 +1143,7 @@ func TestFolderVisibilityBugReproduction(t *testing.T) {
 	hasPermittedPaths := false
 	for _, folder := range mockFolders {
 		correctPath := "/test/folder2/" + folder.Name
-		if s.Permitted("TEST", correctPath, "user1") {
+		if s.Permitted("TEST", idxPath(correctPath), "user1") {
 			hasPermittedPaths = true
 			t.Logf("Found permitted subfolder: %s", folder.Name)
 		}
@@ -1199,11 +1203,11 @@ func TestHasAnyVisibleItems(t *testing.T) {
 	}
 
 	// Set up access rules
-	err = s.DenyUser("TEST", "/folder1", "user1")
+	err = s.DenyUser("TEST", idxPath("/folder1"), "user1")
 	if err != nil {
 		t.Fatalf("failed to deny user1 access to /folder1: %v", err)
 	}
-	err = s.AllowUser("TEST", "/folder1/allowed_subfolder", "user1")
+	err = s.AllowUser("TEST", idxPath("/folder1/allowed_subfolder"), "user1")
 	if err != nil {
 		t.Fatalf("failed to allow user1 access to /folder1/allowed_subfolder: %v", err)
 	}
@@ -1212,19 +1216,19 @@ func TestHasAnyVisibleItems(t *testing.T) {
 	itemNames := []string{"allowed_subfolder", "denied_subfolder", "another_denied_folder"}
 
 	// Test for user1 (denied access to parent folder but has access to one subfolder)
-	hasVisible := s.HasAnyVisibleItems("TEST", "/folder1", itemNames, "user1")
+	hasVisible := s.HasAnyVisibleItems("TEST", idxPath("/folder1"), itemNames, "user1")
 	if !hasVisible {
 		t.Error("Expected user1 to have access to at least one item in /folder1")
 	}
 
 	// Test for user2 (no restrictions, but no source config so will be denied)
-	hasVisible2 := s.HasAnyVisibleItems("TEST", "/folder1", itemNames, "user2")
+	hasVisible2 := s.HasAnyVisibleItems("TEST", idxPath("/folder1"), itemNames, "user2")
 	// Note: user2 will be denied due to missing source config, not due to access rules
 	t.Logf("user2 access to items in /folder1: %v (denied due to missing source config)", hasVisible2)
 
 	// Test with no accessible items
 	deniedItemNames := []string{"denied_subfolder", "another_denied_folder"}
-	hasVisible3 := s.HasAnyVisibleItems("TEST", "/folder1", deniedItemNames, "user1")
+	hasVisible3 := s.HasAnyVisibleItems("TEST", idxPath("/folder1"), deniedItemNames, "user1")
 	if hasVisible3 {
 		t.Error("Expected user1 to NOT have access to denied items in /folder1")
 	}
@@ -1239,22 +1243,22 @@ func TestRemoveUserCascade_OnlyRemovesSpecificList(t *testing.T) {
 	createTestUser(t, userStore, "alice")
 	var err error
 	// Set up rules: alice has both allow and deny rules on different paths
-	if err = s.AllowUser("mnt/storage", "/docs/", "alice"); err != nil {
+	if err = s.AllowUser("mnt/storage", idxPath("/docs/"), "alice"); err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
-	if err = s.AllowUser("mnt/storage", "/docs/public/", "alice"); err != nil {
+	if err = s.AllowUser("mnt/storage", idxPath("/docs/public/"), "alice"); err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
-	if err = s.DenyUser("mnt/storage", "/docs/", "alice"); err != nil {
+	if err = s.DenyUser("mnt/storage", idxPath("/docs/"), "alice"); err != nil {
 		t.Fatalf("DenyUser failed: %v", err)
 	}
-	if err = s.DenyUser("mnt/storage", "/docs/private/", "alice"); err != nil {
+	if err = s.DenyUser("mnt/storage", idxPath("/docs/private/"), "alice"); err != nil {
 		t.Fatalf("DenyUser failed: %v", err)
 	}
 
 	// Cascade delete only allow rules
 	var count int
-	count, err = s.RemoveUserCascade("mnt/storage", "/docs/", "alice", true)
+	count, err = s.RemoveUserCascade("mnt/storage", idxPath("/docs/"), "alice", true)
 	if err != nil {
 		t.Fatalf("RemoveUserCascade failed: %v", err)
 	}
@@ -1263,21 +1267,21 @@ func TestRemoveUserCascade_OnlyRemovesSpecificList(t *testing.T) {
 	}
 
 	// Verify allow rules are gone
-	rule, ok := s.GetFrontendRules("mnt/storage", "/docs/")
+	rule, ok := s.GetFrontendRules("mnt/storage", idxPath("/docs/"))
 	if ok && len(rule.Allow.Users) != 0 {
 		t.Error("Allow rule should be removed from /docs/")
 	}
-	rule, ok = s.GetFrontendRules("mnt/storage", "/docs/public/")
+	rule, ok = s.GetFrontendRules("mnt/storage", idxPath("/docs/public/"))
 	if ok && len(rule.Allow.Users) != 0 {
 		t.Error("Allow rule should be removed from /docs/public/")
 	}
 
 	// Verify deny rules are still present
-	rule, ok = s.GetFrontendRules("mnt/storage", "/docs/")
+	rule, ok = s.GetFrontendRules("mnt/storage", idxPath("/docs/"))
 	if !ok || len(rule.Deny.Users) == 0 {
 		t.Error("Deny rule should still exist on /docs/")
 	}
-	rule, ok = s.GetFrontendRules("mnt/storage", "/docs/private/")
+	rule, ok = s.GetFrontendRules("mnt/storage", idxPath("/docs/private/"))
 	if !ok || len(rule.Deny.Users) == 0 {
 		t.Error("Deny rule should still exist on /docs/private/")
 	}
@@ -1293,22 +1297,22 @@ func TestRemoveUserCascade_DenyRules(t *testing.T) {
 	var err error
 
 	// Set up both allow and deny rules
-	if err = s.AllowUser("mnt/storage", "/projects/", "bob"); err != nil {
+	if err = s.AllowUser("mnt/storage", idxPath("/projects/"), "bob"); err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
-	if err = s.AllowUser("mnt/storage", "/projects/team/", "bob"); err != nil {
+	if err = s.AllowUser("mnt/storage", idxPath("/projects/team/"), "bob"); err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
-	if err = s.DenyUser("mnt/storage", "/projects/", "bob"); err != nil {
+	if err = s.DenyUser("mnt/storage", idxPath("/projects/"), "bob"); err != nil {
 		t.Fatalf("DenyUser failed: %v", err)
 	}
-	if err = s.DenyUser("mnt/storage", "/projects/secret/", "bob"); err != nil {
+	if err = s.DenyUser("mnt/storage", idxPath("/projects/secret/"), "bob"); err != nil {
 		t.Fatalf("DenyUser failed: %v", err)
 	}
 
 	// Cascade delete only deny rules
 	var count int
-	count, err = s.RemoveUserCascade("mnt/storage", "/projects/", "bob", false)
+	count, err = s.RemoveUserCascade("mnt/storage", idxPath("/projects/"), "bob", false)
 	if err != nil {
 		t.Fatalf("RemoveUserCascade failed: %v", err)
 	}
@@ -1317,21 +1321,21 @@ func TestRemoveUserCascade_DenyRules(t *testing.T) {
 	}
 
 	// Verify deny rules are gone
-	rule, ok := s.GetFrontendRules("mnt/storage", "/projects/")
+	rule, ok := s.GetFrontendRules("mnt/storage", idxPath("/projects/"))
 	if !ok || len(rule.Deny.Users) != 0 {
 		t.Error("Deny rule should be removed from /projects/")
 	}
-	rule, ok = s.GetFrontendRules("mnt/storage", "/projects/secret/")
+	rule, ok = s.GetFrontendRules("mnt/storage", idxPath("/projects/secret/"))
 	if ok && len(rule.Deny.Users) != 0 {
 		t.Error("Deny rule should be removed from /projects/secret/")
 	}
 
 	// Verify allow rules are still present
-	rule, ok = s.GetFrontendRules("mnt/storage", "/projects/")
+	rule, ok = s.GetFrontendRules("mnt/storage", idxPath("/projects/"))
 	if !ok || len(rule.Allow.Users) == 0 {
 		t.Error("Allow rule should still exist on /projects/")
 	}
-	rule, ok = s.GetFrontendRules("mnt/storage", "/projects/team/")
+	rule, ok = s.GetFrontendRules("mnt/storage", idxPath("/projects/team/"))
 	if !ok || len(rule.Allow.Users) == 0 {
 		t.Error("Allow rule should still exist on /projects/team/")
 	}
@@ -1358,7 +1362,7 @@ func TestRemoveUserCascade_MultipleSubpaths(t *testing.T) {
 	}
 
 	for _, path := range paths {
-		if err := s.AllowUser("mnt/storage", path, "carol"); err != nil {
+		if err := s.AllowUser("mnt/storage", idxPath(path), "carol"); err != nil {
 			t.Fatalf("AllowUser failed for %s: %v", path, err)
 		}
 	}
@@ -1366,7 +1370,7 @@ func TestRemoveUserCascade_MultipleSubpaths(t *testing.T) {
 	// Cascade delete from /data/2024/ should remove all 2024 subpaths
 	var count int
 	var err error
-	count, err = s.RemoveUserCascade("mnt/storage", "/data/2024/", "carol", true)
+	count, err = s.RemoveUserCascade("mnt/storage", idxPath("/data/2024/"), "carol", true)
 	if err != nil {
 		t.Fatalf("RemoveUserCascade failed: %v", err)
 	}
@@ -1376,18 +1380,18 @@ func TestRemoveUserCascade_MultipleSubpaths(t *testing.T) {
 
 	// Verify 2024 paths are gone
 	for _, path := range []string{"/data/2024/", "/data/2024/q1/", "/data/2024/q1/jan/", "/data/2024/q1/feb/", "/data/2024/q2/", "/data/2024/q2/apr/"} {
-		rule, ok := s.GetFrontendRules("mnt/storage", path)
+		rule, ok := s.GetFrontendRules("mnt/storage", idxPath(path))
 		if ok && len(rule.Allow.Users) > 0 {
 			t.Errorf("Rule should be removed from %s", path)
 		}
 	}
 
 	// Verify other paths still exist
-	rule, ok := s.GetFrontendRules("mnt/storage", "/data/")
+	rule, ok := s.GetFrontendRules("mnt/storage", idxPath("/data/"))
 	if !ok || len(rule.Allow.Users) == 0 {
 		t.Error("Rule should still exist on /data/")
 	}
-	rule, ok = s.GetFrontendRules("mnt/storage", "/data/2025/")
+	rule, ok = s.GetFrontendRules("mnt/storage", idxPath("/data/2025/"))
 	if !ok || len(rule.Allow.Users) == 0 {
 		t.Error("Rule should still exist on /data/2025/")
 	}
@@ -1407,21 +1411,21 @@ func TestRemoveGroupCascade_OnlyRemovesSpecificList(t *testing.T) {
 	}
 
 	// Set up both allow and deny rules for the group
-	if err := s.AllowGroup("mnt/storage", "/content/", "editors"); err != nil {
+	if err := s.AllowGroup("mnt/storage", idxPath("/content/"), "editors"); err != nil {
 		t.Fatalf("AllowGroup failed: %v", err)
 	}
-	if err := s.AllowGroup("mnt/storage", "/content/articles/", "editors"); err != nil {
+	if err := s.AllowGroup("mnt/storage", idxPath("/content/articles/"), "editors"); err != nil {
 		t.Fatalf("AllowGroup failed: %v", err)
 	}
-	if err := s.DenyGroup("mnt/storage", "/content/", "editors"); err != nil {
+	if err := s.DenyGroup("mnt/storage", idxPath("/content/"), "editors"); err != nil {
 		t.Fatalf("DenyGroup failed: %v", err)
 	}
-	if err := s.DenyGroup("mnt/storage", "/content/drafts/", "editors"); err != nil {
+	if err := s.DenyGroup("mnt/storage", idxPath("/content/drafts/"), "editors"); err != nil {
 		t.Fatalf("DenyGroup failed: %v", err)
 	}
 
 	// Cascade delete only allow rules
-	count, err := s.RemoveGroupCascade("mnt/storage", "/content/", "editors", true)
+	count, err := s.RemoveGroupCascade("mnt/storage", idxPath("/content/"), "editors", true)
 	if err != nil {
 		t.Fatalf("RemoveGroupCascade failed: %v", err)
 	}
@@ -1430,17 +1434,17 @@ func TestRemoveGroupCascade_OnlyRemovesSpecificList(t *testing.T) {
 	}
 
 	// Verify allow rules are gone
-	rule, ok := s.GetFrontendRules("mnt/storage", "/content/")
+	rule, ok := s.GetFrontendRules("mnt/storage", idxPath("/content/"))
 	if !ok || len(rule.Allow.Groups) != 0 {
 		t.Error("Allow rule should be removed from /content/")
 	}
 
 	// Verify deny rules are still present
-	rule, ok = s.GetFrontendRules("mnt/storage", "/content/")
+	rule, ok = s.GetFrontendRules("mnt/storage", idxPath("/content/"))
 	if !ok || len(rule.Deny.Groups) == 0 {
 		t.Error("Deny rule should still exist on /content/")
 	}
-	rule, ok = s.GetFrontendRules("mnt/storage", "/content/drafts/")
+	rule, ok = s.GetFrontendRules("mnt/storage", idxPath("/content/drafts/"))
 	if !ok || len(rule.Deny.Groups) == 0 {
 		t.Error("Deny rule should still exist on /content/drafts/")
 	}
@@ -1461,22 +1465,22 @@ func TestRemoveGroupCascade_DenyRules(t *testing.T) {
 	}
 
 	// Set up both allow and deny rules for the group
-	if err = s.AllowGroup("mnt/storage", "/work/", "contractors"); err != nil {
+	if err = s.AllowGroup("mnt/storage", idxPath("/work/"), "contractors"); err != nil {
 		t.Fatalf("AllowGroup failed: %v", err)
 	}
-	if err = s.AllowGroup("mnt/storage", "/work/public/", "contractors"); err != nil {
+	if err = s.AllowGroup("mnt/storage", idxPath("/work/public/"), "contractors"); err != nil {
 		t.Fatalf("AllowGroup failed: %v", err)
 	}
-	if err = s.DenyGroup("mnt/storage", "/work/", "contractors"); err != nil {
+	if err = s.DenyGroup("mnt/storage", idxPath("/work/"), "contractors"); err != nil {
 		t.Fatalf("DenyGroup failed: %v", err)
 	}
-	if err = s.DenyGroup("mnt/storage", "/work/confidential/", "contractors"); err != nil {
+	if err = s.DenyGroup("mnt/storage", idxPath("/work/confidential/"), "contractors"); err != nil {
 		t.Fatalf("DenyGroup failed: %v", err)
 	}
 
 	// Cascade delete only deny rules
 	var count int
-	count, err = s.RemoveGroupCascade("mnt/storage", "/work/", "contractors", false)
+	count, err = s.RemoveGroupCascade("mnt/storage", idxPath("/work/"), "contractors", false)
 	if err != nil {
 		t.Fatalf("RemoveGroupCascade failed: %v", err)
 	}
@@ -1485,21 +1489,21 @@ func TestRemoveGroupCascade_DenyRules(t *testing.T) {
 	}
 
 	// Verify deny rules are gone
-	rule, ok := s.GetFrontendRules("mnt/storage", "/work/")
+	rule, ok := s.GetFrontendRules("mnt/storage", idxPath("/work/"))
 	if ok && len(rule.Deny.Groups) != 0 {
 		t.Error("Deny rule should be removed from /work/")
 	}
-	rule, ok = s.GetFrontendRules("mnt/storage", "/work/confidential/")
+	rule, ok = s.GetFrontendRules("mnt/storage", idxPath("/work/confidential/"))
 	if ok && len(rule.Deny.Groups) != 0 {
 		t.Error("Deny rule should be removed from /work/confidential/")
 	}
 
 	// Verify allow rules are still present
-	rule, ok = s.GetFrontendRules("mnt/storage", "/work/")
+	rule, ok = s.GetFrontendRules("mnt/storage", idxPath("/work/"))
 	if !ok || len(rule.Allow.Groups) == 0 {
 		t.Error("Allow rule should still exist on /work/")
 	}
-	rule, ok = s.GetFrontendRules("mnt/storage", "/work/public/")
+	rule, ok = s.GetFrontendRules("mnt/storage", idxPath("/work/public/"))
 	if !ok || len(rule.Allow.Groups) == 0 {
 		t.Error("Allow rule should still exist on /work/public/")
 	}
@@ -1516,7 +1520,7 @@ func TestRemoveUserCascade_EmptyResult(t *testing.T) {
 	// Try to cascade delete when no rules exist
 	var count int
 	var err error
-	count, err = s.RemoveUserCascade("mnt/storage", "/nonexistent/", "dave", true)
+	count, err = s.RemoveUserCascade("mnt/storage", idxPath("/nonexistent/"), "dave", true)
 	if err != nil {
 		t.Fatalf("RemoveUserCascade should not error on nonexistent rules: %v", err)
 	}
@@ -1534,14 +1538,14 @@ func TestRemoveUserCascade_ExactPathOnly(t *testing.T) {
 	createTestUser(t, userStore, "eve")
 
 	// Add rule only on exact path, no subpaths
-	err := s.AllowUser("mnt/storage", "/single/", "eve")
+	err := s.AllowUser("mnt/storage", idxPath("/single/"), "eve")
 	if err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
 
 	// Cascade delete should remove the exact path rule
 	var count int
-	count, err = s.RemoveUserCascade("mnt/storage", "/single/", "eve", true)
+	count, err = s.RemoveUserCascade("mnt/storage", idxPath("/single/"), "eve", true)
 	if err != nil {
 		t.Fatalf("RemoveUserCascade failed: %v", err)
 	}
@@ -1550,7 +1554,7 @@ func TestRemoveUserCascade_ExactPathOnly(t *testing.T) {
 	}
 
 	// Verify rule is gone
-	rule, ok := s.GetFrontendRules("mnt/storage", "/single/")
+	rule, ok := s.GetFrontendRules("mnt/storage", idxPath("/single/"))
 	if ok && len(rule.Allow.Users) > 0 {
 		t.Error("Rule should be removed from /single/")
 	}
@@ -1565,18 +1569,18 @@ func TestRemoveUserCascade_DoesNotAffectParentPaths(t *testing.T) {
 	createTestUser(t, userStore, "frank")
 
 	// Set up rules on parent and child paths
-	if err := s.AllowUser("mnt/storage", "/parent/", "frank"); err != nil {
+	if err := s.AllowUser("mnt/storage", idxPath("/parent/"), "frank"); err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
-	if err := s.AllowUser("mnt/storage", "/parent/child/", "frank"); err != nil {
+	if err := s.AllowUser("mnt/storage", idxPath("/parent/child/"), "frank"); err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
-	if err := s.AllowUser("mnt/storage", "/parent/child/grandchild/", "frank"); err != nil {
+	if err := s.AllowUser("mnt/storage", idxPath("/parent/child/grandchild/"), "frank"); err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
 
 	// Cascade delete from child path
-	count, err := s.RemoveUserCascade("mnt/storage", "/parent/child/", "frank", true)
+	count, err := s.RemoveUserCascade("mnt/storage", idxPath("/parent/child/"), "frank", true)
 	if err != nil {
 		t.Fatalf("RemoveUserCascade failed: %v", err)
 	}
@@ -1585,13 +1589,13 @@ func TestRemoveUserCascade_DoesNotAffectParentPaths(t *testing.T) {
 	}
 
 	// Verify parent rule still exists
-	rule, ok := s.GetFrontendRules("mnt/storage", "/parent/")
+	rule, ok := s.GetFrontendRules("mnt/storage", idxPath("/parent/"))
 	if !ok || len(rule.Allow.Users) == 0 {
 		t.Error("Parent rule should still exist")
 	}
 
 	// Verify child rules are gone
-	rule, ok = s.GetFrontendRules("mnt/storage", "/parent/child/")
+	rule, ok = s.GetFrontendRules("mnt/storage", idxPath("/parent/child/"))
 	if ok && len(rule.Allow.Users) > 0 {
 		t.Error("Child rule should be removed")
 	}
@@ -1606,10 +1610,10 @@ func TestRemoveUserCascade_CleanupEmptyRules(t *testing.T) {
 	createTestUser(t, userStore, "grace")
 
 	// Add only allow rule (no deny rules)
-	if err := s.AllowUser("mnt/storage", "/temp/", "grace"); err != nil {
+	if err := s.AllowUser("mnt/storage", idxPath("/temp/"), "grace"); err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
-	if err := s.AllowUser("mnt/storage", "/temp/files/", "grace"); err != nil {
+	if err := s.AllowUser("mnt/storage", idxPath("/temp/files/"), "grace"); err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
 
@@ -1624,7 +1628,7 @@ func TestRemoveUserCascade_CleanupEmptyRules(t *testing.T) {
 
 	// Cascade delete - should remove rules and cleanup empty rule objects
 	var count int
-	count, err = s.RemoveUserCascade("mnt/storage", "/temp/", "grace", true)
+	count, err = s.RemoveUserCascade("mnt/storage", idxPath("/temp/"), "grace", true)
 	if err != nil {
 		t.Fatalf("RemoveUserCascade failed: %v", err)
 	}
@@ -1655,23 +1659,23 @@ func TestRemoveUserCascade_MixedUsers(t *testing.T) {
 	createTestUser(t, userStore, "iris")
 
 	// Add rules for both users on same paths
-	err := s.AllowUser("mnt/storage", "/shared/", "henry")
+	err := s.AllowUser("mnt/storage", idxPath("/shared/"), "henry")
 	if err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
-	if err = s.AllowUser("mnt/storage", "/shared/", "iris"); err != nil {
+	if err = s.AllowUser("mnt/storage", idxPath("/shared/"), "iris"); err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
-	if err = s.AllowUser("mnt/storage", "/shared/docs/", "henry"); err != nil {
+	if err = s.AllowUser("mnt/storage", idxPath("/shared/docs/"), "henry"); err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
-	if err = s.AllowUser("mnt/storage", "/shared/docs/", "iris"); err != nil {
+	if err = s.AllowUser("mnt/storage", idxPath("/shared/docs/"), "iris"); err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
 
 	// Cascade delete only henry's rules
 	var count int
-	count, err = s.RemoveUserCascade("mnt/storage", "/shared/", "henry", true)
+	count, err = s.RemoveUserCascade("mnt/storage", idxPath("/shared/"), "henry", true)
 	if err != nil {
 		t.Fatalf("RemoveUserCascade failed: %v", err)
 	}
@@ -1680,7 +1684,7 @@ func TestRemoveUserCascade_MixedUsers(t *testing.T) {
 	}
 
 	// Verify henry's rules are gone
-	rule, ok := s.GetFrontendRules("mnt/storage", "/shared/")
+	rule, ok := s.GetFrontendRules("mnt/storage", idxPath("/shared/"))
 	if !ok {
 		t.Fatal("Rule should still exist (iris's rule)")
 	}

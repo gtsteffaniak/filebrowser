@@ -233,7 +233,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 
 		// Verify access control before opening the file (direct rule check)
 		if d.share.Hash == "" && accessStore != nil {
-			if !accessStore.Permitted(idx.Path, firstFilePath, d.user.Username) {
+			if !accessStore.Permitted(idx.Path, utils.IndexPathFromNormalized(firstFilePath, true), d.user.Username) {
 				logger.Debugf("user %s denied access to path %s", d.user.Username, firstFilePath)
 				// Send OnlyOffice error log if this was an OnlyOffice download
 				if isOnlyOffice && logContext != nil {

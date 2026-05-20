@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
@@ -59,7 +60,11 @@ func accessGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 
 	if indexPath != "" {
-		rule, _ := accessStore.GetFrontendRules(sourcePath, indexPath)
+		parsedPath, err := utils.ParseSanitizedIndexPath(indexPath, true)
+		if err != nil {
+			return http.StatusBadRequest, err
+		}
+		rule, _ := accessStore.GetFrontendRules(sourcePath, parsedPath)
 		return renderJSON(w, r, rule)
 	}
 
@@ -104,24 +109,27 @@ func accessPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	if indexPath == "" || body.RuleCategory == "" || (body.RuleCategory != "all" && body.Value == "") {
 		return http.StatusBadRequest, fmt.Errorf("path, ruleCategory, and value are required, unless ruleCategory is 'all'")
 	}
-	var err error
+	parsedPath, err := utils.ParseSanitizedIndexPath(indexPath, true)
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
 	if body.Allow {
 		switch body.RuleCategory {
 		case "user":
-			err = accessStore.AllowUser(index.Path, indexPath, body.Value)
+			err = accessStore.AllowUser(index.Path, parsedPath, body.Value)
 		case "group":
-			err = accessStore.AllowGroup(index.Path, indexPath, body.Value)
+			err = accessStore.AllowGroup(index.Path, parsedPath, body.Value)
 		default:
 			return http.StatusBadRequest, fmt.Errorf("invalid ruleCategory: must be 'user' or 'group'")
 		}
 	} else {
 		switch body.RuleCategory {
 		case "user":
-			err = accessStore.DenyUser(index.Path, indexPath, body.Value)
+			err = accessStore.DenyUser(index.Path, parsedPath, body.Value)
 		case "group":
-			err = accessStore.DenyGroup(index.Path, indexPath, body.Value)
+			err = accessStore.DenyGroup(index.Path, parsedPath, body.Value)
 		case "all":
-			err = accessStore.DenyAll(index.Path, indexPath)
+			err = accessStore.DenyAll(index.Path, parsedPath)
 		default:
 			return http.StatusBadRequest, fmt.Errorf("invalid ruleCategory: must be 'user', 'group', or 'all'")
 		}
@@ -167,6 +175,10 @@ func accessDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	if indexPath == "" || ruleCategory == "" || (ruleCategory != "all" && value == "") {
 		return http.StatusBadRequest, fmt.Errorf("path, ruleCategory, and value are required, unless ruleCategory is 'all'")
 	}
+	parsedPath, err := utils.ParseSanitizedIndexPath(indexPath, true)
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
 
 	// Handle cascade delete
 	if cascade {
@@ -175,13 +187,12 @@ func accessDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		}
 
 		var count int
-		var err error
 
 		switch ruleCategory {
 		case "user":
-			count, err = accessStore.RemoveUserCascade(index.Path, indexPath, value, allow)
+			count, err = accessStore.RemoveUserCascade(index.Path, parsedPath, value, allow)
 		case "group":
-			count, err = accessStore.RemoveGroupCascade(index.Path, indexPath, value, allow)
+			count, err = accessStore.RemoveGroupCascade(index.Path, parsedPath, value, allow)
 		default:
 			return http.StatusBadRequest, fmt.Errorf("invalid ruleCategory for cascade delete: must be 'user' or 'group'")
 		}
@@ -203,22 +214,21 @@ func accessDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 
 	// Handle non-cascade delete (original behavior)
 	var found bool
-	var err error
 	if allow {
 		switch ruleCategory {
 		case "user":
-			found, err = accessStore.RemoveAllowUser(index.Path, indexPath, value)
+			found, err = accessStore.RemoveAllowUser(index.Path, parsedPath, value)
 		case "group":
-			found, err = accessStore.RemoveAllowGroup(index.Path, indexPath, value)
+			found, err = accessStore.RemoveAllowGroup(index.Path, parsedPath, value)
 		}
 	} else {
 		switch ruleCategory {
 		case "user":
-			found, err = accessStore.RemoveDenyUser(index.Path, indexPath, value)
+			found, err = accessStore.RemoveDenyUser(index.Path, parsedPath, value)
 		case "group":
-			found, err = accessStore.RemoveDenyGroup(index.Path, indexPath, value)
+			found, err = accessStore.RemoveDenyGroup(index.Path, parsedPath, value)
 		case "all":
-			found, err = accessStore.RemoveDenyAll(index.Path, indexPath)
+			found, err = accessStore.RemoveDenyAll(index.Path, parsedPath)
 		}
 	}
 	if !found {
@@ -337,8 +347,16 @@ func accessPatchHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return http.StatusBadRequest, fmt.Errorf("source not found: %s", body.Source)
 	}
 
-	// Update the access rule path
-	err := accessStore.UpdateRulePath(index.Path, body.OldPath, body.NewPath)
+	oldPath, err := utils.ParseSanitizedIndexPath(body.OldPath, true)
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
+	newPath, err := utils.ParseSanitizedIndexPath(body.NewPath, true)
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
+
+	err = accessStore.UpdateRulePath(index.Path, oldPath, newPath)
 	if err != nil {
 		logger.Errorf("failed to update rule path: %v", err)
 		return http.StatusInternalServerError, fmt.Errorf("failed to update rule path: %w", err)

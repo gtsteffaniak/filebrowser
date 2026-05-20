@@ -178,7 +178,7 @@ func fileWatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 
 	// Check access control
 	if accessStore != nil {
-		if !accessStore.Permitted(idx.Path, scopePath, d.user.Username) {
+		if !accessStore.Permitted(idx.Path, utils.IndexPathFromNormalized(scopePath, true), d.user.Username) {
 			return http.StatusForbidden, fmt.Errorf("access denied to file")
 		}
 	}
@@ -325,7 +325,7 @@ func fileWatchSSEHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 
 	// Check access control
 	if accessStore != nil {
-		if !accessStore.Permitted(idx.Path, scopePath, d.user.Username) {
+		if !accessStore.Permitted(idx.Path, utils.IndexPathFromNormalized(scopePath, true), d.user.Username) {
 			return http.StatusForbidden, fmt.Errorf("access denied to file")
 		}
 	}
