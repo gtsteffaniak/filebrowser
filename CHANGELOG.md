@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Delete prompt not showing date and thumbnails in some previews. (#2245)
  - fix path slash issue on windows (#2451) (#2433) (#2419)
  - Always force url rewrite for onlyoffice internal URL. Fixes Error saving with OnlyOffice (#2450)
+ - Overriding a Deny with an Allow not working (#2405)
 
 ## v1.4.1
 
