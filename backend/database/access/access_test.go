@@ -8,6 +8,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/access"
 	"github.com/gtsteffaniak/filebrowser/backend/database/sqldb"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
@@ -35,7 +36,7 @@ func (s *sqlStoreAdapter) Save(user *users.User, changePass, disableScopeChange 
 	if err != nil {
 		// User doesn't exist - create new user
 		if user.ID == 0 {
-			nid, genErr := users.NextRandomUserID()
+			nid, genErr := utils.RandomUint64ID()
 			if genErr != nil {
 				return genErr
 			}

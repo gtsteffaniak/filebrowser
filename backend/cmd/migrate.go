@@ -129,7 +129,8 @@ func normalizeUserScopesBeforeSQLite(user *users.User) error {
 }
 
 // migrateUsers migrates all users from BoltDB to SQLite. Each bolt user.ID is written as user_id
-// (CreateUser keeps a non-zero ID).
+// unchanged (CreateUser keeps a non-zero ID). Users created after migration use utils.RandomUint64ID
+// (random uint64), not sequential small ids.
 func migrateUsers(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 	var usersList []*users.User
 	err := oldDB.All(&usersList)
@@ -170,8 +171,15 @@ func migrateUsers(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 }
 
 // migrateShares migrates all shares from BoltDB to SQLite.
-// Bolt records use bucket names from historical type names ("Share" or "Link"); decode uses
-// LegacyShare so password_hash (and JSON codec fields) map correctly, then ToShare for SQLite.
+//
+// Legacy Bolt "Link" / "Share" JSON (flat CommonShare + Link fields):
+//   - "source"  → Share.SourcePath (backend source path; not the share item path)
+//   - "path"    → Share.Path (index-relative path within that source)
+//   - "userID"  → Share.UserID unchanged (same numeric id as migrated users in SQLite)
+//   - "password_hash" → Share.PasswordHash (username is never stored on the share row)
+//
+// New users created after migration get random uint64 ids (utils.RandomUint64ID); Bolt ids 1,2,3…
+// remain valid. PrepForFrontend resolves Share.UserID to username for API responses only.
 func migrateShares(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 	boltShareBuckets := []string{"Share", "Link"}
 	var sharesList []*share.LegacyShare
@@ -196,7 +204,7 @@ func migrateShares(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 		if link.UserID == 0 {
 			return fmt.Errorf("failed to save share %s: owner user id is missing", link.Hash)
 		}
-		// Legacy "source" was sometimes a display name, not a backend path.
+		// Legacy Bolt "source" → SourcePath; normalize when it was stored as a display name.
 		if link.SourcePath != "" {
 			if _, ok := settings.Config.Server.SourceMap[link.SourcePath]; !ok {
 				if src, ok := settings.Config.Server.NameToSource[link.SourcePath]; ok {
@@ -207,6 +215,12 @@ func migrateShares(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 				link.SourceName = settings.Config.Server.SourceMap[link.SourcePath].Name
 			}
 		}
+		// Do not persist API-only fields; PrepForFrontend fills these on read.
+		link.Username = ""
+		link.ShareURL = ""
+		link.DownloadURL = ""
+		link.FrontendShareInfo.SourceURL = ""
+		link.CanEditShare = false
 		if err := sqlStore.SaveShare(&link); err != nil {
 			return fmt.Errorf("failed to save share %s: %w", link.Hash, err)
 		}

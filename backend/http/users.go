@@ -254,7 +254,7 @@ func verifyActorPasswordForUserActions(r *http.Request, d *requestContext) (int,
 	if plain == "" {
 		return http.StatusUnauthorized, fmt.Errorf("X-Password header is required to confirm your password")
 	}
-	actor, err := state.GetUser(d.user.ID)
+	actor, err := state.GetUserByID(d.user.ID)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -329,7 +329,7 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 
 	// Get the old user to check if permissions changed
 	var oldUser *users.User
-	userValue, err := state.GetUser(req.User.ID)
+	userValue, err := state.GetUserByID(req.User.ID)
 	if err == nil {
 		oldUser = &userValue
 	}

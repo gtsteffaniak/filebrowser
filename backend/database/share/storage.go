@@ -3,6 +3,7 @@ package share
 import (
 	stderrors "errors"
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
@@ -82,6 +83,11 @@ func (s *Storage) FindByUserID(userID uint64) ([]*Share, error) {
 	return s.back.FindByUserID(userID)
 }
 
+// PrepForFrontend returns API-safe ShareFrontend copies for one or more shares.
+func (s *Storage) PrepForFrontend(viewer *users.User, r *http.Request, links ...*Share) []*ShareFrontend {
+	return PrepForFrontend(viewer, s.users, r, links...)
+}
+
 // GetByHash wraps StorageBackend.GetByHash and handles expiry.
 func (s *Storage) GetByHash(hash string) (*Share, error) {
 	link, err := s.back.GetByHash(hash)
@@ -125,7 +131,7 @@ func (s *Storage) IsShared(path, source string, userID uint64) bool {
 // UpdateShares updates all shares that match oldSource and oldPath to point to newSource and newPath.
 // Handles both exact matches and subdirectories, regardless of trailing slashes.
 func (s *Storage) UpdateShares(oldSource, oldPath, newSource, newPath string) (int, error) {
-	links, err := s.All()
+	links, err := s.back.All()
 	if err != nil && err != errors.ErrNotExist {
 		logger.Error("failed to list shares", "error", err)
 		return 0, err

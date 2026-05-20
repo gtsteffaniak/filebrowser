@@ -77,7 +77,7 @@ func (l *Share) IsExpired() bool {
 
 // HasPassword checks if the share is password protected
 func (l *Share) HasPassword() bool {
-	return l.Password != ""
+	return l.PasswordHash != ""
 }
 
 // IsPermanent checks if the share is permanent (no expiration)
@@ -143,12 +143,21 @@ func (l *Share) HasReachedUserLimit(username string) bool {
 	return count >= l.DownloadsLimit
 }
 
-func (l *Share) GetSourceName() string {
-	sourceInfo, ok := settings.Config.Server.SourceMap[l.SourcePath]
-	if !ok {
-		return ""
+func resolveSource(sourcePath string) (*settings.Source, bool) {
+	if sourceInfo, ok := settings.Config.Server.SourceMap[sourcePath]; ok {
+		return sourceInfo, true
 	}
-	return sourceInfo.Name
+	if sourceInfo, ok := settings.Config.Server.NameToSource[sourcePath]; ok {
+		return sourceInfo, true
+	}
+	return nil, false
+}
+
+func (l *Share) GetSourceName() string {
+	if sourceInfo, ok := resolveSource(l.SourcePath); ok {
+		return sourceInfo.Name
+	}
+	return ""
 }
 
 func (l *Share) UserCanEdit(user *users.User) bool {

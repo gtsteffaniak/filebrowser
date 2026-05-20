@@ -3,7 +3,9 @@ package utils
 import (
 	"crypto/rand"
 	"crypto/sha256"
+	"encoding/binary"
 	"encoding/hex"
+	"fmt"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -34,6 +36,21 @@ func SetInvalidPasswordHash() error {
 func HashSHA256(data string) string {
 	bytes := sha256.Sum256([]byte(data))
 	return hex.EncodeToString(bytes[:])
+}
+
+// RandomUint64ID returns a non-zero cryptographically random uint64 (e.g. new user rows after migration).
+// Small ids 1, 2, 3, … remain valid for migrated Bolt-era users.
+func RandomUint64ID() (uint64, error) {
+	var b [8]byte
+	for {
+		if _, err := rand.Read(b[:]); err != nil {
+			return 0, fmt.Errorf("random id: %w", err)
+		}
+		id := binary.BigEndian.Uint64(b[:])
+		if id != 0 {
+			return id, nil
+		}
+	}
 }
 
 func GenerateKey() string {

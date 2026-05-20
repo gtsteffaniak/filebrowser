@@ -195,7 +195,7 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 		{
 			name: "Public share, no auth required",
 			share: &share.Share{
-				CreateShare: share.CreateShare{
+				ShareFrontend: share.ShareFrontend{
 					SourceName: "srv",
 					Hash:       "public_hash",
 					Path:       "/",
@@ -208,7 +208,7 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 		{
 			name: "Private share, valid password when token exists",
 			share: &share.Share{
-				CreateShare: share.CreateShare{
+				ShareFrontend: share.ShareFrontend{
 					SourceName: "srv",
 					Hash:       "pw_and_token_hash",
 					Path:       "/",
@@ -226,7 +226,7 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 		{
 			name: "Private share, no auth provided",
 			share: &share.Share{
-				CreateShare: share.CreateShare{
+				ShareFrontend: share.ShareFrontend{
 					SourceName: "srv",
 					Hash:       "private_hash",
 					Path:       "/",
@@ -241,7 +241,7 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 		{
 			name: "Private share, valid token",
 			share: &share.Share{
-				CreateShare: share.CreateShare{
+				ShareFrontend: share.ShareFrontend{
 					SourceName: "srv",
 					Hash:       "token_hash",
 					Path:       "/",
@@ -257,7 +257,7 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 		{
 			name: "Private share, invalid password",
 			share: &share.Share{
-				CreateShare: share.CreateShare{
+				ShareFrontend: share.ShareFrontend{
 					SourceName: "srv",
 					Hash:       "pw_hash",
 					Path:       "/",

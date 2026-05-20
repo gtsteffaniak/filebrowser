@@ -12,7 +12,7 @@ func (u usersBackend) GetBy(id uint64) (*users.User, error) {
 	if id == 0 {
 		return nil, errors.ErrNotExist
 	}
-	user, err := GetUser(id)
+	user, err := GetUserByID(id)
 	if err != nil {
 		return nil, err
 	}

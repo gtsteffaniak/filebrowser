@@ -40,14 +40,13 @@ type FrontendShareInfo struct {
 	CanEditShare         bool                `json:"canEditShare,omitempty"`
 }
 
-// CreateShare is the POST /api/share JSON body: presentation options plus routing, password, and optional owner username (resolved to userID server-side).
-type CreateShare struct {
+// ShareFrontend is the share shape exposed to the API (list/get/create/update) and stored presentation fields.
+type ShareFrontend struct {
 	FrontendShareInfo
 	Username                 string   `json:"username,omitempty"`
 	Hash                     string   `json:"hash,omitempty" storm:"id,index"`
 	SourceName               string   `json:"sourceName,omitempty"`
 	Path                     string   `json:"path,omitempty"`
-	Password                 string   `json:"password,omitempty"`
 	Expires                  string   `json:"expires,omitempty"`
 	Unit                     string   `json:"unit,omitempty"`
 	MaxBandwidth             int      `json:"maxBandwidth,omitempty"`
@@ -57,21 +56,27 @@ type CreateShare struct {
 	DownloadsLimit           int      `json:"downloadsLimit,omitempty"`
 	HideFileExt              string   `json:"hideFileExt,omitempty"` // show hidden files based on extensions in shares
 	Banner                   string   `json:"banner,omitempty"`
+	// Unix expiry (0 = permanent). Always emitted in API JSON so clients can distinguish permanent from missing.
+	Expire     int64 `json:"expire"`
+	PathExists bool  `json:"pathExists,omitempty"`
+	Downloads  int   `json:"downloads,omitempty"`
 }
 
-// Share is the persisted share: embedded CreateShare (routing + presentation) plus server-only columns.
+// SharePostBody is POST/PATCH /api/share JSON. Plaintext password is hashed to Share.PasswordHash before persist.
+type SharePostBody struct {
+	ShareFrontend
+	Password string `json:"password,omitempty"`
+}
+
+// Share is the persisted share: embedded ShareFrontend plus backend columns (json tags support legacy import).
 type Share struct {
-	CreateShare
-	Expire        int64          `json:"expire"`
-	PasswordHash  string         `json:"-"`
-	UserID        uint64         `json:"userID"`
+	ShareFrontend
+	PasswordHash  string         `json:"password_hash,omitempty"`
+	UserID        uint64         `json:"userID,omitempty"`
 	Token         string         `json:"token,omitempty"`
-	Downloads     int            `json:"downloads"`
 	UserDownloads map[string]int `json:"userDownloads,omitempty"`
 	Version       int            `json:"version,omitempty"`
-	OwnerUsername string         `json:"username,omitempty"`
 	SourcePath    string         `json:"sourcePath,omitempty"`
-	PathExists    bool           `json:"pathExists,omitempty"`
 }
 
 // LegacyShare embeds Share for Bolt/Storm. LegacyRoutingSource is the historical Bolt/JSON "source" field
@@ -82,12 +87,15 @@ type LegacyShare struct {
 	LegacyRoutingSource string `json:"source,omitempty"`
 }
 
-// ToShare builds the SQLite/runtime share: password_hash → Password; legacy source → SourcePath.
+// ToShare builds the SQLite/runtime share from a Bolt/Storm legacy record.
+// Legacy JSON "source" (backend filesystem path) → SourcePath; share "path" stays Path.
+// Legacy userID (small uint from Bolt users) is kept as-is; owner username is not stored.
 func (l *LegacyShare) ToShare() Share {
 	s := l.Share
 	if l.PasswordHash != "" {
-		s.Password = l.PasswordHash
+		s.PasswordHash = l.PasswordHash
 	}
 	s.SourcePath = l.LegacyRoutingSource
+	s.Username = ""
 	return s
 }

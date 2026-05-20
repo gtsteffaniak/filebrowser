@@ -31,7 +31,11 @@
         </td>
       </tr>
       <template v-else>
-        <tr v-for="item in sortedItems" :key="resolvedKey(item)">
+        <tr
+          v-for="item in sortedItems"
+          :key="resolvedKey(item)"
+          :data-item-key="resolvedKey(item)"
+        >
           <td
             v-for="column in columns"
             :key="column.key"
