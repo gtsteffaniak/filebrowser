@@ -56,10 +56,9 @@ type ShareFrontend struct {
 	DownloadsLimit           int      `json:"downloadsLimit,omitempty"`
 	HideFileExt              string   `json:"hideFileExt,omitempty"` // show hidden files based on extensions in shares
 	Banner                   string   `json:"banner,omitempty"`
-	// Unix expiry (0 = permanent). Always emitted in API JSON so clients can distinguish permanent from missing.
-	Expire     int64 `json:"expire"`
-	PathExists bool  `json:"pathExists,omitempty"`
-	Downloads  int   `json:"downloads,omitempty"`
+	Expire                   int64    `json:"expire"`
+	PathExists               bool     `json:"pathExists,omitempty"`
+	Downloads                int      `json:"downloads,omitempty"`
 }
 
 // SharePostBody is POST/PATCH /api/share JSON. Plaintext password is hashed to Share.PasswordHash before persist.
