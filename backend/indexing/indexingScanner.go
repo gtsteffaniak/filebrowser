@@ -638,8 +638,10 @@ func (s *Scanner) checkFolderModtime(folderPath string) (bool, error) {
 		s.idx.UpdateMetadata(dirInfo, s)
 
 		// Track this directory as having been updated (for file purge logic)
-		s.idx.ensureScanUpdatedPaths()
 		s.idx.mu.Lock()
+		if s.idx.scanUpdatedPaths == nil {
+			s.idx.scanUpdatedPaths = make(map[string]bool)
+		}
 		s.idx.scanUpdatedPaths[folderPath] = true
 		s.idx.mu.Unlock()
 
