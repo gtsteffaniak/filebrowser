@@ -174,7 +174,7 @@ func GetAccessStorage() *access.Storage {
 // GetShareStorage returns share.Storage backed by state (shareBackend); reads and writes use the
 // same in-memory index as package state, updated after successful database operations.
 func GetShareStorage() *share.Storage {
-	return share.NewStorage(shareBackend{}, nil)
+	return share.NewStorage(shareBackend{}, GetUsersStorage())
 }
 
 // GetUsersStorage returns a users.Storage backed by state (for use with auth.GenerateOtpForUser, etc.)

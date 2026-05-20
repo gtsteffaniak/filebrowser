@@ -16,9 +16,9 @@ import (
 
 // User operations
 
-// GetUser retrieves a user by stable numeric id from the in-memory cache (JWT belongsTo, admin APIs).
+// GetUserByID retrieves a user by stable numeric id from the in-memory cache (JWT belongsTo, admin APIs).
 // Returns a value (not pointer) to prevent modifications to the cache
-func GetUser(id uint64) (users.User, error) {
+func GetUserByID(id uint64) (users.User, error) {
 	if id == 0 {
 		return users.User{}, errors.ErrNotExist
 	}
@@ -138,10 +138,10 @@ func GetAllUsers() ([]users.User, error) {
 // (hash → user id). Usernames are not used so a reused login name never inherits a previous account's API access.
 func UserFromAPIToken(tk users.AuthToken, rawToken string) (users.User, error) {
 	if tk.BelongsTo != 0 {
-		return GetUser(tk.BelongsTo)
+		return GetUserByID(tk.BelongsTo)
 	}
 	if uid, ok := accessStorage.GetUserIDFromToken(rawToken); ok {
-		return GetUser(uid)
+		return GetUserByID(uid)
 	}
 	return users.User{}, errors.ErrNotExist
 }
@@ -151,7 +151,7 @@ func UserForShareOwner(link share.Share) (users.User, error) {
 	if link.UserID == 0 {
 		return users.User{}, errors.ErrNotExist
 	}
-	return GetUser(link.UserID)
+	return GetUserByID(link.UserID)
 }
 
 // CreateUser creates a new user with plaintext password.
@@ -196,7 +196,7 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 	defer usersMux.Unlock()
 
 	if user.ID == 0 {
-		nid, genErr := users.NextRandomUserID()
+		nid, genErr := utils.RandomUint64ID()
 		if genErr != nil {
 			return fmt.Errorf("allocate user id: %w", genErr)
 		}

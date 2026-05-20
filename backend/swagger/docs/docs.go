@@ -2702,7 +2702,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/share.Share"
+                                "$ref": "#/definitions/share.ShareFrontend"
                             }
                         }
                     },
@@ -2736,7 +2736,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/share.CreateShare"
+                            "$ref": "#/definitions/share.SharePostBody"
                         }
                     }
                 ],
@@ -2744,7 +2744,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Created share link",
                         "schema": {
-                            "$ref": "#/definitions/share.Share"
+                            "$ref": "#/definitions/share.ShareFrontend"
                         }
                     },
                     "400": {
@@ -2847,7 +2847,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Updated share link",
                         "schema": {
-                            "$ref": "#/definitions/share.Share"
+                            "$ref": "#/definitions/share.ShareFrontend"
                         }
                     },
                     "400": {
@@ -2974,7 +2974,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/share.Share"
+                                "$ref": "#/definitions/share.ShareFrontend"
                             }
                         }
                     },
@@ -6553,158 +6553,6 @@ const docTemplate = `{
                 }
             }
         },
-        "share.CreateShare": {
-            "type": "object",
-            "properties": {
-                "allowCreate": {
-                    "type": "boolean"
-                },
-                "allowDelete": {
-                    "type": "boolean"
-                },
-                "allowModify": {
-                    "type": "boolean"
-                },
-                "allowReplacements": {
-                    "type": "boolean"
-                },
-                "allowedUsernames": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "banner": {
-                    "type": "string"
-                },
-                "bannerUrl": {
-                    "type": "string"
-                },
-                "canEditShare": {
-                    "type": "boolean"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "disableAnonymous": {
-                    "type": "boolean"
-                },
-                "disableDownload": {
-                    "type": "boolean"
-                },
-                "disableFileViewer": {
-                    "type": "boolean"
-                },
-                "disableLoginOption": {
-                    "type": "boolean"
-                },
-                "disableShareCard": {
-                    "type": "boolean"
-                },
-                "disableSidebar": {
-                    "type": "boolean"
-                },
-                "disableThumbnails": {
-                    "type": "boolean"
-                },
-                "downloadURL": {
-                    "type": "string"
-                },
-                "downloadsLimit": {
-                    "type": "integer"
-                },
-                "enableOnlyOffice": {
-                    "type": "boolean"
-                },
-                "enforceDarkLightMode": {
-                    "description": "\"dark\" or \"light\"",
-                    "type": "string"
-                },
-                "expires": {
-                    "type": "string"
-                },
-                "extractEmbeddedSubtitles": {
-                    "type": "boolean"
-                },
-                "favicon": {
-                    "type": "string"
-                },
-                "faviconUrl": {
-                    "type": "string"
-                },
-                "hasPassword": {
-                    "type": "boolean"
-                },
-                "hash": {
-                    "type": "string"
-                },
-                "hideFileExt": {
-                    "description": "show hidden files based on extensions in shares",
-                    "type": "string"
-                },
-                "hideNavButtons": {
-                    "type": "boolean"
-                },
-                "keepAfterExpiration": {
-                    "type": "boolean"
-                },
-                "maxBandwidth": {
-                    "type": "integer"
-                },
-                "password": {
-                    "type": "string"
-                },
-                "path": {
-                    "type": "string"
-                },
-                "perUserDownloadLimit": {
-                    "type": "boolean"
-                },
-                "quickDownload": {
-                    "type": "boolean"
-                },
-                "shareTheme": {
-                    "type": "string"
-                },
-                "shareType": {
-                    "type": "string"
-                },
-                "shareURL": {
-                    "type": "string"
-                },
-                "showHidden": {
-                    "type": "boolean"
-                },
-                "sidebarLinks": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/users.SidebarLink"
-                    }
-                },
-                "sourceName": {
-                    "type": "string"
-                },
-                "sourceURL": {
-                    "type": "string"
-                },
-                "themeColor": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                },
-                "unit": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                },
-                "viewMode": {
-                    "description": "default view mode for anonymous users",
-                    "type": "string"
-                }
-            }
-        },
         "share.Share": {
             "type": "object",
             "properties": {
@@ -6776,6 +6624,346 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "expire": {
+                    "description": "Unix expiry (0 = permanent). Always emitted in API JSON so clients can distinguish permanent from missing.",
+                    "type": "integer"
+                },
+                "expires": {
+                    "type": "string"
+                },
+                "extractEmbeddedSubtitles": {
+                    "type": "boolean"
+                },
+                "favicon": {
+                    "type": "string"
+                },
+                "faviconUrl": {
+                    "type": "string"
+                },
+                "hasPassword": {
+                    "type": "boolean"
+                },
+                "hash": {
+                    "type": "string"
+                },
+                "hideFileExt": {
+                    "description": "show hidden files based on extensions in shares",
+                    "type": "string"
+                },
+                "hideNavButtons": {
+                    "type": "boolean"
+                },
+                "keepAfterExpiration": {
+                    "type": "boolean"
+                },
+                "maxBandwidth": {
+                    "type": "integer"
+                },
+                "password_hash": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "pathExists": {
+                    "type": "boolean"
+                },
+                "perUserDownloadLimit": {
+                    "type": "boolean"
+                },
+                "quickDownload": {
+                    "type": "boolean"
+                },
+                "shareTheme": {
+                    "type": "string"
+                },
+                "shareType": {
+                    "type": "string"
+                },
+                "shareURL": {
+                    "type": "string"
+                },
+                "showHidden": {
+                    "type": "boolean"
+                },
+                "sidebarLinks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/users.SidebarLink"
+                    }
+                },
+                "sourceName": {
+                    "type": "string"
+                },
+                "sourcePath": {
+                    "type": "string"
+                },
+                "sourceURL": {
+                    "type": "string"
+                },
+                "themeColor": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                },
+                "unit": {
+                    "type": "string"
+                },
+                "userDownloads": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
+                },
+                "userID": {
+                    "type": "integer"
+                },
+                "username": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                },
+                "viewMode": {
+                    "description": "default view mode for anonymous users",
+                    "type": "string"
+                }
+            }
+        },
+        "share.ShareFrontend": {
+            "type": "object",
+            "properties": {
+                "allowCreate": {
+                    "type": "boolean"
+                },
+                "allowDelete": {
+                    "type": "boolean"
+                },
+                "allowModify": {
+                    "type": "boolean"
+                },
+                "allowReplacements": {
+                    "type": "boolean"
+                },
+                "allowedUsernames": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "banner": {
+                    "type": "string"
+                },
+                "bannerUrl": {
+                    "type": "string"
+                },
+                "canEditShare": {
+                    "type": "boolean"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "disableAnonymous": {
+                    "type": "boolean"
+                },
+                "disableDownload": {
+                    "type": "boolean"
+                },
+                "disableFileViewer": {
+                    "type": "boolean"
+                },
+                "disableLoginOption": {
+                    "type": "boolean"
+                },
+                "disableShareCard": {
+                    "type": "boolean"
+                },
+                "disableSidebar": {
+                    "type": "boolean"
+                },
+                "disableThumbnails": {
+                    "type": "boolean"
+                },
+                "downloadURL": {
+                    "type": "string"
+                },
+                "downloads": {
+                    "type": "integer"
+                },
+                "downloadsLimit": {
+                    "type": "integer"
+                },
+                "enableOnlyOffice": {
+                    "type": "boolean"
+                },
+                "enforceDarkLightMode": {
+                    "description": "\"dark\" or \"light\"",
+                    "type": "string"
+                },
+                "expire": {
+                    "description": "Unix expiry (0 = permanent). Always emitted in API JSON so clients can distinguish permanent from missing.",
+                    "type": "integer"
+                },
+                "expires": {
+                    "type": "string"
+                },
+                "extractEmbeddedSubtitles": {
+                    "type": "boolean"
+                },
+                "favicon": {
+                    "type": "string"
+                },
+                "faviconUrl": {
+                    "type": "string"
+                },
+                "hasPassword": {
+                    "type": "boolean"
+                },
+                "hash": {
+                    "type": "string"
+                },
+                "hideFileExt": {
+                    "description": "show hidden files based on extensions in shares",
+                    "type": "string"
+                },
+                "hideNavButtons": {
+                    "type": "boolean"
+                },
+                "keepAfterExpiration": {
+                    "type": "boolean"
+                },
+                "maxBandwidth": {
+                    "type": "integer"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "pathExists": {
+                    "type": "boolean"
+                },
+                "perUserDownloadLimit": {
+                    "type": "boolean"
+                },
+                "quickDownload": {
+                    "type": "boolean"
+                },
+                "shareTheme": {
+                    "type": "string"
+                },
+                "shareType": {
+                    "type": "string"
+                },
+                "shareURL": {
+                    "type": "string"
+                },
+                "showHidden": {
+                    "type": "boolean"
+                },
+                "sidebarLinks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/users.SidebarLink"
+                    }
+                },
+                "sourceName": {
+                    "type": "string"
+                },
+                "sourceURL": {
+                    "type": "string"
+                },
+                "themeColor": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "unit": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                },
+                "viewMode": {
+                    "description": "default view mode for anonymous users",
+                    "type": "string"
+                }
+            }
+        },
+        "share.SharePostBody": {
+            "type": "object",
+            "properties": {
+                "allowCreate": {
+                    "type": "boolean"
+                },
+                "allowDelete": {
+                    "type": "boolean"
+                },
+                "allowModify": {
+                    "type": "boolean"
+                },
+                "allowReplacements": {
+                    "type": "boolean"
+                },
+                "allowedUsernames": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "banner": {
+                    "type": "string"
+                },
+                "bannerUrl": {
+                    "type": "string"
+                },
+                "canEditShare": {
+                    "type": "boolean"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "disableAnonymous": {
+                    "type": "boolean"
+                },
+                "disableDownload": {
+                    "type": "boolean"
+                },
+                "disableFileViewer": {
+                    "type": "boolean"
+                },
+                "disableLoginOption": {
+                    "type": "boolean"
+                },
+                "disableShareCard": {
+                    "type": "boolean"
+                },
+                "disableSidebar": {
+                    "type": "boolean"
+                },
+                "disableThumbnails": {
+                    "type": "boolean"
+                },
+                "downloadURL": {
+                    "type": "string"
+                },
+                "downloads": {
+                    "type": "integer"
+                },
+                "downloadsLimit": {
+                    "type": "integer"
+                },
+                "enableOnlyOffice": {
+                    "type": "boolean"
+                },
+                "enforceDarkLightMode": {
+                    "description": "\"dark\" or \"light\"",
+                    "type": "string"
+                },
+                "expire": {
+                    "description": "Unix expiry (0 = permanent). Always emitted in API JSON so clients can distinguish permanent from missing.",
                     "type": "integer"
                 },
                 "expires": {
@@ -6845,9 +7033,6 @@ const docTemplate = `{
                 "sourceName": {
                     "type": "string"
                 },
-                "sourcePath": {
-                    "type": "string"
-                },
                 "sourceURL": {
                     "type": "string"
                 },
@@ -6857,26 +7042,11 @@ const docTemplate = `{
                 "title": {
                     "type": "string"
                 },
-                "token": {
-                    "type": "string"
-                },
                 "unit": {
                     "type": "string"
                 },
-                "userDownloads": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "integer"
-                    }
-                },
-                "userID": {
-                    "type": "integer"
-                },
                 "username": {
                     "type": "string"
-                },
-                "version": {
-                    "type": "integer"
                 },
                 "viewMode": {
                     "description": "default view mode for anonymous users",

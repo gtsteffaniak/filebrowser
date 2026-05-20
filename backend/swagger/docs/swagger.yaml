@@ -1511,108 +1511,6 @@ definitions:
           etc'
         type: string
     type: object
-  share.CreateShare:
-    properties:
-      allowCreate:
-        type: boolean
-      allowDelete:
-        type: boolean
-      allowModify:
-        type: boolean
-      allowReplacements:
-        type: boolean
-      allowedUsernames:
-        items:
-          type: string
-        type: array
-      banner:
-        type: string
-      bannerUrl:
-        type: string
-      canEditShare:
-        type: boolean
-      description:
-        type: string
-      disableAnonymous:
-        type: boolean
-      disableDownload:
-        type: boolean
-      disableFileViewer:
-        type: boolean
-      disableLoginOption:
-        type: boolean
-      disableShareCard:
-        type: boolean
-      disableSidebar:
-        type: boolean
-      disableThumbnails:
-        type: boolean
-      downloadURL:
-        type: string
-      downloadsLimit:
-        type: integer
-      enableOnlyOffice:
-        type: boolean
-      enforceDarkLightMode:
-        description: '"dark" or "light"'
-        type: string
-      expires:
-        type: string
-      extractEmbeddedSubtitles:
-        type: boolean
-      favicon:
-        type: string
-      faviconUrl:
-        type: string
-      hasPassword:
-        type: boolean
-      hash:
-        type: string
-      hideFileExt:
-        description: show hidden files based on extensions in shares
-        type: string
-      hideNavButtons:
-        type: boolean
-      keepAfterExpiration:
-        type: boolean
-      maxBandwidth:
-        type: integer
-      password:
-        type: string
-      path:
-        type: string
-      perUserDownloadLimit:
-        type: boolean
-      quickDownload:
-        type: boolean
-      shareTheme:
-        type: string
-      shareType:
-        type: string
-      shareURL:
-        type: string
-      showHidden:
-        type: boolean
-      sidebarLinks:
-        items:
-          $ref: '#/definitions/users.SidebarLink'
-        type: array
-      sourceName:
-        type: string
-      sourceURL:
-        type: string
-      themeColor:
-        type: string
-      title:
-        type: string
-      unit:
-        type: string
-      username:
-        type: string
-      viewMode:
-        description: default view mode for anonymous users
-        type: string
-    type: object
   share.Share:
     properties:
       allowCreate:
@@ -1661,6 +1559,238 @@ definitions:
         description: '"dark" or "light"'
         type: string
       expire:
+        description: Unix expiry (0 = permanent). Always emitted in API JSON so clients
+          can distinguish permanent from missing.
+        type: integer
+      expires:
+        type: string
+      extractEmbeddedSubtitles:
+        type: boolean
+      favicon:
+        type: string
+      faviconUrl:
+        type: string
+      hasPassword:
+        type: boolean
+      hash:
+        type: string
+      hideFileExt:
+        description: show hidden files based on extensions in shares
+        type: string
+      hideNavButtons:
+        type: boolean
+      keepAfterExpiration:
+        type: boolean
+      maxBandwidth:
+        type: integer
+      password_hash:
+        type: string
+      path:
+        type: string
+      pathExists:
+        type: boolean
+      perUserDownloadLimit:
+        type: boolean
+      quickDownload:
+        type: boolean
+      shareTheme:
+        type: string
+      shareType:
+        type: string
+      shareURL:
+        type: string
+      showHidden:
+        type: boolean
+      sidebarLinks:
+        items:
+          $ref: '#/definitions/users.SidebarLink'
+        type: array
+      sourceName:
+        type: string
+      sourcePath:
+        type: string
+      sourceURL:
+        type: string
+      themeColor:
+        type: string
+      title:
+        type: string
+      token:
+        type: string
+      unit:
+        type: string
+      userDownloads:
+        additionalProperties:
+          type: integer
+        type: object
+      userID:
+        type: integer
+      username:
+        type: string
+      version:
+        type: integer
+      viewMode:
+        description: default view mode for anonymous users
+        type: string
+    type: object
+  share.ShareFrontend:
+    properties:
+      allowCreate:
+        type: boolean
+      allowDelete:
+        type: boolean
+      allowModify:
+        type: boolean
+      allowReplacements:
+        type: boolean
+      allowedUsernames:
+        items:
+          type: string
+        type: array
+      banner:
+        type: string
+      bannerUrl:
+        type: string
+      canEditShare:
+        type: boolean
+      description:
+        type: string
+      disableAnonymous:
+        type: boolean
+      disableDownload:
+        type: boolean
+      disableFileViewer:
+        type: boolean
+      disableLoginOption:
+        type: boolean
+      disableShareCard:
+        type: boolean
+      disableSidebar:
+        type: boolean
+      disableThumbnails:
+        type: boolean
+      downloadURL:
+        type: string
+      downloads:
+        type: integer
+      downloadsLimit:
+        type: integer
+      enableOnlyOffice:
+        type: boolean
+      enforceDarkLightMode:
+        description: '"dark" or "light"'
+        type: string
+      expire:
+        description: Unix expiry (0 = permanent). Always emitted in API JSON so clients
+          can distinguish permanent from missing.
+        type: integer
+      expires:
+        type: string
+      extractEmbeddedSubtitles:
+        type: boolean
+      favicon:
+        type: string
+      faviconUrl:
+        type: string
+      hasPassword:
+        type: boolean
+      hash:
+        type: string
+      hideFileExt:
+        description: show hidden files based on extensions in shares
+        type: string
+      hideNavButtons:
+        type: boolean
+      keepAfterExpiration:
+        type: boolean
+      maxBandwidth:
+        type: integer
+      path:
+        type: string
+      pathExists:
+        type: boolean
+      perUserDownloadLimit:
+        type: boolean
+      quickDownload:
+        type: boolean
+      shareTheme:
+        type: string
+      shareType:
+        type: string
+      shareURL:
+        type: string
+      showHidden:
+        type: boolean
+      sidebarLinks:
+        items:
+          $ref: '#/definitions/users.SidebarLink'
+        type: array
+      sourceName:
+        type: string
+      sourceURL:
+        type: string
+      themeColor:
+        type: string
+      title:
+        type: string
+      unit:
+        type: string
+      username:
+        type: string
+      viewMode:
+        description: default view mode for anonymous users
+        type: string
+    type: object
+  share.SharePostBody:
+    properties:
+      allowCreate:
+        type: boolean
+      allowDelete:
+        type: boolean
+      allowModify:
+        type: boolean
+      allowReplacements:
+        type: boolean
+      allowedUsernames:
+        items:
+          type: string
+        type: array
+      banner:
+        type: string
+      bannerUrl:
+        type: string
+      canEditShare:
+        type: boolean
+      description:
+        type: string
+      disableAnonymous:
+        type: boolean
+      disableDownload:
+        type: boolean
+      disableFileViewer:
+        type: boolean
+      disableLoginOption:
+        type: boolean
+      disableShareCard:
+        type: boolean
+      disableSidebar:
+        type: boolean
+      disableThumbnails:
+        type: boolean
+      downloadURL:
+        type: string
+      downloads:
+        type: integer
+      downloadsLimit:
+        type: integer
+      enableOnlyOffice:
+        type: boolean
+      enforceDarkLightMode:
+        description: '"dark" or "light"'
+        type: string
+      expire:
+        description: Unix expiry (0 = permanent). Always emitted in API JSON so clients
+          can distinguish permanent from missing.
         type: integer
       expires:
         type: string
@@ -1707,28 +1837,16 @@ definitions:
         type: array
       sourceName:
         type: string
-      sourcePath:
-        type: string
       sourceURL:
         type: string
       themeColor:
         type: string
       title:
         type: string
-      token:
-        type: string
       unit:
         type: string
-      userDownloads:
-        additionalProperties:
-          type: integer
-        type: object
-      userID:
-        type: integer
       username:
         type: string
-      version:
-        type: integer
       viewMode:
         description: default view mode for anonymous users
         type: string
@@ -4138,7 +4256,7 @@ paths:
           description: List of share links for the specified path
           schema:
             items:
-              $ref: '#/definitions/share.Share'
+              $ref: '#/definitions/share.ShareFrontend'
             type: array
         "500":
           description: Internal server error
@@ -4171,7 +4289,7 @@ paths:
         "200":
           description: Updated share link
           schema:
-            $ref: '#/definitions/share.Share'
+            $ref: '#/definitions/share.ShareFrontend'
         "400":
           description: Bad request - missing or invalid parameters
           schema:
@@ -4198,14 +4316,14 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/share.CreateShare'
+          $ref: '#/definitions/share.SharePostBody'
       produces:
       - application/json
       responses:
         "200":
           description: Created share link
           schema:
-            $ref: '#/definitions/share.Share'
+            $ref: '#/definitions/share.ShareFrontend'
         "400":
           description: Bad request - failed to decode body
           schema:
@@ -4292,7 +4410,7 @@ paths:
           description: List of share links
           schema:
             items:
-              $ref: '#/definitions/share.Share'
+              $ref: '#/definitions/share.ShareFrontend'
             type: array
         "500":
           description: Internal server error

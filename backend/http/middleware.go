@@ -289,7 +289,7 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 				data.share = snap
 				data.shareValid = true
 			} else {
-				data.share = share.Share{CreateShare: share.CreateShare{Hash: shareHash}}
+				data.share = share.Share{ShareFrontend: share.ShareFrontend{Hash: shareHash}}
 				data.shareValid = false
 			}
 		}
