@@ -129,8 +129,6 @@ func normalizeUserScopesBeforeSQLite(user *users.User) error {
 }
 
 // migrateUsers migrates all users from BoltDB to SQLite. Each bolt user.ID is written as user_id
-// unchanged (CreateUser keeps a non-zero ID). Users created after migration use utils.RandomUint64ID
-// (random uint64), not sequential small ids.
 func migrateUsers(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 	var usersList []*users.User
 	err := oldDB.All(&usersList)
