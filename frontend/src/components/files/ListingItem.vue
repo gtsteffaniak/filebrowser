@@ -151,7 +151,8 @@ export default {
       return getters.isSafeModeItem(this.source, this.path);
     },
     isSafeBlurred() {
-      return this.isInSafeMode && !getters.safeModeUnlocked();
+      // Always show the shield visual for any SafeMode file — unlock state only affects the PIN gate in open()
+      return this.isInSafeMode;
     },
     galleryView() {
       return getters.viewMode() === "gallery";
@@ -655,7 +656,7 @@ export default {
       mutations.setLastSelectedIndex(this.index);
     },
     open() {
-      if (this.isSafeBlurred) {
+      if (this.isInSafeMode && !getters.safeModeUnlocked()) {
         mutations.showHover({
           name: "SafeModeUnlock",
           props: { target: { source: this.source, path: this.path } },

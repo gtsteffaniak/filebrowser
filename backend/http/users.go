@@ -91,6 +91,7 @@ func prepForFrontend(u *users.User) {
 	u.OtpEnabled = u.TOTPSecret != ""
 	u.TOTPSecret = ""
 	u.TOTPNonce = ""
+	u.SafeModePINHash = ""
 	// Compute current storage usage across all scopes for the quota bar
 	if u.QuotaBytes > 0 {
 		var used int64
