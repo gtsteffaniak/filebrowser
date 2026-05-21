@@ -37,6 +37,14 @@
       </div>
     </div>
 
+    <!-- Display options (user context only) -->
+    <div v-if="!showAddForm && !isSelectingPath && context === 'user'" class="display-options-section">
+      <label class="toggle-label">
+        <input type="checkbox" v-model="hideSidebarFolders" />
+        <span>{{ hideFoldersLabel }}</span>
+      </label>
+    </div>
+
     <!-- Add New Link Section -->
     <div v-if="!showAddForm" class="add-link-section">
       <button @click="showAddForm = true" class="button button--flat button--blue add-link-button">
@@ -249,6 +257,7 @@ export default {
         icon: "",
         sourceName: "",
       },
+      hideSidebarFolders: false,
       draggingIndex: null,
       dragOverIndex: null,
       linkItemRefs: {},
@@ -282,6 +291,9 @@ export default {
         ? this.$t('sidebar.customizeShareLinksDescription')
         : this.$t('sidebar.customizeLinksDescription');
     },
+    hideFoldersLabel() {
+      return 'Hide folder list in sidebar';
+    },
     isNewLinkValid() {
       if (!this.newLink.category) return false;
 
@@ -314,6 +326,9 @@ export default {
     } else if (this.context === 'user') {
       // Generate default links from sources for user context
       this.links = this.getDefaultLinks();
+    }
+    if (this.context === 'user') {
+      this.hideSidebarFolders = !!state.user?.hideSidebarFolders;
     }
 
     // Load available shares for share link type
@@ -696,12 +711,14 @@ export default {
             id: state.user.id,
             username: state.user.username,
             sidebarLinks: this.links,
+            hideSidebarFolders: this.hideSidebarFolders,
           };
 
-          await usersApi.update(updatedUser, ['sidebarLinks']);
+          await usersApi.update(updatedUser, ['sidebarLinks', 'hideSidebarFolders']);
 
           // Update the local state
           state.user.sidebarLinks = [...this.links];
+          state.user.hideSidebarFolders = this.hideSidebarFolders;
 
           notify.showSuccessToast(this.$t("sidebar.linksUpdatedSuccess"));
         }
@@ -793,6 +810,29 @@ export default {
 }
 
 /* Form sections */
+.display-options-section {
+  padding: 0.75em 0;
+  border-top: 1px solid var(--borderColor);
+  margin-top: 0.5em;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  cursor: pointer;
+  font-size: 0.9em;
+  color: var(--textPrimary);
+  user-select: none;
+}
+
+.toggle-label input[type="checkbox"] {
+  width: 1em;
+  height: 1em;
+  cursor: pointer;
+  accent-color: var(--primaryColor);
+}
+
 .add-link-section {
   margin-top: 1.5em;
   padding-top: 1em;
