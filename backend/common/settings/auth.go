@@ -87,13 +87,17 @@ type OidcConfig struct {
 
 // ChainFS Azure AD B2C Authentication
 type ChainFsConfig struct {
-	Enabled         bool   `json:"enabled"`         // whether to enable ChainFS authentication
-	ApiBaseUrl      string `json:"apiBaseUrl"`      // ChainFS API base URL (DEV/UAT/PROD)
-	ClientSecret    string `json:"clientSecret"`    // Azure AD B2C client secret
-	CreateUser      bool   `json:"createUser"`      // create user if not exists
-	AdminClaim      string `json:"adminClaim"`      // claim to check for admin status (e.g., "roles" or "groups")
-	AdminClaimValue string `json:"adminClaimValue"` // value that grants admin privileges (e.g., "admin")
-	IssuerUrl       string `json:"issuerUrl"`       // Azure AD B2C issuer URL for ID token signature verification (recommended). Format: https://<tenant>.b2clogin.com/<tenant-id>/v2.0/
+	Enabled          bool   `json:"enabled"`          // whether to enable ChainFS authentication
+	ApiBaseUrl       string `json:"apiBaseUrl"`       // ChainFS API base URL (DEV/UAT/PROD)
+	LoginUrl         string `json:"loginUrl"`         // Azure B2C authorize endpoint (with client_id+scope params). When set, bypasses the ChainFS API call on every login.
+	TokenUrl         string `json:"tokenUrl"`         // Azure B2C token endpoint. Used with LoginUrl to avoid the ChainFS API call on every callback.
+	ClientSecret     string `json:"clientSecret"`     // Azure AD B2C client secret
+	CreateUser       bool   `json:"createUser"`       // create user if not exists
+	AdminClaim       string `json:"adminClaim"`       // claim to check for admin status (e.g., "roles" or "groups")
+	AdminClaimValue  string `json:"adminClaimValue"`  // value that grants admin privileges (e.g., "admin")
+	IssuerUrl        string `json:"issuerUrl"`        // Azure AD B2C issuer URL for ID token signature verification (recommended). Format: https://<tenant>.b2clogin.com/<tenant-id>/v2.0/
+	AcornToolsUrl    string `json:"acornToolsUrl"`    // acorn.tools base URL for subscription checks (default: https://www.acorn.tools)
+	AcornToolsSecret string `json:"acornToolsSecret"` // secret: API key for acorn.tools internal endpoints
 }
 
 // ValidateOidcAuth processes the OIDC callback and retrieves user identity

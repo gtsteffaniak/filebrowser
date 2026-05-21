@@ -41,18 +41,29 @@ func chainfsLoginHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		return http.StatusForbidden, fmt.Errorf("ChainFS authentication is not enabled")
 	}
 
-	// Get the login URL from ChainFS API
-	azureLoginUrl, err := chainfs.GetLoginUrl(chainfsConfig.ApiBaseUrl)
-	if err != nil {
-		logger.Errorf("Failed to fetch login URL from ChainFS: %v", err)
-		return http.StatusInternalServerError, fmt.Errorf("failed to fetch login URL: %w", err)
-	}
-
-	// Parse the Azure URL to modify redirect_uri
-	parsedUrl, err := url.Parse(azureLoginUrl)
-	if err != nil {
-		logger.Errorf("Failed to parse Azure login URL: %v", err)
-		return http.StatusInternalServerError, fmt.Errorf("failed to parse login URL: %w", err)
+	// Resolve the Azure B2C authorize URL.
+	// When loginUrl is configured we use it directly (no network call).
+	// Otherwise we fall back to fetching it from the ChainFS API.
+	var parsedUrl *url.URL
+	if chainfsConfig.LoginUrl != "" {
+		var parseErr error
+		parsedUrl, parseErr = url.Parse(chainfsConfig.LoginUrl)
+		if parseErr != nil {
+			logger.Errorf("Failed to parse configured loginUrl: %v", parseErr)
+			return http.StatusInternalServerError, fmt.Errorf("failed to parse login URL: %w", parseErr)
+		}
+	} else {
+		azureLoginUrl, fetchErr := chainfs.GetLoginUrl(chainfsConfig.ApiBaseUrl)
+		if fetchErr != nil {
+			logger.Errorf("Failed to fetch login URL from ChainFS: %v", fetchErr)
+			return http.StatusInternalServerError, fmt.Errorf("failed to fetch login URL: %w", fetchErr)
+		}
+		var parseErr error
+		parsedUrl, parseErr = url.Parse(azureLoginUrl)
+		if parseErr != nil {
+			logger.Errorf("Failed to parse Azure login URL: %v", parseErr)
+			return http.StatusInternalServerError, fmt.Errorf("failed to parse login URL: %w", parseErr)
+		}
 	}
 
 	// Get FileBrowser's callback URL — prefer ExternalUrl so it stays correct behind reverse proxies
@@ -213,28 +224,38 @@ if (hash) {
 		fbRedirect = stateParts[1]
 	}
 
-	// Get the Azure login URL to extract OAuth2 endpoints
-	azureLoginUrl, err := chainfs.GetLoginUrl(chainfsConfig.ApiBaseUrl)
-	if err != nil {
-		logger.Errorf("Failed to fetch login URL: %v", err)
-		return http.StatusInternalServerError, err
-	}
-
-	parsedUrl, err := url.Parse(azureLoginUrl)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-
-	// Extract client_id and construct token endpoint
-	query := parsedUrl.Query()
-	clientID := query.Get("client_id")
-
-	// Construct token endpoint from authorization endpoint
-	// Azure AD B2C pattern: replace /authorize with /token
-	tokenEndpoint := strings.Replace(azureLoginUrl, "/authorize", "/token", 1)
-	// Remove query parameters
-	if idx := strings.Index(tokenEndpoint, "?"); idx != -1 {
-		tokenEndpoint = tokenEndpoint[:idx]
+	// Resolve client_id and token endpoint.
+	// When loginUrl is configured we derive them from config (no network call).
+	// Otherwise we fall back to fetching from the ChainFS API.
+	var clientID, tokenEndpoint string
+	if chainfsConfig.LoginUrl != "" {
+		parsedLoginUrl, parseErr := url.Parse(chainfsConfig.LoginUrl)
+		if parseErr != nil {
+			return http.StatusInternalServerError, fmt.Errorf("failed to parse configured loginUrl: %w", parseErr)
+		}
+		clientID = parsedLoginUrl.Query().Get("client_id")
+		if chainfsConfig.TokenUrl != "" {
+			tokenEndpoint = chainfsConfig.TokenUrl
+		} else {
+			// Derive token URL: strip query params, replace /authorize with /token
+			base := parsedLoginUrl.Scheme + "://" + parsedLoginUrl.Host + parsedLoginUrl.Path
+			tokenEndpoint = strings.Replace(base, "/authorize", "/token", 1)
+		}
+	} else {
+		azureLoginUrl, fetchErr := chainfs.GetLoginUrl(chainfsConfig.ApiBaseUrl)
+		if fetchErr != nil {
+			logger.Errorf("Failed to fetch login URL: %v", fetchErr)
+			return http.StatusInternalServerError, fetchErr
+		}
+		parsedUrl, parseErr := url.Parse(azureLoginUrl)
+		if parseErr != nil {
+			return http.StatusInternalServerError, parseErr
+		}
+		clientID = parsedUrl.Query().Get("client_id")
+		tokenEndpoint = strings.Replace(azureLoginUrl, "/authorize", "/token", 1)
+		if idx := strings.Index(tokenEndpoint, "?"); idx != -1 {
+			tokenEndpoint = tokenEndpoint[:idx]
+		}
 	}
 
 	// Build callback URL — prefer ExternalUrl so it stays correct behind reverse proxies
@@ -353,12 +374,15 @@ if (hash) {
 	// Extract display name (real first name) from JWT claims
 	displayName := extractDisplayName(claims)
 
+	// Extract Azure B2C subject identifier for acorn.tools subscription check
+	azureSub, _ := claims["sub"].(string)
+
 	// Login or create user
-	return loginWithChainFsUser(w, r, username, displayName, isAdmin, rawTokenResponse.AccessToken, rawTokenResponse.RefreshToken, expiresAt, fbRedirect)
+	return loginWithChainFsUser(w, r, username, displayName, azureSub, isAdmin, rawTokenResponse.AccessToken, rawTokenResponse.RefreshToken, expiresAt, fbRedirect)
 }
 
 // loginWithChainFsUser creates or updates a user and logs them in
-func loginWithChainFsUser(w http.ResponseWriter, r *http.Request, username, displayName string, isAdmin bool, accessToken, refreshToken string, expiresAt int64, redirect string) (int, error) {
+func loginWithChainFsUser(w http.ResponseWriter, r *http.Request, username, displayName, azureSub string, isAdmin bool, accessToken, refreshToken string, expiresAt int64, redirect string) (int, error) {
 	chainfsConfig := settings.Config.Auth.Methods.ChainFsAuth
 
 	// Check if user already exists in the DB and is already an admin there.
@@ -374,7 +398,7 @@ func loginWithChainFsUser(w http.ResponseWriter, r *http.Request, username, disp
 		subscribed = true
 		logger.Infof("Subscription check bypassed for %s via FILEBROWSER_CHAINFS_BYPASS", username)
 	} else if settings.Env.AcornToolsSecret != "" {
-		access, accessErr := chainfs.CheckAcornToolsAccess(settings.Env.AcornToolsURL, settings.Env.AcornToolsSecret, username)
+		access, accessErr := chainfs.CheckAcornToolsAccess(settings.Env.AcornToolsURL, settings.Env.AcornToolsSecret, azureSub)
 		if accessErr != nil {
 			logger.Errorf("acorn.tools subscription check failed for %s: %v", username, accessErr)
 			return http.StatusServiceUnavailable, fmt.Errorf("could not verify subscription status, please try again")
