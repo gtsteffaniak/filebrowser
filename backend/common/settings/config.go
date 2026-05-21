@@ -639,6 +639,9 @@ func loadEnvConfig() {
 	if v := os.Getenv("FILEBROWSER_ACORN_TOOLS_SECRET"); v != "" {
 		Env.AcornToolsSecret = v
 	}
+	if v := os.Getenv("FILEBROWSER_ACORN_DRIVE_SSO_SECRET"); v != "" {
+		Env.AcornDriveSsoSecret = v
+	}
 
 }
 

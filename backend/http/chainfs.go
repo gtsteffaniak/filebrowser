@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
@@ -706,4 +707,182 @@ func truncateString(s string, maxLen int) string {
 		return "(empty)"
 	}
 	return s[:maxLen] + "..."
+}
+
+// ssoPayload is the structure of the signed token issued by acorn.tools.
+type ssoPayload struct {
+	Email     string `json:"email"`
+	AzureSub  string `json:"azureSub"`
+	GivenName string `json:"givenName"`
+	Exp       int64  `json:"exp"`
+}
+
+// verifySsoToken validates the HMAC-SHA256 signed token from acorn.tools and
+// returns the decoded payload, or an error if the signature or expiry is invalid.
+func verifySsoToken(token string) (*ssoPayload, error) {
+	secret := settings.Env.AcornDriveSsoSecret
+	if secret == "" {
+		return nil, fmt.Errorf("SSO secret not configured")
+	}
+
+	sep := strings.LastIndex(token, ".")
+	if sep == -1 {
+		return nil, fmt.Errorf("malformed SSO token")
+	}
+	payloadSegment := token[:sep]
+	sigSegment := token[sep+1:]
+
+	payloadBytes, err := base64.RawURLEncoding.DecodeString(payloadSegment)
+	if err != nil {
+		return nil, fmt.Errorf("invalid payload encoding: %w", err)
+	}
+	sigBytes, err := base64.RawURLEncoding.DecodeString(sigSegment)
+	if err != nil {
+		return nil, fmt.Errorf("invalid signature encoding: %w", err)
+	}
+
+	mac := hmac.New(sha256.New, []byte(secret))
+	mac.Write(payloadBytes)
+	expected := mac.Sum(nil)
+	if !hmac.Equal(sigBytes, expected) {
+		return nil, fmt.Errorf("SSO token signature mismatch")
+	}
+
+	var p ssoPayload
+	if err := json.Unmarshal(payloadBytes, &p); err != nil {
+		return nil, fmt.Errorf("invalid SSO payload: %w", err)
+	}
+	if p.Email == "" || p.AzureSub == "" {
+		return nil, fmt.Errorf("SSO payload missing required fields")
+	}
+	if p.Exp <= time.Now().UnixMilli() {
+		return nil, fmt.Errorf("SSO token expired")
+	}
+	return &p, nil
+}
+
+// chainfsSSOHandler handles SSO login initiated by acorn.tools.
+// It verifies the signed token, checks the subscription using the correct
+// azure_sub identifier, then creates a Drive session without a B2C round-trip.
+// @Summary Acorn SSO login
+// @Description Accepts a signed SSO token from acorn.tools and logs the user in.
+// @Tags Auth
+// @Param token query string true "Signed SSO token"
+// @Param next  query string false "Redirect path after login"
+// @Success 302 {string} string "Redirect to next path"
+// @Router /api/auth/sso [get]
+func chainfsSSOHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	loginURL := fmt.Sprintf("%slogin?error=sso", config.Server.BaseURL)
+
+	rawToken := r.URL.Query().Get("token")
+	if rawToken == "" {
+		http.Redirect(w, r, loginURL, http.StatusFound)
+		return 0, nil
+	}
+
+	payload, err := verifySsoToken(rawToken)
+	if err != nil {
+		logger.Warningf("SSO token verification failed: %v", err)
+		http.Redirect(w, r, loginURL, http.StatusFound)
+		return 0, nil
+	}
+
+	// Subscription check — use azureSub (GUID) not email so the landing page
+	// endpoint can find the user in its database.
+	var subscribed bool
+	if settings.Env.ChainFsBypass {
+		subscribed = true
+		logger.Infof("SSO: subscription check bypassed for %s", payload.Email)
+	} else if settings.Env.AcornToolsSecret != "" {
+		access, accessErr := chainfs.CheckAcornToolsAccess(settings.Env.AcornToolsURL, settings.Env.AcornToolsSecret, payload.AzureSub)
+		if accessErr != nil {
+			logger.Errorf("SSO: acorn.tools subscription check failed for %s: %v", payload.Email, accessErr)
+			return http.StatusServiceUnavailable, fmt.Errorf("could not verify subscription status, please try again")
+		}
+		subscribed = access.HasAccess
+		logger.Infof("SSO: acorn.tools subscription for %s: plan=%s hasAccess=%v", payload.Email, access.PlanTier, subscribed)
+	} else {
+		// No acorn.tools secret configured and bypass not set — deny SSO login.
+		logger.Errorf("SSO: FILEBROWSER_ACORN_TOOLS_SECRET not set, cannot verify subscription for %s", payload.Email)
+		return http.StatusServiceUnavailable, fmt.Errorf("subscription verification not configured")
+	}
+
+	if !subscribed {
+		http.Redirect(w, r, loginURL, http.StatusFound)
+		return 0, nil
+	}
+
+	// Determine next path (relative paths only).
+	next := r.URL.Query().Get("next")
+	if next == "" || !strings.HasPrefix(next, "/") || strings.HasPrefix(next, "//") {
+		next = "/"
+	}
+
+	// Check admin status from existing DB record — preserve manually-granted admin rights.
+	isAdmin := false
+	if existingUser, err := store.Users.Get(payload.Email); err == nil && existingUser.Permissions.Admin {
+		isAdmin = true
+	}
+
+	chainfsConfig := settings.Config.Auth.Methods.ChainFsAuth
+	user, err := store.Users.Get(payload.Email)
+	if err != nil {
+		// New user — auto-create if allowed.
+		if !chainfsConfig.CreateUser {
+			logger.Errorf("SSO: user %s does not exist and auto-creation is disabled", payload.Email)
+			return http.StatusForbidden, fmt.Errorf("user does not exist")
+		}
+		logger.Infof("SSO: creating new user %s", payload.Email)
+		newUser := &users.User{
+			Username:          payload.Email,
+			DisplayName:       payload.GivenName,
+			LoginMethod:       users.LoginMethodChainFs,
+			ChainFSSubscribed: true,
+		}
+		settings.ApplyUserDefaults(newUser)
+		if isAdmin {
+			newUser.Permissions.Admin = true
+		}
+		if createErr := storage.CreateUser(*newUser, newUser.Permissions); createErr != nil {
+			logger.Errorf("SSO: failed to create user %s: %v", payload.Email, createErr)
+			return http.StatusInternalServerError, createErr
+		}
+		user, err = store.Users.Get(payload.Email)
+		if err != nil {
+			logger.Errorf("SSO: failed to reload created user %s: %v", payload.Email, err)
+			return http.StatusInternalServerError, err
+		}
+	} else {
+		// Existing user — update subscription flag and display name.
+		user.ChainFSSubscribed = true
+		user.LoginMethod = users.LoginMethodChainFs
+		if payload.GivenName != "" {
+			user.DisplayName = payload.GivenName
+		}
+		if isAdmin {
+			user.Permissions.Admin = true
+		}
+		if updateErr := store.Users.Update(user, true, "ChainFSSubscribed", "LoginMethod", "Permissions", "DisplayName"); updateErr != nil {
+			logger.Errorf("SSO: failed to update user %s: %v", payload.Email, updateErr)
+			return http.StatusInternalServerError, updateErr
+		}
+	}
+
+	tokenString, err := generateToken(user)
+	if err != nil {
+		logger.Errorf("SSO: failed to generate JWT for %s: %v", payload.Email, err)
+		return http.StatusInternalServerError, err
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "filebrowser_quantum_jwt",
+		Value:    tokenString,
+		Path:     config.Server.BaseURL,
+		HttpOnly: true,
+		Secure:   getScheme(r) == "https",
+		SameSite: http.SameSiteLaxMode,
+	})
+
+	http.Redirect(w, r, next, http.StatusFound)
+	return 0, nil
 }

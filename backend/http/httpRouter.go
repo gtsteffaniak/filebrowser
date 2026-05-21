@@ -103,6 +103,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	api.HandleFunc("GET /auth/oidc/login", wrapHandler(oidcLoginHandler))
 	api.HandleFunc("GET /auth/chainfs/callback", wrapHandler(chainfsCallbackHandler))
 	api.HandleFunc("GET /auth/chainfs/login", wrapHandler(chainfsLoginHandler))
+	api.HandleFunc("GET /auth/sso", wrapHandler(chainfsSSOHandler))
 	api.HandleFunc("POST /chainfs/protect", withUser(protectHandler))
 
 	// Resources routes

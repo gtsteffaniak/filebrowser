@@ -39,6 +39,7 @@ type Environment struct {
 	ChainFsBypass         bool   `json:"-"` // skip ChainFS subscription check and file writes (for testing)
 	AcornToolsURL         string `json:"-"` // acorn.tools base URL for subscription checks (FILEBROWSER_ACORN_TOOLS_URL)
 	AcornToolsSecret      string `json:"-"` // API secret for acorn.tools internal endpoints (FILEBROWSER_ACORN_TOOLS_SECRET)
+	AcornDriveSsoSecret   string `json:"-"` // HMAC secret for verifying SSO tokens from acorn.tools (FILEBROWSER_ACORN_DRIVE_SSO_SECRET)
 }
 
 type Server struct {
