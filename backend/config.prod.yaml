@@ -4,6 +4,10 @@ server:
   externalUrl: "https://drive.acorn.tools"
   sources:
     - path: "/srv"
+      config:
+        defaultEnabled: true
+        defaultUserScope: "/users"
+        createUserDir: true
 
 auth:
   key: "GW8okZkm/d3Wt6PiqeOeM36WuGuuVUjK" # MUST be exactly 32 bytes for AES-256

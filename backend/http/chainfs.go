@@ -13,12 +13,14 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"path/filepath"
 	"slices"
 	"strings"
 	"time"
 
 	gooidc "github.com/coreos/go-oidc/v3/oidc"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/chainfs"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
@@ -502,7 +504,11 @@ func loginWithChainFsUser(w http.ResponseWriter, r *http.Request, username, disp
 			user.Permissions.Admin = true
 		}
 
-		if err := store.Users.Update(user, true, "AzureAccessToken", "AzureRefreshToken", "AzureTokenExpiry", "LoginMethod", "Permissions", "ChainFSSubscribed", "DisplayName"); err != nil {
+		updateFields := []string{"AzureAccessToken", "AzureRefreshToken", "AzureTokenExpiry", "LoginMethod", "Permissions", "ChainFSSubscribed", "DisplayName"}
+		if correctUserScope(user) {
+			updateFields = append(updateFields, "Scopes")
+		}
+		if err := store.Users.Update(user, true, updateFields...); err != nil {
 			logger.Errorf("Failed to update user: %v", err)
 			return http.StatusInternalServerError, err
 		}
@@ -733,6 +739,29 @@ func truncateString(s string, maxLen int) string {
 	return s[:maxLen] + "..."
 }
 
+// correctUserScope ensures the user's scope points to their own isolated directory
+// (/users/<username>) rather than the root. If a correction is needed it creates the
+// directory tree under /srv/users/<username>/ and updates user.Scopes in place.
+// Returns true if the scope was changed — the caller must include "Scopes" in the
+// subsequent store.Users.Update call so the corrected value is persisted.
+func correctUserScope(user *users.User) bool {
+	cleanedUsername := users.CleanUsername(user.Username)
+	changed := false
+	for i, scope := range user.Scopes {
+		if filepath.Base(scope.Scope) != cleanedUsername {
+			user.Scopes[i].Scope = "/users"
+			changed = true
+		}
+	}
+	if changed {
+		logger.Infof("correctUserScope: migrating %s scope to /users/%s", user.Username, cleanedUsername)
+		if err := files.MakeUserDirs(user, false); err != nil {
+			logger.Errorf("correctUserScope: MakeUserDirs failed for %s: %v", user.Username, err)
+		}
+	}
+	return changed
+}
+
 // ssoPayload is the structure of the signed token issued by acorn.tools.
 type ssoPayload struct {
 	Email     string `json:"email"`
@@ -890,7 +919,11 @@ func chainfsSSOHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 		if isAdmin {
 			user.Permissions.Admin = true
 		}
-		if updateErr := store.Users.Update(user, true, "ChainFSSubscribed", "LoginMethod", "Permissions", "DisplayName"); updateErr != nil {
+		updateFields := []string{"ChainFSSubscribed", "LoginMethod", "Permissions", "DisplayName"}
+		if correctUserScope(user) {
+			updateFields = append(updateFields, "Scopes")
+		}
+		if updateErr := store.Users.Update(user, true, updateFields...); updateErr != nil {
 			logger.Errorf("SSO: failed to update user %s: %v", username, updateErr)
 			return http.StatusInternalServerError, updateErr
 		}
