@@ -508,6 +508,9 @@ func loginWithChainFsUser(w http.ResponseWriter, r *http.Request, username, disp
 		if correctUserScope(user) {
 			updateFields = append(updateFields, "Scopes")
 		}
+		if correctUserQuota(user) {
+			updateFields = append(updateFields, "QuotaBytes")
+		}
 		if err := store.Users.Update(user, true, updateFields...); err != nil {
 			logger.Errorf("Failed to update user: %v", err)
 			return http.StatusInternalServerError, err
@@ -739,6 +742,19 @@ func truncateString(s string, maxLen int) string {
 	return s[:maxLen] + "..."
 }
 
+// correctUserQuota resets the user's quota to the current system default on every login.
+// Returns true if the quota was changed so the caller can include "QuotaBytes" in the update.
+// When data-pack upgrades are implemented this function should check for an explicit override flag
+// before resetting.
+func correctUserQuota(user *users.User) bool {
+	defaultQuota := settings.Config.UserDefaults.DefaultQuotaBytes
+	if defaultQuota <= 0 || user.QuotaBytes == defaultQuota {
+		return false
+	}
+	user.QuotaBytes = defaultQuota
+	return true
+}
+
 // correctUserScope ensures the user's scope points to their own isolated directory
 // (/users/<username>) rather than the root. If a correction is needed it creates the
 // directory tree under /srv/users/<username>/ and updates user.Scopes in place.
@@ -922,6 +938,9 @@ func chainfsSSOHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 		updateFields := []string{"ChainFSSubscribed", "LoginMethod", "Permissions", "DisplayName"}
 		if correctUserScope(user) {
 			updateFields = append(updateFields, "Scopes")
+		}
+		if correctUserQuota(user) {
+			updateFields = append(updateFields, "QuotaBytes")
 		}
 		if updateErr := store.Users.Update(user, true, updateFields...); updateErr != nil {
 			logger.Errorf("SSO: failed to update user %s: %v", username, updateErr)

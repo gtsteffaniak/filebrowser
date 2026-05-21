@@ -656,7 +656,7 @@ export default {
       mutations.setLastSelectedIndex(this.index);
     },
     open() {
-      if (this.isInSafeMode && !getters.safeModeUnlocked()) {
+      if (this.isInSafeMode) {
         mutations.showHover({
           name: "SafeModeUnlock",
           props: { target: { source: this.source, path: this.path } },
