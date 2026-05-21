@@ -188,7 +188,7 @@
       <permissions v-if="stateUser.permissions.admin" :permissions="user.permissions" />
 
       <div v-if="stateUser.permissions.admin" style="margin-top: 1em;">
-        <label for="quotaGb">Storage Quota (GB)</label>
+        <label for="quotaGb">{{ quotaLabel }}</label>
         <div class="form-flex-group">
           <input
             id="quotaGb"
@@ -198,7 +198,7 @@
             step="1"
             :value="quotaGb"
             @input="updateQuotaFromGb($event.target.value)"
-            placeholder="0 = unlimited"
+            :placeholder="quotaPlaceholder"
           />
         </div>
         <small style="color: var(--textSecondary)">{{ quotaHint }}</small>
@@ -304,6 +304,8 @@ export default {
       return Math.round(this.user.quotaBytes / (1024 * 1024 * 1024) * 10) / 10;
     },
     quotaHint() { return 'Set to 0 for unlimited storage.'; },
+    quotaLabel() { return 'Storage Quota (GB)'; },
+    quotaPlaceholder() { return '0 = unlimited'; },
     passwordPlaceholder() {
       return this.isNew ? "" : this.$t("settings.avoidChanges");
     },
