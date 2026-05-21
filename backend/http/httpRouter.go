@@ -106,6 +106,12 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	api.HandleFunc("GET /auth/sso", wrapHandler(chainfsSSOHandler))
 	api.HandleFunc("POST /chainfs/protect", withUser(protectHandler))
 
+	// SAFEMode routes
+	api.HandleFunc("GET /safemode", withUser(safeModeGetHandler))
+	api.HandleFunc("POST /safemode", withUser(safeModeAddHandler))
+	api.HandleFunc("DELETE /safemode", withUser(safeModeRemoveHandler))
+	api.HandleFunc("POST /safemode/verify", withUser(safeModeVerifyHandler))
+
 	// Resources routes
 	api.HandleFunc("GET /resources", withUser(resourceGetHandler))
 	api.HandleFunc("DELETE /resources", withUser(resourceDeleteHandler))
