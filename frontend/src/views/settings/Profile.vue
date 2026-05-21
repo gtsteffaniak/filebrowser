@@ -6,7 +6,7 @@
     <form>
       <div class="card-content">
         <div v-if="user.quotaBytes > 0" class="quota-section">
-          <h3 class="quota-label">Storage <span class="quota-values">{{ quotaUsedGb }} GB of {{ quotaTotalGb }} GB used</span></h3>
+          <h3 class="quota-label"><span>{{ quotaStorageTitle }}</span><span class="quota-values">{{ quotaUsageText }}</span></h3>
           <div class="quota-bar-track">
             <div class="quota-bar-fill" :style="{ width: quotaPercent + '%', background: quotaBarColor }"></div>
           </div>
@@ -239,6 +239,8 @@ export default {
       if (this.quotaPercent >= 75) return 'var(--icon-orange)';
       return 'var(--blue)';
     },
+    quotaStorageTitle() { return 'Storage'; },
+    quotaUsageText() { return `${this.quotaUsedGb} GB of ${this.quotaTotalGb} GB used`; },
     muPdfAvailable() {
       return globalVars.muPdfAvailable;
     },

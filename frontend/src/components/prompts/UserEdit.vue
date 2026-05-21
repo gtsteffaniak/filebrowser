@@ -201,7 +201,7 @@
             placeholder="0 = unlimited"
           />
         </div>
-        <small style="color: var(--textSecondary)">Set to 0 for unlimited storage.</small>
+        <small style="color: var(--textSecondary)">{{ quotaHint }}</small>
       </div>
     </div>
   </div>
@@ -303,6 +303,7 @@ export default {
       if (!this.user.quotaBytes || this.user.quotaBytes <= 0) return 0;
       return Math.round(this.user.quotaBytes / (1024 * 1024 * 1024) * 10) / 10;
     },
+    quotaHint() { return 'Set to 0 for unlimited storage.'; },
     passwordPlaceholder() {
       return this.isNew ? "" : this.$t("settings.avoidChanges");
     },
