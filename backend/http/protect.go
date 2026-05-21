@@ -3,6 +3,7 @@ package http
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -15,6 +16,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/chainfs"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/database/protection"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
@@ -146,11 +148,12 @@ func protectHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		}
 	}
 
-	// Persist protection metadata to database
+	// Persist protection metadata to database and filesystem sidecar
 	expiry := time.Now().Add(time.Duration(hours) * time.Hour).Unix()
 	if err := store.Protection.Save(fileInfo.RealPath, fileGuid, expiry); err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("failed to save protection record: %w", err)
 	}
+	writeProtectionSidecar(fileInfo.RealPath, fileGuid, expiry)
 
 	return renderJSON(w, r, map[string]string{"fileGuid": fileGuid, "protectedUntil": time.Unix(expiry, 0).UTC().Format(time.RFC3339)})
 }
@@ -162,15 +165,33 @@ func deriveUserAESPassword(user *users.User) string {
 	return hex.EncodeToString(hash[:])
 }
 
+// getProtectionRecord returns the protection record from DB, falling back to the filesystem
+// sidecar when the DB is missing the record (e.g. after a container redeploy that wiped the DB).
+func getProtectionRecord(realPath string) *protection.Record {
+	r, _ := store.Protection.Get(realPath)
+	if r != nil {
+		return r
+	}
+	// Fallback: restore from sidecar file on the persistent /srv volume
+	s := readProtectionSidecar(realPath)
+	if s == nil {
+		return nil
+	}
+	restored := &protection.Record{Path: realPath, FileGuid: s.FileGuid, Expiry: s.Expiry}
+	if err := store.Protection.Save(realPath, s.FileGuid, s.Expiry); err != nil {
+		logger.Warnf("protect: failed to restore sidecar record for %s: %v", realPath, err)
+	}
+	return restored
+}
+
 // IsFileProtected returns true if the file at realPath has a ChainFS protection record.
 func IsFileProtected(realPath string) bool {
-	r, _ := store.Protection.Get(realPath)
-	return r != nil
+	return getProtectionRecord(realPath) != nil
 }
 
 // IsProtectionActive returns true if the file is protected AND its expiry has not yet passed.
 func IsProtectionActive(realPath string) bool {
-	r, _ := store.Protection.Get(realPath)
+	r := getProtectionRecord(realPath)
 	if r == nil {
 		return false
 	}
@@ -182,9 +203,49 @@ func IsProtectionActive(realPath string) bool {
 
 // ProtectionExpiresAt returns the Unix timestamp when protection expires, and whether one is set.
 func ProtectionExpiresAt(realPath string) (int64, bool) {
-	r, _ := store.Protection.Get(realPath)
+	r := getProtectionRecord(realPath)
 	if r == nil || r.Expiry == 0 {
 		return 0, false
 	}
 	return r.Expiry, true
+}
+
+// --- Sidecar helpers ---
+// The sidecar file lives next to the protected file on the /srv volume so that protection
+// records survive container redeployments that wipe the BoltDB at /home/filebrowser/data/.
+
+type protectionSidecar struct {
+	FileGuid string `json:"fileGuid"`
+	Expiry   int64  `json:"expiry"`
+}
+
+func protectionSidecarPath(realPath string) string {
+	return realPath + ".acornprotect"
+}
+
+func writeProtectionSidecar(realPath, fileGuid string, expiry int64) {
+	data, err := json.Marshal(protectionSidecar{FileGuid: fileGuid, Expiry: expiry})
+	if err != nil {
+		return
+	}
+	if err := os.WriteFile(protectionSidecarPath(realPath), data, 0600); err != nil {
+		logger.Warnf("protect: could not write sidecar for %s: %v", realPath, err)
+	}
+}
+
+func readProtectionSidecar(realPath string) *protectionSidecar {
+	data, err := os.ReadFile(protectionSidecarPath(realPath))
+	if err != nil {
+		return nil
+	}
+	var s protectionSidecar
+	if err := json.Unmarshal(data, &s); err != nil {
+		return nil
+	}
+	return &s
+}
+
+// DeleteProtectionSidecar removes the sidecar file when a file is deleted or protection cleared.
+func DeleteProtectionSidecar(realPath string) {
+	_ = os.Remove(protectionSidecarPath(realPath))
 }
