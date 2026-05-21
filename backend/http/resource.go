@@ -438,23 +438,24 @@ func resourcePauseHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	}
 	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
-	parsedPath, err := utils.ParseSanitizedIndexPath(path, true)
+	cleanPath, err := utils.SanitizeUserPath(path)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
-	path = parsedPath.String()
 	idx := indexing.GetIndex(source)
 	if idx == nil {
 		logger.Debugf("source %s not found", source)
 		return http.StatusNotFound, fmt.Errorf("source %s not found", source)
 	}
-	if _, err := d.user.GetScopeForSourceName(source); err != nil {
+	userscope, err := d.user.GetScopeForSourceName(source)
+	if err != nil {
 		return http.StatusForbidden, err
 	}
-	if !accessStore.Permitted(idx.Path, parsedPath, d.user.Username) {
-		return http.StatusForbidden, fmt.Errorf("access denied to path %s", path)
+	fullIndexPath := utils.JoinPathAsUnix(userscope, cleanPath)
+	if !accessStore.Permitted(idx.Path, utils.IndexPathFromNormalized(fullIndexPath, true), d.user.Username) {
+		return http.StatusForbidden, fmt.Errorf("access denied to path %s", fullIndexPath)
 	}
-	pauseCache.Set(pauseUploadCacheKey(source, path), "1")
+	pauseCache.Set(pauseUploadCacheKey(source, fullIndexPath), "1")
 	return http.StatusOK, nil
 }
 
@@ -542,8 +543,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	// get scoped path
 	realPath, _, _ := idx.GetRealPath(fullIndexPath)
 
-	// Check access control for the target path
-	if !accessStore.Permitted(idx.Path, utils.IndexPathFromNormalized(path, true), filePermUser.Username) {
+	if !accessStore.Permitted(idx.Path, utils.IndexPathFromNormalized(fullIndexPath, true), filePermUser.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to path %s", path)
 	}
 

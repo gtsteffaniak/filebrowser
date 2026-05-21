@@ -153,8 +153,13 @@ func (s *Storage) persistRuleSQLNL(sourcePath, normalizedPath string) {
 	}
 }
 
-// RemoveRuleByPath removes a rule by its path from the internal storage.
+// RemoveRuleByPath removes a rule by normalized index path.
 func (s *Storage) RemoveRuleByPath(sourcePath string, indexPath utils.IndexPath) {
+	s.RemoveRuleByPathKey(sourcePath, ruleKey(indexPath))
+}
+
+// RemoveRuleByPathKey removes a rule by its exact storage key (for legacy migration paths).
+func (s *Storage) RemoveRuleByPathKey(sourcePath, pathKey string) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 
@@ -163,14 +168,21 @@ func (s *Storage) RemoveRuleByPath(sourcePath string, indexPath utils.IndexPath)
 		return
 	}
 
-	normalized := ruleKey(indexPath)
-	if _, exists := rulesBySource[normalized]; exists {
-		delete(rulesBySource, normalized)
-		if len(rulesBySource) == 0 {
-			delete(s.AllRules, sourcePath)
+	if _, exists := rulesBySource[pathKey]; !exists {
+		return
+	}
+	delete(rulesBySource, pathKey)
+	if len(rulesBySource) == 0 {
+		delete(s.AllRules, sourcePath)
+	}
+	s.clearAllCaches()
+	s.persistRuleSQLNL(sourcePath, pathKey)
+	if s.sqlStore != nil {
+		_ = s.sqlStore.DeleteAccessRule(sourcePath, pathKey)
+		normalized := utils.AddTrailingSlashIfNotExists(pathKey)
+		if normalized != pathKey {
+			_ = s.sqlStore.DeleteAccessRule(sourcePath, normalized)
 		}
-		s.clearAllCaches()
-		s.persistRuleSQLNL(sourcePath, normalized)
 	}
 }
 

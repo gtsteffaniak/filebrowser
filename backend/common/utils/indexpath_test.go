@@ -28,6 +28,16 @@ func TestIndexPathFromNormalized_String(t *testing.T) {
 	}
 }
 
+func TestParseIndexPath_consecutiveSlashes(t *testing.T) {
+	got := IndexPathFromNormalized("/a//b/", true)
+	if got.String() != "/a/b/" {
+		t.Errorf("got %q want /a/b/", got.String())
+	}
+	if len(got.Parts) != 2 {
+		t.Errorf("Parts = %v, want [a b]", got.Parts)
+	}
+}
+
 func TestParseSanitizedIndexPath(t *testing.T) {
 	_, err := ParseSanitizedIndexPath("..", true)
 	if err == nil {

@@ -114,6 +114,6 @@ func migrateAccessRule(accessStore *access.Storage, sourcePath, oldPath, newPath
 func removeOldAccessRule(accessStore *access.Storage, sourcePath, oldPath string) error {
 	// Access the internal storage directly to remove the old rule
 	// We need to use the unnormalized path since that's how it was stored originally
-	accessStore.RemoveRuleByPath(sourcePath, utils.IndexPathFromNormalized(oldPath, true))
+	accessStore.RemoveRuleByPathKey(sourcePath, oldPath)
 	return nil
 }

@@ -43,7 +43,9 @@ func parseIndexPath(path string, isDir bool, strict bool) (IndexPath, error) {
 		return IndexPath{IsDir: isDir}, nil
 	}
 
-	parts := strings.Split(inner, "/")
+	parts := strings.FieldsFunc(inner, func(r rune) bool {
+		return r == '/'
+	})
 	if strict {
 		for _, part := range parts {
 			if part == "." || part == ".." {
@@ -69,6 +71,9 @@ func (p IndexPath) String() string {
 
 // AsDirectory returns a copy with directory semantics (trailing slash when stringified).
 func (p IndexPath) AsDirectory() IndexPath {
+	if p.IsDir {
+		return p
+	}
 	return IndexPath{Parts: append([]string(nil), p.Parts...), IsDir: true}
 }
 

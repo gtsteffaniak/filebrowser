@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
@@ -60,9 +59,9 @@ func accessGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 
 	if indexPath != "" {
-		parsedPath, err := utils.ParseSanitizedIndexPath(indexPath, true)
+		parsedPath, status, err := parseAccessQueryPathOrBadRequest(indexPath)
 		if err != nil {
-			return http.StatusBadRequest, err
+			return status, err
 		}
 		rule, _ := accessStore.GetFrontendRules(sourcePath, parsedPath)
 		return renderJSON(w, r, rule)
@@ -109,9 +108,9 @@ func accessPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	if indexPath == "" || body.RuleCategory == "" || (body.RuleCategory != "all" && body.Value == "") {
 		return http.StatusBadRequest, fmt.Errorf("path, ruleCategory, and value are required, unless ruleCategory is 'all'")
 	}
-	parsedPath, err := utils.ParseSanitizedIndexPath(indexPath, true)
+	parsedPath, status, err := parseAccessQueryPathOrBadRequest(indexPath)
 	if err != nil {
-		return http.StatusBadRequest, err
+		return status, err
 	}
 	if body.Allow {
 		switch body.RuleCategory {
@@ -175,9 +174,9 @@ func accessDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	if indexPath == "" || ruleCategory == "" || (ruleCategory != "all" && value == "") {
 		return http.StatusBadRequest, fmt.Errorf("path, ruleCategory, and value are required, unless ruleCategory is 'all'")
 	}
-	parsedPath, err := utils.ParseSanitizedIndexPath(indexPath, true)
+	parsedPath, status, err := parseAccessQueryPathOrBadRequest(indexPath)
 	if err != nil {
-		return http.StatusBadRequest, err
+		return status, err
 	}
 
 	// Handle cascade delete
@@ -347,13 +346,13 @@ func accessPatchHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return http.StatusBadRequest, fmt.Errorf("source not found: %s", body.Source)
 	}
 
-	oldPath, err := utils.ParseSanitizedIndexPath(body.OldPath, true)
+	oldPath, status, err := parseAccessQueryPathOrBadRequest(body.OldPath)
 	if err != nil {
-		return http.StatusBadRequest, err
+		return status, err
 	}
-	newPath, err := utils.ParseSanitizedIndexPath(body.NewPath, true)
+	newPath, status, err := parseAccessQueryPathOrBadRequest(body.NewPath)
 	if err != nil {
-		return http.StatusBadRequest, err
+		return status, err
 	}
 
 	err = accessStore.UpdateRulePath(index.Path, oldPath, newPath)
