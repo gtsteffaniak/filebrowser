@@ -86,7 +86,7 @@ type User struct {
 	Version        int         `json:"version"`
 	ShowFirstLogin bool        `json:"showFirstLogin"`
 	QuotaBytes     int64       `json:"quotaBytes"`              // max bytes the user may store (0 = unlimited)
-	UsedBytes      int64       `json:"usedBytes" storm:"-"`     // current usage — populated at response time, never persisted
+	UsedBytes      int64       `json:"usedBytes"`               // current usage — populated at response time by prepForFrontend
 }
 
 type SourceScope struct {
