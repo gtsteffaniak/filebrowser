@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -220,7 +221,9 @@ type protectionSidecar struct {
 }
 
 func protectionSidecarPath(realPath string) string {
-	return realPath + ".acornprotect"
+	dir := filepath.Dir(realPath)
+	base := filepath.Base(realPath)
+	return filepath.Join(dir, "."+base+".acornprotect")
 }
 
 func writeProtectionSidecar(realPath, fileGuid string, expiry int64) {
