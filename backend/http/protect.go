@@ -179,7 +179,7 @@ func getProtectionRecord(realPath string) *protection.Record {
 	}
 	restored := &protection.Record{Path: realPath, FileGuid: s.FileGuid, Expiry: s.Expiry}
 	if err := store.Protection.Save(realPath, s.FileGuid, s.Expiry); err != nil {
-		logger.Warnf("protect: failed to restore sidecar record for %s: %v", realPath, err)
+		logger.Errorf("protect: failed to restore sidecar record for %s: %v", realPath, err)
 	}
 	return restored
 }
@@ -229,7 +229,7 @@ func writeProtectionSidecar(realPath, fileGuid string, expiry int64) {
 		return
 	}
 	if err := os.WriteFile(protectionSidecarPath(realPath), data, 0600); err != nil {
-		logger.Warnf("protect: could not write sidecar for %s: %v", realPath, err)
+		logger.Errorf("protect: could not write sidecar for %s: %v", realPath, err)
 	}
 }
 
