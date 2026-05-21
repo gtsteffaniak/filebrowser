@@ -4,6 +4,7 @@ server:
   externalUrl: "https://drive.acorn.tools"
   sources:
     - path: "/srv"
+      name: "acornDrive"
       config:
         defaultEnabled: true
         defaultUserScope: "/users"
@@ -31,6 +32,7 @@ auth:
     noauth: false
 
 userDefaults:
+  defaultQuotaBytes: 4294967296  # 4 GB per user
   permissions:
     admin: false
     modify: true

@@ -12,6 +12,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 )
 
 type UserRequest struct {
@@ -90,6 +91,14 @@ func prepForFrontend(u *users.User) {
 	u.OtpEnabled = u.TOTPSecret != ""
 	u.TOTPSecret = ""
 	u.TOTPNonce = ""
+	// Compute current storage usage across all scopes for the quota bar
+	if u.QuotaBytes > 0 {
+		var used int64
+		for _, scope := range u.Scopes {
+			used += indexing.GetScopeUsedBytes(scope.Name, scope.Scope)
+		}
+		u.UsedBytes = used
+	}
 	u.Scopes = settings.ConvertToFrontendScopes(u.Scopes)
 	u.SidebarLinks = settings.ConvertToFrontendSidebarLinks(u.SidebarLinks)
 }

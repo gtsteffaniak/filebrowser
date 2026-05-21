@@ -85,6 +85,8 @@ type User struct {
 	Perm           Permissions `json:"perm,omitzero"`
 	Version        int         `json:"version"`
 	ShowFirstLogin bool        `json:"showFirstLogin"`
+	QuotaBytes     int64       `json:"quotaBytes"`              // max bytes the user may store (0 = unlimited)
+	UsedBytes      int64       `json:"usedBytes" storm:"-"`     // current usage — populated at response time, never persisted
 }
 
 type SourceScope struct {

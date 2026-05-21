@@ -20,11 +20,25 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/preview"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
+
+// quotaExceeded returns true when writing incomingBytes would push the user over their
+// storage quota. Returns false when quota is 0 (unlimited) or size is unknown (-1).
+func quotaExceeded(u *users.User, incomingBytes int64) bool {
+	if u.QuotaBytes <= 0 || incomingBytes <= 0 {
+		return false
+	}
+	var used int64
+	for _, scope := range u.Scopes {
+		used += indexing.GetScopeUsedBytes(scope.Name, scope.Scope)
+	}
+	return used+incomingBytes > u.QuotaBytes
+}
 
 // validateMoveOperation checks if a move/rename operation is valid at the HTTP level
 // It prevents moving a directory into itself or its subdirectories
@@ -344,8 +358,11 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			logger.Debugf("invalid total size: %v", err)
 			return http.StatusBadRequest, fmt.Errorf("invalid total size: %v", err)
 		}
-		// On the first chunk, check for conflicts or handle override
+		// On the first chunk, check quota and conflicts
 		if offset == 0 {
+			if d.user != nil && quotaExceeded(d.user, totalSize) {
+				return http.StatusRequestEntityTooLarge, fmt.Errorf("storage quota exceeded")
+			}
 			// Check for file/folder conflicts for chunked uploads
 			if stat, statErr := os.Stat(realPath); statErr == nil {
 				existingIsDir := stat.IsDir()
@@ -429,6 +446,9 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		// If overriding, delete existing thumbnails
 		preview.DelThumbs(r.Context(), *fileInfo)
 	}
+	if d.user != nil && quotaExceeded(d.user, r.ContentLength) {
+		return http.StatusRequestEntityTooLarge, fmt.Errorf("storage quota exceeded")
+	}
 	err = files.WriteFile(fileOpts.Source, fileOpts.Path, r.Body)
 	if err != nil {
 		logger.Debugf("error writing file: %v", err)
@@ -488,6 +508,9 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return http.StatusForbidden, fmt.Errorf("access denied to path %s", path)
 	}
 
+	if d.user != nil && quotaExceeded(d.user, r.ContentLength) {
+		return http.StatusRequestEntityTooLarge, fmt.Errorf("storage quota exceeded")
+	}
 	err = files.WriteFile(source, utils.JoinPathAsUnix(userscope, path), r.Body)
 	return errToStatus(err), err
 }

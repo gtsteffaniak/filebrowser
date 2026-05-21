@@ -336,4 +336,5 @@ type UserDefaults struct {
 	ShowSelectMultiple         bool                    `json:"showSelectMultiple"`         // show select multiple files on desktop
 	DebugOffice                bool                    `json:"debugOffice"`                // debug onlyoffice editor
 	DefaultLandingPage         string                  `json:"defaultLandingPage"`         // deprecated: determined by sidebar link order since 1.1.0
+	DefaultQuotaBytes          int64                   `json:"defaultQuotaBytes"`          // default per-user storage quota in bytes (0 = unlimited)
 }

@@ -5,6 +5,12 @@
   <div class="card-content">
     <form>
       <div class="card-content">
+        <div v-if="user.quotaBytes > 0" class="quota-section">
+          <h3 class="quota-label">Storage <span class="quota-values">{{ quotaUsedGb }} GB of {{ quotaTotalGb }} GB used</span></h3>
+          <div class="quota-bar-track">
+            <div class="quota-bar-fill" :style="{ width: quotaPercent + '%', background: quotaBarColor }"></div>
+          </div>
+        </div>
         <SettingsItem aria-label="listingOptions" :title="$t('settings.listingOptions')" :collapsable="true"
           :force-collapsed="isSectionCollapsed('listingOptions')" @toggle="handleSectionToggle('listingOptions')">
           <div class="settings-items">
@@ -215,6 +221,24 @@ export default {
     user() {
       return state.user;
     },
+    quotaTotalGb() {
+      return Math.round(this.user.quotaBytes / (1024 * 1024 * 1024) * 10) / 10;
+    },
+    quotaUsedGb() {
+      // usedBytes is exposed on the user object by the backend after login
+      const used = this.user.usedBytes || 0;
+      return Math.round(used / (1024 * 1024 * 1024) * 10) / 10;
+    },
+    quotaPercent() {
+      if (!this.user.quotaBytes) return 0;
+      const pct = ((this.user.usedBytes || 0) / this.user.quotaBytes) * 100;
+      return Math.min(Math.round(pct), 100);
+    },
+    quotaBarColor() {
+      if (this.quotaPercent >= 90) return 'var(--red)';
+      if (this.quotaPercent >= 75) return 'var(--icon-orange)';
+      return 'var(--blue)';
+    },
     muPdfAvailable() {
       return globalVars.muPdfAvailable;
     },
@@ -358,6 +382,33 @@ export default {
 </script>
 
 <style scoped>
+.quota-section {
+  margin-bottom: 1.2em;
+}
+.quota-label {
+  font-size: 0.9em;
+  font-weight: 500;
+  margin: 0 0 0.4em 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.quota-values {
+  font-weight: 400;
+  color: var(--textSecondary);
+  font-size: 0.9em;
+}
+.quota-bar-track {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--surfaceSecondary, rgba(128,128,128,0.2));
+  overflow: hidden;
+}
+.quota-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.4s ease, background 0.4s ease;
+}
 .disable-viewing {
   width: 80%;
 }

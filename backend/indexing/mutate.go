@@ -238,3 +238,25 @@ func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, erro
 	idx.mu.RUnlock()
 	return reducedIdx, nil
 }
+
+// GetScopeUsedBytes returns the total bytes stored within scope for the given source.
+// scope is the user's index-relative path, e.g. "/users/GUID".
+// Returns 0 when the source or directory entry is not found (e.g. before first index scan).
+func GetScopeUsedBytes(sourceName, scope string) int64 {
+	idx := GetIndex(sourceName)
+	if idx == nil {
+		return 0
+	}
+	// Normalise to index path format: leading slash, trailing slash.
+	indexPath := "/" + strings.Trim(scope, "/") + "/"
+	if indexPath == "//" {
+		indexPath = "/"
+	}
+	var size int64
+	idx.mu.RLock()
+	if dir, ok := idx.Directories[indexPath]; ok {
+		size = dir.Size
+	}
+	idx.mu.RUnlock()
+	return size
+}

@@ -118,4 +118,7 @@ func ApplyUserDefaults(u *users.User) {
 			}
 		}
 	}
+	if u.QuotaBytes == 0 && Config.UserDefaults.DefaultQuotaBytes > 0 {
+		u.QuotaBytes = Config.UserDefaults.DefaultQuotaBytes
+	}
 }

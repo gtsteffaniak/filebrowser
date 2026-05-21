@@ -186,6 +186,23 @@
         </select>
       </div>
       <permissions v-if="stateUser.permissions.admin" :permissions="user.permissions" />
+
+      <div v-if="stateUser.permissions.admin" style="margin-top: 1em;">
+        <label for="quotaGb">Storage Quota (GB)</label>
+        <div class="form-flex-group">
+          <input
+            id="quotaGb"
+            class="input form-form"
+            type="number"
+            min="0"
+            step="1"
+            :value="quotaGb"
+            @input="updateQuotaFromGb($event.target.value)"
+            placeholder="0 = unlimited"
+          />
+        </div>
+        <small style="color: var(--textSecondary)">Set to 0 for unlimited storage.</small>
+      </div>
     </div>
   </div>
 
@@ -281,6 +298,10 @@ export default {
     },
     hasMoreSources() {
       return this.selectedSources.length < this.sourceList.length;
+    },
+    quotaGb() {
+      if (!this.user.quotaBytes || this.user.quotaBytes <= 0) return 0;
+      return Math.round(this.user.quotaBytes / (1024 * 1024 * 1024) * 10) / 10;
     },
     passwordPlaceholder() {
       return this.isNew ? "" : this.$t("settings.avoidChanges");
@@ -514,6 +535,11 @@ export default {
     updateUserField(field, value) {
       this.user[field] = value;
       this.emitUserUpdate();
+    },
+    updateQuotaFromGb(val) {
+      const gb = parseFloat(val);
+      this.user.quotaBytes = (!gb || gb <= 0) ? 0 : Math.round(gb * 1024 * 1024 * 1024);
+      this.emitUpdate();
     },
     setDefaultLoginMethod() {
       // Set loginMethod to first available method if not already set or if current value is invalid
