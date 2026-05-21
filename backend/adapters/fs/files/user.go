@@ -11,7 +11,7 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-var defaultUserFolders = []string{"Photos", "Documents", "Audio", "Video"}
+var defaultUserFolders = []string{"Documents", "Financial", "Images", "Legal", "Music", "Videos"}
 
 // MakeUserDir makes the user directory according to settings.
 func MakeUserDir(fullPath string) error {
