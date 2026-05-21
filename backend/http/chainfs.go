@@ -842,23 +842,27 @@ func chainfsSSOHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 		next = "/"
 	}
 
+	// Drive usernames are the Azure sub GUID (matching what extractUsername returns
+	// from the B2C token, which lacks preferred_username/email for this tenant).
+	username := payload.AzureSub
+
 	// Check admin status from existing DB record — preserve manually-granted admin rights.
 	isAdmin := false
-	if existingUser, err := store.Users.Get(payload.Email); err == nil && existingUser.Permissions.Admin {
+	if existingUser, err := store.Users.Get(username); err == nil && existingUser.Permissions.Admin {
 		isAdmin = true
 	}
 
 	chainfsConfig := settings.Config.Auth.Methods.ChainFsAuth
-	user, err := store.Users.Get(payload.Email)
+	user, err := store.Users.Get(username)
 	if err != nil {
 		// New user — auto-create if allowed.
 		if !chainfsConfig.CreateUser {
-			logger.Errorf("SSO: user %s does not exist and auto-creation is disabled", payload.Email)
+			logger.Errorf("SSO: user %s does not exist and auto-creation is disabled", username)
 			return http.StatusForbidden, fmt.Errorf("user does not exist")
 		}
-		logger.Infof("SSO: creating new user %s", payload.Email)
+		logger.Infof("SSO: creating new user %s", username)
 		newUser := &users.User{
-			Username:          payload.Email,
+			Username:          username,
 			DisplayName:       payload.GivenName,
 			LoginMethod:       users.LoginMethodChainFs,
 			ChainFSSubscribed: true,
@@ -868,12 +872,12 @@ func chainfsSSOHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 			newUser.Permissions.Admin = true
 		}
 		if createErr := storage.CreateUser(*newUser, newUser.Permissions); createErr != nil {
-			logger.Errorf("SSO: failed to create user %s: %v", payload.Email, createErr)
+			logger.Errorf("SSO: failed to create user %s: %v", username, createErr)
 			return http.StatusInternalServerError, createErr
 		}
-		user, err = store.Users.Get(payload.Email)
+		user, err = store.Users.Get(username)
 		if err != nil {
-			logger.Errorf("SSO: failed to reload created user %s: %v", payload.Email, err)
+			logger.Errorf("SSO: failed to reload created user %s: %v", username, err)
 			return http.StatusInternalServerError, err
 		}
 	} else {
@@ -887,14 +891,14 @@ func chainfsSSOHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 			user.Permissions.Admin = true
 		}
 		if updateErr := store.Users.Update(user, true, "ChainFSSubscribed", "LoginMethod", "Permissions", "DisplayName"); updateErr != nil {
-			logger.Errorf("SSO: failed to update user %s: %v", payload.Email, updateErr)
+			logger.Errorf("SSO: failed to update user %s: %v", username, updateErr)
 			return http.StatusInternalServerError, updateErr
 		}
 	}
 
 	tokenString, err := generateToken(user)
 	if err != nil {
-		logger.Errorf("SSO: failed to generate JWT for %s: %v", payload.Email, err)
+		logger.Errorf("SSO: failed to generate JWT for %s: %v", username, err)
 		return http.StatusInternalServerError, err
 	}
 
