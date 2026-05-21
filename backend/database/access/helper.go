@@ -22,7 +22,6 @@ func (s *Storage) CheckChildItemAccess(response *iteminfo.FileInfo, index *index
 	// response is an ExtendedFileInfo which represents a directory (has Folders and Files)
 	parentPath := index.MakeIndexPath(response.Path, true)
 
-	// Check if user has access to any items
 	if !s.HasAnyVisibleItems(index.Path, parentPath, allItemNames, username) && len(allItemNames) > 0 {
 		return errors.ErrAccessDenied
 	}
@@ -37,16 +36,13 @@ func (s *Storage) CheckChildItemAccess(response *iteminfo.FileInfo, index *index
 
 	// Check each subfolder for access permissions
 	for _, folder := range originalFolders {
-		indexPath := parentPath + folder.Name
-		if s.Permitted(index.Path, indexPath, username) {
+		if s.Permitted(index.Path, parentPath.Join(folder.Name, true), username) {
 			response.Folders = append(response.Folders, folder)
 		}
 	}
 
-	// Check each subfile for access permissions
 	for _, file := range originalFiles {
-		indexPath := parentPath + file.Name
-		if s.Permitted(index.Path, indexPath, username) {
+		if s.Permitted(index.Path, parentPath.Join(file.Name, false), username) {
 			response.Files = append(response.Files, file)
 		}
 	}

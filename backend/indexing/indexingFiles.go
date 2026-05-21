@@ -1015,12 +1015,12 @@ func (idx *Index) GetRealPath(relativePath ...string) (string, bool, error) {
 func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
 	// For files, refresh the parent directory
 	if !opts.IsDir {
-		parentPath := idx.MakeIndexPath(filepath.Dir(opts.Path), true)
+		parentPath := idx.MakeIndexPath(filepath.Dir(opts.Path), true).String()
 		return idx.RefreshDirectory(parentPath, false) // non-recursive for file changes
 	}
 
 	// For directories, use the recursive flag from opts
-	indexPath := idx.MakeIndexPath(opts.Path, true)
+	indexPath := idx.MakeIndexPath(opts.Path, true).String()
 	return idx.RefreshDirectory(indexPath, opts.Recursive)
 }
 
@@ -1512,19 +1512,16 @@ func (idx *Index) getActiveScannerPathUnlocked() string {
 	return idx.activeScannerPath
 }
 
-// input should be non-index path.
+// MakeIndexPath converts a filesystem or relative path into a normalized utils.IndexPath.
+// Input should be a non-index path (absolute or relative to the source root).
 // isDir indicates whether the path is a directory (true) or file (false).
-// Directories will have a trailing slash added, files will not.
-func (idx *Index) MakeIndexPath(path string, isDir bool) string {
+func (idx *Index) MakeIndexPath(path string, isDir bool) utils.IndexPath {
 	if path == "." || strings.HasPrefix(path, "./") {
 		path = strings.TrimPrefix(path, ".")
 	}
 	path = strings.TrimPrefix(path, idx.Path)
 	path = idx.MakeIndexPathPlatform(path)
-	if isDir {
-		path = utils.AddTrailingSlashIfNotExists(path)
-	}
-	return path
+	return utils.IndexPathFromNormalized(path, isDir)
 }
 
 // MakeAbsolutePath converts a relative index path to an absolute path by combining

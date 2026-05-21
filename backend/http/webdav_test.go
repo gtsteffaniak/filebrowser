@@ -179,7 +179,7 @@ func mockCheckPermissions(t *testing.T, source1Path, source2Path string) {
 		indexPath := utils.JoinPathAsUnix(userScope, safePath)
 
 		// Check access control
-		if access != nil && !access.Permitted(sourcePath, indexPath, user.Username) {
+		if access != nil && !access.Permitted(sourcePath, utils.IndexPathFromNormalized(indexPath, true), user.Username) {
 			return "", "", commonerrors.ErrAccessDenied
 		}
 
@@ -216,7 +216,7 @@ func mockWebDAVIndexing(t *testing.T, source1Path, source2Path string) {
 					fullPath := utils.JoinPathAsUnix(userScope, opts.Path)
 
 					// Check if user has permission using the access storage
-					if !access.Permitted(sourcePath, fullPath, user.Username) {
+					if !access.Permitted(sourcePath, utils.IndexPathFromNormalized(fullPath, true), user.Username) {
 						return nil, commonerrors.ErrAccessDenied
 					}
 					break

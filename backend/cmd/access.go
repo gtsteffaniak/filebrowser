@@ -6,6 +6,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/access"
 	"github.com/gtsteffaniak/filebrowser/backend/state"
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -73,35 +74,35 @@ func validateAccessRules() {
 func migrateAccessRule(accessStore *access.Storage, sourcePath, oldPath, newPath string, rule access.FrontendAccessRule) error {
 	// Add deny users
 	for _, user := range rule.Deny.Users {
-		if err := accessStore.DenyUser(sourcePath, newPath, user); err != nil && err != errors.ErrExist {
+		if err := accessStore.DenyUser(sourcePath, utils.IndexPathFromNormalized(newPath, true), user); err != nil && err != errors.ErrExist {
 			return fmt.Errorf("failed to add deny user %s: %w", user, err)
 		}
 	}
 
 	// Add deny groups
 	for _, group := range rule.Deny.Groups {
-		if err := accessStore.DenyGroup(sourcePath, newPath, group); err != nil && err != errors.ErrExist {
+		if err := accessStore.DenyGroup(sourcePath, utils.IndexPathFromNormalized(newPath, true), group); err != nil && err != errors.ErrExist {
 			return fmt.Errorf("failed to add deny group %s: %w", group, err)
 		}
 	}
 
 	// Add allow users
 	for _, user := range rule.Allow.Users {
-		if err := accessStore.AllowUser(sourcePath, newPath, user); err != nil && err != errors.ErrExist {
+		if err := accessStore.AllowUser(sourcePath, utils.IndexPathFromNormalized(newPath, true), user); err != nil && err != errors.ErrExist {
 			return fmt.Errorf("failed to add allow user %s: %w", user, err)
 		}
 	}
 
 	// Add allow groups
 	for _, group := range rule.Allow.Groups {
-		if err := accessStore.AllowGroup(sourcePath, newPath, group); err != nil && err != errors.ErrExist {
+		if err := accessStore.AllowGroup(sourcePath, utils.IndexPathFromNormalized(newPath, true), group); err != nil && err != errors.ErrExist {
 			return fmt.Errorf("failed to add allow group %s: %w", group, err)
 		}
 	}
 
 	// Add deny all rule if needed
 	if rule.DenyAll {
-		if err := accessStore.DenyAll(sourcePath, newPath); err != nil && err != errors.ErrExist {
+		if err := accessStore.DenyAll(sourcePath, utils.IndexPathFromNormalized(newPath, true)); err != nil && err != errors.ErrExist {
 			return fmt.Errorf("failed to add deny all rule: %w", err)
 		}
 	}
@@ -113,6 +114,6 @@ func migrateAccessRule(accessStore *access.Storage, sourcePath, oldPath, newPath
 func removeOldAccessRule(accessStore *access.Storage, sourcePath, oldPath string) error {
 	// Access the internal storage directly to remove the old rule
 	// We need to use the unnormalized path since that's how it was stored originally
-	accessStore.RemoveRuleByPath(sourcePath, oldPath)
+	accessStore.RemoveRuleByPathKey(sourcePath, oldPath)
 	return nil
 }

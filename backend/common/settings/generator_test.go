@@ -450,26 +450,25 @@ func TestGenerateConfigYaml_EdgeCases(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Test all combinations
-			for _, showComments := range []bool{false, true} {
-				for _, showFull := range []bool{false, true} {
-					for _, filterDeprecated := range []bool{false, true} {
-						yamlOutput, err := GenerateConfigYaml(tt.config, showComments, showFull, filterDeprecated)
-						if err != nil {
-							t.Fatalf("GenerateConfigYaml failed for %s (comments=%v, full=%v, filterDeprecated=%v): %v",
-								tt.desc, showComments, showFull, filterDeprecated, err)
-						}
-
-						// Basic validation - should produce valid YAML structure
-						if yamlOutput == "" {
-							t.Errorf("Generated empty YAML for %s", tt.desc)
-						}
-
-						// Should not contain obvious error messages (but allow "error" in log levels etc)
-						if strings.Contains(yamlOutput, "Error:") || strings.Contains(yamlOutput, "ERROR:") {
-							t.Errorf("YAML contains error for %s", tt.desc)
-						}
-					}
+			// Spot-check a few flag combinations (full cartesian product is slow: each calls go/packages)
+			cases := []struct {
+				showComments, showFull, filterDeprecated bool
+			}{
+				{false, true, false},
+				{true, true, true},
+				{false, false, true},
+			}
+			for _, tc := range cases {
+				yamlOutput, err := GenerateConfigYaml(tt.config, tc.showComments, tc.showFull, tc.filterDeprecated)
+				if err != nil {
+					t.Fatalf("GenerateConfigYaml failed for %s (comments=%v, full=%v, filterDeprecated=%v): %v",
+						tt.desc, tc.showComments, tc.showFull, tc.filterDeprecated, err)
+				}
+				if yamlOutput == "" {
+					t.Errorf("Generated empty YAML for %s", tt.desc)
+				}
+				if strings.Contains(yamlOutput, "Error:") || strings.Contains(yamlOutput, "ERROR:") {
+					t.Errorf("YAML contains error for %s", tt.desc)
 				}
 			}
 		})

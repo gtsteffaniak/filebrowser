@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	dbsql "github.com/gtsteffaniak/filebrowser/backend/database/sql"
 )
 
@@ -159,7 +160,7 @@ func TestMakeIndexPath(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			idx := &Index{Source: settings.Source{Path: "/srv"}, mock: true}
-			result := idx.MakeIndexPath(tt.subPath, true) // All test paths are directories
+			result := idx.MakeIndexPath(tt.subPath, true).String()
 			if result != tt.expected {
 				t.Errorf("MakeIndexPath(%q)\ngot %q\nwant %q", tt.name, result, tt.expected)
 			}
@@ -180,11 +181,20 @@ func TestMakeIndexPath(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			idx := &Index{Source: settings.Source{Path: "C:\\Users"}, mock: true}
-			result := idx.MakeIndexPath(tt.subPath, true) // All test paths are directories
+			result := idx.MakeIndexPath(tt.subPath, true).String()
 			if result != tt.expected {
 				t.Errorf("MakeIndexPath(%q)\ngot %q\nwant %q", tt.name, result, tt.expected)
 			}
 		})
+	}
+}
+
+func TestMakeIndexPath_File(t *testing.T) {
+	idx := &Index{Source: settings.Source{Path: "/srv"}, mock: true}
+	got := idx.MakeIndexPath("/srv/docs/readme.txt", false)
+	want := utils.IndexPathFromNormalized("/docs/readme.txt", false)
+	if got.String() != want.String() {
+		t.Errorf("MakeIndexPath file got %q want %q", got.String(), want.String())
 	}
 }
 
@@ -201,7 +211,7 @@ func TestMakeIndexPathRoot(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			idx := &Index{Source: settings.Source{Path: "/rootpath", Name: "default"}, mock: true}
-			result := idx.MakeIndexPath(tt.subPath, true) // Root path is a directory
+			result := idx.MakeIndexPath(tt.subPath, true).String()
 			if result != tt.expected {
 				t.Errorf("MakeIndexPath(%q)\ngot %q\nwant %q", tt.name, result, tt.expected)
 			}

@@ -153,8 +153,13 @@ func (s *Storage) persistRuleSQLNL(sourcePath, normalizedPath string) {
 	}
 }
 
-// RemoveRuleByPath removes a rule by its exact path from the internal storage
-func (s *Storage) RemoveRuleByPath(sourcePath, indexPath string) {
+// RemoveRuleByPath removes a rule by normalized index path.
+func (s *Storage) RemoveRuleByPath(sourcePath string, indexPath utils.IndexPath) {
+	s.RemoveRuleByPathKey(sourcePath, ruleKey(indexPath))
+}
+
+// RemoveRuleByPathKey removes a rule by its exact storage key (for legacy migration paths).
+func (s *Storage) RemoveRuleByPathKey(sourcePath, pathKey string) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 
@@ -163,29 +168,28 @@ func (s *Storage) RemoveRuleByPath(sourcePath, indexPath string) {
 		return
 	}
 
-	// Remove the rule by exact path match (don't normalize)
-	if _, exists := rulesBySource[indexPath]; exists {
-		delete(rulesBySource, indexPath)
-		// If no rules left for this source, remove the source entry
-		if len(rulesBySource) == 0 {
-			delete(s.AllRules, sourcePath)
-		}
-		s.clearAllCaches()
-		normalized := utils.AddTrailingSlashIfNotExists(indexPath)
-		s.persistRuleSQLNL(sourcePath, normalized)
-		if indexPath != normalized {
-			if s.sqlStore != nil {
-				_ = s.sqlStore.DeleteAccessRule(sourcePath, indexPath)
-			}
+	if _, exists := rulesBySource[pathKey]; !exists {
+		return
+	}
+	delete(rulesBySource, pathKey)
+	if len(rulesBySource) == 0 {
+		delete(s.AllRules, sourcePath)
+	}
+	s.clearAllCaches()
+	s.persistRuleSQLNL(sourcePath, pathKey)
+	if s.sqlStore != nil {
+		_ = s.sqlStore.DeleteAccessRule(sourcePath, pathKey)
+		normalized := utils.AddTrailingSlashIfNotExists(pathKey)
+		if normalized != pathKey {
+			_ = s.sqlStore.DeleteAccessRule(sourcePath, normalized)
 		}
 	}
 }
 
 // getOrCreateRuleNL ensures a rule exists for the given source and index path.
 // The caller must hold the lock.
-func (s *Storage) getOrCreateRuleNL(sourcePath, indexPath string) *AccessRule {
-	// Normalize the path to ensure consistent rule storage
-	normalizedPath := utils.AddTrailingSlashIfNotExists(indexPath)
+func (s *Storage) getOrCreateRuleNL(sourcePath string, indexPath utils.IndexPath) *AccessRule {
+	normalizedPath := ruleKey(indexPath)
 	if _, ok := s.AllRules[sourcePath]; !ok {
 		s.AllRules[sourcePath] = make(RuleMap)
 	}
@@ -202,7 +206,7 @@ func (s *Storage) getOrCreateRuleNL(sourcePath, indexPath string) *AccessRule {
 
 // DenyUser adds a user to the deny list for a given source and index path.
 // Rules are keyed by login name (username), not user id; names are not resolved against user storage.
-func (s *Storage) DenyUser(sourcePath, indexPath, username string) error {
+func (s *Storage) DenyUser(sourcePath string, indexPath utils.IndexPath, username string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 	rule := s.getOrCreateRuleNL(sourcePath, indexPath)
@@ -211,13 +215,13 @@ func (s *Storage) DenyUser(sourcePath, indexPath, username string) error {
 	}
 	rule.Deny.Users[username] = struct{}{}
 	s.clearAllCaches()
-	s.persistRuleSQLNL(sourcePath, utils.AddTrailingSlashIfNotExists(indexPath))
+	s.persistRuleSQLNL(sourcePath, ruleKey(indexPath))
 	return nil
 }
 
 // AllowUser adds a user to the allow list for a given source and index path.
 // Rules are keyed by login name (username), not user id; names are not resolved against user storage.
-func (s *Storage) AllowUser(sourcePath, indexPath, username string) error {
+func (s *Storage) AllowUser(sourcePath string, indexPath utils.IndexPath, username string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 	rule := s.getOrCreateRuleNL(sourcePath, indexPath)
@@ -226,12 +230,12 @@ func (s *Storage) AllowUser(sourcePath, indexPath, username string) error {
 	}
 	rule.Allow.Users[username] = struct{}{}
 	s.clearAllCaches()
-	s.persistRuleSQLNL(sourcePath, utils.AddTrailingSlashIfNotExists(indexPath))
+	s.persistRuleSQLNL(sourcePath, ruleKey(indexPath))
 	return nil
 }
 
 // DenyGroup adds a group to the deny list for a given source and index path.
-func (s *Storage) DenyGroup(sourcePath, indexPath, groupname string) error {
+func (s *Storage) DenyGroup(sourcePath string, indexPath utils.IndexPath, groupname string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 	_, ok := s.Groups[groupname]
@@ -244,12 +248,12 @@ func (s *Storage) DenyGroup(sourcePath, indexPath, groupname string) error {
 	}
 	rule.Deny.Groups[groupname] = struct{}{}
 	s.clearAllCaches()
-	s.persistRuleSQLNL(sourcePath, utils.AddTrailingSlashIfNotExists(indexPath))
+	s.persistRuleSQLNL(sourcePath, ruleKey(indexPath))
 	return nil
 }
 
 // AllowGroup adds a group to the allow list for a given source and index path.
-func (s *Storage) AllowGroup(sourcePath, indexPath, groupname string) error {
+func (s *Storage) AllowGroup(sourcePath string, indexPath utils.IndexPath, groupname string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 	_, ok := s.Groups[groupname]
@@ -262,12 +266,12 @@ func (s *Storage) AllowGroup(sourcePath, indexPath, groupname string) error {
 	}
 	rule.Allow.Groups[groupname] = struct{}{}
 	s.clearAllCaches()
-	s.persistRuleSQLNL(sourcePath, utils.AddTrailingSlashIfNotExists(indexPath))
+	s.persistRuleSQLNL(sourcePath, ruleKey(indexPath))
 	return nil
 }
 
 // DenyAll sets a rule to deny all access for a given source and index path.
-func (s *Storage) DenyAll(sourcePath, indexPath string) error {
+func (s *Storage) DenyAll(sourcePath string, indexPath utils.IndexPath) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 	rule := s.getOrCreateRuleNL(sourcePath, indexPath)
@@ -276,17 +280,14 @@ func (s *Storage) DenyAll(sourcePath, indexPath string) error {
 	}
 	rule.DenyAll = true
 	s.clearAllCaches()
-	s.persistRuleSQLNL(sourcePath, utils.AddTrailingSlashIfNotExists(indexPath))
+	s.persistRuleSQLNL(sourcePath, ruleKey(indexPath))
 	return nil
 }
 
 // Permitted checks if a username is permitted for a given sourcePath and indexPath, recursively checking parent directories.
-func (s *Storage) Permitted(sourcePath, indexPath, username string) bool {
-	// Ensure leading slash
-	if !strings.HasPrefix(indexPath, "/") {
-		indexPath = "/" + indexPath
-	}
-	indexPath = utils.AddTrailingSlashIfNotExists(indexPath)
+func (s *Storage) Permitted(sourcePath string, indexPath utils.IndexPath, username string) bool {
+	indexPath = checkPath(indexPath)
+	pathStr := indexPath.String()
 
 	// Get current version for the sourcePath
 	versionKey := "version:" + sourcePath
@@ -296,7 +297,7 @@ func (s *Storage) Permitted(sourcePath, indexPath, username string) bool {
 	}
 
 	// Check cache with versioned key
-	permKey := fmt.Sprintf("perm:%s:%d:%s:%s", sourcePath, version, indexPath, username)
+	permKey := fmt.Sprintf("perm:%s:%d:%s:%s", sourcePath, version, pathStr, username)
 	if p, ok := permissionCache.Get(permKey); ok {
 		return p
 	}
@@ -308,28 +309,19 @@ func (s *Storage) Permitted(sourcePath, indexPath, username string) bool {
 	return result
 }
 
-func (s *Storage) computePermitted(sourcePath, indexPath, username string) bool {
+func (s *Storage) computePermitted(sourcePath string, indexPath utils.IndexPath, username string) bool {
 	var rulesFound []*AccessRule
 
-	// Walk up the path hierarchy and collect all relevant rules
-	currentPath := indexPath
-	pathLevel := 0
+	currentPath := checkPath(indexPath)
 	for {
 		rule, found := s.getRuleAtExactPath(sourcePath, currentPath)
 		if found {
 			rulesFound = append(rulesFound, rule)
 		}
-		if currentPath == "/" || currentPath == "." || currentPath == "" {
+		if currentPath.IsRoot() {
 			break
 		}
-		oldPath := currentPath
-		currentPath = utils.GetParentDirectoryPath(currentPath)
-
-		// Safety check to prevent infinite loops
-		if currentPath == oldPath {
-			break
-		}
-		pathLevel++
+		currentPath = currentPath.Parent()
 	}
 
 	// Now evaluate the rules, starting from the most specific (indexPath) to the least specific (root)
@@ -360,16 +352,14 @@ func (s *Storage) computePermitted(sourcePath, indexPath, username string) bool 
 }
 
 // getRuleAtExactPath is a helper to get a rule without the recursive logic.
-func (s *Storage) getRuleAtExactPath(sourcePath, indexPath string) (*AccessRule, bool) {
+func (s *Storage) getRuleAtExactPath(sourcePath string, indexPath utils.IndexPath) (*AccessRule, bool) {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
 	rulesBySource, ok := s.AllRules[sourcePath]
 	if !ok {
 		return nil, false
 	}
-	// Normalize the path to ensure consistent rule lookup
-	normalizedPath := utils.AddTrailingSlashIfNotExists(indexPath)
-	rule, ok := rulesBySource[normalizedPath]
+	rule, ok := rulesBySource[ruleKey(indexPath)]
 	return rule, ok
 }
 
@@ -416,7 +406,7 @@ func (s *Storage) isUserInGroup(username, group string) bool {
 }
 
 // GetRule retrieves a rule for a sourcePath and indexPath.
-func (s *Storage) GetFrontendRules(sourcePath, indexPath string) (FrontendAccessRule, bool) {
+func (s *Storage) GetFrontendRules(sourcePath string, indexPath utils.IndexPath) (FrontendAccessRule, bool) {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
 
@@ -428,7 +418,7 @@ func (s *Storage) GetFrontendRules(sourcePath, indexPath string) (FrontendAccess
 	}
 
 	// Check if path exists on filesystem
-	pathExists := utils.CheckPathExists(filepath.Join(sourcePath, indexPath))
+	pathExists := utils.CheckPathExists(filepath.Join(sourcePath, indexPath.String()))
 
 	frontendRules := FrontendAccessRule{
 		SourceDenyDefault: sourceDenyDefault,
@@ -446,7 +436,7 @@ func (s *Storage) GetFrontendRules(sourcePath, indexPath string) (FrontendAccess
 	if !ok {
 		return frontendRules, false
 	}
-	rule, ok := rulesBySource[indexPath]
+	rule, ok := rulesBySource[ruleKey(indexPath)]
 	if !ok || rule == nil {
 		return frontendRules, false
 	}
@@ -614,10 +604,10 @@ func (s *Storage) RemoveUserFromGroup(group, username string) error {
 }
 
 // RemoveAllowUser removes a user from the allow list for a given source and index path.
-func (s *Storage) RemoveAllowUser(sourcePath, indexPath, username string) (bool, error) {
+func (s *Storage) RemoveAllowUser(sourcePath string, indexPath utils.IndexPath, username string) (bool, error) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	normalizedPath := utils.AddTrailingSlashIfNotExists(indexPath)
+	normalizedPath := ruleKey(indexPath)
 	rule, ok := s.AllRules[sourcePath][normalizedPath]
 	if !ok {
 		return false, nil
@@ -643,10 +633,10 @@ func (s *Storage) RemoveAllowUser(sourcePath, indexPath, username string) (bool,
 }
 
 // RemoveAllowGroup removes a group from the allow list for a given source and index path.
-func (s *Storage) RemoveAllowGroup(sourcePath, indexPath, groupname string) (bool, error) {
+func (s *Storage) RemoveAllowGroup(sourcePath string, indexPath utils.IndexPath, groupname string) (bool, error) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	normalizedPath := utils.AddTrailingSlashIfNotExists(indexPath)
+	normalizedPath := ruleKey(indexPath)
 	rule, ok := s.AllRules[sourcePath][normalizedPath]
 	if !ok {
 		return false, nil
@@ -672,10 +662,10 @@ func (s *Storage) RemoveAllowGroup(sourcePath, indexPath, groupname string) (boo
 }
 
 // RemoveDenyUser removes a user from the deny list for a given source and index path.
-func (s *Storage) RemoveDenyUser(sourcePath, indexPath, username string) (bool, error) {
+func (s *Storage) RemoveDenyUser(sourcePath string, indexPath utils.IndexPath, username string) (bool, error) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	normalizedPath := utils.AddTrailingSlashIfNotExists(indexPath)
+	normalizedPath := ruleKey(indexPath)
 	rule, ok := s.AllRules[sourcePath][normalizedPath]
 	if !ok {
 		return false, nil
@@ -701,10 +691,10 @@ func (s *Storage) RemoveDenyUser(sourcePath, indexPath, username string) (bool, 
 }
 
 // RemoveDenyGroup removes a group from the deny list for a given source and index path.
-func (s *Storage) RemoveDenyGroup(sourcePath, indexPath, groupname string) (bool, error) {
+func (s *Storage) RemoveDenyGroup(sourcePath string, indexPath utils.IndexPath, groupname string) (bool, error) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	normalizedPath := utils.AddTrailingSlashIfNotExists(indexPath)
+	normalizedPath := ruleKey(indexPath)
 	rule, ok := s.AllRules[sourcePath][normalizedPath]
 	if !ok {
 		return false, nil
@@ -730,10 +720,10 @@ func (s *Storage) RemoveDenyGroup(sourcePath, indexPath, groupname string) (bool
 }
 
 // RemoveDenyAll removes the deny all rule for a given source and index path.
-func (s *Storage) RemoveDenyAll(sourcePath, indexPath string) (bool, error) {
+func (s *Storage) RemoveDenyAll(sourcePath string, indexPath utils.IndexPath) (bool, error) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	normalizedPath := utils.AddTrailingSlashIfNotExists(indexPath)
+	normalizedPath := ruleKey(indexPath)
 	rule, ok := s.AllRules[sourcePath][normalizedPath]
 	if !ok {
 		return false, nil
@@ -1051,27 +1041,25 @@ func (s *Storage) GetAllRulesByGroups(sourcePath string) map[string]map[string]F
 // HasAnyVisibleItems checks if a user has access to any items in a given parent path.
 // This is used to determine if a user should see a folder's contents even when
 // they don't have direct access to the parent folder.
-func (s *Storage) HasAnyVisibleItems(sourcePath, parentPath string, itemNames []string, username string) bool {
-	parentPath = utils.AddTrailingSlashIfNotExists(parentPath)
-	// Check if user has access to any of the items
+func (s *Storage) HasAnyVisibleItems(sourcePath string, parentPath utils.IndexPath, itemNames []string, username string) bool {
+	parent := checkPath(parentPath)
 	for _, itemName := range itemNames {
-		indexPath := parentPath + itemName
-		if s.Permitted(sourcePath, indexPath, username) {
+		child := parent.Join(itemName, true)
+		if s.Permitted(sourcePath, child, username) {
 			return true
 		}
 	}
-
 	return false
 }
 
 // RemoveUserCascade removes a user from either the allow or deny list for a given path and all its subpaths.
 // This is used for cascade delete operations when deleting user access from a directory tree.
 // The allow parameter determines which list to remove from: true for allow list, false for deny list.
-func (s *Storage) RemoveUserCascade(sourcePath, indexPath, username string, allow bool) (int, error) {
+func (s *Storage) RemoveUserCascade(sourcePath string, indexPath utils.IndexPath, username string, allow bool) (int, error) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 
-	normalizedPath := utils.AddTrailingSlashIfNotExists(indexPath)
+	normalizedPath := ruleKey(indexPath)
 	rulesBySource, ok := s.AllRules[sourcePath]
 	if !ok {
 		return 0, nil
@@ -1135,11 +1123,11 @@ func (s *Storage) RemoveUserCascade(sourcePath, indexPath, username string, allo
 // RemoveGroupCascade removes a group from either the allow or deny list for a given path and all its subpaths.
 // This is used for cascade delete operations when deleting group access from a directory tree.
 // The allow parameter determines which list to remove from: true for allow list, false for deny list.
-func (s *Storage) RemoveGroupCascade(sourcePath, indexPath, groupname string, allow bool) (int, error) {
+func (s *Storage) RemoveGroupCascade(sourcePath string, indexPath utils.IndexPath, groupname string, allow bool) (int, error) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 
-	normalizedPath := utils.AddTrailingSlashIfNotExists(indexPath)
+	normalizedPath := ruleKey(indexPath)
 	rulesBySource, ok := s.AllRules[sourcePath]
 	if !ok {
 		return 0, nil
@@ -1202,7 +1190,7 @@ func (s *Storage) RemoveGroupCascade(sourcePath, indexPath, groupname string, al
 
 // UpdateRules updates all access rules that match oldPath to point to newPath.
 // Handles both exact matches and subdirectories. Similar to share.Storage.UpdateShares.
-func (s *Storage) UpdateRules(sourcePath, oldPath, newPath string) (int, error) {
+func (s *Storage) UpdateRules(sourcePath string, oldPath, newPath utils.IndexPath) (int, error) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 
@@ -1211,21 +1199,18 @@ func (s *Storage) UpdateRules(sourcePath, oldPath, newPath string) (int, error) 
 		return 0, nil // No rules for this source, not an error
 	}
 
-	// Normalize paths (always add trailing slash for access rules)
-	oldPath = utils.AddTrailingSlashIfNotExists(oldPath)
-	newPath = utils.AddTrailingSlashIfNotExists(newPath)
+	oldKey := ruleKey(oldPath)
+	newKey := ruleKey(newPath)
 
 	updated := 0
 	rulesToUpdate := make(map[string]string) // old path -> new path
 
 	// Find all rules that need to be updated
 	for rulePath := range rulesBySource {
-		if rulePath == oldPath {
-			// Exact match
-			rulesToUpdate[rulePath] = newPath
-		} else if strings.HasPrefix(rulePath, oldPath) {
-			// Subdirectory - replace prefix
-			newRulePath := newPath + strings.TrimPrefix(rulePath, oldPath)
+		if rulePath == oldKey {
+			rulesToUpdate[rulePath] = newKey
+		} else if strings.HasPrefix(rulePath, oldKey) {
+			newRulePath := newKey + strings.TrimPrefix(rulePath, oldKey)
 			rulesToUpdate[rulePath] = newRulePath
 		}
 	}
@@ -1255,33 +1240,31 @@ func (s *Storage) UpdateRules(sourcePath, oldPath, newPath string) (int, error) 
 }
 
 // UpdateRulePath updates the path for a specific access rule (used by PATCH API endpoint).
-func (s *Storage) UpdateRulePath(sourcePath, oldPath, newPath string) error {
+func (s *Storage) UpdateRulePath(sourcePath string, oldPath, newPath utils.IndexPath) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 
-	// Normalize paths
-	oldPath = utils.AddTrailingSlashIfNotExists(oldPath)
-	newPath = utils.AddTrailingSlashIfNotExists(newPath)
+	oldKey := ruleKey(oldPath)
+	newKey := ruleKey(newPath)
 
 	rulesBySource, ok := s.AllRules[sourcePath]
 	if !ok {
 		return fmt.Errorf("no rules found for source: %s", sourcePath)
 	}
 
-	rule, ok := rulesBySource[oldPath]
+	rule, ok := rulesBySource[oldKey]
 	if !ok {
-		return fmt.Errorf("no rule found for path: %s", oldPath)
+		return fmt.Errorf("no rule found for path: %s", oldKey)
 	}
 
-	// Remove the old rule and add it with the new path
-	delete(rulesBySource, oldPath)
-	rulesBySource[newPath] = rule
+	delete(rulesBySource, oldKey)
+	rulesBySource[newKey] = rule
 	s.clearAllCaches()
 	if s.sqlStore != nil {
-		_ = s.sqlStore.DeleteAccessRule(sourcePath, oldPath)
+		_ = s.sqlStore.DeleteAccessRule(sourcePath, oldKey)
 	}
-	s.persistRuleSQLNL(sourcePath, newPath)
-	logger.Debugf("access rule path updated: source=%s, fromPath=%s, toPath=%s", sourcePath, oldPath, newPath)
+	s.persistRuleSQLNL(sourcePath, newKey)
+	logger.Debugf("access rule path updated: source=%s, fromPath=%s, toPath=%s", sourcePath, oldKey, newKey)
 	return nil
 }
 

@@ -254,11 +254,11 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		return http.StatusForbidden, err
 	}
 	fullDestFile := utils.JoinPathAsUnix(userScopeTo, req.Destination)
-	if accessStore != nil && !accessStore.Permitted(idxTo.Path, fullDestFile, d.user.Username) {
+	if accessStore != nil && !accessStore.Permitted(idxTo.Path, utils.IndexPathFromNormalized(fullDestFile, true), d.user.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to destination %s", req.Destination)
 	}
 	fullDestParent := utils.GetParentDirectoryPath(fullDestFile)
-	if accessStore != nil && fullDestParent != fullDestFile && !accessStore.Permitted(idxTo.Path, fullDestParent, d.user.Username) {
+	if accessStore != nil && fullDestParent != fullDestFile && !accessStore.Permitted(idxTo.Path, utils.IndexPathFromNormalized(fullDestParent, true), d.user.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to destination parent of %s", req.Destination)
 	}
 	parentReal, _, err := idxTo.GetRealPath(fullDestParent)
@@ -299,7 +299,7 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	itemPaths := make([]string, 0, len(req.Paths))
 	for _, it := range req.Paths {
 		full := utils.JoinPathAsUnix(userScope, it)
-		if accessStore != nil && !accessStore.Permitted(idx.Path, full, d.user.Username) {
+		if accessStore != nil && !accessStore.Permitted(idx.Path, utils.IndexPathFromNormalized(full, true), d.user.Username) {
 			continue // silently skip
 		}
 		itemPaths = append(itemPaths, full)
@@ -429,7 +429,7 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 
 	fullArchivePath := utils.JoinPathAsUnix(userScopeFrom, req.Path)
-	if accessStore != nil && !accessStore.Permitted(idxFrom.Path, fullArchivePath, d.user.Username) {
+	if accessStore != nil && !accessStore.Permitted(idxFrom.Path, utils.IndexPathFromNormalized(fullArchivePath, true), d.user.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to archive %s", req.Path)
 	}
 	archiveReal, _, err := idxFrom.GetRealPath(fullArchivePath)
@@ -446,7 +446,7 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusForbidden, err
 	}
 	fullDestPath := utils.JoinPathAsUnix(userScopeTo, req.Destination)
-	if accessStore != nil && !accessStore.Permitted(idxTo.Path, fullDestPath, d.user.Username) {
+	if accessStore != nil && !accessStore.Permitted(idxTo.Path, utils.IndexPathFromNormalized(fullDestPath, true), d.user.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to destination %s", req.Destination)
 	}
 	destReal, _, err := idxTo.GetRealPath(fullDestPath)
@@ -511,7 +511,7 @@ func addFile(source string, path string, d *requestContext, tarWriter *tar.Write
 	}
 
 	// Check access control directly for each file and silently skip if access is denied
-	if !accessStore.Permitted(idx.Path, path, d.user.Username) {
+	if !accessStore.Permitted(idx.Path, utils.IndexPathFromNormalized(path, true), d.user.Username) {
 		return nil // Silently skip this file/folder
 	}
 
@@ -549,7 +549,8 @@ func addFile(source string, path string, d *requestContext, tarWriter *tar.Write
 			if d.share.Hash == "" {
 				indexRelPath := utils.JoinPathAsUnix(path, relPath)
 				indexRelPath = filepath.ToSlash(indexRelPath)
-				if !accessStore.Permitted(idx.Path, indexRelPath, d.user.Username) {
+				indexPath := utils.IndexPathFromNormalized(indexRelPath, true)
+				if !accessStore.Permitted(idx.Path, indexPath, d.user.Username) {
 					if fileInfo.IsDir() {
 						return filepath.SkipDir
 					}
@@ -1241,16 +1242,16 @@ func computeArchiveSize(source string, fileList []string, d *requestContext) (in
 	}
 
 	for _, path := range fileList {
-		if !accessStore.Permitted(idx.Path, path, d.user.Username) {
+		if !accessStore.Permitted(idx.Path, utils.IndexPathFromNormalized(path, true), d.user.Username) {
 			continue
 		}
 		realPath, isDir, err := idx.GetRealPath(path)
 		if err != nil {
 			return 0, err
 		}
-		indexPath := idx.MakeIndexPath(realPath, isDir)
-		info, ok := idx.GetReducedMetadata(indexPath, isDir)
+		info, ok := idx.GetReducedMetadata(realPath, isDir)
 		if !ok {
+			indexPath := idx.MakeIndexPath(realPath, isDir).String()
 			info, err = idx.GetFsInfo(indexPath, false, true)
 			if err != nil {
 				return 0, fmt.Errorf("failed to get file info for %s : %v", path, err)

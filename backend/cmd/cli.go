@@ -11,6 +11,7 @@ import (
 
 	"github.com/goccy/go-yaml"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
@@ -168,26 +169,28 @@ func setRule(dbConfig, backendSourcePath, indexPath, ruleCategory, value string,
 	}
 
 	accessStore := state.GetAccessStorage()
+	parsedPath, err := utils.ParseSanitizedIndexPath(indexPath, true)
+	if err != nil {
+		return err
+	}
 
-	// Apply the rule based on allow flag and ruleCategory
-	var err error
 	if allow {
 		switch ruleCategory {
 		case "user":
-			err = accessStore.AllowUser(backendSourcePath, indexPath, value)
+			err = accessStore.AllowUser(backendSourcePath, parsedPath, value)
 		case "group":
-			err = accessStore.AllowGroup(backendSourcePath, indexPath, value)
+			err = accessStore.AllowGroup(backendSourcePath, parsedPath, value)
 		default:
 			return fmt.Errorf("invalid ruleCategory for allow: must be 'user' or 'group'")
 		}
 	} else {
 		switch ruleCategory {
 		case "user":
-			err = accessStore.DenyUser(backendSourcePath, indexPath, value)
+			err = accessStore.DenyUser(backendSourcePath, parsedPath, value)
 		case "group":
-			err = accessStore.DenyGroup(backendSourcePath, indexPath, value)
+			err = accessStore.DenyGroup(backendSourcePath, parsedPath, value)
 		case "all":
-			err = accessStore.DenyAll(backendSourcePath, indexPath)
+			err = accessStore.DenyAll(backendSourcePath, parsedPath)
 		default:
 			return fmt.Errorf("invalid ruleCategory: must be 'user', 'group', or 'all'")
 		}

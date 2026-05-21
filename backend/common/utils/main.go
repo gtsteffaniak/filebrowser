@@ -5,9 +5,7 @@ import (
 	"fmt"
 	math "math/rand"
 	"os"
-	"path/filepath"
 	"reflect"
-	"runtime"
 	"strings"
 	"time"
 
@@ -65,41 +63,6 @@ func PrintStructFields(v interface{}) {
 	}
 }
 
-func GetParentDirectoryPath(path string) string {
-	if path == "/" || path == "" {
-		return ""
-	}
-	path = strings.TrimSuffix(path, "/") // Remove trailing slash if any
-	lastSlash := strings.LastIndex(path, "/")
-	if lastSlash == -1 {
-		return "" // No parent directory for a relative path without slashes
-	}
-	if lastSlash == 0 {
-		return "/" // If the last slash is the first character, return root
-	}
-	return path[:lastSlash]
-}
-
-func GetLastComponent(path string) string {
-	if path == "" {
-		return ""
-	}
-	path = strings.TrimSuffix(path, "/") // Remove trailing slash if any
-	lastSlash := strings.LastIndex(path, "/")
-	if lastSlash == -1 {
-		return path // No parent directory for a relative path without slashes
-	}
-	return path[lastSlash+1:]
-}
-
-func JoinPathAsUnix(parts ...string) string {
-	joinedPath := filepath.Join(parts...)
-	if runtime.GOOS == "windows" {
-		joinedPath = strings.ReplaceAll(joinedPath, "\\", "/")
-	}
-	return joinedPath
-}
-
 func NonNilSlice[T any](in []T) []T {
 	if in == nil {
 		return []T{}
@@ -126,19 +89,6 @@ func Clamp[T cmp.Ordered](value, min, max T) T {
 		return max
 	}
 	return value
-}
-
-// NormalizeRulePath ensures directory paths have trailing slashes for consistent rule storage
-func AddTrailingSlashIfNotExists(indexPath string) string {
-	// Root path stays as "/"
-	if indexPath == "/" {
-		return "/"
-	}
-	// For all other paths, ensure they have trailing slashes
-	if !strings.HasSuffix(indexPath, "/") {
-		return indexPath + "/"
-	}
-	return indexPath
 }
 
 func CheckPathExists(realPath string) bool {

@@ -41,42 +41,31 @@ func CollectComments(srcPath string) (CommentsMap, error) {
 
 // CollectCommentsAndSecrets parses all Go source and returns comments, secrets, and deprecated field mappings
 func CollectCommentsAndSecrets(srcPath string) (CommentsMap, SecretFieldsMap, DeprecatedFieldsMap, error) {
-	// Determine directories to parse - include settings and users packages
 	dir := srcPath
-	if filepath.IsAbs(srcPath) {
-		// If it's an absolute path to a file, get the directory
+	if fi, err := os.Stat(srcPath); err == nil && !fi.IsDir() {
 		dir = filepath.Dir(srcPath)
 	}
+	settingsDir, err := filepath.Abs(dir)
+	if err != nil {
+		return nil, nil, nil, err
+	}
 
-	// List of directories to parse for comments
+	// settings lives at backend/common/settings; users at backend/database/users
 	dirsToparse := []string{
-		dir, // settings package
-	}
-
-	// Add users package directory
-	// From common/settings, go up to backend root, then into database/users
-	var usersDir string
-	if filepath.IsAbs(dir) {
-		// If absolute path, calculate relative to it
-		usersDir = filepath.Join(filepath.Dir(filepath.Dir(dir)), "database/users")
-	} else {
-		// If relative path like "common/settings" or ".", calculate from current working directory
-		usersDir = "database/users"
-	}
-	if absUsersDir, err := filepath.Abs(usersDir); err == nil {
-		dirsToparse = append(dirsToparse, absUsersDir)
+		settingsDir,
+		filepath.Join(settingsDir, "..", "..", "database", "users"),
 	}
 
 	comments := make(CommentsMap)
 	secrets := make(SecretFieldsMap)
 	deprecated := make(DeprecatedFieldsMap)
 
-	// Parse each directory
 	for _, parseDir := range dirsToparse {
+		if _, err := os.Stat(parseDir); err != nil {
+			continue
+		}
 		dirComments, dirSecrets, dirDeprecated, err := parseDirectoryComments(parseDir)
 		if err != nil {
-			// Log error but continue with other directories
-			fmt.Printf("Warning: failed to parse directory %s: %v\n", parseDir, err)
 			continue
 		}
 
@@ -116,6 +105,9 @@ func CollectCommentsAndSecrets(srcPath string) (CommentsMap, SecretFieldsMap, De
 func parseDirectoryComments(dir string) (CommentsMap, SecretFieldsMap, DeprecatedFieldsMap, error) {
 	absDir, err := filepath.Abs(dir)
 	if err != nil {
+		return nil, nil, nil, err
+	}
+	if _, err = os.Stat(absDir); err != nil {
 		return nil, nil, nil, err
 	}
 
