@@ -3,7 +3,6 @@
     <div v-if="!isShare || hasLinks" class="sidebar-links card">
       <div class="sidebar-links-header" :class="{ 'no-edit-options': isShare }">
         <i v-if="!isShare" @click="goHome()" class="material-icons action">home</i>
-        <span>{{ $t("general.links") }}</span>
         <i v-if="!isShare" @mouseenter="showTooltip($event, $t('sidebar.customizeLinks'))" @mouseleave="hideTooltip"
           @click="openSidebarLinksPrompt" class="material-icons action">edit</i>
       </div>
