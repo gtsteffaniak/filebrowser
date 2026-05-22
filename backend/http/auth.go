@@ -322,7 +322,7 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/auth/signup [post]
 func signupHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	if !settings.Config.Auth.Methods.PasswordAuth.Signup {
+	if !config.Auth.Methods.PasswordAuth.Signup {
 		return http.StatusMethodNotAllowed, fmt.Errorf("signup is disabled")
 	}
 
@@ -342,7 +342,7 @@ func signupHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		},
 		LoginMethod: users.LoginMethodPassword,
 	}
-	err := storage.CreateUser(user, settings.ConvertPermissionsToUsers(settings.Config.UserDefaults.Account.Permissions))
+	err := storage.CreateUser(user, settings.ConvertPermissionsToUsers(config.UserDefaults.Account.Permissions))
 	if err != nil {
 		logger.Debug(err.Error())
 		// Return the actual error message instead of a generic one

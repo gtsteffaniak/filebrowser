@@ -3,18 +3,16 @@ package http
 import (
 	"net/url"
 	"testing"
-
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 )
 
 func TestResolveOnlyOfficeDownloadURL(t *testing.T) {
-	orig := settings.Config.Integrations.OnlyOffice
+	orig := config.Integrations.OnlyOffice
 	t.Cleanup(func() {
-		settings.Config.Integrations.OnlyOffice = orig
+		config.Integrations.OnlyOffice = orig
 	})
 
-	settings.Config.Integrations.OnlyOffice.Url = "http://192.168.88.100:8282"
-	settings.Config.Integrations.OnlyOffice.InternalUrl = "http://onlyoffice"
+	config.Integrations.OnlyOffice.Url = "http://192.168.88.100:8282"
+	config.Integrations.OnlyOffice.InternalUrl = "http://onlyoffice"
 
 	cachePath := "/cache/files/data/doc_1/output.ods/output.ods?md5=abc&expires=1"
 	publicURL := "http://192.168.88.100:8282" + cachePath
@@ -57,7 +55,7 @@ func TestResolveOnlyOfficeDownloadURL(t *testing.T) {
 	}
 
 	t.Run("pass through public URL when internalUrl unset", func(t *testing.T) {
-		settings.Config.Integrations.OnlyOffice.InternalUrl = ""
+		config.Integrations.OnlyOffice.InternalUrl = ""
 		got := resolveOnlyOfficeDownloadURL(publicURL)
 		if got != publicURL {
 			t.Errorf("resolveOnlyOfficeDownloadURL() = %q, want %q", got, publicURL)
@@ -65,8 +63,8 @@ func TestResolveOnlyOfficeDownloadURL(t *testing.T) {
 	})
 
 	t.Run("hostname match with default http port", func(t *testing.T) {
-		settings.Config.Integrations.OnlyOffice.Url = "http://office.local"
-		settings.Config.Integrations.OnlyOffice.InternalUrl = "http://onlyoffice"
+		config.Integrations.OnlyOffice.Url = "http://office.local"
+		config.Integrations.OnlyOffice.InternalUrl = "http://onlyoffice"
 		input := "http://office.local:80" + cachePath
 		want := "http://onlyoffice" + cachePath
 		got := resolveOnlyOfficeDownloadURL(input)
@@ -76,8 +74,8 @@ func TestResolveOnlyOfficeDownloadURL(t *testing.T) {
 	})
 
 	t.Run("reject when public url not configured", func(t *testing.T) {
-		settings.Config.Integrations.OnlyOffice.Url = ""
-		settings.Config.Integrations.OnlyOffice.InternalUrl = "http://onlyoffice"
+		config.Integrations.OnlyOffice.Url = ""
+		config.Integrations.OnlyOffice.InternalUrl = "http://onlyoffice"
 		got := resolveOnlyOfficeDownloadURL(publicURL)
 		if got != "" {
 			t.Errorf("resolveOnlyOfficeDownloadURL() = %q, want empty", got)

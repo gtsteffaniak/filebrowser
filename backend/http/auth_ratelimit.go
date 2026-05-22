@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/go-cache/cache"
 	"golang.org/x/time/rate"
 )
@@ -87,10 +86,10 @@ func withRateLimit(kind AuthRateLimitKind, fn handleFunc) http.HandlerFunc {
 }
 
 func authRateLimitActive() bool {
-	if settings.Config.Http.DisableRateLimit {
+	if config.Http.DisableRateLimit {
 		return false
 	}
-	if settings.Config.Auth.Methods.NoAuth {
+	if config.Auth.Methods.NoAuth {
 		return false
 	}
 	return true

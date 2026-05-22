@@ -8,7 +8,6 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/preview"
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -80,7 +79,7 @@ func publicDownloadHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	}
 
 	// Get the actual source name from the share's source mapping
-	sourceInfo, ok := settings.Config.Server.SourceMap[d.share.Source]
+	sourceInfo, ok := config.Server.SourceMap[d.share.Source]
 	if !ok {
 		return http.StatusInternalServerError, fmt.Errorf("source not found for share")
 	}

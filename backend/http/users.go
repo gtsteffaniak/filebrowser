@@ -14,7 +14,6 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
@@ -132,7 +131,7 @@ func GetFrontendSidebarLinks(links []users.SidebarLink, showToolsInSidebar bool)
 			if !ok {
 				continue
 			}
-			if full, ok := settings.Config.Server.SourceMap[source.Path]; ok {
+			if full, ok := config.Server.SourceMap[source.Path]; ok {
 				if full.Config.ResolvedRules.IndexingDisabled && link.Category != "source-minimal" {
 					link.Category = "source-alt"
 				}
