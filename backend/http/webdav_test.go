@@ -111,8 +111,8 @@ func setupWebDAVTestEnv(t *testing.T) (string, string) {
 	}
 
 	// CRITICAL: Also update the global config so access.Permitted can find sources
-	config.Server.SourceMap = config.Server.SourceMap
-	config.Server.NameToSource = config.Server.NameToSource
+	settings.Config.Server.SourceMap = config.Server.SourceMap
+	settings.Config.Server.NameToSource = config.Server.NameToSource
 
 	// Initialize user resolvers
 	settings.InitializeUserResolvers()
