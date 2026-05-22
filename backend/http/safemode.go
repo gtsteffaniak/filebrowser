@@ -90,6 +90,7 @@ func safeModeAddHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		logger.Errorf("safemode: failed to update user %s: %v", d.user.Username, err)
 		return http.StatusInternalServerError, fmt.Errorf("failed to save SAFEMode: %w", err)
 	}
+	AcornStateSaveSafeMode(d.user.Username, d.user.SafeModePINHash, d.user.SafeModeItems)
 	items := d.user.SafeModeItems
 	if items == nil {
 		items = []users.SafeModeItem{}
@@ -137,6 +138,7 @@ func safeModeRemoveHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 		logger.Errorf("safemode: failed to update user %s: %v", d.user.Username, err)
 		return http.StatusInternalServerError, fmt.Errorf("failed to update SAFEMode: %w", err)
 	}
+	AcornStateSaveSafeMode(d.user.Username, d.user.SafeModePINHash, d.user.SafeModeItems)
 	items := d.user.SafeModeItems
 	if items == nil {
 		items = []users.SafeModeItem{}

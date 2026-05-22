@@ -3,12 +3,10 @@ package http
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -149,12 +147,12 @@ func protectHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		}
 	}
 
-	// Persist protection metadata to database and filesystem sidecar
+	// Persist protection metadata to database and central state file
 	expiry := time.Now().Add(time.Duration(hours) * time.Hour).Unix()
 	if err := store.Protection.Save(fileInfo.RealPath, fileGuid, expiry); err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("failed to save protection record: %w", err)
 	}
-	writeProtectionSidecar(fileInfo.RealPath, fileGuid, expiry)
+	AcornStateSaveProtection(fileInfo.RealPath, fileGuid, expiry)
 
 	return renderJSON(w, r, map[string]string{"fileGuid": fileGuid, "protectedUntil": time.Unix(expiry, 0).UTC().Format(time.RFC3339)})
 }
@@ -166,23 +164,12 @@ func deriveUserAESPassword(user *users.User) string {
 	return hex.EncodeToString(hash[:])
 }
 
-// getProtectionRecord returns the protection record from DB, falling back to the filesystem
-// sidecar when the DB is missing the record (e.g. after a container redeploy that wiped the DB).
+// getProtectionRecord returns the protection record from DB.
+// Records are restored from the central state file into BoltDB at startup
+// (see InitAcornState), so a simple DB lookup is sufficient here.
 func getProtectionRecord(realPath string) *protection.Record {
 	r, _ := store.Protection.Get(realPath)
-	if r != nil {
-		return r
-	}
-	// Fallback: restore from sidecar file on the persistent /srv volume
-	s := readProtectionSidecar(realPath)
-	if s == nil {
-		return nil
-	}
-	restored := &protection.Record{Path: realPath, FileGuid: s.FileGuid, Expiry: s.Expiry}
-	if err := store.Protection.Save(realPath, s.FileGuid, s.Expiry); err != nil {
-		logger.Errorf("protect: failed to restore sidecar record for %s: %v", realPath, err)
-	}
-	return restored
+	return r
 }
 
 // IsFileProtected returns true if the file at realPath has a ChainFS protection record.
@@ -211,44 +198,3 @@ func ProtectionExpiresAt(realPath string) (int64, bool) {
 	return r.Expiry, true
 }
 
-// --- Sidecar helpers ---
-// The sidecar file lives next to the protected file on the /srv volume so that protection
-// records survive container redeployments that wipe the BoltDB at /home/filebrowser/data/.
-
-type protectionSidecar struct {
-	FileGuid string `json:"fileGuid"`
-	Expiry   int64  `json:"expiry"`
-}
-
-func protectionSidecarPath(realPath string) string {
-	dir := filepath.Dir(realPath)
-	base := filepath.Base(realPath)
-	return filepath.Join(dir, "."+base+".acornprotect")
-}
-
-func writeProtectionSidecar(realPath, fileGuid string, expiry int64) {
-	data, err := json.Marshal(protectionSidecar{FileGuid: fileGuid, Expiry: expiry})
-	if err != nil {
-		return
-	}
-	if err := os.WriteFile(protectionSidecarPath(realPath), data, 0600); err != nil {
-		logger.Errorf("protect: could not write sidecar for %s: %v", realPath, err)
-	}
-}
-
-func readProtectionSidecar(realPath string) *protectionSidecar {
-	data, err := os.ReadFile(protectionSidecarPath(realPath))
-	if err != nil {
-		return nil
-	}
-	var s protectionSidecar
-	if err := json.Unmarshal(data, &s); err != nil {
-		return nil
-	}
-	return &s
-}
-
-// DeleteProtectionSidecar removes the sidecar file when a file is deleted or protection cleared.
-func DeleteProtectionSidecar(realPath string) {
-	_ = os.Remove(protectionSidecarPath(realPath))
-}

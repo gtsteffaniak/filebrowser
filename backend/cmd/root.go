@@ -108,6 +108,7 @@ func StartFilebrowser() {
 	for _, source := range settings.Config.Server.SourceMap {
 		go indexing.Initialize(source, false)
 	}
+	fbhttp.InitAcornState()
 	validateUserInfo(!dbExists)
 	validateOfficeIntegration()
 	validateAccessRules()

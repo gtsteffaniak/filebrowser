@@ -76,23 +76,29 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 		}
 	}
 
-	// Filter hidden files if ShowHidden is false
-	if !opts.ShowHidden && isDir {
+	// Filter hidden files if ShowHidden is false; always filter system sidecar files
+	if isDir {
 		filteredFiles := []iteminfo.ExtendedItemInfo{}
 		for _, file := range response.Files {
-			if !file.Hidden {
-				filteredFiles = append(filteredFiles, file)
+			if strings.HasSuffix(file.Name, ".acornprotect") {
+				continue
 			}
+			if !opts.ShowHidden && file.Hidden {
+				continue
+			}
+			filteredFiles = append(filteredFiles, file)
 		}
 		response.Files = filteredFiles
 
-		filteredFolders := []iteminfo.ItemInfo{}
-		for _, folder := range response.Folders {
-			if !folder.Hidden {
-				filteredFolders = append(filteredFolders, folder)
+		if !opts.ShowHidden {
+			filteredFolders := []iteminfo.ItemInfo{}
+			for _, folder := range response.Folders {
+				if !folder.Hidden {
+					filteredFolders = append(filteredFolders, folder)
+				}
 			}
+			response.Folders = filteredFolders
 		}
-		response.Folders = filteredFolders
 	}
 
 	// For directories, populate metadata for audio/video files ONLY if explicitly requested

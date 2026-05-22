@@ -475,6 +475,16 @@ func loginWithChainFsUser(w http.ResponseWriter, r *http.Request, username, disp
 			logger.Errorf("Failed to reload created user: %v", err)
 			return http.StatusInternalServerError, err
 		}
+		// Restore SAFEMode state from central state file (survives DB wipes)
+		if sm := AcornStateGetSafeMode(username); sm != nil && len(sm.Items) > 0 {
+			user.SafeModeItems = sm.Items
+			user.SafeModePINHash = sm.PINHash
+			if err := store.Users.Update(user, true, "SafeModeItems", "SafeModePINHash"); err != nil {
+				logger.Errorf("acornstate: failed to restore SafeMode for %s: %v", username, err)
+			} else {
+				logger.Infof("acornstate: restored %d SAFEMode item(s) for %s", len(sm.Items), username)
+			}
+		}
 	} else {
 		// User exists, update tokens and admin status
 		logger.Infof("Updating existing ChainFS user: %s", username)
@@ -924,6 +934,16 @@ func chainfsSSOHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 		if err != nil {
 			logger.Errorf("SSO: failed to reload created user %s: %v", username, err)
 			return http.StatusInternalServerError, err
+		}
+		// Restore SAFEMode state from central state file (survives DB wipes)
+		if sm := AcornStateGetSafeMode(username); sm != nil && len(sm.Items) > 0 {
+			user.SafeModeItems = sm.Items
+			user.SafeModePINHash = sm.PINHash
+			if err := store.Users.Update(user, true, "SafeModeItems", "SafeModePINHash"); err != nil {
+				logger.Errorf("acornstate: SSO failed to restore SafeMode for %s: %v", username, err)
+			} else {
+				logger.Infof("acornstate: SSO restored %d SAFEMode item(s) for %s", len(sm.Items), username)
+			}
 		}
 	} else {
 		// Existing user — update subscription flag and display name.

@@ -235,8 +235,8 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	if err != nil {
 		return errToStatus(err), err
 	}
-	// Clean up protection sidecar if one exists (protection already expired since we passed the active check)
-	DeleteProtectionSidecar(fileInfo.RealPath)
+	// Remove protection record from central state file when file is deleted
+	AcornStateRemoveProtection(fileInfo.RealPath)
 	return http.StatusOK, nil
 
 }
