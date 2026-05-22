@@ -38,10 +38,10 @@
               </i>
             </div>
             <div v-if="hasSourceInfo && isLinkAccessible(link)" class="usage-info">
-              <ProgressBar 
-                :key="`progress-${link.sourceName}-${sourceInfo[link.sourceName]?.used || 0}-${sourceInfo[link.sourceName]?.total || 0}`"
-                :val="getProgressBarValue(sourceInfo[link.sourceName] || {})" 
-                :max="(sourceInfo[link.sourceName] || {}).total || 1" 
+              <ProgressBar
+                :key="`progress-${link.sourceName}-${sourceInfo[link.sourceName]?.used || 0}-${userQuotaBytes}`"
+                :val="getProgressBarValue(sourceInfo[link.sourceName] || {})"
+                :max="userQuotaBytes || (sourceInfo[link.sourceName] || {}).total || 1"
                 :status="getProgressBarStatus(sourceInfo[link.sourceName] || {})"
                 unit="bytes">
               </ProgressBar>
@@ -89,6 +89,7 @@ export default {
     activeSource: () => state.sources.current,
     realtimeActive: () => state.realtimeActive,
     hasSourceInfo: () => state.sources.hasSourceInfo,
+    userQuotaBytes: () => state.user?.quotaBytes || 0,
     showSidebarLinks() {
       // Always show sidebar links section (replaces sources)
       return true;
