@@ -133,7 +133,11 @@
     "and": "e",
     "or": "o",
     "pin": "Pin{suffix}",
-    "unpin": "Unpin{suffix}"
+    "unpin": "Unpin{suffix}",
+    "readOnly": "Solo lettura{suffix}",
+    "private": "Privato{suffix}",
+    "yes": "Sì{suffix}",
+    "no": "No{suffix}"
   },
   "buttons": {
     "copySuccess": "Copiato negli appunti!",
@@ -265,8 +269,8 @@
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
-    "nlBE": "Dutch (Belgium)",
-    "nl": "Dutch",
+    "nl": "Nederlands",
+    "nlBE": "Nederlands (België)",
     "pl": "Polski",
     "pt": "Português",
     "ptBR": "Português (Brasil)",
@@ -365,7 +369,8 @@
     "shareInfo": "QR Code e Info Condivisione",
     "shareInfoDescription": "Mostra le informazioni della condivisione (titolo, descrizione, banner, QR) in un popup.",
     "downloadDescription": "Permette di scaricare l'intero contenuto della condivisione come file compresso.",
-    "deleteFailed": "Eliminazione condivisione fallita"
+    "deleteFailed": "Eliminazione condivisione fallita",
+    "readOnlySourceNotice": "Questa sorgente è di sola lettura. Le azioni di caricamento e le autorizzazioni che modificano i file sono disabilitate."
   },
   "prompts": {
     "operationInProgress": "Operazione in corso, attendere...",

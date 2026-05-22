@@ -126,8 +126,8 @@
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
-    "nlBE": "Dutch (Belgium)",
-    "nl": "Dutch",
+    "nl": "Nederlands",
+    "nlBE": "Nederlands (België)",
     "pl": "Polski",
     "pt": "Português",
     "ptBR": "Português (Brasil)",
@@ -493,7 +493,8 @@
     "selectBannerImage": "Välj bannerbild",
     "selectFaviconImage": "Välj favicon-bild",
     "selectImage": "Välj bild",
-    "deleteFailed": "Misslyckades med att ta bort delning"
+    "deleteFailed": "Misslyckades med att ta bort delning",
+    "readOnlySourceNotice": "Denna källa är skrivskyddad. Uppladdningsandelar och behörigheter som ändrar filer är inaktiverade."
   },
   "api": {
     "createdAt": "Skapad på:",
@@ -780,7 +781,11 @@
     "and": "och",
     "or": "eller",
     "pin": "Pin{suffix}",
-    "unpin": "Unpin{suffix}"
+    "unpin": "Unpin{suffix}",
+    "readOnly": "Skrivskyddad{suffix}",
+    "private": "Privat{suffix}",
+    "yes": "Ja{suffix}",
+    "no": "Nej{suffix}"
   },
   "access": {
     "rules": "Regler för åtkomst",

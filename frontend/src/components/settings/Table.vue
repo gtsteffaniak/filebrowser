@@ -6,7 +6,16 @@
     :aria-busy="loading ? 'true' : undefined"
   >
     <thead>
-      <tr>
+      <tr v-if="headerTitle">
+        <th
+          :colspan="emptyColumnSpan"
+          scope="col"
+          class="settings-table__align-center settings-table__th--nosort settings-table__th--unified"
+        >
+          {{ headerTitle }}
+        </th>
+      </tr>
+      <tr v-else>
         <th
           v-for="column in columns"
           :key="column.key"
@@ -122,6 +131,11 @@ export default {
     ariaLabel: {
       type: String,
       default: undefined,
+    },
+    /** When set, renders one centered header cell spanning all columns instead of per-column headers. */
+    headerTitle: {
+      type: String,
+      default: "",
     },
     /** i18n key for empty-state caption (icon + label), default `files.lonely`. */
     lonelyMessageKey: {
@@ -328,7 +342,7 @@ export default {
 
 .settings-table thead th,
 .settings-table tbody td {
-  padding: 0.5em 0;
+  padding: 0.5em;
   vertical-align: middle;
   border-bottom: 1px solid var(--divider);
 }
@@ -382,6 +396,11 @@ body.rtl .settings-table tr > *:last-child {
 
 .settings-table thead th.settings-table__th--nosort:hover {
   background: color-mix(in srgb, var(--primaryColor) 12%, var(--surfacePrimary));
+}
+
+.settings-table thead th.settings-table__th--unified,
+body.rtl .settings-table thead th.settings-table__th--unified {
+  text-align: center;
 }
 
 .settings-table thead th.settings-table__th::after {

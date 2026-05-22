@@ -528,7 +528,7 @@ export default {
     },
     goToItem() {
       const item = this.firstSelected;
-      url.goToItem(item.source, item.path, {}, true);
+      url.goToItem(item.source, item.path, {}, true, getters.isShare());
       mutations.closeHovers();
     },
     hideTooltip() {

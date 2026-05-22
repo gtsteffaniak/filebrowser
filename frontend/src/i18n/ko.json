@@ -126,8 +126,8 @@
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
-    "nlBE": "Dutch (Belgium)",
-    "nl": "Dutch",
+    "nl": "Nederlands",
+    "nlBE": "Nederlands (België)",
     "pl": "Polski",
     "pt": "Português",
     "ptBR": "Português (Brasil)",
@@ -493,7 +493,8 @@
     "selectBannerImage": "배너 이미지 선택",
     "selectFaviconImage": "파비콘 이미지 선택",
     "selectImage": "이미지 선택",
-    "deleteFailed": "공유를 삭제하지 못했습니다."
+    "deleteFailed": "공유를 삭제하지 못했습니다.",
+    "readOnlySourceNotice": "이 소스는 읽기 전용입니다. 파일을 수정하는 업로드 공유 및 권한은 비활성화됩니다."
   },
   "api": {
     "createdAt": "만든 곳:",
@@ -679,7 +680,11 @@
     "and": "그리고",
     "or": "또는",
     "pin": "Pin{suffix}",
-    "unpin": "Unpin{suffix}"
+    "unpin": "Unpin{suffix}",
+    "readOnly": "읽기 전용{suffix}",
+    "private": "비공개{suffix}",
+    "yes": "예{suffix}",
+    "no": "아니요{suffix}"
   },
   "access": {
     "rules": "액세스 규칙",

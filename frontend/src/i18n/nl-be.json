@@ -126,8 +126,8 @@
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
-    "nlBE": "Dutch (Belgium)",
-    "nl": "Dutch",
+    "nl": "Nederlands",
+    "nlBE": "Nederlands (België)",
     "pl": "Polski",
     "pt": "Português",
     "ptBR": "Português (Brasil)",
@@ -493,7 +493,8 @@
     "selectBannerImage": "Selecteer bannerafbeelding",
     "selectFaviconImage": "Selecteer favicon afbeelding",
     "selectImage": "Afbeelding selecteren",
-    "deleteFailed": "Share niet verwijderd"
+    "deleteFailed": "Share niet verwijderd",
+    "readOnlySourceNotice": "Deze bron is alleen-lezen. Upload shares en rechten om bestanden te wijzigen zijn uitgeschakeld."
   },
   "api": {
     "createdAt": "Gemaakt op:",
@@ -780,7 +781,11 @@
     "and": "en",
     "or": "of",
     "pin": "Pin{suffix}",
-    "unpin": "Unpin{suffix}"
+    "unpin": "Unpin{suffix}",
+    "readOnly": "Alleen-lezen{suffix}",
+    "private": "Privé{suffix}",
+    "yes": "Ja{suffix}",
+    "no": "Geen{suffix}"
   },
   "access": {
     "rules": "Toegangsregels",

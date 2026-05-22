@@ -506,6 +506,8 @@ export default {
           state.previousHistoryItem.source,
           state.previousHistoryItem.path,
           state.previousHistoryItem,
+          false,
+          state.previousHistoryItem.isShare
         );
         return;
       }

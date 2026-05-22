@@ -6,6 +6,8 @@ export const state = reactive({
   tooltip: {
     show: false,
     content: "",
+    component: null,
+    componentProps: null,
     x: 0,
     y: 0,
     pointerEvents: false,

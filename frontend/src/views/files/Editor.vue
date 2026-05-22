@@ -252,6 +252,8 @@ export default {
         size: this.req.size,
         type: this.req.type,
         source: this.req.source,
+        modified: this.req.modified,
+        hasPreview: this.req.hasPreview,
       });
 
       this.updateNavigationForCurrentItem();

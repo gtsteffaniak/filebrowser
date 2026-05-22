@@ -32,6 +32,7 @@
         </a>
       </div>
       <p> {{ $t('share.notice') }} </p>
+      <p v-if="sourceReadOnly" class="read-only-notice">{{ $t('share.readOnlySourceNotice') }}</p>
 
       <div v-if="listing">
         <settings-table
@@ -121,7 +122,7 @@
           </p>
           <select class="input" v-model="shareType">
             <option value="normal">{{ $t("share.normalShare") }}</option>
-            <option value="upload">{{ $t("share.uploadShare") }}</option>
+            <option value="upload" :disabled="sourceReadOnly">{{ $t("share.uploadShare") }}</option>
           </select>
           <button @click="openSidebarLinksCustomization" class="button button--flat customize-sidebar-links-button">
             <i class="material-symbols">link</i>
@@ -130,13 +131,13 @@
           <div class="settings-items" style="margin-top: 0.5em;">
             <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowModify"
               :name="$t('share.allowModify')" :description="$t('share.allowModifyDescription')"
-              aria-label="allow editing files toggle" />
+              aria-label="allow editing files toggle" :disabled="sourceReadOnly" />
             <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowCreate"
               :name="$t('share.allowCreate')" :description="$t('share.allowCreateDescription')"
-              aria-label="allow creating and uploading files and folders toggle" />
+              aria-label="allow creating and uploading files and folders toggle" :disabled="sourceReadOnly" />
             <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowDelete"
               :name="$t('share.allowDelete')" :description="$t('share.allowDeleteDescription')"
-              aria-label="allow deleting files toggle" />
+              aria-label="allow deleting files toggle" :disabled="sourceReadOnly" />
           </div>
         </div>
         <SettingsItem :title="showMoreExpanded ? $t('buttons.showLess') : $t('buttons.showMore')" :collapsable="true"
@@ -173,7 +174,8 @@
               </select>
             </div>
             <ToggleSwitch v-if="createAllowed" class="item" v-model="allowReplacements"
-              :name="$t('share.allowReplacements')" :description="$t('share.allowReplacementsDescription')" />
+              :name="$t('share.allowReplacements')" :description="$t('share.allowReplacementsDescription')"
+              :disabled="sourceReadOnly" />
             <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableDownload"
               :name="$t('share.disableDownload')" :description="$t('share.disableDownloadDescription')"
               aria-label="disable downloading files toggle" />
@@ -192,7 +194,8 @@
                 :placeholder="$t('share.allowedUsernamesPlaceholder')" />
             </div>
             <ToggleSwitch v-if="shareType === 'normal' && onlyOfficeAvailable" class="item" v-model="enableOnlyOffice"
-              :name="$t('share.enableOnlyOffice')" :description="$t('share.enableOnlyOfficeDescription')" />
+              :name="$t('share.enableOnlyOffice')" :description="$t('share.enableOnlyOfficeDescription')"
+              :disabled="sourceReadOnly" />
             <p>
               {{ $t("share.enforceDarkLightMode") }}
               <i class="material-symbols-outlined tooltip-info-icon"
@@ -451,6 +454,10 @@ export default {
       // When editing, use the link's source; otherwise use the item's source
       return this.isEditMode ? this.link.source : this.item.source;
     },
+    sourceReadOnly() {
+      const info = state.sources.info?.[this.displaySource];
+      return info?.readOnly === true;
+    },
     onlyOfficeAvailable() {
       return globalVars.onlyOfficeUrl !== "";
     },
@@ -525,11 +532,23 @@ export default {
       }
     },
     shareType(newType) {
+      if (this.sourceReadOnly && newType === 'upload') {
+        this.shareType = 'normal';
+        return;
+      }
       if (newType === 'upload') {
         this.description = this.$t("share.descriptionUploadDefault");
       } else {
         this.description = this.$t("share.descriptionDefault");
       }
+    },
+    sourceReadOnly: {
+      immediate: true,
+      handler(readOnly) {
+        if (readOnly) {
+          this.applyReadOnlyConstraints();
+        }
+      },
     },
     isEditMode: {
       immediate: true,
@@ -578,6 +597,9 @@ export default {
           this.disableLoginOption = this.link.disableLoginOption || false;
           this.sidebarLinks = Array.isArray(this.link.sidebarLinks) ? [...this.link.sidebarLinks] : [];
           //this.viewMode = this.link.viewMode || "normal";
+          if (this.sourceReadOnly) {
+            this.applyReadOnlyConstraints();
+          }
         }
       },
     },
@@ -620,6 +642,16 @@ export default {
     eventBus.off('pathPickerCancelled', this.onBannerFaviconPathPickerCancelled);
   },
   methods: {
+    applyReadOnlyConstraints() {
+      if (this.shareType === 'upload') {
+        this.shareType = 'normal';
+      }
+      this.allowModify = false;
+      this.allowDelete = false;
+      this.allowCreate = false;
+      this.allowReplacements = false;
+      this.enableOnlyOffice = false;
+    },
     async copyToClipboard(text) {
       await copyToClipboard(text);
     },
@@ -708,6 +740,15 @@ export default {
           payload.hash = this.editingLink.hash;
         }
 
+        if (this.sourceReadOnly) {
+          payload.shareType = 'normal';
+          payload.allowModify = false;
+          payload.allowDelete = false;
+          payload.allowCreate = false;
+          payload.allowReplacements = false;
+          payload.enableOnlyOffice = false;
+        }
+
         const res = await shareApi.create(payload);
 
         if (!this.isEditMode && !this.editingLink) {
@@ -787,6 +828,9 @@ export default {
       this.sidebarLinks = Array.isArray(link.sidebarLinks) ? [...link.sidebarLinks] : [];
       // Store the link being edited
       this.editingLink = link;
+      if (this.sourceReadOnly) {
+        this.applyReadOnlyConstraints();
+      }
     },
     /**
      * @param {Event} event
@@ -1074,5 +1118,15 @@ export default {
 .file-picker-button .material-symbols {
   color: var(--primaryColor);
   font-size: 1.25em;
+}
+
+.read-only-notice {
+  font-size: 0.9em;
+  color: var(--textSecondary, #666);
+  margin-top: 0.25em;
+}
+
+select.input option:disabled {
+  color: #999;
 }
 </style>

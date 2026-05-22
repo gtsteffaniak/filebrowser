@@ -30,6 +30,27 @@ export async function openContextMenuHelper(page: Page): Promise<void> {
   await fileActionsButton.click();
 }
 
+/**
+ * Opens the share dialog and asserts the path, retrying on transient UI timing failures.
+ */
+export async function openShareAndExpectPath(
+  page: Page,
+  expectedPathText: string,
+  openShare: () => Promise<void>,
+  options?: { timeout?: number },
+): Promise<void> {
+  const timeout = options?.timeout ?? 20000;
+  const sharePath = page.locator('div[aria-label="share-path"]');
+  const sharePrompt = page.locator("div[aria-label='share-prompt']");
+
+  await expect(async () => {
+    if (!(await sharePrompt.isVisible())) {
+      await openShare();
+    }
+    await expect(sharePath).toHaveText(expectedPathText, { timeout: 2000 });
+  }).toPass({ timeout });
+}
+
 export const test = base.extend<{
   checkForErrors: (expectedConsoleErrors?: number, expectedApiErrors?: number) => void;
   openContextMenu: () => Promise<void>;

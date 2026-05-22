@@ -126,8 +126,8 @@
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
-    "nlBE": "Dutch (Belgium)",
-    "nl": "Dutch",
+    "nl": "Nederlands",
+    "nlBE": "Nederlands (België)",
     "pl": "Polski",
     "pt": "Português",
     "ptBR": "Português (Brasil)",
@@ -493,7 +493,8 @@
     "selectBannerImage": "Selecione a imagem do banner",
     "selectFaviconImage": "Selecione a imagem do favicon",
     "selectImage": "Selecionar imagem",
-    "deleteFailed": "Falha ao excluir o compartilhamento"
+    "deleteFailed": "Falha ao excluir o compartilhamento",
+    "readOnlySourceNotice": "Essa fonte é somente leitura. Os compartilhamentos de upload e as permissões que modificam arquivos estão desativados."
   },
   "api": {
     "createdAt": "Criado em:",
@@ -679,7 +680,11 @@
     "and": "e",
     "or": "ou",
     "pin": "Pin{suffix}",
-    "unpin": "Unpin{suffix}"
+    "unpin": "Unpin{suffix}",
+    "readOnly": "Somente leitura{suffix}",
+    "private": "Privado{suffix}",
+    "yes": "Sim{suffix}",
+    "no": "Não{suffix}"
   },
   "access": {
     "rules": "Regras de acesso",

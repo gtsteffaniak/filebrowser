@@ -9,6 +9,8 @@
     "noCreateOptions": "Er zijn geen opties beschikbaar"
   },
   "general": {
+    "and": "en",
+    "or": "of",
     "divider": "Scheiding{suffix}",
     "show": "Toon{suffix}",
     "office": "Office{suffix}",
@@ -133,7 +135,11 @@
     "and": "en",
     "or": "of",
     "pin": "Pin{suffix}",
-    "unpin": "Unpin{suffix}"
+    "unpin": "Unpin{suffix}",
+    "readOnly": "Alleen-lezen{suffix}",
+    "private": "Privé{suffix}",
+    "yes": "Ja{suffix}",
+    "no": "Geen{suffix}"
   },
   "buttons": {
     "copySuccess": "Gekopieerd naar klembord!",
@@ -233,7 +239,7 @@
     "del": "geselecteerde items verwijderen",
     "esc": "selectie wissen en/of opdrachtvenster sluiten",
     "f2": "bestand hernoemen",
-    "f1": "hulp-venster tonen",
+    "f1": "hulp-venster weergeven",
     "slash": "Zoeken inschakelen",
     "description": "U kunt de basisnavigatieopties hieronder bekijken. Ga voor aanvullende informatie naar",
     "wiki": "FileBrowser Quantum officiële documentatie",
@@ -265,8 +271,8 @@
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
-    "nlBE": "Dutch (Belgium)",
-    "nl": "Dutch",
+    "nl": "Nederlands",
+    "nlBE": "Nederlands (België)",
     "pl": "Polski",
     "pt": "Português",
     "ptBR": "Português (Brasil)",
@@ -365,7 +371,8 @@
     "shareInfo": "QR-code en info delen",
     "shareInfoDescription": "Deze koppeling toont de informatie van de gedeelde map, inclusief titel, beschrijving, banner en QR-code in een popup.",
     "downloadDescription": "Met deze koppeling kunt u de volledige inhoud van de gedeelde map downloaden als een gecomprimeerd bestand.",
-    "deleteFailed": "Share niet verwijderd"
+    "deleteFailed": "Share niet verwijderd",
+    "readOnlySourceNotice": "Deze bron is alleen-lezen. Upload shares en rechten om bestanden te wijzigen zijn uitgeschakeld."
   },
   "prompts": {
     "operationInProgress": "Werk in uitvoering, even geduld...",
@@ -476,12 +483,12 @@
     "largerThan": "Groter dan:",
     "olderThanDate": "Ouder dan:",
     "newerThanDate": "Nieuwer dan:",
-    "showPreviewImages": "Voorbeeldafbeeldingen tonen",
+    "showPreviewImages": "Voorbeeld weergeven",
     "showPreviewImagesDescription": "Toon, indien beschikbaar, miniatuurvoorbeelden voor zoekresultaten en toon grotere pictogrammen voor alle resultaten.",
-    "helpText1": "Er wordt gezocht op elk teken dat je typt (minimaal{minSearchLength} tekens).",
-    "helpText2": "Substring match alleen op bestands- of mapnamen (geen volledige paden). case:exact voor hoofdlettergevoelig matchen\n\n voor OR tussen termen gebruik je het teken pipe; dubbele aanhalingstekens voor één zin.\n\nSchakel wildcard zoeken in voor meer geavanceerde opties.",
     "useWildcardSearch": "Zoeken met jokertekens (hoofdlettergevoelig)",
     "useWildcardSearchDescription": "Ondersteunde jokertekenopties:\n\n- Overeenstemming met een willekeurige reeks: *\n\n- Overeenstemming met één teken: ?\n\n- Tekenklasse: [a-z], [0-9]\n\n- Negatie: [^0-9]\n\n- Letterlijke *, ?, of [ moeten tussen haakjes staan, bijv. [*], [?], [[]\n\n- Alle resultaten zijn hoofdlettergevoelig",
+    "helpText1": "Er wordt gezocht op elk teken dat je typt (minimaal {minSearchLength} tekens).",
+    "helpText2": "Substring match alleen op bestands- of mapnamen (geen volledige paden). case:exact voor hoofdlettergevoelig matchen\n\n voor OR tussen termen gebruik je het teken pipe; dubbele aanhalingstekens voor één zin.\n\nSchakel wildcard zoeken in voor meer geavanceerde opties.",
     "openInAdvancedSearch": "Openen in geavanceerd zoeken"
   },
   "profileSettings": {
@@ -529,6 +536,8 @@
     "disableSearchOptions": "Zoekopties uitschakelen",
     "disableSearchOptionsDescription": "Schakel de zoekopties in de zijbalk uit.",
     "hideSidebarFileActions": "Verberg de knop Bestandsacties in de zijbalk",
+    "showToolsInSidebar": "Toon gereedschappen in de zijbalk",
+    "showToolsInSidebarDescription": "Toon altijd de link naar de hulpmiddelen in de zijbalk.",
     "showCopyPath": "Pad kopiëren tonen in contextmenu",
     "showCopyPathDescription": "Een actie Pad kopiëren weergeven in het contextmenu van bestanden en mappen.",
     "deleteWithoutConfirming": "Bestanden verwijderen zonder bevestigingsvenster",
@@ -561,9 +570,7 @@
     "passkeyDeleteFailed": "Passkey verwijderen mislukt",
     "created": "Aangemaakt",
     "lastUsed": "Laatst gebruikt",
-    "passkeyDefaultName": "Passkey",
-    "showToolsInSidebar": "Toon gereedschappen in de zijbalk",
-    "showToolsInSidebarDescription": "Toon altijd de link naar de hulpmiddelen in de zijbalk."
+    "passkeyDefaultName": "Passkey"
   },
   "settings": {
     "systemAdmin": "Systeem & Beheer",
@@ -882,6 +889,20 @@
       "name": "Duplicaatbestanden zoeken",
       "description": "Dubbele bestanden vinden en beheren om opslagruimte terug te winnen"
     },
+    "advancedSearch": {
+      "name": "Geavanceerd zoeken",
+      "description": "Zoek in de index met volledige controle over bronnen, filters en opties",
+      "searchTerms": "Zoektermen",
+      "matchAllTerms": "Alle termen matchen",
+      "matchAllTermsDescription": "Indien ingeschakeld, moeten alle zoektermen worden gevonden voor elk bestand",
+      "scopeAria": "Zoekopdracht beperken tot een map",
+      "noTerms": "Voer ten minste één zoekterm in.",
+      "termTooShort": "Elke zoekterm moet minimaal {minSearchLength} tekens bevatten.",
+      "caseExact": "Hoofdlettergevoelige match",
+      "resultsTitle": "Zoekresultaten",
+      "invalidSources": "Zet minstens één bron aan.",
+      "noResults": "Geen overeenkomende bestanden of mappen."
+    },
     "materialIconPicker": {
       "name": "Material pictogrammenkiezer",
       "description": "Bladeren en zoeken in Material pictogrammen met live voorbeeld",
@@ -905,21 +926,7 @@
       "chooseFile": "Kies een bestand"
     },
     "toolNotFound": "Gereedschap niet gevonden",
-    "backToTools": "Terug naar Gereedschap",
-    "advancedSearch": {
-      "name": "Geavanceerd zoeken",
-      "description": "Zoek in de index met volledige controle over bronnen, filters en opties",
-      "searchTerms": "Zoektermen",
-      "matchAllTerms": "Alle termen matchen",
-      "matchAllTermsDescription": "Indien ingeschakeld, moeten alle zoektermen worden gevonden voor elk bestand",
-      "scopeAria": "Zoekopdracht beperken tot een map",
-      "noTerms": "Voer ten minste één zoekterm in.",
-      "termTooShort": "Elke zoekterm moet minimaal {minSearchLength} tekens bevatten.",
-      "caseExact": "Hoofdlettergevoelige match",
-      "resultsTitle": "Zoekresultaten",
-      "invalidSources": "Zet minstens één bron aan.",
-      "noResults": "Geen overeenkomende bestanden of mappen."
-    }
+    "backToTools": "Terug naar Gereedschap"
   },
   "notifications": {
     "title": "Meldingen",
@@ -952,9 +959,9 @@
     "changeBackground": "Achtergrondkleur wijzigen",
     "failedToLoad": "Laden 3D-model mislukt",
     "keyboard": "Toetsenbord:",
-    "autoRotate": "Automatisch draaien",
-    "rotateY": "Y draaien",
-    "rotateX": "X draaien"
+    "autoRotate": "Automatisch roteren",
+    "rotateY": "Roteren Y",
+    "rotateX": "Roteren X"
   },
   "onlyoffice": {
     "debugTitle": "OnlyOffice Foutopsporing",

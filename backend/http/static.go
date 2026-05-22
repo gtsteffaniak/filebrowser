@@ -95,8 +95,8 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	favicon := staticURL + "/favicon" + faviconExt
 	shareHash := ""
 	data := make(map[string]interface{})
-	disableNavButtons := settings.Config.Frontend.DisableNavButtons
-	if d.share != nil && d.shareValid {
+	disableNavButtons := config.Frontend.DisableNavButtons
+	if d.share != nil {
 		if d.share.Favicon != "" {
 			if strings.HasPrefix(d.share.Favicon, "http") {
 				favicon = d.share.Favicon
@@ -185,28 +185,28 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"pwaIcon512":         pwaIcon512,
 		"manifestURL":        staticURL + "/site.webmanifest",
 	}
-	// variables consumed by frontend as json
+
 	data["globalVars"] = map[string]interface{}{
 		"name":                   config.Frontend.Name,
 		"minSearchLength":        config.Server.MinSearchLength,
 		"disableExternal":        config.Frontend.DisableDefaultLinks,
-		"darkMode":               settings.Config.UserDefaults.UI.DarkMode,
+		"darkMode":               config.UserDefaults.UI.DarkMode,
 		"baseURL":                config.Server.BaseURL,
 		"version":                versionString,
 		"commitSHA":              commitSHAString,
-		"signup":                 settings.Config.Auth.Methods.PasswordAuth.Signup,
+		"signup":                 config.Auth.Methods.PasswordAuth.Signup,
 		"noAuth":                 config.Auth.Methods.NoAuth,
 		"enableThumbs":           !config.Server.DisablePreviews,
 		"externalLinks":          externalLinks,
 		"externalUrl":            strings.TrimSuffix(config.Server.ExternalUrl, "/"),
-		"onlyOfficeUrl":          settings.Config.Integrations.OnlyOffice.Url,
+		"onlyOfficeUrl":          config.Integrations.OnlyOffice.Url,
 		"oidcAvailable":          config.Auth.Methods.OidcAuth.Enabled,
 		"jwtAvailable":           config.Auth.Methods.JwtAuth.Enabled,
 		"proxyAvailable":         config.Auth.Methods.ProxyAuth.Enabled,
 		"passwordAvailable":      config.Auth.Methods.PasswordAuth.Enabled,
 		"ldapAvailable":          config.Auth.Methods.LdapAuth.Enabled,
 		"mediaAvailable":         settings.MediaEnabled(),
-		"exiftoolAvailable":      settings.Config.Integrations.Media.ExiftoolPath != "",
+		"exiftoolAvailable":      config.Integrations.Media.ExiftoolPath != "",
 		"muPdfAvailable":         settings.Env.MuPdfAvailable,
 		"updateAvailable":        utils.GetUpdateAvailableUrl(),
 		"disableNavButtons":      disableNavButtons,

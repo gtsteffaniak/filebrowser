@@ -126,8 +126,8 @@
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
-    "nlBE": "Dutch (Belgium)",
-    "nl": "Dutch",
+    "nl": "Nederlands",
+    "nlBE": "Nederlands (België)",
     "pl": "Polski",
     "pt": "Português",
     "ptBR": "Português (Brasil)",
@@ -493,7 +493,8 @@
     "selectBannerImage": "Afiş resmini seçin",
     "selectFaviconImage": "Favicon resmini seçin",
     "selectImage": "Resim seçiniz",
-    "deleteFailed": "Paylaşım silinemedi"
+    "deleteFailed": "Paylaşım silinemedi",
+    "readOnlySourceNotice": "Bu kaynak salt okunurdur. Yükleme paylaşımları ve dosyaları değiştiren izinler devre dışı bırakılmıştır."
   },
   "api": {
     "createdAt": "Oluşturuldu:",
@@ -679,7 +680,11 @@
     "and": "ve",
     "or": "veya",
     "pin": "Pin{suffix}",
-    "unpin": "Unpin{suffix}"
+    "unpin": "Unpin{suffix}",
+    "readOnly": "Salt okunur{suffix}",
+    "private": "Özel{suffix}",
+    "yes": "Evet{suffix}",
+    "no": "Hayır{suffix}"
   },
   "access": {
     "rules": "Erişim kuralları",

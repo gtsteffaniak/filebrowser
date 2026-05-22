@@ -130,7 +130,7 @@ async function setupSSE () {
     }
 
     // Original notification logic - only show error after multiple failures
-    if (state.realtimeDownCount == 2 && !isManuallyClosed) {
+    if (state.realtimeDownCount === 2 && !isManuallyClosed) {
       notify.showErrorToast(i18n.global.t('events.connectionLost'))
     }
     scheduleReconnect()

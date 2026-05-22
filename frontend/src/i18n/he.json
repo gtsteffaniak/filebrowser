@@ -126,8 +126,8 @@
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
-    "nlBE": "Dutch (Belgium)",
-    "nl": "Dutch",
+    "nl": "Nederlands",
+    "nlBE": "Nederlands (België)",
     "pl": "Polski",
     "pt": "Português",
     "ptBR": "Português (Brasil)",
@@ -493,7 +493,8 @@
     "selectBannerImage": "בחר תמונת באנר",
     "selectFaviconImage": "בחר תמונת סמל מועדף",
     "selectImage": "בחר תמונה",
-    "deleteFailed": "לא ניתן למחוק את השיתוף"
+    "deleteFailed": "לא ניתן למחוק את השיתוף",
+    "readOnlySourceNotice": "מקור זה מוגדר לקריאה בלבד. העלאת קבצים והרשאות המשנות קבצים אינן זמינות."
   },
   "api": {
     "createdAt": "נוצר ב:",
@@ -679,7 +680,11 @@
     "and": "ו-",
     "or": "או",
     "pin": "Pin{suffix}",
-    "unpin": "Unpin{suffix}"
+    "unpin": "Unpin{suffix}",
+    "readOnly": "לקריאה בלבד{suffix}",
+    "private": "פרטי{suffix}",
+    "yes": "כן{suffix}",
+    "no": "לא{suffix}"
   },
   "access": {
     "rules": "כללי גישה",

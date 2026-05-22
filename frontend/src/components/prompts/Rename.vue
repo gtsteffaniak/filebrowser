@@ -183,6 +183,9 @@ export default {
 
       return { valid: true };
     },
+    normalizePath(p) {
+      return (p || '').replace(/^\/+|\/+$/g, '');
+    },
     async submit() {
       // remove trailing slashes
       if (this.name.endsWith("/") || this.name.endsWith("\\")) {
@@ -216,7 +219,22 @@ export default {
         mutations.closeTopPrompt();
 
         if (this.isPreviewView) {
-          url.goToItem(this.item.source, newPath, undefined); // When undefined will not create browser history
+          // Navigate only if we rename the file that we're currently previewing (eg: from fileTree)
+          const currentReqPath = this.normalizePath(state.req?.path);
+          const oldItemPath = this.normalizePath(this.item.path);
+          
+          // For shares compare path and for regulars compare both path and source
+          const isCurrentItem = getters.isShare()
+            ? currentReqPath === oldItemPath
+            : (currentReqPath === oldItemPath && this.item.source === state.req?.source);
+          
+          if (isCurrentItem) {
+            // Navigate to the renamed file
+            const source = getters.isShare() ? state.shareInfo.hash : this.item.source;
+            url.goToItem(source, newPath, undefined, false, getters.isShare()); // When undefined will not create browser history
+          } else {
+            mutations.setReload(true);
+          }
         } else {
           mutations.setReload(true);
         }

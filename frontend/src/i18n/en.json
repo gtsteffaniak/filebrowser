@@ -133,7 +133,11 @@
     "watching": "Watching{suffix}",
     "lines": "Lines{suffix}",
     "lastUpdate": "Last Update{suffix}",
-    "latency": "Latency{suffix}"
+    "latency": "Latency{suffix}",
+    "readOnly": "Read-only{suffix}",
+    "private": "Private{suffix}",
+    "yes": "Yes{suffix}",
+    "no": "No{suffix}"
   },
   "buttons": {
     "copySuccess": "Copied to clipboard!",
@@ -265,8 +269,8 @@
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
-    "nlBE": "Dutch (Belgium)",
-    "nl": "Dutch",
+    "nl": "Nederlands",
+    "nlBE": "Nederlands (België)",
     "pl": "Polski",
     "pt": "Português",
     "ptBR": "Português (Brasil)",
@@ -294,6 +298,7 @@
   },
   "share": {
     "notice": "Note: when a share is a created, it becomes more exposed to the public and has different rules for access. If your share is not securely configured, it may be accessed by anyone.",
+    "readOnlySourceNotice": "This source is read-only. Upload shares and permissions that modify files are disabled.",
     "disableAnonymous": "Disable anonymous access",
     "disableThumbnails": "Disable Thumbnails",
     "enableAllowedUsernames": "Only share to certain users",

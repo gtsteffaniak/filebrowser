@@ -823,7 +823,7 @@ export default {
           path: state.req.path,
         };
       }
-      url.goToItem(this.source, this.path, previousHistoryItem || {});
+      url.goToItem(this.source, this.path, previousHistoryItem || {}, false, getters.isShare());
     },
   },
 };

@@ -126,8 +126,8 @@
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
-    "nlBE": "Dutch (Belgium)",
-    "nl": "Dutch",
+    "nl": "Nederlands",
+    "nlBE": "Nederlands (België)",
     "pl": "Polski",
     "pt": "Português",
     "ptBR": "Português (Brasil)",
@@ -493,7 +493,8 @@
     "selectBannerImage": "Bannerbild auswählen",
     "selectFaviconImage": "Favicon-Bild auswählen",
     "selectImage": "Bild auswählen",
-    "deleteFailed": "Freigabe konnte nicht gelöscht werden"
+    "deleteFailed": "Freigabe konnte nicht gelöscht werden",
+    "readOnlySourceNotice": "Diese Quelle ist schreibgeschützt. Upload-Freigaben und Berechtigungen, die Dateien ändern, sind deaktiviert."
   },
   "api": {
     "createdAt": "Erstellt am:",
@@ -679,7 +680,11 @@
     "and": "und",
     "or": "oder",
     "pin": "Pin{suffix}",
-    "unpin": "Unpin{suffix}"
+    "unpin": "Unpin{suffix}",
+    "readOnly": "Schreibgeschützt{suffix}",
+    "private": "Privat{suffix}",
+    "yes": "Ja{suffix}",
+    "no": "Nein{suffix}"
   },
   "access": {
     "rules": "Zugangsregeln",

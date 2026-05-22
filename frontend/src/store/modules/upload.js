@@ -47,8 +47,8 @@ const actions = {
   upload: (context, item) => {
     let uploadsCount = Object.keys(context.state.uploads).length;
 
-    let isQueueEmpty = context.state.queue.length == 0;
-    let isUploadsEmpty = uploadsCount == 0;
+    let isQueueEmpty = context.state.queue.length === 0;
+    let isUploadsEmpty = uploadsCount === 0;
 
     if (isQueueEmpty && isUploadsEmpty) {
       window.addEventListener("beforeunload", beforeUnload);
@@ -67,8 +67,8 @@ const actions = {
     let uploadsCount = Object.keys(context.state.uploads).length;
 
     let isBellowLimit = uploadsCount < UPLOADS_LIMIT;
-    let isQueueEmpty = context.state.queue.length == 0;
-    let isUploadsEmpty = uploadsCount == 0;
+    let isQueueEmpty = context.state.queue.length === 0;
+    let isUploadsEmpty = uploadsCount === 0;
 
     let isFinished = isQueueEmpty && isUploadsEmpty;
     let canProcess = isBellowLimit && !isQueueEmpty;
