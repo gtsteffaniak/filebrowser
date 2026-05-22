@@ -24,6 +24,7 @@ auth:
       enabled: false
     noauth: false
 userDefaults:
+  defaultQuotaBytes: 4294967296    # 4 GB per user
   editorQuickSave: false                  # show quick save button in editor
   hideSidebarFileActions: false           # hide the file actions in the sidebar
   disableQuickToggles: false              # disable the quick toggles in the sidebar

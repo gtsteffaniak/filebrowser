@@ -54,7 +54,13 @@
       :disabled="!canSubmit || loading"
       @click="submit"
     >
-      {{ isRemoving ? $t("prompts.safeModeRemoveAction") : $t("prompts.safeModeAddAction") }}
+      <span v-if="loading" class="safemode-loading-btn">
+        <i class="material-icons spin">sync</i>
+        {{ isRemoving ? $t("prompts.safeModeRemoving") : $t("prompts.safeModeAdding") }}
+      </span>
+      <span v-else>
+        {{ isRemoving ? $t("prompts.safeModeRemoveAction") : $t("prompts.safeModeAddAction") }}
+      </span>
     </button>
   </div>
 </template>
@@ -172,5 +178,21 @@ export default {
 .button--red {
   background-color: var(--red, #e53935) !important;
   color: white !important;
+}
+
+.safemode-loading-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+  font-size: 1em;
+}
+
+@keyframes spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style>
