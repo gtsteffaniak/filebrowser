@@ -907,7 +907,7 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		}
 
 		if srcIdx.Config.ReadOnly && req.Action == "move" {
-			item.Message = "source source is read-only"
+			item.Message = "From source is read-only and cannot be moved"
 			if d.share != nil {
 				response.Failed = append(response.Failed, MoveCopyItem{
 					Message: item.Message,

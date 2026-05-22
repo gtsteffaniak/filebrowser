@@ -66,8 +66,8 @@ export default defineComponent({
             size: newReq.size,
             type: newReq.type,
             source: newReq.source,
-            modified: newReq.source,
-            hasPreview: newReq.source,
+            modified: newReq.modified,
+            hasPreview: newReq.hasPreview,
           });
         }
       },
@@ -82,6 +82,8 @@ export default defineComponent({
       size: state.req.size,
       type: state.req.type,
       source: state.req.source,
+      modified: state.req.modified,
+      hasPreview: state.req.hasPreview,
     });
   },
   beforeUnmount() {
