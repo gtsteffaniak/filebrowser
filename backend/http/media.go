@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
@@ -129,7 +128,7 @@ func metadataHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 		Content:                  false,
 		Metadata:                 true,
 		AlbumArt:                 albumArt,
-		ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles,
+		ExtractEmbeddedSubtitles: config.Integrations.Media.ExtractEmbeddedSubtitles,
 		ShowHidden:               d.user.ShowHidden,
 		HideFileExt:              d.user.HideFileExt,
 		SkipExtendedAttrs:        false,
@@ -167,7 +166,7 @@ func publicMetadataHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 		Content:                  false,
 		Metadata:                 true,
 		AlbumArt:                 albumArt,
-		ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles && d.share.ExtractEmbeddedSubtitles,
+		ExtractEmbeddedSubtitles: config.Integrations.Media.ExtractEmbeddedSubtitles && d.share.ExtractEmbeddedSubtitles,
 		ShowHidden:               d.share.ShowHidden,
 		HideFileExt:              d.user.HideFileExt,
 		FollowSymlinks:           false,

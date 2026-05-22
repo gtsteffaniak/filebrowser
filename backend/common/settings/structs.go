@@ -20,6 +20,14 @@ type Settings struct {
 	Frontend     Frontend     `json:"frontend"`
 	UserDefaults UserDefaults `json:"userDefaults"`
 	Integrations Integrations `json:"integrations"`
+	Http         Http         `json:"http"`
+}
+type Http struct {
+	TrustedHeadersArray []string `json:"trustedHeaders"`   // list of headers to trust, useful when behind a reverse proxy.
+	DisableRateLimit    bool     `json:"disableRateLimit"` // turns off built-in auth route rate limiting and failed-login lockout (default false).
+
+	// internal map of trusted headers
+	TrustedHeaders map[string]bool `json:"-"`
 }
 
 type Environment struct {

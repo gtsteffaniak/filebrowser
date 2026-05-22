@@ -18,7 +18,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
@@ -99,7 +98,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		Expand:                   true,
 		Content:                  getContent,
 		Metadata:                 getMetadata,
-		ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles,
+		ExtractEmbeddedSubtitles: config.Integrations.Media.ExtractEmbeddedSubtitles,
 		ShowHidden:               d.user.ShowHidden,
 		HideFileExt:              d.user.HideFileExt,
 		SkipExtendedAttrs:        skipExtendedAttrs,

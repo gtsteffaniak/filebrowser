@@ -7,22 +7,25 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/go-cache/cache"
 	"golang.org/x/time/rate"
 )
 
-// Built-in auth rate limits (per process). Toggle all off with auth.disableRateLimit.
+// Built-in auth rate limits (per process). Toggle all off with http.disableRateLimit.
+//
+// Credential tier (login, OTP verify): dual token buckets (per IP + per username) plus
+// failed-login lockout (per IP+username). Tune burst ≤ maxAttempts so rapid floods hit
+// HTTP 429 from the bucket before lockout; lockout covers paced attacks that stay under RPM.
 const (
-	authCredentialRPM          = 10
-	authCredentialBurst        = 8
-	authModerateRPM            = 40
-	authModerateBurst          = 20
-	authOIDCRPM                = 60
-	authOIDCBurst              = 30
-	authAuthenticatedRPM       = 180
+	authCredentialRPM          = 10 // sustained ~1 attempt / 6s per IP and per username
+	authCredentialBurst        = 8  // rapid burst; 9th immediate attempt gets 429
+	authModerateRPM            = 30 // signup, logout, OTP generate
+	authModerateBurst          = 10
+	authOIDCRPM                = 60 // OIDC redirects (browser-driven, higher ceiling)
+	authOIDCBurst              = 20
+	authAuthenticatedRPM       = 180 // session/token management for logged-in users
 	authAuthenticatedBurst     = 60
-	authFailedLoginMaxAttempts = 10
+	authFailedLoginMaxAttempts = 8 // lockout after N consecutive 401s (same IP + username)
 	authFailedLoginLockoutMins = 15
 	// Evict idle per-key token buckets so unique IPs/usernames cannot grow without bound.
 	authLimiterEntryTTL = 24 * time.Hour
@@ -83,10 +86,10 @@ func withRateLimit(kind AuthRateLimitKind, fn handleFunc) http.HandlerFunc {
 }
 
 func authRateLimitActive() bool {
-	if settings.Config.Auth.DisableRateLimit {
+	if config.Http.DisableRateLimit {
 		return false
 	}
-	if settings.Config.Auth.Methods.NoAuth {
+	if config.Auth.Methods.NoAuth {
 		return false
 	}
 	return true

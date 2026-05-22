@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
@@ -43,12 +42,12 @@ type scopedSourcePath struct {
 //
 // Per-source search scope (preferred for multi-source):
 //
-//   Repeated query parameter "scope" with the value "sourceName:relativePath",
-//   split on the first colon. The path is user-relative (same as the legacy single-scope
-//   path). Encode the whole value with the normal query string rules (e.g. %3A for ':' if needed).
-//   Examples:
-//     ?scope=mydisk:/&scope=backup:/Photos
-//   Duplicate source names: the last repeated scope for that source wins.
+//	Repeated query parameter "scope" with the value "sourceName:relativePath",
+//	split on the first colon. The path is user-relative (same as the legacy single-scope
+//	path). Encode the whole value with the normal query string rules (e.g. %3A for ':' if needed).
+//	Examples:
+//	  ?scope=mydisk:/&scope=backup:/Photos
+//	Duplicate source names: the last repeated scope for that source wins.
 //
 // Legacy (still supported):
 //
@@ -257,7 +256,7 @@ func prepSearchOptions(r *http.Request, d *requestContext) (*searchOptions, erro
 
 	parsed := iteminfo.BuildSearchOptionsFromQuery(query, normalizedTerms, matchAllTerms)
 
-	minLen := settings.Config.Server.MinSearchLength
+	minLen := config.Server.MinSearchLength
 	if !largest {
 		if len(normalizedTerms) > 0 {
 			for _, t := range normalizedTerms {

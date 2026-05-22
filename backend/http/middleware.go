@@ -133,7 +133,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			Content:                  getContent,
 			Metadata:                 getMetadata,
 			AlbumArt:                 strings.Contains(r.URL.Path, "/preview"),
-			ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles && link.ExtractEmbeddedSubtitles,
+			ExtractEmbeddedSubtitles: config.Integrations.Media.ExtractEmbeddedSubtitles && link.ExtractEmbeddedSubtitles,
 			ShowHidden:               link.ShowHidden,
 			HideFileExt:              link.HideFileExt,
 			FollowSymlinks:           true,
@@ -723,7 +723,7 @@ func setUserInResponseWriter(w http.ResponseWriter, user *users.User) {
 func getRemoteIP(r *http.Request) string {
 	// 1. Check X-Forwarded-For
 	xff := r.Header.Get("X-Forwarded-For")
-	if xff != "" {
+	if config.Http.TrustedHeaders["x-forwarded-for"] && xff != "" {
 		// The first IP is the original client
 		ips := strings.Split(xff, ",")
 		return strings.TrimSpace(ips[0])
@@ -731,7 +731,7 @@ func getRemoteIP(r *http.Request) string {
 
 	// 2. Check X-Real-IP
 	xri := r.Header.Get("X-Real-IP")
-	if xri != "" {
+	if config.Http.TrustedHeaders["x-real-ip"] && xri != "" {
 		return xri
 	}
 

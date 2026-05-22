@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/preview"
@@ -121,7 +120,7 @@ func getDirectoryPreview(r *http.Request, d *requestContext, frameIndex int) (*i
 	path := utils.JoinPathAsUnix(d.fileInfo.Path, name)
 	user := d.user
 	if d.share != nil {
-		sourceInfo, ok := settings.Config.Server.SourceMap[d.share.Source]
+		sourceInfo, ok := config.Server.SourceMap[d.share.Source]
 		if !ok {
 			return nil, fmt.Errorf("source not found for share")
 		}
@@ -214,7 +213,7 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 	if d.fileInfo.OnlyOfficeId != "" {
 		pathUrl := fmt.Sprintf("/api/resources/download?file=%s&source=%s", url.QueryEscape(d.fileInfo.Path), url.QueryEscape(d.fileInfo.Source))
 		pathUrl = pathUrl + "&auth=" + d.token
-		if settings.Config.Server.InternalUrl != "" {
+		if config.Server.InternalUrl != "" {
 			officeUrl = config.Server.InternalUrl + pathUrl
 		} else {
 			scheme := "http"

@@ -26,7 +26,7 @@ func AuthenticateLDAPUser(username, password string) (*users.User, error) {
 	}
 
 	// Use the configured UserIdentifier if available, otherwise use the login username
-	ldapCfg := settings.Config.Auth.Methods.LdapAuth
+	ldapCfg := config.Auth.Methods.LdapAuth
 	mappedUsername := username
 	if ldapCfg.UserIdentifier != "" {
 		if val, ok := userAttributes[ldapCfg.UserIdentifier]; ok && val != "" {
@@ -42,7 +42,7 @@ func AuthenticateLDAPUser(username, password string) (*users.User, error) {
 }
 
 func authenticateLDAP(username, password string) ([]string, map[string]string, error) {
-	c := settings.Config.Auth.Methods.LdapAuth
+	c := config.Auth.Methods.LdapAuth
 	logger.Debugf("ldap: connecting to %s", c.Server)
 
 	var opts []ldap.DialOpt

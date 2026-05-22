@@ -572,10 +572,6 @@ definitions:
         description: 'secret: the username of the admin user. If not set, the default
           is "admin".'
         type: string
-      disableRateLimit:
-        description: turns off built-in auth route rate limiting and failed-login
-          lockout (default false).
-        type: boolean
       key:
         description: 'secret: the key used to sign the JWT tokens. If not set, a random
           key will be generated.'
@@ -761,6 +757,18 @@ definitions:
         type: string
       styling:
         $ref: '#/definitions/settings.StylingConfig'
+    type: object
+  settings.Http:
+    properties:
+      disableRateLimit:
+        description: turns off built-in auth route rate limiting and failed-login
+          lockout (default false).
+        type: boolean
+      trustedHeaders:
+        description: list of headers to trust, useful when behind a reverse proxy.
+        items:
+          type: string
+        type: array
     type: object
   settings.IndexSqlConfig:
     properties:
@@ -1199,6 +1207,8 @@ definitions:
         $ref: '#/definitions/settings.Auth'
       frontend:
         $ref: '#/definitions/settings.Frontend'
+      http:
+        $ref: '#/definitions/settings.Http'
       integrations:
         $ref: '#/definitions/settings.Integrations'
       server:
