@@ -118,10 +118,10 @@ type JwtAuthConfig struct {
 
 // PasskeyAuthConfig configures WebAuthn / Passkey authentication as a second factor.
 type PasskeyAuthConfig struct {
-	Enabled         bool   `json:"enabled"`         // whether to enable passkey MFA
-	RPDisplayName   string `json:"rpDisplayName"`   // the Relying Party display name (defaults to frontend name)
-	RPID            string `json:"rpId"`            // the Relying Party ID; if empty, auto-derived from base URL host
-	RPOrigins       []string `json:"rpOrigins"`     // allowed origins; if empty, auto-derived from base URL
+	Enabled         bool     `json:"enabled"`         // whether to enable passkey MFA
+	RPDisplayName   string   `json:"rpDisplayName"`   // the Relying Party display name (defaults to frontend name)
+	RPID            string   `json:"rpId"`            // the Relying Party ID; if empty, auto-derived from base URL host
+	RPOrigins       []string `json:"rpOrigins"`       // allowed origins; if empty, auto-derived from base URL
 	LoginButtonText string   `json:"loginButtonText"` // custom text for the passkey login button
 }
 

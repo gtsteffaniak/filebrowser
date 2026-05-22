@@ -71,6 +71,9 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo, scanner *Scanner) bool
 		// Track that this directory was updated by the scan (for timestamp conflict detection)
 		normalizedPath := utils.AddTrailingSlashIfNotExists(info.Path)
 		idx.mu.Lock()
+		if idx.scanUpdatedPaths == nil {
+			idx.scanUpdatedPaths = make(map[string]bool)
+		}
 		idx.scanUpdatedPaths[normalizedPath] = true
 		idx.mu.Unlock()
 
@@ -380,6 +383,8 @@ func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, erro
 	reducedIdx.LastScanned = lastIndexed
 	reducedIdx.LastIndexedUnix = lastIndexed.Unix()
 	reducedIdx.Status = idx.getStatusUnlocked()
+	reducedIdx.ReadOnly = idx.Config.ReadOnly
+	reducedIdx.Private = idx.Config.Private
 	idx.mu.RUnlock()
 	return reducedIdx, nil
 }

@@ -3,14 +3,24 @@
     ref="tooltipRef"
     v-show="tooltip.show"
     class="floating-tooltip floating-window"
-    :class="{ 'dark-mode': isDarkMode, 'pointer-enabled': tooltip.pointerEvents }"
+    :class="{
+      'dark-mode': isDarkMode,
+      'pointer-enabled': tooltip.pointerEvents,
+      'floating-tooltip--component': hasComponent,
+    }"
     :style="tooltipStyle"
-    v-html="tooltip.content"
-  ></div>
+  >
+    <component
+      v-if="hasComponent"
+      :is="tooltip.component"
+      v-bind="tooltip.componentProps || {}"
+    />
+    <div v-else v-html="tooltip.content"></div>
+  </div>
 </template>
 
 <script>
-import { state,getters } from "@/store";
+import { state, getters, mutations } from "@/store";
 
 export default {
   name: "Tooltip",
@@ -25,6 +35,9 @@ export default {
     tooltip() {
       return state.tooltip;
     },
+    hasComponent() {
+      return Boolean(this.tooltip.component);
+    },
     isDarkMode() {
       return getters.isDarkMode();
     },
@@ -34,16 +47,14 @@ export default {
         left: `${this.adjustedX}px`,
       };
 
-      // Add custom width if specified
       if (this.tooltip.width) {
         style.maxWidth = this.tooltip.width;
         style.width = this.tooltip.width;
       }
 
-      // Add max height and scrolling for viewport overflow
       if (this.tooltip.width || this.tooltip.pointerEvents) {
-        style.maxHeight = '80vh';
-        style.overflowY = 'auto';
+        style.maxHeight = "80vh";
+        style.overflowY = "auto";
       }
 
       return style;
@@ -52,9 +63,7 @@ export default {
   watch: {
     $route: {
       handler() {
-        // hide tooltip when route changes
-        this.tooltip.show = false;
-        this.tooltip.content = "";
+        mutations.hideTooltip();
       },
     },
     tooltip: {
@@ -119,6 +128,12 @@ export default {
   /* Preserve newlines from i18n strings (e.g. search help) while still wrapping long lines */
   white-space: pre-line;
   overflow-wrap: break-word;
+}
+
+.floating-tooltip--component {
+  padding: 0;
+  max-width: min(28em, 90vw);
+  white-space: normal;
 }
 
 .floating-tooltip.pointer-enabled {

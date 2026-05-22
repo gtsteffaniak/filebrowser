@@ -116,6 +116,7 @@ test-frontend:
 
 test-playwright: build-frontend
 	cd backend && GOOS=linux go build -o filebrowser .
+	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-sharing .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-settings .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-noauth .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-general .
@@ -123,7 +124,6 @@ test-playwright: build-frontend
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-proxy .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-previews .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-oidc .
-	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-sharing .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-no-config .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-screenshots .
 

@@ -512,8 +512,26 @@ const docTemplate = `{
                             "type": "string"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized - authentication failed",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
                     "403": {
                         "description": "Forbidden - authentication failed",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Too many requests - rate limited or temporarily locked out after failed attempts",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -5586,6 +5604,22 @@ const docTemplate = `{
                 }
             }
         },
+        "settings.Http": {
+            "type": "object",
+            "properties": {
+                "disableRateLimit": {
+                    "description": "turns off built-in auth route rate limiting and failed-login lockout (default false).",
+                    "type": "boolean"
+                },
+                "trustedHeaders": {
+                    "description": "list of headers to trust, useful when behind a reverse proxy.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "settings.IndexSqlConfig": {
             "type": "object",
             "properties": {
@@ -6149,6 +6183,9 @@ const docTemplate = `{
                 "frontend": {
                     "$ref": "#/definitions/settings.Frontend"
                 },
+                "http": {
+                    "$ref": "#/definitions/settings.Http"
+                },
                 "integrations": {
                     "$ref": "#/definitions/settings.Integrations"
                 },
@@ -6216,6 +6253,10 @@ const docTemplate = `{
                 },
                 "private": {
                     "description": "designate as source as private -- currently just means no sharing permitted.",
+                    "type": "boolean"
+                },
+                "readOnly": {
+                    "description": "read-only source, changes from the UI, webdav, and API will be disabled.",
                     "type": "boolean"
                 },
                 "rules": {

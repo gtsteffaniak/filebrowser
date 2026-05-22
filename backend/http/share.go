@@ -206,6 +206,12 @@ func sharePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 		return http.StatusBadRequest, fmt.Errorf("hash and path are required")
 	}
 
+	sanitizedPath, err := utils.SanitizeUserPath(body.Path)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid path: %w", err)
+	}
+	body.Path = sanitizedPath
+
 	// only allow users to update their own shares
 	thisShare, err := store.Share.GetByHash(body.Hash)
 	if err != nil {
@@ -215,7 +221,7 @@ func sharePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 		return http.StatusForbidden, fmt.Errorf("you are not allowed to update this share")
 	}
 	// Update the share path
-	err = store.Share.UpdateSharePath(body.Hash, body.Path)
+	err = store.Share.UpdateSharePath(body.Hash, sanitizedPath)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

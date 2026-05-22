@@ -1874,7 +1874,7 @@ export default {
         mode: this.playbackMode
       });
       mutations.setNavigationTransitioning(true);
-      url.goToItem(prevItem.source || this.req.source, prevItem.path, undefined);
+      url.goToItem(prevItem.source || this.req.source, prevItem.path, undefined, false, getters.isShare());
     },
     playNext() {
       if (this.playbackQueue.length === 0) return;
@@ -1902,7 +1902,7 @@ export default {
         });
 
         mutations.setNavigationTransitioning(true);
-        url.goToItem( nextItem.source || this.req.source, nextItem.path, undefined );
+        url.goToItem( nextItem.source || this.req.source, nextItem.path, undefined, false, getters.isShare());
 
       } catch (error) {
         console.error('Failed to navigate to next file:', error);

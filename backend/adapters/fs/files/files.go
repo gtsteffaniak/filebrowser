@@ -145,7 +145,7 @@ func checkPermissionsImpl(opts utils.FileOptions, access *access.Storage, user *
 	// Layer 1: USER ACCESS CONTROL
 	// Quick check: Does THIS user have permission?
 	if !access.Permitted(idx.Path, indexPath, user.Username) {
-		return "", "", errors.ErrAccessDenied
+		return indexPath, "", errors.ErrAccessDenied
 	}
 	return indexPath, userScope, nil
 }
@@ -157,30 +157,30 @@ type Items struct {
 
 // This removes files whose names match any extension in hideFileExt.
 func filterFilesByExt(files []iteminfo.ExtendedItemInfo, hideFileExt string) []iteminfo.ExtendedItemInfo {
-    if hideFileExt == "" {
-        return files
-    }
-    filtered := files[:0]
-    for _, f := range files {
-        if !utils.HideFileByExt(f.Name, hideFileExt) {
-            filtered = append(filtered, f)
-        }
-    }
-    return filtered
+	if hideFileExt == "" {
+		return files
+	}
+	filtered := files[:0]
+	for _, f := range files {
+		if !utils.HideFileByExt(f.Name, hideFileExt) {
+			filtered = append(filtered, f)
+		}
+	}
+	return filtered
 }
 
 func GetDirItems(opts utils.FileOptions, access *access.Storage, user *users.User) (Items, error) {
 	items := Items{}
-	indexPath, _, err := CheckPermissions(opts, access, user)
-	if err != nil {
-		return items, err
+	indexPath, _, topLevelErr := CheckPermissions(opts, access, user)
+	accessRulesErr := topLevelErr != nil && topLevelErr == errors.ErrAccessDenied && indexPath != ""
+	if topLevelErr != nil && !accessRulesErr {
+		return items, topLevelErr
 	}
 	// Get index
 	idx := indexing.GetIndex(opts.Source)
 	if idx == nil {
 		return items, fmt.Errorf("could not get index: %v ", opts.Source)
 	}
-
 	info, err := idx.GetFileInfo(indexing.FileInfoRequest{
 		IndexPath:         indexPath,
 		FollowSymlinks:    opts.FollowSymlinks,
@@ -197,6 +197,10 @@ func GetDirItems(opts utils.FileOptions, access *access.Storage, user *users.Use
 	}
 	if err := access.CheckChildItemAccess(info, idx, user.Username); err != nil {
 		return items, err
+	}
+	hasAccessibleItems := len(info.Files) > 0 || len(info.Folders) > 0
+	if accessRulesErr && !hasAccessibleItems {
+		return items, errors.ErrAccessDenied
 	}
 	if opts.Only == "files" || opts.Only == "" {
 		for _, file := range info.Files {
@@ -224,9 +228,10 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage, user *users.
 // fileInfoFasterImpl is the actual implementation of FileInfoFaster
 func fileInfoFasterImpl(opts utils.FileOptions, access *access.Storage, user *users.User, share *share.Storage) (*iteminfo.ExtendedFileInfo, error) {
 	response := &iteminfo.ExtendedFileInfo{}
-	indexPath, userScope, err := CheckPermissions(opts, access, user)
-	if err != nil {
-		return response, err
+	indexPath, userScope, topLevelErr := CheckPermissions(opts, access, user)
+	accessRulesErr := topLevelErr != nil && topLevelErr == errors.ErrAccessDenied && indexPath != ""
+	if topLevelErr != nil && !accessRulesErr {
+		return response, topLevelErr
 	}
 	// Get index
 	idx := indexing.GetIndex(opts.Source)
@@ -246,12 +251,15 @@ func fileInfoFasterImpl(opts utils.FileOptions, access *access.Storage, user *us
 	if err != nil {
 		return response, err // Path excluded by index rules OR doesn't exist
 	}
-
 	// otherwise response keeps unfiltered Folders/Files while CheckChildItemAccess only mutates info.
 	if info.Type == "directory" {
 		if err := access.CheckChildItemAccess(info, idx, user.Username); err != nil {
 			return response, err
 		}
+	}
+	hasAccessibleItems := len(info.Files) > 0 || len(info.Folders) > 0
+	if accessRulesErr && !hasAccessibleItems {
+		return response, errors.ErrAccessDenied
 	}
 
 	// Build response
@@ -458,10 +466,12 @@ func extractAudioMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 	if rawLyrics := m.Lyrics(); rawLyrics != "" {
 		item.Metadata.HasLyrics = true
 	} else {
-		// Check for .lrc file
-		ext := filepath.Ext(realPath)
-		base := strings.TrimSuffix(realPath, ext)
-		lrcPath := base + ".lrc"
+		// Check for sidecar .lrc file
+		dir := filepath.Dir(realPath)
+		base := filepath.Base(realPath)
+		ext := filepath.Ext(base)
+		nameWithoutExt := strings.TrimSuffix(base, ext)
+		lrcPath := filepath.Join(dir, nameWithoutExt+".lrc")
 		if _, err := os.Stat(lrcPath); err == nil {
 			item.Metadata.HasLyrics = true
 		}
@@ -526,9 +536,12 @@ func ExtractLyrics(realPath string) ([]iteminfo.Lyric, error) {
 		lyrics = parseLRC(raw)
 	}
 	if len(lyrics) == 0 {
-		ext := filepath.Ext(realPath)
-		base := strings.TrimSuffix(realPath, ext)
-		lrcPath := base + ".lrc"
+		// Check for sidecar .lrc file
+		dir := filepath.Dir(realPath)
+		base := filepath.Base(realPath)
+		ext := filepath.Ext(base)
+		nameWithoutExt := strings.TrimSuffix(base, ext)
+		lrcPath := filepath.Join(dir, nameWithoutExt+".lrc")
 		if data, err := os.ReadFile(lrcPath); err == nil {
 			lyrics = parseLRC(string(data))
 		}

@@ -70,6 +70,8 @@ export default defineComponent({
       size: state.req.size,
       type: state.req.type,
       source: state.req.source,
+      modified: state.req.modified,
+      hasPreview: state.req.hasPreview,
     });
     try {
       // 1. Fetch the download URL for the EPUB file

@@ -18,7 +18,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
@@ -99,7 +98,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		Expand:                   true,
 		Content:                  getContent,
 		Metadata:                 getMetadata,
-		ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles,
+		ExtractEmbeddedSubtitles: config.Integrations.Media.ExtractEmbeddedSubtitles,
 		ShowHidden:               d.user.ShowHidden,
 		HideFileExt:              d.user.HideFileExt,
 		SkipExtendedAttrs:        skipExtendedAttrs,
@@ -146,18 +145,27 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	if !d.user.Permissions.Delete {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to delete")
 	}
-
 	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
 
 	if path == "/" {
 		return http.StatusForbidden, fmt.Errorf("cannot delete your user's root directory")
 	}
+
+	idx := indexing.GetIndex(source)
+	if idx == nil {
+		return http.StatusNotFound, fmt.Errorf("source %s not found", source)
+	}
+
+	if idx.Config.ReadOnly {
+		return http.StatusForbidden, fmt.Errorf("source is read-only")
+	}
+
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
-		Path:       path,
-		Source:     source,
-		Expand:     false,
-		ShowHidden: d.user.ShowHidden,
+		Path:        path,
+		Source:      source,
+		Expand:      false,
+		ShowHidden:  d.user.ShowHidden,
 		HideFileExt: d.user.HideFileExt,
 	}, store.Access, d.user, store.Share)
 	if err != nil {
@@ -286,8 +294,33 @@ func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *reques
 		if d.share != nil {
 			sourceName := d.share.GetSourceName()
 			if sourceName == "" {
-				return http.StatusNotFound, fmt.Errorf("source not available")
+				response.Failed = append(response.Failed, BulkDeleteItem{
+					Source:  item.Source,
+					Path:    sanitizedPath,
+					Message: "source name is empty",
+				})
+				continue
 			}
+
+			idx := indexing.GetIndex(sourceName)
+			if idx == nil {
+				response.Failed = append(response.Failed, BulkDeleteItem{
+					Source:  item.Source,
+					Path:    sanitizedPath,
+					Message: "source not found",
+				})
+				continue
+			}
+
+			if idx.Config.ReadOnly {
+				response.Failed = append(response.Failed, BulkDeleteItem{
+					Source:  item.Source,
+					Path:    sanitizedPath,
+					Message: "source is read-only",
+				})
+				continue
+			}
+
 			// get user scope path from share
 			userScope, err := d.shareUser.GetScopeForSourceName(sourceName)
 			if err != nil {
@@ -352,6 +385,15 @@ func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *reques
 					Source:  item.Source,
 					Path:    sanitizedPath,
 					Message: "source not found",
+				})
+				continue
+			}
+
+			if idx.Config.ReadOnly {
+				response.Failed = append(response.Failed, BulkDeleteItem{
+					Source:  item.Source,
+					Path:    sanitizedPath,
+					Message: "source is read-only",
 				})
 				continue
 			}
@@ -493,6 +535,17 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	if d.share == nil && !d.user.Permissions.Create {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
 	}
+
+	idx := indexing.GetIndex(source)
+	if idx == nil {
+		logger.Debugf("source %s not found", source)
+		return http.StatusNotFound, fmt.Errorf("source %s not found", source)
+	}
+
+	if idx.Config.ReadOnly {
+		return http.StatusForbidden, fmt.Errorf("source is read-only")
+	}
+
 	filePermUser := d.user
 	if d.share != nil {
 		filePermUser = d.shareUser
@@ -503,11 +556,6 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		Source:         source,
 		Expand:         false,
 		FollowSymlinks: true,
-	}
-	idx := indexing.GetIndex(source)
-	if idx == nil {
-		logger.Debugf("source %s not found", source)
-		return http.StatusNotFound, fmt.Errorf("source %s not found", source)
 	}
 
 	userscope, err := filePermUser.GetScopeForSourceName(source)
@@ -722,6 +770,9 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if idx == nil {
 		return http.StatusNotFound, fmt.Errorf("source %s not found", source)
 	}
+	if idx.Config.ReadOnly {
+		return http.StatusForbidden, fmt.Errorf("source is read-only")
+	}
 	if store.Access != nil && !store.Access.Permitted(idx.Path, fullIndexPath, d.user.Username) {
 		logger.Debugf("user %s denied access to path %s", d.user.Username, fullIndexPath)
 		return http.StatusForbidden, fmt.Errorf("access denied to path %s", path)
@@ -845,6 +896,28 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		dstIdx := indexing.GetIndex(item.ToSource)
 		if dstIdx == nil {
 			item.Message = "destination source not found"
+			if d.share != nil {
+				response.Failed = append(response.Failed, MoveCopyItem{
+					Message: item.Message,
+				})
+				continue
+			}
+			response.Failed = append(response.Failed, item)
+			continue
+		}
+
+		if srcIdx.Config.ReadOnly && req.Action == "move" {
+			item.Message = "source source is read-only"
+			if d.share != nil {
+				response.Failed = append(response.Failed, MoveCopyItem{
+					Message: item.Message,
+				})
+				continue
+			}
+		}
+
+		if dstIdx.Config.ReadOnly {
+			item.Message = "destination source is read-only"
 			if d.share != nil {
 				response.Failed = append(response.Failed, MoveCopyItem{
 					Message: item.Message,

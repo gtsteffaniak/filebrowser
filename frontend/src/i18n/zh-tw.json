@@ -126,8 +126,8 @@
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
-    "nlBE": "Dutch (Belgium)",
-    "nl": "Dutch",
+    "nl": "Nederlands",
+    "nlBE": "Nederlands (België)",
     "pl": "Polski",
     "pt": "Português",
     "ptBR": "Português (Brasil)",
@@ -493,7 +493,8 @@
     "selectBannerImage": "選擇橫幅圖片",
     "selectFaviconImage": "選擇 Favicon 圖片",
     "selectImage": "選擇圖片",
-    "deleteFailed": "刪除分享失敗"
+    "deleteFailed": "刪除分享失敗",
+    "readOnlySourceNotice": "此來源為唯讀。上傳共用和修改檔案的權限已停用。"
   },
   "api": {
     "createdAt": "建立於：",
@@ -778,7 +779,11 @@
     "divider": "分隔線{suffix}",
     "audio": "音訊{suffix}",
     "and": "和",
-    "or": "或"
+    "or": "或",
+    "readOnly": "唯讀{suffix}",
+    "private": "私人{suffix}",
+    "yes": "是{suffix}",
+    "no": "沒有{suffix}"
   },
   "access": {
     "rules": "存取規則",

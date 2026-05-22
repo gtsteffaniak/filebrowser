@@ -66,6 +66,8 @@ export default defineComponent({
             size: newReq.size,
             type: newReq.type,
             source: newReq.source,
+            modified: newReq.source,
+            hasPreview: newReq.source,
           });
         }
       },

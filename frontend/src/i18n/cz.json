@@ -129,8 +129,8 @@
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
-    "nlBE": "Dutch (Belgium)",
-    "nl": "Dutch",
+    "nl": "Nederlands",
+    "nlBE": "Nederlands (België)",
     "pl": "Polski",
     "pt": "Português",
     "ptBR": "Português (Brasil)",
@@ -229,7 +229,8 @@
     "selectBannerImage": "Výběr obrázku banneru",
     "selectFaviconImage": "Výběr obrázku favicon",
     "selectImage": "Vybrat obrázek",
-    "deleteFailed": "Nepodařilo se odstranit sdílenou složku"
+    "deleteFailed": "Nepodařilo se odstranit sdílenou složku",
+    "readOnlySourceNotice": "Tento zdroj je určen pouze pro čtení. Sdílení nahrávání a oprávnění, která upravují soubory, jsou zakázána."
   },
   "prompts": {
     "copyMessage": "Vyberte místo, kam chcete soubory kopírovat:",
@@ -778,7 +779,11 @@
     "divider": "Rozdělovač{suffix}",
     "audio": "Audio{suffix}",
     "and": "a",
-    "or": "nebo"
+    "or": "nebo",
+    "readOnly": "Pouze pro čtení{suffix}",
+    "private": "Soukromé{suffix}",
+    "yes": "Ano{suffix}",
+    "no": "Ne{suffix}"
   },
   "access": {
     "rules": "Pravidla přístupu",

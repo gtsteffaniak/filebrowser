@@ -252,7 +252,7 @@ export default {
       this.performNavigation(cv);
     },
     performNavigation(cv) {
-      if (cv == "listingView" || ( getters.isShare() && !getters.multibuttonState() === "close") || cv == "tools") {
+      if (cv === "listingView" || ( getters.isShare() && getters.multibuttonState() !== "close") || cv === "tools") {
         mutations.toggleSidebar();
       } else if (cv == "settings" && state.isMobile) {
         mutations.toggleSidebar();
@@ -260,15 +260,26 @@ export default {
         mutations.closeHovers();
         if (cv === "settings") {
           if (state.previousHistoryItem?.name) {
-            url.goToItem(state.previousHistoryItem.source, state.previousHistoryItem.path, state.previousHistoryItem);
+            url.goToItem(
+              state.previousHistoryItem.source,
+              state.previousHistoryItem.path,
+              state.previousHistoryItem,
+              false,
+              state.previousHistoryItem.isShare
+            );
             return;
           }
+          if (state.shareInfo?.hash && state.req?.source === state.shareInfo.hash) {
+            url.goToItem(state.shareInfo.hash, state.req.path, {}, false, true);
+            return;
+          }
+          // otherwise navigate to files
           router.push({ path: "/files" });
           return;
         }
         if (getters.isPreviewView()) {
           if (state.previousHistoryItem?.name) {
-            url.goToItem(state.previousHistoryItem.source, state.previousHistoryItem.path, state.previousHistoryItem);
+            url.goToItem(state.previousHistoryItem.source, state.previousHistoryItem.path, state.previousHistoryItem, false, state.previousHistoryItem.isShare);
             return;
           } else {
             // navigate to parent directory of current url

@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.4.2
+
+ **Security**:
+ - [Moderate] Add Rate Limiting on Authentication Endpoint Enables Brute Force Attacks (GHSA-r4v7-6wcg-ghj5)
+ - [Critical] Path traversal in public share PATCH allows file ops outside shared directory -- thanks @Revanth011 and @fg0x0 (GHSA-qqqm-5547-774x)
+
+ **New Features**:
+ - read-only source configuration via `source.config.readOnly: true` (#2438)
+
+ **Notes**:
+ - auth rate limiting can be disabled via `auth.disableRateLimit`
+ - updated share hash middleware (#2443)
+ - updated source info popup to include private and readOnly properties
+
+ **BugFixes**:
+ - Logout from share page now redirects to the share instead of `/Login` again. (#2245)
+ - `This location cannot be reached` error when navigating with FileTree in shares. (#2245)
+ - Fix FileTree rename and move actions in previews. (#2245)
+ - Delete prompt not showing date and thumbnails in some previews. (#2245)
+ - fix path slash issue on windows (#2451) (#2433) (#2419)
+ - Always force url rewrite for onlyoffice internal URL. Fixes Error saving with OnlyOffice (#2450)
+ - Overriding a Deny with an Allow not working (#2405)
+
 ## v1.4.1
 
  **Security**:

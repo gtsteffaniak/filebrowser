@@ -58,27 +58,7 @@ export default {
       return getters.currentView();
     }
   },
-  mounted() {
-    this.reEvalAction();
-  },
-  watch: {
-    $route() {
-      this.reEvalAction();
-    },
-    req() {
-      this.reEvalAction();
-    },
-    currentView() {
-      this.reEvalAction();
-    },
-  },
   methods: {
-    reEvalAction() {
-      const currentView = getters.currentView();
-      if (currentView == "settings") {
-        mutations.setActiveSettingsView(getters.currentHash());
-      }
-    },
     actionMultiIcon() {
       if (this.show) {
         mutations.closeHovers();

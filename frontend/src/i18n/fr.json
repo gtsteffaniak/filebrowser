@@ -126,8 +126,8 @@
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
-    "nlBE": "Dutch (Belgium)",
-    "nl": "Dutch",
+    "nl": "Nederlands",
+    "nlBE": "Nederlands (België)",
     "pl": "Polski",
     "pt": "Português",
     "ptBR": "Português (Brasil)",
@@ -493,7 +493,8 @@
     "selectBannerImage": "Sélectionner l'image de la bannière",
     "selectFaviconImage": "Sélectionner l'image du favicon",
     "selectImage": "Sélectionner l'image",
-    "deleteFailed": "Échec de la suppression du partage"
+    "deleteFailed": "Échec de la suppression du partage",
+    "readOnlySourceNotice": "Cette source est en lecture seule. Les partages de téléchargement et les autorisations qui modifient les fichiers sont désactivés."
   },
   "api": {
     "createdAt": "Créée le :",
@@ -677,7 +678,11 @@
     "divider": "Diviseur{suffix}",
     "audio": "Audio{suffix}",
     "and": "et",
-    "or": "ou"
+    "or": "ou",
+    "readOnly": "Lecture seule{suffix}",
+    "private": "Privé{suffix}",
+    "yes": "Oui{suffix}",
+    "no": "Non{suffix}"
   },
   "access": {
     "rules": "Règles d'accès",

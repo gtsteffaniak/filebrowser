@@ -199,6 +199,7 @@ export default {
     );
     eventBus.on('itemsDeleted', this.refresh);
     eventBus.on('itemsRenamed', this.refresh);
+    eventBus.on('itemsMoved', this.refresh);
     window.addEventListener('dragend', this.clearAllDragStates);
   },
   beforeUnmount() {
@@ -210,10 +211,12 @@ export default {
     }
     eventBus.off('itemsDeleted', this.refresh);
     eventBus.off('itemsRenamed', this.refresh);
+    eventBus.off('itemsMoved', this.refresh);
     window.removeEventListener('dragend', this.clearAllDragStates);
   },
   methods: {
     async loadRoot() {
+      if (this.expanding) return;
       this.error = null;
       this.rootLoaded = false;
       if ((!this.currentSource && !this.shareHash) || !this.isRootInstance) {
@@ -303,7 +306,7 @@ export default {
     },
 
     async tryExpandNodes() {
-      if (!this.rootLoaded || !this.pendingExpandPath) return;
+      if (this.expanding || !this.rootLoaded || !this.pendingExpandPath) return;
       await this.expandToPath(this.pendingExpandPath);
       this.pendingExpandPath = null;
     },
@@ -342,18 +345,25 @@ export default {
     navigateTo(node) {
       if (this.isShare) {
         mutations.setNavigationTransitioning(true);
-        goToItem(null, node.path, {}, false, this.shareHash);
+        goToItem(this.shareHash, node.path, {}, false, true);
       } else {
         mutations.setNavigationTransitioning(true);
         goToItem(this.currentSource, node.path, {});
       }
     },
 
+    normalizePath(p) {
+      if (!p || p === '/') return '/';
+      return p.replace(/\/+$/, '');
+    },
+
     isCurrentItem(node) {
+      const normalizedNodePath = this.normalizePath(node.path);
+      const normalizedCurrentPath = this.normalizePath(this.currentPath);
       if (this.isShare) {
-        return node.path === this.currentPath;
+        return normalizedNodePath === normalizedCurrentPath;
       } else {
-        return node.source === this.currentSource && node.path === this.currentPath;
+        return node.source === this.currentSource && normalizedNodePath === normalizedCurrentPath;
       }
     },
 
@@ -398,7 +408,7 @@ export default {
     },
 
     async refresh() {
-      if (!this.isRootInstance || this.isRefreshing) return;
+      if (!this.isRootInstance || this.isRefreshing ) return;
       this.isRefreshing = true;
       this.expandTimeouts.clear();
       // Save expanded paths before reload to restore them
@@ -537,13 +547,8 @@ export default {
 
       if (items.length === 0) return;
 
-      // We'll use the same logic as Breadcrumbs
-      const normalizePath = (path) => {
-        if (!path || path === "/") return "/";
-        return path.replace(/\/$/, '');
-      };
-      const targetDir = normalizePath(node.path);
-      const sourceDir = normalizePath(state.req.path);
+      const targetDir = this.normalizePath(node.path);
+      const sourceDir = this.normalizePath(state.req.path);
       if (targetDir === sourceDir) {
         notify.showErrorToast(this.$t("files.sameFolder"));
         return;
@@ -584,7 +589,7 @@ export default {
           }
           const buttonAction = () => {
             if (this.isShare) {
-              goToItem(null, node.path, {}, false, this.shareHash);
+              goToItem(this.shareHash, node.path, {}, false, true);
             } else {
               goToItem(this.currentSource, node.path, {});
             }

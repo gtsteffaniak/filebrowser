@@ -159,7 +159,7 @@ func parseOIDCGroupsValue(groupsVal interface{}) []string {
 // @Success 302 {string} string "Redirect to OIDC provider"
 // @Router /api/auth/oidc/login [get]
 func oidcLoginHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	oidcCfg := settings.Config.Auth.Methods.OidcAuth
+	oidcCfg := config.Auth.Methods.OidcAuth
 	if !oidcCfg.Enabled {
 		return http.StatusForbidden, fmt.Errorf("oidc authentication is not enabled")
 	}
@@ -197,7 +197,7 @@ func oidcLoginHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 // @Router /api/auth/oidc/callback [get]
 func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	ctx := r.Context()
-	oidcCfg := settings.Config.Auth.Methods.OidcAuth
+	oidcCfg := config.Auth.Methods.OidcAuth
 	if oidcCfg.Provider == nil || oidcCfg.Verifier == nil {
 		// Ensure Provider and Verifier are initialized on application startup
 		// This check is good, keep it.

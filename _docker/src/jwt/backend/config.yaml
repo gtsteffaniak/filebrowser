@@ -2,7 +2,7 @@ server:
   port: 8080
   logging:
     - levels: "info|error|warning|debug"
-      apiFilter: '.*'
+      apiFilter: 'disabled'
   sources:
     - path: "../frontend/tests/playwright-files"
       config:

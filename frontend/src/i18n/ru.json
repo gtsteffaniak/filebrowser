@@ -126,8 +126,8 @@
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
-    "nlBE": "Dutch (Belgium)",
-    "nl": "Dutch",
+    "nl": "Nederlands",
+    "nlBE": "Nederlands (België)",
     "pl": "Polski",
     "pt": "Português",
     "ptBR": "Português (Brasil)",
@@ -493,7 +493,8 @@
     "selectBannerImage": "Выберите изображение баннера",
     "selectFaviconImage": "Выберите изображение фавикона",
     "selectImage": "Выберите изображение",
-    "deleteFailed": "Не удалось удалить общий ресурс"
+    "deleteFailed": "Не удалось удалить общий ресурс",
+    "readOnlySourceNotice": "Этот источник доступен только для чтения. Общие ресурсы загрузки и разрешения, изменяющие файлы, отключены."
   },
   "api": {
     "createdAt": "Создан:",
@@ -677,7 +678,11 @@
     "divider": "Разделитель{suffix}",
     "audio": "Аудио{suffix}",
     "and": "и",
-    "or": "или"
+    "or": "или",
+    "readOnly": "Только для чтения{suffix}",
+    "private": "Частный{suffix}",
+    "yes": "Да{suffix}",
+    "no": "Нет{suffix}"
   },
   "access": {
     "rules": "Правила доступа",

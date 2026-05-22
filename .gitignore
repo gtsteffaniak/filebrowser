@@ -23,6 +23,7 @@ frontend/tsconfig.tsbuildinfo
 /frontend/generated
 /frontend/tests/playwright-files/demo*
 /frontend/loginAuth.json
+/frontend/sharePrepStorage.json
 /backend/vendor
 /backend/*.cov
 /backend/*test_config.yaml

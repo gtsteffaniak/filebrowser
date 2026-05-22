@@ -131,7 +131,11 @@
     "watching": "Bekijken{suffix}",
     "lines": "Regels{suffix}",
     "lastUpdate": "Laatste update{suffix}",
-    "latency": "Vertraging{suffix}"
+    "latency": "Vertraging{suffix}",
+    "readOnly": "Alleen-lezen{suffix}",
+    "private": "Privé{suffix}",
+    "yes": "Ja{suffix}",
+    "no": "Geen{suffix}"
   },
   "buttons": {
     "copySuccess": "Gekopieerd naar klembord!",
@@ -263,8 +267,8 @@
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
-    "nlBE": "Nederlands (België)",
     "nl": "Nederlands",
+    "nlBE": "Nederlands (België)",
     "pl": "Polski",
     "pt": "Português",
     "ptBR": "Português (Brasil)",
@@ -363,7 +367,8 @@
     "shareInfo": "QR-code en info delen",
     "shareInfoDescription": "Deze koppeling toont de informatie van de gedeelde map, inclusief titel, beschrijving, banner en QR-code in een popup.",
     "downloadDescription": "Met deze koppeling kunt u de volledige inhoud van de gedeelde map downloaden als een gecomprimeerd bestand.",
-    "deleteFailed": "Share niet verwijderd"
+    "deleteFailed": "Share niet verwijderd",
+    "readOnlySourceNotice": "Deze bron is alleen-lezen. Upload shares en rechten om bestanden te wijzigen zijn uitgeschakeld."
   },
   "prompts": {
     "operationInProgress": "Werk in uitvoering, even geduld...",

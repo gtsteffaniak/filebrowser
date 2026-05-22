@@ -53,6 +53,7 @@ func Initialize(configFile string) {
 	}
 	setupFs()
 	setupServer()
+	setupHttp()
 	setupAuth(false)
 	setupSources(false)
 	InitializeUserResolvers() // Initialize user package resolvers after sources are set up
@@ -80,6 +81,15 @@ func setupEnv() {
 	Env.IsDevMode = os.Getenv("FILEBROWSER_DEVMODE") == "true"
 	if Env.IsDevMode {
 		logger.Warning("Running in dev mode. This is not recommended for production.")
+	}
+}
+
+func setupHttp() {
+	if len(Config.Http.TrustedHeadersArray) > 0 {
+		Config.Http.TrustedHeaders = make(map[string]bool)
+		for _, header := range Config.Http.TrustedHeadersArray {
+			Config.Http.TrustedHeaders[strings.ToLower(header)] = true
+		}
 	}
 }
 

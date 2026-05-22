@@ -25,10 +25,9 @@ type webAuthnSession struct {
 }
 
 type WebAuthnService struct {
-	wa        *webauthn.WebAuthn
-	sessions  sync.Map
-	stopCh    chan struct{}
-	originMu  sync.Mutex
+	wa       *webauthn.WebAuthn
+	sessions sync.Map
+	stopCh   chan struct{}
 }
 
 var webAuthnInstance *WebAuthnService
@@ -66,24 +65,15 @@ func IsWebAuthnEnabled() bool {
 	return webAuthnInstance != nil
 }
 
-// EnsureOrigin dynamically adds the given origin to the allowed RP origins list.
-// This supports self-hosted deployments where the access domain may vary.
-func (s *WebAuthnService) EnsureOrigin(origin string) {
-	s.originMu.Lock()
-	defer s.originMu.Unlock()
-	for _, o := range s.wa.Config.RPOrigins {
-		if o == origin {
-			return
+// ValidateOrigin checks if the given origin is in the configured whitelist.
+// Returns true if the origin is allowed, false otherwise.
+func (s *WebAuthnService) ValidateOrigin(origin string) bool {
+	for _, allowedOrigin := range s.wa.Config.RPOrigins {
+		if allowedOrigin == origin {
+			return true
 		}
 	}
-	s.wa.Config.RPOrigins = append(s.wa.Config.RPOrigins, origin)
-}
-
-// EnsureRPID dynamically updates the relying party ID to match the request host.
-func (s *WebAuthnService) EnsureRPID(rpID string) {
-	s.originMu.Lock()
-	defer s.originMu.Unlock()
-	s.wa.Config.RPID = rpID
+	return false
 }
 
 func generateSessionID() string {

@@ -236,6 +236,7 @@ func (idx *Index) runSerialScanPass() {
 			continue
 		}
 		if s.scanPath != "/" && !s.directoryExists() {
+			s.removeSelf()
 			continue
 		}
 		s.executeScan()
@@ -283,6 +284,10 @@ func (idx *Index) schedulerAdaptiveTick() {
 				}
 			})
 			logger.Debugf("[%s] scheduler: adaptive run path=%s nextRun=%s", idx.Name, s.scanPath, nextRunStr)
+			if s.scanPath != "/" && !s.directoryExists() {
+				s.removeSelf()
+				continue
+			}
 			s.executeScan()
 		}
 	}

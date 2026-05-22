@@ -126,8 +126,8 @@
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
-    "nlBE": "Dutch (Belgium)",
-    "nl": "Dutch",
+    "nl": "Nederlands",
+    "nlBE": "Nederlands (België)",
     "pl": "Polski",
     "pt": "Português",
     "ptBR": "Português (Brasil)",
@@ -493,7 +493,8 @@
     "selectBannerImage": "تحديد صورة الشعار",
     "selectFaviconImage": "تحديد الصورة المفضلة",
     "selectImage": "حدد الصورة",
-    "deleteFailed": "فشل في حذف المشاركة"
+    "deleteFailed": "فشل في حذف المشاركة",
+    "readOnlySourceNotice": "هذا المصدر للقراءة فقط. يتم تعطيل تحميل المشاركات والأذونات التي تعدل الملفات."
   },
   "api": {
     "createdAt": "تم الإنشاء في:",
@@ -677,7 +678,11 @@
     "divider": "مقسم{suffix}",
     "audio": "الصوت{suffix}",
     "and": "و",
-    "or": "أو"
+    "or": "أو",
+    "readOnly": "للقراءة فقط{suffix}",
+    "private": "خاص{suffix}",
+    "yes": "نعم{suffix}",
+    "no": "لا يوجد{suffix}"
   },
   "access": {
     "rules": "قواعد الوصول",

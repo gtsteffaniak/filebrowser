@@ -126,8 +126,8 @@
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
-    "nlBE": "Dutch (Belgium)",
-    "nl": "Dutch",
+    "nl": "Nederlands",
+    "nlBE": "Nederlands (België)",
     "pl": "Polski",
     "pt": "Português",
     "ptBR": "Português (Brasil)",
@@ -493,7 +493,8 @@
     "selectBannerImage": "Banner kép kiválasztása",
     "selectFaviconImage": "Favicon kép kiválasztása",
     "selectImage": "Kép kiválasztása",
-    "deleteFailed": "Nem sikerült törölni a megosztást"
+    "deleteFailed": "Nem sikerült törölni a megosztást",
+    "readOnlySourceNotice": "Ez a forrás csak olvasható. A feltöltési megosztások és a fájlokat módosító engedélyek letiltva vannak."
   },
   "api": {
     "createdAt": "Létrehozva:",
@@ -677,7 +678,11 @@
     "divider": "Választó{suffix}",
     "audio": "Audio{suffix}",
     "and": "és",
-    "or": "vagy"
+    "or": "vagy",
+    "readOnly": "Csak olvasható{suffix}",
+    "private": "Privát{suffix}",
+    "yes": "Igen{suffix}",
+    "no": "Nem{suffix}"
   },
   "access": {
     "rules": "Hozzáférési szabályok",

@@ -158,7 +158,7 @@ export default {
 
         const destPath = this.destPath;
         const destSource = toSource;
-        const buttonAction = () => destPath && goToItem(destSource, destPath, {});
+        const buttonAction = () => destPath && goToItem(destSource || state.shareInfo?.hash, destPath, {}, false, getters.isShare());
         notify.showSuccess(this.$t("prompts.unarchiveSuccess"), {
           icon: "folder",
           buttons: destPath ? [{ label: this.$t("buttons.goToItem"), primary: true, action: buttonAction }] : undefined,

@@ -27,7 +27,9 @@ func beginPasskeyLoginHandler(w http.ResponseWriter, r *http.Request, d *request
 		return http.StatusForbidden, errors.ErrPasskeyNotEnabled
 	}
 
-	registerRequestOrigin(r)
+	if err := validateRequestOrigin(r); err != nil {
+		return http.StatusForbidden, err
+	}
 
 	username := r.URL.Query().Get("username")
 	password := r.Header.Get("X-Password")
@@ -70,7 +72,9 @@ func finishPasskeyLoginHandler(w http.ResponseWriter, r *http.Request, d *reques
 		return http.StatusForbidden, errors.ErrPasskeyNotEnabled
 	}
 
-	registerRequestOrigin(r)
+	if err := validateRequestOrigin(r); err != nil {
+		return http.StatusForbidden, err
+	}
 
 	sessionID := r.URL.Query().Get("session_id")
 	if sessionID == "" {
@@ -100,7 +104,9 @@ func beginPasskeyRegistrationHandler(w http.ResponseWriter, r *http.Request, d *
 		return http.StatusForbidden, errors.ErrPasskeyNotEnabled
 	}
 
-	registerRequestOrigin(r)
+	if err := validateRequestOrigin(r); err != nil {
+		return http.StatusForbidden, err
+	}
 
 	rpID := deriveRPID(r)
 	svc := auth.GetWebAuthn()
@@ -134,7 +140,9 @@ func finishPasskeyRegistrationHandler(w http.ResponseWriter, r *http.Request, d 
 		return http.StatusForbidden, errors.ErrPasskeyNotEnabled
 	}
 
-	registerRequestOrigin(r)
+	if err := validateRequestOrigin(r); err != nil {
+		return http.StatusForbidden, err
+	}
 
 	sessionID := r.URL.Query().Get("session_id")
 	credentialName := r.URL.Query().Get("name")
@@ -207,8 +215,9 @@ func deriveRPID(r *http.Request) string {
 	return host
 }
 
-// registerRequestOrigin registers the request's origin and RP ID with the WebAuthn service.
-func registerRequestOrigin(r *http.Request) {
+// validateRequestOrigin validates that the request's origin is in the configured whitelist.
+// Returns an error if the origin is not allowed.
+func validateRequestOrigin(r *http.Request) error {
 	scheme := "http"
 	if r.TLS != nil {
 		scheme = "https"
@@ -220,13 +229,12 @@ func registerRequestOrigin(r *http.Request) {
 		host = r.Host
 	}
 	origin := fmt.Sprintf("%s://%s", scheme, host)
-	rpID := host
-	if i := strings.LastIndex(rpID, ":"); i != -1 {
-		rpID = rpID[:i]
-	}
+	
 	svc := auth.GetWebAuthn()
 	if svc != nil {
-		svc.EnsureOrigin(origin)
-		svc.EnsureRPID(rpID)
+		if !svc.ValidateOrigin(origin) {
+			return fmt.Errorf("origin %s is not in the configured whitelist", origin)
+		}
 	}
+	return nil
 }

@@ -126,8 +126,8 @@
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
-    "nlBE": "Dutch (Belgium)",
-    "nl": "Dutch",
+    "nl": "Nederlands",
+    "nlBE": "Nederlands (België)",
     "pl": "Polski",
     "pt": "Português",
     "ptBR": "Português (Brasil)",
@@ -493,7 +493,8 @@
     "selectBannerImage": "Vyberte obrázok bannera",
     "selectFaviconImage": "Vyberte obrázok favicon",
     "selectImage": "Vybrať obrázok",
-    "deleteFailed": "Nepodarilo sa odstrániť podiel"
+    "deleteFailed": "Nepodarilo sa odstrániť podiel",
+    "readOnlySourceNotice": "Tento zdroj je len na čítanie. Zdieľania nahrávania a oprávnenia, ktoré upravujú súbory, sú zakázané."
   },
   "api": {
     "createdAt": "Vytvorené v:",
@@ -677,7 +678,11 @@
     "divider": "Rozdeľovač{suffix}",
     "audio": "Audio{suffix}",
     "and": "a",
-    "or": "alebo"
+    "or": "alebo",
+    "readOnly": "Len na čítanie{suffix}",
+    "private": "Súkromná stránka{suffix}",
+    "yes": "Áno{suffix}",
+    "no": "Nie{suffix}"
   },
   "access": {
     "rules": "Pravidlá prístupu",

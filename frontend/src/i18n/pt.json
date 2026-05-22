@@ -126,8 +126,8 @@
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
-    "nlBE": "Dutch (Belgium)",
-    "nl": "Dutch",
+    "nl": "Nederlands",
+    "nlBE": "Nederlands (België)",
     "pl": "Polski",
     "pt": "Português",
     "ptBR": "Português (Brasil)",
@@ -493,7 +493,8 @@
     "selectBannerImage": "Selecionar imagem de banner",
     "selectFaviconImage": "Selecionar a imagem do favicon",
     "selectImage": "Selecionar imagem",
-    "deleteFailed": "Falha ao eliminar a partilha"
+    "deleteFailed": "Falha ao eliminar a partilha",
+    "readOnlySourceNotice": "Esta fonte é apenas de leitura. As partilhas de carregamento e as permissões que modificam ficheiros estão desactivadas."
   },
   "api": {
     "createdAt": "Criado em:",
@@ -778,7 +779,11 @@
     "divider": "Divisor{suffix}",
     "audio": "Áudio{suffix}",
     "and": "e",
-    "or": "ou"
+    "or": "ou",
+    "readOnly": "Só de leitura{suffix}",
+    "private": "Privado{suffix}",
+    "yes": "Sim{suffix}",
+    "no": "Não{suffix}"
   },
   "access": {
     "rules": "Regras de acesso",

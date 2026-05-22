@@ -8,7 +8,6 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/preview"
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -80,7 +79,7 @@ func publicDownloadHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	}
 
 	// Get the actual source name from the share's source mapping
-	sourceInfo, ok := settings.Config.Server.SourceMap[d.share.Source]
+	sourceInfo, ok := config.Server.SourceMap[d.share.Source]
 	if !ok {
 		return http.StatusInternalServerError, fmt.Errorf("source not found for share")
 	}
@@ -368,10 +367,19 @@ func publicPatchHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	// Note: Share paths are absolute, so we don't strip user scope here
 	// resourcePatchHandler will skip adding scope for shares
 	for i := range req.Items {
+		var sanitizedPath string
+		sanitizedPath, err = utils.SanitizeUserPath(req.Items[i].FromPath)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid from path: %w", err)
+		}
 		req.Items[i].FromSource = sourceName
-		req.Items[i].FromPath = utils.JoinPathAsUnix(d.share.Path, req.Items[i].FromPath)
+		req.Items[i].FromPath = utils.JoinPathAsUnix(d.share.Path, sanitizedPath)
+		sanitizedPath, err = utils.SanitizeUserPath(req.Items[i].ToPath)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid to path: %w", err)
+		}
 		req.Items[i].ToSource = sourceName
-		req.Items[i].ToPath = utils.JoinPathAsUnix(d.share.Path, req.Items[i].ToPath)
+		req.Items[i].ToPath = utils.JoinPathAsUnix(d.share.Path, sanitizedPath)
 	}
 	d.Data = req
 

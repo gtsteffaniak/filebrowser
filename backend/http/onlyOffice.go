@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
@@ -28,7 +29,15 @@ const (
 	onlyOfficeStatusDocumentClosedWithNoChanges     = 4
 	onlyOfficeStatusForceSaveWhileDocumentStillOpen = 6
 	onlyOfficeStatusForceSaveError                  = 7
+
+	onlyOfficeDownloadTimeout = 10 * time.Second
 )
+
+// onlyOfficeDownloadClient fetches saved documents from the OnlyOffice document server.
+// A bounded timeout avoids hanging goroutines when the server is unreachable.
+var onlyOfficeDownloadClient = &http.Client{
+	Timeout: onlyOfficeDownloadTimeout,
+}
 
 type OnlyOfficeCallback struct {
 	Actions       []OnlyOfficeAction `json:"actions,omitempty"`
@@ -81,7 +90,7 @@ type OnlyOfficeJWTPayload struct {
 // @Router /api/office/config [get]
 // @Security ApiKeyAuth
 func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	if settings.Config.Integrations.OnlyOffice.Url == "" {
+	if config.Integrations.OnlyOffice.Url == "" {
 		return http.StatusInternalServerError, errors.New("only-office integration must be configured in settings")
 	}
 
@@ -107,13 +116,13 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	var sourceInfo *settings.Source
 	var ok bool
 	if hash != "" {
-		sourceInfo, ok = settings.Config.Server.SourceMap[d.share.Source]
+		sourceInfo, ok = config.Server.SourceMap[d.share.Source]
 		if !ok {
 			logger.Error("OnlyOffice: source not found")
 			return http.StatusInternalServerError, fmt.Errorf("source not found")
 		}
 	} else {
-		sourceInfo, ok = settings.Config.Server.NameToSource[source]
+		sourceInfo, ok = config.Server.NameToSource[source]
 		if !ok {
 			logger.Error("OnlyOffice: source not found")
 			return http.StatusInternalServerError, fmt.Errorf("source not found")
@@ -210,7 +219,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 			"title":    d.fileInfo.Name,
 			"url":      downloadURL,
 			"permissions": map[string]interface{}{
-				"edit":     utils.Ternary(settings.Config.Integrations.OnlyOffice.ViewOnly, "view", canEditMode),
+				"edit":     utils.Ternary(config.Integrations.OnlyOffice.ViewOnly, "view", canEditMode),
 				"download": true,
 				"print":    true,
 			},
@@ -227,14 +236,14 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 				"uiTheme":   themeMode,
 			},
 			"lang": d.user.Locale,
-			"mode": utils.Ternary(settings.Config.Integrations.OnlyOffice.ViewOnly, "view", canEditMode),
+			"mode": utils.Ternary(config.Integrations.OnlyOffice.ViewOnly, "view", canEditMode),
 		},
 	}
 
 	// Sign configuration with JWT if secret is configured
-	if settings.Config.Integrations.OnlyOffice.Secret != "" {
+	if config.Integrations.OnlyOffice.Secret != "" {
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims(clientConfig))
-		signature, err := token.SignedString([]byte(settings.Config.Integrations.OnlyOffice.Secret))
+		signature, err := token.SignedString([]byte(config.Integrations.OnlyOffice.Secret))
 		if err != nil {
 			logger.Errorf("OnlyOffice: failed to sign JWT: %v", err)
 			return http.StatusInternalServerError, fmt.Errorf("failed to sign configuration")
@@ -249,10 +258,10 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 func buildOnlyOfficeDownloadURL(r *http.Request, source, path, hash, token string) string {
 	// Determine base URL (internal URL takes priority for OnlyOffice server communication)
 	var baseURL string
-	if settings.Config.Server.InternalUrl != "" {
+	if config.Server.InternalUrl != "" {
 		// InternalUrl is a full URL (e.g., http://localhost:8080), so use it directly
-		internalURL := strings.TrimSuffix(settings.Config.Server.InternalUrl, "/")
-		baseURLPath := strings.TrimPrefix(settings.Config.Server.BaseURL, "/")
+		internalURL := strings.TrimSuffix(config.Server.InternalUrl, "/")
+		baseURLPath := strings.TrimPrefix(config.Server.BaseURL, "/")
 		if baseURLPath != "" {
 			baseURL = internalURL + "/" + baseURLPath
 		} else {
@@ -276,7 +285,7 @@ func buildOnlyOfficeDownloadURL(r *http.Request, source, path, hash, token strin
 			host = r.Host
 			scheme = getScheme(r)
 		}
-		baseURL = fmt.Sprintf("%s://%s%s", scheme, host, settings.Config.Server.BaseURL)
+		baseURL = fmt.Sprintf("%s://%s%s", scheme, host, config.Server.BaseURL)
 	}
 
 	escapedPath := url.QueryEscape(path)
@@ -293,10 +302,10 @@ func buildOnlyOfficeDownloadURL(r *http.Request, source, path, hash, token strin
 func buildOnlyOfficeCallbackURL(r *http.Request, source, path, hash, token string) string {
 	// Determine base URL (internal URL takes priority for OnlyOffice server communication)
 	var baseURL string
-	if settings.Config.Server.InternalUrl != "" {
+	if config.Server.InternalUrl != "" {
 		// InternalUrl is a full URL (e.g., http://localhost:8080), so use it directly
-		internalURL := strings.TrimSuffix(settings.Config.Server.InternalUrl, "/")
-		baseURLPath := strings.TrimPrefix(settings.Config.Server.BaseURL, "/")
+		internalURL := strings.TrimSuffix(config.Server.InternalUrl, "/")
+		baseURLPath := strings.TrimPrefix(config.Server.BaseURL, "/")
 		if baseURLPath != "" {
 			baseURL = internalURL + "/" + baseURLPath
 		} else {
@@ -320,7 +329,7 @@ func buildOnlyOfficeCallbackURL(r *http.Request, source, path, hash, token strin
 			host = r.Host
 			scheme = getScheme(r)
 		}
-		baseURL = fmt.Sprintf("%s://%s%s", scheme, host, settings.Config.Server.BaseURL)
+		baseURL = fmt.Sprintf("%s://%s%s", scheme, host, config.Server.BaseURL)
 	}
 
 	var callbackURL string
@@ -345,6 +354,97 @@ func buildOnlyOfficeCallbackURL(r *http.Request, source, path, hash, token strin
 	}
 
 	return callbackURL
+}
+
+// resolveOnlyOfficeDownloadURL validates a callback document URL against
+// integrations.office.url and optionally rewrites the origin to integrations.office.internalUrl.
+// Returns an empty string when the URL is missing, malformed, or not hosted on the configured
+// OnlyOffice server (SSRF protection).
+func resolveOnlyOfficeDownloadURL(rawURL string) string {
+	if rawURL == "" {
+		return ""
+	}
+
+	publicBase := config.Integrations.OnlyOffice.Url
+	if publicBase == "" {
+		logger.Warningf("OnlyOffice callback: integrations.office.url is not configured")
+		return ""
+	}
+
+	parsedURL, err := url.Parse(rawURL)
+	if err != nil {
+		logger.Warningf("OnlyOffice callback: could not parse document URL (%q): %v", rawURL, err)
+		return ""
+	}
+
+	publicURL, err := url.Parse(publicBase)
+	if err != nil {
+		logger.Warningf("OnlyOffice callback: could not parse integrations.office.url (%q): %v", publicBase, err)
+		return ""
+	}
+
+	if !onlyOfficeURLHostsMatch(parsedURL, publicURL) {
+		logger.Warningf("OnlyOffice callback: rejecting document URL with untrusted host %q (expected %q)",
+			parsedURL.Host, publicURL.Host)
+		return ""
+	}
+
+	internalBase := config.Integrations.OnlyOffice.InternalUrl
+	if internalBase == "" {
+		return rawURL
+	}
+
+	internalURL, err := url.Parse(internalBase)
+	if err != nil {
+		logger.Warningf("OnlyOffice callback: could not parse integrations.office.internalUrl (%q): %v", internalBase, err)
+		return ""
+	}
+	if !isAllowedOnlyOfficeScheme(internalURL.Scheme) || internalURL.Host == "" {
+		logger.Warningf("OnlyOffice callback: invalid integrations.office.internalUrl (%q)", internalBase)
+		return ""
+	}
+
+	rewritten := *parsedURL
+	rewritten.Scheme = internalURL.Scheme
+	rewritten.Host = internalURL.Host
+	result := rewritten.String()
+	if result != rawURL {
+		logger.Debugf("OnlyOffice callback: rewrote URL from %s to %s", rawURL, result)
+	}
+	return result
+}
+
+func isAllowedOnlyOfficeScheme(scheme string) bool {
+	return scheme == "http" || scheme == "https"
+}
+
+func onlyOfficeEffectivePort(u *url.URL) string {
+	if port := u.Port(); port != "" {
+		return port
+	}
+	switch u.Scheme {
+	case "https":
+		return "443"
+	case "http":
+		return "80"
+	default:
+		return ""
+	}
+}
+
+// onlyOfficeURLHostsMatch reports whether callback and configured URLs refer to the same
+// OnlyOffice host, comparing hostname and effective port (so office.local matches office.local:80).
+func onlyOfficeURLHostsMatch(callback, configured *url.URL) bool {
+	if !isAllowedOnlyOfficeScheme(callback.Scheme) || !isAllowedOnlyOfficeScheme(configured.Scheme) {
+		return false
+	}
+	if callback.Hostname() == "" || configured.Hostname() == "" {
+		return false
+	}
+	if !strings.EqualFold(callback.Hostname(), configured.Hostname()) {
+		return false
+	}
+	return onlyOfficeEffectivePort(callback) == onlyOfficeEffectivePort(configured)
 }
 
 // processOnlyOfficeCallback handles the common callback processing logic for both GET and POST requests
@@ -492,7 +592,12 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 		}
 
 		// Download the updated document from OnlyOffice server
-		doc, err := http.Get(data.URL)
+		downloadURL := resolveOnlyOfficeDownloadURL(data.URL)
+		if downloadURL == "" {
+			logger.Errorf("OnlyOffice callback: missing or untrusted document URL in callback payload")
+			return returnOnlyOfficeError(w, r, 500, "missing or untrusted document URL in callback payload")
+		}
+		doc, err := onlyOfficeDownloadClient.Get(downloadURL)
 		if err != nil {
 			logger.Errorf("OnlyOffice callback: failed to download updated document: %v", err)
 			return returnOnlyOfficeError(w, r, 500, "failed to download updated document")

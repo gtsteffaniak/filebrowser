@@ -129,8 +129,8 @@
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
-    "nlBE": "Dutch (Belgium)",
-    "nl": "Dutch",
+    "nl": "Nederlands",
+    "nlBE": "Nederlands (België)",
     "pl": "Polski",
     "pt": "Português",
     "ptBR": "Português (Brasil)",
@@ -493,7 +493,8 @@
     "selectBannerImage": "Επιλέξτε εικόνα banner",
     "selectFaviconImage": "Επιλέξτε εικόνα favicon",
     "selectImage": "Επιλέξτε εικόνα",
-    "deleteFailed": "Απέτυχε η διαγραφή κοινής χρήσης"
+    "deleteFailed": "Απέτυχε η διαγραφή κοινής χρήσης",
+    "readOnlySourceNotice": "Αυτή η πηγή είναι μόνο για ανάγνωση. Οι μετοχές φόρτωσης και τα δικαιώματα που τροποποιούν αρχεία είναι απενεργοποιημένα."
   },
   "api": {
     "createdAt": "Δημιουργήθηκε στο:",
@@ -677,7 +678,11 @@
     "divider": "Διαχωριστικό{suffix}",
     "audio": "Ήχος{suffix}",
     "and": "και",
-    "or": "ή"
+    "or": "ή",
+    "readOnly": "Μόνο για ανάγνωση{suffix}",
+    "private": "Ιδιωτικό{suffix}",
+    "yes": "Ναι{suffix}",
+    "no": "Όχι{suffix}"
   },
   "access": {
     "rules": "Κανόνες πρόσβασης",
