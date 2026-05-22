@@ -30,11 +30,15 @@
     </button>
     <button
       class="button button--flat"
-      :disabled="!validHours"
+      :disabled="!validHours || loading"
       @click="submit"
       :aria-label="$t('buttons.protect')"
     >
-      {{ $t("buttons.protect") }}
+      <span v-if="loading" class="protect-loading-btn">
+        <i class="material-icons spin">sync</i>
+        {{ $t("prompts.protectUploading") }}
+      </span>
+      <span v-else>{{ $t("buttons.protect") }}</span>
     </button>
   </div>
 </template>
@@ -43,7 +47,6 @@
 import { mutations } from "@/store";
 import { chainfsApi } from "@/api";
 import { notify } from "@/notify";
-import buttons from "@/utils/buttons";
 
 export default {
   name: "ProtectDuration",
@@ -60,6 +63,7 @@ export default {
   data() {
     return {
       hours: 24,
+      loading: false,
     };
   },
   computed: {
@@ -72,17 +76,16 @@ export default {
       mutations.closeHovers();
     },
     async submit() {
-      if (!this.validHours) return;
-      mutations.closeHovers();
-      buttons.loading("protect");
+      if (!this.validHours || this.loading) return;
+      this.loading = true;
       try {
         await chainfsApi.protectFile(this.source, this.item.path, this.hours);
         notify.showSuccessToast(this.$t("buttons.protectSuccess"));
         mutations.setReload(true);
+        mutations.closeHovers();
       } catch (_) {
         // error already shown by API layer
-      } finally {
-        buttons.done("protect");
+        this.loading = false;
       }
     },
   },
@@ -104,5 +107,21 @@ export default {
 .protect-unit {
   color: var(--textSecondary, #888);
   font-size: 0.9em;
+}
+
+.protect-loading-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+  font-size: 1em;
+}
+
+@keyframes spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style>

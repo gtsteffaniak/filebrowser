@@ -368,6 +368,7 @@
     "protectDuration": "Protect file",
     "protectDurationMessage": "How long should this file be protected?",
     "protectHours": "hours",
+    "protectUploading": "Uploading to ChainFS...",
     "safeModeAdd": "Enable SAFEMode",
     "safeModeRemove": "Remove from SAFEMode",
     "safeModeSetPIN": "Set a 4-digit PIN to protect these items. You will need this PIN to view or unprotect them.",
