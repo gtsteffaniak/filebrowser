@@ -13,7 +13,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
-	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 type UserRequest struct {
@@ -82,14 +81,6 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	// Correct quota on self-fetch in case config changed since last login
-	if givenUserId == d.user.ID && correctUserQuota(u) {
-		if updateErr := store.Users.Update(u, true, "QuotaBytes"); updateErr != nil {
-			logger.Errorf("userGet: failed to correct quota for %s: %v", u.Username, updateErr)
-		} else {
-			logger.Infof("userGet: corrected quota for %s to %d bytes", u.Username, u.QuotaBytes)
-		}
-	}
 	prepForFrontend(u)
 	return renderJSON(w, r, u)
 }
@@ -101,7 +92,8 @@ func prepForFrontend(u *users.User) {
 	u.TOTPSecret = ""
 	u.TOTPNonce = ""
 	u.SafeModePINHash = ""
-	// Compute current storage usage across all scopes for the quota bar
+	// Compute quota and current storage usage for the quota bar
+	u.QuotaBytes = getUserQuotaBytes(u.Username)
 	if u.QuotaBytes > 0 {
 		var used int64
 		for _, scope := range u.Scopes {

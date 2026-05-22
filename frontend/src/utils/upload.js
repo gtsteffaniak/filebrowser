@@ -2,6 +2,7 @@ import { reactive } from "vue";
 import { filesApi, publicApi } from "@/api";
 import { state,mutations } from "@/store";
 import { getters } from "@/store/getters";
+import { notify } from "@/notify";
 
 class UploadManager {
   constructor() {
@@ -500,6 +501,10 @@ class UploadManager {
     // Check if the error is a 409 Conflict
     if (err?.response?.status === 409) {
       upload.status = "conflict";
+    } else if (err?.response?.status === 402) {
+      upload.status = "error";
+      upload.errorDetails = "Storage quota exceeded";
+      notify.showToast("error", "Storage quota exceeded. Visit acorn.tools/subscriptions to upgrade your plan.", { duration: 8000 });
     } else if (err.message !== "Upload aborted") {
       upload.status = "error";
       // Store detailed error information for tooltip display

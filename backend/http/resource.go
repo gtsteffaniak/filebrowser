@@ -30,14 +30,15 @@ import (
 // quotaExceeded returns true when writing incomingBytes would push the user over their
 // storage quota. Returns false when quota is 0 (unlimited) or size is unknown (-1).
 func quotaExceeded(u *users.User, incomingBytes int64) bool {
-	if u.QuotaBytes <= 0 || incomingBytes <= 0 {
+	quota := getUserQuotaBytes(u.Username)
+	if quota <= 0 || incomingBytes <= 0 {
 		return false
 	}
 	var used int64
 	for _, scope := range u.Scopes {
 		used += indexing.GetScopeUsedBytes(scope.Name, scope.Scope)
 	}
-	return used+incomingBytes > u.QuotaBytes
+	return used+incomingBytes > quota
 }
 
 // validateMoveOperation checks if a move/rename operation is valid at the HTTP level
@@ -363,7 +364,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		// On the first chunk, check quota and conflicts
 		if offset == 0 {
 			if d.user != nil && quotaExceeded(d.user, totalSize) {
-				return http.StatusRequestEntityTooLarge, fmt.Errorf("storage quota exceeded")
+				return http.StatusPaymentRequired, fmt.Errorf("storage quota exceeded")
 			}
 			// Check for file/folder conflicts for chunked uploads
 			if stat, statErr := os.Stat(realPath); statErr == nil {
@@ -449,7 +450,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		preview.DelThumbs(r.Context(), *fileInfo)
 	}
 	if d.user != nil && quotaExceeded(d.user, r.ContentLength) {
-		return http.StatusRequestEntityTooLarge, fmt.Errorf("storage quota exceeded")
+		return http.StatusPaymentRequired, fmt.Errorf("storage quota exceeded")
 	}
 	err = files.WriteFile(fileOpts.Source, fileOpts.Path, r.Body)
 	if err != nil {
@@ -511,7 +512,7 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	}
 
 	if d.user != nil && quotaExceeded(d.user, r.ContentLength) {
-		return http.StatusRequestEntityTooLarge, fmt.Errorf("storage quota exceeded")
+		return http.StatusPaymentRequired, fmt.Errorf("storage quota exceeded")
 	}
 	err = files.WriteFile(source, utils.JoinPathAsUnix(userscope, path), r.Body)
 	return errToStatus(err), err

@@ -234,8 +234,9 @@ func GetUserInfo(baseUrl, bearerToken string) (*UserInfo, error) {
 
 // AcornToolsAccess is the response from the acorn.tools internal access check.
 type AcornToolsAccess struct {
-	HasAccess bool   `json:"hasAccess"`
-	PlanTier  string `json:"planTier"`
+	HasAccess  bool   `json:"hasAccess"`
+	PlanTier   string `json:"planTier"`
+	QuotaBytes int64  `json:"quotaBytes"`
 }
 
 // CheckAcornToolsAccess verifies whether a user (identified by their Azure sub claim)
