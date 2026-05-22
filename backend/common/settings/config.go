@@ -88,7 +88,7 @@ func setupHttp() {
 	if len(Config.Http.TrustedHeadersArray) > 0 {
 		Config.Http.TrustedHeaders = make(map[string]bool)
 		for _, header := range Config.Http.TrustedHeadersArray {
-			Config.Http.TrustedHeaders[header] = true
+			Config.Http.TrustedHeaders[strings.ToLower(header)] = true
 		}
 	}
 }
