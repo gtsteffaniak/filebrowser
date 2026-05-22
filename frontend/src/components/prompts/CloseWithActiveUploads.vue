@@ -5,6 +5,7 @@
 
   <div class="card-actions">
     <button
+      type="button"
       class="button button--flat button--grey"
       @click="stayOnPrompt"
       :aria-label="$t('general.stay')"
@@ -12,6 +13,7 @@
       {{ $t("general.stay") }}
     </button>
     <button
+      type="button"
       class="button button--flat button--red"
       @click="closeAnyway"
       :aria-label="$t('buttons.closeAnyway')"
@@ -46,13 +48,13 @@ export default {
   },
   methods: {
     stayOnPrompt() {
-      if (this.currentPrompt && this.currentPrompt.cancel) {
+      if (this.currentPrompt?.cancel) {
         this.currentPrompt.cancel();
       }
       // Don't call closeTopHover here - the cancel callback handles it
     },
     closeAnyway() {
-      if (this.currentPrompt && this.currentPrompt.confirm) {
+      if (this.currentPrompt?.confirm) {
         this.currentPrompt.confirm();
       }
       // Don't call closeTopHover here - the confirm callback handles it
@@ -60,4 +62,3 @@ export default {
   },
 };
 </script>
-

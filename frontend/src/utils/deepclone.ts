@@ -1,4 +1,4 @@
-type DeepCloneable = object | Array<any>;
+type DeepCloneable = Record<string, unknown> | unknown[];
 
 export default function deepClone<T extends DeepCloneable>(obj: T): T {
   if (obj === null || typeof obj !== 'object') {
@@ -6,12 +6,12 @@ export default function deepClone<T extends DeepCloneable>(obj: T): T {
   }
 
   if (Array.isArray(obj)) {
-    return obj.map(deepClone) as T;
+    return obj.map(item => deepClone(item as DeepCloneable)) as T;
   }
 
-  const clone = {} as T;
+  const clone = {} as Record<string, unknown>;
   for (const key in obj) {
-    clone[key] = deepClone(obj[key] as any);
+    clone[key] = deepClone(obj[key] as DeepCloneable);
   }
-  return clone;
+  return clone as T;
 }

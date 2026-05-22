@@ -71,8 +71,14 @@
             <div class="form-flex-group">
               <input id="hash-result" class="input form-form flat-right" type="text" :value="hashResult" readonly
                 :placeholder="$t('prompts.selectHashAlgorithm')" />
-              <button class="button form-button flat-left" @click="copyToClipboard" :disabled="!hashResult"
-                :title="$t('buttons.copyToClipboard')" :aria-label="$t('buttons.copyToClipboard')">
+              <button
+                type="button"
+                class="button form-button flat-left"
+                @click="copyToClipboard"
+                :disabled="!hashResult"
+                :title="$t('buttons.copyToClipboard')"
+                :aria-label="$t('buttons.copyToClipboard')"
+              >
                 <i class="material-symbols-outlined" style="font-size: 16px;">content_copy</i>
               </button>
             </div>

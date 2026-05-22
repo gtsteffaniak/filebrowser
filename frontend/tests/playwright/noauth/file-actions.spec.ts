@@ -1,4 +1,4 @@
-import { test, expect, checkForNotification } from "../test-setup";
+import { checkForNotification, expect, test } from "../test-setup";
 
 /** Move/Copy prompt path line: PathPickerButton shows `/path (source)`; noauth config names the tree `exclude`. */
 const copyDestLabel = (page: import("@playwright/test").Page) =>
@@ -6,7 +6,7 @@ const copyDestLabel = (page: import("@playwright/test").Page) =>
 
 const NOAUTH_COPY_SOURCE = "exclude";
 
-test("info from listing", async({ page, checkForErrors, context }) => {
+test("info from listing", async({ page, checkForErrors }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await page.locator('a[aria-label="file.tar.gz"]').waitFor({ state: 'visible' });
@@ -18,7 +18,7 @@ test("info from listing", async({ page, checkForErrors, context }) => {
   checkForErrors();
 });
 
-test("info from search", async({ page, checkForErrors, context }) => {
+test("info from search", async({ page, checkForErrors }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await page.locator('#search-bar-input').click()
@@ -30,7 +30,7 @@ test("info from search", async({ page, checkForErrors, context }) => {
   checkForErrors();
 })
 
-test("open from search", async({ page, checkForErrors, context }) => {
+test("open from search", async({ page, checkForErrors }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await page.locator('#search-bar-input').click()
@@ -42,7 +42,7 @@ test("open from search", async({ page, checkForErrors, context }) => {
   checkForErrors();
 })
 
-test("2x copy from listing to new folder", async({ page, checkForErrors, context }) => {
+test("2x copy from listing to new folder", async({ page, checkForErrors }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await page.locator('a[aria-label="copyme.txt"]').waitFor({ state: 'visible' });
@@ -90,7 +90,7 @@ test("2x copy from listing to new folder", async({ page, checkForErrors, context
   checkForErrors();
 })
 
-test("delete file", async({ page, checkForErrors, context }) => {
+test("delete file", async({ page, checkForErrors }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await page.locator('a[aria-label="deleteme.txt"]').waitFor({ state: 'visible' });
@@ -109,7 +109,7 @@ test("delete file", async({ page, checkForErrors, context }) => {
   checkForErrors();
 })
 
-test("delete nested file prompt", async({ page, checkForErrors, context }) => {
+test("delete nested file prompt", async({ page, checkForErrors }) => {
   await page.goto("/files/files/exclude/folder%23hash/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - folder#hash");
   await page.locator('a[aria-label="file#.sh"]').waitFor({ state: 'visible' });
@@ -121,7 +121,7 @@ test("delete nested file prompt", async({ page, checkForErrors, context }) => {
   checkForErrors();
 })
 
-test("rename file", async({ page, checkForErrors, context }) => {
+test("rename file", async({ page, checkForErrors }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await page.locator('a[aria-label="renameme.txt"]').waitFor({ state: 'visible' });
@@ -141,7 +141,7 @@ test("rename file", async({ page, checkForErrors, context }) => {
   checkForErrors();
 })
 
-test("create a file with the same name as a directory", async({ page, checkForErrors, openContextMenu, context }) => {
+test("create a file with the same name as a directory", async({ page, checkForErrors, openContextMenu }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await openContextMenu();

@@ -13,11 +13,19 @@
   </div>
 
   <div class="card-actions">
-    <button class="button button--flat button--grey" @click="closeTopPrompt" :aria-label="$t('general.cancel')"
-      :title="$t('general.cancel')">
+    <button
+      type="button"
+      class="button button--flat button--grey"
+      @click="closeTopPrompt"
+      :aria-label="$t('general.cancel')"
+      :title="$t('general.cancel')"
+      >
       {{ $t("general.cancel") }}
     </button>
-    <button class="button button--flat" :aria-label="$t('general.create')" :title="$t('general.create')"
+    <button
+      type="button"
+      class="button button--flat" :aria-label="$t('general.create')"
+      :title="$t('general.create')"
       @click="submit">
       {{ $t("general.create") }}
     </button>
@@ -123,7 +131,7 @@ export default {
       try {
         const parentPath = this.parentInfo.path;
         const source = this.parentInfo.source;
-        const newPath = url.joinPath(parentPath, this.name) + "/";
+        const newPath = `${url.joinPath(parentPath, this.name)}/`;
 
         if (getters.isShare()) {
           await resourcesApi.postPublic(state.shareInfo?.hash, newPath, "", overwrite, undefined, {}, true);
@@ -162,7 +170,7 @@ export default {
                       const newName = counter === 1 ? `${originalName} (1)` : `${originalName} (${counter})`;
                       const parentPath = this.parentInfo.path;
                       const source = this.parentInfo.source;
-                      const newPath = url.joinPath(parentPath, newName) + "/";
+                      const newPath = `${url.joinPath(parentPath, newName)}/`;
 
                       if (getters.isShare()) {
                         await resourcesApi.postPublic(state.shareInfo?.hash, newPath, "", false, undefined, {}, true);
@@ -184,15 +192,13 @@ export default {
                       this.showNotification(source, newPath);
                     } catch (renameError) {
                       if (renameError.message === "conflict") {
-                        // Continue to next iteration
-                        continue;
                       } else {
                         throw renameError;
                       }
                     }
                   }
                   if (!success) {
-                    throw new Error("Could not find a unique name after " + maxAttempts + " attempts");
+                    throw new Error(`Could not find a unique name after ${maxAttempts} attempts`);
                   }
                 }
               } catch (retryError) {

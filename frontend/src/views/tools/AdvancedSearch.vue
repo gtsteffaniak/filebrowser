@@ -66,7 +66,7 @@
               </div>
               <template
                 v-for="srcName in activeSources"
-                :key="'scope-' + srcName"
+                  :key="`scope-${srcName}`"
               >
                 <PathPickerButton
                   class="scope-picker"
@@ -799,12 +799,7 @@ export default {
     },
   },
   mounted() {
-    document.title =
-      globalVars.name +
-      " - " +
-      this.$t("tools.title") +
-      " - " +
-      this.$t("tools.advancedSearch.name");
+    document.title = `${globalVars.name} - ${this.$t("tools.title")} - ${this.$t("tools.advancedSearch.name")}`;
     mutations.setSearch(false);
 
     this.resizeListener = () => {
@@ -1239,7 +1234,7 @@ export default {
       if (this.searchTypes.includes(string)) {
         return true;
       }
-      this.searchTypes = this.searchTypes + string + " ";
+      this.searchTypes = `${this.searchTypes}${string} `;
       return true;
     },
     removeFromTypes(string) {

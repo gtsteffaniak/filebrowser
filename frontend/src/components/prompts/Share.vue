@@ -4,7 +4,11 @@
     <div v-if="!pathExists && isEditMode && !isEditingPath" class="warning-banner">
       <i class="material-symbols">warning</i>
       <span>{{ $t("messages.pathNotFoundMessage") }}</span>
-      <button class="button button--flat button--blue" @click="startPathReassignment">
+      <button
+        type="button"
+        class="button button--flat button--blue"
+        @click="startPathReassignment"
+      >
         {{ $t("messages.reassignPath") }}
       </button>
     </div>
@@ -12,12 +16,22 @@
     <div v-if="isEditingPath">
       <file-list @update:selected="updateTempPath" :browse-source="displaySource"></file-list>
       <div class="card-actions">
-        <button class="button button--flat" @click="cancelPathChange" :aria-label="$t('general.cancel')"
-          :title="$t('general.cancel')">
+        <button
+          type="button"
+          class="button button--flat"
+          @click="cancelPathChange"
+          :aria-label="$t('general.cancel')"
+          :title="$t('general.cancel')"
+        >
           {{ $t("general.cancel") }}
         </button>
-        <button class="button button--flat button--blue" @click="confirmPathChange" :aria-label="$t('general.ok')"
-          :title="$t('general.ok')">
+        <button
+          type="button"
+          class="button button--flat button--blue"
+          @click="confirmPathChange"
+          :aria-label="$t('general.ok')"
+          :title="$t('general.ok')"
+        >
           {{ $t("general.ok") }}
         </button>
       </div>
@@ -47,21 +61,30 @@
             <template v-else>{{ $t("general.permanent") }}</template>
           </template>
           <template #cell-editShare="{ row }">
-            <button class="action" @click="editLink(row)" :aria-label="$t('general.edit')"
+            <button
+              type="button"
+              class="action"
+              @click="editLink(row)"
+              :aria-label="$t('general.edit')"
               :title="$t('general.edit')"
             >
               <i class="material-symbols">edit</i>
             </button>
           </template>
           <template #cell-copyShare="{ row }">
-            <button class="action" @click.stop="copyToClipboard(row.shareURL)"
-              :aria-label="$t('buttons.copyToClipboard')" :title="$t('buttons.copyToClipboard')"
+            <button
+              type="button"
+              class="action"
+              @click.stop="copyToClipboard(row.shareURL)"
+              :aria-label="$t('buttons.copyToClipboard')"
+              :title="$t('buttons.copyToClipboard')"
             >
               <i class="material-symbols">content_paste</i>
             </button>
           </template>
           <template #cell-downloadShare="{ row }">
             <button
+              type="button"
               :disabled="row.shareType === 'upload'"
               class="action"
               v-if="row.downloadURL"
@@ -73,7 +96,11 @@
             </button>
           </template>
           <template #cell-deleteShare="{ row }">
-            <button class="action" @click="deleteLink($event, row)" :aria-label="$t('general.delete')"
+            <button
+              type="button"
+              class="action"
+              @click="deleteLink($event, row)"
+              :aria-label="$t('general.delete')"
               :title="$t('general.delete')"
             >
               <i class="material-symbols">delete</i>
@@ -107,7 +134,11 @@
             </i>
           </p>
           <div v-if="hasExistingPassword && !isChangingPassword" class="password-change-section">
-            <button class="button button--flat button--blue" @click="isChangingPassword = true" style="width: 100%;">
+            <button
+              type="button"
+              class="button button--flat button--blue"
+              @click="isChangingPassword = true" style="width: 100%;"
+            >
               <i class="material-symbols">lock_reset</i>
               {{ $t("general.change") }}
             </button>
@@ -124,7 +155,11 @@
             <option value="normal">{{ $t("share.normalShare") }}</option>
             <option value="upload" :disabled="sourceReadOnly">{{ $t("share.uploadShare") }}</option>
           </select>
-          <button @click="openSidebarLinksCustomization" class="button button--flat customize-sidebar-links-button">
+          <button
+            type="button"
+            @click="openSidebarLinksCustomization"
+            class="button button--flat customize-sidebar-links-button"
+          >
             <i class="material-symbols">link</i>
             {{ $t('share.customizeSidebarLinksButton') }}
           </button>
@@ -326,12 +361,24 @@
   </div>
 
   <div v-if="!isEditingPath" class="card-actions">
-    <button v-if="listing" class="button button--flat button--blue" @click="() => switchListing()"
-      :aria-label="$t('general.new')" :title="$t('general.new')">
+    <button
+      type="button"
+      v-if="listing"
+      class="button button--flat button--blue"
+      @click="() => switchListing()"
+      :aria-label="$t('general.new')"
+      :title="$t('general.new')"
+    >
       {{ $t("general.new") }}
     </button>
-    <button v-if="!listing" class="button button--flat button--blue" @click="submit" aria-label="Share-Confirm"
-      :title="$t('general.share')">
+    <button
+      type="button"
+      v-if="!listing"
+      class="button button--flat button--blue"
+      @click="submit"
+      aria-label="Share-Confirm"
+      :title="$t('general.share')"
+    >
       {{ $t("general.share") }}
     </button>
   </div>
@@ -521,7 +568,7 @@ export default {
     hasExistingPassword() {
       // Check if we're editing a link and it has a password
       const currentLink = this.isEditMode ? this.link : this.editingLink;
-      return currentLink && currentLink.hasPassword;
+      return currentLink?.hasPassword;
     },
   },
   watch: {
@@ -558,7 +605,7 @@ export default {
           // Check if path exists
           this.pathExists = this.link.pathExists !== false;
           this.time = this.link.expire
-            ? String(Math.round((new Date(this.link.expire * 1000).getTime() - new Date().getTime()) / 3600000))
+            ? String(Math.round((new Date(this.link.expire * 1000).getTime() - Date.now()) / 3600000))
             : "0";
           this.unit = "hours";
           this.password = "";
@@ -697,8 +744,8 @@ export default {
           allowDelete: this.allowDelete,
           allowCreate: this.allowCreate,
           allowReplacements: this.allowReplacements,
-          maxBandwidth: this.maxBandwidth ? parseInt(this.maxBandwidth) : 0,
-          downloadsLimit: this.downloadsLimit ? parseInt(this.downloadsLimit) : 0,
+          maxBandwidth: this.maxBandwidth ? parseInt(this.maxBandwidth, 10) : 0,
+          downloadsLimit: this.downloadsLimit ? parseInt(this.downloadsLimit, 10) : 0,
           perUserDownloadLimit: this.perUserDownloadLimit,
           shareTheme: this.shareTheme,
           disableFileViewer: this.disableFileViewer,
@@ -788,7 +835,7 @@ export default {
     editLink(link) {
       this.listing = false;
       this.time = link.expire
-        ? String(Math.round((new Date(link.expire * 1000).getTime() - new Date().getTime()) / 3600000))
+        ? String(Math.round((new Date(link.expire * 1000).getTime() - Date.now()) / 3600000))
         : "0";
       this.unit = "hours";
       this.password = "";
@@ -914,7 +961,7 @@ export default {
      * @param {{path: string, source: string}} pathOrData
      */
     updateTempPath(pathOrData) {
-      if (pathOrData && pathOrData.path) {
+      if (pathOrData?.path) {
         this.tempPath = pathOrData.path;
         this.tempSource = pathOrData.source;
       }
@@ -949,7 +996,7 @@ export default {
     },
     handleSidebarLinksUpdate(data) {
       // Update local sidebarLinks when the SidebarLinks prompt saves
-      if (data && data.sidebarLinks) {
+      if (data?.sidebarLinks) {
         this.sidebarLinks = [...data.sidebarLinks];
       }
     },

@@ -1,23 +1,23 @@
-import { test, expect, checkForNotification } from "../test-setup";
+import { checkForNotification, expect, test } from "../test-setup";
 
 test.use({viewport: { width: 750, height: 750 }}); // mobile viewport
-test("share download multiple files", async ({ page, checkForErrors, context }) => {
+test("share download multiple files", async ({ page, checkForErrors }) => {
 
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
 
   const shareHash = await page.evaluate(() => localStorage.getItem('shareHash'));
-  if (shareHash == "") {
+  if (shareHash === "") {
     throw new Error("Share hash not found in localStorage");
   }
 
   // Test explicit redirect behavior
   const responsePromise = page.waitForResponse(response =>
-    response.url().includes("/share/" + shareHash + "/testdata/") &&
+    response.url().includes(`/share/${shareHash}/testdata/`) &&
     response.status() === 301
   );
 
-  await page.goto("/share/" + shareHash + "/testdata/");
+  await page.goto(`/share/${shareHash}/testdata/`);
 
   // Wait for and verify the redirect response
   const response = await responsePromise;

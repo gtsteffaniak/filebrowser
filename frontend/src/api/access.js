@@ -1,5 +1,5 @@
-import { fetchJSON } from './utils'
 import { getApiPath } from '@/utils/url.js'
+import { fetchJSON } from './utils'
 
 /**
  * @param {string} source

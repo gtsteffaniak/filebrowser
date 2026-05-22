@@ -378,7 +378,7 @@ export default {
       if (event !== undefined) {
         event.preventDefault();
       }
-      if (this.localuser.themeColor != "") {
+      if (this.localuser.themeColor !== "") {
         document.documentElement.style.setProperty(
           "--primaryColor",
           this.localuser.themeColor
@@ -386,7 +386,7 @@ export default {
       }
       try {
         const data = this.localuser;
-        const themeChanged = state.user.customTheme != this.localuser.customTheme;
+        const themeChanged = state.user.customTheme !== this.localuser.customTheme;
         mutations.updateCurrentUser(data);
         await usersApi.update(data, [
           "locale",

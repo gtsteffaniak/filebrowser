@@ -81,7 +81,7 @@ export default {
       return state.req.name;
     },
     showQuickSave() {
-      if (getters.currentView() != "editor" || !state.user.permissions.modify) {
+      if (getters.currentView() !== "editor" || !state.user.permissions.modify) {
         return false;
       }
       return state.user.editorQuickSave;
@@ -89,7 +89,7 @@ export default {
     disableNavButtons() {
       const isShare = getters.isShare();
       const regularDisabled = globalVars.disableNavButtons && this.isListingView;
-      const shareDisabled = isShare && state.shareInfo?.hideNavButtons && getters.currentView() == "listingView";
+      const shareDisabled = isShare && state.shareInfo?.hideNavButtons && getters.currentView() === "listingView";
       const uploadShare = isShare && state.shareInfo?.shareType === "upload"
       return regularDisabled || shareDisabled || uploadShare;
     },
@@ -97,7 +97,7 @@ export default {
       return getters.currentView() === "onlyOfficeEditor";
     },
     isListingView() {
-      return getters.currentView() == "listingView";
+      return getters.currentView() === "listingView";
     },
     isAdvancedSearchRoute() {
       return (state.route?.path || "") === "/tools/advancedSearch";
@@ -126,13 +126,13 @@ export default {
       return !state.contextMenuHasItems && !getters.isPreviewView();
     },
     showEdit() {
-      return window.location.hash != "#edit" && state.user.permissions.modify;
+      return window.location.hash !== "#edit" && state.user.permissions.modify;
     },
     showDelete() {
-      return state.user.permissions.modify && getters.currentView() == "preview";
+      return state.user.permissions.modify && getters.currentView() === "preview";
     },
     showSave() {
-      return getters.currentView() == "editor" && state.user.permissions.modify;
+      return getters.currentView() === "editor" && state.user.permissions.modify;
     },
     showSearch() {
       return getters.isLoggedIn() && getters.currentView() === "listingView" && !getters.isShare();
@@ -141,7 +141,7 @@ export default {
       return state.isSearchActive;
     },
     isDisabled() {
-      return state.isSearchActive || getters.currentPromptName() != "";
+      return state.isSearchActive || getters.currentPromptName() !== "";
     },
     isDisabledMultiAction() {
       const regularDisabled = getters.isStickySidebar() && getters.multibuttonState() === "menu";
@@ -254,7 +254,7 @@ export default {
     performNavigation(cv) {
       if (cv === "listingView" || ( getters.isShare() && getters.multibuttonState() !== "close") || cv === "tools") {
         mutations.toggleSidebar();
-      } else if (cv == "settings" && state.isMobile) {
+      } else if (cv === "settings" && state.isMobile) {
         mutations.toggleSidebar();
       } else {
         mutations.closeHovers();

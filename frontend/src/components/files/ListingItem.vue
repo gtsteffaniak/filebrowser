@@ -215,21 +215,15 @@ export default {
       return getters.viewMode() === "gallery";
     },
     quickDownloadEnabled() {
-      // @ts-ignore
       if (getters.isShare()) {
-        // @ts-ignore
         return state.shareInfo?.quickDownload && !this.galleryView;
       }
-      // @ts-ignore
       return state.user?.quickDownload && !this.galleryView;
     },
     quickDownloadPlaceholder() {
-      // @ts-ignore
       if (getters.isShare()) {
-        // @ts-ignore
         return state.shareInfo?.quickDownload && !this.galleryView && this.isDir;
       }
-      // @ts-ignore
       return state.user?.quickDownload && !this.galleryView && getters.viewMode() !== "icons" && getters.viewMode() !== "normal" && this.isDir;
     },
     isHiddenNotSelected() {
@@ -248,7 +242,6 @@ export default {
       return state.selected;
     },
     isClicked() {
-      // @ts-ignore
       if (state.user.singleClick || !this.allowedView) {
         return false;
       }
@@ -262,8 +255,7 @@ export default {
       return state.selected.indexOf(this.index) !== -1;
     },
     isDraggable() {
-      // @ts-ignore
-      return this.readOnly == undefined && state.user.permissions?.modify || state.shareInfo.allowCreate;
+      return this.readOnly === undefined && state.user.permissions?.modify || state.shareInfo.allowCreate;
     },
     canDrop() {
       if (!this.isDir) return false;
@@ -271,16 +263,13 @@ export default {
 
       for (const i of this.selected) {
         if (
-          // @ts-ignore
           state.req.items[i].path === this.path &&
-          // @ts-ignore
           state.req.source === this.source
         ) {
           return false;
         }
 
         // Also check if we're trying to drop an item onto itself
-        // @ts-ignore
         if (state.req.items[i].index === this.index) {
           return false;
         }
@@ -305,14 +294,12 @@ export default {
 
       // If forceFilesApi is true, always use authenticated files API
       if (this.forceFilesApi) {
-        // @ts-ignore
         return resourcesApi.getPreviewURL(this.source || state?.req?.source, previewPath, this.modified);
       }
 
       if (getters.isShare()) {
         return resourcesApi.getPreviewURLPublic(previewPath);
       }
-      // @ts-ignore
       return resourcesApi.getPreviewURL(this.source || state.req.source, previewPath, this.modified);
     },
     isThumbsEnabled() {
@@ -323,7 +310,7 @@ export default {
     },
     // Computed properties for display values - Vue caches these automatically!
     humanSize() {
-      return this.type == "invalid_link"
+      return this.type === "invalid_link"
         ? "invalid link"
         : getHumanReadableFilesize(this.size);
     },
@@ -331,7 +318,7 @@ export default {
       return getters.getTime(this.modified);
     },
     formattedDuration() {
-      if (!this.metadata || !this.metadata.duration) {
+      if (!this.metadata?.duration) {
         return "";
       }
       const seconds = this.metadata.duration;
@@ -381,7 +368,6 @@ export default {
       event.stopPropagation();
       if (this.updateGlobalState) {
         mutations.resetSelected();
-        // @ts-ignore
         mutations.addSelected(this.index);
         downloadFiles(state.selected);
       } else {
@@ -399,13 +385,11 @@ export default {
       const movementThreshold = 10; // Adjust as needed
       if (deltaX > movementThreshold || deltaY > movementThreshold) {
         this.isSwipe = true;
-        // @ts-ignore
         this.cancelContext(); // Cancel long press if swipe is detected
       }
     },
     handleTouchEnd() {
       if (!state.isSafari) return;
-      // @ts-ignore
       this.cancelContext(); // Clear timeout
       this.isSwipe = false; // Reset swipe state
     },
@@ -423,9 +407,9 @@ export default {
     },
     getUrl() {
       if (this.hash) {
-        return globalVars.baseURL + "public/share/" + this.hash + "/" + url.encodedPath(this.path);
+        return `${globalVars.baseURL}public/share/${this.hash}/${url.encodedPath(this.path)}`;
       }
-      return globalVars.baseURL + "files/" + encodeURIComponent(this.source) + url.encodedPath(this.path);
+      return `${globalVars.baseURL}files/${encodeURIComponent(this.source)}${url.encodedPath(this.path)}`;
     },
     /** @param {MouseEvent} event */
     onRightClick(event) {
@@ -434,7 +418,6 @@ export default {
         // If one or fewer items are selected, reset the selection
         if (!state.multiple && getters.selectedCount() < 2) {
           mutations.resetSelected();
-          // @ts-ignore
           mutations.addSelected(this.index);
         }
       } else {
@@ -451,7 +434,6 @@ export default {
           index: this.index,
         };
         mutations.resetSelected();
-        // @ts-ignore
         mutations.addSelected(selectedItem);
       }
       
@@ -495,7 +477,6 @@ export default {
       if (this.updateGlobalState) {
         if (state.selected.indexOf(this.index) === -1) {
           mutations.resetSelected();
-          // @ts-ignore
           mutations.addSelected(this.index);
         }
       } else {
@@ -571,7 +552,7 @@ export default {
         const destinationDir = this.path;
 
         // If destination dir is the same as or contains the source path, skip
-        if (fromPath === destinationDir || fromPath.startsWith(destinationDir + '/')) {
+        if (fromPath === destinationDir || fromPath.startsWith(`${destinationDir}/`)) {
           return false;
         }
 
@@ -675,7 +656,6 @@ export default {
       if (state.multiple) {
         return;
       }
-      // @ts-ignore
       this.contextTimeout = setTimeout(() => {
         if (!this.isSwipe) {
           // Only reset selection if this item is not already selected
@@ -683,7 +663,6 @@ export default {
           if (!this.isSelected) {
             if (this.updateGlobalState) {
               mutations.resetSelected();
-              // @ts-ignore
               mutations.addSelected(this.index);
             } else {
               this.$emit('select', { index: this.index, selected: true });
@@ -736,7 +715,6 @@ export default {
 
           for (; fi <= la; fi++) {
             if (this.selected.indexOf(fi) === -1) {
-              // @ts-ignore
               mutations.addSelected(fi);
             }
           }
@@ -759,7 +737,6 @@ export default {
 
           if (this.selected.length > 1) {
             mutations.resetSelected();
-            // @ts-ignore
             mutations.addSelected(this.index);
             mutations.setLastSelectedIndex(this.index);
           }
@@ -802,7 +779,7 @@ export default {
       // Check if state.req.items exists and has the item at this index
       // This prevents errors when ListingItem is used outside of the main file listing (e.g., duplicate finder)
       let previousHistoryItem = null;
-      if (state.req.items && state.req.items[this.index]) {
+      if (state.req.items?.[this.index]) {
         previousHistoryItem = {
           name: state.req.items[this.index].name,
           source: state.req.source,

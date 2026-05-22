@@ -10,25 +10,24 @@
 // - /api/media/ -> media.js
 // - /public/api/* -> public functions in respective files (e.g., resourcesApi.fetchFilesPublic)
 
-import * as authApi from "./auth";
-import * as usersApi from "./users";
-import * as resourcesApi from "./resources";
 import * as accessApi from "./access";
-import * as shareApi from "./share";
-import * as settingsApi from "./settings";
-import * as toolsApi from "./tools";
-import * as officeApi from "./office";
+import * as authApi from "./auth";
 import * as mediaApi from "./media";
+import * as officeApi from "./office";
+import * as resourcesApi from "./resources";
+import * as settingsApi from "./settings";
+import * as shareApi from "./share";
+import * as toolsApi from "./tools";
+import * as usersApi from "./users";
 
-export { 
-    authApi,
-    usersApi,
-    resourcesApi,
+export {
     accessApi,
-    shareApi,
-    settingsApi,
-    toolsApi,
+    authApi,
+    mediaApi,
     officeApi,
-    mediaApi
+    resourcesApi,
+    settingsApi,
+    shareApi,
+    toolsApi,
+    usersApi,
 };
-

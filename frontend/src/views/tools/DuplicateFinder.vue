@@ -13,7 +13,13 @@
         <h3>{{ $t('duplicateFinder.minSize') }}</h3>
         <input aria-label="Minimum size input" v-model.number="minSizeValue" type="number" min="0" placeholder="1" class="input" />
         <p class="hint">{{ $t('duplicateFinder.minSizeHint') }}</p>
-        <button aria-label="Find duplicates button" @click="fetchData" class="button" :disabled="loading">
+        <button
+          type="button"
+          aria-label="Find duplicates button"
+          @click="fetchData"
+          class="button"
+          :disabled="loading"
+        >
           <i v-if="loading" class="material-symbols spin">autorenew</i>
           <span v-else>{{ $t('duplicateFinder.findDuplicates') }}</span>
         </button>
@@ -168,7 +174,7 @@ export default {
     },
   },
   mounted() {
-    document.title = globalVars.name + " - " + this.$t('tools.title') + " - " + this.$t('tools.duplicateFinder.name');
+    document.title = `${globalVars.name} - ${this.$t('tools.title')} - ${this.$t('tools.duplicateFinder.name')}`;
 
     // Initialize from URL query params or use defaults
     const query = this.$route.query;
@@ -178,7 +184,7 @@ export default {
     
     if (query.minSize) {
       const parsed = parseInt(String(query.minSize), 10);
-      if (!isNaN(parsed)) {
+      if (!Number.isNaN(parsed)) {
         this.minSizeValue = parsed;
       }
     }
@@ -205,14 +211,14 @@ export default {
   methods: {
     handleItemsDeleted(data) {
       // Update local state when items are deleted from the delete prompt
-      if (data && data.succeeded) {
+      if (data?.succeeded) {
         data.succeeded.forEach(item => {
           const key = `${item.source}::${item.path}`;
           this.deletedFiles.add(key);
           this.failedFiles.delete(key);
         });
       }
-      if (data && data.failed) {
+      if (data?.failed) {
         data.failed.forEach(item => {
           const key = `${item.source}::${item.path}`;
           this.failedFiles.set(key, item.message || 'Unknown error');
@@ -300,7 +306,7 @@ export default {
     },
     ensureLeadingSlash(path) {
       // Ensure path starts with / for proper URL generation in ListingItem
-      return path.startsWith('/') ? path : '/' + path;
+      return path.startsWith('/') ? path : `/${path}`;
     },
     getFullPath(filePath) {
       // Ensure the file path includes the full path from root
@@ -313,7 +319,7 @@ export default {
         : (searchPath.endsWith('/') ? searchPath.slice(0, -1) : searchPath);
 
       // Check if the path already includes the search path prefix
-      if (filePath.startsWith(normalizedSearchPath + '/') ||
+      if (filePath.startsWith(`${normalizedSearchPath}/`) ||
           filePath === normalizedSearchPath ||
           (normalizedSearchPath === '' && filePath.startsWith('/'))) {
         // Path already has full context, just ensure leading slash
@@ -328,7 +334,7 @@ export default {
 
       // Remove leading slash from file path if present before combining
       const cleanFilePath = filePath.startsWith('/') ? filePath.substring(1) : filePath;
-      return normalizedSearchPath + '/' + cleanFilePath;
+      return `${normalizedSearchPath}/${cleanFilePath}`;
     },
     getUniqueIndex(groupIndex, fileIndex) {
       // Create a unique index for each file across all groups
@@ -689,4 +695,3 @@ export default {
   }
 }
 </style>
-

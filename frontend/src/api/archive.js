@@ -1,6 +1,6 @@
-import { fetchURL } from "./utils";
-import { getApiPath } from "@/utils/url.js";
 import { notify } from "@/notify";
+import { getApiPath } from "@/utils/url.js";
+import { fetchURL } from "./utils";
 
 /**
  * Create an archive on the server (server-side only).

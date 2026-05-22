@@ -70,10 +70,10 @@ const getTools = () => [
 const tools = () => getTools();
 
 export {
+  getIconClass, // Re-exported from material-symbols.js for convenience
   globalVars,
   origin,
-  settings,
   previewViews,
+  settings,
   tools,
-  getIconClass, // Re-exported from material-symbols.js for convenience
 };

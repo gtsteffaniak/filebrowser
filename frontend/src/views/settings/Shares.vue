@@ -32,28 +32,41 @@
         >warning</i>
       </template>
       <template #cell-edit="{ row }">
-        <button class="action" @click="editLink(row)" :aria-label="$t('general.edit')"
+        <button
+          type="button"
+          class="action"
+          @click="editLink(row)"
+          :aria-label="$t('general.edit')"
           :title="$t('general.edit')"
         >
           <i class="material-symbols">edit</i>
         </button>
       </template>
       <template #cell-delete="{ row }">
-        <button class="action" @click="deleteLink($event, row)" :aria-label="$t('general.delete')"
+        <button
+          type="button"
+          class="action"
+          @click="deleteLink($event, row)"
+          :aria-label="$t('general.delete')"
           :title="$t('general.delete')"
         >
           <i class="material-symbols">delete</i>
         </button>
       </template>
       <template #cell-copyShare="{ row }">
-        <button class="action" @click.stop="copyToClipboard(buildLink(row))"
-          :aria-label="$t('buttons.copyToClipboard')" :title="$t('buttons.copyToClipboard')"
+        <button
+          type="button"
+          class="action"
+          @click.stop="copyToClipboard(buildLink(row))"
+          :aria-label="$t('buttons.copyToClipboard')"
+          :title="$t('buttons.copyToClipboard')"
         >
           <i class="material-symbols">content_paste</i>
         </button>
       </template>
       <template #cell-copyDownload="{ row }">
         <button
+          type="button"
           :disabled="row.shareType === 'upload'"
           class="action"
           v-if="row.downloadURL"
@@ -84,16 +97,14 @@ export default {
     Errors,
     SettingsTable,
   },
-  data: function () {
-    return {
-      /** @type {any} */
-      error: null,
-      /** @type {any[]} */
-      links: [],
-      /** Local fetch state; avoids global Settings overlay spinner (table shows its own). */
-      loading: true,
-    };
-  },
+  data: () => ({
+    /** @type {any} */
+    error: null,
+    /** @type {any[]} */
+    links: [],
+    /** Local fetch state; avoids global Settings overlay spinner (table shows its own). */
+    loading: true,
+  }),
   async created() {
     await this.reloadShares();
   },
@@ -191,7 +202,7 @@ export default {
      * @param {any} event
      * @param {any} item
      */
-    deleteLink: async function (event, item) {
+    deleteLink: async function (_event, item) {
       mutations.showPrompt({
         name: "generic",
         props: {

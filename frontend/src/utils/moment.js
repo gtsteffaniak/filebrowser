@@ -16,7 +16,7 @@ export function fromNow(date, locale) {
     const formatter = new Intl.RelativeTimeFormat(toStandardLocale(locale), { numeric: 'auto' });
     // Use absolute value for calculations
     const absDiffInSeconds = Math.abs(diffInSeconds);
-    for (let interval of intervals) {
+    for (const interval of intervals) {
         const count = Math.floor(absDiffInSeconds / interval.seconds);
         if (count > 0) {
             // For past dates (diffInSeconds > 0), we want negative values
@@ -32,7 +32,7 @@ export function formatTimestamp(date, locale = 'en-us') {
     // Ensure `normalizeDate` returns a valid Date object
     date = normalizeDate(date);
 
-    if (!(date instanceof Date) || isNaN(date)) {
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
         console.error('Invalid date object:', date);
         return 'Invalid Date';
     }
@@ -89,7 +89,7 @@ function normalizeDate(date) {
     } else if (typeof date === 'number') {
         // Convert seconds to milliseconds if necessary
         normalizedDate = new Date(date * (date < 1e12 ? 1000 : 1));
-    } else if (date instanceof Date && !isNaN(date.getTime())) {
+    } else if (date instanceof Date && !Number.isNaN(date.getTime())) {
         // It's already a valid Date object
         normalizedDate = date;
     } else {

@@ -1,4 +1,5 @@
-import { Browser, firefox, expect, Page } from "@playwright/test";
+import type { Browser, Page } from "@playwright/test";
+import { expect, firefox } from "@playwright/test";
 
 // Perform authentication and store auth state
 async function globalSetup() {

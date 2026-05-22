@@ -5,10 +5,10 @@
       {{ $t("general.exit") }}
     </span>
   </div>
-  <div v-for="setting in settings" :key="setting.id + '-sidebar'" :id="setting.id + '-sidebar'" class="card item clickable settings-card"
-    @click="setView(setting.id + '-main')" :class="{
+  <div v-for="setting in settings" :key="`${setting.id}-sidebar`" :id="`${setting.id}-sidebar`" class="card item clickable settings-card"
+    @click="setView(`${setting.id}-main`)" :class="{
       hidden: !shouldShow(setting),
-      'active-settings': active(setting.id + '-main'),
+      'active-settings': active(`${setting.id}-main`),
     }">
     <span v-if="shouldShow(setting)" class="settings-item-content">
       <span class="material-symbols-outlined settings-icon">{{ setting.icon }}</span>
@@ -46,8 +46,8 @@ export default {
     setView(view) {
       mutations.closeHovers();
       mutations.closeTopPrompt();
-      if (state.route.path != "/settings") {
-        router.push({ path: "/settings", hash: "#" + view }, () => {});
+      if (state.route.path !== "/settings") {
+        router.push({ path: "/settings", hash: `#${view}` }, () => {});
       } else {
         mutations.setActiveSettingsView(view);
       }

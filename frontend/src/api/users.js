@@ -19,7 +19,7 @@ export async function getAllUsers() {
 // GET /api/users or /public/api/users (get single user)
 export async function get(id) {
   try {
-    let apiPath = getPublicApiPath('users', { id: id })
+    const apiPath = getPublicApiPath('users', { id: id })
     return await fetchJSON(apiPath)
   } catch (err) {
     notify.showError(err.message || `Failed to fetch user with ID: ${id}`)

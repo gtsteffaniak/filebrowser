@@ -22,13 +22,11 @@ export default {
   components: {
     Errors,
   },
-  data: function () {
-    return {
-      error: null,
-      originalSettings: null,
-      selectedSettings: state.settings,
-    };
-  },
+  data: () => ({
+    error: null,
+    originalSettings: null,
+    selectedSettings: state.settings,
+  }),
   computed: {
     loading() {
       return getters.isLoading();
@@ -53,7 +51,7 @@ export default {
       name = "";
 
       for (let i = 0; i < splitted.length; i++) {
-        name += splitted[i].charAt(0).toUpperCase() + splitted[i].slice(1) + " ";
+        name += `${splitted[i].charAt(0).toUpperCase() + splitted[i].slice(1)} `;
       }
 
       return name.slice(0, -1);

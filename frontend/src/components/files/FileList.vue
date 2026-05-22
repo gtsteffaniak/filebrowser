@@ -145,7 +145,7 @@ export default {
     },
     availableSources() {
       // Get all available sources from state.sources.info
-      return state.sources && state.sources.info ? Object.keys(state.sources.info) : [state.req.source];
+      return state.sources?.info ? Object.keys(state.sources.info) : [state.req.source];
     },
     showSourceSelector() {
       if (this.hideDestinationSource) {
@@ -225,7 +225,7 @@ export default {
         if (this.path !== "/" && this.showFolders) {
           this.items.push({
             name: "..",
-            path: url.removeLastDir(this.path) + "/",
+            path: `${url.removeLastDir(this.path)}/`,
             source: this.source,
             type: "directory",
           });
@@ -311,7 +311,7 @@ export default {
       if (this.path !== "/" && this.showFolders) {
         this.items.push({
           name: "..",
-          path: url.removeLastDir(this.path) + "/",
+          path: `${url.removeLastDir(this.path)}/`,
           source: this.source,
           type: "directory",
         });

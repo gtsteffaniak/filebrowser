@@ -1,4 +1,4 @@
-import { test, expect } from "../test-setup";
+import { expect, test } from "../test-setup";
 
 /**
  * No JWT: `sharePrepStorage.json` from global setup has only localStorage
@@ -30,6 +30,7 @@ test("view share as anonymous user", async ({ page, checkForErrors }) => {
 test("public share info JSON (no banner, canEditShare false for anonymous)", async ({ page }, testInfo) => {
   await page.goto("/public/api/health");
   const shareHash = await page.evaluate(() => localStorage.getItem("shareHash"));
+  if (!shareHash) throw new Error("shareHash is missing (global-setup sharePrepStorage)");
   expect(shareHash, "shareHash from global-setup sharePrepStorage").toBeTruthy();
 
   // Leading "/" is resolved from the **origin root**, so with baseURL like http://host:8080/testing/
@@ -39,7 +40,7 @@ test("public share info JSON (no banner, canEditShare false for anonymous)", asy
     (testInfo.project.use as { baseURL?: string }).baseURL ?? "http://127.0.0.1/";
   const baseNorm = rawBase.endsWith("/") ? rawBase : `${rawBase}/`;
   const infoUrl = new URL(
-    `public/api/share/info?hash=${encodeURIComponent(shareHash!)}`,
+    `public/api/share/info?hash=${encodeURIComponent(shareHash)}`,
     baseNorm,
   ).href;
 
@@ -80,5 +81,5 @@ test("public share info JSON (no banner, canEditShare false for anonymous)", asy
 
   expect(data.shareType).toBe("normal");
   expect(typeof data.shareURL === "string").toBe(true);
-  expect(String(data.shareURL)).toContain(shareHash!);
+  expect(String(data.shareURL)).toContain(shareHash);
 });

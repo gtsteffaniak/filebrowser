@@ -14,7 +14,7 @@
       <li class="item" v-for="(link, index) in items" :key="index">
         <router-link
           :to="link.url"
-          :aria-label="'breadcrumb-link-' + link.name"
+          :aria-label="`breadcrumb-link-${link.name}`"
           :title="link.name"
           :key="index"
           :class="{ changeAvailable: hasUpdate,
@@ -32,10 +32,10 @@
 </template>
 
 <script>
-import { state, getters, mutations } from "@/store";
-import { url } from "@/utils";
 import { resourcesApi } from "@/api";
 import { notify } from "@/notify";
+import { getters, mutations, state } from "@/store";
+import { url } from "@/utils";
 
 export default {
   name: "breadcrumbs",
@@ -107,7 +107,7 @@ export default {
       for (let i = 0; i < originalParts.length; i++) {
         const origPart = originalParts[i];
         const encodedElement = encodedParts[i];
-        buildRef = buildRef + encodedElement + "/";
+        buildRef = `${buildRef + encodedElement}/`;
         accumulatedPath = accumulatedPath ? `${accumulatedPath}/${origPart}` : origPart;
 
         breadcrumbs.push({
@@ -238,7 +238,7 @@ export default {
           const toDir = normalizePath(item.to);
 
           // Check if destination is inside the directory
-          if (toDir.startsWith(fromDir + "/")) {
+          if (toDir.startsWith(`${fromDir}/`)) {
             return false;
           }
         }
@@ -255,7 +255,7 @@ export default {
           const response = await resourcesApi.fetchFiles(source, targetPath);
           targetDirItems = response?.items;
         }
-      } catch (error) {
+      } catch (_e) {
         notify.showError(this.$t("files.cannotAccesDir"));
         return;
       }
@@ -293,7 +293,7 @@ export default {
           });
           mutations.closeTopPrompt();
           mutations.setReload(true);
-        } catch (error) {
+        } catch (_e) {
           mutations.closeTopPrompt();
           notify.showError(this.$t("prompts.moveFailed"));
         }

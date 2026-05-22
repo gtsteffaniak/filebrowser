@@ -9,7 +9,7 @@
       <i class="material-symbols">error</i>
       <span>{{ $t("prompts.error") }}</span>
     </div>
-    <ul v-if="effectiveNodes && effectiveNodes.length" class="tree-list">
+    <ul v-if="effectiveNodes?.length" class="tree-list">
       <li v-for="node in effectiveNodes" :key="node.path" class="tree-item">
         <div
           class="tree-node"
@@ -204,7 +204,7 @@ export default {
   },
   beforeUnmount() {
     // Clear all expand timeouts
-    this.expandTimeouts.forEach(timeout => clearTimeout(timeout));
+    this.expandTimeouts.forEach(timeout => { clearTimeout(timeout); });
     this.expandTimeouts.clear();
     if (this.unwatchReload) {
       this.unwatchReload();
@@ -486,7 +486,7 @@ export default {
       this.rootNodes.forEach(clearNode);
 
       // Clear all pending expand timeouts
-      this.expandTimeouts.forEach(timeout => clearTimeout(timeout));
+      this.expandTimeouts.forEach(timeout => { clearTimeout(timeout); });
       this.expandTimeouts.clear();
     },
 
@@ -534,7 +534,7 @@ export default {
 
         // Prevent dropping onto itself or into its own subdirectory
         if (item.path === node.path) continue; // cannot drop onto itself
-        if (node.path.startsWith(item.path + '/')) continue; // cannot drop into its own subdirectory
+        if (node.path.startsWith(`${item.path}/`)) continue; // cannot drop into its own subdirectory
 
         items.push({
           from: item.path,
@@ -657,7 +657,7 @@ export default {
 
       // Compare node to each candidate (usually only one, but safe to loop)
       return candidates.some(selected => {
-        if (!selected || !selected.path) return false;
+        if (!selected?.path) return false;
         if (this.isShare) {
           return selected.path === node.path;
         } else {

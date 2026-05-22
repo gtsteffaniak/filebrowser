@@ -2,7 +2,7 @@
   <div @dragover.prevent @drop.prevent>
     <div v-show="showOverlay" @contextmenu.prevent="onOverlayRightClick" @click="resetItems" class="overlay"></div>
     <div v-if="progress" class="progress">
-      <div v-bind:style="{ width: this.progress + '%' }"></div>
+      <div v-bind:style="{ width: `${this.progress}%` }"></div>
     </div>
     <defaultBar :class="{ 'dark-mode-header': isDarkMode }"></defaultBar>
     <sidebar v-if="!invalidShare"></sidebar>
@@ -76,7 +76,7 @@ export default {
   },
   mounted() {
     window.addEventListener("resize", this.updateIsMobile);
-    if (getters.eventTheme() == "halloween") {
+    if (getters.eventTheme() === "halloween") {
       document.documentElement.style.setProperty("--primaryColor", "var(--icon-orange)");
     } else if (state.user.themeColor) {
       document.documentElement.style.setProperty("--primaryColor", state.user.themeColor);
@@ -115,7 +115,7 @@ export default {
       const shouldMove = getters.isSidebarVisible() && getters.isStickySidebar();
       return {
         shouldMove,
-        style: shouldMove ? { paddingLeft: state.sidebar.width + 'em' } : {}
+        style: shouldMove ? { paddingLeft: `${state.sidebar.width}em` } : {}
       };
     },
     spaceForEditorStatusBar() {
@@ -157,7 +157,7 @@ export default {
       return {};
     },
     popupEnabled() {
-      if (!state.user || state.user?.username == "") {
+      if (!state.user || state.user?.username === "") {
         return false;
       }
       return getters.previewPerms().popup;
@@ -179,7 +179,7 @@ export default {
       if (currentPrompt !== "success" && currentPrompt !== "generic") {
         mutations.closeTopPrompt();
       }
-      if (window.location.hash == "" && currentView == "listingView" || currentView == "share") {
+      if (window.location.hash === "" && currentView === "listingView" || currentView === "share") {
         const element = document.getElementById("main");
         if (element) {
           element.scrollTop = 0;

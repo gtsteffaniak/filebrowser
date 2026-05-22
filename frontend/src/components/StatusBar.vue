@@ -44,7 +44,7 @@
 </template>
 
 <script>
-import { state, getters, mutations } from "@/store";
+import { getters, mutations, state } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 
 export default {
@@ -93,7 +93,7 @@ export default {
       state.selected.forEach(index => {
         if (index >= 0 && index < state.req.items.length) {
           const item = state.req.items[index];
-          if (item && item.size) {
+          if (item?.size) {
             total += item.size;
           }
         }
@@ -137,12 +137,12 @@ export default {
       if (dirs > 0) parts.push(`${dirs} ${this.foldersLabel}`);
       if (files > 0) parts.push(`${files} ${this.filesLabel}`);
 
-      return parts.join(' | ') + ' ' + sizeText;
+      return `${parts.join(' | ')} ${sizeText}`;
     },
     moveWithSidebar() {
       if (getters.isStickySidebar() && getters.isSidebarVisible()) {
         return {
-          left: state.sidebar.width + 'em',
+          left: `${state.sidebar.width}em`,
         };
       }
       return {};

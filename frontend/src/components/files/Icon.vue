@@ -36,8 +36,8 @@ import { setImageLoaded } from "@/utils/imageCache";
 import ThreeJs from "@/views/files/ThreeJs.vue";
 
 // NEW: Define placeholder and error image URLs for easy configuration
-const PLACEHOLDER_URL = globalVars.baseURL + "public/static/img/placeholder.png"; // A generic loading placeholder
-const ERROR_URL = globalVars.baseURL + "public/static/img/placeholder.png";
+const PLACEHOLDER_URL = `${globalVars.baseURL}public/static/img/placeholder.png`; // A generic loading placeholder
+const ERROR_URL = `${globalVars.baseURL}public/static/img/placeholder.png`;
 
 export default {
   name: "Icon",
@@ -115,7 +115,7 @@ export default {
       if (state.shareInfo?.disableThumbnails) {
         return false;
       }
-      if (this.thumbnailUrl == "") {
+      if (this.thumbnailUrl === "") {
         return false;
       }
       if (!this.hasPreview) {
@@ -138,7 +138,7 @@ export default {
       if ((simpleType === "document" || simpleType === "text") && !getters.previewPerms().office) {
         return false;
       }
-      if (!getters.previewPerms().folder && this.mimetype == "directory") {
+      if (!getters.previewPerms().folder && this.mimetype === "directory") {
         return false;
       }
       // 3D models - show preview thumbnails (if backend provides them)
@@ -148,20 +148,18 @@ export default {
       return this.imageState !== 'error' && !this.disablePreviewExt && !this.officeFileDisabled;
     },
     disablePreviewExt() {
-      const ext = "." + (this.filename.split(".").pop() || "").toLowerCase(); // Ensure lowercase and dot
-      // @ts-ignore
+      const ext = `.${(this.filename.split(".").pop() || "").toLowerCase()}`; // Ensure lowercase and dot
       return state.user?.disablePreviewExt?.includes(ext);
     },
     officeFileDisabled() {
-      const ext = "." + (this.filename.split(".").pop() || "").toLowerCase(); // Ensure lowercase and dot
-      // @ts-ignore
+      const ext = `.${(this.filename.split(".").pop() || "").toLowerCase()}`; // Ensure lowercase and dot
       return state.user?.disablePreviewExt?.includes(ext);
     },
     pdfConvertable() {
       if (!globalVars.muPdfAvailable) {
         return false; // If muPDF is not available
       }
-      const ext = "." + (this.filename.split(".").pop() || "").toLowerCase(); // Ensure lowercase and dot
+      const ext = `.${(this.filename.split(".").pop() || "").toLowerCase()}`; // Ensure lowercase and dot
       const pdfConvertCompatibleFileExtensions = {
         ".pdf": true,
         ".xps": true,
@@ -298,7 +296,7 @@ export default {
       }
 
       // Image (and other preview types): use thumbnail URL
-      const imageUrl = this.thumbnailUrl + "&size=large";
+      const imageUrl = `${this.thumbnailUrl}&size=large`;
       if (this.imageState === "loaded") {
         mutations.setPreviewSource(imageUrl);
         state.popupPreviewSourceInfo = { source, path: this.path, size: "large", url: imageUrl, modified };
@@ -312,9 +310,9 @@ export default {
 
       const sequence = [
         imageUrl,
-        imageUrl + "&atPercentage=25",
-        imageUrl + "&atPercentage=50",
-        imageUrl + "&atPercentage=75",
+        `${imageUrl}&atPercentage=25`,
+        `${imageUrl}&atPercentage=50`,
+        `${imageUrl}&atPercentage=75`,
       ];
       let index = 0;
 
@@ -350,7 +348,6 @@ export default {
         // Schedule next update
         index = nextIndex;
         const timeoutId = setTimeout(updateThumbnail, 750);
-        // @ts-ignore
         this.previewTimeouts.push(timeoutId);
       };
       updateThumbnail();
@@ -372,7 +369,7 @@ export default {
       // If we need large thumbnails and have a thumbnail URL, append &size=large
       // Otherwise use the URL as-is (defaults to small)
       if (this.thumbnailUrl && this.showLargeIcon) {
-        newSrc = this.thumbnailUrl + "&size=large";
+        newSrc = `${this.thumbnailUrl}&size=large`;
       }
 
       if (this.imageTargetSrc !== newSrc) {
@@ -422,10 +419,8 @@ export default {
   mounted() {
     const result = this.getIconForType();
     this.classes = result.classes || "material-symbols";
-    // @ts-ignore
     this.color = result.color || "lightgray";
     this.materialSymbol = result.materialSymbol || "";
-    // @ts-ignore
     this.svgPath = result.svgPath || "";
     this.updateImageTargetSrc();
   },

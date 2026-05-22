@@ -1,11 +1,11 @@
-import { test, expect, checkForNotification } from '../test-setup'
+import { checkForNotification, expect, test } from '../test-setup'
 
-test("adjusting theme colors", async({ page, checkForErrors, context }) => {
+test("adjusting theme colors", async({ page, checkForErrors }) => {
   await page.goto("/files/");
   const originalPrimaryColor = await page.evaluate(() => {
     return getComputedStyle(document.documentElement).getPropertyValue('--primaryColor').trim();
   });
-  await expect(originalPrimaryColor).toBe('#2196f3');
+  expect(originalPrimaryColor).toBe('#2196f3');
 
   // Verify the page title
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
@@ -17,12 +17,12 @@ test("adjusting theme colors", async({ page, checkForErrors, context }) => {
   const newPrimaryColor = await page.evaluate(() => {
     return getComputedStyle(document.documentElement).getPropertyValue('--primaryColor').trim();
   });
-  await expect(newPrimaryColor).toBe('#9b59b6');
+  expect(newPrimaryColor).toBe('#9b59b6');
   // Check for console errors
   checkForErrors();
 });
 
-test("choose custom theme", async({ page, checkForErrors, context }) => {
+test("choose custom theme", async({ page, checkForErrors }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await page.locator('i[aria-label="settings"]').click();
@@ -35,7 +35,7 @@ test("choose custom theme", async({ page, checkForErrors, context }) => {
   checkForErrors();
 });
 
-test("view config", async({ page, checkForErrors, context }) => {
+test("view config", async({ page, checkForErrors }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await page.locator('i[aria-label="settings"]').click();

@@ -1,7 +1,6 @@
-import { test, expect } from "../test-setup";
+import { expect, test } from "../test-setup";
 
-
-test("info from listing - archive item", async({ page, checkForErrors, context }) => {
+test("info from listing - archive item", async({ page, checkForErrors }) => {
     await page.goto("/files/");
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
     await page.locator('a[aria-label="file.tar.gz"]').waitFor({ state: 'visible' });
@@ -20,7 +19,7 @@ test("info from listing - archive item", async({ page, checkForErrors, context }
     checkForErrors();
 });
 
-test("info from listing - regular item", async({ page, checkForErrors, context }) => {
+test("info from listing - regular item", async({ page, checkForErrors }) => {
     await page.goto("/files/");
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
     await page.locator('a[aria-label="1.1MB.bin"]').waitFor({ state: 'visible' });
@@ -39,7 +38,7 @@ test("info from listing - regular item", async({ page, checkForErrors, context }
     checkForErrors();
 });
 
-test("context menu is shown on sizeAnalyzer tool", async({ page, checkForErrors, context }) => {
+test("context menu is shown on sizeAnalyzer tool", async({ page, checkForErrors }) => {
     await page.goto("/tools/sizeViewer");
     await expect(page).toHaveTitle("Graham's Filebrowser - Tools");
     await page.locator('input[aria-label="Larger than size input"]').fill('1');
@@ -64,7 +63,7 @@ test("context menu is shown on sizeAnalyzer tool", async({ page, checkForErrors,
     checkForErrors();
 });
 
-test("context menu is shown on duplicateFinder tool", async({ page, checkForErrors, context }) => {
+test("context menu is shown on duplicateFinder tool", async({ page, checkForErrors }) => {
     await page.goto("/tools/duplicateFinder");
     await expect(page).toHaveTitle("Graham's Filebrowser - Tools");
     await page.locator('input[aria-label="Minimum size input"]').fill('1');
@@ -89,7 +88,7 @@ test("context menu is shown on duplicateFinder tool", async({ page, checkForErro
     checkForErrors();
 });
 
-test("context menu is shown on quick jump", async({ page, checkForErrors, context }) => {
+test("context menu is shown on quick jump", async({ page, checkForErrors }) => {
     await page.goto("/files/");
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
     await page.locator('a[aria-label="1.1MB.bin"]').waitFor({ state: 'visible' });
@@ -102,8 +101,9 @@ test("context menu is shown on quick jump", async({ page, checkForErrors, contex
     await nextButton.waitFor({ state: "visible" });
     const box = await nextButton.boundingBox();
     expect(box).toBeTruthy();
-    const startX = box!.x + box!.width / 2;
-    const startY = box!.y + box!.height / 2;
+    if (!box) throw new Error('Bounding box not found');
+    const startX = box.x + box.width / 2;
+    const startY = box.y + box.height / 2;
     await page.mouse.move(startX, startY);
     await page.mouse.down();
     await page.mouse.move(startX - 200, startY);

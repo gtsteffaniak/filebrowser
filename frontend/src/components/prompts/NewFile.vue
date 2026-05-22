@@ -13,11 +13,19 @@
   </div>
 
   <div class="card-actions">
-    <button class="button button--flat button--grey" @click="closeTopPrompt" :aria-label="$t('general.cancel')"
-      :title="$t('general.cancel')">
+    <button
+      type="button"
+      class="button button--flat button--grey"
+      @click="closeTopPrompt"
+      :aria-label="$t('general.cancel')"
+      :title="$t('general.cancel')"
+    >
       {{ $t("general.cancel") }}
     </button>
-    <button class="button button--flat" @click="submit" :aria-label="$t('general.create')"
+    <button
+      type="button"
+      class="button button--flat"
+      @click="submit" :aria-label="$t('general.create')"
       :title="$t('general.create')">
       {{ $t("general.create") }}
     </button>
@@ -181,15 +189,13 @@ export default {
                       this.showNotification(source, newPath);
                     } catch (renameError) {
                       if (renameError.message === "conflict") {
-                        // Continue to next iteration
-                        continue;
                       } else {
                         throw renameError;
                       }
                     }
                   }
                   if (!success) {
-                    throw new Error("Could not find a unique name after " + maxAttempts + " attempts");
+                    throw new Error(`Could not find a unique name after ${maxAttempts} attempts`);
                   }
                 }
               } catch (retryError) {

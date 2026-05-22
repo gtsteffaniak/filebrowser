@@ -1,5 +1,6 @@
-import { test, expect } from "../test-setup";
-import { Page, Locator } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
+import { expect, test } from "../test-setup";
+
 
 /** Users tab uses SettingsTable (no `tr.item`); scoped to `.settings-table` body rows only. */
 function userRowInSettingsUsersTable(page: Page, usernameText: string): Locator {

@@ -117,15 +117,12 @@ export default {
       return "arrow_upward";
     },
     quickDownloadEnabled() {
-      // @ts-ignore
       if (state.isMobile) {
         return false
       }
       if (getters.isShare()) {
-        // @ts-ignore
         return state.shareInfo?.quickDownload;
       }
-      // @ts-ignore
       return state.user?.quickDownload && !this.galleryView;
     },
   },
@@ -159,7 +156,6 @@ export default {
   box-sizing: border-box;
   border-top-left-radius: 1em;
   border-top-right-radius: 1em;
-  border: unset;
   margin-bottom: 0 !important;
   justify-content: space-between;
 }

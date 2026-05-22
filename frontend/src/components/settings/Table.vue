@@ -246,7 +246,7 @@ export default {
     },
 
     isSortEnabled(column) {
-      return Boolean(column && column.key && column.sortable === true);
+      return Boolean(column?.key && column.sortable === true);
     },
 
     ariaSortState(column) {
@@ -277,7 +277,7 @@ export default {
     },
 
     alignClass(column) {
-      const a = column && column.align;
+      const a = column?.align;
       if (!a || a === "left") {
         return "settings-table__align-left";
       }

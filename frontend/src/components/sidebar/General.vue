@@ -12,7 +12,7 @@
       </div>
       <div v-else-if="user.username === 'anonymous' && shouldShowLogin" @click="navigateToLogin"
         class="inner-card user-card__profile">
-        <button class="person-button action button" aria-label="Login">
+        <button type="button" class="person-button action button" aria-label="Login">
           <i class="material-symbols-outlined">login</i> {{ $t("general.login") }}
         </button>
       </div>
@@ -24,7 +24,7 @@
       </div>
 
       <div class="inner-card" v-if="canLogout" @click="logout">
-        <button aria-label="logout-button" class="logout-button action button"
+        <button type="button" aria-label="logout-button" class="logout-button action button"
           @mouseenter="showTooltip($event, $t('general.logout'))" @mouseleave="hideTooltip">
           <i class="material-symbols">exit_to_app</i>
         </button>
@@ -53,7 +53,7 @@
     <transition v-if="shareInfo.shareType !== 'upload'" name="expand" @before-enter="beforeEnter" @enter="enter"
       @leave="leave">
       <div v-if="!hideSidebarFileActions && isListingView" class="card-wrapper">
-        <button @click="openContextMenu" aria-label="File-Actions" data-testid="file-actions-button" class="action file-actions">
+        <button type="button" @click="openContextMenu" aria-label="File-Actions" data-testid="file-actions-button" class="action file-actions">
           <i class="material-symbols">add</i>
           {{ $t("sidebar.fileActions") }}
         </button>
@@ -98,7 +98,7 @@ export default {
     },
     hasCreateOptions() {
       if (getters.isShare()) {
-        return state.shareInfo?.allowCreate == true
+        return state.shareInfo?.allowCreate === true
       }
       return state.user?.permissions?.create || state.user?.permissions?.share || state.user?.permissions?.admin;
     },
@@ -112,18 +112,18 @@ export default {
     isStickySidebar: () => getters.isStickySidebar(),
     isMobile: () => getters.isMobile(),
     isInvalidShare: () => getters.isInvalidShare(),
-    isListingView: () => getters.currentView() == "listingView",
+    isListingView: () => getters.currentView() === "listingView",
     user: () => (state.user || {username: 'anonymous'}),
     isShare: () => getters.isShare(),
     active: () => getters.isSidebarVisible(),
     canLogout: () => !globalVars.noAuth && state.user?.username !== 'anonymous',
     route: () => state.route,
     realtimeActive: () => state.realtimeActive,
-    darkModeTogglePossible: () => state.shareInfo?.enforceDarkLightMode != "dark" && state.shareInfo?.enforceDarkLightMode != "light",
+    darkModeTogglePossible: () => state.shareInfo?.enforceDarkLightMode !== "dark" && state.shareInfo?.enforceDarkLightMode !== "light",
     shouldShowLogin() {
       if (getters.isShare()) {
         // Don't show login until shareInfo is fully loaded
-        if (state.shareInfo && state.shareInfo?.disableLoginOption) {
+        if (state.shareInfo?.disableLoginOption) {
           return false;
         }
       }
@@ -207,7 +207,7 @@ export default {
     enter(el, done) {
       requestAnimationFrame(() => {
         el.style.transition = 'max-height 0.2s ease, opacity 0.15s ease';
-        el.style.maxHeight = el.scrollHeight + 'px';
+        el.style.maxHeight = `${el.scrollHeight}px`;
         el.style.opacity = '1';
         const onTransitionEnd = () => {
           el.style.maxHeight = '';
@@ -219,7 +219,7 @@ export default {
     },
     leave(el, done) {
       requestAnimationFrame(() => {
-        el.style.maxHeight = el.scrollHeight + 'px';
+        el.style.maxHeight = `${el.scrollHeight}px`;
         el.offsetHeight;
         el.style.maxHeight = '0';
         el.style.opacity = '0';

@@ -1,6 +1,7 @@
-import { globalVars } from "@/utils/constants.js";
-import { state, mutations, getters } from "@/store";
 import { router } from "@/router";
+import { getters, mutations, state } from "@/store";
+import { globalVars } from "@/utils/constants.js";
+
 export default {
   pathsMatch,
   removeTrailingSlash,
@@ -53,7 +54,7 @@ export function encodePath(str) {
 
 
 export function pathsMatch(url1, url2) {
-  return removeTrailingSlash(url1) == removeTrailingSlash(url2);
+  return removeTrailingSlash(url1) === removeTrailingSlash(url2);
 }
 
 export function removePrefix(path, prefix = "") {
@@ -61,7 +62,7 @@ export function removePrefix(path, prefix = "") {
     return ""
   }
   path = removeLeadingSlash(path)
-  if (prefix != "") {
+  if (prefix !== "") {
     prefix = trimSlashes(prefix)
   }
   // Remove combined (globalVars.baseURL + prefix) from the start of the path if present
@@ -71,7 +72,7 @@ export function removePrefix(path, prefix = "") {
 
   // Ensure path starts with '/'
   if (!path.startsWith('/')) {
-    path = '/' + path;
+    path = `/${path}`;
   }
   return path;
 }
@@ -159,7 +160,7 @@ export function joinPath(basePath, ...segments) {
   let result = basePath.replace(/\/$/, '');
   for (const segment of segments) {
     if (segment) {
-      result += '/' + segment.replace(/^\/+/, '');
+      result += `/${segment.replace(/^\/+/, '')}`;
     }
   }
   return result;
@@ -171,11 +172,9 @@ export function base64Encode(str) {
 
 // expect url to include /files/ prefix
 export function extractSourceFromPath(url) {
-  let source;
   let path = url;
-  source = path.split('/')[2];
+  const source = path.split('/')[2];
   path = removePrefix(path, `/files/${source}`);
-
   return { source, path };
 }
 
@@ -191,7 +190,7 @@ export function buildItemUrl(source, path, includeBaseURL = false) {
   if (includeBaseURL) {
     return `${globalVars.baseURL}${urlPath}`;
   }
-  return "/" + urlPath;
+  return `/${urlPath}`;
 }
 
 export function encodedPath(path) {
@@ -213,7 +212,7 @@ export function goToItem(source, path, previousHistoryItem, newTab = false, isSh
     mutations.setPreviousHistoryItem(previousHistoryItem);
   }
   mutations.resetAll()
-  let newPath = encodedPath(path);
+  const newPath = encodedPath(path);
   let fullPath;
   if (isShare) {
     fullPath = `/public/share/${encodeURIComponent(source)}${newPath}`;

@@ -8,7 +8,7 @@
         aria-label="Navigate Home"
         @click="goHome()" class="material-symbols action">home</i>
       <!-- Mode button (is the title) -->
-      <button @click="cycleMode" class="mode-toggle" @mouseenter="showTooltip($event, $t('sidebar.switchMode'))" @mouseleave="hideTooltip">
+      <button type="button" @click="cycleMode" class="mode-toggle" @mouseenter="showTooltip($event, $t('sidebar.switchMode'))" @mouseleave="hideTooltip">
         {{ mode === 'links' ? $t('general.links') : $t('general.navigation') }}
       </button>
       <i v-if="isShare" aria-label="Edit Share" @mouseenter="showTooltip($event, editShareText)" @mouseleave="hideTooltip"
@@ -49,13 +49,13 @@
               }" @click.prevent="handleLinkClick(link)" :aria-label="link.name">
               <div class="source-container" :class="{ 'has-usage-info': hasUsageInfo(link) }">
                 <!-- Show custom icon if user has set one -->
-                <i v-if="link.icon" :class="getIconClass(link.icon) + ' link-icon'">{{ link.icon }}</i>
+                <i v-if="link.icon" :class="`${getIconClass(link.icon)} link-icon`">{{ link.icon }}</i>
                 <!-- Otherwise show animated status indicator -->
                 <svg v-else-if="isLinkAccessible(link)" class="realtime-pulse" :class="{
                   active: realtimeActive,
-                  danger: (sourceInfo[link.sourceName] || {}).status != 'indexing' && (sourceInfo[link.sourceName] || {}).status != 'ready',
-                  warning: (sourceInfo[link.sourceName] || {}).status == 'indexing',
-                  ready: (sourceInfo[link.sourceName] || {}).status == 'ready',
+                  danger: sourceInfo[link.sourceName]?.status !== 'indexing' && sourceInfo[link.sourceName]?.status !== 'ready',
+                  warning: sourceInfo[link.sourceName]?.status === 'indexing',
+                  ready: sourceInfo[link.sourceName]?.status === 'ready',
                 }">
                   <circle class="center" cx="50%" cy="50%" r="7px"></circle>
                   <circle class="pulse" cx="50%" cy="50%" r="10px"></circle>
@@ -77,10 +77,10 @@
                 <ProgressBar 
                   v-if="link.category === 'source-hybrid' || link.category === 'source-hybrid-2'"
                   :key="`progress-hybrid-${link.sourceName}-${sourceInfo[link.sourceName]?.used || 0}-${sourceInfo[link.sourceName]?.usedAlt || 0}-${sourceInfo[link.sourceName]?.total || 0}`"
-                  :val="(sourceInfo[link.sourceName] || {}).used || 0"
-                  :val-background="(sourceInfo[link.sourceName] || {}).usedAlt || 0"
-                  :val-text="link.category === 'source-hybrid-2' ? ((sourceInfo[link.sourceName] || {}).usedAlt || 0) : null"
-                  :max="(sourceInfo[link.sourceName] || {}).total || 1" 
+                  :val="sourceInfo[link.sourceName]?.used || 0"
+                  :val-background="sourceInfo[link.sourceName]?.usedAlt || 0"
+                  :val-text="link.category === 'source-hybrid-2' ? (sourceInfo[link.sourceName]?.usedAlt || 0) : null"
+                  :max="sourceInfo[link.sourceName]?.total || 1" 
                   :status="getProgressBarStatus(sourceInfo[link.sourceName] || {})"
                   unit="bytes">
                 </ProgressBar>
@@ -89,7 +89,7 @@
                   v-else
                   :key="`progress-${link.sourceName}-${sourceInfo[link.sourceName]?.used || 0}-${sourceInfo[link.sourceName]?.usedAlt || 0}-${sourceInfo[link.sourceName]?.total || 0}`"
                   :val="getProgressBarValue(link, sourceInfo[link.sourceName] || {})" 
-                  :max="(sourceInfo[link.sourceName] || {}).total || 1" 
+                  :max="sourceInfo[link.sourceName]?.total || 1" 
                   :status="getProgressBarStatus(sourceInfo[link.sourceName] || {})"
                   unit="bytes">
                 </ProgressBar>
@@ -100,7 +100,7 @@
             <a v-else :aria-label="link.name" :href="getLinkHref(link)" class="action button sidebar-link-button"
               :class="{ active: isLinkActive(link) }" @click.prevent="handleLinkClick(link)">
               <div  class="link-container">
-                <i v-if="link.icon" :class="getIconClass(link.icon) + ' link-icon'">{{ link.icon }}</i>
+                <i v-if="link.icon" :class="`${getIconClass(link.icon)} link-icon`">{{ link.icon }}</i>
                 <span>{{ link.name }}</span>
               </div>
             </a>
@@ -117,16 +117,16 @@
                @click="navigateToSource(activeSource)" role="button" tabindex="0">
             <div class="source-container" :class="{ 'has-usage-info': hasUsageInfo(activeSourceLink) }">
               <i v-if="activeSourceLink.icon && isLinkAccessible(activeSourceLink)"
-                 :class="getIconClass(activeSourceLink.icon) + ' link-icon'">
+                 :class="`${getIconClass(activeSourceLink.icon)} link-icon`">
                 {{ activeSourceLink.icon }}
               </i>
               <svg v-else-if="isLinkAccessible(activeSourceLink)"
                    class="realtime-pulse"
                    :class="{
                      active: realtimeActive,
-                     danger: activeSourceInfo.status != 'indexing' && activeSourceInfo.status != 'ready',
-                     warning: activeSourceInfo.status == 'indexing',
-                     ready: activeSourceInfo.status == 'ready',
+                     danger: activeSourceInfo.status !== 'indexing' && activeSourceInfo.status !== 'ready',
+                     warning: activeSourceInfo.status === 'indexing',
+                     ready: activeSourceInfo.status === 'ready',
                    }">
                 <circle class="center" cx="50%" cy="50%" r="7px"></circle>
                 <circle class="pulse" cx="50%" cy="50%" r="10px"></circle>
@@ -145,7 +145,7 @@
                 info
               </i>
               <!-- Dropdown arrow -->
-              <button class="source-dropdown-button" @click.stop="toggleSourceDropdown" ref="dropdownTrigger">
+              <button type="button" class="source-dropdown-button" @click.stop="toggleSourceDropdown" ref="dropdownTrigger">
                 <i class="material-symbols">keyboard_arrow_down</i>
               </button>
             </div>
@@ -425,7 +425,7 @@ export default {
       return this.sourceInfo && link.sourceName ? this.sourceInfo[link.sourceName] || {} : {};
     },
     getProgressBarStatus(sourceInfo) {
-      if (sourceInfo.status === 'indexing' && sourceInfo.complexity == 0) {
+      if (sourceInfo.status === 'indexing' && sourceInfo.complexity === 0) {
         return 'indexing';
       }
       return 'default';
@@ -492,7 +492,7 @@ export default {
               token: state.shareInfo.token,
               inline: false,
             }, [state.req.path]);
-            window.open(downloadLink + "&format=" + format, "_blank");
+            window.open(`${downloadLink}&format=${format}`, "_blank");
           },
         });
       } else {
@@ -534,7 +534,7 @@ export default {
       // Force reflow
       void el.offsetHeight;
       el.style.transition = 'height 0.3s, opacity 0.3s';
-      el.style.height = el.scrollHeight + 'px';
+      el.style.height = `${el.scrollHeight}px`;
       el.style.opacity = '1';
       setTimeout(() => {
         el.style.height = 'auto';
@@ -543,7 +543,7 @@ export default {
     },
     leave(el, done) {
       el.style.transition = 'height 0.3s, opacity 0.3s';
-      el.style.height = el.scrollHeight + 'px';
+      el.style.height = `${el.scrollHeight}px`;
       void el.offsetHeight;
       el.style.height = '0';
       el.style.opacity = '0';

@@ -23,7 +23,7 @@
 import Breadcrumbs from "@/components/files/Breadcrumbs.vue";
 import ListingHeader from "@/components/files/ListingHeader.vue";
 import DuplicateFinderActions from "@/components/tools/DuplicateFinderActions.vue";
-import { state, getters } from "@/store";
+import { getters, state } from "@/store";
 import { eventBus } from "@/store/eventBus";
 
 export default {
@@ -88,7 +88,7 @@ export default {
     moveWithSidebar() {
       if (getters.isStickySidebar() && getters.isSidebarVisible()) {
         return {
-          left: state.sidebar.width + 'em',
+          left: `${state.sidebar.width}em`,
         };
       }
       return {};

@@ -8,7 +8,7 @@
       <div v-if="!pathExists && !isEditingPath" class="warning-banner">
         <i class="material-symbols">warning</i>
         <span>{{ $t("messages.pathNotFoundMessage") }}</span>
-        <button class="button button--flat button--blue" @click="startPathReassignment">
+        <button type="button" class="button button--flat button--blue" @click="startPathReassignment">
           {{ $t("messages.reassignPath") }}
         </button>
       </div>
@@ -55,7 +55,7 @@
         <datalist id="group-suggestions">
           <option v-for="group in groups" :key="group" :value="group"></option>
         </datalist>
-        <button class="button form-button flat-left form-compact" @click="submitAdd">
+        <button type="button" class="button form-button flat-left form-compact" @click="submitAdd">
           <i class="material-symbols">add</i>
         </button>
       </div>
@@ -73,13 +73,13 @@
             <th>{{ $t("general.name", { suffix: '' }) }}</th>
             <th>{{ $t("general.edit") }}</th>
           </tr>
-          <tr v-for="entry in entries" :key="entry.type + '-' + entry.name">
+          <tr v-for="entry in entries" :key="`${entry.type}-${entry.name}`">
             <td>{{ entry.allow ? $t("access.allow") : $t("access.deny") }}</td>
             <td>{{ entry.type === 'user' ? $t("general.user") : (entry.type === 'group' ? $t("general.group") :
               $t('access.all')) }}</td>
             <td>{{ entry.name }}</td>
             <td>
-              <button @click="deleteAccess(entry)" class="action" :aria-label="$t('general.delete')"
+              <button type="button" @click="deleteAccess(entry)" class="action" :aria-label="$t('general.delete')"
                 :title="$t('general.delete')">
                 <i class="material-symbols">delete</i>
               </button>
@@ -92,10 +92,10 @@
   </div>
   <div class="card-actions">
     <template v-if="isEditingPath">
-      <button class="button button--flat" @click="cancelPathChange" :aria-label="$t('general.cancel')" :title="$t('general.cancel')">
+      <button type="button" class="button button--flat" @click="cancelPathChange" :aria-label="$t('general.cancel')" :title="$t('general.cancel')">
         {{ $t("general.cancel") }}
       </button>
-      <button class="button button--flat" @click="confirmPathChange" :aria-label="$t('general.ok')" :title="$t('general.ok')">
+      <button type="button" class="button button--flat" @click="confirmPathChange" :aria-label="$t('general.ok')" :title="$t('general.ok')">
         {{ $t("general.ok") }}
       </button>
     </template>
@@ -187,7 +187,7 @@ export default {
      * @param {{path: string, source: string}} pathOrData
      */
     updateTempPath(pathOrData) {
-      if (pathOrData && pathOrData.path) {
+      if (pathOrData?.path) {
         this.tempPath = pathOrData.path;
         this.tempSource = pathOrData.source;
       }
@@ -231,7 +231,7 @@ export default {
       try {
         const response = await accessApi.getGroups();
         this.groups = response.groups;
-      } catch (e) {
+      } catch (_e) {
         this.groups = [];
       }
     },
@@ -243,7 +243,7 @@ export default {
         this.rule = response;
         this.sourceDenyDefault = response.sourceDenyDefault || false;
         this.pathExists = response.pathExists !== false;
-      } catch (e) {
+      } catch (_e) {
         this.rule = { denyAll: false, deny: { users: [], groups: [] }, allow: { users: [], groups: [] } };
         this.sourceDenyDefault = false;
         this.pathExists = true;

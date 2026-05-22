@@ -35,13 +35,13 @@
 </template>
 
 <script>
-import { state, mutations, getters } from '@/store';
-import throttle from "@/utils/throttle";
-import { notify } from "@/notify";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import { notify } from "@/notify";
+import { getters, mutations, state } from '@/store';
+import { globalVars } from "@/utils/constants";
 import { getBestCachedImage } from "@/utils/imageCache";
 import { isRawImageMimeType } from "@/utils/mimetype";
-import { globalVars } from "@/utils/constants";
+import throttle from "@/utils/throttle";
 
 export default {
   components: {
@@ -175,7 +175,9 @@ export default {
     }
     
     let container = this.$refs.container;
-    this.classList.forEach((className) => container.classList.add(className));
+    this.classList.forEach((className) => {
+      container.classList.add(className);
+    });
     if (getComputedStyle(container).width === "0px") {
       container.style.width = "100%";
     }
@@ -251,7 +253,7 @@ export default {
       const actualSrc = img?.src || '';
       
       // If the error is due to &amp; in URL, try to fix it
-      if (actualSrc && actualSrc.includes('&amp;')) {
+      if (actualSrc?.includes('&amp;')) {
         const fixedSrc = actualSrc.replace(/&amp;/g, '&');
         if (img) {
           img.src = fixedSrc;
@@ -284,7 +286,7 @@ export default {
           imgex.src = URL.createObjectURL(blob);
           imgex.onload = () => URL.revokeObjectURL(imgex.src);
         }
-      } catch (error) {
+      } catch (_e) {
         notify.showError("Error decoding TIFF");
       }
     },
@@ -537,7 +539,7 @@ export default {
     setCenter() {
       const container = this.$refs.container;
       const img = this.$refs.imgex;
-      if (!container || !img || !img.clientWidth || !img.clientHeight) {
+      if (!container || !img?.clientWidth || !img?.clientHeight) {
         return;
       }
       this.position.relative = { x: 0, y: 0 };
@@ -620,7 +622,6 @@ export default {
           this.scale = 4;
           break;
         default:
-        case 4:
           this.scale = 1;
           this.setCenter();
           break;
@@ -655,7 +656,7 @@ export default {
         let p1 = event.targetTouches[0];
         let p2 = event.targetTouches[1];
         let touchDistance = Math.sqrt(
-          Math.pow(p2.pageX - p1.pageX, 2) + Math.pow(p2.pageY - p1.pageY, 2)
+          (p2.pageX - p1.pageX) ** 2 + (p2.pageY - p1.pageY) ** 2
         );
         if (!this.lastTouchDistance) {
           this.lastTouchDistance = touchDistance;

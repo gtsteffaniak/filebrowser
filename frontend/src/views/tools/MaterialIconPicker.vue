@@ -16,7 +16,12 @@
         <i class="material-symbols search-icon">search</i>
         <input v-model="searchQuery" type="text" :placeholder="$t('tools.materialIconPicker.searchPlaceholder')"
           class="input" style="padding-left: 2.5em;" />
-        <button v-if="searchQuery" @click="searchQuery = ''" class="button button--flat clear-button">
+        <button
+          type="button"
+          v-if="searchQuery"
+          @click="searchQuery = ''"
+          class="button button--flat clear-button"
+        >
           <i class="material-symbols">close</i>
         </button>
       </div>
@@ -76,7 +81,7 @@ export default {
     };
   },
   mounted() {
-    document.title = globalVars.name + " - " + this.$t('tools.title') + " - " + this.$t('tools.materialIconPicker.name');
+    document.title = `${globalVars.name} - ${this.$t('tools.title')} - ${this.$t('tools.materialIconPicker.name')}`;
   },
   computed: {
     materialSymbols() {

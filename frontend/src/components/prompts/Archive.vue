@@ -56,6 +56,7 @@
   <div class="card-actions">
     <template v-if="showFileList">
       <button
+        type="button"
         class="button button--flat button--grey"
         @click="showFileList = false"
         :aria-label="$t('general.cancel')"
@@ -64,6 +65,7 @@
         {{ $t("general.cancel") }}
       </button>
       <button
+        type="button"
         class="button button--flat"
         @click="showFileList = false"
         :aria-label="$t('general.select', { suffix: '' })"
@@ -74,6 +76,7 @@
     </template>
     <template v-else>
       <button
+        type="button"
         class="button button--flat button--grey"
         @click="closeTopPrompt"
         :aria-label="$t('general.cancel')"
@@ -82,6 +85,7 @@
         {{ $t("general.cancel") }}
       </button>
       <button
+        type="button"
         class="button button--flat"
         :disabled="!canSubmit || creating"
         :aria-label="$t('prompts.archive')"
@@ -129,7 +133,7 @@ export default {
       compression: 0,
       creating: false,
       showFileList: false,
-      deleteAfter: state.user?.deleteAfterArchive == true,
+      deleteAfter: state.user?.deleteAfterArchive === true,
     };
   },
   watch: {
@@ -140,7 +144,7 @@ export default {
   mounted() {
     if (this.currentPath) {
       this.destPath = this.currentPath.replace(/\/+$/, "") || "/";
-      if (!this.destPath.startsWith("/")) this.destPath = "/" + this.destPath;
+      if (!this.destPath.startsWith("/")) this.destPath = `/${this.destPath}`;
     }
   },
   computed: {
@@ -154,7 +158,7 @@ export default {
     fullDestination() {
       const name = this.archiveName || this.defaultArchiveName;
       const base = (this.destPath || "/").replace(/\/+$/, "");
-      const path = base === "" ? "/" + name : base + "/" + name;
+      const path = base === "" ? `/${name}` : `${base}/${name}`;
       return path.replace(/\/+/g, "/");
     },
   },
@@ -165,7 +169,7 @@ export default {
     updateDestination(pathOrData) {
       if (typeof pathOrData === "string") {
         this.destPath = pathOrData;
-      } else if (pathOrData && pathOrData.path) {
+      } else if (pathOrData?.path) {
         this.destPath = pathOrData.path;
         this.destSource = pathOrData.source;
       }

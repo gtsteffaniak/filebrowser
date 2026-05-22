@@ -76,7 +76,7 @@ export function getTypeInfo(mimeType) {
         };
     }
 
-    if (mimeType == "file_download") {
+    if (mimeType === "file_download") {
         return {
             classes: "material-symbols",
             materialSymbol: "file_download",
