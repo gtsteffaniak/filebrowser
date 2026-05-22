@@ -635,7 +635,7 @@ func (s *Scanner) checkFolderModtime(folderPath string) (bool, error) {
 		}
 
 		// Update metadata (will be batched)
-		s.idx.UpdateMetadata(dirInfo, s)
+		s.idx.UpdateMetadata(dirInfo, s, true)
 
 		// Track this directory as having been updated (for file purge logic)
 		s.idx.mu.Lock()
@@ -650,10 +650,16 @@ func (s *Scanner) checkFolderModtime(folderPath string) (bool, error) {
 
 	// Modtime unchanged - update last_updated to prevent folder from being purged
 	// Note: we DON'T add this folder to scanUpdatedPaths, so Phase 2 won't check its files
-	// Use cached aggregate size: BulkInsertItems overwrites DB size;0 would corrupt LoadFolderSizes on restart.
+	// BulkInsertItems overwrites all columns — preserve size/hasPreview/hidden from cache/DB, not hardcoded defaults.
 	var sizeForDB int64
 	if cached, ok := s.idx.GetFolderSize(folderPath); ok {
 		sizeForDB = int64(cached)
+	}
+	hasPreview := false
+	hidden := IsHidden(realPath)
+	if existing, ok := s.idx.GetReducedMetadata(folderPath, true); ok && existing != nil {
+		hasPreview = existing.HasPreview
+		hidden = existing.Hidden
 	}
 	fileInfo := &iteminfo.FileInfo{
 		Path: folderPath,
@@ -662,8 +668,8 @@ func (s *Scanner) checkFolderModtime(folderPath string) (bool, error) {
 			Size:       sizeForDB,
 			ModTime:    info.ModTime(),
 			Type:       "directory",
-			Hidden:     false,
-			HasPreview: false,
+			Hidden:     hidden,
+			HasPreview: hasPreview,
 		},
 	}
 

@@ -624,7 +624,7 @@ func (idx *Index) indexDirectory(indexPath string, opts Options, scanner *Scanne
 	if err2 != nil {
 		return 0, false, err2
 	}
-	idx.UpdateMetadata(dirFileInfo, scanner)
+	idx.UpdateMetadata(dirFileInfo, scanner, !opts.Recursive)
 
 	// Always store the calculated directory size in the in-memory map
 	// This ensures parent directories are updated after copy/move operations

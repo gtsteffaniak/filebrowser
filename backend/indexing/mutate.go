@@ -13,57 +13,35 @@ import (
 )
 
 // UpdateMetadata persists a completed directory listing to the index. The directory row's has_preview
-// scanner is optional — if nil (API refresh), inserts run immediately; otherwise items batch until flush.
-func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo, scanner *Scanner) bool {
+// reflects direct previewable children only (see GetDirInfoCore).
+func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo, scanner *Scanner, persistListedFolders bool) bool {
 	items := make([]*iteminfo.FileInfo, 0, len(info.Files)+len(info.Folders)+1)
 	dirItem := *info
 	items = append(items, &dirItem)
 
-	// Check if we're in a batch scan (scanner provided)
 	isBatchScan := scanner != nil
+	includeListedFolders := !isBatchScan || persistListedFolders
 
-	if isBatchScan {
-		// During recursive scans: only insert directory itself and direct files
-		// Subdirectories will be inserted by their own recursive indexDirectory call
-		// This avoids redundant inserts and maintains the in-memory size calculation pattern
-		for i := range info.Files {
-			f := &info.Files[i]
-			// Construct index path for the file
-			filePath := strings.TrimRight(info.Path, "/") + "/" + f.Name
-
-			fileItem := &iteminfo.FileInfo{
-				ItemInfo: f.ItemInfo,
-				Path:     filePath, // Store index path, not absolute path
-			}
-			items = append(items, fileItem)
-		}
-	} else {
-		// Not in batch scan (e.g., API-triggered updates): insert everything
-		// Add folders to the bulk insert with index paths
+	if includeListedFolders {
 		for i := range info.Folders {
 			folder := &info.Folders[i]
-			// Construct index path for the folder (with trailing slash)
 			folderPath := strings.TrimRight(info.Path, "/") + "/" + folder.Name + "/"
-
 			folderItem := &iteminfo.FileInfo{
 				ItemInfo: *folder,
-				Path:     folderPath, // Store index path with trailing slash
+				Path:     folderPath,
 			}
 			items = append(items, folderItem)
 		}
+	}
 
-		// Add files to the bulk insert with index paths
-		for i := range info.Files {
-			f := &info.Files[i]
-			// Construct index path for the file
-			filePath := strings.TrimRight(info.Path, "/") + "/" + f.Name
-
-			fileItem := &iteminfo.FileInfo{
-				ItemInfo: f.ItemInfo,
-				Path:     filePath, // Store index path, not absolute path
-			}
-			items = append(items, fileItem)
+	for i := range info.Files {
+		f := &info.Files[i]
+		filePath := strings.TrimRight(info.Path, "/") + "/" + f.Name
+		fileItem := &iteminfo.FileInfo{
+			ItemInfo: f.ItemInfo,
+			Path:     filePath,
 		}
+		items = append(items, fileItem)
 	}
 
 	// Use scanner-specific batch if available
