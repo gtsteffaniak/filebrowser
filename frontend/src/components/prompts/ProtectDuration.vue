@@ -30,15 +30,11 @@
     </button>
     <button
       class="button button--flat"
-      :disabled="!validHours || loading"
+      :disabled="!validHours"
       @click="submit"
       :aria-label="$t('buttons.protect')"
     >
-      <span v-if="loading" class="protect-loading-btn">
-        <i class="material-icons spin">sync</i>
-        {{ $t("prompts.protectUploading") }}
-      </span>
-      <span v-else>{{ $t("buttons.protect") }}</span>
+      {{ $t("buttons.protect") }}
     </button>
   </div>
 </template>
@@ -63,7 +59,6 @@ export default {
   data() {
     return {
       hours: 24,
-      loading: false,
     };
   },
   computed: {
@@ -76,16 +71,20 @@ export default {
       mutations.closeHovers();
     },
     async submit() {
-      if (!this.validHours || this.loading) return;
-      this.loading = true;
+      if (!this.validHours) return;
+      mutations.closeHovers();
+      const toastId = notify.showToast("info", this.$t("prompts.protectUploading"), {
+        icon: "sync",
+        duration: 0,
+      });
       try {
         await chainfsApi.protectFile(this.source, this.item.path, this.hours);
+        notify.closeToast(toastId);
         notify.showSuccessToast(this.$t("buttons.protectSuccess"));
         mutations.setReload(true);
-        mutations.closeHovers();
       } catch (_) {
+        notify.closeToast(toastId);
         // error already shown by API layer
-        this.loading = false;
       }
     },
   },
@@ -107,21 +106,5 @@ export default {
 .protect-unit {
   color: var(--textSecondary, #888);
   font-size: 0.9em;
-}
-
-.protect-loading-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4em;
-}
-
-.spin {
-  animation: spin 1s linear infinite;
-  font-size: 1em;
-}
-
-@keyframes spin {
-  0%   { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
 }
 </style>

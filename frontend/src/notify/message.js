@@ -520,6 +520,8 @@ export function showToast(type, message, options = {}) {
       closeToast(toastId)
     }, duration)
   }
+
+  return toastId
 }
 
 /**
