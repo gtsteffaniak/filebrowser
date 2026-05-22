@@ -18,7 +18,7 @@ export interface ReqObject {
   source?: string;
   content?: string;
   modified?: string;
-  hasPreview?: string;
+  hasPreview?: boolean;
   subtitles?: any[];
 
   // Directory listing properties
