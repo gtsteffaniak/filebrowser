@@ -3,7 +3,7 @@ server:
   baseURL:  "/files/"
   logging:
     - levels: "info|error|warning|debug"
-      apiFilter: '.*'
+      apiFilter: 'disabled'
   sources:
     - path: "../frontend/tests/playwright-files"
       name: "exclude"
