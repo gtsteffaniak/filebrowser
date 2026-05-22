@@ -464,7 +464,9 @@ export default {
         if (state.sources.count > 1) {
           mutations.setCurrentSource(data.source);
         }
-        document.title = `${document.title} - ${res.name}`;
+        if (res.path && res.path !== '/') {
+          document.title = `${document.title} - ${res.name}`;
+        }
       } catch (e) {
         this.error = e;
         mutations.replaceRequest({});
