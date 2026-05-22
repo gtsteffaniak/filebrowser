@@ -47,7 +47,6 @@
       />
       <div v-if="isSafeBlurred" class="safemode-cover">
         <span class="material-icons safemode-shield-icon">shield</span><!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-        <span class="safemode-cover-label">SAFE</span><!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
       </div>
     </div>
 
@@ -740,25 +739,19 @@ export default {
   position: absolute;
   inset: 0;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #ffffff;
-  border-radius: 0.3em;
-  gap: 0.05em;
+  background: transparent;
   z-index: 1;
   pointer-events: none;
 }
 
 .safemode-shield-icon {
-  font-size: 1.6em;
+  /* Let listing.css cascade set font-size (2em list / 4em gallery) — same as every other icon */
   color: #1a73e8;
-}
-
-.safemode-cover-label {
-  font-size: 0.65em;
-  font-weight: 800;
-  letter-spacing: 0.15em;
-  color: #1a73e8;
+  background: var(--iconBackground, #1a3a6e);
+  border-radius: 0.2em;
+  padding: 0.1em;
+  vertical-align: bottom;
 }
 </style>

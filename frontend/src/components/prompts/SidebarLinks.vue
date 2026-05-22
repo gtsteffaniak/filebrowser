@@ -40,7 +40,7 @@
     <!-- Display options (user context only) -->
     <div v-if="!showAddForm && !isSelectingPath && context === 'user'" class="display-options-section">
       <label class="toggle-label">
-        <input type="checkbox" v-model="hideSidebarFolders" />
+        <input type="checkbox" v-model="hideFoldersInListing" />
         <span>{{ hideFoldersLabel }}</span>
       </label>
     </div>
@@ -257,7 +257,7 @@ export default {
         icon: "",
         sourceName: "",
       },
-      hideSidebarFolders: false,
+      hideFoldersInListing: false,
       draggingIndex: null,
       dragOverIndex: null,
       linkItemRefs: {},
@@ -292,7 +292,7 @@ export default {
         : this.$t('sidebar.customizeLinksDescription');
     },
     hideFoldersLabel() {
-      return 'Hide folder list in sidebar';
+      return 'Hide folders in main listing';
     },
     isNewLinkValid() {
       if (!this.newLink.category) return false;
@@ -328,7 +328,7 @@ export default {
       this.links = this.getDefaultLinks();
     }
     if (this.context === 'user') {
-      this.hideSidebarFolders = !!state.user?.hideSidebarFolders;
+      this.hideFoldersInListing = !!state.user?.hideFoldersInListing;
     }
 
     // Load available shares for share link type
@@ -711,14 +711,14 @@ export default {
             id: state.user.id,
             username: state.user.username,
             sidebarLinks: this.links,
-            hideSidebarFolders: this.hideSidebarFolders,
+            hideFoldersInListing: this.hideFoldersInListing,
           };
 
-          await usersApi.update(updatedUser, ['sidebarLinks', 'hideSidebarFolders']);
+          await usersApi.update(updatedUser, ['sidebarLinks', 'hideFoldersInListing']);
 
           // Update the local state
           state.user.sidebarLinks = [...this.links];
-          state.user.hideSidebarFolders = this.hideSidebarFolders;
+          state.user.hideFoldersInListing = this.hideFoldersInListing;
 
           notify.showSuccessToast(this.$t("sidebar.linksUpdatedSuccess"));
         }

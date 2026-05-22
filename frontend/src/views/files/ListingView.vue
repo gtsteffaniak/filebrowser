@@ -135,13 +135,13 @@
             </p>
           </div>
         </div>
-        <div v-if="numDirs > 0">
+        <div v-if="numDirs > 0 && !hideFoldersInListing">
           <div class="header-items">
             <h2>{{ $t("general.folders") }}</h2>
           </div>
         </div>
         <div
-          v-if="numDirs > 0"
+          v-if="numDirs > 0 && !hideFoldersInListing"
           class="folder-items"
           aria-label="Folder Items"
           :class="{ lastGroup: numFiles === 0 }"
@@ -415,6 +415,9 @@ export default {
     },
     dirs() {
       return this.items.dirs;
+    },
+    hideFoldersInListing() {
+      return !!state.user?.hideFoldersInListing;
     },
     files() {
       return this.items.files;

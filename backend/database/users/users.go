@@ -126,7 +126,7 @@ type NonAdminEditable struct {
 	OtpEnabled                 bool          `json:"otpEnabled"`                 // allow non-admin users to disable their own OTP
 	DefaultLandingPage         string        `json:"defaultLandingPage"`         // deprecated: determined by sidebar link order instead
 	SidebarLinks               []SidebarLink  `json:"sidebarLinks"`               // customizable sidebar links
-	HideSidebarFolders         bool           `json:"hideSidebarFolders"`         // hide the folder list in the sidebar
+	HideFoldersInListing       bool           `json:"hideFoldersInListing"`       // hide folder entries in the main file listing
 	SafeModeItems              []SafeModeItem `json:"safeModeItems,omitempty"`    // paths the user has put in SAFEMode
 }
 

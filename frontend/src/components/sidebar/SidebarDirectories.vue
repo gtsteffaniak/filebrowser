@@ -30,7 +30,7 @@ export default {
       return getters.reqItems().dirs || [];
     },
     show() {
-      return this.isListingView && this.dirs.length > 0 && !state.isSearchActive && !state.user?.hideSidebarFolders;
+      return this.isListingView && this.dirs.length > 0 && !state.isSearchActive;
     },
   },
   methods: {
