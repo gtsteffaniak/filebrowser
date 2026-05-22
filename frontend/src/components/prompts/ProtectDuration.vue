@@ -86,6 +86,8 @@ export default {
         notify.showSuccessToast(this.$t("buttons.protectSuccess"));
         mutations.setReload(true);
       } catch (_) {
+        const remaining = minEnd - Date.now();
+        if (remaining > 0) await new Promise((r) => setTimeout(r, remaining));
         notify.closeToast(toastId);
         // error already shown by API layer
       }

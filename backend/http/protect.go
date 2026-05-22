@@ -47,13 +47,14 @@ func protectHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		hours = parsed
 	}
 
-	// Require ChainFS login
-	if d.user.LoginMethod != users.LoginMethodChainFs || d.user.AzureAccessToken == "" {
+	// Require ChainFS login method (SSO users without an Azure token get local-only protection below)
+	if d.user.LoginMethod != users.LoginMethodChainFs {
 		return http.StatusForbidden, fmt.Errorf("ChainFS account required to protect files")
 	}
+	hasAzureToken := d.user.AzureAccessToken != ""
 
-	// Check token expiry
-	if d.user.AzureTokenExpiry > 0 && time.Now().Unix() > d.user.AzureTokenExpiry {
+	// Check token expiry only when a token is present
+	if hasAzureToken && d.user.AzureTokenExpiry > 0 && time.Now().Unix() > d.user.AzureTokenExpiry {
 		return http.StatusUnauthorized, fmt.Errorf("ChainFS token expired, please re-authenticate")
 	}
 
@@ -98,17 +99,6 @@ func protectHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		return http.StatusBadRequest, fmt.Errorf("cannot protect a directory")
 	}
 
-	// Decrypt the stored Azure token
-	accessToken, err := decryptToken(d.user.AzureAccessToken)
-	if err != nil {
-		return http.StatusInternalServerError, fmt.Errorf("failed to decrypt access token: %w", err)
-	}
-
-	// Derive per-user AES password
-	aesPassword := deriveUserAESPassword(d.user)
-
-	chainfsConfig := settings.Config.Auth.Methods.ChainFsAuth
-
 	// Open the file
 	f, err := os.Open(fileInfo.RealPath)
 	if err != nil {
@@ -121,12 +111,23 @@ func protectHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		return http.StatusInternalServerError, fmt.Errorf("failed to stat file: %w", err)
 	}
 
-	// Upload to ChainFS (segmented if >10MB), or simulate if bypass is active
+	// Upload to ChainFS (segmented if >10MB), simulate if bypass active, or use local-only for SSO users without an Azure token.
 	var fileGuid string
-	if settings.Env.ChainFsBypass {
+	if settings.Env.ChainFsBypass || !hasAzureToken {
 		fileGuid = "bypass-" + utils.InsecureRandomIdentifier(16)
-		logger.Infof("ChainFS bypass active — skipping upload for %s, simulated FileGuid: %s", fileInfo.RealPath, fileGuid)
+		if !hasAzureToken {
+			logger.Infof("SSO user %s (no Azure token) — local-only protection for %s, FileGuid: %s", d.user.Username, fileInfo.RealPath, fileGuid)
+		} else {
+			logger.Infof("ChainFS bypass active — skipping upload for %s, simulated FileGuid: %s", fileInfo.RealPath, fileGuid)
+		}
 	} else {
+		accessToken, err := decryptToken(d.user.AzureAccessToken)
+		if err != nil {
+			return http.StatusInternalServerError, fmt.Errorf("failed to decrypt access token: %w", err)
+		}
+		aesPassword := deriveUserAESPassword(d.user)
+		chainfsConfig := settings.Config.Auth.Methods.ChainFsAuth
+
 		if stat.Size() > segmentThreshold {
 			fileGuid, err = chainfs.UploadFileSegmented(chainfsConfig.ApiBaseUrl, accessToken, stat.Name(), f, stat.Size(), aesPassword)
 		} else {
