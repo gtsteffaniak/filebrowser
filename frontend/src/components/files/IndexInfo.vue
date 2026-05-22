@@ -15,14 +15,6 @@
         <td>{{ getComplexityLabel(info.complexity || 0) }}</td>
       </tr>
       <tr>
-        <td>{{ $t("general.files") }}</td>
-        <td>{{ info.files || 0 }}</td>
-      </tr>
-      <tr>
-        <td>{{ $t("general.folders") }}</td>
-        <td>{{ info.folders || 0 }}</td>
-      </tr>
-      <tr>
         <td>{{ $t("index.lastScanned") }}</td>
         <td>{{ getHumanReadable(info.lastIndex) }}</td>
       </tr>
@@ -116,14 +108,6 @@ export function buildIndexInfoTooltipHTML(info, $t, locale) {
         <tr>
           <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${$t("index.assessment")}</td>
           <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${getComplexityLabel(info.complexity || 0, $t)}</td>
-        </tr>
-        <tr>
-          <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${$t("general.files")}</td>
-          <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${info.files || 0}</td>
-        </tr>
-        <tr>
-          <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${$t("general.folders")}</td>
-          <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${info.folders || 0}</td>
         </tr>
         <tr>
           <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${$t("index.lastScanned")}</td>

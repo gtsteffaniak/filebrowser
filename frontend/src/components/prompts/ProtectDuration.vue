@@ -77,8 +77,11 @@ export default {
         icon: "sync",
         duration: 0,
       });
+      const minEnd = Date.now() + 1500;
       try {
         await chainfsApi.protectFile(this.source, this.item.path, this.hours);
+        const remaining = minEnd - Date.now();
+        if (remaining > 0) await new Promise((r) => setTimeout(r, remaining));
         notify.closeToast(toastId);
         notify.showSuccessToast(this.$t("buttons.protectSuccess"));
         mutations.setReload(true);

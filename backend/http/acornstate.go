@@ -154,3 +154,32 @@ func AcornStateGetSafeMode(username string) *acornSafeModeEntry {
 	}
 	return &entry
 }
+
+// MigrateUserQuotas updates every user's quota to match the current config default.
+// This runs at startup so quota changes in config.yaml take effect without requiring
+// each user to log out and back in.
+func MigrateUserQuotas() {
+	defaultQuota := settings.Config.UserDefaults.DefaultQuotaBytes
+	if defaultQuota <= 0 {
+		return
+	}
+	allUsers, err := store.Users.Gets()
+	if err != nil {
+		logger.Errorf("acornstate: quota migration: could not fetch users: %v", err)
+		return
+	}
+	updated := 0
+	for _, u := range allUsers {
+		if u.QuotaBytes != defaultQuota {
+			u.QuotaBytes = defaultQuota
+			if err := store.Users.Update(u, true, "QuotaBytes"); err != nil {
+				logger.Errorf("acornstate: quota migration: failed to update user %s: %v", u.Username, err)
+			} else {
+				updated++
+			}
+		}
+	}
+	if updated > 0 {
+		logger.Infof("acornstate: updated quota for %d user(s) to %d bytes", updated, defaultQuota)
+	}
+}

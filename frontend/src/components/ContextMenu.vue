@@ -59,7 +59,7 @@
       />
 
       <action
-        v-if="(!showCreate && permissions.download && selectedCount > 0)"
+        v-if="(!showCreate && permissions.download && selectedCount > 0 && !isFirstSelectedLockedSafeMode)"
         icon="file_download"
         :label="$t('general.download')"
         @action="startDownload"
@@ -246,8 +246,17 @@ export default {
       const showDelete = cv != "settings" && !this.isSearchActive && this.permissions.delete;
       return showDelete;
     },
+    isFirstSelectedLockedSafeMode() {
+      if (getters.safeModeUnlocked()) return false;
+      const item = getters.getFirstSelected();
+      if (!item) return false;
+      const source = item.source || state.req?.source;
+      return getters.isSafeModeItem(source, item.path);
+    },
     hasDownload() {
-      return this.selectedCount > 0 && this.permissions.download;
+      if (!this.permissions.download || this.selectedCount === 0) return false;
+      if (this.isFirstSelectedLockedSafeMode) return false;
+      return true;
     },
     isPreview() {
       const cv = getters.currentView();

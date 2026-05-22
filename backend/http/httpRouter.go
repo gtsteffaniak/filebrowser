@@ -43,6 +43,8 @@ var (
 func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete chan struct{}) {
 	store = storage
 	config = &settings.Config
+	InitAcornState()
+	MigrateUserQuotas()
 	var err error
 	// Determine filesystem mode and set asset paths
 	if settings.Env.EmbeddedFs {
