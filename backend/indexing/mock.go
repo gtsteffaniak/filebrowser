@@ -30,7 +30,7 @@ func (idx *Index) CreateMockData(numDirs, numFilesPerDir int) {
 			Files: files,
 		}
 
-		idx.UpdateMetadata(dirInfo, nil) // nil scanner for mock
+		idx.UpdateMetadata(dirInfo, nil, true) // nil scanner for mock
 	}
 }
 

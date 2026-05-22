@@ -27,6 +27,8 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
+var reDuration = regexp.MustCompile(`\[(\d+):(\d+):(\d+)\.(\d+)\]`)
+
 // CheckPermissionsFunc allows tests to override CheckPermissions behavior
 var CheckPermissionsFunc = checkPermissionsImpl
 
@@ -381,13 +383,12 @@ func generateOfficeId(realPath string) string {
 func parseLRC(raw string) []iteminfo.Lyric {
 	var lines []iteminfo.Lyric
 	scanner := bufio.NewScanner(strings.NewReader(raw))
-	re := regexp.MustCompile(`^\[(?:(\d{1,2}):)?(\d{1,2}):(\d{1,2})\.(\d+)\](.*)`)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		if line == "" {
 			continue
 		}
-		matches := re.FindStringSubmatch(line)
+		matches := reDuration.FindStringSubmatch(line)
 		if len(matches) == 6 {
 			// Hours default to 0 (if not present in the timestamps)
 			h := 0
