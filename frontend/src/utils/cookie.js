@@ -8,8 +8,8 @@ export default function (name) {
 export function getCookie(name) {
   const cookie = document.cookie
     .split(";")
-    .find((cookie) => cookie.includes(`${name}=`));
-  if (cookie !== null) {
+    .find((c) => c.trim().startsWith(`${name}=`));
+  if (cookie) {
     return cookie.split("=")[1];
   }
   return ""

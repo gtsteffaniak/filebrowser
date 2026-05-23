@@ -19,8 +19,8 @@ export async function fetchURL(url, opts, auth = true) {
       ...rest,
     });
   } catch (e) {
-    let message = e;
-    if (e === "TypeError: Failed to fetch") {
+    let message = e.message;
+    if (e instanceof TypeError && e.message === "Failed to fetch") {
       message = i18n.global.t("errors.failedToConnectToServer");
     }
     const error = new Error(message);

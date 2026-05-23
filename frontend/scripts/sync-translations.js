@@ -206,10 +206,8 @@ async function processKeys(masterObj, targetObj, targetLangCode, currentPathPart
   // Second pass: Remove obsolete keys that exist in target but not in master
   const keysToRemove = [];
   for (const key in targetObj) {
-    if (Object.hasOwn(masterObj, key)) {
-      if (!Object.hasOwn(masterObj, key)) {
-        keysToRemove.push(key);
-      }
+    if (!Object.hasOwn(masterObj, key)) {
+      keysToRemove.push(key);
     }
   }
 

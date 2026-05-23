@@ -548,10 +548,6 @@ export const getters = {
     if (cv === "listingView") {
       return "menu";
     }
-    if (cv === "listingView") {
-
-      return "menu";
-    }
     return "close";
   },
   isInvalidShare: () => {

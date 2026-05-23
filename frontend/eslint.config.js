@@ -24,6 +24,7 @@ export default defineConfig(
   {
     languageOptions: {
       globals: {
+        ...globals.node,
         ...globals.browser,
         ...globals.es2022,
         globalVars: "readonly",
