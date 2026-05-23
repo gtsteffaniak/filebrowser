@@ -52,6 +52,7 @@ export default defineConfig(
       "prefer-template": "warn",
       "@typescript-eslint/consistent-type-definitions": "warn",
       "@typescript-eslint/prefer-optional-chain": "warn",
+      "prefer-object-has-own": "error",
       "no-prototype-builtins": "error",
       "no-restricted-globals": [
         "error",
@@ -66,6 +67,7 @@ export default defineConfig(
     languageOptions: {
       parser: tseslint.parser,
       parserOptions: {
+        ecmaVersion: "latest",
         projectService: true,
         tsconfigRootDir: import.meta.dirname,
         extraFileExtensions: ['.vue'],
