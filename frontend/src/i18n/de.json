@@ -729,7 +729,7 @@
   },
   "profileSettings": {
     "hideFileExt": "Bestimmte Dateien ausblenden (nach Erweiterung)",
-    "hideFileExtDescription": "Eine durch Leerzeichen getrennte Liste von Dateierweiterungen. Erweiterungen, die in dieses Feld eingegeben werden, werden in der gesamten Benutzeroberfläche ausgeblendet (visuell, z. B. in der Liste oder im Dateibaum) – sie bleiben jedoch zugänglich.",
+    "hideFileExtDescription": "Eine durch Leerzeichen getrennte Liste von Dateierweiterungen. Erweiterungen, die in dieses Feld eingegeben werden, werden in der gesamten Benutzeroberfläche ausgeblendet (visuell, z.B. in der Liste oder im Dateibaum) – sie bleiben jedoch zugänglich.",
     "preferEditorForMarkdown": "Editor für Markdown-Dateien bevorzugen",
     "preferEditorForMarkdownDescription": "Wenn aktiviert, werden Markdown-Dateien zuerst im Editor geöffnet, anstatt im Markdown-Betrachter.",
     "deleteAfterArchive": "Quelldateien nach Erstellung/Extraktion von Archiven löschen",
