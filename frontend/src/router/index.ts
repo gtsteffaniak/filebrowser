@@ -160,8 +160,8 @@ const router = createRouter({
 // Helper function to check if a route resolves to itself
 function isSameRoute(to: RouteLocation, from: RouteLocation) {
   // Allow query parameter changes - they don't count as same route
-  const toQuery = JSON.stringify(to.query || {});
-  const fromQuery = JSON.stringify(from.query || {});
+  const toQuery = JSON.stringify(to.query);
+  const fromQuery = JSON.stringify(from.query);
 
   return to.path === from.path &&
     to.hash === from.hash &&
@@ -171,7 +171,8 @@ function isSameRoute(to: RouteLocation, from: RouteLocation) {
 router.beforeResolve(async (to, from, next) => {
   if (isSameRoute(to, from)) {
     console.warn("Avoiding recursive navigation to the same route.");
-    return next(false);
+    next(false);
+    return;
   }
 
   // Clear any popup previews when navigating
