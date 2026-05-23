@@ -1,20 +1,18 @@
-export default function deepClone<T>(obj: T): T {
+/* eslint-disable @typescript-eslint/no-explicit-any */
+type DeepCloneable = object | Array<any>;
+
+export default function deepClone<T extends DeepCloneable>(obj: T): T {
   if (obj === null || typeof obj !== 'object') {
     return obj;
   }
 
   if (Array.isArray(obj)) {
-    return obj.map(item => deepClone(item)) as T;
+    return obj.map(deepClone) as T;
   }
 
-  const entries: [string, unknown][] = [];
+  const clone = {} as T;
   for (const key in obj) {
-    if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
-      continue;
-    }
-    if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      entries.push([key, deepClone((obj as Record<string, unknown>)[key])]);
-    }
+    clone[key] = deepClone(obj[key] as any);
   }
-  return Object.fromEntries(entries) as T;
+  return clone;
 }
