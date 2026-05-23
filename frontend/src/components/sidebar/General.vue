@@ -220,7 +220,7 @@ export default {
     leave(el, done) {
       requestAnimationFrame(() => {
         el.style.maxHeight = `${el.scrollHeight}px`;
-        el.offsetHeight;
+        void el.offsetHeight;
         el.style.maxHeight = '0';
         el.style.opacity = '0';
 

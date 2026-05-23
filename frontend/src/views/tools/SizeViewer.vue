@@ -561,7 +561,7 @@ export default {
       }
 
       // Remove leading slash from itemPath if present (it's relative)
-      let relativePath = itemPath.startsWith("/") ? itemPath.slice(1) : itemPath;
+      const relativePath = itemPath.startsWith("/") ? itemPath.slice(1) : itemPath;
 
       // Combine paths
       let fullPath = basePath === "/" ? `/${relativePath}` : `${basePath}${relativePath}`;

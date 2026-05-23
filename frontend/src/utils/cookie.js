@@ -9,7 +9,7 @@ export function getCookie(name) {
   const cookie = document.cookie
     .split(";")
     .find((cookie) => cookie.includes(`${name}=`));
-  if (cookie != null) {
+  if (cookie !== null) {
     return cookie.split("=")[1];
   }
   return ""

@@ -43,8 +43,7 @@ export async function create(user, options = {}) {
     state.user?.loginMethod === 'password' &&
     options.skipActorPasswordConfirm !== true &&
     mergedHeaders['X-Password'] === undefined &&
-    err &&
-    err.status === 401 &&
+    err?.status === 401 &&
     typeof err.message === 'string' &&
     err.message.includes('X-Password')
 
@@ -124,8 +123,7 @@ export async function update(user, which = ['all'], options = {}) {
     state.user?.loginMethod === 'password' &&
     options.skipActorPasswordConfirm !== true &&
     mergedHeaders['X-Password'] === undefined &&
-    err &&
-    err.status === 401 &&
+    err?.status === 401 &&
     typeof err.message === 'string' &&
     err.message.includes('X-Password')
 
@@ -180,8 +178,7 @@ export async function remove(id, options = {}) {
     state.user?.loginMethod === 'password' &&
     options.skipActorPasswordConfirm !== true &&
     mergedHeaders['X-Password'] === undefined &&
-    err &&
-    err.status === 401 &&
+    err?.status === 401 &&
     typeof err.message === 'string' &&
     err.message.includes('X-Password')
 

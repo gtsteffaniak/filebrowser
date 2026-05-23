@@ -78,7 +78,7 @@ export default {
       // Check if any file has duration metadata
       if (!state.req?.items) return false;
       return state.req.items.some(item => 
-        item.type !== 'directory' && item.metadata && item.metadata.duration
+        item.type !== 'directory' && item.metadata?.duration
       );
     },
     showDuplicateFinderActions() {

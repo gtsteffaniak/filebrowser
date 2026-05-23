@@ -18,7 +18,7 @@
     </Scrollbar>
     <prompts :class="{ 'dark-mode': isDarkMode }"></prompts>
   </div>
-  <search v-if="showSearch" />
+  <Search v-if="showSearch" />
   <Notifications />
   <Toast :toasts="toasts" />
   <StatusBar :class="{ moveWithSidebar: moveWithSidebar.shouldMove }" />
@@ -151,7 +151,7 @@ export default {
     },
     contextMenuProps() {
       const prompt = getters.currentPrompt();
-      if (prompt && prompt.name === "ContextMenu") {
+      if (prompt?.name === "ContextMenu") {
         return prompt.props || {};
       }
       return {};

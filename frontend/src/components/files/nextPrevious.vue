@@ -144,7 +144,7 @@ export default {
       return state.sidebar?.width || 20;
     },
     enabled() {
-      return state.navigation.enabled && getters.currentPrompt() == null;
+      return state.navigation.enabled && getters.currentPrompt() === null;
     },
     showNav() {
       return state.navigation.show || this.hoverNav || !!state.navigation.gestureHint;
@@ -434,7 +434,7 @@ export default {
         return;
       }
 
-      let listing = null;
+      let listing;
 
       // Try to get listing from current request first
       if (state.req.items) {

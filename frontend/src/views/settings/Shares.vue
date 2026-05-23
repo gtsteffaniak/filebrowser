@@ -175,7 +175,7 @@ export default {
     async reloadShares() {
       this.loading = true;
       try {
-        let links = await shareApi.list();
+        const links = await shareApi.list();
         if (links.length === 0) {
           this.links = [];
           return;

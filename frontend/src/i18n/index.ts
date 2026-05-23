@@ -28,7 +28,7 @@ import ua from './ua.json';
 import zhCN from './zh-cn.json';
 import zhTW from './zh-tw.json';
 
-type LocaleMap = { [key: string]: string };
+interface LocaleMap { [key: string]: string; }
 
 interface TranslationMessages {
   [key: string]: string | TranslationMessages;

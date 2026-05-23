@@ -298,7 +298,7 @@ export default {
       mutations.setLoading("users", true);
       try {
         if (this.isNew) {
-          let defaults = await settingsApi.get("userDefaults");
+          const defaults = await settingsApi.get("userDefaults");
           this.user = defaults;
           this.user.password = "";
           // Ensure loginMethod is valid, set to first available method if not set or invalid
@@ -413,7 +413,7 @@ export default {
     async save(event) {
       event.preventDefault();
       try {
-        let fields = ["all"];
+        const fields = ["all"];
         // Transform selectedSources to only include {name, scope} format
         // Empty scope strings should be passed as "" for backend to handle defaults
         const scopesToSend = this.selectedSources.map(source => ({

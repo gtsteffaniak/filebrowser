@@ -231,7 +231,7 @@ export default {
       if (item.type?.startsWith('video/')) return 'movie';
     },
     updatePromptTitle() {
-      if (this.embedded || this.promptId == null) return;
+      if (this.embedded || this.promptId === null) return;
       const base = this.$t('player.QueuePlayback');
       const title = this.queueCount > 0
         ? `${base} (${this.queueCount})`

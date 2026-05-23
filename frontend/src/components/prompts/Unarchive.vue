@@ -79,7 +79,7 @@
 </template>
 
 <script>
-import { state, mutations } from "@/store";
+import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
 import { notify } from "@/notify";
 import { resourcesApi } from "@/api";

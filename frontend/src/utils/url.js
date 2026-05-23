@@ -22,7 +22,7 @@ export default {
 };
 
 export function removeLastDir(url) {
-  var arr = url.split("/");
+  const arr = url.split("/");
   if (arr.pop() === "") {
     arr.pop();
   }

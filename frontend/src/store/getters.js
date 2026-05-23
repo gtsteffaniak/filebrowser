@@ -141,16 +141,16 @@ export const getters = {
     if (!getters.isShare() && getters.eventTheme() === "halloween") {
       return true
     }
-    if (state.user == null) {
+    if (state.user === null) {
       return true
     }
     return state.user.darkMode === true
   },
   isLoggedIn: () => {
-    if (state.user == null) {
+    if (state.user === null) {
       return false
     }
-    if (state.user.locale === undefined || state.user.locale == null) {
+    if (state.user.locale === undefined || state.user.locale === null) {
       let savedLocale = localStorage.getItem('userLocale')
       if (!savedLocale) {
         savedLocale = i18n.detectLocale()
@@ -215,7 +215,7 @@ export const getters = {
     return fileCount
   },
   reqItems: () => {
-    if (state.user == null) return { dirs: [], files: [] };
+    if (state.user === null) return { dirs: [], files: [] };
     const dirs = [];
     const files = [];
     if (!state.req.items) return { dirs, files };

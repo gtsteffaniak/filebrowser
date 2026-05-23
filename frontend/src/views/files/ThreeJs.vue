@@ -602,7 +602,7 @@ export default {
       this.model.position.copy(center.negate());
       
       const fov = this.camera.fov * (Math.PI / 180);
-      let dist = Math.abs(maxDim / 2 / Math.tan(fov / 2)) * 1.5;
+      const dist = Math.abs(maxDim / 2 / Math.tan(fov / 2)) * 1.5;
       
       this.camera.position.set(dist, dist * 0.5, dist);
       this.camera.lookAt(0, 0, 0);
@@ -697,7 +697,7 @@ export default {
         if (!this.model) return;
         
         switch (k) {
-          case ' ': this.hasAnimations ? this.toggleAnimation() : this.toggleAutoRotate(); break;
+          case ' ': if (this.hasAnimations) this.toggleAnimation(); else this.toggleAutoRotate(); break;
           case 'r': this.resetCamera(); break;
           case 'q': this.model.rotation.y -= ROT_SPEED; break;
           case 'e': this.model.rotation.y += ROT_SPEED; break;

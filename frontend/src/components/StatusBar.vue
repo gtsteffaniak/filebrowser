@@ -133,7 +133,7 @@ export default {
       if (dirs === 0 && files === 0) {
         return this.$t('files.lonely');
       }
-      let parts = [];
+      const parts = [];
       if (dirs > 0) parts.push(`${dirs} ${this.foldersLabel}`);
       if (files > 0) parts.push(`${files} ${this.filesLabel}`);
 
@@ -151,10 +151,10 @@ export default {
       const { lines, words, chars } = state.editorStats;
       return [
         [words, chars]
-          .map((v, i) => v != null && this.$t(i === 0 ? 'editor.words' : 'editor.chars', { count: v }))
+          .map((v, i) => v !== null && this.$t(i === 0 ? 'editor.words' : 'editor.chars', { count: v }))
           .filter(Boolean)
           .join(', '),
-        lines != null && this.$t('editor.lines', { count: lines })
+        lines !== null && this.$t('editor.lines', { count: lines })
       ].filter(Boolean).join(' | ');
     },
     editorFontSize: {
@@ -220,7 +220,7 @@ export default {
       const advSearch = (state.route?.path || "").startsWith("/tools/advancedSearch");
       if (this.currentView === "listingView" || advSearch) {
         event.preventDefault();
-        let newSize = Math.min(9, Math.max(1, this.gallerySize - delta));
+        const newSize = Math.min(9, Math.max(1, this.gallerySize - delta));
         if (newSize !== this.gallerySize) {
           this.gallerySize = newSize;
           mutations.setGallerySize(newSize);
@@ -228,7 +228,7 @@ export default {
         }
       } else if (this.currentView === 'editor') {
         event.preventDefault();
-        let newSize = Math.min(24, Math.max(8, this.editorFontSize - delta));
+        const newSize = Math.min(24, Math.max(8, this.editorFontSize - delta));
         if (newSize !== this.editorFontSize) {
           this.editorFontSize = newSize;
         }

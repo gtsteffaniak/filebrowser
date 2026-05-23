@@ -337,7 +337,7 @@ async function chunkedRangeDownloadToBlob(
 
   while (offset < totalSize) {
     const download = downloadManager.findById(downloadId)
-    if (download && download.status === 'cancelled') {
+    if (download?.status === 'cancelled') {
       return null
     }
 
@@ -430,7 +430,7 @@ async function chunkedRangeDownloadToBlob(
       }
     } catch (readError) {
       const download = downloadManager.findById(downloadId)
-      if (readError.name === 'AbortError' || (download && download.status === 'cancelled')) {
+      if (readError.name === 'AbortError' || (download?.status === 'cancelled')) {
         downloadManager.setStatus(downloadId, 'cancelled')
         return null
       }
@@ -532,7 +532,7 @@ async function downloadChunkedArchive(url, format, files, filePaths, source, sha
     }, 100)
   } catch (error) {
     const download = downloadManager.findById(downloadId)
-    if (error.name === 'AbortError' || (download && download.status === 'cancelled')) {
+    if (error.name === 'AbortError' || (download?.status === 'cancelled')) {
       downloadManager.setStatus(downloadId, 'cancelled')
       return
     }
@@ -623,7 +623,7 @@ async function downloadChunked(file, shareHash = "") {
   } catch (error) {
     // Check if download was cancelled by user
     const download = downloadManager.findById(downloadId);
-    if (error.name === 'AbortError' || (download && download.status === "cancelled")) {
+    if (error.name === 'AbortError' || (download?.status === "cancelled")) {
       downloadManager.setStatus(downloadId, "cancelled")
       // Don't throw error or show notification for user-initiated cancellation
       return;

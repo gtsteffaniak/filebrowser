@@ -45,8 +45,7 @@ export async function getLyricsPublic(path, hash, password = "") {
     });
     if (!response.ok) {
         const error = new Error(response.statusText);
-        let data = null;
-        data = await response.json();
+        const data = await response.json();
         if (data?.message) {
             error.message = data.message;
         }

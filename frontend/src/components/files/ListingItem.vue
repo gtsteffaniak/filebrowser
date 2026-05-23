@@ -529,7 +529,7 @@ export default {
       event.stopPropagation();
 
       let items = [];
-      for (let i of state.selected) {
+      for (const i of state.selected) {
         items.push({
           from: state.req.items[i].path,
           fromSource: state.req.items[i].source,
@@ -564,7 +564,7 @@ export default {
         return;
       }
 
-      let checkAction = async () => {
+      const checkAction = async () => {
         if (getters.isShare()) {
           return await resourcesApi.fetchFilesPublic(this.path, state.shareInfo.hash);
         } else {
@@ -578,7 +578,7 @@ export default {
        * @param {boolean} overwrite
        * @param {boolean} rename
        */
-      let action = async (overwrite, rename) => {
+      const action = async (overwrite, rename) => {
         // Show move prompt with operation in progress
         mutations.showPrompt({
           name: "move",

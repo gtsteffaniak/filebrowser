@@ -149,7 +149,7 @@ export default {
         downloadManager.remove(id);
         try {
           if (
-            download.archiveFormat != null &&
+            download.archiveFormat !== null &&
             Array.isArray(download.archiveFiles) &&
             download.archiveFiles.length > 0
           ) {
@@ -175,7 +175,7 @@ export default {
       // Only close if no active downloads
       if (!downloadManager?.hasActive()) {
         const prompt = getters.currentPrompt();
-        if (prompt && prompt.name === 'download') {
+        if (prompt?.name === 'download') {
           mutations.closeTopPrompt();
         } else {
           prompt?.cancel?.();

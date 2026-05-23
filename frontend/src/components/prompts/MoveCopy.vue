@@ -171,7 +171,7 @@ export default {
       }
     } else {
       if (state.selected && state.req?.items) {
-        for (let item of state.selected) {
+        for (const item of state.selected) {
           const reqItem = state.req.items[item];
           if (reqItem?.path) {
             this.localItems.push({
@@ -287,7 +287,7 @@ export default {
           };
         });
         // Define the action function
-        let action = async (overwrite, rename) => {
+        const action = async (overwrite, rename) => {
           buttons.loading(this.operation);
           let result;
           if (getters.isShare()) {

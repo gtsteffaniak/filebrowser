@@ -29,7 +29,7 @@ export const mutations = {
     if (value === state.previousHistoryItem) {
       return;
     }
-    if (value != null) {
+    if (value !== null) {
       value.isShare = getters.isShare();
     }
     state.previousHistoryItem = value;
@@ -619,11 +619,9 @@ export const mutations = {
       emitStateChanged();
       return
     }
-    let sortby = "name"
-    let asc = true
     const sorting = getters.sorting();
-    sortby = sorting.by;
-    asc = sorting.asc;
+    const sortby = sorting.by;
+    const asc = sorting.asc;
     // Separate directories and files
     const dirs = value.items.filter((item) => item.type === 'directory');
     const files = value.items.filter((item) => item.type !== 'directory');
@@ -649,7 +647,7 @@ export const mutations = {
     }
     const byName = new Map();
     for (const e of metadataItems) {
-      if (e.metadata != null) {
+      if (e.metadata !== null) {
         byName.set(e.name, e.metadata);
       }
     }
@@ -803,7 +801,7 @@ export const mutations = {
     }
     const path = state.route.path;
 
-    if (!source || path == null || path === "") return;
+    if (!source || path === null || path === "") return;
     if (!state.displayPreferences) {
       state.displayPreferences = {};
     }

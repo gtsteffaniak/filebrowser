@@ -56,7 +56,7 @@ export default {
         viewer.querySelectorAll('pre code').forEach((block) => {
           const codeBlock = block as HTMLElement;
           const langClass = codeBlock.className.split(/\s+/).find(c => c.startsWith('language-'));
-          let lang = langClass ? langClass.split('-')[1] : null;
+          const lang = langClass ? langClass.split('-')[1] : null;
 
           if (lang && hljs.getLanguage(lang)) {
             hljs.highlightElement(codeBlock);
@@ -74,7 +74,7 @@ export default {
     // Manual line numbers implementation
     addLineNumbers(codeBlock: HTMLElement) {
       const code = codeBlock.textContent || '';
-      let lines = code.split('\n');
+      const lines = code.split('\n');
 
       // Remove trailing empty lines
       if (lines[lines.length - 1] === '') {
@@ -202,7 +202,7 @@ export default {
       const temp = document.createElement('div');
       temp.innerHTML = html;
       const textContent = temp.textContent || '';
-      let textLines = textContent.split('\n');
+      const textLines = textContent.split('\n');
 
       // Remove trailing empty line from textLines if present
       if (textLines[textLines.length - 1] === '') {

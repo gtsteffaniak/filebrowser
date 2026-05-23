@@ -61,7 +61,7 @@ export function getStatusLabel(status, $t) {
 
 export function getHumanReadableTime(lastIndex, locale) {
   if (Number.isNaN(Number(lastIndex))) return "";
-  let val = Number(lastIndex);
+  const val = Number(lastIndex);
   if (val === 0) return "now";
   return fromNow(val, locale);
 }

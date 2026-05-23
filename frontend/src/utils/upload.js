@@ -287,7 +287,7 @@ class UploadManager {
 
   start(id) {
     const upload = this.findById(id);
-    if (!upload || upload.status !== "pending") {
+    if (upload?.status !== "pending") {
       console.log(
         `upload.js: Cannot start upload for id ${id}. Status is not 'pending' or upload not found.`,
         upload
@@ -484,7 +484,7 @@ class UploadManager {
 
   async pause(id) {
     const upload = this.findById(id);
-    if (!upload || upload.status !== "uploading" || !upload.xhr) {
+    if (upload?.status !== "uploading" || !upload.xhr) {
       return;
     }
     if (upload.type !== "directory" && upload.size >= this.chunkSizeBytes()) {
@@ -539,7 +539,7 @@ class UploadManager {
 
   resume(id) {
     const upload = this.findById(id);
-    if (upload && upload.status === "paused") {
+    if (upload?.status === "paused") {
       this.isOverallPaused = false;
       upload.status = "pending";
       upload.connectionIssue = false; // Clear connection issue on resume
@@ -552,7 +552,7 @@ class UploadManager {
 
   cancel(id) {
     const upload = this.findById(id);
-    if (upload && upload.status === "uploading" && upload.xhr) {
+    if (upload?.status === "uploading" && upload.xhr) {
       upload.xhr.abort();
     }
     this.clearProgressTimeout(id);

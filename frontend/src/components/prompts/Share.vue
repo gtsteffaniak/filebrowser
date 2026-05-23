@@ -732,7 +732,7 @@ export default {
         if (!this.title) {
           this.title = this.$t("share.titleDefault", { title: this.item.name || "share" });
         }
-        let isPermanent = !this.time || this.time === "0";
+        const isPermanent = !this.time || this.time === "0";
         const payload = {
           path: this.displayPath,
           source: this.displaySource,

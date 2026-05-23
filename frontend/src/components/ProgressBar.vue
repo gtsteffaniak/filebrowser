@@ -124,14 +124,14 @@ export default {
     pct() {
       if (!this.isValNumeric) return 100;
       if (this.max <= 0) return 0;
-      var pct = (this.val / this.max) * 100;
+      const pct = (this.val / this.max) * 100;
       return Math.max(0, Math.min(pct.toFixed(2), 100));
     },
     pctBackground() {
       if (this.valBackground === null) return 0;
       if (!isNumber(this.valBackground)) return 0;
       if (this.max <= 0) return 0;
-      var pct = (this.valBackground / this.max) * 100;
+      const pct = (this.valBackground / this.max) * 100;
       return Math.max(0, Math.min(pct.toFixed(2), 100));
     },
     displayed_text() {
@@ -201,7 +201,7 @@ export default {
       return isNumber(this.fontSize) ? this.fontSize : 13;
     },
     progress_style() {
-      var style = {
+      const style = {
         background: this.bgColor,
         position: 'relative'
       };
@@ -234,7 +234,7 @@ export default {
       if (percentage < 1) {
         percentage = 0;
       }
-      var style = {
+      const style = {
         width: `${percentage}%`,
         height: `${this.size_px}px`,
         background: barColor,
@@ -269,7 +269,7 @@ export default {
       if (percentage < 1) {
         percentage = 0;
       }
-      var style = {
+      const style = {
         width: `${percentage}%`,
         height: `${this.size_px}px`,
         background: '#9e9e9e',
@@ -286,7 +286,7 @@ export default {
       return style;
     },
     text_style() {
-      var style = {
+      const style = {
         "color": this.textFgColor,
         "font-size": `${this.text_font_size}px`,
         "text-align": this.textAlign,

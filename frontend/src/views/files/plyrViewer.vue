@@ -1762,7 +1762,7 @@ export default {
     // Playback methods
     async setupPlaybackQueue(forceReshuffle = false) {
 
-      let listing = this.listing;
+      const listing = this.listing;
       const isShare = getters.isShare();
 
       // Filter only audio/video files
@@ -1782,7 +1782,7 @@ export default {
         return;
       }
 
-      let currentIndex = -1;
+      let currentIndex;
       if (isShare) {
         // Compare by name for shares
         currentIndex = mediaFiles.findIndex(item => item.name === this.req.name);

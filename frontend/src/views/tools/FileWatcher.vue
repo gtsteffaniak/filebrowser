@@ -153,7 +153,7 @@ export default {
     getRelativeUpdateTime() {
       if (!this.lastUpdateTime) return '';
       // Use currentTime to force re-computation every second
-      this.currentTime; // This creates a dependency
+      void this.currentTime; // This creates a dependency
       return fromNow(this.lastUpdateTime, state.user?.locale || 'en');
     },
     latencyClass() {

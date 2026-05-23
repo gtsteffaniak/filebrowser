@@ -143,7 +143,7 @@ import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { utcStartOfDaySecondsFromDateInput } from "@/utils/moment";
 import ButtonGroup from "./ButtonGroup.vue";
 
-var boxes = {
+const boxes = {
   folder: { label: "folders", icon: "folder" },
   file: { label: "files", icon: "insert_drive_file" },
   archive: { label: "archives", icon: "archive" },
@@ -340,7 +340,7 @@ export default {
       if (this.selectedSource === "__all__" || (this.selectedSource === "" && this.multipleSources)) {
         return "/";
       }
-      let result = url.extractSourceFromPath(decodeURIComponent(state.route.path));
+      const result = url.extractSourceFromPath(decodeURIComponent(state.route.path));
       if (this.selectedSource === "" || result.source === this.selectedSource) {
         return result.path;
       } else {  
@@ -426,8 +426,8 @@ export default {
       return `${result}/`;
     },
     baseName(str) {
-      let parts = url.removeTrailingSlash(str).split("/");
-      let part = parts.pop();
+      const parts = url.removeTrailingSlash(str).split("/");
+      const part = parts.pop();
       return part;
     },
     /** Clear query state whenever the overlay opens (open paths do not always call close()). */
@@ -449,13 +449,12 @@ export default {
         this.close(event);
         return;
       }
-      this.results.length === 0;
     },
     addToTypes(string) {
       if (this.searchTypes.includes(string)) {
         return true;
       }
-      if (string == null || string === "") {
+      if (string === null || string === "") {
         return false;
       }
       this.searchTypes = `${this.searchTypes + string} `;
@@ -466,7 +465,7 @@ export default {
       this.showPreviewImages = false;
     },
     removeFromTypes(string) {
-      if (string == null || string === "") {
+      if (string === null || string === "") {
         return false;
       }
       this.searchTypes = this.searchTypes.replaceAll(`${string} `, "");
@@ -511,7 +510,7 @@ export default {
       this.ongoing++;
       
       // Determine which sources to search
-      let sourcesToSearch = [];
+      let sourcesToSearch;
       if (this.selectedSource === "__all__" || this.selectedSource === "") {
         // Search all sources
         sourcesToSearch = Object.keys(this.sourceInfo);
@@ -589,7 +588,7 @@ export default {
       });
     },
     openInAdvancedSearch() {
-      let sourcesToSearch = [];
+      let sourcesToSearch;
       if (this.selectedSource === "__all__" || this.selectedSource === "") {
         sourcesToSearch = Object.keys(this.sourceInfo || {});
       } else {
@@ -663,7 +662,7 @@ export default {
       // Combine context (scope) with the result path - ensure exactly one slash between
       const context = url.removeTrailingSlash(this.getContext);
       const pathStr = url.removeLeadingSlash(url.removeTrailingSlash(s.path));
-      let path = `${context}/${pathStr}`;
+      const path = `${context}/${pathStr}`;
       const modifiedItem = {
         name: pathParts.pop(),
         path: path,

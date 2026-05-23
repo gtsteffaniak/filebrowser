@@ -42,7 +42,7 @@ function replaceUrlHashWithEpubCfi(cfi: string) {
 
 function cfiToString(cfi: unknown): string {
   if (typeof cfi === "string") return cfi;
-  if (cfi != null && typeof (cfi as { toString?: () => string }).toString === "function") {
+  if (cfi !== null && typeof (cfi as { toString?: () => string }).toString === "function") {
     return String((cfi as { toString: () => string }).toString());
   }
   return "";

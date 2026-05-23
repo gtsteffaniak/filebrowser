@@ -319,7 +319,7 @@ export default {
 
       // If this folder has no items or items is not an array, finish here.
       if (!req.items || !Array.isArray(req.items)) return;
-      for (let item of req.items) {
+      for (const item of req.items) {
         if (!this.showFolders && item.type === "directory") continue;
         if (!this.showFiles && item.type !== "directory") continue;
         // Filter by file type if specified (only for files, not directories)
@@ -337,9 +337,9 @@ export default {
       // Retrieves the URL of the directory the user
       // just clicked in and fill the options with its
       // content.
-      let path = event.currentTarget.dataset.path;
-      let clickedItem = this.items.find(item => item.path === path);
-      let sourceToUse = clickedItem ? clickedItem.source : this.source;
+      const path = event.currentTarget.dataset.path;
+      const clickedItem = this.items.find(item => item.path === path);
+      const sourceToUse = clickedItem ? clickedItem.source : this.source;
 
       // If showFiles and showFolders is true, and clicked item is a file (not a directory), select it directly
       if (this.showFiles && clickedItem && clickedItem.type !== "directory") {
@@ -377,7 +377,7 @@ export default {
 
     },
     touchstart(event) {
-      let url = event.currentTarget.dataset.path;
+      const url = event.currentTarget.dataset.path;
 
       // In 300 milliseconds, we shall reset the count.
       setTimeout(() => {
@@ -438,7 +438,7 @@ export default {
       this.next(syntheticEvent);
     },
     select: function (event) {
-      let path = event.currentTarget.dataset.path;
+      const path = event.currentTarget.dataset.path;
       // If the element is already selected, unselect it.
       if (this.selected === path) {
         this.selected = null;
@@ -454,7 +454,7 @@ export default {
       }
       // Otherwise select the element.
       this.selected = path;
-      let clickedItem = this.items.find(item => item.path === path);
+      const clickedItem = this.items.find(item => item.path === path);
       this.selectedSource = clickedItem ? clickedItem.source : this.source;
       this.selectedType = clickedItem ? clickedItem.type : null;
       const isFile = clickedItem && clickedItem.type !== "directory";
@@ -487,7 +487,7 @@ export default {
       if (!source) {
         return;
       }
-      let p = path == null || path === "" ? "/" : String(path);
+      let p = path === null || path === "" ? "/" : String(path);
       if (!p.startsWith("/")) {
         p = `/${p}`;
       }

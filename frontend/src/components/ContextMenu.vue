@@ -540,8 +540,8 @@ export default {
     showAccessPrompt() {
       mutations.closeHovers();
       const item = this.firstSelected;
-      let sourceName = item?.source || state.req.source;
-      let path = item?.path || state.req.path;
+      const sourceName = item?.source || state.req.source;
+      const path = item?.path || state.req.path;
       mutations.showPrompt({
         name: "access",
         props: {

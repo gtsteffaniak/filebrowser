@@ -112,7 +112,7 @@ export default {
       }
 
       // Otherwise, compute from state (backward compatibility)
-      let items = [];
+      const items = [];
 
       if (state.isSearchActive || getters.currentView() === "preview") {
         const selected = state.selected[0];
@@ -140,7 +140,7 @@ export default {
           hasPreview: item.hasPreview,
         });
       } else {
-        for (let index of state.selected) {
+        for (const index of state.selected) {
           const item = state.req.items[index];
           const previewUrl = this.getPreviewUrl(item.source || state.req.source, item.path, item.modified, item.type);
           items.push({

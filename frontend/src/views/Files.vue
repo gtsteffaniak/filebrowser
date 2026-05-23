@@ -223,7 +223,7 @@ export default {
       this.lastHash = window.location.hash;
       if (window.location.hash) {
         const rawHash = window.location.hash.slice(1);
-        let decodedName = rawHash;
+        let decodedName;
         try {
           decodedName = decodeURIComponent(rawHash);
         } catch (_e) {
@@ -272,11 +272,11 @@ export default {
 
     async fetchData() {
       const hash = getters.shareHash();
-      let isShare = hash !== "";
+      const isShare = hash !== "";
 
       // Fetch and store share info if this is a share
       if (isShare) {
-        let shareInfo = await shareApi.getShareInfoPublic(hash);
+        const shareInfo = await shareApi.getShareInfoPublic(hash);
 
         // Check if the response is an error (has status field indicating error)
         if (!shareInfo || shareInfo.status >= 400) {
@@ -293,10 +293,10 @@ export default {
         shareInfo.hash = hash;
 
         // Parse share route to get subPath
-        let urlPath = getters.routePath('public/share')
-        let parts = urlPath.split("/");
+        const urlPath = getters.routePath('public/share')
+        const parts = urlPath.split("/");
         // Decode each part since URL paths are encoded
-        let decodedParts = parts.slice(2).map(part => decodeURIComponent(part));
+        const decodedParts = parts.slice(2).map(part => decodeURIComponent(part));
         shareInfo.subPath = `/${decodedParts.join("/")}`;
         // Set shareInfo in state
         mutations.setShareInfo(shareInfo);
@@ -579,7 +579,7 @@ export default {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'e') {
         event.preventDefault();
         const currentFile = state.req;
-        if (currentFile && currentFile.type === 'text/markdown') {
+        if (currentFile?.type === 'text/markdown') {
           const currentView = getters.currentView();
           if (currentView === 'editor') {
             router.replace({ hash: '#preview' });

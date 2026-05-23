@@ -191,8 +191,7 @@ export default {
                       // Show notification
                       this.showNotification(source, newPath);
                     } catch (renameError) {
-                      if (renameError.message === "conflict") {
-                      } else {
+                      if (renameError.message !== "conflict") {
                         throw renameError;
                       }
                     }

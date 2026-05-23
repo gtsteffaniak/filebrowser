@@ -350,7 +350,7 @@ export default {
       if (lowerTarget.startsWith('http://') || lowerTarget.startsWith('https://')) return link.target;
 
       const baseURL = globalVars.baseURL || '';
-      let fullPath = '';
+      let fullPath;
 
       // Construct full path based on link category
       if (this.isSourceCategory(link.category)) {

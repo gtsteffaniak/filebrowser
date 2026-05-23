@@ -88,9 +88,9 @@ export default {
       if (!req.items || !req.path) {
         return [];
       }
-      let encodedPathString = url.encodedPath(state.req.path);
-      let originalParts = state.req.path.split("/");
-      let encodedParts = encodedPathString.split("/");
+      const encodedPathString = url.encodedPath(state.req.path);
+      const originalParts = state.req.path.split("/");
+      const encodedParts = encodedPathString.split("/");
       // Remove empty strings from both arrays consistently
       if (originalParts[0] === "") {
         originalParts.shift();
@@ -100,7 +100,7 @@ export default {
         originalParts.pop();
         encodedParts.pop();
       }
-      let breadcrumbs = [];
+      const breadcrumbs = [];
       let buildRef = this.base;
       let accumulatedPath = "";
 
@@ -207,7 +207,7 @@ export default {
 
       // Build list of items to move from selected items
       let itemsToMove = [];
-      for (let i of state.selected) {
+      for (const i of state.selected) {
         if (i < 0 || i >= state.req.length) continue;
 
         const selectedItem = state.req.items[i];

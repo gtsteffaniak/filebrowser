@@ -269,7 +269,7 @@ function browsePath(scopePath, apiPath, isDirectory) {
     return "/";
   }
 
-  let relativeSegmentsPath = url.removeLeadingSlash(url.removeTrailingSlash(trimmedApi));
+  const relativeSegmentsPath = url.removeLeadingSlash(url.removeTrailingSlash(trimmedApi));
   let resolvedBrowsePath =
     context === "" ? `/${relativeSegmentsPath}` : `${context}/${relativeSegmentsPath}`;
 
@@ -827,7 +827,7 @@ export default {
   beforeUnmount() {
     if (
       typeof window !== "undefined" &&
-      this.emptyCatalogHydrateTimer != null
+      this.emptyCatalogHydrateTimer !== null
     ) {
       window.clearTimeout(this.emptyCatalogHydrateTimer);
       this.emptyCatalogHydrateTimer = null;
@@ -855,7 +855,7 @@ export default {
         ...this.sourceEnabledFlags,
         [name]: !!enabled,
       };
-      let nextPaths = { ...this.sourceScopedPaths };
+      const nextPaths = { ...this.sourceScopedPaths };
       if (enabled) {
         if (nextPaths[name] === undefined || nextPaths[name] === null || nextPaths[name] === "") {
           nextPaths[name] = "/";

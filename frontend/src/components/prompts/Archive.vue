@@ -99,7 +99,7 @@
 </template>
 
 <script>
-import { state, mutations } from "@/store";
+import { state, mutations, getters } from "@/store";
 import { notify } from "@/notify";
 import { resourcesApi } from "@/api";
 import { goToItem } from "@/utils/url";

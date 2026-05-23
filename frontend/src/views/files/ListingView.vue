@@ -560,7 +560,7 @@ export default {
     },
     showDeletePrompt() {
       const items = [];
-      for (let index of state.selected) {
+      for (const index of state.selected) {
         const item = state.req.items[index];
         const previewUrl = item.hasPreview
           ? resourcesApi.getPreviewURL(item.source || state.req.source, item.path, item.modified)
@@ -597,7 +597,7 @@ export default {
     },
     // Helper method to handle selection based on arrow keys
     navigateKeboardArrows(arrowKey) {
-      let selectedIndex = state.selected.length > 0 ? state.selected[0] : null;
+      const selectedIndex = state.selected.length > 0 ? state.selected[0] : null;
 
       if (selectedIndex === null) {
         // If nothing is selected, select the first item
@@ -692,7 +692,7 @@ export default {
           }
           break;
       }
-      if (newSelected != null) {
+      if (newSelected !== null) {
         this.selectItem(newSelected);
         this.scrollSelectedIntoView();
       }
@@ -742,8 +742,8 @@ export default {
           return;
         }
       }
-      let currentPath = url.removeTrailingSlash(state.route.path);
-      let newPath = currentPath.substring(0, currentPath.lastIndexOf("/"));
+      const currentPath = url.removeTrailingSlash(state.route.path);
+      const newPath = currentPath.substring(0, currentPath.lastIndexOf("/"));
 
       if (modifierKeys) {
         this.ctrKeyPressed = true;
@@ -844,7 +844,7 @@ export default {
         return;
       }
 
-      let items = state.selected.map((i) => ({
+      const items = state.selected.map((i) => ({
         from: state.req.items[i].path,
         fromSource: state.req.source,
         name: state.req.items[i].name,
@@ -924,7 +924,7 @@ export default {
         return;
       }
 
-      if (event.clipboardData && (event.clipboardData.items)) {
+      if (event.clipboardData?.items) {
         // Collect all items from clipboard
         const collectedItems = [];
         // And loop through all items
@@ -984,7 +984,7 @@ export default {
       // Construct destination path properly (without URL prefix)
       const destPath = state.req.path.endsWith('/') ? state.req.path : `${state.req.path}/`;
 
-      let items = this.clipboard.items.map((item) => ({
+      const items = this.clipboard.items.map((item) => ({
         from: item.from,
         fromSource: item.fromSource,
         to: destPath + item.name,
@@ -1126,7 +1126,7 @@ export default {
       }, 150); // Wait 150ms after last resize event
 
       // Listing element is not displayed
-      if (this.$refs.listingView == null) return;
+      if (this.$refs.listingView === null) return;
     }, 100),
     openContext(event) {
       event.preventDefault();

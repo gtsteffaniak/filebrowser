@@ -84,14 +84,14 @@ function defaultCompare(av, bv) {
   if (av === bv) {
     return 0;
   }
-  const aStr = av == null ? "" : String(av).toLocaleLowerCase();
-  const bStr = bv == null ? "" : String(bv).toLocaleLowerCase();
+  const aStr = av === null ? "" : String(av).toLocaleLowerCase();
+  const bStr = bv === null ? "" : String(bv).toLocaleLowerCase();
   return aStr < bStr ? -1 : aStr > bStr ? 1 : 0;
 }
 
 /** @returns {unknown} */
 function cellValueLookup(row, k) {
-  if (!row || k == null) {
+  if (!row || k === null) {
     return undefined;
   }
   if (typeof row[k] !== "undefined") {
@@ -100,7 +100,7 @@ function cellValueLookup(row, k) {
   if (typeof k === "string" && k.indexOf(".") !== -1) {
     let cur = row;
     for (const segment of k.split(".")) {
-      cur = cur == null ? cur : cur[segment];
+      cur = cur === null ? cur : cur[segment];
     }
     return cur;
   }
@@ -224,7 +224,7 @@ export default {
       const next = this.defaultSortKey;
       if (typeof next === "string" && next !== "") {
         const cols = Array.isArray(this.columns) ? this.columns : [];
-        const col = cols.find((c) => c && c.key === next);
+        const col = cols.find((c) => c?.key === next);
         if (col && this.isSortEnabled(col)) {
           this.sortKey = next;
           this.sortDir = this.defaultSortDir;

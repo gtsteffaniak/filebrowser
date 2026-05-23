@@ -47,7 +47,7 @@ export default {
     },
     capitalize(name, where = "_") {
       if (where === "caps") where = /(?=[A-Z])/;
-      let splitted = name.split(where);
+      const splitted = name.split(where);
       name = "";
 
       for (let i = 0; i < splitted.length; i++) {

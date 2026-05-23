@@ -76,7 +76,8 @@ export function convertToVTT (ext, text) {
       lrcLines = lrcLines
         .map((line, index) => {
           if (line.startsWith('[')) {
-            let [time, dialogue] = line.split(']') // Remove square brackets
+            const [timeRaw, dialogue] = line.split(']') // Remove square brackets
+            let time = timeRaw
             if (!time || !dialogue) return '' // Skip invalid lines
 
             time = time.slice(1) // Remove opening square bracket
@@ -181,7 +182,8 @@ export function convertToVTT (ext, text) {
 // Helper function to format LRC time (e.g., 00:00.000 -> 00:00:00.000)
 function formatLrcTime (time) {
   const [minutes, seconds] = time.split(':')
-  let [sec, ms] = seconds.split('.')
+  const sec = seconds.split('.')[0]
+  let ms = seconds.split('.')[1] || ''
   ms = ms ? ms.padEnd(3, '0') : '000' // Ensure milliseconds are 3 digits
 
   // Return in the correct format
@@ -206,7 +208,8 @@ function formatSubTime(time) {
   if (parts.length < 3) return '00:00:00.000'; // Fallback for invalid input
 
   const [hours, minutes, secMs] = parts;
-  let [seconds, ms = '000'] = secMs.split('.');
+  const seconds = secMs.split('.')[0];
+  let ms = secMs.split('.')[1] || '000';
 
   ms = ms.padEnd(3, '0'); // Ensure milliseconds are 3 digits
 

@@ -107,7 +107,7 @@ export default defineComponent({
         directoryPath = '/';
       }
       
-      let listing = null;
+      let listing;
 
       // Try to get listing from current request first
       if (state.req.items) {

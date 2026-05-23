@@ -261,7 +261,7 @@ export default {
         directoryPath = '/';
       }
 
-      let listing = null;
+      let listing;
 
       if (this.req.items) {
         listing = this.req.items;

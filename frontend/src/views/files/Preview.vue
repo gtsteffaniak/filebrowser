@@ -378,7 +378,7 @@ export default {
       if (!state.req?.subtitles?.length) {
         return [];
       }
-      let subs = [];
+      const subs = [];
       // Fetch subtitle content for each track using the media API
       for (let index = 0; index < state.req.subtitles.length; index++) {
         const subtitleTrack = state.req.subtitles[index];
@@ -543,7 +543,7 @@ export default {
     },
     close() {
       mutations.replaceRequest({}); // Reset request data
-      let uri = `${url.removeLastDir(state.route.path)}/`;
+      const uri = `${url.removeLastDir(state.route.path)}/`;
       this.$router.push({ path: uri });
     },
     download() {
