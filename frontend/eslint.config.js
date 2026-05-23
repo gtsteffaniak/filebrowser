@@ -1,3 +1,4 @@
+import { defineConfig } from "eslint/config";
 import js from "@eslint/js";
 import tseslint from "typescript-eslint";
 import pluginVue from "eslint-plugin-vue";
@@ -5,7 +6,7 @@ import pluginI18n from "@intlify/eslint-plugin-vue-i18n";
 import vueParser from "vue-eslint-parser";
 import globals from "globals";
 
-export default tseslint.config(
+export default defineConfig(
   {
     ignores: [
       "**/dist/**",
