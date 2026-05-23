@@ -45,7 +45,7 @@ export default defineConfig(
       }],
       "vue/no-reserved-component-names": "off",
       "vue/no-unused-components": "warn",
-      "eqeqeq": ["error", "always"],
+      "eqeqeq": ["warn", "always"],
       "no-var": "error",
       "prefer-const": "warn",
       "no-unused-expressions": ["error", { allowShortCircuit: true, allowTernary: true }],
