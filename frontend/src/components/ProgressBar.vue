@@ -37,9 +37,9 @@ import { getHumanReadableFilesize } from "@/utils/filesizes.js";
 
 // We're leaving this untouched as you can read in the beginning
 const isNumber = (n) => {
-  const num = parseFloat(n);
+  const num = Number(n);
   // Since 'isNaN' nd 'isFinite' are marked as unsafe. We need to do this
-  // to still matching the old behavior of those with 'Number.isNaN' and 'Number.isFinite':
+  // to still matching the old behavior (the styling).
   if (num === 0 && (n === null || n === '' || n === false)) return true;
   return !Number.isNaN(num) && Number.isFinite(num);
 };
