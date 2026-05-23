@@ -12,6 +12,7 @@ export default defineConfig(
       "**/dist/**",
       "**/node_modules/**",
       "**/public/**",
+      "**/i18n/is.json",
     ],
   },
 
@@ -34,6 +35,7 @@ export default defineConfig(
       "@intlify/vue-i18n/no-unused-keys": ["error", {
         src: "./src",
         extensions: [".js", ".vue", ".ts"],
+        ignores: ["/^languages\\./"],
       }],
       "@intlify/vue-i18n/no-raw-text": ["error", {
         ignoreNodes: ["i", "v-icon"],

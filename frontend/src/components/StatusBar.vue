@@ -149,13 +149,11 @@ export default {
     },
     editorStatsText() {
       const { lines, words, chars } = state.editorStats;
-      return [
-        [words, chars]
-          .map((v, i) => v !== null && this.$t(i === 0 ? 'editor.words' : 'editor.chars', { count: v }))
-          .filter(Boolean)
-          .join(', '),
-        lines !== null && this.$t('editor.lines', { count: lines })
-      ].filter(Boolean).join(' | ');
+      const parts = [];
+      if (words !== null) parts.push(this.$t('editor.words', { count: words }));
+      if (chars !== null) parts.push(this.$t('editor.chars', { count: chars }));
+      if (lines !== null) parts.push(this.$t('editor.lines', { count: lines }));
+      return parts.join(' | ');
     },
     editorFontSize: {
       get() {
