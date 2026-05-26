@@ -28,11 +28,15 @@ import ua from './ua.json';
 import zhCN from './zh-cn.json';
 import zhTW from './zh-tw.json';
 
-type LocaleMap = { [key: string]: string };
+interface LocaleMap { [key: string]: string; }
+
+interface TranslationMessages {
+  [key: string]: string | TranslationMessages;
+}
 
 // Map of all imported translation modules (alphabetical order)
 // This is the single source for all translations
-const translationModules: { [key: string]: any } = {
+const translationModules: Record<string, TranslationMessages> = {
   ar, cz, de, el, en, es, fr, he, hu, is, it, ja, ko, nl, nlBE, pl, pt, ptBR, ro, ru, sk, svSE, ua, zhCN, zhTW
 };
 
@@ -105,25 +109,23 @@ export function detectLocale(): string {
 export const rtlLanguages = ['he', 'ar'];
 
 // Function to check if locale is RTL
-export const isRtl = (locale: string) => {
-  const currentLocale = locale || i18n.global.locale;
+export const isRtl = (locale?: string) => {
+  const currentLocale = locale || i18n.global.locale.value;
   return rtlLanguages.includes(currentLocale);
 };
 
 export function setLocale(locale: string) {
   // according to doc u only need .value if legacy: false but they lied
   // https://vue-i18n.intlify.dev/guide/essentials/scope.html#local-scope-1
-  //@ts-ignore
   i18n.global.locale.value = locale;
 }
-
 
 // Create i18n instance with auto-generated messages from imported modules
 const i18n = createI18n({
   locale: detectLocale(),
   fallbackLocale: 'en',
   // expose i18n.global for outside components
-  legacy: true,
+  legacy: false,
   messages: translationModules,
 });
 

@@ -1,4 +1,4 @@
-import { test, expect } from "../test-setup";
+import { expect, test } from "../test-setup";
 
 const jpgQuality = 85;
 

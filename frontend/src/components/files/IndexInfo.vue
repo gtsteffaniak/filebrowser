@@ -60,14 +60,14 @@ export function getStatusLabel(status, $t) {
 }
 
 export function getHumanReadableTime(lastIndex, locale) {
-  if (isNaN(Number(lastIndex))) return "";
-  let val = Number(lastIndex);
+  if (Number.isNaN(Number(lastIndex))) return "";
+  const val = Number(lastIndex);
   if (val === 0) return "now";
   return fromNow(val, locale);
 }
 
 export function formatDuration(seconds) {
-  if (isNaN(Number(seconds))) return '';
+  if (Number.isNaN(Number(seconds))) return '';
   return Number(seconds);
 }
 

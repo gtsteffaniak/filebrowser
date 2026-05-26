@@ -4,7 +4,11 @@
       <h1>{{ $t("notifications.title") }}</h1>
       <p class="notifications-description">{{ $t("notifications.description") }}</p>
       <div v-if="sortedNotifications.length > 0" class="header-actions">
-        <button @click="clearHistory" class="button button--flat button--grey clear-button">
+        <button
+          type="button"
+          @click="clearHistory"
+          class="button button--flat button--grey clear-button"
+        >
           <i class="material-symbols">delete_sweep</i>
           {{ $t("notifications.clearAll") }}
         </button>
@@ -32,9 +36,16 @@
                 <div class="notification-message">{{ notification.message }}</div>
               </div>
               <div v-if="notification.buttons && notification.buttons.length > 0" class="notification-buttons">
-                <button v-for="(button, btnIndex) in notification.buttons" :key="btnIndex"
-                  :class="['button', button.className]" @click="handleButtonClick(button)" :aria-label="button.label"
-                  :title="button.label">
+                <button
+                  type="button"
+                  v-for="(button, btnIndex)
+                  in notification.buttons"
+                  :key="btnIndex"
+                  :class="['button', button.className]"
+                  @click="handleButtonClick(button)"
+                  :aria-label="button.label"
+                  :title="button.label"
+                >
                   {{ button.label }}
                 </button>
               </div>
@@ -71,7 +82,7 @@ export default {
         if (historyEntry.buttons) {
           // Try to find matching active notification
           const activeNotification = activeNotifications.find(n => n.id === historyEntry.id);
-          if (activeNotification && activeNotification.buttons) {
+          if (activeNotification?.buttons) {
             // Restore actions from active notification
             historyEntry.buttons.forEach((historyButton, index) => {
               const activeButton = activeNotification.buttons[index];

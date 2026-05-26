@@ -17,7 +17,13 @@
         <ToggleSwitch v-model="includeFoldersValue" :name="$t('fileSizeAnalyzer.includeFolders')"
           :description="$t('fileSizeAnalyzer.includeFoldersDescription')" aria-label="Include folders toggle" />
 
-        <button aria-label="Analyze button" @click="fetchData" class="button" :disabled="loading">
+        <button
+          type="button"
+          aria-label="Analyze button"
+          @click="fetchData"
+          class="button"
+          :disabled="loading"
+        >
           <i v-if="loading" class="material-symbols spin">autorenew</i>
           <span v-else>{{ $t('general.analyze') }}</span>
         </button>
@@ -254,7 +260,7 @@ export default {
     },
   },
   mounted() {
-    document.title = globalVars.name + " - " + this.$t('tools.title') + " - " + this.$t('fileSizeAnalyzer.title');
+    document.title = `${globalVars.name} - ${this.$t('tools.title')} - ${this.$t('fileSizeAnalyzer.title')}`;
     this.initializeFromQuery();
     // Set default source if not provided via props or query
     if (!this.selectedSource) {
@@ -323,7 +329,7 @@ export default {
       // Initialize largerThanValue: query > prop > default
       if (query.largerThan !== undefined && query.largerThan !== null) {
         const parsed = parseInt(String(query.largerThan), 10);
-        if (!isNaN(parsed)) {
+        if (!Number.isNaN(parsed)) {
           this.largerThanValue = parsed;
         }
       } else if (this.largerThan !== undefined) {
@@ -533,7 +539,6 @@ export default {
           return "type-document";
         case "binary":
           return "type-binary";
-        case "font":
         default:
           return "type-other";
       }
@@ -552,19 +557,19 @@ export default {
 
       // Ensure basePath ends with / if it's not root
       if (basePath !== "/" && !basePath.endsWith("/")) {
-        basePath += "/";
+        basePath = `${basePath}/`;
       }
 
       // Remove leading slash from itemPath if present (it's relative)
-      let relativePath = itemPath.startsWith("/") ? itemPath.slice(1) : itemPath;
+      const relativePath = itemPath.startsWith("/") ? itemPath.slice(1) : itemPath;
 
       // Combine paths
-      let fullPath = basePath === "/" ? "/" + relativePath : basePath + relativePath;
+      let fullPath = basePath === "/" ? `/${relativePath}` : `${basePath}${relativePath}`;
 
       // Normalize: remove double slashes and ensure it starts with /
       fullPath = fullPath.replace(/\/+/g, "/");
       if (!fullPath.startsWith("/")) {
-        fullPath = "/" + fullPath;
+        fullPath = `/${fullPath}`;
       }
 
       return fullPath;
@@ -583,13 +588,13 @@ export default {
     },
     handleOverlayRightClick(event) {
       // Prevent context menu on overlay and collapse
-      if (event && event.preventDefault) {
+      if (event?.preventDefault) {
         event.preventDefault();
       }
       this.collapseExpanded();
     },
     onRightClick(event, item) {
-      if (event && event.preventDefault) {
+      if (event?.preventDefault) {
         event.preventDefault();
       }
       

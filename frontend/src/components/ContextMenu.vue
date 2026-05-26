@@ -9,7 +9,7 @@
       id="context-menu"
       ref="contextMenu"
       v-if="showContext"
-      :style="centered ? {} : { top: posY + 'px', left: posX + 'px' }"
+      :style="centered ? {} : { top: `${posY}px`, left: `${posX}px` }"
       class="no-select floating-window"
       :class="{ 'dark-mode': isDarkMode, 'centered': centered }"
       :key="showCreate ? 'create-mode' : 'normal-mode'"
@@ -190,15 +190,15 @@
 </template>
 
 <script>
-import downloadFiles from "@/utils/download";
-import { state, getters, mutations } from "@/store";
-import Action from "@/components/Action.vue";
-import { globalVars } from "@/utils/constants.js";
-import buttons from "@/utils/buttons";
-import { notify } from "@/notify";
 import { resourcesApi } from "@/api";
+import Action from "@/components/Action.vue";
+import { notify } from "@/notify";
+import { getters, mutations, state } from "@/store";
 import { url } from "@/utils";
+import buttons from "@/utils/buttons";
 import { copyToClipboard } from "@/utils/clipboard";
+import { globalVars } from "@/utils/constants.js";
+import downloadFiles from "@/utils/download";
 
 function isArchivePath(pathOrName) {
   if (!pathOrName || typeof pathOrName !== "string") return false;
@@ -263,7 +263,7 @@ export default {
       return this.hasDownload && !this.req.isDir && !this.isShare;
     },
     showGoToItem() {
-      return this.showLimitedOptions && this.selectedCount == 1;
+      return this.showLimitedOptions && this.selectedCount === 1;
     },
     permissions() {
       return getters.permissions();
@@ -290,8 +290,8 @@ export default {
       return getters.isShare();
     },
     showInfo() {
-      if (this.showLimitedOptions) return this.selectedCount == 1;
-      return !this.showCreate && this.selectedCount == 1;
+      if (this.showLimitedOptions) return this.selectedCount === 1;
+      return !this.showCreate && this.selectedCount === 1;
     },
     showDownload() {
       if (this.showLimitedOptions) return false;
@@ -325,7 +325,7 @@ export default {
     },
     showRename() {
       if (this.showLimitedOptions) return false;
-      return !this.showCreate && this.selectedCount == 1 && this.permissions.modify && !this.isSearchActive;
+      return !this.showCreate && this.selectedCount === 1 && this.permissions.modify && !this.isSearchActive;
     },
     showCopy() {
       if (this.showLimitedOptions) return false;
@@ -333,10 +333,10 @@ export default {
     },
     showCopyPath() {
       if (this.showLimitedOptions) return false;
-      return !this.showCreate && this.selectedCount == 1 && !!state.user?.showCopyPath;
+      return !this.showCreate && this.selectedCount === 1 && !!state.user?.showCopyPath;
     },
     showOpenParentFolder() {
-      return !this.showCreate && this.selectedCount == 1 && (this.isSearchActive || this.showLimitedOptions);
+      return !this.showCreate && this.selectedCount === 1 && (this.isSearchActive || this.showLimitedOptions);
     },
     showMove() {
       if (this.showLimitedOptions) return false;
@@ -384,20 +384,20 @@ export default {
         return false;
       }
       const cv = getters.currentView();
-      return cv == "preview" || cv == "markdownViewer" || cv == "editor";
+      return cv === "preview" || cv === "markdownViewer" || cv === "editor";
     },
     showEdit() {
       const cv = getters.currentView();
-      return cv == "markdownViewer" && this.permissions.modify;
+      return cv === "markdownViewer" && this.permissions.modify;
     },
     showDelete() {
       if (this.showLimitedOptions) return false;
-      if (this.selectedCount == 0) {
+      if (this.selectedCount === 0) {
         return false;
       }
       const cv = getters.currentView();
       return (
-        cv != "settings" &&
+        cv !== "settings" &&
         !this.isSearchActive &&
         !!this.permissions.delete
       );
@@ -410,10 +410,10 @@ export default {
     },
     showSave() {
       const allowEdit = this.permissions.modify || (getters.isShare() && state.shareInfo.allowEdit);
-      return getters.currentView() == "editor" && allowEdit;
+      return getters.currentView() === "editor" && allowEdit;
     },
     showOverflow() {
-      return getters.currentPromptName() == "OverflowMenu";
+      return getters.currentPromptName() === "OverflowMenu";
     },
     showAccess() {
       if (this.showLimitedOptions) return false;
@@ -432,7 +432,7 @@ export default {
       return this.permissions.share;
     },
     showContext() {
-      return getters.currentPromptName() == "ContextMenu";
+      return getters.currentPromptName() === "ContextMenu";
     },
     onlyofficeEnabled() {
       return globalVars.onlyOfficeUrl !== "";
@@ -535,13 +535,13 @@ export default {
       this.showCreate = !this.showCreate;
     },
     shouldShowParentFolder() {
-      return this.isPreview && state.req.path != "/";
+      return this.isPreview && state.req.path !== "/";
     },
     showAccessPrompt() {
       mutations.closeHovers();
       const item = this.firstSelected;
-      let sourceName = item?.source || state.req.source;
-      let path = item?.path || state.req.path;
+      const sourceName = item?.source || state.req.source;
+      const path = item?.path || state.req.path;
       mutations.showPrompt({
         name: "access",
         props: {
@@ -592,7 +592,7 @@ export default {
         el.style.transition = 'height 0.3s, opacity 0.3s';
         void el.offsetHeight; // Force reflow
         // Animate to full height
-        el.style.height = fullHeight + 'px';
+        el.style.height = `${fullHeight}px`;
         el.style.opacity = '1';
         setTimeout(() => {
           this.isAnimating = false;
@@ -603,7 +603,7 @@ export default {
     leave(el, done) {
       this.isAnimating = true;
       el.style.transition = 'height 0.3s, opacity 0.3s';
-      el.style.height = el.scrollHeight + 'px';
+      el.style.height = `${el.scrollHeight}px`;
       void el.offsetHeight;
       el.style.height = '0';
       el.style.opacity = '0';
@@ -626,7 +626,7 @@ export default {
       mutations.showPrompt({
         name: "share",
         props: {
-          item: this.selectedCount == 1 ? this.firstSelected : state.req
+          item: this.selectedCount === 1 ? this.firstSelected : state.req
         },
       });
     },
@@ -635,7 +635,7 @@ export default {
       mutations.showPrompt({
         name: "rename",
         props: {
-          item: this.selectedCount == 1 ? this.firstSelected : state.req,
+          item: this.selectedCount === 1 ? this.firstSelected : state.req,
           parentItems: []
         },
       });
@@ -715,7 +715,7 @@ export default {
       // If the context menu was triggered on a directory, pass its path as base
       const selectedItem = this.firstSelected;
       let base = null;
-      if (selectedItem && selectedItem.isDir) {
+      if (selectedItem?.isDir) {
         // Pass both path and source
         base = {
           path: selectedItem.path,
@@ -813,7 +813,7 @@ export default {
         }
         buttons.success(button);
         notify.showSuccessToast(this.$t("editor.fileSaved"));
-      } catch (e) {
+      } catch (_e) {
         // Don't show error notification here - API layer already showed it
         buttons.done(button);
       }
@@ -824,7 +824,7 @@ export default {
       let targetPath = state.req.path;
       let targetSource = state.req.source;
       const selectedItem = this.firstSelected;
-      if (selectedItem && selectedItem.isDir) {
+      if (selectedItem?.isDir) {
         targetPath = selectedItem.path;
         targetSource = selectedItem.source;
       }

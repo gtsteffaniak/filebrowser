@@ -4,7 +4,7 @@
       <component
         v-if="activeSetting"
         :is="activeSetting.component"
-        :id="activeSetting.id + '-main'"
+        :id="`${activeSetting.id}-main`"
       />
     </div>
     <div v-else class="settings-views">
@@ -57,7 +57,7 @@ export default {
   },
   computed: {
     isRootSettings() {
-      return getters.currentView() == "settings";
+      return getters.currentView() === "settings";
     },
     userPage() {
       return getters.routePath().startsWith(`/settings/users/`);

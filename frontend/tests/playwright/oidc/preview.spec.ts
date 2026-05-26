@@ -1,6 +1,6 @@
-import { test, expect } from "../test-setup";
+import { expect, test } from "../test-setup";
 
-test("Create first new file", async ({  page, checkForErrors, context }) => {
+test("Create first new file", async ({  page, checkForErrors }) => {
   await page.goto("/");
   await expect(page.locator('.listing-items .message > span')).toHaveText('Nothing to show here...');
   await page.locator('.listing-items').click({ button: "right" });
@@ -15,4 +15,3 @@ test("Create first new file", async ({  page, checkForErrors, context }) => {
   await expect(page.locator('.listing-items .file-items')).toHaveCount(1);
   checkForErrors();
 });
-

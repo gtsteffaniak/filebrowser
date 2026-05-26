@@ -68,8 +68,8 @@ export default {
     },
     humanSize() {
       if (!state.req.modified) return "";
-      if (state.req.type == "directory") {
-        return state.req.items.length + " items (" + getHumanReadableFilesize(state.req.size) + ")";
+      if (state.req.type === "directory") {
+        return `${state.req.items.length} items (${getHumanReadableFilesize(state.req.size)})`;
       }
       return getHumanReadableFilesize(state.req.size);
     },
@@ -106,7 +106,6 @@ export default {
 
 .share-info-element {
   margin: 0.5em 0;
-  margin:auto;
 }
 
 .share-info-center {

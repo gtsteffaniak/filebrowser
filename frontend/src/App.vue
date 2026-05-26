@@ -5,6 +5,7 @@
 <script>
 import { onMounted } from "vue";
 import { mutations } from "@/store"; // Import your store's mutations
+
 mutations.setLoading("main-app", true);
 export default {
   name: "app",
@@ -21,9 +22,3 @@ export default {
   },
 };
 </script>
-
-<style>
-/* Always load styles.css */
-@import "./css/styles.css";
-@import "./css/dark.css";
-</style>

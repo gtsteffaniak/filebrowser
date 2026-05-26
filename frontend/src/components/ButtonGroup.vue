@@ -1,11 +1,12 @@
 <template>
   <div @click="preventDefaults" class="button-group">
-    <button v-if="isDisabled" disabled>
+    <button type="button" v-if="isDisabled" disabled>
       {{ disableMessage }}
     </button>
     <template v-else>
       <button
         v-for="(btn, index) in buttons"
+        type="button"
         :key="index"
         class="clickable"
         :class="{ active: activeButton === index }"

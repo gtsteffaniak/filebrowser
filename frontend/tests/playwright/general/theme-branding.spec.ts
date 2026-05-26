@@ -1,6 +1,6 @@
-import { test, expect } from "../test-setup";
+import { expect, test } from "../test-setup";
 
-test("sidebar links", async({ page, checkForErrors, context }) => {
+test("sidebar links", async({ page, checkForErrors }) => {
   await page.goto("/files/");
 
   // Verify the page title

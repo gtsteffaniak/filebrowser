@@ -1,4 +1,5 @@
-import { Browser, chromium, expect, Page } from "@playwright/test";
+import type { Browser, Page } from "@playwright/test";
+import { chromium, expect } from "@playwright/test";
 
 // Perform authentication and store auth state
 async function globalSetup() {

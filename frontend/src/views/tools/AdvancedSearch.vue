@@ -66,7 +66,7 @@
               </div>
               <template
                 v-for="srcName in activeSources"
-                :key="'scope-' + srcName"
+                  :key="`scope-${srcName}`"
               >
                 <PathPickerButton
                   class="scope-picker"
@@ -269,7 +269,7 @@ function browsePath(scopePath, apiPath, isDirectory) {
     return "/";
   }
 
-  let relativeSegmentsPath = url.removeLeadingSlash(url.removeTrailingSlash(trimmedApi));
+  const relativeSegmentsPath = url.removeLeadingSlash(url.removeTrailingSlash(trimmedApi));
   let resolvedBrowsePath =
     context === "" ? `/${relativeSegmentsPath}` : `${context}/${relativeSegmentsPath}`;
 
@@ -799,12 +799,7 @@ export default {
     },
   },
   mounted() {
-    document.title =
-      globalVars.name +
-      " - " +
-      this.$t("tools.title") +
-      " - " +
-      this.$t("tools.advancedSearch.name");
+    document.title = `${globalVars.name} - ${this.$t("tools.title")} - ${this.$t("tools.advancedSearch.name")}`;
     mutations.setSearch(false);
 
     this.resizeListener = () => {
@@ -832,7 +827,7 @@ export default {
   beforeUnmount() {
     if (
       typeof window !== "undefined" &&
-      this.emptyCatalogHydrateTimer != null
+      this.emptyCatalogHydrateTimer !== null
     ) {
       window.clearTimeout(this.emptyCatalogHydrateTimer);
       this.emptyCatalogHydrateTimer = null;
@@ -860,7 +855,7 @@ export default {
         ...this.sourceEnabledFlags,
         [name]: !!enabled,
       };
-      let nextPaths = { ...this.sourceScopedPaths };
+      const nextPaths = { ...this.sourceScopedPaths };
       if (enabled) {
         if (nextPaths[name] === undefined || nextPaths[name] === null || nextPaths[name] === "") {
           nextPaths[name] = "/";
@@ -1239,7 +1234,7 @@ export default {
       if (this.searchTypes.includes(string)) {
         return true;
       }
-      this.searchTypes = this.searchTypes + string + " ";
+      this.searchTypes = `${this.searchTypes}${string} `;
       return true;
     },
     removeFromTypes(string) {

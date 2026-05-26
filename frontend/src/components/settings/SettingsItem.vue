@@ -86,7 +86,7 @@ export default {
       element.style.opacity = '0';
       void element.offsetHeight;
       element.style.transition = 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
-      element.style.height = element.scrollHeight + 'px';
+      element.style.height = `${element.scrollHeight}px`;
       element.style.opacity = '1';
       setTimeout(() => {
         element.style.height = 'auto';
@@ -100,7 +100,7 @@ export default {
     leave(el, done) {
       const element = /** @type {HTMLElement} */ (el);
       element.style.transition = 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
-      element.style.height = element.scrollHeight + 'px';
+      element.style.height = `${element.scrollHeight}px`;
       void element.offsetHeight;
       element.style.height = '0';
       element.style.opacity = '0';

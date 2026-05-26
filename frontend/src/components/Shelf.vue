@@ -23,7 +23,7 @@
 import Breadcrumbs from "@/components/files/Breadcrumbs.vue";
 import ListingHeader from "@/components/files/ListingHeader.vue";
 import DuplicateFinderActions from "@/components/tools/DuplicateFinderActions.vue";
-import { state, getters } from "@/store";
+import { getters, state } from "@/store";
 import { eventBus } from "@/store/eventBus";
 
 export default {
@@ -78,7 +78,7 @@ export default {
       // Check if any file has duration metadata
       if (!state.req?.items) return false;
       return state.req.items.some(item => 
-        item.type !== 'directory' && item.metadata && item.metadata.duration
+        item.type !== 'directory' && item.metadata?.duration
       );
     },
     showDuplicateFinderActions() {
@@ -88,7 +88,7 @@ export default {
     moveWithSidebar() {
       if (getters.isStickySidebar() && getters.isSidebarVisible()) {
         return {
-          left: state.sidebar.width + 'em',
+          left: `${state.sidebar.width}em`,
         };
       }
       return {};

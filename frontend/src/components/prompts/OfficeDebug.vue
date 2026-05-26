@@ -17,15 +17,15 @@
         {{ isShare ? `${$t("onlyoffice.shareHash")}: ${shareHash}` : $t("onlyoffice.userRequest") }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
       </div>
 
-      <div v-if="clientConfig && clientConfig.document" class="debug-section debug-section-config">
+      <div v-if="clientConfig?.document" class="debug-section debug-section-config">
         <div class="debug-section-header">
           <strong class="debug-section-title">🔧 {{ $t("onlyoffice.configurationDetails") }}</strong> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         </div>
         {{ $t("onlyoffice.documentKey") }}: {{ clientConfig.document.key }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         {{ $t("onlyoffice.fileType") }}: {{ clientConfig.document.fileType }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         {{ $t("onlyoffice.editMode") }}: {{ clientConfig.editorConfig ? clientConfig.editorConfig.mode : 'N/A' }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-        {{ $t("onlyoffice.downloadURL") }}: {{ clientConfig.document.url ? clientConfig.document.url.substring(0, 80) + '...' : 'N/A' }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-        {{ $t("onlyoffice.callbackURL") }}: {{ clientConfig.editorConfig && clientConfig.editorConfig.callbackUrl ? clientConfig.editorConfig.callbackUrl.substring(0, 80) + '...' : 'N/A' }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        {{ $t("onlyoffice.downloadURL") }}: {{ clientConfig.document.url ? `${clientConfig.document.url.substring(0, 80)}...` : 'N/A' }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        {{ $t("onlyoffice.callbackURL") }}: {{ clientConfig.editorConfig?.callbackUrl ? `${clientConfig.editorConfig.callbackUrl.substring(0, 80)}...` : 'N/A' }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         <br/>
         <strong>{{ $t("onlyoffice.networkFlow") }}:</strong><br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         {{ $t("onlyoffice.browser") }} ({{ windowOrigin }}) ↔ {{ $t("onlyoffice.onlyOffice") }}: {{ onlyOfficeUrl }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
@@ -109,7 +109,7 @@ export default {
       return window.location.origin;
     },
     internalUrlInfo() {
-      if (this.clientConfig && this.clientConfig.document && this.clientConfig.document.url) {
+      if (this.clientConfig?.document?.url) {
         try {
           const docUrlOrigin = new URL(this.clientConfig.document.url).origin;
           const windowOrigin = window.location.origin;
@@ -125,7 +125,7 @@ export default {
               message: "Not set, using window.location"
             };
           }
-        } catch (e) {
+        } catch (_e) {
           return {
             isSet: false,
             message: "⚠️ Error parsing document URL"
@@ -138,10 +138,10 @@ export default {
       };
     },
     downloadDomain() {
-      if (this.clientConfig && this.clientConfig.document && this.clientConfig.document.url) {
+      if (this.clientConfig?.document?.url) {
         try {
           return new URL(this.clientConfig.document.url).origin;
-        } catch (e) {
+        } catch (_e) {
           return 'N/A';
         }
       }
@@ -202,7 +202,7 @@ export default {
         const configData = await officeApi.getConfig(state.req);
         this.clientConfig = configData;
         
-        if (this.clientConfig.document && this.clientConfig.document.key) {
+        if (this.clientConfig.document?.key) {
           this.documentId = this.clientConfig.document.key;
         }
         
@@ -221,7 +221,7 @@ export default {
     },
     
     updateDebugStatus(message) {
-      this.debugInfo = this.debugInfo + "<br/>" + message;
+      this.debugInfo = `${this.debugInfo}<br/>${message}`;
     },
     
     checkOnlyOfficeServer() {

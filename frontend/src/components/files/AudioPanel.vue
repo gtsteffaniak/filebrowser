@@ -28,6 +28,7 @@
         <!-- Lock button -->
         <button
           v-if="lyrics.length && syncedLyrics"
+          type="button"
           class="lyrics-lock-btn"
           @click="lyricsScrollLocked = !lyricsScrollLocked"
           :title="lyricsScrollLocked ? $t('player.unlockLyrics') : $t('player.lockLyrics')"
@@ -46,7 +47,7 @@
                 @click.stop="syncedLyrics && $emit('seek', line.timestamp)"
                 :role="syncedLyrics ? 'button' : undefined"
                 :tabindex="syncedLyrics ? 0 : undefined"
-                :aria-label="syncedLyrics ? 'Seek to ' + line.text : undefined"
+                :aria-label="syncedLyrics ? `Seek to ${line.text}` : undefined"
               >
               {{ line.text }}
             </p>

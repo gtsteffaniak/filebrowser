@@ -53,7 +53,7 @@ export default {
   computed: {
     showShareInfo() {
       // Don't show file/folder info if req is not loaded or empty
-      if (!state.req || !state.req.name) {
+      if (!state.req?.name) {
         return false;
       }
       if (state.shareInfo?.shareType !== 'normal') {
@@ -71,18 +71,18 @@ export default {
       return state.req;
     },
     humanSize() {
-      if (!state.req || !state.req.modified) return "";
-      if (state.req.type == "directory") {
-        return state.req.items.length + " items (" + getHumanReadableFilesize(state.req.size) + ")";
+      if (!state.req?.modified) return "";
+      if (state.req.type === "directory") {
+        return `${state.req.items.length} items (${getHumanReadableFilesize(state.req.size)})`;
       }
       return getHumanReadableFilesize(state.req.size);
     },
     humanTime() {
-      if (!state.req || !state.req.modified) return "";
+      if (!state.req?.modified) return "";
       return getters.getTime(state.req.modified);
     },
     modTime() {
-      if (!state.req || !state.req.modified) return "";
+      if (!state.req?.modified) return "";
       return new Date(Date.parse(state.req.modified)).toLocaleString();
     },
     isImage() {

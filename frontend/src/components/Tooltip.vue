@@ -20,7 +20,7 @@
 </template>
 
 <script>
-import { state, getters, mutations } from "@/store";
+import { getters, mutations, state } from "@/store";
 
 export default {
   name: "Tooltip",

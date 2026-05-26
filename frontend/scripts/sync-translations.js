@@ -1,9 +1,9 @@
 // scripts/sync-translations.js
-import fs from 'fs-extra';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import * as glob from 'glob';
 import * as deepl from 'deepl-node';
+import fs from 'fs-extra';
+import * as glob from 'glob';
 
 // Parse command line arguments
 const args = process.argv.slice(2);
@@ -76,7 +76,7 @@ async function translateText(text, targetLanguage, keyPath = '') {
   try {
     console.log(`Translating "${text}" from '${masterLanguageCode}' to '${targetLanguage}'...`);
 
-    let deeplTargetLang = deeplLangMap[targetLanguage.toLowerCase()] || targetLanguage.toUpperCase();
+    const deeplTargetLang = deeplLangMap[targetLanguage.toLowerCase()] || targetLanguage.toUpperCase();
 
     const result = await translator.translateText(textToTranslate, masterLanguageCode, deeplTargetLang, options);
 
@@ -104,8 +104,8 @@ function reorderObject(obj, masterObj) {
   if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) return obj;
   const newObj = {};
   for (const key in masterObj) {
-    if (Object.prototype.hasOwnProperty.call(masterObj, key)) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+    if (Object.hasOwn(masterObj, key)) {
+      if (Object.hasOwn(obj, key)) {
         newObj[key] = reorderObject(obj[key], masterObj[key]);
       }
     }
@@ -120,7 +120,7 @@ async function processKeys(masterObj, targetObj, targetLangCode, currentPathPart
 
   // First pass: Add/update keys from master to target
   for (const key in masterObj) {
-    if (Object.prototype.hasOwnProperty.call(masterObj, key)) {
+    if (Object.hasOwn(masterObj, key)) {
       const currentPathPartsNext = [...currentPathParts, key];
       const currentKeyPath = currentPathPartsNext.join('.');
 
@@ -153,7 +153,7 @@ async function processKeys(masterObj, targetObj, targetLangCode, currentPathPart
         if (targetObj[key] && typeof targetObj[key] === 'object') {
           const result = await processKeys( masterValue, targetObj[key], targetLangCode, currentPathPartsNext,
             doEnforceOrder, doCleanupOnly);
-          if (result == "UNSUPPORTED") {
+          if (result === "UNSUPPORTED") {
             console.log(`Skipping translation for "${targetLangCode}" due to unsupported structure.`);
             return "UNSUPPORTED";
           }
@@ -168,7 +168,7 @@ async function processKeys(masterObj, targetObj, targetLangCode, currentPathPart
         // Only handle non‑object values
         if (typeof masterValue === 'string') {
           const existingTargetValue = targetObj[key];
-          const isMissing = !Object.prototype.hasOwnProperty.call(targetObj, key) || existingTargetValue === '' || existingTargetValue === null;
+          const isMissing = !Object.hasOwn(targetObj, key) || existingTargetValue === '' || existingTargetValue === null;
 
           if (isMissing) {
             if (checkOnly) {
@@ -180,7 +180,7 @@ async function processKeys(masterObj, targetObj, targetLangCode, currentPathPart
             } else {
               // Sync translation
               const result = await translateText(masterValue, targetLangCode, currentKeyPath);
-              if (result == "") {
+              if (result === "") {
                 return "UNSUPPORTED";
               }
               targetObj[key] = result;
@@ -188,7 +188,7 @@ async function processKeys(masterObj, targetObj, targetLangCode, currentPathPart
             }
           }
         } else {
-          if (!Object.prototype.hasOwnProperty.call(targetObj, key)) {
+          if (!Object.hasOwn(targetObj, key)) {
             if (checkOnly) {
               console.log(`Would copy key "${currentKeyPath}" (non-string) from English to ${targetLangCode}.json`);
               meaningfulChanges++; // Copying non-string values is meaningful
@@ -206,8 +206,8 @@ async function processKeys(masterObj, targetObj, targetLangCode, currentPathPart
   // Second pass: Remove obsolete keys that exist in target but not in master
   const keysToRemove = [];
   for (const key in targetObj) {
-    if (Object.prototype.hasOwnProperty.call(targetObj, key)) {
-      if (!Object.prototype.hasOwnProperty.call(masterObj, key)) {
+    if (Object.hasOwn(targetObj, key)) {
+      if (!Object.hasOwn(masterObj, key)) {
         keysToRemove.push(key);
       }
     }
@@ -259,7 +259,7 @@ async function syncAllTranslations() {
     const targetLangCode = path.basename(targetFile, '.json');
     let targetContent = {};
     let originalTargetContent = null;
-    let fileExisted = await fs.pathExists(targetFile);
+    const fileExisted = await fs.pathExists(targetFile);
 
     if (fileExisted) {
       try {

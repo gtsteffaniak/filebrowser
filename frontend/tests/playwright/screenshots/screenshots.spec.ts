@@ -1,10 +1,10 @@
-import { test, expect } from "../test-setup";
-import { Page } from "@playwright/test";
+//import { Page } from "@playwright/test";
+import { expect, test } from "../test-setup";
 
 const jpgQuality = 85;
 
 // this file has playwright tests that create screenshots of the UI
-test("setup theme", async ({ page, checkForErrors, context, theme }) => {
+test("setup theme", async ({ page, theme }) => {
   if (theme === 'light') {
     await page.goto("/files/");
     // only toggle if active
@@ -16,7 +16,7 @@ test("setup theme", async ({ page, checkForErrors, context, theme }) => {
 });
 
 // run npx playwright test --ui to run these tests locally in ui mode
-test("each view mode", async ({ page, checkForErrors, context, theme }) => {
+test("each view mode", async ({ page, theme }) => {
   if (theme === 'light') {
     return;
   }
@@ -32,7 +32,7 @@ test("each view mode", async ({ page, checkForErrors, context, theme }) => {
 });
 
 // run npx playwright test --ui to run these tests locally in ui mode
-test("context menu", async ({ page, checkForErrors, context, theme }) => {
+test("context menu", async ({ page, theme }) => {
   await page.goto("/files/");
   await page.locator('a[aria-label="file.tar.gz"]').waitFor({ state: 'visible' });
   await page.locator('a[aria-label="file.tar.gz"]').click({ button: "right" });
@@ -59,7 +59,7 @@ test("context menu", async ({ page, checkForErrors, context, theme }) => {
   await expect(page.locator('button[aria-label="Create archive"]')).toBeHidden();
 });
 
-test("info from search", async ({ page, checkForErrors, context, theme }) => {
+test("info from search", async ({ page, theme }) => {
   if (theme === 'light') {
     return;
   }
@@ -79,7 +79,7 @@ test("info from search", async ({ page, checkForErrors, context, theme }) => {
   await page.screenshot({ path: `./generated/search/info-from-search-${theme}.jpg`, quality: jpgQuality });
 })
 
-test("no viewer available", async ({ page, checkForErrors, context, theme }) => {
+test("no viewer available", async ({ page, theme }) => {
   if (theme === 'light') {
     return;
   }
@@ -89,7 +89,7 @@ test("no viewer available", async ({ page, checkForErrors, context, theme }) => 
   await page.screenshot({ path: `./generated/viewer/no-viewer-available-${theme}.jpg`, quality: jpgQuality });
 })
 
-test("copy from listing to new folder", async ({ page, checkForErrors, context, theme }) => {
+test("copy from listing to new folder", async ({ page, theme }) => {
   if (theme === 'light') {
     return;
   }
@@ -107,7 +107,7 @@ test("copy from listing to new folder", async ({ page, checkForErrors, context, 
   await page.screenshot({ path: `./generated/prompts/copy-to-new-folder-${theme}.jpg`, quality: jpgQuality });
 })
 
-test("breadcrumbs navigation checks", async ({ page, checkForErrors, context, theme }) => {
+test("breadcrumbs navigation checks", async ({ page, theme }) => {
   await page.goto("/files/playwright/myfolder");
   await page.waitForSelector('#breadcrumbs');
   let spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();
@@ -126,7 +126,7 @@ test("breadcrumbs navigation checks", async ({ page, checkForErrors, context, th
 })
 
 
-test("delete file", async ({ page, checkForErrors, context, theme }) => {
+test("delete file", async ({ page, theme }) => {
   if (theme === 'light') {
     return;
   }
@@ -142,7 +142,7 @@ test("delete file", async ({ page, checkForErrors, context, theme }) => {
   await page.screenshot({ path: `./generated/prompts/delete-deleteme.txt-${theme}.jpg`, quality: jpgQuality });
 })
 
-test("text file editor -- text", async ({ page, checkForErrors, context, theme }) => {
+test("text file editor -- text", async ({ page, theme }) => {
   if (theme === 'light') {
     return;
   }
@@ -154,19 +154,19 @@ test("text file editor -- text", async ({ page, checkForErrors, context, theme }
 });
 
 
-test("text file editor -- javascript", async ({ page, checkForErrors, context, theme }) => {
+test("text file editor -- javascript", async ({ page, theme }) => {
   await page.goto("/files/playwright/text-files/javascript.js");
   await page.waitForTimeout(500);
   await page.screenshot({ path: `./generated/viewer/editor-javascript.js-${theme}.jpg`, quality: jpgQuality });
 });
 
-test("text file editor -- bash", async ({ page, checkForErrors, context, theme }) => {
+test("text file editor -- bash", async ({ page,theme }) => {
   await page.goto("/files/playwright/text-files/bash.sh");
   await page.waitForTimeout(500);
   await page.screenshot({ path: `./generated/viewer/editor-bash.sh-${theme}.jpg`, quality: jpgQuality });
 });
 
-test("3d file preview thumbnails", async ({ page, checkForErrors, context, theme }) => {
+test("3d file preview thumbnails", async ({ page, checkForErrors, theme }) => {
   if (theme === 'light') {
     return;
   }
@@ -184,7 +184,7 @@ test("3d file preview thumbnails", async ({ page, checkForErrors, context, theme
 });
 
 // 3d file preview, cycle through all 3d files and confirm no errors
-test("3d file preview", async ({ page, checkForErrors, context, theme}) => {
+test("3d file preview", async ({ page, checkForErrors, theme}) => {
   if (theme === 'light') {
     return;
   }

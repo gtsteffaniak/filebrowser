@@ -79,7 +79,7 @@ export default {
     if (window.DocsAPI) delete window.DocsAPI;
     const iframes = document.querySelectorAll('iframe');
     iframes.forEach(iframe => {
-      if (iframe.src && iframe.src.includes('onlyoffice')) {
+      if (iframe.src?.includes('onlyoffice')) {
         iframe.remove();
       }
     });
@@ -89,7 +89,7 @@ export default {
       const current = window.location.pathname;
       const newpath = removeLastDir(current);
       const filename = this.path.split('/').pop() || "";
-      window.location.href = newpath + "#" + filename;
+      window.location.href = `${newpath}#${filename}`;
     },
 
     showDebugPrompt() {

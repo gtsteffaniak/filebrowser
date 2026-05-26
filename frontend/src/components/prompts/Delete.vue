@@ -45,11 +45,19 @@
       </div>
     </div>
     <div class="card-actions">
-      <button @click="closeTopPrompt" class="button button--flat button--grey" :aria-label="$t('general.cancel')"
+      <button
+        type="button"
+        @click="closeTopPrompt"
+        class="button button--flat button--grey"
+        :aria-label="$t('general.cancel')"
         :title="$t('general.cancel')">
         {{ $t("general.cancel") }}
       </button>
-      <button @click="submit" class="button button--flat button--red" aria-label="Confirm-Delete"
+      <button
+        type="button"
+        @click="submit"
+        class="button button--flat button--red"
+        aria-label="Confirm-Delete"
         :title="$t('general.delete')">
         {{ $t("general.delete") }}
       </button>
@@ -104,9 +112,9 @@ export default {
       }
 
       // Otherwise, compute from state (backward compatibility)
-      let items = [];
+      const items = [];
 
-      if (state.isSearchActive || getters.currentView() == "preview") {
+      if (state.isSearchActive || getters.currentView() === "preview") {
         const selected = state.selected[0];
         const item = state.req.items?.[selected] || selected;
         const previewUrl = this.getPreviewUrl(item.source || state.req.source, item.path, item.modified, item.type);
@@ -132,7 +140,7 @@ export default {
           hasPreview: item.hasPreview,
         });
       } else {
-        for (let index of state.selected) {
+        for (const index of state.selected) {
           const item = state.req.items[index];
           const previewUrl = this.getPreviewUrl(item.source || state.req.source, item.path, item.modified, item.type);
           items.push({
@@ -198,7 +206,7 @@ export default {
 
       try {
         return resourcesApi.getPreviewURL(source, path, modified);
-      } catch (e) {
+      } catch (_e) {
         return null;
       }
     },
