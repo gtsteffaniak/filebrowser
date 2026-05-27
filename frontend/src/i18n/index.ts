@@ -49,7 +49,11 @@ const internalToStandard: Record<string, string> = {
 };
 
 export function toStandardLocale(locale: string): string {
-  return internalToStandard[locale] || locale;
+  // Only use own enumerable properties; ignore prototype chain.
+  if (Object.hasOwn(internalToStandard, locale)) {
+    return internalToStandard[locale];
+  }
+  return locale;
 }
 
 export function detectLocale(): string {
@@ -65,7 +69,9 @@ export function detectLocale(): string {
     'sv': 'svSE',
     'nl-be': 'nlBE',
   };
-  if (browserToInternalMap[browserLocale]) return browserToInternalMap[browserLocale];
+  if (Object.hasOwn(browserToInternalMap, browserLocale)) {
+    return browserToInternalMap[browserLocale];
+  }
   const prefix = browserLocale.split('-')[0];
   return availableLocales[prefix] || 'en';
 }
@@ -109,16 +115,18 @@ export async function setLocale(locale: string) {
   }
   // But if isn't loaded, we will load it dynamically.
   try {
-    const messages = (await localeModules[`./${locale}.json`]()).default;
+    const fileName = availableLocales[locale];
+    const messages = (await localeModules[`./${fileName}.json`]()).default;
     i18n.global.setLocaleMessage(locale, messages);
     setLanguage(locale);
     await nextTick();
-  } catch {
+  } catch (e) {
+    console.error("Failed to set locale:", e);
     setLanguage('en'); // Just in case that anything fails, fallback to english
   }
 }
 
 const detected = detectLocale();
-if (detected !== 'en') setLocale(detected);
+if (detected !== 'en') void setLocale(detected);
 
 export default i18n;
