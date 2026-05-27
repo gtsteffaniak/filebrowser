@@ -385,7 +385,7 @@ export const mutations = {
     state.reload = value;
     emitStateChanged();
   },
-  setCurrentUser: (value) => {
+  setCurrentUser: async (value) => {
     try {
       // If value is null or undefined, emit state change and exit early
       if (!value) {
@@ -398,9 +398,9 @@ export const mutations = {
       }
       // Ensure locale exists and is valid
       if (!value.locale) {
-        value.locale = i18n.detectLocale();  // Default to detected locale if missing
+        value.locale = i18n.detectLocale();
       } else {
-        i18n.setLocale(value.locale);
+        await i18n.setLocale(value.locale);
       }
       state.user = value;
       state.user.sorting = {};
@@ -549,7 +549,7 @@ export const mutations = {
     state.previewRaw = value;
     emitStateChanged();
   },
-  updateCurrentUser: (value) => {
+  updateCurrentUser: async (value) => {
     // Ensure the input is a valid object
     if (typeof value !== "object" || value === null) return;
 
@@ -576,7 +576,7 @@ export const mutations = {
 
     // Handle locale change
     if (state.user.locale !== previousUser.locale) {
-      i18n.setLocale(state.user.locale);
+      await i18n.setLocale(state.user.locale);
       i18n.default.locale = state.user.locale;
       localStorage.setItem("userLocale", state.user.locale);
     }

@@ -17,7 +17,7 @@ export async function validateLogin(isPublicRoute = false) {
     throw new Error(`{"status":${res.status},"message":"${await res.text()}"}`);
   }
   const userInfo = await res.json();
-  mutations.setCurrentUser(userInfo);
+  await mutations.setCurrentUser(userInfo);
   getters.isLoggedIn()
   if (state.user.loginMethod === "proxy") {
     const apiPath = getApiPath("auth/login")

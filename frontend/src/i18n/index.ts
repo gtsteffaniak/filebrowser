@@ -1,62 +1,44 @@
 // i18n.js
 import { createI18n } from 'vue-i18n';
-
-// Import translations (alphabetical order)
-import ar from './ar.json';
-import cz from './cz.json';
-import de from './de.json';
-import el from './el.json';
+import { nextTick } from 'vue';
 import en from './en.json';
-import es from './es.json';
-import fr from './fr.json';
-import he from './he.json';
-import hu from './hu.json';
-import is from './is.json';
-import it from './it.json';
-import ja from './ja.json';
-import ko from './ko.json';
-import nl from './nl.json';
-import nlBE from './nl-be.json';
-import pl from './pl.json';
-import pt from './pt.json';
-import ptBR from './pt-br.json';
-import ro from './ro.json';
-import ru from './ru.json';
-import sk from './sk.json';
-import svSE from './sv-se.json';
-import ua from './ua.json';
-import zhCN from './zh-cn.json';
-import zhTW from './zh-tw.json';
 
-interface LocaleMap { [key: string]: string; }
+type MessageSchema = typeof en;
 
-interface TranslationMessages {
-  [key: string]: string | TranslationMessages;
-}
-
-// Map of all imported translation modules (alphabetical order)
-// This is the single source for all translations
-const translationModules: Record<string, TranslationMessages> = {
-  ar, cz, de, el, en, es, fr, he, hu, is, it, ja, ko, nl, nlBE, pl, pt, ptBR, ro, ru, sk, svSE, ua, zhCN, zhTW
+// All the locales in alphabetical order
+export const availableLocales: Record<string, string> = {
+  // internal keys: 'display value'
+  ar: 'ar',
+  cz: 'cz',
+  de: 'de',
+  el: 'el',
+  en: 'en',
+  es: 'es',
+  fr: 'fr',
+  he: 'he',
+  hu: 'hu',
+  is: 'is',
+  it: 'it',
+  ja: 'ja',
+  ko: 'ko',
+  nl: 'nl',
+  nlBE: 'nl-be',
+  pl: 'pl',
+  pt: 'pt',
+  ptBR: 'pt-br',
+  ro: 'ro',
+  ru: 'ru',
+  sk: 'sk',
+  svSE: 'sv-se',
+  ua: 'ua',
+  zhCN: 'zh-cn',
+  zhTW: 'zh-tw',
 };
 
-// Shared list of available locales for the application
-// Auto-generated from translation modules
-export const availableLocales: LocaleMap = Object.keys(translationModules).reduce((acc, key) => {
-  // Convert internal keys to their display format
-  const displayMap: { [key: string]: string } = {
-    nlBE: 'nl-be',
-    ptBR: 'pt-br',
-    svSE: 'sv-se',
-    zhCN: 'zh-cn',
-    zhTW: 'zh-tw',
-  };
-  acc[key] = displayMap[key] || key;
-  return acc;
-}, {} as LocaleMap);
+export const SUPPORT_LOCALES = Object.keys(availableLocales);
 
 // Maps internal locale names to standard BCP 47 codes (for navigator.language)
-export const internalToStandardLocaleMap: { [key: string]: string } = {
+const internalToStandard: Record<string, string> = {
   nlBE: 'nl-be',
   ptBR: 'pt-br',
   svSE: 'sv-se',
@@ -67,14 +49,14 @@ export const internalToStandardLocaleMap: { [key: string]: string } = {
 };
 
 export function toStandardLocale(locale: string): string {
-  return internalToStandardLocaleMap[locale] || locale;
+  return internalToStandard[locale] || locale;
 }
 
 export function detectLocale(): string {
   const browserLocale = navigator.language.toLowerCase();
 
   // Map of browser locale codes to internal locale keys
-  const browserToInternalMap: LocaleMap = {
+  const browserToInternalMap: Record<string, string> = {
     'pt-br': 'ptBR',
     'zh-tw': 'zhTW',
     'zh-cn': 'zhCN',
@@ -83,50 +65,60 @@ export function detectLocale(): string {
     'sv': 'svSE',
     'nl-be': 'nlBE',
   };
-
-  // Check for exact matches first (including variants like pt-br)
-  if (browserToInternalMap[browserLocale]) {
-    return browserToInternalMap[browserLocale];
-  }
-
-  // Check for language prefix matches (e.g., 'en-US' -> 'en')
-  const languagePrefix = browserLocale.split('-')[0];
-
-  // If the language prefix exists in our translations, use it
-  if (translationModules[languagePrefix]) {
-    return languagePrefix;
-  }
-
-  // Try browser-specific mappings for the prefix
-  if (browserToInternalMap[languagePrefix]) {
-    return browserToInternalMap[languagePrefix];
-  }
-
-  return 'en'; // Default fallback
+  if (browserToInternalMap[browserLocale]) return browserToInternalMap[browserLocale];
+  const prefix = browserLocale.split('-')[0];
+  return availableLocales[prefix] || 'en';
 }
 
 // List of RTL languages
 export const rtlLanguages = ['he', 'ar'];
 
 // Function to check if locale is RTL
-export const isRtl = (locale?: string) => {
-  const currentLocale = locale || i18n.global.locale.value;
-  return rtlLanguages.includes(currentLocale);
-};
+export const isRtl = (locale?: string) => rtlLanguages.includes(locale || i18n.global.locale.value);
 
-export function setLocale(locale: string) {
-  // according to doc u only need .value if legacy: false but they lied
-  // https://vue-i18n.intlify.dev/guide/essentials/scope.html#local-scope-1
+function setLanguage(locale: string) {
   i18n.global.locale.value = locale;
+  document.querySelector('html')?.setAttribute('lang', toStandardLocale(locale));
 }
 
 // Create i18n instance with auto-generated messages from imported modules
-const i18n = createI18n({
-  locale: detectLocale(),
+const i18n = createI18n<MessageSchema, string, false>({
+  locale: 'en',
   fallbackLocale: 'en',
-  // expose i18n.global for outside components
   legacy: false,
-  messages: translationModules,
+  messages: { en },
 });
+
+// Set English as initial language and update the html lang
+setLanguage('en');
+
+// import.meta.glob is vite-specific
+// here we are preloading all json files as lazy chunks, except 'en.json' since this one will be always loaded.
+const localeModules = import.meta.glob<{ default: Record<string, unknown> }>('./!(en).json');
+
+export async function setLocale(locale: string) {
+  // If the locale doesn't exist in our list -> fallback to English
+  if (!SUPPORT_LOCALES.includes(locale)) {
+    setLanguage('en');
+    return;
+  }
+  // If the locale is already loaded just switch to it
+  if (i18n.global.availableLocales.includes(locale)) {
+    setLanguage(locale);
+    return;
+  }
+  // But if isn't loaded, we will load it dynamically.
+  try {
+    const messages = (await localeModules[`./${locale}.json`]()).default;
+    i18n.global.setLocaleMessage(locale, messages);
+    setLanguage(locale);
+    await nextTick();
+  } catch {
+    setLanguage('en'); // Just in case that anything fails, fallback to english
+  }
+}
+
+const detected = detectLocale();
+if (detected !== 'en') setLocale(detected);
 
 export default i18n;

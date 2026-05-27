@@ -10,6 +10,7 @@ const isDevBuild = process.env.DEV_BUILD === "true";
 const plugins = [
   vue(),
   VueI18nPlugin({
+    runtimeOnly: false,
     include: [path.resolve(__dirname, "./src/i18n/**/*.json")],
   }),
   // Only compress in production builds
@@ -38,6 +39,10 @@ export default defineConfig(() => {
     plugins,
     resolve,
     base: "",
+    define: {
+      __VUE_I18N_LEGACY_API__: JSON.stringify(false),
+      __VUE_I18N_FULL_INSTALL__: JSON.stringify(false),
+    },
     build: {
       // Optimize for watch mode stability
       watch: isDevBuild ? {
@@ -51,11 +56,7 @@ export default defineConfig(() => {
         input: {
           index: path.resolve(__dirname, "./public/index.html"),
         },
-        output: {
-          manualChunks(id) {
-            if (id.includes("i18n/")) return "i18n";
-          },
-        },
+        output: {},
         // Better error handling in watch mode
         onwarn(warning, warn) {
           // Suppress certain warnings in dev mode
