@@ -5,16 +5,21 @@ Thank you for your interest in contributing to FileBrowser Quantum! This guide w
 ## Prerequisites
 
 - **Go 1.25+** (see `backend/go.mod`)
-- **Node.js 20.0.0+** with npm 9.0.0+ (see `frontend/package.json`)
+- **Node.js 22.0.0+** with npm 9.0.0+ (see `frontend/package.json`)
 - **Docker** (optional, for containerized development)
 - **Git** especially improtant on windows -- needed for bash support.
 
 ### Optional Tools
 
-- **ffmpeg**: For media features (subtitles, thumbnails, heic)
+- **ffmpeg/ffprobe**: For media features (subtitles, thumbnails, heic)
   - Ubuntu/Debian: `sudo apt-get install ffmpeg`
   - macOS: `brew install ffmpeg`
   - Windows: Download from [ffmpeg.org](https://ffmpeg.org/download.html)
+
+- **exiftool**: For photo metadata processing (RAW/HEIC previews, EXIF orientation)
+  - Ubuntu/Debian: `sudo apt-get install libimage-exiftool-perl`
+  - macOS: `brew install exiftool`
+  - Windows: Download from [exiftool.org](https://exiftool.org/) (install `exiftool.exe` and add it to your PATH, or set `integrations.media.exiftoolPath` in config)
 
 - **mupdf-tools**: For PDF preview generation
   - Ubuntu/Debian: `sudo apt-get install mupdf-tools`
@@ -90,18 +95,6 @@ make test-playwright   # E2E tests in Docker
 
 E2E tests run with three authentication modes: standard auth, no auth, and proxy auth.
 
-### Coverage & Performance
-```bash
-cd backend
-./run_check_coverage.sh  # Coverage report with HTML output
-./run_benchmark.sh       # Benchmarks
-```
-
-**Code Coverage:**
-- View report: Open `backend/coverage.html` after running coverage script
-- CI enforces coverage for critical packages
-- Use `go test -cover` for quick package coverage
-
 ## Code Standards
 
 ### Backend (Go)
@@ -156,53 +149,3 @@ type(scope): description
 
 Types: feat, fix, docs, refactor, test, chore
 ```
-
-## Roadmap
-
-Check the [Project Roadmap](https://github.com/users/gtsteffaniak/projects/4/views/2) to see issues sorted by priority. This helps you understand what features are planned and where you can contribute most effectively.
-
-## Troubleshooting
-
-### Common Issues
-
-**Build failures:**
-```bash
-# Frontend
-cd frontend && rm -rf node_modules && npm install
-
-# Backend
-cd backend && go mod tidy && go clean -modcache
-```
-
-**Authentication Issues:**
-
-Always first enable debug logging in your config file if you have issues.
-
-1. **OIDC Login Fails:**
-   - Check redirect URLs match your config
-   - Verify OIDC provider settings
-   - Enable debug logs to see auth flow
-   - Common issue: mismatched callback URLs
-
-2. **Proxy Auth Not Working:**
-   - Verify header names match config
-   - Check nginx/reverse proxy passes headers
-   - Test with: `curl -H "X-Auth: username" localhost:8080`
-   - Enable `--log-level debug` to see headers
-
-3. **TOTP Issues:**
-   - Ensure server time is synchronized
-   - Check QR code generation in logs
-   - Test with authenticator app time settings
-   - Database might have stale TOTP secrets
-
-4. **Session/Cookie Problems:**
-   - Clear browser cookies and localStorage
-   - Verify cookie domain settings
-   - Try incognito/private browsing mode
-
-### Getting Help
-
-- **Wiki**: [Project Wiki](https://github.com/gtsteffaniak/filebrowser/wiki)
-- **Issues**: [GitHub Issues](https://github.com/gtsteffaniak/filebrowser/issues)
-- **PR Template**: See `.github/PULL_REQUEST_TEMPLATE.md`
