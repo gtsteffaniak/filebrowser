@@ -35,8 +35,6 @@ export const availableLocales: Record<string, string> = {
   zhTW: 'zh-tw',
 };
 
-export const SUPPORT_LOCALES = Object.keys(availableLocales);
-
 // Maps internal locale names to standard BCP 47 codes (for navigator.language)
 const internalToStandard: Record<string, string> = {
   nlBE: 'nl-be',
@@ -49,7 +47,6 @@ const internalToStandard: Record<string, string> = {
 };
 
 export function toStandardLocale(locale: string): string {
-  // Only use own enumerable properties; ignore prototype chain.
   if (Object.hasOwn(internalToStandard, locale)) {
     return internalToStandard[locale];
   }
@@ -73,7 +70,10 @@ export function detectLocale(): string {
     return browserToInternalMap[browserLocale];
   }
   const prefix = browserLocale.split('-')[0];
-  return availableLocales[prefix] || 'en';
+  if (Object.hasOwn(availableLocales, prefix)) {
+    return availableLocales[prefix];
+  }
+  return 'en';
 }
 
 // List of RTL languages
@@ -103,8 +103,8 @@ setLanguage('en');
 const localeModules = import.meta.glob<{ default: Record<string, unknown> }>('./!(en).json');
 
 export async function setLocale(locale: string) {
-  // If the locale doesn't exist in our list -> fallback to English
-  if (!SUPPORT_LOCALES.includes(locale)) {
+  // If the locale doesn't exist in our list, fallback to English
+  if (!Object.hasOwn(availableLocales, locale)) {
     setLanguage('en');
     return;
   }
