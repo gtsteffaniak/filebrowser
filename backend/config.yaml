@@ -6,8 +6,6 @@ server:
   sources:
     - path: "/srv"
 auth:
-  key: "change-me-to-a-random-string"
-  totpSecret: "change-me-to-another-random-string"
   methods:
     password:
       enabled: true
