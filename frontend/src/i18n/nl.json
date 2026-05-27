@@ -257,6 +257,7 @@
   },
   "share": {
     "notice": "Opmerking: wanneer een gedeelde map wordt aangemaakt, wordt deze meer blootgesteld aan het publiek en gelden er andere toegangsregels. Als uw gedeelde map niet veilig is geconfigureerd, kan iedereen er toegang tot krijgen.",
+    "readOnlySourceNotice": "Deze bron is alleen-lezen. Upload shares en rechten om bestanden te wijzigen zijn uitgeschakeld.",
     "disableAnonymous": "Anonieme toegang uitschakelen",
     "disableThumbnails": "Miniaturen uitschakelen",
     "enableAllowedUsernames": "Alleen delen met bepaalde gebruikers",
@@ -322,8 +323,7 @@
     "shareInfo": "QR-code en info delen",
     "shareInfoDescription": "Deze koppeling toont de informatie van de gedeelde map, inclusief titel, beschrijving, banner en QR-code in een popup.",
     "downloadDescription": "Met deze koppeling kunt u de volledige inhoud van de gedeelde map downloaden als een gecomprimeerd bestand.",
-    "deleteFailed": "Share niet verwijderd",
-    "readOnlySourceNotice": "Deze bron is alleen-lezen. Upload shares en rechten om bestanden te wijzigen zijn uitgeschakeld."
+    "deleteFailed": "Share niet verwijderd"
   },
   "prompts": {
     "operationInProgress": "Werk in uitvoering, even geduld...",
