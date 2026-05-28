@@ -35,45 +35,41 @@ export const availableLocales: Record<string, string> = {
   zhTW: 'zh-tw',
 };
 
+const availableLocalesMap = new Map(Object.entries(availableLocales));
+
 // Maps internal locale names to standard BCP 47 codes (for navigator.language)
-const internalToStandard: Record<string, string> = {
-  nlBE: 'nl-be',
-  ptBR: 'pt-br',
-  svSE: 'sv-se',
-  zhCN: 'zh-cn',
-  zhTW: 'zh-tw',
-  cz: 'cs',
-  ua: 'uk',
-};
+const internalToStandard = new Map<string, string>([
+  ['nlBE', 'nl-be'],
+  ['ptBR', 'pt-br'],
+  ['svSE', 'sv-se'],
+  ['zhCN', 'zh-cn'],
+  ['zhTW', 'zh-tw'],
+  ['cz', 'cs'],
+  ['ua', 'uk'],
+]);
 
 export function toStandardLocale(locale: string): string {
-  if (Object.hasOwn(internalToStandard, locale)) {
-    return internalToStandard[locale];
-  }
-  return locale;
+  return internalToStandard.get(locale) ?? locale;
 }
 
 export function detectLocale(): string {
   const browserLocale = navigator.language.toLowerCase();
 
   // Map of browser locale codes to internal locale keys
-  const browserToInternalMap: Record<string, string> = {
-    'pt-br': 'ptBR',
-    'zh-tw': 'zhTW',
-    'zh-cn': 'zhCN',
-    'zh': 'zhCN',
-    'sv-se': 'svSE',
-    'sv': 'svSE',
-    'nl-be': 'nlBE',
-  };
-  if (Object.hasOwn(browserToInternalMap, browserLocale)) {
-    return browserToInternalMap[browserLocale];
+  const browserToInternalMap = new Map<string, string>([
+    ['pt-br', 'ptBR'],
+    ['zh-tw', 'zhTW'],
+    ['zh-cn', 'zhCN'],
+    ['zh',    'zhCN'],
+    ['sv-se', 'svSE'],
+    ['sv',    'svSE'],
+    ['nl-be', 'nlBE'],
+  ]);
+  if (browserToInternalMap.has(browserLocale)) {
+    return browserToInternalMap.get(browserLocale)!;
   }
   const prefix = browserLocale.split('-')[0];
-  if (Object.hasOwn(availableLocales, prefix)) {
-    return availableLocales[prefix];
-  }
-  return 'en';
+  return availableLocalesMap.get(prefix) ?? 'en';
 }
 
 // List of RTL languages
@@ -104,7 +100,7 @@ const localeModules = import.meta.glob<{ default: Record<string, unknown> }>('./
 
 export async function setLocale(locale: string) {
   // If the locale doesn't exist in our list, fallback to English
-  if (!Object.hasOwn(availableLocales, locale)) {
+  if (!availableLocalesMap.has(locale)) {
     setLanguage('en');
     return;
   }
@@ -115,7 +111,7 @@ export async function setLocale(locale: string) {
   }
   // But if isn't loaded, we will load it dynamically.
   try {
-    const fileName = availableLocales[locale];
+    const fileName = availableLocalesMap.get(locale)!;
     const messages = (await localeModules[`./${fileName}.json`]()).default;
     i18n.global.setLocaleMessage(locale, messages);
     setLanguage(locale);
