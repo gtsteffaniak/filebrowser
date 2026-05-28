@@ -65,8 +65,9 @@ export function detectLocale(): string {
     ['sv',    'svSE'],
     ['nl-be', 'nlBE'],
   ]);
-  if (browserToInternalMap.has(browserLocale)) {
-    return browserToInternalMap.get(browserLocale)!;
+  const mappedLocale = browserToInternalMap.get(browserLocale);
+  if (mappedLocale !== undefined) {
+    return mappedLocale;
   }
   const prefix = browserLocale.split('-')[0];
   return availableLocalesMap.get(prefix) ?? 'en';
@@ -111,7 +112,11 @@ export async function setLocale(locale: string) {
   }
   // But if isn't loaded, we will load it dynamically.
   try {
-    const fileName = availableLocalesMap.get(locale)!;
+    const fileName = availableLocalesMap.get(locale);
+    if (!fileName) {
+      setLanguage('en');
+      return;
+    }
     const messages = (await localeModules[`./${fileName}.json`]()).default;
     i18n.global.setLocaleMessage(locale, messages);
     setLanguage(locale);
