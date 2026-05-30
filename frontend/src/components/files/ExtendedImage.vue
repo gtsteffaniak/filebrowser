@@ -95,6 +95,7 @@ export default {
       edgeCommitX: 130,
       edgeCommitY: 110,
       edgeRubberMax: 100,
+      pinchActive: false,
     };
   },
   computed: {
@@ -192,6 +193,10 @@ export default {
     if (this.loadTimeout) {
       clearTimeout(this.loadTimeout);
       this.loadTimeout = null;
+    }
+    if (this.disabledTimer) {
+      clearTimeout(this.disabledTimer);
+      this.disabledTimer = null;
     }
     this.teardownEdgeMouseListeners();
     mutations.setNavigationGestureHint({});
@@ -587,6 +592,13 @@ export default {
       this.lastX = null;
       this.lastY = null;
       this.lastTouchDistance = null;
+      if (event.targetTouches.length >= 2) {
+        this.pinchActive = true;
+        this.resetEdgeGestureImmediate();
+        this.applyImgTransform();
+        event.preventDefault();
+        return;
+      }
       if (event.targetTouches.length === 1 && this.scale === 1) {
         const touch = event.targetTouches[0];
         this.edgeStartX = touch.pageX;
@@ -599,7 +611,7 @@ export default {
         this.resetEdgeGestureImmediate();
         this.applyImgTransform();
       }
-      if (event.targetTouches.length < 2) {
+      if (event.targetTouches.length === 2) {
         setTimeout(() => {
           this.touches = 0;
         }, 300);
@@ -632,7 +644,34 @@ export default {
     touchMove(event) {
       // Default is prevented via @touchmove.prevent so the browser cannot steal
       // vertical drags (pull-to-refresh) before our edge-gesture thresholds.
-      if (event.targetTouches.length === 1 && this.scale === 1) {
+      if (event.targetTouches.length === 2) {
+        if (!this.pinchActive) {
+          this.pinchActive = true;
+          this.resetEdgeGestureImmediate();
+          this.applyImgTransform();
+        }
+        this.moveDisabled = true;
+        clearTimeout(this.disabledTimer);
+        this.disabledTimer = setTimeout(() => (this.moveDisabled = false), this.moveDisabledTime);
+
+        const p1 = event.targetTouches[0];
+        const p2 = event.targetTouches[1];
+        const touchDistance = Math.sqrt((p2.pageX - p1.pageX) ** 2 + (p2.pageY - p1.pageY) ** 2);
+
+        if (!this.lastTouchDistance) {
+          this.lastTouchDistance = touchDistance;
+          return;
+        }
+        let newScale = this.scale + (touchDistance - this.lastTouchDistance) / (this.$refs.imgex.width / 5);
+        newScale = Math.max(this.minScale, Math.min(this.maxScale, newScale));
+        if (newScale !== this.scale) {
+          this.scale = newScale;
+        }
+        this.lastTouchDistance = touchDistance;
+        this.setZoom();
+        return;
+      }
+      if (event.targetTouches.length === 1 && this.scale === 1 && !this.pinchActive) {
         const touch = event.targetTouches[0];
         this.edgeDx = touch.pageX - this.edgeStartX;
         this.edgeDy = touch.pageY - this.edgeStartY;
@@ -640,36 +679,15 @@ export default {
         this.applyEdgeVisuals();
         return;
       }
-      if (this.lastX === null) {
-        this.lastX = event.targetTouches[0].pageX;
-        this.lastY = event.targetTouches[0].pageY;
-        return;
-      }
-      const step = this.$refs.imgex.width / 5;
-      if (event.targetTouches.length === 2) {
-        this.moveDisabled = true;
-        clearTimeout(this.disabledTimer);
-        this.disabledTimer = setTimeout(
-          () => (this.moveDisabled = false),
-          this.moveDisabledTime
-        );
-        const p1 = event.targetTouches[0];
-        const p2 = event.targetTouches[1];
-        const touchDistance = Math.sqrt(
-          (p2.pageX - p1.pageX) ** 2 + (p2.pageY - p1.pageY) ** 2
-        );
-        if (!this.lastTouchDistance) {
-          this.lastTouchDistance = touchDistance;
+      if (event.targetTouches.length === 1 && this.scale > 1) {
+        if (this.moveDisabled) return;
+        if (this.lastX === null) {
+          this.lastX = event.targetTouches[0].pageX;
+          this.lastY = event.targetTouches[0].pageY;
           return;
         }
-        this.scale += (touchDistance - this.lastTouchDistance) / step;
-        this.lastTouchDistance = touchDistance;
-        this.setZoom();
-      } else if (event.targetTouches.length === 1 && this.scale > 1) {
-        if (this.moveDisabled) return;
         const x = event.targetTouches[0].pageX - this.lastX;
         const y = event.targetTouches[0].pageY - this.lastY;
-        if (Math.abs(x) >= step && Math.abs(y) >= step) return;
         this.lastX = event.targetTouches[0].pageX;
         this.lastY = event.targetTouches[0].pageY;
         this.doMove(x, y);
@@ -697,6 +715,15 @@ export default {
       return +style.replace("px", "");
     },
     touchEnd(event) {
+      if (this.pinchActive) {
+        if (event.touches.length === 0) {
+          this.pinchActive = false;
+          this.resetEdgeGestureImmediate();
+          this.applyImgTransform();
+        }
+        event.preventDefault();
+        return;
+      }
       if (this.scale === 1 && event.changedTouches.length > 0) {
         const t = event.changedTouches[0];
         this.edgeDx = t.pageX - this.edgeStartX;

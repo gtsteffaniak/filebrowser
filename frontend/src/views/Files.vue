@@ -87,7 +87,7 @@ async function fetchShareItemWithParent(sharePassword) {
 /** @returns {Promise<{ items?: object[], name: string, type: string, path: string, source: string, parentDirItems?: object[] }>} */
 async function fetchAuthItemWithParent(fetchSource, fetchPath) {
   let res = await resourcesApi.fetchFiles(fetchSource, fetchPath, false, false);
-  if (res.type === "directory" || res.type.startsWith("image")) {
+  if (res.type === "directory") {
     return res;
   }
   const content = !getters.fileViewingDisabled(res.name);
