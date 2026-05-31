@@ -5,15 +5,7 @@ import { globalVars, previewViews, tools } from '@/utils/constants';
 import { getFileExtension } from '@/utils/files.js';
 import { getTypeInfo } from '@/utils/mimetype';
 import { fromNow } from '@/utils/moment';
-import { buildItemUrl, removeLeadingSlash, removePrefix } from '@/utils/url.js';
-
-function normalizePinnedDirectoryPath(path) {
-  if (!path || path === "/") {
-    return "/";
-  }
-  const normalized = url.removeLastDir(path);
-  return normalized && normalized !== "" ? normalized : "/";
-}
+import { buildItemUrl, removeLeadingSlash, removePrefix, getParentDir } from '@/utils/url.js';
 
 export const getters = {
   displayPreferenceFor: (source, path) => {
@@ -90,7 +82,7 @@ export const getters = {
     if (!item?.path || getters.isShare() || !getters.isLoggedIn()) {
       return false;
     }
-    const directoryPath = normalizePinnedDirectoryPath(item.path);
+    const directoryPath = getParentDir(item.path);
     const source = item.source || state.req?.source || state.sources.current;
     return getters.pinnedPathsFor(source, directoryPath).includes(item.path);
   },

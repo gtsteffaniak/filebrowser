@@ -9,24 +9,6 @@ import { emitStateChanged } from './eventBus';
 import { getters } from "./getters.js";
 import { state } from "./state.js";
 
-function normalizeDirectoryPath(path) {
-  if (!path || path === "/") {
-    return "/";
-  }
-  const normalized = url.removeLastDir(path);
-  return normalized && normalized !== "" ? normalized : "/";
-}
-
-function getPinnedPathsForContext(source, path) {
-  if (getters.isShare() || !getters.isLoggedIn()) {
-    return [];
-  }
-  const sourceKey = source || state.sources.current || state.req?.source || "";
-  const directoryPath = path || "/";
-  const pinnedPaths = state.user?.pinnedItems?.[sourceKey]?.[directoryPath];
-  return Array.isArray(pinnedPaths) ? pinnedPaths : [];
-}
-
 export const mutations = {
   disableEventThemes: () => {
     if (state.disableEventThemes) {
@@ -644,7 +626,7 @@ export const mutations = {
     const sorting = getters.sorting();
     const sortby = sorting.by;
     const asc = sorting.asc;
-    const pinnedPaths = getPinnedPathsForContext(value.source, value.path || state.route.path || "/");
+    const pinnedPaths = getters.pinnedPathsFor(value.source, value.path || state.route.path || "/");
     // Separate directories and files
     const dirs = value.items.filter((item) => item.type === 'directory');
     const files = value.items.filter((item) => item.type !== 'directory');
@@ -856,7 +838,7 @@ export const mutations = {
       return;
     }
 
-    const directoryPath = normalizeDirectoryPath(item.path);
+    const directoryPath = url.getParentDir(item.path);
     const sourceKey = item.source || state.req?.source || state.sources.current;
     if (!sourceKey) {
       return;
@@ -893,7 +875,7 @@ export const mutations = {
       pinnedItems: nextPinnedItems,
     });
 
-    const currentDirectoryPath = state.req?.type === "directory" ? state.req.path : normalizeDirectoryPath(state.req?.path);
+    const currentDirectoryPath = state.req?.type === "directory" ? state.req.path : url.getParentDir(state.req?.path);
     const currentSourceKey = state.req?.source || state.sources.current;
 
     if (
@@ -938,7 +920,7 @@ export const mutations = {
 
     // Sort listing according to sorting preferences
     const sorting = getters.sorting();
-    const pinnedPaths = getPinnedPathsForContext(currentItem?.source || state.req?.source, directoryPath);
+    const pinnedPaths = getters.pinnedPathsFor(currentItem?.source || state.req?.source, directoryPath);
     listing = sortedItems(listing, sorting.by, sorting.asc, pinnedPaths);
 
     // Find current item index in the listing

@@ -115,7 +115,8 @@
     "readOnly": "Read-only{suffix}",
     "private": "Private{suffix}",
     "yes": "Yes{suffix}",
-    "no": "No{suffix}"
+    "no": "No{suffix}",
+    "pinnedItems": "Pinned"
   },
   "buttons": {
     "copySuccess": "Copied to clipboard!",

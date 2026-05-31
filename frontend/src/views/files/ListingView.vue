@@ -59,7 +59,7 @@
       <template v-else>
         <!-- Pinned Items Section -->
         <div v-if="numPinned > 0">
-          <h2 :class="{'dark-mode': isDarkMode}">{{ $t("general.pin", { suffix: "" }) }}</h2>
+          <h2 :class="{'dark-mode': isDarkMode}">{{ pinnedHeaderText }}</h2>
         </div>
         <div
           v-if="numPinned > 0"
@@ -337,7 +337,7 @@ export default {
       return getters.reqItems();
     },
     numPinned() {
-      return this.items.pinned?.length || 0;
+      return this.pinnedItems.length;
     },
     pinnedItems() {
       return this.items.pinned || [];
@@ -349,6 +349,17 @@ export default {
     numDirs() {
       const count = getters.reqNumDirs();
       return count;
+    },
+    pinnedHeaderText() {
+      const pinnedFolders = this.pinnedItems.filter(item => item.type === 'directory').length;
+      const pinnedFiles = this.pinnedItems.filter(item => item.type !== 'directory').length;
+      if (pinnedFolders > 0 && pinnedFiles === 0) {
+        return `${this.$t("general.pinnedItems")} ${this.$t("general.folders")}`; // "Pinned folders"
+      }
+      if (pinnedFiles > 0 && pinnedFolders === 0) {
+        return `${this.$t("general.pinnedItems")} ${this.$t("general.files")}`;   // "Pinned files"
+      }
+      return this.$t("general.pinnedItems"); // "Pinned items" if we pin both types
     },
     dirs() {
       return this.items.dirs;
