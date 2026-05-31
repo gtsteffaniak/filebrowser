@@ -27,7 +27,9 @@
     "showLess": "הסתר אפשרויות מתקדמות",
     "goToSource": "עבור למיקום המקור",
     "goToItem": "עבור לפריט",
-    "copyPath": "העתק נתיב"
+    "copyPath": "העתק נתיב",
+    "pinItem": "נעץ",
+    "unpinItem": "הסר נעיצה"
   },
   "errors": {
     "forbidden": "אין לך הרשאות גישה",
@@ -561,8 +563,6 @@
     "audio": "אודיו{suffix}",
     "and": "ו-",
     "or": "או",
-    "pin": "Pin{suffix}",
-    "unpin": "Unpin{suffix}",
     "readOnly": "לקריאה בלבד{suffix}",
     "private": "פרטי{suffix}",
     "yes": "כן{suffix}",

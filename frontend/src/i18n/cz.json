@@ -27,7 +27,9 @@
     "showLess": "Skrytí pokročilých možností",
     "goToSource": "Přejít na zdrojové umístění",
     "goToItem": "Přejít na položku",
-    "copyPath": "Kopírovat cestu"
+    "copyPath": "Kopírovat cestu",
+    "pinItem": "Připnout",
+    "unpinItem": "Odepnout"
   },
   "errors": {
     "forbidden": "Nemáte oprávnění k přístupu.",
@@ -655,8 +657,6 @@
     "audio": "Audio{suffix}",
     "and": "a",
     "or": "nebo",
-    "pin": "Pin{suffix}",
-    "unpin": "Unpin{suffix}",
     "readOnly": "Pouze pro čtení{suffix}",
     "private": "Soukromé{suffix}",
     "yes": "Ano{suffix}",

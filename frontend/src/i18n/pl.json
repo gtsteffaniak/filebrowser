@@ -27,7 +27,9 @@
     "showLess": "Ukryj opcje zaawansowane",
     "goToSource": "Przejdź do lokalizacji źródłowej",
     "goToItem": "Przejdź do pozycji",
-    "copyPath": "Ścieżka kopiowania"
+    "copyPath": "Ścieżka kopiowania",
+    "pinItem": "Przypnij",
+    "unpinItem": "Odepnij"
   },
   "errors": {
     "forbidden": "Nie posiadasz uprawnień potrzebnych, by uzyskać do tego dostęp.",
@@ -561,8 +563,6 @@
     "audio": "Audio{suffix}",
     "and": "oraz",
     "or": "lub",
-    "pin": "Pin{suffix}",
-    "unpin": "Unpin{suffix}",
     "readOnly": "Tylko do odczytu{suffix}",
     "private": "Prywatny{suffix}",
     "yes": "Tak{suffix}",

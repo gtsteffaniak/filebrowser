@@ -27,7 +27,9 @@
     "showLess": "Geavanceerde opties verbergen",
     "goToSource": "Ga naar de bronlocatie",
     "goToItem": "Ga naar item",
-    "copyPath": "Kopieer pad"
+    "copyPath": "Kopieer pad",
+    "pinItem": "Vastzetten",
+    "unpinItem": "Losmaken"
   },
   "errors": {
     "forbidden": "U hebt geen rechten om hier toegang toe te krijgen.",
@@ -655,8 +657,6 @@
     "audio": "Audio{suffix}",
     "and": "en",
     "or": "of",
-    "pin": "Pin{suffix}",
-    "unpin": "Unpin{suffix}",
     "readOnly": "Alleen-lezen{suffix}",
     "private": "Privé{suffix}",
     "yes": "Ja{suffix}",

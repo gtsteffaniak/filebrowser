@@ -27,7 +27,9 @@
     "showLess": "Skryť rozšírené možnosti",
     "goToSource": "Prejsť na zdrojové miesto",
     "goToItem": "Prejsť na položku",
-    "copyPath": "Kopírovať cestu"
+    "copyPath": "Kopírovať cestu",
+    "pinItem": "Pripnúť",
+    "unpinItem": "Odpnúť"
   },
   "errors": {
     "forbidden": "You don't have permissions to access this.",
@@ -561,8 +563,6 @@
     "audio": "Audio{suffix}",
     "and": "a",
     "or": "alebo",
-    "pin": "Pin{suffix}",
-    "unpin": "Unpin{suffix}",
     "readOnly": "Len na čítanie{suffix}",
     "private": "Súkromná stránka{suffix}",
     "yes": "Áno{suffix}",

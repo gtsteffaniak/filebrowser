@@ -27,7 +27,9 @@
     "showLess": "إخفاء الخيارات المتقدمة",
     "goToSource": "الانتقال إلى موقع المصدر",
     "goToItem": "انتقل إلى العنصر",
-    "copyPath": "مسار النسخ"
+    "copyPath": "مسار النسخ",
+    "pinItem": "تثبيت",
+    "unpinItem": "إلغاء التثبيت"
   },
   "errors": {
     "forbidden": "You don't have permissions to access this.",
@@ -561,8 +563,6 @@
     "audio": "الصوت{suffix}",
     "and": "و",
     "or": "أو",
-    "pin": "Pin{suffix}",
-    "unpin": "Unpin{suffix}",
     "readOnly": "للقراءة فقط{suffix}",
     "private": "خاص{suffix}",
     "yes": "نعم{suffix}",

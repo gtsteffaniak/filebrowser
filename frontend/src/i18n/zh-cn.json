@@ -27,7 +27,9 @@
     "showLess": "隐藏高级选项",
     "goToSource": "转到源位置",
     "goToItem": "转到项目",
-    "copyPath": "复制路径"
+    "copyPath": "复制路径",
+    "pinItem": "固定",
+    "unpinItem": "取消固定"
   },
   "errors": {
     "forbidden": "你无权限访问",
@@ -629,8 +631,6 @@
     "pause": "暂停{suffix}",
     "resume": "简历{suffix}",
     "retry": "重试{suffix}",
-    "pin": "置顶{suffix}",
-    "unpin": "取消置顶{suffix}",
     "disable": "禁用{suffix}",
     "confirm": "确认{suffix}",
     "stay": "停留{suffix}",

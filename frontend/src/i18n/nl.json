@@ -115,9 +115,7 @@
     "readOnly": "Alleen-lezen{suffix}",
     "private": "Privé{suffix}",
     "yes": "Ja{suffix}",
-    "no": "Geen{suffix}",
-    "pin": "Pin{suffix}",
-    "unpin": "Unpin{suffix}"
+    "no": "Geen{suffix}"
   },
   "buttons": {
     "copySuccess": "Gekopieerd naar klembord!",
@@ -147,7 +145,9 @@
     "keepEditing": "Blijven bewerken",
     "closeAnyway": "Sluiten",
     "goToItem": "Ga naar item",
-    "goToSource": "Ga naar bronlocatie"
+    "goToSource": "Ga naar bronlocatie",
+    "pinItem": "Vastzetten",
+    "unpinItem": "Losmaken"
   },
   "errors": {
     "forbidden": "U hebt hier geen toegangsrechten.",

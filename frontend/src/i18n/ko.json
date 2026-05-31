@@ -27,7 +27,9 @@
     "showLess": "고급 옵션 숨기기",
     "goToSource": "소스 위치로 이동",
     "goToItem": "항목으로 이동",
-    "copyPath": "경로 복사"
+    "copyPath": "경로 복사",
+    "pinItem": "고정",
+    "unpinItem": "고정 해제"
   },
   "errors": {
     "forbidden": "접근 권한이 없습니다.",
@@ -561,8 +563,6 @@
     "audio": "오디오{suffix}",
     "and": "그리고",
     "or": "또는",
-    "pin": "Pin{suffix}",
-    "unpin": "Unpin{suffix}",
     "readOnly": "읽기 전용{suffix}",
     "private": "비공개{suffix}",
     "yes": "예{suffix}",

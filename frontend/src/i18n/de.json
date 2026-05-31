@@ -27,7 +27,9 @@
     "showLess": "Erweiterte Optionen ausblenden",
     "goToSource": "Zum Quellort gehen",
     "goToItem": "Weiter zum Artikel",
-    "copyPath": "Pfad kopieren"
+    "copyPath": "Pfad kopieren",
+    "pinItem": "Anheften",
+    "unpinItem": "Lösen"
   },
   "errors": {
     "forbidden": "Sie haben keine Berechtigung dies abzurufen.",
@@ -561,8 +563,6 @@
     "audio": "Audio{suffix}",
     "and": "und",
     "or": "oder",
-    "pin": "Pin{suffix}",
-    "unpin": "Unpin{suffix}",
     "readOnly": "Schreibgeschützt{suffix}",
     "private": "Privat{suffix}",
     "yes": "Ja{suffix}",

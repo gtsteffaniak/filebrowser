@@ -27,7 +27,9 @@
     "showLess": "Приховати додаткові параметри",
     "goToSource": "Перейдіть до Розташування джерела",
     "goToItem": "Перейти до пункту",
-    "copyPath": "Шлях копіювання"
+    "copyPath": "Шлях копіювання",
+    "pinItem": "Закріпити",
+    "unpinItem": "Відкріпити"
   },
   "errors": {
     "forbidden": "У вас немає прав доступу до цього.",
@@ -655,8 +657,6 @@
     "audio": "Аудіо{suffix}",
     "and": "і",
     "or": "або",
-    "pin": "Pin{suffix}",
-    "unpin": "Unpin{suffix}",
     "readOnly": "Тільки для читання{suffix}",
     "private": "Рядовий{suffix}",
     "yes": "Так.{suffix}",

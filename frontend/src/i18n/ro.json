@@ -27,7 +27,9 @@
     "showLess": "Ascundeți opțiunile avansate",
     "goToSource": "Du-te la locația sursei",
     "goToItem": "Du-te la articol",
-    "copyPath": "Copiați calea"
+    "copyPath": "Copiați calea",
+    "pinItem": "Fixare",
+    "unpinItem": "Anulare fixare"
   },
   "errors": {
     "forbidden": "Nu ai permisiuni sa accesezi asta.",
@@ -561,8 +563,6 @@
     "audio": "Audio{suffix}",
     "and": "și",
     "or": "sau",
-    "pin": "Pin{suffix}",
-    "unpin": "Unpin{suffix}",
     "readOnly": "Numai citire{suffix}",
     "private": "Privat{suffix}",
     "yes": "Da{suffix}",

@@ -27,7 +27,9 @@
     "showLess": "Dölj avancerade alternativ",
     "goToSource": "Gå till källplatsen",
     "goToItem": "Gå till objektet",
-    "copyPath": "Kopiera sökväg"
+    "copyPath": "Kopiera sökväg",
+    "pinItem": "Fäst",
+    "unpinItem": "Lossa"
   },
   "errors": {
     "forbidden": "Du saknar rättigheter till detta",
@@ -655,8 +657,6 @@
     "audio": "Ljud{suffix}",
     "and": "och",
     "or": "eller",
-    "pin": "Pin{suffix}",
-    "unpin": "Unpin{suffix}",
     "readOnly": "Skrivskyddad{suffix}",
     "private": "Privat{suffix}",
     "yes": "Ja{suffix}",

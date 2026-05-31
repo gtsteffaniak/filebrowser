@@ -341,7 +341,7 @@ export default {
       return getters.currentView() === "listingView";
     },
     pinActionLabel() {
-      return this.isPinnedSelection ? this.$t("general.unpin") : this.$t("general.pin");
+      return this.isPinnedSelection ? this.$t("buttons.unpinItem") : this.$t("buttons.pinItem");
     },
     isPinnedSelection() {
       if (!this.firstSelected) {

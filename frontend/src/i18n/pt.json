@@ -27,7 +27,9 @@
     "showLess": "Ocultar opções avançadas",
     "goToSource": "Ir para o local de origem",
     "goToItem": "Ir para o item",
-    "copyPath": "Caminho de cópia"
+    "copyPath": "Caminho de cópia",
+    "pinItem": "Fixar",
+    "unpinItem": "Desafixar"
   },
   "errors": {
     "forbidden": "Não tem permissões para aceder a isto",
@@ -655,8 +657,6 @@
     "audio": "Áudio{suffix}",
     "and": "e",
     "or": "ou",
-    "pin": "Pin{suffix}",
-    "unpin": "Unpin{suffix}",
     "readOnly": "Só de leitura{suffix}",
     "private": "Privado{suffix}",
     "yes": "Sim{suffix}",

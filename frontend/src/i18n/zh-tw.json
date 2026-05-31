@@ -27,7 +27,9 @@
     "showLess": "隱藏進階選項",
     "goToSource": "前往來源位置",
     "goToItem": "前往項目",
-    "copyPath": "複製路徑"
+    "copyPath": "複製路徑",
+    "pinItem": "釘選",
+    "unpinItem": "取消釘選"
   },
   "errors": {
     "forbidden": "沒有權限存取此內容。",
@@ -655,8 +657,6 @@
     "audio": "音訊{suffix}",
     "and": "和",
     "or": "或",
-    "pin": "Pin{suffix}",
-    "unpin": "Unpin{suffix}",
     "readOnly": "唯讀{suffix}",
     "private": "私人{suffix}",
     "yes": "是{suffix}",

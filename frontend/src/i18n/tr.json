@@ -27,7 +27,9 @@
     "showLess": "Gelişmiş Seçenekleri Gizle",
     "goToSource": "Kaynak Konuma Git",
     "goToItem": "Öğeye git",
-    "copyPath": "Kopyalama Yolu"
+    "copyPath": "Kopyalama Yolu",
+    "pinItem": "Sabitle",
+    "unpinItem": "Sabitlemeyi Kaldır"
   },
   "errors": {
     "forbidden": "Buna erişim izniniz yok.",
@@ -561,8 +563,6 @@
     "audio": "Ses{suffix}",
     "and": "ve",
     "or": "veya",
-    "pin": "Pin{suffix}",
-    "unpin": "Unpin{suffix}",
     "readOnly": "Salt okunur{suffix}",
     "private": "Özel{suffix}",
     "yes": "Evet{suffix}",

@@ -27,7 +27,9 @@
     "showLess": "Speciális beállítások elrejtése",
     "goToSource": "Menj a forráshelyre",
     "goToItem": "Tovább a tételhez",
-    "copyPath": "Másolás útvonal"
+    "copyPath": "Másolás útvonal",
+    "pinItem": "Rögzítés",
+    "unpinItem": "Rögzítés feloldása"
   },
   "errors": {
     "forbidden": "Nincs jogosultsága a hozzáféréshez.",
@@ -561,8 +563,6 @@
     "audio": "Audio{suffix}",
     "and": "és",
     "or": "vagy",
-    "pin": "Pin{suffix}",
-    "unpin": "Unpin{suffix}",
     "readOnly": "Csak olvasható{suffix}",
     "private": "Privát{suffix}",
     "yes": "Igen{suffix}",

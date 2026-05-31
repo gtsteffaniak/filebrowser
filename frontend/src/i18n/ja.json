@@ -27,7 +27,9 @@
     "showLess": "詳細オプションを隠す",
     "goToSource": "ソース・ロケーションへ",
     "goToItem": "アイテムへ",
-    "copyPath": "コピーパス"
+    "copyPath": "コピーパス",
+    "pinItem": "ピン留め",
+    "unpinItem": "ピン留めを解除"
   },
   "errors": {
     "forbidden": "このリソースへのアクセス権限がありません。",
@@ -561,8 +563,6 @@
     "audio": "オーディオ{suffix}",
     "and": "そして",
     "or": "または",
-    "pin": "Pin{suffix}",
-    "unpin": "Unpin{suffix}",
     "readOnly": "読み取り専用{suffix}",
     "private": "プライベート{suffix}",
     "yes": "はい{suffix}",

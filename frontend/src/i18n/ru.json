@@ -27,7 +27,9 @@
     "showLess": "Скрыть дополнительные параметры",
     "goToSource": "Перейти к исходному местоположению",
     "goToItem": "Перейти к пункту",
-    "copyPath": "Путь копирования"
+    "copyPath": "Путь копирования",
+    "pinItem": "Закрепить",
+    "unpinItem": "Открепить"
   },
   "errors": {
     "forbidden": "У вас нет прав доступа к этому.",
@@ -561,8 +563,6 @@
     "audio": "Аудио{suffix}",
     "and": "и",
     "or": "или",
-    "pin": "Pin{suffix}",
-    "unpin": "Unpin{suffix}",
     "readOnly": "Только для чтения{suffix}",
     "private": "Частный{suffix}",
     "yes": "Да{suffix}",
