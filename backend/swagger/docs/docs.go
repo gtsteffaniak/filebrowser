@@ -6310,19 +6310,6 @@ const docTemplate = `{
                     "description": "deprecated: use ui.customTheme instead",
                     "type": "string"
                 },
-                "pinnedItems": {
-                    "description": "pinned items organized by source and directory path",
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "object",
-                        "additionalProperties": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                },
                 "darkMode": {
                     "description": "deprecated: use sidebar.darkMode instead",
                     "type": "boolean"
@@ -7362,6 +7349,18 @@ const docTemplate = `{
                 }
             }
         },
+        "users.PinnedItems": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "object",
+                "additionalProperties": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "users.Preview": {
             "type": "object",
             "properties": {
@@ -7590,6 +7589,14 @@ const docTemplate = `{
                 "permissions": {
                     "$ref": "#/definitions/users.Permissions"
                 },
+                "pinnedItems": {
+                    "description": "pinned items organized by source and directory path",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/users.PinnedItems"
+                        }
+                    ]
+                },
                 "preferEditorForMarkdown": {
                     "description": "prefer editor first for markdown files instead of the Markdown Viewer",
                     "type": "boolean"
@@ -7796,3 +7803,4 @@ var SwaggerInfo = &swag.Spec{
 	LeftDelim:        "{{",
 	RightDelim:       "}}",
 }
+
