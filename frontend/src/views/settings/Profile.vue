@@ -263,7 +263,6 @@ export default {
     },
   },
   mounted() {
-    console.log("[quota-debug] Profile mounted — state.user.quotaBytes:", state.user.quotaBytes, "usedBytes:", state.user.usedBytes);
     this.localuser = { ...state.user };
     if (getters.eventTheme() === "halloween" && !state.disableEventThemes) {
       this.localuser.themeColor = "";

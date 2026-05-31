@@ -17,7 +17,6 @@ export async function validateLogin() {
   }
 
   const userInfo = await res.json();
-  console.log("[quota-debug] /api/users?id=self response:", JSON.stringify({ quotaBytes: userInfo.quotaBytes, usedBytes: userInfo.usedBytes, username: userInfo.username }));
   mutations.setCurrentUser(userInfo);
   getters.isLoggedIn()
   if (state.user.loginMethod == "proxy") {
