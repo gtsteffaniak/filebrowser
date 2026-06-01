@@ -4,14 +4,14 @@
     <div
       class="custom-scrollbar"
       ref="scrollbar"
-      :class="{ ready: isReady, visible: isVisible && canScroll }"
+      :class="{ ready: isReady, visible: isVisible && canScroll && showScrollbar }"
       @mouseenter="handleMouseEnter"
       @mouseleave="handleMouseLeave"
     >
       <div
         class="thumb no-select"
         ref="thumb"
-        :class="{ ready: isReady, visible: isVisible && canScroll }"
+        :class="{ ready: isReady, visible: isVisible && canScroll && showScrollbar }"
         @mousedown="startDrag"
         @touchstart.prevent="startDrag"
       >
@@ -82,6 +82,10 @@ export default {
       if (category === 'pinned') return 'push_pin';
       return this.isFolder ? 'folder' : 'description';
     },
+    showScrollbar() {
+      const view = getters.currentView();
+      return view === 'listingView' || view === 'settings' || view === 'tools' || view === 'markdownViewer';
+    },
   },
   methods: {
     handleResize() {
@@ -98,7 +102,7 @@ export default {
       return state.listing.letter;
     },
     handleMouseEnter() {
-      if (!this.canScroll) return;
+      if (!this.showScrollbar || !this.canScroll) return;
       this.isHovering = true;
       this.isVisible = true;
       this.clearHideTimeout();
@@ -123,7 +127,7 @@ export default {
       }, 800);
     },
     handleMouseMove(e) {
-      if (!this.canScroll && !this.isReady) return;
+      if (!this.showScrollbar || !this.canScroll) return;
       const wrapper = this.$refs.wrapper;
       const bounds = wrapper.getBoundingClientRect();
       const relativeX = e.clientX - bounds.left;
@@ -133,7 +137,7 @@ export default {
       }
     },
     updateThumbPosition(scrollTop) {
-      if (!this.canScroll) return;
+      if (!this.showScrollbar || !this.canScroll) return;
       const content = this.$refs.wrapper;
       const scrollbar = this.$refs.scrollbar;
       const thumb = this.$refs.thumb;
@@ -152,7 +156,7 @@ export default {
     handleScroll() {
       if (!this.isReady) return;
       this.updateScrollableContent();
-      if (!this.canScroll || this.scrollFrame) return;
+      if (!this.showScrollbar || !this.canScroll || this.scrollFrame) return;
       // Use requestAnimationFrame to throttle updates
       this.scrollFrame = requestAnimationFrame(() => {
         const content = this.$refs.wrapper;
@@ -171,7 +175,7 @@ export default {
       });
     },
     startDrag(e) {
-      if (!this.canScroll) return;
+      if (!this.showScrollbar || !this.canScroll) return;
       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
       this.isDragging = true;
       this.startY = clientY;
