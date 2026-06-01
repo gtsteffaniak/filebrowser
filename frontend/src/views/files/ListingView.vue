@@ -237,17 +237,29 @@ export default {
         }
       });
 
-      if (!topItem) return;
-
-      const letter = topItem.getAttribute("data-name")?.[0]?.toUpperCase() || "A";
+      // Decide category by checking which section is above
+      let letter = topItem.getAttribute("data-name")?.[0]?.toUpperCase() || "A";
       let category = "folders"; // Default category
-      if (this.numFiles > 0) {
-        // Decide category by checking which section is above
+
+      if (!topItem && this.numPinned > 0) {
+        const pinnedHeader = this.$el.querySelector(".pinned-items h2");
+        if (pinnedHeader && pinnedHeader.getBoundingClientRect().top >= 0) {
+          category = "pinned";
+          const firstPinned = this.pinnedItems[0];
+          letter = firstPinned?.name?.[0]?.toUpperCase();
+        }
+      } 
+      else if (topItem?.closest('.pinned-items')) {
+        category = "pinned";
+        const firstPinned = this.pinnedItems[0];
+        letter = firstPinned?.name?.[0]?.toUpperCase();
+      } 
+      else if (this.numFiles > 0) {
         const fileSection = this.$el.querySelector(".file-items");
         const fileTop = fileSection?.getBoundingClientRect().top ?? 0;
         category = fileTop <= 0 ? "files" : "folders";
       }
-      if (this.numDirs === 0) {
+      if (this.numDirs === 0 && category !== "pinned") {
         category = "files"; // If no directories, only files
       }
 
@@ -343,12 +355,10 @@ export default {
       return this.items.pinned || [];
     },
     numFiles() {
-      const count = getters.reqNumFiles();
-      return count;
+      return this.files.length;
     },
     numDirs() {
-      const count = getters.reqNumDirs();
-      return count;
+      return this.dirs.length;
     },
     pinnedHeaderText() {
       const pinnedFolders = this.pinnedItems.filter(item => item.type === 'directory').length;

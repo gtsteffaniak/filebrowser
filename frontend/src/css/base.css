@@ -37,7 +37,7 @@ audio, video {
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 .break-word {

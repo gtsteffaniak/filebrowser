@@ -19,15 +19,13 @@
           <hr />
         </div>
         <div v-else class="thumb-letters no-select">
-          <i class="material-symbols" :class="{ 'primary-icons': isFolder }"> {{ isFolder ? "folder" : "description" }} </i> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <i class="material-symbols" :class="{ 'primary-icons': thumbIcon === 'push_pin' || isFolder }">
+            {{ thumbIcon }}
+          </i>
         </div>
       </div>
-      <div
-        :class="{ hidden: isNotListing }"
-        class="thumb-section-id no-select"
-        ref="sectionId"
-      >
-        {{ this.letter() }}
+      <div :class="{ hidden: isNotListing }" class="thumb-section-id no-select" ref="sectionId">
+        <span>{{ letter() }}</span>
       </div>
     </div>
   </div>
@@ -75,6 +73,11 @@ export default {
         };
       }
       return {};
+    },
+    thumbIcon() {
+      const category = this.category();
+      if (category === 'pinned') return 'push_pin';
+      return this.isFolder ? 'folder' : 'description';
     },
   },
   methods: {
@@ -129,7 +132,9 @@ export default {
       const scrollbar = this.$refs.scrollbar;
       const thumb = this.$refs.thumb;
       const sectionId = this.$refs.sectionId;
-      const scrollRatio = scrollTop / (content.scrollHeight - content.clientHeight);
+      const scrollableHeight = content.scrollHeight - content.clientHeight;
+      if (scrollableHeight <= 0) return;
+      const scrollRatio = scrollTop / scrollableHeight;
       const thumbHeight = thumb.clientHeight;
       const maxThumbTop = scrollbar.clientHeight - thumbHeight - (getters.showStatusBar() ? offsetFromBottomListing : offsetFromBottomFull);
       const thumbPosition = scrollRatio * maxThumbTop;
@@ -142,7 +147,7 @@ export default {
       if (!this.isReady) return;
       // Use requestAnimationFrame to throttle updates
       if (this.scrollFrame) return;
-      this.pendingScrollAnimation = requestAnimationFrame(() => {
+      this.scrollFrame = requestAnimationFrame(() => {
         const content = this.$refs.wrapper;
         this.isVisible = true;
         this.scheduleHide();
