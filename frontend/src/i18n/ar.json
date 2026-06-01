@@ -55,7 +55,10 @@
     "sortByDuration": "فرز حسب المدة",
     "sameFolder": "لا يمكن النقل إلى نفس المجلد",
     "cannotAccesDir": "لا يمكن الوصول إلى المجلد",
-    "lonely": "لا شيء للعرض هنا..."
+    "lonely": "لا شيء للعرض هنا...",
+    "pinnedFolders": "المجلدات المثبتة",
+    "pinnedFiles": "الملفات المثبتة",
+    "pinnedItems": "مثبت"
   },
   "help": {
     "functionKeys": "مفاتيح الوظائف",

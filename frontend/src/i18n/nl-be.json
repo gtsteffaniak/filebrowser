@@ -55,7 +55,10 @@
     "sortByDuration": "Sorteren op duur",
     "sameFolder": "Kan niet naar dezelfde map verplaatsen",
     "cannotAccesDir": "Kan de map niet openen",
-    "lonely": "Niets te zien hier..."
+    "lonely": "Niets te zien hier...",
+    "pinnedFolders": "Vastgezette mappen",
+    "pinnedFiles": "Vastgezette bestanden",
+    "pinnedItems": "Vastgezet"
   },
   "help": {
     "functionKeys": "Functietoetsen",

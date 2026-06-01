@@ -111,7 +111,10 @@
     "newFile": "__NOT_TRANSLATED__",
     "newFolder": "__NOT_TRANSLATED__",
     "sameFolder": "__NOT_TRANSLATED__",
-    "cannotAccesDir": "__NOT_TRANSLATED__"
+    "cannotAccesDir": "__NOT_TRANSLATED__",
+    "pinnedFolders": "Prjónaðar möppur",
+    "pinnedFiles": "Prjónaðar skrár",
+    "pinnedItems": "Prjónað"
   },
   "help": {
     "functionKeys": "Virknislyklar",

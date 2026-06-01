@@ -55,7 +55,10 @@
     "sortByDuration": "依時間長短排序",
     "sameFolder": "不能移動到同一個資料夾",
     "cannotAccesDir": "無法存取目錄",
-    "lonely": "這裡沒有任何內容。"
+    "lonely": "這裡沒有任何內容。",
+    "pinnedFolders": "釘選的資料夾",
+    "pinnedFiles": "釘選的檔案",
+    "pinnedItems": "已釘選"
   },
   "help": {
     "functionKeys": "功能鍵",

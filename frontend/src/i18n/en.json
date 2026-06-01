@@ -115,8 +115,7 @@
     "readOnly": "Read-only{suffix}",
     "private": "Private{suffix}",
     "yes": "Yes{suffix}",
-    "no": "No{suffix}",
-    "pinnedItems": "Pinned"
+    "no": "No{suffix}"
   },
   "buttons": {
     "copySuccess": "Copied to clipboard!",
@@ -174,7 +173,10 @@
     "newFile": "New file{suffix}",
     "newFolder": "New folder{suffix}",
     "sameFolder": "Cannot move to same folder",
-    "cannotAccesDir": "Cannot access directory"
+    "cannotAccesDir": "Cannot access directory",
+    "pinnedFolders": "Pinned folders",
+    "pinnedFiles": "Pinned files",
+    "pinnedItems": "Pinned"
   },
   "help": {
     "functionKeys": "Function Keys",

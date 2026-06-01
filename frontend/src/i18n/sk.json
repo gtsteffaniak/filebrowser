@@ -55,7 +55,10 @@
     "sortByDuration": "Zoradiť podľa trvania",
     "sameFolder": "Nie je možné presunúť do toho istého priečinka",
     "cannotAccesDir": "Nie je možné pristúpiť k priečinku",
-    "lonely": "Tu nie je čo ukázať..."
+    "lonely": "Tu nie je čo ukázať...",
+    "pinnedFolders": "Pripnuté priečinky",
+    "pinnedFiles": "Pripnuté súbory",
+    "pinnedItems": "Pripnuté"
   },
   "help": {
     "functionKeys": "Funkčné Klávesy",

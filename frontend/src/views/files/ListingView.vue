@@ -364,12 +364,12 @@ export default {
       const pinnedFolders = this.pinnedItems.filter(item => item.type === 'directory').length;
       const pinnedFiles = this.pinnedItems.filter(item => item.type !== 'directory').length;
       if (pinnedFolders > 0 && pinnedFiles === 0) {
-        return `${this.$t("general.pinnedItems")} ${this.$t("general.folders")}`; // "Pinned folders"
+        return `${this.$t("files.pinnedFolders")}`; // "Pinned folders"
       }
       if (pinnedFiles > 0 && pinnedFolders === 0) {
-        return `${this.$t("general.pinnedItems")} ${this.$t("general.files")}`;   // "Pinned files"
+        return `${this.$t("files.pinnedFiles")}`;   // "Pinned files"
       }
-      return this.$t("general.pinnedItems"); // "Pinned items" if we pin both types
+      return this.$t("files.pinnedItems"); // "Pinned items" if we pin both types
     },
     dirs() {
       return this.items.dirs;

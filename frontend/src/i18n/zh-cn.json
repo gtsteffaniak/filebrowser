@@ -55,7 +55,10 @@
     "sortByDuration": "按持续时间排序",
     "sameFolder": "无法移动到相同文件夹",
     "cannotAccesDir": "无法访问目录",
-    "lonely": "这里没什么可看的..."
+    "lonely": "这里没什么可看的...",
+    "pinnedFolders": "固定的文件夹",
+    "pinnedFiles": "固定的文件",
+    "pinnedItems": "已固定"
   },
   "help": {
     "functionKeys": "功能键",

@@ -55,7 +55,10 @@
     "sortByDuration": "Sortare după durată",
     "sameFolder": "Nu se poate muta în același folder",
     "cannotAccesDir": "Nu se poate accesa directorul",
-    "lonely": "Nimic de arătat aici..."
+    "lonely": "Nimic de arătat aici...",
+    "pinnedFolders": "Foldere fixate",
+    "pinnedFiles": "Fișiere fixate",
+    "pinnedItems": "Fixat"
   },
   "help": {
     "functionKeys": "Taste Funcție",

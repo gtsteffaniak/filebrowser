@@ -55,7 +55,10 @@
     "sortByDuration": "Sortuj według czasu trwania",
     "sameFolder": "Nie można przenieść do tego samego folderu",
     "cannotAccesDir": "Nie można uzyskać dostępu do katalogu",
-    "lonely": "Nie ma tu nic do pokazania..."
+    "lonely": "Nie ma tu nic do pokazania...",
+    "pinnedFolders": "Przypięte foldery",
+    "pinnedFiles": "Przypięte pliki",
+    "pinnedItems": "Przypięte"
   },
   "help": {
     "functionKeys": "Klawisze Funkcji",

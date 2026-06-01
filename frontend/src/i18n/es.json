@@ -55,7 +55,10 @@
     "sortByDuration": "Ordenar por duración",
     "sameFolder": "No se puede mover a la misma carpeta",
     "cannotAccesDir": "No se puede acceder al directorio",
-    "lonely": "No hay nada aquí..."
+    "lonely": "No hay nada aquí...",
+    "pinnedFolders": "Carpetas fijadas",
+    "pinnedFiles": "Archivos fijados",
+    "pinnedItems": "Fijado"
   },
   "help": {
     "functionKeys": "Teclas de función",

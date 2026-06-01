@@ -55,7 +55,10 @@
     "sortByDuration": "Rendezés időtartam szerint",
     "sameFolder": "Nem lehet ugyanabba a mappába mozgatni",
     "cannotAccesDir": "Nem lehet hozzáférni a könyvtárhoz",
-    "lonely": "Itt nincs mit mutatni..."
+    "lonely": "Itt nincs mit mutatni...",
+    "pinnedFolders": "Rögzített mappák",
+    "pinnedFiles": "Rögzített fájlok",
+    "pinnedItems": "Rögzítve"
   },
   "help": {
     "functionKeys": "Funkcióbillentyűk",

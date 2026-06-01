@@ -173,7 +173,10 @@
     "newFile": "Nieuw bestand{suffix}",
     "newFolder": "Nieuwe map{suffix}",
     "sameFolder": "Kan niet verplaatsen naar dezelfde map",
-    "cannotAccesDir": "Geen toegang tot map"
+    "cannotAccesDir": "Geen toegang tot map",
+    "pinnedFolders": "Vastgezette mappen",
+    "pinnedFiles": "Vastgezette bestanden",
+    "pinnedItems": "Vastgezet"
   },
   "help": {
     "functionKeys": "Functietoetsen",

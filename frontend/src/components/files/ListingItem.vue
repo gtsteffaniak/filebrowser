@@ -48,12 +48,12 @@
     </div>
 
     <div class="text">
-      <!-- For list/compact: pin inside .name (inline) -->
-      <p v-if="isListMode" class="name">
+      <!-- For list/compact pin inside .name (inline), or if inlinePin is true (like on FileList) -->
+      <p v-if="isListMode || inlinePin" class="name">
         <span>{{ displayName }}</span>
         <i v-if="isPinned" class="material-symbols pinned-indicator">push_pin</i>
       </p>
-      <!-- For other views: pin is separate -->
+      <!-- For other views pin is separate -->
       <p v-else class="name">
         <span>{{ displayName }}</span>
       </p>
@@ -121,7 +121,7 @@
     </div>
 
     <div class="text">
-      <p v-if="isListMode" class="name">
+      <p v-if="isListMode || inlinePin" class="name">
         <span>{{ displayName }}</span>
         <i v-if="isPinned" class="material-symbols pinned-indicator">push_pin</i>
       </p>

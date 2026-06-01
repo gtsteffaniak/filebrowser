@@ -55,7 +55,10 @@
     "sortByDuration": "Trier par durée",
     "sameFolder": "Impossible de déplacer vers le même dossier",
     "cannotAccesDir": "Impossible d'accéder au répertoire",
-    "lonely": "Rien à voir ici..."
+    "lonely": "Rien à voir ici...",
+    "pinnedFolders": "Dossiers épinglés",
+    "pinnedFiles": "Fichiers épinglés",
+    "pinnedItems": "Épinglé"
   },
   "help": {
     "functionKeys": "Touches de Fonction",

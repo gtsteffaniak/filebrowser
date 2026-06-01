@@ -55,7 +55,10 @@
     "sortByDuration": "기간별로 정렬",
     "sameFolder": "같은 폴더로 이동할 수 없습니다",
     "cannotAccesDir": "디렉토리에 액세스할 수 없습니다",
-    "lonely": "여기에 표시할 내용이 없습니다..."
+    "lonely": "여기에 표시할 내용이 없습니다...",
+    "pinnedFolders": "고정된 폴더",
+    "pinnedFiles": "고정된 파일",
+    "pinnedItems": "고정됨"
   },
   "help": {
     "functionKeys": "기능 키",
