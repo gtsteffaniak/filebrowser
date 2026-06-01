@@ -61,7 +61,7 @@
       <p class="modified"><time :datetime="modified">{{ formattedTime }}</time></p>
       <p v-if="hasDuration" class="duration">{{ formattedDuration }}</p>
     </div>
-    <div v-if="isPinned && !isListMode" class="pin-icon-wrapper">
+    <div v-if="isPinned && !isListMode && !inlinePin" class="pin-icon-wrapper">
       <i class="material-symbols pinned-indicator">push_pin</i>
     </div>
 
@@ -132,7 +132,7 @@
       <p class="modified"><time :datetime="modified">{{ formattedTime }}</time></p>
       <p v-if="hasDuration" class="duration">{{ formattedDuration }}</p>
     </div>
-    <div v-if="isPinned && !isListMode" class="pin-icon-wrapper">
+    <div v-if="isPinned && !isListMode && !inlinePin" class="pin-icon-wrapper">
       <i class="material-symbols pinned-indicator">push_pin</i>
     </div>
   </div>
@@ -210,6 +210,10 @@ export default {
       default: false,
     },
     disableContextMenu: {
+      type: Boolean,
+      default: false,
+    },
+    inlinePin: {
       type: Boolean,
       default: false,
     },

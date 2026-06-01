@@ -43,6 +43,7 @@
         :clickable="false"
         :forceFilesApi="!!browseSource"
         :showLimitedOptions="true"
+        :inlinePin="true"
         @click.prevent="(event) => handleItemClick(item, index, event)"
         @dblclick.prevent="(event) => handleItemDblClick(item, index, event)"
       />

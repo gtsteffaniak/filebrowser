@@ -464,8 +464,8 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 			return http.StatusBadRequest, err2
 		}
 		oldUser.PinnedItems = adjustedPinnedItems
-		if err := store.Users.Save(oldUser, false, false); err != nil {
-			return http.StatusBadRequest, err
+		if err2 := store.Users.Save(oldUser, false, false); err2 != nil {
+			return http.StatusBadRequest, err2
 		}
 		return http.StatusNoContent, nil
 	}

@@ -405,37 +405,14 @@ body.rtl .listing-items {
   min-width: 0;
 }
 
-.listing-items.list .listing-item .modified,
-.listing-items.compact .listing-item .modified {
-  min-width: 15%;
-  flex: 0;
-  text-align: end;
-  padding-right: 1em;
-}
-
-.listing-items.list .listing-item .size,
-.listing-items.compact .listing-item .size,
-.listing-items.list .listing-item .duration,
-.listing-items.compact .listing-item .duration {
-  min-width: 10%;
-  flex: 0;
-  text-align: end;
-  padding-right: 1em;
-}
-
 .listing-items.list .listing-item .name,
 .listing-items.compact .listing-item .name {
   flex: 1;
-}
-
-.listing-items.list .name,
-.listing-items.compact .name {
+  min-width: 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 0.35em;
-  flex: 1;
-  min-width: 0;
+  overflow: hidden;
 }
 
 .listing-items.list .name span,
@@ -447,11 +424,45 @@ body.rtl .listing-items {
   white-space: nowrap;
 }
 
+/* size, modified, duration */
+.listing-items.list .listing-item .size,
+.listing-items.compact .listing-item .size {
+  width: 8%;
+  min-width: 80px;
+  flex-shrink: 0;
+  text-align: right;
+  padding-right: 1em;
+  overflow: visible;
+  white-space: nowrap;
+}
+
+.listing-items.list .listing-item .modified,
+.listing-items.compact .listing-item .modified {
+  width: 18%;
+  min-width: 100px;
+  flex-shrink: 0;
+  text-align: right;
+  padding-right: 1em;
+  overflow: visible;
+  white-space: nowrap;
+}
+
+.listing-items.list .listing-item .duration,
+.listing-items.compact .listing-item .duration {
+  width: 12%;
+  min-width: 70px;
+  flex-shrink: 0;
+  text-align: right;
+  padding-right: 1em;
+  overflow: visible;
+  white-space: nowrap;
+}
+
 .listing-items.list .pinned-indicator,
 .listing-items.compact .pinned-indicator {
-  font-size: 1em;
-  color: var(--primaryColor);
   flex-shrink: 0;
+  font-size: 1rem;
+  color: var(--primaryColor);
   background: rgba(0, 0, 0, 0.6);
   border-radius: 50%;
   width: 1.4em;
@@ -512,9 +523,13 @@ body.rtl .listing-items {
 @media (max-width: 768px) {
   .listing-items.gallery .folder-items,
   .listing-items.gallery .file-items,
-  .listing-items.icons .pinned-items {
-    /* Min width overrides column count: as many columns as fit above the minimum */
+  .listing-items.gallery .pinned-items {
     grid-template-columns: repeat(auto-fill, minmax(var(--gallery-mobile-min-width, 140px), 1fr));
+  }
+  .listing-items.icons .folder-items,
+  .listing-items.icons .file-items,
+  .listing-items.icons .pinned-items {
+    grid-template-columns: repeat(auto-fill, minmax(var(--icons-view-cell-size, 100px), 1fr));
   }
 }
 

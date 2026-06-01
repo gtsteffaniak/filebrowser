@@ -187,15 +187,21 @@ span {
   flex: 1;
 }
 
-.desktop-view .modified{
-  min-width: 15%;
-  flex: 0;
-}
-
 .desktop-view .size,
 .desktop-view .duration {
-  min-width: 10%;
-  flex: 0;
+  width: 12%;
+  min-width: 80px;
+  flex: 0 0 auto;
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.desktop-view .modified {
+  width: 18%;
+  min-width: 110px;
+  flex: 0 0 auto;
+  justify-content: flex-end;
+  text-align: right;
 }
 
 .size,
@@ -205,7 +211,6 @@ span {
   justify-content: flex-end;
   text-align: end;
 }
-
 
 i {
   font-size: 1.5em;
