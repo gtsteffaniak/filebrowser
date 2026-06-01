@@ -76,7 +76,6 @@
         :label="$t('general.info')"
         @action="showInfoPrompt"
       />
-
       <action
         v-if="showDownload"
         icon="file_download"
@@ -96,16 +95,16 @@
         @action="showSharePrompt"
       />
       <action
-        v-if="showRename"
-        icon="edit"
-        :label="$t('general.rename')"
-        @action="showRenamePrompt"
-      />
-      <action
         v-if="showPinAction"
         icon="push_pin"
         :label="pinActionLabel"
         @action="togglePin"
+      />
+      <action
+        v-if="showRename"
+        icon="edit"
+        :label="$t('general.rename')"
+        @action="showRenamePrompt"
       />
       <action
         v-if="showCopy"
