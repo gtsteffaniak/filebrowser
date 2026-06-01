@@ -48,34 +48,36 @@
     </div>
 
     <div class="text">
-      <p class="name">
+      <!-- For list/compact: pin inside .name (inline) -->
+      <p v-if="isListMode" class="name">
         <span>{{ displayName }}</span>
         <i v-if="isPinned" class="material-symbols pinned-indicator">push_pin</i>
       </p>
-      <p
-        class="size"
-        :data-order="humanSize"
-      >
-        {{ humanSize }}
+      <!-- For other views: pin is separate -->
+      <p v-else class="name">
+        <span>{{ displayName }}</span>
       </p>
-      <p class="modified">
-        <time :datetime="modified">{{ formattedTime }}</time>
-      </p>
+      <p class="size" :data-order="humanSize">{{ humanSize }}</p>
+      <p class="modified"><time :datetime="modified">{{ formattedTime }}</time></p>
       <p v-if="hasDuration" class="duration">{{ formattedDuration }}</p>
     </div>
-      <Icon
-        @click.stop="downloadFile"
-        v-if="quickDownloadEnabled"
-        :filename="name"
-        :hasPreview="hasPreview"
-        mimetype="file_download"
-        class="download-icon"
-        role="button"
-        aria-label="Download"
-        tabindex="0"
-        :clickable=true
-        :isShared="isShared"
-      />
+    <div v-if="isPinned && !isListMode" class="pin-icon-wrapper">
+      <i class="material-symbols pinned-indicator">push_pin</i>
+    </div>
+
+    <Icon
+      @click.stop="downloadFile"
+      v-if="quickDownloadEnabled"
+      :filename="name"
+      :hasPreview="hasPreview"
+      mimetype="file_download"
+      class="download-icon"
+      role="button"
+      aria-label="Download"
+      tabindex="0"
+      :clickable="true"
+      :isShared="isShared"
+    />
   </a>
   <div
     v-else
@@ -119,20 +121,19 @@
     </div>
 
     <div class="text">
-      <p class="name">
+      <p v-if="isListMode" class="name">
         <span>{{ displayName }}</span>
         <i v-if="isPinned" class="material-symbols pinned-indicator">push_pin</i>
       </p>
-      <p
-        class="size"
-        :data-order="humanSize"
-      >
-        {{ humanSize }}
+      <p v-else class="name">
+        <span>{{ displayName }}</span>
       </p>
-      <p class="modified">
-        <time :datetime="modified">{{ formattedTime }}</time>
-      </p>
+      <p class="size" :data-order="humanSize">{{ humanSize }}</p>
+      <p class="modified"><time :datetime="modified">{{ formattedTime }}</time></p>
       <p v-if="hasDuration" class="duration">{{ formattedDuration }}</p>
+    </div>
+    <div v-if="isPinned && !isListMode" class="pin-icon-wrapper">
+      <i class="material-symbols pinned-indicator">push_pin</i>
     </div>
   </div>
 </template>
@@ -140,7 +141,6 @@
 <script>
 import { globalVars } from "@/utils/constants";
 import downloadFiles from "@/utils/download";
-
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { resourcesApi } from "@/api";
 import * as upload from "@/utils/upload";
@@ -343,6 +343,10 @@ export default {
         return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
       }
       return `${minutes}:${secs.toString().padStart(2, '0')}`;
+    },
+    isListMode() {
+      const mode = getters.viewMode();
+      return mode === 'list' || mode === 'compact';
     },
   },
   mounted() {
@@ -860,18 +864,5 @@ export default {
 .half-selected {
   border-color: var(--primaryColor) !important;
   border-style: solid !important;
-}
-
-.name {
-  display: flex;
-  align-items: center;
-  gap: 0.35em;
-}
-
-.pinned-indicator {
-  font-size: 0.95em;
-  opacity: 0.8;
-  color: var(--primaryColor);
-  flex-shrink: 0;
 }
 </style>

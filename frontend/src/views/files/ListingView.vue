@@ -1462,6 +1462,10 @@ export default {
   flex: 1;
 }
 
+.listing-item .pinned-indicator {
+  font-size: 1rem;
+}
+
 .folder-items a {
   border-style: solid;
 }

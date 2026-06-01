@@ -459,13 +459,13 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	}
 
 	if userPutOnlyPinnedItems(req.Which) {
-		adjustedPinnedItems, err := req.User.GetBackendPinnedItems()
-		if err != nil {
-			return http.StatusBadRequest, err
+		adjustedPinnedItems, err2 := req.User.GetBackendPinnedItems()
+		if err2 != nil {
+			return http.StatusBadRequest, err2
 		}
 		oldUser.PinnedItems = adjustedPinnedItems
-		if err2 := store.Users.Save(oldUser, false, false); err2 != nil {
-			return http.StatusBadRequest, err2
+		if err := store.Users.Save(oldUser, false, false); err != nil {
+			return http.StatusBadRequest, err
 		}
 		return http.StatusNoContent, nil
 	}
