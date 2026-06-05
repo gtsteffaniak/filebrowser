@@ -264,11 +264,17 @@ async function resolveDownloadContentLength(url) {
     headers: { Range: 'bytes=0-0' },
     credentials: 'same-origin',
   })
+  const cancelBody = () => {
+    if (res.body && typeof res.body.cancel === 'function') {
+      res.body.cancel().catch(() => {})
+    }
+  }
   try {
     token = res.headers.get('X-Archive-Token') || token
     if (res.status === 206) {
       const total = totalFromContentRange(res.headers.get('Content-Range'))
       if (total > 0) {
+        cancelBody()
         return { size: total, token }
       }
     }
@@ -277,20 +283,17 @@ async function resolveDownloadContentLength(url) {
       if (cl) {
         const n = parseInt(cl, 10)
         if (Number.isFinite(n) && n > 0) {
+          cancelBody()
           return { size: n, token }
         }
       }
     }
-  } finally {
-    if (res.body && typeof res.body.cancel === 'function') {
-      try {
-        await res.body.cancel()
-      } catch {
-        // ignore
-      }
-    }
+    cancelBody()
+    return { size: 0, token }
+  } catch (e) {
+    cancelBody()
+    throw e
   }
-  return { size: 0, token: null }
 }
 
 function archiveDisplayFileName(format, files) {
