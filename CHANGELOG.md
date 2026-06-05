@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file. For commit 
  - update vue i18n + lazy loading of languages (#2504)
  - fix folder previews issue (#2487) (#2492)
  - fix accidental exit on images while using gestures (#2508)
+ - socket field in config.yaml is ignored (#2497)
 
 ## v1.4.2
 

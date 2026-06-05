@@ -6155,7 +6155,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "socket": {
-                    "description": "socket to listen on",
+                    "description": "socket to listen on - eg. /var/run/filebrowser.sock",
                     "type": "string"
                 },
                 "sources": {
