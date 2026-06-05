@@ -1,6 +1,6 @@
-import { test, expect } from "../test-setup";
+import { expect, test } from "../test-setup";
 
-test("create a new share", async ({ page, checkForErrors, context }) => {
+test("create a new share", async ({ page }) => {
     // create a new share
     await page.goto("/files/");
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
@@ -16,7 +16,7 @@ test("create a new share", async ({ page, checkForErrors, context }) => {
     await expect(page.locator("div[aria-label='share-prompt'] .card-content table tbody tr:not(:has(th))")).toHaveCount(1);
 });
 
-test("check previously created share has correct sidebar links", async ({ page, checkForErrors, context }) => {
+test("check previously created share has correct sidebar links", async ({ page, checkForErrors }) => {
     // create a new share
     await page.goto("/files/");
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
@@ -32,7 +32,7 @@ test("check previously created share has correct sidebar links", async ({ page, 
         throw new Error("Failed to retrieve shareHash");
     }
     // navigate to the share sidebar
-    await page.goto("/public/share/" + shareHash);
+    await page.goto(`/public/share/${shareHash}`);
     await expect(page).toHaveTitle("Graham's Filebrowser - Share - text-files");
     // sidebar should have 3 items (ShareInfo, Download, Go to source location)
     await expect(page.locator('.sidebar-links .inner-card').locator('a')).toHaveCount(3);
@@ -43,7 +43,7 @@ test("check previously created share has correct sidebar links", async ({ page, 
     checkForErrors();
 });
 
-test("edit previously created links and ensure they are updated", async ({ page, checkForErrors, context }) => {
+test("edit previously created links and ensure they are updated", async ({ page, checkForErrors }) => {
     // create a new share
     await page.goto("/files/");
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
@@ -74,7 +74,7 @@ test("edit previously created links and ensure they are updated", async ({ page,
         throw new Error("Failed to retrieve shareHash");
     }
     // navigate to the share sidebar
-    await page.goto("/public/share/" + shareHash);
+    await page.goto(`/public/share/${shareHash}`);
     await expect(page).toHaveTitle("Graham's Filebrowser - Share - text-files");
     // sidebar should have 4 items (ShareInfo, Download, New Custom Link, Go to source location)
     await expect(page.locator('.sidebar-links .inner-card').locator('a')).toHaveCount(4);

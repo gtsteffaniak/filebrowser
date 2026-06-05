@@ -22,7 +22,12 @@
         ref="searchInput"
         style="padding-left: 2.5em;"
       />
-      <button v-if="searchQuery" @click="searchQuery = ''" class="button button--flat clear-button">
+      <button
+        type="button"
+        v-if="searchQuery"
+        @click="searchQuery = ''"
+        class="button button--flat clear-button"
+      >
         <i class="material-symbols">close</i>
       </button>
     </div>
@@ -77,6 +82,7 @@
 
   <div class="card-actions">
     <button
+      type="button"
       @click="closeTopPrompt"
       class="button button--flat button--grey"
       :aria-label="$t('general.cancel')"

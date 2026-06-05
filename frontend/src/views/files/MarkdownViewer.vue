@@ -3,7 +3,7 @@
     <div class="markdown-content-container" :class="{ 'dark-mode': darkMode }">
       <div ref="viewer" v-html="renderedContent" class="markdown-content"></div>
     </div>
-    <div class="spacer" :style="{ height: spaceForStatusBar + 'em' }"></div>
+    <div class="spacer" :style="{ height: `${spaceForStatusBar}em` }"></div>
   </div>
 </template>
 
@@ -56,7 +56,7 @@ export default {
         viewer.querySelectorAll('pre code').forEach((block) => {
           const codeBlock = block as HTMLElement;
           const langClass = codeBlock.className.split(/\s+/).find(c => c.startsWith('language-'));
-          let lang = langClass ? langClass.split('-')[1] : null;
+          const lang = langClass ? langClass.split('-')[1] : null;
 
           if (lang && hljs.getLanguage(lang)) {
             hljs.highlightElement(codeBlock);
@@ -74,7 +74,7 @@ export default {
     // Manual line numbers implementation
     addLineNumbers(codeBlock: HTMLElement) {
       const code = codeBlock.textContent || '';
-      let lines = code.split('\n');
+      const lines = code.split('\n');
 
       // Remove trailing empty lines
       if (lines[lines.length - 1] === '') {
@@ -202,7 +202,7 @@ export default {
       const temp = document.createElement('div');
       temp.innerHTML = html;
       const textContent = temp.textContent || '';
-      let textLines = textContent.split('\n');
+      const textLines = textContent.split('\n');
 
       // Remove trailing empty line from textLines if present
       if (textLines[textLines.length - 1] === '') {
@@ -260,7 +260,7 @@ export default {
       });
       this.setHighlightTheme(getters.isDarkMode());
       // Set initial content. The `watch` will trigger the first highlight.
-      const fileContent = state.req.content == "empty-file-x6OlSil" ? "" : state.req.content || "";
+      const fileContent = state.req.content === "empty-file-x6OlSil" ? "" : state.req.content || "";
       this.content = fileContent;
       this.updateEditorStats();
     },
@@ -388,10 +388,9 @@ export default {
 #markedown-viewer .markdown-content-container .line-numbers {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
-  -khtml-user-select: none;
+  user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
-  user-select: none;
   background-color: #f1f3f4;
   border-right: 1px solid #d0d7de;
   padding: 0.625em 0.5em 0.625em 0.75em;

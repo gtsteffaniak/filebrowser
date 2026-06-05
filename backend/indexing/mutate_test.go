@@ -242,7 +242,7 @@ func TestUpdateFileMetadata(t *testing.T) {
 		mock: true,
 	}
 
-	success := index.UpdateMetadata(info, nil) // nil scanner for test
+	success := index.UpdateMetadata(info, nil, true) // nil scanner for test
 	if !success {
 		t.Fatalf("expected UpdateFileMetadata to succeed")
 	}
@@ -315,9 +315,73 @@ func TestSetDirectoryInfo(t *testing.T) {
 			{ItemInfo: iteminfo.ItemInfo{Name: "testfile.txt", ModTime: time.Now()}},
 		},
 	}
-	index.UpdateMetadata(dir, nil) // nil scanner for test
+	index.UpdateMetadata(dir, nil, true) // nil scanner for test
 	storedDir, exists := index.GetMetadataInfo("/newPath/", true, false)
 	if !exists || storedDir.Files[0].Name != "testfile.txt" {
 		t.Fatalf("expected SetDirectoryInfo to store directory info correctly")
+	}
+}
+
+func TestUpdateMetadata_batchScanPersistListedFolders(t *testing.T) {
+	t.Parallel()
+	if indexDB == nil {
+		var err error
+		indexDB, _, err = dbsql.NewIndexDB("test_mutate_batch", "OFF", 1000, 32, false)
+		if err != nil {
+			t.Fatalf("Failed to create test database: %v", err)
+		}
+	}
+
+	index := &Index{
+		Source: settings.Source{
+			Name: "test_batch_folders",
+			Path: "/mock/path",
+		},
+		db:   indexDB,
+		mock: true,
+	}
+	scanner := &Scanner{idx: index, batchItems: make([]*iteminfo.FileInfo, 0, 16)}
+
+	now := time.Now()
+	parent := &iteminfo.FileInfo{
+		Path: "/parent/",
+		ItemInfo: iteminfo.ItemInfo{
+			Name:    "parent",
+			Type:    "directory",
+			ModTime: now,
+		},
+		Folders: []iteminfo.ItemInfo{
+			{
+				Name:       "child",
+				Type:       "directory",
+				Size:       100,
+				ModTime:    now,
+				HasPreview: true,
+				Hidden:     true,
+			},
+		},
+	}
+
+	index.UpdateMetadata(parent, scanner, false)
+	scanner.flushBatch()
+
+	_, exists := index.GetReducedMetadata("/parent/child/", true)
+	if exists {
+		t.Fatal("recursive batch scan should not persist listed subfolders when persistListedFolders is false")
+	}
+
+	scanner.batchItems = scanner.batchItems[:0]
+	index.UpdateMetadata(parent, scanner, true)
+	scanner.flushBatch()
+
+	child, exists := index.GetReducedMetadata("/parent/child/", true)
+	if !exists || child == nil {
+		t.Fatal("expected child folder row after persistListedFolders=true batch update")
+	}
+	if !child.HasPreview {
+		t.Error("child HasPreview should be persisted from listing")
+	}
+	if !child.Hidden {
+		t.Error("child Hidden should be persisted from listing")
 	}
 }

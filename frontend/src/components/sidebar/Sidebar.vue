@@ -2,7 +2,7 @@
   <nav
     id="sidebar"
     :class="{ active: active, 'dark-mode': isDarkMode, 'behind-overlay': behindOverlay, 'scrollable': isSettings }"
-    :style="{ width: sidebarWidth + 'em', left: active ? '0' : `-${sidebarWidth}em` }"
+    :style="{ width: `${sidebarWidth}em`, left: active ? '0' : `-${sidebarWidth}em` }"
   >
     <div v-if="shouldShow" class="button release-banner">
       <a :href="releaseUrl">{{ $t("sidebar.updateIsAvailable") }}</a>
@@ -24,7 +24,7 @@
           item.text
         }}</a>
       </span>
-      <span v-if="name != ''">
+      <span v-if="name !== ''">
         <h4 style="margin: 0">{{ name }}</h4>
       </span>
     </div>
@@ -108,9 +108,9 @@ export default {
     sidebarWidth: () => getters.sidebarWidth(),
     shouldShow() {
       return (
-        globalVars.updateAvailable != "" &&
+        globalVars.updateAvailable !== "" &&
         state.user.permissions.admin &&
-        state.seenUpdate != globalVars.updateAvailable &&
+        state.seenUpdate !== globalVars.updateAvailable &&
         !state.user.disableUpdateNotifications
       );
     },
@@ -137,7 +137,7 @@ export default {
       event.preventDefault();
       event.stopPropagation();
       // Handle mouse and touch events (maybe someone will want to resize in a big tablet)
-      const clientX = event.clientX || (event.touches && event.touches[0].clientX);
+      const clientX = event.clientX || (event.touches?.[0].clientX);
       this.resizeStartX = clientX;
       this.resizeStartWidth = this.sidebarWidth;
       mutations.setSidebarResizing(true);
@@ -147,7 +147,7 @@ export default {
       if (!state.sidebar.isResizing) return;
       event.preventDefault();
       // Same here
-      const clientX = event.clientX || (event.touches && event.touches[0].clientX);
+      const clientX = event.clientX || (event.touches?.[0].clientX);
       if (!clientX) return;
       const deltaX = clientX - this.resizeStartX;
       // Convert pixels to em

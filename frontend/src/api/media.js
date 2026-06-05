@@ -1,7 +1,7 @@
-import { fetchURL, adjustedData } from "./utils";
 import { notify } from "@/notify";
-import { getApiPath, getPublicApiPath } from "@/utils/url.js";
 import { state } from "@/store";
+import { getApiPath, getPublicApiPath } from "@/utils/url.js";
+import { adjustedData, fetchURL } from "./utils";
 
 // GET /api/media/subtitles
 export async function getSubtitleContent(source, path, subtitleName, embedded = false) {
@@ -45,8 +45,7 @@ export async function getLyricsPublic(path, hash, password = "") {
     });
     if (!response.ok) {
         const error = new Error(response.statusText);
-        let data = null;
-        data = await response.json();
+        const data = await response.json();
         if (data?.message) {
             error.message = data.message;
         }
@@ -90,7 +89,7 @@ export async function fetchDirectoryMediaMetadataPublic(path, hash, password = "
     let data = null;
     try {
       data = await response.json();
-    } catch (e) {
+    } catch (_e) {
       // ignore
     }
     if (data?.message) {

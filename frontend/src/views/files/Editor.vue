@@ -37,18 +37,16 @@ export default {
       default: null // null means auto-determine
     }
   },
-  data: function () {
-    return {
-      editor: null, // The editor instance
-      isDirty: false,
-      originalReq: null,
-      saveLocked: false, // Lock saves during req transitions
-      currentReqPath: null, // Track current path for transition detection
-      navigationGuard: null, // Navigation guard to prevent navigation with unsaved changes
-      isPromptOpen: false, // Track if prompt is currently open for avoid navigation
-      pendingNavigation: null, // Store pending navigation while prompt is open
-    };
-  },
+  data: () => ({
+    editor: null, // The editor instance
+    isDirty: false,
+    originalReq: null,
+    saveLocked: false, // Lock saves during req transitions
+    currentReqPath: null, // Track current path for transition detection
+    navigationGuard: null, // Navigation guard to prevent navigation with unsaved changes
+    isPromptOpen: false, // Track if prompt is currently open for avoid navigation
+    pendingNavigation: null, // Store pending navigation while prompt is open
+  }),
   computed: {
     permissions() {
       return getters.permissions();
@@ -197,14 +195,6 @@ export default {
 
     this.setupNavigationGuard();
   },
-  beforeRouteLeave(to, from, next) {
-    // Only show prompt if there are unsaved changes and not in viewer mode
-    if (this.isDirty && !this.viewerMode) {
-      this.showSaveBeforeExitPrompt(next);
-    } else {
-      next();
-    }
-  },
   beforeUnmount() {
     window.removeEventListener("keydown", this.keyEvent);
     window.removeEventListener("beforeunload", this.beforeUnloadHandler);
@@ -271,7 +261,7 @@ export default {
         directoryPath = '/';
       }
 
-      let listing = null;
+      let listing;
 
       if (this.req.items) {
         listing = this.req.items;
@@ -349,7 +339,7 @@ export default {
         this.editor.selection.on('changeSelection', () => {
           this.updateEditorStats();
         });
-      } catch (error) {
+      } catch (_e) {
         notify.showError(this.$t("editor.uninitialized"));
       }
     },
@@ -532,7 +522,7 @@ export default {
     },
     applyFontSize() {
       if (this.editor) {
-        this.editor.container.style.fontSize = state.editorFontSize + 'px';
+        this.editor.container.style.fontSize = `${state.editorFontSize}px`;
       }
     },
   },

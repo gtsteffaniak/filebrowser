@@ -19,7 +19,7 @@ export async function getAllUsers() {
 // GET /api/users or /public/api/users (get single user)
 export async function get(id) {
   try {
-    let apiPath = getPublicApiPath('users', { id: id })
+    const apiPath = getPublicApiPath('users', { id: id })
     return await fetchJSON(apiPath)
   } catch (err) {
     notify.showError(err.message || `Failed to fetch user with ID: ${id}`)
@@ -43,8 +43,7 @@ export async function create(user, options = {}) {
     state.user?.loginMethod === 'password' &&
     options.skipActorPasswordConfirm !== true &&
     mergedHeaders['X-Password'] === undefined &&
-    err &&
-    err.status === 401 &&
+    err?.status === 401 &&
     typeof err.message === 'string' &&
     err.message.includes('X-Password')
 
@@ -124,8 +123,7 @@ export async function update(user, which = ['all'], options = {}) {
     state.user?.loginMethod === 'password' &&
     options.skipActorPasswordConfirm !== true &&
     mergedHeaders['X-Password'] === undefined &&
-    err &&
-    err.status === 401 &&
+    err?.status === 401 &&
     typeof err.message === 'string' &&
     err.message.includes('X-Password')
 
@@ -180,8 +178,7 @@ export async function remove(id, options = {}) {
     state.user?.loginMethod === 'password' &&
     options.skipActorPasswordConfirm !== true &&
     mergedHeaders['X-Password'] === undefined &&
-    err &&
-    err.status === 401 &&
+    err?.status === 401 &&
     typeof err.message === 'string' &&
     err.message.includes('X-Password')
 

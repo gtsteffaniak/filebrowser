@@ -1,11 +1,11 @@
 <template>
   <div v-if="selectedCount > 0" class="duplicate-finder-actions">
-    <button @click="handleDelete" class="button delete-button" :disabled="deleting">
+    <button type="button" @click="handleDelete" class="button delete-button" :disabled="deleting">
       <i v-if="deleting" class="material-symbols spin">autorenew</i>
       <i v-else class="material-symbols">delete</i>
       <span>{{ $t('general.delete') }} {{ selectedCount }}</span>
     </button>
-    <button @click="handleClear" class="button">
+    <button type="button" @click="handleClear" class="button">
       <span>{{ $t('general.clear', { suffix: '' }) }} {{ $t('general.select', { suffix: '' }) }}</span>
     </button>
   </div>

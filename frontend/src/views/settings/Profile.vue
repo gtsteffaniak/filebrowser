@@ -378,7 +378,7 @@ export default {
       if (event !== undefined) {
         event.preventDefault();
       }
-      if (this.localuser.themeColor != "") {
+      if (this.localuser.themeColor !== "") {
         document.documentElement.style.setProperty(
           "--primaryColor",
           this.localuser.themeColor
@@ -386,8 +386,8 @@ export default {
       }
       try {
         const data = this.localuser;
-        const themeChanged = state.user.customTheme != this.localuser.customTheme;
-        mutations.updateCurrentUser(data);
+        const themeChanged = state.user.customTheme !== this.localuser.customTheme;
+        await mutations.updateCurrentUser(data);
         await usersApi.update(data, [
           "locale",
           "showHidden",
@@ -425,9 +425,9 @@ export default {
         console.error(e);
       }
     },
-    updateLocale(updatedLocale) {
+    async updateLocale(updatedLocale) {
       this.localuser.locale = updatedLocale;
-      this.updateSettings();
+      await this.updateSettings();
     },
     handleSectionToggle(sectionTitle) {
       // Accordion logic: if clicking the same section, collapse it, otherwise expand the new one

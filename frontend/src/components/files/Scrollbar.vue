@@ -59,7 +59,7 @@ export default {
       return getters.isScrollable();
     },
     isNotListing() {
-      return getters.currentView() != "listingView";
+      return getters.currentView() !== "listingView";
     },
     isFolder() {
       return this.category() === "folders";

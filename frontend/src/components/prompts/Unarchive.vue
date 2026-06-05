@@ -36,6 +36,7 @@
   <div class="card-actions">
     <template v-if="showFileList">
       <button
+        type="button"
         class="button button--flat button--grey"
         @click="showFileList = false"
         :aria-label="$t('general.cancel')"
@@ -44,6 +45,7 @@
         {{ $t("general.cancel") }}
       </button>
       <button
+        type="button"
         class="button button--flat"
         @click="showFileList = false"
         :aria-label="$t('general.select', { suffix: '' })"
@@ -54,6 +56,7 @@
     </template>
     <template v-else>
       <button
+        type="button"
         class="button button--flat button--grey"
         @click="closeTopPrompt"
         :aria-label="$t('general.cancel')"
@@ -62,6 +65,7 @@
         {{ $t("general.cancel") }}
       </button>
       <button
+        type="button"
         class="button button--flat"
         :disabled="!destPath || !isDirSelection || isLoading"
         :aria-label="$t('prompts.unarchive')"
@@ -75,7 +79,7 @@
 </template>
 
 <script>
-import { state, mutations } from "@/store";
+import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
 import { notify } from "@/notify";
 import { resourcesApi } from "@/api";
@@ -98,7 +102,7 @@ export default {
       destPath: "/",
       destSource: null,
       destType: null,
-      deleteAfter: state.user?.deleteAfterArchive == true,
+      deleteAfter: state.user?.deleteAfterArchive === true,
       isLoading: false,
       showFileList: false,
     };
@@ -122,7 +126,7 @@ export default {
     },
     parentPath() {
       if (!this.itemPath) return "/";
-      return url.removeLastDir(this.itemPath) + "/";
+      return `${url.removeLastDir(this.itemPath)}/`;
     },
     isDirSelection() {
       return this.destType === "directory" || !this.destType;
@@ -135,7 +139,7 @@ export default {
     updateDestination(pathOrData) {
       if (typeof pathOrData === "string") {
         this.destPath = pathOrData;
-      } else if (pathOrData && pathOrData.path) {
+      } else if (pathOrData?.path) {
         this.destPath = pathOrData.path;
         this.destSource = pathOrData.source;
         this.destType = pathOrData.type;

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it} from 'vitest';
 import { getHumanReadableFilesize } from './filesizes.js';
 
 describe('testSort', () => {
@@ -13,7 +13,7 @@ describe('testSort', () => {
       {input: Number('4891498498488'), expected:"4.4 TB"},
       {input: Number('11991498498488488'), expected:"10.7 PB"},
     ]
-    for (let i in tests) {
+    for (const i in tests) {
       expect(getHumanReadableFilesize(tests[i].input)).toEqual(tests[i].expected);
     }
   });

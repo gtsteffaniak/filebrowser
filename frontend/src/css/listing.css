@@ -32,7 +32,6 @@ body.rtl .listing-items {
 .listing-item {
   display: flex;
   flex-wrap: nowrap;
-  color: #6f6f6f;
   transition: 0.25s ease;
   align-items: center;
   cursor: pointer;
@@ -42,7 +41,6 @@ body.rtl .listing-items {
   height: var(--item-height);
   border-radius: 1em;
   padding: 0.5em;
-  background: var(--item-secondary);
   color: var(--textPrimary);
   border-color: var(--divider);
   background: var(--surfacePrimary);

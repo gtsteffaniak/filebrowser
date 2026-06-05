@@ -1,9 +1,9 @@
-import { state, mutations, getters } from "@/store";
 import { resourcesApi } from "@/api";
 import { notify } from "@/notify";
+import { getters, mutations, state } from "@/store";
 
 export default function downloadFiles(items) {
-  if (items.length == 0) {
+  if (items.length === 0) {
     notify.showError("No files selected");
     return;
   }

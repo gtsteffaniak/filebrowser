@@ -1,7 +1,6 @@
-import { fetchURL, fetchJSON } from "./utils";
-import { getApiPath } from "@/utils/url.js";
 import { notify } from "@/notify";
-
+import { getApiPath } from "@/utils/url.js";
+import { fetchJSON, fetchURL } from "./utils";
 
 export function get(property="") {
   const path = getApiPath("settings", { property });

@@ -1,5 +1,5 @@
 <template>
-  <div v-if="shareInfo.shareType != 'upload'" class="listing-view-root no-select" :style="containerStyles">
+  <div v-if="shareInfo.shareType !== 'upload'" class="listing-view-root no-select" :style="containerStyles">
     <!-- Show loading spinner while loading OR if we haven't loaded any data yet -->
     <div v-if="loading">
       <h2 class="message delayed">
@@ -17,7 +17,7 @@
         [listingViewMode]: true,
         dropping: isDragging,
         'rectangle-selecting': isRectangleSelecting,
-        'font-size-large': numDirs + numFiles == 0 
+        'font-size-large': numDirs + numFiles === 0 
       }"
       :style="itemStyles"
       class="listing-items"
@@ -34,7 +34,7 @@
       </div>
 
       <!-- Empty state -->
-      <template v-if="numDirs + numFiles == 0">
+      <template v-if="numDirs + numFiles === 0">
         <h2 class="message font-size-large">
           <i class="material-symbols-outlined">sentiment_dissatisfied</i>
           <span>{{ $t("files.lonely") }}</span>
@@ -72,7 +72,7 @@
             :key="base64(item.name)"
             v-bind:index="item.index"
             v-bind:name="item.name"
-            v-bind:isDir="item.type == 'directory'"
+            v-bind:isDir="item.type === 'directory'"
             v-bind:source="req.source"
             v-bind:modified="item.modified"
             v-bind:type="item.type"
@@ -100,7 +100,7 @@
             :key="base64(item.name)"
             v-bind:index="item.index"
             v-bind:name="item.name"
-            v-bind:isDir="item.type == 'directory'"
+            v-bind:isDir="item.type === 'directory'"
             v-bind:modified="item.modified"
             v-bind:source="req.source"
             v-bind:type="item.type"
@@ -216,7 +216,7 @@ export default {
         const fileTop = fileSection?.getBoundingClientRect().top ?? 0;
         category = fileTop <= 0 ? "files" : "folders";
       }
-      if (this.numDirs == 0) {
+      if (this.numDirs === 0) {
         category = "files"; // If no directories, only files
       }
 
@@ -252,7 +252,7 @@ export default {
     lastFolderIndex() {
       const allItems = [...this.items.dirs, ...this.items.files];
       for (let i = 0; i < allItems.length; i++) {
-        if (allItems[i].type != "directory") {
+        if (allItems[i].type !== "directory") {
           return i - 1;
         }
       }
@@ -298,7 +298,7 @@ export default {
     },
     hasDuration() {
       // Check if any file has duration metadata
-      return this.files.some(file => file.metadata && file.metadata.duration);
+      return this.files.some(file => file.metadata?.duration);
     },
     items() {
       return getters.reqItems();
@@ -347,10 +347,10 @@ export default {
       const width = Math.abs(this.rectangleStart.x - this.rectangleEnd.x);
       const height = Math.abs(this.rectangleStart.y - this.rectangleEnd.y);
       return {
-        left: left + 'px',
-        top: top + 'px',
-        width: width + 'px',
-        height: height + 'px',
+        left: `${left}px`,
+        top: `${top}px`,
+        width: `${width}px`,
+        height: `${height}px`,
       };
     },
     containerStyles() {
@@ -560,7 +560,7 @@ export default {
     },
     showDeletePrompt() {
       const items = [];
-      for (let index of state.selected) {
+      for (const index of state.selected) {
         const item = state.req.items[index];
         const previewUrl = item.hasPreview
           ? resourcesApi.getPreviewURL(item.source || state.req.source, item.path, item.modified)
@@ -597,7 +597,7 @@ export default {
     },
     // Helper method to handle selection based on arrow keys
     navigateKeboardArrows(arrowKey) {
-      let selectedIndex = state.selected.length > 0 ? state.selected[0] : null;
+      const selectedIndex = state.selected.length > 0 ? state.selected[0] : null;
 
       if (selectedIndex === null) {
         // If nothing is selected, select the first item
@@ -692,7 +692,7 @@ export default {
           }
           break;
       }
-      if (newSelected != null) {
+      if (newSelected !== null) {
         this.selectItem(newSelected);
         this.scrollSelectedIntoView();
       }
@@ -719,7 +719,7 @@ export default {
       }
     },
     keyEvent(event) {
-      if (state.isSearchActive || getters.currentView() != "listingView" || getters.currentPromptName()) {
+      if (state.isSearchActive || getters.currentView() !== "listingView" || getters.currentPromptName()) {
         return;
       }
       const { key, ctrlKey, metaKey, altKey, which } = event;
@@ -730,7 +730,7 @@ export default {
       const modifierKeys = ctrlKey || metaKey;
       if (isAlphanumeric && !modifierKeys && state.selected.length <= 1) {
         const t = event.target;
-        const tag = t && t.tagName ? t.tagName.toLowerCase() : "";
+        const tag = t?.tagName ? t.tagName.toLowerCase() : "";
         if (
           tag !== "input" &&
           tag !== "textarea" &&
@@ -742,8 +742,8 @@ export default {
           return;
         }
       }
-      let currentPath = url.removeTrailingSlash(state.route.path);
-      let newPath = currentPath.substring(0, currentPath.lastIndexOf("/"));
+      const currentPath = url.removeTrailingSlash(state.route.path);
+      const newPath = currentPath.substring(0, currentPath.lastIndexOf("/"));
 
       if (modifierKeys) {
         this.ctrKeyPressed = true;
@@ -844,7 +844,7 @@ export default {
         return;
       }
 
-      let items = state.selected.map((i) => ({
+      const items = state.selected.map((i) => ({
         from: state.req.items[i].path,
         fromSource: state.req.source,
         name: state.req.items[i].name,
@@ -864,7 +864,7 @@ export default {
 
     async collectFilesFromEntry(entry, relativePath = "") {
       const files = [];
-      const entryPath = relativePath ? relativePath + "/" + entry.name : entry.name;
+      const entryPath = relativePath ? `${relativePath}/${entry.name}` : entry.name;
 
       if (entry.isFile) {
         // If it's a file we get the File object and add it with its relative path
@@ -924,7 +924,7 @@ export default {
         return;
       }
 
-      if (event.clipboardData && (event.clipboardData.items)) {
+      if (event.clipboardData?.items) {
         // Collect all items from clipboard
         const collectedItems = [];
         // And loop through all items
@@ -977,14 +977,14 @@ export default {
     },
 
     async handleInternalPaste() {
-      if (!this.clipboard || !this.clipboard.items || this.clipboard.items.length === 0) {
+      if (!this.clipboard?.items || this.clipboard.items.length === 0) {
         return;
       }
 
       // Construct destination path properly (without URL prefix)
-      const destPath = state.req.path.endsWith('/') ? state.req.path : state.req.path + '/';
+      const destPath = state.req.path.endsWith('/') ? state.req.path : `${state.req.path}/`;
 
-      let items = this.clipboard.items.map((item) => ({
+      const items = this.clipboard.items.map((item) => ({
         from: item.from,
         fromSource: item.fromSource,
         to: destPath + item.name,
@@ -1126,7 +1126,7 @@ export default {
       }, 150); // Wait 150ms after last resize event
 
       // Listing element is not displayed
-      if (this.$refs.listingView == null) return;
+      if (this.$refs.listingView === null) return;
     }, 100),
     openContext(event) {
       event.preventDefault();
@@ -1143,7 +1143,7 @@ export default {
           showCentered: getters.isMobile(),
           posX: event.clientX,
           posY: event.clientY,
-          createOnly: this.selectedCount == 0,
+          createOnly: this.selectedCount === 0,
         },
       });
     },
@@ -1164,8 +1164,8 @@ export default {
         return;
       }
 
-      const sameAsBefore = state.selected == this.lastSelected;
-      if (sameAsBefore && !state.multiple && getters.currentPromptName() == "") {
+      const sameAsBefore = state.selected === this.lastSelected;
+      if (sameAsBefore && !state.multiple && getters.currentPromptName() === "") {
         mutations.resetSelected();
       }
       this.lastSelected = state.selected;
@@ -1340,8 +1340,8 @@ export default {
           elementRelativeRect.top < rect.bottom &&
           elementRelativeRect.bottom > rect.top
         ) {
-          const index = parseInt(element.getAttribute('data-index'));
-          if (!isNaN(index)) {
+          const index = parseInt(element.getAttribute('data-index'), 10);
+          if (!Number.isNaN(index)) {
             rectangleSelectedIndexes.push(index);
           }
         }
@@ -1358,12 +1358,12 @@ export default {
         });
 
         mutations.resetSelected();
-        newSelection.forEach(index => mutations.addSelected(index));
+        newSelection.forEach(index => { mutations.addSelected(index); });
       } else {
         // Select only the items in the rectangle and reset initial selection
         // PS: If you don't want that just hold ctrl, the selection will not be reset, allowing multi select.
         mutations.resetSelected();
-        rectangleSelectedIndexes.forEach(index => mutations.addSelected(index));
+        rectangleSelectedIndexes.forEach(index => { mutations.addSelected(index); });
       }
     },
     handleDoubleClick(event) {

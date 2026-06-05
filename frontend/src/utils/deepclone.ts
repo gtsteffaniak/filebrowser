@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 type DeepCloneable = object | Array<any>;
 
 export default function deepClone<T extends DeepCloneable>(obj: T): T {

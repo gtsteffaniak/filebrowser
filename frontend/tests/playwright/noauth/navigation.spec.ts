@@ -1,7 +1,6 @@
+import { expect, test } from "../test-setup";
 
-import { test, expect } from "../test-setup";
-
-test("navigate with hash in file name", async({ page, checkForErrors, context }) => {
+test("navigate with hash in file name", async({ page, checkForErrors }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await page.locator('a[aria-label="folder#hash"]').waitFor({ state: 'visible' });
@@ -14,7 +13,7 @@ test("navigate with hash in file name", async({ page, checkForErrors, context })
   checkForErrors()
 })
 
-test("breadcrumbs navigation checks", async({ page, checkForErrors, context }) => {
+test("breadcrumbs navigation checks", async({ page, checkForErrors }) => {
   await page.goto("/files/exclude/myfolder");
   await page.waitForSelector('#breadcrumbs');
   let spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();
@@ -40,7 +39,7 @@ test("breadcrumbs navigation checks", async({ page, checkForErrors, context }) =
   checkForErrors();
 });
 
-test("navigate from search item", async({ page, checkForErrors, context }) => {
+test("navigate from search item", async({ page, checkForErrors }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await page.locator('#search-bar-input').click()

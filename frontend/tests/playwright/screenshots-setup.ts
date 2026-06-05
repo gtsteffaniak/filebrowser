@@ -1,4 +1,5 @@
-import { Browser, chromium, expect, Page } from "@playwright/test";
+import type { Browser, Page } from "@playwright/test";
+import { chromium, expect } from "@playwright/test";
 
 // Perform authentication and store auth state
 async function localSetup() {
@@ -28,7 +29,7 @@ async function localSetup() {
     await page.locator('div[aria-label="generic-prompt"]').waitFor({ state: 'visible', timeout: 3000 });
     await page.locator('button[aria-label="Acknowledge"]').click();
     console.log("Clicked acknowledgement button");
-  } catch (error) {
+  } catch (_error) {
     console.log("No acknowledgement prompt appeared");
   }
 

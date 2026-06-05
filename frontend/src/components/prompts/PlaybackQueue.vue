@@ -43,7 +43,12 @@
   </div>
 
   <div class="card-actions">
-    <button class="button button--flat" @click.stop="cyclePlaybackModes" :title="$t('player.changePlaybackMode')">
+    <button
+      type="button"
+      class="button button--flat"
+      @click.stop="cyclePlaybackModes"
+      :title="$t('player.changePlaybackMode')"
+    >
       <i class="material-symbols">swap_vert</i> {{ $t('player.changePlaybackMode') }}
     </button>
   </div>
@@ -226,7 +231,7 @@ export default {
       if (item.type?.startsWith('video/')) return 'movie';
     },
     updatePromptTitle() {
-      if (this.embedded || this.promptId == null) return;
+      if (this.embedded || this.promptId === null) return;
       const base = this.$t('player.QueuePlayback');
       const title = this.queueCount > 0
         ? `${base} (${this.queueCount})`

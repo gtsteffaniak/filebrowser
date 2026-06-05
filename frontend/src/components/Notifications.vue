@@ -29,6 +29,7 @@
           </div>
           <div v-if="notification.buttons && notification.buttons.length > 0" class="notification-buttons">
             <button
+              type="button"
               v-for="(button, btnIndex) in notification.buttons"
               :key="btnIndex"
               :class="['button', button.className]"
@@ -62,17 +63,15 @@ import { notify } from "@/notify";
 
 export default {
   name: "notifications",
-  data: function () {
-    return {
-      notifications: [],
-      dragState: {
-        isDragging: false,
-        startX: 0,
-        currentX: 0,
-        notificationId: null
-      }
-    };
-  },
+  data: () => ({
+    notifications: [],
+    dragState: {
+      isDragging: false,
+      startX: 0,
+      currentX: 0,
+      notificationId: null
+    }
+  }),
   mounted() {
     // Initialize notifications with drag state
     this.notifications = notify.getNotifications().map(notification => ({

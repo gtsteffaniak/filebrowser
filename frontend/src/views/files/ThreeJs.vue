@@ -16,7 +16,8 @@
     
     <div v-if="!isThumbnail" class="controls-container">
       <!-- Settings icon toggle button -->
-      <button 
+      <button
+        type="button"
         @click="showControlsPrompt"
         class="controls-toggle"
         :title="$t('threejs.controls')"
@@ -187,7 +188,7 @@ export default {
       });
     },
     getSpaceText() {
-      return this.hasAnimations ? this.$t("general.play") + "/" + this.$t("general.pause") : this.$t("threejs.autoRotate");
+      return this.hasAnimations ? `${this.$t("general.play")}/${this.$t("general.pause")}` : this.$t("threejs.autoRotate");
     },
     initIntersectionObserver() {
       // Use a single global observer if possible, but for now localize config
@@ -315,7 +316,7 @@ export default {
     },
 
     updateMaterialColors() {
-      if (this.model && this.model.isMesh && this.model.material) {
+      if (this.model?.isMesh && this.model.material) {
         if (['stl', 'ply', 'amf'].includes(this.fileExtension)) {
           this.model.material.color.setHex(0x4fc3f7);
         }
@@ -352,11 +353,11 @@ export default {
         return url;
       }
       const filename = url.split('/api/resources/')[1];
-      let texturePath = removeLastDir(this.fbdata.path) + "/textures/" + filename
+      let texturePath = `${removeLastDir(this.fbdata.path)}/textures/${filename}`
       if (this.fbdata.parentDirItems) {
         for (const item of this.fbdata.parentDirItems) {
           if (item.name === filename) {
-            texturePath = removeLastDir(this.fbdata.path) + "/" + filename;
+            texturePath = `${removeLastDir(this.fbdata.path)}/${filename}`;
           }
         }
       }
@@ -427,7 +428,7 @@ export default {
              const text = new TextDecoder().decode(data);
              const json = JSON.parse(text);
              loader.parse(json, modelDir, (gltf) => this.onModelLoaded(gltf, 'gltf'), (err) => this.handleError(err, "Invalid GLB"));
-          } catch (e) {
+          } catch (_e) {
              this.handleError(new Error("Invalid GLB magic number and not valid JSON"), "Corrupted File");
           }
           return;
@@ -517,7 +518,7 @@ export default {
         const material = new THREE.PointsMaterial({
           size: 0.05,
           color: 0x4fc3f7,
-          vertexColors: loadedData.geometry?.attributes?.color ? true : false,
+          vertexColors: !!loadedData.geometry?.attributes?.color,
         });
         if (loadedData.material) {
           // Use existing material if provided
@@ -596,12 +597,12 @@ export default {
       const size = box.getSize(new THREE.Vector3());
       const maxDim = Math.max(size.x, size.y, size.z);
       
-      if (!isFinite(maxDim) || maxDim === 0) return;
+      if (!Number.isFinite(maxDim) || maxDim === 0) return;
       
       this.model.position.copy(center.negate());
       
       const fov = this.camera.fov * (Math.PI / 180);
-      let dist = Math.abs(maxDim / 2 / Math.tan(fov / 2)) * 1.5;
+      const dist = Math.abs(maxDim / 2 / Math.tan(fov / 2)) * 1.5;
       
       this.camera.position.set(dist, dist * 0.5, dist);
       this.camera.lookAt(0, 0, 0);
@@ -660,7 +661,7 @@ export default {
         this.model.traverse((c) => {
           if (c.geometry) c.geometry.dispose();
           if (c.material) {
-            [].concat(c.material).forEach(m => m.dispose());
+            [].concat(c.material).forEach(m => { m.dispose(); });
           }
         });
         this.model = null;
@@ -696,7 +697,7 @@ export default {
         if (!this.model) return;
         
         switch (k) {
-          case ' ': this.hasAnimations ? this.toggleAnimation() : this.toggleAutoRotate(); break;
+          case ' ': if (this.hasAnimations) this.toggleAnimation(); else this.toggleAutoRotate(); break;
           case 'r': this.resetCamera(); break;
           case 'q': this.model.rotation.y -= ROT_SPEED; break;
           case 'e': this.model.rotation.y += ROT_SPEED; break;
@@ -812,7 +813,6 @@ export default {
   width: 3rem;
   height: 3rem;
   padding: 0;
-  border: none;
   border-radius: 50%;
   background: var(--surfacePrimary);
   color: var(--textPrimary);
