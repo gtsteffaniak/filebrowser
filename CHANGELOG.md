@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.4.3
+
+ **New Features**:
+ - pinned files/folders (#2396) (#2510)
+
+ **BugFixes**:
+ - fix lyrics regex parsing (#2505)
+ - update vue i18n + lazy loading of languages (#2504)
+ - fix folder previews issue (#2487) (#2492)
+
 ## v1.4.2
 
  **Security**:
