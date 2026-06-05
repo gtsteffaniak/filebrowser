@@ -202,3 +202,7 @@
         inset 0 -3em 3em rgba(217, 217, 217, 0.211),
         0 0 0 2px var(--alt-background);
 }
+
+.dark-mode .pin-icon-wrapper {
+  background: rgba(0, 0, 0, 0.75);
+}

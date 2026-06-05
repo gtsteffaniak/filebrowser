@@ -131,6 +131,22 @@ body.rtl .listing-items {
   border-radius: 0em;
 }
 
+/* Pin styles  */
+.pin-icon-wrapper {
+  position: absolute;
+  z-index: 15;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  background: rgba(255, 255, 255, 0.75);
+  border-radius: 50%;
+  width: 1.8em;
+  height: 1.8em;
+  backdrop-filter: blur(3px);
+}
+
 /*==============*/
 /* Gallery view */
 /*==============*/
@@ -210,16 +226,6 @@ body.rtl .listing-items {
   display: none !important;
 }
 
-.listing-items.gallery .pin-icon-wrapper {
-  top: 0.75em;
-  right: 0.75em;
-  background: rgba(0, 0, 0, 0.6);
-  border-radius: 50%;
-  width: 1.8em;
-  height: 1.8em;
-  backdrop-filter: blur(3px);
-}
-
 /* Grid layouts for folders/files/pinned */
 .listing-items.gallery .folder-items,
 .listing-items.gallery .file-items,
@@ -274,16 +280,6 @@ body.rtl .listing-items {
     text-align: center;
 }
 
-.listing-items.icons .pin-icon-wrapper {
-  top: 0.5em;
-  right: 0.5em;
-  background: rgba(0, 0, 0, 0.6);
-  border-radius: 50%;
-  width: 1.8em;
-  height: 1.8em;
-  backdrop-filter: blur(3px);
-}
-
 .listing-items.icons .folder-items,
 .listing-items.icons .file-items,
 .listing-items.icons .pinned-items {
@@ -302,16 +298,6 @@ body.rtl .listing-items {
 .listing-items.gallery .listing-item,
 .listing-items.icons .listing-item {
   transition: width 0.25s ease-out, height 0.25s ease-out, box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;
-}
-
-.listing-items.normal .pin-icon-wrapper {
-  top: 0.5em;
-  right: 0.5em;
-  background: rgba(0, 0, 0, 0.6);
-  border-radius: 50%;
-  width: 1.8em;
-  height: 1.8em;
-  backdrop-filter: blur(3px);
 }
 
 /* Reserve a bit of space so the pin doesn't overlap the text */
@@ -533,15 +519,11 @@ body.rtl .listing-items {
   }
 }
 
-/* Pin styles  */
-.pin-icon-wrapper {
-  position: absolute;
-  z-index: 15;
-  pointer-events: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: visible;
+.listing-items.normal .pin-icon-wrapper,
+.listing-items.icons .pin-icon-wrapper,
+.listing-items.gallery .pin-icon-wrapper {
+  top: 0.5em;
+  right: 0.5em;
 }
 
 .pinned-indicator {
