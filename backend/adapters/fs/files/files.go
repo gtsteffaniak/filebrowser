@@ -27,7 +27,7 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-var reDuration = regexp.MustCompile(`\[(\d+):(\d+):(\d+)\.(\d+)\]`)
+var reDuration = regexp.MustCompile(`^\[(?:(\d{1,2}):)?(\d{1,2}):(\d{1,2})\.(\d+)\](.*)`)
 
 // CheckPermissionsFunc allows tests to override CheckPermissions behavior
 var CheckPermissionsFunc = checkPermissionsImpl
