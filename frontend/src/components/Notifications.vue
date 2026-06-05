@@ -5,18 +5,8 @@
         v-for="notification in notifications"
         :key="notification.id"
         :class="['notification-item', notification.type]"
-        @mousedown="startDrag($event, notification.id)"
-        @touchstart="startDrag($event, notification.id)"
-        @mousemove="handleDrag($event, notification.id)"
-        @touchmove="handleDrag($event, notification.id)"
-        @mouseup="endDrag(notification.id)"
-        @touchend="endDrag(notification.id)"
         @mouseenter="pauseAutoClose(notification.id)"
-        @mouseleave="handleMouseLeave(notification.id)"
-        :style="{
-          transform: `translateX(${notification.dragOffset || 0}px)`,
-          opacity: notification.dragOpacity !== undefined ? notification.dragOpacity : 1
-        }"
+        @mouseleave="resumeAutoClose(notification.id)"
       >
         <!-- Close button - always present on every notification, separate from optional buttons array -->
         <i class="material-symbols" @click="closeNotification(notification.id)">close</i>
@@ -64,32 +54,14 @@ import { notify } from "@/notify";
 export default {
   name: "notifications",
   data: () => ({
-    notifications: [],
-    dragState: {
-      isDragging: false,
-      startX: 0,
-      currentX: 0,
-      notificationId: null
-    }
+    notifications: []
   }),
   mounted() {
-    // Initialize notifications with drag state
-    this.notifications = notify.getNotifications().map(notification => ({
-      ...notification,
-      dragOffset: 0,
-      dragOpacity: 1
-    }));
+    // Initialize notifications
+    this.notifications = notify.getNotifications();
     // Register callback to receive notification updates
     notify.setUpdateCallback((notifications) => {
-      this.notifications = notifications.map(notification => {
-        // Find existing notification to preserve drag state
-        const existing = this.notifications.find(n => n.id === notification.id);
-        return {
-          ...notification,
-          dragOffset: existing?.dragOffset,
-          dragOpacity: existing?.dragOpacity !== undefined ? existing.dragOpacity : 1
-        };
-      });
+      this.notifications = notifications;
     });
   },
   methods: {
@@ -103,66 +75,6 @@ export default {
       if (typeof button.action === "function") {
         button.action();
       }
-    },
-    startDrag(event, notificationId) {
-      const clientX = event.type.includes('touch') ? event.touches[0].clientX : event.clientX;
-      this.dragState = {
-        isDragging: true,
-        startX: clientX,
-        currentX: clientX,
-        notificationId: notificationId
-      };
-    },
-    handleDrag(event, notificationId) {
-      if (!this.dragState.isDragging || this.dragState.notificationId !== notificationId) {
-        return;
-      }
-      event.preventDefault();
-      const clientX = event.type.includes('touch') ? event.touches[0].clientX : event.clientX;
-      this.dragState.currentX = clientX;
-      const deltaX = clientX - this.dragState.startX;
-      // Allow dragging in both directions (left and right)
-      const dragOffset = deltaX;
-      const absoluteDeltaX = Math.abs(deltaX);
-      const dragOpacity = Math.max(0.4, 1 - (absoluteDeltaX / 150));
-      // Update the notification position and opacity
-      const notificationIndex = this.notifications.findIndex(n => n.id === notificationId);
-      if (notificationIndex !== -1) {
-        this.notifications[notificationIndex].dragOffset = dragOffset;
-        this.notifications[notificationIndex].dragOpacity = dragOpacity;
-      }
-    },
-    endDrag(notificationId) {
-      if (!this.dragState.isDragging || this.dragState.notificationId !== notificationId) {
-        return;
-      }
-      const deltaX = this.dragState.currentX - this.dragState.startX;
-      const absoluteDeltaX = Math.abs(deltaX);
-      const notificationIndex = this.notifications.findIndex(n => n.id === notificationId);
-      if (notificationIndex !== -1) {
-        // Check if drag distance is enought to close the notification (120px or 25% of screen width)
-        const threshold = Math.min(120, window.innerWidth * 0.25);
-        if (absoluteDeltaX > threshold) {
-          // If the swipe is enought, close
-          this.closeNotification(notificationId);
-        } else {
-          // If not, returnt it back to the original position
-          this.notifications[notificationIndex].dragOffset = 0;
-          this.notifications[notificationIndex].dragOpacity = 1;
-        }
-      }
-      // Reset drag state
-      this.dragState = {
-        isDragging: false,
-        startX: 0,
-        currentX: 0,
-        notificationId: null
-      };
-    },
-    // Handle mouse leave for both drag and auto-close
-    handleMouseLeave(notificationId) {
-      this.endDrag(notificationId);
-      this.resumeAutoClose(notificationId);
     },
     // Hover persistence methods
     pauseAutoClose(notificationId) {
@@ -206,8 +118,14 @@ export default {
   transition: right 1s ease;
   z-index: 21;
   pointer-events: all;
-  user-select: none;
+  user-select: text;
   overflow: hidden;
+}
+
+/* selection color for better visibility (since the selection color is the same as --primaryColor) */
+.notification-item ::selection {
+  background: rgba(255, 255, 255, 0.8);
+  color: #000;
 }
 
 .notification-content-wrapper {
