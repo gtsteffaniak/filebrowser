@@ -193,7 +193,7 @@ router.beforeResolve(async (to, from, next) => {
       try {
         await validateLogin(isPublicRoute);
       } catch (_error) {
-        mutations.setCurrentUser(getters.anonymous());
+        await mutations.setCurrentUser(getters.anonymous());
       }
     }
 

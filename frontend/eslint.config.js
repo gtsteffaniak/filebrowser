@@ -27,7 +27,7 @@ export default defineConfig(
     settings: {
       "vue-i18n": {
         localeDir: "src/i18n/en.json",
-        messageSyntaxVersion: "^9.0.0", // For now this on v9, we can change it updating vue-i18n to v11
+        messageSyntaxVersion: "^11.0.0",
       },
     },
     rules: {

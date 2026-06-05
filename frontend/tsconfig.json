@@ -23,6 +23,15 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.js", "src/**/*.d.ts", "src/**/*.vue", "tests-playwright/**/*.ts", "eslint.config.js", "scripts/**/*"],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.js",
+    "src/**/*.d.ts",
+    "src/**/*.vue",
+    "tests-playwright/**/*.ts",
+    "scripts/**/*.js",
+    "eslint.config.js",
+    "vite.config.ts"
+  ],
   "exclude": ["node_modules", "dist", "../_docker/src/proxy/frontend/playwright.config.ts"]
 }
