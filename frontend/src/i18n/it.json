@@ -145,7 +145,9 @@
     "closeAnyway": "Chiudi comunque",
     "goToItem": "Vai all'elemento",
     "goToSource": "Vai alla posizione sorgente",
-    "copyPath": "Percorso di copia"
+    "copyPath": "Percorso di copia",
+    "pinItem": "Appunta",
+    "unpinItem": "Rimuovi puntina"
   },
   "errors": {
     "forbidden": "Non hai i permessi per accedere a questa risorsa.",
@@ -171,7 +173,10 @@
     "newFile": "Nuovo file{suffix}",
     "newFolder": "Nuova cartella{suffix}",
     "sameFolder": "Impossibile spostare nella stessa cartella",
-    "cannotAccesDir": "Impossibile accedere alla directory"
+    "cannotAccesDir": "Impossibile accedere alla directory",
+    "pinnedFolders": "Cartelle appuntate",
+    "pinnedFiles": "File appuntati",
+    "pinnedItems": "Appuntato"
   },
   "help": {
     "functionKeys": "Tasti funzione",

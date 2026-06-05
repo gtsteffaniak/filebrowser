@@ -27,7 +27,9 @@
     "showLess": "Geavanceerde opties verbergen",
     "goToSource": "Ga naar de bronlocatie",
     "goToItem": "Ga naar item",
-    "copyPath": "Kopieer pad"
+    "copyPath": "Kopieer pad",
+    "pinItem": "Vastzetten",
+    "unpinItem": "Losmaken"
   },
   "errors": {
     "forbidden": "U hebt geen rechten om hier toegang toe te krijgen.",
@@ -53,7 +55,10 @@
     "sortByDuration": "Sorteren op duur",
     "sameFolder": "Kan niet naar dezelfde map verplaatsen",
     "cannotAccesDir": "Kan de map niet openen",
-    "lonely": "Niets te zien hier..."
+    "lonely": "Niets te zien hier...",
+    "pinnedFolders": "Vastgezette mappen",
+    "pinnedFiles": "Vastgezette bestanden",
+    "pinnedItems": "Vastgezet"
   },
   "help": {
     "functionKeys": "Functietoetsen",

@@ -5,9 +5,16 @@ import { globalVars, previewViews, tools } from '@/utils/constants';
 import { getFileExtension } from '@/utils/files.js';
 import { getTypeInfo } from '@/utils/mimetype';
 import { fromNow } from '@/utils/moment';
-import { buildItemUrl, removeLeadingSlash, removePrefix } from '@/utils/url.js';
+import { buildItemUrl, removeLeadingSlash, removePrefix, getParentDir } from '@/utils/url.js';
 
 export const getters = {
+  displayPreferenceFor: (source, path) => {
+    const sourceKey = getters.isShare() ? getters.currentHash() : source;
+    if (!sourceKey || !path) {
+      return null;
+    }
+    return state.displayPreferences?.[sourceKey]?.[path] || null;
+  },
   eventTheme: () => {
     if (getters.isShare()) {
       return "";
@@ -60,10 +67,24 @@ export const getters = {
       path = path.substring(0, path.lastIndexOf("/") + 1) || "/";
     }
   
-    if (state.displayPreferences?.[source]?.[path]) {
-      return state.displayPreferences[source][path];
+    return getters.displayPreferenceFor(source, path);
+  },
+  pinnedPathsFor: (source, path) => {
+    if (getters.isShare() || !getters.isLoggedIn()) {
+      return [];
     }
-    return null;
+    const sourceKey = source || state.sources.current || state.req?.source || "";
+    const directoryPath = path || "/";
+    const pinnedPaths = state.user?.pinnedItems?.[sourceKey]?.[directoryPath];
+    return Array.isArray(pinnedPaths) ? pinnedPaths : [];
+  },
+  isItemPinned: (item) => {
+    if (!item?.path || getters.isShare() || !getters.isLoggedIn()) {
+      return false;
+    }
+    const directoryPath = getParentDir(item.path);
+    const source = item.source || state.req?.source || state.sources.current;
+    return getters.pinnedPathsFor(source, directoryPath).includes(item.path);
   },
   viewMode: () => {
     if (!state.user || state.user?.username === "") {
@@ -215,19 +236,25 @@ export const getters = {
     return fileCount
   },
   reqItems: () => {
-    if (state.user === null) return { dirs: [], files: [] };
+    if (state.user === null) return { pinned: [], dirs: [], files: [] };
+    const pinned = [];
     const dirs = [];
     const files = [];
-    if (!state.req.items) return { dirs, files };
+    if (!state.req.items) return { pinned, dirs, files };
 
     for (const item of state.req.items) {
+      if (getters.isItemPinned(item)) {
+        pinned.push(item);
+        continue;
+      }
       if (item.type === 'directory') {
         dirs.push(item);
       } else {
+        item.Path = state.req.path;
         files.push(item);
       }
     }
-    return { dirs, files };
+    return { pinned, dirs, files };
   },
   isSidebarVisible: () => {
     if (globalVars.disableSidebar || getters.isInvalidShare()) {

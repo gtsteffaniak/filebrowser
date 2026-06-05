@@ -27,7 +27,9 @@
     "showLess": "Masquer les options avancées",
     "goToSource": "Aller à l'emplacement de la source",
     "goToItem": "Aller à l'article",
-    "copyPath": "Chemin de la copie"
+    "copyPath": "Chemin de la copie",
+    "pinItem": "Épingler",
+    "unpinItem": "Détacher"
   },
   "errors": {
     "forbidden": "Vous n'avez pas la permission d'accéder à cela.",
@@ -53,7 +55,10 @@
     "sortByDuration": "Trier par durée",
     "sameFolder": "Impossible de déplacer vers le même dossier",
     "cannotAccesDir": "Impossible d'accéder au répertoire",
-    "lonely": "Rien à voir ici..."
+    "lonely": "Rien à voir ici...",
+    "pinnedFolders": "Dossiers épinglés",
+    "pinnedFiles": "Fichiers épinglés",
+    "pinnedItems": "Épinglé"
   },
   "help": {
     "functionKeys": "Touches de Fonction",

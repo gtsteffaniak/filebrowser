@@ -48,6 +48,7 @@ body.rtl .listing-items {
   contain: layout style paint;
   content-visibility: auto;
   will-change: auto;
+  position: relative;
 }
 
 .listing-item div:last-of-type {
@@ -66,7 +67,6 @@ body.rtl .listing-items {
   font-size: 0.9em;
 }
 
-/* View mode defaults - override --icon-size and --icon-font-size for each mode */
 .listing-items.normal {
   --icon-size: 3.5em;
   --icon-font-size: 2.5em;
@@ -131,6 +131,25 @@ body.rtl .listing-items {
   border-radius: 0em;
 }
 
+/* Pin styles  */
+.pin-icon-wrapper {
+  position: absolute;
+  z-index: 15;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  background: rgba(255, 255, 255, 0.75);
+  border-radius: 50%;
+  width: 1.8em;
+  height: 1.8em;
+  backdrop-filter: blur(3px);
+}
+
+/*==============*/
+/* Gallery view */
+/*==============*/
 .listing-items.gallery .listing-item {
   display: flex;
   flex-direction: column;
@@ -139,24 +158,9 @@ body.rtl .listing-items {
   justify-content: center;
   margin: 0;
   padding: 0;
-  position: relative;
   width: 100%;
   height: var(--item-height);
   flex-shrink: 0;
-}
-
-.listing-items.icons .listing-item {
-  display: flex;
-  flex-direction: column;
-  align-content: center;
-  overflow: hidden;
-  justify-content: flex-start;
-  padding: 0.5em;
-  margin: 0.25em;
-  position: relative;
-  width: 100%;
-  height: auto;
-  min-height: calc(var(--icon-size, 60px) + 2em);
 }
 
 .listing-items.gallery .listing-item .gallery-div {
@@ -167,17 +171,6 @@ body.rtl .listing-items {
   height: 100%;
   aspect-ratio: 1;
   transition: all 0.25s ease-out;
-}
-
-.listing-items.normal .listing-item,
-.listing-items.gallery .listing-item,
-.listing-items.icons .listing-item {
-  transition: width 0.25s ease-out, height 0.25s ease-out, box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;
-}
-
-/* Disable transitions during resize for better performance */
-.listing-items.resizing .listing-item {
-  transition: none !important;
 }
 
 .listing-items.gallery .listing-item .text {
@@ -215,6 +208,108 @@ body.rtl .listing-items {
   display: flex;
 }
 
+.listing-items.gallery .listing-item img {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: 1;
+  transition: all 0.25s ease-out;
+}
+.listing-items.gallery .image-preview {
+  width: 100% !important;
+  height: 100% !important;
+}
+.listing-items.gallery .listing-item .size,
+.listing-items.gallery .listing-item .modified,
+.listing-items.gallery .listing-item .duration {
+  display: none !important;
+}
+
+/* Grid layouts for folders/files/pinned */
+.listing-items.gallery .folder-items,
+.listing-items.gallery .file-items,
+.listing-items.gallery .pinned-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--item-width, 200px), 1fr));
+  gap: 1em;
+  padding: 0.5em;
+  width: 100%;
+  transition: grid-template-columns 0.25s ease-out;
+}
+
+/*============*/
+/* Icons view */
+/*============*/
+.listing-items.icons .listing-item {
+  display: flex;
+  flex-direction: column;
+  align-content: center;
+  overflow: hidden;
+  justify-content: flex-start;
+  padding: 0.5em;
+  margin: 0.25em;
+  width: 100%;
+  height: auto;
+  min-height: calc(var(--icon-size, 60px) + 2em);
+}
+
+.listing-items.icons .listing-item .text {
+  display: block !important;
+  width: 100%;
+  margin-top: 0.3em;
+  padding: 0;
+  flex: 1;
+  text-align: center;
+}
+
+.listing-items.icons .listing-item .size,
+.listing-items.icons .listing-item .modified,
+.listing-items.icons .listing-item .duration {
+  display: none !important;
+}
+
+.listing-items.icons .image-preview.download-icon {
+    width: 100%;
+    height: 2em;
+}
+
+.listing-items.icons .image-preview.download-icon .material-symbols {
+    font-size: 2em;
+    width: 100%;
+    text-align: center;
+}
+
+.listing-items.icons .folder-items,
+.listing-items.icons .file-items,
+.listing-items.icons .pinned-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--icons-view-cell-size, 100px), 1fr));
+  gap: 0.5em;
+  padding: 0.25em;
+  width: 100%;
+  transition: grid-template-columns 0.25s ease-out;
+}
+
+/*=============*/
+/* Normal view */
+/*=============*/
+.listing-items.normal .listing-item,
+.listing-items.gallery .listing-item,
+.listing-items.icons .listing-item {
+  transition: width 0.25s ease-out, height 0.25s ease-out, box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;
+}
+
+/* Reserve a bit of space so the pin doesn't overlap the text */
+.listing-items.normal .listing-item.pinned-item .text .name span {
+  padding-right: 1.65em;
+}
+
+/* Disable transitions during resize for better performance */
+.listing-items.resizing .listing-item {
+  transition: none !important;
+}
+
 .listing-items.list .listing-item img,
 .listing-items.compact .listing-item img {
   min-width: unset;
@@ -224,14 +319,9 @@ body.rtl .listing-items {
   object-fit: cover;
 }
 
-.listing-items.gallery .listing-item img {
-  width: 100%;
-  height: 100%;
-  max-width: 100%;
-  max-height: 100%;
-  aspect-ratio: 1;
-  transition: all 0.25s ease-out;
-}
+/*==============*/
+/* Compact view */
+/*==============*/
 .listing-items.compact {
   flex-direction: column;
   width: 100%;
@@ -252,66 +342,18 @@ body.rtl .listing-items {
   display: none;
 }
 
-/* List/Compact view: div:last-of-type layout */
-.listing-items.compact .listing-item div:last-of-type,
-.listing-items.list .listing-item div:last-of-type {
-  display: flex;
-  align-items: center;
-  flex: 1;
-  min-width: 0;
-}
-
-.placeholder {
-  width: var(--icon-size);
-  background: transparent;
-}
-
-
-.listing-items.list .listing-item .modified,
-.listing-items.compact .listing-item .modified {
-  min-width: 15%;
-  flex: 0;
-  text-align: end;
-  padding-right: 1em;
-}
-
-.listing-items.list .listing-item .size,
-.listing-items.compact .listing-item .size,
-.listing-items.list .listing-item .duration,
-.listing-items.compact .listing-item .duration {
-  min-width: 10%;
-  flex: 0;
-  text-align: end;
-  padding-right: 1em;
-}
-
-.listing-items.list .listing-item .name,
-.listing-items.compact .listing-item .name {
-  flex: 1;
-}
-
-.listing-item .text {
-  padding-left: 0.5em;
-  flex: 1;
-}
-
-
-.listing-items.icons .image-preview.download-icon {
-    width: 100%;
-    height: 2em;
-}
-
-.listing-items.icons .image-preview.download-icon .material-symbols {
-    font-size: 2em;
-    width: 100%;
-    text-align: center;
-}
-
-
 .listing-items.compact .listing-item:first-child {
   border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
 
+.listing-items.compact .lastGroup>div:last-child {
+  border-bottom-left-radius: 1em;
+  border-bottom-right-radius: 1em;
+}
+
+/*===========*/
+/* List view */
+/*===========*/
 .listing-items.list {
   flex-direction: column;
   width: 100%;
@@ -326,6 +368,113 @@ body.rtl .listing-items {
   border-top: 0;
 }
 
+.listing-items.list .listing-item:first-child {
+  border-top-left-radius: 1em;
+  border-top-right-radius: 1em;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.listing-items.list .listing-item:last-child {
+  border-bottom-left-radius: 1em;
+  border-bottom-right-radius: 1em;
+  margin-bottom: .5em;
+}
+
+/*=====================*/
+/* List/Compact layout */
+/*=====================*/
+.listing-items.compact .listing-item div:last-of-type,
+.listing-items.list .listing-item div:last-of-type {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.listing-items.list .listing-item .name,
+.listing-items.compact .listing-item .name {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
+  overflow: hidden;
+}
+
+.listing-items.list .name span,
+.listing-items.compact .name span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* size, modified, duration */
+.listing-items.list .listing-item .size,
+.listing-items.compact .listing-item .size {
+  width: 8%;
+  min-width: 80px;
+  flex-shrink: 0;
+  text-align: right;
+  padding-right: 1em;
+  overflow: visible;
+  white-space: nowrap;
+}
+
+.listing-items.list .listing-item .modified,
+.listing-items.compact .listing-item .modified {
+  width: 18%;
+  min-width: 100px;
+  flex-shrink: 0;
+  text-align: right;
+  padding-right: 1em;
+  overflow: visible;
+  white-space: nowrap;
+}
+
+.listing-items.list .listing-item .duration,
+.listing-items.compact .listing-item .duration {
+  width: 12%;
+  min-width: 70px;
+  flex-shrink: 0;
+  text-align: right;
+  padding-right: 1em;
+  overflow: visible;
+  white-space: nowrap;
+}
+
+.listing-items.list .pinned-indicator,
+.listing-items.compact .pinned-indicator {
+  flex-shrink: 0;
+  font-size: 1rem;
+  color: var(--primaryColor);
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  width: 1.4em;
+  height: 1.4em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+  line-height: 1;
+  margin-left: 0.25em;
+}
+
+/*=============*/
+/*     etc     */
+/*=============*/
+.listing-item .text {
+  padding-left: 0.5em;
+  flex: 1;
+  min-width: 0;
+}
+
+.placeholder {
+  width: var(--icon-size);
+  background: transparent;
+}
+
 .listing-item[aria-selected=true] {
   background-color: color-mix(in srgb, var(--primaryColor) 85%, transparent) !important;
   color: var(--item-selected) !important;
@@ -337,53 +486,12 @@ body.rtl .listing-items {
   border: 0.45em solid var(--primaryColor) !important;
 }
 
-.listing-items.gallery .listing-item .size,
-.listing-items.gallery .listing-item .modified,
-.listing-items.gallery .listing-item .duration,
-.listing-items.icons .listing-item .size,
-.listing-items.icons .listing-item .modified,
-.listing-items.icons .listing-item .duration {
-  display: none !important;
-}
-
-/* These rules are now redundant - sizing comes from unified container rules above */
-
-.listing-items.list .listing-item:first-child {
-  border-top-left-radius: 1em;
-  border-top-right-radius: 1em;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.listing-items.compact .lastGroup>div:last-child {
-  border-bottom-left-radius: 1em;
-  border-bottom-right-radius: 1em;
-}
-
-.listing-items.list .listing-item:last-child {
-  border-bottom-left-radius: 1em;
-  border-bottom-right-radius: 1em;
-}
-
-.listing-items.list .listing-item:last-child {
-  margin-bottom: .5em;
-}
-
 .listing-items .name {
   font-weight: normal;
 }
 
 .half-selected {
   border-color: var(--primaryColor) !important;
-}
-
-/* Icons view text layout */
-.listing-items.icons .listing-item .text {
-  display: block !important;
-  width: 100%;
-  margin-top: 0.3em;
-  padding: 0;
-  flex: 1;
-  text-align: center;
 }
 
 /* Search results with icon size overrides */
@@ -398,35 +506,40 @@ body.rtl .listing-items {
   --icon-font-size: 1.5em;
 }
 
-.listing-items.gallery .image-preview {
-  width: 100% !important;
-  height: 100% !important;
-}
-
-.listing-items.gallery .folder-items,
-.listing-items.gallery .file-items {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(var(--item-width, 200px), 1fr));
-  gap: 1em;
-  padding: 0.5em;
-  width: 100%;
-  transition: grid-template-columns 0.25s ease-out;
-}
-
 @media (max-width: 768px) {
   .listing-items.gallery .folder-items,
-  .listing-items.gallery .file-items {
-    /* Min width overrides column count: as many columns as fit above the minimum */
+  .listing-items.gallery .file-items,
+  .listing-items.gallery .pinned-items {
     grid-template-columns: repeat(auto-fill, minmax(var(--gallery-mobile-min-width, 140px), 1fr));
+  }
+  .listing-items.icons .folder-items,
+  .listing-items.icons .file-items,
+  .listing-items.icons .pinned-items {
+    grid-template-columns: repeat(auto-fill, minmax(var(--icons-view-cell-size, 100px), 1fr));
   }
 }
 
-.listing-items.icons .folder-items,
-.listing-items.icons .file-items {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(var(--icons-view-cell-size, 100px), 1fr));
-  gap: 0.5em;
-  padding: 0.25em;
-  width: 100%;
-  transition: grid-template-columns 0.25s ease-out;
+.listing-items.normal .pin-icon-wrapper,
+.listing-items.icons .pin-icon-wrapper,
+.listing-items.gallery .pin-icon-wrapper {
+  top: 0.5em;
+  right: 0.5em;
+}
+
+.pinned-indicator {
+  font-size: 1.2em !important;
+  color: var(--primaryColor);
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.3));
+  line-height: 1;
+}
+
+/* Ellipsis for long names */
+.listing-items.gallery .listing-item .text .name span,
+.listing-items.icons .listing-item .text .name span,
+.listing-items.normal .listing-item .text .name span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
 }

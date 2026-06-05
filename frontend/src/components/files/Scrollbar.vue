@@ -4,14 +4,14 @@
     <div
       class="custom-scrollbar"
       ref="scrollbar"
-      :class="{ ready: isReady, visible: isVisible && isScrollable }"
+      :class="{ ready: isReady, visible: isVisible && canScroll && showScrollbar }"
       @mouseenter="handleMouseEnter"
       @mouseleave="handleMouseLeave"
     >
       <div
         class="thumb no-select"
         ref="thumb"
-        :class="{ ready: isReady, visible: isVisible && isScrollable }"
+        :class="{ ready: isReady, visible: isVisible && canScroll && showScrollbar }"
         @mousedown="startDrag"
         @touchstart.prevent="startDrag"
       >
@@ -19,15 +19,13 @@
           <hr />
         </div>
         <div v-else class="thumb-letters no-select">
-          <i class="material-symbols" :class="{ 'primary-icons': isFolder }"> {{ isFolder ? "folder" : "description" }} </i> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <i class="material-symbols" :class="{ 'primary-icons': thumbIcon === 'push_pin' || isFolder }">
+            {{ thumbIcon }}
+          </i>
         </div>
       </div>
-      <div
-        :class="{ hidden: isNotListing }"
-        class="thumb-section-id no-select"
-        ref="sectionId"
-      >
-        {{ this.letter() }}
+      <div :class="{ hidden: isNotListing }" class="thumb-section-id no-select" ref="sectionId">
+        <span>{{ letter() }}</span>
       </div>
     </div>
   </div>
@@ -52,6 +50,9 @@ export default {
       isReady: false,
       isVisible: false,
       scrollFrame: null,
+      canScroll: false,
+      resizeObserver: null,
+      mutationObserver: null,
     };
   },
   computed: {
@@ -76,6 +77,15 @@ export default {
       }
       return {};
     },
+    thumbIcon() {
+      const category = this.category();
+      if (category === 'pinned') return 'push_pin';
+      return this.isFolder ? 'folder' : 'description';
+    },
+    showScrollbar() {
+      const view = getters.currentView();
+      return view === 'listingView' || view === 'settings' || view === 'tools' || view === 'markdownViewer';
+    },
   },
   methods: {
     handleResize() {
@@ -83,6 +93,7 @@ export default {
       // Force scroll event to re-compute thumb position
       const content = this.$refs.wrapper;
       this.updateThumbPosition(content.scrollTop);
+      this.updateScrollableContent();
     },
     category() {
       return state.listing.category;
@@ -91,6 +102,7 @@ export default {
       return state.listing.letter;
     },
     handleMouseEnter() {
+      if (!this.showScrollbar || !this.canScroll) return;
       this.isHovering = true;
       this.isVisible = true;
       this.clearHideTimeout();
@@ -115,7 +127,7 @@ export default {
       }, 800);
     },
     handleMouseMove(e) {
-      if (!this.isReady) return;
+      if (!this.showScrollbar || !this.canScroll) return;
       const wrapper = this.$refs.wrapper;
       const bounds = wrapper.getBoundingClientRect();
       const relativeX = e.clientX - bounds.left;
@@ -125,11 +137,14 @@ export default {
       }
     },
     updateThumbPosition(scrollTop) {
+      if (!this.showScrollbar || !this.canScroll) return;
       const content = this.$refs.wrapper;
       const scrollbar = this.$refs.scrollbar;
       const thumb = this.$refs.thumb;
       const sectionId = this.$refs.sectionId;
-      const scrollRatio = scrollTop / (content.scrollHeight - content.clientHeight);
+      const scrollableHeight = content.scrollHeight - content.clientHeight;
+      if (scrollableHeight <= 0) return;
+      const scrollRatio = scrollTop / scrollableHeight;
       const thumbHeight = thumb.clientHeight;
       const maxThumbTop = scrollbar.clientHeight - thumbHeight - (getters.showStatusBar() ? offsetFromBottomListing : offsetFromBottomFull);
       const thumbPosition = scrollRatio * maxThumbTop;
@@ -140,9 +155,10 @@ export default {
     },
     handleScroll() {
       if (!this.isReady) return;
+      this.updateScrollableContent();
+      if (!this.showScrollbar || !this.canScroll || this.scrollFrame) return;
       // Use requestAnimationFrame to throttle updates
-      if (this.scrollFrame) return;
-      this.pendingScrollAnimation = requestAnimationFrame(() => {
+      this.scrollFrame = requestAnimationFrame(() => {
         const content = this.$refs.wrapper;
         this.isVisible = true;
         this.scheduleHide();
@@ -159,6 +175,7 @@ export default {
       });
     },
     startDrag(e) {
+      if (!this.showScrollbar || !this.canScroll) return;
       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
       this.isDragging = true;
       this.startY = clientY;
@@ -180,8 +197,7 @@ export default {
       const deltaY = clientY - this.startY;
       const scrollableHeight = content.scrollHeight - content.clientHeight;
       const offsetFromBottom = getters.showStatusBar() ? offsetFromBottomListing : offsetFromBottomFull;
-      const scrollbarHeight =
-        scrollbar.clientHeight - thumb.clientHeight - offsetFromBottom;
+      const scrollbarHeight = scrollbar.clientHeight - thumb.clientHeight - offsetFromBottom;
       const scrollRatio = scrollableHeight / scrollbarHeight;
 
       let newScrollTop = this.startScrollTop + deltaY * scrollRatio;
@@ -200,6 +216,15 @@ export default {
       document.removeEventListener("touchmove", this.onDrag);
       document.removeEventListener("touchend", this.stopDrag);
     },
+    updateScrollableContent() {
+      const wrapper = this.$refs.wrapper;
+      if (!wrapper) return;
+      const isOverflowing = wrapper.scrollHeight > wrapper.clientHeight;
+      if (this.canScroll !== isOverflowing) {
+        this.canScroll = isOverflowing;
+        if (!isOverflowing) this.isVisible = false;
+      }
+    },
   },
   mounted() {
     setTimeout(() => {
@@ -208,6 +233,19 @@ export default {
     this.$refs.wrapper.addEventListener("mousemove", this.handleMouseMove);
     this.$refs.wrapper.addEventListener("scroll", this.handleScroll, { passive: true });
     window.addEventListener("resize", this.handleResize);
+    // Observe container size changes
+    this.resizeObserver = new ResizeObserver(() => this.updateScrollableContent());
+    this.resizeObserver.observe(this.$refs.wrapper);
+    // Same here, but with DOM mutations
+    this.mutationObserver = new MutationObserver(() => this.updateScrollableContent());
+    this.mutationObserver.observe(this.$refs.wrapper, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['style', 'class'],
+      characterData: true,
+    });
+    this.updateScrollableContent();
   },
   beforeUnmount() {
     // Cancel any pending animation frame
@@ -217,6 +255,12 @@ export default {
     window.removeEventListener("resize", this.handleResize);
     this.$refs.wrapper.removeEventListener("mousemove", this.handleMouseMove);
     this.$refs.wrapper.removeEventListener("scroll", this.handleScroll);
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+    }
+    if (this.mutationObserver) {
+      this.mutationObserver.disconnect();
+    }
   },
 };
 </script>

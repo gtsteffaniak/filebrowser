@@ -27,7 +27,9 @@
     "showLess": "Skrytí pokročilých možností",
     "goToSource": "Přejít na zdrojové umístění",
     "goToItem": "Přejít na položku",
-    "copyPath": "Kopírovat cestu"
+    "copyPath": "Kopírovat cestu",
+    "pinItem": "Připnout",
+    "unpinItem": "Odepnout"
   },
   "errors": {
     "forbidden": "Nemáte oprávnění k přístupu.",
@@ -53,7 +55,10 @@
     "sortByDuration": "Třídit podle doby trvání",
     "sameFolder": "Nelze přesunout do stejné složky",
     "cannotAccesDir": "Nelze přistoupit k adresáři",
-    "lonely": "Zde není nic k vidění..."
+    "lonely": "Zde není nic k vidění...",
+    "pinnedFolders": "Připnuté složky",
+    "pinnedFiles": "Připnuté soubory",
+    "pinnedItems": "Připnuto"
   },
   "help": {
     "functionKeys": "Funkční Klávesy",

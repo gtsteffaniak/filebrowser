@@ -27,7 +27,9 @@
     "showLess": "הסתר אפשרויות מתקדמות",
     "goToSource": "עבור למיקום המקור",
     "goToItem": "עבור לפריט",
-    "copyPath": "העתק נתיב"
+    "copyPath": "העתק נתיב",
+    "pinItem": "נעץ",
+    "unpinItem": "הסר נעיצה"
   },
   "errors": {
     "forbidden": "אין לך הרשאות גישה",
@@ -53,7 +55,10 @@
     "sortByDuration": "מיין לפי משך",
     "sameFolder": "לא ניתן להעביר לאותה תיקייה",
     "cannotAccesDir": "לא ניתן לגשת לתיקייה",
-    "lonely": "אין מה להראות כאן..."
+    "lonely": "אין מה להראות כאן...",
+    "pinnedFolders": "תיקיות נעוצות",
+    "pinnedFiles": "קבצים נעוצים",
+    "pinnedItems": "נעוץ"
   },
   "help": {
     "functionKeys": "מקשי פונקציה",

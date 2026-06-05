@@ -27,7 +27,9 @@
     "showLess": "詳細オプションを隠す",
     "goToSource": "ソース・ロケーションへ",
     "goToItem": "アイテムへ",
-    "copyPath": "コピーパス"
+    "copyPath": "コピーパス",
+    "pinItem": "ピン留め",
+    "unpinItem": "ピン留めを解除"
   },
   "errors": {
     "forbidden": "このリソースへのアクセス権限がありません。",
@@ -53,7 +55,10 @@
     "sortByDuration": "期間順",
     "sameFolder": "同じフォルダーに移動できません",
     "cannotAccesDir": "ディレクトリにアクセスできません",
-    "lonely": "ここには何もない...。"
+    "lonely": "ここには何もない...。",
+    "pinnedFolders": "ピン留めされたフォルダ",
+    "pinnedFiles": "ピン留めされたファイル",
+    "pinnedItems": "ピン留め済み"
   },
   "help": {
     "functionKeys": "ファンクションキー",

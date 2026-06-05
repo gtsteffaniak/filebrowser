@@ -27,7 +27,9 @@
     "showLess": "إخفاء الخيارات المتقدمة",
     "goToSource": "الانتقال إلى موقع المصدر",
     "goToItem": "انتقل إلى العنصر",
-    "copyPath": "مسار النسخ"
+    "copyPath": "مسار النسخ",
+    "pinItem": "تثبيت",
+    "unpinItem": "إلغاء التثبيت"
   },
   "errors": {
     "forbidden": "You don't have permissions to access this.",
@@ -53,7 +55,10 @@
     "sortByDuration": "فرز حسب المدة",
     "sameFolder": "لا يمكن النقل إلى نفس المجلد",
     "cannotAccesDir": "لا يمكن الوصول إلى المجلد",
-    "lonely": "لا شيء للعرض هنا..."
+    "lonely": "لا شيء للعرض هنا...",
+    "pinnedFolders": "المجلدات المثبتة",
+    "pinnedFiles": "الملفات المثبتة",
+    "pinnedItems": "مثبت"
   },
   "help": {
     "functionKeys": "مفاتيح الوظائف",

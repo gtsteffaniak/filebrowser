@@ -17,7 +17,7 @@
         [listingViewMode]: true,
         dropping: isDragging,
         'rectangle-selecting': isRectangleSelecting,
-        'font-size-large': numDirs + numFiles === 0 
+        'font-size-large': numDirs + numFiles + numPinned === 0 
       }"
       :style="itemStyles"
       class="listing-items"
@@ -34,7 +34,7 @@
       </div>
 
       <!-- Empty state -->
-      <template v-if="numDirs + numFiles === 0">
+      <template v-if="numDirs + numFiles + numPinned === 0">
         <h2 class="message font-size-large">
           <i class="material-symbols-outlined">sentiment_dissatisfied</i>
           <span>{{ $t("files.lonely") }}</span>
@@ -57,6 +57,36 @@
       </template>
 
       <template v-else>
+        <!-- Pinned Items Section -->
+        <div v-if="numPinned > 0">
+          <h2 :class="{'dark-mode': isDarkMode}">{{ pinnedHeaderText }}</h2>
+        </div>
+        <div
+          v-if="numPinned > 0"
+          class="pinned-items"
+          aria-label="Pinned Items"
+          :class="{ lastGroup: numDirs === 0 && numFiles === 0 }"
+        >
+          <item
+            v-for="item in pinnedItems"
+            :key="base64(`pinned-${item.path || item.name}`)"
+            v-bind:index="item.index"
+            v-bind:name="item.name"
+            v-bind:isDir="item.type == 'directory'"
+            v-bind:source="req.source"
+            v-bind:modified="item.modified"
+            v-bind:type="item.type"
+            v-bind:size="item.size"
+            v-bind:path="item.path"
+            v-bind:reducedOpacity="item.hidden || isDragging"
+            v-bind:hash="shareInfo.hash"
+            v-bind:hasPreview="item.hasPreview"
+            v-bind:metadata="item.metadata"
+            v-bind:hasDuration="hasDuration"
+            v-bind:isShared="item.isShared"
+          />
+        </div>
+
         <!-- Directories Section -->
         <div v-if="numDirs > 0">
           <h2 :class="{'dark-mode': isDarkMode}">{{ $t("general.folders") }}</h2>
@@ -85,6 +115,7 @@
             v-bind:isShared="item.isShared"
           />
         </div>
+
         <!-- Files Section -->
         <div v-if="numFiles > 0">
           <h2 :class="{'dark-mode': isDarkMode}">{{ $t("general.files") }}</h2>
@@ -206,17 +237,29 @@ export default {
         }
       });
 
-      if (!topItem) return;
-
-      const letter = topItem.getAttribute("data-name")?.[0]?.toUpperCase() || "A";
+      // Decide category by checking which section is above
+      let letter = topItem.getAttribute("data-name")?.[0]?.toUpperCase() || "A";
       let category = "folders"; // Default category
-      if (this.numFiles > 0) {
-        // Decide category by checking which section is above
+
+      if (!topItem && this.numPinned > 0) {
+        const pinnedHeader = this.$el.querySelector(".pinned-items h2");
+        if (pinnedHeader && pinnedHeader.getBoundingClientRect().top >= 0) {
+          category = "pinned";
+          const firstPinned = this.pinnedItems[0];
+          letter = firstPinned?.name?.[0]?.toUpperCase();
+        }
+      } 
+      else if (topItem?.closest('.pinned-items')) {
+        category = "pinned";
+        const firstPinned = this.pinnedItems[0];
+        letter = firstPinned?.name?.[0]?.toUpperCase();
+      } 
+      else if (this.numFiles > 0) {
         const fileSection = this.$el.querySelector(".file-items");
         const fileTop = fileSection?.getBoundingClientRect().top ?? 0;
         category = fileTop <= 0 ? "files" : "folders";
       }
-      if (this.numDirs === 0) {
+      if (this.numDirs === 0 && category !== "pinned") {
         category = "files"; // If no directories, only files
       }
 
@@ -297,19 +340,36 @@ export default {
       return getters.sorting().asc;
     },
     hasDuration() {
-      // Check if any file has duration metadata
-      return this.files.some(file => file.metadata?.duration);
+      // Check if any pinned file or regular file has duration metadata
+      return [...this.pinnedItems, ...this.files].some(
+        file => file.type !== "directory" && file.metadata?.duration
+      );
     },
     items() {
       return getters.reqItems();
     },
+    numPinned() {
+      return this.pinnedItems.length;
+    },
+    pinnedItems() {
+      return this.items.pinned || [];
+    },
     numFiles() {
-      const count = getters.reqNumFiles();
-      return count;
+      return this.files.length;
     },
     numDirs() {
-      const count = getters.reqNumDirs();
-      return count;
+      return this.dirs.length;
+    },
+    pinnedHeaderText() {
+      const pinnedFolders = this.pinnedItems.filter(item => item.type === 'directory').length;
+      const pinnedFiles = this.pinnedItems.filter(item => item.type !== 'directory').length;
+      if (pinnedFolders > 0 && pinnedFiles === 0) {
+        return `${this.$t("files.pinnedFolders")}`; // "Pinned folders"
+      }
+      if (pinnedFiles > 0 && pinnedFolders === 0) {
+        return `${this.$t("files.pinnedFiles")}`;   // "Pinned files"
+      }
+      return this.$t("files.pinnedItems"); // "Pinned items" if we pin both types
     },
     dirs() {
       return this.items.dirs;
@@ -355,7 +415,7 @@ export default {
     },
     containerStyles() {
       // Dynamic padding-top: applied to the entire container (loading spinner + listing items)
-      const isEmpty = this.numDirs + this.numFiles === 0;
+      const isEmpty = this.numDirs + this.numFiles + this.numPinned === 0;
       const isRootPath = state.req.path === '/' || !state.req.path;
 
       if (isEmpty) {
@@ -1402,6 +1462,10 @@ export default {
   flex: 1;
 }
 
+.listing-item .pinned-indicator {
+  font-size: 1rem;
+}
+
 .folder-items a {
   border-style: solid;
 }
@@ -1457,5 +1521,4 @@ export default {
 .drop-indicator-content i {
   font-size: 4em;
 }
-
 </style>

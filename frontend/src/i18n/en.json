@@ -145,7 +145,9 @@
     "keepEditing": "Keep Editing",
     "closeAnyway": "Close Anyways",
     "goToItem": "Go to item",
-    "goToSource": "Go to Source Location"
+    "goToSource": "Go to Source Location",
+    "pinItem": "Pin",
+    "unpinItem": "Unpin"
   },
   "errors": {
     "forbidden": "You don't have permissions to access this.",
@@ -171,7 +173,10 @@
     "newFile": "New file{suffix}",
     "newFolder": "New folder{suffix}",
     "sameFolder": "Cannot move to same folder",
-    "cannotAccesDir": "Cannot access directory"
+    "cannotAccesDir": "Cannot access directory",
+    "pinnedFolders": "Pinned folders",
+    "pinnedFiles": "Pinned files",
+    "pinnedItems": "Pinned"
   },
   "help": {
     "functionKeys": "Function Keys",

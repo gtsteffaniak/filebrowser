@@ -27,7 +27,9 @@
     "showLess": "Ocultar opciones avanzadas",
     "goToSource": "Ir al origen",
     "goToItem": "Abrir",
-    "copyPath": "Copiar ruta"
+    "copyPath": "Copiar ruta",
+    "pinItem": "Fijar",
+    "unpinItem": "Desfijar"
   },
   "errors": {
     "forbidden": "No tienes permisos para acceder.",
@@ -53,7 +55,10 @@
     "sortByDuration": "Ordenar por duración",
     "sameFolder": "No se puede mover a la misma carpeta",
     "cannotAccesDir": "No se puede acceder al directorio",
-    "lonely": "No hay nada aquí..."
+    "lonely": "No hay nada aquí...",
+    "pinnedFolders": "Carpetas fijadas",
+    "pinnedFiles": "Archivos fijados",
+    "pinnedItems": "Fijado"
   },
   "help": {
     "functionKeys": "Teclas de función",

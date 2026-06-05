@@ -27,7 +27,9 @@
     "showLess": "Gelişmiş Seçenekleri Gizle",
     "goToSource": "Kaynak Konuma Git",
     "goToItem": "Öğeye git",
-    "copyPath": "Kopyalama Yolu"
+    "copyPath": "Kopyalama Yolu",
+    "pinItem": "Sabitle",
+    "unpinItem": "Sabitlemeyi Kaldır"
   },
   "errors": {
     "forbidden": "Buna erişim izniniz yok.",
@@ -53,7 +55,10 @@
     "sortByDuration": "Süreye göre sırala",
     "sameFolder": "Aynı klasöre taşınamaz",
     "cannotAccesDir": "Dizine erişilemiyor",
-    "lonely": "Burada gösterecek bir şey yok."
+    "lonely": "Burada gösterecek bir şey yok.",
+    "pinnedFolders": "Sabitlenmiş klasörler",
+    "pinnedFiles": "Sabitlenmiş dosyalar",
+    "pinnedItems": "Sabitlendi"
   },
   "help": {
     "functionKeys": "Fonksiyon Tuşları",

@@ -27,7 +27,9 @@
     "showLess": "隐藏高级选项",
     "goToSource": "转到源位置",
     "goToItem": "转到项目",
-    "copyPath": "复制路径"
+    "copyPath": "复制路径",
+    "pinItem": "固定",
+    "unpinItem": "取消固定"
   },
   "errors": {
     "forbidden": "你无权限访问",
@@ -53,7 +55,10 @@
     "sortByDuration": "按持续时间排序",
     "sameFolder": "无法移动到相同文件夹",
     "cannotAccesDir": "无法访问目录",
-    "lonely": "这里没什么可看的..."
+    "lonely": "这里没什么可看的...",
+    "pinnedFolders": "固定的文件夹",
+    "pinnedFiles": "固定的文件",
+    "pinnedItems": "已固定"
   },
   "help": {
     "functionKeys": "功能键",

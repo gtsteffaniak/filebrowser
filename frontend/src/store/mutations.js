@@ -403,6 +403,9 @@ export const mutations = {
         await i18n.setLocale(value.locale);
       }
       state.user = value;
+      if (!state.user.pinnedItems || typeof state.user.pinnedItems !== "object") {
+        state.user.pinnedItems = {};
+      }
       state.user.sorting = {};
       state.user.sorting.by = "name";
       state.user.sorting.asc = true;
@@ -600,6 +603,7 @@ export const mutations = {
           "fileLoading",
           "deleteAfterArchive",
           "preferEditorForMarkdown",
+          "pinnedItems",
         ].includes(key)
       );
       value.id = state.user.id;
@@ -622,13 +626,14 @@ export const mutations = {
     const sorting = getters.sorting();
     const sortby = sorting.by;
     const asc = sorting.asc;
+    const pinnedPaths = getters.pinnedPathsFor(value.source, value.path || state.route.path || "/");
     // Separate directories and files
     const dirs = value.items.filter((item) => item.type === 'directory');
     const files = value.items.filter((item) => item.type !== 'directory');
 
     // Sort them separately
-    const sortedDirs = sortedItems(dirs, sortby, asc);
-    const sortedFiles = sortedItems(files, sortby, asc);
+    const sortedDirs = sortedItems(dirs, sortby, asc, pinnedPaths);
+    const sortedFiles = sortedItems(files, sortby, asc, pinnedPaths);
 
     // Combine them and assign indices
     value.items = [...sortedDirs, ...sortedFiles];
@@ -828,6 +833,62 @@ export const mutations = {
     }
     emitStateChanged();
   },
+  togglePinnedItem: (item) => {
+    if (!item?.path || getters.isShare() || !getters.isLoggedIn()) {
+      return;
+    }
+
+    const directoryPath = url.getParentDir(item.path);
+    const sourceKey = item.source || state.req?.source || state.sources.current;
+    if (!sourceKey) {
+      return;
+    }
+
+    const nextPinnedItems = {
+      ...(state.user?.pinnedItems || {}),
+    };
+    const sourcePinnedItems = {
+      ...(nextPinnedItems[sourceKey] || {}),
+    };
+    const pinnedPaths = Array.isArray(sourcePinnedItems[directoryPath]) ? [...sourcePinnedItems[directoryPath]] : [];
+    const existingIndex = pinnedPaths.indexOf(item.path);
+
+    if (existingIndex >= 0) {
+      pinnedPaths.splice(existingIndex, 1);
+    } else {
+      pinnedPaths.push(item.path);
+    }
+
+    if (pinnedPaths.length > 0) {
+      sourcePinnedItems[directoryPath] = pinnedPaths;
+      nextPinnedItems[sourceKey] = sourcePinnedItems;
+    } else {
+      delete sourcePinnedItems[directoryPath];
+      if (Object.keys(sourcePinnedItems).length > 0) {
+        nextPinnedItems[sourceKey] = sourcePinnedItems;
+      } else {
+        delete nextPinnedItems[sourceKey];
+      }
+    }
+
+    mutations.updateCurrentUser({
+      pinnedItems: nextPinnedItems,
+    });
+
+    const currentDirectoryPath = state.req?.type === "directory" ? state.req.path : url.getParentDir(state.req?.path);
+    const currentSourceKey = state.req?.source || state.sources.current;
+
+    if (
+      getters.currentView() === "listingView" &&
+      currentDirectoryPath === directoryPath &&
+      currentSourceKey === sourceKey
+    ) {
+      mutations.updateListingItems();
+      return;
+    }
+
+    emitStateChanged();
+  },
   setNavigationEnabled: (enabled) => {
     if (state.navigation.enabled === enabled) {
       return;
@@ -859,7 +920,8 @@ export const mutations = {
 
     // Sort listing according to sorting preferences
     const sorting = getters.sorting();
-    listing = sortedItems(listing, sorting.by, sorting.asc);
+    const pinnedPaths = getters.pinnedPathsFor(currentItem?.source || state.req?.source, directoryPath);
+    listing = sortedItems(listing, sorting.by, sorting.asc, pinnedPaths);
 
     // Find current item index in the listing
     for (let i = 0; i < listing.length; i++) {

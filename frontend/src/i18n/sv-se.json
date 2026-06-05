@@ -27,7 +27,9 @@
     "showLess": "Dölj avancerade alternativ",
     "goToSource": "Gå till källplatsen",
     "goToItem": "Gå till objektet",
-    "copyPath": "Kopiera sökväg"
+    "copyPath": "Kopiera sökväg",
+    "pinItem": "Fäst",
+    "unpinItem": "Lossa"
   },
   "errors": {
     "forbidden": "Du saknar rättigheter till detta",
@@ -53,7 +55,10 @@
     "sortByDuration": "Sortera efter varaktighet",
     "sameFolder": "Kan inte flytta till samma mapp",
     "cannotAccesDir": "Kan inte komma åt katalogen",
-    "lonely": "Inget att visa här..."
+    "lonely": "Inget att visa här...",
+    "pinnedFolders": "Fästa mappar",
+    "pinnedFiles": "Fästa filer",
+    "pinnedItems": "Fast"
   },
   "help": {
     "functionKeys": "Funktionstangenter",

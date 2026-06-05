@@ -27,7 +27,9 @@
     "showLess": "Erweiterte Optionen ausblenden",
     "goToSource": "Zum Quellort gehen",
     "goToItem": "Weiter zum Artikel",
-    "copyPath": "Pfad kopieren"
+    "copyPath": "Pfad kopieren",
+    "pinItem": "Anheften",
+    "unpinItem": "Lösen"
   },
   "errors": {
     "forbidden": "Sie haben keine Berechtigung dies abzurufen.",
@@ -53,7 +55,10 @@
     "sortByDuration": "Sortieren nach Dauer",
     "sameFolder": "Kann nicht in denselben Ordner verschoben werden",
     "cannotAccesDir": "Kann nicht auf das Verzeichnis zugreifen",
-    "lonely": "Hier gibt es nichts zu sehen..."
+    "lonely": "Hier gibt es nichts zu sehen...",
+    "pinnedFolders": "Angeheftete Ordner",
+    "pinnedFiles": "Angeheftete Dateien",
+    "pinnedItems": "Angeheftet"
   },
   "help": {
     "functionKeys": "Funktionstasten",

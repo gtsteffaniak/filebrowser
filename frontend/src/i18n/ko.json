@@ -27,7 +27,9 @@
     "showLess": "고급 옵션 숨기기",
     "goToSource": "소스 위치로 이동",
     "goToItem": "항목으로 이동",
-    "copyPath": "경로 복사"
+    "copyPath": "경로 복사",
+    "pinItem": "고정",
+    "unpinItem": "고정 해제"
   },
   "errors": {
     "forbidden": "접근 권한이 없습니다.",
@@ -53,7 +55,10 @@
     "sortByDuration": "기간별로 정렬",
     "sameFolder": "같은 폴더로 이동할 수 없습니다",
     "cannotAccesDir": "디렉토리에 액세스할 수 없습니다",
-    "lonely": "여기에 표시할 내용이 없습니다..."
+    "lonely": "여기에 표시할 내용이 없습니다...",
+    "pinnedFolders": "고정된 폴더",
+    "pinnedFiles": "고정된 파일",
+    "pinnedItems": "고정됨"
   },
   "help": {
     "functionKeys": "기능 키",

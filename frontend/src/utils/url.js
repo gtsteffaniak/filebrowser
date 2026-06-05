@@ -8,6 +8,7 @@ export default {
   removeLeadingSlash,
   encodeRFC5987ValueChars,
   removeLastDir,
+  getParentDir,
   encodePath,
   removePrefix,
   getApiPath,
@@ -28,6 +29,14 @@ export function removeLastDir(url) {
   }
 
   return arr.join("/");
+}
+
+export function getParentDir(path) {
+  if (!path || path === "/") {
+    return "/";
+  }
+  const parent = removeLastDir(path);
+  return parent && parent !== "" ? parent : "/";
 }
 
 // this code borrow from mozilla

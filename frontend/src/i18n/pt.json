@@ -27,7 +27,9 @@
     "showLess": "Ocultar opções avançadas",
     "goToSource": "Ir para o local de origem",
     "goToItem": "Ir para o item",
-    "copyPath": "Caminho de cópia"
+    "copyPath": "Caminho de cópia",
+    "pinItem": "Fixar",
+    "unpinItem": "Desafixar"
   },
   "errors": {
     "forbidden": "Não tem permissões para aceder a isto",
@@ -53,7 +55,10 @@
     "sortByDuration": "Ordenar por duração",
     "sameFolder": "Não é possível mover para a mesma pasta",
     "cannotAccesDir": "Não é possível aceder ao diretório",
-    "lonely": "Não há nada para mostrar aqui..."
+    "lonely": "Não há nada para mostrar aqui...",
+    "pinnedFolders": "Pastas fixadas",
+    "pinnedFiles": "Ficheiros fixados",
+    "pinnedItems": "Fixado"
   },
   "help": {
     "functionKeys": "Teclas de Função",

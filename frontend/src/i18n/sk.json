@@ -27,7 +27,9 @@
     "showLess": "Skryť rozšírené možnosti",
     "goToSource": "Prejsť na zdrojové miesto",
     "goToItem": "Prejsť na položku",
-    "copyPath": "Kopírovať cestu"
+    "copyPath": "Kopírovať cestu",
+    "pinItem": "Pripnúť",
+    "unpinItem": "Odpnúť"
   },
   "errors": {
     "forbidden": "You don't have permissions to access this.",
@@ -53,7 +55,10 @@
     "sortByDuration": "Zoradiť podľa trvania",
     "sameFolder": "Nie je možné presunúť do toho istého priečinka",
     "cannotAccesDir": "Nie je možné pristúpiť k priečinku",
-    "lonely": "Tu nie je čo ukázať..."
+    "lonely": "Tu nie je čo ukázať...",
+    "pinnedFolders": "Pripnuté priečinky",
+    "pinnedFiles": "Pripnuté súbory",
+    "pinnedItems": "Pripnuté"
   },
   "help": {
     "functionKeys": "Funkčné Klávesy",

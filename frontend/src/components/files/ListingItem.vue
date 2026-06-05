@@ -5,6 +5,7 @@
     class="listing-item clickable no-select"
     :class="{
       activebutton: isSelected,
+      'pinned-item': isPinned,
       hiddenFile: isHiddenNotSelected && this && !this.isDraggedOver,
       'half-selected': isDraggedOver,
       'drag-hover': isDraggedOver,
@@ -47,37 +48,43 @@
     </div>
 
     <div class="text">
-      <p class="name">{{ displayName }}</p>
-      <p
-        class="size"
-        :data-order="humanSize"
-      >
-        {{ humanSize }}
+      <!-- For list/compact pin inside .name (inline), or if inlinePin is true (like on FileList) -->
+      <p v-if="isListMode || inlinePin" class="name">
+        <span>{{ displayName }}</span>
+        <i v-if="isPinned" class="material-symbols pinned-indicator">push_pin</i>
       </p>
-      <p class="modified">
-        <time :datetime="modified">{{ formattedTime }}</time>
+      <!-- For other views pin is separate -->
+      <p v-else class="name">
+        <span>{{ displayName }}</span>
       </p>
+      <p class="size" :data-order="humanSize">{{ humanSize }}</p>
+      <p class="modified"><time :datetime="modified">{{ formattedTime }}</time></p>
       <p v-if="hasDuration" class="duration">{{ formattedDuration }}</p>
     </div>
-      <Icon
-        @click.stop="downloadFile"
-        v-if="quickDownloadEnabled"
-        :filename="name"
-        :hasPreview="hasPreview"
-        mimetype="file_download"
-        class="download-icon"
-        role="button"
-        aria-label="Download"
-        tabindex="0"
-        :clickable=true
-        :isShared="isShared"
-      />
+    <div v-if="isPinned && !isListMode && !inlinePin" class="pin-icon-wrapper">
+      <i class="material-symbols pinned-indicator">push_pin</i>
+    </div>
+
+    <Icon
+      @click.stop="downloadFile"
+      v-if="quickDownloadEnabled"
+      :filename="name"
+      :hasPreview="hasPreview"
+      mimetype="file_download"
+      class="download-icon"
+      role="button"
+      aria-label="Download"
+      tabindex="0"
+      :clickable="true"
+      :isShared="isShared"
+    />
   </a>
   <div
     v-else
     class="listing-item no-select clickable"
     :class="{
       activebutton: isSelected,
+      'pinned-item': isPinned,
       hiddenFile: isHiddenNotSelected && this && !this.isDraggedOver,
       'half-selected': isDraggedOver,
       'drag-hover': isDraggedOver,
@@ -114,17 +121,19 @@
     </div>
 
     <div class="text">
-      <p class="name">{{ displayName }}</p>
-      <p
-        class="size"
-        :data-order="humanSize"
-      >
-        {{ humanSize }}
+      <p v-if="isListMode || inlinePin" class="name">
+        <span>{{ displayName }}</span>
+        <i v-if="isPinned" class="material-symbols pinned-indicator">push_pin</i>
       </p>
-      <p class="modified">
-        <time :datetime="modified">{{ formattedTime }}</time>
+      <p v-else class="name">
+        <span>{{ displayName }}</span>
       </p>
+      <p class="size" :data-order="humanSize">{{ humanSize }}</p>
+      <p class="modified"><time :datetime="modified">{{ formattedTime }}</time></p>
       <p v-if="hasDuration" class="duration">{{ formattedDuration }}</p>
+    </div>
+    <div v-if="isPinned && !isListMode && !inlinePin" class="pin-icon-wrapper">
+      <i class="material-symbols pinned-indicator">push_pin</i>
     </div>
   </div>
 </template>
@@ -132,7 +141,6 @@
 <script>
 import { globalVars } from "@/utils/constants";
 import downloadFiles from "@/utils/download";
-
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { resourcesApi } from "@/api";
 import * as upload from "@/utils/upload";
@@ -202,6 +210,10 @@ export default {
       default: false,
     },
     disableContextMenu: {
+      type: Boolean,
+      default: false,
+    },
+    inlinePin: {
       type: Boolean,
       default: false,
     },
@@ -308,6 +320,12 @@ export default {
     isClickable() {
       return this.clickable;
     },
+    isPinned() {
+      return getters.isItemPinned({
+        path: this.path,
+        source: this.source,
+      });
+    },
     // Computed properties for display values - Vue caches these automatically!
     humanSize() {
       return this.type === "invalid_link"
@@ -329,6 +347,10 @@ export default {
         return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
       }
       return `${minutes}:${secs.toString().padStart(2, '0')}`;
+    },
+    isListMode() {
+      const mode = getters.viewMode();
+      return mode === 'list' || mode === 'compact';
     },
   },
   mounted() {
@@ -804,6 +826,10 @@ export default {
 
 .listing-item {
   -webkit-touch-callout: none; /* Disable the default long press preview */
+}
+
+.listing-item.pinned-item {
+  border-color: color-mix(in srgb, var(--primaryColor) 35%, transparent);
 }
 
 /* Disable transitions and hide content for out-of-view items for better performance */
