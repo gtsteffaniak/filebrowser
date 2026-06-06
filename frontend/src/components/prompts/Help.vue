@@ -76,6 +76,18 @@
       <div class="shortcut-section">
         <h3 class="section-title">{{ $t("general.navigation") }}</h3>
         <div class="shortcut-item">
+          <kbd>Backspace</kbd>
+          <span>{{ $t("help.backspace") }}</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>Alt + ↑</kbd>
+          <span>{{ $t("help.altArrowUp") }}</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>Alt + ↓</kbd>
+          <span>{{ $t("help.altArrowDown") }}</span>
+        </div>
+        <div class="shortcut-item">
           <kbd>CTRL + B</kbd>
           <span>{{ $t("help.ctrl.b") }}</span>
         </div>

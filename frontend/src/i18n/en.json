@@ -206,6 +206,9 @@
     "slash": "activate search",
     "description": "You can view the basic naviagation options below. For additional information, please visit",
     "wiki": "FileBrowser Quantum Official Docs",
+    "backspace": "Go to parent directory / close preview",
+    "altArrowUp": "Go to parent directory (same as backspace)",
+    "altArrowDown": "Open selected file/folder (same as enter)",
     "media": {
       "title": "Media Player",
       "playPause": "Play/Pause playback",
