@@ -216,6 +216,7 @@ export default {
   methods: {
     scrollToHash() {
       let scrollToId = "";
+      let targetName = "";
       // scroll to previous item either from location hash or from previousItemHashId state
       // prefers location hash
       const noHashChange = window.location.hash === this.lastHash
@@ -230,14 +231,24 @@ export default {
           // If the hash contains malformed escape sequences, fall back to raw
           decodedName = rawHash;
         }
+        targetName = decodedName;
         scrollToId = url.base64Encode(encodeURIComponent(decodedName));
 
       } else if (state.previousHistoryItem?.name && state.previousHistoryItem.path === state.req.path && state.previousHistoryItem.source === state.req.source) {
+        targetName = state.previousHistoryItem.name;
         scrollToId = url.base64Encode(encodeURIComponent(state.previousHistoryItem.name));
       }
       // Don't call getElementById with empty string
       if (!scrollToId || scrollToId.trim() === '') {
         return;
+      }
+      // Re-select the item we are returning to (e.g. the file whose preview we just closed)
+      // so it stays highlighted in the listing. This runs after every listing load and on
+      // hashchange, so it covers all return paths uniformly — in-app close (Esc / X / swipe)
+      // and browser back/forward — and replaces the previous (barely-visible) glow effect.
+      const target = state.req?.items?.find((item) => item.name === targetName);
+      if (target) {
+        mutations.setSelected([target.index]);
       }
       const element = document.getElementById(scrollToId);
         if (element) {
@@ -245,12 +256,6 @@ export default {
             behavior: "instant",
             block: "center",
           });
-          // Add glow effect
-          element.classList.add('scroll-glow');
-          // Remove glow effect after animation completes
-          setTimeout(() => {
-            element.classList.remove('scroll-glow');
-          }, 1000);
         }
     },
     async patchMediaMetadataIfNeeded(listing, fetchMedia) {
@@ -618,22 +623,6 @@ export default {
 </script>
 
 <style>
-.scroll-glow {
-  animation: scrollGlowAnimation 1s ease-out;
-}
-
-@keyframes scrollGlowAnimation {
-  0% {
-    color: inherit;
-  }
-  50% {
-    color: var(--primaryColor);
-  }
-  100% {
-    color: inherit;
-  }
-}
-
 .share-info-component {
   margin-top: 0.5em;
 }

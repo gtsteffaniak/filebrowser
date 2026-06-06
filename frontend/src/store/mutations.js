@@ -543,6 +543,19 @@ export const mutations = {
     state.lastSelectedIndex = index;
     emitStateChanged();
   },
+  setSelected: (value) => {
+    // No-op guard: setSelected runs on every listing load / hashchange (via scrollToHash),
+    // so skip the reassignment + state event when the selection is unchanged to avoid
+    // re-rendering every ListingItem needlessly.
+    if (
+      state.selected.length === value.length &&
+      state.selected.every((v, i) => v === value[i])
+    ) {
+      return;
+    }
+    state.selected = value;
+    emitStateChanged();
+  },
   setRaw: (value) => {
     if (value === state.previewRaw) {
       return;
