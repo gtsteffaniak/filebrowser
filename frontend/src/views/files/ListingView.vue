@@ -639,11 +639,6 @@ export default {
         mutations.addSelected(this.allItems[0].index);
       }
     },
-    // Helper method to select an item by index
-    selectItem(index) {
-      mutations.resetSelected();
-      mutations.addSelected(index);
-    },
     // Helper method to find the closest item in the given direction (up or down) from the current one.
     findClosestItem(selectedItem, direction) {
       const listItems = Array.from(this.$el.querySelectorAll('.listing-item:not(.out-of-view)'));
