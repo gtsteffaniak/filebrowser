@@ -292,8 +292,8 @@ export default {
       // Fetch files for the share
       this.withLoading(() => resourcesApi.fetchFilesPublic("/", newHash).then(this.fillOptions));
     },
-    // Sort items, to make pinned items appear on top always.
-    // This will also keep our sorting preference of each dir while navigating in the prompts
+    // Sort items to make pinned items appear on top always (it was working before, but just for the first load)
+    // after navigate the pinned was lost, this will also keep our sorting preference in all prompts that use FileList
     sortItemsWithPinned(items, source, path) {
       if (!items?.length) return items;
       const parentEntry = items.find(i => i.name === "..");

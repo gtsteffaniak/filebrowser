@@ -87,6 +87,9 @@
     "description": "Poniżej znajdują się podstawowe opcje nawigacji. Dodatkowe informacje można znaleźć na stronie",
     "slash": "aktywuj wyszukiwanie",
     "wiki": "Oficjalne dokumenty FileBrowser Quantum",
+    "backspace": "Przejdź do katalogu nadrzędnego / zamknij podgląd",
+    "altArrowUp": "Przejdź do katalogu nadrzędnego (tak samo jak backspace)",
+    "altArrowDown": "Otwórz wybrany plik/folder (tak samo jak enter)",
     "marqueeSelect": "wybór wielu plików lub katalogów poprzez przeciągnięcie na puste miejsce",
     "media": {
       "title": "Odtwarzacz multimediów",

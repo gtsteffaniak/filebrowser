@@ -87,6 +87,9 @@
     "description": "Nachstehend finden Sie die grundlegenden Navigationsoptionen. Für zusätzliche Informationen besuchen Sie bitte das",
     "slash": "Suche aktivieren",
     "wiki": "FileBrowser Quantum-Wiki",
+    "backspace": "Zum übergeordneten Verzeichnis wechseln / Vorschau schließen",
+    "altArrowUp": "Zum übergeordneten Verzeichnis wechseln (wie Rücktaste)",
+    "altArrowDown": "Ausgewählte Datei/Ordner öffnen (wie Eingabetaste)",
     "marqueeSelect": "mehrere Dateien oder Verzeichnisse durch Ziehen auf leeren Raum auswählen",
     "media": {
       "title": "Media Player",

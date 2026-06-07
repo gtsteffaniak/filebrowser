@@ -87,6 +87,9 @@
     "description": "以下列出基本導覽操作。更多資訊請參閱",
     "slash": "啟動搜尋",
     "wiki": "FileBrowser Quantum 官方文件",
+    "backspace": "轉到父目錄 / 關閉預覽",
+    "altArrowUp": "轉到父目錄（與退格鍵相同）",
+    "altArrowDown": "開啟選取的檔案/資料夾（與 Enter 鍵相同）",
     "marqueeSelect": "在空白處拖曳以選取多個檔案或目錄",
     "media": {
       "title": "媒體播放器",

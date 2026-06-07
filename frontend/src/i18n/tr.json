@@ -87,6 +87,9 @@
     "description": "Temel navigasyon seçeneklerini aşağıda görüntüleyebilirsiniz. Ek bilgi için lütfen şu adresi ziyaret edin",
     "slash": "aramayı etkinleştir",
     "wiki": "FileBrowser Quantum Resmi Dokümanları",
+    "backspace": "Üst dizine git / önizlemeyi kapat",
+    "altArrowUp": "Üst dizine git (backspace ile aynı)",
+    "altArrowDown": "Seçili dosyayı/klasörü aç (enter ile aynı)",
     "marqueeSelect": "boş alana sürükleyerek birden fazla dosya veya dizin seçme",
     "media": {
       "title": "Medya Oynatıcı",

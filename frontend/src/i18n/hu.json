@@ -87,6 +87,9 @@
     "description": "Az alábbiakban megtekintheti az alapvető navigációs lehetőségeket. További információkért kérjük, látogasson el a következő weboldalra",
     "slash": "keresés aktiválása",
     "wiki": "FileBrowser Quantum hivatalos dokumentumok",
+    "backspace": "Ugrás a szülőkönyvtárba / előnézet bezárása",
+    "altArrowUp": "Ugrás a szülőkönyvtárba (ugyanaz, mint a backspace)",
+    "altArrowDown": "Kijelölt fájl/mappa megnyitása (ugyanaz, mint az enter)",
     "marqueeSelect": "több fájl vagy könyvtár kiválasztása üres helyre történő húzással",
     "media": {
       "title": "Médialejátszó",

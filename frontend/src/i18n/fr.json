@@ -87,6 +87,9 @@
     "description": "Vous pouvez consulter les options de navigation de base ci-dessous. Pour plus d'informations, veuillez consulter le site",
     "slash": "activer la recherche",
     "wiki": "Documents officiels de FileBrowser Quantum",
+    "backspace": "Aller au répertoire parent / fermer l'aperçu",
+    "altArrowUp": "Aller au répertoire parent (comme la touche retour)",
+    "altArrowDown": "Ouvrir le fichier/dossier sélectionné (comme la touche Entrée)",
     "marqueeSelect": "sélectionner plusieurs fichiers ou répertoires en les faisant glisser sur l'espace vide",
     "media": {
       "title": "Lecteur multimédia",

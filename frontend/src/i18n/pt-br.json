@@ -87,6 +87,9 @@
     "description": "Você pode ver as opções básicas de navegação abaixo. Para obter informações adicionais, visite",
     "slash": "ativar a pesquisa",
     "wiki": "Documentos oficiais do FileBrowser Quantum",
+    "backspace": "Ir para o diretório pai / fechar visualização",
+    "altArrowUp": "Ir para o diretório pai (igual a backspace)",
+    "altArrowDown": "Abrir arquivo/pasta selecionado (igual a enter)",
     "marqueeSelect": "selecionar vários arquivos ou diretórios arrastando-os para o espaço vazio",
     "media": {
       "title": "Player de mídia",

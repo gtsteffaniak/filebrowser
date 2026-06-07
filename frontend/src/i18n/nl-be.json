@@ -87,6 +87,9 @@
     "description": "Je kunt de basisnavigatieopties hieronder bekijken. Ga voor aanvullende informatie naar",
     "slash": "Zoeken activeren",
     "wiki": "FileBrowser Quantum Officiële documenten",
+    "backspace": "Ga naar bovenliggende map / sluit voorbeeld",
+    "altArrowUp": "Ga naar bovenliggende map (zelfde als backspace)",
+    "altArrowDown": "Open geselecteerd bestand/map (zelfde als enter)",
     "marqueeSelect": "meerdere bestanden of mappen selecteren door ze over lege ruimte te slepen",
     "media": {
       "title": "Mediaspeler",

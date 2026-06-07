@@ -87,6 +87,9 @@
     "description": "Du kan se de grundläggande navigeringsalternativen nedan. För ytterligare information, vänligen besök",
     "slash": "aktivera sökning",
     "wiki": "FileBrowser Quantum officiella dokument",
+    "backspace": "Gå till överordnad katalog / stäng förhandsgranskning",
+    "altArrowUp": "Gå till överordnad katalog (samma som backsteg)",
+    "altArrowDown": "Öppna vald fil/mapp (samma som enter)",
     "marqueeSelect": "välj flera filer eller kataloger genom att dra på tomt utrymme",
     "media": {
       "title": "Mediaspelare",

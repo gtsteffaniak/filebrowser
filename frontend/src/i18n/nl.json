@@ -206,6 +206,9 @@
     "slash": "Zoeken inschakelen",
     "description": "U kunt de basisnavigatieopties hieronder bekijken. Ga voor aanvullende informatie naar",
     "wiki": "FileBrowser Quantum officiële documentatie",
+    "backspace": "Ga naar bovenliggende map / sluit voorbeeld",
+    "altArrowUp": "Ga naar bovenliggende map (zelfde als backspace)",
+    "altArrowDown": "Open geselecteerd bestand/map (zelfde als enter)",
     "media": {
       "title": "Mediaspeler",
       "playPause": "Afspelen/Pauzeren",

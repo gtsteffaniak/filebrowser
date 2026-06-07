@@ -206,6 +206,9 @@
     "slash": "attiva ricerca",
     "description": "Puoi visualizzare le opzioni di navigazione di base qui sotto. Per ulteriori informazioni, visita",
     "wiki": "Documentazione ufficiale FileBrowser Quantum",
+    "backspace": "Vai alla directory principale / chiudi anteprima",
+    "altArrowUp": "Vai alla directory principale (come backspace)",
+    "altArrowDown": "Apri file/cartella selezionato (come invio)",
     "media": {
       "title": "Lettore multimediale",
       "playPause": "Riproduci/Pausa",

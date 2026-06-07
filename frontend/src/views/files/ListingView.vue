@@ -646,14 +646,14 @@ export default {
     },
     // Helper method to find the closest item in the given direction (up or down) from the current one.
     findClosestItem(selectedItem, direction) {
-      const allItems = Array.from(this.$el.querySelectorAll('.listing-item:not(.out-of-view)'));
+      const listItems = Array.from(this.$el.querySelectorAll('.listing-item:not(.out-of-view)'));
       const selectedBounds = selectedItem.getBoundingClientRect();
       const selectedMidX = (selectedBounds.left + selectedBounds.right) / 2;
 
       let closestItem = null;
       let closestDistance = Infinity;
 
-      for (const item of allItems) {
+      for (const item of listItems) {
         if (item === selectedItem) continue;
         const itemBounds = item.getBoundingClientRect();
         const itemMidX = (itemBounds.left + itemBounds.right) / 2;
@@ -828,7 +828,7 @@ export default {
           if (parentPath === currentPath) {
             return;
           }
-          const source = getters.isShare() ? state.shareInfo.hash : (state.req.source);
+          const source = getters.isShare() ? state.shareInfo.hash : state.req.source;
           const newPath = url.buildItemUrl(source, parentPath);
           router.push({ path: newPath });
           break;

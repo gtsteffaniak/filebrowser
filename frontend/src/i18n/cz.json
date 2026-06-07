@@ -87,6 +87,9 @@
     "description": "Základní možnosti navigace si můžete prohlédnout níže. Další informace naleznete na adrese",
     "slash": "aktivovat vyhledávání",
     "wiki": "Oficiální dokumenty k aplikaci FileBrowser Quantum",
+    "backspace": "Přejít do nadřazeného adresáře / zavřít náhled",
+    "altArrowUp": "Přejít do nadřazeného adresáře (stejné jako Backspace)",
+    "altArrowDown": "Otevřít vybraný soubor/složku (stejné jako Enter)",
     "marqueeSelect": "vybrat více souborů nebo adresářů přetažením na prázdné místo.",
     "media": {
       "title": "Přehrávač médií",

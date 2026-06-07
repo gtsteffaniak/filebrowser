@@ -74,7 +74,7 @@ export const getters = {
       return [];
     }
     const sourceKey = source || state.sources.current || state.req?.source || "";
-    const directoryPath = path === "/" ? "/" : url.removeTrailingSlash(path);
+    const directoryPath = path && path !== "/" ? url.removeTrailingSlash(path) : "/";
     const pinnedPaths = state.user?.pinnedItems?.[sourceKey]?.[directoryPath];
     return Array.isArray(pinnedPaths) ? pinnedPaths : [];
   },

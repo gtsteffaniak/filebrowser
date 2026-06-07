@@ -86,6 +86,9 @@
     "f1": "Abrir ventana de ayuda",
     "description": "Aquí puedes ver todos los atajos de teclado básicos. Si quieres saber más, visita la",
     "wiki": "documentación oficial de FileBrowser Quantum.",
+    "backspace": "Ir al directorio principal / cerrar vista previa",
+    "altArrowUp": "Ir al directorio principal (igual que backspace)",
+    "altArrowDown": "Abrir archivo/carpeta seleccionado (igual que enter)",
     "slash": "Abrir panel de búsqueda",
     "marqueeSelect": "Selecciona varios archivos dando click y arrastrando el cursor del mouse",
     "media": {

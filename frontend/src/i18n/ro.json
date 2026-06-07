@@ -87,6 +87,9 @@
     "description": "Puteți vizualiza mai jos opțiunile de navigație de bază. Pentru informații suplimentare, vă rugăm să vizitați",
     "slash": "activați căutarea",
     "wiki": "FileBrowser Quantum Documente oficiale",
+    "backspace": "Accesați directorul părinte / închideți previzualizarea",
+    "altArrowUp": "Accesați directorul părinte (la fel ca backspace)",
+    "altArrowDown": "Deschideți fișierul/dosarul selectat (la fel ca enter)",
     "marqueeSelect": "selectați mai multe fișiere sau directoare prin glisarea pe spațiul gol",
     "media": {
       "title": "Player media",

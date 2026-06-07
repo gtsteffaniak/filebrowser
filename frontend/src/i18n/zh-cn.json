@@ -87,6 +87,9 @@
     "description": "您可以查看下面的基本导航选项。有关其他信息，请访问",
     "slash": "启动搜索",
     "wiki": "FileBrowser Quantum 官方文档",
+    "backspace": "转到父目录 / 关闭预览",
+    "altArrowUp": "转到父目录（与退格键相同）",
+    "altArrowDown": "打开选中的文件/文件夹（与回车键相同）",
     "marqueeSelect": "在空白处拖动，选择多个文件或目录",
     "media": {
       "title": "媒体播放器",
