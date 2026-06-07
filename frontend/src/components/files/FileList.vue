@@ -57,6 +57,7 @@ import { url } from "@/utils";
 import { resourcesApi } from "@/api";
 import ListingItem from "@/components/files/ListingItem.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import { sortedItems } from "@/utils/sort.js";
 
 export default {
   name: "file-list",
@@ -291,6 +292,20 @@ export default {
       // Fetch files for the share
       this.withLoading(() => resourcesApi.fetchFilesPublic("/", newHash).then(this.fillOptions));
     },
+    // Sort items, to make pinned items appear on top always.
+    // This will also keep our sorting preference of each dir while navigating in the prompts
+    sortItemsWithPinned(items, source, path) {
+      if (!items?.length) return items;
+      const parentEntry = items.find(i => i.name === "..");
+      const rest = items.filter(i => i.name !== "..");
+      const dirs = rest.filter(i => i.type === 'directory');
+      const files = rest.filter(i => i.type !== 'directory');
+      const pinnedPaths = getters.pinnedPathsFor(source, path);
+      const sorting = getters.sorting();
+      const sortedDirs = sortedItems(dirs, sorting.by, sorting.asc, pinnedPaths);
+      const sortedFiles = sortedItems(files, sorting.by, sorting.asc, pinnedPaths);
+      return parentEntry ? [parentEntry, ...sortedDirs, ...sortedFiles] : [...sortedDirs, ...sortedFiles];
+    },
     fillOptions(req) {
       // Sets the current path and resets the current items.
       // Use this.path (the path we're browsing) instead of req.path (which may be relative)
@@ -333,6 +348,7 @@ export default {
           originalItem: item, // Store original item for Icon component
         });
       }
+      this.items = this.sortItemsWithPinned(this.items, this.source, this.path);
     },
     next: function (event) {
       // Retrieves the URL of the directory the user

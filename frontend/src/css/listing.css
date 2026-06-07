@@ -144,7 +144,6 @@ body.rtl .listing-items {
   border-radius: 50%;
   width: 1.8em;
   height: 1.8em;
-  backdrop-filter: blur(3px);
 }
 
 /*==============*/
@@ -449,14 +448,14 @@ body.rtl .listing-items {
   flex-shrink: 0;
   font-size: 1rem;
   color: var(--primaryColor);
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(255, 255, 255, 0.75);
   border-radius: 50%;
   width: 1.4em;
   height: 1.4em;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(2px);
+  overflow: visible;
   line-height: 1;
   margin-left: 0.25em;
 }

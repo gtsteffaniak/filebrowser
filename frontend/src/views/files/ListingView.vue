@@ -680,14 +680,14 @@ export default {
         this.selectFirstItem();
         return false;
       }
-      const currentVisualIndex = allItems.findIndex(item => item.index === selectedIndex);
-      if (currentVisualIndex === -1) {
+      const currentItemIndex = allItems.findIndex(item => item.index === selectedIndex);
+      if (currentItemIndex === -1) {
         this.selectFirstItem();
         return false;
       }
-      const newVisualIndex = currentVisualIndex + step;
-      if (newVisualIndex >= 0 && newVisualIndex < allItems.length) {
-        const targetItem = allItems[newVisualIndex];
+      const nextItemIndex = currentItemIndex + step;
+      if (nextItemIndex >= 0 && nextItemIndex < allItems.length) {
+        const targetItem = allItems.at(nextItemIndex);
         mutations.resetSelected();
         mutations.addSelected(targetItem.index);
         this.scrollSelectedIntoView();
@@ -696,7 +696,7 @@ export default {
       return false;
     },
     // Helper method to handle selection based on arrow keys
-    navigateKeboardArrows(arrowKey) {
+    navigateKeyboardArrows(arrowKey) {
       const isCardView = getters.isCardView(); // gallery, normal, icons
       const selectedIndex = state.selected.length > 0 ? state.selected[0] : null;
 
@@ -726,22 +726,22 @@ export default {
       const selectedItem = this.$el.querySelector(`.listing-item[data-index="${selectedIndex}"]`);
       if (!selectedItem) return;
 
-      let targetElement = null;
+      let nextItem = null;
 
       switch (arrowKey) {
         case 'ArrowDown':
-          targetElement = this.findClosestItem(selectedItem, 'down');
+          nextItem = this.findClosestItem(selectedItem, 'down');
           break;
         case 'ArrowUp':
-          targetElement = this.findClosestItem(selectedItem, 'up');
+          nextItem = this.findClosestItem(selectedItem, 'up');
           break;
       }
 
-      if (targetElement) {
-        const targetIndex = parseInt(targetElement.dataset.index, 10);
-        if (!Number.isNaN(targetIndex)) {
+      if (nextItem !== null) {
+        const itemIndex = parseInt(nextItem.dataset.index, 10);
+        if (!Number.isNaN(itemIndex)) {
           mutations.resetSelected();
-          mutations.addSelected(targetIndex);
+          mutations.addSelected(itemIndex);
           this.scrollSelectedIntoView();
         }
       }
@@ -773,9 +773,9 @@ export default {
                          key === 'ArrowDown' ||
                          key === 'ArrowLeft' ||
                          key === 'ArrowRight';
-      if (state.isSearchActive || getters.currentView() !== "listingView" || getters.currentPromptName() || (event.repeat && !isArrowKey)) {
-        return;
-      }
+      if (state.isSearchActive || getters.currentView() !== "listingView" ||
+        getters.currentPromptName() || (event.repeat && (!isArrowKey || altKey))) return;
+
       const isAlphanumeric = /^[a-z0-9]$/i.test(key);
       const modifierKeys = ctrlKey || metaKey;
       if (isAlphanumeric && !modifierKeys && state.selected.length <= 1) {
@@ -824,9 +824,6 @@ export default {
           // fall through
         case "Backspace": {
           event.preventDefault();
-          if (getters.currentPromptName()) {
-            return;
-          }
           // get current path and its parent
           const currentPath = state.req.path || "/";
           const parentPath = url.removeLastDir(currentPath);
@@ -871,10 +868,8 @@ export default {
         case "ArrowDown":
         case "ArrowLeft":
         case "ArrowRight":
-          // Allow native browser navigation when Alt is held
-          if (event.altKey) break;
           event.preventDefault();
-          this.navigateKeboardArrows(key);
+          this.navigateKeyboardArrows(key);
           break;
       }
     },
