@@ -8,9 +8,9 @@ All notable changes to this project will be documented in this file. For commit 
  - pinned files/folders (#2396) (#2510)
 
  **Notes**:
- - add fallback to show text in notification if copy fails (#2517)
- - added `alt`+`arrow up` shortcut as alias of `backspace` to go into parent directory (#2521)
- - added `alt`+`arrow down` shortcut as alias of `enter` to open files in Listing View (#2521)
+ - added fallback to show text in notification if copy fails (#2517)
+ - added `alt`+`arrow up` shortcut as alias of `backspace` to go into parent directory (#2501) (#2521)
+ - added `alt`+`arrow down` shortcut as alias of `enter` to open files in Listing View (#2501) (#2521)
 
  **BugFixes**:
  - fix lyrics regex parsing (#2505)
