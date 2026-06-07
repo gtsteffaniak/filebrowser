@@ -737,13 +737,11 @@ export default {
           break;
       }
 
-      if (nextItem !== null) {
-        const itemIndex = parseInt(nextItem.dataset.index, 10);
-        if (!Number.isNaN(itemIndex)) {
-          mutations.resetSelected();
-          mutations.addSelected(itemIndex);
-          this.scrollSelectedIntoView();
-        }
+      const itemIndex = parseInt(nextItem?.dataset.index, 10);
+      if (!Number.isNaN(itemIndex)) {
+        mutations.resetSelected();
+        mutations.addSelected(itemIndex);
+        this.scrollSelectedIntoView();
       }
     },
     scrollSelectedIntoView() {
