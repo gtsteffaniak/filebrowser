@@ -9,12 +9,15 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - add fallback to show text in notification if copy fails (#2517)
+ - added `alt`+`arrow up` shortcut as alias of `backspace` to go into parent directory (#2521)
+ - added `alt`+`arrow down` shortcut as alias of `enter` to open files in Listing View (#2521)
 
  **BugFixes**:
  - fix lyrics regex parsing (#2505)
- - update vue i18n + lazy loading of languages (#2504)
+ - updated vue i18n + lazy loading of languages (#2504)
  - fix folder previews issue (#2487) (#2492)
  - fix accidental exit on images while using gestures (#2508)
+ - navigating using the up/down arrow keys in Listing View was "jumping randomly" in some view modes (#2521)
 
 ## v1.4.2
 
