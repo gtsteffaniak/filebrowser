@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.4.3
 
+ **Security**:
+ - [High] Path traversal in subtitle handler allows any authenticated user to read arbitrary files (GHSA-vvp7-h4fj-m28w)
+
  **New Features**:
  - pinned files/folders (#2396) (#2510)
  - Markdown Image relative reference support (#2355)
@@ -13,6 +16,8 @@ All notable changes to this project will be documented in this file. For commit 
  - added `alt`+`arrow up` shortcut as alias of `backspace` to go into parent directory (#2501) (#2521)
  - added `alt`+`arrow down` shortcut as alias of `enter` to open files in Listing View (#2501) (#2521)
  - updated help menu with better translations
+ - migrate i18n to v11 (#2472)
+ - migrate eslint (#2459)
 
  **BugFixes**:
  - fix lyrics regex parsing (#2505)
