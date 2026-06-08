@@ -101,7 +101,9 @@
       "playbackModes": "التبديل بين أوضاع التشغيل (باستثناء التكرار والفردي)",
       "fullscreen": "التبديل إلى وضع ملء الشاشة في مقاطع الفيديو",
       "captions": "تشغيل/إيقاف الترجمة"
-    }
+    },
+    "altArrowUp": "الانتقال إلى المجلد الأصلي",
+    "altArrowDown": "فتح الملف/المجلد المحدد"
   },
   "languages": {
     "he": "עברית",
@@ -564,12 +566,13 @@
     "show": "عرض{suffix}",
     "divider": "مقسم{suffix}",
     "audio": "الصوت{suffix}",
-    "and": "و",
-    "or": "أو",
     "readOnly": "للقراءة فقط{suffix}",
     "private": "خاص{suffix}",
     "yes": "نعم{suffix}",
-    "no": "لا يوجد{suffix}"
+    "no": "لا يوجد{suffix}",
+    "to": "إلى{suffix}",
+    "and": "و{suffix}",
+    "or": "أو{suffix}"
   },
   "access": {
     "rules": "قواعد الوصول",

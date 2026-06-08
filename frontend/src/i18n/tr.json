@@ -101,7 +101,9 @@
       "playbackModes": "Oynatma modları arasında geçiş yap (döngü ve tek mod hariç)",
       "fullscreen": "Videolarda tam ekran moduna geç",
       "captions": "Altyazıları aç/kapat"
-    }
+    },
+    "altArrowUp": "Üst klasöre git",
+    "altArrowDown": "Seçilen dosya/klasörü aç"
   },
   "languages": {
     "he": "עברית",
@@ -564,12 +566,13 @@
     "show": "Göster{suffix}",
     "divider": "Bölücü{suffix}",
     "audio": "Ses{suffix}",
-    "and": "ve",
-    "or": "veya",
     "readOnly": "Salt okunur{suffix}",
     "private": "Özel{suffix}",
     "yes": "Evet{suffix}",
-    "no": "Hayır{suffix}"
+    "no": "Hayır{suffix}",
+    "to": "...'ye{suffix}",
+    "and": "ve{suffix}",
+    "or": "veya{suffix}"
   },
   "access": {
     "rules": "Erişim kuralları",

@@ -292,18 +292,8 @@ export default {
     isStickySidebar() {
       return getters.isStickySidebar();
     },
-    lastFolderIndex() {
-      const allItems = [...this.items.dirs, ...this.items.files];
-      for (let i = 0; i < allItems.length; i++) {
-        if (allItems[i].type !== "directory") {
-          return i - 1;
-        }
-      }
-      if (allItems.length > 0) {
-        return allItems.length;
-      }
-
-      return null; // Return null if there are no files
+    allItems() {
+      return [...this.pinnedItems, ...this.dirs, ...this.files];
     },
     numColumns() {
       void this.width;
@@ -645,18 +635,64 @@ export default {
     // Helper method to select the first item if nothing is selected
     selectFirstItem() {
       mutations.resetSelected();
-      const allItems = [...this.items.dirs, ...this.items.files];
-      if (allItems.length > 0) {
-        mutations.addSelected(allItems[0].index);
+      if (this.allItems.length > 0) {
+        mutations.addSelected(this.allItems[0].index);
       }
     },
-    // Helper method to select an item by index
-    selectItem(index) {
-      mutations.resetSelected();
-      mutations.addSelected(index);
+    // Helper method to find the closest item in the given direction (up or down) from the current one.
+    findClosestItem(selectedItem, direction) {
+      const listItems = Array.from(this.$el.querySelectorAll('.listing-item:not(.out-of-view)'));
+      const selectedBounds = selectedItem.getBoundingClientRect();
+      const selectedMidX = (selectedBounds.left + selectedBounds.right) / 2;
+
+      let closestItem = null;
+      let closestDistance = Infinity;
+
+      for (const item of listItems) {
+        if (item === selectedItem) continue;
+        const itemBounds = item.getBoundingClientRect();
+        const itemMidX = (itemBounds.left + itemBounds.right) / 2;
+        const horizontalOffset = Math.abs(itemMidX - selectedMidX);
+
+        const verticalGap = direction === 'down'
+          ? itemBounds.top - selectedBounds.bottom
+          : selectedBounds.top - itemBounds.bottom;
+
+        if (verticalGap > 0) {
+          const distance = Math.hypot(horizontalOffset, verticalGap);
+          if (distance < closestDistance) {
+            closestDistance = distance;
+            closestItem = item;
+          }
+        }
+      }
+      return closestItem;
+    },
+    moveSelectionBy(step) {
+      const allItems = this.allItems;
+      const selectedIndex = state.selected.length > 0 ? state.selected[0] : null;
+      if (selectedIndex === null) {
+        this.selectFirstItem();
+        return false;
+      }
+      const currentItemIndex = allItems.findIndex(item => item.index === selectedIndex);
+      if (currentItemIndex === -1) {
+        this.selectFirstItem();
+        return false;
+      }
+      const nextItemIndex = currentItemIndex + step;
+      if (nextItemIndex >= 0 && nextItemIndex < allItems.length) {
+        const targetItem = allItems.at(nextItemIndex);
+        mutations.resetSelected();
+        mutations.addSelected(targetItem.index);
+        this.scrollSelectedIntoView();
+        return true;
+      }
+      return false;
     },
     // Helper method to handle selection based on arrow keys
-    navigateKeboardArrows(arrowKey) {
+    navigateKeyboardArrows(arrowKey) {
+      const isCardView = getters.isCardView(); // gallery, normal, icons
       const selectedIndex = state.selected.length > 0 ? state.selected[0] : null;
 
       if (selectedIndex === null) {
@@ -665,95 +701,41 @@ export default {
         return;
       }
 
-      const allItems = [...this.items.dirs, ...this.items.files]; // Combine files and directories
-
-      // Find the current index of the selected item
-      let currentIndex = allItems.findIndex((item) => item.index === selectedIndex);
-
-      // If no item is selected, select the first item
-      if (currentIndex === -1) {
-        // Check if there are any items to select
-        if (allItems.length > 0) {
-          currentIndex = 0;
-          this.selectItem(allItems[currentIndex].index);
-        }
+      // Left/Right arrows will always use the visual order that we see
+      if (arrowKey === 'ArrowLeft' || arrowKey === 'ArrowRight') {
+        const step = arrowKey === 'ArrowLeft' ? -1 : 1;
+        this.moveSelectionBy(step);
         return;
       }
-      let newSelected = null;
-      const fileSelected = currentIndex > this.lastFolderIndex;
-      const nextIsDir = currentIndex - this.numColumns <= this.lastFolderIndex;
-      const folderSelected = currentIndex <= this.lastFolderIndex;
-      const nextIsFile = currentIndex + this.numColumns > this.lastFolderIndex;
-      const nextHopExists = currentIndex + this.numColumns < allItems.length;
-      const thisColumnNum =
-        ((currentIndex - this.lastFolderIndex - 1) % this.numColumns) + 1;
-      const lastFolderColumn = (this.lastFolderIndex % this.numColumns) + 1;
-      const thisColumnNum2 = (currentIndex + 1) % this.numColumns;
-      let firstRowColumnPos = this.lastFolderIndex + thisColumnNum2;
-      let newPos = currentIndex - lastFolderColumn;
+
+      // On list/compact views we use a simple linear navigation since all the items are aligned
+      if (!isCardView) {
+        const step = arrowKey === 'ArrowUp' ? -1 : 1;
+        this.moveSelectionBy(step);
+        return;
+      }
+
+      // But for gallery, normal, icons views, we need to find the closest item
+      // because the rows aren't always consistent (some have 1 item, others 5, etc) 
+      // which caused "random jumps"
+      const selectedItem = this.$el.querySelector(`.listing-item[data-index="${selectedIndex}"]`);
+      if (!selectedItem) return;
+
+      let nextItem = null;
+
       switch (arrowKey) {
-        case "ArrowUp":
-          if (currentIndex - this.numColumns < 0) {
-            // do nothing
-            break;
-          }
-          if (!getters.isCardView()) {
-            newSelected = allItems[currentIndex - 1].index;
-            break;
-          }
-          // do normal move
-          if (!(fileSelected && nextIsDir)) {
-            newSelected = allItems[currentIndex - this.numColumns].index;
-            break;
-          }
-
-          // complex logic to move from files to folders
-          if (lastFolderColumn < thisColumnNum) {
-            newPos -= this.numColumns;
-          }
-          newSelected = allItems[newPos].index;
-
+        case 'ArrowDown':
+          nextItem = this.findClosestItem(selectedItem, 'down');
           break;
-
-        case "ArrowDown":
-          if (currentIndex >= allItems.length) {
-            // do nothing - last item
-            break;
-          }
-          if (!getters.isCardView()) {
-            newSelected = allItems[currentIndex + 1].index;
-            break;
-          }
-          if (!nextHopExists) {
-            // do nothing - next item is out of bounds
-            break;
-          }
-
-          if (!(folderSelected && nextIsFile)) {
-            newSelected = allItems[currentIndex + this.numColumns].index;
-            break;
-          }
-          // complex logic for moving from folders to files
-          if (firstRowColumnPos <= this.lastFolderIndex) {
-            firstRowColumnPos += this.numColumns;
-          }
-          newSelected = allItems[firstRowColumnPos].index;
-          break;
-
-        case "ArrowLeft":
-          if (currentIndex > 0) {
-            newSelected = allItems[currentIndex - 1].index;
-          }
-          break;
-
-        case "ArrowRight":
-          if (currentIndex < allItems.length - 1) {
-            newSelected = allItems[currentIndex + 1].index;
-          }
+        case 'ArrowUp':
+          nextItem = this.findClosestItem(selectedItem, 'up');
           break;
       }
-      if (newSelected !== null) {
-        this.selectItem(newSelected);
+
+      const itemIndex = parseInt(nextItem?.dataset.index, 10);
+      if (!Number.isNaN(itemIndex)) {
+        mutations.resetSelected();
+        mutations.addSelected(itemIndex);
         this.scrollSelectedIntoView();
       }
     },
@@ -779,13 +761,14 @@ export default {
       }
     },
     keyEvent(event) {
-      if (state.isSearchActive || getters.currentView() !== "listingView" || getters.currentPromptName()) {
-        return;
-      }
       const { key, ctrlKey, metaKey, altKey, which } = event;
-      if (altKey) {
-        return;
-      }
+      const isArrowKey = key === 'ArrowUp' ||
+                         key === 'ArrowDown' ||
+                         key === 'ArrowLeft' ||
+                         key === 'ArrowRight';
+      if (state.isSearchActive || getters.currentView() !== "listingView" ||
+        getters.currentPromptName() || (event.repeat && (!isArrowKey || altKey))) return;
+
       const isAlphanumeric = /^[a-z0-9]$/i.test(key);
       const modifierKeys = ctrlKey || metaKey;
       if (isAlphanumeric && !modifierKeys && state.selected.length <= 1) {
@@ -802,8 +785,6 @@ export default {
           return;
         }
       }
-      const currentPath = url.removeTrailingSlash(state.route.path);
-      const newPath = currentPath.substring(0, currentPath.lastIndexOf("/"));
 
       if (modifierKeys) {
         this.ctrKeyPressed = true;
@@ -827,22 +808,40 @@ export default {
       }
 
       // Handle key events using a switch statement
-      switch (key) {
-        case "Enter":
+      let shortcut = key;
+      if (altKey) shortcut = `Alt+${key}`;
+
+      switch (shortcut) {
+        case "Alt+ArrowUp":
+          event.preventDefault();
+          // fall through
+        case "Backspace": {
+          event.preventDefault();
+          // get current path and its parent
+          const currentPath = state.req.path || "/";
+          const parentPath = url.removeLastDir(currentPath);
+          if (parentPath === currentPath) {
+            return;
+          }
+          const source = getters.isShare() ? state.shareInfo.hash : state.req.source;
+          const newPath = url.buildItemUrl(source, parentPath);
+          router.push({ path: newPath });
+          break;
+        }
+
+        case "Alt+ArrowDown":
+          event.preventDefault();
+          // fall through
+        case "Enter": {
+          event.preventDefault();
           if (this.selectedCount === 1) {
             const selected = getters.getFirstSelected();
             const selectedUrl = url.buildItemUrl(selected.source, selected.path);
+            if (selectedUrl === state.route.path) return;
             router.push({ path: selectedUrl });
           }
           break;
-
-        case "Backspace":
-          if (getters.currentPromptName()) {
-            return;
-          }
-          // go back
-          router.push({ path: newPath });
-          break;
+        }
 
         case "Escape":
           if (this.dragTargets.size > 0) {
@@ -862,32 +861,24 @@ export default {
         case "ArrowDown":
         case "ArrowLeft":
         case "ArrowRight":
-          // Allow native browser navigation when Alt is held
-          if (event.altKey) {
-            return;
-          }
           event.preventDefault();
-          this.navigateKeboardArrows(key);
+          this.navigateKeyboardArrows(key);
           break;
       }
     },
     alphanumericKeyPress(key) {
       const prefix = key.toLowerCase();
-      const allItems = [...this.items.dirs, ...this.items.files];
-      const matches = allItems.filter((item) =>
+      const allItems = this.allItems;
+      const matches = allItems.filter(item =>
         item.name.toLowerCase().startsWith(prefix)
       );
-      if (matches.length === 0) {
-        return;
-      }
+      if (matches.length === 0) return;
 
       let nextPos = 0;
       if (state.selected.length === 1) {
         const curIdx = state.selected[0];
-        const curPos = matches.findIndex((m) => m.index === curIdx);
-        if (curPos !== -1) {
-          nextPos = (curPos + 1) % matches.length;
-        }
+        const curPos = matches.findIndex(m => m.index === curIdx);
+        if (curPos !== -1) nextPos = (curPos + 1) % matches.length;
       }
 
       const target = matches[nextPos];

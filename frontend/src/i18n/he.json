@@ -101,7 +101,9 @@
       "playbackModes": "החלף בין מצבי נגינה (למעט לולאה ויחיד)",
       "fullscreen": "החלף מצב מסך מלא בסרטונים",
       "captions": "הפעל/כבה כתוביות"
-    }
+    },
+    "altArrowUp": "עבור לתיקייה הראשית",
+    "altArrowDown": "פתח את הקובץ/התיקייה שנבחרו"
   },
   "languages": {
     "he": "עברית",
@@ -564,12 +566,13 @@
     "show": "הצג{suffix}",
     "divider": "מפריד{suffix}",
     "audio": "אודיו{suffix}",
-    "and": "ו-",
-    "or": "או",
     "readOnly": "לקריאה בלבד{suffix}",
     "private": "פרטי{suffix}",
     "yes": "כן{suffix}",
-    "no": "לא{suffix}"
+    "no": "לא{suffix}",
+    "to": "אל{suffix}",
+    "and": "ו-{suffix}",
+    "or": "או{suffix}"
   },
   "access": {
     "rules": "כללי גישה",

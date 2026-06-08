@@ -101,7 +101,9 @@
       "playbackModes": "재생 모드 전환 (반복 및 단일 제외)",
       "fullscreen": "비디오 전체 화면 모드 전환",
       "captions": "자막 켜기/끄기"
-    }
+    },
+    "altArrowUp": "상위 폴더로 이동",
+    "altArrowDown": "선택한 파일/폴더 열기"
   },
   "languages": {
     "he": "עברית",
@@ -564,12 +566,13 @@
     "show": "표시{suffix}",
     "divider": "디바이더{suffix}",
     "audio": "오디오{suffix}",
-    "and": "그리고",
-    "or": "또는",
     "readOnly": "읽기 전용{suffix}",
     "private": "비공개{suffix}",
     "yes": "예{suffix}",
-    "no": "아니요{suffix}"
+    "no": "아니요{suffix}",
+    "to": "~에{suffix}",
+    "and": "그리고{suffix}",
+    "or": "또는{suffix}"
   },
   "access": {
     "rules": "액세스 규칙",

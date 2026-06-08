@@ -101,7 +101,9 @@
       "playbackModes": "再生モードを切り替え（ループとシングルを除く）",
       "fullscreen": "動画の全画面モードを切り替え",
       "captions": "字幕のオン/オフを切り替え"
-    }
+    },
+    "altArrowUp": "親フォルダに移動",
+    "altArrowDown": "選択したファイル/フォルダを開く"
   },
   "languages": {
     "he": "עברית",
@@ -564,12 +566,13 @@
     "show": "ショー{suffix}",
     "divider": "ディバイダー{suffix}",
     "audio": "オーディオ{suffix}",
-    "and": "そして",
-    "or": "または",
     "readOnly": "読み取り専用{suffix}",
     "private": "プライベート{suffix}",
     "yes": "はい{suffix}",
-    "no": "いいえ{suffix}"
+    "no": "いいえ{suffix}",
+    "to": "～へ{suffix}",
+    "and": "そして{suffix}",
+    "or": "または{suffix}"
   },
   "access": {
     "rules": "アクセスルール",

@@ -101,7 +101,9 @@
       "playbackModes": "Comută între modurile de redare (excluzând repetare și unic)",
       "fullscreen": "Comută modul ecran complet în videoclipuri",
       "captions": "Activează/Dezactivează subtitrările"
-    }
+    },
+    "altArrowUp": "Mergi la folderul părinte",
+    "altArrowDown": "Deschide fișierul/dosarul selectat"
   },
   "languages": {
     "he": "עברית",
@@ -564,12 +566,13 @@
     "show": "Spectacol{suffix}",
     "divider": "Divizor{suffix}",
     "audio": "Audio{suffix}",
-    "and": "și",
-    "or": "sau",
     "readOnly": "Numai citire{suffix}",
     "private": "Privat{suffix}",
     "yes": "Da{suffix}",
-    "no": "Nu{suffix}"
+    "no": "Nu{suffix}",
+    "to": "spre{suffix}",
+    "and": "și{suffix}",
+    "or": "sau{suffix}"
   },
   "access": {
     "rules": "Reguli de acces",

@@ -101,7 +101,9 @@
       "playbackModes": "Zwischen Wiedergabemodi wechseln (außer Schleife und Einzelmodus)",
       "fullscreen": "Vollbildmodus bei Videos umschalten",
       "captions": "Untertitel ein-/ausschalten"
-    }
+    },
+    "altArrowUp": "Zum übergeordneten Ordner wechseln",
+    "altArrowDown": "Ausgewählte Datei/Ordner öffnen"
   },
   "languages": {
     "he": "עברית",
@@ -564,12 +566,13 @@
     "show": "anzeigen{suffix}",
     "divider": "Teiler{suffix}",
     "audio": "Audio{suffix}",
-    "and": "und",
-    "or": "oder",
     "readOnly": "Schreibgeschützt{suffix}",
     "private": "Privat{suffix}",
     "yes": "Ja{suffix}",
-    "no": "Nein{suffix}"
+    "no": "Nein{suffix}",
+    "to": "zu{suffix}",
+    "and": "und{suffix}",
+    "or": "oder{suffix}"
   },
   "access": {
     "rules": "Zugangsregeln",

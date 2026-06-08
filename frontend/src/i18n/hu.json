@@ -101,7 +101,9 @@
       "playbackModes": "Váltás lejátszási módok között (az ismétlés és egyszeri kivételével)",
       "fullscreen": "Teljes képernyős mód váltása videóknál",
       "captions": "Feliratok be/ki"
-    }
+    },
+    "altArrowUp": "Ugrás a szülőmappába",
+    "altArrowDown": "A kijelölt fájl/mappa megnyitása"
   },
   "languages": {
     "he": "עברית",
@@ -564,12 +566,13 @@
     "show": "Mutasd meg a{suffix}",
     "divider": "Választó{suffix}",
     "audio": "Audio{suffix}",
-    "and": "és",
-    "or": "vagy",
     "readOnly": "Csak olvasható{suffix}",
     "private": "Privát{suffix}",
     "yes": "Igen{suffix}",
-    "no": "Nem{suffix}"
+    "no": "Nem{suffix}",
+    "to": "hogy{suffix}",
+    "and": "és{suffix}",
+    "or": "vagy{suffix}"
   },
   "access": {
     "rules": "Hozzáférési szabályok",
