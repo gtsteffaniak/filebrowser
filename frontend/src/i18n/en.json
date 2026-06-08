@@ -9,8 +9,9 @@
     "noCreateOptions": "No create options are available"
   },
   "general": {
-    "and": "and",
-    "or": "or",
+    "to": "to{suffix}",
+    "and": "and{suffix}",
+    "or": "or{suffix}",
     "divider": "Divider{suffix}",
     "show": "Show{suffix}",
     "office": "Office{suffix}",
@@ -206,9 +207,8 @@
     "slash": "activate search",
     "description": "You can view the basic naviagation options below. For additional information, please visit",
     "wiki": "FileBrowser Quantum Official Docs",
-    "backspace": "Go to parent directory / close preview",
-    "altArrowUp": "Go to parent directory (same as backspace)",
-    "altArrowDown": "Open selected file/folder (same as enter)",
+    "altArrowUp": "Go to parent folder",
+    "altArrowDown": "Open selected file/folder",
     "media": {
       "title": "Media Player",
       "playPause": "Play/Pause playback",

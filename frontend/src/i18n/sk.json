@@ -87,9 +87,6 @@
     "description": "Základné možnosti navigácie si môžete pozrieť nižšie. Ďalšie informácie nájdete na stránke",
     "slash": "aktivovať vyhľadávanie",
     "wiki": "Oficiálne dokumenty FileBrowser Quantum",
-    "backspace": "Prejsť do nadradeného adresára / zavrieť náhľad",
-    "altArrowUp": "Prejsť do nadradeného adresára (rovnaké ako backspace)",
-    "altArrowDown": "Otvoriť vybraný súbor/priečinok (rovnaké ako enter)",
     "marqueeSelect": "výber viacerých súborov alebo adresárov ťahaním na prázdne miesto",
     "media": {
       "title": "Prehrávač médií",
@@ -104,7 +101,9 @@
       "playbackModes": "Prepnúť režimy prehrávania (okrem slučky a jednotlivého)",
       "fullscreen": "Prepnúť režim celej obrazovky vo videách",
       "captions": "Zapnúť/Vypnúť titulky"
-    }
+    },
+    "altArrowUp": "Prejsť do nadradeného priečinka",
+    "altArrowDown": "Otvoriť vybraný súbor/zložku"
   },
   "languages": {
     "he": "עברית",
@@ -567,12 +566,13 @@
     "show": "Zobraziť{suffix}",
     "divider": "Rozdeľovač{suffix}",
     "audio": "Audio{suffix}",
-    "and": "a",
-    "or": "alebo",
     "readOnly": "Len na čítanie{suffix}",
     "private": "Súkromná stránka{suffix}",
     "yes": "Áno{suffix}",
-    "no": "Nie{suffix}"
+    "no": "Nie{suffix}",
+    "to": "do{suffix}",
+    "and": "a{suffix}",
+    "or": "alebo{suffix}"
   },
   "access": {
     "rules": "Pravidlá prístupu",

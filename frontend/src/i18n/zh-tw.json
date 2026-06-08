@@ -87,9 +87,6 @@
     "description": "以下列出基本導覽操作。更多資訊請參閱",
     "slash": "啟動搜尋",
     "wiki": "FileBrowser Quantum 官方文件",
-    "backspace": "轉到父目錄 / 關閉預覽",
-    "altArrowUp": "轉到父目錄（與退格鍵相同）",
-    "altArrowDown": "開啟選取的檔案/資料夾（與 Enter 鍵相同）",
     "marqueeSelect": "在空白處拖曳以選取多個檔案或目錄",
     "media": {
       "title": "媒體播放器",
@@ -104,7 +101,9 @@
       "playbackModes": "切換播放模式（不包括循環和單次）",
       "fullscreen": "影片全螢幕模式切換",
       "captions": "開啟/關閉字幕"
-    }
+    },
+    "altArrowUp": "前往父資料夾",
+    "altArrowDown": "開啟選定的檔案/資料夾"
   },
   "languages": {
     "he": "עברית",
@@ -661,12 +660,13 @@
     "show": "顯示{suffix}",
     "divider": "分隔線{suffix}",
     "audio": "音訊{suffix}",
-    "and": "和",
-    "or": "或",
     "readOnly": "唯讀{suffix}",
     "private": "私人{suffix}",
     "yes": "是{suffix}",
-    "no": "沒有{suffix}"
+    "no": "沒有{suffix}",
+    "to": "至{suffix}",
+    "and": "以及{suffix}",
+    "or": "或{suffix}"
   },
   "access": {
     "rules": "存取規則",

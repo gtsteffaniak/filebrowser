@@ -87,9 +87,6 @@
     "description": "Você pode ver as opções básicas de navegação abaixo. Para obter informações adicionais, visite",
     "slash": "ativar a pesquisa",
     "wiki": "Documentos oficiais do FileBrowser Quantum",
-    "backspace": "Ir para o diretório pai / fechar visualização",
-    "altArrowUp": "Ir para o diretório pai (igual a backspace)",
-    "altArrowDown": "Abrir arquivo/pasta selecionado (igual a enter)",
     "marqueeSelect": "selecionar vários arquivos ou diretórios arrastando-os para o espaço vazio",
     "media": {
       "title": "Player de mídia",
@@ -104,7 +101,9 @@
       "playbackModes": "Alternar entre modos de reprodução (exceto repetição e único)",
       "fullscreen": "Alternar modo de tela cheia em vídeos",
       "captions": "Ativar/Desativar legendas"
-    }
+    },
+    "altArrowUp": "Ir para a pasta pai",
+    "altArrowDown": "Abrir o arquivo/pasta selecionado(a)"
   },
   "languages": {
     "he": "עברית",
@@ -567,12 +566,13 @@
     "show": "Mostrar{suffix}",
     "divider": "Divisor{suffix}",
     "audio": "Áudio{suffix}",
-    "and": "e",
-    "or": "ou",
     "readOnly": "Somente leitura{suffix}",
     "private": "Privado{suffix}",
     "yes": "Sim{suffix}",
-    "no": "Não{suffix}"
+    "no": "Não{suffix}",
+    "to": "para{suffix}",
+    "and": "e{suffix}",
+    "or": "ou{suffix}"
   },
   "access": {
     "rules": "Regras de acesso",

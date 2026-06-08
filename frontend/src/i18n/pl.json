@@ -87,9 +87,6 @@
     "description": "Poniżej znajdują się podstawowe opcje nawigacji. Dodatkowe informacje można znaleźć na stronie",
     "slash": "aktywuj wyszukiwanie",
     "wiki": "Oficjalne dokumenty FileBrowser Quantum",
-    "backspace": "Przejdź do katalogu nadrzędnego / zamknij podgląd",
-    "altArrowUp": "Przejdź do katalogu nadrzędnego (tak samo jak backspace)",
-    "altArrowDown": "Otwórz wybrany plik/folder (tak samo jak enter)",
     "marqueeSelect": "wybór wielu plików lub katalogów poprzez przeciągnięcie na puste miejsce",
     "media": {
       "title": "Odtwarzacz multimediów",
@@ -104,7 +101,9 @@
       "playbackModes": "Przełącz między trybami odtwarzania (z wyłączeniem pętli i pojedynczego)",
       "fullscreen": "Przełącz tryb pełnoekranowy w wideo",
       "captions": "Włącz/Wyłącz napisy"
-    }
+    },
+    "altArrowUp": "Przejdź do folderu nadrzędnego",
+    "altArrowDown": "Otwórz wybrany plik/folder"
   },
   "languages": {
     "he": "עברית",
@@ -567,12 +566,13 @@
     "show": "Pokaż{suffix}",
     "divider": "Dzielnik{suffix}",
     "audio": "Audio{suffix}",
-    "and": "oraz",
-    "or": "lub",
     "readOnly": "Tylko do odczytu{suffix}",
     "private": "Prywatny{suffix}",
     "yes": "Tak{suffix}",
-    "no": "Nie{suffix}"
+    "no": "Nie{suffix}",
+    "to": "do{suffix}",
+    "and": "oraz{suffix}",
+    "or": "lub{suffix}"
   },
   "access": {
     "rules": "Zasady dostępu",

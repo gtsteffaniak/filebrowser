@@ -87,9 +87,6 @@
     "description": "Nachstehend finden Sie die grundlegenden Navigationsoptionen. Für zusätzliche Informationen besuchen Sie bitte das",
     "slash": "Suche aktivieren",
     "wiki": "FileBrowser Quantum-Wiki",
-    "backspace": "Zum übergeordneten Verzeichnis wechseln / Vorschau schließen",
-    "altArrowUp": "Zum übergeordneten Verzeichnis wechseln (wie Rücktaste)",
-    "altArrowDown": "Ausgewählte Datei/Ordner öffnen (wie Eingabetaste)",
     "marqueeSelect": "mehrere Dateien oder Verzeichnisse durch Ziehen auf leeren Raum auswählen",
     "media": {
       "title": "Media Player",
@@ -104,7 +101,9 @@
       "playbackModes": "Zwischen Wiedergabemodi wechseln (außer Schleife und Einzelmodus)",
       "fullscreen": "Vollbildmodus bei Videos umschalten",
       "captions": "Untertitel ein-/ausschalten"
-    }
+    },
+    "altArrowUp": "Zum übergeordneten Ordner wechseln",
+    "altArrowDown": "Ausgewählte Datei/Ordner öffnen"
   },
   "languages": {
     "he": "עברית",
@@ -567,12 +566,13 @@
     "show": "anzeigen{suffix}",
     "divider": "Teiler{suffix}",
     "audio": "Audio{suffix}",
-    "and": "und",
-    "or": "oder",
     "readOnly": "Schreibgeschützt{suffix}",
     "private": "Privat{suffix}",
     "yes": "Ja{suffix}",
-    "no": "Nein{suffix}"
+    "no": "Nein{suffix}",
+    "to": "zu{suffix}",
+    "and": "und{suffix}",
+    "or": "oder{suffix}"
   },
   "access": {
     "rules": "Zugangsregeln",

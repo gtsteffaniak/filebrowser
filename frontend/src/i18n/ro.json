@@ -87,9 +87,6 @@
     "description": "Puteți vizualiza mai jos opțiunile de navigație de bază. Pentru informații suplimentare, vă rugăm să vizitați",
     "slash": "activați căutarea",
     "wiki": "FileBrowser Quantum Documente oficiale",
-    "backspace": "Accesați directorul părinte / închideți previzualizarea",
-    "altArrowUp": "Accesați directorul părinte (la fel ca backspace)",
-    "altArrowDown": "Deschideți fișierul/dosarul selectat (la fel ca enter)",
     "marqueeSelect": "selectați mai multe fișiere sau directoare prin glisarea pe spațiul gol",
     "media": {
       "title": "Player media",
@@ -104,7 +101,9 @@
       "playbackModes": "Comută între modurile de redare (excluzând repetare și unic)",
       "fullscreen": "Comută modul ecran complet în videoclipuri",
       "captions": "Activează/Dezactivează subtitrările"
-    }
+    },
+    "altArrowUp": "Mergi la folderul părinte",
+    "altArrowDown": "Deschide fișierul/dosarul selectat"
   },
   "languages": {
     "he": "עברית",
@@ -567,12 +566,13 @@
     "show": "Spectacol{suffix}",
     "divider": "Divizor{suffix}",
     "audio": "Audio{suffix}",
-    "and": "și",
-    "or": "sau",
     "readOnly": "Numai citire{suffix}",
     "private": "Privat{suffix}",
     "yes": "Da{suffix}",
-    "no": "Nu{suffix}"
+    "no": "Nu{suffix}",
+    "to": "spre{suffix}",
+    "and": "și{suffix}",
+    "or": "sau{suffix}"
   },
   "access": {
     "rules": "Reguli de acces",

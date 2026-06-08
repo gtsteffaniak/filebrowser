@@ -86,9 +86,6 @@
     "f1": "Abrir ventana de ayuda",
     "description": "Aquí puedes ver todos los atajos de teclado básicos. Si quieres saber más, visita la",
     "wiki": "documentación oficial de FileBrowser Quantum.",
-    "backspace": "Ir al directorio principal / cerrar vista previa",
-    "altArrowUp": "Ir al directorio principal (igual que backspace)",
-    "altArrowDown": "Abrir archivo/carpeta seleccionado (igual que enter)",
     "slash": "Abrir panel de búsqueda",
     "marqueeSelect": "Selecciona varios archivos dando click y arrastrando el cursor del mouse",
     "media": {
@@ -104,7 +101,9 @@
       "playbackModes": "Cambiar entre modos de reproducción (excepto bucle)",
       "fullscreen": "Cambiar a pantalla completa en vídeos",
       "captions": "Activar/Desactivar subtítulos"
-    }
+    },
+    "altArrowUp": "Ir a la carpeta principal",
+    "altArrowDown": "Abrir el archivo o la carpeta seleccionados"
   },
   "languages": {
     "he": "עברית",
@@ -567,12 +566,13 @@
     "show": "Mostrar{suffix}",
     "divider": "Divisor{suffix}",
     "audio": "Audio{suffix}",
-    "and": "y",
-    "or": "o",
     "readOnly": "Sólo lectura{suffix}",
     "private": "Privado{suffix}",
     "yes": "Sí{suffix}",
-    "no": "No{suffix}"
+    "no": "No{suffix}",
+    "to": "a{suffix}",
+    "and": "y{suffix}",
+    "or": "o{suffix}"
   },
   "access": {
     "rules": "Reglas de acceso",

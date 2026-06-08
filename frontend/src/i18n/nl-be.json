@@ -87,9 +87,6 @@
     "description": "Je kunt de basisnavigatieopties hieronder bekijken. Ga voor aanvullende informatie naar",
     "slash": "Zoeken activeren",
     "wiki": "FileBrowser Quantum Officiële documenten",
-    "backspace": "Ga naar bovenliggende map / sluit voorbeeld",
-    "altArrowUp": "Ga naar bovenliggende map (zelfde als backspace)",
-    "altArrowDown": "Open geselecteerd bestand/map (zelfde als enter)",
     "marqueeSelect": "meerdere bestanden of mappen selecteren door ze over lege ruimte te slepen",
     "media": {
       "title": "Mediaspeler",
@@ -104,7 +101,9 @@
       "playbackModes": "Schakel tussen afspeelmodi (behalve herhalen en enkelvoudig)",
       "fullscreen": "Volledig scherm modus voor video's",
       "captions": "Ondertiteling aan/uit"
-    }
+    },
+    "altArrowUp": "Ga naar de bovenliggende map",
+    "altArrowDown": "Het geselecteerde bestand/de geselecteerde map openen"
   },
   "languages": {
     "he": "עברית",
@@ -661,12 +660,13 @@
     "show": "Toon{suffix}",
     "divider": "Verdeler{suffix}",
     "audio": "Audio{suffix}",
-    "and": "en",
-    "or": "of",
     "readOnly": "Alleen-lezen{suffix}",
     "private": "Privé{suffix}",
     "yes": "Ja{suffix}",
-    "no": "Geen{suffix}"
+    "no": "Geen{suffix}",
+    "to": "naar{suffix}",
+    "and": "en{suffix}",
+    "or": "of{suffix}"
   },
   "access": {
     "rules": "Toegangsregels",

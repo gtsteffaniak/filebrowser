@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file. For commit 
  - added fallback to show text in notification if copy fails (#2517)
  - added `alt`+`arrow up` shortcut as alias of `backspace` to go into parent directory (#2501) (#2521)
  - added `alt`+`arrow down` shortcut as alias of `enter` to open files in Listing View (#2501) (#2521)
+ - updated help menu with better translations
 
  **BugFixes**:
  - fix lyrics regex parsing (#2505)

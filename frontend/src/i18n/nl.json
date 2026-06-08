@@ -9,8 +9,6 @@
     "noCreateOptions": "Er zijn geen opties beschikbaar"
   },
   "general": {
-    "and": "en",
-    "or": "of",
     "divider": "Scheiding{suffix}",
     "show": "Toon{suffix}",
     "office": "Office{suffix}",
@@ -115,7 +113,10 @@
     "readOnly": "Alleen-lezen{suffix}",
     "private": "Privé{suffix}",
     "yes": "Ja{suffix}",
-    "no": "Geen{suffix}"
+    "no": "Geen{suffix}",
+    "to": "naar{suffix}",
+    "and": "en{suffix}",
+    "or": "of{suffix}"
   },
   "buttons": {
     "copySuccess": "Gekopieerd naar klembord!",
@@ -206,9 +207,6 @@
     "slash": "Zoeken inschakelen",
     "description": "U kunt de basisnavigatieopties hieronder bekijken. Ga voor aanvullende informatie naar",
     "wiki": "FileBrowser Quantum officiële documentatie",
-    "backspace": "Ga naar bovenliggende map / sluit voorbeeld",
-    "altArrowUp": "Ga naar bovenliggende map (zelfde als backspace)",
-    "altArrowDown": "Open geselecteerd bestand/map (zelfde als enter)",
     "media": {
       "title": "Mediaspeler",
       "playPause": "Afspelen/Pauzeren",
@@ -222,7 +220,9 @@
       "playbackModes": "Schakel tussen afspeelmodi (behalve herhalen en enkelvoudig)",
       "fullscreen": "Volledig scherm modus voor video's",
       "captions": "Ondertiteling aan/uit"
-    }
+    },
+    "altArrowUp": "Ga naar de bovenliggende map",
+    "altArrowDown": "Open het geselecteerde bestand/de geselecteerde map"
   },
   "languages": {
     "he": "עברית",

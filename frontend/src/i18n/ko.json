@@ -87,9 +87,6 @@
     "description": "아래에서 기본 탐색 옵션을 확인할 수 있습니다. 자세한 내용은 다음을 참조하세요.",
     "slash": "검색 활성화",
     "wiki": "FileBrowser 퀀텀 공식 문서",
-    "backspace": "상위 디렉토리로 이동 / 미리보기 닫기",
-    "altArrowUp": "상위 디렉토리로 이동 (백스페이스와 동일)",
-    "altArrowDown": "선택한 파일/폴더 열기 (엔터와 동일)",
     "marqueeSelect": "빈 공간에 드래그하여 여러 파일 또는 디렉토리를 선택합니다.",
     "media": {
       "title": "미디어 플레이어",
@@ -104,7 +101,9 @@
       "playbackModes": "재생 모드 전환 (반복 및 단일 제외)",
       "fullscreen": "비디오 전체 화면 모드 전환",
       "captions": "자막 켜기/끄기"
-    }
+    },
+    "altArrowUp": "상위 폴더로 이동",
+    "altArrowDown": "선택한 파일/폴더 열기"
   },
   "languages": {
     "he": "עברית",
@@ -567,12 +566,13 @@
     "show": "표시{suffix}",
     "divider": "디바이더{suffix}",
     "audio": "오디오{suffix}",
-    "and": "그리고",
-    "or": "또는",
     "readOnly": "읽기 전용{suffix}",
     "private": "비공개{suffix}",
     "yes": "예{suffix}",
-    "no": "아니요{suffix}"
+    "no": "아니요{suffix}",
+    "to": "~에{suffix}",
+    "and": "그리고{suffix}",
+    "or": "또는{suffix}"
   },
   "access": {
     "rules": "액세스 규칙",

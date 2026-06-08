@@ -87,9 +87,6 @@
     "description": "您可以查看下面的基本导航选项。有关其他信息，请访问",
     "slash": "启动搜索",
     "wiki": "FileBrowser Quantum 官方文档",
-    "backspace": "转到父目录 / 关闭预览",
-    "altArrowUp": "转到父目录（与退格键相同）",
-    "altArrowDown": "打开选中的文件/文件夹（与回车键相同）",
     "marqueeSelect": "在空白处拖动，选择多个文件或目录",
     "media": {
       "title": "媒体播放器",
@@ -104,7 +101,9 @@
       "playbackModes": "切换播放模式（不包括循环和单次）",
       "fullscreen": "视频全屏模式切换",
       "captions": "开启/关闭字幕"
-    }
+    },
+    "altArrowUp": "转到父文件夹",
+    "altArrowDown": "打开所选文件/文件夹"
   },
   "languages": {
     "he": "עברית",
@@ -661,12 +660,13 @@
     "show": "显示{suffix}",
     "divider": "分割器{suffix}",
     "audio": "音频{suffix}",
-    "and": "和",
-    "or": "或",
     "readOnly": "只读{suffix}",
     "private": "私人{suffix}",
     "yes": "是{suffix}",
-    "no": "没有{suffix}"
+    "no": "没有{suffix}",
+    "to": "到{suffix}",
+    "and": "以及{suffix}",
+    "or": "或{suffix}"
   },
   "access": {
     "rules": "访问规则",
