@@ -242,13 +242,10 @@ export default {
       if (!scrollToId || scrollToId.trim() === '') {
         return;
       }
-      // Re-select the item we are returning to (e.g. the file whose preview we just closed)
-      // so it stays highlighted in the listing. This runs after every listing load and on
-      // hashchange, so it covers all return paths uniformly — in-app close (Esc / X / swipe)
-      // and browser back/forward — and replaces the previous (barely-visible) glow effect.
-      const target = state.req?.items?.find((item) => item.name === targetName);
-      if (target) {
-        mutations.setSelected([target.index]);
+      // Re-select the item we are returning to -- replaces the previous glow effect.
+      const targetIndex = state.req?.items?.findIndex((item) => item.name === targetName);
+      if (targetIndex !==1) {
+        mutations.addSelected(targetIndex);
       }
       const element = document.getElementById(scrollToId);
         if (element) {
