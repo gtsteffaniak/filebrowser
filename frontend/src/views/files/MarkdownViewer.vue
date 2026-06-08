@@ -8,15 +8,50 @@
 </template>
 
 <script lang="ts">
-import { marked } from "marked";
+import { Marked } from "marked";
 import DOMPurify from 'dompurify';
 import { state, mutations, getters } from "@/store";
 import hljs from 'highlight.js';
 import { copyToClipboard } from "@/utils/clipboard";
 import { globalVars } from "@/utils/constants";
+import { getDownloadURL, getDownloadURLPublic } from "@/api/resources";
+import { resolveRelativePath } from "@/utils/url";
+import { isImageFilePath } from "@/utils/mimetype";
 
 import githubLightCss from "highlight.js/styles/github.min.css?raw";
 import githubDarkCss from "highlight.js/styles/github-dark.min.css?raw";
+
+function isLocalImageReference(href: string): boolean {
+  return !/^(https?:|data:|mailto:|#)/i.test(href) && !href.startsWith("//");
+}
+
+function buildMarkdownImageUrl(href: string, markdownFilePath: string, source: string): string {
+  if (!href || !isLocalImageReference(href)) {
+    return href;
+  }
+
+  const resolvedPath = resolveRelativePath(markdownFilePath, href);
+  if (!isImageFilePath(resolvedPath)) {
+    return href;
+  }
+
+  try {
+    if (getters.isShare()) {
+      return getDownloadURLPublic(
+        {
+          path: state.shareInfo.subPath,
+          hash: state.shareInfo.hash,
+          token: state.shareInfo.token,
+        },
+        [resolvedPath],
+        true,
+      );
+    }
+    return getDownloadURL(source, resolvedPath, true);
+  } catch {
+    return href;
+  }
+}
 
 export default {
   name: "markdownViewer",
@@ -240,6 +275,21 @@ export default {
       div.textContent = text;
       return div.innerHTML;
     },
+    parseMarkdown(content: string, filePath: string, source: string): string {
+      const parser = new Marked({ gfm: true });
+      parser.use({
+        walkTokens(token) {
+          if (token.type === "image" && token.href) {
+            token.href = buildMarkdownImageUrl(token.href, filePath, source);
+          }
+        },
+      });
+      const result = parser.parse(content);
+      if (typeof result !== "string") {
+        return DOMPurify.sanitize("Loading...");
+      }
+      return DOMPurify.sanitize(result);
+    },
     updateEditorStats() {
       const text = this.content.trim();
       const validWord = text.split(/\s+/).filter(t => /[a-zA-Z0-9]/.test(t));
@@ -292,16 +342,7 @@ export default {
       return state.user.darkMode;
     },
     renderedContent() {
-      // We now let marked run with its default, reliable settings.
-      // It will correctly render tables and create basic code blocks.
-      const markedResult = marked(this.content, { gfm: true });
-      // Handle both string and Promise return types
-      if (typeof markedResult === 'string') {
-        return DOMPurify.sanitize(markedResult);
-      } else {
-        // If it's a Promise, we need to handle it differently
-        return DOMPurify.sanitize('Loading...');
-      }
+      return this.parseMarkdown(this.content, state.req.path, state.req.source);
     },
     spaceForStatusBar() {
       return state.isMobile ? 3.1 : 3.5;
@@ -517,6 +558,11 @@ export default {
   line-height: 1.65;
   margin-top: 0;
   margin-bottom: 0;
+}
+
+#markedown-viewer .markdown-content img {
+  max-width: 100%;
+  height: auto;
 }
 
 </style>

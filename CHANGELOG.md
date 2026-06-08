@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **New Features**:
  - pinned files/folders (#2396) (#2510)
+ - Markdown Image relative reference support (#2355)
 
  **Notes**:
  - added fallback to show text in notification if copy fails (#2517)
