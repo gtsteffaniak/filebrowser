@@ -510,7 +510,7 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 		}
 
 		if cfg, _, cfgErr := image.DecodeConfig(bytes.NewReader(imageBytes)); cfgErr == nil && ImageFitsPreviewSize(cfg.Width, cfg.Height, previewSize) {
-			if err := service.fileCache.Store(ctx, cacheKey, imageBytes); err != nil {
+			if err = service.fileCache.Store(ctx, cacheKey, imageBytes); err != nil {
 				logger.Errorf("failed to cache image: %v", err)
 			}
 			return imageBytes, nil
