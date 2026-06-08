@@ -355,8 +355,11 @@ func (s *Service) generateImagePreview(ctx context.Context, file iteminfo.Extend
 		return nil, err
 	}
 
-	imageBytes, err := s.CreatePreview(f, file.Size, options)
+	imageBytes, err := s.CreatePreview(ctx, f, file.Size, options)
 	if err != nil {
+		if ctx.Err() != nil {
+			return nil, ctx.Err()
+		}
 		// For JPEG files, try FFmpeg fallback if initial decode failed
 		if strings.HasPrefix(file.Type, "image/jpeg") {
 			return handleJPEGFallback(ctx, s, file, previewSize, err)
@@ -496,8 +499,11 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 			return nil, err
 		}
 
-		resizedBytes, err := service.CreatePreview(bytes.NewReader(imageBytes), 0, options)
+		resizedBytes, err := service.CreatePreview(ctx, bytes.NewReader(imageBytes), 0, options)
 		if err != nil {
+			if ctx.Err() != nil {
+				return nil, ctx.Err()
+			}
 			// For JPEG files, try FFmpeg fallback if resize failed
 			if strings.HasPrefix(file.Type, "image/jpeg") {
 				resizedBytes, err = handleJPEGFallback(ctx, service, file, previewSize, err)
@@ -566,9 +572,9 @@ func getPreviewOptions(previewSize string) (ResizeOptions, error) {
 }
 
 // CreatePreview resizes an image from a reader with the given options
-func (s *Service) CreatePreview(reader io.Reader, fileSize int64, options ResizeOptions) ([]byte, error) {
+func (s *Service) CreatePreview(ctx context.Context, reader io.Reader, fileSize int64, options ResizeOptions) ([]byte, error) {
 	output := &bytes.Buffer{}
-	if err := s.ResizeWithSize(reader, output, fileSize, options); err != nil {
+	if err := s.ResizeWithSize(ctx, reader, output, fileSize, options); err != nil {
 		return nil, err
 	}
 	return output.Bytes(), nil

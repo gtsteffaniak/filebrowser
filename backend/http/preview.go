@@ -155,6 +155,11 @@ func getDirectoryPreview(r *http.Request, d *requestContext, frameIndex int) (*i
 }
 
 func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	ctx := r.Context()
+	if d.ctx != nil {
+		ctx = d.ctx
+	}
+
 	previewSize := r.URL.Query().Get("size")
 	if !(previewSize == "large" || previewSize == "original" || previewSize == "xlarge") {
 		previewSize = "small"
@@ -191,6 +196,12 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 		}
 		fileInfo, err := getDirectoryPreview(r, d, dirFrameIndex)
 		if err != nil {
+			if isClientCancellation(ctx, err) {
+				return http.StatusOK, nil
+			}
+			if ctx.Err() == context.DeadlineExceeded || errors.Is(err, context.DeadlineExceeded) {
+				return http.StatusRequestTimeout, fmt.Errorf("preview generation timed out")
+			}
 			logger.Errorf("error getting directory preview: %v", err)
 			return http.StatusInternalServerError, err
 		}
@@ -223,12 +234,6 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 			officeUrl = scheme + "://" + r.Host + pathUrl
 		}
 	}
-	// Use the context from the request context (which includes timeout)
-	ctx := r.Context()
-	if d.ctx != nil {
-		ctx = d.ctx
-	}
-
 	previewImg, err := preview.GetPreviewForFile(ctx, d.fileInfo, previewSize, officeUrl, seekPercentage)
 	if err != nil {
 		// Check if it was a context cancellation (client navigated away)

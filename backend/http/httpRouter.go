@@ -138,7 +138,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	publicApi.HandleFunc("DELETE /resources/bulk", withHashFile(publicBulkDeleteHandler))
 	publicApi.HandleFunc("PATCH /resources", withHashFile(publicPatchHandler))
 	publicApi.HandleFunc("GET /resources/download", withHashFile(publicDownloadHandler))
-	publicApi.HandleFunc("GET /resources/preview", withHashFile(publicPreviewHandler))
+	publicApi.HandleFunc("GET /resources/preview", withTimeout(60*time.Second, withHashFileHelper(publicPreviewHandler)))
 	publicApi.HandleFunc("POST /resources/pause", withHashFile(publicPauseHandler))
 	// Legacy routes (backwards compatibility)
 	api.HandleFunc("GET /raw", withUser(downloadHandler))

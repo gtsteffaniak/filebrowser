@@ -29,6 +29,7 @@
 </template>
 
 <script>
+import { fetchPreviewImage } from "@/api/resources";
 import { globalVars } from "@/utils/constants";
 import { getTypeInfo } from "@/utils/mimetype";
 import { mutations, state, getters } from "@/store";
@@ -95,9 +96,12 @@ export default {
       classes: "",
       svgPath: "",
       previewTimeouts: [],
+      previewAbortController: null,
+      preloadAbortControllers: [],
+      imageBlobUrl: null,
       // UPDATED: Manage image state directly
       imageState: "loading", // Can be 'loading', 'loaded', or 'error'
-      imageTargetSrc: "", // This is now a data property
+      imageTargetSrc: "", // API URL being loaded
       currentThumbnail: "", // Add currentThumbnail to data
       color: "", // Add color to data
       threeJsError: false, // Track if 3D preview failed
@@ -189,7 +193,7 @@ export default {
       if (this.imageState === "loading") {
         return this.placeholderUrl;
       }
-      return this.imageTargetSrc;
+      return this.imageBlobUrl || this.placeholderUrl;
     },
     showLargeIcon() {
       return getters.viewMode() === "gallery";
@@ -229,13 +233,35 @@ export default {
       // Also includes view mode to handle view changes
       return `${state.user?.gallerySize || 1}-${getters.viewMode()}`;
     },
+    routePath() {
+      return state.route?.path ?? "";
+    },
   },
   methods: {
     handle3DError() {
       // When 3D preview fails, fall back to material icon
       this.threeJsError = true;
     },
-    // NEW: Centralized method to load any image and handle its state
+    cancelPreloadRequests() {
+      this.previewTimeouts.forEach(clearTimeout);
+      this.previewTimeouts = [];
+      for (const controller of this.preloadAbortControllers) {
+        controller.abort();
+      }
+      this.preloadAbortControllers = [];
+    },
+    cancelActivePreviews() {
+      this.cancelPreloadRequests();
+      if (this.previewAbortController) {
+        this.previewAbortController.abort();
+        this.previewAbortController = null;
+      }
+      if (this.imageBlobUrl) {
+        URL.revokeObjectURL(this.imageBlobUrl);
+        this.imageBlobUrl = null;
+      }
+    },
+    // Load preview via fetch so requests can be aborted on navigation
     /**
      * @param {string} url
      */
@@ -245,33 +271,42 @@ export default {
         return;
       }
 
+      this.cancelActivePreviews();
       this.imageState = "loading";
-      const targetImage = new Image();
 
-      targetImage.onload = () => {
-        // Prevent race conditions: only update if this is the image we still want.
-        if (this.imageTargetSrc === url) {
-          this.imageState = "loaded";
-          // Mark this image as loaded in our cache tracker
-          if (this.path) {
-            // For shares, use shareInfo.hash as the source; otherwise use this.source or state.req.source
-            const source = getters.isShare() ? state.shareInfo?.hash : (this.source || state.req.source);
-            const size = this.showLargeIcon ? 'large' : 'small';
-            // Use file's modified date if available, otherwise fall back to state.req.modified
-            const modified = this.modified || state.req.modified;
-            setImageLoaded(source, this.path, size, modified, url);
+      const controller = new AbortController();
+      this.previewAbortController = controller;
+      const loadUrl = url;
+
+      fetchPreviewImage(loadUrl, controller.signal)
+        .then((blobUrl) => {
+          if (this.previewAbortController !== controller) {
+            URL.revokeObjectURL(blobUrl);
+            return;
           }
-        }
-      };
-
-      targetImage.onerror = () => {
-        // Prevent race conditions: only show an error if this is the image that failed.
-        if (this.imageTargetSrc === url) {
-          this.imageState = "error";
-        }
-      };
-
-      targetImage.src = url;
+          if (this.imageTargetSrc !== loadUrl) {
+            URL.revokeObjectURL(blobUrl);
+            return;
+          }
+          this.imageBlobUrl = blobUrl;
+          this.imageState = "loaded";
+          this.previewAbortController = null;
+          if (this.path) {
+            const source = getters.isShare() ? state.shareInfo?.hash : (this.source || state.req.source);
+            const size = this.showLargeIcon ? "large" : "small";
+            const modified = this.modified || state.req.modified;
+            setImageLoaded(source, this.path, size, modified, loadUrl);
+          }
+        })
+        .catch((err) => {
+          if (err?.name === "AbortError") {
+            return;
+          }
+          if (this.imageTargetSrc === loadUrl && this.previewAbortController === controller) {
+            this.imageState = "error";
+            this.previewAbortController = null;
+          }
+        });
     },
     handleMouseEnter() {
       if (!getters.previewPerms().popup || !this.path) {
@@ -331,21 +366,21 @@ export default {
           this.currentThumbnail = sequence[index];
         }
 
-        // Preload the next image
+        // Preload the next frame (cancellable fetch warms HTTP cache)
         const nextIndex = (index + 1) % sequence.length;
-        const preloadImg = new Image();
-        preloadImg.onload = () => {
-          // Track that this image was loaded (motion preview frames use the same path)
-          if (this.path) {
-            // For shares, use shareInfo.hash as the source; otherwise use this.source or state.req.source
-            const source = getters.isShare() ? state.shareInfo?.hash : (this.source || state.req.source);
-            const frameUrl = sequence[nextIndex];
-            // Use file's modified date if available, otherwise fall back to state.req.modified
-            const modified = this.modified || state.req.modified;
-            setImageLoaded(source, this.path, 'large', modified, frameUrl);
-          }
-        };
-        preloadImg.src = sequence[nextIndex];
+        const frameUrl = sequence[nextIndex];
+        const preloadController = new AbortController();
+        this.preloadAbortControllers.push(preloadController);
+        fetchPreviewImage(frameUrl, preloadController.signal)
+          .then((blobUrl) => {
+            URL.revokeObjectURL(blobUrl);
+            if (this.path) {
+              const source = getters.isShare() ? state.shareInfo?.hash : (this.source || state.req.source);
+              const modified = this.modified || state.req.modified;
+              setImageLoaded(source, this.path, "large", modified, frameUrl);
+            }
+          })
+          .catch(() => {});
 
         // Schedule next update
         index = nextIndex;
@@ -355,8 +390,7 @@ export default {
       updateThumbnail();
     },
     handleMouseLeave() {
-      this.previewTimeouts.forEach(clearTimeout);
-      this.previewTimeouts = [];
+      this.cancelPreloadRequests();
       mutations.setPreviewSource("");
       // Clear popup preview source info when mouse leaves
       state.popupPreviewSourceInfo = null;
@@ -380,6 +414,10 @@ export default {
     },
   },
   watch: {
+    routePath() {
+      this.cancelActivePreviews();
+      this.imageState = "loading";
+    },
     thumbnailUrl() {
       this.updateImageTargetSrc();
     },
@@ -427,9 +465,7 @@ export default {
     this.updateImageTargetSrc();
   },
   beforeUnmount() {
-    // Clean up any pending animation timeouts
-    this.previewTimeouts.forEach(clearTimeout);
-    this.previewTimeouts = [];
+    this.cancelActivePreviews();
   },
 };
 </script>

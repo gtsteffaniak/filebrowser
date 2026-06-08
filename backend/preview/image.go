@@ -2,6 +2,7 @@ package preview
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"image"
 	"image/jpeg"
@@ -150,12 +151,34 @@ type ResizeOptions struct {
 	JpegQuality int // JPEG encoding quality (1-100), 0 means use Quality default
 }
 
-func (s *Service) Resize(in io.Reader, out io.Writer, opts ResizeOptions) error {
-	return s.ResizeWithSize(in, out, 0, opts)
+func (s *Service) Resize(ctx context.Context, in io.Reader, out io.Writer, opts ResizeOptions) error {
+	return s.ResizeWithSize(ctx, in, out, 0, opts)
 }
 
-// ResizeWithSize resizes an image with file size information for appropriate semaphore selection
-func (s *Service) ResizeWithSize(in io.Reader, out io.Writer, fileSize int64, opts ResizeOptions) error {
+// ResizeWithSize resizes an image with file size information for appropriate semaphore selection.
+// Blocking decode/resize work runs in a goroutine so the call returns promptly on ctx cancellation.
+func (s *Service) ResizeWithSize(ctx context.Context, in io.Reader, out io.Writer, fileSize int64, opts ResizeOptions) error {
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+
+	type resizeResult struct {
+		err error
+	}
+	done := make(chan resizeResult, 1)
+	go func() {
+		done <- resizeResult{err: s.resizeWithSize(in, out, fileSize, opts)}
+	}()
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case result := <-done:
+		return result.err
+	}
+}
+
+func (s *Service) resizeWithSize(in io.Reader, out io.Writer, fileSize int64, opts ResizeOptions) error {
 	// Set defaults
 	if opts.ResizeMode == 0 {
 		opts.ResizeMode = ResizeModeFit
