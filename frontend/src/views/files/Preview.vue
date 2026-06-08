@@ -425,19 +425,25 @@ export default {
       return subs;
     },
     async keyEvent(event) {
-      if (getters.currentPromptName()) {
+      if (getters.currentPromptName() || event.repeat) {
         return;
       }
 
-      const { key } = event;
+      const { key, altKey } = event;
 
-      switch (key) {
-        case "Delete":
-          this.showDeletePrompt();
-          break;
+      let shortcut = key;
+      if (altKey) shortcut = `Alt+${key}`;
+
+      switch (shortcut) {
+        case "Alt+ArrowUp":
+          event.preventDefault();
+          // fall through
         case "Escape":
         case "Backspace":
           this.close();
+          break;
+        case "Delete":
+          this.showDeletePrompt();
           break;
       }
     },

@@ -101,7 +101,9 @@
       "playbackModes": "切換播放模式（不包括循環和單次）",
       "fullscreen": "影片全螢幕模式切換",
       "captions": "開啟/關閉字幕"
-    }
+    },
+    "altArrowUp": "前往父資料夾",
+    "altArrowDown": "開啟選定的檔案/資料夾"
   },
   "languages": {
     "he": "עברית",
@@ -658,12 +660,13 @@
     "show": "顯示{suffix}",
     "divider": "分隔線{suffix}",
     "audio": "音訊{suffix}",
-    "and": "和",
-    "or": "或",
     "readOnly": "唯讀{suffix}",
     "private": "私人{suffix}",
     "yes": "是{suffix}",
-    "no": "沒有{suffix}"
+    "no": "沒有{suffix}",
+    "to": "至{suffix}",
+    "and": "以及{suffix}",
+    "or": "或{suffix}"
   },
   "access": {
     "rules": "存取規則",

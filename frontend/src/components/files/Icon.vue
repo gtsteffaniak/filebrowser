@@ -35,10 +35,6 @@ import { mutations, state, getters } from "@/store";
 import { setImageLoaded } from "@/utils/imageCache";
 import ThreeJs from "@/views/files/ThreeJs.vue";
 
-// NEW: Define placeholder and error image URLs for easy configuration
-const PLACEHOLDER_URL = `${globalVars.baseURL}public/static/img/placeholder.png`; // A generic loading placeholder
-const ERROR_URL = `${globalVars.baseURL}public/static/img/placeholder.png`;
-
 export default {
   name: "Icon",
   components: {
@@ -108,6 +104,12 @@ export default {
     };
   },
   computed: {
+    placeholderUrl() {
+      return `${globalVars.baseURL}public/static/img/placeholder.png`;
+    },
+    errorUrl() {
+      return `${globalVars.baseURL}public/static/img/placeholder.png`;
+    },
     isFile() {
       return this.mimetype !== "directory";
     },
@@ -181,11 +183,11 @@ export default {
     // NEW: A single computed property to determine the final image src
     imageDisplaySrc() {
       if (this.imageState === "error") {
-        return ERROR_URL;
+        return this.errorUrl;
       }
       // Show placeholder only for the initial load, not during hover animations
       if (this.imageState === "loading") {
-        return PLACEHOLDER_URL;
+        return this.placeholderUrl;
       }
       return this.imageTargetSrc;
     },
@@ -365,7 +367,7 @@ export default {
       return getTypeInfo(this.mimetype);
     },
     updateImageTargetSrc() {
-      let newSrc = this.thumbnailUrl || PLACEHOLDER_URL;
+      let newSrc = this.thumbnailUrl || this.placeholderUrl;
       // If we need large thumbnails and have a thumbnail URL, append &size=large
       // Otherwise use the URL as-is (defaults to small)
       if (this.thumbnailUrl && this.showLargeIcon) {

@@ -101,7 +101,9 @@
       "playbackModes": "Przełącz między trybami odtwarzania (z wyłączeniem pętli i pojedynczego)",
       "fullscreen": "Przełącz tryb pełnoekranowy w wideo",
       "captions": "Włącz/Wyłącz napisy"
-    }
+    },
+    "altArrowUp": "Przejdź do folderu nadrzędnego",
+    "altArrowDown": "Otwórz wybrany plik/folder"
   },
   "languages": {
     "he": "עברית",
@@ -564,12 +566,13 @@
     "show": "Pokaż{suffix}",
     "divider": "Dzielnik{suffix}",
     "audio": "Audio{suffix}",
-    "and": "oraz",
-    "or": "lub",
     "readOnly": "Tylko do odczytu{suffix}",
     "private": "Prywatny{suffix}",
     "yes": "Tak{suffix}",
-    "no": "Nie{suffix}"
+    "no": "Nie{suffix}",
+    "to": "do{suffix}",
+    "and": "oraz{suffix}",
+    "or": "lub{suffix}"
   },
   "access": {
     "rules": "Zasady dostępu",

@@ -101,7 +101,9 @@
       "playbackModes": "Cambiar entre modos de reproducción (excepto bucle)",
       "fullscreen": "Cambiar a pantalla completa en vídeos",
       "captions": "Activar/Desactivar subtítulos"
-    }
+    },
+    "altArrowUp": "Ir a la carpeta principal",
+    "altArrowDown": "Abrir el archivo o la carpeta seleccionados"
   },
   "languages": {
     "he": "עברית",
@@ -564,12 +566,13 @@
     "show": "Mostrar{suffix}",
     "divider": "Divisor{suffix}",
     "audio": "Audio{suffix}",
-    "and": "y",
-    "or": "o",
     "readOnly": "Sólo lectura{suffix}",
     "private": "Privado{suffix}",
     "yes": "Sí{suffix}",
-    "no": "No{suffix}"
+    "no": "No{suffix}",
+    "to": "a{suffix}",
+    "and": "y{suffix}",
+    "or": "o{suffix}"
   },
   "access": {
     "rules": "Reglas de acceso",

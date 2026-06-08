@@ -101,7 +101,9 @@
       "playbackModes": "Alternar entre modos de reprodução (exceto repetição e único)",
       "fullscreen": "Alternar modo de tela cheia em vídeos",
       "captions": "Ativar/Desativar legendas"
-    }
+    },
+    "altArrowUp": "Ir para a pasta pai",
+    "altArrowDown": "Abrir o arquivo/pasta selecionado(a)"
   },
   "languages": {
     "he": "עברית",
@@ -564,12 +566,13 @@
     "show": "Mostrar{suffix}",
     "divider": "Divisor{suffix}",
     "audio": "Áudio{suffix}",
-    "and": "e",
-    "or": "ou",
     "readOnly": "Somente leitura{suffix}",
     "private": "Privado{suffix}",
     "yes": "Sim{suffix}",
-    "no": "Não{suffix}"
+    "no": "Não{suffix}",
+    "to": "para{suffix}",
+    "and": "e{suffix}",
+    "or": "ou{suffix}"
   },
   "access": {
     "rules": "Regras de acesso",

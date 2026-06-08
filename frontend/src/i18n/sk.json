@@ -101,7 +101,9 @@
       "playbackModes": "Prepnúť režimy prehrávania (okrem slučky a jednotlivého)",
       "fullscreen": "Prepnúť režim celej obrazovky vo videách",
       "captions": "Zapnúť/Vypnúť titulky"
-    }
+    },
+    "altArrowUp": "Prejsť do nadradeného priečinka",
+    "altArrowDown": "Otvoriť vybraný súbor/zložku"
   },
   "languages": {
     "he": "עברית",
@@ -564,12 +566,13 @@
     "show": "Zobraziť{suffix}",
     "divider": "Rozdeľovač{suffix}",
     "audio": "Audio{suffix}",
-    "and": "a",
-    "or": "alebo",
     "readOnly": "Len na čítanie{suffix}",
     "private": "Súkromná stránka{suffix}",
     "yes": "Áno{suffix}",
-    "no": "Nie{suffix}"
+    "no": "Nie{suffix}",
+    "to": "do{suffix}",
+    "and": "a{suffix}",
+    "or": "alebo{suffix}"
   },
   "access": {
     "rules": "Pravidlá prístupu",

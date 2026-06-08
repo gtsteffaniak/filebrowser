@@ -101,7 +101,9 @@
       "playbackModes": "Basculer entre les modes de lecture (hors répétition et unique)",
       "fullscreen": "Basculer en plein écran pour les vidéos",
       "captions": "Activer/Désactiver les sous-titres"
-    }
+    },
+    "altArrowUp": "Aller au dossier parent",
+    "altArrowDown": "Ouvrir le fichier/dossier sélectionné"
   },
   "languages": {
     "he": "עברית",
@@ -564,12 +566,13 @@
     "show": "Afficher{suffix}",
     "divider": "Diviseur{suffix}",
     "audio": "Audio{suffix}",
-    "and": "et",
-    "or": "ou",
     "readOnly": "Lecture seule{suffix}",
     "private": "Privé{suffix}",
     "yes": "Oui{suffix}",
-    "no": "Non{suffix}"
+    "no": "Non{suffix}",
+    "to": "à{suffix}",
+    "and": "et{suffix}",
+    "or": "ou{suffix}"
   },
   "access": {
     "rules": "Règles d'accès",

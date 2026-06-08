@@ -101,7 +101,9 @@
       "playbackModes": "Växla mellan uppspelningslägen (exklusive loop och enkel)",
       "fullscreen": "Växla till helskärmsläge i videor",
       "captions": "Slå på/av undertexter"
-    }
+    },
+    "altArrowUp": "Gå till överordnad mapp",
+    "altArrowDown": "Öppna vald fil/mapp"
   },
   "languages": {
     "he": "עברית",
@@ -658,12 +660,13 @@
     "show": "Visa{suffix}",
     "divider": "Uppdelare{suffix}",
     "audio": "Ljud{suffix}",
-    "and": "och",
-    "or": "eller",
     "readOnly": "Skrivskyddad{suffix}",
     "private": "Privat{suffix}",
     "yes": "Ja{suffix}",
-    "no": "Nej{suffix}"
+    "no": "Nej{suffix}",
+    "to": "till{suffix}",
+    "and": "och{suffix}",
+    "or": "eller{suffix}"
   },
   "access": {
     "rules": "Regler för åtkomst",

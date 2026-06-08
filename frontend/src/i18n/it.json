@@ -110,12 +110,13 @@
     "lastUpdate": "Ultimo aggiornamento{suffix}",
     "latency": "Latenza{suffix}",
     "audio": "Audio{suffix}",
-    "and": "e",
-    "or": "o",
     "readOnly": "Solo lettura{suffix}",
     "private": "Privato{suffix}",
     "yes": "Sì{suffix}",
-    "no": "No{suffix}"
+    "no": "No{suffix}",
+    "to": "a{suffix}",
+    "and": "e{suffix}",
+    "or": "oppure{suffix}"
   },
   "buttons": {
     "copySuccess": "Copiato negli appunti!",
@@ -219,7 +220,9 @@
       "playbackModes": "Passa tra le modalità di riproduzione (escluso loop e singola)",
       "fullscreen": "Attiva/disattiva schermo intero nei video",
       "captions": "Attiva/disattiva sottotitoli"
-    }
+    },
+    "altArrowUp": "Vai alla cartella principale",
+    "altArrowDown": "Apri il file/la cartella selezionati"
   },
   "languages": {
     "he": "עברית",

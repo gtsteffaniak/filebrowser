@@ -203,6 +203,8 @@
         0 0 0 2px var(--alt-background);
 }
 
-.dark-mode .pin-icon-wrapper {
+.dark-mode .pin-icon-wrapper,
+.dark-mode .listing-items.list .pinned-indicator,
+.dark-mode .listing-items.compact .pinned-indicator {
   background: rgba(0, 0, 0, 0.75);
 }

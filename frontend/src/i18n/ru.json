@@ -101,7 +101,9 @@
       "playbackModes": "Переключение режимов воспроизведения (кроме повтора и однократного)",
       "fullscreen": "Полноэкранный режим в видео",
       "captions": "Включить/Выключить субтитры"
-    }
+    },
+    "altArrowUp": "Перейти в родительскую папку",
+    "altArrowDown": "Открыть выбранный файл/папку"
   },
   "languages": {
     "he": "עברית",
@@ -564,12 +566,13 @@
     "show": "Показать{suffix}",
     "divider": "Разделитель{suffix}",
     "audio": "Аудио{suffix}",
-    "and": "и",
-    "or": "или",
     "readOnly": "Только для чтения{suffix}",
     "private": "Частный{suffix}",
     "yes": "Да{suffix}",
-    "no": "Нет{suffix}"
+    "no": "Нет{suffix}",
+    "to": "до{suffix}",
+    "and": "и{suffix}",
+    "or": "или{suffix}"
   },
   "access": {
     "rules": "Правила доступа",

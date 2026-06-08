@@ -63,6 +63,9 @@ func Initialize(configFile string) {
 }
 
 func setupServer() {
+	if Config.Server.Socket != "" && (Config.Server.TLSCert != "" || Config.Server.TLSKey != "") {
+		logger.Fatal("server.socket cannot be used with tlsCert or tlsKey")
+	}
 	if Config.Server.ListenAddress == "" {
 		Config.Server.ListenAddress = "0.0.0.0"
 	}

@@ -101,7 +101,9 @@
       "playbackModes": "Přepínání režimů přehrávání (kromě smyčky a jednoho přehrání)",
       "fullscreen": "Přepnout režim celé obrazovky u videí",
       "captions": "Zapnout/vypnout titulky"
-    }
+    },
+    "altArrowUp": "Přejít do nadřazené složky",
+    "altArrowDown": "Otevřít vybraný soubor/složku"
   },
   "languages": {
     "he": "עברית",
@@ -658,12 +660,13 @@
     "show": "Zobrazit{suffix}",
     "divider": "Rozdělovač{suffix}",
     "audio": "Audio{suffix}",
-    "and": "a",
-    "or": "nebo",
     "readOnly": "Pouze pro čtení{suffix}",
     "private": "Soukromé{suffix}",
     "yes": "Ano{suffix}",
-    "no": "Ne{suffix}"
+    "no": "Ne{suffix}",
+    "to": "až{suffix}",
+    "and": "a{suffix}",
+    "or": "nebo{suffix}"
   },
   "access": {
     "rules": "Pravidla přístupu",

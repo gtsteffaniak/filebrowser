@@ -10,6 +10,7 @@ import (
 	"io/fs"
 	"net"
 	"net/http"
+	"os"
 	"time"
 
 	_ "net/http/pprof"
@@ -253,16 +254,28 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 		})
 	}
 
-	var scheme string
-	port := ""
 	srv := &http.Server{
 		Addr:    fmt.Sprintf("%v:%v", config.Server.ListenAddress, config.Server.Port),
 		Handler: muxWithMiddleware(router),
 	}
 	listenAddress := config.Server.ListenAddress
 	go func() {
-		// Determine whether to use HTTPS (TLS) or HTTP
-		if config.Server.TLSCert != "" && config.Server.TLSKey != "" {
+		var listener net.Listener
+
+		if config.Server.Socket != "" {
+			if err := os.Remove(config.Server.Socket); err != nil && !os.IsNotExist(err) {
+				logger.Fatalf("Could not remove existing socket: %v", err)
+			}
+			var err error
+			listener, err = net.Listen("unix", config.Server.Socket)
+			if err != nil {
+				logger.Fatalf("Could not listen on unix socket: %v", err)
+			}
+			logger.Infof("Running at               : unix://%s%s", config.Server.Socket, config.Server.BaseURL)
+		} else if config.Server.TLSCert != "" && config.Server.TLSKey != "" {
+			var scheme string
+			port := ""
+			// Determine whether to use HTTPS (TLS) or HTTP
 			// Load the TLS certificate and key
 			cer, err := tls.LoadX509KeyPair(config.Server.TLSCert, config.Server.TLSKey)
 			if err != nil {
@@ -286,8 +299,6 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 			logger.Infof("Running at               : %s", fullURL)
 
 			// Attempt to get listener from socket activation with TLS configuration
-			var listener net.Listener
-
 			socketActivationListeners, err := activation.TLSListeners(tlsConfig)
 			if err == nil && len(socketActivationListeners) > 0 {
 				listener = socketActivationListeners[0]
@@ -306,10 +317,9 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 				}
 			}
 
-			if err := srv.Serve(listener); err != nil && err != http.ErrServerClosed {
-				logger.Fatalf("Server error: %v", err)
-			}
 		} else {
+			var scheme string
+			port := ""
 			// Set HTTP scheme and the default port for HTTP
 			scheme = "http"
 			if config.Server.Port != 80 {
@@ -319,8 +329,6 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 			// Build the full URL with host and port
 			fullURL := fmt.Sprintf("%s://%s%s%s", scheme, listenAddress, port, config.Server.BaseURL)
 			logger.Infof("Running at               : %s", fullURL)
-
-			var listener net.Listener
 
 			// Attempt to get the listener from socket activation
 			socketActivationListeners, err := activation.Listeners()
@@ -347,10 +355,10 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 				}
 			}
 
-			// Start HTTP server
-			if err := srv.Serve(listener); err != nil && err != http.ErrServerClosed {
-				logger.Fatalf("Server error: %v", err)
-			}
+		}
+
+		if err := srv.Serve(listener); err != nil && err != http.ErrServerClosed {
+			logger.Fatalf("Server error: %v", err)
 		}
 	}()
 
@@ -387,6 +395,12 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 		logger.Errorf("HTTP server forced to shut down: %v", err)
 	} else {
 		logger.Info("HTTP server shut down gracefully.")
+	}
+
+	if config.Server.Socket != "" {
+		if err := os.Remove(config.Server.Socket); err != nil && !os.IsNotExist(err) {
+			logger.Debugf("Could not remove unix socket: %v", err)
+		}
 	}
 
 	// Signal that shutdown is complete
