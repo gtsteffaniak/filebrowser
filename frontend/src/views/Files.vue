@@ -552,7 +552,7 @@ export default {
         }
       }
       // F2! - for rename in listing or preview
-      if (event.key === "F2") {
+      if (event.key === "F2" && !event.ctrlKey && !event.metaKey) {
         event.preventDefault();
         if (getters.currentPromptName()) return;
 
