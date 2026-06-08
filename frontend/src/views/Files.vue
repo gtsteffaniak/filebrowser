@@ -233,8 +233,9 @@ export default {
         }
         targetName = decodedName;
         scrollToId = url.base64Encode(encodeURIComponent(decodedName));
-
-      } else if (state.previousHistoryItem?.name && state.previousHistoryItem.path === state.req.path && state.previousHistoryItem.source === state.req.source) {
+      } else if (state.previousHistoryItem?.name &&
+                 state.previousHistoryItem.path === state.req.path &&
+                 state.previousHistoryItem.source === state.req.source) {
         targetName = state.previousHistoryItem.name;
         scrollToId = url.base64Encode(encodeURIComponent(state.previousHistoryItem.name));
       }
@@ -244,16 +245,16 @@ export default {
       }
       // Re-select the item we are returning to -- replaces the previous glow effect.
       const targetIndex = state.req?.items?.findIndex((item) => item.name === targetName);
-      if (targetIndex !==1) {
+      if (targetIndex !== -1) {
         mutations.addSelected(targetIndex);
       }
       const element = document.getElementById(scrollToId);
-        if (element) {
-          element.scrollIntoView({
-            behavior: "instant",
-            block: "center",
-          });
-        }
+      if (element) {
+        element.scrollIntoView({
+          behavior: "instant",
+          block: "center",
+        });
+      }
     },
     async patchMediaMetadataIfNeeded(listing, fetchMedia) {
       if (directoryListingHasMediaChildren(listing)) {
