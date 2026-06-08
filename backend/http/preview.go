@@ -84,6 +84,22 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	return status, nil
 }
 
+func shouldServeOriginalPreview(ext string, resizable bool, realPath, previewSize string, fileSize int64) bool {
+	if !resizable {
+		return false
+	}
+	// HEIC/TIFF still need conversion for reliable web display.
+	switch ext {
+	case ".heic", ".heif", ".tiff", ".tif":
+		return false
+	}
+	const maxSizeForOriginal = 256 * 1024 // 256KB
+	if config.Server.DisableResize || fileSize < maxSizeForOriginal {
+		return true
+	}
+	return preview.ShouldServeOriginalImage(realPath, previewSize)
+}
+
 func rawFileHandler(w http.ResponseWriter, r *http.Request, file iteminfo.ExtendedFileInfo) (int, error) {
 	fd, err := os.Open(file.RealPath)
 	if err != nil {
@@ -214,9 +230,9 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 	ext := strings.ToLower(filepath.Ext(d.fileInfo.Name))
 	resizable := iteminfo.ResizableImageTypes[ext]
 
-	// For small, displayable images (jpg, png, etc.) serve the original to avoid processing.
-	const maxSizeForOriginal = 256 * 1024 // 256KB
-	if resizable && (config.Server.DisableResize || d.fileInfo.Size < maxSizeForOriginal) && isImage {
+	// For small displayable images (jpg, png, etc.) serve the original to avoid processing.
+	// Also serve the original when dimensions already fit the requested preview size.
+	if isImage && shouldServeOriginalPreview(ext, resizable, d.fileInfo.RealPath, previewSize, d.fileInfo.Size) {
 		return rawFileHandler(w, r, d.fileInfo)
 	}
 

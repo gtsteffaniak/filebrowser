@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"image"
 	"io"
 	"os"
 	"path/filepath"
@@ -344,6 +345,13 @@ func (s *Service) generateVideoPreviewBytes(ctx context.Context, file iteminfo.E
 
 // generateImagePreview generates preview for regular image files
 func (s *Service) generateImagePreview(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize string) ([]byte, error) {
+	const maxSizeForOriginal = 256 * 1024 // 256KB
+	if previewSize != "original" && (file.Size < maxSizeForOriginal || ShouldServeOriginalImage(file.RealPath, previewSize)) {
+		if original, err := os.ReadFile(file.RealPath); err == nil {
+			return original, nil
+		}
+	}
+
 	// Stream from file instead of os.ReadFile so we don't load every image fully into memory
 	f, err := os.Open(file.RealPath)
 	if err != nil {
@@ -501,6 +509,13 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 			return nil, err
 		}
 
+		if cfg, _, cfgErr := image.DecodeConfig(bytes.NewReader(imageBytes)); cfgErr == nil && ImageFitsPreviewSize(cfg.Width, cfg.Height, previewSize) {
+			if err := service.fileCache.Store(ctx, cacheKey, imageBytes); err != nil {
+				logger.Errorf("failed to cache image: %v", err)
+			}
+			return imageBytes, nil
+		}
+
 		resizedBytes, err := service.CreatePreview(ctx, bytes.NewReader(imageBytes), 0, options)
 		if err != nil {
 			if ctx.Err() != nil {
@@ -539,6 +554,42 @@ func GeneratePreview(ctx context.Context, file iteminfo.ExtendedFileInfo, previe
 	cacheHash := hex.EncodeToString(hasher.Sum(nil))
 
 	return GeneratePreviewWithMD5(ctx, file, previewSize, officeUrl, seekPercentage, cacheHash)
+}
+
+// ImageFitsPreviewSize reports whether both image dimensions are within the preview bounds.
+func ImageFitsPreviewSize(imgWidth, imgHeight int, previewSize string) bool {
+	if previewSize == "original" {
+		return true
+	}
+	opts, err := getPreviewOptions(previewSize)
+	if err != nil {
+		return false
+	}
+	return imgWidth <= opts.Width && imgHeight <= opts.Height
+}
+
+// ReadImageFileDimensions reads image width and height without decoding the full image.
+func ReadImageFileDimensions(path string) (int, int, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return 0, 0, err
+	}
+	defer f.Close()
+
+	cfg, _, err := image.DecodeConfig(f)
+	if err != nil {
+		return 0, 0, err
+	}
+	return cfg.Width, cfg.Height, nil
+}
+
+// ShouldServeOriginalImage reports whether an on-disk image is already within preview bounds.
+func ShouldServeOriginalImage(path, previewSize string) bool {
+	width, height, err := ReadImageFileDimensions(path)
+	if err != nil {
+		return false
+	}
+	return ImageFitsPreviewSize(width, height, previewSize)
 }
 
 // getPreviewOptions returns resize options for the given preview size

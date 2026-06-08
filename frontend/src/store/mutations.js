@@ -91,7 +91,11 @@ export const mutations = {
       return;
     }
     if (value) {
-      state.popupPreviewSourceInfo = { ...state.popupPreviewSourceInfo, url: value };
+      state.popupPreviewSourceInfo = {
+        ...state.popupPreviewSourceInfo,
+        url: value,
+        size: "xlarge",
+      };
     } else {
       state.popupPreviewSourceInfo = null;
     }

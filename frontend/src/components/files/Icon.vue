@@ -198,6 +198,12 @@ export default {
     showLargeIcon() {
       return getters.viewMode() === "gallery";
     },
+    popupPreviewUrl() {
+      if (!this.thumbnailUrl) {
+        return "";
+      }
+      return `${this.thumbnailUrl}&size=xlarge`;
+    },
     showLarger() {
       return getters.viewMode() === "gallery" || getters.viewMode() === "normal";
     },
@@ -332,10 +338,9 @@ export default {
         return;
       }
 
-      // Image (and other preview types): use thumbnail URL
-      const imageUrl = this.thumbnailUrl
+      // Image (and other preview types): popup always uses xlarge preview
+      const imageUrl = this.popupPreviewUrl;
       if (this.imageState === "loaded") {
-        mutations.setPreviewSource(imageUrl);
         state.popupPreviewSourceInfo = { source, path: this.path, size: "xlarge", url: imageUrl, modified };
       }
       // Motion preview: video (atPercentage) or folder (cycle next previewable image)
@@ -377,7 +382,7 @@ export default {
             if (this.path) {
               const source = getters.isShare() ? state.shareInfo?.hash : (this.source || state.req.source);
               const modified = this.modified || state.req.modified;
-              setImageLoaded(source, this.path, "large", modified, frameUrl);
+              setImageLoaded(source, this.path, "xlarge", modified, frameUrl);
             }
           })
           .catch(() => {});
