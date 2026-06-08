@@ -13,6 +13,22 @@ import (
 	"github.com/kovidgoyal/imaging"
 )
 
+// configureImagingParallelism limits kovidgoyal/imaging to one thread per resize.
+// Concurrent preview jobs are capped separately by imageSem (like OG filebrowser).
+func configureImagingParallelism() {
+	imaging.SetMaxProcs(1)
+}
+
+// previewDecodeOpts returns decode options tuned for thumbnails: skip ICC/sRGB conversion
+// (not needed for previews) and optionally apply EXIF orientation.
+func previewDecodeOpts(autoOrient bool) []imaging.DecodeOption {
+	opts := []imaging.DecodeOption{imaging.ColorSpace(imaging.NO_CHANGE_OF_COLORSPACE)}
+	if autoOrient {
+		opts = append(opts, imaging.AutoOrientation(true))
+	}
+	return opts
+}
+
 // Format is an image file format.
 /*
 ENUM(
@@ -208,7 +224,7 @@ func (s *Service) resizeWithSize(in io.Reader, out io.Writer, fileSize int64, op
 	}
 
 	// Decode the image - try imaging library first, fall back to format-specific decoder if it fails
-	img, err := imaging.Decode(wrappedReader, imaging.AutoOrientation(true))
+	img, err := imaging.Decode(wrappedReader, previewDecodeOpts(true)...)
 	if err != nil {
 		// Imaging library failed, try format-specific standard decoder as fallback
 		// Reset reader if possible
@@ -266,7 +282,7 @@ func applyOrientationToPreviewBytes(imageBytes []byte, orientation string) []byt
 	if len(imageBytes) < 100 {
 		return imageBytes
 	}
-	img, err := imaging.Decode(bytes.NewReader(imageBytes))
+	img, err := imaging.Decode(bytes.NewReader(imageBytes), previewDecodeOpts(false)...)
 	if err != nil {
 		return imageBytes
 	}

@@ -333,10 +333,10 @@ export default {
       }
 
       // Image (and other preview types): use thumbnail URL
-      const imageUrl = `${this.thumbnailUrl}&size=large`;
+      const imageUrl = this.thumbnailUrl
       if (this.imageState === "loaded") {
         mutations.setPreviewSource(imageUrl);
-        state.popupPreviewSourceInfo = { source, path: this.path, size: "large", url: imageUrl, modified };
+        state.popupPreviewSourceInfo = { source, path: this.path, size: "xlarge", url: imageUrl, modified };
       }
       // Motion preview: video (atPercentage) or folder (cycle next previewable image)
       const useVideoMotion = getters.previewPerms().motionVideoPreview && this.hasMotion;

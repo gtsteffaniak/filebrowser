@@ -49,6 +49,8 @@ type Service struct {
 //	3-6 processors: 2 large, rest small
 //	7+ processors: 3 large, rest small
 func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
+	configureImagingParallelism()
+
 	if concurrencyLimit < 1 {
 		concurrencyLimit = 1
 	}
@@ -547,7 +549,7 @@ func getPreviewOptions(previewSize string) (ResizeOptions, error) {
 			Width:      1024,
 			Height:     1024,
 			ResizeMode: ResizeModeFit,
-			Quality:    QualityHigh,
+			Quality:    QualityMedium,
 			Format:     FormatJpeg,
 		}, nil
 	case "large":
@@ -562,7 +564,7 @@ func getPreviewOptions(previewSize string) (ResizeOptions, error) {
 		return ResizeOptions{
 			Width:      256,
 			Height:     256,
-			ResizeMode: ResizeModeFit,
+			ResizeMode: ResizeModeFill,
 			Quality:    QualityLow,
 			Format:     FormatJpeg,
 		}, nil
