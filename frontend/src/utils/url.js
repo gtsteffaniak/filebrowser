@@ -20,6 +20,7 @@ export default {
   encodedPath,
   trimSlashes,
   getPublicApiPath,
+  resolveRelativePath,
 };
 
 export function removeLastDir(url) {
@@ -173,6 +174,48 @@ export function joinPath(basePath, ...segments) {
     }
   }
   return result;
+}
+
+/** Resolve a relative or root-relative path against a base file path (POSIX-style). */
+export function resolveRelativePath(baseFilePath, refPath) {
+  if (!baseFilePath || !refPath) {
+    return refPath;
+  }
+
+  let pathPart = refPath;
+  let suffix = "";
+  const queryIndex = refPath.indexOf("?");
+  const hashIndex = refPath.indexOf("#");
+  const cutIndex = Math.min(
+    queryIndex === -1 ? refPath.length : queryIndex,
+    hashIndex === -1 ? refPath.length : hashIndex,
+  );
+  if (cutIndex < refPath.length) {
+    suffix = refPath.slice(cutIndex);
+    pathPart = refPath.slice(0, cutIndex);
+  }
+
+  const baseDir = getParentDir(baseFilePath);
+  const combined = pathPart.startsWith("/")
+    ? pathPart
+    : joinPath(baseDir, pathPart);
+
+  const parts = combined.split("/").filter(Boolean);
+  const resolved = [];
+  for (const part of parts) {
+    if (part === ".") {
+      continue;
+    }
+    if (part === "..") {
+      if (resolved.length > 0) {
+        resolved.pop();
+      }
+      continue;
+    }
+    resolved.push(part);
+  }
+
+  return `/${resolved.join("/")}${suffix}`;
 }
 
 export function base64Encode(str) {
