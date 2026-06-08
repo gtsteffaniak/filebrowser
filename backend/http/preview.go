@@ -244,8 +244,8 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 
 		// Check if it was a context timeout (server-side timeout)
 		if ctx.Err() == context.DeadlineExceeded || errors.Is(err, context.DeadlineExceeded) {
-			logger.Errorf("Preview timeout for file '%s' after 60 seconds", d.fileInfo.Name)
-			return http.StatusRequestTimeout, fmt.Errorf("preview generation timed out after 60 seconds")
+			logger.Errorf("Preview timeout for file '%s' after 15 seconds", d.fileInfo.Name)
+			return http.StatusRequestTimeout, fmt.Errorf("preview generation timed out after 15 seconds")
 		}
 
 		// Log detailed error information for actual server errors

@@ -156,26 +156,18 @@ func (s *Service) Resize(ctx context.Context, in io.Reader, out io.Writer, opts 
 }
 
 // ResizeWithSize resizes an image with file size information for appropriate semaphore selection.
-// Blocking decode/resize work runs in a goroutine so the call returns promptly on ctx cancellation.
+// Resize runs synchronously so the image semaphore accurately bounds concurrent CPU work.
+// A detached goroutine would return on ctx cancellation while still decoding/resizing,
+// defeating the semaphore and piling up orphaned work that causes preview timeouts under load.
 func (s *Service) ResizeWithSize(ctx context.Context, in io.Reader, out io.Writer, fileSize int64, opts ResizeOptions) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-
-	type resizeResult struct {
-		err error
-	}
-	done := make(chan resizeResult, 1)
-	go func() {
-		done <- resizeResult{err: s.resizeWithSize(in, out, fileSize, opts)}
-	}()
-
-	select {
-	case <-ctx.Done():
+	err := s.resizeWithSize(in, out, fileSize, opts)
+	if ctx.Err() != nil {
 		return ctx.Err()
-	case result := <-done:
-		return result.err
 	}
+	return err
 }
 
 func (s *Service) resizeWithSize(in io.Reader, out io.Writer, fileSize int64, opts ResizeOptions) error {
@@ -388,6 +380,14 @@ func CreateThumbnail(rawData io.Reader, width, height int) (image.Image, error) 
 	return thumb, nil
 }
 
+// halvingDimension returns half of n, clamped to at least 1 so imaging never receives 0.
+func halvingDimension(n int) int {
+	if n <= 1 {
+		return 1
+	}
+	return n / 2
+}
+
 // progressiveResize downscales large images in stages using a cheap Box filter before
 // applying the quality filter on a much smaller intermediate image.
 func progressiveResize(img image.Image, targetW, targetH int, mode ResizeMode, filter imaging.ResampleFilter) image.Image {
@@ -396,10 +396,12 @@ func progressiveResize(img image.Image, targetW, targetH int, mode ResizeMode, f
 		if b.Dx() <= targetW*2 && b.Dy() <= targetH*2 {
 			break
 		}
+		nextW := halvingDimension(b.Dx())
+		nextH := halvingDimension(b.Dy())
 		if mode == ResizeModeFill {
-			img = imaging.Fill(img, b.Dx()/2, b.Dy()/2, imaging.Center, imaging.Box)
+			img = imaging.Fill(img, nextW, nextH, imaging.Center, imaging.Box)
 		} else {
-			img = imaging.Fit(img, b.Dx()/2, b.Dy()/2, imaging.Box)
+			img = imaging.Fit(img, nextW, nextH, imaging.Box)
 		}
 	}
 	if mode == ResizeModeFill {
