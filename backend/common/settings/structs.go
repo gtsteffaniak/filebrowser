@@ -50,7 +50,7 @@ type Server struct {
 	MinSearchLength              int            `json:"minSearchLength" yaml:"minSearchLength"` // minimum length of search query to begin searching (default: 3)
 	DisableUpdateCheck           bool           `json:"disableUpdateCheck"`                     // disables backend update check service
 	NumImageProcessors           int            `json:"numImageProcessors"`                     // number of concurrent image processing jobs used to create previews, default is number of cpu cores available.
-	Socket                       string         `json:"socket"`                                 // socket to listen on
+	Socket                       string         `json:"socket"`                                 // socket to listen on - eg. /var/run/filebrowser.sock
 	TLSKey                       string         `json:"tlsKey"`                                 // path to TLS key
 	TLSCert                      string         `json:"tlsCert"`                                // path to TLS cert
 	DisablePreviews              bool           `json:"disablePreviews"`                        // disable all previews thumbnails, simple icons will be used
