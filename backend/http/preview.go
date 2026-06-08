@@ -215,7 +215,7 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 	resizable := iteminfo.ResizableImageTypes[ext]
 
 	// For small, displayable images (jpg, png, etc.) serve the original to avoid processing.
-	const maxSizeForOriginal = 128 * 1024 // 128KB
+	const maxSizeForOriginal = 256 * 1024 // 256KB
 	if resizable && (config.Server.DisableResize || d.fileInfo.Size < maxSizeForOriginal) && isImage {
 		return rawFileHandler(w, r, d.fileInfo)
 	}

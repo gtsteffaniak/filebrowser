@@ -240,16 +240,20 @@ func (s *Service) resizeWithSize(in io.Reader, out io.Writer, fileSize int64, op
 		}
 	}
 
-	// Resize
-	resampleFilter := opts.Quality.resampleFilter()
-	switch opts.ResizeMode {
-	case ResizeModeFill:
-		img = imaging.Fill(img, opts.Width, opts.Height, imaging.Center, resampleFilter)
-	case ResizeModeFit:
-		fallthrough
-	default:
-		img = imaging.Fit(img, opts.Width, opts.Height, resampleFilter)
+	// Skip resize in Fit mode when the image is already within target dimensions.
+	// Fill mode may still need to upscale or crop to reach the target size.
+	bounds := img.Bounds()
+	if opts.ResizeMode != ResizeModeFill && bounds.Dx() <= opts.Width && bounds.Dy() <= opts.Height {
+		if opts.Format == FormatJpeg {
+			return jpeg.Encode(out, img, &jpeg.Options{Quality: opts.JpegQuality})
+		}
+		return imaging.Encode(out, img, opts.Format.toImaging())
 	}
+
+	// Resize using progressive downscaling: cheap Box halving until within 2x of target,
+	// then apply the quality filter on the smaller intermediate image.
+	resampleFilter := opts.Quality.resampleFilter()
+	img = progressiveResize(img, opts.Width, opts.Height, opts.ResizeMode, resampleFilter)
 
 	// Encode
 	if opts.Format == FormatJpeg {
@@ -291,7 +295,7 @@ func applyOrientationToPreviewBytes(imageBytes []byte, orientation string) []byt
 		return imageBytes
 	}
 	var buf bytes.Buffer
-	if err := jpeg.Encode(&buf, out, &jpeg.Options{Quality: 90}); err != nil {
+	if err := jpeg.Encode(&buf, out, &jpeg.Options{Quality: 80}); err != nil {
 		return imageBytes
 	}
 	return buf.Bytes()
@@ -380,6 +384,26 @@ func CreateThumbnail(rawData io.Reader, width, height int) (image.Image, error) 
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode image: %w", err)
 	}
-	thumb := imaging.Fit(img, width, height, imaging.Lanczos)
+	thumb := imaging.Fit(img, width, height, imaging.CatmullRom)
 	return thumb, nil
+}
+
+// progressiveResize downscales large images in stages using a cheap Box filter before
+// applying the quality filter on a much smaller intermediate image.
+func progressiveResize(img image.Image, targetW, targetH int, mode ResizeMode, filter imaging.ResampleFilter) image.Image {
+	for {
+		b := img.Bounds()
+		if b.Dx() <= targetW*2 && b.Dy() <= targetH*2 {
+			break
+		}
+		if mode == ResizeModeFill {
+			img = imaging.Fill(img, b.Dx()/2, b.Dy()/2, imaging.Center, imaging.Box)
+		} else {
+			img = imaging.Fit(img, b.Dx()/2, b.Dy()/2, imaging.Box)
+		}
+	}
+	if mode == ResizeModeFill {
+		return imaging.Fill(img, targetW, targetH, imaging.Center, filter)
+	}
+	return imaging.Fit(img, targetW, targetH, filter)
 }
