@@ -242,10 +242,15 @@ func (s *Service) resizeWithSize(in io.Reader, out io.Writer, fileSize int64, op
 		return imaging.Encode(out, img, opts.Format.toImaging())
 	}
 
-	// Resize using progressive downscaling: cheap Box halving until within 2x of target,
-	// then apply the quality filter on the smaller intermediate image.
 	resampleFilter := opts.Quality.resampleFilter()
-	img = progressiveResize(img, opts.Width, opts.Height, opts.ResizeMode, resampleFilter)
+	switch opts.ResizeMode {
+	case ResizeModeFill:
+		img = imaging.Fill(img, opts.Width, opts.Height, imaging.Center, resampleFilter)
+	case ResizeModeFit:
+		fallthrough
+	default:
+		img = imaging.Fit(img, opts.Width, opts.Height, resampleFilter)
+	}
 
 	// Encode
 	if opts.Format == FormatJpeg {
@@ -378,34 +383,4 @@ func CreateThumbnail(rawData io.Reader, width, height int) (image.Image, error) 
 	}
 	thumb := imaging.Fit(img, width, height, imaging.CatmullRom)
 	return thumb, nil
-}
-
-// halvingDimension returns half of n, clamped to at least 1 so imaging never receives 0.
-func halvingDimension(n int) int {
-	if n <= 1 {
-		return 1
-	}
-	return n / 2
-}
-
-// progressiveResize downscales large images in stages using a cheap Box filter before
-// applying the quality filter on a much smaller intermediate image.
-func progressiveResize(img image.Image, targetW, targetH int, mode ResizeMode, filter imaging.ResampleFilter) image.Image {
-	for {
-		b := img.Bounds()
-		if b.Dx() <= targetW*2 && b.Dy() <= targetH*2 {
-			break
-		}
-		nextW := halvingDimension(b.Dx())
-		nextH := halvingDimension(b.Dy())
-		if mode == ResizeModeFill {
-			img = imaging.Fill(img, nextW, nextH, imaging.Center, imaging.Box)
-		} else {
-			img = imaging.Fit(img, nextW, nextH, imaging.Box)
-		}
-	}
-	if mode == ResizeModeFill {
-		return imaging.Fill(img, targetW, targetH, imaging.Center, filter)
-	}
-	return imaging.Fit(img, targetW, targetH, filter)
 }

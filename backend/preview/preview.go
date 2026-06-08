@@ -555,7 +555,7 @@ func getPreviewOptions(previewSize string) (ResizeOptions, error) {
 			Width:      640,
 			Height:     640,
 			ResizeMode: ResizeModeFit,
-			Quality:    QualityHigh,
+			Quality:    QualityMedium,
 			Format:     FormatJpeg,
 		}, nil
 	case "small":
@@ -563,7 +563,7 @@ func getPreviewOptions(previewSize string) (ResizeOptions, error) {
 			Width:      256,
 			Height:     256,
 			ResizeMode: ResizeModeFit,
-			Quality:    QualityMedium,
+			Quality:    QualityLow,
 			Format:     FormatJpeg,
 		}, nil
 	default:
