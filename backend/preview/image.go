@@ -2,6 +2,7 @@ package preview
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"image"
 	"image/jpeg"
@@ -11,6 +12,22 @@ import (
 	exifcommon "github.com/dsoprea/go-exif/v3/common"
 	"github.com/kovidgoyal/imaging"
 )
+
+// configureImagingParallelism limits kovidgoyal/imaging to one thread per resize.
+// Concurrent preview jobs are capped separately by imageSem (like OG filebrowser).
+func configureImagingParallelism() {
+	imaging.SetMaxProcs(1)
+}
+
+// previewDecodeOpts returns decode options tuned for thumbnails: skip ICC/sRGB conversion
+// (not needed for previews) and optionally apply EXIF orientation.
+func previewDecodeOpts(autoOrient bool) []imaging.DecodeOption {
+	opts := []imaging.DecodeOption{imaging.ColorSpace(imaging.NO_CHANGE_OF_COLORSPACE)}
+	if autoOrient {
+		opts = append(opts, imaging.AutoOrientation(true))
+	}
+	return opts
+}
 
 // Format is an image file format.
 /*
@@ -150,12 +167,26 @@ type ResizeOptions struct {
 	JpegQuality int // JPEG encoding quality (1-100), 0 means use Quality default
 }
 
-func (s *Service) Resize(in io.Reader, out io.Writer, opts ResizeOptions) error {
-	return s.ResizeWithSize(in, out, 0, opts)
+func (s *Service) Resize(ctx context.Context, in io.Reader, out io.Writer, opts ResizeOptions) error {
+	return s.ResizeWithSize(ctx, in, out, 0, opts)
 }
 
-// ResizeWithSize resizes an image with file size information for appropriate semaphore selection
-func (s *Service) ResizeWithSize(in io.Reader, out io.Writer, fileSize int64, opts ResizeOptions) error {
+// ResizeWithSize resizes an image with file size information for appropriate semaphore selection.
+// Resize runs synchronously so the image semaphore accurately bounds concurrent CPU work.
+// A detached goroutine would return on ctx cancellation while still decoding/resizing,
+// defeating the semaphore and piling up orphaned work that causes preview timeouts under load.
+func (s *Service) ResizeWithSize(ctx context.Context, in io.Reader, out io.Writer, fileSize int64, opts ResizeOptions) error {
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+	err := s.resizeWithSize(in, out, fileSize, opts)
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+	return err
+}
+
+func (s *Service) resizeWithSize(in io.Reader, out io.Writer, fileSize int64, opts ResizeOptions) error {
 	// Set defaults
 	if opts.ResizeMode == 0 {
 		opts.ResizeMode = ResizeModeFit
@@ -193,7 +224,7 @@ func (s *Service) ResizeWithSize(in io.Reader, out io.Writer, fileSize int64, op
 	}
 
 	// Decode the image - try imaging library first, fall back to format-specific decoder if it fails
-	img, err := imaging.Decode(wrappedReader, imaging.AutoOrientation(true))
+	img, err := imaging.Decode(wrappedReader, previewDecodeOpts(true)...)
 	if err != nil {
 		// Imaging library failed, try format-specific standard decoder as fallback
 		// Reset reader if possible
@@ -217,7 +248,16 @@ func (s *Service) ResizeWithSize(in io.Reader, out io.Writer, fileSize int64, op
 		}
 	}
 
-	// Resize
+	// Skip resize in Fit mode when the image is already within target dimensions.
+	// Fill mode may still need to upscale or crop to reach the target size.
+	bounds := img.Bounds()
+	if opts.ResizeMode != ResizeModeFill && bounds.Dx() <= opts.Width && bounds.Dy() <= opts.Height {
+		if opts.Format == FormatJpeg {
+			return jpeg.Encode(out, img, &jpeg.Options{Quality: opts.JpegQuality})
+		}
+		return imaging.Encode(out, img, opts.Format.toImaging())
+	}
+
 	resampleFilter := opts.Quality.resampleFilter()
 	switch opts.ResizeMode {
 	case ResizeModeFill:
@@ -242,7 +282,7 @@ func applyOrientationToPreviewBytes(imageBytes []byte, orientation string) []byt
 	if len(imageBytes) < 100 {
 		return imageBytes
 	}
-	img, err := imaging.Decode(bytes.NewReader(imageBytes))
+	img, err := imaging.Decode(bytes.NewReader(imageBytes), previewDecodeOpts(false)...)
 	if err != nil {
 		return imageBytes
 	}
@@ -268,7 +308,7 @@ func applyOrientationToPreviewBytes(imageBytes []byte, orientation string) []byt
 		return imageBytes
 	}
 	var buf bytes.Buffer
-	if err := jpeg.Encode(&buf, out, &jpeg.Options{Quality: 90}); err != nil {
+	if err := jpeg.Encode(&buf, out, &jpeg.Options{Quality: 80}); err != nil {
 		return imageBytes
 	}
 	return buf.Bytes()
@@ -357,6 +397,6 @@ func CreateThumbnail(rawData io.Reader, width, height int) (image.Image, error) 
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode image: %w", err)
 	}
-	thumb := imaging.Fit(img, width, height, imaging.Lanczos)
+	thumb := imaging.Fit(img, width, height, imaging.CatmullRom)
 	return thumb, nil
 }

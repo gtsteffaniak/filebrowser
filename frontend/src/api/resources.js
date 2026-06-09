@@ -5,6 +5,8 @@ import { downloadManager } from '@/utils/downloadManager'
 import { getApiPath, getPublicApiPath } from '@/utils/url.js'
 import { adjustedData, fetchURL } from './utils'
 
+export { fetchPreviewImage } from '@/utils/previewRequests'
+
 // Notify if errors occur
 export async function fetchFiles(source, path, content = false, metadata = false, skipExtendedAttrs = false) {
   if (!source || source === undefined || source === null) {
@@ -834,6 +836,10 @@ export function getDownloadURL(source, path, inline, useExternal) {
   }
 }
 
+/**
+ * Build a preview API URL. Use fetchPreviewImage(url, signal) to load it;
+ * pass an AbortSignal so the caller can cancel on navigation or unmount.
+ */
 export function getPreviewURL(source, path, modified) {
   if (!source || source === undefined || source === null) {
     throw new Error('no source provided')

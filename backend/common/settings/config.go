@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"slices"
 	"strconv"
 	"strings"
@@ -974,12 +973,6 @@ func loadEnvConfig() {
 }
 
 func SetDefaults(generate bool) Settings {
-	// get number of CPUs available
-	numCpus := 4 // default to 4 CPUs if runtime.NumCPU() fails or is not available
-	cpus := runtime.NumCPU()
-	if cpus > 0 && !generate {
-		numCpus = cpus
-	}
 	database := os.Getenv("FILEBROWSER_DATABASE")
 	if database == "" {
 		database = "database.db"
@@ -990,7 +983,7 @@ func SetDefaults(generate bool) Settings {
 	s := Settings{
 		Server: Server{
 			Port:               80,
-			NumImageProcessors: numCpus,
+			NumImageProcessors: 4,
 			BaseURL:            "",
 			Database:           database,
 			SourceMap:          map[string]*Source{},
