@@ -37,6 +37,7 @@
     <template v-if="showFileList">
       <button
         type="button"
+        v-if="!showNewDirInput"
         class="button button--flat button--grey"
         @click="showFileList = false"
         :aria-label="$t('general.cancel')"
