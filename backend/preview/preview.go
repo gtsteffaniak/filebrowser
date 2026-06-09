@@ -600,7 +600,7 @@ func getPreviewOptions(previewSize string) (ResizeOptions, error) {
 			Width:      1024,
 			Height:     1024,
 			ResizeMode: ResizeModeFit,
-			Quality:    QualityMedium,
+			Quality:    QualityHigh,
 			Format:     FormatJpeg,
 		}, nil
 	case "large":
