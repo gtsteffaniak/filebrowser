@@ -53,10 +53,11 @@
       </template>
     </div>
   </div>
-  <div class="card-actions">
+  <div class="card-actions" :class="{ 'split-buttons': showFileList }">
     <template v-if="showFileList">
       <button
         type="button"
+        v-if="!showNewDirInput"
         class="button button--flat button--grey"
         @click="showFileList = false"
         :aria-label="$t('general.cancel')"
@@ -66,12 +67,51 @@
       </button>
       <button
         type="button"
+        v-if="canCreateFolder && showNewDirInput"
+        class="button button--flat"
+        @click="cancelNewDir"
+        :aria-label="$t('general.cancel')"
+        :title="$t('general.cancel')"
+      >
+        {{ $t("general.cancel") }}
+      </button>
+      <button
+        type="button"
+        v-if="canCreateFolder && !showNewDirInput"
+        class="button button--flat"
+        @click="createNewDir"
+        :aria-label="$t('files.newFolder')"
+        :title="$t('files.newFolder')"
+      >
+        <span>{{ $t("files.newFolder") }}</span>
+      </button>
+      <input
+        v-if="showNewDirInput"
+        ref="newDirInput"
+        class="input new-dir-input"
+        :class="{ 'form-invalid': !isDirNameValid }"
+        v-model.trim="newDirName"
+        :placeholder="$t('prompts.newDirMessage')"
+        @keydown.enter="handleEnter"
+      />
+      <button
+        type="button"
+        v-if="!showNewDirInput"
         class="button button--flat"
         @click="showFileList = false"
         :aria-label="$t('general.select', { suffix: '' })"
         :title="$t('general.select', { suffix: '' })"
       >
         {{ $t("general.select", { suffix: "" }) }}
+      </button>
+      <button
+        type="button"
+        v-if="showNewDirInput"
+        class="button button--flat"
+        @click="createDirectory"
+        :disabled="!newDirName || !isDirNameValid"
+      >
+        {{ $t("general.create") }}
       </button>
     </template>
     <template v-else>
@@ -133,13 +173,21 @@ export default {
       compression: 0,
       creating: false,
       showFileList: false,
+      showNewDirInput: false,
+      newDirName: "",
       deleteAfter: state.user?.deleteAfterArchive === true,
     };
   },
   watch: {
     deleteAfter(newVal) {
       mutations.updateCurrentUser({ deleteAfterArchive: newVal });
-    }
+    },
+    showFileList(newVal) {
+      if (!newVal) {
+        this.showNewDirInput = false;
+        this.newDirName = "";
+      }
+    },
   },
   mounted() {
     if (this.currentPath) {
@@ -154,6 +202,13 @@ export default {
     canSubmit() {
       const name = this.archiveName || this.defaultArchiveName;
       return name.length > 0 && this.destPath;
+    },
+    canCreateFolder() {
+      const perms = getters.permissions();
+      return !!perms?.create;
+    },
+    isDirNameValid() {
+      return this.validateDirName(this.newDirName);
     },
     fullDestination() {
       const name = this.archiveName || this.defaultArchiveName;
@@ -172,6 +227,61 @@ export default {
       } else if (pathOrData?.path) {
         this.destPath = pathOrData.path;
         this.destSource = pathOrData.source;
+      }
+    },
+    createNewDir() {
+      this.showNewDirInput = true;
+      this.newDirName = "";
+      this.$nextTick(() => {
+        this.$refs.newDirInput?.focus();
+      });
+    },
+    validateDirName(value) {
+      if (this.$refs.fileList?.items) {
+        const currentItems = this.$refs.fileList.items.filter((item) => item.name !== "..");
+        return !currentItems.some((item) => item.name.toLowerCase() === value.toLowerCase());
+      }
+      return true;
+    },
+    cancelNewDir() {
+      this.showNewDirInput = false;
+      this.newDirName = "";
+    },
+    handleEnter(event) {
+      event.stopPropagation();
+      event.preventDefault();
+      if (this.newDirName && this.isDirNameValid) {
+        this.createDirectory();
+      }
+    },
+    async createDirectory() {
+      if (!this.newDirName || !this.isDirNameValid) return;
+      try {
+        this.creating = true;
+        const currentPath = this.$refs.fileList.path;
+        const currentSource = this.$refs.fileList.source;
+        const fullPath = currentPath.endsWith("/")
+          ? `${currentPath + this.newDirName}/`
+          : `${currentPath}/${this.newDirName}/`;
+        if (getters.isShare()) {
+          await resourcesApi.postPublic(state.shareInfo?.hash, fullPath, "", false, undefined, {}, true);
+        } else {
+          await resourcesApi.post(currentSource, fullPath, "", false, undefined, {}, true);
+        }
+        if (getters.isShare()) {
+          resourcesApi.fetchFilesPublic(currentPath, state.shareInfo?.hash)
+            .then((req) => this.$refs.fileList.fillOptions(req, true));
+        } else {
+          resourcesApi.fetchFiles(currentSource, currentPath)
+            .then((req) => this.$refs.fileList.fillOptions(req, true));
+        }
+        mutations.setReload(true);
+        this.showNewDirInput = false;
+        this.newDirName = "";
+      } catch (error) {
+        console.error("Error creating directory:", error);
+      } finally {
+        this.creating = false;
       }
     },
     async submit() {
@@ -248,5 +358,13 @@ export default {
 }
 .card-content {
   position: relative;
+}
+
+.new-dir-input {
+  justify-self: left;
+}
+
+.split-buttons {
+  justify-content: space-between;
 }
 </style>
