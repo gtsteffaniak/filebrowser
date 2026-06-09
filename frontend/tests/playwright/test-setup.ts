@@ -140,14 +140,16 @@ export function setupErrorTracking(page: Page) {
     }
   });
 
-  // Track failed API calls
+  // Track failed API calls (304 Not Modified is expected for cached preview requests)
   page.on("response", (response) => {
-    if (!response.ok()) {
-      failedResponses.push({
-        url: response.url(),
-        status: response.status(),
-      });
+    const status = response.status();
+    if (status === 304 || response.ok()) {
+      return;
     }
+    failedResponses.push({
+      url: response.url(),
+      status,
+    });
   });
 
   return {
