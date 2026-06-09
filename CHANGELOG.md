@@ -10,19 +10,19 @@ All notable changes to this project will be documented in this file. For commit 
  **New Features**:
  - pinned files/folders (#2396) (#2510)
  - Markdown Image relative reference support (#2355)
+ - Add an option to create a new folder for unarchiving (#2338)
 
  **Notes**:
  - added fallback to show text in notification if copy fails (#2517)
  - added `alt`+`arrow up` shortcut as alias of `backspace` to go into parent directory (#2501) (#2521)
  - added `alt`+`arrow down` shortcut as alias of `enter` to open files in Listing View (#2501) (#2521)
  - updated help menu with better translations
- - migrate i18n to v11 (#2472)
+ - migrate i18n to v11 (#2472) (#2504)
  - migrate eslint (#2459)
  - improved preview cancellation to improve performance when navigating UI.
 
  **BugFixes**:
  - fix lyrics regex parsing (#2505)
- - updated vue i18n + lazy loading of languages (#2504)
  - fix folder previews issue (#2487) (#2492)
  - fix accidental exit on images while using gestures (#2508)
  - navigating using the up/down arrow keys in Listing View was "jumping randomly" in some view modes (#2521)
