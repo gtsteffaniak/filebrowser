@@ -216,6 +216,7 @@ export default {
   methods: {
     scrollToHash() {
       let scrollToId = "";
+      let targetName = "";
       // scroll to previous item either from location hash or from previousItemHashId state
       // prefers location hash
       const noHashChange = window.location.hash === this.lastHash
@@ -230,28 +231,30 @@ export default {
           // If the hash contains malformed escape sequences, fall back to raw
           decodedName = rawHash;
         }
+        targetName = decodedName;
         scrollToId = url.base64Encode(encodeURIComponent(decodedName));
-
-      } else if (state.previousHistoryItem?.name && state.previousHistoryItem.path === state.req.path && state.previousHistoryItem.source === state.req.source) {
+      } else if (state.previousHistoryItem?.name &&
+                 state.previousHistoryItem.path === state.req.path &&
+                 state.previousHistoryItem.source === state.req.source) {
+        targetName = state.previousHistoryItem.name;
         scrollToId = url.base64Encode(encodeURIComponent(state.previousHistoryItem.name));
       }
       // Don't call getElementById with empty string
       if (!scrollToId || scrollToId.trim() === '') {
         return;
       }
+      // Re-select the item we are returning to -- replaces the previous glow effect.
+      const targetIndex = state.req?.items?.findIndex((item) => item.name === targetName);
+      if (targetIndex !== -1) {
+        mutations.addSelected(targetIndex);
+      }
       const element = document.getElementById(scrollToId);
-        if (element) {
-          element.scrollIntoView({
-            behavior: "instant",
-            block: "center",
-          });
-          // Add glow effect
-          element.classList.add('scroll-glow');
-          // Remove glow effect after animation completes
-          setTimeout(() => {
-            element.classList.remove('scroll-glow');
-          }, 1000);
-        }
+      if (element) {
+        element.scrollIntoView({
+          behavior: "instant",
+          block: "center",
+        });
+      }
     },
     async patchMediaMetadataIfNeeded(listing, fetchMedia) {
       if (directoryListingHasMediaChildren(listing)) {
@@ -618,22 +621,6 @@ export default {
 </script>
 
 <style>
-.scroll-glow {
-  animation: scrollGlowAnimation 1s ease-out;
-}
-
-@keyframes scrollGlowAnimation {
-  0% {
-    color: inherit;
-  }
-  50% {
-    color: var(--primaryColor);
-  }
-  100% {
-    color: inherit;
-  }
-}
-
 .share-info-component {
   margin-top: 0.5em;
 }
