@@ -87,14 +87,17 @@ func (s *Service) GenerateOfficePreview(ctx context.Context, filetype, key, titl
 		return data, fmt.Errorf("error from OnlyOffice: %s", response.Error)
 	}
 
-	// make get request to binary data response.FileURL and return the body as a byte array data
-	resp, err = http.Get(response.FileURL)
+	thumbReq, err := http.NewRequestWithContext(ctx, http.MethodGet, response.FileURL, nil)
 	if err != nil {
 		return data, err
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return data, fmt.Errorf("failed to get preview file, status code: %d", resp.StatusCode)
+	thumbResp, err := client.Do(thumbReq)
+	if err != nil {
+		return data, err
 	}
-	return io.ReadAll(resp.Body)
+	defer thumbResp.Body.Close()
+	if thumbResp.StatusCode != http.StatusOK {
+		return data, fmt.Errorf("failed to get preview file, status code: %d", thumbResp.StatusCode)
+	}
+	return io.ReadAll(thumbResp.Body)
 }

@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file. For commit 
  - updated help menu with better translations
  - migrate i18n to v11 (#2472) (#2504)
  - migrate eslint (#2459)
+ - improved preview cancellation to improve performance when navigating UI.
 
  **BugFixes**:
  - fix lyrics regex parsing (#2505)

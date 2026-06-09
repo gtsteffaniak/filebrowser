@@ -6147,7 +6147,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "numImageProcessors": {
-                    "description": "number of concurrent image processing jobs used to create previews, default is number of cpu cores available.",
+                    "description": "number of concurrent image processing jobs used to create previews, default is 4.",
                     "type": "integer"
                 },
                 "port": {

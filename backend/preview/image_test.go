@@ -2,6 +2,7 @@ package preview
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"image"
 	"image/gif"
@@ -247,7 +248,7 @@ func TestService_Resize(t *testing.T) {
 			defer source.Close()
 
 			buf := &bytes.Buffer{}
-			err := svc.Resize(source, buf, test.options)
+			err := svc.Resize(context.Background(), source, buf, test.options)
 			if (err != nil) != test.wantErr {
 				t.Fatalf("GetMarketSpecs() error = %v, wantErr %v", err, test.wantErr)
 			}
@@ -459,7 +460,7 @@ func TestResize_ConcurrencyLimit(t *testing.T) {
 	source := newGrayJpeg(t, 100, 100)
 	defer source.Close()
 	out := &bytes.Buffer{}
-	err := svc.Resize(source, out, ResizeOptions{Width: 50, Height: 50})
+	err := svc.Resize(context.Background(), source, out, ResizeOptions{Width: 50, Height: 50})
 	require.NoError(t, err)
 	require.Greater(t, out.Len(), 0)
 }
@@ -473,7 +474,7 @@ func TestResize_ConcurrencyLimit_NoFFmpeg(t *testing.T) {
 	source := newGrayJpeg(t, 100, 100)
 	defer source.Close()
 	out := &bytes.Buffer{}
-	err := svc.Resize(source, out, ResizeOptions{Width: 50, Height: 50})
+	err := svc.Resize(context.Background(), source, out, ResizeOptions{Width: 50, Height: 50})
 	require.NoError(t, err)
 	require.Greater(t, out.Len(), 0)
 }
@@ -494,12 +495,47 @@ func TestCreatePreviewFromReader_UsesConcurrencyLimit(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create preview from reader
-	out, err := svc.CreatePreview(bytes.NewReader(data), int64(len(data)), options)
+	out, err := svc.CreatePreview(context.Background(), bytes.NewReader(data), int64(len(data)), options)
 	require.NoError(t, err)
 	require.NotEmpty(t, out)
 
 	// Same via another call for parity
-	out2, err := svc.CreatePreview(bytes.NewReader(data), int64(len(data)), options)
+	out2, err := svc.CreatePreview(context.Background(), bytes.NewReader(data), int64(len(data)), options)
 	require.NoError(t, err)
 	require.Equal(t, out, out2)
+}
+
+func TestImageFitsPreviewSize(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		width       int
+		height      int
+		previewSize string
+		want        bool
+	}{
+		{name: "fits xlarge", width: 800, height: 600, previewSize: "xlarge", want: true},
+		{name: "exceeds xlarge width", width: 1200, height: 600, previewSize: "xlarge", want: false},
+		{name: "fits large", width: 640, height: 480, previewSize: "large", want: true},
+		{name: "fits small", width: 256, height: 200, previewSize: "small", want: true},
+		{name: "exceeds small height", width: 200, height: 300, previewSize: "small", want: false},
+		{name: "original always fits", width: 5000, height: 5000, previewSize: "original", want: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			require.Equal(t, tt.want, ImageFitsPreviewSize(tt.width, tt.height, tt.previewSize))
+		})
+	}
+}
+
+func TestReadImageFileDimensions(t *testing.T) {
+	t.Parallel()
+
+	width, height, err := ReadImageFileDimensions("testdata/gray-sample.jpg")
+	require.NoError(t, err)
+	require.Greater(t, width, 0)
+	require.Greater(t, height, 0)
 }
