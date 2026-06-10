@@ -335,7 +335,7 @@ export default {
       if (this.path !== "/" && this.showFolders) {
         this.items.unshift({
           name: "..",
-          path: url.removeLastDir(this.path) + "/",
+          path: `${url.removeLastDir(this.path)}/`,
           source: this.source,
           type: "directory",
         });

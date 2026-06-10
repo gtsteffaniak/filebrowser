@@ -5,6 +5,7 @@ import { globalVars, previewViews, tools } from '@/utils/constants';
 import { getFileExtension } from '@/utils/files.js';
 import { getTypeInfo } from '@/utils/mimetype';
 import { fromNow } from '@/utils/moment';
+import { getNestedProperty, getObjectProperty } from '@/utils/object.js';
 import { buildItemUrl, removeLeadingSlash, removePrefix } from '@/utils/url.js';
 
 export const getters = {

@@ -4,7 +4,6 @@ import * as i18n from "@/i18n";
 import { notify } from "@/notify";
 import { url } from "@/utils";
 import { getTypeInfo } from "@/utils/mimetype";
-import { updateNestedProperty } from "@/utils/object.js";
 import { sortedItems } from "@/utils/sort.js";
 import { emitStateChanged } from './eventBus';
 import { getters } from "./getters.js";
