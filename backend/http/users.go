@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"reflect"
 	"slices"
 	"sort"
 	"strconv"
@@ -323,6 +324,38 @@ func usersPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	return http.StatusCreated, nil
 }
 
+// nonAdminEditableFieldNameSet returns User.NonAdminEditable struct field names (e.g. "Locale", "Preview").
+func nonAdminEditableFieldNameSet() map[string]struct{} {
+	m := make(map[string]struct{})
+	t := reflect.TypeOf(users.NonAdminEditable{})
+	for i := 0; i < t.NumField(); i++ {
+		m[t.Field(i).Name] = struct{}{}
+	}
+	return m
+}
+
+// userPutOnlyNonAdminEditableFields reports whether req.Which lists exclusively NonAdminEditable fields,
+// excluding Password. Empty which or which[0] == "all" means a broad update and returns false.
+func userPutOnlyNonAdminEditableFields(which []string) bool {
+	if len(which) == 0 || strings.EqualFold(strings.TrimSpace(which[0]), "all") {
+		return false
+	}
+	allowed := nonAdminEditableFieldNameSet()
+	for _, w := range which {
+		f := utils.CapitalizeFirst(strings.TrimSpace(w))
+		if f == "" {
+			return false
+		}
+		if strings.EqualFold(f, "Password") {
+			return false
+		}
+		if _, ok := allowed[f]; !ok {
+			return false
+		}
+	}
+	return true
+}
+
 // verifyActorPasswordForUserPut requires URL-encoded X-Password when the authenticated actor uses
 // password login. Callers should invoke this only when the update requires re-authentication.
 func verifyActorPasswordForUserActions(r *http.Request, d *requestContext) (int, error) {
@@ -413,7 +446,7 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		return http.StatusBadRequest, fmt.Errorf("failed to get user: %w", err)
 	}
 
-	if d.user.LoginMethod == users.LoginMethodPassword {
+	if d.user.LoginMethod == users.LoginMethodPassword && !userPutOnlyNonAdminEditableFields(req.Which) {
 		var status int
 		status, err = verifyActorPasswordForUserActions(r, d)
 		if err != nil {

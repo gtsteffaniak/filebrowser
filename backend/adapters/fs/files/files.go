@@ -96,12 +96,6 @@ func finalizeResponse(response *iteminfo.ExtendedFileInfo, info *iteminfo.FileIn
 		response.OnlyOfficeId = generateOfficeId(realPath)
 	}
 
-	if info.Type == "directory" && user != nil && response.Source != "" {
-		if source, ok := users.ResolveSourceKey(response.Source); ok {
-			response.PinnedItems = user.PinnedNamesForDirectory(source.Path, response.Path)
-		}
-	}
-
 	// Strip user scope from response path to return path relative to user's context
 	if user != nil && userScope != "" && userScope != "/" {
 		response.Path = strings.TrimPrefix(response.Path, userScope)
@@ -285,6 +279,12 @@ func fileInfoFasterImpl(opts utils.FileOptions, access *access.Storage, user *us
 		}
 		response.IsShared = share.IsShared(response.Path, idx.Path, user.ID)
 	}
+	if info.Type == "directory" && opts.ShowPinnedItems {
+		if source, ok := users.ResolveSourceKey(response.Source); ok {
+			response.PinnedItems = user.PinnedNamesForDirectory(source.Path, response.Path)
+		}
+	}
+
 	defer finalizeResponse(response, info, response.RealPath, user, userScope)
 	if opts.SkipExtendedAttrs {
 		if info.Type == "directory" && opts.HideFileExt != "" {
