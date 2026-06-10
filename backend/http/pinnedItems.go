@@ -11,12 +11,14 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 )
 
+// pinnedItemPatchRequest is the JSON body for PATCH /api/users/pinnedItems.
 type pinnedItemPatchRequest struct {
-	Source string `json:"source"`
-	Path   string `json:"path"` // scope-relative parent directory
-	Name   string `json:"name"` // item basename within path
+	Source string `json:"source" validate:"required"`
+	Path   string `json:"path" validate:"required"` // scope-relative parent directory
+	Name   string `json:"name" validate:"required"`   // item basename within path
 }
 
+// scopeRelativeDirToIndexPath maps a scope-relative directory to source and index paths.
 func scopeRelativeDirToIndexPath(sourceName, userScope, directoryPath string) (sourcePath, indexDirPath string, err error) {
 	userScope = strings.TrimRight(userScope, "/")
 	source, ok := users.ResolveSourceKey(sourceName)
@@ -37,6 +39,7 @@ func scopeRelativeDirToIndexPath(sourceName, userScope, directoryPath string) (s
 	return source.Path, idx.MakeIndexPath(fullDirPath, true), nil
 }
 
+// pinnedItemAction returns the patch action query param, defaulting to "add".
 func pinnedItemAction(r *http.Request) string {
 	action := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("action")))
 	if action == "" {

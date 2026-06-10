@@ -334,6 +334,10 @@ definitions:
         type: string
       source:
         type: string
+    required:
+    - name
+    - path
+    - source
     type: object
   http.unarchiveRequest:
     properties:

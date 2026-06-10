@@ -5100,6 +5100,11 @@ const docTemplate = `{
         },
         "http.pinnedItemPatchRequest": {
             "type": "object",
+            "required": [
+                "name",
+                "path",
+                "source"
+            ],
             "properties": {
                 "name": {
                     "description": "item basename within path",

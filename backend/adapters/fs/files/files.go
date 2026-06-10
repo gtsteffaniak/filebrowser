@@ -89,7 +89,7 @@ func processDirectoryMetadata(response *iteminfo.ExtendedFileInfo, idx *indexing
 	wg.Wait()
 }
 
-// finalizeResponse handles final response adjustments (OnlyOffice ID, pinned items, scope stripping)
+// finalizeResponse handles final response adjustments (OnlyOffice ID, scope stripping).
 func finalizeResponse(response *iteminfo.ExtendedFileInfo, info *iteminfo.FileInfo, realPath string, user *users.User, userScope string) {
 	// Add OnlyOffice ID if applicable
 	if settings.Config.Integrations.OnlyOffice.Secret != "" && info.Type != "directory" && iteminfo.IsOnlyOffice(info.Name) {
