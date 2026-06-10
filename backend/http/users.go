@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"reflect"
 	"slices"
 	"sort"
 	"strconv"
@@ -99,8 +98,8 @@ func prepForFrontend(u *users.User) {
 	u.TOTPSecret = ""
 	u.TOTPNonce = ""
 	u.Scopes = u.GetFrontendScopes()
-	u.PinnedItems = u.GetFrontendPinnedItems()
 	u.SidebarLinks = GetFrontendSidebarLinks(u.SidebarLinks, u.ShowToolsInSidebar)
+	u.PinnedItems = nil
 	u.Locale = normalizeLocale(u.Locale)
 	for i := range u.PasskeyCredentials {
 		u.PasskeyCredentials[i].PublicKey = ""
@@ -324,42 +323,6 @@ func usersPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	return http.StatusCreated, nil
 }
 
-// nonAdminEditableFieldNameSet returns User.NonAdminEditable struct field names (e.g. "Locale", "Preview").
-func nonAdminEditableFieldNameSet() map[string]struct{} {
-	m := make(map[string]struct{})
-	t := reflect.TypeOf(users.NonAdminEditable{})
-	for i := 0; i < t.NumField(); i++ {
-		m[t.Field(i).Name] = struct{}{}
-	}
-	return m
-}
-
-// userPutOnlyNonAdminEditableFields reports whether req.Which lists exclusively NonAdminEditable fields,
-// excluding Password. Empty which or which[0] == "all" means a broad update and returns false.
-func userPutOnlyNonAdminEditableFields(which []string) bool {
-	if len(which) == 0 || strings.EqualFold(strings.TrimSpace(which[0]), "all") {
-		return false
-	}
-	allowed := nonAdminEditableFieldNameSet()
-	for _, w := range which {
-		f := utils.CapitalizeFirst(strings.TrimSpace(w))
-		if f == "" {
-			return false
-		}
-		if strings.EqualFold(f, "Password") {
-			return false
-		}
-		if _, ok := allowed[f]; !ok {
-			return false
-		}
-	}
-	return true
-}
-
-func userPutOnlyPinnedItems(which []string) bool {
-	return len(which) == 1 && strings.EqualFold(strings.TrimSpace(which[0]), "PinnedItems")
-}
-
 // verifyActorPasswordForUserPut requires URL-encoded X-Password when the authenticated actor uses
 // password login. Callers should invoke this only when the update requires re-authentication.
 func verifyActorPasswordForUserActions(r *http.Request, d *requestContext) (int, error) {
@@ -450,24 +413,12 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		return http.StatusBadRequest, fmt.Errorf("failed to get user: %w", err)
 	}
 
-	if d.user.LoginMethod == users.LoginMethodPassword && !userPutOnlyNonAdminEditableFields(req.Which) {
+	if d.user.LoginMethod == users.LoginMethodPassword {
 		var status int
 		status, err = verifyActorPasswordForUserActions(r, d)
 		if err != nil {
 			return status, err
 		}
-	}
-
-	if userPutOnlyPinnedItems(req.Which) {
-		adjustedPinnedItems, err2 := req.User.GetBackendPinnedItems()
-		if err2 != nil {
-			return http.StatusBadRequest, err2
-		}
-		oldUser.PinnedItems = adjustedPinnedItems
-		if err2 := store.Users.Save(oldUser, false, false); err2 != nil {
-			return http.StatusBadRequest, err2
-		}
-		return http.StatusNoContent, nil
 	}
 
 	err = store.Users.Update(&req.User, d.user.Permissions.Admin, req.Which...)

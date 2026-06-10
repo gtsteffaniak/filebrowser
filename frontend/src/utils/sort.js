@@ -1,15 +1,7 @@
-import { removeTrailingSlash } from "@/utils/url.js";
-
-export function sortedItems(items = [], sortby = "name", asc = true, pinnedPaths = []) {
-    // Normalise pinned paths
-    const normalisedPinnedPaths = (Array.isArray(pinnedPaths) ? pinnedPaths : []).map(p => removeTrailingSlash(p));
-    const pinnedSet = new Set(normalisedPinnedPaths);
-
+export function sortedItems(items = [], sortby = "name", asc = true) {
     return items.sort((a, b) => {
-        const aPathNorm = a.path ? removeTrailingSlash(a.path) : '';
-        const bPathNorm = b.path ? removeTrailingSlash(b.path) : '';
-        const aPinned = pinnedSet.has(aPathNorm);
-        const bPinned = pinnedSet.has(bPathNorm);
+        const aPinned = !!a.pinned;
+        const bPinned = !!b.pinned;
 
         if (aPinned !== bPinned) {
             return aPinned ? -1 : 1;

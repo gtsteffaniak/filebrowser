@@ -5,7 +5,7 @@ import { globalVars, previewViews, tools } from '@/utils/constants';
 import { getFileExtension } from '@/utils/files.js';
 import { getTypeInfo } from '@/utils/mimetype';
 import { fromNow } from '@/utils/moment';
-import { buildItemUrl, removeLeadingSlash, removePrefix, getParentDir } from '@/utils/url.js';
+import { buildItemUrl, removeLeadingSlash, removePrefix } from '@/utils/url.js';
 
 export const getters = {
   displayPreferenceFor: (source, path) => {
@@ -68,23 +68,6 @@ export const getters = {
     }
   
     return getters.displayPreferenceFor(source, path);
-  },
-  pinnedPathsFor: (source, path) => {
-    if (getters.isShare() || !getters.isLoggedIn()) {
-      return [];
-    }
-    const sourceKey = source || state.sources.current || state.req?.source || "";
-    const directoryPath = path && path !== "/" ? url.removeTrailingSlash(path) : "/";
-    const pinnedPaths = state.user?.pinnedItems?.[sourceKey]?.[directoryPath];
-    return Array.isArray(pinnedPaths) ? pinnedPaths : [];
-  },
-  isItemPinned: (item) => {
-    if (!item?.path || getters.isShare() || !getters.isLoggedIn()) {
-      return false;
-    }
-    const directoryPath = getParentDir(item.path);
-    const source = item.source || state.req?.source || state.sources.current;
-    return getters.pinnedPathsFor(source, directoryPath).includes(item.path);
   },
   viewMode: () => {
     if (!state.user || state.user?.username === "") {
@@ -243,7 +226,7 @@ export const getters = {
     if (!state.req.items) return { pinned, dirs, files };
 
     for (const item of state.req.items) {
-      if (getters.isItemPinned(item)) {
+      if (item.pinned) {
         pinned.push(item);
         continue;
       }
