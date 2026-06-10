@@ -38,7 +38,7 @@ export const state = reactive({
     words: 0,
     chars: 0,
   },
-  editorFontSize: parseInt(localStorage.getItem('editorFontSize')) || 14,
+  editorFontSize: parseInt(localStorage.getItem('editorFontSize'), 10) || 14,
   realtimeActive: undefined,
   realtimeDownCount: 0,
   popupPreviewSourceInfo: null, // { source, path, size, url, modified } - set by Icon when hovering
@@ -49,6 +49,7 @@ export const state = reactive({
     info: {},
   },
   user: {
+    pinnedItems: {},
     preview: {
       audio: true,
       video: true,
@@ -216,10 +217,11 @@ function getSidebarMode() {
 
 function stickyStartup() {
   const stickyStatus = localStorage.getItem("stickySidebar");
-  return stickyStatus == "true"
+  return stickyStatus === "true"
 }
 
 function eventTheme() {
   const disableEventThemes = localStorage.getItem("disableEventThemes");
-  return disableEventThemes == "true"
+  return disableEventThemes === "true"
 }
+

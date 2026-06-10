@@ -1,6 +1,6 @@
-import { fetchURL } from './utils'
-import { getApiPath, getPublicApiPath } from '@/utils/url.js'
 import { notify } from '@/notify'
+import { getApiPath, getPublicApiPath } from '@/utils/url.js'
+import { fetchURL } from './utils'
 
 // GET /api/office/config or /public/api/office/config
 export async function getConfig(req) {

@@ -226,18 +226,16 @@ export default {
       return this.name;
     },
   },
-  data: function () {
-    return {
-      createMode: false,
-      error: "",
-      username: "",
-      password: "",
-      recaptcha: globalVars.recaptcha,
-      passwordConfirm: "",
-      loginURL: globalVars.baseURL + "api/auth/oidc/login",
-      inProgress: false,
-    };
-  },
+  data: () => ({
+    createMode: false,
+    error: "",
+    username: "",
+    password: "",
+    recaptcha: globalVars.recaptcha,
+    passwordConfirm: "",
+    loginURL: `${globalVars.baseURL}api/auth/oidc/login`,
+    inProgress: false,
+  }),
   mounted() {
     let redirect = state.route.query.redirect;
     if (redirect) {
@@ -252,7 +250,7 @@ export default {
       }
     }
     if (!globalVars.recaptcha) return;
-    window.globalVars.recaptcha.ready(function () {
+    window.globalVars.recaptcha.ready(() => {
       window.globalVars.recaptcha.render("globalVars.recaptcha", {
         sitekey: globalVars.globalVars.recaptchaKey,
       });
@@ -282,7 +280,7 @@ export default {
       // Force reflow
       void el.offsetHeight;
       el.style.transition = 'height 0.3s, opacity 0.3s';
-      el.style.height = el.scrollHeight + 'px';
+      el.style.height = `${el.scrollHeight}px`;
       el.style.opacity = '1';
       setTimeout(() => {
         el.style.height = 'auto';
@@ -291,7 +289,7 @@ export default {
     },
     leave(el, done) {
       el.style.transition = 'height 0.3s, opacity 0.3s';
-      el.style.height = el.scrollHeight + 'px';
+      el.style.height = `${el.scrollHeight}px`;
       el.style.opacity = '1';
       // Force reflow
       void el.offsetHeight;
@@ -393,9 +391,9 @@ export default {
             this.error = passkeyErr.message;
             this.inProgress = false;
           }
-        } else if (e.message == 409) {
+        } else if (e.message === 409) {
           this.error = this.$t("login.usernameTaken");
-        } else if (e.message == 401) {
+        } else if (e.message === 401) {
           this.error = this.$t("login.invalidCredentials");
         } else {
           this.error = e.message;
@@ -417,8 +415,8 @@ export default {
 }
 
 .login-brand {
-  padding-bottom: 0 !important;
   padding: 0em !important;
+  padding-bottom: 0 !important;
   padding-top: 0.5em !important;
   display: flex;
   align-content: center;

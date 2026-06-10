@@ -6,7 +6,7 @@ export interface ReqObject {
     by: string;
     asc: boolean;
   };
-  items: any[];
+  items: unknown[];
   numDirs: number;
   numFiles: number;
 
@@ -18,11 +18,11 @@ export interface ReqObject {
   source?: string;
   content?: string;
   modified?: string;
-  hasPreview?: string;
-  subtitles?: any[];
+  hasPreview?: boolean;
+  subtitles?: unknown[];
 
   // Directory listing properties
-  listing?: any[];
+  listing?: unknown[];
 }
 
 export interface ShareInfoObject {
@@ -41,6 +41,7 @@ export interface ShareInfoObject {
 }
 
 export interface UserObject {
+  pinnedItems?: Record<string, Record<string, string[]>>;
   preview: {
     video: boolean;
     audio: boolean;
@@ -61,8 +62,8 @@ export interface UserObject {
   locale: string;
   viewMode: string;
   showHidden: boolean;
-  scopes: any[];
-  permissions: any;
+  scopes: unknown[];
+  permissions: unknown;
   darkMode: boolean;
   disableSettings: boolean;
   debugOffice: boolean;
@@ -79,7 +80,7 @@ export interface UserObject {
   id?: number;
   password?: string;
   scope?: string;
-  rules?: any[];
+  rules?: unknown[];
   lockPassword?: boolean;
   hideDotfiles?: boolean;
   sorting?: {
@@ -87,7 +88,7 @@ export interface UserObject {
     asc: boolean;
   };
   dateFormat?: boolean;
-  perm?: any;
+  perm?: unknown;
   email?: string;
   avatarUrl?: string;
   fileLoading?: {
@@ -100,8 +101,8 @@ export interface UserObject {
 export interface RouteObject {
   name?: string;
   path?: string;
-  params?: any;
-  query?: any;
+  params?: unknown;
+  query?: unknown;
 }
 
 export interface StoreState {
@@ -130,11 +131,11 @@ export interface StoreState {
   isMobile: boolean;
   isSearchActive: boolean;
   showSidebar: boolean;
-  displayPreferences: any;
-  usages: any;
-  editor: any;
+  displayPreferences: unknown;
+  usages: unknown;
+  editor: unknown;
   editorDirty: boolean;
-  editorSaveHandler: any;
+  editorSaveHandler: unknown;
   realtimeActive: boolean | undefined;
   realtimeDownCount: number;
   popupPreviewSourceInfo: {
@@ -151,7 +152,7 @@ export interface StoreState {
     current: string;
     count: number;
     hasSourceInfo: boolean;
-    info: any;
+    info: unknown;
   };
   user: UserObject;
   req: ReqObject;
@@ -163,33 +164,33 @@ export interface StoreState {
     listingScrollTop: number;
   };
   previewRaw: string;
-  oldReq: any;
+  oldReq: unknown;
   clipboard: {
     key: string;
-    items: any[];
+    items: unknown[];
   };
   sharePassword: string;
-  loading: any[];
+  loading: unknown[];
   reload: boolean;
-  selected: any[];
+  selected: unknown[];
   lastSelectedIndex: number | null;
   multiple: boolean;
   upload: {
-    uploads: any;
-    queue: any[];
-    progress: any[];
-    sizes: any[];
+    uploads: unknown;
+    queue: unknown[];
+    progress: unknown[];
+    sizes: unknown[];
     isUploading: boolean;
   };
-  prompts: any[];
-  show: any;
-  showConfirm: any;
+  prompts: unknown[];
+  show: unknown;
+  showConfirm: unknown;
   route: RouteObject;
   settings: {
     signup: boolean;
     createUserDir: boolean;
     userHomeBasePath: string;
-    rules: any[];
+    rules: unknown[];
     frontend: {
       disableExternal: boolean;
       name: string;
@@ -199,26 +200,26 @@ export interface StoreState {
   navigation: {
     show: boolean;
     hoverNav: boolean;
-    listing: any;
+    listing: unknown;
     currentIndex: number;
-    previousItem: any;
-    nextItem: any;
+    previousItem: unknown;
+    nextItem: unknown;
     previousLink: string;
     nextLink: string;
     previousRaw: string;
     nextRaw: string;
-    timeout: any;
+    timeout: unknown;
     enabled: boolean;
     isTransitioning: boolean;
-    transitionStartTime: any;
+    transitionStartTime: unknown;
   };
   playbackQueue: {
-    queue: any[];
+    queue: unknown[];
     currentIndex: number;
     mode: string;
     isPlaying: boolean;
   };
-  notificationHistory: any[];
+  notificationHistory: unknown[];
   sidebar: {
     width: number;
     mode: string;

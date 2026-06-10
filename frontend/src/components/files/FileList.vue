@@ -43,6 +43,7 @@
         :clickable="false"
         :forceFilesApi="!!browseSource"
         :showLimitedOptions="true"
+        :inlinePin="true"
         @click.prevent="(event) => handleItemClick(item, index, event)"
         @dblclick.prevent="(event) => handleItemDblClick(item, index, event)"
       />
@@ -56,6 +57,7 @@ import { url } from "@/utils";
 import { resourcesApi } from "@/api";
 import ListingItem from "@/components/files/ListingItem.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import { sortedItems } from "@/utils/sort.js";
 
 export default {
   name: "file-list",
@@ -145,7 +147,7 @@ export default {
     },
     availableSources() {
       // Get all available sources from state.sources.info
-      return state.sources && state.sources.info ? Object.keys(state.sources.info) : [state.req.source];
+      return state.sources?.info ? Object.keys(state.sources.info) : [state.req.source];
     },
     showSourceSelector() {
       if (this.hideDestinationSource) {
@@ -225,7 +227,7 @@ export default {
         if (this.path !== "/" && this.showFolders) {
           this.items.push({
             name: "..",
-            path: url.removeLastDir(this.path) + "/",
+            path: `${url.removeLastDir(this.path)}/`,
             source: this.source,
             type: "directory",
           });
@@ -290,6 +292,20 @@ export default {
       // Fetch files for the share
       this.withLoading(() => resourcesApi.fetchFilesPublic("/", newHash).then(this.fillOptions));
     },
+    // Sort items to make pinned items appear on top always (it was working before, but just for the first load)
+    // after navigate the pinned was lost, this will also keep our sorting preference in all prompts that use FileList
+    sortItemsWithPinned(items, source, path) {
+      if (!items?.length) return items;
+      const parentEntry = items.find(i => i.name === "..");
+      const rest = items.filter(i => i.name !== "..");
+      const dirs = rest.filter(i => i.type === 'directory');
+      const files = rest.filter(i => i.type !== 'directory');
+      const pinnedPaths = getters.pinnedPathsFor(source, path);
+      const sorting = getters.sorting();
+      const sortedDirs = sortedItems(dirs, sorting.by, sorting.asc, pinnedPaths);
+      const sortedFiles = sortedItems(files, sorting.by, sorting.asc, pinnedPaths);
+      return parentEntry ? [parentEntry, ...sortedDirs, ...sortedFiles] : [...sortedDirs, ...sortedFiles];
+    },
     fillOptions(req) {
       // Sets the current path and resets the current items.
       // Use this.path (the path we're browsing) instead of req.path (which may be relative)
@@ -311,7 +327,7 @@ export default {
       if (this.path !== "/" && this.showFolders) {
         this.items.push({
           name: "..",
-          path: url.removeLastDir(this.path) + "/",
+          path: `${url.removeLastDir(this.path)}/`,
           source: this.source,
           type: "directory",
         });
@@ -319,7 +335,7 @@ export default {
 
       // If this folder has no items or items is not an array, finish here.
       if (!req.items || !Array.isArray(req.items)) return;
-      for (let item of req.items) {
+      for (const item of req.items) {
         if (!this.showFolders && item.type === "directory") continue;
         if (!this.showFiles && item.type !== "directory") continue;
         // Filter by file type if specified (only for files, not directories)
@@ -332,14 +348,15 @@ export default {
           originalItem: item, // Store original item for Icon component
         });
       }
+      this.items = this.sortItemsWithPinned(this.items, this.source, this.path);
     },
     next: function (event) {
       // Retrieves the URL of the directory the user
       // just clicked in and fill the options with its
       // content.
-      let path = event.currentTarget.dataset.path;
-      let clickedItem = this.items.find(item => item.path === path);
-      let sourceToUse = clickedItem ? clickedItem.source : this.source;
+      const path = event.currentTarget.dataset.path;
+      const clickedItem = this.items.find(item => item.path === path);
+      const sourceToUse = clickedItem ? clickedItem.source : this.source;
 
       // If showFiles and showFolders is true, and clicked item is a file (not a directory), select it directly
       if (this.showFiles && clickedItem && clickedItem.type !== "directory") {
@@ -377,7 +394,7 @@ export default {
 
     },
     touchstart(event) {
-      let url = event.currentTarget.dataset.path;
+      const url = event.currentTarget.dataset.path;
 
       // In 300 milliseconds, we shall reset the count.
       setTimeout(() => {
@@ -438,7 +455,7 @@ export default {
       this.next(syntheticEvent);
     },
     select: function (event) {
-      let path = event.currentTarget.dataset.path;
+      const path = event.currentTarget.dataset.path;
       // If the element is already selected, unselect it.
       if (this.selected === path) {
         this.selected = null;
@@ -454,7 +471,7 @@ export default {
       }
       // Otherwise select the element.
       this.selected = path;
-      let clickedItem = this.items.find(item => item.path === path);
+      const clickedItem = this.items.find(item => item.path === path);
       this.selectedSource = clickedItem ? clickedItem.source : this.source;
       this.selectedType = clickedItem ? clickedItem.type : null;
       const isFile = clickedItem && clickedItem.type !== "directory";
@@ -487,7 +504,7 @@ export default {
       if (!source) {
         return;
       }
-      let p = path == null || path === "" ? "/" : String(path);
+      let p = path === null || path === "" ? "/" : String(path);
       if (!p.startsWith("/")) {
         p = `/${p}`;
       }

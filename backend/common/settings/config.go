@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"slices"
 	"strconv"
 	"strings"
@@ -63,6 +62,9 @@ func Initialize(configFile string) {
 }
 
 func setupServer() {
+	if Config.Server.Socket != "" && (Config.Server.TLSCert != "" || Config.Server.TLSKey != "") {
+		logger.Fatal("server.socket cannot be used with tlsCert or tlsKey")
+	}
 	if Config.Server.ListenAddress == "" {
 		Config.Server.ListenAddress = "0.0.0.0"
 	}
@@ -971,12 +973,6 @@ func loadEnvConfig() {
 }
 
 func SetDefaults(generate bool) Settings {
-	// get number of CPUs available
-	numCpus := 4 // default to 4 CPUs if runtime.NumCPU() fails or is not available
-	cpus := runtime.NumCPU()
-	if cpus > 0 && !generate {
-		numCpus = cpus
-	}
 	database := os.Getenv("FILEBROWSER_DATABASE")
 	if database == "" {
 		database = "database.db"
@@ -987,7 +983,7 @@ func SetDefaults(generate bool) Settings {
 	s := Settings{
 		Server: Server{
 			Port:               80,
-			NumImageProcessors: numCpus,
+			NumImageProcessors: 4,
 			BaseURL:            "",
 			Database:           database,
 			SourceMap:          map[string]*Source{},

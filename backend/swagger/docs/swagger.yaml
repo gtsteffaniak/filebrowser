@@ -1180,13 +1180,13 @@ definitions:
         type: integer
       numImageProcessors:
         description: number of concurrent image processing jobs used to create previews,
-          default is number of cpu cores available.
+          default is 4.
         type: integer
       port:
         description: port to listen on
         type: integer
       socket:
-        description: socket to listen on
+        description: socket to listen on - eg. /var/run/filebrowser.sock
         type: string
       sources:
         items:
@@ -2063,6 +2063,14 @@ definitions:
         description: allow sharing files
         type: boolean
     type: object
+  users.PinnedItems:
+    additionalProperties:
+      additionalProperties:
+        items:
+          type: string
+        type: array
+      type: object
+    type: object
   users.Preview:
     properties:
       audio:
@@ -2227,6 +2235,10 @@ definitions:
         description: legacy for migration purposes... og filebrowser has perm attribute
       permissions:
         $ref: '#/definitions/users.Permissions'
+      pinnedItems:
+        allOf:
+        - $ref: '#/definitions/users.PinnedItems'
+        description: pinned items organized by source and directory path
       preferEditorForMarkdown:
         description: prefer editor first for markdown files instead of the Markdown
           Viewer

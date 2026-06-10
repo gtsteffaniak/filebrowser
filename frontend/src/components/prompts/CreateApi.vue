@@ -44,7 +44,11 @@
   </div>
 
   <div class="card-actions">
-    <button class="button button--flat button--blue" @click="createAPIKey" :title="$t('general.create')">
+    <button
+      type="button"
+      class="button button--flat button--blue"
+      @click="createAPIKey"
+      :title="$t('general.create')">
       {{ $t("general.create") }}
     </button>
   </div>
@@ -123,7 +127,7 @@ export default {
         eventBus.emit('apiKeysChanged');
         notify.showSuccessToast(this.$t("api.createKeySuccess"));
         mutations.closeTopPrompt();
-      } catch (error) {
+      } catch (_e) {
         notify.showError(this.$t("api.createKeyFailed"));
       } finally {
         this.creating = false;

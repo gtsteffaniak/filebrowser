@@ -1,4 +1,5 @@
-import { test as base, expect, Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { test as base, expect } from "@playwright/test";
 
 /**
  * Standalone helper function to open the context menu (File-Actions button)
@@ -17,11 +18,12 @@ export async function openContextMenuHelper(page: Page): Promise<void> {
     if (isHidden === 'true') {
       throw new Error('File actions button is hidden (user does not have create permissions or is on invalid share)');
     }
-  } catch (error: any) {
-    if (error.message.includes('hidden')) {
+  } catch (error: unknown) {
+    if (error instanceof Error && error.message.includes('hidden')) {
       throw error;
     }
-    throw new Error(`File actions are not available on this page. Check that you are on a listing view with appropriate permissions. Original error: ${error.message}`);
+    const originalMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(`File actions are not available on this page. Check that you are on a listing view with appropriate permissions. Original error: ${originalMessage}`);
   }
   
   // Now wait for the actual button to be visible (accounting for transition)
@@ -67,7 +69,7 @@ export const test = base.extend<{
     });
   },
   theme: async ({}, use, testInfo) => {
-    const theme = (testInfo.project.use as any).theme || 'dark';
+    const theme = (testInfo.project.use as { theme?: 'light' | 'dark' }).theme || 'dark';
     await use(theme);
   },
   checkForNotification: async ({ page }, use) => {
@@ -105,7 +107,7 @@ export function setupErrorTracking(page: Page) {
               detailedError = `${firstArg.name || 'Error'}: ${firstArg.message}`;
             }
           }
-        } catch (e) {
+        } catch (_e) {
           // If we can't extract detailed info, try to get string representation of args
           try {
             const argsText = await Promise.all(
@@ -138,14 +140,16 @@ export function setupErrorTracking(page: Page) {
     }
   });
 
-  // Track failed API calls
+  // Track failed API calls (304 Not Modified is expected for cached preview requests)
   page.on("response", (response) => {
-    if (!response.ok()) {
-      failedResponses.push({
-        url: response.url(),
-        status: response.status(),
-      });
+    const status = response.status();
+    if (status === 304 || response.ok()) {
+      return;
     }
+    failedResponses.push({
+      url: response.url(),
+      status,
+    });
   });
 
   return {
@@ -173,8 +177,6 @@ export function setupErrorTracking(page: Page) {
     },
   };
 }
-
-
 
 /**
  * Helper function to check for a notification or toast with the given message
@@ -230,9 +232,9 @@ export async function checkForNotification(page: Page, message: string | RegExp)
     const errorMessage = `Message "${message}" not found. Current messages: ${JSON.stringify(allTexts)}`;
     throw new Error(errorMessage);
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Handle page closed/navigation errors gracefully
-    if (error.message && (error.message.includes('Target page') || error.message.includes('closed'))) {
+    if (error instanceof Error && (error.message.includes('Target page') || error.message.includes('closed'))) {
       // Try to get current messages before page closed
       try {
         const [notificationTexts, toastTexts] = await Promise.all([
@@ -250,7 +252,7 @@ export async function checkForNotification(page: Page, message: string | RegExp)
     }
 
     // If no messages found, provide helpful error
-    if (error.message && error.message.includes('waiting for')) {
+    if (error instanceof Error && error.message.includes('waiting for')) {
       try {
         const [notificationTexts, toastTexts] = await Promise.all([
           notificationMessage.allTextContents(),
@@ -265,8 +267,8 @@ export async function checkForNotification(page: Page, message: string | RegExp)
           ? 'No notifications or toasts found on the page.'
           : `No matching message found. Current messages: ${JSON.stringify(allTexts)}`;
         throw new Error(`Message "${message}" not found. ${errorMessage}`);
-      } catch (countError: any) {
-        if (countError.message && (countError.message.includes('Target page') || countError.message.includes('closed'))) {
+      } catch (countError: unknown) {
+        if (countError instanceof Error && (countError.message.includes('Target page') || countError.message.includes('closed'))) {
           throw error;
         }
         throw countError;
@@ -313,12 +315,12 @@ export async function checkForToast(page: Page, message: string | RegExp): Promi
     const allToasts = await toastMessage.allTextContents();
     throw new Error(`Toast with message "${message}" not found. Current toasts: ${JSON.stringify(allToasts)}`);
 
-  } catch (error: any) {
-    if (error.message && (error.message.includes('Target page') || error.message.includes('closed'))) {
+  } catch (error: unknown) {
+    if (error instanceof Error && (error.message.includes('Target page') || error.message.includes('closed'))) {
       throw new Error(`Toast check failed: page was closed or navigated. Expected: "${message}"`);
     }
 
-    if (error.message && error.message.includes('waiting for')) {
+    if (error instanceof Error && error.message.includes('waiting for')) {
       const allToasts = await toastMessage.allTextContents().catch(() => []);
       const errorMessage = allToasts.length === 0
         ? 'No toasts found on the page.'

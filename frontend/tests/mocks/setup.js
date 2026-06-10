@@ -85,6 +85,9 @@ vi.mock('@/store', () => {
 
 vi.mock('@/utils/constants', () => {
   return {
+    globalVars: {
+      baseURL: "/files/",
+    },
     baseURL: "/files/",
   };
 });

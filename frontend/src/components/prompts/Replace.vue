@@ -4,12 +4,21 @@
   </div>
 
   <div class="card-actions">
-    <button class="button button--flat button--grey" @click="closeTopPrompt" :aria-label="$t('general.cancel')"
-      :title="$t('general.cancel')">
+    <button
+      type="button"
+      class="button button--flat button--grey"
+      @click="closeTopPrompt" :aria-label="$t('general.cancel')"
+      :title="$t('general.cancel')"
+    >
       {{ $t("general.cancel") }}
     </button>
-    <button class="button button--flat button--red" @click="currentPrompt.confirm" :aria-label="$t('general.replace')"
-      :title="$t('general.replace')">
+    <button
+      type="button"
+      class="button button--flat button--red"
+      @click="currentPrompt.confirm"
+      :aria-label="$t('general.replace')"
+      :title="$t('general.replace')"
+    >
       {{ $t("general.replace") }}
     </button>
   </div>

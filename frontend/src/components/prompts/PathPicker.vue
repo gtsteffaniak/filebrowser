@@ -118,10 +118,10 @@ export default {
       if (typeof pathOrData === 'string') {
         this.selectedPath = pathOrData;
         this.selectionIsValid = !this.requireFileSelection;
-      } else if (pathOrData && pathOrData.path) {
+      } else if (pathOrData?.path) {
         this.selectedPath = pathOrData.path;
         this.selectedSource = pathOrData.source;
-        if (Object.prototype.hasOwnProperty.call(pathOrData, 'isValid')) {
+        if (Object.hasOwn(pathOrData, 'isValid')) {
           this.selectionIsValid = !!pathOrData.isValid;
         } else {
           this.selectionIsValid = !this.requireFileSelection;
@@ -152,4 +152,3 @@ export default {
   min-height: 300px;
 }
 </style>
-

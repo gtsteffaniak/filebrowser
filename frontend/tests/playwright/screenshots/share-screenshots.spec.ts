@@ -1,10 +1,10 @@
-import { test, expect } from "../test-setup";
-import { Page } from "@playwright/test";
+// import { Page } from "@playwright/test";
+import { test } from "../test-setup";
 
-const jpgQuality = 85;
+//const jpgQuality = 85;
 
 // this file has playwright tests that create screenshots of the UI
-test("setup theme", async ({ page, checkForErrors, context, theme }) => {
+test("setup theme", async ({ page, theme }) => {
   if (theme === 'light') {
     await page.goto("/files/");
     // only toggle if active

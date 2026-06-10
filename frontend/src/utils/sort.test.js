@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { sortedItems } from './sort.js';
 
 describe('testSort', () => {
@@ -136,6 +136,23 @@ describe('testSort', () => {
     // Then items with actual duration values in ascending order
     expect(result[2]).toEqual({ name: "video1.mp4", metadata: { duration: 120.0 } });
     expect(result[3]).toEqual({ name: "video2.mp4", metadata: { duration: 240.75 } });
+  });
+
+  it('keeps pinned items at the top while preserving sort order among them', () => {
+    const input = [
+      { name: "beta.txt", path: "/beta.txt" },
+      { name: "delta.txt", path: "/delta.txt" },
+      { name: "alpha.txt", path: "/alpha.txt" },
+      { name: "gamma.txt", path: "/gamma.txt" },
+    ];
+    const expected = [
+      { name: "alpha.txt", path: "/alpha.txt" },
+      { name: "delta.txt", path: "/delta.txt" },
+      { name: "beta.txt", path: "/beta.txt" },
+      { name: "gamma.txt", path: "/gamma.txt" },
+    ];
+
+    expect(sortedItems(input, "name", true, ["/delta.txt", "/alpha.txt"])).toEqual(expected);
   });
 
 });

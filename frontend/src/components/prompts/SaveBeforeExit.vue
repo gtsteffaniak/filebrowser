@@ -5,6 +5,7 @@
 
   <div class="card-actions">
     <button
+      type="button"
       class="button button--flat button--grey"
       @click="keepEditing"
       :aria-label="$t('buttons.keepEditing')"
@@ -12,6 +13,7 @@
       {{ $t("buttons.keepEditing") }}
     </button>
     <button
+      type="button"
       class="button button--flat button--blue"
       @click="discardAndExit"
       :aria-label="$t('buttons.discardAndExit')"
@@ -19,6 +21,7 @@
       {{ $t("buttons.discardAndExit") }}
     </button>
     <button
+      type="button"
       class="button button--flat"
       @click="saveAndExit"
       :aria-label="$t('buttons.saveAndExit')"
@@ -53,13 +56,13 @@ export default {
   },
   methods: {
     keepEditing() {
-      if (this.currentPrompt && this.currentPrompt.cancel) {
+      if (this.currentPrompt?.cancel) {
         this.currentPrompt.cancel();
       }
       mutations.closeTopPrompt();
     },
     async saveAndExit() {
-      if (this.currentPrompt && this.currentPrompt.confirm) {
+      if (this.currentPrompt?.confirm) {
         try {
           await this.currentPrompt.confirm();
           // Only close prompt if save succeeded
@@ -72,7 +75,7 @@ export default {
       }
     },
     discardAndExit() {
-      if (this.currentPrompt && this.currentPrompt.discard) {
+      if (this.currentPrompt?.discard) {
         this.currentPrompt.discard();
       }
       mutations.closeTopPrompt();
@@ -80,4 +83,3 @@ export default {
   },
 };
 </script>
-

@@ -38,7 +38,7 @@ export function stripAssOverrideTags (text) {
 }
 
 export function convertToVTT (ext, text) {
-  if (ext == '.vtt') {
+  if (ext === '.vtt') {
     return text
   }
   let vttContent = 'WEBVTT\n\n'
@@ -51,10 +51,8 @@ export function convertToVTT (ext, text) {
         .replace(/\r\n|\r/g, '\n') // Normalize newlines
         .replace(
           /\d+\n(\d{2}):(\d{2}):(\d{2}),(\d{3}) --> (\d{2}):(\d{2}):(\d{2}),(\d{3})/g,
-          (match, h1, m1, s1, ms1, h2, m2, s2, ms2) => {
-            return `${parseInt(h1)}:${m1}:${s1}.${ms1} --> ${parseInt(
-              h2
-            )}:${m2}:${s2}.${ms2}`
+          (_match, h1, m1, s1, ms1, h2, m2, s2, ms2) => {
+            return `${parseInt(h1, 10)}:${m1}:${s1}.${ms1} --> ${parseInt(h2, 10)}:${m2}:${s2}.${ms2}`
           }
         ) // Fix timestamps (remove leading zeros)
         .replace(/\n\n+/g, '\n\n') // Ensure proper spacing
@@ -78,14 +76,15 @@ export function convertToVTT (ext, text) {
       lrcLines = lrcLines
         .map((line, index) => {
           if (line.startsWith('[')) {
-            let [time, dialogue] = line.split(']') // Remove square brackets
+            const [timeRaw, dialogue] = line.split(']') // Remove square brackets
+            let time = timeRaw
             if (!time || !dialogue) return '' // Skip invalid lines
 
             time = time.slice(1) // Remove opening square bracket
 
             // Format time to HH:MM:SS.MMM
-            let startTime = formatLrcTime(time)
-            let endTime =
+            const startTime = formatLrcTime(time)
+            const endTime =
               index + 1 < lrcLines.length
                 ? formatLrcTime(lrcLines[index + 1].split(']')[0].slice(1))
                 : startTime // Use next line's timestamp for end time
@@ -109,10 +108,10 @@ export function convertToVTT (ext, text) {
         .split('\n')
         .filter(line => line.startsWith('Dialogue:')) // Keep only dialogue lines
         .map(line => {
-          let parts = line.split(',')
-          let startTime = formatAssTime(parts[1].trim())
-          let endTime = formatAssTime(parts[2].trim())
-          let dialogue = stripAssOverrideTags(parts.slice(9).join(',').trim())
+          const parts = line.split(',')
+          const startTime = formatAssTime(parts[1].trim())
+          const endTime = formatAssTime(parts[2].trim())
+          const dialogue = stripAssOverrideTags(parts.slice(9).join(',').trim())
           return `${startTime} --> ${endTime}\n ${dialogue}` // Add leading space before dialogue
         })
         .join('\n\n')
@@ -124,24 +123,24 @@ export function convertToVTT (ext, text) {
         .replace(/\r\n|\r/g, '\n') // Normalize newlines
         .match(/<SYNC Start=\d+>.*?<\/SYNC>/gs) // Match all <SYNC> blocks
         ?.map(syncBlock => {
-          let startTime = syncBlock.match(/<SYNC Start=(\d+)>/)[1] // Extract start time in ms
-          let dialogueMatch = syncBlock.match(/<P[^>]*>(.*?)<\/P>/) // Extract text inside <P>
-          let dialogue = dialogueMatch
+          const startTime = syncBlock.match(/<SYNC Start=(\d+)>/)[1] // Extract start time in ms
+          const dialogueMatch = syncBlock.match(/<P[^>]*>(.*?)<\/P>/) // Extract text inside <P>
+          const dialogue = dialogueMatch
             ? dialogueMatch[1].replace(/<[^>]+>/g, '').trim()
             : '' // Remove HTML tags
 
           if (!dialogue) return '' // Skip empty captions
-          let startFormatted = formatMillisecondsToVTT(startTime)
+          const startFormatted = formatMillisecondsToVTT(startTime)
 
           // Use next start time as the end time if available
-          let nextSyncMatch = text.match(
-            new RegExp(`<SYNC Start=${parseInt(startTime) + 1}>`)
+          const nextSyncMatch = text.match(
+            new RegExp(`<SYNC Start=${parseInt(startTime, 10) + 1}>`)
           )
-          let endTime = nextSyncMatch
+          const endTime = nextSyncMatch
             ? nextSyncMatch[1]
-            : parseInt(startTime) + 3000 // Default to +3s
+            : parseInt(startTime, 10) + 3000 // Default to +3s
 
-          let endFormatted = formatMillisecondsToVTT(endTime)
+          const endFormatted = formatMillisecondsToVTT(endTime)
           return `${startFormatted} --> ${endFormatted}\n${dialogue}`
         })
         .filter(syncBlock => syncBlock !== '')
@@ -154,10 +153,10 @@ export function convertToVTT (ext, text) {
         .replace(/\r\n|\r/g, '\n') // Normalize newlines
         .split('\n\n') // Split by empty lines (each caption block)
         .map(block => {
-          let lines = block.split('\n').filter(line => line.trim() !== ''); // Remove empty lines
+          const lines = block.split('\n').filter(line => line.trim() !== ''); // Remove empty lines
           if (lines.length < 2) return ''; // Ensure each block has a timestamp and text
     
-          let [time, ...dialogue] = lines; // First line is time, rest is dialogue
+          const [time, ...dialogue] = lines; // First line is time, rest is dialogue
           let [start, end] = time.split(','); // Split start and end time
     
           if (!start || !end || dialogue.length === 0) return ''; // Skip invalid blocks
@@ -182,8 +181,9 @@ export function convertToVTT (ext, text) {
 
 // Helper function to format LRC time (e.g., 00:00.000 -> 00:00:00.000)
 function formatLrcTime (time) {
-  let [minutes, seconds] = time.split(':')
-  let [sec, ms] = seconds.split('.')
+  const [minutes, seconds] = time.split(':')
+  const sec = seconds.split('.')[0]
+  let ms = seconds.split('.')[1] || ''
   ms = ms ? ms.padEnd(3, '0') : '000' // Ensure milliseconds are 3 digits
 
   // Return in the correct format
@@ -192,10 +192,10 @@ function formatLrcTime (time) {
 
 // Helper function to fix ASS/SSA timestamps
 function formatAssTime (time) {
-  let parts = time.split(':')
-  let hours = parts.length === 3 ? parseInt(parts[0]) : 0
-  let minutes = parts.length === 3 ? parts[1] : parts[0]
-  let seconds = parts[parts.length - 1].replace('.', ':')
+  const parts = time.split(':')
+  const hours = parts.length === 3 ? parseInt(parts[0], 10) : 0
+  const minutes = parts.length === 3 ? parts[1] : parts[0]
+  const seconds = parts[parts.length - 1].replace('.', ':')
 
   // Ensure proper milliseconds formatting (000)
   const [sec, ms = '000'] = seconds.split(':')
@@ -204,11 +204,12 @@ function formatAssTime (time) {
 
 // Helper function to ensure proper SUB timestamp format (with 3-digit milliseconds)
 function formatSubTime(time) {
-  let parts = time.split(':');
+  const parts = time.split(':');
   if (parts.length < 3) return '00:00:00.000'; // Fallback for invalid input
 
-  let [hours, minutes, secMs] = parts;
-  let [seconds, ms = '000'] = secMs.split('.');
+  const [hours, minutes, secMs] = parts;
+  const seconds = secMs.split('.')[0];
+  let ms = secMs.split('.')[1] || '000';
 
   ms = ms.padEnd(3, '0'); // Ensure milliseconds are 3 digits
 
@@ -218,11 +219,11 @@ function formatSubTime(time) {
 
 // Helper function to convert milliseconds to HH:MM:SS.MMM format
 function formatMillisecondsToVTT (ms) {
-  let totalSeconds = Math.floor(ms / 1000)
-  let milliseconds = (ms % 1000).toString().padStart(3, '0')
-  let hours = Math.floor(totalSeconds / 3600)
-  let minutes = Math.floor((totalSeconds % 3600) / 60)
-  let seconds = totalSeconds % 60
+  const totalSeconds = Math.floor(ms / 1000)
+  const milliseconds = (ms % 1000).toString().padStart(3, '0')
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
   return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds
     .toString()
     .padStart(2, '0')}.${milliseconds}`

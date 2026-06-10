@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"image"
 	"io"
 	"os"
 	"path/filepath"
@@ -49,6 +50,8 @@ type Service struct {
 //	3-6 processors: 2 large, rest small
 //	7+ processors: 3 large, rest small
 func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
+	configureImagingParallelism()
+
 	if concurrencyLimit < 1 {
 		concurrencyLimit = 1
 	}
@@ -342,6 +345,13 @@ func (s *Service) generateVideoPreviewBytes(ctx context.Context, file iteminfo.E
 
 // generateImagePreview generates preview for regular image files
 func (s *Service) generateImagePreview(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize string) ([]byte, error) {
+	const maxSizeForOriginal = 256 * 1024 // 256KB
+	if previewSize != "original" && (file.Size < maxSizeForOriginal || ShouldServeOriginalImage(file.RealPath, previewSize)) {
+		if original, err := os.ReadFile(file.RealPath); err == nil {
+			return original, nil
+		}
+	}
+
 	// Stream from file instead of os.ReadFile so we don't load every image fully into memory
 	f, err := os.Open(file.RealPath)
 	if err != nil {
@@ -355,8 +365,11 @@ func (s *Service) generateImagePreview(ctx context.Context, file iteminfo.Extend
 		return nil, err
 	}
 
-	imageBytes, err := s.CreatePreview(f, file.Size, options)
+	imageBytes, err := s.CreatePreview(ctx, f, file.Size, options)
 	if err != nil {
+		if ctx.Err() != nil {
+			return nil, ctx.Err()
+		}
 		// For JPEG files, try FFmpeg fallback if initial decode failed
 		if strings.HasPrefix(file.Type, "image/jpeg") {
 			return handleJPEGFallback(ctx, s, file, previewSize, err)
@@ -496,8 +509,18 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 			return nil, err
 		}
 
-		resizedBytes, err := service.CreatePreview(bytes.NewReader(imageBytes), 0, options)
+		if cfg, _, cfgErr := image.DecodeConfig(bytes.NewReader(imageBytes)); cfgErr == nil && ImageFitsPreviewSize(cfg.Width, cfg.Height, previewSize) {
+			if err = service.fileCache.Store(ctx, cacheKey, imageBytes); err != nil {
+				logger.Errorf("failed to cache image: %v", err)
+			}
+			return imageBytes, nil
+		}
+
+		resizedBytes, err := service.CreatePreview(ctx, bytes.NewReader(imageBytes), 0, options)
 		if err != nil {
+			if ctx.Err() != nil {
+				return nil, ctx.Err()
+			}
 			// For JPEG files, try FFmpeg fallback if resize failed
 			if strings.HasPrefix(file.Type, "image/jpeg") {
 				resizedBytes, err = handleJPEGFallback(ctx, service, file, previewSize, err)
@@ -533,6 +556,42 @@ func GeneratePreview(ctx context.Context, file iteminfo.ExtendedFileInfo, previe
 	return GeneratePreviewWithMD5(ctx, file, previewSize, officeUrl, seekPercentage, cacheHash)
 }
 
+// ImageFitsPreviewSize reports whether both image dimensions are within the preview bounds.
+func ImageFitsPreviewSize(imgWidth, imgHeight int, previewSize string) bool {
+	if previewSize == "original" {
+		return true
+	}
+	opts, err := getPreviewOptions(previewSize)
+	if err != nil {
+		return false
+	}
+	return imgWidth <= opts.Width && imgHeight <= opts.Height
+}
+
+// ReadImageFileDimensions reads image width and height without decoding the full image.
+func ReadImageFileDimensions(path string) (int, int, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return 0, 0, err
+	}
+	defer f.Close()
+
+	cfg, _, err := image.DecodeConfig(f)
+	if err != nil {
+		return 0, 0, err
+	}
+	return cfg.Width, cfg.Height, nil
+}
+
+// ShouldServeOriginalImage reports whether an on-disk image is already within preview bounds.
+func ShouldServeOriginalImage(path, previewSize string) bool {
+	width, height, err := ReadImageFileDimensions(path)
+	if err != nil {
+		return false
+	}
+	return ImageFitsPreviewSize(width, height, previewSize)
+}
+
 // getPreviewOptions returns resize options for the given preview size
 func getPreviewOptions(previewSize string) (ResizeOptions, error) {
 	switch previewSize {
@@ -549,15 +608,15 @@ func getPreviewOptions(previewSize string) (ResizeOptions, error) {
 			Width:      640,
 			Height:     640,
 			ResizeMode: ResizeModeFit,
-			Quality:    QualityHigh,
+			Quality:    QualityMedium,
 			Format:     FormatJpeg,
 		}, nil
 	case "small":
 		return ResizeOptions{
 			Width:      256,
 			Height:     256,
-			ResizeMode: ResizeModeFit,
-			Quality:    QualityMedium,
+			ResizeMode: ResizeModeFill,
+			Quality:    QualityLow,
 			Format:     FormatJpeg,
 		}, nil
 	default:
@@ -566,9 +625,9 @@ func getPreviewOptions(previewSize string) (ResizeOptions, error) {
 }
 
 // CreatePreview resizes an image from a reader with the given options
-func (s *Service) CreatePreview(reader io.Reader, fileSize int64, options ResizeOptions) ([]byte, error) {
+func (s *Service) CreatePreview(ctx context.Context, reader io.Reader, fileSize int64, options ResizeOptions) ([]byte, error) {
 	output := &bytes.Buffer{}
-	if err := s.ResizeWithSize(reader, output, fileSize, options); err != nil {
+	if err := s.ResizeWithSize(ctx, reader, output, fileSize, options); err != nil {
 		return nil, err
 	}
 	return output.Bytes(), nil

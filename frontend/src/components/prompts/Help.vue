@@ -1,4 +1,3 @@
-<!-- eslint-disable @intlify/vue-i18n/no-raw-text -->
 <template>
   <div class="card-content help-content">
     <p class="help-description">
@@ -13,19 +12,19 @@
       <div class="shortcut-section">
         <h3 class="section-title">{{ $t("help.functionKeys") }}</h3>
         <div class="shortcut-item">
-          <kbd>F1</kbd>
+          <kbd>F1</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.f1") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>F2</kbd>
+          <kbd>F2</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.f2") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>DEL</kbd>
+          <kbd>DEL</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.del") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>ESC</kbd>
+          <kbd>ESC</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.esc") }}</span>
         </div>
       </div>
@@ -34,20 +33,24 @@
       <div class="shortcut-section">
         <h3 class="section-title">{{ $t("help.mouseActions") }}</h3>
         <div class="shortcut-item">
-          <kbd>Click</kbd>
+          <kbd>CLICK</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.click") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>Double click</kbd>
+          <kbd>DOUBLE CLICK</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.dbClick") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>Click + Drag</kbd>
+          <kbd>CLICK + DRAG</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.marqueeSelect") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>CTRL + Click</kbd>
+          <kbd>CTRL + CLICK</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.ctrl.click") }}</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>CTRL + SCROLL</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <span>{{ $t("help.ctrl.scroll") }}</span>
         </div>
       </div>
 
@@ -55,57 +58,62 @@
       <div class="shortcut-section">
         <h3 class="section-title">{{ $t("help.fileOperations") }}</h3>
         <div class="shortcut-item">
-          <kbd>CTRL + C</kbd>
+          <kbd>CTRL + C</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.ctrl.c") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>CTRL + X</kbd>
+          <kbd>CTRL + X</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.ctrl.x") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>CTRL + V</kbd>
+          <kbd>CTRL + V</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.ctrl.v") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>CTRL + D</kbd>
+          <kbd>CTRL + D</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.ctrl.d") }}</span>
         </div>
+
       </div>
 
       <!-- Navigation Section -->
       <div class="shortcut-section">
         <h3 class="section-title">{{ $t("general.navigation") }}</h3>
         <div class="shortcut-item">
-          <kbd>CTRL + B</kbd>
+          <kbd>BACKSPACE {{ $t("general.or") }} ALT + ↑</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <span>{{ $t("help.altArrowUp") }}</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>ENTER {{ $t("general.or") }} ALT + ↓</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <span>{{ $t("help.altArrowDown") }}</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>CTRL + B</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.ctrl.b") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>CTRL + ,</kbd>
+          <kbd>CTRL + ,</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.ctrl.comma") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>space or /</kbd>
+          <kbd>SPACE {{ $t("general.or") }} /</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.slash") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>CTRL + E</kbd>
+          <kbd>CTRL + E</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.ctrl.e") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>CTRL + F1</kbd>
+          <kbd>CTRL + F1</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.ctrl.f1") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>CTRL + F2</kbd>
+          <kbd>CTRL + F2</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.ctrl.f2") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>CTRL + F3</kbd>
+          <kbd>CTRL + F3</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.ctrl.f3") }}</span>
-        </div>
-        <div class="shortcut-item">
-          <kbd>CTRL + Scroll</kbd>
-          <span>{{ $t("help.ctrl.scroll") }}</span>
         </div>
       </div>
 
@@ -113,47 +121,47 @@
       <div class="shortcut-section">
         <h3 class="section-title">{{ $t("help.media.title") }}</h3>
         <div class="shortcut-item">
-          <kbd>Space / K</kbd>
+          <kbd>SPACE / K</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.media.playPause") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>1 to 9</kbd>
+          <kbd>1 {{ $t("general.to") }} 9</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.media.seekPercentage") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>← / →</kbd>
+          <kbd>← / →</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.media.seek") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>↑ / ↓</kbd>
+          <kbd>↑ / ↓</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.media.volume") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>Q</kbd>
+          <kbd>Q</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.media.playbackQueue") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>E</kbd>
+          <kbd>E</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.media.switchTabs") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>L</kbd>
+          <kbd>L</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.media.loop") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>P</kbd>
+          <kbd>P</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.media.playbackModes") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>F</kbd>
+          <kbd>F</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.media.fullscreen") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>M</kbd>
+          <kbd>M</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.media.mute") }}</span>
         </div>
         <div class="shortcut-item">
-          <kbd>C</kbd>
+          <kbd>C</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.media.captions") }}</span>
         </div>
       </div>

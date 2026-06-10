@@ -1,4 +1,4 @@
-import { test, expect } from "../test-setup";
+import { expect, test } from "../test-setup";
 
 test("Create first new file with basic auth", async ({ page, checkForErrors }, testInfo) => {
   // Unique filename per run/retry so retries don't conflict with leftover files
@@ -36,7 +36,7 @@ test("Create first new file with basic auth", async ({ page, checkForErrors }, t
   }
 
   // test public share route (no auth required)
-  await page.goto("/subpath/public/share/" + shareHash);
+  await page.goto(`/subpath/public/share/${shareHash}`);
   await expect(page).toHaveTitle("Graham's Filebrowser - Share - demo-127.0.0.1");
   await expect(await page.locator('.listing-items .file-items')).toHaveCount(1 + testInfo.retry);
   await page.waitForTimeout(500);

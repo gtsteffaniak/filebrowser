@@ -27,8 +27,12 @@
   </div>
 
   <div class="card-actions">
-    <button class="button button--flat button--grey" @click="closeTopPrompt" :aria-label="$t('general.cancel')"
-      :title="$t('general.cancel')">
+    <button
+      type="button"
+      class="button button--flat button--grey"
+      @click="closeTopPrompt" :aria-label="$t('general.cancel')"
+      :title="$t('general.cancel')"
+    >
       {{ $t("general.cancel") }}
     </button>
     <button @click="submit" class="button button--flat" :disabled="!canRename"
@@ -63,19 +67,17 @@ export default {
   },
   data() {
     const itemName = this.item.name;
+    let fileName = "";
+    let fileExtension = "";
     if (this.item.type !== 'directory') {
       const ext = getFileExtension(this.item.name);
       const filenamePrefix = this.item.name.substring(0, this.item.name.length - ext.length);
-      return {
-        fileName: filenamePrefix,
-        fileExtension: removePrefix(ext, "."),
-        name: itemName, // Initialize name for non-directory items
-        renaming: false,
-      };
+      fileName = filenamePrefix;
+      fileExtension = removePrefix(ext, ".");
     }
     return {
-      fileName: "",
-      fileExtension: "",
+      fileName,
+      fileExtension,
       name: itemName,
       renaming: false,
     };
@@ -243,10 +245,10 @@ export default {
         // Parse the error response structure (similar to Delete.vue)
         let errorMessage = this.$t("prompts.renameFailed");
         
-        if (error && error.failed && error.failed.length > 0) {
+        if (error?.failed && error.failed.length > 0) {
           // Get message from first failed item
           errorMessage = error.failed[0].message || errorMessage;
-        } else if (error && error.message) {
+        } else if (error?.message) {
           errorMessage = error.message;
         }
         

@@ -39,7 +39,7 @@ export default defineComponent({
     // Watch for req changes (similar to Preview.vue)
     req: {
       handler(newReq) {
-        if (newReq && newReq.path && newReq.name) {
+        if (newReq?.path && newReq.name) {
           // Prevent duplicate navigation updates for the same path
           if (this.lastNavigationUpdatePath === newReq.path) {
             return;
@@ -66,8 +66,8 @@ export default defineComponent({
             size: newReq.size,
             type: newReq.type,
             source: newReq.source,
-            modified: newReq.source,
-            hasPreview: newReq.source,
+            modified: newReq.modified,
+            hasPreview: newReq.hasPreview,
           });
         }
       },
@@ -82,6 +82,8 @@ export default defineComponent({
       size: state.req.size,
       type: state.req.type,
       source: state.req.source,
+      modified: state.req.modified,
+      hasPreview: state.req.hasPreview,
     });
   },
   beforeUnmount() {
@@ -105,7 +107,7 @@ export default defineComponent({
         directoryPath = '/';
       }
       
-      let listing = null;
+      let listing;
 
       // Try to get listing from current request first
       if (state.req.items) {
@@ -141,7 +143,7 @@ export default defineComponent({
       try {
         const filename = state.req.name;
         // Check if the filename is valid and ends with .docx
-        if (!filename || !filename.toLowerCase().endsWith(".docx")) {
+        if (!filename?.toLowerCase().endsWith(".docx")) {
           this.error = `This viewer only supports .docx files. Current file: "${
             filename || "Not available"
           }"`;

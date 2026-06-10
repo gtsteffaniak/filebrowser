@@ -213,11 +213,7 @@ func (idx *Index) runSerialScanPass() {
 	paths := sortedScannerPaths(idx)
 	idx.mu.Lock()
 	idx.schedulerBatch++
-	batchDepth := idx.schedulerBatch
 	idx.mu.Unlock()
-	logger.Debugf("[%s] scheduler: serialPass start paths=%d batchDepth=%d adaptive=%v",
-		idx.Name, len(paths), batchDepth, idx.useAdaptiveScheduling())
-
 	defer func() {
 		idx.mu.Lock()
 		idx.schedulerBatch--
@@ -225,7 +221,6 @@ func (idx *Index) runSerialScanPass() {
 		if err := idx.PostScan(); err != nil {
 			logger.Errorf("PostScan after serial pass: %v", err)
 		}
-		logger.Debugf("[%s] scheduler: serialPass done", idx.Name)
 	}()
 
 	for _, p := range paths {
@@ -334,7 +329,7 @@ func (idx *Index) runIndexScheduler() {
 	for {
 		now := time.Now()
 		next := idx.earliestSlotWake(now)
-		d := time.Until(next)
+		d := time.Until(next).Truncate(time.Second)
 		if d < time.Second {
 			d = time.Second
 		}

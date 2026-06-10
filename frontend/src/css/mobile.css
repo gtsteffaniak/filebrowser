@@ -57,6 +57,11 @@
     width: 100%
   }
 
+  .listing-items.list .pinned-indicator,
+  .listing-items.compact .pinned-indicator {
+    margin-right: 0.5em;
+  }
+
   body.rtl #listingView {
     margin-right: unset;
   }

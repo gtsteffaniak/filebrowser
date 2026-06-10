@@ -1,7 +1,13 @@
 <template>
-  <button @click="openPrompt(null)" v-if="isAdmin" class="button floating-action-button" aria-label="Add New User">
-        {{ $t("general.new") }}
-      </button>
+  <button
+    v-if="isAdmin"
+    type="button"
+    @click="openPrompt(null)"
+    class="button floating-action-button"
+    aria-label="Add New User"
+  >
+    {{ $t("general.new") }}
+  </button>
   <errors v-if="error" :errorCode="error.status" />
   <div class="card-title">
     <h2>{{ $t("general.users") }}</h2>
@@ -53,14 +59,12 @@ export default {
     Errors,
     SettingsTable,
   },
-  data: function () {
-    return {
-      error: null,
-      users: [],
-      /** Local fetch state; avoids global Settings overlay spinner (table shows its own). */
-      loading: true,
-    };
-  },
+  data: () => ({
+    error: null,
+    users: [],
+    /** Local fetch state; avoids global Settings overlay spinner (table shows its own). */
+    loading: true,
+  }),
   async created() {
     await this.reloadUsers();
   },

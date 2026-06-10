@@ -1,8 +1,8 @@
-import { mutations, state } from '@/store'
-import { notify } from '@/notify'
-import { globalVars } from '@/utils/constants'
 import { settingsApi } from '@/api'
 import i18n from '@/i18n'
+import { notify } from '@/notify'
+import { mutations, state } from '@/store'
+import { globalVars } from '@/utils/constants'
 
 let eventSrc = null
 let reconnectTimeout = null
@@ -15,7 +15,7 @@ async function updateSourceInfo() {
     const sourceinfo = await settingsApi.sources()
     mutations.updateSourceInfo(sourceinfo)
   } catch (err) {
-    mutations.updateSourceInfo('error')
+    mutations.updateSourceInfo(err)
   }
 }
 
@@ -69,7 +69,7 @@ async function testEventsEndpoint() {
     // Close the test connection immediately
     response.body?.cancel()
     return true
-  } catch (error) {
+  } catch (_error) {
     // For network errors (like ERR_CONNECTION_REFUSED), we'll try the EventSource anyway
     // Only actual 401 responses should stop reconnection
     return true
@@ -218,4 +218,3 @@ async function eventRouter (eventType, message) {
       console.log('Unknown SSE event:', eventType, message)
   }
 }
-

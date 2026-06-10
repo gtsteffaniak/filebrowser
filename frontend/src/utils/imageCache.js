@@ -12,7 +12,7 @@ import { removeTrailingSlash } from "@/utils/url";
 const MAX_CACHE_SIZE = 10000;
 
 // Map to track loaded images: key = "source|path|size|modified", value = URL
-let imageCache = new Map();
+const imageCache = new Map();
 
 /**
  * Generate cache key from source, path, size, and modified date

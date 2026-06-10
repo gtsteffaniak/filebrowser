@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-if="loadingProgress < 100" class="progress-line" :style="{ width: loadingProgress + '%', ...moveWithSidebar }"></div>
+    <div v-if="loadingProgress < 100" class="progress-line" :style="{ width: `${loadingProgress}%`, ...moveWithSidebar }"></div>
     <errors v-if="error" :errorCode="error.status" />
     <component v-else-if="currentViewLoaded" :is="currentView" :fbdata="req"></component>
     <div v-else>
@@ -87,7 +87,7 @@ async function fetchShareItemWithParent(sharePassword) {
 /** @returns {Promise<{ items?: object[], name: string, type: string, path: string, source: string, parentDirItems?: object[] }>} */
 async function fetchAuthItemWithParent(fetchSource, fetchPath) {
   let res = await resourcesApi.fetchFiles(fetchSource, fetchPath, false, false);
-  if (res.type === "directory" || res.type.startsWith("image")) {
+  if (res.type === "directory") {
     return res;
   }
   const content = !getters.fileViewingDisabled(res.name);
@@ -141,13 +141,13 @@ export default {
   },
   computed: {
     showShareInfo() {
-      return getters.isShare() && state.isMobile && state.req.path == "/" && !state.shareInfo?.disableShareCard;
+      return getters.isShare() && state.isMobile && state.req.path === "/" && !state.shareInfo?.disableShareCard;
     },
     currentView() {
       return getters.currentView();
     },
     currentViewLoaded() {
-      return getters.currentView() != "";
+      return getters.currentView() !== "";
     },
     req() {
       return state.req;
@@ -157,10 +157,10 @@ export default {
     },
     moveWithSidebar() {
       const style = {
-        width: this.loadingProgress + '%',
+        width: `${this.loadingProgress}%`,
       };
       if (getters.isStickySidebar() && getters.isSidebarVisible()) {
-        style.left = state.sidebar.width + 'em';
+        style.left = `${state.sidebar.width}em`;
       }
       return style;
     },
@@ -224,10 +224,10 @@ export default {
       this.lastHash = window.location.hash;
       if (window.location.hash) {
         const rawHash = window.location.hash.slice(1);
-        let decodedName = rawHash;
+        let decodedName;
         try {
           decodedName = decodeURIComponent(rawHash);
-        } catch (e) {
+        } catch (_e) {
           // If the hash contains malformed escape sequences, fall back to raw
           decodedName = rawHash;
         }
@@ -275,11 +275,11 @@ export default {
 
     async fetchData() {
       const hash = getters.shareHash();
-      let isShare = hash !== "";
+      const isShare = hash !== "";
 
       // Fetch and store share info if this is a share
       if (isShare) {
-        let shareInfo = await shareApi.getShareInfoPublic(hash);
+        const shareInfo = await shareApi.getShareInfoPublic(hash);
 
         // Check if the response is an error (has status field indicating error)
         if (!shareInfo || shareInfo.status >= 400) {
@@ -296,25 +296,25 @@ export default {
         shareInfo.hash = hash;
 
         // Parse share route to get subPath
-        let urlPath = getters.routePath('public/share')
-        let parts = urlPath.split("/");
+        const urlPath = getters.routePath('public/share')
+        const parts = urlPath.split("/");
         // Decode each part since URL paths are encoded
-        let decodedParts = parts.slice(2).map(part => decodeURIComponent(part));
-        shareInfo.subPath = "/" + decodedParts.join("/");
+        const decodedParts = parts.slice(2).map(part => decodeURIComponent(part));
+        shareInfo.subPath = `/${decodedParts.join("/")}`;
         // Set shareInfo in state
         mutations.setShareInfo(shareInfo);
 
         // Check for password requirement (applies to both regular and upload shares)
         if (shareInfo.hasPassword) {
           if (this.sharePassword === "") {
-            this.sharePassword = localStorage.getItem("sharepass:" + shareInfo.hash);
+            this.sharePassword = localStorage.getItem(`sharepass:${shareInfo.hash}`);
             if (this.sharePassword === null || this.sharePassword === "") {
               this.showPasswordPrompt();
               return;
             }
           }
           // Store password in localStorage
-          localStorage.setItem("sharepass:" + shareInfo.hash, this.sharePassword);
+          localStorage.setItem(`sharepass:${shareInfo.hash}`, this.sharePassword);
         }
 
         if (shareInfo.themeColor) {
@@ -348,7 +348,7 @@ export default {
           // For upload shares, validate password on startup and return early
           // Password validation happens via fetchPub call, which will throw 401 if incorrect
           // A 501 error means browsing is disabled (expected for upload shares) and indicates auth succeeded
-          if (state.shareInfo.shareType == "upload") {
+          if (state.shareInfo.shareType === "upload") {
             // Initialize password validation state
             if (state.shareInfo.hasPassword) {
               mutations.setShareData({ passwordValid: false });
@@ -418,7 +418,7 @@ export default {
           this.loadingProgress = 10;
           const file = await fetchShareItemWithParent(this.sharePassword);
           mutations.replaceRequest(file);
-          document.title = globalVars.name + " - " + this.$t("general.share") + " - " + file.name;
+          document.title = `${globalVars.name} - ${this.$t("general.share")} - ${file.name}`;
           await this.patchMediaMetadataIfNeeded(file, () =>
             mediaApi.fetchDirectoryMediaMetadataPublic(
               state.shareInfo.subPath,
@@ -439,7 +439,7 @@ export default {
           const routePath = url.removeTrailingSlash(getters.routePath());
 
           // Redirect if multiple sources and user went to /files/
-          if (routePath == "/files") {
+          if (routePath === "/files") {
             let targetPath = `/files/${state.sources.current}`;
             for (const link of state.user?.sidebarLinks || []) {
               if (link.target.startsWith('/')) {
@@ -474,7 +474,7 @@ export default {
           if (state.sources.count > 1) {
             mutations.setCurrentSource(res.source);
           }
-          document.title = globalVars.name + " - " + this.$t("general.files") + " - " + res.name;
+          document.title = `${globalVars.name} - ${this.$t("general.files")} - ${res.name}`;
           mutations.replaceRequest(res);
           mutations.setLoading("files", false);
           await this.patchMediaMetadataIfNeeded(res, () =>
@@ -555,7 +555,7 @@ export default {
         }
       }
       // F2! - for rename in listing or preview
-      if (event.key == "F2") {
+      if (event.key === "F2" && !event.ctrlKey && !event.metaKey) {
         event.preventDefault();
         if (getters.currentPromptName()) return;
 
@@ -582,7 +582,7 @@ export default {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'e') {
         event.preventDefault();
         const currentFile = state.req;
-        if (currentFile && currentFile.type === 'text/markdown') {
+        if (currentFile?.type === 'text/markdown') {
           const currentView = getters.currentView();
           if (currentView === 'editor') {
             router.replace({ hash: '#preview' });

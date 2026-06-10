@@ -2,7 +2,6 @@ body {
   font-family: "Roboto", sans-serif;
   padding-top: 4em;
   color: #333333;
-  overflow:auto;
   overflow:initial;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
@@ -61,7 +60,7 @@ i.spin {
 #app {
   transition: 0.2s ease padding;
 }
-over
+
 #app.multiple {
   padding-bottom: 4em;
 }
@@ -122,7 +121,6 @@ over
   color: #fff;
   position: fixed;
   max-width: 90vw;
-  height: 4em;
   bottom: 0;
   right: -20em;
   display: flex;
@@ -159,14 +157,12 @@ input.sizeInput:disabled {
 .sizeInputWrapper {
   border-radius: 1em;
   margin: .5em;
-  display: -ms-flexbox;
-  display: flex !important;
+  display: flex;
   align-items: center;
   background-color: #f5f5f5;
   padding: .25em;
   -webkit-box-align: center;
   -ms-flex-align: center;
-  align-items: center;
   justify-content: center;
 }
 
@@ -174,7 +170,7 @@ input.sizeInput:disabled {
   text-align: center;
   border-radius: 1em;
   padding: .5em;
-  border: none !important;
+  border: none;
   margin-right: 0.5em;
   -webkit-backdrop-filter: invert(.1);
   backdrop-filter: invert(.1);

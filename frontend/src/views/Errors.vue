@@ -2,46 +2,42 @@
   <div class="error-message">
     <h2 class="message">
       <i class="material-symbols">{{ info.icon }}</i>
-      <span>{{ $t(info.message) }}</span>
+      <span>{{ errorMessage }}</span>
     </h2>
   </div>
 </template>
 
 <script>
 const errors = {
-  0: {
-    icon: "cloud_off",
-    message: "errors.connection",
-  },
-  401: {
-    icon: "error",
-    message: "errors.forbidden",
-  },
-  403: {
-    icon: "error",
-    message: "errors.forbidden",
-  },
-  404: {
-    icon: "gps_off",
-    message: "errors.notFound",
-  },
-  "share404": {
-    icon: "gps_off",
-    message: "errors.shareNotFound",
-  },
-  500: {
-    icon: "error_outline",
-    message: "errors.internal",
-  },
+  0: { icon: "cloud_off" },
+  401: { icon: "error" },
+  403: { icon: "error" },
+  404: { icon: "gps_off" },
+  share404: { icon: "gps_off" },
+  500: { icon: "error_outline" },
 };
 
 export default {
   name: "errors",
-  components: {},
   props: ["errorCode", "showHeader"],
   computed: {
     info() {
-      return errors[this.errorCode] ? errors[this.errorCode] : errors[500];
+      return errors[this.errorCode] || errors[500];
+    },
+    errorMessage() {
+      switch (this.errorCode) {
+        case 0:
+          return this.$t('errors.connection');
+        case 401:
+        case 403:
+          return this.$t('errors.forbidden');
+        case 404:
+          return this.$t('errors.notFound');
+        case 'share404':
+          return this.$t('errors.shareNotFound');
+        default:
+          return this.$t('errors.internal');
+      }
     },
   },
 };

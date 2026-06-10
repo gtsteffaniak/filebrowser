@@ -5,14 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/ffmpeg"
-	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 )
 
 // subtitlesHandler handles subtitle requests for both external files and embedded streams
@@ -37,58 +36,49 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	name := r.URL.Query().Get("name")
 	embedded := r.URL.Query().Get("embedded") == "true"
 
+	if path == "" || source == "" {
+		return http.StatusBadRequest, fmt.Errorf("path and source are required")
+	}
 	if name == "" {
 		return http.StatusBadRequest, fmt.Errorf("name parameter is required")
 	}
 
-	userscope, err := d.user.GetScopeForSourceName(source)
+	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
+		FollowSymlinks:           true,
+		Path:                     path,
+		Source:                   source,
+		Expand:                   true,
+		Content:                  false,
+		Metadata:                 true,
+		ExtractEmbeddedSubtitles: config.Integrations.Media.ExtractEmbeddedSubtitles,
+		ShowHidden:               d.user.ShowHidden,
+		HideFileExt:              d.user.HideFileExt,
+		SkipExtendedAttrs:        false,
+	}, store.Access, d.user, store.Share)
 	if err != nil {
-		return http.StatusForbidden, err
+		return errToStatus(err), err
+	}
+	if !strings.HasPrefix(fileInfo.Type, "video") {
+		return http.StatusNotFound, fmt.Errorf("file is not a video")
 	}
 
-	idx := indexing.GetIndex(source)
-	if idx == nil {
-		return http.StatusNotFound, fmt.Errorf("source %s not found", source)
+	track := findSubtitleTrack(fileInfo.Subtitles, name, embedded)
+	if track == nil {
+		return http.StatusNotFound, fmt.Errorf("subtitle track '%s' not found", name)
 	}
 
-	realPath, _, err := idx.GetRealPath(userscope, path)
-	if err != nil {
-		return http.StatusNotFound, fmt.Errorf("file not found: %v", err)
-	}
-
-	parentDir := filepath.Dir(realPath)
 	var content string
-
 	if !embedded {
-		content, err = utils.GetSubtitleSidecarContent(filepath.Join(parentDir, name))
+		subtitlePath := filepath.Join(filepath.Dir(fileInfo.RealPath), filepath.Base(track.Name))
+		content, err = utils.GetSubtitleSidecarContent(subtitlePath)
 		if err != nil {
 			return http.StatusInternalServerError, fmt.Errorf("failed to get subtitle sidecar content: %v", err)
 		}
 	} else {
-		// For embedded subtitles, we need to find the stream index by name
-		// Get file modification time for caching
-		fileInfo, err := os.Stat(realPath)
-		if err != nil {
-			return http.StatusInternalServerError, fmt.Errorf("failed to stat file: %v", err)
-		}
-
-		// Detect embedded subtitles
-		embeddedSubs := ffmpeg.DetectEmbeddedSubtitles(realPath, fileInfo.ModTime())
-
-		// Find the subtitle track by name
-		var streamIndex *int
-		for _, sub := range embeddedSubs {
-			if sub.Name == name {
-				streamIndex = sub.Index
-				break
-			}
-		}
-
-		if streamIndex == nil {
+		if track.Index == nil {
 			return http.StatusNotFound, fmt.Errorf("embedded subtitle track '%s' not found", name)
 		}
-
-		content, err = ffmpeg.ExtractSubtitleContent(realPath, *streamIndex)
+		content, err = ffmpeg.ExtractSubtitleContent(fileInfo.RealPath, *track.Index)
 		if err != nil {
 			return http.StatusInternalServerError, fmt.Errorf("failed to extract embedded subtitle: %v", err)
 		}
@@ -100,6 +90,16 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	w.Header().Set("Cache-Control", "private")
 	http.ServeContent(w, r, name, time.Now(), bytes.NewReader([]byte(content)))
 	return http.StatusOK, nil
+}
+
+func findSubtitleTrack(subtitles []utils.SubtitleTrack, name string, embedded bool) *utils.SubtitleTrack {
+	for i := range subtitles {
+		sub := &subtitles[i]
+		if sub.Name == name && sub.Embedded == embedded {
+			return sub
+		}
+	}
+	return nil
 }
 
 // metadataHandler returns the same directory resource shape as GET /api/resources with metadata enabled,
@@ -196,19 +196,26 @@ func lyricsHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	if path == "" || source == "" {
 		return http.StatusBadRequest, fmt.Errorf("path and source are required")
 	}
-	userscope, err := d.user.GetScopeForSourceName(source)
+
+	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
+		FollowSymlinks:    true,
+		Path:              path,
+		Source:            source,
+		Expand:            true,
+		Content:           false,
+		Metadata:          false,
+		ShowHidden:        d.user.ShowHidden,
+		HideFileExt:       d.user.HideFileExt,
+		SkipExtendedAttrs: false,
+	}, store.Access, d.user, store.Share)
 	if err != nil {
-		return http.StatusForbidden, err
+		return errToStatus(err), err
 	}
-	idx := indexing.GetIndex(source)
-	if idx == nil {
-		return http.StatusNotFound, fmt.Errorf("source %s not found", source)
+	if !strings.HasPrefix(fileInfo.Type, "audio") {
+		return http.StatusNotFound, fmt.Errorf("file is not an audio file")
 	}
-	realPath, _, err := idx.GetRealPath(userscope, path)
-	if err != nil {
-		return http.StatusNotFound, err
-	}
-	lyrics, err := files.ExtractLyrics(realPath)
+
+	lyrics, err := files.ExtractLyrics(fileInfo.RealPath)
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("failed to extract lyrics: %v", err)
 	}
@@ -230,15 +237,26 @@ func publicLyricsHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	if !ok {
 		return http.StatusNotFound, fmt.Errorf("source not found")
 	}
-	idx := indexing.GetIndex(sourceCfg.Name)
-	if idx == nil {
-		return http.StatusNotFound, fmt.Errorf("source not found")
-	}
-	realPath, _, err := idx.GetRealPath(d.IndexPath)
+
+	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
+		Path:              d.IndexPath,
+		Source:            sourceCfg.Name,
+		Expand:            true,
+		Content:           false,
+		Metadata:          false,
+		ShowHidden:        d.share.ShowHidden,
+		HideFileExt:       d.user.HideFileExt,
+		FollowSymlinks:    false,
+		SkipExtendedAttrs: false,
+	}, store.Access, d.shareUser, store.Share)
 	if err != nil {
-		return http.StatusNotFound, errors.New("could not find real path for file")
+		return errToStatus(err), err
 	}
-	lyrics, err := files.ExtractLyrics(realPath)
+	if !strings.HasPrefix(fileInfo.Type, "audio") {
+		return http.StatusNotFound, fmt.Errorf("file is not an audio file")
+	}
+
+	lyrics, err := files.ExtractLyrics(fileInfo.RealPath)
 	if err != nil {
 		return http.StatusInternalServerError, errors.New("failed to extract lyrics")
 	}
