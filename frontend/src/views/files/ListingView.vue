@@ -84,6 +84,7 @@
             v-bind:metadata="item.metadata"
             v-bind:hasDuration="hasDuration"
             v-bind:isShared="item.isShared"
+            v-bind:pinned="item.pinned"
           />
         </div>
 
@@ -113,6 +114,7 @@
             v-bind:hasPreview="item.hasPreview"
             v-bind:hasDuration="hasDuration"
             v-bind:isShared="item.isShared"
+            v-bind:pinned="item.pinned"
           />
         </div>
 
@@ -143,6 +145,7 @@
             v-bind:metadata="item.metadata"
             v-bind:hasDuration="hasDuration"
             v-bind:isShared="item.isShared"
+            v-bind:pinned="item.pinned"
           />
         </div>
 

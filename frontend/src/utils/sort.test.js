@@ -141,18 +141,18 @@ describe('testSort', () => {
   it('keeps pinned items at the top while preserving sort order among them', () => {
     const input = [
       { name: "beta.txt", path: "/beta.txt" },
-      { name: "delta.txt", path: "/delta.txt" },
-      { name: "alpha.txt", path: "/alpha.txt" },
+      { name: "delta.txt", path: "/delta.txt", pinned: true },
+      { name: "alpha.txt", path: "/alpha.txt", pinned: true },
       { name: "gamma.txt", path: "/gamma.txt" },
     ];
     const expected = [
-      { name: "alpha.txt", path: "/alpha.txt" },
-      { name: "delta.txt", path: "/delta.txt" },
+      { name: "alpha.txt", path: "/alpha.txt", pinned: true },
+      { name: "delta.txt", path: "/delta.txt", pinned: true },
       { name: "beta.txt", path: "/beta.txt" },
       { name: "gamma.txt", path: "/gamma.txt" },
     ];
 
-    expect(sortedItems(input, "name", true, ["/delta.txt", "/alpha.txt"])).toEqual(expected);
+    expect(sortedItems(input, "name", true)).toEqual(expected);
   });
 
 });

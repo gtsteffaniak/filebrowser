@@ -195,7 +195,7 @@
 </template>
 
 <script>
-import { resourcesApi } from "@/api";
+import { resourcesApi, usersApi } from "@/api";
 import Action from "@/components/Action.vue";
 import { notify } from "@/notify";
 import { getters, mutations, state } from "@/store";
@@ -343,10 +343,7 @@ export default {
       return this.isPinnedSelection ? this.$t("buttons.unpinItem") : this.$t("buttons.pinItem");
     },
     isPinnedSelection() {
-      if (!this.firstSelected) {
-        return false;
-      }
-      return getters.isItemPinned(this.firstSelected);
+      return !!this.firstSelected?.pinned;
     },
     showCopy() {
       if (this.showLimitedOptions) return false;
@@ -724,9 +721,31 @@ export default {
         },
       });
     },
-    togglePin() {
+    async togglePin() {
+      const item = this.firstSelected;
+      if (!item?.name || getters.isShare() || !getters.isLoggedIn()) {
+        return;
+      }
       mutations.closeHovers();
-      mutations.togglePinnedItem(this.firstSelected);
+      const source = item.source || state.req?.source || state.sources.current;
+      if (!source) {
+        return;
+      }
+      const directoryPath = state.req?.type === "directory"
+        ? state.req.path
+        : url.getParentDir(item.path);
+      const action = item.pinned ? "remove" : "add";
+      try {
+        await usersApi.patchPinnedItem({
+          source,
+          path: directoryPath,
+          name: item.name,
+          action,
+        });
+        mutations.setReload(true);
+      } catch (e) {
+        notify.showError(e);
+      }
     },
     async copyPathToClipboard() {
       const item = this.firstSelected;

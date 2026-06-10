@@ -4,7 +4,6 @@ import * as i18n from "@/i18n";
 import { notify } from "@/notify";
 import { url } from "@/utils";
 import { getTypeInfo } from "@/utils/mimetype";
-import { updateNestedProperty } from "@/utils/object.js";
 import { sortedItems } from "@/utils/sort.js";
 import { emitStateChanged } from './eventBus';
 import { getters } from "./getters.js";
@@ -408,9 +407,6 @@ export const mutations = {
         await i18n.setLocale(value.locale);
       }
       state.user = value;
-      if (!state.user.pinnedItems || typeof state.user.pinnedItems !== "object") {
-        state.user.pinnedItems = {};
-      }
       state.user.sorting = {};
       state.user.sorting.by = "name";
       state.user.sorting.asc = true;
@@ -608,7 +604,6 @@ export const mutations = {
           "fileLoading",
           "deleteAfterArchive",
           "preferEditorForMarkdown",
-          "pinnedItems",
         ].includes(key)
       );
       value.id = state.user.id;
@@ -631,22 +626,16 @@ export const mutations = {
     const sorting = getters.sorting();
     const sortby = sorting.by;
     const asc = sorting.asc;
-    const pinnedPaths = getters.pinnedPathsFor(value.source, value.path || state.route.path || "/");
     // Separate directories and files
     const dirs = value.items.filter((item) => item.type === 'directory');
     const files = value.items.filter((item) => item.type !== 'directory');
-
     // Sort them separately
-    const sortedDirs = sortedItems(dirs, sortby, asc, pinnedPaths);
-    const sortedFiles = sortedItems(files, sortby, asc, pinnedPaths);
-
-    // Combine them and assign indices
+    const sortedDirs = sortedItems(dirs, sortby, asc);
+    const sortedFiles = sortedItems(files, sortby, asc);
     value.items = [...sortedDirs, ...sortedFiles];
-    value.items.map((item, index) => {
+    value.items.forEach((item, index) => {
       item.index = index;
-      return item;
-    })
-
+    });
     state.req = value;
     emitStateChanged();
   },
@@ -838,52 +827,6 @@ export const mutations = {
     }
     emitStateChanged();
   },
-  togglePinnedItem: (item) => {
-    if (!item?.path || getters.isShare() || !getters.isLoggedIn()) {
-      return;
-    }
-
-    const directoryPath = url.getParentDir(item.path);
-    const sourceKey = item.source || state.req?.source || state.sources.current;
-    if (!sourceKey) {
-      return;
-    }
-
-    const currentPinnedPaths = getters.pinnedPathsFor(sourceKey, directoryPath);
-    const pinnedPaths = [...currentPinnedPaths];
-    const existingIndex = pinnedPaths.indexOf(item.path);
-
-    if (existingIndex >= 0) {
-      pinnedPaths.splice(existingIndex, 1);
-    } else {
-      pinnedPaths.push(item.path);
-    }
-
-    const nextPinnedItems = pinnedPaths.length > 0
-      ? updateNestedProperty(state.user?.pinnedItems, sourceKey, directoryPath, pinnedPaths)
-      : updateNestedProperty(state.user?.pinnedItems, sourceKey, directoryPath, null, {
-        removeInner: true,
-        removeOuterIfEmpty: true,
-      });
-
-    mutations.updateCurrentUser({
-      pinnedItems: nextPinnedItems,
-    });
-
-    const currentDirectoryPath = state.req?.type === "directory" ? state.req.path : url.getParentDir(state.req?.path);
-    const currentSourceKey = state.req?.source || state.sources.current;
-
-    if (
-      getters.currentView() === "listingView" &&
-      currentDirectoryPath === directoryPath &&
-      currentSourceKey === sourceKey
-    ) {
-      mutations.updateListingItems();
-      return;
-    }
-
-    emitStateChanged();
-  },
   setNavigationEnabled: (enabled) => {
     if (state.navigation.enabled === enabled) {
       return;
@@ -915,8 +858,7 @@ export const mutations = {
 
     // Sort listing according to sorting preferences
     const sorting = getters.sorting();
-    const pinnedPaths = getters.pinnedPathsFor(currentItem?.source || state.req?.source, directoryPath);
-    listing = sortedItems(listing, sorting.by, sorting.asc, pinnedPaths);
+    listing = sortedItems(listing, sorting.by, sorting.asc);
 
     // Find current item index in the listing
     for (let i = 0; i < listing.length; i++) {

@@ -89,7 +89,7 @@ func processDirectoryMetadata(response *iteminfo.ExtendedFileInfo, idx *indexing
 	wg.Wait()
 }
 
-// finalizeResponse handles final response adjustments (OnlyOffice ID, scope stripping)
+// finalizeResponse handles final response adjustments (OnlyOffice ID, scope stripping).
 func finalizeResponse(response *iteminfo.ExtendedFileInfo, info *iteminfo.FileInfo, realPath string, user *users.User, userScope string) {
 	// Add OnlyOffice ID if applicable
 	if settings.Config.Integrations.OnlyOffice.Secret != "" && info.Type != "directory" && iteminfo.IsOnlyOffice(info.Name) {
@@ -279,6 +279,12 @@ func fileInfoFasterImpl(opts utils.FileOptions, access *access.Storage, user *us
 		}
 		response.IsShared = share.IsShared(response.Path, idx.Path, user.ID)
 	}
+	if info.Type == "directory" && opts.ShowPinnedItems {
+		if source, ok := users.ResolveSourceKey(response.Source); ok {
+			response.PinnedItems = user.PinnedNamesForDirectory(source.Path, response.Path)
+		}
+	}
+
 	defer finalizeResponse(response, info, response.RealPath, user, userScope)
 	if opts.SkipExtendedAttrs {
 		if info.Type == "directory" && opts.HideFileExt != "" {

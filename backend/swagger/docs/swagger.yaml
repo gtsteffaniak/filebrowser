@@ -324,6 +324,21 @@ definitions:
         - $ref: '#/definitions/http.fileWatchMetadata'
         description: File metadata for non-text files
     type: object
+  http.pinnedItemPatchRequest:
+    properties:
+      name:
+        description: item basename within path
+        type: string
+      path:
+        description: scope-relative parent directory
+        type: string
+      source:
+        type: string
+    required:
+    - name
+    - path
+    - source
+    type: object
   http.unarchiveRequest:
     properties:
       deleteAfter:
@@ -410,6 +425,11 @@ definitions:
       path:
         description: path scoped to the associated index
         type: string
+      pinnedItems:
+        description: pinned item names in this directory listing
+        items:
+          type: string
+        type: array
       size:
         description: length in bytes for regular files
         type: integer
@@ -2236,9 +2256,7 @@ definitions:
       permissions:
         $ref: '#/definitions/users.Permissions'
       pinnedItems:
-        allOf:
-        - $ref: '#/definitions/users.PinnedItems'
-        description: pinned items organized by source and directory path
+        $ref: '#/definitions/users.PinnedItems'
       preferEditorForMarkdown:
         description: prefer editor first for markdown files instead of the Markdown
           Viewer
@@ -4856,6 +4874,49 @@ paths:
               type: string
             type: object
       summary: Update a user's details
+      tags:
+      - Users
+  /api/users/pinnedItems:
+    patch:
+      consumes:
+      - application/json
+      description: Patches one pinned item at a time. Defaults to add; pass ?action=remove
+        to unpin.
+      parameters:
+      - description: add (default) or remove
+        in: query
+        name: action
+        type: string
+      - description: Pinned item
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/http.pinnedItemPatchRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Add or remove a pinned item
       tags:
       - Users
   /health:
