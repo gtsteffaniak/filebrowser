@@ -373,7 +373,8 @@ export default {
 
         // Preload the next frame (cancellable fetch warms HTTP cache)
         const nextIndex = (index + 1) % sequence.length;
-        const frameUrl = sequence[nextIndex];
+        const frameUrl = sequence.at(nextIndex);
+        if (!frameUrl) return;
         const preloadController = new AbortController();
         this.preloadAbortControllers.push(preloadController);
         fetchPreviewImage(frameUrl, preloadController.signal)

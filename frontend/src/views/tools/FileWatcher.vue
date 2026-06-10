@@ -98,6 +98,7 @@ import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { formatTimestamp, fromNow } from "@/utils/moment";
 import { notify } from "@/notify";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
+import { globalVars } from "@/utils/constants";
 
 export default {
   name: "FileWatcher",

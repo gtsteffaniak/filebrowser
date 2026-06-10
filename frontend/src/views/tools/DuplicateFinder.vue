@@ -119,6 +119,7 @@ import { eventBus } from "@/store/eventBus";
 import ListingItem from "@/components/files/ListingItem.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
 import { getTypeInfo } from "@/utils/mimetype";
+import { globalVars } from "@/utils/constants";
 
 export default {
   name: "DuplicateFinder",

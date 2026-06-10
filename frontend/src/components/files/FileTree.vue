@@ -657,7 +657,7 @@ export default {
 
       // Compare node to each candidate (usually only one, but safe to loop)
       return candidates.some(selected => {
-        if (!selected?.path) return false;
+        if (!selected.path) return false;
         if (this.isShare) {
           return selected.path === node.path;
         } else {
