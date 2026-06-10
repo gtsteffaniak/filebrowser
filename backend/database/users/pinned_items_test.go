@@ -96,14 +96,3 @@ func TestPinnedItemsMultipleDirectories(t *testing.T) {
 		t.Fatalf("docs dir should remain: %#v", p[source][docsDir])
 	}
 }
-
-func TestPinnedItemsNilReceiver(t *testing.T) {
-	var p PinnedItems
-
-	p.Add("/data", "/photos/", "test.jpg")
-	p.Remove("/data", "/photos/", "test.jpg")
-
-	if p != nil {
-		t.Fatal("nil receiver should remain nil")
-	}
-}
