@@ -6,6 +6,7 @@ import { getFileExtension } from '@/utils/files.js';
 import { getTypeInfo } from '@/utils/mimetype';
 import { fromNow } from '@/utils/moment';
 import { buildItemUrl, removeLeadingSlash, removePrefix, getParentDir } from '@/utils/url.js';
+import { getNestedProperty, getObjectProperty } from '@/utils/object.js';
 
 export const getters = {
   displayPreferenceFor: (source, path) => {
@@ -13,7 +14,7 @@ export const getters = {
     if (!sourceKey || !path) {
       return null;
     }
-    return state.displayPreferences?.[sourceKey]?.[path] || null;
+    return getNestedProperty(state.displayPreferences, sourceKey, path) || null;
   },
   eventTheme: () => {
     if (getters.isShare()) {
@@ -75,7 +76,7 @@ export const getters = {
     }
     const sourceKey = source || state.sources.current || state.req?.source || "";
     const directoryPath = path && path !== "/" ? url.removeTrailingSlash(path) : "/";
-    const pinnedPaths = state.user?.pinnedItems?.[sourceKey]?.[directoryPath];
+    const pinnedPaths = getNestedProperty(state.user?.pinnedItems, sourceKey, directoryPath);
     return Array.isArray(pinnedPaths) ? pinnedPaths : [];
   },
   isItemPinned: (item) => {
@@ -432,12 +433,13 @@ export const getters = {
 
     const files = []
 
-    for (const index in state.upload.uploads) {
-      const upload = state.upload.uploads[index]
+    for (const index of Object.keys(state.upload.uploads)) {
+      const upload = getObjectProperty(state.upload.uploads, index)
+      if (!upload) continue
       const id = upload.id
       const type = upload.type
       const name = upload.file.name
-      const size = state.upload.sizes[id] || 0 // Default to 0 if size is undefined
+      const size = getObjectProperty(state.upload.sizes, id) ?? 0 // Default to 0 if size is undefined
       const isDir = upload.file.type === 'directory'
       const progress = isDir
         ? 100

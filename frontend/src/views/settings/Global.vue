@@ -50,8 +50,8 @@ export default {
       const splitted = name.split(where);
       name = "";
 
-      for (let i = 0; i < splitted.length; i++) {
-        name += `${splitted[i].charAt(0).toUpperCase() + splitted[i].slice(1)} `;
+      for (const part of splitted) {
+        name += `${part.charAt(0).toUpperCase() + part.slice(1)} `;
       }
 
       return name.slice(0, -1);

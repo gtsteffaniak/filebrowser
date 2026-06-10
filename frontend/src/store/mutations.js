@@ -4,6 +4,7 @@ import * as i18n from "@/i18n";
 import { notify } from "@/notify";
 import { url } from "@/utils";
 import { getTypeInfo } from "@/utils/mimetype";
+import { updateNestedProperty } from "@/utils/object.js";
 import { sortedItems } from "@/utils/sort.js";
 import { emitStateChanged } from './eventBus';
 import { getters } from "./getters.js";
@@ -848,13 +849,8 @@ export const mutations = {
       return;
     }
 
-    const nextPinnedItems = {
-      ...(state.user?.pinnedItems || {}),
-    };
-    const sourcePinnedItems = {
-      ...(nextPinnedItems[sourceKey] || {}),
-    };
-    const pinnedPaths = Array.isArray(sourcePinnedItems[directoryPath]) ? [...sourcePinnedItems[directoryPath]] : [];
+    const currentPinnedPaths = getters.pinnedPathsFor(sourceKey, directoryPath);
+    const pinnedPaths = [...currentPinnedPaths];
     const existingIndex = pinnedPaths.indexOf(item.path);
 
     if (existingIndex >= 0) {
@@ -863,17 +859,12 @@ export const mutations = {
       pinnedPaths.push(item.path);
     }
 
-    if (pinnedPaths.length > 0) {
-      sourcePinnedItems[directoryPath] = pinnedPaths;
-      nextPinnedItems[sourceKey] = sourcePinnedItems;
-    } else {
-      delete sourcePinnedItems[directoryPath];
-      if (Object.keys(sourcePinnedItems).length > 0) {
-        nextPinnedItems[sourceKey] = sourcePinnedItems;
-      } else {
-        delete nextPinnedItems[sourceKey];
-      }
-    }
+    const nextPinnedItems = pinnedPaths.length > 0
+      ? updateNestedProperty(state.user?.pinnedItems, sourceKey, directoryPath, pinnedPaths)
+      : updateNestedProperty(state.user?.pinnedItems, sourceKey, directoryPath, null, {
+        removeInner: true,
+        removeOuterIfEmpty: true,
+      });
 
     mutations.updateCurrentUser({
       pinnedItems: nextPinnedItems,
@@ -941,8 +932,7 @@ export const mutations = {
     }
 
     // Find previous item (skip directories)
-    for (let j = state.navigation.currentIndex - 1; j >= 0; j--) {
-      const item = listing[j];
+    for (const item of listing.slice(0, state.navigation.currentIndex).reverse()) {
       if (item.type === 'directory') continue;
 
       item.path = url.joinPath(directoryPath, item.name);
@@ -956,8 +946,7 @@ export const mutations = {
     }
 
     // Find next item (skip directories)
-    for (let j = state.navigation.currentIndex + 1; j < listing.length; j++) {
-      const item = listing[j];
+    for (const item of listing.slice(state.navigation.currentIndex + 1)) {
       if (item.type === 'directory') continue;
 
       item.path = url.joinPath(directoryPath, item.name);

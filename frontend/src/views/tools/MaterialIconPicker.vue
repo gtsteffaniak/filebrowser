@@ -72,6 +72,7 @@
 <script>
 import { materialSymbols, getIconClass } from "@/utils/material-symbols";
 import { copyToClipboard } from "@/utils/clipboard";
+import { globalVars } from "@/utils/constants";
 
 export default {
   name: "MaterialIconPicker",
