@@ -17,16 +17,6 @@ type pinnedItemPatchRequest struct {
 	Name   string `json:"name"` // item basename within path
 }
 
-func sanitizePinnedItemName(name string) error {
-	if name == "" || name == "." || name == ".." {
-		return fmt.Errorf("invalid name")
-	}
-	if strings.ContainsAny(name, `/\`) {
-		return fmt.Errorf("name must not contain path separators")
-	}
-	return nil
-}
-
 func scopeRelativeDirToIndexPath(sourceName, userScope, directoryPath string) (sourcePath, indexDirPath string, err error) {
 	userScope = strings.TrimRight(userScope, "/")
 	source, ok := users.ResolveSourceKey(sourceName)
@@ -83,9 +73,17 @@ func userPatchPinnedItemsHandler(w http.ResponseWriter, r *http.Request, d *requ
 	if body.Source == "" || body.Path == "" || body.Name == "" {
 		return http.StatusBadRequest, fmt.Errorf("source, path, and name are required")
 	}
-	if err := sanitizePinnedItemName(body.Name); err != nil {
+	cleanPath, err := utils.SanitizeUserPath(body.Path)
+	if err != nil {
 		return http.StatusBadRequest, err
 	}
+	body.Path = cleanPath
+
+	cleanName, err := utils.SanitizeUserPath(body.Name)
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
+	body.Name = cleanName
 
 	source, ok := users.ResolveSourceKey(body.Source)
 	if !ok {

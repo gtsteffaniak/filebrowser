@@ -58,6 +58,7 @@ import { url } from "@/utils";
 import { resourcesApi } from "@/api";
 import ListingItem from "@/components/files/ListingItem.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import { sortedItems } from "@/utils/sort.js";
 
 export default {
   name: "file-list",
@@ -307,31 +308,36 @@ export default {
         isValid: !this.requireFileSelection, // Folder is only valid if file is not required
       });
 
-      // If the path isn't the root path,
-      // show a button to navigate to the previous
-      // directory (unless we are only displaying files).
+      const entries = [];
+      if (req.items && Array.isArray(req.items)) {
+        for (const item of req.items) {
+          if (!this.showFolders && item.type === "directory") continue;
+          if (!this.showFiles && item.type !== "directory") continue;
+          if (item.type !== "directory" && !this.isFileTypeAllowed(item.type)) continue;
+          entries.push({
+            name: item.name,
+            path: item.path,
+            source: item.source || req.source,
+            type: item.type,
+            pinned: !!item.pinned,
+            originalItem: item,
+          });
+        }
+        const sorting = getters.sorting();
+        const dirs = entries.filter((item) => item.type === "directory");
+        const files = entries.filter((item) => item.type !== "directory");
+        this.items = [
+          ...sortedItems(dirs, sorting.by, sorting.asc),
+          ...sortedItems(files, sorting.by, sorting.asc),
+        ];
+      }
+
       if (this.path !== "/" && this.showFolders) {
-        this.items.push({
+        this.items.unshift({
           name: "..",
           path: url.removeLastDir(this.path) + "/",
           source: this.source,
           type: "directory",
-        });
-      }
-
-      // If this folder has no items or items is not an array, finish here.
-      if (!req.items || !Array.isArray(req.items)) return;
-      for (let item of req.items) {
-        if (!this.showFolders && item.type === "directory") continue;
-        if (!this.showFiles && item.type !== "directory") continue;
-        // Filter by file type if specified (only for files, not directories)
-        if (item.type !== "directory" && !this.isFileTypeAllowed(item.type)) continue;
-        this.items.push({
-          name: item.name,
-          path: item.path,
-          source: item.source || req.source,
-          type: item.type, // Store type for file selection
-          originalItem: item, // Store original item for Icon component
         });
       }
     },

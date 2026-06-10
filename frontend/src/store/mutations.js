@@ -633,6 +633,9 @@ export const mutations = {
     const sortedDirs = sortedItems(dirs, sortby, asc);
     const sortedFiles = sortedItems(files, sortby, asc);
     value.items = [...sortedDirs, ...sortedFiles];
+    value.items.forEach((item, index) => {
+      item.index = index;
+    });
     state.req = value;
     emitStateChanged();
   },
