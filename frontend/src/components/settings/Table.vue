@@ -79,6 +79,7 @@
 
 <script>
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import { getObjectProperty } from "@/utils/object.js";
 
 function defaultCompare(av, bv) {
   if (av === bv) {
@@ -94,13 +95,17 @@ function cellValueLookup(row, k) {
   if (!row || k === null) {
     return undefined;
   }
-  if (typeof row[k] !== "undefined") {
-    return row[k];
+  const direct = getObjectProperty(row, k);
+  if (direct !== undefined) {
+    return direct;
   }
   if (typeof k === "string" && k.indexOf(".") !== -1) {
     let cur = row;
     for (const segment of k.split(".")) {
-      cur = cur === null ? cur : cur[segment];
+      if (cur === null) {
+        return cur;
+      }
+      cur = getObjectProperty(cur, segment);
     }
     return cur;
   }

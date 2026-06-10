@@ -14,29 +14,33 @@ export async function login(username, password, recaptcha, otp) {
     password = ''
   }
 
-  const params = { username, recaptcha };
-  const apiPath = getApiPath('auth/login', params);
-  const res = await fetch(apiPath, {
-    method: 'POST',
-    credentials: 'same-origin',
-    headers: {
-      'X-Password': encodeURIComponent(password),
-      'X-Secret': otp,
-    }
-  });
-
-  const bodyText = await res.text();
-  let body;
-
   try {
-    body = JSON.parse(bodyText);
-  } catch {
-    body = { message: bodyText };
-  }
+    const params = { username, recaptcha };
+    const apiPath = getApiPath('auth/login', params);
+    const res = await fetch(apiPath, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'X-Password': encodeURIComponent(password),
+        'X-Secret': otp,
+      }
+    });
 
-  if (res.status !== 200) {
-    const msg = body.message || 'Forbidden';
-    throw new Error(msg);
+    const bodyText = await res.text();
+    let body;
+
+    try {
+      body = JSON.parse(bodyText);
+    } catch {
+      body = { message: bodyText };
+    }
+
+    if (res.status !== 200) {
+      const msg = body.message || 'Forbidden';
+      throw new Error(msg);
+    }
+  } catch (err) {
+    throw err instanceof Error ? err : new Error(String(err));
   }
 }
 

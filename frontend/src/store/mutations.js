@@ -4,6 +4,7 @@ import * as i18n from "@/i18n";
 import { notify } from "@/notify";
 import { url } from "@/utils";
 import { getTypeInfo } from "@/utils/mimetype";
+import { updateNestedProperty } from "@/utils/object.js";
 import { sortedItems } from "@/utils/sort.js";
 import { emitStateChanged } from './eventBus';
 import { getters } from "./getters.js";
@@ -874,8 +875,7 @@ export const mutations = {
     }
 
     // Find previous item (skip directories)
-    for (let j = state.navigation.currentIndex - 1; j >= 0; j--) {
-      const item = listing[j];
+    for (const item of listing.slice(0, state.navigation.currentIndex).reverse()) {
       if (item.type === 'directory') continue;
 
       item.path = url.joinPath(directoryPath, item.name);
@@ -889,8 +889,7 @@ export const mutations = {
     }
 
     // Find next item (skip directories)
-    for (let j = state.navigation.currentIndex + 1; j < listing.length; j++) {
-      const item = listing[j];
+    for (const item of listing.slice(state.navigation.currentIndex + 1)) {
       if (item.type === 'directory') continue;
 
       item.path = url.joinPath(directoryPath, item.name);

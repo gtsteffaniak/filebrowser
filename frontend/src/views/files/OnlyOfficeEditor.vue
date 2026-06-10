@@ -13,6 +13,7 @@
 <script>
 import { DocumentEditor } from "@onlyoffice/document-editor-vue";
 import { globalVars } from "@/utils/constants";
+import router from "@/router";
 import { state, mutations } from "@/store";
 import { removeLastDir } from "@/utils/url";
 import { officeApi } from "@/api";
@@ -79,17 +80,17 @@ export default {
     if (window.DocsAPI) delete window.DocsAPI;
     const iframes = document.querySelectorAll('iframe');
     iframes.forEach(iframe => {
-      if (iframe.src?.includes('onlyoffice')) {
+      if (iframe.src.includes('onlyoffice')) {
         iframe.remove();
       }
     });
   },
   methods: {
     close() {
-      const current = window.location.pathname;
-      const newpath = removeLastDir(current);
+      mutations.replaceRequest({});
+      const uri = `${removeLastDir(state.route.path)}/`;
       const filename = this.path.split('/').pop() || "";
-      window.location.href = `${newpath}#${filename}`;
+      router.push({ path: uri, hash: `#${filename}` });
     },
 
     showDebugPrompt() {

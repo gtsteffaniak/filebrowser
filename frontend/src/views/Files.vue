@@ -28,6 +28,7 @@ import { url } from "@/utils";
 import router from "@/router";
 import { extractSourceFromPath } from "@/utils/url";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import { globalVars } from "@/utils/constants";
 
 function directoryListingHasMediaChildren(req) {
   return (

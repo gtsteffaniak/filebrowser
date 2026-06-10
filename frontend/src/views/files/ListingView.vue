@@ -241,18 +241,21 @@ export default {
       });
 
       // Decide category by checking which section is above
-      let letter = topItem.getAttribute("data-name")?.[0]?.toUpperCase() || "A";
+      let letter = "A";
       let category = "folders"; // Default category
 
-      if (!topItem && this.numPinned > 0) {
+      if (topItem) {
+        letter = topItem.getAttribute("data-name")?.[0]?.toUpperCase() || "A";
+      } else if (this.numPinned > 0) {
         const pinnedHeader = this.$el.querySelector(".pinned-items h2");
         if (pinnedHeader && pinnedHeader.getBoundingClientRect().top >= 0) {
           category = "pinned";
           const firstPinned = this.pinnedItems[0];
           letter = firstPinned?.name?.[0]?.toUpperCase();
         }
-      } 
-      else if (topItem?.closest('.pinned-items')) {
+      }
+
+      if (topItem?.closest('.pinned-items')) {
         category = "pinned";
         const firstPinned = this.pinnedItems[0];
         letter = firstPinned?.name?.[0]?.toUpperCase();

@@ -111,6 +111,7 @@ import Unarchive from "./Unarchive.vue";
 import OfficeDebug from "./OfficeDebug.vue";
 import ThreeJSControls from "./ThreeJSControls.vue";
 import { state, getters, mutations } from "@/store";
+import { getObjectProperty, omitObjectProperty, setObjectProperty } from "@/utils/object.js";
 
 export default {
   name: "Prompts",
@@ -396,7 +397,7 @@ export default {
     cleanupDragState(id) {
       delete this.dragOffsets[id];
       delete this.dragStarts[id];
-      delete this.touchIds[id];
+      this.touchIds = omitObjectProperty(this.touchIds, id);
       this.draggingIds.delete(id);
       delete this.sizes[id];
     },
@@ -499,7 +500,10 @@ export default {
       this.makeTopPrompt(id);
       if (type === "mouse" && e.button !== 0) return;
       if (type === "touch") {
-        this.touchIds[id] = e.changedTouches?.[0]?.identifier;
+        const touchId = e.changedTouches?.[0]?.identifier;
+        if (touchId !== undefined) {
+          this.touchIds = setObjectProperty(this.touchIds, id, touchId);
+        }
       }
 
       const pos = this.getPointerPos(e, type);
@@ -526,7 +530,7 @@ export default {
       let pos;
       if (type === "touch") {
         if (!e.touches) return;
-        const t = Array.from(e.touches).find((touch) => touch.identifier === this.touchIds[id]);
+        const t = Array.from(e.touches).find((touch) => touch.identifier === getObjectProperty(this.touchIds, id));
         if (!t) return;
         e.preventDefault();
         pos = { x: t.clientX, y: t.clientY };
@@ -546,7 +550,7 @@ export default {
     },
     onPointerEnd(_e, id, type, moveHandler, endHandler) {
       if (type === "touch") {
-        delete this.touchIds[id];
+        this.touchIds = omitObjectProperty(this.touchIds, id);
         window.removeEventListener("touchmove", moveHandler);
         window.removeEventListener("touchend", endHandler);
         window.removeEventListener("touchcancel", endHandler);
