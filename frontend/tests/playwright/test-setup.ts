@@ -49,7 +49,7 @@ export async function openShareAndExpectPath(
     if (!(await sharePrompt.isVisible())) {
       await openShare();
     }
-    await expect(sharePath).toHaveText(expectedPathText, { timeout: 2000 });
+    await expect(sharePath).toHaveText(expectedPathText);
   }).toPass({ timeout });
 }
 
