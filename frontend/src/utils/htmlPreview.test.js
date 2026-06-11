@@ -111,7 +111,7 @@ describe("buildHtmlPreview", () => {
     expect(srcdoc).toContain(encodeURIComponent("/pages/theme.css"));
     expect(srcdoc).toContain(encodeURIComponent("/pages/app.js"));
     expect(srcdoc).toContain(encodeURIComponent("/pages/photo.jpg"));
-    expect(srcdoc).toContain('href="other.html"');
+    expect(srcdoc).toContain(encodeURIComponent("/pages/other.html"));
     expect(srcdoc).toContain("<script");
     expect(srcdoc).not.toContain("javascript:");
   });
@@ -120,5 +120,12 @@ describe("buildHtmlPreview", () => {
     const html = `<html><body><a href="javascript:alert(1)">bad</a></body></html>`;
     const { srcdoc } = buildHtmlPreview(html, "/index.html", "src");
     expect(srcdoc).not.toContain("javascript:");
+  });
+
+  it("preserves inline SVG", () => {
+    const html = `<html><body><svg viewBox="0 0 10 10"><circle cx="5" cy="5" r="4"/></svg></body></html>`;
+    const { srcdoc } = buildHtmlPreview(html, "/index.html", "src");
+    expect(srcdoc).toContain("<svg");
+    expect(srcdoc).toContain("<circle");
   });
 });

@@ -4,7 +4,7 @@ import { getters, state } from "@/store";
 import { resolveRelativePath } from "@/utils/url";
 
 export const HTML_SANITIZE_CONFIG = {
-  USE_PROFILES: { html: true },
+  USE_PROFILES: { html: true, svg: true, svgFilters: true },
   WHOLE_DOCUMENT: true,
   ADD_TAGS: ["link", "script"],
   FORBID_TAGS: ["iframe", "object", "embed", "form", "base", "meta"],
@@ -45,13 +45,6 @@ const RESOURCE_ATTRIBUTES: Array<[string, string]> = [
 
 const ALLOWED_ABSOLUTE_URI_PATTERN = /^(https?:|data:|mailto:|tel:|#)/i;
 
-const HTML_FILE_PATTERN = /\.(html?|xhtml|htm)$/i;
-
-function isHtmlFilePath(path: string): boolean {
-  const pathOnly = path.split("?")[0].split("#")[0];
-  return HTML_FILE_PATTERN.test(pathOnly);
-}
-
 export function isLocalResourceReference(href: string): boolean {
   if (!href || typeof href !== "string") {
     return false;
@@ -90,15 +83,6 @@ export function buildPreviewResourceUrl(
   } catch {
     return href;
   }
-}
-
-function shouldRewriteAnchorHref(href: string, baseFilePath: string): boolean {
-  if (!isLocalResourceReference(href)) {
-    return false;
-  }
-  const resolvedPath = resolveRelativePath(baseFilePath, href);
-  // Navigating to inline HTML in the iframe would drop sandbox isolation.
-  return !isHtmlFilePath(resolvedPath);
 }
 
 function shouldRewriteLinkHref(element: Element): boolean {
@@ -188,7 +172,7 @@ export function rewriteHtmlResources(
       }
       if (tag === "a") {
         const href = element.getAttribute("href");
-        if (!href || !shouldRewriteAnchorHref(href, baseFilePath)) {
+        if (!href || !isLocalResourceReference(href)) {
           return;
         }
       }
