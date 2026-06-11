@@ -3600,6 +3600,70 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/users/pinnedItems": {
+            "patch": {
+                "description": "Patches one pinned item at a time. Defaults to add; pass ?action=remove to unpin.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Add or remove a pinned item",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "add (default) or remove",
+                        "name": "action",
+                        "in": "query"
+                    },
+                    {
+                        "description": "Pinned item",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.pinnedItemPatchRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "description": "Returns the health status of the API.",
@@ -5034,6 +5098,27 @@ const docTemplate = `{
                 }
             }
         },
+        "http.pinnedItemPatchRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "path",
+                "source"
+            ],
+            "properties": {
+                "name": {
+                    "description": "item basename within path",
+                    "type": "string"
+                },
+                "path": {
+                    "description": "scope-relative parent directory",
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                }
+            }
+        },
         "http.unarchiveRequest": {
             "type": "object",
             "properties": {
@@ -5149,6 +5234,13 @@ const docTemplate = `{
                 "path": {
                     "description": "path scoped to the associated index",
                     "type": "string"
+                },
+                "pinnedItems": {
+                    "description": "pinned item names in this directory listing",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "size": {
                     "description": "length in bytes for regular files",
@@ -7590,12 +7682,7 @@ const docTemplate = `{
                     "$ref": "#/definitions/users.Permissions"
                 },
                 "pinnedItems": {
-                    "description": "pinned items organized by source and directory path",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/users.PinnedItems"
-                        }
-                    ]
+                    "$ref": "#/definitions/users.PinnedItems"
                 },
                 "preferEditorForMarkdown": {
                     "description": "prefer editor first for markdown files instead of the Markdown Viewer",

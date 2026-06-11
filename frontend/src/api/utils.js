@@ -52,6 +52,7 @@ export async function fetchJSON(url, opts) {
 
 export function adjustedData(data) {
   if (data.type === "directory") {
+    const pinnedNames = new Set(data.pinnedItems || []);
     // Combine folders and files into items
     data.items = [...(data.folders || []), ...(data.files || [])];
     data.items = data.items.map((item) => {
@@ -59,6 +60,7 @@ export function adjustedData(data) {
       if (item.isShared === undefined) {
         item.isShared = false;
       }
+      item.pinned = pinnedNames.has(item.name);
       if (data.path === "/") {
         if (item.type === "directory") {
         item.path = `/${item.name}/`
@@ -74,6 +76,7 @@ export function adjustedData(data) {
       }
       return item;
     });
+    delete data.pinnedItems;
   }
   if (data.files) {
     data.files = []

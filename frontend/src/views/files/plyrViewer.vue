@@ -714,7 +714,7 @@ export default {
         try {
           navigator.mediaSession.setActionHandler(action, handler);
         } catch (e) {
-          console.warn(`The media session action "${action}" is not supported`, e);
+          console.warn(`The media session action "${String(action)}" is not supported`, e);
         }
       }
       this.updateMediaSessionPlaybackState();

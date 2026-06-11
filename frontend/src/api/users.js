@@ -166,6 +166,16 @@ export async function update(user, which = ['all'], options = {}) {
   }
 }
 
+// PATCH /api/users/pinnedItems (add by default; ?action=remove to unpin)
+export async function patchPinnedItem({ source, path, name, action = 'add' }) {
+  const params = { action }
+  const apiPath = getApiPath('users/pinnedItems', params)
+  await fetchURL(apiPath, {
+    method: 'PATCH',
+    body: JSON.stringify({ source, path, name }),
+  })
+}
+
 // DELETE /api/users (remove user)
 // Password-login: tries without X-Password first; on 401 requiring X-Password, opens the prompt and retries.
 // options.skipActorPasswordConfirm / pre-set X-Password skip that flow.

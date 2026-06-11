@@ -91,6 +91,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	api.HandleFunc("GET /users", withUser(userGetHandler))
 	api.HandleFunc("POST /users", withSelfOrAdmin(usersPostHandler))
 	api.HandleFunc("PUT /users", withUser(userPutHandler))
+	api.HandleFunc("PATCH /users/pinnedItems", withUser(userPatchPinnedItemsHandler))
 	api.HandleFunc("DELETE /users", withSelfOrAdmin(userDeleteHandler))
 	publicApi.HandleFunc("GET /users", withUser(userGetHandler))
 

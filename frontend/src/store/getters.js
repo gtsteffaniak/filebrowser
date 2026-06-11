@@ -5,7 +5,8 @@ import { globalVars, previewViews, tools } from '@/utils/constants';
 import { getFileExtension } from '@/utils/files.js';
 import { getTypeInfo } from '@/utils/mimetype';
 import { fromNow } from '@/utils/moment';
-import { buildItemUrl, removeLeadingSlash, removePrefix, getParentDir } from '@/utils/url.js';
+import { getNestedProperty, getObjectProperty } from '@/utils/object.js';
+import { buildItemUrl, removeLeadingSlash, removePrefix } from '@/utils/url.js';
 
 export const getters = {
   displayPreferenceFor: (source, path) => {
@@ -13,7 +14,7 @@ export const getters = {
     if (!sourceKey || !path) {
       return null;
     }
-    return state.displayPreferences?.[sourceKey]?.[path] || null;
+    return getNestedProperty(state.displayPreferences, sourceKey, path) || null;
   },
   eventTheme: () => {
     if (getters.isShare()) {
@@ -68,23 +69,6 @@ export const getters = {
     }
   
     return getters.displayPreferenceFor(source, path);
-  },
-  pinnedPathsFor: (source, path) => {
-    if (getters.isShare() || !getters.isLoggedIn()) {
-      return [];
-    }
-    const sourceKey = source || state.sources.current || state.req?.source || "";
-    const directoryPath = path && path !== "/" ? url.removeTrailingSlash(path) : "/";
-    const pinnedPaths = state.user?.pinnedItems?.[sourceKey]?.[directoryPath];
-    return Array.isArray(pinnedPaths) ? pinnedPaths : [];
-  },
-  isItemPinned: (item) => {
-    if (!item?.path || getters.isShare() || !getters.isLoggedIn()) {
-      return false;
-    }
-    const directoryPath = getParentDir(item.path);
-    const source = item.source || state.req?.source || state.sources.current;
-    return getters.pinnedPathsFor(source, directoryPath).includes(item.path);
   },
   viewMode: () => {
     if (!state.user || state.user?.username === "") {
@@ -243,7 +227,7 @@ export const getters = {
     if (!state.req.items) return { pinned, dirs, files };
 
     for (const item of state.req.items) {
-      if (getters.isItemPinned(item)) {
+      if (item.pinned) {
         pinned.push(item);
         continue;
       }
@@ -432,12 +416,13 @@ export const getters = {
 
     const files = []
 
-    for (const index in state.upload.uploads) {
-      const upload = state.upload.uploads[index]
+    for (const index of Object.keys(state.upload.uploads)) {
+      const upload = getObjectProperty(state.upload.uploads, index)
+      if (!upload) continue
       const id = upload.id
       const type = upload.type
       const name = upload.file.name
-      const size = state.upload.sizes[id] || 0 // Default to 0 if size is undefined
+      const size = getObjectProperty(state.upload.sizes, id) ?? 0 // Default to 0 if size is undefined
       const isDir = upload.file.type === 'directory'
       const progress = isDir
         ? 100

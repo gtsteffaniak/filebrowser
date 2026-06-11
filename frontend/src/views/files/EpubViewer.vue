@@ -18,6 +18,7 @@ import { defineComponent, watch } from "vue";
 import ePub, { type Book, type Rendition } from "epubjs";
 import { state, mutations, getters } from "@/store"; // Assuming your store setup
 import { resourcesApi } from "@/api";
+import router from "@/router";
 import { removeLastDir } from "@/utils/url"; // Assuming your utils setup
 
 /** Hash format: `#epubcfi=<encodeURIComponent(epub-cfi)>` — distinct from listing `#filename` hashes. */
@@ -194,9 +195,10 @@ export default defineComponent({
     },
     // Close the viewer and navigate away
     close() {
-      const current = window.location.pathname;
-      const newPath = removeLastDir(current);
-      window.location.href = `${newPath}#${state.req.name}`;
+      const filename = state.req.name;
+      mutations.replaceRequest({});
+      const uri = `${removeLastDir(state.route.path)}/`;
+      router.push({ path: uri, hash: `#${filename}` });
     },
     // Error handler
     onLoadComponentError(error: unknown) {

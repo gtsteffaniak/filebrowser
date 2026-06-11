@@ -217,6 +217,10 @@ export default {
       type: Boolean,
       default: false,
     },
+    pinned: {
+      type: Boolean,
+      default: false,
+    },
   },
   computed: {
     displayName() {
@@ -321,10 +325,7 @@ export default {
       return this.clickable;
     },
     isPinned() {
-      return getters.isItemPinned({
-        path: this.path,
-        source: this.source,
-      });
+      return this.pinned;
     },
     // Computed properties for display values - Vue caches these automatically!
     humanSize() {

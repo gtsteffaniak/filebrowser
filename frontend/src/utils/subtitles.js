@@ -132,13 +132,16 @@ export function convertToVTT (ext, text) {
           if (!dialogue) return '' // Skip empty captions
           const startFormatted = formatMillisecondsToVTT(startTime)
 
-          // Use next start time as the end time if available
-          const nextSyncMatch = text.match(
-            new RegExp(`<SYNC Start=${parseInt(startTime, 10) + 1}>`)
-          )
-          const endTime = nextSyncMatch
-            ? nextSyncMatch[1]
-            : parseInt(startTime, 10) + 3000 // Default to +3s
+          // Use next SYNC start time as the end time if available
+          const currentTag = `<SYNC Start=${startTime}>`
+          const tagPos = text.indexOf(currentTag)
+          let endTime = parseInt(startTime, 10) + 3000 // Default to +3s
+          if (tagPos >= 0) {
+            const nextMatch = text.slice(tagPos + currentTag.length).match(/<SYNC Start=(\d+)>/)
+            if (nextMatch) {
+              endTime = parseInt(nextMatch[1], 10)
+            }
+          }
 
           const endFormatted = formatMillisecondsToVTT(endTime)
           return `${startFormatted} --> ${endFormatted}\n${dialogue}`
