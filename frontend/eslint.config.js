@@ -5,6 +5,7 @@ import pluginVue from "eslint-plugin-vue";
 import vueI18n from '@intlify/eslint-plugin-vue-i18n';
 import vueParser from "vue-eslint-parser";
 import globals from "globals";
+import security from "eslint-plugin-security";
 
 export default defineConfig(
   {
@@ -12,7 +13,7 @@ export default defineConfig(
       "**/dist/**",
       "**/node_modules/**",
       "**/public/**",
-      "**/i18n/is.json",
+      "**/*.json",
     ],
   },
 
@@ -21,6 +22,7 @@ export default defineConfig(
   ...tseslint.configs.recommended,
   ...pluginVue.configs["flat/essential"],
   ...vueI18n.configs.recommended,
+  security.configs.recommended,
 
   // i18n
   {
@@ -40,7 +42,7 @@ export default defineConfig(
       "@intlify/vue-i18n/no-raw-text": ["error", {
         ignoreNodes: ["i", "v-icon"],
       }],
-      "@intlify/vue-i18n/no-missing-keys-in-other-locales": "warn",
+      "@intlify/vue-i18n/no-missing-keys-in-other-locales": "off", // The check-translations script handles this
     },
   },
 
@@ -75,8 +77,13 @@ export default defineConfig(
       "prefer-template": "warn",
       "@typescript-eslint/consistent-type-definitions": "warn",
       "@typescript-eslint/prefer-optional-chain": "warn",
+      "@typescript-eslint/no-floating-promises": "error",
+      "@typescript-eslint/no-unnecessary-condition": "error",
+      "@typescript-eslint/no-dynamic-delete": "error",
+      "@typescript-eslint/no-misused-promises": "error",
       "prefer-object-has-own": "error",
       "no-prototype-builtins": "error",
+      "no-implied-eval": "error",
       "no-restricted-globals": [
         "error",
         { name: "isNaN", message: "Use Number.isNaN instead." },
@@ -118,6 +125,8 @@ export default defineConfig(
       "vue/require-v-for-key": "error",
       "vue/no-reserved-component-names": "off",
       "vue/no-unused-components": "warn",
+      "vue/no-v-html": "error",
+      "vue/no-v-text-v-html-on-component": "warn",
     },
   },
 );
