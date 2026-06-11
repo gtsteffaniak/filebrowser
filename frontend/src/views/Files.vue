@@ -31,6 +31,7 @@ import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { globalVars } from "@/utils/constants";
 import { isRichTextPreviewMimeType } from "@/utils/mimetype";
 
+
 function directoryListingHasMediaChildren(req) {
   return (
     req?.type === "directory" &&
