@@ -131,7 +131,8 @@
                     <ToggleSwitch
                       v-model="caseExactSearch"
                       class="item"
-                      :name="$t('tools.advancedSearch.caseExact')"
+                      :name="$t('search.caseExact')"
+                      :description="$t('search.caseExactDescription')"
                     />
                   </div>
                 </div>

@@ -245,7 +245,9 @@
     "helpText2": "仅对文件或文件夹名称（而非完整路径）进行子串匹配。 case:exact 用于大小写敏感匹配\n\n 对于术语之间的 OR，使用管道字符；一个短语使用双引号。\n\n启用通配符搜索可获得更多高级选项。",
     "useWildcardSearch": "通配符搜索（区分大小写）",
     "useWildcardSearchDescription": "支持通配符选项：\n\n- 匹配任何序列：*\n\n- 匹配一个字符：?\n\n- 字符类别：[a-z]、[0-9］\n\n- 否定：[^0-9]\n\n- 字面 *、? 或 [ 需要用括号包装，例如 [*]、[?]、[[]\n\n- 所有结果均区分大小写",
-    "openInAdvancedSearch": "在高级搜索中打开"
+    "openInAdvancedSearch": "在高级搜索中打开",
+    "caseExact": "区分大小写的匹配",
+    "caseExactDescription": "匹配文件和文件夹名称时，应严格区分大小写，而非忽略大小写。"
   },
   "settings": {
     "scopes": "定义允许的来源及其中的用户范围",

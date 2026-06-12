@@ -245,7 +245,9 @@
     "helpText2": "Substring match alleen op bestands- of mapnamen (geen volledige paden). case:exact voor hoofdlettergevoelig matchen\n\n voor OR tussen termen gebruik je het teken pipe; dubbele aanhalingstekens voor één zin.\n\nSchakel wildcard zoeken in voor meer geavanceerde opties.",
     "useWildcardSearch": "Zoeken met jokertekens (hoofdlettergevoelig)",
     "useWildcardSearchDescription": "Ondersteunde jokertekenopties:\n\n- Overeenstemming met een willekeurige reeks: *\n\n- Overeenstemming met één teken: ?\n\n- Tekenklasse: [a-z], [0-9]\n\n- Negatie: [^0-9]\n\n- Letterlijke *, ?, of [ moeten tussen haakjes staan, bijv. [*], [?], [[]\n\n- Alle resultaten zijn hoofdlettergevoelig",
-    "openInAdvancedSearch": "Openen in geavanceerd zoeken"
+    "openInAdvancedSearch": "Openen in geavanceerd zoeken",
+    "caseExact": "Hoofdlettergevoelige zoekopdracht",
+    "caseExactDescription": "Pas bij het vergelijken van bestands- en mapnamen de exacte hoofdlettergebruik toe in plaats van hoofdletters en kleine letters te negeren."
   },
   "settings": {
     "avoidChanges": "(laat leeg om wijzigingen te voorkomen)",

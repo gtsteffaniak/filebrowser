@@ -432,8 +432,10 @@
     "showPreviewImagesDescription": "Display thumbnail previews for search results when available, and show larger icons for all results.",
     "useWildcardSearch": "Wildcard search",
     "useWildcardSearchDescription": "Supported wildcard options:\n\n• Match any sequence: *\n\n• Match one character: ?\n\n• Character class: [a-z], [0-9]\n\n• Negation: [^0-9]\n\n• Literal *, ?, or [ need to be wrapped in brackets, e.g. [*], [?], [[]",
+    "caseExact": "Case-sensitive match",
+    "caseExactDescription": "Match file and folder names using exact letter casing instead of ignoring upper and lower case.",
     "helpText1": "Search occurs on each character you type ({minSearchLength} character minimum).",
-    "helpText2": "Substring match on file or folder names only (not full paths). case:exact for case-sensitive matching\n\n for OR between terms use pipe character; double quotes for one phrase.\n\nEnable wildcard search for more advanced options.",
+    "helpText2": "Case-insensitive substring match on file or folder names only (not full paths). Space-separated words match across common delimiters like periods, underscores, and hyphens (e.g. \"Blade Runner\" finds Blade.Runner.mkv). Use case:exact for case-sensitive matching.\n\nFor OR between terms use the pipe character; use double quotes for an exact phrase with spaces.\n\nEnable wildcard search for advanced glob patterns (*, ?, [a-z]).",
     "openInAdvancedSearch": "Open in Advanced Search"
   },
   "profileSettings": {

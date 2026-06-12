@@ -245,7 +245,9 @@
     "helpText2": "Csak fájl- vagy mappanevek (nem teljes elérési utak) részlánc-illesztése. case:exact a nagy- és kisbetű-érzékeny illesztéshez.\n\n a kifejezések közötti VAGY-hoz használja a pipe karaktert; dupla idézőjelek egy kifejezéshez.\n\nEngedélyezze a vadkártyás keresést a fejlettebb lehetőségekhez.",
     "useWildcardSearch": "Wildcard keresés (nagy- és kisbetű-érzékeny)",
     "useWildcardSearchDescription": "Támogatott helyettesítő opciók:\n\n- Bármilyen sorozatra illeszkedik: *\n\n- Egy karakterrel való egyezés: ?\n\n- Karakterosztály: [a-z], [0-9]\n\n- Negáció: [^0-9]\n\n- A szó szerinti *, ? vagy [ karaktereket zárójelbe kell tenni, pl. [*], [?], [[]\n\n- Minden eredmény nagy- és kisbetű-érzékeny",
-    "openInAdvancedSearch": "Megnyitás a bővített keresőben"
+    "openInAdvancedSearch": "Megnyitás a bővített keresőben",
+    "caseExact": "Kis- és nagybetűk közötti különbséget figyelembe vevő keresés",
+    "caseExactDescription": "A fájl- és mappanevek összehasonlításakor vegye figyelembe a betűk pontos írásmódját, ne pedig a kis- és nagybetűk közötti különbséget."
   },
   "settings": {
     "avoidChanges": "(üresen hagyva nincs változás)",

@@ -245,7 +245,9 @@
     "helpText2": "Correspondência de subcadeia de caracteres apenas em nomes de ficheiros ou pastas (não em caminhos completos). case:exact para correspondência sensível a maiúsculas e minúsculas\n\n para OU entre termos, utilizar o carácter pipe; aspas duplas para uma frase.\n\nAtivar a pesquisa de wildcards para opções mais avançadas.",
     "useWildcardSearch": "Pesquisa com caracteres curinga (sensível a maiúsculas e minúsculas)",
     "useWildcardSearchDescription": "Opções curingas suportadas:\n\n- Corresponde a qualquer sequência: *\n\n- Corresponder a um carácter: ?\n\n- Classe de caracteres: [a-z], [0-9]\n\n- Negação: [^0-9]\n\n- Os literais *, ?, ou [ devem ser colocados entre parênteses, por exemplo, [*], [?], [[]\n\n- Todos os resultados são sensíveis a maiúsculas e minúsculas",
-    "openInAdvancedSearch": "Abrir na Pesquisa Avançada"
+    "openInAdvancedSearch": "Abrir na Pesquisa Avançada",
+    "caseExact": "Correspondência que distingue maiúsculas de minúsculas",
+    "caseExactDescription": "Comparar os nomes dos ficheiros e pastas utilizando a maiúscula e minúscula exatas, em vez de ignorar as maiúsculas e minúsculas."
   },
   "settings": {
     "avoidChanges": "(deixe em branco para manter)",

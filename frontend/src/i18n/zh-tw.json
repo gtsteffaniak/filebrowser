@@ -245,7 +245,9 @@
     "helpText2": "僅對檔案或資料夾名稱進行子串匹配（而非完整路徑）。\n\n 對於詞彙之間的 OR，使用管道符號；對於單一詞組，使用雙引號。\n\n啟用通配符搜尋以獲得更多進階選項。",
     "useWildcardSearch": "通配符搜尋 (區分大小寫)",
     "useWildcardSearchDescription": "支援的通配符選項：\n\n- 匹配任何序列：*\n\n- 匹配一個字元：?\n\n- 字元類別：[a-z]、[0-9]\n\n- 否定：[^0-9]\n\n- 字面 *、?或 [ 需要包在括弧中，例如 [*]、[?]、[[]\n\n- 所有結果都區分大小寫",
-    "openInAdvancedSearch": "在進階搜尋中開啟"
+    "openInAdvancedSearch": "在進階搜尋中開啟",
+    "caseExact": "區分大小寫的比對",
+    "caseExactDescription": "在比對檔案和資料夾名稱時，應嚴格區分大小寫，而非忽略大小寫差異。"
   },
   "settings": {
     "avoidChanges": "也勾選「變更密碼」以套用此密碼",

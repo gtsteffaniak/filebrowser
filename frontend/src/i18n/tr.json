@@ -245,7 +245,9 @@
     "helpText2": "Yalnızca dosya veya klasör adlarında alt dize eşleşmesi (tam yollarda değil). case:exact büyük/küçük harfe duyarlı eşleştirme için\n\n terimler arasında VEYA için boru karakteri kullanın; bir ifade için çift tırnak kullanın.\n\nDaha gelişmiş seçenekler için joker karakter aramayı etkinleştirin.",
     "useWildcardSearch": "Joker karakter araması (büyük/küçük harfe duyarlı)",
     "useWildcardSearchDescription": "Desteklenen joker karakter seçenekleri:\n\n- Herhangi bir diziyi eşleştirin: *\n\n- Bir karakteri eşleştirin: ?\n\n- Karakter sınıfı: [a-z], [0-9]\n\n- Negasyon: [^0-9]\n\n- Literal *, ? veya [ parantez içine alınmalıdır, örneğin [*], [?], [[]\n\n- Tüm sonuçlar büyük/küçük harfe duyarlıdır",
-    "openInAdvancedSearch": "Gelişmiş Aramada Aç"
+    "openInAdvancedSearch": "Gelişmiş Aramada Aç",
+    "caseExact": "Büyük/küçük harf duyarlı eşleştirme",
+    "caseExactDescription": "Büyük ve küçük harfleri göz ardı etmek yerine, dosya ve klasör adlarını tam harf büyük/küçük yazımına göre eşleştirin."
   },
   "settings": {
     "avoidChanges": "(değişiklikleri önlemek için boş bırakın)",

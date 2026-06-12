@@ -245,7 +245,9 @@
     "helpText2": "Teilstring-Übereinstimmung nur bei Datei- oder Ordnernamen (nicht bei vollständigen Pfaden). case:exact für Übereinstimmung unter Berücksichtigung der Groß-/Kleinschreibung\n\n für ODER zwischen Begriffen Pipe-Zeichen verwenden; doppelte Anführungszeichen für eine Phrase.\n\nAktivieren Sie die Platzhaltersuche für erweiterte Optionen.",
     "useWildcardSearch": "Wildcard-Suche (Groß- und Kleinschreibung beachten)",
     "useWildcardSearchDescription": "Unterstützte Platzhalteroptionen:\n\n- Entspricht einer beliebigen Sequenz: *\n\n- Übereinstimmung mit einem Zeichen: ?\n\n- Zeichenklasse: [a-z], [0-9]\n\n- Negation: [^0-9]\n\n- Buchstäbliche *, ? oder [ müssen in Klammern eingeschlossen werden, z. B. [*], [?], [[]\n\n- Bei allen Ergebnissen wird zwischen Groß- und Kleinschreibung unterschieden.",
-    "openInAdvancedSearch": "In der erweiterten Suche öffnen"
+    "openInAdvancedSearch": "In der erweiterten Suche öffnen",
+    "caseExact": "Groß-/Kleinschreibung beachten",
+    "caseExactDescription": "Datei- und Ordnernamen anhand der genauen Groß- und Kleinschreibung abgleichen, anstatt Groß- und Kleinschreibung zu ignorieren."
   },
   "settings": {
     "avoidChanges": "(leer lassen, um Änderungen zu vermeiden)",

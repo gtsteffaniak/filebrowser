@@ -245,7 +245,9 @@
     "helpText2": "Dopasowanie podciągu tylko do nazw plików lub folderów (nie pełnych ścieżek). case:exact dla dopasowania z uwzględnieniem wielkości liter.\n\n dla OR między wyrażeniami użyj znaku potoku; podwójne cudzysłowy dla jednej frazy.\n\nWłącz wyszukiwanie wieloznaczne, aby uzyskać bardziej zaawansowane opcje.",
     "useWildcardSearch": "Wyszukiwanie z użyciem symboli wieloznacznych (z uwzględnieniem wielkości liter)",
     "useWildcardSearchDescription": "Obsługiwane opcje symboli wieloznacznych:\n\n- Dopasuj dowolną sekwencję: *\n\n- Dopasowanie jednego znaku: ?\n\n- Klasa znaków: [a-z], [0-9]\n\n- Negacja: [^0-9]\n\n- Dosłowne *, ? lub [ muszą być ujęte w nawiasy, np. [*], [?], [[]\n\n- We wszystkich wynikach rozróżniana jest wielkość liter",
-    "openInAdvancedSearch": "Otwórz w wyszukiwaniu zaawansowanym"
+    "openInAdvancedSearch": "Otwórz w wyszukiwaniu zaawansowanym",
+    "caseExact": "Wyszukiwanie z uwzględnieniem wielkości liter",
+    "caseExactDescription": "Porównuj nazwy plików i folderów, uwzględniając dokładną wielkość liter, zamiast ignorować różnicę między wielkimi a małymi literami."
   },
   "settings": {
     "avoidChanges": "(pozostaw puste aby nie zosatało zmienione)",
