@@ -245,7 +245,9 @@
     "helpText2": "Correspondance de sous-chaînes sur les noms de fichiers ou de dossiers uniquement (pas sur les chemins d'accès complets). case:exact pour une correspondance sensible à la casse.\n\n pour le OU entre les termes, utiliser le caractère pipe ; les guillemets doubles pour une seule phrase.\n\nActivez la recherche par caractères génériques pour obtenir des options plus avancées.",
     "useWildcardSearch": "Recherche par caractères génériques (sensible à la casse)",
     "useWildcardSearchDescription": "Options de caractères génériques prises en charge :\n\n- Correspond à n'importe quelle séquence : *\n\n- Correspondre à un seul caractère : ?\n\n- Classe de caractères : [a-z], [0-9]\n\n- Négation : [^0-9]\n\n- Les valeurs littérales *, ? ou [ doivent être mises entre parenthèses, par exemple [*], [ ?], [[]].\n\n- Tous les résultats sont sensibles à la casse",
-    "openInAdvancedSearch": "Ouvrir en recherche avancée"
+    "openInAdvancedSearch": "Ouvrir en recherche avancée",
+    "caseExact": "Correspondance sensible à la casse",
+    "caseExactDescription": "Comparer les noms de fichiers et de dossiers en tenant compte de la casse exacte, plutôt qu'en ignorant la distinction entre majuscules et minuscules."
   },
   "settings": {
     "scopes": "Définir les sources autorisées et la portée de l'utilisateur au sein de celles-ci",
@@ -778,7 +780,6 @@
       "scopeAria": "Limiter la recherche à un dossier",
       "noTerms": "Saisissez au moins un terme de recherche.",
       "termTooShort": "Chaque terme de recherche doit comporter au moins {minSearchLength} caractères.",
-      "caseExact": "Correspondance sensible à la casse",
       "resultsTitle": "Résultats de la recherche",
       "invalidSources": "Allumez au moins une source.",
       "noResults": "Aucun fichier ou dossier correspondant."

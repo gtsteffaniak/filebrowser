@@ -245,7 +245,9 @@
     "helpText2": "Potrivire de substringuri numai pe nume de fișiere sau de foldere (nu pe căi complete). case:exact pentru potrivire în funcție de caz\n\n pentru OR între termeni utilizați caracterul pipă; ghilimele duble pentru o frază.\n\nActivați căutarea wildcard pentru opțiuni mai avansate.",
     "useWildcardSearch": "Căutare wildcard (sensibil la majuscule)",
     "useWildcardSearchDescription": "Opțiuni de wildcard acceptate:\n\n- Potrivește orice secvență: *\n\n- Potrivește un singur caracter: ?\n\n- Clasa de caractere: [a-z], [0-9]\n\n- Negație: [^0-9]\n\n- Literele *, ? sau [ trebuie să fie puse între paranteze, de exemplu [*], [?], [[]\n\n- Toate rezultatele sunt sensibile la majuscule",
-    "openInAdvancedSearch": "Deschidere în căutarea avansată"
+    "openInAdvancedSearch": "Deschidere în căutarea avansată",
+    "caseExact": "Căutare cu diferențiere între majuscule și minuscule",
+    "caseExactDescription": "Compară numele fișierelor și folderelor folosind exact litere mari și mici, în loc să ignore diferențele dintre ele."
   },
   "settings": {
     "avoidChanges": "(lasă gol pentru a nu schimba)",
@@ -778,7 +780,6 @@
       "scopeAria": "Limitarea căutării la un dosar",
       "noTerms": "Introduceți cel puțin un termen de căutare.",
       "termTooShort": "Fiecare termen de căutare trebuie să aibă cel puțin {minSearchLength} caractere",
-      "caseExact": "Potrivire sensibilă la majuscule",
       "resultsTitle": "Rezultatele căutării",
       "invalidSources": "Porniți cel puțin o sursă.",
       "noResults": "Nu există fișiere sau foldere corespunzătoare."

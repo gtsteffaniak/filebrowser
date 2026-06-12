@@ -245,7 +245,9 @@
     "helpText2": "Coincidencia de subcadenas sólo en nombres de archivos o carpetas (no en rutas completas). case:exact para coincidencia sensible a mayúsculas y minúsculas.\n\n para OR entre términos utilice el carácter pipa; comillas dobles para una frase.\n\nHabilite la búsqueda con comodines para opciones más avanzadas.",
     "useWildcardSearch": "Búsqueda con comodín (distingue mayúsculas de minúsculas)",
     "useWildcardSearchDescription": "Opciones de comodín admitidas:\n\n- Coinciden con cualquier secuencia: *\n\n- Coincidir con un carácter: ?\n\n- Clase de caracteres: [a-z], [0-9]\n\n- Negación: [^0-9]\n\n- Los caracteres *, ? o [ deben ir entre paréntesis, por ejemplo [*], [?], [[].\n\n- Todos los resultados distinguen entre mayúsculas y minúsculas",
-    "openInAdvancedSearch": "Abrir en búsqueda avanzada"
+    "openInAdvancedSearch": "Abrir en búsqueda avanzada",
+    "caseExact": "Coincidencia que distingue entre mayúsculas y minúsculas",
+    "caseExactDescription": "Compara los nombres de archivos y carpetas utilizando el uso exacto de mayúsculas y minúsculas, en lugar de ignorar la distinción entre mayúsculas y minúsculas."
   },
   "settings": {
     "scopes": "Fuentes a las que el usuario tendrá acceso:",
@@ -778,7 +780,6 @@
       "scopeAria": "Limitar la búsqueda a una carpeta",
       "noTerms": "Introduzca al menos un término de búsqueda.",
       "termTooShort": "Cada término de búsqueda debe tener al menos {minSearchLength} caracteres",
-      "caseExact": "Coincidencia entre mayúsculas y minúsculas",
       "resultsTitle": "Resultados de la búsqueda",
       "invalidSources": "Enciende al menos una fuente.",
       "noResults": "No hay archivos o carpetas coincidentes."

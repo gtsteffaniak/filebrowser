@@ -434,7 +434,9 @@
     "helpText2": "Corrispondenza di sottostringhe solo sui nomi di file o cartelle (non sui percorsi completi). case:exact per una corrispondenza sensibile alle maiuscole e alle minuscole.\n\n per OR tra termini usare il carattere pipe; doppi apici per una frase.\n\nAbilitare la ricerca con caratteri jolly per opzioni più avanzate.",
     "useWildcardSearch": "Ricerca con caratteri jolly (sensibile alle maiuscole)",
     "useWildcardSearchDescription": "Opzioni jolly supportate:\n\n- Corrisponde a qualsiasi sequenza: *\n\n- Corrisponde a un solo carattere: ?\n\n- Classe di caratteri: [a-z], [0-9]\n\n- Negazione: [^0-9]\n\n- I caratteri letterali *, ?, o [ devono essere racchiusi tra parentesi, ad esempio [*], [?], [[]\n\n- Tutti i risultati sono sensibili alle maiuscole e alle minuscole",
-    "openInAdvancedSearch": "Aprire la ricerca avanzata"
+    "openInAdvancedSearch": "Aprire la ricerca avanzata",
+    "caseExact": "Corrispondenza che distingue tra maiuscole e minuscole",
+    "caseExactDescription": "Abbinare i nomi di file e cartelle utilizzando la distinzione esatta tra maiuscole e minuscole, anziché ignorarla."
   },
   "profileSettings": {
     "hideFileExt": "Nascondere determinati file (per estensione)",
@@ -787,7 +789,6 @@
       "scopeAria": "Limitare la ricerca a una cartella",
       "noTerms": "Inserite almeno un termine di ricerca.",
       "termTooShort": "Ogni termine di ricerca deve essere composto da almeno {minSearchLength} caratteri.",
-      "caseExact": "Corrispondenza sensibile alle maiuscole e alle minuscole",
       "resultsTitle": "Risultati della ricerca",
       "invalidSources": "Accendere almeno una sorgente.",
       "noResults": "Nessun file o cartella corrispondente."

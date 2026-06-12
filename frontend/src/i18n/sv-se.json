@@ -245,7 +245,9 @@
     "helpText2": "Delsträngsmatchning endast på fil- eller mappnamn (inte fullständiga sökvägar). case:exact för skiftlägeskänslig matchning\n\n för OR mellan termer använd pipe-tecken; dubbla citattecken för en fras.\n\nAktivera jokerteckensökning för mer avancerade alternativ.",
     "useWildcardSearch": "Sökning med jokertecken (skiftlägeskänslig)",
     "useWildcardSearchDescription": "Alternativ för jokertecken som stöds:\n\n- Matchar vilken sekvens som helst: *\n\n- Matcha ett tecken: ?\n\n- Teckenklass: [a-z], [0-9]\n\n- Negation: [^0-9]\n\n- Bokstavliga *, ? eller [ måste omslutas av parenteser, t.ex. [*], [?], [[]\n\n- Alla resultat är skiftlägeskänsliga",
-    "openInAdvancedSearch": "Öppna i avancerad sökning"
+    "openInAdvancedSearch": "Öppna i avancerad sökning",
+    "caseExact": "Skillnad mellan stora och små bokstäver",
+    "caseExactDescription": "Jämför fil- och mappnamn med exakt bokstavsstorlek istället för att bortse från skillnaden mellan stora och små bokstäver."
   },
   "settings": {
     "avoidChanges": "(lämna blankt för att undvika ändringar)",
@@ -778,7 +780,6 @@
       "scopeAria": "Begränsa sökningen till en mapp",
       "noTerms": "Ange minst en sökterm.",
       "termTooShort": "Varje sökterm måste innehålla minst {minSearchLength} tecken",
-      "caseExact": "Matchning med skiftlägeskänslighet",
       "resultsTitle": "Sökresultat",
       "invalidSources": "Slå på minst en källa.",
       "noResults": "Inga matchande filer eller mappar."
