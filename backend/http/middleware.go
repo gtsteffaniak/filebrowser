@@ -137,6 +137,8 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			ShowHidden:               link.ShowHidden,
 			HideFileExt:              link.HideFileExt,
 			FollowSymlinks:           true,
+			ShowPinnedItems:          true,
+			ShareHash:                hash,
 		}, store.Access, data.shareUser, store.Share)
 		if err != nil {
 			logger.Errorf("error fetching file info for share. hash=%v path=%v error=%v", hash, path, err)
