@@ -142,7 +142,7 @@
 import { state, mutations, getters } from "@/store";
 import { notify } from "@/notify";
 import { resourcesApi } from "@/api";
-import { goToItem } from "@/utils/url";
+import { goToItemNotificationButton } from "@/utils/notificationActions";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FileList from "@/components/files/FileList.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
@@ -312,14 +312,18 @@ export default {
 
         const destSource = this.destSource || this.source;
         const archivePath = dest;
-        const buttonAction = () => {
-          if (archivePath) {
-            goToItem(destSource || null, archivePath, {}, false, getters.isShare());
-          }
-        };
         notify.showSuccess(this.$t("prompts.archiveSuccess"), {
           icon: "folder",
-          buttons: archivePath ? [{ label: this.$t("buttons.goToItem"), primary: true, action: buttonAction }] : undefined,
+          buttons: archivePath
+            ? [
+                goToItemNotificationButton(
+                  this.$t("buttons.goToItem"),
+                  destSource,
+                  archivePath,
+                  getters.isShare()
+                ),
+              ]
+            : undefined,
         });
       } catch (err) {
         console.error(err);

@@ -29,7 +29,8 @@
     "goToItem": "Gå till objektet",
     "copyPath": "Kopiera sökväg",
     "pinItem": "Fäst",
-    "unpinItem": "Lossa"
+    "unpinItem": "Lossa",
+    "sendToApp": "Skicka till appen"
   },
   "errors": {
     "forbidden": "Du saknar rättigheter till detta",
@@ -668,7 +669,9 @@
     "no": "Nej{suffix}",
     "to": "till{suffix}",
     "and": "och{suffix}",
-    "or": "eller{suffix}"
+    "or": "eller{suffix}",
+    "camera": "Kamera{suffix}",
+    "video": "Video{suffix}"
   },
   "access": {
     "rules": "Regler för åtkomst",
@@ -808,7 +811,18 @@
     "description": "Visa alla meddelanden från din aktuella session",
     "empty": "Inga meddelanden ännu",
     "clearAll": "Rensa alla",
-    "total": "{count} meddelanden"
+    "appEnabled": "Appaviseringar",
+    "appEnabledDescription": "Visa webbläsaraviseringar när filåtgärder slutförs medan den här fliken är i bakgrunden. Kräver behörighet i webbläsaren. Sparas endast i den här webbläsaren.",
+    "appUnsupported": "Appaviseringar stöds inte i den här webbläsaren.",
+    "permissionGranted": "tillåtet",
+    "permissionDeniedHelp": "Meddelanden är blockerade. Aktivera dem i webbläsarens inställningar för den här webbplatsen.",
+    "uploadTitle": "Uppladdningen är klar",
+    "downloadTitle": "Ladda ner hela filen",
+    "moveTitle": "Flytten är klar",
+    "copyTitle": "Kopieringen är klar",
+    "uploadFailedTitle": "Uppladdningen misslyckades",
+    "downloadFailedTitle": "Nedladdningen misslyckades",
+    "operationFailedTitle": "Åtgärden misslyckades"
   },
   "events": {
     "serverShutdown": "Servern stängdes av.",
@@ -861,5 +875,8 @@
     "documentDownload": "Dokumentnedladdning - Komplett",
     "editorSuccess": "Initialisering av Editor - Framgång! Alla steg slutförda.",
     "setupError": "Inställningsfel"
+  },
+  "pwa": {
+    "install": "Installera appen"
   }
 }

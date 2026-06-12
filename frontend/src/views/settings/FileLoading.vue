@@ -87,11 +87,9 @@ export default {
   },
   mounted() {
     this.localuser = JSON.parse(JSON.stringify(state.user));
-    // Initialize fileLoading defaults if not present
     if (!this.localuser.fileLoading) {
       this.localuser.fileLoading = {};
     }
-    // Default downloadChunkSizeMb to 0 if not set
     if (this.localuser.fileLoading.downloadChunkSizeMb === undefined || this.localuser.fileLoading.downloadChunkSizeMb === null) {
       this.localuser.fileLoading.downloadChunkSizeMb = 0;
     }
@@ -147,21 +145,6 @@ export default {
   margin-left: 1em;
   min-width: 2ch;
   text-align: center;
-}
-
-.apply-btn {
-  margin-left: 1em;
-  padding: 0.5em 1em;
-  border: none;
-  background-color: var(--primaryColor);
-  color: white;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 0.9em;
-}
-
-.apply-btn:hover {
-  opacity: 0.9;
 }
 
 .item {

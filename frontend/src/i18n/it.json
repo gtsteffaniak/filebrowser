@@ -116,7 +116,9 @@
     "no": "No{suffix}",
     "to": "a{suffix}",
     "and": "e{suffix}",
-    "or": "oppure{suffix}"
+    "or": "oppure{suffix}",
+    "camera": "Fotocamera{suffix}",
+    "video": "Video{suffix}"
   },
   "buttons": {
     "copySuccess": "Copiato negli appunti!",
@@ -148,7 +150,8 @@
     "goToSource": "Vai alla posizione sorgente",
     "copyPath": "Percorso di copia",
     "pinItem": "Appunta",
-    "unpinItem": "Rimuovi puntina"
+    "unpinItem": "Rimuovi puntina",
+    "sendToApp": "Invia all'app"
   },
   "errors": {
     "forbidden": "Non hai i permessi per accedere a questa risorsa.",
@@ -799,7 +802,18 @@
     "description": "Visualizza tutte le notifiche della sessione corrente",
     "empty": "Ancora nessuna notifica",
     "clearAll": "Pulisci tutto",
-    "total": "{count} notifiche"
+    "appEnabled": "Notifiche delle app",
+    "appEnabledDescription": "Mostra le notifiche del browser al termine delle operazioni sui file quando questa scheda è in secondo piano. Richiede l'autorizzazione del browser. Memorizzato solo in questo browser.",
+    "appUnsupported": "Le notifiche delle app non sono supportate in questo browser.",
+    "permissionGranted": "ammesso",
+    "permissionDeniedHelp": "Le notifiche sono bloccate. Abilitale nelle impostazioni del browser per questo sito.",
+    "uploadTitle": "Caricamento completato",
+    "downloadTitle": "Download completato",
+    "moveTitle": "Operazione completata",
+    "copyTitle": "Copia completata",
+    "uploadFailedTitle": "Caricamento non riuscito",
+    "downloadFailedTitle": "Il download non è andato a buon fine",
+    "operationFailedTitle": "Operazione non riuscita"
   },
   "duplicateFinder": {
     "minSize": "Dimensione Minima (MB){suffix}",
@@ -861,5 +875,8 @@
     "documentDownload": "Download Documento - Completato",
     "editorSuccess": "Inizializzazione Editor - Successo! Tutti i passaggi completati.",
     "setupError": "Errore Setup"
+  },
+  "pwa": {
+    "install": "Installa l'app"
   }
 }

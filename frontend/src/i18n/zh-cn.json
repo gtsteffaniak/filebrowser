@@ -29,7 +29,8 @@
     "goToItem": "转到项目",
     "copyPath": "复制路径",
     "pinItem": "固定",
-    "unpinItem": "取消固定"
+    "unpinItem": "取消固定",
+    "sendToApp": "发送至应用"
   },
   "errors": {
     "forbidden": "你无权限访问",
@@ -668,7 +669,9 @@
     "no": "没有{suffix}",
     "to": "到{suffix}",
     "and": "以及{suffix}",
-    "or": "或{suffix}"
+    "or": "或{suffix}",
+    "camera": "相机{suffix}",
+    "video": "视频{suffix}"
   },
   "access": {
     "rules": "访问规则",
@@ -808,7 +811,18 @@
     "description": "查看当前会话的所有通知",
     "empty": "尚无通知",
     "clearAll": "全部清除",
-    "total": "{count} 通知"
+    "appEnabled": "应用通知",
+    "appEnabledDescription": "当此标签页处于后台时，在文件操作完成后显示浏览器通知。需要浏览器权限。仅存储于此浏览器中。",
+    "appUnsupported": "此浏览器不支持应用通知。",
+    "permissionGranted": "允许",
+    "permissionDeniedHelp": "通知已被屏蔽。请在浏览器设置中为该网站启用通知。",
+    "uploadTitle": "上传完成",
+    "downloadTitle": "下载完成",
+    "moveTitle": "移动完成",
+    "copyTitle": "复制完成",
+    "uploadFailedTitle": "上传失败",
+    "downloadFailedTitle": "下载失败",
+    "operationFailedTitle": "操作失败"
   },
   "events": {
     "serverShutdown": "服务器已关闭。",
@@ -861,5 +875,8 @@
     "documentDownload": "文件下载 - 完成",
     "editorSuccess": "编辑器初始化 - 成功！所有步骤已完成。",
     "setupError": "设置错误"
+  },
+  "pwa": {
+    "install": "安装应用"
   }
 }

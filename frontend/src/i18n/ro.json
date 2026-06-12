@@ -29,7 +29,8 @@
     "goToItem": "Du-te la articol",
     "copyPath": "Copiați calea",
     "pinItem": "Fixare",
-    "unpinItem": "Anulare fixare"
+    "unpinItem": "Anulare fixare",
+    "sendToApp": "Trimite către aplicație"
   },
   "errors": {
     "forbidden": "Nu ai permisiuni sa accesezi asta.",
@@ -574,7 +575,9 @@
     "no": "Nu{suffix}",
     "to": "spre{suffix}",
     "and": "și{suffix}",
-    "or": "sau{suffix}"
+    "or": "sau{suffix}",
+    "camera": "Cameră foto{suffix}",
+    "video": "Video{suffix}"
   },
   "access": {
     "rules": "Reguli de acces",
@@ -808,7 +811,18 @@
     "description": "Vizualizați toate notificările din sesiunea curentă",
     "empty": "Nu există încă notificări",
     "clearAll": "Ștergeți tot",
-    "total": "{count} notificări"
+    "appEnabled": "Notificări din aplicații",
+    "appEnabledDescription": "Afișează notificări în browser la finalizarea operațiunilor cu fișiere atunci când această filă se află în fundal. Necesită permisiunea browserului. Se salvează numai în acest browser.",
+    "appUnsupported": "Notificările aplicațiilor nu sunt acceptate în acest browser.",
+    "permissionGranted": "permis",
+    "permissionDeniedHelp": "Notificările sunt blocate. Activează-le în setările browserului pentru acest site.",
+    "uploadTitle": "Încărcarea s-a încheiat",
+    "downloadTitle": "Descărcare completă",
+    "moveTitle": "Mutarea s-a finalizat",
+    "copyTitle": "Copiere finalizată",
+    "uploadFailedTitle": "Încărcarea a eșuat",
+    "downloadFailedTitle": "Descărcarea a eșuat",
+    "operationFailedTitle": "Operațiunea a eșuat"
   },
   "events": {
     "serverShutdown": "Serverul a fost închis.",
@@ -861,5 +875,8 @@
     "documentDownload": "Descărcare document - Complet",
     "editorSuccess": "Inițializarea editorului - Succes! Toate etapele au fost finalizate.",
     "setupError": "Eroare de configurare"
+  },
+  "pwa": {
+    "install": "Instalează aplicația"
   }
 }

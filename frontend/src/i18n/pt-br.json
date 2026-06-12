@@ -29,7 +29,8 @@
     "goToItem": "Ir para o item",
     "copyPath": "Copiar caminho",
     "pinItem": "Fixar",
-    "unpinItem": "Desafixar"
+    "unpinItem": "Desafixar",
+    "sendToApp": "Enviar para o aplicativo"
   },
   "errors": {
     "forbidden": "Você não tem permissões para acessar isto.",
@@ -574,7 +575,9 @@
     "no": "Não{suffix}",
     "to": "para{suffix}",
     "and": "e{suffix}",
-    "or": "ou{suffix}"
+    "or": "ou{suffix}",
+    "camera": "Câmera{suffix}",
+    "video": "Vídeo{suffix}"
   },
   "access": {
     "rules": "Regras de acesso",
@@ -808,7 +811,18 @@
     "description": "Exibir todas as notificações de sua sessão atual",
     "empty": "Ainda não há notificações",
     "clearAll": "Limpar tudo",
-    "total": "{count} notificações"
+    "appEnabled": "Notificações de aplicativos",
+    "appEnabledDescription": "Mostrar notificações do navegador quando as operações com arquivos forem concluídas enquanto esta guia estiver em segundo plano. Requer permissão do navegador. Armazenado apenas neste navegador.",
+    "appUnsupported": "As notificações de aplicativos não são compatíveis com este navegador.",
+    "permissionGranted": "permitido",
+    "permissionDeniedHelp": "As notificações estão bloqueadas. Ative-as nas configurações do seu navegador para este site.",
+    "uploadTitle": "Upload concluído",
+    "downloadTitle": "Baixar na íntegra",
+    "moveTitle": "Movimentação concluída",
+    "copyTitle": "Cópia concluída",
+    "uploadFailedTitle": "Falha no upload",
+    "downloadFailedTitle": "Falha no download",
+    "operationFailedTitle": "A operação falhou"
   },
   "events": {
     "serverShutdown": "O servidor foi desligado.",
@@ -861,5 +875,8 @@
     "documentDownload": "Download de documentos - Completo",
     "editorSuccess": "Inicialização do editor - Sucesso! Todas as etapas foram concluídas.",
     "setupError": "Erro de configuração"
+  },
+  "pwa": {
+    "install": "Instalar o aplicativo"
   }
 }

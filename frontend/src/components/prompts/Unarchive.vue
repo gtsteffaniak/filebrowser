@@ -123,7 +123,7 @@ import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
 import { notify } from "@/notify";
 import { resourcesApi } from "@/api";
-import { goToItem } from "@/utils/url";
+import { goToItemNotificationButton } from "@/utils/notificationActions";
 import FileList from "@/components/files/FileList.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
@@ -280,10 +280,18 @@ export default {
 
         const destPath = this.destPath;
         const destSource = toSource;
-        const buttonAction = () => destPath && goToItem(destSource || state.shareInfo?.hash, destPath, {}, false, getters.isShare());
         notify.showSuccess(this.$t("prompts.unarchiveSuccess"), {
           icon: "folder",
-          buttons: destPath ? [{ label: this.$t("buttons.goToItem"), primary: true, action: buttonAction }] : undefined,
+          buttons: destPath
+            ? [
+                goToItemNotificationButton(
+                  this.$t("buttons.goToItem"),
+                  destSource || state.shareInfo?.hash,
+                  destPath,
+                  getters.isShare()
+                ),
+              ]
+            : undefined,
         });
       } catch (err) {
         console.error(err);

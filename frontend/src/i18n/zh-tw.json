@@ -29,7 +29,8 @@
     "goToItem": "前往項目",
     "copyPath": "複製路徑",
     "pinItem": "釘選",
-    "unpinItem": "取消釘選"
+    "unpinItem": "取消釘選",
+    "sendToApp": "傳送至應用程式"
   },
   "errors": {
     "forbidden": "沒有權限存取此內容。",
@@ -668,7 +669,9 @@
     "no": "沒有{suffix}",
     "to": "至{suffix}",
     "and": "以及{suffix}",
-    "or": "或{suffix}"
+    "or": "或{suffix}",
+    "camera": "相機{suffix}",
+    "video": "影片{suffix}"
   },
   "access": {
     "rules": "存取規則",
@@ -808,7 +811,18 @@
     "description": "檢視目前工作階段的所有通知",
     "empty": "尚未有通知",
     "clearAll": "全部清除",
-    "total": "{count} 則通知"
+    "appEnabled": "應用程式通知",
+    "appEnabledDescription": "當此分頁處於背景執行狀態時，若檔案操作完成，將顯示瀏覽器通知。需取得瀏覽器權限。僅儲存於此瀏覽器中。",
+    "appUnsupported": "此瀏覽器不支援應用程式通知。",
+    "permissionGranted": "允許",
+    "permissionDeniedHelp": "通知已被封鎖。請在瀏覽器設定中為此網站啟用通知功能。",
+    "uploadTitle": "上傳完成",
+    "downloadTitle": "下載完整版",
+    "moveTitle": "移動完成",
+    "copyTitle": "複製完成",
+    "uploadFailedTitle": "上傳失敗",
+    "downloadFailedTitle": "下載失敗",
+    "operationFailedTitle": "操作失敗"
   },
   "events": {
     "serverShutdown": "伺服器已關閉。",
@@ -861,5 +875,8 @@
     "documentDownload": "文件下載 - 完成",
     "editorSuccess": "編輯器初始化 - 成功！所有步驟完成。",
     "setupError": "設定錯誤"
+  },
+  "pwa": {
+    "install": "安裝應用程式"
   }
 }
