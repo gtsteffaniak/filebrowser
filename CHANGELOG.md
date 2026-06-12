@@ -7,6 +7,9 @@ All notable changes to this project will be documented in this file. For commit 
  **New Features**:
  - Added basic html viewer with relative reference support (#2522)
 
+ **Notes**:
+ - [docker] upgraded ffmpeg version 8.1 > 8.1.1
+
 ## v1.4.4
 
  **BugFixes**:

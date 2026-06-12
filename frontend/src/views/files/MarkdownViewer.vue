@@ -331,13 +331,7 @@ export default {
       return buildHtmlPreview(this.content, state.req.path, state.req.source);
     },
     renderedContent() {
-      if (this.isHtml) {
-        return this.htmlPreview.html;
-      }
       return this.parseMarkdown(this.content, state.req.path, state.req.source);
-    },
-    htmlContentStyle() {
-      return this.htmlPreview.wrapperStyle;
     },
     spaceForStatusBar() {
       return state.isMobile ? 3.1 : 3.5;
