@@ -780,7 +780,6 @@
       "scopeAria": "Limiter la recherche à un dossier",
       "noTerms": "Saisissez au moins un terme de recherche.",
       "termTooShort": "Chaque terme de recherche doit comporter au moins {minSearchLength} caractères.",
-      "caseExact": "Correspondance sensible à la casse",
       "resultsTitle": "Résultats de la recherche",
       "invalidSources": "Allumez au moins une source.",
       "noResults": "Aucun fichier ou dossier correspondant."

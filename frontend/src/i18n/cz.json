@@ -780,7 +780,6 @@
       "scopeAria": "Omezení vyhledávání na složku",
       "noTerms": "Zadejte alespoň jeden hledaný výraz.",
       "termTooShort": "Každý hledaný výraz musí mít alespoň {minSearchLength} znaků.",
-      "caseExact": "Shoda rozlišující malá a velká písmena",
       "resultsTitle": "Výsledky vyhledávání",
       "invalidSources": "Zapněte alespoň jeden zdroj.",
       "noResults": "Žádné odpovídající soubory nebo složky."

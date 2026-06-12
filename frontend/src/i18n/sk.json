@@ -780,7 +780,6 @@
       "scopeAria": "Obmedzenie vyhľadávania na priečinok",
       "noTerms": "Zadajte aspoň jeden vyhľadávací výraz.",
       "termTooShort": "Každý hľadaný výraz musí mať aspoň {minSearchLength} znakov.",
-      "caseExact": "Zhoda s rozlišovaním veľkých a malých písmen",
       "resultsTitle": "Výsledky vyhľadávania",
       "invalidSources": "Zapnite aspoň jeden zdroj.",
       "noResults": "Žiadne zodpovedajúce súbory alebo priečinky."

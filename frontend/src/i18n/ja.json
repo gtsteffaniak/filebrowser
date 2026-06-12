@@ -780,7 +780,6 @@
       "scopeAria": "検索対象をフォルダに限定する",
       "noTerms": "少なくとも1つの検索語を入力してください。",
       "termTooShort": "各検索語は{minSearchLength} 文字以上でなければなりません。",
-      "caseExact": "大文字と小文字の一致",
       "resultsTitle": "検索結果",
       "invalidSources": "少なくとも1つのソースをオンにする。",
       "noResults": "一致するファイルやフォルダがありません。"

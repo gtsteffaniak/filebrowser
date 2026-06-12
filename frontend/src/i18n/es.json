@@ -780,7 +780,6 @@
       "scopeAria": "Limitar la búsqueda a una carpeta",
       "noTerms": "Introduzca al menos un término de búsqueda.",
       "termTooShort": "Cada término de búsqueda debe tener al menos {minSearchLength} caracteres",
-      "caseExact": "Coincidencia entre mayúsculas y minúsculas",
       "resultsTitle": "Resultados de la búsqueda",
       "invalidSources": "Enciende al menos una fuente.",
       "noResults": "No hay archivos o carpetas coincidentes."

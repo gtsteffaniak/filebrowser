@@ -780,7 +780,6 @@
       "scopeAria": "Suche auf einen Ordner beschränken",
       "noTerms": "Geben Sie mindestens einen Suchbegriff ein.",
       "termTooShort": "Jeder Suchbegriff muss mindestens {minSearchLength} Zeichen umfassen.",
-      "caseExact": "Abgleich unter Berücksichtigung der Groß-/Kleinschreibung",
       "resultsTitle": "Suchergebnisse",
       "invalidSources": "Schalten Sie mindestens eine Quelle ein.",
       "noResults": "Keine passenden Dateien oder Ordner."

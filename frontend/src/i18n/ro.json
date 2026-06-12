@@ -780,7 +780,6 @@
       "scopeAria": "Limitarea căutării la un dosar",
       "noTerms": "Introduceți cel puțin un termen de căutare.",
       "termTooShort": "Fiecare termen de căutare trebuie să aibă cel puțin {minSearchLength} caractere",
-      "caseExact": "Potrivire sensibilă la majuscule",
       "resultsTitle": "Rezultatele căutării",
       "invalidSources": "Porniți cel puțin o sursă.",
       "noResults": "Nu există fișiere sau foldere corespunzătoare."

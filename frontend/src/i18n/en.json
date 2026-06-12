@@ -768,7 +768,6 @@
       "scopeAria": "Limit search to a folder",
       "noTerms": "Enter at least one search term.",
       "termTooShort": "Each search term must be at least {minSearchLength} characters",
-      "caseExact": "Case-sensitive match",
       "resultsTitle": "Search results",
       "invalidSources": "Turn on at least one source.",
       "noResults": "No matching files or folders."

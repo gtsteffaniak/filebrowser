@@ -780,7 +780,6 @@
       "scopeAria": "限制搜尋至資料夾",
       "noTerms": "至少輸入一個搜尋字詞。",
       "termTooShort": "每個搜尋字詞必須至少為{minSearchLength} 字元",
-      "caseExact": "大小寫敏感匹配",
       "resultsTitle": "搜尋結果",
       "invalidSources": "開啟至少一個來源。",
       "noResults": "沒有匹配的檔案或資料夾。"

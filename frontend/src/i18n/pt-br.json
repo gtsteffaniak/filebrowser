@@ -780,7 +780,6 @@
       "scopeAria": "Limitar a pesquisa a uma pasta",
       "noTerms": "Digite pelo menos um termo de pesquisa.",
       "termTooShort": "Cada termo de pesquisa deve ter pelo menos {minSearchLength} caracteres",
-      "caseExact": "Correspondência com distinção entre maiúsculas e minúsculas",
       "resultsTitle": "Resultados da pesquisa",
       "invalidSources": "Ligue pelo menos uma fonte.",
       "noResults": "Não há arquivos ou pastas correspondentes."

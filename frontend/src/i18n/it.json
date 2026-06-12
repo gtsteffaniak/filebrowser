@@ -789,7 +789,6 @@
       "scopeAria": "Limitare la ricerca a una cartella",
       "noTerms": "Inserite almeno un termine di ricerca.",
       "termTooShort": "Ogni termine di ricerca deve essere composto da almeno {minSearchLength} caratteri.",
-      "caseExact": "Corrispondenza sensibile alle maiuscole e alle minuscole",
       "resultsTitle": "Risultati della ricerca",
       "invalidSources": "Accendere almeno una sorgente.",
       "noResults": "Nessun file o cartella corrispondente."

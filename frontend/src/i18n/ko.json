@@ -780,7 +780,6 @@
       "scopeAria": "폴더로 검색 제한",
       "noTerms": "검색어를 하나 이상 입력합니다.",
       "termTooShort": "각 검색어는 {minSearchLength} 자 이상이어야 합니다.",
-      "caseExact": "대소문자 구분 일치",
       "resultsTitle": "검색 결과",
       "invalidSources": "하나 이상의 소스를 켭니다.",
       "noResults": "일치하는 파일이나 폴더가 없습니다."

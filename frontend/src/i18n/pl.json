@@ -780,7 +780,6 @@
       "scopeAria": "Ograniczenie wyszukiwania do folderu",
       "noTerms": "Wprowadź co najmniej jedno wyszukiwane hasło.",
       "termTooShort": "Każde wyszukiwane hasło musi zawierać co najmniej {minSearchLength} znaków",
-      "caseExact": "Dopasowanie z uwzględnieniem wielkości liter",
       "resultsTitle": "Wyniki wyszukiwania",
       "invalidSources": "Włącz co najmniej jedno źródło.",
       "noResults": "Brak pasujących plików lub folderów."

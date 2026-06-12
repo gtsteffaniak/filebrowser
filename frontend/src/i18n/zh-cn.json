@@ -780,7 +780,6 @@
       "scopeAria": "限制搜索文件夹",
       "noTerms": "至少输入一个搜索词。",
       "termTooShort": "每个搜索词必须至少包含{minSearchLength} 个字符",
-      "caseExact": "区分大小写匹配",
       "resultsTitle": "搜索结果",
       "invalidSources": "至少打开一个信号源。",
       "noResults": "没有匹配的文件或文件夹。"

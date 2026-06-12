@@ -780,7 +780,6 @@
       "scopeAria": "Begränsa sökningen till en mapp",
       "noTerms": "Ange minst en sökterm.",
       "termTooShort": "Varje sökterm måste innehålla minst {minSearchLength} tecken",
-      "caseExact": "Matchning med skiftlägeskänslighet",
       "resultsTitle": "Sökresultat",
       "invalidSources": "Slå på minst en källa.",
       "noResults": "Inga matchande filer eller mappar."

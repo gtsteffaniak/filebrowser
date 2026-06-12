@@ -780,7 +780,6 @@
       "scopeAria": "Zoekopdracht beperken tot een map",
       "noTerms": "Voer ten minste één zoekterm in.",
       "termTooShort": "Elke zoekterm moet minimaal {minSearchLength} tekens bevatten.",
-      "caseExact": "Hoofdlettergevoelige match",
       "resultsTitle": "Zoekresultaten",
       "invalidSources": "Zet minstens één bron aan.",
       "noResults": "Geen overeenkomende bestanden of mappen."
