@@ -9,17 +9,8 @@
       <i @click="setSeenUpdate" aria-label="close-banner" class="material-symbols">close</i>
     </div>
     <div v-if="showPwaInstall" class="button release-banner">
-      <button type="button" class="button pwa-install-button" @click="installPwa">
-        {{ $t("pwa.install") }}
-      </button>
-      <button
-        type="button"
-        class="pwa-install-dismiss"
-        @click="dismissPwaInstall"
-        :aria-label="$t('general.close', { suffix: '' })"
-      >
-        <i class="material-symbols">close</i>
-      </button>
+      <a href="#" @click.prevent="installPwa">{{ $t("pwa.install") }}</a>
+      <i @click="dismissPwaInstall" aria-label="close-banner" class="material-symbols">close</i>
     </div>
     <SidebarSettings v-if="isSettings"></SidebarSettings>
     <SidebarGeneral v-if="!isSettings"></SidebarGeneral>
@@ -292,25 +283,6 @@ body.rtl .action {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1em;
-}
-
-.pwa-install-button {
-  background: none;
-  border: none;
-  color: inherit;
-  cursor: pointer;
-  font: inherit;
-  padding: 0;
-  text-align: left;
-}
-
-.pwa-install-dismiss {
-  background: none;
-  border: none;
-  color: inherit;
-  cursor: pointer;
-  font: inherit;
-  padding: 0;
 }
 
 #sidebar.scrollable {
