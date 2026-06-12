@@ -40,7 +40,7 @@ func TestSharePinnedNamesForDirectory(t *testing.T) {
 func TestShareRelativeDir(t *testing.T) {
 	link := &Link{CommonShare: CommonShare{Path: "/share/"}}
 
-	got, err := link.ShareRelativeDir(nil, "", "/share/")
+	got, err := link.ShareRelativeDir("/share/")
 	if err != nil {
 		t.Fatalf("ShareRelativeDir root: %v", err)
 	}
@@ -48,7 +48,7 @@ func TestShareRelativeDir(t *testing.T) {
 		t.Fatalf("got %q, want /", got)
 	}
 
-	got, err = link.ShareRelativeDir(nil, "", "/share/test [file2]/")
+	got, err = link.ShareRelativeDir("/share/test [file2]/")
 	if err != nil {
 		t.Fatalf("ShareRelativeDir subdir: %v", err)
 	}

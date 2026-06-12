@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
-	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 )
 
 // PinnedItems maps share-relative directory paths to pinned item names.
@@ -66,7 +65,7 @@ func (l *Link) EnsurePinnedItems() PinnedItems {
 
 // ShareRelativeDir maps a source index directory path to a share-relative directory path.
 // link.Path is the index path of the share root (e.g. "/share/").
-func (l *Link) ShareRelativeDir(_ *users.User, _ string, indexDirPath string) (string, error) {
+func (l *Link) ShareRelativeDir(indexDirPath string) (string, error) {
 	shareRootIndex := utils.AddTrailingSlashIfNotExists(l.Path)
 	indexDirPath = utils.AddTrailingSlashIfNotExists(indexDirPath)
 	if !strings.HasPrefix(indexDirPath, shareRootIndex) {

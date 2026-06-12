@@ -282,7 +282,7 @@ func fileInfoFasterImpl(opts utils.FileOptions, access *access.Storage, user *us
 	if info.Type == "directory" && opts.ShowPinnedItems {
 		if opts.ShareHash != "" && shareStore != nil {
 			if link, err := shareStore.GetByHash(opts.ShareHash); err == nil {
-				if shareRelDir, err := link.ShareRelativeDir(user, opts.Source, response.Path); err == nil {
+				if shareRelDir, err := link.ShareRelativeDir(response.Path); err == nil {
 					response.PinnedItems = link.PinnedItems.NamesForDirectory(shareRelDir)
 				}
 			}
