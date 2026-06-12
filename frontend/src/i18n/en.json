@@ -885,7 +885,6 @@
     "setupError": "Setup Error"
   },
   "pwa": {
-    "install": "Install app",
-    "installDescription": "Install FileBrowser for quick access from your desktop or home screen."
+    "install": "Install app"
   }
 }

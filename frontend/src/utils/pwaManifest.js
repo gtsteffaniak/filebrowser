@@ -1,4 +1,3 @@
-/* eslint-env browser */
 import { globalVars } from "@/utils/constants";
 import { getters, state } from "@/store";
 

@@ -1,4 +1,3 @@
-/* eslint-env browser */
 import { resourcesApi } from "@/api";
 import { notify } from "@/notify";
 import { getters, state } from "@/store";

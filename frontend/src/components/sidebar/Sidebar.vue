@@ -14,11 +14,11 @@
       </button>
       <button
         type="button"
-        class="material-symbols pwa-install-dismiss"
+        class="pwa-install-dismiss"
         @click="dismissPwaInstall"
         :aria-label="$t('general.close', { suffix: '' })"
       >
-        close
+        <i class="material-symbols">close</i>
       </button>
     </div>
     <SidebarSettings v-if="isSettings"></SidebarSettings>

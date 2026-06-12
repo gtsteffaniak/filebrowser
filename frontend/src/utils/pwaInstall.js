@@ -1,4 +1,3 @@
-/* eslint-env browser */
 import { ref } from "vue";
 
 let deferredPrompt = null;
