@@ -426,8 +426,7 @@ export const getters = {
       const isDir = upload.file.type === 'directory'
       const progress = isDir
         ? 100
-        : Math.ceil((state.upload.progress[id] || 0 / size) * 100) // Default to 0 if progress is undefined
-
+        : Math.ceil((getObjectProperty(state.upload.progress, id) || 0 / size) * 100) // Default to 0 if progress is undefined
       files.push({
         id,
         name,
@@ -436,7 +435,6 @@ export const getters = {
         isDir
       })
     }
-
     return files.sort((a, b) => a.progress - b.progress)
   },
   fileViewingDisabled: filename => {

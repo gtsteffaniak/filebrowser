@@ -344,18 +344,18 @@ export default {
       }
     },
     getAceMode(mode) {
-      const modeMap = {
-        'yaml': 'ace/mode/yaml',
-        'json': 'ace/mode/json',
-        'javascript': 'ace/mode/javascript',
-        'typescript': 'ace/mode/typescript',
-        'html': 'ace/mode/html',
-        'css': 'ace/mode/css',
-        'markdown': 'ace/mode/markdown',
-        'text': 'ace/mode/text',
-        'xml': 'ace/mode/xml'
-      };
-      return modeMap[mode] || `ace/mode/${mode}`;
+      switch (mode) {
+        case 'yaml': return 'ace/mode/yaml';
+        case 'json': return 'ace/mode/json';
+        case 'javascript': return 'ace/mode/javascript';
+        case 'typescript': return 'ace/mode/typescript';
+        case 'html': return 'ace/mode/html';
+        case 'css': return 'ace/mode/css';
+        case 'markdown': return 'ace/mode/markdown';
+        case 'text': return 'ace/mode/text';
+        case 'xml': return 'ace/mode/xml';
+        default: return `ace/mode/${mode}`;
+      }
     },
     async handleEditorValueRequest() {
       // Skip save logic in viewer mode

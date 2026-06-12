@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-type DeepCloneable = object | Array<any>;
+type DeepCloneable = object | unknown[];
 
 export default function deepClone<T extends DeepCloneable>(obj: T): T {
   if (obj === null || typeof obj !== 'object') {
@@ -7,12 +6,12 @@ export default function deepClone<T extends DeepCloneable>(obj: T): T {
   }
 
   if (Array.isArray(obj)) {
-    return obj.map(deepClone) as T;
+    return obj.map((item) => deepClone(item as DeepCloneable)) as T;
   }
 
-  const clone = {} as T;
-  for (const key in obj) {
-    clone[key] = deepClone(obj[key] as any);
-  }
-  return clone;
+  const entries = Object.entries(obj).map(([key, value]) => [
+    key,
+    deepClone(value as DeepCloneable),
+  ]);
+  return Object.fromEntries(entries) as T;
 }

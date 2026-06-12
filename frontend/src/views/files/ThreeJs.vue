@@ -55,6 +55,7 @@ import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { state, mutations, getters } from "@/store";
 import { resourcesApi } from "@/api";
 import { removeLastDir } from "@/utils/url";
+import { getObjectProperty } from '@/utils/object.js';
 
 const LOADERS = {
   gltf: GLTFLoader,
@@ -377,7 +378,7 @@ export default {
       
       try {
         const extension = this.fileExtension;
-        const LoaderClass = LOADERS[extension];
+        const LoaderClass = getObjectProperty(LOADERS, extension);
         if (!LoaderClass) throw new Error(`Unsupported 3D format: .${extension}`);
 
         const loadingManager = markRaw(new THREE.LoadingManager());

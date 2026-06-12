@@ -235,7 +235,7 @@ export default {
       const current = getters.viewMode();
       const cycleIndex = this.viewModeCycleIndex(current);
       const nextIndex = (cycleIndex + 1) % this.viewModes.length;
-      const baseMode = this.viewModes[nextIndex];
+      const baseMode = this.viewModes.at(nextIndex);
       const newViewMode = this.resolveViewModeForFamily(baseMode);
       mutations.updateDisplayPreferences({ viewMode: newViewMode });
       void mutations.updateCurrentUser({ viewMode: newViewMode });

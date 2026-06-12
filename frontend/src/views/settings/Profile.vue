@@ -332,8 +332,9 @@ export default {
       if (value === "" || value === "*") {
         return true;
       }
-      const regex = /^\.\w+(?: \.\w+)*$/;
-      return regex.test(value);
+      const parts = value.trim().split(/\s+/);
+      const extensionRegex = /^\.\w+$/;
+      return parts.every(part => extensionRegex.test(part));
     },
     submitDisablePreviewsChange() {
       if (!this.validateExtensions(this.formDisablePreviews)) {

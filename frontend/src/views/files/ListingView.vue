@@ -617,7 +617,8 @@ export default {
     showDeletePrompt() {
       const items = [];
       for (const index of state.selected) {
-        const item = state.req.items[index];
+        const item = state.req.items.at(index);
+        if (!item) continue;
         const previewUrl = item.hasPreview
           ? resourcesApi.getPreviewURL(item.source || state.req.source, item.path, item.modified)
           : null;
@@ -633,9 +634,7 @@ export default {
       }
       mutations.showPrompt({
         name: "delete",
-        props: {
-          items: items,
-        },
+        props: { items },
       });
     },
     // Helper method to select the first item if nothing is selected
@@ -887,7 +886,8 @@ export default {
         if (curPos !== -1) nextPos = (curPos + 1) % matches.length;
       }
 
-      const target = matches[nextPos];
+      const target = matches.at(nextPos);
+      if (!target) return;
       mutations.resetSelected();
       mutations.addSelected(target.index);
       this.scrollSelectedIntoView();
@@ -901,11 +901,17 @@ export default {
         return;
       }
 
-      const items = state.selected.map((i) => ({
-        from: state.req.items[i].path,
-        fromSource: state.req.source,
-        name: state.req.items[i].name,
-      }));
+      const items = state.selected
+        .map((i) => {
+          const item = state.req.items.at(i);
+          if (!item) return null;
+          return {
+            from: item.path,
+            fromSource: state.req.source,
+            name: item.name,
+          };
+        })
+        .filter(Boolean);
 
       if (items.length === 0) {
         return;
@@ -918,7 +924,6 @@ export default {
       };
       this.internalClipboardTimestamp = Date.now();
     },
-
     async collectFilesFromEntry(entry, relativePath = "") {
       const files = [];
       const entryPath = relativePath ? `${relativePath}/${entry.name}` : entry.name;
@@ -985,8 +990,7 @@ export default {
         // Collect all items from clipboard
         const collectedItems = [];
         // And loop through all items
-        for (let i = 0; i < event.clipboardData.items.length; i++) {
-          const item = event.clipboardData.items[i];
+        for (const item of Array.from(event.clipboardData.items)) {
           if (item.kind !== 'file') continue;
 
           const entry = item.webkitGetAsEntry();

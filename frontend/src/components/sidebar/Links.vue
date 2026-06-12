@@ -193,6 +193,7 @@ import { state, getters, mutations } from "@/store";
 import ProgressBar from "@/components/ProgressBar.vue";
 import { goToItem } from "@/utils/url";
 import { getIconClass } from "@/utils/material-symbols";
+import { getObjectProperty } from '@/utils/object.js';
 import IndexInfo from "@/components/files/IndexInfo.vue";
 import { globalVars } from "@/utils/constants";
 import { resourcesApi } from "@/api";
@@ -314,7 +315,7 @@ export default {
     },
     dropdownSourceItems() {
       return this.sourceNames.map(rawName => {
-        const customLink = this.sourceLinkMap[rawName];
+        const customLink = getObjectProperty(this.sourceLinkMap, rawName);
         return {
           rawName,
           displayName: customLink ? customLink.name : rawName,

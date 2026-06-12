@@ -138,22 +138,24 @@ export default {
         return false;
       }
       const ext = `.${state.req.name.split(".").pop().toLowerCase()}`; // Ensure lowercase and dot
-      const pdfConvertCompatibleFileExtensions = {
-        ".xps": true,
-        ".mobi": true,
-        ".fb2": true,
-        ".cbz": true,
-        ".svg": true,
-        ".docx": true,
-        ".pptx": true,
-        ".xlsx": true,
-        ".hwp": true,
-        ".hwpx": true,
-      };
       if (state.user.disableViewingExt.includes(ext)) {
         return false;
       }
-      return !!pdfConvertCompatibleFileExtensions[ext];
+      switch (ext) {
+        case '.xps':
+        case '.mobi':
+        case '.fb2':
+        case '.cbz':
+        case '.svg':
+        case '.docx':
+        case '.pptx':
+        case '.xlsx':
+        case '.hwp':
+        case '.hwpx':
+          return true;
+        default:
+          return false;
+      }
     },
     sidebarShowing() {
       return getters.isSidebarVisible();
@@ -381,7 +383,7 @@ export default {
       const subs = [];
       // Fetch subtitle content for each track using the media API
       for (let index = 0; index < state.req.subtitles.length; index++) {
-        const subtitleTrack = state.req.subtitles[index];
+        const subtitleTrack = state.req.subtitles.at(index);
         try {
           // Fetch subtitle content from API using name and embedded
           const content = await mediaApi.getSubtitleContent(

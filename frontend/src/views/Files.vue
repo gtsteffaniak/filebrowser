@@ -551,7 +551,7 @@ export default {
       }
 
       // Esc! - for shares, reset selection
-      if ( getters.isShare() && event.key === "Escape") {
+      if (getters.isShare() && event.key === "Escape") {
         if (getters.selectedCount() > 0) {
           mutations.resetSelected();
         }
@@ -572,8 +572,7 @@ export default {
               parentItems: parentItems
             },
           });
-        }
-        else if (getters.currentView() === 'listingView' && canModify && state.selected.length === 1) {
+        } else if (getters.currentView() === 'listingView' && canModify && state.selected.length === 1) {
           const item = getters.getFirstSelected();
           if (item) {
             mutations.showPrompt({ name: "rename", props: { item, parentItems: [] } });
@@ -601,10 +600,19 @@ export default {
         event.preventDefault();
 
         const key = event.key;
-        const baseModes = { F1: 'normal', F2: 'icons', F3: 'list' };
-        const baseMode = baseModes[key];
-        if (!baseMode) return;
-
+        let baseMode;
+        switch (key) {
+          case 'F1':
+            baseMode = 'normal';
+            break;
+          case 'F2':
+            baseMode = 'icons';
+            break;
+          case 'F3':
+            baseMode = 'list';
+            break;
+          default: return;
+        }
         const size = state.user?.gallerySize ?? 5;
         let newViewMode = baseMode;
         if (baseMode === 'list') {

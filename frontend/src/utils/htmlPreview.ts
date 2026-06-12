@@ -12,7 +12,8 @@ export const HTML_SANITIZE_CONFIG = {
 };
 
 const CSS_URL_PATTERN = /url\(\s*(['"]?)([^'")]+?)\1\s*\)/gi;
-const CSS_IMPORT_PATTERN = /@import\s+(?:url\s*\(\s*)?(['"]?)([^'")\s;]+)\1\s*\)?/gi;
+const CSS_IMPORT_URL_PATTERN = /@import\s+url\(\s*['"]?([^'")\s]+)['"]?\s*\)/gi;
+const CSS_IMPORT_STRING_PATTERN = /@import\s+['"]([^'"]+)['"]/gi;
 
 const REWRITABLE_LINK_RELS = new Set([
   "stylesheet",
@@ -130,18 +131,19 @@ export function rewriteCssContent(
   baseFilePath: string,
   source: string,
 ): string {
-  return css
-    .replace(CSS_URL_PATTERN, (_match, quote: string, url: string) => {
-      const rewritten = buildPreviewResourceUrl(url.trim(), baseFilePath, source);
-      return `url(${quote}${rewritten}${quote})`;
-    })
-    .replace(CSS_IMPORT_PATTERN, (_match, quote: string, url: string) => {
-      const rewritten = buildPreviewResourceUrl(url.trim(), baseFilePath, source);
-      if (quote) {
-        return `@import ${quote}${rewritten}${quote}`;
-      }
-      return `@import url(${rewritten})`;
-    });
+  let result = css.replace(CSS_URL_PATTERN, (_match, quote: string, url: string) => {
+    const rewritten = buildPreviewResourceUrl(url.trim(), baseFilePath, source);
+    return `url(${quote}${rewritten}${quote})`;
+  });
+  result = result.replace(CSS_IMPORT_URL_PATTERN, (_match, url: string) => {
+    const rewritten = buildPreviewResourceUrl(url.trim(), baseFilePath, source);
+    return `@import url(${rewritten})`;
+  });
+  result = result.replace(CSS_IMPORT_STRING_PATTERN, (_match, url: string) => {
+    const rewritten = buildPreviewResourceUrl(url.trim(), baseFilePath, source);
+    return `@import "${rewritten}"`;
+  });
+  return result;
 }
 
 function blockUnsafeUriAttributes(

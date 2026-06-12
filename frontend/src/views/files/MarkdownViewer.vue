@@ -233,7 +233,7 @@ export default {
       let currentHTML = html;
 
       for (let i = 0; i < textLines.length; i++) {
-        const lineText = textLines[i];
+        const lineText = textLines.at(i);
         if (i === textLines.length - 1) {
           htmlLines.push(currentHTML);
         } else {

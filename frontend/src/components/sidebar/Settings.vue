@@ -19,6 +19,7 @@
 
 <script>
 import { state, getters, mutations } from "@/store";
+import { getObjectProperty } from '@/utils/object.js';
 import { settings } from "@/utils/constants";
 import { router } from "@/router";
 
@@ -40,7 +41,7 @@ export default {
     shouldShow(setting) {
       const perm = setting?.permissions || {};
       // Check if all keys in setting.perm exist in state.user.perm and have truthy values
-      return Object.keys(perm).every((key) => state.user.permissions[key]);
+      return Object.keys(perm).every((key) => getObjectProperty(state.user.permissions, key));
     },
     active: (view) => state.activeSettingsView === view,
     setView(view) {

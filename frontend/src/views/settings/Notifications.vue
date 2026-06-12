@@ -85,7 +85,7 @@ export default {
           if (activeNotification?.buttons) {
             // Restore actions from active notification
             historyEntry.buttons.forEach((historyButton, index) => {
-              const activeButton = activeNotification.buttons[index];
+              const activeButton = activeNotification.buttons.at(index);
               if (activeButton && typeof activeButton.action === 'function') {
                 historyButton._action = activeButton.action;
               }
