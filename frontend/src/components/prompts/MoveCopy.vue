@@ -172,7 +172,7 @@ export default {
     } else {
       if (state.selected && state.req?.items) {
         for (const item of state.selected) {
-          const reqItem = state.req.items[item];
+          const reqItem = state.req.items.at(item);
           if (reqItem?.path) {
             this.localItems.push({
               from: reqItem.path,

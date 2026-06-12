@@ -188,7 +188,7 @@ export default {
     },
     navigateToIndex(index) {
       if (index >= 0 && index < this.playbackQueue.length) {
-        const item = this.playbackQueue[index];
+        const item = this.playbackQueue.at(index);
         // Update store with new current index
         mutations.setPlaybackQueue({
           queue: this.playbackQueue,

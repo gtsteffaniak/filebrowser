@@ -92,7 +92,7 @@ export default {
       let total = 0;
       state.selected.forEach(index => {
         if (index >= 0 && index < state.req?.items.length) {
-          const item = state.req.items[index];
+          const item = state.req.items.at(index);
           if (item?.size) {
             total += item.size;
           }

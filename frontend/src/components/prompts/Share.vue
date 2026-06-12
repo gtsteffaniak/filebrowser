@@ -560,7 +560,9 @@ export default {
         return this.req.path;
       }
       const index = /** @type {number} */ (this.selected[0]);
-      return buildItemUrl(this.req.items[index].source, this.req.items[index].path);
+      const item = this.req.items.at(index);
+      if (!item) return this.req.path;
+      return buildItemUrl(item.source, item.path);
     },
     isEditMode() {
       return this.editing && this.link && Object.keys(this.link).length > 0;
@@ -805,7 +807,7 @@ export default {
           // Update the link in the local list
           const index = this.links.findIndex(l => l.hash === this.editingLink.hash);
           if (index !== -1) {
-            this.links[index] = res;
+            this.links.splice(index, 1, res);
           }
           this.editingLink = null;
           // emit event to reload shares in settings view
@@ -1085,9 +1087,10 @@ export default {
       this.filePickerField = null;
     },
     validateExtensions(value) {
-        if (value === "" || value === "*") return true;
-        const regex = /^\.\w+(?: \.\w+)*$/;
-        return regex.test(value);
+      if (value === "" || value === "*") return true;
+      const parts = value.trim().split(/\s+/);
+      const extension = /^\.\w+$/;
+      return parts.every(part => extension.test(part));
     },
   },
 };

@@ -212,16 +212,16 @@ export default {
   },
   methods: {
     triggerPromptBorderFlash(id) {
-      if (this.flashBorderTimers[id]) {
-        clearTimeout(this.flashBorderTimers[id]);
+      const timer = getObjectProperty(this.flashBorderTimers, id);
+      if (timer) {
+        clearTimeout(timer);
       }
-      this.flashBorderIds = { ...this.flashBorderIds, [id]: true };
-      this.flashBorderTimers[id] = setTimeout(() => {
-        const next = { ...this.flashBorderIds };
-        delete next[id];
+      this.flashBorderIds = setObjectProperty(this.flashBorderIds, id, true);
+      this.flashBorderTimers = setObjectProperty(this.flashBorderTimers, id, setTimeout(() => {
+        const next = omitObjectProperty(this.flashBorderIds, id);
         this.flashBorderIds = next;
-        delete this.flashBorderTimers[id];
-      }, 500);
+        this.flashBorderTimers = omitObjectProperty(this.flashBorderTimers, id);
+      }, 500));
     },
     handleWindowResize() {
       const maxWidth = window.innerWidth * 0.9;
@@ -395,11 +395,11 @@ export default {
       this.cleanupDragState(id);
     },
     cleanupDragState(id) {
-      delete this.dragOffsets[id];
-      delete this.dragStarts[id];
+      this.dragOffsets = omitObjectProperty(this.dragOffsets, id);
+      this.dragStarts = omitObjectProperty(this.dragStarts, id);
       this.touchIds = omitObjectProperty(this.touchIds, id);
       this.draggingIds.delete(id);
-      delete this.sizes[id];
+      this.sizes = omitObjectProperty(this.sizes, id);
     },
     /**
      * Escape closes the top prompt. Enter clicks the last `.card-actions` button (far right in DOM).
@@ -471,7 +471,7 @@ export default {
       const headerHeight = headerEl ? headerEl.getBoundingClientRect().height : 40;
       const rect = el.getBoundingClientRect();
       const windowHeight = rect.height;
-      const offset = this.dragOffsets[id] || { x: 0, y: 0 };
+      const offset = getObjectProperty(this.dragOffsets, id) || { x: 0, y: 0 };
       const centerX = viewportW / 2 + offset.x;
       const centerY = viewportH / 2 + offset.y;
 
@@ -482,10 +482,10 @@ export default {
       const clampedX = Math.max(minCenterX, Math.min(maxCenterX, centerX));
       const clampedY = Math.max(minCenterY, Math.min(maxCenterY, centerY));
 
-      this.dragOffsets[id] = {
+      this.dragOffsets = setObjectProperty(this.dragOffsets, id, {
         x: clampedX - viewportW / 2,
         y: clampedY - viewportH / 2,
-      };
+      });
     },
     getPromptElement(id) {
       const windows = this.$refs.promptWindow;
@@ -509,8 +509,17 @@ export default {
       const pos = this.getPointerPos(e, type);
       if (!pos) return;
 
-      if (!this.dragOffsets[id]) this.dragOffsets[id] = { x: 0, y: 0 };
-      this.dragStarts[id] = { x: pos.x - this.dragOffsets[id].x, y: pos.y - this.dragOffsets[id].y };
+      let dragOffsets = this.dragOffsets;
+      const existingOffset = getObjectProperty(dragOffsets, id);
+      if (!existingOffset) {
+        dragOffsets = setObjectProperty(dragOffsets, id, { x: 0, y: 0 });
+        this.dragOffsets = dragOffsets;
+      }
+      const offset = getObjectProperty(this.dragOffsets, id);
+      this.dragStarts = setObjectProperty(this.dragStarts, id, {
+        x: pos.x - offset.x,
+        y: pos.y - offset.y,
+      });
       this.draggingIds.add(id);
 
       const move = (e) => this.onPointerMove(e, id, type);
@@ -526,7 +535,8 @@ export default {
       }
     },
     onPointerMove(e, id, type) {
-      if (!this.dragStarts[id]) return;
+      const dragStart = getObjectProperty(this.dragStarts, id);
+      if (!dragStart) return;
       let pos;
       if (type === "touch") {
         if (!e.touches) return;
@@ -538,10 +548,10 @@ export default {
         pos = { x: e.clientX, y: e.clientY };
       }
 
-      this.dragOffsets[id] = {
-        x: pos.x - this.dragStarts[id].x,
-        y: pos.y - this.dragStarts[id].y,
-      };
+      this.dragOffsets = setObjectProperty(this.dragOffsets, id, {
+        x: pos.x - dragStart.x,
+        y: pos.y - dragStart.y,
+      });
 
       // Find the element for this prompt
       const windows = this.$refs.promptWindow;
@@ -558,7 +568,7 @@ export default {
         window.removeEventListener("mousemove", moveHandler);
         window.removeEventListener("mouseup", endHandler);
       }
-      delete this.dragStarts[id];
+      this.dragStarts = omitObjectProperty(this.dragStarts, id);
       this.draggingIds.delete(id);
     },
     startResize(e, id, edge) {
@@ -572,20 +582,25 @@ export default {
         : windows;
       if (!el) return;
       // Capture current size (if not already fixed, set it)
-      if (!this.sizes[id]) {
-        this.sizes[id] = {
+      let sizes = this.sizes;
+      const existingSize = getObjectProperty(sizes, id);
+      if (!existingSize) {
+        sizes = setObjectProperty(sizes, id, {
           width: el.offsetWidth,
           height: el.offsetHeight,
-        };
+        });
+        this.sizes = sizes;
       }
+      const currentSize = getObjectProperty(this.sizes, id);
+      const dragOffset = getObjectProperty(this.dragOffsets, id) || { x: 0, y: 0 };
       // Initial values
       this.resizingId = id;
       this.resizingEdge = edge;
       this.resizeStart = {
-        width: this.sizes[id].width,
-        height: this.sizes[id].height,
-        offsetX: this.dragOffsets[id]?.x || 0,
-        offsetY: this.dragOffsets[id]?.y || 0,
+        width: currentSize.width,
+        height: currentSize.height,
+        offsetX: dragOffset.x,
+        offsetY: dragOffset.y,
         clientX: pos.x,
         clientY: pos.y,
       };
@@ -604,7 +619,6 @@ export default {
       e.preventDefault();
       e.stopPropagation();
     },
-
     onResizeMove(e, type) {
       if (!this.resizingId) return;
       const pos = this.getPointerPos(e, type);
@@ -667,12 +681,12 @@ export default {
         deltaOffsetY = +(newHeight - start.height) / 2;
       }
       // Update sizes
-      this.sizes[id] = { width: newWidth, height: newHeight };
+      this.sizes = setObjectProperty(this.sizes, id, { width: newWidth, height: newHeight });
       // Update drag
-      this.dragOffsets[id] = {
+      this.dragOffsets = setObjectProperty(this.dragOffsets, id, {
         x: start.offsetX + deltaOffsetX,
         y: start.offsetY + deltaOffsetY,
-      };
+      });
       // Clamp to viewport
       const windows = this.$refs.promptWindow;
       const el = Array.isArray(windows)

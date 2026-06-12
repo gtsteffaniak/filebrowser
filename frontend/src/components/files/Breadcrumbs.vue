@@ -209,7 +209,7 @@ export default {
       for (const i of state.selected) {
         if (i < 0 || i >= state.req.length) continue;
 
-        const selectedItem = state.req.items[i];
+        const selectedItem = state.req.items.at(i);
 
         let fromPath = selectedItem.path;
 
