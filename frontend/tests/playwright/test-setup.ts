@@ -30,6 +30,31 @@ export async function closeSharePromptIfOpen(page: Page): Promise<void> {
   await dismissSharePrompt(page, page.locator("div[aria-label='share-prompt']"));
 }
 
+/** Closes the file-actions / listing context menu if it is still open. */
+export async function closeContextMenuIfOpen(page: Page): Promise<void> {
+  const contextMenu = page.locator("#context-menu");
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (!(await contextMenu.isVisible())) {
+      return;
+    }
+    await page.keyboard.press("Escape");
+    await contextMenu.waitFor({ state: "hidden", timeout: 2000 }).catch(() => {});
+  }
+}
+
+async function waitForContextMenuReady(page: Page, contextMenu: Locator): Promise<void> {
+  await contextMenu.waitFor({ state: "visible", timeout: 5000 });
+  await page.waitForFunction(() => {
+    const menus = document.querySelectorAll("#context-menu");
+    const menu = menus[menus.length - 1];
+    if (!(menu instanceof HTMLElement)) {
+      return false;
+    }
+    const rect = menu.getBoundingClientRect();
+    return rect.height > 40 && rect.width > 40 && menu.style.opacity !== "0";
+  }, { timeout: 5000 });
+}
+
 /**
  * Standalone helper function to open the context menu (File-Actions button)
  * Can be used in both test fixtures and global setup
@@ -41,6 +66,9 @@ export async function openContextMenuHelper(
   const timeout = options?.timeout ?? 30000;
 
   await expect(async () => {
+    await closeContextMenuIfOpen(page);
+    await closeSharePromptIfOpen(page);
+
     const readyMarker = page.locator('[data-testid="file-actions-ready"]');
 
     try {
@@ -69,12 +97,81 @@ export async function openContextMenuHelper(
  * Opens the sidebar File-Actions menu and clicks Share once the context menu is ready.
  */
 export async function openShareFromFileActions(page: Page): Promise<void> {
+  await closeSharePromptIfOpen(page);
+  await closeContextMenuIfOpen(page);
   await openContextMenuHelper(page);
-  const contextMenu = page.locator("#context-menu");
-  await contextMenu.waitFor({ state: "visible", timeout: 5000 });
+
+  const contextMenu = page.locator("#context-menu").last();
+  await waitForContextMenuReady(page, contextMenu);
+
   const shareButton = contextMenu.locator('button[aria-label="Share"]');
   await shareButton.waitFor({ state: "visible", timeout: 5000 });
+  await shareButton.scrollIntoViewIfNeeded();
+
+  const sharePrompt = page.locator("div[aria-label='share-prompt']");
+  const shareListRequest = page.waitForResponse(
+    (response) =>
+      response.url().includes("/api/share") &&
+      response.request().method() === "GET" &&
+      response.ok(),
+    { timeout: 10000 },
+  );
+
   await shareButton.click();
+  await shareListRequest;
+  await sharePrompt.waitFor({ state: "visible", timeout: 8000 });
+}
+
+/**
+ * Creates a share via the authenticated API (for global setup data prep).
+ */
+export async function createShareViaApi(
+  page: Page,
+  options: {
+    path: string;
+    source: string;
+    allowCreate?: boolean;
+    allowModify?: boolean;
+  },
+): Promise<string> {
+  const response = await page.request.post("http://127.0.0.1/api/share", {
+    headers: { "Content-Type": "application/json" },
+    data: {
+      path: options.path,
+      source: options.source,
+      allowCreate: options.allowCreate ?? false,
+      allowModify: options.allowModify ?? false,
+      allowDelete: false,
+      shareType: "normal",
+      expires: "",
+      unit: "hours",
+      hash: "",
+      sidebarLinks: [
+        {
+          name: "Share QR Code and Info",
+          category: "shareInfo",
+          target: "#",
+          icon: "qr_code",
+        },
+        {
+          name: "Download",
+          category: "download",
+          target: "#",
+          icon: "download",
+        },
+      ],
+    },
+  });
+
+  if (!response.ok()) {
+    throw new Error(`Failed to create share: ${response.status()} ${await response.text()}`);
+  }
+
+  const body = await response.json() as { hash?: string };
+  if (!body.hash) {
+    throw new Error("Share API response missing hash");
+  }
+  return body.hash;
 }
 
 /**
@@ -87,10 +184,12 @@ export async function openShareAndExpectPath(
   options?: { timeout?: number },
 ): Promise<void> {
   const timeout = options?.timeout ?? 30000;
-  const sharePath = page.locator('div[aria-label="share-path"]');
   const sharePrompt = page.locator("div[aria-label='share-prompt']");
+  const sharePath = sharePrompt.locator('[aria-label="share-path"]');
 
   await expect(async () => {
+    await closeContextMenuIfOpen(page);
+
     if (await sharePrompt.isVisible()) {
       try {
         await sharePath.waitFor({ state: "visible", timeout: 1000 });
@@ -105,6 +204,7 @@ export async function openShareAndExpectPath(
     }
 
     await openShare();
+    await sharePrompt.waitFor({ state: "visible", timeout: 8000 });
     await sharePath.waitFor({ state: "visible", timeout: 8000 });
     await expect(sharePath).toHaveText(expectedPathText, { timeout: 5000 });
   }).toPass({ timeout, intervals: PLAYWRIGHT_RETRY_INTERVALS });
