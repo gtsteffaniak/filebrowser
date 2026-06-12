@@ -195,7 +195,7 @@
 </template>
 
 <script>
-import { resourcesApi, usersApi } from "@/api";
+import { resourcesApi, shareApi, usersApi } from "@/api";
 import Action from "@/components/Action.vue";
 import { notify } from "@/notify";
 import { getters, mutations, state } from "@/store";
@@ -335,7 +335,8 @@ export default {
     },
     showPinAction() {
       if (this.showLimitedOptions) return false;
-      if (getters.isShare() || !getters.isLoggedIn()) return false;
+      if (!getters.isLoggedIn()) return false;
+      if (getters.isShare() && !state.shareInfo?.canEditShare) return false;
       if (this.showCreate || this.isSearchActive) return false;
       if (this.selectedCount !== 1) return false;
       return getters.currentView() === "listingView";
@@ -724,25 +725,37 @@ export default {
     },
     async togglePin() {
       const item = this.firstSelected;
-      if (!item?.name || getters.isShare() || !getters.isLoggedIn()) {
+      if (!item?.name || !getters.isLoggedIn()) {
+        return;
+      }
+      if (getters.isShare() && !state.shareInfo?.canEditShare) {
         return;
       }
       mutations.closeHovers();
-      const source = item.source || state.req?.source || state.sources.current;
-      if (!source) {
-        return;
-      }
       const directoryPath = state.req?.type === "directory"
         ? state.req.path
         : url.getParentDir(item.path);
       const action = item.pinned ? "remove" : "add";
       try {
-        await usersApi.patchPinnedItem({
-          source,
-          path: directoryPath,
-          name: item.name,
-          action,
-        });
+        if (getters.isShare()) {
+          await shareApi.patchPinnedItem({
+            hash: state.shareInfo.hash,
+            path: directoryPath,
+            name: item.name,
+            action,
+          });
+        } else {
+          const source = item.source || state.req?.source || state.sources.current;
+          if (!source) {
+            return;
+          }
+          await usersApi.patchPinnedItem({
+            source,
+            path: directoryPath,
+            name: item.name,
+            action,
+          });
+        }
         mutations.setReload(true);
       } catch (e) {
         notify.showError(e);

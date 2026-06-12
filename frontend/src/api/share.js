@@ -124,3 +124,13 @@ export async function getShareInfoPublic(hash) {
     throw err
   }
 }
+
+// PATCH /public/api/share/pinnedItems (add by default; ?action=remove to unpin)
+export async function patchPinnedItem({ hash, path, name, action = 'add' }) {
+  const params = { hash, action }
+  const apiPath = getPublicApiPath('share/pinnedItems', params)
+  await fetchURL(apiPath, {
+    method: 'PATCH',
+    body: JSON.stringify({ path, name }),
+  })
+}
