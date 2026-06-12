@@ -208,9 +208,9 @@ export function rewriteDocumentStyles(
   });
 }
 
-export type HtmlPreview = {
+export interface HtmlPreview {
   srcdoc: string;
-};
+}
 
 export function buildHtmlPreview(
   content: string,

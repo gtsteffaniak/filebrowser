@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **New Features**:
  - Added basic html viewer with relative reference support (#2522)
+ - Shares can have pinned files, requires a user to have edit access to share (#2522)
 
  **Notes**:
  - [docker] upgraded ffmpeg version 8.1 > 8.1.1
