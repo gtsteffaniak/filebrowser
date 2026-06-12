@@ -4,7 +4,8 @@ import { globalVars } from "@/utils/constants";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { url } from "@/utils";
 
-const STORAGE_PREFIX = "desktopNotifications_";
+const STORAGE_PREFIX = "appNotifications_";
+const LEGACY_STORAGE_PREFIX = "desktopNotifications_";
 
 function storageKey() {
   const username = state.user?.username;
@@ -12,6 +13,14 @@ function storageKey() {
     return `${STORAGE_PREFIX}anonymous`;
   }
   return `${STORAGE_PREFIX}${url.base64Encode(username)}`;
+}
+
+function legacyStorageKey() {
+  const username = state.user?.username;
+  if (!username || username === "anonymous") {
+    return `${LEGACY_STORAGE_PREFIX}anonymous`;
+  }
+  return `${LEGACY_STORAGE_PREFIX}${url.base64Encode(username)}`;
 }
 
 export function isNotificationSupported() {
@@ -38,15 +47,20 @@ export async function requestNotificationPermission() {
   return Notification.requestPermission();
 }
 
-export function isDesktopNotificationsEnabled() {
+export function isAppNotificationsEnabled() {
   try {
-    return localStorage.getItem(storageKey()) === "true";
+    const key = storageKey();
+    const value = localStorage.getItem(key);
+    if (value !== null) {
+      return value === "true";
+    }
+    return localStorage.getItem(legacyStorageKey()) === "true";
   } catch {
     return false;
   }
 }
 
-export function setDesktopNotificationsEnabled(enabled) {
+export function setAppNotificationsEnabled(enabled) {
   try {
     localStorage.setItem(storageKey(), enabled ? "true" : "false");
   } catch {
@@ -56,7 +70,8 @@ export function setDesktopNotificationsEnabled(enabled) {
 
 function notificationIcon() {
   const base = globalVars.baseURL || "/";
-  return `${window.location.origin}${base}public/static/icons/pwa-icon-192.png`;
+  const normalizedBase = base.endsWith("/") ? base : `${base}/`;
+  return new URL(`${normalizedBase}public/static/icons/pwa-icon-192.png`, window.location.origin).toString();
 }
 
 function shouldNotify() {
@@ -69,7 +84,7 @@ function shouldNotify() {
   if (!document.hidden) {
     return false;
   }
-  return isDesktopNotificationsEnabled();
+  return isAppNotificationsEnabled();
 }
 
 function showNotification(title, body, tag) {
@@ -94,13 +109,13 @@ export function notifyUploadComplete(upload) {
   if (upload.type === "directory" || !upload.size) {
     body = name;
   } else {
-    body = t("desktopNotifications.uploadBody", {
+    body = t("notifications.uploadBody", {
       name,
       size: getHumanReadableFilesize(upload.size),
     });
   }
   showNotification(
-    t("desktopNotifications.uploadTitle"),
+    t("notifications.uploadTitle"),
     body,
     `upload-${upload.id ?? name}`
   );
@@ -109,8 +124,8 @@ export function notifyUploadComplete(upload) {
 export function notifyUploadError(name, errorDetails) {
   const t = i18n.global.t;
   showNotification(
-    t("desktopNotifications.uploadFailedTitle"),
-    t("desktopNotifications.errorBody", {
+    t("notifications.uploadFailedTitle"),
+    t("notifications.errorBody", {
       name: name || t("general.file", { suffix: "" }),
       error: errorDetails || t("prompts.operationFailed"),
     }),
@@ -122,13 +137,13 @@ export function notifyDownloadComplete(name, size) {
   const t = i18n.global.t;
   const body =
     size > 0
-      ? t("desktopNotifications.downloadBody", {
+      ? t("notifications.downloadBody", {
           name,
           size: getHumanReadableFilesize(size),
         })
       : name;
   showNotification(
-    t("desktopNotifications.downloadTitle"),
+    t("notifications.downloadTitle"),
     body,
     `download-${name}`
   );
@@ -137,8 +152,8 @@ export function notifyDownloadComplete(name, size) {
 export function notifyDownloadError(name, errorDetails) {
   const t = i18n.global.t;
   showNotification(
-    t("desktopNotifications.downloadFailedTitle"),
-    t("desktopNotifications.errorBody", {
+    t("notifications.downloadFailedTitle"),
+    t("notifications.errorBody", {
       name: name || t("general.file", { suffix: "" }),
       error: errorDetails || t("prompts.operationFailed"),
     }),
@@ -152,18 +167,18 @@ export function notifyMoveCopyComplete(operation, itemCount) {
   let body;
 
   if (operation === "move") {
-    title = t("desktopNotifications.moveTitle");
+    title = t("notifications.moveTitle");
     if (itemCount > 1) {
-      body = t("desktopNotifications.moveBodyMultiple", { count: itemCount });
+      body = t("notifications.moveBodyMultiple", { count: itemCount });
     } else {
-      body = t("desktopNotifications.moveBodySingle");
+      body = t("notifications.moveBodySingle");
     }
   } else {
-    title = t("desktopNotifications.copyTitle");
+    title = t("notifications.copyTitle");
     if (itemCount > 1) {
-      body = t("desktopNotifications.copyBodyMultiple", { count: itemCount });
+      body = t("notifications.copyBodyMultiple", { count: itemCount });
     } else {
-      body = t("desktopNotifications.copyBodySingle");
+      body = t("notifications.copyBodySingle");
     }
   }
 
@@ -173,7 +188,7 @@ export function notifyMoveCopyComplete(operation, itemCount) {
 export function notifyOperationError(message) {
   const t = i18n.global.t;
   showNotification(
-    t("desktopNotifications.operationFailedTitle"),
+    t("notifications.operationFailedTitle"),
     message || t("prompts.operationFailed"),
     "operation-error"
   );

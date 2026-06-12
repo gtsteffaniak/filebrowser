@@ -12,7 +12,14 @@
       <button type="button" class="button pwa-install-button" @click="installPwa">
         {{ $t("pwa.install") }}
       </button>
-      <i @click="dismissPwaInstall" aria-label="close-banner" class="material-symbols">close</i>
+      <button
+        type="button"
+        class="material-symbols pwa-install-dismiss"
+        @click="dismissPwaInstall"
+        :aria-label="$t('general.close', { suffix: '' })"
+      >
+        close
+      </button>
     </div>
     <SidebarSettings v-if="isSettings"></SidebarSettings>
     <SidebarGeneral v-if="!isSettings"></SidebarGeneral>
@@ -295,6 +302,15 @@ body.rtl .action {
   font: inherit;
   padding: 0;
   text-align: left;
+}
+
+.pwa-install-dismiss {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
 }
 
 #sidebar.scrollable {

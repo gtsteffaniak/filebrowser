@@ -11,6 +11,18 @@ export function canNativeShare() {
   );
 }
 
+function canShareFiles() {
+  if (typeof navigator.canShare !== "function") {
+    return false;
+  }
+  try {
+    const probe = new File(["x"], "share-probe.txt", { type: "text/plain" });
+    return navigator.canShare({ files: [probe] });
+  } catch {
+    return false;
+  }
+}
+
 function buildDownloadUrl(item) {
   if (getters.isShare()) {
     return resourcesApi.getDownloadURLPublic(state.shareInfo, [item.path], false);
@@ -32,19 +44,17 @@ export async function nativeShareFile(item) {
   const url = buildDownloadUrl(item);
 
   try {
-    const response = await fetch(url, { credentials: "same-origin" });
-    if (!response.ok) {
-      const detail = response.statusText ? ` (${response.statusText})` : "";
-      throw new Error(`Download failed (${response.status}${detail})`);
-    }
+    if (canShareFiles()) {
+      const response = await fetch(url, { credentials: "same-origin" });
+      if (!response.ok) {
+        const detail = response.statusText ? ` (${response.statusText})` : "";
+        throw new Error(`Download failed (${response.status}${detail})`);
+      }
 
-    const blob = await response.blob();
-    const type = blob.type || item.type || "application/octet-stream";
-    const file = new File([blob], filename, { type });
-    const shareData = { files: [file], title: filename };
-
-    if (typeof navigator.canShare === "function" && navigator.canShare(shareData)) {
-      await navigator.share(shareData);
+      const blob = await response.blob();
+      const type = blob.type || item.type || "application/octet-stream";
+      const file = new File([blob], filename, { type });
+      await navigator.share({ files: [file], title: filename });
       return;
     }
 

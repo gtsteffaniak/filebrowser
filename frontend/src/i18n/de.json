@@ -29,7 +29,8 @@
     "goToItem": "Weiter zum Artikel",
     "copyPath": "Pfad kopieren",
     "pinItem": "Anheften",
-    "unpinItem": "Lösen"
+    "unpinItem": "Lösen",
+    "sendToApp": "An App senden"
   },
   "errors": {
     "forbidden": "Sie haben keine Berechtigung dies abzurufen.",
@@ -574,7 +575,9 @@
     "no": "Nein{suffix}",
     "to": "zu{suffix}",
     "and": "und{suffix}",
-    "or": "oder{suffix}"
+    "or": "oder{suffix}",
+    "camera": "Kamera{suffix}",
+    "video": "Video{suffix}"
   },
   "access": {
     "rules": "Zugangsregeln",
@@ -808,7 +811,26 @@
     "description": "Alle Benachrichtigungen aus Ihrer aktuellen Sitzung anzeigen",
     "empty": "Noch keine Benachrichtigungen",
     "clearAll": "Alle löschen",
-    "total": "{count} Benachrichtigungen"
+    "total": "{count} Benachrichtigungen",
+    "appEnabled": "App-Benachrichtigungen",
+    "appEnabledDescription": "Browser-Benachrichtigungen anzeigen, wenn Dateioperationen abgeschlossen sind, während sich diese Registerkarte im Hintergrund befindet. Erfordert eine Browser-Berechtigung. Wird nur in diesem Browser gespeichert.",
+    "appUnsupported": "App-Benachrichtigungen werden in diesem Browser nicht unterstützt.",
+    "permissionGranted": "zulässig",
+    "permissionDeniedHelp": "Benachrichtigungen sind deaktiviert. Bitte aktivieren Sie sie in den Browsereinstellungen für diese Website.",
+    "uploadTitle": "Upload abgeschlossen",
+    "uploadBody": "{name} ({size})",
+    "downloadTitle": "Vollständig herunterladen",
+    "downloadBody": "{name} ({size})",
+    "moveTitle": "Vorgang abgeschlossen",
+    "copyTitle": "Kopie fertig",
+    "moveBodySingle": "Die ausgewählten Elemente wurden erfolgreich verschoben.",
+    "copyBodySingle": "Die ausgewählten Elemente wurden erfolgreich kopiert.",
+    "moveBodyMultiple": "{count} Die Elemente wurden erfolgreich verschoben.",
+    "copyBodyMultiple": "{count} Die Elemente wurden erfolgreich kopiert.",
+    "uploadFailedTitle": "Der Upload ist fehlgeschlagen",
+    "downloadFailedTitle": "Der Download ist fehlgeschlagen",
+    "operationFailedTitle": "Vorgang fehlgeschlagen",
+    "errorBody": "{name}: {error}"
   },
   "events": {
     "serverShutdown": "Der Server wurde abgeschaltet.",
@@ -861,5 +883,9 @@
     "documentDownload": "Dokument-Download - Vollständig",
     "editorSuccess": "Editor-Initialisierung - Erfolg! Alle Schritte abgeschlossen.",
     "setupError": "Setup-Fehler"
+  },
+  "pwa": {
+    "install": "App installieren",
+    "installDescription": "Installieren Sie FileBrowser, um von Ihrem Desktop oder Startbildschirm aus schnell darauf zugreifen zu können."
   }
 }

@@ -29,7 +29,8 @@
     "goToItem": "Aller à l'article",
     "copyPath": "Chemin de la copie",
     "pinItem": "Épingler",
-    "unpinItem": "Détacher"
+    "unpinItem": "Détacher",
+    "sendToApp": "Envoyer vers l'application"
   },
   "errors": {
     "forbidden": "Vous n'avez pas la permission d'accéder à cela.",
@@ -574,7 +575,9 @@
     "no": "Non{suffix}",
     "to": "à{suffix}",
     "and": "et{suffix}",
-    "or": "ou{suffix}"
+    "or": "ou{suffix}",
+    "camera": "Appareil photo{suffix}",
+    "video": "Vidéo{suffix}"
   },
   "access": {
     "rules": "Règles d'accès",
@@ -808,7 +811,26 @@
     "description": "Afficher toutes les notifications de la session en cours",
     "empty": "Aucune notification pour l'instant",
     "clearAll": "Tout effacer",
-    "total": "{count} notifications"
+    "total": "{count} notifications",
+    "appEnabled": "Notifications de l'application",
+    "appEnabledDescription": "Afficher les notifications du navigateur lorsque les opérations sur les fichiers sont terminées alors que cet onglet est en arrière-plan. Nécessite l'autorisation du navigateur. Enregistré uniquement dans ce navigateur.",
+    "appUnsupported": "Les notifications de l'application ne sont pas prises en charge par ce navigateur.",
+    "permissionGranted": "autorisé",
+    "permissionDeniedHelp": "Les notifications sont désactivées. Activez-les dans les paramètres de votre navigateur pour ce site.",
+    "uploadTitle": "Téléchargement terminé",
+    "uploadBody": "{name} ({size})",
+    "downloadTitle": "Télécharger l'intégralité",
+    "downloadBody": "{name} ({size})",
+    "moveTitle": "Déménagement terminé",
+    "copyTitle": "Copie terminée",
+    "moveBodySingle": "Les éléments sélectionnés ont été déplacés avec succès.",
+    "copyBodySingle": "Les éléments sélectionnés ont été copiés avec succès.",
+    "moveBodyMultiple": "{count} Les éléments ont été déplacés avec succès.",
+    "copyBodyMultiple": "{count} Les éléments ont été copiés avec succès.",
+    "uploadFailedTitle": "Échec du téléchargement",
+    "downloadFailedTitle": "Échec du téléchargement",
+    "operationFailedTitle": "Échec de l'opération",
+    "errorBody": "{name}: {error}"
   },
   "events": {
     "serverShutdown": "Le serveur a été arrêté.",
@@ -861,5 +883,9 @@
     "documentDownload": "Téléchargement du document - Complet",
     "editorSuccess": "Initialisation de l'éditeur - Succès ! Toutes les étapes sont terminées.",
     "setupError": "Erreur de configuration"
+  },
+  "pwa": {
+    "install": "Installer l'application",
+    "installDescription": "Installez FileBrowser pour y accéder rapidement depuis votre bureau ou votre écran d'accueil."
   }
 }

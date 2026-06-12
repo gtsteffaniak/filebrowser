@@ -29,7 +29,8 @@
     "goToItem": "Przejdź do pozycji",
     "copyPath": "Ścieżka kopiowania",
     "pinItem": "Przypnij",
-    "unpinItem": "Odepnij"
+    "unpinItem": "Odepnij",
+    "sendToApp": "Wyślij do aplikacji"
   },
   "errors": {
     "forbidden": "Nie posiadasz uprawnień potrzebnych, by uzyskać do tego dostęp.",
@@ -574,7 +575,9 @@
     "no": "Nie{suffix}",
     "to": "do{suffix}",
     "and": "oraz{suffix}",
-    "or": "lub{suffix}"
+    "or": "lub{suffix}",
+    "camera": "Aparat{suffix}",
+    "video": "Film{suffix}"
   },
   "access": {
     "rules": "Zasady dostępu",
@@ -808,7 +811,26 @@
     "description": "Wyświetlanie wszystkich powiadomień z bieżącej sesji",
     "empty": "Brak powiadomień",
     "clearAll": "Wyczyść wszystko",
-    "total": "{count} powiadomienia"
+    "total": "{count} powiadomienia",
+    "appEnabled": "Powiadomienia w aplikacji",
+    "appEnabledDescription": "Wyświetlaj powiadomienia przeglądarki po zakończeniu operacji na plikach, gdy ta karta jest w tle. Wymaga uprawnień przeglądarki. Dane są zapisywane wyłącznie w tej przeglądarce.",
+    "appUnsupported": "W tej przeglądarce nie są obsługiwane powiadomienia z aplikacji.",
+    "permissionGranted": "dozwolone",
+    "permissionDeniedHelp": "Powiadomienia są zablokowane. Włącz je w ustawieniach przeglądarki dla tej witryny.",
+    "uploadTitle": "Przesyłanie zakończone",
+    "uploadBody": "{name} ({size})",
+    "downloadTitle": "Pobierz całość",
+    "downloadBody": "{name} ({size})",
+    "moveTitle": "Operacja zakończona",
+    "copyTitle": "Kopiowanie zakończone",
+    "moveBodySingle": "Wybrane elementy zostały pomyślnie przeniesione.",
+    "copyBodySingle": "Wybrane elementy zostały pomyślnie skopiowane.",
+    "moveBodyMultiple": "{count} przeniesiono wszystkie elementy.",
+    "copyBodyMultiple": "{count} Pliki zostały pomyślnie skopiowane.",
+    "uploadFailedTitle": "Przesyłanie nie powiodło się",
+    "downloadFailedTitle": "Pobieranie nie powiodło się",
+    "operationFailedTitle": "Operacja nie powiodła się",
+    "errorBody": "{name}: {error}"
   },
   "events": {
     "serverShutdown": "Serwer został wyłączony.",
@@ -861,5 +883,9 @@
     "documentDownload": "Pobieranie dokumentów - zakończone",
     "editorSuccess": "Inicjalizacja edytora - sukces! Wszystkie kroki zostały wykonane.",
     "setupError": "Błąd konfiguracji"
+  },
+  "pwa": {
+    "install": "Zainstaluj aplikację",
+    "installDescription": "Zainstaluj aplikację FileBrowser, aby uzyskać szybki dostęp z pulpitu lub ekranu głównego."
   }
 }

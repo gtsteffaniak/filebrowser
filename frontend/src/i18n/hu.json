@@ -29,7 +29,8 @@
     "goToItem": "Tovább a tételhez",
     "copyPath": "Másolás útvonal",
     "pinItem": "Rögzítés",
-    "unpinItem": "Rögzítés feloldása"
+    "unpinItem": "Rögzítés feloldása",
+    "sendToApp": "Küldés az alkalmazásba"
   },
   "errors": {
     "forbidden": "Nincs jogosultsága a hozzáféréshez.",
@@ -574,7 +575,9 @@
     "no": "Nem{suffix}",
     "to": "hogy{suffix}",
     "and": "és{suffix}",
-    "or": "vagy{suffix}"
+    "or": "vagy{suffix}",
+    "camera": "Fényképezőgép{suffix}",
+    "video": "Videó{suffix}"
   },
   "access": {
     "rules": "Hozzáférési szabályok",
@@ -808,7 +811,26 @@
     "description": "Az aktuális munkamenet összes értesítésének megtekintése",
     "empty": "Még nincsenek értesítések",
     "clearAll": "Mindent törölni",
-    "total": "{count} értesítések"
+    "total": "{count} értesítések",
+    "appEnabled": "Alkalmazás-értesítések",
+    "appEnabledDescription": "A böngésző értesítéseket jelenít meg, ha fájlműveletek fejeződnek be, miközben ez a lap háttérben van. Ehhez böngészői engedély szükséges. Csak ebben a böngészőben kerül tárolásra.",
+    "appUnsupported": "Ez a böngésző nem támogatja az alkalmazásértesítéseket.",
+    "permissionGranted": "megengedett",
+    "permissionDeniedHelp": "Az értesítések letiltva vannak. Kérjük, engedélyezze őket a böngésző beállításaiban ezen a webhelyen.",
+    "uploadTitle": "A feltöltés befejeződött",
+    "uploadBody": "{name} ({size})",
+    "downloadTitle": "Teljes verzió letöltése",
+    "downloadBody": "{name} ({size})",
+    "moveTitle": "A művelet befejeződött",
+    "copyTitle": "Másolás befejezve",
+    "moveBodySingle": "A kiválasztott elemek áthelyezése sikeresen megtörtént.",
+    "copyBodySingle": "A kiválasztott elemek másolása sikeresen megtörtént.",
+    "moveBodyMultiple": "{count} Az elemek áthelyezése sikeresen megtörtént.",
+    "copyBodyMultiple": "{count} Az elemek másolása sikeresen befejeződött.",
+    "uploadFailedTitle": "A feltöltés nem sikerült",
+    "downloadFailedTitle": "A letöltés nem sikerült",
+    "operationFailedTitle": "A művelet sikertelen",
+    "errorBody": "{name}: {error}"
   },
   "events": {
     "serverShutdown": "A kiszolgálót leállították.",
@@ -861,5 +883,9 @@
     "documentDownload": "Dokumentum letöltése - Teljes",
     "editorSuccess": "Szerkesztő inicializálása - Sikeres! Minden lépés befejeződött.",
     "setupError": "Beállítási hiba"
+  },
+  "pwa": {
+    "install": "Alkalmazás telepítése",
+    "installDescription": "Telepítse a FileBrowser alkalmazást, hogy az asztalról vagy a kezdőképernyőről gyorsan elérhesse."
   }
 }

@@ -1,6 +1,10 @@
 package icons
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+)
 
 const maxManifestTextLen = 256
 
@@ -31,8 +35,10 @@ func ShareRootFromStartURL(baseURL, startURL string) (shareRoot, normalizedStart
 	if !isValidShareHash(hash) {
 		return "", "", false
 	}
-	if strings.Contains(subPath, "..") {
-		return "", "", false
+	if subPath != "" {
+		if _, err := utils.SanitizeUserPath(subPath); err != nil {
+			return "", "", false
+		}
 	}
 
 	shareRoot = baseURL + "public/share/" + hash + "/"
@@ -55,11 +61,10 @@ func ShareHashFromHTTPPath(path, baseURL string) string {
 		"/share/",
 	}
 	for _, prefix := range prefixes {
-		idx := strings.Index(path, prefix)
-		if idx < 0 {
+		if !strings.HasPrefix(path, prefix) {
 			continue
 		}
-		rest := path[idx+len(prefix):]
+		rest := strings.TrimPrefix(path, prefix)
 		hash, _, _ := strings.Cut(rest, "/")
 		if isValidShareHash(hash) {
 			return hash

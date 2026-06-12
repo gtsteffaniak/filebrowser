@@ -81,7 +81,7 @@ import { notify } from "@/notify";
 import {
   notifyMoveCopyComplete,
   notifyOperationError,
-} from "@/utils/desktopNotifications";
+} from "@/utils/appNotifications";
 import { goToItem } from "@/utils/url";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";

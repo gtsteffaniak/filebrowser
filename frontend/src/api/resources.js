@@ -5,7 +5,7 @@ import { downloadManager } from '@/utils/downloadManager'
 import {
   notifyDownloadComplete,
   notifyDownloadError,
-} from '@/utils/desktopNotifications'
+} from '@/utils/appNotifications'
 import { getApiPath, getPublicApiPath } from '@/utils/url.js'
 import { adjustedData, fetchURL } from './utils'
 

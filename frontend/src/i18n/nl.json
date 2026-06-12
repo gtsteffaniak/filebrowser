@@ -116,7 +116,9 @@
     "no": "Geen{suffix}",
     "to": "naar{suffix}",
     "and": "en{suffix}",
-    "or": "of{suffix}"
+    "or": "of{suffix}",
+    "camera": "Camera{suffix}",
+    "video": "Video{suffix}"
   },
   "buttons": {
     "copySuccess": "Gekopieerd naar klembord!",
@@ -148,7 +150,8 @@
     "goToItem": "Ga naar item",
     "goToSource": "Ga naar bronlocatie",
     "pinItem": "Vastzetten",
-    "unpinItem": "Losmaken"
+    "unpinItem": "Losmaken",
+    "sendToApp": "Naar app verzenden"
   },
   "errors": {
     "forbidden": "U hebt hier geen toegangsrechten.",
@@ -799,7 +802,26 @@
     "description": "Alle meldingen van uw huidige sessie bekijken",
     "empty": "Nog geen meldingen",
     "clearAll": "Alles wissen",
-    "total": "{count} meldingen"
+    "total": "{count} meldingen",
+    "appEnabled": "App-meldingen",
+    "appEnabledDescription": "Toon browsermeldingen wanneer bestandsbewerkingen zijn voltooid terwijl dit tabblad op de achtergrond staat. Hiervoor is toestemming van de browser vereist. Wordt alleen in deze browser opgeslagen.",
+    "appUnsupported": "App-meldingen worden in deze browser niet ondersteund.",
+    "permissionGranted": "toegestaan",
+    "permissionDeniedHelp": "Meldingen zijn geblokkeerd. Schakel ze in de instellingen van je browser voor deze website in.",
+    "uploadTitle": "Uploaden voltooid",
+    "uploadBody": "{name} ({size})",
+    "downloadTitle": "Volledig downloaden",
+    "downloadBody": "{name} ({size})",
+    "moveTitle": "Verplaatsing voltooid",
+    "copyTitle": "Kopiëren voltooid",
+    "moveBodySingle": "De geselecteerde items zijn succesvol verplaatst.",
+    "copyBodySingle": "De geselecteerde items zijn succesvol gekopieerd.",
+    "moveBodyMultiple": "{count} De items zijn succesvol verplaatst.",
+    "copyBodyMultiple": "{count} De items zijn succesvol gekopieerd.",
+    "uploadFailedTitle": "Het uploaden is mislukt",
+    "downloadFailedTitle": "Het downloaden is mislukt",
+    "operationFailedTitle": "De bewerking is mislukt",
+    "errorBody": "{name}: {error}"
   },
   "duplicateFinder": {
     "minSize": "Minimale grootte (MB){suffix}",
@@ -861,5 +883,9 @@
     "documentDownload": "Document downloaden - Voltooid",
     "editorSuccess": "Editor-inintialisatie - Succes! Alle stappen voltooid.",
     "setupError": "Instellingenfout"
+  },
+  "pwa": {
+    "install": "App installeren",
+    "installDescription": "Installeer FileBrowser voor snelle toegang vanaf je bureaublad of startscherm."
   }
 }

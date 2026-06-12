@@ -29,7 +29,8 @@
     "goToItem": "Prejsť na položku",
     "copyPath": "Kopírovať cestu",
     "pinItem": "Pripnúť",
-    "unpinItem": "Odpnúť"
+    "unpinItem": "Odpnúť",
+    "sendToApp": "Odoslať do aplikácie"
   },
   "errors": {
     "forbidden": "You don't have permissions to access this.",
@@ -574,7 +575,9 @@
     "no": "Nie{suffix}",
     "to": "do{suffix}",
     "and": "a{suffix}",
-    "or": "alebo{suffix}"
+    "or": "alebo{suffix}",
+    "camera": "Fotoaparát{suffix}",
+    "video": "Video{suffix}"
   },
   "access": {
     "rules": "Pravidlá prístupu",
@@ -808,7 +811,26 @@
     "description": "Zobrazenie všetkých oznámení z aktuálnej relácie",
     "empty": "Zatiaľ žiadne oznámenia",
     "clearAll": "Vymazať všetko",
-    "total": "{count} oznámenia"
+    "total": "{count} oznámenia",
+    "appEnabled": "Oznámenia v aplikácii",
+    "appEnabledDescription": "Zobrazovať oznámenia prehliadača po dokončení operácií so súbormi, keď je táto karta v pozadí. Vyžaduje povolenie prehliadača. Uložené iba v tomto prehliadači.",
+    "appUnsupported": "Tento prehliadač nepodporuje oznámenia z aplikácií.",
+    "permissionGranted": "povolené",
+    "permissionDeniedHelp": "Oznámenia sú blokované. V nastaveniach prehliadača ich pre túto stránku povolte.",
+    "uploadTitle": "Nahratie dokončené",
+    "uploadBody": "{name} ({size})",
+    "downloadTitle": "Stiahnuť celé",
+    "downloadBody": "{name} ({size})",
+    "moveTitle": "Presun dokončený",
+    "copyTitle": "Kopírovanie dokončené",
+    "moveBodySingle": "Vybrané položky boli úspešne presunuté.",
+    "copyBodySingle": "Vybrané položky boli úspešne skopírované.",
+    "moveBodyMultiple": "{count} Položky boli úspešne presunuté.",
+    "copyBodyMultiple": "{count} Položky boli úspešne skopírované.",
+    "uploadFailedTitle": "Nahratie sa nepodarilo",
+    "downloadFailedTitle": "Stiahnutie sa nepodarilo",
+    "operationFailedTitle": "Operácia sa nepodarila",
+    "errorBody": "{name}: {error}"
   },
   "events": {
     "serverShutdown": "Server bol vypnutý.",
@@ -861,5 +883,9 @@
     "documentDownload": "Stiahnutie dokumentu - Kompletné",
     "editorSuccess": "Inicializácia editora - úspech! Všetky kroky boli dokončené.",
     "setupError": "Chyba nastavenia"
+  },
+  "pwa": {
+    "install": "Nainštalovať aplikáciu",
+    "installDescription": "Nainštalujte si aplikáciu FileBrowser a získajte rýchly prístup z pracovnej plochy alebo domovskej obrazovky."
   }
 }

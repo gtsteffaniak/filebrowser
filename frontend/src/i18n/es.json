@@ -29,7 +29,8 @@
     "goToItem": "Abrir",
     "copyPath": "Copiar ruta",
     "pinItem": "Fijar",
-    "unpinItem": "Desfijar"
+    "unpinItem": "Desfijar",
+    "sendToApp": "Enviar a la aplicación"
   },
   "errors": {
     "forbidden": "No tienes permisos para acceder.",
@@ -574,7 +575,9 @@
     "no": "No{suffix}",
     "to": "a{suffix}",
     "and": "y{suffix}",
-    "or": "o{suffix}"
+    "or": "o{suffix}",
+    "camera": "Cámara{suffix}",
+    "video": "Vídeo{suffix}"
   },
   "access": {
     "rules": "Reglas de acceso",
@@ -808,7 +811,26 @@
     "description": "Aquí verás todas las notificaciones de tu sesión actual",
     "empty": "Aún no tienes notificaciones",
     "clearAll": "Borrar todo",
-    "total": "{count} notificaciones"
+    "total": "{count} notificaciones",
+    "appEnabled": "Notificaciones de la aplicación",
+    "appEnabledDescription": "Mostrar notificaciones del navegador cuando finalicen las operaciones con archivos mientras esta pestaña está en segundo plano. Requiere permiso del navegador. Se guarda únicamente en este navegador.",
+    "appUnsupported": "Este navegador no admite notificaciones de aplicaciones.",
+    "permissionGranted": "permitido",
+    "permissionDeniedHelp": "Las notificaciones están bloqueadas. Actívalas en la configuración de tu navegador para este sitio web.",
+    "uploadTitle": "Carga completada",
+    "uploadBody": "{name} ({size})",
+    "downloadTitle": "Descargar completo",
+    "downloadBody": "{name} ({size})",
+    "moveTitle": "Movimiento completado",
+    "copyTitle": "Copiado",
+    "moveBodySingle": "Los elementos seleccionados se han movido correctamente.",
+    "copyBodySingle": "Los elementos seleccionados se han copiado correctamente.",
+    "moveBodyMultiple": "{count} Los elementos se han trasladado correctamente.",
+    "copyBodyMultiple": "{count} Los elementos se han copiado correctamente.",
+    "uploadFailedTitle": "Error al subir el archivo",
+    "downloadFailedTitle": "Error al descargar",
+    "operationFailedTitle": "La operación ha fallado",
+    "errorBody": "{name}: {error}"
   },
   "events": {
     "serverShutdown": "El servidor fúe apagado",
@@ -861,5 +883,9 @@
     "documentDownload": "Descarga de documentos - Completa",
     "editorSuccess": "Inicialización del editor - ¡Éxito! Todos los pasos se completaron.",
     "setupError": "Error de configuración"
+  },
+  "pwa": {
+    "install": "Instalar la aplicación",
+    "installDescription": "Instala FileBrowser para acceder rápidamente desde el escritorio o la pantalla de inicio."
   }
 }

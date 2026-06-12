@@ -19,7 +19,7 @@ func TestShareRootFromStartURL(t *testing.T) {
 
 func TestShareRootFromStartURLRejectsTraversal(t *testing.T) {
 	baseURL := "/testing/"
-	startURL := "/testing/public/share/abc123XYZ-_/..%2Fsecret/"
+	startURL := "/testing/public/share/abc123XYZ-_/../secret/"
 	_, _, ok := ShareRootFromStartURL(baseURL, startURL)
 	if ok {
 		t.Fatal("expected traversal path to be rejected")
@@ -38,6 +38,15 @@ func TestShareHashFromHTTPPath(t *testing.T) {
 		if hash != "hash1234567890abcdef" {
 			t.Fatalf("path %q: got hash %q", path, hash)
 		}
+	}
+}
+
+func TestShareHashFromHTTPPathRejectsEmbeddedPrefix(t *testing.T) {
+	baseURL := "/testing/"
+	path := "/evil/route/share/hash1234567890abcdef/"
+	hash := ShareHashFromHTTPPath(path, baseURL)
+	if hash != "" {
+		t.Fatalf("expected empty hash for non-prefixed path, got %q", hash)
 	}
 }
 

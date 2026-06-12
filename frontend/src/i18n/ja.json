@@ -29,7 +29,8 @@
     "goToItem": "アイテムへ",
     "copyPath": "コピーパス",
     "pinItem": "ピン留め",
-    "unpinItem": "ピン留めを解除"
+    "unpinItem": "ピン留めを解除",
+    "sendToApp": "アプリに送信"
   },
   "errors": {
     "forbidden": "このリソースへのアクセス権限がありません。",
@@ -574,7 +575,9 @@
     "no": "いいえ{suffix}",
     "to": "～へ{suffix}",
     "and": "そして{suffix}",
-    "or": "または{suffix}"
+    "or": "または{suffix}",
+    "camera": "カメラ{suffix}",
+    "video": "動画{suffix}"
   },
   "access": {
     "rules": "アクセスルール",
@@ -808,7 +811,26 @@
     "description": "現在のセッションのすべての通知を表示する",
     "empty": "まだ通知なし",
     "clearAll": "すべてクリア",
-    "total": "{count} 通知"
+    "total": "{count} 通知",
+    "appEnabled": "アプリの通知",
+    "appEnabledDescription": "このタブがバックグラウンドにある間にファイル操作が完了した際、ブラウザに通知を表示します。ブラウザの権限が必要です。このブラウザにのみ保存されます。",
+    "appUnsupported": "このブラウザではアプリ通知に対応していません。",
+    "permissionGranted": "許可された",
+    "permissionDeniedHelp": "通知がブロックされています。このサイトについて、ブラウザの設定で通知を有効にしてください。",
+    "uploadTitle": "アップロードが完了しました",
+    "uploadBody": "{name} ({size})",
+    "downloadTitle": "すべてダウンロード",
+    "downloadBody": "{name} ({size})",
+    "moveTitle": "移動が完了しました",
+    "copyTitle": "コピー完了",
+    "moveBodySingle": "選択したアイテムは正常に移動されました。",
+    "copyBodySingle": "選択したアイテムは正常にコピーされました。",
+    "moveBodyMultiple": "{count} アイテムの移動が完了しました。",
+    "copyBodyMultiple": "{count} アイテムのコピーが完了しました。",
+    "uploadFailedTitle": "アップロードに失敗しました",
+    "downloadFailedTitle": "ダウンロードに失敗しました",
+    "operationFailedTitle": "操作に失敗しました",
+    "errorBody": "{name}:{error}"
   },
   "events": {
     "serverShutdown": "サーバーはシャットダウンされた。",
@@ -861,5 +883,9 @@
     "documentDownload": "資料ダウンロード - 完",
     "editorSuccess": "エディターの初期化 - 成功！すべてのステップが完了しました。",
     "setupError": "セットアップエラー"
+  },
+  "pwa": {
+    "install": "アプリをインストール",
+    "installDescription": "デスクトップやホーム画面からすぐにアクセスできるよう、FileBrowserをインストールしてください。"
   }
 }

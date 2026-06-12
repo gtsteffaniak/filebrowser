@@ -5,7 +5,7 @@ import { getters } from "@/store/getters";
 import {
   notifyUploadComplete,
   notifyUploadError,
-} from "@/utils/desktopNotifications";
+} from "@/utils/appNotifications";
 
 /**
  * Accumulates every directory entry from a FileSystemDirectoryReader.

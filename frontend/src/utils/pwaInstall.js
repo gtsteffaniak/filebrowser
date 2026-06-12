@@ -68,10 +68,12 @@ export async function promptInstall() {
     return false;
   }
 
-  deferredPrompt.prompt();
-  const { outcome } = await deferredPrompt.userChoice;
+  const promptEvent = deferredPrompt;
   deferredPrompt = null;
   window.__pwaDeferredPrompt = null;
   syncAvailability();
+
+  await promptEvent.prompt();
+  const { outcome } = await promptEvent.userChoice;
   return outcome === "accepted";
 }
