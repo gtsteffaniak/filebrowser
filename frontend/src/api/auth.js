@@ -175,10 +175,10 @@ export async function createApiKey(params) {
 }
 
 // DELETE /api/auth/token
-export function deleteApiKey(params) {
+export async function deleteApiKey(params) {
   try {
     const apiPath = getApiPath('auth/token', params)
-    fetchURL(apiPath, {
+    await fetchURL(apiPath, {
       method: 'DELETE'
     })
   } catch (err) {
@@ -203,6 +203,7 @@ function base64ToArrayBuffer(base64url) {
   const binary = atob(base64)
   const bytes = new Uint8Array(binary.length)
   for (let i = 0; i < binary.length; i++) {
+    // eslint-disable-next-line security/detect-object-injection
     bytes[i] = binary.charCodeAt(i)
   }
   return bytes.buffer

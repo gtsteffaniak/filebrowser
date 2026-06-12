@@ -9,11 +9,11 @@ export default function downloadFiles(items) {
   }
   if (typeof items[0] === "number") {
     // map the index to state.req.items
-    items = items.map(i => state.req.items[i]);
+    items = items.map(i => state.req.items.at(i));
   }
   
   // Chunked single-file (large) vs chunked multi-item archive (folder / multi-select)
-  const downloadChunkSizeMb = state.user?.fileLoading?.downloadChunkSizeMb || 0
+  const downloadChunkSizeMb = state.user.fileLoading?.downloadChunkSizeMb || 0
   const sizeThreshold = downloadChunkSizeMb * 1024 * 1024;
   
   const willUseChunkedDownload =
@@ -37,11 +37,11 @@ export default function downloadFiles(items) {
     if (getters.isSingleFileSelected()) {
       if (showChunkedProgressFirst) {
         mutations.showPrompt({ name: "download" });
-        startDownload(null, items, state.shareInfo.hash, {
+        void startDownload(null, items, state.shareInfo.hash, {
           silentChunkedError: true,
         });
       } else {
-        startDownload(null, items, state.shareInfo.hash);
+        void startDownload(null, items, state.shareInfo.hash);
       }
     } else {
       // Multiple files download with user confirmation
@@ -49,7 +49,7 @@ export default function downloadFiles(items) {
         name: "download",
         confirm: (format) => {
           mutations.closeTopPrompt();
-          startDownload(format, items, state.shareInfo.hash, {
+          void startDownload(format, items, state.shareInfo.hash, {
             silentChunkedError: willUseChunkedArchive,
           });
         },
@@ -61,9 +61,9 @@ export default function downloadFiles(items) {
   if (getters.isSingleFileSelected()) {
     if (showChunkedProgressFirst) {
       mutations.showPrompt({ name: "download" });
-      startDownload(null, items, "", { silentChunkedError: true });
+      void startDownload(null, items, "", { silentChunkedError: true });
     } else {
-      startDownload(null, items);
+      void startDownload(null, items);
     }
   } else {
     // Multiple files download with user confirmation
@@ -71,7 +71,7 @@ export default function downloadFiles(items) {
       name: "download",
       confirm: (format) => {
         mutations.closeTopPrompt();
-        startDownload(format, items, "", {
+        void startDownload(format, items, "", {
           silentChunkedError: willUseChunkedArchive,
         });
       },

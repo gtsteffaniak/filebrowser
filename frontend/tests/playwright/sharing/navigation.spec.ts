@@ -4,7 +4,6 @@ test("share folder breadcrumbs navigation checks", async ({ page, checkForErrors
     await page.goto("/files/playwright%20+%20files/share");
     await page.waitForSelector('#breadcrumbs');
     let spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();
-    spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();
     expect(spanChildrenCount).toBe(1);
     let breadCrumbLink = page.locator('a[aria-label="breadcrumb-link-share"]')
     await expect(breadCrumbLink).toHaveText("share");

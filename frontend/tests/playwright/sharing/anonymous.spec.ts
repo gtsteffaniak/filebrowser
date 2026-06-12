@@ -55,8 +55,8 @@ test("public share info JSON (no banner, canEditShare false for anonymous)", asy
 
   const banner = data.banner;
   const bannerUrl = data.bannerUrl;
-  expect(banner == null || banner === "").toBe(true);
-  expect(bannerUrl == null || bannerUrl === "").toBe(true);
+  expect(banner === null || banner === "").toBe(true);
+  expect(bannerUrl === null || bannerUrl === "").toBe(true);
 
   // Fails if the API returns the incorrect case: anonymous viewer must not be told they can edit.
   expect(
@@ -75,7 +75,7 @@ test("public share info JSON (no banner, canEditShare false for anonymous)", asy
 
   const src = data.sourceURL;
   expect(
-    src == null || src === "",
+    src === null || src === "",
     `anonymous share info must not include sourceURL (internal path).\nURL: ${infoUrl}\nBody:\n${payload.text}`,
   ).toBe(true);
 

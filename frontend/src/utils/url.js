@@ -280,9 +280,9 @@ export function goToItem(source, path, previousHistoryItem, newTab = false, isSh
 
   if (previousHistoryItem === undefined) {
     // When undefined will not create browser history
-    router.replace({ path: fullPath });
+    void router.replace({ path: fullPath });
     return
   }
-  router.push({ path: fullPath });
+  void router.push({ path: fullPath });
   return
 }

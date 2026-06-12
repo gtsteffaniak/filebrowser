@@ -1,5 +1,6 @@
 import { fetchURL, fetchJSON } from '@/api/utils'
 import { getApiPath, getPublicApiPath } from '@/utils/url.js'
+import { getObjectProperty, setObjectProperty } from '@/utils/object'
 import { notify } from '@/notify'
 import { state } from '@/store/state.js'
 import { mutations } from '@/store/mutations.js'
@@ -40,7 +41,7 @@ export async function create(user, options = {}) {
   })
 
   const needsActorPasswordRetry = (err) =>
-    state.user?.loginMethod === 'password' &&
+    state.user.loginMethod === 'password' &&
     options.skipActorPasswordConfirm !== true &&
     mergedHeaders['X-Password'] === undefined &&
     err?.status === 401 &&
@@ -107,8 +108,9 @@ export async function update(user, which = ['all'], options = {}) {
   if (which.length !== 1 || which[0] !== 'all') {
     userData = {}
     which.forEach(key => {
-      if (key in user) {
-        userData[key] = user[key]
+      const value = getObjectProperty(user, key)
+      if (value !== undefined) {
+        userData = setObjectProperty(userData, key, value)
       }
     })
   }
@@ -120,7 +122,7 @@ export async function update(user, which = ['all'], options = {}) {
   })
 
   const needsActorPasswordRetry = (err) =>
-    state.user?.loginMethod === 'password' &&
+    state.user.loginMethod === 'password' &&
     options.skipActorPasswordConfirm !== true &&
     mergedHeaders['X-Password'] === undefined &&
     err?.status === 401 &&
@@ -185,7 +187,7 @@ export async function remove(id, options = {}) {
   const apiPath = getApiPath('users', { id: id })
 
   const needsActorPasswordRetry = (err) =>
-    state.user?.loginMethod === 'password' &&
+    state.user.loginMethod === 'password' &&
     options.skipActorPasswordConfirm !== true &&
     mergedHeaders['X-Password'] === undefined &&
     err?.status === 401 &&

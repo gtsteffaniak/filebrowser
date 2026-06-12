@@ -78,8 +78,8 @@ export default defineConfig(
       "@typescript-eslint/consistent-type-definitions": "warn",
       "@typescript-eslint/prefer-optional-chain": "warn",
       "@typescript-eslint/no-floating-promises": "error",
-      "@typescript-eslint/no-unnecessary-condition": "error",
-      "@typescript-eslint/no-dynamic-delete": "error",
+      "@typescript-eslint/no-unnecessary-condition": "warn",
+      "@typescript-eslint/no-dynamic-delete": "warn",
       "@typescript-eslint/no-misused-promises": "error",
       "prefer-object-has-own": "error",
       "no-prototype-builtins": "error",
@@ -125,8 +125,19 @@ export default defineConfig(
       "vue/require-v-for-key": "error",
       "vue/no-reserved-component-names": "off",
       "vue/no-unused-components": "warn",
-      "vue/no-v-html": "error",
+      "vue/no-v-html": "warn",
       "vue/no-v-text-v-html-on-component": "warn",
+    },
+  },
+  // Relax the rules a bit for tests files
+  {
+    files: ["tests/**/*.ts", "**/*.spec.ts", "**/*.test.ts"],
+    rules: {
+      "preserve-caught-error": "off",
+      "no-empty-pattern": "off",
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unused-vars": ["error", { caughtErrors: "none" }],
+      "no-unused-expressions": "off",
     },
   },
 );

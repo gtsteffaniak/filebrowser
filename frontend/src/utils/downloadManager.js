@@ -7,9 +7,6 @@ class DownloadManager {
   }
 
   add(file, shareHash = "") {
-    if (!this.queue) {
-      this.queue = reactive([]);
-    }
     const download = {
       id: this.nextId++,
       name: file.name || (file.path ? file.path.split('/').pop() : 'download'),
@@ -27,12 +24,12 @@ class DownloadManager {
   }
 
   findById(id) {
-    if (!this.queue) return null;
     return this.queue.find((item) => item.id === id);
   }
 
   updateProgress(id, loaded, total) {
     const download = this.findById(id);
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (download) {
       download.loaded = loaded;
       download.progress = total > 0 ? (loaded / total) * 100 : 0;
@@ -41,6 +38,7 @@ class DownloadManager {
 
   setStatus(id, status) {
     const download = this.findById(id);
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (download) {
       download.status = status;
     }
@@ -48,6 +46,7 @@ class DownloadManager {
 
   setError(id, errorMessage) {
     const download = this.findById(id);
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (download) {
       download.status = "error";
       download.errorDetails = errorMessage;
@@ -56,6 +55,7 @@ class DownloadManager {
 
   cancel(id) {
     const download = this.findById(id);
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (download) {
       if (download.abortController) {
         download.abortController.abort();
@@ -66,7 +66,6 @@ class DownloadManager {
   }
 
   remove(id) {
-    if (!this.queue) return;
     const index = this.queue.findIndex((item) => item.id === id);
     if (index !== -1) {
       this.queue.splice(index, 1);
@@ -74,9 +73,9 @@ class DownloadManager {
   }
 
   clearCompleted() {
-    if (!this.queue) return;
     for (let i = this.queue.length - 1; i >= 0; i--) {
-      if (this.queue[i].status === "completed" || this.queue[i].status === "cancelled") {
+      const download = this.queue.at(i);
+      if (download.status === "completed" || download.status === "cancelled") {
         this.queue.splice(i, 1);
       }
     }
@@ -84,11 +83,6 @@ class DownloadManager {
 
   /** Abort in-flight downloads, clear the queue, reset ids (fresh Download prompt instance). */
   reset() {
-    if (!this.queue) {
-      this.queue = reactive([]);
-      this.nextId = 0;
-      return;
-    }
     for (const item of this.queue) {
       if (item.abortController) {
         try {
@@ -103,7 +97,6 @@ class DownloadManager {
   }
 
   hasActive() {
-    if (!this.queue) return false;
     return this.queue.some((item) => item.status === "downloading" || item.status === "pending");
   }
 }

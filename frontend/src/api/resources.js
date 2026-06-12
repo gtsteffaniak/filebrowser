@@ -4,6 +4,7 @@ import { globalVars } from '@/utils/constants'
 import { downloadManager } from '@/utils/downloadManager'
 import { getApiPath, getPublicApiPath } from '@/utils/url.js'
 import { adjustedData, fetchURL } from './utils'
+import { getObjectProperty } from '@/utils/object' 
 
 export { fetchPreviewImage } from '@/utils/previewRequests'
 
@@ -53,7 +54,7 @@ export async function getItems(source, path, only = "") {
  * Registers a graceful pause for the active chunked upload at this path.
  * Call immediately before aborting the chunk XHR so the server keeps partial data.
  */
-export async function signalUploadPause(source, path, shareHash = null) {
+export async function signalUploadPause(source, path, shareHash) {
   if (shareHash) {
     const apiPath = getPublicApiPath('resources/pause', {
       hash: shareHash,
@@ -149,7 +150,7 @@ export async function put(source, path, content = '') {
 }
 
 export async function download(format, files, shareHash = "") {
-  const downloadChunkSizeMb = state.user?.fileLoading?.downloadChunkSizeMb || 0
+  const downloadChunkSizeMb = state.user.fileLoading?.downloadChunkSizeMb || 0
   const sizeThreshold = downloadChunkSizeMb * 1024 * 1024
 
   const isMultiItemArchive =
@@ -377,6 +378,7 @@ async function chunkedRangeDownloadToBlob(
       if (fromCr > 0) {
         totalSize = fromCr
         const dl = downloadManager.findById(downloadId)
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (dl) {
           dl.size = fromCr
         }
@@ -388,6 +390,7 @@ async function chunkedRangeDownloadToBlob(
         if (Number.isFinite(n) && n > 0) {
           totalSize = n
           const dl = downloadManager.findById(downloadId)
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
           if (dl) {
             dl.size = n
           }
@@ -411,7 +414,7 @@ async function chunkedRangeDownloadToBlob(
     const progressUpdateInterval = Math.max(50000, expectedChunkSize / 50)
 
     try {
-      let reading = true
+      let reading
       while (reading) {
         const { done, value } = await reader.read()
         if (done) {
@@ -468,7 +471,7 @@ async function chunkedRangeDownloadToBlob(
 }
 
 async function downloadChunkedArchive(url, format, files, filePaths, source, shareHash) {
-  const downloadChunkSizeMb = state.user?.fileLoading?.downloadChunkSizeMb || 0
+  const downloadChunkSizeMb = state.user.fileLoading?.downloadChunkSizeMb || 0
   if (downloadChunkSizeMb === 0) {
     throw new Error('Chunked download is disabled (chunk size is 0)')
   }
@@ -490,6 +493,7 @@ async function downloadChunkedArchive(url, format, files, filePaths, source, sha
   }
   const downloadId = downloadManager.add(stub, shareHash)
   const dl = downloadManager.findById(downloadId)
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (dl) {
     dl.archiveFormat = format
     dl.archiveFiles = files
@@ -497,13 +501,14 @@ async function downloadChunkedArchive(url, format, files, filePaths, source, sha
 
   downloadManager.setStatus(downloadId, 'downloading')
 
-  const hasDownloadPrompt = state.prompts?.some((h) => h.name === 'download')
+  const hasDownloadPrompt = state.prompts.some((h) => h.name === 'download')
   if (!hasDownloadPrompt) {
     mutations.showPrompt({ name: 'download' })
   }
 
   const abortController = new AbortController()
   const dlm = downloadManager.findById(downloadId)
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (dlm) {
     dlm.abortController = abortController
   }
@@ -549,7 +554,7 @@ async function downloadChunkedArchive(url, format, files, filePaths, source, sha
 }
 
 async function downloadChunked(file, shareHash = "") {
-  const chunkSizeMb = state.user?.fileLoading?.downloadChunkSizeMb || 0
+  const chunkSizeMb = state.user.fileLoading?.downloadChunkSizeMb || 0
 
   if (chunkSizeMb === 0) {
     throw new Error("Chunked download is disabled (chunk size is 0)")
@@ -585,7 +590,7 @@ async function downloadChunked(file, shareHash = "") {
   downloadManager.setStatus(downloadId, "downloading")
 
   // Show download prompt if not already shown (it should already be shown by downloadFiles, but check to be safe)
-  const hasDownloadPrompt = state.prompts?.some(h => h.name === 'download');
+  const hasDownloadPrompt = state.prompts.some(h => h.name === 'download');
 
   if (!hasDownloadPrompt) {
     mutations.showPrompt({ name: 'download' })
@@ -663,9 +668,9 @@ export function post(
     const request = new XMLHttpRequest();
     request.open("POST", apiPath, true);
 
-    for (const header in headers) {
-      request.setRequestHeader(header, headers[header]);
-    }
+    Object.entries(headers).forEach(([header, value]) => {
+      request.setRequestHeader(header, value);
+    });
 
     if (typeof onupload === "function") {
       request.upload.onprogress = (event) => {
@@ -808,7 +813,7 @@ export async function checksum(source, path, algo) {
     const apiPath = getApiPath('resources', params)
     const res = await fetchURL(apiPath)
     const data = await res.json()
-    return data.checksums[algo]
+    return getObjectProperty(data.checksums, algo)
   } catch (err) {
     notify.showError(err.message || 'Error fetching checksum')
     throw err
@@ -1051,9 +1056,10 @@ export function postPublic(
     const request = new XMLHttpRequest();
     request.open("POST", apiPath, true);
 
-    for (const header in headers) {
-      request.setRequestHeader(header, headers[header]);
-    }
+    Object.entries(headers).forEach(([header, value]) => {
+      request.setRequestHeader(header, value);
+    });
+
     if (typeof onupload === "function") {
       request.upload.onprogress = (event) => {
         if (event.lengthComputable) {
@@ -1164,7 +1170,7 @@ export async function bulkDeletePublic(items) {
     throw new Error('items array is required and must not be empty')
   }
 
-  const hash = state.shareInfo?.hash;
+  const hash = state.shareInfo.hash;
   if (!hash) {
     throw new Error('share hash is required')
   }
