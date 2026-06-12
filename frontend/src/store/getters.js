@@ -340,8 +340,10 @@ export const getters = {
         const hash = window.location.hash;
         const preferEditor = state.user.preferEditorForMarkdown;
 
-        if (hash === '#edit') return 'editor';
-        if (hash === '#preview') return 'markdownViewer';
+        switch (hash) {
+          case '#edit': return 'editor';
+          case '#preview': return 'markdownViewer';
+        }
         if (state.req.type === 'text/markdown' && preferEditor) return 'editor';
         return 'markdownViewer';
       }

@@ -125,7 +125,7 @@ export default defineConfig(
       "vue/require-v-for-key": "error",
       "vue/no-reserved-component-names": "off",
       "vue/no-unused-components": "warn",
-      "vue/no-v-html": "warn",
+      //"vue/no-v-html": "warn",
       "vue/no-v-text-v-html-on-component": "warn",
     },
   },
