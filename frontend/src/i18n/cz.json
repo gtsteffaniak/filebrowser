@@ -818,9 +818,7 @@
     "permissionGranted": "povoleno",
     "permissionDeniedHelp": "Oznámení jsou zablokována. Povolte je v nastavení prohlížeče pro tento web.",
     "uploadTitle": "Nahrávání dokončeno",
-    "uploadBody": "{name} ({size})",
     "downloadTitle": "Stáhnout kompletní verzi",
-    "downloadBody": "{name} ({size})",
     "moveTitle": "Přesun dokončen",
     "copyTitle": "Kopírování dokončeno",
     "moveBodySingle": "Vybrané položky byly úspěšně přesunuty.",
@@ -829,8 +827,7 @@
     "copyBodyMultiple": "{count} Položky byly úspěšně zkopírovány.",
     "uploadFailedTitle": "Nahrávání se nezdařilo",
     "downloadFailedTitle": "Stahování se nezdařilo",
-    "operationFailedTitle": "Operace se nezdařila",
-    "errorBody": "{name}: {error}"
+    "operationFailedTitle": "Operace se nezdařila"
   },
   "events": {
     "serverShutdown": "Server byl vypnut.",
@@ -885,7 +882,6 @@
     "setupError": "Chyba nastavení"
   },
   "pwa": {
-    "install": "Nainstalovat aplikaci",
-    "installDescription": "Nainstalujte si FileBrowser a získejte rychlý přístup z plochy nebo domovské obrazovky."
+    "install": "Nainstalovat aplikaci"
   }
 }

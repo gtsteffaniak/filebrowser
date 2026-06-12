@@ -818,9 +818,7 @@
     "permissionGranted": "zulässig",
     "permissionDeniedHelp": "Benachrichtigungen sind deaktiviert. Bitte aktivieren Sie sie in den Browsereinstellungen für diese Website.",
     "uploadTitle": "Upload abgeschlossen",
-    "uploadBody": "{name} ({size})",
     "downloadTitle": "Vollständig herunterladen",
-    "downloadBody": "{name} ({size})",
     "moveTitle": "Vorgang abgeschlossen",
     "copyTitle": "Kopie fertig",
     "moveBodySingle": "Die ausgewählten Elemente wurden erfolgreich verschoben.",
@@ -829,8 +827,7 @@
     "copyBodyMultiple": "{count} Die Elemente wurden erfolgreich kopiert.",
     "uploadFailedTitle": "Der Upload ist fehlgeschlagen",
     "downloadFailedTitle": "Der Download ist fehlgeschlagen",
-    "operationFailedTitle": "Vorgang fehlgeschlagen",
-    "errorBody": "{name}: {error}"
+    "operationFailedTitle": "Vorgang fehlgeschlagen"
   },
   "events": {
     "serverShutdown": "Der Server wurde abgeschaltet.",
@@ -885,7 +882,6 @@
     "setupError": "Setup-Fehler"
   },
   "pwa": {
-    "install": "App installieren",
-    "installDescription": "Installieren Sie FileBrowser, um von Ihrem Desktop oder Startbildschirm aus schnell darauf zugreifen zu können."
+    "install": "App installieren"
   }
 }

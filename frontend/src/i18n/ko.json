@@ -818,9 +818,7 @@
     "permissionGranted": "허용됨",
     "permissionDeniedHelp": "알림이 차단되었습니다. 브라우저 설정에서 이 사이트에 대한 알림을 허용해 주세요.",
     "uploadTitle": "업로드 완료",
-    "uploadBody": "{name} ({size})",
     "downloadTitle": "전체 다운로드",
-    "downloadBody": "{name} ({size})",
     "moveTitle": "이동이 완료되었습니다",
     "copyTitle": "복사 완료",
     "moveBodySingle": "선택한 항목이 성공적으로 이동되었습니다.",
@@ -829,8 +827,7 @@
     "copyBodyMultiple": "{count} 항목이 성공적으로 복사되었습니다.",
     "uploadFailedTitle": "업로드에 실패했습니다",
     "downloadFailedTitle": "다운로드에 실패했습니다",
-    "operationFailedTitle": "작업이 실패했습니다",
-    "errorBody": "{name}: {error}"
+    "operationFailedTitle": "작업이 실패했습니다"
   },
   "events": {
     "serverShutdown": "서버가 종료되었습니다.",
@@ -885,7 +882,6 @@
     "setupError": "설정 오류"
   },
   "pwa": {
-    "install": "앱 설치",
-    "installDescription": "데스크톱이나 홈 화면에서 빠르게 이용할 수 있도록 FileBrowser를 설치하세요."
+    "install": "앱 설치"
   }
 }

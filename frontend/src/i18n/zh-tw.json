@@ -818,9 +818,7 @@
     "permissionGranted": "允許",
     "permissionDeniedHelp": "通知已被封鎖。請在瀏覽器設定中為此網站啟用通知功能。",
     "uploadTitle": "上傳完成",
-    "uploadBody": "{name} ({size})",
     "downloadTitle": "下載完整版",
-    "downloadBody": "{name} ({size})",
     "moveTitle": "移動完成",
     "copyTitle": "複製完成",
     "moveBodySingle": "已成功移動所選項目。",
@@ -829,8 +827,7 @@
     "copyBodyMultiple": "{count} 項目已成功複製。",
     "uploadFailedTitle": "上傳失敗",
     "downloadFailedTitle": "下載失敗",
-    "operationFailedTitle": "操作失敗",
-    "errorBody": "{name}:{error}"
+    "operationFailedTitle": "操作失敗"
   },
   "events": {
     "serverShutdown": "伺服器已關閉。",
@@ -885,7 +882,6 @@
     "setupError": "設定錯誤"
   },
   "pwa": {
-    "install": "安裝應用程式",
-    "installDescription": "安裝 FileBrowser，即可從桌面或主畫面快速存取。"
+    "install": "安裝應用程式"
   }
 }

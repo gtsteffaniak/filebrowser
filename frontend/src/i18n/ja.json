@@ -818,9 +818,7 @@
     "permissionGranted": "許可された",
     "permissionDeniedHelp": "通知がブロックされています。このサイトについて、ブラウザの設定で通知を有効にしてください。",
     "uploadTitle": "アップロードが完了しました",
-    "uploadBody": "{name} ({size})",
     "downloadTitle": "すべてダウンロード",
-    "downloadBody": "{name} ({size})",
     "moveTitle": "移動が完了しました",
     "copyTitle": "コピー完了",
     "moveBodySingle": "選択したアイテムは正常に移動されました。",
@@ -829,8 +827,7 @@
     "copyBodyMultiple": "{count} アイテムのコピーが完了しました。",
     "uploadFailedTitle": "アップロードに失敗しました",
     "downloadFailedTitle": "ダウンロードに失敗しました",
-    "operationFailedTitle": "操作に失敗しました",
-    "errorBody": "{name}:{error}"
+    "operationFailedTitle": "操作に失敗しました"
   },
   "events": {
     "serverShutdown": "サーバーはシャットダウンされた。",
@@ -885,7 +882,6 @@
     "setupError": "セットアップエラー"
   },
   "pwa": {
-    "install": "アプリをインストール",
-    "installDescription": "デスクトップやホーム画面からすぐにアクセスできるよう、FileBrowserをインストールしてください。"
+    "install": "アプリをインストール"
   }
 }

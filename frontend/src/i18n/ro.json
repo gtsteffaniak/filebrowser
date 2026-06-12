@@ -818,9 +818,7 @@
     "permissionGranted": "permis",
     "permissionDeniedHelp": "Notificările sunt blocate. Activează-le în setările browserului pentru acest site.",
     "uploadTitle": "Încărcarea s-a încheiat",
-    "uploadBody": "{name} ({size})",
     "downloadTitle": "Descărcare completă",
-    "downloadBody": "{name} ({size})",
     "moveTitle": "Mutarea s-a finalizat",
     "copyTitle": "Copiere finalizată",
     "moveBodySingle": "Articolele selectate au fost mutate cu succes.",
@@ -829,8 +827,7 @@
     "copyBodyMultiple": "{count} Elementele au fost copiate cu succes.",
     "uploadFailedTitle": "Încărcarea a eșuat",
     "downloadFailedTitle": "Descărcarea a eșuat",
-    "operationFailedTitle": "Operațiunea a eșuat",
-    "errorBody": "{name}: {error}"
+    "operationFailedTitle": "Operațiunea a eșuat"
   },
   "events": {
     "serverShutdown": "Serverul a fost închis.",
@@ -885,7 +882,6 @@
     "setupError": "Eroare de configurare"
   },
   "pwa": {
-    "install": "Instalează aplicația",
-    "installDescription": "Instalați FileBrowser pentru a avea acces rapid de pe desktop sau de pe ecranul de start."
+    "install": "Instalează aplicația"
   }
 }

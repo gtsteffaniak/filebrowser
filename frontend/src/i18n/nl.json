@@ -809,9 +809,7 @@
     "permissionGranted": "toegestaan",
     "permissionDeniedHelp": "Meldingen zijn geblokkeerd. Schakel ze in de instellingen van je browser voor deze website in.",
     "uploadTitle": "Uploaden voltooid",
-    "uploadBody": "{name} ({size})",
     "downloadTitle": "Volledig downloaden",
-    "downloadBody": "{name} ({size})",
     "moveTitle": "Verplaatsing voltooid",
     "copyTitle": "Kopiëren voltooid",
     "moveBodySingle": "De geselecteerde items zijn succesvol verplaatst.",
@@ -820,8 +818,7 @@
     "copyBodyMultiple": "{count} De items zijn succesvol gekopieerd.",
     "uploadFailedTitle": "Het uploaden is mislukt",
     "downloadFailedTitle": "Het downloaden is mislukt",
-    "operationFailedTitle": "De bewerking is mislukt",
-    "errorBody": "{name}: {error}"
+    "operationFailedTitle": "De bewerking is mislukt"
   },
   "duplicateFinder": {
     "minSize": "Minimale grootte (MB){suffix}",
@@ -885,7 +882,6 @@
     "setupError": "Instellingenfout"
   },
   "pwa": {
-    "install": "App installeren",
-    "installDescription": "Installeer FileBrowser voor snelle toegang vanaf je bureaublad of startscherm."
+    "install": "App installeren"
   }
 }

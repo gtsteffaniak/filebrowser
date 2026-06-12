@@ -818,9 +818,7 @@
     "permissionGranted": "επιτρέπεται",
     "permissionDeniedHelp": "Οι ειδοποιήσεις έχουν αποκλειστεί. Ενεργοποιήστε τις στις ρυθμίσεις του προγράμματος περιήγησής σας για αυτόν τον ιστότοπο.",
     "uploadTitle": "Η μεταφόρτωση ολοκληρώθηκε",
-    "uploadBody": "{name} ({size})",
     "downloadTitle": "Λήψη ολόκληρου του αρχείου",
-    "downloadBody": "{name} ({size})",
     "moveTitle": "Η μετακίνηση ολοκληρώθηκε",
     "copyTitle": "Η αντιγραφή ολοκληρώθηκε",
     "moveBodySingle": "Τα επιλεγμένα στοιχεία μεταφέρθηκαν με επιτυχία.",
@@ -829,8 +827,7 @@
     "copyBodyMultiple": "{count} Τα στοιχεία αντιγράφηκαν με επιτυχία.",
     "uploadFailedTitle": "Η μεταφόρτωση απέτυχε",
     "downloadFailedTitle": "Η λήψη απέτυχε",
-    "operationFailedTitle": "Η λειτουργία απέτυχε",
-    "errorBody": "{name}: {error}"
+    "operationFailedTitle": "Η λειτουργία απέτυχε"
   },
   "events": {
     "serverShutdown": "Ο διακομιστής τερματίστηκε.",
@@ -885,7 +882,6 @@
     "setupError": "Σφάλμα ρύθμισης"
   },
   "pwa": {
-    "install": "Εγκατάσταση εφαρμογής",
-    "installDescription": "Εγκαταστήστε το FileBrowser για γρήγορη πρόσβαση από την επιφάνεια εργασίας ή την αρχική οθόνη σας."
+    "install": "Εγκατάσταση εφαρμογής"
   }
 }

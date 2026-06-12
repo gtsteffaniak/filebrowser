@@ -818,9 +818,7 @@
     "permissionGranted": "дозволено",
     "permissionDeniedHelp": "Повідомлення заблоковано. Увімкніть їх у налаштуваннях браузера для цього сайту.",
     "uploadTitle": "Завантаження завершено",
-    "uploadBody": "{name} ({size})",
     "downloadTitle": "Завантажити повністю",
-    "downloadBody": "{name} ({size})",
     "moveTitle": "Переміщення завершено",
     "copyTitle": "Копіювання завершено",
     "moveBodySingle": "Вибрані елементи було успішно переміщено.",
@@ -829,8 +827,7 @@
     "copyBodyMultiple": "{count} Файли успішно скопійовано.",
     "uploadFailedTitle": "Завантаження не вдалося",
     "downloadFailedTitle": "Завантаження не вдалося",
-    "operationFailedTitle": "Операція не вдалася",
-    "errorBody": "{name}: {error}"
+    "operationFailedTitle": "Операція не вдалася"
   },
   "events": {
     "serverShutdown": "Сервер був вимкнений.",
@@ -885,7 +882,6 @@
     "setupError": "Помилка встановлення"
   },
   "pwa": {
-    "install": "Встановити додаток",
-    "installDescription": "Встановіть FileBrowser, щоб мати швидкий доступ з робочого столу або головного екрану."
+    "install": "Встановити додаток"
   }
 }

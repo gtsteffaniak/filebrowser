@@ -818,9 +818,7 @@
     "permissionGranted": "izin verilen",
     "permissionDeniedHelp": "Bildirimler engellenmiştir. Bu site için tarayıcı ayarlarınızdan bildirimleri etkinleştirin.",
     "uploadTitle": "Yükleme tamamlandı",
-    "uploadBody": "{name} ({size})",
     "downloadTitle": "Tam sürümü indir",
-    "downloadBody": "{name} ({size})",
     "moveTitle": "İşlem tamamlandı",
     "copyTitle": "Kopyalama tamamlandı",
     "moveBodySingle": "Seçilen öğeler başarıyla taşındı.",
@@ -829,8 +827,7 @@
     "copyBodyMultiple": "{count} Öğeler başarıyla kopyalandı.",
     "uploadFailedTitle": "Yükleme başarısız",
     "downloadFailedTitle": "İndirme başarısız",
-    "operationFailedTitle": "İşlem başarısız oldu",
-    "errorBody": "{name}: {error}"
+    "operationFailedTitle": "İşlem başarısız oldu"
   },
   "events": {
     "serverShutdown": "Sunucu kapatıldı.",
@@ -885,7 +882,6 @@
     "setupError": "Kurulum Hatası"
   },
   "pwa": {
-    "install": "Uygulamayı yükle",
-    "installDescription": "Masaüstünüzden veya ana ekranınızdan hızlı erişim için FileBrowser'ı yükleyin."
+    "install": "Uygulamayı yükle"
   }
 }

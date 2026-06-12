@@ -809,9 +809,7 @@
     "permissionGranted": "ammesso",
     "permissionDeniedHelp": "Le notifiche sono bloccate. Abilitale nelle impostazioni del browser per questo sito.",
     "uploadTitle": "Caricamento completato",
-    "uploadBody": "{name} ({size})",
     "downloadTitle": "Scarica il file completo",
-    "downloadBody": "{name} ({size})",
     "moveTitle": "Operazione completata",
     "copyTitle": "Copia completata",
     "moveBodySingle": "Gli elementi selezionati sono stati spostati correttamente.",
@@ -820,8 +818,7 @@
     "copyBodyMultiple": "{count} Gli elementi sono stati copiati correttamente.",
     "uploadFailedTitle": "Caricamento non riuscito",
     "downloadFailedTitle": "Il download non è andato a buon fine",
-    "operationFailedTitle": "Operazione non riuscita",
-    "errorBody": "{name}: {error}"
+    "operationFailedTitle": "Operazione non riuscita"
   },
   "duplicateFinder": {
     "minSize": "Dimensione Minima (MB){suffix}",
@@ -885,7 +882,6 @@
     "setupError": "Errore Setup"
   },
   "pwa": {
-    "install": "Installa l'app",
-    "installDescription": "Installa FileBrowser per accedervi rapidamente dal desktop o dalla schermata iniziale."
+    "install": "Installa l'app"
   }
 }

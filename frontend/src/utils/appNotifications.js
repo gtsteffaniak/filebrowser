@@ -109,10 +109,7 @@ export function notifyUploadComplete(upload) {
   if (upload.type === "directory" || !upload.size) {
     body = name;
   } else {
-    body = t("notifications.uploadBody", {
-      name,
-      size: getHumanReadableFilesize(upload.size),
-    });
+    body = `${name} (${getHumanReadableFilesize(upload.size)})`;
   }
   showNotification(
     t("notifications.uploadTitle"),
@@ -123,12 +120,11 @@ export function notifyUploadComplete(upload) {
 
 export function notifyUploadError(name, errorDetails) {
   const t = i18n.global.t;
+  const fileName = name || t("general.file", { suffix: "" });
+  const error = errorDetails || t("prompts.operationFailed");
   showNotification(
     t("notifications.uploadFailedTitle"),
-    t("notifications.errorBody", {
-      name: name || t("general.file", { suffix: "" }),
-      error: errorDetails || t("prompts.operationFailed"),
-    }),
+    `${fileName}: ${error}`,
     `upload-error-${name}`
   );
 }
@@ -136,12 +132,7 @@ export function notifyUploadError(name, errorDetails) {
 export function notifyDownloadComplete(name, size) {
   const t = i18n.global.t;
   const body =
-    size > 0
-      ? t("notifications.downloadBody", {
-          name,
-          size: getHumanReadableFilesize(size),
-        })
-      : name;
+    size > 0 ? `${name} (${getHumanReadableFilesize(size)})` : name;
   showNotification(
     t("notifications.downloadTitle"),
     body,
@@ -151,12 +142,11 @@ export function notifyDownloadComplete(name, size) {
 
 export function notifyDownloadError(name, errorDetails) {
   const t = i18n.global.t;
+  const fileName = name || t("general.file", { suffix: "" });
+  const error = errorDetails || t("prompts.operationFailed");
   showNotification(
     t("notifications.downloadFailedTitle"),
-    t("notifications.errorBody", {
-      name: name || t("general.file", { suffix: "" }),
-      error: errorDetails || t("prompts.operationFailed"),
-    }),
+    `${fileName}: ${error}`,
     `download-error-${name}`
   );
 }

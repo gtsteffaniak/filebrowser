@@ -818,9 +818,7 @@
     "permissionGranted": "dozwolone",
     "permissionDeniedHelp": "Powiadomienia są zablokowane. Włącz je w ustawieniach przeglądarki dla tej witryny.",
     "uploadTitle": "Przesyłanie zakończone",
-    "uploadBody": "{name} ({size})",
     "downloadTitle": "Pobierz całość",
-    "downloadBody": "{name} ({size})",
     "moveTitle": "Operacja zakończona",
     "copyTitle": "Kopiowanie zakończone",
     "moveBodySingle": "Wybrane elementy zostały pomyślnie przeniesione.",
@@ -829,8 +827,7 @@
     "copyBodyMultiple": "{count} Pliki zostały pomyślnie skopiowane.",
     "uploadFailedTitle": "Przesyłanie nie powiodło się",
     "downloadFailedTitle": "Pobieranie nie powiodło się",
-    "operationFailedTitle": "Operacja nie powiodła się",
-    "errorBody": "{name}: {error}"
+    "operationFailedTitle": "Operacja nie powiodła się"
   },
   "events": {
     "serverShutdown": "Serwer został wyłączony.",
@@ -885,7 +882,6 @@
     "setupError": "Błąd konfiguracji"
   },
   "pwa": {
-    "install": "Zainstaluj aplikację",
-    "installDescription": "Zainstaluj aplikację FileBrowser, aby uzyskać szybki dostęp z pulpitu lub ekranu głównego."
+    "install": "Zainstaluj aplikację"
   }
 }

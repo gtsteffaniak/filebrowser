@@ -818,9 +818,7 @@
     "permissionGranted": "povolené",
     "permissionDeniedHelp": "Oznámenia sú blokované. V nastaveniach prehliadača ich pre túto stránku povolte.",
     "uploadTitle": "Nahratie dokončené",
-    "uploadBody": "{name} ({size})",
     "downloadTitle": "Stiahnuť celé",
-    "downloadBody": "{name} ({size})",
     "moveTitle": "Presun dokončený",
     "copyTitle": "Kopírovanie dokončené",
     "moveBodySingle": "Vybrané položky boli úspešne presunuté.",
@@ -829,8 +827,7 @@
     "copyBodyMultiple": "{count} Položky boli úspešne skopírované.",
     "uploadFailedTitle": "Nahratie sa nepodarilo",
     "downloadFailedTitle": "Stiahnutie sa nepodarilo",
-    "operationFailedTitle": "Operácia sa nepodarila",
-    "errorBody": "{name}: {error}"
+    "operationFailedTitle": "Operácia sa nepodarila"
   },
   "events": {
     "serverShutdown": "Server bol vypnutý.",
@@ -885,7 +882,6 @@
     "setupError": "Chyba nastavenia"
   },
   "pwa": {
-    "install": "Nainštalovať aplikáciu",
-    "installDescription": "Nainštalujte si aplikáciu FileBrowser a získajte rýchly prístup z pracovnej plochy alebo domovskej obrazovky."
+    "install": "Nainštalovať aplikáciu"
   }
 }

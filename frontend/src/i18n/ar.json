@@ -818,9 +818,7 @@
     "permissionGranted": "مسموح",
     "permissionDeniedHelp": "تم حظر الإشعارات. قم بتمكينها في إعدادات متصفحك لهذا الموقع.",
     "uploadTitle": "اكتمل التحميل",
-    "uploadBody": "{name} ({size})",
     "downloadTitle": "تنزيل الملف بالكامل",
-    "downloadBody": "{name} ({size})",
     "moveTitle": "اكتملت العملية",
     "copyTitle": "اكتملت النسخ",
     "moveBodySingle": "تم نقل العناصر المحددة بنجاح.",
@@ -829,8 +827,7 @@
     "copyBodyMultiple": "{count} تم نسخ العناصر بنجاح.",
     "uploadFailedTitle": "فشل التحميل",
     "downloadFailedTitle": "فشل التنزيل",
-    "operationFailedTitle": "فشلت العملية",
-    "errorBody": "{name}: {error}"
+    "operationFailedTitle": "فشلت العملية"
   },
   "events": {
     "serverShutdown": "تم إيقاف تشغيل الخادم.",
@@ -885,7 +882,6 @@
     "setupError": "خطأ في الإعداد"
   },
   "pwa": {
-    "install": "تثبيت التطبيق",
-    "installDescription": "قم بتثبيت FileBrowser للوصول السريع إليه من سطح المكتب أو الشاشة الرئيسية."
+    "install": "تثبيت التطبيق"
   }
 }

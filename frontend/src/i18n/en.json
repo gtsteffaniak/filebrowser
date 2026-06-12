@@ -809,9 +809,7 @@
     "permissionGranted": "allowed",
     "permissionDeniedHelp": "Notifications are blocked. Enable them in your browser settings for this site.",
     "uploadTitle": "Upload complete",
-    "uploadBody": "{name} ({size})",
     "downloadTitle": "Download complete",
-    "downloadBody": "{name} ({size})",
     "moveTitle": "Move complete",
     "copyTitle": "Copy complete",
     "moveBodySingle": "The selected items were moved successfully.",
@@ -820,8 +818,7 @@
     "copyBodyMultiple": "{count} items were copied successfully.",
     "uploadFailedTitle": "Upload failed",
     "downloadFailedTitle": "Download failed",
-    "operationFailedTitle": "Operation failed",
-    "errorBody": "{name}: {error}"
+    "operationFailedTitle": "Operation failed"
   },
   "duplicateFinder": {
     "minSize": "Minimum Size (MB){suffix}",

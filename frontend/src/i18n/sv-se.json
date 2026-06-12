@@ -818,9 +818,7 @@
     "permissionGranted": "tillåtet",
     "permissionDeniedHelp": "Meddelanden är blockerade. Aktivera dem i webbläsarens inställningar för den här webbplatsen.",
     "uploadTitle": "Uppladdningen är klar",
-    "uploadBody": "{name} ({size})",
     "downloadTitle": "Ladda ner hela filen",
-    "downloadBody": "{name} ({size})",
     "moveTitle": "Flytten är klar",
     "copyTitle": "Kopieringen är klar",
     "moveBodySingle": "De valda objekten har flyttats.",
@@ -829,8 +827,7 @@
     "copyBodyMultiple": "{count} Objekten har kopierats.",
     "uploadFailedTitle": "Uppladdningen misslyckades",
     "downloadFailedTitle": "Nedladdningen misslyckades",
-    "operationFailedTitle": "Åtgärden misslyckades",
-    "errorBody": "{name}: {error}"
+    "operationFailedTitle": "Åtgärden misslyckades"
   },
   "events": {
     "serverShutdown": "Servern stängdes av.",
@@ -885,7 +882,6 @@
     "setupError": "Inställningsfel"
   },
   "pwa": {
-    "install": "Installera appen",
-    "installDescription": "Installera FileBrowser för snabb åtkomst från skrivbordet eller startskärmen."
+    "install": "Installera appen"
   }
 }

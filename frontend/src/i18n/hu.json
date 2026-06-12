@@ -818,9 +818,7 @@
     "permissionGranted": "megengedett",
     "permissionDeniedHelp": "Az értesítések letiltva vannak. Kérjük, engedélyezze őket a böngésző beállításaiban ezen a webhelyen.",
     "uploadTitle": "A feltöltés befejeződött",
-    "uploadBody": "{name} ({size})",
     "downloadTitle": "Teljes verzió letöltése",
-    "downloadBody": "{name} ({size})",
     "moveTitle": "A művelet befejeződött",
     "copyTitle": "Másolás befejezve",
     "moveBodySingle": "A kiválasztott elemek áthelyezése sikeresen megtörtént.",
@@ -829,8 +827,7 @@
     "copyBodyMultiple": "{count} Az elemek másolása sikeresen befejeződött.",
     "uploadFailedTitle": "A feltöltés nem sikerült",
     "downloadFailedTitle": "A letöltés nem sikerült",
-    "operationFailedTitle": "A művelet sikertelen",
-    "errorBody": "{name}: {error}"
+    "operationFailedTitle": "A művelet sikertelen"
   },
   "events": {
     "serverShutdown": "A kiszolgálót leállították.",
@@ -885,7 +882,6 @@
     "setupError": "Beállítási hiba"
   },
   "pwa": {
-    "install": "Alkalmazás telepítése",
-    "installDescription": "Telepítse a FileBrowser alkalmazást, hogy az asztalról vagy a kezdőképernyőről gyorsan elérhesse."
+    "install": "Alkalmazás telepítése"
   }
 }

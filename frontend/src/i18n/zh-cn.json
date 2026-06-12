@@ -818,9 +818,7 @@
     "permissionGranted": "允许",
     "permissionDeniedHelp": "通知已被屏蔽。请在浏览器设置中为该网站启用通知。",
     "uploadTitle": "上传完成",
-    "uploadBody": "{name} ({size})",
     "downloadTitle": "下载完成",
-    "downloadBody": "{name} ({size})",
     "moveTitle": "移动完成",
     "copyTitle": "复制完成",
     "moveBodySingle": "已成功移动所选项目。",
@@ -829,8 +827,7 @@
     "copyBodyMultiple": "{count} 项目已成功复制。",
     "uploadFailedTitle": "上传失败",
     "downloadFailedTitle": "下载失败",
-    "operationFailedTitle": "操作失败",
-    "errorBody": "{name}:{error}"
+    "operationFailedTitle": "操作失败"
   },
   "events": {
     "serverShutdown": "服务器已关闭。",
@@ -885,7 +882,6 @@
     "setupError": "设置错误"
   },
   "pwa": {
-    "install": "安装应用",
-    "installDescription": "安装 FileBrowser，即可从桌面或主屏幕快速访问。"
+    "install": "安装应用"
   }
 }

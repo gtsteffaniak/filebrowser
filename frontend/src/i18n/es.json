@@ -818,9 +818,7 @@
     "permissionGranted": "permitido",
     "permissionDeniedHelp": "Las notificaciones están bloqueadas. Actívalas en la configuración de tu navegador para este sitio web.",
     "uploadTitle": "Carga completada",
-    "uploadBody": "{name} ({size})",
     "downloadTitle": "Descargar completo",
-    "downloadBody": "{name} ({size})",
     "moveTitle": "Movimiento completado",
     "copyTitle": "Copiado",
     "moveBodySingle": "Los elementos seleccionados se han movido correctamente.",
@@ -829,8 +827,7 @@
     "copyBodyMultiple": "{count} Los elementos se han copiado correctamente.",
     "uploadFailedTitle": "Error al subir el archivo",
     "downloadFailedTitle": "Error al descargar",
-    "operationFailedTitle": "La operación ha fallado",
-    "errorBody": "{name}: {error}"
+    "operationFailedTitle": "La operación ha fallado"
   },
   "events": {
     "serverShutdown": "El servidor fúe apagado",
@@ -885,7 +882,6 @@
     "setupError": "Error de configuración"
   },
   "pwa": {
-    "install": "Instalar la aplicación",
-    "installDescription": "Instala FileBrowser para acceder rápidamente desde el escritorio o la pantalla de inicio."
+    "install": "Instalar la aplicación"
   }
 }

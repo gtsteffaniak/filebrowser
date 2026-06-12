@@ -818,9 +818,7 @@
     "permissionGranted": "מותר",
     "permissionDeniedHelp": "ההודעות חסומות. הפעל אותן בהגדרות הדפדפן עבור אתר זה.",
     "uploadTitle": "ההעלאה הושלמה",
-    "uploadBody": "{name} ({size})",
     "downloadTitle": "הורדה מלאה",
-    "downloadBody": "{name} ({size})",
     "moveTitle": "הפעולה הושלמה",
     "copyTitle": "ההעתקה הושלמה",
     "moveBodySingle": "הפריטים שנבחרו הועברו בהצלחה.",
@@ -829,8 +827,7 @@
     "copyBodyMultiple": "{count} הפריטים הועתקו בהצלחה.",
     "uploadFailedTitle": "ההעלאה נכשלה",
     "downloadFailedTitle": "ההורדה נכשלה",
-    "operationFailedTitle": "הפעולה נכשלה",
-    "errorBody": "{name}: {error}"
+    "operationFailedTitle": "הפעולה נכשלה"
   },
   "events": {
     "serverShutdown": "השרת כובה.",
@@ -885,7 +882,6 @@
     "setupError": "שגיאת התקנה"
   },
   "pwa": {
-    "install": "התקן את האפליקציה",
-    "installDescription": "התקן את FileBrowser כדי לקבל גישה מהירה משולחן העבודה או ממסך הבית."
+    "install": "התקן את האפליקציה"
   }
 }
