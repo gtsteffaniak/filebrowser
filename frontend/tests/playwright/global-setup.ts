@@ -1,7 +1,11 @@
 import { writeFile } from "node:fs/promises";
 import type { Browser, Page } from "@playwright/test";
 import { expect, firefox } from "@playwright/test";
-import { openContextMenuHelper, openShareAndExpectPath } from "./test-setup";
+import {
+  closeSharePromptIfOpen,
+  openShareAndExpectPath,
+  openShareFromFileActions,
+} from "./test-setup";
 
 // Perform authentication and store auth state
 async function globalSetup() {
@@ -41,6 +45,7 @@ async function globalSetup() {
   await page.evaluate((hash) => {
     localStorage.setItem('shareHash', hash);
   }, shareHash);
+  await closeSharePromptIfOpen(page);
 
   await page.goto("http://127.0.0.1/files/playwright%20%2B%20files/", { timeout: 1000 });
   // Create a share of file
@@ -61,14 +66,12 @@ async function globalSetup() {
   await page.evaluate((hash) => {
     localStorage.setItem('shareHashFile', hash);
   }, shareHashFile);
+  await closeSharePromptIfOpen(page);
 
   // Create a share of root folder "/"
   await page.goto("http://127.0.0.1/files/playwright%20%2B%20files/", { timeout: 1000 });
   await page.locator('a[aria-label="share"]').waitFor({ state: 'visible' });
-  await openShareAndExpectPath(page, 'Path: /', async () => {
-    await openContextMenuHelper(page);
-    await page.locator('button[aria-label="Share"]').click();
-  });
+  await openShareAndExpectPath(page, 'Path: /', () => openShareFromFileActions(page));
   // Toggle "Allow creating and uploading files and folders" setting
   await page.locator('input[aria-label="allow creating and uploading files and folders toggle"]').waitFor({ state: 'attached' });
   await page.locator('input[aria-label="allow creating and uploading files and folders toggle"] + .slider').click();

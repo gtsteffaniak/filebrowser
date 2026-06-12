@@ -1,10 +1,9 @@
-import { checkForNotification, expect, test } from "../test-setup";
+import { checkForNotification, expect, openShareFromFileActions, test } from "../test-setup";
 
-test("root share path is valid", async ({ page, checkForErrors, openContextMenu }) => {
+test("root share path is valid", async ({ page, checkForErrors }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
-  await openContextMenu();
-  await page.locator('button[aria-label="Share"]').click();
+  await openShareFromFileActions(page);
   await expect(page.locator('div[aria-label="share-path"]')).toHaveText('Path: /');
   checkForErrors();
 });
@@ -40,12 +39,11 @@ test("share download single file", async ({ page, checkForErrors }) => {
   checkForErrors(0,1);
 });
 
-test("share private source", async ({ page, checkForErrors, openContextMenu }) => {
+test("share private source", async ({ page, checkForErrors }) => {
   await page.goto("/files/docker");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - backend");
    // Create a share of folder
-   await openContextMenu();
-   await page.locator('button[aria-label="Share"]').click();
+   await openShareFromFileActions(page);
    await expect(page.locator('div[aria-label="share-path"]')).toHaveText('Path: /');
    await page.locator('button[aria-label="Share-Confirm"]').click();
   await expect(page.locator("div[aria-label='share-prompt'] .card-content table tbody tr:not(:has(th))")).toHaveCount(0);

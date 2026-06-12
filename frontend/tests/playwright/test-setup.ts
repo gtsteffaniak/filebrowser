@@ -4,10 +4,30 @@ import { test as base, expect } from "@playwright/test";
 const PLAYWRIGHT_RETRY_INTERVALS = [500, 1000, 1500, 2000];
 
 async function dismissSharePrompt(page: Page, sharePrompt: Locator): Promise<void> {
-  if (await sharePrompt.isVisible()) {
+  if (!(await sharePrompt.isVisible())) {
+    return;
+  }
+
+  for (let attempt = 0; attempt < 3; attempt++) {
     await page.keyboard.press("Escape");
+    try {
+      await sharePrompt.waitFor({ state: "hidden", timeout: 2000 });
+      return;
+    } catch {
+      // Retry Escape or fall through to the close button.
+    }
+  }
+
+  const closeButton = sharePrompt.locator(".prompt-close");
+  if (await closeButton.isVisible()) {
+    await closeButton.click();
     await sharePrompt.waitFor({ state: "hidden", timeout: 3000 }).catch(() => {});
   }
+}
+
+/** Closes the share dialog when it is still open after creating or viewing a share. */
+export async function closeSharePromptIfOpen(page: Page): Promise<void> {
+  await dismissSharePrompt(page, page.locator("div[aria-label='share-prompt']"));
 }
 
 /**
@@ -43,6 +63,18 @@ export async function openContextMenuHelper(
     await fileActionsButton.waitFor({ state: "visible", timeout: 5000 });
     await fileActionsButton.click();
   }).toPass({ timeout, intervals: PLAYWRIGHT_RETRY_INTERVALS });
+}
+
+/**
+ * Opens the sidebar File-Actions menu and clicks Share once the context menu is ready.
+ */
+export async function openShareFromFileActions(page: Page): Promise<void> {
+  await openContextMenuHelper(page);
+  const contextMenu = page.locator("#context-menu");
+  await contextMenu.waitFor({ state: "visible", timeout: 5000 });
+  const shareButton = contextMenu.locator('button[aria-label="Share"]');
+  await shareButton.waitFor({ state: "visible", timeout: 5000 });
+  await shareButton.click();
 }
 
 /**
