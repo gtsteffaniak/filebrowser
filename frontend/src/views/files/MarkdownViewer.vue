@@ -1,12 +1,15 @@
 <template>
   <div id="markedown-viewer">
-    <div
+    <iframe
       v-if="isHtml"
       ref="viewer"
-      v-html="renderedContent"
+      :key="req.path"
       class="html-content"
-      :style="htmlContentStyle"
-    ></div>
+      :srcdoc="htmlPreview.srcdoc"
+      sandbox="allow-scripts allow-popups"
+      referrerpolicy="no-referrer"
+      title="HTML preview"
+    ></iframe>
     <div v-else class="markdown-content-container" :class="{ 'dark-mode': darkMode }">
       <div ref="viewer" v-html="renderedContent" class="markdown-content"></div>
     </div>
@@ -21,160 +24,14 @@ import { state, mutations, getters } from "@/store";
 import hljs from 'highlight.js';
 import { copyToClipboard } from "@/utils/clipboard";
 import { globalVars } from "@/utils/constants";
-import { getDownloadURL, getDownloadURLPublic } from "@/api/resources";
-import { resolveRelativePath } from "@/utils/url";
-import { isHtmlMimeType, isImageFilePath } from "@/utils/mimetype";
+import { isHtmlMimeType } from "@/utils/mimetype";
+import {
+  buildHtmlPreview,
+  buildPreviewResourceUrl,
+} from "@/utils/htmlPreview";
 
 import githubLightCss from "highlight.js/styles/github.min.css?raw";
 import githubDarkCss from "highlight.js/styles/github-dark.min.css?raw";
-
-const HTML_SANITIZE_CONFIG = {
-  USE_PROFILES: { html: true },
-  FORBID_TAGS: ["script", "iframe", "object", "embed", "form", "base", "link", "meta"],
-};
-
-function isLocalResourceReference(href: string): boolean {
-  return !/^(https?:|data:|mailto:|#|javascript:)/i.test(href) && !href.startsWith("//");
-}
-
-function buildPreviewResourceUrl(href: string, baseFilePath: string, source: string): string {
-  if (!href || !isLocalResourceReference(href)) {
-    return href;
-  }
-
-  const resolvedPath = resolveRelativePath(baseFilePath, href);
-  if (!isImageFilePath(resolvedPath)) {
-    return href;
-  }
-
-  try {
-    if (getters.isShare()) {
-      return getDownloadURLPublic(
-        {
-          path: state.shareInfo.subPath,
-          hash: state.shareInfo.hash,
-          token: state.shareInfo.token,
-        },
-        [resolvedPath],
-        true,
-      );
-    }
-    return getDownloadURL(source, resolvedPath, true);
-  } catch {
-    return href;
-  }
-}
-
-function rewriteHtmlImageSources(doc: Document, baseFilePath: string, source: string): void {
-  doc.querySelectorAll("img[src]").forEach((img) => {
-    const src = img.getAttribute("src");
-    if (src) {
-      img.setAttribute("src", buildPreviewResourceUrl(src, baseFilePath, source));
-    }
-  });
-}
-
-function toCamelCaseCssProperty(property: string): string {
-  return property.replace(/-([a-z])/g, (_, char: string) => char.toUpperCase());
-}
-
-function parseInlineStyle(style: string): Record<string, string> {
-  const result: Record<string, string> = {};
-  for (const part of style.split(";")) {
-    const colonIndex = part.indexOf(":");
-    if (colonIndex === -1) {
-      continue;
-    }
-    const key = part.slice(0, colonIndex).trim();
-    const value = part.slice(colonIndex + 1).trim();
-    if (key && value) {
-      result[toCamelCaseCssProperty(key)] = value;
-    }
-  }
-  return result;
-}
-
-function sanitizeInlineStyleAttribute(style: string): Record<string, string> {
-  const div = document.createElement("div");
-  div.setAttribute("style", style);
-  const clean = String(DOMPurify.sanitize(div.outerHTML, HTML_SANITIZE_CONFIG));
-  const parsed = new DOMParser().parseFromString(clean, "text/html");
-  const cleanStyle = parsed.body.firstElementChild?.getAttribute("style") ?? "";
-  return parseInlineStyle(cleanStyle);
-}
-
-function scopeHtmlStyles(css: string): string {
-  return css
-    .replace(/(^|[,{}\s])(html|body)(?=\s*[,{])/gi, "$1.html-content")
-    .replace(/:root(?=\s*[,{])/g, ".html-content");
-}
-
-function extractStyleInner(sanitizedStyleTag: string): string {
-  const match = sanitizedStyleTag.match(/<style[^>]*>([\s\S]*)<\/style>/i);
-  return match?.[1]?.trim() ?? "";
-}
-
-function collectDocumentStyles(doc: Document): string {
-  const scopedBlocks: string[] = [];
-  doc.querySelectorAll("head style, body style").forEach((styleEl) => {
-    const css = styleEl.textContent?.trim();
-    if (!css) {
-      styleEl.remove();
-      return;
-    }
-    const sanitized = String(DOMPurify.sanitize(`<style>${css}</style>`, HTML_SANITIZE_CONFIG));
-    const inner = extractStyleInner(sanitized);
-    if (inner) {
-      scopedBlocks.push(scopeHtmlStyles(inner));
-    }
-    styleEl.remove();
-  });
-  if (scopedBlocks.length === 0) {
-    return "";
-  }
-  return `<style>${scopedBlocks.join("\n")}</style>`;
-}
-
-function collectWrapperStyles(doc: Document): Record<string, string> {
-  const merged: Record<string, string> = {};
-
-  const htmlStyle = doc.documentElement.getAttribute("style");
-  if (htmlStyle) {
-    Object.assign(merged, sanitizeInlineStyleAttribute(htmlStyle));
-  }
-
-  const bodyStyle = doc.body?.getAttribute("style");
-  if (bodyStyle) {
-    Object.assign(merged, sanitizeInlineStyleAttribute(bodyStyle));
-  }
-
-  const bgcolor = doc.body?.getAttribute("bgcolor");
-  if (bgcolor && !merged.backgroundColor) {
-    merged.backgroundColor = bgcolor;
-  }
-
-  return merged;
-}
-
-type HtmlPreview = {
-  html: string;
-  wrapperStyle: Record<string, string>;
-};
-
-function buildHtmlPreview(content: string, filePath: string, source: string): HtmlPreview {
-  const doc = new DOMParser().parseFromString(content, "text/html");
-  rewriteHtmlImageSources(doc, filePath, source);
-
-  const wrapperStyle = collectWrapperStyles(doc);
-  const documentStyles = collectDocumentStyles(doc);
-  const rawHtml = doc.body?.innerHTML ?? content;
-  const sanitizedBody = String(DOMPurify.sanitize(rawHtml, HTML_SANITIZE_CONFIG));
-
-  return {
-    html: documentStyles + sanitizedBody,
-    wrapperStyle,
-  };
-}
 
 export default {
   name: "markdownViewer",
@@ -469,7 +326,7 @@ export default {
     },
     htmlPreview() {
       if (!this.isHtml) {
-        return { html: "", wrapperStyle: {} };
+        return { srcdoc: "" };
       }
       return buildHtmlPreview(this.content, state.req.path, state.req.source);
     },
@@ -519,6 +376,10 @@ export default {
 
 #markedown-viewer .html-content {
   box-sizing: border-box;
+  border: none;
+  min-height: 24em;
+  background: #fff;
+  color-scheme: light dark;
 }
 
 #markedown-viewer .html-content img {

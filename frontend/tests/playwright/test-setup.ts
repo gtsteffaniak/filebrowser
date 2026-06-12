@@ -49,8 +49,56 @@ export async function openShareAndExpectPath(
     if (!(await sharePrompt.isVisible())) {
       await openShare();
     }
-    await expect(sharePath).toHaveText(expectedPathText, { timeout: 2000 });
+    await expect(sharePath).toHaveText(expectedPathText);
   }).toPass({ timeout });
+}
+
+export const SHARE_PROMPT_ROWS =
+  "div[aria-label='share-prompt'] .card-content table tbody tr:not(:has(th))";
+
+/**
+ * Opens the share dialog, confirms creation, and returns the hash — retried as one flow.
+ */
+export async function createShareAndGetHash(
+  page: Page,
+  expectedPathText: string,
+  openShare: () => Promise<void>,
+  options?: { timeout?: number },
+): Promise<string> {
+  const timeout = options?.timeout ?? 45000;
+  const rows = page.locator(SHARE_PROMPT_ROWS);
+  const confirmButton = page.locator('button[aria-label="Share-Confirm"]');
+  const sharePrompt = page.locator("div[aria-label='share-prompt']");
+  let shareHash = "";
+
+  await expect(async () => {
+    if ((await rows.count()) === 1) {
+      const existingHash = (await rows.first().locator("td").first().textContent())?.trim();
+      if (existingHash) {
+        shareHash = existingHash;
+        return;
+      }
+    }
+
+    if (await sharePrompt.isVisible()) {
+      await page.keyboard.press("Escape");
+      await sharePrompt.waitFor({ state: "hidden", timeout: 3000 }).catch(() => {});
+    }
+
+    await openShareAndExpectPath(page, expectedPathText, openShare, { timeout: 15000 });
+
+    await confirmButton.waitFor({ state: "visible", timeout: 5000 });
+    await confirmButton.click();
+
+    await expect(rows).toHaveCount(1);
+    const hash = (await rows.first().locator("td").first().textContent())?.trim();
+    if (!hash) {
+      throw new Error("Share hash not yet available");
+    }
+    shareHash = hash;
+  }).toPass({ timeout });
+
+  return shareHash;
 }
 
 export const test = base.extend<{
