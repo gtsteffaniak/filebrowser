@@ -436,29 +436,6 @@ export const mutations = {
         }
       }
 
-      if (!state.user.desktopNotifications) {
-        state.user.desktopNotifications = {
-          enabled: false,
-          upload: true,
-          download: true,
-          moveCopy: true,
-          errors: true,
-        };
-      } else {
-        if (state.user.desktopNotifications.upload === undefined) {
-          state.user.desktopNotifications.upload = true;
-        }
-        if (state.user.desktopNotifications.download === undefined) {
-          state.user.desktopNotifications.download = true;
-        }
-        if (state.user.desktopNotifications.moveCopy === undefined) {
-          state.user.desktopNotifications.moveCopy = true;
-        }
-        if (state.user.desktopNotifications.errors === undefined) {
-          state.user.desktopNotifications.errors = true;
-        }
-      }
-
       // Load stored values or use defaults as fallback
       const isAnonymous = state.user.username === 'anonymous';
       const encoded = !isAnonymous ? url.base64Encode(state.user.username) : '';
@@ -628,7 +605,6 @@ export const mutations = {
           "showFirstLogin",
           "sidebarLinks",
           "fileLoading",
-          "desktopNotifications",
           "deleteAfterArchive",
           "preferEditorForMarkdown",
         ].includes(key)

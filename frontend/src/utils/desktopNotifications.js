@@ -2,13 +2,17 @@ import i18n from "@/i18n";
 import { state } from "@/store";
 import { globalVars } from "@/utils/constants";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
+import { url } from "@/utils";
 
-const EVENT = {
-  UPLOAD: "upload",
-  DOWNLOAD: "download",
-  MOVE_COPY: "moveCopy",
-  ERROR: "errors",
-};
+const STORAGE_PREFIX = "desktopNotifications_";
+
+function storageKey() {
+  const username = state.user?.username;
+  if (!username || username === "anonymous") {
+    return `${STORAGE_PREFIX}anonymous`;
+  }
+  return `${STORAGE_PREFIX}${url.base64Encode(username)}`;
+}
 
 export function isNotificationSupported() {
   return typeof window !== "undefined" && "Notification" in window;
@@ -34,26 +38,20 @@ export async function requestNotificationPermission() {
   return Notification.requestPermission();
 }
 
-export function defaultDesktopNotificationSettings() {
-  return {
-    enabled: false,
-    upload: true,
-    download: true,
-    moveCopy: true,
-    errors: true,
-  };
+export function isDesktopNotificationsEnabled() {
+  try {
+    return localStorage.getItem(storageKey()) === "true";
+  } catch {
+    return false;
+  }
 }
 
-function getSettings() {
-  const prefs = state.user?.desktopNotifications ?? {};
-  const defaults = defaultDesktopNotificationSettings();
-  return {
-    enabled: prefs.enabled === true,
-    upload: prefs.upload ?? defaults.upload,
-    download: prefs.download ?? defaults.download,
-    moveCopy: prefs.moveCopy ?? defaults.moveCopy,
-    errors: prefs.errors ?? defaults.errors,
-  };
+export function setDesktopNotificationsEnabled(enabled) {
+  try {
+    localStorage.setItem(storageKey(), enabled ? "true" : "false");
+  } catch {
+    // ignore — e.g. private browsing quota
+  }
 }
 
 function notificationIcon() {
@@ -61,7 +59,7 @@ function notificationIcon() {
   return `${window.location.origin}${base}public/static/icons/pwa-icon-192.png`;
 }
 
-function shouldNotify(eventType) {
+function shouldNotify() {
   if (!isNotificationSupported()) {
     return false;
   }
@@ -71,35 +69,18 @@ function shouldNotify(eventType) {
   if (!document.hidden) {
     return false;
   }
-
-  const settings = getSettings();
-  if (!settings.enabled) {
-    return false;
-  }
-
-  switch (eventType) {
-    case EVENT.UPLOAD:
-      return settings.upload;
-    case EVENT.DOWNLOAD:
-      return settings.download;
-    case EVENT.MOVE_COPY:
-      return settings.moveCopy;
-    case EVENT.ERROR:
-      return settings.errors;
-    default:
-      return false;
-  }
+  return isDesktopNotificationsEnabled();
 }
 
-function showNotification(eventType, title, body, tag) {
-  if (!shouldNotify(eventType)) {
+function showNotification(title, body, tag) {
+  if (!shouldNotify()) {
     return;
   }
   try {
     new Notification(title, {
       body,
       icon: notificationIcon(),
-      tag: tag || eventType,
+      tag,
     });
   } catch {
     // ignore — e.g. insecure context or blocked notifications
@@ -119,7 +100,6 @@ export function notifyUploadComplete(upload) {
     });
   }
   showNotification(
-    EVENT.UPLOAD,
     t("desktopNotifications.uploadTitle"),
     body,
     `upload-${upload.id ?? name}`
@@ -129,7 +109,6 @@ export function notifyUploadComplete(upload) {
 export function notifyUploadError(name, errorDetails) {
   const t = i18n.global.t;
   showNotification(
-    EVENT.ERROR,
     t("desktopNotifications.uploadFailedTitle"),
     t("desktopNotifications.errorBody", {
       name: name || t("general.file", { suffix: "" }),
@@ -149,7 +128,6 @@ export function notifyDownloadComplete(name, size) {
         })
       : name;
   showNotification(
-    EVENT.DOWNLOAD,
     t("desktopNotifications.downloadTitle"),
     body,
     `download-${name}`
@@ -159,7 +137,6 @@ export function notifyDownloadComplete(name, size) {
 export function notifyDownloadError(name, errorDetails) {
   const t = i18n.global.t;
   showNotification(
-    EVENT.ERROR,
     t("desktopNotifications.downloadFailedTitle"),
     t("desktopNotifications.errorBody", {
       name: name || t("general.file", { suffix: "" }),
@@ -190,13 +167,12 @@ export function notifyMoveCopyComplete(operation, itemCount) {
     }
   }
 
-  showNotification(EVENT.MOVE_COPY, title, body, `${operation}-done`);
+  showNotification(title, body, `${operation}-done`);
 }
 
 export function notifyOperationError(message) {
   const t = i18n.global.t;
   showNotification(
-    EVENT.ERROR,
     t("desktopNotifications.operationFailedTitle"),
     message || t("prompts.operationFailed"),
     "operation-error"

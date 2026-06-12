@@ -67,43 +67,11 @@
         </button>
         <ToggleSwitch
           class="item"
-          v-model="localuser.desktopNotifications.enabled"
+          v-model="desktopNotificationsEnabled"
           :disabled="!notificationsSupported"
-          @change="onNotificationsEnabledChange"
+          @change="onDesktopNotificationsChange"
           :name="$t('desktopNotifications.enabled')"
           :description="$t('desktopNotifications.enabledDescription')"
-        />
-        <ToggleSwitch
-          class="item"
-          v-model="localuser.desktopNotifications.upload"
-          :disabled="!localuser.desktopNotifications.enabled"
-          @change="updateSettings"
-          :name="$t('desktopNotifications.upload')"
-          :description="$t('desktopNotifications.uploadDescription')"
-        />
-        <ToggleSwitch
-          class="item"
-          v-model="localuser.desktopNotifications.download"
-          :disabled="!localuser.desktopNotifications.enabled"
-          @change="updateSettings"
-          :name="$t('desktopNotifications.download')"
-          :description="$t('desktopNotifications.downloadDescription')"
-        />
-        <ToggleSwitch
-          class="item"
-          v-model="localuser.desktopNotifications.moveCopy"
-          :disabled="!localuser.desktopNotifications.enabled"
-          @change="updateSettings"
-          :name="$t('desktopNotifications.moveCopy')"
-          :description="$t('desktopNotifications.moveCopyDescription')"
-        />
-        <ToggleSwitch
-          class="item"
-          v-model="localuser.desktopNotifications.errors"
-          :disabled="!localuser.desktopNotifications.enabled"
-          @change="updateSettings"
-          :name="$t('desktopNotifications.errors')"
-          :description="$t('desktopNotifications.errorsDescription')"
         />
       </template>
     </div>
@@ -125,10 +93,11 @@ import { state, mutations } from "@/store";
 import { usersApi } from "@/api";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import {
-  defaultDesktopNotificationSettings,
   getNotificationPermission,
+  isDesktopNotificationsEnabled,
   isNotificationSupported,
   requestNotificationPermission,
+  setDesktopNotificationsEnabled,
 } from "@/utils/desktopNotifications";
 
 export default {
@@ -139,7 +108,8 @@ export default {
 
   data() {
     return {
-      localuser: { fileLoading: {}, desktopNotifications: defaultDesktopNotificationSettings() },
+      localuser: { fileLoading: {} },
+      desktopNotificationsEnabled: isDesktopNotificationsEnabled(),
       notificationPermission: getNotificationPermission(),
     };
   },
@@ -175,10 +145,7 @@ export default {
     if (this.localuser.fileLoading.downloadChunkSizeMb === undefined || this.localuser.fileLoading.downloadChunkSizeMb === null) {
       this.localuser.fileLoading.downloadChunkSizeMb = 0;
     }
-    this.localuser.desktopNotifications = {
-      ...defaultDesktopNotificationSettings(),
-      ...(this.localuser.desktopNotifications || {}),
-    };
+    this.desktopNotificationsEnabled = isDesktopNotificationsEnabled();
     this.notificationPermission = getNotificationPermission();
   },
   methods: {
@@ -200,14 +167,14 @@ export default {
         notify.showError(this.$t("desktopNotifications.permissionDeniedHelp"));
       }
     },
-    async onNotificationsEnabledChange() {
-      if (this.localuser.desktopNotifications.enabled && this.notificationPermission !== "granted") {
+    async onDesktopNotificationsChange() {
+      if (this.desktopNotificationsEnabled && this.notificationPermission !== "granted") {
         await this.requestPermission();
         if (this.notificationPermission !== "granted") {
-          this.localuser.desktopNotifications.enabled = false;
+          this.desktopNotificationsEnabled = false;
         }
       }
-      await this.updateSettings();
+      setDesktopNotificationsEnabled(this.desktopNotificationsEnabled);
     },
     async updateSettings(event) {
       if (event !== undefined) {
@@ -216,7 +183,7 @@ export default {
       try {
         const data = this.localuser;
         mutations.updateCurrentUser(data);
-        await usersApi.update(data, ["fileLoading", "desktopNotifications"]);
+        await usersApi.update(data, ["fileLoading"]);
         notify.showSuccessToast(this.$t("settings.settingsUpdated"));
       } catch (e) {
         console.error(e);

@@ -96,13 +96,6 @@ export interface UserObject {
     clearAll?: boolean;
     downloadChunkSizeMb?: number;
   };
-  desktopNotifications?: {
-    enabled?: boolean;
-    upload?: boolean;
-    download?: boolean;
-    moveCopy?: boolean;
-    errors?: boolean;
-  };
 }
 
 export interface RouteObject {

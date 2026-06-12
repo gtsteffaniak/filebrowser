@@ -15,9 +15,8 @@ All notable changes to this project will be documented in this file. For commit 
    - camera and video capture buttons on upload (mobile-friendly `capture` inputs)
    - send files to other apps via the Web Share API (`Send to app` in the context menu)
  - Desktop notifications for file operations (#2478)
-   - optional browser notifications when uploads, chunked downloads, or move/copy operations finish
-   - configurable per event type in Uploads & Downloads settings
-   - failure notifications with error details
+   - optional browser notifications when uploads, chunked downloads, move/copy, or failures finish while the tab is in the background
+   - single on/off toggle in Uploads & Downloads settings, stored in browser local storage
 
  **Notes**:
  - [docker] upgraded ffmpeg version 8.1 to 8.1.1
