@@ -2,6 +2,10 @@ import { notify } from '@/notify'
 import { mutations, state } from '@/store'
 import { globalVars } from '@/utils/constants'
 import { downloadManager } from '@/utils/downloadManager'
+import {
+  notifyDownloadComplete,
+  notifyDownloadError,
+} from '@/utils/desktopNotifications'
 import { getApiPath, getPublicApiPath } from '@/utils/url.js'
 import { adjustedData, fetchURL } from './utils'
 
@@ -530,6 +534,7 @@ async function downloadChunkedArchive(url, format, files, filePaths, source, sha
 
     downloadManager.setStatus(downloadId, 'completed')
     downloadManager.updateProgress(downloadId, fileSize, fileSize)
+    notifyDownloadComplete(fileName, fileSize)
 
     setTimeout(() => {
       document.body.removeChild(link)
@@ -544,6 +549,7 @@ async function downloadChunkedArchive(url, format, files, filePaths, source, sha
     const message =
       error instanceof Error ? error.message || 'Unknown error' : String(error)
     downloadManager.setError(downloadId, message)
+    notifyDownloadError(fileName, message)
     throw error
   }
 }
@@ -620,6 +626,7 @@ async function downloadChunked(file, shareHash = "") {
     const dlDone = downloadManager.findById(downloadId)
     const finalSize = dlDone?.size ?? fileSize
     downloadManager.updateProgress(downloadId, finalSize, finalSize)
+    notifyDownloadComplete(fileName, finalSize)
 
     setTimeout(() => {
       document.body.removeChild(link)
@@ -636,6 +643,7 @@ async function downloadChunked(file, shareHash = "") {
     const message =
       error instanceof Error ? error.message || "Unknown error" : String(error)
     downloadManager.setError(downloadId, message)
+    notifyDownloadError(fileName, message)
     throw error
   }
 }

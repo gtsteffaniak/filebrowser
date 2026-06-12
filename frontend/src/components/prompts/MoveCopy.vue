@@ -78,6 +78,10 @@ import buttons from "@/utils/buttons";
 import * as upload from "@/utils/upload";
 import { url } from "@/utils";
 import { notify } from "@/notify";
+import {
+  notifyMoveCopyComplete,
+  notifyOperationError,
+} from "@/utils/desktopNotifications";
 import { goToItem } from "@/utils/url";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
@@ -355,6 +359,7 @@ export default {
           // All operations failed - show error but DON'T close prompt
           const errorMessage = result.failed[0]?.message || this.$t("prompts.operationFailed");
           notify.showError(errorMessage);
+          notifyOperationError(errorMessage);
           return;
         } else if (hasFailures && hasSuccesses) {
           // Partial failure - show warning and continue
@@ -382,6 +387,7 @@ export default {
 
           if (!hasFailures || hasSuccesses) {
             notify.showSuccessToast(this.$t("prompts.moveSuccess"));
+            notifyMoveCopyComplete("move", this.localItems.length);
           }
 
           // Navigate next, previous or parent dir (like when deleting)
@@ -427,8 +433,10 @@ export default {
             };
             if (this.operation === "move") {
               notify.showSuccess(this.$t("prompts.moveSuccess"), buttonProps);
+              notifyMoveCopyComplete("move", this.localItems.length);
             } else {
               notify.showSuccess(this.$t("prompts.copySuccess"), buttonProps);
+              notifyMoveCopyComplete("copy", this.localItems.length);
             }
           }
         }
@@ -454,6 +462,7 @@ export default {
         }
 
         notify.showError(errorMessage);
+        notifyOperationError(errorMessage);
       } finally {
         this.isLoading = false; // Hide loading spinner
       }

@@ -94,6 +94,14 @@ export interface UserObject {
     maxConcurrentUpload?: number;
     uploadChunkSizeMb?: number;
     clearAll?: boolean;
+    downloadChunkSizeMb?: number;
+  };
+  desktopNotifications?: {
+    enabled?: boolean;
+    upload?: boolean;
+    download?: boolean;
+    moveCopy?: boolean;
+    errors?: boolean;
   };
 }
 

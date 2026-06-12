@@ -87,6 +87,8 @@
     "download": "Download{suffix}",
     "file": "File{suffix}",
     "folder": "Folder{suffix}",
+    "camera": "Camera{suffix}",
+    "video": "Video{suffix}",
     "info": "Info{suffix}",
     "move": "Move{suffix}",
     "new": "New{suffix}",
@@ -148,7 +150,8 @@
     "goToItem": "Go to item",
     "goToSource": "Go to Source Location",
     "pinItem": "Pin",
-    "unpinItem": "Unpin"
+    "unpinItem": "Unpin",
+    "sendToApp": "Send to app"
   },
   "errors": {
     "forbidden": "You don't have permissions to access this.",
@@ -690,6 +693,41 @@
     "clearAllDescription": "The clear completed button will clear all uploads in a finished state, including error, paused, and conflict states.",
     "uploadSettings": "Upload Settings"
   },
+  "desktopNotifications": {
+    "title": "Desktop notifications",
+    "description": "Show browser notifications when file operations finish while this tab is in the background.",
+    "unsupported": "Desktop notifications are not supported in this browser.",
+    "enabled": "Enable desktop notifications",
+    "enabledDescription": "Requires browser permission. Notifications are shown only when the FileBrowser tab is not visible.",
+    "upload": "Upload completed",
+    "uploadDescription": "Notify when a file upload finishes.",
+    "download": "Download completed",
+    "downloadDescription": "Notify when a chunked download finishes (large files and archives).",
+    "moveCopy": "Move or copy completed",
+    "moveCopyDescription": "Notify when a move or copy operation finishes.",
+    "errors": "Operation failed",
+    "errorsDescription": "Notify when an upload, download, move, or copy fails.",
+    "requestPermission": "Allow notifications",
+    "permissionStatus": "Browser permission: {status}",
+    "permissionGranted": "allowed",
+    "permissionDenied": "blocked",
+    "permissionDefault": "not requested yet",
+    "permissionDeniedHelp": "Notifications are blocked. Enable them in your browser settings for this site.",
+    "uploadTitle": "Upload complete",
+    "uploadBody": "{name} ({size})",
+    "downloadTitle": "Download complete",
+    "downloadBody": "{name} ({size})",
+    "moveTitle": "Move complete",
+    "copyTitle": "Copy complete",
+    "moveBodySingle": "The selected items were moved successfully.",
+    "copyBodySingle": "The selected items were copied successfully.",
+    "moveBodyMultiple": "{count} items were moved successfully.",
+    "copyBodyMultiple": "{count} items were copied successfully.",
+    "uploadFailedTitle": "Upload failed",
+    "downloadFailedTitle": "Download failed",
+    "operationFailedTitle": "Operation failed",
+    "errorBody": "{name}: {error}"
+  },
   "colors": {
     "red": "red",
     "green": "green",
@@ -861,5 +899,9 @@
     "documentDownload": "Document Download - Complete",
     "editorSuccess": "Editor Initialization - Success! All steps completed.",
     "setupError": "Setup Error"
+  },
+  "pwa": {
+    "install": "Install app",
+    "installDescription": "Install FileBrowser for quick access from your desktop or home screen."
   }
 }

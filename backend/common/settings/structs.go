@@ -428,7 +428,8 @@ type UserDefaults struct {
 	FileViewer  UserDefaultsFileViewer `json:"fileViewer,omitempty"`
 	Search      UserDefaultsSearch     `json:"search,omitempty"`
 	UI          UserDefaultsUI         `json:"ui,omitempty"`
-	FileLoading users.FileLoading      `json:"fileLoading,omitempty"`
+	FileLoading users.FileLoading            `json:"fileLoading,omitempty"`
+	DesktopNotifications users.DesktopNotifications `json:"desktopNotifications,omitempty"`
 	Account     UserDefaultsAccount    `json:"account,omitempty"`
 
 	// Deprecated fields - kept for backwards compatibility

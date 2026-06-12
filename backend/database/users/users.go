@@ -149,6 +149,7 @@ type NonAdminEditable struct {
 	QuickDownload              bool                 `json:"quickDownload"`              // show icon to download in one click
 	DisableUpdateNotifications bool                 `json:"disableUpdateNotifications"` // disable update notifications
 	FileLoading                FileLoading          `json:"fileLoading"`                // upload and download settings
+	DesktopNotifications       DesktopNotifications `json:"desktopNotifications"`       // browser notification preferences
 	DisableOfficePreviewExt    string               `json:"disableOfficePreviewExt"`    // deprecated
 	DisableOnlyOfficeExt       string               `json:"disableOnlyOfficeExt"`       // deprecated
 	DisablePreviewExt          string               `json:"disablePreviewExt"`          // space separated list of file extensions to disable preview for
@@ -173,6 +174,15 @@ type FileLoading struct {
 	UploadChunkSize   int  `json:"uploadChunkSizeMb"`
 	ClearAll          bool `json:"clearAll"`
 	DownloadChunkSize int  `json:"downloadChunkSizeMb"`
+}
+
+// DesktopNotifications holds browser notification preferences for file operations.
+type DesktopNotifications struct {
+	Enabled  bool `json:"enabled"`
+	Upload   bool `json:"upload"`
+	Download bool `json:"download"`
+	MoveCopy bool `json:"moveCopy"`
+	Errors   bool `json:"errors"`
 }
 
 // SidebarLink represents a customizable link in the sidebar.

@@ -70,6 +70,13 @@ userDefaults:
     uploadChunkSizeMb: 10                 # upload chunk size in MB
     downloadChunkSizeMb: 0                # download chunk size in MB (0 = no chunking)
 
+  desktopNotifications:
+    enabled: false                        # enable browser notifications for file operations
+    upload: true                          # notify when uploads complete
+    download: true                        # notify when chunked downloads complete
+    moveCopy: true                        # notify when move/copy operations finish
+    errors: true                          # notify when an operation fails
+
   account:
     permissions:
       api: false                          # allow api access

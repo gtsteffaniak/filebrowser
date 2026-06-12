@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"io/fs"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -97,6 +98,17 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	data := make(map[string]interface{})
 	disableNavButtons := config.Frontend.DisableNavButtons
 	if d.share != nil {
+		shareHash = d.share.Hash
+	}
+	if shareHash == "" {
+		shareHash = icons.ShareHashFromHTTPPath(r.URL.Path, config.Server.BaseURL)
+	}
+	if shareHash != "" && d.share == nil && store != nil {
+		if link, err := store.Share.GetByHash(shareHash); err == nil {
+			d.share = link
+		}
+	}
+	if d.share != nil {
 		if d.share.Favicon != "" {
 			if strings.HasPrefix(d.share.Favicon, "http") {
 				favicon = d.share.Favicon
@@ -124,7 +136,6 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		if shareFavicon != "" {
 			favicon = shareFavicon
 		}
-		shareHash = d.share.Hash
 	}
 	// Set login icon URL
 	loginIcon := staticURL + "/loginIcon"
@@ -162,6 +173,20 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	pwaIcon256 := staticURL + "/icons/pwa-icon-256.png"
 	pwaIcon512 := staticURL + "/icons/pwa-icon-512.png"
 
+	manifestURL := staticURL + "/site.webmanifest"
+	if shareHash != "" {
+		pwaStartURL := config.Server.BaseURL + "public/share/" + shareHash + "/"
+		query := url.Values{}
+		query.Set("start", pwaStartURL)
+		if title != config.Frontend.Name {
+			query.Set("name", title)
+		}
+		if description != config.Frontend.Description {
+			query.Set("description", description)
+		}
+		manifestURL = staticURL + "/site.webmanifest?" + query.Encode()
+	}
+
 	data["htmlVars"] = map[string]interface{}{
 		"title":              title,
 		"customCSS":          template.CSS(config.Frontend.Styling.CustomCSSRaw),
@@ -183,7 +208,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"pwaIcon192":         pwaIcon192,
 		"pwaIcon256":         pwaIcon256,
 		"pwaIcon512":         pwaIcon512,
-		"manifestURL":        staticURL + "/site.webmanifest",
+		"manifestURL":        manifestURL,
 	}
 
 	data["globalVars"] = map[string]interface{}{
@@ -267,12 +292,21 @@ func setContentType(w http.ResponseWriter, path string) {
 	}
 }
 
-// manifestHandler serves the cached PWA manifest
+// manifestHandler serves the cached PWA manifest, optionally scoped to a public share.
 func manifestHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/manifest+json")
 	w.Header().Set("Cache-Control", "public, max-age=3600") // Cache for 1 hour
 
-	if err := json.NewEncoder(w).Encode(icons.CachedManifest); err != nil {
+	manifest := icons.CachedManifest
+	if startURL := r.URL.Query().Get("start"); startURL != "" {
+		name := r.URL.Query().Get("name")
+		description := r.URL.Query().Get("description")
+		if shareManifest, ok := icons.ManifestForShare(config.Server.BaseURL, startURL, name, description); ok {
+			manifest = shareManifest
+		}
+	}
+
+	if err := json.NewEncoder(w).Encode(manifest); err != nil {
 		http.Error(w, "Failed to serve manifest", http.StatusInternalServerError)
 	}
 }

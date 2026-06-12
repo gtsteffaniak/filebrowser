@@ -2,6 +2,10 @@ import { reactive } from "vue";
 import { resourcesApi } from "@/api";
 import { mutations, state } from "@/store";
 import { getters } from "@/store/getters";
+import {
+  notifyUploadComplete,
+  notifyUploadError,
+} from "@/utils/desktopNotifications";
 
 /**
  * Accumulates every directory entry from a FileSystemDirectoryReader.
@@ -316,6 +320,7 @@ class UploadManager {
 
       upload.status = "completed";
       upload.progress = 100;
+      notifyUploadComplete(upload);
     } catch (err) {
       await this.handleUploadError(upload, err);
     } finally {
@@ -366,6 +371,7 @@ class UploadManager {
         upload.status = "completed";
         upload.progress = 100;
         upload.connectionIssue = false;
+        notifyUploadComplete(upload);
       } catch (err) {
         this.clearProgressTimeout(upload.id);
         await this.handleUploadError(upload, err);
@@ -449,6 +455,7 @@ class UploadManager {
       // If the loop finished without being paused/errored
       upload.status = "completed";
       upload.progress = 100;
+      notifyUploadComplete(upload);
       upload.connectionIssue = false;
     }
 
@@ -661,6 +668,7 @@ class UploadManager {
         upload.connectionIssue = false;
         upload.errorDetails = this.formatErrorMessage(err);
       }
+      notifyUploadError(upload.name, upload.errorDetails);
     } else {
       // Upload was aborted - preserve connectionIssue flag if it was already set
       // (e.g., if we paused due to timeout, keep the connection issue flag)

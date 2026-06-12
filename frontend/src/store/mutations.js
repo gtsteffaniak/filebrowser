@@ -5,6 +5,7 @@ import { notify } from "@/notify";
 import { url } from "@/utils";
 import { getTypeInfo } from "@/utils/mimetype";
 import { sortedItems } from "@/utils/sort.js";
+import { updateManifestLink } from "@/utils/pwaManifest";
 import { emitStateChanged } from './eventBus';
 import { getters } from "./getters.js";
 import { state } from "./state.js";
@@ -435,6 +436,29 @@ export const mutations = {
         }
       }
 
+      if (!state.user.desktopNotifications) {
+        state.user.desktopNotifications = {
+          enabled: false,
+          upload: true,
+          download: true,
+          moveCopy: true,
+          errors: true,
+        };
+      } else {
+        if (state.user.desktopNotifications.upload === undefined) {
+          state.user.desktopNotifications.upload = true;
+        }
+        if (state.user.desktopNotifications.download === undefined) {
+          state.user.desktopNotifications.download = true;
+        }
+        if (state.user.desktopNotifications.moveCopy === undefined) {
+          state.user.desktopNotifications.moveCopy = true;
+        }
+        if (state.user.desktopNotifications.errors === undefined) {
+          state.user.desktopNotifications.errors = true;
+        }
+      }
+
       // Load stored values or use defaults as fallback
       const isAnonymous = state.user.username === 'anonymous';
       const encoded = !isAnonymous ? url.base64Encode(state.user.username) : '';
@@ -473,6 +497,7 @@ export const mutations = {
       return;
     }
     state.shareInfo = newShare;
+    updateManifestLink();
     emitStateChanged();
   },
   clearShareData: () => {
@@ -490,6 +515,7 @@ export const mutations = {
       title: "",
       description: "",
     };
+    updateManifestLink();
     emitStateChanged();
   },
   setSession: (value) => {
@@ -602,6 +628,7 @@ export const mutations = {
           "showFirstLogin",
           "sidebarLinks",
           "fileLoading",
+          "desktopNotifications",
           "deleteAfterArchive",
           "preferEditorForMarkdown",
         ].includes(key)
@@ -1078,6 +1105,7 @@ export const mutations = {
       return;
     }
     state.shareInfo = shareInfo;
+    updateManifestLink();
     emitStateChanged();
   },
   setSidebarWidth: (value) => {

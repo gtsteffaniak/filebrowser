@@ -8,6 +8,12 @@
       <a :href="releaseUrl">{{ $t("sidebar.updateIsAvailable") }}</a>
       <i @click="setSeenUpdate" aria-label="close-banner" class="material-symbols">close</i>
     </div>
+    <div v-if="showPwaInstall" class="button release-banner">
+      <button type="button" class="button pwa-install-button" @click="installPwa">
+        {{ $t("pwa.install") }}
+      </button>
+      <i @click="dismissPwaInstall" aria-label="close-banner" class="material-symbols">close</i>
+    </div>
     <SidebarSettings v-if="isSettings"></SidebarSettings>
     <SidebarGeneral v-if="!isSettings"></SidebarGeneral>
     <div class="buffer"></div>
@@ -38,6 +44,7 @@
 <script>
 import { globalVars } from "@/utils/constants";
 import { getters, mutations, state } from "@/store"; // Import your custom store
+import { installAvailable, promptInstall } from "@/utils/pwaInstall";
 import SidebarGeneral from "./General.vue";
 import SidebarSettings from "./Settings.vue";
 
@@ -52,6 +59,7 @@ export default {
       resizeStartX: 0,
       resizeStartWidth: 0,
       previousSidebarSize: null, // Remember the previous width when switching from desktop to mobile.
+      pwaInstallDismissed: sessionStorage.getItem("pwaInstallDismissed") === "true",
     };
   },
   mounted() {
@@ -114,6 +122,9 @@ export default {
         !state.user.disableUpdateNotifications
       );
     },
+    showPwaInstall() {
+      return installAvailable.value && !this.pwaInstallDismissed && !this.isSettings;
+    },
   },
   methods: {
     getBaseFontSize() {
@@ -167,6 +178,13 @@ export default {
     },
     setSeenUpdate() {
       mutations.setSeenUpdate(globalVars.updateAvailable);
+    },
+    async installPwa() {
+      await promptInstall();
+    },
+    dismissPwaInstall() {
+      this.pwaInstallDismissed = true;
+      sessionStorage.setItem("pwaInstallDismissed", "true");
     },
   },
 };
@@ -267,6 +285,16 @@ body.rtl .action {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1em;
+}
+
+.pwa-install-button {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-align: left;
 }
 
 #sidebar.scrollable {

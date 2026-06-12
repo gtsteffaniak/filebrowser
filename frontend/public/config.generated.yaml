@@ -210,6 +210,12 @@ userDefaults:
     uploadChunkSizeMb: 10
     clearAll: false
     downloadChunkSizeMb: 0
+  desktopNotifications:
+    enabled: false
+    upload: true
+    download: true
+    moveCopy: true
+    errors: true
   account:
     permissions:
       api: false                          # allow api access
