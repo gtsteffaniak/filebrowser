@@ -60,9 +60,14 @@ export async function openShareAndExpectPath(
 
   await expect(async () => {
     if (await sharePrompt.isVisible()) {
-      const pathText = (await sharePath.textContent())?.trim();
-      if (pathText === expectedPathText) {
-        return;
+      try {
+        await sharePath.waitFor({ state: "visible", timeout: 1000 });
+        const pathText = (await sharePath.textContent())?.trim();
+        if (pathText === expectedPathText) {
+          return;
+        }
+      } catch {
+        // sharePath not ready yet, continue to dismiss and retry
       }
       await dismissSharePrompt(page, sharePrompt);
     }
