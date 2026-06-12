@@ -20,6 +20,8 @@ type SearchOptions struct {
 	// MatchAllTerms, when true and non-wildcard search, an item must contain every term (AND). When false (default), any term matches (OR).
 	// For name GLOB wildcard search, name must match every pattern when true; when false, patterns are OR-combined in SQL.
 	MatchAllTerms bool
+	// Quoted is true when the search query was a double-quoted phrase; spaces are kept literal in name matching.
+	Quoted bool
 }
 
 // BuildSearchOptionsFromQuery merges optional repeated literal terms (HTTP "terms" parameters) with structured filter text ("query" prefix).
@@ -119,6 +121,7 @@ func ParseSearch(value string) SearchOptions {
 		unique = strings.TrimSuffix(unique, "\"")
 
 		opts.Terms = []string{unique}
+		opts.Quoted = true
 		return opts
 	}
 	value = strings.TrimSpace(value)
