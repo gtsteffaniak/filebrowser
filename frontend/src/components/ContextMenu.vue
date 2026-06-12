@@ -204,6 +204,7 @@ import buttons from "@/utils/buttons";
 import { copyToClipboard } from "@/utils/clipboard";
 import { globalVars } from "@/utils/constants.js";
 import downloadFiles from "@/utils/download";
+import { isRichTextPreviewMimeType } from "@/utils/mimetype";
 
 function isArchivePath(pathOrName) {
   if (!pathOrName || typeof pathOrName !== "string") return false;
@@ -478,7 +479,7 @@ export default {
     },
     markdownPreview() {
       if (getters.currentView() !== 'editor') return false;
-      return state.req.type === 'text/markdown';
+      return isRichTextPreviewMimeType(state.req.type);
     },
   },
   watch: {

@@ -3,7 +3,7 @@ import { mutations, state } from '@/store';
 import { url } from '@/utils';
 import { globalVars, previewViews, tools } from '@/utils/constants';
 import { getFileExtension } from '@/utils/files.js';
-import { getTypeInfo } from '@/utils/mimetype';
+import { getTypeInfo, isRichTextPreviewMimeType } from '@/utils/mimetype';
 import { fromNow } from '@/utils/moment';
 import { getNestedProperty, getObjectProperty } from '@/utils/object.js';
 import { buildItemUrl, removeLeadingSlash, removePrefix } from '@/utils/url.js';
@@ -336,13 +336,13 @@ export const getters = {
       if (state.req.onlyOfficeId && !getters.officeViewingDisabled(state.req.name)) return 'onlyOfficeEditor';
       if (getTypeInfo(state.req.type).simpleType === '3d-model') return 'threeJsViewer';
 
-      if ('content' in state.req && state.req.type === 'text/markdown') {
+      if ('content' in state.req && isRichTextPreviewMimeType(state.req.type)) {
         const hash = window.location.hash;
         const preferEditor = state.user.preferEditorForMarkdown;
 
         if (hash === '#edit') return 'editor';
         if (hash === '#preview') return 'markdownViewer';
-        if (preferEditor) return 'editor';
+        if (state.req.type === 'text/markdown' && preferEditor) return 'editor';
         return 'markdownViewer';
       }
 

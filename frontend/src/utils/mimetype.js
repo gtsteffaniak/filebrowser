@@ -38,6 +38,21 @@ export function isImageFilePath(path) {
   return IMAGE_FILE_EXTENSIONS.has(withoutSuffix.slice(dot).toLowerCase());
 }
 
+const RICH_TEXT_PREVIEW_MIME_TYPES = new Set([
+  "text/markdown",
+  "text/x-markdown",
+  "text/html",
+  "application/xhtml+xml",
+]);
+
+export function isRichTextPreviewMimeType(mimeType) {
+  return typeof mimeType === "string" && RICH_TEXT_PREVIEW_MIME_TYPES.has(mimeType);
+}
+
+export function isHtmlMimeType(mimeType) {
+  return mimeType === "text/html" || mimeType === "application/xhtml+xml";
+}
+
 export function getTypeInfo(mimeType) {
     if (!mimeType) {
         return {

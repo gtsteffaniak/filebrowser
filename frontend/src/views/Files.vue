@@ -29,6 +29,7 @@ import router from "@/router";
 import { extractSourceFromPath } from "@/utils/url";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { globalVars } from "@/utils/constants";
+import { isRichTextPreviewMimeType } from "@/utils/mimetype";
 
 function directoryListingHasMediaChildren(req) {
   return (
@@ -583,7 +584,7 @@ export default {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'e') {
         event.preventDefault();
         const currentFile = state.req;
-        if (currentFile?.type === 'text/markdown') {
+        if (isRichTextPreviewMimeType(currentFile?.type)) {
           const currentView = getters.currentView();
           if (currentView === 'editor') {
             void router.replace({ hash: '#preview' });
