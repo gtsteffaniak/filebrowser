@@ -247,7 +247,7 @@
     "useWildcardSearchDescription": "Opțiuni de wildcard acceptate:\n\n- Potrivește orice secvență: *\n\n- Potrivește un singur caracter: ?\n\n- Clasa de caractere: [a-z], [0-9]\n\n- Negație: [^0-9]\n\n- Literele *, ? sau [ trebuie să fie puse între paranteze, de exemplu [*], [?], [[]\n\n- Toate rezultatele sunt sensibile la majuscule",
     "openInAdvancedSearch": "Deschidere în căutarea avansată",
     "caseExact": "Căutare cu diferențiere între majuscule și minuscule",
-    "caseExactDescription": "Sincronizează numele fișierelor și folderelor folosind majuscule și minuscule exacte, în loc să ignore diferențele dintre majuscule și minuscule."
+    "caseExactDescription": "Compară numele fișierelor și folderelor folosind exact litere mari și mici, în loc să ignore diferențele dintre ele."
   },
   "settings": {
     "avoidChanges": "(lasă gol pentru a nu schimba)",
