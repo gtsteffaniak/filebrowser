@@ -6,7 +6,7 @@
       :key="req.path"
       class="html-content"
       :srcdoc="htmlPreview.srcdoc"
-      sandbox="allow-scripts allow-popups"
+      sandbox="allow-scripts allow-popups allow-same-origin"
       referrerpolicy="no-referrer"
       title="HTML preview"
     ></iframe>

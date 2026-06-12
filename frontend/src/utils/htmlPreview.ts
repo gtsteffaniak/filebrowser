@@ -168,7 +168,10 @@ export function rewriteHtmlResources(
   source: string,
 ): void {
   for (const [tag, attribute] of RESOURCE_ATTRIBUTES) {
-    doc.querySelectorAll(`${tag}[${attribute}]`).forEach((element) => {
+    doc.querySelectorAll(tag).forEach((element) => {
+      if (!element.hasAttribute(attribute)) {
+        return;
+      }
       if (tag === "link" && !shouldRewriteLinkHref(element)) {
         return;
       }
