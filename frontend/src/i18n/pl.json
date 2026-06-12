@@ -811,7 +811,6 @@
     "description": "Wyświetlanie wszystkich powiadomień z bieżącej sesji",
     "empty": "Brak powiadomień",
     "clearAll": "Wyczyść wszystko",
-    "total": "{count} powiadomienia",
     "appEnabled": "Powiadomienia w aplikacji",
     "appEnabledDescription": "Wyświetlaj powiadomienia przeglądarki po zakończeniu operacji na plikach, gdy ta karta jest w tle. Wymaga uprawnień przeglądarki. Dane są zapisywane wyłącznie w tej przeglądarce.",
     "appUnsupported": "W tej przeglądarce nie są obsługiwane powiadomienia z aplikacji.",
@@ -821,10 +820,6 @@
     "downloadTitle": "Pobierz całość",
     "moveTitle": "Operacja zakończona",
     "copyTitle": "Kopiowanie zakończone",
-    "moveBodySingle": "Wybrane elementy zostały pomyślnie przeniesione.",
-    "copyBodySingle": "Wybrane elementy zostały pomyślnie skopiowane.",
-    "moveBodyMultiple": "{count} przeniesiono wszystkie elementy.",
-    "copyBodyMultiple": "{count} Pliki zostały pomyślnie skopiowane.",
     "uploadFailedTitle": "Przesyłanie nie powiodło się",
     "downloadFailedTitle": "Pobieranie nie powiodło się",
     "operationFailedTitle": "Operacja nie powiodła się"

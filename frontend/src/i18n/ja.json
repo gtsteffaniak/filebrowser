@@ -811,7 +811,6 @@
     "description": "現在のセッションのすべての通知を表示する",
     "empty": "まだ通知なし",
     "clearAll": "すべてクリア",
-    "total": "{count} 通知",
     "appEnabled": "アプリの通知",
     "appEnabledDescription": "このタブがバックグラウンドにある間にファイル操作が完了した際、ブラウザに通知を表示します。ブラウザの権限が必要です。このブラウザにのみ保存されます。",
     "appUnsupported": "このブラウザではアプリ通知に対応していません。",
@@ -821,10 +820,6 @@
     "downloadTitle": "すべてダウンロード",
     "moveTitle": "移動が完了しました",
     "copyTitle": "コピー完了",
-    "moveBodySingle": "選択したアイテムは正常に移動されました。",
-    "copyBodySingle": "選択したアイテムは正常にコピーされました。",
-    "moveBodyMultiple": "{count} アイテムの移動が完了しました。",
-    "copyBodyMultiple": "{count} アイテムのコピーが完了しました。",
     "uploadFailedTitle": "アップロードに失敗しました",
     "downloadFailedTitle": "ダウンロードに失敗しました",
     "operationFailedTitle": "操作に失敗しました"

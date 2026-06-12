@@ -30,7 +30,7 @@
           {{ $t("notifications.clearAll") }}
         </button>
         <span class="notification-count">
-          {{ $t("notifications.total", { count: sortedNotifications.length }) }}
+          {{ formatNotificationCount(sortedNotifications.length) }}
         </span>
       </div>
 
@@ -83,12 +83,14 @@ import { fromNow } from "@/utils/moment";
 import { notify } from "@/notify";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import {
+  formatNotificationCount,
   getNotificationPermission,
   isAppNotificationsEnabled,
   isNotificationSupported,
   requestNotificationPermission,
   setAppNotificationsEnabled,
 } from "@/utils/appNotifications";
+import { restoreNotificationButtonAction } from "@/utils/notificationActions";
 
 export default {
   name: "Notifications",
@@ -103,23 +105,16 @@ export default {
   },
   computed: {
     sortedNotifications() {
-      const history = [...state.notificationHistory];
       const activeNotifications = notify.getNotifications();
-      history.forEach((historyEntry) => {
-        if (historyEntry.buttons) {
-          const activeNotification = activeNotifications.find((n) => n.id === historyEntry.id);
-          if (activeNotification?.buttons) {
-            historyEntry.buttons.forEach((historyButton, index) => {
-              const activeButton = activeNotification.buttons[index];
-              if (activeButton && typeof activeButton.action === "function") {
-                historyButton._action = activeButton.action;
-              }
-            });
-          }
-        }
-      });
-
-      return history.sort((a, b) => b.timestamp - a.timestamp);
+      return [...state.notificationHistory]
+        .map((entry) => ({
+          ...entry,
+          buttons: notify.resolveHistoryNotificationButtons(
+            entry.buttons,
+            activeNotifications.find((n) => n.id === entry.id)?.buttons
+          ),
+        }))
+        .sort((a, b) => b.timestamp - a.timestamp);
     },
     notificationsSupported() {
       return isNotificationSupported();
@@ -130,15 +125,14 @@ export default {
     this.notificationPermission = getNotificationPermission();
   },
   methods: {
+    formatNotificationCount,
     formatTimestamp(timestamp) {
       return fromNow(timestamp, state.user.locale);
     },
     handleButtonClick(button) {
-      const action = button._action || button.action;
+      const action = button._action || restoreNotificationButtonAction(button);
       if (typeof action === "function") {
         action();
-      } else if (button.actionType && button.actionData) {
-        console.warn("Button action cannot be restored from history. Action type:", button.actionType);
       }
     },
     clearHistory() {

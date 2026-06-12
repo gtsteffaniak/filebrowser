@@ -811,7 +811,6 @@
     "description": "檢視目前工作階段的所有通知",
     "empty": "尚未有通知",
     "clearAll": "全部清除",
-    "total": "{count} 則通知",
     "appEnabled": "應用程式通知",
     "appEnabledDescription": "當此分頁處於背景執行狀態時，若檔案操作完成，將顯示瀏覽器通知。需取得瀏覽器權限。僅儲存於此瀏覽器中。",
     "appUnsupported": "此瀏覽器不支援應用程式通知。",
@@ -821,10 +820,6 @@
     "downloadTitle": "下載完整版",
     "moveTitle": "移動完成",
     "copyTitle": "複製完成",
-    "moveBodySingle": "已成功移動所選項目。",
-    "copyBodySingle": "已成功複製所選項目。",
-    "moveBodyMultiple": "{count} 項目已成功移轉。",
-    "copyBodyMultiple": "{count} 項目已成功複製。",
     "uploadFailedTitle": "上傳失敗",
     "downloadFailedTitle": "下載失敗",
     "operationFailedTitle": "操作失敗"

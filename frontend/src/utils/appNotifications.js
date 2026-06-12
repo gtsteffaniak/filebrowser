@@ -74,6 +74,11 @@ function notificationIcon() {
   return new URL(`${normalizedBase}public/static/icons/pwa-icon-192.png`, window.location.origin).toString();
 }
 
+export function formatNotificationCount(count) {
+  const title = i18n.global.t("notifications.title");
+  return `${count} ${title.toLowerCase()}`;
+}
+
 function shouldNotify() {
   if (!isNotificationSupported()) {
     return false;
@@ -153,26 +158,13 @@ export function notifyDownloadError(name, errorDetails) {
 
 export function notifyMoveCopyComplete(operation, itemCount) {
   const t = i18n.global.t;
-  let title;
-  let body;
-
   if (operation === "move") {
-    title = t("notifications.moveTitle");
-    if (itemCount > 1) {
-      body = t("notifications.moveBodyMultiple", { count: itemCount });
-    } else {
-      body = t("notifications.moveBodySingle");
-    }
+    const title = t("notifications.moveTitle");
+    showNotification(title, `${itemCount} ${title.toLowerCase()}`, "move-done");
   } else {
-    title = t("notifications.copyTitle");
-    if (itemCount > 1) {
-      body = t("notifications.copyBodyMultiple", { count: itemCount });
-    } else {
-      body = t("notifications.copyBodySingle");
-    }
+    const title = t("notifications.copyTitle");
+    showNotification(title, `${itemCount} ${title.toLowerCase()}`, "copy-done");
   }
-
-  showNotification(title, body, `${operation}-done`);
 }
 
 export function notifyOperationError(message) {

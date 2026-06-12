@@ -811,7 +811,6 @@
     "description": "Geçerli oturumunuzdaki tüm bildirimleri görüntüleyin",
     "empty": "Henüz bildirim yok",
     "clearAll": "Tümünü Temizle",
-    "total": "{count} BİLDİRİMLER",
     "appEnabled": "Uygulama bildirimleri",
     "appEnabledDescription": "Bu sekme arka planda iken dosya işlemleri tamamlandığında tarayıcı bildirimlerini göster. Tarayıcı izni gerektirir. Yalnızca bu tarayıcıda saklanır.",
     "appUnsupported": "Bu tarayıcıda uygulama bildirimleri desteklenmemektedir.",
@@ -821,10 +820,6 @@
     "downloadTitle": "Tam sürümü indir",
     "moveTitle": "İşlem tamamlandı",
     "copyTitle": "Kopyalama tamamlandı",
-    "moveBodySingle": "Seçilen öğeler başarıyla taşındı.",
-    "copyBodySingle": "Seçilen öğeler başarıyla kopyalandı.",
-    "moveBodyMultiple": "{count} Öğeler başarıyla taşındı.",
-    "copyBodyMultiple": "{count} Öğeler başarıyla kopyalandı.",
     "uploadFailedTitle": "Yükleme başarısız",
     "downloadFailedTitle": "İndirme başarısız",
     "operationFailedTitle": "İşlem başarısız oldu"

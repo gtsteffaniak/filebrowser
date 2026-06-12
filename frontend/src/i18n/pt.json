@@ -811,7 +811,6 @@
     "description": "Ver todas as notificações da sua sessão atual",
     "empty": "Ainda não há notificações",
     "clearAll": "Limpar tudo",
-    "total": "{count} notificações",
     "appEnabled": "Notificações da aplicação",
     "appEnabledDescription": "Mostrar notificações do navegador quando as operações com ficheiros forem concluídas enquanto este separador estiver em segundo plano. Requer autorização do navegador. Guardado apenas neste navegador.",
     "appUnsupported": "As notificações de aplicações não são suportadas neste navegador.",
@@ -821,10 +820,6 @@
     "downloadTitle": "Descarregar na íntegra",
     "moveTitle": "Movimentação concluída",
     "copyTitle": "Cópia concluída",
-    "moveBodySingle": "Os itens selecionados foram movidos com sucesso.",
-    "copyBodySingle": "Os itens selecionados foram copiados com sucesso.",
-    "moveBodyMultiple": "{count} Os itens foram transferidos com sucesso.",
-    "copyBodyMultiple": "{count} Os itens foram copiados com sucesso.",
     "uploadFailedTitle": "Falha no carregamento",
     "downloadFailedTitle": "O download falhou",
     "operationFailedTitle": "A operação falhou"

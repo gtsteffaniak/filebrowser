@@ -811,7 +811,6 @@
     "description": "Zobrazenie všetkých oznámení z aktuálnej relácie",
     "empty": "Zatiaľ žiadne oznámenia",
     "clearAll": "Vymazať všetko",
-    "total": "{count} oznámenia",
     "appEnabled": "Oznámenia v aplikácii",
     "appEnabledDescription": "Zobrazovať oznámenia prehliadača po dokončení operácií so súbormi, keď je táto karta v pozadí. Vyžaduje povolenie prehliadača. Uložené iba v tomto prehliadači.",
     "appUnsupported": "Tento prehliadač nepodporuje oznámenia z aplikácií.",
@@ -821,10 +820,6 @@
     "downloadTitle": "Stiahnuť celé",
     "moveTitle": "Presun dokončený",
     "copyTitle": "Kopírovanie dokončené",
-    "moveBodySingle": "Vybrané položky boli úspešne presunuté.",
-    "copyBodySingle": "Vybrané položky boli úspešne skopírované.",
-    "moveBodyMultiple": "{count} Položky boli úspešne presunuté.",
-    "copyBodyMultiple": "{count} Položky boli úspešne skopírované.",
     "uploadFailedTitle": "Nahratie sa nepodarilo",
     "downloadFailedTitle": "Stiahnutie sa nepodarilo",
     "operationFailedTitle": "Operácia sa nepodarila"

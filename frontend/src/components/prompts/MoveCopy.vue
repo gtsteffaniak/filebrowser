@@ -82,7 +82,7 @@ import {
   notifyMoveCopyComplete,
   notifyOperationError,
 } from "@/utils/appNotifications";
-import { goToItem } from "@/utils/url";
+import { goToItemNotificationButton } from "@/utils/notificationActions";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
 import { eventBus } from '@/store/eventBus';
@@ -414,22 +414,18 @@ export default {
             const destSource = this.destSource;
             const destPath = this.destPath;
 
-            // Show success notification with optional button to navigate to destination
-            // For shares, destSource might be null, but goToItem handles shares via state.shareInfo.hash
-            const buttonAction = () => {
-              if (destPath) {
-                goToItem(destSource || state.shareInfo?.hash, destPath, {}, false, getters.isShare());
-              }
-            };
             const buttonProps = {
               icon: "folder",
-              buttons: destPath ? [
-                {
-                  label: this.$t("buttons.goToItem"),
-                  primary: true,
-                  action: buttonAction
-                }
-              ] : undefined
+              buttons: destPath
+                ? [
+                    goToItemNotificationButton(
+                      this.$t("buttons.goToItem"),
+                      destSource || state.shareInfo?.hash,
+                      destPath,
+                      getters.isShare()
+                    ),
+                  ]
+                : undefined,
             };
             if (this.operation === "move") {
               notify.showSuccess(this.$t("prompts.moveSuccess"), buttonProps);

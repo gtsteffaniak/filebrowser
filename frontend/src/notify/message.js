@@ -1,5 +1,6 @@
 import i18n from '@/i18n'
 import { mutations, state } from '@/store'
+import { resolveHistoryNotificationButtons } from '@/utils/notificationActions'
 
 /**
  * @typedef {Object} NotificationButton
@@ -589,3 +590,5 @@ export function showInfoToast(message, options = {}) {
 export function showWarningToast(message, options = {}) {
   showToast('warning', message, { duration: 2500, ...options })
 }
+
+export { resolveHistoryNotificationButtons }

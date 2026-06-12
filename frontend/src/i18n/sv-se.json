@@ -811,7 +811,6 @@
     "description": "Visa alla meddelanden från din aktuella session",
     "empty": "Inga meddelanden ännu",
     "clearAll": "Rensa alla",
-    "total": "{count} meddelanden",
     "appEnabled": "Appaviseringar",
     "appEnabledDescription": "Visa webbläsaraviseringar när filåtgärder slutförs medan den här fliken är i bakgrunden. Kräver behörighet i webbläsaren. Sparas endast i den här webbläsaren.",
     "appUnsupported": "Appaviseringar stöds inte i den här webbläsaren.",
@@ -821,10 +820,6 @@
     "downloadTitle": "Ladda ner hela filen",
     "moveTitle": "Flytten är klar",
     "copyTitle": "Kopieringen är klar",
-    "moveBodySingle": "De valda objekten har flyttats.",
-    "copyBodySingle": "De valda objekten har kopierats.",
-    "moveBodyMultiple": "{count} Objekten har flyttats.",
-    "copyBodyMultiple": "{count} Objekten har kopierats.",
     "uploadFailedTitle": "Uppladdningen misslyckades",
     "downloadFailedTitle": "Nedladdningen misslyckades",
     "operationFailedTitle": "Åtgärden misslyckades"

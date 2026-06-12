@@ -811,7 +811,6 @@
     "description": "عرض جميع التنبيهات من جلستك الحالية",
     "empty": "لا توجد إخطارات حتى الآن",
     "clearAll": "مسح الكل",
-    "total": "{count} الإخطارات",
     "appEnabled": "إشعارات التطبيقات",
     "appEnabledDescription": "عرض إشعارات المتصفح عند انتهاء عمليات الملفات أثناء وجود علامة التبويب هذه في الخلفية. يتطلب إذنًا من المتصفح. يتم تخزينها في هذا المتصفح فقط.",
     "appUnsupported": "لا يدعم هذا المتصفح إشعارات التطبيقات.",
@@ -821,10 +820,6 @@
     "downloadTitle": "تنزيل الملف بالكامل",
     "moveTitle": "اكتملت العملية",
     "copyTitle": "اكتملت النسخ",
-    "moveBodySingle": "تم نقل العناصر المحددة بنجاح.",
-    "copyBodySingle": "تم نسخ العناصر المحددة بنجاح.",
-    "moveBodyMultiple": "{count} تم نقل العناصر بنجاح.",
-    "copyBodyMultiple": "{count} تم نسخ العناصر بنجاح.",
     "uploadFailedTitle": "فشل التحميل",
     "downloadFailedTitle": "فشل التنزيل",
     "operationFailedTitle": "فشلت العملية"

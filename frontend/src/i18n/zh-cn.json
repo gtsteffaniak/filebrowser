@@ -811,7 +811,6 @@
     "description": "查看当前会话的所有通知",
     "empty": "尚无通知",
     "clearAll": "全部清除",
-    "total": "{count} 通知",
     "appEnabled": "应用通知",
     "appEnabledDescription": "当此标签页处于后台时，在文件操作完成后显示浏览器通知。需要浏览器权限。仅存储于此浏览器中。",
     "appUnsupported": "此浏览器不支持应用通知。",
@@ -821,10 +820,6 @@
     "downloadTitle": "下载完成",
     "moveTitle": "移动完成",
     "copyTitle": "复制完成",
-    "moveBodySingle": "已成功移动所选项目。",
-    "copyBodySingle": "已成功复制所选项目。",
-    "moveBodyMultiple": "{count} 项目已成功移动。",
-    "copyBodyMultiple": "{count} 项目已成功复制。",
     "uploadFailedTitle": "上传失败",
     "downloadFailedTitle": "下载失败",
     "operationFailedTitle": "操作失败"

@@ -811,7 +811,6 @@
     "description": "현재 세션의 모든 알림 보기",
     "empty": "아직 알림이 없습니다.",
     "clearAll": "모두 지우기",
-    "total": "{count} 알림",
     "appEnabled": "앱 알림",
     "appEnabledDescription": "이 탭이 백그라운드에 있을 때 파일 작업이 완료되면 브라우저 알림을 표시합니다. 브라우저 권한이 필요합니다. 이 브라우저에만 저장됩니다.",
     "appUnsupported": "이 브라우저에서는 앱 알림이 지원되지 않습니다.",
@@ -821,10 +820,6 @@
     "downloadTitle": "전체 다운로드",
     "moveTitle": "이동이 완료되었습니다",
     "copyTitle": "복사 완료",
-    "moveBodySingle": "선택한 항목이 성공적으로 이동되었습니다.",
-    "copyBodySingle": "선택한 항목이 성공적으로 복사되었습니다.",
-    "moveBodyMultiple": "{count} 항목이 성공적으로 이동되었습니다.",
-    "copyBodyMultiple": "{count} 항목이 성공적으로 복사되었습니다.",
     "uploadFailedTitle": "업로드에 실패했습니다",
     "downloadFailedTitle": "다운로드에 실패했습니다",
     "operationFailedTitle": "작업이 실패했습니다"

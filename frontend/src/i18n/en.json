@@ -802,7 +802,6 @@
     "description": "View all notifications from your current session",
     "empty": "No notifications yet",
     "clearAll": "Clear All",
-    "total": "{count} notifications",
     "appEnabled": "App notifications",
     "appEnabledDescription": "Show browser notifications when file operations finish while this tab is in the background. Requires browser permission. Stored in this browser only.",
     "appUnsupported": "App notifications are not supported in this browser.",
@@ -812,10 +811,6 @@
     "downloadTitle": "Download complete",
     "moveTitle": "Move complete",
     "copyTitle": "Copy complete",
-    "moveBodySingle": "The selected items were moved successfully.",
-    "copyBodySingle": "The selected items were copied successfully.",
-    "moveBodyMultiple": "{count} items were moved successfully.",
-    "copyBodyMultiple": "{count} items were copied successfully.",
     "uploadFailedTitle": "Upload failed",
     "downloadFailedTitle": "Download failed",
     "operationFailedTitle": "Operation failed"

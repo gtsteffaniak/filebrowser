@@ -811,7 +811,6 @@
     "description": "Vizualizați toate notificările din sesiunea curentă",
     "empty": "Nu există încă notificări",
     "clearAll": "Ștergeți tot",
-    "total": "{count} notificări",
     "appEnabled": "Notificări din aplicații",
     "appEnabledDescription": "Afișează notificări în browser la finalizarea operațiunilor cu fișiere atunci când această filă se află în fundal. Necesită permisiunea browserului. Se salvează numai în acest browser.",
     "appUnsupported": "Notificările aplicațiilor nu sunt acceptate în acest browser.",
@@ -821,10 +820,6 @@
     "downloadTitle": "Descărcare completă",
     "moveTitle": "Mutarea s-a finalizat",
     "copyTitle": "Copiere finalizată",
-    "moveBodySingle": "Articolele selectate au fost mutate cu succes.",
-    "copyBodySingle": "Elementele selectate au fost copiate cu succes.",
-    "moveBodyMultiple": "{count} elementele au fost mutate cu succes.",
-    "copyBodyMultiple": "{count} Elementele au fost copiate cu succes.",
     "uploadFailedTitle": "Încărcarea a eșuat",
     "downloadFailedTitle": "Descărcarea a eșuat",
     "operationFailedTitle": "Operațiunea a eșuat"
