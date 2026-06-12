@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
-## v1.4.5
+## v1.5.0
 
  **New Features**:
  - Added basic html viewer with relative reference support (#2522)
@@ -10,9 +10,20 @@ All notable changes to this project will be documented in this file. For commit 
  - Enhanced search
    - now uses "lazy" match by default. (#2509)
    - added missing `case sensitive` option in the UI
+ - Progressive Web App (PWA) improvements
+   - restored install prompt with sidebar install button (#2086)
+   - camera and video capture buttons on upload (mobile-friendly `capture` inputs)
+   - send files to other apps via the Web Share API (`Send to app` in the context menu)
+ - App notifications for file operations (#2478)
+   - optional browser notifications when uploads, chunked downloads, move/copy, or failures finish while the tab is in the background
+   - single on/off toggle in Notifications settings, stored in browser local storage
 
  **Notes**:
- - [docker] upgraded ffmpeg version 8.1 > 8.1.1
+ - [docker] upgraded ffmpeg version 8.1 to 8.1.1
+
+ **BugFixes**:
+ - fixed PWA manifest `scope` and `id` so install works when the app is served under a base URL
+ - installing a public share as a PWA now opens the share URL instead of the site root (#2302)
 
 ## v1.4.4
 

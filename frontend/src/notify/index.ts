@@ -9,6 +9,7 @@ const notify = {
     pauseAutoClose: messageFunctions.pauseAutoClose,
     resumeAutoClose: messageFunctions.resumeAutoClose,
     getNotificationProgress: messageFunctions.getNotificationProgress,
+    resolveHistoryNotificationButtons: messageFunctions.resolveHistoryNotificationButtons,
     // Toast functions
     showToast: messageFunctions.showToast,
     showSuccessToast: messageFunctions.showSuccessToast,

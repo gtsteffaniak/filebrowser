@@ -36,6 +36,7 @@ import { resourcesApi } from "@/api";
 import { getters, mutations, state } from "@/store"; // Import your custom store
 import { url } from "@/utils";
 import { notify } from "@/notify";
+import { goToItemNotificationButton } from "@/utils/notificationActions";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 export default {
   name: "new-dir",
@@ -112,16 +113,16 @@ export default {
     },
 
     showNotification(source, newPath) {
-      const buttonAction = () => {
-        url.goToItem(source, newPath, {}, false, getters.isShare());
-      };
       const buttonProps = {
         icon: "folder",
-        buttons: [{
-          label: this.$t("buttons.goToItem"),
-          primary: true,
-          action: buttonAction
-        }]
+        buttons: [
+          goToItemNotificationButton(
+            this.$t("buttons.goToItem"),
+            source,
+            newPath,
+            getters.isShare()
+          ),
+        ],
       };
       notify.showSuccess(this.$t("prompts.newDirSuccess"), buttonProps);
     },

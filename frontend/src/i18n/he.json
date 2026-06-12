@@ -29,7 +29,8 @@
     "goToItem": "עבור לפריט",
     "copyPath": "העתק נתיב",
     "pinItem": "נעץ",
-    "unpinItem": "הסר נעיצה"
+    "unpinItem": "הסר נעיצה",
+    "sendToApp": "שלח לאפליקציה"
   },
   "errors": {
     "forbidden": "אין לך הרשאות גישה",
@@ -574,7 +575,9 @@
     "no": "לא{suffix}",
     "to": "אל{suffix}",
     "and": "ו-{suffix}",
-    "or": "או{suffix}"
+    "or": "או{suffix}",
+    "camera": "מצלמה{suffix}",
+    "video": "סרטון{suffix}"
   },
   "access": {
     "rules": "כללי גישה",
@@ -808,7 +811,18 @@
     "description": "הצג את כל ההודעות מהפעלה הנוכחית שלך",
     "empty": "אין עדיין הודעות",
     "clearAll": "נקה הכל",
-    "total": "{count} הודעות"
+    "appEnabled": "התראות באפליקציה",
+    "appEnabledDescription": "הצג התראות דפדפן עם סיום פעולות הקובץ כאשר הכרטיסייה נמצאת ברקע. דורש הרשאת דפדפן. נשמר בדפדפן זה בלבד.",
+    "appUnsupported": "הודעות האפליקציה אינן נתמכות בדפדפן זה.",
+    "permissionGranted": "מותר",
+    "permissionDeniedHelp": "ההודעות חסומות. הפעל אותן בהגדרות הדפדפן עבור אתר זה.",
+    "uploadTitle": "ההעלאה הושלמה",
+    "downloadTitle": "ההורדה הושלמה",
+    "moveTitle": "הפעולה הושלמה",
+    "copyTitle": "ההעתקה הושלמה",
+    "uploadFailedTitle": "ההעלאה נכשלה",
+    "downloadFailedTitle": "ההורדה נכשלה",
+    "operationFailedTitle": "הפעולה נכשלה"
   },
   "events": {
     "serverShutdown": "השרת כובה.",
@@ -861,5 +875,8 @@
     "documentDownload": "הורדת מסמך - מלא",
     "editorSuccess": "אתחול העורך - הצלחה! כל השלבים הושלמו.",
     "setupError": "שגיאת התקנה"
+  },
+  "pwa": {
+    "install": "התקן את האפליקציה"
   }
 }

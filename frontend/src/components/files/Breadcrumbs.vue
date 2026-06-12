@@ -37,6 +37,7 @@ import { notify } from "@/notify";
 import { getters, mutations, state } from "@/store";
 import { url } from "@/utils";
 import { getObjectProperty } from '@/utils/object.js';
+import { goToItemNotificationButton } from "@/utils/notificationActions";
 
 export default {
   name: "breadcrumbs",
@@ -278,17 +279,16 @@ export default {
             await resourcesApi.moveCopy(itemsToMove, "move", overwrite, rename);
           }
 
-          const buttonAction = () => {
-            url.goToItem(source, targetPath, {}, false, getters.isShare());
-          };
-
           notify.showSuccess(this.$t("prompts.moveSuccess"), {
             icon: "folder",
-            buttons: [{
-              label: this.$t("buttons.goToItem"),
-              primary: true,
-              action: buttonAction
-            }]
+            buttons: [
+              goToItemNotificationButton(
+                this.$t("buttons.goToItem"),
+                source,
+                targetPath,
+                getters.isShare()
+              ),
+            ],
           });
           mutations.closeTopPrompt();
           mutations.setReload(true);

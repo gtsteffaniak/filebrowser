@@ -95,12 +95,6 @@ func (s *Scanner) executeScan() {
 			s.fullScanCounter = 0
 		}
 	})
-	scanMode := "full"
-	if quick {
-		scanMode = "quick"
-	}
-	logger.Debugf("[%s] scanner [%s] starting %s scan (full/quick cadence step %d of 5)", s.idx.Name, s.scanPath, scanMode, pre+1)
-
 	s.runIndexing(quick)
 	s.updateSchedule()
 }

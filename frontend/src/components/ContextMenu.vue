@@ -83,6 +83,12 @@
         @action="startDownload"
       />
       <action
+        v-if="showSendToApp"
+        icon="ios_share"
+        :label="$t('buttons.sendToApp')"
+        @action="sendToApp"
+      />
+      <action
         v-if="showUnarchive"
         icon="unarchive"
         :label="$t('prompts.unarchive')"
@@ -185,6 +191,7 @@
       <action v-if="isPreview && permissions.modify" icon="edit" :label="$t('general.rename')" @action="showRenamePromptForPreview" />
       <action v-if="showWatch" icon="visibility" :label="$t('buttons.watchFile')" @action="watchFile()" />
       <action v-if="hasDownload" icon="file_download" :label="$t('general.download')" @action="startDownload" />
+      <action v-if="showSendToAppInPreview" icon="ios_share" :label="$t('buttons.sendToApp')" @action="sendToAppFromPreview" />
       <action v-if="showUnarchiveInOverflow" icon="folder_open" :label="$t('prompts.unarchive')" @action="showUnarchivePromptFromPreview" />
       <action v-if="showEdit" icon="edit" :label="$t('general.edit')" @action="edit()" />
       <action v-if="markdownPreview" icon="visibility" :label="$t('general.preview')" @action="switchToMarkdown" />
@@ -204,6 +211,7 @@ import buttons from "@/utils/buttons";
 import { copyToClipboard } from "@/utils/clipboard";
 import { globalVars } from "@/utils/constants.js";
 import downloadFiles from "@/utils/download";
+import { canNativeShare, nativeShareFile } from "@/utils/nativeShare";
 import { isRichTextPreviewMimeType } from "@/utils/mimetype";
 
 function isArchivePath(pathOrName) {
@@ -328,6 +336,18 @@ export default {
     showShareAction() {
       if (this.showLimitedOptions) return false;
       return this.selectedCount <= 1 && this.showShare;
+    },
+    showSendToApp() {
+      if (!canNativeShare()) return false;
+      if (this.showLimitedOptions || this.showCreate) return false;
+      if (!this.permissions.download || this.selectedCount !== 1) return false;
+      const item = this.firstSelected;
+      return item && !item.isDir && item.type !== "directory";
+    },
+    showSendToAppInPreview() {
+      if (!canNativeShare()) return false;
+      if (!this.hasDownload || this.req?.isDir) return false;
+      return this.isPreview;
     },
     showRename() {
       if (this.showLimitedOptions) return false;
@@ -693,6 +713,17 @@ export default {
       mutations.closeTopPrompt();
       const items = this.providedItems;
       downloadFiles(items);
+    },
+    async sendToApp() {
+      mutations.closeTopPrompt();
+      const item = this.firstSelected;
+      if (!item) return;
+      await nativeShareFile(item);
+    },
+    async sendToAppFromPreview() {
+      mutations.closeTopPrompt();
+      if (!this.req) return;
+      await nativeShareFile(this.req);
     },
     showDeletePrompt() {
       mutations.closeTopPrompt();

@@ -81,6 +81,7 @@ import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import { state, getters, mutations } from '@/store';
 import { eventBus } from '@/store/eventBus';
 import { goToItem, joinPath } from '@/utils/url';
+import { goToItemNotificationButton } from '@/utils/notificationActions';
 import { notify } from '@/notify';
 import { getObjectProperty } from '@/utils/object.js';
 
@@ -587,20 +588,16 @@ export default {
           } else {
             await resourcesApi.moveCopy(items, 'move', overwrite, rename);
           }
-          const buttonAction = () => {
-            if (this.isShare) {
-              goToItem(this.shareHash, node.path, {}, false, true);
-            } else {
-              goToItem(this.currentSource, node.path, {});
-            }
-          };
           const buttonProps = {
             icon: 'folder',
-            buttons: [{
-              label: this.$t('buttons.goToItem'),
-              primary: true,
-              action: buttonAction,
-            }]
+            buttons: [
+              goToItemNotificationButton(
+                this.$t('buttons.goToItem'),
+                this.isShare ? this.shareHash : this.currentSource,
+                node.path,
+                this.isShare
+              ),
+            ],
           };
           notify.showSuccess(this.$t('prompts.moveSuccess'), buttonProps);
           mutations.closeTopPrompt();

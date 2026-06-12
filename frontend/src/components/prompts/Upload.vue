@@ -56,6 +56,22 @@
             >
               {{ $t("general.folder") }}
             </button>
+            <button
+              type="button"
+              style="margin-left: 1em"
+              @click="triggerCameraPicker"
+              class="button button--flat"
+            >
+              {{ $t("general.camera") }}
+            </button>
+            <button
+              type="button"
+              style="margin-left: 1em"
+              @click="triggerVideoPicker"
+              class="button button--flat"
+            >
+              {{ $t("general.video") }}
+            </button>
           </div>
         </div>
       </div>
@@ -189,6 +205,10 @@
   <input ref="fileInput" @change="onFilePicked" type="file" multiple style="display: none" />
   <input ref="folderInput" @change="onFolderPicked" type="file" webkitdirectory directory multiple
     style="display: none" />
+  <input ref="cameraInput" @change="onFilePicked" type="file" accept="image/*" capture="environment"
+    style="display: none" />
+  <input ref="videoInput" @change="onFilePicked" type="file" accept="video/*" capture="environment"
+    style="display: none" />
 </template>
 
 <script>
@@ -246,6 +266,8 @@ export default {
   setup(props) {
     const fileInput = ref(null);
     const folderInput = ref(null);
+    const cameraInput = ref(null);
+    const videoInput = ref(null);
     const files = computed(() => uploadManager.queue);
     const isDragging = ref(false);
     const showConflictPrompt = ref(false);
@@ -489,6 +511,14 @@ export default {
       if (folderInput.value) folderInput.value.click();
     };
 
+    const triggerCameraPicker = () => {
+      if (cameraInput.value) cameraInput.value.click();
+    };
+
+    const triggerVideoPicker = () => {
+      if (videoInput.value) videoInput.value.click();
+    };
+
     const onFilePicked = (event) => {
       const pickedFiles = event.target.files;
       if (pickedFiles.length > 0) {
@@ -637,10 +667,14 @@ export default {
     return {
       triggerFilePicker,
       triggerFolderPicker,
+      triggerCameraPicker,
+      triggerVideoPicker,
       onFilePicked,
       onFolderPicked,
       fileInput,
       folderInput,
+      cameraInput,
+      videoInput,
       files,
       isDragging,
       onDragEnter,

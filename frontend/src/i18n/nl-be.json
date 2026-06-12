@@ -29,7 +29,8 @@
     "goToItem": "Ga naar item",
     "copyPath": "Kopieer pad",
     "pinItem": "Vastzetten",
-    "unpinItem": "Losmaken"
+    "unpinItem": "Losmaken",
+    "sendToApp": "Naar app verzenden"
   },
   "errors": {
     "forbidden": "U hebt geen rechten om hier toegang toe te krijgen.",
@@ -668,7 +669,9 @@
     "no": "Geen{suffix}",
     "to": "naar{suffix}",
     "and": "en{suffix}",
-    "or": "of{suffix}"
+    "or": "of{suffix}",
+    "camera": "Camera{suffix}",
+    "video": "Video{suffix}"
   },
   "access": {
     "rules": "Toegangsregels",
@@ -808,7 +811,18 @@
     "description": "Alle meldingen van je huidige sessie bekijken",
     "empty": "Nog geen meldingen",
     "clearAll": "Alles wissen",
-    "total": "{count} meldingen"
+    "appEnabled": "App-meldingen",
+    "appEnabledDescription": "Toon browsermeldingen wanneer bestandsbewerkingen zijn voltooid terwijl dit tabblad op de achtergrond staat. Hiervoor is toestemming van de browser vereist. Wordt alleen in deze browser opgeslagen.",
+    "appUnsupported": "App-meldingen worden in deze browser niet ondersteund.",
+    "permissionGranted": "toegestaan",
+    "permissionDeniedHelp": "Meldingen zijn geblokkeerd. Schakel ze in de instellingen van je browser voor deze website in.",
+    "uploadTitle": "Uploaden voltooid",
+    "downloadTitle": "Download voltooid",
+    "moveTitle": "Verplaatsing voltooid",
+    "copyTitle": "Kopiëren voltooid",
+    "uploadFailedTitle": "Het uploaden is mislukt",
+    "downloadFailedTitle": "Het downloaden is mislukt",
+    "operationFailedTitle": "De bewerking is mislukt"
   },
   "events": {
     "serverShutdown": "De server is uitgeschakeld.",
@@ -861,5 +875,8 @@
     "documentDownload": "Document downloaden - Compleet",
     "editorSuccess": "Initialisatie Editor - Succes! Alle stappen voltooid.",
     "setupError": "Setup-fout"
+  },
+  "pwa": {
+    "install": "App installeren"
   }
 }

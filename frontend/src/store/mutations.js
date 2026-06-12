@@ -6,6 +6,7 @@ import { url } from "@/utils";
 import { getTypeInfo } from "@/utils/mimetype";
 import { getObjectProperty, setObjectProperty, omitObjectProperty } from '@/utils/object.js';
 import { sortedItems } from "@/utils/sort.js";
+import { updateManifestLink } from "@/utils/pwaManifest";
 import { emitStateChanged } from './eventBus';
 import { getters } from "./getters.js";
 import { state } from "./state.js";
@@ -480,6 +481,7 @@ export const mutations = {
       return;
     }
     state.shareInfo = newShare;
+    updateManifestLink();
     emitStateChanged();
   },
   clearShareData: () => {
@@ -497,6 +499,7 @@ export const mutations = {
       title: "",
       description: "",
     };
+    updateManifestLink();
     emitStateChanged();
   },
   setSession: (value) => {
@@ -1069,6 +1072,7 @@ export const mutations = {
       return;
     }
     state.shareInfo = shareInfo;
+    updateManifestLink();
     emitStateChanged();
   },
   setSidebarWidth: (value) => {

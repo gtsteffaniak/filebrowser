@@ -87,6 +87,8 @@
     "download": "Download{suffix}",
     "file": "File{suffix}",
     "folder": "Folder{suffix}",
+    "camera": "Camera{suffix}",
+    "video": "Video{suffix}",
     "info": "Info{suffix}",
     "move": "Move{suffix}",
     "new": "New{suffix}",
@@ -148,7 +150,8 @@
     "goToItem": "Go to item",
     "goToSource": "Go to Source Location",
     "pinItem": "Pin",
-    "unpinItem": "Unpin"
+    "unpinItem": "Unpin",
+    "sendToApp": "Send to app"
   },
   "errors": {
     "forbidden": "You don't have permissions to access this.",
@@ -799,7 +802,18 @@
     "description": "View all notifications from your current session",
     "empty": "No notifications yet",
     "clearAll": "Clear All",
-    "total": "{count} notifications"
+    "appEnabled": "App notifications",
+    "appEnabledDescription": "Show browser notifications when file operations finish while this tab is in the background. Requires browser permission. Stored in this browser only.",
+    "appUnsupported": "App notifications are not supported in this browser.",
+    "permissionGranted": "allowed",
+    "permissionDeniedHelp": "Notifications are blocked. Enable them in your browser settings for this site.",
+    "uploadTitle": "Upload complete",
+    "downloadTitle": "Download complete",
+    "moveTitle": "Move complete",
+    "copyTitle": "Copy complete",
+    "uploadFailedTitle": "Upload failed",
+    "downloadFailedTitle": "Download failed",
+    "operationFailedTitle": "Operation failed"
   },
   "duplicateFinder": {
     "minSize": "Minimum Size (MB){suffix}",
@@ -861,5 +875,8 @@
     "documentDownload": "Document Download - Complete",
     "editorSuccess": "Editor Initialization - Success! All steps completed.",
     "setupError": "Setup Error"
+  },
+  "pwa": {
+    "install": "Install app"
   }
 }

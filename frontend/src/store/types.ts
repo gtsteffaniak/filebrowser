@@ -94,6 +94,7 @@ export interface UserObject {
     maxConcurrentUpload?: number;
     uploadChunkSizeMb?: number;
     clearAll?: boolean;
+    downloadChunkSizeMb?: number;
   };
 }
 

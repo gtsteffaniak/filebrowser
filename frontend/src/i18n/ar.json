@@ -29,7 +29,8 @@
     "goToItem": "انتقل إلى العنصر",
     "copyPath": "مسار النسخ",
     "pinItem": "تثبيت",
-    "unpinItem": "إلغاء التثبيت"
+    "unpinItem": "إلغاء التثبيت",
+    "sendToApp": "إرسال إلى التطبيق"
   },
   "errors": {
     "forbidden": "You don't have permissions to access this.",
@@ -574,7 +575,9 @@
     "no": "لا يوجد{suffix}",
     "to": "إلى{suffix}",
     "and": "و{suffix}",
-    "or": "أو{suffix}"
+    "or": "أو{suffix}",
+    "camera": "الكاميرا{suffix}",
+    "video": "فيديو{suffix}"
   },
   "access": {
     "rules": "قواعد الوصول",
@@ -808,7 +811,18 @@
     "description": "عرض جميع التنبيهات من جلستك الحالية",
     "empty": "لا توجد إخطارات حتى الآن",
     "clearAll": "مسح الكل",
-    "total": "{count} الإخطارات"
+    "appEnabled": "إشعارات التطبيقات",
+    "appEnabledDescription": "عرض إشعارات المتصفح عند انتهاء عمليات الملفات أثناء وجود علامة التبويب هذه في الخلفية. يتطلب إذنًا من المتصفح. يتم تخزينها في هذا المتصفح فقط.",
+    "appUnsupported": "لا يدعم هذا المتصفح إشعارات التطبيقات.",
+    "permissionGranted": "مسموح",
+    "permissionDeniedHelp": "تم حظر الإشعارات. قم بتمكينها في إعدادات متصفحك لهذا الموقع.",
+    "uploadTitle": "اكتمل التحميل",
+    "downloadTitle": "تنزيل الملف بالكامل",
+    "moveTitle": "اكتملت العملية",
+    "copyTitle": "اكتملت النسخ",
+    "uploadFailedTitle": "فشل التحميل",
+    "downloadFailedTitle": "فشل التنزيل",
+    "operationFailedTitle": "فشلت العملية"
   },
   "events": {
     "serverShutdown": "تم إيقاف تشغيل الخادم.",
@@ -861,5 +875,8 @@
     "documentDownload": "تنزيل المستند - مكتمل",
     "editorSuccess": "تهيئة المحرر - نجاح! اكتملت جميع الخطوات.",
     "setupError": "خطأ في الإعداد"
+  },
+  "pwa": {
+    "install": "تثبيت التطبيق"
   }
 }
