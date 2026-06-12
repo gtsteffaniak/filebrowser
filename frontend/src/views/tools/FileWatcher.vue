@@ -374,7 +374,7 @@ export default {
       this.lastUpdateTime = null;
 
       // Check if user has realtime permissions - if so, always use SSE regardless of interval
-      const realtimePerm = state.user.permissions?.realtime;
+      const realtimePerm = state.user?.permissions?.realtime;
       const hasRealtime = realtimePerm === true;
       const useRealtime = hasRealtime;
 

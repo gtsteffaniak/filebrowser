@@ -416,7 +416,7 @@ async function chunkedRangeDownloadToBlob(
     const progressUpdateInterval = Math.max(50000, expectedChunkSize / 50)
 
     try {
-      let reading
+      let reading = true
       while (reading) {
         const { done, value } = await reader.read()
         if (done) {

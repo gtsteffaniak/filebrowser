@@ -137,12 +137,14 @@ export const mutations = {
       for (const [k, source] of Object.entries(value)) {
         const existing = getObjectProperty(info, k);
         if (existing) {
+          const used = Number(source.used) || 0;
+          const total = Number(source.total) || 0;
           const updated = {
             ...existing,
-            used: source.used || 0,
+            used,
             usedAlt: source.usedAlt || 0,
-            total: source.total || 0,
-            usedPercentage: source.total ? Math.round((source.used / source.total) * 100) : 0,
+            total,
+            usedPercentage: total > 0 ? Math.round((used / total) * 100) : 0,
             status: source.status || "unknown",
             name: source.name || k,
             files: source.numFiles || 0,

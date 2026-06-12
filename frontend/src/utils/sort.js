@@ -20,7 +20,9 @@ export function sortedItems(items = [], sortby = "name", asc = true) {
 
     if (sortby === "name") {
       // Use localeCompare with numeric option for natural sorting
-      const comparison = valueA?.localeCompare(valueB, undefined, { numeric: true, sensitivity: "base" });
+      const left = String(valueA ?? "");
+      const right = String(valueB ?? "");
+      const comparison = left.localeCompare(right, undefined, { numeric: true, sensitivity: "base" });
       return asc ? comparison : -comparison;
     }
 

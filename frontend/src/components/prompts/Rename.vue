@@ -167,7 +167,7 @@ export default {
       }
 
       // Use parentItems if we are in a preview, otherwise use state.req.items
-      const items = this.parentItems.length > 0 ? this.parentItems : (state.req?.items);
+      const items = this.parentItems.length > 0 ? this.parentItems : (state.req?.items ?? []);
       for (const item of items) {
         if (!item.name) {
           continue;

@@ -13,7 +13,7 @@ export default function downloadFiles(items) {
   }
   
   // Chunked single-file (large) vs chunked multi-item archive (folder / multi-select)
-  const downloadChunkSizeMb = state.user.fileLoading?.downloadChunkSizeMb || 0
+  const downloadChunkSizeMb = state.user?.fileLoading?.downloadChunkSizeMb || 0
   const sizeThreshold = downloadChunkSizeMb * 1024 * 1024;
   
   const willUseChunkedDownload =

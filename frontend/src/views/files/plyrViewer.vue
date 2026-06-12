@@ -1096,7 +1096,7 @@ export default {
     },
     cleanupAlbumArt() {
       if (this.previewType !== "audio") return;
-      if (this.albumArtUrl.startsWith('blob:')) {
+      if (typeof this.albumArtUrl === 'string' && this.albumArtUrl.startsWith('blob:')) {
         URL.revokeObjectURL(this.albumArtUrl);
       }
       this.albumArtUrl = null;

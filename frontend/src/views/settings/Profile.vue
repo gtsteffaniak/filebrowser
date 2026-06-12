@@ -329,10 +329,11 @@ export default {
       mutations.hideTooltip();
     },
     validateExtensions(value) {
-      if (value === "" || value === "*") {
+      const normalized = value.trim();
+      if (normalized === "" || normalized === "*") {
         return true;
       }
-      const parts = value.trim().split(/\s+/);
+      const parts = normalized.split(/\s+/);
       const extensionRegex = /^\.\w+$/;
       return parts.every(part => extensionRegex.test(part));
     },

@@ -426,9 +426,11 @@ export const getters = {
       const name = upload.file.name
       const size = getObjectProperty(state.upload.sizes, id) ?? 0 // Default to 0 if size is undefined
       const isDir = upload.file.type === 'directory'
+      const loaded = getObjectProperty(state.upload.progress, id) || 0 // Default to 0 if progress is undefined
+      const safeSize = size > 0 ? size : 1
       const progress = isDir
         ? 100
-        : Math.ceil((getObjectProperty(state.upload.progress, id) || 0 / size) * 100) // Default to 0 if progress is undefined
+        : Math.ceil((loaded / safeSize) * 100)
       files.push({
         id,
         name,

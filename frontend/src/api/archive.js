@@ -15,7 +15,7 @@ import { fetchURL } from "./utils";
  */
 export async function createArchive(opts) {
   const { fromSource, toSource, paths, destination, format, compression, deleteAfter } = opts;
-  if (!fromSource || !paths.length || !destination) {
+  if (!fromSource || !Array.isArray(paths) || paths.length === 0 || !destination) {
     throw new Error("fromSource, paths, and destination are required");
   }
   const body = {
@@ -24,7 +24,7 @@ export async function createArchive(opts) {
     destination,
     ...(toSource && toSource !== fromSource && { toSource }),
     ...(format && { format }),
-    ...(compression !== undefined && { compression }),
+    ...(compression !== undefined && compression !== null && { compression }),
     ...(deleteAfter && { deleteAfter: true }),
   };
   try {

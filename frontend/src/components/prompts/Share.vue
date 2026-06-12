@@ -1087,10 +1087,13 @@ export default {
       this.filePickerField = null;
     },
     validateExtensions(value) {
-      if (value === "" || value === "*") return true;
-      const parts = value.trim().split(/\s+/);
-      const extension = /^\.\w+$/;
-      return parts.every(part => extension.test(part));
+      const normalized = value.trim();
+      if (normalized === "" || normalized === "*") {
+        return true;
+      }
+      const parts = normalized.split(/\s+/);
+      const extensionRegex = /^\.\w+$/;
+      return parts.every(part => extensionRegex.test(part));
     },
   },
 };
