@@ -85,7 +85,7 @@ test("root indexing info is correct", async ({ page, checkForErrors }) => {
     // Check folder sizes
     await expect(page.locator('a[aria-label="myfolder"]').locator('.size')).toHaveText("3.3 MB");
     await expect(page.locator('a[aria-label="folder#hash"]').locator('.size')).toHaveText("4.0 KB");
-    await expect(page.locator('a[aria-label="files"]').locator('.size')).toHaveText("8.0 KB");
+    await expect(page.locator('a[aria-label="files"]').locator('.size')).toHaveText("12.0 KB");
     await expect(page.locator('a[aria-label="share"]').locator('.size')).toHaveText("4.0 KB");
     await expect(page.locator('a[aria-label="text-files"]').locator('.size')).toHaveText("8.0 KB");
     await expect(page.locator('a[aria-label="subfolderExclusions"]').locator('.size')).toHaveText("16.0 KB"); // 16 not 24 due to excluded items
@@ -110,7 +110,7 @@ test("root indexing info is correct (logical size)", async ({ page, checkForErro
     
     // Check folder sizes
     await expect(page.locator('a[aria-label="folder#hash"]').locator('.size')).toHaveText("0.0 bytes");
-    await expect(page.locator('a[aria-label="files"]').locator('.size')).toHaveText("17.0 bytes");
+    await expect(page.locator('a[aria-label="files"]').locator('.size')).toHaveText("418.0 bytes");
     await expect(page.locator('a[aria-label="subfolderExclusions"]').locator('.size')).toHaveText("0.0 bytes");
     
     await page.goto("/files/include/files");

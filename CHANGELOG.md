@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.4.5
+
+ **New Features**:
+ - Added basic html viewer with relative reference support (#2522)
+
+## v1.4.4
+
+ **BugFixes**:
+ - Pinning/Unpinning file resets users' scope permission (#2532)
+
 ## v1.4.3
 
  **Security**:
