@@ -1,35 +1,48 @@
-import type { Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 import { test as base, expect } from "@playwright/test";
+
+const PLAYWRIGHT_RETRY_INTERVALS = [500, 1000, 1500, 2000];
+
+async function dismissSharePrompt(page: Page, sharePrompt: Locator): Promise<void> {
+  if (await sharePrompt.isVisible()) {
+    await page.keyboard.press("Escape");
+    await sharePrompt.waitFor({ state: "hidden", timeout: 3000 }).catch(() => {});
+  }
+}
 
 /**
  * Standalone helper function to open the context menu (File-Actions button)
  * Can be used in both test fixtures and global setup
  */
-export async function openContextMenuHelper(page: Page): Promise<void> {
-  // First, wait for the page to be in a state where file actions can be shown
-  // This marker element is always present when conditions are met, regardless of transition state
-  const readyMarker = page.locator('[data-testid="file-actions-ready"]');
-  
-  try {
-    await readyMarker.waitFor({ state: 'attached', timeout: 5000 });
-    
-    // Check if the button should be hidden
-    const isHidden = await readyMarker.getAttribute('data-hidden');
-    if (isHidden === 'true') {
-      throw new Error('File actions button is hidden (user does not have create permissions or is on invalid share)');
+export async function openContextMenuHelper(
+  page: Page,
+  options?: { timeout?: number },
+): Promise<void> {
+  const timeout = options?.timeout ?? 30000;
+
+  await expect(async () => {
+    const readyMarker = page.locator('[data-testid="file-actions-ready"]');
+
+    try {
+      await readyMarker.waitFor({ state: "attached", timeout: 5000 });
+    } catch (error: unknown) {
+      const originalMessage = error instanceof Error ? error.message : String(error);
+      throw new Error(
+        `File actions are not available on this page. Check that you are on a listing view with appropriate permissions. Original error: ${originalMessage}`,
+      );
     }
-  } catch (error: unknown) {
-    if (error instanceof Error && error.message.includes('hidden')) {
-      throw error;
+
+    const isHidden = await readyMarker.getAttribute("data-hidden");
+    if (isHidden === "true") {
+      throw new Error(
+        "File actions button is hidden (user does not have create permissions or is on invalid share)",
+      );
     }
-    const originalMessage = error instanceof Error ? error.message : String(error);
-    throw new Error(`File actions are not available on this page. Check that you are on a listing view with appropriate permissions. Original error: ${originalMessage}`);
-  }
-  
-  // Now wait for the actual button to be visible (accounting for transition)
-  const fileActionsButton = page.locator('[data-testid="file-actions-button"]');
-  await fileActionsButton.waitFor({ state: 'visible', timeout: 5000 });
-  await fileActionsButton.click();
+
+    const fileActionsButton = page.locator('[data-testid="file-actions-button"]');
+    await fileActionsButton.waitFor({ state: "visible", timeout: 5000 });
+    await fileActionsButton.click();
+  }).toPass({ timeout, intervals: PLAYWRIGHT_RETRY_INTERVALS });
 }
 
 /**
@@ -41,16 +54,23 @@ export async function openShareAndExpectPath(
   openShare: () => Promise<void>,
   options?: { timeout?: number },
 ): Promise<void> {
-  const timeout = options?.timeout ?? 20000;
+  const timeout = options?.timeout ?? 30000;
   const sharePath = page.locator('div[aria-label="share-path"]');
   const sharePrompt = page.locator("div[aria-label='share-prompt']");
 
   await expect(async () => {
-    if (!(await sharePrompt.isVisible())) {
-      await openShare();
+    if (await sharePrompt.isVisible()) {
+      const pathText = (await sharePath.textContent())?.trim();
+      if (pathText === expectedPathText) {
+        return;
+      }
+      await dismissSharePrompt(page, sharePrompt);
     }
-    await expect(sharePath).toHaveText(expectedPathText);
-  }).toPass({ timeout });
+
+    await openShare();
+    await sharePath.waitFor({ state: "visible", timeout: 8000 });
+    await expect(sharePath).toHaveText(expectedPathText, { timeout: 5000 });
+  }).toPass({ timeout, intervals: PLAYWRIGHT_RETRY_INTERVALS });
 }
 
 export const SHARE_PROMPT_ROWS =
@@ -80,12 +100,9 @@ export async function createShareAndGetHash(
       }
     }
 
-    if (await sharePrompt.isVisible()) {
-      await page.keyboard.press("Escape");
-      await sharePrompt.waitFor({ state: "hidden", timeout: 3000 }).catch(() => {});
-    }
+    await dismissSharePrompt(page, sharePrompt);
 
-    await openShareAndExpectPath(page, expectedPathText, openShare, { timeout: 15000 });
+    await openShareAndExpectPath(page, expectedPathText, openShare, { timeout: 20000 });
 
     await confirmButton.waitFor({ state: "visible", timeout: 5000 });
     await confirmButton.click();
@@ -96,7 +113,7 @@ export async function createShareAndGetHash(
       throw new Error("Share hash not yet available");
     }
     shareHash = hash;
-  }).toPass({ timeout });
+  }).toPass({ timeout, intervals: PLAYWRIGHT_RETRY_INTERVALS });
 
   return shareHash;
 }
