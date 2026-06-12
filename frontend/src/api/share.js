@@ -132,5 +132,6 @@ export async function patchPinnedItem({ hash, path, name, action = 'add' }) {
   await fetchURL(apiPath, {
     method: 'PATCH',
     body: JSON.stringify({ path, name }),
+    headers: { 'Content-Type': 'application/json' },
   })
 }
