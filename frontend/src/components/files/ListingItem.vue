@@ -285,7 +285,6 @@ export default {
         if (item.path === this.path && state.req.source === this.source) {
           return false;
         }
-        // Also check if we're trying to drop an item onto itself
         if (item.index === this.index) {
           return false;
         }

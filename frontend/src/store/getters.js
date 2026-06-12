@@ -81,7 +81,7 @@ export const getters = {
       return displayPref.viewMode;
     }
     // Priority 2: If it's a share and shareInfo.viewMode is set, use that as the default
-    if (isShare && state.shareInfo.viewMode) {
+    if (isShare && state.shareInfo?.viewMode) {
       return state.shareInfo.viewMode;
     }
     // Priority 3: Use user's default viewMode
@@ -132,15 +132,15 @@ export const getters = {
     getters.viewMode() === 'gallery' ||
     getters.viewMode() === 'normal' ||
     getters.viewMode() === 'icons',
-  currentHash: () => state.shareInfo.hash,
+  currentHash: () => state.shareInfo?.hash,
   isMobile: () => state.isMobile,
   isLoading: () => Object.keys(state.loading).length > 0,
   isSettings: () => getters.currentView() === 'settings',
   isDarkMode: () => {
-    if (state.shareInfo.enforceDarkLightMode === "dark") {
+    if (state.shareInfo?.enforceDarkLightMode === "dark") {
       return true
     }
-    if (state.shareInfo.enforceDarkLightMode === "light") {
+    if (state.shareInfo?.enforceDarkLightMode === "light") {
       return false
     }
     if (!getters.isShare() && getters.eventTheme() === "halloween") {
@@ -255,7 +255,7 @@ export const getters = {
     if (previewViews.includes(cv) && !getters.previewPerms().disableHideSidebar) {
       visible = false
     }
-    if (state.shareInfo.singleFileShare) {
+    if (state.shareInfo?.singleFileShare) {
       visible = state.showSidebar
     }
     return visible
@@ -441,7 +441,7 @@ export const getters = {
   },
   fileViewingDisabled: filename => {
     if (getters.isShare()) {
-      if (state.shareInfo.disableFileViewer || state.shareInfo.shareType === "upload" || state.shareInfo.disableDownload) {
+      if (state.shareInfo?.disableFileViewer || state.shareInfo?.shareType === "upload" || state.shareInfo?.disableDownload) {
         return true
       }
     } else {
@@ -538,7 +538,7 @@ export const getters = {
       if (state.isMobile) {
         return "back";
       }
-      if (cv === "listingView" || state.shareInfo.singleFileShare) {
+      if (cv === "listingView" || state.shareInfo?.singleFileShare) {
         if (state.user?.stickySidebar) {
           return "menu";
         }
@@ -549,7 +549,7 @@ export const getters = {
     if (cv === "tools") {
       return "menu";
     }
-    if (state.shareInfo.singleFileShare) {
+    if (state.shareInfo?.singleFileShare) {
       return "menu";
     }
     if (cv === "settings") {
@@ -595,10 +595,10 @@ export const getters = {
     if (getters.isShare()) {
       return {
         share: false,
-        modify: state.shareInfo.allowModify,
-        create: state.shareInfo.allowCreate,
-        delete: state.shareInfo.allowDelete,
-        download: !state.shareInfo.disableDownload,
+        modify: state.shareInfo?.allowModify,
+        create: state.shareInfo?.allowCreate,
+        delete: state.shareInfo?.allowDelete,
+        download: !state.shareInfo?.disableDownload,
         admin: false,
         api: false,
         realtime: false,
@@ -607,7 +607,7 @@ export const getters = {
     }
     return {
       share:
-        !!(state.user?.permissions?.share || state.user?.permissions?.admin),
+      !!(state.user?.permissions?.share || state.user?.permissions?.admin),
       modify: state.user?.permissions?.modify,
       create: state.user?.permissions?.create,
       delete: state.user?.permissions?.delete,
@@ -632,7 +632,7 @@ export const getters = {
         disableHideSidebar: state.user?.preview?.disableHideSidebar ?? false,
         autoplayMedia: state.user?.preview?.autoplayMedia ?? false,
         defaultMediaPlayer: false,
-        showHidden: state.shareInfo.showHidden !== undefined ? state.shareInfo.showHidden : false,
+        showHidden: state.shareInfo?.showHidden !== undefined ? state.shareInfo?.showHidden : false,
       };
     }
     // For regular users, use their preview settings -- unless is share

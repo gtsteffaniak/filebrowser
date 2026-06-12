@@ -155,7 +155,7 @@ export default {
       if (!this.lastUpdateTime) return '';
       // Use currentTime to force re-computation every second
       void this.currentTime; // This creates a dependency
-      return fromNow(this.lastUpdateTime, state.user.locale || 'en');
+      return fromNow(this.lastUpdateTime, state.user?.locale || 'en');
     },
     latencyClass() {
       // Check watching state first - if not watching, always return inactive
@@ -273,7 +273,7 @@ export default {
   },
   methods: {
     validateInterval(interval) {
-      const realtimePerm = state.user.permissions?.realtime;
+      const realtimePerm = state.user?.permissions?.realtime;
       const hasRealtime = realtimePerm === true;
       // If user doesn't have realtime permissions and interval is 1 or 2, change to 5
       if (!hasRealtime && (interval === 1 || interval === 2)) {
@@ -493,7 +493,7 @@ export default {
           this.fileSize = getHumanReadableFilesize(data.metadata.size);
         }
         if (data.metadata.modified) {
-          this.fileModified = formatTimestamp(data.metadata.modified, state.user.locale || 'en');
+          this.fileModified = formatTimestamp(data.metadata.modified, state.user?.locale || 'en');
         }
       }
 
@@ -524,7 +524,7 @@ export default {
         lines.push(`${this.$t('general.type', { suffix: ': ' })}${metadata.type || 'unknown'}`);
       }
       if (metadata.modified) {
-        lines.push(`${this.$t('files.lastModified', { suffix: ': ' })}${formatTimestamp(metadata.modified, state.user.locale || 'en')}`);
+        lines.push(`${this.$t('files.lastModified', { suffix: ': ' })}${formatTimestamp(metadata.modified, state.user?.locale || 'en')}`);
       }
       return lines;
     },

@@ -12,12 +12,14 @@ export async function copyToClipboard(text) {
   const successMessage = i18n.global.t('buttons.copySuccess');
   const errorMessage = i18n.global.t('buttons.copyFailed');
 
-  try {
-    await navigator.clipboard.writeText(text);
-    notify.showSuccessToast(successMessage);
-    return true;
-  } catch (_err) {
-    // Fallback to execCommand
+  if (navigator.clipboard) {
+    try {
+      await navigator.clipboard.writeText(text);
+      notify.showSuccessToast(successMessage);
+      return true;
+    } catch (_err) {
+      // Fallback to execCommand
+    }
   }
 
   try {
