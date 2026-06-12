@@ -366,7 +366,7 @@ export default {
       const promptToClose = state.prompts.find(p => p.id === id);
       if (!promptToClose) return;
       // Check if it's the upload prompt with active uploads
-      if (promptToClose?.name === "upload") {
+      if (promptToClose.name === "upload") {
         const hasActiveUploads = state.upload.isUploading;
         const hasWarningPrompt = state.prompts.some(p => p.name === "CloseWithActiveUploads");
         

@@ -41,7 +41,7 @@ export async function create(user, options = {}) {
   })
 
   const needsActorPasswordRetry = (err) =>
-    state.user.loginMethod === 'password' &&
+    state.user?.loginMethod === 'password' &&
     options.skipActorPasswordConfirm !== true &&
     mergedHeaders['X-Password'] === undefined &&
     err?.status === 401 &&
@@ -122,7 +122,7 @@ export async function update(user, which = ['all'], options = {}) {
   })
 
   const needsActorPasswordRetry = (err) =>
-    state.user.loginMethod === 'password' &&
+    state.user?.loginMethod === 'password' &&
     options.skipActorPasswordConfirm !== true &&
     mergedHeaders['X-Password'] === undefined &&
     err?.status === 401 &&
@@ -187,7 +187,7 @@ export async function remove(id, options = {}) {
   const apiPath = getApiPath('users', { id: id })
 
   const needsActorPasswordRetry = (err) =>
-    state.user.loginMethod === 'password' &&
+    state.user?.loginMethod === 'password' &&
     options.skipActorPasswordConfirm !== true &&
     mergedHeaders['X-Password'] === undefined &&
     err?.status === 401 &&

@@ -489,19 +489,19 @@ export default {
       return this.albumArtSize;
     },
     queueCount() {
-      return state.playbackQueue?.queue?.length || 0;
+      return state.playbackQueue.queue.length || 0;
     },
     shouldTogglePlayPause() {
-      return state.playbackQueue?.shouldTogglePlayPause || false;
+      return state.playbackQueue.shouldTogglePlayPause || false;
     },
     playbackQueue() {
-      return state.playbackQueue?.queue || [];
+      return state.playbackQueue.queue;
     },
     currentQueueIndex() {
-      return state.playbackQueue?.currentIndex ?? -1;
+      return state.playbackQueue.currentIndex ?? -1;
     },
     playbackMode() {
-      return state.playbackQueue?.mode || 'single';
+      return state.playbackQueue.mode || 'single';
     },
     playbackModeMessage() {
       const mode = {
@@ -1081,7 +1081,7 @@ export default {
     },
     cleanupAlbumArt() {
       if (this.previewType !== "audio") return;
-      if (this?.albumArtUrl.startsWith('blob:')) {
+      if (this.albumArtUrl.startsWith('blob:')) {
         URL.revokeObjectURL(this.albumArtUrl);
       }
       this.albumArtUrl = null;
@@ -1150,7 +1150,7 @@ export default {
       this.player.on('canplay', () => {
         this.updateMediaSessionPlaybackState();
       });
-      if ((this.previewType === 'video' || this.previewType === 'audio') && screen.orientation) {
+      if ((this.previewType === 'video' || this.previewType === 'audio')) {
         this.player.on('enterfullscreen', this.onFullscreenEnter);
         this.player.on('exitfullscreen', this.onFullscreenExit);
       }

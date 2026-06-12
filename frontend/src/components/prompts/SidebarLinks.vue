@@ -404,7 +404,7 @@ export default {
     // Initialize with existing sidebar links based on context
     if (this.context === 'share' && this.shareData?.sidebarLinks) {
       this.links = [...this.shareData.sidebarLinks];
-    } else if (this.context === 'user' && state.user?.sidebarLinks && state.user.sidebarLinks.length > 0) {
+    } else if (this.context === 'user' && state.user?.sidebarLinks && state.user?.sidebarLinks.length > 0) {
       this.links = [...state.user.sidebarLinks];
     } else if (this.context === 'user') {
       // Generate default links from sources for user context
@@ -413,7 +413,7 @@ export default {
 
     if (this.context === 'user') {
       if (typeof state.user?.showToolsInSidebar === 'boolean') {
-        this.showToolsInSidebar = state.user.showToolsInSidebar;
+        this.showToolsInSidebar = state.user?.showToolsInSidebar;
       } else {
         this.showToolsInSidebar = true;
       }
@@ -899,7 +899,7 @@ export default {
 
           await usersApi.update(updatedUser, ['sidebarLinks', 'showToolsInSidebar']);
 
-          mutations.updateCurrentUser({
+          void mutations.updateCurrentUser({
             sidebarLinks: [...this.links],
             showToolsInSidebar: this.showToolsInSidebar,
           });

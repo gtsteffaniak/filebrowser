@@ -901,7 +901,7 @@ export default {
      * @param {number} time
      */
     humanTime(time) {
-      return fromNow(time, state.user.locale)
+      return fromNow(time, state.user?.locale)
     },
     sort() {
       this.links = this.links.sort((a, b) => {

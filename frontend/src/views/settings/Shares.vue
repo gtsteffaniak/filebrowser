@@ -213,7 +213,7 @@ export default {
               label: this.$t("general.delete"),
               action: () => {
                 try {
-                  shareApi.remove(item.hash);
+                  void shareApi.remove(item.hash);
                   this.links = this.links.filter((link) => link.hash !== item.hash);
                   notify.showSuccessToast(this.$t("settings.shareDeleted"));
                   mutations.closeTopPrompt();

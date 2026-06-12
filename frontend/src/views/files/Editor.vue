@@ -246,7 +246,7 @@ export default {
         hasPreview: this.req.hasPreview,
       });
 
-      this.updateNavigationForCurrentItem();
+      void this.updateNavigationForCurrentItem();
     },
 
     async updateNavigationForCurrentItem() {
@@ -312,7 +312,7 @@ export default {
           showLineNumbers: true,
           theme: this.isDarkMode ? "ace/theme/tomorrow_night_bright" : "ace/theme/github",
           readOnly: this.editorReadOnly,
-          wrap: state?.wrapEditor || false,
+          wrap: state.wrapEditor || false,
           enableMobileMenu: !this.viewerMode,
           useWorker: false,
           scrollPastEnd: 0.5,
@@ -405,7 +405,7 @@ export default {
       this.isDirty = false;
       mutations.setEditorDirty(false);
     },
-    keyEvent(event) {
+    async keyEvent(event) {
       const { key, ctrlKey, metaKey } = event;
       if (getters.currentPromptName()) return;
 
@@ -414,7 +414,7 @@ export default {
 
       if ((ctrlKey || metaKey) && key.toLowerCase() === "s") {
         event.preventDefault();
-        this.handleEditorValueRequest();
+        await this.handleEditorValueRequest();
       }
     },
     setupNavigationGuard() {

@@ -29,7 +29,6 @@ class DownloadManager {
 
   updateProgress(id, loaded, total) {
     const download = this.findById(id);
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (download) {
       download.loaded = loaded;
       download.progress = total > 0 ? (loaded / total) * 100 : 0;
@@ -38,7 +37,6 @@ class DownloadManager {
 
   setStatus(id, status) {
     const download = this.findById(id);
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (download) {
       download.status = status;
     }
@@ -46,7 +44,6 @@ class DownloadManager {
 
   setError(id, errorMessage) {
     const download = this.findById(id);
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (download) {
       download.status = "error";
       download.errorDetails = errorMessage;
@@ -55,7 +52,6 @@ class DownloadManager {
 
   cancel(id) {
     const download = this.findById(id);
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (download) {
       if (download.abortController) {
         download.abortController.abort();

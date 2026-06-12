@@ -174,11 +174,11 @@ export const mutations = {
     // shows "unknown"/red until a full page reload (common after OTP: initAuth then
     // router beforeResolve both refresh the user).
     const sameUser = Boolean(state.user && user.username === state.user.username);
-    const prevInfo = sameUser && state.sources?.info ? state.sources.info : {};
+    const prevInfo = sameUser && state.sources.info ? state.sources.info : {};
     let currentSource = user.scopes.length > 0 ? user.scopes[0].name : "";
     if (
       sameUser &&
-      state.sources?.current &&
+      state.sources.current &&
       user.scopes.some((s) => s.name === state.sources.current)
     ) {
       currentSource = state.sources.current;
@@ -272,7 +272,7 @@ export const mutations = {
     emitStateChanged();
   },
   toggleDarkMode() {
-    mutations.updateCurrentUser({ "darkMode": !state.user.darkMode });
+    void mutations.updateCurrentUser({ "darkMode": !state.user.darkMode });
     emitStateChanged();
   },
   toggleSidebar() {

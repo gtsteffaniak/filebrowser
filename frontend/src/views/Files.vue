@@ -221,7 +221,7 @@ export default {
       // scroll to previous item either from location hash or from previousItemHashId state
       // prefers location hash
       const noHashChange = window.location.hash === this.lastHash
-      if (noHashChange && state.previousHistoryItem?.name === "") return;
+      if (noHashChange && state.previousHistoryItem.name === "") return;
       this.lastHash = window.location.hash;
       if (window.location.hash) {
         const rawHash = window.location.hash.slice(1);
@@ -234,7 +234,7 @@ export default {
         }
         targetName = decodedName;
         scrollToId = url.base64Encode(encodeURIComponent(decodedName));
-      } else if (state.previousHistoryItem?.name &&
+      } else if (state.previousHistoryItem.name &&
                  state.previousHistoryItem.path === state.req.path &&
                  state.previousHistoryItem.source === state.req.source) {
         targetName = state.previousHistoryItem.name;
@@ -451,7 +451,7 @@ export default {
                 break;
               }
             }
-            router.push(targetPath);
+            void router.push(targetPath);
             return;
           }
 
@@ -489,9 +489,9 @@ export default {
         this.loadingProgress = 0;
 
         if (e.status === 404) {
-          router.push({ name: "notFound" });
+          void router.push({ name: "notFound" });
         } else if (e.status === 403) {
-          router.push({ name: "forbidden" });
+          void router.push({ name: "forbidden" });
         } else if (e.status === 401 && isShare) {
           // Handle share password requirement
           this.attemptedPasswordLogin = this.sharePassword !== "";
@@ -503,7 +503,7 @@ export default {
           }
           this.showPasswordPrompt();
         } else {
-          router.push({ name: "error" });
+          void router.push({ name: "error" });
         }
       } finally {
         mutations.setLoading(isShare ? "share" : "files", false);
@@ -526,7 +526,7 @@ export default {
         props: {
           submitCallback: (password) => {
             this.sharePassword = password;
-            this.fetchData();
+            void this.fetchData();
           },
           showWrongCredentials: this.attemptedPasswordLogin,
           initialPassword: this.sharePassword,
@@ -546,7 +546,7 @@ export default {
       // Ctrl+, - navigate to settings
       if (event.ctrlKey && event.key === ',') {
         event.preventDefault();
-        router.push('/settings');
+        void router.push('/settings');
       }
 
       // Esc! - for shares, reset selection
@@ -560,7 +560,7 @@ export default {
         event.preventDefault();
         if (getters.currentPromptName()) return;
 
-        const canModify = getters.permissions()?.modify;
+        const canModify = getters.permissions().modify;
 
         if (getters.isPreviewView() && canModify) {
           const parentItems = state.navigation.listing || [];
@@ -586,10 +586,10 @@ export default {
         if (currentFile?.type === 'text/markdown') {
           const currentView = getters.currentView();
           if (currentView === 'editor') {
-            router.replace({ hash: '#preview' });
+            void router.replace({ hash: '#preview' });
           } else if (currentView === 'markdownViewer') {
             if (getters.permissions()?.modify) {
-              router.replace({ hash: '#edit' });
+              void router.replace({ hash: '#edit' });
             }
           }
         }
@@ -613,7 +613,7 @@ export default {
         }
 
         mutations.updateDisplayPreferences({ viewMode: newViewMode });
-        mutations.updateCurrentUser({ viewMode: newViewMode });
+        void mutations.updateCurrentUser({ viewMode: newViewMode });
         mutations.closeHovers();
       }
     },

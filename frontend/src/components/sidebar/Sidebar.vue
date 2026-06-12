@@ -64,10 +64,10 @@ export default {
         const sidebarVisible = getters.isSidebarVisible();
         const isSticky = getters.isStickySidebar();
         if (!sidebarVisible) {
-          mutations.updateCurrentUser({ stickySidebar: true });
+          void mutations.updateCurrentUser({ stickySidebar: true });
           mutations.toggleSidebar();
         } else if (sidebarVisible && isSticky) {
-          mutations.updateCurrentUser({ stickySidebar: false });
+          void mutations.updateCurrentUser({ stickySidebar: false });
         } else {
           mutations.toggleSidebar();
         }

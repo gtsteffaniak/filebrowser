@@ -562,7 +562,6 @@ class UploadManager {
 
   retry(id, overwrite = false) {
     const upload = this.findById(id);
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (upload && ["error", "conflict"].includes(upload.status)) {
       upload.overwrite = overwrite;
       upload.status = "pending";

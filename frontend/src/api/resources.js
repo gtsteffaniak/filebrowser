@@ -150,7 +150,7 @@ export async function put(source, path, content = '') {
 }
 
 export async function download(format, files, shareHash = "") {
-  const downloadChunkSizeMb = state.user.fileLoading?.downloadChunkSizeMb || 0
+  const downloadChunkSizeMb = state.user?.fileLoading?.downloadChunkSizeMb || 0
   const sizeThreshold = downloadChunkSizeMb * 1024 * 1024
 
   const isMultiItemArchive =
@@ -378,7 +378,6 @@ async function chunkedRangeDownloadToBlob(
       if (fromCr > 0) {
         totalSize = fromCr
         const dl = downloadManager.findById(downloadId)
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (dl) {
           dl.size = fromCr
         }
@@ -390,7 +389,6 @@ async function chunkedRangeDownloadToBlob(
         if (Number.isFinite(n) && n > 0) {
           totalSize = n
           const dl = downloadManager.findById(downloadId)
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
           if (dl) {
             dl.size = n
           }
@@ -471,7 +469,7 @@ async function chunkedRangeDownloadToBlob(
 }
 
 async function downloadChunkedArchive(url, format, files, filePaths, source, shareHash) {
-  const downloadChunkSizeMb = state.user.fileLoading?.downloadChunkSizeMb || 0
+  const downloadChunkSizeMb = state.user?.fileLoading?.downloadChunkSizeMb || 0
   if (downloadChunkSizeMb === 0) {
     throw new Error('Chunked download is disabled (chunk size is 0)')
   }
@@ -493,7 +491,6 @@ async function downloadChunkedArchive(url, format, files, filePaths, source, sha
   }
   const downloadId = downloadManager.add(stub, shareHash)
   const dl = downloadManager.findById(downloadId)
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (dl) {
     dl.archiveFormat = format
     dl.archiveFiles = files
@@ -508,7 +505,6 @@ async function downloadChunkedArchive(url, format, files, filePaths, source, sha
 
   const abortController = new AbortController()
   const dlm = downloadManager.findById(downloadId)
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (dlm) {
     dlm.abortController = abortController
   }
@@ -554,7 +550,7 @@ async function downloadChunkedArchive(url, format, files, filePaths, source, sha
 }
 
 async function downloadChunked(file, shareHash = "") {
-  const chunkSizeMb = state.user.fileLoading?.downloadChunkSizeMb || 0
+  const chunkSizeMb = state.user?.fileLoading?.downloadChunkSizeMb || 0
 
   if (chunkSizeMb === 0) {
     throw new Error("Chunked download is disabled (chunk size is 0)")

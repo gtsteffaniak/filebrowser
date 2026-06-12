@@ -42,7 +42,7 @@ export default defineConfig(
       "@intlify/vue-i18n/no-raw-text": ["error", {
         ignoreNodes: ["i", "v-icon"],
       }],
-      "@intlify/vue-i18n/no-missing-keys-in-other-locales": "off", // The check-translations script handles this
+      "@intlify/vue-i18n/no-missing-keys-in-other-locales": "warn",
     },
   },
 
@@ -78,7 +78,7 @@ export default defineConfig(
       "@typescript-eslint/consistent-type-definitions": "warn",
       "@typescript-eslint/prefer-optional-chain": "warn",
       "@typescript-eslint/no-floating-promises": "error",
-      "@typescript-eslint/no-unnecessary-condition": "warn",
+      "@typescript-eslint/no-unnecessary-condition": "off", // this one is useful, but is pretty noisy and found lot of false positives
       "@typescript-eslint/no-dynamic-delete": "warn",
       "@typescript-eslint/no-misused-promises": "error",
       "prefer-object-has-own": "error",
@@ -138,6 +138,7 @@ export default defineConfig(
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-unused-vars": ["error", { caughtErrors: "none" }],
       "no-unused-expressions": "off",
+      "security/detect-non-literal-regexp": "off",
     },
   },
 );

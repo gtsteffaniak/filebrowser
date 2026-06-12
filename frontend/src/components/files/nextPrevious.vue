@@ -503,7 +503,7 @@ export default {
       mutations.closeHovers();
       this.hoverNav = false;
       mutations.setNavigationGestureHint({});
-      if (state.previousHistoryItem?.name) {
+      if (state.previousHistoryItem.name) {
         url.goToItem(
           state.previousHistoryItem.source,
           state.previousHistoryItem.path,
@@ -577,13 +577,13 @@ export default {
         case "ArrowRight":
           if (this.hasNext) {
             event.preventDefault();
-            this.next();
+            void this.next();
           }
           break;
         case "ArrowLeft":
           if (this.hasPrevious) {
             event.preventDefault();
-            this.prev();
+            void this.prev();
           }
           break;
       }
@@ -786,9 +786,9 @@ export default {
 
           // Navigate based on button type
           if (this.touchState.buttonType === 'previous' && this.hasPrevious) {
-            this.prev();
+            void this.prev();
           } else if (this.touchState.buttonType === 'next' && this.hasNext) {
-            this.next();
+            void this.next();
           }
         }
 
@@ -916,7 +916,7 @@ export default {
       }
       // Only navigate if this wasn't a drag
       if (!this.dragState.triggered) {
-        this.prev();
+        void this.prev();
       }
       this.resetDragState();
     },
@@ -930,7 +930,7 @@ export default {
       }
       // Only navigate if this wasn't a drag
       if (!this.dragState.triggered) {
-        this.next();
+        void this.next();
       }
       this.resetDragState();
     },

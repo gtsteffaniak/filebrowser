@@ -33,7 +33,7 @@ export const getters = {
     return "";
   },
   getTime: timestamp => {
-    if (state.user.dateFormat) {
+    if (state.user?.dateFormat) {
       // Truncate the fractional seconds to 3 digits (milliseconds)
       const sanitizedString = timestamp.replace(/\.\d+/, match =>
         match.slice(0, 4)
@@ -42,7 +42,7 @@ export const getters = {
       const date = new Date(sanitizedString)
       return date.toLocaleString()
     }
-    return fromNow(timestamp, state.user.locale)
+    return fromNow(timestamp, state.user?.locale)
   },
   isPreviewView: () => {
     const cv = getters.currentView()
@@ -81,11 +81,11 @@ export const getters = {
       return displayPref.viewMode;
     }
     // Priority 2: If it's a share and shareInfo.viewMode is set, use that as the default
-    if (isShare && state.shareInfo?.viewMode) {
+    if (isShare && state.shareInfo.viewMode) {
       return state.shareInfo.viewMode;
     }
     // Priority 3: Use user's default viewMode
-    return state.user.viewMode || "normal";
+    return state.user?.viewMode || "normal";
   },
   sorting: () => {
     return getters.displayPreference()?.sorting || state.user?.sorting || { by: "name", asc: true };
@@ -95,8 +95,8 @@ export const getters = {
   isPreviewPlaybackQueueNavMode: () => {
     const previewType = getters.previewType();
     const isMediaView = previewType === 'audio' || previewType === 'video';
-    const mode = state.playbackQueue?.mode || 'single';
-    const queueLength = state.playbackQueue?.queue?.length || 0;
+    const mode = state.playbackQueue.mode || 'single';
+    const queueLength = state.playbackQueue.queue.length || 0;
     return (
       isMediaView &&
       mode !== 'single' &&
@@ -105,9 +105,9 @@ export const getters = {
     );
   },
   playbackQueueCanGoPrevious: () => {
-    const queue = state.playbackQueue?.queue || [];
-    const currentIndex = state.playbackQueue?.currentIndex ?? -1;
-    const mode = state.playbackQueue?.mode || 'single';
+    const queue = state.playbackQueue.queue;
+    const currentIndex = state.playbackQueue.currentIndex ?? -1;
+    const mode = state.playbackQueue.mode || 'single';
     if (queue.length <= 1 || currentIndex < 0) {
       return false;
     }
@@ -117,9 +117,9 @@ export const getters = {
     return true;
   },
   playbackQueueCanGoNext: () => {
-    const queue = state.playbackQueue?.queue || [];
-    const currentIndex = state.playbackQueue?.currentIndex ?? -1;
-    const mode = state.playbackQueue?.mode || 'single';
+    const queue = state.playbackQueue.queue;
+    const currentIndex = state.playbackQueue.currentIndex ?? -1;
+    const mode = state.playbackQueue.mode || 'single';
     if (queue.length <= 1 || currentIndex < 0) {
       return false;
     }
@@ -132,15 +132,15 @@ export const getters = {
     getters.viewMode() === 'gallery' ||
     getters.viewMode() === 'normal' ||
     getters.viewMode() === 'icons',
-  currentHash: () => state.shareInfo?.hash,
+  currentHash: () => state.shareInfo.hash,
   isMobile: () => state.isMobile,
   isLoading: () => Object.keys(state.loading).length > 0,
   isSettings: () => getters.currentView() === 'settings',
   isDarkMode: () => {
-    if (state.shareInfo?.enforceDarkLightMode === "dark") {
+    if (state.shareInfo.enforceDarkLightMode === "dark") {
       return true
     }
-    if (state.shareInfo?.enforceDarkLightMode === "light") {
+    if (state.shareInfo.enforceDarkLightMode === "light") {
       return false
     }
     if (!getters.isShare() && getters.eventTheme() === "halloween") {
@@ -160,7 +160,7 @@ export const getters = {
       if (!savedLocale) {
         savedLocale = i18n.detectLocale()
       }
-      mutations.updateCurrentUser({ locale: savedLocale })
+      void mutations.updateCurrentUser({ locale: savedLocale })
     }
     if (globalVars.noAuth) {
       return true
@@ -224,7 +224,7 @@ export const getters = {
     const pinned = [];
     const dirs = [];
     const files = [];
-    if (!state.req.items) return { pinned, dirs, files };
+    if (!state.req?.items) return { pinned, dirs, files };
 
     for (const item of state.req.items) {
       if (item.pinned) {
@@ -255,7 +255,7 @@ export const getters = {
     if (previewViews.includes(cv) && !getters.previewPerms().disableHideSidebar) {
       visible = false
     }
-    if (state.shareInfo?.singleFileShare) {
+    if (state.shareInfo.singleFileShare) {
       visible = state.showSidebar
     }
     return visible
@@ -441,7 +441,7 @@ export const getters = {
   },
   fileViewingDisabled: filename => {
     if (getters.isShare()) {
-      if (state.shareInfo?.disableFileViewer || state.shareInfo?.shareType === "upload" || state.shareInfo?.disableDownload) {
+      if (state.shareInfo.disableFileViewer || state.shareInfo.shareType === "upload" || state.shareInfo.disableDownload) {
         return true
       }
     } else {
@@ -538,8 +538,8 @@ export const getters = {
       if (state.isMobile) {
         return "back";
       }
-      if (cv === "listingView" || state.shareInfo?.singleFileShare) {
-        if (state.user.stickySidebar) {
+      if (cv === "listingView" || state.shareInfo.singleFileShare) {
+        if (state.user?.stickySidebar) {
           return "menu";
         }
         return "back";
@@ -549,7 +549,7 @@ export const getters = {
     if (cv === "tools") {
       return "menu";
     }
-    if (state.shareInfo?.singleFileShare) {
+    if (state.shareInfo.singleFileShare) {
       return "menu";
     }
     if (cv === "settings") {
@@ -584,21 +584,21 @@ export const getters = {
     if (getters.isShare() && state.shareInfo.shareType === "upload") {
       return false;
     }
-    const isAdvancedSearchRoute = (state.route?.path || "").startsWith("/tools/advancedSearch");
+    const isAdvancedSearchRoute = (state.route.path || "").startsWith("/tools/advancedSearch");
     return getters.currentView() === "listingView" || getters.isEditorOrMarkdownView() || isAdvancedSearchRoute;
   },
   showGallerySizeSlider: () => {
-    const isAdvancedSearchRoute = (state.route?.path || "").startsWith("/tools/advancedSearch");
+    const isAdvancedSearchRoute = (state.route.path || "").startsWith("/tools/advancedSearch");
     return getters.currentView() === "listingView" || isAdvancedSearchRoute;
   },
   permissions: () => {
     if (getters.isShare()) {
       return {
         share: false,
-        modify: state.shareInfo?.allowModify,
-        create: state.shareInfo?.allowCreate,
-        delete: state.shareInfo?.allowDelete,
-        download: !state.shareInfo?.disableDownload,
+        modify: state.shareInfo.allowModify,
+        create: state.shareInfo.allowCreate,
+        delete: state.shareInfo.allowDelete,
+        download: !state.shareInfo.disableDownload,
         admin: false,
         api: false,
         realtime: false,
@@ -632,7 +632,7 @@ export const getters = {
         disableHideSidebar: state.user?.preview?.disableHideSidebar ?? false,
         autoplayMedia: state.user?.preview?.autoplayMedia ?? false,
         defaultMediaPlayer: false,
-        showHidden: state.shareInfo?.showHidden !== undefined ? state.shareInfo.showHidden : false,
+        showHidden: state.shareInfo.showHidden !== undefined ? state.shareInfo.showHidden : false,
       };
     }
     // For regular users, use their preview settings -- unless is share

@@ -130,7 +130,7 @@ export default {
       copyButton.className = 'copy-code-button';
       copyButton.innerHTML = '<span class="material-symbols-outlined">content_copy</span>';
       copyButton.setAttribute('aria-label', 'Copy code to clipboard');
-      copyButton.addEventListener('click', async (e) => {
+      copyButton.addEventListener('click', (e) => {
         e.stopPropagation();
         const text = codeBlock.textContent || '';
         const showFeedback = (success: boolean) => {
@@ -141,13 +141,14 @@ export default {
             copyButton.innerHTML = '<span class="material-symbols-outlined">content_copy</span>';
           }, 1500);
         };
-        try {
-          const success = await copyToClipboard(text);
-          showFeedback(success);
-        } catch (err) {
-          console.error('Copy failed:', err);
-          showFeedback(false);
-        }
+        void copyToClipboard(text)
+          .then((success) => {
+            showFeedback(success);
+          })
+          .catch((err) => {
+            console.error('Copy failed:', err);
+            showFeedback(false);
+          });
       });
       wrapper.appendChild(copyButton);
 

@@ -226,7 +226,7 @@ export default {
               if (this.isInView && !this.hasInitialized) {
                 this.hasInitialized = true;
                 this.initScene();
-                this.loadModel();
+                void this.loadModel();
               }
               this.loadTimer = null;
             }, delay);
@@ -388,7 +388,7 @@ export default {
 
         // Special handlers
         if (extension === 'glb') {
-          this.loadGLB(loader);
+          await this.loadGLB(loader);
         } else if (extension === 'obj') {
           this.loadOBJ(loader, loadingManager);
         } else {
@@ -682,7 +682,7 @@ export default {
     reinit() {
       this.cleanup();
       this.initScene();
-      this.loadModel();
+      void this.loadModel();
       if (!this.isThumbnail) this.updateSelectedState();
     },
     

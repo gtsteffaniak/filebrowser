@@ -343,7 +343,7 @@ export default {
       return this.isPinnedSelection ? this.$t("buttons.unpinItem") : this.$t("buttons.pinItem");
     },
     isPinnedSelection() {
-      return !!this.firstSelected?.pinned;
+      return !!this.firstSelected.pinned;
     },
     showCopy() {
       if (this.showLimitedOptions) return false;

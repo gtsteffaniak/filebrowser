@@ -160,7 +160,7 @@ export default {
       }));
     } else if (state.isSearchActive) {
       // Add null checks to prevent undefined values
-      if (state.selected?.[0]?.path) {
+      if (state.selected[0]?.path) {
         this.localItems = [
           {
             from: state.selected[0].path,
@@ -221,7 +221,7 @@ export default {
       event.stopPropagation();
       event.preventDefault();
       if (this.newDirName && this.isDirNameValid) {
-        this.createDirectory();
+        void this.createDirectory();
       }
     },
     async createDirectory() {
@@ -239,10 +239,10 @@ export default {
         }
         // Refresh the file list while keeping the current navigation that we did in the prompt
         if (getters.isShare()) {
-          resourcesApi.fetchFilesPublic(currentPath, state.shareInfo?.hash)
+          await resourcesApi.fetchFilesPublic(currentPath, state.shareInfo.hash)
             .then((req) => this.$refs.fileList.fillOptions(req, true));
         } else {
-          resourcesApi.fetchFiles(currentSource, currentPath)
+          await resourcesApi.fetchFiles(currentSource, currentPath)
             .then((req) => this.$refs.fileList.fillOptions(req, true));
         }
         // Clicking create will also return the buttons to their normal state

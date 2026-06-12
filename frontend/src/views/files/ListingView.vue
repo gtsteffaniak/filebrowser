@@ -831,7 +831,7 @@ export default {
           }
           const source = getters.isShare() ? state.shareInfo.hash : state.req.source;
           const newPath = url.buildItemUrl(source, parentPath);
-          router.push({ path: newPath });
+          void router.push({ path: newPath });
           break;
         }
 
@@ -844,7 +844,7 @@ export default {
             const selected = getters.getFirstSelected();
             const selectedUrl = url.buildItemUrl(selected.source, selected.path);
             if (selectedUrl === state.route.path) return;
-            router.push({ path: selectedUrl });
+            void router.push({ path: selectedUrl });
           }
           break;
         }
@@ -975,7 +975,7 @@ export default {
       // If internal is recent (<20s), use it immediately, in case someone have both: internal and external clipboard with a file entry.
       // After those 20s, if the OS clipboard has a file as most recent entry, will use that.
       if (internalRecent) {
-        this.handleInternalPaste();
+        await this.handleInternalPaste();
         event.preventDefault();
         event.stopPropagation();
         return;
@@ -1026,7 +1026,7 @@ export default {
       // If internal clipboard exists but is not recent (>20s), and we don't have any file in clipboard, use the internal one
       if (this.clipboard.items.length > 0) {
         console.log('No external files, using internal clipboard.');
-        this.handleInternalPaste();
+        await this.handleInternalPaste();
         event.preventDefault();
         event.stopPropagation();
         return;
@@ -1080,7 +1080,7 @@ export default {
               };
 
               if (this.clipboard.path === state.route.path) {
-                action(false, true);
+                void action(false, true);
                 return;
               }
 
@@ -1095,12 +1095,12 @@ export default {
                     const rename = option === "rename";
                     event.preventDefault();
                     mutations.closeTopPrompt();
-                    action(overwrite, rename);
+                    void action(overwrite, rename);
                   },
                 });
                 return;
               }
-              action(false, false);
+              void action(false, false);
             });
           },
         },
@@ -1150,10 +1150,10 @@ export default {
       if (isInternal) {
         return;
       }
-      this.handleDrop(event);
+      await this.handleDrop(event);
     },
     async uploadInput(event) {
-      this.handleDrop(event);
+      await this.handleDrop(event);
     },
     windowsResize: throttle(function () {
       // Mark as resizing to disable transitions

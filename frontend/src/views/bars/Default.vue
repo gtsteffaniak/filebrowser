@@ -238,7 +238,7 @@ export default {
       const baseMode = this.viewModes[nextIndex];
       const newViewMode = this.resolveViewModeForFamily(baseMode);
       mutations.updateDisplayPreferences({ viewMode: newViewMode });
-      mutations.updateCurrentUser({ viewMode: newViewMode });
+      void mutations.updateCurrentUser({ viewMode: newViewMode });
     },
     multiAction() {
       const cv = getters.currentView();
@@ -259,7 +259,7 @@ export default {
       } else {
         mutations.closeHovers();
         if (cv === "settings") {
-          if (state.previousHistoryItem?.name) {
+          if (state.previousHistoryItem.name) {
             url.goToItem(
               state.previousHistoryItem.source,
               state.previousHistoryItem.path,
@@ -274,17 +274,17 @@ export default {
             return;
           }
           // otherwise navigate to files
-          router.push({ path: "/files" });
+          void router.push({ path: "/files" });
           return;
         }
         if (getters.isPreviewView()) {
-          if (state.previousHistoryItem?.name) {
+          if (state.previousHistoryItem.name) {
             url.goToItem(state.previousHistoryItem.source, state.previousHistoryItem.path, state.previousHistoryItem, false, state.previousHistoryItem.isShare);
             return;
           } else {
             // navigate to parent directory of current url
             const parentPath = url.removeLastDir(state.route.path);
-            router.push({ path: parentPath });
+            void router.push({ path: parentPath });
           }
           return;
         }

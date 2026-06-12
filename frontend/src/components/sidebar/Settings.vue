@@ -47,7 +47,7 @@ export default {
       mutations.closeHovers();
       mutations.closeTopPrompt();
       if (state.route.path !== "/settings") {
-        router.push({ path: "/settings", hash: `#${view}` }, () => {});
+        void router.push({ path: "/settings", hash: `#${view}` }, () => {});
       } else {
         mutations.setActiveSettingsView(view);
       }

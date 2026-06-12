@@ -36,6 +36,7 @@ import { resourcesApi } from "@/api";
 import { notify } from "@/notify";
 import { getters, mutations, state } from "@/store";
 import { url } from "@/utils";
+import { getObjectProperty } from '@/utils/object.js';
 
 export default {
   name: "breadcrumbs",
@@ -69,7 +70,7 @@ export default {
       return state.req.hasUpdate;
     },
     isDroppable() {
-      return getters.permissions()?.modify
+      return getters.permissions().modify
     },
     homeLink() {
       return {
@@ -80,14 +81,12 @@ export default {
       };
     },
     scrollRatio() {
-      const ratio = state.listing?.scrollRatio || 0;
+      const ratio = state.listing.scrollRatio || 0;
       return ratio;
     },
     items() {
       const req = state.req;
-      if (!req.items || !req.path) {
-        return [];
-      }
+      if (!req.path) return [];
       const encodedPathString = url.encodedPath(state.req.path);
       const originalParts = state.req.path.split("/");
       const encodedParts = encodedPathString.split("/");
@@ -105,8 +104,8 @@ export default {
       let accumulatedPath = "";
 
       for (let i = 0; i < originalParts.length; i++) {
-        const origPart = originalParts[i];
-        const encodedElement = encodedParts[i];
+        const origPart = getObjectProperty(originalParts, i);
+        const encodedElement = getObjectProperty(encodedParts, i);
         buildRef = `${buildRef + encodedElement}/`;
         accumulatedPath = accumulatedPath ? `${accumulatedPath}/${origPart}` : origPart;
 
@@ -308,7 +307,7 @@ export default {
             const rename = option === "rename";
             event.preventDefault();
             mutations.closeTopPrompt();
-            moveAction(overwrite, rename);
+            void moveAction(overwrite, rename);
           },
         });
         return;
