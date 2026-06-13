@@ -7,7 +7,12 @@ import { notify } from "@/notify";
 import { sortedItems } from "@/utils/sort.js";
 import { url } from "@/utils";
 import { getTypeInfo } from "@/utils/mimetype";
-import { resourcesApi } from "@/api";
+import { getObjectProperty, setObjectProperty, omitObjectProperty } from '@/utils/object.js';
+import { sortedItems } from "@/utils/sort.js";
+import { updateManifestLink } from "@/utils/pwaManifest";
+import { emitStateChanged } from './eventBus';
+import { getters } from "./getters.js";
+import { state } from "./state.js";
 
 export const mutations = {
   disableEventThemes: () => {
@@ -111,42 +116,52 @@ export const mutations = {
     state.sources.current = value;
     emitStateChanged();
   },
-  updateSource: (sourcename,value) => {
-    if (state.sources.info[sourcename]) {
-      state.sources.info[sourcename] = value;
+  updateSource: (sourcename, value) => {
+    if (getObjectProperty(state.sources.info, sourcename)) {
+      state.sources.info = setObjectProperty(state.sources.info, sourcename, value);
     }
     emitStateChanged();
   },
   updateSourceInfo: (value) => {
     if (value == "error") {
       state.realtimeActive = false;
-      for (const k of Object.keys(state.sources.info)) {
-        state.sources.info[k].status = "error";
+      let info = state.sources.info;
+      for (const k of Object.keys(info)) {
+        info = setObjectProperty(info, k, { ...getObjectProperty(info, k), status: "error" });
       }
+      state.sources.info = info;
     } else {
-      for (const k of Object.keys(value)) {
-        const source = value[k];
-        if (state.sources.info[k]) {
-          if (source.total == 0) {
-            state.sources.hasSourceInfo = false
-          } else {
-            state.sources.hasSourceInfo = true
-          }
-          state.sources.info[k].used = source.used || 0;
-          state.sources.info[k].usedAlt = source.usedAlt || 0;
-          state.sources.info[k].total = source.total || 0;
-          state.sources.info[k].usedPercentage = source.total ? Math.round((source.used / source.total) * 100) : 0;
-          state.sources.info[k].status = source.status || "unknown";
-          state.sources.info[k].name = source.name || k;
-          state.sources.info[k].files = source.numFiles || 0;
-          state.sources.info[k].folders = source.numDirs || 0;
-          state.sources.info[k].lastIndex = source.lastIndexedUnixTime || 0;
-          state.sources.info[k].quickScanDurationSeconds = source.quickScanDurationSeconds || 0;
-          state.sources.info[k].fullScanDurationSeconds = source.fullScanDurationSeconds || 0;
-          state.sources.info[k].complexity = source.complexity || 0;
-          state.sources.info[k].scanners = source.scanners || [];
+      let info = state.sources.info;
+      let hasAny = false;
+      for (const [k, source] of Object.entries(value)) {
+        const existing = getObjectProperty(info, k);
+        if (existing) {
+          const used = Number(source.used) || 0;
+          const total = Number(source.total) || 0;
+          const updated = {
+            ...existing,
+            used,
+            usedAlt: source.usedAlt || 0,
+            total,
+            usedPercentage: total > 0 ? Math.round((used / total) * 100) : 0,
+            status: source.status || "unknown",
+            name: source.name || k,
+            files: source.numFiles || 0,
+            folders: source.numDirs || 0,
+            lastIndex: source.lastIndexedUnixTime || 0,
+            quickScanDurationSeconds: source.quickScanDurationSeconds || 0,
+            fullScanDurationSeconds: source.fullScanDurationSeconds || 0,
+            complexity: source.complexity || 0,
+            scanners: source.scanners || [],
+            readOnly: source.readOnly || false,
+            private: source.private || false,
+          };
+          info = setObjectProperty(info, k, updated);
+          if (updated.total > 0 || updated.used > 0 || updated.usedAlt > 0) hasAny = true;
         }
       }
+      state.sources.info = info;
+      state.sources.hasSourceInfo = hasAny;
     }
     emitStateChanged();
   },
@@ -168,11 +183,11 @@ export const mutations = {
     // shows "unknown"/red until a full page reload (common after OTP: initAuth then
     // router beforeResolve both refresh the user).
     const sameUser = Boolean(state.user && user.username === state.user.username);
-    const prevInfo = sameUser && state.sources?.info ? state.sources.info : {};
+    const prevInfo = sameUser && state.sources.info ? state.sources.info : {};
     let currentSource = user.scopes.length > 0 ? user.scopes[0].name : "";
     if (
       sameUser &&
-      state.sources?.current &&
+      state.sources.current &&
       user.scopes.some((s) => s.name === state.sources.current)
     ) {
       currentSource = state.sources.current;
@@ -264,7 +279,7 @@ export const mutations = {
     emitStateChanged();
   },
   toggleDarkMode() {
-    mutations.updateCurrentUser({ "darkMode": !state.user.darkMode });
+    void mutations.updateCurrentUser({ "darkMode": !state.user.darkMode });
     emitStateChanged();
   },
   toggleSidebar() {
@@ -368,9 +383,9 @@ export const mutations = {
   },
   setLoading: (loadType, status) => {
     if (status === false) {
-      delete state.loading[loadType];
+      state.loading = omitObjectProperty(state.loading, loadType);
     } else {
-      state.loading = { ...state.loading, [loadType]: true };
+      state.loading = setObjectProperty(state.loading, loadType, true);
     }
     emitStateChanged();
   },
@@ -767,18 +782,6 @@ export const mutations = {
     state.user.fileLoading.maxConcurrentUpload = value;
     emitStateChanged();
   },
-  updateViewModeHistory: ({ source, path, viewMode }) => {
-    if (!source || !path) return;
-    if (!state.viewModeHistory) {
-      state.viewModeHistory = {};
-    }
-    if (!state.viewModeHistory[source]) {
-      state.viewModeHistory[source] = {};
-    }
-    state.viewModeHistory[source][path] = viewMode;
-    localStorage.setItem("viewModeHistory", JSON.stringify(state.viewModeHistory));
-    emitStateChanged();
-  },
   updateDisplayPreferences: (payload) => {
     let source = state.sources.current;
     if (getters.isShare()) {
@@ -786,30 +789,26 @@ export const mutations = {
     }
     const path = state.route.path;
 
-    if (!source || path == null || path === "") return;
-    if (!state.displayPreferences) {
-      state.displayPreferences = {};
-    }
-    if (!state.displayPreferences[source]) {
-      state.displayPreferences[source] = {};
-    }
-    if (!state.displayPreferences[source][path]) {
-      state.displayPreferences[source][path] = {};
-    }
+    if (!source || path === null || path === "") return;
 
-    state.displayPreferences[source][path] = {
-      ...state.displayPreferences[source][path],
-      ...payload,
-    };
+    let prefs = state.displayPreferences || {};
+
+    let sourceLevel = getObjectProperty(prefs, source);
+    if (!sourceLevel) sourceLevel = {};
+
+    let pathLevel = getObjectProperty(sourceLevel, path);
+    if (!pathLevel) pathLevel = {};
+
+    const newPathLevel = { ...pathLevel, ...payload };
+    const newSourceLevel = setObjectProperty(sourceLevel, path, newPathLevel);
+    prefs = setObjectProperty(prefs, source, newSourceLevel);
+    state.displayPreferences = prefs;
 
     const isAnonymous = state.user.username === 'anonymous';
     if (!isAnonymous) {
-      const allPreferences = JSON.parse(localStorage.getItem("displayPreferences") || "{}");
-      if (!allPreferences[state.user.username]) {
-        allPreferences[state.user.username] = {};
-      }
-      allPreferences[state.user.username] = state.displayPreferences;
-      localStorage.setItem("displayPreferences", JSON.stringify(allPreferences));
+      let allPrefs = JSON.parse(localStorage.getItem("displayPreferences") || "{}");
+      allPrefs = setObjectProperty(allPrefs, state.user.username, prefs);
+      localStorage.setItem("displayPreferences", JSON.stringify(allPrefs));
     }
     emitStateChanged();
   },
@@ -848,7 +847,7 @@ export const mutations = {
 
     // Find current item index in the listing
     for (let i = 0; i < listing.length; i++) {
-      if (listing[i].name === currentItem.name) {
+      if (listing.at(i).name === currentItem.name) {
         state.navigation.currentIndex = i;
         break;
       }
@@ -1013,7 +1012,7 @@ export const mutations = {
   },
   navigateToQueueIndex: (index) => {
     if (index < 0 || index >= state.playbackQueue.queue.length) return;
-    const item = state.playbackQueue.queue[index];
+    const item = state.playbackQueue.queue.at(index);
     state.playbackQueue.currentIndex = index;
     // Update the current request to trigger navigation
     mutations.replaceRequest(item);
@@ -1050,7 +1049,7 @@ export const mutations = {
         return null;
       }
     }
-    const item = queue[newIndex];
+    const item = queue.at(newIndex);
     if (!item) {
       return null;
     }

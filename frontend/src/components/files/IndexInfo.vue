@@ -33,7 +33,7 @@ export default {
       ];
     },
     rows() {
-      return buildIndexInfoRows(this.info, this.$t, state.user.locale);
+      return buildIndexInfoRows(this.info, this.$t, state.user?.locale);
     },
   },
 };

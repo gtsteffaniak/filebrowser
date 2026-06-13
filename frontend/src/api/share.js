@@ -64,7 +64,7 @@ export async function create(bodyObj = {}) {
     const apiPath = getApiPath("share");
     return await fetchJSON(apiPath, {
     method: "POST",
-    body: JSON.stringify(bodyObj || {}),
+    body: JSON.stringify(bodyObj),
   });
   } catch (/** @type {any} */ err) {
     notify.showError(err.message || "Error creating share");

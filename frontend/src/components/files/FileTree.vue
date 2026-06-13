@@ -83,6 +83,7 @@ import { eventBus } from '@/store/eventBus';
 import { goToItem, joinPath } from '@/utils/url';
 import { goToItemNotificationButton } from '@/utils/notificationActions';
 import { notify } from '@/notify';
+import { getObjectProperty } from '@/utils/object.js';
 
 export default {
   name: 'FileTree',
@@ -137,7 +138,7 @@ export default {
       return this.isRootInstance ? this.rootNodes : this.nodes;
     },
     canModify() {
-      return getters.permissions()?.modify;
+      return getters.permissions().modify;
     },
     showFiles() {
       // Defaults to true
@@ -316,7 +317,7 @@ export default {
       // don't navigate to current item if we're already viewing it
       if (this.isCurrentItem(node)) {
         if (node.isDir) {
-          this.toggleExpand(node, false); // If the item is a folder, just expand/collapse instead of navigate again
+          void this.toggleExpand(node, false); // If the item is a folder, just expand/collapse instead of navigate again
         }
         return;
       }
@@ -380,8 +381,7 @@ export default {
 
         let currentLevel = this.isRootInstance ? this.rootNodes : this.nodes;
 
-        for (let i = 0; i < pathParts.length; i++) {
-          const part = pathParts[i];
+          for (const part of pathParts) {
           const node = currentLevel.find(n => n.name === part && n.isDir);
           if (!node) break;
 
@@ -468,7 +468,7 @@ export default {
         }
         // Set a new timeout
         const timeout = setTimeout(() => {
-          this.toggleExpand(node, true); // expand without navigating
+          void this.toggleExpand(node, true); // expand without navigating
           this.expandTimeouts.delete(node);
         }, 800); // 800ms delay (we need to hover that time to auto expand when dragging a item)
         this.expandTimeouts.set(node, timeout);
@@ -530,7 +530,7 @@ export default {
       // Build list of items to move
       const items = [];
       for (const index of selectedIndices) {
-        const item = state.req.items[index];
+        const item = getObjectProperty(state.req?.items, index);
         if (!item) continue;
 
         // Prevent dropping onto itself or into its own subdirectory

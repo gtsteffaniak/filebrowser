@@ -32,6 +32,7 @@
 import { fetchPreviewImage } from "@/api/resources";
 import { globalVars } from "@/utils/constants";
 import { getTypeInfo } from "@/utils/mimetype";
+import { getObjectProperty } from '@/utils/object.js';
 import { mutations, state, getters } from "@/store";
 import { setImageLoaded } from "@/utils/imageCache";
 import ThreeJs from "@/views/files/ThreeJs.vue";
@@ -225,7 +226,7 @@ export default {
     },
     shouldUse3DPreview() {
       // Check if we should use 3D preview instead of regular icon
-      if (!this.isFile || !this.size || !this.path) return false;
+      if (this.mimetype === "directory" || !this.size || !this.path) return false;
       if (!getters.previewPerms().models) return false;
 
       const MAX_SIZE = 250 * 1024; // 250KB in bytes
@@ -240,7 +241,7 @@ export default {
       return `${state.user?.gallerySize || 1}-${getters.viewMode()}`;
     },
     routePath() {
-      return state.route?.path ?? "";
+      return state.route.path ?? "";
     },
   },
   methods: {
@@ -366,9 +367,9 @@ export default {
         }
         // Set the thumbnail or popup preview
         if (getters.previewPerms().popup) {
-          mutations.setPreviewSource(sequence[index]);
+          mutations.setPreviewSource(getObjectProperty(sequence, index));
         } else {
-          this.currentThumbnail = sequence[index];
+          this.currentThumbnail = getObjectProperty(sequence, index);
         }
 
         // Preload the next frame (cancellable fetch warms HTTP cache)

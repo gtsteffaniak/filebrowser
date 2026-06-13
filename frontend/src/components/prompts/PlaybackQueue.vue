@@ -71,13 +71,13 @@ export default {
   },
   computed: {
     playbackQueue() {
-      return state.playbackQueue?.queue || [];
+      return state.playbackQueue.queue;
     },
     currentQueueIndex() {
-      return state.playbackQueue?.currentIndex ?? -1;
+      return state.playbackQueue.currentIndex;
     },
     playbackMode() {
-      return state.playbackQueue?.mode || 'single';
+      return state.playbackQueue.mode || 'single';
     },
     queueCount() {
       return this.playbackQueue.length;
@@ -110,7 +110,7 @@ export default {
       }));
     },
     isPlaying() {
-      return state.playbackQueue?.isPlaying || false;
+      return state.playbackQueue.isPlaying || false;
     },
     isPromptVisible() {
       // Check if this PlaybackQueue prompt is the current active prompt
@@ -188,7 +188,7 @@ export default {
     },
     navigateToIndex(index) {
       if (index >= 0 && index < this.playbackQueue.length) {
-        const item = this.playbackQueue[index];
+        const item = this.playbackQueue.at(index);
         // Update store with new current index
         mutations.setPlaybackQueue({
           queue: this.playbackQueue,

@@ -163,6 +163,7 @@ import Errors from "@/views/Errors.vue";
 import { notify } from "@/notify";
 import { globalVars } from "@/utils/constants";
 import { eventBus } from "@/store/eventBus";
+import { setObjectProperty } from '@/utils/object.js';
 
 export default {
   name: "user-edit",
@@ -525,8 +526,8 @@ export default {
       return "/";
     },
     openScopePicker(index) {
-      const row = this.selectedSources[index];
-      if (!row || !row.name) {
+      const row = this.selectedSources.at(index);
+      if (!row?.name) {
         return;
       }
       const selectionContextId = `user-scope-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
@@ -596,7 +597,7 @@ export default {
       this.emitUserUpdate();
     },
     updateUserField(field, value) {
-      this.user[field] = value;
+      this.user = setObjectProperty(this.user, field, value);
       this.emitUserUpdate();
     },
     setDefaultLoginMethod() {

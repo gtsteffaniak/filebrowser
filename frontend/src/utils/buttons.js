@@ -1,7 +1,7 @@
 function loading(button) {
   const el = document.querySelector(`#${button}-button > i`);
 
-  if (el === undefined || el === null) {
+  if (el === null) {
     return;
   }
 
@@ -22,7 +22,7 @@ function loading(button) {
 function done(button) {
   const el = document.querySelector(`#${button}-button > i`);
 
-  if (el === undefined || el === null) {
+  if (el === null) {
     return;
   }
 
@@ -38,7 +38,7 @@ function done(button) {
 function success(button) {
   const el = document.querySelector(`#${button}-button > i`);
 
-  if (el === undefined || el === null) {
+  if (el === null) {
     return;
   }
 

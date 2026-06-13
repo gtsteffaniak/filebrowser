@@ -560,7 +560,9 @@ export default {
         return this.req.path;
       }
       const index = /** @type {number} */ (this.selected[0]);
-      return buildItemUrl(this.req.items[index].source, this.req.items[index].path);
+      const item = this.req.items.at(index);
+      if (!item) return this.req.path;
+      return buildItemUrl(item.source, item.path);
     },
     isEditMode() {
       return this.editing && this.link && Object.keys(this.link).length > 0;
@@ -805,7 +807,7 @@ export default {
           // Update the link in the local list
           const index = this.links.findIndex(l => l.hash === this.editingLink.hash);
           if (index !== -1) {
-            this.links[index] = res;
+            this.links.splice(index, 1, res);
           }
           this.editingLink = null;
           // emit event to reload shares in settings view
@@ -901,7 +903,7 @@ export default {
      * @param {number} time
      */
     humanTime(time) {
-      return fromNow(time, state.user.locale)
+      return fromNow(time, state.user?.locale)
     },
     sort() {
       this.links = this.links.sort((a, b) => {
@@ -1085,9 +1087,13 @@ export default {
       this.filePickerField = null;
     },
     validateExtensions(value) {
-        if (value === "" || value === "*") return true;
-        const regex = /^\.\w+(?: \.\w+)*$/;
-        return regex.test(value);
+      const normalized = value.trim();
+      if (normalized === "" || normalized === "*") {
+        return true;
+      }
+      const parts = normalized.split(/\s+/);
+      const extensionRegex = /^\.\w+$/;
+      return parts.every(part => extensionRegex.test(part));
     },
   },
 };

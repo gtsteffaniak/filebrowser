@@ -175,10 +175,10 @@ export async function createApiKey(params) {
 }
 
 // DELETE /api/auth/token
-export function deleteApiKey(params) {
+export async function deleteApiKey(params) {
   try {
     const apiPath = getApiPath('auth/token', params)
-    fetchURL(apiPath, {
+    await fetchURL(apiPath, {
       method: 'DELETE'
     })
   } catch (err) {
@@ -201,10 +201,7 @@ function base64ToArrayBuffer(base64url) {
   let base64 = base64url.replace(/-/g, '+').replace(/_/g, '/')
   while (base64.length % 4) base64 += '='
   const binary = atob(base64)
-  const bytes = new Uint8Array(binary.length)
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i)
-  }
+  const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0))
   return bytes.buffer
 }
 

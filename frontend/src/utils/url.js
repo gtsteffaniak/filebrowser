@@ -97,18 +97,17 @@ export function getApiPath(path, params = {}, skipEncode = false, isPublic = fal
   const prefix = isPublic ? "public/api/" : "api/";
   path = `${globalVars.baseURL}${prefix}${path}`;
 
-  const paramKeys = Object.keys(params);
-  if (paramKeys.length > 0) {
+  const entries = Object.entries(params);
+  if (entries.length > 0) {
     if (!skipEncode) {
       const encodedParams = [];
-      for (const key of paramKeys) {
-        const value = params[key];
+      for (const [key, value] of entries) {
         if (value === undefined || value === null || value === "") continue;
         // Handle array values for repeated parameters
         if (Array.isArray(value)) {
-          value.forEach(v => {
+          for (const v of value) {
             encodedParams.push(`${encodeURIComponent(key)}=${encodeURIComponent(v)}`);
-          });
+          }
         } else {
           encodedParams.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
         }
@@ -118,14 +117,13 @@ export function getApiPath(path, params = {}, skipEncode = false, isPublic = fal
       }
     } else {
       const queryParams = [];
-      for (const key in params) {
-        const value = params[key];
+      for (const [key, value] of entries) {
         if (value === undefined || value === null || value === "") continue;
         // Handle array values for repeated parameters
         if (Array.isArray(value)) {
-          value.forEach(v => {
+          for (const v of value) {
             queryParams.push(`${key}=${v}`);
-          });
+          }
         } else {
           queryParams.push(`${key}=${value}`);
         }
@@ -280,9 +278,9 @@ export function goToItem(source, path, previousHistoryItem, newTab = false, isSh
 
   if (previousHistoryItem === undefined) {
     // When undefined will not create browser history
-    router.replace({ path: fullPath });
+    void router.replace({ path: fullPath });
     return
   }
-  router.push({ path: fullPath });
+  void router.push({ path: fullPath });
   return
 }

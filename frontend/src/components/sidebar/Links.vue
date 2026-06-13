@@ -193,6 +193,7 @@ import { state, getters, mutations } from "@/store";
 import ProgressBar from "@/components/ProgressBar.vue";
 import { goToItem } from "@/utils/url";
 import { getIconClass } from "@/utils/material-symbols";
+import { getObjectProperty } from '@/utils/object.js';
 import IndexInfo from "@/components/files/IndexInfo.vue";
 import { globalVars } from "@/utils/constants";
 import { resourcesApi } from "@/api";
@@ -233,7 +234,7 @@ export default {
     },
     isShare: () => getters.isShare(),
     hasLinks() {
-      return this.sidebarLinksToDisplay?.length > 0;
+      return this.sidebarLinksToDisplay.length > 0;
     },
     user: () => (state.user || {username: 'anonymous'}),
     sourceInfo() {
@@ -266,7 +267,7 @@ export default {
     },
     sidebarLinksToDisplay() {
       // If viewing a share, use share's links
-      if (getters.isShare() && state.shareInfo?.sidebarLinks && state.shareInfo.sidebarLinks.length > 0) {
+      if (getters.isShare() && state.shareInfo?.sidebarLinks?.length > 0) {
         return state.shareInfo.sidebarLinks;
       }
       // If user has custom links, use those
@@ -314,7 +315,7 @@ export default {
     },
     dropdownSourceItems() {
       return this.sourceNames.map(rawName => {
-        const customLink = this.sourceLinkMap[rawName];
+        const customLink = getObjectProperty(this.sourceLinkMap, rawName);
         return {
           rawName,
           displayName: customLink ? customLink.name : rawName,

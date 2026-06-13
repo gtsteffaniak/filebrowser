@@ -253,6 +253,7 @@ import Plyr from 'plyr';
 import AudioPanel from "@/components/files/AudioPanel.vue";
 import { getters, mutations, state } from '@/store';
 import { url } from '@/utils';
+import { getObjectProperty } from '@/utils/object.js';
 import { globalVars } from '@/utils/constants';
 import { getSubtitleFormatExtension } from '@/utils/subtitles';
 
@@ -489,19 +490,19 @@ export default {
       return this.albumArtSize;
     },
     queueCount() {
-      return state.playbackQueue?.queue?.length || 0;
+      return state.playbackQueue.queue.length || 0;
     },
     shouldTogglePlayPause() {
-      return state.playbackQueue?.shouldTogglePlayPause || false;
+      return state.playbackQueue.shouldTogglePlayPause || false;
     },
     playbackQueue() {
-      return state.playbackQueue?.queue || [];
+      return state.playbackQueue.queue;
     },
     currentQueueIndex() {
-      return state.playbackQueue?.currentIndex ?? -1;
+      return state.playbackQueue.currentIndex ?? -1;
     },
     playbackMode() {
-      return state.playbackQueue?.mode || 'single';
+      return state.playbackQueue.mode || 'single';
     },
     playbackModeMessage() {
       const mode = {
@@ -813,7 +814,7 @@ export default {
           return 'medium';
         }
         const data = JSON.parse(raw);
-        const id = data?.[PLYR_CAPTION_SIZE_FIELD];
+        const id = getObjectProperty(data, PLYR_CAPTION_SIZE_FIELD);
         if (id && PLYR_CAPTION_SIZE_IDS.includes(id)) {
           return id;
         }
@@ -902,18 +903,17 @@ export default {
         this.syncCaptionSizeSettingsVisibility();
         captionBtn.removeAttribute('hidden');
 
-        const labels = this.captionSizeMenuLabels();
         const current = this.getStoredCaptionSize();
 
-        captionBtn.querySelector('span').innerHTML = `${title}: <span class="plyr__menu__value">${labels[current]}</span>`;
+        captionBtn.querySelector('span').innerHTML = `${title}: <span class="plyr__menu__value">${this.getCaptionSizeLabel(current)}</span>`;
 
         captionPanel.querySelector('.plyr__control--back span[aria-hidden="true"]').textContent = title;
 
         const menu = captionPanel.querySelector('div[role="menu"]');
         menu.innerHTML = PLYR_CAPTION_SIZE_IDS.map(
           (id) => `<button type="button" data-plyr="caption-size" role="menuitemradio" class="plyr__control" aria-checked="${current === id}" value="${id}">
-                <span>${labels[id]}</span>
-              </button>`,
+                    <span>${this.getCaptionSizeLabel(id)}</span>
+                  </button>`,
         ).join('');
 
         menu.querySelectorAll('button[data-plyr="caption-size"]').forEach((button) => {
@@ -927,7 +927,7 @@ export default {
             menu.querySelectorAll('button[data-plyr="caption-size"]').forEach((btn) => {
               btn.setAttribute('aria-checked', btn.getAttribute('value') === value ? 'true' : 'false');
             });
-            captionBtn.querySelector('span').innerHTML = `${title}: <span class="plyr__menu__value">${labels[value]}</span>`;
+            captionBtn.querySelector('span').innerHTML = `${title}: <span class="plyr__menu__value">${this.getCaptionSizeLabel(value)}</span>`;
           });
         });
 
@@ -935,6 +935,25 @@ export default {
         this.applyCaptionSizeClass();
       } catch (error) {
         console.error('Error applying caption size settings:', error);
+      }
+    },
+    getCaptionSizeLabel(size) {
+      switch (size) {
+        case 'small': return 'Small';
+        case 'medium': return 'Medium';
+        case 'large': return 'Large';
+        case 'xlarge': return 'Extra large';
+        default: return 'Medium';
+      }
+    },
+    getPlaybackModeLabel(mode) {
+      switch (mode) {
+        case 'single': return 'Play Once';
+        case 'sequential': return 'Play All';
+        case 'shuffle': return 'Shuffle All';
+        case 'loop-single': return 'Loop current';
+        case 'loop-all': return 'Play All Looped';
+        default: return 'Play Once';
       }
     },
     toggleLoop() {
@@ -977,8 +996,7 @@ export default {
       const modeCycle = ['loop-all', 'shuffle', 'sequential'];
       const currentIndex = modeCycle.indexOf(this.playbackMode);
       const nextIndex = (currentIndex + 1) % modeCycle.length;
-      const newMode = modeCycle[nextIndex];
-      // Directly update state
+      const newMode = modeCycle.at(nextIndex);
       mutations.setPlaybackQueue({
         queue: this.playbackQueue,
         currentIndex: this.currentQueueIndex,
@@ -996,17 +1014,17 @@ export default {
       if (!this.lyrics.length || !this.syncedLyrics) return;
       const currentMs = this.player.currentTime * 1000;
       let idx = this.activeLyricIndex;
-      if (idx > 0 && this.lyrics[idx]?.timestamp > currentMs) {
+      if (idx > 0 && this.lyrics.at(idx)?.timestamp > currentMs) {
         idx = 0;
       }
       while (
         idx + 1 < this.lyrics.length &&
-        this.lyrics[idx + 1].timestamp <= currentMs
+        this.lyrics.at(idx + 1).timestamp <= currentMs
       ) {
         idx++;
       }
       let first = idx;
-      while (first > 0 && this.lyrics[first - 1].timestamp === this.lyrics[idx].timestamp) {
+      while (first > 0 && this.lyrics.at(first - 1).timestamp === this.lyrics.at(idx).timestamp) {
         first--;
       }
       if (first !== this.activeLyricIndex) {
@@ -1059,10 +1077,7 @@ export default {
         if (this.req.metadata.albumArt) {
           try {
             const byteCharacters = atob(this.req.metadata.albumArt);
-            const byteArray = new Uint8Array(byteCharacters.length);
-            for (let i = 0; i < byteCharacters.length; i++) {
-              byteArray[i] = byteCharacters.charCodeAt(i);
-            }
+            const byteArray = Uint8Array.from(byteCharacters, (c) => c.charCodeAt(0));
             const blob = new Blob([byteArray], { type: 'image/jpeg' });
             this.albumArtUrl = URL.createObjectURL(blob);
           } catch (error) {
@@ -1081,7 +1096,7 @@ export default {
     },
     cleanupAlbumArt() {
       if (this.previewType !== "audio") return;
-      if (this?.albumArtUrl.startsWith('blob:')) {
+      if (typeof this.albumArtUrl === 'string' && this.albumArtUrl.startsWith('blob:')) {
         URL.revokeObjectURL(this.albumArtUrl);
       }
       this.albumArtUrl = null;
@@ -1150,7 +1165,7 @@ export default {
       this.player.on('canplay', () => {
         this.updateMediaSessionPlaybackState();
       });
-      if ((this.previewType === 'video' || this.previewType === 'audio') && screen.orientation) {
+      if ((this.previewType === 'video' || this.previewType === 'audio')) {
         this.player.on('enterfullscreen', this.onFullscreenEnter);
         this.player.on('exitfullscreen', this.onFullscreenExit);
       }
@@ -1800,7 +1815,7 @@ export default {
           break;
         case 'loop-single':
           // When playing the same file (loop-single), the queue only contains the current file
-          finalQueue = currentIndex !== -1 ? [mediaFiles[currentIndex]] : [];
+          finalQueue = currentIndex !== -1 ? [mediaFiles.at(currentIndex)] : [];
           finalIndex = 0;
           break;
 
@@ -1813,7 +1828,7 @@ export default {
           finalQueue = sortedFiles;
           // Find the current file position in the queue
           if (currentIndex !== -1) {
-            const currentFile = mediaFiles[currentIndex];
+            const currentFile = mediaFiles.at(currentIndex);
             finalIndex = sortedFiles.findIndex(item => item.path === currentFile.path);
           } else {
             finalIndex = 0;
@@ -1827,13 +1842,13 @@ export default {
           if (forceReshuffle || this.playbackQueue.length === 0) {
             const shuffledFiles = this.shuffleArray([...mediaFiles]);
             finalQueue = shuffledFiles;
-            } else {
-              // Use the existing queue when not forcing reshuffle
-              finalQueue = this.playbackQueue;
-            }
+          } else {
+            // Use the existing queue when not forcing reshuffle
+            finalQueue = this.playbackQueue;
+          }
           // Find the current file position in the queue
           if (currentIndex !== -1) {
-            const currentFile = mediaFiles[currentIndex];
+            const currentFile = mediaFiles.at(currentIndex);
             finalIndex = finalQueue.findIndex(item => item.path === currentFile.path);
           } else {
             finalIndex = 0;
@@ -1854,7 +1869,9 @@ export default {
       const shuffled = [...array];
       for (let i = shuffled.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        const temp = shuffled.slice(j, j + 1)[0];
+        shuffled.splice(j, 1, shuffled.at(i));
+        shuffled.splice(i, 1, temp);
       }
       return shuffled;
     },
@@ -1870,7 +1887,7 @@ export default {
           return;
         }
       }
-      const prevItem = this.playbackQueue[prevIndex];
+      const prevItem = this.playbackQueue.at(prevIndex);
       // Update current index
       mutations.setPlaybackQueue({
         queue: this.playbackQueue,
@@ -1895,7 +1912,7 @@ export default {
         }
       }
 
-      const nextItem = this.playbackQueue[nextIndex];
+      const nextItem = this.playbackQueue.at(nextIndex);
 
       try {
         // Update current index
@@ -2016,7 +2033,7 @@ export default {
                 event.currentTarget.setAttribute('aria-checked', 'true');
 
                 // Update button text
-                const currentMode = modeLabels[value] || 'Play Once';
+                const currentMode = this.getPlaybackModeLabel(value);
                 playbackBtn.querySelector('span').innerHTML = `Playback: <span class="plyr__menu__value">${currentMode}</span>`;
 
                 // Update the global state with the new mode

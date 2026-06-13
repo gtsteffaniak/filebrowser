@@ -342,7 +342,7 @@ export default {
         }
         await authApi.login(this.username, this.password, captcha);
         await initAuth();
-        router.push({ path: redirect });
+        void router.push({ path: redirect });
       } catch (e) {
         console.log(e);
         this.inProgress = false;
@@ -386,7 +386,7 @@ export default {
           try {
             await authApi.beginPasskeyLogin(this.username, this.password);
             await initAuth();
-            router.push({ path: redirect });
+            void router.push({ path: redirect });
           } catch (passkeyErr) {
             this.error = passkeyErr.message;
             this.inProgress = false;

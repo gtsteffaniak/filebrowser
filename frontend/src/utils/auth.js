@@ -55,7 +55,7 @@ export function generateRandomCode(length) {
   let code = '';
   for (let i = 0; i < length; i++) {
     const randomIndex = Math.floor(Math.random() * charset.length);
-    code += charset[randomIndex];
+    code += charset.charAt(randomIndex);
   }
 
   return code;
@@ -72,7 +72,7 @@ export async function logout() {
       let logoutUrl = data.logoutUrl;
       // Backend clears the cookie, but frontend does it as fail-safe cleanup
       document.cookie = "filebrowser_quantum_jwt=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
-      mutations.setCurrentUser(null);
+      void mutations.setCurrentUser(null);
       // No need to clear state.jwt - cookie is the source of truth
       if (!logoutUrl) {
         logoutUrl = `${globalVars.baseURL}login`;

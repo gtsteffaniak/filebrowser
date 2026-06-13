@@ -111,7 +111,7 @@ export default {
       }
       try {
         const data = this.localuser;
-        mutations.updateCurrentUser(data);
+        await mutations.updateCurrentUser(data);
         await usersApi.update(data, ["fileLoading"]);
         notify.showSuccessToast(this.$t("settings.settingsUpdated"));
       } catch (e) {

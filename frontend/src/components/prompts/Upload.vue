@@ -302,7 +302,7 @@ export default {
             clearAll: clearAll.value,
           },
         };
-        mutations.updateCurrentUser(data);
+        void mutations.updateCurrentUser(data);
         await usersApi.update(data, ["fileLoading"]);
         notify.showSuccessToast("Upload settings updated");
       } catch (e) {
@@ -346,7 +346,7 @@ export default {
       mutations.showPrompt({
         name: "rename",
         confirm: (newName) => {
-          renameUploadFolder(conflictingFolder, newName);
+          void renameUploadFolder(conflictingFolder, newName);
         },
         props: { folderName: conflictingFolder }
       });
@@ -400,7 +400,7 @@ export default {
 
     watch(isUploading, (active) => {
       if (active) {
-        acquireWakeLock();
+        void acquireWakeLock();
       } else {
         releaseWakeLock();
       }
@@ -445,7 +445,7 @@ export default {
 
     const handleVisibilityChange = async () => {
       if (document.visibilityState === "visible" && isUploading.value) {
-        acquireWakeLock();
+        void acquireWakeLock();
       }
     };
 
@@ -478,7 +478,7 @@ export default {
           await processDroppedItems(items, destination);
         } else if (first.file instanceof File && typeof first.relativePath === 'string') {
           // This is an array of objects {file, relativePath} for paste from clipboard OS.
-          uploadManager.add(destination, items);
+          void uploadManager.add(destination, items);
         }
       } else if (items) {
         // This case handles a FileList object from the upload prompt's own input fields.
@@ -488,7 +488,7 @@ export default {
     };
 
     onMounted(async () => {
-      document.addEventListener("visibilitychange", handleVisibilityChange);
+      document.addEventListener("visibilitychange", void handleVisibilityChange);
       window.addEventListener("beforeunload", handleBeforeUnload);
       uploadManager.setOnConflict(handleConflict);
       if (props.initialItems) {
@@ -497,7 +497,7 @@ export default {
     });
 
     onUnmounted(() => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      document.removeEventListener("visibilitychange", void handleVisibilityChange);
       window.removeEventListener("beforeunload", handleBeforeUnload);
       uploadManager.setOnConflict(() => {}); // cleanup
       releaseWakeLock();
@@ -600,7 +600,7 @@ export default {
       allFiles.forEach(files => { filesToUpload.push(...files); });
 
       if (filesToUpload.length > 0) {
-        uploadManager.add(destination, filesToUpload);
+        void uploadManager.add(destination, filesToUpload);
       }
     };
 
@@ -610,7 +610,7 @@ export default {
         relativePath: file.webkitRelativePath || file.name,
       }));
       if (filesToAdd.length > 0) {
-        uploadManager.add(destination, filesToAdd);
+        void uploadManager.add(destination, filesToAdd);
       }
     };
 

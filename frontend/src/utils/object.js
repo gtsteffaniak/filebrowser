@@ -15,6 +15,7 @@ export function getObjectProperty(obj, key) {
   if (obj === null || obj === undefined || prop === null || !Object.hasOwn(obj, prop)) {
     return undefined;
   }
+  // eslint-disable-next-line security/detect-object-injection
   return obj[prop];
 }
 
@@ -25,6 +26,7 @@ export function setObjectProperty(obj, key, value) {
     return { ...(obj ?? {}) };
   }
   const result = { ...(obj ?? {}) };
+  // eslint-disable-next-line security/detect-object-injection
   result[prop] = value;
   return result;
 }

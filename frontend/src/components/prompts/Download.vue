@@ -106,13 +106,13 @@ export default {
       return getters.currentPrompt();
     },
     downloads() {
-      return downloadManager?.queue || [];
+      return downloadManager.queue || [];
     },
     hasDownloads() {
-      return (downloadManager?.queue?.length || 0) > 0;
+      return (downloadManager.queue.length || 0) > 0;
     },
     hasClearable() {
-      if (!downloadManager?.queue) {
+      if (!downloadManager.queue) {
         return false;
       }
       return downloadManager.queue.some((download) => 
@@ -173,7 +173,7 @@ export default {
     },
     close() {
       // Only close if no active downloads
-      if (!downloadManager?.hasActive()) {
+      if (!downloadManager.hasActive()) {
         const prompt = getters.currentPrompt();
         if (prompt?.name === 'download') {
           mutations.closeTopPrompt();

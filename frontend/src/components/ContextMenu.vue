@@ -263,7 +263,9 @@ export default {
       if (state.selected.length === 0) return [];
       // Map to actual items from state.req
       if (typeof state.selected[0] === 'number') {
-        return state.selected.map(index => state.req.items[index]);
+        return state.selected
+          .map(index => state.req.items.at(index))
+          .filter(item => item !== null);
       }
       return state.selected;
     },

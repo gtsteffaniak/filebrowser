@@ -62,7 +62,7 @@ export default {
       this.clientConfig = configData;
       console.log("OnlyOffice client config received:", this.clientConfig);
 
-      if (state.user.locale !== "en") {
+      if (state.user?.locale !== "en") {
         this.clientConfig.editorConfig.lang = toStandardLocale(state.user.locale);
       }
 
@@ -90,7 +90,7 @@ export default {
       mutations.replaceRequest({});
       const uri = `${removeLastDir(state.route.path)}/`;
       const filename = this.path.split('/').pop() || "";
-      router.push({ path: uri, hash: `#${filename}` });
+      void router.push({ path: uri, hash: `#${filename}` });
     },
 
     showDebugPrompt() {

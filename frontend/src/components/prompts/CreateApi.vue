@@ -116,8 +116,9 @@ export default {
         // Only include permissions when customizing token
         if (this.customizeToken) {
           // Filter to get keys of permissions set to true and join them as a comma-separated string
-          const permissionsString = Object.keys(this.localPerms)
-            .filter((key) => this.localPerms[key])
+          const permissionsString = Object.entries(this.localPerms)
+            .filter(([, value]) => value)
+            .map(([key]) => key)
             .join(",");
           params.permissions = permissionsString;
         }
