@@ -9,6 +9,7 @@ import (
 )
 
 func TestProxyUserCreateHasSharePermission(t *testing.T) {
+	t.Setenv("FILEBROWSER_ONLYOFFICE_SECRET", "")
 	proxyConfig := "../../_docker/src/proxy/backend/config.yaml"
 	settings.Initialize(proxyConfig)
 	settings.Env.IsPlaywright = true
@@ -27,7 +28,7 @@ func TestProxyUserCreateHasSharePermission(t *testing.T) {
 		},
 	}
 	settings.ApplyUserDefaults(u)
-	if err := CreateUser(u, ""); err != nil {
+	if err = CreateUser(u, ""); err != nil {
 		t.Fatal(err)
 	}
 

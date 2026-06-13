@@ -146,7 +146,7 @@ func checkPermissionsImpl(opts utils.FileOptions, access *access.Storage, user *
 		return "", "", errors.ErrAccessDenied
 	}
 	if !access.Permitted(idx.Path, parsedPath, user.Username) {
-		return "", "", errors.ErrAccessDenied
+		return indexPath, "", errors.ErrAccessDenied
 	}
 	return indexPath, userScope, nil
 }
@@ -172,9 +172,10 @@ func filterFilesByExt(files []iteminfo.ExtendedItemInfo, hideFileExt string) []i
 
 func GetDirItems(opts utils.FileOptions, access *access.Storage, user *users.User) (Items, error) {
 	items := Items{}
-	indexPath, _, err := CheckPermissions(opts, access, user)
-	if err != nil {
-		return items, err
+	indexPath, _, topLevelErr := CheckPermissions(opts, access, user)
+	accessRulesErr := topLevelErr != nil && topLevelErr == errors.ErrAccessDenied && indexPath != ""
+	if topLevelErr != nil && !accessRulesErr {
+		return items, topLevelErr
 	}
 	// Get index
 	idx := indexing.GetIndex(opts.Source)
@@ -198,6 +199,10 @@ func GetDirItems(opts utils.FileOptions, access *access.Storage, user *users.Use
 	}
 	if err := access.CheckChildItemAccess(info, idx, user.Username); err != nil {
 		return items, err
+	}
+	hasAccessibleItems := len(info.Files) > 0 || len(info.Folders) > 0
+	if accessRulesErr && !hasAccessibleItems {
+		return items, errors.ErrAccessDenied
 	}
 	if opts.Only == "files" || opts.Only == "" {
 		for _, file := range info.Files {
@@ -225,9 +230,10 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage, user *users.
 // fileInfoFasterImpl is the actual implementation of FileInfoFaster
 func fileInfoFasterImpl(opts utils.FileOptions, access *access.Storage, user *users.User, share *share.Storage) (*iteminfo.ExtendedFileInfo, error) {
 	response := &iteminfo.ExtendedFileInfo{}
-	indexPath, userScope, err := CheckPermissions(opts, access, user)
-	if err != nil {
-		return response, err
+	indexPath, userScope, topLevelErr := CheckPermissions(opts, access, user)
+	accessRulesErr := topLevelErr != nil && topLevelErr == errors.ErrAccessDenied && indexPath != ""
+	if topLevelErr != nil && !accessRulesErr {
+		return response, topLevelErr
 	}
 	// Get index
 	idx := indexing.GetIndex(opts.Source)
@@ -253,6 +259,10 @@ func fileInfoFasterImpl(opts utils.FileOptions, access *access.Storage, user *us
 		if err := access.CheckChildItemAccess(info, idx, user.Username); err != nil {
 			return response, err
 		}
+	}
+	hasAccessibleItems := len(info.Files) > 0 || len(info.Folders) > 0
+	if accessRulesErr && !hasAccessibleItems {
+		return response, errors.ErrAccessDenied
 	}
 
 	// Build response

@@ -9,6 +9,7 @@ import (
 )
 
 func TestAdminHasSharePermissionAfterPlaywrightStartup(t *testing.T) {
+	t.Setenv("FILEBROWSER_ONLYOFFICE_SECRET", "")
 	sharingConfig := "../../_docker/src/sharing/backend/config.yaml"
 	settings.Initialize(sharingConfig)
 	settings.Env.IsPlaywright = true

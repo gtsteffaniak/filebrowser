@@ -7,8 +7,12 @@ import (
 )
 
 func TestProxyConfigUserDefaults(t *testing.T) {
+	t.Setenv("FILEBROWSER_ONLYOFFICE_SECRET", "")
 	proxyConfig := "../../../_docker/src/proxy/backend/config.yaml"
-	Initialize(proxyConfig)
+	if err := loadConfigWithDefaults(proxyConfig, true); err != nil {
+		t.Fatal(err)
+	}
+	migrateUserDefaults()
 	if !Config.UserDefaults.Account.Permissions.Share {
 		t.Fatalf("expected account.permissions.share true after migration, got false (deprecated=%v)", Config.UserDefaults.Permissions.Share)
 	}
