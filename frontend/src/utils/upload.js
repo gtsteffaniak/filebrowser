@@ -90,7 +90,7 @@ class UploadManager {
 
       if (topLevelDirs.size > 0) {
         // First try using state.req.items if available (regular uploads)
-        const existingItems = new Set(state.req.items.map(i => i.name));
+        const existingItems = new Set((state.req.items || []).map((i) => i.name));
         let conflictingDirs = [...topLevelDirs].filter(dir => existingItems.has(dir));
         let probedDirs = new Set();
 

@@ -503,7 +503,7 @@ export default {
       mutations.closeHovers();
       this.hoverNav = false;
       mutations.setNavigationGestureHint({});
-      if (state.previousHistoryItem.name) {
+      if (state.previousHistoryItem?.name) {
         url.goToItem(
           state.previousHistoryItem.source,
           state.previousHistoryItem.path,

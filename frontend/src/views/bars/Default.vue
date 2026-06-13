@@ -259,7 +259,7 @@ export default {
       } else {
         mutations.closeHovers();
         if (cv === "settings") {
-          if (state.previousHistoryItem.name) {
+          if (state.previousHistoryItem?.name) {
             url.goToItem(
               state.previousHistoryItem.source,
               state.previousHistoryItem.path,
@@ -278,7 +278,7 @@ export default {
           return;
         }
         if (getters.isPreviewView()) {
-          if (state.previousHistoryItem.name) {
+          if (state.previousHistoryItem?.name) {
             url.goToItem(state.previousHistoryItem.source, state.previousHistoryItem.path, state.previousHistoryItem, false, state.previousHistoryItem.isShare);
             return;
           } else {

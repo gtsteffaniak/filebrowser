@@ -593,7 +593,7 @@ export default {
     /** Same navigation as header “back” in preview (Default.vue performNavigation). */
     exitPreviewFromImageGesture() {
       mutations.closeHovers();
-      if (state.previousHistoryItem.name) {
+      if (state.previousHistoryItem?.name) {
         url.goToItem(
           state.previousHistoryItem.source,
           state.previousHistoryItem.path,

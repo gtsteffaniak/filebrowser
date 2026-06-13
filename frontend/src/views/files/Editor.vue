@@ -414,7 +414,11 @@ export default {
 
       if ((ctrlKey || metaKey) && key.toLowerCase() === "s") {
         event.preventDefault();
-        await this.handleEditorValueRequest();
+        try {
+          await this.handleEditorValueRequest();
+        } catch (_e) {
+          // ignore
+        }
       }
     },
     setupNavigationGuard() {
