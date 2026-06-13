@@ -43,6 +43,8 @@
         :clickable="false"
         :forceFilesApi="!!browseSource"
         :showLimitedOptions="true"
+        :inlinePin="true"
+        :pinned="item.pinned"
         @click.prevent="(event) => handleItemClick(item, index, event)"
         @dblclick.prevent="(event) => handleItemDblClick(item, index, event)"
       />
@@ -56,6 +58,7 @@ import { url } from "@/utils";
 import { resourcesApi } from "@/api";
 import ListingItem from "@/components/files/ListingItem.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import { sortedItems } from "@/utils/sort.js";
 
 export default {
   name: "file-list",
@@ -145,7 +148,7 @@ export default {
     },
     availableSources() {
       // Get all available sources from state.sources.info
-      return state.sources && state.sources.info ? Object.keys(state.sources.info) : [state.req.source];
+      return state.sources.info ? Object.keys(state.sources.info) : [state.req.source];
     },
     showSourceSelector() {
       if (this.hideDestinationSource) {
@@ -225,7 +228,7 @@ export default {
         if (this.path !== "/" && this.showFolders) {
           this.items.push({
             name: "..",
-            path: url.removeLastDir(this.path) + "/",
+            path: `${url.removeLastDir(this.path)}/`,
             source: this.source,
             type: "directory",
           });
@@ -277,7 +280,7 @@ export default {
       this.selectedSource = null;
       this.selectedType = null;
       // Fetch files for the new source
-      this.withLoading(() => resourcesApi.fetchFiles(newSource, newPath).then(this.fillOptions));
+      void this.withLoading(() => resourcesApi.fetchFiles(newSource, newPath).then(this.fillOptions));
     },
     resetToShare(newHash) {
       // Reset to the share root
@@ -288,7 +291,7 @@ export default {
       this.selectedSource = null;
       this.selectedType = null;
       // Fetch files for the share
-      this.withLoading(() => resourcesApi.fetchFilesPublic("/", newHash).then(this.fillOptions));
+      void this.withLoading(() => resourcesApi.fetchFilesPublic("/", newHash).then(this.fillOptions));
     },
     fillOptions(req) {
       // Sets the current path and resets the current items.
@@ -305,31 +308,36 @@ export default {
         isValid: !this.requireFileSelection, // Folder is only valid if file is not required
       });
 
-      // If the path isn't the root path,
-      // show a button to navigate to the previous
-      // directory (unless we are only displaying files).
-      if (this.path !== "/" && this.showFolders) {
-        this.items.push({
-          name: "..",
-          path: url.removeLastDir(this.path) + "/",
-          source: this.source,
-          type: "directory",
-        });
+      const entries = [];
+      if (req.items && Array.isArray(req.items)) {
+        for (const item of req.items) {
+          if (!this.showFolders && item.type === "directory") continue;
+          if (!this.showFiles && item.type !== "directory") continue;
+          if (item.type !== "directory" && !this.isFileTypeAllowed(item.type)) continue;
+          entries.push({
+            name: item.name,
+            path: item.path,
+            source: item.source || req.source,
+            type: item.type,
+            pinned: !!item.pinned,
+            originalItem: item,
+          });
+        }
+        const sorting = getters.sorting();
+        const dirs = entries.filter((item) => item.type === "directory");
+        const files = entries.filter((item) => item.type !== "directory");
+        this.items = [
+          ...sortedItems(dirs, sorting.by, sorting.asc),
+          ...sortedItems(files, sorting.by, sorting.asc),
+        ];
       }
 
-      // If this folder is empty, finish here.
-      if (req.items === null) return;
-      for (let item of req.items) {
-        if (!this.showFolders && item.type === "directory") continue;
-        if (!this.showFiles && item.type !== "directory") continue;
-        // Filter by file type if specified (only for files, not directories)
-        if (item.type !== "directory" && !this.isFileTypeAllowed(item.type)) continue;
-        this.items.push({
-          name: item.name,
-          path: item.path,
-          source: item.source || req.source,
-          type: item.type, // Store type for file selection
-          originalItem: item, // Store original item for Icon component
+      if (this.path !== "/" && this.showFolders) {
+        this.items.unshift({
+          name: "..",
+          path: `${url.removeLastDir(this.path)}/`,
+          source: this.source,
+          type: "directory",
         });
       }
     },
@@ -337,9 +345,9 @@ export default {
       // Retrieves the URL of the directory the user
       // just clicked in and fill the options with its
       // content.
-      let path = event.currentTarget.dataset.path;
-      let clickedItem = this.items.find(item => item.path === path);
-      let sourceToUse = clickedItem ? clickedItem.source : this.source;
+      const path = event.currentTarget.dataset.path;
+      const clickedItem = this.items.find(item => item.path === path);
+      const sourceToUse = clickedItem ? clickedItem.source : this.source;
 
       // If showFiles and showFolders is true, and clicked item is a file (not a directory), select it directly
       if (this.showFiles && clickedItem && clickedItem.type !== "directory") {
@@ -365,19 +373,19 @@ export default {
       if (this.browseSource) {
         // Explicitly browsing a source - use files API
         this.source = sourceToUse;
-        this.withLoading(() => resourcesApi.fetchFiles(sourceToUse, path).then(this.fillOptions));
+        void this.withLoading(() => resourcesApi.fetchFiles(sourceToUse, path).then(this.fillOptions));
       } else if (this.browseShare || getters.isShare()) {
         // Browsing a share - use public API
         const hashToUse = this.browseShare || state.shareInfo?.hash;
-        this.withLoading(() => resourcesApi.fetchFilesPublic(path, hashToUse).then(this.fillOptions));
+        void this.withLoading(() => resourcesApi.fetchFilesPublic(path, hashToUse).then(this.fillOptions));
       } else {
         this.source = sourceToUse;
-        this.withLoading(() => resourcesApi.fetchFiles(sourceToUse, path).then(this.fillOptions));
+        void this.withLoading(() => resourcesApi.fetchFiles(sourceToUse, path).then(this.fillOptions));
       }
 
     },
     touchstart(event) {
-      let url = event.currentTarget.dataset.path;
+      const url = event.currentTarget.dataset.path;
 
       // In 300 milliseconds, we shall reset the count.
       setTimeout(() => {
@@ -426,11 +434,6 @@ export default {
       event.preventDefault();
       event.stopPropagation();
 
-      // Double click: navigate (into folder or open file)
-      if (this.isDisplayMode) {
-        this.navigateToItem(item);
-        return;
-      }
       const syntheticEvent = {
         currentTarget: {
           dataset: {
@@ -443,7 +446,7 @@ export default {
       this.next(syntheticEvent);
     },
     select: function (event) {
-      let path = event.currentTarget.dataset.path;
+      const path = event.currentTarget.dataset.path;
       // If the element is already selected, unselect it.
       if (this.selected === path) {
         this.selected = null;
@@ -459,7 +462,7 @@ export default {
       }
       // Otherwise select the element.
       this.selected = path;
-      let clickedItem = this.items.find(item => item.path === path);
+      const clickedItem = this.items.find(item => item.path === path);
       this.selectedSource = clickedItem ? clickedItem.source : this.source;
       this.selectedType = clickedItem ? clickedItem.type : null;
       const isFile = clickedItem && clickedItem.type !== "directory";
@@ -492,7 +495,7 @@ export default {
       if (!source) {
         return;
       }
-      let p = path == null || path === "" ? "/" : String(path);
+      let p = path === null || path === "" ? "/" : String(path);
       if (!p.startsWith("/")) {
         p = `/${p}`;
       }
@@ -507,13 +510,9 @@ export default {
       this.selectedType = null;
       if (this.browseShare || getters.isShare()) {
         const hashToUse = this.browseShare || state.shareInfo?.hash;
-        this.withLoading(() =>
-          resourcesApi.fetchFilesPublic(p, hashToUse).then(this.fillOptions)
-        );
+        void this.withLoading(() => resourcesApi.fetchFilesPublic(p, hashToUse).then(this.fillOptions));
       } else {
-        this.withLoading(() =>
-          resourcesApi.fetchFiles(source, p).then(this.fillOptions)
-        );
+        void this.withLoading(() => resourcesApi.fetchFiles(source, p).then(this.fillOptions));
       }
     },
     fillFromList() {
@@ -523,7 +522,9 @@ export default {
     navigateToItem(item) {
       mutations.closeTopPrompt();
       mutations.setNavigationTransitioning(true);
-      url.goToItem(item.source || state.req.source, item.path, undefined);
+      const isShare = !!(this.browseShare) || getters.isShare();
+      const source = isShare ? (state.shareInfo?.hash) : (item.source || state.req.source);
+      url.goToItem(source, item.path, undefined, false, isShare);
     },
   },
 };

@@ -1,6 +1,7 @@
 <template>
   <button
     v-if="icon === 'close_back'"
+    type="button"
     :disabled="isDisabled"
     @click="actionMultiIcon"
     :aria-label="label"
@@ -9,14 +10,15 @@
   >
     <svg
       id="button-toggle-navbar"
-      class="ham hamRotate180 ham5"
       viewBox="0 0 100 100"
       width="30"
+      class="ham hamRotate180 ham5"
       :class="{
-        back: multistate == 'back',
-        close: multistate == 'close',
+        back: multistate === 'back',
+        close: multistate === 'close',
       }"
     >
+      <title id="toggle-navbar-title">{{ $t('general.close') }}</title>
       <path class="line top" d="M 30,33 H 70" />
       <path class="line middle" d="M 30,50 H 70" />
       <path class="line bottom" d="M 30,67 H 70" />
@@ -24,22 +26,21 @@
   </button>
   <button
     v-else
+    type="button"
     :disabled="isDisabled"
-    @click="action"
     :aria-label="label"
     :title="label"
     class="action no-select"
+    @click="action"
   >
-    <i v-if="icon == 'table_rows_narrow' || icon == 'content_copy' || icon == 'file_copy' || icon == 'copy_all'" class="material-symbols-outlined">{{ icon }}</i>
-    <i v-else class="material-symbols">{{ icon }}</i>
-
+    <i :class="iconClass">{{ icon }}</i>
     <span>{{ label }}</span>
     <span v-if="counter > 0" class="counter">{{ counter }}</span>
   </button>
 </template>
 
 <script>
-import { mutations, state, getters } from "@/store";
+import { getters, mutations, state } from "@/store";
 
 export default {
   name: "action",
@@ -56,29 +57,20 @@ export default {
     },
     currentView() {
       return getters.currentView();
-    }
-  },
-  mounted() {
-    this.reEvalAction();
-  },
-  watch: {
-    $route() {
-      this.reEvalAction();
     },
-    req() {
-      this.reEvalAction();
-    },
-    currentView() {
-      this.reEvalAction();
+    iconClass() {
+      const outlinedIcons = [
+        'table_rows_narrow',
+        'content_copy',
+        'file_copy',
+        'copy_all'
+      ];
+      return outlinedIcons.includes(this.icon)
+        ? 'material-symbols-outlined'
+        : 'material-symbols';
     },
   },
   methods: {
-    reEvalAction() {
-      const currentView = getters.currentView();
-      if (currentView == "settings") {
-        mutations.setActiveSettingsView(getters.currentHash());
-      }
-    },
     actionMultiIcon() {
       if (this.show) {
         mutations.closeHovers();

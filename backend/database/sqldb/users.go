@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // User SQL operations
@@ -23,12 +24,20 @@ type UserData struct {
 	OtpEnabled       bool                       `json:"otpEnabled"`
 	Version          int                        `json:"version"`
 	ShowFirstLogin   bool                       `json:"showFirstLogin"`
+	PinnedItems      users.PinnedItems          `json:"pinnedItems,omitempty"`
 	NonAdminEditable users.NonAdminEditable     `json:"settings"`
 	FilePermissions  *users.Permissions         `json:"filePermissions,omitempty"`
 }
 
 func applyFilePermissionsFromJSON(user *users.User, data *UserData) {
 	if data.FilePermissions == nil {
+		logger.Debug("user load missing filePermissions in user_data",
+			"username", user.Username,
+			"userID", user.ID,
+			"permAdmin", user.Permissions.Admin,
+			"permApi", user.Permissions.Api,
+			"permRealtime", user.Permissions.Realtime,
+		)
 		return
 	}
 	fp := data.FilePermissions
@@ -63,6 +72,7 @@ func finishUserLoad(user *users.User, userDataJSON []byte) error {
 	user.OtpEnabled = userData.OtpEnabled
 	user.Version = userData.Version
 	user.ShowFirstLogin = userData.ShowFirstLogin
+	user.PinnedItems = userData.PinnedItems
 	user.NonAdminEditable = userData.NonAdminEditable
 	applyFilePermissionsFromJSON(user, &userData)
 	return nil
@@ -214,6 +224,7 @@ func (s *SQLStore) CreateUser(user *users.User) error {
 		OtpEnabled:       user.OtpEnabled,
 		Version:          user.Version,
 		ShowFirstLogin:   user.ShowFirstLogin,
+		PinnedItems:      user.PinnedItems,
 		NonAdminEditable: user.NonAdminEditable,
 		FilePermissions:  filePermissionsForJSON(user),
 	}
@@ -259,6 +270,7 @@ func (s *SQLStore) UpdateUser(user *users.User) error {
 		OtpEnabled:       user.OtpEnabled,
 		Version:          user.Version,
 		ShowFirstLogin:   user.ShowFirstLogin,
+		PinnedItems:      user.PinnedItems,
 		NonAdminEditable: user.NonAdminEditable,
 		FilePermissions:  filePermissionsForJSON(user),
 	}

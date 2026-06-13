@@ -5,15 +5,15 @@
       <LoadingSpinner size="medium" />
     </div>
     <div class="preview" :class="{
-      'plyr-background-light': !isDarkMode && previewType == 'audio' && !useDefaultMediaPlayer,
-      'plyr-background-dark': isDarkMode && previewType == 'audio' && !useDefaultMediaPlayer,
+      'plyr-background-light': !isDarkMode && previewType === 'audio' && !useDefaultMediaPlayer,
+      'plyr-background-dark': isDarkMode && previewType === 'audio' && !useDefaultMediaPlayer,
       'transitioning': isTransitioning
     }" v-if="!isDeleted">
       <ExtendedImage v-if="showImage && !isTransitioning" :src="raw" @navigate-previous="navigatePrevious"
         @navigate-next="navigateNext" @close-preview="exitPreviewFromImageGesture" />
 
       <!-- Media: load full metadata + album art from media API before mounting plyr so the correct view/art is stable. -->
-      <div v-else-if="previewType == 'audio' || previewType == 'video'" class="av-preview-wrap">
+      <div v-else-if="previewType === 'audio' || previewType === 'video'" class="av-preview-wrap">
         <div v-if="avMetadataLoading" class="av-preview-loading">
           <LoadingSpinner size="medium" />
         </div>
@@ -29,7 +29,7 @@
           :useDefaultMediaPlayer="useDefaultMediaPlayer"
           :autoPlayEnabled="autoPlay"
           @play="autoPlay = true"
-          :class="{ 'plyr-background': previewType == 'audio' && !useDefaultMediaPlayer }"
+          :class="{ 'plyr-background': previewType === 'audio' && !useDefaultMediaPlayer }"
           @navigate-previous="navigatePrevious"
           @navigate-next="navigateNext"
           @close-preview="exitPreviewFromImageGesture"
@@ -37,7 +37,7 @@
       </div>
 
       <div v-else-if="isPdf" class="pdf-wrapper">
-        <iframe allow="web-share" class="pdf" :src="raw"></iframe>
+        <iframe allow="web-share" class="pdf" :src="raw" title="PDF"></iframe>
       </div>
 
       <div v-else class="info">
@@ -51,7 +51,7 @@
               <i class="material-symbols">file_download</i>{{ $t("general.download") }}
             </div>
           </a>
-          <a target="_blank" :href="raw" class="button button--flat" v-if="req.type != 'directory'">
+          <a target="_blank" :href="raw" class="button button--flat" v-if="req.type !== 'directory'">
             <div>
               <i class="material-symbols">open_in_new</i>{{ $t("general.openFile") }}
             </div>
@@ -137,23 +137,25 @@ export default {
       if (!globalVars.muPdfAvailable) {
         return false;
       }
-      const ext = "." + state.req.name.split(".").pop().toLowerCase(); // Ensure lowercase and dot
-      const pdfConvertCompatibleFileExtensions = {
-        ".xps": true,
-        ".mobi": true,
-        ".fb2": true,
-        ".cbz": true,
-        ".svg": true,
-        ".docx": true,
-        ".pptx": true,
-        ".xlsx": true,
-        ".hwp": true,
-        ".hwpx": true,
-      };
+      const ext = `.${state.req.name.split(".").pop().toLowerCase()}`; // Ensure lowercase and dot
       if (state.user.disableViewingExt.includes(ext)) {
         return false;
       }
-      return !!pdfConvertCompatibleFileExtensions[ext];
+      switch (ext) {
+        case '.xps':
+        case '.mobi':
+        case '.fb2':
+        case '.cbz':
+        case '.svg':
+        case '.docx':
+        case '.pptx':
+        case '.xlsx':
+        case '.hwp':
+        case '.hwpx':
+          return true;
+        default:
+          return false;
+      }
     },
     sidebarShowing() {
       return getters.isSidebarVisible();
@@ -189,11 +191,11 @@ export default {
           return resourcesApi.getPreviewURLPublic(previewPath, "original");
         }
         return (
-          resourcesApi.getPreviewURL(
+          `${resourcesApi.getPreviewURL(
             state.req.source,
             state.req.path,
             state.req.modified,
-          ) + "&size=original"
+          )}&size=original`
         );
       }
       if (getters.isShare()) {
@@ -239,7 +241,7 @@ export default {
       return state.req;
     },
     disableFileViewer() {
-      return state.shareInfo?.disableFileViewer;
+      return state.shareInfo.disableFileViewer;
     },
   },
   watch: {
@@ -312,7 +314,7 @@ export default {
           try {
             if (getters.isShare()) {
               const hash = state.shareInfo.hash;
-              const password = localStorage.getItem("sharepass:" + hash) || "";
+              const password = localStorage.getItem(`sharepass:${hash}`) || "";
               this.lyrics = await mediaApi.getLyricsPublic(state.req.path, hash, password);
             } else {
               this.lyrics = await mediaApi.getLyrics(state.req.source, state.req.path);
@@ -347,7 +349,7 @@ export default {
         let enriched;
         if (getters.isShare()) {
           const pwd =
-            localStorage.getItem("sharepass:" + state.shareInfo.hash) || "";
+            localStorage.getItem(`sharepass:${state.shareInfo.hash}`) || "";
           enriched = await mediaApi.fetchDirectoryMediaMetadataPublic(
             req.path,
             state.shareInfo.hash,
@@ -375,13 +377,13 @@ export default {
       }
     },
     async subtitles() {
-      if (!state.req?.subtitles?.length) {
+      if (!state.req.subtitles?.length) {
         return [];
       }
-      let subs = [];
+      const subs = [];
       // Fetch subtitle content for each track using the media API
       for (let index = 0; index < state.req.subtitles.length; index++) {
-        const subtitleTrack = state.req.subtitles[index];
+        const subtitleTrack = state.req.subtitles.at(index);
         try {
           // Fetch subtitle content from API using name and embedded
           const content = await mediaApi.getSubtitleContent(
@@ -425,19 +427,25 @@ export default {
       return subs;
     },
     async keyEvent(event) {
-      if (getters.currentPromptName()) {
+      if (getters.currentPromptName() || event.repeat) {
         return;
       }
 
-      const { key } = event;
+      const { key, altKey } = event;
 
-      switch (key) {
-        case "Delete":
-          this.showDeletePrompt();
-          break;
+      let shortcut = key;
+      if (altKey) shortcut = `Alt+${key}`;
+
+      switch (shortcut) {
+        case "Alt+ArrowUp":
+          event.preventDefault();
+          // fall through
         case "Escape":
         case "Backspace":
           this.close();
+          break;
+        case "Delete":
+          this.showDeletePrompt();
           break;
       }
     },
@@ -449,7 +457,7 @@ export default {
         directoryPath = '/';
       }
 
-      if (!this.listing || this.listing == "undefined") {
+      if (!this.listing || this.listing === "undefined") {
         // Try to use pre-fetched parent directory items first
         if (state.req.parentDirItems) {
           this.listing = state.req.parentDirItems;
@@ -500,7 +508,7 @@ export default {
               {
                 path: item.path,
                 hash: state.shareInfo?.hash,
-                token: state.shareInfo.token,
+                token: state.shareInfo?.token,
                 inline: true,
               },
               [item.path],
@@ -543,7 +551,7 @@ export default {
     },
     close() {
       mutations.replaceRequest({}); // Reset request data
-      let uri = url.removeLastDir(state.route.path) + "/";
+      const uri = `${url.removeLastDir(state.route.path)}/`;
       this.$router.push({ path: uri });
     },
     download() {
@@ -590,6 +598,8 @@ export default {
           state.previousHistoryItem.source,
           state.previousHistoryItem.path,
           state.previousHistoryItem,
+          false,
+          state.previousHistoryItem.isShare
         );
         return;
       }

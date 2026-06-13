@@ -3,14 +3,23 @@
     <p>{{ $t("prompts.replaceMessage") }}</p>
   </div>
   <div class="card-actions">
-    <button class="button button--flat button--blue" @click="(event) => currentPrompt.confirm(event, 'rename')"
-      :aria-label="$t('general.rename')" :title="$t('general.rename')" tabindex="2">
+    <button
+      type="button"
+      class="button button--flat button--blue"
+      @click="(event) => currentPrompt.confirm(event, 'rename')"
+      :aria-label="$t('general.rename')"
+      :title="$t('general.rename')"
+    >
       {{ $t("general.rename") }}
     </button>
-    <button id="focus-prompt" class="button button--flat button--red"
+    <button
+      type="button"
+      id="focus-prompt"
+      class="button button--flat button--red"
       :disabled="isSameFile"
-      @click="(event) => currentPrompt.confirm(event, 'overwrite')" :aria-label="$t('general.replace')"
-      :title="$t('general.replace')" tabindex="1">
+      @click="(event) => currentPrompt.confirm(event, 'overwrite')"
+      :aria-label="$t('general.replace')"
+      :title="$t('general.replace')">
       {{ $t("general.replace") }}
     </button>
   </div>
@@ -27,7 +36,7 @@ export default {
     },
     isSameFile() {
       // Check if the current prompt has props indicating same file
-      return this.currentPrompt?.props?.isSameFile === true;
+      return this.currentPrompt.props?.isSameFile === true;
     },
   },
   methods: {},

@@ -1,5 +1,11 @@
 <template>
-  <button class="button floating-action-button" @click="addAccess">{{ $t("general.new") }}</button>
+  <button
+    type="button"
+    class="button floating-action-button"
+    @click="addAccess"
+  >
+   {{ $t("general.new") }}
+  </button>
   <errors v-if="error" :errorCode="error.status" />
   <div class="card-title">
     <h2>{{ $t("access.accessManagement") }}</h2>
@@ -29,7 +35,11 @@
         >warning</i>
       </template>
       <template #cell-edit="{ row }">
-        <button class="action" @click="editAccess(row.path)" :aria-label="$t('general.edit')"
+        <button
+          type="button"
+          class="action"
+          @click="editAccess(row.path)"
+          :aria-label="$t('general.edit')"
           :title="$t('general.edit')"
         >
           <i class="material-symbols">edit</i>
@@ -51,16 +61,14 @@ export default {
     Errors,
     SettingsTable,
   },
-  data: function () {
-    return {
-      rules: {},
-      accessPath: "",
-      error: null,
-      selectedSource: "",
-      /** True until first `fetchRules` completes so the table does not flash the empty state. */
-      loading: true,
-    };
-  },
+  data: () => ({
+    rules: {},
+    accessPath: "",
+    error: null,
+    selectedSource: "",
+    /** True until first `fetchRules` completes so the table does not flash the empty state. */
+    loading: true,
+  }),
   async mounted() {
     this.selectedSource = state.sources.current;
     await this.fetchRules();

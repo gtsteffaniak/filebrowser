@@ -1,67 +1,39 @@
 <template>
-  <table class="index-info-table">
-    <thead>
-      <tr>
-        <th colspan="2">{{ info.name || 'Source' }}</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>{{ $t("general.status") }}</td>
-        <td>{{ getStatusLabel(info.status) }}</td>
-      </tr>
-      <tr>
-        <td>{{ $t("index.assessment") }}</td>
-        <td>{{ getComplexityLabel(info.complexity || 0) }}</td>
-      </tr>
-      <tr>
-        <td>{{ $t("general.files") }}</td>
-        <td>{{ info.files || 0 }}</td>
-      </tr>
-      <tr>
-        <td>{{ $t("general.folders") }}</td>
-        <td>{{ info.folders || 0 }}</td>
-      </tr>
-      <tr>
-        <td>{{ $t("index.lastScanned") }}</td>
-        <td>{{ getHumanReadable(info.lastIndex) }}</td>
-      </tr>
-      <tr>
-        <td>{{ $t("index.quickScan") }}</td>
-        <td>{{ formatDuration(info.quickScanDurationSeconds) }}</td>
-      </tr>
-      <tr>
-        <td>{{ $t("index.fullScan") }}</td>
-        <td>{{ formatDuration(info.fullScanDurationSeconds) }}</td>
-      </tr>
-    </tbody>
-  </table>
+  <SettingsTable
+    class="index-info-table"
+    :header-title="info.name || 'Source'"
+    :columns="columns"
+    :items="rows"
+    item-key="id"
+    :aria-label="info.name || 'Source'"
+  />
 </template>
 
 <script>
 import { state } from "@/store";
 import { fromNow } from "@/utils/moment";
+import SettingsTable from "@/components/settings/Table.vue";
 
 export default {
   name: "IndexInfo",
+  components: {
+    SettingsTable,
+  },
   props: {
     info: {
       type: Object,
       required: true,
     },
   },
-  methods: {
-    getComplexityLabel(complexity) {
-      return getComplexityLabel(complexity, this.$t);
+  computed: {
+    columns() {
+      return [
+        { key: "label", label: "", sortable: false, align: "left" },
+        { key: "value", label: "", sortable: false, align: "left" },
+      ];
     },
-    getStatusLabel(status) {
-      return getStatusLabel(status, this.$t);
-    },
-    getHumanReadable(lastIndex) {
-      return getHumanReadableTime(lastIndex, state.user.locale);
-    },
-    formatDuration(seconds) {
-      return formatDuration(seconds);
+    rows() {
+      return buildIndexInfoRows(this.info, this.$t, state.user?.locale);
     },
   },
 };
@@ -88,88 +60,45 @@ export function getStatusLabel(status, $t) {
 }
 
 export function getHumanReadableTime(lastIndex, locale) {
-  if (isNaN(Number(lastIndex))) return "";
-  let val = Number(lastIndex);
+  if (Number.isNaN(Number(lastIndex))) return "";
+  const val = Number(lastIndex);
   if (val === 0) return "now";
   return fromNow(val, locale);
 }
 
 export function formatDuration(seconds) {
-  if (isNaN(Number(seconds))) return '';
+  if (Number.isNaN(Number(seconds))) return '';
   return Number(seconds);
 }
 
-// Generate HTML tooltip content using the same logic as the component
-export function buildIndexInfoTooltipHTML(info, $t, locale) {
-  return `
-    <table style="border-collapse: collapse; text-align: left;">
-      <thead>
-        <tr>
-          <th colspan="2" style="text-align: center; font-weight: bold; font-size: 1.1em; padding-bottom: 0.3em; border-bottom: 1px solid #888;">${info.name || 'Source'}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${$t("general.status")}</td>
-          <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${getStatusLabel(info.status, $t)}</td>
-        </tr>
-        <tr>
-          <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${$t("index.assessment")}</td>
-          <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${getComplexityLabel(info.complexity || 0, $t)}</td>
-        </tr>
-        <tr>
-          <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${$t("general.files")}</td>
-          <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${info.files || 0}</td>
-        </tr>
-        <tr>
-          <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${$t("general.folders")}</td>
-          <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${info.folders || 0}</td>
-        </tr>
-        <tr>
-          <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${$t("index.lastScanned")}</td>
-          <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${getHumanReadableTime(info.lastIndex, locale)}</td>
-        </tr>
-        <tr>
-          <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${$t("index.quickScan")}</td>
-          <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${formatDuration(info.quickScanDurationSeconds)}</td>
-        </tr>
-        <tr>
-          <td style="padding: 0.2em 0.5em;">${$t("index.fullScan")}</td>
-          <td style="padding: 0.2em 0.5em;">${formatDuration(info.fullScanDurationSeconds)}</td>
-        </tr>
-      </tbody>
-    </table>
-  `;
+export function formatBooleanYesNo(value, $t) {
+  return value ? $t("general.yes") : $t("general.no");
+}
+
+/** @returns {{ id: string, label: string, value: string | number }[]} */
+export function buildIndexInfoRows(info, $t, locale) {
+  return [
+    { id: "status", label: $t("general.status"), value: getStatusLabel(info.status, $t) },
+    { id: "readOnly", label: $t("general.readOnly"), value: formatBooleanYesNo(info.readOnly, $t) },
+    { id: "private", label: $t("general.private"), value: formatBooleanYesNo(info.private, $t) },
+    { id: "assessment", label: $t("index.assessment"), value: getComplexityLabel(info.complexity || 0, $t) },
+    { id: "files", label: $t("general.files"), value: info.files || 0 },
+    { id: "folders", label: $t("general.folders"), value: info.folders || 0 },
+    { id: "lastScanned", label: $t("index.lastScanned"), value: getHumanReadableTime(info.lastIndex, locale) },
+    { id: "quickScan", label: $t("index.quickScan"), value: formatDuration(info.quickScanDurationSeconds) },
+    { id: "fullScan", label: $t("index.fullScan"), value: formatDuration(info.fullScanDurationSeconds) },
+  ];
 }
 </script>
 
 <style scoped>
-.index-info-table {
-  border-collapse: collapse;
-  text-align: left;
-  width: 100%;
+.index-info-table :deep(thead th),
+.index-info-table :deep(tbody td) {
+  padding: 0.5em;
 }
 
-.index-info-table thead th {
-  text-align: center;
-  font-weight: bold;
-  font-size: 1.1em;
-  padding-bottom: 0.3em;
-  border-bottom: 1px solid #888;
-}
-
-.index-info-table tbody td {
-  padding: 0.2em 0.5em;
-  border-bottom: 1px solid #ccc;
-}
-
-.index-info-table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.index-info-table tbody td:first-child {
+.index-info-table :deep(tbody td:first-child) {
   font-weight: 500;
   color: var(--textSecondary);
 }
 </style>
-

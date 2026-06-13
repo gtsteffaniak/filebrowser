@@ -1,4 +1,4 @@
-import { state, mutations } from '@/store';
+import { mutations, state } from '@/store';
 import { url } from '@/utils';
 
 /**

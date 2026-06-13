@@ -1,7 +1,7 @@
 import Vue from "vue";
 import { resourcesApi } from "@/api";
-import throttle from "@/utils/throttle";
 import buttons from "@/utils/buttons";
+import throttle from "@/utils/throttle";
 
 const UPLOADS_LIMIT = 5;
 
@@ -34,7 +34,6 @@ const mutations = {
   },
   removeJob(state, id) {
     Vue.delete(state.uploads, id);
-    delete state.uploads[id];
   },
 };
 
@@ -45,10 +44,9 @@ const beforeUnload = (event) => {
 
 const actions = {
   upload: (context, item) => {
-    let uploadsCount = Object.keys(context.state.uploads).length;
-
-    let isQueueEmpty = context.state.queue.length == 0;
-    let isUploadsEmpty = uploadsCount == 0;
+    const uploadsCount = Object.keys(context.state.uploads).length;
+    const isQueueEmpty = context.state.queue.length === 0;
+    const isUploadsEmpty = uploadsCount === 0;
 
     if (isQueueEmpty && isUploadsEmpty) {
       window.addEventListener("beforeunload", beforeUnload);
@@ -64,14 +62,14 @@ const actions = {
     context.dispatch("processUploads");
   },
   processUploads: async (context) => {
-    let uploadsCount = Object.keys(context.state.uploads).length;
+    const uploadsCount = Object.keys(context.state.uploads).length;
 
-    let isBellowLimit = uploadsCount < UPLOADS_LIMIT;
-    let isQueueEmpty = context.state.queue.length == 0;
-    let isUploadsEmpty = uploadsCount == 0;
+    const isBellowLimit = uploadsCount < UPLOADS_LIMIT;
+    const isQueueEmpty = context.state.queue.length === 0;
+    const isUploadsEmpty = uploadsCount === 0;
 
-    let isFinished = isQueueEmpty && isUploadsEmpty;
-    let canProcess = isBellowLimit && !isQueueEmpty;
+    const isFinished = isQueueEmpty && isUploadsEmpty;
+    const canProcess = isBellowLimit && !isQueueEmpty;
 
     if (isFinished) {
       window.removeEventListener("beforeunload", beforeUnload);
@@ -84,10 +82,10 @@ const actions = {
       const item = context.state.queue[0];
       context.commit("moveJob");
 
-      if (item.file.type == "directory") {
+      if (item.file.type === "directory") {
         await resourcesApi.post(item.source, item.path, "", false, undefined, {}, true);
       } else {
-        let onUpload = throttle(
+        const onUpload = throttle(
           (event) =>
             context.commit("setProgress", {
               id: item.id,

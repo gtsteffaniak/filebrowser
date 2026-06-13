@@ -1,10 +1,10 @@
-import { test, expect } from "../test-setup";
-import { Page } from "@playwright/test";
+//import { Page } from "@playwright/test";
+import { test } from "../test-setup";
 
 const jpgQuality = 85;
 
 // this file has playwright tests that create screenshots of the UI
-test("setup theme", async ({ page, checkForErrors, context, theme }) => {
+test("setup theme", async ({ page, theme }) => {
   if (theme === 'light') {
     await page.goto("/files/");
     // only toggle if active
@@ -16,7 +16,7 @@ test("setup theme", async ({ page, checkForErrors, context, theme }) => {
 });
 
 // run npx playwright test --ui to run these tests locally in ui mode
-test("profile settings", async ({ page, checkForErrors, context, theme }) => {
+test("profile settings", async ({ page, theme }) => {
   await page.goto("/files/settings/");
   const listingOptionsDiv = page.locator('div[aria-label="listingOptions"]');
   await listingOptionsDiv.click(); // collapse the listing options section
@@ -62,7 +62,7 @@ test("profile settings", async ({ page, checkForErrors, context, theme }) => {
 });
 
 // run npx playwright test --ui to run these tests locally in ui mode
-test("Uploads & Downloads settings", async ({ page, checkForErrors, context, theme }) => {
+test("Uploads & Downloads settings", async ({ page, theme }) => {
   if (theme === 'light') {
     return;
   }

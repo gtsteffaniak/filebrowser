@@ -44,7 +44,11 @@
   </div>
 
   <div class="card-actions">
-    <button class="button button--flat button--blue" @click="createAPIKey" :title="$t('general.create')">
+    <button
+      type="button"
+      class="button button--flat button--blue"
+      @click="createAPIKey"
+      :title="$t('general.create')">
       {{ $t("general.create") }}
     </button>
   </div>
@@ -112,8 +116,9 @@ export default {
         // Only include permissions when customizing token
         if (this.customizeToken) {
           // Filter to get keys of permissions set to true and join them as a comma-separated string
-          const permissionsString = Object.keys(this.localPerms)
-            .filter((key) => this.localPerms[key])
+          const permissionsString = Object.entries(this.localPerms)
+            .filter(([, value]) => value)
+            .map(([key]) => key)
             .join(",");
           params.permissions = permissionsString;
         }
@@ -123,7 +128,7 @@ export default {
         eventBus.emit('apiKeysChanged');
         notify.showSuccessToast(this.$t("api.createKeySuccess"));
         mutations.closeTopPrompt();
-      } catch (error) {
+      } catch (_e) {
         notify.showError(this.$t("api.createKeyFailed"));
       } finally {
         this.creating = false;

@@ -111,7 +111,10 @@
     "newFile": "__NOT_TRANSLATED__",
     "newFolder": "__NOT_TRANSLATED__",
     "sameFolder": "__NOT_TRANSLATED__",
-    "cannotAccesDir": "__NOT_TRANSLATED__"
+    "cannotAccesDir": "__NOT_TRANSLATED__",
+    "pinnedFolders": "Prjónaðar möppur",
+    "pinnedFiles": "Prjónaðar skrár",
+    "pinnedItems": "Prjónað"
   },
   "help": {
     "functionKeys": "Virknislyklar",
@@ -1019,8 +1022,7 @@
     "description": "__NOT_TRANSLATED__",
     "empty": "__NOT_TRANSLATED__",
     "clearAll": "__NOT_TRANSLATED__",
-    "clearConfirm": "__NOT_TRANSLATED__",
-    "total": "__NOT_TRANSLATED__"
+    "clearConfirm": "__NOT_TRANSLATED__"
   },
   "duplicateFinder": {
     "title": "__NOT_TRANSLATED__",

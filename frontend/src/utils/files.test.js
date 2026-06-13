@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { getFileExtension } from './files.js';
 
 describe('testSort', () => {
@@ -12,9 +12,8 @@ describe('testSort', () => {
       {input: "file.", expected:""},
       {input: "file.tar.gz", expected:".tar.gz"},
     ]
-    for (let i in tests) {
-      expect(getFileExtension(tests[i].input)).toEqual(tests[i].expected);
+    for (const test of tests) {
+      expect(getFileExtension(test.input)).toEqual(test.expected);
     }
   });
-
 });

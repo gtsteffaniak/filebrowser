@@ -3,7 +3,7 @@
     <!-- Search input section -->
     <div class="search-input-container">
       <!-- Close button visible when search is active -->
-      <button v-if="active" class="action" @click="close" :aria-label="$t('general.close')"
+      <button v-if="active" type="button" class="action" @click="close" :aria-label="$t('general.close')"
         :title="$t('general.close')">
         <i class="material-symbols">close</i>
       </button>
@@ -85,6 +85,12 @@
                     :name="$t('search.useWildcardSearch')"
                     :description="$t('search.useWildcardSearchDescription')"
                   />
+                  <ToggleSwitch
+                    class="item"
+                    v-model="caseExactSearch"
+                    :name="$t('search.caseExact')"
+                    :description="$t('search.caseExactDescription')"
+                  />
                 </div>
               </div>
             </SettingsItem>
@@ -109,7 +115,7 @@
                 :hasPreview="showPreviewImages && (s.hasPreview || false)"
                 :thumbnailUrl="showPreviewImages ? getThumbnailUrl(s) : ''" />
               <span class="text-container">
-                {{ basePath(s.path, s.type == "directory") }}{{ baseName(s.path) }}
+                {{ basePath(s.path, s.type === "directory") }}{{ baseName(s.path) }}
                 <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
               </span>
               <div class="filesize">{{ humanSize(s.size) }}</div>
@@ -130,20 +136,20 @@
 </template>
 
 <script>
-import ButtonGroup from "./ButtonGroup.vue";
-import { toolsApi, resourcesApi } from "@/api";
-import { getters, mutations, state } from "@/store";
-import { getHumanReadableFilesize } from "@/utils/filesizes";
-import { url } from "@/utils/";
+import { resourcesApi, toolsApi } from "@/api";
 import Icon from "@/components/files/Icon.vue";
-import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
-import SettingsItem from "@/components/settings/SettingsItem.vue";
-import { globalVars } from "@/utils/constants";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
-import { utcStartOfDaySecondsFromDateInput } from "@/utils/moment";
+import SettingsItem from "@/components/settings/SettingsItem.vue";
+import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import router from "@/router";
+import { getters, mutations, state } from "@/store";
+import { url } from "@/utils/";
+import { globalVars } from "@/utils/constants";
+import { getHumanReadableFilesize } from "@/utils/filesizes";
+import { utcStartOfDaySecondsFromDateInput } from "@/utils/moment";
+import ButtonGroup from "./ButtonGroup.vue";
 
-var boxes = {
+const boxes = {
   folder: { label: "folders", icon: "folder" },
   file: { label: "files", icon: "insert_drive_file" },
   archive: { label: "archives", icon: "archive" },
@@ -173,6 +179,7 @@ export default {
       isTypeSelectDisabled: false,
       showPreviewImages: false,
       useWildcardSearch: false,
+      caseExactSearch: false,
       folderSelect: [
         { label: this.$t("search.onlyFolders"), value: "type:folder" },
         { label: this.$t("search.onlyFiles"), value: "type:file" },
@@ -210,6 +217,9 @@ export default {
       this.submit();
     },
     useWildcardSearch() {
+      this.submit();
+    },
+    caseExactSearch() {
       this.submit();
     },
     searchTypes() {
@@ -281,7 +291,7 @@ export default {
       return getters.eventTheme();
     },
     disableSearchOptions() {
-      return state.user.disableSearchOptions;
+      return state.user?.disableSearchOptions;
     },
     foldersOnly() {
       return this.isTypeSelectDisabled;
@@ -293,7 +303,7 @@ export default {
       return getters.isDarkMode();
     },
     showBoxes() {
-      return this.searchTypes == "";
+      return this.searchTypes === "";
     },
     boxes() {
       return boxes;
@@ -322,7 +332,7 @@ export default {
         // Construct the same full path as addSelected does
         const context = url.removeTrailingSlash(this.getContext);
         const pathStr = url.removeLeadingSlash(url.removeTrailingSlash(result.path));
-        const fullPath = context + '/' + pathStr;
+        const fullPath = `${context}/${pathStr}`;
         return selectedPaths.has(fullPath);
       });
     },
@@ -340,7 +350,7 @@ export default {
       if (this.selectedSource === "__all__" || (this.selectedSource === "" && this.multipleSources)) {
         return "/";
       }
-      let result = url.extractSourceFromPath(decodeURIComponent(state.route.path));
+      const result = url.extractSourceFromPath(decodeURIComponent(state.route.path));
       if (this.selectedSource === "" || result.source === this.selectedSource) {
         return result.path;
       } else {  
@@ -403,7 +413,7 @@ export default {
     },
     updateSource(event) {
       this.selectedSource = event.target.value;
-      this.submit();
+      void this.submit();
     },
     getItemUrl(s) {
       // Use source from result if available, otherwise fall back to selectedSource
@@ -412,7 +422,7 @@ export default {
       // Ensure exactly one slash between context and path
       const context = url.removeTrailingSlash(this.getContext);
       const path = url.removeLeadingSlash(url.removeTrailingSlash(s.path));
-      const fullPath = context + '/' + path;
+      const fullPath = `${context}/${path}`;
       return url.buildItemUrl(source, fullPath, true);
     },
     humanSize(size) {
@@ -423,11 +433,11 @@ export default {
       if (!isDir) {
         result = url.removeLeadingSlash(result); // fix weird rtl thing
       }
-      return result + "/";
+      return `${result}/`;
     },
     baseName(str) {
-      let parts = url.removeTrailingSlash(str).split("/");
-      let part = parts.pop();
+      const parts = url.removeTrailingSlash(str).split("/");
+      const part = parts.pop();
       return part;
     },
     /** Clear query state whenever the overlay opens (open paths do not always call close()). */
@@ -449,16 +459,15 @@ export default {
         this.close(event);
         return;
       }
-      this.results.length === 0;
     },
     addToTypes(string) {
       if (this.searchTypes.includes(string)) {
         return true;
       }
-      if (string == null || string == "") {
+      if (string === null || string === "") {
         return false;
       }
-      this.searchTypes = this.searchTypes + string + " ";
+      this.searchTypes = `${this.searchTypes + string} `;
     },
     resetSearchFilters() {
       this.searchTypes = "";
@@ -466,10 +475,10 @@ export default {
       this.showPreviewImages = false;
     },
     removeFromTypes(string) {
-      if (string == null || string == "") {
+      if (string === null || string === "") {
         return false;
       }
-      this.searchTypes = this.searchTypes.replaceAll(string + " ", "");
+      this.searchTypes = this.searchTypes.replaceAll(`${string} `, "");
       if (state.isMobile) {
         this.$refs.input.focus();
       }
@@ -482,7 +491,7 @@ export default {
     },
     async submit(event) {
       this.results = [];
-      if (event != undefined) {
+      if (event !== undefined) {
         event.preventDefault();
       }
       if (this.value === "" || this.value.length < globalVars.minSearchLength) {
@@ -490,11 +499,11 @@ export default {
         return;
       }
       let searchTypesFull = this.searchTypes;
-      if (this.largerThan != "") {
-        searchTypesFull = searchTypesFull + "type:largerThan=" + this.largerThan + " ";
+      if (this.largerThan !== "") {
+        searchTypesFull = `${searchTypesFull}type:largerThan=${this.largerThan} `;
       }
-      if (this.smallerThan != "") {
-        searchTypesFull = searchTypesFull + "type:smallerThan=" + this.smallerThan + " ";
+      if (this.smallerThan !== "") {
+        searchTypesFull = `${searchTypesFull}type:smallerThan=${this.smallerThan} `;
       }
       const dateParams = {};
       const olderUnix = utcStartOfDaySecondsFromDateInput(this.modifiedOlderThan);
@@ -508,10 +517,17 @@ export default {
       if (this.useWildcardSearch) {
         dateParams.useWildcard = true;
       }
+      let searchQuery = searchTypesFull + this.value;
+      if (this.caseExactSearch) {
+        searchQuery =
+          searchTypesFull.trim() === ""
+            ? `case:exact ${this.value}`
+            : `case:exact ${searchTypesFull}${this.value}`;
+      }
       this.ongoing++;
       
       // Determine which sources to search
-      let sourcesToSearch = [];
+      let sourcesToSearch;
       if (this.selectedSource === "__all__" || this.selectedSource === "") {
         // Search all sources
         sourcesToSearch = Object.keys(this.sourceInfo);
@@ -526,13 +542,13 @@ export default {
       this.results = await toolsApi.search(
         scope,
         sourcesToSearch,
-        searchTypesFull + this.value,
+        searchQuery,
         false,
         dateParams
       );
 
       this.ongoing--;
-      if (this.results.length == 0 && this.ongoing == 0) {
+      if (this.results.length === 0 && this.ongoing === 0) {
         this.noneMessage = this.$t("search.noResults");
       }
     },
@@ -561,10 +577,10 @@ export default {
         // Ensure exactly one slash between context and path
         const context = url.removeTrailingSlash(this.getContext);
         const path = url.removeLeadingSlash(url.removeTrailingSlash(s.path));
-        const fullPath = context + '/' + path;
+        const fullPath = `${context}/${path}`;
         const modified = s.modified || "";
         return resourcesApi.getPreviewURL(source, fullPath, modified);
-      } catch (err) {
+      } catch (_err) {
         return "";
       }
     },
@@ -589,7 +605,7 @@ export default {
       });
     },
     openInAdvancedSearch() {
-      let sourcesToSearch = [];
+      let sourcesToSearch;
       if (this.selectedSource === "__all__" || this.selectedSource === "") {
         sourcesToSearch = Object.keys(this.sourceInfo || {});
       } else {
@@ -620,6 +636,9 @@ export default {
       }
       if (this.useWildcardSearch) {
         query.wildcard = "1";
+      }
+      if (this.caseExactSearch) {
+        query.caseExact = "1";
       }
       if (this.isTypeSelectDisabled) {
         query.typeLock = "1";
@@ -663,7 +682,7 @@ export default {
       // Combine context (scope) with the result path - ensure exactly one slash between
       const context = url.removeTrailingSlash(this.getContext);
       const pathStr = url.removeLeadingSlash(url.removeTrailingSlash(s.path));
-      let path = context + '/' + pathStr;
+      const path = `${context}/${pathStr}`;
       const modifiedItem = {
         name: pathParts.pop(),
         path: path,
@@ -746,11 +765,7 @@ export default {
   -webkit-animation: SlideDown 0.5s forwards;
   animation: SlideDown 0.5s forwards;
   border-radius: 1em;
-  max-height: 100%;
   border-top: none;
-  border-top-width: initial;
-  border-top-style: none;
-  border-top-color: initial;
   border-top-left-radius: 0px;
   border-top-right-radius: 0px;
   border: 2px solid var(--surfaceSecondary);
@@ -799,7 +814,6 @@ export default {
 .search-input-container {
   background-color: rgba(100, 100, 100, 0.2);
   display: flex;
-  height: 100%;
   padding: 0.5em 0.75em;
   border-radius: 1em;
   border-style: unset;
@@ -910,8 +924,7 @@ export default {
   text-align: left;
   color: rgba(0, 0, 0, 0.6);
   height: 0;
-  transition: 2s ease height, 2s ease padding;
-  transition: 2s ease width, 2s ease padding;
+  transition: 2s ease height, 2s ease padding, 2s ease width, 2s ease padding;
   z-index: 3;
 }
 

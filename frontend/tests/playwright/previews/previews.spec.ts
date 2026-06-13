@@ -1,7 +1,7 @@
-import { test, expect } from "../test-setup";
+import { expect, test } from "../test-setup";
 
 // 3d file thumbnails work
-test("3d file preview thumbnails", async({ page, checkForErrors, context }) => {
+test("3d file preview thumbnails", async({ page, checkForErrors }) => {
     await page.goto("/files/");
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
     await page.locator('a[aria-label="myfolder"]').waitFor({ state: 'visible' });
@@ -21,7 +21,7 @@ test("3d file preview thumbnails", async({ page, checkForErrors, context }) => {
 });
   
 // 3d file preview, cycle through all 3d files and confirm no errors
-test("3d file preview next/previous", async({ page, checkForErrors, context }) => {
+test("3d file preview next/previous", async({ page, checkForErrors }) => {
     await page.goto("/files/playwright-files/myfolder/3dmodels/Lowpoly_tree_sample.dae");
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - Lowpoly_tree_sample.dae");
     // check previews work

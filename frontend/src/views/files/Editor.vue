@@ -37,18 +37,16 @@ export default {
       default: null // null means auto-determine
     }
   },
-  data: function () {
-    return {
-      editor: null, // The editor instance
-      isDirty: false,
-      originalReq: null,
-      saveLocked: false, // Lock saves during req transitions
-      currentReqPath: null, // Track current path for transition detection
-      navigationGuard: null, // Navigation guard to prevent navigation with unsaved changes
-      isPromptOpen: false, // Track if prompt is currently open for avoid navigation
-      pendingNavigation: null, // Store pending navigation while prompt is open
-    };
-  },
+  data: () => ({
+    editor: null, // The editor instance
+    isDirty: false,
+    originalReq: null,
+    saveLocked: false, // Lock saves during req transitions
+    currentReqPath: null, // Track current path for transition detection
+    navigationGuard: null, // Navigation guard to prevent navigation with unsaved changes
+    isPromptOpen: false, // Track if prompt is currently open for avoid navigation
+    pendingNavigation: null, // Store pending navigation while prompt is open
+  }),
   computed: {
     permissions() {
       return getters.permissions();
@@ -197,14 +195,6 @@ export default {
 
     this.setupNavigationGuard();
   },
-  beforeRouteLeave(to, from, next) {
-    // Only show prompt if there are unsaved changes and not in viewer mode
-    if (this.isDirty && !this.viewerMode) {
-      this.showSaveBeforeExitPrompt(next);
-    } else {
-      next();
-    }
-  },
   beforeUnmount() {
     window.removeEventListener("keydown", this.keyEvent);
     window.removeEventListener("beforeunload", this.beforeUnloadHandler);
@@ -252,9 +242,11 @@ export default {
         size: this.req.size,
         type: this.req.type,
         source: this.req.source,
+        modified: this.req.modified,
+        hasPreview: this.req.hasPreview,
       });
 
-      this.updateNavigationForCurrentItem();
+      void this.updateNavigationForCurrentItem();
     },
 
     async updateNavigationForCurrentItem() {
@@ -269,7 +261,7 @@ export default {
         directoryPath = '/';
       }
 
-      let listing = null;
+      let listing;
 
       if (this.req.items) {
         listing = this.req.items;
@@ -320,7 +312,7 @@ export default {
           showLineNumbers: true,
           theme: this.isDarkMode ? "ace/theme/tomorrow_night_bright" : "ace/theme/github",
           readOnly: this.editorReadOnly,
-          wrap: state?.wrapEditor || false,
+          wrap: state.wrapEditor || false,
           enableMobileMenu: !this.viewerMode,
           useWorker: false,
           scrollPastEnd: 0.5,
@@ -347,23 +339,23 @@ export default {
         this.editor.selection.on('changeSelection', () => {
           this.updateEditorStats();
         });
-      } catch (error) {
+      } catch (_e) {
         notify.showError(this.$t("editor.uninitialized"));
       }
     },
     getAceMode(mode) {
-      const modeMap = {
-        'yaml': 'ace/mode/yaml',
-        'json': 'ace/mode/json',
-        'javascript': 'ace/mode/javascript',
-        'typescript': 'ace/mode/typescript',
-        'html': 'ace/mode/html',
-        'css': 'ace/mode/css',
-        'markdown': 'ace/mode/markdown',
-        'text': 'ace/mode/text',
-        'xml': 'ace/mode/xml'
-      };
-      return modeMap[mode] || `ace/mode/${mode}`;
+      switch (mode) {
+        case 'yaml': return 'ace/mode/yaml';
+        case 'json': return 'ace/mode/json';
+        case 'javascript': return 'ace/mode/javascript';
+        case 'typescript': return 'ace/mode/typescript';
+        case 'html': return 'ace/mode/html';
+        case 'css': return 'ace/mode/css';
+        case 'markdown': return 'ace/mode/markdown';
+        case 'text': return 'ace/mode/text';
+        case 'xml': return 'ace/mode/xml';
+        default: return `ace/mode/${mode}`;
+      }
     },
     async handleEditorValueRequest() {
       // Skip save logic in viewer mode
@@ -413,7 +405,7 @@ export default {
       this.isDirty = false;
       mutations.setEditorDirty(false);
     },
-    keyEvent(event) {
+    async keyEvent(event) {
       const { key, ctrlKey, metaKey } = event;
       if (getters.currentPromptName()) return;
 
@@ -422,7 +414,11 @@ export default {
 
       if ((ctrlKey || metaKey) && key.toLowerCase() === "s") {
         event.preventDefault();
-        this.handleEditorValueRequest();
+        try {
+          await this.handleEditorValueRequest();
+        } catch (_e) {
+          // ignore
+        }
       }
     },
     setupNavigationGuard() {
@@ -530,7 +526,7 @@ export default {
     },
     applyFontSize() {
       if (this.editor) {
-        this.editor.container.style.fontSize = state.editorFontSize + 'px';
+        this.editor.container.style.fontSize = `${state.editorFontSize}px`;
       }
     },
   },

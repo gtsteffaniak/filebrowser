@@ -1,4 +1,4 @@
-FROM gtstef/ffmpeg:8.1-decode AS ffmpeg
+FROM gtstef/ffmpeg:8.1.1-decode AS ffmpeg
 FROM golang:alpine AS base
 ARG VERSION
 ARG REVISION

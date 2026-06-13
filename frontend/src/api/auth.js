@@ -1,6 +1,6 @@
-import { fetchURL, fetchJSON } from '@/api/utils'
-import { getApiPath } from '@/utils/url.js'
+import { fetchJSON, fetchURL } from '@/api/utils'
 import { notify } from '@/notify'
+import { getApiPath } from '@/utils/url.js'
 
 // POST /api/auth/login
 export async function login(username, password, recaptcha, otp) {
@@ -14,29 +14,33 @@ export async function login(username, password, recaptcha, otp) {
     password = ''
   }
 
-  const params = { username, recaptcha };
-  let apiPath = getApiPath('auth/login', params);
-  const res = await fetch(apiPath, {
-    method: 'POST',
-    credentials: 'same-origin',
-    headers: {
-      'X-Password': encodeURIComponent(password),
-      'X-Secret': otp,
-    }
-  });
-
-  const bodyText = await res.text();
-  let body;
-
   try {
-    body = JSON.parse(bodyText);
-  } catch {
-    body = { message: bodyText };
-  }
+    const params = { username, recaptcha };
+    const apiPath = getApiPath('auth/login', params);
+    const res = await fetch(apiPath, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'X-Password': encodeURIComponent(password),
+        'X-Secret': otp,
+      }
+    });
 
-  if (res.status != 200) {
-    const msg = body.message || 'Forbidden';
-    throw new Error(msg);
+    const bodyText = await res.text();
+    let body;
+
+    try {
+      body = JSON.parse(bodyText);
+    } catch {
+      body = { message: bodyText };
+    }
+
+    if (res.status !== 200) {
+      const msg = body.message || 'Forbidden';
+      throw new Error(msg);
+    }
+  } catch (err) {
+    throw err instanceof Error ? err : new Error(String(err));
   }
 }
 
@@ -54,7 +58,7 @@ export async function logout() {
 // POST /api/auth/signup
 export async function signup(username, password, otp) {
   const params = { username, password, otp }
-  let apiPath = getApiPath('auth/signup', params)
+  const apiPath = getApiPath('auth/signup', params)
   const res = await fetch(apiPath, {
     method: 'POST',
     headers: {
@@ -69,7 +73,7 @@ export async function signup(username, password, otp) {
       if (errorData.message) {
         errorMessage = errorData.message
       }
-    } catch (parseError) {
+    } catch (_parseError) {
       // If parsing fails, keep the status code as error message
     }
     throw new Error(errorMessage)
@@ -80,7 +84,7 @@ export async function signup(username, password, otp) {
 export async function generateOTP(username, password) {
   const params = { username }
   try {
-    let apiPath = getApiPath('auth/otp/generate', params)
+    const apiPath = getApiPath('auth/otp/generate', params)
     const res = await fetch(apiPath, {
       method: 'POST',
       credentials: 'same-origin',
@@ -104,7 +108,7 @@ export async function generateOTP(username, password) {
 export async function verifyOTP(username, password, otp) {
   const params = { username }
   try {
-    let apiPath = getApiPath('auth/otp/verify', params)
+    const apiPath = getApiPath('auth/otp/verify', params)
     const res = await fetch(apiPath, {
       method: 'POST',
       credentials: 'same-origin',
@@ -113,7 +117,7 @@ export async function verifyOTP(username, password, otp) {
         'X-Secret': otp,
       }
     })
-    if (res.status != 200) {
+    if (res.status !== 200) {
       let msg = 'Failed to verify OTP'
       try {
         const errBody = await res.json()
@@ -171,10 +175,10 @@ export async function createApiKey(params) {
 }
 
 // DELETE /api/auth/token
-export function deleteApiKey(params) {
+export async function deleteApiKey(params) {
   try {
     const apiPath = getApiPath('auth/token', params)
-    fetchURL(apiPath, {
+    await fetchURL(apiPath, {
       method: 'DELETE'
     })
   } catch (err) {
@@ -186,7 +190,9 @@ export function deleteApiKey(params) {
 function arrayBufferToBase64(buffer) {
   const bytes = new Uint8Array(buffer)
   let binary = ''
-  bytes.forEach(b => binary += String.fromCharCode(b))
+  bytes.forEach(b => {
+    binary += String.fromCharCode(b);
+  })
   return btoa(binary).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_')
 }
 
@@ -195,10 +201,7 @@ function base64ToArrayBuffer(base64url) {
   let base64 = base64url.replace(/-/g, '+').replace(/_/g, '/')
   while (base64.length % 4) base64 += '='
   const binary = atob(base64)
-  const bytes = new Uint8Array(binary.length)
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i)
-  }
+  const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0))
   return bytes.buffer
 }
 

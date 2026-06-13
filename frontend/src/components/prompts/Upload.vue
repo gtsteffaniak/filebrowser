@@ -41,11 +41,36 @@
           <i v-if="files.length === 0" class="material-symbols">cloud_upload</i>
           <p v-if="files.length === 0">{{ $t("prompts.dragAndDrop") }}</p>
           <div class="button-group">
-            <button @click="triggerFilePicker" class="button button--flat">
+            <button
+              type="button"
+              @click="triggerFilePicker"
+              class="button button--flat"
+            >
               {{ $t("general.file") }}
             </button>
-            <button style="margin-left: 1em" @click="triggerFolderPicker" class="button button--flat">
+            <button
+              type="button"
+              style="margin-left: 1em"
+              @click="triggerFolderPicker"
+              class="button button--flat"
+            >
               {{ $t("general.folder") }}
+            </button>
+            <button
+              type="button"
+              style="margin-left: 1em"
+              @click="triggerCameraPicker"
+              class="button button--flat"
+            >
+              {{ $t("general.camera") }}
+            </button>
+            <button
+              type="button"
+              style="margin-left: 1em"
+              @click="triggerVideoPicker"
+              class="button button--flat"
+            >
+              {{ $t("general.video") }}
             </button>
           </div>
         </div>
@@ -58,7 +83,11 @@
             <p>{{ $t("prompts.conflictsDetected") }}</p>
           </div>
           <div class="card-actions">
-            <button @click="resolveConflict(true)" class="button button--flat button--red">
+            <button
+              type="button"
+              @click="resolveConflict(true)"
+              class="button button--flat button--red"
+            >
               {{ $t("general.replace") }}
             </button>
           </div>
@@ -85,24 +114,53 @@
             </div>
           </div>
           <div class="file-actions">
-            <button v-if="file.status === 'uploading'" @click="uploadManager.pause(file.id)" class="action"
-              :aria-label="$t('general.pause')" :title="$t('general.pause')">
+            <button
+              v-if="file.status === 'uploading'"
+              type="button"
+              @click="uploadManager.pause(file.id)"
+              class="action"
+              :aria-label="$t('general.pause')"
+              :title="$t('general.pause')"
+            >
               <i class="material-symbols">pause</i>
             </button>
-            <button v-if="file.status === 'paused'" @click="uploadManager.resume(file.id)" class="action"
-              :aria-label="$t('general.resume')" :title="$t('general.resume')">
+            <button
+              v-if="file.status === 'paused'"
+              type="button"
+              @click="uploadManager.resume(file.id)"
+              class="action"
+              :aria-label="$t('general.resume')"
+              :title="$t('general.resume')"
+            >
               <i class="material-symbols">play_arrow</i>
             </button>
-            <button v-if="file.status === 'error'" @click="uploadManager.retry(file.id)" class="action"
-              :aria-label="$t('general.retry')" :title="$t('general.retry')">
+            <button
+              v-if="file.status === 'error'"
+              type="button"
+              @click="uploadManager.retry(file.id)"
+              class="action"
+              :aria-label="$t('general.retry')"
+              :title="$t('general.retry')"
+            >
               <i class="material-symbols">replay</i>
             </button>
-            <button v-if="file.status === 'conflict'" @click="handleConflictAction(file)" class="action"
-              :aria-label="$t('general.replace')" :title="$t('general.replace')">
+            <button
+              v-if="file.status === 'conflict'"
+              type="button"
+              @click="handleConflictAction(file)"
+              class="action"
+              :aria-label="$t('general.replace')"
+              :title="$t('general.replace')"
+            >
               <i class="material-symbols">sync_problem</i>
             </button>
-            <button @click="cancelUpload(file.id)" class="action" :aria-label="$t('general.cancel')"
-              :title="$t('general.cancel')">
+            <button
+              type="button"
+              @click="cancelUpload(file.id)"
+              class="action"
+              :aria-label="$t('general.cancel')"
+              :title="$t('general.cancel')"
+            >
               <i class="material-symbols">close</i>
             </button>
           </div>
@@ -112,22 +170,44 @@
   </div>
 
   <div class="card-actions">
-    <button v-if="canPauseAll" @click="uploadManager.pauseAll" class="button button--flat"
-      :aria-label="$t('buttons.pauseAll')" :title="$t('buttons.pauseAll')">
+    <button
+      v-if="canPauseAll"
+      type="button"
+      @click="uploadManager.pauseAll"
+      class="button button--flat"
+      :aria-label="$t('buttons.pauseAll')"
+      :title="$t('buttons.pauseAll')"
+    >
       {{ $t("buttons.pauseAll") }}
     </button>
-    <button v-if="canResumeAll" @click="uploadManager.resumeAll" class="button button--flat"
-      :aria-label="$t('buttons.resumeAll')" :title="$t('buttons.resumeAll')">
+    <button
+      v-if="canResumeAll"
+      type="button"
+      @click="uploadManager.resumeAll"
+      class="button button--flat"
+      :aria-label="$t('buttons.resumeAll')"
+      :title="$t('buttons.resumeAll')"
+    >
       {{ $t("buttons.resumeAll") }}
     </button>
-    <button @click="clearCompleted" class="button button--flat" :disabled="!hasClearable"
-      :aria-label="$t('buttons.clearCompleted')" :title="$t('buttons.clearCompleted')">
+    <button
+      type="button"
+      @click="clearCompleted"
+      class="button button--flat"
+      :disabled="!hasClearable"
+      :aria-label="$t('buttons.clearCompleted')"
+      :title="$t('buttons.clearCompleted')"
+    >
       {{ $t("buttons.clearCompleted") }}
     </button>
   </div>
 
   <input ref="fileInput" @change="onFilePicked" type="file" multiple style="display: none" />
   <input ref="folderInput" @change="onFolderPicked" type="file" webkitdirectory directory multiple
+    style="display: none" />
+  <input ref="cameraInput" @change="onFilePicked" type="file" accept="image/*" capture="environment"
+    style="display: none" />
+  <input ref="videoInput" @change="onFilePicked" type="file" accept="video/*" capture="environment"
     style="display: none" />
 </template>
 
@@ -186,6 +266,8 @@ export default {
   setup(props) {
     const fileInput = ref(null);
     const folderInput = ref(null);
+    const cameraInput = ref(null);
+    const videoInput = ref(null);
     const files = computed(() => uploadManager.queue);
     const isDragging = ref(false);
     const showConflictPrompt = ref(false);
@@ -220,7 +302,7 @@ export default {
             clearAll: clearAll.value,
           },
         };
-        mutations.updateCurrentUser(data);
+        void mutations.updateCurrentUser(data);
         await usersApi.update(data, ["fileLoading"]);
         notify.showSuccessToast("Upload settings updated");
       } catch (e) {
@@ -233,7 +315,7 @@ export default {
       mutations.showPrompt({
         name: "replace-rename",
         pinned: true,
-        confirm: (event, option) => {
+        confirm: (_event, option) => {
           if (option === "overwrite") {
             resolveConflict(true);
           } else if (option === "rename") {
@@ -264,7 +346,7 @@ export default {
       mutations.showPrompt({
         name: "rename",
         confirm: (newName) => {
-          renameUploadFolder(conflictingFolder, newName);
+          void renameUploadFolder(conflictingFolder, newName);
         },
         props: { folderName: conflictingFolder }
       });
@@ -318,7 +400,7 @@ export default {
 
     watch(isUploading, (active) => {
       if (active) {
-        acquireWakeLock();
+        void acquireWakeLock();
       } else {
         releaseWakeLock();
       }
@@ -363,7 +445,7 @@ export default {
 
     const handleVisibilityChange = async () => {
       if (document.visibilityState === "visible" && isUploading.value) {
-        acquireWakeLock();
+        void acquireWakeLock();
       }
     };
 
@@ -396,7 +478,7 @@ export default {
           await processDroppedItems(items, destination);
         } else if (first.file instanceof File && typeof first.relativePath === 'string') {
           // This is an array of objects {file, relativePath} for paste from clipboard OS.
-          uploadManager.add(destination, items);
+          void uploadManager.add(destination, items);
         }
       } else if (items) {
         // This case handles a FileList object from the upload prompt's own input fields.
@@ -406,7 +488,7 @@ export default {
     };
 
     onMounted(async () => {
-      document.addEventListener("visibilitychange", handleVisibilityChange);
+      document.addEventListener("visibilitychange", void handleVisibilityChange);
       window.addEventListener("beforeunload", handleBeforeUnload);
       uploadManager.setOnConflict(handleConflict);
       if (props.initialItems) {
@@ -415,7 +497,7 @@ export default {
     });
 
     onUnmounted(() => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      document.removeEventListener("visibilitychange", void handleVisibilityChange);
       window.removeEventListener("beforeunload", handleBeforeUnload);
       uploadManager.setOnConflict(() => {}); // cleanup
       releaseWakeLock();
@@ -427,6 +509,14 @@ export default {
 
     const triggerFolderPicker = () => {
       if (folderInput.value) folderInput.value.click();
+    };
+
+    const triggerCameraPicker = () => {
+      if (cameraInput.value) cameraInput.value.click();
+    };
+
+    const triggerVideoPicker = () => {
+      if (videoInput.value) videoInput.value.click();
     };
 
     const onFilePicked = (event) => {
@@ -507,10 +597,10 @@ export default {
       });
 
       const allFiles = await Promise.all(promises);
-      allFiles.forEach(files => filesToUpload.push(...files));
+      allFiles.forEach(files => { filesToUpload.push(...files); });
 
       if (filesToUpload.length > 0) {
-        uploadManager.add(destination, filesToUpload);
+        void uploadManager.add(destination, filesToUpload);
       }
     };
 
@@ -520,7 +610,7 @@ export default {
         relativePath: file.webkitRelativePath || file.name,
       }));
       if (filesToAdd.length > 0) {
-        uploadManager.add(destination, filesToAdd);
+        void uploadManager.add(destination, filesToAdd);
       }
     };
 
@@ -577,10 +667,14 @@ export default {
     return {
       triggerFilePicker,
       triggerFolderPicker,
+      triggerCameraPicker,
+      triggerVideoPicker,
       onFilePicked,
       onFolderPicked,
       fileInput,
       folderInput,
+      cameraInput,
+      videoInput,
       files,
       isDragging,
       onDragEnter,

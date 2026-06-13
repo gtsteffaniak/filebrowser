@@ -81,7 +81,7 @@ export default {
       return state.req.name;
     },
     showQuickSave() {
-      if (getters.currentView() != "editor" || !state.user.permissions.modify) {
+      if (getters.currentView() !== "editor" || !state.user.permissions.modify) {
         return false;
       }
       return state.user.editorQuickSave;
@@ -89,7 +89,7 @@ export default {
     disableNavButtons() {
       const isShare = getters.isShare();
       const regularDisabled = globalVars.disableNavButtons && this.isListingView;
-      const shareDisabled = isShare && state.shareInfo?.hideNavButtons && getters.currentView() == "listingView";
+      const shareDisabled = isShare && state.shareInfo?.hideNavButtons && getters.currentView() === "listingView";
       const uploadShare = isShare && state.shareInfo?.shareType === "upload"
       return regularDisabled || shareDisabled || uploadShare;
     },
@@ -97,7 +97,7 @@ export default {
       return getters.currentView() === "onlyOfficeEditor";
     },
     isListingView() {
-      return getters.currentView() == "listingView";
+      return getters.currentView() === "listingView";
     },
     isAdvancedSearchRoute() {
       return (state.route?.path || "") === "/tools/advancedSearch";
@@ -126,13 +126,13 @@ export default {
       return !state.contextMenuHasItems && !getters.isPreviewView();
     },
     showEdit() {
-      return window.location.hash != "#edit" && state.user.permissions.modify;
+      return window.location.hash !== "#edit" && state.user.permissions.modify;
     },
     showDelete() {
-      return state.user.permissions.modify && getters.currentView() == "preview";
+      return state.user.permissions.modify && getters.currentView() === "preview";
     },
     showSave() {
-      return getters.currentView() == "editor" && state.user.permissions.modify;
+      return getters.currentView() === "editor" && state.user.permissions.modify;
     },
     showSearch() {
       return getters.isLoggedIn() && getters.currentView() === "listingView" && !getters.isShare();
@@ -141,7 +141,7 @@ export default {
       return state.isSearchActive;
     },
     isDisabled() {
-      return state.isSearchActive || getters.currentPromptName() != "";
+      return state.isSearchActive || getters.currentPromptName() !== "";
     },
     isDisabledMultiAction() {
       const regularDisabled = getters.isStickySidebar() && getters.multibuttonState() === "menu";
@@ -235,10 +235,10 @@ export default {
       const current = getters.viewMode();
       const cycleIndex = this.viewModeCycleIndex(current);
       const nextIndex = (cycleIndex + 1) % this.viewModes.length;
-      const baseMode = this.viewModes[nextIndex];
+      const baseMode = this.viewModes.at(nextIndex);
       const newViewMode = this.resolveViewModeForFamily(baseMode);
       mutations.updateDisplayPreferences({ viewMode: newViewMode });
-      mutations.updateCurrentUser({ viewMode: newViewMode });
+      void mutations.updateCurrentUser({ viewMode: newViewMode });
     },
     multiAction() {
       const cv = getters.currentView();
@@ -252,28 +252,39 @@ export default {
       this.performNavigation(cv);
     },
     performNavigation(cv) {
-      if (cv == "listingView" || ( getters.isShare() && !getters.multibuttonState() === "close") || cv == "tools") {
+      if (cv === "listingView" || ( getters.isShare() && getters.multibuttonState() !== "close") || cv === "tools") {
         mutations.toggleSidebar();
-      } else if (cv == "settings" && state.isMobile) {
+      } else if (cv === "settings" && state.isMobile) {
         mutations.toggleSidebar();
       } else {
         mutations.closeHovers();
         if (cv === "settings") {
           if (state.previousHistoryItem?.name) {
-            url.goToItem(state.previousHistoryItem.source, state.previousHistoryItem.path, state.previousHistoryItem);
+            url.goToItem(
+              state.previousHistoryItem.source,
+              state.previousHistoryItem.path,
+              state.previousHistoryItem,
+              false,
+              state.previousHistoryItem.isShare
+            );
             return;
           }
-          router.push({ path: "/files" });
+          if (state.shareInfo?.hash && state.req?.source === state.shareInfo.hash) {
+            url.goToItem(state.shareInfo.hash, state.req.path, {}, false, true);
+            return;
+          }
+          // otherwise navigate to files
+          void router.push({ path: "/files" });
           return;
         }
         if (getters.isPreviewView()) {
           if (state.previousHistoryItem?.name) {
-            url.goToItem(state.previousHistoryItem.source, state.previousHistoryItem.path, state.previousHistoryItem);
+            url.goToItem(state.previousHistoryItem.source, state.previousHistoryItem.path, state.previousHistoryItem, false, state.previousHistoryItem.isShare);
             return;
           } else {
             // navigate to parent directory of current url
             const parentPath = url.removeLastDir(state.route.path);
-            router.push({ path: parentPath });
+            void router.push({ path: parentPath });
           }
           return;
         }

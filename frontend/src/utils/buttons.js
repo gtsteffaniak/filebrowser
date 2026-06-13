@@ -1,11 +1,11 @@
 function loading(button) {
-  let el = document.querySelector(`#${button}-button > i`);
+  const el = document.querySelector(`#${button}-button > i`);
 
-  if (el === undefined || el === null) {
+  if (el === null) {
     return;
   }
 
-  if (el.innerHTML == "autorenew" || el.innerHTML == "done") {
+  if (el.innerHTML === "autorenew" || el.innerHTML === "done") {
     return;
   }
 
@@ -20,9 +20,9 @@ function loading(button) {
 }
 
 function done(button) {
-  let el = document.querySelector(`#${button}-button > i`);
+  const el = document.querySelector(`#${button}-button > i`);
 
-  if (el === undefined || el === null) {
+  if (el === null) {
     return;
   }
 
@@ -36,9 +36,9 @@ function done(button) {
 }
 
 function success(button) {
-  let el = document.querySelector(`#${button}-button > i`);
+  const el = document.querySelector(`#${button}-button > i`);
 
-  if (el === undefined || el === null) {
+  if (el === null) {
     return;
   }
 

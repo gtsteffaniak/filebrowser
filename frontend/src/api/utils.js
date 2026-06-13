@@ -1,12 +1,12 @@
+import i18n from "@/i18n";
 import { state } from "@/store";
 import { renew } from "@/utils/auth";
-import i18n from "@/i18n";
 
 export async function fetchURL(url, opts, auth = true) {
   opts = opts || {};
   opts.headers = opts.headers || {};
 
-  let { headers, ...rest } = opts;
+  const { headers, ...rest } = opts;
 
   let res;
   try {
@@ -19,8 +19,8 @@ export async function fetchURL(url, opts, auth = true) {
       ...rest,
     });
   } catch (e) {
-    let message = e;
-    if (e == "TypeError: Failed to fetch") {
+    let message = e.message;
+    if (e instanceof TypeError && e.message === "Failed to fetch") {
       message = i18n.global.t("errors.failedToConnectToServer");
     }
     const error = new Error(message);
@@ -33,7 +33,7 @@ export async function fetchURL(url, opts, auth = true) {
   }
 
   if (res.status < 200 || res.status > 299) {
-    let error = new Error(await res.text());
+    const error = new Error(await res.text());
     error.status = res.status;
     throw error;
   }
@@ -52,6 +52,7 @@ export async function fetchJSON(url, opts) {
 
 export function adjustedData(data) {
   if (data.type === "directory") {
+    const pinnedNames = new Set(data.pinnedItems || []);
     // Combine folders and files into items
     data.items = [...(data.folders || []), ...(data.files || [])];
     data.items = data.items.map((item) => {
@@ -59,7 +60,8 @@ export function adjustedData(data) {
       if (item.isShared === undefined) {
         item.isShared = false;
       }
-      if (data.path == "/") {
+      item.pinned = pinnedNames.has(item.name);
+      if (data.path === "/") {
         if (item.type === "directory") {
         item.path = `/${item.name}/`
         } else {
@@ -74,6 +76,7 @@ export function adjustedData(data) {
       }
       return item;
     });
+    delete data.pinnedItems;
   }
   if (data.files) {
     data.files = []

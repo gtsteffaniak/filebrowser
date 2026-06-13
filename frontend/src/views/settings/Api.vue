@@ -1,5 +1,9 @@
 <template>
-  <button @click.prevent="createPrompt" class="button floating-action-button">
+  <button
+    type="button"
+    @click.prevent="createPrompt"
+    class="button floating-action-button"
+  >
     {{ $t("general.new") }}
   </button>
   <errors v-if="error" :errorCode="error.status" />
@@ -40,11 +44,21 @@
         </template>
         <template #cell-actions="{ row }">
           <div class="api-table-actions">
-            <button class="action" @click.prevent="infoPrompt(row.name, row)" :aria-label="$t('api.actions')" :title="$t('api.actions')">
+            <button
+              type="button"
+              class="action"
+              @click.prevent="infoPrompt(row.name, row)"
+              :aria-label="$t('api.actions')"
+              :title="$t('api.actions')"
+            >
               <i class="material-symbols">info</i>
             </button>
-            <button class="action" @click.stop="copyToClipboard(row.token)"
-              :aria-label="$t('buttons.copyToClipboard')" :title="$t('buttons.copyToClipboard')"
+            <button
+              type="button"
+              class="action"
+              @click.stop="copyToClipboard(row.token)"
+              :aria-label="$t('buttons.copyToClipboard')"
+              :title="$t('buttons.copyToClipboard')"
             >
               <i class="material-symbols">content_paste</i>
             </button>
@@ -69,17 +83,15 @@ export default {
     Errors,
     SettingsTable,
   },
-  data: function () {
-    return {
-      error: null,
-      links: [],
-      user: {
-        permissions: { ...state.user.permissions}
-      },
-      /** Local fetch state; avoids global Settings overlay spinner (table shows its own). */
-      loading: true,
-    };
-  },
+  data: () => ({
+    error: null,
+    links: [],
+    user: {
+      permissions: { ...state.user.permissions}
+    },
+    /** Local fetch state; avoids global Settings overlay spinner (table shows its own). */
+    loading: true,
+  }),
   async created() {
     await this.reloadApiKeys();
   },

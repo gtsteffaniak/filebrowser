@@ -13,9 +13,13 @@ export async function copyToClipboard(text) {
   const errorMessage = i18n.global.t('buttons.copyFailed');
 
   if (navigator.clipboard) {
-    await navigator.clipboard.writeText(text);
-    notify.showSuccessToast(successMessage);
-    return true;
+    try {
+      await navigator.clipboard.writeText(text);
+      notify.showSuccessToast(successMessage);
+      return true;
+    } catch (_err) {
+      // Fallback to execCommand
+    }
   }
 
   try {
@@ -33,12 +37,12 @@ export async function copyToClipboard(text) {
     if (success) {
       notify.showSuccessToast(successMessage);
       return true;
-    } else {
-      throw new Error('execCommand returned false');
     }
+    throw new Error('execCommand returned false');
   } catch (err) {
+    // If all fails, show the text to copy in a notification
+    notify.showSuccess(`${errorMessage}:\n\n${text}`); // notify.showSucess to avoid clutter the console.
     console.error('Copy failed:', err);
-    notify.showError(errorMessage);
     return false;
   }
 }

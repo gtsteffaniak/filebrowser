@@ -9,7 +9,7 @@ COPY [ "./_docker/src/no-config/frontend/", "./" ]
 COPY [ "./frontend/tests/", "./tests" ]
 
 WORKDIR /app/backend/
-COPY [ "./backend/filebrowser*", "./"]
+COPY [ "./backend/filebrowser", "./"]
 RUN mkdir -p ./http/dist
 COPY [ "./backend/http/embed/", "./http/dist/"]
 

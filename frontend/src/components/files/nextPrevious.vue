@@ -19,6 +19,7 @@
   <!-- Previous button -->
   <button
     v-if="enabled && hasPrevious"
+    type="button"
     @click.prevent="handlePrevClick"
     @mousedown="startDrag($event, 'previous')"
     @touchstart="handleTouchStart($event, 'previous')"
@@ -48,6 +49,7 @@
   <!-- Next button -->
   <button
     v-if="enabled && hasNext"
+    type="button"
     @click.prevent="handleNextClick"
     @mousedown="startDrag($event, 'next')"
     @touchstart="handleTouchStart($event, 'next')"
@@ -142,7 +144,7 @@ export default {
       return state.sidebar?.width || 20;
     },
     enabled() {
-      return state.navigation.enabled && getters.currentPrompt() == null;
+      return state.navigation.enabled && getters.currentPrompt() === null;
     },
     showNav() {
       return state.navigation.show || this.hoverNav || !!state.navigation.gestureHint;
@@ -383,7 +385,7 @@ export default {
               // Close the prompt after successful save
               mutations.closeTopPrompt();
               resolve(true); // Allow navigation
-            } catch (error) {
+            } catch (_e) {
               // Save failed - keep prompt open by not resolving
               resolve(false); // Block navigation
             }
@@ -432,7 +434,7 @@ export default {
         return;
       }
 
-      let listing = null;
+      let listing;
 
       // Try to get listing from current request first
       if (state.req.items) {
@@ -450,7 +452,7 @@ export default {
             res = await resourcesApi.fetchFiles(state.req.source, directoryPath);
           }
           listing = res.items;
-        } catch (error) {
+        } catch (_e) {
           if (gen !== this.navigationSetupGeneration) {
             return;
           }
@@ -506,6 +508,8 @@ export default {
           state.previousHistoryItem.source,
           state.previousHistoryItem.path,
           state.previousHistoryItem,
+          false,
+          state.previousHistoryItem.isShare
         );
         return;
       }
@@ -573,13 +577,13 @@ export default {
         case "ArrowRight":
           if (this.hasNext) {
             event.preventDefault();
-            this.next();
+            void this.next();
           }
           break;
         case "ArrowLeft":
           if (this.hasPrevious) {
             event.preventDefault();
-            this.prev();
+            void this.prev();
           }
           break;
       }
@@ -782,9 +786,9 @@ export default {
 
           // Navigate based on button type
           if (this.touchState.buttonType === 'previous' && this.hasPrevious) {
-            this.prev();
+            void this.prev();
           } else if (this.touchState.buttonType === 'next' && this.hasNext) {
-            this.next();
+            void this.next();
           }
         }
 
@@ -912,7 +916,7 @@ export default {
       }
       // Only navigate if this wasn't a drag
       if (!this.dragState.triggered) {
-        this.prev();
+        void this.prev();
       }
       this.resetDragState();
     },
@@ -926,7 +930,7 @@ export default {
       }
       // Only navigate if this wasn't a drag
       if (!this.dragState.triggered) {
-        this.next();
+        void this.next();
       }
       this.resetDragState();
     },

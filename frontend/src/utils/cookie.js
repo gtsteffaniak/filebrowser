@@ -1,15 +1,12 @@
-export default function (name) {
-  let re = new RegExp(
-    "(?:(?:^|.*;\\s*)" + name + "\\s*\\=\\s*([^;]*).*$)|^.*$"
-  );
-  return document.cookie.replace(re, "$1");
+export default function getCookieDefault(name) {
+  return getCookie(name);
 }
 
 export function getCookie(name) {
-  let cookie = document.cookie
+  const cookie = document.cookie
     .split(";")
-    .find((cookie) => cookie.includes(name + "="));
-  if (cookie != null) {
+    .find((c) => c.trim().startsWith(`${name}=`));
+  if (cookie) {
     return cookie.split("=")[1];
   }
   return ""

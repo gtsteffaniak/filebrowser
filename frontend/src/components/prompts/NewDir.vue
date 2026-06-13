@@ -13,11 +13,19 @@
   </div>
 
   <div class="card-actions">
-    <button class="button button--flat button--grey" @click="closeTopPrompt" :aria-label="$t('general.cancel')"
-      :title="$t('general.cancel')">
+    <button
+      type="button"
+      class="button button--flat button--grey"
+      @click="closeTopPrompt"
+      :aria-label="$t('general.cancel')"
+      :title="$t('general.cancel')"
+      >
       {{ $t("general.cancel") }}
     </button>
-    <button class="button button--flat" :aria-label="$t('general.create')" :title="$t('general.create')"
+    <button
+      type="button"
+      class="button button--flat" :aria-label="$t('general.create')"
+      :title="$t('general.create')"
       @click="submit">
       {{ $t("general.create") }}
     </button>
@@ -28,6 +36,7 @@ import { resourcesApi } from "@/api";
 import { getters, mutations, state } from "@/store"; // Import your custom store
 import { url } from "@/utils";
 import { notify } from "@/notify";
+import { goToItemNotificationButton } from "@/utils/notificationActions";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 export default {
   name: "new-dir",
@@ -103,37 +112,43 @@ export default {
       }
     },
 
+    showNotification(source, newPath) {
+      const buttonProps = {
+        icon: "folder",
+        buttons: [
+          goToItemNotificationButton(
+            this.$t("buttons.goToItem"),
+            source,
+            newPath,
+            getters.isShare()
+          ),
+        ],
+      };
+      notify.showSuccess(this.$t("prompts.newDirSuccess"), buttonProps);
+    },
+
     async createDirectory(overwrite = false) {
       this.creating = true;
       try {
         const parentPath = this.parentInfo.path;
         const source = this.parentInfo.source;
-        const newPath = url.joinPath(parentPath, this.name) + "/";
+        const newPath = `${url.joinPath(parentPath, this.name)}/`;
 
         if (getters.isShare()) {
           await resourcesApi.postPublic(state.shareInfo?.hash, newPath, "", overwrite, undefined, {}, true);
           mutations.setReload(true);
           mutations.closeTopPrompt();
           this.creating = false;
+          // Show notification for shares
+          this.showNotification(state.shareInfo?.hash, newPath);
           return;
         }
         await resourcesApi.post(source, newPath, "", overwrite, undefined, {}, true);
         mutations.setReload(true);
         mutations.closeTopPrompt();
 
-        // Show success notification with "go to item" button
-        const buttonAction = () => {
-          url.goToItem(source, newPath, {});
-        };
-        const buttonProps = {
-          icon: "folder",
-          buttons: [{
-            label: this.$t("buttons.goToItem"),
-            primary: true,
-            action: buttonAction
-          }]
-        };
-        notify.showSuccess(this.$t("prompts.newDirSuccess"), buttonProps);
+        // Show notification
+        this.showNotification(source, newPath);
         this.creating = false;
       } catch (error) {
         if (error.message === "conflict") {
@@ -156,7 +171,7 @@ export default {
                       const newName = counter === 1 ? `${originalName} (1)` : `${originalName} (${counter})`;
                       const parentPath = this.parentInfo.path;
                       const source = this.parentInfo.source;
-                      const newPath = url.joinPath(parentPath, newName) + "/";
+                      const newPath = `${url.joinPath(parentPath, newName)}/`;
 
                       if (getters.isShare()) {
                         await resourcesApi.postPublic(state.shareInfo?.hash, newPath, "", false, undefined, {}, true);
@@ -164,6 +179,8 @@ export default {
                         mutations.closeTopPrompt(); // close conflict prompt
                         mutations.closeTopPrompt(); // close new dir prompt
                         success = true;
+                        // Show notification for shares after rename
+                        this.showNotification(state.shareInfo?.hash, newPath);
                         return;
                       }
                       await resourcesApi.post(source, newPath, "", false, undefined, {}, true);
@@ -172,30 +189,16 @@ export default {
                       mutations.closeTopPrompt(); // close new dir prompt
                       success = true;
 
-                      // Show success notification with "go to item" button
-                      const buttonAction = () => {
-                        url.goToItem(source, newPath, {});
-                      };
-                      const buttonProps = {
-                        icon: "folder",
-                        buttons: [{
-                          label: this.$t("buttons.goToItem"),
-                          primary: true,
-                          action: buttonAction
-                        }]
-                      };
-                      notify.showSuccess(this.$t("prompts.newDirSuccess"), buttonProps);
+                      // Show notification
+                      this.showNotification(source, newPath);
                     } catch (renameError) {
-                      if (renameError.message === "conflict") {
-                        // Continue to next iteration
-                        continue;
-                      } else {
+                      if (renameError.message !== "conflict") {
                         throw renameError;
                       }
                     }
                   }
                   if (!success) {
-                    throw new Error("Could not find a unique name after " + maxAttempts + " attempts");
+                    throw new Error(`Could not find a unique name after ${maxAttempts} attempts`);
                   }
                 }
               } catch (retryError) {

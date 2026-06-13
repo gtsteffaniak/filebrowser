@@ -44,14 +44,14 @@
 </template>
 
 <script>
-import { state, getters, mutations } from "@/store";
+import { getters, mutations, state } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 
 export default {
   name: "StatusBar",
   data() {
     return {
-      gallerySize: state.user.gallerySize,
+      gallerySize: state.user?.gallerySize,
     };
   },
   computed: {
@@ -91,9 +91,9 @@ export default {
       }
       let total = 0;
       state.selected.forEach(index => {
-        if (index >= 0 && index < state.req.items.length) {
-          const item = state.req.items[index];
-          if (item && item.size) {
+        if (index >= 0 && index < state.req?.items.length) {
+          const item = state.req.items.at(index);
+          if (item?.size) {
             total += item.size;
           }
         }
@@ -133,29 +133,27 @@ export default {
       if (dirs === 0 && files === 0) {
         return this.$t('files.lonely');
       }
-      let parts = [];
+      const parts = [];
       if (dirs > 0) parts.push(`${dirs} ${this.foldersLabel}`);
       if (files > 0) parts.push(`${files} ${this.filesLabel}`);
 
-      return parts.join(' | ') + ' ' + sizeText;
+      return `${parts.join(' | ')} ${sizeText}`;
     },
     moveWithSidebar() {
       if (getters.isStickySidebar() && getters.isSidebarVisible()) {
         return {
-          left: state.sidebar.width + 'em',
+          left: `${state.sidebar.width}em`,
         };
       }
       return {};
     },
     editorStatsText() {
       const { lines, words, chars } = state.editorStats;
-      return [
-        [words, chars]
-          .map((v, i) => v != null && this.$t(i === 0 ? 'editor.words' : 'editor.chars', { count: v }))
-          .filter(Boolean)
-          .join(', '),
-        lines != null && this.$t('editor.lines', { count: lines })
-      ].filter(Boolean).join(' | ');
+      const parts = [];
+      if (words !== null) parts.push(this.$t('editor.words', { count: words }));
+      if (chars !== null) parts.push(this.$t('editor.chars', { count: chars }));
+      if (lines !== null) parts.push(this.$t('editor.lines', { count: lines }));
+      return parts.join(' | ');
     },
     editorFontSize: {
       get() {
@@ -208,7 +206,7 @@ export default {
       // Only update if the mode actually changed
       if (newMode !== currentMode) {
         mutations.updateDisplayPreferences({ viewMode: newMode });
-        mutations.updateCurrentUser({ viewMode: newMode });
+        void mutations.updateCurrentUser({ viewMode: newMode });
       }
     },
     // Ctrl + Mouse Wheel to adjust the slider sizes
@@ -217,10 +215,10 @@ export default {
 
       const delta = event.deltaY > 0 ? 1 : -1; // Scroll down increases, up decreases
 
-      const advSearch = (state.route?.path || "").startsWith("/tools/advancedSearch");
+      const advSearch = (state.route.path || "").startsWith("/tools/advancedSearch");
       if (this.currentView === "listingView" || advSearch) {
         event.preventDefault();
-        let newSize = Math.min(9, Math.max(1, this.gallerySize - delta));
+        const newSize = Math.min(9, Math.max(1, this.gallerySize - delta));
         if (newSize !== this.gallerySize) {
           this.gallerySize = newSize;
           mutations.setGallerySize(newSize);
@@ -228,7 +226,7 @@ export default {
         }
       } else if (this.currentView === 'editor') {
         event.preventDefault();
-        let newSize = Math.min(24, Math.max(8, this.editorFontSize - delta));
+        const newSize = Math.min(24, Math.max(8, this.editorFontSize - delta));
         if (newSize !== this.editorFontSize) {
           this.editorFontSize = newSize;
         }

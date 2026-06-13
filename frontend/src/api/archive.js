@@ -1,6 +1,6 @@
-import { fetchURL } from "./utils";
-import { getApiPath } from "@/utils/url.js";
 import { notify } from "@/notify";
+import { getApiPath } from "@/utils/url.js";
+import { fetchURL } from "./utils";
 
 /**
  * Create an archive on the server (server-side only).
@@ -15,7 +15,7 @@ import { notify } from "@/notify";
  */
 export async function createArchive(opts) {
   const { fromSource, toSource, paths, destination, format, compression, deleteAfter } = opts;
-  if (!fromSource || !paths?.length || !destination) {
+  if (!fromSource || !Array.isArray(paths) || paths.length === 0 || !destination) {
     throw new Error("fromSource, paths, and destination are required");
   }
   const body = {

@@ -1,7 +1,11 @@
 import { reactive } from "vue";
 import { resourcesApi } from "@/api";
-import { state,mutations } from "@/store";
+import { mutations, state } from "@/store";
 import { getters } from "@/store/getters";
+import {
+  notifyUploadComplete,
+  notifyUploadError,
+} from "@/utils/appNotifications";
 
 /**
  * Accumulates every directory entry from a FileSystemDirectoryReader.
@@ -79,14 +83,14 @@ class UploadManager {
     if (this.overwriteAll === null && !overwrite) {
       const topLevelDirs = new Set();
       for (const item of items) {
-        if (item.relativePath && item.relativePath.includes('/')) {
+        if (item.relativePath?.includes('/')) {
           topLevelDirs.add(item.relativePath.split('/')[0]);
         }
       }
 
       if (topLevelDirs.size > 0) {
         // First try using state.req.items if available (regular uploads)
-        const existingItems = new Set(state.req?.items?.map(i => i.name) || []);
+        const existingItems = new Set((state.req.items || []).map((i) => i.name));
         let conflictingDirs = [...topLevelDirs].filter(dir => existingItems.has(dir));
         let probedDirs = new Set();
 
@@ -135,11 +139,11 @@ class UploadManager {
             if (resolution === true) {
               // User chose overwrite - set the flag and add with overwrite=true
               this.overwriteAll = true;
-              this.add(basePath, items, true);
-            } else if (resolution && resolution.rename) {
+              void this.add(basePath, items, true);
+            } else if (resolution?.rename) {
               // User chose rename - continue with renamed items
               this.conflictingFolder = null;
-              this.add(basePath, this.pendingItems, false);
+              void this.add(basePath, this.pendingItems, false);
             } else {
               // User cancelled
               this.overwriteAll = null;
@@ -163,7 +167,7 @@ class UploadManager {
 
         let currentPath = "";
         for (const part of pathParts) {
-          currentPath += part + "/";
+          currentPath += `${part}/`;
           dirs.add(currentPath);
         }
       }
@@ -193,7 +197,7 @@ class UploadManager {
           type: "directory",
           isToplevelDir: pathParts.length === 1,
           path: `${basePath}${dir}`,
-          source: state.req?.source,
+          source: state.req.source,
           overwrite: effectiveOverwrite,
         };
 
@@ -205,7 +209,7 @@ class UploadManager {
       const id = this.nextId++;
       const file = item.file;
       const relativePath = item.relativePath || file.name;
-      let destinationPath = `${basePath}${relativePath}`;
+      const destinationPath = `${basePath}${relativePath}`;
       const upload = {
         id,
         file,
@@ -216,7 +220,7 @@ class UploadManager {
         status: "pending", // pending, uploading, paused, completed, error
         xhr: null,
         path: destinationPath, // Full destination path
-        source: state.req?.source,
+        source: state.req.source,
         overwrite: effectiveOverwrite,
         lastProgressTime: null, // Track when progress was last updated
         connectionIssue: false, // Flag for connection-related issues
@@ -238,7 +242,7 @@ class UploadManager {
     this.conflictingFolder = null;
     this.probedDirs.clear();
 
-    this.processQueue();
+    void this.processQueue();
     return newUploads;
   }
 
@@ -287,7 +291,7 @@ class UploadManager {
 
   start(id) {
     const upload = this.findById(id);
-    if (!upload || upload.status !== "pending") {
+    if (upload?.status !== "pending") {
       console.log(
         `upload.js: Cannot start upload for id ${id}. Status is not 'pending' or upload not found.`,
         upload
@@ -296,9 +300,9 @@ class UploadManager {
     }
 
     if (upload.type === "directory") {
-      this.startDirectoryUpload(upload);
+      void this.startDirectoryUpload(upload);
     } else {
-      this.startFileUpload(upload);
+      void this.startFileUpload(upload);
     }
   }
 
@@ -316,11 +320,12 @@ class UploadManager {
 
       upload.status = "completed";
       upload.progress = 100;
+      notifyUploadComplete(upload);
     } catch (err) {
       await this.handleUploadError(upload, err);
     } finally {
       this.activeUploads--;
-      this.processQueue();
+      void this.processQueue();
     }
   }
 
@@ -366,13 +371,14 @@ class UploadManager {
         upload.status = "completed";
         upload.progress = 100;
         upload.connectionIssue = false;
+        notifyUploadComplete(upload);
       } catch (err) {
         this.clearProgressTimeout(upload.id);
         await this.handleUploadError(upload, err);
       } finally {
         this.activeUploads--;
         upload.xhr = null;
-        this.processQueue();
+        void this.processQueue();
       }
       return;
     }
@@ -449,12 +455,13 @@ class UploadManager {
       // If the loop finished without being paused/errored
       upload.status = "completed";
       upload.progress = 100;
+      notifyUploadComplete(upload);
       upload.connectionIssue = false;
     }
 
     this.activeUploads--;
     upload.xhr = null;
-    this.processQueue();
+    void this.processQueue();
   }
 
   chunkSizeBytes() {
@@ -484,13 +491,13 @@ class UploadManager {
 
   async pause(id) {
     const upload = this.findById(id);
-    if (!upload || upload.status !== "uploading" || !upload.xhr) {
+    if (upload?.status !== "uploading" || !upload.xhr) {
       return;
     }
     if (upload.type !== "directory" && upload.size >= this.chunkSizeBytes()) {
       try {
         if (getters.isShare()) {
-          await resourcesApi.signalUploadPause(null, upload.path, state.shareInfo?.hash);
+          await resourcesApi.signalUploadPause(null, upload.path, state.shareInfo.hash);
         } else {
           await resourcesApi.signalUploadPause(upload.source, upload.path, null);
         }
@@ -539,20 +546,20 @@ class UploadManager {
 
   resume(id) {
     const upload = this.findById(id);
-    if (upload && upload.status === "paused") {
+    if (upload?.status === "paused") {
       this.isOverallPaused = false;
       upload.status = "pending";
       upload.connectionIssue = false; // Clear connection issue on resume
       const progress =
         upload.size > 0 ? (upload.chunkOffset / upload.size) * 100 : 0;
       upload.progress = Math.round(progress * 10) / 10;
-      this.processQueue();
+      void this.processQueue();
     }
   }
 
   cancel(id) {
     const upload = this.findById(id);
-    if (upload && upload.status === "uploading" && upload.xhr) {
+    if (upload?.status === "uploading" && upload.xhr) {
       upload.xhr.abort();
     }
     this.clearProgressTimeout(id);
@@ -572,14 +579,14 @@ class UploadManager {
           upload.chunkOffset = 0; // Reset chunk offset for retries
       }
       upload.progress = 0;
-      this.processQueue();
+      void this.processQueue();
     }
   }
 
   clearCompleted() {
     let hadCompleted = false;
     for (let i = this.queue.length - 1; i >= 0; i--) {
-      const upload = this.queue[i];
+      const upload = this.queue.at(i);
       const status = upload.status;
       if (status === "completed") {
         this.clearProgressTimeout(upload.id);
@@ -656,11 +663,12 @@ class UploadManager {
       
       if (isConnectionError) {
         upload.connectionIssue = true;
-        upload.errorDetails = "Connection error: " + this.formatErrorMessage(err) + ". Click retry to resume.";
+        upload.errorDetails = `Connection error: ${this.formatErrorMessage(err)}. Click retry to resume.`;
       } else {
         upload.connectionIssue = false;
         upload.errorDetails = this.formatErrorMessage(err);
       }
+      notifyUploadError(upload.name, upload.errorDetails);
     } else {
       // Upload was aborted - preserve connectionIssue flag if it was already set
       // (e.g., if we paused due to timeout, keep the connection issue flag)

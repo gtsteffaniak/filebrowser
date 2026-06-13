@@ -1,5 +1,9 @@
 backend/**.db
-backend/**.sqlite**
+backend/*.sqlite
+backend/*.sqlite.*
+**/*.sqlite
+**/*.sqlite.*
+backend/filebrowser.sqlite*
 **.crt
 **.key
 backend/tmp

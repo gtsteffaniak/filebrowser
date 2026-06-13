@@ -27,7 +27,12 @@
               :placeholder="$t('general.number')" :disabled="watching" />
           </div>
           <div class="config-item play-button">
-            <button @click="toggleWatch" class="button" :disabled="!watching && !canStart">
+            <button
+              type="button"
+              @click="toggleWatch"
+              class="button"
+              :disabled="!watching && !canStart"
+            >
               <i v-if="watching" class="material-symbols">pause</i>
               <i v-else class="material-symbols">play_arrow</i>
             </button>
@@ -93,6 +98,7 @@ import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { formatTimestamp, fromNow } from "@/utils/moment";
 import { notify } from "@/notify";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
+import { globalVars } from "@/utils/constants";
 
 export default {
   name: "FileWatcher",
@@ -148,7 +154,7 @@ export default {
     getRelativeUpdateTime() {
       if (!this.lastUpdateTime) return '';
       // Use currentTime to force re-computation every second
-      this.currentTime; // This creates a dependency
+      void this.currentTime; // This creates a dependency
       return fromNow(this.lastUpdateTime, state.user?.locale || 'en');
     },
     latencyClass() {
@@ -224,7 +230,7 @@ export default {
     },
   },
   mounted() {
-    document.title = globalVars.name + " - " + this.$t('tools.title') + " - " + this.$t('tools.fileWatcher.name');
+    document.title = `${globalVars.name} - ${this.$t('tools.title')} - ${this.$t('tools.fileWatcher.name')}`;
     // Initialize from URL query parameters
     this.initializeFromQuery();
     
@@ -292,7 +298,7 @@ export default {
 
       if (query.interval !== undefined && query.interval !== null) {
         const parsed = parseInt(String(query.interval), 10);
-        if (!isNaN(parsed) && parsed > 0) {
+        if (!Number.isNaN(parsed) && parsed > 0) {
           // Validate interval based on permissions
           this.selectedInterval = this.validateInterval(parsed);
         }
@@ -303,7 +309,7 @@ export default {
 
       if (query.lines !== undefined && query.lines !== null) {
         const parsed = parseInt(String(query.lines), 10);
-        if (!isNaN(parsed) && parsed >= 1 && parsed <= 50) {
+        if (!Number.isNaN(parsed) && parsed >= 1 && parsed <= 50) {
           this.selectedLines = parsed;
         }
       }
@@ -331,14 +337,10 @@ export default {
 
         const newQueryString = new URLSearchParams(query).toString();
         const currentQuery = this.$route.query || {};
-        const currentQueryString = new URLSearchParams(
-          Object.entries(currentQuery).reduce((acc, [key, value]) => {
-            if (value !== null && value !== undefined) {
-              acc[key] = String(value);
-            }
-            return acc;
-          }, {})
-        ).toString();
+        const filteredEntries = Object.entries(currentQuery)
+          .filter(([_, value]) => value !== null && value !== undefined)
+          .map(([key, value]) => [key, String(value)]);
+        const currentQueryString = new URLSearchParams(Object.fromEntries(filteredEntries)).toString();
 
         if (newQueryString !== currentQueryString) {
           this.$router.replace({
@@ -385,7 +387,7 @@ export default {
         // Use REST API polling
         await this.fetchFileContent(false);
         this.pollInterval = setInterval(() => {
-          this.fetchFileContent(false);
+          void this.fetchFileContent(false);
         }, this.selectedInterval * 1000);
       }
     },
@@ -511,14 +513,14 @@ export default {
     formatMetadata(metadata) {
       // Format file metadata into display lines
       const lines = [];
-      lines.push(this.$t('general.name', { suffix: ': ' }) + ` ${metadata.name}`);
-      lines.push(this.$t('general.path', { suffix: ': ' }) + ` ${this.filePath}`);
-      lines.push(this.$t('general.source', { suffix: ': ' }) + ` ${this.selectedSource}`);
+      lines.push(`${this.$t('general.name', { suffix: ': ' })}${metadata.name}`);
+      lines.push(`${this.$t('general.path', { suffix: ': ' })}${this.filePath}`);
+      lines.push(`${this.$t('general.source', { suffix: ': ' })}${this.selectedSource}`);
       if (metadata.type) {
-        lines.push(this.$t('general.type', { suffix: ': ' }) + ` ${metadata.type || 'unknown'}`);
+        lines.push(`${this.$t('general.type', { suffix: ': ' })}${metadata.type || 'unknown'}`);
       }
       if (metadata.modified) {
-        lines.push(this.$t('files.lastModified', { suffix: ': ' }) + ` ${formatTimestamp(metadata.modified, state.user?.locale || 'en')}`);
+        lines.push(`${this.$t('files.lastModified', { suffix: ': ' })}${formatTimestamp(metadata.modified, state.user?.locale || 'en')}`);
       }
       return lines;
     },
@@ -547,11 +549,11 @@ export default {
       }
 
       // Ping health endpoint immediately
-      this.pingHealthEndpoint();
+      void this.pingHealthEndpoint();
 
       // Start pinging at the same interval as SSE events
       this.latencyPingInterval = setInterval(() => {
-        this.pingHealthEndpoint();
+        void this.pingHealthEndpoint();
       }, this.selectedInterval * 1000);
     },
     async pingHealthEndpoint() {
@@ -574,7 +576,7 @@ export default {
         const isInputFocused = activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA');
         if (!isInputFocused) {
           event.preventDefault();
-          this.toggleWatch();
+          void this.toggleWatch();
         }
       }
     },
@@ -886,4 +888,3 @@ export default {
   }
 }
 </style>
-

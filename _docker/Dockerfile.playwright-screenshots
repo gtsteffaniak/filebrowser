@@ -6,7 +6,7 @@ COPY [ "./frontend/tests", "./tests" ]
 COPY [ "./_docker/src/screenshots/frontend/", "./" ]
 
 WORKDIR /app/backend/
-COPY [ "./backend/filebrowser*", "./"]
+COPY [ "./backend/filebrowser", "./"]
 COPY [ "./_docker/src/screenshots/backend/*", "./"]
 
 RUN mkdir -p ./http/dist

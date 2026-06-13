@@ -27,8 +27,12 @@
   </div>
 
   <div class="card-actions">
-    <button class="button button--flat button--grey" @click="closeTopPrompt" :aria-label="$t('general.cancel')"
-      :title="$t('general.cancel')">
+    <button
+      type="button"
+      class="button button--flat button--grey"
+      @click="closeTopPrompt" :aria-label="$t('general.cancel')"
+      :title="$t('general.cancel')"
+    >
       {{ $t("general.cancel") }}
     </button>
     <button @click="submit" class="button button--flat" :disabled="!canRename"
@@ -63,19 +67,17 @@ export default {
   },
   data() {
     const itemName = this.item.name;
+    let fileName = "";
+    let fileExtension = "";
     if (this.item.type !== 'directory') {
       const ext = getFileExtension(this.item.name);
       const filenamePrefix = this.item.name.substring(0, this.item.name.length - ext.length);
-      return {
-        fileName: filenamePrefix,
-        fileExtension: removePrefix(ext, "."),
-        name: itemName, // Initialize name for non-directory items
-        renaming: false,
-      };
+      fileName = filenamePrefix;
+      fileExtension = removePrefix(ext, ".");
     }
     return {
-      fileName: "",
-      fileExtension: "",
+      fileName,
+      fileExtension,
       name: itemName,
       renaming: false,
     };
@@ -125,7 +127,7 @@ export default {
         event.stopPropagation();
       }
       if (event.key === 'Enter') {
-        this.submit();
+        void this.submit();
       }
     },
     updateFullName() {
@@ -165,7 +167,7 @@ export default {
       }
 
       // Use parentItems if we are in a preview, otherwise use state.req.items
-      const items = this.parentItems.length > 0 ? this.parentItems : (state.req?.items || []);
+      const items = this.parentItems.length > 0 ? this.parentItems : (state.req?.items ?? []);
       for (const item of items) {
         if (!item.name) {
           continue;
@@ -182,6 +184,9 @@ export default {
       }
 
       return { valid: true };
+    },
+    normalizePath(p) {
+      return (p || '').replace(/^\/+|\/+$/g, '');
     },
     async submit() {
       // remove trailing slashes
@@ -216,7 +221,22 @@ export default {
         mutations.closeTopPrompt();
 
         if (this.isPreviewView) {
-          url.goToItem(this.item.source, newPath, undefined); // When undefined will not create browser history
+          // Navigate only if we rename the file that we're currently previewing (eg: from fileTree)
+          const currentReqPath = this.normalizePath(state.req?.path);
+          const oldItemPath = this.normalizePath(this.item.path);
+          
+          // For shares compare path and for regulars compare both path and source
+          const isCurrentItem = getters.isShare()
+            ? currentReqPath === oldItemPath
+            : (currentReqPath === oldItemPath && this.item.source === state.req?.source);
+          
+          if (isCurrentItem) {
+            // Navigate to the renamed file
+            const source = getters.isShare() ? state.shareInfo.hash : this.item.source;
+            url.goToItem(source, newPath, undefined, false, getters.isShare()); // When undefined will not create browser history
+          } else {
+            mutations.setReload(true);
+          }
         } else {
           mutations.setReload(true);
         }
@@ -225,10 +245,10 @@ export default {
         // Parse the error response structure (similar to Delete.vue)
         let errorMessage = this.$t("prompts.renameFailed");
         
-        if (error && error.failed && error.failed.length > 0) {
+        if (error?.failed && error.failed.length > 0) {
           // Get message from first failed item
           errorMessage = error.failed[0].message || errorMessage;
-        } else if (error && error.message) {
+        } else if (error?.message) {
           errorMessage = error.message;
         }
         

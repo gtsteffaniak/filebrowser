@@ -8,6 +8,8 @@ import (
 type PWAManifest struct {
 	Name            string    `json:"name"`
 	ShortName       string    `json:"short_name"`
+	ID              string    `json:"id"`
+	Scope           string    `json:"scope"`
 	Icons           []PWAIcon `json:"icons"`
 	StartURL        string    `json:"start_url"`
 	Display         string    `json:"display"`
@@ -40,6 +42,8 @@ func generatePWAManifest(name, description, baseURL, themeColor, pwaIcon192, pwa
 	return PWAManifest{
 		Name:            name,
 		ShortName:       shortName,
+		ID:              baseURL,
+		Scope:           baseURL,
 		StartURL:        baseURL,
 		Display:         "standalone",
 		BackgroundColor: "#ffffff",

@@ -15,6 +15,17 @@ const settings = [
   { id: 'systemAdmin', label: 'settings.systemAdmin', component: 'SystemAdmin', permissions: { admin: true }, icon: 'admin_panel_settings' },
 ];
 
+// This below is basically unused.
+// Is to mark those keys as used to satisfy the lint that checks for unused keys.
+i18n.global.t('settings.profileSettings');
+i18n.global.t('settings.shareSettings');
+i18n.global.t('settings.userManagement');
+i18n.global.t('settings.systemAdmin');
+i18n.global.t('fileLoading.title');
+i18n.global.t('notifications.title');
+i18n.global.t('api.title');
+i18n.global.t('access.accessManagement');
+
 const previewViews = [
   'preview',
   'markdownViewer',
@@ -70,10 +81,10 @@ const getTools = () => [
 const tools = () => getTools();
 
 export {
+  getIconClass, // Re-exported from material-symbols.js for convenience
   globalVars,
   origin,
-  settings,
   previewViews,
+  settings,
   tools,
-  getIconClass, // Re-exported from material-symbols.js for convenience
 };

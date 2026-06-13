@@ -2,13 +2,14 @@
   <div class="plyr-viewer">
     <!-- Audio with plyr -->
     <div
-      v-if="previewType == 'audio' && !useDefaultMediaPlayer"
+      v-if="previewType === 'audio' && !useDefaultMediaPlayer"
       ref="audioPlayerGestureRoot"
       class="audio-player-container audio-player-container--plyr-gestures"
       :class="{ 'audio-player-container--lyrics-open': isMobile && showMobileLyrics && lyrics.length }"
     >
       <!-- Desktop panel button, will auto‑hide only when panel is closed -->
       <button
+        type="button"
         v-if="showButtons && previewType === 'audio' && !isMobile"
         @click="showDesktopPanel = !showDesktopPanel"
         @touchstart="resetButtonTimer"
@@ -33,8 +34,8 @@
           <div class="album-art-container"
                 :class="{ 'no-artwork': !albumArtUrl }"
                 :style="{
-                  maxHeight: displayArtSize + 'em',
-                  maxWidth: displayArtSize + 'em'
+                  maxHeight: `${displayArtSize}em`,
+                  maxWidth: `${displayArtSize}em`
                 }"
                @mouseenter="onAlbumArtHover"
                @mouseleave="onAlbumArtLeave"
@@ -88,7 +89,7 @@
             @click.stop="syncedLyrics && seekToLyric(line.timestamp)"
             tabindex="0"
             role="button"
-            :aria-label="syncedLyrics ? 'Seek to ' + line.text : undefined"
+            :aria-label="syncedLyrics ? `Seek to ${line.text}` : undefined"
           >
             {{ line.text }}
           </p>
@@ -117,7 +118,7 @@
     </div>
 
     <!-- Video with plyr -->
-    <div v-else-if="previewType == 'video' && !useDefaultMediaPlayer" class="video-player-container" :class="{ 'no-captions': !hasSubtitles }">
+    <div v-else-if="previewType === 'video' && !useDefaultMediaPlayer" class="video-player-container" :class="{ 'no-captions': !hasSubtitles }">
       <div class="plyr-video-container" ref="plyrVideoContainer">
         <video :src="raw" :type="req.type" :autoplay="shouldAutoplay" @play="handlePlay" playsinline ref="videoElement">
           <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
@@ -139,14 +140,14 @@
     </div>
 
     <!-- Default HTML5 Audio -->
-    <div v-else-if="previewType == 'audio' && useDefaultMediaPlayer" class="audio-player-container">
+    <div v-else-if="previewType === 'audio' && useDefaultMediaPlayer" class="audio-player-container">
       <audio ref="defaultAudioPlayer" :src="raw"
         controls :autoplay="shouldAutoplay" @play="handlePlay">
       </audio>
     </div>
 
     <!-- Default HTML5 Video -->
-    <div v-else-if="previewType == 'video' && useDefaultMediaPlayer" class="video-player-container">
+    <div v-else-if="previewType === 'video' && useDefaultMediaPlayer" class="video-player-container">
       <video ref="defaultVideoPlayer" :src="raw"
         controls :autoplay="shouldAutoplay" @play="handlePlay" playsinline >
         <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
@@ -176,6 +177,7 @@
 
     <!-- Queue button – visible on videos, in audio on mobile -->
     <button
+      type="button"
       v-if="showButtons && showQueueButton"
       class="queue-button floating"
       :class="{
@@ -194,6 +196,7 @@
 
     <!-- Lyrics button (left side) – only on mobile when lyrics exist -->
     <button
+      type="button"
       v-if="showButtons && isMobile && lyrics.length"
       class="queue-button floating lyrics-fab-left"
       :class="{
@@ -211,6 +214,7 @@
 
     <!-- Lyrics scroll lock (mobile, bottom‑right) – visible while lyrics overlay is open -->
     <button
+      type="button"
       v-if="isMobile && previewType === 'audio' && !useDefaultMediaPlayer && showMobileLyrics && lyrics.length && syncedLyrics"
       class="queue-button floating lyrics-lock-fab"
       :class="{
@@ -245,12 +249,13 @@
 </template>
 
 <script>
-import { state, mutations, getters } from '@/store';
+import Plyr from 'plyr';
+import AudioPanel from "@/components/files/AudioPanel.vue";
+import { getters, mutations, state } from '@/store';
 import { url } from '@/utils';
+import { getObjectProperty } from '@/utils/object.js';
 import { globalVars } from '@/utils/constants';
 import { getSubtitleFormatExtension } from '@/utils/subtitles';
-import AudioPanel from "@/components/files/AudioPanel.vue";
-import Plyr from 'plyr';
 
 const PLYR_CAPTION_SIZE_IDS = ['small', 'medium', 'large', 'xlarge'];
 /** Same localStorage key Plyr uses for `captions`, `language`, etc. (see Plyr defaults `storage.key`). */
@@ -485,19 +490,19 @@ export default {
       return this.albumArtSize;
     },
     queueCount() {
-      return state.playbackQueue?.queue?.length || 0;
+      return state.playbackQueue.queue.length || 0;
     },
     shouldTogglePlayPause() {
-      return state.playbackQueue?.shouldTogglePlayPause || false;
+      return state.playbackQueue.shouldTogglePlayPause || false;
     },
     playbackQueue() {
-      return state.playbackQueue?.queue || [];
+      return state.playbackQueue.queue;
     },
     currentQueueIndex() {
-      return state.playbackQueue?.currentIndex ?? -1;
+      return state.playbackQueue.currentIndex ?? -1;
     },
     playbackMode() {
-      return state.playbackQueue?.mode || 'single';
+      return state.playbackQueue.mode || 'single';
     },
     playbackModeMessage() {
       const mode = {
@@ -611,7 +616,7 @@ export default {
         clickToPlay: true,
         resetOnEnd: false,
         preload: 'metadata',
-        iconUrl: globalVars.baseURL + 'public/static/img/plyr.svg',
+        iconUrl: `${globalVars.baseURL}public/static/img/plyr.svg`,
         // Blob/async tracks need addtrack → captions.update; otherwise meta never fills and toggle CC throws (track undefined).
         // Do not call toggleCaptions() here — Plyr already applies `plyr` localStorage for captions on/off.
         captions: {
@@ -673,7 +678,7 @@ export default {
       // Create a fresh fallback URL with timestamp to prevent caching issues
       const fallbackIcon = globalVars.loginIcon;
       const timestamp = Date.now();
-      const fallbackUrl = fallbackIcon.includes('?') 
+      const fallbackUrl = fallbackIcon.includes('?')
         ? `${fallbackIcon}&t=${timestamp}`
         : `${fallbackIcon}?t=${timestamp}`;
       const metadata = {
@@ -709,8 +714,8 @@ export default {
       for (const [action, handler] of actionHandlers) {
         try {
           navigator.mediaSession.setActionHandler(action, handler);
-        } catch (error) {
-          console.warn(`The media session action "${action}" is not supported`);
+        } catch (e) {
+          console.warn(`The media session action "${String(action)}" is not supported`, e);
         }
       }
       this.updateMediaSessionPlaybackState();
@@ -745,15 +750,12 @@ export default {
       // Reset playback state
       navigator.mediaSession.playbackState = 'none';
     },
-    destroyPlyr(options = {}) {
-      const preserveMediaShell = options.preserveMediaShell === true;
+    destroyPlyr() {
       if (this.player) {
         this.teardownVideoSwipeGestures();
         this.teardownDoubleTapSeek();
         this.clearMediaSession();
-        if (!preserveMediaShell) {
-          this.cleanupAlbumArt();
-        }
+        this.cleanupAlbumArt();
         this.player.off();
         this.player.destroy();
         this.player = null;
@@ -812,7 +814,7 @@ export default {
           return 'medium';
         }
         const data = JSON.parse(raw);
-        const id = data?.[PLYR_CAPTION_SIZE_FIELD];
+        const id = getObjectProperty(data, PLYR_CAPTION_SIZE_FIELD);
         if (id && PLYR_CAPTION_SIZE_IDS.includes(id)) {
           return id;
         }
@@ -857,7 +859,9 @@ export default {
         return;
       }
       const el = this.player.elements.container;
-      PLYR_CAPTION_SIZE_IDS.forEach((id) => el.classList.remove(`plyr-caption-size--${id}`));
+      PLYR_CAPTION_SIZE_IDS.forEach((id) => {
+        el.classList.remove(`plyr-caption-size--${id}`);
+      });
       el.classList.add(`plyr-caption-size--${this.getStoredCaptionSize()}`);
     },
     syncCaptionSizeSettingsVisibility() {
@@ -899,18 +903,17 @@ export default {
         this.syncCaptionSizeSettingsVisibility();
         captionBtn.removeAttribute('hidden');
 
-        const labels = this.captionSizeMenuLabels();
         const current = this.getStoredCaptionSize();
 
-        captionBtn.querySelector('span').innerHTML = `${title}: <span class="plyr__menu__value">${labels[current]}</span>`;
+        captionBtn.querySelector('span').innerHTML = `${title}: <span class="plyr__menu__value">${this.getCaptionSizeLabel(current)}</span>`;
 
         captionPanel.querySelector('.plyr__control--back span[aria-hidden="true"]').textContent = title;
 
         const menu = captionPanel.querySelector('div[role="menu"]');
         menu.innerHTML = PLYR_CAPTION_SIZE_IDS.map(
-          (id) => `<button data-plyr="caption-size" type="button" role="menuitemradio" class="plyr__control" aria-checked="${current === id}" value="${id}">
-                <span>${labels[id]}</span>
-              </button>`,
+          (id) => `<button type="button" data-plyr="caption-size" role="menuitemradio" class="plyr__control" aria-checked="${current === id}" value="${id}">
+                    <span>${this.getCaptionSizeLabel(id)}</span>
+                  </button>`,
         ).join('');
 
         menu.querySelectorAll('button[data-plyr="caption-size"]').forEach((button) => {
@@ -924,7 +927,7 @@ export default {
             menu.querySelectorAll('button[data-plyr="caption-size"]').forEach((btn) => {
               btn.setAttribute('aria-checked', btn.getAttribute('value') === value ? 'true' : 'false');
             });
-            captionBtn.querySelector('span').innerHTML = `${title}: <span class="plyr__menu__value">${labels[value]}</span>`;
+            captionBtn.querySelector('span').innerHTML = `${title}: <span class="plyr__menu__value">${this.getCaptionSizeLabel(value)}</span>`;
           });
         });
 
@@ -932,6 +935,25 @@ export default {
         this.applyCaptionSizeClass();
       } catch (error) {
         console.error('Error applying caption size settings:', error);
+      }
+    },
+    getCaptionSizeLabel(size) {
+      switch (size) {
+        case 'small': return 'Small';
+        case 'medium': return 'Medium';
+        case 'large': return 'Large';
+        case 'xlarge': return 'Extra large';
+        default: return 'Medium';
+      }
+    },
+    getPlaybackModeLabel(mode) {
+      switch (mode) {
+        case 'single': return 'Play Once';
+        case 'sequential': return 'Play All';
+        case 'shuffle': return 'Shuffle All';
+        case 'loop-single': return 'Loop current';
+        case 'loop-all': return 'Play All Looped';
+        default: return 'Play Once';
       }
     },
     toggleLoop() {
@@ -974,8 +996,7 @@ export default {
       const modeCycle = ['loop-all', 'shuffle', 'sequential'];
       const currentIndex = modeCycle.indexOf(this.playbackMode);
       const nextIndex = (currentIndex + 1) % modeCycle.length;
-      const newMode = modeCycle[nextIndex];
-      // Directly update state
+      const newMode = modeCycle.at(nextIndex);
       mutations.setPlaybackQueue({
         queue: this.playbackQueue,
         currentIndex: this.currentQueueIndex,
@@ -993,17 +1014,17 @@ export default {
       if (!this.lyrics.length || !this.syncedLyrics) return;
       const currentMs = this.player.currentTime * 1000;
       let idx = this.activeLyricIndex;
-      if (idx > 0 && this.lyrics[idx]?.timestamp > currentMs) {
+      if (idx > 0 && this.lyrics.at(idx)?.timestamp > currentMs) {
         idx = 0;
       }
       while (
         idx + 1 < this.lyrics.length &&
-        this.lyrics[idx + 1].timestamp <= currentMs
+        this.lyrics.at(idx + 1).timestamp <= currentMs
       ) {
         idx++;
       }
       let first = idx;
-      while (first > 0 && this.lyrics[first - 1].timestamp === this.lyrics[idx].timestamp) {
+      while (first > 0 && this.lyrics.at(first - 1).timestamp === this.lyrics.at(idx).timestamp) {
         first--;
       }
       if (first !== this.activeLyricIndex) {
@@ -1056,10 +1077,7 @@ export default {
         if (this.req.metadata.albumArt) {
           try {
             const byteCharacters = atob(this.req.metadata.albumArt);
-            const byteArray = new Uint8Array(byteCharacters.length);
-            for (let i = 0; i < byteCharacters.length; i++) {
-              byteArray[i] = byteCharacters.charCodeAt(i);
-            }
+            const byteArray = Uint8Array.from(byteCharacters, (c) => c.charCodeAt(0));
             const blob = new Blob([byteArray], { type: 'image/jpeg' });
             this.albumArtUrl = URL.createObjectURL(blob);
           } catch (error) {
@@ -1077,7 +1095,8 @@ export default {
       }
     },
     cleanupAlbumArt() {
-      if (this.albumArtUrl && this.albumArtUrl.startsWith('blob:')) {
+      if (this.previewType !== "audio") return;
+      if (typeof this.albumArtUrl === 'string' && this.albumArtUrl.startsWith('blob:')) {
         URL.revokeObjectURL(this.albumArtUrl);
       }
       this.albumArtUrl = null;
@@ -1097,7 +1116,7 @@ export default {
       
       // For videos with subtitle metadata, wait for subtitles to load before initializing Plyr
       // This prevents Plyr from trying to access tracks before they have valid blob URLs
-      const hasSubtitleMetadata = this.req?.subtitles && this.req.subtitles.length > 0;
+      const hasSubtitleMetadata = this.req?.subtitles?.length > 0;
       const subtitlesNotLoaded = !this.subtitlesList || this.subtitlesList.length === 0;
       
       if (this.previewType === 'video' && hasSubtitleMetadata && subtitlesNotLoaded) {
@@ -1146,7 +1165,7 @@ export default {
       this.player.on('canplay', () => {
         this.updateMediaSessionPlaybackState();
       });
-      if ((this.previewType === 'video' || this.previewType === 'audio') && screen.orientation) {
+      if ((this.previewType === 'video' || this.previewType === 'audio')) {
         this.player.on('enterfullscreen', this.onFullscreenEnter);
         this.player.on('exitfullscreen', this.onFullscreenExit);
       }
@@ -1758,13 +1777,13 @@ export default {
     // Playback methods
     async setupPlaybackQueue(forceReshuffle = false) {
 
-      let listing = this.listing;
+      const listing = this.listing;
       const isShare = getters.isShare();
 
       // Filter only audio/video files
       const mediaFiles = listing.filter(item => {
-        const isAudio = item.type && item.type.startsWith('audio/');
-        const isVideo = item.type && item.type.startsWith('video/');
+        const isAudio = item?.type.startsWith('audio/');
+        const isVideo = item?.type.startsWith('video/');
         return isAudio || isVideo;
       });
 
@@ -1778,7 +1797,7 @@ export default {
         return;
       }
 
-      let currentIndex = -1;
+      let currentIndex;
       if (isShare) {
         // Compare by name for shares
         currentIndex = mediaFiles.findIndex(item => item.name === this.req.name);
@@ -1796,7 +1815,7 @@ export default {
           break;
         case 'loop-single':
           // When playing the same file (loop-single), the queue only contains the current file
-          finalQueue = currentIndex !== -1 ? [mediaFiles[currentIndex]] : [];
+          finalQueue = currentIndex !== -1 ? [mediaFiles.at(currentIndex)] : [];
           finalIndex = 0;
           break;
 
@@ -1809,7 +1828,7 @@ export default {
           finalQueue = sortedFiles;
           // Find the current file position in the queue
           if (currentIndex !== -1) {
-            const currentFile = mediaFiles[currentIndex];
+            const currentFile = mediaFiles.at(currentIndex);
             finalIndex = sortedFiles.findIndex(item => item.path === currentFile.path);
           } else {
             finalIndex = 0;
@@ -1823,13 +1842,13 @@ export default {
           if (forceReshuffle || this.playbackQueue.length === 0) {
             const shuffledFiles = this.shuffleArray([...mediaFiles]);
             finalQueue = shuffledFiles;
-            } else {
-              // Use the existing queue when not forcing reshuffle
-              finalQueue = this.playbackQueue;
-            }
+          } else {
+            // Use the existing queue when not forcing reshuffle
+            finalQueue = this.playbackQueue;
+          }
           // Find the current file position in the queue
           if (currentIndex !== -1) {
-            const currentFile = mediaFiles[currentIndex];
+            const currentFile = mediaFiles.at(currentIndex);
             finalIndex = finalQueue.findIndex(item => item.path === currentFile.path);
           } else {
             finalIndex = 0;
@@ -1850,7 +1869,9 @@ export default {
       const shuffled = [...array];
       for (let i = shuffled.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        const temp = shuffled.slice(j, j + 1)[0];
+        shuffled.splice(j, 1, shuffled.at(i));
+        shuffled.splice(i, 1, temp);
       }
       return shuffled;
     },
@@ -1866,7 +1887,7 @@ export default {
           return;
         }
       }
-      const prevItem = this.playbackQueue[prevIndex];
+      const prevItem = this.playbackQueue.at(prevIndex);
       // Update current index
       mutations.setPlaybackQueue({
         queue: this.playbackQueue,
@@ -1874,7 +1895,7 @@ export default {
         mode: this.playbackMode
       });
       mutations.setNavigationTransitioning(true);
-      url.goToItem(prevItem.source || this.req.source, prevItem.path, undefined);
+      url.goToItem(prevItem.source || this.req.source, prevItem.path, undefined, false, getters.isShare());
     },
     playNext() {
       if (this.playbackQueue.length === 0) return;
@@ -1891,7 +1912,7 @@ export default {
         }
       }
 
-      const nextItem = this.playbackQueue[nextIndex];
+      const nextItem = this.playbackQueue.at(nextIndex);
 
       try {
         // Update current index
@@ -1902,7 +1923,7 @@ export default {
         });
 
         mutations.setNavigationTransitioning(true);
-        url.goToItem( nextItem.source || this.req.source, nextItem.path, undefined );
+        url.goToItem( nextItem.source || this.req.source, nextItem.path, undefined, false, getters.isShare());
 
       } catch (error) {
         console.error('Failed to navigate to next file:', error);
@@ -2006,11 +2027,13 @@ export default {
                 console.log('Playback mode changed to:', value);
 
                 // Update visual state
-                buttons.forEach(btn => btn.setAttribute('aria-checked', 'false'));
+                buttons.forEach(btn => {
+                  btn.setAttribute('aria-checked', 'false');
+                });
                 event.currentTarget.setAttribute('aria-checked', 'true');
 
                 // Update button text
-                const currentMode = modeLabels[value] || 'Play Once';
+                const currentMode = this.getPlaybackModeLabel(value);
                 playbackBtn.querySelector('span').innerHTML = `Playback: <span class="plyr__menu__value">${currentMode}</span>`;
 
                 // Update the global state with the new mode
@@ -2185,7 +2208,6 @@ export default {
   width: 4em !important;
   margin: 0 !important;
   border-radius: 5em !important;
-  transition: transform 0.2s ease !important;
 }
 
 .plyr--fullscreen-active .plyr__control--overlaid {
@@ -2456,8 +2478,8 @@ export default {
   max-width: 1500px;
   margin: 0 auto;
   gap: 0;
-  padding-bottom: 0;
   padding: 0 2em;
+  padding-bottom: 0;
   box-sizing: border-box;
   height: 100%;
   display: flex;

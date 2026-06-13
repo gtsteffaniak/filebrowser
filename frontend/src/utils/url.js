@@ -1,12 +1,14 @@
-import { globalVars } from "@/utils/constants.js";
-import { state, mutations, getters } from "@/store";
 import { router } from "@/router";
+import { getters, mutations, state } from "@/store";
+import { globalVars } from "@/utils/constants.js";
+
 export default {
   pathsMatch,
   removeTrailingSlash,
   removeLeadingSlash,
   encodeRFC5987ValueChars,
   removeLastDir,
+  getParentDir,
   encodePath,
   removePrefix,
   getApiPath,
@@ -18,15 +20,24 @@ export default {
   encodedPath,
   trimSlashes,
   getPublicApiPath,
+  resolveRelativePath,
 };
 
 export function removeLastDir(url) {
-  var arr = url.split("/");
+  const arr = url.split("/");
   if (arr.pop() === "") {
     arr.pop();
   }
 
   return arr.join("/");
+}
+
+export function getParentDir(path) {
+  if (!path || path === "/") {
+    return "/";
+  }
+  const parent = removeLastDir(path);
+  return parent && parent !== "" ? parent : "/";
 }
 
 // this code borrow from mozilla
@@ -53,7 +64,7 @@ export function encodePath(str) {
 
 
 export function pathsMatch(url1, url2) {
-  return removeTrailingSlash(url1) == removeTrailingSlash(url2);
+  return removeTrailingSlash(url1) === removeTrailingSlash(url2);
 }
 
 export function removePrefix(path, prefix = "") {
@@ -61,7 +72,7 @@ export function removePrefix(path, prefix = "") {
     return ""
   }
   path = removeLeadingSlash(path)
-  if (prefix != "") {
+  if (prefix !== "") {
     prefix = trimSlashes(prefix)
   }
   // Remove combined (globalVars.baseURL + prefix) from the start of the path if present
@@ -71,7 +82,7 @@ export function removePrefix(path, prefix = "") {
 
   // Ensure path starts with '/'
   if (!path.startsWith('/')) {
-    path = '/' + path;
+    path = `/${path}`;
   }
   return path;
 }
@@ -86,18 +97,17 @@ export function getApiPath(path, params = {}, skipEncode = false, isPublic = fal
   const prefix = isPublic ? "public/api/" : "api/";
   path = `${globalVars.baseURL}${prefix}${path}`;
 
-  const paramKeys = Object.keys(params);
-  if (paramKeys.length > 0) {
+  const entries = Object.entries(params);
+  if (entries.length > 0) {
     if (!skipEncode) {
       const encodedParams = [];
-      for (const key of paramKeys) {
-        const value = params[key];
+      for (const [key, value] of entries) {
         if (value === undefined || value === null || value === "") continue;
         // Handle array values for repeated parameters
         if (Array.isArray(value)) {
-          value.forEach(v => {
+          for (const v of value) {
             encodedParams.push(`${encodeURIComponent(key)}=${encodeURIComponent(v)}`);
-          });
+          }
         } else {
           encodedParams.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
         }
@@ -107,14 +117,13 @@ export function getApiPath(path, params = {}, skipEncode = false, isPublic = fal
       }
     } else {
       const queryParams = [];
-      for (const key in params) {
-        const value = params[key];
+      for (const [key, value] of entries) {
         if (value === undefined || value === null || value === "") continue;
         // Handle array values for repeated parameters
         if (Array.isArray(value)) {
-          value.forEach(v => {
+          for (const v of value) {
             queryParams.push(`${key}=${v}`);
-          });
+          }
         } else {
           queryParams.push(`${key}=${value}`);
         }
@@ -159,10 +168,52 @@ export function joinPath(basePath, ...segments) {
   let result = basePath.replace(/\/$/, '');
   for (const segment of segments) {
     if (segment) {
-      result += '/' + segment.replace(/^\/+/, '');
+      result += `/${segment.replace(/^\/+/, '')}`;
     }
   }
   return result;
+}
+
+/** Resolve a relative or root-relative path against a base file path (POSIX-style). */
+export function resolveRelativePath(baseFilePath, refPath) {
+  if (!baseFilePath || !refPath) {
+    return refPath;
+  }
+
+  let pathPart = refPath;
+  let suffix = "";
+  const queryIndex = refPath.indexOf("?");
+  const hashIndex = refPath.indexOf("#");
+  const cutIndex = Math.min(
+    queryIndex === -1 ? refPath.length : queryIndex,
+    hashIndex === -1 ? refPath.length : hashIndex,
+  );
+  if (cutIndex < refPath.length) {
+    suffix = refPath.slice(cutIndex);
+    pathPart = refPath.slice(0, cutIndex);
+  }
+
+  const baseDir = getParentDir(baseFilePath);
+  const combined = pathPart.startsWith("/")
+    ? pathPart
+    : joinPath(baseDir, pathPart);
+
+  const parts = combined.split("/").filter(Boolean);
+  const resolved = [];
+  for (const part of parts) {
+    if (part === ".") {
+      continue;
+    }
+    if (part === "..") {
+      if (resolved.length > 0) {
+        resolved.pop();
+      }
+      continue;
+    }
+    resolved.push(part);
+  }
+
+  return `/${resolved.join("/")}${suffix}`;
 }
 
 export function base64Encode(str) {
@@ -171,11 +222,9 @@ export function base64Encode(str) {
 
 // expect url to include /files/ prefix
 export function extractSourceFromPath(url) {
-  let source;
   let path = url;
-  source = path.split('/')[2];
+  const source = path.split('/')[2];
   path = removePrefix(path, `/files/${source}`);
-
   return { source, path };
 }
 
@@ -191,33 +240,34 @@ export function buildItemUrl(source, path, includeBaseURL = false) {
   if (includeBaseURL) {
     return `${globalVars.baseURL}${urlPath}`;
   }
-  return "/" + urlPath;
+  return `/${urlPath}`;
 }
 
 export function encodedPath(path) {
   if (path === undefined) {
     return "";
   }
-  // break apart path into parts and url encode each part
   const parts = path.split("/");
   const encodedParts = parts.map(part => encodeURIComponent(part));
   return encodedParts.join("/").replace("//", "/");
 }
 
 // assume non-encoded input path and source
-export function goToItem(source, path, previousHistoryItem, newTab = false) {
+export function goToItem(source, path, previousHistoryItem, newTab = false, isShare = false) {
   const cv = getters.currentView();
   if (source === state.sources.current && path === state.req.path && cv === "listingView") {
     return;
   }
-  if (previousHistoryItem && cv === "listingView`") {
+  if (previousHistoryItem && cv === "listingView") {
     mutations.setPreviousHistoryItem(previousHistoryItem);
   }
   mutations.resetAll()
-  let newPath = encodedPath(path);
-  let fullPath = `/files/${encodeURIComponent(source)}${newPath}`;
-  if (getters.isShare()) {
-    fullPath = `/public/share/${source}${newPath}`;
+  const newPath = encodedPath(path);
+  let fullPath;
+  if (isShare) {
+    fullPath = `/public/share/${encodeURIComponent(source)}${newPath}`;
+  } else {
+    fullPath = `/files/${encodeURIComponent(source)}${newPath}`;
   }
   if (newTab) {
     // Use absolute URL for new tab to ensure proper navigation
@@ -228,9 +278,9 @@ export function goToItem(source, path, previousHistoryItem, newTab = false) {
 
   if (previousHistoryItem === undefined) {
     // When undefined will not create browser history
-    router.replace({ path: fullPath });
+    void router.replace({ path: fullPath });
     return
   }
-  router.push({ path: fullPath });
+  void router.push({ path: fullPath });
   return
 }

@@ -329,11 +329,13 @@ export default {
       mutations.hideTooltip();
     },
     validateExtensions(value) {
-      if (value === "" || value === "*") {
+      const normalized = value.trim();
+      if (normalized === "" || normalized === "*") {
         return true;
       }
-      const regex = /^\.\w+(?: \.\w+)*$/;
-      return regex.test(value);
+      const parts = normalized.split(/\s+/);
+      const extensionRegex = /^\.\w+$/;
+      return parts.every(part => extensionRegex.test(part));
     },
     submitDisablePreviewsChange() {
       if (!this.validateExtensions(this.formDisablePreviews)) {
@@ -341,7 +343,7 @@ export default {
         return;
       }
       this.localuser.disablePreviewExt = this.formDisablePreviews;
-      this.updateSettings();
+      void this.updateSettings();
     },
     submitDisabledViewingChange() {
       if (!this.validateExtensions(this.formDisabledViewing)) {
@@ -349,7 +351,7 @@ export default {
         return;
       }
       this.localuser.disableViewingExt = this.formDisabledViewing;
-      this.updateSettings();
+      void this.updateSettings();
     },
     submitHideExtChange() {
       if (!this.validateExtensions(this.formHideExt)) {
@@ -357,7 +359,7 @@ export default {
         return;
       }
       this.localuser.hideFileExt = this.formHideExt;
-      this.updateSettings();
+      void this.updateSettings();
     },
     submitDisableOfficeViewingChange() {
       if (!this.validateExtensions(this.formDisableOfficeViewing)) {
@@ -365,20 +367,20 @@ export default {
         return;
       }
       this.localuser.disableOnlyOfficeExt = this.formDisableOfficeViewing;
-      this.updateSettings();
+      void this.updateSettings();
     },
     setColor(string) {
       if (getters.eventTheme() === "halloween" && !state.disableEventThemes) {
         mutations.disableEventThemes();
       }
       this.localuser.themeColor = string;
-      this.updateSettings();
+      void this.updateSettings();
     },
     async updateSettings(event) {
       if (event !== undefined) {
         event.preventDefault();
       }
-      if (this.localuser.themeColor != "") {
+      if (this.localuser.themeColor !== "") {
         document.documentElement.style.setProperty(
           "--primaryColor",
           this.localuser.themeColor
@@ -386,8 +388,8 @@ export default {
       }
       try {
         const data = this.localuser;
-        const themeChanged = state.user.customTheme != this.localuser.customTheme;
-        mutations.updateCurrentUser(data);
+        const themeChanged = state.user.customTheme !== this.localuser.customTheme;
+        await mutations.updateCurrentUser(data);
         await usersApi.update(data, [
           "locale",
           "showHidden",
@@ -425,9 +427,9 @@ export default {
         console.error(e);
       }
     },
-    updateLocale(updatedLocale) {
+    async updateLocale(updatedLocale) {
       this.localuser.locale = updatedLocale;
-      this.updateSettings();
+      await this.updateSettings();
     },
     handleSectionToggle(sectionTitle) {
       // Accordion logic: if clicking the same section, collapse it, otherwise expand the new one

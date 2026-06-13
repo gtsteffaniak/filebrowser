@@ -1,7 +1,7 @@
 <template>
   <div class="card-content">
     <errors v-if="error" :errorCode="error.status" />
-    <h2 class="message" v-if="user.loginMethod != 'password' && !stateUser.permissions.admin">
+    <h2 class="message" v-if="user.loginMethod !== 'password' && !stateUser.permissions.admin">
       <i class="material-symbols-outlined">sentiment_dissatisfied</i>
       <span>{{ $t("files.lonely") }}</span>
     </h2>
@@ -64,7 +64,7 @@
         <input class="input" type="text" v-model="user.username" id="username" @input="emitUpdate" />
       </p>
 
-      <div v-if="user.loginMethod == 'password' && globalVars.passwordAvailable && isNew">
+      <div v-if="user.loginMethod === 'password' && globalVars.passwordAvailable && isNew">
         <label for="password">{{ $t("general.password") }}</label>
         <div class="form-flex-group">
           <input class="input form-form" :class="{ 'form-invalid': invalidPassword }" aria-label="Password1"
@@ -86,7 +86,7 @@
         </div>
       </div>
 
-      <div v-if="user.loginMethod == 'password' && globalVars.passwordAvailable" class="settings-items">
+      <div v-if="user.loginMethod === 'password' && globalVars.passwordAvailable" class="settings-items">
         <ToggleSwitch v-if="user.loginMethod === 'password' && stateUser.permissions?.admin" class="item"
           :modelValue="user.lockPassword" @update:modelValue="(val) => updateUserField('lockPassword', val)"
           :name="$t('settings.lockPassword')" />
@@ -104,19 +104,19 @@
           </select>
 
           <div
-            :aria-label="'user-edit-scope-path-' + index"
+            :aria-label="`user-edit-scope-path-${index}`"
             class="clickable button flat-left scope-path-display"
             :class="{ 'flat-right': selectedSources.length > 1 }"
             @click="onScopePathRowClick(index, source)"
           >{{ scopePathDisplay(source) }}
           </div>
-          <button v-if="selectedSources.length > 1" class="button flat-left no-height" @click="removeScope(index)">
+          <button v-if="selectedSources.length > 1" type="button" class="button flat-left no-height" @click="removeScope(index)">
             <i class="material-symbols material-size">delete</i>
           </button>
         </div>
       </div>
 
-      <button v-if="hasMoreSources" @click="addNewScopeSource" class="button no-height">
+      <button v-if="hasMoreSources" @click="addNewScopeSource" type="button" class="button no-height">
         <i class="material-symbols material-size">add</i>
       </button>
 
@@ -139,7 +139,7 @@
   </div>
 
   <div class="card-actions">
-    <button class="button button--flat button--grey" @click="closeTopPrompt" :aria-label="$t('general.cancel')"
+    <button type="button" class="button button--flat button--grey" @click="closeTopPrompt" :aria-label="$t('general.cancel')"
       :title="$t('general.cancel')">
       {{ $t("general.cancel") }}
     </button>
@@ -147,7 +147,7 @@
       aria-label="Delete User" :title="$t('general.delete')">
       {{ $t("general.delete") }}
     </button>
-    <button @click="save" class="button button--flat" :aria-label="$t('general.save')" :title="$t('general.save')">
+    <button @click="save" type="button" class="button button--flat" :aria-label="$t('general.save')" :title="$t('general.save')">
       {{ $t("general.save") }}
     </button>
   </div>
@@ -163,6 +163,7 @@ import Errors from "@/views/Errors.vue";
 import { notify } from "@/notify";
 import { globalVars } from "@/utils/constants";
 import { eventBus } from "@/store/eventBus";
+import { setObjectProperty } from '@/utils/object.js';
 
 export default {
   name: "user-edit",
@@ -235,7 +236,7 @@ export default {
     },
     invalidPassword() {
       const matching =
-        this.user.password != this.passwordRef && this.user.password.length > 0;
+        this.user.password !== this.passwordRef && this.user.password.length > 0;
       return matching;
     },
     /** Update is allowed only when both password fields are non-empty (trimmed) and match. */
@@ -304,7 +305,7 @@ export default {
       mutations.setLoading("users", true);
       try {
         if (this.isNew) {
-          let defaults = await settingsApi.get("userDefaults");
+          const defaults = await settingsApi.get("userDefaults");
           this.user = defaults;
           this.user.password = "";
           // Ensure loginMethod is valid, set to first available method if not set or invalid
@@ -410,9 +411,8 @@ export default {
                   });
                   notify.showSuccessToast(this.$t("settings.userDeleted"));
                   eventBus.emit('usersChanged');
-                  // Dismiss delete confirmation, then the user-edit prompt (password prompt closes itself on submit).
-                  mutations.closeTopPrompt();
-                  mutations.closeTopPrompt();
+                  mutations.closeTopPrompt(); // close delete user prompt confirmation
+                  mutations.closeTopPrompt(); // close user prompt since user doens't exist anymore
                 } catch (e) {
                   console.error(e);
                   notify.showError(e);
@@ -426,8 +426,9 @@ export default {
     async save(event) {
       event.preventDefault();
       try {
-        let fields = ["all"];
-        // Transform selectedSources to only include {name, scope} format; scope is never blank (API default "/")
+        const fields = ["all"];
+        // Transform selectedSources to only include {name, scope} format
+        // Empty scope strings should be passed as "" for backend to handle defaults
         const scopesToSend = this.selectedSources.map((source) => ({
           name: source.name || "",
           scope: this.normalizeScopeForApi(source.scope),
@@ -512,21 +513,21 @@ export default {
       // This method is kept for compatibility but not used in the new structure
     },
     onScopePathRowClick(index, source) {
-      if (!source || !source.name) {
+      if (!source?.name) {
         return;
       }
       this.openScopePicker(index);
     },
     scopePathDisplay(source) {
-      const s = source && source.scope;
+      const s = source?.scope;
       if (s !== undefined && s !== null && String(s).length > 0) {
         return s;
       }
       return "/";
     },
     openScopePicker(index) {
-      const row = this.selectedSources[index];
-      if (!row || !row.name) {
+      const row = this.selectedSources.at(index);
+      if (!row?.name) {
         return;
       }
       const selectionContextId = `user-scope-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
@@ -577,7 +578,7 @@ export default {
     addNewScopeSource(event) {
       event.preventDefault();
       if (this.hasMoreSources) {
-        this.selectedSources.push({ name: "", scope: "/" });
+        this.selectedSources.push({ name: "", scope: "" });
         this.emitUserUpdate();
       }
     },
@@ -596,7 +597,7 @@ export default {
       this.emitUserUpdate();
     },
     updateUserField(field, value) {
-      this.user[field] = value;
+      this.user = setObjectProperty(this.user, field, value);
       this.emitUserUpdate();
     },
     setDefaultLoginMethod() {

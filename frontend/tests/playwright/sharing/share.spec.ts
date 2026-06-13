@@ -1,28 +1,27 @@
-import { test, expect, checkForNotification } from "../test-setup";
+import { checkForNotification, expect, openShareFromFileActions, test } from "../test-setup";
 
-test("root share path is valid", async ({ page, checkForErrors, openContextMenu, context }) => {
+test("root share path is valid", async ({ page, checkForErrors }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
-  await openContextMenu();
-  await page.locator('button[aria-label="Share"]').click();
+  await openShareFromFileActions(page);
   await expect(page.locator('div[aria-label="share-path"]')).toHaveText('Path: /');
   checkForErrors();
 });
 
-test("share file works", async ({ page, checkForErrors, context }) => {
+test("share file works", async ({ page, checkForErrors }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   const shareHashFile = await page.evaluate(() => localStorage.getItem('shareHashFile'));
-  if (shareHashFile == "") {
+  if (shareHashFile === "") {
     throw new Error("Share hash not found in localStorage");
   }
 
-  await page.goto("/share/" + shareHashFile);
+  await page.goto(`/share/${shareHashFile}`);
   await expect(page).toHaveTitle("Graham's Filebrowser - Share - 1file1.txt");
   checkForErrors(0,1); // redirect errors are expected
 });
 
-test("share download single file", async ({ page, checkForErrors, context }) => {
+test("share download single file", async ({ page, checkForErrors }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
 
@@ -31,7 +30,7 @@ test("share download single file", async ({ page, checkForErrors, context }) => 
     throw new Error("Share hash not found in localStorage");
   }
 
-  await page.goto("/share/" + shareHash + "/testdata/");
+  await page.goto(`/share/${shareHash}/testdata/`);
   await expect(page).toHaveTitle("Graham's Filebrowser - Share - testdata");
   await page.locator('a[aria-label="gray-sample.jpg"]').click({ button: "right" });
   await page.locator('button[aria-label="Download"]').waitFor({ state: 'visible' });
@@ -40,12 +39,11 @@ test("share download single file", async ({ page, checkForErrors, context }) => 
   checkForErrors(0,1);
 });
 
-test("share private source", async ({ page, checkForErrors, openContextMenu }) => {
+test("share private source", async ({ page, checkForErrors }) => {
   await page.goto("/files/docker");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - backend");
    // Create a share of folder
-   await openContextMenu();
-   await page.locator('button[aria-label="Share"]').click();
+   await openShareFromFileActions(page);
    await expect(page.locator('div[aria-label="share-path"]')).toHaveText('Path: /');
    await page.locator('button[aria-label="Share-Confirm"]').click();
   await expect(page.locator("div[aria-label='share-prompt'] .card-content table tbody tr:not(:has(th))")).toHaveCount(0);
@@ -58,10 +56,10 @@ test("share file creation actions", async ({ page, checkForErrors, openContextMe
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   const rootShareHash = await page.evaluate(() => localStorage.getItem('rootShareHash'));
-  if (rootShareHash == "") {
+  if (rootShareHash === "") {
     throw new Error("Share hash not found in localStorage");
   }
-  await page.goto("public/share/" + rootShareHash);
+  await page.goto(`public/share/${rootShareHash}`);
   await expect(page).toHaveTitle("Graham's Filebrowser - Share - playwright-files");
   await page.waitForTimeout(1000);
   await openContextMenu();

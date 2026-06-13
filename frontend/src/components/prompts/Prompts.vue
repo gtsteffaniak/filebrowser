@@ -1,5 +1,5 @@
 <template>
-   <Teleport to="body" v-for="prompt in prompts" :key="'prompt-' + prompt.id">
+   <Teleport to="body" v-for="prompt in prompts" :key="`prompt-${prompt.id}`">
     <div
       ref="promptWindow"
       class="floating-window"
@@ -14,13 +14,13 @@
       @mousedown="makeTopPrompt(prompt.id)"
       :style="{
         transform: `translate(calc(-50% + ${(dragOffsets[prompt.id]?.x || 0)}px), calc(-50% + ${(dragOffsets[prompt.id]?.y || 0)}px))`,
-        width: sizes[prompt.id]?.width ? sizes[prompt.id].width + 'px' : null,
-        height: sizes[prompt.id]?.height ? sizes[prompt.id].height + 'px' : null,
+        width: sizes[prompt.id]?.width ? `${sizes[prompt.id].width}px` : null,
+        height: sizes[prompt.id]?.height ? `${sizes[prompt.id].height}px` : null,
         maxWidth: sizes[prompt.id]?.width ? 'none' : null,
         maxHeight: sizes[prompt.id]?.height ? 'none' : null,
         zIndex: 5 + prompts.indexOf(prompt),
       }"
-      :aria-label="prompt.name + '-prompt'"
+      :aria-label="`${prompt.name}-prompt`"
     >
       <header
         class="prompt-taskbar"
@@ -111,6 +111,7 @@ import Unarchive from "./Unarchive.vue";
 import OfficeDebug from "./OfficeDebug.vue";
 import ThreeJSControls from "./ThreeJSControls.vue";
 import { state, getters, mutations } from "@/store";
+import { getObjectProperty, omitObjectProperty, setObjectProperty } from "@/utils/object.js";
 
 export default {
   name: "Prompts",
@@ -207,20 +208,20 @@ export default {
   beforeUnmount() {
     window.removeEventListener('resize', this.handleWindowResize);
     window.removeEventListener('keydown', this.onDocumentKeydown);
-    Object.values(this.flashBorderTimers).forEach((tid) => clearTimeout(tid));
+    Object.values(this.flashBorderTimers).forEach((tid) => { clearTimeout(tid); });
   },
   methods: {
     triggerPromptBorderFlash(id) {
-      if (this.flashBorderTimers[id]) {
-        clearTimeout(this.flashBorderTimers[id]);
+      const timer = getObjectProperty(this.flashBorderTimers, id);
+      if (timer) {
+        clearTimeout(timer);
       }
-      this.flashBorderIds = { ...this.flashBorderIds, [id]: true };
-      this.flashBorderTimers[id] = setTimeout(() => {
-        const next = { ...this.flashBorderIds };
-        delete next[id];
+      this.flashBorderIds = setObjectProperty(this.flashBorderIds, id, true);
+      this.flashBorderTimers = setObjectProperty(this.flashBorderTimers, id, setTimeout(() => {
+        const next = omitObjectProperty(this.flashBorderIds, id);
         this.flashBorderIds = next;
-        delete this.flashBorderTimers[id];
-      }, 500);
+        this.flashBorderTimers = omitObjectProperty(this.flashBorderTimers, id);
+      }, 500));
     },
     handleWindowResize() {
       const maxWidth = window.innerWidth * 0.9;
@@ -365,7 +366,7 @@ export default {
       const promptToClose = state.prompts.find(p => p.id === id);
       if (!promptToClose) return;
       // Check if it's the upload prompt with active uploads
-      if (promptToClose?.name === "upload") {
+      if (promptToClose.name === "upload") {
         const hasActiveUploads = state.upload.isUploading;
         const hasWarningPrompt = state.prompts.some(p => p.name === "CloseWithActiveUploads");
         
@@ -394,11 +395,11 @@ export default {
       this.cleanupDragState(id);
     },
     cleanupDragState(id) {
-      delete this.dragOffsets[id];
-      delete this.dragStarts[id];
-      delete this.touchIds[id];
+      this.dragOffsets = omitObjectProperty(this.dragOffsets, id);
+      this.dragStarts = omitObjectProperty(this.dragStarts, id);
+      this.touchIds = omitObjectProperty(this.touchIds, id);
       this.draggingIds.delete(id);
-      delete this.sizes[id];
+      this.sizes = omitObjectProperty(this.sizes, id);
     },
     /**
      * Escape closes the top prompt. Enter clicks the last `.card-actions` button (far right in DOM).
@@ -456,7 +457,7 @@ export default {
     },
     getPointerPos(e, type) {
       if (type === "touch") {
-        const t = e.touches && e.touches[0];
+        const t = e.touches?.[0];
         return t ? { x: t.clientX, y: t.clientY } : null;
       }
       return { x: e.clientX, y: e.clientY };
@@ -466,11 +467,11 @@ export default {
 
       const viewportW = window.innerWidth;
       const viewportH = window.innerHeight;
-      const headerEl = el.querySelector && el.querySelector(".prompt-taskbar");
+      const headerEl = el.querySelector?.(".prompt-taskbar");
       const headerHeight = headerEl ? headerEl.getBoundingClientRect().height : 40;
       const rect = el.getBoundingClientRect();
       const windowHeight = rect.height;
-      const offset = this.dragOffsets[id] || { x: 0, y: 0 };
+      const offset = getObjectProperty(this.dragOffsets, id) || { x: 0, y: 0 };
       const centerX = viewportW / 2 + offset.x;
       const centerY = viewportH / 2 + offset.y;
 
@@ -481,10 +482,10 @@ export default {
       const clampedX = Math.max(minCenterX, Math.min(maxCenterX, centerX));
       const clampedY = Math.max(minCenterY, Math.min(maxCenterY, centerY));
 
-      this.dragOffsets[id] = {
+      this.dragOffsets = setObjectProperty(this.dragOffsets, id, {
         x: clampedX - viewportW / 2,
         y: clampedY - viewportH / 2,
-      };
+      });
     },
     getPromptElement(id) {
       const windows = this.$refs.promptWindow;
@@ -499,14 +500,26 @@ export default {
       this.makeTopPrompt(id);
       if (type === "mouse" && e.button !== 0) return;
       if (type === "touch") {
-        this.touchIds[id] = e.changedTouches && e.changedTouches[0] && e.changedTouches[0].identifier;
+        const touchId = e.changedTouches?.[0]?.identifier;
+        if (touchId !== undefined) {
+          this.touchIds = setObjectProperty(this.touchIds, id, touchId);
+        }
       }
 
       const pos = this.getPointerPos(e, type);
       if (!pos) return;
 
-      if (!this.dragOffsets[id]) this.dragOffsets[id] = { x: 0, y: 0 };
-      this.dragStarts[id] = { x: pos.x - this.dragOffsets[id].x, y: pos.y - this.dragOffsets[id].y };
+      let dragOffsets = this.dragOffsets;
+      const existingOffset = getObjectProperty(dragOffsets, id);
+      if (!existingOffset) {
+        dragOffsets = setObjectProperty(dragOffsets, id, { x: 0, y: 0 });
+        this.dragOffsets = dragOffsets;
+      }
+      const offset = getObjectProperty(this.dragOffsets, id);
+      this.dragStarts = setObjectProperty(this.dragStarts, id, {
+        x: pos.x - offset.x,
+        y: pos.y - offset.y,
+      });
       this.draggingIds.add(id);
 
       const move = (e) => this.onPointerMove(e, id, type);
@@ -522,11 +535,12 @@ export default {
       }
     },
     onPointerMove(e, id, type) {
-      if (!this.dragStarts[id]) return;
+      const dragStart = getObjectProperty(this.dragStarts, id);
+      if (!dragStart) return;
       let pos;
       if (type === "touch") {
         if (!e.touches) return;
-        const t = Array.from(e.touches).find((touch) => touch.identifier === this.touchIds[id]);
+        const t = Array.from(e.touches).find((touch) => touch.identifier === getObjectProperty(this.touchIds, id));
         if (!t) return;
         e.preventDefault();
         pos = { x: t.clientX, y: t.clientY };
@@ -534,10 +548,10 @@ export default {
         pos = { x: e.clientX, y: e.clientY };
       }
 
-      this.dragOffsets[id] = {
-        x: pos.x - this.dragStarts[id].x,
-        y: pos.y - this.dragStarts[id].y,
-      };
+      this.dragOffsets = setObjectProperty(this.dragOffsets, id, {
+        x: pos.x - dragStart.x,
+        y: pos.y - dragStart.y,
+      });
 
       // Find the element for this prompt
       const windows = this.$refs.promptWindow;
@@ -546,7 +560,7 @@ export default {
     },
     onPointerEnd(_e, id, type, moveHandler, endHandler) {
       if (type === "touch") {
-        delete this.touchIds[id];
+        this.touchIds = omitObjectProperty(this.touchIds, id);
         window.removeEventListener("touchmove", moveHandler);
         window.removeEventListener("touchend", endHandler);
         window.removeEventListener("touchcancel", endHandler);
@@ -554,7 +568,7 @@ export default {
         window.removeEventListener("mousemove", moveHandler);
         window.removeEventListener("mouseup", endHandler);
       }
-      delete this.dragStarts[id];
+      this.dragStarts = omitObjectProperty(this.dragStarts, id);
       this.draggingIds.delete(id);
     },
     startResize(e, id, edge) {
@@ -568,20 +582,25 @@ export default {
         : windows;
       if (!el) return;
       // Capture current size (if not already fixed, set it)
-      if (!this.sizes[id]) {
-        this.sizes[id] = {
+      let sizes = this.sizes;
+      const existingSize = getObjectProperty(sizes, id);
+      if (!existingSize) {
+        sizes = setObjectProperty(sizes, id, {
           width: el.offsetWidth,
           height: el.offsetHeight,
-        };
+        });
+        this.sizes = sizes;
       }
+      const currentSize = getObjectProperty(this.sizes, id);
+      const dragOffset = getObjectProperty(this.dragOffsets, id) || { x: 0, y: 0 };
       // Initial values
       this.resizingId = id;
       this.resizingEdge = edge;
       this.resizeStart = {
-        width: this.sizes[id].width,
-        height: this.sizes[id].height,
-        offsetX: this.dragOffsets[id]?.x || 0,
-        offsetY: this.dragOffsets[id]?.y || 0,
+        width: currentSize.width,
+        height: currentSize.height,
+        offsetX: dragOffset.x,
+        offsetY: dragOffset.y,
         clientX: pos.x,
         clientY: pos.y,
       };
@@ -600,7 +619,6 @@ export default {
       e.preventDefault();
       e.stopPropagation();
     },
-
     onResizeMove(e, type) {
       if (!this.resizingId) return;
       const pos = this.getPointerPos(e, type);
@@ -663,12 +681,12 @@ export default {
         deltaOffsetY = +(newHeight - start.height) / 2;
       }
       // Update sizes
-      this.sizes[id] = { width: newWidth, height: newHeight };
+      this.sizes = setObjectProperty(this.sizes, id, { width: newWidth, height: newHeight });
       // Update drag
-      this.dragOffsets[id] = {
+      this.dragOffsets = setObjectProperty(this.dragOffsets, id, {
         x: start.offsetX + deltaOffsetX,
         y: start.offsetY + deltaOffsetY,
-      };
+      });
       // Clamp to viewport
       const windows = this.$refs.promptWindow;
       const el = Array.isArray(windows)

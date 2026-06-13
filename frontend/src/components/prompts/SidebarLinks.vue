@@ -26,10 +26,20 @@
             <span class="link-name">{{ getLinkDisplayName(link) }}</span>
             <span class="link-category">{{ getCategoryLabel(link.category) }}</span>
           </div>
-          <button class="action" @click="editLink(index)" :aria-label="$t('general.edit')">
+          <button
+            type="button"
+            class="action"
+            @click="editLink(index)"
+            :aria-label="$t('general.edit')"
+          >
             <i class="material-symbols">edit</i>
           </button>
-          <button class="action" @click="removeLink(index)" :aria-label="$t('general.delete')">
+          <button
+            type="button"
+            class="action"
+            @click="removeLink(index)"
+            :aria-label="$t('general.delete')"
+          >
             <i class="material-symbols">delete</i>
           </button>
         </div>
@@ -45,7 +55,11 @@
 
     <!-- Add New Link Section -->
     <div v-if="!showAddForm" class="add-link-section">
-      <button @click="showAddForm = true" class="button button--flat button--blue add-link-button">
+      <button
+        type="button"
+        @click="showAddForm = true"
+        class="button button--flat button--blue add-link-button"
+      >
         <i class="material-symbols">add</i>
         {{ $t('sidebar.addNewLink') }}
       </button>
@@ -107,13 +121,13 @@
             <ToggleSwitch class="item"
               :modelValue="showIndexedUsage"
               @update:modelValue="updateUsageToggles('indexed', $event)"
-              :name="$t('general.show', { suffix: ' '+$t('sidebar.usageTextIndexed') })"
+              :name="$t('general.show', { suffix: ` ${$t('sidebar.usageTextIndexed')}` })"
               :description="$t('sidebar.showIndexedUsageDescription')" />
             <!-- Show disk/partition usage toggle -->
             <ToggleSwitch class="item"
               :modelValue="showDiskUsage"
               @update:modelValue="updateUsageToggles('disk', $event)"
-              :name="$t('general.show', { suffix: ' '+$t('sidebar.usageTextDisk') })"
+              :name="$t('general.show', { suffix: ` ${$t('sidebar.usageTextDisk')}` })"
               :description="$t('sidebar.showDiskUsageDescription')" />
             
             <!-- Dropdown to choose which usage text to display (only shown in hybrid mode) -->
@@ -217,32 +231,58 @@
   <div class="card-actions">
     <!-- When selecting a path -->
     <template v-if="isSelectingPath">
-      <button @click="cancelPathSelection" class="button button--flat button--grey" :aria-label="$t('general.cancel')"
-        :title="$t('general.cancel')">
+      <button
+        type="button"
+        @click="cancelPathSelection"
+        class="button button--flat button--grey"
+        :aria-label="$t('general.cancel')"
+        :title="$t('general.cancel')"
+      >
         {{ $t("general.cancel") }}
       </button>
-      <button @click="confirmPathSelection" class="button button--flat button--blue" :aria-label="$t('general.ok')"
-        :title="$t('general.ok')">
+      <button
+        type="button"
+        @click="confirmPathSelection"
+        class="button button--flat button--blue"
+        :aria-label="$t('general.ok')"
+        :title="$t('general.ok')"
+      >
         {{ $t("general.ok") }}
       </button>
     </template>
 
     <!-- When in add/edit form mode -->
     <template v-else-if="showAddForm">
-      <button @click="cancelAddLink" class="button button--flat button--grey" :aria-label="$t('general.cancel')"
-        :title="$t('general.cancel')">
+      <button
+        type="button"
+        @click="cancelAddLink"
+        class="button button--flat button--grey"
+        :aria-label="$t('general.cancel')"
+        :title="$t('general.cancel')"
+      >
         {{ $t("general.cancel") }}
       </button>
-      <button aria-label="Add Link" @click="addLink" class="button button--flat button--blue"
-        :disabled="!isNewLinkValid" :title="editingIndex !== null ? $t('general.save') : $t('general.add')">
+      <button
+        type="button"
+        aria-label="Add Link"
+        @click="addLink"
+        class="button button--flat button--blue"
+        :disabled="!isNewLinkValid"
+        :title="editingIndex !== null ? $t('general.save') : $t('general.add')"
+      >
         {{ editingIndex !== null ? $t('general.save') : $t('general.add') }}
       </button>
     </template>
 
     <!-- When viewing the list -->
     <template v-else>
-      <button aria-label="Save Links" class="button button--flat button--blue" @click="saveLinks"
-        :title="$t('general.save')">
+      <button
+        type="button"
+        aria-label="Save Links"
+        class="button button--flat button--blue"
+        @click="saveLinks"
+        :title="$t('general.save')"
+      >
         {{ $t("general.save") }}
       </button>
     </template>
@@ -255,6 +295,7 @@ import { notify } from "@/notify";
 import { usersApi, shareApi } from "@/api";
 import { tools } from "@/utils/constants";
 import { getIconClass } from "@/utils/material-symbols";
+import { getObjectProperty } from '@/utils/object.js';
 import FileList from "../files/FileList.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import { eventBus } from "@/store/eventBus";
@@ -364,7 +405,7 @@ export default {
     // Initialize with existing sidebar links based on context
     if (this.context === 'share' && this.shareData?.sidebarLinks) {
       this.links = [...this.shareData.sidebarLinks];
-    } else if (this.context === 'user' && state.user?.sidebarLinks && state.user.sidebarLinks.length > 0) {
+    } else if (this.context === 'user' && state.user?.sidebarLinks && state.user?.sidebarLinks.length > 0) {
       this.links = [...state.user.sidebarLinks];
     } else if (this.context === 'user') {
       // Generate default links from sources for user context
@@ -373,7 +414,7 @@ export default {
 
     if (this.context === 'user') {
       if (typeof state.user?.showToolsInSidebar === 'boolean') {
-        this.showToolsInSidebar = state.user.showToolsInSidebar;
+        this.showToolsInSidebar = state.user?.showToolsInSidebar;
       } else {
         this.showToolsInSidebar = true;
       }
@@ -427,7 +468,7 @@ export default {
       const parts = target.split('/');
       // parts: ['', 'public', 'share', '<hash>', ...subpath]
       if (parts.length >= 4 && parts[1] === 'public' && parts[2] === 'share') {
-        return parts.length > 4 ? '/' + parts.slice(4).join('/') : '/';
+        return parts.length > 4 ? `/${parts.slice(4).join('/')}` : '/';
       }
       return '/';
     },
@@ -509,20 +550,28 @@ export default {
       }
     },
     getCategoryLabel(category) {
-      const labels = {
-        source: this.$t('general.source'),
-        'source-minimal': this.$t('general.source'),
-        'source-alt': this.$t('general.source'),
-        'source-hybrid': this.$t('general.source'),
-        'source-hybrid-2': this.$t('general.source'),
-        tool: this.$t('general.tool'),
-        custom: this.$t('sidebar.customLink'),
-        share: this.$t('general.share'),
-        shareInfo: this.$t('share.shareInfo'),
-        download: this.$t('general.download'),
-        divider: this.$t('general.divider'),
-      };
-      return labels[category] || category;
+      switch (category) {
+        case 'source':
+        case 'source-minimal':
+        case 'source-alt':
+        case 'source-hybrid':
+        case 'source-hybrid-2':
+          return this.$t('general.source');
+        case 'tool':
+          return this.$t('general.tool');
+        case 'custom':
+          return this.$t('sidebar.customLink');
+        case 'share':
+          return this.$t('general.share');
+        case 'shareInfo':
+          return this.$t('share.shareInfo');
+        case 'download':
+          return this.$t('general.download');
+        case 'divider':
+          return this.$t('general.divider');
+        default:
+          return category;
+      }
     },
     getLinkDisplayName(link) {
       // For dividers, show the name or a default
@@ -544,7 +593,7 @@ export default {
           const translated = this.$t(link.name);
           // If translation returns the same key, it means it doesn't exist, return original
           return translated !== link.name ? translated : link.name;
-        } catch (e) {
+        } catch (_e) {
           return link.name;
         }
       }
@@ -637,7 +686,7 @@ export default {
       // Handle both old format (string) and new format (object with path and source)
       if (typeof pathOrData === 'string') {
         this.tempSelectedPath = pathOrData;
-      } else if (pathOrData && pathOrData.path) {
+      } else if (pathOrData?.path) {
         this.tempSelectedPath = pathOrData.path;
         this.tempSelectedSource = pathOrData.source;
       }
@@ -661,7 +710,8 @@ export default {
       this.tempSelectedSource = "";
     },
     editLink(index) {
-      const link = this.links[index];
+      const link = this.links.at(index);
+      if (!link) return;
       this.editingIndex = index;
       this.showAddForm = true;
 
@@ -737,7 +787,7 @@ export default {
       }
       // For internal paths, normalize by adding a starting slash if missing
       if (!url.startsWith('/')) {
-        return '/' + url; // assume relative path
+        return `/${url}`; // assume relative path
       }
       return url;
     },
@@ -767,7 +817,7 @@ export default {
       event.dataTransfer.setData("text/html", event.target);
 
       // Set the entire link item as the drag image
-      const linkItem = this.linkItemRefs[index];
+      const linkItem = getObjectProperty(this.linkItemRefs, index);
       if (linkItem) {
         // Create a clone for the drag image to avoid affecting the original
         const clone = linkItem.cloneNode(true);
@@ -790,7 +840,7 @@ export default {
         }, 0);
       }
     },
-    handleDragOver(event, index) {
+    handleDragOver(_event, index) {
       if (this.draggingIndex === null || this.draggingIndex === index) return;
 
       // Only reorder if we're hovering over a different item
@@ -858,7 +908,7 @@ export default {
 
           await usersApi.update(updatedUser, ['sidebarLinks', 'showToolsInSidebar']);
 
-          mutations.updateCurrentUser({
+          void mutations.updateCurrentUser({
             sidebarLinks: [...this.links],
             showToolsInSidebar: this.showToolsInSidebar,
           });
@@ -868,7 +918,7 @@ export default {
 
         // Close only this prompt, returning to the previous one (if any)
         mutations.closeTopPrompt();
-      } catch (error) {
+      } catch (_e) {
         notify.showError(this.$t("sidebar.linksUpdateFailed"));
       }
     },

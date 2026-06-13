@@ -1,5 +1,4 @@
-import { test, expect } from "../test-setup";
-
+import { expect, test } from "../test-setup";
 
 test("verify scoped user can't access files outside of their scope", async ({ page }) => {
     // set basic auth credentials for protected /subpath route

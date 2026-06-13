@@ -9,7 +9,7 @@
       <i class="material-symbols">error</i>
       <span>{{ $t("prompts.error") }}</span>
     </div>
-    <ul v-if="effectiveNodes && effectiveNodes.length" class="tree-list">
+    <ul v-if="effectiveNodes?.length" class="tree-list">
       <li v-for="node in effectiveNodes" :key="node.path" class="tree-item">
         <div
           class="tree-node"
@@ -81,7 +81,9 @@ import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import { state, getters, mutations } from '@/store';
 import { eventBus } from '@/store/eventBus';
 import { goToItem, joinPath } from '@/utils/url';
+import { goToItemNotificationButton } from '@/utils/notificationActions';
 import { notify } from '@/notify';
+import { getObjectProperty } from '@/utils/object.js';
 
 export default {
   name: 'FileTree',
@@ -136,7 +138,7 @@ export default {
       return this.isRootInstance ? this.rootNodes : this.nodes;
     },
     canModify() {
-      return getters.permissions()?.modify;
+      return getters.permissions().modify;
     },
     showFiles() {
       // Defaults to true
@@ -199,21 +201,24 @@ export default {
     );
     eventBus.on('itemsDeleted', this.refresh);
     eventBus.on('itemsRenamed', this.refresh);
+    eventBus.on('itemsMoved', this.refresh);
     window.addEventListener('dragend', this.clearAllDragStates);
   },
   beforeUnmount() {
     // Clear all expand timeouts
-    this.expandTimeouts.forEach(timeout => clearTimeout(timeout));
+    this.expandTimeouts.forEach(timeout => { clearTimeout(timeout); });
     this.expandTimeouts.clear();
     if (this.unwatchReload) {
       this.unwatchReload();
     }
     eventBus.off('itemsDeleted', this.refresh);
     eventBus.off('itemsRenamed', this.refresh);
+    eventBus.off('itemsMoved', this.refresh);
     window.removeEventListener('dragend', this.clearAllDragStates);
   },
   methods: {
     async loadRoot() {
+      if (this.expanding) return;
       this.error = null;
       this.rootLoaded = false;
       if ((!this.currentSource && !this.shareHash) || !this.isRootInstance) {
@@ -234,7 +239,7 @@ export default {
       }
     },
     async fetchItems(path) {
-      let items = [];
+      let items;
       if (this.isShare) {
         const res = await resourcesApi.fetchFilesPublic(path, this.shareHash, state.shareInfo?.password, false, false, true);
         items = res.items || [];
@@ -303,7 +308,7 @@ export default {
     },
 
     async tryExpandNodes() {
-      if (!this.rootLoaded || !this.pendingExpandPath) return;
+      if (this.expanding || !this.rootLoaded || !this.pendingExpandPath) return;
       await this.expandToPath(this.pendingExpandPath);
       this.pendingExpandPath = null;
     },
@@ -312,7 +317,7 @@ export default {
       // don't navigate to current item if we're already viewing it
       if (this.isCurrentItem(node)) {
         if (node.isDir) {
-          this.toggleExpand(node, false); // If the item is a folder, just expand/collapse instead of navigate again
+          void this.toggleExpand(node, false); // If the item is a folder, just expand/collapse instead of navigate again
         }
         return;
       }
@@ -342,18 +347,25 @@ export default {
     navigateTo(node) {
       if (this.isShare) {
         mutations.setNavigationTransitioning(true);
-        goToItem(null, node.path, {}, false, this.shareHash);
+        goToItem(this.shareHash, node.path, {}, false, true);
       } else {
         mutations.setNavigationTransitioning(true);
         goToItem(this.currentSource, node.path, {});
       }
     },
 
+    normalizePath(p) {
+      if (!p || p === '/') return '/';
+      return p.replace(/\/+$/, '');
+    },
+
     isCurrentItem(node) {
+      const normalizedNodePath = this.normalizePath(node.path);
+      const normalizedCurrentPath = this.normalizePath(this.currentPath);
       if (this.isShare) {
-        return node.path === this.currentPath;
+        return normalizedNodePath === normalizedCurrentPath;
       } else {
-        return node.source === this.currentSource && node.path === this.currentPath;
+        return node.source === this.currentSource && normalizedNodePath === normalizedCurrentPath;
       }
     },
 
@@ -369,8 +381,7 @@ export default {
 
         let currentLevel = this.isRootInstance ? this.rootNodes : this.nodes;
 
-        for (let i = 0; i < pathParts.length; i++) {
-          const part = pathParts[i];
+          for (const part of pathParts) {
           const node = currentLevel.find(n => n.name === part && n.isDir);
           if (!node) break;
 
@@ -398,7 +409,7 @@ export default {
     },
 
     async refresh() {
-      if (!this.isRootInstance || this.isRefreshing) return;
+      if (!this.isRootInstance || this.isRefreshing ) return;
       this.isRefreshing = true;
       this.expandTimeouts.clear();
       // Save expanded paths before reload to restore them
@@ -457,7 +468,7 @@ export default {
         }
         // Set a new timeout
         const timeout = setTimeout(() => {
-          this.toggleExpand(node, true); // expand without navigating
+          void this.toggleExpand(node, true); // expand without navigating
           this.expandTimeouts.delete(node);
         }, 800); // 800ms delay (we need to hover that time to auto expand when dragging a item)
         this.expandTimeouts.set(node, timeout);
@@ -476,7 +487,7 @@ export default {
       this.rootNodes.forEach(clearNode);
 
       // Clear all pending expand timeouts
-      this.expandTimeouts.forEach(timeout => clearTimeout(timeout));
+      this.expandTimeouts.forEach(timeout => { clearTimeout(timeout); });
       this.expandTimeouts.clear();
     },
 
@@ -519,12 +530,12 @@ export default {
       // Build list of items to move
       const items = [];
       for (const index of selectedIndices) {
-        const item = state.req.items[index];
+        const item = getObjectProperty(state.req?.items, index);
         if (!item) continue;
 
         // Prevent dropping onto itself or into its own subdirectory
         if (item.path === node.path) continue; // cannot drop onto itself
-        if (node.path.startsWith(item.path + '/')) continue; // cannot drop into its own subdirectory
+        if (node.path.startsWith(`${item.path}/`)) continue; // cannot drop into its own subdirectory
 
         items.push({
           from: item.path,
@@ -537,13 +548,8 @@ export default {
 
       if (items.length === 0) return;
 
-      // We'll use the same logic as Breadcrumbs
-      const normalizePath = (path) => {
-        if (!path || path === "/") return "/";
-        return path.replace(/\/$/, '');
-      };
-      const targetDir = normalizePath(node.path);
-      const sourceDir = normalizePath(state.req.path);
+      const targetDir = this.normalizePath(node.path);
+      const sourceDir = this.normalizePath(state.req.path);
       if (targetDir === sourceDir) {
         notify.showErrorToast(this.$t("files.sameFolder"));
         return;
@@ -582,20 +588,16 @@ export default {
           } else {
             await resourcesApi.moveCopy(items, 'move', overwrite, rename);
           }
-          const buttonAction = () => {
-            if (this.isShare) {
-              goToItem(null, node.path, {}, false, this.shareHash);
-            } else {
-              goToItem(this.currentSource, node.path, {});
-            }
-          };
           const buttonProps = {
             icon: 'folder',
-            buttons: [{
-              label: this.$t('buttons.goToItem'),
-              primary: true,
-              action: buttonAction,
-            }]
+            buttons: [
+              goToItemNotificationButton(
+                this.$t('buttons.goToItem'),
+                this.isShare ? this.shareHash : this.currentSource,
+                node.path,
+                this.isShare
+              ),
+            ],
           };
           notify.showSuccess(this.$t('prompts.moveSuccess'), buttonProps);
           mutations.closeTopPrompt();
@@ -652,7 +654,7 @@ export default {
 
       // Compare node to each candidate (usually only one, but safe to loop)
       return candidates.some(selected => {
-        if (!selected || !selected.path) return false;
+        if (!selected.path) return false;
         if (this.isShare) {
           return selected.path === node.path;
         } else {

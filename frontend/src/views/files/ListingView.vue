@@ -1,5 +1,5 @@
 <template>
-  <div v-if="shareInfo.shareType != 'upload'" class="listing-view-root no-select" :style="containerStyles">
+  <div v-if="shareInfo.shareType !== 'upload'" class="listing-view-root no-select" :style="containerStyles">
     <!-- Show loading spinner while loading OR if we haven't loaded any data yet -->
     <div v-if="loading">
       <h2 class="message delayed">
@@ -17,7 +17,7 @@
         [listingViewMode]: true,
         dropping: isDragging,
         'rectangle-selecting': isRectangleSelecting,
-        'font-size-large': numDirs + numFiles == 0 
+        'font-size-large': numDirs + numFiles + numPinned === 0 
       }"
       :style="itemStyles"
       class="listing-items"
@@ -34,7 +34,7 @@
       </div>
 
       <!-- Empty state -->
-      <template v-if="numDirs + numFiles == 0">
+      <template v-if="numDirs + numFiles + numPinned === 0">
         <h2 class="message font-size-large">
           <i class="material-symbols-outlined">sentiment_dissatisfied</i>
           <span>{{ $t("files.lonely") }}</span>
@@ -57,6 +57,37 @@
       </template>
 
       <template v-else>
+        <!-- Pinned Items Section -->
+        <div v-if="numPinned > 0">
+          <h2 :class="{'dark-mode': isDarkMode}">{{ pinnedHeaderText }}</h2>
+        </div>
+        <div
+          v-if="numPinned > 0"
+          class="pinned-items"
+          aria-label="Pinned Items"
+          :class="{ lastGroup: numDirs === 0 && numFiles === 0 }"
+        >
+          <item
+            v-for="item in pinnedItems"
+            :key="base64(`pinned-${item.path || item.name}`)"
+            v-bind:index="item.index"
+            v-bind:name="item.name"
+            v-bind:isDir="item.type == 'directory'"
+            v-bind:source="req.source"
+            v-bind:modified="item.modified"
+            v-bind:type="item.type"
+            v-bind:size="item.size"
+            v-bind:path="item.path"
+            v-bind:reducedOpacity="item.hidden || isDragging"
+            v-bind:hash="shareInfo.hash"
+            v-bind:hasPreview="item.hasPreview"
+            v-bind:metadata="item.metadata"
+            v-bind:hasDuration="hasDuration"
+            v-bind:isShared="item.isShared"
+            v-bind:pinned="item.pinned"
+          />
+        </div>
+
         <!-- Directories Section -->
         <div v-if="numDirs > 0">
           <h2 :class="{'dark-mode': isDarkMode}">{{ $t("general.folders") }}</h2>
@@ -72,7 +103,7 @@
             :key="base64(item.name)"
             v-bind:index="item.index"
             v-bind:name="item.name"
-            v-bind:isDir="item.type == 'directory'"
+            v-bind:isDir="item.type === 'directory'"
             v-bind:source="req.source"
             v-bind:modified="item.modified"
             v-bind:type="item.type"
@@ -83,8 +114,10 @@
             v-bind:hasPreview="item.hasPreview"
             v-bind:hasDuration="hasDuration"
             v-bind:isShared="item.isShared"
+            v-bind:pinned="item.pinned"
           />
         </div>
+
         <!-- Files Section -->
         <div v-if="numFiles > 0">
           <h2 :class="{'dark-mode': isDarkMode}">{{ $t("general.files") }}</h2>
@@ -100,7 +133,7 @@
             :key="base64(item.name)"
             v-bind:index="item.index"
             v-bind:name="item.name"
-            v-bind:isDir="item.type == 'directory'"
+            v-bind:isDir="item.type === 'directory'"
             v-bind:modified="item.modified"
             v-bind:source="req.source"
             v-bind:type="item.type"
@@ -112,6 +145,7 @@
             v-bind:metadata="item.metadata"
             v-bind:hasDuration="hasDuration"
             v-bind:isShared="item.isShared"
+            v-bind:pinned="item.pinned"
           />
         </div>
 
@@ -206,17 +240,32 @@ export default {
         }
       });
 
-      if (!topItem) return;
-
-      const letter = topItem.getAttribute("data-name")?.[0]?.toUpperCase() || "A";
+      // Decide category by checking which section is above
+      let letter = "A";
       let category = "folders"; // Default category
-      if (this.numFiles > 0) {
-        // Decide category by checking which section is above
+
+      if (topItem) {
+        letter = topItem.getAttribute("data-name")?.[0]?.toUpperCase() || "A";
+      } else if (this.numPinned > 0) {
+        const pinnedHeader = this.$el.querySelector(".pinned-items h2");
+        if (pinnedHeader && pinnedHeader.getBoundingClientRect().top >= 0) {
+          category = "pinned";
+          const firstPinned = this.pinnedItems[0];
+          letter = firstPinned?.name?.[0]?.toUpperCase();
+        }
+      }
+
+      if (topItem?.closest('.pinned-items')) {
+        category = "pinned";
+        const firstPinned = this.pinnedItems[0];
+        letter = firstPinned?.name?.[0]?.toUpperCase();
+      } 
+      else if (this.numFiles > 0) {
         const fileSection = this.$el.querySelector(".file-items");
         const fileTop = fileSection?.getBoundingClientRect().top ?? 0;
         category = fileTop <= 0 ? "files" : "folders";
       }
-      if (this.numDirs == 0) {
+      if (this.numDirs === 0 && category !== "pinned") {
         category = "files"; // If no directories, only files
       }
 
@@ -249,18 +298,8 @@ export default {
     isStickySidebar() {
       return getters.isStickySidebar();
     },
-    lastFolderIndex() {
-      const allItems = [...this.items.dirs, ...this.items.files];
-      for (let i = 0; i < allItems.length; i++) {
-        if (allItems[i].type != "directory") {
-          return i - 1;
-        }
-      }
-      if (allItems.length > 0) {
-        return allItems.length;
-      }
-
-      return null; // Return null if there are no files
+    allItems() {
+      return [...this.pinnedItems, ...this.dirs, ...this.files];
     },
     numColumns() {
       void this.width;
@@ -297,19 +336,36 @@ export default {
       return getters.sorting().asc;
     },
     hasDuration() {
-      // Check if any file has duration metadata
-      return this.files.some(file => file.metadata && file.metadata.duration);
+      // Check if any pinned file or regular file has duration metadata
+      return [...this.pinnedItems, ...this.files].some(
+        file => file.type !== "directory" && file.metadata?.duration
+      );
     },
     items() {
       return getters.reqItems();
     },
+    numPinned() {
+      return this.pinnedItems.length;
+    },
+    pinnedItems() {
+      return this.items.pinned || [];
+    },
     numFiles() {
-      const count = getters.reqNumFiles();
-      return count;
+      return this.files.length;
     },
     numDirs() {
-      const count = getters.reqNumDirs();
-      return count;
+      return this.dirs.length;
+    },
+    pinnedHeaderText() {
+      const pinnedFolders = this.pinnedItems.filter(item => item.type === 'directory').length;
+      const pinnedFiles = this.pinnedItems.filter(item => item.type !== 'directory').length;
+      if (pinnedFolders > 0 && pinnedFiles === 0) {
+        return `${this.$t("files.pinnedFolders")}`; // "Pinned folders"
+      }
+      if (pinnedFiles > 0 && pinnedFolders === 0) {
+        return `${this.$t("files.pinnedFiles")}`;   // "Pinned files"
+      }
+      return this.$t("files.pinnedItems"); // "Pinned items" if we pin both types
     },
     dirs() {
       return this.items.dirs;
@@ -347,15 +403,15 @@ export default {
       const width = Math.abs(this.rectangleStart.x - this.rectangleEnd.x);
       const height = Math.abs(this.rectangleStart.y - this.rectangleEnd.y);
       return {
-        left: left + 'px',
-        top: top + 'px',
-        width: width + 'px',
-        height: height + 'px',
+        left: `${left}px`,
+        top: `${top}px`,
+        width: `${width}px`,
+        height: `${height}px`,
       };
     },
     containerStyles() {
       // Dynamic padding-top: applied to the entire container (loading spinner + listing items)
-      const isEmpty = this.numDirs + this.numFiles === 0;
+      const isEmpty = this.numDirs + this.numFiles + this.numPinned === 0;
       const isRootPath = state.req.path === '/' || !state.req.path;
 
       if (isEmpty) {
@@ -560,8 +616,9 @@ export default {
     },
     showDeletePrompt() {
       const items = [];
-      for (let index of state.selected) {
-        const item = state.req.items[index];
+      for (const index of state.selected) {
+        const item = state.req.items.at(index);
+        if (!item) continue;
         const previewUrl = item.hasPreview
           ? resourcesApi.getPreviewURL(item.source || state.req.source, item.path, item.modified)
           : null;
@@ -577,27 +634,71 @@ export default {
       }
       mutations.showPrompt({
         name: "delete",
-        props: {
-          items: items,
-        },
+        props: { items },
       });
     },
     // Helper method to select the first item if nothing is selected
     selectFirstItem() {
       mutations.resetSelected();
-      const allItems = [...this.items.dirs, ...this.items.files];
-      if (allItems.length > 0) {
-        mutations.addSelected(allItems[0].index);
+      if (this.allItems.length > 0) {
+        mutations.addSelected(this.allItems[0].index);
       }
     },
-    // Helper method to select an item by index
-    selectItem(index) {
-      mutations.resetSelected();
-      mutations.addSelected(index);
+    // Helper method to find the closest item in the given direction (up or down) from the current one.
+    findClosestItem(selectedItem, direction) {
+      const listItems = Array.from(this.$el.querySelectorAll('.listing-item:not(.out-of-view)'));
+      const selectedBounds = selectedItem.getBoundingClientRect();
+      const selectedMidX = (selectedBounds.left + selectedBounds.right) / 2;
+
+      let closestItem = null;
+      let closestDistance = Infinity;
+
+      for (const item of listItems) {
+        if (item === selectedItem) continue;
+        const itemBounds = item.getBoundingClientRect();
+        const itemMidX = (itemBounds.left + itemBounds.right) / 2;
+        const horizontalOffset = Math.abs(itemMidX - selectedMidX);
+
+        const verticalGap = direction === 'down'
+          ? itemBounds.top - selectedBounds.bottom
+          : selectedBounds.top - itemBounds.bottom;
+
+        if (verticalGap > 0) {
+          const distance = Math.hypot(horizontalOffset, verticalGap);
+          if (distance < closestDistance) {
+            closestDistance = distance;
+            closestItem = item;
+          }
+        }
+      }
+      return closestItem;
+    },
+    moveSelectionBy(step) {
+      const allItems = this.allItems;
+      const selectedIndex = state.selected.length > 0 ? state.selected[0] : null;
+      if (selectedIndex === null) {
+        this.selectFirstItem();
+        return false;
+      }
+      const currentItemIndex = allItems.findIndex(item => item.index === selectedIndex);
+      if (currentItemIndex === -1) {
+        this.selectFirstItem();
+        return false;
+      }
+      const nextItemIndex = currentItemIndex + step;
+      if (nextItemIndex >= 0 && nextItemIndex < allItems.length) {
+        const targetItem = allItems.at(nextItemIndex);
+        mutations.resetSelected();
+        mutations.addSelected(targetItem.index);
+        this.scrollSelectedIntoView();
+        return true;
+      }
+      return false;
     },
     // Helper method to handle selection based on arrow keys
-    navigateKeboardArrows(arrowKey) {
-      let selectedIndex = state.selected.length > 0 ? state.selected[0] : null;
+    navigateKeyboardArrows(arrowKey) {
+      const isCardView = getters.isCardView(); // gallery, normal, icons
+      const selectedIndex = state.selected.length > 0 ? state.selected[0] : null;
 
       if (selectedIndex === null) {
         // If nothing is selected, select the first item
@@ -605,95 +706,41 @@ export default {
         return;
       }
 
-      const allItems = [...this.items.dirs, ...this.items.files]; // Combine files and directories
-
-      // Find the current index of the selected item
-      let currentIndex = allItems.findIndex((item) => item.index === selectedIndex);
-
-      // If no item is selected, select the first item
-      if (currentIndex === -1) {
-        // Check if there are any items to select
-        if (allItems.length > 0) {
-          currentIndex = 0;
-          this.selectItem(allItems[currentIndex].index);
-        }
+      // Left/Right arrows will always use the visual order that we see
+      if (arrowKey === 'ArrowLeft' || arrowKey === 'ArrowRight') {
+        const step = arrowKey === 'ArrowLeft' ? -1 : 1;
+        this.moveSelectionBy(step);
         return;
       }
-      let newSelected = null;
-      const fileSelected = currentIndex > this.lastFolderIndex;
-      const nextIsDir = currentIndex - this.numColumns <= this.lastFolderIndex;
-      const folderSelected = currentIndex <= this.lastFolderIndex;
-      const nextIsFile = currentIndex + this.numColumns > this.lastFolderIndex;
-      const nextHopExists = currentIndex + this.numColumns < allItems.length;
-      const thisColumnNum =
-        ((currentIndex - this.lastFolderIndex - 1) % this.numColumns) + 1;
-      const lastFolderColumn = (this.lastFolderIndex % this.numColumns) + 1;
-      const thisColumnNum2 = (currentIndex + 1) % this.numColumns;
-      let firstRowColumnPos = this.lastFolderIndex + thisColumnNum2;
-      let newPos = currentIndex - lastFolderColumn;
+
+      // On list/compact views we use a simple linear navigation since all the items are aligned
+      if (!isCardView) {
+        const step = arrowKey === 'ArrowUp' ? -1 : 1;
+        this.moveSelectionBy(step);
+        return;
+      }
+
+      // But for gallery, normal, icons views, we need to find the closest item
+      // because the rows aren't always consistent (some have 1 item, others 5, etc) 
+      // which caused "random jumps"
+      const selectedItem = this.$el.querySelector(`.listing-item[data-index="${selectedIndex}"]`);
+      if (!selectedItem) return;
+
+      let nextItem = null;
+
       switch (arrowKey) {
-        case "ArrowUp":
-          if (currentIndex - this.numColumns < 0) {
-            // do nothing
-            break;
-          }
-          if (!getters.isCardView()) {
-            newSelected = allItems[currentIndex - 1].index;
-            break;
-          }
-          // do normal move
-          if (!(fileSelected && nextIsDir)) {
-            newSelected = allItems[currentIndex - this.numColumns].index;
-            break;
-          }
-
-          // complex logic to move from files to folders
-          if (lastFolderColumn < thisColumnNum) {
-            newPos -= this.numColumns;
-          }
-          newSelected = allItems[newPos].index;
-
+        case 'ArrowDown':
+          nextItem = this.findClosestItem(selectedItem, 'down');
           break;
-
-        case "ArrowDown":
-          if (currentIndex >= allItems.length) {
-            // do nothing - last item
-            break;
-          }
-          if (!getters.isCardView()) {
-            newSelected = allItems[currentIndex + 1].index;
-            break;
-          }
-          if (!nextHopExists) {
-            // do nothing - next item is out of bounds
-            break;
-          }
-
-          if (!(folderSelected && nextIsFile)) {
-            newSelected = allItems[currentIndex + this.numColumns].index;
-            break;
-          }
-          // complex logic for moving from folders to files
-          if (firstRowColumnPos <= this.lastFolderIndex) {
-            firstRowColumnPos += this.numColumns;
-          }
-          newSelected = allItems[firstRowColumnPos].index;
-          break;
-
-        case "ArrowLeft":
-          if (currentIndex > 0) {
-            newSelected = allItems[currentIndex - 1].index;
-          }
-          break;
-
-        case "ArrowRight":
-          if (currentIndex < allItems.length - 1) {
-            newSelected = allItems[currentIndex + 1].index;
-          }
+        case 'ArrowUp':
+          nextItem = this.findClosestItem(selectedItem, 'up');
           break;
       }
-      if (newSelected != null) {
-        this.selectItem(newSelected);
+
+      const itemIndex = parseInt(nextItem?.dataset.index, 10);
+      if (!Number.isNaN(itemIndex)) {
+        mutations.resetSelected();
+        mutations.addSelected(itemIndex);
         this.scrollSelectedIntoView();
       }
     },
@@ -719,18 +766,19 @@ export default {
       }
     },
     keyEvent(event) {
-      if (state.isSearchActive || getters.currentView() != "listingView" || getters.currentPromptName()) {
-        return;
-      }
       const { key, ctrlKey, metaKey, altKey, which } = event;
-      if (altKey) {
-        return;
-      }
+      const isArrowKey = key === 'ArrowUp' ||
+                         key === 'ArrowDown' ||
+                         key === 'ArrowLeft' ||
+                         key === 'ArrowRight';
+      if (state.isSearchActive || getters.currentView() !== "listingView" ||
+        getters.currentPromptName() || (event.repeat && (!isArrowKey || altKey))) return;
+
       const isAlphanumeric = /^[a-z0-9]$/i.test(key);
       const modifierKeys = ctrlKey || metaKey;
       if (isAlphanumeric && !modifierKeys && state.selected.length <= 1) {
         const t = event.target;
-        const tag = t && t.tagName ? t.tagName.toLowerCase() : "";
+        const tag = t?.tagName ? t.tagName.toLowerCase() : "";
         if (
           tag !== "input" &&
           tag !== "textarea" &&
@@ -742,8 +790,6 @@ export default {
           return;
         }
       }
-      let currentPath = url.removeTrailingSlash(state.route.path);
-      let newPath = currentPath.substring(0, currentPath.lastIndexOf("/"));
 
       if (modifierKeys) {
         this.ctrKeyPressed = true;
@@ -767,22 +813,40 @@ export default {
       }
 
       // Handle key events using a switch statement
-      switch (key) {
-        case "Enter":
+      let shortcut = key;
+      if (altKey) shortcut = `Alt+${key}`;
+
+      switch (shortcut) {
+        case "Alt+ArrowUp":
+          event.preventDefault();
+          // fall through
+        case "Backspace": {
+          event.preventDefault();
+          // get current path and its parent
+          const currentPath = state.req.path || "/";
+          const parentPath = url.removeLastDir(currentPath);
+          if (parentPath === currentPath) {
+            return;
+          }
+          const source = getters.isShare() ? state.shareInfo.hash : state.req.source;
+          const newPath = url.buildItemUrl(source, parentPath);
+          void router.push({ path: newPath });
+          break;
+        }
+
+        case "Alt+ArrowDown":
+          event.preventDefault();
+          // fall through
+        case "Enter": {
+          event.preventDefault();
           if (this.selectedCount === 1) {
             const selected = getters.getFirstSelected();
             const selectedUrl = url.buildItemUrl(selected.source, selected.path);
-            router.push({ path: selectedUrl });
+            if (selectedUrl === state.route.path) return;
+            void router.push({ path: selectedUrl });
           }
           break;
-
-        case "Backspace":
-          if (getters.currentPromptName()) {
-            return;
-          }
-          // go back
-          router.push({ path: newPath });
-          break;
+        }
 
         case "Escape":
           if (this.dragTargets.size > 0) {
@@ -802,35 +866,28 @@ export default {
         case "ArrowDown":
         case "ArrowLeft":
         case "ArrowRight":
-          // Allow native browser navigation when Alt is held
-          if (event.altKey) {
-            return;
-          }
           event.preventDefault();
-          this.navigateKeboardArrows(key);
+          this.navigateKeyboardArrows(key);
           break;
       }
     },
     alphanumericKeyPress(key) {
       const prefix = key.toLowerCase();
-      const allItems = [...this.items.dirs, ...this.items.files];
-      const matches = allItems.filter((item) =>
+      const allItems = this.allItems;
+      const matches = allItems.filter(item =>
         item.name.toLowerCase().startsWith(prefix)
       );
-      if (matches.length === 0) {
-        return;
-      }
+      if (matches.length === 0) return;
 
       let nextPos = 0;
       if (state.selected.length === 1) {
         const curIdx = state.selected[0];
-        const curPos = matches.findIndex((m) => m.index === curIdx);
-        if (curPos !== -1) {
-          nextPos = (curPos + 1) % matches.length;
-        }
+        const curPos = matches.findIndex(m => m.index === curIdx);
+        if (curPos !== -1) nextPos = (curPos + 1) % matches.length;
       }
 
-      const target = matches[nextPos];
+      const target = matches.at(nextPos);
+      if (!target) return;
       mutations.resetSelected();
       mutations.addSelected(target.index);
       this.scrollSelectedIntoView();
@@ -844,11 +901,17 @@ export default {
         return;
       }
 
-      let items = state.selected.map((i) => ({
-        from: state.req.items[i].path,
-        fromSource: state.req.source,
-        name: state.req.items[i].name,
-      }));
+      const items = state.selected
+        .map((i) => {
+          const item = state.req.items.at(i);
+          if (!item) return null;
+          return {
+            from: item.path,
+            fromSource: state.req.source,
+            name: item.name,
+          };
+        })
+        .filter(Boolean);
 
       if (items.length === 0) {
         return;
@@ -861,10 +924,9 @@ export default {
       };
       this.internalClipboardTimestamp = Date.now();
     },
-
     async collectFilesFromEntry(entry, relativePath = "") {
       const files = [];
-      const entryPath = relativePath ? relativePath + "/" + entry.name : entry.name;
+      const entryPath = relativePath ? `${relativePath}/${entry.name}` : entry.name;
 
       if (entry.isFile) {
         // If it's a file we get the File object and add it with its relative path
@@ -918,18 +980,17 @@ export default {
       // If internal is recent (<20s), use it immediately, in case someone have both: internal and external clipboard with a file entry.
       // After those 20s, if the OS clipboard has a file as most recent entry, will use that.
       if (internalRecent) {
-        this.handleInternalPaste();
+        await this.handleInternalPaste();
         event.preventDefault();
         event.stopPropagation();
         return;
       }
 
-      if (event.clipboardData && (event.clipboardData.items)) {
+      if (event.clipboardData?.items) {
         // Collect all items from clipboard
         const collectedItems = [];
         // And loop through all items
-        for (let i = 0; i < event.clipboardData.items.length; i++) {
-          const item = event.clipboardData.items[i];
+        for (const item of Array.from(event.clipboardData.items)) {
           if (item.kind !== 'file') continue;
 
           const entry = item.webkitGetAsEntry();
@@ -969,7 +1030,7 @@ export default {
       // If internal clipboard exists but is not recent (>20s), and we don't have any file in clipboard, use the internal one
       if (this.clipboard.items.length > 0) {
         console.log('No external files, using internal clipboard.');
-        this.handleInternalPaste();
+        await this.handleInternalPaste();
         event.preventDefault();
         event.stopPropagation();
         return;
@@ -977,14 +1038,14 @@ export default {
     },
 
     async handleInternalPaste() {
-      if (!this.clipboard || !this.clipboard.items || this.clipboard.items.length === 0) {
+      if (!this.clipboard?.items || this.clipboard.items.length === 0) {
         return;
       }
 
       // Construct destination path properly (without URL prefix)
-      const destPath = state.req.path.endsWith('/') ? state.req.path : state.req.path + '/';
+      const destPath = state.req.path.endsWith('/') ? state.req.path : `${state.req.path}/`;
 
-      let items = this.clipboard.items.map((item) => ({
+      const items = this.clipboard.items.map((item) => ({
         from: item.from,
         fromSource: item.fromSource,
         to: destPath + item.name,
@@ -1023,7 +1084,7 @@ export default {
               };
 
               if (this.clipboard.path === state.route.path) {
-                action(false, true);
+                void action(false, true);
                 return;
               }
 
@@ -1038,12 +1099,12 @@ export default {
                     const rename = option === "rename";
                     event.preventDefault();
                     mutations.closeTopPrompt();
-                    action(overwrite, rename);
+                    void action(overwrite, rename);
                   },
                 });
                 return;
               }
-              action(false, false);
+              void action(false, false);
             });
           },
         },
@@ -1093,10 +1154,10 @@ export default {
       if (isInternal) {
         return;
       }
-      this.handleDrop(event);
+      await this.handleDrop(event);
     },
     async uploadInput(event) {
-      this.handleDrop(event);
+      await this.handleDrop(event);
     },
     windowsResize: throttle(function () {
       // Mark as resizing to disable transitions
@@ -1126,7 +1187,7 @@ export default {
       }, 150); // Wait 150ms after last resize event
 
       // Listing element is not displayed
-      if (this.$refs.listingView == null) return;
+      if (this.$refs.listingView === null) return;
     }, 100),
     openContext(event) {
       event.preventDefault();
@@ -1143,7 +1204,7 @@ export default {
           showCentered: getters.isMobile(),
           posX: event.clientX,
           posY: event.clientY,
-          createOnly: this.selectedCount == 0,
+          createOnly: this.selectedCount === 0,
         },
       });
     },
@@ -1164,8 +1225,8 @@ export default {
         return;
       }
 
-      const sameAsBefore = state.selected == this.lastSelected;
-      if (sameAsBefore && !state.multiple && getters.currentPromptName() == "") {
+      const sameAsBefore = state.selected === this.lastSelected;
+      if (sameAsBefore && !state.multiple && getters.currentPromptName() === "") {
         mutations.resetSelected();
       }
       this.lastSelected = state.selected;
@@ -1340,8 +1401,8 @@ export default {
           elementRelativeRect.top < rect.bottom &&
           elementRelativeRect.bottom > rect.top
         ) {
-          const index = parseInt(element.getAttribute('data-index'));
-          if (!isNaN(index)) {
+          const index = parseInt(element.getAttribute('data-index'), 10);
+          if (!Number.isNaN(index)) {
             rectangleSelectedIndexes.push(index);
           }
         }
@@ -1358,12 +1419,12 @@ export default {
         });
 
         mutations.resetSelected();
-        newSelection.forEach(index => mutations.addSelected(index));
+        newSelection.forEach(index => { mutations.addSelected(index); });
       } else {
         // Select only the items in the rectangle and reset initial selection
         // PS: If you don't want that just hold ctrl, the selection will not be reset, allowing multi select.
         mutations.resetSelected();
-        rectangleSelectedIndexes.forEach(index => mutations.addSelected(index));
+        rectangleSelectedIndexes.forEach(index => { mutations.addSelected(index); });
       }
     },
     handleDoubleClick(event) {
@@ -1400,6 +1461,10 @@ export default {
 .listing-items {
   position: relative;
   flex: 1;
+}
+
+.listing-item .pinned-indicator {
+  font-size: 1rem;
 }
 
 .folder-items a {
@@ -1457,5 +1522,4 @@ export default {
 .drop-indicator-content i {
   font-size: 4em;
 }
-
 </style>

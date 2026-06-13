@@ -1,35 +1,37 @@
-import { RouteLocation, createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
-import Login from "@/views/Login.vue";
-import Layout from "@/views/Layout.vue";
-import Files from "@/views/Files.vue";
-import Settings from "@/views/Settings.vue";
-import Errors from "@/views/Errors.vue";
-import Tools from "@/views/Tools.vue";
-import { globalVars } from "@/utils/constants";
-import { getters, state } from "@/store";
-import { mutations } from "@/store";
-import { validateLogin } from "@/utils/auth";
+import type { RouteLocation, RouteRecordRaw } from "vue-router";
+import { createRouter, createWebHistory } from "vue-router";
+
 import i18n from "@/i18n";
+import { getters, mutations, state } from "@/store";
+import { validateLogin } from "@/utils/auth";
+import { globalVars } from "@/utils/constants";
+import Errors from "@/views/Errors.vue";
+import Files from "@/views/Files.vue";
+import Layout from "@/views/Layout.vue";
+import Login from "@/views/Login.vue";
+import Settings from "@/views/Settings.vue";
+import Tools from "@/views/Tools.vue";
 
+const translate = (key: string): string => i18n.global.t(key) as string;
 
-const titles = {
-  Login: i18n.global.t("general.login"),
-  Share: i18n.global.t("general.share"),
+const titles: Record<string, string> = {
+  Login: translate("general.login"),
+  Share: translate("general.share"),
   /** Same component as Share; name differs for /public optional-auth routes. */
-  PublicShare: i18n.global.t("general.share"),
-  Files: i18n.global.t("general.files"),
-  Tools: i18n.global.t("tools.title"),
-  ChildTool: i18n.global.t("tools.title"),
-  Settings: i18n.global.t("general.settings"),
-  ProfileSettings: i18n.global.t("settings.profileSettings"),
-  Shares: i18n.global.t("settings.shareManagement"),
-  GlobalSettings: i18n.global.t("settings.globalSettings"),
-  Users: i18n.global.t("general.users"),
-  User: i18n.global.t("general.user"),
-  Forbidden: i18n.global.t("errors.forbidden"),
-  NotFound: i18n.global.t("errors.notFound"),
-  ShareNotFound: i18n.global.t("errors.shareNotFound"),
-  InternalServerError: i18n.global.t("errors.internal"),
+  PublicShare: translate("general.share"),
+  Files: translate("general.files"),
+  Tools: translate("tools.title"),
+  ChildTool: translate("tools.title"),
+  Settings: translate("general.settings"),
+  ProfileSettings: translate("settings.profileSettings"),
+  Shares: translate("settings.shareManagement"),
+  GlobalSettings: translate("settings.globalSettings"),
+  Users: translate("general.users"),
+  User: translate("general.user"),
+  Forbidden: translate("errors.forbidden"),
+  NotFound: translate("errors.notFound"),
+  ShareNotFound: translate("errors.shareNotFound"),
+  InternalServerError: translate("errors.internal"),
 };
 
 const routes: RouteRecordRaw[] = [
@@ -106,7 +108,7 @@ const routes: RouteRecordRaw[] = [
         component: Settings,
       },
       {
-        path: "users/:username",
+        path: "users/:id",
         name: "User",
         component: Settings,
       },
@@ -158,8 +160,8 @@ const router = createRouter({
 // Helper function to check if a route resolves to itself
 function isSameRoute(to: RouteLocation, from: RouteLocation) {
   // Allow query parameter changes - they don't count as same route
-  const toQuery = JSON.stringify(to.query || {});
-  const fromQuery = JSON.stringify(from.query || {});
+  const toQuery = JSON.stringify(to.query);
+  const fromQuery = JSON.stringify(from.query);
 
   return to.path === from.path &&
     to.hash === from.hash &&
@@ -169,14 +171,15 @@ function isSameRoute(to: RouteLocation, from: RouteLocation) {
 router.beforeResolve(async (to, from, next) => {
   if (isSameRoute(to, from)) {
     console.warn("Avoiding recursive navigation to the same route.");
-    return next(false);
+    next(false);
+    return;
   }
 
   // Clear any popup previews when navigating
   mutations.setPreviewSource("");
 
   const title = titles[to.name as keyof typeof titles] || String(to.name || '');
-  document.title = globalVars.name + " - " + title;
+  document.title = `${globalVars.name} - ${title}`;
   mutations.setRoute(to);
 
   if (
@@ -184,13 +187,13 @@ router.beforeResolve(async (to, from, next) => {
     to.matched.some((record) => record.meta.optionalAuth)
   ) {
     const isPublicRoute = to.path.startsWith("/public");
-    if (state?.user?.username) {
+    if (state.user?.username) {
       // do nothing, user is already set
     } else {
       try {
         await validateLogin(isPublicRoute);
-      } catch (error) {
-        mutations.setCurrentUser(getters.anonymous());
+      } catch (_error) {
+        await mutations.setCurrentUser(getters.anonymous());
       }
     }
 
@@ -198,7 +201,7 @@ router.beforeResolve(async (to, from, next) => {
       // do nothing
     } else {
       // Validation failed - clear state and redirect to login
-      mutations.setCurrentUser(null);
+      void mutations.setCurrentUser(null);
       // Always redirect to login when not authenticated
       next({ path: "/login", query: { redirect: to.fullPath } });
       return;

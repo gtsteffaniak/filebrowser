@@ -4,15 +4,18 @@
     <!-- Links section header -->
     <div class="sidebar-links-header"
       :class="{ 'with-top-spacing': isShare && !disableShareCard }">
-      <i :class="{ 'disabled': !isLoggedIn }" @click="goHome()" class="material-symbols action">home</i>
+      <i :class="{ 'disabled': !isLoggedIn }"
+        aria-label="Navigate Home"
+        @click="goHome()" class="material-symbols action">home</i>
       <!-- Mode button (is the title) -->
-      <button @click="cycleMode" class="mode-toggle" @mouseenter="showTooltip($event, $t('sidebar.switchMode'))" @mouseleave="hideTooltip">
+      <button type="button" @click="cycleMode" class="mode-toggle" @mouseenter="showTooltip($event, $t('sidebar.switchMode'))" @mouseleave="hideTooltip">
         {{ mode === 'links' ? $t('general.links') : $t('general.navigation') }}
       </button>
       <i v-if="isShare" aria-label="Edit Share" @mouseenter="showTooltip($event, editShareText)" @mouseleave="hideTooltip"
         :class="{ 'disabled': !canEdit }"
         @click="showEditShareHover" class="material-symbols action">edit</i>
       <i v-else @mouseenter="showTooltip($event, $t('sidebar.customizeLinks'))" @mouseleave="hideTooltip"
+        aria-label="Edit Links"
         @click="openSidebarLinksPrompt" class="material-symbols action">edit</i>
     </div>
     <!-- Scrollable Content Area -->
@@ -46,13 +49,13 @@
               }" @click.prevent="handleLinkClick(link)" :aria-label="link.name">
               <div class="source-container" :class="{ 'has-usage-info': hasUsageInfo(link) }">
                 <!-- Show custom icon if user has set one -->
-                <i v-if="link.icon" :class="getIconClass(link.icon) + ' link-icon'">{{ link.icon }}</i>
+                <i v-if="link.icon" :class="`${getIconClass(link.icon)} link-icon`">{{ link.icon }}</i>
                 <!-- Otherwise show animated status indicator -->
                 <svg v-else-if="isLinkAccessible(link)" class="realtime-pulse" :class="{
                   active: realtimeActive,
-                  danger: (sourceInfo[link.sourceName] || {}).status != 'indexing' && (sourceInfo[link.sourceName] || {}).status != 'ready',
-                  warning: (sourceInfo[link.sourceName] || {}).status == 'indexing',
-                  ready: (sourceInfo[link.sourceName] || {}).status == 'ready',
+                  danger: sourceInfo[link.sourceName]?.status !== 'indexing' && sourceInfo[link.sourceName]?.status !== 'ready',
+                  warning: sourceInfo[link.sourceName]?.status === 'indexing',
+                  ready: sourceInfo[link.sourceName]?.status === 'ready',
                 }">
                   <circle class="center" cx="50%" cy="50%" r="7px"></circle>
                   <circle class="pulse" cx="50%" cy="50%" r="10px"></circle>
@@ -63,7 +66,9 @@
                 </i>
                 <span>{{ link.name }}</span>
                 <i v-if="hasUsageInfo(link)" class="no-select material-symbols-outlined tooltip-info-icon"
-                  @mouseenter="showSourceTooltip($event, sourceInfo[link.sourceName] || {})" @mouseleave="hideTooltip">
+                  @click="onSourceInfoClick($event, sourceInfo[link.sourceName] || {})"
+                  @mouseenter="onSourceInfoMouseEnter($event, sourceInfo[link.sourceName] || {})"
+                  @mouseleave="onSourceInfoMouseLeave">
                   info
                 </i>
               </div>
@@ -72,10 +77,10 @@
                 <ProgressBar 
                   v-if="link.category === 'source-hybrid' || link.category === 'source-hybrid-2'"
                   :key="`progress-hybrid-${link.sourceName}-${sourceInfo[link.sourceName]?.used || 0}-${sourceInfo[link.sourceName]?.usedAlt || 0}-${sourceInfo[link.sourceName]?.total || 0}`"
-                  :val="(sourceInfo[link.sourceName] || {}).used || 0"
-                  :val-background="(sourceInfo[link.sourceName] || {}).usedAlt || 0"
-                  :val-text="link.category === 'source-hybrid-2' ? ((sourceInfo[link.sourceName] || {}).usedAlt || 0) : null"
-                  :max="(sourceInfo[link.sourceName] || {}).total || 1" 
+                  :val="sourceInfo[link.sourceName]?.used || 0"
+                  :val-background="sourceInfo[link.sourceName]?.usedAlt || 0"
+                  :val-text="link.category === 'source-hybrid-2' ? (sourceInfo[link.sourceName]?.usedAlt || 0) : null"
+                  :max="sourceInfo[link.sourceName]?.total || 1" 
                   :status="getProgressBarStatus(sourceInfo[link.sourceName] || {})"
                   unit="bytes">
                 </ProgressBar>
@@ -84,7 +89,7 @@
                   v-else
                   :key="`progress-${link.sourceName}-${sourceInfo[link.sourceName]?.used || 0}-${sourceInfo[link.sourceName]?.usedAlt || 0}-${sourceInfo[link.sourceName]?.total || 0}`"
                   :val="getProgressBarValue(link, sourceInfo[link.sourceName] || {})" 
-                  :max="(sourceInfo[link.sourceName] || {}).total || 1" 
+                  :max="sourceInfo[link.sourceName]?.total || 1" 
                   :status="getProgressBarStatus(sourceInfo[link.sourceName] || {})"
                   unit="bytes">
                 </ProgressBar>
@@ -95,7 +100,7 @@
             <a v-else :aria-label="link.name" :href="getLinkHref(link)" class="action button sidebar-link-button"
               :class="{ active: isLinkActive(link) }" @click.prevent="handleLinkClick(link)">
               <div  class="link-container">
-                <i v-if="link.icon" :class="getIconClass(link.icon) + ' link-icon'">{{ link.icon }}</i>
+                <i v-if="link.icon" :class="`${getIconClass(link.icon)} link-icon`">{{ link.icon }}</i>
                 <span>{{ link.name }}</span>
               </div>
             </a>
@@ -112,16 +117,16 @@
                @click="navigateToSource(activeSource)" role="button" tabindex="0">
             <div class="source-container" :class="{ 'has-usage-info': hasUsageInfo(activeSourceLink) }">
               <i v-if="activeSourceLink.icon && isLinkAccessible(activeSourceLink)"
-                 :class="getIconClass(activeSourceLink.icon) + ' link-icon'">
+                 :class="`${getIconClass(activeSourceLink.icon)} link-icon`">
                 {{ activeSourceLink.icon }}
               </i>
               <svg v-else-if="isLinkAccessible(activeSourceLink)"
                    class="realtime-pulse"
                    :class="{
                      active: realtimeActive,
-                     danger: activeSourceInfo.status != 'indexing' && activeSourceInfo.status != 'ready',
-                     warning: activeSourceInfo.status == 'indexing',
-                     ready: activeSourceInfo.status == 'ready',
+                     danger: activeSourceInfo.status !== 'indexing' && activeSourceInfo.status !== 'ready',
+                     warning: activeSourceInfo.status === 'indexing',
+                     ready: activeSourceInfo.status === 'ready',
                    }">
                 <circle class="center" cx="50%" cy="50%" r="7px"></circle>
                 <circle class="pulse" cx="50%" cy="50%" r="10px"></circle>
@@ -134,13 +139,13 @@
               <span>{{ activeSourceLink.name }}</span>
               <i v-if="hasUsageInfo(activeSourceLink)"
                  class="no-select material-symbols-outlined tooltip-info-icon"
-                 @mouseenter="showSourceTooltip($event, activeSourceInfo)"
-                 @mouseleave="hideTooltip"
-                 @click.stop>
+                 @click="onSourceInfoClick($event, activeSourceInfo)"
+                 @mouseenter="onSourceInfoMouseEnter($event, activeSourceInfo)"
+                 @mouseleave="onSourceInfoMouseLeave">
                 info
               </i>
               <!-- Dropdown arrow -->
-              <button class="source-dropdown-button" @click.stop="toggleSourceDropdown" ref="dropdownTrigger">
+              <button type="button" class="source-dropdown-button" @click.stop="toggleSourceDropdown" ref="dropdownTrigger">
                 <i class="material-symbols">keyboard_arrow_down</i>
               </button>
             </div>
@@ -188,7 +193,8 @@ import { state, getters, mutations } from "@/store";
 import ProgressBar from "@/components/ProgressBar.vue";
 import { goToItem } from "@/utils/url";
 import { getIconClass } from "@/utils/material-symbols";
-import { buildIndexInfoTooltipHTML } from "@/components/files/IndexInfo.vue";
+import { getObjectProperty } from '@/utils/object.js';
+import IndexInfo from "@/components/files/IndexInfo.vue";
 import { globalVars } from "@/utils/constants";
 import { resourcesApi } from "@/api";
 import ShareInfo from "@/components/files/ShareInfo.vue";
@@ -204,9 +210,13 @@ export default {
   data() {
     return {
       showSourceDropdown: false,
+      sourceTooltipDismissHandler: null,
     };
   },
   computed: {
+    useTapForSourceTooltip() {
+      return getters.isMobile();
+    },
     editShareText() {
       return this.$t('settings.shareManagement');
     },
@@ -214,7 +224,7 @@ export default {
       return state.shareInfo?.canEditShare || false;
     },
     isLoggedIn() {
-      return state.user?.username !== 'anonymous';
+      return getters.isLoggedIn();
     },
     currentSource() {
       return state.req?.source || null;
@@ -224,7 +234,7 @@ export default {
     },
     isShare: () => getters.isShare(),
     hasLinks() {
-      return this.sidebarLinksToDisplay?.length > 0;
+      return this.sidebarLinksToDisplay.length > 0;
     },
     user: () => (state.user || {username: 'anonymous'}),
     sourceInfo() {
@@ -257,7 +267,7 @@ export default {
     },
     sidebarLinksToDisplay() {
       // If viewing a share, use share's links
-      if (getters.isShare() && state.shareInfo?.sidebarLinks && state.shareInfo.sidebarLinks.length > 0) {
+      if (getters.isShare() && state.shareInfo?.sidebarLinks?.length > 0) {
         return state.shareInfo.sidebarLinks;
       }
       // If user has custom links, use those
@@ -305,7 +315,7 @@ export default {
     },
     dropdownSourceItems() {
       return this.sourceNames.map(rawName => {
-        const customLink = this.sourceLinkMap[rawName];
+        const customLink = getObjectProperty(this.sourceLinkMap, rawName);
         return {
           rawName,
           displayName: customLink ? customLink.name : rawName,
@@ -318,6 +328,7 @@ export default {
   },
   beforeUnmount() {
     document.removeEventListener('click', this.closeDropdown);
+    this.unregisterSourceTooltipDismiss();
   },
   methods: {
     isSourceCategory(category) {
@@ -340,7 +351,7 @@ export default {
       if (lowerTarget.startsWith('http://') || lowerTarget.startsWith('https://')) return link.target;
 
       const baseURL = globalVars.baseURL || '';
-      let fullPath = '';
+      let fullPath;
 
       // Construct full path based on link category
       if (this.isSourceCategory(link.category)) {
@@ -415,7 +426,7 @@ export default {
       return this.sourceInfo && link.sourceName ? this.sourceInfo[link.sourceName] || {} : {};
     },
     getProgressBarStatus(sourceInfo) {
-      if (sourceInfo.status === 'indexing' && sourceInfo.complexity == 0) {
+      if (sourceInfo.status === 'indexing' && sourceInfo.complexity === 0) {
         return 'indexing';
       }
       return 'default';
@@ -447,7 +458,7 @@ export default {
         // For source links, use sourceName and target (relative path)
         if (!link.sourceName) return;
         const path = link.target || "/";
-        goToItem(link.sourceName, path, {});
+        goToItem(link.sourceName, path, {}, false, false);
         return;
       }
 
@@ -482,7 +493,7 @@ export default {
               token: state.shareInfo.token,
               inline: false,
             }, [state.req.path]);
-            window.open(downloadLink + "&format=" + format, "_blank");
+            window.open(`${downloadLink}&format=${format}`, "_blank");
           },
         });
       } else {
@@ -524,7 +535,7 @@ export default {
       // Force reflow
       void el.offsetHeight;
       el.style.transition = 'height 0.3s, opacity 0.3s';
-      el.style.height = el.scrollHeight + 'px';
+      el.style.height = `${el.scrollHeight}px`;
       el.style.opacity = '1';
       setTimeout(() => {
         el.style.height = 'auto';
@@ -533,7 +544,7 @@ export default {
     },
     leave(el, done) {
       el.style.transition = 'height 0.3s, opacity 0.3s';
-      el.style.height = el.scrollHeight + 'px';
+      el.style.height = `${el.scrollHeight}px`;
       void el.offsetHeight;
       el.style.height = '0';
       el.style.opacity = '0';
@@ -549,20 +560,87 @@ export default {
       }
     },
     hideTooltip() {
+      this.unregisterSourceTooltipDismiss();
       mutations.hideTooltip();
     },
+    isSourceTooltipVisible(info) {
+      if (!state.tooltip.show || state.tooltip.component !== IndexInfo) {
+        return false;
+      }
+      const shown = state.tooltip.componentProps?.info;
+      if (!shown || !info) {
+        return false;
+      }
+      return shown.name === info.name;
+    },
+    onSourceInfoClick(event, info) {
+      if (!this.useTapForSourceTooltip) {
+        return;
+      }
+      this.toggleSourceTooltip(event, info);
+    },
+    onSourceInfoMouseEnter(event, info) {
+      if (this.useTapForSourceTooltip) {
+        return;
+      }
+      this.showSourceTooltip(event, info);
+    },
+    onSourceInfoMouseLeave() {
+      if (this.useTapForSourceTooltip) {
+        return;
+      }
+      this.hideTooltip();
+    },
+    toggleSourceTooltip(event, info) {
+      if (this.isSourceTooltipVisible(info)) {
+        this.hideTooltip();
+        return;
+      }
+      this.showSourceTooltip(event, info);
+    },
     showSourceTooltip(event, info) {
-      if (info) {
-        const tooltipContent = this.buildSourceTooltipContent(info);
-        mutations.showTooltip({
-          content: tooltipContent,
-          x: event.clientX,
-          y: event.clientY,
-        });
+      if (!info?.name) {
+        return;
+      }
+      mutations.showTooltip({
+        component: IndexInfo,
+        componentProps: { info },
+        x: event.clientX,
+        y: event.clientY,
+        pointerEvents: this.useTapForSourceTooltip,
+      });
+      if (this.useTapForSourceTooltip) {
+        this.registerSourceTooltipDismiss();
       }
     },
-    buildSourceTooltipContent(info) {
-      return buildIndexInfoTooltipHTML(info, this.$t, state.user.locale);
+    registerSourceTooltipDismiss() {
+      this.unregisterSourceTooltipDismiss();
+      this.sourceTooltipDismissHandler = (e) => {
+        const target = e.target;
+        if (target instanceof Element && (
+          target.closest(".tooltip-info-icon") ||
+          target.closest(".floating-tooltip")
+        )) {
+          return;
+        }
+        this.hideTooltip();
+      };
+      // Defer so the same tap does not immediately dismiss the tooltip.
+      requestAnimationFrame(() => {
+        if (!this.sourceTooltipDismissHandler) {
+          return;
+        }
+        document.addEventListener("click", this.sourceTooltipDismissHandler, true);
+        document.addEventListener("touchstart", this.sourceTooltipDismissHandler, true);
+      });
+    },
+    unregisterSourceTooltipDismiss() {
+      if (!this.sourceTooltipDismissHandler) {
+        return;
+      }
+      document.removeEventListener("click", this.sourceTooltipDismissHandler, true);
+      document.removeEventListener("touchstart", this.sourceTooltipDismissHandler, true);
+      this.sourceTooltipDismissHandler = null;
     },
     async showEditShareHover() {
       if (!this.canEdit) {
@@ -606,7 +684,7 @@ export default {
       this.navigateToSource(sourceName);
     },
     navigateToSource(sourceName) {
-      goToItem(sourceName, '/', {});
+      goToItem(sourceName, '/', {}, false, false);
     },
     closeDropdown(event) {
       if (!this.showSourceDropdown) return;

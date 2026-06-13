@@ -45,11 +45,19 @@
       </div>
     </div>
     <div class="card-actions">
-      <button @click="closeTopPrompt" class="button button--flat button--grey" :aria-label="$t('general.cancel')"
+      <button
+        type="button"
+        @click="closeTopPrompt"
+        class="button button--flat button--grey"
+        :aria-label="$t('general.cancel')"
         :title="$t('general.cancel')">
         {{ $t("general.cancel") }}
       </button>
-      <button @click="submit" class="button button--flat button--red" aria-label="Confirm-Delete"
+      <button
+        type="button"
+        @click="submit"
+        class="button button--flat button--red"
+        aria-label="Confirm-Delete"
         :title="$t('general.delete')">
         {{ $t("general.delete") }}
       </button>
@@ -104,11 +112,11 @@ export default {
       }
 
       // Otherwise, compute from state (backward compatibility)
-      let items = [];
+      const items = [];
 
-      if (state.isSearchActive || getters.currentView() == "preview") {
+      if (state.isSearchActive || getters.currentView() === "preview") {
         const selected = state.selected[0];
-        const item = state.req.items?.[selected] || selected;
+        const item = state.req.items?.at(selected) || selected;
         const previewUrl = this.getPreviewUrl(item.source || state.req.source, item.path, item.modified, item.type);
         items.push({
           source: item.source || state.req.source,
@@ -120,7 +128,7 @@ export default {
           hasPreview: item.hasPreview,
         });
       } else if (!this.isListing) {
-        const item = state.req.items[state.selected[0]];
+        const item = state.req.items.at(state.selected[0]);
         const previewUrl = this.getPreviewUrl(item.source || state.req.source, item.path, item.modified, item.type);
         items.push({
           source: item.source || state.req.source,
@@ -132,8 +140,8 @@ export default {
           hasPreview: item.hasPreview,
         });
       } else {
-        for (let index of state.selected) {
-          const item = state.req.items[index];
+        for (const index of state.selected) {
+          const item = state.req.items.at(index);
           const previewUrl = this.getPreviewUrl(item.source || state.req.source, item.path, item.modified, item.type);
           items.push({
             source: item.source || state.req.source,
@@ -198,7 +206,7 @@ export default {
 
       try {
         return resourcesApi.getPreviewURL(source, path, modified);
-      } catch (e) {
+      } catch (_e) {
         return null;
       }
     },
@@ -264,13 +272,13 @@ export default {
               mutations.setNavigationTransitioning(true);
               // Try next, then previous, then parent directory
               if (state.navigation.nextItem) {
-                url.goToItem(state.navigation.nextItem.source, state.navigation.nextItem.path, undefined);
+                url.goToItem(state.navigation.nextItem.source, state.navigation.nextItem.path, undefined, false, getters.isShare());
               } else if (state.navigation.previousItem) {
-                url.goToItem(state.navigation.previousItem.source, state.navigation.previousItem.path, undefined);
+                url.goToItem(state.navigation.previousItem.source, state.navigation.previousItem.path, undefined, false, getters.isShare());
               } else {
                 // Navigate to parent directory of deleted item
                 const parentPath = url.removeLastDir(deletedItem.path);
-                url.goToItem(deletedItem.source, parentPath, {});
+                url.goToItem(deletedItem.source, parentPath, {}, false, getters.isShare());
               }
             } else {
               mutations.setReload(true);
@@ -281,7 +289,7 @@ export default {
               const deletedItem = this.itemsToDelete[0];
               if (deletedItem.type === 'directory' && deletedItem.path === state.req.path) {
                 const parentPath = url.removeLastDir(deletedItem.path);
-                url.goToItem(deletedItem.source, parentPath, {});
+                url.goToItem(deletedItem.source, parentPath, {}, false, getters.isShare());
                 this.deleting = false;
                 return; // return early to avoid extra reload (and 404)
               }

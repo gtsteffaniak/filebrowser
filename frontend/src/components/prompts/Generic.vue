@@ -2,6 +2,7 @@
   <div class="card-content" v-html="body"></div>
   <div class="card-actions">
     <button
+      type="button"
       v-for="(button, index) in displayButtons"
       :key="index"
       :class="getButtonClass(button)"

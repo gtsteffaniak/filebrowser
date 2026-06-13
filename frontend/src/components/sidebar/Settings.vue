@@ -5,10 +5,10 @@
       {{ $t("general.exit") }}
     </span>
   </div>
-  <div v-for="setting in settings" :key="setting.id + '-sidebar'" :id="setting.id + '-sidebar'" class="card item clickable settings-card"
-    @click="setView(setting.id + '-main')" :class="{
+  <div v-for="setting in settings" :key="`${setting.id}-sidebar`" :id="`${setting.id}-sidebar`" class="card item clickable settings-card"
+    @click="setView(`${setting.id}-main`)" :class="{
       hidden: !shouldShow(setting),
-      'active-settings': active(setting.id + '-main'),
+      'active-settings': active(`${setting.id}-main`),
     }">
     <span v-if="shouldShow(setting)" class="settings-item-content">
       <span class="material-symbols-outlined settings-icon">{{ setting.icon }}</span>
@@ -19,6 +19,7 @@
 
 <script>
 import { state, getters, mutations } from "@/store";
+import { getObjectProperty } from '@/utils/object.js';
 import { settings } from "@/utils/constants";
 import { router } from "@/router";
 
@@ -40,14 +41,14 @@ export default {
     shouldShow(setting) {
       const perm = setting?.permissions || {};
       // Check if all keys in setting.perm exist in state.user.perm and have truthy values
-      return Object.keys(perm).every((key) => state.user.permissions[key]);
+      return Object.keys(perm).every((key) => getObjectProperty(state.user.permissions, key));
     },
     active: (view) => state.activeSettingsView === view,
     setView(view) {
       mutations.closeHovers();
       mutations.closeTopPrompt();
-      if (state.route.path != "/settings") {
-        router.push({ path: "/settings", hash: "#" + view }, () => {});
+      if (state.route.path !== "/settings") {
+        void router.push({ path: "/settings", hash: `#${view}` }, () => {});
       } else {
         mutations.setActiveSettingsView(view);
       }

@@ -1,4 +1,6 @@
-import { Browser, firefox, expect, Page,  } from "@playwright/test";
+import type { Browser, Page } from "@playwright/test";
+import { expect, firefox } from "@playwright/test";
+import { createShareAndGetHash, openContextMenuHelper } from "./test-setup";
 
 // Perform authentication and store auth state
 async function globalSetup() {
@@ -8,25 +10,18 @@ async function globalSetup() {
 
   // Set basic auth credentials for protected /subpath route
   await page.setExtraHTTPHeaders({
-    'Authorization': `Basic ZGVtby0xMjcuMC4wLjE6U2VjdXJlUGFzczEyMyE=`
+    Authorization: "Basic ZGVtby0xMjcuMC4wLjE6U2VjdXJlUGFzczEyMyE=",
   });
 
   await page.goto("http://127.0.0.1/subpath/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - demo-127.0.0.1");
 
-  // Create a share of folder
-  await page.locator('button[aria-label="File-Actions"]').waitFor({ state: 'visible' });
-  await page.locator('button[aria-label="File-Actions"]').click();
-  await page.locator('button[aria-label="Share"]').click();
-  await page.locator('button[aria-label="Share-Confirm"]').click();
-  await expect(page.locator("div[aria-label='share-prompt'] .card-content table tbody tr:not(:has(th))")).toHaveCount(1);
-  const shareHash = await page.locator("div[aria-label='share-prompt'] .card-content table tbody tr:not(:has(th)) td").first().textContent();
-  if (!shareHash) {
-    throw new Error("Failed to retrieve shareHash");
-  }
-  // Store shareHash in localStorage
+  const shareHash = await createShareAndGetHash(page, "Path: /", async () => {
+    await openContextMenuHelper(page);
+    await page.locator('button[aria-label="Share"]').click();
+  });
   await page.evaluate((hash) => {
-    localStorage.setItem('shareHash', hash);
+    localStorage.setItem("shareHash", hash);
   }, shareHash);
 
   await context.storageState({ path: "./loginAuth.json" });

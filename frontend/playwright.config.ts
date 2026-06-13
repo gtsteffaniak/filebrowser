@@ -40,8 +40,23 @@ export default defineConfig({
   /* Configure projects for major browsers */
   projects: [
     {
-      name: "firefox",
-      use: { ...devices["Desktop Firefox"] },
+      name: "dark-screenshots",
+      use: {
+        ...devices["Desktop Chrome"],
+        theme: 'dark',
+      },
+      /* Include every spec under testDir (prompts.spec.ts, settings-screenshots, etc.) */
+      testMatch: /\.spec\.ts$/,
+      retries: 0,
+    },
+    {
+      name: "light-screenshots",
+      use: {
+        ...devices["Desktop Chrome"],
+        theme: 'light',
+      },
+      testMatch: /\.spec\.ts$/,
+      retries: 0,
     },
   ],
 });

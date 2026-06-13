@@ -1,7 +1,6 @@
+import { expect, test } from "../test-setup";
 
-import { test, expect } from "../test-setup";
-
-test("navigate with hash in file name", async({ page, checkForErrors, context }) => {
+test("navigate with hash in file name", async({ page, checkForErrors }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await page.locator('a[aria-label="folder#hash"]').waitFor({ state: 'visible' });
@@ -14,11 +13,10 @@ test("navigate with hash in file name", async({ page, checkForErrors, context })
   checkForErrors()
 })
 
-test("breadcrumbs navigation checks", async({ page, checkForErrors, context }) => {
+test("breadcrumbs navigation checks", async({ page, checkForErrors }) => {
   await page.goto("/files/playwright%20+%20files/myfolder");
   await page.waitForSelector('#breadcrumbs');
   let spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();
-  spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();
   expect(spanChildrenCount).toBe(1);
   let breadCrumbLink = page.locator('a[aria-label="breadcrumb-link-myfolder"]')
   await expect(breadCrumbLink).toHaveText("myfolder");
@@ -39,7 +37,7 @@ test("breadcrumbs navigation checks", async({ page, checkForErrors, context }) =
   checkForErrors();
 });
 
-test("navigate from search item", async({ page, checkForErrors, context }) => {
+test("navigate from search item", async({ page, checkForErrors }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await page.locator('#search-bar-input').click()
@@ -51,7 +49,7 @@ test("navigate from search item", async({ page, checkForErrors, context }) => {
   checkForErrors()
 });
 
-test("use quick jump", async({ page, checkForErrors, context }) => {
+test("use quick jump", async({ page, checkForErrors }) => {
   await page.goto("/files/playwright%20%2B%20files/myfolder/testdata/gray-sample.jpg");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - gray-sample.jpg");
 
@@ -59,9 +57,9 @@ test("use quick jump", async({ page, checkForErrors, context }) => {
   const nextButton = page.locator('button[aria-label="Next"]');
   await nextButton.waitFor({ state: "visible" });
   const box = await nextButton.boundingBox();
-  expect(box).toBeTruthy();
-  const startX = box!.x + box!.width / 2;
-  const startY = box!.y + box!.height / 2;
+  if (!box) throw new Error("Could not get bounding box of Next button");
+  const startX = box.x + box.width / 2;
+  const startY = box.y + box.height / 2;
   await page.mouse.move(startX, startY);
   await page.mouse.down();
   await page.mouse.move(startX - 200, startY);

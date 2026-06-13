@@ -111,6 +111,9 @@ type FrontendUser struct {
 	Perm            Permissions     `json:"perm,omitzero"`
 }
 
+// PinnedItems maps source filesystem path -> index directory path -> pinned item names.
+type PinnedItems map[string]map[string][]string
+
 // User is the persisted user: profile/settings in user_data, plus BackendScopes for source access.
 type User struct {
 	FrontendUser
@@ -123,6 +126,7 @@ type User struct {
 	TOTPSecret         string               `json:"totpSecret,omitempty"`
 	TOTPNonce          string               `json:"totpNonce,omitempty"`
 	PasskeyCredentials []WebAuthnCredential `json:"passkeyCredentials,omitempty"`
+	PinnedItems        PinnedItems          `json:"pinnedItems,omitempty"`
 	Version            int                  `json:"version"`
 }
 
