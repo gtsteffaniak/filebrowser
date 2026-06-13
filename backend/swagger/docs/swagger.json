@@ -6899,7 +6899,8 @@
                         "$ref": "#/definitions/users.SidebarLink"
                     }
                 },
-                "sourceName": {
+                "source": {
+                    "description": "source display name for API; backend path is Share.SourcePath",
                     "type": "string"
                 },
                 "sourcePath": {
@@ -7075,7 +7076,8 @@
                         "$ref": "#/definitions/users.SidebarLink"
                     }
                 },
-                "sourceName": {
+                "source": {
+                    "description": "source display name for API; backend path is Share.SourcePath",
                     "type": "string"
                 },
                 "sourceURL": {
@@ -7236,7 +7238,8 @@
                         "$ref": "#/definitions/users.SidebarLink"
                     }
                 },
-                "sourceName": {
+                "source": {
+                    "description": "source display name for API; backend path is Share.SourcePath",
                     "type": "string"
                 },
                 "sourceURL": {

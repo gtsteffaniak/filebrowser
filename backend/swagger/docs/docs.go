@@ -6910,7 +6910,8 @@ const docTemplate = `{
                         "$ref": "#/definitions/users.SidebarLink"
                     }
                 },
-                "sourceName": {
+                "source": {
+                    "description": "source display name for API; backend path is Share.SourcePath",
                     "type": "string"
                 },
                 "sourcePath": {
@@ -7086,7 +7087,8 @@ const docTemplate = `{
                         "$ref": "#/definitions/users.SidebarLink"
                     }
                 },
-                "sourceName": {
+                "source": {
+                    "description": "source display name for API; backend path is Share.SourcePath",
                     "type": "string"
                 },
                 "sourceURL": {
@@ -7247,7 +7249,8 @@ const docTemplate = `{
                         "$ref": "#/definitions/users.SidebarLink"
                     }
                 },
-                "sourceName": {
+                "source": {
+                    "description": "source display name for API; backend path is Share.SourcePath",
                     "type": "string"
                 },
                 "sourceURL": {
