@@ -20,7 +20,7 @@ export async function getAllUsers() {
 // GET /public/api/users?username= (single user by login name)
 export async function get(username) {
   try {
-    let apiPath = getPublicApiPath('users', { username })
+    const apiPath = getPublicApiPath('users', { username })
     return await fetchJSON(apiPath)
   } catch (err) {
     notify.showError(err.message || `Failed to fetch user: ${username}`)
@@ -44,8 +44,7 @@ export async function create(user, options = {}) {
     state.user?.loginMethod === 'password' &&
     options.skipActorPasswordConfirm !== true &&
     mergedHeaders['X-Password'] === undefined &&
-    err &&
-    err.status === 401 &&
+    err?.status === 401 &&
     typeof err.message === 'string' &&
     err.message.includes('X-Password')
 
@@ -126,8 +125,7 @@ export async function update(user, which = ['all'], options = {}) {
     state.user?.loginMethod === 'password' &&
     options.skipActorPasswordConfirm !== true &&
     mergedHeaders['X-Password'] === undefined &&
-    err &&
-    err.status === 401 &&
+    err?.status === 401 &&
     typeof err.message === 'string' &&
     err.message.includes('X-Password')
 
@@ -170,6 +168,16 @@ export async function update(user, which = ['all'], options = {}) {
   }
 }
 
+// PATCH /api/users/pinnedItems (add by default; ?action=remove to unpin)
+export async function patchPinnedItem({ source, path, name, action = 'add' }) {
+  const params = { action }
+  const apiPath = getApiPath('users/pinnedItems', params)
+  await fetchURL(apiPath, {
+    method: 'PATCH',
+    body: JSON.stringify({ source, path, name }),
+  })
+}
+
 // DELETE /api/users (remove user)
 // Password-login: tries without X-Password first; on 401 requiring X-Password, opens the prompt and retries.
 // options.skipActorPasswordConfirm / pre-set X-Password skip that flow.
@@ -182,8 +190,7 @@ export async function deleteUser(username, options = {}) {
     state.user?.loginMethod === 'password' &&
     options.skipActorPasswordConfirm !== true &&
     mergedHeaders['X-Password'] === undefined &&
-    err &&
-    err.status === 401 &&
+    err?.status === 401 &&
     typeof err.message === 'string' &&
     err.message.includes('X-Password')
 

@@ -1,14 +1,21 @@
-import * as i18n from '@/i18n'
-import { state, mutations } from '@/store'
-import { url } from '@/utils'
-import { globalVars, previewViews, tools } from '@/utils/constants'
-import { getFileExtension } from '@/utils/files.js'
-import { getTypeInfo } from '@/utils/mimetype'
-import { fromNow } from '@/utils/moment'
-import { getObjectProperty } from '@/utils/object.js'
-import { buildItemUrl, removeLeadingSlash, removePrefix } from '@/utils/url.js'
+import * as i18n from '@/i18n';
+import { mutations, state } from '@/store';
+import { url } from '@/utils';
+import { globalVars, previewViews, tools } from '@/utils/constants';
+import { getFileExtension } from '@/utils/files.js';
+import { getTypeInfo, isRichTextPreviewMimeType } from '@/utils/mimetype';
+import { fromNow } from '@/utils/moment';
+import { getNestedProperty, getObjectProperty } from '@/utils/object.js';
+import { buildItemUrl, removeLeadingSlash, removePrefix } from '@/utils/url.js';
 
 export const getters = {
+  displayPreferenceFor: (source, path) => {
+    const sourceKey = getters.isShare() ? getters.currentHash() : source;
+    if (!sourceKey || !path) {
+      return null;
+    }
+    return getNestedProperty(state.displayPreferences, sourceKey, path) || null;
+  },
   eventTheme: () => {
     if (getters.isShare()) {
       return "";
@@ -42,7 +49,7 @@ export const getters = {
     return previewViews.includes(cv)
   },
   isScrollable: () => {
-    if (getters.currentView() == 'markdownViewer') {
+    if (getters.currentView() === 'markdownViewer') {
       return true
     }
     if (getters.isPreviewView()) {
@@ -57,17 +64,14 @@ export const getters = {
     }
     let path = state.route.path;
 
-    if (state.req.type != "directory") {
+    if (state.req.type !== "directory") {
       path = path.substring(0, path.lastIndexOf("/") + 1) || "/";
     }
   
-    if (state.displayPreferences?.[source]?.[path]) {
-      return state.displayPreferences[source][path];
-    }
-    return null;
+    return getters.displayPreferenceFor(source, path);
   },
   viewMode: () => {
-    if (!state.user || state.user?.username == "") {
+    if (!state.user || state.user?.username === "") {
       return "normal";
     }
     const isShare = getters.isShare();
@@ -133,25 +137,25 @@ export const getters = {
   isLoading: () => Object.keys(state.loading).length > 0,
   isSettings: () => getters.currentView() === 'settings',
   isDarkMode: () => {
-    if (state.shareInfo?.enforceDarkLightMode == "dark") {
+    if (state.shareInfo?.enforceDarkLightMode === "dark") {
       return true
     }
-    if (state.shareInfo?.enforceDarkLightMode == "light") {
+    if (state.shareInfo?.enforceDarkLightMode === "light") {
       return false
     }
-    if (!getters.isShare() && getters.eventTheme() == "halloween") {
+    if (!getters.isShare() && getters.eventTheme() === "halloween") {
       return true
     }
-    if (state.user == null) {
+    if (state.user === null) {
       return true
     }
     return state.user.darkMode === true
   },
   isLoggedIn: () => {
-    if (state.user == null) {
+    if (state.user === null) {
       return false
     }
-    if (state.user.locale == undefined || state.user.locale == null) {
+    if (state.user.locale === undefined || state.user.locale === null) {
       let savedLocale = localStorage.getItem('userLocale')
       if (!savedLocale) {
         savedLocale = i18n.detectLocale()
@@ -163,22 +167,22 @@ export const getters = {
     }
     if (
       state.user !== null &&
-      state.user?.username != '' &&
-      state.user?.username != 'anonymous'
+      state.user?.username !== '' &&
+      state.user?.username !== 'anonymous'
     ) {
       return true
     }
     return false
   },
-  isAdmin: () => state.user.permissions?.admin == true,
+  isAdmin: () => state.user.permissions?.admin === true,
   isFiles: () => state.route.path.startsWith('/files'),
   isListing: () => getters.isFiles() || (getters.isShare() && state.req.type === 'directory'),
   selectedCount: () =>
     Array.isArray(state.selected) ? state.selected.length : 0,
-  getFirstSelected: () => typeof(state.selected[0]) == 'number' ? state.req.items[state.selected[0]] : state.selected[0],
+  getFirstSelected: () => typeof(state.selected[0]) === 'number' ? state.req.items[state.selected[0]] : state.selected[0],
   isSingleFileSelected: () =>
     getters.selectedCount() === 1 &&
-    getters.getFirstSelected()?.type != 'directory',
+    getters.getFirstSelected()?.type !== 'directory',
   selectedDownloadUrl () {
     if (state.isSearchActive) {
       return buildItemUrl(state.selected[0].source, state.selected[0].path)
@@ -192,7 +196,7 @@ export const getters = {
     }
     state.req.items.forEach(item => {
       // Check if the item is a directory
-      if (item.type == 'directory') {
+      if (item.type === 'directory') {
         // Otherwise, count this directory
         dirCount++
       }
@@ -207,7 +211,7 @@ export const getters = {
     }
     state.req.items.forEach(item => {
       // Check if the item is a directory
-      if (item.type != 'directory') {
+      if (item.type !== 'directory') {
         // Otherwise, count this directory
         fileCount++
       }
@@ -230,6 +234,7 @@ export const getters = {
       if (item.type === 'directory') {
         dirs.push(item);
       } else {
+        item.Path = state.req.path;
         files.push(item);
       }
     }
@@ -240,7 +245,7 @@ export const getters = {
       return false
     }
     const cv = getters.currentView()
-    if (cv == 'onlyOfficeEditor') {
+    if (cv === 'onlyOfficeEditor') {
       return false
     }
     let visible = (state.showSidebar || getters.isStickySidebar())
@@ -260,10 +265,10 @@ export const getters = {
   isStickySidebar: () => {
     let sticky = state.user?.stickySidebar
     const currentView = getters.currentView()
-    if (currentView == 'settings') {
+    if (currentView === 'settings') {
       sticky = true
     }
-    if (currentView == '' && !getters.isLoading()) {
+    if (currentView === '' && !getters.isLoading()) {
       sticky = true
     }
     if (getters.isMobile()) {
@@ -279,7 +284,7 @@ export const getters = {
     return hasPrompt || showForSidebar || state.isSearchActive
   },
   showBreadCrumbs: () => {
-    return getters.currentView() == 'listingView'
+    return getters.currentView() === 'listingView'
   },
   routePath: (trimModifier = '') => {
     return removePrefix(state.route.path, trimModifier)
@@ -288,7 +293,7 @@ export const getters = {
     if (!state.route.path.startsWith('/public/share')) {
       return ""
     }
-    let urlPath = getters.routePath('/public/share')
+    const urlPath = getters.routePath('/public/share')
     const urlPathParts = urlPath.split('/')
     if (urlPathParts.length < 1) {
       return ""
@@ -296,42 +301,42 @@ export const getters = {
     return urlPathParts[1]
   },
   sharePathBase: () => {
-    return '/public/share/' + getters.shareHash() + '/'
+    return `/public/share/${getters.shareHash()}/`
   },
   getSharePath: (subPath = "") => {
     if (!state.route.path.startsWith('/public/share')) {
       return ""
     }
     let urlPath = getters.routePath('/public/share')
-    if (urlPath == "/" || urlPath == "") {
+    if (urlPath === "/" || urlPath === "") {
       return "";
     }
     // remove hash from path and decode each part
-    let parts = urlPath.split('/').slice(2);
+    const parts = urlPath.split('/').slice(2);
     urlPath = parts.map(part => decodeURIComponent(part)).join('/')
-    if (subPath != "") {
+    if (subPath !== "") {
       urlPath = url.joinPath(urlPath, removeLeadingSlash(subPath))
     }
     return urlPath
   },
   isShare: () => {
-    return getters.shareHash() != ""
+    return getters.shareHash() !== ""
   },
   currentView: () => {
     if (state.navigation.isTransitioning) return 'loading';
     const pathname = getters.routePath();
-    if (!state.user || state.user?.username == "") return 'login';
+    if (!state.user || state.user?.username === "") return 'login';
     if (pathname.startsWith(`/settings`)) return 'settings';
     if (pathname.startsWith(`/tools`)) return 'tools';
 
     if (state.req.type !== undefined) {
-      const ext = "." + state.req.name.split(".").pop().toLowerCase();
+      const ext = `.${state.req.name.split(".").pop().toLowerCase()}`;
       if (state.user.disableViewingExt?.includes(ext)) return 'preview';
-      if (state.req.type == 'directory') return 'listingView';
+      if (state.req.type === 'directory') return 'listingView';
       if (state.req.onlyOfficeId && !getters.officeViewingDisabled(state.req.name)) return 'onlyOfficeEditor';
       if (getTypeInfo(state.req.type).simpleType === '3d-model') return 'threeJsViewer';
 
-      if ('content' in state.req && state.req.type === 'text/markdown') {
+      if ('content' in state.req && isRichTextPreviewMimeType(state.req.type)) {
         const hash = window.location.hash;
         const preferEditor = state.user.preferEditorForMarkdown;
 
@@ -366,10 +371,10 @@ export const getters = {
     }
 
     // Calculate totalSize
-    let totalSize = state.upload.sizes.reduce((a, b) => a + b, 0)
+    const totalSize = state.upload.sizes.reduce((a, b) => a + b, 0)
 
     // Calculate sum of progress
-    let sum = state.upload.progress.reduce((acc, val) => acc + val, 0)
+    const sum = state.upload.progress.reduce((acc, val) => acc + val, 0)
 
     // Return progress as a percentage
     return Math.ceil((sum / totalSize) * 100)
@@ -438,7 +443,7 @@ export const getters = {
   },
   fileViewingDisabled: filename => {
     if (getters.isShare()) {
-      if (state.shareInfo?.disableFileViewer || state.shareInfo?.shareType == "upload" || state.shareInfo?.disableDownload) {
+      if (state.shareInfo?.disableFileViewer || state.shareInfo?.shareType === "upload" || state.shareInfo?.disableDownload) {
         return true
       }
     } else {
@@ -446,9 +451,9 @@ export const getters = {
         return true
       }
     }
-    const ext = ' ' + getFileExtension(filename)
+    const ext = ` ${getFileExtension(filename)}`;
     if (state.user.disableViewingExt) {
-      const disabledExts = ' ' + state.user.disableViewingExt.toLowerCase()
+      const disabledExts = ` ${state.user.disableViewingExt.toLowerCase()}`;
       if (disabledExts.includes(ext.toLowerCase())) {
         return true
       }
@@ -456,13 +461,13 @@ export const getters = {
     return false
   },
   officeViewingDisabled: filename => {
-    const ext = ' ' + getFileExtension(filename)
+    const ext = ` ${getFileExtension(filename)}`;
     const disabledList = state.user.disableOnlyOfficeExt || ''
     if (disabledList === '*') {
       return true
     }
     if (disabledList !== '') {
-      const disabledExts = ' ' + disabledList.toLowerCase()
+      const disabledExts = ` ${disabledList.toLowerCase()}`;
       if (disabledExts.includes(ext.toLowerCase())) {
         return true
       }
@@ -520,13 +525,13 @@ export const getters = {
     const cv = getters.currentView()
     const isSidebarVisible = getters.isSidebarVisible()
     if (isSidebarVisible) {
-      if (cv == "tools") {
+      if (cv === "tools") {
         if (state.user.stickySidebar) {
           return "menu";
         }
         return "back";
       }
-      if (cv == "settings") {
+      if (cv === "settings") {
         if (state.isMobile) {
           return "back";
         }
@@ -543,31 +548,27 @@ export const getters = {
       }
       return "close";
     }
-    if (cv == "tools") {
+    if (cv === "tools") {
       return "menu";
     }
     if (state.shareInfo?.singleFileShare) {
       return "menu";
     }
-    if (cv == "settings") {
+    if (cv === "settings") {
       if (state.isMobile) {
         return "menu";
       }
     }
-    if (cv == "listingView") {
-      return "menu";
-    }
-    if (cv == "listingView") {
-
+    if (cv === "listingView") {
       return "menu";
     }
     return "close";
   },
   isInvalidShare: () => {
-    return getters.shareHash() != "" && state.shareInfo.hash == "" && globalVars.shareHash == "";
+    return getters.shareHash() !== "" && state.shareInfo.hash === "" && globalVars.shareHash === "";
   },
   isValidShare: () => {
-    return getters.shareHash() != "" && (state.shareInfo.hash != "" || globalVars.shareHash != "");
+    return getters.shareHash() !== "" && (state.shareInfo.hash !== "" || globalVars.shareHash !== "");
   },
   currentTool: () => {
     if (getters.currentView() !== "tools") {

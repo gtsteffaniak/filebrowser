@@ -28,24 +28,24 @@ export const mutations = {
     emitStateChanged();
   },
   setPreviousHistoryItem: (value) => {
-    if (value == state.previousHistoryItem) {
+    if (value === state.previousHistoryItem) {
       return;
     }
-    if (value != null) {
+    if (value !== null) {
       value.isShare = getters.isShare();
     }
     state.previousHistoryItem = value;
     emitStateChanged();
   },
   setContextMenuHasItems: (value) => {
-    if (value == state.contextMenuHasItems) {
+    if (value === state.contextMenuHasItems) {
       return;
     }
     state.contextMenuHasItems = value;
     emitStateChanged();
   },
   setEditorDirty: (value) => {
-    if (value == state.editorDirty) {
+    if (value === state.editorDirty) {
       return;
     }
     state.editorDirty = value;
@@ -67,14 +67,14 @@ export const mutations = {
     emitStateChanged();
   },
   setDeletedItem: (value) => {
-    if (value == state.deletedItem) {
+    if (value === state.deletedItem) {
       return;
     }
     state.deletedItem = value;
     emitStateChanged();
   },
   setSeenUpdate: (value) => {
-    if (value == state.seenUpdate) {
+    if (value === state.seenUpdate) {
       return;
     }
     state.seenUpdate = value
@@ -93,21 +93,25 @@ export const mutations = {
       return;
     }
     if (value) {
-      state.popupPreviewSourceInfo = { ...state.popupPreviewSourceInfo, url: value };
+      state.popupPreviewSourceInfo = {
+        ...state.popupPreviewSourceInfo,
+        url: value,
+        size: "xlarge",
+      };
     } else {
       state.popupPreviewSourceInfo = null;
     }
     emitStateChanged();
   },
   updateListing: (value) => {
-    if (value == state.listing) {
+    if (value === state.listing) {
       return;
     }
     state.listing = value;
     emitStateChanged();
   },
   setCurrentSource: (value) => {
-    if (value == state.sources.current) {
+    if (value === state.sources.current) {
       return;
     }
     state.sources.current = value;
@@ -120,7 +124,7 @@ export const mutations = {
     emitStateChanged();
   },
   updateSourceInfo: (value) => {
-    if (value == "error") {
+    if (value === "error") {
       state.realtimeActive = false;
       let info = state.sources.info;
       for (const k of Object.keys(info)) {
@@ -163,7 +167,7 @@ export const mutations = {
     emitStateChanged();
   },
   setRealtimeActive: (value) => {
-    if ( value == false ) {
+    if ( value === false ) {
       state.realtimeDownCount = state.realtimeDownCount + 1;
     } else {
       state.realtimeDownCount = 0;
@@ -189,12 +193,12 @@ export const mutations = {
     ) {
       currentSource = state.sources.current;
     }
-    let sources = {info: {}, current: currentSource, count: user.scopes.length};
+    const sources = {info: {}, current: currentSource, count: user.scopes.length};
     for (const source of user.scopes) {
       const prev = prevInfo[source.name];
       const merge = Boolean(prev);
       sources.info[source.name] = {
-        pathPrefix: sources.count == 1 ? "" : encodeURIComponent(source.name),
+        pathPrefix: sources.count === 1 ? "" : encodeURIComponent(source.name),
         used: merge ? prev.used : 0,
         total: merge ? prev.total : 0,
         usedAlt: merge ? prev.usedAlt : 0,
@@ -208,6 +212,8 @@ export const mutations = {
         fullScanDurationSeconds: merge ? prev.fullScanDurationSeconds : 0,
         complexity: merge ? prev.complexity : 0,
         scanners: merge && prev.scanners ? [...prev.scanners] : [],
+        readOnly: merge ? prev.readOnly : false,
+        private: merge ? prev.private : false,
       };
     }
     // Sidebar usage bar uses hasSourceInfo + per-source used/total; must survive object replace
@@ -231,7 +237,7 @@ export const mutations = {
     emitStateChanged();
   },
   setGallerySize: (value) => {
-    if (value == state.user.gallerySize) {
+    if (value === state.user.gallerySize) {
       return;
     }
     state.user.gallerySize = value
@@ -243,12 +249,12 @@ export const mutations = {
     emitStateChanged();
   },
   setActiveSettingsView: (value) => {
-    if (value == state.activeSettingsView) {
+    if (value === state.activeSettingsView) {
       return;
     }
     state.activeSettingsView = value;
     // Update the hash in the URL without reloading or changing history state
-    window.history.replaceState(null, "", "#" + value);
+    window.history.replaceState(null, "", `#${value}`);
     const container = document.getElementById("main");
     const element = document.getElementById(value);
     if (container && element) {
@@ -387,7 +393,7 @@ export const mutations = {
     emitStateChanged();
   },
   setReload: (value) => {
-    if (value == state.reload) {
+    if (value === state.reload) {
       return;
     }
     state.reload = value;
@@ -406,7 +412,7 @@ export const mutations = {
       }
       // Ensure locale exists and is valid
       if (!value.locale) {
-        value.locale = i18n.detectLocale();  // Default to detected locale if missing
+        value.locale = i18n.detectLocale();
       } else {
         await i18n.setLocale(value.locale);
       }
@@ -443,7 +449,7 @@ export const mutations = {
       const isAnonymous = state.user.username === 'anonymous';
       const encoded = !isAnonymous ? url.base64Encode(state.user.username) : '';
       let viewMode = (!isAnonymous && localStorage.getItem(`ViewMode_${encoded}`)) || state.user.viewMode || 'normal';
-      let gallerySize = (!isAnonymous && parseInt(localStorage.getItem(`GallerySize_${encoded}`))) || state.user.gallerySize || 3;
+      let gallerySize = (!isAnonymous && parseInt(localStorage.getItem(`GallerySize_${encoded}`), 10)) || state.user.gallerySize || 3;
       gallerySize = Math.min(9, Math.max(1, gallerySize)); // ensure 1–9 since this is the slider min and max size
 
       // Normalize to use the view families too
@@ -466,7 +472,7 @@ export const mutations = {
       const allPreferences = JSON.parse(localStorage.getItem("displayPreferences") || "{}");
       state.displayPreferences = allPreferences[state.user.username] || {};
 
-    } catch (error) {
+    } catch (_error) {
       // Silently ignore errors when loading preferences
     }
     emitStateChanged();
@@ -499,14 +505,14 @@ export const mutations = {
     emitStateChanged();
   },
   setSession: (value) => {
-    if (value == state.sessionId) {
+    if (value === state.sessionId) {
       return;
     }
     state.sessionId = value;
     emitStateChanged();
   },
   setMultiple: (value) => {
-    if (value == state.multiple) return;
+    if (value === state.multiple) return;
     state.multiple = value;
     if (value) {
       notify.showMultipleSelection();
@@ -520,7 +526,7 @@ export const mutations = {
     emitStateChanged();
   },
   removeSelected: (value) => {
-    let i = state.selected.indexOf(value);
+    const i = state.selected.indexOf(value);
     if (i === -1) return;
     state.selected.splice(i, 1);
     emitStateChanged();
@@ -531,13 +537,13 @@ export const mutations = {
     emitStateChanged();
   },
   selectAllItems: (options = { multiple: true }) => {
-    if (state.req && state.req.items && state.req.items.length > 0) {
+    if (state.req?.items?.length > 0) {
       // Close hovers
       mutations.closeHovers();
       // Clear current selection first
       mutations.resetSelected();
       // Add all items from current directory to selection by their indices
-      state.req.items.forEach((item, index) => {
+      state.req.items.forEach((_item, index) => {
         mutations.addSelected(index);
       });
       if (options.multiple) {
@@ -634,18 +640,13 @@ export const mutations = {
     // Separate directories and files
     const dirs = value.items.filter((item) => item.type === 'directory');
     const files = value.items.filter((item) => item.type !== 'directory');
-
     // Sort them separately
     const sortedDirs = sortedItems(dirs, sortby, asc);
     const sortedFiles = sortedItems(files, sortby, asc);
-
-    // Combine them and assign indices
     value.items = [...sortedDirs, ...sortedFiles];
-    value.items.map((item, index) => {
+    value.items.forEach((item, index) => {
       item.index = index;
-      return item;
-    })
-
+    });
     state.req = value;
     emitStateChanged();
   },
@@ -656,7 +657,7 @@ export const mutations = {
     }
     const byName = new Map();
     for (const e of metadataItems) {
-      if (e.metadata != null) {
+      if (e.metadata !== null) {
         byName.set(e.name, e.metadata);
       }
     }
@@ -742,7 +743,7 @@ export const mutations = {
     emitStateChanged();
   },
   setSearch: (value) => {
-    if (value == state.isSearchActive) {
+    if (value === state.isSearchActive) {
       return;
     }
     state.isSearchActive = value;
@@ -774,6 +775,11 @@ export const mutations = {
       return;
     }
     state.tooltip.show = false;
+    state.tooltip.content = "";
+    state.tooltip.component = null;
+    state.tooltip.componentProps = null;
+    state.tooltip.width = null;
+    state.tooltip.pointerEvents = false;
     emitStateChanged();
   },
   setMaxConcurrentUpload: (value) => {
@@ -863,8 +869,7 @@ export const mutations = {
     }
 
     // Find previous item (skip directories)
-    for (let j = state.navigation.currentIndex - 1; j >= 0; j--) {
-      let item = listing[j];
+    for (const item of listing.slice(0, state.navigation.currentIndex).reverse()) {
       if (item.type === 'directory') continue;
 
       item.path = url.joinPath(directoryPath, item.name);
@@ -878,8 +883,7 @@ export const mutations = {
     }
 
     // Find next item (skip directories)
-    for (let j = state.navigation.currentIndex + 1; j < listing.length; j++) {
-      let item = listing[j];
+    for (const item of listing.slice(state.navigation.currentIndex + 1)) {
       if (item.type === 'directory') continue;
 
       item.path = url.joinPath(directoryPath, item.name);
@@ -1076,7 +1080,7 @@ export const mutations = {
     // Ensure width is within bounds
     const minWidth = state.sidebar.minWidth;
     const maxWidth = state.sidebar.maxWidth;
-    let newWidth = Math.max(minWidth, Math.min(value, maxWidth));
+    const newWidth = Math.max(minWidth, Math.min(value, maxWidth));
     if (newWidth === state.sidebar.width) {
       return;
     }
