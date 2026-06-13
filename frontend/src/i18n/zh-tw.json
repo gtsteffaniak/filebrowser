@@ -29,7 +29,8 @@
     "goToItem": "前往項目",
     "copyPath": "複製路徑",
     "pinItem": "釘選",
-    "unpinItem": "取消釘選"
+    "unpinItem": "取消釘選",
+    "sendToApp": "傳送至應用程式"
   },
   "errors": {
     "forbidden": "沒有權限存取此內容。",
@@ -245,7 +246,9 @@
     "helpText2": "僅對檔案或資料夾名稱進行子串匹配（而非完整路徑）。\n\n 對於詞彙之間的 OR，使用管道符號；對於單一詞組，使用雙引號。\n\n啟用通配符搜尋以獲得更多進階選項。",
     "useWildcardSearch": "通配符搜尋 (區分大小寫)",
     "useWildcardSearchDescription": "支援的通配符選項：\n\n- 匹配任何序列：*\n\n- 匹配一個字元：?\n\n- 字元類別：[a-z]、[0-9]\n\n- 否定：[^0-9]\n\n- 字面 *、?或 [ 需要包在括弧中，例如 [*]、[?]、[[]\n\n- 所有結果都區分大小寫",
-    "openInAdvancedSearch": "在進階搜尋中開啟"
+    "openInAdvancedSearch": "在進階搜尋中開啟",
+    "caseExact": "區分大小寫的比對",
+    "caseExactDescription": "在比對檔案和資料夾名稱時，應嚴格區分大小寫，而非忽略大小寫差異。"
   },
   "settings": {
     "avoidChanges": "也勾選「變更密碼」以套用此密碼",
@@ -666,7 +669,9 @@
     "no": "沒有{suffix}",
     "to": "至{suffix}",
     "and": "以及{suffix}",
-    "or": "或{suffix}"
+    "or": "或{suffix}",
+    "camera": "相機{suffix}",
+    "video": "影片{suffix}"
   },
   "access": {
     "rules": "存取規則",
@@ -778,7 +783,6 @@
       "scopeAria": "限制搜尋至資料夾",
       "noTerms": "至少輸入一個搜尋字詞。",
       "termTooShort": "每個搜尋字詞必須至少為{minSearchLength} 字元",
-      "caseExact": "大小寫敏感匹配",
       "resultsTitle": "搜尋結果",
       "invalidSources": "開啟至少一個來源。",
       "noResults": "沒有匹配的檔案或資料夾。"
@@ -807,7 +811,18 @@
     "description": "檢視目前工作階段的所有通知",
     "empty": "尚未有通知",
     "clearAll": "全部清除",
-    "total": "{count} 則通知"
+    "appEnabled": "應用程式通知",
+    "appEnabledDescription": "當此分頁處於背景執行狀態時，若檔案操作完成，將顯示瀏覽器通知。需取得瀏覽器權限。僅儲存於此瀏覽器中。",
+    "appUnsupported": "此瀏覽器不支援應用程式通知。",
+    "permissionGranted": "允許",
+    "permissionDeniedHelp": "通知已被封鎖。請在瀏覽器設定中為此網站啟用通知功能。",
+    "uploadTitle": "上傳完成",
+    "downloadTitle": "下載完整版",
+    "moveTitle": "移動完成",
+    "copyTitle": "複製完成",
+    "uploadFailedTitle": "上傳失敗",
+    "downloadFailedTitle": "下載失敗",
+    "operationFailedTitle": "操作失敗"
   },
   "events": {
     "serverShutdown": "伺服器已關閉。",
@@ -860,5 +875,8 @@
     "documentDownload": "文件下載 - 完成",
     "editorSuccess": "編輯器初始化 - 成功！所有步驟完成。",
     "setupError": "設定錯誤"
+  },
+  "pwa": {
+    "install": "安裝應用程式"
   }
 }

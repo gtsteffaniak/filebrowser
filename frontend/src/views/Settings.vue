@@ -35,6 +35,8 @@ import ApiKeys from "@/views/settings/Api.vue";
 import SystemAdmin from "@/views/settings/SystemAdmin.vue";
 import NotificationsSettings from "@/views/settings/Notifications.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import { getObjectProperty } from '@/utils/object.js';
+
 export default {
   name: "settings",
   components: {
@@ -107,7 +109,7 @@ export default {
     shouldShow(setting) {
       const perm = setting?.permissions || {};
       const userPermissions = /** @type {Record<string, boolean>} */ (state.user.permissions || {});
-      return Object.keys(perm).every((key) => userPermissions[key]);
+      return Object.keys(perm).every((key) => getObjectProperty(userPermissions, key));
     },
     handleHashChange() {
       // Handle browser back/forward navigation

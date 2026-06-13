@@ -1,3 +1,4 @@
+/* eslint-disable security/detect-object-injection */
 // scripts/sync-translations.js
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';

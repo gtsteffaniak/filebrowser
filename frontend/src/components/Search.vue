@@ -85,6 +85,12 @@
                     :name="$t('search.useWildcardSearch')"
                     :description="$t('search.useWildcardSearchDescription')"
                   />
+                  <ToggleSwitch
+                    class="item"
+                    v-model="caseExactSearch"
+                    :name="$t('search.caseExact')"
+                    :description="$t('search.caseExactDescription')"
+                  />
                 </div>
               </div>
             </SettingsItem>
@@ -173,6 +179,7 @@ export default {
       isTypeSelectDisabled: false,
       showPreviewImages: false,
       useWildcardSearch: false,
+      caseExactSearch: false,
       folderSelect: [
         { label: this.$t("search.onlyFolders"), value: "type:folder" },
         { label: this.$t("search.onlyFiles"), value: "type:file" },
@@ -210,6 +217,9 @@ export default {
       this.submit();
     },
     useWildcardSearch() {
+      this.submit();
+    },
+    caseExactSearch() {
       this.submit();
     },
     searchTypes() {
@@ -281,7 +291,7 @@ export default {
       return getters.eventTheme();
     },
     disableSearchOptions() {
-      return state.user.disableSearchOptions;
+      return state.user?.disableSearchOptions;
     },
     foldersOnly() {
       return this.isTypeSelectDisabled;
@@ -403,7 +413,7 @@ export default {
     },
     updateSource(event) {
       this.selectedSource = event.target.value;
-      this.submit();
+      void this.submit();
     },
     getItemUrl(s) {
       // Use source from result if available, otherwise fall back to selectedSource
@@ -507,6 +517,13 @@ export default {
       if (this.useWildcardSearch) {
         dateParams.useWildcard = true;
       }
+      let searchQuery = searchTypesFull + this.value;
+      if (this.caseExactSearch) {
+        searchQuery =
+          searchTypesFull.trim() === ""
+            ? `case:exact ${this.value}`
+            : `case:exact ${searchTypesFull}${this.value}`;
+      }
       this.ongoing++;
       
       // Determine which sources to search
@@ -525,7 +542,7 @@ export default {
       this.results = await toolsApi.search(
         scope,
         sourcesToSearch,
-        searchTypesFull + this.value,
+        searchQuery,
         false,
         dateParams
       );
@@ -619,6 +636,9 @@ export default {
       }
       if (this.useWildcardSearch) {
         query.wildcard = "1";
+      }
+      if (this.caseExactSearch) {
+        query.caseExact = "1";
       }
       if (this.isTypeSelectDisabled) {
         query.typeLock = "1";

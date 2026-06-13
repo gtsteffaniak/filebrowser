@@ -617,7 +617,8 @@ export default {
     showDeletePrompt() {
       const items = [];
       for (const index of state.selected) {
-        const item = state.req.items[index];
+        const item = state.req.items.at(index);
+        if (!item) continue;
         const previewUrl = item.hasPreview
           ? resourcesApi.getPreviewURL(item.source || state.req.source, item.path, item.modified)
           : null;
@@ -633,9 +634,7 @@ export default {
       }
       mutations.showPrompt({
         name: "delete",
-        props: {
-          items: items,
-        },
+        props: { items },
       });
     },
     // Helper method to select the first item if nothing is selected
@@ -831,7 +830,7 @@ export default {
           }
           const source = getters.isShare() ? state.shareInfo.hash : state.req.source;
           const newPath = url.buildItemUrl(source, parentPath);
-          router.push({ path: newPath });
+          void router.push({ path: newPath });
           break;
         }
 
@@ -844,7 +843,7 @@ export default {
             const selected = getters.getFirstSelected();
             const selectedUrl = url.buildItemUrl(selected.source, selected.path);
             if (selectedUrl === state.route.path) return;
-            router.push({ path: selectedUrl });
+            void router.push({ path: selectedUrl });
           }
           break;
         }
@@ -887,7 +886,8 @@ export default {
         if (curPos !== -1) nextPos = (curPos + 1) % matches.length;
       }
 
-      const target = matches[nextPos];
+      const target = matches.at(nextPos);
+      if (!target) return;
       mutations.resetSelected();
       mutations.addSelected(target.index);
       this.scrollSelectedIntoView();
@@ -901,11 +901,17 @@ export default {
         return;
       }
 
-      const items = state.selected.map((i) => ({
-        from: state.req.items[i].path,
-        fromSource: state.req.source,
-        name: state.req.items[i].name,
-      }));
+      const items = state.selected
+        .map((i) => {
+          const item = state.req.items.at(i);
+          if (!item) return null;
+          return {
+            from: item.path,
+            fromSource: state.req.source,
+            name: item.name,
+          };
+        })
+        .filter(Boolean);
 
       if (items.length === 0) {
         return;
@@ -918,7 +924,6 @@ export default {
       };
       this.internalClipboardTimestamp = Date.now();
     },
-
     async collectFilesFromEntry(entry, relativePath = "") {
       const files = [];
       const entryPath = relativePath ? `${relativePath}/${entry.name}` : entry.name;
@@ -975,7 +980,7 @@ export default {
       // If internal is recent (<20s), use it immediately, in case someone have both: internal and external clipboard with a file entry.
       // After those 20s, if the OS clipboard has a file as most recent entry, will use that.
       if (internalRecent) {
-        this.handleInternalPaste();
+        await this.handleInternalPaste();
         event.preventDefault();
         event.stopPropagation();
         return;
@@ -985,8 +990,7 @@ export default {
         // Collect all items from clipboard
         const collectedItems = [];
         // And loop through all items
-        for (let i = 0; i < event.clipboardData.items.length; i++) {
-          const item = event.clipboardData.items[i];
+        for (const item of Array.from(event.clipboardData.items)) {
           if (item.kind !== 'file') continue;
 
           const entry = item.webkitGetAsEntry();
@@ -1026,7 +1030,7 @@ export default {
       // If internal clipboard exists but is not recent (>20s), and we don't have any file in clipboard, use the internal one
       if (this.clipboard.items.length > 0) {
         console.log('No external files, using internal clipboard.');
-        this.handleInternalPaste();
+        await this.handleInternalPaste();
         event.preventDefault();
         event.stopPropagation();
         return;
@@ -1080,7 +1084,7 @@ export default {
               };
 
               if (this.clipboard.path === state.route.path) {
-                action(false, true);
+                void action(false, true);
                 return;
               }
 
@@ -1095,12 +1099,12 @@ export default {
                     const rename = option === "rename";
                     event.preventDefault();
                     mutations.closeTopPrompt();
-                    action(overwrite, rename);
+                    void action(overwrite, rename);
                   },
                 });
                 return;
               }
-              action(false, false);
+              void action(false, false);
             });
           },
         },
@@ -1150,10 +1154,10 @@ export default {
       if (isInternal) {
         return;
       }
-      this.handleDrop(event);
+      await this.handleDrop(event);
     },
     async uploadInput(event) {
-      this.handleDrop(event);
+      await this.handleDrop(event);
     },
     windowsResize: throttle(function () {
       // Mark as resizing to disable transitions

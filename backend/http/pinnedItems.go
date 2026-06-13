@@ -15,7 +15,13 @@ import (
 type pinnedItemPatchRequest struct {
 	Source string `json:"source" validate:"required"`
 	Path   string `json:"path" validate:"required"` // scope-relative parent directory
-	Name   string `json:"name" validate:"required"`   // item basename within path
+	Name   string `json:"name" validate:"required"` // item basename within path
+}
+
+// sharePinnedItemPatchRequest is the JSON body for PATCH /public/api/share/pinnedItems.
+type sharePinnedItemPatchRequest struct {
+	Path string `json:"path" validate:"required"` // share-relative parent directory
+	Name string `json:"name" validate:"required"` // item basename within path
 }
 
 // scopeRelativeDirToIndexPath maps a scope-relative directory to source and index paths.
@@ -37,6 +43,18 @@ func scopeRelativeDirToIndexPath(sourceName, userScope, directoryPath string) (s
 
 	fullDirPath := utils.JoinPathAsUnix(userScope, cleanDir)
 	return source.Path, idx.MakeIndexPath(fullDirPath, true), nil
+}
+
+// normalizeShareRelativeDir returns a normalized share-relative directory path key.
+func normalizeShareRelativeDir(shareRelDir string) (string, error) {
+	if shareRelDir == "" || shareRelDir == "/" {
+		return "/", nil
+	}
+	cleanDir, err := utils.SanitizeUserPath(shareRelDir)
+	if err != nil {
+		return "", fmt.Errorf("invalid path: %w", err)
+	}
+	return utils.AddTrailingSlashIfNotExists(cleanDir), nil
 }
 
 // pinnedItemAction returns the patch action query param, defaulting to "add".

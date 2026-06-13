@@ -82,7 +82,7 @@ export default {
       }
       try {
         const data = this.localuser;
-        mutations.updateCurrentUser(data);
+        void mutations.updateCurrentUser(data);
         await usersApi.update(data, [
           "disableUpdateNotifications",
         ]);

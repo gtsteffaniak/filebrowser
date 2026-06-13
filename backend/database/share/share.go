@@ -60,11 +60,12 @@ type CreateBody struct {
 // Link is the information needed to build a shareable link.
 type Link struct {
 	CommonShare
-	Downloads    int    `json:"downloads"`
-	Hash         string `json:"hash" storm:"id,index"`
-	UserID       uint   `json:"userID"`
-	Expire       int64  `json:"expire"`
-	PasswordHash string `json:"password_hash,omitempty"`
+	Downloads    int      `json:"downloads"`
+	Hash         string   `json:"hash" storm:"id,index"`
+	UserID       uint     `json:"userID"`
+	Expire       int64    `json:"expire"`
+	PasswordHash string   `json:"password_hash,omitempty"`
+	PinnedItems  PinnedItems `json:"pinnedItems,omitempty"`
 	// Token is a random value that will only be set when PasswordHash is set. It is
 	// URL-Safe and is used to download links in password-protected shares via a
 	// query arg.

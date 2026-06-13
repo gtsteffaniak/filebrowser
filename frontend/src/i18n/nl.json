@@ -116,7 +116,9 @@
     "no": "Geen{suffix}",
     "to": "naar{suffix}",
     "and": "en{suffix}",
-    "or": "of{suffix}"
+    "or": "of{suffix}",
+    "camera": "Camera{suffix}",
+    "video": "Video{suffix}"
   },
   "buttons": {
     "copySuccess": "Gekopieerd naar klembord!",
@@ -148,7 +150,8 @@
     "goToItem": "Ga naar item",
     "goToSource": "Ga naar bronlocatie",
     "pinItem": "Vastzetten",
-    "unpinItem": "Losmaken"
+    "unpinItem": "Losmaken",
+    "sendToApp": "Naar app verzenden"
   },
   "errors": {
     "forbidden": "U hebt hier geen toegangsrechten.",
@@ -434,7 +437,9 @@
     "useWildcardSearchDescription": "Ondersteunde jokertekenopties:\n\n- Overeenstemming met een willekeurige reeks: *\n\n- Overeenstemming met één teken: ?\n\n- Tekenklasse: [a-z], [0-9]\n\n- Negatie: [^0-9]\n\n- Letterlijke *, ?, of [ moeten tussen haakjes staan, bijv. [*], [?], [[]\n\n- Alle resultaten zijn hoofdlettergevoelig",
     "helpText1": "Er wordt gezocht op elk teken dat je typt (minimaal {minSearchLength} tekens).",
     "helpText2": "Substring match alleen op bestands- of mapnamen (geen volledige paden). case:exact voor hoofdlettergevoelig matchen\n\n voor OR tussen termen gebruik je het teken pipe; dubbele aanhalingstekens voor één zin.\n\nSchakel wildcard zoeken in voor meer geavanceerde opties.",
-    "openInAdvancedSearch": "Openen in geavanceerd zoeken"
+    "openInAdvancedSearch": "Openen in geavanceerd zoeken",
+    "caseExact": "Hoofdlettergevoelige zoekopdracht",
+    "caseExactDescription": "Pas bij het vergelijken van bestands- en mapnamen de exacte hoofdlettergebruik toe, in plaats van hoofdletters en kleine letters te negeren."
   },
   "profileSettings": {
     "hideFileExt": "Bepaalde bestanden verbergen (op extensie)",
@@ -766,7 +771,6 @@
       "scopeAria": "Zoekopdracht beperken tot een map",
       "noTerms": "Voer ten minste één zoekterm in.",
       "termTooShort": "Elke zoekterm moet minimaal {minSearchLength} tekens bevatten.",
-      "caseExact": "Hoofdlettergevoelige match",
       "resultsTitle": "Zoekresultaten",
       "invalidSources": "Zet minstens één bron aan.",
       "noResults": "Geen overeenkomende bestanden of mappen."
@@ -798,7 +802,18 @@
     "description": "Alle meldingen van uw huidige sessie bekijken",
     "empty": "Nog geen meldingen",
     "clearAll": "Alles wissen",
-    "total": "{count} meldingen"
+    "appEnabled": "App-meldingen",
+    "appEnabledDescription": "Toon browsermeldingen wanneer bestandsbewerkingen zijn voltooid terwijl dit tabblad op de achtergrond staat. Hiervoor is toestemming van de browser vereist. Wordt alleen in deze browser opgeslagen.",
+    "appUnsupported": "App-meldingen worden in deze browser niet ondersteund.",
+    "permissionGranted": "toegestaan",
+    "permissionDeniedHelp": "Meldingen zijn geblokkeerd. Schakel ze in de instellingen van je browser voor deze website in.",
+    "uploadTitle": "Uploaden voltooid",
+    "downloadTitle": "Download voltooid",
+    "moveTitle": "Verplaatsing voltooid",
+    "copyTitle": "Kopiëren voltooid",
+    "uploadFailedTitle": "Het uploaden is mislukt",
+    "downloadFailedTitle": "Het downloaden is mislukt",
+    "operationFailedTitle": "De bewerking is mislukt"
   },
   "duplicateFinder": {
     "minSize": "Minimale grootte (MB){suffix}",
@@ -860,5 +875,8 @@
     "documentDownload": "Document downloaden - Voltooid",
     "editorSuccess": "Editor-inintialisatie - Succes! Alle stappen voltooid.",
     "setupError": "Instellingenfout"
+  },
+  "pwa": {
+    "install": "App installeren"
   }
 }

@@ -375,14 +375,10 @@ export default {
         // Build query string for comparison
         const newQueryString = new URLSearchParams(query).toString();
         const currentQuery = this.$route.query || {};
-        const currentQueryString = new URLSearchParams(
-          Object.entries(currentQuery).reduce((acc, [key, value]) => {
-            if (value !== null && value !== undefined) {
-              acc[key] = String(value);
-            }
-            return acc;
-          }, {})
-        ).toString();
+        const filteredEntries = Object.entries(currentQuery)
+          .filter(([_, value]) => value !== null && value !== undefined)
+          .map(([key, value]) => [key, String(value)]);
+        const currentQueryString = new URLSearchParams(Object.fromEntries(filteredEntries)).toString();
 
         if (newQueryString !== currentQueryString) {
           this.$router.replace({
@@ -664,22 +660,19 @@ export default {
     getTypeLabel(type) {
       const typeInfo = getTypeInfo(type);
       const simpleType = typeInfo.simpleType;
-
-      // Map simple types to labels
-      const labels = {
-        "directory": this.$t('fileTypes.directory'),
-        "video": this.$t('fileTypes.video'),
-        "image": this.$t('fileTypes.image'),
-        "audio": this.$t('fileTypes.audio'),
-        "archive": this.$t('fileTypes.archive'),
-        "pdf": this.$t('fileTypes.document'),
-        "document": this.$t('fileTypes.document'),
-        "text": this.$t('fileTypes.document'),
-        "binary": this.$t('fileTypes.binary'),
-        "font": this.$t('fileTypes.other'),
-      };
-
-      return labels[simpleType] || this.$t('fileTypes.other');
+      switch (simpleType) {
+        case "directory": return this.$t('fileTypes.directory');
+        case "video": return this.$t('fileTypes.video');
+        case "image": return this.$t('fileTypes.image');
+        case "audio": return this.$t('fileTypes.audio');
+        case "archive": return this.$t('fileTypes.archive');
+        case "pdf": return this.$t('fileTypes.document');
+        case "document": return this.$t('fileTypes.document');
+        case "text": return this.$t('fileTypes.document');
+        case "binary": return this.$t('fileTypes.binary');
+        case "font": return this.$t('fileTypes.other');
+        default: return this.$t('fileTypes.other');
+      }
     },
     onItemHover(event, item) {
       this.tooltipMouseX = event.clientX;

@@ -6,6 +6,9 @@ import router from "./router"; // Adjust the path as per your setup
 
 import "./css/styles.css";
 import "./css/dark.css";
+import { initPwaInstall } from "@/utils/pwaInstall";
+
+initPwaInstall();
 
 const app = createApp(App);
 

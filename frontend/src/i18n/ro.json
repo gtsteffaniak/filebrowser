@@ -29,7 +29,8 @@
     "goToItem": "Du-te la articol",
     "copyPath": "Copiați calea",
     "pinItem": "Fixare",
-    "unpinItem": "Anulare fixare"
+    "unpinItem": "Anulare fixare",
+    "sendToApp": "Trimite către aplicație"
   },
   "errors": {
     "forbidden": "Nu ai permisiuni sa accesezi asta.",
@@ -245,7 +246,9 @@
     "helpText2": "Potrivire de substringuri numai pe nume de fișiere sau de foldere (nu pe căi complete). case:exact pentru potrivire în funcție de caz\n\n pentru OR între termeni utilizați caracterul pipă; ghilimele duble pentru o frază.\n\nActivați căutarea wildcard pentru opțiuni mai avansate.",
     "useWildcardSearch": "Căutare wildcard (sensibil la majuscule)",
     "useWildcardSearchDescription": "Opțiuni de wildcard acceptate:\n\n- Potrivește orice secvență: *\n\n- Potrivește un singur caracter: ?\n\n- Clasa de caractere: [a-z], [0-9]\n\n- Negație: [^0-9]\n\n- Literele *, ? sau [ trebuie să fie puse între paranteze, de exemplu [*], [?], [[]\n\n- Toate rezultatele sunt sensibile la majuscule",
-    "openInAdvancedSearch": "Deschidere în căutarea avansată"
+    "openInAdvancedSearch": "Deschidere în căutarea avansată",
+    "caseExact": "Căutare cu diferențiere între majuscule și minuscule",
+    "caseExactDescription": "Compară numele fișierelor și folderelor folosind exact litere mari și mici, în loc să ignore diferențele dintre ele."
   },
   "settings": {
     "avoidChanges": "(lasă gol pentru a nu schimba)",
@@ -572,7 +575,9 @@
     "no": "Nu{suffix}",
     "to": "spre{suffix}",
     "and": "și{suffix}",
-    "or": "sau{suffix}"
+    "or": "sau{suffix}",
+    "camera": "Cameră foto{suffix}",
+    "video": "Video{suffix}"
   },
   "access": {
     "rules": "Reguli de acces",
@@ -778,7 +783,6 @@
       "scopeAria": "Limitarea căutării la un dosar",
       "noTerms": "Introduceți cel puțin un termen de căutare.",
       "termTooShort": "Fiecare termen de căutare trebuie să aibă cel puțin {minSearchLength} caractere",
-      "caseExact": "Potrivire sensibilă la majuscule",
       "resultsTitle": "Rezultatele căutării",
       "invalidSources": "Porniți cel puțin o sursă.",
       "noResults": "Nu există fișiere sau foldere corespunzătoare."
@@ -807,7 +811,18 @@
     "description": "Vizualizați toate notificările din sesiunea curentă",
     "empty": "Nu există încă notificări",
     "clearAll": "Ștergeți tot",
-    "total": "{count} notificări"
+    "appEnabled": "Notificări din aplicații",
+    "appEnabledDescription": "Afișează notificări în browser la finalizarea operațiunilor cu fișiere atunci când această filă se află în fundal. Necesită permisiunea browserului. Se salvează numai în acest browser.",
+    "appUnsupported": "Notificările aplicațiilor nu sunt acceptate în acest browser.",
+    "permissionGranted": "permis",
+    "permissionDeniedHelp": "Notificările sunt blocate. Activează-le în setările browserului pentru acest site.",
+    "uploadTitle": "Încărcarea s-a încheiat",
+    "downloadTitle": "Descărcare completă",
+    "moveTitle": "Mutarea s-a finalizat",
+    "copyTitle": "Copiere finalizată",
+    "uploadFailedTitle": "Încărcarea a eșuat",
+    "downloadFailedTitle": "Descărcarea a eșuat",
+    "operationFailedTitle": "Operațiunea a eșuat"
   },
   "events": {
     "serverShutdown": "Serverul a fost închis.",
@@ -860,5 +875,8 @@
     "documentDownload": "Descărcare document - Complet",
     "editorSuccess": "Inițializarea editorului - Succes! Toate etapele au fost finalizate.",
     "setupError": "Eroare de configurare"
+  },
+  "pwa": {
+    "install": "Instalează aplicația"
   }
 }

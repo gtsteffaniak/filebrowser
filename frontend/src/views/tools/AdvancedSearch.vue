@@ -131,7 +131,8 @@
                     <ToggleSwitch
                       v-model="caseExactSearch"
                       class="item"
-                      :name="$t('tools.advancedSearch.caseExact')"
+                      :name="$t('search.caseExact')"
+                      :description="$t('search.caseExactDescription')"
                     />
                   </div>
                 </div>
@@ -253,6 +254,7 @@ import Item from "@/components/files/ListingItem.vue";
 import { url } from "@/utils";
 import ListingHeader from "@/components/files/ListingHeader.vue";
 import { utcStartOfDaySecondsFromDateInput } from "@/utils/moment";
+import { getObjectProperty, setObjectProperty } from '@/utils/object.js';
 
 /**
  * Builds a canonical browse path within the selected scope (mirror of Search.vue getItemUrl path join).
@@ -347,7 +349,7 @@ function hasFilterOrTermSignalsForImplicitSources(q) {
 
   /** @param {string} queryKey */
   const nonempty = (queryKey) => {
-    const raw = q[queryKey];
+    const raw = getObjectProperty(q, queryKey);
     return raw !== undefined && raw !== null && String(raw).trim() !== "";
   };
 
@@ -376,7 +378,7 @@ function hasAnyAdvancedSearchRouteParams(q) {
 
   /** @param {string} queryKey */
   const nonempty = (queryKey) => {
-    const raw = q[queryKey];
+    const raw = getObjectProperty(q, queryKey);
     return raw !== undefined && raw !== null && String(raw).trim() !== "";
   };
 
@@ -395,33 +397,29 @@ function hasAnyAdvancedSearchRouteParams(q) {
 /** @param {Record<string, unknown>} routeQuery */
 function normalizeRouteQueryLoose(routeQuery) {
   const q = routeQuery || {};
-  const next = {};
-
   /** @type {string[]} */
-  const keys = Object.keys(q).sort();
-  for (const queryKey of keys) {
-    const rawValue = q[queryKey];
-    if (rawValue === undefined || rawValue === null) {
-      continue;
-    }
+  const entries = Object.entries(q).sort((a, b) => a[0].localeCompare(b[0]));
+  const nextEntries = [];
+  for (const [queryKey, rawValue] of entries) {
+    if (rawValue === undefined || rawValue === null) continue;
     if (Array.isArray(rawValue)) {
       const sortedStrings = rawValue
         .map((entry) => String(entry))
         .filter((entry) => entry !== "")
         .sort();
       if (sortedStrings.length === 1) {
-        next[queryKey] = sortedStrings[0];
+        nextEntries.push([queryKey, sortedStrings[0]]);
       } else if (sortedStrings.length > 1) {
-        next[queryKey] = sortedStrings;
+        nextEntries.push([queryKey, sortedStrings]);
       }
     } else {
       const stringValue = String(rawValue);
       if (stringValue !== "") {
-        next[queryKey] = stringValue;
+        nextEntries.push([queryKey, stringValue]);
       }
     }
   }
-  return next;
+  return Object.fromEntries(nextEntries);
 }
 
 /** @param {Record<string, string|string[]|unknown>} obj */
@@ -430,7 +428,7 @@ function stableQueryStringFromObject(obj) {
   let pairs = [];
   const keys = Object.keys(obj).sort();
   for (const paramKey of keys) {
-    const paramValue = obj[paramKey];
+    const paramValue = getObjectProperty(obj, paramKey);
     if (paramValue === undefined || paramValue === null) {
       continue;
     }
@@ -556,7 +554,7 @@ export default {
     activeSources() {
       const info = state.sources.info || {};
       return Object.keys(info)
-        .filter((name) => this.sourceEnabledFlags[name] === true)
+        .filter((name) => getObjectProperty(this.sourceEnabledFlags, name) === true)
         .sort();
     },
     isStickySidebar() {
@@ -743,36 +741,25 @@ export default {
       handler() {
         const info = state.sources.info || {};
         const keys = Object.keys(info);
-        const next = { ...this.sourceEnabledFlags };
+        let next = this.sourceEnabledFlags;
         for (const catalogueSourceName of keys) {
           if (!(catalogueSourceName in next)) {
-            next[catalogueSourceName] = false;
+            next = setObjectProperty(next, catalogueSourceName, false);
           }
         }
-        Object.keys(next).forEach((name) => {
-          if (!(name in info)) {
-            delete next[name];
-          }
-        });
+        const nextEntries = Object.entries(next).filter(([key]) => key in info);
+        next = Object.fromEntries(nextEntries);
         this.sourceEnabledFlags = next;
-
-        const pathNext = { ...this.sourceScopedPaths };
+        let pathNext = this.sourceScopedPaths;
         for (const catalogueSourceName of keys) {
-          if (
-            pathNext[catalogueSourceName] === undefined ||
-            pathNext[catalogueSourceName] === null ||
-            pathNext[catalogueSourceName] === ""
-          ) {
-            pathNext[catalogueSourceName] = "/";
+          const current = getObjectProperty(pathNext, catalogueSourceName);
+          if (current === undefined || current === null || current === "") {
+            pathNext = setObjectProperty(pathNext, catalogueSourceName, "/");
           }
         }
-        Object.keys(pathNext).forEach((orphanKey) => {
-          if (!(orphanKey in info)) {
-            delete pathNext[orphanKey];
-          }
-        });
+        const pathEntries = Object.entries(pathNext).filter(([key]) => key in info);
+        pathNext = Object.fromEntries(pathEntries);
         this.sourceScopedPaths = pathNext;
-
         this.applyDefaultCurrentSourceIfNone();
         this.maybeFinishCatalogRouteBootstrapFromSources();
       },
@@ -781,14 +768,11 @@ export default {
       deep: true,
       handler(names) {
         const list = Array.isArray(names) ? names : [];
-        const next = { ...this.sourceScopedPaths };
+        let next = this.sourceScopedPaths;
         for (const activeSourceName of list) {
-          if (
-            next[activeSourceName] === undefined ||
-            next[activeSourceName] === null ||
-            next[activeSourceName] === ""
-          ) {
-            next[activeSourceName] = "/";
+          const current = getObjectProperty(next, activeSourceName);
+          if (current === undefined || current === null || current === "") {
+            next = setObjectProperty(next, activeSourceName, "/");
           }
         }
         this.sourceScopedPaths = next;
@@ -848,20 +832,17 @@ export default {
   },
   methods: {
     isSourceEnabled(name) {
-      return this.sourceEnabledFlags[name] === true;
+      return getObjectProperty(this.sourceEnabledFlags, name) === true;
     },
     setSourceEnabled(name, enabled) {
-      const nextFlags = {
-        ...this.sourceEnabledFlags,
-        [name]: !!enabled,
-      };
-      const nextPaths = { ...this.sourceScopedPaths };
+      this.sourceEnabledFlags = setObjectProperty(this.sourceEnabledFlags, name, !!enabled);
+      let nextPaths = this.sourceScopedPaths;
       if (enabled) {
-        if (nextPaths[name] === undefined || nextPaths[name] === null || nextPaths[name] === "") {
-          nextPaths[name] = "/";
+        const currentPath = getObjectProperty(nextPaths, name);
+        if (currentPath === undefined || currentPath === null || currentPath === "") {
+          nextPaths = setObjectProperty(nextPaths, name, "/");
         }
       }
-      this.sourceEnabledFlags = nextFlags;
       this.sourceScopedPaths = nextPaths;
     },
     /** When no source is toggled on, enable `state.sources.current` if known in the catalogue. */
@@ -876,7 +857,7 @@ export default {
 
       /** @type {string[]} */
       const enabledNames = catalogue.filter(
-        (sourceName) => this.sourceEnabledFlags[sourceName] === true,
+        (sourceName) => getObjectProperty(this.sourceEnabledFlags, sourceName) === true,
       );
 
       if (enabledNames.length > 0) {
@@ -885,19 +866,17 @@ export default {
 
       const cur = state.sources.current;
       if (typeof cur === "string" && cur !== "" && catalogue.includes(cur)) {
-        this.sourceEnabledFlags = {
-          ...this.sourceEnabledFlags,
-          [cur]: true,
-        };
-        const pathsNext = { ...this.sourceScopedPaths };
-        if (pathsNext[cur] === undefined || pathsNext[cur] === null || pathsNext[cur] === "") {
-          pathsNext[cur] = "/";
+        this.sourceEnabledFlags = setObjectProperty(this.sourceEnabledFlags, cur, true);
+        let pathsNext = this.sourceScopedPaths;
+        const currentPath = getObjectProperty(pathsNext, cur);
+        if (currentPath === undefined || currentPath === null || currentPath === "") {
+          pathsNext = setObjectProperty(pathsNext, cur, "/");
         }
         this.sourceScopedPaths = pathsNext;
       }
     },
     normalizedScopedPathForSource(sourceName) {
-      let scopedPath = String(this.sourceScopedPaths[sourceName] || "/").trim();
+      let scopedPath = String(getObjectProperty(this.sourceScopedPaths, sourceName) ?? "/").trim();
       if (scopedPath === "") {
         scopedPath = "/";
       }
@@ -970,14 +949,14 @@ export default {
 
       const catalogue = [...this.sourceNameList];
       const enabled = catalogue
-        .filter((sourceName) => this.sourceEnabledFlags[sourceName] === true)
+        .filter((sourceName) => getObjectProperty(this.sourceEnabledFlags, sourceName) === true)
         .sort();
 
       if (enabled.length > 0) {
         /** @type {string[]} */
         const scopeClauses = [];
         for (const sourceName of enabled) {
-          let scopedPath = String(this.sourceScopedPaths[sourceName] || "/").trim();
+          let scopedPath = String(getObjectProperty(this.sourceScopedPaths, sourceName) ?? "/").trim();
           if (scopedPath === "") {
             scopedPath = "/";
           }
@@ -1027,22 +1006,15 @@ export default {
       const catalogue = [...this.sourceNameList];
 
       const terms = parseTermsFromRouteQuery(q);
-      this.termInputs =
-        terms.length > 0 ? terms.map((termCell) => String(termCell)) : [""];
+      this.termInputs = terms.length > 0 ? terms.map((termCell) => String(termCell)) : [""];
 
       const termJoinRaw = q.termJoin;
-      this.termsJoinAnd =
-        String(termJoinRaw ?? "").trim().toLowerCase() === "and";
+      this.termsJoinAnd = String(termJoinRaw ?? "").trim().toLowerCase() === "and";
 
-      const sourcesStr =
-        typeof q.sources === "string" ? q.sources.trim() : "";
-      const rawSources =
-        sourcesStr === ""
-          ? []
-          : sourcesStr
-            .split(",")
-            .map((segment) => segment.trim())
-            .filter((segment) => segment !== "");
+      const sourcesStr = typeof q.sources === "string" ? q.sources.trim() : "";
+      const rawSources = sourcesStr === ""
+        ? []
+        : sourcesStr.split(",").map((segment) => segment.trim()).filter((segment) => segment !== "");
 
       /** @type {string[]} */
       const validSel = [];
@@ -1052,9 +1024,7 @@ export default {
         }
       }
 
-      const implicitAllSources =
-        validSel.length === 0 &&
-        hasFilterOrTermSignalsForImplicitSources(q);
+      const implicitAllSources = validSel.length === 0 && hasFilterOrTermSignalsForImplicitSources(q);
 
       const scopeRaws = collectScopeRawFromQuery(q);
 
@@ -1065,22 +1035,14 @@ export default {
 
       for (const scopeRaw of scopeRaws) {
         const raw = String(scopeRaw || "").trim();
-        if (raw === "") {
-          continue;
-        }
+        if (raw === "") continue;
         const colonIndex = raw.indexOf(":");
         if (colonIndex > 0) {
           const sourceNameFromClause = raw.slice(0, colonIndex).trim();
           let relativePath = raw.slice(colonIndex + 1).trim();
-          if (sourceNameFromClause === "") {
-            continue;
-          }
-          if (relativePath === "") {
-            relativePath = "/";
-          }
-          if (!relativePath.startsWith("/")) {
-            relativePath = `/${relativePath}`;
-          }
+          if (sourceNameFromClause === "") continue;
+          if (relativePath === "") relativePath = "/";
+          if (!relativePath.startsWith("/")) relativePath = `/${relativePath}`;
           if (catalogue.includes(sourceNameFromClause)) {
             colonPairs.push({ source: sourceNameFromClause, path: relativePath });
           }
@@ -1090,80 +1052,65 @@ export default {
       }
 
       if (colonPairs.length > 0) {
-        const nextFlags = {};
-        for (const catalogueSourceName of catalogue) {
-          nextFlags[catalogueSourceName] = false;
-        }
-        /** @type {Record<string, string>} */
-        const scopedPathBySource = {};
+        let nextFlags = Object.fromEntries(catalogue.map(name => [name, false]));
+        const scopedPathBySource = Object.fromEntries(
+          colonPairs.map(pair => [pair.source, pair.path])
+        );
         for (const sourcePathPair of colonPairs) {
-          nextFlags[sourcePathPair.source] = true;
-          scopedPathBySource[sourcePathPair.source] = sourcePathPair.path;
+          nextFlags = setObjectProperty(nextFlags, sourcePathPair.source, true);
         }
         this.sourceEnabledFlags = nextFlags;
-        this.sourceScopedPaths = { ...scopedPathBySource };
+        this.sourceScopedPaths = scopedPathBySource;
       } else {
-        const nextFlags = {};
-        for (const catalogueSourceName of catalogue) {
+        const nextFlagsEntries = catalogue.map(catalogueSourceName => {
           let sourceEnabled = false;
           if (validSel.length > 0) {
             sourceEnabled = validSel.includes(catalogueSourceName);
           } else if (implicitAllSources) {
             sourceEnabled = true;
           }
-          nextFlags[catalogueSourceName] = sourceEnabled;
-        }
+          return [catalogueSourceName, sourceEnabled];
+        });
+        const nextFlags = Object.fromEntries(nextFlagsEntries);
         this.sourceEnabledFlags = nextFlags;
 
-        const flatLegacy =
-          bareScopeLegacy.length > 0 ? bareScopeLegacy[0] : "/";
-        /** @type {string[]} */
+        const flatLegacy = bareScopeLegacy.length > 0 ? bareScopeLegacy[0] : "/";
         const enabledNames = catalogue.filter(
-          (sourceName) => nextFlags[sourceName] === true,
+          (sourceName) => getObjectProperty(nextFlags, sourceName) === true
         );
-        /** @type {Record<string, string>} */
-        const scopedPathBySource = {};
-        for (const enabledSourceName of enabledNames) {
-          if (enabledNames.length === 1 && flatLegacy !== "/") {
-            scopedPathBySource[enabledSourceName] = flatLegacy;
-          } else {
-            scopedPathBySource[enabledSourceName] = "/";
-          }
-        }
-        this.sourceScopedPaths = scopedPathBySource;
+        const scopedPathEntries = enabledNames.map(enabledSourceName => [
+          enabledSourceName,
+          (enabledNames.length === 1 && flatLegacy !== "/") ? flatLegacy : "/"
+        ]);
+        this.sourceScopedPaths = Object.fromEntries(scopedPathEntries);
       }
 
       const typesIncoming = q.types;
-      this.searchTypes =
-        typeof typesIncoming === "string"
-          ? typesIncoming.trim()
-          : typesIncoming !== undefined && typesIncoming !== null
+      this.searchTypes = typeof typesIncoming === "string"
+        ? typesIncoming.trim()
+        : typesIncoming !== undefined && typesIncoming !== null
           ? String(typesIncoming).trim()
           : "";
 
       const largerThanRaw = q.largerThan;
-      this.largerThan =
-        largerThanRaw !== undefined && largerThanRaw !== null
-          ? String(largerThanRaw).trim()
-          : "";
+      this.largerThan = largerThanRaw !== undefined && largerThanRaw !== null
+        ? String(largerThanRaw).trim()
+        : "";
 
       const smallerThanRaw = q.smallerThan;
-      this.smallerThan =
-        smallerThanRaw !== undefined && smallerThanRaw !== null
-          ? String(smallerThanRaw).trim()
-          : "";
+      this.smallerThan = smallerThanRaw !== undefined && smallerThanRaw !== null
+        ? String(smallerThanRaw).trim()
+        : "";
 
       const dateOlderRaw = q.dateOlder;
-      this.modifiedOlderThan =
-        dateOlderRaw !== undefined && dateOlderRaw !== null
-          ? String(dateOlderRaw).trim()
-          : "";
+      this.modifiedOlderThan = dateOlderRaw !== undefined && dateOlderRaw !== null
+        ? String(dateOlderRaw).trim()
+        : "";
 
       const dateNewerRaw = q.dateNewer;
-      this.modifiedNewerThan =
-        dateNewerRaw !== undefined && dateNewerRaw !== null
-          ? String(dateNewerRaw).trim()
-          : "";
+      this.modifiedNewerThan = dateNewerRaw !== undefined && dateNewerRaw !== null
+        ? String(dateNewerRaw).trim()
+        : "";
 
       this.useWildcardSearch = queryTruthy(q.wildcard);
       this.caseExactSearch = queryTruthy(q.caseExact);
@@ -1178,16 +1125,11 @@ export default {
 
       const nextPlain = normalizeRouteQueryLoose(this.buildRouteQueryFromState());
 
-      /** @type {Record<string, unknown>} */
-      const curQ = {};
       /** @type {Record<string, string | string[]>} */
       const rq = /** @type {Record<string, string | string[]>} */ (
         this.$route.query
       );
-      const routeQueryKeys = Object.keys(rq || {});
-      for (const routeQueryKey of routeQueryKeys) {
-        curQ[routeQueryKey] = rq[routeQueryKey];
-      }
+      const curQ = Object.fromEntries(Object.entries(rq || {}));
       const curPlain = normalizeRouteQueryLoose(curQ);
 
       if (

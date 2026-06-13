@@ -78,7 +78,11 @@ import buttons from "@/utils/buttons";
 import * as upload from "@/utils/upload";
 import { url } from "@/utils";
 import { notify } from "@/notify";
-import { goToItem } from "@/utils/url";
+import {
+  notifyMoveCopyComplete,
+  notifyOperationError,
+} from "@/utils/appNotifications";
+import { goToItemNotificationButton } from "@/utils/notificationActions";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
 import { eventBus } from '@/store/eventBus';
@@ -160,7 +164,7 @@ export default {
       }));
     } else if (state.isSearchActive) {
       // Add null checks to prevent undefined values
-      if (state.selected?.[0]?.path) {
+      if (state.selected[0]?.path) {
         this.localItems = [
           {
             from: state.selected[0].path,
@@ -172,7 +176,7 @@ export default {
     } else {
       if (state.selected && state.req?.items) {
         for (const item of state.selected) {
-          const reqItem = state.req.items[item];
+          const reqItem = state.req.items.at(item);
           if (reqItem?.path) {
             this.localItems.push({
               from: reqItem.path,
@@ -221,7 +225,7 @@ export default {
       event.stopPropagation();
       event.preventDefault();
       if (this.newDirName && this.isDirNameValid) {
-        this.createDirectory();
+        void this.createDirectory();
       }
     },
     async createDirectory() {
@@ -239,10 +243,10 @@ export default {
         }
         // Refresh the file list while keeping the current navigation that we did in the prompt
         if (getters.isShare()) {
-          resourcesApi.fetchFilesPublic(currentPath, state.shareInfo?.hash)
+          await resourcesApi.fetchFilesPublic(currentPath, state.shareInfo.hash)
             .then((req) => this.$refs.fileList.fillOptions(req, true));
         } else {
-          resourcesApi.fetchFiles(currentSource, currentPath)
+          await resourcesApi.fetchFiles(currentSource, currentPath)
             .then((req) => this.$refs.fileList.fillOptions(req, true));
         }
         // Clicking create will also return the buttons to their normal state
@@ -355,6 +359,7 @@ export default {
           // All operations failed - show error but DON'T close prompt
           const errorMessage = result.failed[0]?.message || this.$t("prompts.operationFailed");
           notify.showError(errorMessage);
+          notifyOperationError(errorMessage);
           return;
         } else if (hasFailures && hasSuccesses) {
           // Partial failure - show warning and continue
@@ -382,6 +387,7 @@ export default {
 
           if (!hasFailures || hasSuccesses) {
             notify.showSuccessToast(this.$t("prompts.moveSuccess"));
+            notifyMoveCopyComplete("move", this.localItems.length);
           }
 
           // Navigate next, previous or parent dir (like when deleting)
@@ -408,27 +414,25 @@ export default {
             const destSource = this.destSource;
             const destPath = this.destPath;
 
-            // Show success notification with optional button to navigate to destination
-            // For shares, destSource might be null, but goToItem handles shares via state.shareInfo.hash
-            const buttonAction = () => {
-              if (destPath) {
-                goToItem(destSource || state.shareInfo?.hash, destPath, {}, false, getters.isShare());
-              }
-            };
             const buttonProps = {
               icon: "folder",
-              buttons: destPath ? [
-                {
-                  label: this.$t("buttons.goToItem"),
-                  primary: true,
-                  action: buttonAction
-                }
-              ] : undefined
+              buttons: destPath
+                ? [
+                    goToItemNotificationButton(
+                      this.$t("buttons.goToItem"),
+                      destSource || state.shareInfo?.hash,
+                      destPath,
+                      getters.isShare()
+                    ),
+                  ]
+                : undefined,
             };
             if (this.operation === "move") {
               notify.showSuccess(this.$t("prompts.moveSuccess"), buttonProps);
+              notifyMoveCopyComplete("move", this.localItems.length);
             } else {
               notify.showSuccess(this.$t("prompts.copySuccess"), buttonProps);
+              notifyMoveCopyComplete("copy", this.localItems.length);
             }
           }
         }
@@ -454,6 +458,7 @@ export default {
         }
 
         notify.showError(errorMessage);
+        notifyOperationError(errorMessage);
       } finally {
         this.isLoading = false; // Hide loading spinner
       }

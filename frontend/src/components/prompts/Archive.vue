@@ -142,7 +142,7 @@
 import { state, mutations, getters } from "@/store";
 import { notify } from "@/notify";
 import { resourcesApi } from "@/api";
-import { goToItem } from "@/utils/url";
+import { goToItemNotificationButton } from "@/utils/notificationActions";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FileList from "@/components/files/FileList.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
@@ -180,7 +180,7 @@ export default {
   },
   watch: {
     deleteAfter(newVal) {
-      mutations.updateCurrentUser({ deleteAfterArchive: newVal });
+      void mutations.updateCurrentUser({ deleteAfterArchive: newVal });
     },
     showFileList(newVal) {
       if (!newVal) {
@@ -251,7 +251,7 @@ export default {
       event.stopPropagation();
       event.preventDefault();
       if (this.newDirName && this.isDirNameValid) {
-        this.createDirectory();
+        void this.createDirectory();
       }
     },
     async createDirectory() {
@@ -264,15 +264,15 @@ export default {
           ? `${currentPath + this.newDirName}/`
           : `${currentPath}/${this.newDirName}/`;
         if (getters.isShare()) {
-          await resourcesApi.postPublic(state.shareInfo?.hash, fullPath, "", false, undefined, {}, true);
+          await resourcesApi.postPublic(state.shareInfo.hash, fullPath, "", false, undefined, {}, true);
         } else {
           await resourcesApi.post(currentSource, fullPath, "", false, undefined, {}, true);
         }
         if (getters.isShare()) {
-          resourcesApi.fetchFilesPublic(currentPath, state.shareInfo?.hash)
+          await resourcesApi.fetchFilesPublic(currentPath, state.shareInfo.hash)
             .then((req) => this.$refs.fileList.fillOptions(req, true));
         } else {
-          resourcesApi.fetchFiles(currentSource, currentPath)
+          await resourcesApi.fetchFiles(currentSource, currentPath)
             .then((req) => this.$refs.fileList.fillOptions(req, true));
         }
         mutations.setReload(true);
@@ -312,14 +312,18 @@ export default {
 
         const destSource = this.destSource || this.source;
         const archivePath = dest;
-        const buttonAction = () => {
-          if (archivePath) {
-            goToItem(destSource || null, archivePath, {}, false, getters.isShare());
-          }
-        };
         notify.showSuccess(this.$t("prompts.archiveSuccess"), {
           icon: "folder",
-          buttons: archivePath ? [{ label: this.$t("buttons.goToItem"), primary: true, action: buttonAction }] : undefined,
+          buttons: archivePath
+            ? [
+                goToItemNotificationButton(
+                  this.$t("buttons.goToItem"),
+                  destSource,
+                  archivePath,
+                  getters.isShare()
+                ),
+              ]
+            : undefined,
         });
       } catch (err) {
         console.error(err);

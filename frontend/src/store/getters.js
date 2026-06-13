@@ -3,7 +3,7 @@ import { mutations, state } from '@/store';
 import { url } from '@/utils';
 import { globalVars, previewViews, tools } from '@/utils/constants';
 import { getFileExtension } from '@/utils/files.js';
-import { getTypeInfo } from '@/utils/mimetype';
+import { getTypeInfo, isRichTextPreviewMimeType } from '@/utils/mimetype';
 import { fromNow } from '@/utils/moment';
 import { getNestedProperty, getObjectProperty } from '@/utils/object.js';
 import { buildItemUrl, removeLeadingSlash, removePrefix } from '@/utils/url.js';
@@ -33,7 +33,7 @@ export const getters = {
     return "";
   },
   getTime: timestamp => {
-    if (state.user.dateFormat) {
+    if (state.user?.dateFormat) {
       // Truncate the fractional seconds to 3 digits (milliseconds)
       const sanitizedString = timestamp.replace(/\.\d+/, match =>
         match.slice(0, 4)
@@ -42,7 +42,7 @@ export const getters = {
       const date = new Date(sanitizedString)
       return date.toLocaleString()
     }
-    return fromNow(timestamp, state.user.locale)
+    return fromNow(timestamp, state.user?.locale)
   },
   isPreviewView: () => {
     const cv = getters.currentView()
@@ -85,7 +85,7 @@ export const getters = {
       return state.shareInfo.viewMode;
     }
     // Priority 3: Use user's default viewMode
-    return state.user.viewMode || "normal";
+    return state.user?.viewMode || "normal";
   },
   sorting: () => {
     return getters.displayPreference()?.sorting || state.user?.sorting || { by: "name", asc: true };
@@ -95,8 +95,8 @@ export const getters = {
   isPreviewPlaybackQueueNavMode: () => {
     const previewType = getters.previewType();
     const isMediaView = previewType === 'audio' || previewType === 'video';
-    const mode = state.playbackQueue?.mode || 'single';
-    const queueLength = state.playbackQueue?.queue?.length || 0;
+    const mode = state.playbackQueue.mode || 'single';
+    const queueLength = state.playbackQueue.queue.length || 0;
     return (
       isMediaView &&
       mode !== 'single' &&
@@ -105,9 +105,9 @@ export const getters = {
     );
   },
   playbackQueueCanGoPrevious: () => {
-    const queue = state.playbackQueue?.queue || [];
-    const currentIndex = state.playbackQueue?.currentIndex ?? -1;
-    const mode = state.playbackQueue?.mode || 'single';
+    const queue = state.playbackQueue.queue;
+    const currentIndex = state.playbackQueue.currentIndex ?? -1;
+    const mode = state.playbackQueue.mode || 'single';
     if (queue.length <= 1 || currentIndex < 0) {
       return false;
     }
@@ -117,9 +117,9 @@ export const getters = {
     return true;
   },
   playbackQueueCanGoNext: () => {
-    const queue = state.playbackQueue?.queue || [];
-    const currentIndex = state.playbackQueue?.currentIndex ?? -1;
-    const mode = state.playbackQueue?.mode || 'single';
+    const queue = state.playbackQueue.queue;
+    const currentIndex = state.playbackQueue.currentIndex ?? -1;
+    const mode = state.playbackQueue.mode || 'single';
     if (queue.length <= 1 || currentIndex < 0) {
       return false;
     }
@@ -160,7 +160,7 @@ export const getters = {
       if (!savedLocale) {
         savedLocale = i18n.detectLocale()
       }
-      mutations.updateCurrentUser({ locale: savedLocale })
+      void mutations.updateCurrentUser({ locale: savedLocale })
     }
     if (globalVars.noAuth) {
       return true
@@ -224,7 +224,7 @@ export const getters = {
     const pinned = [];
     const dirs = [];
     const files = [];
-    if (!state.req.items) return { pinned, dirs, files };
+    if (!state.req?.items) return { pinned, dirs, files };
 
     for (const item of state.req.items) {
       if (item.pinned) {
@@ -336,13 +336,15 @@ export const getters = {
       if (state.req.onlyOfficeId && !getters.officeViewingDisabled(state.req.name)) return 'onlyOfficeEditor';
       if (getTypeInfo(state.req.type).simpleType === '3d-model') return 'threeJsViewer';
 
-      if ('content' in state.req && state.req.type === 'text/markdown') {
+      if ('content' in state.req && isRichTextPreviewMimeType(state.req.type)) {
         const hash = window.location.hash;
         const preferEditor = state.user.preferEditorForMarkdown;
 
-        if (hash === '#edit') return 'editor';
-        if (hash === '#preview') return 'markdownViewer';
-        if (preferEditor) return 'editor';
+        switch (hash) {
+          case '#edit': return 'editor';
+          case '#preview': return 'markdownViewer';
+        }
+        if (state.req.type === 'text/markdown' && preferEditor) return 'editor';
         return 'markdownViewer';
       }
 
@@ -424,10 +426,11 @@ export const getters = {
       const name = upload.file.name
       const size = getObjectProperty(state.upload.sizes, id) ?? 0 // Default to 0 if size is undefined
       const isDir = upload.file.type === 'directory'
+      const loaded = getObjectProperty(state.upload.progress, id) || 0 // Default to 0 if progress is undefined
+      const safeSize = size > 0 ? size : 1
       const progress = isDir
         ? 100
-        : Math.ceil((state.upload.progress[id] || 0 / size) * 100) // Default to 0 if progress is undefined
-
+        : Math.ceil((loaded / safeSize) * 100)
       files.push({
         id,
         name,
@@ -436,7 +439,6 @@ export const getters = {
         isDir
       })
     }
-
     return files.sort((a, b) => a.progress - b.progress)
   },
   fileViewingDisabled: filename => {
@@ -539,7 +541,7 @@ export const getters = {
         return "back";
       }
       if (cv === "listingView" || state.shareInfo?.singleFileShare) {
-        if (state.user.stickySidebar) {
+        if (state.user?.stickySidebar) {
           return "menu";
         }
         return "back";
@@ -584,11 +586,11 @@ export const getters = {
     if (getters.isShare() && state.shareInfo.shareType === "upload") {
       return false;
     }
-    const isAdvancedSearchRoute = (state.route?.path || "").startsWith("/tools/advancedSearch");
+    const isAdvancedSearchRoute = (state.route.path || "").startsWith("/tools/advancedSearch");
     return getters.currentView() === "listingView" || getters.isEditorOrMarkdownView() || isAdvancedSearchRoute;
   },
   showGallerySizeSlider: () => {
-    const isAdvancedSearchRoute = (state.route?.path || "").startsWith("/tools/advancedSearch");
+    const isAdvancedSearchRoute = (state.route.path || "").startsWith("/tools/advancedSearch");
     return getters.currentView() === "listingView" || isAdvancedSearchRoute;
   },
   permissions: () => {
@@ -607,7 +609,7 @@ export const getters = {
     }
     return {
       share:
-        !!(state.user?.permissions?.share || state.user?.permissions?.admin),
+      !!(state.user?.permissions?.share || state.user?.permissions?.admin),
       modify: state.user?.permissions?.modify,
       create: state.user?.permissions?.create,
       delete: state.user?.permissions?.delete,
@@ -632,7 +634,7 @@ export const getters = {
         disableHideSidebar: state.user?.preview?.disableHideSidebar ?? false,
         autoplayMedia: state.user?.preview?.autoplayMedia ?? false,
         defaultMediaPlayer: false,
-        showHidden: state.shareInfo?.showHidden !== undefined ? state.shareInfo.showHidden : false,
+        showHidden: state.shareInfo?.showHidden !== undefined ? state.shareInfo?.showHidden : false,
       };
     }
     // For regular users, use their preview settings -- unless is share

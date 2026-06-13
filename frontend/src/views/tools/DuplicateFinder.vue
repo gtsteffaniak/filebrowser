@@ -413,7 +413,7 @@ export default {
           for (let fileIndex = 0; fileIndex < group.files.length; fileIndex++) {
             const uniqueIndex = this.getUniqueIndex(this.duplicateGroups.indexOf(group), fileIndex);
             if (uniqueIndex === selectedIndex) {
-              const file = group.files[fileIndex];
+              const file = group.files.at(fileIndex);
               const fullPath = this.getFullPath(file.path);
               const previewUrl = this.shouldHavePreview(file)
                 ? resourcesApi.getPreviewURL(this.selectedSource, fullPath, file.modified)
@@ -457,7 +457,7 @@ export default {
           for (let fileIndex = 0; fileIndex < group.files.length; fileIndex++) {
             const uniqueIndex = this.getUniqueIndex(this.duplicateGroups.indexOf(group), fileIndex);
             if (uniqueIndex === selectedIndex) {
-              const file = group.files[fileIndex];
+              const file = group.files.at(fileIndex);
               itemsToDelete.push({
                 source: this.selectedSource,
                 path: this.getFullPath(file.path),

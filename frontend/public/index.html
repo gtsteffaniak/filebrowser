@@ -20,6 +20,7 @@
   <meta name="theme-color" content="{{ .htmlVars.color }}">
 
   <!-- Add to home screen for Safari on iOS/iPadOS -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="assets">
   <link rel="apple-touch-icon" sizes="180x180" href="{{ .htmlVars.appIcon }}">
@@ -51,6 +52,12 @@
   <!-- Injected variables come from backend server -->
   <script>
     window.globalVars = {{ .globalVars }};
+    window.__pwaDeferredPrompt = null;
+    window.addEventListener("beforeinstallprompt", function (event) {
+      event.preventDefault();
+      window.__pwaDeferredPrompt = event;
+      window.dispatchEvent(new Event("pwa-install-available"));
+    });
   </script>
 
   <style>

@@ -29,7 +29,8 @@
     "goToItem": "Przejdź do pozycji",
     "copyPath": "Ścieżka kopiowania",
     "pinItem": "Przypnij",
-    "unpinItem": "Odepnij"
+    "unpinItem": "Odepnij",
+    "sendToApp": "Wyślij do aplikacji"
   },
   "errors": {
     "forbidden": "Nie posiadasz uprawnień potrzebnych, by uzyskać do tego dostęp.",
@@ -245,7 +246,9 @@
     "helpText2": "Dopasowanie podciągu tylko do nazw plików lub folderów (nie pełnych ścieżek). case:exact dla dopasowania z uwzględnieniem wielkości liter.\n\n dla OR między wyrażeniami użyj znaku potoku; podwójne cudzysłowy dla jednej frazy.\n\nWłącz wyszukiwanie wieloznaczne, aby uzyskać bardziej zaawansowane opcje.",
     "useWildcardSearch": "Wyszukiwanie z użyciem symboli wieloznacznych (z uwzględnieniem wielkości liter)",
     "useWildcardSearchDescription": "Obsługiwane opcje symboli wieloznacznych:\n\n- Dopasuj dowolną sekwencję: *\n\n- Dopasowanie jednego znaku: ?\n\n- Klasa znaków: [a-z], [0-9]\n\n- Negacja: [^0-9]\n\n- Dosłowne *, ? lub [ muszą być ujęte w nawiasy, np. [*], [?], [[]\n\n- We wszystkich wynikach rozróżniana jest wielkość liter",
-    "openInAdvancedSearch": "Otwórz w wyszukiwaniu zaawansowanym"
+    "openInAdvancedSearch": "Otwórz w wyszukiwaniu zaawansowanym",
+    "caseExact": "Wyszukiwanie z uwzględnieniem wielkości liter",
+    "caseExactDescription": "Porównuj nazwy plików i folderów, uwzględniając dokładną wielkość liter, zamiast ignorować różnicę między wielkimi a małymi literami."
   },
   "settings": {
     "avoidChanges": "(pozostaw puste aby nie zosatało zmienione)",
@@ -572,7 +575,9 @@
     "no": "Nie{suffix}",
     "to": "do{suffix}",
     "and": "oraz{suffix}",
-    "or": "lub{suffix}"
+    "or": "lub{suffix}",
+    "camera": "Aparat{suffix}",
+    "video": "Film{suffix}"
   },
   "access": {
     "rules": "Zasady dostępu",
@@ -778,7 +783,6 @@
       "scopeAria": "Ograniczenie wyszukiwania do folderu",
       "noTerms": "Wprowadź co najmniej jedno wyszukiwane hasło.",
       "termTooShort": "Każde wyszukiwane hasło musi zawierać co najmniej {minSearchLength} znaków",
-      "caseExact": "Dopasowanie z uwzględnieniem wielkości liter",
       "resultsTitle": "Wyniki wyszukiwania",
       "invalidSources": "Włącz co najmniej jedno źródło.",
       "noResults": "Brak pasujących plików lub folderów."
@@ -807,7 +811,18 @@
     "description": "Wyświetlanie wszystkich powiadomień z bieżącej sesji",
     "empty": "Brak powiadomień",
     "clearAll": "Wyczyść wszystko",
-    "total": "{count} powiadomienia"
+    "appEnabled": "Powiadomienia w aplikacji",
+    "appEnabledDescription": "Wyświetlaj powiadomienia przeglądarki po zakończeniu operacji na plikach, gdy ta karta jest w tle. Wymaga uprawnień przeglądarki. Dane są zapisywane wyłącznie w tej przeglądarce.",
+    "appUnsupported": "W tej przeglądarce nie są obsługiwane powiadomienia z aplikacji.",
+    "permissionGranted": "dozwolone",
+    "permissionDeniedHelp": "Powiadomienia są zablokowane. Włącz je w ustawieniach przeglądarki dla tej witryny.",
+    "uploadTitle": "Przesyłanie zakończone",
+    "downloadTitle": "Pobierz całość",
+    "moveTitle": "Operacja zakończona",
+    "copyTitle": "Kopiowanie zakończone",
+    "uploadFailedTitle": "Przesyłanie nie powiodło się",
+    "downloadFailedTitle": "Pobieranie nie powiodło się",
+    "operationFailedTitle": "Operacja nie powiodła się"
   },
   "events": {
     "serverShutdown": "Serwer został wyłączony.",
@@ -860,5 +875,8 @@
     "documentDownload": "Pobieranie dokumentów - zakończone",
     "editorSuccess": "Inicjalizacja edytora - sukces! Wszystkie kroki zostały wykonane.",
     "setupError": "Błąd konfiguracji"
+  },
+  "pwa": {
+    "install": "Zainstaluj aplikację"
   }
 }

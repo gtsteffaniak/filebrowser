@@ -116,7 +116,7 @@ export default {
 
       if (state.isSearchActive || getters.currentView() === "preview") {
         const selected = state.selected[0];
-        const item = state.req.items?.[selected] || selected;
+        const item = state.req.items?.at(selected) || selected;
         const previewUrl = this.getPreviewUrl(item.source || state.req.source, item.path, item.modified, item.type);
         items.push({
           source: item.source || state.req.source,
@@ -128,7 +128,7 @@ export default {
           hasPreview: item.hasPreview,
         });
       } else if (!this.isListing) {
-        const item = state.req.items[state.selected[0]];
+        const item = state.req.items.at(state.selected[0]);
         const previewUrl = this.getPreviewUrl(item.source || state.req.source, item.path, item.modified, item.type);
         items.push({
           source: item.source || state.req.source,
@@ -141,7 +141,7 @@ export default {
         });
       } else {
         for (const index of state.selected) {
-          const item = state.req.items[index];
+          const item = state.req.items.at(index);
           const previewUrl = this.getPreviewUrl(item.source || state.req.source, item.path, item.modified, item.type);
           items.push({
             source: item.source || state.req.source,

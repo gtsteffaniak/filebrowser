@@ -37,6 +37,7 @@ import { resourcesApi } from "@/api";
 import { getters, mutations } from "@/store"; // Import your custom store
 import { notify } from "@/notify";
 import { url } from "@/utils";
+import { goToItemNotificationButton } from "@/utils/notificationActions";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 export default {
   name: "new-file",
@@ -109,16 +110,16 @@ export default {
     },
 
     showNotification(source, newPath) {
-      const buttonAction = () => {
-        url.goToItem(source, newPath, {}, false, getters.isShare());
-      };
       const buttonProps = {
         icon: "insert_drive_file",
-        buttons: [{
-          label: this.$t("buttons.goToItem"),
-          primary: true,
-          action: buttonAction
-        }]
+        buttons: [
+          goToItemNotificationButton(
+            this.$t("buttons.goToItem"),
+            source,
+            newPath,
+            getters.isShare()
+          ),
+        ],
       };
       notify.showSuccess(this.$t("prompts.newFileSuccess"), buttonProps);
     },

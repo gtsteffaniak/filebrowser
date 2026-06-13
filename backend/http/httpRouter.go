@@ -166,6 +166,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	api.HandleFunc("PATCH /share", withPermShare(sharePatchHandler))
 	api.HandleFunc("DELETE /share", withPermShare(shareDeleteHandler))
 	publicApi.HandleFunc("GET /share/info", withOrWithoutUser(shareInfoHandler))
+	publicApi.HandleFunc("PATCH /share/pinnedItems", withPermShare(sharePatchPinnedItemsHandler))
 	publicApi.HandleFunc("GET /share/image", withHashFile(getShareImage))
 
 	// ========================================

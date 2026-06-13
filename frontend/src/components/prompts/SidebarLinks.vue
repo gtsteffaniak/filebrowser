@@ -295,6 +295,7 @@ import { notify } from "@/notify";
 import { usersApi, shareApi } from "@/api";
 import { tools } from "@/utils/constants";
 import { getIconClass } from "@/utils/material-symbols";
+import { getObjectProperty } from '@/utils/object.js';
 import FileList from "../files/FileList.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import { eventBus } from "@/store/eventBus";
@@ -404,7 +405,7 @@ export default {
     // Initialize with existing sidebar links based on context
     if (this.context === 'share' && this.shareData?.sidebarLinks) {
       this.links = [...this.shareData.sidebarLinks];
-    } else if (this.context === 'user' && state.user?.sidebarLinks && state.user.sidebarLinks.length > 0) {
+    } else if (this.context === 'user' && state.user?.sidebarLinks && state.user?.sidebarLinks.length > 0) {
       this.links = [...state.user.sidebarLinks];
     } else if (this.context === 'user') {
       // Generate default links from sources for user context
@@ -413,7 +414,7 @@ export default {
 
     if (this.context === 'user') {
       if (typeof state.user?.showToolsInSidebar === 'boolean') {
-        this.showToolsInSidebar = state.user.showToolsInSidebar;
+        this.showToolsInSidebar = state.user?.showToolsInSidebar;
       } else {
         this.showToolsInSidebar = true;
       }
@@ -549,20 +550,28 @@ export default {
       }
     },
     getCategoryLabel(category) {
-      const labels = {
-        source: this.$t('general.source'),
-        'source-minimal': this.$t('general.source'),
-        'source-alt': this.$t('general.source'),
-        'source-hybrid': this.$t('general.source'),
-        'source-hybrid-2': this.$t('general.source'),
-        tool: this.$t('general.tool'),
-        custom: this.$t('sidebar.customLink'),
-        share: this.$t('general.share'),
-        shareInfo: this.$t('share.shareInfo'),
-        download: this.$t('general.download'),
-        divider: this.$t('general.divider'),
-      };
-      return labels[category] || category;
+      switch (category) {
+        case 'source':
+        case 'source-minimal':
+        case 'source-alt':
+        case 'source-hybrid':
+        case 'source-hybrid-2':
+          return this.$t('general.source');
+        case 'tool':
+          return this.$t('general.tool');
+        case 'custom':
+          return this.$t('sidebar.customLink');
+        case 'share':
+          return this.$t('general.share');
+        case 'shareInfo':
+          return this.$t('share.shareInfo');
+        case 'download':
+          return this.$t('general.download');
+        case 'divider':
+          return this.$t('general.divider');
+        default:
+          return category;
+      }
     },
     getLinkDisplayName(link) {
       // For dividers, show the name or a default
@@ -701,7 +710,8 @@ export default {
       this.tempSelectedSource = "";
     },
     editLink(index) {
-      const link = this.links[index];
+      const link = this.links.at(index);
+      if (!link) return;
       this.editingIndex = index;
       this.showAddForm = true;
 
@@ -807,7 +817,7 @@ export default {
       event.dataTransfer.setData("text/html", event.target);
 
       // Set the entire link item as the drag image
-      const linkItem = this.linkItemRefs[index];
+      const linkItem = getObjectProperty(this.linkItemRefs, index);
       if (linkItem) {
         // Create a clone for the drag image to avoid affecting the original
         const clone = linkItem.cloneNode(true);
@@ -899,7 +909,7 @@ export default {
 
           await usersApi.update(updatedUser, ['sidebarLinks', 'showToolsInSidebar']);
 
-          mutations.updateCurrentUser({
+          void mutations.updateCurrentUser({
             sidebarLinks: [...this.links],
             showToolsInSidebar: this.showToolsInSidebar,
           });

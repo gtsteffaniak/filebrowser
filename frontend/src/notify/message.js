@@ -1,5 +1,6 @@
 import i18n from '@/i18n'
 import { mutations, state } from '@/store'
+import { resolveHistoryNotificationButtons } from '@/utils/notificationActions'
 
 /**
  * @typedef {Object} NotificationButton
@@ -248,7 +249,7 @@ export function showPopup(type, message, options = {}) {
         return
       }
 
-      const notif = notifications[notificationIndex]
+      const notif = notifications.at(notificationIndex)
       // Update progress if the notification is active
       if (notif.timeoutStartTime && !notif.timeoutRemaining) {
         const elapsed = Date.now() - notif.timeoutStartTime
@@ -280,7 +281,7 @@ export function closeNotification(notificationId) {
     return
   }
 
-  const notification = notifications[index]
+  const notification = notifications.at(index)
 
   // Clear timeout if exists
   if (notification.timeoutId) {
@@ -422,7 +423,7 @@ export function resumeAutoClose(notificationId) {
         clearInterval(notification.progressInterval)
         return
       }
-      const notif = notifications[notificationIndex]
+      const notif = notifications.at(notificationIndex)
       // Update progress if notification is active (not paused)
       if (notif.timeoutStartTime && !notif.timeoutRemaining) {
         const elapsed = Date.now() - notif.timeoutStartTime
@@ -483,7 +484,7 @@ export function closeToast(toastId) {
     return
   }
 
-  const toast = toasts[index]
+  const toast = toasts.at(index)
 
   // Clear timeout if exists
   if (toast.timeoutId) {
@@ -537,13 +538,13 @@ export function showToast(type, message, options = {}) {
  * @returns {string}
  */
 function getDefaultToastIcon(type) {
-  const iconMap = {
-    success: 'check_circle',
-    error: 'error',
-    info: 'info',
-    warning: 'warning'
+  switch (type) {
+    case 'success': return 'check_circle'
+    case 'error': return 'error'
+    case 'info': return 'info'
+    case 'warning': return 'warning'
+    default: return 'info'
   }
-  return iconMap[type] || 'info'
 }
 
 /**
@@ -589,3 +590,5 @@ export function showInfoToast(message, options = {}) {
 export function showWarningToast(message, options = {}) {
   showToast('warning', message, { duration: 2500, ...options })
 }
+
+export { resolveHistoryNotificationButtons }

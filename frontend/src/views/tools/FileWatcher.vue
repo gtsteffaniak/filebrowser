@@ -337,14 +337,10 @@ export default {
 
         const newQueryString = new URLSearchParams(query).toString();
         const currentQuery = this.$route.query || {};
-        const currentQueryString = new URLSearchParams(
-          Object.entries(currentQuery).reduce((acc, [key, value]) => {
-            if (value !== null && value !== undefined) {
-              acc[key] = String(value);
-            }
-            return acc;
-          }, {})
-        ).toString();
+        const filteredEntries = Object.entries(currentQuery)
+          .filter(([_, value]) => value !== null && value !== undefined)
+          .map(([key, value]) => [key, String(value)]);
+        const currentQueryString = new URLSearchParams(Object.fromEntries(filteredEntries)).toString();
 
         if (newQueryString !== currentQueryString) {
           this.$router.replace({
@@ -391,7 +387,7 @@ export default {
         // Use REST API polling
         await this.fetchFileContent(false);
         this.pollInterval = setInterval(() => {
-          this.fetchFileContent(false);
+          void this.fetchFileContent(false);
         }, this.selectedInterval * 1000);
       }
     },
@@ -553,11 +549,11 @@ export default {
       }
 
       // Ping health endpoint immediately
-      this.pingHealthEndpoint();
+      void this.pingHealthEndpoint();
 
       // Start pinging at the same interval as SSE events
       this.latencyPingInterval = setInterval(() => {
-        this.pingHealthEndpoint();
+        void this.pingHealthEndpoint();
       }, this.selectedInterval * 1000);
     },
     async pingHealthEndpoint() {
@@ -580,7 +576,7 @@ export default {
         const isInputFocused = activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA');
         if (!isInputFocused) {
           event.preventDefault();
-          this.toggleWatch();
+          void this.toggleWatch();
         }
       }
     },

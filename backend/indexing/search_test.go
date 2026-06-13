@@ -117,6 +117,14 @@ func TestParseSearch(t *testing.T) {
 			},
 		},
 		{
+			input: `"new folder"`,
+			want: iteminfo.SearchOptions{
+				Conditions: map[string]bool{"exact": false},
+				Terms:      []string{"new folder"},
+				Quoted:     true,
+			},
+		},
+		{
 			input: "type:olderThan=2024-06-01 type:newerThan=2024-01-01 findme",
 			want: iteminfo.SearchOptions{
 				Conditions:         map[string]bool{"exact": false},
@@ -264,6 +272,13 @@ func TestSearchIndexes(t *testing.T) {
 				{ItemInfo: iteminfo.ItemInfo{Name: "consoletest.mp4", Size: 196091904, Type: "video/mp4"}},
 				{ItemInfo: iteminfo.ItemInfo{Name: "playwright.gif", Size: 2416640, Type: "image/gif"}},
 				{ItemInfo: iteminfo.ItemInfo{Name: "toggle.gif", Size: 65536, Type: "image/gif"}},
+			},
+		},
+		"/media/": {
+			ItemInfo: iteminfo.ItemInfo{Name: "media", Type: "directory"},
+			Files: []iteminfo.ExtendedItemInfo{
+				{ItemInfo: iteminfo.ItemInfo{Name: "Blade.Runner.mkv", Type: "video"}},
+				{ItemInfo: iteminfo.ItemInfo{Name: "new.folder.txt", Type: "text"}},
 			},
 		},
 	}
@@ -462,6 +477,65 @@ func TestSearchIndexes(t *testing.T) {
 				},
 			},
 		},
+		{
+			search: "Blade Runner",
+			scope:  "/media/",
+			expectedResult: []*SearchResult{
+				{
+					Path: "/media/Blade.Runner.mkv",
+					Type: "video",
+					Size: 0,
+				},
+			},
+		},
+		{
+			search: "new folder",
+			scope:  "/media/",
+			expectedResult: []*SearchResult{
+				{
+					Path: "/media/new.folder.txt",
+					Type: "text",
+					Size: 0,
+				},
+			},
+		},
+		{
+			search:         "new folder",
+			scope:          "/",
+			expectedResult: []*SearchResult{
+				{
+					Path: "/new+folder/",
+					Type: "directory",
+					Size: 0,
+				},
+				{
+					Path: "/media/new.folder.txt",
+					Type: "text",
+					Size: 0,
+				},
+			},
+		},
+		{
+			search: `"new folder"`,
+			scope:  "/media/",
+			expectedResult: []*SearchResult{},
+		},
+		{
+			search: "VIDEO",
+			scope:  "/new/test/",
+			expectedResult: []*SearchResult{
+				{
+					Path: "/new/test/video.MP4",
+					Type: "video",
+					Size: 0,
+				},
+				{
+					Path: "/new/test/video.mp4",
+					Type: "video",
+					Size: 0,
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -478,6 +552,59 @@ func TestSearchIndexes(t *testing.T) {
 			}
 			assert.ElementsMatch(t, expected, actual)
 		})
+	}
+}
+
+func TestSearchUserGlob(t *testing.T) {
+	if indexDB == nil {
+		var err error
+		indexDB, _, err = dbsql.NewIndexDB("test_search_glob", "OFF", 1000, 32, false)
+		if err != nil {
+			t.Fatalf("Failed to create test database: %v", err)
+		}
+	}
+
+	index := Index{
+		Source: settings.Source{
+			Name: "test_search_glob",
+			Path: "/mock/path",
+		},
+		db:   indexDB,
+		mock: true,
+	}
+
+	now := time.Now()
+	directories := map[string]*iteminfo.FileInfo{
+		"/media/": {
+			ItemInfo: iteminfo.ItemInfo{Name: "media", Type: "directory"},
+			Files: []iteminfo.ExtendedItemInfo{
+				{ItemInfo: iteminfo.ItemInfo{Name: "NEW-folder", Type: "text"}},
+			},
+		},
+	}
+
+	for path, dirInfo := range directories {
+		dirInfo.Path = path
+		if dirInfo.ModTime.IsZero() {
+			dirInfo.ModTime = now
+		}
+		_ = index.db.InsertItem("test_search_glob", path, dirInfo)
+		for _, file := range dirInfo.Files {
+			filePath := strings.TrimSuffix(path, "/") + "/" + file.Name
+			fileInfo := &iteminfo.FileInfo{
+				Path:     filePath,
+				ItemInfo: file.ItemInfo,
+			}
+			if fileInfo.ModTime.IsZero() {
+				fileInfo.ModTime = now
+			}
+			_ = index.db.InsertItem("test_search_glob", filePath, fileInfo)
+		}
+	}
+
+	result := index.Search("new*folder", "/media/", "", false, DefaultSearchResults, 0, 0, true)
+	if len(result) != 1 || result[0].Path != "/media/NEW-folder" {
+		t.Fatalf("expected new*folder to match NEW-folder, got %#v", result)
 	}
 }
 

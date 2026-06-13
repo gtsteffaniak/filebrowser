@@ -29,7 +29,8 @@
     "goToItem": "Gå till objektet",
     "copyPath": "Kopiera sökväg",
     "pinItem": "Fäst",
-    "unpinItem": "Lossa"
+    "unpinItem": "Lossa",
+    "sendToApp": "Skicka till appen"
   },
   "errors": {
     "forbidden": "Du saknar rättigheter till detta",
@@ -245,7 +246,9 @@
     "helpText2": "Delsträngsmatchning endast på fil- eller mappnamn (inte fullständiga sökvägar). case:exact för skiftlägeskänslig matchning\n\n för OR mellan termer använd pipe-tecken; dubbla citattecken för en fras.\n\nAktivera jokerteckensökning för mer avancerade alternativ.",
     "useWildcardSearch": "Sökning med jokertecken (skiftlägeskänslig)",
     "useWildcardSearchDescription": "Alternativ för jokertecken som stöds:\n\n- Matchar vilken sekvens som helst: *\n\n- Matcha ett tecken: ?\n\n- Teckenklass: [a-z], [0-9]\n\n- Negation: [^0-9]\n\n- Bokstavliga *, ? eller [ måste omslutas av parenteser, t.ex. [*], [?], [[]\n\n- Alla resultat är skiftlägeskänsliga",
-    "openInAdvancedSearch": "Öppna i avancerad sökning"
+    "openInAdvancedSearch": "Öppna i avancerad sökning",
+    "caseExact": "Skillnad mellan stora och små bokstäver",
+    "caseExactDescription": "Jämför fil- och mappnamn med exakt bokstavsstorlek istället för att bortse från skillnaden mellan stora och små bokstäver."
   },
   "settings": {
     "avoidChanges": "(lämna blankt för att undvika ändringar)",
@@ -666,7 +669,9 @@
     "no": "Nej{suffix}",
     "to": "till{suffix}",
     "and": "och{suffix}",
-    "or": "eller{suffix}"
+    "or": "eller{suffix}",
+    "camera": "Kamera{suffix}",
+    "video": "Video{suffix}"
   },
   "access": {
     "rules": "Regler för åtkomst",
@@ -778,7 +783,6 @@
       "scopeAria": "Begränsa sökningen till en mapp",
       "noTerms": "Ange minst en sökterm.",
       "termTooShort": "Varje sökterm måste innehålla minst {minSearchLength} tecken",
-      "caseExact": "Matchning med skiftlägeskänslighet",
       "resultsTitle": "Sökresultat",
       "invalidSources": "Slå på minst en källa.",
       "noResults": "Inga matchande filer eller mappar."
@@ -807,7 +811,18 @@
     "description": "Visa alla meddelanden från din aktuella session",
     "empty": "Inga meddelanden ännu",
     "clearAll": "Rensa alla",
-    "total": "{count} meddelanden"
+    "appEnabled": "Appaviseringar",
+    "appEnabledDescription": "Visa webbläsaraviseringar när filåtgärder slutförs medan den här fliken är i bakgrunden. Kräver behörighet i webbläsaren. Sparas endast i den här webbläsaren.",
+    "appUnsupported": "Appaviseringar stöds inte i den här webbläsaren.",
+    "permissionGranted": "tillåtet",
+    "permissionDeniedHelp": "Meddelanden är blockerade. Aktivera dem i webbläsarens inställningar för den här webbplatsen.",
+    "uploadTitle": "Uppladdningen är klar",
+    "downloadTitle": "Ladda ner hela filen",
+    "moveTitle": "Flytten är klar",
+    "copyTitle": "Kopieringen är klar",
+    "uploadFailedTitle": "Uppladdningen misslyckades",
+    "downloadFailedTitle": "Nedladdningen misslyckades",
+    "operationFailedTitle": "Åtgärden misslyckades"
   },
   "events": {
     "serverShutdown": "Servern stängdes av.",
@@ -860,5 +875,8 @@
     "documentDownload": "Dokumentnedladdning - Komplett",
     "editorSuccess": "Initialisering av Editor - Framgång! Alla steg slutförda.",
     "setupError": "Inställningsfel"
+  },
+  "pwa": {
+    "install": "Installera appen"
   }
 }

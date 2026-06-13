@@ -29,7 +29,8 @@
     "goToItem": "Přejít na položku",
     "copyPath": "Kopírovat cestu",
     "pinItem": "Připnout",
-    "unpinItem": "Odepnout"
+    "unpinItem": "Odepnout",
+    "sendToApp": "Odeslat do aplikace"
   },
   "errors": {
     "forbidden": "Nemáte oprávnění k přístupu.",
@@ -315,7 +316,9 @@
     "helpText2": "Shoda podřetězce pouze s názvy souborů nebo složek (ne s úplnými cestami). case:exact pro porovnávání s rozlišováním malých a velkých písmen.\n\n pro OR mezi výrazy použijte znak pipe; dvojité uvozovky pro jednu frázi.\n\nPovolte vyhledávání se zástupnými znaky pro pokročilejší možnosti.",
     "useWildcardSearch": "Vyhledávání se zástupnými znaky (rozlišování velkých a malých písmen)",
     "useWildcardSearchDescription": "Podporované možnosti zástupných znaků:\n\n- Shodují se s libovolnou sekvencí: *\n\n- Shoda s jedním znakem: ?\n\n- Třída znaků: [a-z], [0-9]\n\n- Negace: [^0-9]\n\n- Doslovné *, ? nebo [ je třeba zabalit do závorek, např. [*], [?], [[].\n\n- U všech výsledků se rozlišují velká a malá písmena",
-    "openInAdvancedSearch": "Otevřít v rozšířeném vyhledávání"
+    "openInAdvancedSearch": "Otevřít v rozšířeném vyhledávání",
+    "caseExact": "Porovnání s rozlišováním velkých a malých písmen",
+    "caseExactDescription": "Porovnávejte názvy souborů a složek s ohledem na přesné rozlišování velkých a malých písmen, místo aby se velká a malá písmena ignorovala."
   },
   "profileSettings": {
     "hideFileExt": "Skrýt určité soubory (podle přípony)",
@@ -666,7 +669,9 @@
     "no": "Ne{suffix}",
     "to": "až{suffix}",
     "and": "a{suffix}",
-    "or": "nebo{suffix}"
+    "or": "nebo{suffix}",
+    "camera": "Fotoaparát{suffix}",
+    "video": "Video{suffix}"
   },
   "access": {
     "rules": "Pravidla přístupu",
@@ -778,7 +783,6 @@
       "scopeAria": "Omezení vyhledávání na složku",
       "noTerms": "Zadejte alespoň jeden hledaný výraz.",
       "termTooShort": "Každý hledaný výraz musí mít alespoň {minSearchLength} znaků.",
-      "caseExact": "Shoda rozlišující malá a velká písmena",
       "resultsTitle": "Výsledky vyhledávání",
       "invalidSources": "Zapněte alespoň jeden zdroj.",
       "noResults": "Žádné odpovídající soubory nebo složky."
@@ -807,7 +811,18 @@
     "description": "Zobrazení všech oznámení z aktuální relace",
     "empty": "Zatím žádná oznámení",
     "clearAll": "Vymazat vše",
-    "total": "{count} oznámení"
+    "appEnabled": "Oznámení v aplikaci",
+    "appEnabledDescription": "Zobrazovat oznámení prohlížeče po dokončení operací se soubory, když je tato karta na pozadí. Vyžaduje oprávnění prohlížeče. Uloženo pouze v tomto prohlížeči.",
+    "appUnsupported": "Tento prohlížeč nepodporuje oznámení z aplikací.",
+    "permissionGranted": "povoleno",
+    "permissionDeniedHelp": "Oznámení jsou zablokována. Povolte je v nastavení prohlížeče pro tento web.",
+    "uploadTitle": "Nahrávání dokončeno",
+    "downloadTitle": "Stažení dokončeno",
+    "moveTitle": "Přesun dokončen",
+    "copyTitle": "Kopírování dokončeno",
+    "uploadFailedTitle": "Nahrávání se nezdařilo",
+    "downloadFailedTitle": "Stahování se nezdařilo",
+    "operationFailedTitle": "Operace se nezdařila"
   },
   "events": {
     "serverShutdown": "Server byl vypnut.",
@@ -860,5 +875,8 @@
     "documentDownload": "Dokument ke stažení - kompletní",
     "editorSuccess": "Inicializace editoru - úspěch! Všechny kroky byly dokončeny.",
     "setupError": "Chyba nastavení"
+  },
+  "pwa": {
+    "install": "Nainstalovat aplikaci"
   }
 }

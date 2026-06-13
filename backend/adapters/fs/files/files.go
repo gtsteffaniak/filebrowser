@@ -223,12 +223,12 @@ func GetDirItems(opts utils.FileOptions, access *access.Storage, user *users.Use
 // FileInfoFasterFunc is a variable that can be mocked in tests
 var FileInfoFasterFunc = fileInfoFasterImpl
 
-func FileInfoFaster(opts utils.FileOptions, access *access.Storage, user *users.User, share *share.Storage) (*iteminfo.ExtendedFileInfo, error) {
-	return FileInfoFasterFunc(opts, access, user, share)
+func FileInfoFaster(opts utils.FileOptions, access *access.Storage, user *users.User, shareStore *share.Storage) (*iteminfo.ExtendedFileInfo, error) {
+	return FileInfoFasterFunc(opts, access, user, shareStore)
 }
 
 // fileInfoFasterImpl is the actual implementation of FileInfoFaster
-func fileInfoFasterImpl(opts utils.FileOptions, access *access.Storage, user *users.User, share *share.Storage) (*iteminfo.ExtendedFileInfo, error) {
+func fileInfoFasterImpl(opts utils.FileOptions, access *access.Storage, user *users.User, shareStore *share.Storage) (*iteminfo.ExtendedFileInfo, error) {
 	response := &iteminfo.ExtendedFileInfo{}
 	indexPath, userScope, topLevelErr := CheckPermissions(opts, access, user)
 	accessRulesErr := topLevelErr != nil && topLevelErr == errors.ErrAccessDenied && indexPath != ""
@@ -268,19 +268,25 @@ func fileInfoFasterImpl(opts utils.FileOptions, access *access.Storage, user *us
 	response.FileInfo = *info
 	response.RealPath = filepath.Join(idx.Path, indexPath)
 	response.Source = opts.Source
-	if share != nil && user.Permissions.Share && opts.ShowSharedAttr {
+	if shareStore != nil && user.Permissions.Share && opts.ShowSharedAttr {
 		for i := range response.Files {
 			file := &response.Files[i]
-			file.IsShared = share.IsShared(response.Path+file.Name, idx.Path, user.ID)
+			file.IsShared = shareStore.IsShared(response.Path+file.Name, idx.Path, user.ID)
 		}
 		for i := range response.Folders {
 			folder := &response.Folders[i]
-			folder.IsShared = share.IsShared(response.Path+folder.Name, idx.Path, user.ID)
+			folder.IsShared = shareStore.IsShared(response.Path+folder.Name, idx.Path, user.ID)
 		}
-		response.IsShared = share.IsShared(response.Path, idx.Path, user.ID)
+		response.IsShared = shareStore.IsShared(response.Path, idx.Path, user.ID)
 	}
 	if info.Type == "directory" && opts.ShowPinnedItems {
-		if source, ok := users.ResolveSourceKey(response.Source); ok {
+		if opts.ShareHash != "" && shareStore != nil {
+			if link, err := shareStore.GetByHash(opts.ShareHash); err == nil {
+				if shareRelDir, err := link.ShareRelativeDir(response.Path); err == nil {
+					response.PinnedItems = link.PinnedItems.NamesForDirectory(shareRelDir)
+				}
+			}
+		} else if source, ok := users.ResolveSourceKey(response.Source); ok {
 			response.PinnedItems = user.PinnedNamesForDirectory(source.Path, response.Path)
 		}
 	}
