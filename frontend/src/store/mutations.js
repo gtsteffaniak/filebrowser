@@ -1,10 +1,7 @@
+import { markRaw } from "vue";
+import { resourcesApi, usersApi } from "@/api";
 import * as i18n from "@/i18n";
-import { state } from "./state.js";
-import { getters } from "./getters.js";
-import { emitStateChanged } from './eventBus';
-import { usersApi } from "@/api";
 import { notify } from "@/notify";
-import { sortedItems } from "@/utils/sort.js";
 import { url } from "@/utils";
 import { getTypeInfo } from "@/utils/mimetype";
 import { getObjectProperty, setObjectProperty, omitObjectProperty } from '@/utils/object.js';
@@ -396,7 +393,7 @@ export const mutations = {
     state.reload = value;
     emitStateChanged();
   },
-  setCurrentUser: (value) => {
+  setCurrentUser: async (value) => {
     try {
       // If value is null or undefined, emit state change and exit early
       if (!value) {
@@ -411,7 +408,7 @@ export const mutations = {
       if (!value.locale) {
         value.locale = i18n.detectLocale();  // Default to detected locale if missing
       } else {
-        i18n.setLocale(value.locale);
+        await i18n.setLocale(value.locale);
       }
       state.user = value;
       state.user.sorting = {};
@@ -480,6 +477,7 @@ export const mutations = {
       return;
     }
     state.shareInfo = newShare;
+    updateManifestLink();
     emitStateChanged();
   },
   clearShareData: () => {
@@ -497,6 +495,7 @@ export const mutations = {
       title: "",
       description: "",
     };
+    updateManifestLink();
     emitStateChanged();
   },
   setSession: (value) => {
@@ -560,7 +559,7 @@ export const mutations = {
     state.previewRaw = value;
     emitStateChanged();
   },
-  updateCurrentUser: (value) => {
+  updateCurrentUser: async (value) => {
     // Ensure the input is a valid object
     if (typeof value !== "object" || value === null) return;
 
@@ -587,7 +586,7 @@ export const mutations = {
 
     // Handle locale change
     if (state.user.locale !== previousUser.locale) {
-      i18n.setLocale(state.user.locale);
+      await i18n.setLocale(state.user.locale);
       i18n.default.locale = state.user.locale;
       localStorage.setItem("userLocale", state.user.locale);
     }
@@ -756,9 +755,14 @@ export const mutations = {
     emitStateChanged();
   },
   showTooltip(value) {
-    state.tooltip.content = value.content;
+    const useComponent = Boolean(value.component);
+    state.tooltip.content = useComponent ? "" : (value.content ?? "");
+    state.tooltip.component = useComponent ? markRaw(value.component) : null;
+    state.tooltip.componentProps = useComponent ? (value.componentProps ?? {}) : null;
     state.tooltip.x = value.x;
     state.tooltip.y = value.y;
+    state.tooltip.width = value.width ?? null;
+    state.tooltip.pointerEvents = value.pointerEvents ?? false;
     state.tooltip.show = true;
     emitStateChanged();
   },
@@ -1065,6 +1069,7 @@ export const mutations = {
       return;
     }
     state.shareInfo = shareInfo;
+    updateManifestLink();
     emitStateChanged();
   },
   setSidebarWidth: (value) => {

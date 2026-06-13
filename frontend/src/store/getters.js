@@ -1,12 +1,12 @@
-import { removePrefix, buildItemUrl, removeLeadingSlash } from '@/utils/url.js'
-import { url } from '@/utils'
-import { getFileExtension } from '@/utils/files.js'
+import * as i18n from '@/i18n'
 import { state, mutations } from '@/store'
-import { globalVars, previewViews } from '@/utils/constants.js'
+import { url } from '@/utils'
+import { globalVars, previewViews, tools } from '@/utils/constants'
+import { getFileExtension } from '@/utils/files.js'
 import { getTypeInfo } from '@/utils/mimetype'
 import { fromNow } from '@/utils/moment'
-import { tools } from '@/utils/constants'
-import * as i18n from '@/i18n'
+import { getObjectProperty } from '@/utils/object.js'
+import { buildItemUrl, removeLeadingSlash, removePrefix } from '@/utils/url.js'
 
 export const getters = {
   eventTheme: () => {
@@ -216,19 +216,24 @@ export const getters = {
     return fileCount
   },
   reqItems: () => {
-    if (state.user == null) return { dirs: [], files: [] };
+    if (state.user === null) return { pinned: [], dirs: [], files: [] };
+    const pinned = [];
     const dirs = [];
     const files = [];
     if (!state.req?.items) return { pinned, dirs, files };
 
     for (const item of state.req.items) {
+      if (item.pinned) {
+        pinned.push(item);
+        continue;
+      }
       if (item.type === 'directory') {
         dirs.push(item);
       } else {
         files.push(item);
       }
     }
-    return { dirs, files };
+    return { pinned, dirs, files };
   },
   isSidebarVisible: () => {
     if (globalVars.disableSidebar || getters.isInvalidShare()) {
@@ -406,7 +411,7 @@ export const getters = {
       return []
     }
 
-    let files = []
+    const files = []
 
     for (const index of Object.keys(state.upload.uploads)) {
       const upload = getObjectProperty(state.upload.uploads, index)
