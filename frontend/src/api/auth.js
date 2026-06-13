@@ -201,11 +201,7 @@ function base64ToArrayBuffer(base64url) {
   let base64 = base64url.replace(/-/g, '+').replace(/_/g, '/')
   while (base64.length % 4) base64 += '='
   const binary = atob(base64)
-  const bytes = new Uint8Array(binary.length)
-  for (let i = 0; i < binary.length; i++) {
-    // eslint-disable-next-line security/detect-object-injection
-    bytes[i] = binary.charCodeAt(i)
-  }
+  const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0))
   return bytes.buffer
 }
 
