@@ -646,6 +646,19 @@ func wrapHandlerBasicAuth(fn handleFunc) http.HandlerFunc {
 func withPermShareHelper(fn handleFunc) handleFunc {
 	return withUserHelper(func(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 		if !d.user.Permissions.Share {
+			logger.Debug("share permission denied",
+				"username", d.user.Username,
+				"userID", d.user.ID,
+				"method", r.Method,
+				"path", r.URL.Path,
+				"permAdmin", d.user.Permissions.Admin,
+				"permShare", d.user.Permissions.Share,
+				"permModify", d.user.Permissions.Modify,
+				"permCreate", d.user.Permissions.Create,
+				"permDelete", d.user.Permissions.Delete,
+				"permDownload", d.user.Permissions.Download,
+				"permApi", d.user.Permissions.Api,
+			)
 			return http.StatusForbidden, nil
 		}
 		return fn(w, r, d)

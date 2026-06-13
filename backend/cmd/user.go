@@ -50,6 +50,17 @@ func validateUserInfo(newDB bool) {
 		adminPass := settings.Config.Auth.AdminPassword
 		if user.Username == adminUser && adminPass != "" && user.LoginMethod == users.LoginMethodPassword {
 			logger.Info("Resetting admin user to default username and password.")
+			logger.Debug("validateUserInfo admin reset permissions before update",
+				"userID", user.ID,
+				"permAdmin", user.Permissions.Admin,
+				"permShare", user.Permissions.Share,
+				"permModify", user.Permissions.Modify,
+				"permCreate", user.Permissions.Create,
+				"permDelete", user.Permissions.Delete,
+				"permDownload", user.Permissions.Download,
+				"permApi", user.Permissions.Api,
+				"version", user.Version,
+			)
 			user.Permissions.Admin = true
 			user.Password = settings.Config.Auth.AdminPassword
 			updateUser = true
@@ -69,9 +80,38 @@ func validateUserInfo(newDB bool) {
 				fields = append(fields, "Password")
 			}
 
+			logger.Debug("validateUserInfo patching user",
+				"username", user.Username,
+				"userID", user.ID,
+				"fields", fields,
+				"permAdmin", user.Permissions.Admin,
+				"permShare", user.Permissions.Share,
+				"permModify", user.Permissions.Modify,
+				"permCreate", user.Permissions.Create,
+				"permDelete", user.Permissions.Delete,
+				"permDownload", user.Permissions.Download,
+				"permApi", user.Permissions.Api,
+			)
+
 			err := state.UpdateUser(user, user.Password, fields...)
 			if err != nil {
 				logger.Errorf("could not update user: %v", err)
+			} else if user.Username == adminUser {
+				reloaded, reloadErr := state.GetUserByUsername(user.Username)
+				if reloadErr != nil {
+					logger.Errorf("could not reload admin after update: %v", reloadErr)
+				} else {
+					logger.Debug("validateUserInfo admin permissions after UpdateUser",
+						"userID", reloaded.ID,
+						"permAdmin", reloaded.Permissions.Admin,
+						"permShare", reloaded.Permissions.Share,
+						"permModify", reloaded.Permissions.Modify,
+						"permCreate", reloaded.Permissions.Create,
+						"permDelete", reloaded.Permissions.Delete,
+						"permDownload", reloaded.Permissions.Download,
+						"permApi", reloaded.Permissions.Api,
+					)
+				}
 			}
 		}
 

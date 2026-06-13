@@ -209,6 +209,7 @@ func StartHttp(ctx context.Context, shutdownComplete chan struct{}) {
 	// Misc Routes
 	// ========================================
 	api.HandleFunc("GET /health", healthHandler)
+	publicApi.HandleFunc("GET /health", healthHandler)
 	api.HandleFunc("GET /events", withUser(sseHandler))
 	if settings.Env.IsDevMode {
 		api.HandleFunc("GET /inspectIndex", inspectIndex)

@@ -10,7 +10,7 @@ COPY [ "./frontend/tests/", "./tests" ]
 COPY [ "./frontend/tests/playwright-files", "/tests/playwright-files" ]
 
 WORKDIR /app/backend/
-COPY [ "./backend/filebrowser*", "./"]
+COPY [ "./backend/filebrowser", "./"]
 COPY [ "./backend/reduce-rounded-corners.css", "./no-rounded.css"]
 RUN mkdir -p ./http/dist
 COPY [ "./backend/http/embed/", "./http/dist/"]

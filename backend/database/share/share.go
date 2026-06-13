@@ -45,7 +45,7 @@ type ShareFrontend struct {
 	FrontendShareInfo
 	Username                 string   `json:"username,omitempty"`
 	Hash                     string   `json:"hash,omitempty" storm:"id,index"`
-	SourceName               string   `json:"sourceName,omitempty"`
+	SourceName               string   `json:"source,omitempty"` // source display name for API; backend path is Share.SourcePath
 	Path                     string   `json:"path,omitempty"`
 	Expires                  string   `json:"expires,omitempty"`
 	Unit                     string   `json:"unit,omitempty"`

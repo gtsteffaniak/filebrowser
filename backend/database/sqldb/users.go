@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // User SQL operations
@@ -30,6 +31,13 @@ type UserData struct {
 
 func applyFilePermissionsFromJSON(user *users.User, data *UserData) {
 	if data.FilePermissions == nil {
+		logger.Debug("user load missing filePermissions in user_data",
+			"username", user.Username,
+			"userID", user.ID,
+			"permAdmin", user.Permissions.Admin,
+			"permApi", user.Permissions.Api,
+			"permRealtime", user.Permissions.Realtime,
+		)
 		return
 	}
 	fp := data.FilePermissions

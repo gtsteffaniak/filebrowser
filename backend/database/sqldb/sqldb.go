@@ -206,6 +206,17 @@ func (s *SQLStore) quickSetup() error {
 		if err != nil {
 			return fmt.Errorf("failed to create admin user: %w", err)
 		}
+		logger.Debug("quickSetup created admin user",
+			"username", user.Username,
+			"userID", user.ID,
+			"permAdmin", user.Permissions.Admin,
+			"permShare", user.Permissions.Share,
+			"permModify", user.Permissions.Modify,
+			"permCreate", user.Permissions.Create,
+			"permDelete", user.Permissions.Delete,
+			"permDownload", user.Permissions.Download,
+			"permApi", user.Permissions.Api,
+		)
 	}
 
 	return nil
