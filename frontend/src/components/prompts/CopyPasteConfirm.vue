@@ -25,6 +25,7 @@
 
   <div class="card-actions">
     <button
+      type="button"
       @click="closeTopPrompt"
       class="button button--flat button--grey"
       :aria-label="$t('general.cancel')"
@@ -32,6 +33,7 @@
       {{ $t("general.cancel") }}
     </button>
     <button
+      type="button"
       @click="confirm"
       class="button button--flat"
       :aria-label="operation === 'copy' ? $t('general.copy') : $t('general.move')"

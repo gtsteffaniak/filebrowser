@@ -1,9 +1,15 @@
-import { fetchURL, adjustedData } from './utils'
-import { getApiPath, getPublicApiPath } from '@/utils/url.js'
-import { state, mutations } from '@/store'
 import { notify } from '@/notify'
+import { mutations, state } from '@/store'
 import { globalVars } from '@/utils/constants'
 import { downloadManager } from '@/utils/downloadManager'
+import {
+  notifyDownloadComplete,
+  notifyDownloadError,
+} from '@/utils/appNotifications'
+import { getApiPath, getPublicApiPath } from '@/utils/url.js'
+import { adjustedData, fetchURL } from './utils'
+
+export { fetchPreviewImage } from '@/utils/previewRequests'
 
 // Notify if errors occur
 export async function fetchFiles(source, path, content = false, metadata = false, skipExtendedAttrs = false) {
@@ -58,7 +64,7 @@ export async function signalUploadPause(source, path, shareHash = null) {
       path: path,
     })
     const headers = {}
-    const sharePassword = localStorage.getItem('sharepass:' + shareHash)
+    const sharePassword = localStorage.getItem(`sharepass:${shareHash}`)
     if (sharePassword) {
       headers['X-SHARE-PASSWORD'] = sharePassword
     }
@@ -78,7 +84,7 @@ async function resourceAction(source, path, method, content) {
   }
   try {
     const apiPath = getApiPath('resources', { path, source })
-    let opts = { method }
+    const opts = { method }
     if (content) {
       opts.body = content
     }
@@ -90,7 +96,7 @@ async function resourceAction(source, path, method, content) {
       let data = null;
       try {
         data = await response.json()
-      } catch (e) {
+      } catch (_e) {
         // ignore
       }
       if (data) {
@@ -177,7 +183,7 @@ export async function download(format, files, shareHash = "") {
   if (shareHash) {
     filePaths = files.map((file) => file.path)
   } else {
-    for (let file of files) {
+    for (const file of files) {
       if (!file.source) {
         throw new Error('File source is required for downloads')
       }
@@ -264,11 +270,17 @@ async function resolveDownloadContentLength(url) {
     headers: { Range: 'bytes=0-0' },
     credentials: 'same-origin',
   })
+  const cancelBody = () => {
+    if (res.body && typeof res.body.cancel === 'function') {
+      res.body.cancel().catch(() => {})
+    }
+  }
   try {
     token = res.headers.get('X-Archive-Token') || token
     if (res.status === 206) {
       const total = totalFromContentRange(res.headers.get('Content-Range'))
       if (total > 0) {
+        cancelBody()
         return { size: total, token }
       }
     }
@@ -277,20 +289,17 @@ async function resolveDownloadContentLength(url) {
       if (cl) {
         const n = parseInt(cl, 10)
         if (Number.isFinite(n) && n > 0) {
+          cancelBody()
           return { size: n, token }
         }
       }
     }
-  } finally {
-    if (res.body && typeof res.body.cancel === 'function') {
-      try {
-        await res.body.cancel()
-      } catch {
-        // ignore
-      }
-    }
+    cancelBody()
+    return { size: 0, token }
+  } catch (e) {
+    cancelBody()
+    throw e
   }
-  return { size: 0, token: null }
 }
 
 function archiveDisplayFileName(format, files) {
@@ -299,20 +308,20 @@ function archiveDisplayFileName(format, files) {
   if (files.length === 1 && first.isDir) {
     const base =
       first.name ||
-      (first.path && first.path.split('/').filter(Boolean).pop()) ||
+      (first.path?.split('/').filter(Boolean).pop()) ||
       'download'
-    return base + ext
+    return `${base}${ext}`
   }
-  if (first && first.path) {
+  if (first?.path) {
     const parts = first.path.split('/').filter(Boolean)
     if (parts.length >= 2) {
-      return parts[parts.length - 2] + ext
+      return `${parts[parts.length - 2]}${ext}`
     }
     if (parts.length === 1) {
-      return parts[0] + ext
+      return `${parts[0]}${ext}`
     }
   }
-  return 'download' + ext
+  return `download${ext}`
 }
 
 /**
@@ -337,7 +346,7 @@ async function chunkedRangeDownloadToBlob(
 
   while (offset < totalSize) {
     const download = downloadManager.findById(downloadId)
-    if (download && download.status === 'cancelled') {
+    if (download?.status === 'cancelled') {
       return null
     }
 
@@ -430,7 +439,7 @@ async function chunkedRangeDownloadToBlob(
       }
     } catch (readError) {
       const download = downloadManager.findById(downloadId)
-      if (readError.name === 'AbortError' || (download && download.status === 'cancelled')) {
+      if (readError.name === 'AbortError' || (download?.status === 'cancelled')) {
         downloadManager.setStatus(downloadId, 'cancelled')
         return null
       }
@@ -492,7 +501,7 @@ async function downloadChunkedArchive(url, format, files, filePaths, source, sha
 
   downloadManager.setStatus(downloadId, 'downloading')
 
-  const hasDownloadPrompt = state.prompts && state.prompts.some((h) => h.name === 'download')
+  const hasDownloadPrompt = state.prompts?.some((h) => h.name === 'download')
   if (!hasDownloadPrompt) {
     mutations.showPrompt({ name: 'download' })
   }
@@ -525,6 +534,7 @@ async function downloadChunkedArchive(url, format, files, filePaths, source, sha
 
     downloadManager.setStatus(downloadId, 'completed')
     downloadManager.updateProgress(downloadId, fileSize, fileSize)
+    notifyDownloadComplete(fileName, fileSize)
 
     setTimeout(() => {
       document.body.removeChild(link)
@@ -532,13 +542,14 @@ async function downloadChunkedArchive(url, format, files, filePaths, source, sha
     }, 100)
   } catch (error) {
     const download = downloadManager.findById(downloadId)
-    if (error.name === 'AbortError' || (download && download.status === 'cancelled')) {
+    if (error.name === 'AbortError' || (download?.status === 'cancelled')) {
       downloadManager.setStatus(downloadId, 'cancelled')
       return
     }
     const message =
       error instanceof Error ? error.message || 'Unknown error' : String(error)
     downloadManager.setError(downloadId, message)
+    notifyDownloadError(fileName, message)
     throw error
   }
 }
@@ -580,7 +591,7 @@ async function downloadChunked(file, shareHash = "") {
   downloadManager.setStatus(downloadId, "downloading")
 
   // Show download prompt if not already shown (it should already be shown by downloadFiles, but check to be safe)
-  const hasDownloadPrompt = state.prompts && state.prompts.some(h => h.name === 'download');
+  const hasDownloadPrompt = state.prompts?.some(h => h.name === 'download');
 
   if (!hasDownloadPrompt) {
     mutations.showPrompt({ name: 'download' })
@@ -615,6 +626,7 @@ async function downloadChunked(file, shareHash = "") {
     const dlDone = downloadManager.findById(downloadId)
     const finalSize = dlDone?.size ?? fileSize
     downloadManager.updateProgress(downloadId, finalSize, finalSize)
+    notifyDownloadComplete(fileName, finalSize)
 
     setTimeout(() => {
       document.body.removeChild(link)
@@ -623,7 +635,7 @@ async function downloadChunked(file, shareHash = "") {
   } catch (error) {
     // Check if download was cancelled by user
     const download = downloadManager.findById(downloadId);
-    if (error.name === 'AbortError' || (download && download.status === "cancelled")) {
+    if (error.name === 'AbortError' || (download?.status === "cancelled")) {
       downloadManager.setStatus(downloadId, "cancelled")
       // Don't throw error or show notification for user-initiated cancellation
       return;
@@ -631,6 +643,7 @@ async function downloadChunked(file, shareHash = "") {
     const message =
       error instanceof Error ? error.message || "Unknown error" : String(error)
     downloadManager.setError(downloadId, message)
+    notifyDownloadError(fileName, message)
     throw error
   }
 }
@@ -686,7 +699,7 @@ export function post(
           try {
             const errorData = JSON.parse(request.responseText);
             errorMessage = errorData.message || errorMessage;
-          } catch (e) {
+          } catch (_e) {
             errorMessage = request.responseText || errorMessage;
           }
           const error = new Error(errorMessage);
@@ -831,6 +844,10 @@ export function getDownloadURL(source, path, inline, useExternal) {
   }
 }
 
+/**
+ * Build a preview API URL. Use fetchPreviewImage(url, signal) to load it;
+ * pass an AbortSignal so the caller can cancel on navigation or unmount.
+ */
 export function getPreviewURL(source, path, modified) {
   if (!source || source === undefined || source === null) {
     throw new Error('no source provided')
@@ -940,7 +957,7 @@ export async function fetchFilesPublic(path, hash, password = "", content = fals
     let data = null;
     try {
       data = await response.json()
-    } catch (e) {
+    } catch (_e) {
       // ignore
     }
     if (data) {
@@ -949,7 +966,7 @@ export async function fetchFilesPublic(path, hash, password = "", content = fals
     (/** @type {any} */ (error)).status = response.status;
     throw error;
   }
-  let data = await response.json()
+  const data = await response.json()
   const adjusted = adjustedData(data);
   return adjusted
 }
@@ -1027,7 +1044,7 @@ export function postPublic(
   if (!hash || hash === undefined || hash === null) {
     throw new Error('no hash provided')
   }
-  let sharePassword = localStorage.getItem("sharepass:" + hash);
+  const sharePassword = localStorage.getItem(`sharepass:${hash}`);
   if (sharePassword) {
     headers["X-SHARE-PASSWORD"] = sharePassword;
   }
@@ -1069,7 +1086,7 @@ export function postPublic(
           try {
             const errorData = JSON.parse(request.responseText);
             errorMessage = errorData.message || errorMessage;
-          } catch (e) {
+          } catch (_e) {
             errorMessage = request.responseText || errorMessage;
           }
 
@@ -1114,8 +1131,8 @@ export function postPublic(
 
 async function resourceActionPublic(hash, path, method, content, token = "") {
   try {
-    let headers = {};
-    let sharePassword = localStorage.getItem("sharepass:" + hash);
+    const headers = {};
+    const sharePassword = localStorage.getItem(`sharepass:${hash}`);
     if (sharePassword) {
       headers["X-SHARE-PASSWORD"] = sharePassword;
     }
@@ -1130,7 +1147,7 @@ async function resourceActionPublic(hash, path, method, content, token = "") {
       let data = null;
       try {
         data = await response.json()
-      } catch (e) {
+      } catch (_e) {
         // ignore
       }
       if (data) {

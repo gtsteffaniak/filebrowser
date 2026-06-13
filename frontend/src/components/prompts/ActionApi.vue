@@ -3,6 +3,7 @@
     <!-- API Token Section -->
     <div class="api-section">
       <button
+        type="button"
         class="action api-key-button"
         @click.stop="copyToClipboard(name)"
         :aria-label="$t('buttons.copyToClipboard')"
@@ -12,6 +13,7 @@
         <i class="material-symbols">content_paste</i>
       </button>
       <button
+        type="button"
         class="action api-key-value-button"
         @click.stop="copyToClipboard(info.token)"
         :aria-label="$t('api.clickToCopyKey')"
@@ -59,6 +61,7 @@
 
   <div class="card-actions">
     <button
+      type="button"
       class="button button--flat button--red"
       @click="deleteApi"
       :title="$t('general.delete')"

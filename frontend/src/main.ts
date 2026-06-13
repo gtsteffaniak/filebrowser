@@ -1,16 +1,18 @@
 import { createApp } from "vue";
-import router from "./router"; // Adjust the path as per your setup
-import App from "./App.vue"; // Adjust the path as per your setup
-import { state } from "@/store"; // Adjust the path as per your setup
 import i18n from "@/i18n";
-import VueLazyload from "vue-lazyload";
+import { state } from "@/store"; // Adjust the path as per your setup
+import App from "./App.vue"; // Adjust the path as per your setup
+import router from "./router"; // Adjust the path as per your setup
 
 import "./css/styles.css";
+import "./css/dark.css";
+import { initPwaInstall } from "@/utils/pwaInstall";
+
+initPwaInstall();
 
 const app = createApp(App);
 
 // Install additionals
-app.use(VueLazyload);
 app.use(i18n);
 app.use(router);
 
@@ -35,4 +37,4 @@ app.mixin({
   },
 });
 
-router.isReady().then(() => app.mount("#app"));
+void router.isReady().then(() => app.mount("#app"));

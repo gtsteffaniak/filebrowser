@@ -1,6 +1,6 @@
-import { fetchURL } from "./utils";
 import { notify } from "@/notify";
 import { getApiPath } from "@/utils/url.js";
+import { fetchURL } from "./utils";
 
 // GET /api/tools/search
 // extraParams: optional { olderThan, newerThan, useWildcard, terms, termJoin, perSourceScopes }
@@ -75,7 +75,7 @@ export async function search(base, sources, query, largest = false, extraParams 
 
     const apiPath = getApiPath("tools/search", params);
     const res = await fetchURL(apiPath);
-    let data = await res.json();
+    const data = await res.json();
 
     return data;
   } catch (err) {

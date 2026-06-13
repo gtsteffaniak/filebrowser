@@ -19,13 +19,17 @@ type SearchItem struct {
 }
 
 // appendNameGlobSQL adds AND (name GLOB ? OR ...) or AND (name GLOB ? AND ...) when joinAnd is true.
-func appendNameGlobSQL(query string, args []interface{}, patterns []string, joinAnd bool) (string, []interface{}) {
+func appendNameGlobSQL(query string, args []interface{}, patterns []string, joinAnd, caseExact bool) (string, []interface{}) {
 	if len(patterns) == 0 {
 		return query, args
 	}
+	nameExpr := "name"
+	if !caseExact {
+		nameExpr = "lower(name)"
+	}
 	parts := make([]string, len(patterns))
 	for i := range patterns {
-		parts[i] = "name GLOB ?"
+		parts[i] = nameExpr + " GLOB ?"
 		args = append(args, patterns[i])
 	}
 	join := " OR "
@@ -38,7 +42,7 @@ func appendNameGlobSQL(query string, args []interface{}, patterns []string, join
 // SearchItems queries the database for items matching the search criteria for a single source.
 // When nameGlobPatterns is non-empty (and largest is false), rows are restricted with SQLite name GLOB ... OR ....
 // Returns rows that can be iterated to scan search results.
-func (db *IndexDB) SearchItems(source string, scope string, largest bool, nameGlobPatterns []string, nameGlobPatternsAnd bool) (*sql.Rows, error) {
+func (db *IndexDB) SearchItems(source string, scope string, largest bool, nameGlobPatterns []string, nameGlobPatternsAnd, caseExact bool) (*sql.Rows, error) {
 	query := `
 		SELECT path, name, size, mod_time, type, is_dir, has_preview 
 		FROM index_items 
@@ -54,7 +58,7 @@ func (db *IndexDB) SearchItems(source string, scope string, largest bool, nameGl
 	}
 
 	if !largest && len(nameGlobPatterns) > 0 {
-		query, args = appendNameGlobSQL(query, args, nameGlobPatterns, nameGlobPatternsAnd)
+		query, args = appendNameGlobSQL(query, args, nameGlobPatterns, nameGlobPatternsAnd, caseExact)
 	}
 
 	if largest {
@@ -67,7 +71,7 @@ func (db *IndexDB) SearchItems(source string, scope string, largest bool, nameGl
 // SearchItemsMultiSource queries the database for items matching the search criteria across multiple sources.
 // When nameGlobPatterns is non-empty (and largest is false), restricts rows with SQLite name GLOB ... OR ....
 // Returns rows that can be iterated to scan search results.
-func (db *IndexDB) SearchItemsMultiSource(sources []string, sourceScopes map[string]string, largest bool, nameGlobPatterns []string, nameGlobPatternsAnd bool) (*sql.Rows, error) {
+func (db *IndexDB) SearchItemsMultiSource(sources []string, sourceScopes map[string]string, largest bool, nameGlobPatterns []string, nameGlobPatternsAnd, caseExact bool) (*sql.Rows, error) {
 	if len(sources) == 0 {
 		return nil, fmt.Errorf("at least one source is required")
 	}
@@ -119,7 +123,7 @@ func (db *IndexDB) SearchItemsMultiSource(sources []string, sourceScopes map[str
 	}
 
 	if !largest && len(nameGlobPatterns) > 0 {
-		query, args = appendNameGlobSQL(query, args, nameGlobPatterns, nameGlobPatternsAnd)
+		query, args = appendNameGlobSQL(query, args, nameGlobPatterns, nameGlobPatternsAnd, caseExact)
 	}
 
 	if largest {

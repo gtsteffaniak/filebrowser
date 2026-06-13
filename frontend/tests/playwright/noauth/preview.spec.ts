@@ -1,6 +1,6 @@
-import { test, expect } from "../test-setup";
+import { expect, test } from "../test-setup";
 
-test("blob file preview", async({ page, checkForErrors, context }) => {
+test("blob file preview", async({ page, checkForErrors }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await page.locator('a[aria-label="file.tar.gz"]').waitFor({ state: 'visible' });
@@ -12,7 +12,7 @@ test("blob file preview", async({ page, checkForErrors, context }) => {
   checkForErrors();
 });
 
-test("text file editor", async({ page, checkForErrors, context }) => {
+test("text file editor", async({ page, checkForErrors }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await page.locator('a[aria-label="copyme.txt"]').waitFor({ state: 'visible' });
@@ -26,7 +26,7 @@ test("text file editor", async({ page, checkForErrors, context }) => {
   checkForErrors();
 });
 
-test("navigate folders", async({ page, checkForErrors, context }) => {
+test("navigate folders", async({ page, checkForErrors }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await page.locator('a[aria-label="myfolder"]').waitFor({ state: 'visible' });

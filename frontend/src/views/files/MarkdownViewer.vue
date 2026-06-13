@@ -1,18 +1,37 @@
 <template>
   <div id="markedown-viewer">
-    <div class="markdown-content-container" :class="{ 'dark-mode': darkMode }">
+    <iframe
+      v-if="isHtml"
+      ref="viewer"
+      :key="req.path"
+      class="html-content"
+      :srcdoc="htmlPreview.srcdoc"
+      sandbox="allow-scripts allow-popups"
+      referrerpolicy="no-referrer"
+      title="HTML preview"
+    ></iframe>
+    <div v-else class="markdown-content-container" :class="{ 'dark-mode': darkMode }">
       <div ref="viewer" v-html="renderedContent" class="markdown-content"></div>
     </div>
-    <div class="spacer" :style="{ height: spaceForStatusBar + 'em' }"></div>
+    <div class="spacer" :style="{ height: `${spaceForStatusBar}em` }"></div>
   </div>
 </template>
 
 <script lang="ts">
-import { marked } from "marked";
+import { Marked } from "marked";
 import DOMPurify from 'dompurify';
 import { state, mutations, getters } from "@/store";
 import hljs from 'highlight.js';
 import { copyToClipboard } from "@/utils/clipboard";
+import { globalVars } from "@/utils/constants";
+import { isHtmlMimeType } from "@/utils/mimetype";
+import {
+  buildHtmlPreview,
+  buildPreviewResourceUrl,
+} from "@/utils/htmlPreview";
+
+import githubLightCss from "highlight.js/styles/github.min.css?raw";
+import githubDarkCss from "highlight.js/styles/github-dark.min.css?raw";
 
 export default {
   name: "markdownViewer",
@@ -24,21 +43,25 @@ export default {
   methods: {
     // This theme switcher logic is correct and remains.
     setHighlightTheme(isDark: boolean) {
-      const THEME_LINK_ID = 'highlight-theme-link';
-      const lightTheme = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css';
-      const darkTheme = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css';
-      const themeUrl = isDark ? darkTheme : lightTheme;
+      const THEME_STYLE_ID = "highlight-theme-style";
+      const cssText = isDark ? githubDarkCss : githubLightCss;
+      const nonce =
+        typeof globalVars.cspNonce === "string" && globalVars.cspNonce !== ""
+          ? globalVars.cspNonce
+          : "";
 
-      let link = document.getElementById(THEME_LINK_ID) as HTMLLinkElement;
-      if (link) {
-        link.href = themeUrl;
-      } else {
-        link = document.createElement('link');
-        link.id = THEME_LINK_ID;
-        link.rel = 'stylesheet';
-        link.href = themeUrl;
-        document.head.appendChild(link);
+      let style = document.getElementById(THEME_STYLE_ID) as HTMLStyleElement | null;
+      if (!style) {
+        style = document.createElement("style");
+        style.id = THEME_STYLE_ID;
+        if (nonce) {
+          style.setAttribute("nonce", nonce);
+        }
+        document.head.appendChild(style);
+      } else if (nonce) {
+        style.setAttribute("nonce", nonce);
       }
+      style.textContent = cssText;
     },
     // NEW METHOD: Finds and highlights all code blocks and adds line numbers
     applyHighlighting() {
@@ -48,7 +71,7 @@ export default {
         viewer.querySelectorAll('pre code').forEach((block) => {
           const codeBlock = block as HTMLElement;
           const langClass = codeBlock.className.split(/\s+/).find(c => c.startsWith('language-'));
-          let lang = langClass ? langClass.split('-')[1] : null;
+          const lang = langClass ? langClass.split('-')[1] : null;
 
           if (lang && hljs.getLanguage(lang)) {
             hljs.highlightElement(codeBlock);
@@ -66,7 +89,7 @@ export default {
     // Manual line numbers implementation
     addLineNumbers(codeBlock: HTMLElement) {
       const code = codeBlock.textContent || '';
-      let lines = code.split('\n');
+      const lines = code.split('\n');
 
       // Remove trailing empty lines
       if (lines[lines.length - 1] === '') {
@@ -194,7 +217,7 @@ export default {
       const temp = document.createElement('div');
       temp.innerHTML = html;
       const textContent = temp.textContent || '';
-      let textLines = textContent.split('\n');
+      const textLines = textContent.split('\n');
 
       // Remove trailing empty line from textLines if present
       if (textLines[textLines.length - 1] === '') {
@@ -232,6 +255,21 @@ export default {
       div.textContent = text;
       return div.innerHTML;
     },
+    parseMarkdown(content: string, filePath: string, source: string): string {
+      const parser = new Marked({ gfm: true });
+      parser.use({
+        walkTokens(token) {
+          if (token.type === "image" && token.href) {
+            token.href = buildPreviewResourceUrl(token.href, filePath, source);
+          }
+        },
+      });
+      const result = parser.parse(content);
+      if (typeof result !== "string") {
+        return DOMPurify.sanitize("Loading...");
+      }
+      return DOMPurify.sanitize(result);
+    },
     updateEditorStats() {
       const text = this.content.trim();
       const validWord = text.split(/\s+/).filter(t => /[a-zA-Z0-9]/.test(t));
@@ -247,10 +285,12 @@ export default {
         size: state.req.size,
         type: state.req.type,
         source: state.req.source,
+        modified: state.req.modified,
+        hasPreview: state.req.hasPreview,
       });
       this.setHighlightTheme(getters.isDarkMode());
       // Set initial content. The `watch` will trigger the first highlight.
-      const fileContent = state.req.content == "empty-file-x6OlSil" ? "" : state.req.content || "";
+      const fileContent = state.req.content === "empty-file-x6OlSil" ? "" : state.req.content || "";
       this.content = fileContent;
       this.updateEditorStats();
     },
@@ -281,17 +321,17 @@ export default {
       // This computed property returns the current dark mode state.
       return state.user.darkMode;
     },
-    renderedContent() {
-      // We now let marked run with its default, reliable settings.
-      // It will correctly render tables and create basic code blocks.
-      const markedResult = marked(this.content, { gfm: true });
-      // Handle both string and Promise return types
-      if (typeof markedResult === 'string') {
-        return DOMPurify.sanitize(markedResult);
-      } else {
-        // If it's a Promise, we need to handle it differently
-        return DOMPurify.sanitize('Loading...');
+    isHtml() {
+      return isHtmlMimeType(state.req.type);
+    },
+    htmlPreview() {
+      if (!this.isHtml) {
+        return { srcdoc: "" };
       }
+      return buildHtmlPreview(this.content, state.req.path, state.req.source);
+    },
+    renderedContent() {
+      return this.parseMarkdown(this.content, state.req.path, state.req.source);
     },
     spaceForStatusBar() {
       return state.isMobile ? 3.1 : 3.5;
@@ -301,10 +341,9 @@ export default {
     this.reinit();
   },
   unmounted() {
-    // Cleanup logic is correct and remains.
-    const link = document.getElementById('highlight-theme-link');
-    if (link) {
-      document.head.removeChild(link);
+    const style = document.getElementById("highlight-theme-style");
+    if (style?.parentNode) {
+      style.parentNode.removeChild(style);
     }
     mutations.setEditorStats({ lines: 0, words: 0, chars: 0 });
   }
@@ -324,8 +363,22 @@ export default {
   padding: 1em;
 }
 
-#markedown-viewer .markdown-content {
+#markedown-viewer .markdown-content,
+#markedown-viewer .html-content {
   width: 100%;
+}
+
+#markedown-viewer .html-content {
+  box-sizing: border-box;
+  border: none;
+  min-height: 24em;
+  background: #fff;
+  color-scheme: light dark;
+}
+
+#markedown-viewer .html-content img {
+  max-width: 100%;
+  height: auto;
 }
 
 #markedown-viewer .spacer {
@@ -379,10 +432,9 @@ export default {
 #markedown-viewer .markdown-content-container .line-numbers {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
-  -khtml-user-select: none;
+  user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
-  user-select: none;
   background-color: #f1f3f4;
   border-right: 1px solid #d0d7de;
   padding: 0.625em 0.5em 0.625em 0.75em;
@@ -509,6 +561,11 @@ export default {
   line-height: 1.65;
   margin-top: 0;
   margin-bottom: 0;
+}
+
+#markedown-viewer .markdown-content img {
+  max-width: 100%;
+  height: auto;
 }
 
 </style>

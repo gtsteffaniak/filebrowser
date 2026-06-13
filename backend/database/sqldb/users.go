@@ -23,6 +23,7 @@ type UserData struct {
 	OtpEnabled       bool                       `json:"otpEnabled"`
 	Version          int                        `json:"version"`
 	ShowFirstLogin   bool                       `json:"showFirstLogin"`
+	PinnedItems      users.PinnedItems          `json:"pinnedItems,omitempty"`
 	NonAdminEditable users.NonAdminEditable     `json:"settings"`
 	FilePermissions  *users.Permissions         `json:"filePermissions,omitempty"`
 }
@@ -63,6 +64,7 @@ func finishUserLoad(user *users.User, userDataJSON []byte) error {
 	user.OtpEnabled = userData.OtpEnabled
 	user.Version = userData.Version
 	user.ShowFirstLogin = userData.ShowFirstLogin
+	user.PinnedItems = userData.PinnedItems
 	user.NonAdminEditable = userData.NonAdminEditable
 	applyFilePermissionsFromJSON(user, &userData)
 	return nil
@@ -214,6 +216,7 @@ func (s *SQLStore) CreateUser(user *users.User) error {
 		OtpEnabled:       user.OtpEnabled,
 		Version:          user.Version,
 		ShowFirstLogin:   user.ShowFirstLogin,
+		PinnedItems:      user.PinnedItems,
 		NonAdminEditable: user.NonAdminEditable,
 		FilePermissions:  filePermissionsForJSON(user),
 	}
@@ -259,6 +262,7 @@ func (s *SQLStore) UpdateUser(user *users.User) error {
 		OtpEnabled:       user.OtpEnabled,
 		Version:          user.Version,
 		ShowFirstLogin:   user.ShowFirstLogin,
+		PinnedItems:      user.PinnedItems,
 		NonAdminEditable: user.NonAdminEditable,
 		FilePermissions:  filePermissionsForJSON(user),
 	}

@@ -1,11 +1,10 @@
-import { test, expect } from "../test-setup";
-import { Page, Locator } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
+import { expect, test } from "../test-setup";
 
-/** Users tab rows are keyed by username via SettingsTable `item-key` → `data-item-key`. */
-function userRowInSettingsUsersTable(page: Page, username: string): Locator {
-    return page.locator(
-        `table.settings-table tbody tr[data-item-key="${username}"]`
-    );
+
+/** Users tab uses SettingsTable (no `tr.item`); scoped to `.settings-table` body rows only. */
+function userRowInSettingsUsersTable(page: Page, usernameText: string): Locator {
+    return page.locator("table.settings-table tbody tr").filter({ hasText: usernameText });
 }
 
 /** Edit opener: `role="button"` div with `$t('general.edit')` (typically "Edit"). */

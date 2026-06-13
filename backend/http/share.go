@@ -588,3 +588,81 @@ func redirectToShare(w http.ResponseWriter, r *http.Request, d *requestContext) 
 	http.Redirect(w, r, newURL, http.StatusMovedPermanently)
 	return http.StatusMovedPermanently, nil
 }
+
+// publicSharePatchPinnedItemsHandler adds or removes a pinned item on a share link.
+// @Summary Add or remove a pinned item on a share
+// @Description Patches one pinned item at a time for share owners. Defaults to add; pass ?action=remove to unpin.
+// @Tags Shares
+// @Accept json
+// @Produce json
+// @Param hash query string true "Share hash"
+// @Param action query string false "add (default) or remove"
+// @Param body body sharePinnedItemPatchRequest true "Pinned item"
+// @Success 204 "No Content"
+// @Failure 400 {object} map[string]string "Bad Request"
+// @Failure 403 {object} map[string]string "Forbidden"
+// @Failure 404 {object} map[string]string "Share not found"
+// @Failure 500 {object} map[string]string "Internal Server Error"
+// @Router /public/api/share/pinnedItems [patch]
+func sharePatchPinnedItemsHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	hash := r.URL.Query().Get("hash")
+	if hash == "" {
+		return http.StatusBadRequest, fmt.Errorf("hash is required")
+	}
+
+	link, err := state.GetShare(hash)
+	if err != nil {
+		return http.StatusNotFound, fmt.Errorf("share hash not found")
+	}
+
+	if d.user.Username == "anonymous" || !link.UserCanEdit(d.user) {
+		return http.StatusForbidden, fmt.Errorf("share pin editing is not allowed for this user")
+	}
+
+	if link.ShareType == "upload" {
+		return http.StatusForbidden, fmt.Errorf("pinning is disabled for upload shares")
+	}
+
+	var body sharePinnedItemPatchRequest
+	if err = json.NewDecoder(r.Body).Decode(&body); err != nil {
+		return http.StatusBadRequest, fmt.Errorf("failed to decode body: %w", err)
+	}
+	defer r.Body.Close()
+
+	action := pinnedItemAction(r)
+	if action != "add" && action != "remove" {
+		return http.StatusBadRequest, fmt.Errorf("action must be add or remove")
+	}
+
+	if body.Path == "" || body.Name == "" {
+		return http.StatusBadRequest, fmt.Errorf("path and name are required")
+	}
+
+	shareRelDir, err := normalizeShareRelativeDir(body.Path)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid path: %s", body.Path)
+	}
+
+	cleanName, err := utils.SanitizeUserPath(body.Name)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid name: %s", body.Name)
+	}
+	body.Name = cleanName
+
+	pinned := link.EnsurePinnedItems()
+	switch action {
+	case "add":
+		pinned.Add(shareRelDir, body.Name)
+	case "remove":
+		pinned.Remove(shareRelDir, body.Name)
+	}
+
+	if err := state.UpdateShare(hash, func(existing *share.Share) error {
+		existing.PinnedItems = link.PinnedItems
+		return nil
+	}); err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("failed to save share: %w", err)
+	}
+
+	return http.StatusNoContent, nil
+}

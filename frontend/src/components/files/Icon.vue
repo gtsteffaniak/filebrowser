@@ -29,15 +29,12 @@
 </template>
 
 <script>
+import { fetchPreviewImage } from "@/api/resources";
 import { globalVars } from "@/utils/constants";
 import { getTypeInfo } from "@/utils/mimetype";
 import { mutations, state, getters } from "@/store";
 import { setImageLoaded } from "@/utils/imageCache";
 import ThreeJs from "@/views/files/ThreeJs.vue";
-
-// NEW: Define placeholder and error image URLs for easy configuration
-const PLACEHOLDER_URL = globalVars.baseURL + "public/static/img/placeholder.png"; // A generic loading placeholder
-const ERROR_URL = globalVars.baseURL + "public/static/img/placeholder.png";
 
 export default {
   name: "Icon",
@@ -99,15 +96,24 @@ export default {
       classes: "",
       svgPath: "",
       previewTimeouts: [],
+      previewAbortController: null,
+      preloadAbortControllers: [],
+      imageBlobUrl: null,
       // UPDATED: Manage image state directly
       imageState: "loading", // Can be 'loading', 'loaded', or 'error'
-      imageTargetSrc: "", // This is now a data property
+      imageTargetSrc: "", // API URL being loaded
       currentThumbnail: "", // Add currentThumbnail to data
       color: "", // Add color to data
       threeJsError: false, // Track if 3D preview failed
     };
   },
   computed: {
+    placeholderUrl() {
+      return `${globalVars.baseURL}public/static/img/placeholder.png`;
+    },
+    errorUrl() {
+      return `${globalVars.baseURL}public/static/img/placeholder.png`;
+    },
     isFile() {
       return this.mimetype !== "directory";
     },
@@ -115,7 +121,7 @@ export default {
       if (state.shareInfo?.disableThumbnails) {
         return false;
       }
-      if (this.thumbnailUrl == "") {
+      if (this.thumbnailUrl === "") {
         return false;
       }
       if (!this.hasPreview) {
@@ -138,7 +144,7 @@ export default {
       if ((simpleType === "document" || simpleType === "text") && !getters.previewPerms().office) {
         return false;
       }
-      if (!getters.previewPerms().folder && this.mimetype == "directory") {
+      if (!getters.previewPerms().folder && this.mimetype === "directory") {
         return false;
       }
       // 3D models - show preview thumbnails (if backend provides them)
@@ -148,20 +154,18 @@ export default {
       return this.imageState !== 'error' && !this.disablePreviewExt && !this.officeFileDisabled;
     },
     disablePreviewExt() {
-      const ext = "." + (this.filename.split(".").pop() || "").toLowerCase(); // Ensure lowercase and dot
-      // @ts-ignore
+      const ext = `.${(this.filename.split(".").pop() || "").toLowerCase()}`; // Ensure lowercase and dot
       return state.user?.disablePreviewExt?.includes(ext);
     },
     officeFileDisabled() {
-      const ext = "." + (this.filename.split(".").pop() || "").toLowerCase(); // Ensure lowercase and dot
-      // @ts-ignore
+      const ext = `.${(this.filename.split(".").pop() || "").toLowerCase()}`; // Ensure lowercase and dot
       return state.user?.disablePreviewExt?.includes(ext);
     },
     pdfConvertable() {
       if (!globalVars.muPdfAvailable) {
         return false; // If muPDF is not available
       }
-      const ext = "." + (this.filename.split(".").pop() || "").toLowerCase(); // Ensure lowercase and dot
+      const ext = `.${(this.filename.split(".").pop() || "").toLowerCase()}`; // Ensure lowercase and dot
       const pdfConvertCompatibleFileExtensions = {
         ".pdf": true,
         ".xps": true,
@@ -183,16 +187,22 @@ export default {
     // NEW: A single computed property to determine the final image src
     imageDisplaySrc() {
       if (this.imageState === "error") {
-        return ERROR_URL;
+        return this.errorUrl;
       }
       // Show placeholder only for the initial load, not during hover animations
       if (this.imageState === "loading") {
-        return PLACEHOLDER_URL;
+        return this.placeholderUrl;
       }
-      return this.imageTargetSrc;
+      return this.imageBlobUrl || this.placeholderUrl;
     },
     showLargeIcon() {
       return getters.viewMode() === "gallery";
+    },
+    popupPreviewUrl() {
+      if (!this.thumbnailUrl) {
+        return "";
+      }
+      return `${this.thumbnailUrl}&size=xlarge`;
     },
     showLarger() {
       return getters.viewMode() === "gallery" || getters.viewMode() === "normal";
@@ -229,13 +239,35 @@ export default {
       // Also includes view mode to handle view changes
       return `${state.user?.gallerySize || 1}-${getters.viewMode()}`;
     },
+    routePath() {
+      return state.route?.path ?? "";
+    },
   },
   methods: {
     handle3DError() {
       // When 3D preview fails, fall back to material icon
       this.threeJsError = true;
     },
-    // NEW: Centralized method to load any image and handle its state
+    cancelPreloadRequests() {
+      this.previewTimeouts.forEach(clearTimeout);
+      this.previewTimeouts = [];
+      for (const controller of this.preloadAbortControllers) {
+        controller.abort();
+      }
+      this.preloadAbortControllers = [];
+    },
+    cancelActivePreviews() {
+      this.cancelPreloadRequests();
+      if (this.previewAbortController) {
+        this.previewAbortController.abort();
+        this.previewAbortController = null;
+      }
+      if (this.imageBlobUrl) {
+        URL.revokeObjectURL(this.imageBlobUrl);
+        this.imageBlobUrl = null;
+      }
+    },
+    // Load preview via fetch so requests can be aborted on navigation
     /**
      * @param {string} url
      */
@@ -245,33 +277,42 @@ export default {
         return;
       }
 
+      this.cancelActivePreviews();
       this.imageState = "loading";
-      const targetImage = new Image();
 
-      targetImage.onload = () => {
-        // Prevent race conditions: only update if this is the image we still want.
-        if (this.imageTargetSrc === url) {
-          this.imageState = "loaded";
-          // Mark this image as loaded in our cache tracker
-          if (this.path) {
-            // For shares, use shareInfo.hash as the source; otherwise use this.source or state.req.source
-            const source = getters.isShare() ? state.shareInfo?.hash : (this.source || state.req.source);
-            const size = this.showLargeIcon ? 'large' : 'small';
-            // Use file's modified date if available, otherwise fall back to state.req.modified
-            const modified = this.modified || state.req.modified;
-            setImageLoaded(source, this.path, size, modified, url);
+      const controller = new AbortController();
+      this.previewAbortController = controller;
+      const loadUrl = url;
+
+      fetchPreviewImage(loadUrl, controller.signal)
+        .then((blobUrl) => {
+          if (this.previewAbortController !== controller) {
+            URL.revokeObjectURL(blobUrl);
+            return;
           }
-        }
-      };
-
-      targetImage.onerror = () => {
-        // Prevent race conditions: only show an error if this is the image that failed.
-        if (this.imageTargetSrc === url) {
-          this.imageState = "error";
-        }
-      };
-
-      targetImage.src = url;
+          if (this.imageTargetSrc !== loadUrl) {
+            URL.revokeObjectURL(blobUrl);
+            return;
+          }
+          this.imageBlobUrl = blobUrl;
+          this.imageState = "loaded";
+          this.previewAbortController = null;
+          if (this.path) {
+            const source = getters.isShare() ? state.shareInfo?.hash : (this.source || state.req.source);
+            const size = this.showLargeIcon ? "large" : "small";
+            const modified = this.modified || state.req.modified;
+            setImageLoaded(source, this.path, size, modified, loadUrl);
+          }
+        })
+        .catch((err) => {
+          if (err?.name === "AbortError") {
+            return;
+          }
+          if (this.imageTargetSrc === loadUrl && this.previewAbortController === controller) {
+            this.imageState = "error";
+            this.previewAbortController = null;
+          }
+        });
     },
     handleMouseEnter() {
       if (!getters.previewPerms().popup || !this.path) {
@@ -297,11 +338,10 @@ export default {
         return;
       }
 
-      // Image (and other preview types): use thumbnail URL
-      const imageUrl = this.thumbnailUrl + "&size=large";
+      // Image (and other preview types): popup always uses xlarge preview
+      const imageUrl = this.popupPreviewUrl;
       if (this.imageState === "loaded") {
-        mutations.setPreviewSource(imageUrl);
-        state.popupPreviewSourceInfo = { source, path: this.path, size: "large", url: imageUrl, modified };
+        state.popupPreviewSourceInfo = { source, path: this.path, size: "xlarge", url: imageUrl, modified };
       }
       // Motion preview: video (atPercentage) or folder (cycle next previewable image)
       const useVideoMotion = getters.previewPerms().motionVideoPreview && this.hasMotion;
@@ -312,9 +352,9 @@ export default {
 
       const sequence = [
         imageUrl,
-        imageUrl + "&atPercentage=25",
-        imageUrl + "&atPercentage=50",
-        imageUrl + "&atPercentage=75",
+        `${imageUrl}&atPercentage=25`,
+        `${imageUrl}&atPercentage=50`,
+        `${imageUrl}&atPercentage=75`,
       ];
       let index = 0;
 
@@ -331,33 +371,32 @@ export default {
           this.currentThumbnail = sequence[index];
         }
 
-        // Preload the next image
+        // Preload the next frame (cancellable fetch warms HTTP cache)
         const nextIndex = (index + 1) % sequence.length;
-        const preloadImg = new Image();
-        preloadImg.onload = () => {
-          // Track that this image was loaded (motion preview frames use the same path)
-          if (this.path) {
-            // For shares, use shareInfo.hash as the source; otherwise use this.source or state.req.source
-            const source = getters.isShare() ? state.shareInfo?.hash : (this.source || state.req.source);
-            const frameUrl = sequence[nextIndex];
-            // Use file's modified date if available, otherwise fall back to state.req.modified
-            const modified = this.modified || state.req.modified;
-            setImageLoaded(source, this.path, 'large', modified, frameUrl);
-          }
-        };
-        preloadImg.src = sequence[nextIndex];
+        const frameUrl = sequence.at(nextIndex);
+        if (!frameUrl) return;
+        const preloadController = new AbortController();
+        this.preloadAbortControllers.push(preloadController);
+        fetchPreviewImage(frameUrl, preloadController.signal)
+          .then((blobUrl) => {
+            URL.revokeObjectURL(blobUrl);
+            if (this.path) {
+              const source = getters.isShare() ? state.shareInfo?.hash : (this.source || state.req.source);
+              const modified = this.modified || state.req.modified;
+              setImageLoaded(source, this.path, "xlarge", modified, frameUrl);
+            }
+          })
+          .catch(() => {});
 
         // Schedule next update
         index = nextIndex;
         const timeoutId = setTimeout(updateThumbnail, 750);
-        // @ts-ignore
         this.previewTimeouts.push(timeoutId);
       };
       updateThumbnail();
     },
     handleMouseLeave() {
-      this.previewTimeouts.forEach(clearTimeout);
-      this.previewTimeouts = [];
+      this.cancelPreloadRequests();
       mutations.setPreviewSource("");
       // Clear popup preview source info when mouse leaves
       state.popupPreviewSourceInfo = null;
@@ -368,11 +407,11 @@ export default {
       return getTypeInfo(this.mimetype);
     },
     updateImageTargetSrc() {
-      let newSrc = this.thumbnailUrl || PLACEHOLDER_URL;
+      let newSrc = this.thumbnailUrl || this.placeholderUrl;
       // If we need large thumbnails and have a thumbnail URL, append &size=large
       // Otherwise use the URL as-is (defaults to small)
       if (this.thumbnailUrl && this.showLargeIcon) {
-        newSrc = this.thumbnailUrl + "&size=large";
+        newSrc = `${this.thumbnailUrl}&size=large`;
       }
 
       if (this.imageTargetSrc !== newSrc) {
@@ -381,6 +420,10 @@ export default {
     },
   },
   watch: {
+    routePath() {
+      this.cancelActivePreviews();
+      this.imageState = "loading";
+    },
     thumbnailUrl() {
       this.updateImageTargetSrc();
     },
@@ -422,17 +465,13 @@ export default {
   mounted() {
     const result = this.getIconForType();
     this.classes = result.classes || "material-symbols";
-    // @ts-ignore
     this.color = result.color || "lightgray";
     this.materialSymbol = result.materialSymbol || "";
-    // @ts-ignore
     this.svgPath = result.svgPath || "";
     this.updateImageTargetSrc();
   },
   beforeUnmount() {
-    // Clean up any pending animation timeouts
-    this.previewTimeouts.forEach(clearTimeout);
-    this.previewTimeouts = [];
+    this.cancelActivePreviews();
   },
 };
 </script>

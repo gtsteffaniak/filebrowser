@@ -93,7 +93,7 @@ class DownloadManager {
       if (item.abortController) {
         try {
           item.abortController.abort();
-        } catch {
+        } catch (_) {
           // ignore
         }
       }

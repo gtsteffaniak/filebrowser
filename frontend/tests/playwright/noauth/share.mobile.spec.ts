@@ -1,14 +1,14 @@
 
-import { test, expect, checkForNotification } from "../test-setup";
+import { checkForNotification, expect, test } from "../test-setup";
 
 test.use({viewport: { width: 750, height: 750 }}); // mobile viewport
-test("share download multiple files", async ({ page, checkForErrors, context }) => {
+test("share download multiple files", async ({ page, checkForErrors }) => {
   await page.goto("/files/exclude/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
 
   const shareHash = await page.evaluate(() => localStorage.getItem('shareHash'));
 
-  await page.goto("/files/share/" + shareHash+"/testdata/");
+  await page.goto(`/files/share/${shareHash}/testdata/`);
   await expect(page).toHaveTitle("Graham's Filebrowser - Share - testdata");
   await page.locator('a[aria-label="gray-sample.jpg"]').click({ button: "right" });
   await page.locator('button[aria-label="Select multiple"]').click();

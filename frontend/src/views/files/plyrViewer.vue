@@ -2,13 +2,14 @@
   <div class="plyr-viewer">
     <!-- Audio with plyr -->
     <div
-      v-if="previewType == 'audio' && !useDefaultMediaPlayer"
+      v-if="previewType === 'audio' && !useDefaultMediaPlayer"
       ref="audioPlayerGestureRoot"
       class="audio-player-container audio-player-container--plyr-gestures"
       :class="{ 'audio-player-container--lyrics-open': isMobile && showMobileLyrics && lyrics.length }"
     >
       <!-- Desktop panel button, will auto‑hide only when panel is closed -->
       <button
+        type="button"
         v-if="showButtons && previewType === 'audio' && !isMobile"
         @click="showDesktopPanel = !showDesktopPanel"
         @touchstart="resetButtonTimer"
@@ -33,8 +34,8 @@
           <div class="album-art-container"
                 :class="{ 'no-artwork': !albumArtUrl }"
                 :style="{
-                  maxHeight: displayArtSize + 'em',
-                  maxWidth: displayArtSize + 'em'
+                  maxHeight: `${displayArtSize}em`,
+                  maxWidth: `${displayArtSize}em`
                 }"
                @mouseenter="onAlbumArtHover"
                @mouseleave="onAlbumArtLeave"
@@ -88,7 +89,7 @@
             @click.stop="syncedLyrics && seekToLyric(line.timestamp)"
             tabindex="0"
             role="button"
-            :aria-label="syncedLyrics ? 'Seek to ' + line.text : undefined"
+            :aria-label="syncedLyrics ? `Seek to ${line.text}` : undefined"
           >
             {{ line.text }}
           </p>
@@ -117,7 +118,7 @@
     </div>
 
     <!-- Video with plyr -->
-    <div v-else-if="previewType == 'video' && !useDefaultMediaPlayer" class="video-player-container" :class="{ 'no-captions': !hasSubtitles }">
+    <div v-else-if="previewType === 'video' && !useDefaultMediaPlayer" class="video-player-container" :class="{ 'no-captions': !hasSubtitles }">
       <div class="plyr-video-container" ref="plyrVideoContainer">
         <video :src="raw" :type="req.type" :autoplay="shouldAutoplay" @play="handlePlay" playsinline ref="videoElement">
           <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
@@ -139,14 +140,14 @@
     </div>
 
     <!-- Default HTML5 Audio -->
-    <div v-else-if="previewType == 'audio' && useDefaultMediaPlayer" class="audio-player-container">
+    <div v-else-if="previewType === 'audio' && useDefaultMediaPlayer" class="audio-player-container">
       <audio ref="defaultAudioPlayer" :src="raw"
         controls :autoplay="shouldAutoplay" @play="handlePlay">
       </audio>
     </div>
 
     <!-- Default HTML5 Video -->
-    <div v-else-if="previewType == 'video' && useDefaultMediaPlayer" class="video-player-container">
+    <div v-else-if="previewType === 'video' && useDefaultMediaPlayer" class="video-player-container">
       <video ref="defaultVideoPlayer" :src="raw"
         controls :autoplay="shouldAutoplay" @play="handlePlay" playsinline >
         <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
@@ -176,6 +177,7 @@
 
     <!-- Queue button – visible on videos, in audio on mobile -->
     <button
+      type="button"
       v-if="showButtons && showQueueButton"
       class="queue-button floating"
       :class="{
@@ -194,6 +196,7 @@
 
     <!-- Lyrics button (left side) – only on mobile when lyrics exist -->
     <button
+      type="button"
       v-if="showButtons && isMobile && lyrics.length"
       class="queue-button floating lyrics-fab-left"
       :class="{
@@ -211,6 +214,7 @@
 
     <!-- Lyrics scroll lock (mobile, bottom‑right) – visible while lyrics overlay is open -->
     <button
+      type="button"
       v-if="isMobile && previewType === 'audio' && !useDefaultMediaPlayer && showMobileLyrics && lyrics.length && syncedLyrics"
       class="queue-button floating lyrics-lock-fab"
       :class="{
@@ -245,12 +249,12 @@
 </template>
 
 <script>
-import { state, mutations, getters } from '@/store';
+import Plyr from 'plyr';
+import AudioPanel from "@/components/files/AudioPanel.vue";
+import { getters, mutations, state } from '@/store';
 import { url } from '@/utils';
 import { globalVars } from '@/utils/constants';
 import { getSubtitleFormatExtension } from '@/utils/subtitles';
-import AudioPanel from "@/components/files/AudioPanel.vue";
-import Plyr from 'plyr';
 
 const PLYR_CAPTION_SIZE_IDS = ['small', 'medium', 'large', 'xlarge'];
 /** Same localStorage key Plyr uses for `captions`, `language`, etc. (see Plyr defaults `storage.key`). */
@@ -611,7 +615,7 @@ export default {
         clickToPlay: true,
         resetOnEnd: false,
         preload: 'metadata',
-        iconUrl: globalVars.baseURL + 'public/static/img/plyr.svg',
+        iconUrl: `${globalVars.baseURL}public/static/img/plyr.svg`,
         // Blob/async tracks need addtrack → captions.update; otherwise meta never fills and toggle CC throws (track undefined).
         // Do not call toggleCaptions() here — Plyr already applies `plyr` localStorage for captions on/off.
         captions: {
@@ -673,7 +677,7 @@ export default {
       // Create a fresh fallback URL with timestamp to prevent caching issues
       const fallbackIcon = globalVars.loginIcon;
       const timestamp = Date.now();
-      const fallbackUrl = fallbackIcon.includes('?') 
+      const fallbackUrl = fallbackIcon.includes('?')
         ? `${fallbackIcon}&t=${timestamp}`
         : `${fallbackIcon}?t=${timestamp}`;
       const metadata = {
@@ -709,8 +713,8 @@ export default {
       for (const [action, handler] of actionHandlers) {
         try {
           navigator.mediaSession.setActionHandler(action, handler);
-        } catch (error) {
-          console.warn(`The media session action "${action}" is not supported`);
+        } catch (e) {
+          console.warn(`The media session action "${String(action)}" is not supported`, e);
         }
       }
       this.updateMediaSessionPlaybackState();
@@ -745,15 +749,12 @@ export default {
       // Reset playback state
       navigator.mediaSession.playbackState = 'none';
     },
-    destroyPlyr(options = {}) {
-      const preserveMediaShell = options.preserveMediaShell === true;
+    destroyPlyr() {
       if (this.player) {
         this.teardownVideoSwipeGestures();
         this.teardownDoubleTapSeek();
         this.clearMediaSession();
-        if (!preserveMediaShell) {
-          this.cleanupAlbumArt();
-        }
+        this.cleanupAlbumArt();
         this.player.off();
         this.player.destroy();
         this.player = null;
@@ -857,7 +858,9 @@ export default {
         return;
       }
       const el = this.player.elements.container;
-      PLYR_CAPTION_SIZE_IDS.forEach((id) => el.classList.remove(`plyr-caption-size--${id}`));
+      PLYR_CAPTION_SIZE_IDS.forEach((id) => {
+        el.classList.remove(`plyr-caption-size--${id}`);
+      });
       el.classList.add(`plyr-caption-size--${this.getStoredCaptionSize()}`);
     },
     syncCaptionSizeSettingsVisibility() {
@@ -908,7 +911,7 @@ export default {
 
         const menu = captionPanel.querySelector('div[role="menu"]');
         menu.innerHTML = PLYR_CAPTION_SIZE_IDS.map(
-          (id) => `<button data-plyr="caption-size" type="button" role="menuitemradio" class="plyr__control" aria-checked="${current === id}" value="${id}">
+          (id) => `<button type="button" data-plyr="caption-size" role="menuitemradio" class="plyr__control" aria-checked="${current === id}" value="${id}">
                 <span>${labels[id]}</span>
               </button>`,
         ).join('');
@@ -1077,7 +1080,8 @@ export default {
       }
     },
     cleanupAlbumArt() {
-      if (this.albumArtUrl && this.albumArtUrl.startsWith('blob:')) {
+      if (this.previewType !== "audio") return;
+      if (this?.albumArtUrl.startsWith('blob:')) {
         URL.revokeObjectURL(this.albumArtUrl);
       }
       this.albumArtUrl = null;
@@ -1097,7 +1101,7 @@ export default {
       
       // For videos with subtitle metadata, wait for subtitles to load before initializing Plyr
       // This prevents Plyr from trying to access tracks before they have valid blob URLs
-      const hasSubtitleMetadata = this.req?.subtitles && this.req.subtitles.length > 0;
+      const hasSubtitleMetadata = this.req?.subtitles?.length > 0;
       const subtitlesNotLoaded = !this.subtitlesList || this.subtitlesList.length === 0;
       
       if (this.previewType === 'video' && hasSubtitleMetadata && subtitlesNotLoaded) {
@@ -1758,13 +1762,13 @@ export default {
     // Playback methods
     async setupPlaybackQueue(forceReshuffle = false) {
 
-      let listing = this.listing;
+      const listing = this.listing;
       const isShare = getters.isShare();
 
       // Filter only audio/video files
       const mediaFiles = listing.filter(item => {
-        const isAudio = item.type && item.type.startsWith('audio/');
-        const isVideo = item.type && item.type.startsWith('video/');
+        const isAudio = item?.type.startsWith('audio/');
+        const isVideo = item?.type.startsWith('video/');
         return isAudio || isVideo;
       });
 
@@ -1778,7 +1782,7 @@ export default {
         return;
       }
 
-      let currentIndex = -1;
+      let currentIndex;
       if (isShare) {
         // Compare by name for shares
         currentIndex = mediaFiles.findIndex(item => item.name === this.req.name);
@@ -1874,7 +1878,7 @@ export default {
         mode: this.playbackMode
       });
       mutations.setNavigationTransitioning(true);
-      url.goToItem(prevItem.source || this.req.source, prevItem.path, undefined);
+      url.goToItem(prevItem.source || this.req.source, prevItem.path, undefined, false, getters.isShare());
     },
     playNext() {
       if (this.playbackQueue.length === 0) return;
@@ -1902,7 +1906,7 @@ export default {
         });
 
         mutations.setNavigationTransitioning(true);
-        url.goToItem( nextItem.source || this.req.source, nextItem.path, undefined );
+        url.goToItem( nextItem.source || this.req.source, nextItem.path, undefined, false, getters.isShare());
 
       } catch (error) {
         console.error('Failed to navigate to next file:', error);
@@ -2006,7 +2010,9 @@ export default {
                 console.log('Playback mode changed to:', value);
 
                 // Update visual state
-                buttons.forEach(btn => btn.setAttribute('aria-checked', 'false'));
+                buttons.forEach(btn => {
+                  btn.setAttribute('aria-checked', 'false');
+                });
                 event.currentTarget.setAttribute('aria-checked', 'true');
 
                 // Update button text
@@ -2185,7 +2191,6 @@ export default {
   width: 4em !important;
   margin: 0 !important;
   border-radius: 5em !important;
-  transition: transform 0.2s ease !important;
 }
 
 .plyr--fullscreen-active .plyr__control--overlaid {
@@ -2456,8 +2461,8 @@ export default {
   max-width: 1500px;
   margin: 0 auto;
   gap: 0;
-  padding-bottom: 0;
   padding: 0 2em;
+  padding-bottom: 0;
   box-sizing: border-box;
   height: 100%;
   display: flex;

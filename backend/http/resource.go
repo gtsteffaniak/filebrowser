@@ -124,6 +124,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		HideFileExt:              d.user.HideFileExt,
 		SkipExtendedAttrs:        skipExtendedAttrs,
 		ShowSharedAttr:           true,
+		ShowPinnedItems:          true,
 	}, accessStore, d.user, shareStore)
 	if err != nil {
 		return errToStatus(err), err

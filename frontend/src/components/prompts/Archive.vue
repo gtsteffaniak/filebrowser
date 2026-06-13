@@ -53,9 +53,11 @@
       </template>
     </div>
   </div>
-  <div class="card-actions">
+  <div class="card-actions" :class="{ 'split-buttons': showFileList }">
     <template v-if="showFileList">
       <button
+        type="button"
+        v-if="!showNewDirInput"
         class="button button--flat button--grey"
         @click="showFileList = false"
         :aria-label="$t('general.cancel')"
@@ -64,6 +66,37 @@
         {{ $t("general.cancel") }}
       </button>
       <button
+        type="button"
+        v-if="canCreateFolder && showNewDirInput"
+        class="button button--flat"
+        @click="cancelNewDir"
+        :aria-label="$t('general.cancel')"
+        :title="$t('general.cancel')"
+      >
+        {{ $t("general.cancel") }}
+      </button>
+      <button
+        type="button"
+        v-if="canCreateFolder && !showNewDirInput"
+        class="button button--flat"
+        @click="createNewDir"
+        :aria-label="$t('files.newFolder')"
+        :title="$t('files.newFolder')"
+      >
+        <span>{{ $t("files.newFolder") }}</span>
+      </button>
+      <input
+        v-if="showNewDirInput"
+        ref="newDirInput"
+        class="input new-dir-input"
+        :class="{ 'form-invalid': !isDirNameValid }"
+        v-model.trim="newDirName"
+        :placeholder="$t('prompts.newDirMessage')"
+        @keydown.enter="handleEnter"
+      />
+      <button
+        type="button"
+        v-if="!showNewDirInput"
         class="button button--flat"
         @click="showFileList = false"
         :aria-label="$t('general.select', { suffix: '' })"
@@ -71,9 +104,19 @@
       >
         {{ $t("general.select", { suffix: "" }) }}
       </button>
+      <button
+        type="button"
+        v-if="showNewDirInput"
+        class="button button--flat"
+        @click="createDirectory"
+        :disabled="!newDirName || !isDirNameValid"
+      >
+        {{ $t("general.create") }}
+      </button>
     </template>
     <template v-else>
       <button
+        type="button"
         class="button button--flat button--grey"
         @click="closeTopPrompt"
         :aria-label="$t('general.cancel')"
@@ -82,6 +125,7 @@
         {{ $t("general.cancel") }}
       </button>
       <button
+        type="button"
         class="button button--flat"
         :disabled="!canSubmit || creating"
         :aria-label="$t('prompts.archive')"
@@ -95,10 +139,10 @@
 </template>
 
 <script>
-import { state, mutations } from "@/store";
+import { state, mutations, getters } from "@/store";
 import { notify } from "@/notify";
 import { resourcesApi } from "@/api";
-import { goToItem } from "@/utils/url";
+import { goToItemNotificationButton } from "@/utils/notificationActions";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FileList from "@/components/files/FileList.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
@@ -129,18 +173,26 @@ export default {
       compression: 0,
       creating: false,
       showFileList: false,
-      deleteAfter: state.user?.deleteAfterArchive == true,
+      showNewDirInput: false,
+      newDirName: "",
+      deleteAfter: state.user?.deleteAfterArchive === true,
     };
   },
   watch: {
     deleteAfter(newVal) {
       mutations.updateCurrentUser({ deleteAfterArchive: newVal });
-    }
+    },
+    showFileList(newVal) {
+      if (!newVal) {
+        this.showNewDirInput = false;
+        this.newDirName = "";
+      }
+    },
   },
   mounted() {
     if (this.currentPath) {
       this.destPath = this.currentPath.replace(/\/+$/, "") || "/";
-      if (!this.destPath.startsWith("/")) this.destPath = "/" + this.destPath;
+      if (!this.destPath.startsWith("/")) this.destPath = `/${this.destPath}`;
     }
   },
   computed: {
@@ -151,10 +203,17 @@ export default {
       const name = this.archiveName || this.defaultArchiveName;
       return name.length > 0 && this.destPath;
     },
+    canCreateFolder() {
+      const perms = getters.permissions();
+      return !!perms?.create;
+    },
+    isDirNameValid() {
+      return this.validateDirName(this.newDirName);
+    },
     fullDestination() {
       const name = this.archiveName || this.defaultArchiveName;
       const base = (this.destPath || "/").replace(/\/+$/, "");
-      const path = base === "" ? "/" + name : base + "/" + name;
+      const path = base === "" ? `/${name}` : `${base}/${name}`;
       return path.replace(/\/+/g, "/");
     },
   },
@@ -165,9 +224,64 @@ export default {
     updateDestination(pathOrData) {
       if (typeof pathOrData === "string") {
         this.destPath = pathOrData;
-      } else if (pathOrData && pathOrData.path) {
+      } else if (pathOrData?.path) {
         this.destPath = pathOrData.path;
         this.destSource = pathOrData.source;
+      }
+    },
+    createNewDir() {
+      this.showNewDirInput = true;
+      this.newDirName = "";
+      this.$nextTick(() => {
+        this.$refs.newDirInput?.focus();
+      });
+    },
+    validateDirName(value) {
+      if (this.$refs.fileList?.items) {
+        const currentItems = this.$refs.fileList.items.filter((item) => item.name !== "..");
+        return !currentItems.some((item) => item.name.toLowerCase() === value.toLowerCase());
+      }
+      return true;
+    },
+    cancelNewDir() {
+      this.showNewDirInput = false;
+      this.newDirName = "";
+    },
+    handleEnter(event) {
+      event.stopPropagation();
+      event.preventDefault();
+      if (this.newDirName && this.isDirNameValid) {
+        this.createDirectory();
+      }
+    },
+    async createDirectory() {
+      if (!this.newDirName || !this.isDirNameValid) return;
+      try {
+        this.creating = true;
+        const currentPath = this.$refs.fileList.path;
+        const currentSource = this.$refs.fileList.source;
+        const fullPath = currentPath.endsWith("/")
+          ? `${currentPath + this.newDirName}/`
+          : `${currentPath}/${this.newDirName}/`;
+        if (getters.isShare()) {
+          await resourcesApi.postPublic(state.shareInfo?.hash, fullPath, "", false, undefined, {}, true);
+        } else {
+          await resourcesApi.post(currentSource, fullPath, "", false, undefined, {}, true);
+        }
+        if (getters.isShare()) {
+          resourcesApi.fetchFilesPublic(currentPath, state.shareInfo?.hash)
+            .then((req) => this.$refs.fileList.fillOptions(req, true));
+        } else {
+          resourcesApi.fetchFiles(currentSource, currentPath)
+            .then((req) => this.$refs.fileList.fillOptions(req, true));
+        }
+        mutations.setReload(true);
+        this.showNewDirInput = false;
+        this.newDirName = "";
+      } catch (error) {
+        console.error("Error creating directory:", error);
+      } finally {
+        this.creating = false;
       }
     },
     async submit() {
@@ -198,14 +312,18 @@ export default {
 
         const destSource = this.destSource || this.source;
         const archivePath = dest;
-        const buttonAction = () => {
-          if (archivePath) {
-            goToItem(destSource || null, archivePath, {});
-          }
-        };
         notify.showSuccess(this.$t("prompts.archiveSuccess"), {
           icon: "folder",
-          buttons: archivePath ? [{ label: this.$t("buttons.goToItem"), primary: true, action: buttonAction }] : undefined,
+          buttons: archivePath
+            ? [
+                goToItemNotificationButton(
+                  this.$t("buttons.goToItem"),
+                  destSource,
+                  archivePath,
+                  getters.isShare()
+                ),
+              ]
+            : undefined,
         });
       } catch (err) {
         console.error(err);
@@ -244,5 +362,13 @@ export default {
 }
 .card-content {
   position: relative;
+}
+
+.new-dir-input {
+  justify-self: left;
+}
+
+.split-buttons {
+  justify-content: space-between;
 }
 </style>

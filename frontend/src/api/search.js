@@ -1,6 +1,6 @@
-import { fetchURL } from "./utils";
 import { notify } from "@/notify";  // Import notify for error handling
 import { getApiPath } from "@/utils/url.js";
+import { fetchURL } from "./utils";
 
 export default async function search(base, sources, query, largest = false, extraParams = {}) {
   try {
@@ -34,7 +34,7 @@ export default async function search(base, sources, query, largest = false, extr
 
     const apiPath = getApiPath("tools/search", params);
     const res = await fetchURL(apiPath);
-    let data = await res.json();
+    const data = await res.json();
 
     return data
   } catch (err) {

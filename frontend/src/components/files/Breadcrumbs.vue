@@ -14,7 +14,7 @@
       <li class="item" v-for="(link, index) in items" :key="index">
         <router-link
           :to="link.url"
-          :aria-label="'breadcrumb-link-' + link.name"
+          :aria-label="`breadcrumb-link-${link.name}`"
           :title="link.name"
           :key="index"
           :class="{ changeAvailable: hasUpdate,
@@ -32,10 +32,11 @@
 </template>
 
 <script>
-import { state, getters, mutations } from "@/store";
-import { url } from "@/utils";
 import { resourcesApi } from "@/api";
 import { notify } from "@/notify";
+import { getters, mutations, state } from "@/store";
+import { url } from "@/utils";
+import { goToItemNotificationButton } from "@/utils/notificationActions";
 
 export default {
   name: "breadcrumbs",
@@ -88,9 +89,9 @@ export default {
       if (!req.items || !req.path) {
         return [];
       }
-      let encodedPathString = url.encodedPath(state.req.path);
-      let originalParts = state.req.path.split("/");
-      let encodedParts = encodedPathString.split("/");
+      const encodedPathString = url.encodedPath(state.req.path);
+      const originalParts = state.req.path.split("/");
+      const encodedParts = encodedPathString.split("/");
       // Remove empty strings from both arrays consistently
       if (originalParts[0] === "") {
         originalParts.shift();
@@ -100,14 +101,14 @@ export default {
         originalParts.pop();
         encodedParts.pop();
       }
-      let breadcrumbs = [];
+      const breadcrumbs = [];
       let buildRef = this.base;
       let accumulatedPath = "";
 
       for (let i = 0; i < originalParts.length; i++) {
         const origPart = originalParts[i];
         const encodedElement = encodedParts[i];
-        buildRef = buildRef + encodedElement + "/";
+        buildRef = `${buildRef + encodedElement}/`;
         accumulatedPath = accumulatedPath ? `${accumulatedPath}/${origPart}` : origPart;
 
         breadcrumbs.push({
@@ -207,7 +208,7 @@ export default {
 
       // Build list of items to move from selected items
       let itemsToMove = [];
-      for (let i of state.selected) {
+      for (const i of state.selected) {
         if (i < 0 || i >= state.req.length) continue;
 
         const selectedItem = state.req.items[i];
@@ -238,7 +239,7 @@ export default {
           const toDir = normalizePath(item.to);
 
           // Check if destination is inside the directory
-          if (toDir.startsWith(fromDir + "/")) {
+          if (toDir.startsWith(`${fromDir}/`)) {
             return false;
           }
         }
@@ -255,7 +256,7 @@ export default {
           const response = await resourcesApi.fetchFiles(source, targetPath);
           targetDirItems = response?.items;
         }
-      } catch (error) {
+      } catch (_e) {
         notify.showError(this.$t("files.cannotAccesDir"));
         return;
       }
@@ -279,21 +280,20 @@ export default {
             await resourcesApi.moveCopy(itemsToMove, "move", overwrite, rename);
           }
 
-          const buttonAction = () => {
-            url.goToItem(source, targetPath, {});
-          };
-
           notify.showSuccess(this.$t("prompts.moveSuccess"), {
             icon: "folder",
-            buttons: [{
-              label: this.$t("buttons.goToItem"),
-              primary: true,
-              action: buttonAction
-            }]
+            buttons: [
+              goToItemNotificationButton(
+                this.$t("buttons.goToItem"),
+                source,
+                targetPath,
+                getters.isShare()
+              ),
+            ],
           });
           mutations.closeTopPrompt();
           mutations.setReload(true);
-        } catch (error) {
+        } catch (_e) {
           mutations.closeTopPrompt();
           notify.showError(this.$t("prompts.moveFailed"));
         }

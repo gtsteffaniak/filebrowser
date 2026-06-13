@@ -6,7 +6,7 @@ https://raw.githubusercontent.com/dzwillia/vue-simple-progress/master/src/compon
     <div
       class="vue-simple-progress-text"
       :style="text_style"
-      v-if="textPosition == 'middle'"
+      v-if="textPosition === 'middle'"
     >
       {{ displayed_text }}
     </div>
@@ -16,7 +16,7 @@ https://raw.githubusercontent.com/dzwillia/vue-simple-progress/master/src/compon
     <div
       class="vue-simple-progress-text"
       :style="text_style"
-      v-if="textPosition == 'inside'"
+      v-if="textPosition === 'inside'"
     >
       {{ displayed_text }}
       <i
@@ -32,12 +32,16 @@ https://raw.githubusercontent.com/dzwillia/vue-simple-progress/master/src/compon
 </template>
 
 <script>
-import { getHumanReadableFilesize } from "@/utils/filesizes.js";
 import { mutations } from "@/store";
+import { getHumanReadableFilesize } from "@/utils/filesizes.js";
 
 // We're leaving this untouched as you can read in the beginning
-var isNumber = function (n) {
-  return !isNaN(parseFloat(n)) && isFinite(n);
+const isNumber = (n) => {
+  const num = Number(n);
+  // Since 'isNaN' nd 'isFinite' are marked as unsafe. We need to do this
+  // to still matching the old behavior (the styling).
+  if (num === 0 && (n === null || n === '' || n === false)) return true;
+  return !Number.isNaN(num) && Number.isFinite(num);
 };
 
 export default {
@@ -120,14 +124,14 @@ export default {
     pct() {
       if (!this.isValNumeric) return 100;
       if (this.max <= 0) return 0;
-      var pct = (this.val / this.max) * 100;
+      const pct = (this.val / this.max) * 100;
       return Math.max(0, Math.min(pct.toFixed(2), 100));
     },
     pctBackground() {
       if (this.valBackground === null) return 0;
       if (!isNumber(this.valBackground)) return 0;
       if (this.max <= 0) return 0;
-      var pct = (this.valBackground / this.max) * 100;
+      const pct = (this.valBackground / this.max) * 100;
       return Math.max(0, Math.min(pct.toFixed(2), 100));
     },
     displayed_text() {
@@ -197,21 +201,21 @@ export default {
       return isNumber(this.fontSize) ? this.fontSize : 13;
     },
     progress_style() {
-      var style = {
+      const style = {
         background: this.bgColor,
         position: 'relative'
       };
 
       if (this.status === 'indexing') {
-        style['background'] = '#fff8d6'; // Muted yellow/amber color
+        style.background = '#fff8d6'; // Muted yellow/amber color
       }
 
-      if (this.textPosition == "middle" || this.textPosition == "inside") {
-        style["min-height"] = this.size_px + "px";
+      if (this.textPosition === "middle" || this.textPosition === "inside") {
+        style.minHeight = `${this.size_px}px`;
       }
 
       if (this.barBorderRadius > 0) {
-        style["border-radius"] = this.barBorderRadius + "px";
+        style.borderRadius = `${this.barBorderRadius}px`;
       }
 
       return style;
@@ -230,32 +234,32 @@ export default {
       if (percentage < 1) {
         percentage = 0;
       }
-      var style = {
-        width: percentage + "%",
-        height: this.size_px + "px",
+      const style = {
+        width: `${percentage}%`,
+        height: `${this.size_px}px`,
         background: barColor,
         transition: this.barTransition,
         position: this.valBackground !== null ? 'relative' : undefined,
-        "z-index": this.valBackground !== null ? 1 : undefined,
+        zIndex: this.valBackground !== null ? 1 : undefined,
       };
 
       // Add pulse animation for indexing status
       if (this.status === 'indexing') {
-        style['animation'] = 'progress-pulse 4s ease-in-out infinite';
-        style['background'] = 'rgb(237 161 41)'; // orange
+        style.animation = 'progress-pulse 4s ease-in-out infinite';
+        style.background = 'rgb(237 161 41)'; // orange
       }
 
       if (this.barBorderRadius > 0) {
-        style["border-radius"] = this.barBorderRadius + "px";
+        style.borderRadius = `${this.barBorderRadius}px`;
       }
 
-      if (this.textPosition == "middle") {
-        style["position"] = "absolute";
-        style["top"] = "0";
-        style["height"] = "100%";
-        style["min-width"] = "1.5em";
-        style["min-height"] = this.size_px + "px";
-        style["z-index"] = "-1";
+      if (this.textPosition === "middle") {
+        style.position = 'absolute';
+        style.top = '0';
+        style.height = '100%';
+        style.minWidth = '1.5em';
+        style.minHeight = `${this.size_px}px`;
+        style.zIndex = '-1';
       }
 
       return style;
@@ -265,9 +269,9 @@ export default {
       if (percentage < 1) {
         percentage = 0;
       }
-      var style = {
-        width: percentage + "%",
-        height: this.size_px + "px",
+      const style = {
+        width: `${percentage}%`,
+        height: `${this.size_px}px`,
         background: '#9e9e9e',
         transition: this.barTransition,
         position: 'absolute',
@@ -276,40 +280,40 @@ export default {
       };
 
       if (this.barBorderRadius > 0) {
-        style["border-radius"] = this.barBorderRadius + "px";
+        style.borderRadius = `${this.barBorderRadius}px`;
       }
 
       return style;
     },
     text_style() {
-      var style = {
+      const style = {
         "color": this.textFgColor,
-        "font-size": this.text_font_size + "px",
+        "font-size": `${this.text_font_size}px`,
         "text-align": this.textAlign,
       };
 
       if (this.textPosition === 'inside') {
-        style['position'] = 'absolute';
-        style['left'] = '0';
-        style['right'] = '0';
-        style['top'] = '50%';
-        style['transform'] = 'translateY(-50%)';
-        style['width'] = '100%';
-        style['padding'] = '0 0.5em';
-        style['box-sizing'] = 'border-box';
-        style['z-index'] = this.valBackground !== null ? 2 : undefined;
+        style.position = 'absolute';
+        style.left = '0';
+        style.right = '0';
+        style.top = '50%';
+        style.transform = 'translateY(-50%)';
+        style.width = '100%';
+        style.padding = '0 0.5em';
+        style.boxSizing = 'border-box';
+        style.zIndex = this.valBackground !== null ? 2 : undefined;
       }
 
       if (
-        this.textPosition == "top" ||
-        this.textPosition == "middle"
+        this.textPosition === "top" ||
+        this.textPosition === "middle"
       )
-        style["padding-bottom"] = this.text_padding + "px";
+        style.paddingBottom = `${this.text_padding}px`;
       if (
-        this.textPosition == "bottom" ||
-        this.textPosition == "middle"
+        this.textPosition === "bottom" ||
+        this.textPosition === "middle"
       )
-        style["padding-top"] = this.text_padding + "px";
+        style.paddingTop = `${this.text_padding}px`;
       return style;
     },
   },

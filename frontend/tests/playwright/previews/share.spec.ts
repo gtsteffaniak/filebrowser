@@ -1,17 +1,17 @@
-import { test, expect } from "../test-setup";
+import { expect, test } from "../test-setup";
 
 // 3d file thumbnails work
-test("3d file preview thumbnails in share", async({ page, checkForErrors, context }) => {
+test("3d file preview thumbnails in share", async({ page, checkForErrors }) => {
     await page.goto("/files/");
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
     const shareHash = await page.evaluate(() => localStorage.getItem('shareHash'));
-    if (!shareHash || shareHash == "") {
+    if (!shareHash || shareHash === "") {
         throw new Error("Share hash not found in localStorage");
     }
-    console.log("shareHash: " + shareHash);
-    await page.goto("/share/" + shareHash);
+    console.log(`shareHash: ${shareHash}`);
+    await page.goto(`/share/${shareHash}`);
     // log current url
-    console.log("current url: " + page.url());
+    console.log(`current url: ${page.url()}`);
     await expect(page).toHaveTitle("Graham's Filebrowser - Share - myfolder");
     await page.locator('a[aria-label="3dmodels"]').waitFor({ state: 'visible' });
     await page.locator('a[aria-label="3dmodels"]').dblclick();
@@ -27,16 +27,16 @@ test("3d file preview thumbnails in share", async({ page, checkForErrors, contex
 });
 
 // 3d file preview, cycle through all 3d files and confirm no errors
-test("3d file preview next/previous", async ({ page, checkForErrors, context }) => {
+test("3d file preview next/previous", async ({ page, checkForErrors }) => {
     await page.goto("/files/");
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
     const shareHash = await page.evaluate(() => localStorage.getItem('shareHash'));
-    if (shareHash == "") {
+    if (shareHash === "") {
         throw new Error("Share hash not found in localStorage");
     }
     
     // Go directly to a 3D model file in the share
-    await page.goto("/share/" + shareHash + "/3dmodels/Lowpoly_tree_sample.dae");
+    await page.goto(`/share/${shareHash}/3dmodels/Lowpoly_tree_sample.dae`);
     await expect(page).toHaveTitle("Graham's Filebrowser - Share - Lowpoly_tree_sample.dae");
     await page.locator('.threejs-viewer .loading-overlay').waitFor({ state: 'visible' });
     await page.locator('.threejs-viewer canvas').waitFor({ state: 'visible' });

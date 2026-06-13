@@ -1,5 +1,5 @@
-import * as messageFunctions from "./message.js";
 import * as events from "./events.js";
+import * as messageFunctions from "./message.js";
 
 const notify = {
     ...messageFunctions,
@@ -9,6 +9,7 @@ const notify = {
     pauseAutoClose: messageFunctions.pauseAutoClose,
     resumeAutoClose: messageFunctions.resumeAutoClose,
     getNotificationProgress: messageFunctions.getNotificationProgress,
+    resolveHistoryNotificationButtons: messageFunctions.resolveHistoryNotificationButtons,
     // Toast functions
     showToast: messageFunctions.showToast,
     showSuccessToast: messageFunctions.showSuccessToast,
@@ -20,4 +21,4 @@ const notify = {
     setToastUpdateCallback: messageFunctions.setToastUpdateCallback,
 };
 
-export { notify, events };
+export { events, notify };

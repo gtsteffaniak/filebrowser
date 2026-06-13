@@ -1,6 +1,6 @@
-import { fetchURL, fetchJSON, adjustedData } from "./utils";
 import { notify } from "@/notify";
 import { getApiPath, getPublicApiPath } from "@/utils/url.js";
+import { adjustedData, fetchJSON, fetchURL } from "./utils";
 
 
 // ============================================================================
@@ -28,7 +28,7 @@ export async function get(path, source) {
   try {
     const params = { path, source };
     const apiPath = getApiPath("share", params);
-    let data = await fetchJSON(apiPath);
+    const data = await fetchJSON(apiPath);
     return adjustedData(data);
   } catch (/** @type {any} */ err) {
     notify.showError(err.message || "Error fetching data");
@@ -124,4 +124,15 @@ export async function getShareInfoPublic(hash) {
     notify.showError(err.message || 'Error getting share info')
     throw err
   }
+}
+
+// PATCH /public/api/share/pinnedItems (add by default; ?action=remove to unpin)
+export async function patchPinnedItem({ hash, path, name, action = 'add' }) {
+  const params = { hash, action }
+  const apiPath = getPublicApiPath('share/pinnedItems', params)
+  await fetchURL(apiPath, {
+    method: 'PATCH',
+    body: JSON.stringify({ path, name }),
+    headers: { 'Content-Type': 'application/json' },
+  })
 }

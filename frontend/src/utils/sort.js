@@ -1,5 +1,12 @@
-export function sortedItems(items = [], sortby="name", asc=true) {
+export function sortedItems(items = [], sortby = "name", asc = true) {
     return items.sort((a, b) => {
+        const aPinned = !!a.pinned;
+        const bPinned = !!b.pinned;
+
+        if (aPinned !== bPinned) {
+            return aPinned ? -1 : 1;
+        }
+
         let valueA = a[sortby];
         let valueB = b[sortby];
 
@@ -11,15 +18,18 @@ export function sortedItems(items = [], sortby="name", asc=true) {
 
         if (sortby === "name") {
             // Use localeCompare with numeric option for natural sorting
-            const comparison = valueA.localeCompare(valueB, undefined, { numeric: true, sensitivity: 'base' });
+            const comparison = valueA.localeCompare(valueB, undefined, { numeric: true, sensitivity: "base" });
             return asc ? comparison : -comparison;
+        }
+
+        if (valueA === valueB) {
+            return 0;
         }
 
         // Default sorting for other fields
         if (asc) {
             return valueA > valueB ? 1 : -1;
-        } else {
-            return valueA < valueB ? 1 : -1;
         }
+        return valueA < valueB ? 1 : -1;
     });
 }

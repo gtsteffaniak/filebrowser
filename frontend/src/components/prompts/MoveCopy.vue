@@ -26,10 +26,18 @@
     </div>
   </div>
   <div class="card-actions split-buttons" >
-    <button v-if="canCreateFolder && showNewDirInput" class="button button--flat" @click="cancelNewDir" :aria-label="$t('general.cancel')" :title="$t('general.cancel')">
+    <button
+      type="button"
+      v-if="canCreateFolder && showNewDirInput"
+      class="button button--flat"
+      @click="cancelNewDir"
+      :aria-label="$t('general.cancel')"
+      :title="$t('general.cancel')"
+    >
       {{ $t("general.cancel") }}
     </button>
     <button
+      type="button"
       v-if="canCreateFolder && !showNewDirInput"
       class="button button--flat"
       @click="createNewDir"
@@ -40,12 +48,23 @@
     </button>
     <input v-if="showNewDirInput" ref="newDirInput" class="input new-dir-input" :class="{ 'form-invalid': !isDirNameValid }"
     v-model.trim="newDirName" :placeholder="$t('prompts.newDirMessage')" @keydown.enter="handleEnter" />
-    <button v-else :disabled="destContainsSrc" class="button button--flat" @click="performOperation"
+    <button
+      type="button"
+      v-else :disabled="destContainsSrc"
+      class="button button--flat"
+      @click="performOperation"
       :aria-label="operation === 'move' ? $t('general.move') : $t('general.copy')"
-      :title="operation === 'move' ? $t('general.move') : $t('general.copy')">
+      :title="operation === 'move' ? $t('general.move') : $t('general.copy')"
+    >
       {{ operation === 'move' ? $t('general.move') : $t('general.copy') }}
     </button>
-    <button v-if="showNewDirInput" class="button button--flat" @click="createDirectory" :disabled="!newDirName || !isDirNameValid">
+    <button
+      type="button"
+      v-if="showNewDirInput"
+      class="button button--flat"
+      @click="createDirectory"
+      :disabled="!newDirName || !isDirNameValid"
+    >
       {{ $t("general.create") }}
     </button>
   </div>
@@ -59,9 +78,14 @@ import buttons from "@/utils/buttons";
 import * as upload from "@/utils/upload";
 import { url } from "@/utils";
 import { notify } from "@/notify";
-import { goToItem } from "@/utils/url";
+import {
+  notifyMoveCopyComplete,
+  notifyOperationError,
+} from "@/utils/appNotifications";
+import { goToItemNotificationButton } from "@/utils/notificationActions";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
+import { eventBus } from '@/store/eventBus';
 
 export default {
   name: "move-copy",
@@ -82,17 +106,15 @@ export default {
       default: null,
     },
   },
-  data: function () {
-    return {
-      current: window.location.pathname,
-      destPath: "/", // Start at root of selected source
-      destSource: null, // Will be set by FileList component
-      localItems: [], // Will hold the items to operate on
-      isLoading: false, // Track loading state for spinner
-      showNewDirInput: false, // When true will replace the new folder button with a input field
-      newDirName: "",
-    };
-  },
+  data: () => ({
+    current: window.location.pathname,
+    destPath: "/", // Start at root of selected source
+    destSource: null, // Will be set by FileList component
+    localItems: [], // Will hold the items to operate on
+    isLoading: false, // Track loading state for spinner
+    showNewDirInput: false, // When true will replace the new folder button with a input field
+    newDirName: "",
+  }),
   computed: {
     destContainsSrc() {
       if (!this.destPath) {
@@ -112,14 +134,14 @@ export default {
       }
       // For move, prevent moving to the same directory, but for copy allow it.
       if (this.operation === "move") {
-        const parentDir = url.removeLastDir(itemPath) + "/";
+        const parentDir = `${url.removeLastDir(itemPath)}/`;
         // Only disable if moving to the exact same directory
         if (this.destPath === parentDir) {
           return true;
         }
       }
       // Prevent move/copy into itself or subdirectories (into itself too)
-      return this.destPath.startsWith(itemPath + "/") || this.destPath === itemPath;
+      return this.destPath.startsWith(`${itemPath}/`) || this.destPath === itemPath;
     },
     canCreateFolder() {
       const perms = getters.permissions();
@@ -142,7 +164,7 @@ export default {
       }));
     } else if (state.isSearchActive) {
       // Add null checks to prevent undefined values
-      if (state.selected && state.selected[0] && state.selected[0].path) {
+      if (state.selected?.[0]?.path) {
         this.localItems = [
           {
             from: state.selected[0].path,
@@ -152,10 +174,10 @@ export default {
         ];
       }
     } else {
-      if (state.selected && state.req && state.req.items) {
-        for (let item of state.selected) {
+      if (state.selected && state.req?.items) {
+        for (const item of state.selected) {
           const reqItem = state.req.items[item];
-          if (reqItem && reqItem.path) {
+          if (reqItem?.path) {
             this.localItems.push({
               from: reqItem.path,
               fromSource: state.req.source,
@@ -187,7 +209,7 @@ export default {
     },
     validateDirName(value) {
       // Check if a folder with the same name already exists in current directory
-      if (this.$refs.fileList && this.$refs.fileList.items) {
+      if (this.$refs.fileList?.items) {
         const currentItems = this.$refs.fileList.items.filter(item => item.name !== '..');
         return !currentItems.some(item => item.name.toLowerCase() === value.toLowerCase());
       }
@@ -213,7 +235,7 @@ export default {
         // Get current navigation from FileList
         const currentPath = this.$refs.fileList.path;
         const currentSource = this.$refs.fileList.source;
-        const fullPath = currentPath.endsWith('/') ? currentPath + this.newDirName + '/' : currentPath + '/' + this.newDirName + '/';
+        const fullPath = currentPath.endsWith('/') ? `${currentPath + this.newDirName}/` : `${currentPath}/${this.newDirName}/`;
         if (getters.isShare()) {
           await resourcesApi.postPublic(state.shareInfo?.hash, fullPath, "", false, undefined, {}, true);
         } else {
@@ -243,7 +265,7 @@ export default {
         this.destPath = pathOrData;
         // For backward compatibility, keep the current source
         // This will be updated when FileList is modified to emit both
-      } else if (pathOrData && pathOrData.path) {
+      } else if (pathOrData?.path) {
         this.destPath = pathOrData.path;
         // Update destSource from FileList's selection
         this.destSource = pathOrData.source;
@@ -261,7 +283,7 @@ export default {
         // Build items with destination paths
         const itemsToProcess = this.localItems.map(item => {
           // Ensure proper path construction without double slashes
-          const destPath = this.destPath.endsWith('/') ? this.destPath : this.destPath + '/';
+          const destPath = this.destPath.endsWith('/') ? this.destPath : `${this.destPath}/`;
           return {
             ...item,
             to: destPath + item.name,
@@ -269,7 +291,7 @@ export default {
           };
         });
         // Define the action function
-        let action = async (overwrite, rename) => {
+        const action = async (overwrite, rename) => {
           buttons.loading(this.operation);
           let result;
           if (getters.isShare()) {
@@ -295,7 +317,7 @@ export default {
           this.isLoading = false;
           // Check if any item is being copied/moved to itself
           const isSameFile = itemsToProcess.some(item => {
-            const destPath = this.destPath.endsWith('/') ? this.destPath : this.destPath + '/';
+            const destPath = this.destPath.endsWith('/') ? this.destPath : `${this.destPath}/`;
             const targetPath = destPath + item.name;
             return item.from === targetPath && item.fromSource === this.destSource;
           });
@@ -309,8 +331,8 @@ export default {
                 operation: this.operation
               },
               confirm: async (event, option) => {
-                overwrite = option == "overwrite";
-                rename = option == "rename";
+                overwrite = option === "overwrite";
+                rename = option === "rename";
                 event.preventDefault();
                 try {
                   this.isLoading = true;
@@ -330,13 +352,14 @@ export default {
         }
 
         // Check if there were any failures in the result
-        const hasFailures = result && result.failed && result.failed.length > 0;
-        const hasSuccesses = result && result.succeeded && result.succeeded.length > 0;
+        const hasFailures = result?.failed && result.failed.length > 0;
+        const hasSuccesses = result?.succeeded && result.succeeded.length > 0;
 
         if (hasFailures && !hasSuccesses) {
           // All operations failed - show error but DON'T close prompt
           const errorMessage = result.failed[0]?.message || this.$t("prompts.operationFailed");
           notify.showError(errorMessage);
+          notifyOperationError(errorMessage);
           return;
         } else if (hasFailures && hasSuccesses) {
           // Partial failure - show warning and continue
@@ -347,41 +370,70 @@ export default {
           );
         }
 
-        // Only close prompts and reload on success (or partial success)
-        mutations.setReload(true);
-        mutations.closeTopPrompt(); // close conflict prompt
-        mutations.closeTopPrompt(); // close moveCopy prompt after conflict is resolved and file copied/moved
-        mutations.setSearch(false); // close search if open
+        // Determine if we should navigate (we can move items with fileTree context menu in previews)
+        const shouldNavigate = getters.isPreviewView() && this.operation === 'move';
+        let currentItemMoved = false;
 
-        // Only show success notification if there were no failures (or partial success was already shown)
-        if (!hasFailures || hasSuccesses) {
-          // Store destination info for the button action
-          const destSource = this.destSource;
-          const destPath = this.destPath;
+        if (shouldNavigate) {
+          currentItemMoved = this.localItems.some(item =>
+            item.from === state.req?.path && item.fromSource === state.req?.source
+          );
+        }
 
-          // Show success notification with optional button to navigate to destination
-          // For shares, destSource might be null, but goToItem handles shares via state.shareInfo.hash
-          const buttonAction = () => {
-            if (destPath) {
-              // For shares, goToItem will use state.shareInfo.hash, so source can be null
-              // For regular files, destSource should be set
-              goToItem(destSource || null, destPath, {});
-            }
-          };
-          const buttonProps = {
-            icon: "folder",
-            buttons: destPath ? [
-              {
-                label: this.$t("buttons.goToItem"),
-                primary: true,
-                action: buttonAction
-              }
-            ] : undefined
-          };
-          if (this.operation === "move") {
-            notify.showSuccess(this.$t("prompts.moveSuccess"), buttonProps);
+        if (shouldNavigate && currentItemMoved) {
+          eventBus.emit('itemsMoved');
+          mutations.closeTopPrompt(); // close conflict prompt
+          mutations.closeTopPrompt(); // close moveCopy prompt
+
+          if (!hasFailures || hasSuccesses) {
+            notify.showSuccessToast(this.$t("prompts.moveSuccess"));
+            notifyMoveCopyComplete("move", this.localItems.length);
+          }
+
+          // Navigate next, previous or parent dir (like when deleting)
+          const next = state.navigation.nextItem;
+          const prev = state.navigation.previousItem;
+          if (next) {
+            url.goToItem(next.source, next.path, undefined, false, getters.isShare());
+          } else if (prev) {
+            url.goToItem(prev.source, prev.path, undefined, false, getters.isShare());
           } else {
-            notify.showSuccess(this.$t("prompts.copySuccess"), buttonProps);
+            url.goToItem(state.req.source, url.removeLastDir(state.req.path), {}, false, getters.isShare());
+          }
+        } else {
+
+          // Only close prompts and reload on success (or partial success)
+          mutations.setReload(true);
+          mutations.closeTopPrompt(); // close conflict prompt
+          mutations.closeTopPrompt(); // close moveCopy prompt after conflict is resolved and file copied/moved
+          mutations.setSearch(false); // close search if open
+
+          // Only show success notification if there were no failures (or partial success was already shown)
+          if (!hasFailures || hasSuccesses) {
+            // Store destination info for the button action
+            const destSource = this.destSource;
+            const destPath = this.destPath;
+
+            const buttonProps = {
+              icon: "folder",
+              buttons: destPath
+                ? [
+                    goToItemNotificationButton(
+                      this.$t("buttons.goToItem"),
+                      destSource || state.shareInfo?.hash,
+                      destPath,
+                      getters.isShare()
+                    ),
+                  ]
+                : undefined,
+            };
+            if (this.operation === "move") {
+              notify.showSuccess(this.$t("prompts.moveSuccess"), buttonProps);
+              notifyMoveCopyComplete("move", this.localItems.length);
+            } else {
+              notify.showSuccess(this.$t("prompts.copySuccess"), buttonProps);
+              notifyMoveCopyComplete("copy", this.localItems.length);
+            }
           }
         }
       } catch (error) {
@@ -392,9 +444,9 @@ export default {
         let errorMessage = null;
 
         // Check if error has a response body with failed items
-        if (error && error.failed && error.failed.length > 0 && error.failed[0]?.message) {
+        if (error?.failed && error.failed.length > 0 && error.failed[0]?.message) {
           errorMessage = error.failed[0].message;
-        } else if (error && error.message) {
+        } else if (error?.message) {
           errorMessage = error.message;
         } else if (typeof error === 'string') {
           errorMessage = error;
@@ -406,6 +458,7 @@ export default {
         }
 
         notify.showError(errorMessage);
+        notifyOperationError(errorMessage);
       } finally {
         this.isLoading = false; // Hide loading spinner
       }

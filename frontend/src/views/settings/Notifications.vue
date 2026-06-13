@@ -1,50 +1,75 @@
 <template>
   <div class="notifications-view">
     <div class="card-title">
-      <h1>{{ $t("notifications.title") }}</h1>
+      <h2>{{ $t("notifications.title") }}</h2>
+    </div>
+    <div class="card-content app-notifications-settings">
+      <p v-if="!notificationsSupported" class="settings-hint">
+        {{ $t("notifications.appUnsupported") }}
+      </p>
+      <template v-else>
+        <ToggleSwitch
+          class="item"
+          v-model="appNotificationsEnabled"
+          @change="onAppNotificationsChange"
+          :name="$t('notifications.appEnabled')"
+          :description="$t('notifications.appEnabledDescription')"
+        />
+      </template>
+    </div>
+
+    <div class="notifications-history">
       <p class="notifications-description">{{ $t("notifications.description") }}</p>
       <div v-if="sortedNotifications.length > 0" class="header-actions">
-        <button @click="clearHistory" class="button button--flat button--grey clear-button">
+        <button
+          type="button"
+          @click="clearHistory"
+          class="button button--flat button--grey clear-button"
+        >
           <i class="material-symbols">delete_sweep</i>
           {{ $t("notifications.clearAll") }}
         </button>
         <span class="notification-count">
-          {{ $t("notifications.total", { count: sortedNotifications.length }) }}
+          {{ formatNotificationCount(sortedNotifications.length) }}
         </span>
       </div>
-    </div>
 
-    <div v-if="sortedNotifications.length === 0" class="empty-state">
-      <i class="material-symbols empty-icon">notifications_none</i>
-      <p>{{ $t("notifications.empty") }}</p>
-    </div>
+      <div v-if="sortedNotifications.length === 0" class="empty-state">
+        <i class="material-symbols empty-icon">notifications_none</i>
+        <p>{{ $t("notifications.empty") }}</p>
+      </div>
 
-    <div v-else class="notifications-scroll-container">
-      <div class="notifications-list">
-        <div v-for="notification in sortedNotifications" :key="notification.id" class="notification-wrapper">
-          <!-- Reuse the exact notification item structure from popup component -->
-          <div :class="['notification-item', notification.type]">
-            <div class="notification-content-wrapper">
-              <div class="notification-header">
-                <i v-if="notification.icon" class="material-symbols notification-icon">
-                  {{ notification.icon }}
-                </i>
-                <div class="notification-message">{{ notification.message }}</div>
-              </div>
-              <div v-if="notification.buttons && notification.buttons.length > 0" class="notification-buttons">
-                <button v-for="(button, btnIndex) in notification.buttons" :key="btnIndex"
-                  :class="['button', button.className]" @click="handleButtonClick(button)" :aria-label="button.label"
-                  :title="button.label">
-                  {{ button.label }}
-                </button>
+      <div v-else class="notifications-scroll-container">
+        <div class="notifications-list">
+          <div v-for="notification in sortedNotifications" :key="notification.id" class="notification-wrapper">
+            <div :class="['notification-item', notification.type]">
+              <div class="notification-content-wrapper">
+                <div class="notification-header">
+                  <i v-if="notification.icon" class="material-symbols notification-icon">
+                    {{ notification.icon }}
+                  </i>
+                  <div class="notification-message">{{ notification.message }}</div>
+                </div>
+                <div v-if="notification.buttons && notification.buttons.length > 0" class="notification-buttons">
+                  <button
+                    type="button"
+                    v-for="(button, btnIndex) in notification.buttons"
+                    :key="btnIndex"
+                    :class="['button', button.className]"
+                    @click="handleButtonClick(button)"
+                    :aria-label="button.label"
+                    :title="button.label"
+                  >
+                    {{ button.label }}
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
 
-          <!-- Metadata wrapper below each notification -->
-          <div class="notification-metadata">
-            <span class="notification-time">{{ formatTimestamp(notification.timestamp) }}</span>
-            <span class="notification-type">{{ notification.type }}</span>
+            <div class="notification-metadata">
+              <span class="notification-time">{{ formatTimestamp(notification.timestamp) }}</span>
+              <span class="notification-type">{{ notification.type }}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -56,61 +81,84 @@
 import { state } from "@/store";
 import { fromNow } from "@/utils/moment";
 import { notify } from "@/notify";
+import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
+import {
+  formatNotificationCount,
+  getNotificationPermission,
+  isAppNotificationsEnabled,
+  isNotificationSupported,
+  requestNotificationPermission,
+  setAppNotificationsEnabled,
+} from "@/utils/appNotifications";
+import { restoreNotificationButtonAction } from "@/utils/notificationActions";
 
 export default {
   name: "Notifications",
+  components: {
+    ToggleSwitch,
+  },
+  data() {
+    return {
+      appNotificationsEnabled: isAppNotificationsEnabled(),
+      notificationPermission: getNotificationPermission(),
+    };
+  },
   computed: {
     sortedNotifications() {
-      // Return notifications sorted by timestamp (newest first)
-      const history = [...state.notificationHistory];
-
-      // Try to restore button actions from active notifications if they still exist
-      // This works for notifications that are still in memory (same session)
       const activeNotifications = notify.getNotifications();
-      history.forEach(historyEntry => {
-        if (historyEntry.buttons) {
-          // Try to find matching active notification
-          const activeNotification = activeNotifications.find(n => n.id === historyEntry.id);
-          if (activeNotification && activeNotification.buttons) {
-            // Restore actions from active notification
-            historyEntry.buttons.forEach((historyButton, index) => {
-              const activeButton = activeNotification.buttons[index];
-              if (activeButton && typeof activeButton.action === 'function') {
-                historyButton._action = activeButton.action;
-              }
-            });
-          }
-        }
-      });
-
-      return history.sort((a, b) => b.timestamp - a.timestamp);
+      return [...state.notificationHistory]
+        .map((entry) => ({
+          ...entry,
+          buttons: notify.resolveHistoryNotificationButtons(
+            entry.buttons,
+            activeNotifications.find((n) => n.id === entry.id)?.buttons
+          ),
+        }))
+        .sort((a, b) => b.timestamp - a.timestamp);
+    },
+    notificationsSupported() {
+      return isNotificationSupported();
     },
   },
+  mounted() {
+    this.appNotificationsEnabled = isAppNotificationsEnabled();
+    this.notificationPermission = getNotificationPermission();
+  },
   methods: {
+    formatNotificationCount,
     formatTimestamp(timestamp) {
       return fromNow(timestamp, state.user.locale);
     },
     handleButtonClick(button) {
-      // Try to use the action function if available
-      // _action is stored in memory for current session
-      // action is the original property name
-      const action = button._action || button.action;
+      const action = button._action || restoreNotificationButtonAction(button);
       if (typeof action === "function") {
         action();
-      } else if (button.actionType && button.actionData) {
-        // Try to recreate action based on stored metadata
-        // This is a fallback for actions that need to be recreated
-        console.warn('Button action cannot be restored from history. Action type:', button.actionType);
       }
     },
     clearHistory() {
       state.notificationHistory = [];
-      // Also clear from sessionStorage
       try {
-        sessionStorage.removeItem('notificationHistory');
+        sessionStorage.removeItem("notificationHistory");
       } catch (error) {
-        console.error('Failed to clear notification history:', error);
+        console.error("Failed to clear notification history:", error);
       }
+    },
+    async requestPermission() {
+      this.notificationPermission = await requestNotificationPermission();
+      if (this.notificationPermission === "granted") {
+        notify.showSuccessToast(this.$t("notifications.permissionGranted"));
+      } else if (this.notificationPermission === "denied") {
+        notify.showError(this.$t("notifications.permissionDeniedHelp"));
+      }
+    },
+    async onAppNotificationsChange() {
+      if (this.appNotificationsEnabled && this.notificationPermission !== "granted") {
+        await this.requestPermission();
+        if (this.notificationPermission !== "granted") {
+          this.appNotificationsEnabled = false;
+        }
+      }
+      setAppNotificationsEnabled(this.appNotificationsEnabled);
     },
   },
 };
@@ -123,27 +171,35 @@ export default {
   padding: 2em;
 }
 
-.notifications-header {
+.card-title h2 {
+  font-size: 1.5em;
+  font-weight: 500;
+  margin: 0;
+}
+
+.app-notifications-settings {
   margin-bottom: 1.5em;
 }
 
-.header-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1em;
+.settings-hint {
+  margin: 0;
+  padding: 0 1em 0.5em;
+  opacity: 0.85;
+  font-size: 0.95em;
+  color: var(--textSecondary);
 }
 
-.notifications-header h1 {
-  font-size: 2em;
-  font-weight: 500;
-  color: var(--textPrimary);
-  margin: 0 0 0.5em 0;
+.item {
+  padding: 1em;
+}
+
+.notifications-history {
+  margin-top: 0.5em;
 }
 
 .notifications-description {
   color: var(--textSecondary);
-  margin: 0;
+  margin: 0 0 1em 0;
 }
 
 .header-actions {
@@ -152,6 +208,7 @@ export default {
   align-items: flex-end;
   gap: 0.5em;
   flex-shrink: 0;
+  margin-bottom: 1em;
 }
 
 .empty-state {
@@ -170,11 +227,10 @@ export default {
   font-size: 1.1em;
 }
 
-/* Scrollable container for notifications */
 .notifications-scroll-container {
   flex: 1;
   overflow-y: auto;
-  max-height: calc(100vh - 12em);
+  max-height: calc(100vh - 20em);
   padding-right: 0.5em;
 }
 
@@ -184,7 +240,6 @@ export default {
   gap: 1em;
 }
 
-/* Wrapper for each notification with its metadata */
 .notification-wrapper {
   display: flex;
   flex-direction: column;
@@ -192,7 +247,6 @@ export default {
   width: 100%;
 }
 
-/* Reuse exact styles from popup notification component */
 .notification-item {
   border-radius: 1em;
   color: #fff;
@@ -240,7 +294,6 @@ export default {
   margin-top: 0.25em;
 }
 
-/* Override button colors for notifications - buttons should be white on colored backgrounds */
 .notification-buttons .button {
   color: white !important;
   border-color: rgba(255, 255, 255, 0.3);
@@ -263,7 +316,6 @@ export default {
   background: var(--primaryColor);
 }
 
-/* Metadata wrapper below notification */
 .notification-metadata {
   display: flex;
   gap: 1em;
@@ -275,7 +327,8 @@ export default {
   cursor: text;
 }
 
-.notification-time {
+.notification-time,
+.notification-type {
   color: var(--textSecondary);
   user-select: text;
   cursor: text;
@@ -284,9 +337,6 @@ export default {
 .notification-type {
   text-transform: uppercase;
   font-weight: 500;
-  color: var(--textSecondary);
-  user-select: text;
-  cursor: text;
 }
 
 .clear-button {
@@ -300,24 +350,13 @@ export default {
   font-size: 0.875em;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .notifications-view {
     padding: 1em;
   }
 
-  .header-top {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
   .header-actions {
     align-items: stretch;
-    margin-top: 1em;
-  }
-
-  .notifications-header h1 {
-    font-size: 1.5em;
   }
 
   .notification-item {

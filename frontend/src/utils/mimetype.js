@@ -20,6 +20,39 @@ export function isRawImageMimeType(mimeType) {
   return typeof mimeType === "string" && RAW_IMAGE_MIME_TYPES.has(mimeType);
 }
 
+// Extensions browsers render natively in <img> (no server-side conversion).
+const IMAGE_FILE_EXTENSIONS = new Set([
+  ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".bmp", ".ico", ".avif",
+  ".heic", ".heif",
+]);
+
+export function isImageFilePath(path) {
+  if (typeof path !== "string" || path === "") {
+    return false;
+  }
+  const withoutSuffix = path.split("?")[0].split("#")[0];
+  const dot = withoutSuffix.lastIndexOf(".");
+  if (dot === -1) {
+    return false;
+  }
+  return IMAGE_FILE_EXTENSIONS.has(withoutSuffix.slice(dot).toLowerCase());
+}
+
+const RICH_TEXT_PREVIEW_MIME_TYPES = new Set([
+  "text/markdown",
+  "text/x-markdown",
+  "text/html",
+  "application/xhtml+xml",
+]);
+
+export function isRichTextPreviewMimeType(mimeType) {
+  return typeof mimeType === "string" && RICH_TEXT_PREVIEW_MIME_TYPES.has(mimeType);
+}
+
+export function isHtmlMimeType(mimeType) {
+  return mimeType === "text/html" || mimeType === "application/xhtml+xml";
+}
+
 export function getTypeInfo(mimeType) {
     if (!mimeType) {
         return {
@@ -76,7 +109,7 @@ export function getTypeInfo(mimeType) {
         };
     }
 
-    if (mimeType == "file_download") {
+    if (mimeType === "file_download") {
         return {
             classes: "material-symbols",
             materialSymbol: "file_download",

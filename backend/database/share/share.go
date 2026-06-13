@@ -76,6 +76,7 @@ type Share struct {
 	UserDownloads map[string]int `json:"userDownloads,omitempty"`
 	Version       int            `json:"version,omitempty"`
 	SourcePath    string         `json:"sourcePath,omitempty"`
+	PinnedItems   PinnedItems    `json:"pinnedItems,omitempty"`
 }
 
 // LegacyShare embeds Share for Bolt/Storm. LegacyRoutingSource is the historical Bolt/JSON "source" field

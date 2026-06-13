@@ -1,7 +1,7 @@
 <template>
   <select @change="change" :value="locale">
     <option v-for="(value, label) in locales" :key="label" :value="label">
-      {{ $t("languages." + label) }}
+      {{ $t(`languages.${label}`) }}
     </option>
   </select>
 </template>
@@ -31,6 +31,3 @@ export default defineComponent({
   },
 });
 </script>
-<style>
-
-</style>

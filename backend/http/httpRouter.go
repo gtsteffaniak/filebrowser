@@ -94,28 +94,29 @@ func StartHttp(ctx context.Context, shutdownComplete chan struct{}) {
 	api.HandleFunc("POST /users", withSelfOrAdmin(usersPostHandler))
 	api.HandleFunc("PUT /users", withUser(userPutHandler))
 	api.HandleFunc("DELETE /users", withSelfOrAdmin(userDeleteHandler))
+	api.HandleFunc("PATCH /users/pinnedItems", withUser(userPatchPinnedItemsHandler))
 	publicApi.HandleFunc("GET /users", withUser(userGetHandler))
 
 	// ========================================
 	// Auth Routes - /api/auth/
 	// ========================================
-	api.HandleFunc("POST /auth/login", loginHelper(loginHandler))
-	api.HandleFunc("POST /auth/logout", withOrWithoutUser(logoutHandler))
-	api.HandleFunc("POST /auth/signup", withoutUser(signupHandler))
-	api.HandleFunc("POST /auth/otp/generate", withOrWithoutUser(generateOTPHandler))
-	api.HandleFunc("POST /auth/otp/verify", withOrWithoutUser(verifyOTPHandler))
-	api.HandleFunc("POST /auth/renew", withUser(renewHandler))
-	api.HandleFunc("POST /auth/token", withUser(createApiTokenHandler))
-	api.HandleFunc("DELETE /auth/token", withUser(deleteApiTokenHandler))
-	api.HandleFunc("GET /auth/token/list", withUser(listApiTokensHandler))
-	api.HandleFunc("GET /auth/token", withUser(getApiTokenHandler))
-	api.HandleFunc("GET /auth/oidc/callback", wrapHandler(oidcCallbackHandler))
-	api.HandleFunc("GET /auth/oidc/login", wrapHandler(oidcLoginHandler))
-	api.HandleFunc("POST /auth/webauthn/begin-login", withoutUser(beginPasskeyLoginHandler))
-	api.HandleFunc("POST /auth/webauthn/finish-login", withoutUser(finishPasskeyLoginHandler))
-	api.HandleFunc("POST /auth/webauthn/begin-register", withUser(beginPasskeyRegistrationHandler))
-	api.HandleFunc("POST /auth/webauthn/finish-register", withUser(finishPasskeyRegistrationHandler))
-	api.HandleFunc("DELETE /auth/webauthn/{id}", withUser(deletePasskeyCredentialHandler))
+	api.HandleFunc("POST /auth/login", withRateLimit(AuthRateLimitCredentialLockout, loginHelper(loginHandler)))
+	api.HandleFunc("POST /auth/logout", withOrWithoutUser(withRateLimitChain(AuthRateLimitModerate, logoutHandler)))
+	api.HandleFunc("POST /auth/signup", withoutUser(withRateLimitChain(AuthRateLimitModerate, signupHandler)))
+	api.HandleFunc("POST /auth/otp/generate", withOrWithoutUser(withRateLimitChain(AuthRateLimitModerate, generateOTPHandler)))
+	api.HandleFunc("POST /auth/otp/verify", withOrWithoutUser(withRateLimitChain(AuthRateLimitCredentialLockout, verifyOTPHandler)))
+	api.HandleFunc("POST /auth/renew", withUser(withRateLimitChain(AuthRateLimitAuthenticated, renewHandler)))
+	api.HandleFunc("POST /auth/token", withUser(withRateLimitChain(AuthRateLimitAuthenticated, createApiTokenHandler)))
+	api.HandleFunc("DELETE /auth/token", withUser(withRateLimitChain(AuthRateLimitAuthenticated, deleteApiTokenHandler)))
+	api.HandleFunc("GET /auth/token/list", withUser(withRateLimitChain(AuthRateLimitAuthenticated, listApiTokensHandler)))
+	api.HandleFunc("GET /auth/token", withUser(withRateLimitChain(AuthRateLimitAuthenticated, getApiTokenHandler)))
+	api.HandleFunc("GET /auth/oidc/callback", withRateLimit(AuthRateLimitOIDC, oidcCallbackHandler))
+	api.HandleFunc("GET /auth/oidc/login", withRateLimit(AuthRateLimitOIDC, oidcLoginHandler))
+	api.HandleFunc("POST /auth/webauthn/begin-login", withoutUser(withRateLimitChain(AuthRateLimitCredential, beginPasskeyLoginHandler)))
+	api.HandleFunc("POST /auth/webauthn/finish-login", withoutUser(withRateLimitChain(AuthRateLimitCredential, finishPasskeyLoginHandler)))
+	api.HandleFunc("POST /auth/webauthn/begin-register", withUser(withRateLimitChain(AuthRateLimitAuthenticated, beginPasskeyRegistrationHandler)))
+	api.HandleFunc("POST /auth/webauthn/finish-register", withUser(withRateLimitChain(AuthRateLimitAuthenticated, finishPasskeyRegistrationHandler)))
+	api.HandleFunc("DELETE /auth/webauthn/{id}", withUser(withRateLimitChain(AuthRateLimitAuthenticated, deletePasskeyCredentialHandler)))
 
 	// ========================================
 	// Resources Routes - /api/resources/ (with public routes)
@@ -168,6 +169,7 @@ func StartHttp(ctx context.Context, shutdownComplete chan struct{}) {
 	api.HandleFunc("DELETE /share", withPermShare(shareDeleteHandler))
 	publicApi.HandleFunc("GET /share/info", withOrWithoutUser(shareInfoHandler))
 	publicApi.HandleFunc("GET /share/image", withHashFile(getShareImage))
+	publicApi.HandleFunc("PATCH /share/pinnedItems", withPermShare(sharePatchPinnedItemsHandler))
 
 	// ========================================
 	// Settings Routes - /api/settings/

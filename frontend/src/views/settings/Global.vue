@@ -22,13 +22,11 @@ export default {
   components: {
     Errors,
   },
-  data: function () {
-    return {
-      error: null,
-      originalSettings: null,
-      selectedSettings: state.settings,
-    };
-  },
+  data: () => ({
+    error: null,
+    originalSettings: null,
+    selectedSettings: state.settings,
+  }),
   computed: {
     loading() {
       return getters.isLoading();
@@ -49,11 +47,11 @@ export default {
     },
     capitalize(name, where = "_") {
       if (where === "caps") where = /(?=[A-Z])/;
-      let splitted = name.split(where);
+      const splitted = name.split(where);
       name = "";
 
-      for (let i = 0; i < splitted.length; i++) {
-        name += splitted[i].charAt(0).toUpperCase() + splitted[i].slice(1) + " ";
+      for (const part of splitted) {
+        name += `${part.charAt(0).toUpperCase() + part.slice(1)} `;
       }
 
       return name.slice(0, -1);

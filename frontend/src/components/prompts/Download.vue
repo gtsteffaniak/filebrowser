@@ -3,6 +3,7 @@
     <p>{{ $t("prompts.downloadMessage") }}</p>
 
     <button
+      type="button"
       v-for="(ext, format) in formats"
       :key="format"
       class="button button--block"
@@ -13,7 +14,7 @@
       {{ ext }}
     </button>
   </div>
-  <div v-if="!hasDownloads && (!currentPrompt || !currentPrompt.confirm)" class="card-content lonely-message">
+  <div v-if="!hasDownloads && (!currentPrompt?.confirm)" class="card-content lonely-message">
     <span>{{ $t("files.lonely") }}</span>
   </div>
   <div v-if="hasDownloads" class="card-content">
@@ -43,12 +44,21 @@
             </progress-bar>
           </div>
           <div class="file-actions">
-            <button v-if="download.status === 'error'" @click="retryDownload(download.id)" class="action"
-              :aria-label="$t('general.retry')" :title="$t('general.retry')">
+            <button
+              type="button"
+              v-if="download.status === 'error'"
+              @click="retryDownload(download.id)"
+              class="action"
+              :aria-label="$t('general.retry')" :title="$t('general.retry')"
+            >
               <i class="material-symbols">replay</i>
             </button>
-            <button @click="cancelDownload(download.id)" class="action" :aria-label="$t('general.cancel')"
-              :title="$t('general.cancel')">
+            <button
+              type="button"
+              @click="cancelDownload(download.id)"
+              class="action" :aria-label="$t('general.cancel')"
+              :title="$t('general.cancel')"
+            >
               <i class="material-symbols">close</i>
             </button>
           </div>
@@ -61,8 +71,14 @@
   </div>
   <div class="card-actions">
     <div v-if="hasDownloads" class="spacer"></div>
-    <button v-if="hasDownloads && hasClearable" @click="clearCompleted" class="button button--flat" :disabled="!hasClearable"
-      :aria-label="$t('buttons.clearCompleted')" :title="$t('buttons.clearCompleted')">
+    <button
+      type="button"
+      v-if="hasDownloads && hasClearable"
+      @click="clearCompleted"
+      class="button button--flat"
+      :disabled="!hasClearable"
+      :aria-label="$t('buttons.clearCompleted')" :title="$t('buttons.clearCompleted')"
+    >
       {{ $t("buttons.clearCompleted") }}
     </button>
   </div>
@@ -79,14 +95,12 @@ export default {
   components: {
     ProgressBar,
   },
-  data: function () {
-    return {
-      formats: {
-        zip: "zip",
-        targz: "tar.gz",
-      },
-    };
-  },
+  data: () => ({
+    formats: {
+      zip: "zip",
+      targz: "tar.gz",
+    },
+  }),
   computed: {
     currentPrompt() {
       return getters.currentPrompt();
@@ -118,7 +132,7 @@ export default {
       return this.$t("prompts.downloadFailed", { message: detail });
     },
     handleFormatSelect(format) {
-      if (this.currentPrompt && this.currentPrompt.confirm) {
+      if (this.currentPrompt?.confirm) {
         this.currentPrompt.confirm(format);
       }
     },
@@ -135,7 +149,7 @@ export default {
         downloadManager.remove(id);
         try {
           if (
-            download.archiveFormat != null &&
+            download.archiveFormat !== null &&
             Array.isArray(download.archiveFiles) &&
             download.archiveFiles.length > 0
           ) {
@@ -159,9 +173,9 @@ export default {
     },
     close() {
       // Only close if no active downloads
-      if (!downloadManager || !downloadManager.hasActive()) {
+      if (!downloadManager?.hasActive()) {
         const prompt = getters.currentPrompt();
-        if (prompt && prompt.name === 'download') {
+        if (prompt?.name === 'download') {
           mutations.closeTopPrompt();
         } else {
           prompt?.cancel?.();

@@ -7,18 +7,28 @@
       <qrcode-vue class="qrcode" :value="url" :size="200" level="M"></qrcode-vue>
     </div>
     <p>{{ $t("otp.verifyInstructions") }}</p>
-    <input :class="{'form-invalid': error != '' && code != ''}" v-focus class="input" type="text" v-model="code"
+    <input :class="{'form-invalid': error !== '' && code !== ''}" v-focus class="input" type="text" v-model="code"
       @keydown.enter.prevent="verifyCode"
       :placeholder="$t('otp.codeInputPlaceholder')" />
   </div>
 
   <div class="card-actions">
-    <button v-if="!succeeded && code != ''" type="button" class="button button--flat button--blue" @click="verifyCode"
-      :title="$t('general.verify')">
+    <button 
+      v-if="!succeeded && code !== ''"
+      type="button"
+      class="button button--flat button--blue"
+      @click="verifyCode"
+      :title="$t('general.verify')"
+    >
       {{ $t("general.verify") }}
     </button>
-    <button v-if="!succeeded && passkeyAvailable" type="button" class="button button--flat" @click="usePasskey"
-      :title="$t('login.passkeyLogin')">
+    <button
+      v-if="!succeeded && passkeyAvailable"
+      type="button"
+      class="button button--flat"
+      @click="usePasskey"
+      :title="$t('login.passkeyLogin')"
+    >
       <i class="material-symbols-outlined">passkey</i> {{ $t("login.passkeyLogin") }}
     </button>
   </div>
@@ -115,7 +125,7 @@ export default {
       this.verifyInFlight = true;
       try {
         await authApi.verifyOTP(this.username, this.password, this.code);
-        if (this.redirect != "") {
+        if (this.redirect !== "") {
           await authApi.login(this.username, this.password, this.redirect, this.code);
           await initAuth();
           // Wait for navigation so Layout mounts and registers the toast callback before we toast
@@ -141,7 +151,7 @@ export default {
       this.verifyInFlight = true;
       try {
         await authApi.beginPasskeyLogin(this.username, this.password);
-        if (this.redirect != "") {
+        if (this.redirect !== "") {
           await initAuth();
           await this.$router.push(this.redirect);
         }

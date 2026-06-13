@@ -4,7 +4,11 @@
     <div v-if="!pathExists && isEditMode && !isEditingPath" class="warning-banner">
       <i class="material-symbols">warning</i>
       <span>{{ $t("messages.pathNotFoundMessage") }}</span>
-      <button class="button button--flat button--blue" @click="startPathReassignment">
+      <button
+        type="button"
+        class="button button--flat button--blue"
+        @click="startPathReassignment"
+      >
         {{ $t("messages.reassignPath") }}
       </button>
     </div>
@@ -12,12 +16,22 @@
     <div v-if="isEditingPath">
       <file-list @update:selected="updateTempPath" :browse-source="displaySource"></file-list>
       <div class="card-actions">
-        <button class="button button--flat" @click="cancelPathChange" :aria-label="$t('general.cancel')"
-          :title="$t('general.cancel')">
+        <button
+          type="button"
+          class="button button--flat"
+          @click="cancelPathChange"
+          :aria-label="$t('general.cancel')"
+          :title="$t('general.cancel')"
+        >
           {{ $t("general.cancel") }}
         </button>
-        <button class="button button--flat button--blue" @click="confirmPathChange" :aria-label="$t('general.ok')"
-          :title="$t('general.ok')">
+        <button
+          type="button"
+          class="button button--flat button--blue"
+          @click="confirmPathChange"
+          :aria-label="$t('general.ok')"
+          :title="$t('general.ok')"
+        >
           {{ $t("general.ok") }}
         </button>
       </div>
@@ -32,6 +46,7 @@
         </a>
       </div>
       <p> {{ $t('share.notice') }} </p>
+      <p v-if="sourceReadOnly" class="read-only-notice">{{ $t('share.readOnlySourceNotice') }}</p>
 
       <div v-if="listing">
         <settings-table
@@ -46,21 +61,30 @@
             <template v-else>{{ $t("general.permanent") }}</template>
           </template>
           <template #cell-editShare="{ row }">
-            <button class="action" @click="editLink(row)" :aria-label="$t('general.edit')"
+            <button
+              type="button"
+              class="action"
+              @click="editLink(row)"
+              :aria-label="$t('general.edit')"
               :title="$t('general.edit')"
             >
               <i class="material-symbols">edit</i>
             </button>
           </template>
           <template #cell-copyShare="{ row }">
-            <button class="action" @click.stop="copyToClipboard(row.shareURL)"
-              :aria-label="$t('buttons.copyToClipboard')" :title="$t('buttons.copyToClipboard')"
+            <button
+              type="button"
+              class="action"
+              @click.stop="copyToClipboard(row.shareURL)"
+              :aria-label="$t('buttons.copyToClipboard')"
+              :title="$t('buttons.copyToClipboard')"
             >
               <i class="material-symbols">content_paste</i>
             </button>
           </template>
           <template #cell-downloadShare="{ row }">
             <button
+              type="button"
               :disabled="row.shareType === 'upload'"
               class="action"
               v-if="row.downloadURL"
@@ -72,7 +96,11 @@
             </button>
           </template>
           <template #cell-deleteShare="{ row }">
-            <button class="action" @click="deleteLink($event, row)" :aria-label="$t('general.delete')"
+            <button
+              type="button"
+              class="action"
+              @click="deleteLink($event, row)"
+              :aria-label="$t('general.delete')"
               :title="$t('general.delete')"
             >
               <i class="material-symbols">delete</i>
@@ -106,7 +134,11 @@
             </i>
           </p>
           <div v-if="hasExistingPassword && !isChangingPassword" class="password-change-section">
-            <button class="button button--flat button--blue" @click="isChangingPassword = true" style="width: 100%;">
+            <button
+              type="button"
+              class="button button--flat button--blue"
+              @click="isChangingPassword = true" style="width: 100%;"
+            >
               <i class="material-symbols">lock_reset</i>
               {{ $t("general.change") }}
             </button>
@@ -121,22 +153,26 @@
           </p>
           <select class="input" v-model="shareType">
             <option value="normal">{{ $t("share.normalShare") }}</option>
-            <option value="upload">{{ $t("share.uploadShare") }}</option>
+            <option value="upload" :disabled="sourceReadOnly">{{ $t("share.uploadShare") }}</option>
           </select>
-          <button @click="openSidebarLinksCustomization" class="button button--flat customize-sidebar-links-button">
+          <button
+            type="button"
+            @click="openSidebarLinksCustomization"
+            class="button button--flat customize-sidebar-links-button"
+          >
             <i class="material-symbols">link</i>
             {{ $t('share.customizeSidebarLinksButton') }}
           </button>
           <div class="settings-items" style="margin-top: 0.5em;">
             <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowModify"
               :name="$t('share.allowModify')" :description="$t('share.allowModifyDescription')"
-              aria-label="allow editing files toggle" />
+              aria-label="allow editing files toggle" :disabled="sourceReadOnly" />
             <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowCreate"
               :name="$t('share.allowCreate')" :description="$t('share.allowCreateDescription')"
-              aria-label="allow creating and uploading files and folders toggle" />
+              aria-label="allow creating and uploading files and folders toggle" :disabled="sourceReadOnly" />
             <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowDelete"
               :name="$t('share.allowDelete')" :description="$t('share.allowDeleteDescription')"
-              aria-label="allow deleting files toggle" />
+              aria-label="allow deleting files toggle" :disabled="sourceReadOnly" />
           </div>
         </div>
         <SettingsItem :title="showMoreExpanded ? $t('buttons.showLess') : $t('buttons.showMore')" :collapsable="true"
@@ -173,7 +209,8 @@
               </select>
             </div>
             <ToggleSwitch v-if="createAllowed" class="item" v-model="allowReplacements"
-              :name="$t('share.allowReplacements')" :description="$t('share.allowReplacementsDescription')" />
+              :name="$t('share.allowReplacements')" :description="$t('share.allowReplacementsDescription')"
+              :disabled="sourceReadOnly" />
             <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableDownload"
               :name="$t('share.disableDownload')" :description="$t('share.disableDownloadDescription')"
               aria-label="disable downloading files toggle" />
@@ -192,7 +229,8 @@
                 :placeholder="$t('share.allowedUsernamesPlaceholder')" />
             </div>
             <ToggleSwitch v-if="shareType === 'normal' && onlyOfficeAvailable" class="item" v-model="enableOnlyOffice"
-              :name="$t('share.enableOnlyOffice')" :description="$t('share.enableOnlyOfficeDescription')" />
+              :name="$t('share.enableOnlyOffice')" :description="$t('share.enableOnlyOfficeDescription')"
+              :disabled="sourceReadOnly" />
             <p>
               {{ $t("share.enforceDarkLightMode") }}
               <i class="material-symbols-outlined tooltip-info-icon"
@@ -323,12 +361,24 @@
   </div>
 
   <div v-if="!isEditingPath" class="card-actions">
-    <button v-if="listing" class="button button--flat button--blue" @click="() => switchListing()"
-      :aria-label="$t('general.new')" :title="$t('general.new')">
+    <button
+      type="button"
+      v-if="listing"
+      class="button button--flat button--blue"
+      @click="() => switchListing()"
+      :aria-label="$t('general.new')"
+      :title="$t('general.new')"
+    >
       {{ $t("general.new") }}
     </button>
-    <button v-if="!listing" class="button button--flat button--blue" @click="submit" aria-label="Share-Confirm"
-      :title="$t('general.share')">
+    <button
+      type="button"
+      v-if="!listing"
+      class="button button--flat button--blue"
+      @click="submit"
+      aria-label="Share-Confirm"
+      :title="$t('general.share')"
+    >
       {{ $t("general.share") }}
     </button>
   </div>
@@ -448,9 +498,12 @@ export default {
       return this.isEditMode ? this.link.path : this.item.path;
     },
     displaySource() {
-      const fromLink = this.link.sourceName ?? this.link.source;
-      const fromItem = this.item.source;
-      return this.isEditMode ? fromLink : fromItem;
+      // When editing, use the link's source; otherwise use the item's source
+      return this.isEditMode ? this.link.source : this.item.source;
+    },
+    sourceReadOnly() {
+      const info = state.sources.info?.[this.displaySource];
+      return info?.readOnly === true;
     },
     onlyOfficeAvailable() {
       return globalVars.onlyOfficeUrl !== "";
@@ -515,7 +568,7 @@ export default {
     hasExistingPassword() {
       // Check if we're editing a link and it has a password
       const currentLink = this.isEditMode ? this.link : this.editingLink;
-      return currentLink && currentLink.hasPassword;
+      return currentLink?.hasPassword;
     },
   },
   watch: {
@@ -526,11 +579,23 @@ export default {
       }
     },
     shareType(newType) {
+      if (this.sourceReadOnly && newType === 'upload') {
+        this.shareType = 'normal';
+        return;
+      }
       if (newType === 'upload') {
         this.description = this.$t("share.descriptionUploadDefault");
       } else {
         this.description = this.$t("share.descriptionDefault");
       }
+    },
+    sourceReadOnly: {
+      immediate: true,
+      handler(readOnly) {
+        if (readOnly) {
+          this.applyReadOnlyConstraints();
+        }
+      },
     },
     isEditMode: {
       immediate: true,
@@ -540,7 +605,7 @@ export default {
           // Check if path exists
           this.pathExists = this.link.pathExists !== false;
           this.time = this.link.expire
-            ? String(Math.round((new Date(this.link.expire * 1000).getTime() - new Date().getTime()) / 3600000))
+            ? String(Math.round((new Date(this.link.expire * 1000).getTime() - Date.now()) / 3600000))
             : "0";
           this.unit = "hours";
           this.password = "";
@@ -579,6 +644,9 @@ export default {
           this.disableLoginOption = this.link.disableLoginOption || false;
           this.sidebarLinks = Array.isArray(this.link.sidebarLinks) ? [...this.link.sidebarLinks] : [];
           //this.viewMode = this.link.viewMode || "normal";
+          if (this.sourceReadOnly) {
+            this.applyReadOnlyConstraints();
+          }
         }
       },
     },
@@ -621,6 +689,16 @@ export default {
     eventBus.off('pathPickerCancelled', this.onBannerFaviconPathPickerCancelled);
   },
   methods: {
+    applyReadOnlyConstraints() {
+      if (this.shareType === 'upload') {
+        this.shareType = 'normal';
+      }
+      this.allowModify = false;
+      this.allowDelete = false;
+      this.allowCreate = false;
+      this.allowReplacements = false;
+      this.enableOnlyOffice = false;
+    },
     async copyToClipboard(text) {
       await copyToClipboard(text);
     },
@@ -654,10 +732,10 @@ export default {
         if (!this.title) {
           this.title = this.$t("share.titleDefault", { title: this.item.name || "share" });
         }
-        let isPermanent = !this.time || this.time === "0";
+        const isPermanent = !this.time || this.time === "0";
         const payload = {
           path: this.displayPath,
-          sourceName: this.displaySource,
+          source: this.displaySource,
           expires: isPermanent ? "" : this.time.toString(),
           unit: this.unit,
           disableAnonymous: this.disableAnonymous,
@@ -666,8 +744,8 @@ export default {
           allowDelete: this.allowDelete,
           allowCreate: this.allowCreate,
           allowReplacements: this.allowReplacements,
-          maxBandwidth: this.maxBandwidth ? parseInt(this.maxBandwidth) : 0,
-          downloadsLimit: this.downloadsLimit ? parseInt(this.downloadsLimit) : 0,
+          maxBandwidth: this.maxBandwidth ? parseInt(this.maxBandwidth, 10) : 0,
+          downloadsLimit: this.downloadsLimit ? parseInt(this.downloadsLimit, 10) : 0,
           perUserDownloadLimit: this.perUserDownloadLimit,
           shareTheme: this.shareTheme,
           disableFileViewer: this.disableFileViewer,
@@ -709,6 +787,15 @@ export default {
           payload.hash = this.editingLink.hash;
         }
 
+        if (this.sourceReadOnly) {
+          payload.shareType = 'normal';
+          payload.allowModify = false;
+          payload.allowDelete = false;
+          payload.allowCreate = false;
+          payload.allowReplacements = false;
+          payload.enableOnlyOffice = false;
+        }
+
         const res = await shareApi.create(payload);
 
         if (!this.isEditMode && !this.editingLink) {
@@ -748,7 +835,7 @@ export default {
     editLink(link) {
       this.listing = false;
       this.time = link.expire
-        ? String(Math.round((new Date(link.expire * 1000).getTime() - new Date().getTime()) / 3600000))
+        ? String(Math.round((new Date(link.expire * 1000).getTime() - Date.now()) / 3600000))
         : "0";
       this.unit = "hours";
       this.password = "";
@@ -788,6 +875,9 @@ export default {
       this.sidebarLinks = Array.isArray(link.sidebarLinks) ? [...link.sidebarLinks] : [];
       // Store the link being edited
       this.editingLink = link;
+      if (this.sourceReadOnly) {
+        this.applyReadOnlyConstraints();
+      }
     },
     /**
      * @param {Event} event
@@ -871,7 +961,7 @@ export default {
      * @param {{path: string, source: string}} pathOrData
      */
     updateTempPath(pathOrData) {
-      if (pathOrData && pathOrData.path) {
+      if (pathOrData?.path) {
         this.tempPath = pathOrData.path;
         this.tempSource = pathOrData.source;
       }
@@ -906,7 +996,7 @@ export default {
     },
     handleSidebarLinksUpdate(data) {
       // Update local sidebarLinks when the SidebarLinks prompt saves
-      if (data && data.sidebarLinks) {
+      if (data?.sidebarLinks) {
         this.sidebarLinks = [...data.sidebarLinks];
       }
     },
@@ -1075,5 +1165,15 @@ export default {
 .file-picker-button .material-symbols {
   color: var(--primaryColor);
   font-size: 1.25em;
+}
+
+.read-only-notice {
+  font-size: 0.9em;
+  color: var(--textSecondary, #666);
+  margin-top: 0.25em;
+}
+
+select.input option:disabled {
+  color: #999;
 }
 </style>

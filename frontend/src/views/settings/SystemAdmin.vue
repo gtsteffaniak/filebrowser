@@ -22,10 +22,12 @@
         </div>
         <div>
           <button
+           type="button"
            @click="fetchConfig" class="button"
            :disabled="configLoading"
            aria-label="loadConfig"
-            style="margin-bottom: 1em;">
+            style="margin-bottom: 1em;"
+          >
             {{ configLoading ? $t('general.loading', { suffix: "..." }) : $t('settings.configViewerLoadConfig') }}
           </button>
         </div>
@@ -100,7 +102,7 @@ export default {
       } catch (e) {
         console.error(e);
         const errorMessage = (e && typeof e === 'object' && 'message' in e) ? String(e.message) : 'Unknown error';
-        this.configContent = 'Error loading config: ' + errorMessage;
+        this.configContent = `Error loading config: ${errorMessage}`;
       } finally {
         this.configLoading = false;
       }
@@ -126,7 +128,6 @@ export default {
   /* Make the container resizable */
   resize: vertical;
   width: 100%;
-  resize: vertical;
   overflow: hidden;
   border: 1px solid #ccc;
   border-radius: 4px;

@@ -1,6 +1,6 @@
-import { test, expect } from "../test-setup";
+import { expect, test } from "../test-setup";
 
-test("no config shows files", async ({ page, checkForErrors, context }) => {
+test("no config shows files", async ({ page, checkForErrors }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("FileBrowser Quantum - Files - backend");
   // expect some items

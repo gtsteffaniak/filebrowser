@@ -10,6 +10,28 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 )
 
+type shareSettingsPayload struct {
+	share.FrontendShareInfo
+	PinnedItems share.PinnedItems `json:"pinnedItems,omitempty"`
+}
+
+func marshalShareSettings(link *share.Share) ([]byte, error) {
+	return json.Marshal(shareSettingsPayload{
+		FrontendShareInfo: link.FrontendShareInfo,
+		PinnedItems:       link.PinnedItems,
+	})
+}
+
+func unmarshalShareSettings(data []byte, link *share.Share) error {
+	var payload shareSettingsPayload
+	if err := json.Unmarshal(data, &payload); err != nil {
+		return err
+	}
+	link.FrontendShareInfo = payload.FrontendShareInfo
+	link.PinnedItems = payload.PinnedItems
+	return nil
+}
+
 func shareUserIDDB(id uint64) string {
 	return strconv.FormatUint(id, 10)
 }
@@ -66,7 +88,7 @@ func (s *SQLStore) GetShareByHash(hash string) (*share.Share, error) {
 			return nil, fmt.Errorf("failed to unmarshal user downloads: %w", err)
 		}
 	}
-	if err := json.Unmarshal(shareSettingsJSON, &link.FrontendShareInfo); err != nil {
+	if err := unmarshalShareSettings(shareSettingsJSON, &link); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal share settings: %w", err)
 	}
 
@@ -162,7 +184,7 @@ func (s *SQLStore) GetPermanentShare(source, path string, userID uint64) (*share
 			return nil, fmt.Errorf("failed to unmarshal user downloads: %w", err)
 		}
 	}
-	if err := json.Unmarshal(shareSettingsJSON, &link.FrontendShareInfo); err != nil {
+	if err := unmarshalShareSettings(shareSettingsJSON, &link); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal share settings: %w", err)
 	}
 
@@ -191,7 +213,7 @@ func (s *SQLStore) SaveShare(link *share.Share) error {
 	if err != nil {
 		return fmt.Errorf("failed to marshal user downloads: %w", err)
 	}
-	shareSettingsJSON, err := json.Marshal(link.FrontendShareInfo)
+	shareSettingsJSON, err := marshalShareSettings(link)
 	if err != nil {
 		return fmt.Errorf("failed to marshal share settings: %w", err)
 	}
@@ -305,7 +327,7 @@ func (s *SQLStore) scanShares(rows *sql.Rows) ([]*share.Share, error) {
 				return nil, fmt.Errorf("failed to unmarshal user downloads: %w", err)
 			}
 		}
-		if err := json.Unmarshal(shareSettingsJSON, &link.FrontendShareInfo); err != nil {
+		if err := unmarshalShareSettings(shareSettingsJSON, &link); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal share settings: %w", err)
 		}
 

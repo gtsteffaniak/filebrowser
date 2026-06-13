@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/utils/constants', () => {
   return {
@@ -40,12 +40,12 @@ vi.mock('@/utils/constants', () => {
   };
 });
 
-import { removePrefix, extractSourceFromPath, getApiPath, getPublicApiPath } from './url.js';
+import { extractSourceFromPath, getApiPath, getPublicApiPath, removePrefix } from './url.js';
 
 describe('testurl', () => {
 
   it('url prefix', () => {
-    let tests = [
+    const tests = [
       {input: "/files/share/hash", trimArg:"/files/",expected: "/share/hash",},
       {input: "/files/files", trimArg: "/files/",expected: "/files",},
       {input: "/files/share/something/", trimArg: "files", expected:"/share/something/"},
@@ -56,7 +56,7 @@ describe('testurl', () => {
       {input: "/my/test/file", trimArg: "my",expected:"/test/file"},
       {input: "/files/my/test/file", trimArg: "files",expected:"/my/test/file"},
     ]
-    for (let test of tests) {
+    for (const test of tests) {
       expect(removePrefix(test.input, test.trimArg)).toEqual(test.expected);
     }
   });
@@ -65,7 +65,7 @@ describe('testurl', () => {
 
 describe('getApiPath default', () => {
   it('url prefix', () => {
-    let tests = [
+    const tests = [
       {input: "resources", expected: "/files/api/resources",},
       {input: "share/hash", expected: "/files/api/share/hash",},
       {input: "tools/search", expected: "/files/api/tools/search",},
@@ -76,7 +76,7 @@ describe('getApiPath default', () => {
       {input: "office/callback", expected: "/files/api/office/callback",},
       {input: "health", expected: "/files/api/health",},
     ]
-    for (let test of tests) {
+    for (const test of tests) {
       expect(getApiPath(test.input)).toEqual(test.expected);
     }
   });
@@ -84,21 +84,21 @@ describe('getApiPath default', () => {
 
 describe('getApiPath default with params', () => {
   it('url prefix', () => {
-    let tests = [
+    const tests = [
       {input: "resources", expected: "/files/api/resources?param=resources%20are%20awesome",},
       {input: "share/hash", expected: "/files/api/share/hash?param=resources%20are%20awesome",},
     ]
-    for (let test of tests) {
+    for (const test of tests) {
       expect(getApiPath(test.input, { param: "resources are awesome" })).toEqual(test.expected);
     }
   });
 });
 describe('getApiPath default without encode', () => {
   it('url prefix', () => {
-    let tests = [
+    const tests = [
       {input: "resources", expected: "/files/api/resources?param=resources are awesome",},
     ]
-    for (let test of tests) {
+    for (const test of tests) {
       expect(getApiPath(test.input, { param: "resources are awesome" }, true)).toEqual(test.expected);
     }
   });
@@ -106,12 +106,12 @@ describe('getApiPath default without encode', () => {
 
 describe('getApiPath public', () => {
   it('url prefix', () => {
-    let tests = [
+    const tests = [
       {input: "resources", expected: "/files/public/api/resources",},
       {input: "office/config", expected: "/files/public/api/office/config",},
       {input: "office/callback", expected: "/files/public/api/office/callback",},
     ]
-    for (let test of tests) {
+    for (const test of tests) {
       expect(getPublicApiPath(test.input)).toEqual(test.expected);
     }
   });

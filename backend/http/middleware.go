@@ -148,6 +148,8 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			ShowHidden:               link.ShowHidden,
 			HideFileExt:              link.HideFileExt,
 			FollowSymlinks:           true,
+			ShowPinnedItems:          true,
+			ShareHash:                hash,
 		}, accessStore, data.shareUser, shareStore)
 		if err != nil {
 			logger.Errorf("error fetching file info for share. hash=%v path=%v error=%v", hash, path, err)
@@ -694,8 +696,8 @@ func withoutUser(fn handleFunc) http.HandlerFunc {
 	return wrapHandler(withoutUserHelper(fn))
 }
 
-func loginHelper(fn handleFunc) http.HandlerFunc {
-	return wrapHandler(LoginHelper(false, fn))
+func loginHelper(fn handleFunc) handleFunc {
+	return LoginHelper(false, fn)
 }
 
 func withSelfOrAdmin(fn handleFunc) http.HandlerFunc {

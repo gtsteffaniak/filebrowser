@@ -2,6 +2,7 @@ package icons
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -205,6 +206,7 @@ func generateSingleIcon(previewService *preview.Service, sourceData []byte, icon
 
 	// Resize image using the preview service's Resize method
 	err = previewService.Resize(
+		context.Background(),
 		bytes.NewReader(sourceData),
 		outFile,
 		preview.ResizeOptions{

@@ -6,7 +6,16 @@
     :aria-busy="loading ? 'true' : undefined"
   >
     <thead>
-      <tr>
+      <tr v-if="headerTitle">
+        <th
+          :colspan="emptyColumnSpan"
+          scope="col"
+          class="settings-table__align-center settings-table__th--nosort settings-table__th--unified"
+        >
+          {{ headerTitle }}
+        </th>
+      </tr>
+      <tr v-else>
         <th
           v-for="column in columns"
           :key="column.key"
@@ -31,11 +40,7 @@
         </td>
       </tr>
       <template v-else>
-        <tr
-          v-for="item in sortedItems"
-          :key="resolvedKey(item)"
-          :data-item-key="resolvedKey(item)"
-        >
+        <tr v-for="item in sortedItems" :key="resolvedKey(item)">
           <td
             v-for="column in columns"
             :key="column.key"
@@ -74,28 +79,33 @@
 
 <script>
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import { getObjectProperty } from "@/utils/object.js";
 
 function defaultCompare(av, bv) {
   if (av === bv) {
     return 0;
   }
-  const aStr = av == null ? "" : String(av).toLocaleLowerCase();
-  const bStr = bv == null ? "" : String(bv).toLocaleLowerCase();
+  const aStr = av === null ? "" : String(av).toLocaleLowerCase();
+  const bStr = bv === null ? "" : String(bv).toLocaleLowerCase();
   return aStr < bStr ? -1 : aStr > bStr ? 1 : 0;
 }
 
 /** @returns {unknown} */
 function cellValueLookup(row, k) {
-  if (!row || k == null) {
+  if (!row || k === null) {
     return undefined;
   }
-  if (typeof row[k] !== "undefined") {
-    return row[k];
+  const direct = getObjectProperty(row, k);
+  if (direct !== undefined) {
+    return direct;
   }
   if (typeof k === "string" && k.indexOf(".") !== -1) {
     let cur = row;
     for (const segment of k.split(".")) {
-      cur = cur == null ? cur : cur[segment];
+      if (cur === null) {
+        return cur;
+      }
+      cur = getObjectProperty(cur, segment);
     }
     return cur;
   }
@@ -126,6 +136,11 @@ export default {
     ariaLabel: {
       type: String,
       default: undefined,
+    },
+    /** When set, renders one centered header cell spanning all columns instead of per-column headers. */
+    headerTitle: {
+      type: String,
+      default: "",
     },
     /** i18n key for empty-state caption (icon + label), default `files.lonely`. */
     lonelyMessageKey: {
@@ -214,7 +229,7 @@ export default {
       const next = this.defaultSortKey;
       if (typeof next === "string" && next !== "") {
         const cols = Array.isArray(this.columns) ? this.columns : [];
-        const col = cols.find((c) => c && c.key === next);
+        const col = cols.find((c) => c?.key === next);
         if (col && this.isSortEnabled(col)) {
           this.sortKey = next;
           this.sortDir = this.defaultSortDir;
@@ -236,7 +251,7 @@ export default {
     },
 
     isSortEnabled(column) {
-      return Boolean(column && column.key && column.sortable === true);
+      return Boolean(column?.key && column.sortable === true);
     },
 
     ariaSortState(column) {
@@ -267,7 +282,7 @@ export default {
     },
 
     alignClass(column) {
-      const a = column && column.align;
+      const a = column?.align;
       if (!a || a === "left") {
         return "settings-table__align-left";
       }
@@ -332,7 +347,7 @@ export default {
 
 .settings-table thead th,
 .settings-table tbody td {
-  padding: 0.5em 0;
+  padding: 0.5em;
   vertical-align: middle;
   border-bottom: 1px solid var(--divider);
 }
@@ -386,6 +401,11 @@ body.rtl .settings-table tr > *:last-child {
 
 .settings-table thead th.settings-table__th--nosort:hover {
   background: color-mix(in srgb, var(--primaryColor) 12%, var(--surfacePrimary));
+}
+
+.settings-table thead th.settings-table__th--unified,
+body.rtl .settings-table thead th.settings-table__th--unified {
+  text-align: center;
 }
 
 .settings-table thead th.settings-table__th::after {

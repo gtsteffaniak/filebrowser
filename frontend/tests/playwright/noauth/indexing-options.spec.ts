@@ -1,6 +1,6 @@
-import { test, expect, checkForNotification } from "../test-setup";
+import { checkForNotification, expect, test } from "../test-setup";
 
-test("navigate folder -- item should not be visible", async ({ page, checkForErrors, context }) => {
+test("navigate folder -- item should not be visible", async ({ page, checkForErrors }) => {
     await page.goto("/files/");
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
     // excluded folder should not be visible in the file list
@@ -11,7 +11,7 @@ test("navigate folder -- item should not be visible", async ({ page, checkForErr
     checkForErrors(1,1); // expect error not indexed
 });
 
-test("navigate folder -- item should be visible", async ({ page, checkForErrors, context }) => {
+test("navigate folder -- item should be visible", async ({ page, checkForErrors }) => {
     await page.goto("/files/");
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
     // excludedButVisible folder should show up in list
@@ -21,7 +21,7 @@ test("navigate folder -- item should be visible", async ({ page, checkForErrors,
     checkForErrors();
 });
 
-test("navigate folder -- item should not be visible because of specific exlcude rule", async ({ page, checkForErrors, context }) => {
+test("navigate folder -- item should not be visible because of specific exlcude rule", async ({ page, checkForErrors }) => {
     await page.goto("/files/");
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
     // excludedButVisible folder should show up in list
@@ -33,7 +33,7 @@ test("navigate folder -- item should not be visible because of specific exlcude 
 });
 
 
-test("navigate subfolderExclusions -- item should be visible", async ({ page, checkForErrors, context }) => {
+test("navigate subfolderExclusions -- item should be visible", async ({ page, checkForErrors }) => {
     await page.goto("/files/include");
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files2");
     // excludedButVisible folder should show up in list
@@ -43,7 +43,7 @@ test("navigate subfolderExclusions -- item should be visible", async ({ page, ch
     checkForErrors();
 });
 
-test("navigate subfolderExclusions -- subfolder items rules should be applied", async ({ page, checkForErrors, context }) => {
+test("navigate subfolderExclusions -- subfolder items rules should be applied", async ({ page, checkForErrors }) => {
     await page.goto("/files/include/subfolderExclusions");
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - subfolderExclusions");
 
@@ -67,7 +67,7 @@ test("navigate subfolderExclusions -- subfolder items rules should be applied", 
     checkForErrors();
 });
 
-test("navigate subfolderExclusions -- nested subfolder items rules should inherit from parent", async ({ page, checkForErrors, context }) => {
+test("navigate subfolderExclusions -- nested subfolder items rules should inherit from parent", async ({ page, checkForErrors }) => {
     await page.goto("/files/include/subfolderExclusions/.hiddenDir/nested.txt");
     await expect(page).toHaveTitle("Graham's Filebrowser - Files");
 
@@ -76,7 +76,7 @@ test("navigate subfolderExclusions -- nested subfolder items rules should inheri
     checkForErrors(1,1); // expect error not indexed
 });
 
-test("root indexing info is correct", async ({ page, checkForErrors, context }) => {
+test("root indexing info is correct", async ({ page, checkForErrors }) => {
     await page.goto("/files/");
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
     // should mostly match system (du -sh frontend/tests/playwright-files) besides excluded values
@@ -85,7 +85,7 @@ test("root indexing info is correct", async ({ page, checkForErrors, context }) 
     // Check folder sizes
     await expect(page.locator('a[aria-label="myfolder"]').locator('.size')).toHaveText("3.3 MB");
     await expect(page.locator('a[aria-label="folder#hash"]').locator('.size')).toHaveText("4.0 KB");
-    await expect(page.locator('a[aria-label="files"]').locator('.size')).toHaveText("8.0 KB");
+    await expect(page.locator('a[aria-label="files"]').locator('.size')).toHaveText("12.0 KB");
     await expect(page.locator('a[aria-label="share"]').locator('.size')).toHaveText("4.0 KB");
     await expect(page.locator('a[aria-label="text-files"]').locator('.size')).toHaveText("8.0 KB");
     await expect(page.locator('a[aria-label="subfolderExclusions"]').locator('.size')).toHaveText("16.0 KB"); // 16 not 24 due to excluded items
@@ -102,7 +102,7 @@ test("root indexing info is correct", async ({ page, checkForErrors, context }) 
     checkForErrors();
 });
 
-test("root indexing info is correct (logical size)", async ({ page, checkForErrors, context }) => {
+test("root indexing info is correct (logical size)", async ({ page, checkForErrors }) => {
     await page.goto("/files/include");
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files2");
     // should mostly match system (du -sh frontend/tests/playwright-files) besides excluded values
@@ -110,7 +110,7 @@ test("root indexing info is correct (logical size)", async ({ page, checkForErro
     
     // Check folder sizes
     await expect(page.locator('a[aria-label="folder#hash"]').locator('.size')).toHaveText("0.0 bytes");
-    await expect(page.locator('a[aria-label="files"]').locator('.size')).toHaveText("17.0 bytes");
+    await expect(page.locator('a[aria-label="files"]').locator('.size')).toHaveText("418.0 bytes");
     await expect(page.locator('a[aria-label="subfolderExclusions"]').locator('.size')).toHaveText("0.0 bytes");
     
     await page.goto("/files/include/files");

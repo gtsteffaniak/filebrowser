@@ -57,8 +57,9 @@ func (idx *Index) SearchParsed(baseOpts iteminfo.SearchOptions, scope string, so
 
 	nameGlobPatterns := nameGlobPatternsForSearch(searchOptions, useWildcard, largest)
 	globAnd := useWildcard && searchOptions.MatchAllTerms
+	caseExact := searchOptions.Conditions["exact"]
 
-	rows, err := idx.db.SearchItems(idx.Name, scope, largest, nameGlobPatterns, globAnd)
+	rows, err := idx.db.SearchItems(idx.Name, scope, largest, nameGlobPatterns, globAnd, caseExact)
 	if err != nil {
 		return []*SearchResult{}
 	}
@@ -95,7 +96,7 @@ func (idx *Index) SearchParsed(baseOpts iteminfo.SearchOptions, scope string, so
 			HasPreview: hasPreview,
 		}
 
-		matches := itemMatchesSearchFilters(item, isDir, searchOptions, largest, useWildcard, nameGlobPatterns)
+		matches := itemMatchesSearchFilters(item, isDir, searchOptions, largest, nameGlobPatterns)
 
 		if matches {
 			resType := mimeType
@@ -127,7 +128,7 @@ func (idx *Index) SearchParsed(baseOpts iteminfo.SearchOptions, scope string, so
 	return sortedKeys
 }
 
-func itemMatchesSearchFilters(item iteminfo.ItemInfo, isDir bool, searchOptions iteminfo.SearchOptions, largest, useWildcard bool, nameGlobPatterns []string) bool {
+func itemMatchesSearchFilters(item iteminfo.ItemInfo, isDir bool, searchOptions iteminfo.SearchOptions, largest bool, nameGlobPatterns []string) bool {
 	if largest {
 		largerThan := int64(searchOptions.LargerThan) * 1024 * 1024
 		sizeMatches := largerThan == 0 || item.Size > largerThan
@@ -141,7 +142,7 @@ func itemMatchesSearchFilters(item iteminfo.ItemInfo, isDir bool, searchOptions 
 		dateMatches := searchDateMatches(item.ModTime.Unix(), searchOptions)
 		return sizeMatches && typeMatches && dateMatches
 	}
-	if useWildcard && len(nameGlobPatterns) > 0 {
+	if len(nameGlobPatterns) > 0 {
 		return item.MatchesSearchAuxiliaryFilters(searchOptions)
 	}
 	if searchOptions.MatchAllTerms {
@@ -170,19 +171,7 @@ func itemMatchesSearchFilters(item iteminfo.ItemInfo, isDir bool, searchOptions 
 
 // nameGlobPatternsForSearch builds non-empty parsed terms for SQLite name GLOB OR clauses.
 func nameGlobPatternsForSearch(opts iteminfo.SearchOptions, useWildcard, largest bool) []string {
-	if largest || !useWildcard || len(opts.Terms) == 0 {
-		return nil
-	}
-	var patterns []string
-	for _, t := range opts.Terms {
-		if t != "" {
-			patterns = append(patterns, t)
-		}
-	}
-	if len(patterns) == 0 {
-		return nil
-	}
-	return patterns
+	return iteminfo.NameGlobPatternsForSearch(opts, useWildcard, largest)
 }
 
 func searchDateMatches(modUnix int64, opts iteminfo.SearchOptions) bool {
@@ -236,8 +225,9 @@ func SearchMultiSourcesParsed(baseOpts iteminfo.SearchOptions, sources []string,
 
 	nameGlobPatterns := nameGlobPatternsForSearch(searchOptions, useWildcard, largest)
 	globAnd := useWildcard && searchOptions.MatchAllTerms
+	caseExact := searchOptions.Conditions["exact"]
 
-	rows, err := db.SearchItemsMultiSource(sources, normalizedScopes, largest, nameGlobPatterns, globAnd)
+	rows, err := db.SearchItemsMultiSource(sources, normalizedScopes, largest, nameGlobPatterns, globAnd, caseExact)
 	if err != nil {
 		return []*SearchResult{}
 	}
@@ -275,7 +265,7 @@ func SearchMultiSourcesParsed(baseOpts iteminfo.SearchOptions, sources []string,
 			HasPreview: hasPreview,
 		}
 
-		matches := itemMatchesSearchFilters(item, isDir, searchOptions, largest, useWildcard, nameGlobPatterns)
+		matches := itemMatchesSearchFilters(item, isDir, searchOptions, largest, nameGlobPatterns)
 
 		if matches {
 			resType := mimeType

@@ -62,6 +62,8 @@ type FileOptions struct {
 	Only                     string // whether to only get files or folders
 	SkipExtendedAttrs        bool   // whether to skip extended attributes
 	ShowSharedAttr           bool   // whether to show share attributes
+	ShowPinnedItems          bool   // whether to show pinned items
+	ShareHash                string // when set, pinned items are loaded from this share link
 }
 
 // SanitizeUserPath prevents path traversal attacks by cleaning and validating user input.

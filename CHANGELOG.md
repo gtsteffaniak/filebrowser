@@ -2,10 +2,89 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
-## v2.0.0
+## v1.5.0
+
+ **New Features**:
+ - Added basic html viewer with relative reference support (#2522)
+ - Shares can have pinned files, requires a user to have edit access to share (#2522)
+ - Enhanced search
+   - now uses "lazy" match by default. (#2509)
+   - added missing `case sensitive` option in the UI
+ - Progressive Web App (PWA) improvements
+   - restored install prompt with sidebar install button (#2086)
+   - camera and video capture buttons on upload (mobile-friendly `capture` inputs)
+   - send files to other apps via the Web Share API (`Send to app` in the context menu)
+ - App notifications for file operations (#2478)
+   - optional browser notifications when uploads, chunked downloads, move/copy, or failures finish while the tab is in the background
+   - single on/off toggle in Notifications settings, stored in browser local storage
 
  **Notes**:
- - user.id has been moved to a backend property and all frontend apis now query users by username. Swagger has been updated.
+ - [docker] upgraded ffmpeg version 8.1 to 8.1.1
+
+ **BugFixes**:
+ - fixed PWA manifest `scope` and `id` so install works when the app is served under a base URL
+ - installing a public share as a PWA now opens the share URL instead of the site root (#2302)
+
+## v1.4.4
+
+ **BugFixes**:
+ - Pinning/Unpinning file resets users' scope permission (#2532)
+
+## v1.4.3
+
+ **Security**:
+ - [High] Path traversal in subtitle handler allows any authenticated user to read arbitrary files (GHSA-vvp7-h4fj-m28w)
+
+ **New Features**:
+ - pinned files/folders (#2396) (#2510)
+ - Markdown Image relative reference support (#2355)
+ - Add an option to create a new folder for unarchiving (#2338)
+
+ **Notes**:
+ - added fallback to show text in notification if copy fails (#2517)
+ - added `alt`+`arrow up` shortcut as alias of `backspace` to go into parent directory (#2501) (#2521)
+ - added `alt`+`arrow down` shortcut as alias of `enter` to open files in Listing View (#2501) (#2521)
+ - updated help menu with better translations
+ - migrate i18n to v11 (#2472) (#2504)
+ - migrate eslint (#2459)
+ - improved preview cancellation to improve performance when navigating UI.
+
+ **BugFixes**:
+ - fix lyrics regex parsing (#2505)
+ - fix folder previews issue (#2487) (#2492)
+ - fix accidental exit on images while using gestures (#2508)
+ - navigating using the up/down arrow keys in Listing View was "jumping randomly" in some view modes (#2521)
+ - socket field in config.yaml is ignored (#2497)
+ - fix keep opened file selected after closing its preview @anpryl (#2515)
+
+
+## v1.4.2
+
+ **Security**:
+ - [Moderate] Add Rate Limiting on Authentication Endpoint Enables Brute Force Attacks (GHSA-r4v7-6wcg-ghj5)
+ - [Critical] Path traversal in public share PATCH allows file ops outside shared directory -- thanks @Revanth011 and @fg0x0 (GHSA-qqqm-5547-774x)
+
+ **New Features**:
+ - read-only source configuration via `source.config.readOnly: true` (#2438)
+
+ **Notes**:
+ - auth rate limiting can be disabled via `auth.disableRateLimit`
+ - updated share hash middleware (#2443)
+ - updated source info popup to include private and readOnly properties
+
+ **BugFixes**:
+ - Logout from share page now redirects to the share instead of `/Login` again. (#2245)
+ - `This location cannot be reached` error when navigating with FileTree in shares. (#2245)
+ - Fix FileTree rename and move actions in previews. (#2245)
+ - Delete prompt not showing date and thumbnails in some previews. (#2245)
+ - fix path slash issue on windows (#2451) (#2433) (#2419)
+ - Always force url rewrite for onlyoffice internal URL. Fixes Error saving with OnlyOffice (#2450)
+ - Overriding a Deny with an Allow not working (#2405)
+
+## v1.4.1
+
+ **Security**:
+ - Fix critical: unauthenticated user can view source info
 
 ## v1.4.0
 

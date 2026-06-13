@@ -3576,6 +3576,70 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/users/pinnedItems": {
+            "patch": {
+                "description": "Patches one pinned item at a time. Defaults to add; pass ?action=remove to unpin.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Add or remove a pinned item",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "add (default) or remove",
+                        "name": "action",
+                        "in": "query"
+                    },
+                    {
+                        "description": "Pinned item",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.pinnedItemPatchRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "description": "Returns the health status of the API.",
@@ -4542,6 +4606,86 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/public/api/share/pinnedItems": {
+            "patch": {
+                "description": "Patches one pinned item at a time for share owners. Defaults to add; pass ?action=remove to unpin.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shares"
+                ],
+                "summary": "Add or remove a pinned item on a share",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Share hash",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "add (default) or remove",
+                        "name": "action",
+                        "in": "query"
+                    },
+                    {
+                        "description": "Pinned item",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.sharePinnedItemPatchRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Share not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -4827,6 +4971,44 @@ const docTemplate = `{
                 }
             }
         },
+        "http.pinnedItemPatchRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "path",
+                "source"
+            ],
+            "properties": {
+                "name": {
+                    "description": "item basename within path",
+                    "type": "string"
+                },
+                "path": {
+                    "description": "scope-relative parent directory",
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.sharePinnedItemPatchRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "path"
+            ],
+            "properties": {
+                "name": {
+                    "description": "item basename within path",
+                    "type": "string"
+                },
+                "path": {
+                    "description": "share-relative parent directory",
+                    "type": "string"
+                }
+            }
+        },
         "http.unarchiveRequest": {
             "type": "object",
             "properties": {
@@ -4942,6 +5124,13 @@ const docTemplate = `{
                 "path": {
                     "description": "path scoped to the associated index",
                     "type": "string"
+                },
+                "pinnedItems": {
+                    "description": "pinned item names in this directory listing",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "size": {
                     "description": "length in bytes for regular files",
@@ -5407,6 +5596,22 @@ const docTemplate = `{
                 },
                 "styling": {
                     "$ref": "#/definitions/settings.StylingConfig"
+                }
+            }
+        },
+        "settings.Http": {
+            "type": "object",
+            "properties": {
+                "disableRateLimit": {
+                    "description": "turns off built-in auth route rate limiting and failed-login lockout (default false).",
+                    "type": "boolean"
+                },
+                "trustedHeaders": {
+                    "description": "list of headers to trust, useful when behind a reverse proxy.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -5976,6 +6181,9 @@ const docTemplate = `{
                 },
                 "frontend": {
                     "$ref": "#/definitions/settings.Frontend"
+                },
+                "http": {
+                    "$ref": "#/definitions/settings.Http"
                 },
                 "integrations": {
                     "$ref": "#/definitions/settings.Integrations"
@@ -6553,6 +6761,15 @@ const docTemplate = `{
                 }
             }
         },
+        "share.PinnedItems": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            }
+        },
         "share.Share": {
             "type": "object",
             "properties": {
@@ -6668,6 +6885,9 @@ const docTemplate = `{
                 },
                 "perUserDownloadLimit": {
                     "type": "boolean"
+                },
+                "pinnedItems": {
+                    "$ref": "#/definitions/share.PinnedItems"
                 },
                 "quickDownload": {
                     "type": "boolean"
@@ -7360,6 +7580,18 @@ const docTemplate = `{
                 }
             }
         },
+        "users.PinnedItems": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "object",
+                "additionalProperties": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "users.Preview": {
             "type": "object",
             "properties": {
@@ -7575,6 +7807,9 @@ const docTemplate = `{
                 },
                 "permissions": {
                     "$ref": "#/definitions/users.Permissions"
+                },
+                "pinnedItems": {
+                    "$ref": "#/definitions/users.PinnedItems"
                 },
                 "preferEditorForMarkdown": {
                     "description": "prefer editor first for markdown files instead of the Markdown Viewer",

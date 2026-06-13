@@ -614,11 +614,9 @@ export const mutations = {
       emitStateChanged();
       return
     }
-    let sortby = "name"
-    let asc = true
     const sorting = getters.sorting();
-    sortby = sorting.by;
-    asc = sorting.asc;
+    const sortby = sorting.by;
+    const asc = sorting.asc;
     // Separate directories and files
     const dirs = value.items.filter((item) => item.type === 'directory');
     const files = value.items.filter((item) => item.type !== 'directory');

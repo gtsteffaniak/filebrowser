@@ -7,8 +7,8 @@
     <div id="viewer" :class="{ ready: isReady }"></div>
 
     <div v-if="isReady" class="navigation">
-      <button @click="prevPage" class="nav-button">&lt;</button> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-      <button @click="nextPage" class="nav-button">&gt;</button> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+      <button type="button" @click="prevPage" class="nav-button">&lt;</button> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+      <button type="button" @click="nextPage" class="nav-button">&gt;</button> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
     </div>
   </div>
 </template>
@@ -18,6 +18,7 @@ import { defineComponent, watch } from "vue";
 import ePub, { type Book, type Rendition } from "epubjs";
 import { state, mutations, getters } from "@/store"; // Assuming your store setup
 import { resourcesApi } from "@/api";
+import router from "@/router";
 import { removeLastDir } from "@/utils/url"; // Assuming your utils setup
 
 /** Hash format: `#epubcfi=<encodeURIComponent(epub-cfi)>` — distinct from listing `#filename` hashes. */
@@ -42,7 +43,7 @@ function replaceUrlHashWithEpubCfi(cfi: string) {
 
 function cfiToString(cfi: unknown): string {
   if (typeof cfi === "string") return cfi;
-  if (cfi != null && typeof (cfi as { toString?: () => string }).toString === "function") {
+  if (cfi !== null && typeof (cfi as { toString?: () => string }).toString === "function") {
     return String((cfi as { toString: () => string }).toString());
   }
   return "";
@@ -70,6 +71,8 @@ export default defineComponent({
       size: state.req.size,
       type: state.req.type,
       source: state.req.source,
+      modified: state.req.modified,
+      hasPreview: state.req.hasPreview,
     });
     try {
       // 1. Fetch the download URL for the EPUB file
@@ -192,12 +195,13 @@ export default defineComponent({
     },
     // Close the viewer and navigate away
     close() {
-      const current = window.location.pathname;
-      const newPath = removeLastDir(current);
-      window.location.href = newPath + "#" + state.req.name;
+      const filename = state.req.name;
+      mutations.replaceRequest({});
+      const uri = `${removeLastDir(state.route.path)}/`;
+      router.push({ path: uri, hash: `#${filename}` });
     },
     // Error handler
-    onLoadComponentError(error: any) {
+    onLoadComponentError(error: unknown) {
       console.error("Error loading EPUB file:", error);
       // You could add logic here to display an error message to the user
     },

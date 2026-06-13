@@ -1,7 +1,11 @@
 import { reactive } from "vue";
 import { resourcesApi } from "@/api";
-import { state,mutations } from "@/store";
+import { mutations, state } from "@/store";
 import { getters } from "@/store/getters";
+import {
+  notifyUploadComplete,
+  notifyUploadError,
+} from "@/utils/appNotifications";
 
 /**
  * Accumulates every directory entry from a FileSystemDirectoryReader.
@@ -79,7 +83,7 @@ class UploadManager {
     if (this.overwriteAll === null && !overwrite) {
       const topLevelDirs = new Set();
       for (const item of items) {
-        if (item.relativePath && item.relativePath.includes('/')) {
+        if (item.relativePath?.includes('/')) {
           topLevelDirs.add(item.relativePath.split('/')[0]);
         }
       }
@@ -136,7 +140,7 @@ class UploadManager {
               // User chose overwrite - set the flag and add with overwrite=true
               this.overwriteAll = true;
               this.add(basePath, items, true);
-            } else if (resolution && resolution.rename) {
+            } else if (resolution?.rename) {
               // User chose rename - continue with renamed items
               this.conflictingFolder = null;
               this.add(basePath, this.pendingItems, false);
@@ -163,7 +167,7 @@ class UploadManager {
 
         let currentPath = "";
         for (const part of pathParts) {
-          currentPath += part + "/";
+          currentPath += `${part}/`;
           dirs.add(currentPath);
         }
       }
@@ -205,7 +209,7 @@ class UploadManager {
       const id = this.nextId++;
       const file = item.file;
       const relativePath = item.relativePath || file.name;
-      let destinationPath = `${basePath}${relativePath}`;
+      const destinationPath = `${basePath}${relativePath}`;
       const upload = {
         id,
         file,
@@ -251,7 +255,7 @@ class UploadManager {
       return;
     }
 
-    const maxConcurrent = state.user.fileLoading?.maxConcurrentUpload || 3;
+    const maxConcurrent = state.user?.fileLoading?.maxConcurrentUpload || 3;
     while (
       this.activeUploads < maxConcurrent &&
       this.hasPending()
@@ -287,7 +291,7 @@ class UploadManager {
 
   start(id) {
     const upload = this.findById(id);
-    if (!upload || upload.status !== "pending") {
+    if (upload?.status !== "pending") {
       console.log(
         `upload.js: Cannot start upload for id ${id}. Status is not 'pending' or upload not found.`,
         upload
@@ -316,6 +320,7 @@ class UploadManager {
 
       upload.status = "completed";
       upload.progress = 100;
+      notifyUploadComplete(upload);
     } catch (err) {
       await this.handleUploadError(upload, err);
     } finally {
@@ -366,6 +371,7 @@ class UploadManager {
         upload.status = "completed";
         upload.progress = 100;
         upload.connectionIssue = false;
+        notifyUploadComplete(upload);
       } catch (err) {
         this.clearProgressTimeout(upload.id);
         await this.handleUploadError(upload, err);
@@ -449,6 +455,7 @@ class UploadManager {
       // If the loop finished without being paused/errored
       upload.status = "completed";
       upload.progress = 100;
+      notifyUploadComplete(upload);
       upload.connectionIssue = false;
     }
 
@@ -484,7 +491,7 @@ class UploadManager {
 
   async pause(id) {
     const upload = this.findById(id);
-    if (!upload || upload.status !== "uploading" || !upload.xhr) {
+    if (upload?.status !== "uploading" || !upload.xhr) {
       return;
     }
     if (upload.type !== "directory" && upload.size >= this.chunkSizeBytes()) {
@@ -539,7 +546,7 @@ class UploadManager {
 
   resume(id) {
     const upload = this.findById(id);
-    if (upload && upload.status === "paused") {
+    if (upload?.status === "paused") {
       this.isOverallPaused = false;
       upload.status = "pending";
       upload.connectionIssue = false; // Clear connection issue on resume
@@ -552,7 +559,7 @@ class UploadManager {
 
   cancel(id) {
     const upload = this.findById(id);
-    if (upload && upload.status === "uploading" && upload.xhr) {
+    if (upload?.status === "uploading" && upload.xhr) {
       upload.xhr.abort();
     }
     this.clearProgressTimeout(id);
@@ -656,11 +663,12 @@ class UploadManager {
       
       if (isConnectionError) {
         upload.connectionIssue = true;
-        upload.errorDetails = "Connection error: " + this.formatErrorMessage(err) + ". Click retry to resume.";
+        upload.errorDetails = `Connection error: ${this.formatErrorMessage(err)}. Click retry to resume.`;
       } else {
         upload.connectionIssue = false;
         upload.errorDetails = this.formatErrorMessage(err);
       }
+      notifyUploadError(upload.name, upload.errorDetails);
     } else {
       // Upload was aborted - preserve connectionIssue flag if it was already set
       // (e.g., if we paused due to timeout, keep the connection issue flag)

@@ -235,7 +235,6 @@
 }
 
 #previewer>button {
-    margin: 0;
     position: fixed;
     top: calc(50% + 1.85em);
     transform: translateY(-50%);

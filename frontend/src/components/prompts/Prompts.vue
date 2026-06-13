@@ -1,5 +1,5 @@
 <template>
-   <Teleport to="body" v-for="prompt in prompts" :key="'prompt-' + prompt.id">
+   <Teleport to="body" v-for="prompt in prompts" :key="`prompt-${prompt.id}`">
     <div
       ref="promptWindow"
       class="floating-window"
@@ -14,13 +14,13 @@
       @mousedown="makeTopPrompt(prompt.id)"
       :style="{
         transform: `translate(calc(-50% + ${(dragOffsets[prompt.id]?.x || 0)}px), calc(-50% + ${(dragOffsets[prompt.id]?.y || 0)}px))`,
-        width: sizes[prompt.id]?.width ? sizes[prompt.id].width + 'px' : null,
-        height: sizes[prompt.id]?.height ? sizes[prompt.id].height + 'px' : null,
+        width: sizes[prompt.id]?.width ? `${sizes[prompt.id].width}px` : null,
+        height: sizes[prompt.id]?.height ? `${sizes[prompt.id].height}px` : null,
         maxWidth: sizes[prompt.id]?.width ? 'none' : null,
         maxHeight: sizes[prompt.id]?.height ? 'none' : null,
         zIndex: 5 + prompts.indexOf(prompt),
       }"
-      :aria-label="prompt.name + '-prompt'"
+      :aria-label="`${prompt.name}-prompt`"
     >
       <header
         class="prompt-taskbar"
@@ -111,6 +111,7 @@ import Unarchive from "./Unarchive.vue";
 import OfficeDebug from "./OfficeDebug.vue";
 import ThreeJSControls from "./ThreeJSControls.vue";
 import { state, getters, mutations } from "@/store";
+import { getObjectProperty, omitObjectProperty, setObjectProperty } from "@/utils/object.js";
 
 export default {
   name: "Prompts",
@@ -207,7 +208,7 @@ export default {
   beforeUnmount() {
     window.removeEventListener('resize', this.handleWindowResize);
     window.removeEventListener('keydown', this.onDocumentKeydown);
-    Object.values(this.flashBorderTimers).forEach((tid) => clearTimeout(tid));
+    Object.values(this.flashBorderTimers).forEach((tid) => { clearTimeout(tid); });
   },
   methods: {
     triggerPromptBorderFlash(id) {
@@ -396,7 +397,7 @@ export default {
     cleanupDragState(id) {
       delete this.dragOffsets[id];
       delete this.dragStarts[id];
-      delete this.touchIds[id];
+      this.touchIds = omitObjectProperty(this.touchIds, id);
       this.draggingIds.delete(id);
       delete this.sizes[id];
     },
@@ -456,7 +457,7 @@ export default {
     },
     getPointerPos(e, type) {
       if (type === "touch") {
-        const t = e.touches && e.touches[0];
+        const t = e.touches?.[0];
         return t ? { x: t.clientX, y: t.clientY } : null;
       }
       return { x: e.clientX, y: e.clientY };
@@ -466,7 +467,7 @@ export default {
 
       const viewportW = window.innerWidth;
       const viewportH = window.innerHeight;
-      const headerEl = el.querySelector && el.querySelector(".prompt-taskbar");
+      const headerEl = el.querySelector?.(".prompt-taskbar");
       const headerHeight = headerEl ? headerEl.getBoundingClientRect().height : 40;
       const rect = el.getBoundingClientRect();
       const windowHeight = rect.height;
@@ -499,7 +500,10 @@ export default {
       this.makeTopPrompt(id);
       if (type === "mouse" && e.button !== 0) return;
       if (type === "touch") {
-        this.touchIds[id] = e.changedTouches && e.changedTouches[0] && e.changedTouches[0].identifier;
+        const touchId = e.changedTouches?.[0]?.identifier;
+        if (touchId !== undefined) {
+          this.touchIds = setObjectProperty(this.touchIds, id, touchId);
+        }
       }
 
       const pos = this.getPointerPos(e, type);
@@ -526,7 +530,7 @@ export default {
       let pos;
       if (type === "touch") {
         if (!e.touches) return;
-        const t = Array.from(e.touches).find((touch) => touch.identifier === this.touchIds[id]);
+        const t = Array.from(e.touches).find((touch) => touch.identifier === getObjectProperty(this.touchIds, id));
         if (!t) return;
         e.preventDefault();
         pos = { x: t.clientX, y: t.clientY };
@@ -546,7 +550,7 @@ export default {
     },
     onPointerEnd(_e, id, type, moveHandler, endHandler) {
       if (type === "touch") {
-        delete this.touchIds[id];
+        this.touchIds = omitObjectProperty(this.touchIds, id);
         window.removeEventListener("touchmove", moveHandler);
         window.removeEventListener("touchend", endHandler);
         window.removeEventListener("touchcancel", endHandler);

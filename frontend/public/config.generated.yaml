@@ -259,3 +259,6 @@ integrations:
     debug: false                          # output ffmpeg stdout for media integration -- careful can produces lots of output!
     extractEmbeddedSubtitles: false       # extract embedded subtitles from media files
     exiftoolPath: ""                      # path to exiftool executable
+http:
+  trustedHeaders:                         # list of headers to trust, useful when behind a reverse proxy.
+  disableRateLimit: false                 # turns off built-in auth route rate limiting and failed-login lockout (default false).

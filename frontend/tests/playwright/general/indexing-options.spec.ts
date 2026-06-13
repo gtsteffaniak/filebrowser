@@ -1,6 +1,6 @@
-import { test, expect } from "../test-setup";
+import { expect, test } from "../test-setup";
 
-test("indexing disabled still shows files", async ({ page, checkForErrors, context }) => {
+test("indexing disabled still shows files", async ({ page, checkForErrors }) => {
     await page.goto("/files/docker");
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - backend");
     // expect some items

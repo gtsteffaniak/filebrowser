@@ -1,15 +1,16 @@
 import path from "node:path";
-import { defineConfig } from "vite";
-import vue from "@vitejs/plugin-vue";
 import VueI18nPlugin from "@intlify/unplugin-vue-i18n/vite";
-import { compression } from "vite-plugin-compression2";
+import vue from "@vitejs/plugin-vue";
+import { defineConfig } from "vite";
 import checker from "vite-plugin-checker";
+import { compression } from "vite-plugin-compression2";
 
 const isDevBuild = process.env.DEV_BUILD === "true";
 
 const plugins = [
   vue(),
   VueI18nPlugin({
+    runtimeOnly: false,
     include: [path.resolve(__dirname, "./src/i18n/**/*.json")],
   }),
   // Only compress in production builds
@@ -33,33 +34,33 @@ const resolve = {
 };
 
 // https://vitejs.dev/config/
-export default defineConfig(({ command }) => {
+export default defineConfig(() => {
   return {
     plugins,
     resolve,
     base: "",
+    define: {
+      __VUE_I18N_LEGACY_API__: JSON.stringify(false),
+      __VUE_I18N_FULL_INSTALL__: JSON.stringify(false),
+    },
     build: {
       // Optimize for watch mode stability
       watch: isDevBuild ? {
         // Add buildDelay to batch multiple changes
         buildDelay: 500,
       } : null,
+      target: "es2022",
+      sourcemap: false,
       chunkSizeWarningLimit: 5000,
       rollupOptions: {
         input: {
           index: path.resolve(__dirname, "./public/index.html"),
         },
-        output: {
-          manualChunks: (id) => {
-            if (id.includes("i18n/")) {
-              return "i18n";
-            }
-          },
-        },
+        output: {},
         // Better error handling in watch mode
         onwarn(warning, warn) {
           // Suppress certain warnings in dev mode
-          if (isDevBuild && warning.code === 'UNUSED_EXTERNAL_IMPORT') {
+          if (isDevBuild && warning.code === "UNUSED_EXTERNAL_IMPORT") {
             return;
           }
           warn(warning);
