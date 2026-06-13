@@ -27,7 +27,7 @@ export async function getConfig(req) {
 }
 
 // POST /api/office/callback or /public/api/office/callback
-export async function callback(params, hash = null) {
+export async function callback(params, hash) {
   try {
     let apiPath
     if (hash) {

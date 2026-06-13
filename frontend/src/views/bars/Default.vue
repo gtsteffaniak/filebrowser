@@ -235,10 +235,10 @@ export default {
       const current = getters.viewMode();
       const cycleIndex = this.viewModeCycleIndex(current);
       const nextIndex = (cycleIndex + 1) % this.viewModes.length;
-      const baseMode = this.viewModes[nextIndex];
+      const baseMode = this.viewModes.at(nextIndex);
       const newViewMode = this.resolveViewModeForFamily(baseMode);
       mutations.updateDisplayPreferences({ viewMode: newViewMode });
-      mutations.updateCurrentUser({ viewMode: newViewMode });
+      void mutations.updateCurrentUser({ viewMode: newViewMode });
     },
     multiAction() {
       const cv = getters.currentView();
@@ -274,7 +274,7 @@ export default {
             return;
           }
           // otherwise navigate to files
-          router.push({ path: "/files" });
+          void router.push({ path: "/files" });
           return;
         }
         if (getters.isPreviewView()) {
@@ -284,7 +284,7 @@ export default {
           } else {
             // navigate to parent directory of current url
             const parentPath = url.removeLastDir(state.route.path);
-            router.push({ path: parentPath });
+            void router.push({ path: parentPath });
           }
           return;
         }

@@ -211,9 +211,9 @@ export default {
           buttons: [
             {
               label: this.$t("general.delete"),
-              action: () => {
+              action: async () => {
                 try {
-                  shareApi.remove(item.hash);
+                  await shareApi.remove(item.hash);
                   this.links = this.links.filter((link) => link.hash !== item.hash);
                   notify.showSuccessToast(this.$t("settings.shareDeleted"));
                   mutations.closeTopPrompt();

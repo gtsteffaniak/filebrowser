@@ -244,8 +244,9 @@ export default {
 
     resolvedKey(row) {
       const k = this.itemKey;
-      if (typeof row[k] !== "undefined" && row[k] !== null) {
-        return String(row[k]);
+      const value = getObjectProperty(row, k);
+      if (value !== undefined && value !== null) {
+        return String(value);
       }
       return JSON.stringify(row);
     },

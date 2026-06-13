@@ -187,7 +187,7 @@ router.beforeResolve(async (to, from, next) => {
     to.matched.some((record) => record.meta.optionalAuth)
   ) {
     const isPublicRoute = to.path.startsWith("/public");
-    if (state?.user?.username) {
+    if (state.user?.username) {
       // do nothing, user is already set
     } else {
       try {
@@ -201,7 +201,7 @@ router.beforeResolve(async (to, from, next) => {
       // do nothing
     } else {
       // Validation failed - clear state and redirect to login
-      mutations.setCurrentUser(null);
+      void mutations.setCurrentUser(null);
       // Always redirect to login when not authenticated
       next({ path: "/login", query: { redirect: to.fullPath } });
       return;

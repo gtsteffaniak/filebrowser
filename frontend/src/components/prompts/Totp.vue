@@ -131,7 +131,7 @@ export default {
           // Wait for navigation so Layout mounts and registers the toast callback before we toast
           await this.$router.push(this.redirect);
         }
-        mutations.updateCurrentUser({ otpEnabled: true });
+        void mutations.updateCurrentUser({ otpEnabled: true });
         this.succeeded = true;
         this.error = "";
         notify.showSuccessToast(this.$t("otp.verificationSucceed"));

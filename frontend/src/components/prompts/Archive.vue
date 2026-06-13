@@ -180,7 +180,7 @@ export default {
   },
   watch: {
     deleteAfter(newVal) {
-      mutations.updateCurrentUser({ deleteAfterArchive: newVal });
+      void mutations.updateCurrentUser({ deleteAfterArchive: newVal });
     },
     showFileList(newVal) {
       if (!newVal) {
@@ -251,7 +251,7 @@ export default {
       event.stopPropagation();
       event.preventDefault();
       if (this.newDirName && this.isDirNameValid) {
-        this.createDirectory();
+        void this.createDirectory();
       }
     },
     async createDirectory() {
@@ -264,15 +264,15 @@ export default {
           ? `${currentPath + this.newDirName}/`
           : `${currentPath}/${this.newDirName}/`;
         if (getters.isShare()) {
-          await resourcesApi.postPublic(state.shareInfo?.hash, fullPath, "", false, undefined, {}, true);
+          await resourcesApi.postPublic(state.shareInfo.hash, fullPath, "", false, undefined, {}, true);
         } else {
           await resourcesApi.post(currentSource, fullPath, "", false, undefined, {}, true);
         }
         if (getters.isShare()) {
-          resourcesApi.fetchFilesPublic(currentPath, state.shareInfo?.hash)
+          await resourcesApi.fetchFilesPublic(currentPath, state.shareInfo.hash)
             .then((req) => this.$refs.fileList.fillOptions(req, true));
         } else {
-          resourcesApi.fetchFiles(currentSource, currentPath)
+          await resourcesApi.fetchFiles(currentSource, currentPath)
             .then((req) => this.$refs.fileList.fillOptions(req, true));
         }
         mutations.setReload(true);

@@ -238,8 +238,8 @@ export default {
       } else if (state.previousHistoryItem?.name &&
                  state.previousHistoryItem.path === state.req.path &&
                  state.previousHistoryItem.source === state.req.source) {
-        targetName = state.previousHistoryItem.name;
-        scrollToId = url.base64Encode(encodeURIComponent(state.previousHistoryItem.name));
+        targetName = state.previousHistoryItem?.name;
+        scrollToId = url.base64Encode(encodeURIComponent(state.previousHistoryItem?.name));
       }
       // Don't call getElementById with empty string
       if (!scrollToId || scrollToId.trim() === '') {
@@ -452,7 +452,7 @@ export default {
                 break;
               }
             }
-            router.push(targetPath);
+            void router.push(targetPath);
             return;
           }
 
@@ -490,9 +490,9 @@ export default {
         this.loadingProgress = 0;
 
         if (e.status === 404) {
-          router.push({ name: "notFound" });
+          void router.push({ name: "notFound" });
         } else if (e.status === 403) {
-          router.push({ name: "forbidden" });
+          void router.push({ name: "forbidden" });
         } else if (e.status === 401 && isShare) {
           // Handle share password requirement
           this.attemptedPasswordLogin = this.sharePassword !== "";
@@ -504,7 +504,7 @@ export default {
           }
           this.showPasswordPrompt();
         } else {
-          router.push({ name: "error" });
+          void router.push({ name: "error" });
         }
       } finally {
         mutations.setLoading(isShare ? "share" : "files", false);
@@ -527,7 +527,7 @@ export default {
         props: {
           submitCallback: (password) => {
             this.sharePassword = password;
-            this.fetchData();
+            void this.fetchData();
           },
           showWrongCredentials: this.attemptedPasswordLogin,
           initialPassword: this.sharePassword,
@@ -547,11 +547,11 @@ export default {
       // Ctrl+, - navigate to settings
       if (event.ctrlKey && event.key === ',') {
         event.preventDefault();
-        router.push('/settings');
+        void router.push('/settings');
       }
 
       // Esc! - for shares, reset selection
-      if ( getters.isShare() && event.key === "Escape") {
+      if (getters.isShare() && event.key === "Escape") {
         if (getters.selectedCount() > 0) {
           mutations.resetSelected();
         }
@@ -561,7 +561,7 @@ export default {
         event.preventDefault();
         if (getters.currentPromptName()) return;
 
-        const canModify = getters.permissions()?.modify;
+        const canModify = getters.permissions().modify;
 
         if (getters.isPreviewView() && canModify) {
           const parentItems = state.navigation.listing || [];
@@ -572,8 +572,7 @@ export default {
               parentItems: parentItems
             },
           });
-        }
-        else if (getters.currentView() === 'listingView' && canModify && state.selected.length === 1) {
+        } else if (getters.currentView() === 'listingView' && canModify && state.selected.length === 1) {
           const item = getters.getFirstSelected();
           if (item) {
             mutations.showPrompt({ name: "rename", props: { item, parentItems: [] } });
@@ -587,10 +586,10 @@ export default {
         if (isRichTextPreviewMimeType(currentFile?.type)) {
           const currentView = getters.currentView();
           if (currentView === 'editor') {
-            router.replace({ hash: '#preview' });
+            void router.replace({ hash: '#preview' });
           } else if (currentView === 'markdownViewer') {
             if (getters.permissions()?.modify) {
-              router.replace({ hash: '#edit' });
+              void router.replace({ hash: '#edit' });
             }
           }
         }
@@ -601,10 +600,19 @@ export default {
         event.preventDefault();
 
         const key = event.key;
-        const baseModes = { F1: 'normal', F2: 'icons', F3: 'list' };
-        const baseMode = baseModes[key];
-        if (!baseMode) return;
-
+        let baseMode;
+        switch (key) {
+          case 'F1':
+            baseMode = 'normal';
+            break;
+          case 'F2':
+            baseMode = 'icons';
+            break;
+          case 'F3':
+            baseMode = 'list';
+            break;
+          default: return;
+        }
         const size = state.user?.gallerySize ?? 5;
         let newViewMode = baseMode;
         if (baseMode === 'list') {
@@ -614,7 +622,7 @@ export default {
         }
 
         mutations.updateDisplayPreferences({ viewMode: newViewMode });
-        mutations.updateCurrentUser({ viewMode: newViewMode });
+        void mutations.updateCurrentUser({ viewMode: newViewMode });
         mutations.closeHovers();
       }
     },

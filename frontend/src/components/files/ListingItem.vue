@@ -142,6 +142,7 @@
 import { globalVars } from "@/utils/constants";
 import downloadFiles from "@/utils/download";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
+import { getObjectProperty } from '@/utils/object.js';
 import { resourcesApi } from "@/api";
 import * as upload from "@/utils/upload";
 import { state, getters, mutations } from "@/store"; // Import your custom store
@@ -279,15 +280,13 @@ export default {
       if (this.readOnly === true) return false;
 
       for (const i of this.selected) {
-        if (
-          state.req.items[i].path === this.path &&
-          state.req.source === this.source
-        ) {
+        const item = getObjectProperty(state.req.items, i);
+        if (!item) continue;
+        // Also check if we're trying to drop an item onto itself
+        if (item.path === this.path && state.req.source === this.source) {
           return false;
         }
-
-        // Also check if we're trying to drop an item onto itself
-        if (state.req.items[i].index === this.index) {
+        if (item.index === this.index) {
           return false;
         }
       }
@@ -303,7 +302,7 @@ export default {
       let previewPath;
       if (this.path) {
         previewPath = this.path;
-      } else if (state?.req?.path && this.name) {
+      } else if (state.req?.path && this.name) {
         previewPath = url.joinPath(state.req.path, this.name);
       } else {
         return "";
@@ -311,13 +310,13 @@ export default {
 
       // If forceFilesApi is true, always use authenticated files API
       if (this.forceFilesApi) {
-        return resourcesApi.getPreviewURL(this.source || state?.req?.source, previewPath, this.modified);
+        return resourcesApi.getPreviewURL(this.source || state.req?.source, previewPath, this.modified);
       }
 
       if (getters.isShare()) {
         return resourcesApi.getPreviewURLPublic(previewPath);
       }
-      return resourcesApi.getPreviewURL(this.source || state.req.source, previewPath, this.modified);
+      return resourcesApi.getPreviewURL(this.source || state.req?.source, previewPath, this.modified);
     },
     isThumbsEnabled() {
       return globalVars.enableThumbs;
@@ -554,12 +553,14 @@ export default {
 
       let items = [];
       for (const i of state.selected) {
+        const item = getObjectProperty(state.req.items, i);
+        if (!item) continue;
         items.push({
-          from: state.req.items[i].path,
-          fromSource: state.req.items[i].source,
-          to: url.joinPath(this.path, state.req.items[i].name),
+          from: item.path,
+          fromSource: item.source,
+          to: url.joinPath(this.path, item.name),
           toSource: this.source,
-          name: state.req.items[i].name,
+          name: item.name,
         });
       }
 
@@ -704,7 +705,7 @@ export default {
       }
 
       if (
-        !state.user.singleClick &&
+        !state.user?.singleClick &&
         getters.selectedCount() !== 0 &&
         event.button === 0
       ) {
@@ -766,7 +767,7 @@ export default {
         }
 
         if (
-          !state.user.singleClick &&
+          !state.user?.singleClick &&
           !event.ctrlKey &&
           !event.metaKey &&
           !event.shiftKey &&
@@ -801,14 +802,15 @@ export default {
       // Check if state.req.items exists and has the item at this index
       // This prevents errors when ListingItem is used outside of the main file listing (e.g., duplicate finder)
       let previousHistoryItem = null;
-      if (state.req.items?.[this.index]) {
+      const currentItem = getObjectProperty(state.req.items, this.index);
+      if (currentItem) {
         previousHistoryItem = {
-          name: state.req.items[this.index].name,
+          name: currentItem.name,
           source: state.req.source,
           path: state.req.path,
         };
       }
-      url.goToItem(this.source, this.path, previousHistoryItem || {}, false, getters.isShare());
+      url.goToItem(this.source, this.path, previousHistoryItem, false, getters.isShare());
     },
   },
 };

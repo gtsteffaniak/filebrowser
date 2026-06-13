@@ -163,6 +163,7 @@ import Errors from "@/views/Errors.vue";
 import { notify } from "@/notify";
 import { globalVars } from "@/utils/constants";
 import { eventBus } from "@/store/eventBus";
+import { setObjectProperty } from '@/utils/object.js';
 
 export default {
   name: "user-edit",
@@ -513,7 +514,7 @@ export default {
       return "/";
     },
     openScopePicker(index) {
-      const row = this.selectedSources[index];
+      const row = this.selectedSources.at(index);
       if (!row?.name) {
         return;
       }
@@ -584,7 +585,7 @@ export default {
       this.emitUserUpdate();
     },
     updateUserField(field, value) {
-      this.user[field] = value;
+      this.user = setObjectProperty(this.user, field, value);
       this.emitUserUpdate();
     },
     setDefaultLoginMethod() {

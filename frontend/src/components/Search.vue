@@ -291,7 +291,7 @@ export default {
       return getters.eventTheme();
     },
     disableSearchOptions() {
-      return state.user.disableSearchOptions;
+      return state.user?.disableSearchOptions;
     },
     foldersOnly() {
       return this.isTypeSelectDisabled;
@@ -413,7 +413,7 @@ export default {
     },
     updateSource(event) {
       this.selectedSource = event.target.value;
-      this.submit();
+      void this.submit();
     },
     getItemUrl(s) {
       // Use source from result if available, otherwise fall back to selectedSource

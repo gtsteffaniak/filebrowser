@@ -208,7 +208,7 @@ export default {
                 {
                   label: this.$t("general.acknowledge"),
                   action: () => {
-                    mutations.updateCurrentUser({
+                    void mutations.updateCurrentUser({
                       showFirstLogin: false,
                     });
                     mutations.closeTopPrompt();

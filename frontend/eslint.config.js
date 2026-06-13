@@ -5,6 +5,7 @@ import pluginVue from "eslint-plugin-vue";
 import vueI18n from '@intlify/eslint-plugin-vue-i18n';
 import vueParser from "vue-eslint-parser";
 import globals from "globals";
+import security from "eslint-plugin-security";
 
 export default defineConfig(
   {
@@ -12,7 +13,7 @@ export default defineConfig(
       "**/dist/**",
       "**/node_modules/**",
       "**/public/**",
-      "**/i18n/is.json",
+      "**/*.json",
     ],
   },
 
@@ -21,6 +22,7 @@ export default defineConfig(
   ...tseslint.configs.recommended,
   ...pluginVue.configs["flat/essential"],
   ...vueI18n.configs.recommended,
+  security.configs.recommended,
 
   // i18n
   {
@@ -75,8 +77,13 @@ export default defineConfig(
       "prefer-template": "warn",
       "@typescript-eslint/consistent-type-definitions": "warn",
       "@typescript-eslint/prefer-optional-chain": "warn",
+      "@typescript-eslint/no-floating-promises": "error",
+      "@typescript-eslint/no-unnecessary-condition": "off", // this one is useful, but is pretty noisy and found lot of false positives
+      "@typescript-eslint/no-dynamic-delete": "warn",
+      "@typescript-eslint/no-misused-promises": "error",
       "prefer-object-has-own": "error",
       "no-prototype-builtins": "error",
+      "no-implied-eval": "error",
       "no-restricted-globals": [
         "error",
         { name: "isNaN", message: "Use Number.isNaN instead." },
@@ -118,6 +125,20 @@ export default defineConfig(
       "vue/require-v-for-key": "error",
       "vue/no-reserved-component-names": "off",
       "vue/no-unused-components": "warn",
+      //"vue/no-v-html": "warn",
+      "vue/no-v-text-v-html-on-component": "warn",
+    },
+  },
+  // Relax the rules a bit for tests files
+  {
+    files: ["tests/**/*.ts", "**/*.spec.ts", "**/*.test.ts"],
+    rules: {
+      "preserve-caught-error": "off",
+      "no-empty-pattern": "off",
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unused-vars": ["error", { caughtErrors: "none" }],
+      "no-unused-expressions": "off",
+      "security/detect-non-literal-regexp": "off",
     },
   },
 );

@@ -36,7 +36,7 @@ export default {
     },
     isSameFile() {
       // Check if the current prompt has props indicating same file
-      return this.currentPrompt?.props?.isSameFile === true;
+      return this.currentPrompt.props?.isSameFile === true;
     },
   },
   methods: {},

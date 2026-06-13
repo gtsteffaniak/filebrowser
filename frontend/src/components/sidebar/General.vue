@@ -155,7 +155,7 @@ export default {
       return getters.isLoggedIn() && !getters.routePath().startsWith("/share");
     },
     toggleClick() {
-      mutations.updateCurrentUser({ singleClick: !state.user.singleClick });
+      void mutations.updateCurrentUser({ singleClick: !state.user.singleClick });
     },
     toggleDarkMode() {
       mutations.toggleDarkMode();
@@ -165,7 +165,7 @@ export default {
       if (!state.showSidebar && state.user.stickySidebar) {
         mutations.toggleSidebar();
       }
-      mutations.updateCurrentUser({ stickySidebar: !state.user.stickySidebar });
+      void mutations.updateCurrentUser({ stickySidebar: !state.user.stickySidebar });
     },
     navigateTo(path,hash) {
       mutations.setPreviousHistoryItem({

@@ -8,6 +8,7 @@ import {
 } from '@/utils/appNotifications'
 import { getApiPath, getPublicApiPath } from '@/utils/url.js'
 import { adjustedData, fetchURL } from './utils'
+import { getObjectProperty } from '@/utils/object' 
 
 export { fetchPreviewImage } from '@/utils/previewRequests'
 
@@ -57,7 +58,7 @@ export async function getItems(source, path, only = "") {
  * Registers a graceful pause for the active chunked upload at this path.
  * Call immediately before aborting the chunk XHR so the server keeps partial data.
  */
-export async function signalUploadPause(source, path, shareHash = null) {
+export async function signalUploadPause(source, path, shareHash) {
   if (shareHash) {
     const apiPath = getPublicApiPath('resources/pause', {
       hash: shareHash,
@@ -501,7 +502,7 @@ async function downloadChunkedArchive(url, format, files, filePaths, source, sha
 
   downloadManager.setStatus(downloadId, 'downloading')
 
-  const hasDownloadPrompt = state.prompts?.some((h) => h.name === 'download')
+  const hasDownloadPrompt = state.prompts.some((h) => h.name === 'download')
   if (!hasDownloadPrompt) {
     mutations.showPrompt({ name: 'download' })
   }
@@ -591,7 +592,7 @@ async function downloadChunked(file, shareHash = "") {
   downloadManager.setStatus(downloadId, "downloading")
 
   // Show download prompt if not already shown (it should already be shown by downloadFiles, but check to be safe)
-  const hasDownloadPrompt = state.prompts?.some(h => h.name === 'download');
+  const hasDownloadPrompt = state.prompts.some(h => h.name === 'download');
 
   if (!hasDownloadPrompt) {
     mutations.showPrompt({ name: 'download' })
@@ -671,9 +672,9 @@ export function post(
     const request = new XMLHttpRequest();
     request.open("POST", apiPath, true);
 
-    for (const header in headers) {
-      request.setRequestHeader(header, headers[header]);
-    }
+    Object.entries(headers).forEach(([header, value]) => {
+      request.setRequestHeader(header, value);
+    });
 
     if (typeof onupload === "function") {
       request.upload.onprogress = (event) => {
@@ -816,7 +817,7 @@ export async function checksum(source, path, algo) {
     const apiPath = getApiPath('resources', params)
     const res = await fetchURL(apiPath)
     const data = await res.json()
-    return data.checksums[algo]
+    return getObjectProperty(data.checksums, algo)
   } catch (err) {
     notify.showError(err.message || 'Error fetching checksum')
     throw err
@@ -870,7 +871,7 @@ export function getPreviewURL(source, path, modified) {
 // POST /api/resources/archive - Create an archive
 export async function createArchive(opts) {
   const { fromSource, toSource, paths, destination, format, compression, deleteAfter } = opts;
-  if (!fromSource || !paths?.length || !destination) {
+  if (!fromSource || !Array.isArray(paths) || paths.length === 0 || !destination) {
     throw new Error("fromSource, paths, and destination are required");
   }
   const body = {
@@ -1059,9 +1060,10 @@ export function postPublic(
     const request = new XMLHttpRequest();
     request.open("POST", apiPath, true);
 
-    for (const header in headers) {
-      request.setRequestHeader(header, headers[header]);
-    }
+    Object.entries(headers).forEach(([header, value]) => {
+      request.setRequestHeader(header, value);
+    });
+
     if (typeof onupload === "function") {
       request.upload.onprogress = (event) => {
         if (event.lengthComputable) {
@@ -1172,7 +1174,7 @@ export async function bulkDeletePublic(items) {
     throw new Error('items array is required and must not be empty')
   }
 
-  const hash = state.shareInfo?.hash;
+  const hash = state.shareInfo.hash;
   if (!hash) {
     throw new Error('share hash is required')
   }

@@ -110,7 +110,7 @@ export default {
     async deleteApi() {
       // Dummy delete function, to be filled in later
       try {
-        authApi.deleteApiKey({ name: this.name });
+        await authApi.deleteApiKey({ name: this.name });
         // Emit event to refresh API tokens list
         setTimeout(() => {
           eventBus.emit('apiKeysChanged');
