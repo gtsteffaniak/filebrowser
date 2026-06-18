@@ -26,7 +26,7 @@
     "ace-builds": "^1.24.2",
     "axios": "^1.13.5",
     "css-vars-ponyfill": "^2.4.3",
-    "dompurify": "^3.2.4",
+    "dompurify": "^3.4.9",
     "epubjs": "^0.3.93",
     "glob": "^9.3.5",
     "highlight.js": "^11.11.1",
