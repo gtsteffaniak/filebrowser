@@ -8,6 +8,10 @@
       <a :href="releaseUrl">{{ $t("sidebar.updateIsAvailable") }}</a>
       <i @click="setSeenUpdate" aria-label="close-banner" class="material-symbols">close</i>
     </div>
+    <div v-if="showPwaInstall" class="button release-banner">
+      <a href="#" @click.prevent="installPwa">{{ $t("pwa.install") }}</a>
+      <i @click="dismissPwaInstall" aria-label="close-banner" class="material-symbols">close</i>
+    </div>
     <SidebarSettings v-if="isSettings"></SidebarSettings>
     <SidebarGeneral v-if="!isSettings"></SidebarGeneral>
     <div class="buffer"></div>
@@ -38,6 +42,7 @@
 <script>
 import { globalVars } from "@/utils/constants";
 import { getters, mutations, state } from "@/store"; // Import your custom store
+import { installAvailable, promptInstall } from "@/utils/pwaInstall";
 import SidebarGeneral from "./General.vue";
 import SidebarSettings from "./Settings.vue";
 
@@ -52,6 +57,7 @@ export default {
       resizeStartX: 0,
       resizeStartWidth: 0,
       previousSidebarSize: null, // Remember the previous width when switching from desktop to mobile.
+      pwaInstallDismissed: sessionStorage.getItem("pwaInstallDismissed") === "true",
     };
   },
   mounted() {
@@ -64,10 +70,10 @@ export default {
         const sidebarVisible = getters.isSidebarVisible();
         const isSticky = getters.isStickySidebar();
         if (!sidebarVisible) {
-          mutations.updateCurrentUser({ stickySidebar: true });
+          void mutations.updateCurrentUser({ stickySidebar: true });
           mutations.toggleSidebar();
         } else if (sidebarVisible && isSticky) {
-          mutations.updateCurrentUser({ stickySidebar: false });
+          void mutations.updateCurrentUser({ stickySidebar: false });
         } else {
           mutations.toggleSidebar();
         }
@@ -113,6 +119,9 @@ export default {
         state.seenUpdate !== globalVars.updateAvailable &&
         !state.user.disableUpdateNotifications
       );
+    },
+    showPwaInstall() {
+      return installAvailable.value && !this.pwaInstallDismissed && !this.isSettings;
     },
   },
   methods: {
@@ -167,6 +176,13 @@ export default {
     },
     setSeenUpdate() {
       mutations.setSeenUpdate(globalVars.updateAvailable);
+    },
+    async installPwa() {
+      await promptInstall();
+    },
+    dismissPwaInstall() {
+      this.pwaInstallDismissed = true;
+      sessionStorage.setItem("pwaInstallDismissed", "true");
     },
   },
 };

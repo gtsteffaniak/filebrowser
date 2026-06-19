@@ -34,7 +34,6 @@ const mutations = {
   },
   removeJob(state, id) {
     Vue.delete(state.uploads, id);
-    delete state.uploads[id];
   },
 };
 

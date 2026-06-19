@@ -52,7 +52,7 @@ export default {
       if (!state.shareInfo?.isPasswordProtected) {
         return true
       }
-      return state.shareInfo.passwordValid
+      return state.shareInfo?.passwordValid
     },
     getShareBanner() {
       if (state.shareInfo?.banner.startsWith("http")) {

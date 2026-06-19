@@ -56,6 +56,22 @@
             >
               {{ $t("general.folder") }}
             </button>
+            <button
+              type="button"
+              style="margin-left: 1em"
+              @click="triggerCameraPicker"
+              class="button button--flat"
+            >
+              {{ $t("general.camera") }}
+            </button>
+            <button
+              type="button"
+              style="margin-left: 1em"
+              @click="triggerVideoPicker"
+              class="button button--flat"
+            >
+              {{ $t("general.video") }}
+            </button>
           </div>
         </div>
       </div>
@@ -189,6 +205,10 @@
   <input ref="fileInput" @change="onFilePicked" type="file" multiple style="display: none" />
   <input ref="folderInput" @change="onFolderPicked" type="file" webkitdirectory directory multiple
     style="display: none" />
+  <input ref="cameraInput" @change="onFilePicked" type="file" accept="image/*" capture="environment"
+    style="display: none" />
+  <input ref="videoInput" @change="onFilePicked" type="file" accept="video/*" capture="environment"
+    style="display: none" />
 </template>
 
 <script>
@@ -246,6 +266,8 @@ export default {
   setup(props) {
     const fileInput = ref(null);
     const folderInput = ref(null);
+    const cameraInput = ref(null);
+    const videoInput = ref(null);
     const files = computed(() => uploadManager.queue);
     const isDragging = ref(false);
     const showConflictPrompt = ref(false);
@@ -280,7 +302,7 @@ export default {
             clearAll: clearAll.value,
           },
         };
-        mutations.updateCurrentUser(data);
+        void mutations.updateCurrentUser(data);
         await usersApi.update(data, ["fileLoading"]);
         notify.showSuccessToast("Upload settings updated");
       } catch (e) {
@@ -324,7 +346,7 @@ export default {
       mutations.showPrompt({
         name: "rename",
         confirm: (newName) => {
-          renameUploadFolder(conflictingFolder, newName);
+          void renameUploadFolder(conflictingFolder, newName);
         },
         props: { folderName: conflictingFolder }
       });
@@ -378,7 +400,7 @@ export default {
 
     watch(isUploading, (active) => {
       if (active) {
-        acquireWakeLock();
+        void acquireWakeLock();
       } else {
         releaseWakeLock();
       }
@@ -423,7 +445,7 @@ export default {
 
     const handleVisibilityChange = async () => {
       if (document.visibilityState === "visible" && isUploading.value) {
-        acquireWakeLock();
+        void acquireWakeLock();
       }
     };
 
@@ -456,7 +478,7 @@ export default {
           await processDroppedItems(items, destination);
         } else if (first.file instanceof File && typeof first.relativePath === 'string') {
           // This is an array of objects {file, relativePath} for paste from clipboard OS.
-          uploadManager.add(destination, items);
+          void uploadManager.add(destination, items);
         }
       } else if (items) {
         // This case handles a FileList object from the upload prompt's own input fields.
@@ -466,7 +488,7 @@ export default {
     };
 
     onMounted(async () => {
-      document.addEventListener("visibilitychange", handleVisibilityChange);
+      document.addEventListener("visibilitychange", void handleVisibilityChange);
       window.addEventListener("beforeunload", handleBeforeUnload);
       uploadManager.setOnConflict(handleConflict);
       if (props.initialItems) {
@@ -475,7 +497,7 @@ export default {
     });
 
     onUnmounted(() => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      document.removeEventListener("visibilitychange", void handleVisibilityChange);
       window.removeEventListener("beforeunload", handleBeforeUnload);
       uploadManager.setOnConflict(() => {}); // cleanup
       releaseWakeLock();
@@ -487,6 +509,14 @@ export default {
 
     const triggerFolderPicker = () => {
       if (folderInput.value) folderInput.value.click();
+    };
+
+    const triggerCameraPicker = () => {
+      if (cameraInput.value) cameraInput.value.click();
+    };
+
+    const triggerVideoPicker = () => {
+      if (videoInput.value) videoInput.value.click();
     };
 
     const onFilePicked = (event) => {
@@ -570,7 +600,7 @@ export default {
       allFiles.forEach(files => { filesToUpload.push(...files); });
 
       if (filesToUpload.length > 0) {
-        uploadManager.add(destination, filesToUpload);
+        void uploadManager.add(destination, filesToUpload);
       }
     };
 
@@ -580,7 +610,7 @@ export default {
         relativePath: file.webkitRelativePath || file.name,
       }));
       if (filesToAdd.length > 0) {
-        uploadManager.add(destination, filesToAdd);
+        void uploadManager.add(destination, filesToAdd);
       }
     };
 
@@ -637,10 +667,14 @@ export default {
     return {
       triggerFilePicker,
       triggerFolderPicker,
+      triggerCameraPicker,
+      triggerVideoPicker,
       onFilePicked,
       onFolderPicked,
       fileInput,
       folderInput,
+      cameraInput,
+      videoInput,
       files,
       isDragging,
       onDragEnter,

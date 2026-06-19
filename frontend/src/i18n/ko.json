@@ -29,7 +29,8 @@
     "goToItem": "항목으로 이동",
     "copyPath": "경로 복사",
     "pinItem": "고정",
-    "unpinItem": "고정 해제"
+    "unpinItem": "고정 해제",
+    "sendToApp": "앱으로 보내기"
   },
   "errors": {
     "forbidden": "접근 권한이 없습니다.",
@@ -245,7 +246,9 @@
     "helpText2": "대소문자 구분 일치를 위해 파일 또는 폴더 이름에 대해서만 하위 문자열 일치(전체 경로가 아님).\n\n 용어 사이의 OR에는 파이프 문자를, 한 구문에는 큰따옴표를 사용합니다.\n\n고급 옵션을 사용하려면 와일드카드 검색을 사용 설정하세요.",
     "useWildcardSearch": "와일드카드 검색(대소문자 구분)",
     "useWildcardSearchDescription": "지원되는 와일드카드 옵션:\n\n- 모든 시퀀스와 일치합니다: *\n\n- 한 문자 일치: ?\n\n- 문자 클래스: [a-z], [0-9]\n\n- 부정: [^0-9]\n\n- 리터럴 *, ? 또는 [는 괄호로 묶어야 합니다(예: [*], [?], [[]).\n\n- 모든 결과는 대소문자를 구분합니다.",
-    "openInAdvancedSearch": "고급 검색에서 열기"
+    "openInAdvancedSearch": "고급 검색에서 열기",
+    "caseExact": "대소문자를 구분하는 일치",
+    "caseExactDescription": "대소문자를 구분하지 않고 무시하는 대신, 파일 및 폴더 이름을 대소문자를 정확히 일치시켜 검색합니다."
   },
   "settings": {
     "avoidChanges": "(수정하지 않으면 비워두세요)",
@@ -572,7 +575,9 @@
     "no": "아니요{suffix}",
     "to": "~에{suffix}",
     "and": "그리고{suffix}",
-    "or": "또는{suffix}"
+    "or": "또는{suffix}",
+    "camera": "카메라{suffix}",
+    "video": "동영상{suffix}"
   },
   "access": {
     "rules": "액세스 규칙",
@@ -778,7 +783,6 @@
       "scopeAria": "폴더로 검색 제한",
       "noTerms": "검색어를 하나 이상 입력합니다.",
       "termTooShort": "각 검색어는 {minSearchLength} 자 이상이어야 합니다.",
-      "caseExact": "대소문자 구분 일치",
       "resultsTitle": "검색 결과",
       "invalidSources": "하나 이상의 소스를 켭니다.",
       "noResults": "일치하는 파일이나 폴더가 없습니다."
@@ -807,7 +811,18 @@
     "description": "현재 세션의 모든 알림 보기",
     "empty": "아직 알림이 없습니다.",
     "clearAll": "모두 지우기",
-    "total": "{count} 알림"
+    "appEnabled": "앱 알림",
+    "appEnabledDescription": "이 탭이 백그라운드에 있을 때 파일 작업이 완료되면 브라우저 알림을 표시합니다. 브라우저 권한이 필요합니다. 이 브라우저에만 저장됩니다.",
+    "appUnsupported": "이 브라우저에서는 앱 알림이 지원되지 않습니다.",
+    "permissionGranted": "허용됨",
+    "permissionDeniedHelp": "알림이 차단되었습니다. 브라우저 설정에서 이 사이트에 대한 알림을 허용해 주세요.",
+    "uploadTitle": "업로드 완료",
+    "downloadTitle": "전체 다운로드",
+    "moveTitle": "이동이 완료되었습니다",
+    "copyTitle": "복사 완료",
+    "uploadFailedTitle": "업로드에 실패했습니다",
+    "downloadFailedTitle": "다운로드에 실패했습니다",
+    "operationFailedTitle": "작업이 실패했습니다"
   },
   "events": {
     "serverShutdown": "서버가 종료되었습니다.",
@@ -860,5 +875,8 @@
     "documentDownload": "문서 다운로드 - 완료",
     "editorSuccess": "편집기 초기화 - 성공! 모든 단계가 완료되었습니다.",
     "setupError": "설정 오류"
+  },
+  "pwa": {
+    "install": "앱 설치"
   }
 }

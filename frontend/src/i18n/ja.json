@@ -29,7 +29,8 @@
     "goToItem": "アイテムへ",
     "copyPath": "コピーパス",
     "pinItem": "ピン留め",
-    "unpinItem": "ピン留めを解除"
+    "unpinItem": "ピン留めを解除",
+    "sendToApp": "アプリに送信"
   },
   "errors": {
     "forbidden": "このリソースへのアクセス権限がありません。",
@@ -245,7 +246,9 @@
     "helpText2": "ファイル名またはフォルダ名のみ（フルパスではない）の部分文字列マッチ case:exactで大文字小文字を区別してマッチング\n\n パイプ文字を使用し、1つのフレーズを二重引用符で囲みます。\n\nワイルドカード検索を有効にすると、より高度なオプションを使用できます。",
     "useWildcardSearch": "ワイルドカード検索（大文字と小文字を区別）",
     "useWildcardSearchDescription": "サポートされているワイルドカードオプション：\n\n- 任意のシーケンスにマッチします：*\n\n- 1文字にマッチ: ?\n\n- 文字クラス：[a-z], [0-9］\n\n- 否定[^0-9]\n\n- 例えば、[*]、[?]、[[]のように、*、?\n\n- すべての結果は大文字と小文字を区別します。",
-    "openInAdvancedSearch": "詳細検索で開く"
+    "openInAdvancedSearch": "詳細検索で開く",
+    "caseExact": "大文字と小文字を区別する一致",
+    "caseExactDescription": "大文字と小文字を区別せずに処理するのではなく、ファイル名とフォルダ名の文字の大文字・小文字を厳密に一致させる。"
   },
   "settings": {
     "avoidChanges": "（変更を避けるために空白にしてください）",
@@ -572,7 +575,9 @@
     "no": "いいえ{suffix}",
     "to": "～へ{suffix}",
     "and": "そして{suffix}",
-    "or": "または{suffix}"
+    "or": "または{suffix}",
+    "camera": "カメラ{suffix}",
+    "video": "動画{suffix}"
   },
   "access": {
     "rules": "アクセスルール",
@@ -778,7 +783,6 @@
       "scopeAria": "検索対象をフォルダに限定する",
       "noTerms": "少なくとも1つの検索語を入力してください。",
       "termTooShort": "各検索語は{minSearchLength} 文字以上でなければなりません。",
-      "caseExact": "大文字と小文字の一致",
       "resultsTitle": "検索結果",
       "invalidSources": "少なくとも1つのソースをオンにする。",
       "noResults": "一致するファイルやフォルダがありません。"
@@ -807,7 +811,18 @@
     "description": "現在のセッションのすべての通知を表示する",
     "empty": "まだ通知なし",
     "clearAll": "すべてクリア",
-    "total": "{count} 通知"
+    "appEnabled": "アプリの通知",
+    "appEnabledDescription": "このタブがバックグラウンドにある間にファイル操作が完了した際、ブラウザに通知を表示します。ブラウザの権限が必要です。このブラウザにのみ保存されます。",
+    "appUnsupported": "このブラウザではアプリ通知に対応していません。",
+    "permissionGranted": "許可された",
+    "permissionDeniedHelp": "通知がブロックされています。このサイトについて、ブラウザの設定で通知を有効にしてください。",
+    "uploadTitle": "アップロードが完了しました",
+    "downloadTitle": "すべてダウンロード",
+    "moveTitle": "移動が完了しました",
+    "copyTitle": "コピー完了",
+    "uploadFailedTitle": "アップロードに失敗しました",
+    "downloadFailedTitle": "ダウンロードに失敗しました",
+    "operationFailedTitle": "操作に失敗しました"
   },
   "events": {
     "serverShutdown": "サーバーはシャットダウンされた。",
@@ -860,5 +875,8 @@
     "documentDownload": "資料ダウンロード - 完",
     "editorSuccess": "エディターの初期化 - 成功！すべてのステップが完了しました。",
     "setupError": "セットアップエラー"
+  },
+  "pwa": {
+    "install": "アプリをインストール"
   }
 }

@@ -29,7 +29,8 @@
     "goToItem": "Ir para o item",
     "copyPath": "Caminho de cópia",
     "pinItem": "Fixar",
-    "unpinItem": "Desafixar"
+    "unpinItem": "Desafixar",
+    "sendToApp": "Enviar para a aplicação"
   },
   "errors": {
     "forbidden": "Não tem permissões para aceder a isto",
@@ -245,7 +246,9 @@
     "helpText2": "Correspondência de subcadeia de caracteres apenas em nomes de ficheiros ou pastas (não em caminhos completos). case:exact para correspondência sensível a maiúsculas e minúsculas\n\n para OU entre termos, utilizar o carácter pipe; aspas duplas para uma frase.\n\nAtivar a pesquisa de wildcards para opções mais avançadas.",
     "useWildcardSearch": "Pesquisa com caracteres curinga (sensível a maiúsculas e minúsculas)",
     "useWildcardSearchDescription": "Opções curingas suportadas:\n\n- Corresponde a qualquer sequência: *\n\n- Corresponder a um carácter: ?\n\n- Classe de caracteres: [a-z], [0-9]\n\n- Negação: [^0-9]\n\n- Os literais *, ?, ou [ devem ser colocados entre parênteses, por exemplo, [*], [?], [[]\n\n- Todos os resultados são sensíveis a maiúsculas e minúsculas",
-    "openInAdvancedSearch": "Abrir na Pesquisa Avançada"
+    "openInAdvancedSearch": "Abrir na Pesquisa Avançada",
+    "caseExact": "Correspondência que distingue maiúsculas de minúsculas",
+    "caseExactDescription": "Comparar os nomes dos ficheiros e pastas utilizando a maiúscula e minúscula exatas, em vez de ignorar as maiúsculas e minúsculas."
   },
   "settings": {
     "avoidChanges": "(deixe em branco para manter)",
@@ -666,7 +669,9 @@
     "no": "Não{suffix}",
     "to": "para{suffix}",
     "and": "e{suffix}",
-    "or": "ou{suffix}"
+    "or": "ou{suffix}",
+    "camera": "Câmara{suffix}",
+    "video": "Vídeo{suffix}"
   },
   "access": {
     "rules": "Regras de acesso",
@@ -778,7 +783,6 @@
       "scopeAria": "Limitar a pesquisa a uma pasta",
       "noTerms": "Introduzir pelo menos um termo de pesquisa.",
       "termTooShort": "Cada termo de pesquisa deve ter, pelo menos, {minSearchLength} caracteres",
-      "caseExact": "Correspondência com distinção de maiúsculas e minúsculas",
       "resultsTitle": "Resultados da pesquisa",
       "invalidSources": "Ligar pelo menos uma fonte.",
       "noResults": "Não há ficheiros ou pastas correspondentes."
@@ -807,7 +811,18 @@
     "description": "Ver todas as notificações da sua sessão atual",
     "empty": "Ainda não há notificações",
     "clearAll": "Limpar tudo",
-    "total": "{count} notificações"
+    "appEnabled": "Notificações da aplicação",
+    "appEnabledDescription": "Mostrar notificações do navegador quando as operações com ficheiros forem concluídas enquanto este separador estiver em segundo plano. Requer autorização do navegador. Guardado apenas neste navegador.",
+    "appUnsupported": "As notificações de aplicações não são suportadas neste navegador.",
+    "permissionGranted": "permitido",
+    "permissionDeniedHelp": "As notificações estão bloqueadas. Ative-as nas definições do seu navegador para este site.",
+    "uploadTitle": "Carregamento concluído",
+    "downloadTitle": "Descarregar na íntegra",
+    "moveTitle": "Movimentação concluída",
+    "copyTitle": "Cópia concluída",
+    "uploadFailedTitle": "Falha no carregamento",
+    "downloadFailedTitle": "O download falhou",
+    "operationFailedTitle": "A operação falhou"
   },
   "events": {
     "serverShutdown": "O servidor foi desligado.",
@@ -860,5 +875,8 @@
     "documentDownload": "Descarregamento de documentos - Completo",
     "editorSuccess": "Inicialização do editor - Sucesso! Todas as etapas foram concluídas.",
     "setupError": "Erro de configuração"
+  },
+  "pwa": {
+    "install": "Instalar a aplicação"
   }
 }

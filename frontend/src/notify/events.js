@@ -36,7 +36,7 @@ function scheduleReconnect() {
 
   reconnectTimeout = setTimeout(() => {
     console.log('🔁 Attempting SSE reconnect...')
-    setupSSE()
+    void setupSSE()
   }, 5000)
 }
 
@@ -67,7 +67,7 @@ async function testEventsEndpoint() {
     }
 
     // Close the test connection immediately
-    response.body?.cancel()
+    void response.body?.cancel()
     return true
   } catch (_error) {
     // For network errors (like ERR_CONNECTION_REFUSED), we'll try the EventSource anyway
@@ -101,7 +101,7 @@ async function setupSSE () {
     }
     clearReconnect()
     mutations.setRealtimeActive(true)
-    updateSourceInfo()
+    void updateSourceInfo()
     // Reset authentication failure flag on successful connection
     authenticationFailed = false
     // Reset shutdown message flag on successful reconnection
@@ -111,7 +111,7 @@ async function setupSSE () {
   eventSrc.onmessage = event => {
     try {
       const msg = JSON.parse(event.data)
-      eventRouter(msg.eventType, msg.message)
+      void eventRouter(msg.eventType, msg.message)
     } catch (err) {
       console.error('Error parsing SSE:', err, event.data)
     }
@@ -140,13 +140,13 @@ async function setupSSE () {
 export function startSSE () {
   // Reset authentication failure flag when starting SSE
   authenticationFailed = false
-  setupSSE()
+  void setupSSE()
 }
 
 export function startOnlyOfficeSSE () {
   // Reset authentication failure flag when starting SSE
   authenticationFailed = false
-  setupSSE()
+  void setupSSE()
 }
 
 export function stopSSE () {

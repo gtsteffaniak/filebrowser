@@ -64,7 +64,7 @@ export async function create(bodyObj = {}) {
     const apiPath = getApiPath("share");
     return await fetchJSON(apiPath, {
     method: "POST",
-    body: JSON.stringify(bodyObj || {}),
+    body: JSON.stringify(bodyObj),
   });
   } catch (/** @type {any} */ err) {
     notify.showError(err.message || "Error creating share");
@@ -123,4 +123,15 @@ export async function getShareInfoPublic(hash) {
     notify.showError(err.message || 'Error getting share info')
     throw err
   }
+}
+
+// PATCH /public/api/share/pinnedItems (add by default; ?action=remove to unpin)
+export async function patchPinnedItem({ hash, path, name, action = 'add' }) {
+  const params = { hash, action }
+  const apiPath = getPublicApiPath('share/pinnedItems', params)
+  await fetchURL(apiPath, {
+    method: 'PATCH',
+    body: JSON.stringify({ path, name }),
+    headers: { 'Content-Type': 'application/json' },
+  })
 }

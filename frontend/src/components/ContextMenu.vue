@@ -83,6 +83,12 @@
         @action="startDownload"
       />
       <action
+        v-if="showSendToApp"
+        icon="ios_share"
+        :label="$t('buttons.sendToApp')"
+        @action="sendToApp"
+      />
+      <action
         v-if="showUnarchive"
         icon="unarchive"
         :label="$t('prompts.unarchive')"
@@ -185,6 +191,7 @@
       <action v-if="isPreview && permissions.modify" icon="edit" :label="$t('general.rename')" @action="showRenamePromptForPreview" />
       <action v-if="showWatch" icon="visibility" :label="$t('buttons.watchFile')" @action="watchFile()" />
       <action v-if="hasDownload" icon="file_download" :label="$t('general.download')" @action="startDownload" />
+      <action v-if="showSendToAppInPreview" icon="ios_share" :label="$t('buttons.sendToApp')" @action="sendToAppFromPreview" />
       <action v-if="showUnarchiveInOverflow" icon="folder_open" :label="$t('prompts.unarchive')" @action="showUnarchivePromptFromPreview" />
       <action v-if="showEdit" icon="edit" :label="$t('general.edit')" @action="edit()" />
       <action v-if="markdownPreview" icon="visibility" :label="$t('general.preview')" @action="switchToMarkdown" />
@@ -195,7 +202,7 @@
 </template>
 
 <script>
-import { resourcesApi, usersApi } from "@/api";
+import { resourcesApi, shareApi, usersApi } from "@/api";
 import Action from "@/components/Action.vue";
 import { notify } from "@/notify";
 import { getters, mutations, state } from "@/store";
@@ -204,6 +211,8 @@ import buttons from "@/utils/buttons";
 import { copyToClipboard } from "@/utils/clipboard";
 import { globalVars } from "@/utils/constants.js";
 import downloadFiles from "@/utils/download";
+import { canNativeShare, nativeShareFile } from "@/utils/nativeShare";
+import { isRichTextPreviewMimeType } from "@/utils/mimetype";
 
 function isArchivePath(pathOrName) {
   if (!pathOrName || typeof pathOrName !== "string") return false;
@@ -254,7 +263,9 @@ export default {
       if (state.selected.length === 0) return [];
       // Map to actual items from state.req
       if (typeof state.selected[0] === 'number') {
-        return state.selected.map(index => state.req.items[index]);
+        return state.selected
+          .map(index => state.req.items.at(index))
+          .filter(item => item !== null);
       }
       return state.selected;
     },
@@ -328,13 +339,26 @@ export default {
       if (this.showLimitedOptions) return false;
       return this.selectedCount <= 1 && this.showShare;
     },
+    showSendToApp() {
+      if (!canNativeShare()) return false;
+      if (this.showLimitedOptions || this.showCreate) return false;
+      if (!this.permissions.download || this.selectedCount !== 1) return false;
+      const item = this.firstSelected;
+      return item && !item.isDir && item.type !== "directory";
+    },
+    showSendToAppInPreview() {
+      if (!canNativeShare()) return false;
+      if (!this.hasDownload || this.req?.isDir) return false;
+      return this.isPreview;
+    },
     showRename() {
       if (this.showLimitedOptions) return false;
       return !this.showCreate && this.selectedCount === 1 && this.permissions.modify && !this.isSearchActive;
     },
     showPinAction() {
       if (this.showLimitedOptions) return false;
-      if (getters.isShare() || !getters.isLoggedIn()) return false;
+      if (!getters.isLoggedIn()) return false;
+      if (getters.isShare() && !state.shareInfo?.canEditShare) return false;
       if (this.showCreate || this.isSearchActive) return false;
       if (this.selectedCount !== 1) return false;
       return getters.currentView() === "listingView";
@@ -478,7 +502,7 @@ export default {
     },
     markdownPreview() {
       if (getters.currentView() !== 'editor') return false;
-      return state.req.type === 'text/markdown';
+      return isRichTextPreviewMimeType(state.req.type);
     },
   },
   watch: {
@@ -692,6 +716,17 @@ export default {
       const items = this.providedItems;
       downloadFiles(items);
     },
+    async sendToApp() {
+      mutations.closeTopPrompt();
+      const item = this.firstSelected;
+      if (!item) return;
+      await nativeShareFile(item);
+    },
+    async sendToAppFromPreview() {
+      mutations.closeTopPrompt();
+      if (!this.req) return;
+      await nativeShareFile(this.req);
+    },
     showDeletePrompt() {
       mutations.closeTopPrompt();
       mutations.showPrompt({
@@ -723,25 +758,37 @@ export default {
     },
     async togglePin() {
       const item = this.firstSelected;
-      if (!item?.name || getters.isShare() || !getters.isLoggedIn()) {
+      if (!item?.name || !getters.isLoggedIn()) {
+        return;
+      }
+      if (getters.isShare() && !state.shareInfo?.canEditShare) {
         return;
       }
       mutations.closeHovers();
-      const source = item.source || state.req?.source || state.sources.current;
-      if (!source) {
-        return;
-      }
       const directoryPath = state.req?.type === "directory"
         ? state.req.path
         : url.getParentDir(item.path);
       const action = item.pinned ? "remove" : "add";
       try {
-        await usersApi.patchPinnedItem({
-          source,
-          path: directoryPath,
-          name: item.name,
-          action,
-        });
+        if (getters.isShare()) {
+          await shareApi.patchPinnedItem({
+            hash: state.shareInfo.hash,
+            path: directoryPath,
+            name: item.name,
+            action,
+          });
+        } else {
+          const source = item.source || state.req?.source || state.sources.current;
+          if (!source) {
+            return;
+          }
+          await usersApi.patchPinnedItem({
+            source,
+            path: directoryPath,
+            name: item.name,
+            action,
+          });
+        }
         mutations.setReload(true);
       } catch (e) {
         notify.showError(e);

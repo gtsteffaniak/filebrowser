@@ -36,6 +36,8 @@ import { resourcesApi } from "@/api";
 import { notify } from "@/notify";
 import { getters, mutations, state } from "@/store";
 import { url } from "@/utils";
+import { getObjectProperty } from '@/utils/object.js';
+import { goToItemNotificationButton } from "@/utils/notificationActions";
 
 export default {
   name: "breadcrumbs",
@@ -69,7 +71,7 @@ export default {
       return state.req.hasUpdate;
     },
     isDroppable() {
-      return getters.permissions()?.modify
+      return getters.permissions().modify
     },
     homeLink() {
       return {
@@ -80,14 +82,12 @@ export default {
       };
     },
     scrollRatio() {
-      const ratio = state.listing?.scrollRatio || 0;
+      const ratio = state.listing.scrollRatio || 0;
       return ratio;
     },
     items() {
       const req = state.req;
-      if (!req.items || !req.path) {
-        return [];
-      }
+      if (!req.path) return [];
       const encodedPathString = url.encodedPath(state.req.path);
       const originalParts = state.req.path.split("/");
       const encodedParts = encodedPathString.split("/");
@@ -105,8 +105,8 @@ export default {
       let accumulatedPath = "";
 
       for (let i = 0; i < originalParts.length; i++) {
-        const origPart = originalParts[i];
-        const encodedElement = encodedParts[i];
+        const origPart = getObjectProperty(originalParts, i);
+        const encodedElement = getObjectProperty(encodedParts, i);
         buildRef = `${buildRef + encodedElement}/`;
         accumulatedPath = accumulatedPath ? `${accumulatedPath}/${origPart}` : origPart;
 
@@ -210,7 +210,7 @@ export default {
       for (const i of state.selected) {
         if (i < 0 || i >= state.req.length) continue;
 
-        const selectedItem = state.req.items[i];
+        const selectedItem = state.req.items.at(i);
 
         let fromPath = selectedItem.path;
 
@@ -279,17 +279,16 @@ export default {
             await resourcesApi.moveCopy(itemsToMove, "move", overwrite, rename);
           }
 
-          const buttonAction = () => {
-            url.goToItem(source, targetPath, {}, false, getters.isShare());
-          };
-
           notify.showSuccess(this.$t("prompts.moveSuccess"), {
             icon: "folder",
-            buttons: [{
-              label: this.$t("buttons.goToItem"),
-              primary: true,
-              action: buttonAction
-            }]
+            buttons: [
+              goToItemNotificationButton(
+                this.$t("buttons.goToItem"),
+                source,
+                targetPath,
+                getters.isShare()
+              ),
+            ],
           });
           mutations.closeTopPrompt();
           mutations.setReload(true);
@@ -308,7 +307,7 @@ export default {
             const rename = option === "rename";
             event.preventDefault();
             mutations.closeTopPrompt();
-            moveAction(overwrite, rename);
+            void moveAction(overwrite, rename);
           },
         });
         return;

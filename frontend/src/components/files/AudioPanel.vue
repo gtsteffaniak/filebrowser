@@ -85,7 +85,7 @@ export default {
   computed: {
     darkMode() { return getters.isDarkMode(); },
     queueCount() {
-      return state.playbackQueue?.queue?.length || 0;
+      return state.playbackQueue.queue.length || 0;
     },
     syncedLyrics() {
       return this.lyrics.length > 0 && !this.lyrics.every(line => line.timestamp === 0);

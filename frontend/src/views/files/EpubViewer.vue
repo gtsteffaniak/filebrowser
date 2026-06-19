@@ -187,18 +187,18 @@ export default defineComponent({
     },
     // Navigate to the next page
     nextPage() {
-      this.rendition?.next();
+      void this.rendition?.next();
     },
     // Navigate to the previous page
     prevPage() {
-      this.rendition?.prev();
+      void this.rendition?.prev();
     },
     // Close the viewer and navigate away
     close() {
       const filename = state.req.name;
       mutations.replaceRequest({});
       const uri = `${removeLastDir(state.route.path)}/`;
-      router.push({ path: uri, hash: `#${filename}` });
+      void router.push({ path: uri, hash: `#${filename}` });
     },
     // Error handler
     onLoadComponentError(error: unknown) {

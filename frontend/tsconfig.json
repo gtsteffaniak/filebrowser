@@ -28,7 +28,7 @@
     "src/**/*.js",
     "src/**/*.d.ts",
     "src/**/*.vue",
-    "tests-playwright/**/*.ts",
+    "tests/playwright/**/*.ts",
     "scripts/**/*.js",
     "eslint.config.js",
     "vite.config.ts"

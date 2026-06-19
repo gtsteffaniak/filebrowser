@@ -51,7 +51,7 @@ export default {
   name: "StatusBar",
   data() {
     return {
-      gallerySize: state.user.gallerySize,
+      gallerySize: state.user?.gallerySize,
     };
   },
   computed: {
@@ -91,8 +91,8 @@ export default {
       }
       let total = 0;
       state.selected.forEach(index => {
-        if (index >= 0 && index < state.req.items.length) {
-          const item = state.req.items[index];
+        if (index >= 0 && index < state.req?.items.length) {
+          const item = state.req.items.at(index);
           if (item?.size) {
             total += item.size;
           }
@@ -206,7 +206,7 @@ export default {
       // Only update if the mode actually changed
       if (newMode !== currentMode) {
         mutations.updateDisplayPreferences({ viewMode: newMode });
-        mutations.updateCurrentUser({ viewMode: newMode });
+        void mutations.updateCurrentUser({ viewMode: newMode });
       }
     },
     // Ctrl + Mouse Wheel to adjust the slider sizes
@@ -215,7 +215,7 @@ export default {
 
       const delta = event.deltaY > 0 ? 1 : -1; // Scroll down increases, up decreases
 
-      const advSearch = (state.route?.path || "").startsWith("/tools/advancedSearch");
+      const advSearch = (state.route.path || "").startsWith("/tools/advancedSearch");
       if (this.currentView === "listingView" || advSearch) {
         event.preventDefault();
         const newSize = Math.min(9, Math.max(1, this.gallerySize - delta));

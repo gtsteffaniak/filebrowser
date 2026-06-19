@@ -148,7 +148,7 @@ export default {
     },
     availableSources() {
       // Get all available sources from state.sources.info
-      return state.sources?.info ? Object.keys(state.sources.info) : [state.req.source];
+      return state.sources.info ? Object.keys(state.sources.info) : [state.req.source];
     },
     showSourceSelector() {
       if (this.hideDestinationSource) {
@@ -280,7 +280,7 @@ export default {
       this.selectedSource = null;
       this.selectedType = null;
       // Fetch files for the new source
-      this.withLoading(() => resourcesApi.fetchFiles(newSource, newPath).then(this.fillOptions));
+      void this.withLoading(() => resourcesApi.fetchFiles(newSource, newPath).then(this.fillOptions));
     },
     resetToShare(newHash) {
       // Reset to the share root
@@ -291,7 +291,7 @@ export default {
       this.selectedSource = null;
       this.selectedType = null;
       // Fetch files for the share
-      this.withLoading(() => resourcesApi.fetchFilesPublic("/", newHash).then(this.fillOptions));
+      void this.withLoading(() => resourcesApi.fetchFilesPublic("/", newHash).then(this.fillOptions));
     },
     fillOptions(req) {
       // Sets the current path and resets the current items.
@@ -373,14 +373,14 @@ export default {
       if (this.browseSource) {
         // Explicitly browsing a source - use files API
         this.source = sourceToUse;
-        this.withLoading(() => resourcesApi.fetchFiles(sourceToUse, path).then(this.fillOptions));
+        void this.withLoading(() => resourcesApi.fetchFiles(sourceToUse, path).then(this.fillOptions));
       } else if (this.browseShare || getters.isShare()) {
         // Browsing a share - use public API
         const hashToUse = this.browseShare || state.shareInfo?.hash;
-        this.withLoading(() => resourcesApi.fetchFilesPublic(path, hashToUse).then(this.fillOptions));
+        void this.withLoading(() => resourcesApi.fetchFilesPublic(path, hashToUse).then(this.fillOptions));
       } else {
         this.source = sourceToUse;
-        this.withLoading(() => resourcesApi.fetchFiles(sourceToUse, path).then(this.fillOptions));
+        void this.withLoading(() => resourcesApi.fetchFiles(sourceToUse, path).then(this.fillOptions));
       }
 
     },
@@ -510,13 +510,9 @@ export default {
       this.selectedType = null;
       if (this.browseShare || getters.isShare()) {
         const hashToUse = this.browseShare || state.shareInfo?.hash;
-        this.withLoading(() =>
-          resourcesApi.fetchFilesPublic(p, hashToUse).then(this.fillOptions)
-        );
+        void this.withLoading(() => resourcesApi.fetchFilesPublic(p, hashToUse).then(this.fillOptions));
       } else {
-        this.withLoading(() =>
-          resourcesApi.fetchFiles(source, p).then(this.fillOptions)
-        );
+        void this.withLoading(() => resourcesApi.fetchFiles(source, p).then(this.fillOptions));
       }
     },
     fillFromList() {

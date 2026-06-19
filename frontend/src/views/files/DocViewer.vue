@@ -32,7 +32,7 @@ export default defineComponent({
   watch: {
     "state.req.path": {
       handler() {
-        this.loadFile();
+        void this.loadFile();
       },
       immediate: true,
     },
@@ -54,7 +54,7 @@ export default defineComponent({
 
           // Debounce navigation updates to prevent rapid firing
           this.navigationUpdateTimeout = setTimeout(() => {
-            this.updateNavigationForCurrentItem();
+            void this.updateNavigationForCurrentItem();
             this.navigationUpdateTimeout = null;
           }, 50);
 

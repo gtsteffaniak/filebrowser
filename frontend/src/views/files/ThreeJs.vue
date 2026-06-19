@@ -55,6 +55,7 @@ import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { state, mutations, getters } from "@/store";
 import { resourcesApi } from "@/api";
 import { removeLastDir } from "@/utils/url";
+import { getObjectProperty } from '@/utils/object.js';
 
 const LOADERS = {
   gltf: GLTFLoader,
@@ -226,7 +227,7 @@ export default {
               if (this.isInView && !this.hasInitialized) {
                 this.hasInitialized = true;
                 this.initScene();
-                this.loadModel();
+                void this.loadModel();
               }
               this.loadTimer = null;
             }, delay);
@@ -377,7 +378,7 @@ export default {
       
       try {
         const extension = this.fileExtension;
-        const LoaderClass = LOADERS[extension];
+        const LoaderClass = getObjectProperty(LOADERS, extension);
         if (!LoaderClass) throw new Error(`Unsupported 3D format: .${extension}`);
 
         const loadingManager = markRaw(new THREE.LoadingManager());
@@ -388,7 +389,7 @@ export default {
 
         // Special handlers
         if (extension === 'glb') {
-          this.loadGLB(loader);
+          await this.loadGLB(loader);
         } else if (extension === 'obj') {
           this.loadOBJ(loader, loadingManager);
         } else {
@@ -682,7 +683,7 @@ export default {
     reinit() {
       this.cleanup();
       this.initScene();
-      this.loadModel();
+      void this.loadModel();
       if (!this.isThumbnail) this.updateSelectedState();
     },
     

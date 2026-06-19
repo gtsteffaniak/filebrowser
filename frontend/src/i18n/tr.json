@@ -29,7 +29,8 @@
     "goToItem": "Öğeye git",
     "copyPath": "Kopyalama Yolu",
     "pinItem": "Sabitle",
-    "unpinItem": "Sabitlemeyi Kaldır"
+    "unpinItem": "Sabitlemeyi Kaldır",
+    "sendToApp": "Uygulamaya gönder"
   },
   "errors": {
     "forbidden": "Buna erişim izniniz yok.",
@@ -245,7 +246,9 @@
     "helpText2": "Yalnızca dosya veya klasör adlarında alt dize eşleşmesi (tam yollarda değil). case:exact büyük/küçük harfe duyarlı eşleştirme için\n\n terimler arasında VEYA için boru karakteri kullanın; bir ifade için çift tırnak kullanın.\n\nDaha gelişmiş seçenekler için joker karakter aramayı etkinleştirin.",
     "useWildcardSearch": "Joker karakter araması (büyük/küçük harfe duyarlı)",
     "useWildcardSearchDescription": "Desteklenen joker karakter seçenekleri:\n\n- Herhangi bir diziyi eşleştirin: *\n\n- Bir karakteri eşleştirin: ?\n\n- Karakter sınıfı: [a-z], [0-9]\n\n- Negasyon: [^0-9]\n\n- Literal *, ? veya [ parantez içine alınmalıdır, örneğin [*], [?], [[]\n\n- Tüm sonuçlar büyük/küçük harfe duyarlıdır",
-    "openInAdvancedSearch": "Gelişmiş Aramada Aç"
+    "openInAdvancedSearch": "Gelişmiş Aramada Aç",
+    "caseExact": "Büyük/küçük harf duyarlı eşleştirme",
+    "caseExactDescription": "Büyük ve küçük harfleri göz ardı etmek yerine, dosya ve klasör adlarını tam harf büyük/küçük yazımına göre eşleştirin."
   },
   "settings": {
     "avoidChanges": "(değişiklikleri önlemek için boş bırakın)",
@@ -572,7 +575,9 @@
     "no": "Hayır{suffix}",
     "to": "...'ye{suffix}",
     "and": "ve{suffix}",
-    "or": "veya{suffix}"
+    "or": "veya{suffix}",
+    "camera": "Kamera{suffix}",
+    "video": "Video{suffix}"
   },
   "access": {
     "rules": "Erişim kuralları",
@@ -778,7 +783,6 @@
       "scopeAria": "Aramayı bir klasörle sınırlandırın",
       "noTerms": "En az bir arama terimi girin.",
       "termTooShort": "Her bir arama terimi en az {minSearchLength} karakter olmalıdır",
-      "caseExact": "Harfe duyarlı eşleşme",
       "resultsTitle": "Arama sonuçları",
       "invalidSources": "En az bir kaynağı açın.",
       "noResults": "Eşleşen dosya veya klasör yok."
@@ -807,7 +811,18 @@
     "description": "Geçerli oturumunuzdaki tüm bildirimleri görüntüleyin",
     "empty": "Henüz bildirim yok",
     "clearAll": "Tümünü Temizle",
-    "total": "{count} BİLDİRİMLER"
+    "appEnabled": "Uygulama bildirimleri",
+    "appEnabledDescription": "Bu sekme arka planda iken dosya işlemleri tamamlandığında tarayıcı bildirimlerini göster. Tarayıcı izni gerektirir. Yalnızca bu tarayıcıda saklanır.",
+    "appUnsupported": "Bu tarayıcıda uygulama bildirimleri desteklenmemektedir.",
+    "permissionGranted": "izin verilen",
+    "permissionDeniedHelp": "Bildirimler engellenmiştir. Bu site için tarayıcı ayarlarınızdan bildirimleri etkinleştirin.",
+    "uploadTitle": "Yükleme tamamlandı",
+    "downloadTitle": "Tam sürümü indir",
+    "moveTitle": "İşlem tamamlandı",
+    "copyTitle": "Kopyalama tamamlandı",
+    "uploadFailedTitle": "Yükleme başarısız",
+    "downloadFailedTitle": "İndirme başarısız",
+    "operationFailedTitle": "İşlem başarısız oldu"
   },
   "events": {
     "serverShutdown": "Sunucu kapatıldı.",
@@ -860,5 +875,8 @@
     "documentDownload": "Belge İndirme - Tamamlandı",
     "editorSuccess": "Editör Başlatma - Başarılı! Tüm adımlar tamamlandı.",
     "setupError": "Kurulum Hatası"
+  },
+  "pwa": {
+    "install": "Uygulamayı yükle"
   }
 }

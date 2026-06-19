@@ -4630,6 +4630,86 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/public/api/share/pinnedItems": {
+            "patch": {
+                "description": "Patches one pinned item at a time for share owners. Defaults to add; pass ?action=remove to unpin.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shares"
+                ],
+                "summary": "Add or remove a pinned item on a share",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Share hash",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "add (default) or remove",
+                        "name": "action",
+                        "in": "query"
+                    },
+                    {
+                        "description": "Pinned item",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.sharePinnedItemPatchRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Share not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -4923,6 +5003,9 @@ const docTemplate = `{
                 "perUserDownloadLimit": {
                     "type": "boolean"
                 },
+                "pinnedItems": {
+                    "$ref": "#/definitions/share.PinnedItems"
+                },
                 "quickDownload": {
                     "type": "boolean"
                 },
@@ -5115,6 +5198,23 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "source": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.sharePinnedItemPatchRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "path"
+            ],
+            "properties": {
+                "name": {
+                    "description": "item basename within path",
+                    "type": "string"
+                },
+                "path": {
+                    "description": "share-relative parent directory",
                     "type": "string"
                 }
             }
@@ -7283,6 +7383,9 @@ const docTemplate = `{
                 "perUserDownloadLimit": {
                     "type": "boolean"
                 },
+                "pinnedItems": {
+                    "$ref": "#/definitions/share.PinnedItems"
+                },
                 "quickDownload": {
                     "type": "boolean"
                 },
@@ -7339,6 +7442,15 @@ const docTemplate = `{
                 },
                 "viewMode": {
                     "description": "default view mode for anonymous users: \"list\", \"compact\", \"normal\", \"gallery\"",
+                    "type": "string"
+                }
+            }
+        },
+        "share.PinnedItems": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "array",
+                "items": {
                     "type": "string"
                 }
             }

@@ -1,6 +1,16 @@
 <template>
   <div id="markedown-viewer">
-    <div class="markdown-content-container" :class="{ 'dark-mode': darkMode }">
+    <iframe
+      v-if="isHtml"
+      ref="viewer"
+      :key="req.path"
+      class="html-content"
+      :srcdoc="htmlPreview.srcdoc"
+      sandbox="allow-scripts allow-popups allow-same-origin"
+      referrerpolicy="no-referrer"
+      title="HTML preview"
+    ></iframe>
+    <div v-else class="markdown-content-container" :class="{ 'dark-mode': darkMode }">
       <div ref="viewer" v-html="renderedContent" class="markdown-content"></div>
     </div>
     <div class="spacer" :style="{ height: `${spaceForStatusBar}em` }"></div>
@@ -14,44 +24,14 @@ import { state, mutations, getters } from "@/store";
 import hljs from 'highlight.js';
 import { copyToClipboard } from "@/utils/clipboard";
 import { globalVars } from "@/utils/constants";
-import { getDownloadURL, getDownloadURLPublic } from "@/api/resources";
-import { resolveRelativePath } from "@/utils/url";
-import { isImageFilePath } from "@/utils/mimetype";
+import { isHtmlMimeType } from "@/utils/mimetype";
+import {
+  buildHtmlPreview,
+  buildPreviewResourceUrl,
+} from "@/utils/htmlPreview";
 
 import githubLightCss from "highlight.js/styles/github.min.css?raw";
 import githubDarkCss from "highlight.js/styles/github-dark.min.css?raw";
-
-function isLocalImageReference(href: string): boolean {
-  return !/^(https?:|data:|mailto:|#)/i.test(href) && !href.startsWith("//");
-}
-
-function buildMarkdownImageUrl(href: string, markdownFilePath: string, source: string): string {
-  if (!href || !isLocalImageReference(href)) {
-    return href;
-  }
-
-  const resolvedPath = resolveRelativePath(markdownFilePath, href);
-  if (!isImageFilePath(resolvedPath)) {
-    return href;
-  }
-
-  try {
-    if (getters.isShare()) {
-      return getDownloadURLPublic(
-        {
-          path: state.shareInfo.subPath,
-          hash: state.shareInfo.hash,
-          token: state.shareInfo.token,
-        },
-        [resolvedPath],
-        true,
-      );
-    }
-    return getDownloadURL(source, resolvedPath, true);
-  } catch {
-    return href;
-  }
-}
 
 export default {
   name: "markdownViewer",
@@ -130,7 +110,7 @@ export default {
       copyButton.className = 'copy-code-button';
       copyButton.innerHTML = '<span class="material-symbols-outlined">content_copy</span>';
       copyButton.setAttribute('aria-label', 'Copy code to clipboard');
-      copyButton.addEventListener('click', async (e) => {
+      copyButton.addEventListener('click', (e) => {
         e.stopPropagation();
         const text = codeBlock.textContent || '';
         const showFeedback = (success: boolean) => {
@@ -141,13 +121,14 @@ export default {
             copyButton.innerHTML = '<span class="material-symbols-outlined">content_copy</span>';
           }, 1500);
         };
-        try {
-          const success = await copyToClipboard(text);
-          showFeedback(success);
-        } catch (err) {
-          console.error('Copy failed:', err);
-          showFeedback(false);
-        }
+        void copyToClipboard(text)
+          .then((success) => {
+            showFeedback(success);
+          })
+          .catch((err) => {
+            console.error('Copy failed:', err);
+            showFeedback(false);
+          });
       });
       wrapper.appendChild(copyButton);
 
@@ -252,7 +233,7 @@ export default {
       let currentHTML = html;
 
       for (let i = 0; i < textLines.length; i++) {
-        const lineText = textLines[i];
+        const lineText = textLines.at(i);
         if (i === textLines.length - 1) {
           htmlLines.push(currentHTML);
         } else {
@@ -280,7 +261,7 @@ export default {
       parser.use({
         walkTokens(token) {
           if (token.type === "image" && token.href) {
-            token.href = buildMarkdownImageUrl(token.href, filePath, source);
+            token.href = buildPreviewResourceUrl(token.href, filePath, source);
           }
         },
       });
@@ -341,6 +322,15 @@ export default {
       // This computed property returns the current dark mode state.
       return state.user.darkMode;
     },
+    isHtml() {
+      return isHtmlMimeType(state.req.type);
+    },
+    htmlPreview() {
+      if (!this.isHtml) {
+        return { srcdoc: "" };
+      }
+      return buildHtmlPreview(this.content, state.req.path, state.req.source);
+    },
     renderedContent() {
       return this.parseMarkdown(this.content, state.req.path, state.req.source);
     },
@@ -374,8 +364,22 @@ export default {
   padding: 1em;
 }
 
-#markedown-viewer .markdown-content {
+#markedown-viewer .markdown-content,
+#markedown-viewer .html-content {
   width: 100%;
+}
+
+#markedown-viewer .html-content {
+  box-sizing: border-box;
+  border: none;
+  min-height: 24em;
+  background: #fff;
+  color-scheme: light dark;
+}
+
+#markedown-viewer .html-content img {
+  max-width: 100%;
+  height: auto;
 }
 
 #markedown-viewer .spacer {
