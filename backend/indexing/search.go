@@ -55,9 +55,9 @@ func (idx *Index) SearchParsed(baseOpts iteminfo.SearchOptions, scope string, so
 		searchOptions.Terms = []string{""}
 	}
 
-	nameGlobPatterns := nameGlobPatternsForSearch(searchOptions, useWildcard, largest)
-	globAnd := useWildcard && searchOptions.MatchAllTerms
+	nameGlobPatterns := iteminfo.NameGlobPatternsForSearch(searchOptions, useWildcard, largest)
 	caseExact := searchOptions.Conditions["exact"]
+	globAnd := len(nameGlobPatterns) > 0 && searchOptions.MatchAllTerms
 
 	rows, err := idx.db.SearchItems(idx.Name, scope, largest, nameGlobPatterns, globAnd, caseExact)
 	if err != nil {
@@ -169,11 +169,6 @@ func itemMatchesSearchFilters(item iteminfo.ItemInfo, isDir bool, searchOptions 
 	return false
 }
 
-// nameGlobPatternsForSearch builds non-empty parsed terms for SQLite name GLOB OR clauses.
-func nameGlobPatternsForSearch(opts iteminfo.SearchOptions, useWildcard, largest bool) []string {
-	return iteminfo.NameGlobPatternsForSearch(opts, useWildcard, largest)
-}
-
 func searchDateMatches(modUnix int64, opts iteminfo.SearchOptions) bool {
 	if opts.ModifiedNewerThan > 0 && modUnix < opts.ModifiedNewerThan {
 		return false
@@ -223,9 +218,9 @@ func SearchMultiSourcesParsed(baseOpts iteminfo.SearchOptions, sources []string,
 		searchOptions.Terms = []string{""}
 	}
 
-	nameGlobPatterns := nameGlobPatternsForSearch(searchOptions, useWildcard, largest)
-	globAnd := useWildcard && searchOptions.MatchAllTerms
+	nameGlobPatterns := iteminfo.NameGlobPatternsForSearch(searchOptions, useWildcard, largest)
 	caseExact := searchOptions.Conditions["exact"]
+	globAnd := len(nameGlobPatterns) > 0 && searchOptions.MatchAllTerms
 
 	rows, err := db.SearchItemsMultiSource(sources, normalizedScopes, largest, nameGlobPatterns, globAnd, caseExact)
 	if err != nil {

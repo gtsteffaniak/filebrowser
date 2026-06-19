@@ -29,7 +29,7 @@ var (
 // This is a simplified helper for shallow calculations and API calls
 // For scanning with hardlink detection, use handleFile instead
 // If useLogicalSize is true, returns the logical file size instead
-func getDiskUsage(fileInfo os.FileInfo, realPath string, useLogicalSize bool) int64 {
+func getDiskUsage(fileInfo os.FileInfo, useLogicalSize bool) int64 {
 	// If useLogicalSize is true, return logical size (no block alignment)
 	if useLogicalSize {
 		if fileInfo.IsDir() {
@@ -95,6 +95,8 @@ type Stats struct {
 type ReducedIndex struct {
 	Stats
 	IdxName  string         `json:"name"`
+	ReadOnly bool           `json:"readOnly"`
+	Private  bool           `json:"private"`
 	Status   IndexStatus    `json:"status"`
 	Scanners []*ScannerInfo `json:"scanners,omitempty"`
 }
@@ -538,7 +540,7 @@ func (idx *Index) GetFileInfo(req FileInfoRequest) (*iteminfo.FileInfo, error) {
 
 // getFileInfoFromContext returns info for a single file
 func (idx *Index) getFileInfoFromContext(ctx *PathContext, isIndexable bool) (*iteminfo.FileInfo, error) {
-	size := idx.getFileSizeForDisplay(ctx.FileInfo, ctx.RealPath)
+	size := idx.getFileSizeForDisplay(ctx.FileInfo)
 	fileInfo := &iteminfo.FileInfo{
 		Path: ctx.IndexPath,
 		ItemInfo: iteminfo.ItemInfo{
@@ -827,7 +829,7 @@ func (idx *Index) processFileItem(file os.FileInfo, indexPath string, opts Optio
 	var size uint64
 	var shouldCountSize bool
 	if !opts.Recursive && scanner == nil {
-		size = uint64(idx.getFileSizeForDisplay(file, fullCombined))
+		size = uint64(idx.getFileSizeForDisplay(file))
 		shouldCountSize = true
 	} else {
 		size, shouldCountSize = idx.handleFile(file, indexPath, fullCombined, opts.IsRoutineScan, scanner)
@@ -1157,14 +1159,14 @@ func (idx *Index) GetFolderSizeForDisplay(path string) int64 {
 }
 
 // getFileSizeForDisplay returns file size with appropriate calculation based on config
-func (idx *Index) getFileSizeForDisplay(file os.FileInfo, realPath string) int64 {
+func (idx *Index) getFileSizeForDisplay(file os.FileInfo) int64 {
 	if idx.Config.UseLogicalSize {
 		// Logical size mode: return actual bytes
 		return file.Size()
 	}
 
 	// Disk usage mode: use getDiskUsage helper
-	return getDiskUsage(file, realPath, false)
+	return getDiskUsage(file, false)
 }
 
 // SyncFolderSizesToDB syncs in-memory folder sizes to the database after a scan completes
@@ -1512,8 +1514,7 @@ func (idx *Index) getActiveScannerPathUnlocked() string {
 	return idx.activeScannerPath
 }
 
-// MakeIndexPath converts a filesystem or relative path into a normalized utils.IndexPath.
-// Input should be a non-index path (absolute or relative to the source root).
+// input should be non-index path.
 // isDir indicates whether the path is a directory (true) or file (false).
 func (idx *Index) MakeIndexPath(path string, isDir bool) utils.IndexPath {
 	if path == "." || strings.HasPrefix(path, "./") {

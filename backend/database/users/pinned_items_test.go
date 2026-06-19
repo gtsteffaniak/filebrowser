@@ -26,9 +26,11 @@ func TestPinnedItemsAddRemove(t *testing.T) {
 
 func TestPinnedNamesForDirectory(t *testing.T) {
 	u := &User{
-		PinnedItems: PinnedItems{
-			"/data/files": {
-				"/photos/": {"vacation.jpg", "notes.txt"},
+		NonAdminEditable: NonAdminEditable{
+			PinnedItems: PinnedItems{
+				"/data/files": {
+					"/photos/": {"vacation.jpg", "notes.txt"},
+				},
 			},
 		},
 	}

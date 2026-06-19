@@ -27,6 +27,8 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
+var reDuration = regexp.MustCompile(`^\[(?:(\d{1,2}):)?(\d{1,2}):(\d{1,2})\.(\d+)\](.*)`)
+
 // CheckPermissionsFunc allows tests to override CheckPermissions behavior
 var CheckPermissionsFunc = checkPermissionsImpl
 
@@ -87,7 +89,7 @@ func processDirectoryMetadata(response *iteminfo.ExtendedFileInfo, idx *indexing
 	wg.Wait()
 }
 
-// finalizeResponse handles final response adjustments (OnlyOffice ID, scope stripping)
+// finalizeResponse handles final response adjustments (OnlyOffice ID, scope stripping).
 func finalizeResponse(response *iteminfo.ExtendedFileInfo, info *iteminfo.FileInfo, realPath string, user *users.User, userScope string) {
 	// Add OnlyOffice ID if applicable
 	if settings.Config.Integrations.OnlyOffice.Secret != "" && info.Type != "directory" && iteminfo.IsOnlyOffice(info.Name) {
@@ -182,7 +184,6 @@ func GetDirItems(opts utils.FileOptions, access *access.Storage, user *users.Use
 	if idx == nil {
 		return items, fmt.Errorf("could not get index: %v ", opts.Source)
 	}
-
 	info, err := idx.GetFileInfo(indexing.FileInfoRequest{
 		IndexPath:         indexPath,
 		FollowSymlinks:    opts.FollowSymlinks,
@@ -223,12 +224,12 @@ func GetDirItems(opts utils.FileOptions, access *access.Storage, user *users.Use
 // FileInfoFasterFunc is a variable that can be mocked in tests
 var FileInfoFasterFunc = fileInfoFasterImpl
 
-func FileInfoFaster(opts utils.FileOptions, access *access.Storage, user *users.User, share *share.Storage) (*iteminfo.ExtendedFileInfo, error) {
-	return FileInfoFasterFunc(opts, access, user, share)
+func FileInfoFaster(opts utils.FileOptions, access *access.Storage, user *users.User, shareStore *share.Storage) (*iteminfo.ExtendedFileInfo, error) {
+	return FileInfoFasterFunc(opts, access, user, shareStore)
 }
 
 // fileInfoFasterImpl is the actual implementation of FileInfoFaster
-func fileInfoFasterImpl(opts utils.FileOptions, access *access.Storage, user *users.User, share *share.Storage) (*iteminfo.ExtendedFileInfo, error) {
+func fileInfoFasterImpl(opts utils.FileOptions, access *access.Storage, user *users.User, shareStore *share.Storage) (*iteminfo.ExtendedFileInfo, error) {
 	response := &iteminfo.ExtendedFileInfo{}
 	indexPath, userScope, topLevelErr := CheckPermissions(opts, access, user)
 	accessRulesErr := topLevelErr != nil && topLevelErr == errors.ErrAccessDenied && indexPath != ""
@@ -253,7 +254,6 @@ func fileInfoFasterImpl(opts utils.FileOptions, access *access.Storage, user *us
 	if err != nil {
 		return response, err // Path excluded by index rules OR doesn't exist
 	}
-
 	// otherwise response keeps unfiltered Folders/Files while CheckChildItemAccess only mutates info.
 	if info.Type == "directory" {
 		if err := access.CheckChildItemAccess(info, idx, user.Username); err != nil {
@@ -269,20 +269,20 @@ func fileInfoFasterImpl(opts utils.FileOptions, access *access.Storage, user *us
 	response.FileInfo = *info
 	response.RealPath = filepath.Join(idx.Path, indexPath)
 	response.Source = opts.Source
-	if share != nil && user.Permissions.Share && opts.ShowSharedAttr {
+	if user.Permissions.Share && opts.ShowSharedAttr {
 		for i := range response.Files {
 			file := &response.Files[i]
-			file.IsShared = share.IsShared(response.Path+file.Name, idx.Path, user.ID)
+			file.IsShared = shareStore.IsShared(response.Path+file.Name, idx.Path, user.ID)
 		}
 		for i := range response.Folders {
 			folder := &response.Folders[i]
-			folder.IsShared = share.IsShared(response.Path+folder.Name, idx.Path, user.ID)
+			folder.IsShared = shareStore.IsShared(response.Path+folder.Name, idx.Path, user.ID)
 		}
-		response.IsShared = share.IsShared(response.Path, idx.Path, user.ID)
+		response.IsShared = shareStore.IsShared(response.Path, idx.Path, user.ID)
 	}
 	if info.Type == "directory" && opts.ShowPinnedItems {
-		if opts.ShareHash != "" && share != nil {
-			if link, err := share.GetByHash(opts.ShareHash); err == nil {
+		if opts.ShareHash != "" {
+			if link, err := shareStore.GetByHash(opts.ShareHash); err == nil {
 				if shareRelDir, err := link.ShareRelativeDir(response.Path); err == nil {
 					response.PinnedItems = link.PinnedItems.NamesForDirectory(shareRelDir)
 				}
@@ -396,13 +396,12 @@ func generateOfficeId(realPath string) string {
 func parseLRC(raw string) []iteminfo.Lyric {
 	var lines []iteminfo.Lyric
 	scanner := bufio.NewScanner(strings.NewReader(raw))
-	re := regexp.MustCompile(`^\[(?:(\d{1,2}):)?(\d{1,2}):(\d{1,2})\.(\d+)\](.*)`)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		if line == "" {
 			continue
 		}
-		matches := re.FindStringSubmatch(line)
+		matches := reDuration.FindStringSubmatch(line)
 		if len(matches) == 6 {
 			// Hours default to 0 (if not present in the timestamps)
 			h := 0
@@ -481,10 +480,12 @@ func extractAudioMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 	if rawLyrics := m.Lyrics(); rawLyrics != "" {
 		item.Metadata.HasLyrics = true
 	} else {
-		// Check for .lrc file
-		ext := filepath.Ext(realPath)
-		base := strings.TrimSuffix(realPath, ext)
-		lrcPath := base + ".lrc"
+		// Check for sidecar .lrc file
+		dir := filepath.Dir(realPath)
+		base := filepath.Base(realPath)
+		ext := filepath.Ext(base)
+		nameWithoutExt := strings.TrimSuffix(base, ext)
+		lrcPath := filepath.Join(dir, nameWithoutExt+".lrc")
 		if _, err := os.Stat(lrcPath); err == nil {
 			item.Metadata.HasLyrics = true
 		}
@@ -549,9 +550,12 @@ func ExtractLyrics(realPath string) ([]iteminfo.Lyric, error) {
 		lyrics = parseLRC(raw)
 	}
 	if len(lyrics) == 0 {
-		ext := filepath.Ext(realPath)
-		base := strings.TrimSuffix(realPath, ext)
-		lrcPath := base + ".lrc"
+		// Check for sidecar .lrc file
+		dir := filepath.Dir(realPath)
+		base := filepath.Base(realPath)
+		ext := filepath.Ext(base)
+		nameWithoutExt := strings.TrimSuffix(base, ext)
+		lrcPath := filepath.Join(dir, nameWithoutExt+".lrc")
 		if data, err := os.ReadFile(lrcPath); err == nil {
 			lyrics = parseLRC(string(data))
 		}
