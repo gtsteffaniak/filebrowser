@@ -117,7 +117,7 @@ func rawFileHandler(w http.ResponseWriter, r *http.Request, file iteminfo.Extend
 
 // getDirectoryPreview returns the previewable file at the given frame index (0–3) for motion preview.
 // atPercentage maps to frame: 0→0, 1–25→1, 26–50→2, 51–100→3. The returned file is frameIndex % n where n is the number of previewable items.
-func getDirectoryPreview(r *http.Request, d *requestContext, frameIndex int) (*iteminfo.ExtendedFileInfo, error) {
+func getDirectoryPreview(ctx context.Context, r *http.Request, d *requestContext, frameIndex int) (*iteminfo.ExtendedFileInfo, error) {
 	// Build list of previewable item names in stable order (same as d.fileInfo.Files)
 	var previewableNames []string
 	for _, item := range d.fileInfo.Files {
@@ -155,7 +155,7 @@ func getDirectoryPreview(r *http.Request, d *requestContext, frameIndex int) (*i
 	if err != nil {
 		return nil, err
 	}
-	tempCtx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	tempCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	_, previewErr := preview.GetPreviewForFile(tempCtx, *fileInfo, "small", "", 0)
 	cancel()
 	if previewErr != nil {
@@ -163,7 +163,7 @@ func getDirectoryPreview(r *http.Request, d *requestContext, frameIndex int) (*i
 			logger.Debugf("Skipping preview file in directory '%s': %s (error: %v)", d.fileInfo.Name, name, previewErr)
 			// Fallback: try first item (frame 0) once so atPercentage=0 still works when another frame fails
 			if index != 0 {
-				return getDirectoryPreview(r, d, 0)
+				return getDirectoryPreview(ctx, r, d, 0)
 			}
 		}
 		return nil, previewErr
@@ -211,7 +211,7 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 		default:
 			dirFrameIndex = 3
 		}
-		fileInfo, err := getDirectoryPreview(r, d, dirFrameIndex)
+		fileInfo, err := getDirectoryPreview(ctx, r, d, dirFrameIndex)
 		if err != nil {
 			if isClientCancellation(ctx, err) {
 				return http.StatusOK, nil

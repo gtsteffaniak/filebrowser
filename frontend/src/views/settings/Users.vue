@@ -4,7 +4,7 @@
     type="button"
     @click="openPrompt(null)"
     class="button floating-action-button"
-    aria-label="Add New User"
+    :aria-label="$t('settings.newUser')"
   >
     {{ $t("general.new") }}
   </button>

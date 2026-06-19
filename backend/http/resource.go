@@ -936,6 +936,8 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 				})
 				continue
 			}
+			response.Failed = append(response.Failed, item)
+			continue
 		}
 
 		if dstIdx.Config.ReadOnly {

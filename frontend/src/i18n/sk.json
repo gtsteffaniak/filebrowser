@@ -33,10 +33,10 @@
     "sendToApp": "Odoslať do aplikácie"
   },
   "errors": {
-    "forbidden": "You don't have permissions to access this.",
-    "internal": "Something really went wrong.",
-    "notFound": "This location can't be reached.",
-    "connection": "The server can't be reached.",
+    "forbidden": "Nemáte oprávnenie na prístup.",
+    "internal": "Niečo sa naozaj pokazilo.",
+    "notFound": "Túto položku nie je možné nájsť.",
+    "connection": "Nepodarilo sa pripojiť k serveru.",
     "shareNotFound": "Neplatná alebo neplatná akcia.",
     "failedToConnectToServer": "Nepodarilo sa pripojiť k serveru, je stále spustený?"
   },
@@ -654,6 +654,7 @@
     "disableViewingFiles": "Zakázať prehliadač/editor súborov pre určité prípony súborov",
     "disableViewingFilesDescription": "Zoznam prípon súborov oddelených medzerou, pre ktoré sa má prehliadač/editor súborov vypnúť (napr. \".txt .pdf\").",
     "disableOfficeEditor": "Zakázanie prehliadača Office pre určité prípony súborov",
+    "disableOfficeEditorDescription": "Medzerou oddelený zoznam prípon súborov, pre ktoré sa má zakázať editor a prehliadač OnlyOffice - alebo '*' pre zakázanie pre všetky. (napr. \".txt .html .pdf\").",
     "defaultThemeDescription": "default - Predvolená téma",
     "customTheme": "Vyberte si tému",
     "showSelectMultiple": "Zobrazenie výberu viacerých v kontextovom menu na ploche",
@@ -665,7 +666,6 @@
     "fileViewerOptions": "Možnosti prehliadača súborov",
     "themeAndLanguage": "Téma a jazyk",
     "disableFileExtensions": "Zadajte prípony súborov, ktoré chcete zakázať",
-    "disableOfficeEditorDescription": "Medzerou oddelený zoznam prípon súborov, pre ktoré sa má zakázať editor a prehliadač OnlyOffice - alebo '*' pre zakázanie pre všetky. (napr. \".txt .html .pdf\").",
     "previewFolderDescription": "Zobrazenie náhľadov miniatúr pre priečinky s prvou podriadenou položkou ako obálkou - alebo viac položiek, ak je povolený náhľad pohybu.",
     "previewMotion": "Pohybové náhľady",
     "previewMotionVideosDescription": "Pohybový náhľad je animovaný vyskakovací náhľad, ktorý cyklicky prechádza snímkami videa alebo viacerých obrázkov pre priečinok.",
@@ -840,8 +840,8 @@
     "changeBackground": "Zmena farby pozadia"
   },
   "onlyoffice": {
-    "debugTitle": "OnlyOffice Debug Trace",
-    "debug": "OnlyOffice Debug",
+    "debugTitle": "Sledovanie ladenia OnlyOffice",
+    "debug": "Ladenie OnlyOffice",
     "basicConfiguration": "Základná konfigurácia",
     "configurationDetails": "Podrobnosti o konfigurácii OnlyOffice",
     "backendLogs": "Protokoly backendu",

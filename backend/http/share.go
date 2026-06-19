@@ -155,7 +155,7 @@ func sharePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	// only allow users to update their own shares
 	thisShare, err := shareStore.GetByHash(body.Hash)
 	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("share not found")
+		return errToStatus(err), fmt.Errorf("failed to load share: %w", err)
 	}
 	if !thisShare.UserCanEdit(d.user) {
 		return http.StatusForbidden, fmt.Errorf("you are not allowed to update this share")
