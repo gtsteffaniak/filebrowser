@@ -1091,13 +1091,13 @@ definitions:
         type: integer
       numImageProcessors:
         description: number of concurrent image processing jobs used to create previews,
-          default is number of cpu cores available.
+          default is 4.
         type: integer
       port:
         description: port to listen on
         type: integer
       socket:
-        description: socket to listen on
+        description: socket to listen on - eg. /var/run/filebrowser.sock
         type: string
       sources:
         items:
@@ -1170,6 +1170,10 @@ definitions:
       private:
         description: designate as source as private -- currently just means no sharing
           permitted.
+        type: boolean
+      readOnly:
+        description: read-only source, changes from the UI, webdav, and API will be
+          disabled.
         type: boolean
       rules:
         description: list of item rules to apply to specific paths
@@ -2773,8 +2777,21 @@ paths:
           description: JWT token for authentication
           schema:
             type: string
+        "401":
+          description: Unauthorized - authentication failed
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "403":
           description: Forbidden - authentication failed
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "429":
+          description: Too many requests - rate limited or temporarily locked out
+            after failed attempts
           schema:
             additionalProperties:
               type: string

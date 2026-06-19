@@ -35,7 +35,7 @@ test("create, check settings, and delete user (retry-safe name)", async ({
     await page.goto('/settings')
     await expect(page).toHaveTitle("Graham's Filebrowser - Settings")
     await page.locator('#users-sidebar').click();
-    await page.locator('button[aria-label="Add New User"]').click()
+    await page.locator('button[aria-label="New User"]').click()
     await page.locator('#username').fill(username)
     await page.locator('input[aria-label="Password1"]').fill('testpassword')
     await page.locator('input[aria-label="Password2"]').fill('testpass')

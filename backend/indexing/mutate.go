@@ -348,6 +348,8 @@ func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, erro
 	reducedIdx.LastScanned = lastIndexed
 	reducedIdx.LastIndexedUnix = lastIndexed.Unix()
 	reducedIdx.Status = idx.getStatusUnlocked()
+	reducedIdx.ReadOnly = idx.Config.ReadOnly
+	reducedIdx.Private = idx.Config.Private
 	idx.mu.RUnlock()
 	return reducedIdx, nil
 }

@@ -1,8 +1,8 @@
 server:
   minSearchLength: 3                      # minimum length of search query to begin searching (default: 3)
   disableUpdateCheck: false               # disables backend update check service
-  numImageProcessors: 4                   # number of concurrent image processing jobs used to create previews, default is number of cpu cores available.
-  socket: ""                              # socket to listen on
+  numImageProcessors: 4                   # number of concurrent image processing jobs used to create previews, default is 4.
+  socket: ""                              # socket to listen on - eg. /var/run/filebrowser.sock
   tlsKey: ""                              # path to TLS key
   tlsCert: ""                             # path to TLS cert
   disablePreviews: false                  # disable all previews thumbnails, simple icons will be used
@@ -25,6 +25,7 @@ server:
       config:
         denyByDefault: false              # deny access unless an "allow" access rule was specifically created.
         private: false                    # designate as source as private -- currently just means no sharing permitted.
+        readOnly: false                   # read-only source, changes from the UI, webdav, and API will be disabled.
         disabled: false                   # disable the source, this is useful so you don't need to remove it from the config file
         rules:                            # list of item rules to apply to specific paths
           - neverWatchPath: ""            # index the folder in the first pass to get included in search, but never re-indexed.

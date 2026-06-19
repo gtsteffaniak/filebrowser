@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
@@ -257,7 +256,7 @@ func prepSearchOptions(r *http.Request, d *requestContext) (*searchOptions, erro
 
 	parsed := iteminfo.BuildSearchOptionsFromQuery(query, normalizedTerms, matchAllTerms)
 
-	minLen := settings.Config.Server.MinSearchLength
+	minLen := config.Server.MinSearchLength
 	if !largest {
 		if len(normalizedTerms) > 0 {
 			for _, t := range normalizedTerms {

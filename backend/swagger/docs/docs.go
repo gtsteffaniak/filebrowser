@@ -512,8 +512,26 @@ const docTemplate = `{
                             "type": "string"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized - authentication failed",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
                     "403": {
                         "description": "Forbidden - authentication failed",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Too many requests - rate limited or temporarily locked out after failed attempts",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -6146,7 +6164,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "numImageProcessors": {
-                    "description": "number of concurrent image processing jobs used to create previews, default is number of cpu cores available.",
+                    "description": "number of concurrent image processing jobs used to create previews, default is 4.",
                     "type": "integer"
                 },
                 "port": {
@@ -6154,7 +6172,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "socket": {
-                    "description": "socket to listen on",
+                    "description": "socket to listen on - eg. /var/run/filebrowser.sock",
                     "type": "string"
                 },
                 "sources": {
@@ -6252,6 +6270,10 @@ const docTemplate = `{
                 },
                 "private": {
                     "description": "designate as source as private -- currently just means no sharing permitted.",
+                    "type": "boolean"
+                },
+                "readOnly": {
+                    "description": "read-only source, changes from the UI, webdav, and API will be disabled.",
                     "type": "boolean"
                 },
                 "rules": {

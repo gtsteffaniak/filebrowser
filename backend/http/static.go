@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"io/fs"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -162,6 +163,20 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	pwaIcon256 := staticURL + "/icons/pwa-icon-256.png"
 	pwaIcon512 := staticURL + "/icons/pwa-icon-512.png"
 
+	manifestURL := staticURL + "/site.webmanifest"
+	if shareHash != "" {
+		pwaStartURL := config.Server.BaseURL + "public/share/" + shareHash + "/"
+		query := url.Values{}
+		query.Set("start", pwaStartURL)
+		if title != config.Frontend.Name {
+			query.Set("name", title)
+		}
+		if description != config.Frontend.Description {
+			query.Set("description", description)
+		}
+		manifestURL = staticURL + "/site.webmanifest?" + query.Encode()
+	}
+
 	data["htmlVars"] = map[string]interface{}{
 		"title":              title,
 		"customCSS":          template.CSS(config.Frontend.Styling.CustomCSSRaw),
@@ -183,30 +198,30 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"pwaIcon192":         pwaIcon192,
 		"pwaIcon256":         pwaIcon256,
 		"pwaIcon512":         pwaIcon512,
-		"manifestURL":        staticURL + "/site.webmanifest",
+		"manifestURL":        manifestURL,
 	}
-	// variables consumed by frontend as json
+
 	data["globalVars"] = map[string]interface{}{
 		"name":                   config.Frontend.Name,
 		"minSearchLength":        config.Server.MinSearchLength,
 		"disableExternal":        config.Frontend.DisableDefaultLinks,
-		"darkMode":               settings.Config.UserDefaults.UI.DarkMode,
+		"darkMode":               config.UserDefaults.UI.DarkMode,
 		"baseURL":                config.Server.BaseURL,
 		"version":                versionString,
 		"commitSHA":              commitSHAString,
-		"signup":                 settings.Config.Auth.Methods.PasswordAuth.Signup,
+		"signup":                 config.Auth.Methods.PasswordAuth.Signup,
 		"noAuth":                 config.Auth.Methods.NoAuth,
 		"enableThumbs":           !config.Server.DisablePreviews,
 		"externalLinks":          externalLinks,
 		"externalUrl":            strings.TrimSuffix(config.Server.ExternalUrl, "/"),
-		"onlyOfficeUrl":          settings.Config.Integrations.OnlyOffice.Url,
+		"onlyOfficeUrl":          config.Integrations.OnlyOffice.Url,
 		"oidcAvailable":          config.Auth.Methods.OidcAuth.Enabled,
 		"jwtAvailable":           config.Auth.Methods.JwtAuth.Enabled,
 		"proxyAvailable":         config.Auth.Methods.ProxyAuth.Enabled,
 		"passwordAvailable":      config.Auth.Methods.PasswordAuth.Enabled,
 		"ldapAvailable":          config.Auth.Methods.LdapAuth.Enabled,
 		"mediaAvailable":         settings.MediaEnabled(),
-		"exiftoolAvailable":      settings.Config.Integrations.Media.ExiftoolPath != "",
+		"exiftoolAvailable":      config.Integrations.Media.ExiftoolPath != "",
 		"muPdfAvailable":         settings.Env.MuPdfAvailable,
 		"updateAvailable":        utils.GetUpdateAvailableUrl(),
 		"disableNavButtons":      disableNavButtons,
@@ -267,12 +282,21 @@ func setContentType(w http.ResponseWriter, path string) {
 	}
 }
 
-// manifestHandler serves the cached PWA manifest
+// manifestHandler serves the cached PWA manifest, optionally scoped to a public share.
 func manifestHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/manifest+json")
 	w.Header().Set("Cache-Control", "public, max-age=3600") // Cache for 1 hour
 
-	if err := json.NewEncoder(w).Encode(icons.CachedManifest); err != nil {
+	manifest := icons.CachedManifest
+	if startURL := r.URL.Query().Get("start"); startURL != "" {
+		name := r.URL.Query().Get("name")
+		description := r.URL.Query().Get("description")
+		if shareManifest, ok := icons.ManifestForShare(config.Server.BaseURL, startURL, name, description); ok {
+			manifest = shareManifest
+		}
+	}
+
+	if err := json.NewEncoder(w).Encode(manifest); err != nil {
 		http.Error(w, "Failed to serve manifest", http.StatusInternalServerError)
 	}
 }

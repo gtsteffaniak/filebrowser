@@ -50,8 +50,8 @@ type Environment struct {
 type Server struct {
 	MinSearchLength              int            `json:"minSearchLength" yaml:"minSearchLength"` // minimum length of search query to begin searching (default: 3)
 	DisableUpdateCheck           bool           `json:"disableUpdateCheck"`                     // disables backend update check service
-	NumImageProcessors           int            `json:"numImageProcessors"`                     // number of concurrent image processing jobs used to create previews, default is number of cpu cores available.
-	Socket                       string         `json:"socket"`                                 // socket to listen on
+	NumImageProcessors           int            `json:"numImageProcessors"`                     // number of concurrent image processing jobs used to create previews, default is 4.
+	Socket                       string         `json:"socket"`                                 // socket to listen on - eg. /var/run/filebrowser.sock
 	TLSKey                       string         `json:"tlsKey"`                                 // path to TLS key
 	TLSCert                      string         `json:"tlsCert"`                                // path to TLS cert
 	DisablePreviews              bool           `json:"disablePreviews"`                        // disable all previews thumbnails, simple icons will be used
@@ -217,6 +217,7 @@ type Source struct {
 type SourceConfig struct {
 	DenyByDefault    bool              `json:"denyByDefault,omitempty"`           // deny access unless an "allow" access rule was specifically created.
 	Private          bool              `json:"private"`                           // designate as source as private -- currently just means no sharing permitted.
+	ReadOnly         bool              `json:"readOnly,omitempty"`                // read-only source, changes from the UI, webdav, and API will be disabled.
 	Disabled         bool              `json:"disabled,omitempty"`                // disable the source, this is useful so you don't need to remove it from the config file
 	IndexingInterval uint32            `json:"indexingIntervalMinutes,omitempty"` // deprecated: create a rule with indexingIntervalMinutes to set the indexing interval for this source
 	Conditionals     ConditionalFilter `json:"conditionals"`                      // deprecated: use source.rules instead

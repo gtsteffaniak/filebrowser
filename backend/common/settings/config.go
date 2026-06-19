@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"slices"
 	"strconv"
 	"strings"
@@ -53,6 +52,7 @@ func Initialize(configFile string) {
 	}
 	setupFs()
 	setupServer()
+	setupHttp()
 	setupAuth(false)
 	setupSources(false)
 	InitializeUserResolvers() // Initialize user package resolvers after sources are set up
@@ -62,6 +62,9 @@ func Initialize(configFile string) {
 }
 
 func setupServer() {
+	if Config.Server.Socket != "" && (Config.Server.TLSCert != "" || Config.Server.TLSKey != "") {
+		logger.Fatal("server.socket cannot be used with tlsCert or tlsKey")
+	}
 	if Config.Server.ListenAddress == "" {
 		Config.Server.ListenAddress = "0.0.0.0"
 	}
@@ -79,6 +82,15 @@ func setupEnv() {
 	Env.IsDevMode = os.Getenv("FILEBROWSER_DEVMODE") == "true"
 	if Env.IsDevMode {
 		logger.Warning("Running in dev mode. This is not recommended for production.")
+	}
+}
+
+func setupHttp() {
+	if len(Config.Http.TrustedHeadersArray) > 0 {
+		Config.Http.TrustedHeaders = make(map[string]bool)
+		for _, header := range Config.Http.TrustedHeadersArray {
+			Config.Http.TrustedHeaders[strings.ToLower(header)] = true
+		}
 	}
 }
 
@@ -966,13 +978,6 @@ func loadEnvConfig() {
 }
 
 func SetDefaults(generate bool) Settings {
-	// get number of CPUs available
-	numCpus := 4 // default to 4 CPUs if runtime.NumCPU() fails or is not available
-	cpus := runtime.NumCPU()
-	if cpus > 0 && !generate {
-		numCpus = cpus
-	}
-
 	database := os.Getenv("FILEBROWSER_DATABASE")
 	if database != "" {
 		logger.Fatalf("FILEBROWSER_DATABASE environment variable is deprecated, please migrate your database to SQLite.")
@@ -992,7 +997,7 @@ func SetDefaults(generate bool) Settings {
 	s := Settings{
 		Server: Server{
 			Port:               80,
-			NumImageProcessors: numCpus,
+			NumImageProcessors: 4,
 			BaseURL:            "",
 			DatabaseV2:         Database{Path: databaseV2}, // New SQLite path
 			SourceMap:          map[string]*Source{},

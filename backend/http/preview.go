@@ -85,6 +85,22 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	return status, nil
 }
 
+func shouldServeOriginalPreview(ext string, resizable bool, realPath, previewSize string, fileSize int64) bool {
+	if !resizable {
+		return false
+	}
+	// HEIC/TIFF still need conversion for reliable web display.
+	switch ext {
+	case ".heic", ".heif", ".tiff", ".tif":
+		return false
+	}
+	const maxSizeForOriginal = 256 * 1024 // 256KB
+	if config.Server.DisableResize || fileSize < maxSizeForOriginal {
+		return true
+	}
+	return preview.ShouldServeOriginalImage(realPath, previewSize)
+}
+
 func rawFileHandler(w http.ResponseWriter, r *http.Request, file iteminfo.ExtendedFileInfo) (int, error) {
 	fd, err := os.Open(file.RealPath)
 	if err != nil {
@@ -101,7 +117,7 @@ func rawFileHandler(w http.ResponseWriter, r *http.Request, file iteminfo.Extend
 
 // getDirectoryPreview returns the previewable file at the given frame index (0–3) for motion preview.
 // atPercentage maps to frame: 0→0, 1–25→1, 26–50→2, 51–100→3. The returned file is frameIndex % n where n is the number of previewable items.
-func getDirectoryPreview(r *http.Request, d *requestContext, frameIndex int) (*iteminfo.ExtendedFileInfo, error) {
+func getDirectoryPreview(ctx context.Context, r *http.Request, d *requestContext, frameIndex int) (*iteminfo.ExtendedFileInfo, error) {
 	// Build list of previewable item names in stable order (same as d.fileInfo.Files)
 	var previewableNames []string
 	for _, item := range d.fileInfo.Files {
@@ -139,7 +155,7 @@ func getDirectoryPreview(r *http.Request, d *requestContext, frameIndex int) (*i
 	if err != nil {
 		return nil, err
 	}
-	tempCtx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	tempCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	_, previewErr := preview.GetPreviewForFile(tempCtx, *fileInfo, "small", "", 0)
 	cancel()
 	if previewErr != nil {
@@ -147,7 +163,7 @@ func getDirectoryPreview(r *http.Request, d *requestContext, frameIndex int) (*i
 			logger.Debugf("Skipping preview file in directory '%s': %s (error: %v)", d.fileInfo.Name, name, previewErr)
 			// Fallback: try first item (frame 0) once so atPercentage=0 still works when another frame fails
 			if index != 0 {
-				return getDirectoryPreview(r, d, 0)
+				return getDirectoryPreview(ctx, r, d, 0)
 			}
 		}
 		return nil, previewErr
@@ -156,6 +172,11 @@ func getDirectoryPreview(r *http.Request, d *requestContext, frameIndex int) (*i
 }
 
 func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	ctx := r.Context()
+	if d.ctx != nil {
+		ctx = d.ctx
+	}
+
 	previewSize := r.URL.Query().Get("size")
 	if !(previewSize == "large" || previewSize == "original" || previewSize == "xlarge") {
 		previewSize = "small"
@@ -190,8 +211,14 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 		default:
 			dirFrameIndex = 3
 		}
-		fileInfo, err := getDirectoryPreview(r, d, dirFrameIndex)
+		fileInfo, err := getDirectoryPreview(ctx, r, d, dirFrameIndex)
 		if err != nil {
+			if isClientCancellation(ctx, err) {
+				return http.StatusOK, nil
+			}
+			if ctx.Err() == context.DeadlineExceeded || errors.Is(err, context.DeadlineExceeded) {
+				return http.StatusRequestTimeout, fmt.Errorf("preview generation timed out")
+			}
 			logger.Errorf("error getting directory preview: %v", err)
 			return http.StatusInternalServerError, err
 		}
@@ -204,9 +231,9 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 	ext := strings.ToLower(filepath.Ext(d.fileInfo.Name))
 	resizable := iteminfo.ResizableImageTypes[ext]
 
-	// For small, displayable images (jpg, png, etc.) serve the original to avoid processing.
-	const maxSizeForOriginal = 128 * 1024 // 128KB
-	if resizable && (config.Server.DisableResize || d.fileInfo.Size < maxSizeForOriginal) && isImage {
+	// For small displayable images (jpg, png, etc.) serve the original to avoid processing.
+	// Also serve the original when dimensions already fit the requested preview size.
+	if isImage && shouldServeOriginalPreview(ext, resizable, d.fileInfo.RealPath, previewSize, d.fileInfo.Size) {
 		return rawFileHandler(w, r, d.fileInfo)
 	}
 
@@ -214,7 +241,7 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 	if d.fileInfo.OnlyOfficeId != "" {
 		pathUrl := fmt.Sprintf("/api/resources/download?file=%s&source=%s", url.QueryEscape(d.fileInfo.Path), url.QueryEscape(d.fileInfo.Source))
 		pathUrl = pathUrl + "&auth=" + d.token
-		if settings.Config.Server.InternalUrl != "" {
+		if config.Server.InternalUrl != "" {
 			officeUrl = config.Server.InternalUrl + pathUrl
 		} else {
 			scheme := "http"
@@ -224,12 +251,6 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 			officeUrl = scheme + "://" + r.Host + pathUrl
 		}
 	}
-	// Use the context from the request context (which includes timeout)
-	ctx := r.Context()
-	if d.ctx != nil {
-		ctx = d.ctx
-	}
-
 	previewImg, err := preview.GetPreviewForFile(ctx, d.fileInfo, previewSize, officeUrl, seekPercentage)
 	if err != nil {
 		// Check if it was a context cancellation (client navigated away)
@@ -240,8 +261,8 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 
 		// Check if it was a context timeout (server-side timeout)
 		if ctx.Err() == context.DeadlineExceeded || errors.Is(err, context.DeadlineExceeded) {
-			logger.Errorf("Preview timeout for file '%s' after 60 seconds", d.fileInfo.Name)
-			return http.StatusRequestTimeout, fmt.Errorf("preview generation timed out after 60 seconds")
+			logger.Errorf("Preview timeout for file '%s' after 15 seconds", d.fileInfo.Name)
+			return http.StatusRequestTimeout, fmt.Errorf("preview generation timed out after 15 seconds")
 		}
 
 		// Log detailed error information for actual server errors

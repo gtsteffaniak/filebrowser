@@ -1,6 +1,7 @@
 package indexing
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -73,10 +74,11 @@ func (s *Scanner) executeScan() {
 	}()
 
 	if s.scanPath != "/" && !s.directoryExists() {
-		logger.Debugf("Scanner [%s] skipping: directory no longer exists", s.scanPath)
-		s.removeSelf()
+		s.handlePathGone("pre-scan check")
 		return
 	}
+
+	s.prepareScanState()
 
 	s.idx.mu.Lock()
 	s.idx.activeScannerPath = s.scanPath
@@ -93,12 +95,6 @@ func (s *Scanner) executeScan() {
 			s.fullScanCounter = 0
 		}
 	})
-	scanMode := "full"
-	if quick {
-		scanMode = "quick"
-	}
-	logger.Debugf("[%s] scanner [%s] starting %s scan (full/quick cadence step %d of 5)", s.idx.Name, s.scanPath, scanMode, pre+1)
-
 	s.runIndexing(quick)
 	s.updateSchedule()
 }
@@ -173,13 +169,14 @@ func (s *Scanner) runFullScanRoot() {
 	s.purgeStaleEntries(true, false) // isRoot=true, isQuickScan=false
 	s.syncStatsWithDB()
 
-	if s.processedInodes != nil {
-		s.processedInodes = nil
-		s.foundHardLinks = nil
-	}
+	s.resetHardlinkTracking()
 
 	s.idx.mu.Lock()
-	s.idx.scanUpdatedPaths = make(map[string]bool)
+	if s.idx.scanUpdatedPaths == nil {
+		s.idx.scanUpdatedPaths = make(map[string]bool)
+	} else {
+		clear(s.idx.scanUpdatedPaths)
+	}
 	s.idx.mu.Unlock()
 }
 
@@ -277,6 +274,10 @@ func (s *Scanner) runFullScanChild() {
 
 	_, _, err := s.idx.indexDirectory(s.scanPath, config, s)
 	if err != nil {
+		if isPathGone(err) {
+			s.handlePathGone("full scan")
+			return
+		}
 		logger.Errorf("Scanner [%s] error: %v", s.scanPath, err)
 	} else if config.Recursive && config.IsRoutineScan {
 		s.idx.mu.Lock()
@@ -294,10 +295,7 @@ func (s *Scanner) runFullScanChild() {
 		}
 	}
 
-	if s.processedInodes != nil {
-		s.processedInodes = nil
-		s.foundHardLinks = nil
-	}
+	s.resetHardlinkTracking()
 
 	s.idx.mu.Lock()
 	for path := range s.idx.scanUpdatedPaths {
@@ -498,6 +496,45 @@ func (s *Scanner) updateComplexity() {
 	}
 }
 
+// ensureScanUpdatedPaths initializes scan path tracking for the current scan session.
+func (idx *Index) ensureScanUpdatedPaths() {
+	idx.mu.Lock()
+	defer idx.mu.Unlock()
+	if idx.scanUpdatedPaths == nil {
+		idx.scanUpdatedPaths = make(map[string]bool)
+	}
+}
+
+// prepareScanState initializes per-scan maps. Quick scans previously skipped this and could
+// panic with "assignment to entry in nil map" when writing scanUpdatedPaths or hardlink tracking.
+func (s *Scanner) prepareScanState() {
+	s.idx.ensureScanUpdatedPaths()
+	if s.processedInodes == nil {
+		s.processedInodes = make(map[uint64]struct{})
+	}
+	if s.foundHardLinks == nil {
+		s.foundHardLinks = make(map[string]uint64)
+	}
+}
+
+func (s *Scanner) resetHardlinkTracking() {
+	s.processedInodes = nil
+	s.foundHardLinks = nil
+}
+
+func isPathGone(err error) bool {
+	return err != nil && (os.IsNotExist(err) || errors.Is(err, os.ErrNotExist))
+}
+
+// handlePathGone removes a child scanner whose root directory was deleted.
+func (s *Scanner) handlePathGone(context string) {
+	if s.scanPath == "/" {
+		return
+	}
+	logger.Infof("Scanner [%s] stopping (%s): directory no longer exists", s.scanPath, context)
+	s.removeSelf()
+}
+
 // directoryExists checks if the scanner's directory still exists
 func (s *Scanner) directoryExists() bool {
 	realPath := strings.TrimRight(s.idx.Path, "/") + s.scanPath
@@ -553,7 +590,10 @@ func (s *Scanner) checkFolderModtime(folderPath string) (bool, error) {
 	info, err := os.Stat(realPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			// Folder was deleted - will be caught by purge
+			if folderPath == s.scanPath {
+				s.handlePathGone("quick scan")
+			}
+			// Subfolder deleted — stale entries are removed by purge
 			return false, nil
 		}
 		logger.Errorf("[QUICK_SCAN] Error stating %s: %v", folderPath, err)
