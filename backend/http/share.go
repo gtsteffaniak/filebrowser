@@ -15,6 +15,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+	activitydb "github.com/gtsteffaniak/filebrowser/backend/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
@@ -117,6 +118,7 @@ func shareDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return errToStatus(err), err
 	}
 
+	recordShareMutation(r, d, activitydb.EventShareDelete, hash, thisShare.SourceName, thisShare.Path)
 	return errToStatus(err), err
 }
 
@@ -173,6 +175,7 @@ func sharePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	if len(prepared) == 0 {
 		return http.StatusInternalServerError, fmt.Errorf("could not prepare share response")
 	}
+	recordShareMutation(r, d, activitydb.EventShareUpdate, body.Hash, updatedShare.SourceName, updatedShare.Path)
 	return renderJSON(w, r, prepared[0])
 }
 
@@ -281,6 +284,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		if len(prepared) == 0 {
 			return http.StatusInternalServerError, fmt.Errorf("could not prepare share response")
 		}
+		recordShareMutation(r, d, activitydb.EventShareUpdate, req.Hash, updatedShare.SourceName, updatedShare.Path)
 		return renderJSON(w, r, prepared[0])
 	}
 
@@ -354,6 +358,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if len(prepared) == 0 {
 		return http.StatusInternalServerError, fmt.Errorf("could not prepare share response")
 	}
+	recordShareMutation(r, d, activitydb.EventShareCreate, s.Hash, s.SourceName, s.Path)
 	return renderJSON(w, r, prepared[0])
 }
 
@@ -514,6 +519,7 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *reque
 		ShareURL:    share.URLFromRequest(r, secureHash, false, snap.Token),
 	}
 
+	recordShareMutation(r, d, activitydb.EventShareCreate, secureHash, snap.SourceName, snap.Path)
 	return renderJSON(w, r, response)
 }
 

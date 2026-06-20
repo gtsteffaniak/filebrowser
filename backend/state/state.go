@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/database/access"
 	"github.com/gtsteffaniak/filebrowser/backend/database/dbindex"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
@@ -146,6 +147,9 @@ func Initialize(dbPath string) (bool, error) {
 	}
 
 	logger.Debugf("State management system initialized successfully")
+
+	InitActivityRecorder(settings.Config.Server.DatabaseV2)
+
 	return existingDb, nil
 }
 
@@ -160,6 +164,7 @@ func Close() error {
 	defer indexMux.Unlock()
 
 	users.SetUsernameToID(nil)
+	StopActivityRecorder()
 	if sqlStore != nil {
 		return sqlStore.Close()
 	}

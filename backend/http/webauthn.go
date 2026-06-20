@@ -10,6 +10,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
+	activitydb "github.com/gtsteffaniak/filebrowser/backend/database/activity"
 )
 
 // @Summary Begin passkey MFA login
@@ -84,7 +85,12 @@ func finishPasskeyLoginHandler(w http.ResponseWriter, r *http.Request, d *reques
 	}
 
 	d.user = user
-	return printToken(w, r, d.user)
+	status, err := printToken(w, r, d.user)
+	if err != nil || status != 0 {
+		return status, err
+	}
+	recordLoginActivity(r, d.user)
+	return 0, nil
 }
 
 // @Summary Begin passkey registration
@@ -154,6 +160,10 @@ func finishPasskeyRegistrationHandler(w http.ResponseWriter, r *http.Request, d 
 		return http.StatusInternalServerError, err
 	}
 
+	recordAuthActivity(r, d.user, activitydb.EventPasskeyRegister, http.StatusOK, activitydb.Details{
+		PasskeyName: credentialName,
+	})
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(map[string]string{"status": "ok"}); err != nil {
@@ -179,6 +189,14 @@ func deletePasskeyCredentialHandler(w http.ResponseWriter, r *http.Request, d *r
 		return http.StatusBadRequest, nil
 	}
 
+	passkeyName := credentialID
+	for _, cred := range d.user.PasskeyCredentials {
+		if cred.ID == credentialID {
+			passkeyName = cred.Name
+			break
+		}
+	}
+
 	svc := auth.GetWebAuthn()
 	if err := svc.DeleteCredential(d.user, credentialID); err != nil {
 		return http.StatusNotFound, err
@@ -187,6 +205,10 @@ func deletePasskeyCredentialHandler(w http.ResponseWriter, r *http.Request, d *r
 	if err := usersStore.Update(d.user, false, "PasskeyCredentials"); err != nil {
 		return http.StatusInternalServerError, err
 	}
+
+	recordAuthActivity(r, d.user, activitydb.EventPasskeyDelete, http.StatusOK, activitydb.Details{
+		PasskeyName: passkeyName,
+	})
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

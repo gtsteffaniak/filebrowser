@@ -13,6 +13,7 @@ import (
 	"unicode"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+	activitydb "github.com/gtsteffaniak/filebrowser/backend/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-cache/cache"
@@ -144,6 +145,7 @@ func (s *duplicateProcessingStats) shouldStop() (bool, string) {
 // @Failure 503 {object} map[string]string "Service Unavailable (indexing in progress or another search running)"
 // @Router /api/tools/duplicateFinder [get]
 func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	started := time.Now()
 	opts, err := prepDuplicatesOptions(r, d)
 	if err != nil {
 		return http.StatusBadRequest, err
@@ -179,6 +181,21 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	fullPath = index.MakeIndexPath(scopePath, true)
 	if !accessStore.Permitted(index.Path, fullPath, d.user.Username) {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to access this location")
+	}
+
+	logDuplicateFinder := func(response duplicateResponse, cached bool) {
+		details := activitydb.Details{
+			Source:     index.Name,
+			Path:       scopePath,
+			FileCount:  len(response.Groups),
+			DurationMs: time.Since(started).Milliseconds(),
+			Truncated:  response.Incomplete,
+			Cached:     cached,
+		}
+		if response.Reason != "" {
+			details.Error = response.Reason
+		}
+		recordToolActivity(r, d, activitydb.EventDuplicateFinder, details)
 	}
 
 	// Generate cache key from all input parameters that affect results
@@ -241,6 +258,7 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 		w.Header().Set("X-Search-Incomplete-Reason", stats.stopReason)
 	}
 
+	logDuplicateFinder(response, false)
 	return renderJSON(w, r, response)
 }
 

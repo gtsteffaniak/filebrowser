@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v2.0.0
+
+ **New Features**:
+ - New activity logs for user activity.
+  - charts and historical data
+  - activity tool to view data
+  - reports
+
 ## v1.5.0
 
  **New Features**:

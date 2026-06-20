@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
+	activitydb "github.com/gtsteffaniak/filebrowser/backend/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/state"
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -97,6 +98,7 @@ func createApiTokenHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 		Message: "here is your token!",
 		Token:   tokenString,
 	}
+	recordTokenMutation(r, d, activitydb.EventTokenCreate, name)
 	return renderJSON(w, r, response)
 }
 
@@ -139,6 +141,7 @@ func deleteApiTokenHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	response := HttpResponse{
 		Message: "successfully deleted api token from user",
 	}
+	recordTokenMutation(r, d, activitydb.EventTokenDelete, name)
 	return renderJSON(w, r, response)
 }
 

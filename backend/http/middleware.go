@@ -539,6 +539,7 @@ func getJwtUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn
 			return http.StatusInternalServerError, fmt.Errorf("failed to generate token")
 		}
 		data.token = tokenString
+		setSessionCookie(w, r, tokenString, time.Now().Add(expires).Add(time.Minute*30))
 	}
 
 	// Call the handler function, passing in the context (or return OK if no handler)
@@ -568,6 +569,7 @@ func getProxyUser(w http.ResponseWriter, r *http.Request, data *requestContext, 
 			return http.StatusInternalServerError, fmt.Errorf("failed to generate token")
 		}
 		data.token = tokenString
+		setSessionCookie(w, r, tokenString, time.Now().Add(expires).Add(time.Minute*30))
 	}
 	// Call the handler function, passing in the context (or return OK if no handler)
 	if fn == nil {
@@ -648,19 +650,6 @@ func wrapHandlerBasicAuth(fn handleFunc) http.HandlerFunc {
 func withPermShareHelper(fn handleFunc) handleFunc {
 	return withUserHelper(func(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 		if !d.user.Permissions.Share {
-			logger.Debug("share permission denied",
-				"username", d.user.Username,
-				"userID", d.user.ID,
-				"method", r.Method,
-				"path", r.URL.Path,
-				"permAdmin", d.user.Permissions.Admin,
-				"permShare", d.user.Permissions.Share,
-				"permModify", d.user.Permissions.Modify,
-				"permCreate", d.user.Permissions.Create,
-				"permDelete", d.user.Permissions.Delete,
-				"permDownload", d.user.Permissions.Download,
-				"permApi", d.user.Permissions.Api,
-			)
 			return http.StatusForbidden, nil
 		}
 		return fn(w, r, d)

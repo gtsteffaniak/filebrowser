@@ -110,6 +110,7 @@ import Archive from "./Archive.vue";
 import Unarchive from "./Unarchive.vue";
 import OfficeDebug from "./OfficeDebug.vue";
 import ThreeJSControls from "./ThreeJSControls.vue";
+import ActivityEventDetails from "./ActivityEventDetails.vue";
 import { state, getters, mutations } from "@/store";
 import { getObjectProperty, omitObjectProperty, setObjectProperty } from "@/utils/object.js";
 
@@ -150,6 +151,7 @@ export default {
     Unarchive,
     OfficeDebug,
     ThreeJSControls,
+    ActivityEventDetails,
   },
   data() {
     return {
@@ -355,6 +357,8 @@ export default {
           return this.$t("prompts.unarchive");
         case "threejscontrols":
           return this.$t("threejs.controls");
+        case "activityeventdetails":
+          return this.$t("general.details");
         default:
           console.error("[Prompts.vue] unknown prompt name", promptName);
           // Fallback for unknown prompt types

@@ -25,6 +25,7 @@
     "@onlyoffice/document-editor-vue": "^1.4.0",
     "ace-builds": "^1.24.2",
     "axios": "^1.13.5",
+    "chart.js": "^4.5.1",
     "css-vars-ponyfill": "^2.4.3",
     "dompurify": "^3.2.4",
     "epubjs": "^0.3.93",

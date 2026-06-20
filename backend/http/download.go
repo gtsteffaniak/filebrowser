@@ -161,6 +161,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	}
 
 	firstFilePath := fileList[0]
+	displayFileList := append([]string(nil), fileList...)
 	var err error
 	var userscope string
 	fileName := filepath.Base(firstFilePath)
@@ -290,11 +291,23 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 			reader = newThrottledReadSeeker(fd, limit, burst, r.Context())
 		}
 		http.ServeContent(w, r, fileName, fileInfo.ModTime(), reader)
-		return 200, nil
+		recordDownloadActivity(r, d, source, displayFileList, http.StatusOK)
+		return http.StatusOK, nil
 	}
 
 	// ** Archive (ZIP/TAR.GZ) handling ** — delegate to archive package
-	return BuildAndStreamArchive(w, r, d, source, fileList)
+	status, err := BuildAndStreamArchive(w, r, d, source, fileList)
+	if err == nil {
+		recordStatus := status
+		if recordStatus == 0 {
+			recordStatus = http.StatusOK
+		}
+		recordDownloadActivity(r, d, source, displayFileList, recordStatus)
+	}
+	if status == 0 && err == nil {
+		status = http.StatusOK
+	}
+	return status, err
 }
 
 // isOnlyOfficeCompatibleFile checks if a file extension is supported by OnlyOffice

@@ -1,4 +1,132 @@
 definitions:
+  activity.EventType:
+    enum:
+    - download
+    - move
+    - copy
+    - rename
+    - upload
+    - delete
+    - bulkDelete
+    - archive
+    - unarchive
+    - shareCreate
+    - shareUpdate
+    - shareDelete
+    - shareDownload
+    - userCreate
+    - userUpdate
+    - accessUpdate
+    - login
+    - logout
+    - signup
+    - passkeyRegister
+    - passkeyDelete
+    - tokenCreate
+    - tokenDelete
+    - duplicateFinder
+    type: string
+    x-enum-varnames:
+    - EventDownload
+    - EventMove
+    - EventCopy
+    - EventRename
+    - EventUpload
+    - EventDelete
+    - EventBulkDelete
+    - EventArchive
+    - EventUnarchive
+    - EventShareCreate
+    - EventShareUpdate
+    - EventShareDelete
+    - EventShareDownload
+    - EventUserCreate
+    - EventUserUpdate
+    - EventAccessUpdate
+    - EventLogin
+    - EventLogout
+    - EventSignup
+    - EventPasskeyRegister
+    - EventPasskeyDelete
+    - EventTokenCreate
+    - EventTokenDelete
+    - EventDuplicateFinder
+  activity.FrontendDetails:
+    properties:
+      bytes:
+        type: integer
+      cached:
+        type: boolean
+      durationMs:
+        type: integer
+      error:
+        type: string
+      fileCount:
+        type: integer
+      loginMethod:
+        type: string
+      passkeyName:
+        type: string
+      path:
+        type: string
+      paths:
+        items:
+          type: string
+        type: array
+      scopes:
+        items:
+          $ref: '#/definitions/activity.ScopeDetail'
+        type: array
+      shareHash:
+        type: string
+      source:
+        type: string
+      targetPath:
+        type: string
+      targetUsername:
+        type: string
+      tokenName:
+        type: string
+      truncated:
+        type: boolean
+    type: object
+  activity.FrontendEntry:
+    properties:
+      createdAt:
+        type: integer
+      details:
+        $ref: '#/definitions/activity.FrontendDetails'
+      eventType:
+        $ref: '#/definitions/activity.EventType'
+      id:
+        type: integer
+      ipAddress:
+        type: string
+      status:
+        type: integer
+      username:
+        type: string
+    type: object
+  activity.ScopeDetail:
+    properties:
+      path:
+        type: string
+      source:
+        type: string
+    type: object
+  activity.StatsBucket:
+    properties:
+      bucket:
+        type: integer
+      count:
+        type: integer
+      eventType:
+        type: string
+      seriesKey:
+        type: string
+      seriesLabel:
+        type: string
+    type: object
   files.Items:
     properties:
       files:
@@ -109,6 +237,28 @@ definitions:
         items:
           $ref: '#/definitions/http.MoveCopyItem'
         type: array
+    type: object
+  http.activityGroupedAPIResponse:
+    properties:
+      buckets:
+        items:
+          $ref: '#/definitions/activity.StatsBucket'
+        type: array
+    type: object
+  http.activityListAPIResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/activity.FrontendEntry'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+      totalPages:
+        type: integer
     type: object
   http.archiveCreateRequest:
     properties:
@@ -583,6 +733,18 @@ definitions:
     type: object
   settings.Database:
     properties:
+      activityEnabled:
+        description: enable semantic activity audit logging
+        type: boolean
+      activityFlushIntervalSeconds:
+        description: buffer flush interval in seconds (default 10)
+        type: integer
+      activityMaxBufferSize:
+        description: max in-memory buffer before immediate flush (default 10000)
+        type: integer
+      activityRetentionDays:
+        description: purge activity rows older than this many days (default 30)
+        type: integer
       migrateFrom:
         description: path to old BoltDB database file for migration (optional)
         type: string
@@ -4499,6 +4661,211 @@ paths:
       summary: List share links
       tags:
       - Shares
+  /api/tools/activity:
+    get:
+      description: Returns individual activity log rows, newest first. Details are
+        included for admins only.
+      parameters:
+      - description: 'Start unix timestamp (default: 7 days ago)'
+        in: query
+        name: from
+        type: integer
+      - description: 'End unix timestamp (default: now)'
+        in: query
+        name: to
+        type: integer
+      - description: 'Event category: all, files, or shares (default: all)'
+        in: query
+        name: scope
+        type: string
+      - description: Filter by event type (comma-separated)
+        in: query
+        name: eventType
+        type: string
+      - description: Filter by username (admin only)
+        in: query
+        name: username
+        type: string
+      - description: Filter by source name
+        in: query
+        name: source
+        type: string
+      - description: Path prefix filter
+        in: query
+        name: path
+        type: string
+      - description: Path glob filter (admin only)
+        in: query
+        name: pathGlob
+        type: string
+      - description: Share hash filter (admin only)
+        in: query
+        name: shareHash
+        type: string
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: 'Page size, max 500 (default: 100)'
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.activityListAPIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List activity events
+      tags:
+      - Tools
+  /api/tools/activity/export:
+    get:
+      description: Streams matching activity rows as CSV. Details column is populated
+        for admins only.
+      parameters:
+      - description: 'Start unix timestamp (default: 7 days ago)'
+        in: query
+        name: from
+        type: integer
+      - description: 'End unix timestamp (default: now)'
+        in: query
+        name: to
+        type: integer
+      - description: 'Event category: all, files, or shares (default: all)'
+        in: query
+        name: scope
+        type: string
+      - description: Filter by event type (comma-separated)
+        in: query
+        name: eventType
+        type: string
+      - description: Filter by username (admin only)
+        in: query
+        name: username
+        type: string
+      - description: Filter by source name
+        in: query
+        name: source
+        type: string
+      - description: Path prefix filter
+        in: query
+        name: path
+        type: string
+      - description: Path glob filter (admin only)
+        in: query
+        name: pathGlob
+        type: string
+      - description: Share hash filter (admin only)
+        in: query
+        name: shareHash
+        type: string
+      produces:
+      - text/csv
+      responses:
+        "200":
+          description: CSV file
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Export activity as CSV
+      tags:
+      - Tools
+  /api/tools/activity/grouped:
+    get:
+      description: Returns time-bucketed activity counts for charts. Use interval
+        and splitBy to control grouping.
+      parameters:
+      - description: 'Start unix timestamp (default: 7 days ago)'
+        in: query
+        name: from
+        type: integer
+      - description: 'End unix timestamp (default: now)'
+        in: query
+        name: to
+        type: integer
+      - description: 'Event category: all, files, or shares (default: all)'
+        in: query
+        name: scope
+        type: string
+      - description: Filter by event type (comma-separated)
+        in: query
+        name: eventType
+        type: string
+      - description: Filter by username (admin only)
+        in: query
+        name: username
+        type: string
+      - description: Filter by source name
+        in: query
+        name: source
+        type: string
+      - description: Path prefix filter
+        in: query
+        name: path
+        type: string
+      - description: Path glob filter (admin only)
+        in: query
+        name: pathGlob
+        type: string
+      - description: Share hash filter (admin only)
+        in: query
+        name: shareHash
+        type: string
+      - description: 'Time bucket: minute, hour, day, or none (default: hour)'
+        in: query
+        name: interval
+        type: string
+      - description: 'Series dimension: eventType, user, or none (default: eventType)'
+        in: query
+        name: splitBy
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.activityGroupedAPIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Grouped activity statistics
+      tags:
+      - Tools
   /api/tools/duplicateFinder:
     get:
       consumes:

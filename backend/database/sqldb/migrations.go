@@ -105,6 +105,25 @@ func createSchema(db *sql.DB) error {
 		key TEXT PRIMARY KEY,
 		value TEXT NOT NULL
 	);
+
+	-- Activity audit log (append-only; purged by retention policy)
+	CREATE TABLE IF NOT EXISTS activity_log (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		created_at INTEGER NOT NULL,
+		user_id TEXT NOT NULL,
+		event_type TEXT NOT NULL,
+		source TEXT,
+		path TEXT,
+		target_path TEXT,
+		ip_address TEXT,
+		status INTEGER NOT NULL,
+		success INTEGER NOT NULL DEFAULT 1,
+		details TEXT NOT NULL
+	);
+	CREATE INDEX IF NOT EXISTS idx_activity_created_at ON activity_log(created_at DESC);
+	CREATE INDEX IF NOT EXISTS idx_activity_user_created ON activity_log(user_id, created_at DESC);
+	CREATE INDEX IF NOT EXISTS idx_activity_event_created ON activity_log(event_type, created_at DESC);
+	CREATE INDEX IF NOT EXISTS idx_activity_user_event_created ON activity_log(user_id, event_type, created_at DESC);
 	`
 
 	_, err := db.Exec(schema)

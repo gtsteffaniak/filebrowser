@@ -20,6 +20,9 @@ const (
 	LoginMethodJwt      LoginMethod = "jwt"
 )
 
+// AnonymousUserName is the username for unauthenticated requests (user_id 0).
+const AnonymousUserName = "anonymous"
+
 // WebAuthnCredentialFlags mirrors the boolean flags from authenticator data.
 type WebAuthnCredentialFlags struct {
 	UserPresent    bool `json:"userPresent"`

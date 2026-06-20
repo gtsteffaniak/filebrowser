@@ -23,6 +23,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+	activitydb "github.com/gtsteffaniak/filebrowser/backend/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/go-cache/cache"
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -358,6 +359,7 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		}
 	}
 
+	recordArchiveActivity(r, d, activitydb.EventArchive, req.FromSource, req.Destination, req.Paths)
 	return renderJSON(w, r, map[string]string{"path": req.Destination}, http.StatusOK)
 }
 
@@ -493,6 +495,7 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		}
 	}
 
+	recordArchiveActivity(r, d, activitydb.EventUnarchive, req.FromSource, req.Destination, []string{req.Path})
 	return renderJSON(w, r, map[string]string{"path": req.Destination, "source": req.ToSource}, http.StatusOK)
 }
 

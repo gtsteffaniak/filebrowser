@@ -200,6 +200,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	if err != nil {
 		return errToStatus(err), err
 	}
+	recordDeleteActivity(r, d, source, path)
 	return http.StatusOK, nil
 
 }
@@ -455,6 +456,10 @@ func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *reques
 		statusCode = http.StatusMultiStatus
 	}
 
+	if len(response.Succeeded) > 0 {
+		recordBulkDeleteActivity(r, d, response.Succeeded)
+	}
+
 	return renderJSON(w, r, response, statusCode)
 }
 
@@ -625,6 +630,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			return errToStatus(err), err
 		}
 
+		recordUploadActivity(r, d, source, path, true)
 		return http.StatusOK, nil
 	}
 
@@ -735,6 +741,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 				return http.StatusInternalServerError, fmt.Errorf("could not move file from chunked folder to destination: %v", err)
 			}
 			reconcileSharesAfterMove(false, source, source, tempFilePath, realPath)
+			recordUploadActivity(r, d, source, path, false)
 		}
 		return http.StatusOK, nil
 	}
@@ -754,6 +761,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		logger.Debugf("error writing file: %v", err)
 		return errToStatus(err), err
 	}
+	recordUploadActivity(r, d, source, path, false)
 	return http.StatusOK, nil
 }
 
@@ -1065,6 +1073,7 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 
 		// Success
 		response.Succeeded = append(response.Succeeded, item)
+		recordPatchItemActivity(r, d, req.Action, item, http.StatusOK)
 	}
 
 	if len(response.Failed) == 0 && len(response.Succeeded) == 0 {

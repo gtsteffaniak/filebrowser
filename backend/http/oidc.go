@@ -393,6 +393,8 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 	// This allows subsequent handlers to access the current user.
 	setUserInResponseWriter(w, user)
 
+	recordLoginActivity(r, user)
+
 	// Redirect the user to the page they were trying to access before login,
 	// or to the root ("/") if no specific redirect was requested.
 	// The 'fb_redirect' parameter is extracted from the 'state' parameter for security.

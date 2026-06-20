@@ -15,6 +15,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+	activitydb "github.com/gtsteffaniak/filebrowser/backend/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/state"
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -201,6 +202,7 @@ func usersPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusInternalServerError, err
 	}
 
+	recordUserMutation(r, d, activitydb.EventUserCreate, &req.User)
 	w.Header().Set("Location", "/settings/users/"+url.PathEscape(req.User.Username))
 	return http.StatusCreated, nil
 }
@@ -363,6 +365,7 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		}
 	}
 
+	recordUserMutation(r, d, activitydb.EventUserUpdate, &req.User)
 	return http.StatusNoContent, nil
 }
 

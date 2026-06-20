@@ -77,8 +77,12 @@ type Server struct {
 }
 
 type Database struct {
-	Path        string `json:"path"`        // path to SQLite database file
-	MigrateFrom string `json:"migrateFrom"` // path to old BoltDB database file for migration (optional)
+	Path                         string `json:"path"`                         // path to SQLite database file
+	MigrateFrom                  string `json:"migrateFrom"`                  // path to old BoltDB database file for migration (optional)
+	ActivityEnabled              bool   `json:"activityEnabled"`              // enable semantic activity audit logging
+	ActivityRetentionDays        int    `json:"activityRetentionDays"`        // purge activity rows older than this many days (default 30)
+	ActivityFlushIntervalSeconds int    `json:"activityFlushIntervalSeconds"` // buffer flush interval in seconds (default 10)
+	ActivityMaxBufferSize        int    `json:"activityMaxBufferSize"`        // max in-memory buffer before immediate flush (default 10000)
 }
 
 type Filesystem struct {
