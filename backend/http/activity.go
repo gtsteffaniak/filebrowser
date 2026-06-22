@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	activitydb "github.com/gtsteffaniak/filebrowser/backend/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/state"
@@ -19,6 +20,18 @@ const (
 	activityMaxChartDays       = 90
 	activityMaxMinuteRangeSecs = 2 * 86400 // 48 hours
 )
+
+// clampActivityListPaging normalizes page/limit before database queries.
+func clampActivityListPaging(filter *activitydb.QueryFilter) {
+	limit := filter.Limit
+	if limit <= 0 {
+		limit = 100
+	}
+	filter.Limit = utils.Clamp(limit, 1, 500)
+	if filter.Page < 1 {
+		filter.Page = 1
+	}
+}
 
 func parseActivityFilter(r *http.Request, d *requestContext) (activitydb.QueryFilter, int, error) {
 	if status, err := enforceActivityScope(r, d); err != nil {
@@ -130,7 +143,6 @@ func enforceActivityScope(r *http.Request, d *requestContext) (int, error) {
 	return 0, nil
 }
 
-
 func redactActivityItems(items []activitydb.FrontendEntry, admin bool) []activitydb.FrontendEntry {
 	if admin {
 		return items
@@ -225,24 +237,14 @@ func activityListHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	if err != nil {
 		return status, err
 	}
+	clampActivityListPaging(&filter)
 
 	items, total, err := state.ListActivity(filter)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 	items = redactActivityItems(items, d.user.Permissions.Admin)
-	limit := filter.Limit
-	if limit <= 0 {
-		limit = 100
-	}
-	if limit > 500 {
-		limit = 500
-	}
-	page := filter.Page
-	if page < 1 {
-		page = 1
-	}
-	totalPages := (total + limit - 1) / limit
+	totalPages := (total + filter.Limit - 1) / filter.Limit
 	if totalPages == 0 {
 		totalPages = 1
 	}
@@ -250,8 +252,8 @@ func activityListHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	return renderJSON(w, r, activitydb.ListResponse{
 		Items:      items,
 		Total:      total,
-		Page:       page,
-		Limit:      limit,
+		Page:       filter.Page,
+		Limit:      filter.Limit,
 		TotalPages: totalPages,
 	})
 }
@@ -324,7 +326,7 @@ func activityExportHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 		return status, err
 	}
 	filter.Page = 1
-	filter.Limit = 1000
+	filter.Limit = utils.Clamp(1000, 1, 500)
 
 	w.Header().Set("Content-Type", "text/csv; charset=utf-8")
 	w.Header().Set("Content-Disposition", fmt.Sprintf(

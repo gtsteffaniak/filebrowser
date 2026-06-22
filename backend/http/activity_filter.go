@@ -65,6 +65,11 @@ func resolveActivityIndexPath(d *requestContext, idx *indexing.Index, userScope,
 	if clientPath == "" {
 		return "", http.StatusBadRequest, fmt.Errorf("path is empty")
 	}
+	cleanPath, err := utils.SanitizePath(clientPath)
+	if err != nil {
+		return "", http.StatusBadRequest, err
+	}
+	clientPath = cleanPath
 	if !strings.HasPrefix(clientPath, "/") {
 		clientPath = "/" + clientPath
 	}
@@ -90,6 +95,11 @@ func resolveActivityPathGlob(d *requestContext, idx *indexing.Index, userScope, 
 	if glob == "" {
 		return "", http.StatusBadRequest, fmt.Errorf("pathGlob is empty")
 	}
+	cleanGlob, err := utils.SanitizePath(glob)
+	if err != nil {
+		return "", http.StatusBadRequest, err
+	}
+	glob = cleanGlob
 
 	userScope = strings.TrimRight(userScope, "/")
 	var scoped string

@@ -193,7 +193,7 @@ func parseRepeatedScopeParams(scopeQueryValues []string) ([]scopedSourcePath, st
 			if pathPart == "" {
 				pathPart = "/"
 			}
-			cleanPath, err := utils.SanitizeUserPath(pathPart)
+			cleanPath, err := utils.SanitizePath(pathPart)
 			if err != nil {
 				return nil, "", fmt.Errorf("invalid path in scope parameter %q: %v", raw, err)
 			}
@@ -206,7 +206,7 @@ func parseRepeatedScopeParams(scopeQueryValues []string) ([]scopedSourcePath, st
 		if legacyPath != "" {
 			return nil, "", fmt.Errorf("multiple legacy scope paths without a source prefix are not allowed; use scope=sourceName:path for each source")
 		}
-		clean, err := utils.SanitizeUserPath(raw)
+		clean, err := utils.SanitizePath(raw)
 		if err != nil {
 			return nil, "", fmt.Errorf("invalid scope: %v", err)
 		}
@@ -321,7 +321,7 @@ func prepSearchOptions(r *http.Request, d *requestContext) (*searchOptions, erro
 		if scope == "" {
 			scope = "/"
 		}
-		cleanScope, err := utils.SanitizeUserPath(scope)
+		cleanScope, err := utils.SanitizePath(scope)
 		if err != nil {
 			return nil, fmt.Errorf("invalid scope: %v", err)
 		}

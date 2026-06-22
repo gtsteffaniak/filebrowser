@@ -106,7 +106,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	}
 
 	// Rule 1: Validate user-provided path to prevent path traversal
-	cleanPath, err := utils.SanitizeUserPath(providedPath)
+	cleanPath, err := utils.SanitizePath(providedPath)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
@@ -467,7 +467,7 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 	}
 
 	// Rule 1: Validate user-provided path to prevent path traversal
-	cleanPath, err := utils.SanitizeUserPath(path)
+	cleanPath, err := utils.SanitizePath(path)
 	if err != nil {
 		return returnOnlyOfficeError(w, r, 400, err.Error())
 	}

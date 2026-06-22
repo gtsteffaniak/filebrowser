@@ -1,4 +1,5 @@
 import { getters } from "@/store";
+import { getObjectProperty } from "@/utils/object.js";
 import { goToItem } from "@/utils/url";
 
 export const GO_TO_ITEM_ACTION = "goToItem";
@@ -36,7 +37,7 @@ export function resolveHistoryNotificationButtons(buttons, activeButtons) {
 
   const resolved = buttons
     .map((button, index) => {
-      const activeButton = activeButtons?.[index];
+      const activeButton = getObjectProperty(activeButtons, index);
       const action =
         (activeButton && typeof activeButton.action === "function" ? activeButton.action : null) ||
         restoreNotificationButtonAction(button);

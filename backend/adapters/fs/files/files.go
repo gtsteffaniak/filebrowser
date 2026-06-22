@@ -137,7 +137,7 @@ func checkPermissionsImpl(opts utils.FileOptions, access *access.Storage, user *
 		return "", "", fmt.Errorf("user has no access to source: %v", opts.Source)
 	}
 
-	safePath, err := utils.SanitizeUserPath(opts.Path)
+	safePath, err := utils.SanitizePath(opts.Path)
 	if err != nil {
 		return "", "", errors.ErrAccessDenied
 	}

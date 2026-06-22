@@ -303,7 +303,7 @@ func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *reques
 			})
 			continue
 		}
-		sanitizedPath, err := utils.SanitizeUserPath(rawPath)
+		sanitizedPath, err := utils.SanitizePath(rawPath)
 		if err != nil {
 			response.Failed = append(response.Failed, BulkDeleteItem{
 				Source:  item.Source,
@@ -446,8 +446,13 @@ func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *reques
 			}
 			preview.DelThumbs(r.Context(), *fileInfo)
 		}
-		// Success
-		response.Succeeded = append(response.Succeeded, item)
+		// Success (log canonical path/source used for deletion)
+		loggedItem := item
+		loggedItem.Path = sanitizedPath
+		if d.share.Hash != "" {
+			loggedItem.Source = d.share.GetSourceName()
+		}
+		response.Succeeded = append(response.Succeeded, loggedItem)
 	}
 
 	// Determine status code based on results
@@ -486,7 +491,7 @@ func resourcePauseHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	}
 	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
-	cleanPath, err := utils.SanitizeUserPath(path)
+	cleanPath, err := utils.SanitizePath(path)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
@@ -553,7 +558,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	source := r.URL.Query().Get("source")
 
 	// Rule 1: Validate user-provided path to prevent path traversal
-	cleanPath, err := utils.SanitizeUserPath(path)
+	cleanPath, err := utils.SanitizePath(path)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
@@ -784,7 +789,7 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	path := r.URL.Query().Get("path")
 
 	// Rule 1: Validate user-provided path to prevent path traversal
-	cleanPath, err := utils.SanitizeUserPath(path)
+	cleanPath, err := utils.SanitizePath(path)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
@@ -874,13 +879,13 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 			response.Failed = append(response.Failed, item)
 			continue
 		}
-		cleanFromPath, err := utils.SanitizeUserPath(item.FromPath)
+		cleanFromPath, err := utils.SanitizePath(item.FromPath)
 		if err != nil {
 			item.Message = fmt.Sprintf("invalid fromPath: %v", err)
 			response.Failed = append(response.Failed, item)
 			continue
 		}
-		cleanToPath, err := utils.SanitizeUserPath(item.ToPath)
+		cleanToPath, err := utils.SanitizePath(item.ToPath)
 		if err != nil {
 			item.Message = fmt.Sprintf("invalid toPath: %v", err)
 			response.Failed = append(response.Failed, item)

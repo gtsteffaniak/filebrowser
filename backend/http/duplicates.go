@@ -209,6 +209,7 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 			w.Header().Set("X-Search-Incomplete", "true")
 			w.Header().Set("X-Search-Incomplete-Reason", cachedResults.Reason)
 		}
+		logDuplicateFinder(cachedResults, true)
 		return renderJSON(w, r, cachedResults)
 	}
 
@@ -225,6 +226,7 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 			w.Header().Set("X-Search-Incomplete", "true")
 			w.Header().Set("X-Search-Incomplete-Reason", cachedResults.Reason)
 		}
+		logDuplicateFinder(cachedResults, true)
 		return renderJSON(w, r, cachedResults)
 	}
 
@@ -573,7 +575,7 @@ func mergeGroupsByChecksum(groups []duplicateGroupWithChecksums) []duplicateGrou
 
 func prepDuplicatesOptions(r *http.Request, d *requestContext) (*duplicatesOptions, error) {
 	source := r.URL.Query().Get("source")
-	scope, err := utils.SanitizeUserPath(r.URL.Query().Get("scope"))
+	scope, err := utils.SanitizePath(r.URL.Query().Get("scope"))
 	if err != nil {
 		return nil, fmt.Errorf("invalid scope: %v", err)
 	}

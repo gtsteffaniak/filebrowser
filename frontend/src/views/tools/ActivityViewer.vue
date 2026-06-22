@@ -286,9 +286,15 @@ import { formatTimestamp } from "@/utils/moment";
 import SharePickerButton from "@/components/tools/SharePickerButton.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
 import { globalVars } from "@/utils/constants";
+import { getObjectProperty } from "@/utils/object.js";
 
 function queryValuePresent(value) {
   return value !== undefined && value !== null;
+}
+
+function queryParamString(query, key) {
+  const value = getObjectProperty(query, key);
+  return queryValuePresent(value) ? String(value) : "";
 }
 
 const FILE_EVENT_TYPES = [
@@ -800,12 +806,15 @@ export default {
       this.$nextTick(() => {
         requestAnimationFrame(() => {
           this.chartRenderPending = false;
-          if (token !== this.chartRenderToken) {
+          if (!this.isCurrentChartRenderToken(token)) {
             return;
           }
           this.renderChart();
         });
       });
+    },
+    isCurrentChartRenderToken(token) {
+      return this.chartRenderToken === token;
     },
     onScopeChange() {
       if (!this.visibleEventTypes.includes(this.selectedEventType)) {
@@ -863,9 +872,7 @@ export default {
     },
     routeQueryChanged(newQuery = {}, oldQuery = {}) {
       return ACTIVITY_QUERY_KEYS.some((key) => {
-        const next = queryValuePresent(newQuery[key]) ? String(newQuery[key]) : "";
-        const prev = queryValuePresent(oldQuery[key]) ? String(oldQuery[key]) : "";
-        return next !== prev;
+        return queryParamString(newQuery, key) !== queryParamString(oldQuery, key);
       });
     },
     inferActivityScopeFromQuery(query) {
@@ -1502,10 +1509,10 @@ export default {
 
       const canvas = this.$refs.chartCanvas;
       if (!canvas || typeof canvas.getContext !== "function" || !canvas.isConnected) {
-        if (retryCount < 5 && renderToken === this.chartRenderToken) {
+        if (retryCount < 5 && this.isCurrentChartRenderToken(renderToken)) {
           this.$nextTick(() => {
             requestAnimationFrame(() => {
-              if (renderToken === this.chartRenderToken) {
+              if (this.isCurrentChartRenderToken(renderToken)) {
                 this.renderChart(retryCount + 1);
               }
             });
@@ -1533,7 +1540,7 @@ export default {
       if (!config?.data?.datasets?.length) {
         return;
       }
-      if (renderToken !== this.chartRenderToken) {
+      if (!this.isCurrentChartRenderToken(renderToken)) {
         return;
       }
 

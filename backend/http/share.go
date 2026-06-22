@@ -66,7 +66,7 @@ func shareGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 	if path == "" {
 		return http.StatusBadRequest, fmt.Errorf("path is required")
 	}
-	cleanPath, err := utils.SanitizeUserPath(path)
+	cleanPath, err := utils.SanitizePath(path)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path: %w", err)
 	}
@@ -156,7 +156,7 @@ func sharePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 		return http.StatusBadRequest, fmt.Errorf("hash and path are required")
 	}
 
-	sanitizedPath, err := utils.SanitizeUserPath(body.Path)
+	sanitizedPath, err := utils.SanitizePath(body.Path)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path: %w", err)
 	}
@@ -319,7 +319,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 	providedPath := req.Path
 
-	cleanPath, err := utils.SanitizeUserPath(providedPath)
+	cleanPath, err := utils.SanitizePath(providedPath)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
@@ -407,7 +407,7 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *reque
 		return http.StatusBadRequest, fmt.Errorf("path and source are required")
 	}
 
-	cleanPath, err := utils.SanitizeUserPath(path)
+	cleanPath, err := utils.SanitizePath(path)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path: %w", err)
 	}
@@ -670,7 +670,7 @@ func sharePatchPinnedItemsHandler(w http.ResponseWriter, r *http.Request, d *req
 		return http.StatusBadRequest, fmt.Errorf("invalid path: %s", body.Path)
 	}
 
-	cleanName, err := utils.SanitizeUserPath(body.Name)
+	cleanName, err := utils.SanitizePath(body.Name)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid name: %s", body.Name)
 	}

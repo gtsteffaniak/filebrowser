@@ -85,7 +85,7 @@ func publicDownloadHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	fileList := []string{}
 	for _, file := range files {
 		// Rule 1: Validate each file path to prevent path traversal
-		cleanFile, err := utils.SanitizeUserPath(file)
+		cleanFile, err := utils.SanitizePath(file)
 		if err != nil {
 			return http.StatusBadRequest, fmt.Errorf("invalid file path: %v", err)
 		}
@@ -250,7 +250,7 @@ func publicPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	path := r.URL.Query().Get("path")
 
 	// Rule 1: Validate user-provided path to prevent path traversal
-	cleanPath, err := utils.SanitizeUserPath(path)
+	cleanPath, err := utils.SanitizePath(path)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
@@ -368,13 +368,13 @@ func publicPatchHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	// resourcePatchHandler will skip adding scope for shares
 	for i := range req.Items {
 		var sanitizedPath string
-		sanitizedPath, err = utils.SanitizeUserPath(req.Items[i].FromPath)
+		sanitizedPath, err = utils.SanitizePath(req.Items[i].FromPath)
 		if err != nil {
 			return http.StatusBadRequest, fmt.Errorf("invalid from path: %w", err)
 		}
 		req.Items[i].FromSource = sourceName
 		req.Items[i].FromPath = utils.JoinPathAsUnix(d.share.Path, sanitizedPath)
-		sanitizedPath, err = utils.SanitizeUserPath(req.Items[i].ToPath)
+		sanitizedPath, err = utils.SanitizePath(req.Items[i].ToPath)
 		if err != nil {
 			return http.StatusBadRequest, fmt.Errorf("invalid to path: %w", err)
 		}

@@ -61,7 +61,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 	return withOrWithoutUserHelper(func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
 		hash := r.URL.Query().Get("hash")
 		inputPath := r.URL.Query().Get("path")
-		path, err := utils.SanitizeUserPath(inputPath)
+		path, err := utils.SanitizePath(inputPath)
 		if err != nil && inputPath != "" {
 			return http.StatusBadRequest, err
 		}

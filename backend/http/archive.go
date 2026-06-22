@@ -209,7 +209,7 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		return http.StatusBadRequest, fmt.Errorf("fromSource, paths, and destination are required")
 	}
 
-	destClean, err := utils.SanitizeUserPath(req.Destination)
+	destClean, err := utils.SanitizePath(req.Destination)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid destination path: %v", err)
 	}
@@ -217,7 +217,7 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	pathsClean := make([]string, 0, len(req.Paths))
 	for _, p := range req.Paths {
 		var clean string
-		clean, err = utils.SanitizeUserPath(p)
+		clean, err = utils.SanitizePath(p)
 		if err != nil {
 			return http.StatusBadRequest, fmt.Errorf("invalid path %q: %v", p, err)
 		}
@@ -404,11 +404,11 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		req.ToSource = req.FromSource
 	}
 
-	pathClean, err := utils.SanitizeUserPath(req.Path)
+	pathClean, err := utils.SanitizePath(req.Path)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
-	destClean, err := utils.SanitizeUserPath(req.Destination)
+	destClean, err := utils.SanitizePath(req.Destination)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid destination: %v", err)
 	}

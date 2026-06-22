@@ -24,9 +24,9 @@ func IndexPathFromNormalized(path string, isDir bool) IndexPath {
 	return p
 }
 
-// ParseSanitizedIndexPath validates API/user input then parses a slash-separated index path.
+// ParseSanitizedIndexPath validates external path input then parses a slash-separated index path.
 func ParseSanitizedIndexPath(userPath string, isDir bool) (IndexPath, error) {
-	clean, err := SanitizeUserPath(userPath)
+	clean, err := SanitizePath(userPath)
 	if err != nil {
 		return IndexPath{}, err
 	}
