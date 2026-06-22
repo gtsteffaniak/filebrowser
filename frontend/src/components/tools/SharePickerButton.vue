@@ -120,12 +120,19 @@ export default {
         this.selectedLabel = "";
         return;
       }
+      const requestedHash = hash;
       try {
         const shares = await shareApi.list();
-        const share = shares.find((item) => item.hash === hash);
-        this.selectedLabel = this.formatShareLabel(share) || hash;
+        if (requestedHash !== this.shareHash) {
+          return;
+        }
+        const share = shares.find((item) => item.hash === requestedHash);
+        this.selectedLabel = this.formatShareLabel(share) || requestedHash;
       } catch {
-        this.selectedLabel = hash;
+        if (requestedHash !== this.shareHash) {
+          return;
+        }
+        this.selectedLabel = requestedHash;
       }
     },
 

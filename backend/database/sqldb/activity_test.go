@@ -3,6 +3,7 @@ package sqldb
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -292,5 +293,122 @@ func TestActivityShareOwnerFilter(t *testing.T) {
 	}
 	if ownerCount != 2 {
 		t.Fatalf("share owner filter expected 2 rows, got %d", ownerCount)
+	}
+}
+
+func TestActivityListActivityMalformedDetailsJSON(t *testing.T) {
+	dir := t.TempDir()
+	dbPath := filepath.Join(dir, "test.sqlite")
+
+	store, _, err := NewSQLStore(dbPath)
+	if err != nil {
+		t.Fatalf("NewSQLStore: %v", err)
+	}
+	defer store.Close()
+
+	now := time.Now().Unix()
+	_, err = store.db.Exec(`INSERT INTO activity_log (
+		created_at, user_id, event_type, source, path, target_path,
+		ip_address, status, success, details
+	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		now, "1", "download", "default", "/bad.json", nil, nil, 200, 1, "{not valid json",
+	)
+	if err != nil {
+		t.Fatalf("insert malformed details row: %v", err)
+	}
+
+	filter := activitydb.QueryFilter{
+		From:  now - 10,
+		To:    now + 10,
+		Page:  1,
+		Limit: 10,
+	}
+	_, err = store.ListActivity(filter)
+	if err == nil {
+		t.Fatal("expected error listing activity with malformed details JSON")
+	}
+	if !strings.Contains(err.Error(), "unmarshal activity details") {
+		t.Fatalf("expected unmarshal activity details error, got: %v", err)
+	}
+}
+
+func TestActivityPathPrefixLikeLiterals(t *testing.T) {
+	dir := t.TempDir()
+	dbPath := filepath.Join(dir, "test.sqlite")
+
+	store, _, err := NewSQLStore(dbPath)
+	if err != nil {
+		t.Fatalf("NewSQLStore: %v", err)
+	}
+	defer store.Close()
+
+	now := time.Now().Unix()
+	entries := []activitydb.Entry{
+		{
+			CreatedAt: now,
+			UserID:    1,
+			EventType: activitydb.EventDownload,
+			Source:    "default",
+			Path:      "/a%b/file.txt",
+			Status:    200,
+			Success:   true,
+		},
+		{
+			CreatedAt: now,
+			UserID:    1,
+			EventType: activitydb.EventDownload,
+			Source:    "default",
+			Path:      "/axb/file.txt",
+			Status:    200,
+			Success:   true,
+		},
+		{
+			CreatedAt: now,
+			UserID:    1,
+			EventType: activitydb.EventDownload,
+			Source:    "default",
+			Path:      "/a_b/file.txt",
+			Status:    200,
+			Success:   true,
+		},
+	}
+	if err = store.BulkInsertActivity(entries); err != nil {
+		t.Fatalf("BulkInsertActivity: %v", err)
+	}
+
+	filter := activitydb.QueryFilter{
+		From:       now - 10,
+		To:         now + 10,
+		PathPrefix: "/a%b",
+		Page:       1,
+		Limit:      10,
+	}
+	rows, err := store.ListActivity(filter)
+	if err != nil {
+		t.Fatalf("ListActivity with literal %% prefix: %v", err)
+	}
+	if len(rows) != 1 {
+		t.Fatalf("literal %% prefix expected 1 row, got %d: %+v", len(rows), rows)
+	}
+	if rows[0].Path != "/a%b/file.txt" {
+		t.Fatalf("expected /a%%b/file.txt, got %q", rows[0].Path)
+	}
+
+	underscoreFilter := activitydb.QueryFilter{
+		From:       now - 10,
+		To:         now + 10,
+		PathPrefix: "/a_b",
+		Page:       1,
+		Limit:      10,
+	}
+	underscoreRows, err := store.ListActivity(underscoreFilter)
+	if err != nil {
+		t.Fatalf("ListActivity with literal _ prefix: %v", err)
+	}
+	if len(underscoreRows) != 1 {
+		t.Fatalf("literal _ prefix expected 1 row, got %d: %+v", len(underscoreRows), underscoreRows)
+	}
+	if underscoreRows[0].Path != "/a_b/file.txt" {
+		t.Fatalf("expected /a_b/file.txt, got %q", underscoreRows[0].Path)
 	}
 }

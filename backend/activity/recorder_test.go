@@ -211,6 +211,13 @@ func TestRecorderRecordStopRace(t *testing.T) {
 	globalMu.Unlock()
 	go r.loop()
 
+	// Seed one valid entry so the flush assertion is deterministic.
+	Record(activitydb.Entry{
+		UserID:    1,
+		EventType: activitydb.EventDownload,
+		CreatedAt: time.Now().Unix(),
+	})
+
 	stopDone := make(chan struct{})
 	go func() {
 		defer close(stopDone)
