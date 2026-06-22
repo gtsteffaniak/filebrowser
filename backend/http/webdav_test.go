@@ -170,7 +170,7 @@ func mockCheckPermissions(t *testing.T, source1Path, source2Path string) {
 		}
 
 		// Sanitize path
-		safePath, err := utils.SanitizeUserPath(opts.Path)
+		safePath, err := utils.SanitizePath(opts.Path)
 		if err != nil {
 			return "", "", commonerrors.ErrAccessDenied
 		}

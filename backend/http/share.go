@@ -15,6 +15,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+	activitydb "github.com/gtsteffaniak/filebrowser/backend/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
@@ -62,6 +63,14 @@ func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 func shareGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	path := r.URL.Query().Get("path")
 	sourceName := r.URL.Query().Get("source")
+	if path == "" {
+		return http.StatusBadRequest, fmt.Errorf("path is required")
+	}
+	cleanPath, err := utils.SanitizePath(path)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid path: %w", err)
+	}
+	path = cleanPath
 	sourceInfo, ok := config.Server.NameToSource[sourceName] // backend source is path
 	if !ok {
 		return http.StatusBadRequest, fmt.Errorf("invalid source name: %s", sourceName)
@@ -117,6 +126,7 @@ func shareDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return errToStatus(err), err
 	}
 
+	recordShareMutation(r, d, activitydb.EventShareDelete, hash, thisShare.SourceName, thisShare.Path)
 	return errToStatus(err), err
 }
 
@@ -146,7 +156,7 @@ func sharePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 		return http.StatusBadRequest, fmt.Errorf("hash and path are required")
 	}
 
-	sanitizedPath, err := utils.SanitizeUserPath(body.Path)
+	sanitizedPath, err := utils.SanitizePath(body.Path)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path: %w", err)
 	}
@@ -173,6 +183,7 @@ func sharePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	if len(prepared) == 0 {
 		return http.StatusInternalServerError, fmt.Errorf("could not prepare share response")
 	}
+	recordShareMutation(r, d, activitydb.EventShareUpdate, body.Hash, updatedShare.SourceName, updatedShare.Path)
 	return renderJSON(w, r, prepared[0])
 }
 
@@ -281,6 +292,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		if len(prepared) == 0 {
 			return http.StatusInternalServerError, fmt.Errorf("could not prepare share response")
 		}
+		recordShareMutation(r, d, activitydb.EventShareUpdate, req.Hash, updatedShare.SourceName, updatedShare.Path)
 		return renderJSON(w, r, prepared[0])
 	}
 
@@ -307,7 +319,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 	providedPath := req.Path
 
-	cleanPath, err := utils.SanitizeUserPath(providedPath)
+	cleanPath, err := utils.SanitizePath(providedPath)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
@@ -354,6 +366,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if len(prepared) == 0 {
 		return http.StatusInternalServerError, fmt.Errorf("could not prepare share response")
 	}
+	recordShareMutation(r, d, activitydb.EventShareCreate, s.Hash, s.SourceName, s.Path)
 	return renderJSON(w, r, prepared[0])
 }
 
@@ -393,6 +406,12 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *reque
 	if path == "" || source == "" {
 		return http.StatusBadRequest, fmt.Errorf("path and source are required")
 	}
+
+	cleanPath, err := utils.SanitizePath(path)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid path: %w", err)
+	}
+	path = cleanPath
 
 	// Validate source exists
 	sourceInfo, ok := config.Server.NameToSource[source]
@@ -514,6 +533,7 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *reque
 		ShareURL:    share.URLFromRequest(r, secureHash, false, snap.Token),
 	}
 
+	recordShareMutation(r, d, activitydb.EventShareCreate, secureHash, snap.SourceName, snap.Path)
 	return renderJSON(w, r, response)
 }
 
@@ -650,7 +670,7 @@ func sharePatchPinnedItemsHandler(w http.ResponseWriter, r *http.Request, d *req
 		return http.StatusBadRequest, fmt.Errorf("invalid path: %s", body.Path)
 	}
 
-	cleanName, err := utils.SanitizeUserPath(body.Name)
+	cleanName, err := utils.SanitizePath(body.Name)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid name: %s", body.Name)
 	}

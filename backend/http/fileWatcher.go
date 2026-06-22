@@ -137,7 +137,7 @@ func fileWatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusBadRequest, fmt.Errorf("path and source are required")
 	}
 	var err error
-	path, err = utils.SanitizeUserPath(path)
+	path, err = utils.SanitizePath(path)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
@@ -274,7 +274,7 @@ func fileWatchSSEHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	}
 
 	// Rule 1: Validate user-provided path to prevent path traversal
-	cleanPath, err := utils.SanitizeUserPath(path)
+	cleanPath, err := utils.SanitizePath(path)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}

@@ -36,7 +36,7 @@ func ShareRootFromStartURL(baseURL, startURL string) (shareRoot, normalizedStart
 		return "", "", false
 	}
 	if subPath != "" {
-		if _, err := utils.SanitizeUserPath(subPath); err != nil {
+		if _, err := utils.SanitizePath(subPath); err != nil {
 			return "", "", false
 		}
 	}

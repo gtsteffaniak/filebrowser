@@ -16,6 +16,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	commonerrors "github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+	activitydb "github.com/gtsteffaniak/filebrowser/backend/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
@@ -45,6 +46,7 @@ type filteredFileSystem struct {
 	fs     webdav.FileSystem
 	source string
 	user   *users.User
+	httpReq *http.Request
 	// Cache FileInfoFaster results per path to avoid redundant calls within the same request
 	fileInfoCache map[string]*iteminfo.ExtendedFileInfo
 }
@@ -258,7 +260,19 @@ func (ffs *filteredFileSystem) Mkdir(ctx context.Context, name string, perm os.F
 		return err
 	}
 
-	return ffs.fs.Mkdir(ctx, name, perm)
+	if err := ffs.fs.Mkdir(ctx, name, perm); err != nil {
+		return err
+	}
+	recordWebDAVUserActivity(ffs.httpReq, ffs.user, activitydb.Entry{
+		EventType: activitydb.EventUpload,
+		Source:    ffs.source,
+		Path:      name + "/",
+		Details: activitydb.Details{
+			Source: ffs.source,
+			Path:   name + "/",
+		},
+	})
+	return nil
 }
 
 func (ffs *filteredFileSystem) OpenFile(ctx context.Context, requestPath string, flag int, perm os.FileMode) (webdav.File, error) {
@@ -310,7 +324,19 @@ func (ffs *filteredFileSystem) RemoveAll(ctx context.Context, requestPath string
 		return err
 	}
 
-	return ffs.fs.RemoveAll(ctx, requestPath)
+	if err := ffs.fs.RemoveAll(ctx, requestPath); err != nil {
+		return err
+	}
+	recordWebDAVUserActivity(ffs.httpReq, ffs.user, activitydb.Entry{
+		EventType: activitydb.EventDelete,
+		Source:    ffs.source,
+		Path:      requestPath,
+		Details: activitydb.Details{
+			Source: ffs.source,
+			Path:   requestPath,
+		},
+	})
+	return nil
 }
 
 func (ffs *filteredFileSystem) Rename(ctx context.Context, oldPath, newPath string) error {
@@ -329,7 +355,21 @@ func (ffs *filteredFileSystem) Rename(ctx context.Context, oldPath, newPath stri
 		return err
 	}
 
-	return ffs.fs.Rename(ctx, oldPath, newPath)
+	if err := ffs.fs.Rename(ctx, oldPath, newPath); err != nil {
+		return err
+	}
+	recordWebDAVUserActivity(ffs.httpReq, ffs.user, activitydb.Entry{
+		EventType: activitydb.EventMove,
+		Source:    ffs.source,
+		Path:      oldPath,
+		TargetPath: newPath,
+		Details: activitydb.Details{
+			Source:     ffs.source,
+			Path:       oldPath,
+			TargetPath: newPath,
+		},
+	})
+	return nil
 }
 
 func (ffs *filteredFileSystem) Stat(ctx context.Context, requestPath string) (os.FileInfo, error) {
@@ -410,9 +450,10 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	// Wrap the filesystem to filter directory listings using FileInfoFaster
 	// We pass requestPath (without scope) to FileInfoFaster, which applies scope internally
 	filteredFS := &filteredFileSystem{
-		fs:     webdav.Dir(scopePath),
-		source: source,
-		user:   d.user,
+		fs:      webdav.Dir(scopePath),
+		source:  source,
+		user:    d.user,
+		httpReq: r,
 	}
 
 	wd := &webdav.Handler{

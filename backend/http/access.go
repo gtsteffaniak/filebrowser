@@ -137,6 +137,7 @@ func accessPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 		logger.Errorf("failed to add or update rule: %v", err)
 		return http.StatusInternalServerError, fmt.Errorf("failed to add or update rule: %w", err)
 	}
+	recordAccessUpdate(r, d, sourceName, parsedPath.String())
 	return renderJSON(w, r, map[string]string{"message": "rule added or updated"})
 }
 
@@ -205,6 +206,7 @@ func accessDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			return http.StatusNotFound, fmt.Errorf("no entries found in rule hierarchy")
 		}
 
+		recordAccessUpdate(r, d, sourceName, parsedPath.String())
 		return renderJSON(w, r, map[string]interface{}{
 			"message": "rule entries deleted",
 			"count":   count,
@@ -237,6 +239,7 @@ func accessDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		return http.StatusNotFound, fmt.Errorf("entry not found in rule")
 	}
 
+	recordAccessUpdate(r, d, sourceName, parsedPath.String())
 	return renderJSON(w, r, map[string]string{"message": "rule entry deleted"})
 }
 

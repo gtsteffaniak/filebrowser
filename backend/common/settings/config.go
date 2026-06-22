@@ -999,7 +999,14 @@ func SetDefaults(generate bool) Settings {
 			Port:               80,
 			NumImageProcessors: 4,
 			BaseURL:            "",
-			DatabaseV2:         Database{Path: databaseV2}, // New SQLite path
+			DatabaseV2: Database{
+				Path: databaseV2,
+				Activity: ActivityConfig{
+					RetentionDays:        30,
+					FlushIntervalSeconds: 10,
+					MaxBufferSize:        10000,
+				},
+			},
 			SourceMap:          map[string]*Source{},
 			NameToSource:       map[string]*Source{},
 			CacheDir:           "tmp",

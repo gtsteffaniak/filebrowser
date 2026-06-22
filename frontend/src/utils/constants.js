@@ -75,6 +75,13 @@ const getTools = () => [
     path: "/tools/fileWatcher",
     component: "FileWatcher",
   },
+  {
+    name: i18n.global.t("tools.activityViewer.name"),
+    description: i18n.global.t("tools.activityViewer.description"),
+    icon: "monitoring",
+    path: "/tools/activityViewer",
+    component: "ActivityViewer",
+  },
 ];
 
 // Resolve tools lazily each call so locale and new registrations stay accurate

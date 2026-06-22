@@ -37,7 +37,7 @@ func scopeRelativeDirToIndexPath(sourceName, userScope, directoryPath string) (s
 		return "", "", fmt.Errorf("index not found for source %s", source.Name)
 	}
 
-	cleanDir, err := utils.SanitizeUserPath(directoryPath)
+	cleanDir, err := utils.SanitizePath(directoryPath)
 	if err != nil {
 		return "", "", fmt.Errorf("invalid path: %w", err)
 	}
@@ -51,7 +51,7 @@ func normalizeShareRelativeDir(shareRelDir string) (string, error) {
 	if shareRelDir == "" || shareRelDir == "/" {
 		return "/", nil
 	}
-	cleanDir, err := utils.SanitizeUserPath(shareRelDir)
+	cleanDir, err := utils.SanitizePath(shareRelDir)
 	if err != nil {
 		return "", fmt.Errorf("invalid path: %w", err)
 	}
@@ -95,13 +95,13 @@ func userPatchPinnedItemsHandler(w http.ResponseWriter, r *http.Request, d *requ
 	if body.Source == "" || body.Path == "" || body.Name == "" {
 		return http.StatusBadRequest, fmt.Errorf("source, path, and name are required")
 	}
-	cleanPath, err := utils.SanitizeUserPath(body.Path)
+	cleanPath, err := utils.SanitizePath(body.Path)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
 	body.Path = cleanPath
 
-	cleanName, err := utils.SanitizeUserPath(body.Name)
+	cleanName, err := utils.SanitizePath(body.Name)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}

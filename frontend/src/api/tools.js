@@ -1,6 +1,6 @@
 import { notify } from "@/notify";
 import { getApiPath } from "@/utils/url.js";
-import { fetchURL } from "./utils";
+import { fetchURL, fetchJSON } from "./utils";
 
 // GET /api/tools/search
 // extraParams: optional { olderThan, newerThan, useWildcard, terms, termJoin, perSourceScopes }
@@ -162,4 +162,53 @@ export function fileWatcherSSE(source, path, lines, interval, onMessage, onError
     notify.showError(err.message || "Error establishing file watch connection");
     throw err;
   }
+}
+
+function buildActivityParams({
+  from,
+  to,
+  scope,
+  eventType,
+  username,
+  source,
+  path,
+  pathGlob,
+  shareHash,
+  page,
+  limit,
+  interval,
+  splitBy,
+  groupBy,
+}) {
+  const params = {};
+  if (from !== undefined && from !== null) params.from = String(from);
+  if (to !== undefined && to !== null) params.to = String(to);
+  if (scope && scope !== "all") params.scope = scope;
+  if (eventType) params.eventType = eventType;
+  if (username) params.username = username;
+  if (source) params.source = source;
+  if (path) params.path = path;
+  if (pathGlob) params.pathGlob = pathGlob;
+  if (shareHash) params.shareHash = shareHash;
+  if (page !== undefined && page !== null) params.page = String(page);
+  if (limit !== undefined && limit !== null) params.limit = String(limit);
+  if (interval) params.interval = interval;
+  if (splitBy) params.splitBy = splitBy;
+  if (groupBy) params.groupBy = groupBy;
+  return params;
+}
+
+// GET /api/tools/activity — ungrouped event list
+export async function activityList(options = {}) {
+  return fetchJSON(getApiPath("tools/activity", buildActivityParams(options)));
+}
+
+// GET /api/tools/activity/grouped — chart/stat buckets
+export async function activityGrouped(options = {}) {
+  return fetchJSON(getApiPath("tools/activity/grouped", buildActivityParams(options)));
+}
+
+// GET /api/tools/activity/export — returns URL for download
+export function activityExportUrl(options = {}) {
+  return getApiPath("tools/activity/export", buildActivityParams(options));
 }

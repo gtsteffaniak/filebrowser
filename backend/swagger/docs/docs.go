@@ -1314,7 +1314,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Resources"
+                    "Media"
                 ],
                 "summary": "Get lyrics for an audio file",
                 "parameters": [
@@ -1372,7 +1372,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Resources"
+                    "Media"
                 ],
                 "summary": "Directory with media metadata",
                 "parameters": [
@@ -1435,7 +1435,7 @@ const docTemplate = `{
                     "text/plain"
                 ],
                 "tags": [
-                    "Resources"
+                    "Media"
                 ],
                 "summary": "Get subtitle content",
                 "parameters": [
@@ -3008,6 +3008,312 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/tools/activity": {
+            "get": {
+                "description": "Returns individual activity log rows, newest first. Details are included for admins only.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tools"
+                ],
+                "summary": "List activity events",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Start unix timestamp (default: 7 days ago)",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "End unix timestamp (default: now)",
+                        "name": "to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event category: all, files, or shares (default: all)",
+                        "name": "scope",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by event type (comma-separated)",
+                        "name": "eventType",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by username (admin only)",
+                        "name": "username",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by source name",
+                        "name": "source",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Path prefix filter",
+                        "name": "path",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Path glob filter (admin only)",
+                        "name": "pathGlob",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Share hash filter (owned shares for non-admins)",
+                        "name": "shareHash",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number (default: 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page size, max 500 (default: 100)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/activity.ListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/tools/activity/export": {
+            "get": {
+                "description": "Streams matching activity rows as CSV. Details column is populated for admins only.",
+                "produces": [
+                    "text/csv"
+                ],
+                "tags": [
+                    "Tools"
+                ],
+                "summary": "Export activity as CSV",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Start unix timestamp (default: 7 days ago)",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "End unix timestamp (default: now)",
+                        "name": "to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event category: all, files, or shares (default: all)",
+                        "name": "scope",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by event type (comma-separated)",
+                        "name": "eventType",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by username (admin only)",
+                        "name": "username",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by source name",
+                        "name": "source",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Path prefix filter",
+                        "name": "path",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Path glob filter (admin only)",
+                        "name": "pathGlob",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Share hash filter (owned shares for non-admins)",
+                        "name": "shareHash",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "CSV file",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/tools/activity/grouped": {
+            "get": {
+                "description": "Returns time-bucketed activity counts for charts. Use interval and splitBy to control grouping.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tools"
+                ],
+                "summary": "Grouped activity statistics",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Start unix timestamp (default: 7 days ago)",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "End unix timestamp (default: now)",
+                        "name": "to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event category: all, files, or shares (default: all)",
+                        "name": "scope",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by event type (comma-separated)",
+                        "name": "eventType",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by username (admin only)",
+                        "name": "username",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by source name",
+                        "name": "source",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Path prefix filter",
+                        "name": "path",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Path glob filter (admin only)",
+                        "name": "pathGlob",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Share hash filter (owned shares for non-admins)",
+                        "name": "shareHash",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Time bucket: minute, hour, day, or none (default: hour)",
+                        "name": "interval",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Series dimension: eventType, user, or none (default: eventType)",
+                        "name": "splitBy",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/activity.StatsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/tools/duplicateFinder": {
             "get": {
                 "description": "Finds duplicate files using multi-stage filtering: size → type → fuzzy filename → progressive checksums. Files must match on size, MIME type, and have 50%+ filename similarity before checksum verification. Large fuzzy groups (\u003e10 files) are skipped to avoid false positives. Checksums use 2-pass progressive verification (header → middle) for accuracy while minimizing disk I/O (~16KB read per file).",
@@ -3684,7 +3990,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Shares"
+                    "Media"
                 ],
                 "summary": "Get lyrics for an audio file (public share)",
                 "parameters": [
@@ -3737,7 +4043,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Shares"
+                    "Media"
                 ],
                 "summary": "Directory with media metadata (public share)",
                 "parameters": [
@@ -3781,7 +4087,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Shares"
+                    "Resources"
                 ],
                 "summary": "Get file/directory information from a public share",
                 "parameters": [
@@ -3865,7 +4171,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Shares"
+                    "Resources"
                 ],
                 "summary": "Update a file in a public share",
                 "parameters": [
@@ -3950,7 +4256,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Shares"
+                    "Resources"
                 ],
                 "summary": "Upload files to a public upload share",
                 "parameters": [
@@ -4063,7 +4369,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Shares"
+                    "Resources"
                 ],
                 "summary": "Move, copy, or rename resources in a public share",
                 "parameters": [
@@ -4143,7 +4449,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Shares"
+                    "Resources"
                 ],
                 "summary": "Bulk delete resources from public share",
                 "parameters": [
@@ -4220,7 +4526,7 @@ const docTemplate = `{
                     "application/octet-stream"
                 ],
                 "tags": [
-                    "Shares"
+                    "Resources"
                 ],
                 "summary": "Download files from a public share",
                 "parameters": [
@@ -4320,7 +4626,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Shares"
+                    "Resources"
                 ],
                 "summary": "Get directory items (public share)",
                 "parameters": [
@@ -4391,7 +4697,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Shares"
+                    "Resources"
                 ],
                 "summary": "Register graceful chunked upload pause (public share)",
                 "parameters": [
@@ -4445,7 +4751,7 @@ const docTemplate = `{
                     "image/jpeg"
                 ],
                 "tags": [
-                    "Shares"
+                    "Resources"
                 ],
                 "summary": "Get image/video preview from a public share",
                 "parameters": [
@@ -4707,6 +5013,213 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "activity.EventType": {
+            "type": "string",
+            "enum": [
+                "download",
+                "move",
+                "copy",
+                "rename",
+                "upload",
+                "delete",
+                "bulkDelete",
+                "archive",
+                "unarchive",
+                "shareCreate",
+                "shareUpdate",
+                "shareDelete",
+                "shareDownload",
+                "userCreate",
+                "userUpdate",
+                "userDelete",
+                "accessUpdate",
+                "login",
+                "logout",
+                "signup",
+                "passkeyRegister",
+                "passkeyDelete",
+                "tokenCreate",
+                "tokenDelete",
+                "duplicateFinder"
+            ],
+            "x-enum-varnames": [
+                "EventDownload",
+                "EventMove",
+                "EventCopy",
+                "EventRename",
+                "EventUpload",
+                "EventDelete",
+                "EventBulkDelete",
+                "EventArchive",
+                "EventUnarchive",
+                "EventShareCreate",
+                "EventShareUpdate",
+                "EventShareDelete",
+                "EventShareDownload",
+                "EventUserCreate",
+                "EventUserUpdate",
+                "EventUserDelete",
+                "EventAccessUpdate",
+                "EventLogin",
+                "EventLogout",
+                "EventSignup",
+                "EventPasskeyRegister",
+                "EventPasskeyDelete",
+                "EventTokenCreate",
+                "EventTokenDelete",
+                "EventDuplicateFinder"
+            ]
+        },
+        "activity.FrontendDetails": {
+            "type": "object",
+            "properties": {
+                "bytes": {
+                    "type": "integer"
+                },
+                "cached": {
+                    "type": "boolean"
+                },
+                "durationMs": {
+                    "type": "integer"
+                },
+                "error": {
+                    "type": "string"
+                },
+                "fileCount": {
+                    "type": "integer"
+                },
+                "loginMethod": {
+                    "type": "string"
+                },
+                "passkeyName": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "paths": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "scopes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/activity.ScopeDetail"
+                    }
+                },
+                "shareHash": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                },
+                "targetPath": {
+                    "type": "string"
+                },
+                "targetUsername": {
+                    "type": "string"
+                },
+                "tokenName": {
+                    "type": "string"
+                },
+                "truncated": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "activity.FrontendEntry": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "integer"
+                },
+                "details": {
+                    "$ref": "#/definitions/activity.FrontendDetails"
+                },
+                "eventType": {
+                    "$ref": "#/definitions/activity.EventType"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "ipAddress": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "activity.ListResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/activity.FrontendEntry"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "activity.ScopeDetail": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                }
+            }
+        },
+        "activity.StatsBucket": {
+            "type": "object",
+            "properties": {
+                "bucket": {
+                    "type": "integer"
+                },
+                "count": {
+                    "type": "integer"
+                },
+                "eventType": {
+                    "type": "string"
+                },
+                "seriesKey": {
+                    "type": "string"
+                },
+                "seriesLabel": {
+                    "type": "string"
+                }
+            }
+        },
+        "activity.StatsResponse": {
+            "type": "object",
+            "properties": {
+                "buckets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/activity.StatsBucket"
+                    }
+                }
+            }
+        },
         "files.Items": {
             "type": "object",
             "properties": {
@@ -5363,6 +5876,27 @@ const docTemplate = `{
                 }
             }
         },
+        "settings.ActivityConfig": {
+            "type": "object",
+            "properties": {
+                "disabled": {
+                    "description": "disable semantic activity audit logging (default: false)",
+                    "type": "boolean"
+                },
+                "flushIntervalSeconds": {
+                    "description": "buffer flush interval in seconds (default 10)",
+                    "type": "integer"
+                },
+                "maxBufferSize": {
+                    "description": "max in-memory buffer before immediate flush (default 10000)",
+                    "type": "integer"
+                },
+                "retentionDays": {
+                    "description": "purge activity rows older than this many days (default 30)",
+                    "type": "integer"
+                }
+            }
+        },
         "settings.Auth": {
             "type": "object",
             "properties": {
@@ -5500,6 +6034,14 @@ const docTemplate = `{
         "settings.Database": {
             "type": "object",
             "properties": {
+                "activity": {
+                    "description": "activity audit logging configuration",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.ActivityConfig"
+                        }
+                    ]
+                },
                 "migrateFrom": {
                     "description": "path to old BoltDB database file for migration (optional)",
                     "type": "string"

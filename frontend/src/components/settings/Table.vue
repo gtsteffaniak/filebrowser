@@ -40,7 +40,16 @@
         </td>
       </tr>
       <template v-else>
-        <tr v-for="item in sortedItems" :key="resolvedKey(item)">
+        <tr
+          v-for="item in sortedItems"
+          :key="resolvedKey(item)"
+          :class="{ 'settings-table__row--clickable': rowClickable }"
+          :tabindex="rowClickable ? 0 : undefined"
+          :role="rowClickable ? 'button' : undefined"
+          @click="onRowClick(item, $event)"
+          @keydown.enter.prevent="onRowClick(item, $event)"
+          @keydown.space.prevent="onRowClick(item, $event)"
+        >
           <td
             v-for="column in columns"
             :key="column.key"
@@ -164,7 +173,14 @@ export default {
       type: Boolean,
       default: false,
     },
+    /** When true, rows emit `row-click` and show a pointer cursor. */
+    rowClickable: {
+      type: Boolean,
+      default: false,
+    },
   },
+
+  emits: ["row-click"],
 
   data() {
     return {
@@ -249,6 +265,13 @@ export default {
         return String(value);
       }
       return JSON.stringify(row);
+    },
+
+    onRowClick(item, event) {
+      if (!this.rowClickable) {
+        return;
+      }
+      this.$emit("row-click", item, event);
     },
 
     isSortEnabled(column) {
@@ -436,6 +459,15 @@ body.rtl .settings-table thead th.settings-table__th--unified {
 
 .settings-table tbody tr:hover td {
   background-color: var(--surfaceSecondary);
+}
+
+.settings-table__row--clickable {
+  cursor: pointer;
+}
+
+.settings-table__row--clickable:focus-visible {
+  outline: 2px solid var(--primaryColor);
+  outline-offset: -2px;
 }
 
 .settings-table--loading thead th.settings-table__th {

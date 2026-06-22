@@ -44,6 +44,7 @@ import DuplicateFinder from "@/views/tools/DuplicateFinder.vue";
 import MaterialIconPicker from "@/views/tools/MaterialIconPicker.vue";
 import FileWatcher from "@/views/tools/FileWatcher.vue";
 import AdvancedSearch from "@/views/tools/AdvancedSearch.vue";
+import ActivityViewer from "@/views/tools/ActivityViewer.vue";
 import { getters } from "@/store";
 
 export default {
@@ -54,6 +55,7 @@ export default {
     MaterialIconPicker,
     FileWatcher,
     AdvancedSearch,
+    ActivityViewer,
   },
   computed: {
     tools() {

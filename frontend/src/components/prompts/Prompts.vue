@@ -99,6 +99,7 @@ import Totp from "./Totp.vue";
 import Access from "./Access.vue";
 import Password from "./Password.vue";
 import PlaybackQueue from "./PlaybackQueue.vue";
+import SharePicker from "./SharePicker.vue";
 import PathPicker from "./PathPicker.vue";
 import SaveBeforeExit from "./SaveBeforeExit.vue";
 import CopyPasteConfirm from "./CopyPasteConfirm.vue";
@@ -110,6 +111,7 @@ import Archive from "./Archive.vue";
 import Unarchive from "./Unarchive.vue";
 import OfficeDebug from "./OfficeDebug.vue";
 import ThreeJSControls from "./ThreeJSControls.vue";
+import ActivityEventDetails from "./ActivityEventDetails.vue";
 import { state, getters, mutations } from "@/store";
 import { getObjectProperty, omitObjectProperty, setObjectProperty } from "@/utils/object.js";
 
@@ -140,6 +142,7 @@ export default {
     Password,
     PlaybackQueue,
     PathPicker,
+    SharePicker,
     SaveBeforeExit,
     CopyPasteConfirm,
     CloseWithActiveUploads,
@@ -150,6 +153,7 @@ export default {
     Unarchive,
     OfficeDebug,
     ThreeJSControls,
+    ActivityEventDetails,
   },
   data() {
     return {
@@ -355,6 +359,8 @@ export default {
           return this.$t("prompts.unarchive");
         case "threejscontrols":
           return this.$t("threejs.controls");
+        case "activityeventdetails":
+          return this.$t("general.details");
         default:
           console.error("[Prompts.vue] unknown prompt name", promptName);
           // Fallback for unknown prompt types

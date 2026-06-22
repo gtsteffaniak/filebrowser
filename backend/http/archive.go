@@ -23,6 +23,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+	activitydb "github.com/gtsteffaniak/filebrowser/backend/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/go-cache/cache"
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -208,7 +209,7 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		return http.StatusBadRequest, fmt.Errorf("fromSource, paths, and destination are required")
 	}
 
-	destClean, err := utils.SanitizeUserPath(req.Destination)
+	destClean, err := utils.SanitizePath(req.Destination)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid destination path: %v", err)
 	}
@@ -216,7 +217,7 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	pathsClean := make([]string, 0, len(req.Paths))
 	for _, p := range req.Paths {
 		var clean string
-		clean, err = utils.SanitizeUserPath(p)
+		clean, err = utils.SanitizePath(p)
 		if err != nil {
 			return http.StatusBadRequest, fmt.Errorf("invalid path %q: %v", p, err)
 		}
@@ -358,6 +359,7 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		}
 	}
 
+	recordArchiveActivity(r, d, activitydb.EventArchive, req.FromSource, req.Destination, req.Paths)
 	return renderJSON(w, r, map[string]string{"path": req.Destination}, http.StatusOK)
 }
 
@@ -402,11 +404,11 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		req.ToSource = req.FromSource
 	}
 
-	pathClean, err := utils.SanitizeUserPath(req.Path)
+	pathClean, err := utils.SanitizePath(req.Path)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
-	destClean, err := utils.SanitizeUserPath(req.Destination)
+	destClean, err := utils.SanitizePath(req.Destination)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid destination: %v", err)
 	}
@@ -493,6 +495,7 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		}
 	}
 
+	recordArchiveActivity(r, d, activitydb.EventUnarchive, req.FromSource, req.Destination, []string{req.Path})
 	return renderJSON(w, r, map[string]string{"path": req.Destination, "source": req.ToSource}, http.StatusOK)
 }
 

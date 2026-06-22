@@ -52,7 +52,7 @@ func TestParseSanitizedIndexPath(t *testing.T) {
 		t.Errorf("got %q want /valid/path/", got.String())
 	}
 
-	// SanitizeUserPath resolves traversal; result is a normal index path
+	// SanitizePath resolves traversal; result is a normal index path
 	got, err = ParseSanitizedIndexPath("/../secret", true)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)

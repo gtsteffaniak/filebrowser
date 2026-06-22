@@ -141,7 +141,7 @@ func downloadHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 
 	// Rule 1: Validate all user-provided file paths to prevent path traversal
 	for i, filePath := range fileList {
-		cleanPath, err := utils.SanitizeUserPath(filePath)
+		cleanPath, err := utils.SanitizePath(filePath)
 		if err != nil {
 			return http.StatusBadRequest, fmt.Errorf("invalid file path: %v", err)
 		}
@@ -161,6 +161,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	}
 
 	firstFilePath := fileList[0]
+	displayFileList := append([]string(nil), fileList...)
 	var err error
 	var userscope string
 	fileName := filepath.Base(firstFilePath)
@@ -289,12 +290,29 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 			burst := d.share.MaxBandwidth * 1024
 			reader = newThrottledReadSeeker(fd, limit, burst, r.Context())
 		}
-		http.ServeContent(w, r, fileName, fileInfo.ModTime(), reader)
-		return 200, nil
+		srw := &ResponseWriterWrapper{ResponseWriter: w}
+		http.ServeContent(srw, r, fileName, fileInfo.ModTime(), reader)
+		recordStatus := srw.StatusCode
+		if recordStatus == 0 {
+			recordStatus = http.StatusOK
+		}
+		recordDownloadActivity(r, d, source, displayFileList, recordStatus)
+		return recordStatus, nil
 	}
 
 	// ** Archive (ZIP/TAR.GZ) handling ** — delegate to archive package
-	return BuildAndStreamArchive(w, r, d, source, fileList)
+	status, err := BuildAndStreamArchive(w, r, d, source, fileList)
+	if err == nil {
+		recordStatus := status
+		if recordStatus == 0 {
+			recordStatus = http.StatusOK
+		}
+		recordDownloadActivity(r, d, source, displayFileList, recordStatus)
+	}
+	if status == 0 && err == nil {
+		status = http.StatusOK
+	}
+	return status, err
 }
 
 // isOnlyOfficeCompatibleFile checks if a file extension is supported by OnlyOffice

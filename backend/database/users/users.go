@@ -20,6 +20,25 @@ const (
 	LoginMethodJwt      LoginMethod = "jwt"
 )
 
+// AnonymousUserName is the username for unauthenticated requests (user_id 0).
+const AnonymousUserName = "anonymous"
+
+var reservedUsernames = map[string]struct{}{
+	strings.ToLower(AnonymousUserName): {},
+}
+
+// ValidateUsername rejects empty and reserved login names.
+func ValidateUsername(username string) error {
+	username = strings.TrimSpace(username)
+	if username == "" {
+		return fmt.Errorf("username is empty")
+	}
+	if _, reserved := reservedUsernames[strings.ToLower(username)]; reserved {
+		return fmt.Errorf("username %q is reserved", username)
+	}
+	return nil
+}
+
 // WebAuthnCredentialFlags mirrors the boolean flags from authenticator data.
 type WebAuthnCredentialFlags struct {
 	UserPresent    bool `json:"userPresent"`

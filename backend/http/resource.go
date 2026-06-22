@@ -200,6 +200,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	if err != nil {
 		return errToStatus(err), err
 	}
+	recordDeleteActivity(r, d, source, path)
 	return http.StatusOK, nil
 
 }
@@ -302,7 +303,7 @@ func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *reques
 			})
 			continue
 		}
-		sanitizedPath, err := utils.SanitizeUserPath(rawPath)
+		sanitizedPath, err := utils.SanitizePath(rawPath)
 		if err != nil {
 			response.Failed = append(response.Failed, BulkDeleteItem{
 				Source:  item.Source,
@@ -445,14 +446,23 @@ func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *reques
 			}
 			preview.DelThumbs(r.Context(), *fileInfo)
 		}
-		// Success
-		response.Succeeded = append(response.Succeeded, item)
+		// Success (log canonical path/source used for deletion)
+		loggedItem := item
+		loggedItem.Path = sanitizedPath
+		if d.share.Hash != "" {
+			loggedItem.Source = d.share.GetSourceName()
+		}
+		response.Succeeded = append(response.Succeeded, loggedItem)
 	}
 
 	// Determine status code based on results
 	statusCode := http.StatusOK
 	if len(response.Failed) > 0 {
 		statusCode = http.StatusMultiStatus
+	}
+
+	if len(response.Succeeded) > 0 {
+		recordBulkDeleteActivity(r, d, response.Succeeded)
 	}
 
 	return renderJSON(w, r, response, statusCode)
@@ -481,7 +491,7 @@ func resourcePauseHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	}
 	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
-	cleanPath, err := utils.SanitizeUserPath(path)
+	cleanPath, err := utils.SanitizePath(path)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
@@ -505,7 +515,7 @@ func resourcePauseHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 // publicPauseHandler registers a graceful pause for a public share chunked upload.
 // @Summary Register graceful chunked upload pause (public share)
 // @Description Same as authenticated pause, for upload shares. Uses hash and path query parameters like other public resource APIs.
-// @Tags Shares
+// @Tags Resources
 // @Accept json
 // @Produce json
 // @Param hash query string true "Share hash"
@@ -548,7 +558,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	source := r.URL.Query().Get("source")
 
 	// Rule 1: Validate user-provided path to prevent path traversal
-	cleanPath, err := utils.SanitizeUserPath(path)
+	cleanPath, err := utils.SanitizePath(path)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
@@ -625,6 +635,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			return errToStatus(err), err
 		}
 
+		recordUploadActivity(r, d, source, path, true)
 		return http.StatusOK, nil
 	}
 
@@ -735,6 +746,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 				return http.StatusInternalServerError, fmt.Errorf("could not move file from chunked folder to destination: %v", err)
 			}
 			reconcileSharesAfterMove(false, source, source, tempFilePath, realPath)
+			recordUploadActivity(r, d, source, path, false)
 		}
 		return http.StatusOK, nil
 	}
@@ -754,6 +766,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		logger.Debugf("error writing file: %v", err)
 		return errToStatus(err), err
 	}
+	recordUploadActivity(r, d, source, path, false)
 	return http.StatusOK, nil
 }
 
@@ -776,7 +789,7 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	path := r.URL.Query().Get("path")
 
 	// Rule 1: Validate user-provided path to prevent path traversal
-	cleanPath, err := utils.SanitizeUserPath(path)
+	cleanPath, err := utils.SanitizePath(path)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
@@ -866,13 +879,13 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 			response.Failed = append(response.Failed, item)
 			continue
 		}
-		cleanFromPath, err := utils.SanitizeUserPath(item.FromPath)
+		cleanFromPath, err := utils.SanitizePath(item.FromPath)
 		if err != nil {
 			item.Message = fmt.Sprintf("invalid fromPath: %v", err)
 			response.Failed = append(response.Failed, item)
 			continue
 		}
-		cleanToPath, err := utils.SanitizeUserPath(item.ToPath)
+		cleanToPath, err := utils.SanitizePath(item.ToPath)
 		if err != nil {
 			item.Message = fmt.Sprintf("invalid toPath: %v", err)
 			response.Failed = append(response.Failed, item)
@@ -1065,6 +1078,7 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 
 		// Success
 		response.Succeeded = append(response.Succeeded, item)
+		recordPatchItemActivity(r, d, req.Action, item, http.StatusOK)
 	}
 
 	if len(response.Failed) == 0 && len(response.Succeeded) == 0 {

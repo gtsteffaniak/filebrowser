@@ -18,6 +18,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+	activitydb "github.com/gtsteffaniak/filebrowser/backend/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/state"
@@ -200,7 +201,12 @@ func loginHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (in
 	if d.user.HasPasskeyMFA() && d.user.TOTPSecret == "" {
 		return http.StatusForbidden, errors.ErrPasskeyMFARequired
 	}
-	return printToken(w, r, d.user)
+	status, err := printToken(w, r, d.user)
+	if err != nil || status != 0 {
+		return status, err
+	}
+	recordLoginActivity(r, d.user)
+	return 0, nil
 }
 
 // logoutHandler handles user logout
@@ -270,6 +276,12 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		return http.StatusInternalServerError, err
 	}
 
+	if d.user != nil {
+		recordAuthActivity(r, d.user, activitydb.EventLogout, http.StatusOK, activitydb.Details{
+			LoginMethod: string(d.user.LoginMethod),
+		})
+	}
+
 	return http.StatusOK, nil
 }
 
@@ -312,6 +324,9 @@ func signupHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		// Return the actual error message instead of a generic one
 		return http.StatusBadRequest, err
 	}
+	recordAuthActivity(r, &user, activitydb.EventSignup, http.StatusCreated, activitydb.Details{
+		LoginMethod: string(users.LoginMethodPassword),
+	})
 	return 201, nil
 }
 
@@ -326,7 +341,6 @@ func signupHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/auth/renew [post]
 func renewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	// check if x-auth header is present and token is
 	return printToken(w, r, d.user)
 }
 
