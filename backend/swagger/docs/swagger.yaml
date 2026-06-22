@@ -16,6 +16,7 @@ definitions:
     - shareDownload
     - userCreate
     - userUpdate
+    - userDelete
     - accessUpdate
     - login
     - logout
@@ -42,6 +43,7 @@ definitions:
     - EventShareDownload
     - EventUserCreate
     - EventUserUpdate
+    - EventUserDelete
     - EventAccessUpdate
     - EventLogin
     - EventLogout
@@ -107,6 +109,21 @@ definitions:
       username:
         type: string
     type: object
+  activity.ListResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/activity.FrontendEntry'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
   activity.ScopeDetail:
     properties:
       path:
@@ -126,6 +143,13 @@ definitions:
         type: string
       seriesLabel:
         type: string
+    type: object
+  activity.StatsResponse:
+    properties:
+      buckets:
+        items:
+          $ref: '#/definitions/activity.StatsBucket'
+        type: array
     type: object
   files.Items:
     properties:
@@ -237,28 +261,6 @@ definitions:
         items:
           $ref: '#/definitions/http.MoveCopyItem'
         type: array
-    type: object
-  http.activityGroupedAPIResponse:
-    properties:
-      buckets:
-        items:
-          $ref: '#/definitions/activity.StatsBucket'
-        type: array
-    type: object
-  http.activityListAPIResponse:
-    properties:
-      items:
-        items:
-          $ref: '#/definitions/activity.FrontendEntry'
-        type: array
-      limit:
-        type: integer
-      page:
-        type: integer
-      total:
-        type: integer
-      totalPages:
-        type: integer
     type: object
   http.archiveCreateRequest:
     properties:
@@ -613,6 +615,21 @@ definitions:
         description: release year
         type: integer
     type: object
+  settings.ActivityConfig:
+    properties:
+      disabled:
+        description: 'disable semantic activity audit logging (default: false)'
+        type: boolean
+      flushIntervalSeconds:
+        description: buffer flush interval in seconds (default 10)
+        type: integer
+      maxBufferSize:
+        description: max in-memory buffer before immediate flush (default 10000)
+        type: integer
+      retentionDays:
+        description: purge activity rows older than this many days (default 30)
+        type: integer
+    type: object
   settings.Auth:
     properties:
       adminPassword:
@@ -733,18 +750,10 @@ definitions:
     type: object
   settings.Database:
     properties:
-      activityEnabled:
-        description: enable semantic activity audit logging
-        type: boolean
-      activityFlushIntervalSeconds:
-        description: buffer flush interval in seconds (default 10)
-        type: integer
-      activityMaxBufferSize:
-        description: max in-memory buffer before immediate flush (default 10000)
-        type: integer
-      activityRetentionDays:
-        description: purge activity rows older than this many days (default 30)
-        type: integer
+      activity:
+        allOf:
+        - $ref: '#/definitions/settings.ActivityConfig'
+        description: activity audit logging configuration
       migrateFrom:
         description: path to old BoltDB database file for migration (optional)
         type: string
@@ -3509,7 +3518,7 @@ paths:
             type: object
       summary: Get lyrics for an audio file
       tags:
-      - Resources
+      - Media
   /api/media/metadata:
     get:
       consumes:
@@ -3552,7 +3561,7 @@ paths:
             type: object
       summary: Directory with media metadata
       tags:
-      - Resources
+      - Media
   /api/media/subtitles:
     get:
       consumes:
@@ -3613,7 +3622,7 @@ paths:
             type: object
       summary: Get subtitle content
       tags:
-      - Resources
+      - Media
   /api/office/callback:
     get:
       consumes:
@@ -4698,7 +4707,7 @@ paths:
         in: query
         name: pathGlob
         type: string
-      - description: Share hash filter (admin only)
+      - description: Share hash filter (owned shares for non-admins)
         in: query
         name: shareHash
         type: string
@@ -4716,7 +4725,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/http.activityListAPIResponse'
+            $ref: '#/definitions/activity.ListResponse'
         "400":
           description: Bad Request
           schema:
@@ -4769,7 +4778,7 @@ paths:
         in: query
         name: pathGlob
         type: string
-      - description: Share hash filter (admin only)
+      - description: Share hash filter (owned shares for non-admins)
         in: query
         name: shareHash
         type: string
@@ -4832,7 +4841,7 @@ paths:
         in: query
         name: pathGlob
         type: string
-      - description: Share hash filter (admin only)
+      - description: Share hash filter (owned shares for non-admins)
         in: query
         name: shareHash
         type: string
@@ -4850,7 +4859,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/http.activityGroupedAPIResponse'
+            $ref: '#/definitions/activity.StatsResponse'
         "400":
           description: Bad Request
           schema:
@@ -5370,7 +5379,7 @@ paths:
             type: object
       summary: Get lyrics for an audio file (public share)
       tags:
-      - Shares
+      - Media
   /public/api/media/metadata:
     get:
       parameters:
@@ -5397,7 +5406,7 @@ paths:
             $ref: '#/definitions/iteminfo.ExtendedFileInfo'
       summary: Directory with media metadata (public share)
       tags:
-      - Shares
+      - Media
   /public/api/resources:
     get:
       consumes:
@@ -5456,7 +5465,7 @@ paths:
             type: object
       summary: Get file/directory information from a public share
       tags:
-      - Shares
+      - Resources
     patch:
       consumes:
       - application/json
@@ -5509,7 +5518,7 @@ paths:
             $ref: '#/definitions/http.MoveCopyResponse'
       summary: Move, copy, or rename resources in a public share
       tags:
-      - Shares
+      - Resources
     post:
       consumes:
       - multipart/form-data
@@ -5588,7 +5597,7 @@ paths:
             type: object
       summary: Upload files to a public upload share
       tags:
-      - Shares
+      - Resources
     put:
       consumes:
       - application/json
@@ -5645,7 +5654,7 @@ paths:
             type: object
       summary: Update a file in a public share
       tags:
-      - Shares
+      - Resources
   /public/api/resources/bulk:
     delete:
       consumes:
@@ -5697,7 +5706,7 @@ paths:
             type: object
       summary: Bulk delete resources from public share
       tags:
-      - Shares
+      - Resources
   /public/api/resources/download:
     get:
       consumes:
@@ -5772,7 +5781,7 @@ paths:
             type: object
       summary: Download files from a public share
       tags:
-      - Shares
+      - Resources
   /public/api/resources/items:
     get:
       consumes:
@@ -5822,7 +5831,7 @@ paths:
             type: object
       summary: Get directory items (public share)
       tags:
-      - Shares
+      - Resources
   /public/api/resources/pause:
     post:
       consumes:
@@ -5859,7 +5868,7 @@ paths:
             type: object
       summary: Register graceful chunked upload pause (public share)
       tags:
-      - Shares
+      - Resources
   /public/api/resources/preview:
     get:
       consumes:
@@ -5916,7 +5925,7 @@ paths:
             type: object
       summary: Get image/video preview from a public share
       tags:
-      - Shares
+      - Resources
   /public/api/share/image:
     get:
       description: Returns a resizable preview (large size) for the banner or favicon

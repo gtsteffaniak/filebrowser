@@ -133,25 +133,13 @@
         </div>
 
         <div v-if="showShareFilters" class="config-field config-field-wide path-filters">
-          <h3>{{ $t("tools.activityViewer.sharePathFilter") }}</h3>
-          <PathPickerButton
-            v-model:path="filterSharePath"
-            v-model:source="filterShareSource"
-            aria-label="activity-share-path"
-            :show-files="false"
-            :show-folders="true"
-            :placeholder="$t('sidebar.chooseSource')"
-            @navigate="resetPageAndLoad"
+          <h3>{{ $t("tools.activityViewer.shareFilter") }}</h3>
+          <SharePickerButton
+            v-model:shareHash="filterShareHash"
+            aria-label="activity-share-picker"
+            :placeholder="$t('tools.activityViewer.allShares')"
+            @select="resetPageAndLoad"
           />
-          <div class="share-hash-field">
-            <label class="filter-label">{{ $t("onlyoffice.shareHash") }}</label>
-            <input
-              v-model="filterShareHash"
-              type="text"
-              class="input"
-              placeholder="Share hash"
-            />
-          </div>
         </div>
 
         <div class="config-actions">
@@ -189,7 +177,7 @@
           :loading="loading"
           row-clickable
           :aria-label="$t('tools.activityViewer.name')"
-          :lonely-message-key="!loading && items.length === 0 ? 'tools.activityViewer.emptyState' : undefined"
+          :lonely-message-key="!loading && items.length === 0 ? 'files.lonely' : undefined"
           @row-click="openEventDetails"
         >
           <template #cell-createdAt="{ row }">
@@ -264,7 +252,7 @@
           <i class="material-symbols-outlined">sentiment_dissatisfied</i>
           <span>{{ $t("files.lonely") }}</span>
         </h2>
-        <p class="results-empty-hint">{{ $t("tools.activityViewer.emptyState") }}</p>
+        <p class="results-empty-hint">{{ $t("files.lonely") }}</p>
       </div>
     </section>
   </div>
@@ -295,6 +283,7 @@ import { getters, mutations, state } from "@/store";
 import { toStandardLocale } from "@/i18n";
 import { buildActivityDetailBadges, activityEventLabel, hasActivityDetails } from "@/utils/activityDetails";
 import { formatTimestamp } from "@/utils/moment";
+import SharePickerButton from "@/components/tools/SharePickerButton.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
 import { globalVars } from "@/utils/constants";
 
@@ -338,6 +327,7 @@ const TOOL_EVENT_TYPES = [
 const ADMIN_EVENT_TYPES = [
   "userCreate",
   "userUpdate",
+  "userDelete",
 ];
 
 const EVENT_TYPES = [
@@ -384,6 +374,9 @@ const pieSliceLabelsPlugin = {
     }
 
     const { ctx } = chart;
+    if (!ctx) {
+      return;
+    }
     const dataset = chart.data.datasets[args.index];
     const labels = chart.data.labels || [];
     const total = dataset.data.reduce((sum, value) => sum + Number(value || 0), 0);
@@ -447,12 +440,31 @@ const VALID_INTERVALS = new Set(["minute", "hour", "day"]);
 const VALID_SPLITS = new Set(["eventType", "user", "none"]);
 const VALID_SCOPES = new Set(["all", "files", "shares"]);
 const ANONYMOUS_USERNAME = "anonymous";
+const ACTIVITY_QUERY_KEYS = [
+  "range",
+  "scope",
+  "from",
+  "to",
+  "eventType",
+  "username",
+  "source",
+  "path",
+  "pathGlob",
+  "shareSource",
+  "sharePath",
+  "shareHash",
+  "view",
+  "interval",
+  "splitBy",
+  "page",
+];
 
 export default {
   name: "ActivityViewer",
   components: {
     SettingsTable,
     Errors,
+    SharePickerButton,
     PathPickerButton,
   },
   data() {
@@ -473,8 +485,6 @@ export default {
       filterSource: "",
       filterPath: "",
       filterPathGlob: "",
-      filterShareSource: "",
-      filterSharePath: "",
       filterShareHash: "",
       filePathFilterMode: "picker",
       chartInterval: "hour",
@@ -485,6 +495,7 @@ export default {
       chart: null,
       chartMountKey: 0,
       chartRenderPending: false,
+      chartRenderToken: 0,
       isInitializing: true,
       loadRequestId: 0,
       loadDebounceTimer: null,
@@ -553,8 +564,10 @@ export default {
       if (this.timePreset === "30d") {
         return { from: now - 30 * 86400, to: now };
       }
-      const from = this.customFrom ? Math.floor(new Date(this.customFrom).getTime() / 1000) : now - 86400;
-      const to = this.customTo ? Math.floor(new Date(this.customTo).getTime() / 1000) : now;
+      const fromRaw = this.customFrom ? Math.floor(new Date(this.customFrom).getTime() / 1000) : now - 86400;
+      const toRaw = this.customTo ? Math.floor(new Date(this.customTo).getTime() / 1000) : now;
+      const from = Number.isFinite(fromRaw) ? fromRaw : now - 86400;
+      const to = Number.isFinite(toRaw) ? toRaw : now;
       return { from, to };
     },
     filterParams() {
@@ -585,15 +598,7 @@ export default {
           }
         }
       }
-      if (this.showShareFilters) {
-        if (this.filterShareSource) {
-          params.source = this.filterShareSource;
-        }
-        if (this.filterSharePath && this.filterSharePath !== "/") {
-          params.path = this.filterSharePath;
-        }
-      }
-      if (this.filterShareHash) {
+      if (this.showShareFilters && this.filterShareHash) {
         params.shareHash = this.filterShareHash;
       }
       if (this.viewType !== "table") {
@@ -638,12 +643,19 @@ export default {
     },
   },
   watch: {
-    "$route.query"() {
-      if (!this.isInitializing) {
-        this.initializeFromQuery();
-        this.clampChartInterval();
-        this.loadData();
-      }
+    "$route.query": {
+      handler(newQuery, oldQuery) {
+        if (this.isInitializing) {
+          return;
+        }
+        if (!this.routeQueryChanged(newQuery, oldQuery)) {
+          return;
+        }
+        void this.applyRouteQuery().then(() => {
+          this.updateUrl();
+        });
+      },
+      deep: true,
     },
     activityScope() {
       if (!this.isInitializing) {
@@ -728,13 +740,7 @@ export default {
         this.debouncedResetPageAndLoad();
       }
     },
-    filterShareSource() {
-      if (!this.isInitializing) {
-        this.updateUrl();
-        this.resetPageAndLoad();
-      }
-    },
-    filterSharePath() {
+    filterShareHash() {
       if (!this.isInitializing) {
         this.updateUrl();
         this.resetPageAndLoad();
@@ -747,29 +753,16 @@ export default {
         this.updateUrl();
       }
     },
-    filterShareHash() {
-      if (!this.isInitializing) {
-        this.updateUrl();
-        this.debouncedResetPageAndLoad();
-      }
-    },
   },
   async mounted() {
     document.title = `${globalVars.name} - ${this.$t("tools.title")} - ${this.$t("tools.activityViewer.name")}`;
-    this.initializeFromQuery();
-    if (this.isAdmin) {
-      try {
-        this.users = await usersApi.getAllUsers();
-      } catch {
-        this.users = [];
-      }
-    }
-    this.clampChartInterval();
-    await this.loadData();
+    void this.fetchAdminUsers();
+    await this.applyRouteQuery();
     this.isInitializing = false;
     this.updateUrl();
   },
   beforeUnmount() {
+    clearTimeout(this.loadDebounceTimer);
     this.destroyChart();
   },
   methods: {
@@ -777,21 +770,24 @@ export default {
       return formatTimestamp(ts * 1000);
     },
     destroyChartInstance() {
-      if (this.chart) {
-        try {
-          this.chart.stop();
-        } catch {
-          // Chart may already be torn down.
-        }
-        try {
-          this.chart.destroy();
-        } catch {
-          // Ignore destroy errors during rapid view switches.
-        }
-        this.chart = null;
+      const instance = this.chart;
+      this.chart = null;
+      if (!instance) {
+        return;
+      }
+      try {
+        instance.stop();
+      } catch {
+        // Chart may already be torn down.
+      }
+      try {
+        instance.destroy();
+      } catch {
+        // Ignore destroy errors during rapid view switches.
       }
     },
     destroyChart() {
+      this.chartRenderToken += 1;
       this.destroyChartInstance();
       this.chartMountKey += 1;
     },
@@ -800,9 +796,13 @@ export default {
         return;
       }
       this.chartRenderPending = true;
+      const token = ++this.chartRenderToken;
       this.$nextTick(() => {
         requestAnimationFrame(() => {
           this.chartRenderPending = false;
+          if (token !== this.chartRenderToken) {
+            return;
+          }
           this.renderChart();
         });
       });
@@ -812,8 +812,6 @@ export default {
         this.selectedEventType = "";
       }
       if (this.activityScope === "files" || this.activityScope === "all") {
-        this.filterShareSource = "";
-        this.filterSharePath = "";
         this.filterShareHash = "";
       }
       if (this.activityScope === "shares") {
@@ -863,6 +861,43 @@ export default {
       void this.loadData();
       this.updateUrl();
     },
+    routeQueryChanged(newQuery = {}, oldQuery = {}) {
+      return ACTIVITY_QUERY_KEYS.some((key) => {
+        const next = queryValuePresent(newQuery[key]) ? String(newQuery[key]) : "";
+        const prev = queryValuePresent(oldQuery[key]) ? String(oldQuery[key]) : "";
+        return next !== prev;
+      });
+    },
+    inferActivityScopeFromQuery(query) {
+      if (queryValuePresent(query.shareSource)
+        || queryValuePresent(query.sharePath)
+        || queryValuePresent(query.shareHash)) {
+        return "shares";
+      }
+      if (queryValuePresent(query.source)
+        || queryValuePresent(query.path)
+        || queryValuePresent(query.pathGlob)) {
+        return "files";
+      }
+      return null;
+    },
+    async applyRouteQuery() {
+      this.initializeFromQuery();
+      this.clampChartInterval();
+      await this.loadData();
+    },
+    fetchAdminUsers() {
+      if (!this.isAdmin) {
+        return Promise.resolve();
+      }
+      return usersApi.getAllUsers()
+        .then((users) => {
+          this.users = users;
+        })
+        .catch(() => {
+          this.users = [];
+        });
+    },
     initializeFromQuery() {
       const query = this.$route.query;
 
@@ -871,6 +906,11 @@ export default {
       }
       if (queryValuePresent(query.scope) && VALID_SCOPES.has(String(query.scope))) {
         this.activityScope = String(query.scope);
+      } else {
+        const inferredScope = this.inferActivityScopeFromQuery(query);
+        if (inferredScope) {
+          this.activityScope = inferredScope;
+        }
       }
       if (queryValuePresent(query.from)) {
         this.customFrom = String(query.from);
@@ -888,29 +928,20 @@ export default {
       } else if (!this.isAdmin) {
         this.selectedUsername = "";
       }
+      const scopeForFilters = this.activityScope;
       if (queryValuePresent(query.source)) {
-        if (String(query.scope) === "shares") {
-          this.filterShareSource = String(query.source);
-        } else {
+        if (scopeForFilters !== "shares") {
           this.filterSource = String(query.source);
         }
       }
       if (queryValuePresent(query.path)) {
-        if (String(query.scope) === "shares") {
-          this.filterSharePath = String(query.path);
-        } else {
+        if (scopeForFilters !== "shares") {
           this.filterPath = String(query.path);
         }
       }
       if (queryValuePresent(query.pathGlob)) {
         this.filterPathGlob = String(query.pathGlob);
         this.filePathFilterMode = "glob";
-      }
-      if (queryValuePresent(query.shareSource)) {
-        this.filterShareSource = String(query.shareSource);
-      }
-      if (queryValuePresent(query.sharePath)) {
-        this.filterSharePath = String(query.sharePath);
       }
       if (queryValuePresent(query.shareHash)) {
         this.filterShareHash = String(query.shareHash);
@@ -970,15 +1001,7 @@ export default {
             }
           }
         }
-        if (this.showShareFilters) {
-          if (this.filterShareSource) {
-            query.shareSource = this.filterShareSource;
-          }
-          if (this.filterSharePath && this.filterSharePath !== "/") {
-            query.sharePath = this.filterSharePath;
-          }
-        }
-        if (this.filterShareHash) {
+        if (this.showShareFilters && this.filterShareHash) {
           query.shareHash = this.filterShareHash;
         }
         if (this.viewType !== "table") {
@@ -1138,9 +1161,10 @@ export default {
     },
     async loadData() {
       const requestId = ++this.loadRequestId;
+      this.chartRenderToken += 1;
+      this.destroyChartInstance();
       this.loading = true;
       this.error = null;
-      this.destroyChart();
       try {
         if (this.viewType === "table") {
           const listRes = await toolsApi.activityList(this.filterParams);
@@ -1470,16 +1494,21 @@ export default {
       };
     },
     renderChart(retryCount = 0) {
+      const renderToken = this.chartRenderToken;
       if (this.loading || this.viewType === "table" || !this.hasChartData) {
-        this.destroyChart();
+        this.destroyChartInstance();
         return;
       }
 
       const canvas = this.$refs.chartCanvas;
       if (!canvas || typeof canvas.getContext !== "function" || !canvas.isConnected) {
-        if (retryCount < 5) {
+        if (retryCount < 5 && renderToken === this.chartRenderToken) {
           this.$nextTick(() => {
-            requestAnimationFrame(() => this.renderChart(retryCount + 1));
+            requestAnimationFrame(() => {
+              if (renderToken === this.chartRenderToken) {
+                this.renderChart(retryCount + 1);
+              }
+            });
           });
         }
         return;
@@ -1502,6 +1531,9 @@ export default {
       }
 
       if (!config?.data?.datasets?.length) {
+        return;
+      }
+      if (renderToken !== this.chartRenderToken) {
         return;
       }
 

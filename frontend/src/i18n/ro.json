@@ -839,7 +839,6 @@
       "summaryTitle": "Totaluri ale evenimentului",
       "summaryTitleByUser": "Totaluri ale activităților pe utilizator",
       "totalEvents": "Numărul total de evenimente{suffix}",
-      "emptyState": "Nu s-a înregistrat nicio activitate pentru filtrele selectate. Încercați un interval de timp mai larg sau alte filtre.",
       "cachedResult": "Rezultat stocat în cache",
       "showingPage": "Se afișează {shown} din {total} (pagina {page}/{pages})",
       "pageOf": "Pagina {page} din {pages}",
@@ -860,8 +859,13 @@
         "passkeyRegister": "S-a adăugat parola",
         "passkeyDelete": "Cheia de acces a fost eliminată",
         "tokenCreate": "Creare token",
-        "tokenDelete": "Ștergerea tokenului"
-      }
+        "tokenDelete": "Ștergerea tokenului",
+        "userDelete": "Ștergerea utilizatorului"
+      },
+      "shareFilter": "Filtru de partajare",
+      "chooseShare": "Alegeți o acțiune",
+      "allShares": "Toate acțiunile",
+      "noShares": "Nu sunt acțiuni disponibile"
     }
   },
   "messages": {

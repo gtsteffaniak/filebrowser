@@ -63,6 +63,14 @@ func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 func shareGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	path := r.URL.Query().Get("path")
 	sourceName := r.URL.Query().Get("source")
+	if path == "" {
+		return http.StatusBadRequest, fmt.Errorf("path is required")
+	}
+	cleanPath, err := utils.SanitizeUserPath(path)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid path: %w", err)
+	}
+	path = cleanPath
 	sourceInfo, ok := config.Server.NameToSource[sourceName] // backend source is path
 	if !ok {
 		return http.StatusBadRequest, fmt.Errorf("invalid source name: %s", sourceName)
@@ -398,6 +406,12 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *reque
 	if path == "" || source == "" {
 		return http.StatusBadRequest, fmt.Errorf("path and source are required")
 	}
+
+	cleanPath, err := utils.SanitizeUserPath(path)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid path: %w", err)
+	}
+	path = cleanPath
 
 	// Validate source exists
 	sourceInfo, ok := config.Server.NameToSource[source]

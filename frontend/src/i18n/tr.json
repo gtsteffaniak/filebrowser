@@ -839,7 +839,6 @@
       "summaryTitle": "Etkinlik toplamları",
       "summaryTitleByUser": "Kullanıcıya göre etkinlik toplamları",
       "totalEvents": "Toplam etkinlik sayısı{suffix}",
-      "emptyState": "Seçilen filtreler için herhangi bir etkinlik kaydedilmedi. Daha geniş bir zaman aralığı veya farklı filtreler deneyin.",
       "cachedResult": "Önbelleğe alınmış sonuç",
       "showingPage": "{total} adresindeki {shown} sayfası görüntüleniyor (sayfa {page}/{pages})",
       "pageOf": "{page}. sayfası {pages}",
@@ -860,8 +859,13 @@
         "passkeyRegister": "Şifre eklendi",
         "passkeyDelete": "Şifre kaldırıldı",
         "tokenCreate": "Jeton oluşturma",
-        "tokenDelete": "Jeton silme"
-      }
+        "tokenDelete": "Jeton silme",
+        "userDelete": "Kullanıcı silme"
+      },
+      "shareFilter": "Filtreyi paylaş",
+      "chooseShare": "Bir hisse seçin",
+      "allShares": "Tüm hisseler",
+      "noShares": "Stokta ürün yok"
     }
   },
   "messages": {

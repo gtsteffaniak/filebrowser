@@ -839,7 +839,6 @@
       "summaryTitle": "赛事总计",
       "summaryTitleByUser": "按用户划分的活动总计",
       "totalEvents": "活动总数{suffix}",
-      "emptyState": "根据所选筛选条件，未记录任何活动。请尝试扩大时间范围或更改筛选条件。",
       "cachedResult": "缓存结果",
       "showingPage": "显示{shown} ，网址为{total} （页面{page}/{pages} ）",
       "pageOf": "第{page} 页，共{pages}",
@@ -860,8 +859,13 @@
         "passkeyRegister": "已添加密钥",
         "passkeyDelete": "密钥已删除",
         "tokenCreate": "代币创建",
-        "tokenDelete": "令牌删除"
-      }
+        "tokenDelete": "令牌删除",
+        "userDelete": "删除用户"
+      },
+      "shareFilter": "共享过滤器",
+      "chooseShare": "选择一个股份",
+      "allShares": "所有股份",
+      "noShares": "无可用股份"
     }
   },
   "messages": {

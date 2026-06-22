@@ -1314,7 +1314,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Resources"
+                    "Media"
                 ],
                 "summary": "Get lyrics for an audio file",
                 "parameters": [
@@ -1372,7 +1372,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Resources"
+                    "Media"
                 ],
                 "summary": "Directory with media metadata",
                 "parameters": [
@@ -1435,7 +1435,7 @@ const docTemplate = `{
                     "text/plain"
                 ],
                 "tags": [
-                    "Resources"
+                    "Media"
                 ],
                 "summary": "Get subtitle content",
                 "parameters": [
@@ -3069,7 +3069,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Share hash filter (admin only)",
+                        "description": "Share hash filter (owned shares for non-admins)",
                         "name": "shareHash",
                         "in": "query"
                     },
@@ -3090,7 +3090,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/http.activityListAPIResponse"
+                            "$ref": "#/definitions/activity.ListResponse"
                         }
                     },
                     "400": {
@@ -3175,7 +3175,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Share hash filter (admin only)",
+                        "description": "Share hash filter (owned shares for non-admins)",
                         "name": "shareHash",
                         "in": "query"
                     }
@@ -3269,7 +3269,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Share hash filter (admin only)",
+                        "description": "Share hash filter (owned shares for non-admins)",
                         "name": "shareHash",
                         "in": "query"
                     },
@@ -3290,7 +3290,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/http.activityGroupedAPIResponse"
+                            "$ref": "#/definitions/activity.StatsResponse"
                         }
                     },
                     "400": {
@@ -3990,7 +3990,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Shares"
+                    "Media"
                 ],
                 "summary": "Get lyrics for an audio file (public share)",
                 "parameters": [
@@ -4043,7 +4043,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Shares"
+                    "Media"
                 ],
                 "summary": "Directory with media metadata (public share)",
                 "parameters": [
@@ -4087,7 +4087,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Shares"
+                    "Resources"
                 ],
                 "summary": "Get file/directory information from a public share",
                 "parameters": [
@@ -4171,7 +4171,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Shares"
+                    "Resources"
                 ],
                 "summary": "Update a file in a public share",
                 "parameters": [
@@ -4256,7 +4256,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Shares"
+                    "Resources"
                 ],
                 "summary": "Upload files to a public upload share",
                 "parameters": [
@@ -4369,7 +4369,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Shares"
+                    "Resources"
                 ],
                 "summary": "Move, copy, or rename resources in a public share",
                 "parameters": [
@@ -4449,7 +4449,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Shares"
+                    "Resources"
                 ],
                 "summary": "Bulk delete resources from public share",
                 "parameters": [
@@ -4526,7 +4526,7 @@ const docTemplate = `{
                     "application/octet-stream"
                 ],
                 "tags": [
-                    "Shares"
+                    "Resources"
                 ],
                 "summary": "Download files from a public share",
                 "parameters": [
@@ -4626,7 +4626,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Shares"
+                    "Resources"
                 ],
                 "summary": "Get directory items (public share)",
                 "parameters": [
@@ -4697,7 +4697,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Shares"
+                    "Resources"
                 ],
                 "summary": "Register graceful chunked upload pause (public share)",
                 "parameters": [
@@ -4751,7 +4751,7 @@ const docTemplate = `{
                     "image/jpeg"
                 ],
                 "tags": [
-                    "Shares"
+                    "Resources"
                 ],
                 "summary": "Get image/video preview from a public share",
                 "parameters": [
@@ -5031,6 +5031,7 @@ const docTemplate = `{
                 "shareDownload",
                 "userCreate",
                 "userUpdate",
+                "userDelete",
                 "accessUpdate",
                 "login",
                 "logout",
@@ -5057,6 +5058,7 @@ const docTemplate = `{
                 "EventShareDownload",
                 "EventUserCreate",
                 "EventUserUpdate",
+                "EventUserDelete",
                 "EventAccessUpdate",
                 "EventLogin",
                 "EventLogout",
@@ -5153,6 +5155,29 @@ const docTemplate = `{
                 }
             }
         },
+        "activity.ListResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/activity.FrontendEntry"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
         "activity.ScopeDetail": {
             "type": "object",
             "properties": {
@@ -5181,6 +5206,17 @@ const docTemplate = `{
                 },
                 "seriesLabel": {
                     "type": "string"
+                }
+            }
+        },
+        "activity.StatsResponse": {
+            "type": "object",
+            "properties": {
+                "buckets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/activity.StatsBucket"
+                    }
                 }
             }
         },
@@ -5351,40 +5387,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/http.MoveCopyItem"
                     }
-                }
-            }
-        },
-        "http.activityGroupedAPIResponse": {
-            "type": "object",
-            "properties": {
-                "buckets": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/activity.StatsBucket"
-                    }
-                }
-            }
-        },
-        "http.activityListAPIResponse": {
-            "type": "object",
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/activity.FrontendEntry"
-                    }
-                },
-                "limit": {
-                    "type": "integer"
-                },
-                "page": {
-                    "type": "integer"
-                },
-                "total": {
-                    "type": "integer"
-                },
-                "totalPages": {
-                    "type": "integer"
                 }
             }
         },
@@ -5874,6 +5876,27 @@ const docTemplate = `{
                 }
             }
         },
+        "settings.ActivityConfig": {
+            "type": "object",
+            "properties": {
+                "disabled": {
+                    "description": "disable semantic activity audit logging (default: false)",
+                    "type": "boolean"
+                },
+                "flushIntervalSeconds": {
+                    "description": "buffer flush interval in seconds (default 10)",
+                    "type": "integer"
+                },
+                "maxBufferSize": {
+                    "description": "max in-memory buffer before immediate flush (default 10000)",
+                    "type": "integer"
+                },
+                "retentionDays": {
+                    "description": "purge activity rows older than this many days (default 30)",
+                    "type": "integer"
+                }
+            }
+        },
         "settings.Auth": {
             "type": "object",
             "properties": {
@@ -6011,21 +6034,13 @@ const docTemplate = `{
         "settings.Database": {
             "type": "object",
             "properties": {
-                "activityEnabled": {
-                    "description": "enable semantic activity audit logging",
-                    "type": "boolean"
-                },
-                "activityFlushIntervalSeconds": {
-                    "description": "buffer flush interval in seconds (default 10)",
-                    "type": "integer"
-                },
-                "activityMaxBufferSize": {
-                    "description": "max in-memory buffer before immediate flush (default 10000)",
-                    "type": "integer"
-                },
-                "activityRetentionDays": {
-                    "description": "purge activity rows older than this many days (default 30)",
-                    "type": "integer"
+                "activity": {
+                    "description": "activity audit logging configuration",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.ActivityConfig"
+                        }
+                    ]
                 },
                 "migrateFrom": {
                     "description": "path to old BoltDB database file for migration (optional)",

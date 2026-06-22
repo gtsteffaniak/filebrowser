@@ -839,7 +839,6 @@
       "summaryTitle": "Celkové výsledky akce",
       "summaryTitleByUser": "Souhrnné údaje o aktivitě podle uživatelů",
       "totalEvents": "Celkový počet událostí{suffix}",
-      "emptyState": "Pro vybrané filtry nebyla zaznamenána žádná aktivita. Zkuste zvolit širší časové rozmezí nebo jiné filtry.",
       "cachedResult": "Výsledek v mezipaměti",
       "showingPage": "Zobrazuje se {shown} z {total} (stránka {page}/{pages})",
       "pageOf": "Strana {page} z {pages}",
@@ -860,8 +859,13 @@
         "passkeyRegister": "Přidán přístupový klíč",
         "passkeyDelete": "Heslo bylo odstraněno",
         "tokenCreate": "Vytvoření tokenu",
-        "tokenDelete": "Odstranění tokenu"
-      }
+        "tokenDelete": "Odstranění tokenu",
+        "userDelete": "Odstranění uživatele"
+      },
+      "shareFilter": "Sdílet filtr",
+      "chooseShare": "Vyberte akcii",
+      "allShares": "Všechny akcie",
+      "noShares": "Žádné akcie nejsou k dispozici"
     }
   },
   "messages": {

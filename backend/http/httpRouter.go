@@ -192,7 +192,6 @@ func StartHttp(ctx context.Context, shutdownComplete chan struct{}) {
 	api.HandleFunc("GET /tools/fileWatcher/sse", withUser(fileWatchSSEHandler))
 	api.HandleFunc("GET /tools/activity", withUser(activityListHandler))
 	api.HandleFunc("GET /tools/activity/grouped", withUser(activityGroupedHandler))
-	api.HandleFunc("GET /tools/activity/stats", withUser(activityStatsHandler))
 	api.HandleFunc("GET /tools/activity/export", withUser(activityExportHandler))
 
 	// ========================================

@@ -510,7 +510,7 @@ func resourcePauseHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 // publicPauseHandler registers a graceful pause for a public share chunked upload.
 // @Summary Register graceful chunked upload pause (public share)
 // @Description Same as authenticated pause, for upload shares. Uses hash and path query parameters like other public resource APIs.
-// @Tags Shares
+// @Tags Resources
 // @Accept json
 // @Produce json
 // @Param hash query string true "Share hash"

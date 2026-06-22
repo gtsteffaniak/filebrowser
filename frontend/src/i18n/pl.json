@@ -839,7 +839,6 @@
       "summaryTitle": "Łączne wyniki wydarzenia",
       "summaryTitleByUser": "Łączne wyniki działań według użytkownika",
       "totalEvents": "Łączna liczba wydarzeń{suffix}",
-      "emptyState": "Nie odnotowano żadnych zdarzeń dla wybranych filtrów. Spróbuj ustawić szerszy zakres czasowy lub inne filtry.",
       "cachedResult": "Wynik z pamięci podręcznej",
       "showingPage": "Wyświetlano {shown} z {total} (strona {page}/{pages})",
       "pageOf": "Strona {page} z {pages}",
@@ -860,8 +859,13 @@
         "passkeyRegister": "Dodano hasło dostępu",
         "passkeyDelete": "Klucz dostępu został usunięty",
         "tokenCreate": "Utworzenie tokenu",
-        "tokenDelete": "Usunięcie tokenu"
-      }
+        "tokenDelete": "Usunięcie tokenu",
+        "userDelete": "Usunięcie użytkownika"
+      },
+      "shareFilter": "Filtr udostępniania",
+      "chooseShare": "Wybierz udział",
+      "allShares": "Wszystkie akcje",
+      "noShares": "Brak dostępnych akcji"
     }
   },
   "messages": {

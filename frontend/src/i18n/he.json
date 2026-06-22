@@ -839,7 +839,6 @@
       "summaryTitle": "סיכומי האירוע",
       "summaryTitleByUser": "סיכומי הפעילות לפי משתמש",
       "totalEvents": "סה\"כ אירועים{suffix}",
-      "emptyState": "לא נרשמה פעילות עבור המסננים שנבחרו. נסה להגדיר טווח זמן רחב יותר או מסננים אחרים.",
       "cachedResult": "תוצאה במטמון",
       "showingPage": "מציג את {shown} מתוך {total} (דף {page}/{pages})",
       "pageOf": "עמוד {page} מתוך {pages}",
@@ -860,8 +859,13 @@
         "passkeyRegister": "נוסף מפתח גישה",
         "passkeyDelete": "מפתח הגישה הוסר",
         "tokenCreate": "יצירת אסימון",
-        "tokenDelete": "מחיקת אסימון"
-      }
+        "tokenDelete": "מחיקת אסימון",
+        "userDelete": "מחיקת משתמש"
+      },
+      "shareFilter": "שיתוף מסנן",
+      "chooseShare": "בחר מניה",
+      "allShares": "כל המניות",
+      "noShares": "אין מניות זמינות"
     }
   },
   "messages": {

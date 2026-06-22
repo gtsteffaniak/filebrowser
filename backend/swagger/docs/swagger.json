@@ -1303,7 +1303,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Resources"
+                    "Media"
                 ],
                 "summary": "Get lyrics for an audio file",
                 "parameters": [
@@ -1361,7 +1361,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Resources"
+                    "Media"
                 ],
                 "summary": "Directory with media metadata",
                 "parameters": [
@@ -1424,7 +1424,7 @@
                     "text/plain"
                 ],
                 "tags": [
-                    "Resources"
+                    "Media"
                 ],
                 "summary": "Get subtitle content",
                 "parameters": [
@@ -3058,7 +3058,7 @@
                     },
                     {
                         "type": "string",
-                        "description": "Share hash filter (admin only)",
+                        "description": "Share hash filter (owned shares for non-admins)",
                         "name": "shareHash",
                         "in": "query"
                     },
@@ -3079,7 +3079,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/http.activityListAPIResponse"
+                            "$ref": "#/definitions/activity.ListResponse"
                         }
                     },
                     "400": {
@@ -3164,7 +3164,7 @@
                     },
                     {
                         "type": "string",
-                        "description": "Share hash filter (admin only)",
+                        "description": "Share hash filter (owned shares for non-admins)",
                         "name": "shareHash",
                         "in": "query"
                     }
@@ -3258,7 +3258,7 @@
                     },
                     {
                         "type": "string",
-                        "description": "Share hash filter (admin only)",
+                        "description": "Share hash filter (owned shares for non-admins)",
                         "name": "shareHash",
                         "in": "query"
                     },
@@ -3279,7 +3279,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/http.activityGroupedAPIResponse"
+                            "$ref": "#/definitions/activity.StatsResponse"
                         }
                     },
                     "400": {
@@ -3979,7 +3979,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Shares"
+                    "Media"
                 ],
                 "summary": "Get lyrics for an audio file (public share)",
                 "parameters": [
@@ -4032,7 +4032,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Shares"
+                    "Media"
                 ],
                 "summary": "Directory with media metadata (public share)",
                 "parameters": [
@@ -4076,7 +4076,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Shares"
+                    "Resources"
                 ],
                 "summary": "Get file/directory information from a public share",
                 "parameters": [
@@ -4160,7 +4160,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Shares"
+                    "Resources"
                 ],
                 "summary": "Update a file in a public share",
                 "parameters": [
@@ -4245,7 +4245,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Shares"
+                    "Resources"
                 ],
                 "summary": "Upload files to a public upload share",
                 "parameters": [
@@ -4358,7 +4358,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Shares"
+                    "Resources"
                 ],
                 "summary": "Move, copy, or rename resources in a public share",
                 "parameters": [
@@ -4438,7 +4438,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Shares"
+                    "Resources"
                 ],
                 "summary": "Bulk delete resources from public share",
                 "parameters": [
@@ -4515,7 +4515,7 @@
                     "application/octet-stream"
                 ],
                 "tags": [
-                    "Shares"
+                    "Resources"
                 ],
                 "summary": "Download files from a public share",
                 "parameters": [
@@ -4615,7 +4615,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Shares"
+                    "Resources"
                 ],
                 "summary": "Get directory items (public share)",
                 "parameters": [
@@ -4686,7 +4686,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Shares"
+                    "Resources"
                 ],
                 "summary": "Register graceful chunked upload pause (public share)",
                 "parameters": [
@@ -4740,7 +4740,7 @@
                     "image/jpeg"
                 ],
                 "tags": [
-                    "Shares"
+                    "Resources"
                 ],
                 "summary": "Get image/video preview from a public share",
                 "parameters": [
@@ -5020,6 +5020,7 @@
                 "shareDownload",
                 "userCreate",
                 "userUpdate",
+                "userDelete",
                 "accessUpdate",
                 "login",
                 "logout",
@@ -5046,6 +5047,7 @@
                 "EventShareDownload",
                 "EventUserCreate",
                 "EventUserUpdate",
+                "EventUserDelete",
                 "EventAccessUpdate",
                 "EventLogin",
                 "EventLogout",
@@ -5142,6 +5144,29 @@
                 }
             }
         },
+        "activity.ListResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/activity.FrontendEntry"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
         "activity.ScopeDetail": {
             "type": "object",
             "properties": {
@@ -5170,6 +5195,17 @@
                 },
                 "seriesLabel": {
                     "type": "string"
+                }
+            }
+        },
+        "activity.StatsResponse": {
+            "type": "object",
+            "properties": {
+                "buckets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/activity.StatsBucket"
+                    }
                 }
             }
         },
@@ -5340,40 +5376,6 @@
                     "items": {
                         "$ref": "#/definitions/http.MoveCopyItem"
                     }
-                }
-            }
-        },
-        "http.activityGroupedAPIResponse": {
-            "type": "object",
-            "properties": {
-                "buckets": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/activity.StatsBucket"
-                    }
-                }
-            }
-        },
-        "http.activityListAPIResponse": {
-            "type": "object",
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/activity.FrontendEntry"
-                    }
-                },
-                "limit": {
-                    "type": "integer"
-                },
-                "page": {
-                    "type": "integer"
-                },
-                "total": {
-                    "type": "integer"
-                },
-                "totalPages": {
-                    "type": "integer"
                 }
             }
         },
@@ -5863,6 +5865,27 @@
                 }
             }
         },
+        "settings.ActivityConfig": {
+            "type": "object",
+            "properties": {
+                "disabled": {
+                    "description": "disable semantic activity audit logging (default: false)",
+                    "type": "boolean"
+                },
+                "flushIntervalSeconds": {
+                    "description": "buffer flush interval in seconds (default 10)",
+                    "type": "integer"
+                },
+                "maxBufferSize": {
+                    "description": "max in-memory buffer before immediate flush (default 10000)",
+                    "type": "integer"
+                },
+                "retentionDays": {
+                    "description": "purge activity rows older than this many days (default 30)",
+                    "type": "integer"
+                }
+            }
+        },
         "settings.Auth": {
             "type": "object",
             "properties": {
@@ -6000,21 +6023,13 @@
         "settings.Database": {
             "type": "object",
             "properties": {
-                "activityEnabled": {
-                    "description": "enable semantic activity audit logging",
-                    "type": "boolean"
-                },
-                "activityFlushIntervalSeconds": {
-                    "description": "buffer flush interval in seconds (default 10)",
-                    "type": "integer"
-                },
-                "activityMaxBufferSize": {
-                    "description": "max in-memory buffer before immediate flush (default 10000)",
-                    "type": "integer"
-                },
-                "activityRetentionDays": {
-                    "description": "purge activity rows older than this many days (default 30)",
-                    "type": "integer"
+                "activity": {
+                    "description": "activity audit logging configuration",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.ActivityConfig"
+                        }
+                    ]
                 },
                 "migrateFrom": {
                     "description": "path to old BoltDB database file for migration (optional)",

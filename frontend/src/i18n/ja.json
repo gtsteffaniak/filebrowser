@@ -839,7 +839,6 @@
       "summaryTitle": "イベントの合計",
       "summaryTitleByUser": "ユーザー別のアクティビティ合計",
       "totalEvents": "イベント総数{suffix}",
-      "emptyState": "選択したフィルターでは、記録されたアクティビティがありません。期間を広げるか、別のフィルターを試してみてください。",
       "cachedResult": "キャッシュされた結果",
       "showingPage": "{total} のうち、{shown} を表示中（ページ{page}/{pages} ）",
       "pageOf": "{page} ページ目（全）{pages}",
@@ -860,8 +859,13 @@
         "passkeyRegister": "パスキーが追加されました",
         "passkeyDelete": "パスキーが削除されました",
         "tokenCreate": "トークンの作成",
-        "tokenDelete": "トークンの削除"
-      }
+        "tokenDelete": "トークンの削除",
+        "userDelete": "ユーザーの削除"
+      },
+      "shareFilter": "フィルターを共有する",
+      "chooseShare": "シェアを選択してください",
+      "allShares": "すべての株式",
+      "noShares": "在庫なし"
     }
   },
   "messages": {

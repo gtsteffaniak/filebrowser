@@ -839,7 +839,6 @@
       "summaryTitle": "행사 총계",
       "summaryTitleByUser": "사용자별 활동 합계",
       "totalEvents": "총 행사 수{suffix}",
-      "emptyState": "선택한 필터에 해당하는 활동이 기록되지 않았습니다. 시간 범위를 넓히거나 다른 필터를 사용해 보세요.",
       "cachedResult": "캐시된 결과",
       "showingPage": "{total} 의 {shown} 를 표시 중입니다 (페이지 {page}/{pages})",
       "pageOf": "{page} 쪽 중 {pages}",
@@ -860,8 +859,13 @@
         "passkeyRegister": "패스키 추가됨",
         "passkeyDelete": "패스키가 제거되었습니다",
         "tokenCreate": "토큰 생성",
-        "tokenDelete": "토큰 삭제"
-      }
+        "tokenDelete": "토큰 삭제",
+        "userDelete": "사용자 삭제"
+      },
+      "shareFilter": "필터 공유",
+      "chooseShare": "공유 유형 선택",
+      "allShares": "모든 주식",
+      "noShares": "재고가 없습니다"
     }
   },
   "messages": {

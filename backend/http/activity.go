@@ -299,11 +299,6 @@ func activityGroupedHandler(w http.ResponseWriter, r *http.Request, d *requestCo
 	return renderJSON(w, r, activitydb.GroupedResponse{Buckets: buckets})
 }
 
-// activityStatsHandler is deprecated; use activityGroupedHandler.
-func activityStatsHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	return activityGroupedHandler(w, r, d)
-}
-
 // activityExportHandler streams activity rows as CSV.
 //
 // @Summary Export activity as CSV

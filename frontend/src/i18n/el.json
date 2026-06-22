@@ -839,7 +839,6 @@
       "summaryTitle": "Συνολικά στοιχεία εκδήλωσης",
       "summaryTitleByUser": "Σύνολα δραστηριοτήτων ανά χρήστη",
       "totalEvents": "Σύνολο εκδηλώσεων{suffix}",
-      "emptyState": "Δεν καταγράφηκε καμία δραστηριότητα για τα επιλεγμένα φίλτρα. Δοκιμάστε ένα ευρύτερο χρονικό διάστημα ή διαφορετικά φίλτρα.",
       "cachedResult": "Αποθηκευμένο αποτέλεσμα",
       "showingPage": "Εμφάνιση του {shown} από το {total} (σελίδα {page}/{pages})",
       "pageOf": "Σελίδα {page} από {pages}",
@@ -860,8 +859,13 @@
         "passkeyRegister": "Προστέθηκε κωδικός πρόσβασης",
         "passkeyDelete": "Το κλειδί πρόσβασης καταργήθηκε",
         "tokenCreate": "Δημιουργία token",
-        "tokenDelete": "Διαγραφή token"
-      }
+        "tokenDelete": "Διαγραφή token",
+        "userDelete": "Διαγραφή χρήστη"
+      },
+      "shareFilter": "Κοινή χρήση φίλτρου",
+      "chooseShare": "Επιλέξτε μια μετοχή",
+      "allShares": "Όλες οι μετοχές",
+      "noShares": "Δεν υπάρχουν διαθέσιμες μετοχές"
     }
   },
   "messages": {

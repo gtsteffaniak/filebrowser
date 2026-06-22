@@ -839,7 +839,6 @@
       "summaryTitle": "Totala siffror för evenemanget",
       "summaryTitleByUser": "Sammanställning av aktiviteter per användare",
       "totalEvents": "Totalt antal evenemang{suffix}",
-      "emptyState": "Ingen aktivitet har registrerats för de valda filtren. Prova med ett bredare tidsintervall eller andra filter.",
       "cachedResult": "Cachelagrat resultat",
       "showingPage": "Visar {shown} från {total} (sidan {page}/{pages})",
       "pageOf": "Sida {page} av {pages}",
@@ -860,8 +859,13 @@
         "passkeyRegister": "Passord tillagt",
         "passkeyDelete": "Passordnyckeln har tagits bort",
         "tokenCreate": "Skapa token",
-        "tokenDelete": "Ta bort token"
-      }
+        "tokenDelete": "Ta bort token",
+        "userDelete": "Ta bort användare"
+      },
+      "shareFilter": "Dela filter",
+      "chooseShare": "Välj en aktie",
+      "allShares": "Alla aktier",
+      "noShares": "Inga aktier tillgängliga"
     }
   },
   "messages": {

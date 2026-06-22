@@ -178,9 +178,65 @@ func TestRecorderAcceptsAnonymousUserID(t *testing.T) {
 }
 
 func TestInitializeDisabledNoOp(t *testing.T) {
-	Initialize(nil, settings.Database{ActivityEnabled: false})
+	Initialize(nil, settings.Database{Activity: settings.ActivityConfig{Disabled: true}})
 	if BufferLen() != 0 {
 		t.Fatalf("expected disabled recorder buffer len 0")
 	}
 	Stop()
+}
+
+func TestRecorderRecordStopRace(t *testing.T) {
+	store := &mockActivityStore{}
+	globalMu.Lock()
+	old := globalRecorder
+	globalMu.Unlock()
+	defer func() {
+		globalMu.Lock()
+		globalRecorder = old
+		globalMu.Unlock()
+	}()
+
+	r := &Recorder{
+		store:         store,
+		buffer:        make([]activitydb.Entry, 0, 512),
+		flushCh:       make(chan struct{}, 1),
+		stopCh:        make(chan struct{}),
+		doneCh:        make(chan struct{}),
+		maxBuffer:     10000,
+		flushInterval: time.Hour,
+		enabled:       true,
+	}
+	globalMu.Lock()
+	globalRecorder = r
+	globalMu.Unlock()
+	go r.loop()
+
+	stopDone := make(chan struct{})
+	go func() {
+		defer close(stopDone)
+		Stop()
+	}()
+
+	const total = 200
+	var wg sync.WaitGroup
+	wg.Add(total)
+	for i := 0; i < total; i++ {
+		go func() {
+			defer wg.Done()
+			Record(activitydb.Entry{
+				UserID:    1,
+				EventType: activitydb.EventDownload,
+				CreatedAt: time.Now().Unix(),
+			})
+		}()
+	}
+	wg.Wait()
+	<-stopDone
+
+	if BufferLen() != 0 {
+		t.Fatalf("expected empty buffer after shutdown, got %d stranded entries", BufferLen())
+	}
+	if got := store.batchCount(); got == 0 {
+		t.Fatal("expected flushed rows after Record/Stop race, got none")
+	}
 }

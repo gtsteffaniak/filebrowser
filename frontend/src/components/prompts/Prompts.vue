@@ -99,6 +99,7 @@ import Totp from "./Totp.vue";
 import Access from "./Access.vue";
 import Password from "./Password.vue";
 import PlaybackQueue from "./PlaybackQueue.vue";
+import SharePicker from "./SharePicker.vue";
 import PathPicker from "./PathPicker.vue";
 import SaveBeforeExit from "./SaveBeforeExit.vue";
 import CopyPasteConfirm from "./CopyPasteConfirm.vue";
@@ -141,6 +142,7 @@ export default {
     Password,
     PlaybackQueue,
     PathPicker,
+    SharePicker,
     SaveBeforeExit,
     CopyPasteConfirm,
     CloseWithActiveUploads,

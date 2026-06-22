@@ -169,7 +169,9 @@ func scanActivityListRow(scanner interface {
 		e.IPAddress = ipAddress.String
 	}
 	e.Success = successInt == 1
-	_ = activity.UnmarshalDetailsJSON(detailsJSON, &e.Details)
+	if err := activity.UnmarshalDetailsJSON(detailsJSON, &e.Details); err != nil {
+		return nil, fmt.Errorf("unmarshal activity details: %w", err)
+	}
 	return &activity.ListRow{Entry: e, ActorUsername: actorUsername}, nil
 }
 
@@ -324,8 +326,8 @@ func buildActivityWhereTable(filter activity.QueryFilter, table string) (string,
 		args = append(args, filter.Source)
 	}
 	if filter.PathPrefix != "" {
-		like := filter.PathPrefix + "%"
-		clauses = append(clauses, "("+col("path")+" LIKE ? OR EXISTS (SELECT 1 FROM json_each("+table+".details, '$.paths') je WHERE je.value LIKE ?))")
+		like := escapeLikePrefix(filter.PathPrefix)
+		clauses = append(clauses, "("+col("path")+" LIKE ? ESCAPE '\\' OR EXISTS (SELECT 1 FROM json_each("+table+".details, '$.paths') je WHERE je.value LIKE ? ESCAPE '\\'))")
 		args = append(args, like, like)
 	}
 	if filter.PathGlob != "" {
@@ -418,5 +420,19 @@ func appendShareOwnerActivityClauses(clauses *[]string, args *[]interface{}, fil
 		ownerID,
 	)
 	*args = append(*args, downloadArgs...)
+}
+
+func escapeLikePrefix(prefix string) string {
+	var b strings.Builder
+	b.Grow(len(prefix) + 8)
+	for _, r := range prefix {
+		switch r {
+		case '\\', '%', '_':
+			b.WriteRune('\\')
+		}
+		b.WriteRune(r)
+	}
+	b.WriteByte('%')
+	return b.String()
 }
 

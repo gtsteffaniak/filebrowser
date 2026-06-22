@@ -839,7 +839,6 @@
       "summaryTitle": "إجمالي أرقام الفعالية",
       "summaryTitleByUser": "إجمالي الأنشطة حسب المستخدم",
       "totalEvents": "إجمالي عدد الفعاليات{suffix}",
-      "emptyState": "لم يتم تسجيل أي نشاط وفقًا للمعايير المحددة. جرب نطاقًا زمنيًا أوسع أو معايير مختلفة.",
       "cachedResult": "النتيجة المخزنة في ذاكرة التخزين المؤقت",
       "showingPage": "يتم عرض {shown} من {total} (الصفحة {page}/{pages})",
       "pageOf": "الصفحة {page} من {pages}",
@@ -860,8 +859,13 @@
         "passkeyRegister": "تمت إضافة مفتاح المرور",
         "passkeyDelete": "تمت إزالة مفتاح المرور",
         "tokenCreate": "إنشاء الرمز الرمزي",
-        "tokenDelete": "حذف الرمز"
-      }
+        "tokenDelete": "حذف الرمز",
+        "userDelete": "حذف المستخدم"
+      },
+      "shareFilter": "فلتر المشاركة",
+      "chooseShare": "اختر حصة",
+      "allShares": "جميع الأسهم",
+      "noShares": "لا توجد أسهم متاحة"
     }
   },
   "messages": {

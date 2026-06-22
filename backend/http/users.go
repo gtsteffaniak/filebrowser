@@ -147,6 +147,7 @@ func userDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	if err != nil {
 		return errToStatus(err), err
 	}
+	recordUserMutation(r, d, activitydb.EventUserDelete, &uVal)
 	return http.StatusOK, nil
 }
 

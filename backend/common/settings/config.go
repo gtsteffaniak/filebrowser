@@ -1000,11 +1000,12 @@ func SetDefaults(generate bool) Settings {
 			NumImageProcessors: 4,
 			BaseURL:            "",
 			DatabaseV2: Database{
-				Path:                         databaseV2,
-				ActivityEnabled:              true,
-				ActivityRetentionDays:        30,
-				ActivityFlushIntervalSeconds: 10,
-				ActivityMaxBufferSize:        10000,
+				Path: databaseV2,
+				Activity: ActivityConfig{
+					RetentionDays:        30,
+					FlushIntervalSeconds: 10,
+					MaxBufferSize:        10000,
+				},
 			},
 			SourceMap:          map[string]*Source{},
 			NameToSource:       map[string]*Source{},

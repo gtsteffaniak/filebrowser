@@ -208,9 +208,6 @@ export async function activityGrouped(options = {}) {
   return fetchJSON(getApiPath("tools/activity/grouped", buildActivityParams(options)));
 }
 
-/** @deprecated Use activityGrouped */
-export const activityStats = activityGrouped;
-
 // GET /api/tools/activity/export — returns URL for download
 export function activityExportUrl(options = {}) {
   return getApiPath("tools/activity/export", buildActivityParams(options));

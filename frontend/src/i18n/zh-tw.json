@@ -839,7 +839,6 @@
       "summaryTitle": "活動總計",
       "summaryTitleByUser": "各使用者的活動總計",
       "totalEvents": "活動總數{suffix}",
-      "emptyState": "根據所選篩選條件，未記錄任何活動。請嘗試擴大時間範圍或變更篩選條件。",
       "cachedResult": "快取結果",
       "showingPage": "顯示{shown} ，網址為{total} （頁面{page}/{pages} ）",
       "pageOf": "第{page} 頁，共{pages}",
@@ -860,8 +859,13 @@
         "passkeyRegister": "已新增密鑰",
         "passkeyDelete": "已移除密鑰",
         "tokenCreate": "建立代幣",
-        "tokenDelete": "刪除代幣"
-      }
+        "tokenDelete": "刪除代幣",
+        "userDelete": "刪除使用者"
+      },
+      "shareFilter": "分享篩選器",
+      "chooseShare": "選擇一項股份",
+      "allShares": "所有股份",
+      "noShares": "目前無股份可供申購"
     }
   },
   "messages": {

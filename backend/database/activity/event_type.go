@@ -22,6 +22,7 @@ const (
 	EventShareDownload EventType = "shareDownload"
 	EventUserCreate    EventType = "userCreate"
 	EventUserUpdate    EventType = "userUpdate"
+	EventUserDelete    EventType = "userDelete"
 	EventAccessUpdate  EventType = "accessUpdate"
 	EventLogin             EventType = "login"
 	EventLogout            EventType = "logout"
@@ -49,6 +50,7 @@ var AllEventTypes = []EventType{
 	EventShareDelete,
 	EventUserCreate,
 	EventUserUpdate,
+	EventUserDelete,
 	EventAccessUpdate,
 	EventLogin,
 	EventLogout,
@@ -131,7 +133,7 @@ func (e EventType) Valid() bool {
 		EventUpload, EventDelete, EventBulkDelete,
 		EventArchive, EventUnarchive,
 		EventShareCreate, EventShareUpdate, EventShareDelete, EventShareDownload,
-		EventUserCreate, EventUserUpdate, EventAccessUpdate,
+		EventUserCreate, EventUserUpdate, EventUserDelete, EventAccessUpdate,
 		EventLogin, EventLogout, EventSignup,
 		EventPasskeyRegister, EventPasskeyDelete,
 		EventTokenCreate, EventTokenDelete,

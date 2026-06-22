@@ -839,7 +839,6 @@
       "summaryTitle": "Totaux de l'événement",
       "summaryTitleByUser": "Totaux des activités par utilisateur",
       "totalEvents": "Nombre total d'événements{suffix}",
-      "emptyState": "Aucune activité n'a été enregistrée pour les filtres sélectionnés. Essayez d'élargir la plage de dates ou d'utiliser d'autres filtres.",
       "cachedResult": "Résultat mis en cache",
       "showingPage": "Affichage de {shown} de {total} (page {page}/{pages})",
       "pageOf": "Page {page} de {pages}",
@@ -860,8 +859,13 @@
         "passkeyRegister": "Mot de passe ajouté",
         "passkeyDelete": "Clé d'accès supprimée",
         "tokenCreate": "Création d'un jeton",
-        "tokenDelete": "Suppression d'un jeton"
-      }
+        "tokenDelete": "Suppression d'un jeton",
+        "userDelete": "Suppression d'un utilisateur"
+      },
+      "shareFilter": "Partager le filtre",
+      "chooseShare": "Choisissez une action",
+      "allShares": "Toutes les actions",
+      "noShares": "Aucune action disponible"
     }
   },
   "messages": {

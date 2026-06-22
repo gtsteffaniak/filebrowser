@@ -6,9 +6,9 @@ All notable changes to this project will be documented in this file. For commit 
 
  **New Features**:
  - New activity logs for user activity.
-  - charts and historical data
-  - activity tool to view data
-  - reports
+   - charts and historical data
+   - activity tool to view data
+   - reports
 
 ## v1.5.0
 

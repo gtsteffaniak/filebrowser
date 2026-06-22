@@ -161,6 +161,9 @@ func UserForShareOwner(link share.Share) (users.User, error) {
 // may apply default-enabled sources. In-memory/cache users always keep FrontendScopes nil; GET handlers use
 // PrepForFrontend to repopulate FrontendScopes from BackendScopes for responses.
 func CreateUser(user *users.User, plaintextPassword string) error {
+	if err := users.ValidateUsername(user.Username); err != nil {
+		return err
+	}
 	if _, exists := usersByName[user.Username]; exists {
 		return fmt.Errorf("user with username %s already exists", user.Username)
 	}

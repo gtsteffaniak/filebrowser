@@ -17,7 +17,7 @@ import (
 // subtitlesHandler handles subtitle requests for both external files and embedded streams
 // @Summary Get subtitle content
 // @Description Returns raw subtitle content from external files or embedded streams
-// @Tags Resources
+// @Tags Media
 // @Accept json
 // @Produce text/plain
 // @Param path query string true "Index path to the video file"
@@ -106,7 +106,7 @@ func findSubtitleTrack(subtitles []utils.SubtitleTrack, name string, embedded bo
 // for client-side patching after a fast listing load.
 // @Summary Directory with media metadata
 // @Description Same ExtendedFileInfo as resources GET with metadata=true (typically used for directories).
-// @Tags Resources
+// @Tags Media
 // @Accept json
 // @Produce json
 // @Param path query string true "Path to the directory or file"
@@ -142,7 +142,7 @@ func metadataHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 
 // publicMetadataHandler is the share-link variant of metadataHandler.
 // @Summary Directory with media metadata (public share)
-// @Tags Shares
+// @Tags Media
 // @Produce json
 // @Param hash query string true "Share hash"
 // @Param path query string false "Path within the share"
@@ -181,7 +181,7 @@ func publicMetadataHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 // lyricsHandler returns synced/unsynced lyrics (with or without timestamps) for an audio file (embedded or from .lrc files).
 // @Summary Get lyrics for an audio file
 // @Description Returns parsed lyrics with optional timestamps from embedded tags or sidecar .lrc files.
-// @Tags Resources
+// @Tags Media
 // @Accept json
 // @Produce json
 // @Param path query string true "Path to the directory or file"
@@ -224,7 +224,7 @@ func lyricsHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 
 // publicLyricsHandler is the share-link variant of lyricsHandler.
 // @Summary Get lyrics for an audio file (public share)
-// @Tags Shares
+// @Tags Media
 // @Produce json
 // @Param hash query string true "Share hash"
 // @Param path query string false "Path within the share"

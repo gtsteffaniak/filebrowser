@@ -31,6 +31,7 @@ type Recorder struct {
 	flushInterval time.Duration
 	retentionDays int
 	enabled       bool
+	stopped       bool
 }
 
 var (
@@ -47,15 +48,16 @@ func Initialize(store *sqldb.SQLStore, cfg settings.Database) {
 		globalRecorder.Stop()
 	}
 
-	maxBuffer := cfg.ActivityMaxBufferSize
+	act := cfg.Activity
+	maxBuffer := act.MaxBufferSize
 	if maxBuffer <= 0 {
 		maxBuffer = 10000
 	}
-	flushSeconds := cfg.ActivityFlushIntervalSeconds
+	flushSeconds := act.FlushIntervalSeconds
 	if flushSeconds <= 0 {
 		flushSeconds = 10
 	}
-	retentionDays := cfg.ActivityRetentionDays
+	retentionDays := act.RetentionDays
 	if retentionDays <= 0 {
 		retentionDays = 30
 	}
@@ -69,7 +71,7 @@ func Initialize(store *sqldb.SQLStore, cfg settings.Database) {
 		maxBuffer:     maxBuffer,
 		flushInterval: time.Duration(flushSeconds) * time.Second,
 		retentionDays: retentionDays,
-		enabled:       cfg.ActivityEnabled,
+		enabled:       !act.Disabled,
 	}
 	globalRecorder = r
 	go r.loop()
@@ -99,6 +101,10 @@ func Record(entry activitydb.Entry) {
 	}
 
 	r.mu.Lock()
+	if r.stopped {
+		r.mu.Unlock()
+		return
+	}
 	r.buffer = append(r.buffer, entry)
 	shouldFlush := len(r.buffer) >= r.maxBuffer
 	r.mu.Unlock()
@@ -123,6 +129,9 @@ func Stop() {
 func (r *Recorder) Stop() {
 	close(r.stopCh)
 	<-r.doneCh
+	r.mu.Lock()
+	r.stopped = true
+	r.mu.Unlock()
 	r.flush()
 }
 

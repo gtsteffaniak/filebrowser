@@ -64,10 +64,11 @@ server:
   database:                               # SQLite database configuration
     path: "filebrowser.sqlite"            # path to SQLite database file
     migrateFrom: ""                       # path to old BoltDB database file for migration (optional)
-    activityEnabled: true                 # enable semantic activity audit logging
-    activityRetentionDays: 30             # purge activity rows older than this many days (default 30)
-    activityFlushIntervalSeconds: 10      # buffer flush interval in seconds (default 10)
-    activityMaxBufferSize: 10000          # max in-memory buffer before immediate flush (default 10000)
+    activity:                             # activity audit logging configuration
+      disabled: false                     # disable semantic activity audit logging (default: false)
+      retentionDays: 30                   # purge activity rows older than this many days (default 30)
+      flushIntervalSeconds: 10            # buffer flush interval in seconds (default 10)
+      maxBufferSize: 10000                # max in-memory buffer before immediate flush (default 10000)
 auth:
   tokenExpirationHours: 2                 # time in hours each web UI session token is valid for. Default is 2 hours.
   methods:

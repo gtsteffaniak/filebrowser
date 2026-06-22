@@ -839,7 +839,6 @@
       "summaryTitle": "Totale cijfers van het evenement",
       "summaryTitleByUser": "Totale activiteit per gebruiker",
       "totalEvents": "Totaal aantal evenementen{suffix}",
-      "emptyState": "Er zijn geen resultaten gevonden voor de geselecteerde filters. Probeer een breder tijdsbereik of andere filters.",
       "cachedResult": "Gecachet resultaat",
       "showingPage": "{shown} van {total} wordt weergegeven (pagina {page}/{pages})",
       "pageOf": "Pagina {page} van {pages}",
@@ -860,8 +859,13 @@
         "passkeyRegister": "Toegangscode toegevoegd",
         "passkeyDelete": "Toegangscode verwijderd",
         "tokenCreate": "Token aanmaken",
-        "tokenDelete": "Token verwijderen"
-      }
+        "tokenDelete": "Token verwijderen",
+        "userDelete": "Gebruiker verwijderen"
+      },
+      "shareFilter": "Filter delen",
+      "chooseShare": "Kies een aandeel",
+      "allShares": "Alle aandelen",
+      "noShares": "Er zijn geen aandelen beschikbaar"
     }
   },
   "messages": {

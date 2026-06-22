@@ -839,7 +839,6 @@
       "summaryTitle": "Gesamtzahlen der Veranstaltung",
       "summaryTitleByUser": "Aktivitätsübersicht nach Benutzer",
       "totalEvents": "Gesamtzahl der Veranstaltungen{suffix}",
-      "emptyState": "Für die ausgewählten Filter wurden keine Aktivitäten erfasst. Versuchen Sie es mit einem größeren Zeitbereich oder anderen Filtern.",
       "cachedResult": "Zwischengespeichertes Ergebnis",
       "showingPage": "Anzeige von {shown} von {total} (Seite {page}/{pages})",
       "pageOf": "Seite {page} von {pages}",
@@ -860,8 +859,13 @@
         "passkeyRegister": "Passwort hinzugefügt",
         "passkeyDelete": "Passwort entfernt",
         "tokenCreate": "Token erstellen",
-        "tokenDelete": "Token löschen"
-      }
+        "tokenDelete": "Token löschen",
+        "userDelete": "Benutzer löschen"
+      },
+      "shareFilter": "Filter teilen",
+      "chooseShare": "Wählen Sie eine Aktie aus",
+      "allShares": "Alle Aktien",
+      "noShares": "Keine Aktien verfügbar"
     }
   },
   "messages": {
