@@ -1,6 +1,6 @@
 <template>
   <div class="card-title">
-    <h2>{{ $t("settings.profileSettings") }}</h2>
+    <h2>{{ profileSettingsLabel() }}</h2>
   </div>
   <div class="card-content">
     <form>
@@ -212,7 +212,6 @@
 import { notify } from "@/notify";
 import { globalVars } from "@/utils/constants.js";
 import { state, mutations, getters } from "@/store";
-import { usersApi } from "@/api";
 import Languages from "@/components/settings/Languages.vue";
 import ButtonGroup from "@/components/ButtonGroup.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
@@ -318,6 +317,9 @@ export default {
     }
   },
   methods: {
+    profileSettingsLabel() {
+      return `${this.$t("general.profile")} ${this.$t("general.settings")}`;
+    },
     showTooltip(event, text) {
       mutations.showTooltip({
         content: text,
@@ -387,34 +389,8 @@ export default {
         );
       }
       try {
-        const data = this.localuser;
         const themeChanged = state.user.customTheme !== this.localuser.customTheme;
-        await mutations.updateCurrentUser(data);
-        await usersApi.update(data, [
-          "locale",
-          "showHidden",
-          "dateFormat",
-          "themeColor",
-          "customTheme",
-          "quickDownload",
-          "disablePreviewExt",
-          "disableViewingExt",
-          "disableOnlyOfficeExt",
-          "hideFileExt",
-          "deleteWithoutConfirming",
-          "deleteAfterArchive",
-          "preview",
-          "disableQuickToggles",
-          "disableSearchOptions",
-          "hideSidebarFileActions",
-          "showCopyPath",
-          "hideFilesInTree",
-          "editorQuickSave",
-          "showSelectMultiple",
-          "debugOffice",
-          "preferEditorForMarkdown",
-          "showToolsInSidebar",
-        ]);
+        await mutations.updateCurrentUser(this.localuser);
         notify.showSuccessToast(
           this.$t('settings.settingsUpdated')
         );

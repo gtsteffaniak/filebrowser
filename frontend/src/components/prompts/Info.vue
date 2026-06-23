@@ -1,5 +1,10 @@
 <template>
   <div class="card-content info-content">
+    <a
+      v-if="source"
+      class="button button--flat button--blue activity-viewer-link"
+      :href="activityViewerHref"
+    >{{ $t("tools.activityViewer.viewActivity") }}</a>
     <div class="info-grid">
       <!-- Basic Information Section -->
       <div class="info-section">
@@ -96,6 +101,7 @@ import { copyToClipboard } from "@/utils/clipboard";
 import { resourcesApi } from "@/api";
 import { state } from "@/store";
 import { notify } from "@/notify";
+import { activityViewerPresets } from "@/utils/activityViewerLink";
 
 export default {
   name: "info",
@@ -141,6 +147,9 @@ export default {
     },
     filePath() {
       return this.item?.path || "";
+    },
+    activityViewerHref() {
+      return activityViewerPresets.files(this.source, this.filePath);
     },
     hidden() {
       return this.item?.hidden;

@@ -1279,6 +1279,7 @@ func (s *Storage) RevokeToken(tokenHash string) error {
 
 	if sqlStore != nil {
 		_ = sqlStore.DeleteHashedToken(tokenHash)
+		_ = sqlStore.SaveRevokedToken(tokenHash)
 	}
 	return nil
 }

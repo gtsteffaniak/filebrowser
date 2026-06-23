@@ -179,7 +179,7 @@ export default {
   align-items: center;
   justify-content: center;
   gap: 0.3em;
-  padding: 0.4em;
+  padding: 0.5em;
   border: none;
   background: transparent;
   color: var(--textSecondary);
@@ -267,7 +267,7 @@ export default {
 }
 
 .lyric-line {
-  padding: 0.4em 0;
+  padding: 0.5em 0;
   opacity: 0.6;
   cursor: pointer;
   transition: opacity 0.2s;

@@ -3010,7 +3010,7 @@ const docTemplate = `{
         },
         "/api/tools/activity": {
             "get": {
-                "description": "Returns individual activity log rows, newest first. Details are included for admins only.",
+                "description": "Returns individual activity log rows, newest first. Paths are scope-relative for non-admins.",
                 "produces": [
                     "application/json"
                 ],
@@ -3083,6 +3083,18 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "Page size, max 500 (default: 100)",
                         "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Minimum HTTP status code (100-599)",
+                        "name": "statusMin",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum HTTP status code (100-599)",
+                        "name": "statusMax",
                         "in": "query"
                     }
                 ],
@@ -3177,6 +3189,18 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Share hash filter (owned shares for non-admins)",
                         "name": "shareHash",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Minimum HTTP status code (100-599)",
+                        "name": "statusMin",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum HTTP status code (100-599)",
+                        "name": "statusMax",
                         "in": "query"
                     }
                 ],
@@ -3281,8 +3305,20 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Series dimension: eventType, user, or none (default: eventType)",
+                        "description": "Series dimension: eventType, user, outcome, or none (default: eventType)",
                         "name": "splitBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Minimum HTTP status code (100-599)",
+                        "name": "statusMin",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum HTTP status code (100-599)",
+                        "name": "statusMax",
                         "in": "query"
                     }
                 ],
@@ -5040,7 +5076,8 @@ const docTemplate = `{
                 "passkeyDelete",
                 "tokenCreate",
                 "tokenDelete",
-                "duplicateFinder"
+                "duplicateFinder",
+                "apiError"
             ],
             "x-enum-varnames": [
                 "EventDownload",
@@ -5067,17 +5104,41 @@ const docTemplate = `{
                 "EventPasskeyDelete",
                 "EventTokenCreate",
                 "EventTokenDelete",
-                "EventDuplicateFinder"
+                "EventDuplicateFinder",
+                "EventAPIError"
             ]
+        },
+        "activity.FieldChange": {
+            "type": "object",
+            "properties": {
+                "field": {
+                    "type": "string"
+                },
+                "from": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "string"
+                }
+            }
         },
         "activity.FrontendDetails": {
             "type": "object",
             "properties": {
+                "affectedTokenName": {
+                    "type": "string"
+                },
                 "bytes": {
                     "type": "integer"
                 },
                 "cached": {
                     "type": "boolean"
+                },
+                "changes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/activity.FieldChange"
+                    }
                 },
                 "durationMs": {
                     "type": "integer"
@@ -5091,6 +5152,9 @@ const docTemplate = `{
                 "loginMethod": {
                     "type": "string"
                 },
+                "method": {
+                    "type": "string"
+                },
                 "passkeyName": {
                     "type": "string"
                 },
@@ -5102,6 +5166,9 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                },
+                "requestPath": {
+                    "type": "string"
                 },
                 "scopes": {
                     "type": "array",
@@ -5121,17 +5188,23 @@ const docTemplate = `{
                 "targetUsername": {
                     "type": "string"
                 },
-                "tokenName": {
-                    "type": "string"
-                },
                 "truncated": {
                     "type": "boolean"
+                },
+                "updatedFields": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
         "activity.FrontendEntry": {
             "type": "object",
             "properties": {
+                "authMethod": {
+                    "type": "string"
+                },
                 "createdAt": {
                     "type": "integer"
                 },
@@ -5147,8 +5220,23 @@ const docTemplate = `{
                 "ipAddress": {
                     "type": "string"
                 },
+                "path": {
+                    "type": "string"
+                },
+                "shareHash": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                },
                 "status": {
                     "type": "integer"
+                },
+                "targetPath": {
+                    "type": "string"
+                },
+                "tokenName": {
+                    "type": "string"
                 },
                 "username": {
                     "type": "string"

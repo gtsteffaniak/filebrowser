@@ -62,9 +62,27 @@ type ShareFrontend struct {
 }
 
 // SharePostBody is POST/PATCH /api/share JSON. Plaintext password is hashed to Share.PasswordHash before persist.
+// Password omitted (nil) on update means keep the existing hash; empty string clears it.
 type SharePostBody struct {
 	ShareFrontend
-	Password string `json:"password,omitempty"`
+	Password *string `json:"password,omitempty"`
+}
+
+// ApplyPostBodyUpdate copies client-editable ShareFrontend fields onto link.
+// Caller must preserve path, sourcePath, pinnedItems, version, download counters, and secrets.
+func ApplyPostBodyUpdate(link *Share, req *SharePostBody, expire int64) {
+	link.FrontendShareInfo = req.FrontendShareInfo
+	link.MaxBandwidth = req.MaxBandwidth
+	link.AllowedUsernames = req.AllowedUsernames
+	link.PerUserDownloadLimit = req.PerUserDownloadLimit
+	link.ExtractEmbeddedSubtitles = req.ExtractEmbeddedSubtitles
+	link.DownloadsLimit = req.DownloadsLimit
+	link.HideFileExt = req.HideFileExt
+	link.Banner = req.Banner
+	link.SourceName = req.SourceName
+	link.Expires = req.Expires
+	link.Unit = req.Unit
+	link.Expire = expire
 }
 
 // Share is the persisted share: embedded ShareFrontend plus backend columns (json tags support legacy import).

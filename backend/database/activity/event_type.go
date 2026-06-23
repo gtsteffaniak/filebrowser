@@ -31,7 +31,9 @@ const (
 	EventPasskeyDelete     EventType = "passkeyDelete"
 	EventTokenCreate       EventType = "tokenCreate"
 	EventTokenDelete       EventType = "tokenDelete"
-	EventDuplicateFinder   EventType = "duplicateFinder"
+	EventDuplicateFinder EventType = "duplicateFinder"
+	// EventAPIError is deprecated; handler failures are only logged for mapped routes.
+	EventAPIError EventType = "apiError"
 )
 
 // AllEventTypes lists every defined event type for validation and UI filters.
@@ -137,7 +139,7 @@ func (e EventType) Valid() bool {
 		EventLogin, EventLogout, EventSignup,
 		EventPasskeyRegister, EventPasskeyDelete,
 		EventTokenCreate, EventTokenDelete,
-		EventDuplicateFinder:
+		EventDuplicateFinder, EventAPIError:
 		return true
 	default:
 		return false

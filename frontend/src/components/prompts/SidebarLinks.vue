@@ -292,7 +292,7 @@
 <script>
 import { state, getters, mutations } from "@/store";
 import { notify } from "@/notify";
-import { usersApi, shareApi } from "@/api";
+import { shareApi } from "@/api";
 import { tools } from "@/utils/constants";
 import { getIconClass } from "@/utils/material-symbols";
 import { getObjectProperty } from '@/utils/object.js';
@@ -900,15 +900,7 @@ export default {
 
         } else {
           // Save to user
-          const updatedUser = {
-            username: state.user.username,
-            sidebarLinks: this.links,
-            showToolsInSidebar: this.showToolsInSidebar,
-          };
-
-          await usersApi.update(updatedUser, ['sidebarLinks', 'showToolsInSidebar']);
-
-          void mutations.updateCurrentUser({
+          await mutations.updateCurrentUser({
             sidebarLinks: [...this.links],
             showToolsInSidebar: this.showToolsInSidebar,
           });

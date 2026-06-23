@@ -17,8 +17,8 @@
       <input class="sizeInput roundedInputLeft input" v-model.number="duration" type="number" min="1"
         :placeholder="$t('api.durationNumberPlaceholder')" />
       <select v-model="unit" class="roundedInputRight input">
-        <option value="days">{{ $t('api.days') }}</option>
-        <option value="months">{{ $t('api.months') }}</option>
+        <option value="days">{{ $t('time.days') }}</option>
+        <option value="months">{{ $t('time.months') }}</option>
       </select>
     </div>
 

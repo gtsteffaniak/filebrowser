@@ -14,7 +14,7 @@
         {{ $t("general.source", { suffix: ":" }) }} {{ source }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         {{ $t("general.path", { suffix: ":" }) }} {{ path }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         {{ $t("general.name", { suffix: ":" }) }} {{ filename }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-        {{ isShare ? `${$t("onlyoffice.shareHash")}: ${shareHash}` : $t("onlyoffice.userRequest") }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        {{ isShare ? `${shareHashLabel()}: ${shareHash}` : $t("onlyoffice.userRequest") }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
       </div>
 
       <div v-if="clientConfig?.document" class="debug-section debug-section-config">
@@ -195,6 +195,9 @@ export default {
     }
   },
   methods: {
+    shareHashLabel() {
+      return `${this.$t("general.share")} ${this.$t("general.hash")}`;
+    },
     async initializeDebugger() {
       try {
         this.updateDebugStatus(`✅ ${this.$t("onlyoffice.configCheck")}`);

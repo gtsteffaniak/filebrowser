@@ -26,6 +26,10 @@
         :placeholder="$t('sidebar.chooseSource')"
         @navigate="onPathPickerNavigate"
       />
+      <a
+        class="button button--flat button--blue activity-viewer-link"
+        :href="activityViewerHref"
+      >{{ $t("tools.activityViewer.viewActivity") }}</a>
       <!-- Default behavior banner -->
       <div class="card item">
         <div class="card-content banner-content">
@@ -70,7 +74,7 @@
           <tr>
             <th>{{ $t("access.allowDeny") }}</th>
             <th>{{ $t("access.userGroup") }}</th>
-            <th>{{ $t("general.name", { suffix: '' }) }}</th>
+            <th>{{ $t("general.name") }}</th>
             <th>{{ $t("general.edit") }}</th>
           </tr>
           <tr v-for="entry in entries" :key="`${entry.type}-${entry.name}`">
@@ -110,6 +114,7 @@ import FileList from "../files/FileList.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
+import { activityViewerPresets } from "@/utils/activityViewerLink";
 import { eventBus } from "@/store/eventBus";
 
 export default {
@@ -159,7 +164,10 @@ export default {
         entries.push({ allow: true, type: "group", name });
       });
       return entries;
-    }
+    },
+    activityViewerHref() {
+      return activityViewerPresets.access(this.currentSource, this.currentPath);
+    },
   },
   async mounted() {
     await this.fetchRule();

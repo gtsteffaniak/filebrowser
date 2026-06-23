@@ -25,20 +25,28 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-// first checks for cookie
-// then checks for header Authorization as Bearer token
-// then checks for query parameter
+// Prefer Authorization header and explicit ?auth= query values over the session
+// cookie so API clients can authenticate while a revoked browser cookie is present.
 func extractToken(r *http.Request) (string, error) {
 	hasToken := false
-	tokenObj, err := r.Cookie("filebrowser_quantum_jwt")
-	if err == nil {
+
+	authHeader := r.Header.Get("Authorization")
+	if authHeader != "" {
 		hasToken = true
-		token := tokenObj.Value
-		// Checks if the token isn't empty and if it contains two dots.
-		// The former prevents incompatibility with URLs that previously
-		// used basic auth.
-		if token != "" && strings.Count(token, ".") == 2 {
-			return token, nil
+		parts := strings.Split(authHeader, " ")
+		if len(parts) > 1 {
+			switch strings.ToLower(parts[0]) {
+			case "bearer":
+				if strings.Count(parts[1], ".") == 2 {
+					return parts[1], nil
+				}
+			case "basic":
+				// compatibility for basic auth: user ignored, password is token
+				_, token, ok := r.BasicAuth()
+				if ok && token != "" && strings.Count(token, ".") == 2 {
+					return token, nil
+				}
+			}
 		}
 	}
 
@@ -50,25 +58,12 @@ func extractToken(r *http.Request) (string, error) {
 		}
 	}
 
-	// Check for Authorization header
-	authHeader := r.Header.Get("Authorization")
-	if authHeader != "" {
+	tokenObj, err := r.Cookie("filebrowser_quantum_jwt")
+	if err == nil {
 		hasToken = true
-		// Split the header to get "Bearer {token}"
-		parts := strings.Split(authHeader, " ")
-		if len(parts) > 1 {
-			// some clients don't respect RFC regarding cases
-			switch strings.ToLower(parts[0]) {
-			case "bearer":
-				return parts[1], nil
-			case "basic":
-				// compatibility for basic auth
-				// user ignored, password is token
-				_, token, ok := r.BasicAuth()
-				if ok {
-					return token, nil
-				}
-			}
+		token := tokenObj.Value
+		if token != "" && strings.Count(token, ".") == 2 {
+			return token, nil
 		}
 	}
 

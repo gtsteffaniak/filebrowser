@@ -184,12 +184,16 @@ func (s *SQLStore) ListActivityStats(filter activity.QueryFilter) ([]activity.St
 	table := "activity_log"
 	where, args := buildActivityWhereTable(filter, table)
 	bucketExpr := activityBucketExpr(interval)
+	outcomeSeriesExpr := "CASE WHEN " + table + ".success = 1 THEN 'success' ELSE 'error' END"
 
 	var query string
 	switch {
 	case hasTimeBucket && splitBy == "eventType":
 		query = fmt.Sprintf(`SELECT %s AS bucket, event_type AS series_key, '' AS series_label, COUNT(*) AS cnt
 			FROM %s%s GROUP BY bucket, event_type ORDER BY bucket ASC, cnt DESC`, bucketExpr, table, where)
+	case hasTimeBucket && splitBy == "outcome":
+		query = fmt.Sprintf(`SELECT %s AS bucket, %s AS series_key, '' AS series_label, COUNT(*) AS cnt
+			FROM %s%s GROUP BY bucket, series_key ORDER BY bucket ASC, cnt DESC`, bucketExpr, outcomeSeriesExpr, table, where)
 	case hasTimeBucket && splitBy == "user":
 		query = fmt.Sprintf(`SELECT %s AS bucket, a.user_id AS series_key, COALESCE(u.username, CASE WHEN a.user_id = '0' THEN '%s' ELSE a.user_id END) AS series_label, COUNT(*) AS cnt
 			FROM activity_log a LEFT JOIN users u ON a.user_id = u.user_id%s
@@ -200,6 +204,9 @@ func (s *SQLStore) ListActivityStats(filter activity.QueryFilter) ([]activity.St
 	case !hasTimeBucket && splitBy == "eventType":
 		query = fmt.Sprintf(`SELECT 0 AS bucket, event_type AS series_key, '' AS series_label, COUNT(*) AS cnt
 			FROM %s%s GROUP BY event_type ORDER BY cnt DESC`, table, where)
+	case !hasTimeBucket && splitBy == "outcome":
+		query = fmt.Sprintf(`SELECT 0 AS bucket, %s AS series_key, '' AS series_label, COUNT(*) AS cnt
+			FROM %s%s GROUP BY series_key ORDER BY cnt DESC`, outcomeSeriesExpr, table, where)
 	case !hasTimeBucket && splitBy == "user":
 		query = fmt.Sprintf(`SELECT 0 AS bucket, a.user_id AS series_key, COALESCE(u.username, CASE WHEN a.user_id = '0' THEN '%s' ELSE a.user_id END) AS series_label, COUNT(*) AS cnt
 			FROM activity_log a LEFT JOIN users u ON a.user_id = u.user_id%s
@@ -337,6 +344,14 @@ func buildActivityWhereTable(filter activity.QueryFilter, table string) (string,
 	if filter.ShareHash != "" {
 		clauses = append(clauses, "json_extract("+table+".details, '$.shareHash') = ?")
 		args = append(args, filter.ShareHash)
+	}
+	if filter.StatusMin > 0 {
+		clauses = append(clauses, col("status")+" >= ?")
+		args = append(args, filter.StatusMin)
+	}
+	if filter.StatusMax > 0 {
+		clauses = append(clauses, col("status")+" <= ?")
+		args = append(args, filter.StatusMax)
 	}
 
 	where := ""

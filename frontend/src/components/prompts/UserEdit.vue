@@ -619,7 +619,7 @@ export default {
       // Update the prompt display name to show the username
       // This allows the title to show the actual username instead of just the generic "user-edit" title
       const displayName = this.isNew
-        ? this.$t("settings.newUser")
+        ? `${this.$t("general.new")} ${this.$t("general.user")}`
         : `${this.$t("settings.modifyOtherUser")} ${this.user.username}`;
       mutations.updatePromptTitle(this.promptId, displayName);
     },

@@ -9,6 +9,7 @@
   <errors v-if="error" :errorCode="error.status" />
   <div class="card-title">
     <h2>{{ $t("api.title") }}</h2>
+    <a class="button button--flat button--blue activity-viewer-link" :href="activityViewerHref">{{ $t("tools.activityViewer.viewActivity") }}</a>
   </div>
 
   <div class="card-content full">
@@ -33,7 +34,7 @@
             <span
               v-for="(value, permission) in row.Permissions"
               :key="permission"
-              :title="`${permission}: ${value ? $t('api.enabled') : $t('api.disabled')}`"
+              :title="`${permission}: ${value ? $t('general.enabled') : $t('general.disabled')}`"
               class="clickable"
               @click.prevent="infoPrompt(row.name, row)"
             >
@@ -48,8 +49,8 @@
               type="button"
               class="action"
               @click.prevent="infoPrompt(row.name, row)"
-              :aria-label="$t('api.actions')"
-              :title="$t('api.actions')"
+              :aria-label="$t('general.actions')"
+              :title="$t('general.actions')"
             >
               <i class="material-symbols">info</i>
             </button>
@@ -75,6 +76,7 @@ import { state, mutations } from "@/store";
 import { copyToClipboard } from "@/utils/clipboard";
 import Errors from "@/views/Errors.vue";
 import SettingsTable from "@/components/settings/Table.vue";
+import { activityViewerPresets } from "@/utils/activityViewerLink";
 import { eventBus } from "@/store/eventBus";
 
 export default {
@@ -115,7 +117,7 @@ export default {
         { key: "name", label: this.$t("general.name"), sortable: true },
         {
           key: "issuedAt",
-          label: this.$t("api.created"),
+          label: this.$t("general.created"),
           sortable: true,
           sortFn: (a, b) =>
             ((a?.issuedAt ?? 0) - (b?.issuedAt ?? 0)),
@@ -127,14 +129,17 @@ export default {
           sortFn: (a, b) =>
             ((a?.expiresAt ?? 0) - (b?.expiresAt ?? 0)),
         },
-        { key: "permissions", label: this.$t("settings.permissions-name") },
+        { key: "permissions", label: this.$t("general.permissions") },
         {
           key: "actions",
-          label: this.$t("api.actions"),
+          label: this.$t("general.actions"),
           align: "right",
           narrow: true,
         },
       ];
+    },
+    activityViewerHref() {
+      return activityViewerPresets.apiTokens();
     },
   },
   methods: {

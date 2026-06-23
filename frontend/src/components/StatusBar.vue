@@ -107,9 +107,10 @@ export default {
     },
     // i18n labels with compile-time checked keys
     itemsSelectedLabel() {
-      return this.selectedCount === 1
-        ? this.$t("files.itemSelected")
-        : this.$t("files.itemsSelected");
+      if (this.selectedCount === 1) {
+        return `${this.$t("general.item")} ${this.$t("general.selected")}`;
+      }
+      return `${this.$t("general.items")} ${this.$t("general.selected")}`;
     },
     foldersLabel() {
       return this.numDirs === 1

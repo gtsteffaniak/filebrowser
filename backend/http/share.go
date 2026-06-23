@@ -126,7 +126,7 @@ func shareDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return errToStatus(err), err
 	}
 
-	recordShareMutation(r, d, activitydb.EventShareDelete, hash, thisShare.SourceName, thisShare.Path)
+	recordShareMutation(r, d, activitydb.EventShareDelete, hash, thisShare.SourceName, thisShare.Path, nil)
 	return errToStatus(err), err
 }
 
@@ -183,7 +183,12 @@ func sharePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	if len(prepared) == 0 {
 		return http.StatusInternalServerError, fmt.Errorf("could not prepare share response")
 	}
-	recordShareMutation(r, d, activitydb.EventShareUpdate, body.Hash, updatedShare.SourceName, updatedShare.Path)
+	changes := []activitydb.FieldChange{{
+		Field: "path",
+		From:  thisShare.Path,
+		To:    updatedShare.Path,
+	}}
+	recordShareMutation(r, d, activitydb.EventShareUpdate, body.Hash, updatedShare.SourceName, updatedShare.Path, changes)
 	return renderJSON(w, r, prepared[0])
 }
 
@@ -239,7 +244,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		expire = time.Now().Add(add).Unix()
 	}
 
-	hash, status, err2 := getSharePasswordHash(req.Password)
+	hash, status, err2 := sharePasswordFromRequest(req.Password)
 	if err2 != nil {
 		return status, err2
 	}
@@ -260,17 +265,29 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		stringHash = string(hash)
 	}
 	if req.Hash != "" {
+		beforeShare, getErr := state.GetShare(req.Hash)
+		if getErr != nil {
+			return http.StatusBadRequest, fmt.Errorf("share not found")
+		}
 		err = state.UpdateShare(req.Hash, func(link *share.Share) error {
 			shouldResetCounts := link.DownloadsLimit != req.DownloadsLimit ||
 				link.PerUserDownloadLimit != req.PerUserDownloadLimit
-			link.Expire = expire
-			link.PasswordHash = stringHash
-			link.Token = token
+
+			if err = applySharePasswordUpdate(link, req.Password, stringHash, token); err != nil {
+				return err
+			}
+
 			preservedPath := link.Path
 			preservedSourcePath := link.SourcePath
-			link.FrontendShareInfo = req.FrontendShareInfo
+			preservedPinned := link.PinnedItems
+			preservedVersion := link.Version
+
+			share.ApplyPostBodyUpdate(link, &req, expire)
+
 			link.Path = preservedPath
 			link.SourcePath = preservedSourcePath
+			link.PinnedItems = preservedPinned
+			link.Version = preservedVersion
 			link.UserID = d.user.ID
 			if link.ShareType == "upload" && !req.AllowCreate {
 				link.AllowCreate = true
@@ -288,11 +305,14 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		if err3 != nil {
 			return http.StatusInternalServerError, err3
 		}
+		changes := shareUpdateChanges(&beforeShare, updatedShare)
 		prepared := shareStore.PrepForFrontend(d.user, r, updatedShare)
 		if len(prepared) == 0 {
 			return http.StatusInternalServerError, fmt.Errorf("could not prepare share response")
 		}
-		recordShareMutation(r, d, activitydb.EventShareUpdate, req.Hash, updatedShare.SourceName, updatedShare.Path)
+		if len(changes) > 0 {
+			recordShareMutation(r, d, activitydb.EventShareUpdate, req.Hash, updatedShare.SourceName, updatedShare.Path, changes)
+		}
 		return renderJSON(w, r, prepared[0])
 	}
 
@@ -366,7 +386,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if len(prepared) == 0 {
 		return http.StatusInternalServerError, fmt.Errorf("could not prepare share response")
 	}
-	recordShareMutation(r, d, activitydb.EventShareCreate, s.Hash, s.SourceName, s.Path)
+	recordShareMutation(r, d, activitydb.EventShareCreate, s.Hash, s.SourceName, s.Path, nil)
 	return renderJSON(w, r, prepared[0])
 }
 
@@ -533,7 +553,7 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *reque
 		ShareURL:    share.URLFromRequest(r, secureHash, false, snap.Token),
 	}
 
-	recordShareMutation(r, d, activitydb.EventShareCreate, secureHash, snap.SourceName, snap.Path)
+	recordShareMutation(r, d, activitydb.EventShareCreate, secureHash, snap.SourceName, snap.Path, nil)
 	return renderJSON(w, r, response)
 }
 
@@ -588,6 +608,30 @@ func getSharePasswordHash(plaintextPassword string) (data []byte, statuscode int
 	}
 
 	return hash, 0, nil
+}
+
+// sharePasswordFromRequest hashes a password for new shares. Nil or empty means no password.
+func sharePasswordFromRequest(password *string) ([]byte, int, error) {
+	if password == nil || *password == "" {
+		return nil, 0, nil
+	}
+	return getSharePasswordHash(*password)
+}
+
+// applySharePasswordUpdate sets or preserves password credentials on share update.
+// Nil password omits the field (keep existing); empty string clears; non-empty replaces.
+func applySharePasswordUpdate(link *share.Share, password *string, hashedPassword, token string) error {
+	if password == nil {
+		return nil
+	}
+	if *password == "" {
+		link.PasswordHash = ""
+		link.Token = ""
+		return nil
+	}
+	link.PasswordHash = hashedPassword
+	link.Token = token
+	return nil
 }
 
 func generateShortUUID() (string, error) {

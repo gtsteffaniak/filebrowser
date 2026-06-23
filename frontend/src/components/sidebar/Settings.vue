@@ -12,7 +12,7 @@
     }">
     <span v-if="shouldShow(setting)" class="settings-item-content">
       <span class="material-symbols-outlined settings-icon">{{ setting.icon }}</span>
-      {{ $t(setting.label) }}
+      {{ settingLabel(setting) }}
     </span>
   </div>
 </template>
@@ -51,6 +51,18 @@ export default {
         void router.push({ path: "/settings", hash: `#${view}` }, () => {});
       } else {
         mutations.setActiveSettingsView(view);
+      }
+    },
+    settingLabel(setting) {
+      switch (setting.id) {
+        case "profile":
+          return `${this.$t("general.profile")} ${this.$t("general.settings")}`;
+        case "shares":
+          return `${this.$t("general.share")} ${this.$t("general.settings")}`;
+        case "users":
+          return `${this.$t("general.user")} ${this.$t("general.management")}`;
+        default:
+          return this.$t(setting.label);
       }
     },
   },

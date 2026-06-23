@@ -2,6 +2,7 @@ package http
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	activitydb "github.com/gtsteffaniak/filebrowser/backend/database/activity"
@@ -51,8 +52,28 @@ func finalizeActivityEntry(r *http.Request, d *requestContext, entry activitydb.
 	if entry.Status == 0 {
 		entry.Status = http.StatusOK
 	}
+	applyActivityAuthContext(d, &entry)
 	entry.Success = entry.Status >= 200 && entry.Status < 400
 	state.RecordActivity(entry)
+}
+
+func applyActivityAuthContext(d *requestContext, entry *activitydb.Entry) {
+	if d == nil || d.token == "" {
+		return
+	}
+	if d.user != nil {
+		if name, ok := state.TokenNameForRawToken(d.user, d.token); ok {
+			entry.Details.TokenName = name
+			if strings.HasPrefix(name, "WEB_TOKEN") {
+				entry.Details.AuthMethod = "webToken"
+			} else {
+				entry.Details.AuthMethod = "apiKey"
+			}
+			return
+		}
+	}
+	// Ephemeral browser session JWT (login/renew); not persisted in user.Tokens.
+	entry.Details.AuthMethod = "webToken"
 }
 
 func recordUserActivity(r *http.Request, d *requestContext, entry activitydb.Entry) {
@@ -112,17 +133,24 @@ func recordPatchItemActivity(r *http.Request, d *requestContext, action string, 
 	if !ok {
 		return
 	}
+	if status == 0 {
+		status = http.StatusOK
+	}
+	details := activitydb.Details{
+		Source:     item.FromSource,
+		Path:       item.FromPath,
+		TargetPath: item.ToPath,
+	}
+	if status >= 400 && item.Message != "" {
+		details.Error = item.Message
+	}
 	entry := activitydb.Entry{
 		EventType:  eventType,
 		Source:     item.FromSource,
 		Path:       item.FromPath,
 		TargetPath: item.ToPath,
 		Status:     status,
-		Details: activitydb.Details{
-			Source:     item.FromSource,
-			Path:       item.FromPath,
-			TargetPath: item.ToPath,
-		},
+		Details:    details,
 	}
 	if d.share.Hash != "" {
 		recordShareOwnerActivity(r, d, entry)
@@ -170,32 +198,61 @@ func recordBulkDeleteActivity(r *http.Request, d *requestContext, succeeded []Bu
 	recordUserActivity(r, d, entry)
 }
 
-func recordUploadActivity(r *http.Request, d *requestContext, source, path string, isDir bool) {
+func recordUploadActivity(r *http.Request, d *requestContext, source, path string, isDir bool, status int) {
+	if status == 0 {
+		status = http.StatusOK
+	}
 	pathLabel := path
 	if isDir {
 		pathLabel = path + "/"
+	}
+	details := activitydb.Details{
+		Source: source,
+		Path:   pathLabel,
+	}
+	if status >= 400 {
+		details.Error = http.StatusText(status)
 	}
 	recordUserActivity(r, d, activitydb.Entry{
 		EventType: activitydb.EventUpload,
 		Source:    source,
 		Path:      pathLabel,
-		Details: activitydb.Details{
-			Source: source,
-			Path:   pathLabel,
-		},
+		Status:    status,
+		Details:   details,
 	})
 }
 
-func recordShareMutation(r *http.Request, d *requestContext, eventType activitydb.EventType, hash, sourceName, path string) {
+func patchFailureHTTPStatus(message string) int {
+	switch {
+	case strings.Contains(message, "access denied"),
+		strings.Contains(message, "not allowed"),
+		strings.Contains(message, "read-only"):
+		return http.StatusForbidden
+	case strings.Contains(message, "does not exist"),
+		strings.Contains(message, "not found"),
+		strings.Contains(message, "not available"):
+		return http.StatusNotFound
+	case strings.Contains(message, "unsupported action"),
+		strings.Contains(message, "invalid"),
+		strings.Contains(message, "required"):
+		return http.StatusBadRequest
+	default:
+		return http.StatusBadRequest
+	}
+}
+
+func recordShareMutation(r *http.Request, d *requestContext, eventType activitydb.EventType, hash, sourceName, path string, changes []activitydb.FieldChange) {
+	details := activitydb.Details{
+		Source:    sourceName,
+		Path:      path,
+		ShareHash: hash,
+		Changes:   changes,
+	}
 	recordUserActivity(r, d, activitydb.Entry{
 		EventType: eventType,
 		Source:    sourceName,
 		Path:      path,
-		Details: activitydb.Details{
-			Source:    sourceName,
-			Path:      path,
-			ShareHash: hash,
-		},
+		Details:   details,
 	})
 }
 
@@ -242,24 +299,28 @@ func scopesToActivityDetails(target *users.User) []activitydb.ScopeDetail {
 	return out
 }
 
-func recordUserMutation(r *http.Request, d *requestContext, eventType activitydb.EventType, target *users.User) {
+func recordUserMutation(r *http.Request, d *requestContext, eventType activitydb.EventType, target *users.User, changes []activitydb.FieldChange) {
 	if d == nil || d.user == nil || target == nil {
 		return
 	}
+	details := activitydb.Details{
+		TargetUsername: target.Username,
+		Changes:        changes,
+	}
+	if eventType == activitydb.EventUserCreate {
+		details.Scopes = scopesToActivityDetails(target)
+	}
 	recordUserActivity(r, d, activitydb.Entry{
 		EventType: eventType,
-		Details: activitydb.Details{
-			TargetUsername: target.Username,
-			Scopes:         scopesToActivityDetails(target),
-		},
+		Details:   details,
 	})
 }
 
-func recordTokenMutation(r *http.Request, d *requestContext, eventType activitydb.EventType, tokenName string) {
+func recordTokenMutation(r *http.Request, d *requestContext, eventType activitydb.EventType, affectedTokenName string) {
 	recordUserActivity(r, d, activitydb.Entry{
 		EventType: eventType,
 		Details: activitydb.Details{
-			TokenName: tokenName,
+			AffectedTokenName: affectedTokenName,
 		},
 	})
 }

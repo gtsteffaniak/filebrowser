@@ -147,7 +147,7 @@ func userDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	if err != nil {
 		return errToStatus(err), err
 	}
-	recordUserMutation(r, d, activitydb.EventUserDelete, &uVal)
+	recordUserMutation(r, d, activitydb.EventUserDelete, &uVal, nil)
 	return http.StatusOK, nil
 }
 
@@ -203,7 +203,7 @@ func usersPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusInternalServerError, err
 	}
 
-	recordUserMutation(r, d, activitydb.EventUserCreate, &req.User)
+	recordUserMutation(r, d, activitydb.EventUserCreate, &req.User, nil)
 	w.Header().Set("Location", "/settings/users/"+url.PathEscape(req.User.Username))
 	return http.StatusCreated, nil
 }
@@ -355,18 +355,24 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 
 	// Revoke all API keys if API permission was removed
 	if slices.Contains(req.Which, "Permissions") && oldUser.Permissions.Api && !req.User.Permissions.Api {
-		for _, tokenInfo := range oldUser.Tokens {
+		users.EachNamedToken(oldUser.Tokens, func(_ string, tokenInfo users.AuthToken) {
 			if err := auth.RevokeApiToken(accessStore, tokenInfo.Token); err != nil {
 				logger.Errorf("Failed to revoke API key: %v", err)
 			}
-			// Also remove from HashedTokens
 			if err := accessStore.RemoveApiToken(tokenInfo.Token); err != nil {
 				logger.Errorf("Failed to remove api token: %v", err)
 			}
-		}
+		})
 	}
 
-	recordUserMutation(r, d, activitydb.EventUserUpdate, &req.User)
+	updatedUser, getErr := state.GetUserByID(req.User.ID)
+	if getErr != nil {
+		return http.StatusInternalServerError, getErr
+	}
+	changes := userUpdateChanges(oldUser, &updatedUser, req.Which, req.User.Password != "")
+	if len(changes) > 0 {
+		recordUserMutation(r, d, activitydb.EventUserUpdate, &updatedUser, changes)
+	}
 	return http.StatusNoContent, nil
 }
 

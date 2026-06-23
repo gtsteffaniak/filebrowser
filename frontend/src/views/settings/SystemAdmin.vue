@@ -42,7 +42,6 @@
 <script>
 import { notify } from "@/notify";
 import { state, mutations } from "@/store";
-import { usersApi } from "@/api";
 import * as settingsApi from "@/api/settings";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import Editor from "@/views/files/Editor.vue";
@@ -81,11 +80,7 @@ export default {
         event.preventDefault();
       }
       try {
-        const data = this.localuser;
-        void mutations.updateCurrentUser(data);
-        await usersApi.update(data, [
-          "disableUpdateNotifications",
-        ]);
+        void mutations.updateCurrentUser(this.localuser);
         notify.showSuccessToast(this.$t("settings.settingsUpdated"));
       } catch (e) {
         console.error(e);

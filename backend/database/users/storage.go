@@ -148,8 +148,9 @@ func (s *Storage) AddApiToken(userID uint64, name string, tokenString string, me
 	if user.Tokens == nil {
 		user.Tokens = make(map[string]AuthToken)
 	}
+	metadata.Name = name
 	metadata.Token = tokenString
-	user.Tokens[name] = metadata
+	StoreToken(user.Tokens, metadata)
 	err = s.Update(user, true, "Tokens")
 	if err != nil {
 		return err
@@ -167,7 +168,7 @@ func (s *Storage) DeleteApiToken(userID uint64, name string) error {
 	if user.Tokens == nil {
 		user.Tokens = make(map[string]AuthToken)
 	}
-	delete(user.Tokens, name)
+	RemoveTokenByName(user.Tokens, name)
 	err = s.Update(user, true, "Tokens")
 	if err != nil {
 		return err

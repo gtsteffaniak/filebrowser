@@ -11,24 +11,33 @@
 
       <div v-if="detailRows.length > 0" class="info-section">
         <h3 class="section-title">{{ $t("general.details") }}</h3>
-        <div v-for="item in detailRows" :key="item.id" class="info-item">
-          <strong>{{ item.label }}</strong>
-          <span class="break-word detail-value">{{ item.value }}</span>
-        </div>
+        <SettingsTable
+          class="activity-details-table"
+          :columns="detailColumns"
+          :items="detailRows"
+          item-key="id"
+          :aria-label="$t('general.details')"
+        />
       </div>
-
-      <p v-else-if="!admin" class="details-restricted-msg">{{ $t("general.unavailable") }}</p>
     </div>
   </div>
 </template>
 
 <script>
-import { getters } from "@/store";
+import SettingsTable from "@/components/settings/Table.vue";
 import { formatTimestamp } from "@/utils/moment";
-import { buildActivityDetailRows, activityEventLabel } from "@/utils/activityDetails";
+import {
+  buildActivityDetailRows,
+  activityEventLabel,
+  activityRowPath,
+  activityRowSource,
+} from "@/utils/activityDetails";
 
 export default {
   name: "ActivityEventDetails",
+  components: {
+    SettingsTable,
+  },
   props: {
     row: {
       type: Object,
@@ -36,23 +45,26 @@ export default {
     },
   },
   computed: {
-    admin() {
-      return getters.isAdmin();
-    },
     eventLabel() {
       return activityEventLabel(this.row.eventType, this.$t);
+    },
+    detailColumns() {
+      return [
+        { key: "label", label: this.$t("general.name"), sortable: false, align: "left" },
+        { key: "value", label: this.$t("general.value"), sortable: false, align: "left" },
+      ];
     },
     summaryRows() {
       const rows = [
         {
           key: "time",
-          label: this.$t("general.time"),
+          label: this.$t("time.time"),
           value: formatTimestamp(this.row.createdAt * 1000),
         },
         {
           key: "username",
           label: this.$t("general.username"),
-          value: this.row.username || this.$t("general.unavailable"),
+          value: this.row.username || "—",
         },
         {
           key: "eventType",
@@ -60,6 +72,22 @@ export default {
           value: this.eventLabel,
         },
       ];
+      const source = activityRowSource(this.row);
+      if (source) {
+        rows.push({
+          key: "source",
+          label: this.$t("general.source"),
+          value: source,
+        });
+      }
+      const path = activityRowPath(this.row);
+      if (path) {
+        rows.push({
+          key: "path",
+          label: this.$t("general.path"),
+          value: path,
+        });
+      }
       if (this.row.ipAddress) {
         rows.push({
           key: "ipAddress",
@@ -77,9 +105,6 @@ export default {
       return rows;
     },
     detailRows() {
-      if (!this.admin) {
-        return [];
-      }
       return buildActivityDetailRows(this.row, this.$t);
     },
   },
@@ -146,10 +171,21 @@ export default {
   word-break: break-word;
 }
 
-.details-restricted-msg {
-  margin: 0;
+.activity-details-table :deep(thead th),
+.activity-details-table :deep(tbody td) {
+  padding: 0.5em;
+}
+
+.activity-details-table :deep(tbody td:first-child) {
+  font-weight: 500;
   color: var(--textSecondary);
-  font-size: 0.95rem;
+  white-space: nowrap;
+  vertical-align: top;
+}
+
+.activity-details-table :deep(tbody td:last-child) {
+  word-break: break-word;
+  white-space: pre-wrap;
 }
 
 @media (max-width: 768px) {

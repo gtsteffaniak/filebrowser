@@ -54,7 +54,7 @@ export function getStatusLabel(status, $t) {
     case "ready": return $t("index.ready");
     case "indexing": return $t("index.indexing");
     case "unavailable": return $t("index.unavailable");
-    case "error": return $t("index.error");
+    case "error": return $t("general.error");
     default: return $t("index.unknown");
   }
 }

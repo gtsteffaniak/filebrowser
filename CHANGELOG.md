@@ -4,11 +4,20 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v2.0.0
 
+A database migration is required to go from v1.x to this version. See docs.
+
  **New Features**:
  - New activity logs for user activity.
    - charts and historical data
    - activity tool to view data
    - reports
+
+ **Notes**:
+ - new dropdown styles
+ - user updates are more granular, don't include entire user payload.
+ - `user.id` has been moved to a backend property and all frontend apis now query users by username. Swagger has been updated.
+ - removed legacy and deprecated properties
+   -  
 
 ## v1.5.0
 

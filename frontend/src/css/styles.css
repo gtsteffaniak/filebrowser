@@ -90,7 +90,7 @@
 }
 
 .action i {
-    padding: 0.4em;
+    padding: 0.5em;
     transition: 0.1s ease-in-out all;
     border-radius: 50%;
 }
@@ -254,7 +254,7 @@
 }
 
 #previewer>button>i {
-    padding: 0.4em;
+    padding: 0.5em;
 }
 
 #previewer>button:last-of-type {
@@ -448,4 +448,8 @@ button:hover,
     100% {
         transform: rotate(360deg);
     }
+}
+
+a.activity-viewer-link {
+    margin-bottom: 0.5em;
 }
