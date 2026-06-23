@@ -212,7 +212,7 @@
           <template #cell-username="{ row }">
             <span
               v-if="!isBlankTableValue(row.username)"
-              class="table-cell-text table-cell-text--clamp break-word"
+              class="table-cell-text table-cell-text--ellipsis table-cell-text--username"
               :title="row.username"
             >{{ row.username }}</span>
             <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
@@ -220,7 +220,7 @@
           <template #cell-source="{ row }">
             <span
               v-if="!isBlankTableValue(row.source)"
-              class="table-cell-text table-cell-text--clamp break-word"
+              class="table-cell-text table-cell-text--ellipsis table-cell-text--source"
               :title="row.source"
             >{{ row.source }}</span>
             <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
@@ -228,7 +228,7 @@
           <template #cell-path="{ row }">
             <span
               v-if="!isBlankTableValue(row.path)"
-              class="table-cell-text table-cell-text--clamp break-word"
+              class="table-cell-text table-cell-text--ellipsis table-cell-text--path"
               :title="row.path"
             >{{ row.path }}</span>
             <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
@@ -236,7 +236,7 @@
           <template #cell-shareHash="{ row }">
             <span
               v-if="!isBlankTableValue(row.shareHash)"
-              class="table-cell-text table-cell-text--clamp break-word"
+              class="table-cell-text table-cell-text--ellipsis table-cell-text--shareHash"
               :title="row.shareHash"
             >{{ row.shareHash }}</span>
             <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
@@ -244,7 +244,7 @@
           <template #cell-tokenDisplay="{ row }">
             <span
               v-if="!isBlankTableValue(row.tokenDisplay)"
-              class="table-cell-text table-cell-text--clamp break-word"
+              class="table-cell-text table-cell-text--ellipsis table-cell-text--tokenDisplay"
               :title="row.tokenDisplay"
             >{{ row.tokenDisplay }}</span>
             <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
@@ -252,7 +252,7 @@
           <template #cell-ipAddress="{ row }">
             <span
               v-if="!isBlankTableValue(row.ipAddress)"
-              class="table-cell-text table-cell-text--clamp break-word"
+              class="table-cell-text table-cell-text--ellipsis table-cell-text--ipAddress"
               :title="row.ipAddress"
             >{{ row.ipAddress }}</span>
             <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
@@ -2228,21 +2228,39 @@ export default {
   overflow-x: auto;
 }
 
+.results-table :deep(.settings-table) {
+  table-layout: fixed;
+}
+
 .table-cell-text {
   font-size: 0.9em;
   color: var(--textPrimary);
 }
 
-.table-cell-text--clamp {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
+.table-cell-text--ellipsis {
+  display: block;
+  min-width: 0;
   overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.break-word {
-  word-break: break-word;
+.table-cell-text--username,
+.table-cell-text--source {
+  max-width: 10rem;
+}
+
+.table-cell-text--path {
+  max-width: 22rem;
+}
+
+.table-cell-text--shareHash,
+.table-cell-text--tokenDisplay {
+  max-width: 9rem;
+}
+
+.table-cell-text--ipAddress {
+  max-width: 8rem;
 }
 
 .results-stats {
