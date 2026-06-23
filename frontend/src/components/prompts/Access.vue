@@ -279,6 +279,7 @@ export default {
         // Emit event to refresh access rules list
         eventBus.emit('accessRulesChanged');
       } catch (e) {
+        notify.showError(e);
         console.error(e);
       }
     },
@@ -304,6 +305,7 @@ export default {
         // Emit event to refresh access rules list
         eventBus.emit('accessRulesChanged');
       } catch (e) {
+        notify.showError(e);
         console.error(e);
       }
     },

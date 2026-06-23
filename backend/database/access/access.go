@@ -205,7 +205,7 @@ func (s *Storage) getOrCreateRuleNL(sourcePath string, indexPath utils.IndexPath
 }
 
 // DenyUser adds a user to the deny list for a given source and index path.
-// Rules are keyed by login name (username), not user id; names are not resolved against user storage.
+// Rules are keyed by login name (username), not user id.
 func (s *Storage) DenyUser(sourcePath string, indexPath utils.IndexPath, username string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
@@ -220,7 +220,7 @@ func (s *Storage) DenyUser(sourcePath string, indexPath utils.IndexPath, usernam
 }
 
 // AllowUser adds a user to the allow list for a given source and index path.
-// Rules are keyed by login name (username), not user id; names are not resolved against user storage.
+// Rules are keyed by login name (username), not user id.
 func (s *Storage) AllowUser(sourcePath string, indexPath utils.IndexPath, username string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()

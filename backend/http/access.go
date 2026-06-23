@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
+	"github.com/gtsteffaniak/filebrowser/backend/state"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -111,6 +113,14 @@ func accessPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	parsedPath, status, err := parseAccessQueryPathOrBadRequest(indexPath)
 	if err != nil {
 		return status, err
+	}
+	if body.RuleCategory == "user" {
+		if _, err = state.GetUserByUsername(body.Value); err != nil {
+			if err == errors.ErrNotExist {
+				return http.StatusBadRequest, fmt.Errorf("user not found: %s", body.Value)
+			}
+			return http.StatusInternalServerError, fmt.Errorf("failed to look up user: %w", err)
+		}
 	}
 	if body.Allow {
 		switch body.RuleCategory {

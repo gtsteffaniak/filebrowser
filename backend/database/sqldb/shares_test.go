@@ -27,10 +27,10 @@ func TestSaveSharePreservesShareLimits(t *testing.T) {
 	original := &share.Share{
 		ShareSettings: share.ShareSettings{
 			ShareLimits: share.ShareLimits{
-				SourceName:       "default",
-				AllowedUsernames: []string{"alice", "bob"},
-				DownloadsLimit:   5,
-				MaxBandwidth:     100,
+				SourceName:           "default",
+				AllowedUsernames:     []string{"alice", "bob"},
+				DownloadsLimit:       5,
+				MaxBandwidth:         100,
 				PerUserDownloadLimit: true,
 			},
 		},
@@ -44,7 +44,7 @@ func TestSaveSharePreservesShareLimits(t *testing.T) {
 		Version:    1,
 	}
 
-	if err := store.SaveShare(original); err != nil {
+	if err = store.SaveShare(original); err != nil {
 		t.Fatalf("SaveShare: %v", err)
 	}
 
