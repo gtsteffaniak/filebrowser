@@ -10,26 +10,15 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 )
 
-type shareSettingsPayload struct {
-	share.FrontendShareInfo
-	PinnedItems share.PinnedItems `json:"pinnedItems,omitempty"`
-}
-
 func marshalShareSettings(link *share.Share) ([]byte, error) {
-	return json.Marshal(shareSettingsPayload{
-		FrontendShareInfo: link.FrontendShareInfo,
-		PinnedItems:       link.PinnedItems,
-	})
+	return json.Marshal(link.ShareSettings)
 }
 
 func unmarshalShareSettings(data []byte, link *share.Share) error {
-	var payload shareSettingsPayload
-	if err := json.Unmarshal(data, &payload); err != nil {
-		return err
+	if len(data) == 0 {
+		return nil
 	}
-	link.FrontendShareInfo = payload.FrontendShareInfo
-	link.PinnedItems = payload.PinnedItems
-	return nil
+	return json.Unmarshal(data, &link.ShareSettings)
 }
 
 func shareUserIDDB(id uint64) string {

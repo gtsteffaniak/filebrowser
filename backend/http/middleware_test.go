@@ -195,24 +195,22 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 		{
 			name: "Public share, no auth required",
 			share: &share.Share{
-				ShareFrontend: share.ShareFrontend{
-					SourceName: "srv",
-					Hash:       "public_hash",
-					Path:       "/",
+				ShareSettings: share.ShareSettings{
+					ShareLimits: share.ShareLimits{SourceName: "srv"},
 				},
-				SourcePath: "/srv",
-				UserID:     1,
+				ShareColumns: share.ShareColumns{Hash: "public_hash", Path: "/"},
+				SourcePath:   "/srv",
+				UserID:       1,
 			},
 			expectedStatusCode: http.StatusOK, // zero means 200 on helpers
 		},
 		{
 			name: "Private share, valid password when token exists",
 			share: &share.Share{
-				ShareFrontend: share.ShareFrontend{
-					SourceName: "srv",
-					Hash:       "pw_and_token_hash",
-					Path:       "/",
+				ShareSettings: share.ShareSettings{
+					ShareLimits: share.ShareLimits{SourceName: "srv"},
 				},
+				ShareColumns: share.ShareColumns{Hash: "pw_and_token_hash", Path: "/"},
 				SourcePath:   "/srv",
 				UserID:       1,
 				PasswordHash: passwordBcrypt,
@@ -226,11 +224,10 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 		{
 			name: "Private share, no auth provided",
 			share: &share.Share{
-				ShareFrontend: share.ShareFrontend{
-					SourceName: "srv",
-					Hash:       "private_hash",
-					Path:       "/",
+				ShareSettings: share.ShareSettings{
+					ShareLimits: share.ShareLimits{SourceName: "srv"},
 				},
+				ShareColumns: share.ShareColumns{Hash: "private_hash", Path: "/"},
 				SourcePath:   "/srv",
 				UserID:       1,
 				PasswordHash: passwordBcrypt,
@@ -241,11 +238,10 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 		{
 			name: "Private share, valid token",
 			share: &share.Share{
-				ShareFrontend: share.ShareFrontend{
-					SourceName: "srv",
-					Hash:       "token_hash",
-					Path:       "/",
+				ShareSettings: share.ShareSettings{
+					ShareLimits: share.ShareLimits{SourceName: "srv"},
 				},
+				ShareColumns: share.ShareColumns{Hash: "token_hash", Path: "/"},
 				SourcePath:   "/srv",
 				UserID:       1,
 				PasswordHash: passwordBcrypt,
@@ -257,11 +253,10 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 		{
 			name: "Private share, invalid password",
 			share: &share.Share{
-				ShareFrontend: share.ShareFrontend{
-					SourceName: "srv",
-					Hash:       "pw_hash",
-					Path:       "/",
+				ShareSettings: share.ShareSettings{
+					ShareLimits: share.ShareLimits{SourceName: "srv"},
 				},
+				ShareColumns: share.ShareColumns{Hash: "pw_hash", Path: "/"},
 				SourcePath:   "/srv",
 				UserID:       1,
 				PasswordHash: passwordBcrypt,

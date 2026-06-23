@@ -15,8 +15,8 @@
       v-if="shareHash"
       type="button"
       class="button button--flat share-clear"
-      :aria-label="$t('tools.activityViewer.allShares')"
-      :title="$t('tools.activityViewer.allShares')"
+      :aria-label="allSharesLabel"
+      :title="allSharesLabel"
       @click="clearSelection"
     >
       <i class="material-symbols">close</i>
@@ -61,6 +61,9 @@ export default {
   },
 
   computed: {
+    allSharesLabel() {
+      return this.$t("general.allShares");
+    },
     resolvedAriaLabel() {
       return this.ariaLabel || this.buttonLabel;
     },
@@ -75,7 +78,7 @@ export default {
       if (placeholder !== undefined && placeholder !== null && placeholder !== "") {
         return placeholder;
       }
-      return this.$t("tools.activityViewer.chooseShare");
+      return this.$t("sidebar.chooseShare");
     },
   },
 
@@ -143,7 +146,7 @@ export default {
         props: {
           currentHash: this.shareHash,
           selectionContextId: this.pendingContextId,
-          title: this.$t("tools.activityViewer.chooseShare"),
+          title: this.$t("sidebar.chooseShare"),
         },
       });
     },

@@ -214,7 +214,6 @@ func migrateShares(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 			}
 		}
 		// Do not persist API-only fields; PrepForFrontend fills these on read.
-		link.Username = ""
 		link.ShareURL = ""
 		link.DownloadURL = ""
 		link.FrontendShareInfo.SourceURL = ""

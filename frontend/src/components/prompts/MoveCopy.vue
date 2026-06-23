@@ -47,7 +47,7 @@
       <span>{{ $t("files.newFolder") }}</span>
     </button>
     <input v-if="showNewDirInput" ref="newDirInput" class="input new-dir-input" :class="{ 'form-invalid': !isDirNameValid }"
-    v-model.trim="newDirName" :placeholder="$t('prompts.newDirMessage')" @keydown.enter="handleEnter" />
+    v-model.trim="newDirName" :placeholder="$t('files.newFolderMessage')" @keydown.enter="handleEnter" />
     <button
       type="button"
       v-else :disabled="destContainsSrc"

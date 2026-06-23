@@ -309,7 +309,7 @@
     "error": "Eitthvað fór úrskeiðis",
     "completed": "Lokið",
     "fileInfo": "Skráaupplýsingar",
-    "selected": "valið",
+    "selected": "{prefix}valið{suffix}",
     "filesSelected": "skrár valdar",
     "lastModified": "Síðast breytt{suffix}",
     "move": "Færa",

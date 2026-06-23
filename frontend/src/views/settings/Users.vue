@@ -4,13 +4,14 @@
     type="button"
     @click="openPrompt(null)"
     class="button floating-action-button"
-    :aria-label="$t('settings.newUser')"
+    :aria-label="newUserLabel()"
   >
     {{ $t("general.new") }}
   </button>
   <errors v-if="error" :errorCode="error.status" />
   <div class="card-title">
     <h2>{{ $t("general.users") }}</h2>
+    <a class="button button--flat button--blue activity-viewer-link" :href="activityViewerHref">{{ $t("tools.activityViewer.viewActivity") }}</a>
   </div>
 
   <div class="card-content full">
@@ -51,6 +52,7 @@ import { state, mutations } from "@/store";
 import { usersApi } from "@/api";
 import Errors from "@/views/Errors.vue";
 import SettingsTable from "@/components/settings/Table.vue";
+import { activityViewerPresets } from "@/utils/activityViewerLink";
 import { eventBus } from "@/store/eventBus";
 
 export default {
@@ -113,8 +115,14 @@ export default {
         },
       ];
     },
+    activityViewerHref() {
+      return activityViewerPresets.users();
+    },
   },
   methods: {
+    newUserLabel() {
+      return this.$t("general.newUser");
+    },
     async reloadUsers() {
       this.loading = true;
       try {

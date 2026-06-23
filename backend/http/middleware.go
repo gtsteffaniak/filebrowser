@@ -28,16 +28,19 @@ import (
 )
 
 type requestContext struct {
-	user         *users.User
-	shareUser    *users.User
-	fileInfo     iteminfo.ExtendedFileInfo
-	token        string
-	share        share.Share
-	shareValid   bool
-	ctx          context.Context
-	MaxBandwidth int
-	Data         interface{}
-	IndexPath    string
+	user                   *users.User
+	shareUser              *users.User
+	fileInfo               iteminfo.ExtendedFileInfo
+	token                  string
+	share                  share.Share
+	shareValid             bool
+	ctx                    context.Context
+	MaxBandwidth           int
+	Data                   interface{}
+	IndexPath              string
+	handlerFailureRecorded bool
+	activityFailureSource  string
+	activityFailurePath    string
 }
 
 // recordShareDownload persists download counters; shareStore reads go through state and see updates immediately.
@@ -137,7 +140,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		if (r.Method == "POST" && strings.Contains(r.URL.Path, "/resources")) ||
 			(r.Method == "GET" && strings.Contains(r.URL.Path, "/resources/items")) ||
 			(r.Method == "GET" && strings.Contains(r.URL.Path, "/media/metadata")) {
-			return fn(w, r, data)
+			return invokeHandler(fn, w, r, data)
 		}
 		file, err := FileInfoFasterFunc(utils.FileOptions{
 			Path:                     pathWithoutUserScope,
@@ -173,7 +176,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		// Set the file info in the `data` object
 		data.fileInfo = *file
 		// Call the next handler with the data
-		return fn(w, r, data)
+		return invokeHandler(fn, w, r, data)
 	})
 }
 
@@ -184,7 +187,7 @@ func withAdminHelper(fn handleFunc) handleFunc {
 		if !data.user.Permissions.Admin {
 			return http.StatusForbidden, nil
 		}
-		return fn(w, r, data)
+		return invokeHandler(fn, w, r, data)
 	})
 }
 
@@ -293,7 +296,7 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 				data.share = snap
 				data.shareValid = true
 			} else {
-				data.share = share.Share{ShareFrontend: share.ShareFrontend{Hash: shareHash}}
+				data.share = share.Share{ShareColumns: share.ShareColumns{Hash: shareHash}}
 				data.shareValid = false
 			}
 		}
@@ -306,7 +309,7 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 					data.user.CustomTheme = data.share.ShareTheme
 				}
 			}
-			return fn(w, r, data)
+			return invokeHandler(fn, w, r, data)
 		}
 
 		// Authentication failed, but try to extract user info from expired tokens
@@ -319,7 +322,7 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 					data.user.CustomTheme = data.share.ShareTheme
 				}
 				setUserInResponseWriter(w, data.user)
-				return fn(w, r, data)
+				return invokeHandler(fn, w, r, data)
 			}
 
 			// No valid token or user found, fall back to anonymous
@@ -333,7 +336,7 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 				data.user.CustomTheme = data.share.ShareTheme
 			}
 			// Call the handler function without user context
-			return fn(w, r, data)
+			return invokeHandler(fn, w, r, data)
 		}
 		return status, fmt.Errorf("could not authenticate request")
 	}
@@ -343,7 +346,7 @@ func withoutUserHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
 		// This middleware is used when no user authentication is required
 		// Call the actual handler function with the updated context
-		return fn(w, r, data)
+		return invokeHandler(fn, w, r, data)
 	}
 }
 
@@ -368,7 +371,7 @@ func LoginHelper(disableOtp bool, fn handleFunc) handleFunc {
 					if err == nil && userValue.Permissions.Admin {
 						u := userValue
 						d.user = &u
-						return fn(w, r, d)
+						return invokeHandler(fn, w, r, d)
 					}
 				}
 			}
@@ -389,7 +392,7 @@ func LoginHelper(disableOtp bool, fn handleFunc) handleFunc {
 			if err == nil {
 				logger.Debugf("ldap auth successful, calling handler")
 				d.user = ldapUser
-				return fn(w, r, d)
+				return invokeHandler(fn, w, r, d)
 			}
 			logger.Debug("ldap auth failed, calling password auth", err)
 		}
@@ -403,7 +406,7 @@ func LoginHelper(disableOtp bool, fn handleFunc) handleFunc {
 				return 401, errors.ErrUnauthorized
 			}
 			d.user = user
-			return fn(w, r, d)
+			return invokeHandler(fn, w, r, d)
 		}
 		return withUserHelper(fn)(w, r, d)
 	}
@@ -428,7 +431,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 			if fn == nil {
 				return http.StatusOK, nil
 			}
-			return fn(w, r, data)
+			return invokeHandler(fn, w, r, data)
 		}
 
 		// Check for JWT external auth first (header or query param)
@@ -502,7 +505,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 		if fn == nil {
 			return http.StatusOK, nil
 		}
-		return fn(w, r, data)
+		return invokeHandler(fn, w, r, data)
 	}
 }
 
@@ -546,7 +549,7 @@ func getJwtUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn
 	if fn == nil {
 		return http.StatusOK, nil
 	}
-	return fn(w, r, data)
+	return invokeHandler(fn, w, r, data)
 }
 
 func getProxyUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn handleFunc, proxyUser string) (int, error) {
@@ -575,7 +578,7 @@ func getProxyUser(w http.ResponseWriter, r *http.Request, data *requestContext, 
 	if fn == nil {
 		return http.StatusOK, nil
 	}
-	return fn(w, r, data)
+	return invokeHandler(fn, w, r, data)
 }
 
 // Middleware to ensure the user is either the requested user or an admin
@@ -586,7 +589,7 @@ func withSelfOrAdminHelper(fn handleFunc) handleFunc {
 			return http.StatusForbidden, nil
 		}
 		// Call the actual handler function with the updated context
-		return fn(w, r, data)
+		return invokeHandler(fn, w, r, data)
 	})
 }
 
@@ -652,7 +655,7 @@ func withPermShareHelper(fn handleFunc) handleFunc {
 		if !d.user.Permissions.Share {
 			return http.StatusForbidden, nil
 		}
-		return fn(w, r, d)
+		return invokeHandler(fn, w, r, d)
 	})
 }
 
@@ -733,7 +736,7 @@ func withTimeoutHelper(timeout time.Duration, fn handleFunc) handleFunc {
 		r = r.WithContext(ctx)
 		data.ctx = ctx
 		// Call the handler and check for timeout
-		status, err := fn(w, r, data)
+		status, err := invokeHandler(fn, w, r, data)
 
 		// Check if the context was cancelled due to timeout
 		if ctx.Err() == context.DeadlineExceeded {

@@ -18,6 +18,8 @@ definitions:
     - userUpdate
     - userDelete
     - accessUpdate
+    - accessCreate
+    - accessDelete
     - login
     - logout
     - signup
@@ -45,6 +47,8 @@ definitions:
     - EventUserUpdate
     - EventUserDelete
     - EventAccessUpdate
+    - EventAccessCreate
+    - EventAccessDelete
     - EventLogin
     - EventLogout
     - EventSignup
@@ -53,12 +57,27 @@ definitions:
     - EventTokenCreate
     - EventTokenDelete
     - EventDuplicateFinder
+  activity.FieldChange:
+    properties:
+      field:
+        type: string
+      from:
+        type: string
+      to:
+        type: string
+    type: object
   activity.FrontendDetails:
     properties:
+      affectedTokenName:
+        type: string
       bytes:
         type: integer
       cached:
         type: boolean
+      changes:
+        items:
+          $ref: '#/definitions/activity.FieldChange'
+        type: array
       durationMs:
         type: integer
       error:
@@ -66,6 +85,8 @@ definitions:
       fileCount:
         type: integer
       loginMethod:
+        type: string
+      method:
         type: string
       passkeyName:
         type: string
@@ -75,25 +96,29 @@ definitions:
         items:
           type: string
         type: array
+      requestPath:
+        type: string
       scopes:
         items:
           $ref: '#/definitions/activity.ScopeDetail'
         type: array
-      shareHash:
-        type: string
       source:
         type: string
       targetPath:
         type: string
       targetUsername:
         type: string
-      tokenName:
-        type: string
       truncated:
         type: boolean
+      updatedFields:
+        items:
+          type: string
+        type: array
     type: object
   activity.FrontendEntry:
     properties:
+      authMethod:
+        type: string
       createdAt:
         type: integer
       details:
@@ -104,8 +129,18 @@ definitions:
         type: integer
       ipAddress:
         type: string
+      path:
+        type: string
+      shareHash:
+        type: string
+      source:
+        type: string
       status:
         type: integer
+      targetPath:
+        type: string
+      tokenName:
+        type: string
       username:
         type: string
     type: object
@@ -1787,8 +1822,6 @@ definitions:
         type: string
       expire:
         type: integer
-      expires:
-        type: string
       extractEmbeddedSubtitles:
         type: boolean
       favicon:
@@ -1812,8 +1845,6 @@ definitions:
         type: string
       path:
         type: string
-      pathExists:
-        type: boolean
       perUserDownloadLimit:
         type: boolean
       pinnedItems:
@@ -1845,16 +1876,12 @@ definitions:
         type: string
       token:
         type: string
-      unit:
-        type: string
       userDownloads:
         additionalProperties:
           type: integer
         type: object
       userID:
         type: integer
-      username:
-        type: string
       version:
         type: integer
       viewMode:
@@ -2006,8 +2033,6 @@ definitions:
         type: boolean
       downloadURL:
         type: string
-      downloads:
-        type: integer
       downloadsLimit:
         type: integer
       enableOnlyOffice:
@@ -2015,8 +2040,6 @@ definitions:
       enforceDarkLightMode:
         description: '"dark" or "light"'
         type: string
-      expire:
-        type: integer
       expires:
         type: string
       extractEmbeddedSubtitles:
@@ -2042,8 +2065,6 @@ definitions:
         type: string
       path:
         type: string
-      pathExists:
-        type: boolean
       perUserDownloadLimit:
         type: boolean
       quickDownload:
@@ -2070,8 +2091,6 @@ definitions:
       title:
         type: string
       unit:
-        type: string
-      username:
         type: string
       viewMode:
         description: default view mode for anonymous users
@@ -4672,8 +4691,8 @@ paths:
       - Shares
   /api/tools/activity:
     get:
-      description: Returns individual activity log rows, newest first. Details are
-        included for admins only.
+      description: Returns individual activity log rows, newest first. Paths are scope-relative
+        for non-admins.
       parameters:
       - description: 'Start unix timestamp (default: 7 days ago)'
         in: query
@@ -4683,7 +4702,7 @@ paths:
         in: query
         name: to
         type: integer
-      - description: 'Event category: all, files, or shares (default: all)'
+      - description: 'Event category: all, files, access, or shares (default: all)'
         in: query
         name: scope
         type: string
@@ -4718,6 +4737,14 @@ paths:
       - description: 'Page size, max 500 (default: 100)'
         in: query
         name: limit
+        type: integer
+      - description: Minimum HTTP status code (100-599)
+        in: query
+        name: statusMin
+        type: integer
+      - description: Maximum HTTP status code (100-599)
+        in: query
+        name: statusMax
         type: integer
       produces:
       - application/json
@@ -4754,7 +4781,7 @@ paths:
         in: query
         name: to
         type: integer
-      - description: 'Event category: all, files, or shares (default: all)'
+      - description: 'Event category: all, files, access, or shares (default: all)'
         in: query
         name: scope
         type: string
@@ -4782,6 +4809,14 @@ paths:
         in: query
         name: shareHash
         type: string
+      - description: Minimum HTTP status code (100-599)
+        in: query
+        name: statusMin
+        type: integer
+      - description: Maximum HTTP status code (100-599)
+        in: query
+        name: statusMax
+        type: integer
       produces:
       - text/csv
       responses:
@@ -4817,7 +4852,7 @@ paths:
         in: query
         name: to
         type: integer
-      - description: 'Event category: all, files, or shares (default: all)'
+      - description: 'Event category: all, files, access, or shares (default: all)'
         in: query
         name: scope
         type: string
@@ -4849,10 +4884,19 @@ paths:
         in: query
         name: interval
         type: string
-      - description: 'Series dimension: eventType, user, or none (default: eventType)'
+      - description: 'Series dimension: eventType, user, outcome, or none (default:
+          eventType)'
         in: query
         name: splitBy
         type: string
+      - description: Minimum HTTP status code (100-599)
+        in: query
+        name: statusMin
+        type: integer
+      - description: Maximum HTTP status code (100-599)
+        in: query
+        name: statusMax
+        type: integer
       produces:
       - application/json
       responses:

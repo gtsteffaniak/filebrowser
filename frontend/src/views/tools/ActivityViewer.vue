@@ -1,103 +1,105 @@
 <template>
   <div class="activity-viewer">
     <div class="card activity-scope-card padding-normal">
-      <div class="universal-filters" :class="{ mobile: isMobile }">
-        <div class="filter-field">
-          <label class="filter-label" for="activity-scope">{{ $t("tools.activityViewer.activityScope") }}</label>
-          <select
-            id="activity-scope"
+      <div class="config-grid" :class="{ mobile: isMobile }">
+        <div class="config-field">
+          <h3>{{ $t("tools.activityViewer.activityScope") }}</h3>
+          <ExpandDropdown
+            input-id="activity-scope"
             v-model="activityScope"
-            class="input activity-scope-select border-radius"
-            @change="onScopeChange"
-          >
-            <option value="all">{{ $t("tools.activityViewer.scopeAll") }}</option>
-            <option value="files">{{ $t("tools.activityViewer.scopeFiles") }}</option>
-            <option value="shares">{{ $t("tools.activityViewer.scopeShares") }}</option>
-          </select>
+            :options="activityScopeOptions"
+            all-value="all"
+            @update:modelValue="onScopeChange"
+          />
         </div>
 
-        <div class="filter-field">
-          <label class="filter-label">{{ $t("tools.activityViewer.timeRange") }}</label>
-          <select v-model="timePreset" class="input" @change="onTimePresetChange">
-            <option value="1h">{{ $t("tools.activityViewer.last1h") }}</option>
-            <option value="24h">{{ $t("tools.activityViewer.last24h") }}</option>
-            <option value="7d">{{ $t("tools.activityViewer.last7d") }}</option>
-            <option value="30d">{{ $t("tools.activityViewer.last30d") }}</option>
-            <option value="custom">{{ $t("tools.activityViewer.customRange") }}</option>
-          </select>
+        <div class="config-field">
+          <h3>{{ $t("tools.activityViewer.timeRange") }}</h3>
+          <ExpandDropdown
+            v-model="timePreset"
+            :options="timePresetOptions"
+            @update:modelValue="onTimePresetChange"
+          />
         </div>
 
-        <div v-if="timePreset === 'custom'" class="filter-field filter-field-wide">
-          <label class="filter-label">{{ $t("tools.activityViewer.customRange") }}</label>
+        <div v-if="timePreset === 'custom'" class="config-field config-field-wide">
+          <h3>{{ $t("tools.activityViewer.customRange") }}</h3>
           <div class="custom-range">
             <input v-model="customFrom" type="datetime-local" class="input" />
             <input v-model="customTo" type="datetime-local" class="input" />
           </div>
         </div>
 
-        <div v-if="isAdmin" class="filter-field">
-          <label class="filter-label">{{ $t("general.user") }}</label>
-          <select v-model="selectedUsername" class="input">
-            <option value="">{{ $t("general.all", { suffix: " " }) }}{{ $t("general.users") }}</option>
-            <option :value="anonymousUsername">{{ $t("general.anonymous") }}</option>
-            <option v-for="u in users" :key="u.username" :value="u.username">
-              {{ u.username }}
-            </option>
-          </select>
+        <div v-if="showUserFilter" class="config-field">
+          <h3>{{ $t("general.user") }}</h3>
+          <ExpandDropdown
+            v-model="selectedUsername"
+            :options="usernameOptions"
+            :all-value="''"
+          />
         </div>
 
-        <div class="filter-field">
-          <label class="filter-label">{{ $t("tools.activityViewer.viewType") }}</label>
-          <select v-model="viewType" class="input">
-            <option value="chart">{{ $t("tools.activityViewer.chartView") }}</option>
-            <option value="line">{{ $t("tools.activityViewer.lineView") }}</option>
-            <option value="pie">{{ $t("tools.activityViewer.pieView") }}</option>
-            <option value="summary">{{ $t("tools.activityViewer.summaryView") }}</option>
-            <option value="table">{{ $t("tools.activityViewer.tableView") }}</option>
-          </select>
+        <div class="config-field">
+          <h3>{{ $t("general.status") }}</h3>
+          <ExpandDropdown
+            input-id="activity-status-outcome"
+            v-model="statusOutcome"
+            :options="statusOutcomeOptions"
+            all-value="all"
+          />
+        </div>
+
+        <div class="config-field">
+          <h3>{{ $t("tools.activityViewer.viewType") }}</h3>
+          <ExpandDropdown
+            v-model="viewType"
+            :options="viewTypeOptions"
+            default-value="table"
+          />
         </div>
       </div>
-      <p class="activity-scope-hint">{{ scopeHint }}</p>
     </div>
 
     <div class="card activity-viewer-config padding-normal">
       <div class="card-content config-grid" :class="{ mobile: isMobile }">
         <div v-if="showEventTypeFilter" class="config-field">
           <h3>{{ $t("tools.activityViewer.eventType") }}</h3>
-          <select v-model="selectedEventType" class="input">
-            <option value="">{{ $t("tools.activityViewer.allEvents") }}</option>
-            <option v-for="et in visibleEventTypes" :key="et" :value="et">
-              {{ eventTypeLabel(et) }}
-            </option>
-          </select>
+          <ExpandDropdown
+            v-model="selectedEventTypes"
+            :options="eventTypeOptions"
+            allow-multiple
+            allow-search
+            empty-means-all
+          />
         </div>
 
         <div v-if="showTimeSeriesOptions" class="config-field">
           <h3>{{ $t("tools.activityViewer.interval") }}</h3>
-          <select v-model="chartInterval" class="input">
-            <option value="minute">{{ $t("tools.activityViewer.byMinute") }}</option>
-            <option value="hour">{{ $t("tools.activityViewer.byHour") }}</option>
-            <option value="day">{{ $t("tools.activityViewer.byDay") }}</option>
-          </select>
+          <ExpandDropdown
+            v-model="chartInterval"
+            :options="chartIntervalOptions"
+            default-value="hour"
+          />
         </div>
 
         <div v-if="showChartOptions" class="config-field">
           <h3>{{ $t("tools.activityViewer.splitBy") }}</h3>
-          <select v-model="splitBy" class="input">
-            <option value="eventType">{{ $t("tools.activityViewer.eventType") }}</option>
-            <option value="user">{{ $t("general.user") }}</option>
-            <option v-if="showTimeSeriesOptions" value="none">{{ $t("tools.activityViewer.splitByTotal") }}</option>
-          </select>
+          <ExpandDropdown
+            v-model="splitBy"
+            :options="splitByOptions"
+            default-value="eventType"
+          />
         </div>
 
         <div v-if="showFileFilters" class="config-field config-field-wide path-filters">
           <h3>{{ $t("tools.activityViewer.pathFilter") }}</h3>
           <div class="config-field">
-            <label class="filter-label">{{ $t("tools.activityViewer.pathFilterMode") }}</label>
-            <select v-model="filePathFilterMode" class="input">
-              <option value="picker">{{ $t("general.browse") }}</option>
-              <option value="glob">{{ $t("tools.activityViewer.pathFilterPattern") }}</option>
-            </select>
+            <h3>{{ $t("tools.activityViewer.pathFilterMode") }}</h3>
+            <ExpandDropdown
+              v-model="filePathFilterMode"
+              :options="filePathFilterModeOptions"
+              default-value="picker"
+            />
           </div>
           <div v-if="filePathFilterMode === 'picker'" class="path-filter-picker">
             <PathPickerButton
@@ -112,15 +114,17 @@
           </div>
           <div v-else class="path-filter-glob">
             <div class="glob-fields">
-              <div class="glob-field">
-                <label class="filter-label">{{ $t("general.source") }}</label>
-                <select v-model="filterSource" class="input">
-                  <option value="">{{ $t("general.all", { suffix: " " }) }}{{ $t("general.sources") }}</option>
-                  <option v-for="name in sourceNames" :key="name" :value="name">{{ name }}</option>
-                </select>
+              <div class="config-field glob-field">
+                <h3>{{ $t("general.source") }}</h3>
+                <ExpandDropdown
+                  v-model="filterSource"
+                  :options="filterSourceOptions"
+                  :default-value="''"
+                  :default-placeholder-if-empty="$t('general.allSources')"
+                />
               </div>
-              <div class="glob-field glob-field-wide">
-                <label class="filter-label">{{ $t("tools.activityViewer.pathGlob") }}</label>
+              <div class="config-field glob-field glob-field-wide">
+                <h3>{{ $t("tools.activityViewer.pathGlob") }}</h3>
                 <input
                   v-model="filterPathGlob"
                   type="text"
@@ -137,8 +141,19 @@
           <SharePickerButton
             v-model:shareHash="filterShareHash"
             aria-label="activity-share-picker"
-            :placeholder="$t('tools.activityViewer.allShares')"
+            :placeholder="activityAllSharesLabel()"
             @select="resetPageAndLoad"
+          />
+        </div>
+
+        <div v-if="viewType === 'table'" class="config-field">
+          <h3>{{ $t("tools.activityViewer.tableColumns") }}</h3>
+          <ExpandDropdown
+            v-model="selectedOptionalColumns"
+            :options="optionalTableColumnOptions"
+            allow-multiple
+            allow-search
+            :default-placeholder-if-empty="tableColumnsPlaceholder"
           />
         </div>
 
@@ -147,7 +162,13 @@
             <i v-if="loading" class="material-symbols spin">autorenew</i>
             <span v-else>{{ $t("buttons.refresh") }}</span>
           </button>
-          <button type="button" class="button button--flat" @click="exportCsv" :disabled="loading">
+          <button
+            v-if="viewType === 'table'"
+            type="button"
+            class="button button--flat"
+            @click="exportCsv"
+            :disabled="loading"
+          >
             {{ $t("tools.activityViewer.exportCsv") }}
           </button>
         </div>
@@ -181,14 +202,68 @@
           @row-click="openEventDetails"
         >
           <template #cell-createdAt="{ row }">
-            {{ formatTime(row.createdAt) }}
+            <span v-if="!isBlankTableValue(row.createdAt)">{{ formatTime(row.createdAt) }}</span>
+            <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           </template>
           <template #cell-eventType="{ row }">
-            {{ eventTypeLabel(row.eventType) }}
+            <span
+              v-if="!isBlankTableValue(row.eventType)"
+              class="event-type-badge border-radius"
+              :class="eventTypeBadgeClass(row.eventType)"
+            >{{ eventTypeLabel(row.eventType) }}</span>
+            <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          </template>
+          <template #cell-username="{ row }">
+            <span
+              v-if="!isBlankTableValue(row.username)"
+              class="table-cell-text table-cell-text--ellipsis table-cell-text--username"
+              :title="row.username"
+            >{{ row.username }}</span>
+            <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          </template>
+          <template #cell-source="{ row }">
+            <span
+              v-if="!isBlankTableValue(row.source)"
+              class="table-cell-text table-cell-text--ellipsis table-cell-text--source"
+              :title="row.source"
+            >{{ row.source }}</span>
+            <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          </template>
+          <template #cell-path="{ row }">
+            <span
+              v-if="!isBlankTableValue(row.path)"
+              class="table-cell-text table-cell-text--ellipsis table-cell-text--path"
+              :title="row.path"
+            >{{ row.path }}</span>
+            <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          </template>
+          <template #cell-shareHash="{ row }">
+            <span
+              v-if="!isBlankTableValue(row.shareHash)"
+              class="table-cell-text table-cell-text--ellipsis table-cell-text--shareHash"
+              :title="row.shareHash"
+            >{{ row.shareHash }}</span>
+            <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          </template>
+          <template #cell-tokenDisplay="{ row }">
+            <span
+              v-if="!isBlankTableValue(row.tokenDisplay)"
+              class="table-cell-text table-cell-text--ellipsis table-cell-text--tokenDisplay"
+              :title="row.tokenDisplay"
+            >{{ row.tokenDisplay }}</span>
+            <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          </template>
+          <template #cell-ipAddress="{ row }">
+            <span
+              v-if="!isBlankTableValue(row.ipAddress)"
+              class="table-cell-text table-cell-text--ellipsis table-cell-text--ipAddress"
+              :title="row.ipAddress"
+            >{{ row.ipAddress }}</span>
+            <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           </template>
           <template #cell-details="{ row }">
             <div
-              v-if="isAdmin && hasRowDetails(row)"
+              v-if="hasRowDetails(row)"
               class="details-cell-wrap"
               @mouseenter="showDetailsTooltip($event, row)"
               @mouseleave="hideDetailsTooltip"
@@ -201,8 +276,7 @@
                 >{{ badge.text }}</span>
               </div>
             </div>
-            <span v-else-if="!isAdmin" class="details-restricted">{{ $t("general.unavailable") }}</span>
-            <span v-else class="details-muted">{{ $t("general.unavailable") }}</span>
+            <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           </template>
           <template #cell-status="{ row }">
             <span
@@ -210,7 +284,7 @@
               class="status-badge border-radius"
               :class="statusBadgeClass(row.status)"
             >{{ row.status }}</span>
-            <span v-else class="status-badge status-badge--muted border-radius">{{ $t("general.unavailable") }}</span>
+            <span v-else class="status-badge status-badge--muted border-radius">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           </template>
         </settings-table>
         <div v-if="totalPages > 1" class="pagination">
@@ -281,12 +355,43 @@ import SettingsTable from "@/components/settings/Table.vue";
 import Errors from "@/views/Errors.vue";
 import { getters, mutations, state } from "@/store";
 import { toStandardLocale } from "@/i18n";
-import { buildActivityDetailBadges, activityEventLabel, hasActivityDetails } from "@/utils/activityDetails";
+import {
+  buildActivityDetailBadges,
+  activityEventLabel,
+  activityEventTypeBadgeClass,
+  activityTokenDisplay,
+  activityChartTitle,
+  hasActivityDetails,
+  normalizeActivityTableRow,
+  ACTIVITY_OPTIONAL_ROW_KEYS,
+  parseActivityRowsParam,
+  formatActivityRowsParam,
+  optionalColumnsFromRowsState,
+  rowsStateFromOptionalColumns,
+  allOptionalColumnsSelected,
+  formatOptionalColumnsParam,
+} from "@/utils/activityDetails";
+import {
+  generateActivityTimeline,
+  activityBucketLookup,
+  chartAxisMaxTicks,
+  chartBarLayout,
+  clampActivityChartInterval,
+  activityChartIntervalAllowed,
+} from "@/utils/activityChartTime";
 import { formatTimestamp } from "@/utils/moment";
+import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import SharePickerButton from "@/components/tools/SharePickerButton.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
 import { globalVars } from "@/utils/constants";
 import { getObjectProperty } from "@/utils/object.js";
+import {
+  activityStatusParamsForOutcome,
+  filterEventTypesForScope,
+  formatEventTypeQueryValue,
+  formatActivityViewerQueryString,  normalizeEventTypeQueryValue,
+  parseStatusOutcomeFromQuery,
+} from "@/utils/activityViewerQuery.js";
 
 function queryValuePresent(value) {
   return value !== undefined && value !== null;
@@ -294,7 +399,13 @@ function queryValuePresent(value) {
 
 function queryParamString(query, key) {
   const value = getObjectProperty(query, key);
-  return queryValuePresent(value) ? String(value) : "";
+  if (!queryValuePresent(value)) {
+    return "";
+  }
+  if (key === "eventType") {
+    return formatEventTypeQueryValue(normalizeEventTypeQueryValue(value));
+  }
+  return String(value);
 }
 
 const FILE_EVENT_TYPES = [
@@ -307,7 +418,12 @@ const FILE_EVENT_TYPES = [
   "bulkDelete",
   "archive",
   "unarchive",
+];
+
+const ACCESS_EVENT_TYPES = [
+  "accessCreate",
   "accessUpdate",
+  "accessDelete",
 ];
 
 const SHARE_EVENT_TYPES = [
@@ -338,6 +454,7 @@ const ADMIN_EVENT_TYPES = [
 
 const EVENT_TYPES = [
   ...FILE_EVENT_TYPES,
+  ...ACCESS_EVENT_TYPES,
   ...SHARE_EVENT_TYPES,
   ...AUTH_EVENT_TYPES,
   ...TOOL_EVENT_TYPES,
@@ -357,12 +474,39 @@ const CHART_COLORS = [
   "#bab0ac",
 ];
 
+const OUTCOME_CHART_COLORS = {
+  success: "#59a14f",
+  error: "#e15759",
+};
+
 function hexToRgba(hex, alpha) {
   const normalized = hex.replace("#", "");
   const r = parseInt(normalized.slice(0, 2), 16);
   const g = parseInt(normalized.slice(2, 4), 16);
   const b = parseInt(normalized.slice(4, 6), 16);
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function cssColorWithAlpha(color, alpha) {
+  const trimmed = (color || "").trim();
+  if (!trimmed) {
+    return `rgba(128, 128, 128, ${alpha})`;
+  }
+  if (trimmed.startsWith("rgba(")) {
+    return trimmed.replace(/,\s*[\d.]+\)$/, `, ${alpha})`);
+  }
+  if (trimmed.startsWith("rgb(")) {
+    return trimmed.replace("rgb(", "rgba(").replace(")", `, ${alpha})`);
+  }
+  if (trimmed.startsWith("#")) {
+    return hexToRgba(trimmed, alpha);
+  }
+  return trimmed;
+}
+
+function chartThemeStyles() {
+  const themeEl = document.getElementById("main") || document.body;
+  return getComputedStyle(themeEl);
 }
 
 function truncateChartLabel(text, max = 16) {
@@ -443,8 +587,8 @@ const TIME_SERIES_VIEWS = new Set(["chart", "line"]);
 const VALID_RANGES = new Set(["1h", "24h", "7d", "30d", "custom"]);
 const VALID_VIEWS = new Set(["table", "chart", "line", "pie", "summary"]);
 const VALID_INTERVALS = new Set(["minute", "hour", "day"]);
-const VALID_SPLITS = new Set(["eventType", "user", "none"]);
-const VALID_SCOPES = new Set(["all", "files", "shares"]);
+const VALID_SPLITS = new Set(["eventType", "user", "outcome", "none"]);
+const VALID_SCOPES = new Set(["all", "files", "access", "shares"]);
 const ANONYMOUS_USERNAME = "anonymous";
 const ACTIVITY_QUERY_KEYS = [
   "range",
@@ -453,6 +597,8 @@ const ACTIVITY_QUERY_KEYS = [
   "to",
   "eventType",
   "username",
+  "statusMin",
+  "statusMax",
   "source",
   "path",
   "pathGlob",
@@ -463,6 +609,7 @@ const ACTIVITY_QUERY_KEYS = [
   "interval",
   "splitBy",
   "page",
+  "rows",
 ];
 
 export default {
@@ -470,6 +617,7 @@ export default {
   components: {
     SettingsTable,
     Errors,
+    ExpandDropdown,
     SharePickerButton,
     PathPickerButton,
   },
@@ -485,8 +633,9 @@ export default {
       timePreset: "24h",
       customFrom: "",
       customTo: "",
-      selectedEventType: "",
+      selectedEventTypes: [],
       selectedUsername: "",
+      statusOutcome: "all",
       anonymousUsername: ANONYMOUS_USERNAME,
       filterSource: "",
       filterPath: "",
@@ -500,16 +649,18 @@ export default {
       users: [],
       chart: null,
       chartMountKey: 0,
-      chartRenderPending: false,
       chartRenderToken: 0,
       isInitializing: true,
+      skipNextRouteQuerySync: false,
       loadRequestId: 0,
       loadDebounceTimer: null,
+      selectedOptionalColumns: [...ACTIVITY_OPTIONAL_ROW_KEYS],
     };
   },
   computed: {
     visibleEventTypes() {
       if (this.activityScope === "files") return FILE_EVENT_TYPES;
+      if (this.activityScope === "access") return ACCESS_EVENT_TYPES;
       if (this.activityScope === "shares") return [...SHARE_EVENT_TYPES, "download"];
       return EVENT_TYPES;
     },
@@ -517,13 +668,10 @@ export default {
       return this.activityScope === "all";
     },
     showFileFilters() {
-      return this.activityScope === "files";
+      return this.activityScope === "files" || this.activityScope === "access";
     },
     showShareFilters() {
       return this.activityScope === "shares";
-    },
-    scopeHint() {
-      return this.$t(`tools.activityViewer.scopeHint.${this.activityScope}`);
     },
     isMobile() {
       return state.isMobile;
@@ -531,11 +679,127 @@ export default {
     isAdmin() {
       return getters.isAdmin();
     },
+    showUserFilter() {
+      return state.user?.permissions?.admin === true;
+    },
+    isDarkMode() {
+      return getters.isDarkMode();
+    },
     sourceNames() {
       return Object.keys(state.sources?.info || {}).sort();
     },
+    activityScopeOptions() {
+      return ["all", "files", "access", "shares"].map((scope) => ({
+        value: scope,
+        label: this.activityScopeLabel(scope),
+      }));
+    },
+    timePresetOptions() {
+      return [
+        { value: "1h", label: this.$t("tools.activityViewer.last1h") },
+        { value: "24h", label: this.$t("tools.activityViewer.last24h") },
+        { value: "7d", label: this.$t("tools.activityViewer.last7d") },
+        { value: "30d", label: this.$t("tools.activityViewer.last30d") },
+        { value: "custom", label: this.$t("tools.activityViewer.customRange") },
+      ];
+    },
+    usernameOptions() {
+      return [
+        { value: "", label: this.$t("general.allUsers") },
+        { value: this.anonymousUsername, label: this.$t("general.anonymous") },
+        ...this.users.map((user) => ({
+          value: user.username,
+          label: user.username,
+        })),
+      ];
+    },
+    statusOutcomeOptions() {
+      return [
+        { value: "all", label: this.$t("general.all") },
+        { value: "success", label: this.$t("general.success") },
+        { value: "errors", label: this.$t("general.error") },
+      ];
+    },
+    viewTypeOptions() {
+      return [
+        { value: "chart", label: this.$t("tools.activityViewer.chartView") },
+        { value: "line", label: this.$t("tools.activityViewer.lineView") },
+        { value: "pie", label: this.$t("tools.activityViewer.pieView") },
+        { value: "summary", label: this.$t("tools.activityViewer.summaryView") },
+        { value: "table", label: this.$t("tools.activityViewer.tableView") },
+      ];
+    },
+    eventTypeOptions() {
+      return this.visibleEventTypes.map((eventType) => ({
+        value: eventType,
+        label: this.eventTypeLabel(eventType),
+      }));
+    },
+    chartIntervalOptions() {
+      return [
+        {
+          value: "minute",
+          label: this.chartIntervalDisplayLabel("minute"),
+          disabled: !this.chartIntervalAllowed.minute,
+        },
+        {
+          value: "hour",
+          label: this.chartIntervalDisplayLabel("hour"),
+          disabled: !this.chartIntervalAllowed.hour,
+        },
+        {
+          value: "day",
+          label: this.chartIntervalDisplayLabel("day"),
+        },
+      ];
+    },
+    splitByOptions() {
+      const options = [
+        { value: "eventType", label: this.$t("tools.activityViewer.eventType") },
+      ];
+      if (this.showUserFilter) {
+        options.push({ value: "user", label: this.$t("general.user") });
+      }
+      if (this.showOutcomeSplit) {
+        options.push({
+          value: "outcome",
+          label: this.$t("general.status"),
+        });
+      }
+      if (this.showTimeSeriesOptions) {
+        options.push({
+          value: "none",
+          label: this.$t("tools.activityViewer.splitByTotal"),
+        });
+      }
+      return options;
+    },
+    filePathFilterModeOptions() {
+      return [
+        { value: "picker", label: this.$t("general.browse") },
+        { value: "glob", label: this.$t("tools.activityViewer.pathFilterPattern") },
+      ];
+    },
+    filterSourceOptions() {
+      return [
+        { value: "", label: this.$t("general.allSources") },
+        ...this.sourceNames.map((name) => ({ value: name, label: name })),
+      ];
+    },
+    optionalTableColumnOptions() {
+      return ACTIVITY_OPTIONAL_ROW_KEYS.map((key) => ({
+        value: key,
+        label: this.optionalRowLabel(key),
+      }));
+    },
+    tableColumnsPlaceholder() {
+      return this.$t("tools.activityViewer.tableColumns");
+    },
     showChartOptions() {
       return this.viewType !== "table";
+    },
+    showOutcomeSplit() {
+      return this.statusOutcome === "all";
     },
     showTimeSeriesOptions() {
       return TIME_SERIES_VIEWS.has(this.viewType);
@@ -544,17 +808,80 @@ export default {
       if (!this.showTimeSeriesOptions) {
         return "none";
       }
-      return this.chartInterval;
+      const range = this.queryRange.to - this.queryRange.from;
+      return clampActivityChartInterval(this.chartInterval, range);
+    },
+    chartIntervalAllowed() {
+      const range = this.queryRange.to - this.queryRange.from;
+      return activityChartIntervalAllowed(range);
     },
     tableColumns() {
-      return [
-        { key: "createdAt", label: this.$t("general.time"), sortable: false },
-        { key: "username", label: this.$t("general.username"), sortable: false },
-        { key: "eventType", label: this.$t("tools.activityViewer.eventType"), sortable: false },
-        { key: "details", label: this.$t("general.details"), sortable: false },
-        { key: "ipAddress", label: this.$t("general.ipAddress"), sortable: false },
-        { key: "status", label: this.$t("general.status"), sortable: false, narrow: true },
+      const cols = [
+        {
+          key: "createdAt",
+          label: this.$t("time.time"),
+          sortable: true,
+          sortFn: (a, b) => (a.createdAt || 0) - (b.createdAt || 0),
+        },
+        {
+          key: "username",
+          label: this.$t("general.username"),
+          sortable: true,
+        },
+        {
+          key: "eventType",
+          label: this.$t("tools.activityViewer.eventType"),
+          sortable: true,
+        },
       ];
+      const optionalDefs = {
+        source: {
+          key: "source",
+          label: this.$t("general.source"),
+          sortable: true,
+        },
+        path: {
+          key: "path",
+          label: this.$t("general.path"),
+          sortable: true,
+        },
+        shareHash: {
+          key: "shareHash",
+          label: this.$t("general.hash"),
+          sortable: true,
+        },
+        tokenName: {
+          key: "tokenDisplay",
+          label: this.$t("prompts.token"),
+          sortable: true,
+        },
+        details: {
+          key: "details",
+          label: this.$t("general.details"),
+          sortable: false,
+        },
+        ipAddress: {
+          key: "ipAddress",
+          label: this.$t("general.ipAddress"),
+          sortable: true,
+        },
+        status: {
+          key: "status",
+          label: this.$t("general.status"),
+          sortable: true,
+          sortFn: (a, b) => (a.status || 0) - (b.status || 0),
+          narrow: true,
+        },
+      };
+      const enabled = new Set(this.selectedOptionalColumns);
+      if (enabled.has("source")) cols.push(optionalDefs.source);
+      if (enabled.has("path")) cols.push(optionalDefs.path);
+      if (enabled.has("shareHash")) cols.push(optionalDefs.shareHash);
+      if (enabled.has("tokenName")) cols.push(optionalDefs.tokenName);
+      if (enabled.has("details")) cols.push(optionalDefs.details);
+      if (enabled.has("ipAddress")) cols.push(optionalDefs.ipAddress);
+      if (enabled.has("status")) cols.push(optionalDefs.status);
+      return cols;
     },
     queryRange() {
       const now = Math.floor(Date.now() / 1000);
@@ -583,10 +910,10 @@ export default {
         limit: 500,
         page: this.currentPage,
       };
-      if (this.selectedEventType) {
-        params.eventType = this.selectedEventType;
+      if (this.selectedEventTypes.length > 0) {
+        params.eventType = formatEventTypeQueryValue(this.selectedEventTypes);
       }
-      if (this.isAdmin && this.selectedUsername) {
+      if (this.showUserFilter && this.selectedUsername) {
         params.username = this.selectedUsername;
       }
       if (this.showFileFilters) {
@@ -603,9 +930,23 @@ export default {
             params.pathGlob = this.filterPathGlob;
           }
         }
+      } else if (this.activityScope === "shares") {
+        if (this.filterSource) {
+          params.source = this.filterSource;
+        }
+        if (this.filterPath && this.filterPath !== "/") {
+          params.path = this.filterPath;
+        }
       }
       if (this.showShareFilters && this.filterShareHash) {
         params.shareHash = this.filterShareHash;
+      }
+      const statusParams = activityStatusParamsForOutcome(this.statusOutcome);
+      if (statusParams.statusMin !== undefined) {
+        params.statusMin = statusParams.statusMin;
+      }
+      if (statusParams.statusMax !== undefined) {
+        params.statusMax = statusParams.statusMax;
       }
       if (this.viewType !== "table") {
         params.interval = this.effectiveInterval;
@@ -628,30 +969,21 @@ export default {
     chartAriaLabel() {
       return this.$t(`tools.activityViewer.${this.viewType}View`);
     },
-    chartTitleKey() {
-      if (this.viewType === "pie") {
-        return this.splitBy === "user"
-          ? "tools.activityViewer.pieTitleByUser"
-          : "tools.activityViewer.pieTitle";
-      }
-      if (this.viewType === "summary") {
-        return this.splitBy === "user"
-          ? "tools.activityViewer.summaryTitleByUser"
-          : "tools.activityViewer.summaryTitle";
-      }
-      if (this.splitBy === "user") {
-        return "tools.activityViewer.chartTitleByUser";
-      }
-      if (this.splitBy === "none") {
-        return "tools.activityViewer.chartTitleTotal";
-      }
-      return "tools.activityViewer.chartTitle";
+    chartTitle() {
+      return activityChartTitle(
+        { viewType: this.viewType, splitBy: this.splitBy },
+        this.$t.bind(this),
+      );
     },
   },
   watch: {
     "$route.query": {
       handler(newQuery, oldQuery) {
         if (this.isInitializing) {
+          return;
+        }
+        if (this.skipNextRouteQuerySync) {
+          this.skipNextRouteQuerySync = false;
           return;
         }
         if (!this.routeQueryChanged(newQuery, oldQuery)) {
@@ -669,28 +1001,33 @@ export default {
       }
     },
     viewType() {
-      this.destroyChart();
+      this.chartRenderToken += 1;
+      this.destroyChartInstance();
+      let splitByWillReload = false;
       if (this.viewType === "table") {
         if (!this.isInitializing && this.items.length === 0) {
-          this.loadData();
+          void this.loadData();
         }
       } else if (!TIME_SERIES_VIEWS.has(this.viewType) && this.splitBy === "none") {
         this.splitBy = "eventType";
+        splitByWillReload = true;
       }
       if (!this.isInitializing) {
         this.updateUrl();
-        if (this.viewType !== "table" && this.hasChartData) {
-          this.scheduleChartRender();
-        } else if (this.viewType !== "table") {
-          this.loadData();
+        if (this.viewType !== "table" && !splitByWillReload) {
+          void this.loadData();
         }
       }
     },
     chartInterval() {
-      if (!this.isInitializing && this.viewType !== "table") {
-        this.updateUrl();
-        this.loadData();
+      if (this.isInitializing || this.viewType === "table") {
+        return;
       }
+      if (this.syncChartIntervalToRange()) {
+        return;
+      }
+      this.updateUrl();
+      this.loadData();
     },
     splitBy() {
       if (!this.isInitializing && this.viewType !== "table") {
@@ -716,14 +1053,24 @@ export default {
         this.updateUrl();
       }
     },
-    selectedEventType() {
+    selectedEventTypes: {
+      deep: true,
+      handler() {
+        if (!this.isInitializing) {
+          this.updateUrl();
+          this.resetPageAndLoad();
+        }
+      },
+    },
+    selectedUsername() {
       if (!this.isInitializing) {
         this.updateUrl();
         this.resetPageAndLoad();
       }
     },
-    selectedUsername() {
+    statusOutcome() {
       if (!this.isInitializing) {
+        this.clampOutcomeSplitForStatusFilter();
         this.updateUrl();
         this.resetPageAndLoad();
       }
@@ -759,6 +1106,19 @@ export default {
         this.updateUrl();
       }
     },
+    selectedOptionalColumns: {
+      deep: true,
+      handler() {
+        if (!this.isInitializing) {
+          this.updateUrl();
+        }
+      },
+    },
+    isDarkMode() {
+      if (!this.isInitializing && this.showChartPanel) {
+        this.scheduleChartRender();
+      }
+    },
   },
   async mounted() {
     document.title = `${globalVars.name} - ${this.$t("tools.title")} - ${this.$t("tools.activityViewer.name")}`;
@@ -774,6 +1134,15 @@ export default {
   methods: {
     formatTime(ts) {
       return formatTimestamp(ts * 1000);
+    },
+    isBlankTableValue(value) {
+      if (value === null || value === undefined) {
+        return true;
+      }
+      if (typeof value === "number") {
+        return false;
+      }
+      return String(value).trim() === "";
     },
     destroyChartInstance() {
       const instance = this.chart;
@@ -798,14 +1167,9 @@ export default {
       this.chartMountKey += 1;
     },
     scheduleChartRender() {
-      if (this.chartRenderPending) {
-        return;
-      }
-      this.chartRenderPending = true;
       const token = ++this.chartRenderToken;
       this.$nextTick(() => {
         requestAnimationFrame(() => {
-          this.chartRenderPending = false;
           if (!this.isCurrentChartRenderToken(token)) {
             return;
           }
@@ -817,10 +1181,13 @@ export default {
       return this.chartRenderToken === token;
     },
     onScopeChange() {
-      if (!this.visibleEventTypes.includes(this.selectedEventType)) {
-        this.selectedEventType = "";
+      if (!this.eventTypesAllowed(this.selectedEventTypes)) {
+        this.selectedEventTypes = filterEventTypesForScope(
+          this.selectedEventTypes,
+          this.visibleEventTypes,
+        );
       }
-      if (this.activityScope === "files" || this.activityScope === "all") {
+      if (this.activityScope === "files" || this.activityScope === "all" || this.activityScope === "access") {
         this.filterShareHash = "";
       }
       if (this.activityScope === "shares") {
@@ -846,13 +1213,16 @@ export default {
       }
     },
     clampChartInterval() {
+      return this.syncChartIntervalToRange();
+    },
+    syncChartIntervalToRange() {
       const range = this.queryRange.to - this.queryRange.from;
-      if (this.chartInterval === "minute" && range > 2 * 86400) {
-        this.chartInterval = "hour";
+      const clamped = clampActivityChartInterval(this.chartInterval, range);
+      if (clamped === this.chartInterval) {
+        return false;
       }
-      if (this.chartInterval === "hour" && range > 90 * 86400) {
-        this.chartInterval = "day";
-      }
+      this.chartInterval = clamped;
+      return true;
     },
     resetPageAndLoad() {
       this.currentPage = 1;
@@ -881,6 +1251,10 @@ export default {
         || queryValuePresent(query.shareHash)) {
         return "shares";
       }
+      const eventTypes = normalizeEventTypeQueryValue(query.eventType);
+      if (eventTypes.some((type) => ACCESS_EVENT_TYPES.includes(type))) {
+        return "access";
+      }
       if (queryValuePresent(query.source)
         || queryValuePresent(query.path)
         || queryValuePresent(query.pathGlob)) {
@@ -894,7 +1268,8 @@ export default {
       await this.loadData();
     },
     fetchAdminUsers() {
-      if (!this.isAdmin) {
+      if (!this.showUserFilter) {
+        this.users = [];
         return Promise.resolve();
       }
       return usersApi.getAllUsers()
@@ -925,26 +1300,26 @@ export default {
       if (queryValuePresent(query.to)) {
         this.customTo = String(query.to);
       }
-      if (queryValuePresent(query.eventType) && this.visibleEventTypes.includes(String(query.eventType))) {
-        this.selectedEventType = String(query.eventType);
-      } else if (query.eventType === "" || query.eventType === null) {
-        this.selectedEventType = "";
+      if (queryValuePresent(query.eventType)) {
+        this.selectedEventTypes = this.parseEventTypesFromQuery(query.eventType);
+      } else {
+        this.selectedEventTypes = [];
       }
-      if (this.isAdmin && queryValuePresent(query.username)) {
+      if (this.showUserFilter && queryValuePresent(query.username)) {
         this.selectedUsername = String(query.username);
-      } else if (!this.isAdmin) {
+      } else {
         this.selectedUsername = "";
       }
-      const scopeForFilters = this.activityScope;
+      if (queryValuePresent(query.statusMin) || queryValuePresent(query.statusMax)) {
+        this.statusOutcome = parseStatusOutcomeFromQuery(query.statusMin, query.statusMax);
+      } else {
+        this.statusOutcome = "all";
+      }
       if (queryValuePresent(query.source)) {
-        if (scopeForFilters !== "shares") {
-          this.filterSource = String(query.source);
-        }
+        this.filterSource = String(query.source);
       }
       if (queryValuePresent(query.path)) {
-        if (scopeForFilters !== "shares") {
-          this.filterPath = String(query.path);
-        }
+        this.filterPath = String(query.path);
       }
       if (queryValuePresent(query.pathGlob)) {
         this.filterPathGlob = String(query.pathGlob);
@@ -960,14 +1335,25 @@ export default {
         this.chartInterval = String(query.interval);
       }
       if (queryValuePresent(query.splitBy) && VALID_SPLITS.has(String(query.splitBy))) {
-        this.splitBy = String(query.splitBy);
+        const split = String(query.splitBy);
+        if (split === "user" && !this.showUserFilter) {
+          this.splitBy = "eventType";
+        } else if (split === "outcome" && !this.showOutcomeSplit) {
+          this.splitBy = "eventType";
+        } else {
+          this.splitBy = split;
+        }
       }
+      this.clampUserFiltersForRole();
+      this.clampOutcomeSplitForStatusFilter();
       if (queryValuePresent(query.page)) {
         const page = parseInt(String(query.page), 10);
         if (!Number.isNaN(page) && page >= 1) {
           this.currentPage = page;
         }
       }
+      const enabledRows = parseActivityRowsParam(query.rows);
+      this.selectedOptionalColumns = optionalColumnsFromRowsState(enabledRows);
     },
     updateUrl() {
       if (!this.$route.path.startsWith("/tools/activityViewer")) return;
@@ -985,11 +1371,19 @@ export default {
           if (this.customFrom) query.from = this.customFrom;
           if (this.customTo) query.to = this.customTo;
         }
-        if (this.selectedEventType) {
-          query.eventType = this.selectedEventType;
+        const eventType = formatEventTypeQueryValue(this.selectedEventTypes);
+        if (eventType) {
+          query.eventType = eventType;
         }
-        if (this.isAdmin && this.selectedUsername) {
+        if (this.showUserFilter && this.selectedUsername) {
           query.username = this.selectedUsername;
+        }
+        const statusParams = activityStatusParamsForOutcome(this.statusOutcome);
+        if (statusParams.statusMin !== undefined) {
+          query.statusMin = String(statusParams.statusMin);
+        }
+        if (statusParams.statusMax !== undefined) {
+          query.statusMax = String(statusParams.statusMax);
         }
         if (this.showFileFilters) {
           if (this.filePathFilterMode === "picker") {
@@ -1007,6 +1401,13 @@ export default {
               query.pathGlob = this.filterPathGlob;
             }
           }
+        } else if (this.activityScope === "shares") {
+          if (this.filterSource) {
+            query.source = this.filterSource;
+          }
+          if (this.filterPath && this.filterPath !== "/") {
+            query.path = this.filterPath;
+          }
         }
         if (this.showShareFilters && this.filterShareHash) {
           query.shareHash = this.filterShareHash;
@@ -1018,24 +1419,40 @@ export default {
           query.interval = this.chartInterval;
         }
         if (this.viewType !== "table" && this.splitBy !== "eventType") {
-          query.splitBy = this.splitBy;
+          const includeSplit = this.splitBy === "none"
+            || (this.splitBy === "user" && this.showUserFilter)
+            || (this.splitBy === "outcome" && this.showOutcomeSplit);
+          if (includeSplit) {
+            query.splitBy = this.splitBy;
+          }
         }
         if (this.viewType === "table" && this.currentPage > 1) {
           query.page = String(this.currentPage);
         }
+        if (this.viewType === "table" && !allOptionalColumnsSelected(this.selectedOptionalColumns)) {
+          const rows = formatOptionalColumnsParam(this.selectedOptionalColumns);
+          if (rows) {
+            query.rows = rows;
+          }
+        }
 
-        const newQueryString = new URLSearchParams(query).toString();
+        const newQueryString = formatActivityViewerQueryString(query);
         const currentQuery = this.$route.query || {};
         const filteredEntries = Object.entries(currentQuery)
           .filter(([_, value]) => value !== null && value !== undefined)
           .map(([key, value]) => [key, String(value)]);
-        const currentQueryString = new URLSearchParams(Object.fromEntries(filteredEntries)).toString();
+        const currentQueryString = formatActivityViewerQueryString(
+          Object.fromEntries(filteredEntries),
+        );
 
         if (newQueryString !== currentQueryString) {
+          this.skipNextRouteQuerySync = true;
           this.$router.replace({
             path: this.$route.path,
             query: Object.keys(query).length > 0 ? query : undefined,
-          }).catch(() => {});
+          }).catch(() => {
+            this.skipNextRouteQuerySync = false;
+          });
         }
       });
     },
@@ -1046,7 +1463,7 @@ export default {
       });
     },
     detailBadges(row) {
-      return buildActivityDetailBadges(row, this.$t);
+      return buildActivityDetailBadges(row);
     },
     hasRowDetails(row) {
       return hasActivityDetails(row);
@@ -1067,26 +1484,38 @@ export default {
       mutations.hideTooltip();
     },
     chartTheme() {
-      const root = getComputedStyle(document.documentElement);
-      const text = root.getPropertyValue("--textPrimary").trim()
-        || root.getPropertyValue("--textSecondary").trim()
-        || "#e2e8f0";
-      const textMuted = root.getPropertyValue("--textSecondary").trim() || "#94a3b8";
-      const divider = root.getPropertyValue("--divider").trim() || "rgba(148, 163, 184, 0.22)";
-      const surface = root.getPropertyValue("--surface1").trim()
-        || root.getPropertyValue("--surface").trim()
-        || "#1e293b";
-      const mutedHex = textMuted.startsWith("#") ? textMuted : "#94a3b8";
+      const root = chartThemeStyles();
+      const text = root.getPropertyValue("--textPrimary").trim() || "#333333";
+      const textMuted = root.getPropertyValue("--textSecondary").trim() || "#666666";
+      const divider = root.getPropertyValue("--divider").trim() || "lightgray";
+      const surface = root.getPropertyValue("--surfacePrimary").trim()
+        || root.getPropertyValue("--background").trim()
+        || "#ffffff";
       return {
         text,
         textMuted,
         divider,
         surface,
-        gridLine: hexToRgba(mutedHex, 0.1),
+        gridLine: cssColorWithAlpha(textMuted, 0.15),
         tooltipBg: surface,
       };
     },
-    chartPluginOptions(theme, { title = "", showLegend = true } = {}) {
+    chartPluginOptions(theme, { title = "", showLegend = true, tooltipCallbacks = null } = {}) {
+      const tooltip = {
+        backgroundColor: theme.tooltipBg,
+        titleColor: theme.text,
+        bodyColor: theme.text,
+        borderColor: theme.divider,
+        borderWidth: 1,
+        padding: 12,
+        cornerRadius: 10,
+        displayColors: true,
+        titleFont: { family: '"Roboto", sans-serif' },
+        bodyFont: { family: '"Roboto", sans-serif' },
+      };
+      if (tooltipCallbacks) {
+        tooltip.callbacks = tooltipCallbacks;
+      }
       return {
         legend: showLegend
           ? {
@@ -1095,8 +1524,8 @@ export default {
                 boxWidth: 12,
                 boxHeight: 12,
                 padding: 18,
-                color: theme.textMuted,
-                font: { size: 12, weight: "500" },
+                color: theme.text,
+                font: { size: 12, weight: "500", family: '"Roboto", sans-serif' },
                 usePointStyle: true,
                 pointStyle: "circle",
               },
@@ -1106,23 +1535,87 @@ export default {
           display: Boolean(title),
           text: title,
           color: theme.text,
-          font: { size: 15, weight: "600" },
+          font: { size: 15, weight: "600", family: '"Roboto", sans-serif' },
           padding: { top: 4, bottom: 18 },
           align: "start",
         },
-        tooltip: {
-          backgroundColor: theme.tooltipBg,
-          titleColor: theme.text,
-          bodyColor: theme.textMuted,
-          borderColor: theme.divider,
-          borderWidth: 1,
-          padding: 12,
-          cornerRadius: 10,
-          displayColors: true,
+        tooltip,
+      };
+    },
+    pieChartPluginOptions(theme, { title = "", totalCount = 0 } = {}) {
+      const formatShare = (value) => {
+        const count = Number(value) || 0;
+        if (totalCount <= 0) {
+          return "0%";
+        }
+        return `${Math.round((count / totalCount) * 100)}%`;
+      };
+      const base = this.chartPluginOptions(theme, {
+        title,
+        tooltipCallbacks: {
+          label(context) {
+            const value = Number(context.raw || 0);
+            return `${value} (${formatShare(value)})`;
+          },
+        },
+      });
+      return {
+        ...base,
+        legend: {
+          position: "bottom",
+          labels: {
+            boxWidth: 12,
+            boxHeight: 12,
+            padding: 18,
+            color: theme.text,
+            font: { size: 12, weight: "500", family: '"Roboto", sans-serif' },
+            usePointStyle: true,
+            pointStyle: "circle",
+            generateLabels(chart) {
+              const dataset = chart.data.datasets[0];
+              /* eslint-disable security/detect-object-injection -- Chart.js legend uses numeric dataset indices */
+              return chart.getDatasetMeta(0).data.map((arc, index) => {
+                const value = Number(dataset.data[index] || 0);
+                const text = `${chart.data.labels[index]} (${formatShare(value)})`;
+                return {
+                  text,
+                  fillStyle: dataset.backgroundColor[index],
+                  strokeStyle: dataset.borderColor[index],
+                  lineWidth: dataset.borderWidth,
+                  hidden: !chart.getDataVisibility(index),
+                  fontColor: theme.text,
+                  index,
+                };
+              });
+              /* eslint-enable security/detect-object-injection */
+            },
+          },
         },
       };
     },
-    axisScaleOptions(theme, { stacked = false, beginAtZero = true } = {}) {
+    stackedBarBorderRadius(ctx, barRadius, stacked) {
+      const { chart, datasetIndex, dataIndex } = ctx;
+      /* eslint-disable security/detect-object-injection -- Chart.js bar styling uses numeric bucket indices */
+      const value = Number(chart.data.datasets[datasetIndex].data[dataIndex] || 0);
+      if (value <= 0) {
+        return 0;
+      }
+      const topOnly = { topLeft: barRadius, topRight: barRadius, bottomLeft: 0, bottomRight: 0 };
+      if (!stacked) {
+        return topOnly;
+      }
+      const datasets = chart.data.datasets;
+      let topIndex = -1;
+      for (let i = datasets.length - 1; i >= 0; i -= 1) {
+        if (Number(datasets[i].data[dataIndex] || 0) > 0) {
+          topIndex = i;
+          break;
+        }
+      }
+      /* eslint-enable security/detect-object-injection */
+      return datasetIndex === topIndex ? topOnly : 0;
+    },
+    axisScaleOptions(theme, { stacked = false, beginAtZero = true, bucketCount = 0 } = {}) {
       return {
         x: {
           stacked,
@@ -1130,9 +1623,11 @@ export default {
           grid: { display: false },
           ticks: {
             color: theme.textMuted,
-            font: { size: 11 },
+            font: { size: 11, family: '"Roboto", sans-serif' },
             maxRotation: 45,
             padding: 8,
+            autoSkip: true,
+            maxTicksLimit: bucketCount > 0 ? chartAxisMaxTicks(bucketCount) : 12,
           },
         },
         y: {
@@ -1147,7 +1642,7 @@ export default {
           ticks: {
             precision: 0,
             color: theme.textMuted,
-            font: { size: 11 },
+            font: { size: 11, family: '"Roboto", sans-serif' },
             padding: 8,
           },
         },
@@ -1167,6 +1662,9 @@ export default {
       return "status-badge--2xx";
     },
     async loadData() {
+      if (this.viewType !== "table" && this.syncChartIntervalToRange()) {
+        return;
+      }
       const requestId = ++this.loadRequestId;
       this.chartRenderToken += 1;
       this.destroyChartInstance();
@@ -1176,7 +1674,13 @@ export default {
         if (this.viewType === "table") {
           const listRes = await toolsApi.activityList(this.filterParams);
           if (requestId !== this.loadRequestId) return;
-          this.items = listRes.items || [];
+          this.items = (listRes.items || []).map((row) => {
+            const normalized = normalizeActivityTableRow(row);
+            return {
+              ...normalized,
+              tokenDisplay: activityTokenDisplay(normalized, this.$t),
+            };
+          });
           this.totalEvents = listRes.total || 0;
           this.totalPages = listRes.totalPages || 1;
           this.currentPage = listRes.page || this.currentPage;
@@ -1208,6 +1712,10 @@ export default {
       delete params.interval;
       delete params.splitBy;
       delete params.groupBy;
+      const rows = formatActivityRowsParam(rowsStateFromOptionalColumns(this.selectedOptionalColumns));
+      if (rows) {
+        params.rows = rows;
+      }
       const url = toolsApi.activityExportUrl(params);
       const a = document.createElement("a");
       a.href = url;
@@ -1256,10 +1764,29 @@ export default {
     colorForIndex(idx) {
       return CHART_COLORS[idx % CHART_COLORS.length];
     },
+    colorForSeriesKey(seriesKey, idx) {
+      if (this.splitBy === "outcome") {
+        if (seriesKey === "success") {
+          return OUTCOME_CHART_COLORS.success;
+        }
+        if (seriesKey === "error") {
+          return OUTCOME_CHART_COLORS.error;
+        }
+      }
+      return this.colorForIndex(idx);
+    },
     bucketSeriesKey(bucket) {
       return bucket.seriesKey || bucket.eventType || "total";
     },
     seriesDisplayLabel(seriesKey, buckets) {
+      if (this.splitBy === "outcome") {
+        if (seriesKey === "success") {
+          return this.$t("general.success");
+        }
+        if (seriesKey === "error") {
+          return this.$t("general.error");
+        }
+      }
       if (this.splitBy === "user") {
         const match = buckets.find((b) => this.bucketSeriesKey(b) === seriesKey);
         return match?.seriesLabel || seriesKey;
@@ -1342,26 +1869,107 @@ export default {
     eventTypeLabel(eventType) {
       return activityEventLabel(eventType, this.$t);
     },
+    eventTypeBadgeClass(eventType) {
+      return activityEventTypeBadgeClass(eventType);
+    },
+    activityScopeLabel(scope) {
+      if (scope === "files") {
+        return this.$t("tools.activityViewer.scopeFiles");
+      }
+      if (scope === "access") {
+        return this.$t("tools.activityViewer.scopeAccess");
+      }
+      if (scope === "shares") {
+        return this.$t("tools.activityViewer.scopeShares");
+      }
+      return this.$t("tools.activityViewer.scopeAll");
+    },
+    activityAllSharesLabel() {
+      return this.$t("general.allShares");
+    },
+    chartIntervalDisplayLabel(interval) {
+      if (interval === "minute") {
+        return this.$t("time.minute", { prefix: "1 " });
+      }
+      if (interval === "hour") {
+        return this.$t("time.hour", { prefix: "1 " });
+      }
+      if (interval === "day") {
+        return this.$t("time.day", { prefix: "1 " });
+      }
+      return interval;
+    },
+    optionalRowLabel(key) {
+      switch (key) {
+        case "source":
+          return this.$t("general.source");
+        case "path":
+          return this.$t("general.path");
+        case "shareHash":
+          return this.$t("general.hash");
+        case "tokenName":
+          return this.$t("prompts.token");
+        case "details":
+          return this.$t("general.details");
+        case "ipAddress":
+          return this.$t("general.ipAddress");
+        case "status":
+          return this.$t("general.status");
+        default:
+          return key;
+      }
+    },
+    clampUserFiltersForRole() {
+      if (this.showUserFilter) {
+        return;
+      }
+      this.selectedUsername = "";
+      if (this.splitBy === "user") {
+        this.splitBy = "eventType";
+      }
+    },
+    clampOutcomeSplitForStatusFilter() {
+      if (this.showOutcomeSplit || this.splitBy !== "outcome") {
+        return;
+      }
+      this.splitBy = "eventType";
+    },
+    parseEventTypesFromQuery(eventType) {
+      return filterEventTypesForScope(
+        normalizeEventTypeQueryValue(eventType),
+        this.visibleEventTypes,
+      );
+    },
+    eventTypesAllowed(value) {
+      const types = Array.isArray(value)
+        ? value
+        : normalizeEventTypeQueryValue(value);
+      if (types.length === 0) {
+        return true;
+      }
+      return types.every((type) => this.visibleEventTypes.includes(type));
+    },
     buildTimeSeriesChart(canvas) {
       const buckets = this.statsBuckets || [];
-      const labels = [...new Set(buckets.map((b) => String(b.bucket)))].sort(
-        (a, b) => Number(a) - Number(b),
-      );
+      const interval = this.effectiveInterval;
+      const { from, to } = this.queryRange;
+      const timeline = generateActivityTimeline(from, to, interval);
+      const timelineKeys = timeline.map(String);
       const seriesKeys = [...new Set(buckets.map((b) => this.bucketSeriesKey(b)))];
       const isLine = this.viewType === "line";
-      const chartLabels = labels.map((l) => this.formatBucketLabel(l));
+      const chartLabels = timeline.map((ts) => this.formatBucketLabel(ts));
       const theme = this.chartTheme();
       const ctx = canvas.getContext("2d");
       const chartHeight = canvas.parentElement?.clientHeight || 400;
+      const chartWidth = canvas.parentElement?.clientWidth || 960;
+      const lookup = activityBucketLookup(buckets, (row) => this.bucketSeriesKey(row));
+      const stacked = this.splitBy !== "none" && !isLine;
+      const barLayout = chartBarLayout(timeline.length, chartWidth);
+      const barRadius = barLayout.barRadius;
 
       const datasets = seriesKeys.map((seriesKey, idx) => {
-        const color = this.colorForIndex(idx);
-        const data = labels.map((label) => {
-          const match = buckets.find(
-            (b) => String(b.bucket) === label && this.bucketSeriesKey(b) === seriesKey,
-          );
-          return match ? match.count : 0;
-        });
+        const color = this.colorForSeriesKey(seriesKey, idx);
+        const data = timelineKeys.map((bucketKey) => lookup.get(`${bucketKey}:${seriesKey}`) || 0);
         const label = this.seriesDisplayLabel(seriesKey, buckets);
         return isLine
           ? {
@@ -1375,7 +1983,7 @@ export default {
               pointBackgroundColor: color,
               pointBorderColor: theme.surface,
               pointBorderWidth: 2,
-              pointRadius: 4,
+              pointRadius: data.map((value) => (value > 0 ? 4 : 0)),
               pointHoverRadius: 6,
               tension: 0.35,
               fill: true,
@@ -1386,14 +1994,14 @@ export default {
               backgroundColor: hexToRgba(color, 0.88),
               borderColor: color,
               borderWidth: 1,
-              borderRadius: 6,
+              borderRadius: (ctx) => this.stackedBarBorderRadius(ctx, barRadius, stacked),
               borderSkipped: false,
-              stack: this.splitBy === "none" ? undefined : "activity",
+              minBarLength: 0,
+              stack: stacked ? "activity" : undefined,
             };
       });
 
-      const stacked = this.splitBy !== "none" && !isLine;
-      const chartTitle = this.$t(this.chartTitleKey);
+      const chartTitle = this.chartTitle;
       return {
         type: isLine ? "line" : "bar",
         data: { labels: chartLabels, datasets },
@@ -1404,11 +2012,11 @@ export default {
           plugins: this.chartPluginOptions(theme, { title: chartTitle }),
           datasets: {
             bar: {
-              barPercentage: 0.72,
-              categoryPercentage: 0.82,
+              barPercentage: barLayout.barPercentage,
+              categoryPercentage: barLayout.categoryPercentage,
             },
           },
-          scales: this.axisScaleOptions(theme, { stacked }),
+          scales: this.axisScaleOptions(theme, { stacked, bucketCount: timeline.length }),
         },
       };
     },
@@ -1429,17 +2037,18 @@ export default {
     },
     buildPieChart(_canvas) {
       const totals = this.buildDimensionTotals();
+      const totalCount = totals.reduce((sum, entry) => sum + entry.count, 0);
       const theme = this.chartTheme();
-      const chartTitle = this.$t(this.chartTitleKey);
+      const chartTitle = this.chartTitle;
       return {
         type: "pie",
         data: {
           labels: totals.map((t) => t.label),
           datasets: [{
             data: totals.map((t) => t.count),
-            backgroundColor: totals.map((_, idx) => hexToRgba(this.colorForIndex(idx), 0.9)),
-            borderColor: theme.surface,
-            borderWidth: 3,
+            backgroundColor: totals.map((t, idx) => hexToRgba(this.colorForSeriesKey(t.key, idx), 0.9)),
+            borderColor: theme.divider,
+            borderWidth: 2,
             hoverOffset: 10,
           }],
         },
@@ -1447,14 +2056,14 @@ export default {
           responsive: true,
           maintainAspectRatio: false,
           layout: { padding: { top: 8, bottom: 4 } },
-          plugins: this.chartPluginOptions(theme, { title: chartTitle }),
+          plugins: this.pieChartPluginOptions(theme, { title: chartTitle, totalCount }),
         },
       };
     },
     buildSummaryChart(_canvas) {
       const totals = this.buildDimensionTotals();
       const theme = this.chartTheme();
-      const chartTitle = this.$t(this.chartTitleKey);
+      const chartTitle = this.chartTitle;
       return {
         type: "bar",
         data: {
@@ -1462,8 +2071,8 @@ export default {
           datasets: [{
             label: this.$t("tools.activityViewer.totalEvents"),
             data: totals.map((t) => t.count),
-            backgroundColor: totals.map((_, idx) => hexToRgba(this.colorForIndex(idx), 0.88)),
-            borderColor: totals.map((_, idx) => this.colorForIndex(idx)),
+            backgroundColor: totals.map((t, idx) => hexToRgba(this.colorForSeriesKey(t.key, idx), 0.88)),
+            borderColor: totals.map((t, idx) => this.colorForSeriesKey(t.key, idx)),
             borderWidth: 1,
             borderRadius: 6,
             borderSkipped: false,
@@ -1562,44 +2171,10 @@ export default {
   margin-bottom: 1rem;
 }
 
-.universal-filters {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
-  gap: 1rem;
-  align-items: end;
-}
-
-.universal-filters.mobile {
-  grid-template-columns: 1fr;
-}
-
-.filter-field {
-  min-width: 0;
-}
-
-.filter-label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-size: 0.95rem;
-  font-weight: 600;
-}
-
 .activity-scope-select {
   width: 100%;
   font-size: 1rem;
   padding: 0.65rem 0.85rem;
-}
-
-.activity-scope-hint {
-  margin: 0.85rem 0 0;
-  font-size: 0.9rem;
-  color: var(--textSecondary);
-}
-
-.path-filters h3 {
-  margin: 0 0 0.5rem;
-  font-size: 0.95rem;
-  font-weight: 600;
 }
 
 .path-filter-mode {
@@ -1641,13 +2216,48 @@ export default {
   margin-top: 0.75rem;
 }
 
-.filter-field-wide {
-  grid-column: 1 / -1;
-}
-
 .activity-viewer-results {
   margin-top: 1.25rem;
   margin-bottom: 2em;
+}
+
+.results-table {
+  overflow-x: auto;
+}
+
+.results-table :deep(.settings-table) {
+  table-layout: fixed;
+}
+
+.table-cell-text {
+  font-size: 0.9em;
+  color: var(--textPrimary);
+}
+
+.table-cell-text--ellipsis {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.table-cell-text--username,
+.table-cell-text--source {
+  max-width: 10rem;
+}
+
+.table-cell-text--path {
+  max-width: 22rem;
+}
+
+.table-cell-text--shareHash,
+.table-cell-text--tokenDisplay {
+  max-width: 9rem;
+}
+
+.table-cell-text--ipAddress {
+  max-width: 8rem;
 }
 
 .results-stats {
@@ -1662,6 +2272,12 @@ export default {
 
 .results-chart {
   margin-top: 0.25rem;
+}
+
+.chart-interval-note {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+  color: var(--textSecondary);
 }
 
 .results-empty {
@@ -1690,13 +2306,22 @@ export default {
   grid-template-columns: 1fr;
 }
 
+.config-field {
+  min-width: 0;
+}
+
 .config-field h3 {
   margin: 0 0 0.5rem;
   font-size: 0.95rem;
   font-weight: 600;
+  text-align: center;
 }
 
 .config-field-wide {
+  grid-column: 1 / -1;
+}
+
+.custom-range {
   grid-column: 1 / -1;
 }
 
@@ -1810,6 +2435,39 @@ export default {
   color: var(--textSecondary);
 }
 
+.event-type-badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.85em;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.event-type-badge--delete {
+  background: rgba(244, 67, 54, 0.2);
+  color: #c62828;
+}
+
+.event-type-badge--create {
+  background: rgba(33, 150, 243, 0.18);
+  color: #1565c0;
+}
+
+.event-type-badge--change {
+  background: rgba(255, 193, 7, 0.24);
+  color: #f57f17;
+}
+
+.event-type-badge--auth {
+  background: rgba(156, 39, 176, 0.18);
+  color: #7b1fa2;
+}
+
+.event-type-badge--default {
+  background: rgba(128, 128, 128, 0.12);
+  color: var(--textSecondary);
+}
+
 .admin-filters {
   grid-column: 1 / -1;
 }
@@ -1820,24 +2478,14 @@ export default {
   gap: 0.75rem;
 }
 
-.filter-label {
-  display: block;
-  margin-bottom: 0.35rem;
-  font-size: 0.85rem;
-  color: var(--textSecondary);
-}
-
 .chart-panel {
   position: relative;
   width: 100%;
   height: 440px;
   padding: 1.25rem 1.5rem 1rem;
   border: 1px solid var(--divider);
-  background: linear-gradient(
-    165deg,
-    var(--surface1, rgba(255, 255, 255, 0.03)) 0%,
-    var(--surface2, transparent) 100%
-  );
+  background: var(--surfacePrimary);
+  color: var(--textPrimary);
   box-shadow:
     0 1px 2px rgba(0, 0, 0, 0.04),
     0 6px 20px rgba(0, 0, 0, 0.06);

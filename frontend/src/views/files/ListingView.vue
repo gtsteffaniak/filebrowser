@@ -183,8 +183,6 @@ import * as upload from "@/utils/upload";
 import throttle from "@/utils/throttle";
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
-import { readAllDirectoryEntries } from "@/utils/upload";
-
 import Item from "@/components/files/ListingItem.vue";
 import Upload from "@/components/prompts/Upload.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
@@ -360,12 +358,12 @@ export default {
       const pinnedFolders = this.pinnedItems.filter(item => item.type === 'directory').length;
       const pinnedFiles = this.pinnedItems.filter(item => item.type !== 'directory').length;
       if (pinnedFolders > 0 && pinnedFiles === 0) {
-        return `${this.$t("files.pinnedFolders")}`; // "Pinned folders"
+        return this.$t("general.pinnedFolders");
       }
       if (pinnedFiles > 0 && pinnedFolders === 0) {
-        return `${this.$t("files.pinnedFiles")}`;   // "Pinned files"
+        return this.$t("general.pinnedFiles");
       }
-      return this.$t("files.pinnedItems"); // "Pinned items" if we pin both types
+      return this.$t("general.pinned");
     },
     dirs() {
       return this.items.dirs;
@@ -941,7 +939,7 @@ export default {
         // But if it's a directory, read the contents (readEntries may require
         // multiple calls — browsers often return at most ~100 entries per batch)
         const reader = entry.createReader();
-        const entries = await readAllDirectoryEntries(reader, entryPath);
+        const entries = await upload.readAllDirectoryEntries(reader, entryPath);
         // and then for each child recursively collect files
         for (const childEntry of entries) {
           const childFiles = await this.collectFilesFromEntry(

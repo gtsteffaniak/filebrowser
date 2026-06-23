@@ -186,8 +186,8 @@ func listApiTokensHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	if len(d.user.Tokens) == 0 {
 		return http.StatusNotFound, fmt.Errorf("no api tokens found")
 	}
-	AuthTokensFrontend := make([]AuthTokenFrontend, 0, len(d.user.Tokens))
-	for name, token := range d.user.Tokens {
+	AuthTokensFrontend := make([]AuthTokenFrontend, 0)
+	users.EachNamedToken(d.user.Tokens, func(name string, token users.AuthToken) {
 		AuthTokensFrontend = append(AuthTokensFrontend, AuthTokenFrontend{
 			Token:       token.Token,
 			Name:        name,
@@ -195,6 +195,9 @@ func listApiTokensHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 			ExpiresAt:   authTokenExpiresUnix(token),
 			Permissions: token.Permissions,
 		})
+	})
+	if len(AuthTokensFrontend) == 0 {
+		return http.StatusNotFound, fmt.Errorf("no api tokens found")
 	}
 
 	sort.Slice(AuthTokensFrontend, func(i, j int) bool {

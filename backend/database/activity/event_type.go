@@ -24,6 +24,8 @@ const (
 	EventUserUpdate    EventType = "userUpdate"
 	EventUserDelete    EventType = "userDelete"
 	EventAccessUpdate  EventType = "accessUpdate"
+	EventAccessCreate  EventType = "accessCreate"
+	EventAccessDelete  EventType = "accessDelete"
 	EventLogin             EventType = "login"
 	EventLogout            EventType = "logout"
 	EventSignup            EventType = "signup"
@@ -31,7 +33,7 @@ const (
 	EventPasskeyDelete     EventType = "passkeyDelete"
 	EventTokenCreate       EventType = "tokenCreate"
 	EventTokenDelete       EventType = "tokenDelete"
-	EventDuplicateFinder   EventType = "duplicateFinder"
+	EventDuplicateFinder EventType = "duplicateFinder"
 )
 
 // AllEventTypes lists every defined event type for validation and UI filters.
@@ -52,6 +54,8 @@ var AllEventTypes = []EventType{
 	EventUserUpdate,
 	EventUserDelete,
 	EventAccessUpdate,
+	EventAccessCreate,
+	EventAccessDelete,
 	EventLogin,
 	EventLogout,
 	EventSignup,
@@ -73,7 +77,13 @@ var FileEventTypes = []EventType{
 	EventBulkDelete,
 	EventArchive,
 	EventUnarchive,
+}
+
+// AccessEventTypes are access rule mutations (scope=access).
+var AccessEventTypes = []EventType{
+	EventAccessCreate,
 	EventAccessUpdate,
+	EventAccessDelete,
 }
 
 // ShareEventTypes are share lifecycle events (scope=shares). Share downloads are
@@ -98,13 +108,15 @@ func ResolveScopeEventTypes(scope string, explicit []EventType) ([]EventType, er
 		return explicit, nil
 	case "files":
 		allowed = FileEventTypes
+	case "access":
+		allowed = AccessEventTypes
 	case "shares":
 		if len(explicit) == 0 {
 			return nil, nil
 		}
 		allowed = ShareScopeEventTypes
 	default:
-		return nil, fmt.Errorf("scope must be all, files, or shares")
+		return nil, fmt.Errorf("scope must be all, files, access, or shares")
 	}
 	if len(explicit) == 0 {
 		return allowed, nil
@@ -133,7 +145,7 @@ func (e EventType) Valid() bool {
 		EventUpload, EventDelete, EventBulkDelete,
 		EventArchive, EventUnarchive,
 		EventShareCreate, EventShareUpdate, EventShareDelete, EventShareDownload,
-		EventUserCreate, EventUserUpdate, EventUserDelete, EventAccessUpdate,
+		EventUserCreate, EventUserUpdate, EventUserDelete, EventAccessUpdate, EventAccessCreate, EventAccessDelete,
 		EventLogin, EventLogout, EventSignup,
 		EventPasskeyRegister, EventPasskeyDelete,
 		EventTokenCreate, EventTokenDelete,
@@ -142,6 +154,12 @@ func (e EventType) Valid() bool {
 	default:
 		return false
 	}
+}
+
+// IsIgnoredLegacyEventType reports obsolete event_type values that should be
+// excluded from queries and API responses (legacy rows may still exist in DB).
+func IsIgnoredLegacyEventType(e EventType) bool {
+	return e == "apiError"
 }
 
 // String returns the wire/database representation.

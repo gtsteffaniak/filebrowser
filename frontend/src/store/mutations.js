@@ -598,29 +598,47 @@ export const mutations = {
     }
     // Update users if there's any change in state.user
     if (JSON.stringify(state.user) !== JSON.stringify(previousUser)) {
-      // Only update the properties that were actually provided in the input
-      const updatedProperties = Object.keys(value).filter(key =>
-        [
-          "locale",
-          "dateFormat",
-          "themeColor",
-          "quickDownload",
-          "preview",
-          "stickySidebar",
-          "singleClick",
-          "darkMode",
-          "showHidden",
-          "sorting",
-          "showFirstLogin",
-          "sidebarLinks",
-          "fileLoading",
-          "deleteAfterArchive",
-          "preferEditorForMarkdown",
-        ].includes(key)
+      const syncableProperties = [
+        "locale",
+        "dateFormat",
+        "themeColor",
+        "customTheme",
+        "quickDownload",
+        "preview",
+        "stickySidebar",
+        "singleClick",
+        "darkMode",
+        "showHidden",
+        "sorting",
+        "showFirstLogin",
+        "sidebarLinks",
+        "showToolsInSidebar",
+        "fileLoading",
+        "deleteAfterArchive",
+        "deleteWithoutConfirming",
+        "preferEditorForMarkdown",
+        "disablePreviewExt",
+        "disableViewingExt",
+        "disableOnlyOfficeExt",
+        "hideFileExt",
+        "disableQuickToggles",
+        "disableSearchOptions",
+        "hideSidebarFileActions",
+        "showCopyPath",
+        "hideFilesInTree",
+        "editorQuickSave",
+        "showSelectMultiple",
+        "debugOffice",
+        "disableUpdateNotifications",
+      ];
+      const updatedProperties = Object.keys(value).filter(
+        (key) =>
+          syncableProperties.includes(key) &&
+          JSON.stringify(getObjectProperty(previousUser, key)) !==
+            JSON.stringify(getObjectProperty(value, key)),
       );
-      value.username = state.user?.username;
       if (updatedProperties.length > 0) {
-        void usersApi.update(value, updatedProperties).catch((e) => notify.showError(e));
+        await usersApi.update(state.user, updatedProperties).catch((e) => notify.showError(e));
       }
     }
     // Emit state change event

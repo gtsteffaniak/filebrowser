@@ -54,3 +54,44 @@ func TestCreateUserValidateUsername(t *testing.T) {
 		})
 	}
 }
+
+func TestPreserveServerManagedFieldsKeepsTokens(t *testing.T) {
+	old := &users.User{
+		Version: 3,
+		Tokens: map[string]users.AuthToken{
+			"ci-key": {Name: "ci-key", Token: "jwt-abc"},
+		},
+		PinnedItems: users.PinnedItems{"src": {"idx": {"a.txt"}}},
+	}
+	incoming := &users.User{
+		FrontendUser: users.FrontendUser{Username: "alice"},
+	}
+
+	preserveServerManagedFields(old, incoming)
+
+	if incoming.Tokens == nil || incoming.Tokens["ci-key"].Token != "jwt-abc" {
+		t.Fatalf("expected tokens preserved, got %#v", incoming.Tokens)
+	}
+	if incoming.PinnedItems == nil {
+		t.Fatal("expected pinned items preserved")
+	}
+	if incoming.Version != 3 {
+		t.Fatalf("expected version preserved, got %d", incoming.Version)
+	}
+}
+
+func TestPreserveServerManagedFieldsClearsTOTPWhenDisabled(t *testing.T) {
+	old := &users.User{
+		TOTPSecret: "secret",
+		TOTPNonce:  "nonce",
+	}
+	incoming := &users.User{
+		FrontendUser: users.FrontendUser{OtpEnabled: false},
+	}
+
+	preserveServerManagedFields(old, incoming)
+
+	if incoming.TOTPSecret != "" || incoming.TOTPNonce != "" {
+		t.Fatalf("expected TOTP not preserved when disabled, got secret=%q nonce=%q", incoming.TOTPSecret, incoming.TOTPNonce)
+	}
+}

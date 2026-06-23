@@ -48,12 +48,18 @@
       <p> {{ $t('share.notice') }} </p>
       <p v-if="sourceReadOnly" class="read-only-notice">{{ $t('share.readOnlySourceNotice') }}</p>
 
+      <a
+        v-if="!isEditingPath"
+        class="button button--flat button--blue activity-viewer-link"
+        :href="activityViewerHref"
+      >{{ $t("tools.activityViewer.viewActivity") }}</a>
+
       <div v-if="listing">
         <settings-table
           :columns="sharePromptTableColumns"
           :items="links"
           item-key="hash"
-          :aria-label="$t('settings.shareManagement')"
+          :aria-label="shareManagementLabel()"
           :loading="linksLoading"
         >
           <template #cell-expire="{ row }">
@@ -120,7 +126,7 @@
           <div class="form-flex-group">
             <input class="form-grow input flat-right" v-focus type="number" max="2147483647" min="0"
               @keyup.enter="submit" v-model.trim="time" />
-            <select class="flat-left input form-dropdown" v-model="unit" :aria-label="$t('time.unit')">
+            <select class="flat-left input form-dropdown" v-model="unit" :aria-label="timeUnitLabel()">
               <option value="minutes">{{ $t("time.minutes") }}</option>
               <option value="hours">{{ $t("time.hours") }}</option>
               <option value="days">{{ $t("time.days") }}</option>
@@ -179,7 +185,7 @@
           :start-collapsed="!showMoreExpanded" @toggle="showMoreExpanded = $event">
           <div class="settings-items">
             <p>
-              {{ $t("prompts.shareTheme") }}
+              {{ shareThemeLabel() }}
               <i class="material-symbols-outlined tooltip-info-icon"
                 @mouseenter="showTooltip($event, $t('share.shareThemeDescription'))" @mouseleave="hideTooltip">
                 help
@@ -311,7 +317,7 @@
           <input class="input" type="text" v-model.trim="themeColor" />
 
           <p>
-            {{ $t("prompts.shareTitle") }}
+            {{ shareTitleLabel() }}
             <i class="material-symbols-outlined tooltip-info-icon"
               @mouseenter="showTooltip($event, $t('share.shareTitleDescription'))" @mouseleave="hideTooltip">
               help
@@ -393,6 +399,7 @@ import { buildItemUrl } from "@/utils/url";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
 import SettingsTable from "@/components/settings/Table.vue";
+import { activityViewerPresets } from "@/utils/activityViewerLink";
 import FileList from "../files/FileList.vue";
 import { globalVars } from "@/utils/constants";
 import { eventBus } from "@/store/eventBus";
@@ -500,6 +507,18 @@ export default {
     displaySource() {
       // When editing, use the link's source; otherwise use the item's source
       return this.isEditMode ? this.link.source : this.item.source;
+    },
+    activityViewerHref() {
+      if (this.isEditMode && this.link?.hash) {
+        return activityViewerPresets.shareHash(this.link.hash);
+      }
+      if (this.editingLink?.hash) {
+        return activityViewerPresets.shareHash(this.editingLink.hash);
+      }
+      if (this.displaySource) {
+        return activityViewerPresets.sharePath(this.displaySource, this.displayPath);
+      }
+      return activityViewerPresets.shares();
     },
     sourceReadOnly() {
       const info = state.sources.info?.[this.displaySource];
@@ -691,6 +710,18 @@ export default {
     eventBus.off('pathPickerCancelled', this.onBannerFaviconPathPickerCancelled);
   },
   methods: {
+    shareManagementLabel() {
+      return this.$t("general.shareManagement");
+    },
+    shareThemeLabel() {
+      return this.$t("general.shareTheme");
+    },
+    shareTitleLabel() {
+      return this.$t("general.shareTitle");
+    },
+    timeUnitLabel() {
+      return this.$t("time.timeUnit");
+    },
     applyReadOnlyConstraints() {
       if (this.shareType === 'upload') {
         this.shareType = 'normal';

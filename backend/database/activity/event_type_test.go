@@ -32,6 +32,27 @@ func TestResolveScopeEventTypes(t *testing.T) {
 	if len(got) != len(FileEventTypes) {
 		t.Fatalf("files default: got %d types, want %d", len(got), len(FileEventTypes))
 	}
+	got, err = ResolveScopeEventTypes("access", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got) != len(AccessEventTypes) {
+		t.Fatalf("access default: got %d types, want %d", len(got), len(AccessEventTypes))
+	}
+	for _, et := range AccessEventTypes {
+		if !containsEventType(got, et) {
+			t.Fatalf("access default missing %q in %v", et, got)
+		}
+	}
+}
+
+func containsEventType(list []EventType, target EventType) bool {
+	for _, et := range list {
+		if et == target {
+			return true
+		}
+	}
+	return false
 }
 
 func TestEventTypeFromAction(t *testing.T) {

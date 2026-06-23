@@ -189,7 +189,7 @@ export default {
       });
     },
     getSpaceText() {
-      return this.hasAnimations ? `${this.$t("general.play")}/${this.$t("general.pause")}` : this.$t("threejs.autoRotate");
+      return this.hasAnimations ? this.$t("general.playPause") : this.$t("threejs.autoRotate");
     },
     initIntersectionObserver() {
       // Use a single global observer if possible, but for now localize config

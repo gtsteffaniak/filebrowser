@@ -305,7 +305,8 @@ func updateTokens(user *users.User) bool {
 		user.Tokens = make(map[string]users.AuthToken)
 		for name, token := range user.ApiKeys {
 			token.Token = token.Key
-			user.Tokens[name] = token
+			token.Name = name
+			users.StoreToken(user.Tokens, token)
 		}
 	}
 	user.Version = 2

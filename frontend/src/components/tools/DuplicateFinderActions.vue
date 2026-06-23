@@ -6,7 +6,7 @@
       <span>{{ $t('general.delete') }} {{ selectedCount }}</span>
     </button>
     <button type="button" @click="handleClear" class="button">
-      <span>{{ $t('general.clear', { suffix: '' }) }} {{ $t('general.select', { suffix: '' }) }}</span>
+      <span>{{ $t('general.clearSelection') }}</span>
     </button>
   </div>
 </template>

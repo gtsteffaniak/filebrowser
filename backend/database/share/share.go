@@ -40,15 +40,8 @@ type FrontendShareInfo struct {
 	CanEditShare         bool                `json:"canEditShare,omitempty"`
 }
 
-// ShareFrontend is the share shape exposed to the API (list/get/create/update) and stored presentation fields.
-type ShareFrontend struct {
-	FrontendShareInfo
-	Username                 string   `json:"username,omitempty"`
-	Hash                     string   `json:"hash,omitempty" storm:"id,index"`
-	SourceName               string   `json:"source,omitempty"` // source display name for API; backend path is Share.SourcePath
-	Path                     string   `json:"path,omitempty"`
-	Expires                  string   `json:"expires,omitempty"`
-	Unit                     string   `json:"unit,omitempty"`
+// ShareLimits are bandwidth, access, and banner settings stored in share_settings JSON.
+type ShareLimits struct {
 	MaxBandwidth             int      `json:"maxBandwidth,omitempty"`
 	AllowedUsernames         []string `json:"allowedUsernames,omitempty"`
 	PerUserDownloadLimit     bool     `json:"perUserDownloadLimit,omitempty"`
@@ -56,27 +49,72 @@ type ShareFrontend struct {
 	DownloadsLimit           int      `json:"downloadsLimit,omitempty"`
 	HideFileExt              string   `json:"hideFileExt,omitempty"` // show hidden files based on extensions in shares
 	Banner                   string   `json:"banner,omitempty"`
-	Expire                   int64    `json:"expire"`
-	PathExists               bool     `json:"pathExists,omitempty"`
-	Downloads                int      `json:"downloads,omitempty"`
+	SourceName               string   `json:"source,omitempty"` // source display name for API; backend path is Share.SourcePath
 }
 
-// SharePostBody is POST/PATCH /api/share JSON. Plaintext password is hashed to Share.PasswordHash before persist.
+// ShareExpiryInput is POST body input used to compute ShareColumns.Expire (not persisted).
+type ShareExpiryInput struct {
+	Expires string `json:"expires,omitempty"`
+	Unit    string `json:"unit,omitempty"`
+}
+
+// ShareSettings is persisted in the share_settings JSON column.
+type ShareSettings struct {
+	FrontendShareInfo
+	ShareLimits
+	PinnedItems PinnedItems `json:"pinnedItems,omitempty"`
+}
+
+// ShareColumns are SQL-backed identity and counter fields.
+type ShareColumns struct {
+	Hash      string `json:"hash,omitempty" storm:"id,index"`
+	Path      string `json:"path,omitempty"`
+	Expire    int64  `json:"expire"`
+	Downloads int    `json:"downloads,omitempty"`
+}
+
+// ShareEditable is the client-editable subset used in POST/PATCH bodies.
+type ShareEditable struct {
+	FrontendShareInfo
+	ShareLimits
+	ShareExpiryInput
+}
+
+// ShareFrontend is the share shape returned by list/get/create/update API responses.
+type ShareFrontend struct {
+	ShareEditable
+	ShareColumns
+	Username   string `json:"username,omitempty"`
+	PathExists bool   `json:"pathExists,omitempty"`
+}
+
+// SharePostBody is POST /api/share JSON. Plaintext password is hashed to Share.PasswordHash before persist.
+// Password omitted (nil) on update means keep the existing hash; empty string clears it.
 type SharePostBody struct {
-	ShareFrontend
-	Password string `json:"password,omitempty"`
+	ShareEditable
+	Password *string `json:"password,omitempty"`
+	Hash     string  `json:"hash,omitempty"`
+	Path     string  `json:"path,omitempty"`
 }
 
-// Share is the persisted share: embedded ShareFrontend plus backend columns (json tags support legacy import).
+// ApplyPostBodyUpdate copies client-editable fields onto link.
+// Caller must preserve path, sourcePath, pinnedItems, version, download counters, and secrets.
+func ApplyPostBodyUpdate(link *Share, req *SharePostBody, expire int64) {
+	link.FrontendShareInfo = req.FrontendShareInfo
+	link.ShareLimits = req.ShareLimits
+	link.Expire = expire
+}
+
+// Share is the persisted share: settings JSON, SQL columns, and backend-only fields.
 type Share struct {
-	ShareFrontend
+	ShareSettings
+	ShareColumns
 	PasswordHash  string         `json:"password_hash,omitempty"`
 	UserID        uint64         `json:"userID,omitempty"`
 	Token         string         `json:"token,omitempty"`
 	UserDownloads map[string]int `json:"userDownloads,omitempty"`
 	Version       int            `json:"version,omitempty"`
 	SourcePath    string         `json:"sourcePath,omitempty"`
-	PinnedItems   PinnedItems    `json:"pinnedItems,omitempty"`
 }
 
 // LegacyShare embeds Share for Bolt/Storm. LegacyRoutingSource is the historical Bolt/JSON "source" field
@@ -96,6 +134,5 @@ func (l *LegacyShare) ToShare() Share {
 		s.PasswordHash = l.PasswordHash
 	}
 	s.SourcePath = l.LegacyRoutingSource
-	s.Username = ""
 	return s
 }

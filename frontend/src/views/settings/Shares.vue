@@ -1,7 +1,8 @@
 <template>
   <errors v-if="error" :errorCode="error.status" />
   <div class="card-title">
-    <h2>{{ $t("settings.shareManagement") }}</h2>
+    <h2>{{ shareManagementLabel() }}</h2>
+    <a class="button button--flat button--blue activity-viewer-link" :href="activityViewerHref">{{ $t("tools.activityViewer.viewActivity") }}</a>
   </div>
 
   <div class="card-content full">
@@ -10,7 +11,7 @@
       :items="links"
       item-key="hash"
       default-sort-key="path"
-      :aria-label="$t('settings.shareManagement')"
+      :aria-label="shareManagementLabel()"
       :loading="loading"
     >
       <template #cell-path="{ row }">
@@ -87,6 +88,7 @@ import { shareApi } from "@/api";
 import { state, mutations } from "@/store";
 import Errors from "@/views/Errors.vue";
 import SettingsTable from "@/components/settings/Table.vue";
+import { activityViewerPresets } from "@/utils/activityViewerLink";
 import { fromNow } from '@/utils/moment';
 import { eventBus } from "@/store/eventBus";
 import { copyToClipboard } from "@/utils/clipboard";
@@ -122,9 +124,6 @@ export default {
     },
     active() {
       return state.activeSettingsView === "shares-main";
-    },
-    user() {
-      return state.user;
     },
     sharesTableColumns() {
       return [
@@ -167,8 +166,14 @@ export default {
         { key: "copyDownload", label: "", narrow: true, align: "center" },
       ];
     },
+    activityViewerHref() {
+      return activityViewerPresets.shares();
+    },
   },
   methods: {
+    shareManagementLabel() {
+      return this.$t("general.shareManagement");
+    },
     async copyToClipboard(text) {
       await copyToClipboard(text);
     },

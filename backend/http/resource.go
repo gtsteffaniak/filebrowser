@@ -635,7 +635,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			return errToStatus(err), err
 		}
 
-		recordUploadActivity(r, d, source, path, true)
+		recordUploadActivity(r, d, source, path, true, 0)
 		return http.StatusOK, nil
 	}
 
@@ -746,7 +746,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 				return http.StatusInternalServerError, fmt.Errorf("could not move file from chunked folder to destination: %v", err)
 			}
 			reconcileSharesAfterMove(false, source, source, tempFilePath, realPath)
-			recordUploadActivity(r, d, source, path, false)
+			recordUploadActivity(r, d, source, path, false, 0)
 		}
 		return http.StatusOK, nil
 	}
@@ -766,7 +766,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		logger.Debugf("error writing file: %v", err)
 		return errToStatus(err), err
 	}
-	recordUploadActivity(r, d, source, path, false)
+	recordUploadActivity(r, d, source, path, false, 0)
 	return http.StatusOK, nil
 }
 
@@ -816,7 +816,6 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	// check if destination is a directory
 	stat, err := os.Stat(filepath.Join(idx.Path + fullIndexPath))
 	if err == nil && stat.IsDir() {
-		// if directory return StatusMethodNotAllowed
 		return http.StatusMethodNotAllowed, fmt.Errorf("path is a directory")
 	}
 
@@ -857,6 +856,11 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 
 	if req.Action == "" {
 		return http.StatusBadRequest, fmt.Errorf("action is required (copy, move, or rename)")
+	}
+	switch req.Action {
+	case "copy", "move", "rename":
+	default:
+		return http.StatusBadRequest, fmt.Errorf("invalid action: %s (must be copy, move, or rename)", req.Action)
 	}
 
 	response := MoveCopyResponse{
@@ -1085,6 +1089,11 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		response.Failed = append(response.Failed, MoveCopyItem{
 			Message: "no operations performed",
 		})
+	}
+
+	// Record failed operations before share response sanitization strips paths.
+	for _, item := range response.Failed {
+		recordPatchItemActivity(r, d, req.Action, item, patchFailureHTTPStatus(item.Message))
 	}
 
 	// For shares, sanitize the response to only include messages (hide paths)

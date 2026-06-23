@@ -59,8 +59,8 @@ export default {
   },
   computed: {
     spaceText() {
-      return this.hasAnimations 
-        ? `${this.$t("general.play")}/${this.$t("general.pause")}` 
+      return this.hasAnimations
+        ? this.$t("general.playPause")
         : this.$t("threejs.autoRotate");
     },
   },

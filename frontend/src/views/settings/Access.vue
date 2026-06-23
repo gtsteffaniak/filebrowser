@@ -17,6 +17,7 @@
         </option>
       </select>
     </div>
+    <a class="button button--flat button--blue activity-viewer-link" :href="activityViewerHref">{{ $t("tools.activityViewer.viewActivity") }}</a>
   </div>
   <div class="card-content full">
     <settings-table
@@ -54,6 +55,7 @@ import { accessApi } from "@/api";
 import { state, mutations } from "@/store";
 import Errors from "@/views/Errors.vue";
 import SettingsTable from "@/components/settings/Table.vue";
+import { activityViewerPresets } from "@/utils/activityViewerLink";
 import { eventBus } from "@/store/eventBus";
 export default {
   name: "accessSettings",
@@ -115,6 +117,9 @@ export default {
           align: "right",
         },
       ];
+    },
+    activityViewerHref() {
+      return activityViewerPresets.access(this.selectedSource, "/");
     },
   },
   methods: {

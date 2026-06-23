@@ -412,3 +412,68 @@ func TestActivityPathPrefixLikeLiterals(t *testing.T) {
 		t.Fatalf("expected /a_b/file.txt, got %q", underscoreRows[0].Path)
 	}
 }
+
+func TestActivitySourceFilterMatchesAccessFailureRequestPath(t *testing.T) {
+	dir := t.TempDir()
+	dbPath := filepath.Join(dir, "access-failure-source.sqlite")
+
+	store, _, err := NewSQLStore(dbPath)
+	if err != nil {
+		t.Fatalf("NewSQLStore: %v", err)
+	}
+	defer store.Close()
+
+	now := time.Now().Unix()
+	entries := []activitydb.Entry{
+		{
+			CreatedAt: now,
+			UserID:    1,
+			EventType: activitydb.EventAccessCreate,
+			Source:    "Downloads",
+			Path:      "/",
+			Status:    200,
+			Success:   true,
+		},
+		{
+			CreatedAt: now - 1,
+			UserID:    1,
+			EventType: activitydb.EventAccessCreate,
+			Status:    400,
+			Success:   false,
+			Details: activitydb.Details{
+				RequestPath: "/access?source=Downloads&path=%2F",
+				Error:       "user not found: test",
+			},
+		},
+		{
+			CreatedAt: now - 2,
+			UserID:    1,
+			EventType: activitydb.EventAccessCreate,
+			Status:    400,
+			Success:   false,
+			Details: activitydb.Details{
+				RequestPath: "/access?source=access&path=%2F",
+				Error:       "user not found: other",
+			},
+		},
+	}
+	if err = store.BulkInsertActivity(entries); err != nil {
+		t.Fatalf("BulkInsertActivity: %v", err)
+	}
+
+	filter := activitydb.QueryFilter{
+		From:       now - 10,
+		To:         now + 10,
+		Source:     "Downloads",
+		EventTypes: activitydb.AccessEventTypes,
+		Page:       1,
+		Limit:      10,
+	}
+	count, err := store.CountActivity(filter)
+	if err != nil {
+		t.Fatalf("CountActivity: %v", err)
+	}
+	if count != 2 {
+		t.Fatalf("expected 2 Downloads access rows, got %d", count)
+	}
+}

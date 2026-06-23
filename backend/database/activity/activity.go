@@ -11,9 +11,13 @@ type Details struct {
 	ShareHash        string        `json:"shareHash,omitempty"`
 	ShareOwnerUserID uint64        `json:"shareOwnerUserId,omitempty"`
 	Scopes           []ScopeDetail `json:"scopes,omitempty"`
-	TokenName        string        `json:"tokenName,omitempty"`
+	TokenName         string        `json:"tokenName,omitempty"` // actor token; API exposes on FrontendEntry only
+	AffectedTokenName string        `json:"affectedTokenName,omitempty"` // token created/deleted (actor token is TokenName)
+	AuthMethod        string        `json:"authMethod,omitempty"` // actor auth; API exposes on FrontendEntry only
 	LoginMethod      string        `json:"loginMethod,omitempty"`
 	PasskeyName      string        `json:"passkeyName,omitempty"`
+	UpdatedFields    []string      `json:"updatedFields,omitempty"`
+	Changes          []FieldChange `json:"changes,omitempty"`
 	Cached           bool          `json:"cached,omitempty"`
 	FileCount        int           `json:"fileCount,omitempty"`
 	Paths            []string      `json:"paths,omitempty"`
@@ -21,6 +25,8 @@ type Details struct {
 	Bytes            int64         `json:"bytes,omitempty"`
 	DurationMs       int64         `json:"durationMs,omitempty"`
 	Error            string        `json:"error,omitempty"`
+	Method           string        `json:"method,omitempty"`
+	RequestPath      string        `json:"requestPath,omitempty"`
 }
 
 // ScopeDetail is a user source + path scope for admin/user mutation events.
@@ -29,17 +35,25 @@ type ScopeDetail struct {
 	Path   string `json:"path"`
 }
 
+// FieldChange records one attribute that changed on user/share update events.
+type FieldChange struct {
+	Field string `json:"field"`
+	From  string `json:"from,omitempty"`
+	To    string `json:"to"`
+}
+
 // FrontendDetails is the admin-only detail payload exposed to the API.
 type FrontendDetails struct {
 	TargetUsername string        `json:"targetUsername,omitempty"`
 	Source         string        `json:"source,omitempty"`
 	Path           string        `json:"path,omitempty"`
 	TargetPath     string        `json:"targetPath,omitempty"`
-	ShareHash      string        `json:"shareHash,omitempty"`
 	Scopes         []ScopeDetail `json:"scopes,omitempty"`
-	TokenName      string        `json:"tokenName,omitempty"`
+	AffectedTokenName string        `json:"affectedTokenName,omitempty"`
 	LoginMethod    string        `json:"loginMethod,omitempty"`
 	PasskeyName    string        `json:"passkeyName,omitempty"`
+	UpdatedFields  []string      `json:"updatedFields,omitempty"`
+	Changes        []FieldChange `json:"changes,omitempty"`
 	Cached         bool          `json:"cached,omitempty"`
 	FileCount      int           `json:"fileCount,omitempty"`
 	Paths          []string      `json:"paths,omitempty"`
@@ -47,9 +61,14 @@ type FrontendDetails struct {
 	Bytes          int64         `json:"bytes,omitempty"`
 	DurationMs     int64         `json:"durationMs,omitempty"`
 	Error          string        `json:"error,omitempty"`
+	Method         string        `json:"method,omitempty"`
+	RequestPath    string        `json:"requestPath,omitempty"`
 }
 
 const maxDetailPaths = 50
+
+// MaxSplitActivityRecords caps how many individual rows are recorded from one multi-path action.
+const MaxSplitActivityRecords = maxDetailPaths
 
 // CapPaths limits paths stored in details to avoid oversized JSON blobs.
 func (d *Details) CapPaths() {
@@ -67,18 +86,21 @@ func (d Details) ToFrontendDetails() FrontendDetails {
 		Source:         d.Source,
 		Path:           d.Path,
 		TargetPath:     d.TargetPath,
-		ShareHash:      d.ShareHash,
 		Scopes:         d.Scopes,
-		TokenName:      d.TokenName,
+		AffectedTokenName: d.AffectedTokenName,
 		LoginMethod:    d.LoginMethod,
 		PasskeyName:    d.PasskeyName,
+		UpdatedFields:  d.UpdatedFields,
+		Changes:        append([]FieldChange(nil), d.Changes...),
 		Cached:         d.Cached,
 		FileCount:      d.FileCount,
-		Paths:          d.Paths,
+		Paths:          append([]string(nil), d.Paths...),
 		Truncated:      d.Truncated,
 		Bytes:          d.Bytes,
 		DurationMs:     d.DurationMs,
 		Error:          d.Error,
+		Method:         d.Method,
+		RequestPath:    d.RequestPath,
 	}
 }
 
@@ -99,27 +121,53 @@ type Entry struct {
 
 // FrontendEntry is the narrowed API response (like FrontendUser on User).
 type FrontendEntry struct {
-	ID        int64           `json:"id"`
-	CreatedAt int64           `json:"createdAt"`
-	Username  string          `json:"username"`
-	EventType EventType       `json:"eventType"`
-	IPAddress string          `json:"ipAddress,omitempty"`
-	Status    int             `json:"status"`
-	Details   FrontendDetails `json:"details,omitempty"`
+	ID         int64           `json:"id"`
+	CreatedAt  int64           `json:"createdAt"`
+	Username   string          `json:"username"`
+	EventType  EventType       `json:"eventType"`
+	Source     string          `json:"source,omitempty"`
+	Path       string          `json:"path,omitempty"`
+	TargetPath string          `json:"targetPath,omitempty"`
+	ShareHash  string          `json:"shareHash,omitempty"`
+	TokenName  string          `json:"tokenName,omitempty"`
+	AuthMethod string          `json:"authMethod,omitempty"`
+	IPAddress  string          `json:"ipAddress,omitempty"`
+	Status     int             `json:"status"`
+	Details    FrontendDetails `json:"details,omitempty"`
 }
 
 // PrepForFrontend converts a persisted entry into the API response shape.
 // actorUsername is the display name for the user who performed the action (from UserID).
 func (e Entry) PrepForFrontend(actorUsername string) FrontendEntry {
-	return FrontendEntry{
-		ID:        e.ID,
-		CreatedAt: e.CreatedAt,
-		Username:  actorUsername,
-		EventType: e.EventType,
-		IPAddress: e.IPAddress,
-		Status:    e.Status,
-		Details:   e.Details.ToFrontendDetails(),
+	fe := FrontendEntry{
+		ID:         e.ID,
+		CreatedAt:  e.CreatedAt,
+		Username:   actorUsername,
+		EventType:  e.EventType,
+		Source:     e.Source,
+		Path:       e.Path,
+		TargetPath: e.TargetPath,
+		IPAddress:  e.IPAddress,
+		Status:     e.Status,
+		Details:    e.Details.ToFrontendDetails(),
 	}
+	if fe.Source == "" {
+		fe.Source = e.Details.Source
+	}
+	if fe.Path == "" {
+		fe.Path = e.Details.Path
+	}
+	if fe.TargetPath == "" {
+		fe.TargetPath = e.Details.TargetPath
+	}
+	fe.ShareHash = e.Details.ShareHash
+	if fe.TokenName == "" {
+		fe.TokenName = e.Details.TokenName
+	}
+	if fe.AuthMethod == "" {
+		fe.AuthMethod = e.Details.AuthMethod
+	}
+	return fe
 }
 
 // ListResponse is the paginated activity list API response.
@@ -170,9 +218,11 @@ type QueryFilter struct {
 	ShareOwnerFilter bool     // restrict to shares owned by ShareOwnerUserID
 	OwnedShareHashes []string // legacy share-download rows without shareOwnerUserId
 	Page             int
-	Limit      int
+	Limit            int
+	StatusMin        int // HTTP status lower bound (0 = unset)
+	StatusMax        int // HTTP status upper bound (0 = unset)
 	Interval   string // minute, hour, day, none — time bucket on the X-axis
-	SplitBy    string // eventType, user, none — series dimension
+	SplitBy    string // eventType, user, outcome, none — series dimension
 	GroupBy    string // maps to Interval when Interval is empty
 }
 

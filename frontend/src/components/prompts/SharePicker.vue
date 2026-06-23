@@ -10,7 +10,7 @@
       :items="shares"
       item-key="hash"
       default-sort-key="path"
-      :aria-label="$t('tools.activityViewer.chooseShare')"
+      :aria-label="$t('sidebar.chooseShare')"
       row-clickable
       :lonely-message-key="shares.length === 0 ? 'tools.activityViewer.noShares' : undefined"
       @row-click="selectShare"

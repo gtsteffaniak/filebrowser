@@ -199,7 +199,6 @@ import { globalVars } from "@/utils/constants";
 import { resourcesApi } from "@/api";
 import ShareInfo from "@/components/files/ShareInfo.vue";
 import FileTree from '@/components/files/FileTree.vue';
-
 export default {
   name: "SidebarLinks",
   components: {
@@ -218,7 +217,7 @@ export default {
       return getters.isMobile();
     },
     editShareText() {
-      return this.$t('settings.shareManagement');
+      return this.$t("general.shareManagement");
     },
     canEdit() {
       return state.shareInfo?.canEditShare || false;

@@ -66,6 +66,7 @@ func finishUserLoad(user *users.User, userDataJSON []byte) error {
 	user.Password = userData.Password
 	user.BackendScopes = userData.BackendScopes
 	user.Tokens = userData.Tokens
+	users.IndexTokensForLookup(user.Tokens)
 	user.TOTPSecret = userData.TOTPSecret
 	user.TOTPNonce = userData.TOTPNonce
 	user.LoginMethod = userData.LoginMethod
@@ -217,7 +218,7 @@ func (s *SQLStore) CreateUser(user *users.User) error {
 	userData := UserData{
 		Password:         user.Password,
 		BackendScopes:    user.BackendScopes,
-		Tokens:           user.Tokens,
+		Tokens:           users.TokensForPersist(user.Tokens),
 		TOTPSecret:       user.TOTPSecret,
 		TOTPNonce:        user.TOTPNonce,
 		LoginMethod:      user.LoginMethod,
@@ -263,7 +264,7 @@ func (s *SQLStore) UpdateUser(user *users.User) error {
 	userData := UserData{
 		Password:         user.Password,
 		BackendScopes:    user.BackendScopes,
-		Tokens:           user.Tokens,
+		Tokens:           users.TokensForPersist(user.Tokens),
 		TOTPSecret:       user.TOTPSecret,
 		TOTPNonce:        user.TOTPNonce,
 		LoginMethod:      user.LoginMethod,

@@ -294,6 +294,9 @@ func UpdateUser(user *users.User, plaintextPassword string, fields ...string) er
 			user.Password = existingUser.Password
 		}
 
+		// Profile PUT (which=all) omits server-managed fields; keep persisted data.
+		preserveServerManagedFields(existingUser, user)
+
 		// Replace entire user pointer
 		existingUser = user
 	}
@@ -347,6 +350,30 @@ func UpdateUser(user *users.User, plaintextPassword string, fields ...string) er
 	usersByName[existingUser.Username] = existingUser
 
 	return nil
+}
+
+// preserveServerManagedFields copies persisted server-side data when a full user PUT
+// omits fields the frontend never sends (API tokens, passkeys, pinned items, etc.).
+func preserveServerManagedFields(old, new *users.User) {
+	if new.Tokens == nil && old.Tokens != nil {
+		new.Tokens = old.Tokens
+	}
+	if new.ApiKeys == nil && old.ApiKeys != nil {
+		new.ApiKeys = old.ApiKeys
+	}
+	if len(new.PasskeyCredentials) == 0 && len(old.PasskeyCredentials) > 0 {
+		new.PasskeyCredentials = old.PasskeyCredentials
+	}
+	if new.PinnedItems == nil && old.PinnedItems != nil {
+		new.PinnedItems = old.PinnedItems
+	}
+	if new.OtpEnabled && new.TOTPSecret == "" && new.TOTPNonce == "" && old.TOTPSecret != "" {
+		new.TOTPSecret = old.TOTPSecret
+		new.TOTPNonce = old.TOTPNonce
+	}
+	if new.Version == 0 && old.Version != 0 {
+		new.Version = old.Version
+	}
 }
 
 // fieldListPatchesBackendScopes reports whether fields include persisted scope paths (JSON tag
@@ -447,6 +474,16 @@ func DeleteUserByUsername(username string) error {
 	return nil
 }
 
+// TokenNameForRawToken returns the persisted token name when rawToken matches a stored API key.
+func TokenNameForRawToken(user *users.User, rawToken string) (string, bool) {
+	if user == nil {
+		return "", false
+	}
+	usersMux.RLock()
+	defer usersMux.RUnlock()
+	return users.TokenNameByRaw(user.Tokens, rawToken)
+}
+
 // AddUserToken adds an API token to a user
 func AddUserToken(ownerUsername string, token users.AuthToken) error {
 	usersMux.Lock()
@@ -468,7 +505,7 @@ func AddUserToken(ownerUsername string, token users.AuthToken) error {
 	if user.Tokens == nil {
 		user.Tokens = make(map[string]users.AuthToken)
 	}
-	user.Tokens[token.Name] = token
+	users.StoreToken(user.Tokens, token)
 
 	// 2. Write to database
 	err := sqlStore.UpdateUser(user)
@@ -500,7 +537,7 @@ func DeleteUserToken(ownerUsername string, tokenName string) error {
 	}
 
 	// Prepare the update
-	delete(user.Tokens, tokenName)
+	users.RemoveTokenByName(user.Tokens, tokenName)
 
 	// 2. Write to database
 	err := sqlStore.UpdateUser(user)

@@ -146,7 +146,7 @@
             </div>
             <div v-if="includeFoldersValue" class="legend-item">
               <span class="legend-color type-directory"></span>
-              <span>{{ $t('fileTypes.directory') }}</span>
+              <span>{{ $t('general.folder') }}</span>
             </div>
             <div class="legend-item">
               <span class="legend-color type-other"></span>
@@ -661,7 +661,7 @@ export default {
       const typeInfo = getTypeInfo(type);
       const simpleType = typeInfo.simpleType;
       switch (simpleType) {
-        case "directory": return this.$t('fileTypes.directory');
+        case "directory": return this.$t('general.folder');
         case "video": return this.$t('fileTypes.video');
         case "image": return this.$t('fileTypes.image');
         case "audio": return this.$t('fileTypes.audio');

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -112,12 +113,49 @@ func parseActivityFilter(r *http.Request, d *requestContext) (activitydb.QueryFi
 		return activitydb.QueryFilter{}, http.StatusBadRequest, err
 	}
 	filter.EventTypes = resolvedTypes
+	var status int
 
-	if status, err := resolveActivityPathFilters(d, &filter); err != nil {
+	if status, err = resolveActivityPathFilters(d, &filter); err != nil {
 		return activitydb.QueryFilter{}, status, err
 	}
 
+	statusMin, statusMax, err := parseActivityStatusRange(q)
+	if err != nil {
+		return activitydb.QueryFilter{}, http.StatusBadRequest, err
+	}
+	filter.StatusMin = statusMin
+	filter.StatusMax = statusMax
+
 	return filter, 0, nil
+}
+
+const (
+	activityStatusMinBound = 100
+	activityStatusMaxBound = 599
+)
+
+func parseActivityStatusRange(q url.Values) (min, max int, err error) {
+	minStr := strings.TrimSpace(q.Get("statusMin"))
+	maxStr := strings.TrimSpace(q.Get("statusMax"))
+	if minStr == "" && maxStr == "" {
+		return 0, 0, nil
+	}
+	if minStr != "" {
+		min, err = strconv.Atoi(minStr)
+		if err != nil || min < activityStatusMinBound || min > activityStatusMaxBound {
+			return 0, 0, fmt.Errorf("invalid statusMin: must be between %d and %d", activityStatusMinBound, activityStatusMaxBound)
+		}
+	}
+	if maxStr != "" {
+		max, err = strconv.Atoi(maxStr)
+		if err != nil || max < activityStatusMinBound || max > activityStatusMaxBound {
+			return 0, 0, fmt.Errorf("invalid statusMax: must be between %d and %d", activityStatusMinBound, activityStatusMaxBound)
+		}
+	}
+	if min > 0 && max > 0 && max < min {
+		return 0, 0, fmt.Errorf("statusMax must be >= statusMin")
+	}
+	return min, max, nil
 }
 
 // enforceActivityScope rejects non-admin attempts to scope activity to another user.
@@ -143,14 +181,13 @@ func enforceActivityScope(r *http.Request, d *requestContext) (int, error) {
 	return 0, nil
 }
 
-func redactActivityItems(items []activitydb.FrontendEntry, admin bool) []activitydb.FrontendEntry {
-	if admin {
-		return items
+func prepareActivityItemsForViewer(items []activitydb.FrontendEntry, viewer *users.User) {
+	if viewer == nil || viewer.Permissions.Admin {
+		return
 	}
 	for i := range items {
-		items[i].Details = activitydb.FrontendDetails{}
+		items[i].TrimPathsForUser(viewer)
 	}
-	return items
 }
 
 func validateActivityChartParams(filter activitydb.QueryFilter) error {
@@ -175,8 +212,11 @@ func validateActivityChartParams(filter activitydb.QueryFilter) error {
 	if splitBy == "" {
 		splitBy = "eventType"
 	}
-	if splitBy != "eventType" && splitBy != "user" && splitBy != "none" {
-		return fmt.Errorf("splitBy must be eventType, user, or none")
+	if splitBy != "eventType" && splitBy != "user" && splitBy != "none" && splitBy != "outcome" {
+		return fmt.Errorf("splitBy must be eventType, user, outcome, or none")
+	}
+	if splitBy == "outcome" && (filter.StatusMin > 0 || filter.StatusMax > 0) {
+		return fmt.Errorf("splitBy outcome requires no statusMin or statusMax filter")
 	}
 
 	rangeSecs := filter.To - filter.From
@@ -214,12 +254,12 @@ func parseIntDefault(s string, def int) int {
 // activityListHandler returns paginated activity events (ungrouped).
 //
 // @Summary List activity events
-// @Description Returns individual activity log rows, newest first. Details are included for admins only.
+// @Description Returns individual activity log rows, newest first. Paths are scope-relative for non-admins.
 // @Tags Tools
 // @Produce json
 // @Param from query int false "Start unix timestamp (default: 7 days ago)"
 // @Param to query int false "End unix timestamp (default: now)"
-// @Param scope query string false "Event category: all, files, or shares (default: all)"
+// @Param scope query string false "Event category: all, files, access, or shares (default: all)"
 // @Param eventType query string false "Filter by event type (comma-separated)"
 // @Param username query string false "Filter by username (admin only)"
 // @Param source query string false "Filter by source name"
@@ -228,6 +268,8 @@ func parseIntDefault(s string, def int) int {
 // @Param shareHash query string false "Share hash filter (owned shares for non-admins)"
 // @Param page query int false "Page number (default: 1)"
 // @Param limit query int false "Page size, max 500 (default: 100)"
+// @Param statusMin query int false "Minimum HTTP status code (100-599)"
+// @Param statusMax query int false "Maximum HTTP status code (100-599)"
 // @Success 200 {object} activitydb.ListResponse
 // @Failure 400 {object} map[string]string
 // @Failure 403 {object} map[string]string
@@ -243,7 +285,7 @@ func activityListHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	items = redactActivityItems(items, d.user.Permissions.Admin)
+	prepareActivityItemsForViewer(items, d.user)
 	totalPages := (total + filter.Limit - 1) / filter.Limit
 	if totalPages == 0 {
 		totalPages = 1
@@ -266,7 +308,7 @@ func activityListHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 // @Produce json
 // @Param from query int false "Start unix timestamp (default: 7 days ago)"
 // @Param to query int false "End unix timestamp (default: now)"
-// @Param scope query string false "Event category: all, files, or shares (default: all)"
+// @Param scope query string false "Event category: all, files, access, or shares (default: all)"
 // @Param eventType query string false "Filter by event type (comma-separated)"
 // @Param username query string false "Filter by username (admin only)"
 // @Param source query string false "Filter by source name"
@@ -274,7 +316,9 @@ func activityListHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 // @Param pathGlob query string false "Path glob filter (admin only)"
 // @Param shareHash query string false "Share hash filter (owned shares for non-admins)"
 // @Param interval query string false "Time bucket: minute, hour, day, or none (default: hour)"
-// @Param splitBy query string false "Series dimension: eventType, user, or none (default: eventType)"
+// @Param splitBy query string false "Series dimension: eventType, user, outcome, or none (default: eventType)"
+// @Param statusMin query int false "Minimum HTTP status code (100-599)"
+// @Param statusMax query int false "Maximum HTTP status code (100-599)"
 // @Success 200 {object} activitydb.StatsResponse
 // @Failure 400 {object} map[string]string
 // @Failure 403 {object} map[string]string
@@ -309,13 +353,15 @@ func activityGroupedHandler(w http.ResponseWriter, r *http.Request, d *requestCo
 // @Produce text/csv
 // @Param from query int false "Start unix timestamp (default: 7 days ago)"
 // @Param to query int false "End unix timestamp (default: now)"
-// @Param scope query string false "Event category: all, files, or shares (default: all)"
+// @Param scope query string false "Event category: all, files, access, or shares (default: all)"
 // @Param eventType query string false "Filter by event type (comma-separated)"
 // @Param username query string false "Filter by username (admin only)"
 // @Param source query string false "Filter by source name"
 // @Param path query string false "Path prefix filter"
 // @Param pathGlob query string false "Path glob filter (admin only)"
 // @Param shareHash query string false "Share hash filter (owned shares for non-admins)"
+// @Param statusMin query int false "Minimum HTTP status code (100-599)"
+// @Param statusMax query int false "Maximum HTTP status code (100-599)"
 // @Success 200 {string} string "CSV file"
 // @Failure 400 {object} map[string]string
 // @Failure 403 {object} map[string]string
@@ -325,6 +371,10 @@ func activityExportHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	if err != nil {
 		return status, err
 	}
+	optionalCols, err := parseActivityExportRows(r.URL.Query().Get("rows"))
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
 	filter.Page = 1
 	filter.Limit = utils.Clamp(1000, 1, 500)
 
@@ -333,7 +383,8 @@ func activityExportHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 		`attachment; filename="activity-%d-%d.csv"`, filter.From, filter.To))
 
 	cw := csv.NewWriter(w)
-	_ = cw.Write([]string{"id", "createdAt", "username", "eventType", "ipAddress", "status", "details"})
+	includeDetails := d.user.Permissions.Admin
+	_ = cw.Write(activityExportHeader(includeDetails, optionalCols))
 
 	exported := 0
 	for {
@@ -344,23 +395,18 @@ func activityExportHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 		if len(items) == 0 {
 			break
 		}
+		prepareActivityItemsForViewer(items, d.user)
 		for _, item := range items {
 			if exported >= activityMaxExportRows {
-				_ = cw.Write([]string{"", "", "", "TRUNCATED", "", "", ""})
+				_ = cw.Write([]string{"", "", "", "TRUNCATED"})
 				cw.Flush()
 				return 0, nil
 			}
-			item = redactActivityItems([]activitydb.FrontendEntry{item}, d.user.Permissions.Admin)[0]
-			detailsJSON, _ := json.Marshal(item.Details)
-			_ = cw.Write([]string{
-				strconv.FormatInt(item.ID, 10),
-				strconv.FormatInt(item.CreatedAt, 10),
-				item.Username,
-				string(item.EventType),
-				item.IPAddress,
-				strconv.Itoa(item.Status),
-				string(detailsJSON),
-			})
+			detailsJSON := ""
+			if includeDetails {
+				detailsJSON = string(mustJSON(item.Details))
+			}
+			_ = cw.Write(activityExportRowValues(item, optionalCols, includeDetails, detailsJSON))
 			exported++
 		}
 		if filter.Page*filter.Limit >= total {
@@ -370,4 +416,12 @@ func activityExportHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	}
 	cw.Flush()
 	return 0, nil
+}
+
+func mustJSON(v any) []byte {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return []byte("{}")
+	}
+	return b
 }

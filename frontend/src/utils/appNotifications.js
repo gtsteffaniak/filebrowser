@@ -109,7 +109,7 @@ function showNotification(title, body, tag) {
 
 export function notifyUploadComplete(upload) {
   const t = i18n.global.t;
-  const name = upload.name || upload.path?.split("/").pop() || t("general.file", { suffix: "" });
+  const name = upload.name || upload.path?.split("/").pop() || t("general.file");
   let body;
   if (upload.type === "directory" || !upload.size) {
     body = name;
@@ -125,7 +125,7 @@ export function notifyUploadComplete(upload) {
 
 export function notifyUploadError(name, errorDetails) {
   const t = i18n.global.t;
-  const fileName = name || t("general.file", { suffix: "" });
+  const fileName = name || t("general.file");
   const error = errorDetails || t("prompts.operationFailed");
   showNotification(
     t("notifications.uploadFailedTitle"),
@@ -147,7 +147,7 @@ export function notifyDownloadComplete(name, size) {
 
 export function notifyDownloadError(name, errorDetails) {
   const t = i18n.global.t;
-  const fileName = name || t("general.file", { suffix: "" });
+  const fileName = name || t("general.file");
   const error = errorDetails || t("prompts.operationFailed");
   showNotification(
     t("notifications.downloadFailedTitle"),

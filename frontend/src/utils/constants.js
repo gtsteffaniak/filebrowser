@@ -5,21 +5,22 @@ const globalVars = window.globalVars;
 const origin = window.location.origin;
 
 const settings = [
-  { id: 'profile', label: 'settings.profileSettings', component: 'ProfileSettings', icon: 'person' },
+  { id: 'profile', component: 'ProfileSettings', icon: 'person' },
   { id: 'fileLoading', label: 'fileLoading.title', component: 'FileLoading', icon: 'cloud_download' },
   { id: 'notifications', label: 'notifications.title', component: 'NotificationsSettings', icon: 'notifications' },
-  { id: 'shares', label: 'settings.shareSettings', component: 'SharesSettings', permissions: { share: true }, icon: 'share' },
+  { id: 'shares', component: 'SharesSettings', permissions: { share: true }, icon: 'share' },
   { id: 'api', label: 'api.title', component: 'ApiKeys', permissions: { api: true }, icon: 'key' },
-  { id: 'users', label: 'settings.userManagement', component: 'UserManagement', icon: 'group' },
+  { id: 'users', component: 'UserManagement', icon: 'group' },
   { id: 'access', label: 'access.accessManagement', component: 'AccessSettings', permissions: { admin: true }, icon: 'lock' },
   { id: 'systemAdmin', label: 'settings.systemAdmin', component: 'SystemAdmin', permissions: { admin: true }, icon: 'admin_panel_settings' },
 ];
 
-// This below is basically unused.
-// Is to mark those keys as used to satisfy the lint that checks for unused keys.
-i18n.global.t('settings.profileSettings');
-i18n.global.t('settings.shareSettings');
-i18n.global.t('settings.userManagement');
+// Mark composed labels as used for i18n lint checks.
+i18n.global.t('general.profile');
+i18n.global.t('general.settings');
+i18n.global.t('general.share');
+i18n.global.t('general.user');
+i18n.global.t('general.management');
 i18n.global.t('settings.systemAdmin');
 i18n.global.t('fileLoading.title');
 i18n.global.t('notifications.title');

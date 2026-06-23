@@ -1,7 +1,7 @@
 <template>
   <errors v-if="error" :errorCode="error.status" />
   <div class="card-title">
-    <h2>{{ $t("settings.globalSettings") }}</h2>
+    <h2>{{ globalSettingsLabel() }}</h2>
   </div>
 
   <div class="card-content"> {{ $t('settings.emptyGlobal') }} </div>
@@ -42,6 +42,9 @@ export default {
     mutations.setLoading("settings", false);
   },
   methods: {
+    globalSettingsLabel() {
+      return this.$t("general.globalSettings");
+    },
     updateRules(updatedRules) {
       this.selectedSettings = { ...this.selectedSettings, rules: updatedRules };
     },

@@ -6,7 +6,7 @@
       <p class="loading-text">{{ $t("prompts.operationInProgress") }}</p>
     </div>
     <div v-show="!creating">
-      <p>{{ $t("prompts.newDirMessage") }}</p>
+      <p>{{ $t("files.newFolderMessage") }}</p>
       <input aria-label="New Folder Name" class="input" type="text" @keyup.enter="submit" v-model.trim="name"
         v-focus />
     </div>
@@ -124,7 +124,7 @@ export default {
           ),
         ],
       };
-      notify.showSuccess(this.$t("prompts.newDirSuccess"), buttonProps);
+      notify.showSuccess(this.$t("files.newFolderSuccess"), buttonProps);
     },
 
     async createDirectory(overwrite = false) {

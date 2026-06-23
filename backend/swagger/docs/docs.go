@@ -3010,7 +3010,7 @@ const docTemplate = `{
         },
         "/api/tools/activity": {
             "get": {
-                "description": "Returns individual activity log rows, newest first. Details are included for admins only.",
+                "description": "Returns individual activity log rows, newest first. Paths are scope-relative for non-admins.",
                 "produces": [
                     "application/json"
                 ],
@@ -3033,7 +3033,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Event category: all, files, or shares (default: all)",
+                        "description": "Event category: all, files, access, or shares (default: all)",
                         "name": "scope",
                         "in": "query"
                     },
@@ -3083,6 +3083,18 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "Page size, max 500 (default: 100)",
                         "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Minimum HTTP status code (100-599)",
+                        "name": "statusMin",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum HTTP status code (100-599)",
+                        "name": "statusMax",
                         "in": "query"
                     }
                 ],
@@ -3139,7 +3151,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Event category: all, files, or shares (default: all)",
+                        "description": "Event category: all, files, access, or shares (default: all)",
                         "name": "scope",
                         "in": "query"
                     },
@@ -3177,6 +3189,18 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Share hash filter (owned shares for non-admins)",
                         "name": "shareHash",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Minimum HTTP status code (100-599)",
+                        "name": "statusMin",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum HTTP status code (100-599)",
+                        "name": "statusMax",
                         "in": "query"
                     }
                 ],
@@ -3233,7 +3257,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Event category: all, files, or shares (default: all)",
+                        "description": "Event category: all, files, access, or shares (default: all)",
                         "name": "scope",
                         "in": "query"
                     },
@@ -3281,8 +3305,20 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Series dimension: eventType, user, or none (default: eventType)",
+                        "description": "Series dimension: eventType, user, outcome, or none (default: eventType)",
                         "name": "splitBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Minimum HTTP status code (100-599)",
+                        "name": "statusMin",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum HTTP status code (100-599)",
+                        "name": "statusMax",
                         "in": "query"
                     }
                 ],
@@ -5033,6 +5069,8 @@ const docTemplate = `{
                 "userUpdate",
                 "userDelete",
                 "accessUpdate",
+                "accessCreate",
+                "accessDelete",
                 "login",
                 "logout",
                 "signup",
@@ -5060,6 +5098,8 @@ const docTemplate = `{
                 "EventUserUpdate",
                 "EventUserDelete",
                 "EventAccessUpdate",
+                "EventAccessCreate",
+                "EventAccessDelete",
                 "EventLogin",
                 "EventLogout",
                 "EventSignup",
@@ -5070,14 +5110,37 @@ const docTemplate = `{
                 "EventDuplicateFinder"
             ]
         },
+        "activity.FieldChange": {
+            "type": "object",
+            "properties": {
+                "field": {
+                    "type": "string"
+                },
+                "from": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "string"
+                }
+            }
+        },
         "activity.FrontendDetails": {
             "type": "object",
             "properties": {
+                "affectedTokenName": {
+                    "type": "string"
+                },
                 "bytes": {
                     "type": "integer"
                 },
                 "cached": {
                     "type": "boolean"
+                },
+                "changes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/activity.FieldChange"
+                    }
                 },
                 "durationMs": {
                     "type": "integer"
@@ -5089,6 +5152,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "loginMethod": {
+                    "type": "string"
+                },
+                "method": {
                     "type": "string"
                 },
                 "passkeyName": {
@@ -5103,14 +5169,14 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "requestPath": {
+                    "type": "string"
+                },
                 "scopes": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/activity.ScopeDetail"
                     }
-                },
-                "shareHash": {
-                    "type": "string"
                 },
                 "source": {
                     "type": "string"
@@ -5121,17 +5187,23 @@ const docTemplate = `{
                 "targetUsername": {
                     "type": "string"
                 },
-                "tokenName": {
-                    "type": "string"
-                },
                 "truncated": {
                     "type": "boolean"
+                },
+                "updatedFields": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
         "activity.FrontendEntry": {
             "type": "object",
             "properties": {
+                "authMethod": {
+                    "type": "string"
+                },
                 "createdAt": {
                     "type": "integer"
                 },
@@ -5147,8 +5219,23 @@ const docTemplate = `{
                 "ipAddress": {
                     "type": "string"
                 },
+                "path": {
+                    "type": "string"
+                },
+                "shareHash": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                },
                 "status": {
                     "type": "integer"
+                },
+                "targetPath": {
+                    "type": "string"
+                },
+                "tokenName": {
+                    "type": "string"
                 },
                 "username": {
                     "type": "string"
@@ -7407,9 +7494,6 @@ const docTemplate = `{
                 "expire": {
                     "type": "integer"
                 },
-                "expires": {
-                    "type": "string"
-                },
                 "extractEmbeddedSubtitles": {
                     "type": "boolean"
                 },
@@ -7443,9 +7527,6 @@ const docTemplate = `{
                 },
                 "path": {
                     "type": "string"
-                },
-                "pathExists": {
-                    "type": "boolean"
                 },
                 "perUserDownloadLimit": {
                     "type": "boolean"
@@ -7493,9 +7574,6 @@ const docTemplate = `{
                 "token": {
                     "type": "string"
                 },
-                "unit": {
-                    "type": "string"
-                },
                 "userDownloads": {
                     "type": "object",
                     "additionalProperties": {
@@ -7504,9 +7582,6 @@ const docTemplate = `{
                 },
                 "userID": {
                     "type": "integer"
-                },
-                "username": {
-                    "type": "string"
                 },
                 "version": {
                     "type": "integer"
@@ -7733,9 +7808,6 @@ const docTemplate = `{
                 "downloadURL": {
                     "type": "string"
                 },
-                "downloads": {
-                    "type": "integer"
-                },
                 "downloadsLimit": {
                     "type": "integer"
                 },
@@ -7745,9 +7817,6 @@ const docTemplate = `{
                 "enforceDarkLightMode": {
                     "description": "\"dark\" or \"light\"",
                     "type": "string"
-                },
-                "expire": {
-                    "type": "integer"
                 },
                 "expires": {
                     "type": "string"
@@ -7785,9 +7854,6 @@ const docTemplate = `{
                 },
                 "path": {
                     "type": "string"
-                },
-                "pathExists": {
-                    "type": "boolean"
                 },
                 "perUserDownloadLimit": {
                     "type": "boolean"
@@ -7827,9 +7893,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "unit": {
-                    "type": "string"
-                },
-                "username": {
                     "type": "string"
                 },
                 "viewMode": {
