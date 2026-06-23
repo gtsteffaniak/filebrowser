@@ -835,7 +835,6 @@ export default {
         return true;
       } catch (err) {
         console.error(err);
-        notify.showError(err?.message || err);
         return false;
       } finally {
         this.linksLoading = false;
