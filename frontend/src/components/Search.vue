@@ -16,13 +16,16 @@
     </div>
     <div v-show="active" id="results" ref="result">
       <div class="inputWrapper">
-        <select v-if="multipleSources" class="searchContext button input" aria-label="search sources dropdown"
-          v-model="selectedSource" :value="selectedSource" @change="updateSource">
-          <option value="__all__">{{ $t("general.all") }}</option>
-          <option v-for="(info, name) in sourceInfo" :key="info" :value="name">
-            {{ name }}
-          </option>
-        </select>
+        <ExpandDropdown
+          v-if="multipleSources"
+          v-model="selectedSource"
+          class="searchContext"
+          transparent
+          :options="searchSourceOptions"
+          all-value="__all__"
+          aria-label="search sources dropdown"
+          @update:model-value="updateSource"
+        />
 
         <!-- Formatted display of selected value -->
         <div class="searchContext">{{ $t("search.searchContext", { context: getContext }) }}</div>
@@ -39,19 +42,24 @@
               @toggle="advancedOptionsExpanded = $event"
             >
               <div class="search-options-inner">
-                <ButtonGroup
-                  :buttons="folderSelect"
-                  @button-clicked="addToTypes"
-                  @remove-button-clicked="removeFromTypes"
-                  @disable-all="folderSelectClicked()"
-                  @enable-all="resetButtonGroups()"
-                />
-                <ButtonGroup
-                  :buttons="typeSelect"
-                  @button-clicked="addToTypes"
-                  @remove-button-clicked="removeFromTypes"
-                  :isDisabled="isTypeSelectDisabled"
-                />
+                <div class="search-filter-dropdowns">
+                  <ExpandDropdown
+                    v-model="entryTypeFilter"
+                    :options="entryTypeOptions"
+                    all-value="all"
+                    :all-selected-label="$t('search.filesAndFolders')"
+                    :aria-label="$t('search.filesAndFolders')"
+                  />
+                  <ExpandDropdown
+                    v-model="selectedMediaTypes"
+                    :options="mediaTypeOptions"
+                    allow-multiple
+                    empty-means-all
+                    :all-selected-label="$t('search.allFileTypes')"
+                    :disabled="foldersOnly"
+                    :aria-label="$t('search.allFileTypes')"
+                  />
+                </div>
                 <div class="constraints">
                   <div class="sizeInputWrapper">
                     <p>{{ $t("search.smallerThan") }}</p>
@@ -140,6 +148,7 @@ import { resourcesApi, toolsApi } from "@/api";
 import Icon from "@/components/files/Icon.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
+import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import router from "@/router";
 import { getters, mutations, state } from "@/store";
@@ -147,7 +156,6 @@ import { url } from "@/utils/";
 import { globalVars } from "@/utils/constants";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { utcStartOfDaySecondsFromDateInput } from "@/utils/moment";
-import ButtonGroup from "./ButtonGroup.vue";
 
 const boxes = {
   folder: { label: "folders", icon: "folder" },
@@ -161,11 +169,11 @@ const boxes = {
 
 export default {
   components: {
-    ButtonGroup,
     Icon,
     ToggleSwitch,
     SettingsItem,
     LoadingSpinner,
+    ExpandDropdown,
   },
   name: "search",
   data: function () {
@@ -175,22 +183,11 @@ export default {
       modifiedOlderThan: "",
       modifiedNewerThan: "",
       noneMessage: this.$t("search.typeToSearch", { minSearchLength: globalVars.minSearchLength }),
-      searchTypes: "",
-      isTypeSelectDisabled: false,
+      entryTypeFilter: "all",
+      selectedMediaTypes: [],
       showPreviewImages: false,
       useWildcardSearch: false,
       caseExactSearch: false,
-      folderSelect: [
-        { label: this.$t("search.onlyFolders"), value: "type:folder" },
-        { label: this.$t("search.onlyFiles"), value: "type:file" },
-      ],
-      typeSelect: [
-        { label: this.$t("general.photos"), value: "type:image" },
-        { label: this.$t("general.audio"), value: "type:audio" },
-        { label: this.$t("general.videos"), value: "type:video" },
-        { label: this.$t("general.documents"), value: "type:doc" },
-        { label: this.$t("general.archives"), value: "type:archive" },
-      ],
       value: "",
       ongoing: 0,
       results: [],
@@ -222,8 +219,17 @@ export default {
     caseExactSearch() {
       this.submit();
     },
-    searchTypes() {
+    entryTypeFilter(newValue) {
+      if (newValue === "type:folder") {
+        this.selectedMediaTypes = [];
+      }
       this.submit();
+    },
+    selectedMediaTypes: {
+      deep: true,
+      handler() {
+        this.submit();
+      },
     },
     value() {
       if (this.results.length) {
@@ -294,7 +300,31 @@ export default {
       return state.user?.disableSearchOptions;
     },
     foldersOnly() {
-      return this.isTypeSelectDisabled;
+      return this.entryTypeFilter === "type:folder";
+    },
+    searchTypes() {
+      const parts = [];
+      if (this.entryTypeFilter !== "all") {
+        parts.push(this.entryTypeFilter);
+      }
+      parts.push(...this.selectedMediaTypes);
+      return parts.length > 0 ? `${parts.join(" ")} ` : "";
+    },
+    entryTypeOptions() {
+      return [
+        { value: "all", label: this.$t("search.filesAndFolders") },
+        { value: "type:file", label: this.$t("search.onlyFiles") },
+        { value: "type:folder", label: this.$t("search.onlyFolders") },
+      ];
+    },
+    mediaTypeOptions() {
+      return [
+        { value: "type:image", label: this.$t("general.photos") },
+        { value: "type:audio", label: this.$t("general.audio") },
+        { value: "type:video", label: this.$t("general.videos") },
+        { value: "type:doc", label: this.$t("general.documents") },
+        { value: "type:archive", label: this.$t("general.archives") },
+      ];
     },
     active() {
       return state.isSearchActive;
@@ -341,6 +371,12 @@ export default {
     },
     multipleSources() {
       return Object.keys(state.sources.info).length > 1;
+    },
+    searchSourceOptions() {
+      return Object.keys(this.sourceInfo).map((name) => ({
+        value: name,
+        label: name,
+      }));
     },
     isSearchingMultipleSources() {
       return this.selectedSource === "__all__" || (this.selectedSource === "" && this.multipleSources);
@@ -411,8 +447,8 @@ export default {
       this.cancelContext(); // Clear timeout
       this.isSwipe = false; // Reset swipe state
     },
-    updateSource(event) {
-      this.selectedSource = event.target.value;
+    updateSource(value) {
+      this.selectedSource = value;
       void this.submit();
     },
     getItemUrl(s) {
@@ -460,34 +496,11 @@ export default {
         return;
       }
     },
-    addToTypes(string) {
-      if (this.searchTypes.includes(string)) {
-        return true;
-      }
-      if (string === null || string === "") {
-        return false;
-      }
-      this.searchTypes = `${this.searchTypes + string} `;
-    },
     resetSearchFilters() {
-      this.searchTypes = "";
+      this.entryTypeFilter = "all";
+      this.selectedMediaTypes = [];
       this.advancedOptionsExpanded = false;
       this.showPreviewImages = false;
-    },
-    removeFromTypes(string) {
-      if (string === null || string === "") {
-        return false;
-      }
-      this.searchTypes = this.searchTypes.replaceAll(`${string} `, "");
-      if (state.isMobile) {
-        this.$refs.input.focus();
-      }
-    },
-    folderSelectClicked() {
-      this.isTypeSelectDisabled = true; // Disable the other ButtonGroup
-    },
-    resetButtonGroups() {
-      this.isTypeSelectDisabled = false;
     },
     async submit(event) {
       this.results = [];
@@ -643,7 +656,7 @@ export default {
       if (this.caseExactSearch) {
         query.caseExact = "1";
       }
-      if (this.isTypeSelectDisabled) {
+      if (this.foldersOnly) {
         query.typeLock = "1";
       }
 
@@ -702,24 +715,77 @@ export default {
 </script>
 
 <style scoped>
-.sizeInputWrapper {
-  border: 1px solid #ccc;
-}
-
 .inputWrapper {
   display: flex;
   align-items: stretch;
+  min-height: 2.5em;
 }
 
 .searchContext {
-  height: auto;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  min-height: 2.5em;
   margin-top: 0;
-  width: 100%;
   padding: 0.5em 1em;
   background: var(--primaryColor);
   color: white;
   word-wrap: break-word;
   margin-bottom: 0 !important;
+  box-sizing: border-box;
+}
+
+.searchContext.expand-dropdown {
+  flex: 0 0 auto;
+  width: 25%;
+  min-width: 7em;
+  max-width: 15em;
+  padding: 0.5em 0.75em;
+  align-self: stretch;
+  min-height: 0;
+}
+
+.searchContext.expand-dropdown :deep(.expand-dropdown-anchor) {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+.searchContext.expand-dropdown.expand-dropdown--open :deep(.expand-dropdown-anchor) {
+  border: none !important;
+  box-shadow: none !important;
+  background-color: transparent !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  border-bottom-color: transparent !important;
+}
+
+.searchContext.expand-dropdown :deep(.expand-dropdown-trigger) {
+  align-items: center;
+  line-height: 1.2;
+  height: 100%;
+  min-height: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.searchContext.expand-dropdown :deep(.expand-dropdown-trigger:hover:not(:disabled)) {
+  width: 100% !important;
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+}
+
+.searchContext.expand-dropdown :deep(.expand-dropdown-trigger i),
+.searchContext.expand-dropdown :deep(.expand-dropdown-chevron) {
+  padding: 0;
+  line-height: 1;
 }
 
 .searchContext.input {
@@ -835,7 +901,7 @@ export default {
   color: inherit;
 }
 
-#search input {
+#search .search-input-container input {
   border: 0;
   background-color: transparent;
   padding: 0;
@@ -848,15 +914,15 @@ export default {
   padding-left: 0.5em;
 }
 
-#search.active input {
+#search.active .search-input-container input {
   color: inherit;
 }
 
-#search input::placeholder {
+#search .search-input-container input::placeholder {
   color: rgba(255, 255, 255, 0.5);
 }
 
-#search.active input::placeholder {
+#search.active .search-input-container input::placeholder {
   color: rgba(0, 0, 0, 0.5);
 }
 
@@ -864,7 +930,7 @@ export default {
   background-color: rgba(255, 255, 255, 0.1);
 }
 
-#search.dark-mode input::placeholder {
+#search.dark-mode .search-input-container input::placeholder {
   color: gray !important;
 }
 
@@ -972,11 +1038,11 @@ body.rtl #search #result ul>* {
   display: block;
 }
 
-#search input::placeholder {
+#search .search-input-container input::placeholder {
   color: rgba(255, 255, 255, 0.5);
 }
 
-#search.active input::placeholder {
+#search.active .search-input-container input::placeholder {
   color: rgba(0, 0, 0, 0.5);
 }
 
@@ -1090,6 +1156,26 @@ body.rtl #search .boxes h3 {
   box-sizing: border-box;
   width: 100%;
   overflow: hidden;
+}
+
+.search-filter-dropdowns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+  align-items: flex-start;
+  justify-content: center;
+  margin-bottom: 0.5em;
+}
+
+.search-filter-dropdowns :deep(.expand-dropdown) {
+  width: auto;
+  flex: 0 1 auto;
+  min-width: 15em;
+  max-width: 15em;
+}
+
+.search-filter-dropdowns :deep(.expand-dropdown-anchor.menu-panel) {
+  min-width: 0;
 }
 
 @media (max-width: 768px) {

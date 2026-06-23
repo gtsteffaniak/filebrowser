@@ -1,17 +1,23 @@
 .input {
-  border-radius: 1em;
-  padding: .5em 1em;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  transition: .2s ease all;
+  box-sizing: border-box;
+  border-radius: var(--borderRadius);
+  padding: 0.5em 1em;
+  border: 1px solid var(--surfaceSecondary);
+  transition: border-color 0.2s ease;
   margin: 0;
   width: 100%;
-  background: var(--surfaceSecondary);
+  min-height: 2.5em;
+  background: var(--background);
   color: var(--textPrimary);
 }
 
-.input:hover,
+.input:hover {
+  border-color: color-mix(in srgb, var(--surfaceSecondary) 70%, var(--textPrimary));
+}
+
 .input:focus {
-  border-color: rgba(0, 0, 0, 0.2);
+  outline: none;
+  border-color: var(--primaryColor);
 }
 
 .input--textarea {
@@ -29,17 +35,98 @@
   background: #c9f2da;
 }
 
+/* ExpandDropdown renders its own surface; avoid double-styling when .input is on the wrapper */
+.expand-dropdown.input,
+.expand-dropdown.input:hover,
+.expand-dropdown.input:focus {
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
 /* Autofill hack to maintain style */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0px 1000px var(--surfaceSecondary) inset;
-  -webkit-text-fill-color: var(--textPrimary); /* Optional: Change text color to contrast */
+  -webkit-box-shadow: 0 0 0px 1000px var(--background) inset;
+  -webkit-text-fill-color: var(--textPrimary);
   border-color: unset;
 }
 
 /* Style for input sliders */
 input[type="range"] {
   accent-color: var(--primaryColor);
+}
+
+input.sizeInput:disabled {
+  cursor: not-allowed;
+}
+
+.sizeInputWrapper {
+  box-sizing: border-box;
+  border-radius: var(--borderRadius);
+  margin: .5em;
+  display: flex;
+  align-items: center;
+  background-color: var(--background);
+  border: 1px solid var(--surfaceSecondary);
+  box-shadow:
+    0 1px 1px hsl(0deg 0% 0% / 0.075),
+    0 2px 2px hsl(0deg 0% 0% / 0.075),
+    0 4px 4px hsl(0deg 0% 0% / 0.075),
+    0 8px 8px hsl(0deg 0% 0% / 0.075),
+    0 16px 16px hsl(0deg 0% 0% / 0.075);
+  padding: .25em .5em;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  justify-content: center;
+  color: var(--textPrimary);
+}
+
+.sizeInputWrapper .sizeInput {
+  text-align: center;
+  border: none;
+  border-radius: 0;
+  padding: 0.5em;
+  margin: 0 0.5em 0 0;
+  background: transparent;
+  height: 2em;
+  width: 5em;
+  color: var(--textPrimary);
+}
+
+.sizeInputWrapper p {
+  margin: 0 0.35em 0 0;
+  color: var(--textPrimary);
+  white-space: nowrap;
+}
+
+.sizeInputWrapper .sizeInput:last-child {
+  margin-right: 0;
+}
+
+.sizeInput {
+  text-align: center;
+  border-radius: 0.5em;
+  padding: 0.5em;
+  border: 1px solid var(--surfaceSecondary);
+  margin-right: 0.5em;
+  background: var(--background);
+  height: 2em;
+  width: 5em;
+  color: var(--textPrimary);
+}
+
+.roundedInputLeft {
+  border-bottom-right-radius: 0;
+  border-top-right-radius: 0;
+  width: auto;
+  min-width: 50%;
+}
+
+.roundedInputRight {
+  border-bottom-left-radius: 0;
+  border-top-left-radius: 0;
 }

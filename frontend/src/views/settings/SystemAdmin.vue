@@ -8,29 +8,18 @@
         :name="$t('profileSettings.disableUpdateNotifications')"
         :description="$t('profileSettings.disableUpdateNotificationsDescription')" />
       <!-- Config Viewer Section -->
-      <div class="config-viewer-section">
+      <div class="config-viewer-section settings-items">
         <h3>{{ $t('settings.configViewer') }}</h3>
-        <div class="config-options">
-          <label class="checkbox-label">
-            <input type="checkbox" v-model="configOptions.showFull" @change="fetchConfig" />
-          {{ $t('settings.configViewerShowFull') }}
-          </label>
-          <label class="checkbox-label">
-            <input type="checkbox" v-model="configOptions.showComments" @change="fetchConfig" />
-            {{ $t('settings.configViewerShowComments') }}
-          </label>
-        </div>
-        <div>
-          <button
-           type="button"
-           @click="fetchConfig" class="button"
-           :disabled="configLoading"
-           aria-label="loadConfig"
-            style="margin-bottom: 1em;"
-          >
-            {{ configLoading ? $t('general.loading', { suffix: "..." }) : $t('settings.configViewerLoadConfig') }}
-          </button>
-        </div>
+        <ToggleSwitch
+          class="item"
+          v-model="configOptions.showFull"
+          :name="$t('settings.configViewerShowFull')"
+        />
+        <ToggleSwitch
+          class="item"
+          v-model="configOptions.showComments"
+          :name="$t('settings.configViewerShowComments')"
+        />
         <div class="config-editor-container">
           <Editor :viewer-mode="true" :content="configContent" :editor-mode="'yaml'" :read-only="true" />
         </div>
@@ -64,12 +53,21 @@ export default {
     };
   },
   computed: {},
+  watch: {
+    "configOptions.showFull"() {
+      void this.fetchConfig();
+    },
+    "configOptions.showComments"() {
+      void this.fetchConfig();
+    },
+  },
   mounted() {
     // Initialize localuser with default values and merge with state.user
     this.localuser = {
       disableUpdateNotifications: false,
       ...state.user
     };
+    void this.fetchConfig();
   },
   methods: {
     /**
@@ -111,12 +109,8 @@ export default {
   margin-top: 1em;
 }
 
-.config-options {
-  margin: 1em;
-}
-
-.checkbox-label {
-  padding-right: 1em;
+.config-viewer-section {
+  margin-top: 1em;
 }
 
 .config-editor-container {

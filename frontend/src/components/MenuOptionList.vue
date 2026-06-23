@@ -148,6 +148,13 @@ export default {
   font: inherit;
 }
 
+/* Match listing/search hover inset so scale(1.02) does not clip in the scroll pane */
+.menu-option-list :deep(.menu-option:hover) {
+  width: 98% !important;
+  margin-left: 1% !important;
+  padding-left: 0.5em !important;
+}
+
 .menu-option-list :deep(.menu-option span) {
   color: var(--textPrimary);
 }

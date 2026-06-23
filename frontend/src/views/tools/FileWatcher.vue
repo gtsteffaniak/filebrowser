@@ -15,11 +15,12 @@
         </div>
         <div class="config-row-second" :class="{ 'mobile': isMobile }">
           <div class="config-item interval-select">
-            <select v-model="selectedInterval" class="input" :disabled="watching">
-              <option v-for="interval in availableIntervals" :key="interval.value" :value="interval.value" :disabled="interval.disabled">
-                {{ interval.label }}
-              </option>
-            </select>
+            <ExpandDropdown
+              v-model="selectedInterval"
+              :options="availableIntervals"
+              :disabled="watching"
+              :aria-label="$t('tools.fileWatcher.interval')"
+            />
           </div>
           <div class="config-item lines-input">
             <label class="lines-label">{{ $t('general.lines',{suffix: ':'}) }}</label>
@@ -98,12 +99,14 @@ import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { formatTimestamp, fromNow } from "@/utils/moment";
 import { notify } from "@/notify";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
+import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import { globalVars } from "@/utils/constants";
 
 export default {
   name: "FileWatcher",
   components: {
     PathPickerButton,
+    ExpandDropdown,
   },
   data() {
     return {

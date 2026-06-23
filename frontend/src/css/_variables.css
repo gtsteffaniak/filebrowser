@@ -18,8 +18,9 @@
   --layer-middle: 3;
   --layer-below-top: 4;
   --layer-top: 10;
+  --borderRadius: 1em;
 }
 
 .border-radius {
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
 }

@@ -96,12 +96,13 @@
         <label for="scopes">{{ $t("settings.scopes") }}</label>
         <div class="scope-list" :class="{ 'form-invalid': duplicateSources.includes(source.name) }"
           v-for="(source, index) in selectedSources" :key="index">
-          <select @change="handleSourceChange(source, $event, source.name)" class="input flat-right source-dropdown"
-            v-model="source.name">
-            <option v-for="s in sourceList" :key="s.name" :value="s.name">
-              {{ s.name }}
-            </option>
-          </select>
+          <ExpandDropdown
+            :model-value="source.name"
+            class="flat-right form-compact source-dropdown"
+            :options="scopeSourceOptions"
+            :aria-label="$t('settings.scopes')"
+            @update:model-value="(newName) => handleSourceChange(source, newName)"
+          />
 
           <div
             :aria-label="`user-edit-scope-path-${index}`"
@@ -122,17 +123,17 @@
 
       <p v-if="stateUser.username !== user.username">
         <label for="locale">{{ $t("general.language") }}</label>
-        <languages class="input" id="locale" v-model:locale="user.locale" @input="emitUpdate"></languages>
+        <languages id="locale" v-model:locale="user.locale" @input="emitUpdate"></languages>
       </p>
       <div v-if="stateUser.permissions.admin">
         <label for="loginMethod">{{ $t("settings.loginMethodDescription") }}</label>
-        <select v-model="user.loginMethod" class="input" id="loginMethod">
-          <option v-if="globalVars.passwordAvailable" value="password">{{ $t("settings.loginMethods.password") }}</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-          <option v-if="globalVars.oidcAvailable" value="oidc">OIDC</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-          <option v-if="globalVars.proxyAvailable" value="proxy">Proxy</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-          <option v-if="globalVars.ldapAvailable" value="ldap">LDAP</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-          <option value="jwt">JWT</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-        </select>
+        <ExpandDropdown
+          v-model="user.loginMethod"
+          input-id="loginMethod"
+          :options="loginMethodOptions"
+          :aria-label="$t('settings.loginMethodDescription')"
+          @update:model-value="emitUpdate"
+        />
       </div>
       <permissions v-if="stateUser.permissions.admin" :permissions="user.permissions" />
     </div>
@@ -157,6 +158,7 @@
 import { mutations, state } from "@/store";
 import { usersApi, settingsApi, authApi } from "@/api";
 import Languages from "@/components/settings/Languages.vue";
+import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import Permissions from "@/components/settings/Permissions.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import Errors from "@/views/Errors.vue";
@@ -169,6 +171,7 @@ export default {
   name: "user-edit",
   components: {
     Languages,
+    ExpandDropdown,
     Permissions,
     ToggleSwitch,
     Errors,
@@ -256,6 +259,29 @@ export default {
     },
     hasMoreSources() {
       return this.selectedSources.length < this.sourceList.length;
+    },
+    scopeSourceOptions() {
+      return this.sourceList.map((source) => ({
+        value: source.name,
+        label: source.name,
+      }));
+    },
+    loginMethodOptions() {
+      const options = [];
+      if (this.globalVars.passwordAvailable) {
+        options.push({ value: "password", label: this.$t("settings.loginMethods.password") });
+      }
+      if (this.globalVars.oidcAvailable) {
+        options.push({ value: "oidc", label: "OIDC" });
+      }
+      if (this.globalVars.proxyAvailable) {
+        options.push({ value: "proxy", label: "Proxy" });
+      }
+      if (this.globalVars.ldapAvailable) {
+        options.push({ value: "ldap", label: "LDAP" });
+      }
+      options.push({ value: "jwt", label: "JWT" });
+      return options;
     },
     passwordPlaceholder() {
       return this.isNew ? "" : this.$t("settings.avoidChanges");
@@ -587,8 +613,8 @@ export default {
       this.availableSources.push({ name: removed.name });
       this.emitUserUpdate();
     },
-    handleSourceChange(source, event, oldName) {
-      const newName = event.target.value;
+    handleSourceChange(source, newName) {
+      const oldName = source.name;
       this.availableSources = this.availableSources.filter((s) => s.name !== newName);
       if (oldName && !this.availableSources.find((s) => s.name === oldName)) {
         this.availableSources.push({ name: oldName });
@@ -657,6 +683,10 @@ export default {
 .scope-list {
   display: flex;
   align-items: stretch;
+}
+
+.scope-list > .expand-dropdown.flat-right .expand-dropdown-anchor {
+  border-right-width: 0;
 }
 
 .source-dropdown {
