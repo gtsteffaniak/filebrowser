@@ -556,7 +556,7 @@
     "error": "Ошибка{suffix}",
     "shares": "Акции{suffix}",
     "value": "Значение{suffix}",
-    "selected": "выбранный{suffix}",
+    "selected": "{prefix}выбранный{suffix}",
     "pinned": "Закреплено{suffix}",
     "item": "позиция{suffix}",
     "items": "элементы{suffix}",

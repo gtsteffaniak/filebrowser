@@ -556,7 +556,7 @@
     "error": "Błąd{suffix}",
     "shares": "Akcje{suffix}",
     "value": "Wartość{suffix}",
-    "selected": "wybrane{suffix}",
+    "selected": "{prefix}wybrane{suffix}",
     "pinned": "Przypięte{suffix}",
     "item": "pozycja{suffix}",
     "items": "pozycje{suffix}",

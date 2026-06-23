@@ -556,7 +556,7 @@
     "error": "Hiba{suffix}",
     "shares": "Részvények{suffix}",
     "value": "Érték{suffix}",
-    "selected": "kiválasztott{suffix}",
+    "selected": "{prefix}kiválasztott{suffix}",
     "pinned": "Rögzítve{suffix}",
     "item": "tétel{suffix}",
     "items": "tételek{suffix}",

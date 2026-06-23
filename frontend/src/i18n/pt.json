@@ -650,7 +650,7 @@
     "error": "Erro{suffix}",
     "shares": "Ações{suffix}",
     "value": "Valor{suffix}",
-    "selected": "selecionado{suffix}",
+    "selected": "{prefix}selecionado{suffix}",
     "pinned": "Fixado{suffix}",
     "item": "artigo{suffix}",
     "items": "artigos{suffix}",

@@ -15,6 +15,9 @@ func marshalShareSettings(link *share.Share) ([]byte, error) {
 }
 
 func unmarshalShareSettings(data []byte, link *share.Share) error {
+	if len(data) == 0 {
+		return nil
+	}
 	return json.Unmarshal(data, &link.ShareSettings)
 }
 

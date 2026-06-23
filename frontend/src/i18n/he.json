@@ -556,7 +556,7 @@
     "error": "שגיאה{suffix}",
     "shares": "מניות{suffix}",
     "value": "ערך{suffix}",
-    "selected": "נבחר{suffix}",
+    "selected": "{prefix}נבחר{suffix}",
     "pinned": "מוצמד{suffix}",
     "item": "פריט{suffix}",
     "items": "פריטים{suffix}",

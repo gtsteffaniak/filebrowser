@@ -127,7 +127,7 @@
     "error": "Errore{suffix}",
     "shares": "Azioni{suffix}",
     "value": "Valore{suffix}",
-    "selected": "selezionato{suffix}",
+    "selected": "{prefix}selezionato{suffix}",
     "pinned": "In evidenza{suffix}",
     "item": "articolo{suffix}",
     "items": "articoli{suffix}",

@@ -556,7 +556,7 @@
     "error": "Hata{suffix}",
     "shares": "Hisse senetleri{suffix}",
     "value": "Değer{suffix}",
-    "selected": "seçilen{suffix}",
+    "selected": "{prefix}seçilen{suffix}",
     "pinned": "Sabitlenmiş{suffix}",
     "item": "ürün{suffix}",
     "items": "ürünler{suffix}",

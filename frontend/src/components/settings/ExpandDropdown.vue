@@ -154,6 +154,7 @@ export default {
   emits: ["update:modelValue"],
 
   data() {
+    expandDropdownIdCounter += 1;
     return {
       open: false,
       panelOpen: false,
@@ -162,7 +163,7 @@ export default {
       searchQuery: "",
       overlayStyle: {},
       shadowStyle: {},
-      localInputId: `expand-dropdown-${expandDropdownIdCounter += 1}`,
+      localInputId: `expand-dropdown-${expandDropdownIdCounter}`,
       panelResizeObserver: null,
     };
   },

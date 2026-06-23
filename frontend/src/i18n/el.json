@@ -556,7 +556,7 @@
     "error": "Σφάλμα{suffix}",
     "shares": "Μετοχές{suffix}",
     "value": "Τιμή{suffix}",
-    "selected": "επιλεγμένα{suffix}",
+    "selected": "{prefix}επιλεγμένα{suffix}",
     "pinned": "Προεπιλεγμένο{suffix}",
     "item": "στοιχείο{suffix}",
     "items": "είδη{suffix}",

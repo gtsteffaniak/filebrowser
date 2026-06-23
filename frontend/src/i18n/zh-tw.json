@@ -650,7 +650,7 @@
     "error": "錯誤{suffix}",
     "shares": "股份{suffix}",
     "value": "價值{suffix}",
-    "selected": "已選取{suffix}",
+    "selected": "{prefix}已選取{suffix}",
     "pinned": "置頂{suffix}",
     "item": "項目{suffix}",
     "items": "項目{suffix}",

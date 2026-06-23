@@ -650,7 +650,7 @@
     "error": "Fout{suffix}",
     "shares": "Aandelen{suffix}",
     "value": "Waarde{suffix}",
-    "selected": "geselecteerd{suffix}",
+    "selected": "{prefix}geselecteerd{suffix}",
     "pinned": "Vastgezet{suffix}",
     "item": "artikel{suffix}",
     "items": "artikelen{suffix}",

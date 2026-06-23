@@ -556,7 +556,7 @@
     "error": "エラー{suffix}",
     "shares": "株式{suffix}",
     "value": "値{suffix}",
-    "selected": "選択済み{suffix}",
+    "selected": "{prefix}選択済み{suffix}",
     "pinned": "固定済み{suffix}",
     "item": "項目{suffix}",
     "items": "項目{suffix}",

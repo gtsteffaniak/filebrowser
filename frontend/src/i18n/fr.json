@@ -556,7 +556,7 @@
     "error": "Erreur{suffix}",
     "shares": "Actions{suffix}",
     "value": "Valeur{suffix}",
-    "selected": "sélectionné{suffix}",
+    "selected": "{prefix}sélectionné{suffix}",
     "pinned": "Épinglé{suffix}",
     "item": "article{suffix}",
     "items": "articles{suffix}",

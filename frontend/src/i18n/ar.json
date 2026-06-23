@@ -556,7 +556,7 @@
     "error": "خطأ{suffix}",
     "shares": "الأسهم{suffix}",
     "value": "القيمة{suffix}",
-    "selected": "مُختار{suffix}",
+    "selected": "{prefix}مُختار{suffix}",
     "pinned": "مثبت{suffix}",
     "item": "العنصر{suffix}",
     "items": "العناصر{suffix}",

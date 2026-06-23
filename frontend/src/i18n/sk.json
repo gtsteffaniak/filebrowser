@@ -556,7 +556,7 @@
     "error": "Chyba{suffix}",
     "shares": "Akcie{suffix}",
     "value": "Hodnota{suffix}",
-    "selected": "vybrané{suffix}",
+    "selected": "{prefix}vybrané{suffix}",
     "pinned": "Pripnuté{suffix}",
     "item": "položka{suffix}",
     "items": "položky{suffix}",

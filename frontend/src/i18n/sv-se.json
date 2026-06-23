@@ -650,7 +650,7 @@
     "error": "Fel{suffix}",
     "shares": "Aktier{suffix}",
     "value": "Värde{suffix}",
-    "selected": "vald{suffix}",
+    "selected": "{prefix}vald{suffix}",
     "pinned": "Fäst{suffix}",
     "item": "artikel{suffix}",
     "items": "artiklar{suffix}",

@@ -349,13 +349,13 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if req.ShareType == "upload" && !req.AllowCreate {
 		req.AllowCreate = true
 	}
+	shareLimits := req.ShareLimits
+	shareLimits.SourceName = source.Name
 
 	s := &share.Share{
 		ShareSettings: share.ShareSettings{
 			FrontendShareInfo: req.FrontendShareInfo,
-			ShareLimits: share.ShareLimits{
-				SourceName: source.Name,
-			},
+			ShareLimits:       shareLimits,
 		},
 		ShareColumns: share.ShareColumns{
 			Hash:   secureHash,
@@ -379,8 +379,6 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if err = state.CreateShare(s); err != nil {
 		return http.StatusInternalServerError, err
 	}
-
-	logger.Debug("Created share", "hash", s.Hash, "sourcePath", s.SourcePath, "path", s.Path, "userID", s.UserID)
 
 	created, err := shareStore.GetByHash(secureHash)
 	if err != nil {

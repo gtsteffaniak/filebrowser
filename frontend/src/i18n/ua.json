@@ -650,7 +650,7 @@
     "error": "Помилка{suffix}",
     "shares": "Акції{suffix}",
     "value": "Значення{suffix}",
-    "selected": "обрано{suffix}",
+    "selected": "{prefix}обрано{suffix}",
     "pinned": "Прикріплено{suffix}",
     "item": "позиція{suffix}",
     "items": "позиції{suffix}",

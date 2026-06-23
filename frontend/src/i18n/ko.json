@@ -556,7 +556,7 @@
     "error": "오류{suffix}",
     "shares": "주식{suffix}",
     "value": "값{suffix}",
-    "selected": "선택됨{suffix}",
+    "selected": "{prefix}선택됨{suffix}",
     "pinned": "고정됨{suffix}",
     "item": "항목{suffix}",
     "items": "항목{suffix}",
