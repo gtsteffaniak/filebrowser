@@ -146,7 +146,31 @@
     "description": "Descrizione{suffix}",
     "emDash": "—",
     "outcome": "Risultato{suffix}",
-    "success": "Successo{suffix}"
+    "success": "Successo{suffix}",
+    "pinnedFolders": "Cartelle in evidenza",
+    "pinnedFiles": "File in evidenza",
+    "selectionSingle": "elemento selezionato",
+    "selectionMultiple": "articoli selezionati",
+    "newUser": "Nuovo utente",
+    "newFolder": "Nuova cartella",
+    "profileSettings": "Impostazioni del profilo",
+    "shareSettings": "Condividi le impostazioni",
+    "globalSettings": "Impostazioni generali",
+    "userManagement": "Gestione degli utenti",
+    "shareManagement": "Gestione delle azioni",
+    "shareHash": "Condividi hash",
+    "downloadFiles": "Scarica i file",
+    "editFiles": "Modifica file",
+    "createFiles": "Crea file",
+    "deleteFiles": "Elimina i file",
+    "shareFiles": "Condividi file",
+    "shareTheme": "Condividi il tema",
+    "shareTitle": "Condividi titolo",
+    "allUsers": "Tutti gli utenti",
+    "allSources": "Tutte le fonti",
+    "allShares": "Tutte le azioni",
+    "playPause": "Riproduci/Pausa",
+    "clearSelection": "Deseleziona"
   },
   "buttons": {
     "copySuccess": "Copiato negli appunti!",
@@ -566,7 +590,8 @@
     "settingsUpdated": "Impostazioni aggiornate!",
     "shareDeleted": "Condivisione eliminata!",
     "userDeleted": "Utente eliminato!",
-    "userUpdated": "Utente aggiornato!"
+    "userUpdated": "Utente aggiornato!",
+    "modifyOtherUserTitle": "Modifica utente: {username}"
   },
   "sidebar": {
     "dividerNamePlaceholder": "Testo divisore (vuoto per una linea)",
@@ -605,7 +630,9 @@
     "linksUpdateFailed": "Aggiornamento link fallito",
     "sourceNotAccessible": "Questa sorgente non è più accessibile",
     "noLinksYet": "Nessun link configurato. Aggiungi il primo qui sotto.",
-    "switchMode": "Cambia modalità barra laterale"
+    "switchMode": "Cambia modalità barra laterale",
+    "showIndexedUsage": "Mostra l'utilizzo come indicizzato",
+    "showDiskUsage": "Mostra l'utilizzo in base ai dati riportati dal disco/dalla partizione"
   },
   "api": {
     "title": "Token API",
@@ -837,7 +864,21 @@
       "activityTotalsBy": "Totali delle attività per {subject}",
       "subjectEventType": "tipo di evento",
       "viewActivity": "Visualizza attività",
-      "tableColumns": "Colonne della tabella"
+      "tableColumns": "Colonne della tabella",
+      "scopeAll": "Tutte le attività",
+      "scopeFiles": "Attività sui file",
+      "scopeShares": "Condividi l'attività",
+      "eventBulkDelete": "Eliminazione in blocco",
+      "eventShareCreate": "Condividi Crea",
+      "eventShareUpdate": "Aggiornamento sulla condivisione",
+      "eventShareDelete": "Condividi Elimina",
+      "eventUserCreate": "Creazione utente",
+      "eventUserUpdate": "Aggiornamento utente",
+      "eventUserDelete": "Eliminazione utente",
+      "eventAccessUpdate": "Aggiornamento sull'accesso",
+      "eventTokenCreate": "Creazione di un token",
+      "eventTokenDelete": "Eliminazione del token",
+      "webSessionNamed": "Sessione web ({name})"
     }
   },
   "notifications": {
@@ -931,6 +972,7 @@
     "days": "Giorni{suffix}",
     "month": "mese{suffix}",
     "months": "Mesi{suffix}",
-    "unit": "Unità di tempo"
+    "unit": "Unità di tempo",
+    "timeUnit": "Unità di tempo"
   }
 }

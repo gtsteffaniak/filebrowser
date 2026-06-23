@@ -46,12 +46,14 @@ func TestUserUpdateChangesFiltersUnchangedFields(t *testing.T) {
 
 func TestShareUpdateChangesLogsChangedAttributes(t *testing.T) {
 	before := &share.Share{
-		ShareFrontend: share.ShareFrontend{
+		ShareSettings: share.ShareSettings{
 			FrontendShareInfo: share.FrontendShareInfo{
 				ShareTheme: "light",
 				Title:      "before",
 			},
-			DownloadsLimit: 5,
+			ShareLimits: share.ShareLimits{
+				DownloadsLimit: 5,
+			},
 		},
 	}
 	after := *before
@@ -75,6 +77,9 @@ func TestShareUpdateChangesLogsChangedAttributes(t *testing.T) {
 	}
 	if pair, ok := found["downloadsLimit"]; !ok || pair.from != "5" || pair.to != "10" {
 		t.Fatalf("missing downloadsLimit change: %#v", found)
+	}
+	if _, ok := found["hash"]; ok {
+		t.Fatalf("hash must not appear in share update changes: %#v", found)
 	}
 }
 

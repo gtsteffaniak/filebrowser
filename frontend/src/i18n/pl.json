@@ -273,7 +273,8 @@
       "password": "Hasło"
     },
     "permissionsHelp": "Uprawnienia użytkownika kontrolują dostęp do rodzaju działań, które użytkownik może wykonywać. Dostęp administratora daje pełną kontrolę nad aktualizacją i zmianą ustawień dowolnego użytkownika, a także wielu ustawień systemowych.",
-    "configViewer": "Przeglądarka konfiguracji"
+    "configViewer": "Przeglądarka konfiguracji",
+    "modifyOtherUserTitle": "Edytuj użytkownika: {username}"
   },
   "sidebar": {
     "updateIsAvailable": "Aktualizacja jest już dostępna!",
@@ -312,7 +313,9 @@
     "usageTextDisplay": "Jaki tekst użytkowania powinien być wyświetlany?",
     "usageTextIndexed": "użycie jako indeksowane",
     "usageTextDisk": "użycie zgłoszone przez dysk/partycję",
-    "dividerNamePlaceholder": "Tekst podziału (pozostaw pusty, aby wyświetlić linię)"
+    "dividerNamePlaceholder": "Tekst podziału (pozostaw pusty, aby wyświetlić linię)",
+    "showIndexedUsage": "Pokaż zastosowania zgodnie z indeksem",
+    "showDiskUsage": "Pokaż wykorzystanie według dysku/partycji"
   },
   "share": {
     "notice": "Uwaga: po utworzeniu folderu udostępnionego staje się on bardziej dostępny publicznie i ma inne zasady dostępu. Jeśli udział nie jest bezpiecznie skonfigurowany, może być dostępny dla każdego.",
@@ -572,7 +575,31 @@
     "description": "Opis{suffix}",
     "emDash": "—",
     "outcome": "Wynik{suffix}",
-    "success": "Sukces{suffix}"
+    "success": "Sukces{suffix}",
+    "pinnedFolders": "Przypięte foldery",
+    "pinnedFiles": "Przypięte pliki",
+    "selectionSingle": "wybrany element",
+    "selectionMultiple": "wybrane pozycje",
+    "newUser": "Nowy użytkownik",
+    "newFolder": "Nowy folder",
+    "profileSettings": "Ustawienia profilu",
+    "shareSettings": "Ustawienia udostępniania",
+    "globalSettings": "Ustawienia ogólne",
+    "userManagement": "Zarządzanie użytkownikami",
+    "shareManagement": "Zarządzanie udziałami",
+    "shareHash": "Udostępnij hash",
+    "downloadFiles": "Pobierz pliki",
+    "editFiles": "Edytuj pliki",
+    "createFiles": "Utwórz pliki",
+    "deleteFiles": "Usuń pliki",
+    "shareFiles": "Udostępnianie plików",
+    "shareTheme": "Udostępnij motyw",
+    "shareTitle": "Tytuł udostępnienia",
+    "allUsers": "Wszyscy użytkownicy",
+    "allSources": "Wszystkie źródła",
+    "allShares": "Wszystkie akcje",
+    "playPause": "Odtwarzaj/Wstrzymaj",
+    "clearSelection": "Wyczyść wybór"
   },
   "access": {
     "rules": "Zasady dostępu",
@@ -828,7 +855,21 @@
       "activityTotalsBy": "Suma działań według {subject}",
       "subjectEventType": "rodzaj wydarzenia",
       "viewActivity": "Wyświetl aktywność",
-      "tableColumns": "Kolumny tabeli"
+      "tableColumns": "Kolumny tabeli",
+      "scopeAll": "Wszystkie działania",
+      "scopeFiles": "Aktywność plików",
+      "scopeShares": "Udostępnij aktywność",
+      "eventBulkDelete": "Masowe usuwanie",
+      "eventShareCreate": "Udostępnij Utwórz",
+      "eventShareUpdate": "Udostępnij aktualizację",
+      "eventShareDelete": "Udostępnij Usuń",
+      "eventUserCreate": "Utwórz użytkownika",
+      "eventUserUpdate": "Aktualizacja danych użytkownika",
+      "eventUserDelete": "Usunięcie użytkownika",
+      "eventAccessUpdate": "Aktualizacja dostępu",
+      "eventTokenCreate": "Utworzenie tokenu",
+      "eventTokenDelete": "Usunięcie tokenu",
+      "webSessionNamed": "Sesja internetowa ({name})"
     }
   },
   "messages": {
@@ -931,6 +972,7 @@
     "days": "Dni{suffix}",
     "month": "miesiąc{suffix}",
     "months": "Miesiące{suffix}",
-    "unit": "Jednostka czasu"
+    "unit": "Jednostka czasu",
+    "timeUnit": "Jednostka czasu"
   }
 }

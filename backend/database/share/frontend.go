@@ -26,7 +26,13 @@ func PrepForFrontend(viewer *users.User, usersStore *users.Storage, r *http.Requ
 
 func copyShareFrontendFromShare(link *Share) ShareFrontend {
 	snap := *link
-	out := snap.ShareFrontend
+	out := ShareFrontend{
+		ShareEditable: ShareEditable{
+			FrontendShareInfo: snap.FrontendShareInfo,
+			ShareLimits:       snap.ShareLimits,
+		},
+		ShareColumns: snap.ShareColumns,
+	}
 	if snap.AllowedUsernames != nil {
 		out.AllowedUsernames = append([]string(nil), snap.AllowedUsernames...)
 	}

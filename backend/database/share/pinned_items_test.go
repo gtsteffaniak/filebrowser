@@ -38,7 +38,7 @@ func TestSharePinnedNamesForDirectory(t *testing.T) {
 }
 
 func TestShareRelativeDir(t *testing.T) {
-	link := &Share{ShareFrontend: ShareFrontend{Path: "/share/"}}
+	link := &Share{ShareColumns: ShareColumns{Path: "/share/"}}
 
 	got, err := link.ShareRelativeDir("/share/")
 	if err != nil {

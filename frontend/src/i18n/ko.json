@@ -273,7 +273,8 @@
       "password": "비밀번호"
     },
     "permissionsHelp": "사용자 권한은 사용자가 수행할 수 있는 작업 유형에 대한 액세스를 제어합니다. 관리자 권한은 모든 사용자 설정은 물론 여러 시스템 설정을 업데이트하고 변경할 수 있는 모든 권한을 부여합니다.",
-    "configViewer": "구성 뷰어"
+    "configViewer": "구성 뷰어",
+    "modifyOtherUserTitle": "사용자 수정: {username}"
   },
   "sidebar": {
     "updateIsAvailable": "업데이트를 사용할 수 있습니다!",
@@ -312,7 +313,9 @@
     "usageTextDisplay": "어떤 사용법 텍스트를 표시해야 하나요?",
     "usageTextIndexed": "인덱싱된 사용량",
     "usageTextDisk": "디스크/파티션별로 보고된 사용량",
-    "dividerNamePlaceholder": "디바이더 텍스트(줄을 표시하려면 비워둡니다)"
+    "dividerNamePlaceholder": "디바이더 텍스트(줄을 표시하려면 비워둡니다)",
+    "showIndexedUsage": "색인에 등록된 대로 사용법 표시",
+    "showDiskUsage": "디스크/파티션별로 보고된 사용량 표시"
   },
   "share": {
     "notice": "참고: 공유가 생성되면 공개에 더 많이 노출되고 액세스 규칙이 달라집니다. 공유를 안전하게 구성하지 않으면 누구나 액세스할 수 있습니다.",
@@ -572,7 +575,31 @@
     "description": "설명{suffix}",
     "emDash": "—",
     "outcome": "결과{suffix}",
-    "success": "성공{suffix}"
+    "success": "성공{suffix}",
+    "pinnedFolders": "고정된 폴더",
+    "pinnedFiles": "고정된 파일",
+    "selectionSingle": "항목 선택됨",
+    "selectionMultiple": "선택한 항목",
+    "newUser": "신규 사용자",
+    "newFolder": "새 폴더",
+    "profileSettings": "프로필 설정",
+    "shareSettings": "설정 공유",
+    "globalSettings": "전역 설정",
+    "userManagement": "사용자 관리",
+    "shareManagement": "지분 관리",
+    "shareHash": "해시 공유",
+    "downloadFiles": "파일 다운로드",
+    "editFiles": "파일 편집",
+    "createFiles": "파일 생성",
+    "deleteFiles": "파일 삭제",
+    "shareFiles": "파일 공유하기",
+    "shareTheme": "테마 공유하기",
+    "shareTitle": "제목 공유하기",
+    "allUsers": "모든 사용자",
+    "allSources": "모든 출처",
+    "allShares": "모든 주식",
+    "playPause": "재생/일시정지",
+    "clearSelection": "선택 항목 지우기"
   },
   "access": {
     "rules": "액세스 규칙",
@@ -828,7 +855,21 @@
       "activityTotalsBy": "활동 합계 (기준별) {subject}",
       "subjectEventType": "이벤트 유형",
       "viewActivity": "활동 보기",
-      "tableColumns": "표의 열"
+      "tableColumns": "표의 열",
+      "scopeAll": "모든 활동",
+      "scopeFiles": "파일 활동",
+      "scopeShares": "활동 공유하기",
+      "eventBulkDelete": "일괄 삭제",
+      "eventShareCreate": "공유하기, 만들기",
+      "eventShareUpdate": "최신 소식 공유하기",
+      "eventShareDelete": "공유 삭제",
+      "eventUserCreate": "사용자 생성",
+      "eventUserUpdate": "사용자 정보 업데이트",
+      "eventUserDelete": "사용자 삭제",
+      "eventAccessUpdate": "액세스 업데이트",
+      "eventTokenCreate": "토큰 생성",
+      "eventTokenDelete": "토큰 삭제",
+      "webSessionNamed": "웹 세션 ({name})"
     }
   },
   "messages": {
@@ -931,6 +972,7 @@
     "days": "일{suffix}",
     "month": "월{suffix}",
     "months": "개월{suffix}",
-    "unit": "시간 단위"
+    "unit": "시간 단위",
+    "timeUnit": "시간 단위"
   }
 }

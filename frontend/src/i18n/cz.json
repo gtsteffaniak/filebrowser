@@ -417,7 +417,8 @@
       "password": "Heslo"
     },
     "permissionsHelp": "Oprávnění uživatele řídí přístup k typům akcí, které může uživatel provádět. Přístup administrátora poskytuje plnou kontrolu nad aktualizací a změnou nastavení libovolného uživatele i nad mnoha nastaveními systému.",
-    "configViewer": "Prohlížeč konfigurace"
+    "configViewer": "Prohlížeč konfigurace",
+    "modifyOtherUserTitle": "Upravit uživatele: {username}"
   },
   "sidebar": {
     "updateIsAvailable": "Je dostupná aktualizace!",
@@ -456,7 +457,9 @@
     "usageTextDisplay": "Který text použití se má zobrazit?",
     "usageTextIndexed": "použití podle indexu",
     "usageTextDisk": "využití podle hlášení disku/oddílu",
-    "dividerNamePlaceholder": "Text oddělovače (pro zobrazení řádku nechte prázdný)"
+    "dividerNamePlaceholder": "Text oddělovače (pro zobrazení řádku nechte prázdný)",
+    "showIndexedUsage": "Zobrazit použití podle indexu",
+    "showDiskUsage": "Zobrazit využití podle údajů o disku/oddílu"
   },
   "api": {
     "createdAt": "Vytvořeno:",
@@ -666,7 +669,31 @@
     "description": "Popis{suffix}",
     "emDash": "—",
     "outcome": "Výsledek{suffix}",
-    "success": "Úspěch{suffix}"
+    "success": "Úspěch{suffix}",
+    "pinnedFolders": "Připnuté složky",
+    "pinnedFiles": "Připnuté soubory",
+    "selectionSingle": "vybraná položka",
+    "selectionMultiple": "vybrané položky",
+    "newUser": "Nový uživatel",
+    "newFolder": "Nová složka",
+    "profileSettings": "Nastavení profilu",
+    "shareSettings": "Sdílet nastavení",
+    "globalSettings": "Globální nastavení",
+    "userManagement": "Správa uživatelů",
+    "shareManagement": "Správa akcií",
+    "shareHash": "Sdílet hash",
+    "downloadFiles": "Stáhnout soubory",
+    "editFiles": "Upravit soubory",
+    "createFiles": "Vytvořit soubory",
+    "deleteFiles": "Odstranit soubory",
+    "shareFiles": "Sdílení souborů",
+    "shareTheme": "Sdílet motiv",
+    "shareTitle": "Sdílet nadpis",
+    "allUsers": "Všichni uživatelé",
+    "allSources": "Všechny zdroje",
+    "allShares": "Všechny akcie",
+    "playPause": "Přehrát/Pozastavit",
+    "clearSelection": "Vymazat výběr"
   },
   "access": {
     "rules": "Pravidla přístupu",
@@ -828,7 +855,21 @@
       "activityTotalsBy": "Souhrnné údaje o aktivitách podle {subject}",
       "subjectEventType": "typ události",
       "viewActivity": "Zobrazit aktivitu",
-      "tableColumns": "Sloupce tabulky"
+      "tableColumns": "Sloupce tabulky",
+      "scopeAll": "Veškerá činnost",
+      "scopeFiles": "Aktivita souborů",
+      "scopeShares": "Sdílet aktivitu",
+      "eventBulkDelete": "Hromadné smazání",
+      "eventShareCreate": "Sdílet Vytvořit",
+      "eventShareUpdate": "Sdílet aktualizaci",
+      "eventShareDelete": "Sdílet Smazat",
+      "eventUserCreate": "Vytvoření uživatele",
+      "eventUserUpdate": "Aktualizace uživatele",
+      "eventUserDelete": "Odstranění uživatele",
+      "eventAccessUpdate": "Aktualizace přístupu",
+      "eventTokenCreate": "Vytvoření tokenu",
+      "eventTokenDelete": "Odstranění tokenu",
+      "webSessionNamed": "Webová relace ({name})"
     }
   },
   "messages": {
@@ -931,6 +972,7 @@
     "days": "Dny{suffix}",
     "month": "měsíc{suffix}",
     "months": "Měsíce{suffix}",
-    "unit": "Časová jednotka"
+    "unit": "Časová jednotka",
+    "timeUnit": "Časová jednotka"
   }
 }

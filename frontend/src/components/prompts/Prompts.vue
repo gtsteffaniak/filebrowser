@@ -301,7 +301,7 @@ export default {
         case "officedebug":
           return this.$t("onlyoffice.debug");
         case "download":
-          return `${this.$t("general.download")} ${this.$t("general.files")}`;
+          return this.$t("general.downloadFiles");
         case "move":
           return this.$t("general.move");
     
@@ -350,7 +350,7 @@ export default {
         case "newfile":
           return this.$t("prompts.newFile");
         case "newdir":
-          return `${this.$t("general.new")} ${this.$t("general.folder")}`;
+          return this.$t("general.newFolder");
         case "replace-rename":
           return this.$t("general.replace");
         case "archive":

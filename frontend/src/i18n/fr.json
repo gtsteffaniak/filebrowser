@@ -273,7 +273,8 @@
     "loginMethods": {
       "password": "Mot de passe"
     },
-    "permissionsHelp": "Les autorisations de l'utilisateur contrôlent l'accès au type d'actions que l'utilisateur peut effectuer. L'accès administrateur permet de mettre à jour et de modifier les paramètres de tout utilisateur ainsi que de nombreux paramètres du système."
+    "permissionsHelp": "Les autorisations de l'utilisateur contrôlent l'accès au type d'actions que l'utilisateur peut effectuer. L'accès administrateur permet de mettre à jour et de modifier les paramètres de tout utilisateur ainsi que de nombreux paramètres du système.",
+    "modifyOtherUserTitle": "Modifier un utilisateur : {username}"
   },
   "sidebar": {
     "updateIsAvailable": "Une mise à jour est disponible !",
@@ -312,7 +313,9 @@
     "usageTextDisplay": "Quel texte d'utilisation doit être affiché ?",
     "usageTextIndexed": "utilisation telle qu'indexée",
     "usageTextDisk": "utilisation telle que rapportée par disque/partition",
-    "dividerNamePlaceholder": "Texte du séparateur (laisser en blanc pour montrer une ligne)"
+    "dividerNamePlaceholder": "Texte du séparateur (laisser en blanc pour montrer une ligne)",
+    "showIndexedUsage": "Afficher l'utilisation telle qu'elle est répertoriée",
+    "showDiskUsage": "Afficher l'utilisation telle qu'elle est indiquée par le disque/la partition"
   },
   "share": {
     "notice": "Remarque : lorsqu'un partage est créé, il est davantage exposé au public et les règles d'accès sont différentes. Si votre partage n'est pas configuré de manière sécurisée, n'importe qui peut y accéder.",
@@ -572,7 +575,31 @@
     "description": "Description{suffix}",
     "emDash": "—",
     "outcome": "Résultat{suffix}",
-    "success": "Succès{suffix}"
+    "success": "Succès{suffix}",
+    "pinnedFolders": "Dossiers épinglés",
+    "pinnedFiles": "Fichiers épinglés",
+    "selectionSingle": "élément sélectionné",
+    "selectionMultiple": "articles sélectionnés",
+    "newUser": "Nouvel utilisateur",
+    "newFolder": "Nouveau dossier",
+    "profileSettings": "Paramètres du profil",
+    "shareSettings": "Partager les paramètres",
+    "globalSettings": "Paramètres généraux",
+    "userManagement": "Gestion des utilisateurs",
+    "shareManagement": "Gestion des actions",
+    "shareHash": "Partager le hachage",
+    "downloadFiles": "Télécharger les fichiers",
+    "editFiles": "Modifier des fichiers",
+    "createFiles": "Créer des fichiers",
+    "deleteFiles": "Supprimer des fichiers",
+    "shareFiles": "Partager des fichiers",
+    "shareTheme": "Partager le thème",
+    "shareTitle": "Partager le titre",
+    "allUsers": "Tous les utilisateurs",
+    "allSources": "Toutes les sources",
+    "allShares": "Toutes les actions",
+    "playPause": "Lecture/Pause",
+    "clearSelection": "Effacer la sélection"
   },
   "access": {
     "rules": "Règles d'accès",
@@ -828,7 +855,21 @@
       "activityTotalsBy": "Totaux des activités par {subject}",
       "subjectEventType": "type d'événement",
       "viewActivity": "Afficher l'activité",
-      "tableColumns": "Colonnes du tableau"
+      "tableColumns": "Colonnes du tableau",
+      "scopeAll": "Toutes les activités",
+      "scopeFiles": "Activité des fichiers",
+      "scopeShares": "Partager l'activité",
+      "eventBulkDelete": "Suppression groupée",
+      "eventShareCreate": "Partager Créer",
+      "eventShareUpdate": "Mise à jour sur l'action",
+      "eventShareDelete": "Partager / Supprimer",
+      "eventUserCreate": "Création d'un utilisateur",
+      "eventUserUpdate": "Mise à jour de l'utilisateur",
+      "eventUserDelete": "Suppression d'un utilisateur",
+      "eventAccessUpdate": "Mise à jour concernant l'accès",
+      "eventTokenCreate": "Création d'un jeton",
+      "eventTokenDelete": "Suppression d'un jeton",
+      "webSessionNamed": "Session en ligne ({name})"
     }
   },
   "messages": {
@@ -931,6 +972,7 @@
     "days": "Jours{suffix}",
     "month": "mois{suffix}",
     "months": "Mois{suffix}",
-    "unit": "Unité de temps"
+    "unit": "Unité de temps",
+    "timeUnit": "Unité de temps"
   }
 }

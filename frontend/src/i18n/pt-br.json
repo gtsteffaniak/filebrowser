@@ -273,7 +273,8 @@
       "password": "Senha"
     },
     "permissionsHelp": "As permissões de usuário controlam o acesso aos tipos de ações que o usuário pode executar. O acesso de administrador dá controle total para atualizar e alterar as configurações de qualquer usuário, bem como muitas configurações do sistema.",
-    "configViewer": "Visualizador de configuração"
+    "configViewer": "Visualizador de configuração",
+    "modifyOtherUserTitle": "Modificar usuário: {username}"
   },
   "sidebar": {
     "updateIsAvailable": "Uma atualização está disponível!",
@@ -312,7 +313,9 @@
     "usageTextDisplay": "Qual texto de uso deve ser exibido?",
     "usageTextIndexed": "uso conforme indexado",
     "usageTextDisk": "uso conforme relatado pelo disco/partição",
-    "dividerNamePlaceholder": "Texto do divisor (deixe em branco para mostrar uma linha)"
+    "dividerNamePlaceholder": "Texto do divisor (deixe em branco para mostrar uma linha)",
+    "showIndexedUsage": "Mostrar uso conforme indexado",
+    "showDiskUsage": "Mostrar o uso conforme relatado pelo disco/partição"
   },
   "share": {
     "notice": "Observação: quando um compartilhamento é criado, ele fica mais exposto ao público e tem regras de acesso diferentes. Se o seu compartilhamento não estiver configurado de forma segura, ele poderá ser acessado por qualquer pessoa.",
@@ -572,7 +575,31 @@
     "description": "Descrição{suffix}",
     "emDash": "—",
     "outcome": "Resultado{suffix}",
-    "success": "Sucesso{suffix}"
+    "success": "Sucesso{suffix}",
+    "pinnedFolders": "Pastas fixadas",
+    "pinnedFiles": "Arquivos fixados",
+    "selectionSingle": "item selecionado",
+    "selectionMultiple": "itens selecionados",
+    "newUser": "Novo usuário",
+    "newFolder": "Nova pasta",
+    "profileSettings": "Configurações do perfil",
+    "shareSettings": "Compartilhar configurações",
+    "globalSettings": "Configurações globais",
+    "userManagement": "Gerenciamento de usuários",
+    "shareManagement": "Gestão de ações",
+    "shareHash": "Compartilhar hash",
+    "downloadFiles": "Baixar arquivos",
+    "editFiles": "Editar arquivos",
+    "createFiles": "Criar arquivos",
+    "deleteFiles": "Excluir arquivos",
+    "shareFiles": "Compartilhar arquivos",
+    "shareTheme": "Compartilhar tema",
+    "shareTitle": "Título da ação",
+    "allUsers": "Todos os usuários",
+    "allSources": "Todas as fontes",
+    "allShares": "Todas as ações",
+    "playPause": "Reproduzir/Pausar",
+    "clearSelection": "Limpar seleção"
   },
   "access": {
     "rules": "Regras de acesso",
@@ -828,7 +855,21 @@
       "activityTotalsBy": "Totais de atividades por {subject}",
       "subjectEventType": "tipo de evento",
       "viewActivity": "Ver atividades",
-      "tableColumns": "Colunas da tabela"
+      "tableColumns": "Colunas da tabela",
+      "scopeAll": "Todas as atividades",
+      "scopeFiles": "Atividade do arquivo",
+      "scopeShares": "Compartilhar atividade",
+      "eventBulkDelete": "Exclusão em massa",
+      "eventShareCreate": "Compartilhar Criar",
+      "eventShareUpdate": "Atualização sobre as ações",
+      "eventShareDelete": "Compartilhar Excluir",
+      "eventUserCreate": "Criação de usuário",
+      "eventUserUpdate": "Atualização do usuário",
+      "eventUserDelete": "Exclusão de usuário",
+      "eventAccessUpdate": "Atualização de acesso",
+      "eventTokenCreate": "Criação de token",
+      "eventTokenDelete": "Exclusão de token",
+      "webSessionNamed": "Sessão online ({name})"
     }
   },
   "messages": {
@@ -931,6 +972,7 @@
     "days": "Dias{suffix}",
     "month": "mês{suffix}",
     "months": "Meses{suffix}",
-    "unit": "Unidade de tempo"
+    "unit": "Unidade de tempo",
+    "timeUnit": "Unidade de tempo"
   }
 }

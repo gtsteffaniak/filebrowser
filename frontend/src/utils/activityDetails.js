@@ -29,25 +29,25 @@ export function activityEventLabel(eventType, $t) {
     case "duplicateFinder":
       return $t("tools.duplicateFinder.name");
     case "bulkDelete":
-      return `${$t("general.bulk")} ${$t("general.delete")}`;
+      return $t("tools.activityViewer.eventBulkDelete");
     case "shareCreate":
-      return `${$t("general.share")} ${$t("general.create")}`;
+      return $t("tools.activityViewer.eventShareCreate");
     case "shareUpdate":
-      return `${$t("general.share")} ${$t("general.update")}`;
+      return $t("tools.activityViewer.eventShareUpdate");
     case "shareDelete":
-      return `${$t("general.share")} ${$t("general.delete")}`;
+      return $t("tools.activityViewer.eventShareDelete");
     case "userCreate":
-      return `${$t("general.user")} ${$t("general.create")}`;
+      return $t("tools.activityViewer.eventUserCreate");
     case "userUpdate":
-      return `${$t("general.user")} ${$t("general.update")}`;
+      return $t("tools.activityViewer.eventUserUpdate");
     case "userDelete":
-      return `${$t("general.user")} ${$t("general.delete")}`;
+      return $t("tools.activityViewer.eventUserDelete");
     case "accessUpdate":
-      return `${$t("general.access")} ${$t("general.update")}`;
+      return $t("tools.activityViewer.eventAccessUpdate");
     case "tokenCreate":
-      return `${$t("prompts.token")} ${$t("general.create")}`;
+      return $t("tools.activityViewer.eventTokenCreate");
     case "tokenDelete":
-      return `${$t("prompts.token")} ${$t("general.delete")}`;
+      return $t("tools.activityViewer.eventTokenDelete");
     case "passkeyRegister":
       return $t("tools.activityViewer.passkeyRegister");
     case "passkeyDelete":
@@ -254,7 +254,7 @@ export function activityTokenDisplay(row, $t) {
   if (name) {
     if (authMethod === "webToken" && name.startsWith("WEB_TOKEN_")) {
       const suffix = name.slice("WEB_TOKEN_".length);
-      return `${$t("tools.activityViewer.webSession")} (${suffix})`;
+      return $t("tools.activityViewer.webSessionNamed", { name: suffix });
     }
     return name;
   }
@@ -271,11 +271,12 @@ function formatActivityFieldChange(change, $t) {
   if (from && to) {
     return `${from} → ${to}`;
   }
+  const emDash = $t("general.emDash");
   if (from) {
-    return `${from} → ${$t("general.emDash")}`;
+    return `${from} → ${emDash}`;
   }
   if (to) {
-    return `${$t("general.emDash")} → ${to}`;
+    return `${emDash} → ${to}`;
   }
   return $t("general.emDash");
 }
@@ -315,7 +316,7 @@ export function buildActivityDetailRows(row, $t) {
   if (Array.isArray(d.changes) && d.changes.length > 0) {
     for (const change of d.changes) {
       const field = change?.field || "";
-      if (!field) continue;
+      if (!field || field === "hash") continue;
       rows.push({
         id: `change-${field}`,
         label: field,
@@ -364,14 +365,6 @@ export function buildActivityDetailRows(row, $t) {
       id: "targetPath",
       label: $t("general.path"),
       value: d.targetPath || row.targetPath,
-    });
-  }
-  const shareHash = activityRowShareHash(row) || d.shareHash;
-  if (shareHash) {
-    rows.push({
-      id: "shareHash",
-      label: `${$t("general.share")} ${$t("general.hash")}`,
-      value: shareHash,
     });
   }
   if (d.fileCount > 1 && paths.length <= 1) {
@@ -426,7 +419,7 @@ export function buildActivityDetailBadges(row, $t) {
   if (Array.isArray(d.changes) && d.changes.length > 0) {
     for (const change of d.changes) {
       const field = change?.field || "";
-      if (!field) continue;
+      if (!field || field === "hash") continue;
       badges.push({
         id: `change-${field}`,
         text: `${field}: ${formatActivityFieldChange(change, $t)}`,
@@ -442,14 +435,6 @@ export function buildActivityDetailBadges(row, $t) {
     });
   }
 
-  const shareHash = activityRowShareHash(row);
-  if (shareHash) {
-    const hashLabel = shareHash.length > 12 ? `${shareHash.slice(0, 10)}…` : shareHash;
-    badges.push({
-      id: "shareHash",
-      text: `${$t("general.share")} ${hashLabel}`,
-    });
-  }
   if (d.targetPath) {
     badges.push({ id: "target", text: d.targetPath });
   }

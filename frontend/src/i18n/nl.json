@@ -146,7 +146,31 @@
     "description": "Beschrijving{suffix}",
     "emDash": "—",
     "outcome": "Resultaat{suffix}",
-    "success": "Succes{suffix}"
+    "success": "Succes{suffix}",
+    "pinnedFolders": "Vastgezette mappen",
+    "pinnedFiles": "Vastgezette bestanden",
+    "selectionSingle": "item geselecteerd",
+    "selectionMultiple": "geselecteerde artikelen",
+    "newUser": "Nieuwe gebruiker",
+    "newFolder": "Nieuwe map",
+    "profileSettings": "Profielinstellingen",
+    "shareSettings": "Instellingen delen",
+    "globalSettings": "Algemene instellingen",
+    "userManagement": "Gebruikersbeheer",
+    "shareManagement": "Aandelenbeheer",
+    "shareHash": "Hash delen",
+    "downloadFiles": "Bestanden downloaden",
+    "editFiles": "Bestanden bewerken",
+    "createFiles": "Bestanden aanmaken",
+    "deleteFiles": "Bestanden verwijderen",
+    "shareFiles": "Bestanden delen",
+    "shareTheme": "Thema delen",
+    "shareTitle": "Deel titel",
+    "allUsers": "Alle gebruikers",
+    "allSources": "Alle bronnen",
+    "allShares": "Alle aandelen",
+    "playPause": "Afspelen/Pauzeren",
+    "clearSelection": "Selectie wissen"
   },
   "buttons": {
     "copySuccess": "Gekopieerd naar klembord!",
@@ -566,7 +590,8 @@
     "settingsUpdated": "Instellingen bijgewerkt!",
     "shareDeleted": "Gedeelde map verwijderd!",
     "userDeleted": "Gebruiker verwijderd!",
-    "userUpdated": "Gebruiker bijgewerkt!"
+    "userUpdated": "Gebruiker bijgewerkt!",
+    "modifyOtherUserTitle": "Gebruiker aanpassen: {username}"
   },
   "sidebar": {
     "dividerNamePlaceholder": "Scheidingstekst (leeg laten om een lijn weer te geven)",
@@ -605,7 +630,9 @@
     "linksUpdateFailed": "Bijwerken van koppelingen in zijbalk is mislukt",
     "sourceNotAccessible": "Deze bron is niet langer toegankelijk voor jou",
     "noLinksYet": "Er zijn nog geen links geconfigureerd. Voeg hieronder uw eerste link toe.",
-    "switchMode": "Zijbalkmodus wijzigen"
+    "switchMode": "Zijbalkmodus wijzigen",
+    "showIndexedUsage": "Gebruik weergeven zoals geïndexeerd",
+    "showDiskUsage": "Weergave van het gebruik zoals gerapporteerd per schijf/partitie"
   },
   "api": {
     "title": "API-sleutels",
@@ -837,7 +864,21 @@
       "activityTotalsBy": "Totale cijfers per activiteit {subject}",
       "subjectEventType": "soort evenement",
       "viewActivity": "Activiteit bekijken",
-      "tableColumns": "Kolommen in de tabel"
+      "tableColumns": "Kolommen in de tabel",
+      "scopeAll": "Alle activiteiten",
+      "scopeFiles": "Bestandsactiviteit",
+      "scopeShares": "Activiteit delen",
+      "eventBulkDelete": "In één keer verwijderen",
+      "eventShareCreate": "Delen Aanmaken",
+      "eventShareUpdate": "Update delen",
+      "eventShareDelete": "Delen Verwijderen",
+      "eventUserCreate": "Gebruiker aanmaken",
+      "eventUserUpdate": "Gebruikersupdate",
+      "eventUserDelete": "Gebruiker verwijderen",
+      "eventAccessUpdate": "Toegangsupdate",
+      "eventTokenCreate": "Token aanmaken",
+      "eventTokenDelete": "Token verwijderen",
+      "webSessionNamed": "Websessie ({name})"
     }
   },
   "notifications": {
@@ -931,6 +972,7 @@
     "days": "Dagen{suffix}",
     "month": "maand{suffix}",
     "months": "Maanden{suffix}",
-    "unit": "Tijdseenheid"
+    "unit": "Tijdseenheid",
+    "timeUnit": "Tijdseenheid"
   }
 }

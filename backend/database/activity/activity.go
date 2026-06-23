@@ -48,7 +48,6 @@ type FrontendDetails struct {
 	Source         string        `json:"source,omitempty"`
 	Path           string        `json:"path,omitempty"`
 	TargetPath     string        `json:"targetPath,omitempty"`
-	ShareHash      string        `json:"shareHash,omitempty"`
 	Scopes         []ScopeDetail `json:"scopes,omitempty"`
 	AffectedTokenName string        `json:"affectedTokenName,omitempty"`
 	LoginMethod    string        `json:"loginMethod,omitempty"`
@@ -87,7 +86,6 @@ func (d Details) ToFrontendDetails() FrontendDetails {
 		Source:         d.Source,
 		Path:           d.Path,
 		TargetPath:     d.TargetPath,
-		ShareHash:      d.ShareHash,
 		Scopes:         d.Scopes,
 		AffectedTokenName: d.AffectedTokenName,
 		LoginMethod:    d.LoginMethod,

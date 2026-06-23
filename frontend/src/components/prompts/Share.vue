@@ -711,16 +711,16 @@ export default {
   },
   methods: {
     shareManagementLabel() {
-      return `${this.$t("general.share")} ${this.$t("general.management")}`;
+      return this.$t("general.shareManagement");
     },
     shareThemeLabel() {
-      return `${this.$t("general.share")} ${this.$t("general.theme")}`;
+      return this.$t("general.shareTheme");
     },
     shareTitleLabel() {
-      return `${this.$t("general.share")} ${this.$t("general.title")}`;
+      return this.$t("general.shareTitle");
     },
     timeUnitLabel() {
-      return `${this.$t("time.time")} ${this.$t("time.unit")}`;
+      return this.$t("time.timeUnit");
     },
     applyReadOnlyConstraints() {
       if (this.shareType === 'upload') {

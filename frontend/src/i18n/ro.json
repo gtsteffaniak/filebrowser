@@ -273,7 +273,8 @@
       "password": "Parolă"
     },
     "permissionsHelp": "Permisiunile utilizatorului controlează accesul la ce tip de acțiuni poate efectua utilizatorul. Accesul de administrator oferă control deplin pentru actualizarea și modificarea setărilor oricărui utilizator, precum și a multor setări de sistem.",
-    "configViewer": "Vizualizator de configurare"
+    "configViewer": "Vizualizator de configurare",
+    "modifyOtherUserTitle": "Modificarea utilizatorului: {username}"
   },
   "sidebar": {
     "updateIsAvailable": "O actualizare este disponibilă!",
@@ -312,7 +313,9 @@
     "usageTextDisplay": "Ce text de utilizare ar trebui să fie afișat?",
     "usageTextIndexed": "utilizare ca indexat",
     "usageTextDisk": "utilizare raportată de disc/partiție",
-    "dividerNamePlaceholder": "Textul separatorului (lăsați gol pentru a afișa o linie)"
+    "dividerNamePlaceholder": "Textul separatorului (lăsați gol pentru a afișa o linie)",
+    "showIndexedUsage": "Afișează utilizarea conform indexului",
+    "showDiskUsage": "Afișează utilizarea conform datelor raportate de disc/partiție"
   },
   "share": {
     "notice": "Notă: atunci când este creată o partajare, aceasta devine mai expusă publicului și are reguli diferite de acces. Dacă partajul dvs. nu este configurat în siguranță, acesta poate fi accesat de oricine.",
@@ -572,7 +575,31 @@
     "description": "Descriere{suffix}",
     "emDash": "—",
     "outcome": "Rezultat{suffix}",
-    "success": "Succes{suffix}"
+    "success": "Succes{suffix}",
+    "pinnedFolders": "Dosare fixate",
+    "pinnedFiles": "Fișiere fixate",
+    "selectionSingle": "element selectat",
+    "selectionMultiple": "articole selectate",
+    "newUser": "Utilizator nou",
+    "newFolder": "Dosar nou",
+    "profileSettings": "Setări profil",
+    "shareSettings": "Setări de partajare",
+    "globalSettings": "Setări generale",
+    "userManagement": "Gestionarea utilizatorilor",
+    "shareManagement": "Gestionarea acțiunilor",
+    "shareHash": "Partajează hash-ul",
+    "downloadFiles": "Descărcați fișierele",
+    "editFiles": "Editare fișiere",
+    "createFiles": "Creare fișiere",
+    "deleteFiles": "Șterge fișierele",
+    "shareFiles": "Partajare fișiere",
+    "shareTheme": "Distribuie tema",
+    "shareTitle": "Titlul postării",
+    "allUsers": "Toți utilizatorii",
+    "allSources": "Toate sursele",
+    "allShares": "Toate acțiunile",
+    "playPause": "Redare/Pauză",
+    "clearSelection": "Șterge selecția"
   },
   "access": {
     "rules": "Reguli de acces",
@@ -828,7 +855,21 @@
       "activityTotalsBy": "Totaluri ale activităților pe {subject}",
       "subjectEventType": "tipul evenimentului",
       "viewActivity": "Vizualizează activitatea",
-      "tableColumns": "Coloanele tabelului"
+      "tableColumns": "Coloanele tabelului",
+      "scopeAll": "Toate activitățile",
+      "scopeFiles": "Activitatea fișierelor",
+      "scopeShares": "Activitate de partajare",
+      "eventBulkDelete": "Ștergere în bloc",
+      "eventShareCreate": "Distribuie Creează",
+      "eventShareUpdate": "Actualizare privind acțiunile",
+      "eventShareDelete": "Distribuie Șterge",
+      "eventUserCreate": "Creare utilizator",
+      "eventUserUpdate": "Actualizare utilizator",
+      "eventUserDelete": "Ștergerea utilizatorului",
+      "eventAccessUpdate": "Actualizare privind accesul",
+      "eventTokenCreate": "Creare token",
+      "eventTokenDelete": "Ștergerea tokenului",
+      "webSessionNamed": "Sesiune web ({name})"
     }
   },
   "messages": {
@@ -931,6 +972,7 @@
     "days": "Zile{suffix}",
     "month": "lună{suffix}",
     "months": "Luni{suffix}",
-    "unit": "Unitate de timp"
+    "unit": "Unitate de timp",
+    "timeUnit": "Unitate de timp"
   }
 }

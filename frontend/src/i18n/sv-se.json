@@ -273,7 +273,8 @@
       "password": "Lösenord"
     },
     "permissionsHelp": "Användarbehörigheter styr vilka typer av åtgärder som användaren kan utföra. Administratörsbehörighet ger full kontroll över uppdatering och ändring av alla användarinställningar samt många systeminställningar.",
-    "configViewer": "Konfig-visare"
+    "configViewer": "Konfig-visare",
+    "modifyOtherUserTitle": "Ändra användare: {username}"
   },
   "sidebar": {
     "updateIsAvailable": "En uppdatering är tillgänglig!",
@@ -312,7 +313,9 @@
     "usageTextDisplay": "Vilken användningstext ska visas?",
     "usageTextIndexed": "användning som indexerad",
     "usageTextDisk": "användning som rapporteras av disk/partition",
-    "dividerNamePlaceholder": "Delningstext (lämna tom för att visa en rad)"
+    "dividerNamePlaceholder": "Delningstext (lämna tom för att visa en rad)",
+    "showIndexedUsage": "Visa användningen enligt indexeringen",
+    "showDiskUsage": "Visa användning enligt uppgifter från disk/partition"
   },
   "share": {
     "notice": "Observera: När en andel skapas blir den mer exponerad för allmänheten och har andra regler för åtkomst. Om din andel inte är säkert konfigurerad kan vem som helst komma åt den.",
@@ -666,7 +669,31 @@
     "description": "Beskrivning{suffix}",
     "emDash": "—",
     "outcome": "Resultat{suffix}",
-    "success": "Framgång{suffix}"
+    "success": "Framgång{suffix}",
+    "pinnedFolders": "Fästa mappar",
+    "pinnedFiles": "Fästa filer",
+    "selectionSingle": "vald artikel",
+    "selectionMultiple": "valda artiklar",
+    "newUser": "Ny användare",
+    "newFolder": "Ny mapp",
+    "profileSettings": "Profilinställningar",
+    "shareSettings": "Dela inställningar",
+    "globalSettings": "Globala inställningar",
+    "userManagement": "Användarhantering",
+    "shareManagement": "Aktiehantering",
+    "shareHash": "Dela hash",
+    "downloadFiles": "Ladda ner filer",
+    "editFiles": "Redigera filer",
+    "createFiles": "Skapa filer",
+    "deleteFiles": "Ta bort filer",
+    "shareFiles": "Dela filer",
+    "shareTheme": "Dela tema",
+    "shareTitle": "Dela rubrik",
+    "allUsers": "Alla användare",
+    "allSources": "Alla källor",
+    "allShares": "Alla aktier",
+    "playPause": "Spela upp/Paus",
+    "clearSelection": "Rensa urvalet"
   },
   "access": {
     "rules": "Regler för åtkomst",
@@ -828,7 +855,21 @@
       "activityTotalsBy": "Aktivitetssummor per {subject}",
       "subjectEventType": "händelsetyp",
       "viewActivity": "Visa aktivitet",
-      "tableColumns": "Tabellkolumner"
+      "tableColumns": "Tabellkolumner",
+      "scopeAll": "All aktivitet",
+      "scopeFiles": "Filaktivitet",
+      "scopeShares": "Dela aktivitet",
+      "eventBulkDelete": "Massradering",
+      "eventShareCreate": "Dela Skapa",
+      "eventShareUpdate": "Dela uppdatering",
+      "eventShareDelete": "Dela Ta bort",
+      "eventUserCreate": "Skapa användare",
+      "eventUserUpdate": "Användaruppdatering",
+      "eventUserDelete": "Ta bort användare",
+      "eventAccessUpdate": "Uppdatering av åtkomst",
+      "eventTokenCreate": "Skapa token",
+      "eventTokenDelete": "Ta bort token",
+      "webSessionNamed": "Webbsession ({name})"
     }
   },
   "messages": {
@@ -931,6 +972,7 @@
     "days": "Dagar{suffix}",
     "month": "månad{suffix}",
     "months": "Månader{suffix}",
-    "unit": "Tidsenhet"
+    "unit": "Tidsenhet",
+    "timeUnit": "Tidsenhet"
   }
 }

@@ -318,7 +318,7 @@ export default {
   },
   methods: {
     profileSettingsLabel() {
-      return `${this.$t("general.profile")} ${this.$t("general.settings")}`;
+      return this.$t("general.profileSettings");
     },
     showTooltip(event, text) {
       mutations.showTooltip({

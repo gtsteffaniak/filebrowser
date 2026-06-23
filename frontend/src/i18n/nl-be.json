@@ -273,7 +273,8 @@
       "password": "Wachtwoord"
     },
     "permissionsHelp": "Gebruikersrechten bepalen welke acties de gebruiker kan uitvoeren. Administrar toegang geeft volledige controle om de instellingen van elke gebruiker bij te werken en te wijzigen, evenals vele systeeminstellingen.",
-    "configViewer": "Configuratiescherm"
+    "configViewer": "Configuratiescherm",
+    "modifyOtherUserTitle": "Gebruiker aanpassen: {username}"
   },
   "sidebar": {
     "updateIsAvailable": "Er is een update beschikbaar!",
@@ -312,7 +313,9 @@
     "usageTextDisplay": "Welke gebruikstekst moet worden weergegeven?",
     "usageTextIndexed": "gebruik zoals geïndexeerd",
     "usageTextDisk": "gebruik zoals gerapporteerd door schijf/partitie",
-    "dividerNamePlaceholder": "Scheidingstekst (leeg laten om een lijn weer te geven)"
+    "dividerNamePlaceholder": "Scheidingstekst (leeg laten om een lijn weer te geven)",
+    "showIndexedUsage": "Gebruik weergeven zoals geïndexeerd",
+    "showDiskUsage": "Weergave van het gebruik zoals gerapporteerd per schijf/partitie"
   },
   "share": {
     "notice": "Opmerking: wanneer een share wordt aangemaakt, wordt deze meer blootgesteld aan het publiek en gelden er andere toegangsregels. Als je share niet veilig is geconfigureerd, kan iedereen er toegang tot krijgen.",
@@ -666,7 +669,31 @@
     "description": "Beschrijving{suffix}",
     "emDash": "—",
     "outcome": "Resultaat{suffix}",
-    "success": "Succes{suffix}"
+    "success": "Succes{suffix}",
+    "pinnedFolders": "Vastgezette mappen",
+    "pinnedFiles": "Vastgezette bestanden",
+    "selectionSingle": "item geselecteerd",
+    "selectionMultiple": "geselecteerde artikelen",
+    "newUser": "Nieuwe gebruiker",
+    "newFolder": "Nieuwe map",
+    "profileSettings": "Profielinstellingen",
+    "shareSettings": "Instellingen delen",
+    "globalSettings": "Algemene instellingen",
+    "userManagement": "Gebruikersbeheer",
+    "shareManagement": "Aandelenbeheer",
+    "shareHash": "Hash delen",
+    "downloadFiles": "Bestanden downloaden",
+    "editFiles": "Bestanden bewerken",
+    "createFiles": "Bestanden aanmaken",
+    "deleteFiles": "Bestanden verwijderen",
+    "shareFiles": "Bestanden delen",
+    "shareTheme": "Thema delen",
+    "shareTitle": "Deel titel",
+    "allUsers": "Alle gebruikers",
+    "allSources": "Alle bronnen",
+    "allShares": "Alle aandelen",
+    "playPause": "Afspelen/Pauzeren",
+    "clearSelection": "Selectie wissen"
   },
   "access": {
     "rules": "Toegangsregels",
@@ -828,7 +855,21 @@
       "activityTotalsBy": "Totale cijfers per activiteit {subject}",
       "subjectEventType": "soort evenement",
       "viewActivity": "Activiteit bekijken",
-      "tableColumns": "Kolommen in de tabel"
+      "tableColumns": "Kolommen in de tabel",
+      "scopeAll": "Alle activiteiten",
+      "scopeFiles": "Bestandsactiviteit",
+      "scopeShares": "Activiteit delen",
+      "eventBulkDelete": "In één keer verwijderen",
+      "eventShareCreate": "Delen Aanmaken",
+      "eventShareUpdate": "Update delen",
+      "eventShareDelete": "Delen Verwijderen",
+      "eventUserCreate": "Gebruiker aanmaken",
+      "eventUserUpdate": "Gebruikersupdate",
+      "eventUserDelete": "Gebruiker verwijderen",
+      "eventAccessUpdate": "Toegangsupdate",
+      "eventTokenCreate": "Token aanmaken",
+      "eventTokenDelete": "Token verwijderen",
+      "webSessionNamed": "Websessie ({name})"
     }
   },
   "messages": {
@@ -931,6 +972,7 @@
     "days": "Dagen{suffix}",
     "month": "maand{suffix}",
     "months": "Maanden{suffix}",
-    "unit": "Tijdseenheid"
+    "unit": "Tijdseenheid",
+    "timeUnit": "Tijdseenheid"
   }
 }

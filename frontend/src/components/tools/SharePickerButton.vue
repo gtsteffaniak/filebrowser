@@ -62,7 +62,7 @@ export default {
 
   computed: {
     allSharesLabel() {
-      return `${this.$t("general.all")}${this.$t("general.shares")}`;
+      return this.$t("general.allShares");
     },
     resolvedAriaLabel() {
       return this.ariaLabel || this.buttonLabel;

@@ -273,7 +273,8 @@
       "password": "Пароль"
     },
     "permissionsHelp": "Разрешения пользователя контролируют, какие действия он может выполнять. Доступ администратора дает полный контроль над обновлением и изменением настроек любого пользователя, а также многих системных настроек.",
-    "configViewer": "Программа просмотра конфигурации"
+    "configViewer": "Программа просмотра конфигурации",
+    "modifyOtherUserTitle": "Изменить пользователя: {username}"
   },
   "sidebar": {
     "updateIsAvailable": "Обновление доступно!",
@@ -312,7 +313,9 @@
     "usageTextDisplay": "Какой текст должен отображаться?",
     "usageTextIndexed": "использование в индексированном виде",
     "usageTextDisk": "использование по данным диска/раздела",
-    "dividerNamePlaceholder": "Текст разделителя (оставьте пустым, чтобы показать строку)"
+    "dividerNamePlaceholder": "Текст разделителя (оставьте пустым, чтобы показать строку)",
+    "showIndexedUsage": "Показать использование в соответствии с индексом",
+    "showDiskUsage": "Показать объем использования по данным диска/раздела"
   },
   "share": {
     "notice": "Примечание: когда создается общий ресурс, он становится более открытым для публики и имеет другие правила доступа. Если ваш ресурс не настроен безопасно, доступ к нему может получить любой желающий.",
@@ -572,7 +575,31 @@
     "description": "Описание{suffix}",
     "emDash": "—",
     "outcome": "Результат{suffix}",
-    "success": "Успех{suffix}"
+    "success": "Успех{suffix}",
+    "pinnedFolders": "Закрепленные папки",
+    "pinnedFiles": "Закрепленные файлы",
+    "selectionSingle": "выбранный элемент",
+    "selectionMultiple": "выбранные товары",
+    "newUser": "Новый пользователь",
+    "newFolder": "Новая папка",
+    "profileSettings": "Настройки профиля",
+    "shareSettings": "Настройки обмена",
+    "globalSettings": "Общие настройки",
+    "userManagement": "Управление пользователями",
+    "shareManagement": "Управление акциями",
+    "shareHash": "Поделиться хешем",
+    "downloadFiles": "Скачать файлы",
+    "editFiles": "Редактировать файлы",
+    "createFiles": "Создать файлы",
+    "deleteFiles": "Удалить файлы",
+    "shareFiles": "Обмен файлами",
+    "shareTheme": "Поделиться темой",
+    "shareTitle": "Название публикации",
+    "allUsers": "Все пользователи",
+    "allSources": "Все источники",
+    "allShares": "Все акции",
+    "playPause": "Воспроизведение/Пауза",
+    "clearSelection": "Очистить выбор"
   },
   "access": {
     "rules": "Правила доступа",
@@ -828,7 +855,21 @@
       "activityTotalsBy": "Итоговые показатели деятельности по {subject}",
       "subjectEventType": "тип события",
       "viewActivity": "Просмотреть активность",
-      "tableColumns": "Столбцы таблицы"
+      "tableColumns": "Столбцы таблицы",
+      "scopeAll": "Вся деятельность",
+      "scopeFiles": "Активность файлов",
+      "scopeShares": "Деятельность по обмену",
+      "eventBulkDelete": "Массовое удаление",
+      "eventShareCreate": "Поделиться Создать",
+      "eventShareUpdate": "Поделиться новостью",
+      "eventShareDelete": "Поделиться Удалить",
+      "eventUserCreate": "Создание пользователя",
+      "eventUserUpdate": "Обновление данных пользователя",
+      "eventUserDelete": "Удаление пользователя",
+      "eventAccessUpdate": "Обновление доступа",
+      "eventTokenCreate": "Создание токена",
+      "eventTokenDelete": "Удаление токена",
+      "webSessionNamed": "Веб-сессия ({name})"
     }
   },
   "messages": {
@@ -931,6 +972,7 @@
     "days": "Дни{suffix}",
     "month": "месяц{suffix}",
     "months": "Месяцы{suffix}",
-    "unit": "Единица времени"
+    "unit": "Единица времени",
+    "timeUnit": "Единица времени"
   }
 }

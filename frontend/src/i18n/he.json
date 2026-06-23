@@ -273,7 +273,8 @@
       "password": "סיסמה"
     },
     "permissionsHelp": "הרשאות המשתמש שולטות בגישה לסוגי הפעולות שהמשתמש יכול לבצע. גישה לניהול מעניקה שליטה מלאה לעדכון ולשינוי הגדרות המשתמש, כמו גם הגדרות רבות של המערכת.",
-    "configViewer": "מציג תצורה"
+    "configViewer": "מציג תצורה",
+    "modifyOtherUserTitle": "שינוי פרטי משתמש: {username}"
   },
   "sidebar": {
     "updateIsAvailable": "עדכון זמין!",
@@ -312,7 +313,9 @@
     "usageTextDisplay": "איזה טקסט שימוש יש להציג?",
     "usageTextIndexed": "שימוש כפי שמופיע באינדקס",
     "usageTextDisk": "שימוש כפי שדווח על ידי דיסק/מחיצה",
-    "dividerNamePlaceholder": "טקסט מפריד (השאר ריק כדי להציג קו)"
+    "dividerNamePlaceholder": "טקסט מפריד (השאר ריק כדי להציג קו)",
+    "showIndexedUsage": "הצג את השימוש כפי שמופיע באינדקס",
+    "showDiskUsage": "הצג את השימוש כפי שדווח על ידי הדיסק/המחיצה"
   },
   "share": {
     "notice": "הערה: כאשר נוצר שיתוף, הוא הופך לחשוף יותר לציבור וחל עליו כללים שונים לגבי גישה. אם השיתוף שלך אינו מוגדר בצורה מאובטחת, כל אחד יכול לגשת אליו.",
@@ -572,7 +575,31 @@
     "description": "תיאור{suffix}",
     "emDash": "—",
     "outcome": "תוצאה{suffix}",
-    "success": "הצלחה{suffix}"
+    "success": "הצלחה{suffix}",
+    "pinnedFolders": "תיקיות מוצמדות",
+    "pinnedFiles": "קבצים מוצמדים",
+    "selectionSingle": "הפריט שנבחר",
+    "selectionMultiple": "הפריטים שנבחרו",
+    "newUser": "משתמש חדש",
+    "newFolder": "תיקייה חדשה",
+    "profileSettings": "הגדרות פרופיל",
+    "shareSettings": "הגדרות שיתוף",
+    "globalSettings": "הגדרות כלליות",
+    "userManagement": "ניהול משתמשים",
+    "shareManagement": "ניהול מניות",
+    "shareHash": "שתף את ההאש",
+    "downloadFiles": "הורדת קבצים",
+    "editFiles": "עריכת קבצים",
+    "createFiles": "יצירת קבצים",
+    "deleteFiles": "מחיקת קבצים",
+    "shareFiles": "שיתוף קבצים",
+    "shareTheme": "שתף ערכת נושא",
+    "shareTitle": "כותרת השיתוף",
+    "allUsers": "כל המשתמשים",
+    "allSources": "כל המקורות",
+    "allShares": "כל המניות",
+    "playPause": "הפעל/השהה",
+    "clearSelection": "נקה את הבחירה"
   },
   "access": {
     "rules": "כללי גישה",
@@ -828,7 +855,21 @@
       "activityTotalsBy": "סיכומי הפעילות לפי {subject}",
       "subjectEventType": "סוג האירוע",
       "viewActivity": "הצג פעילות",
-      "tableColumns": "עמודות הטבלה"
+      "tableColumns": "עמודות הטבלה",
+      "scopeAll": "כל הפעילויות",
+      "scopeFiles": "פעילות הקבצים",
+      "scopeShares": "פעילות שיתוף",
+      "eventBulkDelete": "מחיקה המונית",
+      "eventShareCreate": "שתף צור",
+      "eventShareUpdate": "שתף עדכון",
+      "eventShareDelete": "שתף מחק",
+      "eventUserCreate": "יצירת משתמש",
+      "eventUserUpdate": "עדכון משתמש",
+      "eventUserDelete": "מחיקת משתמש",
+      "eventAccessUpdate": "עדכון גישה",
+      "eventTokenCreate": "יצירת אסימון",
+      "eventTokenDelete": "מחיקת אסימון",
+      "webSessionNamed": "מפגש מקוון ({name})"
     }
   },
   "messages": {
@@ -931,6 +972,7 @@
     "days": "ימים{suffix}",
     "month": "חודש{suffix}",
     "months": "חודשים{suffix}",
-    "unit": "יחידת זמן"
+    "unit": "יחידת זמן",
+    "timeUnit": "יחידת זמן"
   }
 }

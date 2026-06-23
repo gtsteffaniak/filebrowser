@@ -1,12 +1,9 @@
 <template>
-  <div ref="root" class="expand-dropdown">
+  <div ref="root" class="expand-dropdown" :class="{ 'expand-dropdown--open': open }">
     <div
       ref="anchor"
       class="expand-dropdown-anchor menu-panel no-select floating-window"
-      :class="{
-        'expand-dropdown-anchor--hidden': open,
-        'dark-mode': isDarkMode,
-      }"
+      :class="{ 'dark-mode': isDarkMode }"
     >
       <button
         ref="trigger"
@@ -16,52 +13,50 @@
         :aria-expanded="open ? 'true' : 'false'"
         aria-haspopup="listbox"
         :aria-label="resolvedAriaLabel"
-        @click="openPanel"
+        @click="togglePanel"
         @keydown.down.prevent="openPanel"
-        @keydown.enter.prevent="openPanel"
-        @keydown.space.prevent="openPanel"
+        @keydown.enter.prevent="togglePanel"
+        @keydown.space.prevent="togglePanel"
+        @keydown.esc.prevent="close"
       >
         <span class="expand-dropdown-trigger-label">{{ displayLabel }}</span>
-        <i class="material-symbols expand-dropdown-chevron">expand_more</i>
+        <i
+          class="material-symbols expand-dropdown-chevron"
+          :class="{ 'expand-dropdown-chevron--open': isExpanded }"
+        >expand_more</i>
       </button>
     </div>
 
     <Teleport to="body">
       <div
         v-if="open"
+        class="expand-dropdown-shadow"
+        :class="{ 'expand-dropdown-shadow--closing': closing }"
+        :style="shadowStyle"
+        aria-hidden="true"
+      />
+      <div
+        v-if="open"
         ref="overlay"
-        class="expand-dropdown-overlay menu-panel no-select floating-window"
+        class="expand-dropdown-overlay"
         :class="{ 'dark-mode': isDarkMode }"
         :style="overlayStyle"
       >
-        <button
-          type="button"
-          class="action expand-dropdown-trigger"
-          :aria-expanded="'true'"
-          aria-haspopup="listbox"
-          :aria-label="resolvedAriaLabel"
-          @click="close"
-          @keydown.esc.prevent="close"
-        >
-          <span class="expand-dropdown-trigger-label">{{ displayLabel }}</span>
-          <i class="material-symbols expand-dropdown-chevron expand-dropdown-chevron--open">expand_more</i>
-        </button>
-
         <transition
           name="expand"
           @before-enter="beforeEnter"
           @enter="enter"
           @leave="leave"
+          @after-leave="onPanelAfterLeave"
         >
           <div
-            v-if="open"
+            v-if="panelOpen"
             ref="panel"
-            class="expand-dropdown-body"
+            class="expand-dropdown-body menu-panel no-select"
             role="listbox"
             :aria-multiselectable="allowMultiple ? 'true' : 'false'"
             :aria-label="resolvedAriaLabel"
           >
-            <hr class="divider">
             <MenuOptionList
               ref="menuOptions"
               :options="normalizedOptions"
@@ -91,6 +86,8 @@ import {
 } from "@/utils/expandTransition.js";
 
 let expandDropdownIdCounter = 0;
+const EXPAND_OPEN_MS = 300;
+const EXPAND_CLOSE_MS = 150;
 
 export default {
   name: "ExpandDropdown",
@@ -159,9 +156,14 @@ export default {
   data() {
     return {
       open: false,
+      panelOpen: false,
+      isExpanded: false,
+      closing: false,
       searchQuery: "",
       overlayStyle: {},
+      shadowStyle: {},
       localInputId: `expand-dropdown-${expandDropdownIdCounter += 1}`,
+      panelResizeObserver: null,
     };
   },
 
@@ -256,7 +258,7 @@ export default {
         if (labels.length <= 2) {
           return labels.join(", ");
         }
-        return `${labels.length} ${this.$t("general.selected")}`;
+        return this.$t("general.selected", { prefix: `${labels.length} ` });
       }
       return this.labelForValue(this.effectiveSingleValue)
         || this.defaultPlaceholderIfEmpty
@@ -269,13 +271,20 @@ export default {
       if (isOpen) {
         this.$nextTick(() => {
           this.updateOverlayPosition();
+        });
+      }
+    },
+    panelOpen(isOpen) {
+      if (isOpen) {
+        this.$nextTick(() => {
+          this.observePanelResize();
+          this.updateOverlayPosition();
           if (this.allowSearch) {
             this.$refs.menuOptions?.focusSearch();
           }
         });
       } else {
-        this.searchQuery = "";
-        this.overlayStyle = {};
+        this.unobservePanelResize();
       }
     },
     options: {
@@ -292,12 +301,19 @@ export default {
     document.addEventListener("mousedown", this.onDocumentMouseDown);
     window.addEventListener("resize", this.onViewportChange);
     window.addEventListener("scroll", this.onViewportChange, true);
+    this.panelResizeObserver = new ResizeObserver(() => {
+      if (this.open) {
+        this.updateOverlayPosition();
+      }
+    });
   },
 
   beforeUnmount() {
     document.removeEventListener("mousedown", this.onDocumentMouseDown);
     window.removeEventListener("resize", this.onViewportChange);
     window.removeEventListener("scroll", this.onViewportChange, true);
+    this.unobservePanelResize();
+    this.panelResizeObserver = null;
   },
 
   methods: {
@@ -320,24 +336,92 @@ export default {
       if (this.open) {
         return;
       }
+      this.closing = false;
+      this.panelOpen = false;
+      this.isExpanded = true;
       this.updateOverlayPosition();
       this.open = true;
+      this.$nextTick(() => {
+        this.panelOpen = true;
+      });
+    },
+    togglePanel() {
+      if (this.open) {
+        this.close();
+        return;
+      }
+      this.openPanel();
     },
     close() {
+      if (!this.open) {
+        return;
+      }
+      this.isExpanded = false;
+      if (!this.panelOpen) {
+        this.finishClose();
+        return;
+      }
+      this.closing = true;
+      this.panelOpen = false;
+    },
+    finishClose() {
       this.open = false;
+      this.panelOpen = false;
+      this.isExpanded = false;
+      this.closing = false;
+      this.searchQuery = "";
+      this.overlayStyle = {};
+      this.shadowStyle = {};
+      this.unobservePanelResize();
+    },
+    onPanelAfterLeave() {
+      if (!this.panelOpen) {
+        this.finishClose();
+      }
+    },
+    enter(el, done) {
+      expandEnter(el, () => {
+        this.updateOverlayPosition();
+        done();
+      }, EXPAND_OPEN_MS);
+    },
+    leave(el, done) {
+      expandLeave(el, done, EXPAND_CLOSE_MS);
+    },
+    observePanelResize() {
+      const panel = this.$refs.panel;
+      if (panel && this.panelResizeObserver) {
+        this.panelResizeObserver.observe(panel);
+      }
+    },
+    unobservePanelResize() {
+      this.panelResizeObserver?.disconnect();
     },
     updateOverlayPosition() {
       const anchor = this.$refs.anchor;
       if (!anchor) {
         return;
       }
-      const rect = anchor.getBoundingClientRect();
+      const anchorRect = anchor.getBoundingClientRect();
+      const panel = this.$refs.panel;
+      const panelHeight = panel?.getBoundingClientRect().height || 0;
+      const totalHeight = anchorRect.height + panelHeight;
+
       this.overlayStyle = {
         position: "fixed",
-        top: `${rect.top}px`,
-        left: `${rect.left}px`,
-        width: `${rect.width}px`,
+        top: `${anchorRect.bottom}px`,
+        left: `${anchorRect.left}px`,
+        width: `${anchorRect.width}px`,
         zIndex: 1000,
+      };
+
+      this.shadowStyle = {
+        position: "fixed",
+        top: `${anchorRect.top}px`,
+        left: `${anchorRect.left}px`,
+        width: `${anchorRect.width}px`,
+        height: `${totalHeight}px`,
+        zIndex: 999,
       };
     },
     onViewportChange() {
@@ -382,8 +466,6 @@ export default {
       this.close();
     },
     beforeEnter: expandBeforeEnter,
-    enter: expandEnter,
-    leave: expandLeave,
   },
 };
 </script>
@@ -406,12 +488,62 @@ export default {
   min-width: 13em;
 }
 
-.expand-dropdown-anchor--hidden {
-  visibility: hidden;
+.expand-dropdown-anchor {
+  box-sizing: border-box;
+  border: 1px solid var(--surfaceSecondary);
+  transition:
+    border-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.expand-dropdown--open .expand-dropdown-anchor {
+  position: relative;
+  z-index: 1000;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom-color: var(--background);
+  box-shadow: none;
+}
+
+.expand-dropdown-shadow {
+  pointer-events: none;
+  background: transparent;
+  border-radius: 1em;
+  box-shadow:
+    0 1px 1px hsl(0deg 0% 0% / 0.075),
+    0 2px 2px hsl(0deg 0% 0% / 0.075),
+    0 4px 4px hsl(0deg 0% 0% / 0.075),
+    0 8px 8px hsl(0deg 0% 0% / 0.075),
+    0 16px 16px hsl(0deg 0% 0% / 0.075);
+  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.expand-dropdown-shadow--closing {
+  transition-duration: 0.15s;
 }
 
 .expand-dropdown-overlay {
   box-sizing: border-box;
+  background: transparent;
+  overflow: visible;
+  z-index: 1000;
+}
+
+.expand-dropdown-body {
+  box-sizing: border-box;
+  overflow: hidden;
+  width: 100%;
+  background-color: var(--background);
+  border-style: solid;
+  border-color: var(--surfaceSecondary);
+  border-width: 1px 1px 1px;
+  border-top-color: var(--background);
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: 1em;
+  border-bottom-right-radius: 1em;
+  box-shadow: none;
+  padding-top: 0;
 }
 
 .expand-dropdown-trigger {
@@ -420,9 +552,7 @@ export default {
   justify-content: space-between;
   gap: 0.5rem;
   width: 100%;
-  min-height: 2.25em;
   padding-left: 0.5em;
-  border-radius: 0.65em;
   text-align: left;
   cursor: pointer;
 }
@@ -440,25 +570,22 @@ export default {
   flex-shrink: 0;
   font-size: 1.25rem;
   color: var(--textSecondary);
-  transition: transform 0.2s ease;
+  padding: 0;
+  transform: rotate(0deg);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .expand-dropdown-chevron--open {
   transform: rotate(180deg);
 }
 
-.expand-dropdown-body {
-  overflow: hidden;
-  width: 100%;
-}
-
-.expand-dropdown-body .divider {
-  margin: 0.35em 0;
-}
-
-.expand-enter-active,
-.expand-leave-active {
+.expand-enter-active {
   transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.expand-leave-active {
+  transition: height 0.15s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
 }
 

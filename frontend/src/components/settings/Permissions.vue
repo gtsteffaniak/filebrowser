@@ -29,19 +29,19 @@ export default {
   },
   computed: {
     downloadPermissionName() {
-      return `${this.$t("general.download")} ${this.$t("general.files")}`;
+      return this.$t("general.downloadFiles");
     },
     modifyPermissionName() {
-      return `${this.$t("general.edit")} ${this.$t("general.files")}`;
+      return this.$t("general.editFiles");
     },
     createPermissionName() {
-      return `${this.$t("general.create")} ${this.$t("general.files")}`;
+      return this.$t("general.createFiles");
     },
     deletePermissionName() {
-      return `${this.$t("general.delete")} ${this.$t("general.files")}`;
+      return this.$t("general.deleteFiles");
     },
     sharePermissionName() {
-      return `${this.$t("general.share")} ${this.$t("general.files")}`;
+      return this.$t("general.shareFiles");
     },
   },
 };

@@ -7484,9 +7484,6 @@
                 "expire": {
                     "type": "integer"
                 },
-                "expires": {
-                    "type": "string"
-                },
                 "extractEmbeddedSubtitles": {
                     "type": "boolean"
                 },
@@ -7520,9 +7517,6 @@
                 },
                 "path": {
                     "type": "string"
-                },
-                "pathExists": {
-                    "type": "boolean"
                 },
                 "perUserDownloadLimit": {
                     "type": "boolean"
@@ -7570,9 +7564,6 @@
                 "token": {
                     "type": "string"
                 },
-                "unit": {
-                    "type": "string"
-                },
                 "userDownloads": {
                     "type": "object",
                     "additionalProperties": {
@@ -7581,9 +7572,6 @@
                 },
                 "userID": {
                     "type": "integer"
-                },
-                "username": {
-                    "type": "string"
                 },
                 "version": {
                     "type": "integer"
@@ -7810,9 +7798,6 @@
                 "downloadURL": {
                     "type": "string"
                 },
-                "downloads": {
-                    "type": "integer"
-                },
                 "downloadsLimit": {
                     "type": "integer"
                 },
@@ -7822,9 +7807,6 @@
                 "enforceDarkLightMode": {
                     "description": "\"dark\" or \"light\"",
                     "type": "string"
-                },
-                "expire": {
-                    "type": "integer"
                 },
                 "expires": {
                     "type": "string"
@@ -7862,9 +7844,6 @@
                 },
                 "path": {
                     "type": "string"
-                },
-                "pathExists": {
-                    "type": "boolean"
                 },
                 "perUserDownloadLimit": {
                     "type": "boolean"
@@ -7904,9 +7883,6 @@
                     "type": "string"
                 },
                 "unit": {
-                    "type": "string"
-                },
-                "username": {
                     "type": "string"
                 },
                 "viewMode": {

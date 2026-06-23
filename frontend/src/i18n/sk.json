@@ -273,7 +273,8 @@
       "password": "Heslo"
     },
     "permissionsHelp": "Oprávnenia používateľa riadia prístup k typom akcií, ktoré môže používateľ vykonávať. Prístup administrátora poskytuje úplnú kontrolu nad aktualizáciou a zmenou nastavení ktoréhokoľvek používateľa, ako aj nad mnohými systémovými nastaveniami.",
-    "configViewer": "Prehliadač konfigurácie"
+    "configViewer": "Prehliadač konfigurácie",
+    "modifyOtherUserTitle": "Úprava používateľa: {username}"
   },
   "sidebar": {
     "updateIsAvailable": "K dispozícii je aktualizácia!",
@@ -312,7 +313,9 @@
     "usageTextDisplay": "Ktorý text použitia sa má zobraziť?",
     "usageTextIndexed": "použitie ako indexované",
     "usageTextDisk": "využitie podľa hlásenia disku/oddielu",
-    "dividerNamePlaceholder": "Text oddeľovača (nechajte prázdny, aby sa zobrazil riadok)"
+    "dividerNamePlaceholder": "Text oddeľovača (nechajte prázdny, aby sa zobrazil riadok)",
+    "showIndexedUsage": "Zobraziť použitie podľa indexu",
+    "showDiskUsage": "Zobraziť využitie podľa údajov z disku/partície"
   },
   "share": {
     "notice": "Poznámka: po vytvorení zdieľanej zložky sa táto stáva verejne prístupnou a platia pre ňu iné pravidlá prístupu. Ak vaša zdieľaná zložka nie je bezpečne nakonfigurovaná, môže k nej mať prístup ktokoľvek.",
@@ -572,7 +575,31 @@
     "description": "Popis{suffix}",
     "emDash": "—",
     "outcome": "Výsledok{suffix}",
-    "success": "Úspech{suffix}"
+    "success": "Úspech{suffix}",
+    "pinnedFolders": "Pripnuté priečinky",
+    "pinnedFiles": "Pripnuté súbory",
+    "selectionSingle": "vybraná položka",
+    "selectionMultiple": "vybrané položky",
+    "newUser": "Nový používateľ",
+    "newFolder": "Nový priečinok",
+    "profileSettings": "Nastavenia profilu",
+    "shareSettings": "Nastavenia zdieľania",
+    "globalSettings": "Všeobecné nastavenia",
+    "userManagement": "Správa používateľov",
+    "shareManagement": "Správa akcií",
+    "shareHash": "Zdieľať hash",
+    "downloadFiles": "Stiahnuť súbory",
+    "editFiles": "Úprava súborov",
+    "createFiles": "Vytvoriť súbory",
+    "deleteFiles": "Odstrániť súbory",
+    "shareFiles": "Zdieľanie súborov",
+    "shareTheme": "Zdieľať tému",
+    "shareTitle": "Názov zdieľania",
+    "allUsers": "Všetci používatelia",
+    "allSources": "Všetky zdroje",
+    "allShares": "Všetky akcie",
+    "playPause": "Prehrávať/Pozastaviť",
+    "clearSelection": "Vymazať výber"
   },
   "access": {
     "rules": "Pravidlá prístupu",
@@ -828,7 +855,21 @@
       "activityTotalsBy": "Súhrnné údaje o aktivitách podľa {subject}",
       "subjectEventType": "typ udalosti",
       "viewActivity": "Zobraziť aktivitu",
-      "tableColumns": "Stĺpce tabuľky"
+      "tableColumns": "Stĺpce tabuľky",
+      "scopeAll": "Všetky aktivity",
+      "scopeFiles": "Aktivita súborov",
+      "scopeShares": "Zdieľanie aktivít",
+      "eventBulkDelete": "Hromadné vymazanie",
+      "eventShareCreate": "Zdieľať Vytvoriť",
+      "eventShareUpdate": "Zdieľajte novinky",
+      "eventShareDelete": "Zdieľať Vymazať",
+      "eventUserCreate": "Vytvorenie používateľa",
+      "eventUserUpdate": "Aktualizácia používateľa",
+      "eventUserDelete": "Odstránenie používateľa",
+      "eventAccessUpdate": "Aktualizácia prístupu",
+      "eventTokenCreate": "Vytvorenie tokenu",
+      "eventTokenDelete": "Odstránenie tokenu",
+      "webSessionNamed": "Webová relácia ({name})"
     }
   },
   "messages": {
@@ -931,6 +972,7 @@
     "days": "Dni{suffix}",
     "month": "mesiac{suffix}",
     "months": "Mesiace{suffix}",
-    "unit": "Časová jednotka"
+    "unit": "Časová jednotka",
+    "timeUnit": "Časová jednotka"
   }
 }

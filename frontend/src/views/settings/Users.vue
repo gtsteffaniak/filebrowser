@@ -121,7 +121,7 @@ export default {
   },
   methods: {
     newUserLabel() {
-      return `${this.$t("general.new")} ${this.$t("general.user")}`;
+      return this.$t("general.newUser");
     },
     async reloadUsers() {
       this.loading = true;

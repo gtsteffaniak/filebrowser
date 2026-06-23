@@ -1,14 +1,9 @@
-/** Join two translated labels with a space (each key is static for lint). */
-function joinLabels($t, firstKey, secondKey) {
-  return `${$t(firstKey)} ${$t(secondKey)}`;
-}
-
 export function pinnedFoldersLabel($t) {
-  return joinLabels($t, "general.pinned", "general.folders");
+  return $t("general.pinnedFolders");
 }
 
 export function pinnedFilesLabel($t) {
-  return joinLabels($t, "general.pinned", "general.files");
+  return $t("general.pinnedFiles");
 }
 
 export function pinnedItemsLabel($t) {
@@ -17,61 +12,61 @@ export function pinnedItemsLabel($t) {
 
 export function itemsSelectedLabel($t, count) {
   if (count === 1) {
-    return joinLabels($t, "general.item", "general.selected");
+    return $t("general.selectionSingle");
   }
-  return joinLabels($t, "general.items", "general.selected");
+  return $t("general.selectionMultiple");
 }
 
 export function newUserLabel($t) {
-  return joinLabels($t, "general.new", "general.user");
+  return $t("general.newUser");
 }
 
 export function newFolderLabel($t) {
-  return joinLabels($t, "general.new", "general.folder");
+  return $t("general.newFolder");
 }
 
 export function profileSettingsLabel($t) {
-  return joinLabels($t, "general.profile", "general.settings");
+  return $t("general.profileSettings");
 }
 
 export function shareSettingsLabel($t) {
-  return joinLabels($t, "general.share", "general.settings");
+  return $t("general.shareSettings");
 }
 
 export function globalSettingsLabel($t) {
-  return joinLabels($t, "general.global", "general.settings");
+  return $t("general.globalSettings");
 }
 
 export function userManagementLabel($t) {
-  return joinLabels($t, "general.user", "general.management");
+  return $t("general.userManagement");
 }
 
 export function shareManagementLabel($t) {
-  return joinLabels($t, "general.share", "general.management");
+  return $t("general.shareManagement");
 }
 
 export function shareHashLabel($t) {
-  return joinLabels($t, "general.share", "general.hash");
+  return $t("general.shareHash");
 }
 
 export function downloadFilesPermissionLabel($t) {
-  return joinLabels($t, "general.download", "general.files");
+  return $t("general.downloadFiles");
 }
 
 export function editFilesPermissionLabel($t) {
-  return joinLabels($t, "general.edit", "general.files");
+  return $t("general.editFiles");
 }
 
 export function createFilesPermissionLabel($t) {
-  return joinLabels($t, "general.create", "general.files");
+  return $t("general.createFiles");
 }
 
 export function deleteFilesPermissionLabel($t) {
-  return joinLabels($t, "general.delete", "general.files");
+  return $t("general.deleteFiles");
 }
 
 export function shareFilesPermissionLabel($t) {
-  return joinLabels($t, "general.share", "general.files");
+  return $t("general.shareFiles");
 }
 
 export function downloadFilesLabel($t) {
@@ -79,13 +74,13 @@ export function downloadFilesLabel($t) {
 }
 
 export function shareThemeLabel($t) {
-  return joinLabels($t, "general.share", "general.theme");
+  return $t("general.shareTheme");
 }
 
 export function shareTitleLabel($t) {
-  return joinLabels($t, "general.share", "general.title");
+  return $t("general.shareTitle");
 }
 
 export function timeUnitLabel($t) {
-  return joinLabels($t, "time.time", "time.unit");
+  return $t("time.timeUnit");
 }

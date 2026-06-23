@@ -10,50 +10,12 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 )
 
-type shareSettingsPayload struct {
-	share.FrontendShareInfo
-	MaxBandwidth             int      `json:"maxBandwidth,omitempty"`
-	AllowedUsernames         []string `json:"allowedUsernames,omitempty"`
-	PerUserDownloadLimit     bool     `json:"perUserDownloadLimit,omitempty"`
-	ExtractEmbeddedSubtitles bool     `json:"extractEmbeddedSubtitles,omitempty"`
-	DownloadsLimit           int      `json:"downloadsLimit,omitempty"`
-	HideFileExt              string   `json:"hideFileExt,omitempty"`
-	Banner                   string   `json:"banner,omitempty"`
-	SourceName               string   `json:"source,omitempty"`
-	PinnedItems              share.PinnedItems `json:"pinnedItems,omitempty"`
-}
-
 func marshalShareSettings(link *share.Share) ([]byte, error) {
-	return json.Marshal(shareSettingsPayload{
-		FrontendShareInfo:        link.FrontendShareInfo,
-		MaxBandwidth:             link.MaxBandwidth,
-		AllowedUsernames:         link.AllowedUsernames,
-		PerUserDownloadLimit:     link.PerUserDownloadLimit,
-		ExtractEmbeddedSubtitles: link.ExtractEmbeddedSubtitles,
-		DownloadsLimit:           link.DownloadsLimit,
-		HideFileExt:              link.HideFileExt,
-		Banner:                   link.Banner,
-		SourceName:               link.SourceName,
-		PinnedItems:              link.PinnedItems,
-	})
+	return json.Marshal(link.ShareSettings)
 }
 
 func unmarshalShareSettings(data []byte, link *share.Share) error {
-	var payload shareSettingsPayload
-	if err := json.Unmarshal(data, &payload); err != nil {
-		return err
-	}
-	link.FrontendShareInfo = payload.FrontendShareInfo
-	link.MaxBandwidth = payload.MaxBandwidth
-	link.AllowedUsernames = payload.AllowedUsernames
-	link.PerUserDownloadLimit = payload.PerUserDownloadLimit
-	link.ExtractEmbeddedSubtitles = payload.ExtractEmbeddedSubtitles
-	link.DownloadsLimit = payload.DownloadsLimit
-	link.HideFileExt = payload.HideFileExt
-	link.Banner = payload.Banner
-	link.SourceName = payload.SourceName
-	link.PinnedItems = payload.PinnedItems
-	return nil
+	return json.Unmarshal(data, &link.ShareSettings)
 }
 
 func shareUserIDDB(id uint64) string {

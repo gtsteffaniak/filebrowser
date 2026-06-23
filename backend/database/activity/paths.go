@@ -9,28 +9,26 @@ import (
 // TrimPathForUserScope removes a user's index scope prefix from a stored path.
 // If the path is outside the scope prefix it is returned unchanged.
 func TrimPathForUserScope(path, userScope string) string {
+	if userScope == "/" || userScope == "" {
+		return path
+	}
+
 	path = strings.TrimSpace(path)
-	if path == "" {
+	scope := strings.TrimRight(strings.TrimSpace(userScope), "/")
+	if path == "" || scope == "" || scope == "/" {
 		return path
 	}
-	userScope = strings.TrimRight(strings.TrimSpace(userScope), "/")
-	if userScope == "" || userScope == "/" {
+	if !strings.HasPrefix(scope, "/") {
+		scope = "/" + scope
+	}
+	rest, ok := strings.CutPrefix(path, scope)
+	if !ok {
 		return path
 	}
-	if !strings.HasPrefix(userScope, "/") {
-		userScope = "/" + userScope
-	}
-	trimmed := strings.TrimPrefix(path, userScope)
-	if trimmed == path {
-		return path
-	}
-	if trimmed == "" || trimmed == "/" {
+	if rest == "" {
 		return "/"
 	}
-	if !strings.HasPrefix(trimmed, "/") {
-		return "/" + trimmed
-	}
-	return trimmed
+	return "/" + strings.TrimPrefix(rest, "/")
 }
 
 func scopeForUserSource(user *users.User, source string) (string, bool) {

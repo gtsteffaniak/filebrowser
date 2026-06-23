@@ -351,12 +351,16 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 
 	s := &share.Share{
-		ShareFrontend: share.ShareFrontend{
+		ShareSettings: share.ShareSettings{
 			FrontendShareInfo: req.FrontendShareInfo,
-			Hash:              secureHash,
-			Path:              storedPath,
-			SourceName:        source.Name,
-			Expire:            expire,
+			ShareLimits: share.ShareLimits{
+				SourceName: source.Name,
+			},
+		},
+		ShareColumns: share.ShareColumns{
+			Hash:   secureHash,
+			Path:   storedPath,
+			Expire: expire,
 		},
 		SourcePath:   source.Path,
 		UserID:       d.user.ID,
@@ -522,16 +526,20 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *reque
 
 	// No matching existing share found, create a new one
 	shareLink := &share.Share{
-		ShareFrontend: share.ShareFrontend{
+		ShareSettings: share.ShareSettings{
 			FrontendShareInfo: share.FrontendShareInfo{
 				QuickDownload: true,
 			},
-			MaxBandwidth:   downloadSpeed,
-			DownloadsLimit: downloadCount,
-			Hash:           secureHash,
-			Path:           scopePath,
-			SourceName:     sourceInfo.Name,
-			Expire:         expire,
+			ShareLimits: share.ShareLimits{
+				MaxBandwidth:   downloadSpeed,
+				DownloadsLimit: downloadCount,
+				SourceName:     sourceInfo.Name,
+			},
+		},
+		ShareColumns: share.ShareColumns{
+			Hash:   secureHash,
+			Path:   scopePath,
+			Expire: expire,
 		},
 		SourcePath: idx.Path,
 		UserID:     d.user.ID,

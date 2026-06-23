@@ -273,7 +273,8 @@
       "password": "Пароль"
     },
     "permissionsHelp": "Дозволи користувача контролюють доступ до того, які дії може виконувати користувач. Доступ адміністратора дає повний контроль над оновленням і зміною будь-яких налаштувань користувача, а також багатьох системних налаштувань.",
-    "configViewer": "Переглядач конфігурацій"
+    "configViewer": "Переглядач конфігурацій",
+    "modifyOtherUserTitle": "Змінити дані користувача: {username}"
   },
   "sidebar": {
     "updateIsAvailable": "Доступне оновлення!",
@@ -312,7 +313,9 @@
     "usageTextDisplay": "Який текст використання повинен відображатися?",
     "usageTextIndexed": "використання в індексованому вигляді",
     "usageTextDisk": "використання за диском/розділом",
-    "dividerNamePlaceholder": "Текст роздільника (залиште порожнім, щоб показати лінію)"
+    "dividerNamePlaceholder": "Текст роздільника (залиште порожнім, щоб показати лінію)",
+    "showIndexedUsage": "Показати використання відповідно до індексу",
+    "showDiskUsage": "Показати використання за даними диска/розділу"
   },
   "share": {
     "notice": "Примітка: після створення спільного ресурсу він стає більш відкритим для публіки і має інші правила доступу. Якщо ваш спільний ресурс не налаштовано безпечно, до нього може отримати доступ будь-хто.",
@@ -666,7 +669,31 @@
     "description": "Опис{suffix}",
     "emDash": "—",
     "outcome": "Результат{suffix}",
-    "success": "Успіх{suffix}"
+    "success": "Успіх{suffix}",
+    "pinnedFolders": "Закріплені папки",
+    "pinnedFiles": "Закріплені файли",
+    "selectionSingle": "вибраний елемент",
+    "selectionMultiple": "вибрані товари",
+    "newUser": "Новий користувач",
+    "newFolder": "Нова папка",
+    "profileSettings": "Налаштування профілю",
+    "shareSettings": "Налаштування спільного доступу",
+    "globalSettings": "Загальні налаштування",
+    "userManagement": "Управління користувачами",
+    "shareManagement": "Управління акціями",
+    "shareHash": "Поділитися хешем",
+    "downloadFiles": "Завантажити файли",
+    "editFiles": "Редагувати файли",
+    "createFiles": "Створити файли",
+    "deleteFiles": "Видалити файли",
+    "shareFiles": "Поділитися файлами",
+    "shareTheme": "Поділитися темою",
+    "shareTitle": "Назва публікації",
+    "allUsers": "Усі користувачі",
+    "allSources": "Усі джерела",
+    "allShares": "Усі акції",
+    "playPause": "Відтворити/Призупинити",
+    "clearSelection": "Очистити вибір"
   },
   "access": {
     "rules": "Правила доступу",
@@ -828,7 +855,21 @@
       "activityTotalsBy": "Підсумкові показники діяльності за {subject}",
       "subjectEventType": "тип події",
       "viewActivity": "Переглянути активність",
-      "tableColumns": "Столбці таблиці"
+      "tableColumns": "Столбці таблиці",
+      "scopeAll": "Усі заходи",
+      "scopeFiles": "Активність файлів",
+      "scopeShares": "Поділитися діяльністю",
+      "eventBulkDelete": "Масове видалення",
+      "eventShareCreate": "Поділитися Створити",
+      "eventShareUpdate": "Поділитися оновленням",
+      "eventShareDelete": "Поділитися Видалити",
+      "eventUserCreate": "Створити користувача",
+      "eventUserUpdate": "Оновлення даних користувача",
+      "eventUserDelete": "Видалення користувача",
+      "eventAccessUpdate": "Оновлення доступу",
+      "eventTokenCreate": "Створення токена",
+      "eventTokenDelete": "Видалення токена",
+      "webSessionNamed": "Веб-сесія ({name})"
     }
   },
   "messages": {
@@ -931,6 +972,7 @@
     "days": "Дні{suffix}",
     "month": "місяць{suffix}",
     "months": "Місяці{suffix}",
-    "unit": "Одиниця часу"
+    "unit": "Одиниця часу",
+    "timeUnit": "Одиниця часу"
   }
 }

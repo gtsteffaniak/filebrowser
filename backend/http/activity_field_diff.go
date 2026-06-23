@@ -27,6 +27,7 @@ var userActivitySkipJSONTags = map[string]struct{}{
 }
 
 var shareActivitySkipJSONTags = map[string]struct{}{
+	"hash":          {},
 	"password_hash": {},
 	"token":         {},
 	"userID":        {},

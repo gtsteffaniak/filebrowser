@@ -196,7 +196,7 @@ export default {
   },
   methods: {
     shareHashLabel() {
-      return `${this.$t("general.share")} ${this.$t("general.hash")}`;
+      return this.$t("general.shareHash");
     },
     async initializeDebugger() {
       try {

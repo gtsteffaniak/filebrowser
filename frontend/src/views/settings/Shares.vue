@@ -172,7 +172,7 @@ export default {
   },
   methods: {
     shareManagementLabel() {
-      return `${this.$t("general.share")} ${this.$t("general.management")}`;
+      return this.$t("general.shareManagement");
     },
     async copyToClipboard(text) {
       await copyToClipboard(text);

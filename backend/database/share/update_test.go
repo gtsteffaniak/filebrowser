@@ -4,15 +4,19 @@ import "testing"
 
 func TestApplyPostBodyUpdateCopiesShareFrontendFields(t *testing.T) {
 	link := &Share{
-		ShareFrontend: ShareFrontend{
-			MaxBandwidth: 99,
+		ShareSettings: ShareSettings{
+			ShareLimits: ShareLimits{
+				MaxBandwidth: 99,
+			},
 		},
 	}
 	req := SharePostBody{
-		ShareFrontend: ShareFrontend{
-			MaxBandwidth:   512,
-			DownloadsLimit: 3,
-			HideFileExt:    ".tmp",
+		ShareEditable: ShareEditable{
+			ShareLimits: ShareLimits{
+				MaxBandwidth:   512,
+				DownloadsLimit: 3,
+				HideFileExt:    ".tmp",
+			},
 			FrontendShareInfo: FrontendShareInfo{
 				ShareTheme: "dark",
 				Title:      "updated",

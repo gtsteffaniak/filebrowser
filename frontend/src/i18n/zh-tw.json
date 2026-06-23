@@ -273,7 +273,8 @@
       "password": "密碼"
     },
     "permissionsHelp": "使用者權限決定可以執行哪些類型的操作。管理員權限可完整管理所有使用者設定，以及許多系統設定。",
-    "configViewer": "組態檢視器"
+    "configViewer": "組態檢視器",
+    "modifyOtherUserTitle": "修改使用者：{username}"
   },
   "sidebar": {
     "updateIsAvailable": "有可用的更新！",
@@ -312,7 +313,9 @@
     "usageTextDisplay": "要顯示哪一種使用量文字？",
     "usageTextIndexed": "依索引計算的使用量",
     "usageTextDisk": "依磁碟/磁碟分割回報的使用量",
-    "dividerNamePlaceholder": "分隔線文字（留空則只顯示一條線）"
+    "dividerNamePlaceholder": "分隔線文字（留空則只顯示一條線）",
+    "showIndexedUsage": "顯示索引中的用法",
+    "showDiskUsage": "顯示根據磁碟／分割區所報告的使用情況"
   },
   "share": {
     "notice": "注意：建立分享後，內容會更容易對外公開，且存取規則也不同。如果未妥善設定安全性，任何人都可能存取。",
@@ -666,7 +669,31 @@
     "description": "說明{suffix}",
     "emDash": "—",
     "outcome": "結果{suffix}",
-    "success": "成功{suffix}"
+    "success": "成功{suffix}",
+    "pinnedFolders": "釘選的資料夾",
+    "pinnedFiles": "釘選的檔案",
+    "selectionSingle": "已選中項目",
+    "selectionMultiple": "已選中的項目",
+    "newUser": "新用戶",
+    "newFolder": "新資料夾",
+    "profileSettings": "個人資料設定",
+    "shareSettings": "分享設定",
+    "globalSettings": "全域設定",
+    "userManagement": "使用者管理",
+    "shareManagement": "股份管理",
+    "shareHash": "分享雜湊值",
+    "downloadFiles": "下載檔案",
+    "editFiles": "編輯檔案",
+    "createFiles": "建立檔案",
+    "deleteFiles": "刪除檔案",
+    "shareFiles": "分享檔案",
+    "shareTheme": "分享主題",
+    "shareTitle": "分享標題",
+    "allUsers": "所有使用者",
+    "allSources": "所有來源",
+    "allShares": "所有股份",
+    "playPause": "播放／暫停",
+    "clearSelection": "清除選取項目"
   },
   "access": {
     "rules": "存取規則",
@@ -828,7 +855,21 @@
       "activityTotalsBy": "按以下分類的活動總計{subject}",
       "subjectEventType": "活動類型",
       "viewActivity": "檢視活動",
-      "tableColumns": "表格欄位"
+      "tableColumns": "表格欄位",
+      "scopeAll": "所有活動",
+      "scopeFiles": "檔案活動",
+      "scopeShares": "分享活動",
+      "eventBulkDelete": "批量刪除",
+      "eventShareCreate": "分享 建立",
+      "eventShareUpdate": "分享最新消息",
+      "eventShareDelete": "分享 刪除",
+      "eventUserCreate": "建立使用者",
+      "eventUserUpdate": "使用者更新",
+      "eventUserDelete": "刪除使用者",
+      "eventAccessUpdate": "存取更新",
+      "eventTokenCreate": "建立代幣",
+      "eventTokenDelete": "刪除代幣",
+      "webSessionNamed": "網路研討會（{name} ）"
     }
   },
   "messages": {
@@ -931,6 +972,7 @@
     "days": "天數{suffix}",
     "month": "月{suffix}",
     "months": "月份{suffix}",
-    "unit": "時間單位"
+    "unit": "時間單位",
+    "timeUnit": "時間單位"
   }
 }

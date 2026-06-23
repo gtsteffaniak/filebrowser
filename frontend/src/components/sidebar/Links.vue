@@ -217,7 +217,7 @@ export default {
       return getters.isMobile();
     },
     editShareText() {
-      return `${this.$t("general.share")} ${this.$t("general.management")}`;
+      return this.$t("general.shareManagement");
     },
     canEdit() {
       return state.shareInfo?.canEditShare || false;

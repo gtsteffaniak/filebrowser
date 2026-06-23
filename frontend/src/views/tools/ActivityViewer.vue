@@ -120,7 +120,7 @@
                   v-model="filterSource"
                   :options="filterSourceOptions"
                   :default-value="''"
-                  :default-placeholder-if-empty="`${$t('general.all')}${$t('general.sources')}`"
+                  :default-placeholder-if-empty="$t('general.allSources')"
                 />
               </div>
               <div class="glob-field glob-field-wide">
@@ -202,22 +202,36 @@
           @row-click="openEventDetails"
         >
           <template #cell-createdAt="{ row }">
-            {{ formatTime(row.createdAt) }}
+            <span v-if="!isBlankTableValue(row.createdAt)">{{ formatTime(row.createdAt) }}</span>
+            <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           </template>
           <template #cell-eventType="{ row }">
-            {{ eventTypeLabel(row.eventType) }}
+            <span v-if="!isBlankTableValue(row.eventType)">{{ eventTypeLabel(row.eventType) }}</span>
+            <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          </template>
+          <template #cell-username="{ row }">
+            <span v-if="!isBlankTableValue(row.username)" class="table-cell-text break-word">{{ row.username }}</span>
+            <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           </template>
           <template #cell-source="{ row }">
-            <span v-if="row.source" class="table-cell-text break-word">{{ row.source }}</span>
+            <span v-if="!isBlankTableValue(row.source)" class="table-cell-text break-word">{{ row.source }}</span>
+            <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           </template>
           <template #cell-path="{ row }">
-            <span v-if="row.path" class="table-cell-text break-word">{{ row.path }}</span>
+            <span v-if="!isBlankTableValue(row.path)" class="table-cell-text break-word">{{ row.path }}</span>
+            <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           </template>
           <template #cell-shareHash="{ row }">
-            <span v-if="row.shareHash" class="table-cell-text break-word">{{ row.shareHash }}</span>
+            <span v-if="!isBlankTableValue(row.shareHash)" class="table-cell-text break-word">{{ row.shareHash }}</span>
+            <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           </template>
           <template #cell-tokenDisplay="{ row }">
-            <span v-if="row.tokenDisplay" class="table-cell-text break-word">{{ row.tokenDisplay }}</span>
+            <span v-if="!isBlankTableValue(row.tokenDisplay)" class="table-cell-text break-word">{{ row.tokenDisplay }}</span>
+            <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          </template>
+          <template #cell-ipAddress="{ row }">
+            <span v-if="!isBlankTableValue(row.ipAddress)" class="table-cell-text break-word">{{ row.ipAddress }}</span>
+            <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           </template>
           <template #cell-details="{ row }">
             <div
@@ -234,7 +248,7 @@
                 >{{ badge.text }}</span>
               </div>
             </div>
-            <span v-else class="details-muted">{{ $t("general.emDash") }}</span>
+            <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           </template>
           <template #cell-status="{ row }">
             <span
@@ -242,7 +256,7 @@
               class="status-badge border-radius"
               :class="statusBadgeClass(row.status)"
             >{{ row.status }}</span>
-            <span v-else class="status-badge status-badge--muted border-radius">{{ $t("general.emDash") }}</span>
+            <span v-else class="status-badge status-badge--muted border-radius">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           </template>
         </settings-table>
         <div v-if="totalPages > 1" class="pagination">
@@ -655,7 +669,7 @@ export default {
     },
     usernameOptions() {
       return [
-        { value: "", label: `${this.$t("general.all")}${this.$t("general.users")}` },
+        { value: "", label: this.$t("general.allUsers") },
         { value: this.anonymousUsername, label: this.$t("general.anonymous") },
         ...this.users.map((user) => ({
           value: user.username,
@@ -732,7 +746,7 @@ export default {
     },
     filterSourceOptions() {
       return [
-        { value: "", label: `${this.$t("general.all")}${this.$t("general.sources")}` },
+        { value: "", label: this.$t("general.allSources") },
         ...this.sourceNames.map((name) => ({ value: name, label: name })),
       ];
     },
@@ -1080,6 +1094,15 @@ export default {
   methods: {
     formatTime(ts) {
       return formatTimestamp(ts * 1000);
+    },
+    isBlankTableValue(value) {
+      if (value === null || value === undefined) {
+        return true;
+      }
+      if (typeof value === "number") {
+        return false;
+      }
+      return String(value).trim() === "";
     },
     destroyChartInstance() {
       const instance = this.chart;
@@ -1800,27 +1823,26 @@ export default {
       return activityEventLabel(eventType, this.$t);
     },
     activityScopeLabel(scope) {
-      const activity = this.$t("tools.activityViewer.activity");
       if (scope === "files") {
-        return `${this.$t("general.file")}${activity}`;
+        return this.$t("tools.activityViewer.scopeFiles");
       }
       if (scope === "shares") {
-        return `${this.$t("general.share")}${activity}`;
+        return this.$t("tools.activityViewer.scopeShares");
       }
-      return `${this.$t("general.all")}${activity}`;
+      return this.$t("tools.activityViewer.scopeAll");
     },
     activityAllSharesLabel() {
-      return `${this.$t("general.all")}${this.$t("general.shares")}`;
+      return this.$t("general.allShares");
     },
     chartIntervalDisplayLabel(interval) {
       if (interval === "minute") {
-        return `1 ${this.$t("time.minute")}`;
+        return this.$t("time.minute", { prefix: "1 " });
       }
       if (interval === "hour") {
-        return `1 ${this.$t("time.hour")}`;
+        return this.$t("time.hour", { prefix: "1 " });
       }
       if (interval === "day") {
-        return `1 ${this.$t("time.day")}`;
+        return this.$t("time.day", { prefix: "1 " });
       }
       return interval;
     },

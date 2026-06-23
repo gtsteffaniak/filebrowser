@@ -273,7 +273,8 @@
       "password": "パスワード"
     },
     "permissionsHelp": "ユーザー権限は、ユーザーが実行できるアクションの種類へのアクセスを制御します。管理者アクセスは、多くのシステム設定だけでなく、任意のユーザーの設定を更新および変更するための完全なコントロールを提供します。",
-    "configViewer": "コンフィグビューア"
+    "configViewer": "コンフィグビューア",
+    "modifyOtherUserTitle": "ユーザーの編集：{username}"
   },
   "sidebar": {
     "updateIsAvailable": "アップデートが利用可能です！",
@@ -312,7 +313,9 @@
     "usageTextDisplay": "どのテキストを表示するべきか？",
     "usageTextIndexed": "索引どおり",
     "usageTextDisk": "ディスク/パーティションごとの使用量",
-    "dividerNamePlaceholder": "分割テキスト（行を表示するには空白にする）"
+    "dividerNamePlaceholder": "分割テキスト（行を表示するには空白にする）",
+    "showIndexedUsage": "インデックスに登録された使用例を表示する",
+    "showDiskUsage": "ディスク／パーティションごとの使用状況を表示する"
   },
   "share": {
     "notice": "注意：共有が作成されると、公開されるようになり、アクセスに関するルールが異なります。共有が安全に設定されていない場合、誰でもアクセスできる可能性があります。",
@@ -572,7 +575,31 @@
     "description": "説明{suffix}",
     "emDash": "—",
     "outcome": "結果{suffix}",
-    "success": "成功{suffix}"
+    "success": "成功{suffix}",
+    "pinnedFolders": "固定されたフォルダ",
+    "pinnedFiles": "ピン留めされたファイル",
+    "selectionSingle": "選択された項目",
+    "selectionMultiple": "選択された項目",
+    "newUser": "新規ユーザー",
+    "newFolder": "新しいフォルダ",
+    "profileSettings": "プロフィール設定",
+    "shareSettings": "設定を共有する",
+    "globalSettings": "グローバル設定",
+    "userManagement": "ユーザー管理",
+    "shareManagement": "株式管理",
+    "shareHash": "ハッシュを共有する",
+    "downloadFiles": "ファイルをダウンロード",
+    "editFiles": "ファイルの編集",
+    "createFiles": "ファイルを作成する",
+    "deleteFiles": "ファイルを削除する",
+    "shareFiles": "ファイルを共有する",
+    "shareTheme": "テーマを共有する",
+    "shareTitle": "タイトルを共有する",
+    "allUsers": "すべてのユーザー",
+    "allSources": "すべての情報源",
+    "allShares": "すべての株式",
+    "playPause": "再生／一時停止",
+    "clearSelection": "選択を解除"
   },
   "access": {
     "rules": "アクセスルール",
@@ -828,7 +855,21 @@
       "activityTotalsBy": "活動別集計{subject}",
       "subjectEventType": "イベントの種類",
       "viewActivity": "アクティビティを表示",
-      "tableColumns": "表の列"
+      "tableColumns": "表の列",
+      "scopeAll": "すべてのアクティビティ",
+      "scopeFiles": "ファイルの操作履歴",
+      "scopeShares": "アクティビティを共有する",
+      "eventBulkDelete": "一括削除",
+      "eventShareCreate": "共有 作成",
+      "eventShareUpdate": "最新情報の共有",
+      "eventShareDelete": "共有 削除",
+      "eventUserCreate": "ユーザーの作成",
+      "eventUserUpdate": "ユーザーの更新",
+      "eventUserDelete": "ユーザーの削除",
+      "eventAccessUpdate": "アクセスの更新",
+      "eventTokenCreate": "トークンの作成",
+      "eventTokenDelete": "トークンの削除",
+      "webSessionNamed": "Webセッション（{name} ）"
     }
   },
   "messages": {
@@ -931,6 +972,7 @@
     "days": "日{suffix}",
     "month": "月{suffix}",
     "months": "ヶ月{suffix}",
-    "unit": "時間単位"
+    "unit": "時間単位",
+    "timeUnit": "時間単位"
   }
 }

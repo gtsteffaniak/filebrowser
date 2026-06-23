@@ -273,7 +273,8 @@
       "password": "Şifre"
     },
     "permissionsHelp": "Kullanıcı izinleri, kullanıcının ne tür eylemler gerçekleştirebileceğine erişimi kontrol eder. Yönetici erişimi, herhangi bir kullanıcının ayarlarının yanı sıra birçok sistem ayarını güncellemek ve değiştirmek için tam kontrol sağlar.",
-    "configViewer": "Yapılandırma Görüntüleyici"
+    "configViewer": "Yapılandırma Görüntüleyici",
+    "modifyOtherUserTitle": "Kullanıcıyı düzenle: {username}"
   },
   "sidebar": {
     "updateIsAvailable": "Bir güncelleme mevcut!",
@@ -312,7 +313,9 @@
     "usageTextDisplay": "Hangi kullanım metni görüntülenmelidir?",
     "usageTextIndexed": "endeksli olarak kullanım",
     "usageTextDisk": "disk/bölüm tarafından bildirilen kullanım",
-    "dividerNamePlaceholder": "Bölücü metin (bir çizgi göstermek için boş bırakın)"
+    "dividerNamePlaceholder": "Bölücü metin (bir çizgi göstermek için boş bırakın)",
+    "showIndexedUsage": "İndekslenmiş haliyle kullanımını göster",
+    "showDiskUsage": "Disk/bölüm tarafından bildirilen kullanım miktarını göster"
   },
   "share": {
     "notice": "Not: Bir paylaşım oluşturulduğunda, herkese daha açık hale gelir ve erişim için farklı kurallara sahip olur. Paylaşımınız güvenli bir şekilde yapılandırılmamışsa, herkes tarafından erişilebilir.",
@@ -572,7 +575,31 @@
     "description": "Açıklama{suffix}",
     "emDash": "—",
     "outcome": "Sonuç{suffix}",
-    "success": "Başarı{suffix}"
+    "success": "Başarı{suffix}",
+    "pinnedFolders": "Sabitlenmiş klasörler",
+    "pinnedFiles": "Sabitlenmiş dosyalar",
+    "selectionSingle": "seçilen öğe",
+    "selectionMultiple": "seçilen öğeler",
+    "newUser": "Yeni kullanıcı",
+    "newFolder": "Yeni klasör",
+    "profileSettings": "Profil ayarları",
+    "shareSettings": "Ayarları paylaş",
+    "globalSettings": "Genel ayarlar",
+    "userManagement": "Kullanıcı yönetimi",
+    "shareManagement": "Hisse yönetimi",
+    "shareHash": "Hash'i paylaş",
+    "downloadFiles": "Dosyaları indir",
+    "editFiles": "Dosyaları düzenle",
+    "createFiles": "Dosya oluştur",
+    "deleteFiles": "Dosyaları sil",
+    "shareFiles": "Dosya paylaşımı",
+    "shareTheme": "Temayı paylaş",
+    "shareTitle": "Başlığı paylaş",
+    "allUsers": "Tüm kullanıcılar",
+    "allSources": "Tüm kaynaklar",
+    "allShares": "Tüm hisseler",
+    "playPause": "Oynat/Duraklat",
+    "clearSelection": "Seçimi temizle"
   },
   "access": {
     "rules": "Erişim kuralları",
@@ -828,7 +855,21 @@
       "activityTotalsBy": "Etkinlik toplamları, şuna göre: {subject}",
       "subjectEventType": "etkinlik türü",
       "viewActivity": "Etkinliği görüntüle",
-      "tableColumns": "Tablo sütunları"
+      "tableColumns": "Tablo sütunları",
+      "scopeAll": "Tüm etkinlikler",
+      "scopeFiles": "Dosya etkinliği",
+      "scopeShares": "Etkinliği paylaş",
+      "eventBulkDelete": "Toplu silme",
+      "eventShareCreate": "Paylaş Oluştur",
+      "eventShareUpdate": "Güncellemeyi paylaş",
+      "eventShareDelete": "Paylaş Sil",
+      "eventUserCreate": "Kullanıcı oluşturma",
+      "eventUserUpdate": "Kullanıcı güncellemesi",
+      "eventUserDelete": "Kullanıcı silme",
+      "eventAccessUpdate": "Erişim güncellemesi",
+      "eventTokenCreate": "Jeton oluşturma",
+      "eventTokenDelete": "Jeton silme",
+      "webSessionNamed": "Web oturumu ({name})"
     }
   },
   "messages": {
@@ -931,6 +972,7 @@
     "days": "Günler{suffix}",
     "month": "ay{suffix}",
     "months": "Aylar{suffix}",
-    "unit": "Zaman Birimi"
+    "unit": "Zaman Birimi",
+    "timeUnit": "Zaman birimi"
   }
 }

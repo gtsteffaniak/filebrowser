@@ -43,7 +43,7 @@ export default {
   },
   methods: {
     globalSettingsLabel() {
-      return `${this.$t("general.global")} ${this.$t("general.settings")}`;
+      return this.$t("general.globalSettings");
     },
     updateRules(updatedRules) {
       this.selectedSettings = { ...this.selectedSettings, rules: updatedRules };

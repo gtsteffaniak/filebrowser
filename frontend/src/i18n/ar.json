@@ -273,7 +273,8 @@
       "password": "كلمة المرور"
     },
     "permissionsHelp": "تتحكم أذونات المستخدم في الوصول إلى نوع الإجراءات التي يمكن للمستخدم تنفيذها. يمنح الوصول إلى المسؤول التحكم الكامل لتحديث وتغيير إعدادات أي مستخدم بالإضافة إلى العديد من إعدادات النظام.",
-    "configViewer": "عارض التكوين"
+    "configViewer": "عارض التكوين",
+    "modifyOtherUserTitle": "تعديل المستخدم: {username}"
   },
   "sidebar": {
     "updateIsAvailable": "يتوفر تحديث!",
@@ -312,7 +313,9 @@
     "usageTextDisplay": "ما هو نص الاستخدام الذي يجب عرضه؟",
     "usageTextIndexed": "الاستخدام كما هو مفهرس",
     "usageTextDisk": "الاستخدام كما تم الإبلاغ عنه بواسطة القرص/القسم",
-    "dividerNamePlaceholder": "نص المقسم (اتركه فارغًا لإظهار سطر)"
+    "dividerNamePlaceholder": "نص المقسم (اتركه فارغًا لإظهار سطر)",
+    "showIndexedUsage": "عرض الاستخدام حسب الفهرس",
+    "showDiskUsage": "عرض الاستخدام وفقًا لما أورده القرص/القسم"
   },
   "share": {
     "notice": "ملاحظة: عندما يتم إنشاء مشاركة، تصبح أكثر انكشافًا للجمهور ولها قواعد مختلفة للوصول إليها. إذا لم يتم تهيئة مشاركتك بشكل آمن، فيمكن لأي شخص الوصول إليها.",
@@ -572,7 +575,31 @@
     "description": "الوصف{suffix}",
     "emDash": "—",
     "outcome": "النتيجة{suffix}",
-    "success": "النجاح{suffix}"
+    "success": "النجاح{suffix}",
+    "pinnedFolders": "المجلدات المثبتة",
+    "pinnedFiles": "الملفات المثبتة",
+    "selectionSingle": "العنصر المحدد",
+    "selectionMultiple": "العناصر المحددة",
+    "newUser": "مستخدم جديد",
+    "newFolder": "مجلد جديد",
+    "profileSettings": "إعدادات الملف الشخصي",
+    "shareSettings": "إعدادات المشاركة",
+    "globalSettings": "الإعدادات العامة",
+    "userManagement": "إدارة المستخدمين",
+    "shareManagement": "إدارة الأسهم",
+    "shareHash": "مشاركة الهاش",
+    "downloadFiles": "تنزيل الملفات",
+    "editFiles": "تحرير الملفات",
+    "createFiles": "إنشاء ملفات",
+    "deleteFiles": "حذف الملفات",
+    "shareFiles": "مشاركة الملفات",
+    "shareTheme": "مشاركة السمة",
+    "shareTitle": "عنوان المشاركة",
+    "allUsers": "جميع المستخدمين",
+    "allSources": "جميع المصادر",
+    "allShares": "جميع الأسهم",
+    "playPause": "تشغيل/إيقاف مؤقت",
+    "clearSelection": "مسح التحديد"
   },
   "access": {
     "rules": "قواعد الوصول",
@@ -828,7 +855,21 @@
       "activityTotalsBy": "إجمالي الأنشطة حسب {subject}",
       "subjectEventType": "نوع الحدث",
       "viewActivity": "عرض النشاط",
-      "tableColumns": "أعمدة الجدول"
+      "tableColumns": "أعمدة الجدول",
+      "scopeAll": "جميع الأنشطة",
+      "scopeFiles": "نشاط الملفات",
+      "scopeShares": "مشاركة النشاط",
+      "eventBulkDelete": "الحذف الجماعي",
+      "eventShareCreate": "مشاركة إنشاء",
+      "eventShareUpdate": "مشاركة التحديث",
+      "eventShareDelete": "مشاركة حذف",
+      "eventUserCreate": "إنشاء مستخدم",
+      "eventUserUpdate": "تحديث المستخدم",
+      "eventUserDelete": "حذف المستخدم",
+      "eventAccessUpdate": "تحديث الوصول",
+      "eventTokenCreate": "إنشاء الرمز الرمزي",
+      "eventTokenDelete": "حذف الرمز",
+      "webSessionNamed": "جلسة عبر الإنترنت ({name})"
     }
   },
   "messages": {
@@ -931,6 +972,7 @@
     "days": "الأيام{suffix}",
     "month": "شهر{suffix}",
     "months": "الأشهر{suffix}",
-    "unit": "وحدة الزمن"
+    "unit": "وحدة الزمن",
+    "timeUnit": "وحدة الزمن"
   }
 }

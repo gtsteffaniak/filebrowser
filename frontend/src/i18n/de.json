@@ -273,7 +273,8 @@
       "password": "Passwort"
     },
     "permissionsHelp": "Die Benutzerrechte steuern den Zugriff auf die Art der Aktionen, die der Benutzer durchführen kann. Der Administrator-Zugang gibt Ihnen die volle Kontrolle über die Aktualisierung und Änderung der Benutzereinstellungen sowie vieler Systemeinstellungen.",
-    "configViewer": "Config Viewer"
+    "configViewer": "Config Viewer",
+    "modifyOtherUserTitle": "Benutzer bearbeiten: {username}"
   },
   "sidebar": {
     "updateIsAvailable": "Ein Update ist verfügbar!",
@@ -312,7 +313,9 @@
     "usageTextDisplay": "Welcher Verwendungstext soll angezeigt werden?",
     "usageTextIndexed": "Nutzung wie indiziert",
     "usageTextDisk": "Nutzung, wie von der Festplatte/Partition gemeldet",
-    "dividerNamePlaceholder": "Teilertext (leer lassen, um eine Zeile anzuzeigen)"
+    "dividerNamePlaceholder": "Teilertext (leer lassen, um eine Zeile anzuzeigen)",
+    "showIndexedUsage": "Verwendung gemäß Index anzeigen",
+    "showDiskUsage": "Nutzung nach Festplatte/Partition anzeigen"
   },
   "share": {
     "notice": "Hinweis: Wenn eine Freigabe erstellt wird, ist sie der Öffentlichkeit stärker ausgesetzt und unterliegt anderen Zugriffsregeln. Wenn Ihre Freigabe nicht sicher konfiguriert ist, kann jeder auf sie zugreifen.",
@@ -572,7 +575,31 @@
     "description": "Beschreibung{suffix}",
     "emDash": "—",
     "outcome": "Ergebnis{suffix}",
-    "success": "Erfolg{suffix}"
+    "success": "Erfolg{suffix}",
+    "pinnedFolders": "Angeheftete Ordner",
+    "pinnedFiles": "Angeheftete Dateien",
+    "selectionSingle": "Ausgewählter Artikel",
+    "selectionMultiple": "ausgewählte Artikel",
+    "newUser": "Neuer Benutzer",
+    "newFolder": "Neuer Ordner",
+    "profileSettings": "Profileinstellungen",
+    "shareSettings": "Einstellungen teilen",
+    "globalSettings": "Globale Einstellungen",
+    "userManagement": "Benutzerverwaltung",
+    "shareManagement": "Aktienverwaltung",
+    "shareHash": "Hash teilen",
+    "downloadFiles": "Dateien herunterladen",
+    "editFiles": "Dateien bearbeiten",
+    "createFiles": "Dateien erstellen",
+    "deleteFiles": "Dateien löschen",
+    "shareFiles": "Dateien teilen",
+    "shareTheme": "Thema teilen",
+    "shareTitle": "Titel teilen",
+    "allUsers": "Alle Benutzer",
+    "allSources": "Alle Quellen",
+    "allShares": "Alle Aktien",
+    "playPause": "Wiedergabe/Pause",
+    "clearSelection": "Auswahl löschen"
   },
   "access": {
     "rules": "Zugangsregeln",
@@ -828,7 +855,21 @@
       "activityTotalsBy": "Aktivitätssummen nach {subject}",
       "subjectEventType": "Veranstaltungstyp",
       "viewActivity": "Aktivitäten anzeigen",
-      "tableColumns": "Tabellenspalten"
+      "tableColumns": "Tabellenspalten",
+      "scopeAll": "Alle Aktivitäten",
+      "scopeFiles": "Dateiaktivitäten",
+      "scopeShares": "Aktivitäten teilen",
+      "eventBulkDelete": "Massenlöschung",
+      "eventShareCreate": "Teilen Erstellen",
+      "eventShareUpdate": "Aktualisierung teilen",
+      "eventShareDelete": "Teilen Löschen",
+      "eventUserCreate": "Benutzer anlegen",
+      "eventUserUpdate": "Benutzeraktualisierung",
+      "eventUserDelete": "Benutzer löschen",
+      "eventAccessUpdate": "Zugriffsaktualisierung",
+      "eventTokenCreate": "Token erstellen",
+      "eventTokenDelete": "Token löschen",
+      "webSessionNamed": "Web-Sitzung ({name})"
     }
   },
   "messages": {
@@ -931,6 +972,7 @@
     "days": "Tage{suffix}",
     "month": "Monat{suffix}",
     "months": "Monate{suffix}",
-    "unit": "Zeiteinheit"
+    "unit": "Zeiteinheit",
+    "timeUnit": "Zeiteinheit"
   }
 }

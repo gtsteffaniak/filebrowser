@@ -121,6 +121,7 @@ export default {
 
 .menu-option-list-search-input {
   width: 100%;
+  margin-top: 0.1em;
 }
 
 .menu-option-list-scroll {
@@ -142,9 +143,7 @@ export default {
   align-items: center;
   justify-content: flex-start;
   width: 100%;
-  min-height: 2.25em;
   padding: 0.5em;
-  border-radius: 0.65em;
   color: var(--textPrimary);
   font: inherit;
 }

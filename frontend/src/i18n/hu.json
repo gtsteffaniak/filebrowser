@@ -273,7 +273,8 @@
       "password": "Jelszó"
     },
     "permissionsHelp": "A felhasználói engedélyek szabályozzák, hogy a felhasználó milyen típusú műveleteket hajthat végre. A rendszergazdai hozzáférés teljes körű ellenőrzést biztosít bármely felhasználó beállításainak, valamint számos rendszerbeállításnak a frissítéséhez és módosításához.",
-    "configViewer": "Konfiguráció megtekintő"
+    "configViewer": "Konfiguráció megtekintő",
+    "modifyOtherUserTitle": "Felhasználó módosítása: {username}"
   },
   "sidebar": {
     "updateIsAvailable": "Elérhető a frissítés!",
@@ -312,7 +313,9 @@
     "usageTextDisplay": "Milyen használati szöveget kell megjeleníteni?",
     "usageTextIndexed": "indexált használat",
     "usageTextDisk": "lemez/partíció által bejelentett használat",
-    "dividerNamePlaceholder": "Választószöveg (üresen hagyva egy sor megjelenítéséhez)"
+    "dividerNamePlaceholder": "Választószöveg (üresen hagyva egy sor megjelenítéséhez)",
+    "showIndexedUsage": "Az indexelt használat megjelenítése",
+    "showDiskUsage": "A lemez/partíció által jelentett felhasználás megjelenítése"
   },
   "share": {
     "notice": "Megjegyzés: amikor egy megosztás létrejön, akkor az jobban ki van téve a nyilvánosságnak, és más hozzáférési szabályok vonatkoznak rá. Ha a megosztás nincs biztonságosan konfigurálva, bárki hozzáférhet hozzá.",
@@ -572,7 +575,31 @@
     "description": "Leírás{suffix}",
     "emDash": "—",
     "outcome": "Eredmény{suffix}",
-    "success": "Siker{suffix}"
+    "success": "Siker{suffix}",
+    "pinnedFolders": "Rögzített mappák",
+    "pinnedFiles": "Rögzített fájlok",
+    "selectionSingle": "kiválasztott elem",
+    "selectionMultiple": "kiválasztott elemek",
+    "newUser": "Új felhasználó",
+    "newFolder": "Új mappa",
+    "profileSettings": "Profilbeállítások",
+    "shareSettings": "Beállítások megosztása",
+    "globalSettings": "Általános beállítások",
+    "userManagement": "Felhasználókezelés",
+    "shareManagement": "Részvénykezelés",
+    "shareHash": "Hash megosztása",
+    "downloadFiles": "Fájlok letöltése",
+    "editFiles": "Fájlok szerkesztése",
+    "createFiles": "Fájlok létrehozása",
+    "deleteFiles": "Fájlok törlése",
+    "shareFiles": "Fájlok megosztása",
+    "shareTheme": "Téma megosztása",
+    "shareTitle": "Cím megosztása",
+    "allUsers": "Minden felhasználó",
+    "allSources": "Minden forrás",
+    "allShares": "Minden részvény",
+    "playPause": "Lejátszás/Szünet",
+    "clearSelection": "Kiválasztás törlése"
   },
   "access": {
     "rules": "Hozzáférési szabályok",
@@ -828,7 +855,21 @@
       "activityTotalsBy": "Tevékenységek összesítése {subject}",
       "subjectEventType": "eseménytípus",
       "viewActivity": "Tevékenységek megtekintése",
-      "tableColumns": "A táblázat oszlopai"
+      "tableColumns": "A táblázat oszlopai",
+      "scopeAll": "Minden tevékenység",
+      "scopeFiles": "Fájltevékenység",
+      "scopeShares": "Tevékenység megosztása",
+      "eventBulkDelete": "Tömeges törlés",
+      "eventShareCreate": "Megosztás Létrehozás",
+      "eventShareUpdate": "Frissítés megosztása",
+      "eventShareDelete": "Megosztás Törlés",
+      "eventUserCreate": "Felhasználó létrehozása",
+      "eventUserUpdate": "Felhasználói frissítés",
+      "eventUserDelete": "Felhasználó törlése",
+      "eventAccessUpdate": "Hozzáférési frissítés",
+      "eventTokenCreate": "Token létrehozása",
+      "eventTokenDelete": "Token törlése",
+      "webSessionNamed": "Webes előadás ({name})"
     }
   },
   "messages": {
@@ -931,6 +972,7 @@
     "days": "Napok{suffix}",
     "month": "hónap{suffix}",
     "months": "Hónapok{suffix}",
-    "unit": "Időegység"
+    "unit": "Időegység",
+    "timeUnit": "Időegység"
   }
 }

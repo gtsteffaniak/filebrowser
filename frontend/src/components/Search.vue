@@ -553,7 +553,10 @@ export default {
       }
     },
     showHelpTooltip(event) {
-      const helpText = `${this.$t("search.helpText1", { minSearchLength: globalVars.minSearchLength })}\n\n${this.$t("search.helpText2")}`;
+      const helpText = [
+        this.$t("search.helpText1", { minSearchLength: globalVars.minSearchLength }),
+        this.$t("search.helpText2"),
+      ].join("\n\n");
       mutations.showTooltip({
         content: helpText,
         x: event.clientX,

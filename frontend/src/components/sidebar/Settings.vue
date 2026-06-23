@@ -56,11 +56,11 @@ export default {
     settingLabel(setting) {
       switch (setting.id) {
         case "profile":
-          return `${this.$t("general.profile")} ${this.$t("general.settings")}`;
+          return this.$t("general.profileSettings");
         case "shares":
-          return `${this.$t("general.share")} ${this.$t("general.settings")}`;
+          return this.$t("general.shareSettings");
         case "users":
-          return `${this.$t("general.user")} ${this.$t("general.management")}`;
+          return this.$t("general.userManagement");
         default:
           return this.$t(setting.label);
       }

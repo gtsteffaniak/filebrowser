@@ -47,3 +47,37 @@ func TestPrepForFrontendPromotesAuthWithoutDuplicatingDetails(t *testing.T) {
 		t.Fatalf("expected 1 change in details, got %d", len(fe.Details.Changes))
 	}
 }
+
+func TestPrepForFrontendPromotesShareHashWithoutDuplicatingDetails(t *testing.T) {
+	entry := Entry{
+		ID:        2,
+		CreatedAt: 1700000001,
+		EventType: EventShareUpdate,
+		Details: Details{
+			Source:    "default",
+			Path:      "/shared",
+			ShareHash: "abc123",
+			Changes: []FieldChange{{
+				Field: "title",
+				From:  "before",
+				To:    "after",
+			}},
+		},
+	}
+
+	fe := entry.PrepForFrontend("owner")
+	if fe.ShareHash != "abc123" {
+		t.Fatalf("ShareHash = %q, want abc123", fe.ShareHash)
+	}
+	detailsJSON, err := json.Marshal(fe.Details)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var details map[string]any
+	if err := json.Unmarshal(detailsJSON, &details); err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := details["shareHash"]; ok {
+		t.Fatalf("details must not include shareHash: %s", detailsJSON)
+	}
+}

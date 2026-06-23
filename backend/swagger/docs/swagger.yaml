@@ -1822,8 +1822,6 @@ definitions:
         type: string
       expire:
         type: integer
-      expires:
-        type: string
       extractEmbeddedSubtitles:
         type: boolean
       favicon:
@@ -1847,8 +1845,6 @@ definitions:
         type: string
       path:
         type: string
-      pathExists:
-        type: boolean
       perUserDownloadLimit:
         type: boolean
       pinnedItems:
@@ -1880,16 +1876,12 @@ definitions:
         type: string
       token:
         type: string
-      unit:
-        type: string
       userDownloads:
         additionalProperties:
           type: integer
         type: object
       userID:
         type: integer
-      username:
-        type: string
       version:
         type: integer
       viewMode:
@@ -2041,8 +2033,6 @@ definitions:
         type: boolean
       downloadURL:
         type: string
-      downloads:
-        type: integer
       downloadsLimit:
         type: integer
       enableOnlyOffice:
@@ -2050,8 +2040,6 @@ definitions:
       enforceDarkLightMode:
         description: '"dark" or "light"'
         type: string
-      expire:
-        type: integer
       expires:
         type: string
       extractEmbeddedSubtitles:
@@ -2077,8 +2065,6 @@ definitions:
         type: string
       path:
         type: string
-      pathExists:
-        type: boolean
       perUserDownloadLimit:
         type: boolean
       quickDownload:
@@ -2105,8 +2091,6 @@ definitions:
       title:
         type: string
       unit:
-        type: string
-      username:
         type: string
       viewMode:
         description: default view mode for anonymous users

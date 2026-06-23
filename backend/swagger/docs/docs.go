@@ -7495,9 +7495,6 @@ const docTemplate = `{
                 "expire": {
                     "type": "integer"
                 },
-                "expires": {
-                    "type": "string"
-                },
                 "extractEmbeddedSubtitles": {
                     "type": "boolean"
                 },
@@ -7531,9 +7528,6 @@ const docTemplate = `{
                 },
                 "path": {
                     "type": "string"
-                },
-                "pathExists": {
-                    "type": "boolean"
                 },
                 "perUserDownloadLimit": {
                     "type": "boolean"
@@ -7581,9 +7575,6 @@ const docTemplate = `{
                 "token": {
                     "type": "string"
                 },
-                "unit": {
-                    "type": "string"
-                },
                 "userDownloads": {
                     "type": "object",
                     "additionalProperties": {
@@ -7592,9 +7583,6 @@ const docTemplate = `{
                 },
                 "userID": {
                     "type": "integer"
-                },
-                "username": {
-                    "type": "string"
                 },
                 "version": {
                     "type": "integer"
@@ -7821,9 +7809,6 @@ const docTemplate = `{
                 "downloadURL": {
                     "type": "string"
                 },
-                "downloads": {
-                    "type": "integer"
-                },
                 "downloadsLimit": {
                     "type": "integer"
                 },
@@ -7833,9 +7818,6 @@ const docTemplate = `{
                 "enforceDarkLightMode": {
                     "description": "\"dark\" or \"light\"",
                     "type": "string"
-                },
-                "expire": {
-                    "type": "integer"
                 },
                 "expires": {
                     "type": "string"
@@ -7873,9 +7855,6 @@ const docTemplate = `{
                 },
                 "path": {
                     "type": "string"
-                },
-                "pathExists": {
-                    "type": "boolean"
                 },
                 "perUserDownloadLimit": {
                     "type": "boolean"
@@ -7915,9 +7894,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "unit": {
-                    "type": "string"
-                },
-                "username": {
                     "type": "string"
                 },
                 "viewMode": {
