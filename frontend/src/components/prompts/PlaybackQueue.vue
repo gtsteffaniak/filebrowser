@@ -14,12 +14,21 @@
         <div
           v-for="(item, index) in formattedQueue"
           :key="`${item.path}-${index}`"
-          class="item"
+          class="play-queue-item"
           :class="{ 'current': index === currentQueueIndex }"
           @click="navigateToItem(index)"
         >
           <div class="item-icon">
-            <i class="material-symbols">{{ getFileIcon(item) }}</i>
+            <Icon
+              :mimetype="item.type"
+              :filename="item.name"
+              :hasPreview="item.hasPreview"
+              :thumbnailUrl="item.thumbnailUrl"
+              :modified="item.modified"
+              :path="item.path"
+              :source="item.source"
+              :size="item.size"
+            />
           </div>
           <div class="item-name">
             <span class="name">{{ item.name }}</span>
@@ -57,8 +66,13 @@
 <script>
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
+import Icon from "@/components/files/Icon.vue";
+import { resourcesApi } from "@/api";
+import { globalVars } from "@/utils/constants";
+
 export default {
   name: "PlaybackQueue",
+  components: { Icon },
   props: {
     embedded: {
       type: Boolean,
@@ -106,7 +120,12 @@ export default {
       return this.playbackQueue.map((item) => ({
         name: item.name,
         path: item.path,
-        type: item.type
+        type: item.type,
+        source: item.source,
+        modified: item.modified,
+        size: item.size,
+        hasPreview: item.hasPreview,
+        thumbnailUrl: this.getThumbnailUrl(item),
       }));
     },
     isPlaying() {
@@ -155,6 +174,16 @@ export default {
     this.updatePromptTitle();
   },
   methods: {
+    getThumbnailUrl(item) {
+      if (!globalVars.enableThumbs) return "";
+      const source = item.source;
+      const path = item.path;
+      if (!source || !path) return '';
+      if (getters.isShare()) {
+        return resourcesApi.getPreviewURLPublic(path);
+      }
+      return resourcesApi.getPreviewURL(source, path, item.modified);
+    },
     cyclePlaybackModes() {
       // Cycle through modes using store mutations
       const modes = ['loop-all', 'shuffle', 'sequential', 'loop-single'];
@@ -206,7 +235,7 @@ export default {
       if (this.queueCount === 0) return;
       this.$nextTick(() => {
         const list = this.$refs.QueueList;
-        const currentItem = list.querySelector('.item.current');
+        const currentItem = list.querySelector('.play-queue-item.current');
         if (!currentItem) return;
 
         const listRect = list.getBoundingClientRect();
@@ -225,10 +254,6 @@ export default {
           behavior: 'smooth'
         });
       });
-    },
-    getFileIcon(item) {
-      if (item.type?.startsWith('audio/')) return 'audiotrack';
-      if (item.type?.startsWith('video/')) return 'movie';
     },
     updatePromptTitle() {
       if (this.embedded || this.promptId === null) return;
@@ -311,40 +336,50 @@ export default {
   padding: 0;
 }
 
-.item {
+.play-queue-item {
   display: flex;
   align-items: center;
   text-align: center;
-  padding: 0.75rem 1rem;
+  padding: 0.35rem 0.85rem;
   cursor: pointer;
   transition: background-color 0.2s ease;
   gap: 0.5rem;
   border-radius: 12px;
 }
 
-.item:hover {
+.play-queue-item:hover {
   background: var(--surfaceSecondary);
 }
 
-.item.current {
+.play-queue-item.current {
   background: var(--primaryColor);
   color: white;
 }
 
-.item.current .item-icon i,
-.item.current .current-indicator,
+.play-queue-item.current .item-icon i,
+.play-queue-item.current .current-indicator,
 .item-indicator {
   color: white;
   user-select: none;
 }
 
-.item-icon i.material-symbols {
-  color: var(--textSecondary);
-  user-select: none;
+.item-icon {
+  flex-shrink: 0;
+  width: 2.65em;
+  height: 2.65em;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.item-icon :deep(.image-preview) {
+  width: 100%;
+  height: 100%;
+  --icon-font-size: 1.8em;
 }
 
 .item-name {
   flex: 1;
+  padding: 0.2em 0.35em;
 }
 
 .track-number {
