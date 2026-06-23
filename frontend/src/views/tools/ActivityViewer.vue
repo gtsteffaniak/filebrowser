@@ -384,8 +384,7 @@ import {
   activityStatusParamsForOutcome,
   filterEventTypesForScope,
   formatEventTypeQueryValue,
-  formatActivityViewerQueryString,
-  normalizeEventTypeQueryValue,
+  formatActivityViewerQueryString,  normalizeEventTypeQueryValue,
   parseStatusOutcomeFromQuery,
 } from "@/utils/activityViewerQuery.js";
 
@@ -2017,7 +2016,7 @@ export default {
           labels: totals.map((t) => t.label),
           datasets: [{
             data: totals.map((t) => t.count),
-            backgroundColor: totals.map((t) => hexToRgba(this.colorForSeriesKey(t.key, 0), 0.9)),
+            backgroundColor: totals.map((t, idx) => hexToRgba(this.colorForSeriesKey(t.key, idx), 0.9)),
             borderColor: theme.divider,
             borderWidth: 2,
             hoverOffset: 10,
@@ -2042,8 +2041,8 @@ export default {
           datasets: [{
             label: this.$t("tools.activityViewer.totalEvents"),
             data: totals.map((t) => t.count),
-            backgroundColor: totals.map((t) => hexToRgba(this.colorForSeriesKey(t.key, 0), 0.88)),
-            borderColor: totals.map((t) => this.colorForSeriesKey(t.key, 0)),
+            backgroundColor: totals.map((t, idx) => hexToRgba(this.colorForSeriesKey(t.key, idx), 0.88)),
+            borderColor: totals.map((t, idx) => this.colorForSeriesKey(t.key, idx)),
             borderWidth: 1,
             borderRadius: 6,
             borderSkipped: false,

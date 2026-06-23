@@ -1,4 +1,9 @@
 /**
+ * Legacy event types removed from the product; ignored in filters and display.
+ */
+export const IGNORED_LEGACY_EVENT_TYPES = new Set(["apiError"]);
+
+/**
  * Normalize an activity viewer `eventType` query value to a list of types.
  * Accepts comma-separated strings, vue-router arrays, or repeated query values.
  * @param {string | string[] | null | undefined} raw
@@ -15,7 +20,6 @@ export function normalizeEventTypeQueryValue(raw) {
   if (!str) {
     return [];
   }
-  return str.split(",").map((part) => part.trim()).filter(Boolean);
 }
 
 /**

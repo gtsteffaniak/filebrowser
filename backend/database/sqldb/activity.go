@@ -354,6 +354,9 @@ func buildActivityWhereTable(filter activity.QueryFilter, table string) (string,
 		args = append(args, filter.StatusMax)
 	}
 
+	clauses = append(clauses, col("event_type")+" != ?")
+	args = append(args, "apiError")
+
 	where := ""
 	if len(clauses) > 0 {
 		where = " WHERE " + strings.Join(clauses, " AND ")

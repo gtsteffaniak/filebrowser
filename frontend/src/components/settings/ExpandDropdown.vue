@@ -2,7 +2,7 @@
   <div ref="root" class="expand-dropdown" :class="{ 'expand-dropdown--open': open }">
     <div
       ref="anchor"
-      class="expand-dropdown-anchor menu-panel no-select floating-window"
+      class="expand-dropdown-anchor menu-panel no-select"
       :class="{ 'dark-mode': isDarkMode }"
     >
       <button
@@ -28,13 +28,6 @@
     </div>
 
     <Teleport to="body">
-      <div
-        v-if="open"
-        class="expand-dropdown-shadow"
-        :class="{ 'expand-dropdown-shadow--closing': closing }"
-        :style="shadowStyle"
-        aria-hidden="true"
-      />
       <div
         v-if="open"
         ref="overlay"
@@ -159,10 +152,8 @@ export default {
       open: false,
       panelOpen: false,
       isExpanded: false,
-      closing: false,
       searchQuery: "",
       overlayStyle: {},
-      shadowStyle: {},
       localInputId: `expand-dropdown-${expandDropdownIdCounter}`,
       panelResizeObserver: null,
     };
@@ -280,9 +271,6 @@ export default {
         this.$nextTick(() => {
           this.observePanelResize();
           this.updateOverlayPosition();
-          if (this.allowSearch) {
-            this.$refs.menuOptions?.focusSearch();
-          }
         });
       } else {
         this.unobservePanelResize();
@@ -337,7 +325,6 @@ export default {
       if (this.open) {
         return;
       }
-      this.closing = false;
       this.panelOpen = false;
       this.isExpanded = true;
       this.updateOverlayPosition();
@@ -362,17 +349,14 @@ export default {
         this.finishClose();
         return;
       }
-      this.closing = true;
       this.panelOpen = false;
     },
     finishClose() {
       this.open = false;
       this.panelOpen = false;
       this.isExpanded = false;
-      this.closing = false;
       this.searchQuery = "";
       this.overlayStyle = {};
-      this.shadowStyle = {};
       this.unobservePanelResize();
     },
     onPanelAfterLeave() {
@@ -381,6 +365,9 @@ export default {
       }
     },
     enter(el, done) {
+      if (this.allowSearch) {
+        this.$refs.menuOptions?.focusSearch();
+      }
       expandEnter(el, () => {
         this.updateOverlayPosition();
         done();
@@ -404,25 +391,13 @@ export default {
         return;
       }
       const anchorRect = anchor.getBoundingClientRect();
-      const panel = this.$refs.panel;
-      const panelHeight = panel?.getBoundingClientRect().height || 0;
-      const totalHeight = anchorRect.height + panelHeight;
 
       this.overlayStyle = {
         position: "fixed",
-        top: `${anchorRect.bottom}px`,
+        top: `${anchorRect.bottom - 1}px`,
         left: `${anchorRect.left}px`,
         width: `${anchorRect.width}px`,
         zIndex: 1000,
-      };
-
-      this.shadowStyle = {
-        position: "fixed",
-        top: `${anchorRect.top}px`,
-        left: `${anchorRect.left}px`,
-        width: `${anchorRect.width}px`,
-        height: `${totalHeight}px`,
-        zIndex: 999,
       };
     },
     onViewportChange() {
@@ -484,7 +459,6 @@ export default {
   padding: 0.5em;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   width: 100%;
   min-width: 13em;
 }
@@ -492,9 +466,17 @@ export default {
 .expand-dropdown-anchor {
   box-sizing: border-box;
   border: 1px solid var(--surfaceSecondary);
+  box-shadow:
+    0 1px 1px hsl(0deg 0% 0% / 0.075),
+    0 2px 2px hsl(0deg 0% 0% / 0.075),
+    0 4px 4px hsl(0deg 0% 0% / 0.075),
+    0 8px 8px hsl(0deg 0% 0% / 0.075),
+    0 16px 16px hsl(0deg 0% 0% / 0.075);
+  justify-content: center;
   transition:
-    border-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-bottom-left-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    border-bottom-right-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    border-bottom-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .expand-dropdown--open .expand-dropdown-anchor {
@@ -502,25 +484,8 @@ export default {
   z-index: 1000;
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
+  /* Keep border width; hide the seam without shrinking the anchor box. */
   border-bottom-color: var(--background);
-  box-shadow: none;
-}
-
-.expand-dropdown-shadow {
-  pointer-events: none;
-  background: transparent;
-  border-radius: 1em;
-  box-shadow:
-    0 1px 1px hsl(0deg 0% 0% / 0.075),
-    0 2px 2px hsl(0deg 0% 0% / 0.075),
-    0 4px 4px hsl(0deg 0% 0% / 0.075),
-    0 8px 8px hsl(0deg 0% 0% / 0.075),
-    0 16px 16px hsl(0deg 0% 0% / 0.075);
-  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.expand-dropdown-shadow--closing {
-  transition-duration: 0.15s;
 }
 
 .expand-dropdown-overlay {
@@ -534,17 +499,18 @@ export default {
   box-sizing: border-box;
   overflow: hidden;
   width: 100%;
+  margin-top: -1px;
   background-color: var(--background);
   border-style: solid;
   border-color: var(--surfaceSecondary);
-  border-width: 1px 1px 1px;
-  border-top-color: var(--background);
+  border-width: 0 1px 1px;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
   border-bottom-left-radius: 1em;
   border-bottom-right-radius: 1em;
-  box-shadow: none;
-  padding-top: 0;
+  padding: 0 0.5em 0.5em;
+  justify-content: flex-start;
+  align-items: stretch;
 }
 
 .expand-dropdown-trigger {

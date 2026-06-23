@@ -5076,8 +5076,7 @@ const docTemplate = `{
                 "passkeyDelete",
                 "tokenCreate",
                 "tokenDelete",
-                "duplicateFinder",
-                "apiError"
+                "duplicateFinder"
             ],
             "x-enum-varnames": [
                 "EventDownload",
@@ -5104,8 +5103,7 @@ const docTemplate = `{
                 "EventPasskeyDelete",
                 "EventTokenCreate",
                 "EventTokenDelete",
-                "EventDuplicateFinder",
-                "EventAPIError"
+                "EventDuplicateFinder"
             ]
         },
         "activity.FieldChange": {

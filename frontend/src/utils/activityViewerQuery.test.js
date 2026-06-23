@@ -34,6 +34,7 @@ describe("normalizeEventTypeQueryValue", () => {
     expect(normalizeEventTypeQueryValue("")).toEqual([]);
     expect(normalizeEventTypeQueryValue(null)).toEqual([]);
   });
+
 });
 
 describe("formatEventTypeQueryValue", () => {

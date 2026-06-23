@@ -5065,8 +5065,7 @@
                 "passkeyDelete",
                 "tokenCreate",
                 "tokenDelete",
-                "duplicateFinder",
-                "apiError"
+                "duplicateFinder"
             ],
             "x-enum-varnames": [
                 "EventDownload",
@@ -5093,8 +5092,7 @@
                 "EventPasskeyDelete",
                 "EventTokenCreate",
                 "EventTokenDelete",
-                "EventDuplicateFinder",
-                "EventAPIError"
+                "EventDuplicateFinder"
             ]
         },
         "activity.FieldChange": {

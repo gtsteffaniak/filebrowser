@@ -32,8 +32,6 @@ const (
 	EventTokenCreate       EventType = "tokenCreate"
 	EventTokenDelete       EventType = "tokenDelete"
 	EventDuplicateFinder EventType = "duplicateFinder"
-	// EventAPIError is deprecated; handler failures are only logged for mapped routes.
-	EventAPIError EventType = "apiError"
 )
 
 // AllEventTypes lists every defined event type for validation and UI filters.
@@ -139,11 +137,17 @@ func (e EventType) Valid() bool {
 		EventLogin, EventLogout, EventSignup,
 		EventPasskeyRegister, EventPasskeyDelete,
 		EventTokenCreate, EventTokenDelete,
-		EventDuplicateFinder, EventAPIError:
+		EventDuplicateFinder:
 		return true
 	default:
 		return false
 	}
+}
+
+// IsIgnoredLegacyEventType reports obsolete event_type values that should be
+// excluded from queries and API responses (legacy rows may still exist in DB).
+func IsIgnoredLegacyEventType(e EventType) bool {
+	return e == "apiError"
 }
 
 // String returns the wire/database representation.

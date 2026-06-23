@@ -26,7 +26,6 @@ definitions:
     - tokenCreate
     - tokenDelete
     - duplicateFinder
-    - apiError
     type: string
     x-enum-varnames:
     - EventDownload
@@ -54,7 +53,6 @@ definitions:
     - EventTokenCreate
     - EventTokenDelete
     - EventDuplicateFinder
-    - EventAPIError
   activity.FieldChange:
     properties:
       field:
