@@ -119,7 +119,7 @@ export default {
       ];
     },
     activityViewerHref() {
-      return activityViewerPresets.access(this.selectedSource);
+      return activityViewerPresets.access(this.selectedSource, "/");
     },
   },
   methods: {

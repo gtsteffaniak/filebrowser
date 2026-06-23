@@ -28,16 +28,17 @@ import (
 )
 
 type requestContext struct {
-	user         *users.User
-	shareUser    *users.User
-	fileInfo     iteminfo.ExtendedFileInfo
-	token        string
-	share        share.Share
-	shareValid   bool
-	ctx          context.Context
-	MaxBandwidth int
-	Data         interface{}
-	IndexPath    string
+	user                   *users.User
+	shareUser              *users.User
+	fileInfo               iteminfo.ExtendedFileInfo
+	token                  string
+	share                  share.Share
+	shareValid             bool
+	ctx                    context.Context
+	MaxBandwidth           int
+	Data                   interface{}
+	IndexPath              string
+	handlerFailureRecorded bool
 }
 
 // recordShareDownload persists download counters; shareStore reads go through state and see updates immediately.

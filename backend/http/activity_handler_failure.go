@@ -12,6 +12,12 @@ import (
 func invokeHandler(fn handleFunc, w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	status, err := fn(w, r, d)
 	if err != nil {
+		if d != nil && d.handlerFailureRecorded {
+			return status, err
+		}
+		if d != nil {
+			d.handlerFailureRecorded = true
+		}
 		recordHandlerFailureActivity(r, d, status, err)
 	}
 	return status, err

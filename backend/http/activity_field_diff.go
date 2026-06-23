@@ -12,39 +12,47 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 )
 
-var userActivitySkipJSONTags = map[string]struct{}{
-	"id":                 {},
-	"password":           {},
-	"totpSecret":         {},
-	"totpNonce":          {},
-	"tokens":             {},
-	"apiKeys":            {},
-	"backendScopes":      {},
-	"perm":               {},
-	"passkeyCredentials": {},
-	"version":            {},
-	"pinnedItems":        {},
-}
+var userActivitySkipJSONTags = normalizedSkipTags(
+	"id",
+	"password",
+	"totpSecret",
+	"totpNonce",
+	"tokens",
+	"apiKeys",
+	"backendScopes",
+	"perm",
+	"passkeyCredentials",
+	"version",
+	"pinnedItems",
+)
 
-var shareActivitySkipJSONTags = map[string]struct{}{
-	"hash":          {},
-	"password_hash": {},
-	"token":         {},
-	"userID":        {},
-	"userDownloads": {},
-	"version":       {},
-	"sourcePath":    {},
-	"pinnedItems":   {},
-	"pathExists":    {},
-	"downloads":     {},
-	"username":      {},
-	"downloadURL":   {},
-	"shareURL":      {},
-	"faviconUrl":    {},
-	"bannerUrl":     {},
-	"sourceURL":     {},
-	"canEditShare":  {},
-	"hasPassword":   {},
+var shareActivitySkipJSONTags = normalizedSkipTags(
+	"hash",
+	"password_hash",
+	"token",
+	"userID",
+	"userDownloads",
+	"version",
+	"sourcePath",
+	"pinnedItems",
+	"pathExists",
+	"downloads",
+	"username",
+	"downloadURL",
+	"shareURL",
+	"faviconUrl",
+	"bannerUrl",
+	"sourceURL",
+	"canEditShare",
+	"hasPassword",
+)
+
+func normalizedSkipTags(tags ...string) map[string]struct{} {
+	out := make(map[string]struct{}, len(tags))
+	for _, t := range tags {
+		out[strings.ToLower(strings.TrimSpace(t))] = struct{}{}
+	}
+	return out
 }
 
 func userUpdateChanges(before, after *users.User, which []string, passwordChanged bool) []activitydb.FieldChange {

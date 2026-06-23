@@ -7,6 +7,28 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 )
 
+func TestUserUpdateChangesSkipsSensitiveFields(t *testing.T) {
+	before := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username: "alice",
+			NonAdminEditable: users.NonAdminEditable{
+				DarkMode: true,
+			},
+		},
+		TOTPSecret: "secret-value",
+	}
+	after := *before
+	after.DarkMode = false
+	after.TOTPSecret = "new-secret"
+
+	changes := userUpdateChanges(before, &after, []string{"totpSecret", "darkMode"}, false)
+	for _, c := range changes {
+		if c.Field == "totpSecret" {
+			t.Fatalf("totpSecret must not appear in activity changes: %#v", changes)
+		}
+	}
+}
+
 func TestUserUpdateChangesFiltersUnchangedFields(t *testing.T) {
 	before := &users.User{
 		FrontendUser: users.FrontendUser{

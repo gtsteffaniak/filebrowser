@@ -29,3 +29,22 @@ func TestActivityExportHeader(t *testing.T) {
 		}
 	}
 }
+
+func TestSanitizeCSVCell(t *testing.T) {
+	tests := []struct {
+		in   string
+		want string
+	}{
+		{"", ""},
+		{"alice", "alice"},
+		{"=1+1", "'=1+1"},
+		{"+1234", "'+1234"},
+		{"-1234", "'-1234"},
+		{"@SUM(A1)", "'@SUM(A1)"},
+	}
+	for _, tc := range tests {
+		if got := sanitizeCSVCell(tc.in); got != tc.want {
+			t.Fatalf("sanitizeCSVCell(%q) = %q, want %q", tc.in, got, tc.want)
+		}
+	}
+}

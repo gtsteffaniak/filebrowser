@@ -44,7 +44,8 @@ export function buildActivityViewerQuery(params = {}) {
 export function activityViewerUrl(params = {}) {
   const query = buildActivityViewerQuery(params);
   const base = globalVars.baseURL || "/";
-  const path = `${base}${ACTIVITY_VIEWER_PATH}`;
+  const normalizedBase = base.endsWith("/") ? base : `${base}/`;
+  const path = `${normalizedBase}${ACTIVITY_VIEWER_PATH}`;
   const qs = formatActivityViewerQueryString(query);
   return qs ? `${path}?${qs}` : path;
 }

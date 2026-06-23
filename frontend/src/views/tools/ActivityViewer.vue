@@ -210,27 +210,51 @@
             <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           </template>
           <template #cell-username="{ row }">
-            <span v-if="!isBlankTableValue(row.username)" class="table-cell-text break-word">{{ row.username }}</span>
+            <span
+              v-if="!isBlankTableValue(row.username)"
+              class="table-cell-text table-cell-text--clamp break-word"
+              :title="row.username"
+            >{{ row.username }}</span>
             <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           </template>
           <template #cell-source="{ row }">
-            <span v-if="!isBlankTableValue(row.source)" class="table-cell-text break-word">{{ row.source }}</span>
+            <span
+              v-if="!isBlankTableValue(row.source)"
+              class="table-cell-text table-cell-text--clamp break-word"
+              :title="row.source"
+            >{{ row.source }}</span>
             <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           </template>
           <template #cell-path="{ row }">
-            <span v-if="!isBlankTableValue(row.path)" class="table-cell-text break-word">{{ row.path }}</span>
+            <span
+              v-if="!isBlankTableValue(row.path)"
+              class="table-cell-text table-cell-text--clamp break-word"
+              :title="row.path"
+            >{{ row.path }}</span>
             <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           </template>
           <template #cell-shareHash="{ row }">
-            <span v-if="!isBlankTableValue(row.shareHash)" class="table-cell-text break-word">{{ row.shareHash }}</span>
+            <span
+              v-if="!isBlankTableValue(row.shareHash)"
+              class="table-cell-text table-cell-text--clamp break-word"
+              :title="row.shareHash"
+            >{{ row.shareHash }}</span>
             <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           </template>
           <template #cell-tokenDisplay="{ row }">
-            <span v-if="!isBlankTableValue(row.tokenDisplay)" class="table-cell-text break-word">{{ row.tokenDisplay }}</span>
+            <span
+              v-if="!isBlankTableValue(row.tokenDisplay)"
+              class="table-cell-text table-cell-text--clamp break-word"
+              :title="row.tokenDisplay"
+            >{{ row.tokenDisplay }}</span>
             <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           </template>
           <template #cell-ipAddress="{ row }">
-            <span v-if="!isBlankTableValue(row.ipAddress)" class="table-cell-text break-word">{{ row.ipAddress }}</span>
+            <span
+              v-if="!isBlankTableValue(row.ipAddress)"
+              class="table-cell-text table-cell-text--clamp break-word"
+              :title="row.ipAddress"
+            >{{ row.ipAddress }}</span>
             <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           </template>
           <template #cell-details="{ row }">
@@ -1258,12 +1282,12 @@ export default {
       }
       if (queryValuePresent(query.eventType)) {
         this.selectedEventTypes = this.parseEventTypesFromQuery(query.eventType);
-      } else if (query.eventType === "" || query.eventType === null) {
+      } else {
         this.selectedEventTypes = [];
       }
       if (this.showUserFilter && queryValuePresent(query.username)) {
         this.selectedUsername = String(query.username);
-      } else if (!this.showUserFilter) {
+      } else {
         this.selectedUsername = "";
       }
       if (queryValuePresent(query.statusMin) || queryValuePresent(query.statusMax)) {
@@ -2207,6 +2231,14 @@ export default {
 .table-cell-text {
   font-size: 0.9em;
   color: var(--textPrimary);
+}
+
+.table-cell-text--clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .break-word {

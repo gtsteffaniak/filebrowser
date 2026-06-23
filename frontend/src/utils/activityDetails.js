@@ -265,20 +265,17 @@ export function activityTokenDisplay(row, $t) {
 }
 
 /** @returns {string} */
-function formatActivityFieldChange(change, $t) {
-  const from = change?.from ?? "";
-  const to = change?.to ?? "";
-  if (from && to) {
+function formatActivityFieldChange(change) {
+  const fromRaw = change?.from;
+  const toRaw = change?.to;
+  const hasFrom = fromRaw !== null && fromRaw !== undefined && fromRaw !== "";
+  const hasTo = toRaw !== null && toRaw !== undefined && toRaw !== "";
+  const from = hasFrom ? String(fromRaw) : "—";
+  const to = hasTo ? String(toRaw) : "—";
+  if (hasFrom || hasTo) {
     return `${from} → ${to}`;
   }
-  const emDash = $t("general.emDash");
-  if (from) {
-    return `${from} → ${emDash}`;
-  }
-  if (to) {
-    return `${emDash} → ${to}`;
-  }
-  return $t("general.emDash");
+  return "—";
 }
 
 /**
@@ -320,7 +317,7 @@ export function buildActivityDetailRows(row, $t) {
       rows.push({
         id: `change-${field}`,
         label: field,
-        value: formatActivityFieldChange(change, $t),
+        value: formatActivityFieldChange(change),
       });
     }
   }
@@ -391,7 +388,7 @@ export function buildActivityDetailRows(row, $t) {
  * Compact badges for the table details column (admin).
  * @returns {{ id: string, text: string }[]}
  */
-export function buildActivityDetailBadges(row, $t) {
+export function buildActivityDetailBadges(row, _$t) {
   if (!row) return [];
 
   const d = row.details || {};
@@ -422,7 +419,7 @@ export function buildActivityDetailBadges(row, $t) {
       if (!field || field === "hash") continue;
       badges.push({
         id: `change-${field}`,
-        text: `${field}: ${formatActivityFieldChange(change, $t)}`,
+        text: `${field}: ${formatActivityFieldChange(change)}`,
       });
     }
   }

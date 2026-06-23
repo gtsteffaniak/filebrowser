@@ -49,28 +49,40 @@ func activityExportHeader(includeDetails bool, optional []string) []string {
 	return header
 }
 
+func sanitizeCSVCell(v string) string {
+	if v == "" {
+		return v
+	}
+	switch v[0] {
+	case '=', '+', '-', '@':
+		return "'" + v
+	default:
+		return v
+	}
+}
+
 func activityExportRowValues(item activitydb.FrontendEntry, optional []string, includeDetails bool, detailsJSON string) []string {
 	row := []string{
 		fmt.Sprintf("%d", item.ID),
 		fmt.Sprintf("%d", item.CreatedAt),
-		item.Username,
+		sanitizeCSVCell(item.Username),
 		string(item.EventType),
 	}
 	for _, col := range optional {
 		switch col {
 		case "source":
-			row = append(row, item.Source)
+			row = append(row, sanitizeCSVCell(item.Source))
 		case "path":
-			row = append(row, item.Path)
+			row = append(row, sanitizeCSVCell(item.Path))
 		case "shareHash":
-			row = append(row, item.ShareHash)
+			row = append(row, sanitizeCSVCell(item.ShareHash))
 		case "tokenName":
-			row = append(row, item.TokenName)
+			row = append(row, sanitizeCSVCell(item.TokenName))
 		}
 	}
-	row = append(row, item.IPAddress, fmt.Sprintf("%d", item.Status))
+	row = append(row, sanitizeCSVCell(item.IPAddress), fmt.Sprintf("%d", item.Status))
 	if includeDetails {
-		row = append(row, detailsJSON)
+		row = append(row, sanitizeCSVCell(detailsJSON))
 	}
 	return row
 }
