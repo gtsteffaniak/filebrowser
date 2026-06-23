@@ -869,7 +869,10 @@
       "eventAccessUpdate": "Toegangsupdate",
       "eventTokenCreate": "Token aanmaken",
       "eventTokenDelete": "Token verwijderen",
-      "webSessionNamed": "Websessie ({name})"
+      "webSessionNamed": "Websessie ({name})",
+      "scopeAccess": "Toegangsactiviteit",
+      "eventAccessCreate": "Toegang aanmaken",
+      "eventAccessDelete": "Toegang verwijderen"
     }
   },
   "messages": {

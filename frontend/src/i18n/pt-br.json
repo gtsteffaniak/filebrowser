@@ -869,7 +869,10 @@
       "eventAccessUpdate": "Atualização de acesso",
       "eventTokenCreate": "Criação de token",
       "eventTokenDelete": "Exclusão de token",
-      "webSessionNamed": "Sessão online ({name})"
+      "webSessionNamed": "Sessão online ({name})",
+      "scopeAccess": "Atividade de acesso",
+      "eventAccessCreate": "Acessar criar",
+      "eventAccessDelete": "Acessar/Excluir"
     }
   },
   "messages": {

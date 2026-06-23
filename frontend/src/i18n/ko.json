@@ -869,7 +869,10 @@
       "eventAccessUpdate": "액세스 업데이트",
       "eventTokenCreate": "토큰 생성",
       "eventTokenDelete": "토큰 삭제",
-      "webSessionNamed": "웹 세션 ({name})"
+      "webSessionNamed": "웹 세션 ({name})",
+      "scopeAccess": "액세스 활동",
+      "eventAccessCreate": "액세스 생성",
+      "eventAccessDelete": "액세스 삭제"
     }
   },
   "messages": {

@@ -869,7 +869,10 @@
       "eventAccessUpdate": "Erişim güncellemesi",
       "eventTokenCreate": "Jeton oluşturma",
       "eventTokenDelete": "Jeton silme",
-      "webSessionNamed": "Web oturumu ({name})"
+      "webSessionNamed": "Web oturumu ({name})",
+      "scopeAccess": "Erişim etkinliği",
+      "eventAccessCreate": "Erişim oluştur",
+      "eventAccessDelete": "Erişim silme"
     }
   },
   "messages": {

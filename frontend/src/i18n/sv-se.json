@@ -869,7 +869,10 @@
       "eventAccessUpdate": "Uppdatering av åtkomst",
       "eventTokenCreate": "Skapa token",
       "eventTokenDelete": "Ta bort token",
-      "webSessionNamed": "Webbsession ({name})"
+      "webSessionNamed": "Webbsession ({name})",
+      "scopeAccess": "Åtkomstaktivitet",
+      "eventAccessCreate": "Öppna skapa",
+      "eventAccessDelete": "Åtkomst radera"
     }
   },
   "messages": {

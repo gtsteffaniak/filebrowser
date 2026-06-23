@@ -869,7 +869,10 @@
       "eventAccessUpdate": "Actualizare privind accesul",
       "eventTokenCreate": "Creare token",
       "eventTokenDelete": "Ștergerea tokenului",
-      "webSessionNamed": "Sesiune web ({name})"
+      "webSessionNamed": "Sesiune web ({name})",
+      "scopeAccess": "Activitatea de acces",
+      "eventAccessCreate": "Accesare și creare",
+      "eventAccessDelete": "Accesare Ștergere"
     }
   },
   "messages": {

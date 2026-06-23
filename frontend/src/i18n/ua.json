@@ -869,7 +869,10 @@
       "eventAccessUpdate": "Оновлення доступу",
       "eventTokenCreate": "Створення токена",
       "eventTokenDelete": "Видалення токена",
-      "webSessionNamed": "Веб-сесія ({name})"
+      "webSessionNamed": "Веб-сесія ({name})",
+      "scopeAccess": "Активність доступу",
+      "eventAccessCreate": "Доступ до створення",
+      "eventAccessDelete": "Доступ до видалення"
     }
   },
   "messages": {

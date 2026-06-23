@@ -869,7 +869,10 @@
       "eventAccessUpdate": "Hozzáférési frissítés",
       "eventTokenCreate": "Token létrehozása",
       "eventTokenDelete": "Token törlése",
-      "webSessionNamed": "Webes előadás ({name})"
+      "webSessionNamed": "Webes előadás ({name})",
+      "scopeAccess": "Hozzáférési tevékenység",
+      "eventAccessCreate": "Hozzáférés létrehozása",
+      "eventAccessDelete": "Hozzáférés törlés"
     }
   },
   "messages": {

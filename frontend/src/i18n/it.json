@@ -878,7 +878,10 @@
       "eventAccessUpdate": "Aggiornamento sull'accesso",
       "eventTokenCreate": "Creazione di un token",
       "eventTokenDelete": "Eliminazione del token",
-      "webSessionNamed": "Sessione web ({name})"
+      "webSessionNamed": "Sessione web ({name})",
+      "scopeAccess": "Attività di accesso",
+      "eventAccessCreate": "Accedi - Crea",
+      "eventAccessDelete": "Accedi - Elimina"
     }
   },
   "notifications": {

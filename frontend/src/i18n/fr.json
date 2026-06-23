@@ -869,7 +869,10 @@
       "eventAccessUpdate": "Mise à jour concernant l'accès",
       "eventTokenCreate": "Création d'un jeton",
       "eventTokenDelete": "Suppression d'un jeton",
-      "webSessionNamed": "Session en ligne ({name})"
+      "webSessionNamed": "Session en ligne ({name})",
+      "scopeAccess": "Activité d'accès",
+      "eventAccessCreate": "Accéder à la création",
+      "eventAccessDelete": "Accès/Supprimer"
     }
   },
   "messages": {

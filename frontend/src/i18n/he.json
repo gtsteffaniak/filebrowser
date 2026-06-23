@@ -869,7 +869,10 @@
       "eventAccessUpdate": "עדכון גישה",
       "eventTokenCreate": "יצירת אסימון",
       "eventTokenDelete": "מחיקת אסימון",
-      "webSessionNamed": "מפגש מקוון ({name})"
+      "webSessionNamed": "מפגש מקוון ({name})",
+      "scopeAccess": "פעילות גישה",
+      "eventAccessCreate": "גישה ליצירה",
+      "eventAccessDelete": "גישה ומחיקה"
     }
   },
   "messages": {

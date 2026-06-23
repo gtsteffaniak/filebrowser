@@ -869,7 +869,10 @@
       "eventAccessUpdate": "アクセスの更新",
       "eventTokenCreate": "トークンの作成",
       "eventTokenDelete": "トークンの削除",
-      "webSessionNamed": "Webセッション（{name} ）"
+      "webSessionNamed": "Webセッション（{name} ）",
+      "scopeAccess": "アクセス状況",
+      "eventAccessCreate": "アクセス 作成",
+      "eventAccessDelete": "アクセス 削除"
     }
   },
   "messages": {

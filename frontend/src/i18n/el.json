@@ -869,7 +869,10 @@
       "eventAccessUpdate": "Ενημέρωση πρόσβασης",
       "eventTokenCreate": "Δημιουργία token",
       "eventTokenDelete": "Διαγραφή token",
-      "webSessionNamed": "Διαδικτυακή συνεδρία ({name})"
+      "webSessionNamed": "Διαδικτυακή συνεδρία ({name})",
+      "scopeAccess": "Δραστηριότητα πρόσβασης",
+      "eventAccessCreate": "Πρόσβαση στη δημιουργία",
+      "eventAccessDelete": "Πρόσβαση - Διαγραφή"
     }
   },
   "messages": {

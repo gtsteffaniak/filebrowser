@@ -869,7 +869,10 @@
       "eventAccessUpdate": "存取更新",
       "eventTokenCreate": "建立代幣",
       "eventTokenDelete": "刪除代幣",
-      "webSessionNamed": "網路研討會（{name} ）"
+      "webSessionNamed": "網路研討會（{name} ）",
+      "scopeAccess": "存取活動",
+      "eventAccessCreate": "存取 建立",
+      "eventAccessDelete": "存取 刪除"
     }
   },
   "messages": {

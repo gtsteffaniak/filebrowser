@@ -869,7 +869,10 @@
       "eventAccessUpdate": "访问更新",
       "eventTokenCreate": "代币创建",
       "eventTokenDelete": "令牌删除",
-      "webSessionNamed": "网络研讨会（{name} ）"
+      "webSessionNamed": "网络研讨会（{name} ）",
+      "scopeAccess": "访问活动",
+      "eventAccessCreate": "访问 创建",
+      "eventAccessDelete": "访问 删除"
     }
   },
   "messages": {

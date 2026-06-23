@@ -4702,7 +4702,7 @@ paths:
         in: query
         name: to
         type: integer
-      - description: 'Event category: all, files, or shares (default: all)'
+      - description: 'Event category: all, files, access, or shares (default: all)'
         in: query
         name: scope
         type: string
@@ -4781,7 +4781,7 @@ paths:
         in: query
         name: to
         type: integer
-      - description: 'Event category: all, files, or shares (default: all)'
+      - description: 'Event category: all, files, access, or shares (default: all)'
         in: query
         name: scope
         type: string
@@ -4852,7 +4852,7 @@ paths:
         in: query
         name: to
         type: integer
-      - description: 'Event category: all, files, or shares (default: all)'
+      - description: 'Event category: all, files, access, or shares (default: all)'
         in: query
         name: scope
         type: string

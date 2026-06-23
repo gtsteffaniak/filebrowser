@@ -869,7 +869,10 @@
       "eventAccessUpdate": "Zugriffsaktualisierung",
       "eventTokenCreate": "Token erstellen",
       "eventTokenDelete": "Token löschen",
-      "webSessionNamed": "Web-Sitzung ({name})"
+      "webSessionNamed": "Web-Sitzung ({name})",
+      "scopeAccess": "Zugriffsaktivität",
+      "eventAccessCreate": "Zugriff erstellen",
+      "eventAccessDelete": "Zugriff löschen"
     }
   },
   "messages": {

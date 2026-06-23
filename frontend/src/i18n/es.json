@@ -869,7 +869,10 @@
       "activityTotalsBy": "Totales de actividad por {subject}",
       "subjectEventType": "tipo de evento",
       "viewActivity": "Ver actividad",
-      "tableColumns": "Columnas de la tabla"
+      "tableColumns": "Columnas de la tabla",
+      "scopeAccess": "Actividad de acceso",
+      "eventAccessCreate": "Acceder a «Crear»",
+      "eventAccessDelete": "Acceder a «Eliminar»"
     }
   },
   "messages": {

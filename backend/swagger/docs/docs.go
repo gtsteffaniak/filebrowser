@@ -3033,7 +3033,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Event category: all, files, or shares (default: all)",
+                        "description": "Event category: all, files, access, or shares (default: all)",
                         "name": "scope",
                         "in": "query"
                     },
@@ -3151,7 +3151,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Event category: all, files, or shares (default: all)",
+                        "description": "Event category: all, files, access, or shares (default: all)",
                         "name": "scope",
                         "in": "query"
                     },
@@ -3257,7 +3257,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Event category: all, files, or shares (default: all)",
+                        "description": "Event category: all, files, access, or shares (default: all)",
                         "name": "scope",
                         "in": "query"
                     },

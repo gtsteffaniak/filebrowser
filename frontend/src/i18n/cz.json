@@ -869,7 +869,10 @@
       "eventAccessUpdate": "Aktualizace přístupu",
       "eventTokenCreate": "Vytvoření tokenu",
       "eventTokenDelete": "Odstranění tokenu",
-      "webSessionNamed": "Webová relace ({name})"
+      "webSessionNamed": "Webová relace ({name})",
+      "scopeAccess": "Aktivita přístupu",
+      "eventAccessCreate": "Vytvořit přístup",
+      "eventAccessDelete": "Přístup, smazat"
     }
   },
   "messages": {

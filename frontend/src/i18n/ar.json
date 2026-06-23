@@ -869,7 +869,10 @@
       "eventAccessUpdate": "تحديث الوصول",
       "eventTokenCreate": "إنشاء الرمز الرمزي",
       "eventTokenDelete": "حذف الرمز",
-      "webSessionNamed": "جلسة عبر الإنترنت ({name})"
+      "webSessionNamed": "جلسة عبر الإنترنت ({name})",
+      "scopeAccess": "الوصول إلى النشاط",
+      "eventAccessCreate": "الوصول إلى \"إنشاء\"",
+      "eventAccessDelete": "الوصول والحذف"
     }
   },
   "messages": {
