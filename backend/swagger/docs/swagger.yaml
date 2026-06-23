@@ -18,6 +18,8 @@ definitions:
     - userUpdate
     - userDelete
     - accessUpdate
+    - accessCreate
+    - accessDelete
     - login
     - logout
     - signup
@@ -45,6 +47,8 @@ definitions:
     - EventUserUpdate
     - EventUserDelete
     - EventAccessUpdate
+    - EventAccessCreate
+    - EventAccessDelete
     - EventLogin
     - EventLogout
     - EventSignup

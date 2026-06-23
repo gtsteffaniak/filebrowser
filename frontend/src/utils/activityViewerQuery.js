@@ -20,6 +20,10 @@ export function normalizeEventTypeQueryValue(raw) {
   if (!str) {
     return [];
   }
+  return str
+    .split(",")
+    .map((part) => part.trim())
+    .filter((part) => part !== "" && !IGNORED_LEGACY_EVENT_TYPES.has(part));
 }
 
 /**

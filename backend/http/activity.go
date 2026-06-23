@@ -259,7 +259,7 @@ func parseIntDefault(s string, def int) int {
 // @Produce json
 // @Param from query int false "Start unix timestamp (default: 7 days ago)"
 // @Param to query int false "End unix timestamp (default: now)"
-// @Param scope query string false "Event category: all, files, or shares (default: all)"
+// @Param scope query string false "Event category: all, files, access, or shares (default: all)"
 // @Param eventType query string false "Filter by event type (comma-separated)"
 // @Param username query string false "Filter by username (admin only)"
 // @Param source query string false "Filter by source name"
@@ -308,7 +308,7 @@ func activityListHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 // @Produce json
 // @Param from query int false "Start unix timestamp (default: 7 days ago)"
 // @Param to query int false "End unix timestamp (default: now)"
-// @Param scope query string false "Event category: all, files, or shares (default: all)"
+// @Param scope query string false "Event category: all, files, access, or shares (default: all)"
 // @Param eventType query string false "Filter by event type (comma-separated)"
 // @Param username query string false "Filter by username (admin only)"
 // @Param source query string false "Filter by source name"
@@ -353,7 +353,7 @@ func activityGroupedHandler(w http.ResponseWriter, r *http.Request, d *requestCo
 // @Produce text/csv
 // @Param from query int false "Start unix timestamp (default: 7 days ago)"
 // @Param to query int false "End unix timestamp (default: now)"
-// @Param scope query string false "Event category: all, files, or shares (default: all)"
+// @Param scope query string false "Event category: all, files, access, or shares (default: all)"
 // @Param eventType query string false "Filter by event type (comma-separated)"
 // @Param username query string false "Filter by username (admin only)"
 // @Param source query string false "Filter by source name"

@@ -89,7 +89,16 @@ func inferActivityEventTypeFromRequest(r *http.Request) (activitydb.EventType, b
 			return activitydb.EventShareDelete, true
 		}
 	case strings.Contains(path, "/access"):
-		return activitydb.EventAccessUpdate, true
+		switch method {
+		case http.MethodPost:
+			return activitydb.EventAccessCreate, true
+		case http.MethodPatch:
+			return activitydb.EventAccessUpdate, true
+		case http.MethodDelete:
+			return activitydb.EventAccessDelete, true
+		default:
+			return activitydb.EventAccessUpdate, true
+		}
 	case strings.Contains(path, "/resources"):
 		return inferResourceFailureEventType(method, path)
 	}
@@ -139,10 +148,23 @@ func recordHandlerFailureActivity(r *http.Request, d *requestContext, status int
 		return
 	}
 
+	source, path := accessFailureSourcePath(r)
+	if source == "" && d.activityFailureSource != "" {
+		source = d.activityFailureSource
+		path = d.activityFailurePath
+	}
+	if path != "" {
+		if parsed, parseErr := parseAccessQueryPath(path); parseErr == nil {
+			path = parsed.String()
+		}
+	}
+
 	details := activitydb.Details{
 		Method:      r.Method,
 		RequestPath: requestActivityPath(r),
 		Error:       err.Error(),
+		Source:      source,
+		Path:        path,
 	}
 	if username := strings.TrimSpace(r.URL.Query().Get("username")); username != "" {
 		details.TargetUsername = username
@@ -150,9 +172,26 @@ func recordHandlerFailureActivity(r *http.Request, d *requestContext, status int
 
 	recordUserActivity(r, d, activitydb.Entry{
 		EventType: eventType,
+		Source:    source,
+		Path:      path,
 		Status:    status,
 		Details:   details,
 	})
+}
+
+func accessFailureSourcePath(r *http.Request) (source, path string) {
+	if r == nil || !strings.Contains(r.URL.Path, "/access") {
+		return "", ""
+	}
+	source = strings.TrimSpace(r.URL.Query().Get("source"))
+	rawPath := strings.TrimSpace(r.URL.Query().Get("path"))
+	if rawPath == "" {
+		return source, ""
+	}
+	if parsed, err := parseAccessQueryPath(rawPath); err == nil {
+		return source, parsed.String()
+	}
+	return source, rawPath
 }
 
 func requestActivityPath(r *http.Request) string {

@@ -50,6 +50,10 @@ export function activityViewerUrl(params = {}) {
   return qs ? `${path}?${qs}` : path;
 }
 
+export const ACCESS_EVENT_TYPES = ["accessCreate", "accessUpdate", "accessDelete"];
+
+export const ACCESS_ACTIVITY_EVENT_TYPES = ACCESS_EVENT_TYPES.join(",");
+
 export const activityViewerPresets = {
   shares: () => activityViewerUrl({ scope: "shares" }),
   shareHash: (shareHash) => activityViewerUrl({ scope: "shares", shareHash }),
@@ -65,8 +69,8 @@ export const activityViewerPresets = {
     }),
   access: (source, path) =>
     activityViewerUrl({
-      scope: "files",
-      eventType: "accessUpdate",
+      scope: "access",
+      eventType: ACCESS_ACTIVITY_EVENT_TYPES,
       source,
       path,
     }),

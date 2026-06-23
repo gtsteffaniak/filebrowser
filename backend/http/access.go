@@ -7,6 +7,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
+	activitydb "github.com/gtsteffaniak/filebrowser/backend/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/state"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
@@ -147,7 +148,7 @@ func accessPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 		logger.Errorf("failed to add or update rule: %v", err)
 		return http.StatusInternalServerError, fmt.Errorf("failed to add or update rule: %w", err)
 	}
-	recordAccessUpdate(r, d, sourceName, parsedPath.String())
+	recordAccessCreate(r, d, sourceName, parsedPath.String(), accessRuleCreateChanges(body.Allow, body.RuleCategory, body.Value))
 	return renderJSON(w, r, map[string]string{"message": "rule added or updated"})
 }
 
@@ -216,7 +217,7 @@ func accessDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			return http.StatusNotFound, fmt.Errorf("no entries found in rule hierarchy")
 		}
 
-		recordAccessUpdate(r, d, sourceName, parsedPath.String())
+		recordAccessDelete(r, d, sourceName, parsedPath.String(), accessRuleDeleteChanges(ruleType, ruleCategory, value, true, count))
 		return renderJSON(w, r, map[string]interface{}{
 			"message": "rule entries deleted",
 			"count":   count,
@@ -242,14 +243,15 @@ func accessDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			found, err = accessStore.RemoveDenyAll(index.Path, parsedPath)
 		}
 	}
+	if err != nil {
+		logger.Errorf("failed to remove rule entry: %v", err)
+		return http.StatusInternalServerError, fmt.Errorf("failed to remove rule entry: %w", err)
+	}
 	if !found {
-		if err != nil {
-			logger.Errorf("failed to remove rule entry: %v", err)
-		}
 		return http.StatusNotFound, fmt.Errorf("entry not found in rule")
 	}
 
-	recordAccessUpdate(r, d, sourceName, parsedPath.String())
+	recordAccessDelete(r, d, sourceName, parsedPath.String(), accessRuleDeleteChanges(ruleType, ruleCategory, value, false, 0))
 	return renderJSON(w, r, map[string]string{"message": "rule entry deleted"})
 }
 
@@ -348,6 +350,8 @@ func accessPatchHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return http.StatusBadRequest, fmt.Errorf("failed to decode body: %w", err)
 	}
 	defer r.Body.Close()
+	d.activityFailureSource = body.Source
+	d.activityFailurePath = body.OldPath
 
 	if body.Source == "" || body.OldPath == "" || body.NewPath == "" {
 		return http.StatusBadRequest, fmt.Errorf("source, oldPath, and newPath are required")
@@ -373,6 +377,10 @@ func accessPatchHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		logger.Errorf("failed to update rule path: %v", err)
 		return http.StatusInternalServerError, fmt.Errorf("failed to update rule path: %w", err)
 	}
+
+	recordAccessUpdate(r, d, body.Source, newPath.String(), []activitydb.FieldChange{
+		{Field: "oldPath", From: oldPath.String(), To: newPath.String()},
+	})
 
 	return renderJSON(w, r, map[string]string{"message": "rule path updated"})
 }

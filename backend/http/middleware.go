@@ -39,6 +39,8 @@ type requestContext struct {
 	Data                   interface{}
 	IndexPath              string
 	handlerFailureRecorded bool
+	activityFailureSource  string
+	activityFailurePath    string
 }
 
 // recordShareDownload persists download counters; shareStore reads go through state and see updates immediately.

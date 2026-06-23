@@ -44,10 +44,50 @@ func TestInferActivityEventTypeFromRequestResourceGetWithoutDownload(t *testing.
 	}
 }
 
+func TestInferActivityEventTypeFromRequestAccessMethods(t *testing.T) {
+	cases := []struct {
+		method string
+		want   activitydb.EventType
+	}{
+		{http.MethodPost, activitydb.EventAccessCreate},
+		{http.MethodPatch, activitydb.EventAccessUpdate},
+		{http.MethodDelete, activitydb.EventAccessDelete},
+	}
+	for _, tc := range cases {
+		r := newActivityTestRequest(tc.method, "/access?source=Downloads&path=%2F")
+		got, ok := inferActivityEventTypeFromRequest(r)
+		if !ok {
+			t.Fatalf("%s: expected mapped event type", tc.method)
+		}
+		if got != tc.want {
+			t.Fatalf("%s: got %q, want %q", tc.method, got, tc.want)
+		}
+	}
+}
+
 func TestShouldRecordHandlerFailureSkipsActivityEndpoints(t *testing.T) {
 	r := newActivityTestRequest(http.MethodGet, "/tools/activity")
 	if shouldRecordHandlerFailure(r, http.StatusBadRequest) {
 		t.Fatal("expected activity list failures to be skipped")
+	}
+}
+
+func TestAccessFailureSourcePathFromQuery(t *testing.T) {
+	r := newActivityTestRequest(http.MethodPost, "/access?source=Downloads&path=%2F")
+	source, path := accessFailureSourcePath(r)
+	if source != "Downloads" {
+		t.Fatalf("source = %q, want Downloads", source)
+	}
+	if path != "/" {
+		t.Fatalf("path = %q, want /", path)
+	}
+}
+
+func TestAccessFailureSourcePathIgnoresNonAccessRoutes(t *testing.T) {
+	r := newActivityTestRequest(http.MethodPost, "/users?username=admin")
+	source, path := accessFailureSourcePath(r)
+	if source != "" || path != "" {
+		t.Fatalf("expected empty source/path, got %q %q", source, path)
 	}
 }
 

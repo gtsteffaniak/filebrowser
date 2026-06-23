@@ -2,6 +2,7 @@ package http
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -272,16 +273,75 @@ func recordArchiveActivity(r *http.Request, d *requestContext, eventType activit
 	})
 }
 
-func recordAccessUpdate(r *http.Request, d *requestContext, source, path string) {
+func recordAccessCreate(r *http.Request, d *requestContext, source, path string, changes []activitydb.FieldChange) {
+	recordUserActivity(r, d, activitydb.Entry{
+		EventType: activitydb.EventAccessCreate,
+		Source:    source,
+		Path:      path,
+		Details: activitydb.Details{
+			Source:  source,
+			Path:    path,
+			Changes: changes,
+		},
+	})
+}
+
+func recordAccessUpdate(r *http.Request, d *requestContext, source, path string, changes []activitydb.FieldChange) {
 	recordUserActivity(r, d, activitydb.Entry{
 		EventType: activitydb.EventAccessUpdate,
 		Source:    source,
 		Path:      path,
 		Details: activitydb.Details{
-			Source: source,
-			Path:   path,
+			Source:  source,
+			Path:    path,
+			Changes: changes,
 		},
 	})
+}
+
+func recordAccessDelete(r *http.Request, d *requestContext, source, path string, changes []activitydb.FieldChange) {
+	recordUserActivity(r, d, activitydb.Entry{
+		EventType: activitydb.EventAccessDelete,
+		Source:    source,
+		Path:      path,
+		Details: activitydb.Details{
+			Source:  source,
+			Path:    path,
+			Changes: changes,
+		},
+	})
+}
+
+func accessRuleCreateChanges(allow bool, ruleCategory, value string) []activitydb.FieldChange {
+	ruleType := "deny"
+	if allow {
+		ruleType = "allow"
+	}
+	changes := []activitydb.FieldChange{
+		{Field: "ruleType", To: ruleType},
+		{Field: "ruleCategory", To: ruleCategory},
+	}
+	if value != "" {
+		changes = append(changes, activitydb.FieldChange{Field: "value", To: value})
+	}
+	return changes
+}
+
+func accessRuleDeleteChanges(ruleType, ruleCategory, value string, cascade bool, count int) []activitydb.FieldChange {
+	changes := []activitydb.FieldChange{
+		{Field: "ruleType", To: ruleType},
+		{Field: "ruleCategory", To: ruleCategory},
+	}
+	if value != "" {
+		changes = append(changes, activitydb.FieldChange{Field: "value", To: value})
+	}
+	if cascade {
+		changes = append(changes, activitydb.FieldChange{Field: "cascade", To: "true"})
+		if count > 0 {
+			changes = append(changes, activitydb.FieldChange{Field: "count", To: strconv.Itoa(count)})
+		}
+	}
+	return changes
 }
 
 func scopesToActivityDetails(target *users.User) []activitydb.ScopeDetail {

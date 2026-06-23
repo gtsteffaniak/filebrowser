@@ -329,8 +329,17 @@ func buildActivityWhereTable(filter activity.QueryFilter, table string) (string,
 		clauses = append(clauses, col("event_type")+" IN ("+strings.Join(placeholders, ",")+")")
 	}
 	if filter.Source != "" {
-		clauses = append(clauses, col("source")+" = ?")
-		args = append(args, filter.Source)
+		requestPathSourceLike := escapeLikeContains("source=" + filter.Source)
+		clauses = append(clauses, "("+col("source")+" = ? OR ("+
+			col("event_type")+" IN (?,?,?) AND "+
+			"COALESCE(json_extract("+table+".details, '$.requestPath'), '') LIKE ? ESCAPE '\\'))")
+		args = append(args,
+			filter.Source,
+			string(activity.EventAccessCreate),
+			string(activity.EventAccessUpdate),
+			string(activity.EventAccessDelete),
+			requestPathSourceLike,
+		)
 	}
 	if filter.PathPrefix != "" {
 		like := escapeLikePrefix(filter.PathPrefix)
@@ -444,6 +453,21 @@ func escapeLikePrefix(prefix string) string {
 	var b strings.Builder
 	b.Grow(len(prefix) + 8)
 	for _, r := range prefix {
+		switch r {
+		case '\\', '%', '_':
+			b.WriteRune('\\')
+		}
+		b.WriteRune(r)
+	}
+	b.WriteByte('%')
+	return b.String()
+}
+
+func escapeLikeContains(substr string) string {
+	var b strings.Builder
+	b.Grow(len(substr) + 4)
+	b.WriteByte('%')
+	for _, r := range substr {
 		switch r {
 		case '\\', '%', '_':
 			b.WriteRune('\\')

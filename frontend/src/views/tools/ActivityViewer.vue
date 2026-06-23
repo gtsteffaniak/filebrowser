@@ -206,7 +206,11 @@
             <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           </template>
           <template #cell-eventType="{ row }">
-            <span v-if="!isBlankTableValue(row.eventType)">{{ eventTypeLabel(row.eventType) }}</span>
+            <span
+              v-if="!isBlankTableValue(row.eventType)"
+              class="event-type-badge border-radius"
+              :class="eventTypeBadgeClass(row.eventType)"
+            >{{ eventTypeLabel(row.eventType) }}</span>
             <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           </template>
           <template #cell-username="{ row }">
@@ -354,6 +358,7 @@ import { toStandardLocale } from "@/i18n";
 import {
   buildActivityDetailBadges,
   activityEventLabel,
+  activityEventTypeBadgeClass,
   activityTokenDisplay,
   activityChartTitle,
   hasActivityDetails,
@@ -413,7 +418,12 @@ const FILE_EVENT_TYPES = [
   "bulkDelete",
   "archive",
   "unarchive",
+];
+
+const ACCESS_EVENT_TYPES = [
+  "accessCreate",
   "accessUpdate",
+  "accessDelete",
 ];
 
 const SHARE_EVENT_TYPES = [
@@ -444,6 +454,7 @@ const ADMIN_EVENT_TYPES = [
 
 const EVENT_TYPES = [
   ...FILE_EVENT_TYPES,
+  ...ACCESS_EVENT_TYPES,
   ...SHARE_EVENT_TYPES,
   ...AUTH_EVENT_TYPES,
   ...TOOL_EVENT_TYPES,
@@ -577,7 +588,7 @@ const VALID_RANGES = new Set(["1h", "24h", "7d", "30d", "custom"]);
 const VALID_VIEWS = new Set(["table", "chart", "line", "pie", "summary"]);
 const VALID_INTERVALS = new Set(["minute", "hour", "day"]);
 const VALID_SPLITS = new Set(["eventType", "user", "outcome", "none"]);
-const VALID_SCOPES = new Set(["all", "files", "shares"]);
+const VALID_SCOPES = new Set(["all", "files", "access", "shares"]);
 const ANONYMOUS_USERNAME = "anonymous";
 const ACTIVITY_QUERY_KEYS = [
   "range",
@@ -640,6 +651,7 @@ export default {
       chartMountKey: 0,
       chartRenderToken: 0,
       isInitializing: true,
+      skipNextRouteQuerySync: false,
       loadRequestId: 0,
       loadDebounceTimer: null,
       selectedOptionalColumns: [...ACTIVITY_OPTIONAL_ROW_KEYS],
@@ -648,6 +660,7 @@ export default {
   computed: {
     visibleEventTypes() {
       if (this.activityScope === "files") return FILE_EVENT_TYPES;
+      if (this.activityScope === "access") return ACCESS_EVENT_TYPES;
       if (this.activityScope === "shares") return [...SHARE_EVENT_TYPES, "download"];
       return EVENT_TYPES;
     },
@@ -655,7 +668,7 @@ export default {
       return this.activityScope === "all";
     },
     showFileFilters() {
-      return this.activityScope === "files";
+      return this.activityScope === "files" || this.activityScope === "access";
     },
     showShareFilters() {
       return this.activityScope === "shares";
@@ -676,7 +689,7 @@ export default {
       return Object.keys(state.sources?.info || {}).sort();
     },
     activityScopeOptions() {
-      return ["all", "files", "shares"].map((scope) => ({
+      return ["all", "files", "access", "shares"].map((scope) => ({
         value: scope,
         label: this.activityScopeLabel(scope),
       }));
@@ -969,6 +982,10 @@ export default {
         if (this.isInitializing) {
           return;
         }
+        if (this.skipNextRouteQuerySync) {
+          this.skipNextRouteQuerySync = false;
+          return;
+        }
         if (!this.routeQueryChanged(newQuery, oldQuery)) {
           return;
         }
@@ -1170,7 +1187,7 @@ export default {
           this.visibleEventTypes,
         );
       }
-      if (this.activityScope === "files" || this.activityScope === "all") {
+      if (this.activityScope === "files" || this.activityScope === "all" || this.activityScope === "access") {
         this.filterShareHash = "";
       }
       if (this.activityScope === "shares") {
@@ -1233,6 +1250,10 @@ export default {
         || queryValuePresent(query.sharePath)
         || queryValuePresent(query.shareHash)) {
         return "shares";
+      }
+      const eventTypes = normalizeEventTypeQueryValue(query.eventType);
+      if (eventTypes.some((type) => ACCESS_EVENT_TYPES.includes(type))) {
+        return "access";
       }
       if (queryValuePresent(query.source)
         || queryValuePresent(query.path)
@@ -1425,10 +1446,13 @@ export default {
         );
 
         if (newQueryString !== currentQueryString) {
+          this.skipNextRouteQuerySync = true;
           this.$router.replace({
             path: this.$route.path,
             query: Object.keys(query).length > 0 ? query : undefined,
-          }).catch(() => {});
+          }).catch(() => {
+            this.skipNextRouteQuerySync = false;
+          });
         }
       });
     },
@@ -1439,7 +1463,7 @@ export default {
       });
     },
     detailBadges(row) {
-      return buildActivityDetailBadges(row, this.$t);
+      return buildActivityDetailBadges(row);
     },
     hasRowDetails(row) {
       return hasActivityDetails(row);
@@ -1845,9 +1869,15 @@ export default {
     eventTypeLabel(eventType) {
       return activityEventLabel(eventType, this.$t);
     },
+    eventTypeBadgeClass(eventType) {
+      return activityEventTypeBadgeClass(eventType);
+    },
     activityScopeLabel(scope) {
       if (scope === "files") {
         return this.$t("tools.activityViewer.scopeFiles");
+      }
+      if (scope === "access") {
+        return this.$t("tools.activityViewer.scopeAccess");
       }
       if (scope === "shares") {
         return this.$t("tools.activityViewer.scopeShares");
@@ -2401,6 +2431,39 @@ export default {
 }
 
 .status-badge--muted {
+  background: rgba(128, 128, 128, 0.12);
+  color: var(--textSecondary);
+}
+
+.event-type-badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.85em;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.event-type-badge--delete {
+  background: rgba(244, 67, 54, 0.2);
+  color: #c62828;
+}
+
+.event-type-badge--create {
+  background: rgba(33, 150, 243, 0.18);
+  color: #1565c0;
+}
+
+.event-type-badge--change {
+  background: rgba(255, 193, 7, 0.24);
+  color: #f57f17;
+}
+
+.event-type-badge--auth {
+  background: rgba(156, 39, 176, 0.18);
+  color: #7b1fa2;
+}
+
+.event-type-badge--default {
   background: rgba(128, 128, 128, 0.12);
   color: var(--textSecondary);
 }

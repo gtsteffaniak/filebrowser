@@ -42,8 +42,12 @@ export function activityEventLabel(eventType, $t) {
       return $t("tools.activityViewer.eventUserUpdate");
     case "userDelete":
       return $t("tools.activityViewer.eventUserDelete");
+    case "accessCreate":
+      return $t("tools.activityViewer.eventAccessCreate");
     case "accessUpdate":
       return $t("tools.activityViewer.eventAccessUpdate");
+    case "accessDelete":
+      return $t("tools.activityViewer.eventAccessDelete");
     case "tokenCreate":
       return $t("tools.activityViewer.eventTokenCreate");
     case "tokenDelete":
@@ -55,6 +59,62 @@ export function activityEventLabel(eventType, $t) {
     default:
       return eventType;
   }
+}
+
+const DELETE_EVENT_TYPES = new Set([
+  "delete",
+  "bulkDelete",
+  "shareDelete",
+  "userDelete",
+  "accessDelete",
+]);
+
+const CREATE_EVENT_TYPES = new Set([
+  "upload",
+  "shareCreate",
+  "userCreate",
+  "accessCreate",
+]);
+
+const CHANGE_EVENT_TYPES = new Set([
+  "move",
+  "copy",
+  "rename",
+  "shareUpdate",
+  "userUpdate",
+  "accessUpdate",
+  "archive",
+  "unarchive",
+]);
+
+const AUTH_EVENT_TYPES = new Set([
+  "login",
+  "logout",
+  "signup",
+  "passkeyRegister",
+  "passkeyDelete",
+  "tokenCreate",
+  "tokenDelete",
+]);
+
+/**
+ * CSS modifier class for an activity event type badge in the table.
+ * @returns {string}
+ */
+export function activityEventTypeBadgeClass(eventType) {
+  if (DELETE_EVENT_TYPES.has(eventType)) {
+    return "event-type-badge--delete";
+  }
+  if (AUTH_EVENT_TYPES.has(eventType)) {
+    return "event-type-badge--auth";
+  }
+  if (CHANGE_EVENT_TYPES.has(eventType)) {
+    return "event-type-badge--change";
+  }
+  if (CREATE_EVENT_TYPES.has(eventType)) {
+    return "event-type-badge--create";
+  }
+  return "event-type-badge--default";
 }
 
 /**
@@ -265,11 +325,28 @@ export function activityTokenDisplay(row, $t) {
 }
 
 /** @returns {string} */
-function formatActivityFieldChange(change) {
+function formatActivityFieldChange(change, eventType) {
   const fromRaw = change?.from;
   const toRaw = change?.to;
   const hasFrom = fromRaw !== null && fromRaw !== undefined && fromRaw !== "";
   const hasTo = toRaw !== null && toRaw !== undefined && toRaw !== "";
+
+  if (eventType === "accessCreate" || eventType === "accessDelete") {
+    if (hasTo) {
+      return String(toRaw);
+    }
+    return "—";
+  }
+
+  if (eventType === "accessUpdate") {
+    const from = hasFrom ? String(fromRaw) : "—";
+    const to = hasTo ? String(toRaw) : "—";
+    if (hasFrom || hasTo) {
+      return `${from} → ${to}`;
+    }
+    return "—";
+  }
+
   const from = hasFrom ? String(fromRaw) : "—";
   const to = hasTo ? String(toRaw) : "—";
   if (hasFrom || hasTo) {
@@ -317,7 +394,7 @@ export function buildActivityDetailRows(row, $t) {
       rows.push({
         id: `change-${field}`,
         label: field,
-        value: formatActivityFieldChange(change),
+        value: formatActivityFieldChange(change, row.eventType),
       });
     }
   }
@@ -388,7 +465,7 @@ export function buildActivityDetailRows(row, $t) {
  * Compact badges for the table details column (admin).
  * @returns {{ id: string, text: string }[]}
  */
-export function buildActivityDetailBadges(row, _$t) {
+export function buildActivityDetailBadges(row) {
   if (!row) return [];
 
   const d = row.details || {};
@@ -419,7 +496,7 @@ export function buildActivityDetailBadges(row, _$t) {
       if (!field || field === "hash") continue;
       badges.push({
         id: `change-${field}`,
-        text: `${field}: ${formatActivityFieldChange(change)}`,
+        text: `${field}: ${formatActivityFieldChange(change, row.eventType)}`,
       });
     }
   }
