@@ -100,8 +100,6 @@ definitions:
         items:
           $ref: '#/definitions/activity.ScopeDetail'
         type: array
-      shareHash:
-        type: string
       source:
         type: string
       targetPath:

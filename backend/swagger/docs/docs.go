@@ -5176,9 +5176,6 @@ const docTemplate = `{
                         "$ref": "#/definitions/activity.ScopeDetail"
                     }
                 },
-                "shareHash": {
-                    "type": "string"
-                },
                 "source": {
                     "type": "string"
                 },
