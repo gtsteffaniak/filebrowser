@@ -1,9 +1,9 @@
 <template>
   <div class="activity-viewer">
     <div class="card activity-scope-card padding-normal">
-      <div class="universal-filters" :class="{ mobile: isMobile }">
-        <div class="filter-field">
-          <label class="filter-label" for="activity-scope">{{ $t("tools.activityViewer.activityScope") }}</label>
+      <div class="config-grid" :class="{ mobile: isMobile }">
+        <div class="config-field">
+          <h3>{{ $t("tools.activityViewer.activityScope") }}</h3>
           <ExpandDropdown
             input-id="activity-scope"
             v-model="activityScope"
@@ -13,8 +13,8 @@
           />
         </div>
 
-        <div class="filter-field">
-          <label class="filter-label">{{ $t("tools.activityViewer.timeRange") }}</label>
+        <div class="config-field">
+          <h3>{{ $t("tools.activityViewer.timeRange") }}</h3>
           <ExpandDropdown
             v-model="timePreset"
             :options="timePresetOptions"
@@ -22,16 +22,16 @@
           />
         </div>
 
-        <div v-if="timePreset === 'custom'" class="filter-field filter-field-wide">
-          <label class="filter-label">{{ $t("tools.activityViewer.customRange") }}</label>
+        <div v-if="timePreset === 'custom'" class="config-field config-field-wide">
+          <h3>{{ $t("tools.activityViewer.customRange") }}</h3>
           <div class="custom-range">
             <input v-model="customFrom" type="datetime-local" class="input" />
             <input v-model="customTo" type="datetime-local" class="input" />
           </div>
         </div>
 
-        <div v-if="showUserFilter" class="filter-field">
-          <label class="filter-label">{{ $t("general.user") }}</label>
+        <div v-if="showUserFilter" class="config-field">
+          <h3>{{ $t("general.user") }}</h3>
           <ExpandDropdown
             v-model="selectedUsername"
             :options="usernameOptions"
@@ -39,8 +39,8 @@
           />
         </div>
 
-        <div class="filter-field">
-          <label class="filter-label" for="activity-status-outcome">{{ $t("general.status") }}</label>
+        <div class="config-field">
+          <h3>{{ $t("general.status") }}</h3>
           <ExpandDropdown
             input-id="activity-status-outcome"
             v-model="statusOutcome"
@@ -49,8 +49,8 @@
           />
         </div>
 
-        <div class="filter-field">
-          <label class="filter-label">{{ $t("tools.activityViewer.viewType") }}</label>
+        <div class="config-field">
+          <h3>{{ $t("tools.activityViewer.viewType") }}</h3>
           <ExpandDropdown
             v-model="viewType"
             :options="viewTypeOptions"
@@ -94,7 +94,7 @@
         <div v-if="showFileFilters" class="config-field config-field-wide path-filters">
           <h3>{{ $t("tools.activityViewer.pathFilter") }}</h3>
           <div class="config-field">
-            <label class="filter-label">{{ $t("tools.activityViewer.pathFilterMode") }}</label>
+            <h3>{{ $t("tools.activityViewer.pathFilterMode") }}</h3>
             <ExpandDropdown
               v-model="filePathFilterMode"
               :options="filePathFilterModeOptions"
@@ -114,8 +114,8 @@
           </div>
           <div v-else class="path-filter-glob">
             <div class="glob-fields">
-              <div class="glob-field">
-                <label class="filter-label">{{ $t("general.source") }}</label>
+              <div class="config-field glob-field">
+                <h3>{{ $t("general.source") }}</h3>
                 <ExpandDropdown
                   v-model="filterSource"
                   :options="filterSourceOptions"
@@ -123,8 +123,8 @@
                   :default-placeholder-if-empty="$t('general.allSources')"
                 />
               </div>
-              <div class="glob-field glob-field-wide">
-                <label class="filter-label">{{ $t("tools.activityViewer.pathGlob") }}</label>
+              <div class="config-field glob-field glob-field-wide">
+                <h3>{{ $t("tools.activityViewer.pathGlob") }}</h3>
                 <input
                   v-model="filterPathGlob"
                   type="text"
@@ -2141,38 +2141,10 @@ export default {
   margin-bottom: 1rem;
 }
 
-.universal-filters {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
-  gap: 1rem;
-  align-items: end;
-}
-
-.universal-filters.mobile {
-  grid-template-columns: 1fr;
-}
-
-.filter-field {
-  min-width: 0;
-}
-
-.filter-label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-size: 0.95rem;
-  font-weight: 600;
-}
-
 .activity-scope-select {
   width: 100%;
   font-size: 1rem;
   padding: 0.65rem 0.85rem;
-}
-
-.path-filters h3 {
-  margin: 0 0 0.5rem;
-  font-size: 0.95rem;
-  font-weight: 600;
 }
 
 .path-filter-mode {
@@ -2212,10 +2184,6 @@ export default {
 
 .share-hash-field {
   margin-top: 0.75rem;
-}
-
-.filter-field-wide {
-  grid-column: 1 / -1;
 }
 
 .activity-viewer-results {
@@ -2308,10 +2276,15 @@ export default {
   grid-template-columns: 1fr;
 }
 
+.config-field {
+  min-width: 0;
+}
+
 .config-field h3 {
   margin: 0 0 0.5rem;
   font-size: 0.95rem;
   font-weight: 600;
+  text-align: center;
 }
 
 .config-field-wide {
@@ -2440,13 +2413,6 @@ export default {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
   gap: 0.75rem;
-}
-
-.filter-label {
-  display: block;
-  margin-bottom: 0.35rem;
-  font-size: 0.85rem;
-  color: var(--textSecondary);
 }
 
 .chart-panel {
