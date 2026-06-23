@@ -17,8 +17,6 @@
 
 ## Pinned
 
-:loudspeaker: [New Announcement](https://github.com/gtsteffaniak/filebrowser/discussions/2048)
-
 :pushpin: [Read The Official Docs](https://filebrowserquantum.com/) (currently english-only)
 
 ## About
