@@ -240,6 +240,11 @@
       <span v-if="playbackMode === 'single' || playbackMode === 'loop-single'" :class="[
           'status-indicator', playbackMode === 'loop-single' ? 'status-on' : 'status-off',]"></span>
     </div>
+    <!-- Speed toast (long-press) -->
+    <div v-if="speedToastVisible" class="playback-toast visible">
+      <i class="material-symbols">speed</i>
+      <span>{{ speedToastMessage }}</span>
+    </div>
   </div>
 </template>
 
@@ -334,6 +339,7 @@ export default {
       buttonTimer: null,
       buttonZoneLeft: false,
       buttonZoneRight: false,
+      isFullscreen: false,
 
       // Gestures
       skipFeedbackVisible: false,
@@ -365,6 +371,14 @@ export default {
       videoSwipeSuppressedTouchId: null,
       videoDismissCloseTimer: null,
       videoDismissHintTimer: null,
+
+      // Long-press for 2x speed (only for touch)
+      longPressTimer: null,
+      longPressPending: false,
+      longPressTriggered: false,
+      longPressPreviousSpeed: 1,
+      speedToastVisible: false,
+      speedToastMessage: '',
 
       // Plyr instance
       player: null,
@@ -485,7 +499,10 @@ export default {
       return false;
     },
     showQueueButton() {
-      if (this.previewType === 'video') return true;
+      if (this.previewType === 'video') {
+        if (this.isFullscreen) return false;
+        return true;
+      }
       if (this.isMobile && this.previewType === 'audio') return true;
       return false;
     },
@@ -539,8 +556,7 @@ export default {
       return (
         (this.previewType === 'video' || this.previewType === 'audio') &&
         !this.useDefaultMediaPlayer &&
-        !!this.player &&
-        !this.player.fullscreen?.active
+        !!this.player
       );
     },
     videoNavigationGestureAllowed() {
@@ -618,6 +634,11 @@ export default {
         clickToPlay: false, // we manage this ourselves with the gestures, plyr has a issue where this doesn't work in mobile.
         resetOnEnd: false,
         preload: 'metadata',
+        fullscreen: {
+          enabled: true,
+          fallback: true,
+          container: '.plyr-viewer',
+        },
         iconUrl: `${globalVars.baseURL}public/static/img/plyr.svg`,
         // Blob/async tracks need addtrack → captions.update; otherwise meta never fills and toggle CC throws (track undefined).
         // Do not call toggleCaptions() here — Plyr already applies `plyr` localStorage for captions on/off.
@@ -1160,6 +1181,9 @@ export default {
       };
 
       const applySeek = (rewind) => {
+        this.clearLongPressTimer();
+        this.longPressPending = false;
+
         const step = this.player.config.seekTime || 10;
         const cur = this.player.currentTime;
         const dur = this.player.duration;
@@ -1176,7 +1200,13 @@ export default {
           this.player.play();
         }
       };
+      // Touch
       const onTouchEnd = (event) => {
+        if (this.longPressTriggered) {
+          // a tiny guard, should not happen, but just in case
+          return;
+        }
+
         if (event.changedTouches.length !== 1) return;
         const t = event.changedTouches[0];
         const topEl = typeof document.elementFromPoint === 'function'
@@ -1189,6 +1219,7 @@ export default {
         }
         const clientX = t.clientX;
         const zone = zoneFromClientX(clientX);
+        // center
         if (zone === 'center') {
           togglePlayPause();
           lastTapTime = 0;
@@ -1196,6 +1227,7 @@ export default {
           event.preventDefault();
           return;
         }
+        // Left/right: double-tap detection
         const now = Date.now();
         if (zone === lastZone && now - lastTapTime < DOUBLE_MS) {
           applySeek(zone === 'left');
@@ -1208,6 +1240,7 @@ export default {
         }
       };
 
+      // Mouse
       const onClick = (event) => {
         if (this.isPlyrControlOrMenuTarget(event.target)) {
           return;
@@ -1583,6 +1616,34 @@ export default {
       }
       this.videoSwipeSuppressedTouchId = null;
       this.clearVideoDismissAnimTimers();
+
+      // long-press timer
+      this.clearLongPressTimer();
+      this.longPressPending = true;
+      this.longPressTriggered = false;
+      this.longPressPreviousSpeed = this.player?.speed || 1;
+
+      // only start timer if not already at 2x
+      if (this.player && this.player.speed !== 2) {
+        this.longPressTimer = setTimeout(() => {
+          this.longPressTimer = null;
+          if (this.player && this.longPressPending) {
+            this.longPressPreviousSpeed = this.player.speed || 1;
+            this.player.speed = 2;
+            this.longPressTriggered = true;
+            this.longPressPending = false;
+            // Show toast
+            this.speedToastVisible = true;
+            this.speedToastMessage = '2x';
+          }
+        }, 500);
+      } else {
+        // If already at 2x don't change speed again
+        if (this.player?.speed === 2) {
+          this.longPressPending = false;
+        }
+      }
+
       const touch = event.targetTouches[0];
       this.videoEdgeStartX = touch.pageX;
       this.videoEdgeStartY = touch.pageY;
@@ -1594,6 +1655,22 @@ export default {
       this.videoDragOffsetY = 0;
     },
     onVideoSwipeTouchMove(event) {
+      if (this.longPressTriggered) {
+        event.preventDefault();
+        return;
+      }
+
+      // If there's significant movement cancel any pending long press so if when using swipe gestures they don't change speed
+      if (this.longPressPending) {
+        const touch = event.targetTouches[0];
+        const dx = Math.abs(touch.pageX - this.videoEdgeStartX);
+        const dy = Math.abs(touch.pageY - this.videoEdgeStartY);
+        if (dx > 10 || dy > 10) {
+          this.clearLongPressTimer();
+          this.longPressPending = false;
+        }
+      }
+
       if (!this.videoSwipeGesturesActive || event.targetTouches.length !== 1) {
         if (this.videoEdgeKind || this.videoEdgeDx || this.videoEdgeDy) {
           this.resetVideoEdgeGestureImmediate();
@@ -1629,6 +1706,25 @@ export default {
         this.videoSwipeSuppressedTouchId = null;
         return;
       }
+      if (this.longPressPending) {
+        this.clearLongPressTimer();
+        this.longPressPending = false;
+      }
+
+      // Handle long-press release
+      if (this.longPressTriggered) {
+        this.clearLongPressTimer();
+        this.speedToastVisible = false;
+        if (this.player && this.longPressPreviousSpeed !== 2) {
+          this.player.speed = this.longPressPreviousSpeed;
+        }
+        this.longPressTriggered = false;
+        this.resetVideoEdgeGestureImmediate();
+        event.preventDefault();
+        return;
+      }
+
+      // Normal swipe gesture
       this.videoEdgeDx = t.pageX - this.videoEdgeStartX;
       this.videoEdgeDy = t.pageY - this.videoEdgeStartY;
       const ax = Math.abs(this.videoEdgeDx);
@@ -1640,6 +1736,26 @@ export default {
       }
     },
     onVideoSwipeTouchCancel(event) {
+      // If long-press was triggered, handle release
+      if (this.longPressTriggered) {
+        this.clearLongPressTimer();
+        this.speedToastVisible = false;
+        if (this.player && this.longPressPreviousSpeed !== 2) {
+          this.player.speed = this.longPressPreviousSpeed;
+        }
+        this.longPressTriggered = false;
+        this.longPressPending = false;
+        this.resetVideoEdgeGestureImmediate();
+        if (event) event.preventDefault();
+        return;
+      }
+
+      // If long-press was pending clear it
+      if (this.longPressPending) {
+        this.clearLongPressTimer();
+        this.longPressPending = false;
+      }
+
       if (event?.changedTouches?.length) {
         const t = event.changedTouches[0];
         if (
@@ -1686,6 +1802,24 @@ export default {
       }
       this.clearVideoDismissAnimTimers();
       this.resetVideoEdgeGestureImmediate();
+      this.clearLongPressTimer();
+      this.clearLongPressTimer();
+      this.longPressPending = false;
+      this.speedToastVisible = false;
+      if (this.longPressTriggered && this.player && this.longPressPreviousSpeed !== 2) {
+        this.player.speed = this.longPressPreviousSpeed;
+      }
+      this.longPressTriggered = false;
+    },
+    clearLongPressTimer() {
+      if (this.longPressTimer) {
+        clearTimeout(this.longPressTimer);
+        this.longPressTimer = null;
+      }
+      if (this.longPressTimer) {
+        clearTimeout(this.longPressTimer);
+        this.longPressTimer = null;
+      }
     },
     setupDefaultPlayerEvents(element) {
       if (!element) return;
@@ -1704,6 +1838,7 @@ export default {
       });
     },
     async onFullscreenEnter() {
+      this.isFullscreen = true;
       this.resetVideoEdgeGestureImmediate();
       // Allow free rotation when video enters full screen mode. This works even if the device's orientation is currently locked.
       try {
@@ -1716,6 +1851,7 @@ export default {
       }
     },
     onFullscreenExit() {
+      this.isFullscreen = false;
       screen.orientation.unlock();
     },
     handleMediaEnd() {
@@ -1737,7 +1873,6 @@ export default {
       navigatePlaybackQueue(1);
     },
     restartCurrentFile() {
-      console.log('Restarting current file');
       if (this.useDefaultMediaPlayer) {
         // HTML5 player
         this.mediaElement.currentTime = 0;
