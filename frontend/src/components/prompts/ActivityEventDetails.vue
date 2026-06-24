@@ -95,13 +95,6 @@ export default {
           value: this.row.ipAddress,
         });
       }
-      if (this.row.status) {
-        rows.push({
-          key: "status",
-          label: this.$t("general.status"),
-          value: String(this.row.status),
-        });
-      }
       return rows;
     },
     detailRows() {

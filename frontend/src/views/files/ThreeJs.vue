@@ -121,15 +121,19 @@ export default {
     isMobile() { return getters.isMobile(); },
     hasAnimations() { return this.animations && this.animations.length > 0; },
     modelUrl() {
-      const useInline = this.fileExtension !== 'glb';
       if (getters.isShare()) {
-        return resourcesApi.getDownloadURLPublic({
-          path: state.shareInfo.subPath,
-          hash: state.shareInfo.hash,
-          token: state.shareInfo.token,
-        }, [this.fbdata.path], useInline);
+        return resourcesApi.getViewURL(
+          this.fbdata.source,
+          this.fbdata.path,
+          this.fbdata.streamToken,
+          {
+            path: state.shareInfo.subPath,
+            hash: state.shareInfo.hash,
+            token: state.shareInfo.token,
+          },
+        );
       }
-      return resourcesApi.getDownloadURL(this.fbdata.source, this.fbdata.path, useInline);
+      return resourcesApi.getViewURL(this.fbdata.source, this.fbdata.path, this.fbdata.streamToken);
     },
     fileExtension() {
       return this.fbdata.name ? this.fbdata.name.split('.').pop().toLowerCase() : '';
@@ -346,11 +350,25 @@ export default {
       }
     },
 
+    streamTokenForPath(filePath) {
+      if (this.fbdata.streamToken && filePath === this.fbdata.path) {
+        return this.fbdata.streamToken;
+      }
+      if (this.fbdata.parentDirItems) {
+        for (const item of this.fbdata.parentDirItems) {
+          if (item.path === filePath) {
+            return item.streamToken || null;
+          }
+        }
+      }
+      return null;
+    },
+
     resolveTextureUrl(url) {
       if (url.startsWith('blob:') || url.startsWith('data:')) {
         return url;
       }
-      if (url.includes('/api/resources/download?')) {
+      if (url.includes('/api/resources/download?') || url.includes('/api/resources/stream?')) {
         return url;
       }
       const filename = url.split('/api/resources/')[1];
@@ -362,17 +380,27 @@ export default {
           }
         }
       }
+      const token = this.streamTokenForPath(texturePath);
       if (getters.isShare()) {
-        return resourcesApi.getDownloadURLPublic({
+        return resourcesApi.getViewURL(
+          this.fbdata.source,
+          texturePath,
+          token,
+          {
             path: state.shareInfo.subPath,
             hash: state.shareInfo.hash,
             token: state.shareInfo.token,
-          }, [texturePath], true);
+          },
+        );
       }
-      return resourcesApi.getDownloadURL(this.fbdata.source, texturePath, true);
+      return resourcesApi.getViewURL(this.fbdata.source, texturePath, token);
     },
 
     async loadModel() {
+      if (!this.modelUrl) {
+        this.loading = false;
+        return;
+      }
       this.loading = true;
       this.error = null;
       
@@ -450,13 +478,22 @@ export default {
       // Remove trailing slash if present before replacing extension
       const cleanPath = this.fbdata.path.replace(/\/$/, '');
       const mtlPath = cleanPath.replace(/\.obj$/i, '.mtl');
-      const mtlUrl = getters.isShare() ? 
-          resourcesApi.getDownloadURLPublic({
-            path: state.shareInfo.subPath,
-            hash: state.shareInfo.hash,
-            token: state.shareInfo.token,
-          }, [mtlPath], true) :
-          resourcesApi.getDownloadURL(state.req.source, mtlPath, true);
+      const mtlUrl = getters.isShare()
+        ? resourcesApi.getViewURL(
+            state.req.source,
+            mtlPath,
+            this.streamTokenForPath(mtlPath),
+            {
+              path: state.shareInfo.subPath,
+              hash: state.shareInfo.hash,
+              token: state.shareInfo.token,
+            },
+          )
+        : resourcesApi.getViewURL(state.req.source, mtlPath, this.streamTokenForPath(mtlPath));
+      if (!mtlUrl) {
+        this.doLoad(loader);
+        return;
+      }
 
       const mtlLoader = new MTLLoader(manager);
       mtlLoader.load(mtlUrl, (materials) => {

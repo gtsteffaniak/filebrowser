@@ -15,6 +15,8 @@ vi.mock("@/store", () => ({
 vi.mock("@/api/resources", () => ({
   getDownloadURL: (_source, path) =>
     `http://localhost/api/resources/download?file=${encodeURIComponent(path)}&inline=true`,
+  getViewURL: (_source, path) =>
+    `http://localhost/api/resources/stream?file=${encodeURIComponent(path)}&streamToken=test-token`,
   getDownloadURLPublic: () => "http://localhost/public/download",
 }));
 

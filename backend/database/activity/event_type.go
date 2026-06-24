@@ -156,12 +156,6 @@ func (e EventType) Valid() bool {
 	}
 }
 
-// IsIgnoredLegacyEventType reports obsolete event_type values that should be
-// excluded from queries and API responses (legacy rows may still exist in DB).
-func IsIgnoredLegacyEventType(e EventType) bool {
-	return e == "apiError"
-}
-
 // String returns the wire/database representation.
 func (e EventType) String() string {
 	return string(e)

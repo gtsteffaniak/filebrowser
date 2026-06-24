@@ -50,11 +50,7 @@ func finalizeActivityEntry(r *http.Request, d *requestContext, entry activitydb.
 	if entry.IPAddress == "" && r != nil {
 		entry.IPAddress = getRemoteIP(r)
 	}
-	if entry.Status == 0 {
-		entry.Status = http.StatusOK
-	}
 	applyActivityAuthContext(d, &entry)
-	entry.Success = entry.Status >= 200 && entry.Status < 400
 	state.RecordActivity(entry)
 }
 
@@ -100,10 +96,7 @@ func recordWebDAVUserActivity(r *http.Request, user *users.User, entry activityd
 	finalizeActivityEntry(r, d, entry, activityActorUser)
 }
 
-func recordDownloadActivity(r *http.Request, d *requestContext, source string, fileList []string, status int) {
-	if status == 0 {
-		status = http.StatusOK
-	}
+func recordDownloadActivity(r *http.Request, d *requestContext, source string, fileList []string) {
 	details := activitydb.Details{
 		Source:    source,
 		FileCount: len(fileList),
@@ -116,7 +109,6 @@ func recordDownloadActivity(r *http.Request, d *requestContext, source string, f
 	entry := activitydb.Entry{
 		EventType: activitydb.EventDownload,
 		Source:    source,
-		Status:    status,
 		Details:   details,
 	}
 	if len(fileList) == 1 {
@@ -129,28 +121,21 @@ func recordDownloadActivity(r *http.Request, d *requestContext, source string, f
 	recordActorActivity(r, d, entry)
 }
 
-func recordPatchItemActivity(r *http.Request, d *requestContext, action string, item MoveCopyItem, status int) {
+func recordPatchItemActivity(r *http.Request, d *requestContext, action string, item MoveCopyItem) {
 	eventType, ok := activitydb.EventTypeFromAction(action)
 	if !ok {
 		return
-	}
-	if status == 0 {
-		status = http.StatusOK
 	}
 	details := activitydb.Details{
 		Source:     item.FromSource,
 		Path:       item.FromPath,
 		TargetPath: item.ToPath,
 	}
-	if status >= 400 && item.Message != "" {
-		details.Error = item.Message
-	}
 	entry := activitydb.Entry{
 		EventType:  eventType,
 		Source:     item.FromSource,
 		Path:       item.FromPath,
 		TargetPath: item.ToPath,
-		Status:     status,
 		Details:    details,
 	}
 	if d.share.Hash != "" {
@@ -187,7 +172,6 @@ func recordBulkDeleteActivity(r *http.Request, d *requestContext, succeeded []Bu
 	details.CapPaths()
 	entry := activitydb.Entry{
 		EventType: activitydb.EventBulkDelete,
-		Status:    http.StatusOK,
 		Details:   details,
 	}
 	if len(succeeded) == 1 {
@@ -199,10 +183,7 @@ func recordBulkDeleteActivity(r *http.Request, d *requestContext, succeeded []Bu
 	recordUserActivity(r, d, entry)
 }
 
-func recordUploadActivity(r *http.Request, d *requestContext, source, path string, isDir bool, status int) {
-	if status == 0 {
-		status = http.StatusOK
-	}
+func recordUploadActivity(r *http.Request, d *requestContext, source, path string, isDir bool) {
 	pathLabel := path
 	if isDir {
 		pathLabel = path + "/"
@@ -211,35 +192,12 @@ func recordUploadActivity(r *http.Request, d *requestContext, source, path strin
 		Source: source,
 		Path:   pathLabel,
 	}
-	if status >= 400 {
-		details.Error = http.StatusText(status)
-	}
 	recordUserActivity(r, d, activitydb.Entry{
 		EventType: activitydb.EventUpload,
 		Source:    source,
 		Path:      pathLabel,
-		Status:    status,
 		Details:   details,
 	})
-}
-
-func patchFailureHTTPStatus(message string) int {
-	switch {
-	case strings.Contains(message, "access denied"),
-		strings.Contains(message, "not allowed"),
-		strings.Contains(message, "read-only"):
-		return http.StatusForbidden
-	case strings.Contains(message, "does not exist"),
-		strings.Contains(message, "not found"),
-		strings.Contains(message, "not available"):
-		return http.StatusNotFound
-	case strings.Contains(message, "unsupported action"),
-		strings.Contains(message, "invalid"),
-		strings.Contains(message, "required"):
-		return http.StatusBadRequest
-	default:
-		return http.StatusBadRequest
-	}
 }
 
 func recordShareMutation(r *http.Request, d *requestContext, eventType activitydb.EventType, hash, sourceName, path string, changes []activitydb.FieldChange) {
@@ -385,20 +343,15 @@ func recordTokenMutation(r *http.Request, d *requestContext, eventType activityd
 	})
 }
 
-func recordAuthActivity(r *http.Request, user *users.User, eventType activitydb.EventType, status int, details activitydb.Details) {
+func recordAuthActivity(r *http.Request, user *users.User, eventType activitydb.EventType, details activitydb.Details) {
 	if user == nil || user.ID == 0 {
 		return
-	}
-	if status == 0 {
-		status = http.StatusOK
 	}
 	entry := activitydb.Entry{
 		UserID:    user.ID,
 		EventType: eventType,
-		Status:    status,
 		Details:   details,
 		CreatedAt: time.Now().Unix(),
-		Success:   status >= 200 && status < 400,
 	}
 	if r != nil {
 		entry.IPAddress = getRemoteIP(r)
@@ -411,7 +364,7 @@ func recordLoginActivity(r *http.Request, user *users.User) {
 	if user == nil {
 		return
 	}
-	recordAuthActivity(r, user, activitydb.EventLogin, http.StatusOK, activitydb.Details{
+	recordAuthActivity(r, user, activitydb.EventLogin, activitydb.Details{
 		LoginMethod: string(user.LoginMethod),
 	})
 }

@@ -180,8 +180,6 @@ function buildActivityParams({
   splitBy,
   groupBy,
   rows,
-  statusMin,
-  statusMax,
 }) {
   const params = {};
   if (from !== undefined && from !== null) params.from = String(from);
@@ -199,8 +197,6 @@ function buildActivityParams({
   if (splitBy) params.splitBy = splitBy;
   if (groupBy) params.groupBy = groupBy;
   if (rows) params.rows = rows;
-  if (statusMin !== undefined && statusMin !== null) params.statusMin = String(statusMin);
-  if (statusMax !== undefined && statusMax !== null) params.statusMax = String(statusMax);
   return params;
 }
 

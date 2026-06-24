@@ -1,9 +1,4 @@
 /**
- * Legacy event types removed from the product; ignored in filters and display.
- */
-export const IGNORED_LEGACY_EVENT_TYPES = new Set(["apiError"]);
-
-/**
  * Normalize an activity viewer `eventType` query value to a list of types.
  * Accepts comma-separated strings, vue-router arrays, or repeated query values.
  * @param {string | string[] | null | undefined} raw
@@ -23,7 +18,7 @@ export function normalizeEventTypeQueryValue(raw) {
   return str
     .split(",")
     .map((part) => part.trim())
-    .filter((part) => part !== "" && !IGNORED_LEGACY_EVENT_TYPES.has(part));
+    .filter((part) => part !== "");
 }
 
 /**
@@ -79,53 +74,4 @@ export function formatActivityViewerQueryString(query) {
     .filter(([, value]) => value !== undefined && value !== null && value !== "")
     .map(([key, value]) => `${encodeURIComponent(key)}=${encodeActivityViewerQueryValue(key, value)}`)
     .join("&");
-}
-
-/** @typedef {'all' | 'success' | 'errors'} ActivityStatusOutcome */
-
-export const ACTIVITY_STATUS_RANGES = {
-  success: { min: 200, max: 399 },
-  errors: { min: 400, max: 599 },
-};
-
-/**
- * Map statusMin/statusMax query params to a UI outcome preset.
- * @param {string | string[] | null | undefined} statusMin
- * @param {string | string[] | null | undefined} statusMax
- * @returns {ActivityStatusOutcome}
- */
-export function parseStatusOutcomeFromQuery(statusMin, statusMax) {
-  const min = statusMin !== undefined && statusMin !== null && String(statusMin).trim() !== ""
-    ? parseInt(String(statusMin), 10)
-    : null;
-  const max = statusMax !== undefined && statusMax !== null && String(statusMax).trim() !== ""
-    ? parseInt(String(statusMax), 10)
-    : null;
-  if (min === ACTIVITY_STATUS_RANGES.success.min && max === ACTIVITY_STATUS_RANGES.success.max) {
-    return "success";
-  }
-  if (min === ACTIVITY_STATUS_RANGES.errors.min && max === ACTIVITY_STATUS_RANGES.errors.max) {
-    return "errors";
-  }
-  return "all";
-}
-
-/**
- * @param {ActivityStatusOutcome} outcome
- * @returns {{ statusMin?: number, statusMax?: number }}
- */
-export function activityStatusParamsForOutcome(outcome) {
-  if (outcome === "success") {
-    return {
-      statusMin: ACTIVITY_STATUS_RANGES.success.min,
-      statusMax: ACTIVITY_STATUS_RANGES.success.max,
-    };
-  }
-  if (outcome === "errors") {
-    return {
-      statusMin: ACTIVITY_STATUS_RANGES.errors.min,
-      statusMax: ACTIVITY_STATUS_RANGES.errors.max,
-    };
-  }
-  return {};
 }

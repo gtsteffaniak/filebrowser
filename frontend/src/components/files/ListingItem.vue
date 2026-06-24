@@ -44,6 +44,7 @@
         :source="source"
         :size="size"
         :isShared="isShared"
+        :streamToken="streamToken"
       />
     </div>
 
@@ -117,6 +118,7 @@
         :source="source"
         :size="size"
         :isShared="isShared"
+        :streamToken="streamToken"
       />
     </div>
 
@@ -222,6 +224,10 @@ export default {
     pinned: {
       type: Boolean,
       default: false,
+    },
+    streamToken: {
+      type: String,
+      default: "",
     },
   },
   computed: {

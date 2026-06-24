@@ -272,7 +272,7 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	}
 
 	if d.user != nil {
-		recordAuthActivity(r, d.user, activitydb.EventLogout, http.StatusOK, activitydb.Details{
+		recordAuthActivity(r, d.user, activitydb.EventLogout, activitydb.Details{
 			LoginMethod: string(d.user.LoginMethod),
 		})
 	}
@@ -319,7 +319,7 @@ func signupHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		// Return the actual error message instead of a generic one
 		return http.StatusBadRequest, err
 	}
-	recordAuthActivity(r, &user, activitydb.EventSignup, http.StatusCreated, activitydb.Details{
+	recordAuthActivity(r, &user, activitydb.EventSignup, activitydb.Details{
 		LoginMethod: string(users.LoginMethodPassword),
 	})
 	return 201, nil

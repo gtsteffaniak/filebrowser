@@ -861,17 +861,24 @@ export default {
     },
     goToRaw() {
       if (getters.isShare()) {
-        window.open(resourcesApi.getDownloadURLPublic(state.shareInfo, [state.req.path], true), "_blank");
+        window.open(
+          resourcesApi.getViewURL(
+            state.req?.source || "",
+            state.req?.path || "",
+            state.req?.streamToken,
+            state.shareInfo,
+          ),
+          "_blank",
+        );
         mutations.closeHovers();
         return;
       }
-      const downloadUrl = resourcesApi.getDownloadURL(
+      const viewUrl = resourcesApi.getViewURL(
         state.req?.source || "",
         state.req?.path || "",
-        true,
-        false
+        state.req?.streamToken,
       );
-      window.open(downloadUrl, "_blank");
+      window.open(viewUrl, "_blank");
       mutations.closeHovers();
     },
     watchFile() {

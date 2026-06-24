@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 )
@@ -23,7 +24,7 @@ func (s *SQLStore) BulkInsertActivity(entries []activity.Entry) error {
 	stmt, err := tx.Prepare(`INSERT INTO activity_log (
 		created_at, user_id, event_type, source, path, target_path,
 		ip_address, status, success, details
-	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+	) VALUES (?, ?, ?, ?, ?, ?, ?, 200, 1, ?)`)
 	if err != nil {
 		_ = tx.Rollback()
 		return fmt.Errorf("prepare activity insert: %w", err)
@@ -36,10 +37,6 @@ func (s *SQLStore) BulkInsertActivity(entries []activity.Entry) error {
 			_ = tx.Rollback()
 			return fmt.Errorf("marshal activity details: %w", err)
 		}
-		success := 0
-		if e.Success {
-			success = 1
-		}
 		_, err = stmt.Exec(
 			e.CreatedAt,
 			shareUserIDDB(e.UserID),
@@ -48,8 +45,6 @@ func (s *SQLStore) BulkInsertActivity(entries []activity.Entry) error {
 			nullString(e.Path),
 			nullString(e.TargetPath),
 			nullString(e.IPAddress),
-			e.Status,
-			success,
 			detailsJSON,
 		)
 		if err != nil {
@@ -101,7 +96,7 @@ func (s *SQLStore) ListActivity(filter activity.QueryFilter) ([]activity.ListRow
 	offset := (page - 1) * limit
 
 	query := `SELECT a.id, a.created_at, a.user_id, a.event_type, a.source, a.path, a.target_path,
-		a.ip_address, a.status, a.success, a.details,
+		a.ip_address, a.details,
 		COALESCE(u.username, '') AS actor_username
 		FROM activity_log a
 		LEFT JOIN users u ON a.user_id = u.user_id` + where +
@@ -122,7 +117,7 @@ func (s *SQLStore) ListActivity(filter activity.QueryFilter) ([]activity.ListRow
 		}
 		items = append(items, *row)
 	}
-	return items, rows.Err()
+	return utils.NonNilSlice(items), rows.Err()
 }
 
 func scanActivityListRow(scanner interface {
@@ -132,7 +127,6 @@ func scanActivityListRow(scanner interface {
 	var userIDStr string
 	var source, path, targetPath, ipAddress sql.NullString
 	var detailsJSON string
-	var successInt int
 	var actorUsername string
 
 	err := scanner.Scan(
@@ -144,8 +138,6 @@ func scanActivityListRow(scanner interface {
 		&path,
 		&targetPath,
 		&ipAddress,
-		&e.Status,
-		&successInt,
 		&detailsJSON,
 		&actorUsername,
 	)
@@ -168,7 +160,6 @@ func scanActivityListRow(scanner interface {
 	if ipAddress.Valid {
 		e.IPAddress = ipAddress.String
 	}
-	e.Success = successInt == 1
 	if err := activity.UnmarshalDetailsJSON(detailsJSON, &e.Details); err != nil {
 		return nil, fmt.Errorf("unmarshal activity details: %w", err)
 	}
@@ -184,16 +175,12 @@ func (s *SQLStore) ListActivityStats(filter activity.QueryFilter) ([]activity.St
 	table := "activity_log"
 	where, args := buildActivityWhereTable(filter, table)
 	bucketExpr := activityBucketExpr(interval)
-	outcomeSeriesExpr := "CASE WHEN " + table + ".success = 1 THEN 'success' ELSE 'error' END"
 
 	var query string
 	switch {
 	case hasTimeBucket && splitBy == "eventType":
 		query = fmt.Sprintf(`SELECT %s AS bucket, event_type AS series_key, '' AS series_label, COUNT(*) AS cnt
 			FROM %s%s GROUP BY bucket, event_type ORDER BY bucket ASC, cnt DESC`, bucketExpr, table, where)
-	case hasTimeBucket && splitBy == "outcome":
-		query = fmt.Sprintf(`SELECT %s AS bucket, %s AS series_key, '' AS series_label, COUNT(*) AS cnt
-			FROM %s%s GROUP BY bucket, series_key ORDER BY bucket ASC, cnt DESC`, bucketExpr, outcomeSeriesExpr, table, where)
 	case hasTimeBucket && splitBy == "user":
 		query = fmt.Sprintf(`SELECT %s AS bucket, a.user_id AS series_key, COALESCE(u.username, CASE WHEN a.user_id = '0' THEN '%s' ELSE a.user_id END) AS series_label, COUNT(*) AS cnt
 			FROM activity_log a LEFT JOIN users u ON a.user_id = u.user_id%s
@@ -204,9 +191,6 @@ func (s *SQLStore) ListActivityStats(filter activity.QueryFilter) ([]activity.St
 	case !hasTimeBucket && splitBy == "eventType":
 		query = fmt.Sprintf(`SELECT 0 AS bucket, event_type AS series_key, '' AS series_label, COUNT(*) AS cnt
 			FROM %s%s GROUP BY event_type ORDER BY cnt DESC`, table, where)
-	case !hasTimeBucket && splitBy == "outcome":
-		query = fmt.Sprintf(`SELECT 0 AS bucket, %s AS series_key, '' AS series_label, COUNT(*) AS cnt
-			FROM %s%s GROUP BY series_key ORDER BY cnt DESC`, outcomeSeriesExpr, table, where)
 	case !hasTimeBucket && splitBy == "user":
 		query = fmt.Sprintf(`SELECT 0 AS bucket, a.user_id AS series_key, COALESCE(u.username, CASE WHEN a.user_id = '0' THEN '%s' ELSE a.user_id END) AS series_label, COUNT(*) AS cnt
 			FROM activity_log a LEFT JOIN users u ON a.user_id = u.user_id%s
@@ -233,7 +217,7 @@ func (s *SQLStore) ListActivityStats(filter activity.QueryFilter) ([]activity.St
 		}
 		buckets = append(buckets, b)
 	}
-	return buckets, rows.Err()
+	return utils.NonNilSlice(buckets), rows.Err()
 }
 
 func normalizeActivityInterval(filter activity.QueryFilter) string {
@@ -329,17 +313,8 @@ func buildActivityWhereTable(filter activity.QueryFilter, table string) (string,
 		clauses = append(clauses, col("event_type")+" IN ("+strings.Join(placeholders, ",")+")")
 	}
 	if filter.Source != "" {
-		requestPathSourceLike := escapeLikeContains("source=" + filter.Source)
-		clauses = append(clauses, "("+col("source")+" = ? OR ("+
-			col("event_type")+" IN (?,?,?) AND "+
-			"COALESCE(json_extract("+table+".details, '$.requestPath'), '') LIKE ? ESCAPE '\\'))")
-		args = append(args,
-			filter.Source,
-			string(activity.EventAccessCreate),
-			string(activity.EventAccessUpdate),
-			string(activity.EventAccessDelete),
-			requestPathSourceLike,
-		)
+		clauses = append(clauses, col("source")+" = ?")
+		args = append(args, filter.Source)
 	}
 	if filter.PathPrefix != "" {
 		like := escapeLikePrefix(filter.PathPrefix)
@@ -354,17 +329,6 @@ func buildActivityWhereTable(filter activity.QueryFilter, table string) (string,
 		clauses = append(clauses, "json_extract("+table+".details, '$.shareHash') = ?")
 		args = append(args, filter.ShareHash)
 	}
-	if filter.StatusMin > 0 {
-		clauses = append(clauses, col("status")+" >= ?")
-		args = append(args, filter.StatusMin)
-	}
-	if filter.StatusMax > 0 {
-		clauses = append(clauses, col("status")+" <= ?")
-		args = append(args, filter.StatusMax)
-	}
-
-	clauses = append(clauses, col("event_type")+" != ?")
-	args = append(args, "apiError")
 
 	where := ""
 	if len(clauses) > 0 {
@@ -453,21 +417,6 @@ func escapeLikePrefix(prefix string) string {
 	var b strings.Builder
 	b.Grow(len(prefix) + 8)
 	for _, r := range prefix {
-		switch r {
-		case '\\', '%', '_':
-			b.WriteRune('\\')
-		}
-		b.WriteRune(r)
-	}
-	b.WriteByte('%')
-	return b.String()
-}
-
-func escapeLikeContains(substr string) string {
-	var b strings.Builder
-	b.Grow(len(substr) + 4)
-	b.WriteByte('%')
-	for _, r := range substr {
 		switch r {
 		case '\\', '%', '_':
 			b.WriteRune('\\')

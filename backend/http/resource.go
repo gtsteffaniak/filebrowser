@@ -132,6 +132,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to get content, requires download permission")
 	}
 	if fileInfo.Type == "directory" {
+		attachStreamTokensForDirectory(d, source, path, fileInfo)
 		return renderJSON(w, r, fileInfo)
 	}
 	if algo := r.URL.Query().Get("checksum"); algo != "" {
@@ -144,8 +145,8 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		fileInfo.Checksums = make(map[string]string)
 		fileInfo.Checksums[algo] = checksum
 	}
+	attachStreamToken(d, source, path, fileInfo)
 	return renderJSON(w, r, fileInfo)
-
 }
 
 // resourceDeleteHandler deletes a resource at a specified path.
@@ -635,7 +636,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			return errToStatus(err), err
 		}
 
-		recordUploadActivity(r, d, source, path, true, 0)
+		recordUploadActivity(r, d, source, path, true)
 		return http.StatusOK, nil
 	}
 
@@ -746,7 +747,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 				return http.StatusInternalServerError, fmt.Errorf("could not move file from chunked folder to destination: %v", err)
 			}
 			reconcileSharesAfterMove(false, source, source, tempFilePath, realPath)
-			recordUploadActivity(r, d, source, path, false, 0)
+			recordUploadActivity(r, d, source, path, false)
 		}
 		return http.StatusOK, nil
 	}
@@ -766,7 +767,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		logger.Debugf("error writing file: %v", err)
 		return errToStatus(err), err
 	}
-	recordUploadActivity(r, d, source, path, false, 0)
+	recordUploadActivity(r, d, source, path, false)
 	return http.StatusOK, nil
 }
 
@@ -1082,18 +1083,13 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 
 		// Success
 		response.Succeeded = append(response.Succeeded, item)
-		recordPatchItemActivity(r, d, req.Action, item, http.StatusOK)
+		recordPatchItemActivity(r, d, req.Action, item)
 	}
 
 	if len(response.Failed) == 0 && len(response.Succeeded) == 0 {
 		response.Failed = append(response.Failed, MoveCopyItem{
 			Message: "no operations performed",
 		})
-	}
-
-	// Record failed operations before share response sanitization strips paths.
-	for _, item := range response.Failed {
-		recordPatchItemActivity(r, d, req.Action, item, patchFailureHTTPStatus(item.Message))
 	}
 
 	// For shares, sanitize the response to only include messages (hide paths)

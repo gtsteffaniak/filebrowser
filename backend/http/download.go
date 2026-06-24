@@ -6,14 +6,12 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
-	"github.com/gtsteffaniak/go-logger/logger"
 	"golang.org/x/time/rate"
 )
 
@@ -94,9 +92,9 @@ func toASCIIFilename(fileName string) string {
 	return result.String()
 }
 
-func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName string) {
+func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName string, forceInline bool) {
 	dispositionType := "attachment"
-	if r.URL.Query().Get("inline") == "true" {
+	if forceInline || r.URL.Query().Get("inline") == "true" {
 		dispositionType = "inline"
 		// Inline SVG (and similar) can execute embedded scripts when opened as a top-level document; match upstream filebrowser mitigation.
 		w.Header().Set("Content-Security-Policy", "script-src 'none'")
@@ -161,36 +159,15 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	}
 
 	firstFilePath := fileList[0]
-	displayFileList := append([]string(nil), fileList...)
+	displayFileList := resolveDisplayFileList(d, source, fileList)
 	var err error
 	var userscope string
 	fileName := filepath.Base(firstFilePath)
-
-	// Check if this is an OnlyOffice file early for error logging
-	isOnlyOffice := isOnlyOfficeCompatibleFile(fileName) && config.Integrations.OnlyOffice.Url != ""
-	var documentId string
-	var logContext *OnlyOfficeLogContext
 
 	// modify all filepaths for user scope
 	if d.share.Hash == "" {
 		userscope, err = d.user.GetScopeForSourceName(source)
 		if err != nil {
-			// Send OnlyOffice error log if this was an OnlyOffice file
-			if isOnlyOffice {
-				// Try to get document ID for error logging
-				idx := indexing.GetIndex(source)
-				if idx != nil {
-					tempPath := utils.JoinPathAsUnix(userscope, firstFilePath)
-					if realPath, _, realErr := idx.GetRealPath(tempPath); realErr == nil {
-						if docId, _ := getOnlyOfficeId(realPath); docId != "" {
-							if ctx := getOnlyOfficeLogContext(docId); ctx != nil {
-								sendOnlyOfficeLogEvent(ctx, "ERROR", "download",
-									fmt.Sprintf("OnlyOffice download failed - source not available: %s - %v", firstFilePath, err))
-							}
-						}
-					}
-				}
-			}
 			return http.StatusForbidden, err
 		}
 		for i, filePath := range fileList {
@@ -198,116 +175,27 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		}
 	}
 	firstFilePath = fileList[0]
-	// For shares, the path is already correctly resolved by publicRawHandler
 	idx := indexing.GetIndex(source)
 	if idx == nil {
-		// Send OnlyOffice error log if this was an OnlyOffice file
-		if isOnlyOffice {
-			sendOnlyOfficeLogEvent(logContext, "ERROR", "download",
-				fmt.Sprintf("OnlyOffice download failed - source index not available: %s", source))
-		}
 		return http.StatusInternalServerError, fmt.Errorf("source %s is not available", source)
 	}
-	realPath, isDir, err := idx.GetRealPath(firstFilePath)
+	_, isDir, err := idx.GetRealPath(firstFilePath)
 	if err != nil {
-		// Send OnlyOffice error log if this was an OnlyOffice file
-		if isOnlyOffice {
-			if docId, _ := getOnlyOfficeId(realPath); docId != "" {
-				if ctx := getOnlyOfficeLogContext(docId); ctx != nil {
-					sendOnlyOfficeLogEvent(ctx, "ERROR", "download",
-						fmt.Sprintf("OnlyOffice download failed - could not resolve path: %s - %v", firstFilePath, err))
-				}
-			}
-		}
 		return http.StatusInternalServerError, err
 	}
 
-	// ** Single file download with Content-Length **
 	if len(fileList) == 1 && !isDir {
-		// Get document ID and log context for OnlyOffice downloads
-		if isOnlyOffice {
-			documentId, _ = getOnlyOfficeId(realPath)
-			if documentId != "" {
-				logContext = getOnlyOfficeLogContext(documentId)
-			}
+		forceInline := r.URL.Query().Get("inline") == "true"
+		status, err := serveSingleFile(w, r, d, source, firstFilePath, fileName, serveSingleFileOptions{forceInline: forceInline})
+		if err == nil {
+			recordDownloadActivity(r, d, source, displayFileList)
 		}
-
-		// Verify access control before opening the file (direct rule check)
-		if d.share.Hash == "" && accessStore != nil {
-			if !accessStore.Permitted(idx.Path, utils.IndexPathFromNormalized(firstFilePath, true), d.user.Username) {
-				logger.Debugf("user %s denied access to path %s", d.user.Username, firstFilePath)
-				// Send OnlyOffice error log if this was an OnlyOffice download
-				if isOnlyOffice && logContext != nil {
-					sendOnlyOfficeLogEvent(logContext, "ERROR", "download",
-						fmt.Sprintf("OnlyOffice download failed - access denied by rule: %s", firstFilePath))
-				}
-				return http.StatusForbidden, fmt.Errorf("access denied to path %s", firstFilePath)
-			}
-		}
-
-		fd, err2 := os.Open(realPath)
-		if err2 != nil {
-			// Send OnlyOffice error log if this was an OnlyOffice download
-			if isOnlyOffice && logContext != nil {
-				sendOnlyOfficeLogEvent(logContext, "ERROR", "download",
-					fmt.Sprintf("OnlyOffice download failed - could not open file: %s - %v", firstFilePath, err2))
-			}
-			return http.StatusInternalServerError, err2
-		}
-		defer fd.Close()
-
-		// Get file size
-		fileInfo, err2 := fd.Stat()
-		if err2 != nil {
-			// Send OnlyOffice error log if this was an OnlyOffice download
-			if isOnlyOffice && logContext != nil {
-				sendOnlyOfficeLogEvent(logContext, "ERROR", "download",
-					fmt.Sprintf("OnlyOffice download failed - could not get file info: %s - %v", firstFilePath, err2))
-			}
-			return http.StatusInternalServerError, err2
-		}
-
-		// Send success log for OnlyOffice downloads
-		if isOnlyOffice && logContext != nil {
-			logger.Infof("OnlyOffice Server is downloading file: %s (documentId: %s)",
-				firstFilePath, documentId)
-
-			sendOnlyOfficeLogEvent(logContext, "INFO", "download",
-				fmt.Sprintf("OnlyOffice Server downloading file: %s", firstFilePath))
-		}
-
-		// ServeContent sets Content-Length (full resource or range); avoid pre-setting so partial/range responses stay consistent.
-		setContentDisposition(w, r, fileName)
-		w.Header().Set("Cache-Control", "private")
-		w.Header().Set("X-Content-Type-Options", "nosniff")
-		// video scrubbing, etc.
-		// Note: http.ServeContent will respect our already-set Content-Disposition header
-		var reader io.ReadSeeker = fd
-		if d.share.Hash != "" && d.share.MaxBandwidth > 0 {
-			// convert KB/s to B/s
-			limit := rate.Limit(d.share.MaxBandwidth * 1024)
-			// burst size can be the same as limit
-			burst := d.share.MaxBandwidth * 1024
-			reader = newThrottledReadSeeker(fd, limit, burst, r.Context())
-		}
-		srw := &ResponseWriterWrapper{ResponseWriter: w}
-		http.ServeContent(srw, r, fileName, fileInfo.ModTime(), reader)
-		recordStatus := srw.StatusCode
-		if recordStatus == 0 {
-			recordStatus = http.StatusOK
-		}
-		recordDownloadActivity(r, d, source, displayFileList, recordStatus)
-		return recordStatus, nil
+		return status, err
 	}
 
-	// ** Archive (ZIP/TAR.GZ) handling ** — delegate to archive package
 	status, err := BuildAndStreamArchive(w, r, d, source, fileList)
 	if err == nil {
-		recordStatus := status
-		if recordStatus == 0 {
-			recordStatus = http.StatusOK
-		}
-		recordDownloadActivity(r, d, source, displayFileList, recordStatus)
+		recordDownloadActivity(r, d, source, displayFileList)
 	}
 	if status == 0 && err == nil {
 		status = http.StatusOK

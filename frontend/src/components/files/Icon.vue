@@ -14,7 +14,8 @@
         path: path,
         source: source,
         size: size,
-        type: mimetype
+        type: mimetype,
+        streamToken: streamToken,
       }"
       :is-thumbnail="true"
       :add-load-delay="true"
@@ -89,6 +90,10 @@ export default {
     isDir: {
       type: Boolean,
       default: false,
+    },
+    streamToken: {
+      type: String,
+      default: "",
     },
   },
   data() {

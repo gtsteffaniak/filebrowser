@@ -824,6 +824,65 @@ export async function checksum(source, path, algo) {
   }
 }
 
+export function getStreamURL(source, path, streamToken) {
+  if (!source || source === undefined || source === null) {
+    throw new Error('no source provided')
+  }
+  if (!streamToken) {
+    throw new Error('stream token required')
+  }
+  try {
+    const params = {
+      source: source,
+      file: path,
+      streamToken: streamToken,
+      sessionId: state.sessionId,
+    }
+    const apiPath = getApiPath('resources/stream', params)
+    return window.origin + apiPath
+  } catch (err) {
+    notify.showError(err.message || 'Error getting stream URL')
+    throw err
+  }
+}
+
+/**
+ * Stream URL for inline viewing. Requires streamToken; returns null when unavailable
+ * so callers do not fall back to metered /download URLs.
+ * Pass allowDownloadFallback=true only for HTML sibling assets without tokens.
+ */
+export function getViewURL(source, path, streamToken, shareInfo = null, allowDownloadFallback = false) {
+  if (streamToken) {
+    if (shareInfo) {
+      return getStreamURLPublic(shareInfo, [path], streamToken)
+    }
+    return getStreamURL(source, path, streamToken)
+  }
+  if (!allowDownloadFallback) {
+    return null
+  }
+  if (shareInfo) {
+    return getDownloadURLPublic(shareInfo, [path], true)
+  }
+  return getDownloadURL(source, path, true)
+}
+
+export function getStreamURLPublic(share, files, streamToken) {
+  if (!streamToken) {
+    throw new Error('stream token required')
+  }
+  const fileArray = Array.isArray(files) ? files : [files]
+  const params = {
+    file: fileArray,
+    hash: share.hash,
+    token: share.token,
+    streamToken: streamToken,
+    sessionId: state.sessionId,
+  }
+  const apiPath = getPublicApiPath('resources/stream', params)
+  return window.origin + apiPath
+}
+
 export function getDownloadURL(source, path, inline, useExternal) {
   if (!source || source === undefined || source === null) {
     throw new Error('no source provided')
