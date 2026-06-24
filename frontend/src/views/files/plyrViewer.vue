@@ -374,7 +374,8 @@ export default {
   watch: {
     playbackMode(newMode, oldMode) {
       if (newMode !== oldMode) {
-        this.refreshPlaybackQueue(newMode === 'shuffle');
+        if (oldMode !== undefined) this.showToast();
+        this.setupPlaybackQueue(newMode === 'shuffle');
         this.$nextTick(() => {
           this.ensurePlaybackModeApplied();
         });
@@ -409,33 +410,39 @@ export default {
     listing: {
       handler(newListing) {
         if (newListing && newListing.length > 0) {
-          this.refreshPlaybackQueue(true);
+          this.setupPlaybackQueue(true);
         }
       },
       immediate: true
     },
-    subtitlesList(newSubs, oldSubs) {
-      const gained = newSubs && newSubs.length > 0 && (!oldSubs || oldSubs.length === 0);
-      const lost = (!newSubs || newSubs.length === 0) && oldSubs && oldSubs.length > 0;
-      if (gained || lost) {
-        this.captionSizeMenuInitialized = false;
-      }
-      if (gained) {
-        if (!this.useDefaultMediaPlayer && !this.player && this.previewType === 'video') {
+    subtitlesList: {
+      handler(newSubs, oldSubs) {
+        const gained = newSubs && newSubs.length > 0 && (!oldSubs || oldSubs.length === 0);
+        const lost = (!newSubs || newSubs.length === 0) && oldSubs && oldSubs.length > 0;
+        if (gained || lost) {
+          this.captionSizeMenuInitialized = false;
+        }
+        if (gained) {
+          if (!this.useDefaultMediaPlayer && !this.player && this.previewType === 'video') {
+            this.$nextTick(() => {
+              this.initializePlyr();
+            });
+          } else if (!this.useDefaultMediaPlayer && this.player && this.previewType === 'video') {
+            this.$nextTick(() => {
+              this.applyCustomSettings(this.player);
+              this.syncCaptionSizeSettingsVisibility();
+              this.applyCaptionSizeClass();
+            });
+          }
+        } else if (this.player && this.previewType === 'video') {
           this.$nextTick(() => {
-            this.initializePlyr();
-          });
-        } else if (!this.useDefaultMediaPlayer && this.player && this.previewType === 'video') {
-          this.$nextTick(() => {
-            this.applyCustomCaptionSizeSettings(this.player);
             this.syncCaptionSizeSettingsVisibility();
-            this.applyCaptionSizeClass();
+            this.captionSizeMenuInitialized = false;
+            this.applyCustomSettings(this.player);
           });
         }
-      }
-    },
-    hasSubtitles() {
-      this.syncCaptionSizeSettingsVisibility();
+      },
+      deep: true,
     },
   },
   computed: {
@@ -623,7 +630,10 @@ export default {
     },
   },
   mounted() {
-    this.updateMedia();
+    this.hookEvents();
+    if (this.previewType === "audio") {
+      this.loadAudioMetadata();
+    }
     document.addEventListener('keydown', this.handleKeydown);
     this.resetButtonTimer(); // Show buttons initially
   },
@@ -757,26 +767,20 @@ export default {
         this.playbackMenuInitialized = false;
         this.captionSizeMenuInitialized = false;
         this.lastAppliedMode = null;
-        // This should fix (most of) the "Invalid URI" warns, meanwhile we still destroying plyr.
+        // Release DOM references
+        this.playbackButtons = null;
+        this.playbackValueSpan = null;
+        this.captionSizeButtons = null;
+        this.captionSizeValueSpan = null;
+        /*/ This should fix (most of) the "Invalid URI" warns, meanwhile we still destroying plyr.
         // Somehow firefox will still trying to "load" the empty source which causes the warn.
-        this.mediaElement.src = this.raw;
+        this.mediaElement.src = this.raw;*/
       }
     },
     togglePlayPause() {
-      if (!this.mediaElement) return;
-      if (this.useDefaultMediaPlayer) {
-        if (this.mediaElement.paused) {
-          this.mediaElement.play();
-        } else {
-          this.mediaElement.pause();
-        }
-      } else if (this.player) {
-        if (this.player.playing) {
-          this.player.pause();
-        } else {
-          this.player.play();
-        }
-      }
+      const media = this.mediaElement;
+      if (!media) return;
+      if (media.paused) media.play(); else media.pause();
     },
     handlePlay() {
       this.$emit('play');
@@ -795,8 +799,7 @@ export default {
         const needCaptionSize = captionSizeBtn && !this.captionSizeMenuInitialized;
 
         if (menuOpen || needPlayback || needCaptionSize) {
-          this.applyCustomPlaybackSettings(this.player);
-          this.applyCustomCaptionSizeSettings(this.player);
+          this.applyCustomSettings(this.player);
         }
       } catch (error) {
         console.error('Error ensuring playback mode applied:', error);
@@ -874,64 +877,6 @@ export default {
         btn.setAttribute('hidden', '');
       }
     },
-    applyCustomCaptionSizeSettings(player) {
-      if (this.captionSizeMenuInitialized) {
-        return;
-      }
-
-      try {
-        const captionBtn = player.elements.settings?.buttons?.captionSize;
-        const captionPanel = player.elements.settings?.panels?.captionSize;
-
-        if (!captionBtn || !captionPanel) {
-          return;
-        }
-
-        const title = player.config.i18n?.captionSize || 'Caption size';
-
-        if (this.previewType !== 'video' || !this.hasSubtitles) {
-          captionBtn.setAttribute('hidden', '');
-          this.captionSizeMenuInitialized = true;
-          return;
-        }
-
-        this.syncCaptionSizeSettingsVisibility();
-        captionBtn.removeAttribute('hidden');
-
-        const current = this.getStoredCaptionSize();
-
-        captionBtn.querySelector('span').innerHTML = `${title}: <span class="plyr__menu__value">${this.getCaptionSizeLabel(current)}</span>`;
-
-        captionPanel.querySelector('.plyr__control--back span[aria-hidden="true"]').textContent = title;
-
-        const menu = captionPanel.querySelector('div[role="menu"]');
-        menu.innerHTML = PLYR_CAPTION_SIZE_IDS.map(
-          (id) => `<button type="button" data-plyr="caption-size" role="menuitemradio" class="plyr__control" aria-checked="${current === id}" value="${id}">
-                    <span>${this.getCaptionSizeLabel(id)}</span>
-                  </button>`,
-        ).join('');
-
-        menu.querySelectorAll('button[data-plyr="caption-size"]').forEach((button) => {
-          button.addEventListener('click', (event) => {
-            const value = event.currentTarget.getAttribute('value');
-            if (!PLYR_CAPTION_SIZE_IDS.includes(value)) {
-              return;
-            }
-            this.setStoredCaptionSize(value);
-            this.applyCaptionSizeClass();
-            menu.querySelectorAll('button[data-plyr="caption-size"]').forEach((btn) => {
-              btn.setAttribute('aria-checked', btn.getAttribute('value') === value ? 'true' : 'false');
-            });
-            captionBtn.querySelector('span').innerHTML = `${title}: <span class="plyr__menu__value">${this.getCaptionSizeLabel(value)}</span>`;
-          });
-        });
-
-        this.captionSizeMenuInitialized = true;
-        this.applyCaptionSizeClass();
-      } catch (error) {
-        console.error('Error applying caption size settings:', error);
-      }
-    },
     getCaptionSizeLabel(size) {
       switch (size) {
         case 'small': return 'Small';
@@ -948,19 +893,29 @@ export default {
         currentIndex: this.currentQueueIndex,
         mode: newMode
       });
-      this.showToast();
     },
     handleKeydown(event) {
       if (event.repeat) return;
-      // Handle 'P' and 'L' keys for loop and change playback
       const key = event.key.toLowerCase();
-
+      const target = event.target;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT')) {
+        return;
+      }
+      // Handle 'P' and 'L' keys for loop and change playback
       if (key === 'p' || key === 'l') {
         event.stopPropagation();
         event.preventDefault();
-
         if (key === 'p') this.cyclePlaybackModes();
         if (key === 'l') this.toggleLoop();
+        return;
+      }
+      // left/right arrows for seek feedback
+      if (key === 'arrowleft' || key === 'arrowright') {
+        if (!this.player) return;
+        event.preventDefault();
+        const rewind = key === 'arrowleft';
+        this.flashSkipFeedback(rewind);
+        return;
       }
       // "Q" key – open/close panel on desktop audio, queue prompt on vids
       if (key === 'q') {
@@ -982,7 +937,6 @@ export default {
         currentIndex: this.currentQueueIndex,
         mode: newMode
       });
-      this.showToast();
     },
     // Seek the player to the given timestamp (in milliseconds)
     seekToLyric(timestampMs) {
@@ -1082,12 +1036,6 @@ export default {
       this.albumArtUrl = null;
       this.metadata = null;
     },
-    updateMedia() {
-      this.hookEvents();
-      if (this.previewType === "audio") {
-        this.loadAudioMetadata();
-      }
-    },
     hookEvents() {
       if (this.useDefaultMediaPlayer) {
         this.setupDefaultPlayerEvents(this.mediaElement);
@@ -1120,30 +1068,27 @@ export default {
     },
     setupPlyrEvents() {
       if (!this.player) return;
-      this.player.on('ended', this.handleMediaEnd);
-      this.player.on('play', () => {
-        mutations.setPlaybackState(true);
-        this.updateMediaSessionPlaybackState();
-      });
-      this.player.on('pause', () => {
-        mutations.setPlaybackState(false);
-        this.updateMediaSessionPlaybackState();
-      });
-      this.player.on('timeupdate', () => {
-        this.updateMediaSessionPlaybackState();
-        this.syncLyrics();
-      });
-      this.player.on('seeked', () => {
-        this.updateMediaSessionPlaybackState();
-      });
-      this.player.on('loadedmetadata', () => {
-        this.updateMediaSessionPlaybackState();
-      });
-      this.player.on('ratechange', () => {
-        this.updateMediaSessionPlaybackState();
-      });
-      this.player.on('canplay', () => {
-        this.updateMediaSessionPlaybackState();
+      const eventMap = {
+        ended: this.handleMediaEnd,
+        play: () => {
+          mutations.setPlaybackState(true);
+          this.updateMediaSessionPlaybackState();
+        },
+        pause: () => {
+          mutations.setPlaybackState(false);
+          this.updateMediaSessionPlaybackState();
+        },
+        timeupdate: () => {
+          this.updateMediaSessionPlaybackState();
+          this.syncLyrics();
+        },
+        seeked: this.updateMediaSessionPlaybackState,
+        loadedmetadata: this.updateMediaSessionPlaybackState,
+        ratechange: this.updateMediaSessionPlaybackState,
+        canplay: this.updateMediaSessionPlaybackState,
+      };
+      Object.entries(eventMap).forEach(([evt, fn]) => {
+        this.player.on(evt, fn);
       });
       if ((this.previewType === 'video' || this.previewType === 'audio')) {
         this.player.on('enterfullscreen', this.onFullscreenEnter);
@@ -1784,7 +1729,7 @@ export default {
         this.player.play();
       }
     },
-    refreshPlaybackQueue(forceReshuffle = false) {
+    setupPlaybackQueue(forceReshuffle = false) {
       const listing = this.listing;
       if (!listing || !this.req) return;
       const isShare = getters.isShare();
@@ -1797,98 +1742,145 @@ export default {
         mode
       });
     },
-    applyCustomPlaybackSettings(player) {
-      // This is the actual logic to set up the settings menu
-      // Separated so it can be called after source changes
-
-      // Only recreate menu if mode changed or menu not initialized, this for avoid unnecesary recreations
-      const modeChanged = this.lastAppliedMode !== this.playbackMode;
-
-      if (this.playbackMenuInitialized && !modeChanged) {
-        return;
-      }
-
+    // Builds playback and caption menus once, then updates state without rebuilding again.
+    applyCustomSettings(player) {
       try {
-        // Access the playback button and panel
-        const playbackBtn = player.elements.settings.buttons.playback;
-        const playbackPanel = player.elements.settings.panels.playback;
+        const playbackBtn = player.elements.settings?.buttons?.playback;
+        const playbackPanel = player.elements.settings?.panels?.playback;
+        const captionSizeBtn = player.elements.settings?.buttons?.captionSize;
+        const captionSizePanel = player.elements.settings?.panels?.captionSize;
 
+        // --- Playback menu ---
         if (playbackBtn && playbackPanel) {
-          // Make the button visible
           playbackBtn.removeAttribute('hidden');
+          const title = player.config.i18n?.playback || 'Playback';
+          const currentLabel = getModeLabel(this.playbackMode, this.$t);
 
-          // Set up the button text
-          const currentModeLabel = getModeLabel(this.playbackMode, this.$t);
-          playbackBtn.querySelector('span').innerHTML = `Playback: <span class="plyr__menu__value">${currentModeLabel}</span>`;
-
-          // Set up the back button text
-          playbackPanel.querySelector('.plyr__control--back span[aria-hidden="true"]').innerHTML = 'Playback';
-
-          // Only recreate menu if needed, will rebuild the UI if the source changes.
-          const menu = playbackPanel.querySelector('div[role="menu"]');
-
-          if (!this.playbackMenuInitialized || modeChanged) {
-
-            // Create the menu options
+          if (!this.playbackMenuInitialized) {
+            const menu = playbackPanel.querySelector('div[role="menu"]');
             menu.innerHTML = `
-              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" aria-checked="${this.playbackMode === 'single'}" value="single">
+              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" value="single">
                 <span>${getModeLabel('single', this.$t)}</span>
               </button>
-              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" aria-checked="${this.playbackMode === 'sequential'}" value="sequential">
+              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" value="sequential">
                 <span>${getModeLabel('sequential', this.$t)}</span>
               </button>
-              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" aria-checked="${this.playbackMode === 'shuffle'}" value="shuffle">
+              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" value="shuffle">
                 <span>${getModeLabel('shuffle', this.$t)}</span>
               </button>
-              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" aria-checked="${this.playbackMode === 'loop-single'}" value="loop-single">
+              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" value="loop-single">
                 <span>${getModeLabel('loop-single', this.$t)}</span>
               </button>
-              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" aria-checked="${this.playbackMode === 'loop-all'}" value="loop-all">
+              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" value="loop-all">
                 <span>${getModeLabel('loop-all', this.$t)}</span>
               </button>
             `;
-            // Add event listeners to the buttons
-            const buttons = menu.querySelectorAll('button[data-plyr="playback"]');
-            buttons.forEach(button => {
-              button.addEventListener('click', (event) => {
+            this.playbackButtons = menu.querySelectorAll('button[data-plyr="playback"]');
+            // Set initial checked state
+            this.playbackButtons.forEach(btn => {
+              btn.setAttribute('aria-checked', btn.getAttribute('value') === this.playbackMode);
+            });
+            // Add click listeners
+            this.playbackButtons.forEach(btn => {
+              btn.addEventListener('click', (event) => {
                 const value = event.currentTarget.getAttribute('value');
-                console.log('Playback mode changed to:', value);
-
-                // Update visual state
-                buttons.forEach(btn => {
-                  btn.setAttribute('aria-checked', 'false');
-                });
-                event.currentTarget.setAttribute('aria-checked', 'true');
-
-                // Update button text
-                const newLabel = getModeLabel(value, this.$t);
-                playbackBtn.querySelector('span').innerHTML = `Playback: <span class="plyr__menu__value">${newLabel}</span>`;
-
-                // Update the global state with the new mode
                 mutations.setPlaybackQueue({
                   queue: this.playbackQueue,
                   currentIndex: this.currentQueueIndex,
                   mode: value
                 });
-                // Show toast
-                this.showToast();
+                const newLabel = getModeLabel(value, this.$t);
+                if (this.playbackValueSpan) this.playbackValueSpan.textContent = newLabel;
+                this.playbackButtons.forEach(b => b.setAttribute('aria-checked', b.getAttribute('value') === value));
               });
             });
-            this.playbackMenuInitialized = true;
+            const valueSpan = playbackBtn.querySelector('span .plyr__menu__value');
+            if (valueSpan) {
+              valueSpan.textContent = currentLabel;
+              this.playbackValueSpan = valueSpan;
+            } else {
+              playbackBtn.querySelector('span').innerHTML = `${title}: <span class="plyr__menu__value">${currentLabel}</span>`;
+              this.playbackValueSpan = playbackBtn.querySelector('span .plyr__menu__value');
+            }
             this.lastAppliedMode = this.playbackMode;
+            this.playbackMenuInitialized = true;
           } else {
-            // Just update the checked states without recreating the menu again
-            const buttons = menu.querySelectorAll('button[data-plyr="playback"]');
-            buttons.forEach(button => {
-              const value = button.getAttribute('value');
-              button.setAttribute('aria-checked', this.playbackMode === value);
-            });
+            // Just update checked states and label
+            if (this.playbackButtons) {
+              this.playbackButtons.forEach(btn => {
+                btn.setAttribute('aria-checked', btn.getAttribute('value') === this.playbackMode);
+              });
+            }
+            if (this.playbackValueSpan) {
+              this.playbackValueSpan.textContent = currentLabel;
+            }
           }
-        } else {
-          console.error('Could not find playback button or panel');
+        }
+
+        // --- Caption size menu ---
+        if (captionSizeBtn && captionSizePanel) {
+          const visible = this.previewType === 'video' && this.hasSubtitles;
+          if (!visible) {
+            captionSizeBtn.setAttribute('hidden', '');
+            this.captionSizeMenuInitialized = true;
+            return;
+          }
+          captionSizeBtn.removeAttribute('hidden');
+          const title = player.config.i18n?.captionSize || 'Caption size';
+          const currentSize = this.getStoredCaptionSize();
+          const currentSizeLabel = this.getCaptionSizeLabel(currentSize);
+
+          if (!this.captionSizeMenuInitialized) {
+            const menu = captionSizePanel.querySelector('div[role="menu"]');
+            menu.innerHTML = PLYR_CAPTION_SIZE_IDS.map(
+              (id) => `<button type="button" data-plyr="caption-size" role="menuitemradio" class="plyr__control" value="${id}">
+                        <span>${this.getCaptionSizeLabel(id)}</span>
+                      </button>`
+            ).join('');
+
+            this.captionSizeButtons = menu.querySelectorAll('button[data-plyr="caption-size"]');
+            // Set initial checked state
+            this.captionSizeButtons.forEach(btn => {
+              btn.setAttribute('aria-checked', btn.getAttribute('value') === currentSize);
+            });
+            // Add click listeners
+            this.captionSizeButtons.forEach(btn => {
+              btn.addEventListener('click', (event) => {
+                const value = event.currentTarget.getAttribute('value');
+                if (!PLYR_CAPTION_SIZE_IDS.includes(value)) return;
+                this.setStoredCaptionSize(value);
+                this.applyCaptionSizeClass();
+                // Update checked states and label
+                this.captionSizeButtons.forEach(b => b.setAttribute('aria-checked', b.getAttribute('value') === value));
+                // Update label in button
+                const label = this.getCaptionSizeLabel(value);
+                if (this.captionSizeValueSpan) this.captionSizeValueSpan.textContent = label;
+              });
+            });
+            const valueSpan = captionSizeBtn.querySelector('span .plyr__menu__value');
+            if (valueSpan) {
+              valueSpan.textContent = currentSizeLabel;
+              this.captionSizeValueSpan = valueSpan;
+            } else {
+              captionSizeBtn.querySelector('span').innerHTML = `${title}: <span class="plyr__menu__value">${currentSizeLabel}</span>`;
+              this.captionSizeValueSpan = captionSizeBtn.querySelector('span .plyr__menu__value');
+            }
+            this.captionSizeMenuInitialized = true;
+          } else {
+            // Update checked states and label
+            if (this.captionSizeButtons) {
+              this.captionSizeButtons.forEach(btn => {
+                btn.setAttribute('aria-checked', btn.getAttribute('value') === currentSize);
+              });
+            }
+            if (this.captionSizeValueSpan) {
+              this.captionSizeValueSpan.textContent = currentSizeLabel;
+            }
+          }
+          this.applyCaptionSizeClass();
         }
       } catch (error) {
-        console.error('Error applying custom playback settings:', error);
+        console.error('Error applying custom settings:', error);
       }
     },
   },
