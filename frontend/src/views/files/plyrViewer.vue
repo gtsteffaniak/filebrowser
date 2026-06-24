@@ -233,12 +233,7 @@
     <!-- Toast when you change playback modes in the media player -->
     <div :class="['playback-toast', toastVisible ? 'visible' : '']">
       <!-- Loop icon for "single playback", "loop single file" and "loop all files" -->
-      <i v-if="playbackMode === 'single' || playbackMode === 'loop-single' || playbackMode === 'loop-all'" class="material-symbols">
-        {{ playbackMode === 'loop-single' ? 'repeat_one' : 'repeat' }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-      </i>
-      <i v-else-if="playbackMode === 'shuffle'" class="material-symbols">shuffle</i>
-      <i v-else class="material-symbols">playlist_play</i>
-
+      <i class="material-symbols">{{ toastIcon }}</i>
       <span>{{ playbackModeMessage }}</span>
 
       <!-- Status indicator for loop -->
@@ -250,9 +245,17 @@
 
 <script>
 import Plyr from 'plyr';
+import {
+  buildPlaybackQueue,
+  navigatePlaybackQueue,
+  getEndOfMediaAction,
+  cyclePlaybackModes,
+  toggleLoop,
+  getModeLabel,
+  getModeIcon,
+} from '@/utils/playbackQueue.js';
 import AudioPanel from "@/components/files/AudioPanel.vue";
 import { getters, mutations, state } from '@/store';
-import { url } from '@/utils';
 import { getObjectProperty } from '@/utils/object.js';
 import { globalVars } from '@/utils/constants';
 import { getSubtitleFormatExtension } from '@/utils/subtitles';
@@ -369,16 +372,13 @@ export default {
     };
   },
   watch: {
-    playbackMode: {
-      handler(newMode, oldMode) {
-        if (newMode !== oldMode) {
-          const forceReshuffle = newMode === 'shuffle';
-          this.setupPlaybackQueue(forceReshuffle);
-          this.$nextTick(() => {
-            this.ensurePlaybackModeApplied();
-          });
-        }
-      },
+    playbackMode(newMode, oldMode) {
+      if (newMode !== oldMode) {
+        this.refreshPlaybackQueue(newMode === 'shuffle');
+        this.$nextTick(() => {
+          this.ensurePlaybackModeApplied();
+        });
+      }
     },
     showDesktopPanel(val) {
       sessionStorage.setItem('plyrShowDesktopPanel', val ? '1' : '0');
@@ -408,9 +408,8 @@ export default {
     },
     listing: {
       handler(newListing) {
-        // update queue if the listing changes
         if (newListing && newListing.length > 0) {
-          this.setupPlaybackQueue(true);
+          this.refreshPlaybackQueue(true);
         }
       },
       immediate: true
@@ -505,14 +504,10 @@ export default {
       return state.playbackQueue.mode || 'single';
     },
     playbackModeMessage() {
-      const mode = {
-      'sequential': this.$t('player.PlayAllOncePlayback'),
-      'shuffle': this.$t('player.ShuffleAllPlayback'),
-      'loop-all': this.$t('player.PlayAllLoopedPlayback'),
-      'loop-single': this.$t('player.LoopEnabled'),
-      'single': this.$t('player.LoopDisabled')
-      };
-      return mode[this.playbackMode] || mode.single;
+      return getModeLabel(this.playbackMode, this.$t);
+    },
+    toastIcon() {
+      return getModeIcon(this.playbackMode);
     },
     hasSubtitles() {
       return this.subtitlesList && this.subtitlesList.length > 0;
@@ -946,19 +941,8 @@ export default {
         default: return 'Medium';
       }
     },
-    getPlaybackModeLabel(mode) {
-      switch (mode) {
-        case 'single': return 'Play Once';
-        case 'sequential': return 'Play All';
-        case 'shuffle': return 'Shuffle All';
-        case 'loop-single': return 'Loop current';
-        case 'loop-all': return 'Play All Looped';
-        default: return 'Play Once';
-      }
-    },
     toggleLoop() {
-      const newMode = this.playbackMode === 'loop-single' ? 'single' : 'loop-single';
-      // Update the state directly via mutations
+      const newMode = toggleLoop(this.playbackMode);
       mutations.setPlaybackQueue({
         queue: this.playbackQueue,
         currentIndex: this.currentQueueIndex,
@@ -992,11 +976,7 @@ export default {
       }
     },
     cyclePlaybackModes() {
-      // cycle order (excluding single and loop-single cuz they are handled by the "L" key)
-      const modeCycle = ['loop-all', 'shuffle', 'sequential'];
-      const currentIndex = modeCycle.indexOf(this.playbackMode);
-      const nextIndex = (currentIndex + 1) % modeCycle.length;
-      const newMode = modeCycle.at(nextIndex);
+      const newMode = cyclePlaybackModes(this.playbackMode);
       mutations.setPlaybackQueue({
         queue: this.playbackQueue,
         currentIndex: this.currentQueueIndex,
@@ -1774,160 +1754,23 @@ export default {
     onFullscreenExit() {
       screen.orientation.unlock();
     },
-    // Playback methods
-    async setupPlaybackQueue(forceReshuffle = false) {
-
-      const listing = this.listing;
-      const isShare = getters.isShare();
-
-      // Filter only audio/video files
-      const mediaFiles = listing.filter(item => {
-        const isAudio = item?.type.startsWith('audio/');
-        const isVideo = item?.type.startsWith('video/');
-        return isAudio || isVideo;
-      });
-
-      if (mediaFiles.length === 0) {
-        console.log('No media files found in current directory');
-        mutations.setPlaybackQueue({
-          queue: [],
-          currentIndex: -1,
-          mode: this.playbackMode,
-        });
-        return;
+    handleMediaEnd() {
+      const queue = state.playbackQueue.queue;
+      const currentIndex = state.playbackQueue.currentIndex;
+      const mode = state.playbackQueue.mode;
+      const action = getEndOfMediaAction(queue, currentIndex, mode);
+      if (action === 'next') {
+        navigatePlaybackQueue(1);
+      } else if (action === 'restart') {
+        this.restartCurrentFile();
       }
-
-      let currentIndex;
-      if (isShare) {
-        // Compare by name for shares
-        currentIndex = mediaFiles.findIndex(item => item.name === this.req.name);
-      } else {
-        currentIndex = mediaFiles.findIndex(item => item.path === this.req.path);
-      }
-
-      let finalQueue = [];
-      let finalIndex = 0;
-
-      switch (this.playbackMode) {
-        case 'single':
-          finalQueue = [];
-          finalIndex = -1;
-          break;
-        case 'loop-single':
-          // When playing the same file (loop-single), the queue only contains the current file
-          finalQueue = currentIndex !== -1 ? [mediaFiles.at(currentIndex)] : [];
-          finalIndex = 0;
-          break;
-
-        case 'sequential':
-        case 'loop-all': {
-          // We'll use the listing order from the parent directory for this two modes.
-          // On sequential mode will start playing from the file opened and find its place on the queue by the current index (you can see this on UI queue)
-          // Loop-all will do the same, but if the queue ends, will restart from the first file of the current folder.
-          const sortedFiles = [...mediaFiles];
-          finalQueue = sortedFiles;
-          // Find the current file position in the queue
-          if (currentIndex !== -1) {
-            const currentFile = mediaFiles.at(currentIndex);
-            finalIndex = sortedFiles.findIndex(item => item.path === currentFile.path);
-          } else {
-            finalIndex = 0;
-          }
-          break;
-        }
-        case 'shuffle': {
-          // For shuffle, all on random order and only reshuffle if we cycle modes again
-          // This is for preserve the current queue and don't lose it (since the component is re-created each time)
-          // It has one drawback: if you change of directories, you'll need to cycle modes again to see a new queue.
-          if (forceReshuffle || this.playbackQueue.length === 0) {
-            const shuffledFiles = this.shuffleArray([...mediaFiles]);
-            finalQueue = shuffledFiles;
-          } else {
-            // Use the existing queue when not forcing reshuffle
-            finalQueue = this.playbackQueue;
-          }
-          // Find the current file position in the queue
-          if (currentIndex !== -1) {
-            const currentFile = mediaFiles.at(currentIndex);
-            finalIndex = finalQueue.findIndex(item => item.path === currentFile.path);
-          } else {
-            finalIndex = 0;
-          }
-          break;
-        }
-      }
-      // console.log('Current place on the queue:', finalIndex + 1, 'of', finalQueue.length);
-
-      // After the queue is set up, update the store
-      mutations.setPlaybackQueue({
-        queue: finalQueue,
-        currentIndex: finalIndex,
-        mode: this.playbackMode
-      });
-    },
-    shuffleArray(array) {
-      const shuffled = [...array];
-      for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        const temp = shuffled.slice(j, j + 1)[0];
-        shuffled.splice(j, 1, shuffled.at(i));
-        shuffled.splice(i, 1, temp);
-      }
-      return shuffled;
     },
     playPrevious() {
-      if (this.playbackQueue.length === 0) return;
-      // Calculate previous index
-      let prevIndex = this.currentQueueIndex - 1;
-      // Handle wrapping based on mode
-      if (prevIndex < 0) {
-        if (this.playbackMode === 'loop-all' || this.playbackMode === 'shuffle') {
-          prevIndex = this.playbackQueue.length - 1;
-        } else {
-          return;
-        }
-      }
-      const prevItem = this.playbackQueue.at(prevIndex);
-      // Update current index
-      mutations.setPlaybackQueue({
-        queue: this.playbackQueue,
-        currentIndex: prevIndex,
-        mode: this.playbackMode
-      });
-      mutations.setNavigationTransitioning(true);
-      url.goToItem(prevItem.source || this.req.source, prevItem.path, undefined, false, getters.isShare());
+      navigatePlaybackQueue(-1);
     },
+
     playNext() {
-      if (this.playbackQueue.length === 0) return;
-
-      // Calculate next index
-      let nextIndex = this.currentQueueIndex + 1;
-
-      // Handle end of queue based on mode
-      if (nextIndex >= this.playbackQueue.length) {
-        if (this.playbackMode === 'loop-all' || this.playbackMode === 'shuffle') {
-          nextIndex = 0; // Loop back to beginning
-        } else {
-          return; // Stop at end for sequential mode
-        }
-      }
-
-      const nextItem = this.playbackQueue.at(nextIndex);
-
-      try {
-        // Update current index
-        mutations.setPlaybackQueue({
-          queue: this.playbackQueue,
-          currentIndex: nextIndex,
-          mode: this.playbackMode
-        });
-
-        mutations.setNavigationTransitioning(true);
-        url.goToItem( nextItem.source || this.req.source, nextItem.path, undefined, false, getters.isShare());
-
-      } catch (error) {
-        console.error('Failed to navigate to next file:', error);
-      }
+      navigatePlaybackQueue(1);
     },
     restartCurrentFile() {
       console.log('Restarting current file');
@@ -1941,26 +1784,18 @@ export default {
         this.player.play();
       }
     },
-    handleMediaEnd() {
-      const handleShortQueue = () => {
-        if (this.playbackQueue.length > 1) {
-          this.playNext();
-        } else {
-          this.restartCurrentFile();
-        }
-      };
-      const modeActions = {
-        'single': () => {}, // Do nothing
-        'loop-single': () => this.restartCurrentFile(),
-        'sequential': () => this.playNext(),
-        'shuffle': handleShortQueue,
-        'loop-all': handleShortQueue,
-      };
-      const action = modeActions[this.playbackMode];
-      if (action) {
-        console.log(`Media ended - ${this.playbackMode} mode`);
-        action();
-      }
+    refreshPlaybackQueue(forceReshuffle = false) {
+      const listing = this.listing;
+      if (!listing || !this.req) return;
+      const isShare = getters.isShare();
+      const currentItem = this.req;
+      const mode = state.playbackQueue.mode || 'single';
+      const { queue, currentIndex } = buildPlaybackQueue(listing, currentItem, mode, forceReshuffle, isShare);
+      mutations.setPlaybackQueue({
+        queue,
+        currentIndex,
+        mode
+      });
     },
     applyCustomPlaybackSettings(player) {
       // This is the actual logic to set up the settings menu
@@ -1983,15 +1818,8 @@ export default {
           playbackBtn.removeAttribute('hidden');
 
           // Set up the button text
-          const modeLabels = {
-            'single': 'Play Once',
-            'sequential': 'Play All',
-            'shuffle': 'Shuffle All',
-            'loop-single': 'Loop current',
-            'loop-all': 'Play All Looped'
-          };
-          const currentMode = modeLabels[this.playbackMode] || 'Play Once';
-          playbackBtn.querySelector('span').innerHTML = `Playback: <span class="plyr__menu__value">${currentMode}</span>`;
+          const currentModeLabel = getModeLabel(this.playbackMode, this.$t);
+          playbackBtn.querySelector('span').innerHTML = `Playback: <span class="plyr__menu__value">${currentModeLabel}</span>`;
 
           // Set up the back button text
           playbackPanel.querySelector('.plyr__control--back span[aria-hidden="true"]').innerHTML = 'Playback';
@@ -2004,19 +1832,19 @@ export default {
             // Create the menu options
             menu.innerHTML = `
               <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" aria-checked="${this.playbackMode === 'single'}" value="single">
-                <span>Play Once</span>
+                <span>${getModeLabel('single', this.$t)}</span>
               </button>
               <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" aria-checked="${this.playbackMode === 'sequential'}" value="sequential">
-                <span>Play All</span>
+                <span>${getModeLabel('sequential', this.$t)}</span>
               </button>
               <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" aria-checked="${this.playbackMode === 'shuffle'}" value="shuffle">
-                <span>Shuffle All</span>
+                <span>${getModeLabel('shuffle', this.$t)}</span>
               </button>
               <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" aria-checked="${this.playbackMode === 'loop-single'}" value="loop-single">
-                <span>Loop Current</span>
+                <span>${getModeLabel('loop-single', this.$t)}</span>
               </button>
               <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" aria-checked="${this.playbackMode === 'loop-all'}" value="loop-all">
-                <span>Play All Looped</span>
+                <span>${getModeLabel('loop-all', this.$t)}</span>
               </button>
             `;
             // Add event listeners to the buttons
@@ -2033,8 +1861,8 @@ export default {
                 event.currentTarget.setAttribute('aria-checked', 'true');
 
                 // Update button text
-                const currentMode = this.getPlaybackModeLabel(value);
-                playbackBtn.querySelector('span').innerHTML = `Playback: <span class="plyr__menu__value">${currentMode}</span>`;
+                const newLabel = getModeLabel(value, this.$t);
+                playbackBtn.querySelector('span').innerHTML = `Playback: <span class="plyr__menu__value">${newLabel}</span>`;
 
                 // Update the global state with the new mode
                 mutations.setPlaybackQueue({
