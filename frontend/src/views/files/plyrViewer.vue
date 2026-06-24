@@ -347,6 +347,7 @@ export default {
       skipFeedbackIcon: 'replay_10',
       skipFeedbackKey: 0,
       skipFeedbackTimer: null,
+      skipNextTap: false,
       // Plyr video: full-frame edge gestures (same UX as ExtendedImage; Plyr controls live outside .plyr__video-wrapper)
       videoEdgeKind: null,
       videoEdgeStartX: 0,
@@ -1235,6 +1236,7 @@ export default {
           // a tiny guard, should not happen, but just in case
           return;
         }
+        if (this.skipNextTap) return;
 
         if (event.changedTouches.length !== 1) return;
         const t = event.changedTouches[0];
@@ -1277,6 +1279,7 @@ export default {
         if (this.isPlyrControlOrMenuTarget(event.target)) {
           return;
         }
+        if (this.skipNextTap) return;
         const zone = zoneFromClientX(event.clientX);
         if (zone === 'center') {
           if (this.previewType === 'video') {
@@ -1457,6 +1460,7 @@ export default {
       this.videoEdgeKind = null;
       this.videoEdgeDx = 0;
       this.videoEdgeDy = 0;
+      this.skipNextTap = false;
       this.applyVideoSwipeTransform();
       mutations.setNavigationGestureHint({});
       setTimeout(() => {
@@ -1476,6 +1480,7 @@ export default {
       this.videoShowDismissHint = false;
       this.videoGestureSnapBack = false;
       this.videoDismissFlashActive = false;
+      this.skipNextTap = false;
       this.applyVideoSwipeTransform();
       mutations.setNavigationGestureHint({});
     },
@@ -1535,6 +1540,9 @@ export default {
           this.videoEdgeKind = null;
           this.applyVideoSwipeTransform();
           this.syncVideoNavigationGestureHintToStore();
+          this.skipNextTap = true;
+          // small timeout to prevent the toggle play gesture to trigger pausing the video
+          setTimeout(() => { this.skipNextTap = false; }, 200);
           // If we're in fullscreen, exit fullscreen instead of closing preview
           if (this.player?.fullscreen?.active) {
             this.player.fullscreen.exit();
@@ -1559,8 +1567,7 @@ export default {
           }, 420);
           return;
         }
-      }
-      else if (kind === 'vertical-fullscreen') {
+      } else if (kind === 'vertical-fullscreen') {
         if (!this.player) {
           this.resetVideoEdgeGestureImmediate();
           return;
@@ -1568,6 +1575,9 @@ export default {
         if (this.videoEdgeDy <= -this.videoEdgeCommitY) {
           this.player.fullscreen.toggle();
           this.resetVideoEdgeGestureImmediate();
+          // skipNextTap to prevent play/pause toggle
+          this.skipNextTap = true;
+          setTimeout(() => { this.skipNextTap = false; }, 300);
           return;
         }
       }
@@ -2278,11 +2288,11 @@ export default {
 
 /*
  * Global fonts.css sets `.material-symbols { font-size: 24px }`.
- * Use high specificity + !important, and flex-shrink: 0 so the flex parent cannot squeeze the glyph.
+ * Use high specificity and flex-shrink: 0 so the flex parent cannot squeeze the glyph.
  */
 .video-skip-feedback-layer i.material-symbols.video-skip-feedback-layer__icon {
   flex-shrink: 0;
-  font-size: 3em;
+  font-size: clamp(2.5rem, 7vmin, 6rem);
   line-height: 1;
   color: rgba(255, 255, 255, 0.96);
   filter: drop-shadow(0 2px 16px rgba(0, 0, 0, 0.85));
