@@ -14,7 +14,11 @@
 }
 
 #search.dark-mode input {
-  color:white
+  color: white;
+}
+
+#search.dark-mode .search-input-container input {
+  color: white;
 }
 
 /* Search input */
@@ -33,7 +37,7 @@
   border-color: white;
 }
 
-.dark-mode #search.active input {
+.dark-mode #search.active .search-input-container input {
   color: var(--textPrimary);
 }
 
@@ -105,9 +109,12 @@
 }
 
 /* Input hover and focus */
-.dark-mode .input:hover,
+.dark-mode .input:hover {
+  border-color: color-mix(in srgb, var(--surfaceSecondary) 70%, var(--textPrimary));
+}
+
 .dark-mode .input:focus {
-  border-color: rgba(255, 255, 255, 0.15);
+  border-color: var(--primaryColor);
 }
 
 /* Red input */
@@ -168,8 +175,8 @@
 
 /* Button group button */
 .dark-mode .button-group button {
-  color: white;
-  background-color:var(--background);
+  color: var(--textPrimary);
+  background-color: var(--background);
 }
 
 /* Result desktop */

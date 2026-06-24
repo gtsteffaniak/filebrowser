@@ -54,16 +54,14 @@
           <div class="config-secondary">
             <div class="as-sources-block">
               <div class="as-section-label">{{ $t("general.sources") }}</div>
-              <div class="source-toggles-wrap">
-                <ToggleSwitch
-                  v-for="name in sourceNameList"
-                  :key="name"
-                  class="source-toggle"
-                  :model-value="isSourceEnabled(name)"
-                  @update:model-value="(v) => setSourceEnabled(name, v)"
-                  :name="name"
-                />
-              </div>
+              <ExpandDropdown
+                v-model="selectedSourceNames"
+                class="source-dropdown-select"
+                :options="sourceOptions"
+                allow-multiple
+                :all-selected-label="$t('general.allSources')"
+                :aria-label="$t('general.sources', { suffix: '' })"
+              />
               <template
                 v-for="srcName in activeSources"
                   :key="`scope-${srcName}`"
@@ -88,19 +86,24 @@
                 @toggle="advancedOptionsExpanded = $event"
               >
                 <div class="advanced-search-options-pane">
-                  <ButtonGroup
-                    :buttons="folderSelectButtons"
-                    @button-clicked="addToTypes"
-                    @remove-button-clicked="removeFromTypes"
-                    @disable-all="folderSelectClicked"
-                    @enable-all="resetButtonGroups"
-                  />
-                  <ButtonGroup
-                    :buttons="typeSelectButtons"
-                    :is-disabled="isTypeSelectDisabled"
-                    @button-clicked="addToTypes"
-                    @remove-button-clicked="removeFromTypes"
-                  />
+                  <div class="search-filter-dropdowns">
+                    <ExpandDropdown
+                      v-model="entryTypeFilter"
+                      :options="entryTypeOptions"
+                      all-value="all"
+                      :all-selected-label="$t('search.filesAndFolders')"
+                      :aria-label="$t('search.filesAndFolders')"
+                    />
+                    <ExpandDropdown
+                      v-model="selectedMediaTypes"
+                      :options="mediaTypeOptions"
+                      allow-multiple
+                      empty-means-all
+                      :all-selected-label="$t('search.allFileTypes')"
+                      :disabled="foldersOnly"
+                      :aria-label="$t('search.allFileTypes')"
+                    />
+                  </div>
                   <div class="constraints">
                     <div class="sizeInputWrapper">
                       <p>{{ $t("search.smallerThan") }}</p>
@@ -247,7 +250,7 @@ import { state, getters, mutations } from "@/store";
 import { globalVars } from "@/utils/constants";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
-import ButtonGroup from "@/components/ButtonGroup.vue";
+import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import Item from "@/components/files/ListingItem.vue";
@@ -473,7 +476,7 @@ export default {
   components: {
     ToggleSwitch,
     SettingsItem,
-    ButtonGroup,
+    ExpandDropdown,
     PathPickerButton,
     LoadingSpinner,
     Item,
@@ -492,8 +495,8 @@ export default {
       smallerThan: "",
       modifiedOlderThan: "",
       modifiedNewerThan: "",
-      searchTypes: "",
-      isTypeSelectDisabled: false,
+      entryTypeFilter: "all",
+      selectedMediaTypes: [],
       useWildcardSearch: false,
       caseExactSearch: false,
       loading: false,
@@ -530,19 +533,31 @@ export default {
     disableSearchOptions() {
       return state.user.disableSearchOptions;
     },
-    folderSelectButtons() {
+    foldersOnly() {
+      return this.entryTypeFilter === "type:folder";
+    },
+    searchTypes() {
+      const parts = [];
+      if (this.entryTypeFilter !== "all") {
+        parts.push(this.entryTypeFilter);
+      }
+      parts.push(...this.selectedMediaTypes);
+      return parts.length > 0 ? `${parts.join(" ")} ` : "";
+    },
+    entryTypeOptions() {
       return [
-        { label: this.$t("search.onlyFolders"), value: "type:folder" },
-        { label: this.$t("search.onlyFiles"), value: "type:file" },
+        { value: "all", label: this.$t("search.filesAndFolders") },
+        { value: "type:file", label: this.$t("search.onlyFiles") },
+        { value: "type:folder", label: this.$t("search.onlyFolders") },
       ];
     },
-    typeSelectButtons() {
+    mediaTypeOptions() {
       return [
-        { label: this.$t("general.photos"), value: "type:image" },
-        { label: this.$t("general.audio"), value: "type:audio" },
-        { label: this.$t("general.videos"), value: "type:video" },
-        { label: this.$t("general.documents"), value: "type:doc" },
-        { label: this.$t("general.archives"), value: "type:archive" },
+        { value: "type:image", label: this.$t("general.photos") },
+        { value: "type:audio", label: this.$t("general.audio") },
+        { value: "type:video", label: this.$t("general.videos") },
+        { value: "type:doc", label: this.$t("general.documents") },
+        { value: "type:archive", label: this.$t("general.archives") },
       ];
     },
     termJoinDividerLabel() {
@@ -556,6 +571,38 @@ export default {
       return Object.keys(info)
         .filter((name) => getObjectProperty(this.sourceEnabledFlags, name) === true)
         .sort();
+    },
+    sourceOptions() {
+      return this.sourceNameList.map((name) => ({
+        value: name,
+        label: name,
+      }));
+    },
+    selectedSourceNames: {
+      get() {
+        return this.activeSources;
+      },
+      set(names) {
+        const selected = Array.isArray(names) ? names : [];
+        let nextFlags = { ...this.sourceEnabledFlags };
+        for (const name of this.sourceNameList) {
+          nextFlags = setObjectProperty(nextFlags, name, selected.includes(name));
+        }
+        this.sourceEnabledFlags = nextFlags;
+
+        let nextPaths = { ...this.sourceScopedPaths };
+        for (const name of selected) {
+          const currentPath = getObjectProperty(nextPaths, name);
+          if (currentPath === undefined || currentPath === null || currentPath === "") {
+            nextPaths = setObjectProperty(nextPaths, name, "/");
+          }
+        }
+        this.sourceScopedPaths = nextPaths;
+
+        if (selected.length === 0) {
+          this.$nextTick(() => this.applyDefaultCurrentSourceIfNone());
+        }
+      },
     },
     isStickySidebar() {
       return getters.isStickySidebar();
@@ -674,8 +721,17 @@ export default {
         this.scheduleAdvancedSearchUrlUpdate();
       },
     },
-    searchTypes() {
+    entryTypeFilter(newValue) {
+      if (newValue === "type:folder") {
+        this.selectedMediaTypes = [];
+      }
       this.scheduleAdvancedSearchUrlUpdate();
+    },
+    selectedMediaTypes: {
+      deep: true,
+      handler() {
+        this.scheduleAdvancedSearchUrlUpdate();
+      },
     },
     largerThan() {
       this.scheduleAdvancedSearchUrlUpdate();
@@ -693,9 +749,6 @@ export default {
       this.scheduleAdvancedSearchUrlUpdate();
     },
     caseExactSearch() {
-      this.scheduleAdvancedSearchUrlUpdate();
-    },
-    isTypeSelectDisabled() {
       this.scheduleAdvancedSearchUrlUpdate();
     },
     "$route.query": {
@@ -831,20 +884,6 @@ export default {
     mutations.replaceRequest(JSON.parse(this.initialReqFrozen));
   },
   methods: {
-    isSourceEnabled(name) {
-      return getObjectProperty(this.sourceEnabledFlags, name) === true;
-    },
-    setSourceEnabled(name, enabled) {
-      this.sourceEnabledFlags = setObjectProperty(this.sourceEnabledFlags, name, !!enabled);
-      let nextPaths = this.sourceScopedPaths;
-      if (enabled) {
-        const currentPath = getObjectProperty(nextPaths, name);
-        if (currentPath === undefined || currentPath === null || currentPath === "") {
-          nextPaths = setObjectProperty(nextPaths, name, "/");
-        }
-      }
-      this.sourceScopedPaths = nextPaths;
-    },
     /** When no source is toggled on, enable `state.sources.current` if known in the catalogue. */
     applyDefaultCurrentSourceIfNone() {
       if (!this.isAdvancedSearchRoute) {
@@ -994,7 +1033,7 @@ export default {
       if (this.caseExactSearch) {
         query.caseExact = "1";
       }
-      if (this.isTypeSelectDisabled) {
+      if (this.foldersOnly) {
         query.typeLock = "1";
       }
 
@@ -1086,11 +1125,18 @@ export default {
       }
 
       const typesIncoming = q.types;
-      this.searchTypes = typeof typesIncoming === "string"
+      const typesStr = typeof typesIncoming === "string"
         ? typesIncoming.trim()
         : typesIncoming !== undefined && typesIncoming !== null
           ? String(typesIncoming).trim()
           : "";
+      const parsedFilters = this.parseTypeFiltersFromQuery(typesStr);
+      this.entryTypeFilter = parsedFilters.entryTypeFilter;
+      this.selectedMediaTypes = parsedFilters.selectedMediaTypes;
+      if (queryTruthy(q.typeLock)) {
+        this.entryTypeFilter = "type:folder";
+        this.selectedMediaTypes = [];
+      }
 
       const largerThanRaw = q.largerThan;
       this.largerThan = largerThanRaw !== undefined && largerThanRaw !== null
@@ -1114,9 +1160,31 @@ export default {
 
       this.useWildcardSearch = queryTruthy(q.wildcard);
       this.caseExactSearch = queryTruthy(q.caseExact);
-      this.isTypeSelectDisabled = queryTruthy(q.typeLock);
 
       this.applyDefaultCurrentSourceIfNone();
+    },
+    parseTypeFiltersFromQuery(typesStr) {
+      const entryValues = new Set(["type:file", "type:folder"]);
+      const mediaValues = new Set([
+        "type:image",
+        "type:audio",
+        "type:video",
+        "type:doc",
+        "type:archive",
+      ]);
+      let entryTypeFilter = "all";
+      const selectedMediaTypes = [];
+      for (const token of String(typesStr || "").trim().split(/\s+/)) {
+        if (!token) {
+          continue;
+        }
+        if (entryValues.has(token)) {
+          entryTypeFilter = token;
+        } else if (mediaValues.has(token)) {
+          selectedMediaTypes.push(token);
+        }
+      }
+      return { entryTypeFilter, selectedMediaTypes };
     },
     updateAdvancedSearchUrl() {
       if (!this.isAdvancedSearchRoute || this.isInitializing) {
@@ -1168,29 +1236,6 @@ export default {
         return;
       }
       this.termInputs.splice(index, 1);
-    },
-    addToTypes(string) {
-      if (string === null || string === undefined || string === "") {
-        return false;
-      }
-      if (this.searchTypes.includes(string)) {
-        return true;
-      }
-      this.searchTypes = `${this.searchTypes}${string} `;
-      return true;
-    },
-    removeFromTypes(string) {
-      if (string === null || string === undefined || string === "") {
-        return false;
-      }
-      this.searchTypes = this.searchTypes.replaceAll(`${string} `, "");
-      return true;
-    },
-    folderSelectClicked() {
-      this.isTypeSelectDisabled = true;
-    },
-    resetButtonGroups() {
-      this.isTypeSelectDisabled = false;
     },
     listingItemKey(item) {
       return `${item.source}::${item.path}`;
@@ -1471,8 +1516,8 @@ export default {
   margin-top: 0.25rem;
 }
 
-.source-toggles-wrap .source-toggle + .source-toggle {
-  margin-top: 0.35rem;
+.source-dropdown-select {
+  width: 100%;
 }
 
 .scope-picker {
@@ -1551,6 +1596,26 @@ export default {
 .advanced-search-options-pane {
   box-sizing: border-box;
   width: 100%;
+}
+
+.search-filter-dropdowns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+  align-items: flex-start;
+  justify-content: center;
+  margin-bottom: 0.5em;
+}
+
+.search-filter-dropdowns :deep(.expand-dropdown) {
+  width: auto;
+  flex: 0 1 auto;
+  min-width: 15em;
+  max-width: 15em;
+}
+
+.search-filter-dropdowns :deep(.expand-dropdown-anchor.menu-panel) {
+  min-width: 0;
 }
 
 .advanced-search-options-pane .constraints {

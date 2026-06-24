@@ -373,14 +373,97 @@ button:hover,
   font-variation-settings: 'FILL' 1;
 }
 
-.flat-right {
+.flat-right,
+.input.flat-right,
+input.flat-right,
+button.flat-right,
+.button.flat-right {
     border-top-right-radius: 0 !important;
     border-bottom-right-radius: 0 !important;
 }
 
-.flat-left {
+.flat-left,
+.input.flat-left,
+input.flat-left,
+button.flat-left,
+.button.flat-left {
     border-top-left-radius: 0 !important;
     border-bottom-left-radius: 0 !important;
+}
+
+.flat-right.flat-left,
+.input.flat-right.flat-left,
+input.flat-right.flat-left,
+button.flat-right.flat-left,
+.button.flat-right.flat-left {
+    border-radius: 0 !important;
+}
+
+/* ExpandDropdown integration with adjacent inputs/buttons */
+.expand-dropdown.form-compact {
+  width: auto;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+.expand-dropdown.form-compact .expand-dropdown-anchor {
+  padding: 0;
+  min-height: 2.5em;
+  box-shadow: none;
+}
+
+.expand-dropdown.form-compact .expand-dropdown-trigger {
+  min-height: 2.5em;
+  padding: 0.5em 0.75em;
+  box-sizing: border-box;
+}
+
+.expand-dropdown.form-compact .expand-dropdown-trigger i,
+.expand-dropdown.form-compact .expand-dropdown-chevron {
+  padding: 0;
+  line-height: 1;
+}
+
+.expand-dropdown.flat-left .expand-dropdown-anchor {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+  border-left-width: 0;
+}
+
+.expand-dropdown.flat-right .expand-dropdown-anchor {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+  border-right-width: 0;
+}
+
+.expand-dropdown.flat-left.flat-right .expand-dropdown-anchor {
+  border-radius: 0 !important;
+}
+
+.expand-dropdown.flat-left .expand-dropdown-anchor,
+.expand-dropdown.flat-right .expand-dropdown-anchor {
+  box-shadow: none;
+}
+
+.expand-dropdown.flat-left.expand-dropdown--open .expand-dropdown-anchor {
+  border-top-left-radius: 0 !important;
+}
+
+.expand-dropdown.flat-right.expand-dropdown--open .expand-dropdown-anchor {
+  border-top-right-radius: 0 !important;
+}
+
+/* Joined controls: input/button keeps full border; dropdown drops flat-side border */
+.form-flex-group > .input.flat-right + .expand-dropdown.flat-left .expand-dropdown-anchor,
+.form-flex-group > input.flat-right + .expand-dropdown.flat-left .expand-dropdown-anchor {
+  border-left-width: 0;
+}
+
+.form-flex-group > .input.flat-right + .button.flat-left,
+.form-flex-group > .input.flat-right + button.flat-left,
+.form-flex-group > input.flat-right + .button.flat-left,
+.form-flex-group > input.flat-right + button.flat-left {
+  border-left-width: 0;
 }
 
 .form-grow {
@@ -392,7 +475,7 @@ button:hover,
 .form-flex-group {
     display: flex;
     flex-direction: row;
-    align-items: center;
+    align-items: stretch;
 }
 
 .form-flex-group>.form-compact {

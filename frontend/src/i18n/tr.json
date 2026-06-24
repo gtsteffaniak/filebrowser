@@ -240,7 +240,9 @@
     "useWildcardSearchDescription": "Desteklenen joker karakter seçenekleri:\n\n- Herhangi bir diziyi eşleştirin: *\n\n- Bir karakteri eşleştirin: ?\n\n- Karakter sınıfı: [a-z], [0-9]\n\n- Negasyon: [^0-9]\n\n- Literal *, ? veya [ parantez içine alınmalıdır, örneğin [*], [?], [[]\n\n- Tüm sonuçlar büyük/küçük harfe duyarlıdır",
     "openInAdvancedSearch": "Gelişmiş Aramada Aç",
     "caseExact": "Büyük/küçük harf duyarlı eşleştirme",
-    "caseExactDescription": "Büyük ve küçük harfleri göz ardı etmek yerine, dosya ve klasör adlarını tam harf büyük/küçük yazımına göre eşleştirin."
+    "caseExactDescription": "Büyük ve küçük harfleri göz ardı etmek yerine, dosya ve klasör adlarını tam harf büyük/küçük yazımına göre eşleştirin.",
+    "filesAndFolders": "Dosyalar ve Klasörler",
+    "allFileTypes": "Tüm Dosya Türleri"
   },
   "settings": {
     "avoidChanges": "(değişiklikleri önlemek için boş bırakın)",
@@ -599,7 +601,8 @@
     "allSources": "Tüm kaynaklar",
     "allShares": "Tüm hisseler",
     "playPause": "Oynat/Duraklat",
-    "clearSelection": "Seçimi temizle"
+    "clearSelection": "Seçimi temizle",
+    "interval": "Aralık{suffix}"
   },
   "access": {
     "rules": "Erişim kuralları",

@@ -11,11 +11,13 @@
     <h2>{{ $t("access.accessManagement") }}</h2>
     <div class="form-flex-group">
       <label for="source-select">{{ $t("general.source",{suffix: ":"})  }}</label>
-      <select class="input" id="source-select" v-model="selectedSource" @change="fetchRules">
-        <option v-for="source in availableSources" :key="source" :value="source">
-          {{ source }}
-        </option>
-      </select>
+      <ExpandDropdown
+        input-id="source-select"
+        v-model="selectedSource"
+        :options="sourceOptions"
+        :aria-label="$t('general.source')"
+        @update:model-value="fetchRules"
+      />
     </div>
     <a class="button button--flat button--blue activity-viewer-link" :href="activityViewerHref">{{ $t("tools.activityViewer.viewActivity") }}</a>
   </div>
@@ -55,6 +57,7 @@ import { accessApi } from "@/api";
 import { state, mutations } from "@/store";
 import Errors from "@/views/Errors.vue";
 import SettingsTable from "@/components/settings/Table.vue";
+import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import { activityViewerPresets } from "@/utils/activityViewerLink";
 import { eventBus } from "@/store/eventBus";
 export default {
@@ -62,6 +65,7 @@ export default {
   components: {
     Errors,
     SettingsTable,
+    ExpandDropdown,
   },
   data: () => ({
     rules: {},
@@ -84,6 +88,12 @@ export default {
   computed: {
     availableSources() {
       return Object.keys(state.sources.info);
+    },
+    sourceOptions() {
+      return this.availableSources.map((source) => ({
+        value: source,
+        label: source,
+      }));
     },
     accessTableRows() {
       return Object.entries(this.rules).map(([path, rule]) => ({

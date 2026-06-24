@@ -191,16 +191,18 @@
 
           <h4 v-if="Object.keys(availableThemes).length > 0">{{ $t('profileSettings.customTheme') }}</h4>
           <div v-if="Object.keys(availableThemes).length > 0" class="form-flex-group">
-            <select class="input" v-model="selectedTheme" @change="updateSettings" aria-label="themeOptions">
-              <option v-for="(theme, key) in availableThemes" :key="key" :value="key">
-                {{ String(key) === 'default' ? $t('profileSettings.defaultThemeDescription') : `${key} -
-                ${theme.description}` }}
-              </option>
-            </select>
+            <ExpandDropdown
+              v-model="selectedTheme"
+              :options="themeOptions"
+              :aria-label="$t('general.theme')"
+              @update:model-value="updateSettings"
+            />
           </div>
 
           <h4>{{ $t('general.language') }}</h4>
-          <Languages class="input" :locale="localuser.locale" @update:locale="updateLocale"></Languages>
+          <div class="form-flex-group">
+            <Languages :locale="localuser.locale" @update:locale="updateLocale"></Languages>
+          </div>
         </SettingsItem>
       </div>
     </form>
@@ -213,6 +215,7 @@ import { notify } from "@/notify";
 import { globalVars } from "@/utils/constants.js";
 import { state, mutations, getters } from "@/store";
 import Languages from "@/components/settings/Languages.vue";
+import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ButtonGroup from "@/components/ButtonGroup.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
@@ -221,6 +224,7 @@ export default {
   name: "settings",
   components: {
     Languages,
+    ExpandDropdown,
     ButtonGroup,
     ToggleSwitch,
     SettingsItem,
@@ -248,6 +252,14 @@ export default {
     },
     availableThemes() {
       return globalVars.userSelectableThemes || {};
+    },
+    themeOptions() {
+      return Object.entries(this.availableThemes).map(([key, theme]) => ({
+        value: key,
+        label: String(key) === "default"
+          ? this.$t("profileSettings.defaultThemeDescription")
+          : `${key} - ${theme.description}`,
+      }));
     },
     onlyOfficeAvailable() {
       return globalVars.onlyOfficeUrl !== "";
@@ -379,7 +391,7 @@ export default {
       void this.updateSettings();
     },
     async updateSettings(event) {
-      if (event !== undefined) {
+      if (typeof event?.preventDefault === "function") {
         event.preventDefault();
       }
       if (this.localuser.themeColor !== "") {

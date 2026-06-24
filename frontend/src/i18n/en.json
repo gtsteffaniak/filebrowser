@@ -170,7 +170,8 @@
     "allSources": "All sources",
     "allShares": "All shares",
     "playPause": "Play/Pause",
-    "clearSelection": "Clear selection"
+    "clearSelection": "Clear selection",
+    "interval": "Interval{suffix}"
   },
   "buttons": {
     "copySuccess": "Copied to clipboard!",
@@ -468,6 +469,8 @@
     "searchContext": "Search Context: {context}",
     "onlyFolders": "Only Folders",
     "onlyFiles": "Only Files",
+    "filesAndFolders": "Files and Folders",
+    "allFileTypes": "All File Types",
     "notEnoughCharacters": "Not enough characters to search (min {minSearchLength})",
     "typeToSearch": "Start typing {minSearchLength} or more characters to begin searching.",
     "noResults": "No results found.",

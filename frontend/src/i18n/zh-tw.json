@@ -240,7 +240,9 @@
     "useWildcardSearchDescription": "支援的通配符選項：\n\n- 匹配任何序列：*\n\n- 匹配一個字元：?\n\n- 字元類別：[a-z]、[0-9]\n\n- 否定：[^0-9]\n\n- 字面 *、?或 [ 需要包在括弧中，例如 [*]、[?]、[[]\n\n- 所有結果都區分大小寫",
     "openInAdvancedSearch": "在進階搜尋中開啟",
     "caseExact": "區分大小寫的比對",
-    "caseExactDescription": "在比對檔案和資料夾名稱時，應嚴格區分大小寫，而非忽略大小寫差異。"
+    "caseExactDescription": "在比對檔案和資料夾名稱時，應嚴格區分大小寫，而非忽略大小寫差異。",
+    "filesAndFolders": "檔案與資料夾",
+    "allFileTypes": "所有檔案類型"
   },
   "settings": {
     "avoidChanges": "也勾選「變更密碼」以套用此密碼",
@@ -693,7 +695,8 @@
     "allSources": "所有來源",
     "allShares": "所有股份",
     "playPause": "播放／暫停",
-    "clearSelection": "清除選取項目"
+    "clearSelection": "清除選取項目",
+    "interval": "間隔{suffix}"
   },
   "access": {
     "rules": "存取規則",

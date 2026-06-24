@@ -8,29 +8,18 @@
         :name="$t('profileSettings.disableUpdateNotifications')"
         :description="$t('profileSettings.disableUpdateNotificationsDescription')" />
       <!-- Config Viewer Section -->
-      <div class="config-viewer-section">
+      <div class="config-viewer-section settings-items">
         <h3>{{ $t('settings.configViewer') }}</h3>
-        <div class="config-options">
-          <label class="checkbox-label">
-            <input type="checkbox" v-model="configOptions.showFull" @change="fetchConfig" />
-          {{ $t('settings.configViewerShowFull') }}
-          </label>
-          <label class="checkbox-label">
-            <input type="checkbox" v-model="configOptions.showComments" @change="fetchConfig" />
-            {{ $t('settings.configViewerShowComments') }}
-          </label>
-        </div>
-        <div>
-          <button
-           type="button"
-           @click="fetchConfig" class="button"
-           :disabled="configLoading"
-           aria-label="loadConfig"
-            style="margin-bottom: 1em;"
-          >
-            {{ configLoading ? $t('general.loading', { suffix: "..." }) : $t('settings.configViewerLoadConfig') }}
-          </button>
-        </div>
+        <ToggleSwitch
+          class="item"
+          v-model="configOptions.showFull"
+          :name="$t('settings.configViewerShowFull')"
+        />
+        <ToggleSwitch
+          class="item"
+          v-model="configOptions.showComments"
+          :name="$t('settings.configViewerShowComments')"
+        />
         <div class="config-editor-container">
           <Editor :viewer-mode="true" :content="configContent" :editor-mode="'yaml'" :read-only="true" />
         </div>
@@ -61,15 +50,25 @@ export default {
       },
       configContent: '',
       configLoading: false,
+      latestConfigRequestId: 0,
     };
   },
   computed: {},
+  watch: {
+    "configOptions.showFull"() {
+      void this.fetchConfig();
+    },
+    "configOptions.showComments"() {
+      void this.fetchConfig();
+    },
+  },
   mounted() {
     // Initialize localuser with default values and merge with state.user
     this.localuser = {
       disableUpdateNotifications: false,
       ...state.user
     };
+    void this.fetchConfig();
   },
   methods: {
     /**
@@ -87,19 +86,29 @@ export default {
       }
     },
     async fetchConfig() {
+      const requestId = ++this.latestConfigRequestId;
       this.configLoading = true;
       try {
         const response = await settingsApi.config(
           this.configOptions.showFull,
           this.configOptions.showComments
         );
-        this.configContent = await response.text();
+        const text = await response.text();
+        if (requestId !== this.latestConfigRequestId) {
+          return;
+        }
+        this.configContent = text;
       } catch (e) {
+        if (requestId !== this.latestConfigRequestId) {
+          return;
+        }
         console.error(e);
         const errorMessage = (e && typeof e === 'object' && 'message' in e) ? String(e.message) : 'Unknown error';
         this.configContent = `Error loading config: ${errorMessage}`;
       } finally {
-        this.configLoading = false;
+        if (requestId === this.latestConfigRequestId) {
+          this.configLoading = false;
+        }
       }
     },
   },
@@ -111,12 +120,8 @@ export default {
   margin-top: 1em;
 }
 
-.config-options {
-  margin: 1em;
-}
-
-.checkbox-label {
-  padding-right: 1em;
+.config-viewer-section {
+  margin-top: 1em;
 }
 
 .config-editor-container {

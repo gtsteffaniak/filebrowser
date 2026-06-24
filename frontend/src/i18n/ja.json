@@ -240,7 +240,9 @@
     "useWildcardSearchDescription": "サポートされているワイルドカードオプション：\n\n- 任意のシーケンスにマッチします：*\n\n- 1文字にマッチ: ?\n\n- 文字クラス：[a-z], [0-9］\n\n- 否定[^0-9]\n\n- 例えば、[*]、[?]、[[]のように、*、?\n\n- すべての結果は大文字と小文字を区別します。",
     "openInAdvancedSearch": "詳細検索で開く",
     "caseExact": "大文字と小文字を区別する一致",
-    "caseExactDescription": "大文字と小文字を区別せずに処理するのではなく、ファイル名とフォルダ名の文字の大文字・小文字を厳密に一致させる。"
+    "caseExactDescription": "大文字と小文字を区別せずに処理するのではなく、ファイル名とフォルダ名の文字の大文字・小文字を厳密に一致させる。",
+    "filesAndFolders": "ファイルとフォルダ",
+    "allFileTypes": "すべてのファイル形式"
   },
   "settings": {
     "avoidChanges": "（変更を避けるために空白にしてください）",
@@ -599,7 +601,8 @@
     "allSources": "すべての情報源",
     "allShares": "すべての株式",
     "playPause": "再生／一時停止",
-    "clearSelection": "選択を解除"
+    "clearSelection": "選択を解除",
+    "interval": "間隔{suffix}"
   },
   "access": {
     "rules": "アクセスルール",

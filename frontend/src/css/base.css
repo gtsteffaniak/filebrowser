@@ -150,49 +150,6 @@ i.spin {
   font-size: 1.75em;
 }
 
-input.sizeInput:disabled {
-  cursor: not-allowed;
-}
-
-.sizeInputWrapper {
-  border-radius: 1em;
-  margin: .5em;
-  display: flex;
-  align-items: center;
-  background-color: #f5f5f5;
-  padding: .25em;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  justify-content: center;
-}
-
-.sizeInput {
-  text-align: center;
-  border-radius: 1em;
-  padding: .5em;
-  border: none;
-  margin-right: 0.5em;
-  -webkit-backdrop-filter: invert(.1);
-  backdrop-filter: invert(.1);
-  height: 2em;
-  width: 5em;
-}
-
-.roundedInputLeft {
-  border-bottom-right-radius: 0;
-  border-top-right-radius: 0;
-  width: auto;
-  background-color: var(--surfaceSecondary);
-  min-width: 50%;
-}
-
-.roundedInputRight {
-  border-radius: 1em;
-  border-bottom-left-radius: 0;
-  border-top-left-radius: 0;
-  background-color: var(--surfaceSecondary);
-}
-
 .qrcode {
   border: 0.25em;
   border-style: solid;

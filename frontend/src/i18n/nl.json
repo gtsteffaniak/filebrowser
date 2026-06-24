@@ -170,7 +170,8 @@
     "allSources": "Alle bronnen",
     "allShares": "Alle aandelen",
     "playPause": "Afspelen/Pauzeren",
-    "clearSelection": "Selectie wissen"
+    "clearSelection": "Selectie wissen",
+    "interval": "Interval{suffix}"
   },
   "buttons": {
     "copySuccess": "Gekopieerd naar klembord!",
@@ -483,7 +484,9 @@
     "helpText2": "Substring match alleen op bestands- of mapnamen (geen volledige paden). case:exact voor hoofdlettergevoelig matchen\n\n voor OR tussen termen gebruik je het teken pipe; dubbele aanhalingstekens voor één zin.\n\nSchakel wildcard zoeken in voor meer geavanceerde opties.",
     "openInAdvancedSearch": "Openen in geavanceerd zoeken",
     "caseExact": "Hoofdlettergevoelige zoekopdracht",
-    "caseExactDescription": "Pas bij het vergelijken van bestands- en mapnamen de exacte hoofdlettergebruik toe, in plaats van hoofdletters en kleine letters te negeren."
+    "caseExactDescription": "Pas bij het vergelijken van bestands- en mapnamen de exacte hoofdlettergebruik toe, in plaats van hoofdletters en kleine letters te negeren.",
+    "filesAndFolders": "Bestanden en mappen",
+    "allFileTypes": "Alle bestandstypen"
   },
   "profileSettings": {
     "hideFileExt": "Bepaalde bestanden verbergen (op extensie)",

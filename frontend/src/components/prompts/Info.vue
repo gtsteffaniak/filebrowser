@@ -58,12 +58,13 @@
           <div class="hash-select">
             <label for="hash-algo">{{ $t("prompts.hashAlgorithm") }}</label>
             <div class="form-flex-group">
-              <select id="hash-algo" class="input form-form flat-right" v-model="selectedHashAlgo">
-                <option value="md5">MD5</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-                <option value="sha1">SHA1</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-                <option value="sha256">SHA256</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-                <option value="sha512">SHA512</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-              </select>
+              <ExpandDropdown
+                input-id="hash-algo"
+                v-model="selectedHashAlgo"
+                class="form-form flat-right"
+                :options="hashAlgoOptions"
+                :aria-label="$t('prompts.hashAlgorithm')"
+              />
               <button type="button" class="button form-button flat-left" @click="generateHash"
                 :title="$t('prompts.generate')" :aria-label="$t('prompts.generate')">
                 {{ $t("prompts.generate") }}
@@ -102,9 +103,13 @@ import { resourcesApi } from "@/api";
 import { state } from "@/store";
 import { notify } from "@/notify";
 import { activityViewerPresets } from "@/utils/activityViewerLink";
+import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 
 export default {
   name: "info",
+  components: {
+    ExpandDropdown,
+  },
   props: {
     item: {
       type: Object,
@@ -119,6 +124,14 @@ export default {
     };
   },
   computed: {
+    hashAlgoOptions() {
+      return [
+        { value: "md5", label: "MD5" },
+        { value: "sha1", label: "SHA1" },
+        { value: "sha256", label: "SHA256" },
+        { value: "sha512", label: "SHA512" },
+      ];
+    },
     humanSize() {
       return getHumanReadableFilesize(this.item?.size || 0);
     },

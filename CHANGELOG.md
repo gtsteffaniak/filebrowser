@@ -13,7 +13,7 @@ A database migration is required to go from v1.x to this version. See docs.
    - reports
 
  **Notes**:
- - new dropdown styles
+ - new dropdown and input styles
  - user updates are more granular, don't include entire user payload.
  - `user.id` has been moved to a backend property and all frontend apis now query users by username. Swagger has been updated.
  - removed legacy and deprecated properties

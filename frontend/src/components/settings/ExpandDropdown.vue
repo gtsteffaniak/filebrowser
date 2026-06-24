@@ -1,8 +1,15 @@
 <template>
-  <div ref="root" class="expand-dropdown" :class="{ 'expand-dropdown--open': open }">
+  <div
+    ref="root"
+    class="expand-dropdown"
+    :class="{
+      'expand-dropdown--open': open,
+      'expand-dropdown--transparent': transparent,
+    }"
+  >
     <div
       ref="anchor"
-      class="expand-dropdown-anchor menu-panel no-select"
+      class="expand-dropdown-anchor menu-panel no-select border-radius"
       :class="{ 'dark-mode': isDarkMode }"
     >
       <button
@@ -13,6 +20,7 @@
         :aria-expanded="open ? 'true' : 'false'"
         aria-haspopup="listbox"
         :aria-label="resolvedAriaLabel"
+        :disabled="disabled"
         @click="togglePanel"
         @keydown.down.prevent="openPanel"
         @keydown.enter.prevent="togglePanel"
@@ -45,7 +53,7 @@
           <div
             v-if="panelOpen"
             ref="panel"
-            class="expand-dropdown-body menu-panel no-select"
+            class="expand-dropdown-body menu-panel no-select border-radius"
             role="listbox"
             :aria-multiselectable="allowMultiple ? 'true' : 'false'"
             :aria-label="resolvedAriaLabel"
@@ -139,6 +147,14 @@ export default {
       default: undefined,
     },
     emptyMeansAll: {
+      type: Boolean,
+      default: false,
+    },
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
+    transparent: {
       type: Boolean,
       default: false,
     },
@@ -322,7 +338,7 @@ export default {
       return match ? match.label : key;
     },
     openPanel() {
-      if (this.open) {
+      if (this.disabled || this.open) {
         return;
       }
       this.panelOpen = false;
@@ -334,6 +350,9 @@ export default {
       });
     },
     togglePanel() {
+      if (this.disabled) {
+        return;
+      }
       if (this.open) {
         this.close();
         return;
@@ -455,7 +474,6 @@ export default {
 
 .menu-panel {
   background-color: var(--background);
-  border-radius: 1em;
   padding: 0.5em;
   display: flex;
   flex-direction: column;
@@ -466,12 +484,7 @@ export default {
 .expand-dropdown-anchor {
   box-sizing: border-box;
   border: 1px solid var(--surfaceSecondary);
-  box-shadow:
-    0 1px 1px hsl(0deg 0% 0% / 0.075),
-    0 2px 2px hsl(0deg 0% 0% / 0.075),
-    0 4px 4px hsl(0deg 0% 0% / 0.075),
-    0 8px 8px hsl(0deg 0% 0% / 0.075),
-    0 16px 16px hsl(0deg 0% 0% / 0.075);
+  box-shadow: var(--surfaceElevationShadow);
   justify-content: center;
   transition:
     border-bottom-left-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1),
@@ -499,15 +512,13 @@ export default {
   box-sizing: border-box;
   overflow: hidden;
   width: 100%;
-  margin-top: -1px;
+  margin-top: -2px;
   background-color: var(--background);
   border-style: solid;
   border-color: var(--surfaceSecondary);
   border-width: 0 1px 1px;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-  border-bottom-left-radius: 1em;
-  border-bottom-right-radius: 1em;
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
   padding: 0 0.5em 0.5em;
   justify-content: flex-start;
   align-items: stretch;
@@ -522,6 +533,19 @@ export default {
   padding-left: 0.5em;
   text-align: left;
   cursor: pointer;
+}
+
+/* Match menu-option hover inset so scale(1.02) does not clip in the anchor */
+.expand-dropdown-trigger:hover:not(:disabled) {
+  width: 98% !important;
+  margin-left: 1% !important;
+  padding-left: 0.5em !important;
+}
+
+.expand-dropdown-trigger:disabled,
+.expand-dropdown-trigger[disabled] {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .expand-dropdown-trigger-label {
@@ -544,6 +568,29 @@ export default {
 
 .expand-dropdown-chevron--open {
   transform: rotate(180deg);
+}
+
+/* Transparent anchor only when closed; full surface styling while open */
+.expand-dropdown--transparent:not(.expand-dropdown--open) .expand-dropdown-anchor {
+  border: none;
+  box-shadow: none;
+  background-color: transparent;
+  border-radius: 0;
+  padding: 0;
+}
+
+.expand-dropdown--transparent:not(.expand-dropdown--open) .expand-dropdown-trigger {
+  padding-left: 0;
+  color: inherit;
+}
+
+.expand-dropdown--transparent:not(.expand-dropdown--open) .expand-dropdown-trigger.action:not(:disabled):hover {
+  background-color: transparent;
+}
+
+.expand-dropdown--transparent:not(.expand-dropdown--open) .expand-dropdown-trigger-label,
+.expand-dropdown--transparent:not(.expand-dropdown--open) .expand-dropdown-chevron {
+  color: inherit;
 }
 
 .expand-enter-active {

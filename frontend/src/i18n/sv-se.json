@@ -240,7 +240,9 @@
     "useWildcardSearchDescription": "Alternativ för jokertecken som stöds:\n\n- Matchar vilken sekvens som helst: *\n\n- Matcha ett tecken: ?\n\n- Teckenklass: [a-z], [0-9]\n\n- Negation: [^0-9]\n\n- Bokstavliga *, ? eller [ måste omslutas av parenteser, t.ex. [*], [?], [[]\n\n- Alla resultat är skiftlägeskänsliga",
     "openInAdvancedSearch": "Öppna i avancerad sökning",
     "caseExact": "Skillnad mellan stora och små bokstäver",
-    "caseExactDescription": "Jämför fil- och mappnamn med exakt bokstavsstorlek istället för att bortse från skillnaden mellan stora och små bokstäver."
+    "caseExactDescription": "Jämför fil- och mappnamn med exakt bokstavsstorlek istället för att bortse från skillnaden mellan stora och små bokstäver.",
+    "filesAndFolders": "Filer och mappar",
+    "allFileTypes": "Alla filtyper"
   },
   "settings": {
     "avoidChanges": "(lämna blankt för att undvika ändringar)",
@@ -693,7 +695,8 @@
     "allSources": "Alla källor",
     "allShares": "Alla aktier",
     "playPause": "Spela upp/Paus",
-    "clearSelection": "Rensa urvalet"
+    "clearSelection": "Rensa urvalet",
+    "interval": "Intervall{suffix}"
   },
   "access": {
     "rules": "Regler för åtkomst",
