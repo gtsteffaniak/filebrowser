@@ -8,6 +8,7 @@ A database migration is required to go from v1.x to this version. See docs.
 
  **New Features**:
  - Download grant mechanism to distinguish between UI viewing and download.
+  - video streaming is limited to viewing only.
  # - granular per source permissions and access
  # - backup/restore in UI settings
  # - New CLI options and usage

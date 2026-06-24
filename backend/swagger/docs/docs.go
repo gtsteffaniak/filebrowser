@@ -2537,7 +2537,7 @@ const docTemplate = `{
         },
         "/api/resources/stream": {
             "get": {
-                "description": "Returns raw file bytes for UI viewers. Requires a streamToken minted by GET /resources. Never counts toward download limits or activity.",
+                "description": "Returns raw file bytes for inline UI viewing in capped byte ranges. Requires a streamToken minted by GET /resources. Media files and restricted viewers must use Range requests; full-file GET responses are rejected. Never counts toward download limits or activity.",
                 "consumes": [
                     "application/json"
                 ],
@@ -4894,7 +4894,7 @@ const docTemplate = `{
         },
         "/public/api/resources/stream": {
             "get": {
-                "description": "Returns raw file bytes for UI viewers on a share link. Requires streamToken from GET /public/api/resources. Does not count toward download limits.",
+                "description": "Returns raw file bytes for inline UI viewing in capped byte ranges on a share link. Requires streamToken from GET /public/api/resources. Media files and shares with downloads disabled must use Range requests. Does not count toward download limits.",
                 "consumes": [
                     "application/json"
                 ],
