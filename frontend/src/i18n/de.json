@@ -240,7 +240,9 @@
     "useWildcardSearchDescription": "Unterstützte Platzhalteroptionen:\n\n- Entspricht einer beliebigen Sequenz: *\n\n- Übereinstimmung mit einem Zeichen: ?\n\n- Zeichenklasse: [a-z], [0-9]\n\n- Negation: [^0-9]\n\n- Buchstäbliche *, ? oder [ müssen in Klammern eingeschlossen werden, z. B. [*], [?], [[]\n\n- Bei allen Ergebnissen wird zwischen Groß- und Kleinschreibung unterschieden.",
     "openInAdvancedSearch": "In der erweiterten Suche öffnen",
     "caseExact": "Groß-/Kleinschreibung beachten",
-    "caseExactDescription": "Datei- und Ordnernamen anhand der genauen Groß- und Kleinschreibung abgleichen, anstatt Groß- und Kleinschreibung zu ignorieren."
+    "caseExactDescription": "Datei- und Ordnernamen anhand der genauen Groß- und Kleinschreibung abgleichen, anstatt Groß- und Kleinschreibung zu ignorieren.",
+    "filesAndFolders": "Dateien und Ordner",
+    "allFileTypes": "Alle Dateitypen"
   },
   "settings": {
     "avoidChanges": "(leer lassen, um Änderungen zu vermeiden)",
@@ -599,7 +601,8 @@
     "allSources": "Alle Quellen",
     "allShares": "Alle Aktien",
     "playPause": "Wiedergabe/Pause",
-    "clearSelection": "Auswahl löschen"
+    "clearSelection": "Auswahl löschen",
+    "interval": "Intervall{suffix}"
   },
   "access": {
     "rules": "Zugangsregeln",

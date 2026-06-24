@@ -240,7 +240,9 @@
     "useWildcardSearchDescription": "Options de caractères génériques prises en charge :\n\n- Correspond à n'importe quelle séquence : *\n\n- Correspondre à un seul caractère : ?\n\n- Classe de caractères : [a-z], [0-9]\n\n- Négation : [^0-9]\n\n- Les valeurs littérales *, ? ou [ doivent être mises entre parenthèses, par exemple [*], [ ?], [[]].\n\n- Tous les résultats sont sensibles à la casse",
     "openInAdvancedSearch": "Ouvrir en recherche avancée",
     "caseExact": "Correspondance sensible à la casse",
-    "caseExactDescription": "Comparer les noms de fichiers et de dossiers en tenant compte de la casse exacte, plutôt qu'en ignorant la distinction entre majuscules et minuscules."
+    "caseExactDescription": "Comparer les noms de fichiers et de dossiers en tenant compte de la casse exacte, plutôt qu'en ignorant la distinction entre majuscules et minuscules.",
+    "filesAndFolders": "Fichiers et dossiers",
+    "allFileTypes": "Tous les types de fichiers"
   },
   "settings": {
     "scopes": "Définir les sources autorisées et la portée de l'utilisateur au sein de celles-ci",
@@ -599,7 +601,8 @@
     "allSources": "Toutes les sources",
     "allShares": "Toutes les actions",
     "playPause": "Lecture/Pause",
-    "clearSelection": "Effacer la sélection"
+    "clearSelection": "Effacer la sélection",
+    "interval": "Intervalle{suffix}"
   },
   "access": {
     "rules": "Règles d'accès",

@@ -229,7 +229,7 @@ test.describe("User Settings Persistence", () => {
         await expect(modal).toBeVisible();
 
         const loginMethodSelector = modal.locator("#loginMethod");
-        await expect(loginMethodSelector).toHaveValue("password");
+        await expect(loginMethodSelector).toHaveText("Password");
         checkForErrors();
     });
 });

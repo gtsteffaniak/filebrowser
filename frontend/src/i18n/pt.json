@@ -240,7 +240,9 @@
     "useWildcardSearchDescription": "Opções curingas suportadas:\n\n- Corresponde a qualquer sequência: *\n\n- Corresponder a um carácter: ?\n\n- Classe de caracteres: [a-z], [0-9]\n\n- Negação: [^0-9]\n\n- Os literais *, ?, ou [ devem ser colocados entre parênteses, por exemplo, [*], [?], [[]\n\n- Todos os resultados são sensíveis a maiúsculas e minúsculas",
     "openInAdvancedSearch": "Abrir na Pesquisa Avançada",
     "caseExact": "Correspondência que distingue maiúsculas de minúsculas",
-    "caseExactDescription": "Comparar os nomes dos ficheiros e pastas utilizando a maiúscula e minúscula exatas, em vez de ignorar as maiúsculas e minúsculas."
+    "caseExactDescription": "Comparar os nomes dos ficheiros e pastas utilizando a maiúscula e minúscula exatas, em vez de ignorar as maiúsculas e minúsculas.",
+    "filesAndFolders": "Ficheiros e pastas",
+    "allFileTypes": "Todos os tipos de ficheiros"
   },
   "settings": {
     "avoidChanges": "(deixe em branco para manter)",
@@ -693,7 +695,8 @@
     "allSources": "Todas as fontes",
     "allShares": "Todas as ações",
     "playPause": "Reproduzir/Pausar",
-    "clearSelection": "Limpar seleção"
+    "clearSelection": "Limpar seleção",
+    "interval": "Intervalo{suffix}"
   },
   "access": {
     "rules": "Regras de acesso",

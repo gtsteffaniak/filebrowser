@@ -240,7 +240,9 @@
     "useWildcardSearchDescription": "Podporované možnosti zástupných znakov:\n\n- Zodpovedajú akejkoľvek sekvencii: *\n\n- Zodpovedá jednému znaku: ?\n\n- Trieda znakov: [a-z], [0-9]\n\n- Negácia: [^0-9]\n\n- Doslovné *, ? alebo [ musia byť uzavreté v zátvorkách, napr. [*], [?], [[]\n\n- Pri všetkých výsledkoch sa rozlišujú veľké a malé písmená",
     "openInAdvancedSearch": "Otvoriť v rozšírenom vyhľadávaní",
     "caseExact": "Porovnanie s rozlišovaním veľkých a malých písmen",
-    "caseExactDescription": "Porovnávať názvy súborov a priečinkov na základe presného rozlišovania veľkých a malých písmen namiesto ignorovania veľkých a malých písmen."
+    "caseExactDescription": "Porovnávať názvy súborov a priečinkov na základe presného rozlišovania veľkých a malých písmen namiesto ignorovania veľkých a malých písmen.",
+    "filesAndFolders": "Súbory a priečinky",
+    "allFileTypes": "Všetky typy súborov"
   },
   "settings": {
     "avoidChanges": "(nechajte prázdne, aby sa nezmenilo)",
@@ -599,7 +601,8 @@
     "allSources": "Všetky zdroje",
     "allShares": "Všetky akcie",
     "playPause": "Prehrávať/Pozastaviť",
-    "clearSelection": "Vymazať výber"
+    "clearSelection": "Vymazať výber",
+    "interval": "Interval{suffix}"
   },
   "access": {
     "rules": "Pravidlá prístupu",

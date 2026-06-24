@@ -19,7 +19,7 @@
               v-model="selectedInterval"
               :options="availableIntervals"
               :disabled="watching"
-              :aria-label="$t('tools.fileWatcher.interval')"
+              :aria-label="$t('general.interval')"
             />
           </div>
           <div class="config-item lines-input">

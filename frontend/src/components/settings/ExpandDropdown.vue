@@ -484,12 +484,7 @@ export default {
 .expand-dropdown-anchor {
   box-sizing: border-box;
   border: 1px solid var(--surfaceSecondary);
-  box-shadow:
-    0 1px 1px hsl(0deg 0% 0% / 0.075),
-    0 2px 2px hsl(0deg 0% 0% / 0.075),
-    0 4px 4px hsl(0deg 0% 0% / 0.075),
-    0 8px 8px hsl(0deg 0% 0% / 0.075),
-    0 16px 16px hsl(0deg 0% 0% / 0.075);
+  box-shadow: var(--surfaceElevationShadow);
   justify-content: center;
   transition:
     border-bottom-left-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1),
@@ -517,15 +512,13 @@ export default {
   box-sizing: border-box;
   overflow: hidden;
   width: 100%;
-  margin-top: -1px;
+  margin-top: -2px;
   background-color: var(--background);
   border-style: solid;
   border-color: var(--surfaceSecondary);
   border-width: 0 1px 1px;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-  border-bottom-left-radius: var(--borderRadius);
-  border-bottom-right-radius: var(--borderRadius);
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
   padding: 0 0.5em 0.5em;
   justify-content: flex-start;
   align-items: stretch;

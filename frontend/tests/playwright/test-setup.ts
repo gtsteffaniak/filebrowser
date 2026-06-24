@@ -488,6 +488,18 @@ export async function checkForNotification(page: Page, message: string | RegExp)
  * @param message - Expected message text (string or RegExp)
  * @returns Locator for the matching toast message
  */
+/** Opens an ExpandDropdown trigger and selects an option from its listbox. */
+export async function selectExpandDropdownOption(
+  page: Page,
+  ariaLabel: string,
+  optionName: string | RegExp,
+  options?: { scope?: Locator },
+): Promise<void> {
+  const scope = options?.scope ?? page;
+  await scope.locator(`button[aria-label="${ariaLabel}"]`).click();
+  await page.getByRole("option", { name: optionName }).click();
+}
+
 export async function checkForToast(page: Page, message: string | RegExp): Promise<import('@playwright/test').Locator> {
   const toastMessage = page.locator('.toast-message');
 

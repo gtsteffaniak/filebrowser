@@ -126,12 +126,12 @@
         <languages id="locale" v-model:locale="user.locale" @input="emitUpdate"></languages>
       </p>
       <div v-if="stateUser.permissions.admin">
-        <label for="loginMethod">{{ $t("settings.loginMethodDescription") }}</label>
+        <label for="loginMethod">{{ $t("settings.loginMethod") }}</label>
         <ExpandDropdown
           v-model="user.loginMethod"
           input-id="loginMethod"
           :options="loginMethodOptions"
-          :aria-label="$t('settings.loginMethodDescription')"
+          :aria-label="$t('settings.loginMethod')"
           @update:model-value="emitUpdate"
         />
       </div>
@@ -286,14 +286,15 @@ export default {
     passwordPlaceholder() {
       return this.isNew ? "" : this.$t("settings.avoidChanges");
     },
-    /** Password change (existing user): target and signed-in user must both use password login. */
+    /** Password change (existing user): self-service requires password login; admins editing another user always see it. */
     showPasswordChangeSection() {
-      return (
-        !this.isNew &&
-        this.user.loginMethod === "password" &&
-        this.stateUser.loginMethod === "password" &&
-        this.globalVars.passwordAvailable
-      );
+      if (this.isNew || this.user.loginMethod !== "password" || !this.globalVars.passwordAvailable) {
+        return false;
+      }
+      if (this.stateUser.permissions?.admin && this.stateUser.username !== this.user.username) {
+        return true;
+      }
+      return this.stateUser.loginMethod === "password";
     },
     firstAvailableLoginMethod() {
       if (this.globalVars.passwordAvailable) return "password";
