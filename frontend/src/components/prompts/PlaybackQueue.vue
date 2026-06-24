@@ -66,6 +66,7 @@
 <script>
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
+import { cyclePlaybackModes as cycleModes } from '@/utils/playbackQueue.js';
 import Icon from "@/components/files/Icon.vue";
 import { resourcesApi } from "@/api";
 import { globalVars } from "@/utils/constants";
@@ -185,11 +186,7 @@ export default {
       return resourcesApi.getPreviewURL(source, path, item.modified);
     },
     cyclePlaybackModes() {
-      // Cycle through modes using store mutations
-      const modes = ['loop-all', 'shuffle', 'sequential', 'loop-single'];
-      const currentIndex = modes.indexOf(this.playbackMode);
-      const nextMode = modes[(currentIndex + 1) % modes.length];
-      // Update store with new mode - this will trigger plyrViewer to rebuild queue
+      const nextMode = cycleModes(this.playbackMode);
       mutations.setPlaybackQueue({
         queue: this.playbackQueue,
         currentIndex: this.currentQueueIndex,

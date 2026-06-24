@@ -423,9 +423,38 @@ export default {
     },
     listing: {
       handler(newListing) {
-        if (newListing && newListing.length > 0) {
-          this.setupPlaybackQueue(true);
+        if (!newListing?.length) return;
+        const isShare = getters.isShare();
+        const getId = item => isShare ? item.name : item.path;
+        const mediaFiles = newListing.filter(item => /^(audio|video)\//.test(item.type || ''));
+        const queue = state.playbackQueue.queue;
+        const mode = state.playbackQueue.mode;
+
+        if (queue.length && mediaFiles.length === queue.length) {
+          const currIds = mediaFiles.map(getId);
+          const queIds = queue.map(getId);
+          let match;
+          if (mode === 'shuffle') {
+            const set = new Set(queIds);
+            match = currIds.every(id => set.has(id));
+          } else {
+            match = currIds.every((id, i) => id === queIds.at(i));
+          }
+          if (match) {
+            const currentItemId = getId(this.req);
+            const newIndex = queue.findIndex(item => getId(item) === currentItemId);
+            if (newIndex !== -1 && newIndex !== state.playbackQueue.currentIndex) {
+              mutations.setPlaybackQueue({
+                queue,
+                currentIndex: newIndex,
+                mode,
+              });
+            }
+            return;
+          }
         }
+        // rebuild reshuffle only in shuffle mode
+        this.setupPlaybackQueue(mode === 'shuffle');
       },
       immediate: true
     },
@@ -1219,9 +1248,12 @@ export default {
         }
         const clientX = t.clientX;
         const zone = zoneFromClientX(clientX);
-        // center
+        // when clicking in the center toggle play/pause
         if (zone === 'center') {
-          togglePlayPause();
+          if (this.previewType === 'video') {
+            togglePlayPause();
+            event.preventDefault();
+          }
           lastTapTime = 0;
           lastZone = null;
           event.preventDefault();
@@ -1247,9 +1279,12 @@ export default {
         }
         const zone = zoneFromClientX(event.clientX);
         if (zone === 'center') {
-          togglePlayPause();
-          event.preventDefault();
-          event.stopPropagation();
+          if (this.previewType === 'video') {
+            togglePlayPause();
+            event.preventDefault();
+            event.stopPropagation();
+          }
+          return;
         }
       };
       const onDblClick = (event) => {
@@ -2231,7 +2266,6 @@ export default {
 .plyr.plyr--video {
   width: 100%;
   height: 100%;
-  cursor: pointer;
 }
 
 .plyr .plyr__video-wrapper {

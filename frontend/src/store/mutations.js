@@ -1023,10 +1023,17 @@ export const mutations = {
     }
     emitStateChanged();
   },
-  setPlaybackQueue: (payload) => {
-    state.playbackQueue.queue = payload.queue || [];
-    state.playbackQueue.currentIndex = payload.currentIndex ?? -1;
-    state.playbackQueue.mode = payload.mode || 'single';
+  setPlaybackQueue: (playback) => {
+    state.playbackQueue.queue = playback.queue || [];
+    state.playbackQueue.currentIndex = playback.currentIndex ?? -1;
+    state.playbackQueue.mode = playback.mode || 'single';
+    try {
+      sessionStorage.setItem('playbackQueue', JSON.stringify({
+        queue: state.playbackQueue.queue,
+        currentIndex: state.playbackQueue.currentIndex,
+        mode: state.playbackQueue.mode,
+      }));
+    } catch (_) { /* ignore */ }
     emitStateChanged();
   },
   setPlaybackState: (isPlaying) => {

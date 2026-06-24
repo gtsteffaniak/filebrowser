@@ -144,7 +144,7 @@ export function getNextItem(queue, currentIndex, mode, direction) {
  * @returns {string} The new mode.
  */
 export function cyclePlaybackModes(currentMode) {
-  const modes = ['loop-all', 'shuffle', 'sequential'];
+  const modes = ['sequential', 'shuffle', 'loop-all'];
   const currentIndex = modes.indexOf(currentMode);
   const nextIndex = (currentIndex + 1) % modes.length;
   return modes.at(nextIndex);
