@@ -50,6 +50,7 @@ export default {
       },
       configContent: '',
       configLoading: false,
+      latestConfigRequestId: 0,
     };
   },
   computed: {},
@@ -85,19 +86,29 @@ export default {
       }
     },
     async fetchConfig() {
+      const requestId = ++this.latestConfigRequestId;
       this.configLoading = true;
       try {
         const response = await settingsApi.config(
           this.configOptions.showFull,
           this.configOptions.showComments
         );
-        this.configContent = await response.text();
+        const text = await response.text();
+        if (requestId !== this.latestConfigRequestId) {
+          return;
+        }
+        this.configContent = text;
       } catch (e) {
+        if (requestId !== this.latestConfigRequestId) {
+          return;
+        }
         console.error(e);
         const errorMessage = (e && typeof e === 'object' && 'message' in e) ? String(e.message) : 'Unknown error';
         this.configContent = `Error loading config: ${errorMessage}`;
       } finally {
-        this.configLoading = false;
+        if (requestId === this.latestConfigRequestId) {
+          this.configLoading = false;
+        }
       }
     },
   },

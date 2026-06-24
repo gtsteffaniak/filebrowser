@@ -99,7 +99,7 @@
           <ExpandDropdown
             :model-value="source.name"
             class="flat-right form-compact source-dropdown"
-            :options="scopeSourceOptions"
+            :options="scopeSourceOptionsFor(source.name)"
             :aria-label="$t('settings.scopes')"
             @update:model-value="(newName) => handleSourceChange(source, newName)"
           />
@@ -260,12 +260,6 @@ export default {
     hasMoreSources() {
       return this.selectedSources.length < this.sourceList.length;
     },
-    scopeSourceOptions() {
-      return this.sourceList.map((source) => ({
-        value: source.name,
-        label: source.name,
-      }));
-    },
     loginMethodOptions() {
       const options = [];
       if (this.globalVars.passwordAvailable) {
@@ -280,7 +274,9 @@ export default {
       if (this.globalVars.ldapAvailable) {
         options.push({ value: "ldap", label: "LDAP" });
       }
-      options.push({ value: "jwt", label: "JWT" });
+      if (this.globalVars.jwtAvailable) {
+        options.push({ value: "jwt", label: "JWT" });
+      }
       return options;
     },
     passwordPlaceholder() {
@@ -288,11 +284,14 @@ export default {
     },
     /** Password change (existing user): self-service requires password login; admins editing another user always see it. */
     showPasswordChangeSection() {
-      if (this.isNew || this.user.loginMethod !== "password" || !this.globalVars.passwordAvailable) {
+      if (this.isNew || !this.globalVars.passwordAvailable) {
         return false;
       }
       if (this.stateUser.permissions?.admin && this.stateUser.username !== this.user.username) {
         return true;
+      }
+      if (this.user.loginMethod !== "password") {
+        return false;
       }
       return this.stateUser.loginMethod === "password";
     },
@@ -613,6 +612,12 @@ export default {
       const removed = this.selectedSources.splice(index, 1)[0];
       this.availableSources.push({ name: removed.name });
       this.emitUserUpdate();
+    },
+    scopeSourceOptionsFor(currentName) {
+      const taken = new Set(this.selectedSources.map((s) => s.name).filter(Boolean));
+      return this.sourceList
+        .filter((s) => s.name === currentName || !taken.has(s.name))
+        .map((s) => ({ value: s.name, label: s.name }));
     },
     handleSourceChange(source, newName) {
       const oldName = source.name;

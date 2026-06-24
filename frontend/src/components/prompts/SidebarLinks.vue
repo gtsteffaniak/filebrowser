@@ -84,7 +84,7 @@
           :model-value="linkTypeSelectValue"
           :options="linkTypeOptions"
           :default-placeholder-if-empty="$t('sidebar.selectLinkType')"
-          :aria-label="'Link Type'"
+          :aria-label="$t('sidebar.linkType')"
           @update:model-value="onLinkTypeChange"
         />
 

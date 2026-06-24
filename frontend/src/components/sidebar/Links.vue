@@ -674,6 +674,9 @@ export default {
       mutations.setSidebarMode(newMode);
     },
     navigateToSource(sourceName) {
+      if (!sourceName || sourceName === this.activeSource) {
+        return;
+      }
       goToItem(sourceName, '/', {}, false, false);
     },
   },

@@ -10,7 +10,6 @@
         v-model="currentSource"
         :options="sourceOptions"
         :aria-label="$t('prompts.destinationSource')"
-        @update:model-value="onSourceChange"
       />
     </div>
 
@@ -493,9 +492,6 @@ export default {
           base: this.current === this.path ? null : this.current,
         },
       });
-    },
-    onSourceChange() {
-      this.resetToSource(this.currentSource);
     },
     /**
      * Jump listing to a source/path (e.g. after PathPickerButton confirms).

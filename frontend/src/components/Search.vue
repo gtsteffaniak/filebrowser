@@ -220,8 +220,9 @@ export default {
       this.submit();
     },
     entryTypeFilter(newValue) {
-      if (newValue === "type:folder") {
+      if (newValue === "type:folder" && this.selectedMediaTypes.length > 0) {
         this.selectedMediaTypes = [];
+        return;
       }
       this.submit();
     },

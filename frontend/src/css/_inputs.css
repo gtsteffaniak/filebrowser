@@ -79,8 +79,6 @@ input.sizeInput:disabled {
     0 8px 8px hsl(0deg 0% 0% / 0.075),
     0 16px 16px hsl(0deg 0% 0% / 0.075);
   padding: .25em .5em;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   justify-content: center;
   color: var(--textPrimary);
 }

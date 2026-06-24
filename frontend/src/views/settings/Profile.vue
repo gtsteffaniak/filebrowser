@@ -194,7 +194,7 @@
             <ExpandDropdown
               v-model="selectedTheme"
               :options="themeOptions"
-              aria-label="themeOptions"
+              :aria-label="$t('general.theme')"
               @update:model-value="updateSettings"
             />
           </div>
