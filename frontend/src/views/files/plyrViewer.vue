@@ -1460,7 +1460,9 @@ export default {
       this.videoEdgeKind = null;
       this.videoEdgeDx = 0;
       this.videoEdgeDy = 0;
-      this.skipNextTap = false;
+      this.skipNextTap = true;
+      // small timeout to prevent the toggle play gesture to trigger pausing the video
+      setTimeout(() => { this.skipNextTap = false; }, 200);
       this.applyVideoSwipeTransform();
       mutations.setNavigationGestureHint({});
       setTimeout(() => {
@@ -1575,7 +1577,7 @@ export default {
         if (this.videoEdgeDy <= -this.videoEdgeCommitY) {
           this.player.fullscreen.toggle();
           this.resetVideoEdgeGestureImmediate();
-          // skipNextTap to prevent play/pause toggle
+          // Set skipNextTap to prevent play/pause toggle
           this.skipNextTap = true;
           setTimeout(() => { this.skipNextTap = false; }, 300);
           return;
