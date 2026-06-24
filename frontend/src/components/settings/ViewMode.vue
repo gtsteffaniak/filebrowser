@@ -1,26 +1,36 @@
 <template>
   <div class="form-flex-group">
-    <select class="input" v-on:change="change" :value="viewMode">
-      <option v-for="mode in viewModes" :key="mode" :value="mode">
-        {{ mode }}
-      </option>
-    </select>
+    <ExpandDropdown
+      :model-value="viewMode"
+      :options="viewModeOptions"
+      :aria-label="$t('buttons.normalView')"
+      @update:model-value="$emit('update:viewMode', $event)"
+    />
   </div>
 </template>
 
 <script>
+import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
+
 export default {
   name: "ViewMode",
+  components: {
+    ExpandDropdown,
+  },
   props: ["viewMode"],
+  emits: ["update:viewMode"],
+  computed: {
+    viewModeOptions() {
+      return this.viewModes.map((mode) => ({
+        value: mode,
+        label: mode,
+      }));
+    },
+  },
   data() {
     return {
-      viewModes: ['list', 'compact', 'normal', 'gallery'],
+      viewModes: ["list", "compact", "normal", "gallery"],
     };
-  },
-  methods: {
-    change(event) {
-      this.$emit("update:viewMode", event.target.value);
-    },
   },
 };
 </script>

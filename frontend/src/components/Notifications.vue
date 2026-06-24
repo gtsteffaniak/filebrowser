@@ -4,7 +4,7 @@
       <div
         v-for="notification in notifications"
         :key="notification.id"
-        :class="['notification-item', notification.type]"
+        :class="['notification-item', 'border-radius', notification.type]"
         @mouseenter="pauseAutoClose(notification.id)"
         @mouseleave="resumeAutoClose(notification.id)"
       >
@@ -105,7 +105,6 @@ export default {
 }
 
 .notification-item {
-  border-radius: 1em;
   color: #fff;
   position: relative;
   max-width: 90vw;

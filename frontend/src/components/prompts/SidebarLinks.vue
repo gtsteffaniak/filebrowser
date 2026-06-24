@@ -80,26 +80,24 @@
 
         <!-- Link Type Selection -->
         <p>{{ $t('sidebar.linkType') }}</p>
-        <select aria-label="Link Type" :value="linkTypeSelectValue" @change="onLinkTypeChange" class="input">
-          <option value="">{{ $t('sidebar.selectLinkType') }}</option>
-          <option v-if="context === 'user'" value="source">{{ $t('general.source') }}</option>
-          <option v-if="canListShares" value="share">{{ $t('general.share') }}</option>
-          <option v-if="context === 'user'" value="tool">{{ $t('general.tool') }}</option>
-          <option value="custom">{{ $t('sidebar.customLink') }}</option>
-          <option value="divider">{{ $t('general.divider') }}</option>
-          <option v-if="context === 'share'" value="shareInfo">{{ $t('share.shareInfo') }}</option>
-          <option v-if="context === 'share'" value="download">{{ $t('general.download') }}</option>
-        </select>
+        <ExpandDropdown
+          :model-value="linkTypeSelectValue"
+          :options="linkTypeOptions"
+          :default-placeholder-if-empty="$t('sidebar.selectLinkType')"
+          :aria-label="$t('sidebar.linkType')"
+          @update:model-value="onLinkTypeChange"
+        />
 
         <!-- Source Selection (category is "source" or "source-minimal") -->
         <div v-if="isSourceCategory(newLink.category)" class="form-group">
           <p>{{ $t('sidebar.selectSource') }}</p>
-          <select v-model="newLink.sourceName" @change="handleSourceChange" class="input">
-            <option value="">{{ $t('sidebar.chooseSource') }}</option>
-            <option v-for="(info, name) in availableSources" :key="name" :value="name">
-              {{ name }}
-            </option>
-          </select>
+          <ExpandDropdown
+            v-model="newLink.sourceName"
+            :options="sidebarSourceOptions"
+            :default-placeholder-if-empty="$t('sidebar.chooseSource')"
+            :aria-label="$t('sidebar.selectSource')"
+            @update:model-value="handleSourceChange"
+          />
 
           <!-- Custom Name for Source -->
           <div class="form-group" v-if="newLink.sourceName">
@@ -133,10 +131,12 @@
             <!-- Dropdown to choose which usage text to display (only shown in hybrid mode) -->
             <div v-if="showIndexedUsage && showDiskUsage" class="form-group" style="margin-top: 0.5em;">
               <p>{{ $t('sidebar.usageTextDisplay') }}</p>
-              <select v-model="usageTextMode" @change="updateUsageTextMode" class="input">
-                <option value="indexed">{{ $t('sidebar.usageTextIndexed') }}</option>
-                <option value="disk">{{ $t('sidebar.usageTextDisk') }}</option>
-              </select>
+              <ExpandDropdown
+                :model-value="usageTextMode"
+                :options="usageTextModeOptions"
+                :aria-label="$t('sidebar.usageTextDisplay')"
+                @update:model-value="updateUsageTextMode"
+              />
             </div>
           </div>
         </div>
@@ -144,12 +144,13 @@
         <!-- Share Selection -->
         <div v-if="newLink.category === 'share'" class="form-group">
           <p>{{ $t('sidebar.selectShare') }}</p>
-          <select v-model="newLink.target" @change="handleShareChange" class="input">
-            <option value="">{{ $t('sidebar.chooseShare') }}</option>
-            <option v-for="share in availableShares" :key="share.hash" :value="`/public/share/${share.hash}`">
-              {{ share.hash }} {{ $t('general.of') }} {{ share.path }}
-            </option>
-          </select>
+          <ExpandDropdown
+            v-model="newLink.target"
+            :options="shareTargetOptions"
+            :default-placeholder-if-empty="$t('sidebar.chooseShare')"
+            :aria-label="$t('sidebar.selectShare')"
+            @update:model-value="handleShareChange"
+          />
 
           <!-- Custom Name for Share -->
           <div class="form-group" v-if="newLink.target">
@@ -169,12 +170,13 @@
         <!-- Tool Selection - only available for user context, not shares -->
         <div v-if="newLink.category === 'tool' && context === 'user'" class="form-group">
           <p>{{ $t('sidebar.selectTool') }}</p>
-          <select v-model="newLink.target" @change="handleToolChange" class="input">
-            <option value="">{{ $t('sidebar.chooseTool') }}</option>
-            <option v-for="tool in availableTools" :key="tool.path" :value="tool.path">
-              {{ $t(tool.name) }}
-            </option>
-          </select>
+          <ExpandDropdown
+            v-model="newLink.target"
+            :options="toolTargetOptions"
+            :default-placeholder-if-empty="$t('sidebar.chooseTool')"
+            :aria-label="$t('sidebar.selectTool')"
+            @update:model-value="handleToolChange"
+          />
 
           <!-- Custom Name for Tool -->
           <div class="form-group" v-if="newLink.target">
@@ -298,6 +300,7 @@ import { getIconClass } from "@/utils/material-symbols";
 import { getObjectProperty } from '@/utils/object.js';
 import FileList from "../files/FileList.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
+import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import { eventBus } from "@/store/eventBus";
 
 export default {
@@ -305,6 +308,7 @@ export default {
   components: {
     FileList,
     ToggleSwitch,
+    ExpandDropdown,
   },
   props: {
     context: {
@@ -399,6 +403,53 @@ export default {
     /** Share link type requires manage-share permission; avoids listing shares when forbidden */
     canListShares() {
       return this.context === "user" && getters.permissions().share;
+    },
+    linkTypeOptions() {
+      const options = [];
+      if (this.context === "user") {
+        options.push({ value: "source", label: this.$t("general.source") });
+      }
+      if (this.canListShares) {
+        options.push({ value: "share", label: this.$t("general.share") });
+      }
+      if (this.context === "user") {
+        options.push({ value: "tool", label: this.$t("general.tool") });
+      }
+      options.push(
+        { value: "custom", label: this.$t("sidebar.customLink") },
+        { value: "divider", label: this.$t("general.divider") },
+      );
+      if (this.context === "share") {
+        options.push(
+          { value: "shareInfo", label: this.$t("share.shareInfo") },
+          { value: "download", label: this.$t("general.download") },
+        );
+      }
+      return options;
+    },
+    sidebarSourceOptions() {
+      return Object.keys(this.availableSources).map((name) => ({
+        value: name,
+        label: name,
+      }));
+    },
+    shareTargetOptions() {
+      return this.availableShares.map((share) => ({
+        value: `/public/share/${share.hash}`,
+        label: `${share.hash} ${this.$t("general.of")} ${share.path}`,
+      }));
+    },
+    toolTargetOptions() {
+      return this.availableTools.map((tool) => ({
+        value: tool.path,
+        label: this.$t(tool.name),
+      }));
+    },
+    usageTextModeOptions() {
+      return [
+        { value: "indexed", label: this.$t("sidebar.usageTextIndexed") },
+        { value: "disk", label: this.$t("sidebar.usageTextDisk") },
+      ];
     },
   },
   async mounted() {
@@ -541,9 +592,8 @@ export default {
         this.newLink.category = 'source-minimal';
       }
     },
-    updateUsageTextMode(event) {
-      const mode = event.target.value;
-      if (mode === 'disk') {
+    updateUsageTextMode(mode) {
+      if (mode === "disk") {
         this.newLink.category = 'source-hybrid-2';
       } else {
         this.newLink.category = 'source-hybrid';
@@ -606,8 +656,7 @@ export default {
       this.newLink.sourceName = "";
       this.newLink.sourcePath = "";
     },
-    onLinkTypeChange(event) {
-      const value = event.target.value;
+    onLinkTypeChange(value) {
       if (value === "source") {
         if (!this.isSourceCategory(this.newLink.category)) {
           this.resetNewLinkFormForTypeSwitch();

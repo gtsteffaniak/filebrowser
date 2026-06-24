@@ -240,7 +240,9 @@
     "useWildcardSearchDescription": "Támogatott helyettesítő opciók:\n\n- Bármilyen sorozatra illeszkedik: *\n\n- Egy karakterrel való egyezés: ?\n\n- Karakterosztály: [a-z], [0-9]\n\n- Negáció: [^0-9]\n\n- A szó szerinti *, ? vagy [ karaktereket zárójelbe kell tenni, pl. [*], [?], [[]\n\n- Minden eredmény nagy- és kisbetű-érzékeny",
     "openInAdvancedSearch": "Megnyitás a bővített keresőben",
     "caseExact": "Kis- és nagybetűk közötti különbséget figyelembe vevő keresés",
-    "caseExactDescription": "A fájl- és mappanevek összehasonlításakor vegye figyelembe a betűk pontos írásmódját, ne pedig a kis- és nagybetűk közötti különbséget."
+    "caseExactDescription": "A fájl- és mappanevek összehasonlításakor vegye figyelembe a betűk pontos írásmódját, ne pedig a kis- és nagybetűk közötti különbséget.",
+    "filesAndFolders": "Fájlok és mappák",
+    "allFileTypes": "Minden fájltípus"
   },
   "settings": {
     "avoidChanges": "(üresen hagyva nincs változás)",
@@ -599,7 +601,8 @@
     "allSources": "Minden forrás",
     "allShares": "Minden részvény",
     "playPause": "Lejátszás/Szünet",
-    "clearSelection": "Kiválasztás törlése"
+    "clearSelection": "Kiválasztás törlése",
+    "interval": "Intervallum{suffix}"
   },
   "access": {
     "rules": "Hozzáférési szabályok",

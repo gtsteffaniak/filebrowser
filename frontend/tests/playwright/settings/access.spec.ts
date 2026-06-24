@@ -1,4 +1,4 @@
-import { checkForNotification, expect, test } from '../test-setup'
+import { checkForNotification, expect, selectExpandDropdownOption, test } from '../test-setup'
 
 test("access rules - deny folder does not show in folder listing", async ({ page, checkForErrors }) => {
   await page.goto("/files/access");
@@ -42,7 +42,7 @@ test("navigate from search item", async({ page, checkForErrors }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await page.locator('#search-bar-input').click()
-  await page.locator('select[aria-label="search sources dropdown"]').selectOption('access');
+  await selectExpandDropdownOption(page, 'search sources dropdown', 'access');
   await page.locator('#search-input').fill('no-access.txt');
   await expect(page.locator('.searchPrompt p')).toHaveText('No results found.');
   await page.locator('#search-input').fill('showme.txt');

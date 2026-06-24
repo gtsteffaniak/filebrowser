@@ -240,7 +240,9 @@
     "useWildcardSearchDescription": "지원되는 와일드카드 옵션:\n\n- 모든 시퀀스와 일치합니다: *\n\n- 한 문자 일치: ?\n\n- 문자 클래스: [a-z], [0-9]\n\n- 부정: [^0-9]\n\n- 리터럴 *, ? 또는 [는 괄호로 묶어야 합니다(예: [*], [?], [[]).\n\n- 모든 결과는 대소문자를 구분합니다.",
     "openInAdvancedSearch": "고급 검색에서 열기",
     "caseExact": "대소문자를 구분하는 일치",
-    "caseExactDescription": "대소문자를 구분하지 않고 무시하는 대신, 파일 및 폴더 이름을 대소문자를 정확히 일치시켜 검색합니다."
+    "caseExactDescription": "대소문자를 구분하지 않고 무시하는 대신, 파일 및 폴더 이름을 대소문자를 정확히 일치시켜 검색합니다.",
+    "filesAndFolders": "파일 및 폴더",
+    "allFileTypes": "모든 파일 형식"
   },
   "settings": {
     "avoidChanges": "(수정하지 않으면 비워두세요)",
@@ -599,7 +601,8 @@
     "allSources": "모든 출처",
     "allShares": "모든 주식",
     "playPause": "재생/일시정지",
-    "clearSelection": "선택 항목 지우기"
+    "clearSelection": "선택 항목 지우기",
+    "interval": "간격{suffix}"
   },
   "access": {
     "rules": "액세스 규칙",

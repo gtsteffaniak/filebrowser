@@ -13,13 +13,20 @@
 
     <!-- Duration Input -->
     <p>{{ $t('api.tokenDuration') }}</p>
-    <div class="sizeInputWrapper">
-      <input class="sizeInput roundedInputLeft input" v-model.number="duration" type="number" min="1"
-        :placeholder="$t('api.durationNumberPlaceholder')" />
-      <select v-model="unit" class="roundedInputRight input">
-        <option value="days">{{ $t('time.days') }}</option>
-        <option value="months">{{ $t('time.months') }}</option>
-      </select>
+    <div class="form-flex-group">
+      <input
+        class="input form-grow flat-right"
+        v-model.number="duration"
+        type="number"
+        min="1"
+        :placeholder="$t('api.durationNumberPlaceholder')"
+      />
+      <ExpandDropdown
+        v-model="unit"
+        class="flat-left form-compact form-dropdown"
+        :options="unitOptions"
+        :aria-label="$t('api.tokenDuration')"
+      />
     </div>
 
     <!-- Customize Token Option -->
@@ -59,6 +66,7 @@ import { mutations } from "@/store";
 import { notify } from "@/notify";
 import { authApi } from "@/api";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
+import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import { eventBus } from "@/store/eventBus";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
@@ -77,6 +85,7 @@ export default {
   components: {
     ToggleSwitch,
     LoadingSpinner,
+    ExpandDropdown,
   },
   props: {
     permissions: {
@@ -98,6 +107,12 @@ export default {
     }
   },
   computed: {
+    unitOptions() {
+      return [
+        { value: "days", label: this.$t("time.days") },
+        { value: "months", label: this.$t("time.months") },
+      ];
+    },
     durationInDays() {
       // Calculate duration based on unit
       return this.unit === "days" ? this.duration : this.duration * 30; // assuming 30 days per month
@@ -138,9 +153,6 @@ export default {
 };
 </script>
 <style scoped>
-.sizeInputWrapper {
-  display: flex !important;
-}
 .description {
   font-size: 0.9em;
   color: #666;

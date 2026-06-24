@@ -144,10 +144,6 @@
                  @mouseleave="onSourceInfoMouseLeave">
                 info
               </i>
-              <!-- Dropdown arrow -->
-              <button type="button" class="source-dropdown-button" @click.stop="toggleSourceDropdown" ref="dropdownTrigger">
-                <i class="material-symbols">keyboard_arrow_down</i>
-              </button>
             </div>
             <div v-if="hasUsageInfo(activeSourceLink)" class="usage-info">
               <ProgressBar 
@@ -168,15 +164,14 @@
               </ProgressBar>
             </div>
           </div>
-          <!-- Source Dropdown -->
-          <transition name="dropdown">
-            <div v-if="showSourceDropdown" class="source-dropdown" ref="dropdown">
-              <div v-for="item in dropdownSourceItems" :key="item.rawName" class="dropdown-item"
-                  @click="selectSource(item.rawName)">
-                {{ item.displayName }}
-              </div>
-            </div>
-          </transition>
+          <ExpandDropdown
+            v-if="sourceNames.length > 1"
+            class="sidebar-source-switcher"
+            :model-value="activeSource"
+            :options="sourceDropdownOptions"
+            :aria-label="$t('general.source')"
+            @update:model-value="navigateToSource"
+          />
         </div>
         <FileTree
           :currentPath="currentPath"
@@ -199,16 +194,17 @@ import { globalVars } from "@/utils/constants";
 import { resourcesApi } from "@/api";
 import ShareInfo from "@/components/files/ShareInfo.vue";
 import FileTree from '@/components/files/FileTree.vue';
+import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 export default {
   name: "SidebarLinks",
   components: {
     ProgressBar,
     ShareInfo,
     FileTree,
+    ExpandDropdown,
   },
   data() {
     return {
-      showSourceDropdown: false,
       sourceTooltipDismissHandler: null,
     };
   },
@@ -321,12 +317,14 @@ export default {
         };
       });
     },
-  },
-  mounted() {
-    document.addEventListener('click', this.closeDropdown);
+    sourceDropdownOptions() {
+      return this.dropdownSourceItems.map((item) => ({
+        value: item.rawName,
+        label: item.displayName,
+      }));
+    },
   },
   beforeUnmount() {
-    document.removeEventListener('click', this.closeDropdown);
     this.unregisterSourceTooltipDismiss();
   },
   methods: {
@@ -675,24 +673,11 @@ export default {
       const newMode = state.sidebar.mode === 'links' ? 'navigation' : 'links';
       mutations.setSidebarMode(newMode);
     },
-    toggleSourceDropdown() {
-      this.showSourceDropdown = !this.showSourceDropdown;
-    },
-    selectSource(sourceName) {
-      this.showSourceDropdown = false;
-      this.navigateToSource(sourceName);
-    },
     navigateToSource(sourceName) {
-      goToItem(sourceName, '/', {}, false, false);
-    },
-    closeDropdown(event) {
-      if (!this.showSourceDropdown) return;
-      const dropdown = this.$refs.dropdown;
-      const container = this.$refs.sourceCardContainer;
-      if (!dropdown || !container) return;
-      if (!container.contains(event.target)) {
-        this.showSourceDropdown = false;
+      if (!sourceName || sourceName === this.activeSource) {
+        return;
       }
+      goToItem(sourceName, '/', {}, false, false);
     },
   },
 };
@@ -945,58 +930,13 @@ a.sidebar-link-button {
   border-bottom: 1px solid var(--borderColor);
 }
 
+.sidebar-source-switcher {
+  margin-top: 0.5em;
+}
+
 .navigation-source-card {
   margin-top: 0;
   max-width: 98%;
-}
-
-.source-dropdown-button {
-  background: none;
-  border: none;
-  color: var(--textSecondary);
-  padding: 0;
-  display: flex;
-  align-items: center;
-  margin-left: auto;
-  border-radius: 0.5em;
-  size: 1em;
-}
-.source-dropdown-button:hover {
-  color: var(--primaryColor);
-}
-
-.source-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: var(--background);
-  border: 2px solid var(--surfaceSecondary);
-  border-radius: 0.5em;
-  z-index: 10;
-  overflow-y: auto;
-  min-width: 100%;
-  margin-top: 0.2em;
-  transform-origin: top center;
-}
-
-.dropdown-enter-active,
-.dropdown-leave-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
-
-.dropdown-enter-from,
-.dropdown-leave-to {
-  opacity: 0;
-  transform: scaleY(0.8);
-}
-
-.dropdown-item {
-  padding: 0.5em 1em;
-}
-
-.dropdown-item:hover {
-  background: var(--surfaceSecondary);
 }
 
 .sidebar-divider-container {

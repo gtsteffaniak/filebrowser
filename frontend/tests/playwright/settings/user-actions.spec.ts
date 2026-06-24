@@ -228,8 +228,10 @@ test.describe("User Settings Persistence", () => {
         const modal = page.locator('div[aria-label="user-edit-prompt"]');
         await expect(modal).toBeVisible();
 
-        const loginMethodSelector = modal.locator("#loginMethod");
-        await expect(loginMethodSelector).toHaveValue("password");
+        const loginMethodSelector = modal.locator(
+            "#loginMethod .expand-dropdown-trigger-label"
+        );
+        await expect(loginMethodSelector).toHaveText("Password");
         checkForErrors();
     });
 });

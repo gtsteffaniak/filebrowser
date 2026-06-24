@@ -240,7 +240,9 @@
     "useWildcardSearchDescription": "Ondersteunde jokertekenopties:\n\n- Overeenstemming met een willekeurige reeks: *\n\n- Overeenstemming met één teken: ?\n\n- Tekenklasse: [a-z], [0-9]\n\n- Negatie: [^0-9]\n\n- Letterlijke *, ?, of [ moeten tussen haakjes staan, bijv. [*], [?], [[]\n\n- Alle resultaten zijn hoofdlettergevoelig",
     "openInAdvancedSearch": "Openen in geavanceerd zoeken",
     "caseExact": "Hoofdlettergevoelige zoekopdracht",
-    "caseExactDescription": "Pas bij het vergelijken van bestands- en mapnamen de exacte hoofdlettergebruik toe in plaats van hoofdletters en kleine letters te negeren."
+    "caseExactDescription": "Pas bij het vergelijken van bestands- en mapnamen de exacte hoofdlettergebruik toe in plaats van hoofdletters en kleine letters te negeren.",
+    "filesAndFolders": "Bestanden en mappen",
+    "allFileTypes": "Alle bestandstypen"
   },
   "settings": {
     "avoidChanges": "(laat leeg om wijzigingen te voorkomen)",
@@ -693,7 +695,8 @@
     "allSources": "Alle bronnen",
     "allShares": "Alle aandelen",
     "playPause": "Afspelen/Pauzeren",
-    "clearSelection": "Selectie wissen"
+    "clearSelection": "Selectie wissen",
+    "interval": "Interval{suffix}"
   },
   "access": {
     "rules": "Toegangsregels",

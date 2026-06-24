@@ -240,7 +240,9 @@
     "useWildcardSearchDescription": "Obsługiwane opcje symboli wieloznacznych:\n\n- Dopasuj dowolną sekwencję: *\n\n- Dopasowanie jednego znaku: ?\n\n- Klasa znaków: [a-z], [0-9]\n\n- Negacja: [^0-9]\n\n- Dosłowne *, ? lub [ muszą być ujęte w nawiasy, np. [*], [?], [[]\n\n- We wszystkich wynikach rozróżniana jest wielkość liter",
     "openInAdvancedSearch": "Otwórz w wyszukiwaniu zaawansowanym",
     "caseExact": "Wyszukiwanie z uwzględnieniem wielkości liter",
-    "caseExactDescription": "Porównuj nazwy plików i folderów, uwzględniając dokładną wielkość liter, zamiast ignorować różnicę między wielkimi a małymi literami."
+    "caseExactDescription": "Porównuj nazwy plików i folderów, uwzględniając dokładną wielkość liter, zamiast ignorować różnicę między wielkimi a małymi literami.",
+    "filesAndFolders": "Pliki i foldery",
+    "allFileTypes": "Wszystkie typy plików"
   },
   "settings": {
     "avoidChanges": "(pozostaw puste aby nie zosatało zmienione)",
@@ -599,7 +601,8 @@
     "allSources": "Wszystkie źródła",
     "allShares": "Wszystkie akcje",
     "playPause": "Odtwarzaj/Wstrzymaj",
-    "clearSelection": "Wyczyść wybór"
+    "clearSelection": "Wyczyść wybór",
+    "interval": "Przedział{suffix}"
   },
   "access": {
     "rules": "Zasady dostępu",
