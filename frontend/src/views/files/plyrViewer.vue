@@ -32,16 +32,16 @@
         <div class="audio-left-column">
           <!-- Album art with a generic icon if no image/metadata -->
           <div class="album-art-container"
-                :class="{ 'no-artwork': !albumArtUrl }"
-                :style="{
-                  maxHeight: `${displayArtSize}em`,
-                  maxWidth: `${displayArtSize}em`
-                }"
-               @mouseenter="onAlbumArtHover"
-               @mouseleave="onAlbumArtLeave"
-               @wheel="onAlbumArtScroll">
-            <img class="no-select album-art" v-if="albumArtUrl" :src="albumArtUrl" :alt="metadata.album || 'Album art'"
-              />
+              :class="{ 'no-artwork': !albumArtUrl }"
+              :style="{
+                width: `${displayArtSize}em`,
+                maxWidth: '100%',
+                aspectRatio: '1 / 1'
+              }"
+              @mouseenter="onAlbumArtHover"
+              @mouseleave="onAlbumArtLeave"
+              @wheel="onAlbumArtScroll">
+            <img class="no-select album-art" v-if="albumArtUrl" :src="albumArtUrl" :alt="metadata.album || 'Album art'" />
             <div v-else class="album-art-fallback">
               <i class="material-symbols">music_note</i>
             </div>
@@ -2480,8 +2480,7 @@ export default {
   width: 100%;
   max-width: 1500px;
   margin: 0 auto;
-  gap: 0;
-  padding: 0 2em;
+  padding: 0 3.5em;
   padding-bottom: 0;
   box-sizing: border-box;
   height: 100%;
@@ -2499,25 +2498,22 @@ export default {
   align-items: center;
   justify-content: center;
   text-align: center;
-  width: 50%;
+  width: 100%;
   padding: 0 2em;
   box-sizing: border-box;
-  transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  min-width: 0;
+  flex-shrink: 0;
 }
 
-/* When panel closed – centre the left column */
-.audio-player-content:not(.panel-open) .audio-left-column {
-  transform: translateX(50%);
-}
-
-/* When panel open – no extra offset */
 .panel-open .audio-left-column {
-  transform: translateX(0);
+  width: 50%;
 }
 
 /* Right panel (lyrics / queue) */
 .lyrics-panel {
   width: 50%;
+  flex-shrink: 0;
   height: 100%;
   overflow-y: auto;
   padding: 0.5em 2em;
@@ -2597,12 +2593,11 @@ export default {
 }
 
 .album-art-container {
-  height: 100%;
-  width: 100%;
+  flex-shrink: 0;
   border-radius: 1em;
   overflow: hidden;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-  transition: max-height 0.3s ease, max-width 0.3s ease;
+  transition: width 0.3s ease;
   will-change: transform;
 }
 
@@ -2698,9 +2693,12 @@ export default {
   }
 
   .album-art-container {
-    width: min(71vw);
-    height: min(71vw);
     margin-top: 1em;
+    max-width: min(71vw);
+  }
+
+  .audio-player-container--lyrics-open .album-art-container {
+    transition: none !important;
   }
 }
 
@@ -2715,12 +2713,10 @@ export default {
     font-size: 14px;
     margin: 0 5px;
   }
+
   .audio-left-column {
-    width: 100%;
     padding: 0;
     margin: 0;
-    transform: none !important;
-    transition: none;
   }
 }
 
