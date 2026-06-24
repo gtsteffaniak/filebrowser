@@ -29,8 +29,9 @@ export function shuffleArray(array) {
 export function buildPlaybackQueue(listing, currentItem, mode, forceReshuffle = false, isShare = false) {
   // Filter only audio/video files
   const mediaFiles = listing.filter(item => {
-    const isAudio = item?.type.startsWith('audio/');
-    const isVideo = item?.type.startsWith('video/');
+    const type = item?.type || '';
+    const isAudio = type.startsWith('audio/');
+    const isVideo = type.startsWith('video/');
     return isAudio || isVideo;
   });
 

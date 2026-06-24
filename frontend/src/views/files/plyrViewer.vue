@@ -945,6 +945,7 @@ export default {
     },
     handleKeydown(event) {
       if (event.repeat) return;
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
       const key = event.key.toLowerCase();
       const target = event.target;
       if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT')) {
@@ -1865,7 +1866,11 @@ export default {
     },
     onFullscreenExit() {
       this.isFullscreen = false;
-      screen.orientation.unlock();
+      try {
+        screen.orientation.unlock();
+      } catch (error) {
+        if (error.name !== 'NotSupportedError') throw error;
+      }
     },
     handleMediaEnd() {
       const queue = state.playbackQueue.queue;
