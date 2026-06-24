@@ -355,7 +355,6 @@ export default {
       videoEdgeDy: 0,
       videoDragOffsetX: 0,
       videoDragOffsetY: 0,
-      videoGestureDecided: false,
       videoGestureSnapBack: false,
       videoEdgeMouseActive: false,
       videoShowNavHint: false,
@@ -1380,19 +1379,30 @@ export default {
       const ax = Math.abs(this.videoEdgeDx);
       const ay = Math.abs(this.videoEdgeDy);
       if (ax < 12 && ay < 12) return;
-      if (ay > ax * 1.12 && ay > 14) {
-        if (this.previewType === 'video') {
-          this.videoEdgeKind = this.videoEdgeDy > 0 ? 'vertical-dismiss' : 'vertical-fullscreen';
-        } else {
+      if (this.previewType === 'audio') {
+        if (ay > ax * 1.12 && ay > 14 && this.videoEdgeDy > 0) {
           this.videoEdgeKind = 'vertical-dismiss';
+        } else if (ax > ay * 1.12 && ax > 14) {
+          this.videoEdgeKind = 'horizontal';
         }
-        this.videoGestureDecided = true;
+        return;
+      }
+      if (ay > ax * 1.12 && ay > 14) {
+        this.videoEdgeKind = this.videoEdgeDy > 0 ? 'vertical-dismiss' : 'vertical-fullscreen';
       } else if (ax > ay * 1.12 && ax > 14) {
         this.videoEdgeKind = 'horizontal';
-        this.videoGestureDecided = true;
       }
     },
     applyVideoEdgeVisuals() {
+      if (this.previewType === 'audio' && this.videoEdgeDy < 0 && Math.abs(this.videoEdgeDy) > Math.abs(this.videoEdgeDx)) {
+        this.videoDragOffsetX = 0;
+        this.videoDragOffsetY = 0;
+        this.videoShowNavHint = false;
+        this.videoShowDismissHint = false;
+        this.applyVideoSwipeTransform();
+        this.syncVideoNavigationGestureHintToStore();
+        return;
+      }
       if (this.showMobileLyrics) {
         // Allow horizontal navigation swipes, ignore vertical if lyrics are shown
         const ax = Math.abs(this.videoEdgeDx);
@@ -1407,39 +1417,9 @@ export default {
           return;
         }
       }
-      if (!this.videoEdgeKind) {
-        const ax = Math.abs(this.videoEdgeDx);
-        const ay = Math.abs(this.videoEdgeDy);
-        if (ax <= 8 && ay <= 8) {
-          this.videoDragOffsetX = 0;
-          this.videoDragOffsetY = 0;
-          this.videoShowNavHint = false;
-          this.videoShowDismissHint = false;
-          this.applyVideoSwipeTransform();
-          this.syncVideoNavigationGestureHintToStore();
-          return;
-        }
-        if (ax > ay) {
-          this.videoDragOffsetX = this.videoRubberband(this.videoEdgeDx, this.videoEdgeRubberMax);
-          this.videoDragOffsetY = 0;
-          this.videoShowNavHint = ax >= this.videoEdgeHintPx;
-          this.videoNavHintDir = this.videoEdgeDx > 0 ? 'prev' : 'next';
-          if (this.videoNavHintDir === 'prev' && !this.hasVideoPreviousNav) this.videoShowNavHint = false;
-          if (this.videoNavHintDir === 'next' && !this.hasVideoNextNav) this.videoShowNavHint = false;
-          this.videoShowDismissHint = false;
-        } else {
-          this.videoDragOffsetX = 0;
-          const isDown = this.videoEdgeDy > 0;
-          const rubber = this.videoRubberband(this.videoEdgeDy, this.videoEdgeRubberMax);
-          this.videoDragOffsetY = rubber;
-          this.videoShowDismissHint = isDown && Math.abs(this.videoEdgeDy) >= this.videoEdgeHintPx;
-          this.videoShowNavHint = false;
-        }
-        this.applyVideoSwipeTransform();
-        this.syncVideoNavigationGestureHintToStore();
-        return;
-      }
-      if (this.videoEdgeKind === 'horizontal') {
+
+      const kind = this.videoEdgeKind;
+      if (kind === 'horizontal') {
         this.videoDragOffsetX = this.videoRubberband(this.videoEdgeDx, this.videoEdgeRubberMax);
         this.videoDragOffsetY = 0;
         const adx = Math.abs(this.videoEdgeDx);
@@ -1448,18 +1428,21 @@ export default {
         if (this.videoNavHintDir === 'prev' && !this.hasVideoPreviousNav) this.videoShowNavHint = false;
         if (this.videoNavHintDir === 'next' && !this.hasVideoNextNav) this.videoShowNavHint = false;
         this.videoShowDismissHint = false;
-      } else if (this.videoEdgeKind === 'vertical-dismiss') {
+      } else if (kind === 'vertical-dismiss') {
         this.videoDragOffsetX = 0;
-        const downward = this.videoEdgeDy > 0 ? this.videoEdgeDy : 0;
-        this.videoDragOffsetY = this.videoRubberband(downward, this.videoEdgeRubberMax);
+        this.videoDragOffsetY = this.videoEdgeDy;
         this.videoShowDismissHint = this.videoEdgeDy >= this.videoEdgeHintPx;
         this.videoShowNavHint = false;
-      } else if (this.videoEdgeKind === 'vertical-fullscreen') {
+      } else if (kind === 'vertical-fullscreen') {
         this.videoDragOffsetX = 0;
-        const upward = this.videoEdgeDy < 0 ? this.videoEdgeDy : 0;
-        this.videoDragOffsetY = this.videoRubberband(upward, this.videoEdgeRubberMax);
+        this.videoDragOffsetY = this.videoEdgeDy;
         this.videoShowDismissHint = false;
         this.videoShowNavHint = false;
+      } else {
+        this.videoDragOffsetX = 0;
+        this.videoDragOffsetY = 0;
+        this.videoShowNavHint = false;
+        this.videoShowDismissHint = false;
       }
       this.applyVideoSwipeTransform();
       this.syncVideoNavigationGestureHintToStore();
@@ -1471,7 +1454,6 @@ export default {
       this.videoShowNavHint = false;
       this.videoShowDismissHint = false;
       this.videoEdgeKind = null;
-      this.videoGestureDecided = false;
       this.videoEdgeDx = 0;
       this.videoEdgeDy = 0;
       this.applyVideoSwipeTransform();
@@ -1485,7 +1467,6 @@ export default {
       this.clearVideoDismissAnimTimers();
       this.videoSwipeSuppressedTouchId = null;
       this.videoEdgeKind = null;
-      this.videoGestureDecided = false;
       this.videoEdgeDx = 0;
       this.videoEdgeDy = 0;
       this.videoDragOffsetX = 0;
@@ -1551,7 +1532,6 @@ export default {
           this.videoDragOffsetX = 0;
           this.videoDragOffsetY = 0;
           this.videoEdgeKind = null;
-          this.videoGestureDecided = false;
           this.applyVideoSwipeTransform();
           this.syncVideoNavigationGestureHintToStore();
           // If we're in fullscreen, exit fullscreen instead of closing preview
@@ -1637,7 +1617,6 @@ export default {
       this.videoEdgeDx = 0;
       this.videoEdgeDy = 0;
       this.videoEdgeKind = null;
-      this.videoGestureDecided = false;
       document.addEventListener('mousemove', this.onVideoSwipeMouseDocMove, true);
       document.addEventListener('mouseup', this.onVideoSwipeMouseDocUp, true);
     },
@@ -1685,7 +1664,6 @@ export default {
       this.videoEdgeDx = 0;
       this.videoEdgeDy = 0;
       this.videoEdgeKind = null;
-      this.videoGestureDecided = false;
       this.videoDragOffsetX = 0;
       this.videoDragOffsetY = 0;
     },
