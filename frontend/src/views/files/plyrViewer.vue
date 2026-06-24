@@ -615,7 +615,7 @@ export default {
         muted: false,
         autoplay: false,
         playsinline: true,
-        clickToPlay: true,
+        clickToPlay: false, // we manage this ourselves with the gestures, plyr has a issue where this doesn't work in mobile.
         resetOnEnd: false,
         preload: 'metadata',
         iconUrl: `${globalVars.baseURL}public/static/img/plyr.svg`,
@@ -1125,12 +1125,10 @@ export default {
       }
       return this.player.elements.container ?? null;
     },
-    isAudioPlyrScrubOrMenuTarget(el) {
-      if (this.previewType !== 'audio' || !el || typeof el.closest !== 'function') {
-        return false;
-      }
+    isPlyrControlOrMenuTarget(el) {
+      if (!el || typeof el.closest !== 'function') return false;
       return !!el.closest(
-        '.plyr__menu__container, .plyr__menu, [data-plyr="seek"], .plyr__progress, [data-plyr="volume"], .plyr__volume'
+        '.plyr__controls, .plyr__control, .plyr__menu__container, .plyr__menu, [data-plyr="seek"], .plyr__progress, [data-plyr="volume"], .plyr__volume'
       );
     },
     teardownDoubleTapSeek() {
@@ -1145,9 +1143,7 @@ export default {
       }
       this.teardownDoubleTapSeek();
       const surface = this.getPlyrGestureSurface();
-      if (!surface || !this.player) {
-        return;
-      }
+      if (!surface || !this.player) return;
 
       const DOUBLE_MS = 320;
       let lastTapTime = 0;
@@ -1157,15 +1153,9 @@ export default {
         const rect = surface.getBoundingClientRect();
         const x = clientX - rect.left;
         const w = rect.width;
-        if (w <= 0) {
-          return 'center';
-        }
-        if (x < w / 3) {
-          return 'left';
-        }
-        if (x > (2 * w) / 3) {
-          return 'right';
-        }
+        if (w <= 0) return 'center';
+        if (x < w / 3) return 'left';
+        if (x > (2 * w) / 3) return 'right';
         return 'center';
       };
 
@@ -1179,15 +1169,20 @@ export default {
         this.flashSkipFeedback(rewind);
       };
 
-      const onTouchEnd = (event) => {
-        if (event.changedTouches.length !== 1) {
-          return;
+      const togglePlayPause = () => {
+        if (this.player.playing) {
+          this.player.pause();
+        } else {
+          this.player.play();
         }
+      };
+      const onTouchEnd = (event) => {
+        if (event.changedTouches.length !== 1) return;
         const t = event.changedTouches[0];
         const topEl = typeof document.elementFromPoint === 'function'
           ? document.elementFromPoint(t.clientX, t.clientY)
           : null;
-        if (this.isAudioPlyrScrubOrMenuTarget(topEl)) {
+        if (this.isPlyrControlOrMenuTarget(topEl)) {
           lastTapTime = 0;
           lastZone = null;
           return;
@@ -1195,8 +1190,10 @@ export default {
         const clientX = t.clientX;
         const zone = zoneFromClientX(clientX);
         if (zone === 'center') {
+          togglePlayPause();
           lastTapTime = 0;
           lastZone = null;
+          event.preventDefault();
           return;
         }
         const now = Date.now();
@@ -1211,24 +1208,36 @@ export default {
         }
       };
 
-      const onDblClick = (event) => {
-        if (this.isAudioPlyrScrubOrMenuTarget(event.target)) {
+      const onClick = (event) => {
+        if (this.isPlyrControlOrMenuTarget(event.target)) {
           return;
         }
         const zone = zoneFromClientX(event.clientX);
         if (zone === 'center') {
+          togglePlayPause();
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      };
+      const onDblClick = (event) => {
+        if (this.isPlyrControlOrMenuTarget(event.target)) {
           return;
         }
-        event.preventDefault();
-        event.stopPropagation();
-        applySeek(zone === 'left');
+        const zone = zoneFromClientX(event.clientX);
+        if (zone === 'left' || zone === 'right') {
+          applySeek(zone === 'left');
+          event.preventDefault();
+          event.stopPropagation();
+        }
       };
 
       surface.addEventListener('touchend', onTouchEnd, { passive: false });
+      surface.addEventListener('click', onClick);
       surface.addEventListener('dblclick', onDblClick);
 
       this.doubleTapSeekCleanup = () => {
         surface.removeEventListener('touchend', onTouchEnd);
+        surface.removeEventListener('click', onClick);
         surface.removeEventListener('dblclick', onDblClick);
       };
     },
@@ -1299,16 +1308,16 @@ export default {
       return sign * (max + (a - max) * 0.32);
     },
     decideVideoEdgeKind() {
-      if (this.videoEdgeKind) {
-        return;
-      }
+      if (this.videoEdgeKind) return;
       const ax = Math.abs(this.videoEdgeDx);
       const ay = Math.abs(this.videoEdgeDy);
-      if (ax < 12 && ay < 12) {
-        return;
-      }
-      if (this.videoEdgeDy > ax * 1.12 && this.videoEdgeDy > 14) {
-        this.videoEdgeKind = 'vertical-dismiss';
+      if (ax < 12 && ay < 12) return;
+      if (ay > ax * 1.12 && ay > 14) {
+        if (this.previewType === 'video') {
+          this.videoEdgeKind = this.videoEdgeDy > 0 ? 'vertical-dismiss' : 'vertical-fullscreen';
+        } else {
+          this.videoEdgeKind = 'vertical-dismiss';
+        }
         this.videoGestureDecided = true;
       } else if (ax > ay * 1.12 && ax > 14) {
         this.videoEdgeKind = 'horizontal';
@@ -1347,18 +1356,15 @@ export default {
           this.videoDragOffsetY = 0;
           this.videoShowNavHint = ax >= this.videoEdgeHintPx;
           this.videoNavHintDir = this.videoEdgeDx > 0 ? 'prev' : 'next';
-          if (this.videoNavHintDir === 'prev' && !this.hasVideoPreviousNav) {
-            this.videoShowNavHint = false;
-          }
-          if (this.videoNavHintDir === 'next' && !this.hasVideoNextNav) {
-            this.videoShowNavHint = false;
-          }
+          if (this.videoNavHintDir === 'prev' && !this.hasVideoPreviousNav) this.videoShowNavHint = false;
+          if (this.videoNavHintDir === 'next' && !this.hasVideoNextNav) this.videoShowNavHint = false;
           this.videoShowDismissHint = false;
         } else {
           this.videoDragOffsetX = 0;
-          const downward = this.videoEdgeDy > 0 ? this.videoEdgeDy : 0;
-          this.videoDragOffsetY = this.videoRubberband(downward, this.videoEdgeRubberMax);
-          this.videoShowDismissHint = this.videoEdgeDy >= this.videoEdgeHintPx;
+          const isDown = this.videoEdgeDy > 0;
+          const rubber = this.videoRubberband(this.videoEdgeDy, this.videoEdgeRubberMax);
+          this.videoDragOffsetY = rubber;
+          this.videoShowDismissHint = isDown && Math.abs(this.videoEdgeDy) >= this.videoEdgeHintPx;
           this.videoShowNavHint = false;
         }
         this.applyVideoSwipeTransform();
@@ -1371,18 +1377,20 @@ export default {
         const adx = Math.abs(this.videoEdgeDx);
         this.videoShowNavHint = adx >= this.videoEdgeHintPx;
         this.videoNavHintDir = this.videoEdgeDx > 0 ? 'prev' : 'next';
-        if (this.videoNavHintDir === 'prev' && !this.hasVideoPreviousNav) {
-          this.videoShowNavHint = false;
-        }
-        if (this.videoNavHintDir === 'next' && !this.hasVideoNextNav) {
-          this.videoShowNavHint = false;
-        }
+        if (this.videoNavHintDir === 'prev' && !this.hasVideoPreviousNav) this.videoShowNavHint = false;
+        if (this.videoNavHintDir === 'next' && !this.hasVideoNextNav) this.videoShowNavHint = false;
         this.videoShowDismissHint = false;
-      } else {
+      } else if (this.videoEdgeKind === 'vertical-dismiss') {
         this.videoDragOffsetX = 0;
         const downward = this.videoEdgeDy > 0 ? this.videoEdgeDy : 0;
         this.videoDragOffsetY = this.videoRubberband(downward, this.videoEdgeRubberMax);
         this.videoShowDismissHint = this.videoEdgeDy >= this.videoEdgeHintPx;
+        this.videoShowNavHint = false;
+      } else if (this.videoEdgeKind === 'vertical-fullscreen') {
+        this.videoDragOffsetX = 0;
+        const upward = this.videoEdgeDy < 0 ? this.videoEdgeDy : 0;
+        this.videoDragOffsetY = this.videoRubberband(upward, this.videoEdgeRubberMax);
+        this.videoShowDismissHint = false;
         this.videoShowNavHint = false;
       }
       this.applyVideoSwipeTransform();
@@ -1503,6 +1511,17 @@ export default {
           return;
         }
       }
+      else if (kind === 'vertical-fullscreen') {
+        if (!this.player) {
+          this.resetVideoEdgeGestureImmediate();
+          return;
+        }
+        if (this.videoEdgeDy <= -this.videoEdgeCommitY) {
+          this.player.fullscreen.toggle();
+          this.resetVideoEdgeGestureImmediate();
+          return;
+        }
+      }
       this.snapBackVideoEdgeGesture();
     },
     teardownVideoSwipeMouseDocListeners() {
@@ -1539,7 +1558,7 @@ export default {
       if (event.button !== 0 || !this.videoSwipeGesturesActive) return;
       // Don't start a gesture if we are selecting some text
       if (window.getSelection()?.toString().length > 0) return;
-      if (this.isAudioPlyrScrubOrMenuTarget(event.target)) {
+      if (this.isPlyrControlOrMenuTarget(event.target)) {
         return;
       }
       this.clearVideoDismissAnimTimers();
@@ -1558,7 +1577,7 @@ export default {
       if (!this.videoSwipeGesturesActive || event.targetTouches.length !== 1) return;
       // Don't start a gesture if we are selecting some text
       if (window.getSelection()?.toString().length > 0) return;
-      if (this.isAudioPlyrScrubOrMenuTarget(event.target)) {
+      if (this.isPlyrControlOrMenuTarget(event.target)) {
         this.videoSwipeSuppressedTouchId = event.targetTouches[0].identifier;
         return;
       }
