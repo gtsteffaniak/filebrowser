@@ -350,8 +350,6 @@ func accessPatchHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return http.StatusBadRequest, fmt.Errorf("failed to decode body: %w", err)
 	}
 	defer r.Body.Close()
-	d.activityFailureSource = body.Source
-	d.activityFailurePath = body.OldPath
 
 	if body.Source == "" || body.OldPath == "" || body.NewPath == "" {
 		return http.StatusBadRequest, fmt.Errorf("source, oldPath, and newPath are required")

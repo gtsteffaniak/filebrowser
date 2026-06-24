@@ -124,29 +124,19 @@ export function activityEventTypeBadgeClass(eventType) {
 export function activityChartTitle({ viewType, splitBy }, $t) {
   const eventTypeSubject = $t("tools.activityViewer.subjectEventType");
   const userSubject = $t("general.user").toLowerCase();
-  const outcomeSubject = $t("general.outcome");
 
   if (viewType === "pie") {
-    if (splitBy === "outcome") {
-      return $t("tools.activityViewer.activityBy", { subject: outcomeSubject });
-    }
     return $t("tools.activityViewer.activityBy", {
       subject: splitBy === "user" ? userSubject : eventTypeSubject,
     });
   }
   if (viewType === "summary") {
-    if (splitBy === "outcome") {
-      return $t("tools.activityViewer.activityTotalsBy", { subject: outcomeSubject });
-    }
     return splitBy === "user"
       ? $t("tools.activityViewer.activityTotalsBy", { subject: userSubject })
       : $t("tools.activityViewer.eventTotals");
   }
   if (splitBy === "user") {
     return $t("tools.activityViewer.activityOverTimeBy", { subject: userSubject });
-  }
-  if (splitBy === "outcome") {
-    return $t("tools.activityViewer.activityOverTimeBy", { subject: outcomeSubject });
   }
   if (splitBy === "none") {
     return $t("tools.activityViewer.activityOverTime");
@@ -162,7 +152,6 @@ export const ACTIVITY_OPTIONAL_ROW_KEYS = [
   "tokenName",
   "details",
   "ipAddress",
-  "status",
 ];
 
 const OPTIONAL_ROW_KEY_SET = new Set(ACTIVITY_OPTIONAL_ROW_KEYS);
@@ -193,7 +182,6 @@ export function formatActivityRowsParam(rowsState) {
   if (rowsState.tokenName) enabled.push("tokenName");
   if (rowsState.details) enabled.push("details");
   if (rowsState.ipAddress) enabled.push("ipAddress");
-  if (rowsState.status) enabled.push("status");
   return enabled.join(",");
 }
 
@@ -210,8 +198,7 @@ export function allActivityOptionalRowsEnabled(rowsState) {
     rowsState.shareHash &&
     rowsState.tokenName &&
     rowsState.details &&
-    rowsState.ipAddress &&
-    rowsState.status
+    rowsState.ipAddress
   );
 }
 
@@ -237,8 +224,6 @@ function isOptionalRowEnabled(rowsState, key) {
       return !!rowsState.details;
     case "ipAddress":
       return !!rowsState.ipAddress;
-    case "status":
-      return !!rowsState.status;
     default:
       return false;
   }

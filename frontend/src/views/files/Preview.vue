@@ -51,7 +51,7 @@
               <i class="material-symbols">file_download</i>{{ $t("general.download") }}
             </div>
           </a>
-          <a target="_blank" :href="raw" class="button button--flat" v-if="req.type !== 'directory'">
+          <a target="_blank" :href="openFileUrl" class="button button--flat" v-if="req.type !== 'directory'">
             <div>
               <i class="material-symbols">open_in_new</i>{{ $t("general.openFile") }}
             </div>
@@ -174,13 +174,18 @@ export default {
 
       if (state.isSafari && isHeicOrHeif) {
         if (getters.isShare()) {
-          return resourcesApi.getDownloadURLPublic(
-            { path: state.shareInfo.subPath, hash: state.shareInfo.hash, token: state.shareInfo.token },
-            [state.req.path],
-            true,
+          return resourcesApi.getViewURL(
+            state.req.source,
+            state.req.path,
+            state.req.streamToken,
+            {
+              path: state.shareInfo.subPath,
+              hash: state.shareInfo.hash,
+              token: state.shareInfo.token,
+            },
           );
         }
-        return resourcesApi.getDownloadURL(state.req.source, state.req.path, true);
+        return resourcesApi.getViewURL(state.req.source, state.req.path, state.req.streamToken);
       }
 
       const getRawPreview = isRawImageMimeType(state.req.type) && globalVars.exiftoolAvailable;
@@ -199,21 +204,18 @@ export default {
         );
       }
       if (getters.isShare()) {
-        return resourcesApi.getDownloadURLPublic(
+        return resourcesApi.getViewURL(
+          state.req.source,
+          state.req.path,
+          state.req.streamToken,
           {
             path: state.shareInfo.subPath,
             hash: state.shareInfo.hash,
             token: state.shareInfo.token,
           },
-          [state.req.path],
-          true,
         );
       }
-      return resourcesApi.getDownloadURL(
-        state.req.source,
-        state.req.path,
-        true,
-      );
+      return resourcesApi.getViewURL(state.req.source, state.req.path, state.req.streamToken);
     },
     isDarkMode() {
       return getters.isDarkMode();
@@ -230,6 +232,20 @@ export default {
         );
       }
       return resourcesApi.getDownloadURL(state.req.source, state.req.path);
+    },
+    openFileUrl() {
+      if (getters.isShare()) {
+        return resourcesApi.getOpenFileURL(
+          state.req.source,
+          state.req.path,
+          {
+            path: state.shareInfo.subPath,
+            hash: state.shareInfo.hash,
+            token: state.shareInfo.token,
+          },
+        );
+      }
+      return resourcesApi.getOpenFileURL(state.req.source, state.req.path);
     },
     isTransitioning() {
       return state.navigation.isTransitioning;
@@ -504,19 +520,20 @@ export default {
     prefetchUrl(item) {
       if (getters.isShare()) {
         return this.fullSize
-          ? resourcesApi.getDownloadURLPublic(
+          ? resourcesApi.getViewURL(
+              state.req.source,
+              item.path,
+              item.streamToken || state.req.streamToken,
               {
                 path: item.path,
                 hash: state.shareInfo?.hash,
                 token: state.shareInfo?.token,
-                inline: true,
               },
-              [item.path],
             )
           : resourcesApi.getPreviewURLPublic(item.path);
       }
       return this.fullSize
-        ? resourcesApi.getDownloadURL(state.req.source, item.path, true)
+        ? resourcesApi.getViewURL(state.req.source, item.path, item.streamToken)
         : resourcesApi.getPreviewURL(
             state.req.source,
             item.path,

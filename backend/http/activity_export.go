@@ -42,7 +42,7 @@ func parseActivityExportRows(raw string) ([]string, error) {
 func activityExportHeader(includeDetails bool, optional []string) []string {
 	header := []string{"id", "createdAt", "username", "eventType"}
 	header = append(header, optional...)
-	header = append(header, "ipAddress", "status")
+	header = append(header, "ipAddress")
 	if includeDetails {
 		header = append(header, "details")
 	}
@@ -80,7 +80,7 @@ func activityExportRowValues(item activitydb.FrontendEntry, optional []string, i
 			row = append(row, sanitizeCSVCell(item.TokenName))
 		}
 	}
-	row = append(row, sanitizeCSVCell(item.IPAddress), fmt.Sprintf("%d", item.Status))
+	row = append(row, sanitizeCSVCell(item.IPAddress))
 	if includeDetails {
 		row = append(row, sanitizeCSVCell(detailsJSON))
 	}

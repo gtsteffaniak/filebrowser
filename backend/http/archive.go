@@ -153,7 +153,7 @@ func archiveAttachmentStem(fileList []string, realPath string) string {
 // serveArchiveWithServeContent sends a built archive using ServeContent (Range-capable).
 // For share links with MaxBandwidth > 0, outbound data is throttled via newThrottledReadSeeker (same limit as single-file download).
 func serveArchiveWithServeContent(w http.ResponseWriter, r *http.Request, d *requestContext, rs io.ReadSeeker, fi os.FileInfo, originalFileName string) (int, error) {
-	setContentDisposition(w, r, originalFileName)
+	setContentDisposition(w, r, originalFileName, false)
 	w.Header().Set("Content-Type", "application/octet-stream")
 	w.Header().Set("Cache-Control", "private")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
@@ -792,7 +792,7 @@ func BuildAndStreamArchive(w http.ResponseWriter, r *http.Request, d *requestCon
 		if r.Method != http.MethodGet {
 			return http.StatusMethodNotAllowed, fmt.Errorf("method not allowed")
 		}
-		setContentDisposition(w, r, originalFileName)
+		setContentDisposition(w, r, originalFileName, false)
 		w.Header().Set("Content-Type", "application/octet-stream")
 		w.Header().Set("Cache-Control", "private")
 		w.Header().Set("X-Content-Type-Options", "nosniff")

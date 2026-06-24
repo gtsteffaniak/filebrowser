@@ -86,8 +86,6 @@ definitions:
         type: integer
       loginMethod:
         type: string
-      method:
-        type: string
       passkeyName:
         type: string
       path:
@@ -96,8 +94,6 @@ definitions:
         items:
           type: string
         type: array
-      requestPath:
-        type: string
       scopes:
         items:
           $ref: '#/definitions/activity.ScopeDetail'
@@ -135,8 +131,6 @@ definitions:
         type: string
       source:
         type: string
-      status:
-        type: integer
       targetPath:
         type: string
       tokenName:
@@ -504,6 +498,9 @@ definitions:
       source:
         description: associated index source for the file
         type: string
+      streamToken:
+        description: opaque token for inline streaming via /resources/stream
+        type: string
       subtitles:
         description: subtitles for video files
         items:
@@ -540,6 +537,9 @@ definitions:
       size:
         description: length in bytes for regular files
         type: integer
+      streamToken:
+        description: opaque token for inline streaming via /resources/stream
+        type: string
       type:
         description: type of the file, either "directory" or a file mimetype
         type: string
@@ -4358,6 +4358,56 @@ paths:
       summary: Get image preview
       tags:
       - Resources
+  /api/resources/stream:
+    get:
+      consumes:
+      - application/json
+      description: Returns raw file bytes for inline UI viewing in capped byte ranges.
+        Requires a streamToken minted by GET /resources. Media files and restricted
+        viewers must use Range requests; full-file GET responses are rejected. Never
+        counts toward download limits or activity.
+      parameters:
+      - description: Source name for the file (required)
+        in: query
+        name: source
+        required: true
+        type: string
+      - description: File path
+        in: query
+        name: file
+        required: true
+        type: string
+      - description: Opaque stream grant token from file metadata
+        in: query
+        name: streamToken
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Raw file content (inline)
+          schema:
+            type: file
+        "403":
+          description: Missing or invalid stream token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: File not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Stream content of a single file for inline viewing
+      tags:
+      - Resources
   /api/resources/unarchive:
     post:
       consumes:
@@ -4738,14 +4788,6 @@ paths:
         in: query
         name: limit
         type: integer
-      - description: Minimum HTTP status code (100-599)
-        in: query
-        name: statusMin
-        type: integer
-      - description: Maximum HTTP status code (100-599)
-        in: query
-        name: statusMax
-        type: integer
       produces:
       - application/json
       responses:
@@ -4809,14 +4851,6 @@ paths:
         in: query
         name: shareHash
         type: string
-      - description: Minimum HTTP status code (100-599)
-        in: query
-        name: statusMin
-        type: integer
-      - description: Maximum HTTP status code (100-599)
-        in: query
-        name: statusMax
-        type: integer
       produces:
       - text/csv
       responses:
@@ -4884,19 +4918,10 @@ paths:
         in: query
         name: interval
         type: string
-      - description: 'Series dimension: eventType, user, outcome, or none (default:
-          eventType)'
+      - description: 'Series dimension: eventType, user, or none (default: eventType)'
         in: query
         name: splitBy
         type: string
-      - description: Minimum HTTP status code (100-599)
-        in: query
-        name: statusMin
-        type: integer
-      - description: Maximum HTTP status code (100-599)
-        in: query
-        name: statusMax
-        type: integer
       produces:
       - application/json
       responses:
@@ -5968,6 +5993,58 @@ paths:
               type: string
             type: object
       summary: Get image/video preview from a public share
+      tags:
+      - Resources
+  /public/api/resources/stream:
+    get:
+      consumes:
+      - application/json
+      description: Returns raw file bytes for inline UI viewing in capped byte ranges
+        on a share link. Requires streamToken from GET /public/api/resources. Media
+        files and shares with downloads disabled must use Range requests. Does not
+        count toward download limits.
+      parameters:
+      - description: Share hash for authentication
+        in: query
+        name: hash
+        required: true
+        type: string
+      - description: File path within the share
+        in: query
+        name: file
+        required: true
+        type: string
+      - description: Opaque stream grant token from share file metadata
+        in: query
+        name: streamToken
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: Raw file content (inline)
+          schema:
+            type: file
+        "403":
+          description: Missing or invalid stream token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Share or file not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Stream a single file from a public share for inline viewing
       tags:
       - Resources
   /public/api/share/image:

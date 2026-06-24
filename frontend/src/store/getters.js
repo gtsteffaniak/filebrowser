@@ -443,7 +443,7 @@ export const getters = {
   },
   fileViewingDisabled: filename => {
     if (getters.isShare()) {
-      if (state.shareInfo?.disableFileViewer || state.shareInfo?.shareType === "upload" || state.shareInfo?.disableDownload) {
+      if (state.shareInfo?.disableFileViewer || state.shareInfo?.shareType === "upload") {
         return true
       }
     } else {

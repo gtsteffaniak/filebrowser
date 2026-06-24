@@ -40,16 +40,6 @@
         </div>
 
         <div class="config-field">
-          <h3>{{ $t("general.status") }}</h3>
-          <ExpandDropdown
-            input-id="activity-status-outcome"
-            v-model="statusOutcome"
-            :options="statusOutcomeOptions"
-            all-value="all"
-          />
-        </div>
-
-        <div class="config-field">
           <h3>{{ $t("tools.activityViewer.viewType") }}</h3>
           <ExpandDropdown
             v-model="viewType"
@@ -278,14 +268,6 @@
             </div>
             <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           </template>
-          <template #cell-status="{ row }">
-            <span
-              v-if="row.status"
-              class="status-badge border-radius"
-              :class="statusBadgeClass(row.status)"
-            >{{ row.status }}</span>
-            <span v-else class="status-badge status-badge--muted border-radius">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-          </template>
         </settings-table>
         <div v-if="totalPages > 1" class="pagination">
           <button
@@ -386,11 +368,10 @@ import PathPickerButton from "@/components/files/PathPickerButton.vue";
 import { globalVars } from "@/utils/constants";
 import { getObjectProperty } from "@/utils/object.js";
 import {
-  activityStatusParamsForOutcome,
   filterEventTypesForScope,
   formatEventTypeQueryValue,
-  formatActivityViewerQueryString,  normalizeEventTypeQueryValue,
-  parseStatusOutcomeFromQuery,
+  formatActivityViewerQueryString,
+  normalizeEventTypeQueryValue,
 } from "@/utils/activityViewerQuery.js";
 
 function queryValuePresent(value) {
@@ -473,11 +454,6 @@ const CHART_COLORS = [
   "#9c755f",
   "#bab0ac",
 ];
-
-const OUTCOME_CHART_COLORS = {
-  success: "#59a14f",
-  error: "#e15759",
-};
 
 function hexToRgba(hex, alpha) {
   const normalized = hex.replace("#", "");
@@ -587,7 +563,7 @@ const TIME_SERIES_VIEWS = new Set(["chart", "line"]);
 const VALID_RANGES = new Set(["1h", "24h", "7d", "30d", "custom"]);
 const VALID_VIEWS = new Set(["table", "chart", "line", "pie", "summary"]);
 const VALID_INTERVALS = new Set(["minute", "hour", "day"]);
-const VALID_SPLITS = new Set(["eventType", "user", "outcome", "none"]);
+const VALID_SPLITS = new Set(["eventType", "user", "none"]);
 const VALID_SCOPES = new Set(["all", "files", "access", "shares"]);
 const ANONYMOUS_USERNAME = "anonymous";
 const ACTIVITY_QUERY_KEYS = [
@@ -597,8 +573,6 @@ const ACTIVITY_QUERY_KEYS = [
   "to",
   "eventType",
   "username",
-  "statusMin",
-  "statusMax",
   "source",
   "path",
   "pathGlob",
@@ -635,7 +609,6 @@ export default {
       customTo: "",
       selectedEventTypes: [],
       selectedUsername: "",
-      statusOutcome: "all",
       anonymousUsername: ANONYMOUS_USERNAME,
       filterSource: "",
       filterPath: "",
@@ -713,13 +686,6 @@ export default {
         })),
       ];
     },
-    statusOutcomeOptions() {
-      return [
-        { value: "all", label: this.$t("general.all") },
-        { value: "success", label: this.$t("general.success") },
-        { value: "errors", label: this.$t("general.error") },
-      ];
-    },
     viewTypeOptions() {
       return [
         { value: "chart", label: this.$t("tools.activityViewer.chartView") },
@@ -760,12 +726,6 @@ export default {
       if (this.showUserFilter) {
         options.push({ value: "user", label: this.$t("general.user") });
       }
-      if (this.showOutcomeSplit) {
-        options.push({
-          value: "outcome",
-          label: this.$t("general.status"),
-        });
-      }
       if (this.showTimeSeriesOptions) {
         options.push({
           value: "none",
@@ -797,9 +757,6 @@ export default {
     },
     showChartOptions() {
       return this.viewType !== "table";
-    },
-    showOutcomeSplit() {
-      return this.statusOutcome === "all";
     },
     showTimeSeriesOptions() {
       return TIME_SERIES_VIEWS.has(this.viewType);
@@ -865,13 +822,6 @@ export default {
           label: this.$t("general.ipAddress"),
           sortable: true,
         },
-        status: {
-          key: "status",
-          label: this.$t("general.status"),
-          sortable: true,
-          sortFn: (a, b) => (a.status || 0) - (b.status || 0),
-          narrow: true,
-        },
       };
       const enabled = new Set(this.selectedOptionalColumns);
       if (enabled.has("source")) cols.push(optionalDefs.source);
@@ -880,7 +830,6 @@ export default {
       if (enabled.has("tokenName")) cols.push(optionalDefs.tokenName);
       if (enabled.has("details")) cols.push(optionalDefs.details);
       if (enabled.has("ipAddress")) cols.push(optionalDefs.ipAddress);
-      if (enabled.has("status")) cols.push(optionalDefs.status);
       return cols;
     },
     queryRange() {
@@ -940,13 +889,6 @@ export default {
       }
       if (this.showShareFilters && this.filterShareHash) {
         params.shareHash = this.filterShareHash;
-      }
-      const statusParams = activityStatusParamsForOutcome(this.statusOutcome);
-      if (statusParams.statusMin !== undefined) {
-        params.statusMin = statusParams.statusMin;
-      }
-      if (statusParams.statusMax !== undefined) {
-        params.statusMax = statusParams.statusMax;
       }
       if (this.viewType !== "table") {
         params.interval = this.effectiveInterval;
@@ -1064,13 +1006,6 @@ export default {
     },
     selectedUsername() {
       if (!this.isInitializing) {
-        this.updateUrl();
-        this.resetPageAndLoad();
-      }
-    },
-    statusOutcome() {
-      if (!this.isInitializing) {
-        this.clampOutcomeSplitForStatusFilter();
         this.updateUrl();
         this.resetPageAndLoad();
       }
@@ -1310,11 +1245,6 @@ export default {
       } else {
         this.selectedUsername = "";
       }
-      if (queryValuePresent(query.statusMin) || queryValuePresent(query.statusMax)) {
-        this.statusOutcome = parseStatusOutcomeFromQuery(query.statusMin, query.statusMax);
-      } else {
-        this.statusOutcome = "all";
-      }
       if (queryValuePresent(query.source)) {
         this.filterSource = String(query.source);
       }
@@ -1338,14 +1268,11 @@ export default {
         const split = String(query.splitBy);
         if (split === "user" && !this.showUserFilter) {
           this.splitBy = "eventType";
-        } else if (split === "outcome" && !this.showOutcomeSplit) {
-          this.splitBy = "eventType";
         } else {
           this.splitBy = split;
         }
       }
       this.clampUserFiltersForRole();
-      this.clampOutcomeSplitForStatusFilter();
       if (queryValuePresent(query.page)) {
         const page = parseInt(String(query.page), 10);
         if (!Number.isNaN(page) && page >= 1) {
@@ -1377,13 +1304,6 @@ export default {
         }
         if (this.showUserFilter && this.selectedUsername) {
           query.username = this.selectedUsername;
-        }
-        const statusParams = activityStatusParamsForOutcome(this.statusOutcome);
-        if (statusParams.statusMin !== undefined) {
-          query.statusMin = String(statusParams.statusMin);
-        }
-        if (statusParams.statusMax !== undefined) {
-          query.statusMax = String(statusParams.statusMax);
         }
         if (this.showFileFilters) {
           if (this.filePathFilterMode === "picker") {
@@ -1420,8 +1340,7 @@ export default {
         }
         if (this.viewType !== "table" && this.splitBy !== "eventType") {
           const includeSplit = this.splitBy === "none"
-            || (this.splitBy === "user" && this.showUserFilter)
-            || (this.splitBy === "outcome" && this.showOutcomeSplit);
+            || (this.splitBy === "user" && this.showUserFilter);
           if (includeSplit) {
             query.splitBy = this.splitBy;
           }
@@ -1654,13 +1573,6 @@ export default {
       gradient.addColorStop(1, hexToRgba(color, 0.02));
       return gradient;
     },
-    statusBadgeClass(code) {
-      if (!code) return "status-badge--muted";
-      if (code >= 500) return "status-badge--5xx";
-      if (code >= 400) return "status-badge--4xx";
-      if (code >= 300) return "status-badge--3xx";
-      return "status-badge--2xx";
-    },
     async loadData() {
       if (this.viewType !== "table" && this.syncChartIntervalToRange()) {
         return;
@@ -1765,28 +1677,12 @@ export default {
       return CHART_COLORS[idx % CHART_COLORS.length];
     },
     colorForSeriesKey(seriesKey, idx) {
-      if (this.splitBy === "outcome") {
-        if (seriesKey === "success") {
-          return OUTCOME_CHART_COLORS.success;
-        }
-        if (seriesKey === "error") {
-          return OUTCOME_CHART_COLORS.error;
-        }
-      }
       return this.colorForIndex(idx);
     },
     bucketSeriesKey(bucket) {
       return bucket.seriesKey || bucket.eventType || "total";
     },
     seriesDisplayLabel(seriesKey, buckets) {
-      if (this.splitBy === "outcome") {
-        if (seriesKey === "success") {
-          return this.$t("general.success");
-        }
-        if (seriesKey === "error") {
-          return this.$t("general.error");
-        }
-      }
       if (this.splitBy === "user") {
         const match = buckets.find((b) => this.bucketSeriesKey(b) === seriesKey);
         return match?.seriesLabel || seriesKey;
@@ -1913,8 +1809,6 @@ export default {
           return this.$t("general.details");
         case "ipAddress":
           return this.$t("general.ipAddress");
-        case "status":
-          return this.$t("general.status");
         default:
           return key;
       }
@@ -1927,12 +1821,6 @@ export default {
       if (this.splitBy === "user") {
         this.splitBy = "eventType";
       }
-    },
-    clampOutcomeSplitForStatusFilter() {
-      if (this.showOutcomeSplit || this.splitBy !== "outcome") {
-        return;
-      }
-      this.splitBy = "eventType";
     },
     parseEventTypesFromQuery(eventType) {
       return filterEventTypesForScope(
@@ -2397,41 +2285,6 @@ export default {
 .details-restricted,
 .details-muted {
   font-size: 0.9em;
-  color: var(--textSecondary);
-}
-
-.status-badge {
-  display: inline-block;
-  min-width: 2.5rem;
-  padding: 0.15rem 0.45rem;
-  font-size: 0.85em;
-  font-weight: 600;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-}
-
-.status-badge--2xx {
-  background: rgba(76, 175, 80, 0.18);
-  color: #2e7d32;
-}
-
-.status-badge--3xx {
-  background: rgba(33, 150, 243, 0.18);
-  color: #1565c0;
-}
-
-.status-badge--4xx {
-  background: rgba(255, 152, 0, 0.22);
-  color: #e65100;
-}
-
-.status-badge--5xx {
-  background: rgba(244, 67, 54, 0.2);
-  color: #c62828;
-}
-
-.status-badge--muted {
-  background: rgba(128, 128, 128, 0.12);
   color: var(--textSecondary);
 }
 

@@ -156,17 +156,17 @@ export default defineComponent({
         this.docxHtml = "";
 
         const downloadUrl = getters.isShare()
-          ? resourcesApi.getDownloadURLPublic({
-              path: state.shareInfo.subPath,
-              hash: state.shareInfo.hash,
-              token: state.shareInfo.token,
-            }, [state.req.path])
-          : resourcesApi.getDownloadURL(
+          ? resourcesApi.getViewURL(
               state.req.source,
               state.req.path,
-              false,
-              true
-            );
+              state.req.streamToken,
+              {
+                path: state.shareInfo.subPath,
+                hash: state.shareInfo.hash,
+                token: state.shareInfo.token,
+              },
+            )
+          : resourcesApi.getViewURL(state.req.source, state.req.path, state.req.streamToken);
 
         if (!downloadUrl) {
           throw new Error("Could not retrieve a valid download URL from the API.");

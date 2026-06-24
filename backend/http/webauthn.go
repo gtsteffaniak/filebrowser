@@ -160,7 +160,7 @@ func finishPasskeyRegistrationHandler(w http.ResponseWriter, r *http.Request, d 
 		return http.StatusInternalServerError, err
 	}
 
-	recordAuthActivity(r, d.user, activitydb.EventPasskeyRegister, http.StatusOK, activitydb.Details{
+	recordAuthActivity(r, d.user, activitydb.EventPasskeyRegister, activitydb.Details{
 		PasskeyName: credentialName,
 	})
 
@@ -206,7 +206,7 @@ func deletePasskeyCredentialHandler(w http.ResponseWriter, r *http.Request, d *r
 		return http.StatusInternalServerError, err
 	}
 
-	recordAuthActivity(r, d.user, activitydb.EventPasskeyDelete, http.StatusOK, activitydb.Details{
+	recordAuthActivity(r, d.user, activitydb.EventPasskeyDelete, activitydb.Details{
 		PasskeyName: passkeyName,
 	})
 
