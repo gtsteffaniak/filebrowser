@@ -187,20 +187,24 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	if len(fileList) == 1 && !isDir {
 		forceInline := r.URL.Query().Get("inline") == "true"
 		status, err := serveSingleFile(w, r, d, source, firstFilePath, fileName, serveSingleFileOptions{forceInline: forceInline})
-		if err == nil {
+		if downloadResponseRecordsActivity(status, err) {
 			recordDownloadActivity(r, d, source, displayFileList)
 		}
 		return status, err
 	}
 
 	status, err := BuildAndStreamArchive(w, r, d, source, fileList)
-	if err == nil {
-		recordDownloadActivity(r, d, source, displayFileList)
-	}
 	if status == 0 && err == nil {
 		status = http.StatusOK
 	}
+	if downloadResponseRecordsActivity(status, err) {
+		recordDownloadActivity(r, d, source, displayFileList)
+	}
 	return status, err
+}
+
+func downloadResponseRecordsActivity(status int, err error) bool {
+	return err == nil && status >= http.StatusOK && status < http.StatusMultipleChoices
 }
 
 // isOnlyOfficeCompatibleFile checks if a file extension is supported by OnlyOffice

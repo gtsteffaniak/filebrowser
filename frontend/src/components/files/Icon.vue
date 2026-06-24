@@ -339,6 +339,7 @@ export default {
             source,
             size: this.size,
             type: this.mimetype,
+            streamToken: this.streamToken,
           },
         };
         return;
