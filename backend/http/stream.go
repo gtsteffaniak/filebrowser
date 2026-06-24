@@ -16,6 +16,7 @@ import (
 
 type serveSingleFileOptions struct {
 	forceInline bool
+	rangeOnly   bool
 }
 
 // serveSingleFile opens one file and streams it with Range support via http.ServeContent.
@@ -24,12 +25,14 @@ func serveSingleFile(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	if idx == nil {
 		return http.StatusInternalServerError, fmt.Errorf("source %s is not available", source)
 	}
+	permUser := d.user.Username
+	if d.share.Hash != "" {
+		permUser = d.shareUser.Username
+	}
 
-	if d.share.Hash == "" && accessStore != nil {
-		if !accessStore.Permitted(idx.Path, utils.IndexPathFromNormalized(scopedFilePath, true), d.user.Username) {
-			logger.Debugf("user %s denied access to path %s", d.user.Username, scopedFilePath)
-			return http.StatusForbidden, fmt.Errorf("access denied to path %s", scopedFilePath)
-		}
+	if !accessStore.Permitted(idx.Path, utils.IndexPathFromNormalized(scopedFilePath, true), permUser) {
+		logger.Debugf("user %s denied access to path %s", permUser, scopedFilePath)
+		return http.StatusForbidden, fmt.Errorf("access denied to path %s", scopedFilePath)
 	}
 
 	realPath, _, err := idx.GetRealPath(scopedFilePath)
@@ -86,6 +89,10 @@ func serveSingleFile(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		reader = newThrottledReadSeeker(fd, limit, burst, r.Context())
 	}
 
+	if opts.rangeOnly {
+		return serveStreamByteRange(w, r, reader, displayFileName, fileInfo.Size())
+	}
+
 	srw := &ResponseWriterWrapper{ResponseWriter: w}
 	http.ServeContent(srw, r, displayFileName, fileInfo.ModTime(), reader)
 	recordStatus := srw.StatusCode
@@ -101,12 +108,15 @@ func streamFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	}
 	scopedFilePath := scopedFileList[0]
 	displayName := filepath.Base(scopedFilePath)
-	return serveSingleFile(w, r, d, source, scopedFilePath, displayName, serveSingleFileOptions{forceInline: true})
+	return serveSingleFile(w, r, d, source, scopedFilePath, displayName, serveSingleFileOptions{
+		forceInline: true,
+		rangeOnly:   streamUseRangeOnly(d, displayName),
+	})
 }
 
 // streamHandler serves inline file content for UI viewing with a valid streamToken.
 // @Summary Stream content of a single file for inline viewing
-// @Description Returns raw file bytes for UI viewers. Requires a streamToken minted by GET /resources. Never counts toward download limits or activity.
+// @Description Returns raw file bytes for inline UI viewing in capped byte ranges. Requires a streamToken minted by GET /resources. Media files and restricted viewers must use Range requests; full-file GET responses are rejected. Never counts toward download limits or activity.
 // @Tags Resources
 // @Accept json
 // @Param source query string true "Source name for the file (required)"
@@ -148,7 +158,7 @@ func streamHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 
 // publicStreamHandler serves inline file content from a public share with a valid streamToken.
 // @Summary Stream a single file from a public share for inline viewing
-// @Description Returns raw file bytes for UI viewers on a share link. Requires streamToken from GET /public/api/resources. Does not count toward download limits.
+// @Description Returns raw file bytes for inline UI viewing in capped byte ranges on a share link. Requires streamToken from GET /public/api/resources. Media files and shares with downloads disabled must use Range requests. Does not count toward download limits.
 // @Tags Resources
 // @Accept json
 // @Produce octet-stream
@@ -187,7 +197,14 @@ func publicStreamHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		return http.StatusForbidden, err
 	}
 	scopedPath := utils.JoinPathAsUnix(d.share.Path, cleanFile)
-	return streamFilesHandler(w, r, d, sourceInfo.Name, []string{scopedPath})
+	status, err := streamFilesHandler(w, r, d, sourceInfo.Name, []string{scopedPath})
+	if err != nil {
+		if status == http.StatusForbidden {
+			return http.StatusForbidden, fmt.Errorf("access denied")
+		}
+		return status, fmt.Errorf("error streaming file")
+	}
+	return status, nil
 }
 
 // resolveDisplayFileList returns client-facing paths for activity logging.

@@ -867,6 +867,17 @@ export function getViewURL(source, path, streamToken, shareInfo = null, allowDow
   return getDownloadURL(source, path, true)
 }
 
+/**
+ * URL to open a file inline in a new browser tab via the download endpoint.
+ * Uses inline disposition and respects download permissions and share limits.
+ */
+export function getOpenFileURL(source, path, shareInfo = null) {
+  if (shareInfo) {
+    return getDownloadURLPublic(shareInfo, [path], true)
+  }
+  return getDownloadURL(source, path, true)
+}
+
 export function getStreamURLPublic(share, files, streamToken) {
   if (!streamToken) {
     throw new Error('stream token required')

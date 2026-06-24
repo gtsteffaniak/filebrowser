@@ -51,7 +51,7 @@
               <i class="material-symbols">file_download</i>{{ $t("general.download") }}
             </div>
           </a>
-          <a target="_blank" :href="raw" class="button button--flat" v-if="req.type !== 'directory'">
+          <a target="_blank" :href="openFileUrl" class="button button--flat" v-if="req.type !== 'directory'">
             <div>
               <i class="material-symbols">open_in_new</i>{{ $t("general.openFile") }}
             </div>
@@ -232,6 +232,20 @@ export default {
         );
       }
       return resourcesApi.getDownloadURL(state.req.source, state.req.path);
+    },
+    openFileUrl() {
+      if (getters.isShare()) {
+        return resourcesApi.getOpenFileURL(
+          state.req.source,
+          state.req.path,
+          {
+            path: state.shareInfo.subPath,
+            hash: state.shareInfo.hash,
+            token: state.shareInfo.token,
+          },
+        );
+      }
+      return resourcesApi.getOpenFileURL(state.req.source, state.req.path);
     },
     isTransitioning() {
       return state.navigation.isTransitioning;

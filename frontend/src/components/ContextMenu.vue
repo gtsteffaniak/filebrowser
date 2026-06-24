@@ -860,25 +860,16 @@ export default {
       });
     },
     goToRaw() {
-      if (getters.isShare()) {
-        window.open(
-          resourcesApi.getViewURL(
-            state.req?.source || "",
-            state.req?.path || "",
-            state.req?.streamToken,
-            state.shareInfo,
-          ),
-          "_blank",
-        );
-        mutations.closeHovers();
-        return;
-      }
-      const viewUrl = resourcesApi.getViewURL(
-        state.req?.source || "",
-        state.req?.path || "",
-        state.req?.streamToken,
-      );
-      window.open(viewUrl, "_blank");
+      const source = state.req?.source || "";
+      const path = state.req?.path || "";
+      const openUrl = getters.isShare()
+        ? resourcesApi.getOpenFileURL(source, path, {
+            path: state.shareInfo.subPath,
+            hash: state.shareInfo.hash,
+            token: state.shareInfo.token,
+          })
+        : resourcesApi.getOpenFileURL(source, path);
+      window.open(openUrl, "_blank");
       mutations.closeHovers();
     },
     watchFile() {

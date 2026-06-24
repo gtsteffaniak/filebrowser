@@ -5912,6 +5912,10 @@ const docTemplate = `{
                     "description": "length in bytes for regular files",
                     "type": "integer"
                 },
+                "streamToken": {
+                    "description": "opaque token for inline streaming via /resources/stream",
+                    "type": "string"
+                },
                 "type": {
                     "description": "type of the file, either \"directory\" or a file mimetype",
                     "type": "string"
