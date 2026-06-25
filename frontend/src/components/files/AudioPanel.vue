@@ -143,13 +143,14 @@ export default {
     activeTab(val) {
       // Persist to sessionStorage
       sessionStorage.setItem(LAST_TAB_KEY, val);
+      if (val === "visualizer") {
+        this.$nextTick(this.startVisualizer);
+        return;
+      }
+      this.stopVisualizer();
       // Scroll to active line when switching to lyrics
       if (val === 'lyrics') {
         this.$nextTick(() => this.scrollToActiveLine());
-      } else if (val === "visualizer") {
-        this.$nextTick(this.startVisualizer);
-      } else {
-        this.stopVisualizer();
       }
     },
     activeLyricIndex() {
@@ -263,8 +264,12 @@ export default {
     fullCleanup() {
       this.stopVisualizer();
       if (this.visualizerAnalyser) {
+        const analyser = this.visualizerAnalyser;
         try {
-          this.visualizerAnalyser.disconnect();
+          this.audioSource?.disconnect(analyser);
+        } catch (_) { /* ignore */ }
+        try {
+          analyser.disconnect();
         } catch (_) { /* ignore */ }
         this.visualizerAnalyser = null;
       }
