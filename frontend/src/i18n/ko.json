@@ -742,7 +742,8 @@
     "unlockLyrics": "가사 잠금 해제",
     "toggleLyrics": "가사 토글",
     "closePanel": "패널 닫기",
-    "openPanel": "패널 열기"
+    "openPanel": "패널 열기",
+    "visualizer": "시각화 도구"
   },
   "fileSizeAnalyzer": {
     "title": "파일 크기 분석기",

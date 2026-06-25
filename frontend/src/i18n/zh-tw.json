@@ -742,7 +742,8 @@
     "unlockLyrics": "解鎖歌詞",
     "toggleLyrics": "切換歌詞",
     "closePanel": "關閉面板",
-    "openPanel": "開啟面板"
+    "openPanel": "開啟面板",
+    "visualizer": "視覺化工具"
   },
   "fileSizeAnalyzer": {
     "title": "檔案大小分析器",

@@ -742,7 +742,8 @@
     "unlockLyrics": "فتح قفل كلمات الأغنية",
     "toggleLyrics": "تبديل كلمات الأغنية",
     "closePanel": "إغلاق اللوحة",
-    "openPanel": "فتح اللوحة"
+    "openPanel": "فتح اللوحة",
+    "visualizer": "مصور"
   },
   "fileSizeAnalyzer": {
     "title": "محلل حجم الملف",

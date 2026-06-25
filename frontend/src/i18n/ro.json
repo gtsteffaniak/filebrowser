@@ -742,7 +742,8 @@
     "unlockLyrics": "Deblochează versurile",
     "toggleLyrics": "Comută versurile",
     "closePanel": "Închide panoul",
-    "openPanel": "Deschide panoul"
+    "openPanel": "Deschide panoul",
+    "visualizer": "Vizualizator"
   },
   "fileSizeAnalyzer": {
     "title": "Analizor dimensiune fișier",

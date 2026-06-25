@@ -742,7 +742,8 @@
     "unlockLyrics": "Ξεκλείδωμα στίχων",
     "toggleLyrics": "Εναλλαγή στίχων",
     "closePanel": "Κλείσιμο πλαισίου",
-    "openPanel": "Άνοιγμα πλαισίου"
+    "openPanel": "Άνοιγμα πλαισίου",
+    "visualizer": "Οπτικοποιητής"
   },
   "fileSizeAnalyzer": {
     "title": "Αναλυτής μεγέθους αρχείου",
