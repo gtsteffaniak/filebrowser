@@ -16,7 +16,7 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/google/go-cmp v0.7.0
 	github.com/gtsteffaniak/go-cache v1.1.0
-	github.com/gtsteffaniak/go-ffmpeg v0.2.0
+	github.com/gtsteffaniak/go-ffmpeg v0.2.1
 	github.com/gtsteffaniak/go-logger v1.1.0
 	github.com/kovidgoyal/imaging v1.8.21
 	github.com/mattn/go-sqlite3 v1.14.45
@@ -308,5 +308,3 @@ tool (
 	github.com/golangci/golangci-lint/v2/cmd/golangci-lint
 	github.com/swaggo/swag/cmd/swag
 )
-
-replace github.com/gtsteffaniak/go-ffmpeg => ../../go-ffmpeg
