@@ -562,24 +562,45 @@ func ExtractLyrics(realPath string) ([]iteminfo.Lyric, error) {
 	return lyrics, nil
 }
 
-// extractVideoMetadata extracts duration from video files using ffprobe
+// extractVideoMetadata extracts duration and codec info from video files using ffprobe.
 // If ffmpegService is nil, a new service will be created (for backward compatibility)
 func extractVideoMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, realPath string, ffmpegService *ffmpeg.FFmpegService) error {
 	service := ffmpegService
 	if service == nil {
 		service = ffmpeg.Get()
 	}
-	if service != nil {
-		duration, err := service.GetMediaDuration(ctx, realPath)
-		if err != nil {
+	if service == nil {
+		return nil
+	}
+
+	info, err := service.ProbeFile(ctx, realPath)
+	if err != nil {
+		// Fall back to duration-only probe for older paths.
+		duration, durErr := service.GetMediaDuration(ctx, realPath)
+		if durErr != nil {
 			return err
 		}
 		if duration > 0 {
-			item.Metadata = &iteminfo.MediaMetadata{
-				Duration: int(duration),
-			}
+			item.Metadata = &iteminfo.MediaMetadata{Duration: int(duration)}
 		}
 		return nil
+	}
+
+	meta := &iteminfo.MediaMetadata{}
+	if info.Duration > 0 {
+		meta.Duration = int(info.Duration)
+	}
+	if info.VideoCodec != "" {
+		meta.VideoCodec = info.VideoCodec
+	}
+	if info.AudioCodec != "" {
+		meta.AudioCodec = info.AudioCodec
+	}
+	if info.FormatName != "" {
+		meta.Container = info.FormatName
+	}
+	if meta.Duration > 0 || meta.VideoCodec != "" || meta.AudioCodec != "" || meta.Container != "" {
+		item.Metadata = meta
 	}
 	return nil
 }

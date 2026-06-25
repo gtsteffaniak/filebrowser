@@ -128,12 +128,22 @@ type OnlyOffice struct {
 }
 
 type Media struct {
-	FfmpegPath               string        `json:"ffmpegPath"`               // path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
-	Convert                  FfmpegConvert `json:"convert"`                  // config for ffmpeg conversion settings
-	Debug                    bool          `json:"debug"`                    // output ffmpeg stdout for media integration -- careful can produces lots of output!
-	ExtractEmbeddedSubtitles bool          `json:"extractEmbeddedSubtitles"` // extract embedded subtitles from media files
-	ExiftoolPath             string        `json:"exiftoolPath"`             // path to exiftool executable
-	HardwareAcceleration     bool          `json:"hardwareAcceleration"`     // enable hardware acceleration for ffmpeg if available
+	FfmpegPath               string         `json:"ffmpegPath"`               // path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
+	Convert                  FfmpegConvert  `json:"convert"`                  // config for ffmpeg conversion settings
+	Transcode                MediaTranscode `json:"transcode"`                // live fMP4 transcode fallback for preview playback
+	Debug                    bool           `json:"debug"`                    // output ffmpeg stdout for media integration -- careful can produces lots of output!
+	ExtractEmbeddedSubtitles bool           `json:"extractEmbeddedSubtitles"` // extract embedded subtitles from media files
+	ExiftoolPath             string         `json:"exiftoolPath"`             // path to exiftool executable
+	HardwareAcceleration     bool           `json:"hardwareAcceleration"`     // enable hardware acceleration for ffmpeg if available
+}
+
+// MediaTranscode configures optional server-side preview transcode (fMP4 + MSE).
+// Output is always H.264 in fragmented MP4 for browser compatibility.
+type MediaTranscode struct {
+	Enabled       bool   `json:"enabled"`                 // master switch (default: false)
+	Preset        string `json:"preset,omitempty"`        // ffmpeg encode preset (default: veryfast)
+	MaxConcurrent int    `json:"maxConcurrent,omitempty"` // system-wide concurrent transcode jobs (default: 2)
+	MaxResolution int    `json:"maxResolution,omitempty"` // max output height in pixels; downscale above this (default: 1080)
 }
 
 type FfmpegConvert struct {

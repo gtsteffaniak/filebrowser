@@ -935,18 +935,9 @@ export const mutations = {
   },
   getPrefetchUrl: (item) => {
     if (getters.isShare()) {
-      return resourcesApi.getViewURL(
-        item.source,
-        item.path,
-        item.streamToken,
-        {
-          path: item.path,
-          hash: state.shareInfo.hash,
-          token: state.shareInfo.token,
-        },
-      );
+      return resourcesApi.getPreviewURLPublic(item.path);
     }
-    return resourcesApi.getViewURL(item.source, item.path, item.streamToken);
+    return resourcesApi.getPreviewURL(item.source, item.path, item.modified);
   },
   setNavigationShow: (show) => {
     if (state.navigation.show === show) {

@@ -336,6 +336,16 @@ func setupMedia(generate bool) {
 		Config.Integrations.Media.Convert.VideoPreview[k] = v
 	}
 
+	if Config.Integrations.Media.Transcode.MaxConcurrent < 1 {
+		Config.Integrations.Media.Transcode.MaxConcurrent = 2
+	}
+	if Config.Integrations.Media.Transcode.Preset == "" {
+		Config.Integrations.Media.Transcode.Preset = "veryfast"
+	}
+	if Config.Integrations.Media.Transcode.MaxResolution < 1 {
+		Config.Integrations.Media.Transcode.MaxResolution = 1080
+	}
+
 	// Resolve exiftool path once at startup: validate user path or discover via PATH
 	if Config.Integrations.Media.ExiftoolPath != "" && !generate {
 		if err := exec.Command(Config.Integrations.Media.ExiftoolPath, "-ver").Run(); err != nil {
@@ -1166,6 +1176,9 @@ func SetDefaults(generate bool) Settings {
 	for _, t := range AllVideoPreviewTypes {
 		s.Integrations.Media.Convert.VideoPreview[t] = boolPtr(true)
 	}
+	s.Integrations.Media.Transcode.MaxConcurrent = 2
+	s.Integrations.Media.Transcode.Preset = "veryfast"
+	s.Integrations.Media.Transcode.MaxResolution = 1080
 	return s
 }
 

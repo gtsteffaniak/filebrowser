@@ -120,7 +120,15 @@
     <!-- Video with plyr -->
     <div v-else-if="previewType === 'video' && !useDefaultMediaPlayer" class="video-player-container" :class="{ 'no-captions': !hasSubtitles }">
       <div class="plyr-video-container" ref="plyrVideoContainer">
-        <video :src="raw" :type="req.type" :autoplay="shouldAutoplay" @play="handlePlay" playsinline ref="videoElement">
+        <video
+          ref="videoElement"
+          v-bind="videoElementAttrs"
+          :autoplay="shouldAutoplay"
+          @play="handlePlay"
+          @error="onVideoPlaybackError"
+          @loadedmetadata="onVideoLoadedMetadata"
+          playsinline
+        >
           <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
             :label="subtitleTrackLabel(sub)" :srclang="sub.language" />
         </video>
@@ -256,6 +264,8 @@ import { url } from '@/utils';
 import { getObjectProperty } from '@/utils/object.js';
 import { globalVars } from '@/utils/constants';
 import { getSubtitleFormatExtension } from '@/utils/subtitles';
+import * as resourcesApi from '@/api/resources';
+import { startFmp4MsePlayback } from '@/utils/fmp4MsePlayer';
 
 const PLYR_CAPTION_SIZE_IDS = ['small', 'medium', 'large', 'xlarge'];
 /** Same localStorage key Plyr uses for `captions`, `language`, etc. (see Plyr defaults `storage.key`). */
@@ -301,8 +311,12 @@ export default {
       type: Array,
       default: () => [],
     },
+    startTranscode: {
+      type: Boolean,
+      default: false,
+    },
   },
-  emits: ['play', 'navigate-previous', 'navigate-next', 'close-preview'],
+  emits: ['play', 'navigate-previous', 'navigate-next', 'close-preview', 'needs-transcode'],
   data() {
     return {
       // Toast
@@ -366,6 +380,10 @@ export default {
       // Plyr instance
       player: null,
       captionSizeMenuInitialized: false,
+      mseController: null,
+      transcodeAbort: null,
+      useMsePlayback: false,
+      transcodeOfferEmitted: false,
     };
   },
   watch: {
@@ -562,6 +580,16 @@ export default {
     syncedLyrics() {
       return this.lyrics.length > 0 && !this.lyrics.every(line => line.timestamp === 0);
     },
+    transcodeEnabled() {
+      return globalVars.transcodeEnabled === true;
+    },
+    videoElementAttrs() {
+      const attrs = { type: this.req.type };
+      if (!this.useMsePlayback) {
+        attrs.src = this.raw;
+      }
+      return attrs;
+    },
     /** Rewind / fast-forward in the control bar only on non-mobile (gestures stay as elsewhere). */
     plyrOptions() {
       const controlsDesktop = [
@@ -643,6 +671,7 @@ export default {
       if (timeout) clearTimeout(timeout);
     });
     // Cleanup Plyr
+    this.destroyMsePlayback();
     this.destroyPlyr();
     this.mediaElement.pause();
     this.clearMediaSession();
@@ -762,10 +791,111 @@ export default {
         this.playbackMenuInitialized = false;
         this.captionSizeMenuInitialized = false;
         this.lastAppliedMode = null;
-        // This should fix (most of) the "Invalid URI" warns, meanwhile we still destroying plyr.
-        // Somehow firefox will still trying to "load" the empty source which causes the warn.
-        this.mediaElement.src = this.raw;
+        if (this.mediaElement && !this.useMsePlayback) {
+          this.mediaElement.src = this.raw;
+        }
       }
+    },
+    destroyMsePlayback() {
+      this.transcodeAbort?.abort();
+      this.transcodeAbort = null;
+      this.mseController?.destroy();
+      this.mseController = null;
+      this.useMsePlayback = false;
+    },
+    getTranscodePlaybackUrl() {
+      return resourcesApi.getTranscodeURL(
+        this.req.source,
+        this.req.path,
+        this.req.streamToken,
+      );
+    },
+    async offerTranscodePlayback() {
+      if (
+        !this.transcodeEnabled
+        || this.useMsePlayback
+        || this.previewType !== 'video'
+        || this.useDefaultMediaPlayer
+        || getters.isShare()
+        || this.transcodeOfferEmitted
+      ) {
+        return;
+      }
+      this.transcodeOfferEmitted = true;
+      try {
+        const status = await resourcesApi.fetchTranscodeSessions(this.req.source, this.req.path);
+        this.$emit('needs-transcode', status);
+      } catch (err) {
+        console.error('Failed to check transcode sessions:', err);
+        this.transcodeOfferEmitted = false;
+      }
+    },
+    async startTranscodePlayback() {
+      if (!this.transcodeEnabled || this.previewType !== 'video' || this.useDefaultMediaPlayer) {
+        return;
+      }
+      await this.destroyMsePlayback();
+      if (this.player) {
+        this.destroyPlyr();
+      }
+      this.useMsePlayback = true;
+      await this.$nextTick();
+      const video = this.$refs.videoElement;
+      if (!video) {
+        this.useMsePlayback = false;
+        return;
+      }
+      this.transcodeAbort = new AbortController();
+      try {
+        const meta = this.req?.metadata || {};
+        this.mseController = await startFmp4MsePlayback(video, this.getTranscodePlaybackUrl(), {
+          signal: this.transcodeAbort.signal,
+          hasAudio: Boolean(meta.audioCodec),
+        });
+        await this.$nextTick();
+        this.initializePlyr();
+      } catch (err) {
+        console.error('Transcode playback failed:', err);
+        this.useMsePlayback = false;
+        if (err?.status === 409 || err?.status === 503) {
+          try {
+            const status = await resourcesApi.fetchTranscodeSessions(
+              this.req.source,
+              this.req.path,
+            );
+            console.info('[transcode] playback blocked, refreshed sessions', status);
+            this.transcodeOfferEmitted = true;
+            this.$emit('needs-transcode', status);
+          } catch (fetchErr) {
+            console.error('Failed to refresh transcode sessions after limit:', fetchErr);
+          }
+        }
+      }
+    },
+    onVideoLoadedMetadata() {
+      if (
+        !this.transcodeEnabled
+        || this.useMsePlayback
+        || this.previewType !== 'video'
+        || this.useDefaultMediaPlayer
+        || getters.isShare()
+      ) {
+        return;
+      }
+      const video = this.mediaElement;
+      if (!video || video.videoWidth > 0 || video.videoHeight > 0) {
+        return;
+      }
+      if (!Number.isFinite(video.duration) || video.duration <= 0) {
+        return;
+      }
+      this.offerTranscodePlayback();
+    },
+    onVideoPlaybackError() {
+      if (!this.transcodeEnabled || this.useMsePlayback || this.previewType !== 'video' || this.useDefaultMediaPlayer) {
+        return;
+      }
+      this.offerTranscodePlayback();
     },
     togglePlayPause() {
       if (!this.mediaElement) return;
@@ -1103,6 +1233,7 @@ export default {
       this.metadata = null;
     },
     updateMedia() {
+      this.transcodeOfferEmitted = false;
       this.hookEvents();
       if (this.previewType === "audio") {
         this.loadAudioMetadata();
@@ -1113,7 +1244,12 @@ export default {
         this.setupDefaultPlayerEvents(this.mediaElement);
         return;
       }
-      
+
+      if (this.previewType === 'video' && this.startTranscode) {
+        this.startTranscodePlayback();
+        return;
+      }
+
       // For videos with subtitle metadata, wait for subtitles to load before initializing Plyr
       // This prevents Plyr from trying to access tracks before they have valid blob URLs
       const hasSubtitleMetadata = this.req?.subtitles?.length > 0;

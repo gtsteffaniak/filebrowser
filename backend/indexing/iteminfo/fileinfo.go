@@ -21,7 +21,7 @@ type ItemInfo struct {
 type ExtendedItemInfo struct {
 	ItemInfo
 	Metadata    *MediaMetadata `json:"metadata,omitempty"`    // optional media metadata (audio/video only)
-	StreamToken string         `json:"streamToken,omitempty"` // opaque token for inline streaming via /resources/stream
+	StreamToken string         `json:"streamToken,omitempty"` // opaque token for inline media streaming via /media/stream
 }
 
 // FileInfo describes a file.
@@ -50,6 +50,9 @@ type MediaMetadata struct {
 	Genre     string  `json:"genre,omitempty"`     // music/video genre
 	Track     int     `json:"track,omitempty"`     // track number
 	Duration  int     `json:"duration,omitempty"`  // duration in seconds
+	VideoCodec string `json:"videoCodec,omitempty"`
+	AudioCodec string `json:"audioCodec,omitempty"`
+	Container  string `json:"container,omitempty"`
 	AlbumArt  []byte  `json:"albumArt,omitempty"`  // album art image data (automatically base64-encoded in JSON)
 	Lyrics    []Lyric `json:"lyrics,omitempty"`    // lyrics (from embedded tags or .lrc files)
 	HasLyrics bool    `json:"hasLyrics,omitempty"` // checks if lyrics are available without parse them
@@ -69,5 +72,5 @@ type ExtendedFileInfo struct {
 	Hash         string                `json:"hash,omitempty"`         // hash for the file -- used for sharing
 	RealPath     string                `json:"-"`
 	PinnedItems  []string              `json:"pinnedItems,omitempty"` // pinned item names in this directory listing
-	StreamToken  string                `json:"streamToken,omitempty"` // opaque token for inline streaming via /resources/stream
+	StreamToken  string                `json:"streamToken,omitempty"` // opaque token for inline media streaming via /media/stream
 }

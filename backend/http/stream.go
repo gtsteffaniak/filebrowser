@@ -108,25 +108,28 @@ func streamFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	}
 	scopedFilePath := scopedFileList[0]
 	displayName := filepath.Base(scopedFilePath)
+	if !isMediaStreamFile(displayName) {
+		return http.StatusForbidden, fmt.Errorf("stream supports audio and video files only")
+	}
 	return serveSingleFile(w, r, d, source, scopedFilePath, displayName, serveSingleFileOptions{
 		forceInline: true,
 		rangeOnly:   streamUseRangeOnly(d, displayName),
 	})
 }
 
-// streamHandler serves inline file content for UI viewing with a valid streamToken.
-// @Summary Stream content of a single file for inline viewing
-// @Description Returns raw file bytes for inline UI viewing in capped byte ranges. Requires a streamToken minted by GET /resources. Media files and restricted viewers must use Range requests; full-file GET responses are rejected. Never counts toward download limits or activity.
-// @Tags Resources
+// streamHandler serves inline audio/video bytes for UI playback with a valid streamToken.
+// @Summary Stream audio or video for inline playback
+// @Description Returns raw media bytes in capped byte ranges. Requires a streamToken minted by GET /resources. Never counts toward download limits or activity.
+// @Tags Media
 // @Accept json
 // @Param source query string true "Source name for the file (required)"
 // @Param file query string true "File path"
 // @Param streamToken query string true "Opaque stream grant token from file metadata"
-// @Success 200 {file} file "Raw file content (inline)"
-// @Failure 403 {object} map[string]string "Missing or invalid stream token"
+// @Success 200 {file} file "Raw media content (inline)"
+// @Failure 403 {object} map[string]string "Missing or invalid stream token, or non-media file"
 // @Failure 404 {object} map[string]string "File not found"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /api/resources/stream [get]
+// @Router /api/media/stream [get]
 func streamHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if r.URL.Query().Get("archiveToken") != "" || r.URL.Query().Get("algo") != "" {
 		return http.StatusForbidden, fmt.Errorf("archives not supported on stream endpoint")
@@ -156,20 +159,20 @@ func streamHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	return streamFilesHandler(w, r, d, source, []string{scopedPath})
 }
 
-// publicStreamHandler serves inline file content from a public share with a valid streamToken.
-// @Summary Stream a single file from a public share for inline viewing
-// @Description Returns raw file bytes for inline UI viewing in capped byte ranges on a share link. Requires streamToken from GET /public/api/resources. Media files and shares with downloads disabled must use Range requests. Does not count toward download limits.
-// @Tags Resources
+// publicStreamHandler serves inline audio/video from a public share with a valid streamToken.
+// @Summary Stream audio or video from a public share
+// @Description Returns raw media bytes in capped byte ranges on a share link. Requires streamToken from GET /public/api/resources. Does not count toward download limits.
+// @Tags Media
 // @Accept json
 // @Produce octet-stream
 // @Param hash query string true "Share hash for authentication"
 // @Param file query string true "File path within the share"
 // @Param streamToken query string true "Opaque stream grant token from share file metadata"
-// @Success 200 {file} file "Raw file content (inline)"
-// @Failure 403 {object} map[string]string "Missing or invalid stream token"
+// @Success 200 {file} file "Raw media content (inline)"
+// @Failure 403 {object} map[string]string "Missing or invalid stream token, or non-media file"
 // @Failure 404 {object} map[string]string "Share or file not found"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /public/api/resources/stream [get]
+// @Router /public/api/media/stream [get]
 func publicStreamHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if d.share.ShareType == "upload" {
 		return http.StatusNotImplemented, fmt.Errorf("streaming is disabled for upload shares")

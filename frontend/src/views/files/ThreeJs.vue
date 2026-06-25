@@ -364,7 +364,7 @@ export default {
       if (url.startsWith("blob:") || url.startsWith("data:")) {
         return url;
       }
-      if (url.includes("/api/resources/stream?") || url.includes("/api/resources/download?")) {
+      if (url.includes("/api/media/stream?") || url.includes("/api/resources/download?")) {
         try {
           const parsed = new URL(url, window.origin);
           const filePath = parsed.searchParams.get("file") || parsed.searchParams.getAll("file")[0];

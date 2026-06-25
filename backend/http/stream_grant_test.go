@@ -99,7 +99,7 @@ func TestAttachStreamTokensForDirectory(t *testing.T) {
 		FileInfo: iteminfo.FileInfo{
 			ItemInfo: iteminfo.ItemInfo{Type: "directory"},
 			Files: []iteminfo.ExtendedItemInfo{
-				{ItemInfo: iteminfo.ItemInfo{Name: "a.jpg", Type: "image/jpeg"}},
+				{ItemInfo: iteminfo.ItemInfo{Name: "clip.mp4", Type: "video/mp4"}},
 				{ItemInfo: iteminfo.ItemInfo{Name: "nested", Type: "directory"}},
 			},
 		},
@@ -112,7 +112,7 @@ func TestAttachStreamTokensForDirectory(t *testing.T) {
 		t.Fatal("did not expect stream token on directory child folder")
 	}
 	token := file.Files[0].StreamToken
-	if err := validateStreamGrant(token, d, "Downloads", "/photos/a.jpg"); err != nil {
+	if err := validateStreamGrant(token, d, "Downloads", "/photos/clip.mp4"); err != nil {
 		t.Fatalf("validate child grant: %v", err)
 	}
 }

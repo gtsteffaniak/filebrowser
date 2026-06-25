@@ -764,7 +764,12 @@
     "unlockLyrics": "Unlock lyrics",
     "toggleLyrics": "Toggle lyrics",
     "closePanel": "Close panel",
-    "openPanel": "Open panel"
+    "openPanel": "Open panel",
+    "transcodeUnsupportedFormat": "This video format is not supported by your browser.",
+    "transcodeUserLimitReached": "Transcode limit reached. You already have an active transcode session:",
+    "transcodeSystemLimitReached": "Server transcode limit reached ({limit} concurrent). Try again when a session finishes.",
+    "transcodeActiveSessions": "Active transcodes:",
+    "transcodeStart": "Transcode"
   },
   "fileSizeAnalyzer": {
     "title": "File Size Analyzer",

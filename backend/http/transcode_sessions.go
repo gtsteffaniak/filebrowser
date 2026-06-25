@@ -1,0 +1,280 @@
+package http
+
+import (
+	"fmt"
+	"sync"
+	"time"
+
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/go-logger/logger"
+)
+
+const transcodePerUserLimit = 1
+
+// TranscodeSession describes an active preview transcode job.
+type TranscodeSession struct {
+	ID            string `json:"id"`
+	UserID        uint64 `json:"userId"`
+	Username      string `json:"username"`
+	Source        string `json:"source"`
+	Path          string `json:"path"`
+	FileName      string `json:"fileName"`
+	StartedAt     int64  `json:"startedAt"`
+	MaxResolution int    `json:"maxResolution"`
+	Preset        string `json:"preset,omitempty"`
+	ActiveStreams int    `json:"activeStreams,omitempty"`
+}
+
+// TranscodeSessionsResponse is returned by GET /api/media/transcode/sessions.
+type TranscodeSessionsResponse struct {
+	SystemLimit  int                `json:"systemLimit"`
+	UserLimit    int                `json:"userLimit"`
+	ActiveCount  int                `json:"activeCount"`
+	CanStart     bool               `json:"canStart"`
+	BlockReason  string             `json:"blockReason,omitempty"`
+	TargetSource string             `json:"targetSource,omitempty"`
+	TargetPath   string             `json:"targetPath,omitempty"`
+	Sessions     []TranscodeSession `json:"sessions"`
+}
+
+type transcodeSessionEntry struct {
+	TranscodeSession
+	streams int
+}
+
+type transcodeSessionStore struct {
+	mu       sync.Mutex
+	sessions map[string]*transcodeSessionEntry
+	byUser   map[uint64]string // userID -> active session key
+}
+
+var activeTranscodeSessions = &transcodeSessionStore{
+	sessions: make(map[string]*transcodeSessionEntry),
+	byUser:   make(map[uint64]string),
+}
+
+func transcodeSessionKey(userID uint64, source, path string) string {
+	return fmt.Sprintf("%d:%s:%s", userID, source, path)
+}
+
+func transcodeSystemLimit() int {
+	n := settings.Config.Integrations.Media.Transcode.MaxConcurrent
+	if n < 1 {
+		return 2
+	}
+	return n
+}
+
+func (s *transcodeSessionStore) snapshot() []TranscodeSession {
+	out := make([]TranscodeSession, 0, len(s.sessions))
+	for _, entry := range s.sessions {
+		sess := entry.TranscodeSession
+		sess.ActiveStreams = entry.streams
+		out = append(out, sess)
+	}
+	return out
+}
+
+func (s *transcodeSessionStore) sessionsForUser(userID uint64) []TranscodeSession {
+	var out []TranscodeSession
+	for _, entry := range s.sessions {
+		if entry.UserID == userID {
+			sess := entry.TranscodeSession
+			sess.ActiveStreams = entry.streams
+			out = append(out, sess)
+		}
+	}
+	return out
+}
+
+func (s *transcodeSessionStore) activeEntryForUser(userID uint64) *transcodeSessionEntry {
+	key, ok := s.byUser[userID]
+	if !ok {
+		return nil
+	}
+	return s.sessions[key]
+}
+
+func (s *transcodeSessionStore) userHasLiveStream(userID uint64) (*transcodeSessionEntry, bool) {
+	entry := s.activeEntryForUser(userID)
+	if entry == nil || entry.streams <= 0 {
+		return entry, false
+	}
+	return entry, true
+}
+
+func (s *transcodeSessionStore) evaluate(userID uint64, source, path string) TranscodeSessionsResponse {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	systemLimit := transcodeSystemLimit()
+	userLimit := transcodePerUserLimit
+	resp := TranscodeSessionsResponse{
+		SystemLimit:  systemLimit,
+		UserLimit:    userLimit,
+		ActiveCount:  len(s.sessions),
+		TargetSource: source,
+		TargetPath:   path,
+		Sessions:     s.snapshot(),
+		CanStart:     true,
+	}
+
+	if live, blocked := s.userHasLiveStream(userID); blocked {
+		resp.CanStart = false
+		resp.BlockReason = "user_limit"
+		resp.Sessions = s.sessionsForUser(userID)
+		logger.Infof(
+			"transcode sessions evaluate: user=%d blocked=user_limit active=%s streams=%d target=%s:%s",
+			userID, live.ID, live.streams, source, path,
+		)
+		return resp
+	}
+
+	activeStreams := 0
+	for _, entry := range s.sessions {
+		activeStreams += entry.streams
+	}
+	if activeStreams >= systemLimit {
+		resp.CanStart = false
+		resp.BlockReason = "system_limit"
+		logger.Infof(
+			"transcode sessions evaluate: user=%d blocked=system_limit activeStreams=%d limit=%d target=%s:%s",
+			userID, activeStreams, systemLimit, source, path,
+		)
+		return resp
+	}
+
+	logger.Debugf(
+		"transcode sessions evaluate: user=%d canStart=true target=%s:%s sessions=%d",
+		userID, source, path, len(s.sessions),
+	)
+	return resp
+}
+
+type transcodeAcquireResult struct {
+	OK      bool
+	Reason  string
+	Session *TranscodeSession
+	Status  TranscodeSessionsResponse
+}
+
+func (s *transcodeSessionStore) acquire(userID uint64, username, source, path, fileName string) transcodeAcquireResult {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	systemLimit := transcodeSystemLimit()
+	userLimit := transcodePerUserLimit
+	status := TranscodeSessionsResponse{
+		SystemLimit:  systemLimit,
+		UserLimit:    userLimit,
+		ActiveCount:  len(s.sessions),
+		TargetSource: source,
+		TargetPath:   path,
+		Sessions:     s.snapshot(),
+		CanStart:     true,
+	}
+
+	key := transcodeSessionKey(userID, source, path)
+
+	if live, blocked := s.userHasLiveStream(userID); blocked {
+		status.CanStart = false
+		status.BlockReason = "user_limit"
+		status.Sessions = s.sessionsForUser(userID)
+		logger.Infof(
+			"transcode acquire rejected: user=%d reason=user_limit activeKey=%s activeStreams=%d requested=%s file=%q",
+			userID, live.ID, live.streams, key, fileName,
+		)
+		return transcodeAcquireResult{OK: false, Reason: "user_limit", Status: status}
+	}
+
+	activeStreams := 0
+	for _, entry := range s.sessions {
+		activeStreams += entry.streams
+	}
+	if activeStreams >= systemLimit {
+		status.CanStart = false
+		status.BlockReason = "system_limit"
+		logger.Infof(
+			"transcode acquire rejected: user=%d reason=system_limit activeStreams=%d limit=%d requested=%s file=%q",
+			userID, activeStreams, systemLimit, key, fileName,
+		)
+		return transcodeAcquireResult{OK: false, Reason: "system_limit", Status: status}
+	}
+
+	tc := settings.Config.Integrations.Media.Transcode
+	entry := s.sessions[key]
+	if entry == nil {
+		entry = &transcodeSessionEntry{
+			TranscodeSession: TranscodeSession{
+				ID:            key,
+				UserID:        userID,
+				Username:      username,
+				Source:        source,
+				Path:          path,
+				FileName:      fileName,
+				StartedAt:     time.Now().Unix(),
+				MaxResolution: tc.MaxResolution,
+				Preset:        tc.Preset,
+			},
+		}
+		s.sessions[key] = entry
+		s.byUser[userID] = key
+	}
+	entry.streams++
+	entry.ActiveStreams = entry.streams
+	status.ActiveCount = len(s.sessions)
+	status.Sessions = s.snapshot()
+
+	logger.Infof(
+		"transcode acquire ok: user=%d key=%s file=%q streams=%d totalLiveStreams=%d",
+		userID, key, fileName, entry.streams, activeStreams+1,
+	)
+
+	sess := entry.TranscodeSession
+	sess.ActiveStreams = entry.streams
+	return transcodeAcquireResult{OK: true, Session: &sess, Status: status}
+}
+
+func (s *transcodeSessionStore) releaseStream(key string) {
+	if key == "" {
+		return
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	entry, ok := s.sessions[key]
+	if !ok {
+		logger.Debugf("transcode release skipped: key=%s not found", key)
+		return
+	}
+
+	entry.streams--
+	if entry.streams < 0 {
+		entry.streams = 0
+	}
+	entry.ActiveStreams = entry.streams
+
+	logger.Infof(
+		"transcode stream ended: user=%d key=%s file=%q remainingStreams=%d",
+		entry.UserID, key, entry.FileName, entry.streams,
+	)
+
+	if entry.streams > 0 {
+		return
+	}
+
+	delete(s.sessions, key)
+	if s.byUser[entry.UserID] == key {
+		delete(s.byUser, entry.UserID)
+	}
+	logger.Infof("transcode session cleared: user=%d key=%s", entry.UserID, key)
+}
+
+func (s *transcodeSessionStore) list(userID uint64, all bool) []TranscodeSession {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if all {
+		return s.snapshot()
+	}
+	return s.sessionsForUser(userID)
+}

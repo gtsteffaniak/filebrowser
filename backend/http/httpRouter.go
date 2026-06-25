@@ -136,7 +136,6 @@ func StartHttp(ctx context.Context, shutdownComplete chan struct{}) {
 	api.HandleFunc("POST /resources/archive", withUser(archiveCreateHandler))
 	api.HandleFunc("POST /resources/unarchive", withUser(unarchiveHandler))
 	api.HandleFunc("GET /resources/download", withUser(downloadHandler))
-	api.HandleFunc("GET /resources/stream", withUser(streamHandler))
 	api.HandleFunc("GET /resources/preview", withTimeout(30*time.Second, withUserHelper(previewHandler)))
 	api.HandleFunc("POST /resources/pause", withUser(resourcePauseHandler))
 	publicApi.HandleFunc("GET /resources", withHashFile(publicGetResourceHandler))
@@ -147,7 +146,6 @@ func StartHttp(ctx context.Context, shutdownComplete chan struct{}) {
 	publicApi.HandleFunc("DELETE /resources/bulk", withHashFile(publicBulkDeleteHandler))
 	publicApi.HandleFunc("PATCH /resources", withHashFile(publicPatchHandler))
 	publicApi.HandleFunc("GET /resources/download", withHashFile(publicDownloadHandler))
-	publicApi.HandleFunc("GET /resources/stream", withHashFile(publicStreamHandler))
 	publicApi.HandleFunc("GET /resources/preview", withTimeout(30*time.Second, withHashFileHelper(publicPreviewHandler)))
 	publicApi.HandleFunc("POST /resources/pause", withHashFile(publicPauseHandler))
 	// Legacy routes (backwards compatibility)
@@ -202,8 +200,12 @@ func StartHttp(ctx context.Context, shutdownComplete chan struct{}) {
 	api.HandleFunc("GET /media/subtitles", withUser(subtitlesHandler))
 	api.HandleFunc("GET /media/metadata", withUser(metadataHandler))
 	api.HandleFunc("GET /media/lyrics", withUser(lyricsHandler))
+	api.HandleFunc("GET /media/stream", withUser(streamHandler))
+	api.HandleFunc("GET /media/transcode/sessions", withUser(transcodeSessionsHandler))
+	api.HandleFunc("GET /media/transcode", withUser(transcodeHandler))
 	publicApi.HandleFunc("GET /media/metadata", withHashFile(publicMetadataHandler))
 	publicApi.HandleFunc("GET /media/lyrics", withHashFile(publicLyricsHandler))
+	publicApi.HandleFunc("GET /media/stream", withHashFile(publicStreamHandler))
 
 	// ========================================
 	// OnlyOffice Routes - /api/office/ (with public routes)

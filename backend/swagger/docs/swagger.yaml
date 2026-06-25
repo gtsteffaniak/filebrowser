@@ -499,7 +499,7 @@ definitions:
         description: associated index source for the file
         type: string
       streamToken:
-        description: opaque token for inline streaming via /resources/stream
+        description: opaque token for inline media streaming via /media/stream
         type: string
       subtitles:
         description: subtitles for video files
@@ -538,7 +538,7 @@ definitions:
         description: length in bytes for regular files
         type: integer
       streamToken:
-        description: opaque token for inline streaming via /resources/stream
+        description: opaque token for inline media streaming via /media/stream
         type: string
       type:
         description: type of the file, either "directory" or a file mimetype
@@ -626,6 +626,10 @@ definitions:
       artist:
         description: track artist
         type: string
+      audioCodec:
+        type: string
+      container:
+        type: string
       duration:
         description: duration in seconds
         type: integer
@@ -646,6 +650,8 @@ definitions:
       track:
         description: track number
         type: integer
+      videoCodec:
+        type: string
       year:
         description: release year
         type: integer
@@ -1078,6 +1084,26 @@ definitions:
       hardwareAcceleration:
         description: enable hardware acceleration for ffmpeg if available
         type: boolean
+      transcode:
+        allOf:
+        - $ref: '#/definitions/settings.MediaTranscode'
+        description: live fMP4 transcode fallback for preview playback
+    type: object
+  settings.MediaTranscode:
+    properties:
+      enabled:
+        description: 'master switch (default: false)'
+        type: boolean
+      maxConcurrent:
+        description: 'system-wide concurrent transcode jobs (default: 2)'
+        type: integer
+      maxResolution:
+        description: 'max output height in pixels; downscale above this (default:
+          1080)'
+        type: integer
+      preset:
+        description: 'ffmpeg encode preset (default: veryfast)'
+        type: string
     type: object
   settings.OidcConfig:
     properties:
@@ -3584,6 +3610,54 @@ paths:
       summary: Directory with media metadata
       tags:
       - Media
+  /api/media/stream:
+    get:
+      consumes:
+      - application/json
+      description: Returns raw media bytes in capped byte ranges. Requires a streamToken
+        minted by GET /resources. Never counts toward download limits or activity.
+      parameters:
+      - description: Source name for the file (required)
+        in: query
+        name: source
+        required: true
+        type: string
+      - description: File path
+        in: query
+        name: file
+        required: true
+        type: string
+      - description: Opaque stream grant token from file metadata
+        in: query
+        name: streamToken
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Raw media content (inline)
+          schema:
+            type: file
+        "403":
+          description: Missing or invalid stream token, or non-media file
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: File not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Stream audio or video for inline playback
+      tags:
+      - Media
   /api/media/subtitles:
     get:
       consumes:
@@ -3643,6 +3717,81 @@ paths:
               type: string
             type: object
       summary: Get subtitle content
+      tags:
+      - Media
+  /api/media/transcode:
+    get:
+      description: Live fragmented MP4 stream for MSE playback. Requires streamToken
+        and authenticated user. Does not support Range requests and never counts as
+        a download.
+      parameters:
+      - description: Source name
+        in: query
+        name: source
+        required: true
+        type: string
+      - description: File path
+        in: query
+        name: file
+        required: true
+        type: string
+      - description: Opaque stream grant token from file metadata
+        in: query
+        name: streamToken
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Fragmented MP4 stream
+          schema:
+            type: file
+        "403":
+          description: Missing or invalid stream token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: User transcode limit reached
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "416":
+          description: Range requests not supported
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "503":
+          description: System transcode limit reached
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Transcode media for inline preview playback
+      tags:
+      - Media
+  /api/media/transcode/sessions:
+    get:
+      description: Returns active transcode jobs for the current user, or all users
+        when all=true and caller is admin. Optional source/file query params evaluate
+        start eligibility for a target file.
+      parameters:
+      - description: Source name for start eligibility check
+        in: query
+        name: source
+        type: string
+      - description: File path for start eligibility check
+        in: query
+        name: file
+        type: string
+      - description: List all sessions (admin only)
+        in: query
+        name: all
+        type: boolean
+      responses: {}
+      summary: List active transcode sessions
       tags:
       - Media
   /api/office/callback:
@@ -4359,56 +4508,6 @@ paths:
               type: string
             type: object
       summary: Get image preview
-      tags:
-      - Resources
-  /api/resources/stream:
-    get:
-      consumes:
-      - application/json
-      description: Returns raw file bytes for inline UI viewing in capped byte ranges.
-        Requires a streamToken minted by GET /resources. Media files and restricted
-        viewers must use Range requests; full-file GET responses are rejected. Never
-        counts toward download limits or activity.
-      parameters:
-      - description: Source name for the file (required)
-        in: query
-        name: source
-        required: true
-        type: string
-      - description: File path
-        in: query
-        name: file
-        required: true
-        type: string
-      - description: Opaque stream grant token from file metadata
-        in: query
-        name: streamToken
-        required: true
-        type: string
-      responses:
-        "200":
-          description: Raw file content (inline)
-          schema:
-            type: file
-        "403":
-          description: Missing or invalid stream token
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: File not found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Stream content of a single file for inline viewing
       tags:
       - Resources
   /api/resources/unarchive:
@@ -5479,6 +5578,57 @@ paths:
       summary: Directory with media metadata (public share)
       tags:
       - Media
+  /public/api/media/stream:
+    get:
+      consumes:
+      - application/json
+      description: Returns raw media bytes in capped byte ranges on a share link.
+        Requires streamToken from GET /public/api/resources. Does not count toward
+        download limits.
+      parameters:
+      - description: Share hash for authentication
+        in: query
+        name: hash
+        required: true
+        type: string
+      - description: File path within the share
+        in: query
+        name: file
+        required: true
+        type: string
+      - description: Opaque stream grant token from share file metadata
+        in: query
+        name: streamToken
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: Raw media content (inline)
+          schema:
+            type: file
+        "403":
+          description: Missing or invalid stream token, or non-media file
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Share or file not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Stream audio or video from a public share
+      tags:
+      - Media
   /public/api/resources:
     get:
       consumes:
@@ -5996,58 +6146,6 @@ paths:
               type: string
             type: object
       summary: Get image/video preview from a public share
-      tags:
-      - Resources
-  /public/api/resources/stream:
-    get:
-      consumes:
-      - application/json
-      description: Returns raw file bytes for inline UI viewing in capped byte ranges
-        on a share link. Requires streamToken from GET /public/api/resources. Media
-        files and shares with downloads disabled must use Range requests. Does not
-        count toward download limits.
-      parameters:
-      - description: Share hash for authentication
-        in: query
-        name: hash
-        required: true
-        type: string
-      - description: File path within the share
-        in: query
-        name: file
-        required: true
-        type: string
-      - description: Opaque stream grant token from share file metadata
-        in: query
-        name: streamToken
-        required: true
-        type: string
-      produces:
-      - application/octet-stream
-      responses:
-        "200":
-          description: Raw file content (inline)
-          schema:
-            type: file
-        "403":
-          description: Missing or invalid stream token
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Share or file not found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Stream a single file from a public share for inline viewing
       tags:
       - Resources
   /public/api/share/image:

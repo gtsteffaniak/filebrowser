@@ -262,6 +262,11 @@ integrations:
         vob: true
         webm: true
         wmv: true
+    transcode:                            # live fMP4 transcode fallback for preview playback
+      enabled: false                      # master switch (default: false)
+      preset: "veryfast"                  # ffmpeg encode preset (default: veryfast)
+      maxConcurrent: 2                    # system-wide concurrent transcode jobs (default: 2)
+      maxResolution: 1080                 # max output height in pixels; downscale above this (default: 1080)
     debug: false                          # output ffmpeg stdout for media integration -- careful can produces lots of output!
     extractEmbeddedSubtitles: false       # extract embedded subtitles from media files
     exiftoolPath: ""                      # path to exiftool executable

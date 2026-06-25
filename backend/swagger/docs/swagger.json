@@ -1414,6 +1414,76 @@
                 }
             }
         },
+        "/api/media/stream": {
+            "get": {
+                "description": "Returns raw media bytes in capped byte ranges. Requires a streamToken minted by GET /resources. Never counts toward download limits or activity.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Media"
+                ],
+                "summary": "Stream audio or video for inline playback",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Source name for the file (required)",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "File path",
+                        "name": "file",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Opaque stream grant token from file metadata",
+                        "name": "streamToken",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Raw media content (inline)",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "403": {
+                        "description": "Missing or invalid stream token, or non-media file",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "File not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/media/subtitles": {
             "get": {
                 "description": "Returns raw subtitle content from external files or embedded streams",
@@ -1500,6 +1570,112 @@
                         }
                     }
                 }
+            }
+        },
+        "/api/media/transcode": {
+            "get": {
+                "description": "Live fragmented MP4 stream for MSE playback. Requires streamToken and authenticated user. Does not support Range requests and never counts as a download.",
+                "tags": [
+                    "Media"
+                ],
+                "summary": "Transcode media for inline preview playback",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Source name",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "File path",
+                        "name": "file",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Opaque stream grant token from file metadata",
+                        "name": "streamToken",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Fragmented MP4 stream",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "403": {
+                        "description": "Missing or invalid stream token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "User transcode limit reached",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "416": {
+                        "description": "Range requests not supported",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "System transcode limit reached",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/media/transcode/sessions": {
+            "get": {
+                "description": "Returns active transcode jobs for the current user, or all users when all=true and caller is admin. Optional source/file query params evaluate start eligibility for a target file.",
+                "tags": [
+                    "Media"
+                ],
+                "summary": "List active transcode sessions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Source name for start eligibility check",
+                        "name": "source",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "File path for start eligibility check",
+                        "name": "file",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "List all sessions (admin only)",
+                        "name": "all",
+                        "in": "query"
+                    }
+                ],
+                "responses": {}
             }
         },
         "/api/office/callback": {
@@ -2514,76 +2690,6 @@
                     },
                     "501": {
                         "description": "Preview generation not implemented",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/resources/stream": {
-            "get": {
-                "description": "Returns raw file bytes for inline UI viewing in capped byte ranges. Requires a streamToken minted by GET /resources. Media files and restricted viewers must use Range requests; full-file GET responses are rejected. Never counts toward download limits or activity.",
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Resources"
-                ],
-                "summary": "Stream content of a single file for inline viewing",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Source name for the file (required)",
-                        "name": "source",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "File path",
-                        "name": "file",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Opaque stream grant token from file metadata",
-                        "name": "streamToken",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Raw file content (inline)",
-                        "schema": {
-                            "type": "file"
-                        }
-                    },
-                    "403": {
-                        "description": "Missing or invalid stream token",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "File not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -4136,6 +4242,79 @@
                 }
             }
         },
+        "/public/api/media/stream": {
+            "get": {
+                "description": "Returns raw media bytes in capped byte ranges on a share link. Requires streamToken from GET /public/api/resources. Does not count toward download limits.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "Media"
+                ],
+                "summary": "Stream audio or video from a public share",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Share hash for authentication",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "File path within the share",
+                        "name": "file",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Opaque stream grant token from share file metadata",
+                        "name": "streamToken",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Raw media content (inline)",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "403": {
+                        "description": "Missing or invalid stream token, or non-media file",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Share or file not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/public/api/resources": {
             "get": {
                 "description": "Returns metadata for files or directories accessible via a public share link. Browsing is disabled for upload-only shares.",
@@ -4871,79 +5050,6 @@
                     },
                     "501": {
                         "description": "Previews disabled globally, for this share, or for upload shares",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/public/api/resources/stream": {
-            "get": {
-                "description": "Returns raw file bytes for inline UI viewing in capped byte ranges on a share link. Requires streamToken from GET /public/api/resources. Media files and shares with downloads disabled must use Range requests. Does not count toward download limits.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/octet-stream"
-                ],
-                "tags": [
-                    "Resources"
-                ],
-                "summary": "Stream a single file from a public share for inline viewing",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Share hash for authentication",
-                        "name": "hash",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "File path within the share",
-                        "name": "file",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Opaque stream grant token from share file metadata",
-                        "name": "streamToken",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Raw file content (inline)",
-                        "schema": {
-                            "type": "file"
-                        }
-                    },
-                    "403": {
-                        "description": "Missing or invalid stream token",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Share or file not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -5846,7 +5952,7 @@
                     "type": "string"
                 },
                 "streamToken": {
-                    "description": "opaque token for inline streaming via /resources/stream",
+                    "description": "opaque token for inline media streaming via /media/stream",
                     "type": "string"
                 },
                 "subtitles": {
@@ -5902,7 +6008,7 @@
                     "type": "integer"
                 },
                 "streamToken": {
-                    "description": "opaque token for inline streaming via /resources/stream",
+                    "description": "opaque token for inline media streaming via /media/stream",
                     "type": "string"
                 },
                 "type": {
@@ -6025,6 +6131,12 @@
                     "description": "track artist",
                     "type": "string"
                 },
+                "audioCodec": {
+                    "type": "string"
+                },
+                "container": {
+                    "type": "string"
+                },
                 "duration": {
                     "description": "duration in seconds",
                     "type": "integer"
@@ -6051,6 +6163,9 @@
                 "track": {
                     "description": "track number",
                     "type": "integer"
+                },
+                "videoCodec": {
+                    "type": "string"
                 },
                 "year": {
                     "description": "release year",
@@ -6600,6 +6715,35 @@
                 "hardwareAcceleration": {
                     "description": "enable hardware acceleration for ffmpeg if available",
                     "type": "boolean"
+                },
+                "transcode": {
+                    "description": "live fMP4 transcode fallback for preview playback",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.MediaTranscode"
+                        }
+                    ]
+                }
+            }
+        },
+        "settings.MediaTranscode": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "description": "master switch (default: false)",
+                    "type": "boolean"
+                },
+                "maxConcurrent": {
+                    "description": "system-wide concurrent transcode jobs (default: 2)",
+                    "type": "integer"
+                },
+                "maxResolution": {
+                    "description": "max output height in pixels; downscale above this (default: 1080)",
+                    "type": "integer"
+                },
+                "preset": {
+                    "description": "ffmpeg encode preset (default: veryfast)",
+                    "type": "string"
                 }
             }
         },

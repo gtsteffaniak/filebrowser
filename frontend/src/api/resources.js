@@ -838,7 +838,7 @@ export function getStreamURL(source, path, streamToken) {
       streamToken: streamToken,
       sessionId: state.sessionId,
     }
-    const apiPath = getApiPath('resources/stream', params)
+    const apiPath = getApiPath('media/stream', params)
     return window.origin + apiPath
   } catch (err) {
     notify.showError(err.message || 'Error getting stream URL')
@@ -846,21 +846,64 @@ export function getStreamURL(source, path, streamToken) {
   }
 }
 
-/**
- * Stream URL for inline viewing. Requires streamToken; returns null when unavailable
- * so callers do not fall back to metered /download URLs.
- * Pass allowDownloadFallback=true only for HTML sibling assets without tokens.
- */
-export function getViewURL(source, path, streamToken, shareInfo = null, allowDownloadFallback = false) {
-  if (streamToken) {
-    if (shareInfo) {
-      return getStreamURLPublic(shareInfo, [path], streamToken)
+export function getTranscodeURL(source, path, streamToken) {
+  if (!streamToken) {
+    throw new Error('stream token required')
+  }
+  if (!source) {
+    throw new Error('no source provided')
+  }
+  try {
+    const params = {
+      source: source,
+      file: path,
+      streamToken: streamToken,
+      sessionId: state.sessionId,
     }
-    return getStreamURL(source, path, streamToken)
+    const apiPath = getApiPath('media/transcode', params)
+    return window.origin + apiPath
+  } catch (err) {
+    notify.showError(err.message || 'Error getting transcode URL')
+    throw err
   }
-  if (!allowDownloadFallback) {
-    return null
+}
+
+export async function fetchTranscodeSessions(source, path, { all = false } = {}) {
+  if (!source) {
+    throw new Error('no source provided')
   }
+  try {
+    const params = {
+      source,
+      file: path,
+      ...(all && { all: 'true' }),
+    }
+    const apiPath = getApiPath('media/transcode/sessions', params)
+    const res = await fetchURL(apiPath)
+    return res.json()
+  } catch (err) {
+    notify.showError(err.message || 'Error fetching transcode sessions')
+    throw err
+  }
+}
+
+/**
+ * Media stream URL for inline audio/video playback. Requires streamToken.
+ */
+export function getViewURL(source, path, streamToken, shareInfo = null) {
+  if (!streamToken) {
+    throw new Error('stream token required for media playback')
+  }
+  if (shareInfo) {
+    return getStreamURLPublic(shareInfo, [path], streamToken)
+  }
+  return getStreamURL(source, path, streamToken)
+}
+
+/**
+ * Inline URL for non-media preview assets (HTML siblings, documents, images without preview).
+ */
+export function getInlineResourceURL(source, path, shareInfo = null) {
   if (shareInfo) {
     return getDownloadURLPublic(shareInfo, [path], true)
   }
@@ -890,7 +933,7 @@ export function getStreamURLPublic(share, files, streamToken) {
     streamToken: streamToken,
     sessionId: state.sessionId,
   }
-  const apiPath = getPublicApiPath('resources/stream', params)
+  const apiPath = getPublicApiPath('media/stream', params)
   return window.origin + apiPath
 }
 

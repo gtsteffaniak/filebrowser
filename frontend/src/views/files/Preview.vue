@@ -13,12 +13,12 @@
         @navigate-next="navigateNext" @close-preview="exitPreviewFromImageGesture" />
 
       <!-- Media: load full metadata + album art from media API before mounting plyr so the correct view/art is stable. -->
-      <div v-else-if="previewType === 'audio' || previewType === 'video'" class="av-preview-wrap">
+      <div v-else-if="previewType === 'audio' || (previewType === 'video' && showVideoPlayer)" class="av-preview-wrap">
         <div v-if="avMetadataLoading" class="av-preview-loading">
           <LoadingSpinner size="medium" />
         </div>
         <plyrViewer v-else
-          :key="req.path"
+          :key="plyrViewerKey"
           ref="plyrViewer"
           :previewType="previewType"
           :raw="raw"
@@ -28,12 +28,51 @@
           :listing="listing"
           :useDefaultMediaPlayer="useDefaultMediaPlayer"
           :autoPlayEnabled="autoPlay"
+          :startTranscode="transcodePlaybackActive"
           @play="autoPlay = true"
+          @needs-transcode="handleVideoTranscodeOffer"
           :class="{ 'plyr-background': previewType === 'audio' && !useDefaultMediaPlayer }"
           @navigate-previous="navigatePrevious"
           @navigate-next="navigateNext"
           @close-preview="exitPreviewFromImageGesture"
         />
+      </div>
+
+      <div v-else-if="previewType === 'video' && videoTranscodeOffer" class="info">
+        <div class="title">
+          <i class="material-symbols">feedback</i>
+          {{ $t("files.noPreview") }}
+        </div>
+        <p class="transcode-offer-message">{{ transcodeOfferMessage }}</p>
+        <ul v-if="videoTranscodeOffer.sessions?.length" class="transcode-session-list">
+          <li v-for="sess in videoTranscodeOffer.sessions" :key="sess.id">
+            {{ sess.fileName || sess.path }}
+            <span v-if="sess.source" class="transcode-session-source">({{ sess.source }})</span>
+          </li>
+        </ul>
+        <div class="preview-buttons">
+          <button
+            v-if="videoTranscodeOffer.mode === 'offer'"
+            type="button"
+            class="button button--flat"
+            @click="startVideoTranscode"
+          >
+            <div>
+              <i class="material-symbols">sync</i>{{ $t("player.transcodeStart") }}
+            </div>
+          </button>
+          <a target="_blank" :href="downloadUrl" class="button button--flat" v-if="permissions.download">
+            <div>
+              <i class="material-symbols">file_download</i>{{ $t("general.download") }}
+            </div>
+          </a>
+          <a target="_blank" :href="openFileUrl" class="button button--flat" v-if="permissions.download && req.type !== 'directory'">
+            <div>
+              <i class="material-symbols">open_in_new</i>{{ $t("general.openFile") }}
+            </div>
+          </a>
+        </div>
+        <p>{{ req.name }}</p>
       </div>
 
       <div v-else-if="isPdf" class="pdf-wrapper">
@@ -98,6 +137,8 @@ export default {
       avMetadataLoading: false,
       /** Skip duplicate media-metadata fetch when patchRequestFileMediaMetadata updates `req` for same path. */
       mediaEnrichDoneForPath: null,
+      videoTranscodeOffer: null,
+      transcodePlaybackActive: false,
     };
   },
   computed: {
@@ -170,22 +211,27 @@ export default {
       return state.req.type === 'application/pdf';
     },
     raw() {
+      const shareInfo = getters.isShare()
+        ? {
+            path: state.shareInfo.subPath,
+            hash: state.shareInfo.hash,
+            token: state.shareInfo.token,
+          }
+        : null;
+
+      if (this.previewType === "audio" || this.previewType === "video") {
+        return resourcesApi.getViewURL(
+          state.req.source,
+          state.req.path,
+          state.req.streamToken,
+          shareInfo,
+        );
+      }
+
       const isHeicOrHeif = state.req.type === "image/heic" || state.req.type === "image/heif";
 
       if (state.isSafari && isHeicOrHeif) {
-        if (getters.isShare()) {
-          return resourcesApi.getViewURL(
-            state.req.source,
-            state.req.path,
-            state.req.streamToken,
-            {
-              path: state.shareInfo.subPath,
-              hash: state.shareInfo.hash,
-              token: state.shareInfo.token,
-            },
-          );
-        }
-        return resourcesApi.getViewURL(state.req.source, state.req.path, state.req.streamToken);
+        return resourcesApi.getOpenFileURL(state.req.source, state.req.path, shareInfo);
       }
 
       const getRawPreview = isRawImageMimeType(state.req.type) && globalVars.exiftoolAvailable;
@@ -203,19 +249,23 @@ export default {
           )}&size=original`
         );
       }
-      if (getters.isShare()) {
-        return resourcesApi.getViewURL(
+
+      if (this.isPdf) {
+        return resourcesApi.getOpenFileURL(state.req.source, state.req.path, shareInfo);
+      }
+
+      if (this.previewType === "image" && state.req.hasPreview) {
+        if (getters.isShare()) {
+          return resourcesApi.getPreviewURLPublic(url.removeTrailingSlash(state.req.path));
+        }
+        return resourcesApi.getPreviewURL(
           state.req.source,
           state.req.path,
-          state.req.streamToken,
-          {
-            path: state.shareInfo.subPath,
-            hash: state.shareInfo.hash,
-            token: state.shareInfo.token,
-          },
+          state.req.modified,
         );
       }
-      return resourcesApi.getViewURL(state.req.source, state.req.path, state.req.streamToken);
+
+      return resourcesApi.getOpenFileURL(state.req.source, state.req.path, shareInfo);
     },
     isDarkMode() {
       return getters.isDarkMode();
@@ -259,6 +309,27 @@ export default {
     disableFileViewer() {
       return state.shareInfo.disableFileViewer;
     },
+    showVideoPlayer() {
+      return !this.videoTranscodeOffer;
+    },
+    plyrViewerKey() {
+      return `${state.req.path}-${this.transcodePlaybackActive ? 'transcode' : 'native'}`;
+    },
+    transcodeOfferMessage() {
+      if (!this.videoTranscodeOffer) {
+        return '';
+      }
+      switch (this.videoTranscodeOffer.mode) {
+        case 'user_limit':
+          return this.$t('player.transcodeUserLimitReached');
+        case 'system_limit':
+          return this.$t('player.transcodeSystemLimitReached', {
+            limit: this.videoTranscodeOffer.systemLimit,
+          });
+        default:
+          return this.$t('player.transcodeUnsupportedFormat');
+      }
+    },
   },
   watch: {
     req: {
@@ -282,6 +353,8 @@ export default {
         return;
       }
       this.isDeleted = false;
+      this.videoTranscodeOffer = null;
+      this.transcodePlaybackActive = false;
 
       if (!this.listing || this.listing === "undefined") {
         if (state.req.parentDirItems) {
@@ -442,6 +515,42 @@ export default {
       }
       return subs;
     },
+    /** plyrViewer failed native playback or detected an unsupported container. */
+    handleVideoTranscodeOffer(status) {
+      if (this.previewType !== 'video' || getters.isShare() || globalVars.transcodeEnabled !== true) {
+        return;
+      }
+      let mode = 'offer';
+      if (!status.canStart) {
+        if (status.blockReason === 'user_limit' || status.blockReason === 'system_limit') {
+          mode = status.blockReason;
+        }
+      }
+      this.transcodePlaybackActive = false;
+      this.videoTranscodeOffer = {
+        mode,
+        sessions: status.sessions || [],
+        systemLimit: status.systemLimit,
+        userLimit: status.userLimit,
+      };
+    },
+    async startVideoTranscode() {
+      try {
+        const status = await resourcesApi.fetchTranscodeSessions(
+          state.req.source,
+          state.req.path,
+        );
+        console.info('[transcode] pre-start session check', status);
+        if (!status.canStart) {
+          this.handleVideoTranscodeOffer(status);
+          return;
+        }
+        this.videoTranscodeOffer = null;
+        this.transcodePlaybackActive = true;
+      } catch (err) {
+        console.error('Failed to verify transcode availability:', err);
+      }
+    },
     async keyEvent(event) {
       if (getters.currentPromptName() || event.repeat) {
         return;
@@ -520,20 +629,15 @@ export default {
     prefetchUrl(item) {
       if (getters.isShare()) {
         return this.fullSize
-          ? resourcesApi.getViewURL(
-              state.req.source,
-              item.path,
-              item.streamToken || state.req.streamToken,
-              {
-                path: item.path,
-                hash: state.shareInfo?.hash,
-                token: state.shareInfo?.token,
-              },
-            )
+          ? resourcesApi.getPreviewURLPublic(item.path)
           : resourcesApi.getPreviewURLPublic(item.path);
       }
       return this.fullSize
-        ? resourcesApi.getViewURL(state.req.source, item.path, item.streamToken)
+        ? resourcesApi.getPreviewURL(
+            state.req.source,
+            item.path,
+            item.modified,
+          )
         : resourcesApi.getPreviewURL(
             state.req.source,
             item.path,
@@ -714,6 +818,26 @@ export default {
   gap: 1em;
 }
 
+.preview-buttons :deep(.button--flat > div) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.preview-buttons :deep(.button--flat i) {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 1.3em;
+}
+
+.preview-buttons :deep(.button--flat) {
+  display: inline-block;
+}
+
+.preview-buttons :deep(.button--flat:hover) {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
 .av-preview-wrap {
   width: 100%;
   height: 100%;
@@ -726,6 +850,36 @@ export default {
   justify-content: center;
   width: 100%;
   min-height: 12rem;
+}
+
+.transcode-offer-message {
+  max-width: 36em;
+  margin: 0 1em 1em;
+  text-align: center;
+  font-size: 0.85em;
+  line-height: 1.4;
+}
+
+.transcode-session-list {
+  list-style: none;
+  margin: 0 0 1em;
+  padding: 0.75em 1em;
+  max-width: 36em;
+  max-height: 8em;
+  overflow-y: auto;
+  font-family: monospace;
+  font-size: 0.65em;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 0.5em;
+}
+
+.transcode-session-list li {
+  padding: 0.2em 0;
+  word-break: break-all;
+}
+
+.transcode-session-source {
+  opacity: 0.75;
 }
 
 </style>

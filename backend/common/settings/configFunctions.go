@@ -25,3 +25,7 @@ func CanConvertVideo(ext string) bool {
 func MediaEnabled() bool {
 	return Env.FFmpegAvailable
 }
+
+func TranscodeEnabled() bool {
+	return MediaEnabled() && Config.Integrations.Media.Transcode.Enabled
+}

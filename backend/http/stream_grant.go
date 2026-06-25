@@ -60,6 +60,9 @@ func attachStreamToken(d *requestContext, source, filePath string, file *iteminf
 	if file == nil || file.Type == "directory" {
 		return
 	}
+	if !isStreamableMediaType(file.Type) {
+		return
+	}
 	token, err := mintStreamGrant(d, source, filePath)
 	if err != nil {
 		return
@@ -78,12 +81,19 @@ func indexFilePath(dirPath, name string) string {
 	return dirPath + name
 }
 
+func isStreamableMediaType(mimeType string) bool {
+	return strings.HasPrefix(mimeType, "video/") || strings.HasPrefix(mimeType, "audio/")
+}
+
 func attachStreamTokensForDirectory(d *requestContext, source, dirPath string, file *iteminfo.ExtendedFileInfo) {
 	if file == nil || file.Type != "directory" {
 		return
 	}
 	for i := range file.Files {
 		if file.Files[i].Type == "directory" {
+			continue
+		}
+		if !isStreamableMediaType(file.Files[i].Type) {
 			continue
 		}
 		childPath := indexFilePath(dirPath, file.Files[i].Name)
