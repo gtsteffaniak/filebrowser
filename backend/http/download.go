@@ -161,6 +161,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	firstFilePath := fileList[0]
 	displayFileList := resolveDisplayFileList(d, source, fileList)
 	var err error
+	var status int
 	var userscope string
 	fileName := filepath.Base(firstFilePath)
 
@@ -186,14 +187,14 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 
 	if len(fileList) == 1 && !isDir {
 		forceInline := r.URL.Query().Get("inline") == "true"
-		status, err := serveSingleFile(w, r, d, source, firstFilePath, fileName, serveSingleFileOptions{forceInline: forceInline})
+		status, err = serveSingleFile(w, r, d, source, firstFilePath, fileName, serveSingleFileOptions{forceInline: forceInline})
 		if downloadResponseRecordsActivity(status, err) {
 			recordDownloadActivity(r, d, source, displayFileList)
 		}
 		return status, err
 	}
 
-	status, err := BuildAndStreamArchive(w, r, d, source, fileList)
+	status, err = BuildAndStreamArchive(w, r, d, source, fileList)
 	if status == 0 && err == nil {
 		status = http.StatusOK
 	}

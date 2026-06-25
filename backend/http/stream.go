@@ -144,7 +144,7 @@ func streamHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid file path: %v", err)
 	}
-	if err := validateStreamGrant(token, d, source, cleanPath); err != nil {
+	if err = validateStreamGrant(token, d, source, cleanPath); err != nil {
 		return http.StatusForbidden, err
 	}
 
@@ -193,7 +193,7 @@ func publicStreamHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	if !ok {
 		return http.StatusInternalServerError, fmt.Errorf("source not found for share")
 	}
-	if err := validateStreamGrant(token, d, sourceInfo.Name, cleanFile); err != nil {
+	if err = validateStreamGrant(token, d, sourceInfo.Name, cleanFile); err != nil {
 		return http.StatusForbidden, err
 	}
 	scopedPath := utils.JoinPathAsUnix(d.share.Path, cleanFile)

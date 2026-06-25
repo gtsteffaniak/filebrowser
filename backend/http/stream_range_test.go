@@ -99,10 +99,10 @@ func TestServeStreamByteRangeRejectsFullGET(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer os.Remove(file.Name())
-	if _, err := file.WriteString(body); err != nil {
+	if _, err = file.WriteString(body); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := file.Seek(0, io.SeekStart); err != nil {
+	if _, err = file.Seek(0, io.SeekStart); err != nil {
 		t.Fatal(err)
 	}
 
@@ -122,10 +122,10 @@ func TestServeStreamByteRangeReturnsPartialContent(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer os.Remove(file.Name())
-	if _, err := file.WriteString(body); err != nil {
+	if _, err = file.WriteString(body); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := file.Seek(0, io.SeekStart); err != nil {
+	if _, err = file.Seek(0, io.SeekStart); err != nil {
 		t.Fatal(err)
 	}
 
@@ -159,10 +159,10 @@ func TestServeStreamByteRangeCapsOpenEndedRange(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer os.Remove(file.Name())
-	if _, err := file.WriteString(body); err != nil {
+	if _, err = file.WriteString(body); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := file.Seek(0, io.SeekStart); err != nil {
+	if _, err = file.Seek(0, io.SeekStart); err != nil {
 		t.Fatal(err)
 	}
 
