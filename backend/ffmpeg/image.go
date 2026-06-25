@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -16,7 +15,10 @@ import (
 
 // GetImageOrientation extracts the EXIF orientation from an image file using exiftool.
 func (s *Service) GetImageOrientation(imagePath string) (string, error) {
-	return s.getExiftoolTag(imagePath, "Orientation"), nil
+	if orientation := s.getExiftoolTag(imagePath, "Orientation"); orientation != "" {
+		return orientation, nil
+	}
+	return "Horizontal (normal)", nil
 }
 
 // GetHEICOrientation returns the display orientation for HEIC/HEIF files.
@@ -32,17 +34,17 @@ func (s *Service) GetHEICOrientation(heicPath string) (string, error) {
 func (s *Service) getExiftoolTag(imagePath, tag string) string {
 	exiftoolPath := s.exiftoolPath
 	if exiftoolPath == "" || imagePath == "" {
-		return "Horizontal (normal)"
+		return ""
 	}
 	cmd := exec.Command(exiftoolPath, "-"+tag, "-s3", imagePath)
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	if err := cmd.Run(); err != nil {
-		return "Horizontal (normal)"
+		return ""
 	}
 	orientation := strings.TrimSpace(out.String())
 	if orientation == "" {
-		return "Horizontal (normal)"
+		return ""
 	}
 	return orientation
 }
@@ -108,7 +110,8 @@ func (s *Service) ConvertHEICToJPEG(ctx context.Context, heicPath string, target
 		return nil, fmt.Errorf("ffmpeg image conversion failed: %w", err)
 	}
 
-	if orientationNeedsPostCorrection(orientation, s.GetHEICDisplayMatrixRotation(ctx, heicPath)) {
+	displayRotation, displayKnown := s.GetHEICDisplayMatrixRotation(ctx, heicPath)
+	if orientationNeedsPostCorrection(orientation, displayRotation, displayKnown) {
 		jpegBytes = applyOrientationToJPEG(jpegBytes, orientation)
 	}
 	return jpegBytes, nil
@@ -157,7 +160,12 @@ func (s *Service) runHEICConversion(ctx context.Context, inputPath string, targe
 		return nil, fmt.Errorf("failed to create cache directory: %w", err)
 	}
 
-	outputFile := filepath.Join(outputDir, fmt.Sprintf("ffmpeg_convert_%d.jpg", os.Getpid()))
+	tmp, err := os.CreateTemp(outputDir, "ffmpeg_convert_*.jpg")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create temp file: %w", err)
+	}
+	outputFile := tmp.Name()
+	_ = tmp.Close()
 	defer os.Remove(outputFile)
 
 	opts := goffmpeg.ConvertHEICOptions{

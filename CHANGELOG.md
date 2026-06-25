@@ -8,7 +8,7 @@ A database migration is required to go from v1.x to this version. See docs.
 
  **New Features**:
  - Download grant mechanism to distinguish between UI viewing and download.
- - ffmpeg hardware accelleration detection and support via go-ffmpeg
+ - ffmpeg hardware acceleration detection and support via go-ffmpeg
   - video streaming is limited to viewing only.
  # - granular per source permissions and access
  # - backup/restore in UI settings

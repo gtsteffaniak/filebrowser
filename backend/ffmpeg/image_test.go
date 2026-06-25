@@ -150,6 +150,12 @@ func TestGetImageOrientation(t *testing.T) {
 			t.Errorf("Expected default orientation 'Horizontal (normal)', got: %q", orientation)
 		}
 	})
+
+	t.Run("getExiftoolTag returns empty without exiftool", func(t *testing.T) {
+		if got := service.getExiftoolTag(tempDir, "Orientation"); got != "" {
+			t.Errorf("getExiftoolTag() = %q, want empty", got)
+		}
+	})
 }
 
 // Benchmark the orientation filter generation

@@ -64,7 +64,7 @@ func isJPEG(data []byte) bool {
 }
 
 // GetOrientation returns the display orientation for the file (e.g. "Rotate 90 CW", "Horizontal (normal)").
-// For HEIC/HEIF, uses QuickTime Rotation (what ffmpeg honors). Other images use IFD0 Orientation.
+// For HEIC/HEIF, tries QuickTime Rotation first, then IFD0 Orientation (same order as ffmpeg conversion).
 func GetOrientation(ctx context.Context, realPath string) string {
 	if realPath == "" {
 		return ""
@@ -73,19 +73,24 @@ func GetOrientation(ctx context.Context, realPath string) string {
 	if path == "" {
 		return ""
 	}
-	tag := "Orientation"
+	tags := []string{"Orientation"}
 	ext := strings.ToLower(filepath.Ext(realPath))
 	if ext == ".heic" || ext == ".heif" || ext == ".heics" {
-		tag = "Rotation"
+		tags = []string{"Rotation", "Orientation"}
 	}
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	cmd := exec.CommandContext(ctx, path, "-"+tag, "-s3", realPath)
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		return ""
+	for _, tag := range tags {
+		cmd := exec.CommandContext(ctx, path, "-"+tag, "-s3", realPath)
+		out, err := cmd.CombinedOutput()
+		if err != nil {
+			continue
+		}
+		if value := strings.TrimSpace(string(out)); value != "" {
+			return value
+		}
 	}
-	return strings.TrimSpace(string(out))
+	return ""
 }
 
 func runExiftoolTag(ctx context.Context, exiftoolPath, realPath, tag string) ([]byte, error) {

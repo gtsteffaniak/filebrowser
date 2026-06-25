@@ -28,7 +28,6 @@ func (s *Service) GetMediaDuration(ctx context.Context, mediaPath string) (float
 
 	duration, err := s.inner.GetMediaDuration(ctx, mediaPath)
 	if err != nil {
-		MetadataCache.Set(cacheKey, 0)
 		return 0, err
 	}
 

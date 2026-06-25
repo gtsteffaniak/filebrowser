@@ -141,6 +141,11 @@ func (s *Service) ExtractSubtitle(ctx context.Context, videoPath string, streamI
 		return content, nil
 	}
 
+	if err := s.Acquire(ctx); err != nil {
+		return "", err
+	}
+	defer s.Release()
+
 	content, err := s.inner.ExtractSubtitle(ctx, videoPath, streamIndex)
 	if err != nil {
 		return "", err

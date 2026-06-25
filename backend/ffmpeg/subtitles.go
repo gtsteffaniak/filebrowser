@@ -44,12 +44,13 @@ func mapSubtitleTracks(tracks []goffmpeg.SubtitleTrack) []utils.SubtitleTrack {
 			Title:    stream.Title,
 			Embedded: true,
 		}
+		baseName := "Embedded Subtitle " + strconv.Itoa(stream.Index)
 		if track.Title != "" {
-			track.Name = track.Title
+			track.Name = baseName + " (" + track.Title + ")"
 		} else if track.Language != "" {
-			track.Name = "Embedded (" + track.Language + ")"
+			track.Name = baseName + " (" + track.Language + ")"
 		} else {
-			track.Name = "Embedded Subtitle " + strconv.Itoa(stream.Index)
+			track.Name = baseName
 		}
 		subtitles = append(subtitles, track)
 	}

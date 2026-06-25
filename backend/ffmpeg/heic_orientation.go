@@ -13,27 +13,32 @@ import (
 	"github.com/kovidgoyal/imaging"
 )
 
-// GetHEICDisplayMatrixRotation returns the largest non-zero rotation (degrees) ffmpeg
-// reports for a HEIC file's display matrix. Zero means no rotation was applied on decode.
-func (s *Service) GetHEICDisplayMatrixRotation(ctx context.Context, heicPath string) float64 {
+// GetHEICDisplayMatrixRotation returns the largest rotation (degrees) ffmpeg reports for a
+// HEIC display matrix. The second return value is false when the probe could not run or
+// parse stderr — callers must not treat that as “no rotation was applied”.
+func (s *Service) GetHEICDisplayMatrixRotation(ctx context.Context, heicPath string) (float64, bool) {
 	if s == nil {
-		return 0
+		return 0, false
 	}
 	ffmpegPath := s.FFmpegPath()
 	if ffmpegPath == "" || heicPath == "" {
-		return 0
+		return 0, false
 	}
 
 	cmd := exec.CommandContext(ctx, ffmpegPath, "-hide_banner", "-i", heicPath, "-f", "null", "-")
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
-	_ = cmd.Run()
+	if err := cmd.Run(); err != nil {
+		return 0, false
+	}
 
-	return parseDisplayMatrixRotation(stderr.String())
+	rotation, ok := parseDisplayMatrixRotation(stderr.String())
+	return rotation, ok
 }
 
-func parseDisplayMatrixRotation(stderr string) float64 {
+func parseDisplayMatrixRotation(stderr string) (float64, bool) {
 	var best float64
+	var found bool
 	for _, line := range strings.Split(stderr, "\n") {
 		if !strings.Contains(line, "Display Matrix:") {
 			continue
@@ -43,17 +48,21 @@ func parseDisplayMatrixRotation(stderr string) float64 {
 		if idx < 0 {
 			continue
 		}
-		token := strings.Fields(line[idx+len(prefix):])[0]
-		token = strings.TrimSuffix(token, "degrees")
+		fields := strings.Fields(line[idx+len(prefix):])
+		if len(fields) == 0 {
+			continue
+		}
+		token := strings.TrimSuffix(fields[0], "degrees")
 		deg, err := strconv.ParseFloat(token, 64)
 		if err != nil {
 			continue
 		}
+		found = true
 		if math.Abs(deg) > math.Abs(best) {
 			best = deg
 		}
 	}
-	return best
+	return best, found
 }
 
 func isNormalOrientation(orientation string) bool {
@@ -77,15 +86,16 @@ func isPureRotationOrientation(orientation string) bool {
 }
 
 // orientationNeedsPostCorrection reports whether to rotate/flip JPEG bytes after ffmpeg decode.
-// ffmpeg applies QuickTime/display-matrix rotation on decode; skip Go correction when that
-// already satisfied a pure rotation. Mirrors and other transforms still need Go when the
-// display matrix is zero.
-func orientationNeedsPostCorrection(orientation string, displayRotation float64) bool {
+func orientationNeedsPostCorrection(orientation string, displayRotation float64, displayKnown bool) bool {
 	if isNormalOrientation(orientation) {
 		return false
 	}
-	if displayRotation != 0 && isPureRotationOrientation(orientation) {
-		return false
+	if isPureRotationOrientation(orientation) {
+		if !displayKnown {
+			// Probe failed: trust ffmpeg's display-matrix decode rather than risk double-rotation.
+			return false
+		}
+		return displayRotation == 0
 	}
 	return true
 }

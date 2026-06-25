@@ -6,7 +6,8 @@ import (
 )
 
 // convertHEICToJPEGWithFFmpeg decodes HEIC to JPEG at full resolution via ffmpeg.
-// Resize and any extra orientation handling are done by the preview pipeline.
+// Tile-grid iPhone HEIC cannot use ffmpeg -vf scale; resize is done later by CreatePreview.
+// Passing non-zero width/height would add -vf scale and fail on those files.
 func (s *Service) convertHEICToJPEGWithFFmpeg(ctx context.Context, filePath string, previewSize string) ([]byte, error) {
 	if s.ffmpegService == nil {
 		return nil, fmt.Errorf("FFmpeg is not available")
