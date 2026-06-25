@@ -16,7 +16,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
-	"github.com/gtsteffaniak/filebrowser/backend/ffmpeg"
 	fbhttp "github.com/gtsteffaniak/filebrowser/backend/http"
 	"github.com/gtsteffaniak/filebrowser/backend/icons"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
@@ -197,7 +196,6 @@ func rootCMD(ctx context.Context, serverConfig *settings.Server, shutdownComplet
 	}
 	cacheDir := settings.Config.Server.CacheDir
 	numWorkers := settings.Config.Server.NumImageProcessors
-	ffmpeg.SetFFmpegPaths()
 
 	// Initialize asset filesystem before starting services
 	if settings.Env.EmbeddedFs {

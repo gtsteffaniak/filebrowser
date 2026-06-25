@@ -6607,6 +6607,10 @@ const docTemplate = `{
                 "ffmpegPath": {
                     "description": "path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)",
                     "type": "string"
+                },
+                "hardwareAcceleration": {
+                    "description": "enable hardware acceleration for ffmpeg if available",
+                    "type": "boolean"
                 }
             }
         },

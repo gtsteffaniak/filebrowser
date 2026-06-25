@@ -39,6 +39,7 @@ type Environment struct {
 	EmbeddedFs            bool   `json:"-"` // used internally if compiled with embedded fs support
 	FFmpegPath            string `json:"-"`
 	FFprobePath           string `json:"-"`
+	FFmpegAvailable       bool   `json:"-"`
 	LoginIconPath         string `json:"-"` // resolved login icon path (filesystem or embedded)
 	LoginIconIsCustom     bool   `json:"-"` // true if login icon is from custom filesystem path
 	LoginIconEmbeddedPath string `json:"-"` // embedded asset path for default icon
@@ -132,6 +133,7 @@ type Media struct {
 	Debug                    bool          `json:"debug"`                    // output ffmpeg stdout for media integration -- careful can produces lots of output!
 	ExtractEmbeddedSubtitles bool          `json:"extractEmbeddedSubtitles"` // extract embedded subtitles from media files
 	ExiftoolPath             string        `json:"exiftoolPath"`             // path to exiftool executable
+	HardwareAcceleration     bool          `json:"hardwareAcceleration"`     // enable hardware acceleration for ffmpeg if available
 }
 
 type FfmpegConvert struct {

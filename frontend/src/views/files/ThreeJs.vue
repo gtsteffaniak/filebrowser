@@ -54,7 +54,7 @@ import { KMZLoader } from 'three/addons/loaders/KMZLoader.js';
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { state, mutations, getters } from "@/store";
 import { resourcesApi } from "@/api";
-import { removeLastDir } from "@/utils/url";
+import { removeLastDir, resolveRelativePath } from "@/utils/url";
 import { getObjectProperty } from '@/utils/object.js';
 
 const LOADERS = {
@@ -121,19 +121,7 @@ export default {
     isMobile() { return getters.isMobile(); },
     hasAnimations() { return this.animations && this.animations.length > 0; },
     modelUrl() {
-      if (getters.isShare()) {
-        return resourcesApi.getViewURL(
-          this.fbdata.source,
-          this.fbdata.path,
-          this.fbdata.streamToken,
-          {
-            path: state.shareInfo.subPath,
-            hash: state.shareInfo.hash,
-            token: state.shareInfo.token,
-          },
-        );
-      }
-      return resourcesApi.getViewURL(this.fbdata.source, this.fbdata.path, this.fbdata.streamToken);
+      return this.resourceDownloadUrl(this.fbdata.path);
     },
     fileExtension() {
       return this.fbdata.name ? this.fbdata.name.split('.').pop().toLowerCase() : '';
@@ -350,42 +338,15 @@ export default {
       }
     },
 
-    streamTokenForPath(filePath) {
-      if (this.fbdata.streamToken && filePath === this.fbdata.path) {
-        return this.fbdata.streamToken;
+    /** Download URL for a model or sibling asset. 3D loaders need full files; stream tokens only cover listed paths. */
+    resourceDownloadUrl(filePath) {
+      if (!filePath) {
+        return "";
       }
-      if (this.fbdata.parentDirItems) {
-        for (const item of this.fbdata.parentDirItems) {
-          if (item.path === filePath) {
-            return item.streamToken || null;
-          }
-        }
-      }
-      return null;
-    },
-
-    resolveTextureUrl(url) {
-      if (url.startsWith('blob:') || url.startsWith('data:')) {
-        return url;
-      }
-      if (url.includes('/api/resources/download?') || url.includes('/api/resources/stream?')) {
-        return url;
-      }
-      const filename = url.split('/api/resources/')[1];
-      let texturePath = `${removeLastDir(this.fbdata.path)}/textures/${filename}`
-      if (this.fbdata.parentDirItems) {
-        for (const item of this.fbdata.parentDirItems) {
-          if (item.name === filename) {
-            texturePath = `${removeLastDir(this.fbdata.path)}/${filename}`;
-          }
-        }
-      }
-      const token = this.streamTokenForPath(texturePath);
       if (getters.isShare()) {
-        return resourcesApi.getViewURL(
+        return resourcesApi.getOpenFileURL(
           this.fbdata.source,
-          texturePath,
-          token,
+          filePath,
           {
             path: state.shareInfo.subPath,
             hash: state.shareInfo.hash,
@@ -393,7 +354,55 @@ export default {
           },
         );
       }
-      return resourcesApi.getViewURL(this.fbdata.source, texturePath, token);
+      return resourcesApi.getOpenFileURL(this.fbdata.source, filePath);
+    },
+
+    resolveTextureUrl(url) {
+      if (!url) {
+        return url;
+      }
+      if (url.startsWith("blob:") || url.startsWith("data:")) {
+        return url;
+      }
+      if (url.includes("/api/resources/stream?") || url.includes("/api/resources/download?")) {
+        try {
+          const parsed = new URL(url, window.origin);
+          const filePath = parsed.searchParams.get("file") || parsed.searchParams.getAll("file")[0];
+          if (filePath) {
+            return this.resourceDownloadUrl(filePath);
+          }
+        } catch {
+          return url;
+        }
+        return url;
+      }
+
+      const cleanUrl = url.split(/[?#]/)[0];
+      let relativePath;
+      if (cleanUrl.includes("/api/resources/")) {
+        relativePath = cleanUrl.split("/api/resources/").pop() || "";
+      } else if (/^https?:\/\//i.test(cleanUrl)) {
+        return url;
+      } else {
+        relativePath = cleanUrl;
+      }
+
+      relativePath = relativePath.replace(/^\/+/, "");
+      const filename = relativePath.split("/").pop();
+      if (!filename) {
+        return url;
+      }
+
+      const modelDir = removeLastDir(this.fbdata.path);
+      let texturePath;
+      if (relativePath.includes("/")) {
+        texturePath = resolveRelativePath(this.fbdata.path, relativePath);
+      } else if (this.fbdata.parentDirItems?.some((item) => item.name === filename)) {
+        texturePath = `${modelDir}/${filename}`;
+      } else {
+        texturePath = `${modelDir}/textures/${filename}`;
+      }
+      return this.resourceDownloadUrl(texturePath);
     },
 
     async loadModel() {
@@ -478,18 +487,7 @@ export default {
       // Remove trailing slash if present before replacing extension
       const cleanPath = this.fbdata.path.replace(/\/$/, '');
       const mtlPath = cleanPath.replace(/\.obj$/i, '.mtl');
-      const mtlUrl = getters.isShare()
-        ? resourcesApi.getViewURL(
-            state.req.source,
-            mtlPath,
-            this.streamTokenForPath(mtlPath),
-            {
-              path: state.shareInfo.subPath,
-              hash: state.shareInfo.hash,
-              token: state.shareInfo.token,
-            },
-          )
-        : resourcesApi.getViewURL(state.req.source, mtlPath, this.streamTokenForPath(mtlPath));
+      const mtlUrl = this.resourceDownloadUrl(mtlPath);
       if (!mtlUrl) {
         this.doLoad(loader);
         return;

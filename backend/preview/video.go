@@ -26,7 +26,7 @@ func (s *Service) GenerateVideoPreview(ctx context.Context, videoPath string, pe
 	}
 
 	var buf bytes.Buffer
-	err := s.ffmpegService.GenerateVideoPreviewStreaming(ctx, videoPath, percentageSeek, &buf)
+	err := s.ffmpegService.VideoPreview(ctx, &buf, videoPath, percentageSeek)
 	if err != nil {
 		return nil, err
 	}

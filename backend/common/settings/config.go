@@ -2,6 +2,8 @@ package settings
 
 import (
 	"bytes"
+	"context"
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -19,6 +21,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/ffmpeg"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -345,6 +348,47 @@ func setupMedia(generate bool) {
 			Config.Integrations.Media.ExiftoolPath = path
 		}
 	}
+
+	if !generate && !isGoTest() {
+		setupFFmpegIntegration()
+	}
+}
+
+func isGoTest() bool {
+	return flag.Lookup("test.v") != nil
+}
+
+func setupFFmpegIntegration() {
+	maxConcurrent := Config.Server.NumImageProcessors
+	if maxConcurrent < 1 {
+		maxConcurrent = 4
+	}
+	ffmpegConcurrency := (maxConcurrent + 1) / 2
+	err := ffmpeg.Initialize(context.Background(), ffmpeg.InitOptions{
+		FFmpegPath:           Config.Integrations.Media.FfmpegPath,
+		MaxConcurrent:        ffmpegConcurrency,
+		CacheDir:             Config.Server.CacheDir,
+		SkipHWTests:          !Config.Integrations.Media.HardwareAcceleration,
+		HardwareAcceleration: Config.Integrations.Media.HardwareAcceleration,
+		ExiftoolPath:         Config.Integrations.Media.ExiftoolPath,
+	})
+	if err != nil {
+		logger.Warningf("ffmpeg unavailable: %v", err)
+		Env.FFmpegAvailable = false
+		Env.FFmpegPath = ""
+		Env.FFprobePath = ""
+		return
+	}
+
+	svc := ffmpeg.Get()
+	if svc == nil {
+		Env.FFmpegAvailable = false
+		return
+	}
+
+	Env.FFmpegAvailable = true
+	Env.FFmpegPath = svc.FFmpegPath()
+	Env.FFprobePath = svc.FFprobePath()
 }
 
 func setupSources(generate bool) {
@@ -1007,10 +1051,10 @@ func SetDefaults(generate bool) Settings {
 					MaxBufferSize:        10000,
 				},
 			},
-			SourceMap:          map[string]*Source{},
-			NameToSource:       map[string]*Source{},
-			CacheDir:           "tmp",
-			MaxArchiveSizeGB:   20,
+			SourceMap:        map[string]*Source{},
+			NameToSource:     map[string]*Source{},
+			CacheDir:         "tmp",
+			MaxArchiveSizeGB: 20,
 			IndexSqlConfig: IndexSqlConfig{
 				WalMode:               false,
 				BatchSize:             1000,
