@@ -23,5 +23,5 @@ func CanConvertVideo(ext string) bool {
 }
 
 func MediaEnabled() bool {
-	return Env.FFmpegPath != "" && Env.FFprobePath != ""
+	return Env.FFmpegAvailable
 }

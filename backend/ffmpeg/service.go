@@ -2,103 +2,201 @@ package ffmpeg
 
 import (
 	"context"
-	"os/exec"
-	"path/filepath"
-	"runtime"
+	"fmt"
+	"io"
+	"os"
+	"strings"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	goffmpeg "github.com/gtsteffaniak/go-ffmpeg"
+	"github.com/gtsteffaniak/go-ffmpeg/capabilities"
+	"github.com/gtsteffaniak/go-ffmpeg/ops"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-// VideoService handles video preview operations with ffmpeg
-type FFmpegService struct {
-	ffmpegPath    string
-	ffprobePath   string
-	debug         bool
-	semaphore     chan struct{}
-	cacheDir      string
-	maxConcurrent int // For logging purposes
+// Service wraps go-ffmpeg for filebrowser media operations.
+type Service struct {
+	inner        *goffmpeg.Service
+	cacheDir     string
+	exiftoolPath string
 }
 
-// NewVideoService creates a new video service instance
-func NewFFmpegService(maxConcurrent int, debug bool, cacheDir string) *FFmpegService {
-	if settings.Env.FFmpegPath == "" || settings.Env.FFprobePath == "" {
-		return nil
+// FFmpegService is kept for existing callers.
+type FFmpegService = Service
+
+var global *Service
+
+// InitOptions configures startup initialization.
+type InitOptions struct {
+	FFmpegPath           string
+	MaxConcurrent        int
+	CacheDir             string
+	SkipHWTests          bool
+	HardwareAcceleration bool
+	ExiftoolPath         string
+}
+
+// Initialize creates the global ffmpeg service and runs capability detection.
+func Initialize(ctx context.Context, opts InitOptions) error {
+	if opts.MaxConcurrent < 1 {
+		opts.MaxConcurrent = 4
 	}
-	return &FFmpegService{
-		ffmpegPath:    settings.Env.FFmpegPath,
-		ffprobePath:   settings.Env.FFprobePath,
-		debug:         debug,
-		semaphore:     make(chan struct{}, maxConcurrent),
-		maxConcurrent: maxConcurrent,
-		cacheDir:      cacheDir,
-	}
-}
-
-func (s *FFmpegService) Acquire(ctx context.Context) error {
-	select {
-	case s.semaphore <- struct{}{}:
-		return nil
-	case <-ctx.Done():
-		return ctx.Err()
-	}
-}
-
-func (s *FFmpegService) Release() {
-	<-s.semaphore
-}
-
-// CheckValidFFmpeg checks for a valid ffmpeg executable.
-// If a path is provided, it looks there. Otherwise, it searches the system's PATH.
-func CheckValidFFmpeg(path string) (string, error) {
-	return checkExecutable(path, "ffmpeg")
-}
-
-// CheckValidFFprobe checks for a valid ffprobe executable.
-// If a path is provided, it looks there. Otherwise, it searches the system's PATH.
-func CheckValidFFprobe(path string) (string, error) {
-	return checkExecutable(path, "ffprobe")
-}
-
-// checkExecutable is an internal helper function to find and validate an executable.
-// It checks a specific path if provided, otherwise falls back to searching the system PATH.
-func checkExecutable(providedPath, execName string) (string, error) {
-	// Add .exe extension for Windows systems
-	if runtime.GOOS == "windows" {
-		execName += ".exe"
+	if opts.CacheDir == "" {
+		opts.CacheDir = os.TempDir()
 	}
 
-	var finalPath string
-	var err error
+	if opts.HardwareAcceleration {
+		logger.Info("Detecting ffmpeg hardware codec support...")
+	}
 
-	if providedPath != "" {
-		// A path was provided, so we'll use it.
-		finalPath = filepath.Join(providedPath, execName)
-	} else {
-		// No path was provided, so search the system's PATH for the executable.
-		finalPath, err = exec.LookPath(execName)
-		if err != nil {
-			// The executable was not found in the system's PATH.
-			return "", err
+	svc, err := goffmpeg.New(ctx, goffmpeg.Config{
+		FFmpegPath:    opts.FFmpegPath,
+		MaxConcurrent: opts.MaxConcurrent,
+		Logger:        goffmpeg.NopLogger(),
+		SkipHWTests:   opts.SkipHWTests,
+	})
+	if err != nil {
+		global = nil
+		return err
+	}
+
+	global = &Service{
+		inner:        svc,
+		cacheDir:     opts.CacheDir,
+		exiftoolPath: opts.ExiftoolPath,
+	}
+
+	logCapabilities(svc, opts.HardwareAcceleration)
+	return nil
+}
+
+// Get returns the initialized service, or nil when ffmpeg is unavailable.
+func Get() *Service {
+	return global
+}
+
+// Enabled reports whether ffmpeg initialized successfully.
+func Enabled() bool {
+	return global != nil && global.inner != nil
+}
+
+// FFmpegPath returns the resolved ffmpeg binary path.
+func (s *Service) FFmpegPath() string {
+	if s == nil || s.inner == nil {
+		return ""
+	}
+	return s.inner.FFmpegPath()
+}
+
+// FFprobePath returns the resolved ffprobe binary path.
+func (s *Service) FFprobePath() string {
+	if s == nil || s.inner == nil {
+		return ""
+	}
+	return s.inner.FFprobePath()
+}
+
+func (s *Service) Acquire(ctx context.Context) error {
+	if s == nil || s.inner == nil {
+		return fmt.Errorf("ffmpeg service not available")
+	}
+	return s.inner.Acquire(ctx)
+}
+
+func (s *Service) Release() {
+	if s == nil || s.inner == nil {
+		return
+	}
+	s.inner.Release()
+}
+
+// VideoPreview extracts a JPEG preview frame to w.
+func (s *Service) VideoPreview(ctx context.Context, w io.Writer, videoPath string, percentageSeek int) error {
+	if s == nil || s.inner == nil {
+		return fmt.Errorf("ffmpeg service not available")
+	}
+	if err := s.Acquire(ctx); err != nil {
+		return err
+	}
+	defer s.Release()
+
+	return s.inner.VideoPreview(ctx, w, ops.PreviewOptions{
+		Input:       videoPath,
+		SeekPercent: float64(percentageSeek),
+		Quality:     10,
+	})
+}
+
+// ExtractSubtitle returns embedded subtitle content as WebVTT.
+func (s *Service) ExtractSubtitle(ctx context.Context, videoPath string, streamIndex int) (string, error) {
+	if s == nil || s.inner == nil {
+		return "", fmt.Errorf("ffmpeg service not available")
+	}
+
+	fileInfo, err := os.Stat(videoPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to stat file: %w", err)
+	}
+	cacheKey := fmt.Sprintf("subtitle_content:%s:%d:%d", videoPath, streamIndex, fileInfo.ModTime().Unix())
+	if content, ok := SubtitleContentCache.Get(cacheKey); ok {
+		return content, nil
+	}
+
+	content, err := s.inner.ExtractSubtitle(ctx, videoPath, streamIndex)
+	if err != nil {
+		return "", err
+	}
+
+	SubtitleContentCache.Set(cacheKey, content)
+	return content, nil
+}
+
+func logCapabilities(svc *goffmpeg.Service, detectHardware bool) {
+	caps := svc.Capabilities()
+	if caps == nil {
+		return
+	}
+
+	logger.Infof("ffmpeg enabled: version %s @ %s", caps.FFmpegVersion, caps.FFmpegPath)
+
+	if !detectHardware {
+		return
+	}
+
+	hw := hardwareCodecSummary(svc)
+	if hw == "" {
+		logger.Warning("no ffmpeg hardware codec support found")
+		return
+	}
+	logger.Infof("supported ffmpeg hardware codecs: %s", hw)
+}
+
+func hardwareCodecSummary(svc *goffmpeg.Service) string {
+	seen := make(map[string]struct{})
+	var parts []string
+
+	add := func(entry string) {
+		if entry == "" {
+			return
 		}
+		if _, ok := seen[entry]; ok {
+			return
+		}
+		seen[entry] = struct{}{}
+		parts = append(parts, entry)
 	}
 
-	// Verify the executable is valid by running the "-version" command.
-	cmd := exec.Command(finalPath, "-version")
-	err = cmd.Run()
-
-	return finalPath, err
-}
-
-func SetFFmpegPaths() {
-	ffmpegMainPath, err := CheckValidFFmpeg(settings.Env.FFmpegPath)
-	if err != nil && settings.Env.FFmpegPath != "" {
-		logger.Warningf("the configured ffmpeg path does not contain a valid ffmpeg binary %s, err: %v", settings.Env.FFmpegPath, err)
+	for _, opt := range svc.AvailableEncodeOptions() {
+		if opt.Accel == capabilities.AccelNone {
+			continue
+		}
+		add(fmt.Sprintf("%s encode via %s (%s)", opt.Codec, opt.Encoder, capabilities.AccelLabel(opt.Accel)))
 	}
-	ffprobePath, errprobe := CheckValidFFprobe(settings.Env.FFprobePath)
-	if errprobe != nil && settings.Env.FFprobePath != "" {
-		logger.Warningf("the configured ffmpeg path is not a valid ffprobe binary %s, err: %v", settings.Env.FFprobePath, err)
+	for _, opt := range svc.AvailableDecodeOptions() {
+		if opt.Accel == capabilities.AccelNone {
+			continue
+		}
+		add(fmt.Sprintf("%s decode via %s (%s)", opt.Codec, opt.Decoder, capabilities.AccelLabel(opt.Accel)))
 	}
-	settings.Env.FFmpegPath = ffmpegMainPath
-	settings.Env.FFprobePath = ffprobePath
+
+	return strings.Join(parts, ", ")
 }

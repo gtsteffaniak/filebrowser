@@ -124,7 +124,7 @@ func TestGetImageOrientation(t *testing.T) {
 	}
 	defer os.RemoveAll(tempDir)
 
-	service := NewFFmpegService(2, false, "/tmp/test_cache")
+	service := &Service{}
 
 	t.Run("Non-existent file", func(t *testing.T) {
 		nonExistentFile := filepath.Join(tempDir, "non_existent.heic")

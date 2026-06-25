@@ -59,8 +59,12 @@ func ExtractEmbeddedPreview(ctx context.Context, realPath, fileType string) ([]b
 	return nil, nil
 }
 
-// GetOrientation returns the EXIF orientation string for the file (e.g. "Rotate 90 CW", "Horizontal (normal)").
-// Uses exiftool -Orientation -s3. Returns empty string if exiftool is unavailable or orientation cannot be read.
+func isJPEG(data []byte) bool {
+	return len(data) >= 2 && data[0] == 0xff && data[1] == 0xd8
+}
+
+// GetOrientation returns the display orientation for the file (e.g. "Rotate 90 CW", "Horizontal (normal)").
+// For HEIC/HEIF, uses QuickTime Rotation (what ffmpeg honors). Other images use IFD0 Orientation.
 func GetOrientation(ctx context.Context, realPath string) string {
 	if realPath == "" {
 		return ""
@@ -69,9 +73,14 @@ func GetOrientation(ctx context.Context, realPath string) string {
 	if path == "" {
 		return ""
 	}
+	tag := "Orientation"
+	ext := strings.ToLower(filepath.Ext(realPath))
+	if ext == ".heic" || ext == ".heif" || ext == ".heics" {
+		tag = "Rotation"
+	}
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	cmd := exec.CommandContext(ctx, path, "-Orientation", "-s3", realPath)
+	cmd := exec.CommandContext(ctx, path, "-"+tag, "-s3", realPath)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return ""

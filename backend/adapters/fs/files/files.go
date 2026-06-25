@@ -35,7 +35,7 @@ var CheckPermissionsFunc = checkPermissionsImpl
 // addMetadataToChildren runs concurrent ffmpeg/tag extraction for audio/video children.
 // Each goroutine is registered on wg. Caller must invoke wg.Wait() after scheduling.
 func addMetadataToChildren(response *iteminfo.ExtendedFileInfo, opts utils.FileOptions, wg *sync.WaitGroup) {
-	sharedFFmpegService := ffmpeg.NewFFmpegService(10, false, "")
+	sharedFFmpegService := ffmpeg.Get()
 	if sharedFFmpegService == nil {
 		return
 	}
@@ -503,10 +503,9 @@ func extractAudioMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 	// Extract duration ONLY if explicitly requested using the ffmpeg VideoService
 	// This respects concurrency limits and gracefully handles missing ffmpeg
 	if getDuration {
-		// Use provided service or create a new one for backward compatibility
 		service := ffmpegService
 		if service == nil {
-			service = ffmpeg.NewFFmpegService(5, false, "")
+			service = ffmpeg.Get()
 		}
 		if service != nil {
 			if duration, err := service.GetMediaDuration(ctx, realPath); err == nil {
@@ -566,10 +565,9 @@ func ExtractLyrics(realPath string) ([]iteminfo.Lyric, error) {
 // extractVideoMetadata extracts duration from video files using ffprobe
 // If ffmpegService is nil, a new service will be created (for backward compatibility)
 func extractVideoMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, realPath string, ffmpegService *ffmpeg.FFmpegService) error {
-	// Use provided service or create a new one for backward compatibility
 	service := ffmpegService
 	if service == nil {
-		service = ffmpeg.NewFFmpegService(10, false, "")
+		service = ffmpeg.Get()
 	}
 	if service != nil {
 		duration, err := service.GetMediaDuration(ctx, realPath)
