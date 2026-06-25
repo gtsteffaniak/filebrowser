@@ -55,8 +55,6 @@ func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
 	if concurrencyLimit < 1 {
 		concurrencyLimit = 1
 	}
-	// get round up half value of concurrencyLimit for FFmpeg operations
-	ffmpegConcurrencyLimit := (concurrencyLimit + 1) / 2
 
 	actualCacheDir := cacheDir
 	if actualCacheDir == "" {
@@ -85,8 +83,8 @@ func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
 		logger.Error(err)
 	}
 
-	// Single FFmpeg service shared by video preview and HEIC/JPEG fallback
-	ffmpegService := ffmpeg.NewFFmpegService(ffmpegConcurrencyLimit, settings.Config.Integrations.Media.Debug, filepath.Join(actualCacheDir, "heic"))
+	// Single shared ffmpeg service initialized during config setup
+	ffmpegService := ffmpeg.Get()
 
 	var imageSem, imageLargeSem chan struct{}
 
@@ -454,7 +452,7 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 	var imageBytes []byte
 	fromExiftool := false
 	if hasEmbeddedPreview(file.Type, file.Name) {
-		if exifBytes, _ := ExtractEmbeddedPreview(ctx, file.RealPath, file.Type); len(exifBytes) >= minPreviewSize {
+		if exifBytes, _ := ExtractEmbeddedPreview(ctx, file.RealPath, file.Type); len(exifBytes) >= minPreviewSize && isJPEG(exifBytes) {
 			imageBytes = exifBytes
 			fromExiftool = true
 			// Apply EXIF orientation from source file using exiftool + imaging (no FFmpeg).
@@ -482,14 +480,8 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 	}
 
 	// When we got bytes from exiftool, we still need to resize to small/large/xlarge (original is never converted).
-	// When we got bytes from type-specific path, HEIC/Image are already resized; others need resize below.
+	// When we got bytes from type-specific path, regular images are already resized; others need resize below.
 	previewType := determinePreviewType(file)
-	if !fromExiftool && previewType == previewTypeHEIC {
-		if err := service.fileCache.Store(ctx, cacheKey, imageBytes); err != nil {
-			logger.Errorf("failed to cache HEIC image: %v", err)
-		}
-		return imageBytes, nil
-	}
 	if !fromExiftool && previewType == previewTypeImage {
 		if err := service.fileCache.Store(ctx, cacheKey, imageBytes); err != nil {
 			logger.Errorf("failed to cache image: %v", err)

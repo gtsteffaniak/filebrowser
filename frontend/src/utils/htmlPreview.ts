@@ -1,5 +1,5 @@
 import DOMPurify from "dompurify";
-import { getDownloadURL, getDownloadURLPublic } from "@/api/resources";
+import { getViewURL } from "@/api/resources";
 import { getters, state } from "@/store";
 import { resolveRelativePath } from "@/utils/url";
 
@@ -70,17 +70,19 @@ export function buildPreviewResourceUrl(
 
   try {
     if (getters.isShare()) {
-      return getDownloadURLPublic(
+      return getViewURL(
+        source,
+        resolvedPath,
+        null,
         {
           path: state.shareInfo.subPath,
           hash: state.shareInfo.hash,
           token: state.shareInfo.token,
         },
-        [resolvedPath],
         true,
       );
     }
-    return getDownloadURL(source, resolvedPath, true);
+    return getViewURL(source, resolvedPath, null, null, true);
   } catch {
     return href;
   }

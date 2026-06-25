@@ -5,80 +5,65 @@ import (
 	"fmt"
 )
 
-// convertHEICToJPEGWithFFmpeg converts a HEIC file to JPEG format using FFmpeg
-// This function handles all FFmpeg-related logic and parameters
+// convertHEICToJPEGWithFFmpeg decodes HEIC to JPEG at full resolution via ffmpeg.
+// Tile-grid iPhone HEIC cannot use ffmpeg -vf scale; resize is done later by CreatePreview.
+// Passing non-zero width/height would add -vf scale and fail on those files.
 func (s *Service) convertHEICToJPEGWithFFmpeg(ctx context.Context, filePath string, previewSize string) ([]byte, error) {
-	// Check if FFmpeg service is available
 	if s.ffmpegService == nil {
 		return nil, fmt.Errorf("FFmpeg is not available")
 	}
 
-	// Check if context is cancelled before starting
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
 
-	// Acquire FFmpeg service semaphore
 	if err := s.ffmpegService.Acquire(ctx); err != nil {
 		return nil, err
 	}
 	defer s.ffmpegService.Release()
 
-	// Determine target dimensions and quality based on preview size
-	var width, height int
 	var quality string
 	switch previewSize {
 	case "large":
-		width, height = 640, 640
-		quality = "2" // High quality for FFmpeg -q:v
+		quality = "2"
 	case "original":
-		// For original size - no scaling, maximum quality
-		width, height = 0, 0 // Signal to not apply scaling
-		quality = "1"        // Maximum quality for original
+		quality = "1"
 	default:
-		width, height = 256, 256
-		quality = "5" // Medium quality
+		quality = "5"
 	}
 
-	// Use tile-based conversion for correct full-resolution image reconstruction
-	return s.ffmpegService.ConvertHEICToJPEG(ctx, filePath, width, height, quality)
+	return s.ffmpegService.ConvertHEICToJPEG(ctx, filePath, 0, 0, quality)
 }
 
-// convertImageWithFFmpeg converts any image file (including problematic JPEGs) to resized JPEG using FFmpeg
+// convertImageWithFFmpeg converts any image file (including problematic JPEGs) to resized JPEG using FFmpeg.
 // This is used as a fallback for JPEG files that Go's standard decoder can't handle (extended sequential, etc.)
 func (s *Service) convertImageWithFFmpeg(ctx context.Context, filePath string, previewSize string) ([]byte, error) {
-	// Check if FFmpeg service is available
 	if s.ffmpegService == nil {
 		return nil, fmt.Errorf("FFmpeg is not available for JPEG fallback")
 	}
 
-	// Check if context is cancelled before starting
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
 
-	// Acquire FFmpeg service semaphore
 	if err := s.ffmpegService.Acquire(ctx); err != nil {
 		return nil, err
 	}
 	defer s.ffmpegService.Release()
 
-	// Determine target dimensions and quality based on preview size
 	var width, height int
 	var quality string
 	switch previewSize {
 	case "large":
 		width, height = 640, 640
-		quality = "2" // High quality for FFmpeg -q:v
+		quality = "2"
 	case "original":
-		// For original size - no scaling, maximum quality
-		width, height = 0, 0 // Signal to not apply scaling
-		quality = "1"        // Maximum quality for original
+		width, height = 0, 0
+		quality = "1"
 	default:
 		width, height = 256, 256
-		quality = "5" // Medium quality
+		quality = "5"
 	}
 
-	// Use direct conversion which works for all image formats including problematic JPEGs
 	return s.ffmpegService.ConvertImageToJPEG(ctx, filePath, width, height, quality)
 }

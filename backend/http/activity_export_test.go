@@ -19,7 +19,7 @@ func TestParseActivityExportRows(t *testing.T) {
 
 func TestActivityExportHeader(t *testing.T) {
 	header := activityExportHeader(true, []string{"source", "tokenName"})
-	want := []string{"id", "createdAt", "username", "eventType", "source", "tokenName", "ipAddress", "status", "details"}
+	want := []string{"id", "createdAt", "username", "eventType", "source", "tokenName", "ipAddress", "details"}
 	if len(header) != len(want) {
 		t.Fatalf("header len %d != %d: %v", len(header), len(want), header)
 	}

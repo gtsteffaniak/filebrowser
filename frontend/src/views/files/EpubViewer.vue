@@ -76,18 +76,18 @@ export default defineComponent({
     });
     try {
       // 1. Fetch the download URL for the EPUB file
-      const epubUrl = getters.isShare() 
-        ? resourcesApi.getDownloadURLPublic({
-            path: state.shareInfo.subPath,
-            hash: state.shareInfo.hash,
-            token: state.shareInfo.token,
-          }, [state.req.path])
-        : await resourcesApi.getDownloadURL(
+      const epubUrl = getters.isShare()
+        ? resourcesApi.getViewURL(
             state.req.source,
             state.req.path,
-            false,
-            false
-          );
+            state.req.streamToken,
+            {
+              path: state.shareInfo.subPath,
+              hash: state.shareInfo.hash,
+              token: state.shareInfo.token,
+            },
+          )
+        : resourcesApi.getViewURL(state.req.source, state.req.path, state.req.streamToken);
 
       // 2. Initialize the EPUB book
       this.book = ePub(epubUrl);

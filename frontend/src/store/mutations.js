@@ -895,7 +895,10 @@ export const mutations = {
       state.navigation.previousLink = url.buildItemUrl(item.source, item.path);
 
       if (getTypeInfo(item.type).simpleType === "image") {
-        state.navigation.previousRaw = mutations.getPrefetchUrl(item);
+        const prefetch = mutations.getPrefetchUrl(item);
+        if (prefetch) {
+          state.navigation.previousRaw = prefetch;
+        }
       }
       break;
     }
@@ -909,7 +912,10 @@ export const mutations = {
       state.navigation.nextLink = url.buildItemUrl(item.source, item.path);
 
       if (getTypeInfo(item.type).simpleType === "image") {
-        state.navigation.nextRaw = mutations.getPrefetchUrl(item);
+        const prefetch = mutations.getPrefetchUrl(item);
+        if (prefetch) {
+          state.navigation.nextRaw = prefetch;
+        }
       }
       break;
     }
@@ -929,17 +935,18 @@ export const mutations = {
   },
   getPrefetchUrl: (item) => {
     if (getters.isShare()) {
-      return resourcesApi.getDownloadURLPublic(
+      return resourcesApi.getViewURL(
+        item.source,
+        item.path,
+        item.streamToken,
         {
           path: item.path,
           hash: state.shareInfo.hash,
           token: state.shareInfo.token,
         },
-        [item.path],
-        true,
       );
     }
-    return resourcesApi.getDownloadURL(item.source, item.path, true);
+    return resourcesApi.getViewURL(item.source, item.path, item.streamToken);
   },
   setNavigationShow: (show) => {
     if (state.navigation.show === show) {

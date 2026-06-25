@@ -2,7 +2,6 @@ package http
 
 import (
 	"net/http"
-	"net/url"
 	"strings"
 	"testing"
 
@@ -36,51 +35,5 @@ func TestClampActivityListPagingUsesDefaultsAndMax(t *testing.T) {
 	}
 	if filter.Page != 2 {
 		t.Fatalf("expected page unchanged at 2, got %d", filter.Page)
-	}
-}
-
-func TestParseActivityStatusRange(t *testing.T) {
-	min, max, err := parseActivityStatusRange(url.Values{})
-	if err != nil || min != 0 || max != 0 {
-		t.Fatalf("expected empty range, got min=%d max=%d err=%v", min, max, err)
-	}
-
-	min, max, err = parseActivityStatusRange(url.Values{
-		"statusMin": []string{"200"},
-		"statusMax": []string{"399"},
-	})
-	if err != nil || min != 200 || max != 399 {
-		t.Fatalf("expected 200-399, got min=%d max=%d err=%v", min, max, err)
-	}
-
-	_, _, err = parseActivityStatusRange(url.Values{
-		"statusMin": []string{"500"},
-		"statusMax": []string{"400"},
-	})
-	if err == nil {
-		t.Fatal("expected error when statusMax < statusMin")
-	}
-
-	_, _, err = parseActivityStatusRange(url.Values{"statusMin": []string{"99"}})
-	if err == nil {
-		t.Fatal("expected error for statusMin below 100")
-	}
-
-	_, _, err = parseActivityStatusRange(url.Values{"statusMax": []string{"600"}})
-	if err == nil {
-		t.Fatal("expected error for statusMax above 599")
-	}
-}
-
-func TestValidateActivityChartParamsRejectsOutcomeWithStatusFilter(t *testing.T) {
-	filter := activitydb.QueryFilter{
-		From:      0,
-		To:        86400,
-		SplitBy:   "outcome",
-		StatusMin: 200,
-		StatusMax: 399,
-	}
-	if err := validateActivityChartParams(filter); err == nil {
-		t.Fatal("expected error when splitBy outcome is combined with status filter")
 	}
 }

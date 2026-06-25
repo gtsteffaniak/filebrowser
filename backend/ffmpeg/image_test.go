@@ -124,7 +124,7 @@ func TestGetImageOrientation(t *testing.T) {
 	}
 	defer os.RemoveAll(tempDir)
 
-	service := NewFFmpegService(2, false, "/tmp/test_cache")
+	service := &Service{}
 
 	t.Run("Non-existent file", func(t *testing.T) {
 		nonExistentFile := filepath.Join(tempDir, "non_existent.heic")
@@ -148,6 +148,12 @@ func TestGetImageOrientation(t *testing.T) {
 		}
 		if orientation != "Horizontal (normal)" {
 			t.Errorf("Expected default orientation 'Horizontal (normal)', got: %q", orientation)
+		}
+	})
+
+	t.Run("getExiftoolTag returns empty without exiftool", func(t *testing.T) {
+		if got := service.getExiftoolTag(tempDir, "Orientation"); got != "" {
+			t.Errorf("getExiftoolTag() = %q, want empty", got)
 		}
 	})
 }

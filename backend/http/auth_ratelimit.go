@@ -206,13 +206,13 @@ func recordAuthFailure(ip, username string) {
 func withRateLimitInternal(fn handleFunc, allow func(*http.Request, *requestContext) (retryAfter int, ok bool)) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 		if !authRateLimitActive() {
-			return invokeHandler(fn, w, r, d)
+			return fn(w, r, d)
 		}
 		if after, ok := allow(r, d); !ok {
 			w.Header().Set("Retry-After", strconv.Itoa(after))
 			return http.StatusTooManyRequests, fmt.Errorf("too many requests")
 		}
-		return invokeHandler(fn, w, r, d)
+		return fn(w, r, d)
 	}
 }
 
@@ -221,7 +221,7 @@ func withRateLimitInternal(fn handleFunc, allow func(*http.Request, *requestCont
 func withAuthRateLimitCredential(trackFailures bool, fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 		if !authRateLimitActive() {
-			return invokeHandler(fn, w, r, d)
+			return fn(w, r, d)
 		}
 		username := r.URL.Query().Get("username")
 		if isAuthLockout(getRemoteIP(r), username) {
@@ -232,7 +232,7 @@ func withAuthRateLimitCredential(trackFailures bool, fn handleFunc) handleFunc {
 			w.Header().Set("Retry-After", strconv.Itoa(after))
 			return http.StatusTooManyRequests, fmt.Errorf("too many requests")
 		}
-		status, err := invokeHandler(fn, w, r, d)
+		status, err := fn(w, r, d)
 		if !trackFailures {
 			return status, err
 		}

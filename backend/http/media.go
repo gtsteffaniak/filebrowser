@@ -78,7 +78,11 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		if track.Index == nil {
 			return http.StatusNotFound, fmt.Errorf("embedded subtitle track '%s' not found", name)
 		}
-		content, err = ffmpeg.ExtractSubtitleContent(fileInfo.RealPath, *track.Index)
+		svc := ffmpeg.Get()
+		if svc == nil {
+			return http.StatusInternalServerError, fmt.Errorf("ffmpeg service not available")
+		}
+		content, err = svc.ExtractSubtitle(r.Context(), fileInfo.RealPath, *track.Index)
 		if err != nil {
 			return http.StatusInternalServerError, fmt.Errorf("failed to extract embedded subtitle: %v", err)
 		}

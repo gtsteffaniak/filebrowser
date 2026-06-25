@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -119,43 +118,7 @@ func parseActivityFilter(r *http.Request, d *requestContext) (activitydb.QueryFi
 		return activitydb.QueryFilter{}, status, err
 	}
 
-	statusMin, statusMax, err := parseActivityStatusRange(q)
-	if err != nil {
-		return activitydb.QueryFilter{}, http.StatusBadRequest, err
-	}
-	filter.StatusMin = statusMin
-	filter.StatusMax = statusMax
-
 	return filter, 0, nil
-}
-
-const (
-	activityStatusMinBound = 100
-	activityStatusMaxBound = 599
-)
-
-func parseActivityStatusRange(q url.Values) (min, max int, err error) {
-	minStr := strings.TrimSpace(q.Get("statusMin"))
-	maxStr := strings.TrimSpace(q.Get("statusMax"))
-	if minStr == "" && maxStr == "" {
-		return 0, 0, nil
-	}
-	if minStr != "" {
-		min, err = strconv.Atoi(minStr)
-		if err != nil || min < activityStatusMinBound || min > activityStatusMaxBound {
-			return 0, 0, fmt.Errorf("invalid statusMin: must be between %d and %d", activityStatusMinBound, activityStatusMaxBound)
-		}
-	}
-	if maxStr != "" {
-		max, err = strconv.Atoi(maxStr)
-		if err != nil || max < activityStatusMinBound || max > activityStatusMaxBound {
-			return 0, 0, fmt.Errorf("invalid statusMax: must be between %d and %d", activityStatusMinBound, activityStatusMaxBound)
-		}
-	}
-	if min > 0 && max > 0 && max < min {
-		return 0, 0, fmt.Errorf("statusMax must be >= statusMin")
-	}
-	return min, max, nil
 }
 
 // enforceActivityScope rejects non-admin attempts to scope activity to another user.
@@ -212,11 +175,8 @@ func validateActivityChartParams(filter activitydb.QueryFilter) error {
 	if splitBy == "" {
 		splitBy = "eventType"
 	}
-	if splitBy != "eventType" && splitBy != "user" && splitBy != "none" && splitBy != "outcome" {
-		return fmt.Errorf("splitBy must be eventType, user, outcome, or none")
-	}
-	if splitBy == "outcome" && (filter.StatusMin > 0 || filter.StatusMax > 0) {
-		return fmt.Errorf("splitBy outcome requires no statusMin or statusMax filter")
+	if splitBy != "eventType" && splitBy != "user" && splitBy != "none" {
+		return fmt.Errorf("splitBy must be eventType, user, or none")
 	}
 
 	rangeSecs := filter.To - filter.From
@@ -268,8 +228,6 @@ func parseIntDefault(s string, def int) int {
 // @Param shareHash query string false "Share hash filter (owned shares for non-admins)"
 // @Param page query int false "Page number (default: 1)"
 // @Param limit query int false "Page size, max 500 (default: 100)"
-// @Param statusMin query int false "Minimum HTTP status code (100-599)"
-// @Param statusMax query int false "Maximum HTTP status code (100-599)"
 // @Success 200 {object} activitydb.ListResponse
 // @Failure 400 {object} map[string]string
 // @Failure 403 {object} map[string]string
@@ -292,7 +250,7 @@ func activityListHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	}
 
 	return renderJSON(w, r, activitydb.ListResponse{
-		Items:      items,
+		Items:      utils.NonNilSlice(items),
 		Total:      total,
 		Page:       filter.Page,
 		Limit:      filter.Limit,
@@ -316,9 +274,7 @@ func activityListHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 // @Param pathGlob query string false "Path glob filter (admin only)"
 // @Param shareHash query string false "Share hash filter (owned shares for non-admins)"
 // @Param interval query string false "Time bucket: minute, hour, day, or none (default: hour)"
-// @Param splitBy query string false "Series dimension: eventType, user, outcome, or none (default: eventType)"
-// @Param statusMin query int false "Minimum HTTP status code (100-599)"
-// @Param statusMax query int false "Maximum HTTP status code (100-599)"
+// @Param splitBy query string false "Series dimension: eventType, user, or none (default: eventType)"
 // @Success 200 {object} activitydb.StatsResponse
 // @Failure 400 {object} map[string]string
 // @Failure 403 {object} map[string]string
@@ -342,7 +298,7 @@ func activityGroupedHandler(w http.ResponseWriter, r *http.Request, d *requestCo
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	return renderJSON(w, r, activitydb.GroupedResponse{Buckets: buckets})
+	return renderJSON(w, r, activitydb.GroupedResponse{Buckets: utils.NonNilSlice(buckets)})
 }
 
 // activityExportHandler streams activity rows as CSV.
@@ -360,8 +316,6 @@ func activityGroupedHandler(w http.ResponseWriter, r *http.Request, d *requestCo
 // @Param path query string false "Path prefix filter"
 // @Param pathGlob query string false "Path glob filter (admin only)"
 // @Param shareHash query string false "Share hash filter (owned shares for non-admins)"
-// @Param statusMin query int false "Minimum HTTP status code (100-599)"
-// @Param statusMax query int false "Maximum HTTP status code (100-599)"
 // @Success 200 {string} string "CSV file"
 // @Failure 400 {object} map[string]string
 // @Failure 403 {object} map[string]string

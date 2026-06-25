@@ -108,7 +108,7 @@ func rawFileHandler(w http.ResponseWriter, r *http.Request, file iteminfo.Extend
 	}
 	defer fd.Close()
 
-	setContentDisposition(w, r, file.Name)
+	setContentDisposition(w, r, file.Name, false)
 
 	w.Header().Set("Cache-Control", "private")
 	http.ServeContent(w, r, file.Name, file.ModTime, fd)
@@ -226,7 +226,7 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 		seekPercentage = 0
 	}
 
-	setContentDisposition(w, r, d.fileInfo.Name)
+	setContentDisposition(w, r, d.fileInfo.Name, false)
 	isImage := strings.HasPrefix(d.fileInfo.Type, "image")
 	ext := strings.ToLower(filepath.Ext(d.fileInfo.Name))
 	resizable := iteminfo.ResizableImageTypes[ext]

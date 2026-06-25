@@ -28,8 +28,6 @@ func TestActivityBulkInsertAndQuery(t *testing.T) {
 			EventType: activitydb.EventDownload,
 			Source:    "default",
 			Path:      "/file.txt",
-			Status:    200,
-			Success:   true,
 			Details:   activitydb.Details{Source: "default", Path: "/file.txt"},
 		},
 		{
@@ -38,8 +36,6 @@ func TestActivityBulkInsertAndQuery(t *testing.T) {
 			EventType: activitydb.EventUpload,
 			Source:    "default",
 			Path:      "/upload.bin",
-			Status:    200,
-			Success:   true,
 		},
 	}
 	if err = store.BulkInsertActivity(entries); err != nil {
@@ -76,8 +72,6 @@ func TestActivityBulkInsertAndQuery(t *testing.T) {
 		EventType: activitydb.EventDownload,
 		Source:    "default",
 		Path:      "/shared.txt",
-		Status:    200,
-		Success:   true,
 		Details:   activitydb.Details{ShareHash: "test-hash", Source: "default", Path: "/shared.txt"},
 	}
 	if err = store.BulkInsertActivity([]activitydb.Entry{anonEntry}); err != nil {
@@ -145,8 +139,6 @@ func TestActivityShareScope(t *testing.T) {
 			EventType: activitydb.EventShareCreate,
 			Source:    "default",
 			Path:      "/share-path",
-			Status:    200,
-			Success:   true,
 			Details:   activitydb.Details{ShareHash: "abc123"},
 		},
 		{
@@ -155,8 +147,6 @@ func TestActivityShareScope(t *testing.T) {
 			EventType: activitydb.EventDownload,
 			Source:    "default",
 			Path:      "/file.txt",
-			Status:    200,
-			Success:   true,
 			Details:   activitydb.Details{ShareHash: "abc123", Source: "default", Path: "/file.txt"},
 		},
 		{
@@ -165,8 +155,6 @@ func TestActivityShareScope(t *testing.T) {
 			EventType: activitydb.EventDownload,
 			Source:    "default",
 			Path:      "/plain.txt",
-			Status:    200,
-			Success:   true,
 		},
 		{
 			CreatedAt: now,
@@ -174,8 +162,6 @@ func TestActivityShareScope(t *testing.T) {
 			EventType: activitydb.EventShareDownload,
 			Source:    "default",
 			Path:      "/legacy.txt",
-			Status:    200,
-			Success:   true,
 			Details:   activitydb.Details{ShareHash: "legacy"},
 		},
 	}
@@ -243,8 +229,6 @@ func TestActivityShareOwnerFilter(t *testing.T) {
 			EventType: activitydb.EventShareCreate,
 			Source:    "default",
 			Path:      "/mine",
-			Status:    200,
-			Success:   true,
 			Details:   activitydb.Details{ShareHash: "owned-hash"},
 		},
 		{
@@ -253,8 +237,6 @@ func TestActivityShareOwnerFilter(t *testing.T) {
 			EventType: activitydb.EventDownload,
 			Source:    "default",
 			Path:      "/file.txt",
-			Status:    200,
-			Success:   true,
 			Details: activitydb.Details{
 				ShareHash:        "owned-hash",
 				ShareOwnerUserID: 5,
@@ -268,8 +250,6 @@ func TestActivityShareOwnerFilter(t *testing.T) {
 			EventType: activitydb.EventShareCreate,
 			Source:    "default",
 			Path:      "/other",
-			Status:    200,
-			Success:   true,
 			Details:   activitydb.Details{ShareHash: "other-hash"},
 		},
 	}
@@ -350,8 +330,6 @@ func TestActivityPathPrefixLikeLiterals(t *testing.T) {
 			EventType: activitydb.EventDownload,
 			Source:    "default",
 			Path:      "/a%b/file.txt",
-			Status:    200,
-			Success:   true,
 		},
 		{
 			CreatedAt: now,
@@ -359,8 +337,6 @@ func TestActivityPathPrefixLikeLiterals(t *testing.T) {
 			EventType: activitydb.EventDownload,
 			Source:    "default",
 			Path:      "/axb/file.txt",
-			Status:    200,
-			Success:   true,
 		},
 		{
 			CreatedAt: now,
@@ -368,8 +344,6 @@ func TestActivityPathPrefixLikeLiterals(t *testing.T) {
 			EventType: activitydb.EventDownload,
 			Source:    "default",
 			Path:      "/a_b/file.txt",
-			Status:    200,
-			Success:   true,
 		},
 	}
 	if err = store.BulkInsertActivity(entries); err != nil {
@@ -410,70 +384,5 @@ func TestActivityPathPrefixLikeLiterals(t *testing.T) {
 	}
 	if underscoreRows[0].Path != "/a_b/file.txt" {
 		t.Fatalf("expected /a_b/file.txt, got %q", underscoreRows[0].Path)
-	}
-}
-
-func TestActivitySourceFilterMatchesAccessFailureRequestPath(t *testing.T) {
-	dir := t.TempDir()
-	dbPath := filepath.Join(dir, "access-failure-source.sqlite")
-
-	store, _, err := NewSQLStore(dbPath)
-	if err != nil {
-		t.Fatalf("NewSQLStore: %v", err)
-	}
-	defer store.Close()
-
-	now := time.Now().Unix()
-	entries := []activitydb.Entry{
-		{
-			CreatedAt: now,
-			UserID:    1,
-			EventType: activitydb.EventAccessCreate,
-			Source:    "Downloads",
-			Path:      "/",
-			Status:    200,
-			Success:   true,
-		},
-		{
-			CreatedAt: now - 1,
-			UserID:    1,
-			EventType: activitydb.EventAccessCreate,
-			Status:    400,
-			Success:   false,
-			Details: activitydb.Details{
-				RequestPath: "/access?source=Downloads&path=%2F",
-				Error:       "user not found: test",
-			},
-		},
-		{
-			CreatedAt: now - 2,
-			UserID:    1,
-			EventType: activitydb.EventAccessCreate,
-			Status:    400,
-			Success:   false,
-			Details: activitydb.Details{
-				RequestPath: "/access?source=access&path=%2F",
-				Error:       "user not found: other",
-			},
-		},
-	}
-	if err = store.BulkInsertActivity(entries); err != nil {
-		t.Fatalf("BulkInsertActivity: %v", err)
-	}
-
-	filter := activitydb.QueryFilter{
-		From:       now - 10,
-		To:         now + 10,
-		Source:     "Downloads",
-		EventTypes: activitydb.AccessEventTypes,
-		Page:       1,
-		Limit:      10,
-	}
-	count, err := store.CountActivity(filter)
-	if err != nil {
-		t.Fatalf("CountActivity: %v", err)
-	}
-	if count != 2 {
-		t.Fatalf("expected 2 Downloads access rows, got %d", count)
 	}
 }

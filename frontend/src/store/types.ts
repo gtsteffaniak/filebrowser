@@ -1,12 +1,26 @@
 // Store type definitions
 
+export interface FileListItem {
+  name: string;
+  path: string;
+  size?: number;
+  type?: string;
+  source?: string;
+  modified?: string;
+  hasPreview?: boolean;
+  streamToken?: string;
+  isShared?: boolean;
+  pinned?: boolean;
+  hidden?: boolean;
+}
+
 export interface ReqObject {
   // Base properties always present
   sorting: {
     by: string;
     asc: boolean;
   };
-  items: unknown[];
+  items: FileListItem[];
   numDirs: number;
   numFiles: number;
 
@@ -20,9 +34,11 @@ export interface ReqObject {
   modified?: string;
   hasPreview?: boolean;
   subtitles?: unknown[];
+  streamToken?: string;
+  parentDirItems?: FileListItem[];
 
   // Directory listing properties
-  listing?: unknown[];
+  listing?: FileListItem[];
 }
 
 export interface ShareInfoObject {
@@ -145,7 +161,15 @@ export interface StoreState {
     url?: string;
     modified?: string;
     type?: "3d";
-    fbdata?: { name: string; path: string; source: string; size?: number; type: string };
+    fbdata?: {
+      name: string;
+      path: string;
+      source: string;
+      size?: number;
+      type: string;
+      streamToken?: string;
+      parentDirItems?: FileListItem[];
+    };
   } | null;
   shareInfo: ShareInfoObject;
   sources: {

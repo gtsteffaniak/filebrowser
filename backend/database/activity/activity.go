@@ -25,8 +25,6 @@ type Details struct {
 	Bytes            int64         `json:"bytes,omitempty"`
 	DurationMs       int64         `json:"durationMs,omitempty"`
 	Error            string        `json:"error,omitempty"`
-	Method           string        `json:"method,omitempty"`
-	RequestPath      string        `json:"requestPath,omitempty"`
 }
 
 // ScopeDetail is a user source + path scope for admin/user mutation events.
@@ -61,8 +59,6 @@ type FrontendDetails struct {
 	Bytes          int64         `json:"bytes,omitempty"`
 	DurationMs     int64         `json:"durationMs,omitempty"`
 	Error          string        `json:"error,omitempty"`
-	Method         string        `json:"method,omitempty"`
-	RequestPath    string        `json:"requestPath,omitempty"`
 }
 
 const maxDetailPaths = 50
@@ -99,8 +95,6 @@ func (d Details) ToFrontendDetails() FrontendDetails {
 		Bytes:          d.Bytes,
 		DurationMs:     d.DurationMs,
 		Error:          d.Error,
-		Method:         d.Method,
-		RequestPath:    d.RequestPath,
 	}
 }
 
@@ -114,8 +108,6 @@ type Entry struct {
 	Path       string    `json:"path,omitempty"`
 	TargetPath string    `json:"targetPath,omitempty"`
 	IPAddress  string    `json:"ipAddress,omitempty"`
-	Status     int       `json:"status"`
-	Success    bool      `json:"success"`
 	Details    Details   `json:"details"`
 }
 
@@ -132,7 +124,6 @@ type FrontendEntry struct {
 	TokenName  string          `json:"tokenName,omitempty"`
 	AuthMethod string          `json:"authMethod,omitempty"`
 	IPAddress  string          `json:"ipAddress,omitempty"`
-	Status     int             `json:"status"`
 	Details    FrontendDetails `json:"details,omitempty"`
 }
 
@@ -148,7 +139,6 @@ func (e Entry) PrepForFrontend(actorUsername string) FrontendEntry {
 		Path:       e.Path,
 		TargetPath: e.TargetPath,
 		IPAddress:  e.IPAddress,
-		Status:     e.Status,
 		Details:    e.Details.ToFrontendDetails(),
 	}
 	if fe.Source == "" {
@@ -219,10 +209,8 @@ type QueryFilter struct {
 	OwnedShareHashes []string // legacy share-download rows without shareOwnerUserId
 	Page             int
 	Limit            int
-	StatusMin        int // HTTP status lower bound (0 = unset)
-	StatusMax        int // HTTP status upper bound (0 = unset)
 	Interval   string // minute, hour, day, none — time bucket on the X-axis
-	SplitBy    string // eventType, user, outcome, none — series dimension
+	SplitBy    string // eventType, user, none — series dimension
 	GroupBy    string // maps to Interval when Interval is empty
 }
 
