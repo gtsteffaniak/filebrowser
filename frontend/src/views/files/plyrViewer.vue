@@ -71,6 +71,9 @@
             v-if="!isMobile && showDesktopPanel"
             :lyrics="lyrics"
             :active-lyric-index="activeLyricIndex"
+            :player="player"
+            :audio-context="audioContext"
+            :audio-source="audioSource"
             class="lyrics-panel"
             @seek="seekToLyric"
           />
@@ -328,6 +331,11 @@ export default {
       doubleTapSeekCleanup: null,
       mobileLyricsScrollLocked: false,
 
+      // Audio Visualizer
+      audioContext: null,
+      audioSource: null,
+      audioGraphInitialized: false,
+
       // Playback settings
       playbackMenuInitialized: false,
       lastAppliedMode: null,
@@ -348,6 +356,8 @@ export default {
       skipFeedbackKey: 0,
       skipFeedbackTimer: null,
       skipNextTap: false,
+      skipNextTapTimer: null, // Timer for clearing skipNextTap
+
       // Plyr video: full-frame edge gestures (same UX as ExtendedImage; Plyr controls live outside .plyr__video-wrapper)
       videoEdgeKind: null,
       videoEdgeStartX: 0,
@@ -693,7 +703,8 @@ export default {
     this.buttonTimer,
     this.skipFeedbackTimer,
     this.videoDismissCloseTimer,
-    this.videoDismissHintTimer
+    this.videoDismissHintTimer,
+    this.skipNextTapTimer,
   ].forEach(timeout => {
       if (timeout) clearTimeout(timeout);
     });
@@ -812,6 +823,7 @@ export default {
         this.clearMediaSession();
         this.cleanupAlbumArt();
         this.player.off();
+        this.cleanupAudioVisualizer();
         this.player.destroy();
         this.player = null;
         this.playbackMenuInitialized = false;
@@ -822,10 +834,27 @@ export default {
         this.playbackValueSpan = null;
         this.captionSizeButtons = null;
         this.captionSizeValueSpan = null;
-        /*/ This should fix (most of) the "Invalid URI" warns, meanwhile we still destroying plyr.
+        // This should fix (most of) the "Invalid URI" warns, meanwhile we still destroying plyr.
         // Somehow firefox will still trying to "load" the empty source which causes the warn.
-        this.mediaElement.src = this.raw;*/
+        this.mediaElement.src = this.raw;
       }
+    },
+    cleanupAudioVisualizer() {
+      if (this.audioSource) {
+        try { this.audioSource.disconnect(); } catch (_) { /* ignore */ }
+        this.audioSource = null;
+      }
+      if (this.audioContext) {
+        const context = this.audioContext;
+        try {
+          const closed = context.close();
+          if (closed?.catch) closed.catch(() => {});
+        } catch (_) {
+          /* ignore */ 
+        }
+        this.audioContext = null;
+      }
+      this.audioGraphInitialized = false;
     },
     togglePlayPause() {
       const media = this.mediaElement;
@@ -834,6 +863,9 @@ export default {
     },
     handlePlay() {
       this.$emit('play');
+      if (this.previewType === 'audio' && !this.useDefaultMediaPlayer) {
+        this.resumeAudioGraph();
+      }
     },
     ensurePlaybackModeApplied() {
       if (this.useDefaultMediaPlayer || !this.player) return;
@@ -1115,7 +1147,38 @@ export default {
         this.setupMediaSession();
         // Set up event listeners
         this.setupPlyrEvents();
+        if (this.previewType === 'audio' && !this.useDefaultMediaPlayer) {
+          this.setupAudioVisualizer();
+        }
       });
+    },
+    setupAudioVisualizer() {
+      if (this.audioGraphInitialized) return;
+      const audio = this.mediaElement;
+      if (!audio) return;
+      try {
+        const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextCtor) return;
+        const ctx = new AudioContextCtor();
+        const source = ctx.createMediaElementSource(audio);
+        // Connect source to destination
+        source.connect(ctx.destination);
+        this.audioContext = ctx;
+        this.audioSource = source;
+        this.audioGraphInitialized = true;
+      } catch (err) {
+        console.warn('Audio visualizer creation failed:', err);
+      }
+    },
+    resumeAudioGraph() {
+      const context = this.audioContext;
+      if (context?.state !== 'suspended') return;
+      try {
+        const resumed = context.resume();
+        if (resumed?.catch) resumed.catch(err => console.warn('Audio graph resume failed:', err));
+      } catch (err) {
+        console.warn('Audio visualizer resume failed:', err);
+      }
     },
     setupPlyrEvents() {
       if (!this.player) return;
@@ -1179,7 +1242,14 @@ export default {
     isPlyrControlOrMenuTarget(el) {
       if (!el || typeof el.closest !== 'function') return false;
       return !!el.closest(
-        '.plyr__controls, .plyr__control, .plyr__menu__container, .plyr__menu, [data-plyr="seek"], .plyr__progress, [data-plyr="volume"], .plyr__volume'
+        '.plyr__controls, .plyr__control, .plyr__menu__container, .plyr__menu, ' +
+        '[data-plyr="seek"], .plyr__progress, [data-plyr="volume"], .plyr__volume, ' +
+        '.audio-side-panel .tab-btn, ' +
+        '.audio-side-panel .lyrics-lock-btn, ' +
+        '.audio-side-panel .lyric-line, ' +
+        '.audio-side-panel input[type="radio"], ' +
+        '.audio-side-panel label[for^="tab-"], ' +
+        '.lyrics-mobile .lyric-line'
       );
     },
     teardownDoubleTapSeek() {
@@ -1460,9 +1530,7 @@ export default {
       this.videoEdgeKind = null;
       this.videoEdgeDx = 0;
       this.videoEdgeDy = 0;
-      this.skipNextTap = true;
-      // small timeout to prevent the toggle play gesture to trigger pausing the video
-      setTimeout(() => { this.skipNextTap = false; }, 200);
+      this.setSkipNextTap(200);
       this.applyVideoSwipeTransform();
       mutations.setNavigationGestureHint({});
       setTimeout(() => {
@@ -1483,6 +1551,10 @@ export default {
       this.videoGestureSnapBack = false;
       this.videoDismissFlashActive = false;
       this.skipNextTap = false;
+      if (this.skipNextTapTimer) {
+        clearTimeout(this.skipNextTapTimer);
+        this.skipNextTapTimer = null;
+      }
       this.applyVideoSwipeTransform();
       mutations.setNavigationGestureHint({});
     },
@@ -1542,9 +1614,7 @@ export default {
           this.videoEdgeKind = null;
           this.applyVideoSwipeTransform();
           this.syncVideoNavigationGestureHintToStore();
-          this.skipNextTap = true;
-          // small timeout to prevent the toggle play gesture to trigger pausing the video
-          setTimeout(() => { this.skipNextTap = false; }, 200);
+          this.setSkipNextTap(200);
           // If we're in fullscreen, exit fullscreen instead of closing preview
           if (this.player?.fullscreen?.active) {
             this.player.fullscreen.exit();
@@ -1578,8 +1648,7 @@ export default {
           this.player.fullscreen.toggle();
           this.resetVideoEdgeGestureImmediate();
           // Set skipNextTap to prevent play/pause toggle
-          this.skipNextTap = true;
-          setTimeout(() => { this.skipNextTap = false; }, 300);
+          this.setSkipNextTap(300);
           return;
         }
       }
@@ -1847,6 +1916,17 @@ export default {
         this.longPressTimer = null;
       }
     },
+    setSkipNextTap(delay) {
+      if (this.skipNextTapTimer) {
+        clearTimeout(this.skipNextTapTimer);
+        this.skipNextTapTimer = null;
+      }
+      this.skipNextTap = true;
+      this.skipNextTapTimer = setTimeout(() => {
+        this.skipNextTap = false;
+        this.skipNextTapTimer = null;
+      }, delay);
+    },
     setupDefaultPlayerEvents(element) {
       if (!element) return;
       element.addEventListener('ended', this.handleMediaEnd);
@@ -1878,6 +1958,7 @@ export default {
     },
     onFullscreenExit() {
       this.isFullscreen = false;
+      if (!screen.orientation?.unlock) return;
       try {
         screen.orientation.unlock();
       } catch (error) {
