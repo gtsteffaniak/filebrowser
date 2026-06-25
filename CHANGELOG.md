@@ -18,6 +18,10 @@ A database migration is required to go from v1.x to this version. See docs.
    - charts and historical data
    - activity tool to view data
    - reports
+ - Media player improvements:
+   - Playback queue now support thumbnails and is stored into session storage (#2575).
+   - New "Audio visualizer" for audio files (only available in desktop) (#2575).
+   - More gestures: Swipe up to enter/exit fullscreen, long-press to change playback speed, sigle tap to pause (#2575).
 
  **Notes**:
  - new dropdown and input styles
