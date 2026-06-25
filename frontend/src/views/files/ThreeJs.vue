@@ -54,7 +54,7 @@ import { KMZLoader } from 'three/addons/loaders/KMZLoader.js';
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { state, mutations, getters } from "@/store";
 import { resourcesApi } from "@/api";
-import { removeLastDir } from "@/utils/url";
+import { removeLastDir, resolveRelativePath } from "@/utils/url";
 import { getObjectProperty } from '@/utils/object.js';
 
 const LOADERS = {
@@ -377,21 +377,30 @@ export default {
         return url;
       }
 
-      const filename = url.includes("/api/resources/")
-        ? url.split("/api/resources/").pop().split("?")[0]
-        : url.split("/").pop();
+      const cleanUrl = url.split(/[?#]/)[0];
+      let relativePath;
+      if (cleanUrl.includes("/api/resources/")) {
+        relativePath = cleanUrl.split("/api/resources/").pop() || "";
+      } else if (/^https?:\/\//i.test(cleanUrl)) {
+        return url;
+      } else {
+        relativePath = cleanUrl;
+      }
+
+      relativePath = relativePath.replace(/^\/+/, "");
+      const filename = relativePath.split("/").pop();
       if (!filename) {
         return url;
       }
 
-      let texturePath = `${removeLastDir(this.fbdata.path)}/textures/${filename}`;
-      if (this.fbdata.parentDirItems) {
-        for (const item of this.fbdata.parentDirItems) {
-          if (item.name === filename) {
-            texturePath = `${removeLastDir(this.fbdata.path)}/${filename}`;
-            break;
-          }
-        }
+      const modelDir = removeLastDir(this.fbdata.path);
+      let texturePath;
+      if (relativePath.includes("/")) {
+        texturePath = resolveRelativePath(this.fbdata.path, relativePath);
+      } else if (this.fbdata.parentDirItems?.some((item) => item.name === filename)) {
+        texturePath = `${modelDir}/${filename}`;
+      } else {
+        texturePath = `${modelDir}/textures/${filename}`;
       }
       return this.resourceDownloadUrl(texturePath);
     },
