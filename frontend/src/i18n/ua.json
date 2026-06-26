@@ -741,7 +741,12 @@
     "toggleLyrics": "Показати/Приховати текст",
     "closePanel": "Закрити панель",
     "openPanel": "Відкрити панель",
-    "visualizer": "Візуалізатор"
+    "visualizer": "Візуалізатор",
+    "transcodeUnsupportedFormat": "Ваш браузер не підтримує цей формат відео.",
+    "transcodeUserLimitReached": "Досягнуто обмеження на транскодування. У вас уже є активний сеанс транскодування:",
+    "transcodeSystemLimitReached": "Досягнуто обмеження на транскодування сервером ({limit} одночасних операцій). Спробуйте ще раз після завершення сеансу.",
+    "transcodeActiveSessions": "Активні процеси транскодування:",
+    "transcodeStart": "Перекодування"
   },
   "fileSizeAnalyzer": {
     "title": "Аналізатор розміру файлів",

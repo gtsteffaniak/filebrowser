@@ -46,7 +46,7 @@
         <ul v-if="videoTranscodeOffer.sessions?.length" class="transcode-session-list">
           <li v-for="sess in videoTranscodeOffer.sessions" :key="sess.id">
             {{ sess.fileName || sess.path }}
-            <span v-if="sess.source" class="transcode-session-source">({{ sess.source }})</span>
+            <span v-if="sess.source" class="transcode-session-source">{{ `(${sess.source})` }}</span>
           </li>
         </ul>
         <div class="preview-buttons">

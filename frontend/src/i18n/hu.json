@@ -741,7 +741,12 @@
     "toggleLyrics": "Dalszöveg be/ki",
     "closePanel": "Panel bezárása",
     "openPanel": "Panel megnyitása",
-    "visualizer": "Vizualizátor"
+    "visualizer": "Vizualizátor",
+    "transcodeUnsupportedFormat": "A böngésződ nem támogatja ezt a videóformátumot.",
+    "transcodeUserLimitReached": "Elérte a transzkódolási korlátot. Már van egy aktív transzkódolási munkamenete:",
+    "transcodeSystemLimitReached": "Elérte a szerver átkódolási korlátját ({limit} párhuzamos folyamat). Kérjük, próbálja meg újra, miután egy munkamenet befejeződött.",
+    "transcodeActiveSessions": "Aktív átkódolások:",
+    "transcodeStart": "Átkódolás"
   },
   "fileSizeAnalyzer": {
     "title": "Fájlméret elemző",

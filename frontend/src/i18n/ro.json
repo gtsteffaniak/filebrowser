@@ -741,7 +741,12 @@
     "toggleLyrics": "Comută versurile",
     "closePanel": "Închide panoul",
     "openPanel": "Deschide panoul",
-    "visualizer": "Vizualizator"
+    "visualizer": "Vizualizator",
+    "transcodeUnsupportedFormat": "Acest format video nu este acceptat de browserul dumneavoastră.",
+    "transcodeUserLimitReached": "S-a atins limita de transcodare. Aveți deja o sesiune de transcodare activă:",
+    "transcodeSystemLimitReached": "S-a atins limita de transcodare a serverului ({limit} simultan). Încercați din nou după ce se încheie o sesiune.",
+    "transcodeActiveSessions": "Transcodări active:",
+    "transcodeStart": "Transcodare"
   },
   "fileSizeAnalyzer": {
     "title": "Analizor dimensiune fișier",

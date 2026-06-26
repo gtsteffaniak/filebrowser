@@ -741,7 +741,12 @@
     "toggleLyrics": "Alternar letra",
     "closePanel": "Fechar painel",
     "openPanel": "Abrir painel",
-    "visualizer": "Visualizador"
+    "visualizer": "Visualizador",
+    "transcodeUnsupportedFormat": "Este formato de vídeo não é suportado pelo seu navegador.",
+    "transcodeUserLimitReached": "Limite de transcodificação atingido. Já tem uma sessão de transcodificação ativa:",
+    "transcodeSystemLimitReached": "Limite de transcodificação do servidor atingido ({limit} simultâneas). Tente novamente quando uma sessão terminar.",
+    "transcodeActiveSessions": "Transcodificações ativas:",
+    "transcodeStart": "Transcodificar"
   },
   "fileSizeAnalyzer": {
     "title": "Analisador de tamanho de ficheiro",

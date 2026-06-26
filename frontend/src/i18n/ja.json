@@ -682,7 +682,8 @@
     "defaultThemeDescription": "default - デフォルトテーマ",
     "customTheme": "テーマを選択",
     "showSelectMultiple": "デスクトップのコンテキストメニューに複数選択を表示する",
-    "showSelectMultipleDescription": "デフォルトでは、デスクトップのコンテキストメニューには、モバイルのような「複数選択」オプションはありません。このオプションを有効にすると常にコンテキストメニューに表示されます。",    "debugOfficeEditor": "OnlyOfficeデバッグモードを有効にする",
+    "showSelectMultipleDescription": "デフォルトでは、デスクトップのコンテキストメニューには、モバイルのような「複数選択」オプションはありません。このオプションを有効にすると常にコンテキストメニューに表示されます。",
+    "debugOfficeEditor": "OnlyOfficeデバッグモードを有効にする",
     "debugOfficeEditorDescription": "OnlyOfficeエディタに追加情報のデバッグポップアップを表示します。",
     "fileViewerOptions": "ファイルビューアオプション",
     "themeAndLanguage": "テーマと言語",
@@ -740,7 +741,12 @@
     "toggleLyrics": "歌詞の表示切り替え",
     "closePanel": "パネルを閉じる",
     "openPanel": "パネルを開く",
-    "visualizer": "ビジュアライザー"
+    "visualizer": "ビジュアライザー",
+    "transcodeUnsupportedFormat": "お使いのブラウザでは、この動画形式はサポートされていません。",
+    "transcodeUserLimitReached": "トランスコードの制限に達しました。すでにアクティブなトランスコードセッションがあります：",
+    "transcodeSystemLimitReached": "サーバーのトランスコード制限に達しました（{limit} の同時処理）。セッションが終了したら、再度お試しください。",
+    "transcodeActiveSessions": "進行中のトランスコード：",
+    "transcodeStart": "トランスコード"
   },
   "fileSizeAnalyzer": {
     "title": "ファイル・サイズ・アナライザー",

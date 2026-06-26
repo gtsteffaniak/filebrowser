@@ -210,6 +210,7 @@ export function enablePlyrScrubPreview(player, options) {
   let scrubbing = false;
   let pendingPercent = null;
   let lastFetchedPercent = null;
+  let inFlightPercent = null;
   let lastFetchAt = 0;
   /** @type {ReturnType<typeof setTimeout> | null} */
   let debounceTimer = null;
@@ -273,6 +274,7 @@ export function enablePlyrScrubPreview(player, options) {
 
   const fetchPreview = async (percentInt) => {
     if (cache.has(percentInt)) {
+      lastFetchedPercent = percentInt;
       applyCachedImage(percentInt);
       return;
     }
@@ -280,10 +282,12 @@ export function enablePlyrScrubPreview(player, options) {
     abortController?.abort();
     const controller = new AbortController();
     abortController = controller;
+    inFlightPercent = percentInt;
 
     try {
       const objectUrl = await fetchPreviewImage(buildPreviewUrl(percentInt), controller.signal);
       cache.set(percentInt, objectUrl);
+      lastFetchedPercent = percentInt;
       trimCache();
       if (scrubbing && pendingPercent === percentInt) {
         img.src = objectUrl;
@@ -291,6 +295,9 @@ export function enablePlyrScrubPreview(player, options) {
     } catch {
       // Aborts and preview failures are expected while scrubbing quickly.
     } finally {
+      if (inFlightPercent === percentInt) {
+        inFlightPercent = null;
+      }
       if (abortController === controller) {
         abortController = null;
       }
@@ -306,8 +313,7 @@ export function enablePlyrScrubPreview(player, options) {
         return;
       }
       lastFetchAt = Date.now();
-      lastFetchedPercent = percentInt;
-      fetchPreview(percentInt);
+      void fetchPreview(percentInt);
     }, delay);
   };
 
@@ -320,7 +326,7 @@ export function enablePlyrScrubPreview(player, options) {
     show();
     applyCachedImage(percentInt);
 
-    if (!scrubPercentChanged(lastFetchedPercent, percentInt)) {
+    if (!scrubPercentChanged(lastFetchedPercent, percentInt) || inFlightPercent === percentInt) {
       return;
     }
     queueFetch(percentInt);
@@ -344,6 +350,9 @@ export function enablePlyrScrubPreview(player, options) {
     scrubbing = true;
     document.addEventListener('mousemove', onDocumentMove);
     document.addEventListener('touchmove', onDocumentMove, { passive: true });
+    document.addEventListener('mouseup', onScrubEnd);
+    document.addEventListener('touchend', onScrubEnd);
+    document.addEventListener('touchcancel', onScrubEnd);
     handleScrubPosition(event);
   };
 
@@ -352,6 +361,9 @@ export function enablePlyrScrubPreview(player, options) {
     pendingPercent = null;
     document.removeEventListener('mousemove', onDocumentMove);
     document.removeEventListener('touchmove', onDocumentMove);
+    document.removeEventListener('mouseup', onScrubEnd);
+    document.removeEventListener('touchend', onScrubEnd);
+    document.removeEventListener('touchcancel', onScrubEnd);
     clearTimeout(debounceTimer);
     debounceTimer = null;
     abortController?.abort();

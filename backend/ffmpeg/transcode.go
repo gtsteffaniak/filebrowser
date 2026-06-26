@@ -25,7 +25,7 @@ func (s *Service) ProbeFile(ctx context.Context, path string) (StreamInfo, error
 	if err != nil {
 		return StreamInfo{}, fmt.Errorf("failed to stat file: %w", err)
 	}
-	cacheKey := fmt.Sprintf("probe:%s:%d", path, fileInfo.ModTime().Unix())
+	cacheKey := fmt.Sprintf("probe:%s:%d:%d", path, fileInfo.ModTime().UnixNano(), fileInfo.Size())
 	if info, ok := ProbeCache.Get(cacheKey); ok {
 		return info, nil
 	}

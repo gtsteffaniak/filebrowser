@@ -741,7 +741,12 @@
     "toggleLyrics": "החלפת מילים",
     "closePanel": "סגור לוח",
     "openPanel": "פתח לוח",
-    "visualizer": "מציג חזותי"
+    "visualizer": "מציג חזותי",
+    "transcodeUnsupportedFormat": "פורמט הווידאו הזה אינו נתמך על ידי הדפדפן שלך.",
+    "transcodeUserLimitReached": "הגענו למגבלת ההמרה. כבר יש לך תהליך המרה פעיל:",
+    "transcodeSystemLimitReached": "הוגעה למגבלת ההמרה של השרת ({limit} במקביל). נסה שוב לאחר סיום הפעלה.",
+    "transcodeActiveSessions": "המרה פעילה:",
+    "transcodeStart": "המרה"
   },
   "fileSizeAnalyzer": {
     "title": "מנתח גודל קובץ",

@@ -741,7 +741,12 @@
     "toggleLyrics": "Visa/dölj text",
     "closePanel": "Stäng panel",
     "openPanel": "Öppna panel",
-    "visualizer": "Visualiserare"
+    "visualizer": "Visualiserare",
+    "transcodeUnsupportedFormat": "Detta videoformat stöds inte av din webbläsare.",
+    "transcodeUserLimitReached": "Gränsen för omkodning har nåtts. Du har redan en aktiv omkodningssession:",
+    "transcodeSystemLimitReached": "Gränsen för serveromkodning har nåtts ({limit} samtidigt). Försök igen när en session har avslutats.",
+    "transcodeActiveSessions": "Aktiva omkodningar:",
+    "transcodeStart": "Omkodning"
   },
   "fileSizeAnalyzer": {
     "title": "Analysator för filstorlek",

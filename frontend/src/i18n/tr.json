@@ -741,7 +741,12 @@
     "toggleLyrics": "Şarkı sözlerini göster/gizle",
     "closePanel": "Paneli kapat",
     "openPanel": "Paneli aç",
-    "visualizer": "Görselleştirici"
+    "visualizer": "Görselleştirici",
+    "transcodeUnsupportedFormat": "Tarayıcınız bu video formatını desteklemiyor.",
+    "transcodeUserLimitReached": "Kod dönüştürme sınırına ulaşıldı. Halihazırda etkin bir kod dönüştürme oturumunuz var:",
+    "transcodeSystemLimitReached": "Sunucu kod dönüştürme sınırına ulaşıldı ({limit} eşzamanlı işlem). Bir oturum sona erdiğinde lütfen tekrar deneyin.",
+    "transcodeActiveSessions": "Etkin kod dönüştürme işlemleri:",
+    "transcodeStart": "Kod Dönüştürme"
   },
   "fileSizeAnalyzer": {
     "title": "Dosya Boyutu Analizörü",

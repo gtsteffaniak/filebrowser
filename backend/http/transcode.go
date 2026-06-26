@@ -240,6 +240,9 @@ func transcodeSessionsHandler(w http.ResponseWriter, r *http.Request, d *request
 	if !settings.TranscodeEnabled() {
 		return http.StatusNotFound, fmt.Errorf("transcode not enabled")
 	}
+	if !d.user.Permissions.Realtime {
+		return http.StatusForbidden, fmt.Errorf("realtime permission required")
+	}
 
 	listAll := r.URL.Query().Get("all") == "true"
 	if listAll && !d.user.Permissions.Admin {
@@ -295,6 +298,9 @@ func transcodeSessionsHandler(w http.ResponseWriter, r *http.Request, d *request
 // @Failure 503 {object} map[string]string "System transcode limit reached"
 // @Router /api/media/transcode [get]
 func transcodeHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	if !d.user.Permissions.Realtime {
+		return http.StatusForbidden, fmt.Errorf("realtime permission required")
+	}
 	if transcodeRejectRange(r) {
 		return http.StatusRequestedRangeNotSatisfiable, fmt.Errorf("range requests not supported for transcode")
 	}

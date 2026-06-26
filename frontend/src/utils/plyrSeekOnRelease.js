@@ -47,14 +47,16 @@ export function enablePlyrSeekOnRelease(player) {
     return () => {};
   }
 
-  let lastCommitAt = 0;
+  let ignoreNextChange = false;
 
   const onCommit = (event) => {
-    const now = event.timeStamp;
-    if (now === lastCommitAt) {
+    if (event.type === 'change' && ignoreNextChange) {
+      ignoreNextChange = false;
       return;
     }
-    lastCommitAt = now;
+    if (event.type === 'mouseup' || event.type === 'touchend') {
+      ignoreNextChange = true;
+    }
     commitPlyrSeek(player, event);
   };
 

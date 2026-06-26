@@ -498,7 +498,8 @@
     "defaultThemeDescription": "default - 默认主题",
     "customTheme": "选择主题",
     "showSelectMultiple": "在桌面右键菜单中显示多个选择",
-    "showSelectMultipleDescription": "默认情况下，桌面右键菜单不像手机那样有 \"选择多个 \"选项。该选项始终显示在右键菜单中。",    "debugOfficeEditor": "启用 OnlyOffice 调试模式",
+    "showSelectMultipleDescription": "默认情况下，桌面右键菜单不像手机那样有 \"选择多个 \"选项。该选项始终显示在右键菜单中。",
+    "debugOfficeEditor": "启用 OnlyOffice 调试模式",
     "debugOfficeEditorDescription": "在 OnlyOffice 编辑器中显示包含附加信息的调试弹出窗口。",
     "fileViewerOptions": "文件查看器选项",
     "themeAndLanguage": "主题与语言",
@@ -740,7 +741,12 @@
     "toggleLyrics": "切换歌词",
     "closePanel": "关闭面板",
     "openPanel": "打开面板",
-    "visualizer": "可视化工具"
+    "visualizer": "可视化工具",
+    "transcodeUnsupportedFormat": "您的浏览器不支持此视频格式。",
+    "transcodeUserLimitReached": "已达到转码限制。您已有正在进行的转码会话：",
+    "transcodeSystemLimitReached": "已达到服务器转码限制（{limit} 并发）。请待一个会话结束后再试。",
+    "transcodeActiveSessions": "正在进行的转码任务：",
+    "transcodeStart": "转码"
   },
   "fileSizeAnalyzer": {
     "title": "文件大小分析器",

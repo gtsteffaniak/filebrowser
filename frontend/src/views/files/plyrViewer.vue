@@ -900,6 +900,105 @@ export default {
       }
       this.audioGraphInitialized = false;
     },
+    destroyMsePlayback() {
+      this.transcodeAbort?.abort();
+      this.transcodeAbort = null;
+      this.mseController?.destroy();
+      this.mseController = null;
+      this.useMsePlayback = false;
+    },
+    getTranscodePlaybackUrl() {
+      return resourcesApi.getTranscodeURL(
+        this.req.source,
+        this.req.path,
+        this.req.streamToken,
+      );
+    },
+    async offerTranscodePlayback() {
+      if (!this.nativeVideoTranscodeEligible || this.transcodeOfferEmitted) {
+        return;
+      }
+      this.transcodeOfferEmitted = true;
+      try {
+        const status = await resourcesApi.fetchTranscodeSessions(this.req.source, this.req.path);
+        this.$emit('needs-transcode', status);
+      } catch (err) {
+        console.error('Failed to check transcode sessions:', err);
+        this.transcodeOfferEmitted = false;
+      }
+    },
+    async startTranscodePlayback() {
+      if (!this.transcodeEnabled || this.previewType !== 'video') {
+        return;
+      }
+      await this.destroyMsePlayback();
+      if (this.player) {
+        this.destroyPlyr();
+      }
+      this.useMsePlayback = true;
+      await this.$nextTick();
+      const video = this.$refs.videoElement;
+      if (!video) {
+        this.useMsePlayback = false;
+        return;
+      }
+      this.transcodeAbort = new AbortController();
+      try {
+        const meta = this.req?.metadata || {};
+        this.mseController = await startFmp4MsePlayback(video, this.getTranscodePlaybackUrl(), {
+          signal: this.transcodeAbort.signal,
+          hasAudio: Boolean(meta.audioCodec),
+        });
+        await this.$nextTick();
+        this.initializePlyr();
+      } catch (err) {
+        console.error('Transcode playback failed:', err);
+        this.useMsePlayback = false;
+        if (err?.status === 409 || err?.status === 503) {
+          try {
+            const status = await resourcesApi.fetchTranscodeSessions(
+              this.req.source,
+              this.req.path,
+            );
+            console.info('[transcode] playback blocked, refreshed sessions', status);
+            this.transcodeOfferEmitted = true;
+            this.$emit('needs-transcode', status);
+          } catch (fetchErr) {
+            console.error('Failed to refresh transcode sessions after limit:', fetchErr);
+          }
+        } else {
+          await this.$nextTick();
+          this.initializePlyr();
+          void this.offerTranscodePlayback();
+        }
+      }
+    },
+    onVideoLoadedMetadata() {
+      if (!this.nativeVideoTranscodeEligible) {
+        return;
+      }
+      const video = this.mediaElement;
+      if (!video || video.videoWidth > 0 || video.videoHeight > 0) {
+        return;
+      }
+      if (!Number.isFinite(video.duration) || video.duration <= 0) {
+        return;
+      }
+      void this.offerTranscodePlayback();
+    },
+    onVideoPlaybackError(event) {
+      if (!this.nativeVideoTranscodeEligible) {
+        return;
+      }
+      const code = event?.target?.error?.code;
+      if (
+        code !== MediaError.MEDIA_ERR_DECODE
+        && code !== MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED
+      ) {
+        return;
+      }
+      void this.offerTranscodePlayback();
+    },
     togglePlayPause() {
       const media = this.mediaElement;
       if (!media) return;
@@ -1175,7 +1274,7 @@ export default {
     },
     hookEvents() {
       if (this.previewType === 'video' && this.startTranscode) {
-        this.startTranscodePlayback();
+        void this.startTranscodePlayback();
         return;
       }
 

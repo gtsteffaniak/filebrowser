@@ -741,7 +741,12 @@
     "toggleLyrics": "Přepnout text",
     "closePanel": "Zavřít panel",
     "openPanel": "Otevřít panel",
-    "visualizer": "Vizualizér"
+    "visualizer": "Vizualizér",
+    "transcodeUnsupportedFormat": "Váš prohlížeč tento formát videa nepodporuje.",
+    "transcodeUserLimitReached": "Byl dosažen limit překódování. Již máte aktivní relaci překódování:",
+    "transcodeSystemLimitReached": "Byl dosažen limit překódování na serveru ({limit} souběžných operací). Zkuste to znovu, až skončí některá relace.",
+    "transcodeActiveSessions": "Aktivní překódování:",
+    "transcodeStart": "Překódovat"
   },
   "fileSizeAnalyzer": {
     "title": "Analyzátor velikosti souborů",

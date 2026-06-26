@@ -169,6 +169,7 @@ func streamHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 // @Param file query string true "File path within the share"
 // @Param streamToken query string true "Opaque stream grant token from share file metadata"
 // @Success 200 {file} file "Raw media content (inline)"
+// @Failure 400 {object} map[string]string "Invalid file path"
 // @Failure 403 {object} map[string]string "Missing or invalid stream token, or non-media file"
 // @Failure 404 {object} map[string]string "Share or file not found"
 // @Failure 500 {object} map[string]string "Internal server error"

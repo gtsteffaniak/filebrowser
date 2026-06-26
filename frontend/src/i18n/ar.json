@@ -741,7 +741,12 @@
     "toggleLyrics": "تبديل كلمات الأغنية",
     "closePanel": "إغلاق اللوحة",
     "openPanel": "فتح اللوحة",
-    "visualizer": "مصور"
+    "visualizer": "مصور",
+    "transcodeUnsupportedFormat": "متصفحك لا يدعم تنسيق الفيديو هذا.",
+    "transcodeUserLimitReached": "تم الوصول إلى الحد الأقصى لعمليات التحويل. لديك بالفعل جلسة تحويل نشطة:",
+    "transcodeSystemLimitReached": "تم الوصول إلى الحد الأقصى لعمليات التحويل على الخادم ({limit} عملية متزامنة). يرجى المحاولة مرة أخرى عند انتهاء إحدى الجلسات.",
+    "transcodeActiveSessions": "عمليات التحويل الجارية:",
+    "transcodeStart": "تحويل الترميز"
   },
   "fileSizeAnalyzer": {
     "title": "محلل حجم الملف",

@@ -11,6 +11,15 @@ import (
 	"github.com/gtsteffaniak/go-ffmpeg/capabilities"
 )
 
+func testTranscodeUser(id uint64) *users.User {
+	return &users.User{
+		ID: id,
+		FrontendUser: users.FrontendUser{
+			Permissions: users.Permissions{Realtime: true},
+		},
+	}
+}
+
 func TestTranscodeRejectRange(t *testing.T) {
 	t.Parallel()
 	req := httptest.NewRequest(http.MethodGet, "/api/media/transcode", nil)
@@ -65,6 +74,12 @@ func TestCanFMP4StreamCopy(t *testing.T) {
 
 func TestTranscodeTargetVideoKbps(t *testing.T) {
 	t.Parallel()
+	oldMax := settings.Config.Integrations.Media.Transcode.MaxResolution
+	settings.Config.Integrations.Media.Transcode.MaxResolution = 1080
+	t.Cleanup(func() {
+		settings.Config.Integrations.Media.Transcode.MaxResolution = oldMax
+	})
+
 	tests := []struct {
 		name string
 		info ffmpeg.StreamInfo
@@ -86,7 +101,6 @@ func TestTranscodeTargetVideoKbps(t *testing.T) {
 			want: 5000,
 		},
 	}
-	settings.Config.Integrations.Media.Transcode.MaxResolution = 1080
 	for _, tc := range tests {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
@@ -112,7 +126,7 @@ func TestTranscodeDecodeProfileUnknownCodec(t *testing.T) {
 
 func TestTranscodeHandlerRejectsMissingToken(t *testing.T) {
 	t.Parallel()
-	d := &requestContext{user: &users.User{ID: 1}}
+	d := &requestContext{user: testTranscodeUser(1)}
 	req := httptest.NewRequest(http.MethodGet, "/api/media/transcode?source=default&file=/a.mkv", nil)
 	status, err := transcodeHandler(httptest.NewRecorder(), req, d)
 	if status != http.StatusForbidden || err == nil {
@@ -122,7 +136,7 @@ func TestTranscodeHandlerRejectsMissingToken(t *testing.T) {
 
 func TestTranscodeHandlerRejectsRange(t *testing.T) {
 	t.Parallel()
-	d := &requestContext{user: &users.User{ID: 1}}
+	d := &requestContext{user: testTranscodeUser(1)}
 	token, err := mintStreamGrant(d, "default", "/a.mkv")
 	if err != nil {
 		t.Fatal(err)
@@ -137,10 +151,20 @@ func TestTranscodeHandlerRejectsRange(t *testing.T) {
 
 func TestTranscodeHandlerRejectsMultiFile(t *testing.T) {
 	t.Parallel()
-	d := &requestContext{user: &users.User{ID: 1}}
+	d := &requestContext{user: testTranscodeUser(1)}
 	req := httptest.NewRequest(http.MethodGet, "/api/media/transcode?source=default&file=/a.mkv&file=/b.mkv&streamToken=tok", nil)
 	status, err := transcodeHandler(httptest.NewRecorder(), req, d)
 	if status != http.StatusForbidden || err == nil {
 		t.Fatalf("expected 403 for multi-file, got status=%d err=%v", status, err)
+	}
+}
+
+func TestTranscodeHandlerRejectsWithoutRealtime(t *testing.T) {
+	t.Parallel()
+	d := &requestContext{user: &users.User{ID: 1}}
+	req := httptest.NewRequest(http.MethodGet, "/api/media/transcode?source=default&file=/a.mkv&streamToken=tok", nil)
+	status, err := transcodeHandler(httptest.NewRecorder(), req, d)
+	if status != http.StatusForbidden || err == nil {
+		t.Fatalf("expected 403, got status=%d err=%v", status, err)
 	}
 }

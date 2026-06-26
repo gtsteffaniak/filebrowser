@@ -741,7 +741,12 @@
     "toggleLyrics": "Mostrar letras",
     "closePanel": "Cerrar panel",
     "openPanel": "Abrir panel",
-    "visualizer": "Visualizador"
+    "visualizer": "Visualizador",
+    "transcodeUnsupportedFormat": "Tu navegador no es compatible con este formato de vídeo.",
+    "transcodeUserLimitReached": "Se ha alcanzado el límite de transcodificación. Ya tienes una sesión de transcodificación activa:",
+    "transcodeSystemLimitReached": "Se ha alcanzado el límite de transcodificación del servidor ({limit} simultáneas). Inténtalo de nuevo cuando finalice una sesión.",
+    "transcodeActiveSessions": "Transcodificaciones activas:",
+    "transcodeStart": "Transcodificar"
   },
   "fileSizeAnalyzer": {
     "title": "Analizador de espacio",

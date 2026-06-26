@@ -28,8 +28,25 @@ import (
 var Config Settings
 
 const (
-	generatorPath = "/relative/or/absolute/path"
+	generatorPath           = "/relative/or/absolute/path"
+	defaultTranscodePreset  = "veryfast"
 )
+
+var validTranscodePresets = []string{
+	"ultrafast", "veryfast", "fast", "medium",
+}
+
+func normalizeTranscodePreset(preset string) string {
+	preset = strings.ToLower(strings.TrimSpace(preset))
+	if preset == "" {
+		return defaultTranscodePreset
+	}
+	if slices.Contains(validTranscodePresets, preset) {
+		return preset
+	}
+	logger.Warningf("invalid transcode preset %q; using %q", preset, defaultTranscodePreset)
+	return defaultTranscodePreset
+}
 
 func Initialize(configFile string) {
 	err := loadConfigWithDefaults(configFile, false)
@@ -339,9 +356,7 @@ func setupMedia(generate bool) {
 	if Config.Integrations.Media.Transcode.MaxConcurrent < 1 {
 		Config.Integrations.Media.Transcode.MaxConcurrent = 2
 	}
-	if Config.Integrations.Media.Transcode.Preset == "" {
-		Config.Integrations.Media.Transcode.Preset = "veryfast"
-	}
+	Config.Integrations.Media.Transcode.Preset = normalizeTranscodePreset(Config.Integrations.Media.Transcode.Preset)
 	if Config.Integrations.Media.Transcode.MaxResolution < 1 {
 		Config.Integrations.Media.Transcode.MaxResolution = 1080
 	}
@@ -1170,7 +1185,7 @@ func SetDefaults(generate bool) Settings {
 		s.Integrations.Media.Convert.VideoPreview[t] = boolPtr(true)
 	}
 	s.Integrations.Media.Transcode.MaxConcurrent = 2
-	s.Integrations.Media.Transcode.Preset = "veryfast"
+	s.Integrations.Media.Transcode.Preset = defaultTranscodePreset
 	s.Integrations.Media.Transcode.MaxResolution = 1080
 	return s
 }

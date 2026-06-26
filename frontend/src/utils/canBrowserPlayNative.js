@@ -1,16 +1,16 @@
-const CONTAINER_MIME = {
-  mkv: 'video/x-matroska',
-  webm: 'video/webm',
-  mp4: 'video/mp4',
-  m4v: 'video/mp4',
-  mov: 'video/mp4',
-  avi: 'video/avi',
-  wmv: 'video/x-ms-wmv',
-  flv: 'video/x-flv',
-  ts: 'video/mp2t',
-  m2ts: 'video/mp2t',
-  ogv: 'video/ogg',
-};
+const CONTAINER_MIME = new Map([
+  ['mkv', 'video/x-matroska'],
+  ['webm', 'video/webm'],
+  ['mp4', 'video/mp4'],
+  ['m4v', 'video/mp4'],
+  ['mov', 'video/mp4'],
+  ['avi', 'video/avi'],
+  ['wmv', 'video/x-ms-wmv'],
+  ['flv', 'video/x-flv'],
+  ['ts', 'video/mp2t'],
+  ['m2ts', 'video/mp2t'],
+  ['ogv', 'video/ogg'],
+]);
 
 const FFPROBE_TO_MIME = {
   h264: 'avc1.42E01E',
@@ -49,13 +49,14 @@ function extensionFromName(fileName) {
 
 function containerMimeFromFileName(fileName, mimeType) {
   const ext = extensionFromName(fileName);
-  if (ext && CONTAINER_MIME[ext]) {
-    return CONTAINER_MIME[ext];
+  const mapped = ext ? CONTAINER_MIME.get(ext) : undefined;
+  if (mapped) {
+    return mapped;
   }
   if (mimeType && (mimeType.startsWith('video/') || mimeType.startsWith('audio/'))) {
     return mimeType;
   }
-  return 'video/mp4';
+  return '';
 }
 
 function buildCodecMime(containerMime, videoCodec, audioCodec) {
@@ -103,7 +104,7 @@ export function canBrowserPlayNative({ videoCodec, audioCodec, mimeType, fileNam
   const containerMime = containerMimeFromFileName(fileName, mimeType);
   const ext = extensionFromName(fileName);
 
-  if (videoCodec || audioCodec) {
+  if (containerMime && (videoCodec || audioCodec)) {
     const codecMime = buildCodecMime(containerMime, videoCodec, audioCodec);
     const canPlay = probeCanPlayType(codecMime);
     if (canPlay === true || canPlay === false) {

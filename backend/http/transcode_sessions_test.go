@@ -13,9 +13,18 @@ func newTestSessionStore() *transcodeSessionStore {
 	}
 }
 
+func setTestTranscodeMaxConcurrent(t *testing.T, n int) {
+	t.Helper()
+	prev := settings.Config.Integrations.Media.Transcode.MaxConcurrent
+	settings.Config.Integrations.Media.Transcode.MaxConcurrent = n
+	t.Cleanup(func() {
+		settings.Config.Integrations.Media.Transcode.MaxConcurrent = prev
+	})
+}
+
 func TestTranscodeSessionAcquireUserLimit(t *testing.T) {
 	store := newTestSessionStore()
-	settings.Config.Integrations.Media.Transcode.MaxConcurrent = 2
+	setTestTranscodeMaxConcurrent(t, 2)
 
 	first := store.acquire(1, "alice", "default", "/a.mkv", "a.mkv")
 	if !first.OK || first.Session == nil {
@@ -44,7 +53,7 @@ func TestTranscodeSessionAcquireUserLimit(t *testing.T) {
 
 func TestTranscodeSessionConcurrentStreamsBlocked(t *testing.T) {
 	store := newTestSessionStore()
-	settings.Config.Integrations.Media.Transcode.MaxConcurrent = 2
+	setTestTranscodeMaxConcurrent(t, 2)
 
 	first := store.acquire(1, "alice", "default", "/a.mkv", "a.mkv")
 	if !first.OK {
@@ -66,7 +75,7 @@ func TestTranscodeSessionConcurrentStreamsBlocked(t *testing.T) {
 
 func TestTranscodeSessionAcquireSystemLimit(t *testing.T) {
 	store := newTestSessionStore()
-	settings.Config.Integrations.Media.Transcode.MaxConcurrent = 1
+	setTestTranscodeMaxConcurrent(t, 1)
 
 	a := store.acquire(1, "alice", "default", "/a.mkv", "a.mkv")
 	if !a.OK {
@@ -83,7 +92,7 @@ func TestTranscodeSessionAcquireSystemLimit(t *testing.T) {
 
 func TestTranscodeSessionEvaluateBlocksWhenActive(t *testing.T) {
 	store := newTestSessionStore()
-	settings.Config.Integrations.Media.Transcode.MaxConcurrent = 2
+	setTestTranscodeMaxConcurrent(t, 2)
 
 	store.acquire(1, "alice", "default", "/a.mkv", "a.mkv")
 
@@ -103,7 +112,7 @@ func TestTranscodeSessionEvaluateBlocksWhenActive(t *testing.T) {
 
 func TestTranscodeSessionReleaseStreamRefcount(t *testing.T) {
 	store := newTestSessionStore()
-	settings.Config.Integrations.Media.Transcode.MaxConcurrent = 2
+	setTestTranscodeMaxConcurrent(t, 2)
 
 	first := store.acquire(1, "alice", "default", "/a.mkv", "a.mkv")
 	second := store.acquire(1, "alice", "default", "/a.mkv", "a.mkv")

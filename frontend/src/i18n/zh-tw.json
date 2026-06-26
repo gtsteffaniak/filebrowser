@@ -467,7 +467,8 @@
     "defaultThemeDescription": "default - 預設主題",
     "customTheme": "選擇主題",
     "showSelectMultiple": "在桌面的右鍵選單中顯示多重選取",
-    "showSelectMultipleDescription": "桌面版右鍵選單預設不像行動版那樣提供「選取多個」。啟用後會固定顯示該選項。",    "debugOfficeEditor": "啟用 OnlyOffice 除錯模式",
+    "showSelectMultipleDescription": "桌面版右鍵選單預設不像行動版那樣提供「選取多個」。啟用後會固定顯示該選項。",
+    "debugOfficeEditor": "啟用 OnlyOffice 除錯模式",
     "debugOfficeEditorDescription": "在 OnlyOffice 編輯器中顯示包含其他資訊的除錯彈出式視窗。",
     "fileViewerOptions": "檔案檢視器選項",
     "themeAndLanguage": "主題與語言",
@@ -740,7 +741,12 @@
     "toggleLyrics": "切換歌詞",
     "closePanel": "關閉面板",
     "openPanel": "開啟面板",
-    "visualizer": "視覺化工具"
+    "visualizer": "視覺化工具",
+    "transcodeUnsupportedFormat": "您的瀏覽器不支援此影片格式。",
+    "transcodeUserLimitReached": "已達到轉碼限制。您目前已有一個正在進行的轉碼作業：",
+    "transcodeSystemLimitReached": "已達到伺服器轉碼限制（{limit} 個同時處理）。請待一個工作階段結束後再試一次。",
+    "transcodeActiveSessions": "正在進行的轉碼：",
+    "transcodeStart": "轉碼"
   },
   "fileSizeAnalyzer": {
     "title": "檔案大小分析器",

@@ -741,7 +741,12 @@
     "toggleLyrics": "Songtekst in-/uitschakelen",
     "closePanel": "Paneel sluiten",
     "openPanel": "Paneel openen",
-    "visualizer": "Visualisator"
+    "visualizer": "Visualisator",
+    "transcodeUnsupportedFormat": "Dit videoformaat wordt niet ondersteund door je browser.",
+    "transcodeUserLimitReached": "De limiet voor transcoderen is bereikt. Je hebt al een actieve transcodersessie:",
+    "transcodeSystemLimitReached": "De limiet voor transcodering op de server is bereikt ({limit} gelijktijdig). Probeer het opnieuw zodra een sessie is beëindigd.",
+    "transcodeActiveSessions": "Actieve transcoderingen:",
+    "transcodeStart": "Transcoderen"
   },
   "fileSizeAnalyzer": {
     "title": "Bestandsgrootte analyzer",

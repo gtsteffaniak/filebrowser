@@ -741,7 +741,12 @@
     "toggleLyrics": "가사 토글",
     "closePanel": "패널 닫기",
     "openPanel": "패널 열기",
-    "visualizer": "시각화 도구"
+    "visualizer": "시각화 도구",
+    "transcodeUnsupportedFormat": "사용 중인 브라우저에서는 이 동영상 형식을 지원하지 않습니다.",
+    "transcodeUserLimitReached": "트랜스코딩 한도에 도달했습니다. 이미 진행 중인 트랜스코딩 세션이 있습니다:",
+    "transcodeSystemLimitReached": "서버 트랜스코드 한도에 도달했습니다({limit} 개 동시 처리). 세션이 종료되면 다시 시도해 주세요.",
+    "transcodeActiveSessions": "진행 중인 트랜스코딩:",
+    "transcodeStart": "트랜스코딩"
   },
   "fileSizeAnalyzer": {
     "title": "파일 크기 분석기",

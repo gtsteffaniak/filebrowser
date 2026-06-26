@@ -6,10 +6,10 @@ vi.mock('@/store', () => ({
 }));
 
 vi.mock('@/utils/url.js', () => ({
-  getApiPath: (_route, params) =>
-    `/api/resources/download?file=${encodeURIComponent(params.file)}&inline=true`,
-  getPublicApiPath: (_route, params) =>
-    `/public/api/resources/download?file=${encodeURIComponent(params.file[0])}&inline=true`,
+  getApiPath: (route, params) =>
+    `/api/${route}?file=${encodeURIComponent(params.file)}&inline=true`,
+  getPublicApiPath: (route, params) =>
+    `/public/api/${route}?file=${encodeURIComponent(params.file[0])}&inline=true`,
   resolveRelativePath: (_base, href) => href.replace(/^\.\//, ''),
 }));
 
