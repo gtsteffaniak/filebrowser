@@ -75,6 +75,25 @@ import PlaybackQueue from "@/components/prompts/PlaybackQueue.vue";
 import { getters, state } from "@/store";
 
 const LAST_TAB_KEY = 'plyrSidePanelActiveTab';
+const VIS_PAD_LEFT   = 34; // px reserved on the left for Y-axis (dB) labels
+const VIS_PAD_BOTTOM = 18; // px reserved at the bottom for X-axis (Hz) labels
+const VIS_PAD_TOP    = 10; // px top margin inside the canvas
+const VIS_PAD_RIGHT  = 6;  // px right margin inside the canvas
+
+// frequency marks shown in the X-axis (in Hz)
+// they are filtered at runtime to show only those inside minFrequency and maxFrequency in the config
+const FREQ_LABELS = [
+  { hz: 20,    label: '20'  },
+  { hz: 50,    label: '50'  },
+  { hz: 100,   label: '100' },
+  { hz: 200,   label: '200' },
+  { hz: 500,   label: '500' },
+  { hz: 1000,  label: '1k'  },
+  { hz: 2000,  label: '2k'  },
+  { hz: 5000,  label: '5k'  },
+  { hz: 10000, label: '10k' },
+  { hz: 20000, label: '20k' },
+];
 
 export default {
   name: "AudioPanel",
@@ -100,35 +119,37 @@ export default {
       visualizerSplitter: null,
       visualizerAnimationId: null,
       visualizerActive: false,
-      barFrequencyRanges: [], // For each bar { start, end } indices into the FFT data
-      barPositions: [],       // For each bar { x, width } in pixels for rendering
+      barFrequencyRanges: [], // for each bar { start, end } indices into the FFT data
+      barPositions: [],       // for each bar { x, width } in pixels for rendering
+      drawArea: { x: 0, y: 0, w: 0, h: 0 }, // pixel inside axis padding where bars are drawn
       fftDataLeft: null,
       fftDataRight: null,
       peaksLeft: [],
       peaksRight: [],
       primaryColor: "",
       /**
-       * Visualizer configs
-       * @property {number} barCount        – Number of bars -- more bars looks better but is a bit more expensive
-       * @property {number} smoothing       – 0.85–0.95 -- higher = smooth motion
-       * @property {number} gain            – 0.3–1.0 -- overall amplitude (loudness)
-       * @property {number} freqOffset      – 3–10 -- skips low‑frequency bins
-       * @property {number} freqExponent    – 1.0–2.0 -- 1.0 = linear, >1.0 = more on bass
-       * @property {number} lowBoost        – 0.0–0.5 -- extra gain for the first 2 bars (bass)
-       * @property {number} highBoost       – 0.0–1.0 -- extra gain for high bars
-       * @property {number} powerExponent   – 0.7–1.0 -- more lower makes it more dynamic
-       * @property {number} sensitivity     – 0.5–0.9 -- lower makes it less responsive (bars stay lower)
+       * Visualizer config
+       * @property {number} barCount      – number of bars (split between L/R channels)
+       * @property {number} smoothing     – higher = smoother motion, but if set too high will look a bit slow
+       * @property {number} fftSize       – FFT size (must be a power of two). Larger = better frequency resolution, but slower.
+       * @property {number} minFrequency  – Hz – lowest frequency shown and maps to centre of the stereo display
+       * @property {number} maxFrequency  – Hz – highest frequency shown, which gets capped at the maxFreqLimit
+       * @property {number} minDecibels   – dBFS – the quietest level that still shows as a bar.
+       * @property {number} maxDecibels   – dBFS – the loudest level before clipping.
+       * @property {boolean} showScales   – show axis labels and grid lines (if false, bars fill all the canvas)
+       * @property {boolean} showPeaks    – show peak indicators above the bars
        */
       visualizerConfig: {
+        // I plan to make all of this configurable in UI, so they can be adjusted to taste!
         barCount: 60,
-        smoothing: 0.95,
-        sensitivity: 0.65,
-        gain: 0.70,
-        freqOffset: 8,
-        freqExponent: 1.6,
-        lowBoost: 0.25,
-        highBoost: 0.3,
-        powerExponent: 0.82,
+        smoothing: 0.92,
+        fftSize: 2048,
+        minFrequency: 20,
+        maxFrequency: 20000,
+        minDecibels: -100,
+        maxDecibels: 10,
+        showScales: true,
+        showPeaks: true,
       },
     };
   },
@@ -236,9 +257,6 @@ export default {
         this.activeTab = 'queue';
       }
     },
-    applySensitivity(raw, sensitivity) {
-      return Math.pow(raw, 1 / Math.max(0.1, sensitivity));
-    },
     initVisualizer() {
       if (this.visualizerAnalyserLeft || this.visualizerAnalyserRight) return;
       if (!this.audioContext || !this.audioSource) {
@@ -251,18 +269,23 @@ export default {
       try {
         const ctx = this.audioContext;
         const source = this.audioSource;
+        const { fftSize, smoothing, minDecibels, maxDecibels } = this.visualizerConfig;
 
         splitter = ctx.createChannelSplitter(2);
         source.connect(splitter);
 
         analyserL = ctx.createAnalyser();
-        analyserL.fftSize = 256;
-        analyserL.smoothingTimeConstant = this.visualizerConfig.smoothing;
+        analyserL.fftSize = fftSize;
+        analyserL.smoothingTimeConstant = smoothing;
+        analyserL.minDecibels = minDecibels;
+        analyserL.maxDecibels = maxDecibels;
         splitter.connect(analyserL, 0);
 
         analyserR = ctx.createAnalyser();
-        analyserR.fftSize = 256;
-        analyserR.smoothingTimeConstant = this.visualizerConfig.smoothing;
+        analyserR.fftSize = fftSize;
+        analyserR.smoothingTimeConstant = smoothing;
+        analyserR.minDecibels = minDecibels;
+        analyserR.maxDecibels = maxDecibels;
         splitter.connect(analyserR, 1);
 
         this.visualizerAnalyserLeft = analyserL;
@@ -270,8 +293,8 @@ export default {
         this.visualizerSplitter = splitter;
 
         const binCount = analyserL.frequencyBinCount;
-        this.fftDataLeft = new Uint8Array(binCount);
-        this.fftDataRight = new Uint8Array(binCount);
+        this.fftDataLeft  = new Float32Array(binCount);
+        this.fftDataRight = new Float32Array(binCount);
 
         // Read primary color once and store it
         const color = getComputedStyle(document.documentElement)
@@ -347,62 +370,70 @@ export default {
       if (!analyser) return;
       const canvas = this.$refs.visualizerCanvas;
       if (!canvas) return;
-      const width = canvas.clientWidth;
-      if (width === 0) return;
+      const width  = canvas.clientWidth;
+      const height = canvas.clientHeight;
+      if (width === 0 || height === 0) return;
 
-      const bufferLength = analyser.frequencyBinCount;
-      const { barCount, freqOffset: offset, freqExponent: exponent } = this.visualizerConfig;
-      // Compute pixel positions for each bar
+      const { barCount, minFrequency, maxFrequency, showScales } = this.visualizerConfig;
+      // compute padding based on showScales
+      const padLeft   = showScales ? VIS_PAD_LEFT   : 0;
+      const padRight  = showScales ? VIS_PAD_RIGHT  : 0;
+      const padTop    = showScales ? VIS_PAD_TOP    : 0;
+      const padBottom = showScales ? VIS_PAD_BOTTOM : 0;
+
+      // drawable area inside the axis padding – this is where bars live
+      const drawW = width  - padLeft - padRight;
+      const drawH = height - padTop  - padBottom;
+      if (drawW <= 0 || drawH <= 0) return;
+      this.drawArea = { x: padLeft, y: padTop, w: drawW, h: drawH };
+
       const halfCount = Math.floor(barCount / 2);
-      const gap = 1.5;
-      const centerGap = gap;
 
-      // Total width available for one side
-      const sideWidth = width / 2 - centerGap / 2;
+      const gap       = 1.5;
+      const centerGap = gap;
+      const centerX   = padLeft + drawW / 2; // pixel x of the stereo axis
+      const sideWidth = drawW / 2 - centerGap / 2;
       // Bar width
-      const barWidth = (sideWidth - (halfCount - 1) * gap) / halfCount;
+      const barWidth  = (sideWidth - (halfCount - 1) * gap) / halfCount;
       if (barWidth <= 0) return;
 
       this.barPositions = [];
 
-      // In left side bars go from center outward to the left
+      // left-channel bars: bar 0 is nearest to centre (lowest freq), the bar halfCount-1 is at the left edge (highest freq)
       for (let i = 0; i < halfCount; i++) {
-        const x = (width / 2 - centerGap / 2 - barWidth) - i * (barWidth + gap);
+        const x = (centerX - centerGap / 2 - barWidth) - i * (barWidth + gap);
         this.barPositions.push({ x, width: barWidth, side: 'left' });
       }
-
-      // In right side bars go from center outward to the right
+      // right-channel bars: same, but at the contrary sides
       for (let i = 0; i < halfCount; i++) {
-        const x = (width / 2 + centerGap / 2) + i * (barWidth + gap);
+        const x = (centerX + centerGap / 2) + i * (barWidth + gap);
         this.barPositions.push({ x, width: barWidth, side: 'right' });
       }
 
-      // Compute frequency ranges for each bar
-      const maxBin = bufferLength - 1;
-      const cutoffs = [];
-      for (let i = 0; i <= halfCount; i++) {
-        const t = i / halfCount;
-        let idx = Math.floor(Math.pow(t, exponent) * (maxBin - offset)) + offset;
-        idx = Math.max(offset, Math.min(maxBin, idx));
-        cutoffs.push(idx);
-      }
-      for (let i = 1; i < cutoffs.length; i++) {
-        if (cutoffs.at(i) <= cutoffs.at(i - 1)) {
-          cutoffs.splice(i, 1, cutoffs.at(i - 1) + 1);
-        }
-      }
-      if (cutoffs[cutoffs.length - 1] < maxBin) {
-        cutoffs[cutoffs.length - 1] = maxBin;
-      }
+      // compute frequency bin ranges using a true logarithmic scale.
+      const sampleRate  = this.audioContext?.sampleRate ?? 44100;
+      const maxFreqLimit     = sampleRate / 2;
+      const binHz       = sampleRate / analyser.fftSize; // Hz per FFT bin
+      const bufferLength = analyser.frequencyBinCount;   // = fftSize / 2
+      const logMin = Math.log10(Math.max(1, minFrequency));
+      const logMax = Math.log10(Math.min(maxFreqLimit, maxFrequency));
 
       this.barFrequencyRanges = [];
       for (let i = 0; i < halfCount; i++) {
-        const start = cutoffs.at(i);
-        let end = cutoffs.at(i + 1);
-        if (end <= start) end = start + 1;
-        this.barFrequencyRanges.push({ start, end });
+        const t0 = i / halfCount;
+        const t1 = (i + 1) / halfCount;
+        const fStart   = Math.pow(10, logMin + t0 * (logMax - logMin));
+        const fEnd     = Math.pow(10, logMin + t1 * (logMax - logMin));
+        const binStart = Math.max(1, Math.round(fStart / binHz));
+        const binEnd   = Math.min(bufferLength - 1, Math.round(fEnd / binHz));
+        const centerHz = Math.sqrt(fStart * fEnd);
+        this.barFrequencyRanges.push({
+          start:    binStart,
+          end:      Math.max(binStart + 1, binEnd),
+          centerHz,
+        });
       }
-      this.peaksLeft = new Array(halfCount).fill(0);
+      this.peaksLeft  = new Array(halfCount).fill(0);
       this.peaksRight = new Array(halfCount).fill(0);
     },
     drawVisualizer() {
@@ -417,18 +448,22 @@ export default {
         this.visualizerAnimationId = requestAnimationFrame(this.drawVisualizer);
         return;
       }
-      const ctx = canvas.getContext('2d');
-      const width = canvas.clientWidth;
+      const ctx    = canvas.getContext('2d');
+      if (!ctx) {
+        this.visualizerAnimationId = requestAnimationFrame(this.drawVisualizer);
+        return;
+      }
+      const width  = canvas.clientWidth;
       const height = canvas.clientHeight;
       if (width === 0 || height === 0) {
         this.visualizerAnimationId = requestAnimationFrame(this.drawVisualizer);
         return;
       }
 
-      const { barCount } = this.visualizerConfig;
+      const { barCount, minDecibels, maxDecibels } = this.visualizerConfig;
       const halfCount = Math.floor(barCount / 2);
 
-      // Ensure geometry is ready before using arrays
+      // ensure geometry is ready before using arrays
       if (
         this.barFrequencyRanges.length !== halfCount ||
         this.barPositions.length !== halfCount * 2
@@ -438,67 +473,152 @@ export default {
         return;
       }
 
+      // values are real decibel numbers (negative, e.g. -45.3 dBFS)
+      // -Infinity is returned for bins with no signal
       const dataL = this.fftDataLeft;
       const dataR = this.fftDataRight;
-      this.visualizerAnalyserLeft.getByteFrequencyData(dataL);
-      this.visualizerAnalyserRight.getByteFrequencyData(dataR);
+      this.visualizerAnalyserLeft.getFloatFrequencyData(dataL);
+      this.visualizerAnalyserRight.getFloatFrequencyData(dataR);
 
       ctx.clearRect(0, 0, width, height);
-      ctx.shadowBlur = 4;
+      this.drawAxes(ctx);
+
+      ctx.shadowBlur  = 4;
       ctx.shadowColor = 'rgba(255,255,255,0.06)';
 
-      const { sensitivity, gain, lowBoost, highBoost, powerExponent } = this.visualizerConfig;
+      const { y: drawY, h: drawH } = this.drawArea;
+      const dbRange = maxDecibels - minDecibels;
 
       // low‑frequency boost
       for (let i = 0; i < halfCount; i++) {
-        const range = this.barFrequencyRanges.at(i);
-        const { start, end } = range;
-        let sumL = 0, sumR = 0;
+        const { start, end } = this.barFrequencyRanges.at(i);
+
+        // average dBFS values across all FFT bins that fall in this bar's frequency range
+        let sumL = 0, sumR = 0, count = 0;
         for (let f = start; f < end; f++) {
-          sumL += dataL.at(f) || 0;
-          sumR += dataR.at(f) || 0;
+          const dbL = dataL.at(f);
+          const dbR = dataR.at(f);
+          sumL += Number.isFinite(dbL) ? Math.pow(10, dbL / 10) : 0;
+          sumR += Number.isFinite(dbR) ? Math.pow(10, dbR / 10) : 0;
+          count++;
         }
-        const len = end - start;
-        let rawL = (sumL / len) / 255;
-        let rawR = (sumR / len) / 255;
+        const avgDbL = count > 0 && sumL > 0 ? 10 * Math.log10(sumL / count) : minDecibels;
+        const avgDbR = count > 0 && sumR > 0 ? 10 * Math.log10(sumR / count) : minDecibels;
 
-        // Apply visualizer gain
-        rawL = Math.min(rawL * gain, 1);
-        rawR = Math.min(rawR * gain, 1);
+        // normalise dBFS, so the bars directly reflect the audio level
+        const normL = Math.max(0, Math.min(1, (avgDbL - minDecibels) / dbRange));
+        const normR = Math.max(0, Math.min(1, (avgDbR - minDecibels) / dbRange));
 
-        let scaledL = this.applySensitivity(rawL, sensitivity);
-        let scaledR = this.applySensitivity(rawR, sensitivity);
-
-        if (i < 2) {
-          const factor = 1 + lowBoost * (1 - i / 2);
-          scaledL = Math.min(scaledL * factor, 1);
-          scaledR = Math.min(scaledR * factor, 1);
-        } else {
-          // high‑frequency boost
-          const highBoostFactor = 1 + highBoost * (i / halfCount);
-          scaledL = Math.min(scaledL * highBoostFactor, 1);
-          scaledR = Math.min(scaledR * highBoostFactor, 1);
-        }
-
-        const percentL = Math.pow(scaledL, powerExponent);
-        const percentR = Math.pow(scaledR, powerExponent);
-
-        const barHeightL = Math.max(2, percentL * height);
-        const barHeightR = Math.max(2, percentR * height);
-
-        // Left bar index i, right bar index halfCount + i
-        const leftBar = this.barPositions.at(i);
+        const barHeightL = Math.max(2, normL * drawH);
+        const barHeightR = Math.max(2, normR * drawH);
+        const leftBar  = this.barPositions.at(i);
         const rightBar = this.barPositions.at(halfCount + i);
 
-        this.drawBar(ctx, leftBar.x, height - barHeightL, leftBar.width, barHeightL);
-        this.drawBar(ctx, rightBar.x, height - barHeightR, rightBar.width, barHeightR);
-
-        this.updatePeak(i, percentL, 'left');
-        this.updatePeak(i, percentR, 'right');
+        this.drawBar(ctx, leftBar.x,  drawY + drawH - barHeightL, leftBar.width,  barHeightL);
+        this.drawBar(ctx, rightBar.x, drawY + drawH - barHeightR, rightBar.width, barHeightR);
+        this.updatePeak(i, normL, 'left');
+        this.updatePeak(i, normR, 'right');
       }
-      this.drawPeaks(ctx, width, height);
+      this.drawPeaks(ctx);
       ctx.shadowBlur = 0;
       this.visualizerAnimationId = requestAnimationFrame(this.drawVisualizer);
+    },
+    // Draw the Y-axis (dB) grid lines & labels on the left and the X-axis (Hz) in the bottom.
+    drawAxes(ctx) {
+      const { showScales } = this.visualizerConfig;
+      if (!showScales) return;
+
+      const { x: drawX, y: drawY, w: drawW, h: drawH } = this.drawArea;
+      const { minDecibels, maxDecibels, minFrequency, maxFrequency } = this.visualizerConfig;
+      const halfCount = Math.floor(this.visualizerConfig.barCount / 2);
+      const dbRange   = maxDecibels - minDecibels;
+
+      ctx.save();
+      ctx.font = '10px system-ui, -apple-system, sans-serif';
+
+      const labelColor = 'rgba(255,255,255,0.45)';
+      const gridColor  = 'rgba(255,255,255,0.07)';
+
+      const dbStep  = 20; // dB between each grid line (gives 0, -20, -40, -60, -80, -100 for the default range)
+      const dbStart = Math.ceil(minDecibels / dbStep) * dbStep;
+      for (let db = dbStart; db <= maxDecibels; db += dbStep) {
+        const norm = (db - minDecibels) / dbRange;
+        const y    = drawY + drawH - norm * drawH;
+
+        ctx.strokeStyle = gridColor;
+        ctx.lineWidth   = 1;
+        ctx.beginPath();
+        ctx.moveTo(drawX,         y);
+        ctx.lineTo(drawX + drawW, y);
+        ctx.stroke();
+        ctx.fillStyle    = labelColor;
+        ctx.textAlign    = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`${db}`, drawX - 4, y);
+      }
+
+      // convert a target frequency (Hz) to a pixel in x by interpolating between the bar positions
+      const sampleRate = this.audioContext?.sampleRate ?? 44100;
+      const maxFreqLimit    = sampleRate / 2;
+      const effectiveMaxFrequency = Math.min(maxFreqLimit, maxFrequency);
+      const logMin  = Math.log10(Math.max(1, minFrequency));
+      const logMax  = Math.log10(effectiveMaxFrequency);
+      const logRange = logMax - logMin;
+      const xAxisY   = drawY + drawH + 13;
+      const hzToBarX = (hz, offset) => {
+        const clamped = Math.max(minFrequency, Math.min(effectiveMaxFrequency, hz));
+        const t       = (Math.log10(clamped) - logMin) / logRange; // 0 = low, 1 = high
+        const barIdx  = t * (halfCount - 1);
+        const i0 = Math.max(0, Math.min(halfCount - 2, Math.floor(barIdx)));
+        const i1 = i0 + 1;
+        const frac = barIdx - i0;
+        const p0 = this.barPositions.at(offset + i0);
+        const p1 = this.barPositions.at(offset + i1);
+        if (!p0 || !p1) return null;
+        const x0 = p0.x + p0.width / 2;
+        const x1 = p1.x + p1.width / 2;
+        return x0 + frac * (x1 - x0);
+      };
+
+      const visibleTicks = FREQ_LABELS.filter(t => t.hz >= minFrequency && t.hz <= effectiveMaxFrequency);
+
+      ctx.fillStyle    = labelColor;
+      ctx.textBaseline = 'alphabetic';
+      ctx.textAlign    = 'center';
+
+      const drawnPositions = [];
+
+      const shouldDraw = (x) => {
+        const MIN_DIST = 22; // px – if two labels are closer than this skip the second
+        for (const pos of drawnPositions) {
+          if (Math.abs(pos - x) < MIN_DIST) return false;
+        }
+        return true;
+      };
+
+      // right half - ascending hz means x increases (center to right edge)
+      let lastXRight = -Infinity;
+      visibleTicks.forEach(({ hz, label }) => {
+        const x = hzToBarX(hz, halfCount);
+        if (x === null || x - lastXRight < 20) return; // if too near on this side, skip
+        if (!shouldDraw(x)) return; // also skip if is too close to a label from the other side
+        drawnPositions.push(x);
+        lastXRight = x;
+        ctx.fillText(label, x, xAxisY);
+      });
+
+      // left half - ascending hz means x decreases (center to left edge)
+      let lastXLeft = Infinity;
+      visibleTicks.forEach(({ hz, label }) => {
+        const x = hzToBarX(hz, 0);
+        if (x === null || lastXLeft - x < 20) return;
+        if (!shouldDraw(x)) return;
+        drawnPositions.push(x);
+        lastXLeft = x;
+        ctx.fillText(label, x, xAxisY);
+      });
+
+      ctx.restore();
     },
     drawBar(ctx, x, y, width, height) {
       if (height <= 1) return;
@@ -513,28 +633,32 @@ export default {
         ctx.fillRect(x, y, width, height);
       }
     },
-    updatePeak(index, current, side) {
+    updatePeak(index, currentNorm, side) {
       const peaks = side === 'left' ? this.peaksLeft : this.peaksRight;
       const decay = 0.98;
       const prev = peaks.at(index) ?? 0;
-      const newValue = Math.max(current, prev * decay);
+      const newValue = Math.max(currentNorm, prev * decay);
       peaks.splice(index, 1, newValue);
     },
-    drawPeaks(ctx, width, height) {
+    drawPeaks(ctx) {
+      const { showPeaks } = this.visualizerConfig;
+      if (!showPeaks) return;
+
+      const { y: drawY, h: drawH } = this.drawArea;
       const halfCount = this.peaksLeft.length;
       for (let i = 0; i < halfCount; i++) {
         const peakL = this.peaksLeft.at(i);
         const peakR = this.peaksRight.at(i);
         if (peakL > 0.01) {
           const leftBar = this.barPositions.at(i);
-          const peakY = height - peakL * height;
-          ctx.fillStyle = 'rgba(255,255,255,0.85)'; // white peaks indicators
+          const peakY = drawY + drawH - peakL * drawH;
+          ctx.fillStyle = 'rgba(255,255,255,0.85)'; // white peak indicators
           ctx.fillRect(leftBar.x, peakY - 1, leftBar.width, 2);
         }
         if (peakR > 0.01) {
           const rightBar = this.barPositions.at(halfCount + i);
-          const peakY = height - peakR * height;
-          ctx.fillStyle = 'rgba(255,255,255,0.85)'; // white peaks indicators
+          const peakY = drawY + drawH - peakR * drawH;
+          ctx.fillStyle = 'rgba(255,255,255,0.85)'; // white peak indicators
           ctx.fillRect(rightBar.x, peakY - 1, rightBar.width, 2);
         }
       }
