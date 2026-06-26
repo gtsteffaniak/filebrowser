@@ -83,6 +83,7 @@ const VIS_PAD_RIGHT  = 6;  // px right margin inside the canvas
 // frequency marks shown in the X-axis (in Hz)
 // they are filtered at runtime to show only those inside minFrequency and maxFrequency in the config
 const FREQ_LABELS = [
+  { hz: 10,    label: '10'  },
   { hz: 20,    label: '20'  },
   { hz: 50,    label: '50'  },
   { hz: 100,   label: '100' },
@@ -147,7 +148,7 @@ export default {
         minFrequency: 20,
         maxFrequency: 20000,
         minDecibels: -100,
-        maxDecibels: 10,
+        maxDecibels: 20,
         showScales: true,
         showPeaks: true,
       },
