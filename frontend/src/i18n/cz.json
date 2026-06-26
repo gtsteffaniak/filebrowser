@@ -740,7 +740,8 @@
     "unlockLyrics": "Odemknout text",
     "toggleLyrics": "Přepnout text",
     "closePanel": "Zavřít panel",
-    "openPanel": "Otevřít panel"
+    "openPanel": "Otevřít panel",
+    "visualizer": "Vizualizér"
   },
   "fileSizeAnalyzer": {
     "title": "Analyzátor velikosti souborů",

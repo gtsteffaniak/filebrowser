@@ -98,7 +98,7 @@ import throttle from "@/utils/throttle";
 import { previewViews } from "@/utils/constants";
 import { url } from "@/utils";
 import { resourcesApi } from "@/api";
-import { replaceRouteForPlaybackQueueStep } from "@/utils/previewPlaybackQueueNav.js";
+import { navigatePlaybackQueue } from "@/utils/playbackQueue.js";
 
 export default {
   name: "NextPrevious",
@@ -527,10 +527,10 @@ export default {
 
         // Set transitioning state - keeps old req visible until new one loads
         // Editor and other components check isTransitioning to prevent saves
-        mutations.setNavigationTransitioning(true);
         if (this.isMediaQueueMode) {
-          replaceRouteForPlaybackQueueStep(this.$router, -1);
+          navigatePlaybackQueue(-1);
         } else {
+          mutations.setNavigationTransitioning(true);
           this.$router.replace({ path: state.navigation.previousLink });
         }
       }
@@ -546,11 +546,10 @@ export default {
 
         // Set transitioning state - keeps old req visible until new one loads
         // Editor and other components check isTransitioning to prevent saves
-        mutations.setNavigationTransitioning(true);
-
         if (this.isMediaQueueMode) {
-          replaceRouteForPlaybackQueueStep(this.$router, 1);
+          navigatePlaybackQueue(1);
         } else {
+          mutations.setNavigationTransitioning(true);
           this.$router.replace({ path: state.navigation.nextLink });
         }
       }

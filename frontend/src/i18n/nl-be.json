@@ -740,7 +740,8 @@
     "unlockLyrics": "Songtekst ontgrendelen",
     "toggleLyrics": "Songtekst in-/uitschakelen",
     "closePanel": "Paneel sluiten",
-    "openPanel": "Paneel openen"
+    "openPanel": "Paneel openen",
+    "visualizer": "Visualisator"
   },
   "fileSizeAnalyzer": {
     "title": "Bestandsgrootte analyzer",

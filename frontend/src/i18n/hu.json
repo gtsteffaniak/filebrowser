@@ -740,7 +740,8 @@
     "unlockLyrics": "Dalszöveg feloldása",
     "toggleLyrics": "Dalszöveg be/ki",
     "closePanel": "Panel bezárása",
-    "openPanel": "Panel megnyitása"
+    "openPanel": "Panel megnyitása",
+    "visualizer": "Vizualizátor"
   },
   "fileSizeAnalyzer": {
     "title": "Fájlméret elemző",

@@ -740,7 +740,8 @@
     "unlockLyrics": "Lås upp texten",
     "toggleLyrics": "Visa/dölj text",
     "closePanel": "Stäng panel",
-    "openPanel": "Öppna panel"
+    "openPanel": "Öppna panel",
+    "visualizer": "Visualiserare"
   },
   "fileSizeAnalyzer": {
     "title": "Analysator för filstorlek",

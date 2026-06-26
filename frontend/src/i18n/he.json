@@ -740,7 +740,8 @@
     "unlockLyrics": "ביטול נעילת מילים",
     "toggleLyrics": "החלפת מילים",
     "closePanel": "סגור לוח",
-    "openPanel": "פתח לוח"
+    "openPanel": "פתח לוח",
+    "visualizer": "מציג חזותי"
   },
   "fileSizeAnalyzer": {
     "title": "מנתח גודל קובץ",

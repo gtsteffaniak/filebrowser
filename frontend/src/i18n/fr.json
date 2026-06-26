@@ -740,7 +740,8 @@
     "unlockLyrics": "Déverrouiller les paroles",
     "toggleLyrics": "Afficher/Masquer les paroles",
     "closePanel": "Fermer le panneau",
-    "openPanel": "Ouvrir le panneau"
+    "openPanel": "Ouvrir le panneau",
+    "visualizer": "Visualiseur"
   },
   "fileSizeAnalyzer": {
     "title": "Analyseur de taille de fichier",

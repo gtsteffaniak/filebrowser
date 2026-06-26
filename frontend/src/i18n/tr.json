@@ -740,7 +740,8 @@
     "unlockLyrics": "Şarkı sözlerinin kilidini aç",
     "toggleLyrics": "Şarkı sözlerini göster/gizle",
     "closePanel": "Paneli kapat",
-    "openPanel": "Paneli aç"
+    "openPanel": "Paneli aç",
+    "visualizer": "Görselleştirici"
   },
   "fileSizeAnalyzer": {
     "title": "Dosya Boyutu Analizörü",

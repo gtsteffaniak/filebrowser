@@ -740,7 +740,8 @@
     "unlockLyrics": "Открепить текст",
     "toggleLyrics": "Показать/Скрыть текст",
     "closePanel": "Закрыть панель",
-    "openPanel": "Открыть панель"
+    "openPanel": "Открыть панель",
+    "visualizer": "Визуализатор"
   },
   "fileSizeAnalyzer": {
     "title": "Анализатор размера файлов",

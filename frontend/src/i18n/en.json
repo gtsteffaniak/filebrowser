@@ -767,7 +767,8 @@
     "transcodeUserLimitReached": "Transcode limit reached. You already have an active transcode session:",
     "transcodeSystemLimitReached": "Server transcode limit reached ({limit} concurrent). Try again when a session finishes.",
     "transcodeActiveSessions": "Active transcodes:",
-    "transcodeStart": "Transcode"
+    "transcodeStart": "Transcode",
+    "visualizer": "Visualizer"
   },
   "fileSizeAnalyzer": {
     "title": "File Size Analyzer",

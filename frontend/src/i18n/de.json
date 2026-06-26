@@ -740,7 +740,8 @@
     "unlockLyrics": "Liedtext entsperren",
     "toggleLyrics": "Liedtext ein-/ausblenden",
     "closePanel": "Panel schließen",
-    "openPanel": "Panel öffnen"
+    "openPanel": "Panel öffnen",
+    "visualizer": "Visualisierer"
   },
   "fileSizeAnalyzer": {
     "title": "Dateigrößen-Analysator",

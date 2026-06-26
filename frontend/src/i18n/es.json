@@ -740,7 +740,8 @@
     "unlockLyrics": "Desbloquear letras",
     "toggleLyrics": "Mostrar letras",
     "closePanel": "Cerrar panel",
-    "openPanel": "Abrir panel"
+    "openPanel": "Abrir panel",
+    "visualizer": "Visualizador"
   },
   "fileSizeAnalyzer": {
     "title": "Analizador de espacio",

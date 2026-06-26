@@ -739,7 +739,8 @@
     "unlockLyrics": "歌詞のロックを解除",
     "toggleLyrics": "歌詞の表示切り替え",
     "closePanel": "パネルを閉じる",
-    "openPanel": "パネルを開く"
+    "openPanel": "パネルを開く",
+    "visualizer": "ビジュアライザー"
   },
   "fileSizeAnalyzer": {
     "title": "ファイル・サイズ・アナライザー",

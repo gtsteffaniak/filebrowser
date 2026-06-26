@@ -32,16 +32,16 @@
         <div class="audio-left-column">
           <!-- Album art with a generic icon if no image/metadata -->
           <div class="album-art-container"
-                :class="{ 'no-artwork': !albumArtUrl }"
-                :style="{
-                  maxHeight: `${displayArtSize}em`,
-                  maxWidth: `${displayArtSize}em`
-                }"
-               @mouseenter="onAlbumArtHover"
-               @mouseleave="onAlbumArtLeave"
-               @wheel="onAlbumArtScroll">
-            <img class="no-select album-art" v-if="albumArtUrl" :src="albumArtUrl" :alt="metadata.album || 'Album art'"
-              />
+              :class="{ 'no-artwork': !albumArtUrl }"
+              :style="{
+                width: `${displayArtSize}em`,
+                maxWidth: '100%',
+                aspectRatio: '1 / 1'
+              }"
+              @mouseenter="onAlbumArtHover"
+              @mouseleave="onAlbumArtLeave"
+              @wheel="onAlbumArtScroll">
+            <img class="no-select album-art" v-if="albumArtUrl" :src="albumArtUrl" :alt="metadata.album || 'Album art'" />
             <div v-else class="album-art-fallback">
               <i class="material-symbols">music_note</i>
             </div>
@@ -71,6 +71,9 @@
             v-if="!isMobile && showDesktopPanel"
             :lyrics="lyrics"
             :active-lyric-index="activeLyricIndex"
+            :player="player"
+            :audio-context="audioContext"
+            :audio-source="audioSource"
             class="lyrics-panel"
             @seek="seekToLyric"
           />
@@ -225,26 +228,34 @@
     <!-- Toast when you change playback modes in the media player -->
     <div :class="['playback-toast', toastVisible ? 'visible' : '']">
       <!-- Loop icon for "single playback", "loop single file" and "loop all files" -->
-      <i v-if="playbackMode === 'single' || playbackMode === 'loop-single' || playbackMode === 'loop-all'" class="material-symbols">
-        {{ playbackMode === 'loop-single' ? 'repeat_one' : 'repeat' }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-      </i>
-      <i v-else-if="playbackMode === 'shuffle'" class="material-symbols">shuffle</i>
-      <i v-else class="material-symbols">playlist_play</i>
-
+      <i class="material-symbols">{{ toastIcon }}</i>
       <span>{{ playbackModeMessage }}</span>
 
       <!-- Status indicator for loop -->
       <span v-if="playbackMode === 'single' || playbackMode === 'loop-single'" :class="[
           'status-indicator', playbackMode === 'loop-single' ? 'status-on' : 'status-off',]"></span>
     </div>
+    <!-- Speed toast (long-press) -->
+    <div v-if="speedToastVisible" class="playback-toast visible">
+      <i class="material-symbols">speed</i>
+      <span>{{ speedToastMessage }}</span>
+    </div>
   </div>
 </template>
 
 <script>
 import Plyr from 'plyr';
+import {
+  buildPlaybackQueue,
+  navigatePlaybackQueue,
+  getEndOfMediaAction,
+  cyclePlaybackModes,
+  toggleLoop,
+  getModeLabel,
+  getModeIcon,
+} from '@/utils/playbackQueue.js';
 import AudioPanel from "@/components/files/AudioPanel.vue";
 import { getters, mutations, state } from '@/store';
-import { url } from '@/utils';
 import { getObjectProperty } from '@/utils/object.js';
 import { globalVars } from '@/utils/constants';
 import { getSubtitleFormatExtension } from '@/utils/subtitles';
@@ -319,6 +330,11 @@ export default {
       doubleTapSeekCleanup: null,
       mobileLyricsScrollLocked: false,
 
+      // Audio Visualizer
+      audioContext: null,
+      audioSource: null,
+      audioGraphInitialized: false,
+
       // Playback settings
       playbackMenuInitialized: false,
       lastAppliedMode: null,
@@ -330,6 +346,7 @@ export default {
       buttonTimer: null,
       buttonZoneLeft: false,
       buttonZoneRight: false,
+      isFullscreen: false,
 
       // Gestures
       skipFeedbackVisible: false,
@@ -337,6 +354,9 @@ export default {
       skipFeedbackIcon: 'replay_10',
       skipFeedbackKey: 0,
       skipFeedbackTimer: null,
+      skipNextTap: false,
+      skipNextTapTimer: null, // Timer for clearing skipNextTap
+
       // Plyr video: full-frame edge gestures (same UX as ExtendedImage; Plyr controls live outside .plyr__video-wrapper)
       videoEdgeKind: null,
       videoEdgeStartX: 0,
@@ -345,7 +365,6 @@ export default {
       videoEdgeDy: 0,
       videoDragOffsetX: 0,
       videoDragOffsetY: 0,
-      videoGestureDecided: false,
       videoGestureSnapBack: false,
       videoEdgeMouseActive: false,
       videoShowNavHint: false,
@@ -362,6 +381,14 @@ export default {
       videoDismissCloseTimer: null,
       videoDismissHintTimer: null,
 
+      // Long-press for 2x speed (only for touch)
+      longPressTimer: null,
+      longPressPending: false,
+      longPressTriggered: false,
+      longPressPreviousSpeed: 1,
+      speedToastVisible: false,
+      speedToastMessage: '',
+
       // Plyr instance
       player: null,
       captionSizeMenuInitialized: false,
@@ -376,19 +403,14 @@ export default {
     };
   },
   watch: {
-    raw() {
-      this.videoStreamAttached = false;
-    },
-    playbackMode: {
-      handler(newMode, oldMode) {
-        if (newMode !== oldMode) {
-          const forceReshuffle = newMode === 'shuffle';
-          this.setupPlaybackQueue(forceReshuffle);
-          this.$nextTick(() => {
-            this.ensurePlaybackModeApplied();
-          });
-        }
-      },
+    playbackMode(newMode, oldMode) {
+      if (newMode !== oldMode) {
+        if (oldMode !== undefined) this.showToast();
+        this.setupPlaybackQueue(newMode === 'shuffle');
+        this.$nextTick(() => {
+          this.ensurePlaybackModeApplied();
+        });
+      }
     },
     showDesktopPanel(val) {
       sessionStorage.setItem('plyrShowDesktopPanel', val ? '1' : '0');
@@ -418,35 +440,69 @@ export default {
     },
     listing: {
       handler(newListing) {
-        // update queue if the listing changes
-        if (newListing && newListing.length > 0) {
-          this.setupPlaybackQueue(true);
+        if (!newListing?.length) return;
+        const isShare = getters.isShare();
+        const getId = item => isShare ? item.name : item.path;
+        const mediaFiles = newListing.filter(item => /^(audio|video)\//.test(item.type || ''));
+        const queue = state.playbackQueue.queue;
+        const mode = state.playbackQueue.mode;
+
+        if (queue.length && mediaFiles.length === queue.length) {
+          const currIds = mediaFiles.map(getId);
+          const queIds = queue.map(getId);
+          let match;
+          if (mode === 'shuffle') {
+            const set = new Set(queIds);
+            match = currIds.every(id => set.has(id));
+          } else {
+            match = currIds.every((id, i) => id === queIds.at(i));
+          }
+          if (match) {
+            const currentItemId = getId(this.req);
+            const newIndex = queue.findIndex(item => getId(item) === currentItemId);
+            if (newIndex !== -1 && newIndex !== state.playbackQueue.currentIndex) {
+              mutations.setPlaybackQueue({
+                queue,
+                currentIndex: newIndex,
+                mode,
+              });
+            }
+            return;
+          }
         }
+        // rebuild reshuffle only in shuffle mode
+        this.setupPlaybackQueue(mode === 'shuffle');
       },
       immediate: true
     },
-    subtitlesList(newSubs, oldSubs) {
-      const gained = newSubs && newSubs.length > 0 && (!oldSubs || oldSubs.length === 0);
-      const lost = (!newSubs || newSubs.length === 0) && oldSubs && oldSubs.length > 0;
-      if (gained || lost) {
-        this.captionSizeMenuInitialized = false;
-      }
-      if (gained) {
-        if (!this.player && this.previewType === 'video') {
-          this.$nextTick(() => {
-            this.initializePlyr();
-          });
+    subtitlesList: {
+      handler(newSubs, oldSubs) {
+        const gained = newSubs && newSubs.length > 0 && (!oldSubs || oldSubs.length === 0);
+        const lost = (!newSubs || newSubs.length === 0) && oldSubs && oldSubs.length > 0;
+        if (gained || lost) {
+          this.captionSizeMenuInitialized = false;
+        }
+        if (gained) {
+          if (!this.player && this.previewType === 'video') {
+            this.$nextTick(() => {
+              this.initializePlyr();
+            });
+          } else if (this.player && this.previewType === 'video') {
+            this.$nextTick(() => {
+              this.applyCustomSettings(this.player);
+              this.syncCaptionSizeSettingsVisibility();
+              this.applyCaptionSizeClass();
+            });
+          }
         } else if (this.player && this.previewType === 'video') {
           this.$nextTick(() => {
-            this.applyCustomCaptionSizeSettings(this.player);
             this.syncCaptionSizeSettingsVisibility();
-            this.applyCaptionSizeClass();
+            this.captionSizeMenuInitialized = false;
+            this.applyCustomSettings(this.player);
           });
         }
-      }
-    },
-    hasSubtitles() {
-      this.syncCaptionSizeSettingsVisibility();
+      },
+      deep: true,
     },
   },
   computed: {
@@ -489,7 +545,10 @@ export default {
       return false;
     },
     showQueueButton() {
-      if (this.previewType === 'video') return true;
+      if (this.previewType === 'video') {
+        if (this.isFullscreen) return false;
+        return true;
+      }
       if (this.isMobile && this.previewType === 'audio') return true;
       return false;
     },
@@ -515,14 +574,10 @@ export default {
       return state.playbackQueue.mode || 'single';
     },
     playbackModeMessage() {
-      const mode = {
-      'sequential': this.$t('player.PlayAllOncePlayback'),
-      'shuffle': this.$t('player.ShuffleAllPlayback'),
-      'loop-all': this.$t('player.PlayAllLoopedPlayback'),
-      'loop-single': this.$t('player.LoopEnabled'),
-      'single': this.$t('player.LoopDisabled')
-      };
-      return mode[this.playbackMode] || mode.single;
+      return getModeLabel(this.playbackMode, this.$t);
+    },
+    toastIcon() {
+      return getModeIcon(this.playbackMode);
     },
     hasSubtitles() {
       return this.subtitlesList && this.subtitlesList.length > 0;
@@ -646,9 +701,14 @@ export default {
         muted: false,
         autoplay: false,
         playsinline: true,
-        clickToPlay: true,
+        clickToPlay: false, // we manage this ourselves with the gestures, plyr has a issue where this doesn't work in mobile.
         resetOnEnd: false,
-        preload: 'none',
+        preload: 'metadata',
+        fullscreen: {
+          enabled: true,
+          fallback: true,
+          container: '.plyr-viewer',
+        },
         iconUrl: `${globalVars.baseURL}public/static/img/plyr.svg`,
         // Blob/async tracks need addtrack → captions.update; otherwise meta never fills and toggle CC throws (track undefined).
         // Do not call toggleCaptions() here — Plyr already applies `plyr` localStorage for captions on/off.
@@ -664,7 +724,10 @@ export default {
     },
   },
   mounted() {
-    this.updateMedia();
+    this.hookEvents();
+    if (this.previewType === "audio") {
+      this.loadAudioMetadata();
+    }
     document.addEventListener('keydown', this.handleKeydown);
     this.resetButtonTimer(); // Show buttons initially
   },
@@ -674,7 +737,8 @@ export default {
     this.buttonTimer,
     this.skipFeedbackTimer,
     this.videoDismissCloseTimer,
-    this.videoDismissHintTimer
+    this.videoDismissHintTimer,
+    this.skipNextTapTimer,
   ].forEach(timeout => {
       if (timeout) clearTimeout(timeout);
     });
@@ -803,122 +867,49 @@ export default {
         this.clearMediaSession();
         this.cleanupAlbumArt();
         this.player.off();
+        this.cleanupAudioVisualizer();
         this.player.destroy();
         this.player = null;
         this.playbackMenuInitialized = false;
         this.captionSizeMenuInitialized = false;
         this.lastAppliedMode = null;
+        // Release DOM references
+        this.playbackButtons = null;
+        this.playbackValueSpan = null;
+        this.captionSizeButtons = null;
+        this.captionSizeValueSpan = null;
+        // This should fix (most of) the "Invalid URI" warns, meanwhile we still destroying plyr.
+        // Somehow firefox will still trying to "load" the empty source which causes the warn.
         if (this.mediaElement && !this.useMsePlayback) {
           this.mediaElement.removeAttribute('src');
           this.mediaElement.load();
+        } else if (this.mediaElement) {
+          // For MSE or in other fallback cases, forcibly set src.
+          this.mediaElement.src = this.raw;
         }
       }
-    },
-    destroyMsePlayback() {
-      this.transcodeAbort?.abort();
-      this.transcodeAbort = null;
-      this.mseController?.destroy();
-      this.mseController = null;
-      this.useMsePlayback = false;
-    },
-    getTranscodePlaybackUrl() {
-      return resourcesApi.getTranscodeURL(
-        this.req.source,
-        this.req.path,
-        this.req.streamToken,
-      );
-    },
-    async offerTranscodePlayback() {
-      if (!this.nativeVideoTranscodeEligible || this.transcodeOfferEmitted) {
-        return;
-      }
-      this.transcodeOfferEmitted = true;
-      try {
-        const status = await resourcesApi.fetchTranscodeSessions(this.req.source, this.req.path);
-        this.$emit('needs-transcode', status);
-      } catch (err) {
-        console.error('Failed to check transcode sessions:', err);
-        this.transcodeOfferEmitted = false;
-      }
-    },
-    async startTranscodePlayback() {
-      if (!this.transcodeEnabled || this.previewType !== 'video') {
-        return;
-      }
-      await this.destroyMsePlayback();
-      if (this.player) {
-        this.destroyPlyr();
-      }
-      this.useMsePlayback = true;
-      await this.$nextTick();
-      const video = this.$refs.videoElement;
-      if (!video) {
-        this.useMsePlayback = false;
-        return;
-      }
-      this.transcodeAbort = new AbortController();
-      try {
-        const meta = this.req?.metadata || {};
-        this.mseController = await startFmp4MsePlayback(video, this.getTranscodePlaybackUrl(), {
-          signal: this.transcodeAbort.signal,
-          hasAudio: Boolean(meta.audioCodec),
-        });
-        await this.$nextTick();
-        this.initializePlyr();
-      } catch (err) {
-        console.error('Transcode playback failed:', err);
-        this.useMsePlayback = false;
-        if (err?.status === 409 || err?.status === 503) {
-          try {
-            const status = await resourcesApi.fetchTranscodeSessions(
-              this.req.source,
-              this.req.path,
-            );
-            console.info('[transcode] playback blocked, refreshed sessions', status);
-            this.transcodeOfferEmitted = true;
-            this.$emit('needs-transcode', status);
-          } catch (fetchErr) {
-            console.error('Failed to refresh transcode sessions after limit:', fetchErr);
-          }
+      if (this.audioContext) {
+        const context = this.audioContext;
+        try {
+          const closed = context.close();
+          if (closed?.catch) closed.catch(() => {});
+        } catch (_) {
+          /* ignore */ 
         }
+        this.audioContext = null;
       }
-    },
-    onVideoLoadedMetadata() {
-      if (!this.nativeVideoTranscodeEligible) {
-        return;
-      }
-      const video = this.mediaElement;
-      if (!video || video.videoWidth > 0 || video.videoHeight > 0) {
-        return;
-      }
-      if (!Number.isFinite(video.duration) || video.duration <= 0) {
-        return;
-      }
-      this.offerTranscodePlayback();
-    },
-    onVideoPlaybackError(event) {
-      if (!this.nativeVideoTranscodeEligible) {
-        return;
-      }
-      const code = event?.target?.error?.code;
-      if (
-        code !== MediaError.MEDIA_ERR_DECODE
-        && code !== MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED
-      ) {
-        return;
-      }
-      this.offerTranscodePlayback();
+      this.audioGraphInitialized = false;
     },
     togglePlayPause() {
-      if (!this.mediaElement || !this.player) return;
-      if (this.player.playing) {
-        this.player.pause();
-      } else {
-        this.player.play();
-      }
+      const media = this.mediaElement;
+      if (!media) return;
+      if (media.paused) media.play(); else media.pause();
     },
     handlePlay() {
       this.$emit('play');
+      if (this.previewType === 'audio') {
+        this.resumeAudioGraph();
+      }
     },
     ensurePlaybackModeApplied() {
       if (!this.player) return;
@@ -934,8 +925,7 @@ export default {
         const needCaptionSize = captionSizeBtn && !this.captionSizeMenuInitialized;
 
         if (menuOpen || needPlayback || needCaptionSize) {
-          this.applyCustomPlaybackSettings(this.player);
-          this.applyCustomCaptionSizeSettings(this.player);
+          this.applyCustomSettings(this.player);
         }
       } catch (error) {
         console.error('Error ensuring playback mode applied:', error);
@@ -1013,64 +1003,6 @@ export default {
         btn.setAttribute('hidden', '');
       }
     },
-    applyCustomCaptionSizeSettings(player) {
-      if (this.captionSizeMenuInitialized) {
-        return;
-      }
-
-      try {
-        const captionBtn = player.elements.settings?.buttons?.captionSize;
-        const captionPanel = player.elements.settings?.panels?.captionSize;
-
-        if (!captionBtn || !captionPanel) {
-          return;
-        }
-
-        const title = player.config.i18n?.captionSize || 'Caption size';
-
-        if (this.previewType !== 'video' || !this.hasSubtitles) {
-          captionBtn.setAttribute('hidden', '');
-          this.captionSizeMenuInitialized = true;
-          return;
-        }
-
-        this.syncCaptionSizeSettingsVisibility();
-        captionBtn.removeAttribute('hidden');
-
-        const current = this.getStoredCaptionSize();
-
-        captionBtn.querySelector('span').innerHTML = `${title}: <span class="plyr__menu__value">${this.getCaptionSizeLabel(current)}</span>`;
-
-        captionPanel.querySelector('.plyr__control--back span[aria-hidden="true"]').textContent = title;
-
-        const menu = captionPanel.querySelector('div[role="menu"]');
-        menu.innerHTML = PLYR_CAPTION_SIZE_IDS.map(
-          (id) => `<button type="button" data-plyr="caption-size" role="menuitemradio" class="plyr__control" aria-checked="${current === id}" value="${id}">
-                    <span>${this.getCaptionSizeLabel(id)}</span>
-                  </button>`,
-        ).join('');
-
-        menu.querySelectorAll('button[data-plyr="caption-size"]').forEach((button) => {
-          button.addEventListener('click', (event) => {
-            const value = event.currentTarget.getAttribute('value');
-            if (!PLYR_CAPTION_SIZE_IDS.includes(value)) {
-              return;
-            }
-            this.setStoredCaptionSize(value);
-            this.applyCaptionSizeClass();
-            menu.querySelectorAll('button[data-plyr="caption-size"]').forEach((btn) => {
-              btn.setAttribute('aria-checked', btn.getAttribute('value') === value ? 'true' : 'false');
-            });
-            captionBtn.querySelector('span').innerHTML = `${title}: <span class="plyr__menu__value">${this.getCaptionSizeLabel(value)}</span>`;
-          });
-        });
-
-        this.captionSizeMenuInitialized = true;
-        this.applyCaptionSizeClass();
-      } catch (error) {
-        console.error('Error applying caption size settings:', error);
-      }
-    },
     getCaptionSizeLabel(size) {
       switch (size) {
         case 'small': return 'Small';
@@ -1080,37 +1012,37 @@ export default {
         default: return 'Medium';
       }
     },
-    getPlaybackModeLabel(mode) {
-      switch (mode) {
-        case 'single': return 'Play Once';
-        case 'sequential': return 'Play All';
-        case 'shuffle': return 'Shuffle All';
-        case 'loop-single': return 'Loop current';
-        case 'loop-all': return 'Play All Looped';
-        default: return 'Play Once';
-      }
-    },
     toggleLoop() {
-      const newMode = this.playbackMode === 'loop-single' ? 'single' : 'loop-single';
-      // Update the state directly via mutations
+      const newMode = toggleLoop(this.playbackMode);
       mutations.setPlaybackQueue({
         queue: this.playbackQueue,
         currentIndex: this.currentQueueIndex,
         mode: newMode
       });
-      this.showToast();
     },
     handleKeydown(event) {
       if (event.repeat) return;
-      // Handle 'P' and 'L' keys for loop and change playback
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
       const key = event.key.toLowerCase();
-
+      const target = event.target;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT')) {
+        return;
+      }
+      // Handle 'P' and 'L' keys for loop and change playback
       if (key === 'p' || key === 'l') {
         event.stopPropagation();
         event.preventDefault();
-
         if (key === 'p') this.cyclePlaybackModes();
         if (key === 'l') this.toggleLoop();
+        return;
+      }
+      // left/right arrows for seek feedback
+      if (key === 'arrowleft' || key === 'arrowright') {
+        if (!this.player) return;
+        event.preventDefault();
+        const rewind = key === 'arrowleft';
+        this.flashSkipFeedback(rewind);
+        return;
       }
       // "Q" key – open/close panel on desktop audio, queue prompt on vids
       if (key === 'q') {
@@ -1126,17 +1058,12 @@ export default {
       }
     },
     cyclePlaybackModes() {
-      // cycle order (excluding single and loop-single cuz they are handled by the "L" key)
-      const modeCycle = ['loop-all', 'shuffle', 'sequential'];
-      const currentIndex = modeCycle.indexOf(this.playbackMode);
-      const nextIndex = (currentIndex + 1) % modeCycle.length;
-      const newMode = modeCycle.at(nextIndex);
+      const newMode = cyclePlaybackModes(this.playbackMode);
       mutations.setPlaybackQueue({
         queue: this.playbackQueue,
         currentIndex: this.currentQueueIndex,
         mode: newMode
       });
-      this.showToast();
     },
     // Seek the player to the given timestamp (in milliseconds)
     seekToLyric(timestampMs) {
@@ -1277,6 +1204,9 @@ export default {
         this.setupPlyrEvents();
         this.seekOnReleaseCleanup = enablePlyrSeekOnRelease(this.player);
         this.setupScrubPreview();
+        if (this.previewType === 'audio') {
+          this.setupAudioVisualizer();
+        }
         if (this.previewType === 'video' && !this.useMsePlayback) {
           this.setupDeferredVideoStream();
         }
@@ -1329,32 +1259,57 @@ export default {
         },
       });
     },
+    setupAudioVisualizer() {
+      if (this.audioGraphInitialized) return;
+      const audio = this.mediaElement;
+      if (!audio) return;
+      try {
+        const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextCtor) return;
+        const ctx = new AudioContextCtor();
+        const source = ctx.createMediaElementSource(audio);
+        // Connect source to destination
+        source.connect(ctx.destination);
+        this.audioContext = ctx;
+        this.audioSource = source;
+        this.audioGraphInitialized = true;
+      } catch (err) {
+        console.warn('Audio visualizer creation failed:', err);
+      }
+    },
+    resumeAudioGraph() {
+      const context = this.audioContext;
+      if (context?.state !== 'suspended') return;
+      try {
+        const resumed = context.resume();
+        if (resumed?.catch) resumed.catch(err => console.warn('Audio graph resume failed:', err));
+      } catch (err) {
+        console.warn('Audio visualizer resume failed:', err);
+      }
+    },
     setupPlyrEvents() {
       if (!this.player) return;
-      this.player.on('ended', this.handleMediaEnd);
-      this.player.on('play', () => {
-        mutations.setPlaybackState(true);
-        this.updateMediaSessionPlaybackState();
-      });
-      this.player.on('pause', () => {
-        mutations.setPlaybackState(false);
-        this.updateMediaSessionPlaybackState();
-      });
-      this.player.on('timeupdate', () => {
-        this.updateMediaSessionPlaybackState();
-        this.syncLyrics();
-      });
-      this.player.on('seeked', () => {
-        this.updateMediaSessionPlaybackState();
-      });
-      this.player.on('loadedmetadata', () => {
-        this.updateMediaSessionPlaybackState();
-      });
-      this.player.on('ratechange', () => {
-        this.updateMediaSessionPlaybackState();
-      });
-      this.player.on('canplay', () => {
-        this.updateMediaSessionPlaybackState();
+      const eventMap = {
+        ended: this.handleMediaEnd,
+        play: () => {
+          mutations.setPlaybackState(true);
+          this.updateMediaSessionPlaybackState();
+        },
+        pause: () => {
+          mutations.setPlaybackState(false);
+          this.updateMediaSessionPlaybackState();
+        },
+        timeupdate: () => {
+          this.updateMediaSessionPlaybackState();
+          this.syncLyrics();
+        },
+        seeked: this.updateMediaSessionPlaybackState,
+        loadedmetadata: this.updateMediaSessionPlaybackState,
+        ratechange: this.updateMediaSessionPlaybackState,
+        canplay: this.updateMediaSessionPlaybackState,
+      };
+      Object.entries(eventMap).forEach(([evt, fn]) => {
+        this.player.on(evt, fn);
       });
       if ((this.previewType === 'video' || this.previewType === 'audio')) {
         this.player.on('enterfullscreen', this.onFullscreenEnter);
@@ -1390,12 +1345,17 @@ export default {
       }
       return this.player.elements.container ?? null;
     },
-    isAudioPlyrScrubOrMenuTarget(el) {
-      if (this.previewType !== 'audio' || !el || typeof el.closest !== 'function') {
-        return false;
-      }
+    isPlyrControlOrMenuTarget(el) {
+      if (!el || typeof el.closest !== 'function') return false;
       return !!el.closest(
-        '.plyr__menu__container, .plyr__menu, [data-plyr="seek"], .plyr__progress, [data-plyr="volume"], .plyr__volume'
+        '.plyr__controls, .plyr__control, .plyr__menu__container, .plyr__menu, ' +
+        '[data-plyr="seek"], .plyr__progress, [data-plyr="volume"], .plyr__volume, ' +
+        '.audio-side-panel .tab-btn, ' +
+        '.audio-side-panel .lyrics-lock-btn, ' +
+        '.audio-side-panel .lyric-line, ' +
+        '.audio-side-panel input[type="radio"], ' +
+        '.audio-side-panel label[for^="tab-"], ' +
+        '.lyrics-mobile .lyric-line'
       );
     },
     teardownDoubleTapSeek() {
@@ -1410,9 +1370,7 @@ export default {
       }
       this.teardownDoubleTapSeek();
       const surface = this.getPlyrGestureSurface();
-      if (!surface || !this.player) {
-        return;
-      }
+      if (!surface || !this.player) return;
 
       const DOUBLE_MS = 320;
       let lastTapTime = 0;
@@ -1422,19 +1380,16 @@ export default {
         const rect = surface.getBoundingClientRect();
         const x = clientX - rect.left;
         const w = rect.width;
-        if (w <= 0) {
-          return 'center';
-        }
-        if (x < w / 3) {
-          return 'left';
-        }
-        if (x > (2 * w) / 3) {
-          return 'right';
-        }
+        if (w <= 0) return 'center';
+        if (x < w / 3) return 'left';
+        if (x > (2 * w) / 3) return 'right';
         return 'center';
       };
 
       const applySeek = (rewind) => {
+        this.clearLongPressTimer();
+        this.longPressPending = false;
+
         const step = this.player.config.seekTime || 10;
         const cur = this.player.currentTime;
         const dur = this.player.duration;
@@ -1444,26 +1399,45 @@ export default {
         this.flashSkipFeedback(rewind);
       };
 
+      const togglePlayPause = () => {
+        if (this.player.playing) {
+          this.player.pause();
+        } else {
+          this.player.play();
+        }
+      };
+      // Touch
       const onTouchEnd = (event) => {
-        if (event.changedTouches.length !== 1) {
+        if (this.longPressTriggered) {
+          // a tiny guard, should not happen, but just in case
           return;
         }
+        if (this.skipNextTap) return;
+
+        if (event.changedTouches.length !== 1) return;
         const t = event.changedTouches[0];
         const topEl = typeof document.elementFromPoint === 'function'
           ? document.elementFromPoint(t.clientX, t.clientY)
           : null;
-        if (this.isAudioPlyrScrubOrMenuTarget(topEl)) {
+        if (this.isPlyrControlOrMenuTarget(topEl)) {
           lastTapTime = 0;
           lastZone = null;
           return;
         }
         const clientX = t.clientX;
         const zone = zoneFromClientX(clientX);
+        // when clicking in the center toggle play/pause
         if (zone === 'center') {
+          if (this.previewType === 'video') {
+            togglePlayPause();
+            event.preventDefault();
+          }
           lastTapTime = 0;
           lastZone = null;
+          event.preventDefault();
           return;
         }
+        // Left/right: double-tap detection
         const now = Date.now();
         if (zone === lastZone && now - lastTapTime < DOUBLE_MS) {
           applySeek(zone === 'left');
@@ -1476,24 +1450,41 @@ export default {
         }
       };
 
+      // Mouse
+      const onClick = (event) => {
+        if (this.isPlyrControlOrMenuTarget(event.target)) {
+          return;
+        }
+        if (this.skipNextTap) return;
+        const zone = zoneFromClientX(event.clientX);
+        if (zone === 'center') {
+          if (this.previewType === 'video') {
+            togglePlayPause();
+            event.preventDefault();
+            event.stopPropagation();
+          }
+          return;
+        }
+      };
       const onDblClick = (event) => {
-        if (this.isAudioPlyrScrubOrMenuTarget(event.target)) {
+        if (this.isPlyrControlOrMenuTarget(event.target)) {
           return;
         }
         const zone = zoneFromClientX(event.clientX);
-        if (zone === 'center') {
-          return;
+        if (zone === 'left' || zone === 'right') {
+          applySeek(zone === 'left');
+          event.preventDefault();
+          event.stopPropagation();
         }
-        event.preventDefault();
-        event.stopPropagation();
-        applySeek(zone === 'left');
       };
 
       surface.addEventListener('touchend', onTouchEnd, { passive: false });
+      surface.addEventListener('click', onClick);
       surface.addEventListener('dblclick', onDblClick);
 
       this.doubleTapSeekCleanup = () => {
         surface.removeEventListener('touchend', onTouchEnd);
+        surface.removeEventListener('click', onClick);
         surface.removeEventListener('dblclick', onDblClick);
       };
     },
@@ -1564,23 +1555,34 @@ export default {
       return sign * (max + (a - max) * 0.32);
     },
     decideVideoEdgeKind() {
-      if (this.videoEdgeKind) {
-        return;
-      }
+      if (this.videoEdgeKind) return;
       const ax = Math.abs(this.videoEdgeDx);
       const ay = Math.abs(this.videoEdgeDy);
-      if (ax < 12 && ay < 12) {
+      if (ax < 12 && ay < 12) return;
+      if (this.previewType === 'audio') {
+        if (ay > ax * 1.12 && ay > 14 && this.videoEdgeDy > 0) {
+          this.videoEdgeKind = 'vertical-dismiss';
+        } else if (ax > ay * 1.12 && ax > 14) {
+          this.videoEdgeKind = 'horizontal';
+        }
         return;
       }
-      if (this.videoEdgeDy > ax * 1.12 && this.videoEdgeDy > 14) {
-        this.videoEdgeKind = 'vertical-dismiss';
-        this.videoGestureDecided = true;
+      if (ay > ax * 1.12 && ay > 14) {
+        this.videoEdgeKind = this.videoEdgeDy > 0 ? 'vertical-dismiss' : 'vertical-fullscreen';
       } else if (ax > ay * 1.12 && ax > 14) {
         this.videoEdgeKind = 'horizontal';
-        this.videoGestureDecided = true;
       }
     },
     applyVideoEdgeVisuals() {
+      if (this.previewType === 'audio' && this.videoEdgeDy < 0 && Math.abs(this.videoEdgeDy) > Math.abs(this.videoEdgeDx)) {
+        this.videoDragOffsetX = 0;
+        this.videoDragOffsetY = 0;
+        this.videoShowNavHint = false;
+        this.videoShowDismissHint = false;
+        this.applyVideoSwipeTransform();
+        this.syncVideoNavigationGestureHintToStore();
+        return;
+      }
       if (this.showMobileLyrics) {
         // Allow horizontal navigation swipes, ignore vertical if lyrics are shown
         const ax = Math.abs(this.videoEdgeDx);
@@ -1595,60 +1597,32 @@ export default {
           return;
         }
       }
-      if (!this.videoEdgeKind) {
-        const ax = Math.abs(this.videoEdgeDx);
-        const ay = Math.abs(this.videoEdgeDy);
-        if (ax <= 8 && ay <= 8) {
-          this.videoDragOffsetX = 0;
-          this.videoDragOffsetY = 0;
-          this.videoShowNavHint = false;
-          this.videoShowDismissHint = false;
-          this.applyVideoSwipeTransform();
-          this.syncVideoNavigationGestureHintToStore();
-          return;
-        }
-        if (ax > ay) {
-          this.videoDragOffsetX = this.videoRubberband(this.videoEdgeDx, this.videoEdgeRubberMax);
-          this.videoDragOffsetY = 0;
-          this.videoShowNavHint = ax >= this.videoEdgeHintPx;
-          this.videoNavHintDir = this.videoEdgeDx > 0 ? 'prev' : 'next';
-          if (this.videoNavHintDir === 'prev' && !this.hasVideoPreviousNav) {
-            this.videoShowNavHint = false;
-          }
-          if (this.videoNavHintDir === 'next' && !this.hasVideoNextNav) {
-            this.videoShowNavHint = false;
-          }
-          this.videoShowDismissHint = false;
-        } else {
-          this.videoDragOffsetX = 0;
-          const downward = this.videoEdgeDy > 0 ? this.videoEdgeDy : 0;
-          this.videoDragOffsetY = this.videoRubberband(downward, this.videoEdgeRubberMax);
-          this.videoShowDismissHint = this.videoEdgeDy >= this.videoEdgeHintPx;
-          this.videoShowNavHint = false;
-        }
-        this.applyVideoSwipeTransform();
-        this.syncVideoNavigationGestureHintToStore();
-        return;
-      }
-      if (this.videoEdgeKind === 'horizontal') {
+
+      const kind = this.videoEdgeKind;
+      if (kind === 'horizontal') {
         this.videoDragOffsetX = this.videoRubberband(this.videoEdgeDx, this.videoEdgeRubberMax);
         this.videoDragOffsetY = 0;
         const adx = Math.abs(this.videoEdgeDx);
         this.videoShowNavHint = adx >= this.videoEdgeHintPx;
         this.videoNavHintDir = this.videoEdgeDx > 0 ? 'prev' : 'next';
-        if (this.videoNavHintDir === 'prev' && !this.hasVideoPreviousNav) {
-          this.videoShowNavHint = false;
-        }
-        if (this.videoNavHintDir === 'next' && !this.hasVideoNextNav) {
-          this.videoShowNavHint = false;
-        }
+        if (this.videoNavHintDir === 'prev' && !this.hasVideoPreviousNav) this.videoShowNavHint = false;
+        if (this.videoNavHintDir === 'next' && !this.hasVideoNextNav) this.videoShowNavHint = false;
         this.videoShowDismissHint = false;
-      } else {
+      } else if (kind === 'vertical-dismiss') {
         this.videoDragOffsetX = 0;
-        const downward = this.videoEdgeDy > 0 ? this.videoEdgeDy : 0;
-        this.videoDragOffsetY = this.videoRubberband(downward, this.videoEdgeRubberMax);
+        this.videoDragOffsetY = this.videoEdgeDy;
         this.videoShowDismissHint = this.videoEdgeDy >= this.videoEdgeHintPx;
         this.videoShowNavHint = false;
+      } else if (kind === 'vertical-fullscreen') {
+        this.videoDragOffsetX = 0;
+        this.videoDragOffsetY = this.videoEdgeDy;
+        this.videoShowDismissHint = false;
+        this.videoShowNavHint = false;
+      } else {
+        this.videoDragOffsetX = 0;
+        this.videoDragOffsetY = 0;
+        this.videoShowNavHint = false;
+        this.videoShowDismissHint = false;
       }
       this.applyVideoSwipeTransform();
       this.syncVideoNavigationGestureHintToStore();
@@ -1660,9 +1634,9 @@ export default {
       this.videoShowNavHint = false;
       this.videoShowDismissHint = false;
       this.videoEdgeKind = null;
-      this.videoGestureDecided = false;
       this.videoEdgeDx = 0;
       this.videoEdgeDy = 0;
+      this.setSkipNextTap(200);
       this.applyVideoSwipeTransform();
       mutations.setNavigationGestureHint({});
       setTimeout(() => {
@@ -1674,7 +1648,6 @@ export default {
       this.clearVideoDismissAnimTimers();
       this.videoSwipeSuppressedTouchId = null;
       this.videoEdgeKind = null;
-      this.videoGestureDecided = false;
       this.videoEdgeDx = 0;
       this.videoEdgeDy = 0;
       this.videoDragOffsetX = 0;
@@ -1683,6 +1656,11 @@ export default {
       this.videoShowDismissHint = false;
       this.videoGestureSnapBack = false;
       this.videoDismissFlashActive = false;
+      this.skipNextTap = false;
+      if (this.skipNextTapTimer) {
+        clearTimeout(this.skipNextTapTimer);
+        this.skipNextTapTimer = null;
+      }
       this.applyVideoSwipeTransform();
       mutations.setNavigationGestureHint({});
     },
@@ -1740,9 +1718,9 @@ export default {
           this.videoDragOffsetX = 0;
           this.videoDragOffsetY = 0;
           this.videoEdgeKind = null;
-          this.videoGestureDecided = false;
           this.applyVideoSwipeTransform();
           this.syncVideoNavigationGestureHintToStore();
+          this.setSkipNextTap(200);
           // If we're in fullscreen, exit fullscreen instead of closing preview
           if (this.player?.fullscreen?.active) {
             this.player.fullscreen.exit();
@@ -1765,6 +1743,18 @@ export default {
             this.videoShowDismissHint = false;
             mutations.setNavigationGestureHint({});
           }, 420);
+          return;
+        }
+      } else if (kind === 'vertical-fullscreen') {
+        if (!this.player) {
+          this.resetVideoEdgeGestureImmediate();
+          return;
+        }
+        if (this.videoEdgeDy <= -this.videoEdgeCommitY) {
+          this.player.fullscreen.toggle();
+          this.resetVideoEdgeGestureImmediate();
+          // Set skipNextTap to prevent play/pause toggle
+          this.setSkipNextTap(300);
           return;
         }
       }
@@ -1804,7 +1794,7 @@ export default {
       if (event.button !== 0 || !this.videoSwipeGesturesActive) return;
       // Don't start a gesture if we are selecting some text
       if (window.getSelection()?.toString().length > 0) return;
-      if (this.isAudioPlyrScrubOrMenuTarget(event.target)) {
+      if (this.isPlyrControlOrMenuTarget(event.target)) {
         return;
       }
       this.clearVideoDismissAnimTimers();
@@ -1815,7 +1805,6 @@ export default {
       this.videoEdgeDx = 0;
       this.videoEdgeDy = 0;
       this.videoEdgeKind = null;
-      this.videoGestureDecided = false;
       document.addEventListener('mousemove', this.onVideoSwipeMouseDocMove, true);
       document.addEventListener('mouseup', this.onVideoSwipeMouseDocUp, true);
     },
@@ -1823,23 +1812,66 @@ export default {
       if (!this.videoSwipeGesturesActive || event.targetTouches.length !== 1) return;
       // Don't start a gesture if we are selecting some text
       if (window.getSelection()?.toString().length > 0) return;
-      if (this.isAudioPlyrScrubOrMenuTarget(event.target)) {
+      if (this.isPlyrControlOrMenuTarget(event.target)) {
         this.videoSwipeSuppressedTouchId = event.targetTouches[0].identifier;
         return;
       }
       this.videoSwipeSuppressedTouchId = null;
       this.clearVideoDismissAnimTimers();
+
+      // long-press timer
+      this.clearLongPressTimer();
+      this.longPressPending = true;
+      this.longPressTriggered = false;
+      this.longPressPreviousSpeed = this.player?.speed || 1;
+
+      // only start timer if not already at 2x
+      if (this.player && this.player.speed !== 2) {
+        this.longPressTimer = setTimeout(() => {
+          this.longPressTimer = null;
+          if (this.player && this.longPressPending) {
+            this.longPressPreviousSpeed = this.player.speed || 1;
+            this.player.speed = 2;
+            this.longPressTriggered = true;
+            this.longPressPending = false;
+            // Show toast
+            this.speedToastVisible = true;
+            this.speedToastMessage = '2x';
+          }
+        }, 500);
+      } else {
+        // If already at 2x don't change speed again
+        if (this.player?.speed === 2) {
+          this.longPressPending = false;
+        }
+      }
+
       const touch = event.targetTouches[0];
       this.videoEdgeStartX = touch.pageX;
       this.videoEdgeStartY = touch.pageY;
       this.videoEdgeDx = 0;
       this.videoEdgeDy = 0;
       this.videoEdgeKind = null;
-      this.videoGestureDecided = false;
       this.videoDragOffsetX = 0;
       this.videoDragOffsetY = 0;
     },
     onVideoSwipeTouchMove(event) {
+      if (this.longPressTriggered) {
+        event.preventDefault();
+        return;
+      }
+
+      // If there's significant movement cancel any pending long press so if when using swipe gestures they don't change speed
+      if (this.longPressPending) {
+        const touch = event.targetTouches[0];
+        const dx = Math.abs(touch.pageX - this.videoEdgeStartX);
+        const dy = Math.abs(touch.pageY - this.videoEdgeStartY);
+        if (dx > 10 || dy > 10) {
+          this.clearLongPressTimer();
+          this.longPressPending = false;
+        }
+      }
+
       if (!this.videoSwipeGesturesActive || event.targetTouches.length !== 1) {
         if (this.videoEdgeKind || this.videoEdgeDx || this.videoEdgeDy) {
           this.resetVideoEdgeGestureImmediate();
@@ -1875,6 +1907,25 @@ export default {
         this.videoSwipeSuppressedTouchId = null;
         return;
       }
+      if (this.longPressPending) {
+        this.clearLongPressTimer();
+        this.longPressPending = false;
+      }
+
+      // Handle long-press release
+      if (this.longPressTriggered) {
+        this.clearLongPressTimer();
+        this.speedToastVisible = false;
+        if (this.player && this.longPressPreviousSpeed !== 2) {
+          this.player.speed = this.longPressPreviousSpeed;
+        }
+        this.longPressTriggered = false;
+        this.resetVideoEdgeGestureImmediate();
+        event.preventDefault();
+        return;
+      }
+
+      // Normal swipe gesture
       this.videoEdgeDx = t.pageX - this.videoEdgeStartX;
       this.videoEdgeDy = t.pageY - this.videoEdgeStartY;
       const ax = Math.abs(this.videoEdgeDx);
@@ -1886,6 +1937,26 @@ export default {
       }
     },
     onVideoSwipeTouchCancel(event) {
+      // If long-press was triggered, handle release
+      if (this.longPressTriggered) {
+        this.clearLongPressTimer();
+        this.speedToastVisible = false;
+        if (this.player && this.longPressPreviousSpeed !== 2) {
+          this.player.speed = this.longPressPreviousSpeed;
+        }
+        this.longPressTriggered = false;
+        this.longPressPending = false;
+        this.resetVideoEdgeGestureImmediate();
+        if (event) event.preventDefault();
+        return;
+      }
+
+      // If long-press was pending clear it
+      if (this.longPressPending) {
+        this.clearLongPressTimer();
+        this.longPressPending = false;
+      }
+
       if (event?.changedTouches?.length) {
         const t = event.changedTouches[0];
         if (
@@ -1932,8 +2003,38 @@ export default {
       }
       this.clearVideoDismissAnimTimers();
       this.resetVideoEdgeGestureImmediate();
+      this.clearLongPressTimer();
+      this.clearLongPressTimer();
+      this.longPressPending = false;
+      this.speedToastVisible = false;
+      if (this.longPressTriggered && this.player && this.longPressPreviousSpeed !== 2) {
+        this.player.speed = this.longPressPreviousSpeed;
+      }
+      this.longPressTriggered = false;
+    },
+    clearLongPressTimer() {
+      if (this.longPressTimer) {
+        clearTimeout(this.longPressTimer);
+        this.longPressTimer = null;
+      }
+      if (this.longPressTimer) {
+        clearTimeout(this.longPressTimer);
+        this.longPressTimer = null;
+      }
+    },
+    setSkipNextTap(delay) {
+      if (this.skipNextTapTimer) {
+        clearTimeout(this.skipNextTapTimer);
+        this.skipNextTapTimer = null;
+      }
+      this.skipNextTap = true;
+      this.skipNextTapTimer = setTimeout(() => {
+        this.skipNextTap = false;
+        this.skipNextTapTimer = null;
+      }, delay);
     },
     async onFullscreenEnter() {
+      this.isFullscreen = true;
       this.resetVideoEdgeGestureImmediate();
       // Allow free rotation when video enters full screen mode. This works even if the device's orientation is currently locked.
       try {
@@ -1946,162 +2047,31 @@ export default {
       }
     },
     onFullscreenExit() {
-      screen.orientation.unlock();
+      this.isFullscreen = false;
+      if (!screen.orientation?.unlock) return;
+      try {
+        screen.orientation.unlock();
+      } catch (error) {
+        if (error.name !== 'NotSupportedError') throw error;
+      }
     },
-    // Playback methods
-    async setupPlaybackQueue(forceReshuffle = false) {
-
-      const listing = this.listing;
-      const isShare = getters.isShare();
-
-      // Filter only audio/video files
-      const mediaFiles = listing.filter(item => {
-        const isAudio = item?.type.startsWith('audio/');
-        const isVideo = item?.type.startsWith('video/');
-        return isAudio || isVideo;
-      });
-
-      if (mediaFiles.length === 0) {
-        console.log('No media files found in current directory');
-        mutations.setPlaybackQueue({
-          queue: [],
-          currentIndex: -1,
-          mode: this.playbackMode,
-        });
-        return;
+    handleMediaEnd() {
+      const queue = state.playbackQueue.queue;
+      const currentIndex = state.playbackQueue.currentIndex;
+      const mode = state.playbackQueue.mode;
+      const action = getEndOfMediaAction(queue, currentIndex, mode);
+      if (action === 'next') {
+        navigatePlaybackQueue(1);
+      } else if (action === 'restart') {
+        this.restartCurrentFile();
       }
-
-      let currentIndex;
-      if (isShare) {
-        // Compare by name for shares
-        currentIndex = mediaFiles.findIndex(item => item.name === this.req.name);
-      } else {
-        currentIndex = mediaFiles.findIndex(item => item.path === this.req.path);
-      }
-
-      let finalQueue = [];
-      let finalIndex = 0;
-
-      switch (this.playbackMode) {
-        case 'single':
-          finalQueue = [];
-          finalIndex = -1;
-          break;
-        case 'loop-single':
-          // When playing the same file (loop-single), the queue only contains the current file
-          finalQueue = currentIndex !== -1 ? [mediaFiles.at(currentIndex)] : [];
-          finalIndex = 0;
-          break;
-
-        case 'sequential':
-        case 'loop-all': {
-          // We'll use the listing order from the parent directory for this two modes.
-          // On sequential mode will start playing from the file opened and find its place on the queue by the current index (you can see this on UI queue)
-          // Loop-all will do the same, but if the queue ends, will restart from the first file of the current folder.
-          const sortedFiles = [...mediaFiles];
-          finalQueue = sortedFiles;
-          // Find the current file position in the queue
-          if (currentIndex !== -1) {
-            const currentFile = mediaFiles.at(currentIndex);
-            finalIndex = sortedFiles.findIndex(item => item.path === currentFile.path);
-          } else {
-            finalIndex = 0;
-          }
-          break;
-        }
-        case 'shuffle': {
-          // For shuffle, all on random order and only reshuffle if we cycle modes again
-          // This is for preserve the current queue and don't lose it (since the component is re-created each time)
-          // It has one drawback: if you change of directories, you'll need to cycle modes again to see a new queue.
-          if (forceReshuffle || this.playbackQueue.length === 0) {
-            const shuffledFiles = this.shuffleArray([...mediaFiles]);
-            finalQueue = shuffledFiles;
-          } else {
-            // Use the existing queue when not forcing reshuffle
-            finalQueue = this.playbackQueue;
-          }
-          // Find the current file position in the queue
-          if (currentIndex !== -1) {
-            const currentFile = mediaFiles.at(currentIndex);
-            finalIndex = finalQueue.findIndex(item => item.path === currentFile.path);
-          } else {
-            finalIndex = 0;
-          }
-          break;
-        }
-      }
-      // console.log('Current place on the queue:', finalIndex + 1, 'of', finalQueue.length);
-
-      // After the queue is set up, update the store
-      mutations.setPlaybackQueue({
-        queue: finalQueue,
-        currentIndex: finalIndex,
-        mode: this.playbackMode
-      });
-    },
-    shuffleArray(array) {
-      const shuffled = [...array];
-      for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        const temp = shuffled.slice(j, j + 1)[0];
-        shuffled.splice(j, 1, shuffled.at(i));
-        shuffled.splice(i, 1, temp);
-      }
-      return shuffled;
     },
     playPrevious() {
-      if (this.playbackQueue.length === 0) return;
-      // Calculate previous index
-      let prevIndex = this.currentQueueIndex - 1;
-      // Handle wrapping based on mode
-      if (prevIndex < 0) {
-        if (this.playbackMode === 'loop-all' || this.playbackMode === 'shuffle') {
-          prevIndex = this.playbackQueue.length - 1;
-        } else {
-          return;
-        }
-      }
-      const prevItem = this.playbackQueue.at(prevIndex);
-      // Update current index
-      mutations.setPlaybackQueue({
-        queue: this.playbackQueue,
-        currentIndex: prevIndex,
-        mode: this.playbackMode
-      });
-      mutations.setNavigationTransitioning(true);
-      url.goToItem(prevItem.source || this.req.source, prevItem.path, undefined, false, getters.isShare());
+      navigatePlaybackQueue(-1);
     },
+
     playNext() {
-      if (this.playbackQueue.length === 0) return;
-
-      // Calculate next index
-      let nextIndex = this.currentQueueIndex + 1;
-
-      // Handle end of queue based on mode
-      if (nextIndex >= this.playbackQueue.length) {
-        if (this.playbackMode === 'loop-all' || this.playbackMode === 'shuffle') {
-          nextIndex = 0; // Loop back to beginning
-        } else {
-          return; // Stop at end for sequential mode
-        }
-      }
-
-      const nextItem = this.playbackQueue.at(nextIndex);
-
-      try {
-        // Update current index
-        mutations.setPlaybackQueue({
-          queue: this.playbackQueue,
-          currentIndex: nextIndex,
-          mode: this.playbackMode
-        });
-
-        mutations.setNavigationTransitioning(true);
-        url.goToItem( nextItem.source || this.req.source, nextItem.path, undefined, false, getters.isShare());
-
-      } catch (error) {
-        console.error('Failed to navigate to next file:', error);
-      }
+      navigatePlaybackQueue(1);
     },
     restartCurrentFile() {
       console.log('Restarting current file');
@@ -2111,126 +2081,158 @@ export default {
       this.player.currentTime = 0;
       this.player.play();
     },
-    handleMediaEnd() {
-      const handleShortQueue = () => {
-        if (this.playbackQueue.length > 1) {
-          this.playNext();
-        } else {
-          this.restartCurrentFile();
-        }
-      };
-      const modeActions = {
-        'single': () => {}, // Do nothing
-        'loop-single': () => this.restartCurrentFile(),
-        'sequential': () => this.playNext(),
-        'shuffle': handleShortQueue,
-        'loop-all': handleShortQueue,
-      };
-      const action = modeActions[this.playbackMode];
-      if (action) {
-        console.log(`Media ended - ${this.playbackMode} mode`);
-        action();
-      }
+    setupPlaybackQueue(forceReshuffle = false) {
+      const listing = this.listing;
+      if (!listing || !this.req) return;
+      const isShare = getters.isShare();
+      const currentItem = this.req;
+      const mode = state.playbackQueue.mode || 'single';
+      const { queue, currentIndex } = buildPlaybackQueue(listing, currentItem, mode, forceReshuffle, isShare);
+      mutations.setPlaybackQueue({
+        queue,
+        currentIndex,
+        mode
+      });
     },
-    applyCustomPlaybackSettings(player) {
-      // This is the actual logic to set up the settings menu
-      // Separated so it can be called after source changes
-
-      // Only recreate menu if mode changed or menu not initialized, this for avoid unnecesary recreations
-      const modeChanged = this.lastAppliedMode !== this.playbackMode;
-
-      if (this.playbackMenuInitialized && !modeChanged) {
-        return;
-      }
-
+    // Builds playback and caption menus once, then updates state without rebuilding again.
+    applyCustomSettings(player) {
       try {
-        // Access the playback button and panel
-        const playbackBtn = player.elements.settings.buttons.playback;
-        const playbackPanel = player.elements.settings.panels.playback;
+        const playbackBtn = player.elements.settings?.buttons?.playback;
+        const playbackPanel = player.elements.settings?.panels?.playback;
+        const captionSizeBtn = player.elements.settings?.buttons?.captionSize;
+        const captionSizePanel = player.elements.settings?.panels?.captionSize;
 
+        // --- Playback menu ---
         if (playbackBtn && playbackPanel) {
-          // Make the button visible
           playbackBtn.removeAttribute('hidden');
+          const title = player.config.i18n?.playback || 'Playback';
+          const currentLabel = getModeLabel(this.playbackMode, this.$t);
 
-          // Set up the button text
-          const modeLabels = {
-            'single': 'Play Once',
-            'sequential': 'Play All',
-            'shuffle': 'Shuffle All',
-            'loop-single': 'Loop current',
-            'loop-all': 'Play All Looped'
-          };
-          const currentMode = modeLabels[this.playbackMode] || 'Play Once';
-          playbackBtn.querySelector('span').innerHTML = `Playback: <span class="plyr__menu__value">${currentMode}</span>`;
-
-          // Set up the back button text
-          playbackPanel.querySelector('.plyr__control--back span[aria-hidden="true"]').innerHTML = 'Playback';
-
-          // Only recreate menu if needed, will rebuild the UI if the source changes.
-          const menu = playbackPanel.querySelector('div[role="menu"]');
-
-          if (!this.playbackMenuInitialized || modeChanged) {
-
-            // Create the menu options
+          if (!this.playbackMenuInitialized) {
+            const menu = playbackPanel.querySelector('div[role="menu"]');
             menu.innerHTML = `
-              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" aria-checked="${this.playbackMode === 'single'}" value="single">
-                <span>Play Once</span>
+              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" value="single">
+                <span>${getModeLabel('single', this.$t)}</span>
               </button>
-              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" aria-checked="${this.playbackMode === 'sequential'}" value="sequential">
-                <span>Play All</span>
+              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" value="sequential">
+                <span>${getModeLabel('sequential', this.$t)}</span>
               </button>
-              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" aria-checked="${this.playbackMode === 'shuffle'}" value="shuffle">
-                <span>Shuffle All</span>
+              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" value="shuffle">
+                <span>${getModeLabel('shuffle', this.$t)}</span>
               </button>
-              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" aria-checked="${this.playbackMode === 'loop-single'}" value="loop-single">
-                <span>Loop Current</span>
+              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" value="loop-single">
+                <span>${getModeLabel('loop-single', this.$t)}</span>
               </button>
-              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" aria-checked="${this.playbackMode === 'loop-all'}" value="loop-all">
-                <span>Play All Looped</span>
+              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" value="loop-all">
+                <span>${getModeLabel('loop-all', this.$t)}</span>
               </button>
             `;
-            // Add event listeners to the buttons
-            const buttons = menu.querySelectorAll('button[data-plyr="playback"]');
-            buttons.forEach(button => {
-              button.addEventListener('click', (event) => {
+            this.playbackButtons = menu.querySelectorAll('button[data-plyr="playback"]');
+            // Set initial checked state
+            this.playbackButtons.forEach(btn => {
+              btn.setAttribute('aria-checked', btn.getAttribute('value') === this.playbackMode);
+            });
+            // Add click listeners
+            this.playbackButtons.forEach(btn => {
+              btn.addEventListener('click', (event) => {
                 const value = event.currentTarget.getAttribute('value');
-                console.log('Playback mode changed to:', value);
-
-                // Update visual state
-                buttons.forEach(btn => {
-                  btn.setAttribute('aria-checked', 'false');
-                });
-                event.currentTarget.setAttribute('aria-checked', 'true');
-
-                // Update button text
-                const currentMode = this.getPlaybackModeLabel(value);
-                playbackBtn.querySelector('span').innerHTML = `Playback: <span class="plyr__menu__value">${currentMode}</span>`;
-
-                // Update the global state with the new mode
                 mutations.setPlaybackQueue({
                   queue: this.playbackQueue,
                   currentIndex: this.currentQueueIndex,
                   mode: value
                 });
-                // Show toast
-                this.showToast();
+                const newLabel = getModeLabel(value, this.$t);
+                if (this.playbackValueSpan) this.playbackValueSpan.textContent = newLabel;
+                this.playbackButtons.forEach(b => b.setAttribute('aria-checked', b.getAttribute('value') === value));
               });
             });
-            this.playbackMenuInitialized = true;
+            const valueSpan = playbackBtn.querySelector('span .plyr__menu__value');
+            if (valueSpan) {
+              valueSpan.textContent = currentLabel;
+              this.playbackValueSpan = valueSpan;
+            } else {
+              playbackBtn.querySelector('span').innerHTML = `${title}: <span class="plyr__menu__value">${currentLabel}</span>`;
+              this.playbackValueSpan = playbackBtn.querySelector('span .plyr__menu__value');
+            }
             this.lastAppliedMode = this.playbackMode;
+            this.playbackMenuInitialized = true;
           } else {
-            // Just update the checked states without recreating the menu again
-            const buttons = menu.querySelectorAll('button[data-plyr="playback"]');
-            buttons.forEach(button => {
-              const value = button.getAttribute('value');
-              button.setAttribute('aria-checked', this.playbackMode === value);
-            });
+            // Just update checked states and label
+            if (this.playbackButtons) {
+              this.playbackButtons.forEach(btn => {
+                btn.setAttribute('aria-checked', btn.getAttribute('value') === this.playbackMode);
+              });
+            }
+            if (this.playbackValueSpan) {
+              this.playbackValueSpan.textContent = currentLabel;
+            }
           }
-        } else {
-          console.error('Could not find playback button or panel');
+        }
+
+        // --- Caption size menu ---
+        if (captionSizeBtn && captionSizePanel) {
+          const visible = this.previewType === 'video' && this.hasSubtitles;
+          if (!visible) {
+            captionSizeBtn.setAttribute('hidden', '');
+            this.captionSizeMenuInitialized = true;
+            return;
+          }
+          captionSizeBtn.removeAttribute('hidden');
+          const title = player.config.i18n?.captionSize || 'Caption size';
+          const currentSize = this.getStoredCaptionSize();
+          const currentSizeLabel = this.getCaptionSizeLabel(currentSize);
+
+          if (!this.captionSizeMenuInitialized) {
+            const menu = captionSizePanel.querySelector('div[role="menu"]');
+            menu.innerHTML = PLYR_CAPTION_SIZE_IDS.map(
+              (id) => `<button type="button" data-plyr="caption-size" role="menuitemradio" class="plyr__control" value="${id}">
+                        <span>${this.getCaptionSizeLabel(id)}</span>
+                      </button>`
+            ).join('');
+
+            this.captionSizeButtons = menu.querySelectorAll('button[data-plyr="caption-size"]');
+            // Set initial checked state
+            this.captionSizeButtons.forEach(btn => {
+              btn.setAttribute('aria-checked', btn.getAttribute('value') === currentSize);
+            });
+            // Add click listeners
+            this.captionSizeButtons.forEach(btn => {
+              btn.addEventListener('click', (event) => {
+                const value = event.currentTarget.getAttribute('value');
+                if (!PLYR_CAPTION_SIZE_IDS.includes(value)) return;
+                this.setStoredCaptionSize(value);
+                this.applyCaptionSizeClass();
+                // Update checked states and label
+                this.captionSizeButtons.forEach(b => b.setAttribute('aria-checked', b.getAttribute('value') === value));
+                // Update label in button
+                const label = this.getCaptionSizeLabel(value);
+                if (this.captionSizeValueSpan) this.captionSizeValueSpan.textContent = label;
+              });
+            });
+            const valueSpan = captionSizeBtn.querySelector('span .plyr__menu__value');
+            if (valueSpan) {
+              valueSpan.textContent = currentSizeLabel;
+              this.captionSizeValueSpan = valueSpan;
+            } else {
+              captionSizeBtn.querySelector('span').innerHTML = `${title}: <span class="plyr__menu__value">${currentSizeLabel}</span>`;
+              this.captionSizeValueSpan = captionSizeBtn.querySelector('span .plyr__menu__value');
+            }
+            this.captionSizeMenuInitialized = true;
+          } else {
+            // Update checked states and label
+            if (this.captionSizeButtons) {
+              this.captionSizeButtons.forEach(btn => {
+                btn.setAttribute('aria-checked', btn.getAttribute('value') === currentSize);
+              });
+            }
+            if (this.captionSizeValueSpan) {
+              this.captionSizeValueSpan.textContent = currentSizeLabel;
+            }
+          }
+          this.applyCaptionSizeClass();
         }
       } catch (error) {
-        console.error('Error applying custom playback settings:', error);
+        console.error('Error applying custom settings:', error);
       }
     },
   },
@@ -2471,7 +2473,6 @@ export default {
 .plyr.plyr--video {
   width: 100%;
   height: 100%;
-  cursor: pointer;
 }
 
 .plyr .plyr__video-wrapper {
@@ -2501,11 +2502,11 @@ export default {
 
 /*
  * Global fonts.css sets `.material-symbols { font-size: 24px }`.
- * Use high specificity + !important, and flex-shrink: 0 so the flex parent cannot squeeze the glyph.
+ * Use high specificity and flex-shrink: 0 so the flex parent cannot squeeze the glyph.
  */
 .video-skip-feedback-layer i.material-symbols.video-skip-feedback-layer__icon {
   flex-shrink: 0;
-  font-size: 3em;
+  font-size: clamp(2.5rem, 7vmin, 6rem);
   line-height: 1;
   color: rgba(255, 255, 255, 0.96);
   filter: drop-shadow(0 2px 16px rgba(0, 0, 0, 0.85));
@@ -2691,8 +2692,7 @@ export default {
   width: 100%;
   max-width: 1500px;
   margin: 0 auto;
-  gap: 0;
-  padding: 0 2em;
+  padding: 0 3.5em;
   padding-bottom: 0;
   box-sizing: border-box;
   height: 100%;
@@ -2710,25 +2710,22 @@ export default {
   align-items: center;
   justify-content: center;
   text-align: center;
-  width: 50%;
+  width: 100%;
   padding: 0 2em;
   box-sizing: border-box;
-  transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  min-width: 0;
+  flex-shrink: 0;
 }
 
-/* When panel closed – centre the left column */
-.audio-player-content:not(.panel-open) .audio-left-column {
-  transform: translateX(50%);
-}
-
-/* When panel open – no extra offset */
 .panel-open .audio-left-column {
-  transform: translateX(0);
+  width: 50%;
 }
 
 /* Right panel (lyrics / queue) */
 .lyrics-panel {
   width: 50%;
+  flex-shrink: 0;
   height: 100%;
   overflow-y: auto;
   padding: 0.5em 2em;
@@ -2808,12 +2805,11 @@ export default {
 }
 
 .album-art-container {
-  height: 100%;
-  width: 100%;
+  flex-shrink: 0;
   border-radius: 1em;
   overflow: hidden;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-  transition: max-height 0.3s ease, max-width 0.3s ease;
+  transition: width 0.3s ease;
   will-change: transform;
 }
 
@@ -2909,9 +2905,12 @@ export default {
   }
 
   .album-art-container {
-    width: min(71vw);
-    height: min(71vw);
     margin-top: 1em;
+    max-width: min(71vw);
+  }
+
+  .audio-player-container--lyrics-open .album-art-container {
+    transition: none !important;
   }
 }
 
@@ -2926,12 +2925,10 @@ export default {
     font-size: 14px;
     margin: 0 5px;
   }
+
   .audio-left-column {
-    width: 100%;
     padding: 0;
     margin: 0;
-    transform: none !important;
-    transition: none;
   }
 }
 
