@@ -433,8 +433,6 @@
     "previewFolderDescription": "Sýna smámyndaforskoðun fyrir möppur með fyrsta barnatriði með smámynd sem forsíðu.",
     "debugOfficeEditor": "Virkja OnlyOffice Kembunarbil",
     "debugOfficeEditorDescription": "Sýna kembunar sprettiglugga með viðbótarupplýsingum í OnlyOffice ritstjórninum.",
-    "defaultMediaPlayer": "Nota upprunalega myndbandspilara vafrans þíns",
-    "defaultMediaPlayerDescription": "Nota upprunalega myndbandspilara vafrans þíns fyrir myndbands- og hljóðskrár í stað innbyggða 'vue-pylr' myndbandspilara FileBrowser.",
     "showSelectMultiple": "Sýna fjölval í samhengisvalmynd á skjáborði",
     "showSelectMultipleDescription": "Sjálfgefið hefur samhengisvalmynd skjáborðs ekki \"fjölval\" valkost eins og farsími. Þessi valkostur sýnir það alltaf í samhengisvalmyndinni.",
     "customTheme": "Veldu þema þitt",

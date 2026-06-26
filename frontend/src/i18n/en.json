@@ -500,8 +500,6 @@
     "previewFolderDescription": "Show thumbnail previews for folders with first child item as cover -- or multiple items if motion preview is enabled.",
     "debugOfficeEditor": "Enable OnlyOffice Debug Mode",
     "debugOfficeEditorDescription": "Show a debug popup with additional information in the OnlyOffice editor.",
-    "defaultMediaPlayer": "Use your browser's native media player",
-    "defaultMediaPlayerDescription": "Use your browser's native media player for video and audio files rather than FileBrowser's included 'vue-plyr' media player.",
     "showSelectMultiple": "Show select multiple in context menu on desktop",
     "showSelectMultipleDescription": "By default, desktop context menu does not have \"select multiple\" option like mobile. This option always shows it in the context menu.",
     "customTheme": "Choose your theme",

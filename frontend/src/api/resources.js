@@ -858,7 +858,6 @@ export function getTranscodeURL(source, path, streamToken) {
       source: source,
       file: path,
       streamToken: streamToken,
-      sessionId: state.sessionId,
     }
     const apiPath = getApiPath('media/transcode', params)
     return window.origin + apiPath

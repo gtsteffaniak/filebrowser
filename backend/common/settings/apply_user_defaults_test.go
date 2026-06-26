@@ -59,7 +59,6 @@ func TestApplyUserDefaults_copiesUserDefaultsOntoUser(t *testing.T) {
 				DisableOnlyOfficeExt:    ".x",
 				PreferEditorForMarkdown: true,
 				DebugOffice:             true,
-				DefaultMediaPlayer:      true,
 			},
 			Search: UserDefaultsSearch{
 				DisableOptions: true,
@@ -158,7 +157,6 @@ func TestApplyUserDefaults_copiesUserDefaultsOntoUser(t *testing.T) {
 					Office:             false,
 					PopUp:              false,
 					AutoplayMedia:      false,
-					DefaultMediaPlayer: true,
 					Folder:             false,
 					Models:             false,
 				},

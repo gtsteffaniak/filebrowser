@@ -500,8 +500,6 @@
     "previewFolderDescription": "Mostra l'anteprima delle cartelle usando il primo elemento interno come copertina.",
     "debugOfficeEditor": "Abilita modalità Debug OnlyOffice",
     "debugOfficeEditorDescription": "Mostra un popup di debug con informazioni aggiuntive nell'editor OnlyOffice.",
-    "defaultMediaPlayer": "Usa lettore multimediale nativo del browser",
-    "defaultMediaPlayerDescription": "Usa il player del browser invece di quello incluso 'vue-plyr'.",
     "showSelectMultiple": "Mostra 'Selezione multipla' nel menu contestuale desktop",
     "showSelectMultipleDescription": "Aggiunge l'opzione di selezione multipla anche su desktop.",
     "customTheme": "Scegli il tuo tema",

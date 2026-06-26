@@ -204,7 +204,6 @@ userDefaults:
     disableOnlyOfficeExt: ".md .txt .pdf .html .xml" # list of file extensions to disable onlyoffice editor for
     preferEditorForMarkdown: false        # prefer editor first for markdown files instead of the Markdown Viewer
     debugOffice: false                    # debug onlyoffice editor
-    defaultMediaPlayer: false             # disable the styled feature-rich media player for browser default
   search:
     disableOptions: false                 # disable the search options in the search bar
   ui:

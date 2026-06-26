@@ -500,8 +500,6 @@
     "previewFolderDescription": "Toon miniatuurvoorbeelden voor mappen met eerste onderliggende item als cover - of meerdere items als Bewegingsvoorbeelden is ingeschakeld.",
     "debugOfficeEditor": "OnlyOffice foutopsporingsmodus inschakelen",
     "debugOfficeEditorDescription": "Een foutopsporingspop-up weergeven met aanvullende informatie in de OnlyOffice-editor.",
-    "defaultMediaPlayer": "De ingebouwde mediaspeler van uw browser gebruiken",
-    "defaultMediaPlayerDescription": "Gebruik de eigen mediaspeler van uw browser voor video- en audiobestanden in plaats van de meegeleverde 'vue-plyr' mediaspeler van FileBrowser.",
     "showSelectMultiple": "Meervoudige selectie tonen in contextmenu op bureaublad",
     "showSelectMultipleDescription": "Standaard heeft het contextmenu op de desktop geen optie \"meerdere selecteren\" zoals mobiel. Deze optie wordt altijd weergegeven in het contextmenu.",
     "customTheme": "Kies uw thema",

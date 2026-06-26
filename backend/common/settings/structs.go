@@ -395,7 +395,6 @@ type UserDefaultsPreview struct {
 	Models             *bool  `json:"models"`             // show live thumbnails for 3D models files
 	// deprecated fields
 	DisableHideSidebar bool `json:"disableHideSidebar"` // deprecated: use sidebar.disableHideOnPreview instead. disable the hide sidebar preview for previews and editors
-	DefaultMediaPlayer bool `json:"defaultMediaPlayer"` // deprecated: use fileViewer.defaultMediaPlayer instead. disable the styled feature-rich media player for browser default
 	AutoplayMedia      bool `json:"autoplayMedia"`      // deprecated: use fileViewer.autoplayMedia instead. autoplay media files in preview
 }
 
@@ -407,7 +406,7 @@ type UserDefaultsFileViewer struct {
 	DisableOnlyOfficeExt    string `json:"disableOnlyOfficeExt"`    // list of file extensions to disable onlyoffice editor for
 	PreferEditorForMarkdown bool   `json:"preferEditorForMarkdown"` // prefer editor first for markdown files instead of the Markdown Viewer
 	DebugOffice             bool   `json:"debugOffice"`             // debug onlyoffice editor
-	DefaultMediaPlayer      bool   `json:"defaultMediaPlayer"`      // disable the styled feature-rich media player for browser default
+	DefaultMediaPlayer      bool   `json:"defaultMediaPlayer"`      // deprecated: does not exist anymore
 }
 
 // UserDefaultsSearch holds search-related settings

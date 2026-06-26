@@ -34,7 +34,6 @@ userDefaults:
     office: true                         # show thumbnail preview image for office files
     popup: true                          # show larger popup preview when hovering over thumbnail
     autoplayMedia: true                  # autoplay media files in preview
-    defaultMediaPlayer: true             # disable html5 media player and use the default media player
     folder: true                         # show thumbnail preview image for folder files
   permissions:
     api: false                            # allow api access

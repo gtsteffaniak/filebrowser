@@ -125,9 +125,6 @@
           :collapsable="true" :start-collapsed="true" :force-collapsed="isSectionCollapsed('fileViewerOptions')"
           @toggle="handleSectionToggle('fileViewerOptions')">
           <div class="settings-items">
-            <ToggleSwitch class="item" v-model="localuser.preview.defaultMediaPlayer" @change="updateSettings"
-              :name="$t('profileSettings.defaultMediaPlayer')"
-              :description="$t('profileSettings.defaultMediaPlayerDescription')" />
             <ToggleSwitch class="item" v-model="localuser.preview.autoplayMedia" @change="updateSettings"
               :name="$t('profileSettings.autoplayMedia')"
               :description="$t('profileSettings.autoplayMediaDescription')" />

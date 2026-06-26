@@ -612,12 +612,6 @@ func migrateUserDefaults() {
 		logger.Warning("userDefaults: migrating deprecated field 'preview.disableHideSidebar' to 'sidebar.disableHideOnPreview'")
 	}
 
-	if !ud.FileViewer.DefaultMediaPlayer && ud.Preview.DefaultMediaPlayer {
-		ud.FileViewer.DefaultMediaPlayer = ud.Preview.DefaultMediaPlayer
-		hasOldFields = true
-		logger.Warning("userDefaults: migrating deprecated field 'preview.defaultMediaPlayer' to 'fileViewer.defaultMediaPlayer'")
-	}
-
 	if isUnsetBoolPtr(ud.FileViewer.AutoplayMedia) && ud.Preview.AutoplayMedia {
 		autoplay := ud.Preview.AutoplayMedia
 		ud.FileViewer.AutoplayMedia = &autoplay
@@ -1133,7 +1127,6 @@ func SetDefaults(generate bool) Settings {
 				DisableOnlyOfficeExt:    ".md .txt .pdf .html .xml",
 				PreferEditorForMarkdown: false,
 				DebugOffice:             false,
-				DefaultMediaPlayer:      false,
 			},
 			Search: UserDefaultsSearch{
 				DisableOptions: false,

@@ -64,7 +64,6 @@ export interface UserObject {
     models: boolean;
     popup: boolean;
     autoplayMedia?: boolean;
-    defaultMediaPlayer?: boolean;
   };
   loginType: string;
   username: string;

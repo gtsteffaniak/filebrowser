@@ -103,15 +103,13 @@ func (s *transcodeSessionStore) userHasLiveStream(userID uint64) (*transcodeSess
 	return entry, true
 }
 
-func (s *transcodeSessionStore) evaluate(userID uint64, source, path string) TranscodeSessionsResponse {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
+// transcodeLimitStatus reports whether a new transcode stream may start.
+// Caller must hold s.mu.
+func (s *transcodeSessionStore) transcodeLimitStatus(userID uint64, source, path string) (TranscodeSessionsResponse, string) {
 	systemLimit := transcodeSystemLimit()
-	userLimit := transcodePerUserLimit
 	resp := TranscodeSessionsResponse{
 		SystemLimit:  systemLimit,
-		UserLimit:    userLimit,
+		UserLimit:    transcodePerUserLimit,
 		ActiveCount:  len(s.sessions),
 		TargetSource: source,
 		TargetPath:   path,
@@ -123,11 +121,7 @@ func (s *transcodeSessionStore) evaluate(userID uint64, source, path string) Tra
 		resp.CanStart = false
 		resp.BlockReason = "user_limit"
 		resp.Sessions = s.sessionsForUser(userID)
-		logger.Infof(
-			"transcode sessions evaluate: user=%d blocked=user_limit active=%s streams=%d target=%s:%s",
-			userID, live.ID, live.streams, source, path,
-		)
-		return resp
+		return resp, fmt.Sprintf("user_limit active=%s streams=%d", live.ID, live.streams)
 	}
 
 	activeStreams := 0
@@ -137,9 +131,21 @@ func (s *transcodeSessionStore) evaluate(userID uint64, source, path string) Tra
 	if activeStreams >= systemLimit {
 		resp.CanStart = false
 		resp.BlockReason = "system_limit"
+		return resp, fmt.Sprintf("system_limit activeStreams=%d limit=%d", activeStreams, systemLimit)
+	}
+
+	return resp, ""
+}
+
+func (s *transcodeSessionStore) evaluate(userID uint64, source, path string) TranscodeSessionsResponse {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	resp, blockDetail := s.transcodeLimitStatus(userID, source, path)
+	if blockDetail != "" {
 		logger.Infof(
-			"transcode sessions evaluate: user=%d blocked=system_limit activeStreams=%d limit=%d target=%s:%s",
-			userID, activeStreams, systemLimit, source, path,
+			"transcode sessions evaluate: user=%d blocked=%s target=%s:%s",
+			userID, blockDetail, source, path,
 		)
 		return resp
 	}
@@ -162,43 +168,21 @@ func (s *transcodeSessionStore) acquire(userID uint64, username, source, path, f
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	systemLimit := transcodeSystemLimit()
-	userLimit := transcodePerUserLimit
-	status := TranscodeSessionsResponse{
-		SystemLimit:  systemLimit,
-		UserLimit:    userLimit,
-		ActiveCount:  len(s.sessions),
-		TargetSource: source,
-		TargetPath:   path,
-		Sessions:     s.snapshot(),
-		CanStart:     true,
-	}
-
+	status, blockDetail := s.transcodeLimitStatus(userID, source, path)
 	key := transcodeSessionKey(userID, source, path)
 
-	if live, blocked := s.userHasLiveStream(userID); blocked {
-		status.CanStart = false
-		status.BlockReason = "user_limit"
-		status.Sessions = s.sessionsForUser(userID)
+	if blockDetail != "" {
+		reason := status.BlockReason
 		logger.Infof(
-			"transcode acquire rejected: user=%d reason=user_limit activeKey=%s activeStreams=%d requested=%s file=%q",
-			userID, live.ID, live.streams, key, fileName,
+			"transcode acquire rejected: user=%d reason=%s detail=%s requested=%s file=%q",
+			userID, reason, blockDetail, key, fileName,
 		)
-		return transcodeAcquireResult{OK: false, Reason: "user_limit", Status: status}
+		return transcodeAcquireResult{OK: false, Reason: reason, Status: status}
 	}
 
 	activeStreams := 0
 	for _, entry := range s.sessions {
 		activeStreams += entry.streams
-	}
-	if activeStreams >= systemLimit {
-		status.CanStart = false
-		status.BlockReason = "system_limit"
-		logger.Infof(
-			"transcode acquire rejected: user=%d reason=system_limit activeStreams=%d limit=%d requested=%s file=%q",
-			userID, activeStreams, systemLimit, key, fileName,
-		)
-		return transcodeAcquireResult{OK: false, Reason: "system_limit", Status: status}
 	}
 
 	tc := settings.Config.Integrations.Media.Transcode

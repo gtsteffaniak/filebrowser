@@ -5,8 +5,8 @@
       <LoadingSpinner size="medium" />
     </div>
     <div class="preview" :class="{
-      'plyr-background-light': !isDarkMode && previewType === 'audio' && !useDefaultMediaPlayer,
-      'plyr-background-dark': isDarkMode && previewType === 'audio' && !useDefaultMediaPlayer,
+      'plyr-background-light': !isDarkMode && previewType === 'audio',
+      'plyr-background-dark': isDarkMode && previewType === 'audio',
       'transitioning': isTransitioning
     }" v-if="!isDeleted">
       <ExtendedImage v-if="showImage && !isTransitioning" :src="raw" @navigate-previous="navigatePrevious"
@@ -26,12 +26,11 @@
           :lyrics="lyrics"
           :req="req"
           :listing="listing"
-          :useDefaultMediaPlayer="useDefaultMediaPlayer"
           :autoPlayEnabled="autoPlay"
           :startTranscode="transcodePlaybackActive"
           @play="autoPlay = true"
           @needs-transcode="handleVideoTranscodeOffer"
-          :class="{ 'plyr-background': previewType === 'audio' && !useDefaultMediaPlayer }"
+          :class="{ 'plyr-background': previewType === 'audio' }"
           @navigate-previous="navigatePrevious"
           @navigate-next="navigateNext"
           @close-preview="exitPreviewFromImageGesture"
@@ -156,9 +155,6 @@ export default {
     },
     autoPlay() {
       return getters.previewPerms().autoplayMedia;
-    },
-    useDefaultMediaPlayer() {
-      return getters.previewPerms().defaultMediaPlayer === true;
     },
     isMobileSafari() {
       const userAgent = window.navigator.userAgent;
@@ -397,7 +393,7 @@ export default {
         return;
       }
       this.subtitlesList = await this.subtitles();
-      if (this.previewType === 'audio' && !this.useDefaultMediaPlayer && this.lyricsFetchedForPath !== state.req.path) {
+      if (this.previewType === 'audio' && this.lyricsFetchedForPath !== state.req.path) {
         this.lyricsFetchedForPath = state.req.path;
         if (state.req.metadata?.hasLyrics) {
           try {

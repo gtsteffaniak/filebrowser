@@ -7441,12 +7441,7 @@ const docTemplate = `{
                 "debugOffice": {
                     "description": "debug onlyoffice editor",
                     "type": "boolean"
-                },
-                "defaultMediaPlayer": {
-                    "description": "disable the styled feature-rich media player for browser default",
-                    "type": "boolean"
-                },
-                "disableOnlyOfficeExt": {
+                },                "disableOnlyOfficeExt": {
                     "description": "list of file extensions to disable onlyoffice editor for",
                     "type": "string"
                 },
@@ -7560,12 +7555,7 @@ const docTemplate = `{
                 "autoplayMedia": {
                     "description": "deprecated: use fileViewer.autoplayMedia instead. autoplay media files in preview",
                     "type": "boolean"
-                },
-                "defaultMediaPlayer": {
-                    "description": "deprecated: use fileViewer.defaultMediaPlayer instead. disable the styled feature-rich media player for browser default",
-                    "type": "boolean"
-                },
-                "disableHideSidebar": {
+                },                "disableHideSidebar": {
                     "description": "deprecated fields",
                     "type": "boolean"
                 },
@@ -8486,12 +8476,7 @@ const docTemplate = `{
                 "autoplayMedia": {
                     "description": "autoplay media files in preview",
                     "type": "boolean"
-                },
-                "defaultMediaPlayer": {
-                    "description": "disable html5 media player and use the default media player",
-                    "type": "boolean"
-                },
-                "disableHideSidebar": {
+                },                "disableHideSidebar": {
                     "description": "disable the hide sidebar preview for previews and editors",
                     "type": "boolean"
                 },

@@ -63,7 +63,6 @@ func TestMigrateUserDefaults_OldToNew(t *testing.T) {
 			// Deprecated fields that should be migrated
 			DisableHideSidebar: true,
 			AutoplayMedia:      true,
-			DefaultMediaPlayer: true,
 		},
 		FileLoading: users.FileLoading{
 			MaxConcurrent:   5,

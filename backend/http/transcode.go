@@ -145,9 +145,6 @@ func serveTranscode(w http.ResponseWriter, r *http.Request, d *requestContext, s
 	if !settings.TranscodeEnabled() {
 		return http.StatusNotFound, fmt.Errorf("transcode not enabled")
 	}
-	if transcodeRejectRange(r) {
-		return http.StatusRequestedRangeNotSatisfiable, fmt.Errorf("range requests not supported for transcode")
-	}
 
 	svc := ffmpeg.Get()
 	if svc == nil {

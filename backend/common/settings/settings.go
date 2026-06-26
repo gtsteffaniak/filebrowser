@@ -114,7 +114,6 @@ func ApplyUserDefaults(u *users.User) {
 	// FileViewer settings
 	u.EditorQuickSave = d.FileViewer.EditorQuickSave
 	u.Preview.AutoplayMedia = boolValueOrDefault(d.FileViewer.AutoplayMedia, true)
-	u.Preview.DefaultMediaPlayer = d.FileViewer.DefaultMediaPlayer
 	u.DisableViewingExt = d.FileViewer.DisableViewingExt
 	u.DisableOnlyOfficeExt = d.FileViewer.DisableOnlyOfficeExt
 	u.DisableOfficePreviewExt = d.FileViewer.DisableOnlyOfficeExt // deprecated field, map to same source

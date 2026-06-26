@@ -2,7 +2,7 @@
   <div class="plyr-viewer">
     <!-- Audio with plyr -->
     <div
-      v-if="previewType === 'audio' && !useDefaultMediaPlayer"
+      v-if="previewType === 'audio'"
       ref="audioPlayerGestureRoot"
       class="audio-player-container audio-player-container--plyr-gestures"
       :class="{ 'audio-player-container--lyrics-open': isMobile && showMobileLyrics && lyrics.length }"
@@ -118,7 +118,7 @@
     </div>
 
     <!-- Video with plyr -->
-    <div v-else-if="previewType === 'video' && !useDefaultMediaPlayer" class="video-player-container" :class="{ 'no-captions': !hasSubtitles }">
+    <div v-else-if="previewType === 'video'" class="video-player-container" :class="{ 'no-captions': !hasSubtitles }">
       <div class="plyr-video-container" ref="plyrVideoContainer">
         <video
           ref="videoElement"
@@ -145,22 +145,6 @@
       >
         <i :key="skipFeedbackKey" class="material-symbols video-skip-feedback-layer__icon">{{ skipFeedbackIcon }}</i>
       </div>
-    </div>
-
-    <!-- Default HTML5 Audio -->
-    <div v-else-if="previewType === 'audio' && useDefaultMediaPlayer" class="audio-player-container">
-      <audio ref="defaultAudioPlayer" :src="raw"
-        controls :autoplay="shouldAutoplay" @play="handlePlay">
-      </audio>
-    </div>
-
-    <!-- Default HTML5 Video -->
-    <div v-else-if="previewType === 'video' && useDefaultMediaPlayer" class="video-player-container">
-      <video ref="defaultVideoPlayer" :src="raw"
-        controls :autoplay="shouldAutoplay" @play="handlePlay" playsinline >
-        <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
-          :label="subtitleTrackLabel(sub)" :srclang="sub.language" :default="index === 0" />
-      </video>
     </div>
 
     <!-- Right detection zone – always for video/mobile audio queue button & desktop panel toggle -->
@@ -223,7 +207,7 @@
     <!-- Lyrics scroll lock (mobile, bottom‑right) – visible while lyrics overlay is open -->
     <button
       type="button"
-      v-if="isMobile && previewType === 'audio' && !useDefaultMediaPlayer && showMobileLyrics && lyrics.length && syncedLyrics"
+      v-if="isMobile && previewType === 'audio' && showMobileLyrics && lyrics.length && syncedLyrics"
       class="queue-button floating lyrics-lock-fab"
       :class="{
         'dark-mode': darkMode,
@@ -266,6 +250,7 @@ import { globalVars } from '@/utils/constants';
 import { getSubtitleFormatExtension } from '@/utils/subtitles';
 import * as resourcesApi from '@/api/resources';
 import { startFmp4MsePlayback } from '@/utils/fmp4MsePlayer';
+import { createStreamWindowSync, setStreamWindowCookie } from '@/utils/streamWindowSync';
 
 const PLYR_CAPTION_SIZE_IDS = ['small', 'medium', 'large', 'xlarge'];
 /** Same localStorage key Plyr uses for `captions`, `language`, etc. (see Plyr defaults `storage.key`). */
@@ -298,10 +283,6 @@ export default {
     req: {
       type: Object,
       required: true,
-    },
-    useDefaultMediaPlayer: {
-      type: Boolean,
-      default: false,
     },
     autoPlayEnabled: {
       type: Boolean,
@@ -384,6 +365,7 @@ export default {
       transcodeAbort: null,
       useMsePlayback: false,
       transcodeOfferEmitted: false,
+      streamWindowSync: null,
     };
   },
   watch: {
@@ -433,6 +415,15 @@ export default {
       },
       immediate: true
     },
+    'req.metadata.duration'(duration) {
+      if (this.previewType !== 'video' || !Number.isFinite(duration) || duration <= 0) {
+        return;
+      }
+      this.primeStreamWindowCookie(this.mediaElement?.currentTime ?? 0);
+      if (!this.streamWindowSync) {
+        this.setupStreamWindowSync();
+      }
+    },
     subtitlesList(newSubs, oldSubs) {
       const gained = newSubs && newSubs.length > 0 && (!oldSubs || oldSubs.length === 0);
       const lost = (!newSubs || newSubs.length === 0) && oldSubs && oldSubs.length > 0;
@@ -440,11 +431,11 @@ export default {
         this.captionSizeMenuInitialized = false;
       }
       if (gained) {
-        if (!this.useDefaultMediaPlayer && !this.player && this.previewType === 'video') {
+        if (!this.player && this.previewType === 'video') {
           this.$nextTick(() => {
             this.initializePlyr();
           });
-        } else if (!this.useDefaultMediaPlayer && this.player && this.previewType === 'video') {
+        } else if (this.player && this.previewType === 'video') {
           this.$nextTick(() => {
             this.applyCustomCaptionSizeSettings(this.player);
             this.syncCaptionSizeSettingsVisibility();
@@ -536,13 +527,8 @@ export default {
       return this.subtitlesList && this.subtitlesList.length > 0;
     },
     mediaElement() {
-      if (this.useDefaultMediaPlayer) {
-        return this.previewType === 'video'
-          ? this.$refs.defaultVideoPlayer 
-          : this.$refs.defaultAudioPlayer;
-      }
       return this.previewType === 'video'
-        ? this.$refs.videoElement 
+        ? this.$refs.videoElement
         : this.$refs.audioElement;
     },
     shouldAutoplay() {
@@ -554,7 +540,6 @@ export default {
     videoSwipeGesturesActive() {
       return (
         (this.previewType === 'video' || this.previewType === 'audio') &&
-        !this.useDefaultMediaPlayer &&
         !!this.player &&
         !this.player.fullscreen?.active
       );
@@ -582,6 +567,21 @@ export default {
     },
     transcodeEnabled() {
       return globalVars.transcodeEnabled === true;
+    },
+    needsStreamWindowSync() {
+      return (
+        this.previewType === 'video'
+        && !this.useMsePlayback
+        && Boolean(this.req?.streamToken)
+      );
+    },
+    nativeVideoTranscodeEligible() {
+      return (
+        this.transcodeEnabled
+        && this.previewType === 'video'
+        && !this.useMsePlayback
+        && !getters.isShare()
+      );
     },
     videoElementAttrs() {
       const attrs = { type: this.req.type };
@@ -672,6 +672,7 @@ export default {
     });
     // Cleanup Plyr
     this.destroyMsePlayback();
+    this.teardownStreamWindowSync();
     this.destroyPlyr();
     this.mediaElement.pause();
     this.clearMediaSession();
@@ -783,6 +784,7 @@ export default {
       if (this.player) {
         this.teardownVideoSwipeGestures();
         this.teardownDoubleTapSeek();
+        this.teardownStreamWindowSync();
         this.clearMediaSession();
         this.cleanupAlbumArt();
         this.player.off();
@@ -803,6 +805,49 @@ export default {
       this.mseController = null;
       this.useMsePlayback = false;
     },
+    teardownStreamWindowSync() {
+      this.streamWindowSync?.stop();
+      this.streamWindowSync = null;
+    },
+    primeStreamWindowCookie(currentTime = 0) {
+      if (!this.needsStreamWindowSync) {
+        return;
+      }
+      const fromElement = this.mediaElement?.duration;
+      const fromMetadata = this.req.metadata?.duration;
+      const duration = Number.isFinite(fromElement) && fromElement > 0
+        ? fromElement
+        : fromMetadata;
+      if (!Number.isFinite(duration) || duration <= 0) {
+        return;
+      }
+      setStreamWindowCookie({
+        streamToken: this.req.streamToken,
+        sessionId: state.sessionId,
+        currentTime,
+        duration,
+        seeking: Boolean(this.mediaElement?.seeking),
+      });
+    },
+    setupStreamWindowSync() {
+      this.teardownStreamWindowSync();
+      if (!this.needsStreamWindowSync) {
+        return;
+      }
+      this.streamWindowSync = createStreamWindowSync({
+        streamToken: this.req.streamToken,
+        sessionId: state.sessionId,
+        getPlaybackState: () => {
+          const el = this.mediaElement;
+          return {
+            currentTime: el?.currentTime ?? 0,
+            duration: el?.duration ?? 0,
+            seeking: Boolean(el?.seeking),
+          };
+        },
+      });
+      this.streamWindowSync.start();
+    },
     getTranscodePlaybackUrl() {
       return resourcesApi.getTranscodeURL(
         this.req.source,
@@ -811,14 +856,7 @@ export default {
       );
     },
     async offerTranscodePlayback() {
-      if (
-        !this.transcodeEnabled
-        || this.useMsePlayback
-        || this.previewType !== 'video'
-        || this.useDefaultMediaPlayer
-        || getters.isShare()
-        || this.transcodeOfferEmitted
-      ) {
+      if (!this.nativeVideoTranscodeEligible || this.transcodeOfferEmitted) {
         return;
       }
       this.transcodeOfferEmitted = true;
@@ -831,7 +869,7 @@ export default {
       }
     },
     async startTranscodePlayback() {
-      if (!this.transcodeEnabled || this.previewType !== 'video' || this.useDefaultMediaPlayer) {
+      if (!this.transcodeEnabled || this.previewType !== 'video') {
         return;
       }
       await this.destroyMsePlayback();
@@ -873,13 +911,7 @@ export default {
       }
     },
     onVideoLoadedMetadata() {
-      if (
-        !this.transcodeEnabled
-        || this.useMsePlayback
-        || this.previewType !== 'video'
-        || this.useDefaultMediaPlayer
-        || getters.isShare()
-      ) {
+      if (!this.nativeVideoTranscodeEligible) {
         return;
       }
       const video = this.mediaElement;
@@ -891,33 +923,32 @@ export default {
       }
       this.offerTranscodePlayback();
     },
-    onVideoPlaybackError() {
-      if (!this.transcodeEnabled || this.useMsePlayback || this.previewType !== 'video' || this.useDefaultMediaPlayer) {
+    onVideoPlaybackError(event) {
+      if (!this.nativeVideoTranscodeEligible) {
+        return;
+      }
+      const code = event?.target?.error?.code;
+      if (
+        code !== MediaError.MEDIA_ERR_DECODE
+        && code !== MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED
+      ) {
         return;
       }
       this.offerTranscodePlayback();
     },
     togglePlayPause() {
-      if (!this.mediaElement) return;
-      if (this.useDefaultMediaPlayer) {
-        if (this.mediaElement.paused) {
-          this.mediaElement.play();
-        } else {
-          this.mediaElement.pause();
-        }
-      } else if (this.player) {
-        if (this.player.playing) {
-          this.player.pause();
-        } else {
-          this.player.play();
-        }
+      if (!this.mediaElement || !this.player) return;
+      if (this.player.playing) {
+        this.player.pause();
+      } else {
+        this.player.play();
       }
     },
     handlePlay() {
       this.$emit('play');
     },
     ensurePlaybackModeApplied() {
-      if (this.useDefaultMediaPlayer || !this.player) return;
+      if (!this.player) return;
       try {
         const settingsMenu = this.player.elements.settings?.menu;
         const playbackBtn = this.player.elements.settings?.buttons?.playback;
@@ -985,7 +1016,7 @@ export default {
       };
     },
     applyCaptionSizeClass() {
-      if (this.useDefaultMediaPlayer || !this.player?.elements?.container) {
+      if (!this.player?.elements?.container) {
         return;
       }
       const el = this.player.elements.container;
@@ -995,7 +1026,7 @@ export default {
       el.classList.add(`plyr-caption-size--${this.getStoredCaptionSize()}`);
     },
     syncCaptionSizeSettingsVisibility() {
-      if (this.useDefaultMediaPlayer || !this.player) {
+      if (!this.player) {
         return;
       }
       const btn = this.player.elements.settings?.buttons?.captionSize;
@@ -1240,9 +1271,8 @@ export default {
       }
     },
     hookEvents() {
-      if (this.useDefaultMediaPlayer) {
-        this.setupDefaultPlayerEvents(this.mediaElement);
-        return;
+      if (this.previewType === 'video') {
+        this.primeStreamWindowCookie(0);
       }
 
       if (this.previewType === 'video' && this.startTranscode) {
@@ -1289,11 +1319,16 @@ export default {
         this.updateMediaSessionPlaybackState();
         this.syncLyrics();
       });
+      this.player.on('seeking', () => {
+        this.streamWindowSync?.onSeeking();
+      });
       this.player.on('seeked', () => {
         this.updateMediaSessionPlaybackState();
+        this.streamWindowSync?.onSeeked();
       });
       this.player.on('loadedmetadata', () => {
         this.updateMediaSessionPlaybackState();
+        this.setupStreamWindowSync();
       });
       this.player.on('ratechange', () => {
         this.updateMediaSessionPlaybackState();
@@ -1322,7 +1357,6 @@ export default {
     getPlyrGestureSurface() {
       if (
         this.previewType === 'audio' &&
-        !this.useDefaultMediaPlayer &&
         this.player &&
         this.$refs.audioPlayerGestureRoot
       ) {
@@ -1351,7 +1385,7 @@ export default {
       }
     },
     setupDoubleTapSeek() {
-      if (this.useDefaultMediaPlayer || (this.previewType !== 'video' && this.previewType !== 'audio') || !this.player) {
+      if ((this.previewType !== 'video' && this.previewType !== 'audio') || !this.player) {
         return;
       }
       this.teardownDoubleTapSeek();
@@ -1848,7 +1882,7 @@ export default {
     },
     setupVideoSwipeGestures() {
       this.teardownVideoSwipeGestures();
-      if (this.useDefaultMediaPlayer || (this.previewType !== 'video' && this.previewType !== 'audio') || !this.player) {
+      if ((this.previewType !== 'video' && this.previewType !== 'audio') || !this.player) {
         return;
       }
       const surface = this.getPlyrGestureSurface();
@@ -1878,22 +1912,6 @@ export default {
       }
       this.clearVideoDismissAnimTimers();
       this.resetVideoEdgeGestureImmediate();
-    },
-    setupDefaultPlayerEvents(element) {
-      if (!element) return;
-      element.addEventListener('ended', this.handleMediaEnd);
-      element.addEventListener('play', () => {
-        mutations.setPlaybackState(true);
-      });
-      element.addEventListener('pause', () => {
-        mutations.setPlaybackState(false);
-      });
-      element.addEventListener('timeupdate', () => {
-        this.updateMediaSessionPlaybackState();
-      });
-      element.addEventListener('loadedmetadata', () => {
-        this.updateMediaSessionPlaybackState();
-      });
     },
     async onFullscreenEnter() {
       this.resetVideoEdgeGestureImmediate();
@@ -2067,15 +2085,11 @@ export default {
     },
     restartCurrentFile() {
       console.log('Restarting current file');
-      if (this.useDefaultMediaPlayer) {
-        // HTML5 player
-        this.mediaElement.currentTime = 0;
-        this.mediaElement.play();
-      } else if (this.player) {
-        // Plyr player
-        this.player.currentTime = 0;
-        this.player.play();
+      if (!this.player) {
+        return;
       }
+      this.player.currentTime = 0;
+      this.player.play();
     },
     handleMediaEnd() {
       const handleShortQueue = () => {
