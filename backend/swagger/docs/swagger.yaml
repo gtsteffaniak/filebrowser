@@ -1618,6 +1618,9 @@ definitions:
       debugOffice:
         description: debug onlyoffice editor
         type: boolean
+      defaultMediaPlayer:
+        description: 'deprecated: does not exist anymore'
+        type: boolean
       disableOnlyOfficeExt:
         description: list of file extensions to disable onlyoffice editor for
         type: string
@@ -2360,7 +2363,8 @@ definitions:
         type: boolean
       autoplayMedia:
         description: autoplay media files in preview
-        type: boolean      disableHideSidebar:
+        type: boolean
+      disableHideSidebar:
         description: disable the hide sidebar preview for previews and editors
         type: boolean
       folder:

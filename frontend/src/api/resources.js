@@ -836,7 +836,6 @@ export function getStreamURL(source, path, streamToken) {
       source: source,
       file: path,
       streamToken: streamToken,
-      sessionId: state.sessionId,
     }
     const apiPath = getApiPath('media/stream', params)
     return window.origin + apiPath

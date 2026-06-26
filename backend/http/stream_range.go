@@ -133,13 +133,6 @@ func serveStreamByteRange(w http.ResponseWriter, r *http.Request, reader io.Read
 		return http.StatusRequestedRangeNotSatisfiable, fmt.Errorf("invalid byte range")
 	}
 
-	allowed, end := applyStreamPlaybackWindow(r, start, end, size)
-	if !allowed {
-		setStreamResponseHeaders(w, r, displayFileName, size)
-		w.Header().Set("Content-Range", fmt.Sprintf("bytes */%d", size))
-		return http.StatusRequestedRangeNotSatisfiable, fmt.Errorf("stream range outside playback window")
-	}
-
 	start, end = capStreamByteRange(start, end)
 
 	chunkSize := end - start + 1

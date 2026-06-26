@@ -250,7 +250,11 @@ import { globalVars } from '@/utils/constants';
 import { getSubtitleFormatExtension } from '@/utils/subtitles';
 import * as resourcesApi from '@/api/resources';
 import { startFmp4MsePlayback } from '@/utils/fmp4MsePlayer';
-import { createStreamWindowSync, setStreamWindowCookie } from '@/utils/streamWindowSync';
+import {
+  blockPlyrSeekOnInput,
+  enablePlyrSeekOnRelease,
+} from '@/utils/plyrSeekOnRelease';
+import { enablePlyrScrubPreview } from '@/utils/plyrScrubPreview';
 
 const PLYR_CAPTION_SIZE_IDS = ['small', 'medium', 'large', 'xlarge'];
 /** Same localStorage key Plyr uses for `captions`, `language`, etc. (see Plyr defaults `storage.key`). */
@@ -365,10 +369,16 @@ export default {
       transcodeAbort: null,
       useMsePlayback: false,
       transcodeOfferEmitted: false,
-      streamWindowSync: null,
+      /** Native video: defer stream URL until play so opening preview does not range-fetch the file. */
+      videoStreamAttached: false,
+      seekOnReleaseCleanup: null,
+      scrubPreviewCleanup: null,
     };
   },
   watch: {
+    raw() {
+      this.videoStreamAttached = false;
+    },
     playbackMode: {
       handler(newMode, oldMode) {
         if (newMode !== oldMode) {
@@ -414,15 +424,6 @@ export default {
         }
       },
       immediate: true
-    },
-    'req.metadata.duration'(duration) {
-      if (this.previewType !== 'video' || !Number.isFinite(duration) || duration <= 0) {
-        return;
-      }
-      this.primeStreamWindowCookie(this.mediaElement?.currentTime ?? 0);
-      if (!this.streamWindowSync) {
-        this.setupStreamWindowSync();
-      }
     },
     subtitlesList(newSubs, oldSubs) {
       const gained = newSubs && newSubs.length > 0 && (!oldSubs || oldSubs.length === 0);
@@ -568,13 +569,6 @@ export default {
     transcodeEnabled() {
       return globalVars.transcodeEnabled === true;
     },
-    needsStreamWindowSync() {
-      return (
-        this.previewType === 'video'
-        && !this.useMsePlayback
-        && Boolean(this.req?.streamToken)
-      );
-    },
     nativeVideoTranscodeEligible() {
       return (
         this.transcodeEnabled
@@ -583,12 +577,23 @@ export default {
         && !getters.isShare()
       );
     },
+    scrubPreviewEnabled() {
+      return (
+        this.previewType === 'video'
+        && Boolean(this.req?.hasPreview)
+        && !this.useMsePlayback
+        && getters.previewPerms().video
+      );
+    },
     videoElementAttrs() {
-      const attrs = { type: this.req.type };
-      if (!this.useMsePlayback) {
+      const attrs = { type: this.req.type, preload: 'none' };
+      if (!this.useMsePlayback && this.shouldAttachVideoStream) {
         attrs.src = this.raw;
       }
       return attrs;
+    },
+    shouldAttachVideoStream() {
+      return this.videoStreamAttached || this.shouldAutoplay;
     },
     /** Rewind / fast-forward in the control bar only on non-mobile (gestures stay as elsewhere). */
     plyrOptions() {
@@ -635,7 +640,7 @@ export default {
         seekTime: 10,
         hideControls: true,
         keyboard: { focused: true, global: true },
-        tooltips: { controls: true, seek: true },
+        tooltips: { controls: true, seek: !this.scrubPreviewEnabled },
         loop: { active: false },
         blankVideo: '',
         muted: false,
@@ -643,7 +648,7 @@ export default {
         playsinline: true,
         clickToPlay: true,
         resetOnEnd: false,
-        preload: 'metadata',
+        preload: 'none',
         iconUrl: `${globalVars.baseURL}public/static/img/plyr.svg`,
         // Blob/async tracks need addtrack → captions.update; otherwise meta never fills and toggle CC throws (track undefined).
         // Do not call toggleCaptions() here — Plyr already applies `plyr` localStorage for captions on/off.
@@ -651,6 +656,9 @@ export default {
           active: false,
           language: 'auto',
           update: true,
+        },
+        listeners: {
+          seek: blockPlyrSeekOnInput,
         },
       };
     },
@@ -672,7 +680,6 @@ export default {
     });
     // Cleanup Plyr
     this.destroyMsePlayback();
-    this.teardownStreamWindowSync();
     this.destroyPlyr();
     this.mediaElement.pause();
     this.clearMediaSession();
@@ -781,10 +788,18 @@ export default {
       navigator.mediaSession.playbackState = 'none';
     },
     destroyPlyr() {
+      if (this.scrubPreviewCleanup) {
+        this.scrubPreviewCleanup();
+        this.scrubPreviewCleanup = null;
+      }
+      if (this.seekOnReleaseCleanup) {
+        this.seekOnReleaseCleanup();
+        this.seekOnReleaseCleanup = null;
+      }
       if (this.player) {
+        this.player.off('play', this.attachVideoStreamOnPlay);
         this.teardownVideoSwipeGestures();
         this.teardownDoubleTapSeek();
-        this.teardownStreamWindowSync();
         this.clearMediaSession();
         this.cleanupAlbumArt();
         this.player.off();
@@ -794,7 +809,8 @@ export default {
         this.captionSizeMenuInitialized = false;
         this.lastAppliedMode = null;
         if (this.mediaElement && !this.useMsePlayback) {
-          this.mediaElement.src = this.raw;
+          this.mediaElement.removeAttribute('src');
+          this.mediaElement.load();
         }
       }
     },
@@ -804,49 +820,6 @@ export default {
       this.mseController?.destroy();
       this.mseController = null;
       this.useMsePlayback = false;
-    },
-    teardownStreamWindowSync() {
-      this.streamWindowSync?.stop();
-      this.streamWindowSync = null;
-    },
-    primeStreamWindowCookie(currentTime = 0) {
-      if (!this.needsStreamWindowSync) {
-        return;
-      }
-      const fromElement = this.mediaElement?.duration;
-      const fromMetadata = this.req.metadata?.duration;
-      const duration = Number.isFinite(fromElement) && fromElement > 0
-        ? fromElement
-        : fromMetadata;
-      if (!Number.isFinite(duration) || duration <= 0) {
-        return;
-      }
-      setStreamWindowCookie({
-        streamToken: this.req.streamToken,
-        sessionId: state.sessionId,
-        currentTime,
-        duration,
-        seeking: Boolean(this.mediaElement?.seeking),
-      });
-    },
-    setupStreamWindowSync() {
-      this.teardownStreamWindowSync();
-      if (!this.needsStreamWindowSync) {
-        return;
-      }
-      this.streamWindowSync = createStreamWindowSync({
-        streamToken: this.req.streamToken,
-        sessionId: state.sessionId,
-        getPlaybackState: () => {
-          const el = this.mediaElement;
-          return {
-            currentTime: el?.currentTime ?? 0,
-            duration: el?.duration ?? 0,
-            seeking: Boolean(el?.seeking),
-          };
-        },
-      });
-      this.streamWindowSync.start();
     },
     getTranscodePlaybackUrl() {
       return resourcesApi.getTranscodeURL(
@@ -1265,16 +1238,15 @@ export default {
     },
     updateMedia() {
       this.transcodeOfferEmitted = false;
+      if (this.previewType === 'video') {
+        this.videoStreamAttached = this.shouldAutoplay;
+      }
       this.hookEvents();
       if (this.previewType === "audio") {
         this.loadAudioMetadata();
       }
     },
     hookEvents() {
-      if (this.previewType === 'video') {
-        this.primeStreamWindowCookie(0);
-      }
-
       if (this.previewType === 'video' && this.startTranscode) {
         this.startTranscodePlayback();
         return;
@@ -1293,15 +1265,68 @@ export default {
       this.initializePlyr();
     },
     initializePlyr() {
-      if (!this.mediaElement) return;
+      if (!this.mediaElement || this.player) return;
       // Small delay to ensure DOM is ready
       this.$nextTick(() => {
+        if (this.player) return;
         // Initialize Plyr
         this.player = new Plyr(this.mediaElement, this.plyrOptions);
         // Set up Media Session API
         this.setupMediaSession();
         // Set up event listeners
         this.setupPlyrEvents();
+        this.seekOnReleaseCleanup = enablePlyrSeekOnRelease(this.player);
+        this.setupScrubPreview();
+        if (this.previewType === 'video' && !this.useMsePlayback) {
+          this.setupDeferredVideoStream();
+        }
+      });
+    },
+    setupDeferredVideoStream() {
+      if (this.shouldAttachVideoStream) {
+        return;
+      }
+      this.player.on('play', this.attachVideoStreamOnPlay);
+    },
+    attachVideoStreamOnPlay() {
+      if (this.videoStreamAttached || this.useMsePlayback || this.previewType !== 'video') {
+        return;
+      }
+      this.player.off('play', this.attachVideoStreamOnPlay);
+      this.player.pause();
+      this.videoStreamAttached = true;
+      this.$nextTick(() => {
+        const el = this.mediaElement;
+        if (!el) return;
+        const resume = () => {
+          el.removeEventListener('loadedmetadata', resume);
+          this.player?.play().catch(() => {});
+        };
+        el.addEventListener('loadedmetadata', resume);
+        if (el.readyState >= HTMLMediaElement.HAVE_METADATA) {
+          resume();
+        }
+      });
+    },
+    setupScrubPreview() {
+      if (!this.scrubPreviewEnabled || !this.player) {
+        return;
+      }
+      this.scrubPreviewCleanup?.();
+      this.scrubPreviewCleanup = enablePlyrScrubPreview(this.player, {
+        buildPreviewUrl: (atPercentage) => {
+          const base = getters.isShare()
+            ? resourcesApi.getPreviewURLPublic(this.req.path)
+            : resourcesApi.getPreviewURL(this.req.source, this.req.path, this.req.modified);
+          return `${base}&atPercentage=${atPercentage}`;
+        },
+        getAspectRatio: () => {
+          const video = this.mediaElement;
+          if (video?.videoWidth > 0 && video?.videoHeight > 0) {
+            return video.videoWidth / video.videoHeight;
+          }
+          return 16 / 9;
+        },
       });
     },
     setupPlyrEvents() {
@@ -1319,16 +1344,11 @@ export default {
         this.updateMediaSessionPlaybackState();
         this.syncLyrics();
       });
-      this.player.on('seeking', () => {
-        this.streamWindowSync?.onSeeking();
-      });
       this.player.on('seeked', () => {
         this.updateMediaSessionPlaybackState();
-        this.streamWindowSync?.onSeeked();
       });
       this.player.on('loadedmetadata', () => {
         this.updateMediaSessionPlaybackState();
-        this.setupStreamWindowSync();
       });
       this.player.on('ratechange', () => {
         this.updateMediaSessionPlaybackState();
@@ -2333,6 +2353,50 @@ export default {
 .plyr .plyr__progress__container {
   flex: 100%;
   margin: 0;
+}
+
+/* Scrub preview popup (appended to document.body while scrubbing) */
+.fb-scrub-preview {
+  position: fixed;
+  z-index: 2147483646;
+  pointer-events: none;
+  transform: translate(-50%, calc(-100% - 14px));
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.12s ease;
+}
+
+.fb-scrub-preview--visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.fb-scrub-preview__frame {
+  overflow: hidden;
+  border-radius: 4px;
+  background: #000;
+  border: 2px solid var(--primaryColor);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.35),
+    0 6px 20px rgba(0, 0, 0, 0.55),
+    0 0 12px color-mix(in srgb, var(--primaryColor) 35%, transparent);
+}
+
+.fb-scrub-preview__frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fb-scrub-preview__time {
+  display: block;
+  margin-top: 6px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
 }
 
 /* Big play button when pause/start the video */

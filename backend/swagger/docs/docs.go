@@ -7441,7 +7441,12 @@ const docTemplate = `{
                 "debugOffice": {
                     "description": "debug onlyoffice editor",
                     "type": "boolean"
-                },                "disableOnlyOfficeExt": {
+                },
+                "defaultMediaPlayer": {
+                    "description": "deprecated: does not exist anymore",
+                    "type": "boolean"
+                },
+                "disableOnlyOfficeExt": {
                     "description": "list of file extensions to disable onlyoffice editor for",
                     "type": "string"
                 },
@@ -7555,7 +7560,8 @@ const docTemplate = `{
                 "autoplayMedia": {
                     "description": "deprecated: use fileViewer.autoplayMedia instead. autoplay media files in preview",
                     "type": "boolean"
-                },                "disableHideSidebar": {
+                },
+                "disableHideSidebar": {
                     "description": "deprecated fields",
                     "type": "boolean"
                 },
@@ -8476,7 +8482,8 @@ const docTemplate = `{
                 "autoplayMedia": {
                     "description": "autoplay media files in preview",
                     "type": "boolean"
-                },                "disableHideSidebar": {
+                },
+                "disableHideSidebar": {
                     "description": "disable the hide sidebar preview for previews and editors",
                     "type": "boolean"
                 },
