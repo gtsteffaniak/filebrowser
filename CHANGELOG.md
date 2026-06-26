@@ -9,7 +9,8 @@ A database migration is required to go from v1.x to this version. See docs.
  **New Features**:
  - Download grant mechanism to distinguish between UI viewing and download.
  - ffmpeg hardware acceleration detection and support via go-ffmpeg
-  - video streaming is limited to viewing only.
+ - video streaming is limited to viewing only.
+ - video scrubbing shows netflix-like thumbnails at percentage intervals while
  # - granular per source permissions and access
  # - backup/restore in UI settings
  # - New CLI options and usage
