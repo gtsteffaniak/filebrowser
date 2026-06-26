@@ -95,11 +95,18 @@ export default {
       })(),
       lyricsScrollLocked: false,
       // Visualizer state
-      visualizerAnalyser: null,
+      visualizerAnalyserLeft: null,
+      visualizerAnalyserRight: null,
+      visualizerSplitter: null,
       visualizerAnimationId: null,
       visualizerActive: false,
       barFrequencyRanges: [], // For each bar { start, end } indices into the FFT data
       barPositions: [],       // For each bar { x, width } in pixels for rendering
+      fftDataLeft: null,
+      fftDataRight: null,
+      peaksLeft: [],
+      peaksRight: [],
+      primaryColor: "",
       /**
        * Visualizer configs
        * @property {number} barCount        – Number of bars -- more bars looks better but is a bit more expensive
@@ -107,19 +114,21 @@ export default {
        * @property {number} gain            – 0.3–1.0 -- overall amplitude (loudness)
        * @property {number} freqOffset      – 3–10 -- skips low‑frequency bins
        * @property {number} freqExponent    – 1.0–2.0 -- 1.0 = linear, >1.0 = more bars on bass
-       * @property {number} lowBoost        – 0.0–0.5 -- extra gain for the first 2 (left) bars only (bass)
-       * @property {number} highBoost       – 0.0–1.0 -- extra gain ramp for high bars (the bars at the right side)
+       * @property {number} lowBoost        – 0.0–0.5 -- extra gain for the first 2 bars (bass)
+       * @property {number} highBoost       – 0.0–1.0 -- extra gain for high bars
        * @property {number} powerExponent   – 0.7–1.0 -- more lower makes it more dynamic
+       * @property {number} sensitivity     – 0.5–0.9 -- lower makes it less responsive (bars stay lower)
        */
       visualizerConfig: {
-        barCount: 50,
-        smoothing: 0.94,
-        gain: 0.75,
+        barCount: 60,
+        smoothing: 0.93,
+        sensitivity: 0.72,
+        gain: 0.70,
         freqOffset: 8,
-        freqExponent: 1.0,
+        freqExponent: 1.6,
         lowBoost: 0.10,
-        highBoost: 0.5,
-        powerExponent: 0.90,
+        highBoost: 0.3,
+        powerExponent: 0.82,
       },
     };
   },
@@ -186,14 +195,14 @@ export default {
   mounted() {
     document.addEventListener('keydown', this.onKeyDown);
     this.resizeObserver = new ResizeObserver(() => {
-      if (this.activeTab === 'visualizer' && this.visualizerAnalyser) this.resizeVisualizer();
+      if (this.activeTab === 'visualizer' && this.visualizerAnalyserLeft) this.resizeVisualizer();
     });
     this.$nextTick(() => {
       const container = this.$el?.querySelector('.tab-visualizer');
       if (container) this.resizeObserver.observe(container);
     });
     this.windowResizeHandler = () => {
-      if (this.activeTab === 'visualizer' && this.visualizerAnalyser) this.resizeVisualizer();
+      if (this.activeTab === 'visualizer' && this.visualizerAnalyserLeft) this.resizeVisualizer();
     };
     window.addEventListener('resize', this.windowResizeHandler);
   },
@@ -227,29 +236,80 @@ export default {
         this.activeTab = 'queue';
       }
     },
+    applySensitivity(raw, sensitivity) {
+      return Math.pow(raw, 1 / Math.max(0.1, sensitivity));
+    },
     initVisualizer() {
-      if (this.visualizerAnalyser) return;
+      if (this.visualizerAnalyserLeft || this.visualizerAnalyserRight) return;
       if (!this.audioContext || !this.audioSource) {
         console.warn('AudioPanel: audioContext or audioSource not provided.');
         return;
       }
+      let splitter = null;
+      let analyserL = null;
+      let analyserR = null;
       try {
-        const analyser = this.audioContext.createAnalyser();
-        analyser.fftSize = 256;
-        analyser.smoothingTimeConstant = this.visualizerConfig.smoothing;
-        // Connect the analyser to the source
-        this.audioSource.connect(analyser);
-        this.visualizerAnalyser = analyser;
+        const ctx = this.audioContext;
+        const source = this.audioSource;
+
+        splitter = ctx.createChannelSplitter(2);
+        source.connect(splitter);
+
+        analyserL = ctx.createAnalyser();
+        analyserL.fftSize = 256;
+        analyserL.smoothingTimeConstant = this.visualizerConfig.smoothing;
+        splitter.connect(analyserL, 0);
+
+        analyserR = ctx.createAnalyser();
+        analyserR.fftSize = 256;
+        analyserR.smoothingTimeConstant = this.visualizerConfig.smoothing;
+        splitter.connect(analyserR, 1);
+
+        this.visualizerAnalyserLeft = analyserL;
+        this.visualizerAnalyserRight = analyserR;
+        this.visualizerSplitter = splitter;
+
+        const binCount = analyserL.frequencyBinCount;
+        this.fftDataLeft = new Uint8Array(binCount);
+        this.fftDataRight = new Uint8Array(binCount);
+
+        // Read primary color once and store it
+        const color = getComputedStyle(document.documentElement)
+          .getPropertyValue('--primaryColor').trim();
+        this.primaryColor = color;
+
+        this.computeGeometry();
+
         if (this.audioContext.state === 'suspended') {
           this.audioContext.resume();
         }
       } catch (err) {
+        // Clean up all in case it fails
+        if (splitter) {
+          try { this.audioSource?.disconnect(splitter); } catch (_) { /* ignore */ }
+          try { splitter.disconnect(); } catch (_) { /* ignore */ }
+        }
+        if (analyserL) {
+          try { splitter?.disconnect(analyserL); } catch (_) { /* ignore */ }
+          try { analyserL.disconnect(); } catch (_) { /* ignore */ }
+        }
+        if (analyserR) {
+          try { splitter?.disconnect(analyserR); } catch (_) { /* ignore */ }
+          try { analyserR.disconnect(); } catch (_) { /* ignore */ }
+        }
+        this.visualizerAnalyserLeft = null;
+        this.visualizerAnalyserRight = null;
+        this.visualizerSplitter = null;
+        this.fftDataLeft = null;
+        this.fftDataRight = null;
+        this.peaksLeft = [];
+        this.peaksRight = [];
         console.warn('Visualizer init failed:', err);
       }
     },
     startVisualizer() {
       this.initVisualizer();
-      if (!this.visualizerAnalyser || this.visualizerActive) return;
+      if (!this.visualizerAnalyserLeft || !this.visualizerAnalyserRight || this.visualizerActive) return;
       this.visualizerActive = true;
       this.resizeVisualizer();
       this.drawVisualizer();
@@ -263,44 +323,65 @@ export default {
     },
     fullCleanup() {
       this.stopVisualizer();
-      if (this.visualizerAnalyser) {
-        const analyser = this.visualizerAnalyser;
-        try {
-          this.audioSource?.disconnect(analyser);
-        } catch (_) { /* ignore */ }
-        try {
-          analyser.disconnect();
-        } catch (_) { /* ignore */ }
-        this.visualizerAnalyser = null;
+      const analysers = [this.visualizerAnalyserLeft, this.visualizerAnalyserRight];
+      analysers.forEach((analyser) => {
+        if (analyser) {
+          try { this.audioSource?.disconnect(analyser); } catch (_) { /* ignore */ }
+          try { analyser.disconnect(); } catch (_) { /* ignore */ }
+        }
+      });
+      if (this.visualizerSplitter) {
+        try { this.audioSource?.disconnect(this.visualizerSplitter); } catch (_) { /* ignore */ }
+        try { this.visualizerSplitter.disconnect(); } catch (_) { /* ignore */ }
+        this.visualizerSplitter = null;
       }
+      this.visualizerAnalyserLeft = null;
+      this.visualizerAnalyserRight = null;
+      this.fftDataLeft = null;
+      this.fftDataRight = null;
+      this.peaksLeft = [];
+      this.peaksRight = [];
     },
-
     computeGeometry() {
+      const analyser = this.visualizerAnalyserLeft || this.visualizerAnalyserRight;
+      if (!analyser) return;
       const canvas = this.$refs.visualizerCanvas;
       if (!canvas) return;
-      const analyser = this.visualizerAnalyser;
-      if (!analyser) return;
       const width = canvas.clientWidth;
       if (width === 0) return;
 
-      const bufferLength = analyser.frequencyBinCount; // 128
+      const bufferLength = analyser.frequencyBinCount;
       const { barCount, freqOffset: offset, freqExponent: exponent } = this.visualizerConfig;
-      const gap = 1.5;
-      const barWidth = (width - (barCount - 1) * gap) / barCount;
-
       // Compute pixel positions for each bar
+      const halfCount = Math.floor(barCount / 2);
+      const gap = 1.5;
+      const centerGap = gap;
+
+      // Total width available for one side
+      const sideWidth = width / 2 - centerGap / 2;
+      // Bar width
+      const barWidth = (sideWidth - (halfCount - 1) * gap) / halfCount;
+      if (barWidth <= 0) return;
+
       this.barPositions = [];
-      let x = 0;
-      for (let i = 0; i < barCount; i++) {
-        this.barPositions.push({ x, width: barWidth });
-        x += barWidth + gap;
+
+      // In left side bars go from center outward to the left
+      for (let i = 0; i < halfCount; i++) {
+        const x = (width / 2 - centerGap / 2 - barWidth) - i * (barWidth + gap);
+        this.barPositions.push({ x, width: barWidth, side: 'left' });
+      }
+
+      // In right side bars go from center outward to the right
+      for (let i = 0; i < halfCount; i++) {
+        const x = (width / 2 + centerGap / 2) + i * (barWidth + gap);
+        this.barPositions.push({ x, width: barWidth, side: 'right' });
       }
 
       // Compute frequency ranges for each bar
       const maxBin = bufferLength - 1;
       const cutoffs = [];
-      for (let i = 0; i <= barCount; i++) {
-        const t = i / barCount;
+      for (let i = 0; i <= halfCount; i++) {
+        const t = i / halfCount;
         let idx = Math.floor(Math.pow(t, exponent) * (maxBin - offset)) + offset;
         idx = Math.max(offset, Math.min(maxBin, idx));
         cutoffs.push(idx);
@@ -315,27 +396,28 @@ export default {
       }
 
       this.barFrequencyRanges = [];
-      for (let i = 0; i < barCount; i++) {
+      for (let i = 0; i < halfCount; i++) {
         const start = cutoffs.at(i);
         let end = cutoffs.at(i + 1);
         if (end <= start) end = start + 1;
         this.barFrequencyRanges.push({ start, end });
       }
+      this.peaksLeft = new Array(halfCount).fill(0);
+      this.peaksRight = new Array(halfCount).fill(0);
     },
-
     drawVisualizer() {
       if (!this.visualizerActive || this.activeTab !== 'visualizer') return;
-      if (!this.visualizerAnalyser) return;
-
-      const canvas = this.$refs.visualizerCanvas;
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      const analyser = this.visualizerAnalyser;
-      if (!analyser) {
+      if (!this.visualizerAnalyserLeft || !this.visualizerAnalyserRight) {
         this.visualizerAnimationId = requestAnimationFrame(this.drawVisualizer);
         return;
       }
 
+      const canvas = this.$refs.visualizerCanvas;
+      if (!canvas) {
+        this.visualizerAnimationId = requestAnimationFrame(this.drawVisualizer);
+        return;
+      }
+      const ctx = canvas.getContext('2d');
       const width = canvas.clientWidth;
       const height = canvas.clientHeight;
       if (width === 0 || height === 0) {
@@ -343,87 +425,120 @@ export default {
         return;
       }
 
-      if (this.barPositions.length === 0 || this.barFrequencyRanges.length === 0) {
+      const { barCount } = this.visualizerConfig;
+      const halfCount = Math.floor(barCount / 2);
+
+      // Ensure geometry is ready before using arrays
+      if (
+        this.barFrequencyRanges.length !== halfCount ||
+        this.barPositions.length !== halfCount * 2
+      ) {
         this.computeGeometry();
+        this.visualizerAnimationId = requestAnimationFrame(this.drawVisualizer);
+        return;
       }
 
-      // parse primary colour from CSS
-      const color = getComputedStyle(document.documentElement)
-        .getPropertyValue('--primaryColor').trim() || '#0080ff';
-      let r, g, b;
-      const hex = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(color);
-      if (hex) {
-        r = parseInt(hex[1], 16);
-        g = parseInt(hex[2], 16);
-        b = parseInt(hex[3], 16);
-      } else {
-        const rgb = /^rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/.exec(color);
-        if (rgb) {
-          r = parseInt(rgb[1], 10);
-          g = parseInt(rgb[2], 10);
-          b = parseInt(rgb[3], 10);
-        } else {
-          r = 0; g = 128; b = 255; // fallback
-        }
-      }
-
-      // compute a "dark" version of the primary color
-      const darkR = Math.max(0, r - 40);
-      const darkG = Math.max(0, g - 40);
-      const darkB = Math.max(0, b - 40);
-
-      const data = new Uint8Array(analyser.frequencyBinCount);
-      analyser.getByteFrequencyData(data);
+      const dataL = this.fftDataLeft;
+      const dataR = this.fftDataRight;
+      this.visualizerAnalyserLeft.getByteFrequencyData(dataL);
+      this.visualizerAnalyserRight.getByteFrequencyData(dataR);
 
       ctx.clearRect(0, 0, width, height);
-      ctx.shadowColor = 'rgba(255,255,255,0.06)';
       ctx.shadowBlur = 4;
+      ctx.shadowColor = 'rgba(255,255,255,0.06)';
 
-      const { barCount, gain, lowBoost, highBoost, powerExponent } = this.visualizerConfig;
+      const { sensitivity, gain, lowBoost, highBoost, powerExponent } = this.visualizerConfig;
 
-      for (let i = 0; i < barCount; i++) {
-        const { start, end } = this.barFrequencyRanges.at(i);
-        let sum = 0;
-        for (let f = start; f < end; f++) sum += data.at(f) || 0;
-        const avg = sum / (end - start);
-        let scaled = Math.min((avg / 255) * gain, 1);
+      // low‑frequency boost
+      for (let i = 0; i < halfCount; i++) {
+        const range = this.barFrequencyRanges.at(i);
+        const { start, end } = range;
+        let sumL = 0, sumR = 0;
+        for (let f = start; f < end; f++) {
+          sumL += dataL.at(f) || 0;
+          sumR += dataR.at(f) || 0;
+        }
+        const len = end - start;
+        let rawL = (sumL / len) / 255;
+        let rawR = (sumR / len) / 255;
 
-        // low‑frequency boost (first two left bars)
+        // Apply visualizer gain
+        rawL = Math.min(rawL * gain, 1);
+        rawR = Math.min(rawR * gain, 1);
+
+        let scaledL = this.applySensitivity(rawL, sensitivity);
+        let scaledR = this.applySensitivity(rawR, sensitivity);
+
         if (i < 2) {
           const factor = 1 + lowBoost * (1 - i / 2);
-          scaled = Math.min(scaled * factor, 1);
+          scaledL = Math.min(scaledL * factor, 1);
+          scaledR = Math.min(scaledR * factor, 1);
         } else {
-          // high‑frequency boost (last bars at the right)
-          const highBoostFactor = 1 + highBoost * (i / barCount);
-          scaled = Math.min(scaled * highBoostFactor, 1);
+          // high‑frequency boost
+          const highBoostFactor = 1 + highBoost * (i / halfCount);
+          scaledL = Math.min(scaledL * highBoostFactor, 1);
+          scaledR = Math.min(scaledR * highBoostFactor, 1);
         }
 
-        const percent = Math.pow(scaled, powerExponent);
-        const barHeight = Math.max(2, percent * height);
+        const percentL = Math.pow(scaledL, powerExponent);
+        const percentR = Math.pow(scaledR, powerExponent);
 
-        // set color based on bar height
-        const rr = Math.round(darkR + (r - darkR) * percent);
-        const gg = Math.round(darkG + (g - darkG) * percent);
-        const bb = Math.round(darkB + (b - darkB) * percent);
-        ctx.fillStyle = `rgb(${rr}, ${gg}, ${bb})`;
+        const barHeightL = Math.max(2, percentL * height);
+        const barHeightR = Math.max(2, percentR * height);
 
-        const { x, width: bw } = this.barPositions.at(i);
-        const y = height - barHeight;
-        const radius = Math.min(3, bw / 2);
+        // Left bar index i, right bar index halfCount + i
+        const leftBar = this.barPositions.at(i);
+        const rightBar = this.barPositions.at(halfCount + i);
 
-        // Use roundRect if available if not fallback to plain fillRect
-        if (ctx.roundRect) {
-          ctx.beginPath();
-          ctx.roundRect(x, y, bw, barHeight, radius);
-          ctx.fill();
-        } else {
-          ctx.fillRect(x, y, bw, barHeight);
-        }
+        this.drawBar(ctx, leftBar.x, height - barHeightL, leftBar.width, barHeightL);
+        this.drawBar(ctx, rightBar.x, height - barHeightR, rightBar.width, barHeightR);
+
+        this.updatePeak(i, percentL, 'left');
+        this.updatePeak(i, percentR, 'right');
       }
+      this.drawPeaks(ctx, width, height);
       ctx.shadowBlur = 0;
       this.visualizerAnimationId = requestAnimationFrame(this.drawVisualizer);
     },
-
+    drawBar(ctx, x, y, width, height) {
+      if (height <= 1) return;
+      // Use primary color directly
+      ctx.fillStyle = this.primaryColor;
+      const radius = Math.min(3, width / 2);
+      if (ctx.roundRect) {
+        ctx.beginPath();
+        ctx.roundRect(x, y, width, height, radius);
+        ctx.fill();
+      } else {
+        ctx.fillRect(x, y, width, height);
+      }
+    },
+    updatePeak(index, current, side) {
+      const peaks = side === 'left' ? this.peaksLeft : this.peaksRight;
+      const decay = 0.98;
+      const prev = peaks.at(index) ?? 0;
+      const newValue = Math.max(current, prev * decay);
+      peaks.splice(index, 1, newValue);
+    },
+    drawPeaks(ctx, width, height) {
+      const halfCount = this.peaksLeft.length;
+      for (let i = 0; i < halfCount; i++) {
+        const peakL = this.peaksLeft.at(i);
+        const peakR = this.peaksRight.at(i);
+        if (peakL > 0.01) {
+          const leftBar = this.barPositions.at(i);
+          const peakY = height - peakL * height;
+          ctx.fillStyle = 'rgba(255,255,255,0.85)'; // white peaks indicators
+          ctx.fillRect(leftBar.x, peakY - 1, leftBar.width, 2);
+        }
+        if (peakR > 0.01) {
+          const rightBar = this.barPositions.at(halfCount + i);
+          const peakY = height - peakR * height;
+          ctx.fillStyle = 'rgba(255,255,255,0.85)'; // white peaks indicators
+          ctx.fillRect(rightBar.x, peakY - 1, rightBar.width, 2);
+        }
+      }
+    },
     resizeVisualizer() {
       const canvas = this.$refs.visualizerCanvas;
       if (!canvas) return;
