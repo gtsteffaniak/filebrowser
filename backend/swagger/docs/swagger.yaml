@@ -5601,6 +5601,12 @@ paths:
           description: Raw media content (inline)
           schema:
             type: file
+        "400":
+          description: Invalid file path
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "403":
           description: Missing or invalid stream token, or non-media file
           schema:
