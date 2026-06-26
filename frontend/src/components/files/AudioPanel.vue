@@ -113,7 +113,7 @@ export default {
        * @property {number} smoothing       – 0.85–0.95 -- higher = smooth motion
        * @property {number} gain            – 0.3–1.0 -- overall amplitude (loudness)
        * @property {number} freqOffset      – 3–10 -- skips low‑frequency bins
-       * @property {number} freqExponent    – 1.0–2.0 -- 1.0 = linear, >1.0 = more bars on bass
+       * @property {number} freqExponent    – 1.0–2.0 -- 1.0 = linear, >1.0 = more on bass
        * @property {number} lowBoost        – 0.0–0.5 -- extra gain for the first 2 bars (bass)
        * @property {number} highBoost       – 0.0–1.0 -- extra gain for high bars
        * @property {number} powerExponent   – 0.7–1.0 -- more lower makes it more dynamic
@@ -121,12 +121,12 @@ export default {
        */
       visualizerConfig: {
         barCount: 60,
-        smoothing: 0.93,
-        sensitivity: 0.72,
+        smoothing: 0.95,
+        sensitivity: 0.65,
         gain: 0.70,
         freqOffset: 8,
         freqExponent: 1.6,
-        lowBoost: 0.10,
+        lowBoost: 0.25,
         highBoost: 0.3,
         powerExponent: 0.82,
       },
