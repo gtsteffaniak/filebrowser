@@ -764,7 +764,8 @@
     "unlockLyrics": "Unlock lyrics",
     "toggleLyrics": "Toggle lyrics",
     "closePanel": "Close panel",
-    "openPanel": "Open panel"
+    "openPanel": "Open panel",
+    "visualizer": "Visualizer"
   },
   "fileSizeAnalyzer": {
     "title": "File Size Analyzer",

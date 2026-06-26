@@ -742,7 +742,8 @@
     "unlockLyrics": "Odblokuj tekst",
     "toggleLyrics": "Przełącz tekst",
     "closePanel": "Zamknij panel",
-    "openPanel": "Otwórz panel"
+    "openPanel": "Otwórz panel",
+    "visualizer": "Wizualizator"
   },
   "fileSizeAnalyzer": {
     "title": "Analizator rozmiaru plików",

@@ -742,7 +742,8 @@
     "unlockLyrics": "Odomknúť text",
     "toggleLyrics": "Prepnúť text",
     "closePanel": "Zavrieť panel",
-    "openPanel": "Otvoriť panel"
+    "openPanel": "Otvoriť panel",
+    "visualizer": "Vizualizér"
   },
   "fileSizeAnalyzer": {
     "title": "Analyzátor veľkosti súborov",

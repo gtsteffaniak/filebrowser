@@ -751,7 +751,8 @@
     "unlockLyrics": "Sblocca testo",
     "toggleLyrics": "Attiva/disattiva testo",
     "closePanel": "Chiudi pannello",
-    "openPanel": "Apri pannello"
+    "openPanel": "Apri pannello",
+    "visualizer": "Visualizzatore"
   },
   "fileSizeAnalyzer": {
     "title": "Analizzatore Dimensioni File",
