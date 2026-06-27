@@ -1057,24 +1057,6 @@ export default {
         if (this.mediaElement) {
           this.mediaElement.removeAttribute('src');
           this.mediaElement.load();
-        } else if (this.mediaElement) {
-          // For MSE or in other fallback cases, forcibly set src.
-          this.mediaElement.src = this.raw;
-        }
-      }
-    },
-    cleanupAudioVisualizer() {
-      if (this.audioSource) {
-        try { this.audioSource.disconnect(); } catch (_) { /* ignore */ }
-        this.audioSource = null;
-      }
-      if (this.audioContext) {
-        const context = this.audioContext;
-        try {
-          const closed = context.close();
-          if (closed?.catch) closed.catch(() => {});
-        } catch (_) {
-          /* ignore */ 
         }
       }
       this.logPlyrState('destroyPlyr done', { reason });
