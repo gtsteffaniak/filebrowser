@@ -694,7 +694,12 @@
     "allShares": "所有股份",
     "playPause": "播放／暫停",
     "clearSelection": "清除選取項目",
-    "interval": "間隔{suffix}"
+    "interval": "間隔{suffix}",
+    "transcode": "轉碼{suffix}",
+    "native": "原生{suffix}",
+    "quality": "品質{suffix}",
+    "balanced": "平衡{suffix}",
+    "dataSaver": "數據節省模式{suffix}"
   },
   "access": {
     "rules": "存取規則",
@@ -746,7 +751,8 @@
     "transcodeUserLimitReached": "已達到轉碼限制。您目前已有一個正在進行的轉碼作業：",
     "transcodeSystemLimitReached": "已達到伺服器轉碼限制（{limit} 個同時處理）。請待一個工作階段結束後再試一次。",
     "transcodeActiveSessions": "正在進行的轉碼：",
-    "transcodeStart": "轉碼"
+    "transcodeLoading": "準備轉碼串流",
+    "transcodeTimeout": "轉碼超時。請重試或下載該檔案。"
   },
   "fileSizeAnalyzer": {
     "title": "檔案大小分析器",

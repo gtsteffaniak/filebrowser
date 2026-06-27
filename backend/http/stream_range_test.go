@@ -183,7 +183,7 @@ func TestServeStreamByteRangeCapsOpenEndedRange(t *testing.T) {
 
 func TestIsMediaStreamFile(t *testing.T) {
 	t.Parallel()
-	if !isMediaStreamFile("movie.mp4") || !isMediaStreamFile("track.flac") {
+	if !isMediaStreamFile("movie.mp4") || !isMediaStreamFile("track.flac") || !isMediaStreamFile("episode.mkv") {
 		t.Fatal("expected media extensions to match")
 	}
 	if isMediaStreamFile("readme.txt") {

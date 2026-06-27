@@ -602,7 +602,12 @@
     "allShares": "Alle Aktien",
     "playPause": "Wiedergabe/Pause",
     "clearSelection": "Auswahl löschen",
-    "interval": "Intervall{suffix}"
+    "interval": "Intervall{suffix}",
+    "transcode": "Transkodieren{suffix}",
+    "native": "Muttersprachler{suffix}",
+    "quality": "Qualität{suffix}",
+    "balanced": "Ausgewogen{suffix}",
+    "dataSaver": "Datensparmodus{suffix}"
   },
   "access": {
     "rules": "Zugangsregeln",
@@ -746,7 +751,8 @@
     "transcodeUserLimitReached": "Transkodierungslimit erreicht. Sie haben bereits eine aktive Transkodierungssitzung:",
     "transcodeSystemLimitReached": "Das Transkodierungslimit des Servers wurde erreicht ({limit} gleichzeitig). Versuchen Sie es erneut, sobald eine Sitzung beendet ist.",
     "transcodeActiveSessions": "Aktive Transkodierungen:",
-    "transcodeStart": "Transkodieren"
+    "transcodeLoading": "Transcode-Stream vorbereiten",
+    "transcodeTimeout": "Die Transkodierung ist abgelaufen. Versuchen Sie es erneut oder laden Sie die Datei herunter."
   },
   "fileSizeAnalyzer": {
     "title": "Dateigrößen-Analysator",

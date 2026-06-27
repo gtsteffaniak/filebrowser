@@ -866,6 +866,58 @@ export function getTranscodeURL(source, path, streamToken) {
   }
 }
 
+export function getTranscodeHLSPlaylistURL(source, path, streamToken, { profile = 'quality' } = {}) {
+  if (!streamToken) {
+    throw new Error('stream token required')
+  }
+  if (!source) {
+    throw new Error('no source provided')
+  }
+  try {
+    const params = {
+      source: source,
+      file: path,
+      streamToken: streamToken,
+    }
+    if (profile === 'optimized' || profile === 'quality' || profile === 'datasaver') {
+      params.profile = profile
+    }
+    const apiPath = getApiPath('media/transcode/hls/playlist.m3u8', params)
+    return window.origin + apiPath
+  } catch (err) {
+    notify.showError(err.message || 'Error getting transcode HLS URL')
+    throw err
+  }
+}
+
+export async function releaseTranscodeSession(source, path) {
+  if (!source) {
+    return
+  }
+  try {
+    const params = { source, file: path }
+    const apiPath = getApiPath('media/transcode/sessions', params)
+    await fetchURL(apiPath, { method: 'DELETE' })
+  } catch (err) {
+    console.warn('Failed to release transcode session:', err)
+  }
+}
+
+/** Clears all active transcode sessions for the current user on the given source. */
+export async function releaseAllTranscodeSessions(source, { keepalive = false } = {}) {
+  if (!source) {
+    return
+  }
+  try {
+    const apiPath = getApiPath('media/transcode/sessions', { source })
+    await fetchURL(apiPath, { method: 'DELETE', keepalive })
+  } catch (err) {
+    if (!keepalive) {
+      console.warn('Failed to release transcode sessions:', err)
+    }
+  }
+}
+
 export async function fetchTranscodeSessions(source, path, { all = false } = {}) {
   if (!source) {
     throw new Error('no source provided')

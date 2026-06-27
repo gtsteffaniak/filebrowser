@@ -602,7 +602,12 @@
     "allShares": "Minden részvény",
     "playPause": "Lejátszás/Szünet",
     "clearSelection": "Kiválasztás törlése",
-    "interval": "Intervallum{suffix}"
+    "interval": "Intervallum{suffix}",
+    "transcode": "Átkódolás{suffix}",
+    "native": "Eredeti{suffix}",
+    "quality": "Minőség{suffix}",
+    "balanced": "Kiegyensúlyozott{suffix}",
+    "dataSaver": "Adatmegtakarítás{suffix}"
   },
   "access": {
     "rules": "Hozzáférési szabályok",
@@ -746,7 +751,8 @@
     "transcodeUserLimitReached": "Elérte a transzkódolási korlátot. Már van egy aktív transzkódolási munkamenete:",
     "transcodeSystemLimitReached": "Elérte a szerver átkódolási korlátját ({limit} párhuzamos folyamat). Kérjük, próbálja meg újra, miután egy munkamenet befejeződött.",
     "transcodeActiveSessions": "Aktív átkódolások:",
-    "transcodeStart": "Átkódolás"
+    "transcodeLoading": "A transzkódolt adatfolyam előkészítése",
+    "transcodeTimeout": "A transzkódolás időtúllépése történt. Próbálja meg újra, vagy töltse le a fájlt."
   },
   "fileSizeAnalyzer": {
     "title": "Fájlméret elemző",

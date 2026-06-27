@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
+  fitScrubPreviewImageSize,
   formatScrubPreviewTime,
+  getScrubPreviewMount,
   positionScrubPreviewPopup,
   quantizeScrubPercent,
   scrubPercentChanged,
   scrubPreviewDelayMs,
-  scrubPreviewDimensions,
 } from './plyrScrubPreview';
 
 describe('quantizeScrubPercent', () => {
@@ -39,22 +40,51 @@ describe('formatScrubPreviewTime', () => {
   });
 });
 
-describe('scrubPreviewDimensions', () => {
-  it('derives height from aspect ratio', () => {
-    expect(scrubPreviewDimensions(16 / 9, 160, { progressTop: 900, viewportWidth: 1200, viewportHeight: 900 }))
-      .toEqual({ width: 160, height: 90 });
-    expect(scrubPreviewDimensions(2, 200, { progressTop: 900, viewportWidth: 1200, viewportHeight: 900 }))
-      .toEqual({ width: 200, height: 100 });
+describe('fitScrubPreviewImageSize', () => {
+  it('preserves preview image size when it already fits', () => {
+    expect(fitScrubPreviewImageSize(256, 256, { progressTop: 900, viewportWidth: 1200, viewportHeight: 900 }))
+      .toEqual({ width: 256, height: 256 });
+    expect(fitScrubPreviewImageSize(400, 225, { progressTop: 900, viewportWidth: 1200, viewportHeight: 900 }))
+      .toEqual({ width: 400, height: 225 });
+  });
+
+  it('scales down when the preview image exceeds max width', () => {
+    expect(fitScrubPreviewImageSize(640, 360, { progressTop: 900, viewportWidth: 1200, viewportHeight: 900 }))
+      .toEqual({ width: 500, height: 281 });
   });
 
   it('scales down to fit viewport width', () => {
-    expect(scrubPreviewDimensions(16 / 9, 500, { progressTop: 900, viewportWidth: 300, viewportHeight: 900 }))
+    expect(fitScrubPreviewImageSize(1200, 675, { progressTop: 900, viewportWidth: 300, viewportHeight: 900 }))
       .toEqual({ width: 268, height: 151 });
   });
 
   it('scales down to fit space above the progress bar', () => {
-    expect(scrubPreviewDimensions(16 / 9, 500, { progressTop: 120, viewportWidth: 1200, viewportHeight: 800 }))
+    expect(fitScrubPreviewImageSize(640, 360, { progressTop: 120, viewportWidth: 1200, viewportHeight: 800 }))
       .toEqual({ width: 110, height: 62 });
+  });
+
+  it('caps height at the max preview height', () => {
+    expect(fitScrubPreviewImageSize(800, 2000, { progressTop: 1200, viewportWidth: 1200, viewportHeight: 1200 }))
+      .toEqual({ width: 400, height: 1000 });
+  });
+
+  it('returns null for invalid image dimensions', () => {
+    expect(fitScrubPreviewImageSize(0, 256)).toBeNull();
+    expect(fitScrubPreviewImageSize(Number.NaN, 256)).toBeNull();
+  });
+});
+
+describe('getScrubPreviewMount', () => {
+  it('prefers the plyr container when not in native fullscreen', () => {
+    const container = document.createElement('div');
+    const player = { elements: { container }, fullscreen: { active: false } };
+    expect(getScrubPreviewMount(/** @type {any} */ (player))).toBe(container);
+  });
+
+  it('uses the plyr container during fallback fullscreen', () => {
+    const container = document.createElement('div');
+    const player = { elements: { container }, fullscreen: { active: true } };
+    expect(getScrubPreviewMount(/** @type {any} */ (player))).toBe(container);
   });
 });
 

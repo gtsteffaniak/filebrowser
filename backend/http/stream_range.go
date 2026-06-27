@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 )
 
 // maxStreamRangeBytes caps each partial response on the stream endpoint so clients
@@ -32,7 +34,13 @@ func streamUseRangeOnly(d *requestContext, displayFileName string) bool {
 }
 
 func isMediaStreamFile(displayFileName string) bool {
-	contentType := mime.TypeByExtension(strings.ToLower(filepathExt(displayFileName)))
+	ext := strings.ToLower(filepathExt(displayFileName))
+	switch ext {
+	case ".mkv", ".webm", ".mp4", ".m4v", ".mov", ".avi", ".wmv", ".flv", ".ogv", ".ts", ".m2ts",
+		".mp3", ".flac", ".ogg", ".oga", ".opus", ".wav", ".aac", ".m4a", ".wma":
+		return true
+	}
+	contentType := mime.TypeByExtension(ext)
 	return strings.HasPrefix(contentType, "video/") || strings.HasPrefix(contentType, "audio/")
 }
 
@@ -131,6 +139,25 @@ func serveStreamByteRange(w http.ResponseWriter, r *http.Request, reader io.Read
 		setStreamResponseHeaders(w, r, displayFileName, size)
 		w.Header().Set("Content-Range", fmt.Sprintf("bytes */%d", size))
 		return http.StatusRequestedRangeNotSatisfiable, fmt.Errorf("invalid byte range")
+	}
+
+	isSuffix := strings.HasPrefix(strings.TrimSpace(strings.TrimPrefix(rangeHeader, "bytes=")), "-")
+	token := r.URL.Query().Get("streamToken")
+	budgetFileSize := size
+	durationSec := 0
+	if token != "" {
+		if grant, ok := utils.StreamGrantsCache.Get(token); ok {
+			if grant.FileSize > 0 {
+				budgetFileSize = grant.FileSize
+			}
+			durationSec = grant.DurationSec
+		}
+	}
+	start, end, ok := applyStreamFetchBudget(token, budgetFileSize, durationSec, start, end, isSuffix)
+	if !ok {
+		setStreamResponseHeaders(w, r, displayFileName, size)
+		w.Header().Set("Content-Range", fmt.Sprintf("bytes */%d", size))
+		return http.StatusRequestedRangeNotSatisfiable, fmt.Errorf("stream read ahead of playback window")
 	}
 
 	start, end = capStreamByteRange(start, end)

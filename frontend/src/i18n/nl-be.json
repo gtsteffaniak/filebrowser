@@ -694,7 +694,12 @@
     "allShares": "Alle aandelen",
     "playPause": "Afspelen/Pauzeren",
     "clearSelection": "Selectie wissen",
-    "interval": "Interval{suffix}"
+    "interval": "Interval{suffix}",
+    "transcode": "Transcoderen{suffix}",
+    "native": "Inheems{suffix}",
+    "quality": "Kwaliteit{suffix}",
+    "balanced": "Evenwichtig{suffix}",
+    "dataSaver": "Databesparing{suffix}"
   },
   "access": {
     "rules": "Toegangsregels",
@@ -746,7 +751,8 @@
     "transcodeUserLimitReached": "De limiet voor transcoderen is bereikt. Je hebt al een actieve transcodersessie:",
     "transcodeSystemLimitReached": "De limiet voor transcodering op de server is bereikt ({limit} gelijktijdig). Probeer het opnieuw zodra een sessie is beëindigd.",
     "transcodeActiveSessions": "Actieve transcoderingen:",
-    "transcodeStart": "Transcoderen"
+    "transcodeLoading": "Transcodestream voorbereiden",
+    "transcodeTimeout": "De transcodering is verlopen. Probeer het opnieuw of download het bestand."
   },
   "fileSizeAnalyzer": {
     "title": "Bestandsgrootte analyzer",

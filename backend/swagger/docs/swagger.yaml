@@ -3766,6 +3766,24 @@ paths:
       tags:
       - Media
   /api/media/transcode/sessions:
+    delete:
+      description: Decrements stream count and clears session state for source/file
+        owned by the current user.
+      parameters:
+      - description: Source name
+        in: query
+        name: source
+        required: true
+        type: string
+      - description: File path
+        in: query
+        name: file
+        required: true
+        type: string
+      responses: {}
+      summary: Release a transcode session
+      tags:
+      - Media
     get:
       description: Returns active transcode jobs for the current user, or all users
         when all=true and caller is admin. Optional source/file query params evaluate

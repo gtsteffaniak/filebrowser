@@ -602,7 +602,12 @@
     "allShares": "모든 주식",
     "playPause": "재생/일시정지",
     "clearSelection": "선택 항목 지우기",
-    "interval": "간격{suffix}"
+    "interval": "간격{suffix}",
+    "transcode": "트랜스코딩{suffix}",
+    "native": "원어민{suffix}",
+    "quality": "품질{suffix}",
+    "balanced": "균형 잡힌{suffix}",
+    "dataSaver": "데이터 절약 모드{suffix}"
   },
   "access": {
     "rules": "액세스 규칙",
@@ -746,7 +751,8 @@
     "transcodeUserLimitReached": "트랜스코딩 한도에 도달했습니다. 이미 진행 중인 트랜스코딩 세션이 있습니다:",
     "transcodeSystemLimitReached": "서버 트랜스코드 한도에 도달했습니다({limit} 개 동시 처리). 세션이 종료되면 다시 시도해 주세요.",
     "transcodeActiveSessions": "진행 중인 트랜스코딩:",
-    "transcodeStart": "트랜스코딩"
+    "transcodeLoading": "트랜스코드 스트림 준비",
+    "transcodeTimeout": "트랜스코딩 시간 초과. 다시 시도하거나 파일을 다운로드하세요."
   },
   "fileSizeAnalyzer": {
     "title": "파일 크기 분석기",

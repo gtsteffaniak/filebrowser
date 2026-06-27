@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/ffmpeg"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -40,6 +41,24 @@ type TranscodeSessionsResponse struct {
 type transcodeSessionEntry struct {
 	TranscodeSession
 	streams int
+	hls     *hlsSessionState
+}
+
+// hlsSessionState holds on-demand HLS transcode state for one file playback.
+type hlsSessionState struct {
+	mu               sync.Mutex
+	encodeMu         sync.Mutex // serializes ffmpeg encodes for this session (avoids init/seg-0 races)
+	realPath         string
+	profileMode      string
+	keyframeTimeline bool // true when segment cuts use probed keyframes (video-copy/remux)
+	segmentCount     int
+	durationSec      float64
+	segmentStarts    []float64
+	segmentDurations []float64
+	params           ffmpeg.HLSSegmentParams
+	init             []byte
+	inits            map[int][]byte
+	segments         map[int][]byte
 }
 
 type transcodeSessionStore struct {
@@ -118,6 +137,9 @@ func (s *transcodeSessionStore) transcodeLimitStatus(userID uint64, source, path
 	}
 
 	if live, blocked := s.userHasLiveStream(userID); blocked {
+		if source != "" && path != "" && live.ID == transcodeSessionKey(userID, source, path) {
+			return resp, ""
+		}
 		resp.CanStart = false
 		resp.BlockReason = "user_limit"
 		resp.Sessions = s.sessionsForUser(userID)
@@ -187,6 +209,16 @@ func (s *transcodeSessionStore) acquire(userID uint64, username, source, path, f
 
 	tc := settings.Config.Integrations.Media.Transcode
 	entry := s.sessions[key]
+	if entry != nil && entry.streams > 0 {
+		status.CanStart = false
+		status.BlockReason = "user_limit"
+		status.Sessions = s.sessionsForUser(userID)
+		logger.Infof(
+			"transcode acquire rejected: user=%d reason=user_limit concurrent key=%s file=%q streams=%d",
+			userID, key, fileName, entry.streams,
+		)
+		return transcodeAcquireResult{OK: false, Reason: "user_limit", Status: status}
+	}
 	if entry == nil {
 		entry = &transcodeSessionEntry{
 			TranscodeSession: TranscodeSession{
@@ -219,13 +251,105 @@ func (s *transcodeSessionStore) acquire(userID uint64, username, source, path, f
 	return transcodeAcquireResult{OK: true, Session: &sess, Status: status}
 }
 
+// acquireHLS starts or reuses an HLS transcode session without incrementing stream count on refresh.
+func (s *transcodeSessionStore) acquireHLS(userID uint64, username, source, path, fileName string) transcodeAcquireResult {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	status, blockDetail := s.transcodeLimitStatus(userID, source, path)
+	key := transcodeSessionKey(userID, source, path)
+
+	if blockDetail != "" {
+		reason := status.BlockReason
+		return transcodeAcquireResult{OK: false, Reason: reason, Status: status}
+	}
+
+	tc := settings.Config.Integrations.Media.Transcode
+	entry := s.sessions[key]
+	if entry == nil {
+		entry = &transcodeSessionEntry{
+			TranscodeSession: TranscodeSession{
+				ID:            key,
+				UserID:        userID,
+				Username:      username,
+				Source:        source,
+				Path:          path,
+				FileName:      fileName,
+				StartedAt:     time.Now().Unix(),
+				MaxResolution: tc.MaxResolution,
+				Preset:        tc.Preset,
+			},
+			hls: nil,
+		}
+		s.sessions[key] = entry
+		s.byUser[userID] = key
+		entry.streams = 1
+	} else if entry.streams <= 0 {
+		entry.streams = 1
+	}
+
+	entry.ActiveStreams = entry.streams
+	status.ActiveCount = len(s.sessions)
+	status.Sessions = s.snapshot()
+
+	sess := entry.TranscodeSession
+	sess.ActiveStreams = entry.streams
+	return transcodeAcquireResult{OK: true, Session: &sess, Status: status}
+}
+
+func (s *transcodeSessionStore) getHLSEntry(sessionKey string, userID uint64) (*transcodeSessionEntry, bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	entry, ok := s.sessions[sessionKey]
+	if !ok || entry.UserID != userID {
+		return nil, false
+	}
+	return entry, true
+}
+
+func (s *transcodeSessionStore) releaseForUserFile(userID uint64, source, path string) {
+	key := transcodeSessionKey(userID, source, path)
+	s.releaseStream(key)
+}
+
+// releaseAllForUser clears every transcode session owned by userID.
+func (s *transcodeSessionStore) releaseAllForUser(userID uint64) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	var keys []string
+	if key, ok := s.byUser[userID]; ok {
+		keys = append(keys, key)
+	}
+	for key, entry := range s.sessions {
+		if entry.UserID == userID {
+			found := false
+			for _, existing := range keys {
+				if existing == key {
+					found = true
+					break
+				}
+			}
+			if !found {
+				keys = append(keys, key)
+			}
+		}
+	}
+	for _, key := range keys {
+		s.releaseStreamLocked(key)
+	}
+}
+
 func (s *transcodeSessionStore) releaseStream(key string) {
 	if key == "" {
 		return
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	s.releaseStreamLocked(key)
+}
 
+func (s *transcodeSessionStore) releaseStreamLocked(key string) {
 	entry, ok := s.sessions[key]
 	if !ok {
 		logger.Debugf("transcode release skipped: key=%s not found", key)

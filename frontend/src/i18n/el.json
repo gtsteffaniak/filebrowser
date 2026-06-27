@@ -602,7 +602,12 @@
     "allShares": "Όλες οι μετοχές",
     "playPause": "Αναπαραγωγή/Παύση",
     "clearSelection": "Εκκαθάριση επιλογής",
-    "interval": "Διάστημα{suffix}"
+    "interval": "Διάστημα{suffix}",
+    "transcode": "Μετατροπή κωδικοποίησης{suffix}",
+    "native": "Γηγενής{suffix}",
+    "quality": "Ποιότητα{suffix}",
+    "balanced": "Ισορροπημένο{suffix}",
+    "dataSaver": "Εξοικονόμηση δεδομένων{suffix}"
   },
   "access": {
     "rules": "Κανόνες πρόσβασης",
@@ -746,7 +751,8 @@
     "transcodeUserLimitReached": "Επιτεύχθηκε το όριο μετατροπής. Έχετε ήδη μια ενεργή συνεδρία μετατροπής:",
     "transcodeSystemLimitReached": "Επιτεύχθηκε το όριο μετακωδικοποίησης του διακομιστή ({limit} ταυτόχρονες διεργασίες). Δοκιμάστε ξανά όταν ολοκληρωθεί μια συνεδρία.",
     "transcodeActiveSessions": "Ενεργές μετατροπές:",
-    "transcodeStart": "Μετατροπή κωδικοποίησης"
+    "transcodeLoading": "Προετοιμασία ροής μετατροπής κωδικοποίησης",
+    "transcodeTimeout": "Η μετατροπή έληξε λόγω χρονικού ορίου. Δοκιμάστε ξανά ή κατεβάστε το αρχείο."
   },
   "fileSizeAnalyzer": {
     "title": "Αναλυτής μεγέθους αρχείου",

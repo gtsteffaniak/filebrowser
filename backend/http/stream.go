@@ -113,7 +113,7 @@ func streamFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	}
 	return serveSingleFile(w, r, d, source, scopedFilePath, displayName, serveSingleFileOptions{
 		forceInline: true,
-		rangeOnly:   streamUseRangeOnly(d, displayName),
+		rangeOnly:   true,
 	})
 }
 
