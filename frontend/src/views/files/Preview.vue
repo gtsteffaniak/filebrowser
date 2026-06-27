@@ -277,6 +277,21 @@ export default {
     mutations.clearNavigation();
   },
   methods: {
+    // Fetches directory metadata and attaches it to listing items (for playback queue)
+    async attachMediaMetadata(listing, dirPath) {
+      if (!listing?.length) return;
+      try {
+        const isShare = getters.isShare();
+        const payload = isShare
+          ? await mediaApi.fetchDirectoryMediaMetadataPublic(dirPath, state.shareInfo.hash, localStorage.getItem(`sharepass:${state.shareInfo.hash}`) || '', true)
+          : await mediaApi.fetchDirectoryMediaMetadata(state.req.source, dirPath, true);
+        if (!payload?.items) return;
+        const metaMap = new Map(payload.items.filter(i => i.metadata).map(i => [i.name, i.metadata]));
+        listing.forEach(item => { if (metaMap.has(item.name)) item.metadata = metaMap.get(item.name); });
+      } catch (e) {
+        console.warn('Preview: directory metadata fetch failed', e);
+      }
+    },
     async loadPreviewForReq() {
       if (!getters.isLoggedIn() && !getters.isShare()) {
         return;
@@ -323,6 +338,11 @@ export default {
       if (state.req.path !== path) {
         return;
       }
+      await this.updatePreview();
+      if (isAv && this.listing) {
+        const directoryPath = url.removeLastDir(state.req.path) || '/';
+        await this.attachMediaMetadata(this.listing, directoryPath);
+      }
       this.subtitlesList = await this.subtitles();
       if (this.previewType === 'audio' && !this.useDefaultMediaPlayer && this.lyricsFetchedForPath !== state.req.path) {
         this.lyricsFetchedForPath = state.req.path;
@@ -343,7 +363,6 @@ export default {
           this.lyrics = [];
         }
       }
-      await this.updatePreview();
       mutations.resetSelected();
       mutations.addSelected({
         name: state.req.name,
